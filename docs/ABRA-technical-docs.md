@@ -1,6 +1,6 @@
 # ABRA — Technical Documentation
 
-**Version 5.260.0 · Last updated 2026-09-06**
+**Version 5.261.0 · Last updated 2026-09-06**
 
 **5.260.0 - FOUR ENGINE DEFECTS ARE CORRECTED. EACH ONE IS MEASURED ALONE.**
 
@@ -1182,35 +1182,27 @@ turn 1 reached an identical board anyway.** The comparator proves itself first: 
 mappings red-demonstrated in both directions and 25 planted state divergences, each of which must be
 caught at the planted boundary and localised to the planted field — 25/25 on all fourteen arms.
 
-**ENGINE CORRECTNESS DOES NOT CHANGE THE LEAF (3.69.0).**
+**WHETHER ENGINE CORRECTNESS CHANGES THE LEAF (3.69.0) — THE ANSWER IS WITHHELD.**
 
 `engine/leaf_engine_contrast.js` measures the effect of engine correctness on prediction quality. It
 writes `data/leaf-engine-contrast.json`. Read all figures from that file.
 
-Procedure. The tool scores the in-game leaf on 8,883 positions. It uses 200 rollouts for each position.
-It uses the same seed for a given position in both arms. It reads the engine from two frozen releases.
-The two releases differ in one file only: `engine/medicham2-browser.js`. The tool stops if they differ
-in more than that file.
+Procedure. The tool scores the in-game leaf on a fixed set of positions. It uses 200 rollouts for each
+position. It uses the same seed for a given position in both arms. It reads the engine from two frozen
+releases. The two releases differ in one file only: `engine/medicham2-browser.js`. The tool stops if
+they differ in more than that file.
 
-Results.
+Results. THE RESULTS ARE WITHHELD.
 
-- The paired Brier difference is 0.0000. The 95% confidence interval is [-0.0007, +0.0007].
-- The split-half noise floor is 0.000642. The smallest detectable effect is 0.001013.
-- The confidence interval is smaller than the smallest detectable effect. The result is a null result.
-  The sample is large enough. Do not report the result as "not detected".
-- The McNemar test gives 37 correct for the new engine and 36 correct for the old engine. The p-value
-  is 0.91.
-
-Divergence depth does not predict leaf error. For the new engine, the Spearman rho is +0.0010 for
-lines and -0.0000 for turns. The minimum detectable rho is 0.0298. For the old engine, both values are
-positive (+0.031 and +0.029). A positive value is the opposite of the hypothesis.
-
-The depth instrument is reliable. A control arm reads the same positions with the driver order
-reversed. The two readings agree at rho 0.836. The null result is therefore a property of the world and
-not of the instrument.
-
-Calibration is the failure. The ECE is 0.1514. The leaf predicts values from 0.06 to 0.94. The observed
-win rate moves only from 0.466 to 0.594. When the leaf predicts 94%, it wins 59%.
+- `engine/quarantine.js` withholds `data/leaf-engine-contrast.json`. The generator is in the play
+  layer. It reads `engine/medicham2-browser.js`. The gate for that file is closed.
+- A withheld figure is not printed with a caution beside it. It is absent. This applies to the sample
+  size, the paired Brier difference, the confidence interval, the noise floor, the smallest detectable
+  effect, the McNemar counts, all rank correlations, the control arm and the calibration error.
+- Do not infer a direction from the absence. This document makes no claim about whether engine
+  correctness changes prediction quality while the gate is closed.
+- The figures become quotable again when two conditions hold. The gate must open. The tool must be
+  run again with `node engine/leaf_engine_contrast.js`.
 
 To run the tool:
 
@@ -1289,17 +1281,22 @@ double oracle. Phase 4 is a result. It is not a failure.
 quote such an artifact. First measure whether the change moved the feature function: run every
 feature column through the old engine and the new engine on the same rows. All 58 columns were
 identical on 1,751,688 rows from 9,230 games. Then the two artifacts were computed again with the
-new engine. The result is the same: the model puts less probability on an action no human chose,
-**-0.002613, 95% CI [-0.003650, -0.001672]**, on 48,274 held-out decisions. `board.js` gives the
-priority rule a body with no type list. This is wrong for 0 of 1,751,688 rows. Do not change it yet.
+new engine. `board.js` gives the priority rule a body with no type list. This is wrong for 0 of
+1,751,688 rows. Do not change it yet.
 
-**Change record for 3.42.0.** The fit checks whether a recorded action was a click. 1,336 of
-241,927 actions were not clicks. Encore replaced 1,116 of them. A phazing move dragged in 220 of
-them. These actions are removed from the training labels. They are counted. 3,260 redirected
-attacks are kept. They are fitted over a set of two possible targets, not one certain target. The
-estimator was tested on data with known answers first. It recovers 97.4% of a planted error. The
-model now puts less probability on an action no human chose: -0.002614, 95% CI [-0.003647,
--0.001610]. The redirection change did not improve anything that can be measured. The overall
+The result of that recomputation is WITHHELD. `engine/quarantine.js` withholds
+`data/censoring-value.json`. Its generator is in the play layer. No effect size, no confidence interval
+and no held-out sample size is printed here. Run `node engine/censoring_value.js` again after the gate
+opens.
+
+**Change record for 3.42.0.** The fit checks whether a recorded action was a click. Some recorded
+actions were not clicks. Encore replaced one group of them. A phazing move dragged in another group.
+These actions are removed from the training labels. They are counted. Redirected attacks are kept.
+They are fitted over a set of two possible targets, not one certain target. The estimator was tested on
+data with known answers first. ALL COUNTS AND ALL EFFECT SIZES IN THIS RECORD ARE WITHHELD.
+`engine/quarantine.js` withholds `data/policy-weights.json` and `data/censoring-value.json`. Their
+generators are in the play layer. Run `node engine/fit_policy.js` and `node engine/censoring_value.js`
+again after the gate opens. The overall
 top-1 accuracy did not change. Two budget counters were replaced. The old counter measured two
 different things at once.
 

@@ -1,6 +1,6 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 5.260.0 · Last updated 2026-09-06**
+**Version 5.261.0 · Last updated 2026-09-06**
 
 **5.260.0 — BOARD-MATERIAL HELD AT 50 OF 961 AND PROTOCOL FIRST-DIVERGENCE FELL 151 -> 114, ON FOUR FIXES MEASURED ONE AT A TIME.** Pins identical on every run: census `data/verification/census-pin-9446a684709d.json`, pool `data/team-pool-frozen`, arm `middle`, steering `empirical`, `--end-state`, cap 20, 961 games. Step by step: **Struggle's missing `-activate` line took protocol to 137**; **the item announcement moving from `onTry` down to `onTryHit` took it to 130**; **`mustrecharge`'s priority moved NOTHING in the pool, by design and as predicted**; **a move with no legal target announcing its own failure took it to 114**. `data/game-differential.json` is republished at 50 / 114 on release `a985300cb8ed`, reproducing the last fix step to the byte on `classes`, `first_divergences`, `state.first_board_divergences` and `end_state`. `node engine/status.js` reads **7 of 9 clauses passing**, both failures being the whole-game clauses on their measured counts. Full account: `docs/_reports/2026-09-06-longtail-batch-C.md`.
 
@@ -1226,36 +1226,19 @@ caught at the planted boundary and localised to the planted field — 25/25 on a
 that ten fixes moved the differential's first-divergence depth from 13 to 19 protocol lines while the
 median completed turn never moved off 1. Which of the two readings — if either — predicts the thing the
 engine exists to serve had never been measured. It has now.
-**Read every figure from `data/leaf-engine-contrast.json`.** MILTANK's live in-game leaf
-(`rolloutWinProb`, n=200, explore=1.0, foePolicy uniform, horizon 60) was scored on **8,883 identical
-positions with identical per-position seeds** through two frozen engine releases that differ in
-**exactly one file**, `engine/medicham2-browser.js` — same weights, same board, same damage table, same
-tag file, same pinned Showdown commit; the generator refuses to run if that is not true.
-Paired Brier, WIRE 10 minus pre-WIRE-1, is **0.0000 with a 95% CI of [−0.0007, +0.0007]**, against a
-split-half noise floor of **0.000642** and a smallest detectable effect of **0.001013**. The interval is
-narrower than the effect the sample can resolve, so this is a **tight null and not an underpowered
-one**. McNemar over the 7,994 positions where both engines made a decisive call gives 37 discordant for
-WIRE 10 and 36 for the baseline (p = 0.91).
-**Neither depth metric predicts per-position leaf error.** Spearman rho between a position's
-first-divergence depth and that position's Brier: under the shipping engine **+0.0010 [−0.019, 0.022]**
-in lines and **−0.0000 [−0.021, 0.023]** in turns, against an MDE of 0.0298. Under the pre-WIRE-1
-engine both are nominally significant, **both carry the wrong sign** (more correct simulation → larger
-leaf error, rho +0.031 and +0.029) and both sit at the detection threshold. The difference form —
-change in depth against change in error, in which every position-level confound constant across the two
-engines cancels — is **rho −0.0115 [−0.0307, +0.0082]** on 8,601 positions. The turn metric is **not**
-degenerate on this sample (13 distinct values, modal share 0.68), so the obvious escape is measured and
-rejected. A reversed-order control establishes that the null is not the ruler: re-reading the same
-positions with the coverage driver's history deliberately changed reproduces the depth at **rho 0.836
-[0.825, 0.846]**.
-**What does limit the leaf is calibration, and it is a compression.** ECE **0.1514**; 88 points of
-predicted range map onto 13 points of observed range; when the leaf says 94% it wins 59%. Both engines
-remain decisively worse than a coin (paired Brier vs coin **+0.0325 [0.0281, 0.0372]**). Discrimination
-is 52.48% of 8,320 decisive calls in sample — against a 2.49-point split-half floor for a 2.48-point
-effect, so it is not an effect by this project's own rule — and **50.48%, p = 0.70, on the held-out
-newest fifth**. The engine fidelity gain is meanwhile real and replicates on this independent sample
-(games that never part 13 → 246, median divergence line 12 → 16, median completed turns 1 → 1). It
-simply does not reach the leaf. **Engine correctness is not the bottleneck; grinding the differential
-further cannot move the number the search is an argmax over.**
+**EVERY FIGURE THIS PARAGRAPH CARRIED IS QUARANTINED — the figures are withheld, not annotated.**
+`data/leaf-engine-contrast.json` is downstream of MEDICHAM: its generator
+`engine/leaf_engine_contrast.js` is in the play layer, reaching `engine/medicham2-browser.js` through
+`require`, so every number in it was produced by a simulator the gate does not certify. MEDICHAM is not
+correct — `engine/quarantine.js` reports the failing clauses, and `node engine/status.js` names which.
+No sample size, no paired Brier, no confidence interval, no noise floor, no rho, no ECE and no
+discrimination share is carried in its place; the comparison of the leaf across two engine releases is
+unquotable rather than retracted, and it is not a claim whose direction may be inferred from the
+absence. It becomes quotable again when the gate opens AND this is re-run:
+`node engine/leaf_engine_contrast.js`. The dated block above stands as written for what it says about
+the INSTRUMENT — the two releases differ in exactly one file, the generator refuses to run if that is
+not true, and the reversed-order control exists — because those are statements about apparatus rather
+than measurements taken through the simulator.
 
 **THE RELEASE LADDER, AND THE HONEST ANSWER IS THAT SIX FIXES DID NOT MOVE THE MEDIAN (3.68.0).**
 `engine/wire_ladder.js` replays every frozen release of the 2026-08-06/07 wire night through the
@@ -1447,11 +1430,15 @@ also lose to player-Elo. The reliability curve is nearly flat — the in-game le
 
 *This supersedes, and partly corrects, the earlier reading.* The 2026-07-23 figure ("log-loss ≈ 1.2;
 picks the winner on ~44% of decisive calls, i.e. systematically **inverted**") is retained here because
-a prior conclusion is never silently rewritten, but the inversion **does not replicate**: at twenty
-times the sample the same family of leaves sits slightly *above* chance, not below it. The 44% was a
-small-sample excursion. What replicates, and replicates decisively, is the **overconfidence**: the
-preview leaf puts 25.6% of its predictions into the two extreme buckets and is wrong there by about 40
-points. Full curve, counts and intervals in `data/winrate-backtest.json`.
+a prior conclusion is never silently rewritten. **WHAT THE LARGER RE-MEASUREMENT SAID IS QUARANTINED —
+the figures are withheld, not annotated.** `data/winrate-backtest.json` is downstream of MEDICHAM: its
+generator `engine/backtest_winrate.js` is in the play layer, reaching `engine/medicham2-browser.js`
+through `require`, and the artifact was measured against a build of that simulator which no longer
+exists. MEDICHAM is not correct — `node engine/status.js` names the failing clauses. So no replication
+verdict, no bucket share, no calibration gap and no sample size is carried here: whether the inversion
+replicates is an OPEN question in this document, not a settled one, and the reader may not infer the
+direction from the absence. It becomes quotable again when the gate opens AND this is re-run:
+`node engine/backtest_winrate.js`.
 
 The conclusion is not "our models are weak." It is a property of the game: a two-player, zero-sum,
 **imperfect-information, simultaneous-move** game with a non-transitive metagame has an irreducible
@@ -1966,24 +1953,24 @@ Light Screen B, Life Orb C) and refuses to publish if it cannot reproduce them.
 ## Outplayed turns are not noise: the click-censoring fix (3.42.0)
 
 The policy fits learn from human clicks reconstructed out of replay logs. The log records what
-**happened**; the fit needs what was **clicked**. Across all **241,927 recorded human actions over
-8,942 clean open-sheet games** (`data/policy-weights.json`, the fit corpus), **1,336 (0.5522%) were
-never clicks at all** and were being fitted as though they were. The classifier that decides which
-is which is measured separately, against the protocol's own annotations over 10,009 games
-(`data/click-censoring-census.json`, re-run 2026-08-05 on the current engine) — a slightly larger
-sweep than the fit, because the census reads every stored game while the fit takes only those it can
-build a board for:
+**happened**; the fit needs what was **clicked**. Some recorded actions were never clicks at all and
+were being fitted as though they were; the classifier that decides which is which is measured
+separately against the protocol's own annotations.
+**THE SIZE OF THE CORPUS, THE SIZE OF THE CENSORED SLICE AND THE CLASS SHARES ARE ALL QUARANTINED —
+they are withheld, not annotated.** `data/policy-weights.json` and `data/click-censoring-census.json`
+are both downstream of MEDICHAM: their generators `engine/fit_policy.js` and `engine/click_census.js`
+sit in the play layer and reach `engine/medicham2-browser.js` through `require`, so the corpus counts
+are counts of games this simulator could build a board for. MEDICHAM is not correct —
+`node engine/status.js` names the failing clauses. No action count, no game count, no censored share
+and no per-class table is carried in its place, and the absence may not be read as a claim that the
+slice is small. They become quotable again when the gate opens AND these are re-run:
+`node engine/fit_policy.js` and `node engine/click_census.js`. What survives without a figure is the
+MECHANISM, which is a fact about the protocol rather than a measurement.
 
-| class | n | share | mechanism |
-|---|---|---|---|
-| CLEAN | 256,394 | 94.9530% | the recorded action is the click |
-| PARTIAL | 3,559 | 1.3180% | a redirector soaked the attack; the true target is one of two live foes |
-| **COERCED** | **1,475** | **0.5463%** | Encore replaced the action (1,243); a phazing move dragged the mon in (232) |
-| unreadable | 7,668 + 888 + 38 | 3.1827% | unmatched, trivial, ambiguous |
-
-The shares are the reason this table can be re-run without re-arguing the fit: the census has now been
-taken three times as the store grew, and the three class shares agree to a hundredth of a point across
-all of them (`CHANGELOG.md` 3.42.0 and 3.47.0).
+The census has been taken three times as the store grew and the class shares were stable across all
+three, which is why it can be re-run without re-arguing the fit. The shares themselves are withheld
+here for the reason above; the earlier readings stay where they were published, in `CHANGELOG.md`
+3.42.0 and 3.47.0.
 
 Both coerced classes were **invisible to every counter in the project**. The move Encore forces out
 is on the victim's own legal menu, so the matcher accepted it; and `|drag|` is stored with the same
@@ -2010,24 +1997,21 @@ seeds (`data/partial-label-em.json`):
 EM recovers **97.4%** of the censoring bias where the naive fit is visibly wrong, and at the rate the
 corpus actually censors the bias is **−0.0030 against a 0.2600 floor** — inside the noise.
 
-**Result, paired on 48,274 held-out decisions over 1,851 games, bootstrapped over GAMES**
-(`data/censoring-value.json`, re-run 2026-08-05 on the current engine and the grown corpus; every
-figure below is inside the interval of the smaller 3.42.0 run it replaces — that run's numbers are in
-`CHANGELOG.md` 3.42.0 and `docs/MEASURE.md` §14, and the comparison is tabulated in §17):
+**THE PAIRED HELD-OUT RESULT IS QUARANTINED — every figure it carried is withheld, not annotated.**
+`data/censoring-value.json` is downstream of MEDICHAM: its generator `engine/censoring_value.js` is in
+the play layer and reaches `engine/medicham2-browser.js` through `require`, so the held-out decisions
+it scored were scored through a simulator the gate does not certify. MEDICHAM is not correct —
+`node engine/status.js` names the failing clauses. No sample size, no per-class effect and no
+confidence interval is carried in its place, and no direction may be inferred from the absence — in
+particular this document does NOT here claim that the correction helped, that it did nothing, or that
+it hurt. The earlier 3.42.0 reading stays where it was published, in `CHANGELOG.md` 3.42.0 and
+`docs/MEASURE.md` §14, as history rather than as a current figure. It becomes quotable again when the
+gate opens AND this is re-run: `node engine/censoring_value.js`.
 
-| held-out class | after − before | |
-|---|---|---|
-| **COERCED** (n=293): P(model picks the action no human chose) | **−0.002613 [−0.003650, −0.001672]** | clears zero |
-| **PARTIAL** (n=650): mass on the true candidate set | +0.000122 [−0.000261, +0.000514] | contains zero |
-| PARTIAL: log-likelihood of the candidate set | −0.002662 [−0.004002, −0.001368] | clears zero, **worse** |
-| CONTROL, CLEAN (n=47,331): log-likelihood | +0.000485 [0.000189, 0.000777] | clears zero |
-| CONTROL, CLEAN: top-1 | −0.008 [−0.107, 0.085] | contains zero |
-
-Read plainly: **the fabricated labels are unlearned and the redirection correction bought nothing
-measurable.** Its own validation predicted that — the class is 1.35% of actions with a candidate set
-of exactly two, so there was almost no bias to remove. No corpus-wide top-1 improvement is claimed;
-the fix's justification is that a wrong label is a wrong label. Every effect is smaller than its
-class's split-half noise floor and resolves only because the comparison is paired per decision.
+Read plainly: **the verdict is withheld with the figures it rested on.** What is NOT withheld is the
+justification for the fix, which never depended on the measurement: a wrong label is a wrong label,
+and the redirection class was always small enough that its own validation predicted almost no bias to
+remove. No corpus-wide top-1 improvement was ever claimed for it.
 
 The mechanism is legible in the refit: of 58 weights, 9 moved past 2 SE and the largest single
 movement is `stallIntoEncore` — *"I am about to Protect and something across from me can Encore me

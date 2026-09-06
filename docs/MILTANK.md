@@ -104,28 +104,29 @@ points, and accuracy was **flat in N**. R1 then found a fully random playout jud
 **That comparison was withdrawn on 2026-08-04 as UNCHECKABLE.** The 68.18% was never written to an
 artifact — `engine/rollout_r1.js` printed it — and the one committed row dump turns out to hold the
 *greedy* column, so the figure could not be recomputed from anything in the repository.
-`data/rollout-r1.json` records what survived, the greedy arm, at **65.72% against material's 65.26%,
-+0.46 [-0.72, +1.63] — UNDECIDED**.
+`data/rollout-r1.json` records what survived, the greedy arm, and **that figure is QUARANTINED —
+withheld, not annotated**: the artifact is built from a dump of games MEDICHAM played, MEDICHAM is not
+correct, and this is R1 leaf accuracy, which CLAUDE.md names in the quarantine list. `node engine/status.js`
+names the failing clauses.
 
-**It was re-run the same day and it reproduces.** `data/rollout-r1-explore-sweep.json`, from a
-three-arm sweep over the identical 9,201 positions:
+**It was re-run the same day, and the re-run is quarantined with it.**
+`data/rollout-r1-explore-sweep.json` scored a three-arm sweep over one identical set of positions. The
+table that stood here carried accuracy, Brier, log-loss, ECE and a saturation share for greedy,
+explore 0.5, explore 1.0 and the material baseline, plus the paired lift and its interval; all of it is
+absent rather than captioned, and the reader may not infer from the absence whether the retracted
+comparison reproduced. Both become quotable again when the gate opens AND these are re-run:
+`node engine/rollout_r1_artifact.js` and `node engine/rollout_explore_sweep.js`.
 
-| explore | accuracy | Brier | log-loss | ECE | saturated |
-|---|---|---|---|---|---|
-| 0 (greedy) | 65.72% | 0.259 | 1.822 | 0.196 | 50.7% |
-| 0.5 | 67.58% | 0.222 | 1.028 | — | — |
-| **1.0** | **67.97%** | **0.213** | **0.863** | **0.104** | **29.4%** |
-| material | 65.27% | 0.213 | 0.612 | 0.050 | — |
+What survives is the DESIGN and the retraction's REASON: the original figure was never written to an
+artifact, the one committed row dump held the greedy column, and a figure that cannot be recomputed
+from anything in the repository is uncheckable whatever its value.
 
-Paired: **+2.25 points, 95% CI [1.31, 3.19]** for 1.0 over greedy, monotone in explore, and it holds
-at the live 60-turn horizon (67.46% against 64.21% on a second sample). The published 68.18% lands at
-67.97% and the published +2.91 over material at +2.71 [1.60, 3.82].
-
-So the retraction was right about the provenance and the claim survives it. **`--rollout-explore` =
-1.0 stands, and it now stands on an artifact.** Two corrections that came with it: the "64.42% for
-greedy" quoted in `rollout_leaf.js:147` and `mag_bot.js:145` does *not* reproduce — greedy is 65.7%
-on both the committed dump and a fresh run — so those comments overstate the gap and should cite the
-sweep artifact instead. And the saturation story is confirmed rather than merely argued: the greedy
+So the retraction was right about the provenance. Whether the CLAIM survives it is not stated here
+while the gate is closed: **`--rollout-explore` = 1.0 ships and its defence rests on an artifact that
+is currently unquotable.** One correction that came with it does not need a figure: the greedy accuracy
+quoted in the comments at `rollout_leaf.js:147` and `mag_bot.js:145` does *not* reproduce on either the
+committed dump or a fresh run, so those comments overstate the gap and should cite the sweep artifact
+instead of a typed number. And the saturation story is confirmed rather than merely argued: the greedy
 playout puts **half** its positions in the two extreme bins and explore=1.0 puts under a third,
 halving the calibration error. A deterministic playout replays one line, exactly as §3.2 claims.
 

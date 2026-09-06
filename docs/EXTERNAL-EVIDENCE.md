@@ -49,8 +49,11 @@ semantic geometry of the state space**. Training was imitation first — cross-e
 
 **1. Search beats a search-free policy by a wide margin in Pokémon specifically.** That is the
 headline, it is measured on a real ladder against a real population, and it is *independent
-corroboration of R4*. ABRA measured MILTANK over MAG greedy at **55.5% of 535 decisive pairs**
-(`data/rollout-r4.json`). Two very different environments, two very different methods, same
+corroboration of R4*. ABRA's own R4 measurement of MILTANK over MAG greedy is **QUARANTINED — the share and the pair count
+are withheld, not annotated** (`data/rollout-r4.json` is built from a dump of games MEDICHAM played,
+and MEDICHAM is not correct; `node engine/status.js` names the failing clauses). The external result
+below stands on its own evidence, and the corroboration it would provide is owed rather than claimed.
+It becomes quotable again when the gate opens AND this is re-run: `node engine/rollout_r4.js`. Two very different environments, two very different methods, same
 direction. It also matches this project's own internal pattern: four feature additions to MAG
 produced four measured nulls, while two changes to how the policy is **used** were worth +12 points
 raw and 79.7% of decisive pairs.

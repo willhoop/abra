@@ -18,9 +18,11 @@ caught at the planted boundary and localised to the planted field — 25/25 on a
 
 **THIS INSTRUMENT'S OUTPUT DOES NOT PREDICT THE LEAF, AND THAT IS NOW MEASURED (3.69.0).**
 `data/leaf-engine-contrast.json` joins this file's first-divergence depth, per position, to MILTANK's
-per-position leaf error over 8,883 corpus positions. **Neither depth in LINES nor depth in TURNS
-predicts leaf error** under the shipping engine (rho +0.0010 and −0.0000, MDE 0.0298), and under the
-pre-WIRE-1 engine both are nominally significant with the **wrong sign**. That is not an argument
+per-position leaf error. **Every figure of that join is QUARANTINED — withheld, not annotated**: the
+artifact is downstream of MEDICHAM (`engine/leaf_engine_contrast.js` reaches
+`engine/medicham2-browser.js` through `require`), so the sample size, the rank correlations, the
+smallest detectable effect and the sign under the older engine are all absent, and it becomes quotable
+again when the gate opens AND this is re-run: `node engine/leaf_engine_contrast.js`. That is not an argument
 against the instrument — it measures conformance to the authority, which is worth having on its own
 terms and is what ADR-002 asks for. It is an argument against **spending further engine effort in order
 to move the leaf**, and it retires "line depth is the better steering number" as an unvalidated

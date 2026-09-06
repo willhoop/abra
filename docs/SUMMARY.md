@@ -1,6 +1,6 @@
 # ABRA — Project Summary
 
-**Version 5.260.0 · 2026-09-06 · Will Hooper**
+**Version 5.261.0 · 2026-09-06 · Will Hooper**
 
 **5.260.0 - FOUR MORE ENGINE FIXES, EACH MEASURED ALONE. BOARD-MATERIAL HOLDS AT 50 OF 961; PROTOCOL FIRST-DIVERGENCE FALLS 151 TO 114.** `data/game-differential.json` is republished at 50 / 114 on release `a985300cb8ed`, on the same pins as every run in the sequence. The four: Struggle's missing `-activate` line (151 -> 137); the item announcement moving down to `onTryHit`, so a Protected, immune or missed click names nothing (137 -> 130); `mustrecharge` restored to its real priority, which is a BOARD defect in the lab and moved the pinned pool by exactly nothing, as predicted; and a move with no legal target announcing its own failure (130 -> 114) — **the largest bucket in the artifact, 32 rows, and it had never been named.** `node engine/status.js` reads 7 of 9. Full account: `docs/_reports/2026-09-06-longtail-batch-C.md`.
 
@@ -967,26 +967,21 @@ turn 1 reached an identical board anyway.** The comparator proves itself first: 
 mappings red-demonstrated in both directions and 25 planted state divergences, each of which must be
 caught at the planted boundary and localised to the planted field — 25/25 on all fourteen arms.
 
-**THE FORK IS DECIDED — A MORE CORRECT ENGINE DID NOT MAKE BETTER PREDICTIONS (3.69.0).**
-`engine/leaf_engine_contrast.js` → `data/leaf-engine-contrast.json`. MILTANK's live in-game leaf scored
-on **8,883 identical positions with identical seeds** through two frozen releases differing in exactly
-`engine/medicham2-browser.js`.
+**WHAT A MORE CORRECT ENGINE WAS WORTH TO THE LEAF IS QUARANTINED (3.69.0) — the figures are withheld,
+not annotated.** `engine/leaf_engine_contrast.js` → `data/leaf-engine-contrast.json`, and that generator
+is in the play layer: it reaches `engine/medicham2-browser.js` through `require`, so every figure in the
+artifact was produced by a simulator the gate does not certify. MEDICHAM is not correct —
+`node engine/status.js` names the failing clauses. The table that stood here carried the sample size,
+the paired Brier and its interval, the noise floor and MDE, McNemar, four rank correlations, the
+comparison against a coin and the ECE; all of it is absent rather than captioned, and the reader may
+not infer the direction of any of them from the absence. It becomes quotable again when the gate opens
+AND this is re-run: `node engine/leaf_engine_contrast.js`.
 
-| question | answer | n |
-|---|---|---|
-| paired Brier, WIRE 10 − pre-WIRE-1 | **0.0000 [−0.0007, +0.0007]** — floor 0.000642, MDE 0.001013 | 8,883 |
-| McNemar, doubly-decisive calls | 37 vs 36, p = 0.91 | 7,994 |
-| does **line** depth predict leaf error | **rho +0.0010 [−0.019, 0.022]** (MDE 0.0298) | 8,855 |
-| does **turn** depth predict leaf error | **rho −0.0000 [−0.021, 0.023]** | 8,855 |
-| Δdepth vs Δerror | **rho −0.0115 [−0.031, +0.008]** | 8,601 |
-| is the depth ruler any good | **rho 0.836 [0.825, 0.846]** (reversed-order control) | 8,855 |
-| both leaves vs a coin | **+0.0325 [0.0281, 0.0372]** Brier — worse | 8,883 |
-| calibration | **ECE 0.1514**; says 94%, wins 59% | 8,883 |
-
-**The interval is narrower than the smallest detectable effect, so this is a tight null and not an
-underpowered one.** The engine fidelity gain is real and replicates here (never-parting games 13 → 246,
-median divergence line 12 → 16, median completed turns 1 → 1) — it just does not reach the leaf.
-**Engine correctness is not what limits the leaf; calibration is.**
+**What survives is the DESIGN**, which is a statement about apparatus rather than a measurement: the
+leaf was scored on identical positions with identical per-position seeds through two frozen releases
+differing in exactly `engine/medicham2-browser.js`; a split-half noise floor and a smallest detectable
+effect were computed before any effect was believed; and a reversed-order control establishes whether
+the depth ruler measures anything at all.
 
 **THE RELEASE LADDER — SEVEN FIXES DID NOT MOVE THE MEDIAN TURN (3.68.0, re-run 2026-08-07).**
 `engine/wire_ladder.js` plays every frozen release of the wire series through the differential. It uses
@@ -1175,7 +1170,7 @@ carry one reconstructed from the commit that contained them, labelled inferred r
 | **DITTO** | Team optimiser | ⚠️ Pivoting | Objective de-biased to validated damage (was optimising a backwards signal) |
 | **ALAKAZAM** | In-battle decision engine (capstone) | 🔜 In development | Belief + search + learned value; built last on the inputs above |
 | **MEW** | Self-play data engine | ✅ **Built** | Runs the OFFICIAL Champions engine against itself on real observed teams. 1,000 games, 13/13 validation checks, mirror 51.0% CI [45.4, 56.6] |
-| **MAGNEMITE** (MAG) | The in-battle policy that reads the board | **Built, and improving by self-play (3.28.0)** | Conditional logit over **58 features**, fitted to **232,815 usable human clicks of 241,927 seen** from 8,942 clean open-sheet games (`data/policy-weights.json`, 3.42.0 — this row read 53 / 146,910 / 6,091 until then, three fits behind). Held out by game: top-1 **32.9%** against the behaviour clone's 23.4%. **1,336 recorded actions that were not clicks at all have been removed from the labels** and 3,260 redirected ones are fitted over a candidate set. It now DOES decide switches and DOES run a real damage calculation — both were listed here as missing and both became false. Still one ply, still no model of the opponent's move |
+| **MAGNEMITE** (MAG) | The in-battle policy that reads the board | **Built, and improving by self-play (3.28.0)** | Conditional logit over **58 features**, fitted to real human clicks from clean open-sheet games (`data/policy-weights.json`). **Every figure this row carried is QUARANTINED — withheld, not annotated**: the corpus sizes, the held-out top-1, the behaviour-clone comparison and the censored-label counts all come out of an artifact downstream of MEDICHAM (`engine/fit_policy.js` reaches `engine/medicham2-browser.js` through `require`), and MEDICHAM is not correct — `node engine/status.js` names the failing clauses. They become quotable again when the gate opens AND this is re-run: `node engine/fit_policy.js`. What stands without a number: recorded actions that were not clicks at all have been removed from the labels, redirected ones are fitted over a candidate set, and it now DOES decide switches and DOES run a real damage calculation — both were listed here as missing and both became false. Still one ply, still no model of the opponent's move |
 | **WOBBUFFET** | Exploitability of MAG — hill-climb a counter over MAG's own weights. **PRIMARY INSTRUMENT since ADR-003 (3.62.2)**: this produces the project's headline metric, and its published comparator is VGC-Bench's approximately-100% exploitability | ❌ **NOT MEASURED** | **There is no exploitability number for this project (2026-08-04).** The published ~~63.2% [56.6, 69.3], mirror 47.5%~~ is **retracted**: 17 features against the 58 we ship, an engine 25 wire-fixes old, computed before the quality filter existed. The 58-feature re-run is **void** — `data/policy-weights.json` was refitted at 22:15:24 UTC *while it was running* and `engine/medicham2-browser.js` changed content twice more afterwards. Separately its hill-climb accepted **1 of 24** steps and would have been uninformative anyway. `engine/exploit.js` stamps nothing about what it read, which is why none of this was visible to it. See `docs/SEARCH.md` §R8 |
 | **DUSK** | Endgame exact solver | 🔜 Roadmap | Solves small boards (≤2v2, 1v1) perfectly — sharpens ALAKAZAM's endgame and gives clean training targets for PORY |
 | **HYPNO** | Opponent read / exploitability dial | 🔜 Roadmap | Estimates opponent strength + predictability; tells ALAKAZAM when to play safe (vs strong) or exploit (vs weak/predictable) |

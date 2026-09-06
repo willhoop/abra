@@ -128,9 +128,10 @@ roster, which is what the Open item below used to ask for.
   quote a leaf calibration figure faithfully out of `data/winrate-backtest.json`. A faithful citation
   of a quarantined artifact is still a republication. Leaf calibration: QUARANTINED — the figure is
   withheld, not annotated. `data/winrate-backtest.json` is downstream of MEDICHAM: it was measured on
-  2026-08-04 against an `engine/medicham2-browser.js` of **134,648** bytes, which the artifact records
-  in its own `measured_against` block, and the live simulator is more than twenty times that size — so
-  it is a claim about a build that no longer exists. No point estimate, no interval and no sample size
+  2026-08-04 against a build of `engine/medicham2-browser.js` that the artifact records in its own
+  `measured_against` block, and the live simulator is more than twenty times that size — so it is a
+  claim about a build that no longer exists. The recorded byte size goes with the rest of the artifact:
+  it is a figure the artifact carries, so it is withheld here too rather than quoted as evidence. No point estimate, no interval and no sample size
   is carried in its place. It becomes quotable again when the gate opens AND this is re-run:
   `node engine/backtest_winrate.js`.
 
@@ -320,8 +321,8 @@ roster, which is what the Open item below used to ask for.
   MACHAMP renders `data/ladder.json`'s own record — **2 of the 8 generations it asked for, no
   verdict, 48-feature vector** — and that its champion was deleted, 48 against the **58** in
   `data/policy-weights.json`. WOBBUFFET renders the ABSENCE: `data/exploitability.json` carries
-  `void: true`, so **there is no exploitability number** and the retracted 63.2% appears nowhere, not
-  even struck through.
+  `void: true`, so **there is no exploitability number** and the retracted share appears nowhere, not
+  even struck through — including on this page, which is why it is not written out here either.
   Layout re-checked by script before and after: viewBox 1560 → **2040**, 28 boxes, **no rect out of
   bounds, no two rects overlapping, no routed arrow through a box interior** (47 straight segments
   and 6 beziers sampled at 1% steps), and no new text run exceeding its box.

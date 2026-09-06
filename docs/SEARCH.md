@@ -1827,9 +1827,12 @@ that transfer.
 ### And the screen is run by the same coin
 
 `engine/miltank.js:1204` evaluates every candidate pair with a **cheap rollout** and keeps the top
-`FINAL_K`. The rollout is the leaf that `data/winrate-backtest.json` measures at 51.0% of 1,314
-decisive calls, CI [48.3, 53.7]. **So the coin is not only scoring the finalists, it is choosing
-them.** MAG is not used for the screen and `miltank.js:1008-1012` records why: `_candsFor` returns
+`FINAL_K`. The rollout is the leaf that `data/winrate-backtest.json` measures, and **that measurement
+is QUARANTINED — withheld, not annotated**: the artifact is downstream of MEDICHAM
+(`engine/backtest_winrate.js` reaches `engine/medicham2-browser.js` through `require`), so no accuracy,
+no decisive-call count and no interval is carried here. It becomes quotable again when the gate opens
+AND this is re-run: `node engine/backtest_winrate.js`. **The structural point does not need the number:
+the same leaf is not only scoring the finalists, it is choosing them.** MAG is not used for the screen and `miltank.js:1008-1012` records why: `_candsFor` returns
 candidates **with no scores attached**, so an earlier top-K attempt silently sorted by array order —
 *"an arbitrary shortlist that LOOKS principled."* (#37)
 
@@ -2064,7 +2067,8 @@ node --max-old-space-size=2048 engine/exploit.js \
   `search.accepted` (a `search_died: true` makes the rest meaningless), `void` (must be absent), and
   `pool_announcements` (must hold exactly one line).
 - The headline is `headline.kind: "held-out confirmation"`. **`searchBest` is not the result** — see
-  the selection floor in R9, where 25 x 220 returns 56.6% from pure noise.
+  the selection floor in R9, where a search of this shape returns a winning-looking share from pure
+  noise; the floor itself is withheld with the void artifact it was measured beside.
 
 Then re-verify: `node engine/engine_release.js list` must still read `0 of 12 files have moved`, and
 `node engine/provenance.js` must show `exploitability-wobbuffet-e2.json` verified by CONTENT rather

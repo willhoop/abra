@@ -1,6 +1,6 @@
 # ABRA — the plain-English deck
 
-**Version 5.260.0 · 2026-09-06 · Will Hooper**
+**Version 5.261.0 · 2026-09-06 · Will Hooper**
 
 **5.260.0 - FOUR MORE FIXES. THE "DIFFERENT BOARD" SCORE STAYED AT 50 GAMES OUT OF 961; THE "DIFFERENT COMMENTARY" SCORE FELL FROM 151 TO 114.** All four were about the simulator saying the wrong thing, or saying nothing, rather than about it doing the wrong thing — which is why the board score did not move and we said in advance that it would not.
 
@@ -1036,18 +1036,21 @@ better, and the answer is no.**
 A night of engine fixes made our simulator agree with the official one for much longer before the two
 part company. The obvious next question is whether that helps — and nobody had checked. So we took the
 one number the bot actually uses to choose a move (its guess at "how likely am I to win from here"),
-and we ran it over **8,883 real ladder games twice**: once through the old engine, once through the
-fixed one, on the same games with the same dice. The two engines differ in exactly one file, so nothing
-else can explain a difference.
+and we ran it over a large set of real ladder games twice: once through the old engine, once through
+the fixed one, on the same games with the same dice. The two engines differ in exactly one file, so
+nothing else can explain a difference.
 
-**They scored the same.** Not "close" — the same, to four decimal places, with an error bar tighter
-than the smallest difference the test could have spotted. On the games where both engines committed to
-a winner, the fixed engine got 37 right that the old one missed, and the old one got 36 right that the
-fixed one missed. That is a coin flip.
+**We are not allowed to tell you what came out, and that is deliberate.** The simulator those scores
+were produced on has not passed its own correctness gate, so every number from this comparison is
+WITHHELD rather than printed with a warning beside it — this project has learned that a warning beside
+a number does not stop the number being quoted. There is no score, no error bar, no sample size and no
+count of who-got-what-right here, and you should not read the silence as "it was small" or "it was
+big". The moment the gate opens the comparison is re-run and the answer goes back in.
 
-We also checked it position by position: are the games where our simulator is most faithful the games
-where the bot predicts best? **No relationship at all** — and we proved that is a real finding rather
-than a blunt instrument, by re-measuring the faithfulness a second way and confirming it lines up with
+What we CAN say is how it was built, because that part does not depend on the simulator being right:
+the same games, the same dice, two frozen copies of the code differing in exactly one file, a noise
+floor measured before any effect was believed, and a re-measurement of the faithfulness a second way to
+confirm it lines up with
 itself.
 
 **So what IS wrong with the bot's guess?** It is wildly overconfident. It uses the full range from 6%
@@ -1393,11 +1396,13 @@ When Encore hits you, the game **takes the controls away** and makes you repeat 
 replay just shows you using that move. Because it is a move you legitimately own, every check we had
 said "looks like a normal choice" and the model dutifully learned it as one. The same thing happened
 whenever Roar or Whirlwind blew a Pokémon in — the replay writes that arrival exactly like a
-voluntary switch, so we were teaching the bot to make switches the player never made. **1,336 of
-241,927 recorded actions across 8,942 games were things no human chose.** That is not a small
-rounding error being fed to the model; it is a small amount of outright fiction, and it was
-concentrated on the turns where the opponent had just outplayed the player. Those are gone now, and
-counted, so we can see the number.
+voluntary switch, so we were teaching the bot to make switches the player never made. **A slice of the
+recorded actions we were learning from were things no human chose.** The counts are WITHHELD — they
+come out of the fitted model's own corpus file, which was built on a simulator that has not passed its
+correctness gate — but the mechanism does not depend on the count: it is not a rounding error being fed
+to the model, it is outright fiction, and it was concentrated on the turns where the opponent had just
+outplayed the player. Those are gone now, and counted, so the number comes back the moment it may be
+quoted.
 
 The other half — Follow Me and Rage Powder — is subtler. The replay only records where an attack
 *landed*, so when a Pokémon soaks the hit we could not tell which target the player was aiming at.

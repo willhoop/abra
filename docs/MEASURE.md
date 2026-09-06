@@ -38,6 +38,19 @@ _stamped 2026-09-06 01:28_
 
 <!-- /GENERATED -->
 
+## SIXTY-SEVEN WITHHELD FIGURES WERE STILL BEING PUBLISHED IN THE LIVING DOCUMENTS, EVERY CITATION FAITHFUL — **104 → 37**, AND THE 37 THAT STAND ARE THE RULER, NOT THE DEBT. 2026-09-06, CHANGELOG 5.261.0
+
+**WHAT MOVED.** `tests/test-docs-quarantine.js` counted **104** figures across 14 living documents sourced from artifacts `engine/quarantine.js` withholds. **37 still fire.** Cleared to zero: `docs/SUMMARY.md`, `docs/MEASURE.md`, `docs/MILTANK.md`, `docs/PRIORITIES.md`, `docs/EXTERNAL-EVIDENCE.md`, `docs/GAME-DIFFERENTIAL-DESIGN.md`, `docs/ENGINE-COVERAGE-PLAN.md`; `docs/ABRA-whitepaper.md` 15 → 2, `docs/MODELS.md` 23 → 5, `docs/SEARCH.md` 5 → 2, `docs/WEB.md` 4 → 2. Every removal uses `status.js`'s own `sayHeld` shape — the figure is ABSENT, the artifact is named with why it is downstream, and the re-run command is given — because a strike-through, a "previously" and a `PRE-CHANGE` caption have each already been shown not to stop a number being quoted.
+
+**THE DECK AND THE TECHNICAL DOCS WERE CARRYING THE SAME FIGURES AND THE RATCHET COULD NOT SEE THEM.** The clause fires on a figure that shares a PARAGRAPH with a citation of the withheld artifact. `docs/ABRA-deck-plain-english.md` states its numbers in plain English with the artifact named nowhere near them, so it scored zero offenders while republishing the leaf comparison and the censored-label counts. They are withheld now for the same reason as the whitepaper's, but the general point is the instrument's: **a document that cites nothing is invisible to a rule keyed on citations**, and the plain-English deck is exactly the document most likely to cite nothing.
+
+**THE 37 THAT STAND ARE NOT DEBT OF THIS KIND AND MUST NOT BE "FIXED" BY DELETING THE FIGURES.** They divide in two, and both are the CLASSIFIER rather than the documents.
+
+- **A COINCIDENCE ENGINE INSIDE `data/policy-weights.json`.** `artifactNumbers` walks strings, and that artifact carries a `featureHashes.features` map of integer HASHES. Six of them match a figure in a document by accident — the hashes of `benchRisk`, `tgtBulk`, `koFirst`, `switchSurvives1`, `pivots` and `statusBites` — once the matcher's legitimate ×100 and ÷100 rescaling is applied. Two fitted floats do the same: one weight rescales onto a percentage a document states, and one unweighted column onto another. The hash values are not written out here, because writing them out is itself a republication and this rule has no prose escape — it was demonstrated on this very paragraph, which fired three times before it was rewritten. Every one of those document figures belongs to a DIFFERENT and non-withheld source — the damage differential, the empirical-click driver's reach rate, a planned game budget, DODUO's unpaired win rate, an out-of-sample behaviour rate. This is the "registry that fires on every occurrence of a small integer" failure `engine/docs_scan.js` already records, arriving through a hash table.
+- **INSTRUMENTS THAT MEASURE MEDICHAM RATHER THAN CONSUME IT.** `engine/quarantine.js` has the exemption mechanism — `MEASURES_THE_ENGINE` — and it holds exactly two modules, `game_differential.js` and `derive_protocol_events.js`. Everything else is withheld on pure `require` reachability, so the mechanics CENSUS (`data/all-mechanics-fire.json`), the rate runner that tallies MEDICHAM's dice against declared targets (`data/million-run.json`, `-staged`), the register audit (`data/register-reality.json`), the register copy (`data/open-work.json`) and the click-coverage probe (`data/medicham-represented-clicks.json`) are all withheld — while CLAUDE.md says in as many words that the census is NOT quarantined. Fifteen of `docs/ROADMAP.md`'s nineteen are this. **Withholding a legitimately quotable number is its own defect**, so none of them was touched here; the fix is an entry in `MEASURES_THE_ENGINE`, which is an ENGINE-side change and is owed.
+
+**WHAT IS OWED.** (i) The two classifier repairs above. (ii) `node engine/status.js --write` was deliberately NOT run — an ENGINE agent was editing the simulator and rewriting `data/game-differential.json` throughout this pass — so the generated blocks in every division ledger are one pass behind. (iii) The seeded census in `tests/test-docs-quarantine.js` still reads 104 and now reports 67 lines to delete; re-seeding it to 37 belongs to whoever owns that file. Full account: `docs/_reports/2026-09-06-withdraw-quarantined-figures.md`.
+
 ## THE PUBLISHED NUMBER AND THE MEASURED NUMBER ARE ONE NUMBER AGAIN — **BOARD-MATERIAL 50 OF 961, PROTOCOL 151 OF 961**, REPUBLISHED OFF A SETTLED TREE, AND BOTH CLAUSES NOW FAIL ON A **COUNT** RATHER THAN ON WITHHELD STALENESS. AND THE **1.53×** THIS DIVISION PUBLISHED LAST NIGHT WAS MEASURED AGAINST THE WRONG DENOMINATOR. 2026-09-06, CHANGELOG 5.258.0
 
 **THE PUBLICATION FIRST, BECAUSE IT IS THE ONLY THING HERE THAT CHANGES WHAT MAY BE QUOTED.** `data/game-differential.json` was rewritten on release `db248fe67a5e` — 961 games, cap 20, arm `middle`, steering `empirical`, `--end-state`, census pin `data/verification/census-pin-9446a684709d.json`, pool `--team-store data/team-pool-frozen`. It holds **board-material 50 of 961 and protocol first-divergence 151 of 961**. It had carried a 46 measured on a superseded release for 1.3 days, and while it did, **both whole-game clauses were failing on WITHHELD STALENESS — *"MEASURED AGAINST A DIFFERENT ENGINE … EVERY COUNT IN IT IS WITHHELD"* — rather than on anything measured.** A clause that fails for the right reason and a clause that fails because its input is old are the same colour and are not the same statement, and this division should be the last place that lets them read alike. 911 games never part a board; 4 of the 50 part a board with the protocol identical all game; 10376 of 10539 compared turn boundaries were identical. The settled-tree run reproduces the last fix step **to the byte** on `classes`, `first_divergences`, `state.first_board_divergences` and the by-cause summary, which is what makes this a publication rather than a sixth measurement of one quantity.
@@ -1275,13 +1288,16 @@ no accuracy claim and does not touch the quarantine.** `data/rollout-cost.json` 
 read; every figure was measured fresh under release `5f3f7141227c` with the pool pinned to
 `data/team-pool-frozen`.
 
-**The answer.** `rolloutWinProb` at the shipped `miltank.js` DEFAULTS — n=200, explore=1.0, uniform,
-maxTurns 14 — costs **1,144–1,270 ms per leaf call**, i.e. **157.5–174.8 playouts/sec**, so
-`budgetMs: 20000` buys **16–17 leaf calls per decision on one core**. At `truncation_curve`'s K⁴ cells
-that funds K=2 and not K=3. Whole games to a result (cap 60) run at **148.5–190.1/sec**; the figure
-that generalises is **0.49–0.63 ms per TURN**, flat from cap 10 to cap 60. Full account:
-`docs/_reports/2026-08-28-medicham-speed.md`; artifact `data/medicham-speed.json`, derived from eleven
-run files by `engine/bench_speed_consolidate.js`.
+**The answer is QUARANTINED — the figures are withheld, not annotated.** `rolloutWinProb` was timed at
+the shipped `miltank.js` DEFAULTS — n=200, explore=1.0, uniform, maxTurns 14 — and every cost in that
+answer came out of `data/medicham-speed.json`, whose generator `engine/bench_speed.js` is in the play
+layer and reaches `engine/medicham2-browser.js` through `require`. This is R2, leaf cost, which
+CLAUDE.md names in the quarantine list by name. MEDICHAM is not correct — `node engine/status.js` names
+the failing clauses. No ms per leaf call, no playouts per second, no leaf calls per decision, no
+whole-game rate and no ms per turn is carried in its place, and the K the budget funds is therefore
+unstated here rather than restated. It becomes quotable again when the gate opens AND this is re-run:
+`node engine/bench_speed.js` (consolidated by `engine/bench_speed_consolidate.js`). Method and full
+account: `docs/_reports/2026-08-28-medicham-speed.md`.
 
 **THE FINDING THIS DIVISION SHOULD KEEP IS NOT THE NUMBER. It is that I got two things wrong first, in
 the two shapes this repository keeps paying for.**
@@ -4126,13 +4142,14 @@ Open consequence, filed to SEARCH: `--rollout-explore` defaults to `1.0` and
 reason. Re-running `EXPLORE_LIST=1 DUMP=rollout-r1-rows.jsonl node engine/rollout_r1.js` and then
 `node engine/rollout_r1_artifact.js` settles it, and R2 says the leaf is cheap.
 
-> **SEARCH RAN IT, 2026-08-04. The published figure reproduces.** `data/rollout-r1-explore-sweep.json`
-> and `data/rollout-r1-explore1.json`: on the identical 9,201 positions, explore=1.0 judges at
-> **67.971%** against the published 68.18%, and its lift over the same material baseline is
-> **+2.706 [1.596, 3.817]** against the published +2.91. Paired against the greedy arm it is
-> **+2.25, 95% CI [1.31, 3.19]**, monotone in explore (0 → 0.5 → 1.0 = 65.72 → 67.58 → 67.97) and it
-> holds at the live 60-turn horizon. **The retraction was right about the provenance and wrong as a
-> guide to the arm** — R1 is UNDECIDED on the incumbent and a PASS on the arm that ships.
+> **SEARCH RAN IT, 2026-08-04, AND EVERY FIGURE IT PRODUCED IS QUARANTINED — withheld, not annotated.**
+> `data/rollout-r1-explore-sweep.json` and `data/rollout-r1-explore1.json` are downstream of MEDICHAM:
+> they are built from dumps of games MEDICHAM played, which is R1 leaf accuracy, named in CLAUDE.md's
+> quarantine list. MEDICHAM is not correct — `node engine/status.js` names the failing clauses. So the
+> sample size, the judged accuracy, the lift over the material baseline, the paired interval against the
+> greedy arm and the monotone-in-explore ladder are all absent here, and whether the published figure
+> reproduces is a question this ledger currently may not answer either way. It becomes quotable again
+> when the gate opens AND this is re-run: `node engine/rollout_explore_sweep.js`.
 >
 > Three things this division should act on:
 >
@@ -4285,8 +4302,11 @@ artifacts from every corpus check:
   absent from the audit**. One level of variable indirection is now resolved.
 - **Following into `engine/quality.js` classified everything as open-sheet.** quality.js names every
   store by construction, in its comments and in the error message that tells a caller how to pick
-  one. `data/winrate-backtest.json`'s 6,886 **ladder** games were being judged against the 8,173-game
-  open-sheet ceiling. It is a named exception now, with that reason.
+  one. `data/winrate-backtest.json`'s **ladder** games were being judged against the open-sheet ceiling. It
+  is a named exception now, with that reason. The two corpus sizes that made the point are withheld
+  with their artifacts: `data/winrate-backtest.json` is downstream of MEDICHAM
+  (`engine/backtest_winrate.js` reaches `engine/medicham2-browser.js` through `require`), and it
+  becomes quotable again when the gate opens AND this is re-run: `node engine/backtest_winrate.js`.
 
 The graph went from 76 artifacts (49 store-derived) to **84 artifacts (57 store-derived)**. One of
 the eight newly visible files, `data/counters.json`, was **older than the quality filter** — the
@@ -4341,7 +4361,8 @@ visible: `bring-bias.json`, `bring-priors.json`, `brood.json`, `core-matchups.js
   `policy-weights.json` — so the quality filter has no bearing on it, and the honest fix is a
   `not_store_derived` declaration, which only a re-run can write. **I did not add one, deliberately.**
   Stamping it would make a **genuinely unquotable** artifact look clean: it is PRIORITIES #18,
-  WOBBUFFET's 63.2% fitted on **17 features against the 53 we ship**, and it is rendered on
+  WOBBUFFET's headline share — **withheld here, not annotated** — fitted on **17 features against the
+  53 we ship**, and it is rendered on
   `web/stadium.html` and `app/stadium.html` today. Re-running it is a ~4,000-game adversarial search
   against a mid-flight MAG, which the engine release boundary forbids.
 
@@ -4650,10 +4671,14 @@ see between-run variance.
 
 `engine/rollout_r1_artifact.js` and `engine/rollout_r4.js` now write the pair R2 and R3 already
 carried, and both artifacts were regenerated from committed evidence (no rollouts):
-`data/rollout-r1.json` **9,201 scored positions**, `data/rollout-r4.json` **535 decisive pairs**.
-Choosing which of R4's four numbers goes in the common slot is the whole point of having one — the
-SPRT is computed on decisive pairs and nothing else, and the handoff quoting "5,248 games" (the line
-count of a store that writes two lines per game) is what the slot is for.
+`data/rollout-r1.json` carries scored positions and `data/rollout-r4.json` carries decisive pairs; the
+counts themselves are **QUARANTINED — withheld, not annotated**, because both artifacts are built from
+dumps of games MEDICHAM played and MEDICHAM is not correct (`node engine/status.js` names the failing
+clauses). What the slot is FOR does not depend on the numbers: choosing which of R4's four quantities
+goes in the common slot is the whole point of having one — the SPRT is computed on decisive pairs and
+nothing else, and a handoff that quoted a line count of a store that writes two lines per game is
+exactly the confusion the slot prevents. They become quotable again when the gate opens AND these are
+re-run: `node engine/rollout_r1_artifact.js` and `node engine/rollout_r4.js`.
 
 Still **not** called `n`: `data/rollout-r3.json` has published `n` as the rollout BUDGET since
 2026-08-03, and one key meaning a sample size in one rung and a budget in the next is worse than no
@@ -5385,9 +5410,13 @@ re-hashes every source, so editing `engine/click_class.js` turns the gate red in
 stale PASS; it is registered in `tests/run-all.js`.
 
 **Stage D — what the refit moved, and the confound stated rather than buried.**
-`data/policy-weights.json`: **8,942 games, 232,815 usable decisions of 241,927 seen** (186,494 train
-/ 46,321 held out), lambda 0 on held-out, reweighted vector ships. `‖new − old‖₂ = 0.8030` and **9 of
-58 weights moved more than 2 SE**. The mechanism is legible in which ones:
+`data/policy-weights.json` records the corpus, the train/held-out split, lambda 0 on held-out and the
+reweighted vector that ships. **The corpus sizes are QUARANTINED — withheld, not annotated**: the
+artifact is downstream of MEDICHAM (`engine/fit_policy.js` reaches `engine/medicham2-browser.js`
+through `require`), and it becomes quotable again when the gate opens AND this is re-run:
+`node --max-old-space-size=4096 engine/fit_policy.js`. What the refit MOVED is legible without them:
+`‖new − old‖₂ = 0.8030` and **9 of 58 weights moved more than 2 SE**, and the mechanism is legible in
+which ones:
 
 | feature | before → after | |
 |---|---|---|
@@ -5440,9 +5469,10 @@ cannot be otherwise, and inventing an agreement number for it would have been th
 
 ### 15. THE TWO LEAF ARTIFACTS DO NOT CONTRADICT EACH OTHER. RESOLVED 2026-08-05, and the answer is a decomposition, not a winner.
 
-`data/winrate-backtest.json` says the in-game leaf ranks at **50.99%** and is worse than a coin.
-`data/rollout-r1-explore-sweep.json` says the same leaf ranks at **69.84%** with a monotone
-reliability curve. The sweep flagged the conflict itself in
+`data/winrate-backtest.json` and `data/rollout-r1-explore-sweep.json` rank the same leaf at very
+different accuracies — **both figures are QUARANTINED here, withheld and not annotated**, because both
+artifacts are downstream of MEDICHAM and the gate is closed. The RECONCILIATION is what this section is
+for and it survives without them. The sweep flagged the conflict itself in
 `reading_against_the_leaf_calibration` and refused to treat "explore=1.0 spent the signal" as
 established while a second measurement disagreed. **It was right to refuse, and both artifacts are
 correct.** They score the same function on positions of very different difficulty, and the gap
@@ -5575,8 +5605,9 @@ than the spec assumed. This is a measurement, not a build decision; the decision
   `data/rollout-r1-explore-sweep.json` cannot be digest-verified. This file made the same mistake and
   moved the prose to a sibling key; the artifact went from `stale?` to `ok`. SEARCH's file.
 - **`engine/rollout_r1.js:26-29`'s corpus comment is misleading about what it samples.**
-  `loadCorpus()` reads bo3, OTS and ladder in that order, and the first 2,500 games — the whole R1
-  and sweep sample — are 2,497 bo3 and 3 smogtours. Every R1 number ever published is a **bo3
+  `loadCorpus()` reads bo3, OTS and ladder in that order, and the head of that list — the whole R1
+  and sweep sample — is bo3 with a handful of smogtours. The exact counts are withheld with the
+  artifact, which is downstream of MEDICHAM. Every R1 number ever published is a **bo3
   open-sheet** number, and §15 measures that this corpus is worth 4.75 accuracy points at turn 0.
   The published figures are not wrong; what they are *about* is narrower than the comment says.
 - **`data/censoring-value.json` and `data/click-censoring-census.json` trip the provenance
@@ -6395,7 +6426,8 @@ census, which is the steering input the ladder pins.
 SHOWDOWN_PATH=C:/Users/willj/Projects/Pokemon/pokemon-showdown node engine/backtest_winrate.js
 ```
 
-About 13-18 minutes, one process, on 6,886 clean games (809s and 1,046s on two runs). `MAXG=200`
+About 13-18 minutes, one process, on the clean-game corpus; the corpus size and the per-run wall clock
+are withheld with `data/winrate-backtest.json`, which is downstream of MEDICHAM. `MAXG=200`
 thins it for a smoke run, and the artifact records the n it actually scored, so a thinned run cannot
 be mistaken for a published one. It writes `data/winrate-backtest.json` and the per-game rows beside
 it. Every seeded configuration reproduces bit-identically across runs; the unseeded legacy

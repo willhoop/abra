@@ -1,6 +1,6 @@
 # ABRA — the model family (living reference)
 
-**Version 5.260.0 · Last updated 2026-09-06.**
+**Version 5.261.0 · Last updated 2026-09-06.**
 
 **5.260.0 - NO MODEL CHANGED, NO FITTED VECTOR WAS WRITTEN AND NOTHING QUARANTINED BECAME QUOTABLE. WHAT MOVED IS THE DISTANCE TO THE GATE.** Every model in this ledger sits downstream of MEDICHAM, so that distance is the only thing this file records. `data/game-differential.json` is republished on release `a985300cb8ed` at **board-material 50 of 961 and protocol first-divergence 114 of 961**, down from 151 on four fixes measured one at a time. `node engine/status.js` reads **7 of 9 clauses passing**; both failures are the whole-game clauses on their measured counts. Leaf calibration, the leaf-cost figure, the divergence and head-to-head results, the joint layer's numbers and every model report that reads a rollout stay WITHHELD rather than annotated.
 
@@ -780,20 +780,19 @@ turn 1 reached an identical board anyway.** The comparator proves itself first: 
 mappings red-demonstrated in both directions and 25 planted state divergences, each of which must be
 caught at the planted boundary and localised to the planted field — 25/25 on all fourteen arms.
 
-**MEDICHAM'S CORRECTNESS DOES NOT REACH MILTANK'S LEAF (3.69.0).** The entry below records how far
-MEDICHAM sits from the authority across ten frozen releases. `data/leaf-engine-contrast.json` records
-what closing that distance was worth to the model that consumes it, and the answer is nothing
-measurable. MILTANK's in-game leaf on **8,883 identical positions with identical seeds**, through the
-pre-WIRE-1 release `cf6a68fa412c` and the WIRE 10 release `dc3c43336539` — which differ in exactly
-`engine/medicham2-browser.js` — gives a paired Brier difference of **0.0000, 95% CI [−0.0007, +0.0007]**
-against a noise floor of 0.000642 and an MDE of 0.001013. **Tight null, not an underpowered one.**
-Per-position divergence depth predicts per-position leaf error at **rho +0.0010 [−0.019, 0.022]** in
-lines and **−0.0000 [−0.021, 0.023]** in turns (MDE 0.0298); a reversed-order control puts the depth
-instrument's own reliability at **rho 0.836**, so the zeros are the world and not the ruler. Both
-leaves stay worse than a coin (**+0.0325 [0.0281, 0.0372]**) with **ECE 0.1514** and a reliability curve
-that is monotone and almost flat: the bottom bucket predicts **0.062** and observes **0.466**, the top
-bucket predicts **0.938** and observes **0.594**. **The leaf's problem is calibration, and it is not
-downstream of engine mechanics.**
+**WHAT MEDICHAM'S CORRECTNESS IS WORTH TO MILTANK'S LEAF IS QUARANTINED (3.69.0) — the figures are
+withheld, not annotated.** The entry below records how far MEDICHAM sits from the authority across ten
+frozen releases. `data/leaf-engine-contrast.json` records what closing that distance was worth to the
+model that consumes it, and that artifact is downstream of MEDICHAM: its generator
+`engine/leaf_engine_contrast.js` is in the play layer and reaches `engine/medicham2-browser.js` through
+`require`. MEDICHAM is not correct — `node engine/status.js` names the failing clauses. So no sample
+size, no paired Brier, no interval, no noise floor, no rho, no ECE and no reliability bucket is carried
+here, and the reader may not infer from the absence that the difference was large or small. It becomes
+quotable again when the gate opens AND this is re-run: `node engine/leaf_engine_contrast.js`. The
+DESIGN of the comparison stands and is worth keeping: two frozen releases differing in exactly
+`engine/medicham2-browser.js`, identical positions with identical per-position seeds, a split-half
+noise floor computed before the effect is believed, and a reversed-order control that establishes the
+depth instrument's own reliability.
 
 **MEDICHAM'S DISTANCE FROM THE AUTHORITY, MEASURED ACROSS TEN FROZEN RELEASES (3.68.0, re-run
 2026-08-07 after ROADMAP #81 WIRE 7).** `engine/wire_ladder.js` → `data/wire-ladder.json`. **Read every
@@ -1175,11 +1174,16 @@ not read as progress by itself. (Kept as insurance, not as evidence — see the 
 **Method:** hill-climb over MAG's OWN feature weights, maximising win rate against MAG. Named for Counter/Mirror Coat — whatever you do, it returns the thing that beats it.
 **Honest status: THERE IS NO EXPLOITABILITY NUMBER. 2026-08-04.** The former status read *"stale,
 and its result is the most important number in the repo"* on the strength of a counter that beat MAG
-~~**63.2%** [56.6, 69.3], mirror control 47.5%~~. **That is retracted**: 17 features against the 58
-we ship, an engine 25 wire-fixes old, computed **before the quality filter existed** — which is why
-`provenance.js` carried it as its only `UNSAFE` artifact.
-**The re-run that was meant to replace it is VOID.** It ran at full size (220 games × 24 rounds +
-1,600 held-out games) and `data/policy-weights.json` — the defender — **was refitted at 22:15:24
+by a margin **now WITHHELD as well as retracted** — a strike-through is a caption, and a caption is
+not a quarantine, so the share, its interval and the mirror control are absent rather than annotated.
+The retraction stands on its own reasons: 17 features against the 58 we ship, an engine 25 wire-fixes
+old, computed **before the quality filter existed** — which is why `provenance.js` carried it as its
+only `UNSAFE` artifact. `data/exploitability.json` is downstream of MEDICHAM (`engine/exploit.js` is in
+the play layer and reaches `engine/medicham2-browser.js` through `require`), and it becomes quotable
+again when the gate opens AND this is re-run: `node engine/exploit.js`.
+**The re-run that was meant to replace it is VOID.** It ran at full size (a round budget and a
+held-out confirmation set whose sizes are withheld with the rest of that artifact), and
+`data/policy-weights.json` — the defender — **was refitted at 22:15:24
 UTC while it was running**, `engine/board.js` was written mid-search, and
 `engine/medicham2-browser.js` changed content twice more after it, sampled 90 seconds apart. Its
 figures are not quotable and are recorded struck through in `docs/SEARCH.md` §R8.
@@ -1797,7 +1801,7 @@ not be quoted as evidence that species choice predicts outcomes.
 ## MAGNEMITE (MAG) — Move Appraisal Grounded iN Effectiveness, Matchup, Immunity and Timing Estimates (added 2026-07-26)
 **Job:** decide a move by looking at the other side of the field, instead of by how popular the move is.
 **Why:** the behaviour clone answers only *what does this species usually click?* Two gaps followed and no prior-tuning could close them — super-effective moves at 9.7% against a real 21.4%, moves that outright failed at 9.7% against 2.5%. It also made every `build_lab` number a measurement of what beats **bad** play.
-**Method:** three files. `engine/board.js` reconstructs the state a decision was made against and turns (move, target) pairs into **58 features** (12 at 3.21.0); `engine/fit_policy.js` fits those features to real human clicks by **conditional logit** (McFadden 1974) over **8,942 clean open-sheet games and 232,815 usable decisions of 241,927 seen** (186,494 train / 46,321 held out, `data/policy-weights.json` at 3.42.0; the line read 8,414 / 220,613 / 176,580 / 44,033 for the fit before it); `engine/magnemite.js` plays the fitted distribution inside the official engine. `mew.js --policy score`.
+**Method:** three files. `engine/board.js` reconstructs the state a decision was made against and turns (move, target) pairs into **58 features** (12 at 3.21.0); `engine/fit_policy.js` fits those features to real human clicks by **conditional logit** (McFadden 1974) over the fit corpus; `engine/magnemite.js` plays the fitted distribution inside the official engine. `mew.js --policy score`. **THE CORPUS SIZES ARE QUARANTINED — withheld, not annotated.** `data/policy-weights.json` is downstream of MEDICHAM: `engine/fit_policy.js` is in the play layer and reaches `engine/medicham2-browser.js` through `require`, so the games, decisions, train and held-out counts are counts taken through a simulator the gate does not certify. MEDICHAM is not correct — `node engine/status.js` names the failing clauses. They become quotable again when the gate opens AND this is re-run: `node engine/fit_policy.js`.
 
 > **Every figure in that line was corrected 2026-08-04 and none of them was a typo.** It read
 > 53 features / 6,091 games / 146,910 decisions / 117,824 train / 29,086 held out. The artifact —
@@ -1822,32 +1826,42 @@ not yet run). **The JOINT (pair) layer is NOT yet refitted** — until it is, th
 against the two-channel board, and no improvement claim exists for either layer.
 
 **BOTH HALVES CLOSED, 3.41.0 (same night).** The joint layer is refitted on the four-channel sheet
-(`data/policy-weights-joint.json`: 95,886 usable joint turns of 101,459; fitEnvironment counters
-99.7%; held-out pair top-1 9.8% → 12.2% with the joint terms). And the channel VALUE is now a
-measurement (`data/sheet-channel-value.json`, 44,982 paired held-out decisions vs the frozen
-two-channel incumbent): the sheet buys **+0.005087 logL/decision end-to-end [0.003854, 0.006331]**
-— real, clears zero — and **no demonstrable top-1 gain** against a 0.331-point split-half noise
-floor. Say it exactly that way: MAG prices decisions better with the sheet; a click-rate
-improvement is not yet shown.
+(`data/policy-weights-joint.json`) and the channel VALUE is now a measurement rather than an argument
+(`data/sheet-channel-value.json`, paired held-out decisions against the frozen two-channel incumbent).
+**EVERY FIGURE THIS ENTRY CARRIED IS QUARANTINED — withheld, not annotated.** Both artifacts are
+downstream of MEDICHAM: `engine/fit_joint.js` and `engine/sheet_channel_value.js` are in the play layer
+and reach `engine/medicham2-browser.js` through `require`. MEDICHAM is not correct —
+`node engine/status.js` names the failing clauses. So no turn count, no coverage counter, no held-out
+top-1, no logL effect, no interval and no noise floor is carried here, and no direction may be read out
+of the absence. They become quotable again when the gate opens AND these are re-run:
+`node --max-old-space-size=4096 engine/fit_joint.js` and `node engine/sheet_channel_value.js`.
 
 **THE OUTPLAYED TURNS ARE IN THE FIT NOW, AND 1,336 THINGS THAT WERE IN IT ARE NOT — 3.42.0.**
 `docs/CLICK-CENSORING-FIX.md`, all four stages, artifacts `data/click-censoring-census.json`,
 `data/partial-label-em.json`, `data/censoring-value.json`.
 
-Of **241,927 recorded human actions over 8,942 games** (`data/policy-weights.json` — the FIT corpus;
-`data/click-censoring-census.json` sweeps 10,009 games because it reads every stored game while the
-fit takes only those it can build a board for, and its three class shares have held to a hundredth of
-a point across every re-run as the store grew), **1,336 were never clicks** — 1,116 Encore application turns, where the move
-Encore forces out is on the victim's own menu so the matcher accepted it, and 220 `|drag|` arrivals,
-which `engine/durable-ingest.js` stores with the same shape as a voluntary switch. All 1,336 were
-being fitted as human choices. A further **3,260** are redirected attacks whose recorded
-target is the redirector; those are now fitted under the marginal likelihood over a two-member
-candidate set instead of as a confident wrong label.
+**THE COUNTS IN THIS ENTRY ARE QUARANTINED — withheld, not annotated.** `data/policy-weights.json` (the
+FIT corpus) and `data/click-censoring-census.json` are both downstream of MEDICHAM: `engine/fit_policy.js`
+and `engine/click_census.js` are in the play layer and reach `engine/medicham2-browser.js` through
+`require`. MEDICHAM is not correct — `node engine/status.js` names the failing clauses. No action count,
+no game count, no per-class count and no share is carried here; the census sweeps more games than the
+fit because it reads every stored game while the fit takes only those it can build a board for, and its
+class shares held steady across every re-run as the store grew, but the shares themselves are absent.
+They become quotable again when the gate opens AND these are re-run: `node engine/fit_policy.js` and
+`node engine/click_census.js`.
 
-`data/policy-weights.json` reads **8,942 games / 232,815 usable decisions of 241,927 seen** (186,494
-train / 46,321 held out). `‖new − old‖₂ = 0.8030`, 9 of 58 weights past 2 SE, and the largest single
-movement is `stallIntoEncore` — *"I am about to Protect and something across from me can Encore me
-for it"* — at **−1.0502 → −1.6281**, which is the direction the mechanism predicts.
+What is NOT withheld is the MECHANISM, because it is a fact about the protocol rather than a
+measurement: some recorded actions were never clicks — Encore application turns, where the move Encore
+forces out is on the victim's own menu so the matcher accepted it, and `|drag|` arrivals, which
+`engine/durable-ingest.js` stores with the same shape as a voluntary switch. All of them were being
+fitted as human choices. A further class is redirected attacks whose recorded target is the
+redirector; those are now fitted under the marginal likelihood over a two-member candidate set instead
+of as a confident wrong label.
+
+The refit's own movement is legible without the corpus counts: `‖new − old‖₂ = 0.8030`, 9 of 58
+weights past 2 SE, and the largest single movement is `stallIntoEncore` — *"I am about to Protect and
+something across from me can Encore me for it"* — at **−1.0502 → −1.6281**, which is the direction the
+mechanism predicts.
 
 **The measured value, and the half that did not work.** 48,274 paired held-out decisions over 1,851
 games, bootstrapped over GAMES (`engine/censoring_value.js`, re-run 2026-08-05 under the current
@@ -1926,7 +1940,7 @@ score through `switchFeatures`; the post-KO replacement is scored rather than ro
 a real damage calculation (`board.js` calls the damage engine throughout — `koTarget`, `killIsRoll`,
 `diesBeforeMoving` and the switch-survival features all read it). What remains true: it has **no
 model of the opponent's move**, so it cannot read a Protect or bait a switch; and it is **one ply, no
-search**. The weights are fitted on open-sheet games, which hedge less than closed ladder play, and **2.87%** of clicks could not be matched to a candidate and were dropped (`data/policy-weights.json` records it, `matching.unmatched` 6,937 of 241,927 at 3.42.0). This line used to read "~11% … mostly redirection (Follow Me, Rage Powder)". **Both halves were wrong**: redirection is **1.60%** of the unmatched, measured 2026-08-02 by `engine/redirect_audit.js`, and the rate is now a quarter of what it was. The real causes were a foe **switching in on the same turn** (44.4%), an **in-battle forme change** with no sheet entry (19.7%), and a **mirror collapsing the two team sheets** (16.4%) — all fixed in `engine/click_match.js`, which took the slot-level match rate from 87.2% to 97.2%. Redirection's true cost is a *mislabelled* target, and at 3.42.0 it stopped being unrecoverable and started being HONEST: the click is not recovered — the protocol still records only a move's resolved target — but the turn now enters the fit as a PARTIAL LABEL over the two live foes rather than as a certainty on the redirector (Cour, Sapp & Taskar 2011; `docs/CLICK-CENSORING-FIX.md`). **3,260 of 241,927 actions (1.3475%).** Logit also assumes independence of irrelevant alternatives, which close-substitute moves violate; see DEFENSE §6.
+search**. The weights are fitted on open-sheet games, which hedge less than closed ladder play, and a slice of clicks could not be matched to a candidate and was dropped — `data/policy-weights.json` records it under `matching.unmatched`, and **that rate is QUARANTINED: withheld, not annotated**, because the artifact is downstream of MEDICHAM (`engine/fit_policy.js` reaches `engine/medicham2-browser.js` through `require`). It becomes quotable again when the gate opens AND this is re-run: `node engine/fit_policy.js`. This line used to read "~11% … mostly redirection (Follow Me, Rage Powder)". **Both halves were wrong**: redirection is a small minority of the unmatched rather than most of it, measured 2026-08-02 by `engine/redirect_audit.js`, and the rate fell sharply — the shares are withheld with the artifact, and `data/redirect-audit.json` is withheld on the same grounds. The real causes were a foe **switching in on the same turn** (44.4%), an **in-battle forme change** with no sheet entry (19.7%), and a **mirror collapsing the two team sheets** (16.4%) — all fixed in `engine/click_match.js`, which took the slot-level match rate from 87.2% to 97.2%. Redirection's true cost is a *mislabelled* target, and at 3.42.0 it stopped being unrecoverable and started being HONEST: the click is not recovered — the protocol still records only a move's resolved target — but the turn now enters the fit as a PARTIAL LABEL over the two live foes rather than as a certainty on the redirector (Cour, Sapp & Taskar 2011; `docs/CLICK-CENSORING-FIX.md`). The size of that class is withheld with the rest of the fit corpus. Logit also assumes independence of irrelevant alternatives, which close-substitute moves violate; see DEFENSE §6.
 **Corpus (as of 3.21.0):** three open-sheet sources, deduplicated by replay id, all through quality.js — **`data/games.bo3.jsonl`** (our own hourly scrape of `gen9championsvgc2026regmbbo3`, whose ruleset carries **Force Open Team Sheets**, so every game publishes all six sets), the ~1% of the closed ladder store where both players agreed to sheets, and the external VGC-Bench archive. **220,613 usable decisions kept of 228,084 seen**, from **8,414 games** (`data/policy-weights.json`, 2026-08-04; the line read 198,157 from 7,507 games at 2026-08-02, and 176,981 before `engine/click_match.js`). The 7,471 dropped are 6,669 unmatched, 776 trivial and 26 ambiguous, all recorded under `matching`.
 **Damage table, restated 2026-09-03:** the table holds **322** rows today. The paragraph immediately
 below is the 2026-08-02 record and is left exactly as written rather than rewritten in place. What
@@ -2340,9 +2354,11 @@ from this file, which is correct — this is evidence, not a rule.
   2026-08-22, and both had moved on — a release id is a digest of the frozen tree, so quoting one in
   a living document dates the document rather than the release.
 - **`data/exploitability.json` is `void: true` and `provenance.js` reads it UNSAFE.** MAG has **no
-  exploitability figure**. The 63.2% [56.6, 69.3] this ledger once called the most important number in
-  the repository is retracted: 17 features against 58, an engine 25 wire-fixes old, computed before the
-  quality filter existed.
+  exploitability figure**. The share this ledger once called the most important number in the repository
+  is retracted AND withheld — the artifact is downstream of MEDICHAM, so the number is absent rather
+  than struck through, and its interval and control go with it. The retraction stands on its own
+  reasons: 17 features against 58, an engine 25 wire-fixes old, computed before the quality filter
+  existed. It becomes quotable again when the gate opens AND this is re-run: `node engine/exploit.js`.
 - **MAG's weights moved, and it changed nothing measurable.** The board weather defect was real (14 of
   58 columns, 10.72% of turn-boards) and worth fixing on its own terms; refitting on top of it returned
   an interval containing zero on both metrics.

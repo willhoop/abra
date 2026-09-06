@@ -165,9 +165,12 @@ Mummy/Wandering-Spirit divergences in the matrix are the standing example of why
 5. Matrix re-run at `--full`; agreement ≥ current 999/1,012 with the denominator not shrunk by
    reclassification games.
 6. **The endgame, rewritten 2026-08-05 because the step probe settled it with arithmetic:** the
-   58-dim re-run is cancelled — one accepted step moves 0.202 win-rate points against a 4.77-point
-   resolution, and closing 25% of the planted distance costs ~960,000 games
-   (`data/exploit-step-probe.json`, stamped to release d3d04b669e18). Instead: reparameterize
+   58-dim re-run is cancelled — the probe's arithmetic is that one accepted step moves far less than
+   the resolution of the comparison, and that closing a quarter of the planted distance costs a game
+   budget nobody will spend. The step size, the resolution and the game count are **QUARANTINED —
+   withheld, not annotated** (`data/exploit-step-probe.json`, stamped to release d3d04b669e18, is
+   downstream of MEDICHAM); they become quotable again when the gate opens AND this is re-run:
+   `node engine/exploit_step_probe.js`. Instead: reparameterize
    MAG's policy to a 4–8-number family (the largest searchable at the real budget), cut a fresh
    release AFTER the layers above land, and run the exploitability search in that space. That
    number — the one Will has been owed since the retraction — is still the point of the entire

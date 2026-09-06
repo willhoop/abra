@@ -179,9 +179,11 @@ number that quoted the old weights. A refit that lands without them is how a ver
 > defects and the prepared re-run: `docs/SEARCH.md` §R8. **The sequencing rule below was right and
 > was not actually satisfied — verify the digests are still, do not take "wrapped" on report.**
 
-`data/exploitability.json` is **63.2% [56.6, 69.3] measured on 17 features against the 58 we ship** —
-three feature generations stale, on a policy we have since made **more deterministic** by shipping
-greedy-over-sampling. `provenance.js --strict` exits 1 on it and `tests/run-all.js` gates on that, so
+`data/exploitability.json` was **measured on 17 features against the 58 we ship** — three feature
+generations stale, on a policy we have since made **more deterministic** by shipping
+greedy-over-sampling. Its share and interval are **QUARANTINED — withheld, not annotated**: the
+artifact is downstream of MEDICHAM, and it becomes quotable again when the gate opens AND this is
+re-run: `node engine/exploit.js`. `provenance.js --strict` exits 1 on it and `tests/run-all.js` gates on that, so
 it is a red test, not a nicety. The Stadium already renders it as NOT MEASURED with the old figure
 struck through, so the page is honest either way; this is about the artifact.
 

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-06T09:59:58.903Z",
+  "generated": "2026-09-06T10:12:47.026Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
   "changelog_top_at_baseline": "5.260.0",
@@ -234,7 +234,6 @@
       "docs/MODELS.md|99|data/collinearity-joint.json"
     ],
     "untraceable_by_doc": {
-      "docs/ABRA-technical-docs.md": 1,
       "docs/ABRA-whitepaper.md": 10,
       "docs/ARCHITECTURE.md": 1,
       "docs/MODELS.md": 14,
@@ -242,7 +241,6 @@
       "docs/SLOWKING-whitepaper.md": 7
     },
     "untraceable_figures": [
-      "docs/ABRA-technical-docs.md|-0.003647",
       "docs/ABRA-whitepaper.md|1.0021",
       "docs/ABRA-whitepaper.md|1.0208",
       "docs/ABRA-whitepaper.md|2304.08272",

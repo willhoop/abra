@@ -10,6 +10,55 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.261.0] — 2026-09-06
+
+### Changed
+- **SIXTY-SEVEN WITHHELD FIGURES WERE STILL BEING PUBLISHED IN THE LIVING DOCUMENTS, EVERY CITATION
+  FAITHFUL — `tests/test-docs-quarantine.js` READS 104 → 37.** The citations were the problem: the
+  older citation rule asks *"is this figure in the artifact it cites?"* and a quarantined artifact
+  answers YES, so `engine/status.js` withheld a number on one screen while a document reprinted it on
+  another. Every removal here uses `status.js`'s own `sayHeld` shape — the figure is ABSENT, the
+  artifact is named with why it is downstream of MEDICHAM, and the command that re-runs it is given.
+  Cleared to zero: `docs/SUMMARY.md`, `docs/MEASURE.md`, `docs/MILTANK.md`, `docs/PRIORITIES.md`,
+  `docs/EXTERNAL-EVIDENCE.md`, `docs/GAME-DIFFERENTIAL-DESIGN.md`, `docs/ENGINE-COVERAGE-PLAN.md`.
+  Reduced: `docs/ABRA-whitepaper.md` 15 → 2, `docs/MODELS.md` 23 → 5, `docs/SEARCH.md` 5 → 2,
+  `docs/WEB.md` 4 → 2. Withheld in this pass: the leaf/engine contrast, the leaf backtest reading,
+  the R1 and R4 rollout figures, the leaf cost bench, the exploitability share and its interval, the
+  fit corpus and its train/held-out split, the click-censoring census, the joint fit, the sheet
+  channel value and the censoring-value paired result.
+- **THE DECK AND THE TECHNICAL DOCS WERE CARRYING THE SAME FIGURES AND THE RATCHET COULD NOT SEE
+  THEM.** The clause fires on a figure sharing a PARAGRAPH with a citation of the withheld artifact.
+  `docs/ABRA-deck-plain-english.md` writes in plain English and names artifacts nowhere near its
+  numbers, so it scored ZERO offenders while republishing the leaf comparison and the censored-label
+  counts; `docs/ABRA-technical-docs.md` did the same in two change records. Both are withheld now.
+  The general point belongs to the instrument: a document that cites nothing is invisible to a rule
+  keyed on citations, and the plain-English deck is the document most likely to cite nothing.
+
+### Notes
+- **THE 37 THAT STAND ARE THE CLASSIFIER, NOT THE DOCUMENTS, AND WITHHOLDING THEM WOULD BE ITS OWN
+  DEFECT.** Two causes, both measured rather than argued. (i) `data/policy-weights.json` carries a
+  `featureHashes.features` map of integer HASHES, and `artifactNumbers` walks strings, so six hashes
+  and two fitted floats match document figures by accident once the matcher's legitimate ×100 and
+  ÷100 rescaling is applied — the figures involved belong to the damage differential, the
+  empirical-click driver's reach rate, a planned game budget, DODUO's unpaired win rate and an
+  out-of-sample behaviour rate, none of which is withheld. (ii) `engine/quarantine.js` withholds on
+  `require` reachability, and its `MEASURES_THE_ENGINE` exemption holds exactly two modules
+  (`game_differential.js`, `derive_protocol_events.js`), so the mechanics CENSUS
+  (`data/all-mechanics-fire.json`), the rate runner (`data/million-run.json`, `-staged`), the
+  register audit (`data/register-reality.json`), the register copy (`data/open-work.json`) and the
+  click-coverage probe (`data/medicham-represented-clicks.json`) are all withheld although CLAUDE.md
+  states that the census is not quarantined. Fifteen of `docs/ROADMAP.md`'s nineteen are this. The
+  fix is an ENGINE-side entry in `MEASURES_THE_ENGINE`; no document figure was deleted on its
+  account.
+- **`node engine/status.js --write` WAS DELIBERATELY NOT RUN.** An ENGINE agent was editing the
+  simulator and rewriting `data/game-differential.json` throughout this pass, and a measurement is a
+  photograph. The generated blocks in the division ledgers are therefore one pass behind and may not
+  be read as current.
+- **THE SEEDED CENSUS IN `tests/test-docs-quarantine.js` STILL READS 104** and now prints 67 keys to
+  delete. Re-seeding it to 37 belongs to the owner of that file; the ratchet passes because a key
+  that stops firing is reported rather than failed.
+- Full account: `docs/_reports/2026-09-06-withdraw-quarantined-figures.md`.
+
 ## [5.260.0] — 2026-09-06
 
 ### Fixed
