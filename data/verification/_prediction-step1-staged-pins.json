@@ -1,0 +1,24 @@
+{
+  "written_before_the_run": "2026-09-06",
+  "step": "STEP 1 - bind the staged pins (pinRandom/PIN_CHANCE/mediRng) to top-tie-first by NAME",
+  "what_changed": ["engine/game_differential.js (staged pin binding + one prose block)",
+                   "tests/test-game-differential.js (PART 1 per-arm clause, PART 3b failure message)"],
+  "engine_bytes_changed": "NONE - engine/medicham2-browser.js untouched, release id 576bcbadb681 unchanged",
+  "pins": {"release": "576bcbadb681",
+           "census": "data/verification/census-pin-9446a684709d.json",
+           "team_store": "data/team-pool-frozen",
+           "arm": "middle", "games": 1200, "turns_cap": 20, "steering": "empirical"},
+  "baseline": {"artifact": "data/verification/longtail-B-leechseed.json",
+               "games": 961, "board_material": 56, "protocol_diverged": 158,
+               "boards_never_diverged": 905, "threw": 1},
+  "prediction": {
+    "board_material": 56,
+    "protocol_diverged": 158,
+    "boards_never_diverged": 905,
+    "threw": 1,
+    "driver_code_digest": "MOVED - this is the point of the change; comparability with the 56 is re-established by this paired run, not assumed",
+    "reasoning": "the module-scope pinRandom/PIN_CHANCE have exactly TWO consumers (game_differential.js:6120-6121, inside oneHitDamage) and the module-scope mediRng has NONE (grep across engine/ and tests/ finds only ARM.mediRng() callers). The whole-game path plays ARMS_RUN and builds its dice per game from ARM.mediRng(). The one leak channel I checked and cleared is MID_NTH: it is cleared at the top of every middle-arm game (game_differential.js:3542), so draws the staged measurements consume cannot shift a game's dice.",
+    "what_I_expect_to_move_in_the_artifact": "the damage_interior and knock_off_roadmap_80 blocks (they are the thing being fixed) and the driver_code digest. Nothing else."
+  },
+  "how_a_miss_would_read": "if board-material or protocol moves at all, the staged pins were leaking into the run and MID_NTH's per-game clear does not do what 3542 says it does."
+}

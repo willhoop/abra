@@ -1,13 +1,13 @@
 {
- "generated": "2026-09-05T04:40:09.433Z",
+ "generated": "2026-09-06T03:30:33.556Z",
  "by": "tests/roster.js",
  "stage": "moves",
- "engine_release": "688e696f00c8",
- "engine_release_cut": "2026-09-05T04:24:10.632Z",
- "engine_release_cuts": 1,
+ "engine_release": "576bcbadb681",
+ "engine_release_cut": "2026-09-06T03:16:44.677Z",
+ "engine_release_cuts": 6,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "f19834b62c05",
+  "engine/medicham2-browser.js": "2fc3f3caf739",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "1c4ba432e563",
   "engine/position_features.js": "622482051bf4",
@@ -1091,6 +1091,12 @@
      "path": "p2.active[1].types",
      "with": "dragon/steel",
      "without": "grass/ground"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[1].vol.allyswitch",
+     "with": 1,
+     "without": 0
     },
     {
      "turn": 2,
@@ -10284,6 +10290,12 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[1].vol.dragoncheer",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.pp[0].dragoncheer",
      "with": 1,
      "without": 0
@@ -10302,6 +10314,12 @@
     },
     {
      "turn": 2,
+     "path": "p2.active[1].vol.dragoncheer",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
      "path": "p2.pp[0].dragoncheer",
      "with": 1,
      "without": 0
@@ -10317,6 +10335,12 @@
      "path": "p2.active[1].vol.focusenergy",
      "with": 0,
      "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[1].vol.dragoncheer",
+     "with": 1,
+     "without": 0
     },
     {
      "turn": 3,
@@ -16482,6 +16506,12 @@
      "without": 1
     },
     {
+     "turn": 1,
+     "path": "p2.slots[0].futuremove",
+     "with": 1,
+     "without": 0
+    },
+    {
      "turn": 2,
      "path": "p1.active[0].vol.focusenergy",
      "with": 0,
@@ -16498,6 +16528,12 @@
      "path": "p1.pp[0].focusenergy",
      "with": 0,
      "without": 2
+    },
+    {
+     "turn": 2,
+     "path": "p2.slots[0].futuremove",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -16539,6 +16575,12 @@
      "without": 1
     },
     {
+     "turn": 1,
+     "path": "p2.active[0].vol.gastroacid",
+     "with": 1,
+     "without": 0
+    },
+    {
      "turn": 2,
      "path": "p1.active[0].vol.focusenergy",
      "with": 0,
@@ -16555,6 +16597,12 @@
      "path": "p1.pp[0].focusenergy",
      "with": 0,
      "without": 2
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].vol.gastroacid",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -17275,6 +17323,12 @@
    "sd_delta": [
     {
      "turn": 1,
+     "path": "field.gravity_turns",
+     "with": 4,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.active[0].vol.focusenergy",
      "with": 0,
      "without": 1
@@ -17293,6 +17347,12 @@
     },
     {
      "turn": 2,
+     "path": "field.gravity_turns",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 2,
      "path": "p2.pp[0].gravity",
      "with": 2,
      "without": 0
@@ -17302,6 +17362,12 @@
      "path": "p2.pp[0].focusenergy",
      "with": 1,
      "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "field.gravity_turns",
+     "with": 2,
+     "without": 0
     },
     {
      "turn": 3,
@@ -23507,6 +23573,12 @@
    "sd_delta": [
     {
      "turn": 1,
+     "path": "field.magicroom_turns",
+     "with": 4,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.active[0].vol.focusenergy",
      "with": 0,
      "without": 1
@@ -23525,6 +23597,12 @@
     },
     {
      "turn": 2,
+     "path": "field.magicroom_turns",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 2,
      "path": "p2.pp[0].magicroom",
      "with": 2,
      "without": 0
@@ -23534,6 +23612,12 @@
      "path": "p2.pp[0].focusenergy",
      "with": 1,
      "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "field.magicroom_turns",
+     "with": 2,
+     "without": 0
     },
     {
      "turn": 3,
@@ -26780,6 +26864,12 @@
     },
     {
      "turn": 1,
+     "path": "p1.active[0].vol.lockedmove",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p1.pp[0].outrage",
      "with": 1,
      "without": 0
@@ -27623,6 +27713,12 @@
      "path": "p1.active[0].vol.focusenergy",
      "with": 0,
      "without": 1
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].vol.lockedmove",
+     "with": 1,
+     "without": 0
     },
     {
      "turn": 1,
@@ -28960,6 +29056,12 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].vol.powertrick",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.pp[0].powertrick",
      "with": 1,
      "without": 0
@@ -28972,6 +29074,12 @@
     },
     {
      "turn": 2,
+     "path": "p2.active[0].vol.powertrick",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
      "path": "p2.pp[0].powertrick",
      "with": 1,
      "without": 0
@@ -28981,6 +29089,12 @@
      "path": "p2.pp[0].focusenergy",
      "with": 1,
      "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].vol.powertrick",
+     "with": 1,
+     "without": 0
     },
     {
      "turn": 3,
@@ -30543,6 +30657,12 @@
      "path": "p1.active[0].vol.focusenergy",
      "with": 0,
      "without": 1
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].vol.lockedmove",
+     "with": 1,
+     "without": 0
     },
     {
      "turn": 1,
@@ -36907,6 +37027,12 @@
     },
     {
      "turn": 3,
+     "path": "p2.active[0].vol.stockpile",
+     "with": 0,
+     "without": 2
+    },
+    {
+     "turn": 3,
      "path": "p2.pp[0].spitup",
      "with": 1,
      "without": 0
@@ -36950,6 +37076,12 @@
     {
      "turn": 4,
      "path": "p2.active[0].boosts.spd",
+     "with": 0,
+     "without": 2
+    },
+    {
+     "turn": 4,
+     "path": "p2.active[0].vol.stockpile",
      "with": 0,
      "without": 2
     },
@@ -37702,6 +37834,12 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].vol.stockpile",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.pp[0].stockpile",
      "with": 1,
      "without": 0
@@ -37738,6 +37876,12 @@
     },
     {
      "turn": 2,
+     "path": "p2.active[0].vol.stockpile",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
      "path": "p2.pp[0].stockpile",
      "with": 1,
      "without": 0
@@ -37769,6 +37913,12 @@
     {
      "turn": 3,
      "path": "p2.active[0].boosts.spd",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].vol.stockpile",
      "with": 1,
      "without": 0
     },
@@ -39759,6 +39909,12 @@
     },
     {
      "turn": 3,
+     "path": "p2.active[0].vol.stockpile",
+     "with": 0,
+     "without": 2
+    },
+    {
+     "turn": 3,
      "path": "p2.pp[0].swallow",
      "with": 1,
      "without": 0
@@ -39790,6 +39946,12 @@
     {
      "turn": 4,
      "path": "p2.active[0].boosts.spd",
+     "with": 0,
+     "without": 2
+    },
+    {
+     "turn": 4,
+     "path": "p2.active[0].vol.stockpile",
      "with": 0,
      "without": 2
     },
@@ -41292,6 +41454,12 @@
      "path": "p1.active[0].vol.focusenergy",
      "with": 0,
      "without": 1
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].vol.lockedmove",
+     "with": 1,
+     "without": 0
     },
     {
      "turn": 1,
@@ -43896,7 +44064,7 @@
    "reads": "priority !== 0 on a damaging move",
    "note": "priority +3 — Crabominable is the SLOWEST legal user of this move in the format (63 against 120 Speed) and dies outright to Volcarona's Flamethrower. It carries a 100% FLINCH, which fires in both pin arms, so with the bracket correct the foe never acts and the user is UNTOUCHED at the boundary; with it ignored the user is dead before it clicks.  NO ON-BOARD NEGATIVE: no second doomed body with an ordinary click could be derived, so the ignored-bracket board is supplied by the CONTROL ARM alone.",
    "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 1270 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 1491 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "crabominable",
@@ -45546,6 +45714,12 @@
    "sd_delta": [
     {
      "turn": 3,
+     "path": "p2.slots[0].wish",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 3,
      "path": "p2.active[0].vol.focusenergy",
      "with": 0,
      "without": 1
@@ -45609,6 +45783,12 @@
    "sd_delta": [
     {
      "turn": 1,
+     "path": "field.wonderroom_turns",
+     "with": 4,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.active[0].vol.focusenergy",
      "with": 0,
      "without": 1
@@ -45627,6 +45807,12 @@
     },
     {
      "turn": 2,
+     "path": "field.wonderroom_turns",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 2,
      "path": "p2.pp[0].wonderroom",
      "with": 2,
      "without": 0
@@ -45636,6 +45822,12 @@
      "path": "p2.pp[0].focusenergy",
      "with": 1,
      "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "field.wonderroom_turns",
+     "with": 2,
+     "without": 0
     },
     {
      "turn": 3,

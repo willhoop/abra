@@ -1,13 +1,13 @@
 {
- "generated": "2026-09-05T04:39:44.516Z",
+ "generated": "2026-09-06T03:30:06.078Z",
  "by": "tests/roster.js",
  "stage": "items",
- "engine_release": "688e696f00c8",
- "engine_release_cut": "2026-09-05T04:24:10.632Z",
- "engine_release_cuts": 1,
+ "engine_release": "576bcbadb681",
+ "engine_release_cut": "2026-09-06T03:16:44.677Z",
+ "engine_release_cuts": 6,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "f19834b62c05",
+  "engine/medicham2-browser.js": "2fc3f3caf739",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "1c4ba432e563",
   "engine/position_features.js": "622482051bf4",
@@ -7551,6 +7551,12 @@
      "path": "p2.party.kangaskhan.item",
      "with": "metronome",
      "without": ""
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].vol.metronome",
+     "with": 1,
+     "without": 0
     },
     {
      "turn": 3,

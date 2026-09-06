@@ -2199,6 +2199,19 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      (`sim/battle.ts:2168` sits inside spreadDamage's per-target loop). A two-target Matcha Gotcha
      bumps this twice; the engine used to round once over the sum and this counter could not exist. */
   drainRoundedPerTarget: 0,
+  /* 2026-09-05 -- one per NON-DRAIN heal that `healMultBySource` actually modified: the `volHeal`
+     residual (Ingrain, Aqua Ring), the seeder's Leech Seed return, and Strength Sap. The drain road
+     has read this tag since ROADMAP #339 and the other four members of the item's own `from` list
+     had no reader at all, so a ZERO on a run holding a Big Root over any of them means the wire is
+     back off and the heal is the bare fraction again. */
+  bigRootAppliedNonDrain: 0,
+  /* 2026-09-05 -- one per Leech Seed tick paid to the SEEDER with the authority's own `[silent]`
+     line. A zero over a game containing a standing seed means the attribution is back on. */
+  leechSeedHealSilent: 0,
+  /* 2026-09-05 -- one per residual on which a standing seed took NO chip because the seeder's slot
+     was empty, fainted or at 0 HP -- `leechseed.onResidual`'s own early return. A zero over a run in
+     which a seeder ever died means the guard is not being reached. */
+  leechSeedNoSeederNoChip: 0,
   /* ROADMAP #356 (RESCOPED) -- Protean's conversion, split by the door it came through.
        proteanConverted        every conversion, both callers.
        proteanOnStatusMove     the half that did not exist before 2026-08-23: a STATUS click converted
@@ -2450,6 +2463,17 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * is the receipt that the mid-turn resyncs are reachable at all: zero across a corpus means every
    * suppressor in it stood still for whole turns and the wire is unexercised, not that it is right. */
   wSupResynced: 0,
+  /* ROADMAP #542 (a), 2026-09-06 -- the aura's two MID-TURN resyncs, split by door because the two
+   * doors fail differently: the entry pass is a carrier arriving or leaving, the per-action pass is
+   * one dying. Both count the ANSWER moving, never the call, for the reason `wSupResynced` above
+   * does. Zero on both across a corpus holding a Fairy Aura carrier means the wire is unexercised. */
+  auraResyncedOnEntry: 0,
+  auraResyncedInAction: 0,
+  /* ROADMAP #544, 2026-09-06 -- every time a switch-in SWAPPED two indices of `sf.team`, this
+   * engine's copy of `side.pokemon`. Counts the swap, not the entrance: an entrant that was already
+   * at the active index moves nothing. Zero across a corpus with voluntary switches in it means the
+   * permutation is unreachable and `beatUpAllies` is walking the team sheet again. */
+  partyOrderPermuted: 0,
   /* ROADMAP #175 -- SYMBIOSIS. One counter, because the mechanic is one event: an item MOVED from
    * the ally to the body that just spent one. Zero means the partner never hands anything over and
    * every Florges in every rollout is a body holding a berry nobody can use. */
@@ -2808,6 +2832,16 @@ const MEDFAILS = { encoreAction: 0,
   /* ROADMAP #339 -- set whenever MEDI_DRAIN_LUMP_ROUND=1 puts the old single-rounding drain back on
      purpose, so a deliberate restore arm and a broken engine can never be read as the same thing. */
   drainLumpRoundRestored: 0,
+  /* 2026-09-05 -- set whenever MEDI_BIGROOT_DRAIN_ONLY=1 puts back the engine in which
+     `healMultBySource` was read on the drain road ALONE, so a deliberate restore arm and a broken
+     read can never be mistaken for one another. MUST READ 0 on any shipping run. */
+  bigRootDrainOnlyRestored: 0,
+  /* 2026-09-05 -- set whenever MEDI_LEECHSEED_HEAL_ATTRIBUTED=1 puts back the `[from] Leech Seed|[of]`
+     attribution the authority's `case 'leechseed'` routes past. MUST READ 0 on any shipping run. */
+  leechSeedHealAttributedRestored: 0,
+  /* 2026-09-05 -- set whenever MEDI_LEECHSEED_CHIP_WITHOUT_SEEDER=1 puts the sowerless chip back.
+     MUST READ 0 on any shipping run. */
+  leechSeedChipWithoutSeederRestored: 0,
   /* ROADMAP #339 -- a drain heal reached the payment step with `dealt > 0` and an EMPTY per-target
      list, so the sum was rounded once as a fallback.
      2026-08-24 -- RETIRED BY CONSTRUCTION AND KEPT DECLARED SO NOBODY LOOKS FOR IT. The drain is now
@@ -11170,6 +11204,16 @@ function auraStateOf(bodies){
  * actives and is authoritative whenever the loop has run; a PURE `dmgRange` call outside a turn can
  * only see the two bodies it was handed, so an aura sitting on an unseen PARTNER is invisible to it.
  * Not a fallback that invents anything: the two-body read is a strictly smaller true answer. */
+/* ONE WRITER FOR `field.aura`, FOUR CALLERS -- top of turn, mega, entry pass, per action -- for the
+ * reason `recomputeWeatherSuppression` has one: two copies of "who is standing here" disagree
+ * eventually and the disagreement is invisible because both keep working. Returns whether the ANSWER
+ * moved, so a counter beside it rises on a real change rather than on every call. */
+function refreshAura(field,bodies){
+  if(!field)return false;
+  const was=JSON.stringify(field.aura===undefined?null:field.aura);
+  field.aura=auraStateOf(bodies||[]);
+  return JSON.stringify(field.aura)!==was;
+}
 function auraFor(field,att,def){
   if(field&&field.aura!==undefined)return field.aura;
   return auraStateOf([att,def]);
@@ -13477,6 +13521,67 @@ const CRIT_VOLATILE_BLIND=(typeof process!=='undefined'&&process.env&&process.en
  * expression and a knob per half could not restore an expression that no longer exists. Any run
  * carrying it also carries a non-zero `MEDFAILS.drainLumpRoundRestored`. */
 const DRAIN_LUMP_ROUND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DRAIN_LUMP_ROUND==='1');
+/* 2026-09-05 -- MEDI_BIGROOT_DRAIN_ONLY=1 PUTS THE ONE-MEMBER READ BACK. Big Root's own handler
+ * names five heal sources and this engine had readers for exactly one of them:
+ *
+ *     data/items.ts  bigroot.onTryHeal(damage, target, source, effect) {
+ *       const heals = ['drain', 'leechseed', 'ingrain', 'aquaring', 'strengthsap'];
+ *       if (heals.includes(effect.id)) return this.chainModify([5324, 4096]); }
+ *
+ * The knob exists so the four unread members can be shown MISSING on demand without swapping a file;
+ * it does NOT touch the drain road, which has been right since ROADMAP #339. Any run carrying it also
+ * carries a non-zero `MEDFAILS.bigRootDrainOnlyRestored`. */
+const BIGROOT_DRAIN_ONLY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_BIGROOT_DRAIN_ONLY==='1');
+/* 2026-09-05 -- MEDI_LEECHSEED_HEAL_ATTRIBUTED=1 PUTS THE SEEDER'S `[from] Leech Seed|[of] <victim>`
+ * BACK. `Battle#heal` gives `leechseed` its own case and writes `[silent]` (sim/battle.ts:2276); this
+ * engine wrote the `default:` branch's shape. Any run carrying the knob also carries a non-zero
+ * `MEDFAILS.leechSeedHealAttributedRestored`. */
+const LEECHSEED_HEAL_ATTRIBUTED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_LEECHSEED_HEAL_ATTRIBUTED==='1');
+/* 2026-09-05 -- MEDI_LEECHSEED_CHIP_WITHOUT_SEEDER=1 PUTS THE CHIP BACK ON A SEED WITH NO SOWER.
+ * `leechseed.condition.onResidual` looks the seeder's slot up and RETURNS before it damages anything
+ * when that slot is empty, fainted or at 0 HP; this engine gated only the heal on that lookup. This
+ * is the BOARD half of the Leech Seed residual and it has its own knob because it is a different
+ * defect from the two narration fields. Any run carrying it also carries a non-zero
+ * `MEDFAILS.leechSeedChipWithoutSeederRestored`. */
+const LEECHSEED_CHIP_WITHOUT_SEEDER=(typeof process!=='undefined'&&process.env&&process.env.MEDI_LEECHSEED_CHIP_WITHOUT_SEEDER==='1');
+/* 2026-09-05 -- THE HEAL-SOURCE MODIFIER, IN ONE PLACE BECAUSE IT IS ONE FACT (CLAUDE.md: FACTS ARE
+ * GLOBAL). Four sites pay a heal that Big Root's own list covers and each was about to grow its own
+ * copy of "does the holder carry the item, and is this source on its list".
+ *
+ * IT TAKES AN ALREADY-TRUNCATED AMOUNT AND RETURNS THE MODIFIED ONE, which is the authority's order
+ * and not an implementation detail -- `Battle#heal` (sim/battle.ts:2258) truncs the base BEFORE
+ * raising TryHeal:
+ *
+ *     if (damage && damage <= 1) damage = 1;
+ *     damage = this.trunc(damage);
+ *     damage = this.runEvent('TryHeal', target, source, effect, damage);
+ *
+ * so a 155 HP Ingrain is `md4096(trunc(155/16)) = md4096(9) = 12`, where folding the multiplier into
+ * the fraction gives 12 by luck and truncating after a float multiply gives 11. `md4096` is this
+ * engine's single implementation of `Battle#modify` and is called rather than re-derived.
+ *
+ * MEMBERSHIP IS THE ARTIFACT'S `from` LIST, NEVER A NAME. `healMultBySource` carries the handler's
+ * own five ids; the DRAIN road has read it since ROADMAP #339 and keeps its own call, because it
+ * applies the modifier at a different point in its own arithmetic. `srcId` is the effect id the
+ * authority puts in front of the list -- the volatile for the residual pair, `leechseed` for the
+ * seeder's return, the move id for Strength Sap. */
+function healSourceMult(mon,srcId){
+  if(BIGROOT_DRAIN_ONLY){MEDFAILS.bigRootDrainOnlyRestored=1;return 1;}
+  if(!mon||!mon.item||!srcId)return 1;
+  const p=TAGS.param('item',mon.item,'healMultBySource');
+  if(!p||!(+p.mult>0)||!Array.isArray(p.from)||!p.from.includes(String(srcId)))return 1;
+  return +p.mult;
+}
+/* The application, so the three non-drain callers cannot round differently from each other. Returns
+ * the amount unchanged when there is no modifier, and counts every time one actually moved a number
+ * -- a modifier that resolves to 1.0 is not evidence the wire ran. */
+function healWithSourceMult(mon,srcId,amt){
+  const m=healSourceMult(mon,srcId);
+  if(m===1)return amt;
+  const out=md4096(amt,m);
+  if(out!==amt)MEDSEEN.bigRootAppliedNonDrain++;
+  return out;
+}
 /* ROADMAP #356 (RESCOPED), 2026-08-23 -- MEDI_PROTEAN_ATTACK_ONLY=1 SHUTS THE STATUS DOOR AGAIN: the
  * above-dispatch `PrepareHit` call is skipped and only the attack branch converts, which is what this
  * engine did until today. It exists so the census row can be shown MISSING on demand without swapping
@@ -14026,6 +14131,11 @@ const HERB_END_FIRST=(typeof process!=='undefined'&&process.env&&process.env.MED
  * RED on demand without swapping a file. Any run carrying it also carries a non-zero
  * `MEDFAILS.entryFieldSyncSkipped`. Same shape as MEDI_HERB_END_FIRST above. */
 const NO_ENTRY_FIELD_SYNC=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_ENTRY_FIELD_SYNC==='1');
+/* ROADMAP #544, 2026-09-06 -- MEDI_BEATUP_BUILD_ORDER=1 PUTS THE STATIC BUILD ORDER BACK: `sf.team` is
+ * left in the order battleInit stamped it, so Beat Up prices its hits off the team sheet rather than off
+ * the live party array. It exists so tests/probe_beatup_ally_order.js can be shown RED on demand without
+ * swapping a file. Any run carrying it also carries a non-zero `MEDFAILS.beatUpBuildOrderRestored`. */
+const BEATUP_BUILD_ORDER=(typeof process!=='undefined'&&process.env&&process.env.MEDI_BEATUP_BUILD_ORDER==='1');
 /* ROADMAP #352, 2026-08-23 -- MEDI_WEATHER_UPKEEP_GATED=1 PUTS THE SUPPRESSION GATE BACK ON THE
  * UPKEEP LINE, i.e. `|-weather|W|[upkeep]` goes silent again while a Cloud Nine body is standing
  * there. It exists so `tests/test-mechanics.js condition/weatherUpkeepUnderSuppression` can be shown
@@ -14044,6 +14154,13 @@ const WEATHER_UPKEEP_GATED=(typeof process!=='undefined'&&process.env&&process.e
  * line and one is HP, and a knob that restored both could not tell which half a red arm was about.
  * Any run carrying it also carries a non-zero `MEDFAILS.wSupStaleRestored`. */
 const WSUP_STALE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_WSUP_STALE==='1');
+/* ROADMAP #542 (a), 2026-09-06 -- MEDI_AURA_STALE=1 PUTS THE ONCE-A-TURN AURA CACHE BACK: the two
+ * mid-turn re-computations of `field.aura` (the entry pass and the per-action pass) are skipped, so a
+ * carrier that arrives, leaves or dies during a turn is not noticed until the next turn starts, which
+ * is what this engine did until today. The top-of-turn and mega sites are NOT under the knob -- they
+ * are the behaviour being restored, not the defect, exactly as MEDI_WSUP_STALE leaves its own two
+ * alone. Any run carrying it also carries a non-zero `MEDFAILS.auraStaleRestored`. */
+const AURA_STALE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_AURA_STALE==='1');
 /* 2026-08-23 -- MEDI_UNNERVE_PARTIAL=1 PUTS UNNERVE BACK ON TWO OF THE FIVE BERRY SITES, i.e. the
  * pinch berry and Leppa keep their refusal and the cure berry, the instantaneous confusion cure and
  * the resist berry go back to being eaten under Unnerve. It exists so
@@ -19564,7 +19681,7 @@ function megaEvolveNow(S,m,auto){
    * ALL THREE ARE RESYNCED, not just the aura: Air Lock and the sleep refusal are the same shape one
    * event over, and a mega really can bring Cloud Nine or a Sweet Veil onto the field. Fixing only the
    * one that was measured would leave two of its neighbours wrong for the same reason. */
-  S.field.aura=auraStateOf([...S.actA,...S.actB]);
+  refreshAura(S.field,[...S.actA,...S.actB]);
   recomputeWeatherSuppression(S.field,[...S.actA,...S.actB]);
   refreshSleepBlock(S.actA,S.actB,S.sfA,S.sfB);
   MEDSEEN.fieldFactsResyncedOnMega++;
@@ -20903,6 +21020,21 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry,outgoing){
   /* `_mvActs` IS `activeMoveActions` AND IT IS ZEROED HERE, which is where `switchIn` zeroes it
      (sim/battle-actions.ts:138) -- the body that just arrived has taken no move action, whatever it
      did before it left. Fake Out and First Impression are the readers; see firstTurnOnlyRefused. */
+  /* ROADMAP #544 -- `side.pokemon` IS PERMUTED BY EVERY SWITCH-IN AND `sf.team` IS THIS ENGINE'S COPY
+   * OF IT. sim/battle-actions.ts:119-133 swaps two indices: the entrant takes the active slot's index
+   * and the body it replaced takes the entrant's old bench index. The BENCH array three lines up
+   * already does exactly this (`bench[_j]=outgoing`); `sf.team` was the copy nobody permuted, and
+   * `beatUpAllies` walks `sf.team`, so Beat Up priced its hits off the team SHEET.
+   *
+   * IT READS `act[i]` RATHER THAN THE `outgoing` PARAMETER, and that is the whole of the faint case:
+   * a replacement arrives with `outgoing` undefined and the corpse still standing in the slot, and the
+   * authority swaps with that corpse too (`oldActive` is simply a fainted body there). */
+  if(BEATUP_BUILD_ORDER)MEDFAILS.beatUpBuildOrderRestored=1;
+  else {const _out=act&&act[i];
+    if(sf&&sf.team&&_out&&_out!==nx){
+      const _a=sf.team.indexOf(nx),_b=sf.team.indexOf(_out);
+      if(_a>=0&&_b>=0&&_a!==_b){sf.team[_b]=nx;sf.team[_a]=_out;MEDSEEN.partyOrderPermuted++;}
+    }}
   nx._turnsOut=0; nx._mvActs=0; nx._fallenStuck=sf.fainted; act[i]=nx;
   /* ROADMAP #290 -- UNBURDEN IS A VOLATILE AND A VOLATILE DIES ON THE WAY OUT.
    *
@@ -21210,6 +21342,13 @@ function runEntryPass(nx,foes,act,i,field,sf){
    * read a clear sky. */
   if(WSUP_STALE)MEDFAILS.wSupStaleRestored=1;
   else recomputeWeatherSuppression(field,[...(act||[]),...(foes||[])]);
+  /* ROADMAP #542 (a) -- THE AURA IS THE IDENTICAL `onAny` SHAPE AND IT HAD TWO WRITERS WHERE THE
+   * SUPPRESSION HAS FOUR. `fairyaura.onAnyBasePower` is a handler on a STANDING BODY, collected by
+   * `findEventHandlers` at the moment the event runs, so its reach is decided PER MOVE and not per
+   * turn. A carrier that leaves mid-turn goes on pricing the opponent's Fairy moves up; one that
+   * arrives mid-turn does not price them at all. */
+  if(AURA_STALE)MEDFAILS.auraStaleRestored=1;
+  else if(refreshAura(field,[...(act||[]),...(foes||[])]))MEDSEEN.auraResyncedOnEntry++;
   if(NO_ENTRY_FIELD_SYNC)MEDFAILS.entryFieldSyncSkipped=(MEDFAILS.entryFieldSyncSkipped||0)+1;
   else {MEDSEEN.entryFieldSync++;syncFieldTypes(field,[...(act||[]),...(foes||[])]);}
 }
@@ -23431,7 +23570,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        way WIRE 78 answered it). `undefined` means "no loop has run"; `null` means "a loop ran and
        there is no aura", and auraFor distinguishes the two -- so a pure call still gets its own
        two-body answer instead of silently inheriting a stale one. */
-    field.aura=auraStateOf([...actA,...actB]);
+    refreshAura(field,[...actA,...actB]);
     /* WIRE 144 -- and the sleep refusal on the same line and for the same reason: an `onAny` handler is
      * a property of the field while a carrier stands on it. See refreshSleepBlock. */
     refreshSleepBlock(actA,actB,sfA,sfB);
@@ -24368,7 +24507,11 @@ function battleTurn(S,rng,actsForA,actsForB){
      * counter it stamps rises only when the answer actually CHANGED. */
     const _updateAll=()=>{ _updateEvent(); restoreStatsAll(actA,actB);
       if(WSUP_STALE)MEDFAILS.wSupStaleRestored=1;
-      else recomputeWeatherSuppression(field,[...actA,...actB]); };
+      else recomputeWeatherSuppression(field,[...actA,...actB]);
+      /* ROADMAP #542 (a) -- THIS IS THE SITE THAT CATCHES A FAINT. `auraStateOf` already skips a
+       * fainted body; what was missing is anybody asking it again after something died mid-turn. */
+      if(AURA_STALE)MEDFAILS.auraStaleRestored=1;
+      else if(refreshAura(field,[...actA,...actB]))MEDSEEN.auraResyncedInAction++; };
     /* ===== ROADMAP #240 -- THE RE-SORT, AND THE TRIGGER IS THE MECHANIC ==========================
      *
      * ONE PLACE. Every caller that wants the remaining queue re-derived comes through here, so the
@@ -27132,7 +27275,11 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* ROADMAP #102 -- and the sap is paid, after the drop and out of the amount read before it. */
           if(_sapHeal!=null&&!m.fainted&&!healBlocked(m)){
             const _sh0=m.curHP;
-            m.curHP=Math.min(m.st.hp,m.curHP+_sapHeal);
+            /* 2026-09-05 -- AND BIG ROOT MODIFIES THE SAP. `strengthsap` is the fifth id on the
+             * item's `from` list and `this.heal(atk, source, target)` raises TryHeal on the USER.
+             * The stat is already an integer, so the trunc `Battle#heal` does first is a no-op and
+             * the modifier is applied straight to it. */
+            m.curHP=Math.min(m.st.hp,m.curHP+healWithSourceMult(m,a.mv,_sapHeal));
             /* ROADMAP #234 -- AND IT LOSES AN ATTRIBUTION RATHER THAN GAINING ONE.
              * sim/battle.ts:2290: `if (effect.effectType === 'Move') add('-heal', target, health)` --
              * no tag, no `[of]`. This engine wrote "[from] move: strengthsap|[of] TARGET", which is a
@@ -38050,7 +38197,11 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(_G.has('volHeal')&&m.curHP>0&&m._vol&&!healBlocked(m))for(const [_v,_r] of perTurnHPVolatiles()){
         if(!(m._vol[_v]>0)||_r.pt.effect!=='heal'||_r.pt.on!=='holder')continue;
         const _h0=m.curHP;
-        m.curHP=Math.min(m.st.hp,m.curHP+Math.max(1,Math.trunc(m.st.hp/perTurnHPDenominator(_r.pt,m))));
+        /* 2026-09-05 -- AND BIG ROOT MODIFIES IT. `ingrain` and `aquaring` are both on the item's own
+         * `from` list and this step read no item at all; the modifier is applied to the ALREADY
+         * TRUNCATED fraction, which is `Battle#heal`'s order. See healWithSourceMult. */
+        m.curHP=Math.min(m.st.hp,m.curHP+healWithSourceMult(m,_v,
+          Math.max(1,Math.trunc(m.st.hp/perTurnHPDenominator(_r.pt,m)))));
         MEDSEEN.perTurnVolatileHeal++;
         if(TR&&m.curHP>_h0)TR.heal(m,'[from] move: '+_r.mv);
       }
@@ -38144,11 +38295,6 @@ function battleTurn(S,rng,actsForA,actsForB){
        * this.heal(damage, ...)` -- the heal is the RETURN of the damage call, so a blocked chip returns
        * false and the seeder gets nothing. Skipping only the victim's subtraction would mint HP. */
       if(_G.has('seed')&&m._seededBy&&m.curHP>0&&!refusesIndirect(m)){
-        /* Heal what was TAKEN, not the formula amount: the killing tick drains only the HP the
-         * victim still had, and handing the seeder more than that would mint HP from nothing. */
-        const _d=Math.min(Math.floor(m.st.hp/m._seededBy.per),m.curHP);
-        m.curHP-=_d;
-        if(TR)TR.dmg(m,'[from] Leech Seed');
         /* ROADMAP #223 -- WHO GETS THE HP IS A SLOT LOOKUP, resolved NOW, at the residual. This read
          * `m._seededBy.by` -- the body that clicked, captured turns earlier -- so a seeder that pivoted
          * was healed on the BENCH and the replacement standing in its slot got nothing. Showdown's own
@@ -38162,11 +38308,72 @@ function battleTurn(S,rng,actsForA,actsForB){
           _s=(m._seededBy.side==='A'?actA:actB)[m._seededBy.slot]||null;
           if(_s!==m._seededBy.by)MEDSEEN.leechSeedDrainReaimed++;
         } else { _s=m._seededBy.by; if(_s)MEDFAILS.leechSeedDrainNoSlot++; }
+        /* 2026-09-05 -- NO SEEDER, NO CHIP. The handler's FIRST two statements are a slot lookup and
+         * an early return, and everything below them -- the damage included -- is inside that guard:
+         *
+         *     onResidual(pokemon) {
+         *       const target = this.getAtSlot(pokemon.volatiles['leechseed'].sourceSlot);
+         *       if (!target || target.fainted || target.hp <= 0) {
+         *         this.debug('Nothing to leech into'); return;
+         *       }
+         *       const damage = this.damage(pokemon.baseMaxhp / 8, pokemon, target);
+         *       if (damage) this.heal(damage, target, pokemon);
+         *
+         * This engine gated only the HEAL on that lookup (ROADMAP #175, whose note says "a refused
+         * seed pays the seeder nothing") and chipped the victim regardless -- so a seed whose sower
+         * had fainted or left the field went on taking maxhp/8 a turn off a body the real game stops
+         * touching. That is a BOARD leaf, not a line. The lookup is resolved above this comment and
+         * the chip below it for exactly that reason: the authority resolves before it damages, and
+         * the order is what makes the guard reachable at all. */
+        let _seederGone=(!_s||_s.fainted||_s.curHP<=0);
+        if(_seederGone&&LEECHSEED_CHIP_WITHOUT_SEEDER){
+          MEDFAILS.leechSeedChipWithoutSeederRestored=1;_seederGone=false;
+          /* THE RESTORE IS THE EXACT PRE-FIX ENGINE: it chipped, wrote the line, and then found no
+           * body to pay. `_payTo` is what the heal below reads, so the knob puts the chip back
+           * WITHOUT inventing a recipient. */
+        }
+        const _payTo=(!_s||_s.fainted||_s.curHP<=0)?null:_s;
+        if(_seederGone)MEDSEEN.leechSeedNoSeederNoChip++;
+        /* Heal what was TAKEN, not the formula amount: the killing tick drains only the HP the
+         * victim still had, and handing the seeder more than that would mint HP from nothing. */
+        const _d=_seederGone?0:Math.min(Math.floor(m.st.hp/m._seededBy.per),m.curHP);
+        m.curHP-=_d;
+        /* 2026-09-05 -- AND THE CHIP NAMES THE SEEDER. `Battle#spreadDamage`'s `default:` branch
+         * (sim/battle.ts:2148-2155) writes `[from] <name>` AND `[of] <source>` whenever a source is
+         * present and is not the target; leechseed passes the seeder as that source. This engine wrote
+         * the two-field form -- `[from] Leech Seed` alone -- which is the branch the authority takes
+         * only when there is NO source, and there always is one here after the guard above. */
+        if(TR&&!_seederGone){
+          if(LEECHSEED_HEAL_ATTRIBUTED)TR.dmg(m,'[from] Leech Seed');
+          else TR.dmg(m,'[from] Leech Seed',_payTo);
+        }
         /* The seed keeps CHIPPING under Heal Block and only the seeder's return is stopped, which is
          * the same split as the drain: the damage is not healing. */
-        if(_s&&!_s.fainted&&_s.curHP>0&&!healBlocked(_s)){const _h0=_s.curHP;
-          _s.curHP=Math.min(_s.st.hp,_s.curHP+_d);
-          if(TR&&_s.curHP>_h0)TR.heal(_s,'[from] Leech Seed',m);}
+        if(_payTo&&!healBlocked(_payTo)){const _s=_payTo,_h0=_s.curHP;
+          /* 2026-09-05 -- AND THE SEEDER'S BIG ROOT MODIFIES THE RETURN. `this.heal(damage, target,
+           * pokemon)` puts the effect id `leechseed` in front of the item's own list, and the ITEM IS
+           * THE SEEDER'S -- `onTryHeal` is raised on the body being healed, not on the victim. The
+           * chip above is untouched: only the return passes through TryHeal. */
+          _s.curHP=Math.min(_s.st.hp,_s.curHP+healWithSourceMult(_s,'leechseed',_d));
+          /* 2026-09-05 -- AND THE SEEDER'S LINE IS `[silent]`, WITH NO ATTRIBUTION AT ALL. It is not
+           * a rule this engine gets to infer from the effect: `Battle#heal` switches on the effect id
+           * and gives leechseed its own case, sim/battle.ts:2276-2279 --
+           *
+           *     case 'leechseed':
+           *     case 'rest':
+           *       this.add('-heal', target, target.getHealth, '[silent]');
+           *
+           * -- where the `default:` branch two cases below is the one that writes
+           * `'[from] ' + effect.fullname`. This engine wrote the default's shape on a line the
+           * authority routes past it, so the seeder's heal carried `[from] Leech Seed|[of] <victim>`
+           * on every tick. Measured on the pinned pool as the FIRST divergence of two whole-game
+           * pairs: `|-heal|p1b: Scovillain|47/140|[silent]` against ours with the two extra fields.
+           * The VICTIM's `-damage` above keeps its `[from] Leech Seed` -- that line comes out of
+           * `Battle#damage`, which has no such case and does write the attribution. */
+          if(TR&&_s.curHP>_h0){
+            if(LEECHSEED_HEAL_ATTRIBUTED){MEDFAILS.leechSeedHealAttributedRestored=1;TR.heal(_s,'[from] Leech Seed',m);}
+            else {TR.heal(_s,undefined,null,'[silent]');MEDSEEN.leechSeedHealSilent++;}
+          }}
       }
       /* ROADMAP #81 WIRE 12 -- THE CURSE CHIP, and it is the half that PAYS the price the branch
          above charges. `perTurnHP {effect:'damage', on:'target'}` has been in the artifact all along

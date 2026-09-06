@@ -790,8 +790,10 @@ const annotateCause = STANDING.annotateCause;
  *
  * CHANGELOG 3.45.0 records what a mispinned die costs: `random` was pinned to the median and
  * `randomChance` to `num >= den`, a DIFFERENT die, so every sub-100 move missed in one engine and
- * connected in the other. The two pins are still ONE FUNCTION BY CONSTRUCTION — `PIN_CHANCE(num, den)`
- * is literally `pinRandom(den) < num`, which IS `PRNG.randomChance` (sim/prng.ts:115).
+ * connected in the other. `PIN_CHANCE(num, den)` is `pinRandom(den) < num` — `PRNG.randomChance`
+ * (sim/prng.ts:115) — IN THE SCALAR ARMS ONLY. The MIDDLE arm deliberately draws the float directly
+ * (see `chance` below), so its two entry points are two INDEPENDENT draws off an nth-indexed address
+ * and the identity does not hold for it. `pinRandom`/`PIN_CHANCE` are bound to `top-tie-first`.
  *
  * THE TIE PIN NEEDED THE SAME ARGUMENT AND IT IS NOT OBVIOUS. medicham2 resolves a tie by a value
  * drawn ONCE PER ACTION from the same scalar and stored (`sortTurnOrder`'s `_tie`, sorted DESCENDING).
@@ -1686,12 +1688,23 @@ const ARMS = [
 ];
 const ARM_BY_ID = new Map(ARMS.map(a => [a.id, a]));
 const PRIMARY_ARM = ARMS[0];
-/* Kept at module scope and bound to the PRIMARY arm, because the staged measurements below (the Knock
- * Off halves, the damage interior) are calibrated against the max-damage endpoint and are NOT swept
- * across arms. Exported under their old names so nothing downstream has to know about arms. */
-const pinRandom = PRIMARY_ARM.random;
-const PIN_CHANCE = PRIMARY_ARM.chance;
-const mediRng = PRIMARY_ARM.mediRng();
+/* BOUND BY NAME, NOT BY POSITION — 2026-09-06, ROADMAP #545. These drive `oneHitDamage`, whose
+ * medicham side is `inertExcept(...)`: acc 0, crit/sec/stall 0.999. That is an exact mirror of
+ * `top-tie-first` and of NOTHING ELSE. `ARMS[0]` was `top-tie-first` until the middle arm was
+ * prepended on 2026-08-13 (cf7a2c5a), and that one line silently handed Showdown a LIVE crit die
+ * while medicham kept a pinned one — 4 red clauses in tests/test-game-differential.js, none of them
+ * the engine. It stayed invisible until 245cb90d (2026-08-27) gave the middle hash a finaliser;
+ * before that, consecutive draws at one address differed by 0.043 and the crit simply never fired.
+ * `PRIMARY_ARM` is the arm the RUN plays and must stay `ARMS[0]`; the staged measurements below (the
+ * Knock Off halves, the damage interior) are a different question and now say so. They are exported
+ * under their old names so nothing downstream has to know about arms. */
+const STAGED_ARM = ARM_BY_ID.get('top-tie-first');
+if (!STAGED_ARM) throw new Error('game_differential: the staged measurements are calibrated against '
+  + 'the max-damage scalar corner and no arm named "top-tie-first" exists. Renaming that arm without '
+  + 'repointing this line would silently re-run the 2026-08-13 defect.');
+const pinRandom = STAGED_ARM.random;
+const PIN_CHANCE = STAGED_ARM.chance;
+const mediRng = STAGED_ARM.mediRng();
 
 /* THE PIN IS ASSERTED ON ITS BEHAVIOUR, not on its arithmetic. Every row is a claim about what a
  * BATTLE does, and every row carries the medicham2 counterpart beside it — because the failure this

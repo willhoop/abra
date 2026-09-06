@@ -1,13 +1,13 @@
 {
- "generated": "2026-09-06T01:22:48.671Z",
+ "generated": "2026-09-06T04:29:28.750Z",
  "by": "tests/roster.js",
  "stage": "items",
- "engine_release": "63cbcc2ef605",
- "engine_release_cut": "2026-09-05T23:05:48.675Z",
- "engine_release_cuts": 2,
+ "engine_release": "db248fe67a5e",
+ "engine_release_cut": "2026-09-06T04:08:24.424Z",
+ "engine_release_cuts": 3,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "922e9d77cccb",
+  "engine/medicham2-browser.js": "6fef70d4df5e",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "1c4ba432e563",
   "engine/position_features.js": "622482051bf4",

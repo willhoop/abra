@@ -39,7 +39,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_partingshot_mirrorarmor.js`, `tests/probe_partingshot_conditional.js`,
 `tests/probe_instruct_shield.js`, `engine/effect_kind.js`, `tests/test-effect-kind.js`,
 `tests/probe_entity_kind.js`, `tests/probe_kingsrock_volley.js`,
-`tests/probe_punish_side_and_sky.js`
+`tests/probe_punish_side_and_sky.js`, `tests/probe_bigroot_family.js`,
+`tests/probe_leechseed_silent.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -119,10 +120,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  829/829 probed mechanics live, 0 missing   (census 2026-09-05 21:15)
+  829/829 probed mechanics live, 0 missing   (census 2026-09-06 00:11)
     the census probes what somebody thought to probe: 285 of 300 tags carry a probe, 15 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 7 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-05 21:26)
+    never fired in the staged harness (all-mechanics-fire.json, 57 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-06 00:28)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -144,11 +145,283 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-05 21:31_
+_stamped 2026-09-06 01:28_
 
 <!-- /GENERATED -->
 
-## `cantusetwice` IS A **CHOICE-TIME DISABLE AND NOTHING ELSE**, SO AN ENCORED OR INSTRUCTED GIGATON HAMMER SWINGS FOR 160 — AND THE SEVENTH `-damage field 3` CARD WAS NEVER A GIGATON HAMMER MECHANIC AT ALL: BOARD-MATERIAL **60 OF 961 -> 59 OF 961**, PROTOCOL **162 -> 161**, CENSUS LEVEL AT 829/829. 2026-09-05
+## THREE HELD FIXES APPLIED ONE AT A TIME — BOARD-MATERIAL **56 OF 961 -> 50 OF 961**, PROTOCOL **158 -> 151**, CENSUS LEVEL AT 829/829, AND `data/game-differential.json` REPUBLISHED OFF A SETTLED TREE. 2026-09-06, CHANGELOG 5.258.0
+
+Three fixes that were derived, proven red-first and held unapplied, applied and **measured separately**
+so each is attributable. Pins IDENTICAL on all four whole-game runs: census
+`data/verification/census-pin-9446a684709d.json`, pool `data/team-pool-frozen`, arm `middle`,
+`--end-state`, steering `empirical`, cap 20. Each step ran on its own frozen release. Full account:
+`docs/_reports/2026-09-06-apply-three-fixes.md`.
+
+| step | what landed | release | board-material | protocol |
+|---|---|---|---|---|
+| baseline | batch A, unchanged | `576bcbadb681` | 56 | 158 |
+| 1 | staged pins bound by NAME (#545) | `576bcbadb681` | **56** | **158** |
+| 2 | Fairy Aura (#542 a) | `421d8880c61e` | **51** | **153** |
+| 3 | Beat Up ally order (#544) | `db248fe67a5e` | **50** | **151** |
+| 4 | settled tree, republished | `db248fe67a5e` | **50** | **151** |
+
+### THE INSTRUMENT FIRST, AND ITS COMPARABILITY BREAK WAS PAID FOR RATHER THAN ARGUED
+
+`ARMS[0]` stopped being the max-damage endpoint on 2026-08-13 and took the three module-scope staged
+pins with it. `PRIMARY_ARM` is **untouched** — it is the arm the run plays. `pinRandom`, `PIN_CHANCE`
+and `mediRng` are now bound by NAME through `ARM_BY_ID.get('top-tie-first')`, with a throw beside them
+so a rename cannot re-run the defect silently. Both stale prose assertions moved in the same pass: the
+`:793` "one function by construction" claim now says **in the scalar arms only** and states the middle
+arm's opposite claim, and PART 3b's failure message cites `tests/test-engine-diff.js:888` instead of
+the rotted `149/150`, which now points at `logDroppedRow`.
+
+`tests/test-game-differential.js`: **4 FAILURES -> ALL PASSED.** The damage interior moved the way #545
+predicted — **Showdown's span came DOWN onto medicham's** (knock-off `108..177 -> 108..127`, contact
+punish `66..104 -> 66..78`) while medicham never moved on either. The engine was never implicated.
+
+This changes `driver_code` — `e87506b2d737` -> `0c1fc935a5fb` — so the 56 stopped being comparable by
+construction. **Re-measured immediately, paired, same release and pins: board-material 56, protocol 158,
+never-diverged 905, and `classes`, `first_divergences`, `first_board_divergences` and `end_state` ALL
+IDENTICAL.** The prediction (`data/verification/_prediction-step1-staged-pins.json`) held exactly, and
+its reasoning was checked rather than trusted: the staged pins have exactly two consumers
+(`oneHitDamage`, `:6120-6121`), the module-scope `mediRng` has none, and `MID_NTH` is cleared at the top
+of every middle-arm game so staged draws cannot shift a game's dice.
+
+### FAIRY AURA — `field.aura` HAD TWO WRITERS WHERE THE IDENTICAL `onAny` SHAPE HAS FOUR
+
+`fairyaura.onAnyBasePower` is a handler on a STANDING BODY, collected by `findEventHandlers` when the
+event runs, so its reach is decided **per move**. This engine cached it once a turn. `refreshAura` is
+now the ONE writer and it is called from four sites — top of turn, `megaEvolveNow`, `runEntryPass` and
+`_updateAll` — which is exactly the set `recomputeWeatherSuppression` has.
+
+**RED FIRST.** `tests/probe_fairy_aura.js`, knob `MEDI_AURA_STALE`: 3 failures across 4 arms, then
+**all 4 arms clear**. The knob reproduces every red reading exactly — exit 50, entry 39, faint 50 — and
+**moves no byte of either control**, both of which read 39 / 38 / 39 on Showdown, on medicham and under
+the knob.
+
+**MEASURED: board-material 56 -> 51, protocol 158 -> 153.** Five BOARD-MATERIAL causes closed and none
+appeared. **THE PREDICTION OF 54 WAS WRITTEN FIRST AND MISSED BY 3.** It was derived from the FULL
+by-cause worklist rather than the capped `first_board_divergences`, which was the right instrument and
+was still wrong: I credited only the two causes NAMING a Floette-Mega as the damage target, because
+those are the two pairs #542 derived by hand. The aura prices any Fairy move by any user with
+`target !== source`, so the Gengar, Archaludon and Kingambit rows are the same defect. **The error was
+reading a cause string as if it named the mechanic when it names the victim.**
+
+### BEAT UP — `side.pokemon` IS PERMUTED BY EVERY SWITCH-IN AND `sf.team` IS THIS ENGINE'S COPY OF IT
+
+`sim/battle-actions.ts:119-133` swaps two indices on every entrance; `beatUpAllies` walks `sf.team`,
+which nobody permuted, so Beat Up priced its hits off the team SHEET. `bringIn` now performs the same
+swap, reading `act[i]` rather than the `outgoing` parameter — which is the whole of the faint case,
+where a replacement arrives with `outgoing` undefined and the corpse still standing in the slot.
+
+**RED FIRST.** `tests/probe_beatup_ally_order.js`, knob `MEDI_BEATUP_BUILD_ORDER`: 3 failures across 4
+arms, then **all 4 arms clear**. medicham reads `[25, 22, 21, 16]` at the corner and `[24, 21, 19, 21]`
+at `middle`; the probe's own diagnosis flips from *IDENTICAL to the authority's no-switch sequence* to
+*DIFFERENT*. Neither control moves under the knob.
+
+**THE ASSUMPTION THE DERIVING PASS COULD NOT TEST WAS RUN, NOT INHERITED.** `game_differential.js`'s
+`STATE_PLANTS` picks a benched member as `t[t.length-1]`, which can now hold a standing body.
+`tests/test-end-state.js` is **ALL GREEN** with the permutation in — PART 3's plant is caught AT THE
+END, localised to `p1.party.basculegion.item`, the control clean, and the planted body still off the
+field at the last boundary. The other two `sf.team` readers were cleared by reading: `fallenCount`
+filters, and every board leaf is species-keyed (`p1.party.<species>.hp`), never indexed.
+
+**MEASURED: board-material 51 -> 50, protocol 153 -> 151.** Two causes closed, none new. Called before
+the run as an obscure-tail fix whose scoreboard is the LAB; the pool moved by one as well.
+Board-material landed on its point estimate; protocol was predicted 152 and read 151, because a second,
+narration-only game closed with it.
+
+### THE SETTLED-TREE PASS
+
+`data/game-differential.json` is **REPUBLISHED** at 50 / 151 on release `db248fe67a5e`. It had held a
+stale 46 measured on `0dec37ff5ad9`, and both whole-game gate clauses were failing on *staleness* with
+every count withheld. They now fail on the measured counts themselves, which is the honest state and
+makes the numbers quotable again. The re-run reproduces step 3 to the byte on `classes`,
+`first_divergences`, `state.first_board_divergences` and `by_cause`.
+
+**THE CLAUSES THESE CHANGES STALED WERE RE-RUN AND NONE MOVED.** Damage differential **0 of 6000** at
+the midpoint and at all sixteen corners, seed 20260804. Roster **items 140 / abilities 129 / moves
+475**, with `FIRED-AND-BOARDS-DIFFER` and `DID-NOT-FIRE` at **zero on all three stages**.
+`all_mechanics_fire.js --kind all` re-run — 1313 games, 0 threw, 0 sheets unassembled. Census
+regenerated after step 2 AND after step 3, **829 live / 829 probed / 0 missing** both times.
+**The gate reads 7 of 9 passing; the two failures are the whole-game clauses, now on real counts.**
+
+### THE HAND LIST
+
+**Removed — two, and both left because a probe now carries them:**
+
+- **Fairy Aura's field presence** — three doors (entry, exit, faint) against a cache with two writers,
+  carried by `tests/probe_fairy_aura.js` (4 arms, knob `MEDI_AURA_STALE`).
+- **Beat Up ally order** — carried by `tests/probe_beatup_ally_order.js` (4 arms, two pins, knob
+  `MEDI_BEATUP_BUILD_ORDER`).
+
+**Two NARRATION gaps measured beside the aura work and NOT claimed fixed**, both present on every arm
+including both controls so neither can flatter a red one: this engine prints neither
+`|-ability|<x>|Fairy Aura` on the carrier's entry or mega, nor `|-ability|<x>|Unnerve` on a switch-in.
+Both belong to the narration gate.
+
+**Owed and named, carried forward unchanged from the list below:** Struggle's `-activate` line (the
+largest protocol bucket, 17 games, and it needs `data/tags.json` regenerated); Poltergeist announcing at
+use time where the authority announces at `onTryHit`; `mustrecharge` at `onBeforeMovePriority: 11`
+outranking sleep and freeze at 10, derived and not probed; the unattributed damage games, the
+berry-not-eaten games (Sitrus, Roseli, Mental Herb) and the freeze-thaw games, all named in
+`docs/_reports/2026-09-05-longtail-batch-A.md`. The 30% post-hit ability procs and the `active[].stall`
+rows remain filed as INSTRUMENT suspects rather than engine defects.
+
+## BIG ROOT NAMES FIVE HEAL SOURCES AND THIS ENGINE READ ONE, AND LEECH SEED'S RESIDUAL WAS THREE DEFECTS IN ONE HANDLER: BOARD-MATERIAL **59 OF 961 -> 56 OF 961**, PROTOCOL **161 -> 158**, CENSUS LEVEL AT 829/829. 2026-09-05, CHANGELOG 5.258.0
+
+Two mechanics, two releases, two paired measurements, same pins throughout: census
+`data/verification/census-pin-9446a684709d.json`, pool `data/team-pool-frozen`, arm `middle`,
+`--end-state`, steering `empirical`, cap 20, driver digest `e87506b2d737` unchanged across all four
+runs. **The 59 was re-measured on release `63cbcc2ef605` first and reproduced on every published
+count** (`data/verification/longtail-A-baseline.json`). `data/game-differential.json` was NOT
+rewritten. Full account: `docs/_reports/2026-09-05-longtail-batch-A.md`.
+
+### HOW THE 59 WAS BUCKETED, AND WHY THAT MATTERS TO WHAT FOLLOWS
+
+`state.first_board_divergences` is **capped at 40 of the 59** and `first_divergences` at 60 of the 161,
+so joining the two artifacts attributes only 16 games. A second run with `--dump-games 170`
+(`data/verification/longtail-A-dump.json`, no `--write`) carries the raw lines either side of the split
+for 156 of the 161. **55 of the 59 board-material games have a protocol divergence too**, so the dump
+reaches nearly all of them; the other four part on the board with the protocol identical all game.
+Every choice below rests on that join — and the one prediction this pass got wrong got it wrong by
+reading the capped 40 as if it were the 59.
+
+### BIG ROOT — `data/items.ts` NAMES FIVE IDS AND `healMultBySource` HAD READERS FOR ONE
+
+`bigroot.onTryHeal` is `const heals = ['drain','leechseed','ingrain','aquaring','strengthsap']; if
+(heals.includes(effect.id)) return this.chainModify([5324, 4096]);` and Champions overrides neither the
+item nor any of the five handlers. This engine's two readers both filtered `from.includes('drain')`, so
+the `volHeal` residual (Ingrain, Aqua Ring), the seeder's Leech Seed return and Strength Sap all paid
+the bare fraction. **THE ORDER IS THE OTHER HALF AND IT IS READ OFF `Battle#heal` (sim/battle.ts:2258):
+the base is truncated BEFORE `TryHeal` is raised**, so a 155 HP Ingrain is `md4096(trunc(155/16)) =
+md4096(9) = 12` — folding the multiplier into the fraction gives 12 by luck and truncating after a float
+multiply gives 11. Found in the POOL, not the lab: `|-heal|p1a: Meganium|71/155|[from] Ingrain` against
+our `68/155`.
+
+**RED FIRST.** `tests/probe_bigroot_family.js`, knob `MEDI_BIGROOT_DRAIN_ONLY=1`. **Eight arms, five
+red, three controls, all clear.** Before: `-heal 94/155 -> 106 -> 118` against our `91 -> 100 -> 109`,
+board parted at all three boundaries; after, identical, and the knob puts every red back apart. The five
+reds are Ingrain, Ingrain **mirrored**, Aqua Ring (the second member of the same branch, so the fix
+cannot be one volatile name), Leech Seed and Strength Sap — three different roads. Each is paired with
+**the same board carrying no item**, and each pair is asserted to produce DIFFERENT SHOWDOWN LINES, so
+"the engines agree" can never be read off a board where the item could not have mattered. Membership is
+re-derived from `healMultBySource.from` every run and the file EXITS 2 if a non-drain member has no arm.
+
+**THE CENSUS ROW WAS ASKING ONE FIFTH OF ITS OWN TAG AND HAS BEEN RE-AIMED.** It staged Bitter Blade
+alone, so an engine reading `drain` was green on it. It now stages the residual road through a real
+`board(...)` + `battleTurn`, prints which members it still does not stage, and names the probe that
+carries them. LIVE on the fix, **MISSING under the knob** (`Ingrain with Big Root healed 77, must be
+100`).
+
+**MEASURED, release `1436eda2325f`, called in writing first**
+(`data/verification/_prediction-longtail-A-bigroot.json`): board-material **59 -> 58**, protocol
+**161 -> 160**, boards-never-diverged 902 -> 903, threw 1, end-state unchanged 924/33/3/0/1, census 829.
+**Every figure landed at its point estimate.** The only class that moved is `-heal field 3`, **1 -> 0**;
+every other class is identical in count. The named game closed — `pair-protect-bust | ...-2660789599 vs
+...-2660873574`, `p1.party.meganium.hp medicham 68 / showdown 71`.
+
+### LEECH SEED — THE SOWERLESS CHIP IS A BOARD LEAF, AND THE TWO LINES OF ONE HANDLER ARE NARRATED BY TWO DIFFERENT BRANCHES
+
+`leechseed.condition.onResidual` opens with a slot lookup and `if (!target || target.fainted ||
+target.hp <= 0) return;` — **everything below it, the damage included, is inside that guard.** This
+engine gated only the HEAL on it (ROADMAP #175's note reads *"a refused seed pays the seeder
+nothing"*), so a seed whose sower had just died went on taking `maxhp/8` off a body the real game stops
+touching. Two more, both from the branch a line takes: `Battle#spreadDamage`'s `default:`
+(sim/battle.ts:2151) gives the victim's chip `[of] <sower>` and we wrote the no-source form, while
+`Battle#heal`'s `case 'leechseed': case 'rest':` (sim/battle.ts:2276) writes **`[silent]`** and we wrote
+the `default:` branch's `[from] Leech Seed|[of] <victim>`.
+
+**RED FIRST.** `tests/probe_leechseed_silent.js`, knobs `MEDI_LEECHSEED_CHIP_WITHOUT_SEEDER=1` and
+`MEDI_LEECHSEED_HEAL_ATTRIBUTED=1`. **Four arms, three red, one control, all clear.** The board arm
+reads **three chips under the knob against the authority's two**, the extra one on the residual of the
+turn the sower died. The control is **Ingrain on the same body** — the arm a blanket "make residual
+heals silent" fix would fail, because Ingrain falls through to `default:` and the authority DOES write
+`[from] Ingrain`. `Battle#heal`'s case is re-derived from the loaded checkout and the file exits 2 if it
+is gone.
+
+**ONE PROBE FAULT WAS CAUGHT BY ITS OWN CONTROL BEFORE ANY VERDICT.** The reader normalised
+`p1a: Meganium` by splitting on `:`, which also mangled `[from] move: ingrain` into something Showdown's
+`[from] Ingrain` could never equal — so it accused the *control* rather than the mechanic. The
+normaliser now mirrors `game_differential.js`'s own, with the reason beside it: **a probe stricter than
+the measurement it defends reports defects the measurement cannot see.**
+
+**THE CENSUS ROW `residualStatusOrder` WENT MISSING AND IT WAS THE LOCATOR, NOT THE CLAIM.** It found
+the seed line with an END-ANCHORED `[from]leechseed` match, which the new `[of]` field broke — so it
+reported the residual bracket index as `-1`, a locator failing and reading as an order defect. The
+anchor came off; the order claim is untouched. **Census back to 829 live / 829 probed / 0 missing.**
+
+**MEASURED, release `576bcbadb681`**: board-material **58 -> 56**, protocol **160 -> 158**,
+boards-never-diverged 903 -> 905, end state **924/33/3 -> 925/32/3**, census 829. `-heal field 4`
+**3 -> 0** is the only class that fell and `event missing from medicham2` **67 -> 68** the only one that
+rose, by exactly the one game that re-classified.
+
+**TWO OF THE FIVE PREDICTED FIGURES MISSED AND BOTH MISSES ARE THE SAME MISTAKE.** I predicted
+board-material FLAT because no Leech Seed chip appears in the 40 sampled first board divergences — but
+the sample is **40 of 59** and the sowerless chip was in the other 19. It moved 2. I then predicted
+protocol 157 by assuming all three `-heal field 4` games would close outright; two did and the third has
+an unrelated divergence behind it. The direction is right and the attribution is clean; **the point
+estimates were wrong, and the reason was reasoning from a capped sample as if it were the population.**
+
+### THE FIVE CLAUSES THIS PASS STALED WERE RE-RUN AND NONE MOVED
+
+Damage differential **0 of 6000** at both corners, seed 20260804. Roster **items 140 / abilities 129 /
+moves 475**, with `FIRED-AND-BOARDS-DIFFER` and `DID-NOT-FIRE` at **zero on all three stages**.
+`all_mechanics_fire.js --kind all` re-run (the default `--kind moves` is a trap that takes the gate to
+3 of 9). **The gate reads 2 of 9 failing and both failures are the whole-game clauses reading the
+deliberately un-republished `data/game-differential.json`.**
+
+### TWO BUCKETS WHERE THE INSTRUMENT IS THE SUSPECT, FILED AND NOT "FIXED"
+
+- **The 30% post-hit ability procs — Poison Touch, Cursed Body, Flame Body, ~6 games.** They disagree in
+  BOTH directions, which is an unshared die and not a missing rule. Our draw is `rng()`, the `any`
+  stream; Showdown's `randomChance(3,10)` inside `onSourceDamagingHit` is `any` too, because
+  `runEvent('DamagingHit')` sits in `spreadMoveHit`, which `midWrapShowdown` does not wrap. **And
+  `midGameVoid` already declares that bucket unreadable** — its identity is computed over
+  `{acc,crit,sec,dmg,stall}` ONLY, with the reason written beside it: the `any` bucket measured 95.2%
+  on one sample and 37.0% on another from the same engine and was explicitly refused a floor. Moving
+  our draw to another stream would make it worse, because Showdown's is `any`. Deciding it belongs to
+  `game_differential.js`.
+- **`active[].stall` 0/3 with the protocol identical all game, 5 games.** `_stallExpire`'s own header
+  already declares the one case it cannot express — a turn that ends inside its own residual. These
+  games have no protocol divergence, so they are **not reachable through `--dump-games`**, whose pool is
+  `r.div`. I could not see one, so I did not guess at one. Filed with the reason it could not be staged.
+
+### THE HAND LIST
+
+**Removed — two, and both left because a probe now carries them:**
+
+- **Big Root beyond `drain`** — was a one-member read of a five-member list, carried by
+  `tests/probe_bigroot_family.js` (8 arms) and by the re-aimed `healMultBySource` census row.
+- **Leech Seed's residual** — the sowerless chip, the missing `[of]` and the wrong `[from]`, carried by
+  `tests/probe_leechseed_silent.js` (4 arms).
+
+**Owed and named, not fixed here:**
+
+- **Struggle's `-activate` line — the largest protocol bucket left, 17 games.**
+  `struggle.onModifyMove` is `move.type = '???'; this.add('-activate', pokemon, 'move: Struggle');`
+  (`data/moves.ts:18218-18221`), emitted BEFORE the `|move|` line; this engine emits nothing. The right
+  shape is an `announce` param derived onto `setsOwnTypeAlways` — the tag already derived from the OTHER
+  statement of the same handler — which means regenerating `data/tags.json`. **Deliberately not done:**
+  `tags.json` is a frozen release SOURCE, two other agents were measuring, and
+  `docs/_reports/2026-09-05-abra-tags-drift.md` says the regeneration is not a no-op. Narration only.
+- **Poltergeist announces at use time; the authority announces at `onTryHit`** (`data/moves.ts:13610`),
+  which is BELOW invulnerability, the type immunity, accuracy and Protect's own `onTryHit` at priority
+  3. 7 games, narration only, measured in the pool as `-miss` / `-immune` / `-activate ... Protect` on
+  Showdown's side against our `-activate poltergeist`.
+- **`mustrecharge` is `onBeforeMovePriority: 11`** (`data/conditions.ts:367`) and outranks sleep and
+  freeze at 10; this engine asks recharge LAST, below paralysis, so a frozen or sleeping body that must
+  recharge spends a status tick the authority does not. Derived from the source; **not probed, not
+  measured**, expected rare.
+- **Fairy Aura (4 games) and Beat Up (1 game)** belong to another agent and were left alone.
+- The unattributed damage games, the berry-not-eaten games (Sitrus, Roseli, Mental Herb, ~5) and the
+  freeze-thaw games (~5, all in ONE direction — we thaw, the authority does not) are open and named in
+  the report.
+- **Nothing is committed.** The two probes, the engine change, releases `1436eda2325f` and
+  `576bcbadb681`, the four artifacts, the two predictions and the census regeneration are on disk only;
+  the living-docs pass belongs to whoever commits them.
+
+## `cantusetwice` IS A **CHOICE-TIME DISABLE AND NOTHING ELSE**, SO AN ENCORED OR INSTRUCTED GIGATON HAMMER SWINGS FOR 160 — AND THE SEVENTH `-damage field 3` CARD WAS NEVER A GIGATON HAMMER MECHANIC AT ALL: BOARD-MATERIAL **60 OF 961 -> 59 OF 961**, PROTOCOL **162 -> 161**, CENSUS LEVEL AT 829/829. 2026-09-05, CHANGELOG 5.257.0
 
 Release `63cbcc2ef605`, 961 games, arm `middle`, `--end-state`, census pin `9446a684709d`, pool
 `data/team-pool-frozen`, steering `empirical`, cap 20 — the same pins the 60 was measured on. The new
@@ -268,14 +541,32 @@ un-republished `data/game-differential.json`.**
 
 **Owed and named, not fixed here:**
 
-- **ROADMAP #544 — Beat Up's ally ORDER.** #542 read the card as a hit COUNT and it is not: **both engines
-  print `\|-hitcount\|p1a: Milotic\|4`**, and the per-hit losses are **9, 7, 10, 7** in the authority against
-  **6, 7, 10, 9** here — hits 2 and 3 identical, hits 1 and 4 the two that move. `move.allies` is built from
-  `pokemon.side.pokemon`, an array Showdown PERMUTES on every switch-in (`sim/battle-actions.ts:131-133`
-  swaps the entrant and the outgoing body), and `beatUpAllies` walks the static `att._sf.team`. Derived from
-  the authority's source and from the card; **NOT probed and not fixed.**
-- **ROADMAP #542 (a) and (d) stand.** The four Fairy Aura field-presence games and the one index game are
-  untouched, and the Fairy Aura instrument that row owes has not been built.
+- **ROADMAP #544 — Beat Up's ally ORDER. PROBED AND RED, 2026-09-06; DERIVED FIX VERIFIED, NOT APPLIED.**
+  `tests/probe_beatup_ally_order.js`, 4 arms (2 red, 2 control, one pair at `top-tie-first` and one at
+  `middle`). The authority's two clauses were re-read and both hold verbatim: `move.allies =
+  pokemon.side.pokemon.filter(...)` with `basePowerCallback` doing `move.allies.shift()`, and
+  `sim/battle-actions.ts:119-133` swapping `side.pokemon[pokemon.position]` with
+  `side.pokemon[oldActive.position]` on every entrance. Staged on four bodies with four DISTINCT
+  `5+floor(atk/10)` powers, one switch before the click: **hit count 4 on both engines on both arms**,
+  authority `[25,22,21,16]` against this engine's `[25,16,21,22]` — the SAME MULTISET in a different
+  order, and this engine's switch-arm sequence is byte-identical to the authority's NO-SWITCH sequence.
+  **At the corner it writes no board leaf** (a permutation against a constant roll sums the same); at
+  `middle` it parts the board, which is where the pool card came from. The control passes today, exactly
+  as #544 predicted. `beatUpAllies` walks `sf.team`, stamped once in `battleInit`; `bringIn` already
+  performs the authority's swap on the BENCH array and `sf.team` is the copy nobody permuted.
+- **ROADMAP #542 (a) — Fairy Aura. THE INSTRUMENT THAT ROW OWED IS BUILT, AND IT IS RED ON ALL THREE
+  DOORS. DERIVED FIX VERIFIED, NOT APPLIED.** `tests/probe_fairy_aura.js`, 4 arms (2 red, 2 control).
+  `field.aura` has TWO writers — the top of the turn and `megaEvolveNow` — where
+  `recomputeWeatherSuppression`, the identical `onAny` shape, has FOUR. Measured on the only legal Fairy
+  Aura body in the format, with `mega: true` as the ONLY difference between arm and control: the holder
+  LEFT reads 38 in the authority against 50 here, the holder RETURNED reads 52 against 39, the holder
+  KILLED first reads 38 against 50, and the mega turn agrees. **REAL ENGINE DEFECT — not an instrument
+  artefact and not a misattribution.** #542 (d), the one index game, is untouched.
+- **Neither fix is applied and no engine byte moved.** Both were verified against a PATCHED SNAPSHOT in a
+  throwaway release store; the exact diffs, the restore knobs (`MEDI_AURA_STALE`,
+  `MEDI_BEATUP_BUILD_ORDER`) and the two owed re-checks in `engine/game_differential.js`'s `STATE_PLANTS`
+  are in `docs/_reports/2026-09-05-fairy-aura-and-beat-up.md`. **Census unchanged and not regenerated at
+  829 live / 829 probed / 0 missing.**
 - **The `-hint` line.** Declared not-emitted, invisible to the differential on both sides, and left that way
   rather than claimed — claiming it means `TRACE_EVENTS`, `engine/derive_protocol_events.js`,
   `data/protocol-events.json` and a new PART 1 board, which is the narration gate's work and not this pass's.

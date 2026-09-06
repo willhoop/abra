@@ -1,0 +1,20 @@
+{
+  "written_before_the_run": "2026-09-06",
+  "step": "STEP 2 - ROADMAP #542 (a) Fairy Aura: field.aura gains the entry-pass and per-action writers",
+  "engine_bytes_changed": "YES - engine/medicham2-browser.js. A NEW RELEASE IS CUT AND THE RUN IS PINNED TO IT.",
+  "pins": {"release": "<cut after the fix>",
+           "census": "data/verification/census-pin-9446a684709d.json (UNCHANGED FILE - the frozen pin, not the live census)",
+           "team_store": "data/team-pool-frozen",
+           "arm": "middle", "games": 1200, "turns_cap": 20, "steering": "empirical"},
+  "baseline": {"artifact": "data/verification/step1-stagedpins.json",
+               "games": 961, "board_material": 56, "protocol_diverged": 158, "threw": 1},
+  "which_scoreboard_should_move": "BOTH. Floette-Eternal is ~10.5% of ladder sides and megas 96.1% of the time, so the pinned pool is expected to move — unlike the batch-A long-tail fixes. The lab (probe, 4 arms) has already moved red -> green.",
+  "prediction": {
+    "board_material": 54,
+    "protocol_diverged": 156,
+    "census_level": 829,
+    "derivation": "NOT from the capped first_board_divergences list (40 of 56) — that is the mistake batch A recorded. From the FULL by-cause worklist in step1-stagedpins.json end_state[0].summary.by_cause, which reconciles with the parted population. Two BOARD-MATERIAL causes name a Floette-Mega taking a Moonblast at the aura ratio and both are the exact pairs ROADMAP #542 derived: `floette 82/149brn vs 97/149brn` (SD 82 / us 97, ratio 1.349) and `floette 74/149 vs 92/149` (SD 74 / us 92, ratio 1.316). Each is 1 game. Two further causes name moonblast in an ORDERING/extra-event shape (`|move|p2b|moonblast <> |-status|p1a|brn`, `|move|p1a|moonblast <> |-damage ...confusion`) and I do NOT claim those: they are event-order, not a damage value.",
+    "uncertainty": "as low as 52 if the two moonblast ORDERING causes are also aura consequences; as high as 56 if either damage game has a second divergence behind it, which is exactly what happened to one of the three -heal games in batch A. Direction DOWN is the claim; the point estimate is 54.",
+    "risk_of_going_UP": "the fix changes damage in any turn where a carrier arrives, leaves or dies, so a game can re-route and part somewhere new. I do not expect it, and if board-material RISES that is the finding."
+  }
+}

@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol first divergence)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 189 unsafe, 2 void (declared), 35 possibly stale, 28 ok, 0 missing
+  provenance: 189 unsafe, 2 void (declared), 33 possibly stale, 30 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol first divergence)
@@ -29,14 +29,45 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-05 19:05
+    moved after the fit: engine/medicham2-browser.js  2026-09-06 00:08
     moved after the fit: data/engine-data.js  2026-08-31 00:08
     moved after the fit: data/abra-tags.js  2026-09-04 21:38
 ```
 
-_stamped 2026-09-05 21:31_
+_stamped 2026-09-06 01:28_
 
 <!-- /GENERATED -->
+
+## THE PUBLISHED NUMBER AND THE MEASURED NUMBER ARE ONE NUMBER AGAIN — **BOARD-MATERIAL 50 OF 961, PROTOCOL 151 OF 961**, REPUBLISHED OFF A SETTLED TREE, AND BOTH CLAUSES NOW FAIL ON A **COUNT** RATHER THAN ON WITHHELD STALENESS. AND THE **1.53×** THIS DIVISION PUBLISHED LAST NIGHT WAS MEASURED AGAINST THE WRONG DENOMINATOR. 2026-09-06, CHANGELOG 5.258.0
+
+**THE PUBLICATION FIRST, BECAUSE IT IS THE ONLY THING HERE THAT CHANGES WHAT MAY BE QUOTED.** `data/game-differential.json` was rewritten on release `db248fe67a5e` — 961 games, cap 20, arm `middle`, steering `empirical`, `--end-state`, census pin `data/verification/census-pin-9446a684709d.json`, pool `--team-store data/team-pool-frozen`. It holds **board-material 50 of 961 and protocol first-divergence 151 of 961**. It had carried a 46 measured on a superseded release for 1.3 days, and while it did, **both whole-game clauses were failing on WITHHELD STALENESS — *"MEASURED AGAINST A DIFFERENT ENGINE … EVERY COUNT IN IT IS WITHHELD"* — rather than on anything measured.** A clause that fails for the right reason and a clause that fails because its input is old are the same colour and are not the same statement, and this division should be the last place that lets them read alike. 911 games never part a board; 4 of the 50 part a board with the protocol identical all game; 10376 of 10539 compared turn boundaries were identical. The settled-tree run reproduces the last fix step **to the byte** on `classes`, `first_divergences`, `state.first_board_divergences` and the by-cause summary, which is what makes this a publication rather than a sixth measurement of one quantity.
+
+**THE CORRECTION THIS DIVISION OWES IS ITS OWN: THE PROTECT AMPLIFICATION WAS A RATIO WITH THE WRONG DENOMINATOR UNDER IT.** Published last night: the empirical driver over-clicks the protect family at **1.53×** its own input, cause renormalisation. **Renormalisation is about half of it. The denominator is the other half, and the denominator was never a defect at all.** Decomposed over the run's own 17,532 decisions, so that no step compares two populations:
+
+| step | value | factor |
+|---|---|---|
+| declared input, acts-weighted over the whole table | **13.565%** | |
+| the SAME table's marginal, weighted by the decisions this arm took | **16.209%** | **×1.195** |
+| renormalised over the legal candidate set — the weights the sampler was handed | **20.257%** | **×1.250** |
+| realised — what the sampler returned | **20.374%** | ×1.006 |
+| | | **×1.502** |
+
+**The sampler is faithful to ×1.006; all of the residual is in the weights.** The first factor is not a driver defect: the arm plays a census-steered pool whose bodies carry the family at a higher marginal rate than the ladder's own click distribution does. **So `13.565%` is the wrong ruler for this run** — the pool-matched same-table denominator is **16.209%**, and against it the arm reads **×1.257**. The general rule, and it is this division's business rather than the driver's: **an error expressed as a ratio is only as good as the population its denominator was taken over, and a run whose census pin moves takes the denominator with it.** Any future sentence of the form *"the arm reads X% against 13.565%"* carries the pool-matched marginal beside it or it is not a measurement.
+
+**AND THE SECOND HALF OF THE EARLIER DIAGNOSIS IS WITHDRAWN OUTRIGHT, WITH ITS SIGN INVERTED.** Legality subsetting was named as a contributor on the strength of candidate sets averaging about 3.14 of four. Measured on this run the mean is **3.772**, and conditioning on it: **87.0% of decisions — 15,253 — already have all four moves and are the ones reading 21.724%**, while a body down to one legal candidate reads **8.134%**, because a body narrowed to one move is usually narrowed to its attacking move rather than to its Protect. **Legality subsetting is a small NEGATIVE contribution.** It is withdrawn rather than quietly dropped, because a cause that vanishes without a sentence is indistinguishable from a cause somebody stopped honouring.
+
+**AND THE PART THIS DIVISION SHOULD BE PROUDEST OF IS THE SMALLEST NUMBER IN IT: A NOISE FLOOR WAS MEASURED BEFORE THE EFFECT WAS BELIEVED, FOR THE FIRST TIME ON A CALIBRATION FIGURE HERE.** The only place both a prediction and a ground truth exist is the human corpus, so the rule was scored there: 185,422 scored clicks, split half by game into **92,949 and 92,473**, the correction fitted on one half and evaluated on the other, so nothing is scored against what it was fitted on. The marginal reads **14.233%**, the driver's rule reads **16.228%**, humans clicked **14.757%**. **The half-vs-half spread of the OBSERVED rate is 0.002 points**; the rule over-predicts by **+1.644 and +1.646 points**, which is 800 times the floor. That is what makes the over-prediction an effect rather than a reading. A carriage correction removes about **72%** of it, held out, landing at **+0.405 and +0.504**. **Nothing here is tuned:** the repair changes the driver's declared input, and applying it in the same pass as five engine fixes would leave none of the six attributable. The expected landing point is written down instead — near **15.0 to 15.1%** on a ladder-shaped population and near **16.7%** on this census-steered pool, and explicitly **not** the 14 to 15% the earlier report predicted, because the pool is not the ladder.
+
+**TWO PREDICTIONS MISSED TONIGHT AND BOTH MISSES ARE ONE MISTAKE ABOUT A SAMPLE, WHICH IS A RULER FAILURE AND THEREFORE THIS DIVISION'S.** The Leech Seed step called **58 / 157** and read **56 / 158**; the Fairy Aura step called **54 / 156** and read **51 / 153**. Both reasoned from `state.first_board_divergences`, which **is capped at 40 rows and is a SAMPLE, never the population** — the sowerless Leech Seed chip was in the other nineteen, and the aura's reach was mis-scoped because the cause string names the VICTIM rather than the mechanic. Three of five landed at their point estimates, including the staged-pin step's prediction that nothing would move. **A capped list is a sample and must be read as one**; that is the second time in two nights it has cost a point estimate here, and it is now written down rather than remembered.
+
+**THE INSTRUMENT REPAIR WAS PAID FOR RATHER THAN ARGUED, AND THE STAMP THIS DIVISION ADDED ONE VERSION AGO IS WHAT MADE THE BILL VISIBLE.** Binding the staged pins by name moved `driver_code` from `e87506b2d737` to `0c1fc935a5fb` over eleven files, which breaks comparability with the 56 **by construction**. It was re-measured paired on the same release, census pin and pool: board-material 56 to 56, protocol 158 to 158, with `classes`, `first_divergences`, the end state and every first board divergence identical. **A stamp that fires on your own repair and forces a paired re-run is the stamp working**, and this is the first time it has been honoured on a change this division did not make.
+
+**WHAT THIS DIVISION STILL OWES.**
+
+- **Leaf calibration — this division's one number — stays WITHHELD and was not run.** `data/winrate-backtest.json` is downstream of MEDICHAM and the gate is shut on the board-material clause. **No reliability curve is published in this version and none is implied by anything above.** The standing brief is not discharged by this document.
+- **The noise floor for the WHOLE-GAME differential is still unmeasured, and tonight makes the gap sharper rather than smaller.** A floor now exists for the protect-rate ruler and it cost one split-half pass; nothing in this repository still states what a one-game or a two-game move in the board-material count is worth, so a step of that size is reported as an attribution — a named cause, a knob-cleared control, a closed row and no new row — or it is not reported at all.
+- **The MAG refit stays OWED and it is a REFIT, not a restamp.** No fit was started and no fitted vector was written; `data/policy-weights.json` was not touched. The damage table under the fitted vector moved from 318 species to 322, so the feature FUNCTION's input changed and a restamp would write over the evidence for the refit rather than answer it.
+- **`node engine/status.js --write` WAS run by this pass, last in the sequence**, so the `<!-- GENERATED -->` block at the top of this file is current and was not hand-edited.
 
 ## THE PINS FROZE EVERY INPUT AND NEVER FROZE THE INSTRUMENT, AND THE COMPARABILITY CHECK SAID **COMPARABLE** ABOUT TWO RUNS PLAYING DIFFERENT DRIVER CODE. THE "NON-REPRODUCIBLE JOINT ARM" IS **WITHDRAWN** — SIX RUNS ON ONE SET OF PINS ARE **BIT-IDENTICAL WITHIN EACH SIDE OF THE EDIT**. 2026-09-05, CHANGELOG 5.257.0
 

@@ -10,6 +10,147 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.258.0] — 2026-09-06
+
+### Fixed
+- **BIG ROOT DECLARES FIVE HEAL SOURCES AND THIS ENGINE READ ONE.** The authority's `bigroot` lists
+  `drain`, `leechseed`, `ingrain`, `aquaring` and `strengthsap`, and Champions overrides neither the
+  item nor any of the five handlers. `healMultBySource` had exactly two readers, both on the drain
+  road and both filtering `from.includes('drain')`, so the other four members of the item's own list
+  had no reader at all. **The ORDER is the other half:** `Battle#heal` truncates the base BEFORE it
+  runs `TryHeal`, so a 155 HP Ingrain is `trunc(155/16) = 9` and then `modify(9, 5324, 4096) = 12` —
+  folding the multiplier into the fraction gives 12 by luck, and truncating after a float multiply
+  gives 11. Found in the pinned pool rather than in the lab: an `[from] Ingrain` line paying 71 of
+  155 in the authority against 68 here. **Board-material 59 → 58, protocol 161 → 160**, every figure
+  landed at its written point estimate, and `-heal field 3` is the only class that moved (1 → 0).
+  Probe `tests/probe_bigroot_family.js`, knob `MEDI_BIGROOT_DRAIN_ONLY`.
+- **LEECH SEED'S RESIDUAL WAS THREE DEFECTS IN ONE HANDLER, AND THE BOARD HALF WAS THE ONE NOTHING
+  HAD MEASURED.** `leechseed.condition.onResidual` looks the sower up by slot and **returns before
+  it damages anything** when that slot is empty or the body in it has fainted. This engine gated only
+  the HEAL on that lookup, so **a seed whose sower had died went on taking `maxhp/8` a turn off a
+  body the real game stops touching** — a board leaf, not a message. The two narration halves went
+  with it: the victim's chip carried no `[of]` field where the authority always has a source after
+  the guard, and the sower's heal carried a `[from]` and an `[of]` on a line the authority routes
+  past that branch entirely. **Board-material 58 → 56, protocol 160 → 158.** Probe
+  `tests/probe_leechseed_silent.js`, knobs `MEDI_LEECHSEED_CHIP_WITHOUT_SEEDER` and
+  `MEDI_LEECHSEED_HEAL_ATTRIBUTED`, four arms, three red and one control.
+- **THE STAGED PINS WERE BOUND TO THE WRONG ARM, AND THAT WAS ALL FOUR FAILURES OF
+  `tests/test-game-differential.js` — ROADMAP #545.** `engine/game_differential.js` read
+  `const PRIMARY_ARM = ARMS[0]`, and `ARMS[0]` stopped being the max-damage arm on **2026-08-13**
+  (`cf7a2c5a`), when the opt-in `middle` arm was prepended — an arm whose own comment says it is not
+  part of the default set and whose dice are live. The three module-scope staged pins are now bound
+  **by name** through `ARM_BY_ID.get('top-tie-first')`, with a throw beside them so a rename cannot
+  re-run the defect silently; **`PRIMARY_ARM` itself is unchanged, because it is the arm the run
+  plays.** **THE ENGINE WAS NEVER IMPLICATED:** a 14-call control showed our damage interior constant
+  at `108..127` while the authority's wandered and on one run lost its own minimum, and after the
+  binding the authority's span came DOWN onto ours (knock-off `108..177` → `108..127`, contact punish
+  `66..104` → `66..78`) with our own numbers never moving. **Both clauses had been passing by luck
+  for fourteen days**, until a hash change on 2026-08-27 made the drift visible. Comparability was
+  re-measured PAIRED on the same release, census pin and pool — `driver_code` `e87506b2d737` →
+  `0c1fc935a5fb` over 11 files — and every class, every first divergence and every end state was
+  identical: **board-material 56 → 56, protocol 158 → 158.**
+- **FAIRY AURA WAS PRICED OFF A STALE FIELD — ROADMAP #542 (a).** `field.aura` had TWO writers where
+  the identically-shaped `recomputeWeatherSuppression` has FOUR, so a holder that had left, returned
+  or been killed went on pricing Fairy moves. It is now one writer, `refreshAura`, called from the
+  entry pass and from the mid-turn faint site as well as from the two places that already wrote it.
+  **The cause string names the VICTIM, not the mechanic:** `onAnyBasePower` fires for any Fairy move
+  by any user with `target !== source`, so a Gengar, an Archaludon and a Kingambit eating a boosted
+  Fairy move are the same defect as the two Floette-Mega pairs the card was derived from. **Five
+  board-material causes closed and nothing new appeared: board-material 56 → 51, protocol 153.**
+  Probe `tests/probe_fairy_aura.js`, knob `MEDI_AURA_STALE`, which reproduces every red reading and
+  moves no byte of either control. #542 stays open for clause (d) alone.
+- **BEAT UP IS AN ALLY ORDER AND NOT A HIT COUNT — ROADMAP #544, CLOSED.** Both engines print four
+  hits. `sim/battle-actions.ts` swaps positions inside `side.pokemon` on every entrance, and
+  `beatUpAllies` walked `sf.team`, which nobody permutes. The authority gave `[25,22,21,16]` against
+  our `[25,16,21,22]` — the same multiset in the wrong order — and **our switch-arm output was
+  byte-identical to the authority's NO-SWITCH output**, which is the defect stated as a measurement.
+  `bringIn` now performs the authority's swap. **Board-material 51 → 50, protocol 153 → 151.** Probe
+  `tests/probe_beatup_ally_order.js`, knob `MEDI_BEATUP_BUILD_ORDER`. The one reader that could have
+  been disturbed by a permuted party was ASKED rather than assumed: `tests/test-end-state.js` PART 3
+  is all green and its plant is still caught and still localised.
+
+### Changed
+- **`data/game-differential.json` IS REPUBLISHED OFF A SETTLED TREE: BOARD-MATERIAL 50 OF 961,
+  PROTOCOL 151 OF 961.** Release `db248fe67a5e`, 961 games, cap 20, arm `middle`, steering
+  `empirical`, `--end-state`, census pin `data/verification/census-pin-9446a684709d.json`, pool
+  `--team-store data/team-pool-frozen`. It had carried a stale 46 measured on a superseded release
+  for 1.3 days, and both whole-game clauses were failing on WITHHELD STALENESS rather than on a
+  count. **They now fail on the measured counts, which is the honest state and makes the numbers
+  quotable again.** 911 games never part a board at all; 4 of the 50 part a board while the protocol
+  never diverges; 10376 of 10539 turn boundaries compared were identical. The settled-tree run
+  reproduces the Beat Up step to the byte on `classes`, `first_divergences`,
+  `state.first_board_divergences` and the by-cause summary.
+- **`node engine/status.js` READS 7 OF 9 CLAUSES PASSING.** The two failures are the whole-game
+  BOARD-MATERIAL clause (**50 of 961 = 5.2%**, the gating one) and the whole-game NARRATION clause
+  (**151 of 961 = 15.7%**, which reports and does not hold the gate shut — Will, 2026-08-22).
+  Everything the fixes staled was re-run and none of it moved: damage differential **0 of 6000** at
+  the midpoint and at all sixteen corners (seed 20260804); roster items **140** of 148, abilities
+  **129** of 202, moves **475** of 500, with `FIRED-AND-BOARDS-DIFFER` and `DID-NOT-FIRE` at zero on
+  all three; `all_mechanics_fire --kind all` **1313 games played, 0 threw**; census level at **829
+  live / 829 probed / 0 missing**, regenerated twice and never moving. `--kind all` was used
+  deliberately — the default `--kind moves` is the trap that takes the gate to 3 of 9.
+
+### Notes
+- **CORRECTION — THE "1.53× PROTECT AMPLIFICATION" WAS MEASURED AGAINST THE WRONG RULER, AND
+  RENORMALISATION IS ONLY HALF OF IT.** Decomposed on the run's own **17,532** decisions, so no step
+  is a comparison across populations: the declared input reads **13.565%**; the SAME table's marginal
+  weighted by the decisions this arm actually took reads **16.209%** (**×1.195**, because the arm
+  plays a census-steered pool whose bodies carry the family at a higher rate than the ladder's own
+  click distribution); renormalising onto the moves each body carries reads **20.257%** (**×1.250**);
+  and the sampler realised **20.374%**, faithful to **×1.006**. Total **×1.502**. **So `13.565%` is
+  the wrong denominator to charge the driver against** — the right same-table denominator for this
+  run is 16.209%, and against it the arm reads ×1.257. **AND LEGALITY SUBSETTING IS NOT A CAUSE; THE
+  DIRECTION IS BACKWARDS.** The mean candidate set is **3.772** of 4, not the ~3.14 previously
+  reported, **87.0% of decisions (15,253) already have all four moves and are the ones reading
+  21.724%**, while a body narrowed to one legal move reads 8.134% — it is usually down to its
+  attacking move, not its Protect. That part of the earlier diagnosis is withdrawn.
+- **AND THE RULE ITSELF OVER-PREDICTS BY ×1.11, MEASURED HELD-OUT AGAINST GROUND TRUTH WITH A NOISE
+  FLOOR UNDER IT.** On **185,422** scored human clicks the marginal reads **14.233%**, the driver's
+  renormalisation reads **16.228%**, and humans did **14.757%**. Split-half on games, **92,949 /
+  92,473** clicks, fitted on one half and evaluated on the other: the half-vs-half spread of the
+  OBSERVED rate is **0.002 points**, and today's rule over-predicts by **+1.644 and +1.646 points**
+  — 800× the noise floor, so the effect is real. A carriage correction cuts about **72%** of it, to
+  **+0.405 and +0.504**. Named and not tuned away in this version: it changes the driver's declared
+  input, and repairing it in the same pass as five engine fixes would leave none of them
+  attributable. **The expected landing point is written down instead:** the carriage-corrected rule
+  should put the arm near **15.0 to 15.1%** on a ladder-shaped population and near **16.7%** on this
+  census-steered pool — *not* at 14 to 15% as the earlier report predicted, because the pool is not
+  the ladder.
+- **TWO PREDICTION MISSES, RECORDED AS MISSES.** The Leech Seed step called **58 / 157** and read
+  **56 / 158**, because it reasoned from `state.first_board_divergences` — which is **capped at 40**
+  and is a SAMPLE, never the population — and the sowerless chip was in the other 19. The Fairy Aura
+  step called **54 / 156** and read **51 / 153**, because it credited only the causes that name a
+  Floette-Mega as the damage target. The Big Root and Beat Up steps landed exactly, and the staged-pin
+  step's prediction of "nothing moves" held on every published count.
+- **OWED AND NOT CLAIMED FIXED.** Struggle's `-activate` line (**17** games, needs a `tags.json`
+  regeneration); Poltergeist announcing at use time where the authority announces inside `onTryHit`
+  (**7** games); `mustrecharge` carrying priority 11 and so outranking sleep and freeze. **Two
+  narration gaps measured beside the aura work and NOT fixed**, both on every arm including the
+  controls so neither can flatter a red arm: this engine emits no Fairy Aura ability line on the
+  carrier's entry or mega, and no Unnerve ability line on a switch-in. Both belong to the narration
+  gate.
+- **FILED AS INSTRUMENT RATHER THAN ENGINE, WITH THE REASON.** About **6** Poison Touch / Cursed Body
+  / Flame Body games draw in the `any` bucket that `midGameVoid` already declares unreadable, and
+  **5** `stall` games carry a board divergence with no protocol divergence at all, which
+  `--dump-games` cannot show. Neither is claimed as a defect in the simulator.
+- **MAG STAYS PAUSED AND OWES A REFIT, NOT A RESTAMP.** `data/policy-weights.json` was not touched,
+  no fit was started and no fitted vector was written. The damage table under the fitted vector moved
+  from 318 species to 322, so the feature FUNCTION's input changed and a restamp would write over the
+  evidence for the refit instead of answering it. **No quarantined figure becomes quotable in this
+  version:** leaf calibration, every rollout result and every head-to-head stay WITHHELD, because the
+  gate is shut on the board-material clause.
+- **`node engine/status.js --write` WAS RUN BY THE PUBLISH PASS, LAST IN THE SEQUENCE**, so the
+  `<!-- GENERATED -->` blocks in the division ledgers are current and no block was hand-edited.
+- **ONE WRITTEN REASON IN `data/docs-currency-baseline.json` WAS CORRECTED RATHER THAN LEFT TO ROT.**
+  The hand entry added when the artifact was republished said the living-docs restatement *"is what
+  retires this entry"*. **It is not.** The offending line is a DATED 5.252.0 changelog entry inside
+  the deck that states 4.8% and cites `data/game-differential.json`; restating the current figure
+  elsewhere in the same document cannot make 4.8% reappear in that artifact, and CLAUDE.md forbids
+  rewriting a dated entry in place. The reason now says the entry is permanent and why. A ratchet
+  entry whose stated retirement condition can never fire is the same failure as a caption standing in
+  for a quarantine.
+
+---
 ## [5.257.0] — 2026-09-05
 
 ### Fixed

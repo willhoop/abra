@@ -1,0 +1,28 @@
+{
+  "what": "CALLED IN WRITING BEFORE THE RUN. One mechanic landed: Leech Seed's residual, all three halves of the one handler — (1) no sower in the slot means NO CHIP at all, (2) the victim's chip carries [of] <sower>, (3) the sower's heal is [silent] with no attribution.",
+  "written": "2026-09-05",
+  "by": "ENGINE, longtail batch B",
+  "pins": {
+    "engine_release": "576bcbadb681",
+    "baseline_release": "1436eda2325f",
+    "baseline_artifact": "data/verification/longtail-A-bigroot.json",
+    "census": "data/verification/census-pin-9446a684709d.json",
+    "team_store": "data/team-pool-frozen",
+    "arm": "middle", "steering": "empirical", "games": 1200, "turns_cap": 20
+  },
+  "baseline": { "games": 961, "board_material": 58, "protocol": 160, "boards_never_diverged": 903, "threw": 1,
+                "end_state": "924/33/3/0/1", "census_level": 829,
+                "heal_field_4_class": 3 },
+  "predicted": {
+    "protocol": 157,
+    "board_material": 58,
+    "boards_never_diverged": 903,
+    "threw": 1,
+    "end_state": "unchanged 924/33/3/0/1",
+    "census_level": 829,
+    "class_that_must_go_to_zero": "`-heal field 4`, 3 -> 0. All three of its games were verified to be Leech Seed heals in data/verification/longtail-A-dump.json before the run.",
+    "classes_that_must_not_move": "every other class, identical in count",
+    "why_board_material_is_predicted_FLAT": "two of the three halves are narration and cannot move a leaf. The third (no sower, no chip) IS board-material, but it needs a sower that dies or leaves while the seed still stands, and no Leech Seed chip appears anywhere in the 40 sampled first_board_divergences of the baseline. A board movement here would be REAL and would be attributable to that half alone — it is predicted at 0, not asserted at 0.",
+    "risk": "the `[of]` added to the victim's chip could in principle break a game that previously agreed. That would show as a NEW `-damage field` divergence class and none is predicted."
+  }
+}

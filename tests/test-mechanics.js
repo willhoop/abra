@@ -5213,7 +5213,14 @@ probe('condition', 'residualStatusOrder',
     return { all, seq: chips.map(c => c.k + ':' + c.who).join(' '),
              lo: chips.length ? chips[0].i : -1, hi: chips.length ? chips[chips.length - 1].i : -1,
              leftAt: all.findIndex(l => /item:leftovers/.test(l)),
-             seedAt: all.findIndex(l => /\[from\]leechseed$/.test(l)),
+             /* 2026-09-05 -- THE `$` ANCHOR CAME OFF AND THE CLAIM DID NOT MOVE. This located the
+              * VICTIM's chip, which used to END in `[from]leechseed`; `Battle#spreadDamage`'s
+              * `default:` branch writes `[of] <source>` after it (sim/battle.ts:2151) and this engine
+              * now does too, so the anchored form found nothing and reported the ORDER as -1 -- a
+              * locator failing and being read as a bracket defect. What this row asserts is still
+              * where the seed sits in the residual walk, not how the line is spelled; the two
+              * attribution facts are carried by tests/probe_leechseed_silent.js. */
+             seedAt: all.findIndex(l => /\[from\]leechseed/.test(l)),
              trapAt: all.findIndex(l => /partiallytrapped/.test(l)) };
   };
   const mixed = run('mixed'), allpsn = run('allpsn');
@@ -12467,6 +12474,28 @@ probe('move', 'drain', 'a SPREAD drain heals at each target\'s own damage line, 
                  + `heal at all)` };
 });
 
+/* 2026-09-05 -- THE RESIDUAL HALF OF THE SAME TAG. `healMultBySource.from` names FIVE effect ids and
+ * this row asked exactly one of them for as long as it existed, so an engine that read `drain` and
+ * nothing else was green here. It was: the pinned pool read
+ * `|-heal|p1a: Meganium|71/155|[from] Ingrain` against this engine's `68/155`.
+ * `board(` is what makes this a real turn -- it is declared in REALTURN at the top of this file --
+ * and the residual runs inside the same `battleTurn`, which is where Ingrain heals. */
+const ROOT_MV = (mv, item) => {
+  const B = board('meganium', 'torterra', 'clefable', 'milotic');
+  B.me.moves = [mv]; B.me.item = item || '';
+  unfaintable(B.f1); unfaintable(B.f2);
+  /* A big pool and half of it missing, so the heal can never clamp at full HP and `maxhp / 16` is a
+   * number with a remainder -- the only case in which "round then modify" and "modify then round"
+   * give different answers at all. */
+  B.me.st = Object.assign({}, B.me.st, { hp: B.me.st.hp * 8 });
+  B.me.curHP = Math.floor(B.me.st.hp / 2);
+  const pre = B.me.curHP;
+  M.battleTurn(B.S, rng5,
+    new Map([[B.me, M.playerAction(B.me, mv, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+    PASS2(B.f1, B.f2));
+  return { max: B.me.st.hp, gain: B.me.curHP - pre };
+};
+
 probe('item', 'healMultBySource',
       'Big Root multiplies the ALREADY-ROUNDED drain, in Showdown fixed point, not the raw fraction', () => {
   /* The same click twice, the item the only difference. `healMultBySource.mult` is 5324/4096 exactly,
@@ -12479,17 +12508,35 @@ probe('item', 'healMultBySource',
    * once. It is 34 where the authority is 35 on this board, and an engine still doing it passes every
    * "did Big Root heal more" test ever written. */
   const folded = Math.round(root.d1 * 0.5 * MULT);
+  /* THE NON-DRAIN MEMBERS, on the residual road. `ingrain` is on the item's own list and this row
+   * never asked it; the expectation is built the same way the drain arm's is, out of `sdTrunc` and
+   * `sdModify` written from `Battle#heal` rather than from the engine. */
+  const ing = ROOT_MV('ingrain', 'bigroot'), ingBare = ROOT_MV('ingrain', '');
+  const ingBareExp = sdTrunc(ingBare.max / 16), ingExp = sdModify(sdTrunc(ing.max / 16), MULT);
+  const RAWTAGS = require(D('data', 'tags.json'));
+  const from = (((RAWTAGS.items || {}).bigroot || {}).params || {}).healMultBySource;
+  const covered = ['drain', 'ingrain'];
+  const uncovered = ((from && from.from) || []).filter(x => !covered.includes(x));
   return { works: root.gain === rootExp && bare_.gain === bareExp && root.d1 === bare_.d1
-                  && rootExp !== folded,
-           arms: { control: 'no Big Root: ' + bare_.d1 + ' damage -> healed ' + bare_.gain
+                  && rootExp !== folded
+                  && ing.gain === ingExp && ingBare.gain === ingBareExp && ingExp !== ingBareExp,
+           arms: { control: ['no Big Root: ' + bare_.d1 + ' damage -> healed ' + bare_.gain
                           + ' (authority ' + bareExp + ')',
-                   test: 'Big Root: ' + root.d1 + ' damage -> healed ' + root.gain
-                        + ' (authority ' + rootExp + ')' },
+                             'no Big Root, Ingrain: healed ' + ingBare.gain + ' (authority ' + ingBareExp + ')'],
+                   test: ['Big Root: ' + root.d1 + ' damage -> healed ' + root.gain
+                        + ' (authority ' + rootExp + ')',
+                          'Big Root, Ingrain: healed ' + ing.gain + ' (authority ' + ingExp + ')'] },
            detail: 'Bitter Blade, identical damage both arms (' + root.d1 + ' vs ' + bare_.d1
                  + ').  no item healed ' + bare_.gain + ' (must be ' + bareExp + ');  Big Root healed '
                  + root.gain + ' (must be ' + rootExp + ' — round first, then modify in 4096ths). '
                  + 'Folding the multiplier inside the rounding gives ' + folded
-                 + ', which is what this engine did and is the arm that must not pass' };
+                 + ', which is what this engine did and is the arm that must not pass. '
+                 + 'THE RESIDUAL HALF: Ingrain with no item healed ' + ingBare.gain + ' (must be '
+                 + ingBareExp + ') and with Big Root healed ' + ing.gain + ' (must be ' + ingExp
+                 + '); the engine read `drain` alone and healed the bare fraction on all four of the '
+                 + 'other members. Members of `from` this row still does not stage: '
+                 + (uncovered.length ? uncovered.join(' ') : 'none')
+                 + ' (carried by tests/probe_bigroot_family.js, five arms)' };
 });
 
 /* ---- PROTEAN FIRES ON A STATUS MOVE, AND FOR EIGHT MONTHS IT DID NOT. ROADMAP #356, RESCOPED. ----

@@ -1,0 +1,26 @@
+{
+  "what": "CALLED IN WRITING BEFORE THE RUN. One mechanic landed: Big Root's healMultBySource read beyond `drain` — ingrain, aquaring, leechseed (the seeder's return) and strengthsap.",
+  "written": "2026-09-05",
+  "by": "ENGINE, longtail batch A",
+  "pins": {
+    "engine_release": "1436eda2325f",
+    "baseline_release": "63cbcc2ef605",
+    "baseline_artifact": "data/verification/longtail-A-baseline.json",
+    "census": "data/verification/census-pin-9446a684709d.json",
+    "team_store": "data/team-pool-frozen",
+    "arm": "middle", "steering": "empirical", "games": 1200, "turns_cap": 20
+  },
+  "baseline": { "games": 961, "board_material": 59, "protocol": 161, "boards_never_diverged": 902, "threw": 1,
+                "end_state": "924/33/3/0/1", "census_level": 829 },
+  "predicted": {
+    "board_material": 58,
+    "protocol": "160, and 161 is allowed only if the named game diverges LATER instead of closing",
+    "boards_never_diverged": 903,
+    "threw": 1,
+    "end_state": "unchanged 924/33/3/0/1",
+    "census_level": 829,
+    "named_game_that_must_close": "the `-heal field 3` pair whose first board divergence is turn 3, p1.party.meganium.hp medicham 68 / showdown 71 — an Ingrain tick of 9 against the authority's 12",
+    "classes_that_must_not_move": "every class other than `-heal field 3`; first_divergences identical in membership and cause apart from that one row",
+    "why_not_more": "Big Root is 76 sheet uses in the whole tag artifact and none of the other four sources appears in the pool's board-material list at all; this is a NARROW fix and a movement larger than 1 would mean it reached something it should not"
+  }
+}

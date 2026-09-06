@@ -1,0 +1,18 @@
+{
+  "written_before_the_run": "2026-09-06",
+  "step": "STEP 3 - ROADMAP #544 Beat Up ally order: bringIn permutes sf.team the way switchIn permutes side.pokemon",
+  "engine_bytes_changed": "YES - engine/medicham2-browser.js. New release cut; the run is pinned to it.",
+  "pins": {"census": "data/verification/census-pin-9446a684709d.json", "team_store": "data/team-pool-frozen",
+           "arm": "middle", "games": 1200, "turns_cap": 20, "steering": "empirical"},
+  "baseline": {"artifact": "data/verification/step2-fairyaura.json",
+               "games": 961, "board_material": 51, "protocol_diverged": 153, "threw": 1},
+  "which_scoreboard_should_move": "THE LAB, and probably NOT THE POOL. Beat Up is a rare click and ROADMAP #544 sized it at 1 board-material game of 961 on an earlier run. Per CLAUDE.md's 2026-08-23 rule this is the obscure tail: the probe moving red -> green IS the result, and a flat pool is the expected reading rather than a disappointment. Searching the step2 by-cause worklist for a beatup/hitcount cause finds no unambiguous Beat Up row, so the one game #544 saw may already have re-routed.",
+  "prediction": {
+    "board_material": 50,
+    "protocol_diverged": 152,
+    "census_level": 829,
+    "reasoning": "one game closes if #544's pool card is still in this sample. 51/153 - NO MOVEMENT AT ALL - is an equally acceptable outcome and would not be a failure of the fix.",
+    "the_risk_I_am_actually_watching": "sf.team gains a second consumer. `fallenCount` filters it (order-insensitive) and board_state's partyMap is species-keyed (the board leaves read `p1.party.<species>.hp`, confirmed in the step1/step2 diffs), so neither should move. game_differential.js STATE_PLANTS at :5598/:5601 picks a benched member as t[t.length-1], which can now hold a STANDING body — tests/test-end-state.js settles it and was run BEFORE this measurement: ALL GREEN, PART 3's plant caught at the end, localised, control clean, planted body off the field at the last boundary. The assumption the previous agent could not test is therefore MEASURED, not assumed.",
+    "risk_of_going_UP": "a permuted party could change which body a forced-switch mirror or a drag selects, re-routing games. If board-material rises, that is the finding and the knob isolates it."
+  }
+}

@@ -46,14 +46,38 @@ console.log('\nPART 1 — the pinned die, asserted on its BEHAVIOUR');
 let pinBad = 0;
 for (const [what, f] of G.PIN_CLAIMS) { if (!f()) { pinBad++; fail('the pin claims "' + what + '" and it is false'); } }
 if (!pinBad) pass('all ' + G.PIN_CLAIMS.length + ' pin claims hold');
-/* THE TWO PINS MUST BE ONE DIE. `PRNG.randomChance(n, d)` IS `this.random(d) < n` (sim/prng.ts:115).
- * This is asserted over a table rather than trusted to the definition, because the 2026-08-05 failure
- * was two pinned functions with no comparison between them. */
+/* IN A SCALAR ARM THE TWO PINS MUST BE ONE DIE. `PRNG.randomChance(n, d)` IS `this.random(d) < n`
+ * (sim/prng.ts:115). This is asserted over a table rather than trusted to the definition, because the
+ * 2026-08-05 failure was two pinned functions with no comparison between them. The MIDDLE arm makes
+ * the OPPOSITE claim on purpose — two entry points, two independent nth-indexed draws — so it is
+ * asserted separately below rather than swept into the same loop, where it passed or failed by where
+ * the nth counter happened to be. */
 {
   let bad = 0;
-  for (const [n, d] of [[100, 100], [95, 100], [90, 100], [50, 100], [30, 100], [1, 24], [1, 8], [1, 4], [1, 2], [1, 3]])
-    if (G.PIN_CHANCE(n, d) !== (G.pinRandom(d) < n)) { bad++; fail('the two pinned dice disagree at randomChance(' + n + ', ' + d + ')'); }
-  if (!bad) pass('randomChance and random are the SAME die at every rate a battle asks about');
+  const RATES = [[100, 100], [95, 100], [90, 100], [50, 100], [30, 100], [1, 24], [1, 8], [1, 4], [1, 2], [1, 3]];
+  /* PER ARM, AND ONLY WHERE THE IDENTITY IS THE ARM'S CLAIM. A scalar arm's `chance` IS
+   * `random(den) < num`; the middle arm's takes its own draw on purpose, so asking it this question
+   * compares two independent uniforms and passes or fails by where the nth counter happens to be. */
+  for (const a of G.ARMS) {
+    if (a.middle) continue;
+    for (const [n, d] of RATES)
+      if (a.chance(n, d) !== (a.random(d) < n)) { bad++; fail(a.id + ': the two pinned dice disagree at randomChance(' + n + ', ' + d + ')'); }
+  }
+  /* THE MIDDLE ARM'S OWN CLAIM, WHICH IS THE OPPOSITE ONE: two entry points, two independent draws.
+   * A middle arm whose two dice agreed everywhere would be the pre-finaliser hash back again. */
+  {
+    const M = G.ARM_BY_ID.get('middle');
+    if (M) {
+      let same = 0;
+      for (let i = 0; i < 400; i++) if (M.chance(1, 2) === (M.random(2) < 1)) same++;
+      if (same > 260 || same < 140) {
+        bad++;
+        fail('the middle arm\'s chance and random are not two independent draws — they agreed ' + same
+          + '/400 where ~200 is independence. The nth-indexed address has stopped re-drawing (see 245cb90d).');
+      }
+    }
+  }
+  if (!bad) pass('every scalar arm\'s randomChance IS its random (prng.ts:115), and the middle arm\'s two dice are independent');
 }
 
 /* ================= PART 1b — THE SEMANTIC NORMALISER, BOTH DIRECTIONS, PER RULE =================
@@ -214,8 +238,11 @@ for (const sc of G.DIRECTED.filter(s => /knock-off|contact/.test(s.name))) {
   if (!it) { fail('the interior could not be measured for ' + sc.name); continue; }
   if (!it.endpoints_agree)
     fail('the ENDPOINTS disagree for "' + it.name + '" (showdown ' + it.sd_span.join('..')
-      + ', medicham ' + it.me_span.join('..') + '). tests/test-engine-diff.js compares exactly these '
-      + 'two endpoints at 149/150, so a disagreement here is a damage bug, not a granularity one.');
+      + ', medicham ' + it.me_span.join('..') + '). tests/test-engine-diff.js compares these two '
+      + 'endpoints (:888). BEFORE READING THIS AS A DAMAGE BUG: `oneHitDamage` pins medicham through '
+      + '`inertExcept` (crit 0.999) but sends Showdown\'s crit to PIN_CHANCE. If those two are not the '
+      + 'same arm, a value ~1.5x the span is the harness critting on one side. Call damageInterior '
+      + 'twice — a damage table cannot move between calls.');
   else {
     const onlyMe = it.values_medicham_can_produce_that_showdown_cannot;
     const onlySd = it.values_showdown_can_produce_that_medicham_cannot;

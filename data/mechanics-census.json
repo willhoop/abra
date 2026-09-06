@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-06T01:15:13.054Z",
+  "generated": "2026-09-06T04:11:35.979Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
@@ -1083,7 +1083,7 @@
       "tag": "residualStatusOrder",
       "label": "every body chips psn/tox at order 9 before any body chips brn at order 10",
       "live": true,
-      "detail": "MIXED (brn-200, psn-150, brn-100, tox-50) chip sequence \"psn:p1b psn:p2b brn:p1a brn:p2a\" — must be the two order-9 chips then the two order-10 burns, NOT the speed-sorted brn/psn/brn/tox that one pass gives. CONTROL, the same four bodies all POISONED so every chip shares order 9: \"psn:p1a psn:p1b psn:p2a psn:p2b\" — must be plain speed order. BRACKET, both arms — Leftovers@5 at index 0/0 (must be 0), Leech Seed@8 at 1/1 (must be 1, above the chips at 3..6), trap@11 at 7/7 (must be last). mixed [\"|-heal|p1a:garchomp|154/183brn|[from]item:leftovers\",\"|-damage|p2a:milotic|149/170brn|[from]leechseed\",\"|-heal|p1a:garchomp|175/183brn|[from]leechseed|[of]p2a:milotic\",\"|-damage|p1b:clefable|149/170psn|[from]psn\",\"|-damage|p2b:snorlax|221/235tox|[from]psn\",\"|-damage|p1a:garchomp|164/183brn|[from]brn\",\"|-damage|p2a:milotic|139/170brn|[from]brn\",\"|-damage|p1b:clefable|128/170psn|[from]move:whirlpool|[partiallytrapped]\"]",
+      "detail": "MIXED (brn-200, psn-150, brn-100, tox-50) chip sequence \"psn:p1b psn:p2b brn:p1a brn:p2a\" — must be the two order-9 chips then the two order-10 burns, NOT the speed-sorted brn/psn/brn/tox that one pass gives. CONTROL, the same four bodies all POISONED so every chip shares order 9: \"psn:p1a psn:p1b psn:p2a psn:p2b\" — must be plain speed order. BRACKET, both arms — Leftovers@5 at index 0/0 (must be 0), Leech Seed@8 at 1/1 (must be 1, above the chips at 3..6), trap@11 at 7/7 (must be last). mixed [\"|-heal|p1a:garchomp|154/183brn|[from]item:leftovers\",\"|-damage|p2a:milotic|149/170brn|[from]leechseed|[of]p1a:garchomp\",\"|-heal|p1a:garchomp|175/183brn|[silent]\",\"|-damage|p1b:clefable|149/170psn|[from]psn\",\"|-damage|p2b:snorlax|221/235tox|[from]psn\",\"|-damage|p1a:garchomp|164/183brn|[from]brn\",\"|-damage|p2a:milotic|139/170brn|[from]brn\",\"|-damage|p1b:clefable|128/170psn|[from]move:whirlpool|[partiallytrapped]\"]",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3073,7 +3073,7 @@
       "tag": "healMultBySource",
       "label": "Big Root multiplies the ALREADY-ROUNDED drain, in Showdown fixed point, not the raw fraction",
       "live": true,
-      "detail": "Bitter Blade, identical damage both arms (53 vs 53).  no item healed 27 (must be 27);  Big Root healed 35 (must be 35 — round first, then modify in 4096ths). Folding the multiplier inside the rounding gives 34, which is what this engine did and is the arm that must not pass",
+      "detail": "Bitter Blade, identical damage both arms (53 vs 53).  no item healed 27 (must be 27);  Big Root healed 35 (must be 35 — round first, then modify in 4096ths). Folding the multiplier inside the rounding gives 34, which is what this engine did and is the arm that must not pass. THE RESIDUAL HALF: Ingrain with no item healed 77 (must be 77) and with Big Root healed 100 (must be 100); the engine read `drain` alone and healed the bare fraction on all four of the other members. Members of `from` this row still does not stage: leechseed aquaring strengthsap (carried by tests/probe_bigroot_family.js, five arms)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4023,7 +4023,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.4% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
