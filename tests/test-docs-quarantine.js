@@ -12,12 +12,36 @@
  * artifacts in either file, or this becomes the hand-maintained ban list of four in a new costume.
  *
  * ================================================================================================
- * IT IS A RATCHET, AND THE HONEST REASON IS THAT THE DEBT IS 104 AND NONE OF IT IS MINE TO FIX.
+ * IT IS A RATCHET, AND IT WAS SEEDED AT 104 WHEN 92 OF THOSE WERE NOT OFFENDERS.
  * ================================================================================================
- * Measured 2026-09-06 on a closed gate: 104 figures across 14 documents are sourced from an artifact
- * the gate withholds. Every one is a real republication of a withheld number — the MAG weights, the
- * leaf backtest, the censoring census — and correcting them is a documents pass across four
- * divisions' ledgers, not a line in a test.
+ * Seeded 2026-09-06 at 104 keys across 14 documents, on the honest belief that all 104 were real
+ * republications of a withheld number. Re-seeded the same day, and the split matters more than the
+ * number:
+ *
+ *   67  FIXED — a documents pass withdrew them (docs/_reports/2026-09-06-withdraw-quarantined-figures.md).
+ *   18  THE CLASSIFIER WAS WRONG. `engine/quarantine.js` was withholding the mechanics census, the
+ *       rate runner, the register audit, the register copy and the click-coverage probe — five
+ *       INSTRUMENTS, which CLAUDE.md names in as many words as NOT quarantined. It had also
+ *       quarantined ITSELF off its own test fixtures. The figures were always quotable; the ruler
+ *       said otherwise. 72 artifacts withheld before, 63 after.
+ *    7  THE FIGURE NEVER CAME FROM THAT ARTIFACT. `data/policy-weights.json` publishes 58 content
+ *       hashes, and the scanner was cutting digit runs out of them — `docs/MEASURE.md` calls it a
+ *       coincidence engine. Fixed in engine/docs_scan.js#isTokenFragment.
+ *   12  REAL, and carried forward.
+ *
+ * PLUS 40 THAT NOTHING COULD SEE UNTIL TODAY. `quarantinedFigures` gained a second route: a figure
+ * uniquely attributable to a withheld artifact, with NO citation beside it. The clause used to need
+ * the citation and the figure in the same block, and `docs/ABRA-deck-plain-english.md` names an
+ * artifact in 14 of its 354 paragraphs — so the document written for the least technical reader was
+ * the one the gate could not see. It scores ZERO on the new route, which is a result rather than a
+ * silence. See engine/docs_scan.js for why uniqueness, and not "in some withheld artifact".
+ *
+ * A RATCHET SEEDED ON FALSE POSITIVES PROTECTS NOTHING, which is why it was re-seeded rather than
+ * left to shrink on its own: 92 permitted keys are 92 places a genuine republication could land and
+ * be waved through by a line that was already there. The 52 that remain are real — MAG's weights,
+ * the leaf backtest, the feature contrast, the feature shift, the censoring census, the
+ * exploitability search — and correcting them is a documents pass across divisions' ledgers, not a
+ * line in a test.
  *
  * So the seeded list below is the census AS MEASURED, and it MAY ONLY SHRINK. A key that is not in
  * it FAILS the build; a key in it that no longer fires is REPORTED so the line can be deleted. That
@@ -41,112 +65,60 @@ const ok = (pass, name, detail) => {
   if (!pass) failed++;
 };
 
-/* ---- THE SEEDED CENSUS — 2026-09-06, gate CLOSED, 72 artifacts withheld. MAY ONLY SHRINK. ----- */
+/* ---- THE SEEDED CENSUS — 2026-09-06, gate CLOSED, 63 artifacts withheld. MAY ONLY SHRINK. ----- */
 const BASELINE = new Set([
+  "docs/ABRA-technical-docs.md|14.757%|data/policy-weights.json",
+  "docs/ABRA-technical-docs.md|44,982|data/sheet-channel-value.json",
   "docs/ABRA-technical-docs.md|49.3%|data/policy-weights.json",
-  "docs/ABRA-technical-docs.md|6000|data/policy-weights.json",
-  "docs/ABRA-whitepaper.md|1,336|data/policy-weights.json",
-  "docs/ABRA-whitepaper.md|1,851|data/censoring-value.json",
-  "docs/ABRA-whitepaper.md|10,009|data/click-censoring-census.json",
-  "docs/ABRA-whitepaper.md|241,927|data/policy-weights.json",
-  "docs/ABRA-whitepaper.md|25.6%|data/winrate-backtest.json",
-  "docs/ABRA-whitepaper.md|48,274|data/censoring-value.json",
+  "docs/ABRA-whitepaper.md|14.757%|data/policy-weights.json",
+  "docs/ABRA-whitepaper.md|232,815|data/policy-weights.json",
+  "docs/ABRA-whitepaper.md|44,982|data/sheet-channel-value.json",
   "docs/ABRA-whitepaper.md|49.3%|data/policy-weights.json",
-  "docs/ABRA-whitepaper.md|50.48%|data/leaf-engine-contrast.json",
-  "docs/ABRA-whitepaper.md|52.48%|data/leaf-engine-contrast.json",
-  "docs/ABRA-whitepaper.md|6,000|data/policy-weights.json",
-  "docs/ABRA-whitepaper.md|7,994|data/leaf-engine-contrast.json",
-  "docs/ABRA-whitepaper.md|8,320|data/leaf-engine-contrast.json",
-  "docs/ABRA-whitepaper.md|8,601|data/leaf-engine-contrast.json",
-  "docs/ABRA-whitepaper.md|8,883|data/leaf-engine-contrast.json",
-  "docs/ABRA-whitepaper.md|8,942|data/policy-weights.json",
-  "docs/ENGINE-COVERAGE-PLAN.md|960,000|data/exploit-step-probe.json",
+  "docs/COVERAGE-PLAN-REVIEW.md|960,000|data/exploit-step-probe.json",
   "docs/ENGINE.md|1,136,845|data/feature-engine-contrast.json",
-  "docs/ENGINE.md|1200|data/register-reality.json",
-  "docs/ENGINE.md|1596|data/policy-weights.json",
-  "docs/ENGINE.md|6,000|data/register-reality.json",
+  "docs/ENGINE.md|48,274|data/censoring-value.json",
+  "docs/ENGINE.md|5,878|data/leaf-position-contrast.json",
   "docs/ENGINE.md|6,055|data/feature-engine-contrast.json",
-  "docs/EXTERNAL-EVIDENCE.md|55.5%|data/rollout-r4.json",
-  "docs/GAME-DIFFERENTIAL-DESIGN.md|8,883|data/leaf-engine-contrast.json",
-  "docs/MEASURE.md|1,046|data/winrate-backtest.json",
-  "docs/MEASURE.md|1,144|data/medicham-speed.json",
-  "docs/MEASURE.md|1,270|data/medicham-speed.json",
-  "docs/MEASURE.md|186,494|data/policy-weights.json",
-  "docs/MEASURE.md|2,500|data/rollout-r1-explore-sweep.json",
-  "docs/MEASURE.md|232,815|data/policy-weights.json",
-  "docs/MEASURE.md|241,927|data/policy-weights.json",
-  "docs/MEASURE.md|46,321|data/policy-weights.json",
-  "docs/MEASURE.md|5,248|data/rollout-r4.json",
-  "docs/MEASURE.md|50.99%|data/winrate-backtest.json",
-  "docs/MEASURE.md|6,886|data/winrate-backtest.json",
-  "docs/MEASURE.md|63.2%|data/exploitability.json",
-  "docs/MEASURE.md|68.18%|data/rollout-r1-explore-sweep.json",
-  "docs/MEASURE.md|69.84%|data/rollout-r1-explore-sweep.json",
-  "docs/MEASURE.md|8,942|data/policy-weights.json",
-  "docs/MEASURE.md|9,201|data/rollout-r1-explore-sweep.json",
-  "docs/MEASURE.md|9,201|data/rollout-r1.json",
-  "docs/MILTANK.md|65.72%|data/rollout-r1.json",
-  "docs/MILTANK.md|9,201|data/rollout-r1-explore-sweep.json",
-  "docs/MODELS.md|1,116|data/policy-weights.json",
-  "docs/MODELS.md|1,336|data/policy-weights.json",
-  "docs/MODELS.md|1,600|data/exploitability.json",
-  "docs/MODELS.md|1.60%|data/policy-weights.json",
-  "docs/MODELS.md|10,009|data/click-censoring-census.json",
-  "docs/MODELS.md|101,459|data/policy-weights-joint.json",
-  "docs/MODELS.md|186,494|data/policy-weights.json",
+  "docs/ENGINE.md|6,167|data/leaf-position-contrast.json",
+  "docs/ENGINE.md|6,371|data/leaf-position-contrast.json",
+  "docs/EXTERNAL-EVIDENCE.md|6,890|data/winrate-backtest.json",
+  "docs/GAME-DIFFERENTIAL-DESIGN.md|8,855|data/leaf-engine-contrast.json",
+  "docs/MEASURE.md|1,136,845|data/feature-engine-contrast.json",
+  "docs/MEASURE.md|14.757%|data/policy-weights.json",
+  "docs/MEASURE.md|202,343|data/policy-weights-joint.json",
+  "docs/MEASURE.md|202,918|data/policy-weights-joint.json",
+  "docs/MEASURE.md|220,932|data/feature-engine-contrast.json",
+  "docs/MEASURE.md|395,130|data/policy-weights-joint.json",
+  "docs/MEASURE.md|396,288|data/policy-weights-joint.json",
+  "docs/MEASURE.md|44,982|data/sheet-channel-value.json",
+  "docs/MEASURE.md|48,274|data/censoring-value.json",
+  "docs/MEASURE.md|51.25%|data/winrate-backtest.json",
+  "docs/MEASURE.md|55.92%|data/leaf-position-contrast.json",
+  "docs/MEASURE.md|6,890|data/winrate-backtest.json",
+  "docs/MEASURE.md|7,994|data/leaf-engine-contrast.json",
+  "docs/MEASURE.md|8,855|data/leaf-engine-contrast.json",
+  "docs/MEASURE.md|91,240|data/feature-engine-contrast.json",
+  "docs/MODELS.md|14.757%|data/policy-weights.json",
   "docs/MODELS.md|2.92%|data/policy-weights.json",
   "docs/MODELS.md|23.4%|data/policy-weights.json",
-  "docs/MODELS.md|232,815|data/policy-weights.json",
-  "docs/MODELS.md|241,927|data/policy-weights.json",
-  "docs/MODELS.md|26,232|data/all-mechanics-fire.json",
-  "docs/MODELS.md|3,260|data/policy-weights.json",
-  "docs/MODELS.md|42.0%|data/policy-weights.json",
-  "docs/MODELS.md|44,982|data/sheet-channel-value.json",
-  "docs/MODELS.md|46,321|data/policy-weights.json",
+  "docs/MODELS.md|48,274|data/censoring-value.json",
   "docs/MODELS.md|49.3%|data/policy-weights.json",
-  "docs/MODELS.md|6,937|data/policy-weights.json",
-  "docs/MODELS.md|63.2%|data/exploitability.json",
-  "docs/MODELS.md|8,883|data/leaf-engine-contrast.json",
-  "docs/MODELS.md|8,942|data/policy-weights.json",
-  "docs/MODELS.md|95,886|data/policy-weights-joint.json",
-  "docs/MODELS.md|99.7%|data/sheet-channel-value.json",
-  "docs/PRIORITIES.md|63.2%|data/exploitability.json",
+  "docs/MODELS.md|81,515|data/redirect-audit.json",
+  "docs/OPS.md|1.744%|data/collinearity-joint.json",
+  "docs/PRIOR-ART.md|186,494|data/policy-weights.json",
+  "docs/PRIORITIES.md|6,890|data/winrate-backtest.json",
   "docs/ROADMAP.md|0.687%|data/feature-shift.json",
   "docs/ROADMAP.md|0.889%|data/feature-shift.json",
-  "docs/ROADMAP.md|1,970|data/million-run.json",
-  "docs/ROADMAP.md|12,806|data/medicham-represented-clicks.json",
-  "docs/ROADMAP.md|12.5%|data/million-run.json",
-  "docs/ROADMAP.md|1200|data/register-reality.json",
-  "docs/ROADMAP.md|13.00%|data/million-run.json",
-  "docs/ROADMAP.md|2212|data/open-work.json",
   "docs/ROADMAP.md|28.33%|data/feature-shift.json",
-  "docs/ROADMAP.md|29.54%|data/million-run.json",
-  "docs/ROADMAP.md|298,888|data/medicham-represented-clicks.json",
-  "docs/ROADMAP.md|298,910|data/medicham-represented-clicks.json",
-  "docs/ROADMAP.md|30.34%|data/million-run-staged.json",
-  "docs/ROADMAP.md|30.42%|data/million-run.json",
-  "docs/ROADMAP.md|31.90%|data/million-run-staged.json",
-  "docs/ROADMAP.md|39.6%|data/register-reality.json",
   "docs/ROADMAP.md|51,399|data/feature-shift.json",
-  "docs/ROADMAP.md|6,000|data/register-reality.json",
-  "docs/ROADMAP.md|99.9926%|data/medicham-represented-clicks.json",
-  "docs/SEARCH.md|1,314|data/winrate-backtest.json",
+  "docs/ROADMAP.md|6779|data/leaf-position-contrast.json",
+  "docs/ROADMAP.md|81,515|data/redirect-audit.json",
   "docs/SEARCH.md|1,600|data/exploitability.json",
-  "docs/SEARCH.md|5,500|data/policy-weights.json",
-  "docs/SEARCH.md|51.0%|data/winrate-backtest.json",
-  "docs/SEARCH.md|56.6%|data/exploitability.json",
-  "docs/SUMMARY.md|1,336|data/policy-weights.json",
-  "docs/SUMMARY.md|23.4%|data/policy-weights.json",
-  "docs/SUMMARY.md|232,815|data/policy-weights.json",
-  "docs/SUMMARY.md|241,927|data/policy-weights.json",
-  "docs/SUMMARY.md|3,260|data/policy-weights.json",
-  "docs/SUMMARY.md|32.9%|data/policy-weights.json",
-  "docs/SUMMARY.md|8,883|data/leaf-engine-contrast.json",
-  "docs/SUMMARY.md|8,942|data/policy-weights.json",
-  "docs/WEB.md|134,648|data/winrate-backtest.json",
-  "docs/WEB.md|16.9%|data/policy-weights.json",
-  "docs/WEB.md|63.2%|data/exploitability.json",
-  "docs/WEB.md|84.3%|data/policy-weights.json",
+  "docs/SEARCH.md|1.576%|data/feature-shift.json",
+  "docs/SEARCH.md|51,399|data/feature-shift.json",
+  "docs/SEARCH.md|64.24%|data/rollout-r1-explore-sweep.json",
+  "docs/SEARCH.md|66.645%|data/rollout-r1-explore-sweep.json",
+  "docs/SEARCH.md|960,000|data/exploit-step-probe.json",
 ]);
 
 console.log('\n  QUARANTINED FIGURES IN LIVING DOCUMENTS — the citation was faithful and that is the bug\n');

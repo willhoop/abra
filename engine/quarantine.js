@@ -3450,30 +3450,40 @@ function gateVerdict(clauses) {
 
 const SIMULATOR = 'engine/medicham2-browser.js';
 
-/* THE ONE THING THE GRAPH CANNOT EXPRESS, DECLARED WITH ITS REASON — the RAW-STORE-OK convention.
+/* WHAT NO DERIVATION HERE REACHES, DECLARED WITH ITS REASON — the RAW-STORE-OK convention.
+ *
+ * THIS LIST IS THE RESIDUAL AND NOTHING ELSE. Most instruments are now DERIVED from the gate's own
+ * reads — see `gateInputArtifacts` below, which is where `game_differential.js` and
+ * `derive_protocol_events.js` used to be typed and no longer are. What stays here is the set the
+ * derivation provably cannot see, and it is TWO modules rather than the seven a hand-maintained list
+ * would have grown to.
  *
  * MEASURED, not assumed: `engine/game_differential.js` and `engine/backtest_winrate.js` have the same
  * graph signature. Both load the simulator, both load Showdown, both play games. The only difference
  * is which QUESTION the artifact answers — the differential's number is "how often do the two engines
- * disagree", which is a measurement OF medicham and is exactly what the gate above reads; the
- * backtest's number is "how good is the leaf", which is a measurement THROUGH medicham. That
- * distinction is not present in either file's source, so no derivation can find it and a declaration
- * is the honest instrument.
+ * disagree", which is a measurement OF medicham; the backtest's number is "how good is the leaf",
+ * which is a measurement THROUGH medicham. That distinction is not present in either file's source.
+ * The claim used to be made of those two files; it was checked across ALL of them on 2026-09-06 and
+ * it holds — all 44 play-layer modules that write an artifact sit inside `champions_sim.js`'s
+ * closure, so "it also drives the official engine" separates nothing.
  *
  * It is CHECKED rather than trusted: an exemption naming a module that is not in the play layer is a
  * claim that has quietly become false, and `--check` fails on it. That is the same discipline
  * tests/roster.js applies to its own DECLARED divergences ("a declared divergence that matched
  * nothing is a claim that has quietly become false"). */
 const MEASURES_THE_ENGINE = [
-  { module: 'engine/game_differential.js',
-    why: 'MEDICHAM is its SUBJECT, not its input: it drives the official Showdown engine and ours '
-       + 'over identical inputs and reports the disagreements. Its value does not depend on MEDICHAM '
-       + 'being right — it is how we find out. It is the first clause of the gate above.' },
-  { module: 'engine/derive_protocol_events.js',
-    why: 'it loads the simulator only to read the event list it CLAIMS it can emit, and checks that '
-       + 'claim against Showdown\'s own add() call sites. The artifact is the comparison, not a '
-       + 'quantity MEDICHAM computed — and quarantining it would have withheld the game differential '
-       + 'downstream of it, which is the gate\'s own first clause.' },
+  { module: 'engine/million_run.js',
+    why: 'THE RATE RUNNER. It plays MEDICHAM at volume and tallies what the dice actually did against '
+       + 'what data/million-targets.json says they should do — every row of which carries a DERIVED or '
+       + 'READ provenance stamp, so the authority is the format, never MEDICHAM. The artifact is the '
+       + 'comparison; a wrong simulator makes the number LARGER, not less quotable. Nothing in the '
+       + 'gate reads it, so no derivation here finds it.' },
+  { module: 'engine/medicham_coverage.js',
+    why: 'THE CLICK-COVERAGE PROBE. It asks what fraction of the moves HUMANS clicked in the stored '
+       + 'open-sheet corpus MEDICHAM can represent at all, against MEDICHAM\'s own predicates. Its '
+       + 'authority is the store, which is upstream of the simulator; its number is a property OF the '
+       + 'engine, and it is the figure that says whether a rollout leaf is worth building. Nothing in '
+       + 'the gate reads it either.' },
 ];
 
 function stripComments(s) {
@@ -3481,6 +3491,59 @@ function stripComments(s) {
    * comment credited this very file with generating pokemon-roles.json; a comment one file away
    * picked the corpus for winrate-backtest.json). A require inside a comment block is a citation. */
   return s.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+}
+
+/* AND A REQUIRE INSIDE A STRING LITERAL IS NOT A DEPENDENCY EITHER — the same lesson one quote level
+ * deeper, and it cost this file eight modules.
+ *
+ * MEASURED 2026-09-06. `stripComments` above catches a require discussed in PROSE. It does not catch
+ * a require quoted as DATA, and the selftest at the bottom of this very file hands `requiresOf` a
+ * synthetic source map whose values are source strings:
+ *
+ *     'engine/board.js': "const M=require('./medicham2-browser.js');",
+ *
+ * Scanning THIS file therefore found six requires that nothing here executes — and one of them named
+ * the simulator, so `engine/quarantine.js` classified ITSELF into the play layer. Everything that
+ * requires the gate went with it: engine/status.js, engine/open_work.js, engine/register_reality.js,
+ * engine/docs_scan.js, engine/where.js, engine/orient.js and engine/sweep.js. Every one of those is a
+ * PRINTER or an INDEX — none of them computes a quantity from MEDICHAM — and their artifacts
+ * (data/open-work.json, data/register-reality.json, data/whole-game-baseline.json) were being withheld
+ * on the strength of the gate's own test fixtures. CLAUDE.md names data/open-work.json's register copy
+ * and the register audit as figures that should be quotable; this is why they were not.
+ *
+ * THE MASK IS LINE-LOCAL AND HANDLES `${}`. A first version marked everything after a backtick as
+ * string, which dropped `${require('./champions_sim.js').FORMAT}` in engine/feature_fixture.js — a
+ * require that really does execute. That was caught by reading the drop list rather than the count:
+ * across all 212 sources the corrected mask drops exactly two files' worth, this file's six fixtures
+ * and one self-name inside a console.log in engine/job_cost.js, and nothing else.
+ *
+ * A LINE, NOT THE WHOLE FILE, because a regex literal containing a quote (`/['"]/` occurs in this
+ * repository) would otherwise flip the scanner's state for the rest of the file. Resetting at each
+ * newline bounds that damage to one line and costs only a multi-line template literal, which no
+ * require in this tree sits inside. */
+function stringMask(code) {
+  const mask = new Uint8Array(code.length);
+  const BS = String.fromCharCode(92);
+  let i = 0;
+  while (i < code.length) {
+    let j = code.indexOf('\n', i); if (j < 0) j = code.length;
+    const stack = [];
+    for (let k = i; k < j; k++) {
+      const c = code[k], top = stack[stack.length - 1];
+      if (top === "'" || top === '"' || top === '`') {
+        mask[k] = 1;
+        if (c === BS) { if (k + 1 < j) mask[k + 1] = 1; k++; continue; }
+        if (c === top) { stack.pop(); continue; }
+        /* `${` re-opens CODE inside a template, and a require in there is executed. */
+        if (top === '`' && c === '$' && code[k + 1] === '{') { mask[k + 1] = 1; stack.push('{'); k++; }
+        continue;
+      }
+      if (c === "'" || c === '"' || c === '`') { stack.push(c); mask[k] = 1; continue; }
+      if (top === '{' && c === '}') { stack.pop(); mask[k] = 1; continue; }
+    }
+    i = j + 1;
+  }
+  return mask;
 }
 
 function sources() {
@@ -3509,10 +3572,13 @@ function sources() {
  * its engine. */
 function requiresOf(src, id) {
   const code = stripComments(src[id] || '');
+  /* A match that STARTS inside a string literal is source being quoted, not source being run. See
+   * `stringMask` — this is what stopped the gate from quarantining itself off its own fixtures. */
+  const mask = stringMask(code);
   const out = new Set();
-  for (const m of code.matchAll(/require\(\s*['"]\.\/([A-Za-z0-9_.-]+?)(?:\.js)?['"]/g)) out.add('engine/' + m[1] + '.js');
-  for (const m of code.matchAll(/\.require\(\s*['"](engine\/[A-Za-z0-9_.-]+\.js)['"]/g)) out.add(m[1]);
-  for (const m of code.matchAll(/require\(\s*D\(\s*['"]engine['"]\s*,\s*['"]([A-Za-z0-9_.-]+\.js)['"]/g)) out.add('engine/' + m[1]);
+  for (const m of code.matchAll(/require\(\s*['"]\.\/([A-Za-z0-9_.-]+?)(?:\.js)?['"]/g)) if (!mask[m.index]) out.add('engine/' + m[1] + '.js');
+  for (const m of code.matchAll(/\.require\(\s*['"](engine\/[A-Za-z0-9_.-]+\.js)['"]/g)) if (!mask[m.index]) out.add(m[1]);
+  for (const m of code.matchAll(/require\(\s*D\(\s*['"]engine['"]\s*,\s*['"]([A-Za-z0-9_.-]+\.js)['"]/g)) if (!mask[m.index]) out.add('engine/' + m[1]);
   return [...out].filter(x => src[x]);
 }
 
@@ -3632,6 +3698,94 @@ function engineInputArtifacts(g) {
   return out;
 }
 
+/* ================================================================================================
+ * THE EXEMPTION IS DERIVED FROM THE GATE'S OWN READS — 2026-09-06.
+ * ================================================================================================
+ * `MEASURES_THE_ENGINE` above held TWO modules and the set it needed to hold was seven. A list of
+ * two that should have been seven is not a smaller version of the same thing: it withheld the
+ * mechanics census, the register audit and the register copy, all three of which CLAUDE.md names in
+ * as many words as NOT quarantined, and fifteen of docs/ROADMAP.md's nineteen affected rows were
+ * that. Extending it to seven would have been the ban-list-of-four again in a new costume.
+ *
+ * SO THE HONEST QUESTION IS WHETHER "MEASURES" AND "CONSUMES" CAN BE TOLD APART FROM THE SOURCE, AND
+ * THE ANSWER — MEASURED, NOT ASSERTED — IS NO. The comment on `MEASURES_THE_ENGINE` claims it of two
+ * files; it holds across ALL of them. The strongest structural signal available is "does this module
+ * also load the OFFICIAL engine", because an instrument compares ours to Showdown's. Every one of the
+ * 44 play-layer modules that writes an artifact is in `engine/champions_sim.js`'s closure —
+ * `fit_policy.js` and `backtest_winrate.js` exactly as much as `game_differential.js`. The signal is
+ * dead, and that is now a measurement rather than a sentence.
+ *
+ * WHAT *CAN* BE DERIVED IS THE ONE CLASS THAT MATTERS MOST, AND IT IS THE FILE'S OWN STATED REASON.
+ * The header above says the instruments "are the ones that will say when the quarantine can lift, so
+ * withholding them would blind the project to its own exit condition". That is not a judgement about
+ * a module — it is a FACT ABOUT THIS FILE: an artifact the GATE READS is an exit-condition input by
+ * construction, and withholding it would mean the gate deciding MEDICHAM's fate off a number it also
+ * refuses to print. So the exemption is read out of the clauses' own reads, plus everything those
+ * inputs were built FROM, and it grows and shrinks with the gate instead of with somebody's memory.
+ *
+ * IT CANNOT RUN AWAY. The exemption lands on the GENERATOR of a gate input, never on that artifact's
+ * readers — the transitive rule below is untouched — so unquarantining "the whole family" would take
+ * somebody adding a clause that reads the family's artifact, which would be a circular gate and is a
+ * deliberate, visible act. Measured on the day it was written, the derivation released exactly two
+ * artifacts nothing else had already released: data/all-mechanics-fire.json and
+ * data/whole-game-baseline.json.
+ *
+ * AND WHAT IT DOES NOT REACH STAYS DECLARED, WITH THE HOLE PRINTED. `million_run.js` and
+ * `medicham_coverage.js` are instruments no derivation here finds: the gate does not read them.
+ * `gateInputsWithheld` is the loud half — a gate input that comes out QUARANTINED is a contradiction
+ * in this file's own terms, and it is reported by name rather than silently exempted. */
+function gateInputArtifacts(opts = {}) {
+  if (opts.gateInputs) return new Set(opts.gateInputs);
+  const out = new Set();
+  let self = '';
+  try { self = stripComments(fs.readFileSync(__filename, 'utf8')); }
+  catch (e) { SWALLOWED.push('read this file to derive the gate inputs' + ': ' + why(e)); return out; }
+  const mask = stringMask(self);
+  /* READS ONLY. A clause that WRITES a file is not reading a number out of it, and the distinction
+   * is the difference between "the gate depends on this" and "the gate produced this". */
+  for (const m of self.matchAll(/(?:readJson|readFileSync)\(\s*D\(\s*['"]data['"]\s*,\s*['"]([A-Za-z0-9_.\-]+\.json)['"]/g)) {
+    if (!mask[m.index]) out.add(m[1]);
+  }
+  /* THE TWO THE CLAUSES BUILD RATHER THAN SPELL, taken from the constants they are built from so a
+   * rename moves both together. `rosterStage` composes 'roster.' + stage + '.json'; the register
+   * audit's filename lives in REGISTER_REALITY because two files spelling one fact will disagree. */
+  out.add(REGISTER_REALITY.rowsFile);
+  for (const s of ROSTER_STAGES) out.add('roster.' + s + '.json');
+  return out;
+}
+
+/* The gate's inputs, everything they were built FROM, and the play-layer generators of that closure.
+ * The `from` walk is what reaches `engine/derive_protocol_events.js`: nothing in the gate reads
+ * data/protocol-events.json, but data/game-differential.json is built from it, so quarantining its
+ * generator would withhold the gate's own first clause one edge later.
+ *
+ * THE WALK EXEMPTS UPSTREAM GENERATORS AND THAT IS THE SAME ARGUMENT ONE EDGE BACK, not a wider one:
+ * a gate input is only as quotable as what it was built from. It is bounded by the graph, not by a
+ * depth — measured 2026-09-06 the closure is 28 artifacts and it names FOUR play-layer generators
+ * (game_differential, derive_protocol_events, all_mechanics_fire, tag_dex), none of them a consumer.
+ * If a clause ever came to be built from something genuinely downstream, that is a defect in the
+ * CLAUSE and it would be silent here — which is exactly why `gateInputsWithheld` exists and why
+ * `--check` prints the derived set beside the declared one rather than merging them. */
+function instrumentsOfTheGate(g, play, gateInputs) {
+  const modules = new Map(), closure = new Set();
+  if (!Array.isArray(g)) return { modules, closure };
+  const by = new Map(g.map(a => [a.file, a]));
+  const stack = [...gateInputs];
+  while (stack.length) {
+    const f = stack.pop();
+    if (closure.has(f)) continue;
+    closure.add(f);
+    const a = by.get(f);
+    if (!a) continue;
+    if (a.by && play.has(a.by) && !modules.has(a.by)) modules.set(a.by, f);
+    for (const dep of a.from || []) {
+      if (/\.jsonl$/.test(dep) || dep.includes('/')) continue;   // stores and engine sources, not artifacts
+      if (!closure.has(dep)) stack.push(dep);
+    }
+  }
+  return { modules, closure };
+}
+
 function graph() {
   /* ONE DERIVATION OF THE ARTIFACT GRAPH, and it is provenance.js's. status.js shells out to
    * provenance.js rather than reimplementing its staleness rules; this does the same for its edges. */
@@ -3646,12 +3800,22 @@ function graph() {
 function classify(opts = {}) {
   const src = opts.src || sources();
   const play = opts.play || playLayer(src);
-  const exempt = new Map((opts.exemptions || MEASURES_THE_ENGINE).map(e => [e.module, e.why]));
+  const declared = new Map((opts.exemptions || MEASURES_THE_ENGINE).map(e => [e.module, e.why]));
   const products = opts.products || playProducts(src, play);
   const g = opts.graph || graph();
-  const staleExemptions = [...exempt.keys()].filter(m => !play.has(m));
+  /* STALENESS IS ASKED OF THE DECLARED HALF ONLY. A derived exemption cannot be stale — it is read
+   * out of the play layer on this run — so folding the two together would make the check vacuous. */
+  const staleExemptions = [...declared.keys()].filter(m => !play.has(m));
 
-  if (g.error) return { error: g.error, play, exempt, staleExemptions };
+  if (g.error) return { error: g.error, play, exempt: declared, staleExemptions };
+
+  const gate = instrumentsOfTheGate(g, play, gateInputArtifacts(opts));
+  const exempt = new Map(declared);
+  for (const [m, f] of gate.modules) {
+    if (!exempt.has(m)) exempt.set(m, `DERIVED — the gate reads data/${f}, so this module is an `
+      + 'exit-condition instrument: withholding it would have the gate decide MEDICHAM\'s fate off a '
+      + 'number it also refuses to print.');
+  }
 
   const upstream = opts.upstream || engineInputArtifacts(g);
   /* A row dump is almost never in provenance's `from` — that arm tracks .json/.js artifacts and the
@@ -3731,7 +3895,17 @@ function classify(opts = {}) {
     }
     if (!grew) break;
   }
-  return { rows, play, exempt, staleExemptions, products, unknownRows };
+  /* THE LOUD HALF. A gate input that still comes out QUARANTINED is this file contradicting itself —
+   * the gate would be deciding whether MEDICHAM is correct off a figure it simultaneously refuses to
+   * print. The derivation above cannot produce that on its own (it exempts the generator), but the
+   * TRANSITIVE rule can: a gate input built from a quarantined artifact is withheld regardless. That
+   * is a real defect in either the clause or the artifact, and it is named rather than absorbed. */
+  const gateInputsWithheld = [...(gate.closure || [])]
+    .filter(f => rows.has(f) && rows.get(f).quarantined)
+    .map(f => ({ file: f, by: rows.get(f).by, reason: rows.get(f).reason })).sort((a, b) => a.file.localeCompare(b.file));
+
+  return { rows, play, exempt, declared, derived: gate.modules, gateInputs: gate.closure,
+           gateInputsWithheld, staleExemptions, products, unknownRows };
 }
 
 /* THE ONE ENTRY POINT EVERY CALLER USES. status.js asks two questions — is the gate open, and is this
@@ -3813,6 +3987,8 @@ function state() {
   CACHE = {
     ok: gate.ok, gate, rows: c.rows, error: c.error, play: c.play,
     staleExemptions: c.staleExemptions || [],
+    declared: c.declared || new Map(), derived: c.derived || new Map(),
+    gateInputsWithheld: c.gateInputsWithheld || [],
     unclassified: unclassified(c.rows, c.unknownRows),
     unknownRows: c.unknownRows || [],
     withhold,
@@ -5653,12 +5829,24 @@ if (require.main === module) {
       'engine/store_only.js': "const Q=require('./quality.js');",
       /* A NAME IN A COMMENT IS NOT A REQUIRE — the fault provenance.js records twice. */
       'engine/prose.js': "/* this one day may require('./board.js') */ const x=1;",
+      /* NOR IS ONE QUOTED AS DATA. This is the exact shape of the fixture map three lines up, which
+       * is how this file put ITSELF in the play layer and took status.js, open_work.js,
+       * register_reality.js, docs_scan.js, where.js, orient.js and sweep.js with it. */
+      'engine/fixture.js': 'const SRC={"engine/x.js": "const M=require(\'./board.js\');"};',
+      /* AND THE CONTROL THAT MAKES THAT ARM MEAN SOMETHING: a template INTERPOLATION is code again,
+       * and dropping it would have lost a require that really executes (engine/feature_fixture.js). */
+      'engine/interp.js': 'throw new Error(`format ${require(\'./board.js\').FORMAT} is wrong`);',
     };
     const play = playLayer(src);
     ok('the play layer reaches board.js from the simulator', play.has('engine/board.js'));
     ok('the play layer reaches rollout_leaf.js transitively', play.has('engine/rollout_leaf.js'));
     ok('a store-only generator is NOT in the play layer', !play.has('engine/store_only.js'));
     ok('a require inside a COMMENT does not taint', !play.has('engine/prose.js'));
+    ok('RED — a require inside a STRING LITERAL does not taint either: it is source quoted as data, '
+      + 'and this file\'s own selftest fixtures are exactly that',
+      !play.has('engine/fixture.js'));
+    ok('CONTROL — a require inside a `${}` template interpolation DOES taint, because it runs',
+      play.has('engine/interp.js'));
     ok('a play-layer row dump is detected', playProducts(src, play).has('rows.jsonl'));
 
     const g = [
@@ -5679,6 +5867,45 @@ if (require.main === module) {
     ok('an exemption naming a module outside the play layer is reported STALE',
       classify({ src, play, graph: g, exemptions: [{ module: 'engine/nope.js', why: 'x' }] })
         .staleExemptions.length === 1);
+
+    /* -- THE DERIVED EXEMPTION, AND THE TWO THINGS THAT MAKE IT HONEST -------------------------
+     * `gateInputs` is injected, so these arms drive the SHIPPING classifier rather than a copy of
+     * its rule. The real derivation reads this file's own clause reads; what is under test here is
+     * what the classifier DOES with that set. */
+    {
+      const gi = classify({ src, play, graph: g, exemptions: [],
+                            gateInputs: ['instrument.json'] });
+      ok('DERIVED — a generator whose artifact the GATE READS is exempt with no declaration at all',
+        !gi.rows.get('instrument.json').quarantined && gi.derived.has('engine/instrument.js'));
+      /* THE ARM THAT MATTERS MOST: a classifier loosened too far unquarantines the whole family. The
+       * exemption lands on the GENERATOR, never on that artifact's readers. */
+      ok('CONTROL — it does NOT propagate: a consumer sitting beside the instrument stays QUARANTINED',
+        gi.rows.get('consumer.json').quarantined && gi.rows.get('reader.json').quarantined);
+      /* AND THE `from` WALK, which is the only reason engine/derive_protocol_events.js needs no
+       * declaration: nothing in the gate reads data/protocol-events.json, but the gate's first clause
+       * is built from it. */
+      const up = classify({ src, play, graph: [...g,
+        { file: 'built.json', by: 'engine/store_only.js', from: ['instrument.json'] }],
+        exemptions: [], gateInputs: ['built.json'] });
+      ok('DERIVED — and it walks `from`, so what a gate input was BUILT FROM is an instrument too',
+        up.derived.has('engine/instrument.js'));
+
+      /* THE LOUD HALF, SHOWN RED. A gate input that comes out WITHHELD is the file contradicting
+       * itself, and it must be NAMED rather than silently exempted.
+       *
+       * `reader.json` is the case the derivation genuinely CANNOT rescue and that is why it is the
+       * fixture: exemption cancels only the "its generator is in the play layer" clause, so a gate
+       * input whose generator READS A ROW DUMP MEDICHAM produced stays quarantined however it got
+       * into the closure. A first draft used `downstream.json` and the arm came back EMPTY — the
+       * `from` walk had exempted the consumer upstream of it, correctly, which is the behaviour the
+       * arm above pins. A red arm that a correct fix turns green was testing the wrong thing. */
+      const bad = classify({ src, play, graph: g, exemptions: [], gateInputs: ['reader.json'] });
+      ok('RED — a gate input that is itself WITHHELD is reported by name, never absorbed',
+        bad.gateInputsWithheld.length === 1 && bad.gateInputsWithheld[0].file === 'reader.json',
+        bad.gateInputsWithheld);
+      ok('CONTROL — with the same graph and a clean gate input, that list is EMPTY',
+        gi.gateInputsWithheld.length === 0, gi.gateInputsWithheld);
+    }
 
     /* -- WITHHOLDING, both directions, THROUGH THE REAL FUNCTION -------------------------------
      * The first draft of this block wrote its own two-line withhold() and asserted against that,
@@ -5707,15 +5934,28 @@ if (require.main === module) {
   if (has('--graph')) {
     console.log('QUARANTINE DERIVATION — nothing here is typed; the root is ' + SIMULATOR + '\n');
     console.log(`  play layer: ${S.play.size} modules reach the simulator through require`);
+    /* THE TWO HALVES ARE PRINTED APART, because the whole point of the 2026-09-06 change is that the
+     * typed half is the RESIDUAL. A reader who cannot see which is which cannot see it shrinking. */
+    for (const [m, f] of S.derived) console.log(`  DERIVED INSTRUMENT:  ${m}\n    the gate reads data/${f}`);
     for (const e of MEASURES_THE_ENGINE) console.log(`  DECLARED INSTRUMENT: ${e.module}\n    ${e.why.replace(/\s+/g, ' ')}`);
     console.log('');
     if (S.error) { console.log('  GRAPH UNAVAILABLE: ' + S.error); process.exit(1); }
+    /* A GATE INPUT THAT IS WITHHELD IS THIS FILE CONTRADICTING ITSELF, so it is printed FIRST and by
+     * name. It is empty today; silence here is the claim, not the absence of a section. */
+    if (S.gateInputsWithheld.length) {
+      console.log('  GATE INPUTS THAT ARE THEMSELVES WITHHELD — the gate is judging MEDICHAM off a');
+      console.log('  number it refuses to print. Fix the clause or fix the artifact:');
+      for (const r of S.gateInputsWithheld) console.log(`    ${r.file}  (${r.by}) — ${r.reason}`);
+      console.log('');
+    }
     const pad = (s, n) => String(s).padEnd(n);
     console.log('  ' + pad('artifact', 34) + pad('', 6) + 'why');
     console.log('  ' + '-'.repeat(110));
     for (const r of [...S.rows.values()].sort((a, b) => a.file.localeCompare(b.file))) {
       console.log('  ' + pad(r.file, 34) + pad(r.quarantined ? 'HELD' : 'ok', 6) +
-        (r.quarantined ? r.reason : (r.exempt ? 'DECLARED INSTRUMENT' : 'not downstream of the simulator')));
+        (r.quarantined ? r.reason
+          : (r.exempt ? (S.derived.has(r.by) ? 'DERIVED INSTRUMENT — the gate reads it' : 'DECLARED INSTRUMENT')
+                      : 'not downstream of the simulator')));
     }
     process.exit(0);
   }
@@ -5866,6 +6106,18 @@ if (require.main === module) {
     if (S.staleExemptions.length) {
       console.log('QUARANTINE CHECK: a declared instrument exemption names a module that is not in the');
       console.log('play layer. The claim has quietly become false — remove it or find out why.');
+      for (const m of S.staleExemptions) console.log('  ' + m);
+      fail++;
+    }
+    /* AND THE OTHER DIRECTION, WHICH NOTHING ASKED UNTIL 2026-09-06. A clause of this gate reading an
+     * artifact this gate withholds is a contradiction in the file's own terms — it would be deciding
+     * whether MEDICHAM is correct off a number it simultaneously refuses to print. It cannot arise
+     * from the derivation (that exempts the generator); it CAN arise transitively, when a gate input
+     * is built from something quarantined. Either the clause is wrong or the artifact is. */
+    if (S.gateInputsWithheld.length) {
+      console.log('QUARANTINE CHECK: the gate reads an artifact the gate WITHHOLDS. Fix the clause or');
+      console.log('the artifact; do not exempt it by hand.');
+      for (const r of S.gateInputsWithheld) console.log('  ' + r.file + '  (' + r.by + ') — ' + r.reason);
       fail++;
     }
     if (S.error) { console.log('QUARANTINE CHECK: the artifact graph could not be read — ' + S.error); fail++; }

@@ -171,7 +171,19 @@ function figuresIn(line) {
      *
      * ID_WORD cannot carry this: it is a lookbehind on one word, and a RANGE puts the second number
      * behind a hyphen instead. Stripping the whole "lines N-M" span is what actually covers it. */
-    .replace(/\blines?\s*\d[\d,]*(?:\s*[-–—]\s*\d[\d,]*)?/gi, ' ');
+    .replace(/\blines?\s*\d[\d,]*(?:\s*[-–—]\s*\d[\d,]*)?/gi, ' ')
+    /* A WALL-CLOCK TIME IS A TIMESTAMP, NOT A MEASUREMENT — and it is the same class as the ISO date
+     * three strips up, which was already excluded. This repository stamps times constantly ("still
+     * stands from 02:49", "the weights moved at 22:15:24"), and the minute field was being read as a
+     * stated figure: `docs/DAMAGE-STAGES.md`'s "from 02:49" was scored as a claim of 49 against
+     * `data/engine-diff.json`, an artifact that contains no 49 at any sign. It passed for months on
+     * an arithmetic collision with a digit run inside a hash, and surfaced the moment that collision
+     * was closed — a false positive that had been masked by a second false positive.
+     *
+     * THE HOUR AND MINUTE FIELDS ARE RANGE-CHECKED so this strips a CLOCK and not a ratio. `50:50`
+     * and `16:9` survive; `02:49` and `22:15:24` do not. A bare `\d{2}:\d{2}` would have eaten the
+     * first, which is a real way to write a split. */
+    .replace(/\b(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?\b/g, ' ');
   const out = [];
   let m;
   FIGURE_RE.lastIndex = 0;
@@ -264,12 +276,26 @@ const LEXING_CASES = [
   { id: 'prose-after-a-fence-is-still-read',
     why: 'A fence must close. Without this the fence rule could silence the rest of a document.',
     text: '```\nignore 9,999\n```\n\nThe run scored 4,321 games.', find: true },
+
+  { id: 'a-wall-clock-time-is-not-a-figure',
+    why: 'A timestamp is the same class as the ISO date already stripped. docs/DAMAGE-STAGES.md\'s '
+       + '"still stands from 02:49" was scored as a claim of 49 against data/engine-diff.json, which '
+       + 'contains no 49 anywhere. It only ever passed on a collision with a hash fragment.',
+    text: 'The published run still stands from 02:49.', value: 49, find: false },
+
+  { id: 'a-ratio-is-not-a-clock',
+    why: 'The control, and it is what makes the strip above safe: the hour and minute fields are '
+       + 'range-checked, so a split written 50:50 or an aspect written 16:9 is still read. A bare '
+       + '\\d{2}:\\d{2} would have silently eaten the first.',
+    text: 'The arms split 43:21 by construction.', value: 43, find: true },
 ];
 
-/** Runs every case through the real function. `holds` false means the lexer changed meaning. */
+/** Runs every case through the real function. `holds` false means the lexer changed meaning.
+ *  `value` defaults to 4,321 — the figure the original five cases are built around. */
 function lexingProof() {
   return LEXING_CASES.map(c => {
-    const found = figuresInText(c.text).some(f => f.value === 4321);
+    const want = c.value === undefined ? 4321 : c.value;
+    const found = figuresInText(c.text).some(f => f.value === want);
     return { id: c.id, why: c.why, expected: c.find, found, holds: found === c.find };
   });
 }
@@ -281,6 +307,41 @@ const UNIVERSAL = new Set([0, 1, 2, 0.5, 50, 100, 0.25, 25, 0.693, 0.6931, 0.693
 const isUniversal = f => UNIVERSAL.has(f.value);
 
 /* ---- rule 3, part b: what an artifact contains ------------------------------------------------ */
+
+/* ================================================================================================
+ * A DIGIT RUN GLUED TO A LETTER IS PART OF A TOKEN, NOT A MEASUREMENT — 2026-09-06.
+ * ================================================================================================
+ * `data/policy-weights.json` carries a `featureHashes.features` map of 58 CONTENT DIGESTS, written
+ * as hex: `"5e163257dbbf"`, `"c6f34249369e"`. The string walk below cut digit runs out of them and
+ * added `163257`, `34249369` and fifty-odd more to the set of "numbers this artifact contains" — and
+ * the index then rescales every entry by x100 and /100, so each hash fragment became three chances
+ * to collide. Six of them, plus two fitted floats, matched a figure in a living document by pure
+ * arithmetic coincidence. Every one of those document figures belonged to a DIFFERENT and entirely
+ * quotable source — the damage differential, the empirical driver's reach rate, a planned game
+ * budget, DODUO's win rate. `docs/MEASURE.md` calls it a coincidence engine, and it is: an artifact
+ * that publishes 58 hashes publishes ~130 phantom measurements.
+ *
+ * THE EXCLUSION IS DERIVED FROM THE FIELD'S ROLE, NOT FROM ITS NAME. A list of field names
+ * (`featureHashes`, `digest`, `release`, `id`, ...) is the hand-maintained ban list of four and it
+ * would go stale the first time a fit writes its hashes under a new key. The role is legible in the
+ * CHARACTERS: a digest, a release id, a version string, a filename and a format name all glue their
+ * digits to letters, and a measurement does not. This is the same rule `engine/quarantine.js` states
+ * about filenames — "A SUBSTRING IS NOT A FILENAME... the character before the match must not
+ * continue the name" — applied to numbers, and it generalises past hashes to `turn19`, `v2`,
+ * `gen9championsvgc2026regmb` and `13ba05093aa3` without naming any of them.
+ *
+ * WHAT IT COSTS, MEASURED RATHER THAN ASSUMED. Across all of data/ it removes 10,569 of 117,316
+ * reachable numbers (9.0%). A unit-suffixed figure written inside a string — `1.5x` — is removed
+ * with them, and that is the accepted cost: the citation and untraceable ratchets were re-run over
+ * the whole live document set and neither gained a single offender, so no published figure in this
+ * repository was tracing through a glued digit run.
+ *
+ * A LEADING `.` COUNTS AS GLUE for the same reason: in `v1.2.3` the regex has already taken `1.2`,
+ * and the `3` left behind is the tail of an identifier rather than a third number. */
+const isTokenFragment = (s, at, len) => {
+  const before = s[at - 1] || '', after = s[at + len] || '';
+  return /[A-Za-z_]/.test(before) || /[A-Za-z_]/.test(after) || before === '.';
+};
 
 const artifactCache = new Map();
 /** Every number reachable inside a JSON artifact, including numbers written inside its strings. */
@@ -309,7 +370,10 @@ function artifactNumbers(rel) {
       if (o === null || o === undefined) return;
       if (typeof o === 'number') { set.add(o); return; }
       if (typeof o === 'string') {
-        for (const m of o.matchAll(/(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)/g)) set.add(Number(m[1].replace(/,/g, '')));
+        for (const m of o.matchAll(/(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)/g)) {
+          if (isTokenFragment(o, m.index, m[1].length)) continue;
+          set.add(Number(m[1].replace(/,/g, '')));
+        }
         return;
       }
       if (Array.isArray(o)) { o.forEach(walk); return; }
@@ -887,15 +951,23 @@ function quarantinedFigures(docs, { withhold, read = readDoc } = {}) {
    * accused, with nothing on the screen to say the scan had a hole in it. */
   const unreadable = [];
   if (!st.withhold) return { hits, unreadable, gate_open: st.open, why: st.why, cannot_answer: true };
+  const seen = new Set();
+  const push = (h) => { const k = quarantineKey(h); if (!seen.has(k)) { seen.add(k); hits.push(h); } };
+  /* READ EVERY DOCUMENT ONCE. The second route below needs the citations of the WHOLE set before it
+   * can judge any single paragraph, so the read cannot be folded into one pass per document. */
+  const texts = [];
   for (const rel of (docs || liveDocs())) {
-    let text;
-    try { text = read(rel); }
-    catch (e) {
-      unreadable.push({ doc: rel, error: String((e && e.message) || e).split('\n')[0] });
-      continue;
-    }
+    try { texts.push([rel, read(rel)]); }
+    catch (e) { unreadable.push({ doc: rel, error: String((e && e.message) || e).split('\n')[0] }); }
+  }
+
+  /* ---- ROUTE 1: the citation is in the same paragraph as the figure ---------------------------- */
+  const published = new Set();
+  for (const [rel, text] of texts) {
     for (const b of paragraphs(text)) {
-      const cites = citationsIn(b.lines).filter(c => st.withhold(c));
+      const all = citationsIn(b.lines);
+      for (const c of all) published.add(c);
+      const cites = all.filter(c => st.withhold(c));
       if (!cites.length) continue;
       const body = b.lines.join('\n');
       for (const f of figuresInText(body)) {
@@ -904,16 +976,83 @@ function quarantinedFigures(docs, { withhold, read = readDoc } = {}) {
         for (const c of cites) {
           const nums = artifactNumbers(c);
           if (!nums || !artifactHas(nums, f)) continue;
-          const h = { doc: rel, line: b.start, figure: f.raw, cite: c, cites,
-                      held: st.withhold(c), text: b.lines[0].trim().slice(0, 100) };
-          const k = quarantineKey(h);
-          if (!hits.some(x => quarantineKey(x) === k)) hits.push(h);
+          push({ doc: rel, line: b.start, figure: f.raw, cite: c, cites, via: 'citation',
+                 held: st.withhold(c), text: b.lines[0].trim().slice(0, 100) });
           break;
         }
       }
     }
   }
+
+  /* ================================================================================================
+   * ROUTE 2: NO CITATION ANYWHERE NEAR THE FIGURE — 2026-09-06.
+   * ================================================================================================
+   * ROUTE 1 NEEDS THE CITATION AND THE PARAGRAPH IN THE SAME BLOCK, AND THE DOCUMENT WRITTEN FOR THE
+   * LEAST TECHNICAL READER IS THE ONE THAT DELIBERATELY CITES NOTHING. `docs/ABRA-deck-plain-english.md`
+   * carries 753 figures across 354 paragraphs and exactly FOURTEEN of those paragraphs contain a
+   * citation, so 96% of the deck was outside this rule's reach. A gate that cannot see the deck is a
+   * gate with a hole in it, and scoring it zero read as a clean bill.
+   *
+   * DROPPING THE CITATION REQUIREMENT IS NOT THE FIX, AND THAT WAS MEASURED BEFORE IT WAS REJECTED.
+   * Scoring every distinctive figure against every withheld artifact gives the deck 40 hits and
+   * ABRA-technical-docs 70 — `1,500` occurs in SIXTEEN withheld artifacts and `6,000` in
+   * TWENTY-THREE, because those are round run sizes that appear everywhere. That is the coincidence
+   * engine `isTokenFragment` above was written to close, rebuilt one rule over.
+   *
+   * SO THE EVIDENCE IS UNIQUENESS OF ATTRIBUTION, WHICH IS THE SAME BAR `untraceableCensus` USES ONE
+   * RULE OVER. A figure is charged only when, across EVERY artifact in data/, exactly ONE contains
+   * it — so there is no other source it could have come from — and that artifact is withheld. Two
+   * owners is not attribution, it is a coincidence with a witness.
+   *
+   * AND THE OWNER MUST BE A PUBLISHED SOURCE — an artifact some live document actually cites. Without
+   * that clause, `data/_bench-normal.json` and the `_diag*` scratch runs became the unique owner of
+   * ordinary four-digit figures and accused six documents of republishing a bench number they had
+   * never heard of. The scratch files stay in the DENOMINATOR, where they make attribution stricter;
+   * they are just not allowed to be the accuser. Measured: 75 uniquely-attributed hits before that
+   * clause, 54 after, and every one of the 21 it removed was a scratch artifact.
+   *
+   * WHAT IT FINDS, MEASURED: 50 republications that carry no citation at all — `14.757%` out of the
+   * MAG weights in four documents, `6,890` out of the leaf backtest in three, `48,274` out of the
+   * censoring census, `1,136,845` out of the feature contrast, `960,000` out of the exploitability
+   * step probe. THE DECK ITSELF COMES BACK CLEAN, which is a result rather than a silence: it is now
+   * a document this rule can see and does not accuse. */
+  const owners = uniqueOwners();
+  for (const [rel, text] of texts) {
+    for (const b of paragraphs(text)) {
+      for (const f of figuresInText(b.lines.join('\n'))) {
+        if (isUniversal(f)) continue;
+        if (!isDistinctive(f)) continue;
+        const src = owners(f);
+        if (!src || !published.has(src) || !st.withhold(src)) continue;
+        push({ doc: rel, line: b.start, figure: f.raw, cite: src, cites: [src], via: 'unique',
+               held: st.withhold(src), text: b.lines[0].trim().slice(0, 100) });
+      }
+    }
+  }
   return { hits, unreadable, gate_open: st.open, why: st.why, cannot_answer: false };
+}
+
+/** The artifact that is the ONLY one in data/ containing a figure, or null when zero or many do.
+ *  Artifacts are listed once and their number sets are cached by `artifactNumbers`. */
+function uniqueOwners() {
+  /* NOT WRAPPED IN A TRY. An unlistable `data/` gives an EMPTY denominator, which makes every figure
+   * unowned and this whole route accuse nobody — a silent default in the permissive direction, and
+   * the exact shape `quarantinedState` refuses one function up by returning `cannot_answer` rather
+   * than a clean bill. There is no useful recovery: if the artifact directory cannot be read, the
+   * citation route above is equally meaningless. Let it throw. */
+  const list = fs.readdirSync(D('data'))
+    .filter(f => /\.(json|js)$/.test(f) && !/^games\./.test(f) && !/\.meta\.json$/.test(f))
+    .map(f => 'data/' + f);
+  return (f) => {
+    let found = null;
+    for (const a of list) {
+      const nums = artifactNumbers(a);
+      if (!nums || !artifactHas(nums, f)) continue;
+      if (found) return null;            // two owners is a coincidence with a witness, not a source
+      found = a;
+    }
+    return found;
+  };
 }
 
 module.exports = {
