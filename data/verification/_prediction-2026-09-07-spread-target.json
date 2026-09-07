@@ -1,0 +1,64 @@
+{
+  "written": "2026-09-07T02:26:00Z",
+  "written_before_measuring": true,
+  "batch": "long-tail batch J, fix 1 of 1 measured alone",
+  "fix": "A move whose target class the player may not aim (targetClass.chooseable === false) resolves the body it NAMES through getRandomTarget rather than keeping the clicked body. sim/battle.ts:2461 + :2484, sim/pokemon.ts:770, sim/battle-actions.ts:418/428/457.",
+  "knob": "MEDI_NAMED_TGT_CLICKED=1 restores the clicked body on every class (engine bytes and pins identical).",
+  "probe": "tests/probe_spread_target_die.js — RED on the published bytes (14 of 44 die cells named a different body), GREEN after, controls D and E clean in BOTH arms.",
+  "release_before": "0c8b0dc63766",
+  "release_after": "791c9fd873f3",
+  "sample_line": "node engine/game_differential.js --steering empirical --release 791c9fd873f3 --arm middle --end-state --state --census data/verification/census-pin-9446a684709d.json --games 1200 --turns 20 --team-store data/team-pool-frozen --write",
+  "pins": {
+    "census": "data/verification/census-pin-9446a684709d.json (digest 9446a684709d)",
+    "team_store": "data/team-pool-frozen (pool digest 0d103fb9fa87)",
+    "games_flag": 1200,
+    "turns_cap": 20,
+    "arm": "middle",
+    "steering": "empirical-click/v1"
+  },
+  "baseline": {
+    "board_material": "16 of 961",
+    "protocol": 87,
+    "narration": "70 (71 raw less 1 declared)",
+    "board_never_diverged": 945,
+    "games": 961
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "claim": "The named row closes: pair-speedctrl gen9championsvgc2026regmbbo3-2662992072, whose only board diff is p1.pp[0].hypervoice 3 (medicham) vs 2 (showdown), caused by the full-paralysis die reading a different address because activeTarget differed.",
+      "confidence": "high — the mechanism is measured on a staged Hyper Voice board and the knob moves it"
+    },
+    {
+      "id": "P2",
+      "claim": "Board-material falls. I do NOT predict a specific number: this change moves battle.activeTarget, and therefore every `any`-category address in the action, on EVERY non-chooseable click in every game. Games can leave the set and different games can enter it. Point estimate 12 of 961, honest interval 8..18, and a rise is possible.",
+      "confidence": "low on the number, high on the mechanism"
+    },
+    {
+      "id": "P3",
+      "claim": "Protocol divergences fall. The `|move|` line's target field on every spread and hazard click now matches, so any game whose FIRST divergence was that field closes. 87 -> point estimate 80, interval 70..87.",
+      "confidence": "medium"
+    },
+    {
+      "id": "P4",
+      "claim": "TRANSFERS ARE EXPECTED AND WILL BE REPORTED AS TRANSFERS, not as wins or misses. Any game that leaves the board-material set and a different game that enters it are both consequences of the address move, and the seed list must be diffed rather than the count.",
+      "confidence": "certain"
+    },
+    {
+      "id": "P5",
+      "claim": "The LAB does not move: census stays 830/830/0 and the deliberate roster stays 140/129/475 with 0 DIFFER and 0 DID-NOT-FIRE. This is a per-click address rule, and the roster stages one entity at a time against a control on the same click.",
+      "confidence": "high"
+    },
+    {
+      "id": "P6",
+      "claim": "The seeded engine-diff (data/engine-diff.json, 6000 comparisons, seed 20260804) stays 0. It compares damage, not target selection.",
+      "confidence": "high"
+    },
+    {
+      "id": "P7",
+      "claim": "arms_comparable will answer COMPARABLE for the third-arm pair (fix live vs MEDI_NAMED_TGT_CLICKED=1 on the same release), because the bytes, the pool digest, the census pin, --games and the turn cap are all identical. It may well ALSO answer COMPARABLE for the before/after pair across releases, since it checks steering and run parameters and not the dice addressing. If it does, the pin move is real and the checker simply does not see it — that is a limit of the checker, and this file says so in advance rather than afterwards.",
+      "confidence": "medium"
+    }
+  ],
+  "scoreboard_called_before_the_run": "BOTH. A spread move is common (22 allAdjacentFoes + 16 allAdjacent + 4 foeSide legal moves, and the pool is real ladder play), so the pinned pool is expected to move. The lab is expected to sit still."
+}

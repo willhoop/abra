@@ -1,10 +1,10 @@
 {
-  "current": "0c8b0dc63766",
-  "cut": "2026-09-07T01:28:30.823Z",
-  "why": "batch I step 3 — the faint replacements' own Update pass, so an entrant eats its berry before the turn boundary",
-  "cuts": 2,
-  "latest_cut": "2026-09-07T01:57:15.875Z",
+  "current": "791c9fd873f3",
+  "cut": "2026-09-07T02:23:41.464Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 5,
+  "latest_cut": "2026-09-07T03:00:07.871Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-07T01:57:15.889Z",
+  "pointer_written": "2026-09-07T03:00:07.887Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

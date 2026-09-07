@@ -1622,6 +1622,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * candidate would be reporting agreement about a choice that did not exist, so the two are counted
    * apart rather than pooled. */
   randomTargetDrawn: 0, randomTargetAmbiguous: 0,
+  /* ---- 2026-09-07 -- THE NAMED TARGET OF A CLICK THE PLAYER WAS NEVER ALLOWED TO AIM -----------
+   * `namedTargetResolved` is every action whose `targetClass.chooseable` is false and that therefore
+   * went through `getRandomTarget` for the body it NAMES; `namedTargetDrewFoe` is the subset where
+   * that ended at a uniform draw over the living foes rather than at the near-side clause, and
+   * `namedTargetMoved` is the subset where the answer differs from the body the click had named --
+   * which is the only population this change can possibly alter. All three are counted apart because
+   * a resolution that fires on every Protect and moves nothing looks identical, from the first
+   * number alone, to one that is deciding spread targets. */
+  namedTargetResolved: 0, namedTargetDrewFoe: 0, namedTargetMoved: 0, namedTargetMovedFirst: '',
   /* WIRE 144 -- a turn spent under a lock-in (Outrage, Thrash, Uproar...) where the action the caller
    * or the chooser supplied was REPLACED by the locked move. A zero after a game in which one of the
    * five landed means turn 2 was still a free choice. */
@@ -23663,6 +23672,54 @@ const DEFAULT_TARGET_SELF=new Set(['self','all','allySide','allyTeam','adjacentA
 const DEFAULT_TARGET_FOE_ONLY=(typeof process!=='undefined'&&process.env
                                &&process.env.MEDI_DEFAULT_TARGET_FOE_ONLY==='1');
 if(DEFAULT_TARGET_FOE_ONLY)MEDFAILS.defaultTargetFoeOnlyRestored=1;
+/* ---- 2026-09-07 -- A CLICK THE PLAYER MAY NOT AIM DOES NOT NAME THE BODY THE PLAYER AIMED AT ----
+ *
+ * `Side#chooseMove` REFUSES a target location for every class outside `CHOOSABLE_TARGETS`
+ * (sim/side.ts:657 against sim/battle-actions.ts:3), so a Hyper Voice, an Earthquake or a Spikes
+ * reaches `runMove` with `targetLoc === 0`. `Battle#getTarget` then reads, in full:
+ *
+ *     validTargetLoc(targetLoc, ...) { if (targetLoc === 0) return true; ... }      sim/battle.ts:2396
+ *     if (move.target !== 'randomNormal' && this.validTargetLoc(targetLoc, ...)) {  sim/battle.ts:2461
+ *       const target = pokemon.getAtLoc(targetLoc);      // getAtLoc(0) -> active[-1] -> undefined
+ *       if (target && !target.fainted) return target;    // NOT TAKEN
+ *     }
+ *     return this.getRandomTarget(pokemon, move);        sim/battle.ts:2484
+ *
+ * `getAtLoc` is `side.active[Math.abs(targetLoc) - 1]` (sim/pokemon.ts:770), so a zero indexes
+ * `active[-1]` and the "use the selected location" branch falls straight out of itself. EVERY
+ * non-chooseable click therefore resolves through `getRandomTarget`, and in a double that ends at
+ * `side.randomFoe()` -> `battle.sample(this.foes())` -> `random(len)` -- A DIE -- for every class the
+ * near-side clause does not answer first. `useMoveInner` then puts two of them back on the user:
+ *
+ *     if (move.target === 'self' || move.target === 'allies') target = pokemon;   battle-actions.ts:418
+ *
+ * THIS ENGINE KEPT THE CLICKED BODY. So a spread move's `|move|` line named a fixed slot where the
+ * authority rolled, and -- far worse than the line -- `setActiveMove(move, pokemon, target)` is
+ * TWENTY-FIVE LINES ABOVE `runEvent('BeforeMove')` (:428 against :253 in the caller), so
+ * `battle.activeTarget` is the anchor of every `any`-category address in the whole action. On the
+ * pinned pool that is the `pair-speedctrl ...bo3-2662992072` board-material row: the full-paralysis
+ * die read a different address on each side, `|cant|p1a|par` against `|move|p1a|hypervoice`, parting
+ * `p1.pp[0].hypervoice` 3 against 2.
+ *
+ * NOTHING IS NAMED HERE. `targetClass.chooseable` is derived by tag_dex.js from the SIMULATOR'S OWN
+ * `CHOOSABLE_TARGETS`, and the near-side split is `defaultTargetOf` above -- which is already this
+ * engine's single implementation of `getRandomTarget` and is called rather than re-expressed. The
+ * only thing written out here is `useMoveInner`'s two-word override, because that is a different
+ * line of the authority and belongs to the site that models `useMoveInner`.
+ *
+ * IT DOES NOT TOUCH THE HIT SET, AND IT MUST NOT. `getMoveTargets` ignores `target` entirely for
+ * `all`, `foeSide`, `allySide`, `allyTeam`, `allAdjacent`, `allAdjacentFoes` and `allies`
+ * (sim/pokemon.ts:791) -- it rebuilds the list from adjacency -- so the drawn body is a NAME and an
+ * ADDRESS and nothing else. That is why this writes `it._nameTgt` instead of rewriting the action the
+ * way the `randomNormal` re-roll does: a `randomNormal` move really does hit the body it drew.
+ *
+ * `MEDI_NAMED_TGT_CLICKED=1` restores the clicked body on every class so the defect can be shown RED.
+ * The AUTHORITY is deliberately untouched by the knob -- unlike `MEDI_TGT_ADDR_LEGACY` this is a game
+ * rule and not an instrument address, so only one side of it is ours to restore.
+ * `tests/probe_spread_target_die.js`. */
+const NAMED_TGT_CLICKED=(typeof process!=='undefined'&&process.env
+                         &&process.env.MEDI_NAMED_TGT_CLICKED==='1');
+if(NAMED_TGT_CLICKED)MEDFAILS.namedTgtClickedRestored=1;
 function defaultTargetOf(mon,mvId,allies,pick){
   if(DEFAULT_TARGET_FOE_ONLY)return pick();
   const tc=mvId?TAGS.param('move',mvId,'targetClass'):null;
@@ -25718,10 +25775,21 @@ function battleTurn(S,rng,actsForA,actsForB){
      *
      * IT IS THE ADDRESS THAT MOVES, NOT THE MECHANIC: nothing here changes what Encore or Protect DO.
      * `MEDI_MID_ADDR_PRE_OVERRIDE=1` restores the single early write so the defect can be shown RED. */
+    /* 2026-09-07 -- AND THE BODY IT NAMES IS ALSO ASKED IN ONE PLACE, FOR THE SAME REASON. The
+     * `|move|` line's target field and `setActiveMove`'s third argument are ONE value in the
+     * authority (`addMove('move', pokemon, movename, `${target}...`)` and
+     * `setActiveMove(move, pokemon, target)` read the same local), so they are one function here.
+     * `it._nameTgt` is written by the non-chooseable resolution at `setActiveMove`'s position and is
+     * `undefined` for every class the player really did aim -- which falls through to the slot
+     * re-aim exactly as before. */
+    const _actionNamedTgt=(it,m)=>{
+      if(it&&it._nameTgt!==undefined)return it._nameTgt||m;
+      return reaimToSlot(it&&it.a&&it.a.target,it,actA,actB,actionMoveId(it&&it.a),true)||m;
+    };
     const _midWriteActionAddr=(it,m)=>{
       MID_MOVE=actionMoveId(it.a)||'-';
       MID_ATT=midEventSlot(m);
-      MID_TGT=(MID_MOVE==='-')?'-':midEventSlot(reaimToSlot(it.a&&it.a.target,it,actA,actB,MID_MOVE,true)||m);
+      MID_TGT=(MID_MOVE==='-')?'-':midEventSlot(_actionNamedTgt(it,m));
     };
     const _shieldGate=(it,idx)=>{
       const _will=_anyActionAfter(idx);
@@ -26189,6 +26257,51 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(it.a&&it.a.target){
         const _aimed=reaimToSlot(it.a.target,it,actA,actB,actionMoveId(it.a));
         if(_aimed!==it.a.target){ MEDSEEN.reaimedAtDispatch++; it.a.target=_aimed; }
+      }
+      /* 2026-09-07 -- THE BODY THE ACTION NAMES, WHEN THE PLAYER WAS NEVER ALLOWED TO NAME ONE.
+       *
+       * The rule, the citations and the knob are at `NAMED_TGT_CLICKED`. This is the authority's own
+       * position for it: `getTarget` runs on runMove's first line and `setActiveMove` on :428, and
+       * the write two blocks below is this engine's `setActiveMove`. Everything that can still
+       * rewrite `it.a` -- Encore's override, the `randomNormal` re-roll, the slot re-aim -- has
+       * already run, so the class read here is the class of the move that will actually execute.
+       *
+       * IT IS SKIPPED WHEN AN EARLIER SITE ALREADY DREW. Encore's override calls
+       * `getRandomTarget(pokemon, baseMove)` itself (battle-actions.ts:233) and the `randomNormal`
+       * re-roll IS `getTarget`'s own fall-through; a second draw here would consume the shared `tgt`
+       * address twice for one rule and desynchronise both engines on exactly the moves that were
+       * already right. `_ovr` and the tag test are the same two predicates those blocks used.
+       *
+       * `_nameTgt` IS READ ONLY BY THE ADDRESS WRITE AND THE `|move|` LINE. Nothing mechanical reads
+       * it, because for every class that reaches here the hit set is rebuilt from adjacency and the
+       * drawn body is a name, not a victim. */
+      if(!NAMED_TGT_CLICKED&&!_ovr&&it.a&&it._nameTgt===undefined){
+        const _nmid=actionMoveId(it.a);
+        const _ntc=_nmid?TAGS.param('move',_nmid,'targetClass'):null;
+        const _nrt=_nmid&&TAGS.has('move',_nmid,'randomTarget');
+        if(_nmid&&_ntc&&_ntc.chooseable===false&&!_nrt){
+          MEDSEEN.namedTargetResolved++;
+          const _nfoes=it.side==='A'?actB:actA, _nlive=live(_nfoes);
+          let _ndrew=false;
+          let _nt=defaultTargetOf(m,_nmid,it.side==='A'?actA:actB,()=>{
+            _ndrew=true;
+            if(!_nlive.length)return null;
+            return _nlive[Math.floor(midTargetDraw(_R,rng,_nmid,midEventSlot(m),_nlive.length)
+                                     *_nlive.length)%_nlive.length];
+          });
+          if(_ndrew)MEDSEEN.namedTargetDrewFoe++;
+          /* battle-actions.ts:418 -- and it runs AFTER the draw on the authority too, so a `allies`
+           * move spends its die and then names the user anyway. Modelled rather than short-circuited,
+           * because skipping the draw would leave the shared `tgt` address one `nth` behind. */
+          if(_ntc.target==='self'||_ntc.target==='allies')_nt=m;
+          it._nameTgt=_nt;
+          const _nwas=reaimToSlot(it.a&&it.a.target,it,actA,actB,_nmid,true)||m;
+          if((_nt||m)!==_nwas){
+            MEDSEEN.namedTargetMoved++;
+            if(!MEDSEEN.namedTargetMovedFirst)
+              MEDSEEN.namedTargetMovedFirst=_nmid+' '+midEventSlot(_nwas)+'->'+midEventSlot(_nt||m);
+          }
+        }
       }
       /* ROADMAP #543 -- AND THE ADDRESS IS RE-WRITTEN HERE, WHICH IS `setActiveMove`'s OWN POSITION.
        * Everything above this line that can rewrite `it.a` has run: Encore's `OverrideAction`, the
@@ -27206,7 +27319,11 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* WIRE 139 -- through the ONE reader now. It used to re-aim only when the body had left the
            * field entirely, which is a weaker rule than the authority's and disagreed with the attack
            * branch three lines of reasoning away. */
-          const _tt=reaimToSlot(a.target,it,actA,actB,_mid,true);
+          /* 2026-09-07 -- through `_actionNamedTgt`, which is the SAME question the address
+           * write asks and is therefore the same function. For a class the player may aim it
+           * is `reaimToSlot` unchanged; for one they may not it is the body `getRandomTarget`
+           * resolved at `setActiveMove`'s position, drawn once and reused here. */
+          const _tt=_actionNamedTgt(it,m);
           /* 2026-08-24 -- THE LINE A VOLATILE WRITES *ABOVE* ITS OWN `|move|` LINE.
            *
            * Chilly Reception (236 corpus clicks) puts its volatile up at `priorityChargeCallback`
@@ -27278,7 +27395,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * Copycat) is exactly the case where the two would part -- and it is COUNTED so that "this
          * never fires" is readable rather than assumed. A non-zero reading is the day it earned its
          * place. */
-        if(_mid){ const _mt=midEventSlot(reaimToSlot(a.target,it,actA,actB,_mid,true)||m);
+        if(_mid){ const _mt=midEventSlot(_actionNamedTgt(it,m));
                   if(_mid!==MID_MOVE||_mt!==MID_TGT)MEDSEEN.midAddrMovedAtAnnounce++;
                   MID_MOVE=_mid; MID_TGT=_mt; }
         /* ROADMAP #518, 2026-08-27 -- THE MOVE THAT DECIDES ITS OWN CATEGORY, AND IT NEVER DECIDED.
