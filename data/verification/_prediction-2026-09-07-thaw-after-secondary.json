@@ -1,0 +1,27 @@
+{
+  "what": "BATCH K, FIX B — the frz thaw is paid BELOW the move's secondary, on both of the authority's routes, instead of above the damage. Written BEFORE the measurement.",
+  "written": "2026-09-07",
+  "by": "ENGINE",
+  "fix": "the cure is deferred out of _stepApply into two new steps: _stepThawDamagingHit (the Fire route, frz.onDamagingHit) and _stepThawAfterSecondary (the thawsTarget route, frz.onAfterMoveSecondary). Knob MEDI_THAW_BEFORE_SECONDARY=1 restores the early cure.",
+  "probe": "tests/probe_thaw_after_secondary.js — RED on published bytes at CLAUSE B 7 of 8 and CLAUSE F 0 of 8; GREEN after; the restore arm reproduces both reds and leaves controls C and D alone.",
+  "baseline": {
+    "release": "7aecab883009",
+    "games": 961,
+    "board_material": 12,
+    "protocol": 82,
+    "narration_net": 70,
+    "board_parted_before_the_protocol_did": 0,
+    "census": "830/830/0",
+    "pool": "0d103fb9fa87 pinned to data/team-pool-frozen"
+  },
+  "predictions": [
+    {"id":"Q1","claim":"board-material falls 12 -> 11","why":"the `pair-redirect-priority gen9championsvgc2026regmbbo3-2635897393` row at turn 4 IS this defect: a Matcha Gotcha into a frozen Gengar, p2.party.gengar.status brn here against '' there and the HP 54 against 62, the 8 being the burn's own chip"},
+    {"id":"Q2","claim":"protocol falls 82 -> 81","why":"that game's first protocol divergence IS the `-curestatus frz [msg]` emitted above the `-damage`; both lines now match. IF the game instead becomes narration-only, protocol stays 82 and narration rises to 71 — that is a TRANSFER, recorded as such, not a win and not a miss"},
+    {"id":"Q3","claim":"narration does not RISE unless Q2's transfer happens","why":"the line-order fix can only align a stream, never split one"},
+    {"id":"Q4","claim":"census stays 830 live / 830 probed / 0 missing","why":"no tag is added or removed"},
+    {"id":"Q5","claim":"the deliberate roster stays clean on items, abilities and moves","why":"a roster cell stages one entity with a fresh body, so no staged target is frozen when a thawing move lands"},
+    {"id":"Q6","claim":"the pinned-corner damage differential stays 0 of 6000","why":"no damage number moves; only the moment a status is cleared"},
+    {"id":"Q7","claim":"NO game enters the board-material set","why":"the change removes a status this engine was applying that the authority was not; it cannot apply a new one"}
+  ],
+  "how_a_miss_is_recorded": "a game that leaves the set and re-enters on a DIFFERENT cause is a TRANSFER, not a win and not a miss, and is named as such."
+}

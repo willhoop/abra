@@ -1,0 +1,27 @@
+{
+  "what": "BATCH K, FIX A — the type-resist berry is spent against the RESOLVED move type, not the engine-data row's static type. Written BEFORE the measurement.",
+  "written": "2026-09-07",
+  "by": "ENGINE",
+  "fix": "dmgRange/dmgRangeOneHit now return `type` (the mvT they actually priced) and the battle loop's consumption site reads it instead of `mv.t`. Knob MEDI_RESIST_BERRY_BASE_TYPE=1 restores the old read.",
+  "probe": "tests/probe_resist_berry_resolved_type.js — RED on published bytes at CLAUSE B 0 of 7, GREEN after, restore arm moves 7 of 7, controls C and D unmoved in both arms.",
+  "baseline": {
+    "release": "791c9fd873f3",
+    "games": 961,
+    "board_material": 13,
+    "protocol": 83,
+    "narration_net": 70,
+    "board_parted_before_the_protocol_did": 0,
+    "census": "830/830/0",
+    "pool": "0d103fb9fa87 pinned to data/team-pool-frozen"
+  },
+  "predictions": [
+    {"id":"P1","claim":"board-material falls 13 -> 12","why":"exactly one of the thirteen (`omit-weather gen9championsvgc2026regmbbo3-2659988022`, turn 7, p1.party.grimmsnarl.item roseliberry vs '') is this defect, and no other of the thirteen carries a resist berry leaf"},
+    {"id":"P2","claim":"protocol falls 83 -> 82","why":"that game's first protocol divergence IS the missing `|-enditem|p1b|roseliberry|[eat]`; closing the spend emits it"},
+    {"id":"P3","claim":"narration stays at 70 net","why":"no narration-only game in the dump names a resist berry"},
+    {"id":"P4","claim":"census stays 830 live / 830 probed / 0 missing","why":"no tag is added or removed; resistBerry already has a live census row"},
+    {"id":"P5","claim":"the deliberate roster stays clean on items, abilities and moves","why":"the roster stages one entity at a time with no type conversion in frame, so the resolved type equals the static type on every roster cell"},
+    {"id":"P6","claim":"the pinned-corner game differential stays 0 of 6000","why":"the halve did not move; only the spend did, and engine-diff compares damage"},
+    {"id":"P7","claim":"NO game enters the board-material set that was not in it","why":"the change can only REMOVE an item the engine was wrongly keeping; it cannot add damage"}
+  ],
+  "how_a_miss_is_recorded": "a game that leaves the set and re-enters on a DIFFERENT cause is a TRANSFER, not a win and not a miss, and is named as such."
+}

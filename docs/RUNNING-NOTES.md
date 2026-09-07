@@ -69,6 +69,14 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [Unreleased] — 2026-09-07 — a thaw ordered against its own secondary, and a resist berry keyed to the wrong type
+- **What changed.** `engine/medicham2-browser.js`. (1) The freeze cure is deferred out of `_stepApply` into `_stepThawDamagingHit` (the Fire route, beside `_stepDamagingHit`) and `_stepThawAfterSecondary` (the `thawsTarget` route, at the `AfterMoveSecondary` slot) — two different events, and the line ORDER is the observable half. The closure re-reads status when it fires, so a body that fainted to the hit carries `fnt` and is left alone, matching `Pokemon#cureStatus`. (2) A type-resist berry was keyed to the move's BASE type rather than its RESOLVED one. Probes `tests/probe_thaw_after_secondary.js`, `tests/probe_resist_berry_resolved_type.js`; knobs `MEDI_THAW_BEFORE_SECONDARY`, `MEDI_RESIST_BERRY_BASE_TYPE`.
+- **Measured.** Board-material **13 → 11 of 961**, protocol **83 → 80** — `data/game-differential.json`, release `aa7b80f9a038`, `--games 1200` (961 played), `--turns 20`, arm `middle`, `empirical-click/v1`, census pin `9446a684709d`, `--team-store data/team-pool-frozen`. Both probes GREEN with the restore knob shown to move the fixture (thaw: 1 board disagreement and the narration order red on all 8 cells; berry: 7 of 7 scored cells move).
+- **Supersedes.** Board-material ~~13~~ and protocol ~~83~~ on release `791c9fd873f3`.
+- **Basis.** unchanged — same instrument (`driver_code 228006b5faca`, held still across the run), same pins, same pool.
+- **Owed to the next major.** The white paper, the deck, `docs/SUMMARY.md` and `docs/MODELS.md`.
+
+
 ## [Unreleased] — 2026-09-07 — the spread move's named target is a DIE, and picking the first live foe moved every address behind it
 - **What changed.** `engine/medicham2-browser.js`. The authority picks a spread move's named target with `battle.sample()` — `validTargetLoc` refuses a chosen target for `allAdjacentFoes` — where this engine picked the first live foe. It moves the `|move|` line **and every `any` dice address in the action**. Probe `tests/probe_spread_target_die.js`, knob `MEDI_NAMED_TGT_CLICKED=1`.
 - **Measured.** Board-material **16 → 13 of 961**, protocol **87 → 83** — `data/verification/batchJ/after-791c9fd873f3.json`, release `791c9fd873f3`, `--games 1200` (961 played), `--turns 20`, arm `middle`, `empirical-click/v1`, census pin `9446a684709d`, `--team-store data/team-pool-frozen`. The delta rests on the **third-arm pair** (same release, knob vs no knob), which `arms_comparable` calls COMPARABLE at exit 0.

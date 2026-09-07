@@ -395,6 +395,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * body clicked Flare Blitz, means the clause is gone and every defrost move is back to waiting on
    * the 25% die -- which is the state this engine shipped in, and it looked exactly like working. */
   thawedByOwnMove: 0, frzFreeMoveRefusedOnType: 0,
+  /* BATCH K, 2026-09-07 -- the TARGET route, paid where the authority pays it. `thawBelowSecondary`
+   * counts every deferred cure that actually fired; `thawAboveDamageRestored` counts the ones spent
+   * early because MEDI_THAW_BEFORE_SECONDARY=1 put the defect back, so a restore arm and a broken
+   * engine can never read as the same run. */
+  thawBelowSecondary: 0, thawAboveDamageRestored: 0,
   /* ROADMAP #210 -- a Last Resort refused because a slot on its own user is still unspent. A zero in a
    * game where Last Resort was clicked on turn one means the precondition is not being asked and the
    * move is a free 140 BP again. */
@@ -3377,6 +3382,14 @@ const MEDFAILS = { encoreAction: 0,
    * packet, which is what happened SILENTLY before this wire. Non-zero means a real multi-hit crit is
    * being priced as one lump; it is a defect with a name rather than a plausible number. */
   critPerArrivalUnaddressed: 0, critPerArrivalUnaddressedFirst: '',
+  /* BATCH K, 2026-09-07 -- the type-resist berry's consumption site asked `dmgRange` which type it
+   * priced and got nothing back. Every `dmgRange` return was given a `type` in the same pass, so a
+   * non-zero here means a return was added later without one and the spend has quietly gone back to
+   * the move's STATIC type for that click. It is a LOUD fallback, not a default. */
+  resistBerryTypeUnresolved: 0, resistBerryTypeUnresolvedFirst: '',
+  /* BATCH K -- set to 1 for the whole run when MEDI_RESIST_BERRY_BASE_TYPE=1 puts the static-type
+   * read back on purpose, so a deliberate restore arm and a broken engine cannot read alike. */
+  resistBerryBaseTypeRestored: 0,
   /* ROADMAP #499 -- set to 1 for the whole run when MEDI_CRIT_ONCE_PER_CLICK=1 puts the one-decision-
    * per-volley crit back on purpose, so a deliberate restore arm and a broken engine can never be
    * read as the same thing. Same shape as multiHitOneIndexRestored. */
@@ -11644,7 +11657,15 @@ function formeMoveType(moveId,att){
 }
 function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,perHit,absBypass){
   stampMoveIds();
-  if(!mv||!hasPower(mv))return {min:0,max:0,eff:mcEff(mv?mv.t:'',def.types)};
+  /* BATCH K, 2026-09-07 -- `type` IS THE TYPE THIS FUNCTION ACTUALLY PRICED, AND IT IS ON EVERY
+   * RETURN. The type-resist berry is HALVED by this function and SPENT by the battle loop, and the
+   * two used to resolve the move's type independently -- `mvT` here (after the forme table,
+   * `setsOwnTypeAlways`, `convertsMoveTypeTo` and `weatherScaled`) against a bare `mv.t` there. A
+   * Pixilate Hyper Voice was therefore halved and the berry was never spent: the HP agreed with the
+   * authority to the point and the ITEM leaf parted. Facts are global -- one resolution, two
+   * readers. This path has no `mvT` yet, because there is no power and nothing was resolved, and it
+   * answers the static type rather than pretending to an answer it does not have. */
+  if(!mv||!hasPower(mv))return {min:0,max:0,eff:mcEff(mv?mv.t:'',def.types),type:(mv?mv.t:'')};
   /* Shadowed once, at the top, so every weather read BELOW this line -- weatherScaled, Weather Ball's
      type, the snow/sand defence bumps, Solar Power, Orichalcum Pulse and the Fire/Water multipliers --
      goes through the suppression without a gate per site. `field` is never mutated. */
@@ -12881,14 +12902,14 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    * question as a bare `mcEff(effMoveType(...), tg.types)` -- so a Scrappy body's Body Slam was
    * priced at 88 by this calc and refused outright by the loop that executes it. */
   let eff=typeEffAgainst(att,def,mv,mvT);
-  if(eff===0)return{min:0,max:0,eff:0};
+  if(eff===0)return{min:0,max:0,eff:0,type:mvT};
   // type-immunity abilities (defender absorbs the type)
   const _imm=absorbedBy(att,def,mvT,(mv&&mv.c==='P')?'Physical':(mv&&mv.c==='S')?'Special':'Status');
-  if(_imm)return{min:0,max:0,eff:0};
+  if(_imm)return{min:0,max:0,eff:0,type:mvT};
   /* WIRE 22 -- immuneToMoveClass, and WIRE 128 collapsed it: this block was a second, independent
    * copy of moveClassBlocked() sitting inside the damage calc, and the two had already drifted --
    * that one honoured Mold Breaker through `defAb` and the shared function did not. One owner. */
-  if(mv.id&&moveClassBlocked(def,mv.id,att))return{min:0,max:0,eff:0};
+  if(mv.id&&moveClassBlocked(def,mv.id,att))return{min:0,max:0,eff:0,type:mvT};
   /* WIRE 21 -- fixedDamage. These moves have NO BASE POWER, so hasPower() rejected them and dmgRange
    * returned a flat zero: Super Fang (578 uses), Final Gambit (251), Endeavor (93) and the OHKO moves
    * were worth LITERALLY NOTHING to every rollout and every score.
@@ -12944,9 +12965,9 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
          * is explicit: `if (!pokemon.volatiles['counter']) return 0`. A retaliation move with nothing
          * to retaliate against FAILS; it does not chip. */
         if(_src>0)_flat=Math.max(1,Math.floor(_src*+_fd.mult));
-        else return{min:0,max:0,eff};
+        else return{min:0,max:0,eff,type:mvT};
       }
-      if(_flat!=null)return{min:_flat,max:_flat,eff};
+      if(_flat!=null)return{min:_flat,max:_flat,eff,type:mvT};
     }
   }
   /* WIRE 95 -- the STAB factor reads `stabBoost` (Adaptability's x2) off the artifact instead of a
@@ -13303,7 +13324,7 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
   if(!absBypass&&formeOnHitAbsorbs(def)){
     if(hit&&Array.isArray(hit.rolls)){hit.rolls.length=0;for(let i=0;i<16;i++)hit.rolls.push(0);}
     if(hit&&Array.isArray(hit.rollsUnit)){hit.rollsUnit.length=0;for(let i=0;i<16;i++)hit.rollsUnit.push(0);}
-    return {min:0,max:0,eff};
+    return {min:0,max:0,eff,type:mvT};
   }
   if(hit&&Array.isArray(hit.rolls)){
     hit.rolls.length=0;
@@ -13318,8 +13339,8 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
     if(_unit)_unit.length=0;
     for(let i=0;i<16;i++){const v=roll(100-i);hit.rolls.push(_hits>1?Math.floor(v*_hits):v);if(_unit)_unit.push(v);}
   }
-  if(_hits>1)return {min:Math.floor(roll(85)*_hits),max:Math.floor(roll(100)*_hits),eff};
-  return {min:roll(85),max:roll(100),eff};
+  if(_hits>1)return {min:Math.floor(roll(85)*_hits),max:Math.floor(roll(100)*_hits),eff,type:mvT};
+  return {min:roll(85),max:roll(100),eff,type:mvT};
 }
 
 /* ================= WIRE 147 -- THE DAMAGE IS A LOOP OVER HITS ====================================
@@ -13494,7 +13515,7 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
        * `maxhp/8` belongs to the ABILITY and not to the move. */
       const _keep=(_plan.total-1)/_plan.total;
       if(hit&&Array.isArray(hit.rolls))for(let i=0;i<hit.rolls.length;i++)hit.rolls[i]=Math.floor(hit.rolls[i]*_keep);
-      return {min:Math.floor(_flat.min*_keep),max:Math.floor(_flat.max*_keep),eff:_flat.eff};
+      return {min:Math.floor(_flat.min*_keep),max:Math.floor(_flat.max*_keep),eff:_flat.eff,type:_flat.type};
     }
     return _flat;
   }
@@ -13514,7 +13535,7 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
   if(hit&&hit.wantPackets)hit.packets=[];
   const _wantRolls=!!(hit&&Array.isArray(hit.rolls));
   const _acc=_wantRolls?new Array(16).fill(0):null;
-  let _mn=0,_mx=0,_eff=1;
+  let _mn=0,_mx=0,_eff=1,_type=(mv&&mv.t)||'';
   for(let h=1;h<=_plan.n;h++){
     const _w=_plan.w[h-1];
     /* A FRESH `rolls` PER HIT so the sixteen-roll out-parameter can be accumulated rather than
@@ -13546,11 +13567,11 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
         band:(_wantRolls&&_sub.rolls.length===DAMAGE_ROLL_SIDES)?_sub.rolls.slice():null});
       else hit.packets=null;
     }
-    _eff=_r.eff;_mn+=_w*_r.min;_mx+=_w*_r.max;
+    _eff=_r.eff;_type=_r.type;_mn+=_w*_r.min;_mx+=_w*_r.max;
     if(_wantRolls&&_sub.rolls.length===16)for(let i=0;i<16;i++)_acc[i]+=_w*_sub.rolls[i];
   }
   if(_wantRolls){hit.rolls.length=0;for(let i=0;i<16;i++)hit.rolls.push(Math.floor(_acc[i]));}
-  return {min:Math.floor(_mn),max:Math.floor(_mx),eff:_eff};
+  return {min:Math.floor(_mn),max:Math.floor(_mx),eff:_eff,type:_type};
 }
 /* HOW MANY HITS, WHAT EACH IS WORTH, AND WHETHER THEY DIFFER AT ALL.
  *
@@ -23178,6 +23199,34 @@ if(EATREACT_BEFORE_BERRY)MEDFAILS.eatReactBeforeBerryRestored=1;
 const EATEVENT_UPDATE_ONLY=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_EATEVENT_UPDATE_ONLY==='1');
 if(EATEVENT_UPDATE_ONLY)MEDFAILS.eatEventUpdateOnlyRestored=1;
+/* 2026-09-07 -- `MEDI_RESIST_BERRY_BASE_TYPE=1` RESTORES THE CONSUMPTION SITE ASKING THE MOVE'S
+ * STATIC TYPE. The halve reads `dmgRangeOneHit`'s resolved `mvT`; the spend read `mv.t`, the
+ * engine-data row's type, which no -ate ability and no sky ever touches. Under the knob a Pixilate
+ * Hyper Voice into a Roseli Berry body is halved and the berry is KEPT -- HP identical to the
+ * authority, item leaf parted -- which is what this engine did until today and is the pinned pool's
+ * `omit-weather ...bo3-2659988022` row. `tests/probe_resist_berry_resolved_type.js` is red under it
+ * on seven cells across two families and green without it.
+ *
+ * STAMPED AT DECLARATION, like the knobs above, so a run under the break is identifiable before a
+ * berry is held. */
+const RESIST_BERRY_BASE_TYPE=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_RESIST_BERRY_BASE_TYPE==='1');
+if(RESIST_BERRY_BASE_TYPE)MEDFAILS.resistBerryBaseTypeRestored=1;
+/* 2026-09-07 -- `MEDI_THAW_BEFORE_SECONDARY=1` RESTORES THE THAW HAPPENING ABOVE THE DAMAGE. Both of
+ * the authority's thaw routes are handlers on the `frz` CONDITION and both run BELOW the secondary
+ * loop -- `onDamagingHit` at sim/battle-actions.ts:1121 and `onAfterMoveSecondary` at :814, against
+ * `secondaries` at :1099 -- so a frozen body is STILL FROZEN when the move's own status secondary is
+ * tried, and `trySetStatus` refuses it. This engine cured first, so an Inferno into a frozen body
+ * burned it and a Matcha Gotcha into a frozen Gengar did too: the pinned pool's
+ * `pair-redirect-priority ...bo3-2635897393` row, `status` brn against '' and the HP 8 apart.
+ * Under the knob the cure goes back above the damage line and the burn lands.
+ * `tests/probe_thaw_after_secondary.js` is red under it on the board and on the line order.
+ *
+ * STAMPED AT DECLARATION, like the knobs above, so a run under the break is identifiable before a
+ * body is frozen. */
+const THAW_BEFORE_SECONDARY=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_THAW_BEFORE_SECONDARY==='1');
+if(THAW_BEFORE_SECONDARY)MEDFAILS.thawBeforeSecondaryRestored=1;
 /* 2026-08-30 -- `MEDI_STEALEAT_STRIP_ONLY=1` RESTORES BUG BITE AND PLUCK TAKING THE BERRY AND NOT
  * EATING IT. Their `onHit` is FOUR statements and this engine had one of them:
  *
@@ -34430,7 +34479,19 @@ function battleTurn(S,rng,actsForA,actsForB){
           * `bypassProtect` is announced after `runEvent('ModifyDamage')` returns
           * (battle-actions.ts:1828-1834). That block is ~50 lines down. */
          {const _rbC=TAGS.param('item',tg.item,'resistBerry');
-          if(_rbC&&_rbC.onType===mv.t&&(!_rbC.requiresSuperEffective||d.eff>1)
+          /* BATCH K, 2026-09-07 -- THE TYPE THE PRICE ACTUALLY USED, NOT A SECOND RESOLUTION OF IT.
+           * `d` is `_price(false)`, i.e. this very click's `dmgRange`, and it now carries the `mvT`
+           * that the halve at `:13126` was asked about. Reading `mv.t` here made the two halves of
+           * ONE rule disagree for every -ate ability and every Weather Ball: the damage was halved
+           * and the berry was kept. `type` is UNSET only if a `dmgRange` return was missed when this
+           * was wired, so that case is COUNTED and falls back loudly rather than looking like the
+           * old behaviour working. */
+          let _rbT=d&&d.type;
+          if(!_rbT){MEDFAILS.resistBerryTypeUnresolved++;
+            if(!MEDFAILS.resistBerryTypeUnresolvedFirst)MEDFAILS.resistBerryTypeUnresolvedFirst=String(a.move.id);
+            _rbT=mv.t;}
+          if(RESIST_BERRY_BASE_TYPE)_rbT=mv.t;
+          if(_rbC&&_rbC.onType===_rbT&&(!_rbC.requiresSuperEffective||d.eff>1)
              &&!berryRefusedByFoeNew(tg)&&!subBlocks(m,tg,a.move.id)){
             const _it=tg.item;
             /* 2026-08-30 -- AND `eatItem()` IS THE WHOLE FIRST STATEMENT OF THE HANDLER, NOT A LINE
@@ -35069,9 +35130,42 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         /* WIRE 17 -- thaw on hit: a damaging Fire-type move thaws a frozen target (the game's own
          * rule since Gen VI), and the artifact's thawsTarget carries the non-Fire exceptions the
-         * flag exists for -- Scald, Matcha Gotcha. Cleared BEFORE the damage lands so the thawed
-         * target acts normally next turn. */
-        if(tg.status==='frz'&&(effMoveType(mv,a.move.id,field,m)==='Fire'||TAGS.has('move',a.move.id,'thawsTarget'))){tg.status='';if(TR)TR.cure(tg,'frz',ATTR.cured(false).from);}
+         * flag exists for -- Scald, Matcha Gotcha.
+         *
+         * BATCH K, 2026-09-07 -- IT IS DEFERRED, BECAUSE THE AUTHORITY THAWS BELOW THE SECONDARY AND
+         * THIS ENGINE THAWED ABOVE THE DAMAGE. Both routes are handlers on the `frz` CONDITION
+         * (data/conditions.ts:112-125; Champions overrides only `onStart` and `onBeforeMove`), and
+         * `spreadMoveHit` runs `secondaries` at sim/battle-actions.ts:1099, `runEvent('DamagingHit')`
+         * at :1121 and `afterMoveSecondaryEvent` from :1005 -- all three BELOW it. So a frozen body is
+         * still frozen when the move's own status secondary is tried, `Pokemon#trySetStatus` refuses a
+         * body that already carries one, and an Inferno into a frozen target applies NO BURN. This
+         * engine cleared first and took the burn, plus its residual chip: `pair-redirect-priority
+         * ...bo3-2635897393`, `p2.party.gengar.status` brn here against '' there, HP 54 against 62.
+         *
+         * TWO ROUTES, TWO SLOTS, because they are two different events and the ORDER of the
+         * `|-curestatus|` line is the observable half. `_thawDh` runs with `DamagingHit`; `_thawAms`
+         * runs at the foot of the step list, where `AfterMoveSecondary` is already paid (see
+         * `_stepHpThresholdBoost`, the same event). A row the Substitute absorbed returns ABOVE this
+         * line and arms neither slot, which is what the authority does too -- `spreadMoveHit` nulls
+         * the target and `DamagingHit` never sees it.
+         *
+         * `polarflare` is the Fire handler's one exception and is `isNonstandard: 'CAP'` here, so it
+         * is unreachable and is deliberately not branched on. The probe asserts that rather than this
+         * comment claiming it. */
+        if(tg.status==='frz'&&(effMoveType(mv,a.move.id,field,m)==='Fire'||TAGS.has('move',a.move.id,'thawsTarget'))){
+          const _thawFire=effMoveType(mv,a.move.id,field,m)==='Fire';
+          const _thawBody=tg;
+          const _thawCure=()=>{
+            /* Re-read the status at the moment the event fires: a body that fainted to this hit
+             * carries 'fnt', and `Pokemon#cureStatus` does nothing for it in the authority either. */
+            if(_thawBody.status!=='frz')return;
+            _thawBody.status='';
+            if(TR)TR.cure(_thawBody,'frz',ATTR.cured(false).from);
+            MEDSEEN.thawBelowSecondary++; };
+          if(THAW_BEFORE_SECONDARY){_thawCure();MEDSEEN.thawAboveDamageRestored++;}
+          else if(_thawFire)R._thawDh=_thawCure;
+          else R._thawAms=_thawCure;
+        }
         /* ================= ROADMAP #151 -- THE HP MOVES ONCE PER ARRIVAL =============================
          *
          * `tg.curHP -= dmg` was the whole of a Bullet Seed: one subtraction, one `|-damage|` line, and
@@ -37400,6 +37494,13 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* 2026-09-06 -- AND IT IS SPENT AT THE LINGERING ADDRESS, not at the row's own. See
        * `_reactAddr`, and `MID_TGT` is read by `midEventDraw` and by nothing else. */
       const _stepDamagingHit=(R)=>{ if(!R._dh)return; const _f=R._dh; R._dh=null; _reactAddr(_f); };
+      /* BATCH K -- the FIRE thaw, `frz.onDamagingHit`. It rides the same event as Rough Skin and
+       * Stamina and therefore the same step; it takes NO address, because `cureStatus` throws no die
+       * and `_reactAddr` exists to place one. */
+      const _stepThawDamagingHit=(R)=>{ if(!R._thawDh)return; const _f=R._thawDh; R._thawDh=null; _f(); };
+      /* BATCH K -- the `thawsTarget` thaw, `frz.onAfterMoveSecondary`. Same event as Pickpocket and
+       * the HP-threshold boost, so the same place in the list: below `-hitcount`. */
+      const _stepThawAfterSecondary=(R)=>{ if(!R._thawAms)return; const _f=R._thawAms; R._thawAms=null; _f(); };
       /* 2026-08-28 -- STEP 20, BELOW `_stepHitCount`. `boostsAtHPThreshold` is Showdown's
        * `onAfterMoveSecondary` (data/abilities.ts:420-428, inherited by Champions), which
        * `hitStepMoveHitLoop` runs at data/mods/champions/scripts.ts:577 -- four statements BELOW the
@@ -37934,7 +38035,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                     _stepAnnounceItem,                 // 2026-09-06 -- the move's own `onTryHit`, the announcing half
                     _stepClearScreens,                 // 2026-08-24 -- the move's own `onTryHit`
                     _stepDamage,_stepApply,_stepSelfPay,_stepEffects,
-                    _stepDamagingHit,_stepBuffOnHit,                  // 2026-08-22 -- ONE `DamagingHit`
+                    _stepDamagingHit,_stepThawDamagingHit,_stepBuffOnHit,  // 2026-08-22 -- ONE `DamagingHit`
                     _stepAfterHit,
                     _stepAfterHitField,                // 2026-08-23 -- the other two onAfterHit families
                     _stepUpdate,                       // 2026-08-23 -- eachEvent('Update'), :967
@@ -37959,7 +38060,10 @@ function battleTurn(S,rng,actsForA,actsForB){
                     _stepHitCount,
                     /* 2026-08-28 -- and the HP-threshold boost BELOW the count, scripts.ts:577
                      * against :550. See `_stepHpThresholdBoost`. */
-                    _stepHpThresholdBoost];
+                    _stepHpThresholdBoost,
+                    /* BATCH K, 2026-09-07 -- and the `thawsTarget` cure with it: the same
+                     * `AfterMoveSecondary` event and therefore the same slot. */
+                    _stepThawAfterSecondary];
       /* ROADMAP #262 -- THE PER-TARGET HALF OF THE ADDRESS, IN THE ONE PLACE THE TARGET CHANGES.
        * `hitStepAccuracy` and `getSpreadDamage` both open with `this.battle.activeTarget = target`
        * inside their per-target loop, so the authority's address moves target by target within a
