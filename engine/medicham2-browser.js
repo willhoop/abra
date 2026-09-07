@@ -2565,6 +2565,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *   harvestRestored           a spent berry came back.
    *   pickupTook                an item was taken off a body that spent one this turn. */
   berryConsumed: 0, cheekPouchHealed: 0, ripenDoubled: 0, gluttonyRaisedThreshold: 0,
+  /* 2026-09-07 -- a cure berry eaten INSIDE `Pokemon#setStatus`, on its `onAfterSetStatus` handler,
+     rather than at the following `Update`. One legal member today (Lum), derived rather than named;
+     see berryCureOnSet. A zero over a sample containing a statused Lum holder means the wire is
+     dead, and `MEDFAILS.cureOnSetSkipped` says whether the restore knob is the reason. */
+  berryCuredOnSet: 0,
+  /* 2026-09-07 -- the residual walk stopped MID-GROUP because a body's handler wiped a side. A zero
+     over a corpus that contains a residual KO of a last body means the per-body stop never fires and
+     the walk is back to group granularity; `turnEndedSideWiped` counts both roads together. */
+  turnEndedSideWipedMidGroup: 0,
   /* 2026-08-28 -- bumped once per berry eaten by a holder whose ability carries `announcesBerryEat`.
      A capability that cannot prove it ran is assumed broken, and this one has ONE legal member
      (Ripen, 2 carriers, 0 uses in the store), so a run with no Appletun or Flapple in it reads 0
@@ -2708,6 +2717,17 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * different step and with a different LINE, which is the whole finding. */
   ghostRefusedTrap: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* 2026-09-07 -- MEDI_NO_CURE_ON_SET=1 is armed: a Lum Berry waits for the following `Update`
+     instead of eating inside `setStatus`, which is the engine as it stood before that fix. Must
+     read 0 on any shipping run. See berryCureOnSet. */
+  cureOnSetSkipped: 0,
+  /* 2026-09-07 -- MEDI_CONFUSION_THIRD=1 is armed: the confused body hits itself at one in three
+     instead of the authority's 33 in 100. Must read 0 on any shipping run. See confusionBeforeMove. */
+  confusionThirdRestored: 0,
+  /* 2026-09-07 -- MEDI_RESIDUAL_STOP_GROUP_ONLY=1 is armed: the residual walk stops only at a GROUP
+     boundary, so a side wiped part-way through a group still has its remaining bodies stepped. Must
+     read 0 on any shipping run. See the block at the close of the residual body loop. */
+  residualStopGroupOnlyRestored: 0,
   /* 2026-09-04 -- MEDI_CONFUSION_DMG_ADDR_LEGACY=1 is armed: the confusion self-hit's damage draw is
      back at the CLICK'S target instead of the confused body. Must read 0 on any shipping run. */
   confusionDmgAddrLegacyRestored: 0,
@@ -10560,18 +10580,82 @@ function berryCureUpdate(m,foes){
    * learned to read `onEat`. Placed first because `curesStatus` returns early on an unstatused body,
    * so a Persim holder never reached the rest of this function. */
   if(m._vol&&m._vol.confusion>0&&itemCuresVolatile(m,'confusion'))return;
+  berryStatusCureNow(m);
+}
+/* THE STATUS HALF OF A CURE BERRY, IN ONE PLACE — 2026-09-07.
+ *
+ * Two schedules reach the same effect and CLAUDE.md's facts-are-global rule says they may not each
+ * own it: `berryCureUpdate` is the authority's `onUpdate` road (the end of an action) and
+ * `berryCureOnSet` below is its `onAfterSetStatus` road (inside `Pokemon#setStatus`). What they share
+ * is the berry's `onEat`, and it lives here.
+ *
+ * ROADMAP #128 -- the one consumption site. THIS CALLER WAS ALREADY IN THE AUTHORITY'S ORDER
+ * (`-enditem`, then the cure, then Cheek Pouch) because it wrote its two lines ABOVE the call; it is
+ * routed through `onEat` so that the position is stated in one place rather than held by three
+ * callers agreeing with a fourth by accident.
+ *
+ * IT DOES NOT ASK ABOUT UNNERVE, because the two callers ask about it on different populations —
+ * `berryCureUpdate` gates its whole body (a Persim spent on a volatile is refused too) and the
+ * set-time road has only the status branch to gate. Returns whether the berry was actually eaten. */
+function berryStatusCureNow(m){
   const _cs=TAGS.param('item',m.item,'curesStatus');
-  if(!(_cs&&m.status&&_cs.statuses))return;
-  if(!(_cs.statuses==='any'||(Array.isArray(_cs.statuses)&&_cs.statuses.indexOf(m.status)>=0)))return;
-  /* ROADMAP #128 -- the one consumption site. THIS CALLER WAS ALREADY IN THE AUTHORITY'S ORDER
-     (`-enditem`, then the cure, then Cheek Pouch) because it wrote its two lines ABOVE the call; it
-     is routed through `onEat` so that the position is stated in one place rather than held by three
-     callers agreeing with a fourth by accident. */
+  if(!(_cs&&m.status&&_cs.statuses))return false;
+  if(!(_cs.statuses==='any'||(Array.isArray(_cs.statuses)&&_cs.statuses.indexOf(m.status)>=0)))return false;
   const _cit=m.item;
   consumeBerry(m,_cit,()=>{
     if(TR)TR.cure(m,m.status,ATTR.cured(false).from);
     m.status='';m.toxTurns=0;
   });
+  return true;
+}
+/* ===== 2026-09-07 -- A CURE BERRY WITH AN `onAfterSetStatus` HANDLER EATS INSIDE `setStatus` =======
+ *
+ * `Pokemon#setStatus` ends on `this.battle.runEvent('AfterSetStatus', this, source, sourceEffect,
+ * status)`, and LUM BERRY is an `AfterSetStatus` item (data/items.ts:3541-3544,
+ * `onAfterSetStatusPriority: -1`, `onAfterSetStatus(status, pokemon) { pokemon.eatItem(); }`).
+ * `data/mods/champions/items.ts` overrides no berry — grep for `onAfterSetStatus` there returns
+ * nothing — so this is the format's behaviour and not mainline's.
+ *
+ * IT IS THE ONLY MEMBER TODAY AND IT IS NOT NAMED HERE. Cheri, Pecha, Rawst, Aspear and Chesto carry
+ * `onUpdate` ALONE, so they cure at the end of the action and `berryCureUpdate` is already right for
+ * them. `curesStatus.onSet` is derived from the presence of the handler in engine/tag_dex.js, so the
+ * split is the dex's rather than a list here.
+ *
+ * WHY IT DECIDES A BOARD RATHER THAN A LINE ORDER. `Battle#runAction` raises `Update` at the END of
+ * an action (sim/battle.ts:2858) and `hitStepMoveHitLoop` raises it after each hit
+ * (sim/battle-actions.ts:967) — both of which are AFTER `spreadMoveHit` has run its
+ * `runEvent('DamagingHit', ...)` (sim/battle-actions.ts:1121). So every same-action reaction that
+ * wants to set a SECOND status finds the Lum holder already cured in the authority and still
+ * statused in an engine that waits for the Update, and the second status simply never lands. Poison
+ * Touch is that reaction; measured in the pinned pool, `omit-intimidate ...bo3-2663804350` turn 3:
+ *
+ *     showdown   |-status|p2a: Goodra|par  |-enditem|lumberry|[eat]  |-curestatus|par
+ *                |-status|p2a: Goodra|psn|[from] ability: Poison Touch   |-damage|57/165
+ *     medicham   |-status|p2a: Goodra|par  |upkeep
+ *
+ * parting `p2.party.goodra.status  medi "" / sd "psn"` and `.hp  medi 77 / sd 57`.
+ *
+ * IT SITS BELOW SYNCHRONIZE AND THE ORDER IS THE AUTHORITY'S, not a preference: Synchronize's
+ * `onAfterSetStatus` declares no priority (0) and Lum declares -1, so the reflection reads the status
+ * before the berry removes it. `onSetPriority` is carried on the tag so that a future member with a
+ * different priority is visible rather than silently assumed.
+ *
+ * `MEDI_NO_CURE_ON_SET=1` restores the engine as it stood before this existed. */
+const NO_CURE_ON_SET = (typeof process !== 'undefined' && process.env
+                        && process.env.MEDI_NO_CURE_ON_SET === '1');
+function berryCureOnSet(m){
+  if(NO_CURE_ON_SET){MEDFAILS.cureOnSetSkipped=1;return false;}
+  if(!m||m.fainted||m.curHP<=0||!m.status)return false;
+  const _cs=TAGS.param('item',m.item,'curesStatus');
+  if(!(_cs&&_cs.onSet))return false;
+  /* THE SAME UNNERVE GATE AS EVERY OTHER un-forced `eatItem()` — `onFoeTryEatItem` is raised inside
+   * `Pokemon#eatItem`, so it refuses this road exactly as it refuses the `onUpdate` one. `foes` is
+   * not handed in: `berryRefusedByFoe` falls back to `liveFoesOf(m)`, which is what the residual
+   * pre-walk already relies on. */
+  if(berryRefusedByFoeNew(m))return false;
+  if(!berryStatusCureNow(m))return false;
+  MEDSEEN.berryCuredOnSet++;
+  return true;
 }
 /* ===== 2026-08-23 -- UNNERVE IS ONE READER, AND IT REACHED TWO OF THE FIVE PLACES A BERRY IS EATEN =
  *
@@ -18712,6 +18796,12 @@ function applyStatus(t,st,src,eff,why,dstream){
        if(applyStatus(src,st,t))MEDSEEN.statusReflected++;
      }
    }}
+  /* 2026-09-07 -- THE OTHER `onAfterSetStatus` HANDLER IN THIS FORMAT, AND IT IS AN ITEM. It sits
+   * BELOW Synchronize because Lum declares `onAfterSetStatusPriority: -1` and Synchronize declares
+   * none (0) — see berryCureOnSet for the whole account and for the pool game it closes. It is the
+   * LAST thing in this function for the same reason Synchronize is near it: everything above decides
+   * whether the status lands, and this decides whether it survives the landing. */
+  berryCureOnSet(t);
   return true;}
 
 /* ================= CONFUSION, WHICH THIS ENGINE DID NOT HAVE AT ALL ==============================
@@ -18744,6 +18834,14 @@ function applyStatus(t,st,src,eff,why,dstream){
  * form observed in EVERY arm -- measured, see the paragraph above. */
 const CONFUSION_TURNS_MIN = 2;
 const CONFUSION_SELF_HIT_BP = 40;                 // data/conditions.ts:191 -- getConfusionDamage(pokemon, 40)
+/* data/conditions.ts:187 -- `if (!this.randomChance(33, 100)) return;`, and `randomChance(n, d)` is
+ * `this.random(d) < n`. See confusionBeforeMove for what the 1/3 this replaced cost. */
+const CONFUSION_SELF_HIT_NUM = 33, CONFUSION_SELF_HIT_DEN = 100;
+const CONFUSION_THIRD = (typeof process !== 'undefined' && process.env
+                         && process.env.MEDI_CONFUSION_THIRD === '1');
+/* 2026-09-07 -- see the close of the residual body loop. Restores the GROUP-only stop granularity. */
+const RESIDUAL_STOP_GROUP_ONLY = (typeof process !== 'undefined' && process.env
+                                  && process.env.MEDI_RESIDUAL_STOP_GROUP_ONLY === '1');
 /* THE RESTORE KNOB FOR THE SELF-HIT DAMAGE ADDRESS -- see confusionSelfDamage. It puts the damage
  * draw back at the CLICK'S target, which is where it sat until 2026-09-04, so
  * tests/probe_confusion_selfhit_address.js can be shown RED rather than told it was. */
@@ -19890,8 +19988,27 @@ function confusionBeforeMove(m,rng,_R){
   if(!m||!m._vol||!(m._vol.confusion>0))return false;
   if(--m._vol.confusion<=0){delete m._vol.confusion;if(TR)TR.vend(m,'confusion');MEDSEEN.confusionExpired++;return false;}
   if(TR)TR.act(m,'confusion');
-  /* `this.randomChance(33, 100)` at data/conditions.ts:187 -- one attempt in three. */
-  if(rng()>=1/3)return false;
+  /* 2026-09-07 -- THE CHANCE IS 33/100 AND THIS ENGINE ASKED FOR ONE IN THREE.
+   *
+   * `data/conditions.ts:187` (no Champions override — `data/mods/champions/conditions.ts` does not
+   * mention confusion) is `if (!this.randomChance(33, 100)) return;` and `Battle#randomChance(n, d)`
+   * is `this.random(d) < n`. `random(100)` is `floor(u * 100)`, so the authority hits itself exactly
+   * when `u < 0.33`. `1/3` is 0.33333…, which is a THIRD OF A PERCENT of the die wider — and under
+   * the differential's shared middle arm that band is a whole outcome, not a rounding: the two
+   * engines draw the SAME u and disagree about what it means.
+   *
+   * MEASURED, on the pinned pool, release `ac6b6880dc52`, `pair-redirect-priority ...bo3-2656366551`
+   * turn 5 — a board-material game. Same Clefable, same Sitrus, same `-activate|confusion`:
+   *     showdown   |-activate|p1a: Clefable|confusion   |move|p1a: Clefable|Moonblast|p2a: Maushold
+   *                |-damage|p2a: Maushold|0 fnt   |faint|p2a: Maushold
+   *     medicham   |-activate|p1a: Clefable|confusion   |-damage|p1a: Clefable|70/170|[from] confusion
+   * parting `p2.party.maushold.fainted medi false / sd true` and `p1.pp[0].moonblast medi 0 / sd 1`.
+   *
+   * THE NUMERATOR AND DENOMINATOR ARE KEPT APART rather than folded into 0.33, because the fact this
+   * is citing is `randomChance(33, 100)` and `n/d` is the shape every other chance in this file
+   * takes. `MEDI_CONFUSION_THIRD=1` restores the one-in-three. */
+  if(CONFUSION_THIRD)MEDFAILS.confusionThirdRestored=1;
+  if(!(rng()<(CONFUSION_THIRD?1/3:CONFUSION_SELF_HIT_NUM/CONFUSION_SELF_HIT_DEN)))return false;
   const d=confusionSelfDamage(m,rng,_R);
   m.curHP-=d;MEDSEEN.confusionSelfHit++;
   if(TR)TR.dmg(m,'[from] confusion');
@@ -23356,6 +23473,10 @@ function drainFaints(where){
   else if(where==='afterHitLoop')MEDSEEN.faintDrainAfterHitLoop++;
   else if(where==='residualClocks')MEDSEEN.faintDrainResidualClocks++;
   else if(where==='residualAfterUpkeep')MEDSEEN.faintDrainResidualAfterUpkeep++;
+  /* 2026-09-07 -- the drain the per-body residual stop performs, which is `fieldEvent`'s own
+     `faintMessages()` at sim/battle.ts:565. Counted apart because it is the ONLY drain that also
+     ends the turn on the spot. */
+  else if(where==='residualBody')MEDSEEN.faintDrainResidualBody=(MEDSEEN.faintDrainResidualBody|0)+1;
   return n;
 }
 function lastFaintSeq(arr){ let n=-1;
@@ -39362,8 +39483,21 @@ function battleTurn(S,rng,actsForA,actsForB){
     if(sideWiped(S)&&!faintQueueOwed()){MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedInResidual++;break _TURN;}
     const _G=RESIDUAL_HAS[_gi], _Gn=RESIDUAL_GROUPS[_gi].steps.length;
     MEDSEEN.residualGroupsWalked++;
+    /* 2026-09-07 -- HAS A BODY IN THIS GROUP ALREADY TAKEN THE DURATION-EXPIRY BRANCH? See the block
+     * at the close of the body loop; the flag is the group's because the authority's `this.ended`
+     * survives from one handler to the next inside one `fieldEvent` walk. */
+    let _grpExpiryFaint=false;
     for(const m of residualOrder(actA,actB,field)){if(!m||m.fainted||m.curHP<=0)continue;
       MEDSEEN.residualStepsRun+=_Gn;
+      /* 2026-09-07 -- DID THIS BODY'S HANDLER TAKE THE DURATION-EXPIRY BRANCH? `fieldEvent`'s expiry
+       * branch `continue`s PAST `faintMessages()` (sim/battle.ts:516-524), so a side wiped by an
+       * expiry has NOT ended the battle at that line. Read at the close of this body, below. */
+      let _expiryQueuedFaint=false;
+      /* AND DID THIS BODY RUN A HANDLER IN THIS GROUP AT ALL? `residualOrder` walks every live body
+       * for every group, so most iterations are no-ops -- and the authority has NO HANDLER there to
+       * run `faintMessages()` after. Reading the stop off a body that did nothing is what made the
+       * first version of this fix fire two turns early; see the block below. */
+      let _ranExpiryHandler=false;
       if(_G.has('whiteHerb')){
       /* WIRE 56 -- WHITE HERB. The block that stood here is now `restoreStatsUpdate()`, called from
        * three more places (ROADMAP #81 WIRE 11); this residual call is WIRE 56's own and is unchanged
@@ -40381,8 +40515,10 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `|faint|` is still owed when the walk moves on. The group close below therefore has to leave
        * a body it has already marked alone; see the `!m.fainted` guard there. */
       if(_G.has('perish')&&m._perish!=null){
+        _ranExpiryHandler=true;
         m._perish--;MEDSEEN.perishTicked++;if(TR)TR.vstart(m,'perish'+m._perish);
-        if(m._perish<=0){MEDSEEN.perishKO++;MEDSEEN.perishKOInWalk++;queueFaint(m,'perish');}
+        if(m._perish<=0){MEDSEEN.perishKO++;MEDSEEN.perishKOInWalk++;queueFaint(m,'perish');
+          _expiryQueuedFaint=true;_grpExpiryFaint=true;}
       }
       if(_G.has('expRoost')&&m._typeWas){
         m.types=m._typeWas; m._typeWas=null; MEDSEEN.roostTypeRestored++;
@@ -40439,6 +40575,64 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(m.curHP<=0&&!m.fainted){
         if(_G.has('weather'))queueFaint(m,'weatherGroup');
         else{m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
+      }
+      /* ==== 2026-09-07 -- A DURATION EXPIRY DOES NOT END THE BATTLE UNTIL THE NEXT HANDLER =======
+       *
+       * The group loop's header calls the GROUP granularity "a DECLARED approximation rather than a
+       * claim" and argues the cost away: *"within one group the difference is whether a second body
+       * on the LOSING side also takes its own chip after the side is already dead -- which cannot
+       * change the outcome and cannot bring anybody in"*. **THAT ARGUMENT IS FALSE AND A BOARD SAYS
+       * SO.** The second body can be on the WINNING side, and then the difference is whether it lives.
+       *
+       * MEASURED on the pinned pool, release `f8266a5c48b7`, `pair-redirect-priority ...bo3-2661747717`
+       * turn 6. Three bodies carry a perish clock at order 24, in speed order Gengar(0) /
+       * Basculegion(3) / Annihilape(0):
+       *     showdown   |-start|p2b: Gengar|perish0   |-start|p1a: Basculegion|perish3
+       *                |faint|p2b: Gengar   |win|A            <- ANNIHILAPE NEVER TICKS
+       *     medicham   ... |-start|p1b: Annihilape|perish0 | faint|p2b: Gengar | faint|p1b: Annihilape
+       * parting `p1.party.annihilape.fainted medi true / sd false`. Instrumented on the authority
+       * itself: at that boundary `battle.ended === true` while Annihilape STILL HOLDS
+       * `perishsong {duration: 1}`.
+       *
+       * THE AUTHORITY'S TWO LINES, and the pair is what makes this exact rather than a guess:
+       *     handler is a duration EXPIRY:  end(); if (this.ended) return; continue;   :516-524
+       *     every other handler:           this.faintMessages(); if (this.ended) return;    :565-566
+       * So the expiry does NOT end the battle at its own line -- the faint is still owed -- and the
+       * next HANDLER drains it and stops the walk.
+       *
+       * ================= THE SCOPE IS THE EXPIRY'S OWN GROUP, AND IT IS MEASURED =================
+       *
+       * The first version of this asked only `sideWiped(S)` after every BODY, and the 961-game pinned
+       * run answered: BOARD-MATERIAL **9 -> 10**. It closed the game above and opened two others,
+       * both `p1.screens.special medi 4 / sd 3` -- a Light Screen the authority ticked and this engine
+       * did not. `omit-spread ...bo3-2661861148` turn 6 is the clean example: ONE body carries a
+       * perish clock, it expires and wipes p1, and the next handler the AUTHORITY has is the SIDE
+       * CONDITION at order 26 -- which decrements, and only then does `faintMessages()` end it.
+       * `residualOrder` walks every live body for every group, so this engine had two more
+       * iterations at order 24 with NOTHING TO RUN, and stopping on one of them threw away a screen
+       * turn the authority spends.
+       *
+       * SO THE STOP BELONGS TO A BODY THAT ACTUALLY RAN THE HANDLER (`_ranExpiryHandler`) IN A GROUP
+       * WHERE AN EXPIRY HAS ALREADY QUEUED A FAINT (`_grpExpiryFaint`), AND NOT TO ITS OWN LINE
+       * (`!_expiryQueuedFaint`) -- stopping there would lose Basculegion's `perish3`, which the
+       * authority does emit.
+       *
+       * WHAT IS STILL OWED, DECLARED RATHER THAN CLAIMED CLOSED: the authority runs
+       * `faintMessages(); if (this.ended) return;` after EVERY handler, and this reproduces it only
+       * for the group that holds a fainting duration expiry. `perishsong@24` is the ONLY legal move
+       * whose residual expiry faints (derived on every run of tests/probe_residual_stop_body.js), so
+       * that is the only group where an expiry can end a battle -- but an ORDINARY chip that wipes a
+       * side part-way through a group still lets the rest of that group run here, and the group-top
+       * check is what catches it one group later.
+       *
+       * `MEDI_RESIDUAL_STOP_GROUP_ONLY=1` restores the group-only granularity. */
+      if(_grpExpiryFaint&&_ranExpiryHandler&&!_expiryQueuedFaint&&sideWiped(S)){
+        if(RESIDUAL_STOP_GROUP_ONLY)MEDFAILS.residualStopGroupOnlyRestored=1;
+        else{
+          drainFaints('residualBody');
+          MEDSEEN.turnEndedSideWipedMidGroup++;MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedInResidual++;
+          break _TURN;
+        }
       }
     }
     /* 2026-08-22 -- `eachEvent('Update')` HAS EXACTLY TWO POSITIONS IN THE AUTHORITY'S TURN END, AND

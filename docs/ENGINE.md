@@ -157,6 +157,133 @@ _stamped 2026-09-06 14:08_
 
 <!-- /GENERATED -->
 
+## LONG-TAIL BATCH L — BOARD-MATERIAL **11 OF 961 -> 8 OF 961**, PROTOCOL **80 -> 77**, NARRATION LEVEL AT 68, CENSUS LEVEL AT 830/830. A LUM BERRY THAT EATS A STEP LATER THAN THE AUTHORITY, A CONFUSION CHANCE TYPED AS A THIRD, AND A RESIDUAL WALK THAT STOPS A HANDLER TOO LATE — AND THE THIRD FIX'S FIRST VERSION MADE THE NUMBER WORSE. 2026-09-07
+
+Three fixes, three new probes, each shown RED under its own restore knob first. Full account:
+`docs/_reports/2026-09-07-longtail-batch-L.md`.
+
+Sample line, identical for every run but the release:
+
+```
+node engine/game_differential.js --steering empirical --release <id> --arm middle \
+     --end-state --state --census data/verification/census-pin-9446a684709d.json \
+     --games 1200 --turns 20 --team-store data/team-pool-frozen --write
+```
+
+`--games 1200` is part of the SAMPLE DEFINITION and not a budget — 961 games played, cap 20,
+`middle`, `empirical-click/v1`, pool PINNED to `data/team-pool-frozen`, census pin `9446a684709d`,
+pins digest `de38d17e15a2`. Predictions written to
+`data/verification/_prediction-2026-09-07-batchL-fix{1,2,3}.json` BEFORE each run.
+
+| release | what moved | board-material | protocol |
+|---|---|---|---|
+| `aa7b80f9a038` | the batch's baseline | 11 of 961 | 80 |
+| `ac6b6880dc52` | a Lum Berry eats inside `setStatus` | **10** | **79** |
+| `f8266a5c48b7` | the confusion self-hit is 33/100, not 1/3 | **9** | **78** |
+| `276822231c52` | the residual stop, v1 — **NOT SHIPPED** | **10 — UP** | 78 |
+| `3f9830acc467` | the residual stop, scoped to the expiry's own group | **8** | **77** |
+
+Census **830 / 830 / 0** throughout. Roster items / abilities / moves **140 / 129 / 475 matched,
+0 DIFFER, 0 DID-NOT-FIRE**, re-run on `3f9830acc467`. `data/engine-diff.json` **0 of 6000**, seed
+20260804, re-run on `3f9830acc467`. `data/all-mechanics-fire.json` 1,313 games, 0 threw.
+
+### 1. A LUM BERRY IS AN `onAfterSetStatus` ITEM AND THIS ENGINE ONLY EVER ATE IT AT `Update`
+
+`tests/probe_cure_berry_on_set.js`, knob `MEDI_NO_CURE_ON_SET=1`.
+
+`data/items.ts:3541-3544` gives Lum — and Lum alone in this format — `onAfterSetStatusPriority: -1`
+and `onAfterSetStatus(status, pokemon) { pokemon.eatItem(); }`. Cheri, Pecha, Rawst, Aspear and
+Chesto carry `onUpdate` ALONE, and `Update` is raised at the END of an action (`sim/battle.ts:2858`)
+and after each hit (`sim/battle-actions.ts:967`) — both AFTER `spreadMoveHit` has run
+`runEvent('DamagingHit', ...)` (`:1121`). So a same-action reaction that wants to set a SECOND status
+finds a Lum holder already cured in the authority and still statused here. **Poison Touch is that
+reaction**: `omit-intimidate ...bo3-2663804350` t3, `p2.party.goodra.status medi "" / sd "psn"`.
+
+`curesStatus.onSet` is derived in `engine/tag_dex.js` from the handler's presence; membership was
+printed before it was wired — one match, `lumberry`. The PECHA arm is the knob cleared explicitly: it
+IS a cure berry and it DOES cure, and it must still hold, because the authority refuses the second
+poison there too.
+
+### 2. A CONFUSED BODY HITS ITSELF 33 TIMES IN 100, AND THIS ENGINE ASKED FOR ONE IN THREE
+
+`tests/probe_confusion_selfhit_chance.js`, knob `MEDI_CONFUSION_THIRD=1`.
+
+`data/conditions.ts` confusion.onBeforeMove is `if (!this.randomChance(33, 100)) return;` and
+`randomChance(n, d)` is `this.random(d) < n` (`sim/prng.ts:115`). `random(100)` is `floor(u*100)`, so
+the authority self-hits exactly when `u < 0.33`. This engine asked `rng() < 1/3` — **a third of a
+percentage point of the die wider.** That is a rounding error everywhere except under the middle arm,
+which hands both engines the same `u`: `pair-redirect-priority ...bo3-2656366551` t5 is one engine
+clicking Moonblast for a KO and the other hurting itself.
+
+The sweep is the control that says the fix is a BOUNDARY and not the mechanic: 24 derived targets,
+`-activate|confusion` raised 24 times, authority self-hits 19 and this engine 19, on BOTH arms.
+
+### 3. THE RESIDUAL WALK STOPS AT A BODY, NOT AT A GROUP — AND THE FIRST VERSION OF THAT COST A SCREEN TURN
+
+`tests/probe_residual_stop_body.js`, knob `MEDI_RESIDUAL_STOP_GROUP_ONLY=1`.
+
+`Battle#fieldEvent` has two lines and it is the PAIR that matters: a duration expiry runs
+`end(); if (this.ended) return; continue;` (`:516-524`) — skipping `faintMessages` — while every
+other handler runs `this.faintMessages(); if (this.ended) return;` (`:565-566`). So an expiry that
+kills a side's last body does not end the battle at its own line, and the NEXT handler does.
+
+The group loop's own header called the group granularity *"a DECLARED approximation"* and argued the
+cost away as *"a second body on the LOSING side"*. **The second body can be on the WINNING side.**
+`pair-redirect-priority ...bo3-2661747717` t6: Gengar(perish0) / Basculegion(perish3) /
+Annihilape(perish0) at order 24 — the authority ticks the first two, ends, and **Annihilape never
+ticks**; instrumented on the authority itself, `battle.ended === true` with Annihilape still holding
+`perishsong {duration: 1}`. Here it died.
+
+**THE FIRST VERSION OF THIS FIX PUT THE NUMBER UP, 9 -> 10, AND THE RUN IS WHAT SAID SO.** Asking
+only `sideWiped(S)` after every BODY stopped the walk on iterations that had no handler to run —
+`residualOrder` walks every live body for every group — and threw away a Light Screen turn the
+authority spends (`p1.screens.special medi 4 / sd 3`, two games). The shipped version is scoped three
+ways, all of them the authority's: an expiry has already queued a faint IN THIS GROUP, this body
+actually RAN that handler, and never on the expiry's own line. **The two games v1 broke are carried
+inside the probe as controls.**
+
+### THE HAND LIST
+
+**Removed — three, all now carried by probes:**
+
+- **A Lum Berry that waits for `Update`** — `tests/probe_cure_berry_on_set.js`.
+- **The confusion self-hit chance** — `tests/probe_confusion_selfhit_chance.js`.
+- **The residual walk's stop granularity** — `tests/probe_residual_stop_body.js`.
+
+**Owed and named, not fixed here — the eight games that still part a board:**
+
+- **THREE OF THE EIGHT ARE THE INSTRUMENT'S OWN VOID GAMES.** `state`'s board clause walks `results`
+  unfiltered while the rate beside it publishes `diverged_among_usable: 74 / usable_games: 958`.
+  `omit-protect ...2662758209`, `omit-spread ...2657358877` and `omit-spread ...2658645239` are
+  exactly the three `mid_void.void_games`, proven by matching the eleven board rows against a dump
+  taken on the same release (the dump filters `_mid_void`, and 77 of 80 diverging games are in it).
+  Removing them would read **5 of 961** — a change to the RULER, not an engine fix, so it is reported
+  and left standing.
+- **A STAT CHANGE BETWEEN THE ARRIVALS OF A VOLLEY IS INVISIBLE TO THE LATER ARRIVALS.**
+  `pair-protect-bust ...2653991758` t7. Staged from scratch and reproduced: Aerodactyl Dual Wingbeat
+  into a Stamina Mudsdale — hit 1 deals 34 and raises Def +1; the authority's hit 2 deals **22** and
+  this engine's deals **34, byte-identical to hit 1**. `dmgRange` prices the whole volley once, before
+  any arrival lands, so `_packets[1..n]` never see the boost. Structural — the packet loop already
+  runs per-arrival crits, reactions and `Update` passes, but the PRICE is a single call.
+- **LAST RESORT LANDS HERE AND FAILS THERE.** `omit-spread ...2662243229` t11: the authority prints
+  `|-fail|p1a: Kangaskhan`, this engine lands the click. The move fails until its user has used every
+  other move it knows. **That one game does not reproduce in a standalone pinned replay** (it runs 20
+  turns clean) while the artifact records it, which is itself unexplained and is part of the row.
+- **QUICK DRAW.** `pair-speedctrl ...2654408616` t5: `|-activate|p1b: Slowbro|ability: Quick Draw` in
+  the authority and nothing here, so the body is flinched by a Rock Slide it should have moved before.
+- **A `|-hitcount|` ON A PARENTAL BOND CLICK THAT ONLY LANDED ONE HIT.** `pair-protect-bust
+  ...2661266222`: the authority's `!(move.hit === 1 && parentalbond)` clause suppresses the line and
+  this engine writes `|-hitcount|p1: Ditto|1`. It is the first PROTOCOL split of that game; the BOARD
+  parts a turn later on a cause still unidentified.
+- **A MISSING `|-fail|` ON A LEECH SEED RE-AIMED AT AN ALREADY-SEEDED BODY.** `pair-redirect-priority
+  ...2654621676`. Staged standalone, this engine correctly REFUSES the volatile and only the `-fail`
+  line is absent — so the board parting at t8 has a different, still unidentified cause. **Named
+  because the by-cause list is keyed on the first PROTOCOL divergence and the bar reads the first
+  BOARD one; this row is the difference between the two, not a diagnosis.**
+
+**Carried forward unchanged** from the hand lists below: a spread move's named target drawn at random
+by the authority and picked first-foe here.
+
 ## LONG-TAIL BATCH I — BOARD-MATERIAL **18 OF 961 -> 16 OF 961**, PROTOCOL **89 -> 88**, NARRATION LEVEL AT 70, CENSUS LEVEL AT 830/830. TWO MORE DICE ADDRESSES, A REPLACEMENT THAT NEVER RAN `Update`, AND ONE OWED DEFECT THAT DOES NOT EXIST. 2026-09-06
 
 Sample line, identical for all four runs but the release:

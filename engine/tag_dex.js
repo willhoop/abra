@@ -6081,7 +6081,24 @@ const ITEM_TAGS = [
       const named = [...h.matchAll(/status\s*===\s*["']([a-z]+)["']/g)].map(x => x[1]);
       /* `pokemon.status ||` with no equality test is Lum: any status at all. */
       const anyStatus = /pokemon\.status\s*\|\|/.test(h) || /onAfterSetStatus\(status/.test(h);
-      return { cures: true, statuses: named.length ? [...new Set(named)] : (anyStatus ? 'any' : null) };
+      /* 2026-09-07 -- WHEN, AND IT IS THE HALF THAT DECIDES A BOARD. Every member of this family
+       * carries `onUpdate`, which the authority raises at the end of an ACTION -- so a cure that
+       * waits for it lands after everything the current action still has to do. ONE member carries
+       * `onAfterSetStatus` as well (Lum, and `data/mods/champions/items.ts` overrides no berry), and
+       * that handler runs INSIDE `Pokemon#setStatus`, before the same action's `DamagingHit` pass.
+       * The difference is a whole status: Poison Touch reaches an unstatused body in the authority
+       * and a paralysed one in an engine that waits for the Update.
+       *
+       * `onAfterSetStatusPriority` is carried through because the ordering against SYNCHRONIZE is
+       * decided by it -- Synchronize's own `onAfterSetStatus` declares no priority (0) and Lum
+       * declares -1, so the reflection happens first and reads the status the berry is about to
+       * remove. A consumer that ran the berry first would silently delete Synchronize.
+       *
+       * DERIVED FROM THE HANDLER'S PRESENCE, never from a name. A second berry given the handler in
+       * a later regulation arms itself here with no edit. */
+      const onSet = !!it.onAfterSetStatus;
+      return { cures: true, statuses: named.length ? [...new Set(named)] : (anyStatus ? 'any' : null),
+               onSet, onSetPriority: onSet ? (+it.onAfterSetStatusPriority || 0) : null };
     } },
   /* Will: "all berries proc at half i thought, sitrus just heals 1/4 hp right."
    * Half right, and my tag was worse than the question. `healsAtHalf` named the TRIGGER and never

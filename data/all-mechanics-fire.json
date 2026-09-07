@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-07T01:57:16.978Z",
- "engine_release": "0c8b0dc63766",
- "engine_release_cut": "2026-09-07T01:28:30.823Z",
- "engine_release_cuts": 2,
+ "generated": "2026-09-07T18:06:11.586Z",
+ "engine_release": "3f9830acc467",
+ "engine_release_cut": "2026-09-07T17:57:46.967Z",
+ "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "b74f0abb929f",
+  "engine/medicham2-browser.js": "e167c0b6f4ca",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "1c4ba432e563",
   "engine/position_features.js": "622482051bf4",
@@ -25,14 +25,14 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "3c733e7a0bfb",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "b624b04f0c3a",
-  "data/tags.json": "a3a3a88a1b0f",
+  "data/abra-tags.js": "d144f744d2af",
+  "data/tags.json": "f3f6a00ff8a0",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
   "engine/pp.js": "30b12a4ef623"
  },
- "release": "0c8b0dc63766",
+ "release": "3f9830acc467",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -55431,7 +55431,7 @@
    "diverged_including_shelved": 2,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 11
+   "seconds": 9.7
   },
   "then_what": {
    "rows": 64,
@@ -55457,7 +55457,7 @@
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 4.5
+   "seconds": 4.7
   },
   "board_state": {
    "rows": 15,
@@ -56172,8 +56172,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "0c8b0dc63766",
-    "roster_generated": "2026-09-07T01:56:43.472Z",
+    "roster_release": "3f9830acc467",
+    "roster_generated": "2026-09-07T18:03:49.560Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."

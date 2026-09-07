@@ -1,0 +1,41 @@
+{
+  "what": "PREDICTION WRITTEN BEFORE THE MEASUREMENT. Long-tail batch L, fix 1 measured ALONE.",
+  "written": "2026-09-07",
+  "fix": "A cure berry carrying `onAfterSetStatus` (Lum, and only Lum in this format) is eaten INSIDE Pokemon#setStatus rather than at the following `Update` pass. tag_dex derives `curesStatus.onSet`; medicham2's applyStatus calls berryCureOnSet below Synchronize.",
+  "baseline": {
+    "release": "aa7b80f9a038",
+    "board_material": 11,
+    "protocol": 80,
+    "narration_raw": 69,
+    "narration_less_declared": 68,
+    "games": 961,
+    "void_games": 3
+  },
+  "measured_on_release": "ac6b6880dc52",
+  "sample_line": "node engine/game_differential.js --steering empirical --release ac6b6880dc52 --arm middle --end-state --state --census data/verification/census-pin-9446a684709d.json --games 1200 --turns 20 --team-store data/team-pool-frozen --write",
+  "dice_addressing": "UNCHANGED. berryCureOnSet consumes no die and consumeBerry draws none, so the pin de38d17e15a2 is expected to be identical and arms_comparable is expected to answer COMPARABLE.",
+  "which_scoreboard": "THE POOL. Lum Berry is 430 sheet uses and the diagnosis came from a pinned-pool game, so the pool is expected to move and the lab (census/roster) is expected to sit still.",
+  "predictions": [
+    {
+      "id": "P1",
+      "claim": "BOARD-MATERIAL 11 -> 10. The omit-intimidate ...bo3-2663804350 game (Goodra, `|-status|p2a|psn|[from]poisontouch` missing here) leaves the board-material list and nothing takes its place.",
+      "confidence": "high"
+    },
+    {
+      "id": "P2",
+      "claim": "PROTOCOL 80 -> 79 or lower. The same game's first protocol divergence IS the missing Poison Touch line. Lower is possible: a Lum holder statused by any road previously emitted its `-enditem`/`-curestatus` at the NEXT action, which is a line-ORDER divergence the authority never had.",
+      "confidence": "medium"
+    },
+    {
+      "id": "P3",
+      "claim": "NO NEW board-material game. The change only ever REMOVES a status this engine was holding past the moment the authority removes it, and it fires on exactly one item.",
+      "confidence": "medium"
+    },
+    {
+      "id": "P4",
+      "claim": "The census stays 830/830/0 and the roster stays clean on items, abilities and moves.",
+      "confidence": "high"
+    }
+  ],
+  "a_transfer_is_not_a_win": "A game that leaves the board-material list on this cause and re-enters on a different one is recorded as a TRANSFER, not as a fix."
+}

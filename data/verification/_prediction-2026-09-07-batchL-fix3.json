@@ -1,0 +1,69 @@
+{
+  "what": "PREDICTION WRITTEN BEFORE THE MEASUREMENT. Long-tail batch L, fix 3 measured ALONE.",
+  "written": "2026-09-07",
+  "fix": "The residual walk stops at a BODY rather than at a GROUP: after each body whose handler was not a duration expiry, the faint queue is drained and the turn ends if a side is wiped. Mirrors fieldEvent's `faintMessages(); if (this.ended) return;` (sim/battle.ts:565-566) against the expiry branch's `continue` (:516-524).",
+  "baseline": {
+    "release": "f8266a5c48b7",
+    "board_material": 9,
+    "protocol": 78,
+    "narration_less_declared": 68,
+    "games": 961,
+    "void_games": 3
+  },
+  "measured_on_release": "276822231c52",
+  "sample_line": "node engine/game_differential.js --steering empirical --release 276822231c52 --arm middle --end-state --state --census data/verification/census-pin-9446a684709d.json --games 1200 --turns 20 --team-store data/team-pool-frozen --write",
+  "dice_addressing": "UNCHANGED. No die is drawn or skipped by this change; it ends a turn earlier in one shape. arms_comparable expected COMPARABLE.",
+  "which_scoreboard": "THE POOL. The lab stages one mechanic at a time and rarely wipes a side mid-residual, so the census and roster should sit still.",
+  "risk": "THIS IS THE FIX IN THIS BATCH WITH REAL OVER-FIRE RISK. It ends turns earlier than before on any board where a residual chip wipes a side part-way through a group. If the new stop fires where the authority keeps walking, BOARD-MATERIAL goes UP and this measurement is the control that says so.",
+  "predictions": [
+    {
+      "id": "P1",
+      "claim": "BOARD-MATERIAL 9 -> 8. pair-redirect-priority ...bo3-2661747717 leaves; the live-tree replay ran 6 turns with no protocol and no board divergence.",
+      "confidence": "high"
+    },
+    {
+      "id": "P2",
+      "claim": "PROTOCOL 78 -> 77 or lower.",
+      "confidence": "medium"
+    },
+    {
+      "id": "P3",
+      "claim": "NO game enters board-material that was not there before \u00e2\u20ac\u201d i.e. the count does not rise and no new seed appears in state.first_board_divergences.",
+      "confidence": "medium \u00e2\u20ac\u201d this is the clause the over-fire risk lands on"
+    },
+    {
+      "id": "P4",
+      "claim": "The census stays 830/830/0.",
+      "confidence": "high"
+    }
+  ],
+  "result_v1": {
+    "measured_on_release": "276822231c52",
+    "board_material": 10,
+    "protocol": 78,
+    "narration_less_declared": 67,
+    "verdict": "P1 partial (the target game left), P2 MISS (78 -> 78), P3 MISS \u2014 BOARD-MATERIAL rose 9 -> 10. Two games ENTERED: omit-spread ...2654567638 t7 and omit-spread ...2661861148 t6, both parting on p1.screens.special medi 4 / sd 3. The per-body stop fired on a body that ran NO handler in that group, throwing away a side-condition turn the authority spends. NOT SHIPPED as v1."
+  },
+  "v2": {
+    "fix": "The stop is scoped: it fires only inside a group where an expiry has already queued a faint (_grpExpiryFaint), only for a body that actually RAN that handler (_ranExpiryHandler), and never on the expiry's own line (!_expiryQueuedFaint).",
+    "measured_on_release": "3f9830acc467",
+    "sample_line": "node engine/game_differential.js --steering empirical --release 3f9830acc467 --arm middle --end-state --state --census data/verification/census-pin-9446a684709d.json --games 1200 --turns 20 --team-store data/team-pool-frozen --write",
+    "predictions": [
+      {
+        "id": "P1v2",
+        "claim": "BOARD-MATERIAL 9 -> 8. The perish game leaves and the two v1 over-fires do not appear \u2014 all three replay clean on the live tree.",
+        "confidence": "high"
+      },
+      {
+        "id": "P2v2",
+        "claim": "PROTOCOL 78 -> 77 or lower.",
+        "confidence": "low"
+      },
+      {
+        "id": "P3v2",
+        "claim": "No game enters board-material.",
+        "confidence": "medium"
+      }
+    ]
+  }
+}

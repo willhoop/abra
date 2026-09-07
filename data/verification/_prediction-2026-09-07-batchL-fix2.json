@@ -1,0 +1,15 @@
+{
+  "what": "PREDICTION WRITTEN BEFORE THE MEASUREMENT. Long-tail batch L, fix 2 measured ALONE.",
+  "written": "2026-09-07",
+  "fix": "The confused body's self-hit chance is the authority's randomChance(33,100) -> u < 0.33, not 1/3. engine/medicham2-browser.js confusionBeforeMove.",
+  "baseline": { "release": "ac6b6880dc52", "board_material": 10, "protocol": 79, "narration_less_declared": 68, "games": 961, "void_games": 3 },
+  "measured_on_release": "f8266a5c48b7",
+  "sample_line": "node engine/game_differential.js --steering empirical --release f8266a5c48b7 --arm middle --end-state --state --census data/verification/census-pin-9446a684709d.json --games 1200 --turns 20 --team-store data/team-pool-frozen --write",
+  "dice_addressing": "UNCHANGED. Same draw count at the same addresses; only the threshold the drawn u is compared against moves. arms_comparable expected COMPARABLE.",
+  "which_scoreboard": "THE POOL. The band is 0.33 percentage points wide, so the lab (census/roster) should not move at all; the pool should lose exactly the games whose confusion draw fell in the band.",
+  "predictions": [
+    { "id": "P1", "claim": "BOARD-MATERIAL 10 -> 9. pair-redirect-priority ...bo3-2656366551 leaves and nothing takes its place — the replay on the live tree ran 10 turns with no protocol and no board divergence.", "confidence": "high" },
+    { "id": "P2", "claim": "PROTOCOL 79 -> 78 or lower.", "confidence": "medium" },
+    { "id": "P3", "claim": "The census and the roster do not move at all — the band is a third of a percent and no staged probe is at the boundary.", "confidence": "high" }
+  ]
+}
