@@ -813,14 +813,20 @@ project introduced at WIRE 7 on a misquoted source line. Census 281/282 → 293/
 **THE INSTRUMENT WAS MEASURING ANNOUNCEMENTS, AND THE HEADLINE IS NOW THE BOARD AT THE END OF
 TURN 1 (3.70.0).** `engine/board_state.js` reads HP, status with its counters, items, all seven stat
 stages, aliveness, every field condition WITH ITS CLOCK and the persistent volatiles out of BOTH
-engines' live bodies at every turn boundary, after the whole residual phase. Read every figure from
-`data/state-ladder.json`. **The board at the end of turn 1 is identical in 56.0% of games at the
-pre-WIRE-1 baseline (1119/1998) and 66.9% at the top rung (1337/1998)**, peaking at 69.3% at WIRE 9;
-whole-game board agreement went 6.4% -> 15.6% against a protocol number that read 1.8% -> 10.3%, so
-the wires were real and the protocol number overstated them. **WIRE 10 is a regression the protocol
-instrument scored as an improvement** — 47 fewer clean turn-1 boards, and diffed per field it is one
-field, end-of-turn-1 HP wrong in 427 -> 473 games. **41.0% of games whose narration parted inside
-turn 1 reached an identical board anyway.** The comparator proves itself first: 7 representation
+engines' live bodies at every turn boundary, after the whole residual phase. The ladder that stood here ran under
+`data/state-ladder.json`. **EVERY TURN-1 AND WHOLE-GAME BOARD-AGREEMENT FIGURE THAT STOOD HERE IS
+RETRACTED, 2026-09-06, AND IS NOT REPLACED.** Three measured reasons, any one sufficient: the artifact
+carries no `steering.driver_code`, so `engine/arms_comparable.js` answers UNKNOWN for every pair drawn
+from it and no work done today can repair that; its own `determinism.verdict` reads *"THE TWO BASELINES
+DISAGREE. Do not read the table below as a ladder."* — a red line no document quoting it has ever
+mentioned, and one the account below shows is PROBABLY an instrument false alarm that could not be
+settled, because the per-arm artifacts needed to settle it were not kept;
+and its sample cannot be re-taken, because the pool was drawn live from `data/games.bo3.jsonl` at
+`ff6529f6a6d7` and that file is a month of hourly appends further on. A re-run today would use a
+different pool, a 643-row census against its 252-row pin, a changed protocol skip list and four pinned
+arms where it had one — a different question, and a re-run answering a different question is worse
+than a withdrawal. Account: `docs/_reports/2026-09-06-comparability-restore.md`. The comparator proves
+itself first: 7 representation
 mappings red-demonstrated in both directions and 25 planted state divergences, each of which must be
 caught at the planted boundary and localised to the planted field — 25/25 on all fourteen arms.
 
