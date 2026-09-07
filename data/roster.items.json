@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-07T21:15:54.281Z",
+ "generated": "2026-09-07T22:09:00.654Z",
  "by": "tests/roster.js",
  "stage": "items",
  "engine_release": "1be57a100d59",
@@ -44,7 +44,7 @@
   "COULD-NOT-STAGE": 8
  },
  "arms_played": {
-  "top-tie-first": 314
+  "top-tie-first": 316
  },
  "scope": {
   "total": 148,
@@ -61,6 +61,12 @@
   "declared_untestable": [],
   "could_not_stage_in_scope": 8,
   "attributed_by_second_control": []
+ },
+ "plant_anchors": {
+  "release": "1be57a100d59",
+  "checked": 18,
+  "dead": [],
+  "reds_ran": true
  },
  "reds": [
   {
@@ -145,8 +151,21 @@
   },
   {
    "rule": "item/status-cure",
-   "ok": false,
-   "why": "the anchor matched 2 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: const _cs=TAGS.param('item',m.item,'curesStatus');"
+   "ok": true,
+   "why": "the status cure is skipped — the berry is still held",
+   "moved": {
+    "member": "cheriberry",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.status",
+     "party.item",
+     "status",
+     "item"
+    ]
+   }
   },
   {
    "rule": "item/speed-scaled",

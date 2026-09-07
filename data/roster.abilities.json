@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-07T21:18:33.398Z",
+ "generated": "2026-09-07T22:09:34.551Z",
  "by": "tests/roster.js",
  "stage": "abilities",
  "engine_release": "1be57a100d59",
@@ -208,6 +208,12 @@
    "vitalspirit",
    "weakarmor"
   ]
+ },
+ "plant_anchors": {
+  "release": "1be57a100d59",
+  "checked": 31,
+  "dead": [],
+  "reds_ran": true
  },
  "reds": [
   {

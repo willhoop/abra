@@ -4093,8 +4093,14 @@ const RULES = [
      + 'board. CONFUSION IS INCLUDED because `board_state.js` compares `vol.confusion` as a counter, '
      + 'which is what makes Persim expressible at all.',
   break: { why: 'the status cure is skipped — the berry is still held',
-    patch: [["const _cs=TAGS.param('item',m.item,'curesStatus');",
-             "const _cs=null&&TAGS.param('item',m.item,'curesStatus');"]] },
+    /* RE-AIMED 2026-09-07. A second road to the same effect landed that morning — `berryCureOnSet`,
+     * Lum's `onAfterSetStatus` — and it reads `_cs` off `m.item` with the identical line, so the
+     * one-line anchor matched TWICE and an anchor that matches twice is never planted at all. The
+     * effect now lives in ONE function (`berryStatusCureNow`, which both roads call), so the anchor
+     * is that function's own first line: it is unique, and breaking it breaks BOTH schedules rather
+     * than the one the old anchor happened to land on. Strictly stronger than what it replaces. */
+    patch: [["function berryStatusCureNow(m){\n  const _cs=TAGS.param('item',m.item,'curesStatus');",
+             "function berryStatusCureNow(m){\n  const _cs=null&&TAGS.param('item',m.item,'curesStatus');"]] },
   match(e) {
     if (!e.onUpdate || !e.isBerry) return null;
     const S = /frozen/i.test(e.shortDesc) ? 'frz' : /paralyz/i.test(e.shortDesc) ? 'par'
@@ -4529,7 +4535,14 @@ const RULES = [
      + 'stone is the second control. GHOST-TYPE and SWITCHING-MOVE departures are played as their own '
      + 'games and must still succeed — an over-refusal is a defect too.',
   break: { why: 'the ability trap no longer holds the switch',
-    patch: [['if(_held){MEDSEEN.trapBlockedSwitch++;continue;}', 'if(_held){MEDSEEN.trapBlockedSwitch++;}']] },
+    /* RE-AIMED 2026-09-07. The refusal moved into `switchTrapVerdict` and the `_held` boolean this
+     * anchor named no longer exists, so it matched ZERO times. Found by the unconditional anchor
+     * audit below and NOT by `--reds`, which skips a rule whose every member is COULD-NOT-STAGE —
+     * these two rules are exactly that, so nothing green rested on it and nothing was ever going to
+     * ask. The claim this restores is the narrow one: the anchor names a live site. It is still
+     * UNEXERCISED. */
+    patch: [["if(_tv.block==='ability'){MEDSEEN.trapBlockedSwitch++;continue;}",
+             "if(_tv.block==='ability'){MEDSEEN.trapBlockedSwitch++;}"]] },
   match(e) {
     if (!['onFoeTrapPokemon', 'onFoeMaybeTrapPokemon'].some(k => typeof e[k] === 'function')) return null;
     const all = CARRIERS[e.id] || [];
@@ -4768,7 +4781,14 @@ const RULES = [
    * skips a rule whose every member is COULD-NOT-STAGE, so this claim is unproven and says so. */
   break: { why: 'the ability trap no longer holds the switch (UNEXERCISED — no member of this rule '
        + 'can be staged in this format, so the anchor has never been fired)',
-    patch: [['if(_held){MEDSEEN.trapBlockedSwitch++;continue;}', 'if(_held){MEDSEEN.trapBlockedSwitch++;}']] },
+    /* RE-AIMED 2026-09-07. The refusal moved into `switchTrapVerdict` and the `_held` boolean this
+     * anchor named no longer exists, so it matched ZERO times. Found by the unconditional anchor
+     * audit below and NOT by `--reds`, which skips a rule whose every member is COULD-NOT-STAGE —
+     * these two rules are exactly that, so nothing green rested on it and nothing was ever going to
+     * ask. The claim this restores is the narrow one: the anchor names a live site. It is still
+     * UNEXERCISED. */
+    patch: [["if(_tv.block==='ability'){MEDSEEN.trapBlockedSwitch++;continue;}",
+             "if(_tv.block==='ability'){MEDSEEN.trapBlockedSwitch++;}"]] },
   match(e) {
     const traps = ['onFoeTrapPokemon', 'onFoeMaybeTrapPokemon'].some(k => typeof e[k] === 'function');
     if (!traps) return null;
@@ -5498,8 +5518,13 @@ const RULES = [
      + '     BOUNDARY 1 IS THE NEGATIVE, on the same script: the item is still held there and the '
      + 'Speed must not have moved yet.',
   break: { why: 'the speed multiplier on item loss is dropped — the item is still consumed',
-    patch: [["if(m._hadItem&&!m.item){const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');if(_ub&&_ub.speedMult)s*=_ub.speedMult;}",
-             "if(false&&m._hadItem&&!m.item){const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');if(_ub&&_ub.speedMult)s*=_ub.speedMult;}"]] },
+    /* RE-AIMED 2026-09-07. The guard grew `&&(ROOM_ITEM_IS_LOST||m._roomItem==null)` and the payment
+     * moved from `s*=` to `_mods.push(...)`, so this anchor matched ZERO times. Found by the
+     * unconditional anchor audit below, not by `--reds`: every member of this rule is COULD-NOT-STAGE
+     * in this format, so the reds loop never reached it. Aimed at the PAYMENT now, which is one line
+     * and does not carry the room-item guard that moved. Still UNEXERCISED. */
+    patch: [['if(_ub&&_ub.speedMult)_mods.push(+_ub.speedMult);}',
+             'if(false&&_ub&&_ub.speedMult)_mods.push(+_ub.speedMult);}']] },
   match(e) {
     if (!hasHandler(e, 'onAfterUseItem', 'onTakeItem')) return null;
     /* AND STICKY HOLD IS NOT IN THIS FAMILY, WHICH IS THE OVER-MATCH THIS PROJECT HAS ALREADY MADE
@@ -7669,8 +7694,15 @@ const RULES = [
      * halving the BAND moves 4. Both are halved here so the break means what its `why` says. */
     patch: [['for(let i=0;i<16;i++){const v=roll(100-i);hit.rolls.push(_hits>1?Math.floor(v*_hits):v);if(_unit)_unit.push(v);}',
              'for(let i=0;i<16;i++){const v=Math.floor(roll(100-i)*0.5);hit.rolls.push(_hits>1?Math.floor(v*_hits):v);if(_unit)_unit.push(v);}'],
-            ['return {min:roll(85),max:roll(100),eff};',
-             'return {min:Math.floor(roll(85)*0.5),max:Math.floor(roll(100)*0.5),eff};']] },
+            /* RE-AIMED 2026-09-07. `dmgRangeOneHit`'s single-hit return grew `,type:mvT` in commit
+             * `1b5fd9f1` (the resist-berry type fix, the same day), so this anchor matched ZERO times
+             * and the THREE rules that share it — move/plain-attack, move/variable-power,
+             * move/recharge, 198 of the moves stage's 475 green rows — proved nothing. The FIRST
+             * patch element is the one that moves a board; this one is kept so the break means what
+             * its `why` says. The unconditional anchor audit below is what makes the next such edit
+             * loud instead of quiet. */
+            ['return {min:roll(85),max:roll(100),eff,type:mvT};',
+             'return {min:Math.floor(roll(85)*0.5),max:Math.floor(roll(100)*0.5),eff,type:mvT};']] },
   match(e) {
     if (!(e.self && e.self.volatileStatus === 'mustrecharge')) return null;
     const arm = armFor(e);
@@ -8410,8 +8442,15 @@ const RULES = [
      * halving the BAND moves 4. Both are halved here so the break means what its `why` says. */
     patch: [['for(let i=0;i<16;i++){const v=roll(100-i);hit.rolls.push(_hits>1?Math.floor(v*_hits):v);if(_unit)_unit.push(v);}',
              'for(let i=0;i<16;i++){const v=Math.floor(roll(100-i)*0.5);hit.rolls.push(_hits>1?Math.floor(v*_hits):v);if(_unit)_unit.push(v);}'],
-            ['return {min:roll(85),max:roll(100),eff};',
-             'return {min:Math.floor(roll(85)*0.5),max:Math.floor(roll(100)*0.5),eff};']] },
+            /* RE-AIMED 2026-09-07. `dmgRangeOneHit`'s single-hit return grew `,type:mvT` in commit
+             * `1b5fd9f1` (the resist-berry type fix, the same day), so this anchor matched ZERO times
+             * and the THREE rules that share it — move/plain-attack, move/variable-power,
+             * move/recharge, 198 of the moves stage's 475 green rows — proved nothing. The FIRST
+             * patch element is the one that moves a board; this one is kept so the break means what
+             * its `why` says. The unconditional anchor audit below is what makes the next such edit
+             * loud instead of quiet. */
+            ['return {min:roll(85),max:roll(100),eff,type:mvT};',
+             'return {min:Math.floor(roll(85)*0.5),max:Math.floor(roll(100)*0.5),eff,type:mvT};']] },
   match(e) {
     if (!e.basePowerCallback) return null;
     const arm = armFor(e);
@@ -8557,8 +8596,15 @@ const RULES = [
      * halving the BAND moves 4. Both are halved here so the break means what its `why` says. */
     patch: [['for(let i=0;i<16;i++){const v=roll(100-i);hit.rolls.push(_hits>1?Math.floor(v*_hits):v);if(_unit)_unit.push(v);}',
              'for(let i=0;i<16;i++){const v=Math.floor(roll(100-i)*0.5);hit.rolls.push(_hits>1?Math.floor(v*_hits):v);if(_unit)_unit.push(v);}'],
-            ['return {min:roll(85),max:roll(100),eff};',
-             'return {min:Math.floor(roll(85)*0.5),max:Math.floor(roll(100)*0.5),eff};']] },
+            /* RE-AIMED 2026-09-07. `dmgRangeOneHit`'s single-hit return grew `,type:mvT` in commit
+             * `1b5fd9f1` (the resist-berry type fix, the same day), so this anchor matched ZERO times
+             * and the THREE rules that share it — move/plain-attack, move/variable-power,
+             * move/recharge, 198 of the moves stage's 475 green rows — proved nothing. The FIRST
+             * patch element is the one that moves a board; this one is kept so the break means what
+             * its `why` says. The unconditional anchor audit below is what makes the next such edit
+             * loud instead of quiet. */
+            ['return {min:roll(85),max:roll(100),eff,type:mvT};',
+             'return {min:Math.floor(roll(85)*0.5),max:Math.floor(roll(100)*0.5),eff,type:mvT};']] },
   match(e) {
     if (!(e.basePower > 0)) return null;
     const arm = armFor(e);
@@ -9329,8 +9375,79 @@ function main() {
     if (VERBOSE) console.log('    ' + r.verdict.padEnd(24) + r.id);
   }
 
-  /* the red demonstration, per RULE rather than per entity */
   const redRows = [];
+
+  /* ================= THE ANCHOR AUDIT — UNCONDITIONAL, AND THAT IS THE WHOLE POINT ===============
+   *
+   * A PLANT ANCHORED TO A SOURCE STRING DIES SILENTLY WHEN THAT LINE IS EDITED, AND UNTIL 2026-09-07
+   * the only thing that ever asked was `--reds`, which is not the flag the gate prints and costs
+   * three times the wall clock. So on the morning of 2026-09-07 the engine's `dmgRangeOneHit` return
+   * grew `,type:mvT` (commit `1b5fd9f1`, the resist-berry type fix) and ONE anchor shared by
+   * `move/plain-attack`, `move/variable-power` and `move/recharge` stopped matching — 198 of the
+   * moves stage's 475 green rows, 41.7% of the stage, asserting nothing — while every ordinary run
+   * printed exactly what it printed the day before. `item/status-cure`'s anchor started matching
+   * TWICE the same morning, for the same reason in the other direction.
+   *
+   * THE CHECK IS A STRING COUNT. It plays no game, opens no fixture and costs milliseconds, so there
+   * is no honest reason for it to sit behind a flag — and the reason it DID is that it was written
+   * inside the loop that needed it rather than beside the claim it protects.
+   *
+   * IT RUNS OVER EVERY RULE THIS STAGE ASSIGNED AN ENTITY TO, INCLUDING THE COULD-NOT-STAGE ONES,
+   * and that half is not decoration: `ability/trap-arrives-with-a-mega`,
+   * `ability/traps-and-somebody-tries-to-leave` and `ability/speed-on-item-loss` had all been dead
+   * for longer, and the abilities stage read 29 of 29 CAUGHT throughout, because `--reds` drops a
+   * rule whose every member is COULD-NOT-STAGE. Nothing green rested on those three — which is
+   * exactly why nothing was ever going to notice.
+   *
+   * A DEAD ANCHOR IS A FAILING ROW, NOT A PRINTED NOTE. It goes into `reds` with `ok: false`, so it
+   * reaches the exit code below AND `engine/quarantine.js`'s existing `badReds` term with no second
+   * gate anywhere. A caption beside a number is what this repository has paid for twice.
+   *
+   * WHAT IT DOES AND DOES NOT CLAIM. Alive means the anchor names exactly one site in this release.
+   * It does NOT mean the plant moves a board — that is the flip demonstration, it needs games, and it
+   * stays behind `--reds`. The two are printed as two lines so they cannot be read as one. */
+  const byRuleAll = {};
+  for (const r of results) if (r.ruleObj) (byRuleAll[r.rule] = byRuleAll[r.rule] || []).push(r);
+  const PLANT = {};            // rule id -> { src } (applied) | { err } (did not apply)
+  const deadAnchors = [];
+  for (const rid of Object.keys(byRuleAll)) {
+    const rule = byRuleAll[rid][0].ruleObj;
+    if (!rule.break) continue;
+    let src = mediSource(), err = null, deadOn = null, matched = null;
+    for (const [find, repl] of rule.break.patch) {
+      const n = src.split(find).length - 1;
+      if (n !== 1) {
+        deadOn = find; matched = n;
+        err = 'THE PLANT DID NOT APPLY — the anchor matched ' + n + ' time(s), not exactly once. An '
+            + 'unapplied plant reads exactly like a comparator that found nothing, so every row this '
+            + 'rule produced is asserting nothing until it is re-aimed. Anchor: ' + find.slice(0, 90);
+        break;
+      }
+      src = src.replace(find, repl);
+    }
+    PLANT[rid] = err ? { err } : { src };
+    if (err) {
+      deadAnchors.push({ rule: rid, kind: rule.kind, matched, anchor: deadOn.slice(0, 140),
+        rows: byRuleAll[rid].length,
+        staged: byRuleAll[rid].filter(x => x.verdict !== 'COULD-NOT-STAGE').length });
+      redRows.push({ rule: rid, ok: false, anchor_dead: true, why: err });
+    }
+  }
+  console.log('\n  THE PLANT ANCHORS — every rule this stage used, checked against release ' + REL.id
+    + ' BEFORE anything is believed:');
+  console.log('    ' + (Object.keys(PLANT).length - deadAnchors.length) + ' of ' + Object.keys(PLANT).length
+    + ' apply exactly once' + (deadAnchors.length ? '' : ' — every red demonstration in this stage has '
+      + 'something to aim at. This says the anchor is LIVE, not that the plant moves a board; that is '
+      + '--reds, below.'));
+  for (const d of deadAnchors) {
+    console.log('    DEAD ANCHOR   ' + d.rule + '   matched ' + d.matched + ' time(s), not 1'
+      + '   [' + d.rows + ' row(s) in this stage, ' + d.staged + ' of them staged]');
+    console.log('        ' + d.anchor);
+    console.log('        Every row this rule produced is UNPROVEN until it is re-aimed. This stage '
+      + 'cannot report clean.');
+  }
+
+  /* the red demonstration, per RULE rather than per entity */
   if (REDS) {
     const byRule = {};
     for (const r of results) if (r.ruleObj && r.verdict !== 'COULD-NOT-STAGE')
@@ -9352,15 +9469,14 @@ function main() {
         continue;
       }
       if (!rule.break) continue;
-      const clean = mediSource();
-      let src = clean, err = null;
-      for (const [find, repl] of rule.break.patch) {
-        const n = src.split(find).length - 1;
-        if (n !== 1) { err = 'the anchor matched ' + n + ' time(s), not exactly once — an unapplied '
-          + 'plant reads exactly like a comparator that found nothing. Anchor: ' + find.slice(0, 80); break; }
-        src = src.replace(find, repl);
-      }
-      if (err) { redRows.push({ rule: rid, ok: false, why: err }); continue; }
+      /* THE PLANT IS TAKEN FROM THE AUDIT ABOVE, NEVER RE-APPLIED HERE. Two copies of "does this
+       * anchor match once" is the facts-are-global breach CLAUDE.md names, and the copy that would
+       * drift is this one — the audit runs on every stage and this runs on one flag in three. A rule
+       * whose anchor is dead already has its `ok:false` row; it is skipped here rather than counted
+       * twice, so the failure appears once and reaches the exit code once. */
+      const P = PLANT[rid];
+      if (!P || P.err) continue;
+      const src = P.src;
       /* the first member of the rule that staged something is enough to demonstrate the break: the
        * plant is aimed at the RULE's mechanism, so a member that moves proves the mechanism is live */
       let moved = null;
@@ -9519,7 +9635,10 @@ function main() {
   if (REDS) {
     console.log('\n  THE RED DEMONSTRATION, PER RULE — a rule whose break moves no board cannot express '
       + 'its own mechanic, and every green above it is vacuous:');
-    for (const row of redRows) console.log('    '
+    /* THE DEAD-ANCHOR ROWS ARE ALREADY ON THE SCREEN, under THE PLANT ANCHORS above, and they are in
+     * `redRows` so the exit code and quarantine.js see them. Printing them twice would make one
+     * failure look like two. */
+    for (const row of redRows.filter(r => !r.anchor_dead)) console.log('    '
       + (row.declared ? (row.ok ? 'NOTHING TO BREAK ' : 'FALSE DECLARATION ') : (row.ok ? 'CAUGHT   ' : 'NOT CAUGHT '))
       + row.rule
       + (row.moved ? '   via ' + row.moved.member + ' -> ' + row.moved.verdict + ' on '
@@ -9709,6 +9828,12 @@ function main() {
       /* THE DENOMINATOR TRAVELS WITH THE COUNTS. engine/quarantine.js reads this rather than
        * re-deriving it, so the clause and the run cannot come to disagree about what 84 is out of. */
       scope,
+      /* THE ANCHOR AUDIT TRAVELS WITH THE COUNTS, and it is written by every run rather than by a
+       * `--reds` run — `reds_ran` says which of the two claims this artifact carries, because an
+       * empty `reds` and a `reds` nobody armed look identical from outside and that is the bug this
+       * block was added for. */
+      plant_anchors: { release: REL.id, checked: Object.keys(PLANT).length,
+                       dead: deadAnchors, reds_ran: REDS },
       reds: redRows,
       mirror: { pairs: mirrorPairs, same_numbers_swapped: mirrored.map(m => ({ a: m.a.id, b: m.b.id,
         verdicts: [m.a.verdict, m.b.verdict], leaves: m.swap })) },

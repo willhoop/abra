@@ -521,7 +521,7 @@ function rosterStage(stage, inject) {
     {
       const r = PIN.guard({ name: `deliberate roster / ${stage}`, file: 'data/' + f, artifact: j,
         need: ['release', 'digests'], curId,
-        rerun: `SHOWDOWN_PATH=... node tests/roster.js --stage ${stage} --write` });
+        rerun: `SHOWDOWN_PATH=... node tests/roster.js --stage ${stage} --reds --write` });
       /* THE COUNT FIELDS ARE ABSENT FROM A WITHHELD VERDICT, not set to null — a reader doing
        * `r.differ ?? '?'` would print `?` either way, but `differ in r` is the difference between
        * "this clause reported no divergences" and "this clause reported nothing". The selftest
@@ -535,6 +535,28 @@ function rosterStage(stage, inject) {
      * with an `ok` flag; a red that did not behave as the rule predicted means the rule is not proven,
      * so the stage's greens are not evidence either. */
     const badReds = (j.reds || []).filter(r => r && r.ok === false).length;
+    /* ---- AND AN UNASKED SAFETY NET IS INDISTINGUISHABLE FROM A PASSING ONE (2026-09-07) ----------
+     *
+     * `badReds` is the term above and it can only fire on a row that EXISTS. `--reds` is not the
+     * default and was not in the command this clause prints, so an artifact written by the printed
+     * command carried `reds: []` and this term was arithmetic over nothing. The command now arms it.
+     *
+     * THIS NOTE IS A DENOMINATOR, NOT A NEW GATE, and the distinction is deliberate. Failing the
+     * clause on a missing `--reds` run would fail it for a scheduling reason rather than an engine
+     * one, and an over-firing gate is the one people learn to ignore. What was actually missing was
+     * the ability to tell "the demonstration passed" from "the demonstration was never asked" — so
+     * `tests/roster.js` stamps `plant_anchors.reds_ran` and the sentence below says which it is.
+     *
+     * THE FREE HALF DOES HOLD THE GATE. The plant-anchor audit is a string count, needs no games and
+     * runs on every roster run; a dead anchor arrives here as an ordinary `ok: false` row through
+     * `badReds`. That is the check that would have caught 2026-09-07's `,type:mvT` on the day. */
+    const pa = j.plant_anchors || null;
+    const redsNote = !pa
+      ? `. RED DEMONSTRATION NOT DECLARED by ${'data/' + f} — it predates the plant-anchor audit, so `
+        + `an empty \`reds\` cannot be told from an unarmed one`
+      : pa.reds_ran ? ''
+      : `. THE RED DEMONSTRATION WAS NOT ARMED — this artifact was written without \`--reds\`, so its `
+        + `${pa.checked} plant anchor(s) were checked for EXISTENCE and none was fired at a board`;
     /* THE CLOSET DOES NOT HOLD THE GATE — BUT A STALE SHELF DOES. An entity the owner deferred by
      * name (tests/roster.js DEFERRED) is still staged and still played; it is simply not counted as a
      * failure. What IS counted is a deferral whose row would now pass on its own: that shelf has
@@ -588,7 +610,7 @@ function rosterStage(stage, inject) {
     const denom = sc
       ? `${sc.tested} of ${sc.in_scope} tested`
       : `DENOMINATOR NOT CARRIED by ${'data/' + f} — it predates the scope block; re-run `
-        + `tests/roster.js --stage ${stage} --write`;
+        + `tests/roster.js --stage ${stage} --reds --write`;
     const unattrib = unattributable === null
       ? '. UNATTRIBUTABLE ROWS NOT COUNTED — this artifact carries no rows to count'
       : unattributable === 0 ? ''
@@ -601,6 +623,7 @@ function rosterStage(stage, inject) {
       differ, silent, badReds, matched: c['FIRED-AND-BOARDS-MATCH'] || 0,
       couldNotStage: c['COULD-NOT-STAGE'] || 0,
       deferred: deferred.length, staleShelf, scope: sc, unattributable,
+      plant_anchors: pa,
       ok: differ === 0 && silent === 0 && badReds === 0 && staleShelf === 0,
       /* THE DEFERRAL COUNT MOVED TO THE CLOSET SECTION and is deliberately not repeated here — it
        * was printing in both places once the closet existed, and a number shown twice is a number
@@ -611,7 +634,7 @@ function rosterStage(stage, inject) {
         : `${differ} FIRED-AND-BOARDS-DIFFER, ${silent} DID-NOT-FIRE — ${denom}`
           + (badReds ? `, ${badReds} red demonstration(s) did not behave as their rule predicted` : '')
           + (staleShelf ? `, ${staleShelf} DEFERRAL(S) NOW PASS ON THEIR OWN — take the shelf down` : ''))
-        + unattrib,
+        + unattrib + redsNote,
     };
   }
   return {
@@ -620,7 +643,7 @@ function rosterStage(stage, inject) {
                         why: 'no artifact declares this stage' }),
     why: `NO ARTIFACT FOR THIS STAGE — none of ${tried.join(', ')} declares stage "${stage}". `
        + `A missing stage is a FAILING clause, never a passing one: run `
-       + `SHOWDOWN_PATH=... node tests/roster.js --stage ${stage} --write`,
+       + `SHOWDOWN_PATH=... node tests/roster.js --stage ${stage} --reds --write`,
   };
 }
 

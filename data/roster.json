@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-07T21:19:30.935Z",
+ "generated": "2026-09-07T22:10:05.883Z",
  "by": "tests/roster.js",
  "stage": "moves",
  "engine_release": "1be57a100d59",
@@ -44,8 +44,8 @@
   "COULD-NOT-STAGE": 22
  },
  "arms_played": {
-  "top-tie-first": 821,
-  "bottom-tie-first": 262
+  "top-tie-first": 825,
+  "bottom-tie-first": 264
  },
  "scope": {
   "total": 500,
@@ -62,6 +62,12 @@
   "declared_untestable": [],
   "could_not_stage_in_scope": 22,
   "attributed_by_second_control": []
+ },
+ "plant_anchors": {
+  "release": "1be57a100d59",
+  "checked": 36,
+  "dead": [],
+  "reds_ran": true
  },
  "reds": [
   {
@@ -98,13 +104,35 @@
   },
   {
    "rule": "move/plain-attack",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: return {min:roll(85),max:roll(100),eff};"
+   "ok": true,
+   "why": "every damage roll is halved",
+   "moved": {
+    "member": "acidspray",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "move/variable-power",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: return {min:roll(85),max:roll(100),eff};"
+   "ok": true,
+   "why": "every damage roll is halved",
+   "moved": {
+    "member": "acrobatics",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "move/needs-a-stat-stage-to-act-on",
@@ -291,8 +319,19 @@
   },
   {
    "rule": "move/recharge",
-   "ok": false,
-   "why": "the anchor matched 0 time(s), not exactly once — an unapplied plant reads exactly like a comparator that found nothing. Anchor: return {min:roll(85),max:roll(100),eff};"
+   "ok": true,
+   "why": "every damage roll is halved, so the hit this rule DOES stage moves",
+   "moved": {
+    "member": "blastburn",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
   },
   {
    "rule": "move/multihit",

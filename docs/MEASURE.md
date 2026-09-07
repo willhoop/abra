@@ -38,6 +38,40 @@ _stamped 2026-09-06 14:08_
 
 <!-- /GENERATED -->
 
+## SEVEN DEAD PLANT ANCHORS, AND THE CHECK THAT FINDS THEM NOW RUNS ON EVERY ROSTER RUN. 2026-09-07
+
+Full account: `docs/_reports/2026-09-07-red-plant-repair.md`. Row: `docs/RUNNING-NOTES.md`.
+
+`tests/roster.js` proves each shape rule can still SEE a defect by planting a break in the frozen
+release's bytes — an exact string replace that must match **exactly once**. Seven anchors across six
+rules did not, on release `1be57a100d59`:
+
+| rule | matched | what moved under it |
+|---|---|---|
+| `move/plain-attack`, `move/variable-power`, `move/recharge` | 0 | `dmgRangeOneHit`'s single-hit return grew `,type:mvT` (`1b5fd9f1`, the same day) |
+| `item/status-cure` | 2 | `berryCureOnSet` landed the same morning with a byte-identical line |
+| `ability/trap-arrives-with-a-mega`, `ability/traps-and-somebody-tries-to-leave` | 0 | the refusal moved into `switchTrapVerdict`; `_held` is gone |
+| `ability/speed-on-item-loss` | 0 | the payment moved from `s*=` to `_mods.push(...)` |
+
+All seven re-aimed; all 87 rules with a break now apply exactly once. Red demonstrations read
+**18 of 18 items, 29 of 29 abilities, 35 of 35 moves** and no roster count moved.
+
+**THE THREE ABILITY RULES ARE THIS DIVISION'S LESSON, NOT THE THREE MOVE ONES.** Every member of all
+three is `COULD-NOT-STAGE`, and the reds loop is keyed on rules with at least one *staged* member —
+so the abilities stage read 29 of 29 CAUGHT with three dead anchors inside it, and no amount of
+running `--reds` would ever have said otherwise. **A safety net can be dead in the region it does not
+cover, and the count it prints will not know.**
+
+**What changed, and what deliberately did not.** The anchor match check is a string count; it played
+no game and it sat behind `--reds` only because it was written inside the loop that needed it. It is
+hoisted out and runs on every roster run, over every rule the stage used, and a dead anchor is an
+ordinary `ok: false` row that reaches `quarantine.js`'s existing `badReds` term — **no new gate.**
+`engine/quarantine.js` now prints `--reds` in its rerun commands, and reports
+`plant_anchors.reds_ran` as a denominator. It does **not** fail on an empty `reds`: that would redden
+the gate for a scheduling reason on an engine that is fine, and an over-firing gate is the one people
+learn to ignore.
+
+
 ## FOUR READING RULES FOR THE DIFFERENTIAL ARTIFACT, WRITTEN INTO `CLAUDE.md`. 2026-09-06
 
 None of these is an engine defect. All four are ways of reading `data/game-differential.json` that
