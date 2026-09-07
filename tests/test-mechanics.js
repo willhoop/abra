@@ -15168,6 +15168,26 @@ probe('ability', 'reactorPerHit', 'Weak Armor triggers once per hit of a multi-h
   const run = (mv, stage) => {
     const { me, ally, f1, f2, S } = board('garchomp', 'incineroar', 'milotic', 'garchomp');
     f1.ability = 'weakarmor'; f2.ability = 'weakarmor';
+    /* ==== BATCH M, 2026-09-07 -- BOTH FOES ARE MADE UNFAINTABLE, AND THIS PROBE WAS PINNING A KO ===
+     *
+     * This file's own header says a target that can faint makes a probe hollow, and this arm was the
+     * exception nobody had noticed: Bullet Seed's three hits took a 170 HP Milotic to 38, which was
+     * survivable ONLY because the engine priced every arrival off the FIRST one. The batch-M wire
+     * prices arrival k against the Def stage arrival k-1 dropped, the volley compounds the way the
+     * authority's does, and the same Milotic now DIES on hit 3 -- so its third Weak Armor reaction
+     * never fires and the probe read -2/+4 where it wanted -3/+6.
+     *
+     * THAT WAS THE PROBE MEASURING A KO CLAMP, NOT THE MECHANIC. `reactorPerHit` asks how many times
+     * a reaction fires per volley; a fainted body reacts to nothing, in this engine and in Showdown
+     * alike, so the KO was answering a different question. The compounding itself is verified AGAINST
+     * THE AUTHORITY in tests/probe_arrival_reprice.js -- Aerodactyl Dual Wingbeat into a Weak Armor
+     * Armarouge, showdown arrival 1 = 34 and arrival 2 = 49 off the Def drop.
+     *
+     * MEASURED BOTH WAYS BEFORE THIS LINE WAS WRITTEN. With the foes unfaintable all four arms read
+     * -1/2, -3/6, -1/2/-1/2 and -2/4 under BOTH `MEDI_ARRIVAL_PRICE_ONCE=1` and the clean engine, so
+     * the staging removes a KO and changes no reaction count. The damage still differs between the
+     * arms (1168 against 1228 of 1360), which is what says the wire is still doing its work here. */
+    unfaintable(f1); unfaintable(f2);
     if (stage) stage(f1, f2);
     M.battleTurn(S, rng5,
       new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));

@@ -1,10 +1,10 @@
 {
-  "current": "3f9830acc467",
-  "cut": "2026-09-07T17:57:46.967Z",
-  "why": "\"batch",
+  "current": "c28ad0815782",
+  "cut": "2026-09-07T19:17:33.189Z",
+  "why": "batch M: fractional-priority die order",
   "cuts": 1,
-  "latest_cut": "2026-09-07T17:57:46.967Z",
-  "latest_why": "\"batch",
-  "pointer_written": "2026-09-07T17:57:47.038Z",
+  "latest_cut": "2026-09-07T19:17:33.189Z",
+  "latest_why": "batch M: fractional-priority die order",
+  "pointer_written": "2026-09-07T19:17:33.258Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

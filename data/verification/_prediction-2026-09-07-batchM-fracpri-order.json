@@ -1,0 +1,32 @@
+{
+  "written": "2026-09-07",
+  "batch": "M",
+  "change": "ENGINE. medicham2-browser.js draws the ABILITY's fractional-priority die before the ITEM's, which is onFractionalPriorityPriority -1 (quickdraw, myceliummight) before -2 (quickclaw, custapberry). Observable only on a body carrying BOTH; Slowbro-Galar is this format's only Quick Draw carrier and its usage item is a Quick Claw. Knob MEDI_FRACPRI_ITEM_DIE_FIRST=1 restores.",
+  "release_under_test": "c28ad0815782",
+  "baseline": {
+    "release": "830350135192",
+    "board_material": 4,
+    "state.games": 958,
+    "diverged_protocol": 76,
+    "the_four": [
+      "omit-spread ...2662243229 t11   Last Resort",
+      "pair-protect-bust ...2661266222 t6   -hitcount on a one-hit Parental Bond click",
+      "pair-redirect-priority ...2654621676 t8   cause still unidentified",
+      "pair-speedctrl ...2654408616 t5   QUICK DRAW — this fix is aimed at this game"
+    ]
+  },
+  "prediction": {
+    "board_material": 3,
+    "the_game_that_leaves": "pair-speedctrl gen9championsvgc2026regmbbo3-2654408616 (t5)",
+    "confidence": "LOWER than the volley fix. The previous batch named Quick Draw as this game's cause from a protocol line (|-activate|p1b: Slowbro|ability: Quick Draw present in the authority, absent here) and NOT from a staged reproduction of the board leaf, which is p1.pp[1].shellsidearm medi 0 / sd 1 at t5. A protocol cause and a board cause are keyed on different lists and this repo has aimed three batches with the wrong one.",
+    "diverged_protocol": "76 or lower",
+    "mid_void.void_games": 3,
+    "population_affected": "ONLY a body carrying both a fractionalPriority ability and a fractionalPriority item. MEDSEEN.fracPriBothCarriersOneBody is the count; if it reads 0 over the pool this fix changed nothing there and the game must have another cause."
+  },
+  "how_it_could_be_wrong": [
+    "The pool may contain no dual carrier at all, in which case nothing moves and the Quick Draw diagnosis was wrong about this game.",
+    "The game may leave on this cause and RE-ENTER on a leaf this fix uncovers — a TRANSFER, reported as one.",
+    "A dual carrier elsewhere in the pool may now reach a DIFFERENT order and part a board that previously agreed. Board-material RISING is a real outcome and the fix is thrown away if it does."
+  ],
+  "throw_away_if": "board_material > 4, or mid_void.void_games != 3"
+}

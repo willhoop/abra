@@ -32,6 +32,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_doll_blind_family.js`, `tests/probe_trace_target.js`,
 `tests/probe_mega_trace_entry.js`, `tests/probe_mega_spread_stat.js`,
 `tests/probe_trace_list.js`, `tests/probe_fractional_priority_draw.js`,
+`tests/probe_state_void_exclusion.js`, `tests/probe_arrival_reprice.js`,
+`tests/probe_fracpri_die_order.js`,
 `tests/probe_hp_pair.js`,
 `tests/probe_state_trio.js`, `tests/probe_random_target_die.js`,
 `tests/probe_shield_refusal_line.js`, `tests/probe_upkeep_lines.js`,
@@ -156,6 +158,142 @@ ENGINE — does the simulator do what Pokémon does
 _stamped 2026-09-06 14:08_
 
 <!-- /GENERATED -->
+
+## LONG-TAIL BATCH M — BOARD-MATERIAL **8 OF 961 -> 3 OF 958**, PROTOCOL **77 -> 76**, NARRATION LEVEL AT 69, CENSUS LEVEL AT 830/830. THE RULER WAS CORRECTED FIRST AND IT ACCOUNTS FOR THREE OF THE FIVE; THE OTHER TWO ARE A VOLLEY PRICED BEFORE ITS OWN ARRIVALS AND A DIE DRAWN IN THE WRONG ORDER. 2026-09-07
+
+**READ THE DENOMINATOR.** `8 of 961` and `3 of 958` are not the same ruler. The board clause walked
+`results` unfiltered while `mid_void` — printed two lines above it — published its protocol rate over
+`usable_games`, so the bar charged the engine for three games **the instrument itself had declared
+unreadable**. That is fixed, published (`state.games_void_excluded`), and restorable
+(`--state-count-void`). Full account, the four-run attribution table and the verbatim
+`arms_comparable.js` verdict: [docs/_reports/2026-09-07-longtail-batch-M.md](_reports/2026-09-07-longtail-batch-M.md).
+
+| step | release | board-material | protocol |
+|---|---|---|---|
+| the batch's baseline | `3f9830acc467` | 8 of 961 | 77 |
+| **the ruler corrected — NO ENGINE BYTE MOVED** | `3f9830acc467` | **5 of 958** | 77 |
+| the volley priced per arrival | `830350135192` | **4 of 958** | 76 |
+| the fractional-priority die order | `c28ad0815782` | **3 of 958** | 76 |
+
+Sample line, identical for every run but the release and the named extra flag:
+
+```
+node engine/game_differential.js --steering empirical --release <id> --arm middle \
+  --end-state --state --census data/verification/census-pin-9446a684709d.json \
+  --games 1200 --turns 20 --team-store data/team-pool-frozen --write
+```
+
+`--games 1200` is part of the SAMPLE (961 games played), not a budget. Predictions written to
+`data/verification/_prediction-2026-09-07-batchM-{void-clause,arrival-reprice,fracpri-order}.json`
+BEFORE each run. **All three hit on every clause.**
+
+### 1. THE INSTRUMENT WAS ACCUSING THE ENGINE — AND IT IS A CHANGE TO THE RULER, NOT A GAIN
+
+One run published two headline numbers with two denominators and nothing said so:
+
+```
+mid_void.diverged_among_usable / mid_void.usable_games      74 / 958   <- protocol, FILTERED
+state.games - state.games_board_never_diverged               8 / 961   <- board,    UNFILTERED
+```
+
+A `low-identity` game is one the instrument declares unreadable — the shared-address identity of the
+two dice streams fell under `MID_OVERLAP_FLOOR` — so the two engines were not flipping the same coins
+and whatever their boards did is the ruler's doing. `STATE_SUMMARY` now shadows `results` with the
+usable set; the exclusion is **published, not netted off**, and `mid_void.void_game_tags` names the
+void games and says what each one's board did, so the claim is auditable from the artifact instead of
+by matching two lists in prose.
+
+`tests/probe_state_void_exclusion.js` runs BOTH arms on one release and asserts the delta is
+**exactly** the void games that parted a board — not "smaller". It FAILS rather than passing quietly
+if the sample holds no void game. Measured: RED `8 of 961`, GREEN `5 of 958`, protocol byte-identical
+at 77, the void verdict itself unmoved at 3/958/74.
+
+**What a reader can no longer be told:** that board-material is quoted over every game played.
+
+### 2. A STAT CHANGE BETWEEN THE ARRIVALS OF A VOLLEY WAS INVISIBLE TO THE LATER ONES
+
+`spreadMoveHit` runs once per hit and `getDamage` runs inside it, so the authority prices arrival k
+against the board arrival k-1 left behind. This engine asked `dmgRange` ONCE, before any arrival
+landed. Staged from scratch — Aerodactyl Dual Wingbeat (6,800 uses) into a Stamina Mudsdale (4,647):
+
+```
+showdown  |-damage|141/175  |-boost|def|1  |-damage|119/175   [arrival 2 dealt 22]
+medicham  |-damage|141/175  |-boost|def|1  |-damage|107/175   [dealt 34 — arrival 1 again]
+```
+
+The price step now keeps the roll INDEX each arrival spent and hands the apply loop a closure that
+re-prices ONE arrival against the current board. **No new die is drawn**, so the dice addressing of
+every multi-hit click in the pool is unchanged. Offered only for a FLAT volley (all arrivals sharing
+one band); Triple Axel and Parental Bond are **refused and counted**
+(`arrivalRepriceRefusedNonFlat`, 180 on the pool, all Triple Axel). An invariant re-prices arrival 0
+on every offer and **disarms the wire for that click** if it does not reproduce the price — 0 drifts.
+`MEDI_ARRIVAL_PRICE_ONCE=1`, `tests/probe_arrival_reprice.js`.
+
+**RED-2 is the arm that refuses a lazy fix**: Weak Armor DROPS Def, so arrival 2 must get LARGER
+(authority 34 then 49). A fix that only ever shrank a later arrival passes the Stamina arm and fails
+that one. **RED-3 was not predicted** — the re-price also un-halves a volley whose resist berry
+arrival 0 consumed, which the authority does too, and it is now staged.
+
+Pool receipt, printed by the differential: `offered 349, ran 633, MOVED a number 10`. `Ran` high with
+`Moved` at zero would be output identical to the old engine at the cost of a call per arrival, so the
+line says so.
+
+### 3. THE ABILITY'S FRACTIONAL-PRIORITY DIE IS DRAWN FIRST
+
+`onFractionalPriorityPriority` is **-1 for quickdraw and myceliummight** and **-2 for quickclaw and
+custapberry**, and `runEvent` sorts DESCENDING — so the ABILITY rolls first and the ITEM last. This
+loop drew them the other way round, which its own header already recorded as owed. Who WINS is
+unchanged (the last handler to return wins, and -2 is last); only the DRAW ORDER moved.
+
+Observable in exactly one population: a body carrying BOTH, whose two dice share the address base and
+differ only at `nth`. Quick Draw is 30% and Quick Claw 20%, so a die in `[0.2, 0.3)` fires one and not
+the other. **Slowbro-Galar is this format's only Quick Draw carrier and its usage item is a Quick
+Claw** — it is the `pair-speedctrl ...bo3-2654408616` board-material game.
+
+`tests/probe_fracpri_die_order.js` DERIVES the two dice per turn from `midEventValue` and picks its
+arms off that table rather than by trial: turn 5 (`die0 0.2615`) parts the ORDER — showdown p1a
+against medicham p2a — and turn 1 parts only the ATTRIBUTION. Three controls (ability alone, item
+alone, neither) hold in both arms. `MEDSEEN.fracPriBothCarriersOneBody` is the new receipt and reads
+0 on every control, so an arm that never met a dual carrier fails instead of passing quietly.
+`MEDI_FRACPRI_ITEM_DIE_FIRST=1`.
+
+### A CENSUS ROW WENT DOWN BEFORE IT CAME BACK, AND IT WAS THE PROBE PINNING A KO
+
+`ability|reactorPerHit` flipped **true -> false** after the volley fix — `830/830` became `829/830`.
+Its fixture is a Bullet Seed into a Weak Armor Milotic that survived at 38 HP **only because every
+arrival was priced off the first**. With the compounding Def drop the same body dies on hit 3, and a
+fainted body reacts to nothing. The probe was measuring a KO clamp, which this file's own header says
+makes a probe hollow; `unfaintable(f1); unfaintable(f2);` — **measured under both engine arms before
+the line was written**, all four readings identical and the damage still differing. Back to 830/830.
+
+### THE HAND LIST
+
+**Removed — five, three of them because they were never the engine:**
+
+- **THE THREE INSTRUMENT VOID GAMES.** Not a fix and not a defect — the board clause now reads the
+  population the protocol rate beside it has always read. `tests/probe_state_void_exclusion.js`.
+- **A stat change between the arrivals of a volley** — `tests/probe_arrival_reprice.js`.
+- **QUICK DRAW** — `tests/probe_fracpri_die_order.js`. It was the die ORDER, not the ability.
+
+**Owed and named, not fixed here — the three games that still part a board.** Two of the three name a
+PROTOCOL symptom rather than a board cause, and that distinction is the whole reason they are still
+open: the by-cause list is keyed on the first protocol divergence and the bar reads the first board
+one.
+
+- **LAST RESORT LANDS HERE AND FAILS THERE.** `omit-spread ...2662243229` t11, board leaf
+  `p2.party.kingambit.hp medi 14 / sd 65`. The move fails until its user has used every other move it
+  knows. **That game does not reproduce in a standalone pinned replay** while the artifact records it,
+  which is itself unexplained and is part of the row.
+- **`pair-protect-bust ...2661266222` t6**, board leaf `p1.party.incineroar.hp medi 127 / sd 119`. The
+  first PROTOCOL split is a `|-hitcount|` this engine writes on a Parental Bond click that landed one
+  hit (the authority's `!(move.hit === 1 && parentalbond)` suppresses it); the BOARD parts a turn
+  later on **a cause still unidentified**. Stage it from the board leaf.
+- **`pair-redirect-priority ...2654621676` t8**, board leaf `p1.party.excadrill.hp medi 107 / sd 122`.
+  Staged standalone, this engine correctly REFUSES a Leech Seed re-aimed at an already-seeded body and
+  only the `-fail` line is absent — so **the board cause is still unidentified**.
+
+**Carried forward unchanged** from the hand lists below: a spread move's named target drawn at random
+by the authority and picked first-foe here.
 
 ## LONG-TAIL BATCH L — BOARD-MATERIAL **11 OF 961 -> 8 OF 961**, PROTOCOL **80 -> 77**, NARRATION LEVEL AT 68, CENSUS LEVEL AT 830/830. A LUM BERRY THAT EATS A STEP LATER THAN THE AUTHORITY, A CONFUSION CHANCE TYPED AS A THIRD, AND A RESIDUAL WALK THAT STOPS A HANDLER TOO LATE — AND THE THIRD FIX'S FIRST VERSION MADE THE NUMBER WORSE. 2026-09-07
 

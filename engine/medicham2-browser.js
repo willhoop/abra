@@ -1342,6 +1342,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * outside -- the claw is a 20% chance, so "the order did not change" is the common case either way.
    * `tests/probe_fractional_priority_draw.js` reads this as its own receipt. */
   fracPriItemDie: 0,
+  /* BATCH M, 2026-09-07 -- HOW MANY ACTIONS CARRIED BOTH A FRACTIONAL-PRIORITY ABILITY AND A
+   * FRACTIONAL-PRIORITY ITEM. That is the only population in which the DRAW ORDER of the two dice can
+   * be observed at all, so a zero here says a run could not have told the two order arms apart -- and
+   * without it, an order fix on a pool with no Slowbro-Galar in it would read as "no change" rather
+   * than as "not exercised". Slowbro-Galar is this format's only Quick Draw carrier and its usage
+   * item is a Quick Claw. */
+  fracPriBothCarriersOneBody: 0,
   /* 2026-08-27 -- a copy made by the MEGA door, where the copied ability's entry effect then runs.
    * Counted apart from `traceCopied` because "Trace copied something" and "the evolution itself
    * copied it, in time for the drop" are different facts, and only the second is the new wire. A zero
@@ -1456,6 +1463,18 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                         packet shape could not be trusted and ONE line was emitted. This is the
    *                         declared, narrow remainder of the WIRE 12 divergence -- LOUD on purpose. */
   fixedDamageNoCrit: 0, multiHitPacketsDealt: 0, multiHitPacketsCollapsed: 0,
+  /* ==== BATCH M, 2026-09-07 -- THE VOLLEY IS PRICED PER ARRIVAL, NOT ONCE ========================
+   * arrivalRepriceOffered   a flat volley whose per-arrival re-price closure was built AND passed its
+   *                       arrival-0 invariant. Zero on a run that clicked Dual Wingbeat means the
+   *                       wire is unreachable, which reads exactly like a volley that never changed.
+   * arrivalRepriceRan       an arrival 1..n-1 that was actually re-priced against the board as it
+   *                       stood after the arrival before it.
+   * arrivalRepriceMoved     ... and the number CHANGED. This is the population the fix exists for --
+   *                       a Stamina Def raise, a Weak Armor Def drop, a resist berry spent by arrival
+   *                       0. `Ran` with `Moved` at zero over a pool holding Stamina means the
+   *                       re-price is reading a board that is not moving, which is the silent-default
+   *                       shape: it would look identical to the old engine and cost a call per hit. */
+  arrivalRepriceOffered: 0, arrivalRepriceRan: 0, arrivalRepriceMoved: 0,
   /* 2026-08-29 -- a volley whose packet loop STOPPED at the KO, so the reaction count (`_react`) is
    * the LANDED count and not the drawn one. It is the population where the two numbers can differ at
    * all: everywhere else they are equal and this counter is silent. A zero over a run that killed
@@ -3297,6 +3316,23 @@ const MEDFAILS = { encoreAction: 0,
    * added that does not, and the fallback is a perfectly plausible total with wrong arrivals -- the
    * exact shape that hid this defect for as long as it existed. */
   packetBandMissing: 0, packetBandMissingFirst: '',
+  /* ==== BATCH M, 2026-09-07 -- THE PER-ARRIVAL RE-PRICE, AND EVERY WAY IT DECLINES ===============
+   * arrivalRepriceRefusedNonFlat        a volley whose arrivals do NOT share one band (Triple Axel's
+   *                       escalating power, Parental Bond's quarter). A `hits: 1` re-price would hand
+   *                       arrival 1's band to all of them, so the wire refuses and says so. This is
+   *                       the DECLARED remainder of the volley-repricing fix, not a silent skip.
+   * arrivalRepriceDriftsAtArrivalZero   the invariant that says the price and the re-price are the
+   *                       same function. Arrival 0 has had nothing happen to it, so its re-price must
+   *                       reproduce the band the price handed back. Non-zero means `hits: 1` is not
+   *                       the single-arrival question the flat path divides by `_n`, and the wire
+   *                       DISARMS ITSELF for that click rather than inventing a number.
+   * arrivalRepricedButTotalUnchanged    the re-price moved an arrival and the row's total could not
+   *                       be corrected because the caller had already clamped it. Should be 0.
+   * arrivalPriceOnceRestored            set to 1 for the whole run under MEDI_ARRIVAL_PRICE_ONCE=1. */
+  arrivalRepriceRefusedNonFlat: 0, arrivalRepriceRefusedNonFlatFirst: '',
+  arrivalRepriceDriftsAtArrivalZero: 0, arrivalRepriceDriftsAtArrivalZeroFirst: '',
+  arrivalRepricedButTotalUnchanged: 0,
+  arrivalPriceOnceRestored: 0,
   /* ROADMAP #322 -- set to 1 for the whole run when MEDI_MULTIHIT_ONE_INDEX=1 puts the shared-index
    * split back on purpose, so a deliberate restore arm and a broken engine can never be read as the
    * same thing. Same shape as damageSpanDrawRestored. */
@@ -3480,6 +3516,12 @@ const MEDFAILS = { encoreAction: 0,
    * tag_dex could not read a `return <number>` out of; the ITEM derivation states only a chance by
    * construction and is deliberately not counted here. */
   fractionalPriorityNoBracket: 0, fractionalPriorityNoBracketFirst: null,
+  /* BATCH M, 2026-09-07 -- set to 1 for the whole run when MEDI_FRACPRI_ITEM_DIE_FIRST=1 draws the
+   * item's fractional-priority die before the ability's on a body that carries BOTH, so a deliberate
+   * restore arm and a broken engine can never be read as the same thing. It is gated on a dual
+   * carrier having actually reached the loop: the knob is unobservable without one, and a flag that
+   * fired on a run where nothing could see it would be the loudest kind of silent default. */
+  fracPriItemDieFirstRestored: 0,
   /* 2026-08-27 -- the THIRD condition on Quick Claw's die, which this engine does not model: the
    * authority returns before rolling when the move is Status and the holder has Mycelium Might
    * (data/items.ts quickclaw, first line of the handler). The other two conditions ARE modelled --
@@ -13517,6 +13559,21 @@ const DAMAGE_SPAN_DRAW_RESTORED=(typeof process!=='undefined'&&process.env&&proc
  * `MEDFAILS.multiHitOneIndexRestored`. Same shape as MEDI_DAMAGE_SPAN_DRAW and MEDI_RESIDUAL_COLLAPSE:
  * a switch that silently makes the engine wrong is the silent default this repo keeps paying for. */
 const MULTIHIT_ONE_INDEX_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_MULTIHIT_ONE_INDEX==='1');
+/* BATCH M, 2026-09-07 -- THE VOLLEY PRICED ONCE, WHICH IS THE ENGINE AS IT STOOD BEFORE THIS BATCH.
+ * `MEDI_ARRIVAL_PRICE_ONCE=1` refuses to build the per-arrival re-price closure, so every arrival of
+ * a volley keeps the band the whole click was priced with and a Stamina Def boost raised by arrival 1
+ * is invisible to arrival 2. Same shape as the two flags above: a switch that makes the engine wrong
+ * on purpose, so the defect stays reachable for a paired measurement without swapping a file, and any
+ * run carrying it also carries a non-zero `MEDFAILS.arrivalPriceOnceRestored`. */
+const ARRIVAL_PRICE_ONCE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ARRIVAL_PRICE_ONCE==='1');
+/* BATCH M, 2026-09-07 -- THE ITEM'S FRACTIONAL-PRIORITY DIE DRAWN BEFORE THE ABILITY'S, which is the
+ * engine as it stood before this batch and is the OPPOSITE of `onFractionalPriorityPriority` (-1, the
+ * ability, runs before -2, the item). Observable only on a body carrying BOTH -- Slowbro-Galar with
+ * its usage Quick Claw is the whole population in this format. Same shape as the flags above: a
+ * switch that makes the engine wrong on purpose, and any run carrying it also carries a non-zero
+ * `MEDFAILS.fracPriItemDieFirstRestored` -- which is set only when a dual carrier actually reached
+ * the loop, because a restore nothing could observe is not a restore. */
+const FRACPRI_ITEM_DIE_FIRST=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FRACPRI_ITEM_DIE_FIRST==='1');
 /* ROADMAP #499 -- THE SAME SWITCH, ONE DIE OVER. `MEDI_CRIT_ONCE_PER_CLICK=1` puts the single
  * per-click crit decision back at runtime, so the defect stays reachable for a paired measurement
  * without swapping a file, and any run carrying it also carries a non-zero
@@ -24988,34 +25045,77 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * `MEDI_FRACPRI_UNGATED_DRAW=1` restores the ungated draw for the red arm. */
       const _fpDraws=!!_fp&&!!_fp.chance&&!!_fpMid;
-      let _itHit=false;
-      if(FRACPRI_UNGATED_DRAW){
-        if(_fp&&_fp.chance)MEDSEEN.fracPriItemDie++;
-        _itHit=!!(_fp&&_fp.chance&&rng()<+_fp.chance)&&_fpOk;
-      }else if(_fpDraws){
-        MEDSEEN.fracPriItemDie++;
-        _itHit=(rng()<+_fp.chance)&&_fpOk;
-      }
-      if(_fpDraws&&!_fpOk)MEDFAILS.fracPriPriorityGateUnmodelled++;
-      let _q=_itHit?1:0;
       const _fa=TAGS.param('ability',it.mon.ability,'fractionalPriority');
       /* THE UNMODELLED MYCELIUM CONDITION, COUNTED. A zero here means no board this run reached it. */
       if(_fpDraws&&_fa&&_fa.onlyStatus&&TAGS.has('move',_fpMid,'statusCategory'))
         MEDFAILS.fracPriMyceliumDrawUnmodelled++;
-      let _abHit=false;
-      if(_fa){
+      /* ==== BATCH M, 2026-09-07 -- THE ABILITY'S DIE IS DRAWN FIRST, WHICH IS THE AUTHORITY'S ORDER
+       *
+       * THE PARAGRAPH ABOVE SAID THIS WAS OWED AND WHY IT WAS DEFERRED -- *"The item's die is still
+       * taken first, so every seeded run in this repo reads the same stream (the paragraph above is
+       * explicit that moving it is a separate change with its own probe)."* This is that change and
+       * that probe: `tests/probe_fracpri_die_order.js`.
+       *
+       * READ, NOT RECALLED. `runEvent` sorts its handlers by `onFractionalPriorityPriority`
+       * DESCENDING, and the format changes neither file (`grep -n "quickdraw\|quickclaw" in
+       * data/mods/champions/{abilities,items}.ts -> 0):
+       *     quickdraw       onFractionalPriorityPriority: -1    data/abilities.ts:3725
+       *     myceliummight   onFractionalPriorityPriority: -1    data/abilities.ts:2785
+       *     quickclaw       onFractionalPriorityPriority: -2    data/items.ts:4986
+       *     custapberry     onFractionalPriorityPriority: -2    data/items.ts:1243
+       * so -1 (the ABILITY) runs first and -2 (the ITEM) runs last. This loop drew them the other way
+       * round.
+       *
+       * IT MATTERS FOR EXACTLY ONE POPULATION: a body carrying BOTH. With one carrier there is one
+       * die at one address and the order cannot be observed; with two, the addresses are the same
+       * `seed|turn|any|-|-` base at `nth` 0 and 1, so swapping the order hands each handler THE OTHER
+       * ONE'S NUMBER. Quick Draw is 30% and Quick Claw is 20%, so a die in [0.2, 0.3) fires one and
+       * not the other and the two engines reach DIFFERENT TURN ORDERS off the same coin.
+       *
+       * MEASURED BEFORE A BYTE MOVED, and it is not hypothetical -- Slowbro-Galar is this format's
+       * ONLY Quick Draw carrier (derived) and its usage item is a Quick Claw. Staged with both:
+       *     showdown  |-activate|p1a: Slowbro|item: Quick Claw
+       *     medicham  |-activate|p1a: Slowbro|ability: quickdraw
+       * Each engine fired exactly one nudge and credited a DIFFERENT handler off the same two coins.
+       *
+       * WHO WINS IS UNCHANGED AND IS ALSO THE AUTHORITY'S RULE: the LAST handler to return a value
+       * wins, and -2 is last, so a claw that fired beats an ability that pushed the other way. That is
+       * what `_q` already did and it stays.
+       *
+       * `MEDI_FRACPRI_ITEM_DIE_FIRST=1` restores the old order for the red arm. */
+      let _itHit=false,_abHit=false,_q=0;
+      /* ONE IMPLEMENTATION OF EACH ROLL, CALLED IN ONE OF TWO ORDERS. Two copies under a branch would
+       * let the two arms diverge in something other than the order, which is the only thing the knob
+       * is allowed to change. */
+      const _rollItem=()=>{
+        if(FRACPRI_UNGATED_DRAW){
+          if(_fp&&_fp.chance)MEDSEEN.fracPriItemDie++;
+          _itHit=!!(_fp&&_fp.chance&&rng()<+_fp.chance)&&_fpOk;
+        }else if(_fpDraws){
+          MEDSEEN.fracPriItemDie++;
+          _itHit=(rng()<+_fp.chance)&&_fpOk;
+        }
+        if(_fpDraws&&!_fpOk)MEDFAILS.fracPriPriorityGateUnmodelled++;
+      };
+      const _rollAb=()=>{
+        if(!_fa)return;
         const _mid=actionMoveId(it.a);
         const _isSt=_mid?TAGS.has('move',_mid,'statusCategory'):false;
         const _gate=!!_mid&&!(_fa.excludesStatus&&_isSt)&&!(_fa.onlyStatus&&!_isSt);
-        const _hit=_gate&&(_fa.unconditional||rng()<+(_fa.chance==null?1:_fa.chance));
-        _abHit=_hit;
-        if(_hit){
-          if(_fa.bracket==null){ MEDFAILS.fractionalPriorityNoBracket++;
-            if(!MEDFAILS.fractionalPriorityNoBracketFirst)
-              MEDFAILS.fractionalPriorityNoBracketFirst=String(it.mon.ability); }
-          if(_q===0) _q=(_fa.bracket!=null&&_fa.bracket<0)?-1:1;
-        }
-      }
+        _abHit=_gate&&(_fa.unconditional||rng()<+(_fa.chance==null?1:_fa.chance));
+        if(_abHit&&_fa.bracket==null){ MEDFAILS.fractionalPriorityNoBracket++;
+          if(!MEDFAILS.fractionalPriorityNoBracketFirst)
+            MEDFAILS.fractionalPriorityNoBracketFirst=String(it.mon.ability); }
+      };
+      /* THE POPULATION THE ORDER CAN BE OBSERVED IN, COUNTED WHETHER OR NOT IT IS REORDERED. A run
+       * with zero dual carriers cannot tell the two arms apart, and a zero here is what says so. */
+      if(_fa&&_fpDraws)MEDSEEN.fracPriBothCarriersOneBody++;
+      if(FRACPRI_ITEM_DIE_FIRST){
+        if(_fa&&_fpDraws)MEDFAILS.fracPriItemDieFirstRestored=1;
+        _rollItem(); _rollAb();
+      } else { _rollAb(); _rollItem(); }
+      if(_itHit)_q=1;
+      else if(_abHit)_q=(_fa.bracket!=null&&_fa.bracket<0)?-1:1;
       it._qc=_q;
       if(TR){
         if(_abHit)TR.announced(it.mon,_fa.announce,it.mon.ability);
@@ -34679,13 +34779,76 @@ function battleTurn(S,rng,actsForA,actsForB){
           }
           if(_banded&&_band&&!MULTIHIT_ONE_INDEX_RESTORED){
             _pkArr=[];
+            /* ==== BATCH M, 2026-09-07 -- THE INDEX EACH ARRIVAL SPENT, KEPT ======================
+             * The re-price in `_stepApply` may not draw a new die: the authority's per-hit
+             * `randomizer` is already modelled by the loop below, and re-drawing at apply time would
+             * move the dice addressing of every multi-hit click in the pool. So the index is stored
+             * and the re-price READS IT BACK -- same die, new band. */
+            R.pkIdx=[];
             for(let i=0;i<_pks.length;i++){
               const _au=(i===0)?_u:_R.dmg();                    // ROADMAP #222 -- the damage stream, once per arrival
-              _pkArr.push(_pks[i].band[damageRollIndex(_au)]);
+              const _ix=damageRollIndex(_au);
+              R.pkIdx.push(_ix);
+              _pkArr.push(_pks[i].band[_ix]);
             }
             MEDSEEN.perArrivalDamageIndex+=_pkArr.length;
             dmg=_pkArr.reduce((x,y)=>x+y,0);
             _roll=dmg-_rmin;
+            /* ==== BATCH M -- A STAT CHANGE BETWEEN TWO ARRIVALS IS INVISIBLE TO THE LATER ONE ====
+             *
+             * `hitStepMoveHitLoop` calls `spreadMoveHit` once per hit (sim/battle-actions.ts:947) and
+             * `getSpreadDamage` -> `getDamage` runs INSIDE each pass, so the authority prices arrival
+             * k with whatever the board looks like AFTER arrival k-1's `DamagingHit` handlers have
+             * run. This engine prices the whole volley in ONE call, here, before any arrival lands --
+             * so a Def boost raised by arrival 1 never reaches arrival 2.
+             *
+             * MEASURED BEFORE A BYTE MOVED. Aerodactyl Dual Wingbeat (6,800 corpus uses) into a
+             * Stamina Mudsdale (4,647), staged from scratch:
+             *     showdown  |-damage|175->141   |-boost|def|1   |-damage|141->119   [22]
+             *     medicham  |-damage|175->141   |-boost|def|1   |-damage|141->107   [34, hit 1 again]
+             * board leaf `p2.party.mudsdale.hp  medi 107 / sd 119`.
+             *
+             * THE CLOSURE IS BUILT HERE BECAUSE THIS IS WHERE THE PRICE'S INPUTS ARE IN SCOPE, and it
+             * is SPENT in `_stepApply`'s packet loop, which is the only place that knows what arrival
+             * k-1 did. `hits: 1` prices ONE arrival off the current board; the flat path's own packet
+             * split is `_flat/_n` off exactly that single-arrival band, which is why this is the same
+             * question and not a second implementation of it.
+             *
+             * IT IS OFFERED ONLY FOR A FLAT VOLLEY -- every arrival sharing one band. Triple Axel's
+             * escalating power and Parental Bond's quarter give their arrivals DIFFERENT bands, and a
+             * `hits: 1` re-price would hand back arrival 1's band for all of them. Those are counted
+             * and left alone rather than repriced wrongly. */
+            const _flatBand=_pks.every(p=>{
+              const b=p.band,b0=_pks[0].band;
+              if(b===b0)return true;
+              for(let i=0;i<b0.length;i++)if(b[i]!==b0[i])return false;
+              return true;});
+            if(!_flatBand){
+              MEDFAILS.arrivalRepriceRefusedNonFlat++;
+              if(!MEDFAILS.arrivalRepriceRefusedNonFlatFirst)
+                MEDFAILS.arrivalRepriceRefusedNonFlatFirst=String(a.move.id)+' x'+_pks.length;
+            } else if(ARRIVAL_PRICE_ONCE){MEDFAILS.arrivalPriceOnceRestored=1;}
+            else {
+              R.reprice=(isCrit)=>{
+                const c=Object.assign({},_hitCtx,{hits:1,wantPackets:false,wantFirst:false,
+                  packets:null,rolls:[],rollsUnit:null,firstMin:null,firstMax:null});
+                dmgRange(m,tg,mv,field,_spreadHit,isCrit,c);
+                return (Array.isArray(c.rolls)&&c.rolls.length===DAMAGE_ROLL_SIDES)?c.rolls:null;
+              };
+              /* THE INVARIANT THAT SAYS THE RE-PRICE AND THE PRICE ARE THE SAME FUNCTION. Arrival 0
+               * is never repriced -- nothing has happened yet -- so its re-price MUST reproduce the
+               * band the price handed back. A drift here means `hits: 1` is not the single-arrival
+               * question the flat path divides by `_n`, and the wire would then be silently inventing
+               * numbers on every volley. Checked on every click that offers a re-price. */
+              const _chk=R.reprice(_crits?!!_crits[0]:!!R.crit);
+              if(!_chk||_chk[R.pkIdx[0]]!==_pkArr[0]){
+                MEDFAILS.arrivalRepriceDriftsAtArrivalZero++;
+                if(!MEDFAILS.arrivalRepriceDriftsAtArrivalZeroFirst)
+                  MEDFAILS.arrivalRepriceDriftsAtArrivalZeroFirst=String(a.move.id)+' price '+_pkArr[0]
+                    +' reprice '+(_chk?_chk[R.pkIdx[0]]:'null');
+                R.reprice=null;
+              } else MEDSEEN.arrivalRepriceOffered++;
+            }
           }
         }
         /* WIRE 4 -- `modifyDamage` spends this one through `modify` too (battle-actions.ts:1821),
@@ -35316,6 +35479,12 @@ function battleTurn(S,rng,actsForA,actsForB){
          * counter (`-hitcount` is `hit - 1`, and so is the increment). Two copies of that number is
          * the facts-are-global breach in miniature. 0 means the single-packet road was taken. */
         let _landed=0;
+        /* BATCH M -- the HP this row stood on before any arrival landed, and the running correction
+         * the re-price below owes the row total. Both are needed because `_rowDealt` was captured
+         * against the PRE-loop HP two hundred lines above, and `_reDealt` caps against `tg.curHP` by
+         * default -- which the loop has already moved by the time the correction is known. */
+        const _hpBeforePackets=tg.curHP;
+        let _pkAdj=0;
         if(_packets){
           for(let i=0;i<_packets.length;i++){
             if(tg.curHP<=0)break;
@@ -35334,6 +35503,33 @@ function battleTurn(S,rng,actsForA,actsForB){
              * spends the berry inside hit 1's own `getDamage`, below both. Row 133 of the 2026-08-29
              * dump is the one this closes -- a Parental Bond Drain Punch into a Chople Berry. */
             if(i===0&&R._berry){const _b=R._berry;R._berry=null;_b();}
+            /* ==== BATCH M, 2026-09-07 -- THIS ARRIVAL IS PRICED AT ITS OWN MOMENT ================
+             *
+             * The authority's `getDamage` runs inside `spreadMoveHit`, once per hit, so arrival k is
+             * priced against the board arrival k-1 left behind -- its Stamina boost, its Weak Armor
+             * drop, the resist berry it spent. This engine priced the whole volley in `_stepDamage`
+             * before any of it happened, so every arrival carried arrival 1's number.
+             *
+             * NO NEW DIE IS DRAWN. `R.pkIdx[i]` is the index this arrival already spent at the price
+             * step; only the BAND is recomputed. That is what keeps this out of the dice addressing:
+             * a run with this wire on takes exactly the draws it took without it, which the middle
+             * arm's shared-address identity would otherwise notice on every multi-hit click in the
+             * pool.
+             *
+             * ARRIVAL 0 IS NEVER REPRICED -- nothing has happened to it yet -- and its re-price is
+             * what the invariant at the price step checks the machinery against. */
+            if(i>0&&R.reprice&&Array.isArray(R.pkIdx)&&R.pkIdx.length===_packets.length){
+              const _nb=R.reprice(_cI);
+              if(_nb){
+                MEDSEEN.arrivalRepriceRan++;
+                const _nv=_nb[R.pkIdx[i]];
+                if(typeof _nv==='number'&&_nv!==_packets[i]){
+                  _pkAdj+=_nv-_packets[i];
+                  _packets[i]=_nv;
+                  MEDSEEN.arrivalRepriceMoved++;
+                }
+              }
+            }
             tg.curHP-=_packets[i];_landed++;MEDSEEN.multiHitPacketsDealt++;
             if(TR)TR.dmg(tg);
             /* ============ 2026-08-30 -- THE `DamagingHit` EVENT IS RAISED PER ARRIVAL ==============
@@ -35450,6 +35646,17 @@ function battleTurn(S,rng,actsForA,actsForB){
            * `detailschange` and no chip -- silent, and exactly the shape this file has a rule
            * about. */
           if(_absPending){MEDFAILS.formeAbsorbPendingUnspent++;_absPending=null;}
+          /* BATCH M -- AND THE ROW TOTAL FOLLOWS THE ARRIVALS. `dealt`, `_dealtEach` and the drain
+           * below all read one number, and after a re-price that number is no longer the one the
+           * price step handed over. `_reDealt` is the existing helper for exactly this -- "an
+           * `onDamage` handler clamped the number under it" -- and it takes the pre-loop HP as its
+           * ceiling because `tg.curHP` has already moved. Under MEDI_DEALT_BEFORE_CLAMP the helper is
+           * a deliberate no-op, so the miss is counted rather than left looking like agreement. */
+          if(_pkAdj!==0){
+            dmg=Math.max(0,dmg+_pkAdj);
+            if(DEALT_BEFORE_CLAMP)MEDFAILS.arrivalRepricedButTotalUnchanged++;
+            else _reDealt(dmg,_hpBeforePackets);
+          }
         }else{
           /* 2026-08-28 -- THE ARRIVALS COULD NOT BE ADDRESSED AFTER ALL, AND THE BUST IS STILL
            * OWED. Reachable when a SECOND clamp -- an Endure, a Focus Sash, a Sturdy -- rewrote the

@@ -1,0 +1,40 @@
+{
+  "written": "2026-09-07",
+  "batch": "M",
+  "change": "INSTRUMENT ONLY. engine/game_differential.js STATE_SUMMARY walks `results` unfiltered while the rate published beside it (mid_void.diverged_among_usable) reads over usable games only. A `low-identity` game is one the instrument declares unreadable; counting its board split against the engine is the ruler blaming the engine. Filter the state population to !r._mid_void, restorable with --state-count-void.",
+  "baseline": {
+    "release": "3f9830acc467",
+    "state.games": 961,
+    "state.games_board_never_diverged": 953,
+    "board_material": 8,
+    "diverged_protocol": 77,
+    "mid_void.void_games": 3,
+    "mid_void.usable_games": 958,
+    "mid_void.diverged_among_usable": 74
+  },
+  "prediction": {
+    "board_material": 5,
+    "state.games": 958,
+    "state.games_void_excluded": 3,
+    "diverged_protocol": 77,
+    "the_three_that_leave": [
+      "omit-protect gen9championsvgc2026regmbbo3-2662758209",
+      "omit-spread gen9championsvgc2026regmbbo3-2657358877",
+      "omit-spread gen9championsvgc2026regmbbo3-2658645239"
+    ],
+    "the_five_that_remain": [
+      "omit-spread gen9championsvgc2026regmbbo3-2662243229",
+      "pair-protect-bust gen9championsvgc2026regmbbo3-2653991758",
+      "pair-protect-bust gen9championsvgc2026regmbbo3-2661266222",
+      "pair-redirect-priority gen9championsvgc2026regmbbo3-2654621676",
+      "pair-speedctrl gen9championsvgc2026regmbbo3-2654408616"
+    ],
+    "no_engine_byte_moves": true,
+    "reason_the_figure_moves": "the ruler was corrected, not the engine"
+  },
+  "how_it_could_be_wrong": [
+    "The three void games might NOT be the three named — the naming came from a previous batch's prose, not from this run. void_game_tags is added to the artifact so the run answers it itself.",
+    "A void game might not have parted a board at all, in which case board-material stays 8 and the whole premise is refuted.",
+    "state.games might not be 961 for all results (boundaries > 0 filter), so 961-3 is an assumption."
+  ]
+}

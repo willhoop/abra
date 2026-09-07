@@ -1138,6 +1138,14 @@ const VOID_DEBUG = has('--void-debug');
  * they did before 2026-08-18. `tests/test-middle-draw-scope.js` runs both arms and fails if the
  * broken one does NOT break — a control that cannot fail proves nothing. */
 const MID_CARRY = has('--mid-carry-nth');
+/* `--state-count-void` RESTORES THE PRE-2026-09-07 BOARD POPULATION, so the correction below can be
+ * shown as a paired delta rather than asserted. The board clause used to walk `results` UNFILTERED
+ * while the protocol rate printed two lines above it published `diverged_among_usable` over the
+ * games the instrument can actually read. A `low-identity` game is one THIS INSTRUMENT declares
+ * unreadable -- its two dice streams are not shared, so whatever its board does is the ruler's doing
+ * and not the engine's. Counting it against the engine is the ruler blaming the thing it measures.
+ * Default is the corrected population; `tests/probe_state_void_exclusion.js` runs both. */
+const STATE_COUNT_VOID = has('--state-count-void');
 /* `--mid-damage-uninverted` RESTORES THE BACKWARDS DAMAGE INDEX, so the mapping fix can be shown RED
  * instead of asserted. `tests/test-middle-damage-roll.js` runs both arms. */
 const MID_NO_INVERT = has('--mid-damage-uninverted');
@@ -7654,6 +7662,14 @@ if (PRIMARY_ARM.middle) {
   MID_VOID_SUMMARY = {
     void_games: voided, usable_games: usable.length,
     diverged_among_usable: divUsable,
+    /* WHICH GAMES, BY NAME. The count was published and the identities were not, so the claim
+     * "these three board-material rows are the instrument's own void games" could only be made in
+     * prose by matching two lists by hand. It is now a field, and it carries what each void game's
+     * board did, so the exclusion below can be audited from the artifact alone. */
+    void_game_tags: results.filter(r => r._mid_void).map(r => ({
+      config: r.config, seed: r.seed, why: r._mid_why, turns: r.turns,
+      protocol_diverged_at_turn: r.divTurn == null ? null : r.divTurn,
+      board_parted_at_turn: r.stateDiv ? r.stateDiv.turn : null })),
     diverged_rate_over_usable: usable.length ? +(divUsable / usable.length).toFixed(4) : null,
     mid_battle_bound_at_install: !MID_UNBOUND,
     empty_address_games_counted_void: VOID_EMPTY_IS_VOID,
@@ -7833,8 +7849,19 @@ console.log('');
  * Two numbers, and they answer different questions. The protocol rate says whether the two engines
  * TELL THE SAME STORY; the state rate says whether they REACH THE SAME BOARD. Ten wires were aimed
  * with the first alone. */
-const STATE_SUMMARY = (() => {
+const STATE_SUMMARY = ((allResults) => {
   if (!STATE) return null;
+  /* ---- THE BOARD IS READ OVER THE GAMES THE INSTRUMENT CAN READ, AND IT WAS NOT ----------------
+   * 2026-09-07. Every line below used to walk `results` unfiltered, while `mid_void` -- printed
+   * immediately above -- published its protocol rate as `diverged_among_usable / usable_games`.
+   * So the two headline numbers of the same run used two different denominators, and the board one
+   * charged the engine for games whose dice streams the instrument itself had declared unshared.
+   * That is not a smaller truth, it is a different question: a `low-identity` game's board split
+   * cannot be attributed to the engine because the two engines were not flipping the same coins.
+   * The count that leaves is published, not netted off, so a reader can always get the old number
+   * back; `--state-count-void` reproduces it exactly. */
+  const results = STATE_COUNT_VOID ? allResults : allResults.filter(r => !r._mid_void);
+  const VOID_EXCLUDED = allResults.length - results.length;
   const bTot = results.reduce((a, r) => a + (r.boundaries || 0), 0);
   const bAgr = results.reduce((a, r) => a + (r.boundariesAgreed || 0), 0);
   const gamesWithABoundary = results.filter(r => r.boundaries > 0);
@@ -8063,6 +8090,13 @@ const STATE_SUMMARY = (() => {
     turn_boundaries_compared: bTot, turn_boundaries_identical: bAgr,
     turn_boundary_agreement: bTot ? +(bAgr / bTot).toFixed(4) : null,
     games: gamesWithABoundary.length, games_board_never_diverged: neverParted.length,
+    /* THE EXCLUSION, STATED IN THE ARTIFACT RATHER THAN NETTED OFF. `games_void_excluded` is how
+     * many games the instrument declared unreadable and therefore did not judge the engine on;
+     * `games_before_void_exclusion` is the whole played population. Under `--state-count-void`
+     * the first is 0 and every number here is the pre-2026-09-07 one. */
+    games_void_excluded: VOID_EXCLUDED,
+    games_before_void_exclusion: allResults.length,
+    void_games_counted_against_the_engine: STATE_COUNT_VOID,
     game_agreement: gamesWithABoundary.length ? +(neverParted.length / gamesWithABoundary.length).toFixed(4) : null,
     median_turn_of_first_board_divergence: turnsOf.length ? turnsOf[Math.floor(turnsOf.length / 2)] : null,
     protocol_diverged_games: P.length,
@@ -8083,7 +8117,7 @@ const STATE_SUMMARY = (() => {
     planted_state_proof_ok: !!(STATE_PROOF && STATE_PROOF.all_ok),
     mappings_all_proved: MAPPING_OK,
   };
-})();
+})(results);
 if (STATE_SUMMARY) {
   const S2 = STATE_SUMMARY, pc = (a, b) => (b ? (100 * a / b).toFixed(1) + '%' : 'n/a');
   const T1 = S2.turn1;
@@ -8170,6 +8204,13 @@ if (STATE_SUMMARY) {
   console.log('    GAMES whose board NEVER diverged             ' + S2.games_board_never_diverged + '/'
     + S2.games + '   ' + pc(S2.games_board_never_diverged, S2.games));
   console.log('    median turn of the first board divergence    ' + S2.median_turn_of_first_board_divergence);
+  console.log('    BOARD-MATERIAL GAMES                         ' + (S2.games - S2.games_board_never_diverged)
+    + '/' + S2.games + '   (the bar: state.games less state.games_board_never_diverged)');
+  console.log('    of ' + S2.games_before_void_exclusion + ' played, ' + S2.games_void_excluded
+    + ' were EXCLUDED as the instrument OWN void games (low-identity: the two dice streams are not shared)'
+    + (S2.void_games_counted_against_the_engine
+       ? '   <-- --state-count-void: NOT excluded, this is the pre-2026-09-07 ruler'
+       : ' so their board split is the RULER and not the engine'));
   console.log('    for comparison, the PROTOCOL rate           ' + (results.length - diverged.length)
     + '/' + results.length + '   ' + pc(results.length - diverged.length, results.length) + ' of games agreed');
   console.log('');
@@ -8806,6 +8847,22 @@ console.log('    ' + MIRROR_IMPOSSIBLE.n + ' forced switch(es) UNMIRRORABLE — 
 console.log('    MEDFAILS.traceBodyOffField = ' + M.fails.traceBodyOffField
   + (M.fails.traceBodyOffField ? '  <-- a `??` identifier reached the stream, first: ' + M.fails.traceBodyOffFieldFirst
                                  + '. tests/test-protocol-trace.js PART 6 says this must read 0.' : ' (must read 0)'));
+/* BATCH M, 2026-09-07 -- THE PER-ARRIVAL RE-PRICE, PROVING IT RAN OVER THE POOL AND NOT ONLY IN THE
+ * LAB. A wire that only its own probe can see is a wire nobody can attribute a pool number to; this
+ * repository's rule is that a capability which cannot prove it ran is assumed broken. CONSOLE ONLY --
+ * no artifact field, no number computed from it -- so a run before and after this block is the same
+ * measurement. `Ran` with `Moved` at zero is the shape to watch: a re-price reading a board that never
+ * moves is byte-identical to the old engine and costs a dmgRange call per arrival. */
+console.log('    per-arrival volley re-price: offered ' + (M.seen.arrivalRepriceOffered | 0)
+  + ', ran ' + (M.seen.arrivalRepriceRan | 0) + ', MOVED a number ' + (M.seen.arrivalRepriceMoved | 0)
+  + ((M.seen.arrivalRepriceOffered | 0) && !(M.seen.arrivalRepriceMoved | 0)
+      ? '   <-- OFFERED BUT NEVER MOVED: identical to the old engine, at a cost' : '')
+  + '   [refused non-flat ' + (M.fails.arrivalRepriceRefusedNonFlat | 0)
+  + (M.fails.arrivalRepriceRefusedNonFlatFirst ? ' (' + M.fails.arrivalRepriceRefusedNonFlatFirst + ')' : '')
+  + ', drifted at arrival 0 ' + (M.fails.arrivalRepriceDriftsAtArrivalZero | 0)
+  + (M.fails.arrivalRepriceDriftsAtArrivalZero ? '  <-- MUST READ 0, the wire disarmed itself' : '')
+  + ', total not corrected ' + (M.fails.arrivalRepricedButTotalUnchanged | 0) + ']'
+  + ((M.fails.arrivalPriceOnceRestored | 0) ? '   [MEDI_ARRIVAL_PRICE_ONCE=1 — THE DEFECT IS RESTORED]' : ''));
 console.log('    undeclared Showdown events dropped before alignment: ' + UNDECLARED_DROPS
   + (UNDECLARED_DROPS ? '  <-- ' + [...UNDECLARED_SEEN].join(', ') : ' (must read 0)'));
 /* The standing block's own swallowed failures. A zero here is the CLAIM that every `uses: null` and

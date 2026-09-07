@@ -1,0 +1,38 @@
+{
+  "written": "2026-09-07",
+  "batch": "M",
+  "change": "ENGINE. medicham2-browser.js prices arrival k of a flat volley against the board arrival k-1 left behind, instead of pricing the whole volley once before any arrival lands. No new die is drawn: the roll INDEX each arrival already spent is stored at the price step and read back at the apply step. Knob MEDI_ARRIVAL_PRICE_ONCE=1 restores the old behaviour.",
+  "release_under_test": "830350135192",
+  "baseline": {
+    "release": "3f9830acc467",
+    "instrument": "AFTER the void-clause correction",
+    "board_material": 5,
+    "state.games": 958,
+    "state.games_void_excluded": 3,
+    "diverged_protocol": 77,
+    "mid_void.void_games": 3,
+    "the_five": [
+      "omit-spread ...2662243229 t11   Last Resort lands here and fails there",
+      "pair-protect-bust ...2653991758 t7   THE VOLLEY REPRICE — this fix is aimed at this game",
+      "pair-protect-bust ...2661266222 t6   a -hitcount on a one-hit Parental Bond click",
+      "pair-redirect-priority ...2654621676 t8   board cause still unidentified",
+      "pair-speedctrl ...2654408616 t5   Quick Draw"
+    ]
+  },
+  "prediction": {
+    "board_material": 4,
+    "the_game_that_leaves": "pair-protect-bust gen9championsvgc2026regmbbo3-2653991758 (t7)",
+    "diverged_protocol": "77 or lower; it is NOT predicted to rise",
+    "mid_void.void_games": 3,
+    "state.games": 958,
+    "dice_addressing_unchanged": true,
+    "why_the_addressing_cannot_move": "dmgRange draws no dice at all — no midEventDraw call exists anywhere in its body — and the re-price reads back the index the arrival already spent. So the middle arm's shared-address identity must be unchanged and mid_void.void_games must stay at 3."
+  },
+  "how_it_could_be_wrong": [
+    "MULTI-HIT IS COMMON. Dual Wingbeat alone is 6,800 corpus uses and the multiHit family is 14 moves. A volley that now deals more damage can KO a body a turn earlier and part boards in games that previously agreed — the last batch's residual v1 took the bar 9 -> 10 and was thrown away. Board-material RISING is a real outcome here and the fix is thrown away if it does.",
+    "The resist-berry half (RED-3) was not predicted before the probe found it. There may be a fourth thing this wire changes that no arm has staged.",
+    "A game may LEAVE on this cause and RE-ENTER on a leaf this fix uncovers. That is a TRANSFER, not a miss, and is reported as one.",
+    "Triple Axel and Parental Bond are refused by the flat-band gate, so any board they part is untouched. arrivalRepriceRefusedNonFlat says how often that happened."
+  ],
+  "throw_away_if": "board_material > 5, or mid_void.void_games != 3 (which would mean the addressing moved and the pin with it)"
+}
