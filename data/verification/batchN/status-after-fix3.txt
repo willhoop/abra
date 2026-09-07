@@ -1,0 +1,797 @@
+FEATURE SEMANTICS CHECK FAILED — C:\Users\willj\Projects\Pokemon\ABRA\data\policy-weights.json
+  the fixture itself changed (rounding 6 -> 6, scenarios 10 -> 12). Old hashes cannot be compared; restamp after checking board.js.
+
+  the DAMAGE TABLE these weights were fitted against has been regenerated (318 species -> 322, digest 405c836793d1 -> 9d289cf77e24).
+  The feature hashes below may still match and that is NOT reassurance: the fixture stands on a
+  fixed handful of species, so a set change to any species it does not contain moves nothing here.
+  Measure what it touches before deciding — how many corpus games contain a changed species —
+  then refit (node engine/fit_policy.js, then node engine/fit_joint.js) if it reaches the fit,
+  or restamp with: node engine/feature_fixture.js --stamp <file>
+  GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE —
+  settle the table verdict first, or the evidence for the refit is written over.
+  docs_scan: data/abra-meta.js is present but unparsable (Unexpected token '/', "/* GENERAT"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/abra-tags.js is present but unparsable (Unexpected token '/', "/* GENERAT"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/board-data.js is present but unparsable (Unexpected token '/', "/* GENERAT"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/engine-data.js is present but unparsable (Unexpected token '/', "/* engine-"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/guru.js is present but unparsable (Unexpected token '/', "/* GENERAT"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/kad-replays.js is present but unparsable (Unexpected token 'w', "window.KAD"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/live.js is present but unparsable (Unexpected token 'w', "window.LIV"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/mag.js is present but unparsable (Unexpected token '/', "/* mag.js "... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/mega-formes.js is present but unparsable (Unexpected token '/', "/* GENERAT"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/mew.js is present but unparsable (Unexpected token '/', "/* data/me"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/move-effects.js is present but unparsable (Unexpected token '/', "/* GENERAT"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/nmf.js is present but unparsable (Unexpected token 'w', "window.NMF"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/pory.js is present but unparsable (Unexpected token 'w', "window.POR"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/roles.js is present but unparsable (Unexpected token 'w', "window.ROL"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/scoreboard.js is present but unparsable (Unexpected token 'w', "window.SCO"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/slowking-playstyle.js is present but unparsable (Unexpected token 'w', "window.SLO"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/slowking.js is present but unparsable (Unexpected token 'w', "window.SLO"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/status.js is present but unparsable (Unexpected token '/', "/* data/st"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+  docs_scan: data/xatu.js is present but unparsable (Unexpected token 'w', "window.XAT"... is not valid JSON) — NOT scoring any figure against it, because an empty set would make every citation look wrong
+
+ABRA STATUS — generated 2026-09-07 16:53 by engine/status.js
+Every figure is read from an artifact. NOT DERIVED means no artifact says it. Times are UTC.
+
+QUARANTINE — MEDICHAM IS NOT CORRECT, SO EVERY FIGURE DOWNSTREAM OF IT IS WITHHELD
+  63 artifacts are downstream and are not printed below. The gate is computed, not set:
+    FAIL  game differential              MEASURED AGAINST A DIFFERENT ENGINE — data/engine-diff.json ran on release 
+                                         c28ad0815782 and the tree is 1be57a100d59. That is not a weaker answer, it is 
+                                         an answer about other bytes. EVERY COUNT IN IT IS WITHHELD and none is 
+                                         repeated here. WHY THE DIGEST MOVED: 1 of 1 moved source(s) really changed — 
+                                         engine/medicham2-browser.js. A re-measurement IS owed. Re-run: 
+                                         SHOWDOWN_PATH=... node tests/test-engine-diff.js --n 6000 --seed 20260804
+                                         READ FROM engine-diff.json, 1.5 h old
+                                         SCOPE (last run — the artifact is stale, so this is the harness's shape, not
+                                         a claim about this engine) — engine-diff.json: skipped_multihit 134
+                                         (multi-hit volleys, never run); skipped_ability_multihit 17 (Parental Bond
+                                         clicks, never run); pool.dropped 9 (species that can never be drawn)
+    FAIL  deliberate roster / items      MEASURED AGAINST A DIFFERENT ENGINE — data/roster.items.json ran on release 
+                                         c28ad0815782 and the tree is 1be57a100d59. That is not a weaker answer, it is 
+                                         an answer about other bytes. EVERY COUNT IN IT IS WITHHELD and none is 
+                                         repeated here. WHY THE DIGEST MOVED: 1 of 1 moved source(s) really changed — 
+                                         engine/medicham2-browser.js. A re-measurement IS owed. Re-run: 
+                                         SHOWDOWN_PATH=... node tests/roster.js --stage items --write
+                                         READ FROM roster.items.json, 1.6 h old
+                                         SCOPE (last run — the artifact is stale, so this is the harness's shape, not
+                                         a claim about this engine) — roster.items.json: scope.tested 140 of in_scope
+                                         148 — 8 unaccounted; scope.could_not_stage_in_scope 8 (in scope, no fixture)
+    FAIL  deliberate roster / abilities  MEASURED AGAINST A DIFFERENT ENGINE — data/roster.abilities.json ran on 
+                                         release c28ad0815782 and the tree is 1be57a100d59. That is not a weaker 
+                                         answer, it is an answer about other bytes. EVERY COUNT IN IT IS WITHHELD and 
+                                         none is repeated here. WHY THE DIGEST MOVED: 1 of 1 moved source(s) really 
+                                         changed — engine/medicham2-browser.js. A re-measurement IS owed. Re-run: 
+                                         SHOWDOWN_PATH=... node tests/roster.js --stage abilities --write
+                                         READ FROM roster.abilities.json, 1.6 h old
+                                         SCOPE (last run — the artifact is stale, so this is the harness's shape, not
+                                         a claim about this engine) — roster.abilities.json: scope.tested 129 of
+                                         in_scope 202 — 73 unaccounted; scope.out_of_scope 114 (excluded before
+                                         staging); scope.unattributable 45 (fired, control not quiet);
+                                         scope.could_not_stage_in_scope 27 (in scope, no fixture); scope.deferred 1;
+                                         counts.DEFERRED-BY-OWNER 1
+    FAIL  deliberate roster / moves      MEASURED AGAINST A DIFFERENT ENGINE — data/roster.moves.json ran on release 
+                                         c28ad0815782 and the tree is 1be57a100d59. That is not a weaker answer, it is 
+                                         an answer about other bytes. EVERY COUNT IN IT IS WITHHELD and none is 
+                                         repeated here. WHY THE DIGEST MOVED: 1 of 1 moved source(s) really changed — 
+                                         engine/medicham2-browser.js. A re-measurement IS owed. Re-run: 
+                                         SHOWDOWN_PATH=... node tests/roster.js --stage moves --write
+                                         READ FROM roster.moves.json, 1.5 h old
+                                         SCOPE (last run — the artifact is stale, so this is the harness's shape, not
+                                         a claim about this engine) — roster.moves.json: scope.tested 475 of in_scope
+                                         500 — 25 unaccounted; scope.could_not_stage_in_scope 22 (in scope, no
+                                         fixture); scope.deferred 3; counts.DEFERRED-BY-OWNER 3
+    PASS  coverage / every used mechanic is measured by something clean: all 412 moves above 25 clicks are measured by 
+                                                                  the roster or the census
+    PASS  whole-game differential / BOARD-MATERIAL — games whose boards part BOARD-MATERIAL: 0 of 958 games. Every 
+                                                                             compared turn boundary in every game 
+                                                                             holds the SAME BOARD on both engines. 
+                                                                             This is the quantity Will named on 
+                                                                             2026-08-22 — commentary may differ, 
+                                                                             boards may not — and it is met. RAW, AND 
+                                                                             NOT BY OVERSIGHT: no 
+                                                                             `DECLARED_DIVERGENCE` row and no 
+                                                                             data/decision-impact.json row can be 
+                                                                             subtracted from this count. Both 
+                                                                             attribute by protocol CAUSE over 
+                                                                             `classes[].causes[]`, and the artifact 
+                                                                             records no cause for a parted board — a 
+                                                                             board divergence is a leaf PATH. The 
+                                                                             NARRATION clause is where a declaration 
+                                                                             subtracts. UNCAUSED — 0 of the 0 game(s) 
+                                                                             part a BOARD while the protocol NEVER 
+                                                                             diverges at all (0 less 0 whose protocol 
+                                                                             also parted: 72 protocol divergence(s) 
+                                                                             less 72 whose board never did). THESE ARE 
+                                                                             THE ONES WITH NOTHING TO GREP: no cause, 
+                                                                             no class, no shape and no row in the 
+                                                                             narration clause. A fix that closes a 
+                                                                             protocol divergence without fixing the 
+                                                                             board puts a game HERE, and under the 
+                                                                             single clause that shipped until 
+                                                                             2026-09-04 it would have left the count 
+                                                                             altogether. the artifact carries no 
+                                                                             first-board-divergence row with 
+                                                                             `protocol_diverged_at_turn: null`, so 
+                                                                             this count has no worked example in it 
+                                                                             and the 0 above is arithmetic over four 
+                                                                             fields and nothing more. ORDER OF PARTING 
+                                                                             — 0 game(s) parted a BOARD before the 
+                                                                             protocol did and 0 held the board 
+                                                                             together after the protocol parted. 
+                                                                             Neither is this clause's verdict; they 
+                                                                             are printed because a board that parts 
+                                                                             FIRST is a rule disagreement the 
+                                                                             narration only reports downstream of. 
+                                                                             10537 of 10537 turn boundaries compared 
+                                                                             were IDENTICAL. That is the denominator 
+                                                                             this clause does NOT use — a game counts 
+                                                                             here if ANY boundary parted, so a 
+                                                                             per-boundary rate always reads greener.
+                                          READ FROM game-differential.json, 2 min old
+                                          SCOPE — game-differential.json: turns_cap 20; coverage.exercised 555 of
+                                          measurable 580 — 25 unaccounted;
+                                          declared_gaps.forced_switch_answer_source.voluntary_excluded 5229;
+                                          closet.teams_dropped 43 (teams dropped from the pool);
+                                          declared_gaps.forced_switch_answer_source.drags_excluded 13;
+                                          state.not_compared 9 (declared uncompared);
+                                          steering.driver_code.frozen_excluded 5; steering.driver_code.unresolved 4;
+                                          mid_void.void_games 3; state.games_void_excluded 3; +2 smaller exclusion(s)
+                                          — node engine/coverage.js --audit
+    FAIL  whole-game differential / NARRATION — protocol divergence with no board effect NARRATION-ONLY: 71 of 961 = 
+                                                                                         7.4% of games diverge in 
+                                                                                         NARRATION and never part a 
+                                                                                         board, across 70 cause(s) (72 
+                                                                                         narration-only raw, less 1 
+                                                                                         declared and 0 cleared on 
+                                                                                         decision impact). Mode A pins 
+                                                                                         every die on both sides, so 
+                                                                                         each one is a RULE they 
+                                                                                         disagree about, not noise. 
+                                                                                         This clause reads RED until 
+                                                                                         that is zero — a rate 
+                                                                                         threshold would be cleared by 
+                                                                                         the few biggest mechanisms 
+                                                                                         while the tail stood. THIS 
+                                                                                         CLAUSE NOW HOLDS THE GATE 
+                                                                                         SHUT. Will, 2026-08-22: 
+                                                                                         board-material now, narration 
+                                                                                         as its own separate gate 
+                                                                                         AFTERWARDS — and afterwards 
+                                                                                         has arrived, because the 
+                                                                                         BOARD-MATERIAL clause reads 
+                                                                                         zero. Nothing was switched on 
+                                                                                         by hand: `gates` is that 
+                                                                                         clause's own verdict, so this 
+                                                                                         flipped the moment the boards 
+                                                                                         stopped parting and would 
+                                                                                         flip back if one parted 
+                                                                                         again. THIS IS A LOWER BOUND, 
+                                                                                         NOT A COUNT OF DEFECTS: a 
+                                                                                         game records only its FIRST 
+                                                                                         divergence, so a defect that 
+                                                                                         is never earliest is not 
+                                                                                         counted here at all. Two are 
+                                                                                         named and measured and do not 
+                                                                                         appear in this number — no 
+                                                                                         `|-ability|<x>|Fairy Aura` on 
+                                                                                         the carrier's entry or mega, 
+                                                                                         and no 
+                                                                                         `|-ability|<x>|Unnerve` on a 
+                                                                                         switch-in. BOUNDED BY: 
+                                                                                         NARRATION-ONLY is bounded by 
+                                                                                         board_state.js NOT_COMPARED 
+                                                                                         (published in this artifact 
+                                                                                         as end_state_not_compared) 
+                                                                                         and by the turn cap: a board 
+                                                                                         that would part after the cap 
+                                                                                         reads as narration here. NOT 
+                                                                                         THIS CLAUSE: 3 further 
+                                                                                         game(s) across 3 cause(s) 
+                                                                                         diverge in narration AND part 
+                                                                                         a board. Those are counted by 
+                                                                                         the BOARD-MATERIAL clause and 
+                                                                                         are NOT counted here; the two 
+                                                                                         sets are disjoint and the 
+                                                                                         artifact reconciles them 
+                                                                                         (`by_cause_reconciles: 
+                                                                                         true`). Neither total can be 
+                                                                                         derived from the other. 
+                                                                                         LARGEST: -fail field 3 :: 
+                                                                                         |-fail|p2b|allyswitch <> 
+                                                                                         |-fail|p2b — 2 event missing 
+                                                                                         from medicham2 :: |-fail|p2a 
+                                                                                         <> |faint|p2a — 2 showdown 
+                                                                                         stopped emitting while 
+                                                                                         medicham2 continued :: 
+                                                                                         |-damage|p2a|0fnt|[from — 1 
+                                                                                         -fail field 3 :: 
+                                                                                         |-fail|p1b|substitute|[weak] 
+                                                                                         <> |-fail|p1b — 1 event 
+                                                                                         missing from medicham2 :: 
+                                                                                         |-damage|p1a|H/H <> 
+                                                                                         |move|p1a|psyshock — 1 TAIL: 
+                                                                                         68 of 70 narration-only 
+                                                                                         cause(s) occur in exactly ONE 
+                                                                                         game. That is why the 
+                                                                                         threshold is zero rather than 
+                                                                                         a rate: a tolerance is 
+                                                                                         cleared by fixing the few 
+                                                                                         largest mechanisms while the 
+                                                                                         tail stands undiagnosed. 
+                                                                                         EVIDENCE COVERAGE — 59 of 73 
+                                                                                         cause(s) (60 of 75 games) 
+                                                                                         carry a row in 
+                                                                                         `first_divergences`, which is 
+                                                                                         a CAPPED sample. A 
+                                                                                         DECLARED_DIVERGENCE matcher 
+                                                                                         that requires evidence cannot 
+                                                                                         be judged on the other 14 and 
+                                                                                         DECLINES by construction — 
+                                                                                         the safe direction, and still 
+                                                                                         wrong: whether a declaration 
+                                                                                         is honoured is currently a 
+                                                                                         function of the cap. The 
+                                                                                         repair is in 
+                                                                                         engine/game_differential.js, 
+                                                                                         not here. CLOSETED BY THE 
+                                                                                         OWNER — a REAL, reproducible 
+                                                                                         divergence that the owner has 
+                                                                                         ruled does not matter, on a 
+                                                                                         MEASURED claim that no board 
+                                                                                         state moves. THIS IS A DEFECT 
+                                                                                         WE HAVE CHOSEN NOT TO FIX, 
+                                                                                         NOT AN ABSENCE OF ONE, and it 
+                                                                                         does not vote: [1 game(s), 1 
+                                                                                         row(s)] 1 the perish drain 
+                                                                                         sits above `|upkeep|` when 
+                                                                                         the authority puts it below A 
+                                                                                         REAL DEFECT, OURS, AND THE 
+                                                                                         POSITION OF A LINE RATHER 
+                                                                                         THAN THE STATE OF A BOARD. 
+                                                                                         `perishsong.condition.onEnd` 
+                                                                                         is `add('-start', target, 
+                                                                                         'perish0'); target.faint()`, 
+                                                                                         and `Pokemon#faint()` only 
+                                                                                         QUEUES — the line is written 
+                                                                                         by a `faintMessages()`. 
+                                                                                         `fieldEvent`'s 
+                                                                                         duration-expiry branch 
+                                                                                         `continue`s past the one at 
+                                                                                         sim/battle.ts:565, so the 
+                                                                                         deaths are paid by the next 
+                                                                                         handler that does not itself 
+                                                                                         expire, and when none does 
+                                                                                         they fall to the tail of 
+                                                                                         `runAction` at :2832, 
+                                                                                         EIGHTEEN LINES BELOW the 
+                                                                                         `|upkeep|` written at :2814. 
+                                                                                         This engine's 
+                                                                                         `residualFollowerRuns` 
+                                                                                         decides the same question 
+                                                                                         from a derived handler list 
+                                                                                         and answers TRUE on this one 
+                                                                                         board where the authority's 
+                                                                                         walk answers false. One game 
+                                                                                         of 961, turn 11. CLOSETED BY 
+                                                                                         Will 2026-08-28 (ROADMAP 
+                                                                                         #440): "STANDING RULE, 
+                                                                                         2026-08-27, verbatim: "things 
+                                                                                         in the closet shouldnt block 
+                                                                                         a gate if we know why they 
+                                                                                         fail and choose to accept 
+                                                                                         it." APPLIED TO THIS ROW 
+                                                                                         2026-08-28 — Will authorised 
+                                                                                         closing the last open 
+                                                                                         MEDICHAM gate clause by 
+                                                                                         declaring this divergence, 
+                                                                                         with a note saying we could 
+                                                                                         not make it work. THE 
+                                                                                         2026-08-28 AUTHORISATION IS 
+                                                                                         RELAYED THROUGH THE 
+                                                                                         COORDINATOR AND IS RECORDED 
+                                                                                         AS RELAYED, NOT DRESSED AS A 
+                                                                                         QUOTATION; the sentence in 
+                                                                                         quotation marks is the 
+                                                                                         2026-08-27 standing rule and 
+                                                                                         nothing else is quoted." 
+                                                                                         EVIDENCE: 
+                                                                                         engine/game_differential.js 
+                                                                                         (arm middle, pins 
+                                                                                         ccb365985023, --team-store 
+                                                                                         data/team-pool-frozen, cap 
+                                                                                         12, 961 games), comparing 
+                                                                                         boards through 
+                                                                                         engine/board_state.js on 
+                                                                                         release `5f3f7141227c` 
+                                                                                         (2026-08-28) — 12,445 turn 
+                                                                                         boundaries compared and 
+                                                                                         12,445 IDENTICAL; 
+                                                                                         games_board_never_diverged 
+                                                                                         961 of 961; 
+                                                                                         protocol_diverged_games 6 and 
+                                                                                         protocol_diverged_board_never_did 
+                                                                                         6; first_board_divergences 
+                                                                                         []. The leaf a real faint 
+                                                                                         difference would move is 
+                                                                                         COMPARED and agreed — 
+                                                                                         `fainted` with 
+                                                                                         `hp`/`maxhp`/`status` on the 
+                                                                                         active bodies 
+                                                                                         (board_state.js:866), the 
+                                                                                         party (:1034) and the bench 
+                                                                                         (:769, :843) — so this is a 
+                                                                                         leaf that was looked at, not 
+                                                                                         one of ROADMAP #528's 43 
+                                                                                         leaves in neither list. WOULD 
+                                                                                         BE WRONG IF: ANY of: (a) the 
+                                                                                         pair appearing on a 
+                                                                                         first-divergence row whose 
+                                                                                         `showdown_before` carries no 
+                                                                                         `perish0`, which would mean 
+                                                                                         the exemption has spread to a 
+                                                                                         different residual drain; (b) 
+                                                                                         the board claim failing — 
+                                                                                         `state.games_board_never_diverged` 
+                                                                                         below `state.games`, or 
+                                                                                         `protocol_diverged_board_never_did` 
+                                                                                         below 
+                                                                                         `protocol_diverged_games`, or 
+                                                                                         a non-empty 
+                                                                                         `state.first_board_divergences`; 
+                                                                                         (c) 
+                                                                                         `MEDFAILS.residualFollowerUnmapped` 
+                                                                                         becoming non-empty, which 
+                                                                                         would mean the predicate is 
+                                                                                         BLIND to a follower rather 
+                                                                                         than merely wrong about one 
+                                                                                         board, and makes this a 
+                                                                                         bigger claim than one game; 
+                                                                                         (d) the cause reaching more 
+                                                                                         than the single game measured 
+                                                                                         here. Any one of those and 
+                                                                                         this row comes out and #440 
+                                                                                         goes back on the gate. 
+                                                                                         EVIDENCE NOT RE-CHECKED — the 
+                                                                                         no-board-effect claim was 
+                                                                                         measured on release 
+                                                                                         `5f3f7141227c` (2026-08-28) 
+                                                                                         and this artifact was 
+                                                                                         measured on release 
+                                                                                         `1be57a100d59`. The ruling 
+                                                                                         stands; the measurement under 
+                                                                                         it has not been repeated 
+                                                                                         against these bytes. THE 
+                                                                                         DECLARED REGISTER — every row 
+                                                                                         that MAY subtract, printed 
+                                                                                         whether or not it did [2 
+                                                                                         row(s); CLOSETED: 1]: 0 
+                                                                                         [AUTHORITY-WRONG] Supreme 
+                                                                                         Overlord `fallenundefined` 
+                                                                                         MATCHED NOTHING IN THIS RUN — 
+                                                                                         a declaration that covers no 
+                                                                                         cause is a claim that has 
+                                                                                         quietly become false. 
+                                                                                         Withdraw it or show the cause 
+                                                                                         it excuses. 1 [CLOSETED] the 
+                                                                                         perish drain sits above 
+                                                                                         `|upkeep|` when the authority 
+                                                                                         puts it below EVIDENCE NOT 
+                                                                                         RE-CHECKED — the 
+                                                                                         no-board-effect claim was 
+                                                                                         measured on release 
+                                                                                         `5f3f7141227c` (2026-08-28) 
+                                                                                         and this artifact was 
+                                                                                         measured on release 
+                                                                                         `1be57a100d59`. The ruling 
+                                                                                         stands; the measurement under 
+                                                                                         it has not been repeated 
+                                                                                         against these bytes. CLOSETED 
+                                                                                         BY Will 2026-08-28 (ROADMAP 
+                                                                                         #440): "STANDING RULE, 
+                                                                                         2026-08-27, verbatim: "things 
+                                                                                         in the closet shouldnt block 
+                                                                                         a gate if we know why they 
+                                                                                         fail and choose to accept 
+                                                                                         it." APPLIED TO THIS ROW 
+                                                                                         2026-08-28 — Will authorised 
+                                                                                         closing the last open 
+                                                                                         MEDICHAM gate clause by 
+                                                                                         declaring this divergence, 
+                                                                                         with a note saying we could 
+                                                                                         not make it work. THE 
+                                                                                         2026-08-28 AUTHORISATION IS 
+                                                                                         RELAYED THROUGH THE 
+                                                                                         COORDINATOR AND IS RECORDED 
+                                                                                         AS RELAYED, NOT DRESSED AS A 
+                                                                                         QUOTATION; the sentence in 
+                                                                                         quotation marks is the 
+                                                                                         2026-08-27 standing rule and 
+                                                                                         nothing else is quoted." 
+                                                                                         WOULD BE WRONG IF: ANY of: 
+                                                                                         (a) the pair appearing on a 
+                                                                                         first-divergence row whose 
+                                                                                         `showdown_before` carries no 
+                                                                                         `perish0`, which would mean 
+                                                                                         the exemption has spread to a 
+                                                                                         different residual drain; (b) 
+                                                                                         the board claim failing — 
+                                                                                         `state.games_board_never_diverged` 
+                                                                                         below `state.games`, or 
+                                                                                         `protocol_diverged_board_never_did` 
+                                                                                         below 
+                                                                                         `protocol_diverged_games`, or 
+                                                                                         a non-empty 
+                                                                                         `state.first_board_divergences`; 
+                                                                                         (c) 
+                                                                                         `MEDFAILS.residualFollowerUnmapped` 
+                                                                                         becoming non-empty, which 
+                                                                                         would mean the predicate is 
+                                                                                         BLIND to a follower rather 
+                                                                                         than merely wrong about one 
+                                                                                         board, and makes this a 
+                                                                                         bigger claim than one game; 
+                                                                                         (d) the cause reaching more 
+                                                                                         than the single game measured 
+                                                                                         here. Any one of those and 
+                                                                                         this row comes out and #440 
+                                                                                         goes back on the gate. 
+                                                                                         DECISION IMPACT — NO 
+                                                                                         DECISION-IMPACT RUN — 
+                                                                                         data/decision-impact.json is 
+                                                                                         absent, so nothing is excused 
+                                                                                         on decision impact and every 
+                                                                                         played divergence counts. It 
+                                                                                         is written by a paired argmax 
+                                                                                         run (engine/argmax_paired.js, 
+                                                                                         ROADMAP #278) with arms that 
+                                                                                         differ by the FIX. SAMPLE 
+                                                                                         EXCLUSIONS [ROADMAP #160, 
+                                                                                         Will 2026-08-11] 43 team(s) 
+                                                                                         dropped from the pool before 
+                                                                                         pairing for carrying illusion 
+                                                                                         (zoroark, zoroarkhisui) of 
+                                                                                         which 17 carry the body PAST 
+                                                                                         the 4 bodies a pair brings, 
+                                                                                         so it never entered either 
+                                                                                         engine — the rule is 
+                                                                                         over-broad by that much and 
+                                                                                         the rate above is measured on 
+                                                                                         the narrower pool. DIRECTION 
+                                                                                         OF TRAVEL WITHHELD — the 
+                                                                                         baseline was stamped under 
+                                                                                         `A/middle/pins:2efbc9ed1946/credit:observed-effect/v1/nature:real` 
+                                                                                         and this run is 
+                                                                                         `A/middle/pins:de38d17e15a2/credit:observed-effect/v1/nature:real`. 
+                                                                                         One pin is one corner: those 
+                                                                                         are two instruments, and 
+                                                                                         subtracting one rate from the 
+                                                                                         other invents a trend. 
+                                                                                         Re-stamp under this pin (node 
+                                                                                         engine/quarantine.js 
+                                                                                         --stamp-whole-game) if it is 
+                                                                                         the pin you mean to hold. 
+                                                                                         [emission 43, rule 16, 
+                                                                                         ordering 11, field 4, 
+                                                                                         unparsed 1; unparsed is not a 
+                                                                                         disagreement — 1 of it is 
+                                                                                         `showdown stopped emitting 
+                                                                                         while medicham2 continued`, a 
+                                                                                         cause the comparator has no 
+                                                                                         grammar for]
+                                          READ FROM game-differential.json, 2 min old
+                                          SCOPE — game-differential.json: turns_cap 20; coverage.exercised 555 of
+                                          measurable 580 — 25 unaccounted;
+                                          declared_gaps.forced_switch_answer_source.voluntary_excluded 5229;
+                                          closet.teams_dropped 43 (teams dropped from the pool);
+                                          declared_gaps.forced_switch_answer_source.drags_excluded 13;
+                                          state.not_compared 9 (declared uncompared);
+                                          steering.driver_code.frozen_excluded 5; steering.driver_code.unresolved 4;
+                                          mid_void.void_games 3; state.games_void_excluded 3; +2 smaller exclusion(s)
+                                          — node engine/coverage.js --audit
+    FAIL  mechanics / each one staged and compared against showdown MEASURED AGAINST A DIFFERENT ENGINE — 
+                                                                    data/all-mechanics-fire.json ran on release 
+                                                                    c28ad0815782 and the tree is 1be57a100d59. That is 
+                                                                    not a weaker answer, it is an answer about other 
+                                                                    bytes. EVERY COUNT IN IT IS WITHHELD and none is 
+                                                                    repeated here. WHY THE DIGEST MOVED: 1 of 1 moved 
+                                                                    source(s) really changed — 
+                                                                    engine/medicham2-browser.js. A re-measurement IS 
+                                                                    owed. Re-run: SHOWDOWN_PATH=... node 
+                                                                    engine/all_mechanics_fire.js --kind all --write
+                                          READ FROM all-mechanics-fire.json, 1.5 h old
+                                          SCOPE (last run — the artifact is stale, so this is the harness's shape, not
+                                          a claim about this engine) — all-mechanics-fire.json: summary.moves.resolved
+                                          495 of exist 500 — 5 unaccounted; summary.abilities.fired 104 of exist 316 —
+                                          212 unaccounted; summary.items.fired 64 of exist 148 — 84 unaccounted;
+                                          summary.abilities.unreachable 129 (no legal carrier);
+                                          summary.items.out_of_scope 75 (excluded before staging);
+                                          summary.abilities.did_not_fire 58 (staged and never fired);
+                                          summary.abilities.cannot_fire_in_this_fixture 38;
+                                          summary.abilities.did_not_fire_unexplained 20;
+                                          summary.preflight.trigger_unstaged 10 (triggers never staged);
+                                          summary.items.did_not_fire 9 (staged and never fired);
+                                          summary.items.cannot_fire_in_this_fixture 9; +10 smaller exclusion(s) — node
+                                          engine/coverage.js --audit
+    PASS  no open, known engine defect   clean: no open row names an instrument that is RED — no open defect is backed 
+                                         by a failing measurement (112 verdict(s) read) 8 open row(s) declare NOT A 
+                                         DEFECT in their status cell and are excused from this clause, of which 1 
+                                         would otherwise have counted as broken (#252) — the rest carry no breakage 
+                                         claim but the phrase's own `DEFECT` token, so the override only cancels 
+                                         itself on them: #252 SUPPRESSES [deferred by decision — search; **NOT A 
+                                         DEFECT** (audited 2026-08-15: nothing here says a m]; #336 [open — 
+                                         verification owed, MEASURE. NOT A DEFECT: raised by Will 2026-08-22 as a 
+                                         question, ]; #381 [open — register hygiene, NOT A DEFECT: nothing about the 
+                                         game is claimed wrong here; five ]; #386 [open — instrument coverage, NOT A 
+                                         DEFECT: the tool is correct and its input set is one art]; #387 [open — 
+                                         reporting clarity, NOT A DEFECT: every number the clause prints is correctly 
+                                         comput]; #395 [open — instrument reporting, NOT A DEFECT: every published row 
+                                         is correctly computed; what]; #396 [open — measurement index, NOT A DEFECT in 
+                                         itself; the board-material split is UNMEASURED a]; #480 [open — TWO LEFT, 
+                                         BOTH ENGINE-OWNED: repoint each sentence at the file that is really there] 7 
+                                         open row(s) name an instrument that WAS ASKED AND ANSWERED NOTHING USABLE — 
+                                         it would not start, or it ran and declared cannot-answer, or it exited 
+                                         outside {0,1}. That is not agreement and it is not evidence either: #218 
+                                         [EXIT CODE UNDECLARED], #318 [INSTRUMENT UNRUNNABLE], #319 [INSTRUMENT 
+                                         UNRUNNABLE], #376 [EXIT CODE UNDECLARED], #438 [INSTRUMENT UNRUNNABLE], #439 
+                                         [INSTRUMENT UNRUNNABLE], #440 [INSTRUMENT UNRUNNABLE]. 42 open row(s) assert 
+                                         breakage with NO instrument that decides them — DEBT, not evidence, and they 
+                                         do not hold this clause shut: #349, #364, #289, #535, #397, #400, #529, #175, 
+                                         #220, #300, #301, #310, #314, #315, #323, #325, #350, #348, #334, #361, #362, 
+                                         #365, #369, #370, #375, #380, #393, #399, #413, #421, #425, #441, #442, #446, 
+                                         #467, #500, #511, #524, #530, #536, #541, #542. Give one a verdict by adding 
+                                         a VERIFIED BY line naming the gate. 3 open row(s) name an instrument that is 
+                                         GREEN — register_reality calls those STALE ROW and they are not evidence of a 
+                                         live defect: #389, #403, #412.
+  Full derivation and the withheld set: node engine/quarantine.js
+
+COVERAGE — WHAT THE VERDICTS ABOVE DO NOT COVER. Every count is derived; NOT DERIVED means no artifact says it.
+  board leaves compared                   54
+                                          54 is the CEILING, not the 80 leaves a legal mechanic can write: 6 are
+                                          declared uncomparable, 18 carry a declared duration of 1 and are ended in
+                                          the residual, and 2 are removed inside their own action (volatile:fling,
+                                          volatile:sparklingaria) — none of those 26 can be standing when the board is
+                                          read, so 80 is not a target. 0 uncompared leaves CAN stand at a boundary and
+                                          are the whole of the widening work. The most-written of the permanently
+                                          uncomparable: flinch (20 writers), protect (2 writers), quickguard (1
+                                          writer), wideguard (1 writer). BS.snapshot has 1 call site in the driver
+                                          (stateCheck, lines 4350, 4667) and 0 elsewhere.
+                                          <- tests/probe_uncompared_leaves.js derive().ceiling and
+                                          boundaryCallSites(); ONE producer — the same functions
+                                          tests/probe_leaf_name_map.js prints from. Reach over the frozen pool is NOT
+                                          derived here (it streams 135 MB); run that probe with --pool for it. The
+                                          residual and self-removal splits are EVIDENCE, not proof: a clock rewritten
+                                          in onStart would be misclassified, and the falsifier is a staged boundary
+                                          read (tests/probe_volatile_leaves.js)
+  uncomparable leaves w/ a firing writer  23 of 26
+                                          a leaf this comparator can never see is only covered if ANOTHER instrument
+                                          fired on it. 3 have no writer that fired in data/all-mechanics-fire.json
+                                          (volatile:attract, volatile:powershift, volatile:unburden) — for those, a
+                                          clean roster row is the fixture agreeing with itself.
+                                          <- tests/probe_uncompared_leaves.js derive() x data/all-mechanics-fire.json
+                                          rows[]; a move row counts when resolved AND medicham_resolved, an ability or
+                                          item row when its A/B verdict is FIRED. Firing is not the same as exercising
+                                          the leaf — see the row below
+  move leaves whose EFFECT was exercised  7 of 11
+                                          4 move row(s) RESOLVED on the announcement alone — the leaf they wrote never
+                                          refused anything. 76 further leaves print NOTHING when they fire (Focus
+                                          Punch's cancel, Beak Blast's burn, Electrify's retype) and are out of this
+                                          denominator entirely: whether they fired is a counter question, not a
+                                          protocol one. Shapes this fixture cannot build: {"lethal":1}. 37 consequence
+                                          verb(s) the shared table names and the move arm cannot execute.
+                                          <- data/all-mechanics-fire.json summary.moves.leaf_effect; the markers are
+                                          derived from the authority's own condition source (the literal label of each
+                                          this.add inside an interception handler), so a leaf that changes how it
+                                          announces itself is followed rather than missed
+  staged mechanics that fired             663 of 760
+                                          moves 495/500, abilities 104/187 (129 no legal carrier), items 64/73 (75 out
+                                          of scope); 67 staged and never fired
+                                          <- data/all-mechanics-fire.json
+                                          summary.*.{exist,fired,resolved,unreachable,out_of_scope}
+  mechanics with a board compared         739 of 964
+                                          moves 496/500, abilities 170/316, items 73/148 — a row with no board is a
+                                          mechanic whose EFFECT nothing compared, however clean its protocol line was
+                                          <- data/all-mechanics-fire.json summary.boards.<kind>.rows vs
+                                          summary.<kind>.exist
+  tags with an engine consumer            277 of 301
+                                          24 tags no line of engine/board.js or engine/medicham2-browser.js reads —
+                                          derived, not declared: tag_dex.js greps both engines for the tag probe
+                                          <- data/tags.json tags[].consumedBy
+  tags with a census probe                285 of 301
+                                          16 tags nothing probes at all
+                                          <- data/tags.json x data/mechanics-census.json results[].tag
+  moves the damage diff can compare       486 of 500
+                                          14 carry the multiHit tag and are skipped by construction — one moveHit call
+                                          is one packet. 11 were drawn and skipped 134 times, 3 were never drawn at
+                                          all (bonerush, doublehit, tailslap)
+                                          <- data/tags.json moves[].tags multiHit — the same set
+                                          tests/test-engine-diff.js skips on
+  ranged mechanics fully staged           0 of 8
+                                          the two pinned arms reach the two ENDS of a range, never its interior. 8
+                                          entities are wider than two points (multiHit, width 4): bonerush 3-4,
+                                          bulletseed 3-4, iciclespear 3-4, pinmissile 3-4, rockblast 3-4, scaleshot
+                                          3-4, tailslap 3-4, watershuriken 3-4 — those counts are reached by no arm,
+                                          and the damage differential skips these moves outright, so nothing in the
+                                          project compares them there either
+                                          <- data/tags.json params.<tag>.range, ends reached per
+                                          tests/probe_multihit_corners.js — derived from the declared range, never
+                                          from the roster row note, which was wrong for nine days
+  turn boundaries compared                10537
+                                          961 games, turns_cap 20; 43 teams dropped from the pool
+                                          <- data/game-differential.json turns_cap / state.turn_boundaries_compared /
+                                          closet.teams_dropped
+  entities exercised in a real game       555 of 580
+                                          63 unmeasurable by this instrument, 25 measurable and not exercised, 0
+                                          clicked and never connected
+                                          <- data/game-differential.json coverage.*
+  differential bodies on a REAL spread    0 of 17536
+                                          an open team sheet does not carry a spread — every stored sheet reads `evs:
+                                          null` — so game_differential.js ASSIGNS one from the body's slot index: 66
+                                          points, a 32 cap, a descending Speed ladder [32, 22, 11, 0] by slot, the
+                                          remainder to the higher attacking stat and then spilling to spd then def,
+                                          and 0 into HP (deliberate: Showdown's Champions line adds the investment
+                                          plus 75 for HP and medicham2's L50 line has no HP term, so HP points would
+                                          diverge silently on every body). The NATURE is real — `--nature real`, 17440
+                                          bodies built from the sheet's own and 96 fallen back to Serious — and BOTH
+                                          ENGINES ARE HANDED THE SAME INVENTED SPREAD, so the run is internally
+                                          consistent and its damage is NOT METAGAME DAMAGE. Nobody plays these
+                                          spreads. A clean damage verdict here is a claim about this construction, not
+                                          about what the ladder rolls.
+                                          <- engine/game_differential.js SP_BUDGET / SP_CAP / SPE_LADDER /
+                                          spreadFor(), parsed from source at run time; counts from
+                                          data/game-differential.json declared_gaps.nature_*, one spreadFor() per body
+                                          built. The sheet-side gap is the artifact's own declared_gaps.spreads_absent
+  driver policies the gate quotes         1
+                                          empirical-click/v1 (game-differential.json, 961 games): 923 reached a result
+                                          (96.0%), 35 stopped at the turn cap, 2 truncated because medicham2's
+                                          placement could not be mirrored to showdown (0.2%, so the result rate above
+                                          is a LOWER BOUND), 3 games whose BOARD diverged. ALL 1 ON ONE SET OF PINS —
+                                          release 1be57a100d59, cap 20, pool 0d103fb9fa87, so the difference between
+                                          them is the DRIVER and nothing else. 49 further artifacts in this family sit
+                                          on other pins (oldest 26.0 days old) and are not shown — a different cap,
+                                          release or pool is a different question, not a second reading of this one.
+                                          node engine/coverage.js --audit TWO INSTRUMENTS, NOT A BEFORE/AFTER: a
+                                          whole-game verdict is only about the policy it was taken under, and
+                                          "board-material zero" under a coverage-seeking driver is a statement about
+                                          games that do not end.
+                                          <- data/ and data/verification/ game-differential*.json steering.policy /
+                                          arms[0].end_reasons / state.games_board_never_diverged; the ending classes
+                                          are anchored on the CODE around each `endReason` literal in
+                                          engine/game_differential.js, so a reworded message follows and a
+                                          restructured one prints NOT DERIVED. Gated = the artifact
+                                          engine/quarantine.js and engine/status.js actually read
+  READ FROM, AND HOW OLD — all-mechanics-fire.json 1.5 h old; engine-diff.json 1.5 h old; game-differential-PRE.json
+  20.7 days old; game-differential-endstate-turn19.json 25.9 days old; game-differential-endstate-turn30.json 25.9
+  days old; game-differential-endstate-turn40.json 25.9 days old; game-differential-endstate-v2.json 26.0 days old;
+  game-differential-endstate.json 25.9 days old; game-differential.json 2 min old; mechanics-census.json 1.6 h old;
+  tags.json 3.7 h old; verification/game-differential.accstage.json 6.7 days old;
+  verification/game-differential.afterfaint.json 8.8 days old; verification/game-differential.allyside.json 9.5 days
+  old; verification/game-differential.allytarget.json 9.4 days old;
+  verification/game-differential.coverage-2026-09-04T0141.json 3.8 days old;
+  verification/game-differential.coverage-control.json 9.7 days old; verification/game-differential.eatevent.json 8.2
+  days old; verification/game-differential.empirical-after.json 9.6 days old;
+  verification/game-differential.empirical.json 3.8 days old; verification/game-differential.encore.json 9.4 days old;
+  verification/game-differential.enginedata.json 7.7 days old; verification/game-differential.eterrain-before.json 6.0
+  days old; verification/game-differential.eterrain.json 6.0 days old; verification/game-differential.formeoneat.json
+  8.3 days old; verification/game-differential.innardsout.json 9.5 days old;
+  verification/game-differential.instructaim534-knob.json 9.2 days old;
+  verification/game-differential.instructaim534.json 9.2 days old;
+  verification/game-differential.instructshield532.json 9.2 days old; verification/game-differential.joint.json 2.7
+  days old; verification/game-differential.kingsrock.json 6.8 days old;
+  verification/game-differential.packettiming.json 8.6 days old; verification/game-differential.partingshot531.json
+  9.3 days old; verification/game-differential.prioritymod-knob.json 9.3 days old;
+  verification/game-differential.prioritymod.json 9.3 days old; verification/game-differential.punishkinds-before.json
+  6.7 days old; verification/game-differential.punishkinds.json 6.7 days old;
+  verification/game-differential.redirect.json 9.6 days old; verification/game-differential.residualorder.json 8.7
+  days old; verification/game-differential.safeguard.json 9.5 days old;
+  verification/game-differential.selfdrop-shared.json 1.2 days old;
+  verification/game-differential.shieldrearm-dump.json 9.4 days old; verification/game-differential.shieldrearm.json
+  9.4 days old; verification/game-differential.sidetarget.json 9.2 days old;
+  verification/game-differential.stallbase.json 9.4 days old; verification/game-differential.stolenberry.json 8.2 days
+  old; verification/game-differential.terraingate-before.json 6.1 days old;
+  verification/game-differential.terraingate.json 6.6 days old;
+  verification/game-differential.terrainspread-before.json 6.6 days old;
+  verification/game-differential.terrainspread.json 6.6 days old;
+  verification/game-differential.void-clause-GREEN.json 1.1 h old; verification/game-differential.void-clause-RED.json
+  1.2 h old; verification/game-differential.volleyreact.json 8.8 days old;
+  verification/game-differential.weightfix.json 9.6 days old
+
+PROVENANCE — 2 figure(s) WITHHELD because the artifact under them is UNSAFE or VOID (189 of 254 artifacts are, in total)
+    interaction matrix  <- data/interaction-matrix.json (UNSAFE)
+    release ladder  <- data/wire-ladder.json (UNSAFE)
+  An UNSAFE artifact declares inputs that are not what is on disk now. The figure is
+  WITHHELD rather than captioned: a caption is not a quarantine — CLAUDE.md.
+
+ENGINE — does the simulator do what Pokémon does
+  830/830 probed mechanics live, 0 missing   (census 2026-09-07 15:17)
+    the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
+    never fired in the staged harness (all-mechanics-fire.json, 1.5 h old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-07 15:24)
+    seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
+    the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
+    construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
+    all (bonerush, doublehit, tailslap).
+    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
+    a differential hit is NOT in the census count above — the census probes what someone thought to probe
+  interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
+    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
+    older than its input engine-data.js
+    (+1 more — node engine/provenance.js)
+    it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
+  release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
+    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is da8597c45bb8 now
+    (+8 more — node engine/provenance.js)
+    it becomes quotable again when this is re-run: node engine/wire_ladder.js
+  tag coverage: 285/301 probed, 16 unprobed;  277/301 have an engine consumer, 24 have none
+    a tag with no consumer is derived and read by nothing — engine/tag_dex.js greps board.js and
+    medicham2-browser.js for the probe, so this is measured rather than declared.
+
+MEASURE — can we believe a number
+  leaf calibration: QUARANTINED — the figure is withheld, not annotated.
+    data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 6 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
+  engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
+    data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 6 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
+  provenance: 187 unsafe, 2 void (declared), 40 possibly stale, 25 ok, 0 missing
+  click censoring: QUARANTINED — the figure is withheld, not annotated.
+    data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 6 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
+  the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
+  REFIT OWED — weights fitted 2026-08-28 15:46
+    feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
+    moved after the fit: engine/medicham2-browser.js  2026-09-07 16:38
+    moved after the fit: data/engine-data.js  2026-08-31 00:08
+    moved after the fit: data/abra-tags.js  2026-09-07 13:11
+
+SEARCH — does MILTANK choose better than MAG
+  R1 leaf accuracy: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-r1-explore1.json is downstream of MEDICHAM: engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played
+    MEDICHAM is not correct — 6 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r1_artifact.js
+  R2 leaf cost: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-cost.json is downstream of MEDICHAM: its generator engine/rollout_r2.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 6 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r2.js
+  R3 divergence: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-r3.json is downstream of MEDICHAM: its generator engine/rollout_r3.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 6 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r3.js
+  R4 does it win: QUARANTINED — the figure is withheld, not annotated.
+    data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
+    MEDICHAM is not correct — 6 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-09-07 16:38):
+    PRE-CHANGE games.r4c-shipped2.jsonl  2026-08-14 22:28
+    PRE-CHANGE games.r4c-shipped.jsonl  2026-08-14 17:21
+    PRE-CHANGE games.r4b-search.jsonl  2026-08-14 13:02
+    PRE-CHANGE games.r4a-switching.jsonl  2026-08-14 04:34
+    PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
+
+OPS — the live bot and the store
+  store: 78723 games, 24974 usable (31.7%), 22339 teams   (live.js 2026-09-07)
+  live-games/: 34 battles recorded
+  data/games.ladder.jsonl      last written 2026-09-04 01:30
+  data/games.bo3.jsonl         last written 2026-09-04 01:30  <- the Force-OTS format, collected hourly
+  data/games.ots.jsonl         last written 2026-08-21 22:35  <- FROZEN external import, complete; date is an import, not a heartbeat
+
+WEB — the site, and what it is allowed to publish
+  no sprint marker on disk (docs/MEDICHAM-SPRINT-NOTES.md absent) — the living-docs rule is fully armed for this division too.
+  web/quarantine-data.js: built 2026-08-25 19:07  — the site publishes 3 of 8 clauses failing, gate CLOSED
+    the LIVE gate says 6 of 9 GATING clauses fail  (CLOSED)
+    DRIFTED — the committed bundle is not what the gate says today.
+      published clause(s) the gate no longer has: whole-game differential / the same game on both engines
+      clause(s) the gate has and the bundle does not: whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect
+    withheld set: 60 artifact(s) in the bundle against 63 quarantined today
+    0 figure(s) are RELEASED to the pages; every other slot carries no value at all, which is the withheld-not-annotated rule in the bundle itself
+  web/status-data.js: built 2026-08-10 21:32  — 13 of 51 slot(s) carry state "quarantined" and publish no value
+  docs/WEB.md: no figure in it is sourced from an artifact the gate currently withholds (engine/docs_scan.js --quarantine).
+  rebuild the bundles: node web/build-quarantine.js && node web/build-status.js   — a PUBLISH (app/) is Will's call and this file never makes one.
+
+
+Working tree
+  12 files uncommitted (4 changed, 8 new), last commit 1.1 h ago
+Rules: CLAUDE.md.   Divisions and routing: docs/DIVISIONS.md.   Lessons: docs/LESSONS.md.
+

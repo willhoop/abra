@@ -1,0 +1,1012 @@
+====================================================================================================
+ONE GAME, BOTH ENGINES, EVERY LINE   —   a debugging view. Nothing here is written to an artifact.
+====================================================================================================
+  seed      gen9championsvgc2026regmbbo3-2661266222 vs gen9championsvgc2026regmbbo3-2661402381
+  config    pair-protect-bust        arm  middle   (REAL dice, seeded and shared by CATEGORY (acc / crit / sec /…)
+  release   c28ad0815782      showdown C:/Users/willj/Projects/Pokemon/pokemon-showdown
+  turns     10   medicham raw lines 172   showdown raw lines 174
+  reduced   showdown 170   medicham 169   (the comparator walks the REDUCED streams index by index)
+  stopped   the boards parted — medicham2's placement cannot be expressed to showdown (p1: slot 1 holds incineroar, which showdown has FAINTED)     showdown ended the battle: no     medicham2 ended the battle: no
+  played in 93.4s   after replaying the run's schedule: 1318 games to reach pair-protect-bust pair #92
+
+----------------------------------------------------------------------------------------------------
+  REPRODUCED — every stored field of this game matches the replay.
+  (data/verification/batchN/dump-baseline.json, generated 2026-09-07T19:58:05.841Z, release c28ad0815782, store data/team-pool-frozen)
+     ok    agreed lines             artifact: 77
+     ok    showdown line at split   artifact: |move|p2b: Tyranitar|Rock Slide|p1b: Aerodactyl
+     ok    medicham line at split   artifact: |-hitcount|p1: Ditto|1
+     ok    stop reason              artifact: the boards parted — medicham2's placement cannot be expresse
+     ok    class                    artifact: extra event emitted by medicham2
+----------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------
+  THE TWO TEAMS AS BUILT (four bodies each; the battle brings all four)
+----------------------------------------------------------------------------------------------------
+  P1 — "yours"
+    1. incineroar       hp  170  spe   80  chopleberry     intimidate        flareblitz, fakeout, throatchop, partingshot
+    2. aerodactyl       hp  155  spe  192  focussash       unnerve           rockslide, dualwingbeat, tailwind, wideguard
+    3. ditto            hp  123  spe   68  sitrusberry     imposter          transform
+    4. basculegion      hp  195  spe  135  choicescarf     adaptability      aquajet, wavecrash, lastrespects, psychicfangs
+
+  P2 — "theirs"
+    1. scizor           hp  145  spe  110  lifeorb         technician        bulletpunch, uturn, dualwingbeat, brickbreak
+    2. tyranitar        hp  175  spe  106  leftovers       sandstream        protect, lowkick, rockslide, knockoff
+    3. kangaskhan       hp  180  spe  121  kangaskhanite   scrappy           drainpunch, suckerpunch, bodyslam, fakeout
+    4. sinistcha        hp  146  spe   90  sitrusberry     hospitality       lifedew, matchagotcha, ragepowder, curse
+
+====================================================================================================
+  THE GAME, LINE BY LINE.   SD = Pokemon Showdown (the authority).   US = medicham2.
+  `both` means the two engines emitted the same thing at that index. The raw protocol for the
+  whole game is printed in full further down; this half is the reading view.
+====================================================================================================
+
+  0000  both  P1a Incineroar sends in Incineroar, L50 [##########] 170/170 100%
+  0001  both  P1b Aerodactyl sends in Aerodactyl, L50 [##########] 155/155 100%
+  0002  both  P2a Scizor sends in Scizor, L50 [##########] 145/145 100%
+  0003  both  P2b Tyranitar sends in Tyranitar, L50 [##########] 175/175 100%
+  0004  both  P2a Scizor lowers atk 1
+  0005  both  P2b Tyranitar lowers atk 1
+  0006  both  weather Sandstorm <from ability: Sand Stream>
+
+  0007  ---- turn 1 ------------------------------------------------------------
+  0008  both  P2a Sinistcha sends in (replacing Scizor) Sinistcha, L50 [##########] 146/146 100%
+  0009  both  P1a Ditto sends in (replacing Incineroar) Ditto, L50 [##########] 123/123 100%
+  0010  both  P1a Ditto transforms into -> P2b Tyranitar <from ability: Imposter>
+  0011  both  P2b Tyranitar uses Protect -> P2b Tyranitar
+  0012  both  P2b Tyranitar braces with Protect
+  0013  both  P1b Aerodactyl uses Rock Slide -> P2a Sinistcha <spread p2a>
+  0014  both  P2b Tyranitar triggers move: Protect
+  0015  both  P2a Sinistcha drops to [#######...] 106/146 73%
+  0016  both  weather Sandstorm <upkeep>
+  0017  both  P2a Sinistcha drops to [#######...] 97/146 66% <from Sandstorm>
+  0018  both  end of turn
+
+  0019  ---- turn 2 ------------------------------------------------------------
+  0020  both  P1b Aerodactyl uses Rock Slide -> P2a Sinistcha <spread p2a>
+  0021  both  P1b Aerodactyl misses -> P2b Tyranitar
+  0022  both  P2a Sinistcha drops to [####......] 58/146 40%
+  0023  both  P1a Ditto uses Knock Off -> P2a Sinistcha
+  0024  both  P2a Sinistcha it's super effective 1
+  0025  both  P2a Sinistcha drops to 0 fnt
+  0026  both  P2a Sinistcha uses up Sitrus Berry <from move: Knock Off>
+  0027  both  P2a Sinistcha faints
+  0028  both  P2b Tyranitar uses Knock Off -> P1a Ditto
+  0029  both  P1a Ditto resists 1
+  0030  both  P1a Ditto drops to [########..] 94/123 76%
+  0031  both  P1a Ditto uses up Sitrus Berry <from move: Knock Off>
+  0032  both  weather Sandstorm <upkeep>
+  0033  both  end of turn
+  0034  both  P2a Kangaskhan sends in (replacing Sinistcha) Kangaskhan, L50 [##########] 180/180 100%
+
+  0035  ---- turn 3 ------------------------------------------------------------
+  0036  both  P2a Kangaskhan becomes Kangaskhan-Mega, L50
+  0037  both  P2a Kangaskhan MEGA EVOLVES Kangaskhan Kangaskhanite
+  0038  both  P2a Kangaskhan uses Fake Out -> P1a Ditto
+  0039  both  P1a Ditto resists 1
+  0040  both  P1a Ditto drops to [######....] 77/123 63%
+  0041  both  P1a Ditto resists 1
+  0042  both  P1a Ditto drops to [######....] 73/123 59%
+  0043  both  P1a Ditto hits 2
+  0044  both  P1b Aerodactyl uses Rock Slide -> P2a Kangaskhan <spread p2a,p2b>
+  0045  both  P2a Kangaskhan drops to [#######...] 132/180 73%
+  0046  both  P2b Tyranitar drops to [########..] 135/175 77%
+  0047  both  P1a Ditto can't move flinch
+  0048  both  P2b Tyranitar can't move flinch
+  0049  both  weather Sandstorm <upkeep>
+  0050  both  P2a Kangaskhan drops to [#######...] 121/180 67% <from Sandstorm>
+  0051  both  P2b Tyranitar heals to [########..] 145/175 83% <from item: Leftovers>
+  0052  both  end of turn
+
+  0053  ---- turn 4 ------------------------------------------------------------
+  0054  both  P1a Ditto uses Protect -> P1a Ditto
+  0055  both  P1a Ditto braces with Protect
+  0056  both  P2a Kangaskhan uses Sucker Punch <still>
+  0057  both  P2a Kangaskhan fails
+  0058  both  P1b Aerodactyl uses Rock Slide -> P2a Kangaskhan <spread p2a,p2b>
+  0059  both  P2a Kangaskhan drops to [####......] 76/180 42%
+  0060  both  P2b Tyranitar drops to [######....] 106/175 61%
+  0061  both  P2b Tyranitar uses Rock Slide -> P1a Ditto <spread p1b>
+  0062  both  P1a Ditto triggers move: Protect
+  0063  both  P1b Aerodactyl it's super effective 1
+  0064  both  P1b Aerodactyl drops to [###.......] 53/155 34%
+  0065  both  weather Sandstorm <upkeep>
+  0066  both  P2a Kangaskhan drops to [####......] 65/180 36% <from Sandstorm>
+  0067  both  P2b Tyranitar heals to [#######...] 116/175 66% <from item: Leftovers>
+  0068  both  end of turn
+
+  0069  ---- turn 5 ------------------------------------------------------------
+  0070  both  P1b Aerodactyl uses Wide Guard -> P1b Aerodactyl
+  0071  both  P1b Aerodactyl braces with Wide Guard
+  0072  both  P2a Kangaskhan uses Drain Punch -> P1a Ditto
+  0073  both  P1a Ditto it's super effective 2
+  0074  both  P1a Ditto drops to 0 fnt
+  0075  both  P2a Kangaskhan heals to [######....] 102/180 57% <from drain>
+  0076  both  P1a Ditto faints
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  >>>>  THE SPLIT — index 77. They agreed for 77 reduced lines.  <<<<
+  >>>>  classifier: extra event emitted by medicham2
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  0077  SD    P2b Tyranitar uses Rock Slide -> P1b Aerodactyl
+        US    hits p1: Ditto 1
+  0078  SD    P1b Aerodactyl triggers move: Wide Guard
+        US    P2b Tyranitar uses rockslide -> P1b Aerodactyl
+  0079  SD    weather none
+        US    P1b Aerodactyl triggers move: Wide Guard
+  0080  SD    P2b Tyranitar heals to [#######...] 126/175 72% <from item: Leftovers>
+        US    weather none
+  0081  SD    end of turn
+        US    P2b Tyranitar heals to [#######...] 126/175 72% <from item: leftovers>
+  0082  SD    P1a Incineroar sends in (replacing Ditto) Incineroar, L50 [##########] 170/170 100%
+        US    end of turn
+  0083  SD    P2a Kangaskhan lowers atk 1
+        US    P1a Incineroar sends in (replacing Ditto) incineroar, L50 [##########] 170/170 100%
+  0084  SD    P2b Tyranitar lowers atk 1
+        US    P2a Kangaskhan lowers atk 1
+  0085  SD    turn 6
+        US    P2b Tyranitar lowers atk 1
+  0086  SD    P2b Tyranitar uses Protect -> P2b Tyranitar
+        US    turn 6
+  0087  SD    P2b Tyranitar braces with Protect
+        US    P2b Tyranitar uses protect -> P2b Tyranitar
+  0088  SD    P1b Aerodactyl uses Rock Slide -> P2b Tyranitar <spread p2a>
+        US    P2b Tyranitar braces with Protect
+  0089  SD    P2b Tyranitar triggers move: Protect
+        US    P1b Aerodactyl uses rockslide -> P2b Tyranitar
+  0090  SD    P2a Kangaskhan drops to [###.......] 54/180 30%
+        US    P2b Tyranitar triggers move: Protect
+  0091  SD    P2a Kangaskhan uses Drain Punch -> P1a Incineroar
+        US    P2a Kangaskhan drops to [###.......] 54/180 30%
+  0092  SD    P1a Incineroar it's super effective 1
+        US    P2a Kangaskhan uses drainpunch -> P1a Incineroar
+  0093  SD    P1a Incineroar uses up Chople Berry <eat>
+        US    P1a Incineroar it's super effective 1
+  0094  SD    P1a Incineroar uses up Chople Berry <weaken>
+        US    P1a Incineroar uses up chopleberry <eat>
+  0095  SD    P1a Incineroar drops to [########..] 135/170 79%
+        US    P1a Incineroar uses up chopleberry <weaken>
+  0096  SD    P2a Kangaskhan heals to [####......] 72/180 40% <from drain>
+        US    P1a Incineroar drops to [########..] 135/170 79%
+  0097  both  P1a Incineroar it's super effective 1
+  0098  SD    P1a Incineroar drops to [#######...] 119/170 70%
+        US    P1a Incineroar drops to [########..] 127/170 75%
+  0099  SD    P2a Kangaskhan heals to [####......] 80/180 44% <from drain>
+        US    P2a Kangaskhan heals to [####......] 76/180 42% <from drain>
+  0100  both  P1a Incineroar hits 2
+  0101  both  P1a Incineroar uses Parting Shot -> P2a Kangaskhan
+  0102  both  P2a Kangaskhan lowers atk 1
+  0103  both  P2a Kangaskhan lowers spa 1
+  0104  both  P1a Basculegion sends in (replacing Ditto) Basculegion, L50 [##########] 195/195 100% <from Parting Shot>
+  0105  both  P2b Tyranitar heals to [########..] 136/175 78% <from item: Leftovers>
+  0106  both  end of turn
+
+  0107  ---- turn 7 ------------------------------------------------------------
+  0108  both  P1a Basculegion uses Aqua Jet -> P2a Kangaskhan
+  0109  both  P2a Kangaskhan critical hit
+  0110  SD    P2a Kangaskhan drops to [#.........] 12/180 7%
+        US    P2a Kangaskhan drops to [..........] 8/180 4%
+  0111  both  P2a Kangaskhan uses Sucker Punch <still>
+  0112  both  P2a Kangaskhan fails
+  0113  both  P1b Aerodactyl uses Dual Wingbeat -> P2a Kangaskhan
+  0114  both  P2a Kangaskhan drops to 0 fnt
+  0115  both  P2a Kangaskhan faints
+  0116  both  hits p2: Kangaskhan 1
+  0117  both  P2b Tyranitar uses Knock Off -> P1a Basculegion
+  0118  both  P1a Basculegion it's super effective 1
+  0119  both  P1a Basculegion drops to [###.......] 63/195 32%
+  0120  both  P1a Basculegion uses up Choice Scarf <from move: Knock Off>
+  0121  both  P2b Tyranitar heals to [########..] 146/175 83% <from item: Leftovers>
+  0122  both  end of turn
+  0123  both  P2a Scizor sends in (replacing Kangaskhan) Scizor, L50 [##########] 145/145 100%
+
+  0124  ---- turn 8 ------------------------------------------------------------
+  0125  SD    P1a Incineroar sends in (replacing Incineroar) Incineroar, L50 [#######...] 119/170 70%
+        US    P1a Incineroar sends in (replacing Incineroar) incineroar, L50 [########..] 127/170 75%
+  0126  both  P2a Scizor lowers atk 1
+  0127  both  P2b Tyranitar lowers atk 1
+  0128  both  P2a Scizor uses Bullet Punch -> P1a Incineroar
+  0129  both  P1a Incineroar resists 1
+  0130  SD    P1a Incineroar drops to [#####.....] 92/170 54%
+        US    P1a Incineroar drops to [######....] 100/170 59%
+  0131  both  P2a Scizor drops to [#########.] 131/145 90% <from item: Life Orb>
+  0132  both  P1b Aerodactyl uses Tailwind -> P1b Aerodactyl
+  0133  both  side p1: A move: Tailwind
+  0134  both  P2b Tyranitar uses Knock Off -> P1a Incineroar
+  0135  both  P1a Incineroar resists 1
+  0136  SD    P1a Incineroar drops to [#####.....] 79/170 46%
+        US    P1a Incineroar drops to [#####.....] 87/170 51%
+  0137  both  P2b Tyranitar heals to [#########.] 156/175 89% <from item: Leftovers>
+  0138  both  end of turn
+
+  0139  ---- turn 9 ------------------------------------------------------------
+  0140  both  P2a Scizor uses Bullet Punch -> P1a Incineroar
+  0141  both  P1a Incineroar resists 1
+  0142  SD    P1a Incineroar drops to [###.......] 50/170 29%
+        US    P1a Incineroar drops to [###.......] 58/170 34%
+  0143  both  P2a Scizor drops to [########..] 117/145 81% <from item: Life Orb>
+  0144  both  P1b Aerodactyl uses Rock Slide -> P2b Tyranitar <spread p2a>
+  0145  both  P1b Aerodactyl misses -> P2b Tyranitar
+  0146  both  P2a Scizor drops to [#####.....] 74/145 51%
+  0147  both  P1a Incineroar uses Flare Blitz -> P2a Scizor
+  0148  both  P2a Scizor it's super effective 2
+  0149  both  P2a Scizor drops to 0 fnt
+  0150  both  P2a Scizor faints
+  0151  SD    P1a Incineroar drops to [##........] 26/170 15% <from Recoil>
+        US    P1a Incineroar drops to [##........] 34/170 20% <from Recoil>
+  0152  both  P2b Tyranitar uses Knock Off -> P1a Incineroar
+  0153  both  P1a Incineroar resists 1
+  0154  SD    P1a Incineroar drops to [#.........] 11/170 6%
+        US    P1a Incineroar drops to [#.........] 19/170 11%
+  0155  both  P2b Tyranitar heals to [##########] 166/175 95% <from item: Leftovers>
+  0156  both  end of turn
+
+  0157  ---- turn 10 ------------------------------------------------------------
+  0158  both  P1b Aerodactyl uses Rock Slide -> P2b Tyranitar
+  0159  both  P2b Tyranitar drops to [######....] 112/175 64%
+  0160  both  P1a Incineroar uses Flare Blitz -> P2b Tyranitar
+  0161  both  P2b Tyranitar resists 1
+  0162  both  P2b Tyranitar drops to [####......] 66/175 38%
+  0163  both  P2b Tyranitar is brn
+  0164  SD    P1a Incineroar drops to 0 fnt <from Recoil>
+        US    P1a Incineroar drops to [..........] 4/170 2% <from Recoil>
+  0165  SD    P1a Incineroar faints
+        US    P2b Tyranitar can't move flinch
+  0166  SD    P2b Tyranitar can't move flinch
+        US    P2b Tyranitar heals to [####......] 76/175 43% brn <from item: leftovers>
+  0167  SD    P2b Tyranitar heals to [####......] 76/175 43% brn <from item: Leftovers>
+        US    P2b Tyranitar drops to [####......] 66/175 38% brn <from brn>
+  0168  SD    P2b Tyranitar drops to [####......] 66/175 38% brn <from brn>
+        US    end of turn
+  0169  SD    end of turn
+        US    — nothing further —
+
+====================================================================================================
+  WHAT EACH ENGINE WAS HOLDING WHEN THE GAME STOPPED
+  Same question asked of both: every body, is it fainted, at what HP, active or benched.
+====================================================================================================
+
+  ---- P1 ("yours") ------------------------------------------------------------
+    SHOWDOWN   pokemonLeft=2  teamSize=4     (pokemonLeft is the number checkWin actually reads)
+      incineroar         hp    0  FAINTED  active isActive=no    <- corpse in the slot, awaiting its replacement (both engines do this)
+      aerodactyl         hp   53  alive    active isActive=yes
+      ditto              hp    0  FAINTED  bench  isActive=no 
+      basculegion        hp   63  alive    bench  isActive=no 
+    MEDICHAM2  (this snapshot lists actives then bench; a fainted body it has DISCARDED
+               does not appear at all, so a missing row is not evidence of anything)
+      incineroar         hp    4  alive    active
+      aerodactyl         hp   53  alive    active
+      basculegion        hp   63  alive    bench 
+
+  ---- P2 ("theirs") ------------------------------------------------------------
+    SHOWDOWN   pokemonLeft=1  teamSize=4     (pokemonLeft is the number checkWin actually reads)
+      scizor             hp    0  FAINTED  active isActive=no    <- corpse in the slot, awaiting its replacement (both engines do this)
+      tyranitar          hp   66  alive    active isActive=yes
+      sinistcha          hp    0  FAINTED  bench  isActive=no 
+      kangaskhanmega     hp    0  FAINTED  bench  isActive=no 
+    MEDICHAM2  (this snapshot lists actives then bench; a fainted body it has DISCARDED
+               does not appear at all, so a missing row is not evidence of anything)
+      scizor             hp    0  FAINTED  active   <- corpse in the slot, awaiting its replacement (both engines do this)
+      tyranitar          hp   66  alive    active
+
+    showdown winner: (none declared)
+
+====================================================================================================
+  RAW PROTOCOL — SHOWDOWN, as the comparator sees it (sdStream-filtered)   (174 lines)
+====================================================================================================
+  0000  |switch|p1a: Incineroar|Incineroar, L50|170/170
+  0001  |switch|p1b: Aerodactyl|Aerodactyl, L50|155/155
+  0002  |switch|p2a: Scizor|Scizor, L50|145/145
+  0003  |switch|p2b: Tyranitar|Tyranitar, L50|175/175
+  0004  |-ability|p1b: Aerodactyl|Unnerve
+  0005  |-ability|p1a: Incineroar|Intimidate|boost
+  0006  |-unboost|p2a: Scizor|atk|1
+  0007  |-unboost|p2b: Tyranitar|atk|1
+  0008  |-weather|Sandstorm|[from] ability: Sand Stream|[of] p2b: Tyranitar
+  0009  |turn|1
+  0010  |switch|p2a: Sinistcha|Sinistcha, L50|146/146
+  0011  |switch|p1a: Ditto|Ditto, L50|123/123
+  0012  |-transform|p1a: Ditto|p2b: Tyranitar|[from] ability: Imposter
+  0013  |move|p2b: Tyranitar|Protect|p2b: Tyranitar
+  0014  |-singleturn|p2b: Tyranitar|Protect
+  0015  |move|p1b: Aerodactyl|Rock Slide|p2a: Sinistcha|[spread] p2a
+  0016  |-activate|p2b: Tyranitar|move: Protect
+  0017  |-damage|p2a: Sinistcha|106/146
+  0018  |-weather|Sandstorm|[upkeep]
+  0019  |-damage|p2a: Sinistcha|97/146|[from] Sandstorm
+  0020  |upkeep
+  0021  |turn|2
+  0022  |move|p1b: Aerodactyl|Rock Slide|p2a: Sinistcha|[spread] p2a
+  0023  |-miss|p1b: Aerodactyl|p2b: Tyranitar
+  0024  |-damage|p2a: Sinistcha|58/146
+  0025  |move|p1a: Ditto|Knock Off|p2a: Sinistcha
+  0026  |-supereffective|p2a: Sinistcha|1
+  0027  |-damage|p2a: Sinistcha|0 fnt
+  0028  |-enditem|p2a: Sinistcha|Sitrus Berry|[from] move: Knock Off|[of] p1a: Ditto
+  0029  |faint|p2a: Sinistcha
+  0030  |move|p2b: Tyranitar|Knock Off|p1a: Ditto
+  0031  |-resisted|p1a: Ditto|1
+  0032  |-damage|p1a: Ditto|94/123
+  0033  |-enditem|p1a: Ditto|Sitrus Berry|[from] move: Knock Off|[of] p2b: Tyranitar
+  0034  |-weather|Sandstorm|[upkeep]
+  0035  |upkeep
+  0036  |switch|p2a: Kangaskhan|Kangaskhan, L50|180/180
+  0037  |turn|3
+  0038  |detailschange|p2a: Kangaskhan|Kangaskhan-Mega, L50
+  0039  |-mega|p2a: Kangaskhan|Kangaskhan|Kangaskhanite
+  0040  |move|p2a: Kangaskhan|Fake Out|p1a: Ditto
+  0041  |-resisted|p1a: Ditto|1
+  0042  |-damage|p1a: Ditto|77/123
+  0043  |-resisted|p1a: Ditto|1
+  0044  |-damage|p1a: Ditto|73/123
+  0045  |-hitcount|p1a: Ditto|2
+  0046  |move|p1b: Aerodactyl|Rock Slide|p2a: Kangaskhan|[spread] p2a,p2b
+  0047  |-damage|p2a: Kangaskhan|132/180
+  0048  |-damage|p2b: Tyranitar|135/175
+  0049  |cant|p1a: Ditto|flinch
+  0050  |cant|p2b: Tyranitar|flinch
+  0051  |-weather|Sandstorm|[upkeep]
+  0052  |-damage|p2a: Kangaskhan|121/180|[from] Sandstorm
+  0053  |-heal|p2b: Tyranitar|145/175|[from] item: Leftovers
+  0054  |upkeep
+  0055  |turn|4
+  0056  |move|p1a: Ditto|Protect|p1a: Ditto
+  0057  |-singleturn|p1a: Ditto|Protect
+  0058  |move|p2a: Kangaskhan|Sucker Punch||[still]
+  0059  |-fail|p2a: Kangaskhan
+  0060  |move|p1b: Aerodactyl|Rock Slide|p2a: Kangaskhan|[spread] p2a,p2b
+  0061  |-damage|p2a: Kangaskhan|76/180
+  0062  |-damage|p2b: Tyranitar|106/175
+  0063  |move|p2b: Tyranitar|Rock Slide|p1a: Ditto|[spread] p1b
+  0064  |-activate|p1a: Ditto|move: Protect
+  0065  |-supereffective|p1b: Aerodactyl|1
+  0066  |-damage|p1b: Aerodactyl|53/155
+  0067  |-weather|Sandstorm|[upkeep]
+  0068  |-damage|p2a: Kangaskhan|65/180|[from] Sandstorm
+  0069  |-heal|p2b: Tyranitar|116/175|[from] item: Leftovers
+  0070  |upkeep
+  0071  |turn|5
+  0072  |move|p1b: Aerodactyl|Wide Guard|p1b: Aerodactyl
+  0073  |-singleturn|p1b: Aerodactyl|Wide Guard
+  0074  |move|p2a: Kangaskhan|Drain Punch|p1a: Ditto
+  0075  |-supereffective|p1a: Ditto|2
+  0076  |-damage|p1a: Ditto|0 fnt
+  0077  |-heal|p2a: Kangaskhan|102/180|[from] drain|[of] p1a: Ditto
+  0078  |faint|p1a: Ditto
+  0079  |move|p2b: Tyranitar|Rock Slide|p1b: Aerodactyl  <<<<<< THE SPLIT
+  0080  |-activate|p1b: Aerodactyl|move: Wide Guard
+  0081  |-weather|none
+  0082  |-heal|p2b: Tyranitar|126/175|[from] item: Leftovers
+  0083  |upkeep
+  0084  |switch|p1a: Incineroar|Incineroar, L50|170/170
+  0085  |-ability|p1a: Incineroar|Intimidate|boost
+  0086  |-unboost|p2a: Kangaskhan|atk|1
+  0087  |-unboost|p2b: Tyranitar|atk|1
+  0088  |turn|6
+  0089  |move|p2b: Tyranitar|Protect|p2b: Tyranitar
+  0090  |-singleturn|p2b: Tyranitar|Protect
+  0091  |move|p1b: Aerodactyl|Rock Slide|p2b: Tyranitar|[spread] p2a
+  0092  |-activate|p2b: Tyranitar|move: Protect
+  0093  |-damage|p2a: Kangaskhan|54/180
+  0094  |move|p2a: Kangaskhan|Drain Punch|p1a: Incineroar
+  0095  |-supereffective|p1a: Incineroar|1
+  0096  |-enditem|p1a: Incineroar|Chople Berry|[eat]
+  0097  |-enditem|p1a: Incineroar|Chople Berry|[weaken]
+  0098  |-damage|p1a: Incineroar|135/170
+  0099  |-heal|p2a: Kangaskhan|72/180|[from] drain|[of] p1a: Incineroar
+  0100  |-supereffective|p1a: Incineroar|1
+  0101  |-damage|p1a: Incineroar|119/170
+  0102  |-heal|p2a: Kangaskhan|80/180|[from] drain|[of] p1a: Incineroar
+  0103  |-hitcount|p1a: Incineroar|2
+  0104  |move|p1a: Incineroar|Parting Shot|p2a: Kangaskhan
+  0105  |-unboost|p2a: Kangaskhan|atk|1
+  0106  |-unboost|p2a: Kangaskhan|spa|1
+  0107  |switch|p1a: Basculegion|Basculegion, L50|195/195|[from] Parting Shot
+  0108  |-heal|p2b: Tyranitar|136/175|[from] item: Leftovers
+  0109  |upkeep
+  0110  |turn|7
+  0111  |move|p1a: Basculegion|Aqua Jet|p2a: Kangaskhan
+  0112  |-crit|p2a: Kangaskhan
+  0113  |-damage|p2a: Kangaskhan|12/180
+  0114  |move|p2a: Kangaskhan|Sucker Punch||[still]
+  0115  |-fail|p2a: Kangaskhan
+  0116  |move|p1b: Aerodactyl|Dual Wingbeat|p2a: Kangaskhan
+  0117  |-damage|p2a: Kangaskhan|0 fnt
+  0118  |faint|p2a: Kangaskhan
+  0119  |-hitcount|p2: Kangaskhan|1
+  0120  |move|p2b: Tyranitar|Knock Off|p1a: Basculegion
+  0121  |-supereffective|p1a: Basculegion|1
+  0122  |-damage|p1a: Basculegion|63/195
+  0123  |-enditem|p1a: Basculegion|Choice Scarf|[from] move: Knock Off|[of] p2b: Tyranitar
+  0124  |-heal|p2b: Tyranitar|146/175|[from] item: Leftovers
+  0125  |upkeep
+  0126  |switch|p2a: Scizor|Scizor, L50|145/145
+  0127  |turn|8
+  0128  |switch|p1a: Incineroar|Incineroar, L50|119/170
+  0129  |-ability|p1a: Incineroar|Intimidate|boost
+  0130  |-unboost|p2a: Scizor|atk|1
+  0131  |-unboost|p2b: Tyranitar|atk|1
+  0132  |move|p2a: Scizor|Bullet Punch|p1a: Incineroar
+  0133  |-resisted|p1a: Incineroar|1
+  0134  |-damage|p1a: Incineroar|92/170
+  0135  |-damage|p2a: Scizor|131/145|[from] item: Life Orb
+  0136  |move|p1b: Aerodactyl|Tailwind|p1b: Aerodactyl
+  0137  |-sidestart|p1: A|move: Tailwind
+  0138  |move|p2b: Tyranitar|Knock Off|p1a: Incineroar
+  0139  |-resisted|p1a: Incineroar|1
+  0140  |-damage|p1a: Incineroar|79/170
+  0141  |-heal|p2b: Tyranitar|156/175|[from] item: Leftovers
+  0142  |upkeep
+  0143  |turn|9
+  0144  |move|p2a: Scizor|Bullet Punch|p1a: Incineroar
+  0145  |-resisted|p1a: Incineroar|1
+  0146  |-damage|p1a: Incineroar|50/170
+  0147  |-damage|p2a: Scizor|117/145|[from] item: Life Orb
+  0148  |move|p1b: Aerodactyl|Rock Slide|p2b: Tyranitar|[spread] p2a
+  0149  |-miss|p1b: Aerodactyl|p2b: Tyranitar
+  0150  |-damage|p2a: Scizor|74/145
+  0151  |move|p1a: Incineroar|Flare Blitz|p2a: Scizor
+  0152  |-supereffective|p2a: Scizor|2
+  0153  |-damage|p2a: Scizor|0 fnt
+  0154  |faint|p2a: Scizor
+  0155  |-damage|p1a: Incineroar|26/170|[from] Recoil
+  0156  |move|p2b: Tyranitar|Knock Off|p1a: Incineroar
+  0157  |-resisted|p1a: Incineroar|1
+  0158  |-damage|p1a: Incineroar|11/170
+  0159  |-heal|p2b: Tyranitar|166/175|[from] item: Leftovers
+  0160  |upkeep
+  0161  |turn|10
+  0162  |move|p1b: Aerodactyl|Rock Slide|p2b: Tyranitar
+  0163  |-damage|p2b: Tyranitar|112/175
+  0164  |move|p1a: Incineroar|Flare Blitz|p2b: Tyranitar
+  0165  |-resisted|p2b: Tyranitar|1
+  0166  |-damage|p2b: Tyranitar|66/175
+  0167  |-status|p2b: Tyranitar|brn
+  0168  |-damage|p1a: Incineroar|0 fnt|[from] Recoil
+  0169  |faint|p1a: Incineroar
+  0170  |cant|p2b: Tyranitar|flinch
+  0171  |-heal|p2b: Tyranitar|76/175 brn|[from] item: Leftovers
+  0172  |-damage|p2b: Tyranitar|66/175 brn|[from] brn
+  0173  |upkeep
+
+====================================================================================================
+  RAW PROTOCOL — MEDICHAM2 (its own trace, unfiltered)   (172 lines)
+====================================================================================================
+  0000  |switch|p1a: Incineroar|incineroar, L50|170/170
+  0001  |switch|p1b: Aerodactyl|aerodactyl, L50|155/155
+  0002  |switch|p2a: Scizor|scizor, L50|145/145
+  0003  |switch|p2b: Tyranitar|tyranitar, L50|175/175
+  0004  |-ability|p1a: Incineroar|intimidate|boost
+  0005  |-unboost|p2a: Scizor|atk|1
+  0006  |-unboost|p2b: Tyranitar|atk|1
+  0007  |-weather|sandstorm|[from] ability: sandstream|[of] p2b: Tyranitar
+  0008  |turn|1
+  0009  |switch|p2a: Sinistcha|sinistcha, L50|146/146
+  0010  |switch|p1a: Ditto|ditto, L50|123/123
+  0011  |-transform|p1a: Ditto|p2b: Tyranitar|[from] ability: imposter
+  0012  |move|p2b: Tyranitar|protect|p2b: Tyranitar
+  0013  |-singleturn|p2b: Tyranitar|Protect
+  0014  |move|p1b: Aerodactyl|rockslide|p2a: Sinistcha
+  0015  |-activate|p2b: Tyranitar|move: Protect
+  0016  |-damage|p2a: Sinistcha|106/146
+  0017  |-weather|sandstorm|[upkeep]
+  0018  |-damage|p2a: Sinistcha|97/146|[from] Sandstorm
+  0019  |upkeep
+  0020  |turn|2
+  0021  |move|p1b: Aerodactyl|rockslide|p2a: Sinistcha
+  0022  |-miss|p1b: Aerodactyl|p2b: Tyranitar
+  0023  |-damage|p2a: Sinistcha|58/146
+  0024  |move|p1a: Ditto|knockoff|p2a: Sinistcha
+  0025  |-supereffective|p2a: Sinistcha|1
+  0026  |-damage|p2a: Sinistcha|0 fnt
+  0027  |-enditem|p2a: Sinistcha|sitrusberry|[from] move: knockoff|[of] p1a: Ditto
+  0028  |faint|p2a: Sinistcha
+  0029  |move|p2b: Tyranitar|knockoff|p1a: Ditto
+  0030  |-resisted|p1a: Ditto|1
+  0031  |-damage|p1a: Ditto|94/123
+  0032  |-enditem|p1a: Ditto|sitrusberry|[from] move: knockoff|[of] p2b: Tyranitar
+  0033  |-weather|sandstorm|[upkeep]
+  0034  |upkeep
+  0035  |switch|p2a: Kangaskhan|kangaskhan, L50|180/180
+  0036  |turn|3
+  0037  |detailschange|p2a: Kangaskhan|kangaskhan-mega, L50
+  0038  |-mega|p2a: Kangaskhan|Kangaskhan|kangaskhanite
+  0039  |move|p2a: Kangaskhan|fakeout|p1a: Ditto
+  0040  |-resisted|p1a: Ditto|1
+  0041  |-damage|p1a: Ditto|77/123
+  0042  |-resisted|p1a: Ditto|1
+  0043  |-damage|p1a: Ditto|73/123
+  0044  |-hitcount|p1a: Ditto|2
+  0045  |move|p1b: Aerodactyl|rockslide|p2a: Kangaskhan
+  0046  |-damage|p2a: Kangaskhan|132/180
+  0047  |-damage|p2b: Tyranitar|135/175
+  0048  |cant|p1a: Ditto|flinch
+  0049  |cant|p2b: Tyranitar|flinch
+  0050  |-weather|sandstorm|[upkeep]
+  0051  |-damage|p2a: Kangaskhan|121/180|[from] Sandstorm
+  0052  |-heal|p2b: Tyranitar|145/175|[from] item: leftovers
+  0053  |upkeep
+  0054  |turn|4
+  0055  |move|p1a: Ditto|protect|p1a: Ditto
+  0056  |-singleturn|p1a: Ditto|Protect
+  0057  |move|p2a: Kangaskhan|suckerpunch||[still]
+  0058  |-fail|p2a: Kangaskhan
+  0059  |move|p1b: Aerodactyl|rockslide|p2a: Kangaskhan
+  0060  |-damage|p2a: Kangaskhan|76/180
+  0061  |-damage|p2b: Tyranitar|106/175
+  0062  |move|p2b: Tyranitar|rockslide|p1a: Ditto
+  0063  |-activate|p1a: Ditto|move: Protect
+  0064  |-supereffective|p1b: Aerodactyl|1
+  0065  |-damage|p1b: Aerodactyl|53/155
+  0066  |-weather|sandstorm|[upkeep]
+  0067  |-damage|p2a: Kangaskhan|65/180|[from] Sandstorm
+  0068  |-heal|p2b: Tyranitar|116/175|[from] item: leftovers
+  0069  |upkeep
+  0070  |turn|5
+  0071  |move|p1b: Aerodactyl|wideguard|p1b: Aerodactyl
+  0072  |-singleturn|p1b: Aerodactyl|Wide Guard
+  0073  |move|p2a: Kangaskhan|drainpunch|p1a: Ditto
+  0074  |-supereffective|p1a: Ditto|2
+  0075  |-damage|p1a: Ditto|0 fnt
+  0076  |-heal|p2a: Kangaskhan|102/180|[from] drain|[of] p1a: Ditto
+  0077  |faint|p1a: Ditto
+  0078  |-hitcount|p1: Ditto|1  <<<<<< THE SPLIT
+  0079  |move|p2b: Tyranitar|rockslide|p1b: Aerodactyl
+  0080  |-activate|p1b: Aerodactyl|move: Wide Guard
+  0081  |-weather|none
+  0082  |-heal|p2b: Tyranitar|126/175|[from] item: leftovers
+  0083  |upkeep
+  0084  |switch|p1a: Incineroar|incineroar, L50|170/170
+  0085  |-ability|p1a: Incineroar|intimidate|boost
+  0086  |-unboost|p2a: Kangaskhan|atk|1
+  0087  |-unboost|p2b: Tyranitar|atk|1
+  0088  |turn|6
+  0089  |move|p2b: Tyranitar|protect|p2b: Tyranitar
+  0090  |-singleturn|p2b: Tyranitar|Protect
+  0091  |move|p1b: Aerodactyl|rockslide|p2b: Tyranitar
+  0092  |-activate|p2b: Tyranitar|move: Protect
+  0093  |-damage|p2a: Kangaskhan|54/180
+  0094  |move|p2a: Kangaskhan|drainpunch|p1a: Incineroar
+  0095  |-supereffective|p1a: Incineroar|1
+  0096  |-enditem|p1a: Incineroar|chopleberry|[eat]
+  0097  |-enditem|p1a: Incineroar|chopleberry|[weaken]
+  0098  |-damage|p1a: Incineroar|135/170
+  0099  |-supereffective|p1a: Incineroar|1
+  0100  |-damage|p1a: Incineroar|127/170
+  0101  |-heal|p2a: Kangaskhan|76/180|[from] drain|[of] p1a: Incineroar
+  0102  |-hitcount|p1a: Incineroar|2
+  0103  |move|p1a: Incineroar|partingshot|p2a: Kangaskhan
+  0104  |-unboost|p2a: Kangaskhan|atk|1
+  0105  |-unboost|p2a: Kangaskhan|spa|1
+  0106  |switch|p1a: Basculegion|basculegion, L50|195/195|[from] partingshot
+  0107  |-heal|p2b: Tyranitar|136/175|[from] item: leftovers
+  0108  |upkeep
+  0109  |turn|7
+  0110  |move|p1a: Basculegion|aquajet|p2a: Kangaskhan
+  0111  |-crit|p2a: Kangaskhan
+  0112  |-damage|p2a: Kangaskhan|8/180
+  0113  |move|p2a: Kangaskhan|suckerpunch||[still]
+  0114  |-fail|p2a: Kangaskhan
+  0115  |move|p1b: Aerodactyl|dualwingbeat|p2a: Kangaskhan
+  0116  |-damage|p2a: Kangaskhan|0 fnt
+  0117  |faint|p2a: Kangaskhan
+  0118  |-hitcount|p2: Kangaskhan|1
+  0119  |move|p2b: Tyranitar|knockoff|p1a: Basculegion
+  0120  |-supereffective|p1a: Basculegion|1
+  0121  |-damage|p1a: Basculegion|63/195
+  0122  |-enditem|p1a: Basculegion|choicescarf|[from] move: knockoff|[of] p2b: Tyranitar
+  0123  |-heal|p2b: Tyranitar|146/175|[from] item: leftovers
+  0124  |upkeep
+  0125  |switch|p2a: Scizor|scizor, L50|145/145
+  0126  |turn|8
+  0127  |switch|p1a: Incineroar|incineroar, L50|127/170
+  0128  |-ability|p1a: Incineroar|intimidate|boost
+  0129  |-unboost|p2a: Scizor|atk|1
+  0130  |-unboost|p2b: Tyranitar|atk|1
+  0131  |move|p2a: Scizor|bulletpunch|p1a: Incineroar
+  0132  |-resisted|p1a: Incineroar|1
+  0133  |-damage|p1a: Incineroar|100/170
+  0134  |-damage|p2a: Scizor|131/145|[from] item: Life Orb
+  0135  |move|p1b: Aerodactyl|tailwind|p1b: Aerodactyl
+  0136  |-sidestart|p1: |move: Tailwind
+  0137  |move|p2b: Tyranitar|knockoff|p1a: Incineroar
+  0138  |-resisted|p1a: Incineroar|1
+  0139  |-damage|p1a: Incineroar|87/170
+  0140  |-heal|p2b: Tyranitar|156/175|[from] item: leftovers
+  0141  |upkeep
+  0142  |turn|9
+  0143  |move|p2a: Scizor|bulletpunch|p1a: Incineroar
+  0144  |-resisted|p1a: Incineroar|1
+  0145  |-damage|p1a: Incineroar|58/170
+  0146  |-damage|p2a: Scizor|117/145|[from] item: Life Orb
+  0147  |move|p1b: Aerodactyl|rockslide|p2b: Tyranitar
+  0148  |-miss|p1b: Aerodactyl|p2b: Tyranitar
+  0149  |-damage|p2a: Scizor|74/145
+  0150  |move|p1a: Incineroar|flareblitz|p2a: Scizor
+  0151  |-supereffective|p2a: Scizor|2
+  0152  |-damage|p2a: Scizor|0 fnt
+  0153  |faint|p2a: Scizor
+  0154  |-damage|p1a: Incineroar|34/170|[from] Recoil
+  0155  |move|p2b: Tyranitar|knockoff|p1a: Incineroar
+  0156  |-resisted|p1a: Incineroar|1
+  0157  |-damage|p1a: Incineroar|19/170
+  0158  |-heal|p2b: Tyranitar|166/175|[from] item: leftovers
+  0159  |upkeep
+  0160  |turn|10
+  0161  |move|p1b: Aerodactyl|rockslide|p2b: Tyranitar
+  0162  |-damage|p2b: Tyranitar|112/175
+  0163  |move|p1a: Incineroar|flareblitz|p2b: Tyranitar
+  0164  |-resisted|p2b: Tyranitar|1
+  0165  |-damage|p2b: Tyranitar|66/175
+  0166  |-status|p2b: Tyranitar|brn
+  0167  |-damage|p1a: Incineroar|4/170|[from] Recoil
+  0168  |cant|p2b: Tyranitar|flinch
+  0169  |-heal|p2b: Tyranitar|76/175 brn|[from] item: leftovers
+  0170  |-damage|p2b: Tyranitar|66/175 brn|[from] brn
+  0171  |upkeep
+
+====================================================================================================
+  RAW PROTOCOL — SHOWDOWN, UNFILTERED battle.log — every line the authority emitted, including the ones the comparator drops   (359 lines)
+====================================================================================================
+  0000  |t:|1788811535
+  0001  |gametype|doubles
+  0002  |player|p1|A||
+  0003  |player|p2|B||
+  0004  |gen|9
+  0005  |tier|[Gen 9 Champions] VGC 2026 Reg M-B
+  0006  |rule|Species Clause: Limit one of each Pokémon
+  0007  |rule|Item Clause: Limit 1 of each item
+  0008  |clearpoke
+  0009  |poke|p1|Incineroar, L50|
+  0010  |poke|p1|Aerodactyl, L50|
+  0011  |poke|p1|Ditto, L50|
+  0012  |poke|p1|Basculegion, L50|
+  0013  |poke|p2|Scizor, L50|
+  0014  |poke|p2|Tyranitar, L50|
+  0015  |poke|p2|Kangaskhan, L50|
+  0016  |poke|p2|Sinistcha, L50|
+  0017  |teampreview|4
+  0018  |split|p1
+  0019  |uhtml|otsrequest|<button name="send" value="/acceptopenteamsheets" class="button" style="margin-right: 10px;"><strong>Accept Open Team Sheets</strong></button><button name="send" value="/rejectopenteamsheets" class="button" style="margin-top: 10px"><strong>Deny Open Team Sheets</strong></button>
+  0020  
+  0021  |split|p2
+  0022  |uhtml|otsrequest|<button name="send" value="/acceptopenteamsheets" class="button" style="margin-right: 10px;"><strong>Accept Open Team Sheets</strong></button><button name="send" value="/rejectopenteamsheets" class="button" style="margin-top: 10px"><strong>Deny Open Team Sheets</strong></button>
+  0023  
+  0024  |
+  0025  |t:|1788811535
+  0026  |teamsize|p1|4
+  0027  |teamsize|p2|4
+  0028  |start
+  0029  |split|p1
+  0030  |uhtmlchange|otsrequest|
+  0031  
+  0032  |split|p2
+  0033  |uhtmlchange|otsrequest|
+  0034  
+  0035  |split|p1
+  0036  |switch|p1a: Incineroar|Incineroar, L50|170/170
+  0037  |switch|p1a: Incineroar|Incineroar, L50|100/100
+  0038  |split|p1
+  0039  |switch|p1b: Aerodactyl|Aerodactyl, L50|155/155
+  0040  |switch|p1b: Aerodactyl|Aerodactyl, L50|100/100
+  0041  |split|p2
+  0042  |switch|p2a: Scizor|Scizor, L50|145/145
+  0043  |switch|p2a: Scizor|Scizor, L50|100/100
+  0044  |split|p2
+  0045  |switch|p2b: Tyranitar|Tyranitar, L50|175/175
+  0046  |switch|p2b: Tyranitar|Tyranitar, L50|100/100
+  0047  |-ability|p1b: Aerodactyl|Unnerve
+  0048  |-ability|p1a: Incineroar|Intimidate|boost
+  0049  |-unboost|p2a: Scizor|atk|1
+  0050  |-unboost|p2b: Tyranitar|atk|1
+  0051  |-weather|Sandstorm|[from] ability: Sand Stream|[of] p2b: Tyranitar
+  0052  |turn|1
+  0053  |
+  0054  |t:|1788811535
+  0055  |split|p2
+  0056  |switch|p2a: Sinistcha|Sinistcha, L50|146/146
+  0057  |switch|p2a: Sinistcha|Sinistcha, L50|100/100
+  0058  |split|p1
+  0059  |switch|p1a: Ditto|Ditto, L50|123/123
+  0060  |switch|p1a: Ditto|Ditto, L50|100/100
+  0061  |-transform|p1a: Ditto|p2b: Tyranitar|[from] ability: Imposter
+  0062  |move|p2b: Tyranitar|Protect|p2b: Tyranitar
+  0063  |-singleturn|p2b: Tyranitar|Protect
+  0064  |move|p1b: Aerodactyl|Rock Slide|p2a: Sinistcha|[spread] p2a
+  0065  |-activate|p2b: Tyranitar|move: Protect
+  0066  |split|p2
+  0067  |-damage|p2a: Sinistcha|106/146
+  0068  |-damage|p2a: Sinistcha|72/100
+  0069  |
+  0070  |-weather|Sandstorm|[upkeep]
+  0071  |split|p2
+  0072  |-damage|p2a: Sinistcha|97/146|[from] Sandstorm
+  0073  |-damage|p2a: Sinistcha|66/100|[from] Sandstorm
+  0074  |upkeep
+  0075  |turn|2
+  0076  |
+  0077  |t:|1788811535
+  0078  |move|p1b: Aerodactyl|Rock Slide|p2a: Sinistcha|[spread] p2a
+  0079  |-miss|p1b: Aerodactyl|p2b: Tyranitar
+  0080  |split|p2
+  0081  |-damage|p2a: Sinistcha|58/146
+  0082  |-damage|p2a: Sinistcha|39/100
+  0083  |move|p1a: Ditto|Knock Off|p2a: Sinistcha
+  0084  |-supereffective|p2a: Sinistcha|1
+  0085  |split|p2
+  0086  |-damage|p2a: Sinistcha|0 fnt
+  0087  |-damage|p2a: Sinistcha|0 fnt
+  0088  |-enditem|p2a: Sinistcha|Sitrus Berry|[from] move: Knock Off|[of] p1a: Ditto
+  0089  |faint|p2a: Sinistcha
+  0090  |move|p2b: Tyranitar|Knock Off|p1a: Ditto
+  0091  |-resisted|p1a: Ditto|1
+  0092  |split|p1
+  0093  |-damage|p1a: Ditto|94/123
+  0094  |-damage|p1a: Ditto|76/100
+  0095  |-enditem|p1a: Ditto|Sitrus Berry|[from] move: Knock Off|[of] p2b: Tyranitar
+  0096  |
+  0097  |-weather|Sandstorm|[upkeep]
+  0098  |upkeep
+  0099  |
+  0100  |t:|1788811535
+  0101  |split|p2
+  0102  |switch|p2a: Kangaskhan|Kangaskhan, L50|180/180
+  0103  |switch|p2a: Kangaskhan|Kangaskhan, L50|100/100
+  0104  |turn|3
+  0105  |
+  0106  |t:|1788811535
+  0107  |detailschange|p2a: Kangaskhan|Kangaskhan-Mega, L50
+  0108  |-mega|p2a: Kangaskhan|Kangaskhan|Kangaskhanite
+  0109  |move|p2a: Kangaskhan|Fake Out|p1a: Ditto
+  0110  |-resisted|p1a: Ditto|1
+  0111  |split|p1
+  0112  |-damage|p1a: Ditto|77/123
+  0113  |-damage|p1a: Ditto|62/100
+  0114  |-resisted|p1a: Ditto|1
+  0115  |split|p1
+  0116  |-damage|p1a: Ditto|73/123
+  0117  |-damage|p1a: Ditto|59/100
+  0118  |-hitcount|p1a: Ditto|2
+  0119  |move|p1b: Aerodactyl|Rock Slide|p2a: Kangaskhan|[spread] p2a,p2b
+  0120  |split|p2
+  0121  |-damage|p2a: Kangaskhan|132/180
+  0122  |-damage|p2a: Kangaskhan|73/100
+  0123  |split|p2
+  0124  |-damage|p2b: Tyranitar|135/175
+  0125  |-damage|p2b: Tyranitar|77/100
+  0126  |cant|p1a: Ditto|flinch
+  0127  |cant|p2b: Tyranitar|flinch
+  0128  |
+  0129  |-weather|Sandstorm|[upkeep]
+  0130  |split|p2
+  0131  |-damage|p2a: Kangaskhan|121/180|[from] Sandstorm
+  0132  |-damage|p2a: Kangaskhan|67/100|[from] Sandstorm
+  0133  |split|p2
+  0134  |-heal|p2b: Tyranitar|145/175|[from] item: Leftovers
+  0135  |-heal|p2b: Tyranitar|82/100|[from] item: Leftovers
+  0136  |upkeep
+  0137  |turn|4
+  0138  |
+  0139  |t:|1788811535
+  0140  |move|p1a: Ditto|Protect|p1a: Ditto
+  0141  |-singleturn|p1a: Ditto|Protect
+  0142  |move|p2a: Kangaskhan|Sucker Punch||[still]
+  0143  |-fail|p2a: Kangaskhan
+  0144  |move|p1b: Aerodactyl|Rock Slide|p2a: Kangaskhan|[spread] p2a,p2b
+  0145  |split|p2
+  0146  |-damage|p2a: Kangaskhan|76/180
+  0147  |-damage|p2a: Kangaskhan|42/100
+  0148  |split|p2
+  0149  |-damage|p2b: Tyranitar|106/175
+  0150  |-damage|p2b: Tyranitar|60/100
+  0151  |move|p2b: Tyranitar|Rock Slide|p1a: Ditto|[spread] p1b
+  0152  |-activate|p1a: Ditto|move: Protect
+  0153  |-supereffective|p1b: Aerodactyl|1
+  0154  |split|p1
+  0155  |-damage|p1b: Aerodactyl|53/155
+  0156  |-damage|p1b: Aerodactyl|34/100
+  0157  |
+  0158  |-weather|Sandstorm|[upkeep]
+  0159  |split|p2
+  0160  |-damage|p2a: Kangaskhan|65/180|[from] Sandstorm
+  0161  |-damage|p2a: Kangaskhan|36/100|[from] Sandstorm
+  0162  |split|p2
+  0163  |-heal|p2b: Tyranitar|116/175|[from] item: Leftovers
+  0164  |-heal|p2b: Tyranitar|66/100|[from] item: Leftovers
+  0165  |upkeep
+  0166  |turn|5
+  0167  |
+  0168  |t:|1788811535
+  0169  |move|p1b: Aerodactyl|Wide Guard|p1b: Aerodactyl
+  0170  |-singleturn|p1b: Aerodactyl|Wide Guard
+  0171  |move|p2a: Kangaskhan|Drain Punch|p1a: Ditto
+  0172  |-supereffective|p1a: Ditto|2
+  0173  |split|p1
+  0174  |-damage|p1a: Ditto|0 fnt
+  0175  |-damage|p1a: Ditto|0 fnt
+  0176  |split|p2
+  0177  |-heal|p2a: Kangaskhan|102/180|[from] drain|[of] p1a: Ditto
+  0178  |-heal|p2a: Kangaskhan|56/100|[from] drain|[of] p1a: Ditto
+  0179  |faint|p1a: Ditto
+  0180  |move|p2b: Tyranitar|Rock Slide|p1b: Aerodactyl
+  0181  |-activate|p1b: Aerodactyl|move: Wide Guard
+  0182  |
+  0183  |-weather|none
+  0184  |split|p2
+  0185  |-heal|p2b: Tyranitar|126/175|[from] item: Leftovers
+  0186  |-heal|p2b: Tyranitar|72/100|[from] item: Leftovers
+  0187  |upkeep
+  0188  |
+  0189  |t:|1788811535
+  0190  |split|p1
+  0191  |switch|p1a: Incineroar|Incineroar, L50|170/170
+  0192  |switch|p1a: Incineroar|Incineroar, L50|100/100
+  0193  |-ability|p1a: Incineroar|Intimidate|boost
+  0194  |-unboost|p2a: Kangaskhan|atk|1
+  0195  |-unboost|p2b: Tyranitar|atk|1
+  0196  |turn|6
+  0197  |
+  0198  |t:|1788811535
+  0199  |move|p2b: Tyranitar|Protect|p2b: Tyranitar
+  0200  |-singleturn|p2b: Tyranitar|Protect
+  0201  |move|p1b: Aerodactyl|Rock Slide|p2b: Tyranitar|[spread] p2a
+  0202  |-activate|p2b: Tyranitar|move: Protect
+  0203  |split|p2
+  0204  |-damage|p2a: Kangaskhan|54/180
+  0205  |-damage|p2a: Kangaskhan|30/100
+  0206  |move|p2a: Kangaskhan|Drain Punch|p1a: Incineroar
+  0207  |-supereffective|p1a: Incineroar|1
+  0208  |-enditem|p1a: Incineroar|Chople Berry|[eat]
+  0209  |-enditem|p1a: Incineroar|Chople Berry|[weaken]
+  0210  |split|p1
+  0211  |-damage|p1a: Incineroar|135/170
+  0212  |-damage|p1a: Incineroar|79/100
+  0213  |split|p2
+  0214  |-heal|p2a: Kangaskhan|72/180|[from] drain|[of] p1a: Incineroar
+  0215  |-heal|p2a: Kangaskhan|40/100|[from] drain|[of] p1a: Incineroar
+  0216  |-supereffective|p1a: Incineroar|1
+  0217  |split|p1
+  0218  |-damage|p1a: Incineroar|119/170
+  0219  |-damage|p1a: Incineroar|70/100
+  0220  |split|p2
+  0221  |-heal|p2a: Kangaskhan|80/180|[from] drain|[of] p1a: Incineroar
+  0222  |-heal|p2a: Kangaskhan|44/100|[from] drain|[of] p1a: Incineroar
+  0223  |-hitcount|p1a: Incineroar|2
+  0224  |move|p1a: Incineroar|Parting Shot|p2a: Kangaskhan
+  0225  |-unboost|p2a: Kangaskhan|atk|1
+  0226  |-unboost|p2a: Kangaskhan|spa|1
+  0227  |
+  0228  |t:|1788811535
+  0229  |split|p1
+  0230  |switch|p1a: Basculegion|Basculegion, L50|195/195|[from] Parting Shot
+  0231  |switch|p1a: Basculegion|Basculegion, L50|100/100|[from] Parting Shot
+  0232  |
+  0233  |split|p2
+  0234  |-heal|p2b: Tyranitar|136/175|[from] item: Leftovers
+  0235  |-heal|p2b: Tyranitar|77/100|[from] item: Leftovers
+  0236  |upkeep
+  0237  |turn|7
+  0238  |
+  0239  |t:|1788811535
+  0240  |move|p1a: Basculegion|Aqua Jet|p2a: Kangaskhan
+  0241  |-crit|p2a: Kangaskhan
+  0242  |split|p2
+  0243  |-damage|p2a: Kangaskhan|12/180
+  0244  |-damage|p2a: Kangaskhan|6/100
+  0245  |move|p2a: Kangaskhan|Sucker Punch||[still]
+  0246  |-fail|p2a: Kangaskhan
+  0247  |move|p1b: Aerodactyl|Dual Wingbeat|p2a: Kangaskhan
+  0248  |split|p2
+  0249  |-damage|p2a: Kangaskhan|0 fnt
+  0250  |-damage|p2a: Kangaskhan|0 fnt
+  0251  |faint|p2a: Kangaskhan
+  0252  |-hitcount|p2: Kangaskhan|1
+  0253  |move|p2b: Tyranitar|Knock Off|p1a: Basculegion
+  0254  |-supereffective|p1a: Basculegion|1
+  0255  |split|p1
+  0256  |-damage|p1a: Basculegion|63/195
+  0257  |-damage|p1a: Basculegion|32/100
+  0258  |-enditem|p1a: Basculegion|Choice Scarf|[from] move: Knock Off|[of] p2b: Tyranitar
+  0259  |
+  0260  |split|p2
+  0261  |-heal|p2b: Tyranitar|146/175|[from] item: Leftovers
+  0262  |-heal|p2b: Tyranitar|83/100|[from] item: Leftovers
+  0263  |upkeep
+  0264  |
+  0265  |t:|1788811535
+  0266  |split|p2
+  0267  |switch|p2a: Scizor|Scizor, L50|145/145
+  0268  |switch|p2a: Scizor|Scizor, L50|100/100
+  0269  |turn|8
+  0270  |
+  0271  |t:|1788811535
+  0272  |split|p1
+  0273  |switch|p1a: Incineroar|Incineroar, L50|119/170
+  0274  |switch|p1a: Incineroar|Incineroar, L50|70/100
+  0275  |-ability|p1a: Incineroar|Intimidate|boost
+  0276  |-unboost|p2a: Scizor|atk|1
+  0277  |-unboost|p2b: Tyranitar|atk|1
+  0278  |move|p2a: Scizor|Bullet Punch|p1a: Incineroar
+  0279  |-resisted|p1a: Incineroar|1
+  0280  |split|p1
+  0281  |-damage|p1a: Incineroar|92/170
+  0282  |-damage|p1a: Incineroar|54/100
+  0283  |split|p2
+  0284  |-damage|p2a: Scizor|131/145|[from] item: Life Orb
+  0285  |-damage|p2a: Scizor|90/100|[from] item: Life Orb
+  0286  |move|p1b: Aerodactyl|Tailwind|p1b: Aerodactyl
+  0287  |-sidestart|p1: A|move: Tailwind
+  0288  |move|p2b: Tyranitar|Knock Off|p1a: Incineroar
+  0289  |-resisted|p1a: Incineroar|1
+  0290  |split|p1
+  0291  |-damage|p1a: Incineroar|79/170
+  0292  |-damage|p1a: Incineroar|46/100
+  0293  |
+  0294  |split|p2
+  0295  |-heal|p2b: Tyranitar|156/175|[from] item: Leftovers
+  0296  |-heal|p2b: Tyranitar|89/100|[from] item: Leftovers
+  0297  |upkeep
+  0298  |turn|9
+  0299  |
+  0300  |t:|1788811535
+  0301  |move|p2a: Scizor|Bullet Punch|p1a: Incineroar
+  0302  |-resisted|p1a: Incineroar|1
+  0303  |split|p1
+  0304  |-damage|p1a: Incineroar|50/170
+  0305  |-damage|p1a: Incineroar|29/100
+  0306  |split|p2
+  0307  |-damage|p2a: Scizor|117/145|[from] item: Life Orb
+  0308  |-damage|p2a: Scizor|80/100|[from] item: Life Orb
+  0309  |move|p1b: Aerodactyl|Rock Slide|p2b: Tyranitar|[spread] p2a
+  0310  |-miss|p1b: Aerodactyl|p2b: Tyranitar
+  0311  |split|p2
+  0312  |-damage|p2a: Scizor|74/145
+  0313  |-damage|p2a: Scizor|51/100
+  0314  |move|p1a: Incineroar|Flare Blitz|p2a: Scizor
+  0315  |-supereffective|p2a: Scizor|2
+  0316  |split|p2
+  0317  |-damage|p2a: Scizor|0 fnt
+  0318  |-damage|p2a: Scizor|0 fnt
+  0319  |faint|p2a: Scizor
+  0320  |split|p1
+  0321  |-damage|p1a: Incineroar|26/170|[from] Recoil
+  0322  |-damage|p1a: Incineroar|15/100|[from] Recoil
+  0323  |move|p2b: Tyranitar|Knock Off|p1a: Incineroar
+  0324  |-resisted|p1a: Incineroar|1
+  0325  |split|p1
+  0326  |-damage|p1a: Incineroar|11/170
+  0327  |-damage|p1a: Incineroar|6/100
+  0328  |
+  0329  |split|p2
+  0330  |-heal|p2b: Tyranitar|166/175|[from] item: Leftovers
+  0331  |-heal|p2b: Tyranitar|94/100|[from] item: Leftovers
+  0332  |upkeep
+  0333  |turn|10
+  0334  |
+  0335  |t:|1788811535
+  0336  |move|p1b: Aerodactyl|Rock Slide|p2b: Tyranitar
+  0337  |split|p2
+  0338  |-damage|p2b: Tyranitar|112/175
+  0339  |-damage|p2b: Tyranitar|64/100
+  0340  |move|p1a: Incineroar|Flare Blitz|p2b: Tyranitar
+  0341  |-resisted|p2b: Tyranitar|1
+  0342  |split|p2
+  0343  |-damage|p2b: Tyranitar|66/175
+  0344  |-damage|p2b: Tyranitar|37/100
+  0345  |-status|p2b: Tyranitar|brn
+  0346  |split|p1
+  0347  |-damage|p1a: Incineroar|0 fnt|[from] Recoil
+  0348  |-damage|p1a: Incineroar|0 fnt|[from] Recoil
+  0349  |faint|p1a: Incineroar
+  0350  |cant|p2b: Tyranitar|flinch
+  0351  |
+  0352  |split|p2
+  0353  |-heal|p2b: Tyranitar|76/175 brn|[from] item: Leftovers
+  0354  |-heal|p2b: Tyranitar|43/100 brn|[from] item: Leftovers
+  0355  |split|p2
+  0356  |-damage|p2b: Tyranitar|66/175 brn|[from] brn
+  0357  |-damage|p2b: Tyranitar|37/100 brn|[from] brn
+  0358  |upkeep
+
+====================================================================================================
+  END OF GAME. Written nowhere; re-run to regenerate.
+====================================================================================================

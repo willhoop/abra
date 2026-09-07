@@ -1,10 +1,10 @@
 {
-  "current": "c28ad0815782",
-  "cut": "2026-09-07T19:17:33.189Z",
-  "why": "batch M: fractional-priority die order",
+  "current": "1be57a100d59",
+  "cut": "2026-09-07T20:44:46.729Z",
+  "why": "batch N: a split smartTarget volley is resolved one body at a time",
   "cuts": 1,
-  "latest_cut": "2026-09-07T19:17:33.189Z",
-  "latest_why": "batch M: fractional-priority die order",
-  "pointer_written": "2026-09-07T19:17:33.258Z",
+  "latest_cut": "2026-09-07T20:44:46.729Z",
+  "latest_why": "batch N: a split smartTarget volley is resolved one body at a time",
+  "pointer_written": "2026-09-07T20:44:46.811Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

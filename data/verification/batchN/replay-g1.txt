@@ -1,0 +1,980 @@
+====================================================================================================
+ONE GAME, BOTH ENGINES, EVERY LINE   —   a debugging view. Nothing here is written to an artifact.
+====================================================================================================
+  seed      gen9championsvgc2026regmbbo3-2662243229 vs gen9championsvgc2026regmbbo3-2662159754
+  config    omit-spread        arm  middle   (REAL dice, seeded and shared by CATEGORY (acc / crit / sec /…)
+  release   c28ad0815782      showdown C:/Users/willj/Projects/Pokemon/pokemon-showdown
+  turns     13   medicham raw lines 168   showdown raw lines 171
+  reduced   showdown 167   medicham 166   (the comparator walks the REDUCED streams index by index)
+  stopped   both engines ended the battle     showdown ended the battle: YES     medicham2 ended the battle: YES
+  played in 171.0s   after replaying the run's schedule: 1082 games to reach omit-spread pair #102
+
+----------------------------------------------------------------------------------------------------
+  REPRODUCED — every stored field of this game matches the replay.
+  (data/verification/batchN/dump-baseline.json, generated 2026-09-07T19:58:05.841Z, release c28ad0815782, store data/team-pool-frozen)
+     ok    agreed lines             artifact: 132
+     ok    showdown line at split   artifact: |-fail|p1a: Kangaskhan
+     ok    medicham line at split   artifact: |-resisted|p2a: Kingambit|1
+     ok    stop reason              artifact: both engines ended the battle
+     ok    class                    artifact: unrelated event mismatch
+----------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------
+  THE TWO TEAMS AS BUILT (four bodies each; the battle brings all four)
+----------------------------------------------------------------------------------------------------
+  P1 — "yours"
+    1. ampharos         hp  165  spe  100  ampharosite     static            dragonpulse, focusblast, thunderbolt, protect
+    2. spiritomb        hp  125  spe   49  sitrusberry     infiltrator       willowisp, shadowsneak, darkpulse, trickroom
+    3. kangaskhan       hp  180  spe  121  silkscarf       scrappy           fakeout, lastresort
+    4. heracross        hp  155  spe  130  heracronite     moxie             closecombat, rockblast, pinmissile, protect
+
+  P2 — "theirs"
+    1. raichu           hp  135  spe  170  raichunitey     lightningrod      fakeout, zapcannon, focusblast, protect
+    2. staraptor        hp  160  spe  159  staraptite      intimidate        dualwingbeat, closecombat, tailwind, protect
+    3. farigiraf        hp  195  spe   80  sitrusberry     armortail         psychic, helpinghand, trickroom, protect
+    4. kingambit        hp  175  spe   95  lifeorb         defiant           suckerpunch, kowtowcleave, swordsdance, protect
+
+====================================================================================================
+  THE GAME, LINE BY LINE.   SD = Pokemon Showdown (the authority).   US = medicham2.
+  `both` means the two engines emitted the same thing at that index. The raw protocol for the
+  whole game is printed in full further down; this half is the reading view.
+====================================================================================================
+
+  0000  both  P1a Ampharos sends in Ampharos, L50 [##########] 165/165 100%
+  0001  both  P1b Spiritomb sends in Spiritomb, L50 [##########] 125/125 100%
+  0002  both  P2a Raichu sends in Raichu, L50 [##########] 135/135 100%
+  0003  both  P2b Staraptor sends in Staraptor, L50 [##########] 160/160 100%
+  0004  both  P1a Ampharos lowers atk 1
+  0005  both  P1b Spiritomb lowers atk 1
+
+  0006  ---- turn 1 ------------------------------------------------------------
+  0007  both  P2a Raichu becomes Raichu-Mega-Y, L50
+  0008  both  P2a Raichu MEGA EVOLVES Raichu Raichunite Y
+  0009  both  P1a Ampharos becomes Ampharos-Mega, L50
+  0010  both  P1a Ampharos MEGA EVOLVES Ampharos Ampharosite
+  0011  both  P2a Raichu uses Fake Out -> P1a Ampharos
+  0012  both  P1a Ampharos drops to [#########.] 147/165 89%
+  0013  both  P2b Staraptor uses Tailwind -> P2b Staraptor
+  0014  both  side p2: B move: Tailwind
+  0015  both  P1a Ampharos can't move flinch
+  0016  both  P1b Spiritomb uses Dark Pulse -> P2a Raichu
+  0017  both  P2a Raichu drops to [######....] 78/135 58%
+  0018  both  end of turn
+
+  0019  ---- turn 2 ------------------------------------------------------------
+  0020  both  P2a Farigiraf sends in (replacing Raichu) Farigiraf, L50 [##########] 195/195 100%
+  0021  both  P2b Staraptor uses Protect -> P2b Staraptor
+  0022  both  P2b Staraptor braces with Protect
+  0023  both  P1a Ampharos uses Dragon Pulse -> P2a Farigiraf
+  0024  both  P2a Farigiraf drops to [#####.....] 87/195 45%
+  0025  both  P2a Farigiraf uses up Sitrus Berry <eat>
+  0026  both  P2a Farigiraf heals to [#######...] 135/195 69% <from item: Sitrus Berry>
+  0027  both  P1b Spiritomb uses Will-O-Wisp -> P2a Farigiraf
+  0028  both  P2a Farigiraf is brn
+  0029  both  P2a Farigiraf drops to [######....] 123/195 63% brn <from brn>
+  0030  both  end of turn
+
+  0031  ---- turn 3 ------------------------------------------------------------
+  0032  both  P2b Staraptor uses Dual Wingbeat -> P1a Ampharos <miss>
+  0033  both  P2b Staraptor misses -> P1a Ampharos
+  0034  both  P1a Ampharos uses Thunderbolt -> P2a Farigiraf
+  0035  both  P2a Farigiraf drops to [#.........] 9/195 5% brn
+  0036  both  P2a Farigiraf uses Trick Room -> P2a Farigiraf
+  0037  both  field move: Trick Room
+  0038  both  P1b Spiritomb uses Trick Room -> P1b Spiritomb
+  0039  both  field ends move: Trick Room
+  0040  both  P2a Farigiraf drops to 0 fnt <from brn>
+  0041  both  P2a Farigiraf faints
+  0042  both  end of turn
+  0043  both  P2a Raichu sends in (replacing Farigiraf) Raichu-Mega-Y, L50 [######....] 78/135 58%
+
+  0044  ---- turn 4 ------------------------------------------------------------
+  0045  both  P1a Ampharos uses Protect -> P1a Ampharos
+  0046  both  P1a Ampharos braces with Protect
+  0047  both  P2a Raichu uses Zap Cannon -> P1a Ampharos
+  0048  both  P1a Ampharos triggers move: Protect
+  0049  both  P2b Staraptor uses Tailwind <still>
+  0050  both  P2b Staraptor fails
+  0051  both  P1b Spiritomb uses Trick Room -> P1b Spiritomb
+  0052  both  field move: Trick Room
+  0053  both  side ends p2: B move: Tailwind
+  0054  both  end of turn
+
+  0055  ---- turn 5 ------------------------------------------------------------
+  0056  both  P2b Staraptor uses Protect -> P2b Staraptor
+  0057  both  P2b Staraptor braces with Protect
+  0058  both  P1b Spiritomb uses Will-O-Wisp -> P2a Raichu
+  0059  both  P2a Raichu is brn
+  0060  both  P1a Ampharos uses Thunderbolt -> P2a Raichu
+  0061  both  P2a Raichu resists 1
+  0062  both  P2a Raichu drops to [#.........] 11/135 8% brn
+  0063  both  P2a Raichu uses Focus Blast -> P1a Ampharos
+  0064  both  P1a Ampharos drops to [#####.....] 77/165 47%
+  0065  both  P2a Raichu drops to [..........] 3/135 2% brn <from brn>
+  0066  both  end of turn
+
+  0067  ---- turn 6 ------------------------------------------------------------
+  0068  both  P1a Ampharos uses Protect -> P1a Ampharos
+  0069  both  P1a Ampharos braces with Protect
+  0070  both  P1b Spiritomb uses Dark Pulse -> P2a Raichu
+  0071  both  P2a Raichu drops to 0 fnt
+  0072  both  P2a Raichu faints
+  0073  both  P2b Staraptor uses Close Combat -> P1a Ampharos
+  0074  both  P1a Ampharos triggers move: Protect
+  0075  both  end of turn
+  0076  both  P2a Kingambit sends in (replacing Raichu) Kingambit, L50 [##########] 175/175 100%
+
+  0077  ---- turn 7 ------------------------------------------------------------
+  0078  both  P1a Kangaskhan sends in (replacing Ampharos) Kangaskhan, L50 [##########] 180/180 100%
+  0079  both  P2a Kingambit uses Protect -> P2a Kingambit
+  0080  both  P2a Kingambit braces with Protect
+  0081  both  P2b Staraptor uses Tailwind -> P2b Staraptor
+  0082  both  side p2: B move: Tailwind
+  0083  both  P1b Spiritomb uses Trick Room -> P1b Spiritomb
+  0084  both  field ends move: Trick Room
+  0085  both  end of turn
+
+  0086  ---- turn 8 ------------------------------------------------------------
+  0087  both  P1a Kangaskhan uses Fake Out -> P2a Kingambit
+  0088  both  P2a Kingambit resists 1
+  0089  both  P2a Kingambit drops to [#########.] 159/175 91%
+  0090  both  P2a Kingambit can't move flinch
+  0091  both  P2b Staraptor uses Close Combat -> P1a Kangaskhan
+  0092  both  P1a Kangaskhan it's super effective 1
+  0093  both  P1a Kangaskhan drops to [#.........] 22/180 12%
+  0094  both  P2b Staraptor lowers def 1
+  0095  both  P2b Staraptor lowers spd 1
+  0096  both  P1b Spiritomb uses Will-O-Wisp -> P2a Kingambit
+  0097  both  P2a Kingambit is brn
+  0098  both  P2a Kingambit drops to [#########.] 149/175 85% brn <from brn>
+  0099  both  end of turn
+
+  0100  ---- turn 9 ------------------------------------------------------------
+  0101  both  P1a Ampharos sends in (replacing Kangaskhan) Ampharos-Mega, L50 [#####.....] 77/165 47%
+  0102  both  P2a Kingambit uses Sucker Punch <still>
+  0103  both  P2a Kingambit fails
+  0104  both  P2b Staraptor uses Close Combat -> P1a Ampharos
+  0105  both  P1a Ampharos drops to [..........] 6/165 4%
+  0106  both  P2b Staraptor lowers def 1
+  0107  both  P2b Staraptor lowers spd 1
+  0108  both  P1b Spiritomb uses Will-O-Wisp -> P2a Kingambit
+  0109  both  P2a Kingambit fails brn
+  0110  both  P2a Kingambit drops to [########..] 139/175 79% brn <from brn>
+  0111  both  end of turn
+
+  0112  ---- turn 10 ------------------------------------------------------------
+  0113  both  P2b Staraptor uses Close Combat -> P1a Ampharos
+  0114  both  P1a Ampharos drops to 0 fnt
+  0115  both  P2b Staraptor lowers def 1
+  0116  both  P2b Staraptor lowers spd 1
+  0117  both  P1a Ampharos faints
+  0118  both  P2a Kingambit uses Kowtow Cleave -> P1b Spiritomb
+  0119  both  P1b Spiritomb drops to [######....] 76/125 61%
+  0120  both  P2a Kingambit drops to [#######...] 122/175 70% brn <from item: Life Orb>
+  0121  both  P1b Spiritomb uses Dark Pulse -> P2a Kingambit
+  0122  both  P2a Kingambit resists 1
+  0123  both  P2a Kingambit drops to [######....] 102/175 58% brn
+  0124  both  P2a Kingambit drops to [#####.....] 92/175 53% brn <from brn>
+  0125  both  side ends p2: B move: Tailwind
+  0126  both  end of turn
+  0127  both  P1a Kangaskhan sends in (replacing Ampharos) Kangaskhan, L50 [#.........] 22/180 12%
+
+  0128  ---- turn 11 ------------------------------------------------------------
+  0129  both  P2b Staraptor uses Protect -> P2b Staraptor
+  0130  both  P2b Staraptor braces with Protect
+  0131  both  P1a Kangaskhan uses Last Resort <still>
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  >>>>  THE SPLIT — index 132. They agreed for 132 reduced lines.  <<<<
+  >>>>  classifier: unrelated event mismatch
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  0132  SD    P1a Kangaskhan fails
+        US    P2a Kingambit resists 1
+  0133  SD    P2a Kingambit uses Kowtow Cleave -> P1a Kangaskhan
+        US    P2a Kingambit drops to [##........] 41/175 23% brn
+  0134  SD    P1a Kangaskhan drops to 0 fnt
+        US    P2a Kingambit uses kowtowcleave -> P1a Kangaskhan
+  0135  SD    P1a Kangaskhan faints
+        US    P1a Kangaskhan drops to 0 fnt
+  0136  SD    P2a Kingambit drops to [####......] 75/175 43% brn <from item: Life Orb>
+        US    P1a Kangaskhan faints
+  0137  SD    P1b Spiritomb uses Will-O-Wisp -> P2a Kingambit
+        US    P2a Kingambit drops to [#.........] 24/175 14% brn <from item: Life Orb>
+  0138  SD    P2a Kingambit fails brn
+        US    P1b Spiritomb uses willowisp -> P2a Kingambit
+  0139  SD    P2a Kingambit drops to [####......] 65/175 37% brn <from brn>
+        US    P2a Kingambit fails brn
+  0140  SD    end of turn
+        US    P2a Kingambit drops to [#.........] 14/175 8% brn <from brn>
+  0141  SD    P1a Heracross sends in (replacing Kangaskhan) Heracross, L50 [##########] 155/155 100%
+        US    end of turn
+  0142  SD    turn 12
+        US    P1a Heracross sends in (replacing Kangaskhan) heracross, L50 [##########] 155/155 100%
+  0143  SD    P2b Staraptor uses Protect <still>
+        US    turn 12
+  0144  SD    P2b Staraptor fails
+        US    P2b Staraptor uses protect <still>
+  0145  SD    P1a Heracross uses Pin Missile -> P2a Kingambit
+        US    P2b Staraptor fails
+  0146  SD    P2a Kingambit drops to [##........] 41/175 23% brn
+        US    P1a Heracross uses pinmissile -> P2a Kingambit
+  0147  SD    P2a Kingambit drops to [#.........] 17/175 10% brn
+        US    P2a Kingambit drops to 0 fnt
+  0148  SD    P2a Kingambit drops to 0 fnt
+        US    P2a Kingambit faints
+  0149  SD    P2a Kingambit faints
+        US    P1a Heracross raises atk 1
+  0150  SD    P1a Heracross raises atk 1
+        US    hits p2: Kingambit 1
+  0151  SD    hits p2: Kingambit 3
+        US    P1b Spiritomb uses willowisp -> P2b Staraptor
+  0152  SD    P1b Spiritomb uses Will-O-Wisp -> P2b Staraptor
+        US    P2b Staraptor is brn
+  0153  SD    P2b Staraptor is brn
+        US    P2b Staraptor drops to [#########.] 150/160 94% brn <from brn>
+  0154  SD    P2b Staraptor drops to [#########.] 150/160 94% brn <from brn>
+        US    end of turn
+  0155  SD    end of turn
+        US    turn 13
+  0156  SD    turn 13
+        US    P2b Staraptor uses closecombat -> P1a Heracross
+  0157  SD    P2b Staraptor uses Close Combat -> P1a Heracross
+        US    P1a Heracross resists 1
+  0158  SD    P1a Heracross resists 1
+        US    P1a Heracross drops to [#########.] 133/155 86%
+  0159  SD    P1a Heracross drops to [#########.] 133/155 86%
+        US    P2b Staraptor lowers def 1
+  0160  SD    P2b Staraptor lowers def 1
+        US    P2b Staraptor lowers spd 1
+  0161  SD    P2b Staraptor lowers spd 1
+        US    P1a Heracross uses rockblast -> P2b Staraptor
+  0162  SD    P1a Heracross uses Rock Blast -> P2b Staraptor
+        US    P2b Staraptor it's super effective 1
+  0163  SD    P2b Staraptor it's super effective 1
+        US    P2b Staraptor drops to 0 fnt
+  0164  SD    P2b Staraptor drops to 0 fnt
+        US    P2b Staraptor faints
+  0165  SD    P2b Staraptor faints
+        US    hits p2: Staraptor 1
+  0166  SD    hits p2: Staraptor 1
+        US    — nothing further —
+
+====================================================================================================
+  WHAT EACH ENGINE WAS HOLDING WHEN THE GAME STOPPED
+  Same question asked of both: every body, is it fainted, at what HP, active or benched.
+====================================================================================================
+
+  ---- P1 ("yours") ------------------------------------------------------------
+    SHOWDOWN   pokemonLeft=2  teamSize=4     (pokemonLeft is the number checkWin actually reads)
+      heracross          hp  133  alive    active isActive=yes
+      spiritomb          hp   76  alive    active isActive=yes
+      ampharosmega       hp    0  FAINTED  bench  isActive=no 
+      kangaskhan         hp    0  FAINTED  bench  isActive=no 
+    MEDICHAM2  (this snapshot lists actives then bench; a fainted body it has DISCARDED
+               does not appear at all, so a missing row is not evidence of anything)
+      heracross          hp  133  alive    active
+      spiritomb          hp   76  alive    active
+
+  ---- P2 ("theirs") ------------------------------------------------------------
+    SHOWDOWN   pokemonLeft=0  teamSize=4     (pokemonLeft is the number checkWin actually reads)
+      kingambit          hp    0  FAINTED  active isActive=no    <- corpse in the slot, awaiting its replacement (both engines do this)
+      staraptor          hp    0  FAINTED  active isActive=no    <- corpse in the slot, awaiting its replacement (both engines do this)
+      farigiraf          hp    0  FAINTED  bench  isActive=no 
+      raichumegay        hp    0  FAINTED  bench  isActive=no 
+    MEDICHAM2  (this snapshot lists actives then bench; a fainted body it has DISCARDED
+               does not appear at all, so a missing row is not evidence of anything)
+      kingambit          hp    0  FAINTED  active   <- corpse in the slot, awaiting its replacement (both engines do this)
+      staraptor          hp    0  FAINTED  active   <- corpse in the slot, awaiting its replacement (both engines do this)
+
+    showdown winner: A
+
+====================================================================================================
+  RAW PROTOCOL — SHOWDOWN, as the comparator sees it (sdStream-filtered)   (171 lines)
+====================================================================================================
+  0000  |switch|p1a: Ampharos|Ampharos, L50|165/165
+  0001  |switch|p1b: Spiritomb|Spiritomb, L50|125/125
+  0002  |switch|p2a: Raichu|Raichu, L50|135/135
+  0003  |switch|p2b: Staraptor|Staraptor, L50|160/160
+  0004  |-ability|p2b: Staraptor|Intimidate|boost
+  0005  |-unboost|p1a: Ampharos|atk|1
+  0006  |-unboost|p1b: Spiritomb|atk|1
+  0007  |turn|1
+  0008  |detailschange|p2a: Raichu|Raichu-Mega-Y, L50
+  0009  |-mega|p2a: Raichu|Raichu|Raichunite Y
+  0010  |detailschange|p1a: Ampharos|Ampharos-Mega, L50
+  0011  |-mega|p1a: Ampharos|Ampharos|Ampharosite
+  0012  |-ability|p1a: Ampharos|Mold Breaker
+  0013  |move|p2a: Raichu|Fake Out|p1a: Ampharos
+  0014  |-damage|p1a: Ampharos|147/165
+  0015  |move|p2b: Staraptor|Tailwind|p2b: Staraptor
+  0016  |-sidestart|p2: B|move: Tailwind
+  0017  |cant|p1a: Ampharos|flinch
+  0018  |move|p1b: Spiritomb|Dark Pulse|p2a: Raichu
+  0019  |-damage|p2a: Raichu|78/135
+  0020  |upkeep
+  0021  |turn|2
+  0022  |switch|p2a: Farigiraf|Farigiraf, L50|195/195
+  0023  |move|p2b: Staraptor|Protect|p2b: Staraptor
+  0024  |-singleturn|p2b: Staraptor|Protect
+  0025  |move|p1a: Ampharos|Dragon Pulse|p2a: Farigiraf
+  0026  |-damage|p2a: Farigiraf|87/195
+  0027  |-enditem|p2a: Farigiraf|Sitrus Berry|[eat]
+  0028  |-heal|p2a: Farigiraf|135/195|[from] item: Sitrus Berry
+  0029  |move|p1b: Spiritomb|Will-O-Wisp|p2a: Farigiraf
+  0030  |-status|p2a: Farigiraf|brn
+  0031  |-damage|p2a: Farigiraf|123/195 brn|[from] brn
+  0032  |upkeep
+  0033  |turn|3
+  0034  |move|p2b: Staraptor|Dual Wingbeat|p1a: Ampharos|[miss]
+  0035  |-miss|p2b: Staraptor|p1a: Ampharos
+  0036  |move|p1a: Ampharos|Thunderbolt|p2a: Farigiraf
+  0037  |-damage|p2a: Farigiraf|9/195 brn
+  0038  |move|p2a: Farigiraf|Trick Room|p2a: Farigiraf
+  0039  |-fieldstart|move: Trick Room|[of] p2a: Farigiraf
+  0040  |move|p1b: Spiritomb|Trick Room|p1b: Spiritomb
+  0041  |-fieldend|move: Trick Room
+  0042  |-damage|p2a: Farigiraf|0 fnt|[from] brn
+  0043  |faint|p2a: Farigiraf
+  0044  |upkeep
+  0045  |switch|p2a: Raichu|Raichu-Mega-Y, L50|78/135
+  0046  |turn|4
+  0047  |move|p1a: Ampharos|Protect|p1a: Ampharos
+  0048  |-singleturn|p1a: Ampharos|Protect
+  0049  |move|p2a: Raichu|Zap Cannon|p1a: Ampharos
+  0050  |-activate|p1a: Ampharos|move: Protect
+  0051  |move|p2b: Staraptor|Tailwind||[still]
+  0052  |-fail|p2b: Staraptor
+  0053  |move|p1b: Spiritomb|Trick Room|p1b: Spiritomb
+  0054  |-fieldstart|move: Trick Room|[of] p1b: Spiritomb
+  0055  |-sideend|p2: B|move: Tailwind
+  0056  |upkeep
+  0057  |turn|5
+  0058  |move|p2b: Staraptor|Protect|p2b: Staraptor
+  0059  |-singleturn|p2b: Staraptor|Protect
+  0060  |move|p1b: Spiritomb|Will-O-Wisp|p2a: Raichu
+  0061  |-status|p2a: Raichu|brn
+  0062  |move|p1a: Ampharos|Thunderbolt|p2a: Raichu
+  0063  |-resisted|p2a: Raichu|1
+  0064  |-damage|p2a: Raichu|11/135 brn
+  0065  |move|p2a: Raichu|Focus Blast|p1a: Ampharos
+  0066  |-damage|p1a: Ampharos|77/165
+  0067  |-damage|p2a: Raichu|3/135 brn|[from] brn
+  0068  |upkeep
+  0069  |turn|6
+  0070  |move|p1a: Ampharos|Protect|p1a: Ampharos
+  0071  |-singleturn|p1a: Ampharos|Protect
+  0072  |move|p1b: Spiritomb|Dark Pulse|p2a: Raichu
+  0073  |-damage|p2a: Raichu|0 fnt
+  0074  |faint|p2a: Raichu
+  0075  |move|p2b: Staraptor|Close Combat|p1a: Ampharos
+  0076  |-activate|p1a: Ampharos|move: Protect
+  0077  |upkeep
+  0078  |switch|p2a: Kingambit|Kingambit, L50|175/175
+  0079  |turn|7
+  0080  |switch|p1a: Kangaskhan|Kangaskhan, L50|180/180
+  0081  |move|p2a: Kingambit|Protect|p2a: Kingambit
+  0082  |-singleturn|p2a: Kingambit|Protect
+  0083  |move|p2b: Staraptor|Tailwind|p2b: Staraptor
+  0084  |-sidestart|p2: B|move: Tailwind
+  0085  |move|p1b: Spiritomb|Trick Room|p1b: Spiritomb
+  0086  |-fieldend|move: Trick Room
+  0087  |upkeep
+  0088  |turn|8
+  0089  |move|p1a: Kangaskhan|Fake Out|p2a: Kingambit
+  0090  |-resisted|p2a: Kingambit|1
+  0091  |-damage|p2a: Kingambit|159/175
+  0092  |cant|p2a: Kingambit|flinch
+  0093  |move|p2b: Staraptor|Close Combat|p1a: Kangaskhan
+  0094  |-supereffective|p1a: Kangaskhan|1
+  0095  |-damage|p1a: Kangaskhan|22/180
+  0096  |-unboost|p2b: Staraptor|def|1
+  0097  |-unboost|p2b: Staraptor|spd|1
+  0098  |move|p1b: Spiritomb|Will-O-Wisp|p2a: Kingambit
+  0099  |-status|p2a: Kingambit|brn
+  0100  |-damage|p2a: Kingambit|149/175 brn|[from] brn
+  0101  |upkeep
+  0102  |turn|9
+  0103  |switch|p1a: Ampharos|Ampharos-Mega, L50|77/165
+  0104  |-ability|p1a: Ampharos|Mold Breaker
+  0105  |move|p2a: Kingambit|Sucker Punch||[still]
+  0106  |-fail|p2a: Kingambit
+  0107  |move|p2b: Staraptor|Close Combat|p1a: Ampharos
+  0108  |-damage|p1a: Ampharos|6/165
+  0109  |-unboost|p2b: Staraptor|def|1
+  0110  |-unboost|p2b: Staraptor|spd|1
+  0111  |move|p1b: Spiritomb|Will-O-Wisp|p2a: Kingambit
+  0112  |-fail|p2a: Kingambit|brn
+  0113  |-damage|p2a: Kingambit|139/175 brn|[from] brn
+  0114  |upkeep
+  0115  |turn|10
+  0116  |move|p2b: Staraptor|Close Combat|p1a: Ampharos
+  0117  |-damage|p1a: Ampharos|0 fnt
+  0118  |-unboost|p2b: Staraptor|def|1
+  0119  |-unboost|p2b: Staraptor|spd|1
+  0120  |faint|p1a: Ampharos
+  0121  |move|p2a: Kingambit|Kowtow Cleave|p1b: Spiritomb
+  0122  |-damage|p1b: Spiritomb|76/125
+  0123  |-damage|p2a: Kingambit|122/175 brn|[from] item: Life Orb
+  0124  |move|p1b: Spiritomb|Dark Pulse|p2a: Kingambit
+  0125  |-resisted|p2a: Kingambit|1
+  0126  |-damage|p2a: Kingambit|102/175 brn
+  0127  |-damage|p2a: Kingambit|92/175 brn|[from] brn
+  0128  |-sideend|p2: B|move: Tailwind
+  0129  |upkeep
+  0130  |switch|p1a: Kangaskhan|Kangaskhan, L50|22/180
+  0131  |turn|11
+  0132  |move|p2b: Staraptor|Protect|p2b: Staraptor
+  0133  |-singleturn|p2b: Staraptor|Protect
+  0134  |move|p1a: Kangaskhan|Last Resort||[still]
+  0135  |-fail|p1a: Kangaskhan  <<<<<< THE SPLIT
+  0136  |move|p2a: Kingambit|Kowtow Cleave|p1a: Kangaskhan
+  0137  |-damage|p1a: Kangaskhan|0 fnt
+  0138  |faint|p1a: Kangaskhan
+  0139  |-damage|p2a: Kingambit|75/175 brn|[from] item: Life Orb
+  0140  |move|p1b: Spiritomb|Will-O-Wisp|p2a: Kingambit
+  0141  |-fail|p2a: Kingambit|brn
+  0142  |-damage|p2a: Kingambit|65/175 brn|[from] brn
+  0143  |upkeep
+  0144  |switch|p1a: Heracross|Heracross, L50|155/155
+  0145  |turn|12
+  0146  |move|p2b: Staraptor|Protect||[still]
+  0147  |-fail|p2b: Staraptor
+  0148  |move|p1a: Heracross|Pin Missile|p2a: Kingambit
+  0149  |-damage|p2a: Kingambit|41/175 brn
+  0150  |-damage|p2a: Kingambit|17/175 brn
+  0151  |-damage|p2a: Kingambit|0 fnt
+  0152  |faint|p2a: Kingambit
+  0153  |-ability|p1a: Heracross|Moxie|boost
+  0154  |-boost|p1a: Heracross|atk|1
+  0155  |-hitcount|p2: Kingambit|3
+  0156  |move|p1b: Spiritomb|Will-O-Wisp|p2b: Staraptor
+  0157  |-status|p2b: Staraptor|brn
+  0158  |-damage|p2b: Staraptor|150/160 brn|[from] brn
+  0159  |upkeep
+  0160  |turn|13
+  0161  |move|p2b: Staraptor|Close Combat|p1a: Heracross
+  0162  |-resisted|p1a: Heracross|1
+  0163  |-damage|p1a: Heracross|133/155
+  0164  |-unboost|p2b: Staraptor|def|1
+  0165  |-unboost|p2b: Staraptor|spd|1
+  0166  |move|p1a: Heracross|Rock Blast|p2b: Staraptor
+  0167  |-supereffective|p2b: Staraptor|1
+  0168  |-damage|p2b: Staraptor|0 fnt
+  0169  |faint|p2b: Staraptor
+  0170  |-hitcount|p2: Staraptor|1
+
+====================================================================================================
+  RAW PROTOCOL — MEDICHAM2 (its own trace, unfiltered)   (168 lines)
+====================================================================================================
+  0000  |switch|p1a: Ampharos|ampharos, L50|165/165
+  0001  |switch|p1b: Spiritomb|spiritomb, L50|125/125
+  0002  |switch|p2a: Raichu|raichu, L50|135/135
+  0003  |switch|p2b: Staraptor|staraptor, L50|160/160
+  0004  |-ability|p2b: Staraptor|intimidate|boost
+  0005  |-unboost|p1a: Ampharos|atk|1
+  0006  |-unboost|p1b: Spiritomb|atk|1
+  0007  |turn|1
+  0008  |detailschange|p2a: Raichu|raichu-mega-y, L50
+  0009  |-mega|p2a: Raichu|Raichu|raichunitey
+  0010  |detailschange|p1a: Ampharos|ampharos-mega, L50
+  0011  |-mega|p1a: Ampharos|Ampharos|ampharosite
+  0012  |move|p2a: Raichu|fakeout|p1a: Ampharos
+  0013  |-damage|p1a: Ampharos|147/165
+  0014  |move|p2b: Staraptor|tailwind|p2b: Staraptor
+  0015  |-sidestart|p2: |move: Tailwind
+  0016  |cant|p1a: Ampharos|flinch
+  0017  |move|p1b: Spiritomb|darkpulse|p2a: Raichu
+  0018  |-damage|p2a: Raichu|78/135
+  0019  |upkeep
+  0020  |turn|2
+  0021  |switch|p2a: Farigiraf|farigiraf, L50|195/195
+  0022  |move|p2b: Staraptor|protect|p2b: Staraptor
+  0023  |-singleturn|p2b: Staraptor|Protect
+  0024  |move|p1a: Ampharos|dragonpulse|p2a: Farigiraf
+  0025  |-damage|p2a: Farigiraf|87/195
+  0026  |-enditem|p2a: Farigiraf|sitrusberry|[eat]
+  0027  |-heal|p2a: Farigiraf|135/195|[from] item: sitrusberry
+  0028  |move|p1b: Spiritomb|willowisp|p2a: Farigiraf
+  0029  |-status|p2a: Farigiraf|brn
+  0030  |-damage|p2a: Farigiraf|123/195 brn|[from] brn
+  0031  |upkeep
+  0032  |turn|3
+  0033  |move|p2b: Staraptor|dualwingbeat|p1a: Ampharos
+  0034  |-miss|p2b: Staraptor|p1a: Ampharos
+  0035  |move|p1a: Ampharos|thunderbolt|p2a: Farigiraf
+  0036  |-damage|p2a: Farigiraf|9/195 brn
+  0037  |move|p2a: Farigiraf|trickroom|p2a: Farigiraf
+  0038  |-fieldstart|move: Trick Room|[of] p2a: Farigiraf
+  0039  |move|p1b: Spiritomb|trickroom|p1b: Spiritomb
+  0040  |-fieldend|move: Trick Room
+  0041  |-damage|p2a: Farigiraf|0 fnt|[from] brn
+  0042  |faint|p2a: Farigiraf
+  0043  |upkeep
+  0044  |switch|p2a: Raichu|raichu-mega-y, L50|78/135
+  0045  |turn|4
+  0046  |move|p1a: Ampharos|protect|p1a: Ampharos
+  0047  |-singleturn|p1a: Ampharos|Protect
+  0048  |move|p2a: Raichu|zapcannon|p1a: Ampharos
+  0049  |-activate|p1a: Ampharos|move: Protect
+  0050  |move|p2b: Staraptor|tailwind|p2b: Staraptor
+  0051  |-fail|p2b: Staraptor
+  0052  |move|p1b: Spiritomb|trickroom|p1b: Spiritomb
+  0053  |-fieldstart|move: Trick Room|[of] p1b: Spiritomb
+  0054  |-sideend|p2: |move: Tailwind
+  0055  |upkeep
+  0056  |turn|5
+  0057  |move|p2b: Staraptor|protect|p2b: Staraptor
+  0058  |-singleturn|p2b: Staraptor|Protect
+  0059  |move|p1b: Spiritomb|willowisp|p2a: Raichu
+  0060  |-status|p2a: Raichu|brn
+  0061  |move|p1a: Ampharos|thunderbolt|p2a: Raichu
+  0062  |-resisted|p2a: Raichu|1
+  0063  |-damage|p2a: Raichu|11/135 brn
+  0064  |move|p2a: Raichu|focusblast|p1a: Ampharos
+  0065  |-damage|p1a: Ampharos|77/165
+  0066  |-damage|p2a: Raichu|3/135 brn|[from] brn
+  0067  |upkeep
+  0068  |turn|6
+  0069  |move|p1a: Ampharos|protect|p1a: Ampharos
+  0070  |-singleturn|p1a: Ampharos|Protect
+  0071  |move|p1b: Spiritomb|darkpulse|p2a: Raichu
+  0072  |-damage|p2a: Raichu|0 fnt
+  0073  |faint|p2a: Raichu
+  0074  |move|p2b: Staraptor|closecombat|p1a: Ampharos
+  0075  |-activate|p1a: Ampharos|move: Protect
+  0076  |upkeep
+  0077  |switch|p2a: Kingambit|kingambit, L50|175/175
+  0078  |turn|7
+  0079  |switch|p1a: Kangaskhan|kangaskhan, L50|180/180
+  0080  |move|p2a: Kingambit|protect|p2a: Kingambit
+  0081  |-singleturn|p2a: Kingambit|Protect
+  0082  |move|p2b: Staraptor|tailwind|p2b: Staraptor
+  0083  |-sidestart|p2: |move: Tailwind
+  0084  |move|p1b: Spiritomb|trickroom|p1b: Spiritomb
+  0085  |-fieldend|move: Trick Room
+  0086  |upkeep
+  0087  |turn|8
+  0088  |move|p1a: Kangaskhan|fakeout|p2a: Kingambit
+  0089  |-resisted|p2a: Kingambit|1
+  0090  |-damage|p2a: Kingambit|159/175
+  0091  |cant|p2a: Kingambit|flinch
+  0092  |move|p2b: Staraptor|closecombat|p1a: Kangaskhan
+  0093  |-supereffective|p1a: Kangaskhan|1
+  0094  |-damage|p1a: Kangaskhan|22/180
+  0095  |-unboost|p2b: Staraptor|def|1
+  0096  |-unboost|p2b: Staraptor|spd|1
+  0097  |move|p1b: Spiritomb|willowisp|p2a: Kingambit
+  0098  |-status|p2a: Kingambit|brn
+  0099  |-damage|p2a: Kingambit|149/175 brn|[from] brn
+  0100  |upkeep
+  0101  |turn|9
+  0102  |switch|p1a: Ampharos|ampharos-mega, L50|77/165
+  0103  |move|p2a: Kingambit|suckerpunch||[still]
+  0104  |-fail|p2a: Kingambit
+  0105  |move|p2b: Staraptor|closecombat|p1a: Ampharos
+  0106  |-damage|p1a: Ampharos|6/165
+  0107  |-unboost|p2b: Staraptor|def|1
+  0108  |-unboost|p2b: Staraptor|spd|1
+  0109  |move|p1b: Spiritomb|willowisp|p2a: Kingambit
+  0110  |-fail|p2a: Kingambit|brn
+  0111  |-damage|p2a: Kingambit|139/175 brn|[from] brn
+  0112  |upkeep
+  0113  |turn|10
+  0114  |move|p2b: Staraptor|closecombat|p1a: Ampharos
+  0115  |-damage|p1a: Ampharos|0 fnt
+  0116  |-unboost|p2b: Staraptor|def|1
+  0117  |-unboost|p2b: Staraptor|spd|1
+  0118  |faint|p1a: Ampharos
+  0119  |move|p2a: Kingambit|kowtowcleave|p1b: Spiritomb
+  0120  |-damage|p1b: Spiritomb|76/125
+  0121  |-damage|p2a: Kingambit|122/175 brn|[from] item: Life Orb
+  0122  |move|p1b: Spiritomb|darkpulse|p2a: Kingambit
+  0123  |-resisted|p2a: Kingambit|1
+  0124  |-damage|p2a: Kingambit|102/175 brn
+  0125  |-damage|p2a: Kingambit|92/175 brn|[from] brn
+  0126  |-sideend|p2: |move: Tailwind
+  0127  |upkeep
+  0128  |switch|p1a: Kangaskhan|kangaskhan, L50|22/180
+  0129  |turn|11
+  0130  |move|p2b: Staraptor|protect|p2b: Staraptor
+  0131  |-singleturn|p2b: Staraptor|Protect
+  0132  |move|p1a: Kangaskhan|lastresort|p2a: Kingambit
+  0133  |-resisted|p2a: Kingambit|1  <<<<<< THE SPLIT
+  0134  |-damage|p2a: Kingambit|41/175 brn
+  0135  |move|p2a: Kingambit|kowtowcleave|p1a: Kangaskhan
+  0136  |-damage|p1a: Kangaskhan|0 fnt
+  0137  |faint|p1a: Kangaskhan
+  0138  |-damage|p2a: Kingambit|24/175 brn|[from] item: Life Orb
+  0139  |move|p1b: Spiritomb|willowisp|p2a: Kingambit
+  0140  |-fail|p2a: Kingambit|brn
+  0141  |-damage|p2a: Kingambit|14/175 brn|[from] brn
+  0142  |upkeep
+  0143  |switch|p1a: Heracross|heracross, L50|155/155
+  0144  |turn|12
+  0145  |move|p2b: Staraptor|protect||[still]
+  0146  |-fail|p2b: Staraptor
+  0147  |move|p1a: Heracross|pinmissile|p2a: Kingambit
+  0148  |-damage|p2a: Kingambit|0 fnt
+  0149  |faint|p2a: Kingambit
+  0150  |-ability|p1a: Heracross|Moxie|boost
+  0151  |-boost|p1a: Heracross|atk|1
+  0152  |-hitcount|p2: Kingambit|1
+  0153  |move|p1b: Spiritomb|willowisp|p2b: Staraptor
+  0154  |-status|p2b: Staraptor|brn
+  0155  |-damage|p2b: Staraptor|150/160 brn|[from] brn
+  0156  |upkeep
+  0157  |turn|13
+  0158  |move|p2b: Staraptor|closecombat|p1a: Heracross
+  0159  |-resisted|p1a: Heracross|1
+  0160  |-damage|p1a: Heracross|133/155
+  0161  |-unboost|p2b: Staraptor|def|1
+  0162  |-unboost|p2b: Staraptor|spd|1
+  0163  |move|p1a: Heracross|rockblast|p2b: Staraptor
+  0164  |-supereffective|p2b: Staraptor|1
+  0165  |-damage|p2b: Staraptor|0 fnt
+  0166  |faint|p2b: Staraptor
+  0167  |-hitcount|p2: Staraptor|1
+
+====================================================================================================
+  RAW PROTOCOL — SHOWDOWN, UNFILTERED battle.log — every line the authority emitted, including the ones the comparator drops   (336 lines)
+====================================================================================================
+  0000  |t:|1788811390
+  0001  |gametype|doubles
+  0002  |player|p1|A||
+  0003  |player|p2|B||
+  0004  |gen|9
+  0005  |tier|[Gen 9 Champions] VGC 2026 Reg M-B
+  0006  |rule|Species Clause: Limit one of each Pokémon
+  0007  |rule|Item Clause: Limit 1 of each item
+  0008  |clearpoke
+  0009  |poke|p1|Ampharos, L50|
+  0010  |poke|p1|Spiritomb, L50|
+  0011  |poke|p1|Kangaskhan, L50|
+  0012  |poke|p1|Heracross, L50|
+  0013  |poke|p2|Raichu, L50|
+  0014  |poke|p2|Staraptor, L50|
+  0015  |poke|p2|Farigiraf, L50|
+  0016  |poke|p2|Kingambit, L50|
+  0017  |teampreview|4
+  0018  |split|p1
+  0019  |uhtml|otsrequest|<button name="send" value="/acceptopenteamsheets" class="button" style="margin-right: 10px;"><strong>Accept Open Team Sheets</strong></button><button name="send" value="/rejectopenteamsheets" class="button" style="margin-top: 10px"><strong>Deny Open Team Sheets</strong></button>
+  0020  
+  0021  |split|p2
+  0022  |uhtml|otsrequest|<button name="send" value="/acceptopenteamsheets" class="button" style="margin-right: 10px;"><strong>Accept Open Team Sheets</strong></button><button name="send" value="/rejectopenteamsheets" class="button" style="margin-top: 10px"><strong>Deny Open Team Sheets</strong></button>
+  0023  
+  0024  |
+  0025  |t:|1788811390
+  0026  |teamsize|p1|4
+  0027  |teamsize|p2|4
+  0028  |start
+  0029  |split|p1
+  0030  |uhtmlchange|otsrequest|
+  0031  
+  0032  |split|p2
+  0033  |uhtmlchange|otsrequest|
+  0034  
+  0035  |split|p1
+  0036  |switch|p1a: Ampharos|Ampharos, L50|165/165
+  0037  |switch|p1a: Ampharos|Ampharos, L50|100/100
+  0038  |split|p1
+  0039  |switch|p1b: Spiritomb|Spiritomb, L50|125/125
+  0040  |switch|p1b: Spiritomb|Spiritomb, L50|100/100
+  0041  |split|p2
+  0042  |switch|p2a: Raichu|Raichu, L50|135/135
+  0043  |switch|p2a: Raichu|Raichu, L50|100/100
+  0044  |split|p2
+  0045  |switch|p2b: Staraptor|Staraptor, L50|160/160
+  0046  |switch|p2b: Staraptor|Staraptor, L50|100/100
+  0047  |-ability|p2b: Staraptor|Intimidate|boost
+  0048  |-unboost|p1a: Ampharos|atk|1
+  0049  |-unboost|p1b: Spiritomb|atk|1
+  0050  |turn|1
+  0051  |
+  0052  |t:|1788811390
+  0053  |detailschange|p2a: Raichu|Raichu-Mega-Y, L50
+  0054  |-mega|p2a: Raichu|Raichu|Raichunite Y
+  0055  |detailschange|p1a: Ampharos|Ampharos-Mega, L50
+  0056  |-mega|p1a: Ampharos|Ampharos|Ampharosite
+  0057  |-ability|p1a: Ampharos|Mold Breaker
+  0058  |move|p2a: Raichu|Fake Out|p1a: Ampharos
+  0059  |split|p1
+  0060  |-damage|p1a: Ampharos|147/165
+  0061  |-damage|p1a: Ampharos|89/100
+  0062  |move|p2b: Staraptor|Tailwind|p2b: Staraptor
+  0063  |-sidestart|p2: B|move: Tailwind
+  0064  |cant|p1a: Ampharos|flinch
+  0065  |move|p1b: Spiritomb|Dark Pulse|p2a: Raichu
+  0066  |split|p2
+  0067  |-damage|p2a: Raichu|78/135
+  0068  |-damage|p2a: Raichu|57/100
+  0069  |
+  0070  |upkeep
+  0071  |turn|2
+  0072  |
+  0073  |t:|1788811390
+  0074  |split|p2
+  0075  |switch|p2a: Farigiraf|Farigiraf, L50|195/195
+  0076  |switch|p2a: Farigiraf|Farigiraf, L50|100/100
+  0077  |move|p2b: Staraptor|Protect|p2b: Staraptor
+  0078  |-singleturn|p2b: Staraptor|Protect
+  0079  |move|p1a: Ampharos|Dragon Pulse|p2a: Farigiraf
+  0080  |split|p2
+  0081  |-damage|p2a: Farigiraf|87/195
+  0082  |-damage|p2a: Farigiraf|44/100
+  0083  |-enditem|p2a: Farigiraf|Sitrus Berry|[eat]
+  0084  |split|p2
+  0085  |-heal|p2a: Farigiraf|135/195|[from] item: Sitrus Berry
+  0086  |-heal|p2a: Farigiraf|69/100|[from] item: Sitrus Berry
+  0087  |move|p1b: Spiritomb|Will-O-Wisp|p2a: Farigiraf
+  0088  |-status|p2a: Farigiraf|brn
+  0089  |
+  0090  |split|p2
+  0091  |-damage|p2a: Farigiraf|123/195 brn|[from] brn
+  0092  |-damage|p2a: Farigiraf|63/100 brn|[from] brn
+  0093  |upkeep
+  0094  |turn|3
+  0095  |
+  0096  |t:|1788811390
+  0097  |move|p2b: Staraptor|Dual Wingbeat|p1a: Ampharos|[miss]
+  0098  |-miss|p2b: Staraptor|p1a: Ampharos
+  0099  |move|p1a: Ampharos|Thunderbolt|p2a: Farigiraf
+  0100  |split|p2
+  0101  |-damage|p2a: Farigiraf|9/195 brn
+  0102  |-damage|p2a: Farigiraf|4/100 brn
+  0103  |move|p2a: Farigiraf|Trick Room|p2a: Farigiraf
+  0104  |-fieldstart|move: Trick Room|[of] p2a: Farigiraf
+  0105  |move|p1b: Spiritomb|Trick Room|p1b: Spiritomb
+  0106  |-fieldend|move: Trick Room
+  0107  |
+  0108  |split|p2
+  0109  |-damage|p2a: Farigiraf|0 fnt|[from] brn
+  0110  |-damage|p2a: Farigiraf|0 fnt|[from] brn
+  0111  |faint|p2a: Farigiraf
+  0112  |upkeep
+  0113  |
+  0114  |t:|1788811390
+  0115  |split|p2
+  0116  |switch|p2a: Raichu|Raichu-Mega-Y, L50|78/135
+  0117  |switch|p2a: Raichu|Raichu-Mega-Y, L50|57/100
+  0118  |turn|4
+  0119  |
+  0120  |t:|1788811390
+  0121  |move|p1a: Ampharos|Protect|p1a: Ampharos
+  0122  |-singleturn|p1a: Ampharos|Protect
+  0123  |move|p2a: Raichu|Zap Cannon|p1a: Ampharos
+  0124  |-activate|p1a: Ampharos|move: Protect
+  0125  |move|p2b: Staraptor|Tailwind||[still]
+  0126  |-fail|p2b: Staraptor
+  0127  |move|p1b: Spiritomb|Trick Room|p1b: Spiritomb
+  0128  |-fieldstart|move: Trick Room|[of] p1b: Spiritomb
+  0129  |
+  0130  |-sideend|p2: B|move: Tailwind
+  0131  |upkeep
+  0132  |turn|5
+  0133  |
+  0134  |t:|1788811390
+  0135  |move|p2b: Staraptor|Protect|p2b: Staraptor
+  0136  |-singleturn|p2b: Staraptor|Protect
+  0137  |move|p1b: Spiritomb|Will-O-Wisp|p2a: Raichu
+  0138  |-status|p2a: Raichu|brn
+  0139  |move|p1a: Ampharos|Thunderbolt|p2a: Raichu
+  0140  |-resisted|p2a: Raichu|1
+  0141  |split|p2
+  0142  |-damage|p2a: Raichu|11/135 brn
+  0143  |-damage|p2a: Raichu|8/100 brn
+  0144  |move|p2a: Raichu|Focus Blast|p1a: Ampharos
+  0145  |split|p1
+  0146  |-damage|p1a: Ampharos|77/165
+  0147  |-damage|p1a: Ampharos|46/100
+  0148  |
+  0149  |split|p2
+  0150  |-damage|p2a: Raichu|3/135 brn|[from] brn
+  0151  |-damage|p2a: Raichu|2/100 brn|[from] brn
+  0152  |upkeep
+  0153  |turn|6
+  0154  |
+  0155  |t:|1788811390
+  0156  |move|p1a: Ampharos|Protect|p1a: Ampharos
+  0157  |-singleturn|p1a: Ampharos|Protect
+  0158  |move|p1b: Spiritomb|Dark Pulse|p2a: Raichu
+  0159  |split|p2
+  0160  |-damage|p2a: Raichu|0 fnt
+  0161  |-damage|p2a: Raichu|0 fnt
+  0162  |faint|p2a: Raichu
+  0163  |move|p2b: Staraptor|Close Combat|p1a: Ampharos
+  0164  |-activate|p1a: Ampharos|move: Protect
+  0165  |
+  0166  |upkeep
+  0167  |
+  0168  |t:|1788811390
+  0169  |split|p2
+  0170  |switch|p2a: Kingambit|Kingambit, L50|175/175
+  0171  |switch|p2a: Kingambit|Kingambit, L50|100/100
+  0172  |turn|7
+  0173  |
+  0174  |t:|1788811390
+  0175  |split|p1
+  0176  |switch|p1a: Kangaskhan|Kangaskhan, L50|180/180
+  0177  |switch|p1a: Kangaskhan|Kangaskhan, L50|100/100
+  0178  |move|p2a: Kingambit|Protect|p2a: Kingambit
+  0179  |-singleturn|p2a: Kingambit|Protect
+  0180  |move|p2b: Staraptor|Tailwind|p2b: Staraptor
+  0181  |-sidestart|p2: B|move: Tailwind
+  0182  |move|p1b: Spiritomb|Trick Room|p1b: Spiritomb
+  0183  |-fieldend|move: Trick Room
+  0184  |
+  0185  |upkeep
+  0186  |turn|8
+  0187  |
+  0188  |t:|1788811390
+  0189  |move|p1a: Kangaskhan|Fake Out|p2a: Kingambit
+  0190  |-resisted|p2a: Kingambit|1
+  0191  |split|p2
+  0192  |-damage|p2a: Kingambit|159/175
+  0193  |-damage|p2a: Kingambit|90/100
+  0194  |cant|p2a: Kingambit|flinch
+  0195  |move|p2b: Staraptor|Close Combat|p1a: Kangaskhan
+  0196  |-supereffective|p1a: Kangaskhan|1
+  0197  |split|p1
+  0198  |-damage|p1a: Kangaskhan|22/180
+  0199  |-damage|p1a: Kangaskhan|12/100
+  0200  |-unboost|p2b: Staraptor|def|1
+  0201  |-unboost|p2b: Staraptor|spd|1
+  0202  |move|p1b: Spiritomb|Will-O-Wisp|p2a: Kingambit
+  0203  |-status|p2a: Kingambit|brn
+  0204  |
+  0205  |split|p2
+  0206  |-damage|p2a: Kingambit|149/175 brn|[from] brn
+  0207  |-damage|p2a: Kingambit|85/100 brn|[from] brn
+  0208  |upkeep
+  0209  |turn|9
+  0210  |
+  0211  |t:|1788811390
+  0212  |split|p1
+  0213  |switch|p1a: Ampharos|Ampharos-Mega, L50|77/165
+  0214  |switch|p1a: Ampharos|Ampharos-Mega, L50|46/100
+  0215  |-ability|p1a: Ampharos|Mold Breaker
+  0216  |move|p2a: Kingambit|Sucker Punch||[still]
+  0217  |-fail|p2a: Kingambit
+  0218  |move|p2b: Staraptor|Close Combat|p1a: Ampharos
+  0219  |split|p1
+  0220  |-damage|p1a: Ampharos|6/165
+  0221  |-damage|p1a: Ampharos|3/100
+  0222  |-unboost|p2b: Staraptor|def|1
+  0223  |-unboost|p2b: Staraptor|spd|1
+  0224  |move|p1b: Spiritomb|Will-O-Wisp|p2a: Kingambit
+  0225  |-fail|p2a: Kingambit|brn
+  0226  |
+  0227  |split|p2
+  0228  |-damage|p2a: Kingambit|139/175 brn|[from] brn
+  0229  |-damage|p2a: Kingambit|79/100 brn|[from] brn
+  0230  |upkeep
+  0231  |turn|10
+  0232  |
+  0233  |t:|1788811390
+  0234  |move|p2b: Staraptor|Close Combat|p1a: Ampharos
+  0235  |split|p1
+  0236  |-damage|p1a: Ampharos|0 fnt
+  0237  |-damage|p1a: Ampharos|0 fnt
+  0238  |-unboost|p2b: Staraptor|def|1
+  0239  |-unboost|p2b: Staraptor|spd|1
+  0240  |faint|p1a: Ampharos
+  0241  |move|p2a: Kingambit|Kowtow Cleave|p1b: Spiritomb
+  0242  |split|p1
+  0243  |-damage|p1b: Spiritomb|76/125
+  0244  |-damage|p1b: Spiritomb|60/100
+  0245  |split|p2
+  0246  |-damage|p2a: Kingambit|122/175 brn|[from] item: Life Orb
+  0247  |-damage|p2a: Kingambit|69/100 brn|[from] item: Life Orb
+  0248  |move|p1b: Spiritomb|Dark Pulse|p2a: Kingambit
+  0249  |-resisted|p2a: Kingambit|1
+  0250  |split|p2
+  0251  |-damage|p2a: Kingambit|102/175 brn
+  0252  |-damage|p2a: Kingambit|58/100 brn
+  0253  |
+  0254  |split|p2
+  0255  |-damage|p2a: Kingambit|92/175 brn|[from] brn
+  0256  |-damage|p2a: Kingambit|52/100 brn|[from] brn
+  0257  |-sideend|p2: B|move: Tailwind
+  0258  |upkeep
+  0259  |
+  0260  |t:|1788811390
+  0261  |split|p1
+  0262  |switch|p1a: Kangaskhan|Kangaskhan, L50|22/180
+  0263  |switch|p1a: Kangaskhan|Kangaskhan, L50|12/100
+  0264  |turn|11
+  0265  |
+  0266  |t:|1788811390
+  0267  |move|p2b: Staraptor|Protect|p2b: Staraptor
+  0268  |-singleturn|p2b: Staraptor|Protect
+  0269  |move|p1a: Kangaskhan|Last Resort||[still]
+  0270  |-fail|p1a: Kangaskhan
+  0271  |move|p2a: Kingambit|Kowtow Cleave|p1a: Kangaskhan
+  0272  |split|p1
+  0273  |-damage|p1a: Kangaskhan|0 fnt
+  0274  |-damage|p1a: Kangaskhan|0 fnt
+  0275  |faint|p1a: Kangaskhan
+  0276  |split|p2
+  0277  |-damage|p2a: Kingambit|75/175 brn|[from] item: Life Orb
+  0278  |-damage|p2a: Kingambit|42/100 brn|[from] item: Life Orb
+  0279  |move|p1b: Spiritomb|Will-O-Wisp|p2a: Kingambit
+  0280  |-fail|p2a: Kingambit|brn
+  0281  |
+  0282  |split|p2
+  0283  |-damage|p2a: Kingambit|65/175 brn|[from] brn
+  0284  |-damage|p2a: Kingambit|37/100 brn|[from] brn
+  0285  |upkeep
+  0286  |
+  0287  |t:|1788811390
+  0288  |split|p1
+  0289  |switch|p1a: Heracross|Heracross, L50|155/155
+  0290  |switch|p1a: Heracross|Heracross, L50|100/100
+  0291  |turn|12
+  0292  |
+  0293  |t:|1788811390
+  0294  |move|p2b: Staraptor|Protect||[still]
+  0295  |-fail|p2b: Staraptor
+  0296  |move|p1a: Heracross|Pin Missile|p2a: Kingambit
+  0297  |split|p2
+  0298  |-damage|p2a: Kingambit|41/175 brn
+  0299  |-damage|p2a: Kingambit|23/100 brn
+  0300  |split|p2
+  0301  |-damage|p2a: Kingambit|17/175 brn
+  0302  |-damage|p2a: Kingambit|9/100 brn
+  0303  |split|p2
+  0304  |-damage|p2a: Kingambit|0 fnt
+  0305  |-damage|p2a: Kingambit|0 fnt
+  0306  |faint|p2a: Kingambit
+  0307  |-ability|p1a: Heracross|Moxie|boost
+  0308  |-boost|p1a: Heracross|atk|1
+  0309  |-hitcount|p2: Kingambit|3
+  0310  |move|p1b: Spiritomb|Will-O-Wisp|p2b: Staraptor
+  0311  |-status|p2b: Staraptor|brn
+  0312  |
+  0313  |split|p2
+  0314  |-damage|p2b: Staraptor|150/160 brn|[from] brn
+  0315  |-damage|p2b: Staraptor|93/100 brn|[from] brn
+  0316  |upkeep
+  0317  |turn|13
+  0318  |
+  0319  |t:|1788811390
+  0320  |move|p2b: Staraptor|Close Combat|p1a: Heracross
+  0321  |-resisted|p1a: Heracross|1
+  0322  |split|p1
+  0323  |-damage|p1a: Heracross|133/155
+  0324  |-damage|p1a: Heracross|85/100
+  0325  |-unboost|p2b: Staraptor|def|1
+  0326  |-unboost|p2b: Staraptor|spd|1
+  0327  |move|p1a: Heracross|Rock Blast|p2b: Staraptor
+  0328  |-supereffective|p2b: Staraptor|1
+  0329  |split|p2
+  0330  |-damage|p2b: Staraptor|0 fnt
+  0331  |-damage|p2b: Staraptor|0 fnt
+  0332  |faint|p2b: Staraptor
+  0333  |-hitcount|p2: Staraptor|1
+  0334  |
+  0335  |win|A
+
+====================================================================================================
+  END OF GAME. Written nowhere; re-run to regenerate.
+====================================================================================================

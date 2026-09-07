@@ -1,0 +1,33 @@
+{
+  "written": "BEFORE the measuring run and before the release was cut on the fixed bytes",
+  "batch": "N",
+  "fix": "the per-arrival re-price is offered for a NON-FLAT volley too, via dmgRange's onlyHitNo",
+  "baseline": {
+    "release": "a31d271995e3",
+    "board_material": 2,
+    "state_games": 958,
+    "state_games_board_never_diverged": 956,
+    "state_games_void_excluded": 3,
+    "diverging_games_total": 75,
+    "diverged_among_usable": 72,
+    "mid_void_void_games": 3
+  },
+  "predict": {
+    "board_material": 1,
+    "game_that_leaves": "pair-protect-bust gen9championsvgc2026regmbbo3-2661266222 vs gen9championsvgc2026regmbbo3-2661402381 (t6)",
+    "games_that_remain": [
+      "pair-redirect-priority gen9championsvgc2026regmbbo3-2654621676 (t8)"
+    ],
+    "diverging_games_total": "75, UNCHANGED — that game's first PROTOCOL split is a |-hitcount| this engine writes on a one-hit Parental Bond click, which this fix does not touch, so the game should still diverge on protocol while its board agrees",
+    "diverged_among_usable": 72,
+    "mid_void_void_games": "3, unchanged",
+    "no_game_arrives": true,
+    "no_transfer": true,
+    "dice_addressing_moves": false,
+    "census": "830/830 unchanged",
+    "roster": "140 / 129 / 475 with 0 DIFFER and 0 DID-NOT-FIRE, unchanged",
+    "risk_named_before_the_run": "the re-price now runs on EVERY non-flat volley in the pool (arrivalRepriceRefusedNonFlat read 180 at baseline, all Triple Axel). If any of those were agreeing by accident, a game could ARRIVE. That is the failure mode to look for, and it is why the two controls in the probe assert the re-price reproduces the price."
+  },
+  "probe": "tests/probe_bond_arrival_reprice.js  (RED under MEDI_ARRIVAL_REPRICE_FLAT_ONLY=1: RED-1 and RED-2 part on damage, on the final drained HP and on the board leaf; CTRL-A and CTRL-B hold. CLEAN: all green, arrivalRepriceMoved +2, drift 0, out-of-plan 0)",
+  "regression": "tests/probe_arrival_reprice.js green in BOTH arms after the change"
+}

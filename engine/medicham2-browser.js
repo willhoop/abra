@@ -404,6 +404,19 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * game where Last Resort was clicked on turn one means the precondition is not being asked and the
    * move is a free 140 BP again. */
   lastResortRefused: 0,
+  /* BATCH N, 2026-09-07 -- `moveSlot.used` IS PER STAY ON THE FIELD, NOT PER BATTLE.
+   *
+   *     pokemon.activeTurns = 0;
+   *     pokemon.activeMoveActions = 0;
+   *     for (const moveSlot of pokemon.moveSlots) { moveSlot.used = false; }
+   *                                        sim/battle-actions.ts:136-140, inside `switchIn`
+   *
+   * PP IS NOT RESET AND `used` IS, so the two are NOT the same statement -- which is exactly what
+   * this engine's Last Resort gate assumed. `slotUsedMarked` counts the marks (the wire ran at all)
+   * and `slotUsedClearedOnEntry` counts the clears (a body arrived carrying marks and lost them).
+   * A Last Resort game with `slotUsedClearedOnEntry` at zero never crossed a switch and says nothing
+   * about this fix. */
+  slotUsedMarked: 0, slotUsedClearedOnEntry: 0,
   /* ROADMAP #514 -- a move refused because a LATCHED fact about its own user is false: Belch with no
    * berry eaten. A zero in a game where Belch was clicked on turn one means the gate is gone and the
    * move is a free 120 BP again, which is what this engine did until 2026-08-27. Its loud twin is
@@ -2227,6 +2240,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * non-zero on the pinned pool, which is the pair that says this scoped the flag rather than deleting
    * the mechanic. */
   smartTargetSplitRefusedByRedirect: 0,
+  /* BATCH N, 2026-09-07 -- a `smartTarget` volley resolved ONE BODY AT A TIME through the whole of
+   * `spreadMoveHit`, which is what the authority's hit loop does. A zero in a run whose games contain
+   * a Dragon Darts aimed into two live foes means the wire never fired and the interleave is still
+   * the old one; `smartTargetSplit` beside it is the count of clicks that SPLIT at all, so the two
+   * together say whether the split reached the driver. */
+  smartTargetRowMajor: 0,
   /* 2026-08-27 -- THE OTHER n-1 IN-MOVE UPDATE PASSES, raised BETWEEN the packets of a volley
    * (sim/battle-actions.ts:967 is inside the hit loop; the Champions override keeps it at
    * data/mods/champions/scripts.ts:538). `inMoveUpdateRan` counts the LAST hit's pass and has been
@@ -3332,6 +3351,24 @@ const MEDFAILS = { encoreAction: 0,
   arrivalRepriceRefusedNonFlat: 0, arrivalRepriceRefusedNonFlatFirst: '',
   arrivalRepriceDriftsAtArrivalZero: 0, arrivalRepriceDriftsAtArrivalZeroFirst: '',
   arrivalRepricedButTotalUnchanged: 0,
+  /* BATCH N, 2026-09-07 -- a non-flat re-price asked `dmgRange` for an arrival its hit plan does not
+   * have. It CANNOT happen while the packet count and the plan come from the same call, and it is
+   * counted rather than trusted because the two are computed in different places and a plan that
+   * shortened under the re-price (a rolled count, a fainted Beat Up ally) would otherwise hand back
+   * an empty band and read as "the price did not move". */
+  arrivalRepriceArrivalOutOfPlan: 0, arrivalRepriceArrivalOutOfPlanFirst: '',
+  /* BATCH N, 2026-09-07 -- set to 1 for the whole run when MEDI_ARRIVAL_REPRICE_FLAT_ONLY=1 refuses
+   * the per-arrival closure for a NON-FLAT volley, which is batch M's engine exactly. Gated on a
+   * non-flat volley having actually reached the site: a restore nothing could observe is not a
+   * restore. */
+  arrivalRepriceFlatOnlyRestored: 0,
+  /* BATCH N, 2026-09-07 -- set to 1 for the whole run when MEDI_SMARTTARGET_STEP_MAJOR=1 walks a
+   * SPLIT smartTarget volley step-major, which is batch M's engine. Gated on a split volley having
+   * reached the driver. `smartTargetSegmentNotFound` is the loud half of the same wire: the driver
+   * looks its own segment boundaries up in `_STEPS` rather than typing indices, and a lookup that
+   * fails falls back to the single walk. A non-zero there is a step list that has been re-ordered
+   * under this fix and it must never be silent. */
+  smartTargetStepMajorRestored: 0, smartTargetSegmentNotFound: 0,
   arrivalPriceOnceRestored: 0,
   /* ROADMAP #322 -- set to 1 for the whole run when MEDI_MULTIHIT_ONE_INDEX=1 puts the shared-index
    * split back on purpose, so a deliberate restore arm and a broken engine can never be read as the
@@ -3522,6 +3559,11 @@ const MEDFAILS = { encoreAction: 0,
    * carrier having actually reached the loop: the knob is unobservable without one, and a flag that
    * fired on a run where nothing could see it would be the loudest kind of silent default. */
   fracPriItemDieFirstRestored: 0,
+  /* BATCH N, 2026-09-07 -- set to 1 for the whole run when MEDI_LASTRESORT_BATTLE_USED=1 reads Last
+   * Resort's precondition off battle-lifetime PP instead of the per-entry `used` marks. Gated on a
+   * Last Resort click having actually reached the precondition, for the same reason as the flag
+   * above: a restore nothing could observe is not a restore. */
+  lastResortBattleUsedRestored: 0,
   /* 2026-08-27 -- the THIRD condition on Quick Claw's die, which this engine does not model: the
    * authority returns before rolling when the move is Status and the holder has Mycelium Might
    * (data/items.ts quickclaw, first line of the handler). The other two conditions ARE modelled --
@@ -5751,6 +5793,19 @@ function ppLeft(m,id){
 function ppDeduct(m,id,amount){
   if(ppLeft(m,id)==null) return 0;
   const k=String(id).toLowerCase().replace(/[^a-z0-9]/g,'');
+  /* BATCH N, 2026-09-07 -- THE `used` MARK, AND IT IS SET HERE BECAUSE THE AUTHORITY SETS IT HERE.
+   *
+   *     const ppData = this.getMoveData(move);
+   *     if (!ppData) return 0;
+   *     ppData.used = true;              <-- ABOVE the `if (!ppData.pp) return 0`
+   *                                                          sim/pokemon.ts:896-899
+   *
+   * So a click on an EMPTY slot still marks it, and a body with no PP row for the move (the
+   * `ppLeft == null` line above, which is the authority's `!ppData`) marks nothing. Every caller of
+   * this function is a caller of `deductPP` there -- the move commit, the Pressure extra, Spite and
+   * Eerie Spell -- so putting the mark inside is one implementation of one fact rather than four
+   * copies of it. `_usedEntry` is cleared at every entry in `bringIn`; see that line. */
+  (m._usedEntry||(m._usedEntry={}))[k]=true; MEDSEEN.slotUsedMarked++;
   let amt=(amount==null?1:+amount);
   const before=m._pp[k];
   m._pp[k]=before-amt;
@@ -13574,6 +13629,29 @@ const ARRIVAL_PRICE_ONCE=(typeof process!=='undefined'&&process.env&&process.env
  * `MEDFAILS.fracPriItemDieFirstRestored` -- which is set only when a dual carrier actually reached
  * the loop, because a restore nothing could observe is not a restore. */
 const FRACPRI_ITEM_DIE_FIRST=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FRACPRI_ITEM_DIE_FIRST==='1');
+/* BATCH N, 2026-09-07 -- LAST RESORT'S PRECONDITION READ OFF PP SPENT FOR THE WHOLE BATTLE, which is
+ * the engine as it stood before this batch. `MEDI_LASTRESORT_BATTLE_USED=1` puts that reading back,
+ * so a body that clicked its other moves, switched out and came back still unlocks the move. Same
+ * shape as the flags above; any run carrying it also carries a non-zero
+ * `MEDFAILS.lastResortBattleUsedRestored`, and that flag is set only when a Last Resort click
+ * actually reached the precondition, because a restore nothing could observe is not a restore. */
+const LASTRESORT_BATTLE_USED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_LASTRESORT_BATTLE_USED==='1');
+/* BATCH N, 2026-09-07 -- THE RE-PRICE OFFERED FOR A FLAT VOLLEY ONLY, which is exactly batch M's
+ * engine. `MEDI_ARRIVAL_REPRICE_FLAT_ONLY=1` refuses the per-arrival closure for a volley whose
+ * arrivals do not share a band, so a Parental Bond arrival 2 keeps the resist-berry halving arrival 1
+ * spent and Triple Axel's third arrival keeps arrival 1's board. It is NARROWER than
+ * MEDI_ARRIVAL_PRICE_ONCE, which refuses BOTH roads: the two knobs restore two different engines and
+ * a probe about the non-flat road has to be shown red against the one that had the flat road working.
+ * Any run carrying it also carries a non-zero `MEDFAILS.arrivalRepriceFlatOnlyRestored`, and that
+ * flag is set only when a non-flat volley actually reached the site. */
+const ARRIVAL_REPRICE_FLAT_ONLY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ARRIVAL_REPRICE_FLAT_ONLY==='1');
+/* BATCH N, 2026-09-07 -- A `smartTarget` VOLLEY WALKED STEP-MAJOR ACROSS BOTH BODIES, which is the
+ * engine as it stood before this batch: dart 2 was priced before dart 1's `DamagingHit` handlers had
+ * run, so a Spicy Spray burn raised by the first dart never reached the second. Same shape as the
+ * flags above; any run carrying it also carries a non-zero `MEDFAILS.smartTargetStepMajorRestored`,
+ * and that flag is set only when a SPLIT volley actually reached the driver, because a restore
+ * nothing could observe is not a restore. */
+const SMARTTARGET_STEP_MAJOR=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SMARTTARGET_STEP_MAJOR==='1');
 /* ROADMAP #499 -- THE SAME SWITCH, ONE DIE OVER. `MEDI_CRIT_ONCE_PER_CLICK=1` puts the single
  * per-click crit decision back at runtime, so the defect stays reachable for a paired measurement
  * without swapping a file, and any run carrying it also carries a non-zero
@@ -13677,7 +13755,28 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
   const _wantRolls=!!(hit&&Array.isArray(hit.rolls));
   const _acc=_wantRolls?new Array(16).fill(0):null;
   let _mn=0,_mx=0,_eff=1,_type=(mv&&mv.t)||'';
+  /* ==== BATCH N, 2026-09-07 -- PRICE ONE NAMED ARRIVAL OF A NON-FLAT VOLLEY =====================
+   *
+   * `_stepApply`'s re-price closure needs arrival k's OWN band against the board arrival k-1 left
+   * behind, and for a volley whose arrivals differ that cannot be asked with `hits: 1` -- that asks
+   * for arrival ONE. `onlyHitNo` runs this loop for a single value of `h`, so the arrival is priced
+   * by the same `dmgRangeOneHit` call with the same `hitNo` that the price step used: Parental
+   * Bond's quarter (`hitNo===2 && perHit.bondMult`) and Triple Axel's escalation are applied by the
+   * code that owns them, not reconstructed at the call site.
+   *
+   * IT IS AN OUT-PARAMETER READ, NOT A NEW ROAD. `hit.rolls` still accumulates through `_acc`; with
+   * one contributing arrival at `_w === 1` the sum IS that arrival's band, and `Math.floor` of an
+   * integer is that integer. `min`/`max` come back as that arrival's alone, which is what the
+   * caller wants and what nothing else asks for -- every other caller leaves `onlyHitNo` unset and
+   * takes byte-identical output. */
+  const _only=(hit&&+hit.onlyHitNo>0)?Math.floor(+hit.onlyHitNo):0;
+  if(_only>_plan.n){
+    MEDFAILS.arrivalRepriceArrivalOutOfPlan++;
+    if(!MEDFAILS.arrivalRepriceArrivalOutOfPlanFirst)
+      MEDFAILS.arrivalRepriceArrivalOutOfPlanFirst=String((mv&&mv.id)||'?')+' asked '+_only+' of '+_plan.n;
+  }
   for(let h=1;h<=_plan.n;h++){
+    if(_only&&h!==_only)continue;
     const _w=_plan.w[h-1];
     /* A FRESH `rolls` PER HIT so the sixteen-roll out-parameter can be accumulated rather than
      * overwritten; every other field on the hit context (Helping Hand, Friend Guard, the drawn
@@ -21135,6 +21234,12 @@ function transformOnto(m,t,from){
   m.wt=t.wt;
   m._bsAtk=t._bsAtk;                                    // WIRE 83, Beat Up reads the species standing
   m.moves=(t.moves||[]).slice();
+  /* BATCH N, 2026-09-07 -- AND THE COPIED SLOTS ARRIVE UNUSED. `transformInto` builds a fresh
+   * `moveSlots` array and every entry is `used: false` (sim/pokemon.ts:1322-1330), so a Last Resort
+   * copied onto a transformed body starts locked whatever the copier had clicked. The revert is not
+   * given the old map back: the authority's revert is `clearVolatile`, which only runs on the way
+   * out, and `bringIn` clears the map on the way back in regardless. */
+  m._usedEntry=null;
   m.boosts=Object.assign({},t.boosts);                  // the CURRENT stages, not a clean slate
   /* 2026-08-23 -- AND THE CRIT-STAGE VOLATILES, WHICH SIT ON THE VERY NEXT LINES OF THE AUTHORITY.
    * `sim/pokemon.ts:1337-1348`: immediately after the boost loop, `if (this.battle.gen >= 6)` removes
@@ -21995,6 +22100,21 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry,outgoing){
       if(_a>=0&&_b>=0&&_a!==_b){sf.team[_b]=nx;sf.team[_a]=_out;MEDSEEN.partyOrderPermuted++;}
     }}
   nx._turnsOut=0; nx._mvActs=0; nx._fallenStuck=sf.fainted; act[i]=nx;
+  /* BATCH N, 2026-09-07 -- AND THE `used` MARKS GO WITH `_mvActs`, ON THE SAME AUTHORITY LINE.
+   *
+   *     pokemon.activeTurns = 0;
+   *     pokemon.activeMoveActions = 0;                                <-- `_mvActs`, one line up
+   *     for (const moveSlot of pokemon.moveSlots) { moveSlot.used = false; }
+   *                                                    sim/battle-actions.ts:136-140, `switchIn`
+   *
+   * PP IS NOT TOUCHED THERE and is not touched here: `_pp` survives the trip out and back, exactly
+   * as `moveSlot.pp` does. That asymmetry IS the mechanic -- Last Resort's `onTry` reads `used`
+   * (data/moves.ts:10086, its only reader in the whole tree) and this engine read PP SPENT, so a
+   * Kangaskhan that used Fake Out on turn 8, pivoted out on turn 9 and came back on turn 10 was
+   * still holding the unlock on turn 11 where the authority had dropped it. Measured on
+   * `omit-spread ...bo3-2662243229` t11, board leaf `p2.party.kingambit.hp medi 14 / sd 65`. */
+  if(nx._usedEntry&&Object.keys(nx._usedEntry).length)MEDSEEN.slotUsedClearedOnEntry++;
+  nx._usedEntry=null;
   /* ROADMAP #290 -- UNBURDEN IS A VOLATILE AND A VOLATILE DIES ON THE WAY OUT.
    *
    * `_hadItem` was stamped ONCE, in battleInit, off the body's starting item, and effSpeed read it
@@ -32412,10 +32532,29 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _nk=x=>String(x).toLowerCase().replace(/[^a-z0-9]/g,'');
           const _self=_nk(a.move.id);
           const _mv=((m.moves||[]).map(_nk)).filter(x=>x);
+          /* ==== BATCH N, 2026-09-07 -- `used` IS PER ENTRY AND PP SPENT IS PER BATTLE ===========
+           *
+           * THE PARAGRAPH ABOVE THIS BLOCK CLAIMED THE TWO WERE THE SAME STATEMENT AND THEY ARE NOT.
+           * `switchIn` clears `moveSlot.used` on every entry (sim/battle-actions.ts:136-140) and
+           * touches no PP at all, so a body that spent a slot, pivoted out and came back has
+           * `pp < maxpp` and `used === false`. Staged in the authority with no ABRA code in the
+           * path: Fake Out used then no switch -> Last Resort LANDS; the same body switched out and
+           * back -> `|move|...|[still]` + `-fail`, with the slot reading `used=false pp=11/12`.
+           *
+           * `_usedEntry` is written by `ppDeduct` -- the one place this engine spends PP, and the
+           * mirror of the one place the authority sets the flag -- and cleared in `bringIn`. It is
+           * NOT a second PP table: `ppSpentMap` is unchanged and is still what the comparator reads,
+           * because the two answer different questions and this file's own rule is that a FACT gets
+           * one implementation, not that two different facts get merged.
+           *
+           * `MEDI_LASTRESORT_BATTLE_USED=1` restores the PP reading for a paired measurement. */
           const _sp=ppSpentMap(m)||{};
+          const _ue=m._usedEntry||{};
+          if(LASTRESORT_BATTLE_USED)MEDFAILS.lastResortBattleUsedRestored=1;
+          const _used=k=>LASTRESORT_BATTLE_USED?(_sp[k]>0):!!_ue[k];
           const _ok=_mv.length>=(+_lr.minSlots||2)
                  && (!_lr.mustKnowItself||_mv.indexOf(_self)>=0)
-                 && _mv.every(k=>k===_self||_sp[k]>0);
+                 && _mv.every(k=>k===_self||_used(k));
           if(!_ok){
             MEDSEEN.lastResortRefused++;
             m._lastMove=a.move.id;{if(TR)TR.attrStill();mvFail(m);}continue;
@@ -34814,33 +34953,73 @@ function battleTurn(S,rng,actsForA,actsForB){
              * split is `_flat/_n` off exactly that single-arrival band, which is why this is the same
              * question and not a second implementation of it.
              *
-             * IT IS OFFERED ONLY FOR A FLAT VOLLEY -- every arrival sharing one band. Triple Axel's
-             * escalating power and Parental Bond's quarter give their arrivals DIFFERENT bands, and a
-             * `hits: 1` re-price would hand back arrival 1's band for all of them. Those are counted
-             * and left alone rather than repriced wrongly. */
+             * BATCH M OFFERED IT ONLY FOR A FLAT VOLLEY -- every arrival sharing one band -- because
+             * `hits: 1` asks for ARRIVAL ONE and would have handed arrival 1's band to every arrival
+             * of a volley whose arrivals differ. Triple Axel's escalating power, Beat Up's per-ally
+             * base and Parental Bond's quarter are all that shape, and all three were counted and
+             * left alone.
+             *
+             * ==== BATCH N, 2026-09-07 -- AND THE REFUSAL WAS ITSELF A BOARD-MATERIAL DEFECT =======
+             *
+             * `pair-protect-bust ...bo3-2661266222` t6: a Kangaskhan-Mega Drain Punch into an
+             * Incineroar holding a CHOPLE BERRY. Arrival 1 spends the berry and is halved; the
+             * authority prices arrival 2 with an empty hand and deals 16, this engine kept the
+             * halving and dealt 8. Board leaf `p1.party.incineroar.hp medi 127 / sd 119`, and the
+             * drain heal parts with it (80 against 76) because half the damage drains half as much.
+             * `arrivalRepriceRefusedNonFlat` read 180 on the pinned pool and its `First` was Triple
+             * Axel -- the counter was doing exactly its job and nothing had read it.
+             *
+             * THE ANSWER IS TO ASK FOR THE RIGHT ARRIVAL, NOT TO PRETEND THE VOLLEY IS FLAT.
+             * `onlyHitNo` runs `dmgRange`'s per-hit loop for ONE value of `h` and returns that
+             * arrival's own band -- the same loop, the same `dmgRangeOneHit` call with the same
+             * `hitNo`, so Parental Bond's quarter and Triple Axel's escalation are applied by the
+             * code that already owns them rather than reconstructed here.
+             *
+             * `hits` IS LEFT ALONE ON THIS ROAD and that is load-bearing: `hitPlanOf` reads
+             * `hit.hits` as a ROLLED COUNT, so `hits: 1` collapses Triple Axel's plan to a single
+             * arrival (`if(rolled>0) return {n:rolled,...}`) while leaving Parental Bond's alone.
+             * The flat road keeps `hits: 1`, which is the single-arrival question its `_flat/_n`
+             * split is built on, so its bytes are unchanged. */
             const _flatBand=_pks.every(p=>{
               const b=p.band,b0=_pks[0].band;
               if(b===b0)return true;
               for(let i=0;i<b0.length;i++)if(b[i]!==b0[i])return false;
               return true;});
-            if(!_flatBand){
-              MEDFAILS.arrivalRepriceRefusedNonFlat++;
-              if(!MEDFAILS.arrivalRepriceRefusedNonFlatFirst)
-                MEDFAILS.arrivalRepriceRefusedNonFlatFirst=String(a.move.id)+' x'+_pks.length;
-            } else if(ARRIVAL_PRICE_ONCE){MEDFAILS.arrivalPriceOnceRestored=1;}
+            if(ARRIVAL_PRICE_ONCE){MEDFAILS.arrivalPriceOnceRestored=1;}
             else {
-              R.reprice=(isCrit)=>{
-                const c=Object.assign({},_hitCtx,{hits:1,wantPackets:false,wantFirst:false,
-                  packets:null,rolls:[],rollsUnit:null,firstMin:null,firstMax:null});
-                dmgRange(m,tg,mv,field,_spreadHit,isCrit,c);
-                return (Array.isArray(c.rolls)&&c.rolls.length===DAMAGE_ROLL_SIDES)?c.rolls:null;
-              };
+              if(!_flatBand){
+                /* KEPT AS A CENSUS OF THE POPULATION THIS ROAD SERVES, not as a refusal any more.
+                 * A non-zero here with `arrivalRepriceOffered` at zero would mean the non-flat road
+                 * is offered and never taken, which is the silent default this counter was born to
+                 * catch in the other direction. */
+                MEDFAILS.arrivalRepriceRefusedNonFlat++;
+                if(!MEDFAILS.arrivalRepriceRefusedNonFlatFirst)
+                  MEDFAILS.arrivalRepriceRefusedNonFlatFirst=String(a.move.id)+' x'+_pks.length;
+              }
+              if(!_flatBand&&ARRIVAL_REPRICE_FLAT_ONLY)MEDFAILS.arrivalRepriceFlatOnlyRestored=1;
+              else{
+              R.reprice=_flatBand
+                ? (isCrit)=>{
+                    const c=Object.assign({},_hitCtx,{hits:1,wantPackets:false,wantFirst:false,
+                      packets:null,rolls:[],rollsUnit:null,firstMin:null,firstMax:null});
+                    dmgRange(m,tg,mv,field,_spreadHit,isCrit,c);
+                    return (Array.isArray(c.rolls)&&c.rolls.length===DAMAGE_ROLL_SIDES)?c.rolls:null;
+                  }
+                : (isCrit,i)=>{
+                    const c=Object.assign({},_hitCtx,{wantPackets:false,wantFirst:false,
+                      packets:null,rolls:[],rollsUnit:null,firstMin:null,firstMax:null,
+                      onlyHitNo:(+i||0)+1});
+                    dmgRange(m,tg,mv,field,_spreadHit,isCrit,c);
+                    return (Array.isArray(c.rolls)&&c.rolls.length===DAMAGE_ROLL_SIDES)?c.rolls:null;
+                  };
               /* THE INVARIANT THAT SAYS THE RE-PRICE AND THE PRICE ARE THE SAME FUNCTION. Arrival 0
                * is never repriced -- nothing has happened yet -- so its re-price MUST reproduce the
-               * band the price handed back. A drift here means `hits: 1` is not the single-arrival
-               * question the flat path divides by `_n`, and the wire would then be silently inventing
-               * numbers on every volley. Checked on every click that offers a re-price. */
-              const _chk=R.reprice(_crits?!!_crits[0]:!!R.crit);
+               * band the price handed back. A drift here means the re-price is not asking the same
+               * question the price asked, and the wire would then be silently inventing numbers on
+               * every volley. Checked on every click that offers a re-price, on BOTH roads -- and it
+               * is what would catch a non-flat re-price that asked for the wrong arrival, since
+               * arrival 0's band is the one number both sides must already agree on. */
+              const _chk=R.reprice(_crits?!!_crits[0]:!!R.crit,0);
               if(!_chk||_chk[R.pkIdx[0]]!==_pkArr[0]){
                 MEDFAILS.arrivalRepriceDriftsAtArrivalZero++;
                 if(!MEDFAILS.arrivalRepriceDriftsAtArrivalZeroFirst)
@@ -34848,6 +35027,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                     +' reprice '+(_chk?_chk[R.pkIdx[0]]:'null');
                 R.reprice=null;
               } else MEDSEEN.arrivalRepriceOffered++;
+              }
             }
           }
         }
@@ -35519,7 +35699,10 @@ function battleTurn(S,rng,actsForA,actsForB){
              * ARRIVAL 0 IS NEVER REPRICED -- nothing has happened to it yet -- and its re-price is
              * what the invariant at the price step checks the machinery against. */
             if(i>0&&R.reprice&&Array.isArray(R.pkIdx)&&R.pkIdx.length===_packets.length){
-              const _nb=R.reprice(_cI);
+              /* BATCH N -- THE ARRIVAL INDEX IS PASSED NOW. The flat road ignores it (every arrival
+               * shares one band, which is what `_flatBand` established); the non-flat road needs it,
+               * because Parental Bond's arrival 2 and Triple Axel's arrival 3 have their own base. */
+              const _nb=R.reprice(_cI,i);
               if(_nb){
                 MEDSEEN.arrivalRepriceRan++;
                 const _nv=_nb[R.pkIdx[i]];
@@ -38398,7 +38581,82 @@ function battleTurn(S,rng,actsForA,actsForB){
        * single action; this driver is the only line here that walks that same loop. One assignment,
        * not twelve instrumented steps -- a step list that has to remember to stamp itself is the
        * silent-default shape. */
-      for(const _step of _STEPS)for(const R of _rows){if(R.out)continue;MID_TGT=midEventSlot(R.tg);_step(R);}
+      /* ==== BATCH N, 2026-09-07 -- A `smartTarget` VOLLEY IS RESOLVED ONE BODY AT A TIME ==========
+       *
+       * STEP-MAJOR IS RIGHT FOR A SPREAD HIT AND WRONG FOR THIS ONE, and the authority says so in the
+       * shape of its own loop. `trySpreadMoveHit` walks its first six steps over EVERY target, then
+       * hands the rest to `hitStepMoveHitLoop`, which for a smartTarget move takes ONE target per
+       * iteration and runs the whole of `spreadMoveHit` on it:
+       *
+       *     for (hit = 1; hit <= targetHits; hit++) {
+       *       ...
+       *       if (move.smartTarget && targets.length > 1) {
+       *         targetsCopy = [targets[hit - 1]];
+       *         damage = [damage[hit - 1]];
+       *       } else { targetsCopy = targets.slice(0); }
+       *       [moveDamageThisHit, targetsCopy] = this.spreadMoveHit(targetsCopy, ...);
+       *                                       data/mods/champions/scripts.ts:461-518
+       *
+       * So dart 2 is priced AFTER dart 1's damage, its `DamagingHit` handlers and its secondaries.
+       *
+       * MEASURED, release `c28ad0815782`, `pair-redirect-priority ...bo3-2654621676` t8. Dragon Darts
+       * from a Dragapult into a Scovillain-Mega (SPICY SPRAY) and an Excadrill:
+       *
+       *     showdown  Scovillain 64->15 ; Dragapult is brn [Spicy Spray] ; Excadrill 137->122  (15)
+       *     medicham  Excadrill resists ; Scovillain 64->15 ; Excadrill 137->107 (30) ; brn
+       *
+       * EXACTLY DOUBLE. Dragon Darts is Physical and a burn halves the attacker's Attack, so the
+       * authority's dart 2 is thrown by a burned body and this engine's was not. Board leaf
+       * `p1.party.excadrill.hp medi 107 / sd 122`.
+       *
+       * THE SEGMENT IS `_stepDamage` .. `_stepAfterHitField`, WHICH IS EXACTLY `spreadMoveHit`.
+       *   - ABOVE it: `_stepInvuln` .. `_stepClearScreens` are `trySpreadMoveHit`'s first six steps,
+       *     which the authority runs over ALL targets before the loop. They stay step-major.
+       *   - BELOW it: `_stepUpdate` is DELIBERATELY LEFT step-major. Its own header already declares
+       *     the limitation that this engine wraps the step list once per MOVE and so raises one
+       *     `eachEvent('Update')` where the authority raises one per hit; moving it inside this
+       *     segment would fire it after body 1 and never after body 2, which trades a declared and
+       *     measured gap for an undeclared one. `_stepFaint` onward are below the loop in the
+       *     authority too (`faintMessages` at :976, the `-hitcount` line at :978).
+       *
+       * ONLY A SPLIT VOLLEY TAKES THIS ROAD. `_smartTarget` alone is true for a Dragon Darts aimed
+       * into a single live foe, where the two orders are the same permutation; the live-row count is
+       * what makes it a different question. Dragon Darts is this format's only `smartTarget` move, so
+       * the blast radius is that move with two live foes and nothing else.
+       *
+       * THE DICE DO NOT MOVE. `MID_TGT` is an ADDRESS, not a position in a stream: the middle arm
+       * keys every draw on (category, address, nth), so re-ordering the visits re-orders the draws
+       * and not their values. What CAN move is how many draws an address takes, and only where the
+       * resolution actually differs -- which is the fix.
+       *
+       * `MEDI_SMARTTARGET_STEP_MAJOR=1` restores the single step-major walk. */
+      const _smartRowMajor=(()=>{
+        if(!_smartTarget)return false;
+        let n=0; for(const R of _rows) if(!R.out) n++;
+        if(n<2)return false;
+        if(SMARTTARGET_STEP_MAJOR){MEDFAILS.smartTargetStepMajorRestored=1;return false;}
+        return true;
+      })();
+      const _walk=(steps)=>{
+        for(const _step of steps)for(const R of _rows){if(R.out)continue;MID_TGT=midEventSlot(R.tg);_step(R);}
+      };
+      if(!_smartRowMajor)_walk(_STEPS);
+      else{
+        const _i0=_STEPS.indexOf(_stepDamage), _i1=_STEPS.indexOf(_stepAfterHitField);
+        /* THE INDICES ARE LOOKED UP RATHER THAN TYPED, and a lookup that fails falls back to the one
+         * walk and SAYS SO. A hard-coded pair would silently cut the list in the wrong place the
+         * first time a step is inserted, which is the shape of every silent default in this file. */
+        if(_i0<0||_i1<0||_i1<_i0){MEDFAILS.smartTargetSegmentNotFound++;_walk(_STEPS);}
+        else{
+          MEDSEEN.smartTargetRowMajor++;
+          _walk(_STEPS.slice(0,_i0));
+          for(const R of _rows){
+            if(R.out)continue;
+            for(let k=_i0;k<=_i1;k++){if(R.out)continue;MID_TGT=midEventSlot(R.tg);_STEPS[k](R);}
+          }
+          _walk(_STEPS.slice(_i1+1));
+        }
+      }
       /* ===== 2026-08-23 -- THE ONCE-PER-MOVE STEPS, FLUSHED WHEN EVERY ROW LEFT THE DRIVER =========
        *
        * THE DRIVER SKIPS A ROW THAT IS `out`, SO A STEP WHOSE SCOPE IS THE WHOLE MOVE NEVER RUNS AT

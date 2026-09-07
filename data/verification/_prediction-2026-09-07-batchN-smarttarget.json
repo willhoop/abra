@@ -1,0 +1,29 @@
+{
+  "written": "BEFORE the measuring run and before the release was cut on the fixed bytes",
+  "batch": "N",
+  "fix": "a split smartTarget volley is resolved ROW-MAJOR through spreadMoveHit's segment of _STEPS, as hitStepMoveHitLoop does",
+  "baseline": {
+    "release": "09fde54aa1df",
+    "board_material": 1,
+    "state_games": 958,
+    "state_games_board_never_diverged": 957,
+    "state_games_void_excluded": 3,
+    "diverging_games_total": 75,
+    "diverged_among_usable": 72,
+    "mid_void_void_games": 3
+  },
+  "predict": {
+    "board_material": 0,
+    "board_material_zero_opens_the_quarantine": "IF this reads 0 off engine/status.js, STOP — the next step is a full document pass and is not ENGINE's",
+    "game_that_leaves": "pair-redirect-priority gen9championsvgc2026regmbbo3-2654621676 vs gen9championsvgc2026regmbbo3-2654695243 (t8)",
+    "games_that_remain": [],
+    "diverging_games_total": "75, UNCHANGED — that game's FIRST protocol split is a missing |-fail| on a Leech Seed re-aimed at an already-seeded body at t6, two turns above the board split, and this fix does not touch it. The t8 line ORDER should now match, but the game still diverges on protocol at t6.",
+    "diverged_among_usable": 72,
+    "mid_void_void_games": "3, unchanged",
+    "dice_addressing_moves": "NO in value. MID_TGT is an address, not a stream position, and the middle arm keys every draw on (category, address, nth) — reordering the visits reorders the draws and not their values. What CAN move is how many draws an address takes, and only where the resolution actually differs.",
+    "census": "830/830 unchanged",
+    "roster": "140 / 129 / 475 with 0 DIFFER and 0 DID-NOT-FIRE, unchanged",
+    "risk_named_before_the_run": "Dragon Darts is this format's only smartTarget move, but EVERY split Dragon Darts in the pool now takes the new road. A game that was agreeing by accident could ARRIVE. That is the failure mode to look for; CTRL-A (the same click with the mega removed) and CTRL-B (a real spread move) are the probe arms that refuse a fix which reorders more than it should."
+  },
+  "probe": "tests/probe_smarttarget_row_order.js  (RED under MEDI_SMARTTARGET_STEP_MAJOR=1: RED-1 parts on both bodies' HP and on the board leaf, CTRL-A/B/C hold, smartTargetRowMajor 0 everywhere. CLEAN: all green, smartTargetRowMajor +3 of 4 arms, segment lookup never failed)"
+}

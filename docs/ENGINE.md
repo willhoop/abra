@@ -159,6 +159,171 @@ _stamped 2026-09-06 14:08_
 
 <!-- /GENERATED -->
 
+## LONG-TAIL BATCH N — BOARD-MATERIAL **3 OF 958 -> 0 OF 958**, PROTOCOL **76 -> 75**, CENSUS LEVEL AT 830/830. THE LAST THREE GAMES WERE A MOVE THAT UNLOCKS PER STAY, A BERRY CARRIED INTO AN ARRIVAL THAT NEVER SAW IT, AND A VOLLEY WALKED IN THE WRONG NESTING ORDER. **`engine/status.js` READS `PASS … BOARD-MATERIAL: 0 of 958`. THE QUARANTINE HAS NOT OPENED — FIVE OTHER CLAUSES ARE STILL RED AND FOUR OF THEM ARE STALE ARTIFACTS THIS BATCH INVALIDATED.** 2026-09-07
+
+Three fixes, three new probes, each shown RED under its own restore knob first, each measured on its
+own release with a prediction written before the run. Full account, the three cards read line by line
+and the two probe faults caught before they became findings:
+[docs/_reports/2026-09-07-longtail-batch-N.md](_reports/2026-09-07-longtail-batch-N.md).
+
+| step | release | board-material | protocol (diverging games) |
+|---|---|---|---|
+| the batch's baseline, re-measured | `c28ad0815782` | 3 of 958 | 76 |
+| Last Resort's `used` marks are per entry | `a31d271995e3` | **2 of 958** | 75 |
+| the per-arrival re-price serves a non-flat volley | `09fde54aa1df` | **1 of 958** | 75 |
+| a split `smartTarget` volley is resolved one body at a time | `1be57a100d59` | **0 of 958** | 75 |
+
+Sample line, identical for every run but the release and the dump path:
+
+```
+node engine/game_differential.js --steering empirical --release <id> --arm middle \
+  --end-state --state --census data/verification/census-pin-9446a684709d.json \
+  --games 1200 --turns 20 --team-store data/team-pool-frozen \
+  --dump-games 60 --dump-out <path> --write
+```
+
+`--games 1200` is part of the SAMPLE (961 played, 958 readable), not a budget. Predictions written to
+`data/verification/_prediction-2026-09-07-batchN-{lastresort,bondreprice,smarttarget}.json` BEFORE each
+run. **All three hit on every clause, including the two risks named in advance — no game arrived and
+none transferred.**
+
+### THE FIRST THING FOUND WAS THAT THE PREVIOUS BATCH'S "DOES NOT REPRODUCE" WAS A SHELL
+
+Batch M's row on the Last Resort game said *"that game does not reproduce in a standalone pinned
+replay while the artifact records it, which is itself unexplained"*. It reproduced first time here:
+
+```
+SEED NOT IN THIS POOL — asked for : "gen9championsvgc2026regmbbo3-2662243229
+```
+
+The seed arrived through a `.cmd` parameter, kept its leading quote and truncated at the first space.
+Passed as a literal it replays **REPRODUCED — every stored field of this game matches**. All three
+games were then read from full standalone replays rather than from the dump's sixteen-line window, and
+`data/verification/batchN/replay-g{1,2,3}.txt` are those replays.
+
+### 1. `moveSlot.used` IS PER STAY ON THE FIELD, AND PP IS NOT
+
+`lastresort.onTry` refuses the move unless every OTHER slot is `used` (`data/moves.ts:10069-10088`),
+and `used` has exactly one reader in the whole tree. `switchIn` clears it and touches no PP:
+
+```js
+    pokemon.activeTurns = 0;
+    pokemon.activeMoveActions = 0;
+    for (const moveSlot of pokemon.moveSlots) { moveSlot.used = false; }
+                                          sim/battle-actions.ts:136-140
+```
+
+This engine read `ppSpentMap` — PP spent for the whole battle — under a comment asserting *"`used` IS
+`spent > 0` HERE, AND THAT EQUIVALENCE IS THE FORMAT'S"*. Staged in pure Showdown with no ABRA code in
+the path, the third row is the finding: Fake Out used, switch out and back, and the slot reads
+**`used=false pp=11/12`**. The pool game is a Kangaskhan whose only two moves are Fake Out and Last
+Resort, which used Fake Out on t8, pivoted on t9 and came back at the end of t10.
+
+`_usedEntry` is written inside `ppDeduct` — the mirror of `deductPP` setting `ppData.used` above its
+own PP check, so Spite and the Pressure extra mark a slot exactly as the authority does — and cleared
+in `bringIn` beside `_mvActs`. **No die is drawn**, so the dice addressing does not move.
+`tests/probe_lastresort_entry.js`, `MEDI_LASTRESORT_BATTLE_USED=1`. CTRL-C is the arm that says the
+clear is an ENTRY event and not a switch curse: pivot first, THEN use Fake Out, and the move lands.
+
+### 2. A RESIST BERRY SPENT BY ARRIVAL 1 WAS STILL HALVING ARRIVAL 2
+
+Batch M's own comment declared the non-flat volley refused, and `arrivalRepriceRefusedNonFlat` read
+**180 on the pinned pool** with nothing reading it. Kangaskhan-Mega Drain Punch into a Chople Berry
+Incineroar:
+
+```
+arrival 1   SE, berry EATEN + WEAKEN     170 -> 135  (35)   drains +18 -> 72
+arrival 2   showdown                     135 -> 119  (16)   drains +8  -> 80
+            medicham                     135 -> 127  ( 8)   drains +4  -> 76
+```
+
+`dmgRange` gains `onlyHitNo`, which runs its existing per-hit loop for ONE value of `h`, so Parental
+Bond's quarter and Triple Axel's escalation are applied by the code that already owns them. **`hits`
+is deliberately NOT set to 1 on this road** — `hitPlanOf` reads it as a rolled count and `hits: 1`
+would collapse Triple Axel's plan to a single arrival. No new die is drawn.
+`tests/probe_bond_arrival_reprice.js`, `MEDI_ARRIVAL_REPRICE_FLAT_ONLY=1` (narrower than
+`MEDI_ARRIVAL_PRICE_ONCE`, which turns off both roads).
+
+### 3. A SPLIT `smartTarget` VOLLEY IS RESOLVED ONE BODY AT A TIME
+
+`trySpreadMoveHit` walks its first six steps over EVERY target and then hands the rest to
+`hitStepMoveHitLoop`, which for a smartTarget move takes ONE target per iteration and runs the whole
+of `spreadMoveHit` on it (`data/mods/champions/scripts.ts:467-518`). This engine's driver was
+step-major throughout — right for a spread hit, wrong for this one. Dragon Darts into a
+Scovillain-Mega (Spicy Spray) and an Excadrill:
+
+```
+showdown  Scovillain 64->15 ; Dragapult is brn [Spicy Spray] ; Excadrill 137->122   (15)
+medicham  Excadrill resists ; Scovillain 64->15 ; Excadrill 137->107 (30) ; brn
+```
+
+Exactly double — Dragon Darts is Physical and a burn halves the attacker's Attack. The segment made
+row-major is `_stepDamage` .. `_stepAfterHitField`, which is exactly `spreadMoveHit`; `_stepUpdate` is
+LEFT step-major on purpose, because moving it would fire it after body 1 and never after body 2 and
+trade a declared, measured gap for an undeclared one. The boundaries are looked up in `_STEPS` rather
+than typed and a failed lookup falls back loudly. `tests/probe_smarttarget_row_order.js`,
+`MEDI_SMARTTARGET_STEP_MAJOR=1`. Spicy Spray was chosen by DERIVING `punishesAttacker` out of
+`data/tags.json` and reading its params — `trigger: 'anyHit'`, `chance: 1`, no contact clause — because
+Flame Body and Static are contact-gated and 30% and would have been a coin flip in a control's name.
+
+### THE CENSUS DID NOT MOVE, AND THAT WAS CHECKED RATHER THAN ASSUMED
+
+**830 live, 0 missing, 830 probed** after all three fixes (`data/mechanics-census.json`, regenerated on
+the fixed bytes). Batch M lost a row to a probe that was pinning a KO; this batch lost none.
+
+### WHAT THE GATE SAYS, AND WHY IT IS NOT OPEN
+
+`engine/status.js` (`data/verification/batchN/status-after-fix3.txt`) reads
+**`PASS  whole-game differential / BOARD-MATERIAL — BOARD-MATERIAL: 0 of 958 games`**, and it is still
+**6 of 9 clauses failing**:
+
+- **`NARRATION` is RED on its own merits — 71 of 961** (72 raw less 1 declared). That is the second
+  gate Will called for on 2026-08-22 and it was always going to outlive this one. **A game that stops
+  parting a board does not leave the run; it moves bucket**, so closing three board-material games
+  ADDS three to this clause.
+- **Four clauses are STALE, not broken** — `data/engine-diff.json`, the three roster stages and
+  `data/all-mechanics-fire.json` all ran on `c28ad0815782` and the tree is `1be57a100d59`. The gate
+  prints the command for each. **They are owed a re-run and this batch did not do it.**
+
+### OWED, AND LOUD — THE NON-FLAT RE-PRICE DISARMS ITSELF ON 39 CLICKS
+
+```
+per-arrival volley re-price: offered 490, ran 850, MOVED a number 14
+  [refused non-flat 180 (tripleaxel x3), drifted at arrival 0 39  <-- MUST READ 0, the wire
+   disarmed itself, total not corrected 0]
+```
+
+Baseline and fix 1 read `offered 349 / drifted 0`. **141 + 39 = 180, exactly the non-flat population**,
+so the new road serves 141 of the 180 non-flat clicks in this pool and refuses 39 at its own arrival-0
+invariant. A drifted click is **disarmed, not mispriced** — it behaves byte-for-byte as it did before
+this batch, which is why the bar still reached zero — but the fix is incomplete on those 39 and the
+counter exists to say so rather than let it pass quietly.
+
+### THE HAND LIST
+
+**Removed — three, and they were the last three games that parted a board:**
+
+- **LAST RESORT LANDS HERE AND FAILS THERE** — `tests/probe_lastresort_entry.js`. It was `used` being
+  per ENTRY, not per battle. The "does not reproduce standalone" half of that row was a shell quoting
+  bug, not the pool.
+- **`pair-protect-bust ...2661266222` t6** — `tests/probe_bond_arrival_reprice.js`. A Chople Berry
+  carried into the arrival that never saw it, because the re-price refused non-flat volleys.
+- **`pair-redirect-priority ...2654621676` t8** — `tests/probe_smarttarget_row_order.js`. The board
+  cause was never the Leech Seed `-fail` two turns above it; it was the nesting order of the driver.
+
+**Owed and named, not fixed here:**
+
+- **THE NON-FLAT RE-PRICE DRIFTS AT ARRIVAL 0 ON 39 CLICKS**, all inside the 180-click non-flat
+  population and all safely disarmed. Diagnose from `arrivalRepriceDriftsAtArrivalZeroFirst`.
+- **A MULTI-ARRIVAL DRAIN IS PAID ONCE AT THE FOOT OF THE VOLLEY**, not once per arrival —
+  `showdown 2 drain lines, medicham 1`, same final HP. Narration. Printed on every run of
+  `tests/probe_bond_arrival_reprice.js`.
+- **FOUR STALE ARTIFACTS**: `data/engine-diff.json`, the three roster stages and
+  `data/all-mechanics-fire.json` are owed a re-run on `1be57a100d59`. Four gate clauses turn on it.
+
+**Carried forward unchanged** from the hand lists below: a spread move's named target drawn at random
+by the authority and picked first-foe here.
+
 ## LONG-TAIL BATCH M — BOARD-MATERIAL **8 OF 961 -> 3 OF 958**, PROTOCOL **77 -> 76**, NARRATION LEVEL AT 69, CENSUS LEVEL AT 830/830. THE RULER WAS CORRECTED FIRST AND IT ACCOUNTS FOR THREE OF THE FIVE; THE OTHER TWO ARE A VOLLEY PRICED BEFORE ITS OWN ARRIVALS AND A DIE DRAWN IN THE WRONG ORDER. 2026-09-07
 
 **READ THE DENOMINATOR.** `8 of 961` and `3 of 958` are not the same ruler. The board clause walked

@@ -1,0 +1,35 @@
+{
+  "written": "BEFORE the measuring run, and before any release was cut on the fixed bytes",
+  "batch": "N",
+  "fix": "Last Resort's precondition reads per-entry `used` marks instead of battle-lifetime PP spent",
+  "baseline": {
+    "release": "c28ad0815782",
+    "board_material": 3,
+    "state_games": 958,
+    "state_games_board_never_diverged": 955,
+    "state_games_void_excluded": 3,
+    "diverging_games_total": 76,
+    "diverged_among_usable": 73,
+    "usable_games": 958,
+    "mid_void_void_games": 3
+  },
+  "sample_line": "node engine/game_differential.js --steering empirical --release <id> --arm middle --end-state --state --census data/verification/census-pin-9446a684709d.json --games 1200 --turns 20 --team-store data/team-pool-frozen --dump-games 60 --dump-out <path> --write",
+  "predict": {
+    "board_material": 2,
+    "game_that_leaves": "omit-spread gen9championsvgc2026regmbbo3-2662243229 vs gen9championsvgc2026regmbbo3-2662159754 (t11)",
+    "games_that_remain": [
+      "pair-protect-bust gen9championsvgc2026regmbbo3-2661266222 (t6)",
+      "pair-redirect-priority gen9championsvgc2026regmbbo3-2654621676 (t8)"
+    ],
+    "diverging_games_total": "75 — the |-fail| WAS the first protocol split of that game, so the whole game should now agree",
+    "diverged_among_usable": 72,
+    "mid_void_void_games": "3, unchanged — no die moved",
+    "no_game_arrives": true,
+    "no_transfer": true,
+    "dice_addressing_moves": false,
+    "census": "830/830 unchanged; move|failsUnlessOtherMovesUsed must stay LIVE",
+    "roster": "140 / 129 / 475 with 0 DIFFER and 0 DID-NOT-FIRE, unchanged"
+  },
+  "why_the_dice_do_not_move": "no new draw is taken anywhere; the gate reads a boolean map written by ppDeduct, which was already called on exactly the same clicks",
+  "probe": "tests/probe_lastresort_entry.js  (RED under MEDI_LASTRESORT_BATTLE_USED=1: RED-1 parts on both the HP and the board leaf, CTRL-A/B/C hold; CLEAN: all green)"
+}

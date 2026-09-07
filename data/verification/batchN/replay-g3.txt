@@ -1,0 +1,1007 @@
+====================================================================================================
+ONE GAME, BOTH ENGINES, EVERY LINE   —   a debugging view. Nothing here is written to an artifact.
+====================================================================================================
+  seed      gen9championsvgc2026regmbbo3-2654621676 vs gen9championsvgc2026regmbbo3-2654695243
+  config    pair-redirect-priority        arm  middle   (REAL dice, seeded and shared by CATEGORY (acc / crit / sec /…)
+  release   c28ad0815782      showdown C:/Users/willj/Projects/Pokemon/pokemon-showdown
+  turns     10   medicham raw lines 161   showdown raw lines 162
+  reduced   showdown 162   medicham 161   (the comparator walks the REDUCED streams index by index)
+  stopped   both engines ended the battle     showdown ended the battle: YES     medicham2 ended the battle: YES
+  played in 111.5s   after replaying the run's schedule: 1418 games to reach pair-redirect-priority pair #12
+
+----------------------------------------------------------------------------------------------------
+  REPRODUCED — every stored field of this game matches the replay.
+  (data/verification/batchN/dump-baseline.json, generated 2026-09-07T19:58:05.841Z, release c28ad0815782, store data/team-pool-frozen)
+     ok    agreed lines             artifact: 87
+     ok    showdown line at split   artifact: |-fail|p1a: Scovillain
+     ok    medicham line at split   artifact: |move|p1b: Excadrill|rockslide|p2b: Kommo-o
+     ok    stop reason              artifact: both engines ended the battle
+     ok    class                    artifact: event missing from medicham2
+----------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------
+  THE TWO TEAMS AS BUILT (four bodies each; the battle brings all four)
+----------------------------------------------------------------------------------------------------
+  P1 — "yours"
+    1. kingambit        hp  175  spe   95  expertbelt      defiant           swordsdance, kowtowcleave, suckerpunch, ironhead
+    2. scovillain       hp  140  spe   95  scovillainite   moody             leechseed, protect, ragepowder, gigadrain
+    3. farigiraf        hp  195  spe   80  sitrusberry     armortail         imprison, trickroom, thunderbolt, psychic
+    4. excadrill        hp  185  spe  133  excadrite       sandrush          protect, ironhead, drillrun, rockslide
+
+  P2 — "theirs"
+    1. dragapult        hp  163  spe  205  focussash       clearbody         dragoncheer, dragondarts, psychicfangs, uturn
+    2. kommoo           hp  150  spe  130  scopelens       overcoat          protect, clangingscales, aurasphere, clangoroussoul
+    3. volcarona        hp  160  spe  120  sitrusberry     flamebody         ragepowder, tailwind, fierydance, willowisp
+    4. metagross        hp  155  spe  126  metagrossite    clearbody         ironhead, psychicfangs, protect, bulletpunch
+
+====================================================================================================
+  THE GAME, LINE BY LINE.   SD = Pokemon Showdown (the authority).   US = medicham2.
+  `both` means the two engines emitted the same thing at that index. The raw protocol for the
+  whole game is printed in full further down; this half is the reading view.
+====================================================================================================
+
+  0000  both  P1a Kingambit sends in Kingambit, L50 [##########] 175/175 100%
+  0001  both  P1b Scovillain sends in Scovillain, L50 [##########] 140/140 100%
+  0002  both  P2a Dragapult sends in Dragapult, L50 [##########] 163/163 100%
+  0003  both  P2b Kommo-o sends in Kommo-o, L50 [##########] 150/150 100%
+
+  0004  ---- turn 1 ------------------------------------------------------------
+  0005  both  P1b Scovillain becomes Scovillain-Mega, L50
+  0006  both  P1b Scovillain MEGA EVOLVES Scovillain Scovillainite
+  0007  both  P2a Dragapult uses U-turn -> P1a Kingambit
+  0008  both  P1a Kingambit drops to [########..] 142/175 81%
+  0009  both  P2a Volcarona sends in (replacing Dragapult) Volcarona, L50 [##########] 160/160 100% <from U-turn>
+  0010  both  P2b Kommo-o uses Aura Sphere -> P1a Kingambit
+  0011  both  P1a Kingambit it's super effective 2
+  0012  both  P1a Kingambit drops to 0 fnt
+  0013  both  P1a Kingambit faints
+  0014  both  P1b Scovillain uses Giga Drain -> P2a Volcarona
+  0015  both  P2a Volcarona resists 2
+  0016  both  P2a Volcarona drops to [#########.] 147/160 92%
+  0017  both  end of turn
+  0018  both  P1a Farigiraf sends in (replacing Kingambit) Farigiraf, L50 [##########] 195/195 100%
+
+  0019  ---- turn 2 ------------------------------------------------------------
+  0020  both  P2a Metagross sends in (replacing Volcarona) Metagross, L50 [##########] 155/155 100%
+  0021  both  P2b Kommo-o uses Clangorous Soul -> P2b Kommo-o
+  0022  both  P2b Kommo-o raises atk 1
+  0023  both  P2b Kommo-o raises def 1
+  0024  both  P2b Kommo-o raises spa 1
+  0025  both  P2b Kommo-o raises spd 1
+  0026  both  P2b Kommo-o raises spe 1
+  0027  both  P2b Kommo-o drops to [#######...] 101/150 67%
+  0028  both  P1b Scovillain uses Leech Seed -> P2a Metagross
+  0029  both  P2a Metagross gains move: Leech Seed
+  0030  both  P1a Farigiraf uses Psychic -> P2a Metagross
+  0031  both  P2a Metagross resists 2
+  0032  both  P2a Metagross critical hit
+  0033  both  P2a Metagross drops to [#########.] 131/155 85%
+  0034  both  P2a Metagross drops to [#######...] 112/155 72% <from Leech Seed>
+  0035  both  end of turn
+
+  0036  ---- turn 3 ------------------------------------------------------------
+  0037  both  P2a Metagross becomes Metagross-Mega, L50
+  0038  both  P2a Metagross MEGA EVOLVES Metagross Metagrossite
+  0039  both  P2b Kommo-o uses Protect -> P2b Kommo-o
+  0040  both  P2b Kommo-o braces with Protect
+  0041  both  P2a Metagross uses Protect -> P2a Metagross
+  0042  both  P2a Metagross braces with Protect
+  0043  both  P1b Scovillain uses Giga Drain -> P2a Metagross
+  0044  both  P2a Metagross triggers move: Protect
+  0045  both  P1a Farigiraf uses Psychic -> P2a Metagross
+  0046  both  P2a Metagross triggers move: Protect
+  0047  both  P2a Metagross drops to [######....] 93/155 60% <from Leech Seed>
+  0048  both  end of turn
+
+  0049  ---- turn 4 ------------------------------------------------------------
+  0050  both  P1b Excadrill sends in (replacing Scovillain) Excadrill, L50 [##########] 185/185 100%
+  0051  both  P2b Kommo-o uses Clanging Scales -> P1b Excadrill <spread p1a,p1b>
+  0052  both  P1b Excadrill resists 1
+  0053  both  P1b Excadrill critical hit
+  0054  both  P1a Farigiraf drops to [######....] 120/195 62%
+  0055  both  P1b Excadrill drops to [#######...] 122/185 66%
+  0056  both  P2b Kommo-o lowers def 1
+  0057  both  P2a Metagross uses Psychic Fangs -> P1a Farigiraf
+  0058  both  P1a Farigiraf resists 1
+  0059  both  P1a Farigiraf drops to [##........] 42/195 22%
+  0060  both  P1a Farigiraf uses up Sitrus Berry <eat>
+  0061  both  P1a Farigiraf heals to [#####.....] 90/195 46% <from item: Sitrus Berry>
+  0062  both  P1a Farigiraf uses Trick Room -> P1a Farigiraf
+  0063  both  field move: Trick Room
+  0064  both  P2a Metagross drops to [#####.....] 74/155 48% <from Leech Seed>
+  0065  both  P1b Excadrill heals to [########..] 141/185 76% <silent>
+  0066  both  end of turn
+
+  0067  ---- turn 5 ------------------------------------------------------------
+  0068  both  P1b Excadrill uses Rock Slide -> P2a Metagross <spread p2a>
+  0069  both  P1b Excadrill misses -> P2b Kommo-o
+  0070  both  P2a Metagross resists 1
+  0071  both  P2a Metagross drops to [####......] 61/155 39%
+  0072  both  P2a Metagross uses Psychic Fangs -> P1a Farigiraf
+  0073  both  P1a Farigiraf resists 1
+  0074  both  P1a Farigiraf drops to [..........] 5/195 3%
+  0075  both  P2b Kommo-o uses Clanging Scales -> P1a Farigiraf <spread p1a,p1b>
+  0076  both  P1b Excadrill resists 1
+  0077  both  P1a Farigiraf drops to 0 fnt
+  0078  both  P1b Excadrill drops to [#####.....] 99/185 54%
+  0079  both  P1a Farigiraf faints
+  0080  both  P2b Kommo-o lowers def 1
+  0081  both  P2a Metagross drops to [###.......] 42/155 27% <from Leech Seed>
+  0082  both  P1b Excadrill heals to [######....] 118/185 64% <silent>
+  0083  both  end of turn
+  0084  both  P1a Scovillain sends in (replacing Farigiraf) Scovillain-Mega, L50 [##########] 140/140 100%
+
+  0085  ---- turn 6 ------------------------------------------------------------
+  0086  both  P1a Scovillain uses Leech Seed <still>
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  >>>>  THE SPLIT — index 87. They agreed for 87 reduced lines.  <<<<
+  >>>>  classifier: event missing from medicham2
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  0087  SD    P1a Scovillain fails
+        US    P1b Excadrill uses rockslide -> P2b Kommo-o
+  0088  SD    P1b Excadrill uses Rock Slide -> P2b Kommo-o <spread p2a,p2b>
+        US    P2a Metagross resists 1
+  0089  SD    P2a Metagross resists 1
+        US    P2b Kommo-o resists 1
+  0090  SD    P2b Kommo-o resists 1
+        US    P2a Metagross drops to [##........] 29/155 19%
+  0091  SD    P2a Metagross drops to [##........] 29/155 19%
+        US    P2b Kommo-o drops to [#####.....] 77/150 51%
+  0092  SD    P2b Kommo-o drops to [#####.....] 77/150 51%
+        US    P2a Metagross can't move flinch
+  0093  SD    P2a Metagross can't move flinch
+        US    P2b Kommo-o uses aurasphere -> P1a Scovillain
+  0094  SD    P2b Kommo-o uses Aura Sphere -> P1a Scovillain
+        US    P1a Scovillain drops to [#####.....] 64/140 46%
+  0095  SD    P1a Scovillain drops to [#####.....] 64/140 46%
+        US    P2b Kommo-o is brn <from ability: spicyspray>
+  0096  SD    P2b Kommo-o is brn <from ability: Spicy Spray>
+        US    P2a Metagross drops to [#.........] 10/155 6% <from Leech Seed>
+  0097  SD    P2a Metagross drops to [#.........] 10/155 6% <from Leech Seed>
+        US    P1b Excadrill heals to [#######...] 137/185 74% <silent>
+  0098  SD    P1b Excadrill heals to [#######...] 137/185 74% <silent>
+        US    P2b Kommo-o drops to [#####.....] 68/150 45% brn <from brn>
+  0099  SD    P2b Kommo-o drops to [#####.....] 68/150 45% brn <from brn>
+        US    end of turn
+  0100  SD    end of turn
+        US    turn 7
+  0101  SD    turn 7
+        US    P2a Dragapult sends in (replacing Metagross) dragapult, L50 [##########] 163/163 100%
+  0102  SD    P2a Dragapult sends in (replacing Metagross) Dragapult, L50 [##########] 163/163 100%
+        US    P2b Volcarona sends in (replacing Kommo-o) volcarona, L50 [#########.] 147/160 92%
+  0103  SD    P2b Volcarona sends in (replacing Kommo-o) Volcarona, L50 [#########.] 147/160 92%
+        US    P1a Scovillain uses protect -> P1a Scovillain
+  0104  SD    P1a Scovillain uses Protect -> P1a Scovillain
+        US    P1a Scovillain braces with Protect
+  0105  SD    P1a Scovillain braces with Protect
+        US    P1b Excadrill uses rockslide -> P2a Dragapult
+  0106  SD    P1b Excadrill uses Rock Slide -> P2a Dragapult <spread p2a,p2b>
+        US    P2b Volcarona it's super effective 2
+  0107  SD    P2b Volcarona it's super effective 2
+        US    P2a Dragapult drops to [#######...] 116/163 71%
+  0108  SD    P2a Dragapult drops to [#######...] 116/163 71%
+        US    P2b Volcarona drops to 0 fnt
+  0109  SD    P2b Volcarona drops to 0 fnt
+        US    P2b Volcarona faints
+  0110  SD    P2b Volcarona faints
+        US    end of turn
+  0111  SD    end of turn
+        US    P2b Metagross sends in (replacing Volcarona) metagross-mega, L50 [#.........] 10/155 6%
+  0112  SD    P2b Metagross sends in (replacing Volcarona) Metagross-Mega, L50 [#.........] 10/155 6%
+        US    turn 8
+  0113  SD    turn 8
+        US    P1a Scovillain uses leechseed -> P2a Dragapult
+  0114  SD    P1a Scovillain uses Leech Seed -> P2a Dragapult
+        US    P2a Dragapult gains move: Leech Seed
+  0115  SD    P2a Dragapult gains move: Leech Seed
+        US    P1b Excadrill uses rockslide -> P2b Metagross
+  0116  SD    P1b Excadrill uses Rock Slide -> P2b Metagross <spread p2a,p2b>
+        US    P2b Metagross resists 1
+  0117  SD    P2b Metagross resists 1
+        US    P2a Dragapult drops to [#####.....] 75/163 46%
+  0118  SD    P2a Dragapult drops to [#####.....] 75/163 46%
+        US    P2b Metagross drops to 0 fnt
+  0119  SD    P2b Metagross drops to 0 fnt
+        US    P2b Metagross faints
+  0120  SD    P2b Metagross faints
+        US    P2a Dragapult uses dragondarts -> P1a Scovillain
+  0121  SD    P2a Dragapult uses Dragon Darts -> P1a Scovillain
+        US    P1b Excadrill resists 1
+  0122  both  P1a Scovillain drops to [#.........] 15/140 11%
+  0123  SD    P2a Dragapult is brn <from ability: Spicy Spray>
+        US    P1b Excadrill drops to [######....] 107/185 58%
+  0124  SD    P1b Excadrill resists 1
+        US    P2a Dragapult is brn <from ability: spicyspray>
+  0125  SD    P1b Excadrill drops to [#######...] 122/185 66%
+        US    P2a Dragapult drops to [###.......] 55/163 34% brn <from Leech Seed>
+  0126  SD    P2a Dragapult drops to [###.......] 55/163 34% brn <from Leech Seed>
+        US    P1a Scovillain heals to [###.......] 35/140 25% <silent>
+  0127  SD    P1a Scovillain heals to [###.......] 35/140 25% <silent>
+        US    P2a Dragapult drops to [###.......] 45/163 28% brn <from brn>
+  0128  SD    P2a Dragapult drops to [###.......] 45/163 28% brn <from brn>
+        US    field ends move: Trick Room
+  0129  SD    field ends move: Trick Room
+        US    end of turn
+  0130  SD    end of turn
+        US    P2b Kommo-o sends in (replacing Metagross) kommoo, L50 [#####.....] 68/150 45% brn
+  0131  SD    P2b Kommo-o sends in (replacing Metagross) Kommo-o, L50 [#####.....] 68/150 45% brn
+        US    turn 9
+  0132  SD    turn 9
+        US    P2b Kommo-o uses protect -> P2b Kommo-o
+  0133  SD    P2b Kommo-o uses Protect -> P2b Kommo-o
+        US    P2b Kommo-o braces with Protect
+  0134  SD    P2b Kommo-o braces with Protect
+        US    P1a Scovillain uses protect -> P1a Scovillain
+  0135  SD    P1a Scovillain uses Protect -> P1a Scovillain
+        US    P1a Scovillain braces with Protect
+  0136  SD    P1a Scovillain braces with Protect
+        US    P2a Dragapult uses dragondarts -> P1a Scovillain
+  0137  SD    P2a Dragapult uses Dragon Darts -> P1b Excadrill
+        US    P1b Excadrill resists 1
+  0138  SD    P1b Excadrill resists 1
+        US    P1b Excadrill drops to [#####.....] 91/185 49%
+  0139  SD    P1b Excadrill drops to [######....] 106/185 57%
+        US    P1b Excadrill resists 1
+  0140  SD    P1b Excadrill resists 1
+        US    P1b Excadrill critical hit
+  0141  SD    P1b Excadrill critical hit
+        US    P1b Excadrill drops to [####......] 67/185 36%
+  0142  SD    P1b Excadrill drops to [####......] 82/185 44%
+        US    P1b Excadrill uses rockslide -> P2b Kommo-o
+  0143  SD    P1b Excadrill uses Rock Slide -> P2b Kommo-o <spread p2a>
+        US    P2b Kommo-o triggers move: Protect
+  0144  SD    P2b Kommo-o triggers move: Protect
+        US    P2a Dragapult drops to [..........] 2/163 1% brn
+  0145  SD    P2a Dragapult drops to [..........] 2/163 1% brn
+        US    P2a Dragapult drops to 0 fnt <from Leech Seed>
+  0146  SD    P2a Dragapult drops to 0 fnt <from Leech Seed>
+        US    P1a Scovillain heals to [###.......] 37/140 26% <silent>
+  0147  SD    P1a Scovillain heals to [###.......] 37/140 26% <silent>
+        US    P2a Dragapult faints
+  0148  SD    P2a Dragapult faints
+        US    P2b Kommo-o drops to [####......] 59/150 39% brn <from brn>
+  0149  SD    P2b Kommo-o drops to [####......] 59/150 39% brn <from brn>
+        US    end of turn
+  0150  SD    end of turn
+        US    turn 10
+  0151  SD    turn 10
+        US    P2b Kommo-o uses clangoroussoul -> P2b Kommo-o
+  0152  SD    P2b Kommo-o uses Clangorous Soul -> P2b Kommo-o
+        US    P2b Kommo-o raises atk 1
+  0153  SD    P2b Kommo-o raises atk 1
+        US    P2b Kommo-o raises def 1
+  0154  SD    P2b Kommo-o raises def 1
+        US    P2b Kommo-o raises spa 1
+  0155  SD    P2b Kommo-o raises spa 1
+        US    P2b Kommo-o raises spd 1
+  0156  SD    P2b Kommo-o raises spd 1
+        US    P2b Kommo-o raises spe 1
+  0157  SD    P2b Kommo-o raises spe 1
+        US    P2b Kommo-o drops to [#.........] 10/150 7% brn
+  0158  SD    P2b Kommo-o drops to [#.........] 10/150 7% brn
+        US    P1b Excadrill uses drillrun -> P2b Kommo-o
+  0159  SD    P1b Excadrill uses Drill Run -> P2b Kommo-o
+        US    P2b Kommo-o drops to 0 fnt
+  0160  SD    P2b Kommo-o drops to 0 fnt
+        US    P2b Kommo-o faints
+  0161  SD    P2b Kommo-o faints
+        US    — nothing further —
+
+====================================================================================================
+  WHAT EACH ENGINE WAS HOLDING WHEN THE GAME STOPPED
+  Same question asked of both: every body, is it fainted, at what HP, active or benched.
+====================================================================================================
+
+  ---- P1 ("yours") ------------------------------------------------------------
+    SHOWDOWN   pokemonLeft=2  teamSize=4     (pokemonLeft is the number checkWin actually reads)
+      scovillainmega     hp   37  alive    active isActive=yes
+      excadrill          hp   82  alive    active isActive=yes
+      kingambit          hp    0  FAINTED  bench  isActive=no 
+      farigiraf          hp    0  FAINTED  bench  isActive=no 
+    MEDICHAM2  (this snapshot lists actives then bench; a fainted body it has DISCARDED
+               does not appear at all, so a missing row is not evidence of anything)
+      scovillainmega     hp   37  alive    active
+      excadrill          hp   67  alive    active
+
+  ---- P2 ("theirs") ------------------------------------------------------------
+    SHOWDOWN   pokemonLeft=0  teamSize=4     (pokemonLeft is the number checkWin actually reads)
+      dragapult          hp    0  FAINTED  active isActive=no    <- corpse in the slot, awaiting its replacement (both engines do this)
+      kommoo             hp    0  FAINTED  active isActive=no    <- corpse in the slot, awaiting its replacement (both engines do this)
+      volcarona          hp    0  FAINTED  bench  isActive=no 
+      metagrossmega      hp    0  FAINTED  bench  isActive=no 
+    MEDICHAM2  (this snapshot lists actives then bench; a fainted body it has DISCARDED
+               does not appear at all, so a missing row is not evidence of anything)
+      dragapult          hp    0  FAINTED  active   <- corpse in the slot, awaiting its replacement (both engines do this)
+      kommoo             hp    0  FAINTED  active   <- corpse in the slot, awaiting its replacement (both engines do this)
+
+    showdown winner: A
+
+====================================================================================================
+  RAW PROTOCOL — SHOWDOWN, as the comparator sees it (sdStream-filtered)   (162 lines)
+====================================================================================================
+  0000  |switch|p1a: Kingambit|Kingambit, L50|175/175
+  0001  |switch|p1b: Scovillain|Scovillain, L50|140/140
+  0002  |switch|p2a: Dragapult|Dragapult, L50|163/163
+  0003  |switch|p2b: Kommo-o|Kommo-o, L50|150/150
+  0004  |turn|1
+  0005  |detailschange|p1b: Scovillain|Scovillain-Mega, L50
+  0006  |-mega|p1b: Scovillain|Scovillain|Scovillainite
+  0007  |move|p2a: Dragapult|U-turn|p1a: Kingambit
+  0008  |-damage|p1a: Kingambit|142/175
+  0009  |switch|p2a: Volcarona|Volcarona, L50|160/160|[from] U-turn
+  0010  |move|p2b: Kommo-o|Aura Sphere|p1a: Kingambit
+  0011  |-supereffective|p1a: Kingambit|2
+  0012  |-damage|p1a: Kingambit|0 fnt
+  0013  |faint|p1a: Kingambit
+  0014  |move|p1b: Scovillain|Giga Drain|p2a: Volcarona
+  0015  |-resisted|p2a: Volcarona|2
+  0016  |-damage|p2a: Volcarona|147/160
+  0017  |upkeep
+  0018  |switch|p1a: Farigiraf|Farigiraf, L50|195/195
+  0019  |turn|2
+  0020  |switch|p2a: Metagross|Metagross, L50|155/155
+  0021  |move|p2b: Kommo-o|Clangorous Soul|p2b: Kommo-o
+  0022  |-boost|p2b: Kommo-o|atk|1
+  0023  |-boost|p2b: Kommo-o|def|1
+  0024  |-boost|p2b: Kommo-o|spa|1
+  0025  |-boost|p2b: Kommo-o|spd|1
+  0026  |-boost|p2b: Kommo-o|spe|1
+  0027  |-damage|p2b: Kommo-o|101/150
+  0028  |move|p1b: Scovillain|Leech Seed|p2a: Metagross
+  0029  |-start|p2a: Metagross|move: Leech Seed
+  0030  |move|p1a: Farigiraf|Psychic|p2a: Metagross
+  0031  |-resisted|p2a: Metagross|2
+  0032  |-crit|p2a: Metagross
+  0033  |-damage|p2a: Metagross|131/155
+  0034  |-damage|p2a: Metagross|112/155|[from] Leech Seed|[of] p1b: Scovillain
+  0035  |upkeep
+  0036  |turn|3
+  0037  |detailschange|p2a: Metagross|Metagross-Mega, L50
+  0038  |-mega|p2a: Metagross|Metagross|Metagrossite
+  0039  |move|p2b: Kommo-o|Protect|p2b: Kommo-o
+  0040  |-singleturn|p2b: Kommo-o|Protect
+  0041  |move|p2a: Metagross|Protect|p2a: Metagross
+  0042  |-singleturn|p2a: Metagross|Protect
+  0043  |move|p1b: Scovillain|Giga Drain|p2a: Metagross
+  0044  |-activate|p2a: Metagross|move: Protect
+  0045  |move|p1a: Farigiraf|Psychic|p2a: Metagross
+  0046  |-activate|p2a: Metagross|move: Protect
+  0047  |-damage|p2a: Metagross|93/155|[from] Leech Seed|[of] p1b: Scovillain
+  0048  |upkeep
+  0049  |turn|4
+  0050  |switch|p1b: Excadrill|Excadrill, L50|185/185
+  0051  |move|p2b: Kommo-o|Clanging Scales|p1b: Excadrill|[spread] p1a,p1b
+  0052  |-resisted|p1b: Excadrill|1
+  0053  |-crit|p1b: Excadrill
+  0054  |-damage|p1a: Farigiraf|120/195
+  0055  |-damage|p1b: Excadrill|122/185
+  0056  |-unboost|p2b: Kommo-o|def|1
+  0057  |move|p2a: Metagross|Psychic Fangs|p1a: Farigiraf
+  0058  |-resisted|p1a: Farigiraf|1
+  0059  |-damage|p1a: Farigiraf|42/195
+  0060  |-enditem|p1a: Farigiraf|Sitrus Berry|[eat]
+  0061  |-heal|p1a: Farigiraf|90/195|[from] item: Sitrus Berry
+  0062  |move|p1a: Farigiraf|Trick Room|p1a: Farigiraf
+  0063  |-fieldstart|move: Trick Room|[of] p1a: Farigiraf
+  0064  |-damage|p2a: Metagross|74/155|[from] Leech Seed|[of] p1b: Excadrill
+  0065  |-heal|p1b: Excadrill|141/185|[silent]
+  0066  |upkeep
+  0067  |turn|5
+  0068  |move|p1b: Excadrill|Rock Slide|p2a: Metagross|[spread] p2a
+  0069  |-miss|p1b: Excadrill|p2b: Kommo-o
+  0070  |-resisted|p2a: Metagross|1
+  0071  |-damage|p2a: Metagross|61/155
+  0072  |move|p2a: Metagross|Psychic Fangs|p1a: Farigiraf
+  0073  |-resisted|p1a: Farigiraf|1
+  0074  |-damage|p1a: Farigiraf|5/195
+  0075  |move|p2b: Kommo-o|Clanging Scales|p1a: Farigiraf|[spread] p1a,p1b
+  0076  |-resisted|p1b: Excadrill|1
+  0077  |-damage|p1a: Farigiraf|0 fnt
+  0078  |-damage|p1b: Excadrill|99/185
+  0079  |faint|p1a: Farigiraf
+  0080  |-unboost|p2b: Kommo-o|def|1
+  0081  |-damage|p2a: Metagross|42/155|[from] Leech Seed|[of] p1b: Excadrill
+  0082  |-heal|p1b: Excadrill|118/185|[silent]
+  0083  |upkeep
+  0084  |switch|p1a: Scovillain|Scovillain-Mega, L50|140/140
+  0085  |turn|6
+  0086  |move|p1a: Scovillain|Leech Seed||[still]
+  0087  |-fail|p1a: Scovillain  <<<<<< THE SPLIT
+  0088  |move|p1b: Excadrill|Rock Slide|p2b: Kommo-o|[spread] p2a,p2b
+  0089  |-resisted|p2a: Metagross|1
+  0090  |-resisted|p2b: Kommo-o|1
+  0091  |-damage|p2a: Metagross|29/155
+  0092  |-damage|p2b: Kommo-o|77/150
+  0093  |cant|p2a: Metagross|flinch
+  0094  |move|p2b: Kommo-o|Aura Sphere|p1a: Scovillain
+  0095  |-damage|p1a: Scovillain|64/140
+  0096  |-status|p2b: Kommo-o|brn|[from] ability: Spicy Spray|[of] p1a: Scovillain
+  0097  |-damage|p2a: Metagross|10/155|[from] Leech Seed|[of] p1b: Excadrill
+  0098  |-heal|p1b: Excadrill|137/185|[silent]
+  0099  |-damage|p2b: Kommo-o|68/150 brn|[from] brn
+  0100  |upkeep
+  0101  |turn|7
+  0102  |switch|p2a: Dragapult|Dragapult, L50|163/163
+  0103  |switch|p2b: Volcarona|Volcarona, L50|147/160
+  0104  |move|p1a: Scovillain|Protect|p1a: Scovillain
+  0105  |-singleturn|p1a: Scovillain|Protect
+  0106  |move|p1b: Excadrill|Rock Slide|p2a: Dragapult|[spread] p2a,p2b
+  0107  |-supereffective|p2b: Volcarona|2
+  0108  |-damage|p2a: Dragapult|116/163
+  0109  |-damage|p2b: Volcarona|0 fnt
+  0110  |faint|p2b: Volcarona
+  0111  |upkeep
+  0112  |switch|p2b: Metagross|Metagross-Mega, L50|10/155
+  0113  |turn|8
+  0114  |move|p1a: Scovillain|Leech Seed|p2a: Dragapult
+  0115  |-start|p2a: Dragapult|move: Leech Seed
+  0116  |move|p1b: Excadrill|Rock Slide|p2b: Metagross|[spread] p2a,p2b
+  0117  |-resisted|p2b: Metagross|1
+  0118  |-damage|p2a: Dragapult|75/163
+  0119  |-damage|p2b: Metagross|0 fnt
+  0120  |faint|p2b: Metagross
+  0121  |move|p2a: Dragapult|Dragon Darts|p1a: Scovillain
+  0122  |-damage|p1a: Scovillain|15/140
+  0123  |-status|p2a: Dragapult|brn|[from] ability: Spicy Spray|[of] p1a: Scovillain
+  0124  |-resisted|p1b: Excadrill|1
+  0125  |-damage|p1b: Excadrill|122/185
+  0126  |-damage|p2a: Dragapult|55/163 brn|[from] Leech Seed|[of] p1a: Scovillain
+  0127  |-heal|p1a: Scovillain|35/140|[silent]
+  0128  |-damage|p2a: Dragapult|45/163 brn|[from] brn
+  0129  |-fieldend|move: Trick Room
+  0130  |upkeep
+  0131  |switch|p2b: Kommo-o|Kommo-o, L50|68/150 brn
+  0132  |turn|9
+  0133  |move|p2b: Kommo-o|Protect|p2b: Kommo-o
+  0134  |-singleturn|p2b: Kommo-o|Protect
+  0135  |move|p1a: Scovillain|Protect|p1a: Scovillain
+  0136  |-singleturn|p1a: Scovillain|Protect
+  0137  |move|p2a: Dragapult|Dragon Darts|p1b: Excadrill
+  0138  |-resisted|p1b: Excadrill|1
+  0139  |-damage|p1b: Excadrill|106/185
+  0140  |-resisted|p1b: Excadrill|1
+  0141  |-crit|p1b: Excadrill
+  0142  |-damage|p1b: Excadrill|82/185
+  0143  |move|p1b: Excadrill|Rock Slide|p2b: Kommo-o|[spread] p2a
+  0144  |-activate|p2b: Kommo-o|move: Protect
+  0145  |-damage|p2a: Dragapult|2/163 brn
+  0146  |-damage|p2a: Dragapult|0 fnt|[from] Leech Seed|[of] p1a: Scovillain
+  0147  |-heal|p1a: Scovillain|37/140|[silent]
+  0148  |faint|p2a: Dragapult
+  0149  |-damage|p2b: Kommo-o|59/150 brn|[from] brn
+  0150  |upkeep
+  0151  |turn|10
+  0152  |move|p2b: Kommo-o|Clangorous Soul|p2b: Kommo-o
+  0153  |-boost|p2b: Kommo-o|atk|1
+  0154  |-boost|p2b: Kommo-o|def|1
+  0155  |-boost|p2b: Kommo-o|spa|1
+  0156  |-boost|p2b: Kommo-o|spd|1
+  0157  |-boost|p2b: Kommo-o|spe|1
+  0158  |-damage|p2b: Kommo-o|10/150 brn
+  0159  |move|p1b: Excadrill|Drill Run|p2b: Kommo-o
+  0160  |-damage|p2b: Kommo-o|0 fnt
+  0161  |faint|p2b: Kommo-o
+
+====================================================================================================
+  RAW PROTOCOL — MEDICHAM2 (its own trace, unfiltered)   (161 lines)
+====================================================================================================
+  0000  |switch|p1a: Kingambit|kingambit, L50|175/175
+  0001  |switch|p1b: Scovillain|scovillain, L50|140/140
+  0002  |switch|p2a: Dragapult|dragapult, L50|163/163
+  0003  |switch|p2b: Kommo-o|kommoo, L50|150/150
+  0004  |turn|1
+  0005  |detailschange|p1b: Scovillain|scovillain-mega, L50
+  0006  |-mega|p1b: Scovillain|Scovillain|scovillainite
+  0007  |move|p2a: Dragapult|uturn|p1a: Kingambit
+  0008  |-damage|p1a: Kingambit|142/175
+  0009  |switch|p2a: Volcarona|volcarona, L50|160/160|[from] uturn
+  0010  |move|p2b: Kommo-o|aurasphere|p1a: Kingambit
+  0011  |-supereffective|p1a: Kingambit|2
+  0012  |-damage|p1a: Kingambit|0 fnt
+  0013  |faint|p1a: Kingambit
+  0014  |move|p1b: Scovillain|gigadrain|p2a: Volcarona
+  0015  |-resisted|p2a: Volcarona|2
+  0016  |-damage|p2a: Volcarona|147/160
+  0017  |upkeep
+  0018  |switch|p1a: Farigiraf|farigiraf, L50|195/195
+  0019  |turn|2
+  0020  |switch|p2a: Metagross|metagross, L50|155/155
+  0021  |move|p2b: Kommo-o|clangoroussoul|p2b: Kommo-o
+  0022  |-boost|p2b: Kommo-o|atk|1
+  0023  |-boost|p2b: Kommo-o|def|1
+  0024  |-boost|p2b: Kommo-o|spa|1
+  0025  |-boost|p2b: Kommo-o|spd|1
+  0026  |-boost|p2b: Kommo-o|spe|1
+  0027  |-damage|p2b: Kommo-o|101/150
+  0028  |move|p1b: Scovillain|leechseed|p2a: Metagross
+  0029  |-start|p2a: Metagross|move: Leech Seed
+  0030  |move|p1a: Farigiraf|psychic|p2a: Metagross
+  0031  |-resisted|p2a: Metagross|2
+  0032  |-crit|p2a: Metagross
+  0033  |-damage|p2a: Metagross|131/155
+  0034  |-damage|p2a: Metagross|112/155|[from] Leech Seed|[of] p1b: Scovillain
+  0035  |upkeep
+  0036  |turn|3
+  0037  |detailschange|p2a: Metagross|metagross-mega, L50
+  0038  |-mega|p2a: Metagross|Metagross|metagrossite
+  0039  |move|p2b: Kommo-o|protect|p2b: Kommo-o
+  0040  |-singleturn|p2b: Kommo-o|Protect
+  0041  |move|p2a: Metagross|protect|p2a: Metagross
+  0042  |-singleturn|p2a: Metagross|Protect
+  0043  |move|p1b: Scovillain|gigadrain|p2a: Metagross
+  0044  |-activate|p2a: Metagross|move: Protect
+  0045  |move|p1a: Farigiraf|psychic|p2a: Metagross
+  0046  |-activate|p2a: Metagross|move: Protect
+  0047  |-damage|p2a: Metagross|93/155|[from] Leech Seed|[of] p1b: Scovillain
+  0048  |upkeep
+  0049  |turn|4
+  0050  |switch|p1b: Excadrill|excadrill, L50|185/185
+  0051  |move|p2b: Kommo-o|clangingscales|p1b: Excadrill
+  0052  |-resisted|p1b: Excadrill|1
+  0053  |-crit|p1b: Excadrill
+  0054  |-damage|p1a: Farigiraf|120/195
+  0055  |-damage|p1b: Excadrill|122/185
+  0056  |-unboost|p2b: Kommo-o|def|1
+  0057  |move|p2a: Metagross|psychicfangs|p1a: Farigiraf
+  0058  |-resisted|p1a: Farigiraf|1
+  0059  |-damage|p1a: Farigiraf|42/195
+  0060  |-enditem|p1a: Farigiraf|sitrusberry|[eat]
+  0061  |-heal|p1a: Farigiraf|90/195|[from] item: sitrusberry
+  0062  |move|p1a: Farigiraf|trickroom|p1a: Farigiraf
+  0063  |-fieldstart|move: Trick Room|[of] p1a: Farigiraf
+  0064  |-damage|p2a: Metagross|74/155|[from] Leech Seed|[of] p1b: Excadrill
+  0065  |-heal|p1b: Excadrill|141/185|[silent]
+  0066  |upkeep
+  0067  |turn|5
+  0068  |move|p1b: Excadrill|rockslide|p2a: Metagross
+  0069  |-miss|p1b: Excadrill|p2b: Kommo-o
+  0070  |-resisted|p2a: Metagross|1
+  0071  |-damage|p2a: Metagross|61/155
+  0072  |move|p2a: Metagross|psychicfangs|p1a: Farigiraf
+  0073  |-resisted|p1a: Farigiraf|1
+  0074  |-damage|p1a: Farigiraf|5/195
+  0075  |move|p2b: Kommo-o|clangingscales|p1a: Farigiraf
+  0076  |-resisted|p1b: Excadrill|1
+  0077  |-damage|p1a: Farigiraf|0 fnt
+  0078  |-damage|p1b: Excadrill|99/185
+  0079  |faint|p1a: Farigiraf
+  0080  |-unboost|p2b: Kommo-o|def|1
+  0081  |-damage|p2a: Metagross|42/155|[from] Leech Seed|[of] p1b: Excadrill
+  0082  |-heal|p1b: Excadrill|118/185|[silent]
+  0083  |upkeep
+  0084  |switch|p1a: Scovillain|scovillain-mega, L50|140/140
+  0085  |turn|6
+  0086  |move|p1a: Scovillain|leechseed|p2a: Metagross
+  0087  |move|p1b: Excadrill|rockslide|p2b: Kommo-o  <<<<<< THE SPLIT
+  0088  |-resisted|p2a: Metagross|1
+  0089  |-resisted|p2b: Kommo-o|1
+  0090  |-damage|p2a: Metagross|29/155
+  0091  |-damage|p2b: Kommo-o|77/150
+  0092  |cant|p2a: Metagross|flinch
+  0093  |move|p2b: Kommo-o|aurasphere|p1a: Scovillain
+  0094  |-damage|p1a: Scovillain|64/140
+  0095  |-status|p2b: Kommo-o|brn|[from] ability: spicyspray|[of] p1a: Scovillain
+  0096  |-damage|p2a: Metagross|10/155|[from] Leech Seed|[of] p1b: Excadrill
+  0097  |-heal|p1b: Excadrill|137/185|[silent]
+  0098  |-damage|p2b: Kommo-o|68/150 brn|[from] brn
+  0099  |upkeep
+  0100  |turn|7
+  0101  |switch|p2a: Dragapult|dragapult, L50|163/163
+  0102  |switch|p2b: Volcarona|volcarona, L50|147/160
+  0103  |move|p1a: Scovillain|protect|p1a: Scovillain
+  0104  |-singleturn|p1a: Scovillain|Protect
+  0105  |move|p1b: Excadrill|rockslide|p2a: Dragapult
+  0106  |-supereffective|p2b: Volcarona|2
+  0107  |-damage|p2a: Dragapult|116/163
+  0108  |-damage|p2b: Volcarona|0 fnt
+  0109  |faint|p2b: Volcarona
+  0110  |upkeep
+  0111  |switch|p2b: Metagross|metagross-mega, L50|10/155
+  0112  |turn|8
+  0113  |move|p1a: Scovillain|leechseed|p2a: Dragapult
+  0114  |-start|p2a: Dragapult|move: Leech Seed
+  0115  |move|p1b: Excadrill|rockslide|p2b: Metagross
+  0116  |-resisted|p2b: Metagross|1
+  0117  |-damage|p2a: Dragapult|75/163
+  0118  |-damage|p2b: Metagross|0 fnt
+  0119  |faint|p2b: Metagross
+  0120  |move|p2a: Dragapult|dragondarts|p1a: Scovillain
+  0121  |-resisted|p1b: Excadrill|1
+  0122  |-damage|p1a: Scovillain|15/140
+  0123  |-damage|p1b: Excadrill|107/185
+  0124  |-status|p2a: Dragapult|brn|[from] ability: spicyspray|[of] p1a: Scovillain
+  0125  |-damage|p2a: Dragapult|55/163 brn|[from] Leech Seed|[of] p1a: Scovillain
+  0126  |-heal|p1a: Scovillain|35/140|[silent]
+  0127  |-damage|p2a: Dragapult|45/163 brn|[from] brn
+  0128  |-fieldend|move: Trick Room
+  0129  |upkeep
+  0130  |switch|p2b: Kommo-o|kommoo, L50|68/150 brn
+  0131  |turn|9
+  0132  |move|p2b: Kommo-o|protect|p2b: Kommo-o
+  0133  |-singleturn|p2b: Kommo-o|Protect
+  0134  |move|p1a: Scovillain|protect|p1a: Scovillain
+  0135  |-singleturn|p1a: Scovillain|Protect
+  0136  |move|p2a: Dragapult|dragondarts|p1a: Scovillain
+  0137  |-resisted|p1b: Excadrill|1
+  0138  |-damage|p1b: Excadrill|91/185
+  0139  |-resisted|p1b: Excadrill|1
+  0140  |-crit|p1b: Excadrill
+  0141  |-damage|p1b: Excadrill|67/185
+  0142  |move|p1b: Excadrill|rockslide|p2b: Kommo-o
+  0143  |-activate|p2b: Kommo-o|move: Protect
+  0144  |-damage|p2a: Dragapult|2/163 brn
+  0145  |-damage|p2a: Dragapult|0 fnt|[from] Leech Seed|[of] p1a: Scovillain
+  0146  |-heal|p1a: Scovillain|37/140|[silent]
+  0147  |faint|p2a: Dragapult
+  0148  |-damage|p2b: Kommo-o|59/150 brn|[from] brn
+  0149  |upkeep
+  0150  |turn|10
+  0151  |move|p2b: Kommo-o|clangoroussoul|p2b: Kommo-o
+  0152  |-boost|p2b: Kommo-o|atk|1
+  0153  |-boost|p2b: Kommo-o|def|1
+  0154  |-boost|p2b: Kommo-o|spa|1
+  0155  |-boost|p2b: Kommo-o|spd|1
+  0156  |-boost|p2b: Kommo-o|spe|1
+  0157  |-damage|p2b: Kommo-o|10/150 brn
+  0158  |move|p1b: Excadrill|drillrun|p2b: Kommo-o
+  0159  |-damage|p2b: Kommo-o|0 fnt
+  0160  |faint|p2b: Kommo-o
+
+====================================================================================================
+  RAW PROTOCOL — SHOWDOWN, UNFILTERED battle.log — every line the authority emitted, including the ones the comparator drops   (350 lines)
+====================================================================================================
+  0000  |t:|1788811845
+  0001  |gametype|doubles
+  0002  |player|p1|A||
+  0003  |player|p2|B||
+  0004  |gen|9
+  0005  |tier|[Gen 9 Champions] VGC 2026 Reg M-B
+  0006  |rule|Species Clause: Limit one of each Pokémon
+  0007  |rule|Item Clause: Limit 1 of each item
+  0008  |clearpoke
+  0009  |poke|p1|Kingambit, L50|
+  0010  |poke|p1|Scovillain, L50|
+  0011  |poke|p1|Farigiraf, L50|
+  0012  |poke|p1|Excadrill, L50|
+  0013  |poke|p2|Dragapult, L50|
+  0014  |poke|p2|Kommo-o, L50|
+  0015  |poke|p2|Volcarona, L50|
+  0016  |poke|p2|Metagross, L50|
+  0017  |teampreview|4
+  0018  |split|p1
+  0019  |uhtml|otsrequest|<button name="send" value="/acceptopenteamsheets" class="button" style="margin-right: 10px;"><strong>Accept Open Team Sheets</strong></button><button name="send" value="/rejectopenteamsheets" class="button" style="margin-top: 10px"><strong>Deny Open Team Sheets</strong></button>
+  0020  
+  0021  |split|p2
+  0022  |uhtml|otsrequest|<button name="send" value="/acceptopenteamsheets" class="button" style="margin-right: 10px;"><strong>Accept Open Team Sheets</strong></button><button name="send" value="/rejectopenteamsheets" class="button" style="margin-top: 10px"><strong>Deny Open Team Sheets</strong></button>
+  0023  
+  0024  |
+  0025  |t:|1788811845
+  0026  |teamsize|p1|4
+  0027  |teamsize|p2|4
+  0028  |start
+  0029  |split|p1
+  0030  |uhtmlchange|otsrequest|
+  0031  
+  0032  |split|p2
+  0033  |uhtmlchange|otsrequest|
+  0034  
+  0035  |split|p1
+  0036  |switch|p1a: Kingambit|Kingambit, L50|175/175
+  0037  |switch|p1a: Kingambit|Kingambit, L50|100/100
+  0038  |split|p1
+  0039  |switch|p1b: Scovillain|Scovillain, L50|140/140
+  0040  |switch|p1b: Scovillain|Scovillain, L50|100/100
+  0041  |split|p2
+  0042  |switch|p2a: Dragapult|Dragapult, L50|163/163
+  0043  |switch|p2a: Dragapult|Dragapult, L50|100/100
+  0044  |split|p2
+  0045  |switch|p2b: Kommo-o|Kommo-o, L50|150/150
+  0046  |switch|p2b: Kommo-o|Kommo-o, L50|100/100
+  0047  |turn|1
+  0048  |
+  0049  |t:|1788811845
+  0050  |detailschange|p1b: Scovillain|Scovillain-Mega, L50
+  0051  |-mega|p1b: Scovillain|Scovillain|Scovillainite
+  0052  |move|p2a: Dragapult|U-turn|p1a: Kingambit
+  0053  |split|p1
+  0054  |-damage|p1a: Kingambit|142/175
+  0055  |-damage|p1a: Kingambit|81/100
+  0056  |
+  0057  |t:|1788811845
+  0058  |split|p2
+  0059  |switch|p2a: Volcarona|Volcarona, L50|160/160|[from] U-turn
+  0060  |switch|p2a: Volcarona|Volcarona, L50|100/100|[from] U-turn
+  0061  |move|p2b: Kommo-o|Aura Sphere|p1a: Kingambit
+  0062  |-supereffective|p1a: Kingambit|2
+  0063  |split|p1
+  0064  |-damage|p1a: Kingambit|0 fnt
+  0065  |-damage|p1a: Kingambit|0 fnt
+  0066  |faint|p1a: Kingambit
+  0067  |move|p1b: Scovillain|Giga Drain|p2a: Volcarona
+  0068  |-resisted|p2a: Volcarona|2
+  0069  |split|p2
+  0070  |-damage|p2a: Volcarona|147/160
+  0071  |-damage|p2a: Volcarona|91/100
+  0072  |
+  0073  |upkeep
+  0074  |
+  0075  |t:|1788811845
+  0076  |split|p1
+  0077  |switch|p1a: Farigiraf|Farigiraf, L50|195/195
+  0078  |switch|p1a: Farigiraf|Farigiraf, L50|100/100
+  0079  |turn|2
+  0080  |
+  0081  |t:|1788811845
+  0082  |split|p2
+  0083  |switch|p2a: Metagross|Metagross, L50|155/155
+  0084  |switch|p2a: Metagross|Metagross, L50|100/100
+  0085  |move|p2b: Kommo-o|Clangorous Soul|p2b: Kommo-o
+  0086  |-boost|p2b: Kommo-o|atk|1
+  0087  |-boost|p2b: Kommo-o|def|1
+  0088  |-boost|p2b: Kommo-o|spa|1
+  0089  |-boost|p2b: Kommo-o|spd|1
+  0090  |-boost|p2b: Kommo-o|spe|1
+  0091  |split|p2
+  0092  |-damage|p2b: Kommo-o|101/150
+  0093  |-damage|p2b: Kommo-o|67/100
+  0094  |move|p1b: Scovillain|Leech Seed|p2a: Metagross
+  0095  |-start|p2a: Metagross|move: Leech Seed
+  0096  |move|p1a: Farigiraf|Psychic|p2a: Metagross
+  0097  |-resisted|p2a: Metagross|2
+  0098  |-crit|p2a: Metagross
+  0099  |split|p2
+  0100  |-damage|p2a: Metagross|131/155
+  0101  |-damage|p2a: Metagross|84/100
+  0102  |
+  0103  |split|p2
+  0104  |-damage|p2a: Metagross|112/155|[from] Leech Seed|[of] p1b: Scovillain
+  0105  |-damage|p2a: Metagross|72/100|[from] Leech Seed|[of] p1b: Scovillain
+  0106  |upkeep
+  0107  |turn|3
+  0108  |
+  0109  |t:|1788811846
+  0110  |detailschange|p2a: Metagross|Metagross-Mega, L50
+  0111  |-mega|p2a: Metagross|Metagross|Metagrossite
+  0112  |move|p2b: Kommo-o|Protect|p2b: Kommo-o
+  0113  |-singleturn|p2b: Kommo-o|Protect
+  0114  |move|p2a: Metagross|Protect|p2a: Metagross
+  0115  |-singleturn|p2a: Metagross|Protect
+  0116  |move|p1b: Scovillain|Giga Drain|p2a: Metagross
+  0117  |-activate|p2a: Metagross|move: Protect
+  0118  |move|p1a: Farigiraf|Psychic|p2a: Metagross
+  0119  |-activate|p2a: Metagross|move: Protect
+  0120  |
+  0121  |split|p2
+  0122  |-damage|p2a: Metagross|93/155|[from] Leech Seed|[of] p1b: Scovillain
+  0123  |-damage|p2a: Metagross|60/100|[from] Leech Seed|[of] p1b: Scovillain
+  0124  |upkeep
+  0125  |turn|4
+  0126  |
+  0127  |t:|1788811846
+  0128  |split|p1
+  0129  |switch|p1b: Excadrill|Excadrill, L50|185/185
+  0130  |switch|p1b: Excadrill|Excadrill, L50|100/100
+  0131  |move|p2b: Kommo-o|Clanging Scales|p1b: Excadrill|[spread] p1a,p1b
+  0132  |-resisted|p1b: Excadrill|1
+  0133  |-crit|p1b: Excadrill
+  0134  |split|p1
+  0135  |-damage|p1a: Farigiraf|120/195
+  0136  |-damage|p1a: Farigiraf|61/100
+  0137  |split|p1
+  0138  |-damage|p1b: Excadrill|122/185
+  0139  |-damage|p1b: Excadrill|65/100
+  0140  |-unboost|p2b: Kommo-o|def|1
+  0141  |move|p2a: Metagross|Psychic Fangs|p1a: Farigiraf
+  0142  |-resisted|p1a: Farigiraf|1
+  0143  |split|p1
+  0144  |-damage|p1a: Farigiraf|42/195
+  0145  |-damage|p1a: Farigiraf|21/100
+  0146  |-enditem|p1a: Farigiraf|Sitrus Berry|[eat]
+  0147  |split|p1
+  0148  |-heal|p1a: Farigiraf|90/195|[from] item: Sitrus Berry
+  0149  |-heal|p1a: Farigiraf|46/100|[from] item: Sitrus Berry
+  0150  |move|p1a: Farigiraf|Trick Room|p1a: Farigiraf
+  0151  |-fieldstart|move: Trick Room|[of] p1a: Farigiraf
+  0152  |
+  0153  |split|p2
+  0154  |-damage|p2a: Metagross|74/155|[from] Leech Seed|[of] p1b: Excadrill
+  0155  |-damage|p2a: Metagross|47/100|[from] Leech Seed|[of] p1b: Excadrill
+  0156  |split|p1
+  0157  |-heal|p1b: Excadrill|141/185|[silent]
+  0158  |-heal|p1b: Excadrill|76/100|[silent]
+  0159  |upkeep
+  0160  |turn|5
+  0161  |
+  0162  |t:|1788811846
+  0163  |move|p1b: Excadrill|Rock Slide|p2a: Metagross|[spread] p2a
+  0164  |-miss|p1b: Excadrill|p2b: Kommo-o
+  0165  |-resisted|p2a: Metagross|1
+  0166  |split|p2
+  0167  |-damage|p2a: Metagross|61/155
+  0168  |-damage|p2a: Metagross|39/100
+  0169  |move|p2a: Metagross|Psychic Fangs|p1a: Farigiraf
+  0170  |-resisted|p1a: Farigiraf|1
+  0171  |split|p1
+  0172  |-damage|p1a: Farigiraf|5/195
+  0173  |-damage|p1a: Farigiraf|2/100
+  0174  |move|p2b: Kommo-o|Clanging Scales|p1a: Farigiraf|[spread] p1a,p1b
+  0175  |-resisted|p1b: Excadrill|1
+  0176  |split|p1
+  0177  |-damage|p1a: Farigiraf|0 fnt
+  0178  |-damage|p1a: Farigiraf|0 fnt
+  0179  |split|p1
+  0180  |-damage|p1b: Excadrill|99/185
+  0181  |-damage|p1b: Excadrill|53/100
+  0182  |faint|p1a: Farigiraf
+  0183  |-unboost|p2b: Kommo-o|def|1
+  0184  |
+  0185  |split|p2
+  0186  |-damage|p2a: Metagross|42/155|[from] Leech Seed|[of] p1b: Excadrill
+  0187  |-damage|p2a: Metagross|27/100|[from] Leech Seed|[of] p1b: Excadrill
+  0188  |split|p1
+  0189  |-heal|p1b: Excadrill|118/185|[silent]
+  0190  |-heal|p1b: Excadrill|63/100|[silent]
+  0191  |upkeep
+  0192  |
+  0193  |t:|1788811846
+  0194  |split|p1
+  0195  |switch|p1a: Scovillain|Scovillain-Mega, L50|140/140
+  0196  |switch|p1a: Scovillain|Scovillain-Mega, L50|100/100
+  0197  |turn|6
+  0198  |
+  0199  |t:|1788811846
+  0200  |move|p1a: Scovillain|Leech Seed||[still]
+  0201  |-fail|p1a: Scovillain
+  0202  |move|p1b: Excadrill|Rock Slide|p2b: Kommo-o|[spread] p2a,p2b
+  0203  |-resisted|p2a: Metagross|1
+  0204  |-resisted|p2b: Kommo-o|1
+  0205  |split|p2
+  0206  |-damage|p2a: Metagross|29/155
+  0207  |-damage|p2a: Metagross|18/100
+  0208  |split|p2
+  0209  |-damage|p2b: Kommo-o|77/150
+  0210  |-damage|p2b: Kommo-o|51/100
+  0211  |cant|p2a: Metagross|flinch
+  0212  |move|p2b: Kommo-o|Aura Sphere|p1a: Scovillain
+  0213  |split|p1
+  0214  |-damage|p1a: Scovillain|64/140
+  0215  |-damage|p1a: Scovillain|45/100
+  0216  |-status|p2b: Kommo-o|brn|[from] ability: Spicy Spray|[of] p1a: Scovillain
+  0217  |
+  0218  |split|p2
+  0219  |-damage|p2a: Metagross|10/155|[from] Leech Seed|[of] p1b: Excadrill
+  0220  |-damage|p2a: Metagross|6/100|[from] Leech Seed|[of] p1b: Excadrill
+  0221  |split|p1
+  0222  |-heal|p1b: Excadrill|137/185|[silent]
+  0223  |-heal|p1b: Excadrill|74/100|[silent]
+  0224  |split|p2
+  0225  |-damage|p2b: Kommo-o|68/150 brn|[from] brn
+  0226  |-damage|p2b: Kommo-o|45/100 brn|[from] brn
+  0227  |upkeep
+  0228  |turn|7
+  0229  |
+  0230  |t:|1788811846
+  0231  |split|p2
+  0232  |switch|p2a: Dragapult|Dragapult, L50|163/163
+  0233  |switch|p2a: Dragapult|Dragapult, L50|100/100
+  0234  |split|p2
+  0235  |switch|p2b: Volcarona|Volcarona, L50|147/160
+  0236  |switch|p2b: Volcarona|Volcarona, L50|91/100
+  0237  |move|p1a: Scovillain|Protect|p1a: Scovillain
+  0238  |-singleturn|p1a: Scovillain|Protect
+  0239  |move|p1b: Excadrill|Rock Slide|p2a: Dragapult|[spread] p2a,p2b
+  0240  |-supereffective|p2b: Volcarona|2
+  0241  |split|p2
+  0242  |-damage|p2a: Dragapult|116/163
+  0243  |-damage|p2a: Dragapult|71/100
+  0244  |split|p2
+  0245  |-damage|p2b: Volcarona|0 fnt
+  0246  |-damage|p2b: Volcarona|0 fnt
+  0247  |faint|p2b: Volcarona
+  0248  |
+  0249  |upkeep
+  0250  |
+  0251  |t:|1788811846
+  0252  |split|p2
+  0253  |switch|p2b: Metagross|Metagross-Mega, L50|10/155
+  0254  |switch|p2b: Metagross|Metagross-Mega, L50|6/100
+  0255  |turn|8
+  0256  |
+  0257  |t:|1788811846
+  0258  |move|p1a: Scovillain|Leech Seed|p2a: Dragapult
+  0259  |-start|p2a: Dragapult|move: Leech Seed
+  0260  |move|p1b: Excadrill|Rock Slide|p2b: Metagross|[spread] p2a,p2b
+  0261  |-resisted|p2b: Metagross|1
+  0262  |split|p2
+  0263  |-damage|p2a: Dragapult|75/163
+  0264  |-damage|p2a: Dragapult|46/100
+  0265  |split|p2
+  0266  |-damage|p2b: Metagross|0 fnt
+  0267  |-damage|p2b: Metagross|0 fnt
+  0268  |faint|p2b: Metagross
+  0269  |move|p2a: Dragapult|Dragon Darts|p1a: Scovillain
+  0270  |split|p1
+  0271  |-damage|p1a: Scovillain|15/140
+  0272  |-damage|p1a: Scovillain|10/100
+  0273  |-status|p2a: Dragapult|brn|[from] ability: Spicy Spray|[of] p1a: Scovillain
+  0274  |-anim|p2a: Dragapult|Dragon Darts|p1b: Excadrill
+  0275  |-resisted|p1b: Excadrill|1
+  0276  |split|p1
+  0277  |-damage|p1b: Excadrill|122/185
+  0278  |-damage|p1b: Excadrill|65/100
+  0279  |
+  0280  |split|p2
+  0281  |-damage|p2a: Dragapult|55/163 brn|[from] Leech Seed|[of] p1a: Scovillain
+  0282  |-damage|p2a: Dragapult|33/100 brn|[from] Leech Seed|[of] p1a: Scovillain
+  0283  |split|p1
+  0284  |-heal|p1a: Scovillain|35/140|[silent]
+  0285  |-heal|p1a: Scovillain|25/100|[silent]
+  0286  |split|p2
+  0287  |-damage|p2a: Dragapult|45/163 brn|[from] brn
+  0288  |-damage|p2a: Dragapult|27/100 brn|[from] brn
+  0289  |-fieldend|move: Trick Room
+  0290  |upkeep
+  0291  |
+  0292  |t:|1788811846
+  0293  |split|p2
+  0294  |switch|p2b: Kommo-o|Kommo-o, L50|68/150 brn
+  0295  |switch|p2b: Kommo-o|Kommo-o, L50|45/100 brn
+  0296  |turn|9
+  0297  |
+  0298  |t:|1788811846
+  0299  |move|p2b: Kommo-o|Protect|p2b: Kommo-o
+  0300  |-singleturn|p2b: Kommo-o|Protect
+  0301  |move|p1a: Scovillain|Protect|p1a: Scovillain
+  0302  |-singleturn|p1a: Scovillain|Protect
+  0303  |move|p2a: Dragapult|Dragon Darts|p1b: Excadrill
+  0304  |-resisted|p1b: Excadrill|1
+  0305  |split|p1
+  0306  |-damage|p1b: Excadrill|106/185
+  0307  |-damage|p1b: Excadrill|57/100
+  0308  |-anim|p2a: Dragapult|Dragon Darts|p1b: Excadrill
+  0309  |-resisted|p1b: Excadrill|1
+  0310  |-crit|p1b: Excadrill
+  0311  |split|p1
+  0312  |-damage|p1b: Excadrill|82/185
+  0313  |-damage|p1b: Excadrill|44/100
+  0314  |move|p1b: Excadrill|Rock Slide|p2b: Kommo-o|[spread] p2a
+  0315  |-activate|p2b: Kommo-o|move: Protect
+  0316  |split|p2
+  0317  |-damage|p2a: Dragapult|2/163 brn
+  0318  |-damage|p2a: Dragapult|1/100 brn
+  0319  |
+  0320  |split|p2
+  0321  |-damage|p2a: Dragapult|0 fnt|[from] Leech Seed|[of] p1a: Scovillain
+  0322  |-damage|p2a: Dragapult|0 fnt|[from] Leech Seed|[of] p1a: Scovillain
+  0323  |split|p1
+  0324  |-heal|p1a: Scovillain|37/140|[silent]
+  0325  |-heal|p1a: Scovillain|26/100|[silent]
+  0326  |faint|p2a: Dragapult
+  0327  |split|p2
+  0328  |-damage|p2b: Kommo-o|59/150 brn|[from] brn
+  0329  |-damage|p2b: Kommo-o|39/100 brn|[from] brn
+  0330  |upkeep
+  0331  |turn|10
+  0332  |
+  0333  |t:|1788811846
+  0334  |move|p2b: Kommo-o|Clangorous Soul|p2b: Kommo-o
+  0335  |-boost|p2b: Kommo-o|atk|1
+  0336  |-boost|p2b: Kommo-o|def|1
+  0337  |-boost|p2b: Kommo-o|spa|1
+  0338  |-boost|p2b: Kommo-o|spd|1
+  0339  |-boost|p2b: Kommo-o|spe|1
+  0340  |split|p2
+  0341  |-damage|p2b: Kommo-o|10/150 brn
+  0342  |-damage|p2b: Kommo-o|6/100 brn
+  0343  |move|p1b: Excadrill|Drill Run|p2b: Kommo-o
+  0344  |split|p2
+  0345  |-damage|p2b: Kommo-o|0 fnt
+  0346  |-damage|p2b: Kommo-o|0 fnt
+  0347  |faint|p2b: Kommo-o
+  0348  |
+  0349  |win|A
+
+====================================================================================================
+  END OF GAME. Written nowhere; re-run to regenerate.
+====================================================================================================
