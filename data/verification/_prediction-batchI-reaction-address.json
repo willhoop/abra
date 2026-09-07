@@ -1,0 +1,37 @@
+{
+  "written": "2026-09-06 ENGINE batch I, BEFORE any engine byte moved",
+  "defect": "the `DamagingHit` reaction draw is addressed to the row's own body; the authority addresses it to `battle.activeTarget`, which `getSpreadDamage` left on the LAST body it reached and which the save/restore at sim/battle-actions.ts:1093/1101 protects from steps 4 and 5.",
+  "measured_before_the_fix": {
+    "probe": "tests/probe_reaction_address.js on published bytes 113ee1bd",
+    "RED-1": "showdown p21|0 (Disable fires) vs medicham p20|0 (does not) — the BOARD parts",
+    "RED-2": "showdown p21|0 vs medicham p20|0 — address only, both above 0.3",
+    "controls": "all three identical",
+    "receipt": "MEDSEEN.reactionAddrFromLastSlot = 0 (the wire does not exist)"
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "claim": "after the fix the clean arm is GREEN on all five arms and `--red` parts RED-1 and RED-2 while the three controls hold"
+    },
+    {
+      "id": "P2",
+      "claim": "MEDSEEN.reactionAddrFromLastSlot reads 8 on the clean five-arm probe run",
+      "derivation": "the counter is incremented once per `_stepDamagingHit` invocation that took the lingering address, and `R._dh` is armed for every DAMAGED row: 2 (RED-1) + 2 (RED-2) + 2 (CONTROL last-slot) + 1 (single target) + 1 (partner Protected) = 8"
+    },
+    {
+      "id": "P3",
+      "claim": "the omit-weather / 2658746306 board-material row (p2.active[1].vol.disable 0 vs 3, turn 3) leaves the board-material set",
+      "note": "this is the row whose defect the probe reproduces"
+    },
+    {
+      "id": "P4",
+      "claim": "board-material falls from 18 of 961 to 17 of 961 — one row, no more",
+      "note": "an address fix can in principle move OTHER games either way, because a reaction that now fires can change a whole game. A count above 17 is a real miss and gets recorded as one."
+    },
+    {
+      "id": "P5",
+      "claim": "the census does not fall: 830 live before, 830 or more after",
+      "note": "MID_TGT is read by midEventDraw alone, so no census probe can observe either arm"
+    }
+  ]
+}

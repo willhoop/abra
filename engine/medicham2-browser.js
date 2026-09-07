@@ -542,6 +542,17 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                                `residualBerryAte` and NOT in this one, which is the exact split
    *                                the two authority call sites make. */
   residualUpdatePasses: 0, residualUpdateAfterUpkeep: 0, residualBerryAteAfterUpkeep: 0,
+  /* 2026-09-06 -- AND THE THIRD `eachEvent('Update')` OF THE TURN: the one that closes the REPLACEMENT
+   * SWITCH's own action (sim/battle.ts:2858 again, reached a second time because the replacement is a
+   * separate action). See the call below `refill()`.
+   *   refillUpdatePasses   passes run after the replacements walked in. One per turn that refilled a
+   *                        slot, whether or not anything was owed -- so a zero over a run holding a
+   *                        faint means the pass is not being reached at all.
+   *   refillUpdateAte      the subset that CONSUMED an item, counted by comparing each active body's
+   *                        item across the call. An entrant that arrives at or below its berry's
+   *                        threshold (entry hazards, or a Sitrus an Unnerve had been suppressing) is
+   *                        the whole population. */
+  refillUpdatePasses: 0, refillUpdateAte: 0,
   /* ROADMAP #331 -- SELF-KOs SPENT AT THE `damageCallback`, i.e. above the target's own faint rather
    * than below it. THE NOUN: it counts USERS killed by their own move at that site, once per action,
    * never targets and never `|faint|` lines in general. It rises only for a move whose damage IS the
@@ -643,6 +654,32 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                           -> `getSpreadDamage` writing `activeTarget = target` (:1154). A 100%
    *                           two-target spread scores exactly one; a 0% one scores none. */
   secAddrFromLastTarget: 0, secAddrMovedByFire: 0,
+  /* 2026-09-06 -- THE MIDDLE ARM'S `DamagingHit` ADDRESS, and an INSTRUMENT counter for
+   * `secAddrFromLastTarget`'s reason.
+   *   reactionAddrFromLastSlot   REACTION SITES entered at the lingering address: one per row
+   *                              `_stepDamagingHit` actually runs for, one per interior arrival of a
+   *                              volley, and one per in-`_stepEffects` reaction DRAW (Cursed Body's
+   *                              30%, Poison Touch's 30% -- the two chance-gated reactors this engine
+   *                              still pays in the secondaries step). Sites, NOT draws, because most
+   *                              reactors (Rough Skin, Stamina) throw no die at all and a counter
+   *                              that only moved on Cursed Body could not say the wire was reached.
+   *                              It reads 0 under MEDI_REACT_ADDR_PER_TARGET=1.
+   *   reactionAddrNoDamageSlot   blocks that found `_dmgLastSlot` null, i.e. a reaction with no
+   *                              damage step behind it. Expected 0; a non-zero is the silent-default
+   *                              shape and is printed rather than swallowed. */
+  reactionAddrFromLastSlot: 0, reactionAddrNoDamageSlot: 0,
+  /* 2026-09-06 -- AND THE SUBSTITUTE'S OWN ROLL, an INSTRUMENT counter for the same reason.
+   *   subRollAddrFromLastAccTarget   PRICED DOLL ROWS whose damage and crit draws were addressed to
+   *                                  the last body `hitStepAccuracy` reached rather than to the body
+   *                                  holding the doll. Rows, not draws. It counts on a SINGLE-TARGET
+   *                                  hit too, where the two slots are the same string, so a zero
+   *                                  means the wire was never reached at all rather than that it did
+   *                                  not matter. 0 under MEDI_SUB_ADDR_PER_TARGET=1.
+   *   subRollAddrNoAccTarget         doll rows that found `_accLastSlot` null -- a priced hit with no
+   *                                  accuracy step behind it. Expected 0; printed rather than
+   *                                  swallowed, because a silent fallback here is indistinguishable
+   *                                  from the wire working. */
+  subRollAddrFromLastAccTarget: 0, subRollAddrNoAccTarget: 0,
   /* 2026-08-24 -- STAT TABLES PAID FROM `selfBoost`'s OWN POSITION, i.e. below the faint, below
    * `-hitcount` and below the recoil (sim/battle-actions.ts:520). Two moves in the format carry it,
    * Clanging Scales and Scale Shot; a zero with either of them clicked means the `via` derivation is
@@ -14221,6 +14258,30 @@ const GUARD_NO_HITPROTECT=(typeof process!=='undefined'&&process.env&&process.en
  * spread arms parting and both single-body controls holding. Any run carrying it also carries a
  * non-zero `MEDFAILS.secAddrPerTargetRestored`. Same shape as MEDI_GUARD_NO_HITPROTECT above. */
 const SEC_ADDR_PER_TARGET=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SEC_ADDR_PER_TARGET==='1');
+/* 2026-09-06 -- MEDI_REACT_ADDR_PER_TARGET=1 ADDRESSES EVERY `DamagingHit` REACTION TO THE BODY THE
+ * HANDLER IS RUNNING ON AGAIN, which is what this engine did until today and which the authority does
+ * NOT do. It is the SAME KNOB SHAPE as MEDI_SEC_ADDR_PER_TARGET above and for the same reason: it is
+ * an INSTRUMENT knob, `MID_TGT` is read by `midEventDraw` alone, and no self-play game, rollout or
+ * seeded census probe can tell the two arms apart. It exists so
+ * tests/probe_reaction_address.js can be shown RED on the old address, two spread arms parting and
+ * all three controls holding. Any run carrying it also carries a non-zero
+ * `MEDFAILS.reactAddrPerTargetRestored`. */
+const REACT_ADDR_PER_TARGET=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REACT_ADDR_PER_TARGET==='1');
+/* 2026-09-06 -- MEDI_SUB_ADDR_PER_TARGET=1 ADDRESSES A SUBSTITUTE'S OWN DAMAGE ROLL TO THE BODY
+ * HOLDING THE DOLL AGAIN, which is what this engine did until today and which the authority does NOT
+ * do. Same knob shape and same reason as the two above: `MID_TGT` is read by `midEventDraw` alone, so
+ * no self-play game, rollout or seeded census probe can tell the arms apart. It exists so
+ * tests/probe_substitute_roll_address.js can be shown RED on the old address -- one spread arm
+ * parting a BOARD and all three controls holding. Any run carrying it also carries a non-zero
+ * `MEDFAILS.subAddrPerTargetRestored`. */
+const SUB_ADDR_PER_TARGET=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SUB_ADDR_PER_TARGET==='1');
+/* 2026-09-06 -- MEDI_NO_REFILL_UPDATE=1 TAKES THE `Update` PASS BACK OFF THE FAINT REPLACEMENTS, i.e.
+ * a body that walks into a slot already at or below its berry's threshold keeps the berry until the
+ * next turn opens, as this engine did until today. Unlike the three address knobs above this one is a
+ * GAME knob: it moves the board at the turn boundary, which is exactly what
+ * tests/probe_refill_update_pass.js measures. Any run carrying it also carries a non-zero
+ * `MEDFAILS.refillUpdateSkipped`. */
+const NO_REFILL_UPDATE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_REFILL_UPDATE==='1');
 /* 2026-08-24 -- MEDI_SMART_PROTECT_LINE=1 PUTS THE `|-activate|move: Protect` BACK ON A SMART-TARGET
  * MOVE, i.e. Dragon Darts into a Protecting body announces the shield again, as this engine did until
  * today. Any run carrying it also carries a non-zero `MEDFAILS.smartProtectLineRestored`. Same shape
@@ -33282,6 +33343,95 @@ function battleTurn(S,rng,actsForA,actsForB){
        * slot" and "the last slot" are the same string. That is what the two controls in the probe
        * pin, and it is why a single-target click cannot move here. */
       let _secAddrSlot=null;
+      /* 2026-09-06 -- AND THE SAME VALUE AS IT STOOD AT THE END OF THE DAMAGE STEP, WHICH IS A
+       * DIFFERENT NUMBER AND CANNOT SHARE THIS FIELD.
+       *
+       * `_secAddrSlot` MOVES when a secondary fires (`_secFired`), mirroring the authority's nested
+       * `moveHit` -> `spreadMoveHit` -> `getSpreadDamage`. The authority then puts it BACK:
+       *
+       *     // steps 4 and 5 can mess with this.battle.activeTarget, which needs to be preserved for Dancer
+       *     const activeTarget = this.battle.activeTarget;      sim/battle-actions.ts:1093
+       *     ... selfDrops ... secondaries ...
+       *     this.battle.activeTarget = activeTarget;            sim/battle-actions.ts:1101
+       *     ...
+       *     this.battle.runEvent('DamagingHit', damagedTargets, pokemon, move, damagedDamage);  :1117
+       *
+       * and `runEvent` takes an ARRAY of targets and writes `activeTarget` nowhere (the only writers
+       * in the whole file are :693, :1093/1101 and :1154). So every `onDamagingHit` /
+       * `onSourceDamagingHit` die -- Cursed Body's `randomChance(3, 10)`, Flame Body's, Static's,
+       * Effect Spore's, Poison Touch's, Cute Charm's -- is addressed to THE LAST BODY
+       * `getSpreadDamage` REACHED, whatever body the handler is running on. The Champions override of
+       * `spreadMoveHit` (data/mods/champions/scripts.ts:361-424) is identical through this region.
+       *
+       * MEASURED BEFORE A BYTE MOVED, one staged doubles turn, an unshielded pair of foes with Cursed
+       * Body in the FIRST slot (tests/probe_reaction_address.js stages it):
+       *     Rock Slide 30%   showdown  p21|0  -> 0.2640, Disable FIRES
+       *                      medicham  p20|0  -> 0.8933, it does not
+       * -- a BOARD divergence on turn 1 off one correct rule read at two addresses. That is the
+       * `omit-weather ...2658746306` board-material game, `p2.active[1].vol.disable  0 / 3`.
+       *
+       * WITH ONE SURVIVING BODY THE TWO STRINGS ARE THE SAME, by construction, which is what the
+       * probe's three controls pin. */
+      let _dmgLastSlot=null;
+      /* THE ONE PLACE THE REACTION ADDRESS IS SPENT. Wrapping the CALL rather than editing
+       * `_damagingHit`'s 150-line body keeps the revert a one-line arm, exactly as `_secDraw` does.
+       * `_stepBuffOnHit` -- the OTHER half of the authority's single `DamagingHit` event -- is
+       * deliberately NOT wrapped: every `buffsHolderOnHit` member (Stamina, Weak Armor, Justified,
+       * Anger Point, Electromorphosis) applies a flat boost and throws no die, so an address there
+       * would be a number nothing reads. If a chance-gated member is ever tagged, this comment is the
+       * thing that is wrong and the wrapper is what it needs. */
+      /* ===== 2026-09-06 -- A SUBSTITUTE IS PRICED BEFORE THE MOVE RE-AIMS, AND THE ADDRESS SHOWS IT =
+       *
+       * The authority prices a doll at STEP 0 of `spreadMoveHit`, above every per-target write of
+       * `activeTarget`:
+       *
+       *     hitStepAccuracy      :690-693  `for (const [i, target] of targets.entries()) {
+       *                                       this.battle.activeTarget = target;`   <- the last writer
+       *     hitStepMoveHitLoop   :602-612  `targets = targets.filter(...)` after every step, so that
+       *                                    last body is the last SURVIVING target
+       *     spreadMoveHit        :1053-58  `// 0. check for substitute` -> `tryPrimaryHitEvent`,
+       *                                    over ALL targets, raised through `runEvent` -- which takes
+       *                                    an ARRAY and writes `activeTarget` nowhere
+       *     data/moves.ts substitute.condition.onTryPrimaryHit -> `this.actions.getDamage(...)`
+       *     spreadMoveHit        :1071     `// 1.` getSpreadDamage, the first thing to write
+       *                                    `activeTarget` again (:1154)
+       *
+       * So the doll's damage roll AND its crit roll are addressed to the last body the ACCURACY step
+       * reached, whichever body is actually holding the doll. Champions overrides neither
+       * `substitute` nor this region of `spreadMoveHit`.
+       *
+       * MEASURED BEFORE A BYTE MOVED, `baseline ...bo3-2635208589` of the pinned pool, turn 1 -- a
+       * Rock Slide into an Absol behind a Shed Tail doll and a healthy Whimsicott:
+       *     showdown  crit|p21|0  dmg|p21|0  crit|p21|1  dmg|p21|1
+       *     medicham  dmg|p20|0   crit|p20|0  dmg|p21|0  crit|p21|0
+       * -- the authority spends BOTH pairs at p21 and separates them with `nth`; this engine spent the
+       * doll's pair at p20, so `p21|0` was the DOLL's number there and the WHIMSICOTT's here. The crit
+       * landed on a different body in each engine and the board parted at
+       * `p2.party.whimsicott.hp  medi 65 / sd 86`.
+       *
+       * THE ORDER NEEDS NO SPECIAL CASE AND THAT IS ARITHMETIC. `nth` counts per address STRING, and
+       * the authority prices every doll (step 0) before any live body (step 1) while this driver walks
+       * the rows in the same target order -- so the doll's pair is `nth 0` on both sides whichever
+       * slot the doll stands in.
+       *
+       * ONE CASE IS NAMED AND NOT MODELLED: a MULTI-HIT spread whose doll is not on the last body.
+       * Each arrival is its own `spreadMoveHit` in the authority, and arrival 2's step 0 sees whatever
+       * arrival 1's `getSpreadDamage` left behind. With a single target -- which is every multi-hit
+       * move in this format -- "its own slot" and "the last slot" coincide and nothing moves. */
+      let _accLastSlot=null;
+      const _subAddr=(on,fn)=>{
+        if(!on)return fn();
+        if(SUB_ADDR_PER_TARGET){MEDFAILS.subAddrPerTargetRestored=1;return fn();}
+        if(_accLastSlot==null){MEDSEEN.subRollAddrNoAccTarget++;return fn();}
+        const _p=MID_TGT; MID_TGT=_accLastSlot;
+        try{ return fn(); } finally { MID_TGT=_p; }
+      };
+      const _reactAddr=(fn)=>{
+        if(REACT_ADDR_PER_TARGET){MEDFAILS.reactAddrPerTargetRestored=1;return fn();}
+        if(_dmgLastSlot==null){MEDSEEN.reactionAddrNoDamageSlot++;return fn();}
+        const _p=MID_TGT; MID_TGT=_dmgLastSlot; MEDSEEN.reactionAddrFromLastSlot++;
+        try{ return fn(); } finally { MID_TGT=_p; }
+      };
       const _secDraw=()=>{
         if(SEC_ADDR_PER_TARGET){MEDFAILS.secAddrPerTargetRestored=1;return _R.sec();}
         if(_secAddrSlot==null)return _R.sec();
@@ -33472,6 +33622,13 @@ function battleTurn(S,rng,actsForA,actsForB){
        * different game from the same seed. Every figure downstream of this simulator is already
        * quarantined and owes a re-run; this adds to that debt rather than creating a new one. */
       const _stepAccuracy=(R)=>{const tg=R.tg;
+        /* 2026-09-06 -- THE ONE LINE THAT MIRRORS `hitStepAccuracy`'s own `this.battle.activeTarget =
+         * target` (sim/battle-actions.ts:693). It is written at the TOP, for every row this step
+         * reaches and before any decision inside it, because the authority writes it before its own
+         * miss branch too -- so a row that MISSES still leaves its slot standing. What survives the
+         * step is the last such row, which is what the authority carries into `spreadMoveHit`'s
+         * substitute check. See `_subAddr`. */
+        _accLastSlot=midEventSlot(tg);
         {
           /* THE DEFENDER IS THE ROW'S OWN BODY, UNCONDITIONALLY. `a.move.spread` is not consulted:
            * the authority does not branch on it here either, and a branch is exactly what let the
@@ -33707,6 +33864,10 @@ function battleTurn(S,rng,actsForA,actsForB){
          * what is left standing when the step ends is the LAST such row -- which is exactly what the
          * authority carries into `runMoveEffects`, `selfDrops` and `secondaries`. See `_secDraw`. */
         _secAddrSlot=midEventSlot(tg);
+        /* 2026-09-06 -- the same write, kept where the authority KEEPS it: `_secAddrSlot` is moved
+         * again by `_secFired`, and the authority restores the value it had here before raising
+         * `DamagingHit`. See `_reactAddr`. */
+        _dmgLastSlot=_secAddrSlot;
         /* ROADMAP #175 -- the ATTACKER is passed so `multihitAlwaysMax` (Skill Link) can be read. */
         /* M1 -- and the ACCURACY, off the row the accuracy step already priced. `_hitsThisUse` is
          * once per USE, so the row that reaches the damage step first is the one whose accuracy the
@@ -33824,6 +33985,14 @@ function battleTurn(S,rng,actsForA,actsForB){
           return c;
         })();
         const _price=(isCrit)=>dmgRange(m,tg,mv,field,_spreadHit,isCrit,_hitCtx);
+        /* 2026-09-06 -- IS THIS ROW'S HIT GOING TO BE EATEN BY A DOLL? Asked HERE and once, because
+         * `_stepApply` decrements `tg._sub` and this step runs for every row before that step runs for
+         * any -- so the answer is stable across the whole damage step, and it is `subBlocks`'s answer
+         * rather than a second reading of it (sound moves and Infiltrator go straight through and
+         * price nothing at the authority's step 0 either). It decides only the ADDRESS of the two
+         * draws below; nothing about the damage. See `_subAddr`. */
+        const _dollRow=subBlocks(m,tg,a.move.id);
+        if(_dollRow&&!SUB_ADDR_PER_TARGET&&_accLastSlot!=null)MEDSEEN.subRollAddrFromLastAccTarget++;
         let d=_price(false);
         /* ROADMAP #499 -- THE PLAIN BANDS, KEPT, BECAUSE THE CRIT RE-PRICE REPLACES THEM.
          *
@@ -33869,7 +34038,8 @@ function battleTurn(S,rng,actsForA,actsForB){
          * expression on the other side of the wire, deliberately duplicated rather than imported,
          * because an engine that requires its own instrument cannot be measured by it. The two are
          * checked against each other end-to-end by the probe, never by sharing a line. */
-        const _u=_R.dmg();                                  // ROADMAP #222 -- its own die
+        /* 2026-09-06 -- AT THE LINGERING ACCURACY ADDRESS WHEN A DOLL IS ABOUT TO EAT THIS HIT. */
+        const _u=_subAddr(_dollRow,_R.dmg);                 // ROADMAP #222 -- its own die
         const _idx=damageRollIndex(_u);
         /* THE FALLBACK IS LOUD. A band that did not arrive means dmgRange took a path that does not
          * fill the out-parameter, and the old interpolation would hide that behind a plausible number
@@ -33952,7 +34122,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          const _nArr=(_pkPlain&&!CRIT_ONCE_PER_CLICK_RESTORED)?_pkPlain.length:1;
          _crits=[];
          for(let i=0;i<_nArr;i++){
-           const _cri=_R.crit();
+           const _cri=_subAddr(_dollRow,_R.crit);   /* 2026-09-06 -- the doll's crit rides the same address */
            _crits.push((_cc>=1)||(_cc>0&&_cc<1&&_cri<_cc));
          }
          if(CRIT_ONCE_PER_CLICK_RESTORED&&_pkPlain)while(_crits.length<_pkPlain.length)_crits.push(_crits[0]);
@@ -34866,7 +35036,11 @@ function battleTurn(S,rng,actsForA,actsForB){
               if(REACT_BATCHED)MEDFAILS.reactBatchedRestored=1;
               else{
                 R._reactPaid=(R._reactPaid|0)+1;
-                _damagingHit(1);
+                /* 2026-09-06 -- AT THE LINGERING ADDRESS, for the deferred call's reason. An interior
+                 * arrival is its own `spreadMoveHit` in the authority, and step 1 of that call is
+                 * `getSpreadDamage` over the same target list -- so it leaves `activeTarget` on the
+                 * same last body this move's damage step did. See `_reactAddr`. */
+                _reactAddr(()=>_damagingHit(1));
                 _stepBuffOnHit(R,1);
                 MEDSEEN.reactionPaidPerArrival++;
               }
@@ -36681,7 +36855,13 @@ function battleTurn(S,rng,actsForA,actsForB){
              and 0/40 into Shield Dust. Named here, beside the effect, rather than inside a gate that
              also refuses Will-O-Wisp. */
           {const _pt=TAGS.param('ability',m.ability,'poisonsOnMyContact');
-           if(_pt&&!dustBlocked&&(!_pt.needsContact||mvMakesContact(a.move.id,m,a.move.mv))&&rng()<(+_pt.p||0.3))applyStatus(tg,'psn',m,ATTR.ability(m.ability,m));}
+           /* 2026-09-06 -- THE DIE IS THROWN AT THE LINGERING ADDRESS. Poison Touch is
+            * `onSourceDamagingHit` (data/abilities.ts, the `poisontouch` block), so the authority
+            * throws it inside the same `runEvent('DamagingHit', damagedTargets, ...)` every other
+            * reaction rides, with `activeTarget` still on the last body `getSpreadDamage` reached.
+            * This engine pays it in `_stepEffects`, which is a DIFFERENT STEP and a separate
+            * question; the ADDRESS is the same either way. See `_reactAddr`. */
+           if(_pt&&!dustBlocked&&(!_pt.needsContact||mvMakesContact(a.move.id,m,a.move.mv))&&_reactAddr(rng)<(+_pt.p||0.3))applyStatus(tg,'psn',m,ATTR.ability(m.ability,m));}
           /* WIRE 30 -- blocksHealing. Psychic Noise is a DAMAGING move whose whole point is the two
            * turns of Heal Block it leaves behind, and the engine landed the 75 base power and none of
            * the effect. It is the counter to the entire healing family, so it lands in the same pass
@@ -36773,7 +36953,13 @@ function battleTurn(S,rng,actsForA,actsForB){
            * used to carry would have made every Gengar a permanent Disable machine.
            * The duration is Disable's own from the sealsMoves tag, so one number serves both routes. */
           {const _cb=TAGS.param('ability',tg.ability,'disablesAttacker');
-           if(_cb&&_cb.chance&&!m.fainted&&!(m._vol&&m._vol.disable>0)&&rng()<+_cb.chance){
+           /* 2026-09-06 -- AND THE 30% IS THROWN AT THE LINGERING ADDRESS, for the reason spelled out
+            * at `_reactAddr`: `randomChance(3, 10)` inside Cursed Body's `onDamagingHit` runs under
+            * the authority's restored `activeTarget`, which is the LAST body `getSpreadDamage`
+            * reached and not the body the handler is running on. This engine pays Cursed Body in
+            * `_stepEffects` rather than at `_stepDamagingHit` -- a step-order divergence that is a
+            * separate, un-bundled question -- and the address is the same either way. */
+           if(_cb&&_cb.chance&&!m.fainted&&!(m._vol&&m._vol.disable>0)&&_reactAddr(rng)<+_cb.chance){
              /* ROADMAP #111 -- THROUGH THE SHARED DURATION MODEL, and `alreadyMoved` is FALSE here on
               * purpose. The body Cursed Body seals is the one that is MOVING RIGHT NOW, and Showdown
               * spells that out as the second half of disable's own clause --
@@ -37094,7 +37280,9 @@ function battleTurn(S,rng,actsForA,actsForB){
        * unobservable against `punishesAttacker` -- a body has ONE ability, so the two can never both
        * fire on it -- but it IS observable against a secondary on the same body (Icy Wind's Speed drop
        * into Stamina). Measured and named rather than assumed absent. */
-      const _stepDamagingHit=(R)=>{ if(!R._dh)return; const _f=R._dh; R._dh=null; _f(); };
+      /* 2026-09-06 -- AND IT IS SPENT AT THE LINGERING ADDRESS, not at the row's own. See
+       * `_reactAddr`, and `MID_TGT` is read by `midEventDraw` and by nothing else. */
+      const _stepDamagingHit=(R)=>{ if(!R._dh)return; const _f=R._dh; R._dh=null; _reactAddr(_f); };
       /* 2026-08-28 -- STEP 20, BELOW `_stepHitCount`. `boostsAtHPThreshold` is Showdown's
        * `onAfterMoveSecondary` (data/abilities.ts:420-428, inherited by Champions), which
        * `hitStepMoveHitLoop` runs at data/mods/champions/scripts.ts:577 -- four statements BELOW the
@@ -40597,6 +40785,46 @@ function battleTurn(S,rng,actsForA,actsForB){
     /* ROADMAP #310 -- AFTER the replacements walk in. `refill` is the one place a foe slot goes
      * from empty to occupied, which is the commonest way a Trace that found nothing gets a target. */
     traceSweep([...actA,...actB]);
+    /* ===== 2026-09-06 -- AND THE REPLACEMENT'S OWN ACTION CLOSES WITH `Update` TOO =================
+     *
+     * The block above is right about its own line and stops one action too early. `eachEvent('Update')`
+     * at sim/battle.ts:2858 is the tail of `runAction`, and it runs for EVERY action -- so once the
+     * switch request issued at :2909 is answered, the replacement switch is ITSELF an action and
+     * closes with the same call. A body that walks in already at or below its berry's threshold
+     * therefore eats BEFORE the turn boundary, not after it.
+     *
+     * MEASURED, `baseline ...bo3-2635208589` of the pinned pool at turn 3, an Unnerve having just
+     * fainted and a 68/137 Heliolisk walking back in:
+     *     showdown  |switch|p2a: Heliolisk|68/137  |-enditem|Sitrus Berry|[eat]  |-heal|102/137  |turn|4
+     *     medicham  |switch|p2a: Heliolisk|68/137  |turn|4  |-enditem|sitrusberry|[eat]  |-heal|102/137
+     * Both engines ate it. This engine ate it on the far side of the `|turn|` line, and the board the
+     * differential compares is sampled AT that line -- `p2.party.heliolisk.hp medi 68 / sd 102`.
+     *
+     * THE ENTRY-DAMAGE CASE IS THE SAME LINE AND IS THE ONE THE PROBE STAGES: a body that walks onto
+     * Stealth Rock at exactly half HP eats on arrival.
+     *
+     * A VOLUNTARY SWITCH WAS ALREADY CORRECT and is untouched -- it is a different road in this engine
+     * and eats on entry. `tests/probe_refill_update_pass.js` carries it as a control so that this
+     * change cannot be mistaken for one about every switch-in.
+     *
+     * IT SITS BELOW `traceSweep` AND THAT IS THE AUTHORITY'S ORDER RATHER THAN TIDINESS: the switch-in
+     * abilities run INSIDE `switchIn` during the action, and :2858 is the action's TAIL -- so a Trace
+     * that completes on entry has already completed when the berry is offered.
+     *
+     * IT IS THE SAME FUNCTION AND NOT A SECOND COPY, for the reason the header two screens up gives:
+     * an `onUpdate` handler is idempotent (the berry is gone after the first pass), so a body that
+     * already ate above `refill` costs this call nothing. */
+    if(NO_REFILL_UPDATE)MEDFAILS.refillUpdateSkipped=1;
+    else{
+      const _bodies=[...actA,...actB];
+      const _it0=_bodies.map(m=>m?m.item:null);
+      MEDSEEN.refillUpdatePasses++;
+      residualUpdatePass(actA,actB,field,-1);
+      for(let _i=0;_i<_bodies.length;_i++){
+        const _m=_bodies[_i];
+        if(_m&&_it0[_i]!==_m.item)MEDSEEN.refillUpdateAte++;
+      }
+    }
     /* M4, 2026-09-04 -- THE MOVE REQUEST IS BUILT HERE, AND `choicelock.onDisableMove` RUNS WITH IT.
      *
      * `Battle#go()` closes with `makeRequest('move')` (sim/battle.ts), which reaches

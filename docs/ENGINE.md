@@ -17,7 +17,9 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `data/switchin-order.json`, `tests/test-immunity-gate.js`, `tests/test-tag-params-derived.js`,
 `tests/test-roster-arm-pin.js`, `engine/mc_key.js`, `tests/test-mc-key.js`, `tests/test-mc-seal.js`,
 `tests/probe_room_unburden.js`, `tests/probe_trap_timing.js`,
-`tests/probe_spread_secondary_address.js`,
+`tests/probe_spread_secondary_address.js`, `tests/probe_reaction_address.js`,
+`tests/probe_substitute_roll_address.js`, `tests/probe_refill_update_pass.js`,
+`tests/probe_curse_pressure_pp.js`,
 `tests/probe_mid_cat_reload.js`, `tests/probe_party_key_collision.js`, `engine/identity_audit.js`,
 `tests/probe_transform_faint_revert.js`, `tests/probe_refill_entry_herb.js`,
 `tests/probe_recoil_after_clamp.js`, `tests/probe_poltergeist_use_time.js`,
@@ -154,6 +156,105 @@ ENGINE — does the simulator do what Pokémon does
 _stamped 2026-09-06 14:08_
 
 <!-- /GENERATED -->
+
+## LONG-TAIL BATCH I — BOARD-MATERIAL **18 OF 961 -> 16 OF 961**, PROTOCOL **89 -> 88**, NARRATION LEVEL AT 70, CENSUS LEVEL AT 830/830. TWO MORE DICE ADDRESSES, A REPLACEMENT THAT NEVER RAN `Update`, AND ONE OWED DEFECT THAT DOES NOT EXIST. 2026-09-06
+
+Sample line, identical for all four runs but the release:
+
+```
+node engine/game_differential.js --steering empirical --release <id> --arm middle      --end-state --state --census data/verification/census-pin-9446a684709d.json      --games 1200 --turns 20 --team-store data/team-pool-frozen --write
+```
+
+`--games 1200` is part of the SAMPLE (961 games played), not a budget. Predictions written to
+`data/verification/_prediction-batchI-{reaction-address,substitute-address,refill-update}.json`
+BEFORE each run.
+
+| release | what moved | board-material |
+|---|---|---|
+| `1fc8ed7adfd7` | the batch's baseline | 18 of 961 |
+| `0362ccffd3fe` | the `DamagingHit` reaction address | **17** |
+| `3c5e1b1dd284` | the substitute's own roll address | 17 — the accusing game left at turn 1 and RE-ENTERED at turn 3 on a leaf the fix uncovered |
+| `0c8b0dc63766` | the faint replacements' `Update` pass | **16** |
+
+### 1. A `DamagingHit` REACTION IS ADDRESSED TO THE LAST BODY `getSpreadDamage` REACHED
+
+`sim/battle-actions.ts` saves and restores `activeTarget` across steps 4 and 5 (`:1093`/`:1101`, with
+the authority's own comment saying why) and then raises `runEvent('DamagingHit', damagedTargets, ...)`
+at `:1117` — and `runEvent` takes an ARRAY and writes `activeTarget` nowhere. The only writers in the
+whole file are `:693`, `:1093/1101` and `:1154`. So Cursed Body's `randomChance(3, 10)`, Poison
+Touch's, Static's, Flame Body's and Effect Spore's are all addressed to the LAST body the damage step
+reached. Measured before a byte moved, Rock Slide into a Cursed Body Gengar in the FIRST slot:
+`showdown p21|0 (0.2640, Disable FIRES)` against `medicham p20|0 (0.8933, it does not)` — the
+`omit-weather ...bo3-2658746306` board-material game, `p2.active[1].vol.disable 0 / 3`.
+
+**The left-behind draft named the wrong site and that cost the first cut.** It asserted the repair is
+`_stepDamagingHit`; wiring only that left every arm still parted with the new counter reading 8, which
+is the signature of a wire that ran somewhere the die is not thrown. Derived from `data/tags.json`:
+only `punishesAttacker` (13 members) lives in `_damagingHit`; `disablesAttacker` (Cursed Body) and
+`poisonsOnMyContact` (Poison Touch) are paid in `_stepEffects`, and `buffsHolderOnHit`'s five members
+carry no chance param at all, so they throw no die and are deliberately unwrapped.
+`MEDI_REACT_ADDR_PER_TARGET=1`, `tests/probe_reaction_address.js`.
+
+### 2. A SUBSTITUTE IS PRICED BEFORE THE MOVE RE-AIMS
+
+`spreadMoveHit` step 0 is `tryPrimaryHitEvent` over ALL targets (`:1053-1058`); the doll's
+`onTryPrimaryHit` calls `getDamage`; `getSpreadDamage` (`:1154`) does not run until step 1. So the
+doll's damage AND crit rolls are addressed to the last body `hitStepAccuracy` reached (`:693`), and
+`hitStepMoveHitLoop` filters `targets` after every step (`:605`) so "last" means last SURVIVING — the
+same set this engine's driver walks. `_accLastSlot` is written at the top of `_stepAccuracy`,
+including for a row that MISSES, because the authority writes it above its own miss branch.
+`MEDI_SUB_ADDR_PER_TARGET=1`, `tests/probe_substitute_roll_address.js`.
+
+### 3. THE FAINT REPLACEMENTS' OWN `Update` PASS
+
+`eachEvent('Update')` at `sim/battle.ts:2858` is the TAIL of `runAction` and runs for EVERY action.
+`residualUpdatePass` models it for the residual action and its header is right that it belongs ABOVE
+`refill()` — what was missing is that the replacement switch is then its OWN action and closes with
+the same call. Both engines ate the berry; this one ate it on the far side of the `|turn|` line, which
+is exactly where the board is sampled. `MEDI_NO_REFILL_UPDATE=1` — a GAME knob, not an instrument one,
+and the file says so beside it. `tests/probe_refill_update_pass.js` stages it through entry damage:
+Volcarona is the ONLY legal body 4x weak to Rock and not Flying, so Stealth Rock takes it to exactly
+`maxhp / 2` and the berry's own `hp <= maxhp / 2` is true on the nose. Derived and printed by the
+probe, which refuses to run if it stops being true.
+
+### THE PROBE WAS ASKING NOTHING, AND IT CAUGHT ITSELF
+
+`r.stateDiv` is only filled when the run asked for the state comparison. Neither new probe pushed
+`--state`, so **every board claim printed "identical at every boundary" for a board that was never
+compared** — on arms where the two engines were writing 136 and 137. Found by printing
+`G.lastSdLog()` beside `r.mediTrace` and watching them disagree while the probe said they matched.
+Both probes now push `--state --end-state` before the require, with the reason written above the line.
+
+### THE HAND LIST
+
+**Removed — one, and it is a REFUTATION rather than a fix:**
+
+- **The non-Ghost Curse over-charge into Pressure.** Carried as owed and printed on every run of
+  `tests/probe_pressure_terrain_target.js`. **IT DOES NOT HAPPEN.** The premise is true — the
+  authority rewrites the target at `ModifyMove` (`:431`) before `getMoveTargets` (`:467`), so
+  `pressureTargets` holds only the user and Pressure refuses an ally — and the conclusion did not
+  follow: this engine resolves the type split when it BUILDS the action, so the PP road already sees
+  the user in the target field and `ppPressureExtra`'s `t === user` clause refuses it. Five staged
+  arms (foe named, two Pressure foes, Pressure in the unaimed slot, aim moved) all read
+  `ppPressureCharged` 0 with **a GHOST-user control on the same click moving it 0 -> 1**, which is
+  what makes the four zeroes evidence rather than a dead wire. `tests/probe_curse_pressure_pp.js`
+  stands as the refutation and the stale sentence in the sibling probe is corrected.
+
+**Owed and named, not fixed here:**
+
+- **A SPREAD MOVE'S NAMED TARGET IS DRAWN AT RANDOM BY THE AUTHORITY AND PICKED FIRST-FOE HERE.**
+  `validTargetLoc` has no case for `allAdjacentFoes` and returns `false`, so `getTarget` skips its
+  "use selected target location" branch and ends at `getRandomTarget` -> `side.randomFoe()` ->
+  `battle.sample(actives)`. That body is `activeTarget` for the whole action, i.e. the anchor of every
+  `any`-category address in it. Staged with an EXPLICIT `t: 0` on both sides, a paralysed Sylveon
+  clicking Hyper Voice: `showdown 2|any|hypervoice|p21|0` against `medicham 2|any|hypervoice|p20|0`,
+  which is the `pair-speedctrl ...bo3-2662992072` row (`|cant|p1a|par` against `|move|p1a|hypervoice`,
+  parting `p1.pp[0].hypervoice`). **Not attempted here on purpose** — it moves the named target of
+  every spread click in every game, in narration and in addressing at once, so it is a batch of its
+  own with its own prediction.
+- **The remaining 16**, of which ten are HP-only or HP-plus-faint, one is a type-resist berry this
+  engine does not eat (`p1.party.grimmsnarl.item roseliberry`), one is a `psn` the authority applies
+  from `poisontouch` and this engine does not, and three carry a PP leaf.
 
 ## LONG-TAIL BATCH G — BOARD-MATERIAL **27 OF 961 -> 22 OF 961**, PROTOCOL **93 -> 91**, NARRATION LEVEL AT 70, CENSUS LEVEL AT 830/830. THREE OF THE FIVE GAMES THAT PART A BOARD WITH NO PROTOCOL DIVERGENCE ARE CLOSED, AND THE SLEEP TIMER WAS BEING DRAWN OUT OF A BUCKET THE AUTHORITY NEVER USES. 2026-09-06
 

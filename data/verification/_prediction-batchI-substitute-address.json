@@ -1,0 +1,28 @@
+{
+  "written": "2026-09-06 ENGINE batch I, BEFORE the substitute-address bytes were measured (after the reaction-address fix, on release 0362ccffd3fe = 17 of 961)",
+  "defect": "the SUBSTITUTE's own damage and crit rolls are addressed to the body holding the doll; the authority prices the doll at spreadMoveHit step 0, where `activeTarget` is still the LAST body `hitStepAccuracy` reached.",
+  "measured_before_the_fix": {
+    "probe": "tests/probe_substitute_roll_address.js",
+    "RED": "showdown crit|p21|0 dmg|p21|0 crit|p21|1 dmg|p21|1  vs  medicham dmg|p20|0 crit|p20|0 dmg|p21|0 crit|p21|0; the BOARD parted at p2.party.milotic.hp medi 136 / sd 137",
+    "controls": "doll on the LAST body, single-target, and no-doll — all three identical"
+  },
+  "predictions": [
+    {
+      "id": "P6",
+      "claim": "the `baseline / gen9championsvgc2026regmbbo3-2635208589` board-material row leaves the set — it is the game this probe was derived from (p2.party.whimsicott.hp 65 vs 86, a crit that landed on a different body)"
+    },
+    {
+      "id": "P7",
+      "claim": "board-material falls 17 -> 16, one row and no more",
+      "note": "a doll is common enough in the pool that a second game could move either way; anything other than 16 is recorded as a miss with the row named"
+    },
+    {
+      "id": "P8",
+      "claim": "census stays at 830 live / 830 probed / 0 missing — MID_TGT is unobservable outside midEventDraw"
+    },
+    {
+      "id": "P9",
+      "claim": "MEDSEEN.subRollAddrFromLastAccTarget on the probe reads 3 — one per staged doll, including the two controls where the two slots are the same string"
+    }
+  ]
+}

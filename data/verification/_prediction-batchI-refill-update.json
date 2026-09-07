@@ -1,0 +1,15 @@
+{
+  "written": "2026-09-06 ENGINE batch I, BEFORE measuring the refill-Update pass (baseline: 17 of 961 on release 3c5e1b1dd284)",
+  "defect": "the faint replacements walk in and nothing raises `Update`, so a body that arrives at or below its berry's threshold eats the berry on the far side of the turn boundary. sim/battle.ts:2858 is the tail of runAction and the replacement switch is its own action.",
+  "measured_before_the_fix": {
+    "probe": "tests/probe_refill_update_pass.js",
+    "RED": "board parted at t1 — p2.party.volcarona.hp medi 80 / sd 120, item sitrusberry / '' (Stealth Rock takes the only legal 4x-weak grounded body to exactly maxhp/2)",
+    "controls": "same entrant without the berry; the same entrant switching in VOLUNTARILY (already correct); the same faint replacement with no hazard — all three identical"
+  },
+  "predictions": [
+    {"id": "P10", "claim": "the `baseline / gen9championsvgc2026regmbbo3-2635208589` row leaves the board-material set — this is the third defect found in that one game and the leaf it now parts on"},
+    {"id": "P11", "claim": "board-material falls 17 -> 16", "note": "this is a GAME change, not an instrument address, so other games can move in either direction. Anything other than 16 is a miss and is recorded with the row named."},
+    {"id": "P12", "claim": "the census does not fall below 830 live of 830 probed"},
+    {"id": "P13", "claim": "narration does not rise above 70 — the fix moves an existing pair of lines earlier rather than emitting a new one"}
+  ]
+}

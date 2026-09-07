@@ -121,21 +121,24 @@ console.log('\n== PRESSURE AND THE TERRAIN-WIDENED TARGET LIST =='
   console.log('  every legal move whose handlers ASSIGN `move.target`, DERIVED off ' + CS.FORMAT + ':');
   for (const f of fam.sort()) console.log('    ' + f);
   ok(fam.length > 0, 'the target-rewriting family is non-empty', fam.length + ' member(s)');
-  /* THE FAMILY IS PINNED AT TWO, AND THE SECOND ONE IS A NAMED RESIDUE RATHER THAN A FIX.
+  /* THE FAMILY IS PINNED AT TWO, AND THE SECOND MEMBER IS SETTLED — 2026-09-06.
    *
    * `curse` also rewrites its target — but AWAY from the foes: `onModifyMove` sends a non-Ghost user's
    * Curse to `move.nonGhostTarget`, so the authority's `pressureTargets` reaches nobody and charges
-   * nothing, while this engine's `aimed` scope still charges the body the click named. That is an
-   * OVER-charge of 1 PP on a non-Ghost Curse into a Pressure foe, it is the same shape as the defect
-   * this file closes, and it is DELIBERATELY NOT FIXED HERE: `terrainWidensToSpread` is a statement
-   * about a TERRAIN and Curse's rewrite is a statement about the user's TYPE, so folding it in would
-   * be one function answering two questions. It is carried on the hand list instead.
+   * nothing. THIS FILE USED TO SAY THAT THIS ENGINE THEREFORE OVER-CHARGES 1 PP, and carried it on the
+   * hand list as owed work. **IT DOES NOT, AND THAT WAS AN INFERENCE NOBODY HAD MEASURED.** The engine
+   * resolves the type split when it BUILDS the action, so the action's target is already the user by
+   * the time the PP road reads it and `ppPressureExtra`'s `t === user` clause refuses it — the same
+   * answer by a different road. Measured over five staged arms, including two Pressure foes and the
+   * Pressure body in the unaimed slot: `ppPressureCharged` moved 0 every time, with a GHOST-user
+   * control on the same click moving it 0 -> 1 so the instrument is not merely blind.
+   * `tests/probe_curse_pressure_pp.js` is that measurement and it stands as the refutation.
    *
    * PINNED AT TWO so a third member arriving in a later regulation FAILS this file rather than being
    * silently mispriced — which is exactly how Expanding Force got here. */
   ok(fam.length === 2, 'the family is EXACTLY the two known members',
-     fam.length === 2 ? 'expandingforce (fixed here) and curse (a named, unfixed OVER-charge — see '
-                        + 'the comment above this arm)'
+     fam.length === 2 ? 'expandingforce (fixed here) and curse (measured CORRECT by a different road '
+                        + '— tests/probe_curse_pressure_pp.js; see the comment above this arm)'
                       : 'it is ' + fam.length + ': ' + fam.join(' | ') + '. A new member is priced off '
                         + 'the STATIC target word by `pressureScopeOf` and needs its own decision.');
   ok(fam.some(f => f.startsWith('expandingforce')),
