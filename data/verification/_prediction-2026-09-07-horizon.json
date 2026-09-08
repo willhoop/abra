@@ -1,0 +1,34 @@
+{
+  "written": "2026-09-07T23:15Z",
+  "by": "ENGINE",
+  "topic": "the turn-cap horizon and the one board divergence it was hiding",
+  "pins": {
+    "release": "a9b05e61146a",
+    "census": "data/verification/census-pin-9446a684709d.json",
+    "team_store": "data/team-pool-frozen",
+    "steering": "empirical",
+    "arm": "middle",
+    "games_flag": 1200
+  },
+  "baseline_read_from_disk_not_predicted": {
+    "artifact": "data/game-differential.json written 2026-09-07T23:08:04Z on a9b05e61146a",
+    "turns_cap": 20,
+    "bar_board_material": "0 of 958",
+    "by_cause_totals.games_board_material": 3,
+    "end_reasons_turn_cap_20": 35,
+    "games_void_excluded": 3
+  },
+  "predictions": [
+    {"id": "P1", "claim": "At --turns 50 on the same pins, end_reasons has NO row 'the turn cap (50)' (0 games truncated).", "why": "the parent reported 958 of 961 ended naturally at cap 50."},
+    {"id": "P2", "claim": "At --turns 50 the bar (state.games less state.games_board_never_diverged) reads 1 of 958.", "why": "the parent's finding, being reproduced."},
+    {"id": "P3", "claim": "At --turns 50 by_cause_totals.games_board_material reads 4.", "why": "the parent's finding."},
+    {"id": "P4", "claim": "The 1-vs-4 gap is EXACTLY the void exclusion: endStateSummary is called on a.results UNFILTERED (game_differential.js:7509) while the bar filters out _mid_void games (7861). Under --state-count-void at cap 50 the bar will read 4 of 961.", "why": "3 void-excluded games at cap 20 already account for by_cause reading 3 while the bar reads 0."},
+    {"id": "P5", "claim": "The single non-void board divergence at cap 50 first parts at a turn STRICTLY GREATER THAN 20.", "why": "it is invisible at cap 20 by construction."},
+    {"id": "P6", "claim": "At --turns 100 every published block (end_reasons, state, by_cause_totals, first_divergences) is identical to the cap-50 run except turns_cap itself.", "why": "if no game is truncated at 50, a larger cap cannot change any game's play under fixed seeds."},
+    {"id": "P7", "claim": "Cost from cap 20 to cap 50 is under 25% more wall-clock.", "why": "only 35 of 961 games were still running at turn 20."}
+  ],
+  "risks_named_in_advance": [
+    "Another agent (NARRATION) is editing engine/medicham2-browser.js and engine/game_differential.js live. medicham2 is FROZEN in the release so it is excluded from driverCode; game_differential.js is the entry and is NOT, so a mid-run edit by that agent VOIDS my run (driverCodeGuard sets void:true). Any voided run is discarded and re-run, never reported.",
+    "P2/P3 may not reproduce if the parent measured on a different release id than a9b05e61146a. If so I record the release the parent used as unknown and report my own baseline."
+  ]
+}

@@ -72,6 +72,40 @@ const GAMES = +flag('--games', 45);
  * would make neither attributable, which is the mistake that voided 7,100 games in August.
  *
  * EVERY FIGURE MEASURED AT 12 IS A CLAIM ABOUT THE FIRST TWELVE TURNS and does not transfer. */
+/* THE TURN CAP IS 50, NOT 20 — 2026-09-07, ENGINE, AND THE 20 WAS HIDING A BOARD DIVERGENCE.
+ *
+ * THE FINDING. On release `a9b05e61146a`, empirical / middle / `--games 1200`, pinned census and
+ * `--team-store data/team-pool-frozen`, the board-material bar read **0 of 958 at `--turns 20`** and
+ * **1 of 958 at `--turns 50`**. One game — `pair-protect-bust  …bo3-2655745450 vs …bo3-2655794301` —
+ * held an identical board at every boundary through turn 20 and parted at TURN 22 on
+ * `active[].vol.syrupbomb` and `active[].boosts.spe`. It was invisible only because the instrument
+ * stopped watching, and the quarantine's exit condition was therefore being measured at a horizon
+ * that hid at least one failure. (Fixed the same day; see medicham2's `sourceOffField`.)
+ *
+ * AND THE RAISE IS FREE, WHICH IS MEASURED AND NOT ASSUMED. Swept on identical pins, release
+ * `f30bf025ae28`:
+ *
+ *     cap  20   35 of 961 games ENDED AT THE CAP        board-material bar 0 of 958
+ *     cap  50    0 of 961 games ended at the cap        board-material bar 0 of 958
+ *     cap 100    0 of 961 games ended at the cap        board-material bar 0 of 958
+ *
+ * At cap 50 the whole population is `958 both engines ended the battle; 2 the boards parted —
+ * medicham2's placement cannot be expressed to showdown; 1 THREW`, with NO `the turn cap (50)` row at
+ * all. **The longest game in this pool reaches turn 36** (`state.agreement_by_turn`), so every cap at
+ * or above 37 plays a byte-identical set of games: the cap-50 and cap-100 artifacts differ in exactly
+ * ONE key, `state.agreement_by_turn`, whose extra fifty rows all read `reached: 0`. `classes`,
+ * `first_divergences`, `diverged`, `mid_void`, `state` (bar and all) and every `end_state` block are
+ * IDENTICAL STRINGS. 50 is chosen over 40 for a 14-turn margin against a pool that grows hourly.
+ *
+ * THIS FORMAT HAS NO ENDLESS BATTLE CLAUSE — its ruleset is Flat Rules, VGC Timer, Open Team Sheets —
+ * so nothing in the rules forces an end. That every game ends anyway is an EMPIRICAL fact about this
+ * pool and this driver, which is exactly why the truncation count is now printed loudly beside the
+ * bar (see `cappedGames` in the state summary) instead of being left for a reader to notice.
+ *
+ * A CAP IS PART OF THE SAMPLE DEFINITION, NOT A BUDGET. A figure measured at 20 and a figure measured
+ * at 50 are two answers to two questions, exactly as `--games` is. They may be compared only where
+ * something has shown the games are the same games — which is what the sweep above does for 50
+ * against 100 and what it explicitly does NOT do for 50 against 20, where 35 games were cut short. */
 /* ROADMAP #548 — `--turns` IS VALIDATED HERE, BEFORE A SINGLE GAME IS PLAYED. (2026-09-06, MEASURE.)
  *
  * `--turns 2` used to play the whole run and then die in the summary at
@@ -83,9 +117,10 @@ const GAMES = +flag('--games', 45);
  * What is refused is a cap that is not a whole number of turns, and it is refused LOUDLY rather than
  * clamped: a run that silently promoted `--turns 0` to `--turns 1` would report itself as something
  * the operator did not ask for, which is the shape of defect this instrument exists to find. */
-const MAXTURNS = +flag('--turns', 20);
+const TURNS_DEFAULT = 50;                      // see the sweep in the block above; measured, not picked
+const MAXTURNS = +flag('--turns', TURNS_DEFAULT);
 if (!Number.isInteger(MAXTURNS) || MAXTURNS < 1) {
-  console.error('--turns ' + flag('--turns', 20) + ' is not a turn cap. It must be a whole number of '
+  console.error('--turns ' + flag('--turns', TURNS_DEFAULT) + ' is not a turn cap. It must be a whole number of '
     + 'turns, 1 or more.\n  A game is played turn by turn, so there is no such thing as a cap of '
     + (Number.isFinite(MAXTURNS) ? MAXTURNS : 'that') + '. REFUSING TO RUN rather than rounding it: a '
     + 'run that quietly\n  played a different cap than the one on its command line would publish an '
@@ -7866,6 +7901,15 @@ const STATE_SUMMARY = ((allResults) => {
   const bAgr = results.reduce((a, r) => a + (r.boundariesAgreed || 0), 0);
   const gamesWithABoundary = results.filter(r => r.boundaries > 0);
   const neverParted = gamesWithABoundary.filter(r => !r.stateDiv);
+  /* ---- HOW MANY GAMES THE HORIZON CUT SHORT, AND IT IS PRINTED RATHER THAN LEFT TO BE NOTICED ----
+   * 2026-09-07, ENGINE. At `--turns 20` this read 35 of 961 and NOTHING SAID SO: the bar printed
+   * `0 of 958` beside it and read as though the instrument had watched every game to its end. It had
+   * not, and one of those games parted a board at turn 22 (`active[].vol.syrupbomb`). A silent
+   * default looks exactly like a working feature — CLAUDE.md — so this is the loud version.
+   *
+   * `endReason` is recorded AT THE EXIT, never inferred, and the cap's string is built from MAXTURNS
+   * at the one site that writes it, so this match cannot drift from the value that was played. */
+  const cappedGames = results.filter(r => String(r.endReason || '') === 'the turn cap (' + MAXTURNS + ')').length;
   /* THE CROSS-TABLE — the question the whole pass turns on. A game whose PROTOCOL parted and whose
    * BOARD did not is a divergence the protocol instrument counted and that changes nothing a search
    * can see. `later` is the weaker version of the same claim: the narration parted first and the
@@ -8090,6 +8134,9 @@ const STATE_SUMMARY = ((allResults) => {
     turn_boundaries_compared: bTot, turn_boundaries_identical: bAgr,
     turn_boundary_agreement: bTot ? +(bAgr / bTot).toFixed(4) : null,
     games: gamesWithABoundary.length, games_board_never_diverged: neverParted.length,
+    /* THE HORIZON, IN THE ARTIFACT AND NOT ONLY ON THE CONSOLE. Non-zero means the bar beside it is a
+     * claim about the FIRST `turns_cap` TURNS of this many games and not about how they ended. */
+    games_cut_off_by_the_turn_cap: cappedGames,
     /* THE EXCLUSION, STATED IN THE ARTIFACT RATHER THAN NETTED OFF. `games_void_excluded` is how
      * many games the instrument declared unreadable and therefore did not judge the engine on;
      * `games_before_void_exclusion` is the whole played population. Under `--state-count-void`
@@ -8206,6 +8253,12 @@ if (STATE_SUMMARY) {
   console.log('    median turn of the first board divergence    ' + S2.median_turn_of_first_board_divergence);
   console.log('    BOARD-MATERIAL GAMES                         ' + (S2.games - S2.games_board_never_diverged)
     + '/' + S2.games + '   (the bar: state.games less state.games_board_never_diverged)');
+  console.log('    games CUT SHORT by the turn cap of ' + MAXTURNS + '           ' + S2.games_cut_off_by_the_turn_cap
+    + '/' + S2.games + (S2.games_cut_off_by_the_turn_cap
+      ? '   <-- THE BAR ABOVE IS A CLAIM ABOUT THE FIRST ' + MAXTURNS + ' TURNS OF THOSE GAMES,'
+        + ' NOT ABOUT HOW THEY ENDED. At a cap of 20 this read 35 and one of them parted a board at'
+        + ' turn 22. Raise --turns until it reads 0, or say so in the figure.'
+      : '   (must read 0 — every game reached its own ending inside the horizon)'));
   console.log('    of ' + S2.games_before_void_exclusion + ' played, ' + S2.games_void_excluded
     + ' were EXCLUDED as the instrument OWN void games (low-identity: the two dice streams are not shared)'
     + (S2.void_games_counted_against_the_engine
@@ -8863,6 +8916,20 @@ console.log('    per-arrival volley re-price: offered ' + (M.seen.arrivalReprice
   + (M.fails.arrivalRepriceDriftsAtArrivalZero ? '  <-- MUST READ 0, the wire disarmed itself' : '')
   + ', total not corrected ' + (M.fails.arrivalRepricedButTotalUnchanged | 0) + ']'
   + ((M.fails.arrivalPriceOnceRestored | 0) ? '   [MEDI_ARRIVAL_PRICE_ONCE=1 — THE DEFECT IS RESTORED]' : ''));
+/* NARRATION BATCH 1, 2026-09-07 -- THE ONE-ARRIVAL BOND COUNT, PROVING THE SUPPRESSION REACHED THE
+ * POOL AND NOT ONLY ITS OWN PROBE. Same rule and same shape as the re-price line above: CONSOLE ONLY,
+ * no artifact field, so a run before and after this block is the same measurement. A ZERO here beside
+ * a moved narration count would mean the movement came from somewhere else. */
+console.log('    Parental Bond volleys that landed ONE arrival and therefore announced NO |-hitcount|: '
+  + (M.seen.bondOneArrivalHitcountSuppressed | 0)
+  + ((M.fails.bondOneArrivalHitcountRestored | 0)
+      ? '   [MEDI_BOND_ONE_ARRIVAL_HITCOUNT=1 — THE DEFECT IS RESTORED]' : ''));
+console.log('    volley drains paid PER ARRIVAL (the authority pays inside spreadDamage, once per hit): '
+  + (M.seen.drainPaidPerArrival | 0)
+  + ((M.fails.drainAtFootRestored | 0) ? '   [MEDI_DRAIN_AT_FOOT=1 — THE DEFECT IS RESTORED]' : ''));
+console.log('    private-weather announcements (Mega Sol saying so on the five callers that ask): '
+  + (M.seen.privateWeatherAnnounced | 0)
+  + ((M.fails.megaSolSilentRestored | 0) ? '   [MEDI_MEGASOL_SILENT=1 — THE DEFECT IS RESTORED]' : ''));
 console.log('    undeclared Showdown events dropped before alignment: ' + UNDECLARED_DROPS
   + (UNDECLARED_DROPS ? '  <-- ' + [...UNDECLARED_SEEN].join(', ') : ' (must read 0)'));
 /* The standing block's own swallowed failures. A zero here is the CLAIM that every `uses: null` and

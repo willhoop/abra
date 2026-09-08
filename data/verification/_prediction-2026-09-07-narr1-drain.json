@@ -1,0 +1,74 @@
+{
+  "what": "PREDICTION WRITTEN BEFORE THE RUN — narration batch 1, fix 3: a multi-arrival volley pays its drain once per arrival, at the arrival's own damage line, instead of once at the foot on the row total.",
+  "written": "2026-09-07",
+  "release_before": "a9b05e61146a",
+  "release_after": "bc99dcc268ce",
+  "sample": "node engine/game_differential.js --steering empirical --release <id> --arm middle --end-state --state --census data/verification/census-pin-9446a684709d.json --games 1200 --turns 20 --team-store data/team-pool-frozen --dump-games 80 --dump-out <path> --write",
+  "baseline_measured_on_a9b05e61146a": {
+    "games": 961,
+    "readable": 958,
+    "board_material": 0,
+    "protocol_diverged_games": 69,
+    "narration_causes": 64,
+    "games_narration_only": 66
+  },
+  "predictions": [
+    {
+      "clause": "board-material",
+      "point": 0,
+      "band": [
+        0,
+        0
+      ],
+      "why": "THE RISKIEST OF THE THREE, and it is asserted rather than assumed: `Math.round` per arrival is not `Math.round` over the sum, so this could move the user's final HP by one. Every arm of tests/probe_drain_per_arrival.js asserts the user's END HP equal on both engines AND `r.stateDiv` empty, in the clean arm and the red one."
+    },
+    {
+      "clause": "games_narration_only",
+      "point": 63,
+      "band": [
+        63,
+        66
+      ],
+      "why": "three narration-only causes, one game each, are `|-heal|…|[from]drain` against the next line. The band's top is all three transferring."
+    },
+    {
+      "clause": "protocol_diverged_games",
+      "point": 66,
+      "band": [
+        66,
+        69
+      ],
+      "why": "the same three games."
+    },
+    {
+      "clause": "narration causes",
+      "point": 61,
+      "band": [
+        61,
+        64
+      ],
+      "why": "three removed; a transfer adds one back."
+    },
+    {
+      "clause": "census live",
+      "point": 830,
+      "band": [
+        830,
+        830
+      ],
+      "why": "no tag wired, no mechanic added."
+    }
+  ],
+  "named_risks": [
+    "THE ARITHMETIC IS THE RISK. Per-arrival rounding can differ from one rounding over the sum by one HP. The probe measured the authority's own intermediate value (156 then 172) and this engine now reproduces both, but the pool is 961 games and the probe is four.",
+    "A GAME COULD ARRIVE. Adding a `-heal` line where there was none can create an ordering divergence in a game that agreed before, so the count could go UP. That is the direction to watch and it is why the band has no room below 63.",
+    "MEDSEEN.drainPaidPerArrival must read ABOVE ZERO on the pinned pool."
+  ],
+  "amended": "2026-09-07 — THE FIRST CUT (release 028392265ab7) PARTED TWO BOARDS AND THIS ROW RECORDS IT RATHER THAN REPLACING IT. It passed the arrival PACKET to the drain where the authority passes `targetDamage`, the HP the bar actually gave up, so an OVERKILL healed on damage that never landed: board-material 0 -> 2, both a Kangaskhan Drain Punch (medi 157 / sd 102 and medi 160 / sd 147). The named risk that fired was the FIRST one. The fix now passes `_hpBeforeArrival - Math.max(0, tg.curHP)`, the probe gained an OVERKILL arm and a whole-series assertion, and the predictions below are re-stated UNCHANGED against release bc99dcc268ce.",
+  "first_cut_measured_on_028392265ab7": {
+    "board_material": 2,
+    "games_narration_only": 63,
+    "protocol_diverged_games": 66,
+    "note": "The narration figures from this run are NOT published: the run also parted two boards, so the engine it measured is not one this division ships."
+  }
+}

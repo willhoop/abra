@@ -1,0 +1,1382 @@
+====================================================================================================
+ONE GAME, BOTH ENGINES, EVERY LINE   —   a debugging view. Nothing here is written to an artifact.
+====================================================================================================
+  seed      gen9championsvgc2026regmbbo3-2655745450 vs gen9championsvgc2026regmbbo3-2655794301
+  config    pair-protect-bust        arm  middle   (REAL dice, seeded and shared by CATEGORY (acc / crit / sec /…)
+  release   f30bf025ae28      showdown C:/Users/willj/Projects/Pokemon/pokemon-showdown
+  turns     22   medicham raw lines 274   showdown raw lines 274
+  reduced   showdown 271   medicham 271   (the comparator walks the REDUCED streams index by index)
+  stopped   both engines ended the battle     showdown ended the battle: YES     medicham2 ended the battle: YES
+  played in 135.1s   after replaying the run's schedule: 1192 games to reach pair-protect-bust pair #29
+
+----------------------------------------------------------------------------------------------------
+  NO STORED RECORD of this game in data/divergence-turns.json — so this replay is UNCHECKED.
+  It is a real game. It is not, and must not be reported as, the game in the artifact.
+----------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------
+  THE TWO TEAMS AS BUILT (four bodies each; the battle brings all four)
+----------------------------------------------------------------------------------------------------
+  P1 — "yours"
+    1. gengar           hp  135  spe  170  gengarite       cursedbody        shadowball, sludgebomb, destinybond, protect
+    2. whimsicott       hp  135  spe  177  focussash       prankster         moonblast, tailwind, encore, charm
+    3. staraptor        hp  160  spe  159  staraptite      intimidate        closecombat, dualwingbeat, roost, protect
+    4. ceruledge        hp  150  spe  130  mentalherb      flashfire         bitterblade, phantomforce, bulkup, protect
+
+  P2 — "theirs"
+    1. lucario          hp  145  spe  148  lucarionite     innerfocus        extremespeed, highjumpkick, meteormash, protect
+    2. hydrapple        hp  181  spe   64  sitrusberry     supersweetsyrup   protect, sweetscent, syrupbomb, dracometeor
+    3. dragapult        hp  163  spe  205  choicescarf     clearbody         dragondarts, uturn, willowisp, phantomforce
+    4. incineroar       hp  170  spe   80  shellbell       intimidate        fakeout, flareblitz, partingshot, darkestlariat
+
+====================================================================================================
+  THE GAME, LINE BY LINE.   SD = Pokemon Showdown (the authority).   US = medicham2.
+  `both` means the two engines emitted the same thing at that index. The raw protocol for the
+  whole game is printed in full further down; this half is the reading view.
+====================================================================================================
+
+  0000  both  P1a Gengar sends in Gengar, L50 [##########] 135/135 100%
+  0001  both  P1b Whimsicott sends in Whimsicott, L50 [##########] 135/135 100%
+  0002  both  P2a Lucario sends in Lucario, L50 [##########] 145/145 100%
+  0003  both  P2b Hydrapple sends in Hydrapple, L50 [##########] 181/181 100%
+  0004  both  P1a Gengar lowers evasion 1
+  0005  both  P1b Whimsicott lowers evasion 1
+
+  0006  ---- turn 1 ------------------------------------------------------------
+  0007  both  P1a Gengar becomes Gengar-Mega, L50
+  0008  both  P1a Gengar MEGA EVOLVES Gengar Gengarite
+  0009  both  P2a Lucario becomes Lucario-Mega, L50
+  0010  both  P2a Lucario MEGA EVOLVES Lucario Lucarionite
+  0011  both  P1a Gengar uses Protect -> P1a Gengar
+  0012  both  P1a Gengar braces with Protect
+  0013  both  P2b Hydrapple uses Protect -> P2b Hydrapple
+  0014  both  P2b Hydrapple braces with Protect
+  0015  both  P1b Whimsicott uses Tailwind -> P1b Whimsicott
+  0016  both  side p1: A move: Tailwind
+  0017  both  P2a Lucario uses Meteor Mash -> P1a Gengar
+  0018  both  P1a Gengar triggers move: Protect
+  0019  both  end of turn
+
+  0020  ---- turn 2 ------------------------------------------------------------
+  0021  both  P2a Lucario uses Protect -> P2a Lucario
+  0022  both  P2a Lucario braces with Protect
+  0023  both  P2b Hydrapple uses Protect -> P2b Hydrapple
+  0024  both  P2b Hydrapple braces with Protect
+  0025  both  P1b Whimsicott uses Tailwind <still>
+  0026  both  P1b Whimsicott fails
+  0027  both  P1a Gengar uses Shadow Ball -> P2a Lucario
+  0028  both  P2a Lucario triggers move: Protect
+  0029  both  end of turn
+
+  0030  ---- turn 3 ------------------------------------------------------------
+  0031  both  P1a Gengar uses Protect -> P1a Gengar
+  0032  both  P1a Gengar braces with Protect
+  0033  both  P2b Hydrapple uses Protect <still>
+  0034  both  P2b Hydrapple fails
+  0035  both  P1b Whimsicott uses Moonblast -> P2a Lucario
+  0036  both  P2a Lucario drops to [####......] 63/145 43%
+  0037  both  P2a Lucario uses Meteor Mash -> P1a Gengar
+  0038  both  P1a Gengar triggers move: Protect
+  0039  both  end of turn
+
+  0040  ---- turn 4 ------------------------------------------------------------
+  0041  both  P1a Gengar uses Protect <still>
+  0042  both  P1a Gengar fails
+  0043  both  P2a Lucario uses Protect -> P2a Lucario
+  0044  both  P2a Lucario braces with Protect
+  0045  both  P1b Whimsicott uses Moonblast -> P2a Lucario
+  0046  both  P2a Lucario triggers move: Protect
+  0047  both  P2b Hydrapple uses Syrup Bomb -> P1a Gengar
+  0048  both  P1a Gengar resists 1
+  0049  both  P1a Gengar drops to [########..] 106/135 79%
+  0050  both  P1a Gengar gains Syrup Bomb
+  0051  both  P1a Gengar lowers spe 1
+  0052  both  side ends p1: A move: Tailwind
+  0053  both  end of turn
+
+  0054  ---- turn 5 ------------------------------------------------------------
+  0055  both  P2a Lucario uses Protect -> P2a Lucario
+  0056  both  P2a Lucario braces with Protect
+  0057  both  P1b Whimsicott uses Tailwind -> P1b Whimsicott
+  0058  both  side p1: A move: Tailwind
+  0059  both  P1a Gengar uses Sludge Bomb -> P2a Lucario
+  0060  both  P2a Lucario triggers move: Protect
+  0061  both  P2b Hydrapple uses Draco Meteor -> P1a Gengar
+  0062  both  P1a Gengar drops to 0 fnt
+  0063  both  P2b Hydrapple lowers spa 2
+  0064  both  P1a Gengar faints
+  0065  both  end of turn
+  0066  both  P1a Staraptor sends in (replacing Gengar) Staraptor, L50 [##########] 160/160 100%
+  0067  both  P2a Lucario lowers atk 1
+  0068  both  P2b Hydrapple lowers atk 1
+
+  0069  ---- turn 6 ------------------------------------------------------------
+  0070  both  P1b Whimsicott uses Tailwind <still>
+  0071  both  P1b Whimsicott fails
+  0072  both  P1a Staraptor uses Close Combat -> P2a Lucario
+  0073  both  P2a Lucario it's super effective 1
+  0074  both  P2a Lucario drops to 0 fnt
+  0075  both  P1a Staraptor lowers def 1
+  0076  both  P1a Staraptor lowers spd 1
+  0077  both  P2a Lucario faints
+  0078  both  P2b Hydrapple uses Sweet Scent -> P1b Whimsicott <spread p1a,p1b>
+  0079  both  P1a Staraptor lowers evasion 2
+  0080  both  P1b Whimsicott lowers evasion 2
+  0081  both  end of turn
+  0082  both  P2a Dragapult sends in (replacing Lucario) Dragapult, L50 [##########] 163/163 100%
+
+  0083  ---- turn 7 ------------------------------------------------------------
+  0084  both  P1a Staraptor uses Protect -> P1a Staraptor
+  0085  both  P1a Staraptor braces with Protect
+  0086  both  P1b Whimsicott uses Tailwind <still>
+  0087  both  P1b Whimsicott fails
+  0088  both  P2a Dragapult uses Phantom Force <still>
+  0089  both  P2a Dragapult charges Phantom Force
+  0090  both  P2b Hydrapple uses Draco Meteor -> P1a Staraptor
+  0091  both  P1a Staraptor triggers move: Protect
+  0092  both  end of turn
+
+  0093  ---- turn 8 ------------------------------------------------------------
+  0094  both  P2b Hydrapple uses Protect -> P2b Hydrapple
+  0095  both  P2b Hydrapple braces with Protect
+  0096  both  P1b Whimsicott uses Encore -> P2a Dragapult <miss>
+  0097  both  P1b Whimsicott misses -> P2a Dragapult
+  0098  both  P1a Staraptor uses Dual Wingbeat -> P2a Dragapult <miss>
+  0099  both  P1a Staraptor misses -> P2a Dragapult
+  0100  both  P2a Dragapult uses Phantom Force -> P1a Staraptor <from lockedmove>
+  0101  both  P1a Staraptor is IMMUNE
+  0102  both  side ends p1: A move: Tailwind
+  0103  both  end of turn
+
+  0104  ---- turn 9 ------------------------------------------------------------
+  0105  both  P2a Dragapult uses Phantom Force <still>
+  0106  both  P2a Dragapult charges Phantom Force
+  0107  both  P1b Whimsicott uses Moonblast -> P2a Dragapult <miss>
+  0108  both  P1b Whimsicott misses -> P2a Dragapult
+  0109  both  P1a Staraptor uses Close Combat -> P2a Dragapult <miss>
+  0110  both  P1a Staraptor misses -> P2a Dragapult
+  0111  both  P2b Hydrapple uses Syrup Bomb -> P1a Staraptor
+  0112  both  P1a Staraptor resists 1
+  0113  both  P1a Staraptor drops to [#########.] 138/160 86%
+  0114  both  P1a Staraptor gains Syrup Bomb
+  0115  both  P1a Staraptor lowers spe 1
+  0116  both  end of turn
+
+  0117  ---- turn 10 ------------------------------------------------------------
+  0118  both  P1a Staraptor uses Protect -> P1a Staraptor
+  0119  both  P1a Staraptor braces with Protect
+  0120  both  P2b Hydrapple uses Protect -> P2b Hydrapple
+  0121  both  P2b Hydrapple braces with Protect
+  0122  both  P1b Whimsicott uses Tailwind -> P1b Whimsicott
+  0123  both  side p1: A move: Tailwind
+  0124  both  P2a Dragapult uses Phantom Force -> P1a Staraptor <from lockedmove>
+  0125  both  P1a Staraptor is IMMUNE
+  0126  both  P1a Staraptor lowers spe 1
+  0127  both  end of turn
+
+  0128  ---- turn 11 ------------------------------------------------------------
+  0129  both  P1a Staraptor uses Protect <still>
+  0130  both  P1a Staraptor fails
+  0131  both  P1b Whimsicott uses Charm -> P2a Dragapult
+  0132  both  P2a Dragapult fails unboost <from ability: Clear Body>
+  0133  both  P2a Dragapult uses Phantom Force <still>
+  0134  both  P2a Dragapult charges Phantom Force
+  0135  both  P2b Hydrapple uses Draco Meteor -> P1a Staraptor
+  0136  both  P1a Staraptor drops to [##........] 27/160 17%
+  0137  both  P2b Hydrapple lowers spa 2
+  0138  both  P1a Staraptor lowers spe 1
+  0139  both  end of turn
+
+  0140  ---- turn 12 ------------------------------------------------------------
+  0141  both  P2b Hydrapple uses Protect -> P2b Hydrapple
+  0142  both  P2b Hydrapple braces with Protect
+  0143  both  P1b Whimsicott uses Moonblast -> P2a Dragapult <miss>
+  0144  both  P1b Whimsicott misses -> P2a Dragapult
+  0145  both  P2a Dragapult uses Phantom Force -> P1a Staraptor <from lockedmove>
+  0146  both  P1a Staraptor is IMMUNE
+  0147  both  P1a Staraptor uses Dual Wingbeat -> P2a Dragapult
+  0148  both  P2a Dragapult drops to [#######...] 118/163 72%
+  0149  both  P2a Dragapult drops to [####......] 72/163 44%
+  0150  both  P2a Dragapult hits 2
+  0151  both  P1a Staraptor loses Syrup Bomb <silent>
+  0152  both  end of turn
+
+  0153  ---- turn 13 ------------------------------------------------------------
+  0154  both  P1a Staraptor uses Protect -> P1a Staraptor
+  0155  both  P1a Staraptor braces with Protect
+  0156  both  P2b Hydrapple uses Protect <still>
+  0157  both  P2b Hydrapple fails
+  0158  both  P1b Whimsicott uses Moonblast -> P2a Dragapult
+  0159  both  P2a Dragapult it's super effective 1
+  0160  both  P2a Dragapult drops to 0 fnt
+  0161  both  P2a Dragapult faints
+  0162  both  side ends p1: A move: Tailwind
+  0163  both  end of turn
+  0164  both  P2a Incineroar sends in (replacing Dragapult) Incineroar, L50 [##########] 170/170 100%
+  0165  both  P1a Staraptor lowers atk 1
+  0166  both  P1b Whimsicott lowers atk 1
+
+  0167  ---- turn 14 ------------------------------------------------------------
+  0168  both  P1b Whimsicott uses Charm -> P2a Incineroar
+  0169  both  P2a Incineroar is IMMUNE
+  0170  both  P2b Hydrapple uses Sweet Scent -> P1b Whimsicott <spread p1a,p1b>
+  0171  both  P1a Staraptor lowers evasion 2
+  0172  both  P1b Whimsicott lowers evasion 2
+  0173  both  P2a Incineroar uses Parting Shot -> P1a Staraptor
+  0174  both  P1a Staraptor lowers atk 1
+  0175  both  P1a Staraptor lowers spa 1
+  0176  both  P1a Staraptor uses Close Combat -> P2a Incineroar
+  0177  both  P2a Incineroar it's super effective 1
+  0178  both  P2a Incineroar drops to [#####.....] 90/170 53%
+  0179  both  P1a Staraptor lowers def 1
+  0180  both  P1a Staraptor lowers spd 1
+  0181  both  end of turn
+
+  0182  ---- turn 15 ------------------------------------------------------------
+  0183  both  P1b Whimsicott uses Encore -> P2a Incineroar
+  0184  both  P2a Incineroar is IMMUNE
+  0185  both  P2b Hydrapple uses Draco Meteor -> P1a Staraptor
+  0186  both  P1a Staraptor drops to 0 fnt
+  0187  both  P2b Hydrapple lowers spa 2
+  0188  both  P1a Staraptor faints
+  0189  both  P2a Incineroar uses Flare Blitz -> P1b Whimsicott
+  0190  both  P1b Whimsicott it's super effective 1
+  0191  both  P1b Whimsicott critical hit
+  0192  both  P1b Whimsicott uses up Focus Sash
+  0193  both  P1b Whimsicott drops to [..........] 1/135 1%
+  0194  both  P2a Incineroar drops to [###.......] 46/170 27% <from Recoil>
+  0195  both  P2a Incineroar heals to [####......] 62/170 36% <from item: Shell Bell>
+  0196  both  end of turn
+  0197  both  P1a Ceruledge sends in (replacing Staraptor) Ceruledge, L50 [##########] 150/150 100%
+
+  0198  ---- turn 16 ------------------------------------------------------------
+  0199  both  P1b Whimsicott uses Tailwind -> P1b Whimsicott
+  0200  both  side p1: A move: Tailwind
+  0201  both  P1a Ceruledge uses Bulk Up -> P1a Ceruledge
+  0202  both  P1a Ceruledge raises atk 1
+  0203  both  P1a Ceruledge raises def 1
+  0204  both  P2b Hydrapple uses Draco Meteor -> P1a Ceruledge
+  0205  both  P1a Ceruledge drops to [########..] 126/150 84%
+  0206  both  P2a Incineroar uses Parting Shot -> P1a Ceruledge
+  0207  both  P1a Ceruledge lowers atk 1
+  0208  both  P1a Ceruledge lowers spa 1
+  0209  both  end of turn
+
+  0210  ---- turn 17 ------------------------------------------------------------
+  0211  both  P1a Ceruledge uses Protect -> P1a Ceruledge
+  0212  both  P1a Ceruledge braces with Protect
+  0213  both  P2b Hydrapple uses Protect -> P2b Hydrapple
+  0214  both  P2b Hydrapple braces with Protect
+  0215  both  P1b Whimsicott uses Moonblast -> P2a Incineroar
+  0216  both  P2a Incineroar drops to [..........] 5/170 3%
+  0217  both  P2a Incineroar uses Flare Blitz -> P1a Ceruledge
+  0218  both  P1a Ceruledge triggers move: Protect
+  0219  both  end of turn
+
+  0220  ---- turn 18 ------------------------------------------------------------
+  0221  both  P1b Whimsicott uses Moonblast -> P2a Incineroar
+  0222  both  P2a Incineroar drops to 0 fnt
+  0223  both  P2a Incineroar faints
+  0224  both  P1a Ceruledge uses Bitter Blade -> P2b Hydrapple
+  0225  both  P2b Hydrapple drops to [######....] 99/181 55%
+  0226  both  P1a Ceruledge heals to [##########] 150/150 100% <from drain>
+  0227  both  P2b Hydrapple uses Draco Meteor -> P1a Ceruledge
+  0228  both  P1a Ceruledge drops to [#########.] 128/150 85%
+  0229  both  end of turn
+
+  0230  ---- turn 19 ------------------------------------------------------------
+  0231  both  P1a Ceruledge uses Protect -> P1a Ceruledge
+  0232  both  P1a Ceruledge braces with Protect
+  0233  both  P1b Whimsicott uses Tailwind <still>
+  0234  both  P1b Whimsicott fails
+  0235  both  P2b Hydrapple uses Syrup Bomb -> P1a Ceruledge
+  0236  both  P1a Ceruledge triggers move: Protect
+  0237  both  side ends p1: A move: Tailwind
+  0238  both  end of turn
+
+  0239  ---- turn 20 ------------------------------------------------------------
+  0240  both  P1a Ceruledge uses Protect <still>
+  0241  both  P1a Ceruledge fails
+  0242  both  P1b Whimsicott uses Tailwind -> P1b Whimsicott
+  0243  both  side p1: A move: Tailwind
+  0244  both  P2b Hydrapple uses Syrup Bomb -> P1a Ceruledge
+  0245  both  P1a Ceruledge resists 1
+  0246  both  P1a Ceruledge drops to [########..] 123/150 82%
+  0247  both  P1a Ceruledge gains Syrup Bomb
+  0248  both  P1a Ceruledge lowers spe 1
+  0249  both  end of turn
+
+  0250  ---- turn 21 ------------------------------------------------------------
+  0251  both  P1b Whimsicott uses Charm -> P2b Hydrapple
+  0252  both  P2b Hydrapple lowers atk 2
+  0253  both  P1a Ceruledge uses Bitter Blade -> P2b Hydrapple
+  0254  both  P2b Hydrapple drops to [##........] 29/181 16%
+  0255  both  P1a Ceruledge heals to [##########] 150/150 100% <from drain>
+  0256  both  P2b Hydrapple uses up Sitrus Berry <eat>
+  0257  both  P2b Hydrapple heals to [####......] 74/181 41% <from item: Sitrus Berry>
+  0258  both  P2b Hydrapple uses Sweet Scent -> P1b Whimsicott <spread p1a,p1b>
+  0259  both  P1a Ceruledge lowers evasion 2
+  0260  both  P1b Whimsicott lowers evasion 1
+  0261  both  P1a Ceruledge lowers spe 1
+  0262  both  end of turn
+
+  0263  ---- turn 22 ------------------------------------------------------------
+  0264  both  P1a Ceruledge uses Protect -> P1a Ceruledge
+  0265  both  P1a Ceruledge braces with Protect
+  0266  both  P1b Whimsicott uses Moonblast -> P2b Hydrapple
+  0267  both  P2b Hydrapple it's super effective 1
+  0268  both  P2b Hydrapple drops to 0 fnt
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  >>>>  THE SPLIT — index 269. They agreed for 269 reduced lines.  <<<<
+  >>>>  classifier: ordering
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  0269  SD    P2b Hydrapple faints
+        US    P1a Ceruledge loses syrupbomb <silent>
+  0270  SD    P1a Ceruledge loses Syrup Bomb <silent>
+        US    P2b Hydrapple faints
+
+====================================================================================================
+  WHAT EACH ENGINE WAS HOLDING WHEN THE GAME STOPPED
+  Same question asked of both: every body, is it fainted, at what HP, active or benched.
+====================================================================================================
+
+  ---- P1 ("yours") ------------------------------------------------------------
+    SHOWDOWN   pokemonLeft=2  teamSize=4     (pokemonLeft is the number checkWin actually reads)
+      ceruledge          hp  150  alive    active isActive=yes
+      whimsicott         hp    1  alive    active isActive=yes
+      gengarmega         hp    0  FAINTED  bench  isActive=no 
+      staraptor          hp    0  FAINTED  bench  isActive=no 
+    MEDICHAM2  (this snapshot lists actives then bench; a fainted body it has DISCARDED
+               does not appear at all, so a missing row is not evidence of anything)
+      ceruledge          hp  150  alive    active
+      whimsicott         hp    1  alive    active
+
+  ---- P2 ("theirs") ------------------------------------------------------------
+    SHOWDOWN   pokemonLeft=0  teamSize=4     (pokemonLeft is the number checkWin actually reads)
+      incineroar         hp    0  FAINTED  active isActive=no    <- corpse in the slot, awaiting its replacement (both engines do this)
+      hydrapple          hp    0  FAINTED  active isActive=no    <- corpse in the slot, awaiting its replacement (both engines do this)
+      lucariomega        hp    0  FAINTED  bench  isActive=no 
+      dragapult          hp    0  FAINTED  bench  isActive=no 
+    MEDICHAM2  (this snapshot lists actives then bench; a fainted body it has DISCARDED
+               does not appear at all, so a missing row is not evidence of anything)
+      incineroar         hp    0  FAINTED  active   <- corpse in the slot, awaiting its replacement (both engines do this)
+      hydrapple          hp    0  FAINTED  active   <- corpse in the slot, awaiting its replacement (both engines do this)
+
+    showdown winner: A
+
+====================================================================================================
+  RAW PROTOCOL — SHOWDOWN, as the comparator sees it (sdStream-filtered)   (274 lines)
+====================================================================================================
+  0000  |switch|p1a: Gengar|Gengar, L50|135/135
+  0001  |switch|p1b: Whimsicott|Whimsicott, L50|135/135
+  0002  |switch|p2a: Lucario|Lucario, L50|145/145
+  0003  |switch|p2b: Hydrapple|Hydrapple, L50|181/181
+  0004  |-ability|p2b: Hydrapple|Supersweet Syrup
+  0005  |-unboost|p1a: Gengar|evasion|1
+  0006  |-unboost|p1b: Whimsicott|evasion|1
+  0007  |turn|1
+  0008  |detailschange|p1a: Gengar|Gengar-Mega, L50
+  0009  |-mega|p1a: Gengar|Gengar|Gengarite
+  0010  |detailschange|p2a: Lucario|Lucario-Mega, L50
+  0011  |-mega|p2a: Lucario|Lucario|Lucarionite
+  0012  |move|p1a: Gengar|Protect|p1a: Gengar
+  0013  |-singleturn|p1a: Gengar|Protect
+  0014  |move|p2b: Hydrapple|Protect|p2b: Hydrapple
+  0015  |-singleturn|p2b: Hydrapple|Protect
+  0016  |move|p1b: Whimsicott|Tailwind|p1b: Whimsicott
+  0017  |-sidestart|p1: A|move: Tailwind
+  0018  |move|p2a: Lucario|Meteor Mash|p1a: Gengar
+  0019  |-activate|p1a: Gengar|move: Protect
+  0020  |upkeep
+  0021  |turn|2
+  0022  |move|p2a: Lucario|Protect|p2a: Lucario
+  0023  |-singleturn|p2a: Lucario|Protect
+  0024  |move|p2b: Hydrapple|Protect|p2b: Hydrapple
+  0025  |-singleturn|p2b: Hydrapple|Protect
+  0026  |move|p1b: Whimsicott|Tailwind||[still]
+  0027  |-fail|p1b: Whimsicott
+  0028  |move|p1a: Gengar|Shadow Ball|p2a: Lucario
+  0029  |-activate|p2a: Lucario|move: Protect
+  0030  |upkeep
+  0031  |turn|3
+  0032  |move|p1a: Gengar|Protect|p1a: Gengar
+  0033  |-singleturn|p1a: Gengar|Protect
+  0034  |move|p2b: Hydrapple|Protect||[still]
+  0035  |-fail|p2b: Hydrapple
+  0036  |move|p1b: Whimsicott|Moonblast|p2a: Lucario
+  0037  |-damage|p2a: Lucario|63/145
+  0038  |move|p2a: Lucario|Meteor Mash|p1a: Gengar
+  0039  |-activate|p1a: Gengar|move: Protect
+  0040  |upkeep
+  0041  |turn|4
+  0042  |move|p1a: Gengar|Protect||[still]
+  0043  |-fail|p1a: Gengar
+  0044  |move|p2a: Lucario|Protect|p2a: Lucario
+  0045  |-singleturn|p2a: Lucario|Protect
+  0046  |move|p1b: Whimsicott|Moonblast|p2a: Lucario
+  0047  |-activate|p2a: Lucario|move: Protect
+  0048  |move|p2b: Hydrapple|Syrup Bomb|p1a: Gengar
+  0049  |-resisted|p1a: Gengar|1
+  0050  |-damage|p1a: Gengar|106/135
+  0051  |-start|p1a: Gengar|Syrup Bomb
+  0052  |-unboost|p1a: Gengar|spe|1
+  0053  |-sideend|p1: A|move: Tailwind
+  0054  |upkeep
+  0055  |turn|5
+  0056  |move|p2a: Lucario|Protect|p2a: Lucario
+  0057  |-singleturn|p2a: Lucario|Protect
+  0058  |move|p1b: Whimsicott|Tailwind|p1b: Whimsicott
+  0059  |-sidestart|p1: A|move: Tailwind
+  0060  |move|p1a: Gengar|Sludge Bomb|p2a: Lucario
+  0061  |-activate|p2a: Lucario|move: Protect
+  0062  |move|p2b: Hydrapple|Draco Meteor|p1a: Gengar
+  0063  |-damage|p1a: Gengar|0 fnt
+  0064  |-unboost|p2b: Hydrapple|spa|2
+  0065  |faint|p1a: Gengar
+  0066  |upkeep
+  0067  |switch|p1a: Staraptor|Staraptor, L50|160/160
+  0068  |-ability|p1a: Staraptor|Intimidate|boost
+  0069  |-unboost|p2a: Lucario|atk|1
+  0070  |-unboost|p2b: Hydrapple|atk|1
+  0071  |turn|6
+  0072  |move|p1b: Whimsicott|Tailwind||[still]
+  0073  |-fail|p1b: Whimsicott
+  0074  |move|p1a: Staraptor|Close Combat|p2a: Lucario
+  0075  |-supereffective|p2a: Lucario|1
+  0076  |-damage|p2a: Lucario|0 fnt
+  0077  |-unboost|p1a: Staraptor|def|1
+  0078  |-unboost|p1a: Staraptor|spd|1
+  0079  |faint|p2a: Lucario
+  0080  |move|p2b: Hydrapple|Sweet Scent|p1b: Whimsicott|[spread] p1a,p1b
+  0081  |-unboost|p1a: Staraptor|evasion|2
+  0082  |-unboost|p1b: Whimsicott|evasion|2
+  0083  |upkeep
+  0084  |switch|p2a: Dragapult|Dragapult, L50|163/163
+  0085  |turn|7
+  0086  |move|p1a: Staraptor|Protect|p1a: Staraptor
+  0087  |-singleturn|p1a: Staraptor|Protect
+  0088  |move|p1b: Whimsicott|Tailwind||[still]
+  0089  |-fail|p1b: Whimsicott
+  0090  |move|p2a: Dragapult|Phantom Force||[still]
+  0091  |-prepare|p2a: Dragapult|Phantom Force
+  0092  |move|p2b: Hydrapple|Draco Meteor|p1a: Staraptor
+  0093  |-activate|p1a: Staraptor|move: Protect
+  0094  |upkeep
+  0095  |turn|8
+  0096  |move|p2b: Hydrapple|Protect|p2b: Hydrapple
+  0097  |-singleturn|p2b: Hydrapple|Protect
+  0098  |move|p1b: Whimsicott|Encore|p2a: Dragapult|[miss]
+  0099  |-miss|p1b: Whimsicott|p2a: Dragapult
+  0100  |move|p1a: Staraptor|Dual Wingbeat|p2a: Dragapult|[miss]
+  0101  |-miss|p1a: Staraptor|p2a: Dragapult
+  0102  |move|p2a: Dragapult|Phantom Force|p1a: Staraptor|[from] lockedmove
+  0103  |-immune|p1a: Staraptor
+  0104  |-sideend|p1: A|move: Tailwind
+  0105  |upkeep
+  0106  |turn|9
+  0107  |move|p2a: Dragapult|Phantom Force||[still]
+  0108  |-prepare|p2a: Dragapult|Phantom Force
+  0109  |move|p1b: Whimsicott|Moonblast|p2a: Dragapult|[miss]
+  0110  |-miss|p1b: Whimsicott|p2a: Dragapult
+  0111  |move|p1a: Staraptor|Close Combat|p2a: Dragapult|[miss]
+  0112  |-miss|p1a: Staraptor|p2a: Dragapult
+  0113  |move|p2b: Hydrapple|Syrup Bomb|p1a: Staraptor
+  0114  |-resisted|p1a: Staraptor|1
+  0115  |-damage|p1a: Staraptor|138/160
+  0116  |-start|p1a: Staraptor|Syrup Bomb
+  0117  |-unboost|p1a: Staraptor|spe|1
+  0118  |upkeep
+  0119  |turn|10
+  0120  |move|p1a: Staraptor|Protect|p1a: Staraptor
+  0121  |-singleturn|p1a: Staraptor|Protect
+  0122  |move|p2b: Hydrapple|Protect|p2b: Hydrapple
+  0123  |-singleturn|p2b: Hydrapple|Protect
+  0124  |move|p1b: Whimsicott|Tailwind|p1b: Whimsicott
+  0125  |-sidestart|p1: A|move: Tailwind
+  0126  |move|p2a: Dragapult|Phantom Force|p1a: Staraptor|[from] lockedmove
+  0127  |-immune|p1a: Staraptor
+  0128  |-unboost|p1a: Staraptor|spe|1
+  0129  |upkeep
+  0130  |turn|11
+  0131  |move|p1a: Staraptor|Protect||[still]
+  0132  |-fail|p1a: Staraptor
+  0133  |move|p1b: Whimsicott|Charm|p2a: Dragapult
+  0134  |-fail|p2a: Dragapult|unboost|[from] ability: Clear Body|[of] p2a: Dragapult
+  0135  |move|p2a: Dragapult|Phantom Force||[still]
+  0136  |-prepare|p2a: Dragapult|Phantom Force
+  0137  |move|p2b: Hydrapple|Draco Meteor|p1a: Staraptor
+  0138  |-damage|p1a: Staraptor|27/160
+  0139  |-unboost|p2b: Hydrapple|spa|2
+  0140  |-unboost|p1a: Staraptor|spe|1
+  0141  |upkeep
+  0142  |turn|12
+  0143  |move|p2b: Hydrapple|Protect|p2b: Hydrapple
+  0144  |-singleturn|p2b: Hydrapple|Protect
+  0145  |move|p1b: Whimsicott|Moonblast|p2a: Dragapult|[miss]
+  0146  |-miss|p1b: Whimsicott|p2a: Dragapult
+  0147  |move|p2a: Dragapult|Phantom Force|p1a: Staraptor|[from] lockedmove
+  0148  |-immune|p1a: Staraptor
+  0149  |move|p1a: Staraptor|Dual Wingbeat|p2a: Dragapult
+  0150  |-damage|p2a: Dragapult|118/163
+  0151  |-damage|p2a: Dragapult|72/163
+  0152  |-hitcount|p2a: Dragapult|2
+  0153  |-end|p1a: Staraptor|Syrup Bomb|[silent]
+  0154  |upkeep
+  0155  |turn|13
+  0156  |move|p1a: Staraptor|Protect|p1a: Staraptor
+  0157  |-singleturn|p1a: Staraptor|Protect
+  0158  |move|p2b: Hydrapple|Protect||[still]
+  0159  |-fail|p2b: Hydrapple
+  0160  |move|p1b: Whimsicott|Moonblast|p2a: Dragapult
+  0161  |-supereffective|p2a: Dragapult|1
+  0162  |-damage|p2a: Dragapult|0 fnt
+  0163  |faint|p2a: Dragapult
+  0164  |-sideend|p1: A|move: Tailwind
+  0165  |upkeep
+  0166  |switch|p2a: Incineroar|Incineroar, L50|170/170
+  0167  |-ability|p2a: Incineroar|Intimidate|boost
+  0168  |-unboost|p1a: Staraptor|atk|1
+  0169  |-unboost|p1b: Whimsicott|atk|1
+  0170  |turn|14
+  0171  |move|p1b: Whimsicott|Charm|p2a: Incineroar
+  0172  |-immune|p2a: Incineroar
+  0173  |move|p2b: Hydrapple|Sweet Scent|p1b: Whimsicott|[spread] p1a,p1b
+  0174  |-unboost|p1a: Staraptor|evasion|2
+  0175  |-unboost|p1b: Whimsicott|evasion|2
+  0176  |move|p2a: Incineroar|Parting Shot|p1a: Staraptor
+  0177  |-unboost|p1a: Staraptor|atk|1
+  0178  |-unboost|p1a: Staraptor|spa|1
+  0179  |move|p1a: Staraptor|Close Combat|p2a: Incineroar
+  0180  |-supereffective|p2a: Incineroar|1
+  0181  |-damage|p2a: Incineroar|90/170
+  0182  |-unboost|p1a: Staraptor|def|1
+  0183  |-unboost|p1a: Staraptor|spd|1
+  0184  |upkeep
+  0185  |turn|15
+  0186  |move|p1b: Whimsicott|Encore|p2a: Incineroar
+  0187  |-immune|p2a: Incineroar
+  0188  |move|p2b: Hydrapple|Draco Meteor|p1a: Staraptor
+  0189  |-damage|p1a: Staraptor|0 fnt
+  0190  |-unboost|p2b: Hydrapple|spa|2
+  0191  |faint|p1a: Staraptor
+  0192  |move|p2a: Incineroar|Flare Blitz|p1b: Whimsicott
+  0193  |-supereffective|p1b: Whimsicott|1
+  0194  |-crit|p1b: Whimsicott
+  0195  |-enditem|p1b: Whimsicott|Focus Sash
+  0196  |-damage|p1b: Whimsicott|1/135
+  0197  |-damage|p2a: Incineroar|46/170|[from] Recoil
+  0198  |-heal|p2a: Incineroar|62/170|[from] item: Shell Bell|[of] p1b: Whimsicott
+  0199  |upkeep
+  0200  |switch|p1a: Ceruledge|Ceruledge, L50|150/150
+  0201  |turn|16
+  0202  |move|p1b: Whimsicott|Tailwind|p1b: Whimsicott
+  0203  |-sidestart|p1: A|move: Tailwind
+  0204  |move|p1a: Ceruledge|Bulk Up|p1a: Ceruledge
+  0205  |-boost|p1a: Ceruledge|atk|1
+  0206  |-boost|p1a: Ceruledge|def|1
+  0207  |move|p2b: Hydrapple|Draco Meteor|p1a: Ceruledge
+  0208  |-damage|p1a: Ceruledge|126/150
+  0209  |move|p2a: Incineroar|Parting Shot|p1a: Ceruledge
+  0210  |-unboost|p1a: Ceruledge|atk|1
+  0211  |-unboost|p1a: Ceruledge|spa|1
+  0212  |upkeep
+  0213  |turn|17
+  0214  |move|p1a: Ceruledge|Protect|p1a: Ceruledge
+  0215  |-singleturn|p1a: Ceruledge|Protect
+  0216  |move|p2b: Hydrapple|Protect|p2b: Hydrapple
+  0217  |-singleturn|p2b: Hydrapple|Protect
+  0218  |move|p1b: Whimsicott|Moonblast|p2a: Incineroar
+  0219  |-damage|p2a: Incineroar|5/170
+  0220  |move|p2a: Incineroar|Flare Blitz|p1a: Ceruledge
+  0221  |-activate|p1a: Ceruledge|move: Protect
+  0222  |upkeep
+  0223  |turn|18
+  0224  |move|p1b: Whimsicott|Moonblast|p2a: Incineroar
+  0225  |-damage|p2a: Incineroar|0 fnt
+  0226  |faint|p2a: Incineroar
+  0227  |move|p1a: Ceruledge|Bitter Blade|p2b: Hydrapple
+  0228  |-damage|p2b: Hydrapple|99/181
+  0229  |-heal|p1a: Ceruledge|150/150|[from] drain|[of] p2b: Hydrapple
+  0230  |move|p2b: Hydrapple|Draco Meteor|p1a: Ceruledge
+  0231  |-damage|p1a: Ceruledge|128/150
+  0232  |upkeep
+  0233  |turn|19
+  0234  |move|p1a: Ceruledge|Protect|p1a: Ceruledge
+  0235  |-singleturn|p1a: Ceruledge|Protect
+  0236  |move|p1b: Whimsicott|Tailwind||[still]
+  0237  |-fail|p1b: Whimsicott
+  0238  |move|p2b: Hydrapple|Syrup Bomb|p1a: Ceruledge
+  0239  |-activate|p1a: Ceruledge|move: Protect
+  0240  |-sideend|p1: A|move: Tailwind
+  0241  |upkeep
+  0242  |turn|20
+  0243  |move|p1a: Ceruledge|Protect||[still]
+  0244  |-fail|p1a: Ceruledge
+  0245  |move|p1b: Whimsicott|Tailwind|p1b: Whimsicott
+  0246  |-sidestart|p1: A|move: Tailwind
+  0247  |move|p2b: Hydrapple|Syrup Bomb|p1a: Ceruledge
+  0248  |-resisted|p1a: Ceruledge|1
+  0249  |-damage|p1a: Ceruledge|123/150
+  0250  |-start|p1a: Ceruledge|Syrup Bomb
+  0251  |-unboost|p1a: Ceruledge|spe|1
+  0252  |upkeep
+  0253  |turn|21
+  0254  |move|p1b: Whimsicott|Charm|p2b: Hydrapple
+  0255  |-unboost|p2b: Hydrapple|atk|2
+  0256  |move|p1a: Ceruledge|Bitter Blade|p2b: Hydrapple
+  0257  |-damage|p2b: Hydrapple|29/181
+  0258  |-heal|p1a: Ceruledge|150/150|[from] drain|[of] p2b: Hydrapple
+  0259  |-enditem|p2b: Hydrapple|Sitrus Berry|[eat]
+  0260  |-heal|p2b: Hydrapple|74/181|[from] item: Sitrus Berry
+  0261  |move|p2b: Hydrapple|Sweet Scent|p1b: Whimsicott|[spread] p1a,p1b
+  0262  |-unboost|p1a: Ceruledge|evasion|2
+  0263  |-unboost|p1b: Whimsicott|evasion|1
+  0264  |-unboost|p1a: Ceruledge|spe|1
+  0265  |upkeep
+  0266  |turn|22
+  0267  |move|p1a: Ceruledge|Protect|p1a: Ceruledge
+  0268  |-singleturn|p1a: Ceruledge|Protect
+  0269  |move|p1b: Whimsicott|Moonblast|p2b: Hydrapple
+  0270  |-supereffective|p2b: Hydrapple|1
+  0271  |-damage|p2b: Hydrapple|0 fnt
+  0272  |faint|p2b: Hydrapple  <<<<<< THE SPLIT
+  0273  |-end|p1a: Ceruledge|Syrup Bomb|[silent]
+
+====================================================================================================
+  RAW PROTOCOL — MEDICHAM2 (its own trace, unfiltered)   (274 lines)
+====================================================================================================
+  0000  |switch|p1a: Gengar|gengar, L50|135/135
+  0001  |switch|p1b: Whimsicott|whimsicott, L50|135/135
+  0002  |switch|p2a: Lucario|lucario, L50|145/145
+  0003  |switch|p2b: Hydrapple|hydrapple, L50|181/181
+  0004  |-ability|p2b: Hydrapple|supersweetsyrup|boost
+  0005  |-unboost|p1a: Gengar|evasion|1
+  0006  |-unboost|p1b: Whimsicott|evasion|1
+  0007  |turn|1
+  0008  |detailschange|p1a: Gengar|gengar-mega, L50
+  0009  |-mega|p1a: Gengar|Gengar|gengarite
+  0010  |detailschange|p2a: Lucario|lucario-mega, L50
+  0011  |-mega|p2a: Lucario|Lucario|lucarionite
+  0012  |move|p1a: Gengar|protect|p1a: Gengar
+  0013  |-singleturn|p1a: Gengar|Protect
+  0014  |move|p2b: Hydrapple|protect|p2b: Hydrapple
+  0015  |-singleturn|p2b: Hydrapple|Protect
+  0016  |move|p1b: Whimsicott|tailwind|p1b: Whimsicott
+  0017  |-sidestart|p1: |move: Tailwind
+  0018  |move|p2a: Lucario|meteormash|p1a: Gengar
+  0019  |-activate|p1a: Gengar|move: Protect
+  0020  |upkeep
+  0021  |turn|2
+  0022  |move|p2a: Lucario|protect|p2a: Lucario
+  0023  |-singleturn|p2a: Lucario|Protect
+  0024  |move|p2b: Hydrapple|protect|p2b: Hydrapple
+  0025  |-singleturn|p2b: Hydrapple|Protect
+  0026  |move|p1b: Whimsicott|tailwind|p1b: Whimsicott
+  0027  |-fail|p1b: Whimsicott
+  0028  |move|p1a: Gengar|shadowball|p2a: Lucario
+  0029  |-activate|p2a: Lucario|move: Protect
+  0030  |upkeep
+  0031  |turn|3
+  0032  |move|p1a: Gengar|protect|p1a: Gengar
+  0033  |-singleturn|p1a: Gengar|Protect
+  0034  |move|p2b: Hydrapple|protect||[still]
+  0035  |-fail|p2b: Hydrapple
+  0036  |move|p1b: Whimsicott|moonblast|p2a: Lucario
+  0037  |-damage|p2a: Lucario|63/145
+  0038  |move|p2a: Lucario|meteormash|p1a: Gengar
+  0039  |-activate|p1a: Gengar|move: Protect
+  0040  |upkeep
+  0041  |turn|4
+  0042  |move|p1a: Gengar|protect||[still]
+  0043  |-fail|p1a: Gengar
+  0044  |move|p2a: Lucario|protect|p2a: Lucario
+  0045  |-singleturn|p2a: Lucario|Protect
+  0046  |move|p1b: Whimsicott|moonblast|p2a: Lucario
+  0047  |-activate|p2a: Lucario|move: Protect
+  0048  |move|p2b: Hydrapple|syrupbomb|p1a: Gengar
+  0049  |-resisted|p1a: Gengar|1
+  0050  |-damage|p1a: Gengar|106/135
+  0051  |-start|p1a: Gengar|Syrup Bomb
+  0052  |-unboost|p1a: Gengar|spe|1
+  0053  |-sideend|p1: |move: Tailwind
+  0054  |upkeep
+  0055  |turn|5
+  0056  |move|p2a: Lucario|protect|p2a: Lucario
+  0057  |-singleturn|p2a: Lucario|Protect
+  0058  |move|p1b: Whimsicott|tailwind|p1b: Whimsicott
+  0059  |-sidestart|p1: |move: Tailwind
+  0060  |move|p1a: Gengar|sludgebomb|p2a: Lucario
+  0061  |-activate|p2a: Lucario|move: Protect
+  0062  |move|p2b: Hydrapple|dracometeor|p1a: Gengar
+  0063  |-damage|p1a: Gengar|0 fnt
+  0064  |-unboost|p2b: Hydrapple|spa|2
+  0065  |faint|p1a: Gengar
+  0066  |upkeep
+  0067  |switch|p1a: Staraptor|staraptor, L50|160/160
+  0068  |-ability|p1a: Staraptor|intimidate|boost
+  0069  |-unboost|p2a: Lucario|atk|1
+  0070  |-unboost|p2b: Hydrapple|atk|1
+  0071  |turn|6
+  0072  |move|p1b: Whimsicott|tailwind|p1b: Whimsicott
+  0073  |-fail|p1b: Whimsicott
+  0074  |move|p1a: Staraptor|closecombat|p2a: Lucario
+  0075  |-supereffective|p2a: Lucario|1
+  0076  |-damage|p2a: Lucario|0 fnt
+  0077  |-unboost|p1a: Staraptor|def|1
+  0078  |-unboost|p1a: Staraptor|spd|1
+  0079  |faint|p2a: Lucario
+  0080  |move|p2b: Hydrapple|sweetscent|p1b: Whimsicott
+  0081  |-unboost|p1a: Staraptor|evasion|2
+  0082  |-unboost|p1b: Whimsicott|evasion|2
+  0083  |upkeep
+  0084  |switch|p2a: Dragapult|dragapult, L50|163/163
+  0085  |turn|7
+  0086  |move|p1a: Staraptor|protect|p1a: Staraptor
+  0087  |-singleturn|p1a: Staraptor|Protect
+  0088  |move|p1b: Whimsicott|tailwind|p1b: Whimsicott
+  0089  |-fail|p1b: Whimsicott
+  0090  |move|p2a: Dragapult|phantomforce|p1a: Staraptor
+  0091  |-prepare|p2a: Dragapult|phantomforce
+  0092  |move|p2b: Hydrapple|dracometeor|p1a: Staraptor
+  0093  |-activate|p1a: Staraptor|move: Protect
+  0094  |upkeep
+  0095  |turn|8
+  0096  |move|p2b: Hydrapple|protect|p2b: Hydrapple
+  0097  |-singleturn|p2b: Hydrapple|Protect
+  0098  |move|p1b: Whimsicott|encore|p2a: Dragapult|[miss]
+  0099  |-miss|p1b: Whimsicott|p2a: Dragapult
+  0100  |move|p1a: Staraptor|dualwingbeat|p2a: Dragapult
+  0101  |-miss|p1a: Staraptor|p2a: Dragapult
+  0102  |move|p2a: Dragapult|phantomforce|p1a: Staraptor
+  0103  |-immune|p1a: Staraptor
+  0104  |-sideend|p1: |move: Tailwind
+  0105  |upkeep
+  0106  |turn|9
+  0107  |move|p2a: Dragapult|phantomforce|p1a: Staraptor
+  0108  |-prepare|p2a: Dragapult|phantomforce
+  0109  |move|p1b: Whimsicott|moonblast|p2a: Dragapult
+  0110  |-miss|p1b: Whimsicott|p2a: Dragapult
+  0111  |move|p1a: Staraptor|closecombat|p2a: Dragapult
+  0112  |-miss|p1a: Staraptor|p2a: Dragapult
+  0113  |move|p2b: Hydrapple|syrupbomb|p1a: Staraptor
+  0114  |-resisted|p1a: Staraptor|1
+  0115  |-damage|p1a: Staraptor|138/160
+  0116  |-start|p1a: Staraptor|Syrup Bomb
+  0117  |-unboost|p1a: Staraptor|spe|1
+  0118  |upkeep
+  0119  |turn|10
+  0120  |move|p1a: Staraptor|protect|p1a: Staraptor
+  0121  |-singleturn|p1a: Staraptor|Protect
+  0122  |move|p2b: Hydrapple|protect|p2b: Hydrapple
+  0123  |-singleturn|p2b: Hydrapple|Protect
+  0124  |move|p1b: Whimsicott|tailwind|p1b: Whimsicott
+  0125  |-sidestart|p1: |move: Tailwind
+  0126  |move|p2a: Dragapult|phantomforce|p1a: Staraptor
+  0127  |-immune|p1a: Staraptor
+  0128  |-unboost|p1a: Staraptor|spe|1
+  0129  |upkeep
+  0130  |turn|11
+  0131  |move|p1a: Staraptor|protect||[still]
+  0132  |-fail|p1a: Staraptor
+  0133  |move|p1b: Whimsicott|charm|p2a: Dragapult
+  0134  |-fail|p2a: Dragapult|unboost|[from] ability: clearbody|[of] p2a: Dragapult
+  0135  |move|p2a: Dragapult|phantomforce|p1a: Staraptor
+  0136  |-prepare|p2a: Dragapult|phantomforce
+  0137  |move|p2b: Hydrapple|dracometeor|p1a: Staraptor
+  0138  |-damage|p1a: Staraptor|27/160
+  0139  |-unboost|p2b: Hydrapple|spa|2
+  0140  |-unboost|p1a: Staraptor|spe|1
+  0141  |upkeep
+  0142  |turn|12
+  0143  |move|p2b: Hydrapple|protect|p2b: Hydrapple
+  0144  |-singleturn|p2b: Hydrapple|Protect
+  0145  |move|p1b: Whimsicott|moonblast|p2a: Dragapult
+  0146  |-miss|p1b: Whimsicott|p2a: Dragapult
+  0147  |move|p2a: Dragapult|phantomforce|p1a: Staraptor
+  0148  |-immune|p1a: Staraptor
+  0149  |move|p1a: Staraptor|dualwingbeat|p2a: Dragapult
+  0150  |-damage|p2a: Dragapult|118/163
+  0151  |-damage|p2a: Dragapult|72/163
+  0152  |-hitcount|p2a: Dragapult|2
+  0153  |-end|p1a: Staraptor|syrupbomb|[silent]
+  0154  |upkeep
+  0155  |turn|13
+  0156  |move|p1a: Staraptor|protect|p1a: Staraptor
+  0157  |-singleturn|p1a: Staraptor|Protect
+  0158  |move|p2b: Hydrapple|protect||[still]
+  0159  |-fail|p2b: Hydrapple
+  0160  |move|p1b: Whimsicott|moonblast|p2a: Dragapult
+  0161  |-supereffective|p2a: Dragapult|1
+  0162  |-damage|p2a: Dragapult|0 fnt
+  0163  |faint|p2a: Dragapult
+  0164  |-sideend|p1: |move: Tailwind
+  0165  |upkeep
+  0166  |switch|p2a: Incineroar|incineroar, L50|170/170
+  0167  |-ability|p2a: Incineroar|intimidate|boost
+  0168  |-unboost|p1a: Staraptor|atk|1
+  0169  |-unboost|p1b: Whimsicott|atk|1
+  0170  |turn|14
+  0171  |move|p1b: Whimsicott|charm|p2a: Incineroar
+  0172  |-immune|p2a: Incineroar
+  0173  |move|p2b: Hydrapple|sweetscent|p1b: Whimsicott
+  0174  |-unboost|p1a: Staraptor|evasion|2
+  0175  |-unboost|p1b: Whimsicott|evasion|2
+  0176  |move|p2a: Incineroar|partingshot|p1a: Staraptor
+  0177  |-unboost|p1a: Staraptor|atk|1
+  0178  |-unboost|p1a: Staraptor|spa|1
+  0179  |move|p1a: Staraptor|closecombat|p2a: Incineroar
+  0180  |-supereffective|p2a: Incineroar|1
+  0181  |-damage|p2a: Incineroar|90/170
+  0182  |-unboost|p1a: Staraptor|def|1
+  0183  |-unboost|p1a: Staraptor|spd|1
+  0184  |upkeep
+  0185  |turn|15
+  0186  |move|p1b: Whimsicott|encore|p2a: Incineroar
+  0187  |-immune|p2a: Incineroar
+  0188  |move|p2b: Hydrapple|dracometeor|p1a: Staraptor
+  0189  |-damage|p1a: Staraptor|0 fnt
+  0190  |-unboost|p2b: Hydrapple|spa|2
+  0191  |faint|p1a: Staraptor
+  0192  |move|p2a: Incineroar|flareblitz|p1b: Whimsicott
+  0193  |-supereffective|p1b: Whimsicott|1
+  0194  |-crit|p1b: Whimsicott
+  0195  |-enditem|p1b: Whimsicott|focussash
+  0196  |-damage|p1b: Whimsicott|1/135
+  0197  |-damage|p2a: Incineroar|46/170|[from] Recoil
+  0198  |-heal|p2a: Incineroar|62/170|[from] item: shellbell
+  0199  |upkeep
+  0200  |switch|p1a: Ceruledge|ceruledge, L50|150/150
+  0201  |turn|16
+  0202  |move|p1b: Whimsicott|tailwind|p1b: Whimsicott
+  0203  |-sidestart|p1: |move: Tailwind
+  0204  |move|p1a: Ceruledge|bulkup|p1a: Ceruledge
+  0205  |-boost|p1a: Ceruledge|atk|1
+  0206  |-boost|p1a: Ceruledge|def|1
+  0207  |move|p2b: Hydrapple|dracometeor|p1a: Ceruledge
+  0208  |-damage|p1a: Ceruledge|126/150
+  0209  |move|p2a: Incineroar|partingshot|p1a: Ceruledge
+  0210  |-unboost|p1a: Ceruledge|atk|1
+  0211  |-unboost|p1a: Ceruledge|spa|1
+  0212  |upkeep
+  0213  |turn|17
+  0214  |move|p1a: Ceruledge|protect|p1a: Ceruledge
+  0215  |-singleturn|p1a: Ceruledge|Protect
+  0216  |move|p2b: Hydrapple|protect|p2b: Hydrapple
+  0217  |-singleturn|p2b: Hydrapple|Protect
+  0218  |move|p1b: Whimsicott|moonblast|p2a: Incineroar
+  0219  |-damage|p2a: Incineroar|5/170
+  0220  |move|p2a: Incineroar|flareblitz|p1a: Ceruledge
+  0221  |-activate|p1a: Ceruledge|move: Protect
+  0222  |upkeep
+  0223  |turn|18
+  0224  |move|p1b: Whimsicott|moonblast|p2a: Incineroar
+  0225  |-damage|p2a: Incineroar|0 fnt
+  0226  |faint|p2a: Incineroar
+  0227  |move|p1a: Ceruledge|bitterblade|p2b: Hydrapple
+  0228  |-damage|p2b: Hydrapple|99/181
+  0229  |-heal|p1a: Ceruledge|150/150|[from] drain|[of] p2b: Hydrapple
+  0230  |move|p2b: Hydrapple|dracometeor|p1a: Ceruledge
+  0231  |-damage|p1a: Ceruledge|128/150
+  0232  |upkeep
+  0233  |turn|19
+  0234  |move|p1a: Ceruledge|protect|p1a: Ceruledge
+  0235  |-singleturn|p1a: Ceruledge|Protect
+  0236  |move|p1b: Whimsicott|tailwind|p1b: Whimsicott
+  0237  |-fail|p1b: Whimsicott
+  0238  |move|p2b: Hydrapple|syrupbomb|p1a: Ceruledge
+  0239  |-activate|p1a: Ceruledge|move: Protect
+  0240  |-sideend|p1: |move: Tailwind
+  0241  |upkeep
+  0242  |turn|20
+  0243  |move|p1a: Ceruledge|protect||[still]
+  0244  |-fail|p1a: Ceruledge
+  0245  |move|p1b: Whimsicott|tailwind|p1b: Whimsicott
+  0246  |-sidestart|p1: |move: Tailwind
+  0247  |move|p2b: Hydrapple|syrupbomb|p1a: Ceruledge
+  0248  |-resisted|p1a: Ceruledge|1
+  0249  |-damage|p1a: Ceruledge|123/150
+  0250  |-start|p1a: Ceruledge|Syrup Bomb
+  0251  |-unboost|p1a: Ceruledge|spe|1
+  0252  |upkeep
+  0253  |turn|21
+  0254  |move|p1b: Whimsicott|charm|p2b: Hydrapple
+  0255  |-unboost|p2b: Hydrapple|atk|2
+  0256  |move|p1a: Ceruledge|bitterblade|p2b: Hydrapple
+  0257  |-damage|p2b: Hydrapple|29/181
+  0258  |-heal|p1a: Ceruledge|150/150|[from] drain|[of] p2b: Hydrapple
+  0259  |-enditem|p2b: Hydrapple|sitrusberry|[eat]
+  0260  |-heal|p2b: Hydrapple|74/181|[from] item: sitrusberry
+  0261  |move|p2b: Hydrapple|sweetscent|p1b: Whimsicott
+  0262  |-unboost|p1a: Ceruledge|evasion|2
+  0263  |-unboost|p1b: Whimsicott|evasion|1
+  0264  |-unboost|p1a: Ceruledge|spe|1
+  0265  |upkeep
+  0266  |turn|22
+  0267  |move|p1a: Ceruledge|protect|p1a: Ceruledge
+  0268  |-singleturn|p1a: Ceruledge|Protect
+  0269  |move|p1b: Whimsicott|moonblast|p2b: Hydrapple
+  0270  |-supereffective|p2b: Hydrapple|1
+  0271  |-damage|p2b: Hydrapple|0 fnt
+  0272  |-end|p1a: Ceruledge|syrupbomb|[silent]  <<<<<< THE SPLIT
+  0273  |faint|p2b: Hydrapple
+
+====================================================================================================
+  RAW PROTOCOL — SHOWDOWN, UNFILTERED battle.log — every line the authority emitted, including the ones the comparator drops   (452 lines)
+====================================================================================================
+  0000  |t:|1788824749
+  0001  |gametype|doubles
+  0002  |player|p1|A||
+  0003  |player|p2|B||
+  0004  |gen|9
+  0005  |tier|[Gen 9 Champions] VGC 2026 Reg M-B
+  0006  |rule|Species Clause: Limit one of each Pokémon
+  0007  |rule|Item Clause: Limit 1 of each item
+  0008  |clearpoke
+  0009  |poke|p1|Gengar, L50|
+  0010  |poke|p1|Whimsicott, L50|
+  0011  |poke|p1|Staraptor, L50|
+  0012  |poke|p1|Ceruledge, L50|
+  0013  |poke|p2|Lucario, L50|
+  0014  |poke|p2|Hydrapple, L50|
+  0015  |poke|p2|Dragapult, L50|
+  0016  |poke|p2|Incineroar, L50|
+  0017  |teampreview|4
+  0018  |split|p1
+  0019  |uhtml|otsrequest|<button name="send" value="/acceptopenteamsheets" class="button" style="margin-right: 10px;"><strong>Accept Open Team Sheets</strong></button><button name="send" value="/rejectopenteamsheets" class="button" style="margin-top: 10px"><strong>Deny Open Team Sheets</strong></button>
+  0020  
+  0021  |split|p2
+  0022  |uhtml|otsrequest|<button name="send" value="/acceptopenteamsheets" class="button" style="margin-right: 10px;"><strong>Accept Open Team Sheets</strong></button><button name="send" value="/rejectopenteamsheets" class="button" style="margin-top: 10px"><strong>Deny Open Team Sheets</strong></button>
+  0023  
+  0024  |
+  0025  |t:|1788824749
+  0026  |teamsize|p1|4
+  0027  |teamsize|p2|4
+  0028  |start
+  0029  |split|p1
+  0030  |uhtmlchange|otsrequest|
+  0031  
+  0032  |split|p2
+  0033  |uhtmlchange|otsrequest|
+  0034  
+  0035  |split|p1
+  0036  |switch|p1a: Gengar|Gengar, L50|135/135
+  0037  |switch|p1a: Gengar|Gengar, L50|100/100
+  0038  |split|p1
+  0039  |switch|p1b: Whimsicott|Whimsicott, L50|135/135
+  0040  |switch|p1b: Whimsicott|Whimsicott, L50|100/100
+  0041  |split|p2
+  0042  |switch|p2a: Lucario|Lucario, L50|145/145
+  0043  |switch|p2a: Lucario|Lucario, L50|100/100
+  0044  |split|p2
+  0045  |switch|p2b: Hydrapple|Hydrapple, L50|181/181
+  0046  |switch|p2b: Hydrapple|Hydrapple, L50|100/100
+  0047  |-ability|p2b: Hydrapple|Supersweet Syrup
+  0048  |-unboost|p1a: Gengar|evasion|1
+  0049  |-unboost|p1b: Whimsicott|evasion|1
+  0050  |turn|1
+  0051  |
+  0052  |t:|1788824749
+  0053  |detailschange|p1a: Gengar|Gengar-Mega, L50
+  0054  |-mega|p1a: Gengar|Gengar|Gengarite
+  0055  |detailschange|p2a: Lucario|Lucario-Mega, L50
+  0056  |-mega|p2a: Lucario|Lucario|Lucarionite
+  0057  |move|p1a: Gengar|Protect|p1a: Gengar
+  0058  |-singleturn|p1a: Gengar|Protect
+  0059  |move|p2b: Hydrapple|Protect|p2b: Hydrapple
+  0060  |-singleturn|p2b: Hydrapple|Protect
+  0061  |move|p1b: Whimsicott|Tailwind|p1b: Whimsicott
+  0062  |-sidestart|p1: A|move: Tailwind
+  0063  |move|p2a: Lucario|Meteor Mash|p1a: Gengar
+  0064  |-activate|p1a: Gengar|move: Protect
+  0065  |
+  0066  |upkeep
+  0067  |turn|2
+  0068  |
+  0069  |t:|1788824749
+  0070  |move|p2a: Lucario|Protect|p2a: Lucario
+  0071  |-singleturn|p2a: Lucario|Protect
+  0072  |move|p2b: Hydrapple|Protect|p2b: Hydrapple
+  0073  |-singleturn|p2b: Hydrapple|Protect
+  0074  |move|p1b: Whimsicott|Tailwind||[still]
+  0075  |-fail|p1b: Whimsicott
+  0076  |move|p1a: Gengar|Shadow Ball|p2a: Lucario
+  0077  |-activate|p2a: Lucario|move: Protect
+  0078  |
+  0079  |upkeep
+  0080  |turn|3
+  0081  |
+  0082  |t:|1788824749
+  0083  |move|p1a: Gengar|Protect|p1a: Gengar
+  0084  |-singleturn|p1a: Gengar|Protect
+  0085  |move|p2b: Hydrapple|Protect||[still]
+  0086  |-fail|p2b: Hydrapple
+  0087  |move|p1b: Whimsicott|Moonblast|p2a: Lucario
+  0088  |split|p2
+  0089  |-damage|p2a: Lucario|63/145
+  0090  |-damage|p2a: Lucario|43/100
+  0091  |move|p2a: Lucario|Meteor Mash|p1a: Gengar
+  0092  |-activate|p1a: Gengar|move: Protect
+  0093  |
+  0094  |upkeep
+  0095  |turn|4
+  0096  |
+  0097  |t:|1788824749
+  0098  |move|p1a: Gengar|Protect||[still]
+  0099  |-fail|p1a: Gengar
+  0100  |move|p2a: Lucario|Protect|p2a: Lucario
+  0101  |-singleturn|p2a: Lucario|Protect
+  0102  |move|p1b: Whimsicott|Moonblast|p2a: Lucario
+  0103  |-activate|p2a: Lucario|move: Protect
+  0104  |move|p2b: Hydrapple|Syrup Bomb|p1a: Gengar
+  0105  |-resisted|p1a: Gengar|1
+  0106  |split|p1
+  0107  |-damage|p1a: Gengar|106/135
+  0108  |-damage|p1a: Gengar|78/100
+  0109  |-start|p1a: Gengar|Syrup Bomb
+  0110  |
+  0111  |-unboost|p1a: Gengar|spe|1
+  0112  |-sideend|p1: A|move: Tailwind
+  0113  |upkeep
+  0114  |turn|5
+  0115  |
+  0116  |t:|1788824749
+  0117  |move|p2a: Lucario|Protect|p2a: Lucario
+  0118  |-singleturn|p2a: Lucario|Protect
+  0119  |move|p1b: Whimsicott|Tailwind|p1b: Whimsicott
+  0120  |-sidestart|p1: A|move: Tailwind
+  0121  |move|p1a: Gengar|Sludge Bomb|p2a: Lucario
+  0122  |-activate|p2a: Lucario|move: Protect
+  0123  |move|p2b: Hydrapple|Draco Meteor|p1a: Gengar
+  0124  |split|p1
+  0125  |-damage|p1a: Gengar|0 fnt
+  0126  |-damage|p1a: Gengar|0 fnt
+  0127  |-unboost|p2b: Hydrapple|spa|2
+  0128  |faint|p1a: Gengar
+  0129  |
+  0130  |upkeep
+  0131  |
+  0132  |t:|1788824749
+  0133  |split|p1
+  0134  |switch|p1a: Staraptor|Staraptor, L50|160/160
+  0135  |switch|p1a: Staraptor|Staraptor, L50|100/100
+  0136  |-ability|p1a: Staraptor|Intimidate|boost
+  0137  |-unboost|p2a: Lucario|atk|1
+  0138  |-unboost|p2b: Hydrapple|atk|1
+  0139  |turn|6
+  0140  |
+  0141  |t:|1788824749
+  0142  |move|p1b: Whimsicott|Tailwind||[still]
+  0143  |-fail|p1b: Whimsicott
+  0144  |move|p1a: Staraptor|Close Combat|p2a: Lucario
+  0145  |-supereffective|p2a: Lucario|1
+  0146  |split|p2
+  0147  |-damage|p2a: Lucario|0 fnt
+  0148  |-damage|p2a: Lucario|0 fnt
+  0149  |-unboost|p1a: Staraptor|def|1
+  0150  |-unboost|p1a: Staraptor|spd|1
+  0151  |faint|p2a: Lucario
+  0152  |move|p2b: Hydrapple|Sweet Scent|p1b: Whimsicott|[spread] p1a,p1b
+  0153  |-unboost|p1a: Staraptor|evasion|2
+  0154  |-unboost|p1b: Whimsicott|evasion|2
+  0155  |
+  0156  |upkeep
+  0157  |
+  0158  |t:|1788824749
+  0159  |split|p2
+  0160  |switch|p2a: Dragapult|Dragapult, L50|163/163
+  0161  |switch|p2a: Dragapult|Dragapult, L50|100/100
+  0162  |turn|7
+  0163  |
+  0164  |t:|1788824749
+  0165  |move|p1a: Staraptor|Protect|p1a: Staraptor
+  0166  |-singleturn|p1a: Staraptor|Protect
+  0167  |move|p1b: Whimsicott|Tailwind||[still]
+  0168  |-fail|p1b: Whimsicott
+  0169  |move|p2a: Dragapult|Phantom Force||[still]
+  0170  |-prepare|p2a: Dragapult|Phantom Force
+  0171  |move|p2b: Hydrapple|Draco Meteor|p1a: Staraptor
+  0172  |-activate|p1a: Staraptor|move: Protect
+  0173  |
+  0174  |upkeep
+  0175  |turn|8
+  0176  |
+  0177  |t:|1788824749
+  0178  |move|p2b: Hydrapple|Protect|p2b: Hydrapple
+  0179  |-singleturn|p2b: Hydrapple|Protect
+  0180  |move|p1b: Whimsicott|Encore|p2a: Dragapult|[miss]
+  0181  |-miss|p1b: Whimsicott|p2a: Dragapult
+  0182  |move|p1a: Staraptor|Dual Wingbeat|p2a: Dragapult|[miss]
+  0183  |-miss|p1a: Staraptor|p2a: Dragapult
+  0184  |move|p2a: Dragapult|Phantom Force|p1a: Staraptor|[from] lockedmove
+  0185  |-immune|p1a: Staraptor
+  0186  |
+  0187  |-sideend|p1: A|move: Tailwind
+  0188  |upkeep
+  0189  |turn|9
+  0190  |
+  0191  |t:|1788824749
+  0192  |move|p2a: Dragapult|Phantom Force||[still]
+  0193  |-prepare|p2a: Dragapult|Phantom Force
+  0194  |move|p1b: Whimsicott|Moonblast|p2a: Dragapult|[miss]
+  0195  |-miss|p1b: Whimsicott|p2a: Dragapult
+  0196  |move|p1a: Staraptor|Close Combat|p2a: Dragapult|[miss]
+  0197  |-miss|p1a: Staraptor|p2a: Dragapult
+  0198  |move|p2b: Hydrapple|Syrup Bomb|p1a: Staraptor
+  0199  |-resisted|p1a: Staraptor|1
+  0200  |split|p1
+  0201  |-damage|p1a: Staraptor|138/160
+  0202  |-damage|p1a: Staraptor|86/100
+  0203  |-start|p1a: Staraptor|Syrup Bomb
+  0204  |
+  0205  |-unboost|p1a: Staraptor|spe|1
+  0206  |upkeep
+  0207  |turn|10
+  0208  |
+  0209  |t:|1788824749
+  0210  |move|p1a: Staraptor|Protect|p1a: Staraptor
+  0211  |-singleturn|p1a: Staraptor|Protect
+  0212  |move|p2b: Hydrapple|Protect|p2b: Hydrapple
+  0213  |-singleturn|p2b: Hydrapple|Protect
+  0214  |move|p1b: Whimsicott|Tailwind|p1b: Whimsicott
+  0215  |-sidestart|p1: A|move: Tailwind
+  0216  |move|p2a: Dragapult|Phantom Force|p1a: Staraptor|[from] lockedmove
+  0217  |-immune|p1a: Staraptor
+  0218  |
+  0219  |-unboost|p1a: Staraptor|spe|1
+  0220  |upkeep
+  0221  |turn|11
+  0222  |
+  0223  |t:|1788824749
+  0224  |move|p1a: Staraptor|Protect||[still]
+  0225  |-fail|p1a: Staraptor
+  0226  |move|p1b: Whimsicott|Charm|p2a: Dragapult
+  0227  |-fail|p2a: Dragapult|unboost|[from] ability: Clear Body|[of] p2a: Dragapult
+  0228  |move|p2a: Dragapult|Phantom Force||[still]
+  0229  |-prepare|p2a: Dragapult|Phantom Force
+  0230  |move|p2b: Hydrapple|Draco Meteor|p1a: Staraptor
+  0231  |split|p1
+  0232  |-damage|p1a: Staraptor|27/160
+  0233  |-damage|p1a: Staraptor|16/100
+  0234  |-unboost|p2b: Hydrapple|spa|2
+  0235  |
+  0236  |-unboost|p1a: Staraptor|spe|1
+  0237  |upkeep
+  0238  |turn|12
+  0239  |
+  0240  |t:|1788824749
+  0241  |move|p2b: Hydrapple|Protect|p2b: Hydrapple
+  0242  |-singleturn|p2b: Hydrapple|Protect
+  0243  |move|p1b: Whimsicott|Moonblast|p2a: Dragapult|[miss]
+  0244  |-miss|p1b: Whimsicott|p2a: Dragapult
+  0245  |move|p2a: Dragapult|Phantom Force|p1a: Staraptor|[from] lockedmove
+  0246  |-immune|p1a: Staraptor
+  0247  |move|p1a: Staraptor|Dual Wingbeat|p2a: Dragapult
+  0248  |split|p2
+  0249  |-damage|p2a: Dragapult|118/163
+  0250  |-damage|p2a: Dragapult|72/100
+  0251  |split|p2
+  0252  |-damage|p2a: Dragapult|72/163
+  0253  |-damage|p2a: Dragapult|44/100
+  0254  |-hitcount|p2a: Dragapult|2
+  0255  |
+  0256  |-end|p1a: Staraptor|Syrup Bomb|[silent]
+  0257  |upkeep
+  0258  |turn|13
+  0259  |
+  0260  |t:|1788824749
+  0261  |move|p1a: Staraptor|Protect|p1a: Staraptor
+  0262  |-singleturn|p1a: Staraptor|Protect
+  0263  |move|p2b: Hydrapple|Protect||[still]
+  0264  |-fail|p2b: Hydrapple
+  0265  |move|p1b: Whimsicott|Moonblast|p2a: Dragapult
+  0266  |-supereffective|p2a: Dragapult|1
+  0267  |split|p2
+  0268  |-damage|p2a: Dragapult|0 fnt
+  0269  |-damage|p2a: Dragapult|0 fnt
+  0270  |faint|p2a: Dragapult
+  0271  |
+  0272  |-sideend|p1: A|move: Tailwind
+  0273  |upkeep
+  0274  |
+  0275  |t:|1788824749
+  0276  |split|p2
+  0277  |switch|p2a: Incineroar|Incineroar, L50|170/170
+  0278  |switch|p2a: Incineroar|Incineroar, L50|100/100
+  0279  |-ability|p2a: Incineroar|Intimidate|boost
+  0280  |-unboost|p1a: Staraptor|atk|1
+  0281  |-unboost|p1b: Whimsicott|atk|1
+  0282  |turn|14
+  0283  |
+  0284  |t:|1788824749
+  0285  |move|p1b: Whimsicott|Charm|p2a: Incineroar
+  0286  |-hint|Since gen 7, Dark is immune to Prankster moves.
+  0287  |-immune|p2a: Incineroar
+  0288  |move|p2b: Hydrapple|Sweet Scent|p1b: Whimsicott|[spread] p1a,p1b
+  0289  |-unboost|p1a: Staraptor|evasion|2
+  0290  |-unboost|p1b: Whimsicott|evasion|2
+  0291  |move|p2a: Incineroar|Parting Shot|p1a: Staraptor
+  0292  |-unboost|p1a: Staraptor|atk|1
+  0293  |-unboost|p1a: Staraptor|spa|1
+  0294  |move|p1a: Staraptor|Close Combat|p2a: Incineroar
+  0295  |-supereffective|p2a: Incineroar|1
+  0296  |split|p2
+  0297  |-damage|p2a: Incineroar|90/170
+  0298  |-damage|p2a: Incineroar|52/100
+  0299  |-unboost|p1a: Staraptor|def|1
+  0300  |-unboost|p1a: Staraptor|spd|1
+  0301  |
+  0302  |upkeep
+  0303  |turn|15
+  0304  |
+  0305  |t:|1788824749
+  0306  |move|p1b: Whimsicott|Encore|p2a: Incineroar
+  0307  |-hint|Since gen 7, Dark is immune to Prankster moves.
+  0308  |-immune|p2a: Incineroar
+  0309  |move|p2b: Hydrapple|Draco Meteor|p1a: Staraptor
+  0310  |split|p1
+  0311  |-damage|p1a: Staraptor|0 fnt
+  0312  |-damage|p1a: Staraptor|0 fnt
+  0313  |-unboost|p2b: Hydrapple|spa|2
+  0314  |faint|p1a: Staraptor
+  0315  |move|p2a: Incineroar|Flare Blitz|p1b: Whimsicott
+  0316  |-supereffective|p1b: Whimsicott|1
+  0317  |-crit|p1b: Whimsicott
+  0318  |-enditem|p1b: Whimsicott|Focus Sash
+  0319  |split|p1
+  0320  |-damage|p1b: Whimsicott|1/135
+  0321  |-damage|p1b: Whimsicott|1/100
+  0322  |split|p2
+  0323  |-damage|p2a: Incineroar|46/170|[from] Recoil
+  0324  |-damage|p2a: Incineroar|27/100|[from] Recoil
+  0325  |split|p2
+  0326  |-heal|p2a: Incineroar|62/170|[from] item: Shell Bell|[of] p1b: Whimsicott
+  0327  |-heal|p2a: Incineroar|36/100|[from] item: Shell Bell|[of] p1b: Whimsicott
+  0328  |
+  0329  |upkeep
+  0330  |
+  0331  |t:|1788824749
+  0332  |split|p1
+  0333  |switch|p1a: Ceruledge|Ceruledge, L50|150/150
+  0334  |switch|p1a: Ceruledge|Ceruledge, L50|100/100
+  0335  |turn|16
+  0336  |
+  0337  |t:|1788824749
+  0338  |move|p1b: Whimsicott|Tailwind|p1b: Whimsicott
+  0339  |-sidestart|p1: A|move: Tailwind
+  0340  |move|p1a: Ceruledge|Bulk Up|p1a: Ceruledge
+  0341  |-boost|p1a: Ceruledge|atk|1
+  0342  |-boost|p1a: Ceruledge|def|1
+  0343  |move|p2b: Hydrapple|Draco Meteor|p1a: Ceruledge
+  0344  |split|p1
+  0345  |-damage|p1a: Ceruledge|126/150
+  0346  |-damage|p1a: Ceruledge|84/100
+  0347  |move|p2a: Incineroar|Parting Shot|p1a: Ceruledge
+  0348  |-unboost|p1a: Ceruledge|atk|1
+  0349  |-unboost|p1a: Ceruledge|spa|1
+  0350  |
+  0351  |upkeep
+  0352  |turn|17
+  0353  |
+  0354  |t:|1788824749
+  0355  |move|p1a: Ceruledge|Protect|p1a: Ceruledge
+  0356  |-singleturn|p1a: Ceruledge|Protect
+  0357  |move|p2b: Hydrapple|Protect|p2b: Hydrapple
+  0358  |-singleturn|p2b: Hydrapple|Protect
+  0359  |move|p1b: Whimsicott|Moonblast|p2a: Incineroar
+  0360  |split|p2
+  0361  |-damage|p2a: Incineroar|5/170
+  0362  |-damage|p2a: Incineroar|2/100
+  0363  |move|p2a: Incineroar|Flare Blitz|p1a: Ceruledge
+  0364  |-activate|p1a: Ceruledge|move: Protect
+  0365  |
+  0366  |upkeep
+  0367  |turn|18
+  0368  |
+  0369  |t:|1788824749
+  0370  |move|p1b: Whimsicott|Moonblast|p2a: Incineroar
+  0371  |split|p2
+  0372  |-damage|p2a: Incineroar|0 fnt
+  0373  |-damage|p2a: Incineroar|0 fnt
+  0374  |faint|p2a: Incineroar
+  0375  |move|p1a: Ceruledge|Bitter Blade|p2b: Hydrapple
+  0376  |split|p2
+  0377  |-damage|p2b: Hydrapple|99/181
+  0378  |-damage|p2b: Hydrapple|54/100
+  0379  |split|p1
+  0380  |-heal|p1a: Ceruledge|150/150|[from] drain|[of] p2b: Hydrapple
+  0381  |-heal|p1a: Ceruledge|100/100|[from] drain|[of] p2b: Hydrapple
+  0382  |move|p2b: Hydrapple|Draco Meteor|p1a: Ceruledge
+  0383  |split|p1
+  0384  |-damage|p1a: Ceruledge|128/150
+  0385  |-damage|p1a: Ceruledge|85/100
+  0386  |
+  0387  |upkeep
+  0388  |turn|19
+  0389  |
+  0390  |t:|1788824749
+  0391  |move|p1a: Ceruledge|Protect|p1a: Ceruledge
+  0392  |-singleturn|p1a: Ceruledge|Protect
+  0393  |move|p1b: Whimsicott|Tailwind||[still]
+  0394  |-fail|p1b: Whimsicott
+  0395  |move|p2b: Hydrapple|Syrup Bomb|p1a: Ceruledge
+  0396  |-activate|p1a: Ceruledge|move: Protect
+  0397  |
+  0398  |-sideend|p1: A|move: Tailwind
+  0399  |upkeep
+  0400  |turn|20
+  0401  |
+  0402  |t:|1788824749
+  0403  |move|p1a: Ceruledge|Protect||[still]
+  0404  |-fail|p1a: Ceruledge
+  0405  |move|p1b: Whimsicott|Tailwind|p1b: Whimsicott
+  0406  |-sidestart|p1: A|move: Tailwind
+  0407  |move|p2b: Hydrapple|Syrup Bomb|p1a: Ceruledge
+  0408  |-resisted|p1a: Ceruledge|1
+  0409  |split|p1
+  0410  |-damage|p1a: Ceruledge|123/150
+  0411  |-damage|p1a: Ceruledge|82/100
+  0412  |-start|p1a: Ceruledge|Syrup Bomb
+  0413  |
+  0414  |-unboost|p1a: Ceruledge|spe|1
+  0415  |upkeep
+  0416  |turn|21
+  0417  |
+  0418  |t:|1788824749
+  0419  |move|p1b: Whimsicott|Charm|p2b: Hydrapple
+  0420  |-unboost|p2b: Hydrapple|atk|2
+  0421  |move|p1a: Ceruledge|Bitter Blade|p2b: Hydrapple
+  0422  |split|p2
+  0423  |-damage|p2b: Hydrapple|29/181
+  0424  |-damage|p2b: Hydrapple|16/100
+  0425  |split|p1
+  0426  |-heal|p1a: Ceruledge|150/150|[from] drain|[of] p2b: Hydrapple
+  0427  |-heal|p1a: Ceruledge|100/100|[from] drain|[of] p2b: Hydrapple
+  0428  |-enditem|p2b: Hydrapple|Sitrus Berry|[eat]
+  0429  |split|p2
+  0430  |-heal|p2b: Hydrapple|74/181|[from] item: Sitrus Berry
+  0431  |-heal|p2b: Hydrapple|40/100|[from] item: Sitrus Berry
+  0432  |move|p2b: Hydrapple|Sweet Scent|p1b: Whimsicott|[spread] p1a,p1b
+  0433  |-unboost|p1a: Ceruledge|evasion|2
+  0434  |-unboost|p1b: Whimsicott|evasion|1
+  0435  |
+  0436  |-unboost|p1a: Ceruledge|spe|1
+  0437  |upkeep
+  0438  |turn|22
+  0439  |
+  0440  |t:|1788824749
+  0441  |move|p1a: Ceruledge|Protect|p1a: Ceruledge
+  0442  |-singleturn|p1a: Ceruledge|Protect
+  0443  |move|p1b: Whimsicott|Moonblast|p2b: Hydrapple
+  0444  |-supereffective|p2b: Hydrapple|1
+  0445  |split|p2
+  0446  |-damage|p2b: Hydrapple|0 fnt
+  0447  |-damage|p2b: Hydrapple|0 fnt
+  0448  |faint|p2b: Hydrapple
+  0449  |-end|p1a: Ceruledge|Syrup Bomb|[silent]
+  0450  |
+  0451  |win|A
+
+====================================================================================================
+  END OF GAME. Written nowhere; re-run to regenerate.
+====================================================================================================

@@ -1,0 +1,32 @@
+{
+  "what": "PREDICTION WRITTEN BEFORE THE RUN — narration batch 1, fix 1: a Parental Bond volley whose first arrival kills announces no |-hitcount|.",
+  "written": "2026-09-07",
+  "release_before": "1be57a100d59",
+  "release_after": "2cfe3ebc4098",
+  "sample": "node engine/game_differential.js --steering empirical --release <id> --arm middle --end-state --state --census data/verification/census-pin-9446a684709d.json --games 1200 --turns 20 --team-store data/team-pool-frozen --dump-games 80 --dump-out <path> --write",
+  "baseline_measured_on_1be57a100d59": {
+    "games": 961, "readable": 958,
+    "board_material": 0,
+    "protocol_diverged_games": 75,
+    "by_cause_totals.causes": 73,
+    "games_narration_only": 72,
+    "narration_declared_adjusted": 71
+  },
+  "predictions": [
+    { "clause": "board-material", "point": 0, "band": [0, 0],
+      "why": "no HP, no board leaf and no die moves — the fix deletes ONE protocol line and nothing else. A board that parted here would be a regression, not a trade." },
+    { "clause": "games_narration_only", "point": 67, "band": [67, 72],
+      "why": "FIVE narration-only causes, one game each, are the |-hitcount| N=1 family. The band's upper end is every one of the five TRANSFERRING to a later divergence in the same game." },
+    { "clause": "protocol_diverged_games", "point": 70, "band": [70, 75], "why": "the same five games." },
+    { "clause": "by_cause_totals.causes", "point": 68, "band": [68, 73],
+      "why": "five causes removed; a transfer adds a new cause back, so the count could stand still." },
+    { "clause": "narration clause as status.js reads it (declared-adjusted)", "point": 66, "band": [66, 71],
+      "why": "one CLOSETED perish row is subtracted on both sides." },
+    { "clause": "census live", "point": 830, "band": [830, 830],
+      "why": "no tag was wired and no mechanic was added; the census must not move." }
+  ],
+  "named_risks": [
+    "TWO of the five games have a RECOIL line at the divergence (|-damage|...|[from] Recoil). If this engine also places the recoil differently from the authority, closing the -hitcount reveals that instead and the game TRANSFERS rather than leaving.",
+    "MEDSEEN.bondOneArrivalHitcountSuppressed must read ABOVE ZERO on the pinned pool. A zero would mean the wire never reached the pool and any movement came from somewhere else."
+  ]
+}

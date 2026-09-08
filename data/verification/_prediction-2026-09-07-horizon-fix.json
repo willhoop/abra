@@ -1,0 +1,28 @@
+{
+  "written": "2026-09-07T23:33Z",
+  "by": "ENGINE",
+  "topic": "the syrupbomb source-faint fix, measured knob-controlled on one release at --turns 50",
+  "resolved_from_the_first_prediction_file": {
+    "P1": "HIT — at --turns 50 end_reasons carries NO 'the turn cap (50)' row. 958 both ended, 1 THREW, 2 placement.",
+    "P2": "HIT — bar 1 of 958.",
+    "P3": "HIT — by_cause_totals 4 causes / 4 games board-material.",
+    "P5": "HIT — the single non-void board divergence first parts at turn 22.",
+    "P7": "HIT — 266.8s at cap 50 against 218s at cap 20 on the same pins (+22%).",
+    "P4": "not yet run (--state-count-void control)",
+    "P6": "not yet run (cap 100)",
+    "note": "that cap-50 run was VOIDED by driverCodeGuard — the NARRATION agent rewrote engine/game_differential.js mid-run. The console figures are used for DIAGNOSIS only and no artifact figure from it is published. The risk was named in advance in the first prediction file."
+  },
+  "the_defect": "medicham2's per-turn-boost sweep in _updateEvent tested SLOT MEMBERSHIP for 'has the source left the field'; the authority tests Pokemon#isActive, which faintMessages clears at sim/battle.ts:2563 the moment the body faints, before any replacement. A Syrup Bomb whose Hydrapple was KILLED kept taking a Speed stage every residual from a corpse.",
+  "predictions": [
+    {"id": "P8", "claim": "cap 50, MEDI_VOLSRC_SLOT_ONLY=1 (restore arm): bar reads 1 of 958, by_cause_totals.games_board_material reads 4, and the board-material worklist still carries the turn-22 row naming syrupbomb."},
+    {"id": "P9", "claim": "cap 50, clean: bar reads 0 of 958, by_cause_totals.games_board_material reads 3, and the syrupbomb row is gone from the worklist."},
+    {"id": "P10", "claim": "MEDSEEN.perTurnVolatileSourceFaintedInSlot reads greater than 0 over the pinned pool — the disagreeing population exists in real games and is not a lab artefact."},
+    {"id": "P11", "claim": "protocol diverging games 70 -> 69. The cause `medicham2 stopped emitting while showdown continued :: |-end|p2a|syrupbomb` leaves, because the fix emits that line."},
+    {"id": "P12", "claim": "cap 100, clean: end_reasons, state and by_cause_totals identical to the cap-50 clean run. No game is truncated at 50, so a larger cap cannot change any game under fixed seeds."},
+    {"id": "P13", "claim": "the NARRATION clause moves by at most 1 in either direction from this fix alone — one game changes bucket."}
+  ],
+  "risks_named_in_advance": [
+    "The NARRATION agent is editing engine/medicham2-browser.js concurrently, so the release I cut contains its work as well as mine. That is why the delta is measured KNOB-CONTROLLED ON ONE RELEASE rather than as a diff between two releases: a plain before/after across two cuts would not be attributable.",
+    "If that agent edits engine/game_differential.js during a run, driverCodeGuard voids it and the run is discarded and repeated, never reported."
+  ]
+}

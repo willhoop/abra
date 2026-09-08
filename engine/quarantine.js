@@ -5411,12 +5411,50 @@ if (require.main === module) {
       ok('SPLIT / RED — a narration clause that CANNOT ANSWER holds the gate shut once boards are '
         + 'clean: the flag is computed on the refusal paths too, not only on the verdict',
         noProofNarr.ok === false && noProofNarr.gates === true, noProofNarr.gates);
-      ok('SPLIT / GATE — and the SHIPPING assembler is the thing being described: the live gate '
-        + 'carries exactly one reporting clause and it is the narration one',
-        (() => { const g = medichamIsCorrect();
-                 return (g.reporting || []).length === 1
-                   && /NARRATION/.test(g.reporting[0].name); })(),
-        (medichamIsCorrect().reporting || []).map(c => c.name));
+      /* -- THE SHIPPING ASSEMBLER, ASSERTED AS A RELATION AND NOT AS A SNAPSHOT — 2026-09-07 -----
+       *
+       * THIS ARM USED TO READ *"the live gate carries exactly one reporting clause and it is the
+       * narration one"*, and it went RED the day it was supposed to: BOARD-MATERIAL reached 0 of 958,
+       * `narrationClause` computed `gates: true` off that verdict exactly as its header promises, and
+       * the live `reporting` list emptied. The assertion was a photograph of one side of a knob that
+       * was always going to turn — the same shape as an anchor tied to a source string. What it was
+       * REALLY defending is two things that hold on BOTH sides of the flip, so they are what is
+       * asserted now, read out of the live assembler rather than restated:
+       *
+       *   (a) narration is the ONLY clause that may opt out of gating, and it opts out EXPLICITLY —
+       *       a boolean, never an absent field, because absent defaults to gating and would look
+       *       identical to a clause that decided;
+       *   (b) the flip is DERIVED — narration gates exactly when the live BOARD-MATERIAL clause
+       *       passes with a receipt, so `reporting` is empty exactly when boards are clean.
+       *
+       * (b) reads two clauses out of one live gate and asserts a relation between them, which is not
+       * a restatement of `gateVerdict`'s filter: that filter would be satisfied by a `gates` flag
+       * typed by hand, and this arm would not. */
+      {
+        const g = medichamIsCorrect();
+        const nar = (g.clauses || []).filter(c => /NARRATION/.test(c.name || ''));
+        const optOut = (g.clauses || []).filter(c => c.gates === false).map(c => c.name);
+        const board = (g.clauses || []).find(c => /BOARD-MATERIAL/.test(c.name || ''));
+        ok('SPLIT / GATE — the SHIPPING assembler carries exactly one narration clause and it '
+          + 'declares `gates` as an explicit boolean: a clause that never decided is indistinguishable '
+          + 'from one that decided to gate, and only one of those is honest',
+          nar.length === 1 && typeof nar[0].gates === 'boolean',
+          nar.map(c => c.name + ' gates=' + JSON.stringify(c.gates)));
+        ok('SPLIT / GATE — and NARRATION is the only clause in the live gate that may opt out of '
+          + 'gating. Any other name in this list is a new clause that quietly blocks nothing',
+          optOut.every(n => /NARRATION/.test(n)), optOut);
+        /* THE RELATION, WHICH IS THE ONE THAT SURVIVES THE FLIP. Board clean -> narration gates ->
+         * nothing reports. Board parting -> narration reports -> it is the single reporting row. */
+        const boardClean = !!(board && board.ok === true && board.pins);
+        ok('SPLIT / GATE — narration gates EXACTLY when the live BOARD-MATERIAL clause passes with a '
+          + 'receipt, so `reporting` is empty exactly when boards are clean. This is the 2026-08-22 '
+          + 'ruling as a derivation: nobody flips it, and it flips back on its own if a board parts',
+          !!board && nar.length === 1 && nar[0].gates === boardClean
+            && (g.reporting || []).length === (boardClean ? 0 : 1)
+            && (boardClean || /NARRATION/.test(((g.reporting || [])[0] || {}).name || '')),
+          'board clean=' + boardClean + ' narration.gates=' + (nar[0] || {}).gates
+            + ' reporting=' + JSON.stringify((g.reporting || []).map(c => c.name)));
+      }
     }
 
 

@@ -1,0 +1,30 @@
+{
+  "what": "PREDICTION WRITTEN BEFORE THE RUN — narration batch 1, fix 2: Mega Sol announces `|-activate|<user>|ability: Mega Sol` on the five move handlers that pass `message` to effectiveWeather.",
+  "written": "2026-09-07",
+  "release_before": "2cfe3ebc4098",
+  "release_after": "a9b05e61146a",
+  "sample": "node engine/game_differential.js --steering empirical --release <id> --arm middle --end-state --state --census data/verification/census-pin-9446a684709d.json --games 1200 --turns 20 --team-store data/team-pool-frozen --dump-games 80 --dump-out <path> --write",
+  "baseline_measured_on_2cfe3ebc4098": {
+    "games": 961, "readable": 958,
+    "board_material": 0,
+    "protocol_diverged_games": 72,
+    "narration_causes": 67,
+    "games_narration_only": 69
+  },
+  "predictions": [
+    { "clause": "board-material", "point": 0, "band": [0, 0],
+      "why": "one protocol line is ADDED and no HP, stat, volatile or die moves. The private sun already reached the damage, type, charge, Leaf Guard and freeze paths; this fix touches only the announcement." },
+    { "clause": "games_narration_only", "point": 66, "band": [66, 69],
+      "why": "three narration-only causes, one game each, are `|-activate|p2b|megasol`. The band's top is all three transferring to a later divergence in the same game." },
+    { "clause": "protocol_diverged_games", "point": 69, "band": [69, 72], "why": "the same three games." },
+    { "clause": "narration causes", "point": 64, "band": [64, 67],
+      "why": "three removed; a transfer adds one back." },
+    { "clause": "census live", "point": 830, "band": [830, 830],
+      "why": "no tag was wired — the membership is a SHAPE read off params `weatherScaled` already carries, and `data/tags.json` is untouched." }
+  ],
+  "named_risks": [
+    "THE LINE COULD LAND IN THE WRONG PLACE AND MAKE THINGS WORSE. If this engine writes it above `-prepare` where the authority writes it below, three narration games become three ORDERING games and the count does not move.",
+    "A MOVE OUTSIDE THE FIVE COULD ANNOUNCE. The membership is a tag SHAPE; the probe asserts it equals the source membership exactly, but a Mega Sol Solar Beam in a game with no divergence today could ADD one. MEDSEEN.privateWeatherAnnounced on the pool is the number to read.",
+    "MEDSEEN.privateWeatherAnnounced must read ABOVE ZERO on the pinned pool."
+  ]
+}

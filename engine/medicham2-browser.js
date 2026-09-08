@@ -659,6 +659,9 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                              the whole distinction card 39 turns on. */
   buffOnHitAfterSecondaries: 0, rechargeArmedAtSelfDrops: 0,
   hitCountLinesDeferred: 0, hitCountNamedACorpse: 0,
+  bondOneArrivalHitcountSuppressed: 0,
+  privateWeatherAnnounced: 0,
+  drainPaidPerArrival: 0,
   /* 2026-08-26 -- THE MIDDLE ARM'S SECONDARY ADDRESS. Both are INSTRUMENT counters: `MID_TGT` is read
    * only by `midEventDraw`, so neither number describes anything a self-play game or a rollout can see.
    *   secAddrFromLastTarget   SECONDARY DRAWS taken at the last-target address instead of the row's
@@ -2198,6 +2201,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * from the clock running out and had no reader at all. Zero across a corpus that contains a Syrup
    * Bomb and a pivot means the `onUpdate` road is unwired again. */
   perTurnVolatileSourceLeft: 0,
+  /* 2026-09-07 -- THE ONE BOARD THE OLD PREDICATE AND THE AUTHORITY'S DISAGREE ABOUT: a per-turn-boost
+   * volatile whose source has FAINTED and is still standing in its slot. Counted on every run, not
+   * only under the restore knob, so the size of the population is readable rather than inferred. */
+  perTurnVolatileSourceFaintedInSlot: 0,
   /* 2026-08-23 -- THE IN-MOVE UPDATE PASS, `sim/battle-actions.ts:967` (and the Champions mod's own
    * copy at data/mods/champions/scripts.ts:538). Two counters because "it ran" and "it was skipped
    * because nothing connected" are different facts and a single total cannot tell them apart:
@@ -3564,6 +3571,11 @@ const MEDFAILS = { encoreAction: 0,
    * Last Resort click having actually reached the precondition, for the same reason as the flag
    * above: a restore nothing could observe is not a restore. */
   lastResortBattleUsedRestored: 0,
+  /* 2026-09-07 -- set to 1 for the whole run when MEDI_VOLSRC_SLOT_ONLY=1 tests a per-turn-boost
+   * volatile's source by SLOT MEMBERSHIP alone instead of by `Pokemon#isActive`. Gated on the sweep
+   * having actually met a FAINTED source still standing in its slot, which is the only board the two
+   * predicates disagree about: a restore nothing could observe is not a restore. */
+  volSrcSlotOnlyRestored: 0,
   /* 2026-08-27 -- the THIRD condition on Quick Claw's die, which this engine does not model: the
    * authority returns before rolling when the move is Status and the holder has Mycelium Might
    * (data/items.ts quickclaw, first line of the handler). The other two conditions ARE modelled --
@@ -5607,6 +5619,45 @@ function perTurnBoostVolatiles(){
     if(!MEDFAILS.volPerTurnBoostTableFailedFirst) MEDFAILS.volPerTurnBoostTableFailedFirst=String((e&&e.message)||e);
   }
   return _volPTB;
+}
+/* 2026-09-07 -- "HAS THE SOURCE LEFT THE FIELD" IS ONE FACT AND IT HAD TWO IMPLEMENTATIONS THAT
+ * DISAGREED.
+ *
+ * THE AUTHORITY'S PREDICATE IS `Pokemon#isActive`, and there are exactly three sites that clear it in
+ * the whole simulator:
+ *
+ *     grep -rn "isActive = false" sim/   ->   sim/battle-actions.ts:120   switchIn, the outgoing body
+ *                                             sim/battle.ts:2563          faintMessages
+ *                                             sim/pokemon.ts:473          the constructor
+ *
+ * `sim/battle.ts:2563` sits INSIDE `faintMessages`'s drain loop, four statements after
+ * `this.add('faint', pokemon)` and long before a replacement is asked for. So a body that has fainted
+ * and is still standing in its slot is NOT active, and every `!source.isActive` handler fires against
+ * it on the very next `Update`.
+ *
+ * THE TWO CALLERS AND WHAT THEY USED TO SAY. The partial-trap sweep in the residual walk already had
+ * this right -- `_by.fainted||_by.curHP<=0||(actA.indexOf(_by)<0&&actB.indexOf(_by)<0)`. The
+ * per-turn-boost sweep in `_updateEvent` tested SLOT MEMBERSHIP alone, under a comment asserting in as
+ * many words that *"a body that has FAINTED but not yet been replaced is still active in the authority
+ * ... so a KO'd source does not end the volatile early in either engine"*. That sentence is false at
+ * `sim/battle.ts:2563`, and it cost the single board-material game left in the pinned pool at
+ * `--turns 50`: `pair-protect-bust ...bo3-2655745450`, board parting at turn 22 on
+ * `active[].vol.syrupbomb` and `active[].boosts.spe`.
+ *
+ * IT IS ONE FUNCTION NOW BECAUSE CLAUDE.MD SAYS A FACT HAS ONE IMPLEMENTATION. Two readings of one
+ * rule is exactly the shape that stayed invisible here: both kept working, and only one was right.
+ * `tests/probe_syrupbomb_source_faint.js` pins the faint road; `tests/probe_trap_timing.js` and the
+ * interaction matrix's `infestation -> beakblast` row pin the trap road.
+ *
+ * THE `!source.activeTurns` CLAUSE OF THE TRAP'S OWN PREDICATE IS NOT FOLDED IN HERE. The authority's
+ * partial-trap rule is `!source.isActive || source.hp <= 0 || !source.activeTurns` -- the third clause
+ * is the trap's alone, has no counterpart in `syrupbomb.condition`, and was already declared as an
+ * owed remainder at its own site. Moving it into the shared reader would silently give it to a family
+ * the authority never gives it to. */
+function sourceOffField(src,actA,actB){
+  if(!src)return false;                      // an unknown source keeps the old behaviour, deliberately
+  if(src.fainted||src.curHP<=0)return true;  // sim/battle.ts:2563 -- isActive is cleared AT the faint
+  return actA.indexOf(src)<0&&actB.indexOf(src)<0;   // sim/battle-actions.ts:120 -- it walked out
 }
 /* ROADMAP #139 -- WHICH VOLATILES LAST EXACTLY ONE TURN AND FLOOR THEIR HOLDER'S HP. Endure is the
  * only member today; the map exists so the expiry, the floor and the "a MOVE only" gate all come from
@@ -11726,6 +11777,54 @@ function effWeatherOf(field,att,def){
   if(field.wSup||suppressesWeather(att)||suppressesWeather(def))return '';
   return field.weather;
 }
+/* ================================================================================================
+ * 2026-09-07 -- MEGA SOL SAYS SO, AND ONLY THE FIVE CALLERS THAT ASK IT TO
+ * ================================================================================================
+ * `effWeatherOf` above is the RETURN half of sim/pokemon.ts:2195-2202. The other half is a LINE, and
+ * it hangs off a second argument this engine had no analogue for:
+ *
+ *     effectiveWeather(sourceEffect?: Effect, message?: string | boolean) {
+ *       ...
+ *       if (weather !== 'sunnyday' && message) this.battle.add('-activate', this, 'ability: Mega Sol');
+ *       return 'sunnyday' as ID;
+ *
+ * `message` is passed by exactly FIVE move handlers -- `effectiveWeather(undefined, true)` in Solar
+ * Beam, Solar Blade, Moonlight, Morning Sun and Synthesis. Weather Ball, Growth, Thunder, Hurricane
+ * and Blizzard all read the same private sun and stay silent, so this is NOT "announce whenever the
+ * private sun is read".
+ *
+ * THE MEMBERSHIP IS A TAG SHAPE, AND IT WAS PRINTED BOTH WAYS BEFORE IT WAS WIRED. This engine reads
+ * `data/tags.json` and cannot see a handler body, so the predicate is
+ * `weatherScaled.byWeather.sun` carrying `chargeSkip` or a `healFraction`. Measured 2026-09-07 that
+ * is EXACTLY the five, with nothing on either side, and `tests/probe_megasol_announce.js` computes
+ * BOTH memberships on every run -- the shape here and the source one off the live dex -- and FAILS on
+ * a difference of one entry either way. A derived shape that over-matches is this repository's
+ * standing failure and it is refused by an arm rather than by this comment.
+ *
+ * `weather` IS THE PUBLIC SKY. `field.wSup` is the battle loop's Air Lock / Cloud Nine answer over
+ * all four actives, which is what the authority's `Field#effectiveWeather()` asks -- so a Mega Sol
+ * body under a REAL sun writes nothing, and under a suppressed sun writes the line.
+ *
+ * MEDI_MEGASOL_SILENT=1 RESTORES THE ONE EXPRESSION, so the restore reproduces the SAME red rather
+ * than a third behaviour, and stamps `MEDFAILS.megaSolSilentRestored`. */
+function privateWeatherAnnounces(mvId){
+  const _ws=TAGS.param('move',mvId,'weatherScaled');
+  const _s=_ws&&_ws.byWeather&&_ws.byWeather[weatherId('sun')];
+  return !!(_s&&(_s.chargeSkip||_s.healFraction!=null));
+}
+function announcePrivateWeather(field,user,mvId,TR){
+  if(!TR||!user||!mvId)return false;
+  const _pw=TAGS.param('ability',user.ability,'privateWeather');
+  if(!(_pw&&Array.isArray(_pw.actsAsWeather)&&_pw.actsAsWeather.length))return false;
+  if(!privateWeatherAnnounces(mvId))return false;
+  const _priv=weatherId(_pw.actsAsWeather[0]);
+  const _pub=(field&&field.weather&&!field.wSup)?field.weather:'';
+  if(_pub===_priv)return false;                      /* the authority's `weather !== 'sunnyday'` */
+  if(MEGASOL_SILENT){MEDFAILS.megaSolSilentRestored=1;return false;}
+  MEDSEEN.privateWeatherAnnounced++;
+  TR.act(user,'ability: '+abilityLabel(user.ability));
+  return true;
+}
 /* ---- ROADMAP #81 WIRE 12 -- THE AURAS. A DAMAGE MULTIPLIER THAT BELONGS TO THE FIELD -------------
  *
  * Fairy Aura, Dark Aura and Aura Break are `onAnyBasePower` / `onAnyTryPrimaryHit`. `Any` is the whole
@@ -13636,6 +13735,14 @@ const FRACPRI_ITEM_DIE_FIRST=(typeof process!=='undefined'&&process.env&&process
  * `MEDFAILS.lastResortBattleUsedRestored`, and that flag is set only when a Last Resort click
  * actually reached the precondition, because a restore nothing could observe is not a restore. */
 const LASTRESORT_BATTLE_USED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_LASTRESORT_BATTLE_USED==='1');
+/* 2026-09-07 -- THE PER-TURN-BOOST SWEEP'S SOURCE TEST READ SLOT MEMBERSHIP ALONE, which is the engine
+ * as it stood before `sourceOffField` existed. `MEDI_VOLSRC_SLOT_ONLY=1` puts that reading back, so a
+ * Syrup Bomb whose Hydrapple has been KILLED goes on taking a Speed stage every residual from a corpse
+ * until the replacement walks in. Same shape as the flags above; any run carrying it also carries a
+ * non-zero `MEDFAILS.volSrcSlotOnlyRestored`, and that flag is set only when the sweep actually met a
+ * body whose source had FAINTED IN ITS SLOT -- the one case the two predicates disagree about --
+ * because a restore nothing could observe is not a restore. */
+const VOLSRC_SLOT_ONLY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_VOLSRC_SLOT_ONLY==='1');
 /* BATCH N, 2026-09-07 -- THE RE-PRICE OFFERED FOR A FLAT VOLLEY ONLY, which is exactly batch M's
  * engine. `MEDI_ARRIVAL_REPRICE_FLAT_ONLY=1` refuses the per-arrival closure for a volley whose
  * arrivals do not share a band, so a Parental Bond arrival 2 keeps the resist-berry halving arrival 1
@@ -13658,6 +13765,25 @@ const SMARTTARGET_STEP_MAJOR=(typeof process!=='undefined'&&process.env&&process
  * `MEDFAILS.critOncePerClickRestored`. It pins the draw count to ONE and reuses that boolean for
  * every arrival, which is byte-for-byte what the engine did before this wire. */
 const CRIT_ONCE_PER_CLICK_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CRIT_ONCE_PER_CLICK==='1');
+/* 2026-09-07 -- THE SAME SWITCH FOR THE ONE-ARRIVAL BOND COUNT. `MEDI_BOND_ONE_ARRIVAL_HITCOUNT=1`
+ * puts back the `|-hitcount|...|1` this engine wrote when a Parental Bond volley's FIRST arrival
+ * killed the target -- the ONE expression the fix turns on, so the restore reproduces the SAME red
+ * rather than a third behaviour, and any run carrying it also carries a non-zero
+ * `MEDFAILS.bondOneArrivalHitcountRestored`. See the arrival loop's `_landed === 1` clause. */
+const BOND_ONE_ARRIVAL_HITCOUNT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_BOND_ONE_ARRIVAL_HITCOUNT==='1');
+/* 2026-09-07 -- AND THE SAME SWITCH FOR MEGA SOL'S ANNOUNCEMENT. `MEDI_MEGASOL_SILENT=1` takes the
+ * `|-activate|<user>|ability: Mega Sol` line back out and leaves every other half of the private sun
+ * exactly as it is, so the restore reproduces the SAME red rather than a third behaviour. Any run
+ * carrying it also carries a non-zero `MEDFAILS.megaSolSilentRestored`. See `announcePrivateWeather`. */
+const MEGASOL_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_MEGASOL_SILENT==='1');
+/* 2026-09-07 -- AND THE SAME SWITCH FOR THE DRAIN'S POSITION. `MEDI_DRAIN_AT_FOOT=1` puts the payment
+ * back below the arrival loop, sized on the ROW TOTAL, which is what this engine did until today: one
+ * `-heal` line for a two-arrival volley. It is the ONE expression the fix turns on, so the restore
+ * reproduces the SAME red rather than a third behaviour, and any run carrying it also carries a
+ * non-zero `MEDFAILS.drainAtFootRestored`. It is NOT `MEDI_DRAIN_LUMP_ROUND`, which is a different and
+ * older knob: that one restores ONE ROUNDING OVER EVERY TARGET with Big Root folded inside it. This
+ * one moves a per-target payment between two positions and changes no rounding rule. */
+const DRAIN_AT_FOOT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DRAIN_AT_FOOT==='1');
 /* 2026-08-28 -- THE SAME SWITCH FOR THE ABSORB. `MEDI_FORMEONHIT_CLICK_WIDE=1` puts back the
  * whole-click zero, so a five-hit Bullet Seed into a fresh Mimikyu costs the maxhp/8 chip and
  * nothing else and `|-hitcount|` reads 1. It is the ONE expression the fix turns on, so the restore
@@ -13681,6 +13807,12 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
   if(hit&&hit.wantPackets){
     hit.packets=null;
     hit.hitcountable=!!(_plan.alliesPlan||_plan.bondPlan||(mv&&mv.id&&TAGS.has('move',mv.id,'multiHit')));
+    /* 2026-09-07 -- AND WHICH OF THE THREE PLANS IT IS, because the authority's clause has a THIRD
+     * term this engine did not carry: `!(move.hit === 1 && move.multihitType === 'parentalbond')`.
+     * `multihitType` is written by Parental Bond's `onPrepareHit` and by nothing else, so the plan
+     * flag is the same fact -- and `bondPlan` returns ABOVE the rolled/multiHit branches in
+     * `hitPlanOf`, so the two can never both be true. See `_stepHitCount`'s caller. */
+    hit.hitcountBondPlan=!!_plan.bondPlan;
   }
   if(!_plan.perHitPower){
     /* ROADMAP #322 -- ASK FOR THE ONE-ARRIVAL BAND TOO, and only when the caller wants packets. A
@@ -25734,15 +25866,35 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `_volSrc` is already booked for exactly this family and for no other (see applyMoveVolatile),
        * so there is no new lifetime to keep in step.
        *
-       * "STILL ACTIVE" IS MEMBERSHIP OF THE FOUR SLOTS, which is what `Pokemon#isActive` means: a body
-       * that has FAINTED but not yet been replaced is still active in the authority and is still in
-       * these arrays here, so a KO'd source does not end the volatile early in either engine. */
+       * "STILL ACTIVE" IS NOT MEMBERSHIP OF THE FOUR SLOTS, AND THIS BLOCK SAID IT WAS FOR FIFTEEN
+       * DAYS. The paragraph that stood here read *"a body that has FAINTED but not yet been replaced
+       * is still active in the authority and is still in these arrays here, so a KO'd source does not
+       * end the volatile early in either engine"*, and `sim/battle.ts:2563` refutes it: `isActive` is
+       * cleared INSIDE `faintMessages`, four statements after the `|faint|` line and long before a
+       * replacement is asked for. The test is `sourceOffField` now -- one reader, shared with the
+       * partial-trap sweep, which had the right predicate all along. See that function for the three
+       * `isActive = false` sites and for the pool game this cost (board parting at turn 22 on
+       * `active[].vol.syrupbomb`, invisible at the published turn cap of 20).
+       *
+       * `MEDI_VOLSRC_SLOT_ONLY=1` restores the slot-only reading for a paired measurement, and marks
+       * the run ONLY when the sweep actually meets a fainted source still in its slot -- the single
+       * board the two predicates disagree about. */
       for(const e of _all){
         const _m=e.m; if(!_m._vol||!_m._volSrc)continue;
         for(const [_v,_r] of perTurnBoostVolatiles()){
           if(!(_m._vol[_v]>0))continue;
           const _src=_m._volSrc[_v];
-          if(!_src||actA.indexOf(_src)>=0||actB.indexOf(_src)>=0)continue;
+          if(!_src)continue;
+          const _gone=sourceOffField(_src,actA,actB);
+          const _inSlot=actA.indexOf(_src)>=0||actB.indexOf(_src)>=0;
+          if(_gone&&_inSlot){
+            /* THE DISAGREEING BOARD, AND IT IS THE ONLY ONE: the source has fainted and is still
+             * standing in its slot. Counted whether or not the knob is set, so the population the
+             * restore arm can act on is visible on every run rather than only on the red one. */
+            MEDSEEN.perTurnVolatileSourceFaintedInSlot++;
+            if(VOLSRC_SLOT_ONLY)MEDFAILS.volSrcSlotOnlyRestored=1;
+          }
+          if(!(VOLSRC_SLOT_ONLY?!_inSlot:_gone))continue;
           delete _m._vol[_v]; delete _m._volSrc[_v];
           MEDSEEN.perTurnVolatileSourceLeft++;
           if(TR)TR.vend(_m,_v,_r.pb.endsSilently?'[silent]':undefined);
@@ -31675,6 +31827,14 @@ function battleTurn(S,rng,actsForA,actsForB){
            * default and not a silent fallback. */
           const _size=x=>{
             if(_hp.weather){
+              /* 2026-09-07 -- THE OTHER THREE CALLERS. Moonlight, Morning Sun and Synthesis ask
+               * `pokemon.effectiveWeather(undefined, true)` at the top of their `onHit`, above the
+               * `this.heal`, so the line goes here — at the ask, not at the heal.
+               * SAID RATHER THAN LEFT TO BE FOUND: `amt()` refuses a heal-blocked body before it
+               * reaches this closure, so a Heal Blocked Synthesis announces nothing here where the
+               * authority's `onHit` would still announce. No legal board in the pinned pool reaches
+               * it and it is a second wire, not this one. */
+              announcePrivateWeather(field,x,actionMoveId(a),TR);
               const _w=effWeatherOf(field,x,null);
               const _bw=_hp.weather.byWeather&&_hp.weather.byWeather[_w];
               const _f=(_bw&&_bw.healFraction!=null)?+_bw.healFraction:+_hp.weather.baseHealFraction;
@@ -32371,6 +32531,12 @@ function battleTurn(S,rng,actsForA,actsForB){
            * on the deliberate roster before this line changed: the target reached 53 HP upstream on
            * the click turn and 122 here. `effWeatherOf` already applies `field.wSup` and both bodies'
            * Cloud Nine, so the hand-written suppression test goes with it rather than beside it. */
+          /* 2026-09-07 -- AND THE ASK ITSELF IS ANNOUNCED WHEN IT IS A PRIVATE SKY THAT ANSWERS IT.
+           * `onTryMove` writes `-prepare` and THEN calls `effectiveWeather(undefined, true)`, so the
+           * line sits under the prepare and above everything the charge decision leads to. It is
+           * ABOVE the Power Herb clause because the authority's weather test is above its
+           * `runEvent('ChargeMove')` — a herb does not silence it. See `announcePrivateWeather`. */
+          announcePrivateWeather(field,m,a.move.id,TR);
           const _sk=TAGS.param('move',a.move.id,'chargeSkippedByWeather');
           const _herb=m.item==='powerherb';
           if(!(_sk&&_sk.skipsIn&&effWeatherOf(field,m)===_sk.skipsIn)&&!_herb){
@@ -35117,6 +35283,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           }
         }
         R.hitcount=!!(_hitCtx.hitcountable&&!_smartTarget);
+        R.hitcountBondPlan=!!_hitCtx.hitcountBondPlan;
         R.d=d;R.dmg=dmg;
       };
       /* STEP 7b -- spreadDamage (battle-actions.ts:1079): the HP actually moves, for every target,
@@ -35659,6 +35826,10 @@ function battleTurn(S,rng,actsForA,actsForB){
          * counter (`-hitcount` is `hit - 1`, and so is the increment). Two copies of that number is
          * the facts-are-global breach in miniature. 0 means the single-packet road was taken. */
         let _landed=0;
+        /* 2026-09-07 -- set by the arrival loop when it paid the drain per arrival, and read by the
+         * foot call below. A FLAG rather than a second test of `_packets`, because the volley must be
+         * paid exactly once and two readers of one condition is how two copies of a fact disagree. */
+        let _drainPaidInLoop=false;
         /* BATCH M -- the HP this row stood on before any arrival landed, and the running correction
          * the re-price below owes the row total. Both are needed because `_rowDealt` was captured
          * against the PRE-loop HP two hundred lines above, and `_reDealt` caps against `tg.curHP` by
@@ -35713,8 +35884,50 @@ function battleTurn(S,rng,actsForA,actsForB){
                 }
               }
             }
+            const _hpBeforeArrival=tg.curHP;
             tg.curHP-=_packets[i];_landed++;MEDSEEN.multiHitPacketsDealt++;
             if(TR)TR.dmg(tg);
+            /* ==== 2026-09-07 -- THE DRAIN IS PAID BY THIS ARRIVAL, ON THIS ARRIVAL'S DAMAGE =========
+             *
+             *     if (targetDamage && effect.effectType === 'Move') {
+             *       if (this.gen > 4 && effect.drain && source) {
+             *         const amount = Math.round(targetDamage * effect.drain[0] / effect.drain[1]);
+             *         this.heal(amount, source, target, 'drain');
+             *       }
+             *     }                                                        sim/battle.ts:2160-2171
+             *
+             * That block is INSIDE `spreadDamage`, which `spreadMoveHit` runs once per hit, so a
+             * two-arrival Drain Punch heals TWICE and writes two `|-heal|…|[from] drain` lines. This
+             * engine paid ONE heal below the whole loop on the row total. `probe_bond_arrival_reprice`
+             * has printed the mismatch on every run since 2026-09-07 and docs/ENGINE.md owed it.
+             *
+             * IT IS THE SAME `_payDrainRow` -- the rounding, the `<=1` clamp, the truncation, Heal
+             * Block and Big Root's `md4096` all stay in the one function. Only WHAT IT IS HANDED and
+             * WHERE IT IS CALLED move, which is why the user's final HP is asserted equal in EVERY arm
+             * of `tests/probe_drain_per_arrival.js`, including the red one: `Math.round` per arrival is
+             * not `Math.round` over the sum, and a change of arithmetic that moved the total would
+             * turn a narration fix into a board regression.
+             *
+             * THE LINE FOLLOWS THE HEAL AND NOT THE ARRIVAL. `_payDrainRow` writes nothing when the
+             * bar does not move, which is `Battle#heal`'s own rule -- CTRL-B is a volley whose first
+             * arrival fills the bar and whose second therefore says nothing. */
+            /* ==== AND IT IS THE HP THAT ACTUALLY MOVED, NOT THE PACKET — CORRECTED 2026-09-07 ======
+             *
+             * THE FIRST VERSION OF THIS LINE PASSED `_packets[i]` AND PARTED TWO BOARDS. The
+             * authority's variable is `targetDamage`, which `spreadDamage` sets from what the bar
+             * actually gave up: an OVERKILL heals on the victim's last few HP and not on the number
+             * the move rolled. Measured on the pinned pool, release `028392265ab7`, board-material
+             * 0 -> 2 — a crit Drain Punch into a Toxapex on 2 HP healed `round(26/2) = 13` here where
+             * the authority healed `round(2/2) = 1`. The foot call it replaced was always right about
+             * this, because `_rowDealt` is the clamped row total; only the per-arrival split lost it.
+             *
+             * `Math.max(0, tg.curHP)` IS THE CLAMP AND IT IS WHY THIS IS NOT `_packets[i]`: this loop
+             * lets `curHP` go negative and the faint walk tidies it later, so the difference has to be
+             * taken against a floored HP or an overkill would pay itself back. */
+            if(!DRAIN_AT_FOOT){
+              _drainPaidInLoop=true;MEDSEEN.drainPaidPerArrival++;
+              _payDrainRow(_hpBeforeArrival-Math.max(0,tg.curHP),tg);
+            }
             /* ============ 2026-08-30 -- THE `DamagingHit` EVENT IS RAISED PER ARRIVAL ==============
              *
              * `runEvent('DamagingHit', damagedTargets, …)` sits INSIDE `spreadMoveHit`
@@ -35822,7 +36035,29 @@ function battleTurn(S,rng,actsForA,actsForB){
            * arrivals actually landed before the volley stopped at a KO, so the NUMBER stays here; the
            * authority writes the line below `faintMessages` (battle-actions.ts:976-978) and so does
            * this engine now. */
-          if(R.hitcount&&_landed>0)R.hitLanded=_landed;
+          /* ==== 2026-09-07 -- A PARENTAL BOND VOLLEY THAT LANDS ONE ARRIVAL ANNOUNCES NOTHING =====
+           *
+           *     if (move.multihit && typeof move.smartTarget !== 'boolean' &&
+           *         !(move.hit === 1 && move.multihitType === 'parentalbond')) {
+           *       this.battle.add('-hitcount', targets[0], hit - 1);
+           *     }                                    data/mods/champions/scripts.ts:547-551
+           *
+           * The third clause is the one this engine never carried, and it is Parental Bond's ALONE --
+           * `multihitType` is written by its `onPrepareHit` and by nothing else, so Beat Up, the 2-5
+           * family and a natural two-hit move that lands ONE arrival all still print `1`. FIVE
+           * narration-only games on the pinned pool of release `1be57a100d59` are exactly this line.
+           *
+           * `_landed` IS THE AUTHORITY'S `move.hit`, NOT A SECOND COUNT OF IT. Every arrival in this
+           * loop deals damage and the loop breaks at the top of the arrival AFTER the KO, so
+           * `_landed === move.hit === hit - 1` on every board that reaches here.
+           * `tests/probe_bond_one_arrival_hitcount.js`, CTRL-B is the knob. */
+          if(R.hitcount&&_landed===1&&R.hitcountBondPlan&&!BOND_ONE_ARRIVAL_HITCOUNT){
+            MEDSEEN.bondOneArrivalHitcountSuppressed++;
+          }else if(R.hitcount&&_landed>0){
+            if(BOND_ONE_ARRIVAL_HITCOUNT&&_landed===1&&R.hitcountBondPlan)
+              MEDFAILS.bondOneArrivalHitcountRestored=1;
+            R.hitLanded=_landed;
+          }
           /* NOT EXPECTED AND THEREFORE COUNTED. Arrival 0 deals zero under the absorb, so it
            * cannot KO and the loop cannot break before the first seam. Non-zero means the packet
            * vector arrived shorter than the price said, and a body would be left renamed with no
@@ -35886,8 +36121,14 @@ function battleTurn(S,rng,actsForA,actsForB){
             else R.hitLanded=1;
           } }
         /* 2026-08-24 -- THE DRAIN HEAL, IMMEDIATELY BELOW THIS TARGET'S `-damage` LINE, which is
-           where sim/battle.ts:2168 sits inside `spreadDamage`'s own loop. See `_payDrainRow`. */
-        _payDrainRow(_rowDealt,tg);
+           where sim/battle.ts:2168 sits inside `spreadDamage`'s own loop. See `_payDrainRow`.
+           2026-09-07 -- AND THE PACKET ROAD NOW PAYS IT INSIDE THAT LOOP, once per arrival, which is
+           where the authority pays it. This call is the SINGLE-PACKET road, and the RESTORE path:
+           `_drainPaidInLoop` says which road ran, so the volley is paid exactly once either way. */
+        if(!_drainPaidInLoop){
+          if(DRAIN_AT_FOOT&&_packets&&_packets.length>1)MEDFAILS.drainAtFootRestored=1;
+          _payDrainRow(_rowDealt,tg);
+        }
         /* WIRE 135 -- WHO HIT ME THIS TURN, recorded on the one line every move's damage passes
          * through. `_hitBy` is a SET OF BODIES rather than a flag because Avalanche asks whether THE
          * TARGET damaged it -- a boolean would double off the partner's Earthquake, which is a
@@ -40695,8 +40936,13 @@ function battleTurn(S,rng,actsForA,actsForB){
          *
          * DECLARED REMAINDER, NOT FIXED HERE: the authority's predicate is `!source.isActive ||
          * source.hp <= 0 || !source.activeTurns`, and `!source.activeTurns` -- a trapper that entered
-         * the field THIS turn -- has no counterpart below. It needs its own fixture. */
-        if(_by&&(_by.fainted||_by.curHP<=0||(actA.indexOf(_by)<0&&actB.indexOf(_by)<0))){
+         * the field THIS turn -- has no counterpart below. It needs its own fixture.
+         *
+         * 2026-09-07 -- THE PREDICATE IS `sourceOffField` NOW, AND IT IS THE SAME BYTES IT WAS. This
+         * site was already correct; the per-turn-BOOST sweep in `_updateEvent` was not, and the two
+         * were two readings of one fact. See `sourceOffField` for the three `isActive = false` sites
+         * and for why `!source.activeTurns` is deliberately NOT folded into the shared reader. */
+        if(sourceOffField(_by,actA,actB)){
           const _tmv=m._trap.mv;m._trap=null;MEDSEEN.trapEndedSourceGone++;
           if(TR)TR.vend(m,_tmv||'partiallytrapped',_tmv?'[partiallytrapped]':'');
         }

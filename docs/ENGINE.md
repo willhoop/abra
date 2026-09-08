@@ -130,10 +130,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  830/830 probed mechanics live, 0 missing   (census 2026-09-06 12:37)
+  830/830 probed mechanics live, 0 missing   (census 2026-09-07 19:30)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 27 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-06 13:44)
+    never fired in the staged harness (all-mechanics-fire.json, 2.4 h old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-07 19:36)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -150,14 +150,266 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is da8597c45bb8 now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 285/301 probed, 16 unprobed;  276/301 have an engine consumer, 25 have none
+  tag coverage: 285/301 probed, 16 unprobed;  277/301 have an engine consumer, 24 have none
     a tag with no consumer is derived and read by nothing — engine/tag_dex.js greps board.js and
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-06 14:08_
+_stamped 2026-09-07 19:51_
 
 <!-- /GENERATED -->
+
+## THE HORIZON WAS THE INSTRUMENT'S, NOT THE GAME'S — DEFAULT TURN CAP **20 → 50**, AND THE 20 WAS HIDING A BOARD DIVERGENCE AT TURN 22. BOARD-MATERIAL **1 OF 958 → 0 OF 958 AT `--turns 50`**, CENSUS LEVEL AT 830/830. THE 1-VERSUS-4 DISCREPANCY IS SETTLED BY A CONTROL: THE BAR IS RIGHT AND THE GAP IS THE VOID EXCLUSION. 2026-09-07
+
+Full account, every run log and the standalone replay:
+[docs/_reports/2026-09-07-horizon-and-hidden-divergence.md](_reports/2026-09-07-horizon-and-hidden-divergence.md).
+
+### THE CAP WAS PART OF THE SAMPLE AND NOBODY WAS TOLD
+
+At `--turns 20` the run printed `BOARD-MATERIAL GAMES 0 of 958` and **35 of 958 games were still
+running when the instrument stopped watching**. Nothing said so. One of those thirty-five parted a
+board at **turn 22**. The sweep, on identical pins, release `f30bf025ae28`:
+
+| `--turns` | ended AT THE CAP | board-material bar |
+|---|---|---|
+| 20 | **35 of 958** | 0 of 958 |
+| 50 | **0 of 958** | 0 of 958 |
+| 100 | **0 of 958** | 0 of 958 |
+
+**The longest game in this pool reaches turn 36**, so every cap at or above 37 plays a byte-identical
+set of games: `gd-cap50-after.json` and `gd-cap100.json` differ in exactly one key,
+`state.agreement_by_turn`, whose extra fifty rows all read `reached: 0`. `classes`,
+`first_divergences`, `diverged`, `mid_void`, `state` and every `end_state` block are IDENTICAL
+STRINGS. So **50 is free**, and it is chosen over 40 for a 14-turn margin against a pool the ingest
+grows hourly. This format has **no Endless Battle Clause** — Flat Rules, VGC Timer, Open Team Sheets —
+so "every game ends" is an empirical fact about this pool and this driver, never a guarantee.
+
+**A CAP IS PART OF THE SAMPLE DEFINITION.** Cap 50 and cap 100 are one series, shown key by key. Cap
+50 and cap 20 are **not**: thirty-five games were cut short at 20 and one of them was wrong about a
+board. Figures either side of this change may not be lined up without that check.
+
+**And the horizon is LOUD now.** `state.games_cut_off_by_the_turn_cap` is in the artifact and printed
+directly under the bar, with the warning spelled out when it is non-zero. Shown red on a deliberate
+`--turns 12 --games 150` run at **48 of 129** before being trusted; at the new default it reads
+`0/958   (must read 0 — every game reached its own ending inside the horizon)`.
+
+### A PER-TURN-BOOST VOLATILE OUTLIVED ITS SOURCE'S CORPSE
+
+`syrupbomb.condition.onUpdate` ends the volatile on `!source.isActive` (`data/moves.ts:18770-18774`;
+Champions overrides the move's accuracy and nothing else). `isActive` has three clearing sites in the
+whole simulator and one of them is `faintMessages` — `sim/battle.ts:2563`, **inside the drain loop,
+four statements after `this.add('faint', pokemon)`** and long before a replacement is asked for. A
+fainted body still standing in its slot is NOT active.
+
+This engine tested SLOT MEMBERSHIP, under a comment asserting in as many words that *"a body that has
+FAINTED but not yet been replaced is still active in the authority ... so a KO'd source does not end
+the volatile early in either engine."* So a Syrup Bomb whose Hydrapple had been killed went on taking
+a Speed stage every residual from a corpse.
+
+**ONE FACT HAD TWO IMPLEMENTATIONS AND ONLY ONE WAS RIGHT.** The partial-trap sweep already asked
+`_by.fainted||_by.curHP<=0||(actA.indexOf(_by)<0&&actB.indexOf(_by)<0)`. Both sites now call
+`sourceOffField`. The trap's third clause `!source.activeTurns` is deliberately **not** folded in — it
+has no counterpart in `syrupbomb.condition`, and sharing it would hand it to a family the authority
+never gives it to.
+
+`tests/probe_syrupbomb_source_faint.js`, `MEDI_VOLSRC_SLOT_ONLY=1`. RED-1 kills the source; CTRL-A
+pivots it out (the road that already worked — the arm that says the knob is NARROW); CTRL-B leaves it
+alive (which refuses a fix that ends the volatile always). Shown red on the live tree first —
+`showdown 1 Speed stage / medicham 2`, board parting on `active[].boosts.spe` and
+`active[].vol.syrupbomb`, the same leaf as the pool game.
+
+**Two probe faults, both mine, both caught before they became findings:** a faint REPLACEMENT is also
+a `|switch|`, so the first version called RED-1 mislabelled; and the disagreement counter was
+asserted `=== 1` when under the restore knob the same board is met on every Update until the
+replacement arrives (measured 5).
+
+### THE 1-VERSUS-4 DISCREPANCY IS THE VOID EXCLUSION, AND IT IS PROVEN BY A CONTROL
+
+The bar is `state.games` less `state.games_board_never_diverged`, over `results` =
+`allResults.filter(r => !r._mid_void)` (`game_differential.js:7861-7868`).
+`by_cause_totals.games_board_material` sums a table built from the games whose PROTOCOL parted, and
+`endStateSummary` is called on the arm's **UNFILTERED** results (`:7509`). Under `--state-count-void`,
+same release and pins, the bar reads **3 of 961** and by-cause reads **3** — they coincide the moment
+the filter is removed. **The BAR is right**: a void game's dice streams are not shared, so its board
+split is the RULER and not the engine.
+
+A **second, opposite** gap exists and is zero today: a board that parts with a silent narration would
+be in the bar and absent from the table. Both runs report `0 games where the BOARD parted first`.
+
+### THE HAND LIST
+
+**Removed — one, and it was never on the list, because the instrument could not see it:**
+
+- **A PER-TURN-BOOST VOLATILE SURVIVING ITS SOURCE'S FAINT** — `tests/probe_syrupbomb_source_faint.js`.
+  It was the single board-material game left at `--turns 50` and it is closed.
+
+**Owed and named, not fixed here:**
+
+- **A NARRATION-POSITION ROW, HANDED TO THE NARRATION CLAUSE.** The fixed game did not leave the run,
+  it changed bucket — `BOARD-MATERIAL` → `NARRATION-ONLY`, new cause
+  `ordering :: |faint|p2b <> |-end|p1a|syrupbomb`. medicham2 emits the `-end` **above** the `|faint|`;
+  the authority emits the faint first (`battle-actions.ts:976` then `:1003`). Board identical.
+- **`!source.activeTurns`** — the third clause of the authority's partial-trap predicate, still
+  unmodelled and still declared at its own site rather than inside `sourceOffField`.
+- **`data/game-differential.json` IS OWED A REPUBLISH** on a settled tree at the new default cap. It
+  ran on `bc99dcc268ce` and the tree is `f30bf025ae28`, so `engine/status.js` reads the board clause
+  as **`MEASURED AGAINST A DIFFERENT ENGINE` — stale, not green.** The measured figure is
+  `0 of 958 at cap 50` in `data/verification/horizon/gd-cap50-after.json` and it is deliberately
+  **not** published over the NARRATION agent's artifact.
+
+**Carried forward unchanged** from the hand lists below — this pass touched none of them.
+
+**THE NARRATION AGENT OWNS `engine/medicham2-browser.js` FOR NARRATION CAUSES TONIGHT, AND THE SIX
+LINES THIS PASS TOUCHED ARE LISTED BY NAME** in §5.4 of the report: the `VOLSRC_SLOT_ONLY` knob, the
+two counters, `sourceOffField`, the per-turn-boost sweep's predicate in `_updateEvent`, and one line
+in the residual walk's trap branch. `engine/game_differential.js` gained `TURNS_DEFAULT` and the
+truncation report; that agent's three console counters were verified intact after every edit.
+
+## NARRATION BATCH 1 — THE SECOND GATE IS OPEN FOR BUSINESS AND IT MOVED: NARRATION **72 → 63 RAW** (declared-adjusted **71 → 62**), PROTOCOL **75 → 66**, BOARD-MATERIAL **0 OF 958 → 0 OF 958**, CENSUS LEVEL AT 830/830. THE GATE'S OWN SELFTEST WAS RED BECAUSE BOARD-MATERIAL SUCCEEDED, AND ONE FIX PARTED TWO BOARDS BEFORE IT WAS RIGHT. 2026-09-07
+
+Three fixes, three new probes, each shown RED under its own restore knob first, each measured on its
+own frozen release with a prediction written before the run. Full account, the class counts
+re-derived, the three probe faults caught before they became findings, and the concurrency incident
+at the end: [docs/_reports/2026-09-07-narration-batch-1.md](_reports/2026-09-07-narration-batch-1.md).
+
+| step | release | narration-only games | protocol | board-material |
+|---|---|---|---|---|
+| the batch's baseline | `1be57a100d59` | 72 | 75 | 0 of 958 |
+| a one-arrival Parental Bond volley announces no `-hitcount` | `2cfe3ebc4098` | **69** | 72 | 0 of 958 |
+| Mega Sol says so, on the five callers that ask | `a9b05e61146a` | **66** | 69 | 0 of 958 |
+| ~~a volley drains once per arrival~~ **FIRST CUT, WITHDRAWN** | `028392265ab7` | *(withheld)* | *(withheld)* | **2 of 958** |
+| the per-arrival drain is sized on the HP the bar gave up | `bc99dcc268ce` | **63** | **66** | **0 of 958** |
+
+Sample line, identical for every run but the release and the dump path:
+
+```
+SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> --arm middle \
+  --end-state --state --census data/verification/census-pin-9446a684709d.json \
+  --games 1200 --turns 20 --team-store data/team-pool-frozen \
+  --dump-games 80 --dump-out <path> --write
+```
+
+`--games 1200` is part of the SAMPLE (961 played, 958 readable, 3 void), not a budget. Predictions in
+`data/verification/_prediction-2026-09-07-narr1-{hitcount,megasol,drain}.json`, written BEFORE each
+run. Two hit at the point estimate on every clause; the first missed by 2 inside its band and the
+cause diff explains it exactly.
+
+### THE GATE'S OWN SELFTEST WAS RED, AND IT WAS RED BECAUSE THE OTHER CLAUSE SUCCEEDED
+
+`engine/quarantine.js --selftest` read 232 passed / 1 failed:
+
+```
+FAIL SPLIT / GATE — ... the live gate carries exactly one reporting clause and it is the narration one   got []
+```
+
+`narrationClause` computes `gates = !!(board.ok === true && board.pins)` exactly as its own 2026-09-06
+header promises, so the moment BOARD-MATERIAL reached zero narration stopped REPORTING and started
+GATING and `reporting` emptied. **The arm was a photograph of one side of a knob that was always going
+to turn.** It now asserts the three things that hold on BOTH sides: exactly one narration clause
+exists and declares `gates` as an EXPLICIT BOOLEAN; NARRATION is the only clause that may opt out; and
+narration gates *exactly when* the live board clause passes with a receipt. Shown RED on a deliberate
+break (`const gates = false` → 231 passed / 4 failed) before being trusted. **235 passed / 0 failed.**
+
+### THE CLASS COUNTS WERE RE-DERIVED, AND THE CLASS NAME IS THE COMPARATOR AND NOT THE DEFECT
+
+Off `end_state[0].summary.by_cause` — the **uncapped** 73 rows, not `first_divergences` (60, capped).
+`ordering` 23, `event missing from medicham2` 22, `extra event emitted by medicham2` 14,
+`unrelated event mismatch` 8, `-fail field 3` 4, `showdown stopped emitting` 1. **68 of 70 causes
+occur in exactly one game.** Read as MECHANISMS instead, the same 70 strings rank completely
+differently, and that ranking is what aimed this batch — the largest bucket is **seven** games where
+the authority writes a bare `|-fail|<user>|` and this engine is silent.
+
+### 1. A PARENTAL BOND VOLLEY THAT LANDS ONE ARRIVAL ANNOUNCES NOTHING
+
+```js
+if (move.multihit && typeof move.smartTarget !== 'boolean' &&
+    !(move.hit === 1 && move.multihitType === 'parentalbond'))
+                                          data/mods/champions/scripts.ts:547-551
+```
+
+The third clause is Parental Bond's ALONE — `multihitType` is written by its `onPrepareHit` and by
+nothing else, so Beat Up, the 2-5 family and a natural two-hit move that land ONE arrival all still
+print `1`. **CTRL-B is that asymmetry as an arm**: same mega, same ability on the field, same body,
+Double Hit instead of Double-Edge, and the authority's `[2, 2, 1]` required rather than forbidden.
+`tests/probe_bond_one_arrival_hitcount.js`, `MEDI_BOND_ONE_ARRIVAL_HITCOUNT=1`. Five causes closed;
+**two games transferred** onto the drain defect below, which batch N had already named and owed.
+
+### 2. MEGA SOL SAYS SO, AND ONLY THE FIVE CALLERS THAT ASK IT TO
+
+`effectiveWeather(sourceEffect?, message?)` — this engine had the RETURN and never the LINE, because
+the line is gated on `message` and exactly five handlers pass it: Solar Beam, Solar Blade, Moonlight,
+Morning Sun, Synthesis. Weather Ball, Growth, Thunder, Hurricane and Blizzard read the same private
+sun and stay silent. **The membership is a tag SHAPE and it was printed both ways before it was
+wired** — `tests/probe_megasol_announce.js` derives it from `data/tags.json` AND from the live dex
+handlers and FAILS on a difference of one entry either way; measured, both are the same five with
+nothing on either side. `data/tags.json` was not regenerated. Three knobs: the SKY (a real sun
+silences it), the ABILITY (a non-mega Meganium), and the MOVE (Weather Ball from the same
+Meganium-Mega — silent, and the arm proves the sun still WORKS by landing a Fire Weather Ball on a
+Ghost). `MEDI_MEGASOL_SILENT=1`. Three causes closed, zero added.
+
+### 3. A VOLLEY DRAINS ONCE PER ARRIVAL — AND THE FIRST CUT PARTED TWO BOARDS
+
+`sim/battle.ts:2160-2171` is inside `spreadDamage`, which runs once per hit, so a two-arrival Drain
+Punch heals twice. **The first cut passed the arrival's PACKET and BOARD-MATERIAL went 0 → 2**: the
+authority's variable is `targetDamage`, the HP the bar actually gave up, so an overkill heals on the
+victim's last few HP. A crit Drain Punch into a Toxapex on 2 HP healed `round(26/2) = 13` here where
+the authority healed `round(2/2) = 1`. **That was the FIRST named risk in the prediction file, and
+the board clause is what caught it.** None of the four original arms could see it — RED and CTRL-C
+kill nobody, CTRL-A lands one arrival, and CTRL-B's cap swallowed the difference — so the probe gained
+an OVERKILL arm and a **whole-series** assertion, because asserting the count and the final HP was
+satisfied by a fix that healed the wrong amount in the middle.
+`tests/probe_drain_per_arrival.js`, `MEDI_DRAIN_AT_FOOT=1`. Three causes closed, zero added.
+
+### THE THREE PROBE FAULTS, NAMED
+
+- **Both p2 slots clicked Protect**, so no click landed and four arms read two empty lists — four
+  quiet failures that looked like an engine verdict.
+- **CTRL-B expected `-hitcount 1` and the authority wrote `2`.** Double Hit is 35 BP an arrival and
+  the KO fell on arrival 2. Reading element `[0]` of the sequence compared two identical 2s and called
+  it a pass; the arm now asserts the whole sequence.
+- **A drain arm labelled "arrival 1 kills" does not kill on arrival 1.** Relabelled to what it
+  measures — the cap — rather than left carrying a claim it cannot support.
+
+### THE HAND LIST
+
+**Removed — three, and they are the three largest mechanisms this batch could reach:**
+
+- **`|-hitcount|…|1` ON A ONE-ARRIVAL PARENTAL BOND VOLLEY** — `tests/probe_bond_one_arrival_hitcount.js`.
+- **MEGA SOL NEVER ANNOUNCED ITS PRIVATE SUN** — `tests/probe_megasol_announce.js`.
+- **A MULTI-ARRIVAL DRAIN IS PAID ONCE AT THE FOOT OF THE VOLLEY** — `tests/probe_drain_per_arrival.js`.
+  This was on batch N's owed list and is now closed, with the overkill clamp it needed.
+
+**Owed and named, not fixed here** (games, on release `bc99dcc268ce`):
+
+- **A BARE `|-fail|<user>|` THE AUTHORITY WRITES AND THIS ENGINE DOES NOT — 7 games**, the largest
+  mechanism left. At least four distinct roots seen in the cards: Yawn at a sleeping body, Leech Seed
+  at a seeded one, Trick, and a Dire Claw secondary refused on an already-statused target.
+- **`|-immune|` LINES IN A DIFFERENT ORDER — 5 games**, Levitate and Soundproof.
+- **`|-boost|<x>|<stat>|0` — 5 games.** A boost capped at its stage that the authority still announces.
+- **`|-fail|` MISSING ITS THIRD FIELD — 4 games**: `allyswitch`, `substitute|[weak]`.
+- **SUPREME OVERLORD'S `-activate` AGAINST THE `|switch|` BESIDE IT — 3 games.**
+- **AN AEGISLASH `detailschange` ON A FAINT THE AUTHORITY DOES NOT WRITE — 3 games.**
+- **A `-curestatus <x> frz [msg]` THIS ENGINE WRITES AND THE AUTHORITY DOES NOT — 3 games.**
+- **PROTECT vs AN ABILITY IMMUNITY — 3 games.** Showdown writes `-activate move: Protect` where this
+  engine writes `-immune [from] ability: Good as Gold`; Protect's `onTryHit` carries the higher
+  priority.
+- **`|-end|<x>|flashfire` ON THE HOLDER'S SWITCH-OUT — 2 games.**
+- **THE NON-FLAT RE-PRICE DRIFTS AT ARRIVAL 0 ON 39 CLICKS**, carried unchanged from batch N.
+- **THE STALE ARTIFACTS**, and see the incident below before re-running them.
+
+**ANOTHER AGENT WROTE TO `engine/medicham2-browser.js` AT 19:28 LOCAL, MID-BATCH, AND IT IS REPORTED
+RATHER THAN TOUCHED.** A `sourceOffField` / `MEDI_VOLSRC_SLOT_ONLY` change plus
+`tests/probe_syrupbomb_source_faint.js` and a `tests/roster.js` edit appeared while this batch ran.
+**Every figure above survives and that was checked, not assumed**: each measurement opened a frozen
+release and `perTurnVolatileSourceFaintedInSlot` reads 0 in all five frozen copies and 2 in the live
+tree. What does NOT survive is the LIVE gate — `status.js` withholds both whole-game clauses as
+*"MEASURED AGAINST A DIFFERENT ENGINE"* and prints 6 of 9 failing where this batch left 1 of 9. **The
+re-run is not this session's to make**: a differential on the combined tree measures both changes at
+once, and `data/engine-diff.json` (re-run 19:36, stamped `f30bf025ae28`) is already a mixed-tree
+artifact from which nothing is quoted.
+
+**Carried forward unchanged** from the hand lists below: a spread move's named target drawn at random
+by the authority and picked first-foe here.
 
 ## LONG-TAIL BATCH N — BOARD-MATERIAL **3 OF 958 -> 0 OF 958**, PROTOCOL **76 -> 75**, CENSUS LEVEL AT 830/830. THE LAST THREE GAMES WERE A MOVE THAT UNLOCKS PER STAY, A BERRY CARRIED INTO AN ARRIVAL THAT NEVER SAW IT, AND A VOLLEY WALKED IN THE WRONG NESTING ORDER. **`engine/status.js` READS `PASS … BOARD-MATERIAL: 0 of 958`. THE QUARANTINE HAS NOT OPENED — FIVE OTHER CLAUSES ARE STILL RED AND FOUR OF THEM ARE STALE ARTIFACTS THIS BATCH INVALIDATED.** 2026-09-07
 
