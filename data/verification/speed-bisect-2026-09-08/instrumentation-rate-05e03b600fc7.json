@@ -1,0 +1,27 @@
+{
+ "generated": "2026-09-08T07:04:36.921Z",
+ "engine_release": "05e03b600fc7",
+ "team_store": "data/team-pool-frozen",
+ "what": "COUNTER WRITE RATE in the rollout play path, and a cost model for it. Not an ablation.",
+ "playouts": 400,
+ "turns": 4420,
+ "ms": 1504.2,
+ "ms_per_turn": 0.3403,
+ "counter_writes_per_turn": {
+  "MEDSEEN": null,
+  "MEDFAILS": 0.07,
+  "tags.ASKED (every param/has call)": 799.55,
+  "tags.COUNT (every hit)": 818.58
+ },
+ "ns_per_write_measured": {
+  "plain_object_800_keys": 16.71,
+  "null_proto_dict": 18.15
+ },
+ "modelled_instrumentation_ns_per_turn": null,
+ "modelled_share_of_play_time_pct": null,
+ "caveat": "A cost model, not an ablation: it charges every counter write at a micro-benchmarked rate and cannot see writes the optimiser removed. Read it as an UPPER BOUND on what deleting the counters could return.",
+ "failures": {
+  "pair": 0,
+  "threw": 0
+ }
+}

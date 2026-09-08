@@ -128,3 +128,53 @@ MEASURE's calibration question and must not be assumed away.
 — the census JSON is not in `SOURCES`, so a snapshot-path load silently plays a SWITCHLESS playout at
 horizon 60 **and reports success**; `miltank.js` seeds `evalPair` from `Date.now()`, so a decision cannot
 be replayed; and `budgetMs` overran to 2.1x (26.9-42.8 s against a declared 20 s, under a 55 s cap).
+
+
+---
+
+## THE BISECTION LANDED — and it refuted the coordinator's hypothesis outright
+
+**47 release points, 470 timed legs, 5 passes, noise floor 7.3%.**
+
+**The 8.8× is dead for a second, independent reason.** Its 2026-08-06 endpoint has a **same-day sibling
+disagreeing by 4.06×**: one release records 3,212 turns/sec at **2.0 turns/battle**, another five hours
+later records 13,041 at **60.1 turns/battle** — every battle running to the cap. Today's engine plays
+10.1 turns and finishes **100%** of games. **Three different populations of "a turn."**
+
+**What IS measured: 2.19× slower since 2026-08-12.** Three instruments sharing only the pool agree —
+curve 2.19×, uncontended 400-playout probe 2.15×, CPU profile 1.96×. Extrapolating across the
+unopenable window gives **~6.0×** since 2026-08-06, not 8.8×.
+
+**AND THERE IS NO STEP TO FIND.** Biggest interval step **+11.2%** across two commits against a 7.3%
+floor; three of the top six sit inside the floor. `log(cost) = 0.945·log(non-comment bytes)`, **R² 0.934,
+n=47.** Cost arrives at **one unit per unit of code** — there is no single bad commit, and looking for
+one is looking for something that does not exist.
+
+**THE COORDINATOR'S LEADING HYPOTHESIS IS REFUTED.** The shared dice addressing — string key, repeat
+map, FNV+fmix — is built by `game_differential.js` **for the middle arm and never runs in `runPlayout`**,
+which hands `rngStreams()` a plain function and takes the back-compatible path. The play path pays only
+the field writes: **12.7 ms of 1,745 = 0.73%.**
+
+**So "strip the instrumentation in a play build" is worth +9%, not a step change.** Counters
+(149.6 `MEDSEEN` + 1,454 `tags.ASKED` + 1,491 `tags.COUNT` per turn at 17 ns) = **7.2%**; address writes
+and trace = **1.2%**. Strip both and today's 1,365 turns/sec becomes ~1,490. **The other ~90% is the game
+being modelled and is NOT RECOVERABLE.** The three mechanics suspects are confirmed: residual family
+**13.7% of the rise**, `dmgRangeOneHit` **2.37×**, `effSpeed` **3.42×**.
+
+**ONE REAL LEVER SURVIVES, AND TWO INDEPENDENT MEASUREMENTS POINT AT IT.** `engine/tags.js` is **15.7%
+of engine self-time at 1,454 lookups per turn**, and `norm()` — an uncached `toLowerCase()` plus regex
+strip on every one — is **5.6% of the whole engine**. The decision profile found the same thing from the
+other end (tag layer 24.6–27.1% of self time, `norm` 8.7–10.3%, `withTag` a full table scan). **Neither
+instrumentation nor mechanics: just an uncached hot path.**
+
+**Stranded: 172 of 599 releases** refuse to open (pre-2026-08-12, missing `spreadL50`/`rngStreams`), 4
+carry no bytes, 1 is rot. **The window holding both disputed figures is unmeasurable with today's
+instrument** — which is why the 8.8× can be refuted but not replaced.
+
+### The queue, as measurement leaves it
+1. **Memoise the tag layer** — the only lever both instruments agree on. ENGINE.
+2. **Fix `screenN`** so candidate count reacts to observed playout cost — 2 of 30 legal pairs evaluated
+   is a scheduling defect no engine speed touches.
+3. **Threads** — serial fraction under 3%, 8–10× real.
+4. **Hoist `applySideState`'s four per-playout rescans** — 4.2–10.0%, identical every playout.
+5. ~~Strip instrumentation~~ — **+9%. Not the architecture decision it looked like.**
