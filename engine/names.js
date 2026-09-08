@@ -102,11 +102,14 @@ function byTag(sec, ...names) {
 let _MEGA = null;
 function megaTable() {
   if (_MEGA) return _MEGA;
-  require('./showdown_path.js');
-  const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
+  /* THROUGH `champions_sim.dexFor`, NOT `Dex.forFormat`. 2026-09-08. This read the ACTIVE regulation
+   * out of data/regulations.json and handed it straight to `Dex.forFormat`, which does not throw on
+   * an id the checkout has never heard of — it returns the BASE mod. The mega table would then have
+   * been built from mainline Gen 9 the moment `active` moved ahead of the pinned checkout, silently,
+   * and `canMega`/`mega` would have answered about a different game. `dexFor` refuses instead. */
   const REGS = JSON.parse(fs.readFileSync(D('data', 'regulations.json'), 'utf8'));
   const active = (REGS.regulations || {})[REGS.active];
-  const dex = Dex.forFormat(active && active.showdownFormat);
+  const dex = require('./champions_sim.js').dexFor(active && active.showdownFormat);
   _MEGA = {};
   for (const it of dex.items.all()) {
     if (it.isNonstandard || !it.megaStone) continue;
@@ -156,10 +159,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename
    * was right. That is the same mistake this file exists to prevent, made inside the file's own
    * selftest, which is exactly why the no-mega species is now READ from the table rather than named. */
   const noMega = (() => {
-    require('./showdown_path.js');
-    const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
     const REGS = JSON.parse(fs.readFileSync(D('data', 'regulations.json'), 'utf8'));
-    const dex = Dex.forFormat(((REGS.regulations || {})[REGS.active] || {}).showdownFormat);
+    /* `dexFor`, not `Dex.forFormat` — same reason as megaTable() above. */
+    const dex = require('./champions_sim.js').dexFor(((REGS.regulations || {})[REGS.active] || {}).showdownFormat);
     const tbl = megaTable();
     for (const s of dex.species.all()) if (!s.isNonstandard && !tbl[id(s.name)]) return s.name;
     return null;

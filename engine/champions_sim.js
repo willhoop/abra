@@ -28,8 +28,17 @@
  * live browser click. So this module is for OFFLINE precomputation only. Nothing here should ever be
  * on a request path.
  *
- * REQUIRES a built checkout of pokemon-showdown master, because the champions mod is NOT in the
- * published npm package (0.11.10 does not contain it). Point SHOWDOWN_PATH at it.
+ * REQUIRES a built checkout of pokemon-showdown master. Point SHOWDOWN_PATH at it.
+ *
+ * THIS SENTENCE USED TO READ "because the champions mod is NOT in the published npm package (0.11.10
+ * does not contain it)", AND THAT IS NO LONGER TRUE. Measured 2026-09-08 and corrected here the same
+ * day: `data/verification/npm-oracle-2026-09-08/npm-oracle-legality.json` compares published
+ * `pokemon-showdown@0.11.11` against this checkout and reports `LEGAL_SETS_IDENTICAL: true` — 347
+ * species, 500 moves, 148 items, 316 abilities, an identical resolved rule table, all three Champions
+ * formats defined identically, 14,192 learnset cells with 0 diffs. The package DOES carry the mod.
+ * The checkout is still what this project measures against, because it is pinned BY COMMIT and a
+ * dist-tag is not a pin — not because the package cannot play this format. A stale claim in a header
+ * reads exactly as authoritative as a measured one, which is why it is corrected rather than deleted.
  *
  *   SHOWDOWN_PATH=/path/to/pokemon-showdown node engine/champions_sim.js
  */
@@ -54,12 +63,22 @@ const path = require('path');
  * already read it. This now does too, and everything downstream imports FORMAT from here rather than
  * restating it. The literal survives only as the fallback for a corrupt config, which is the one case
  * where guessing beats crashing a collection job. */
+/* AND THE FALLBACK IS LOUD, 2026-09-08. It was a bare `catch (e) { }` returning the literal, which is
+ * a silent default wearing the shape of a working feature — the one failure mode this project keeps
+ * paying for. It has never fired (regulations.json parses), and if it ever does the run says so on
+ * stderr and `FORMAT_FALLBACK` records why, so `verify()` can report it rather than a reader having to
+ * guess. Guessing still beats crashing a collection job; guessing SILENTLY does not. */
+let FORMAT_FALLBACK = null;
 const FORMAT = (() => {
+  let why = null;
   try {
     const r = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'regulations.json'), 'utf8'));
     const a = r.regulations[r.active] || {};
     if (a.showdownFormat) return a.showdownFormat;
-  } catch (e) { /* fall through */ }
+    why = 'data/regulations.json names active="' + r.active + '" and that entry has no showdownFormat';
+  } catch (e) { why = 'could not read data/regulations.json: ' + ((e && e.message) || e); }
+  FORMAT_FALLBACK = why;
+  console.error('champions_sim: FALLING BACK to a hardcoded format id — ' + why);
   return 'gen9championsvgc2026regmb';
 })();
 // Pinned, not floating: the mod lives only on master, so there is no version number to depend on.
@@ -85,15 +104,91 @@ function showdownPath() {
   return require('./showdown_path.js').resolve() || '/tmp/ps';
 }
 
+/* AN UNAVAILABLE FORMAT ID SILENTLY RETURNS MAINLINE GEN 9, AND THAT IS REFUSED HERE. 2026-09-08.
+ *
+ * `Dex.forFormat(id)` DOES NOT THROW on an id Showdown has never heard of. It returns the BASE mod.
+ * Measured on the pinned checkout, and printed by tests/probe_unknown_format_refusal.js:
+ *
+ *     gen9championsvgc2026regmb   exists=true    fmt.mod=champions  currentMod=champions  347 species
+ *     <the next regulation>       exists=FALSE   fmt.mod=gen9       currentMod=base       911 species
+ *                                                                   rockyhelmet LEGAL, silktrap LEGAL
+ *
+ * So the National Dex arrives wearing the format's NAME AND ID, every Champions override gone, every
+ * banned item back — and every caller reports success. That is the failure this repo is built around,
+ * armed for the moment `active` moves in data/regulations.json: FORMAT above is derived from that
+ * file, and 228 call sites resolve it through `CS.sim().Dex.forFormat(...)`.
+ *
+ * THE REFUSAL IS STRUCTURAL, NOT A SCAN. `sim().Dex` is not Showdown's Dex — it is a proxy whose ONLY
+ * difference is that `forFormat` goes through `dexFor` below. Every one of those 228 sites is covered
+ * with no edit, and a site added tomorrow is covered the day it is written. A checker that had to be
+ * called would be a checker somebody forgets; there is nothing here to remember.
+ *
+ * TWO CLAUSES, BOTH DERIVED, NEITHER NAMING A FORMAT:
+ *   1. `Dex.formats.get(id).exists` — false for anything this checkout does not carry. This is the
+ *      whole defect and it catches ANY unavailable id, not one special case.
+ *   2. the resolved dex's `currentMod` must start with `champions`. This file IS the Champions
+ *      simulator and every id that reaches it is a Champions format (verified 2026-09-08: all 228
+ *      through-seam calls pass `CS.FORMAT` or a Champions literal), so a base-mod resolution is
+ *      wrong here even in the case clause 1 misses. It is a PREFIX test rather than an equality one
+ *      because the mod name is per-regulation and moves: measured on this checkout,
+ *      gen9championsvgc2026regma carries mod `championsregma` while regmb carries `champions`, so
+ *      `=== 'champions'` would refuse a real regulation the day M-B is frozen off the live mod.
+ *
+ * NOT ADDED: a require of `next_regulation.js` for its VGC_REG shape test. This file is in
+ * engine_release.js's SOURCES, and a new require edge here retroactively strands every release cut
+ * before it (CLAUDE.md, §12). The two clauses above need no shape. */
+function dexFor(formatId) {
+  /* THE RAW DEX, NOT `sim().Dex`. `sim().Dex` is the proxy whose `forFormat` IS this function, so
+   * reading it here is unbounded recursion — the first cut did exactly that and blew the stack. */
+  sim();
+  const Dex = _rawDex;
+  /* Showdown's own `forFormat` takes `Format | string`, so the id is taken off the object when one is
+   * handed over rather than stringified into "[object Object]" — a refusal that reported the wrong id
+   * would be worse than no refusal, because it would look like a real answer. */
+  const id = (formatId && typeof formatId === 'object' && formatId.id) ? String(formatId.id)
+    : (formatId == null ? '' : String(formatId));
+  const fmt = Dex.formats.get(id);
+  if (!fmt || !fmt.exists) {
+    throw new Error(
+      `champions_sim: REFUSING to resolve format "${id}" — this Showdown checkout does not carry it.\n` +
+      `  Dex.forFormat() would NOT have thrown. It returns the BASE mod: mainline Gen 9, the whole\n` +
+      `  National Dex, every Champions override gone and every banned item legal again.\n` +
+      `  Checkout: ${showdownPath()}  (pinned ${PINNED_COMMIT.slice(0, 12)}, ${PINNED_DATE})\n` +
+      `  Champions formats it DOES carry: ${Dex.formats.all().filter(f => /champions/i.test(f.id)).map(f => f.id).join(', ') || '(none)'}\n` +
+      `  If a new regulation has shipped, update the checkout first — a regulation is collectable\n` +
+      `  days before it is simulatable (see engine/next_regulation.js), and until the mod is present\n` +
+      `  there is no honest way to simulate it.`);
+  }
+  const dex = Dex.forFormat(id);
+  const mod = String(dex.currentMod || '');
+  if (!/^champions/.test(mod)) {
+    throw new Error(
+      `champions_sim: format "${id}" exists but resolved to mod "${mod}", not a champions mod.\n` +
+      `  This seam is the Champions simulator; a non-champions dex here is a silently different game.`);
+  }
+  return dex;
+}
+
 let _sim = null;
 let _validator = null;
+let _rawDex = null;
 function sim() {
   if (_sim) return _sim;
   const base = showdownPath();
   try {
     const dist = path.join(base, 'dist', 'sim');
+    _rawDex = require(path.join(dist, 'index')).Dex;
     _sim = {
-      Dex: require(path.join(dist, 'index')).Dex,
+      /* The proxy described above. Everything except `forFormat` forwards to the real Dex untouched;
+       * methods are bound to it so Showdown's own `this` is never the proxy. `forFormat` is the one
+       * door, and it is now shut on an id this checkout cannot serve. */
+      Dex: new Proxy(_rawDex, {
+        get(t, p) {
+          if (p === 'forFormat') return dexFor;
+          const v = t[p];
+          return typeof v === 'function' ? v.bind(t) : v;
+        },
+      }),
       Teams: require(path.join(dist, 'index')).Teams,
       BattleStream: require(path.join(dist, 'battle-stream')).BattleStream,
       getPlayerStreams: require(path.join(dist, 'battle-stream')).getPlayerStreams,
@@ -155,6 +250,9 @@ function verify() {
     mod: ok ? fmt.mod : null,
     pinned_commit: PINNED_COMMIT,
     pinned_date: PINNED_DATE,
+    /* null when data/regulations.json answered; a REASON string when the hardcoded literal was used
+     * instead. `ok:true` with a non-null reason here means the run is on a guessed format id. */
+    format_fallback: FORMAT_FALLBACK,
     actual_commit: actualCommit(),
     /* true / false / null-for-unknown. A consumer that treats null as true is making the same
      * mistake this field was added to expose. */
@@ -766,7 +864,7 @@ function unreachable(kind, id) {
   throw new Error('champions_sim.unreachable: kind must be "ability" or "move", got ' + kind);
 }
 
-module.exports = { FORMAT, PINNED_COMMIT, PINNED_DATE, actualCommit, verify, packTeam, battle, winProb, sim,
+module.exports = { FORMAT, FORMAT_FALLBACK, dexFor, PINNED_COMMIT, PINNED_DATE, actualCommit, verify, packTeam, battle, winProb, sim,
                    snapshot, forkBattle, checkLegal, firstLegalMove, LEGAL_SPREAD, INERT_MOVE,
                    legalRoster, abilityCarriers, moveCarriers, canLearn, unreachable, learnCounters };
 

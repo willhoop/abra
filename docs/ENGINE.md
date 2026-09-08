@@ -49,7 +49,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_smart_target_redirect.js`, `tests/probe_selfboost_empty_foe_side.js`,
 `tests/probe_pivot_after_battle_end.js`, `tests/probe_status_chip_scaled.js`,
 `tests/probe_entry_update_before_mega.js`, `tests/probe_pickpocket_on_a_corpse.js`,
-`tests/probe_hazard_sweep_order.js`, `tests/probe_residual_faint_flush.js`
+`tests/probe_hazard_sweep_order.js`, `tests/probe_residual_faint_flush.js`,
+`tests/probe_unknown_format_refusal.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -158,6 +159,90 @@ ENGINE — does the simulator do what Pokémon does
 _stamped 2026-09-07 22:22_
 
 <!-- /GENERATED -->
+
+## AN UNKNOWN FORMAT ID RESOLVED TO MAINLINE GEN 9 AND NOTHING THREW — **347 LEGAL SPECIES BECOMES 911**, ROCKY HELMET AND SILK TRAP BECOME LEGAL, AND IT WAS ARMED FOR THE DAY `active` MOVES. **228 CALL SITES ROUTED STRUCTURALLY WITH NO EDIT, 13 MORE BY HAND.** NO MECHANIC CHANGED, CENSUS UNTOUCHED AT 830/830, BOARD-MATERIAL NOT RE-MEASURED AND THAT IS DELIBERATE. 2026-09-08
+
+Full account, every command and every count:
+[docs/_reports/2026-09-08-unknown-format-refusal.md](_reports/2026-09-08-unknown-format-refusal.md).
+
+**`Dex.forFormat(id)` DOES NOT THROW ON AN ID SHOWDOWN HAS NEVER HEARD OF.** It returns the BASE mod.
+Read off the pinned checkout `20ad99ffc9a5`:
+
+```
+gen9championsvgc2026regmb  exists=true   fmt.mod=champions  currentMod=champions  347 species  rockyhelmet=Past   silktrap=Past
+<the next regulation>      exists=false  fmt.mod=gen9       currentMod=base       911 species  rockyhelmet=LEGAL  silktrap=LEGAL
+```
+
+CLAUDE.md's rule is that `Dex.forFormat` is not a legality filter and that a walk over the wrong dex
+is *"the National Dex wearing the format's name."* **This is that one level up — the wrong dex wearing
+the format's NAME AND ID** — and it is the signature failure of this project: a capability absent,
+everything reporting success. `engine/champions_sim.js` derives `FORMAT` from `data/regulations.json`
+and **228 call sites** resolve it through `CS.sim().Dex.forFormat(...)`, so it was armed for the exact
+moment somebody flips `active`.
+
+### THE REFUSAL IS A RESOLVER, NOT A SCAN
+
+`dexFor()` in `engine/champions_sim.js`, two clauses, neither naming a format: `Dex.formats.get(id).exists`
+must be true, and the resolved `currentMod` must match `/^champions/`. **A PREFIX TEST, NOT EQUALITY —
+and that was measured before it was wired**: `gen9championsvgc2026regma` carries mod `championsregma`
+while `regmb` carries `champions`, so `=== 'champions'` would refuse a real regulation the day M-B is
+frozen off the live mod.
+
+**`sim().Dex` is now a Proxy** whose only difference is that `forFormat` is `dexFor`; everything else
+forwards to the real Dex with methods bound to it. All 228 sites are covered with no edit, **including
+all six the readiness sweep named** (`mag_bot.js`, `showdown_bot.js`, `tag_dex.js`, `roster.js`,
+`merge_mega_into_engine.js`, `build_engine_data.js`), and a site written tomorrow is covered the day it
+is written. `next_regulation.js` was deliberately NOT required for its shape regex: `champions_sim.js`
+is in `engine_release.js`'s `SOURCES` and a new require edge there strands every earlier release.
+
+**The first cut recursed into itself** — `dexFor` read `sim().Dex`, whose `forFormat` IS `dexFor` —
+and blew the stack on the first run. It holds `_rawDex` now.
+
+### THE CHANGE IS A NO-OP FOR THE LIVE FORMAT, BY IDENTITY
+
+`CS.sim().Dex.forFormat(CS.FORMAT) === rawDex.forFormat(CS.FORMAT)` is **true**: every consumer
+receives literally the same dex instance it received before. That is why no board can move through
+this path, and it is a stronger claim than a sampled differential.
+
+### THE PROBE
+
+`tests/probe_unknown_format_refusal.js` — **3 assertions failed, exit 1** before the fix; **13 of 13
+green, exit 0** after. **The control is in-band and never moved**: the live regulation resolves, to a
+champions mod, to 347 species, with Rocky Helmet and Silk Trap still `Past` — a refusal that also
+refused the real format would have broken the thing it protects. It ends with an end-to-end rehearsal
+in a CHILD process: `CS.FORMAT` moved to the unavailable id, `engine/tag_dex.js` loaded, **REFUSED**.
+
+**NOTHING IN IT NAMES A FORMAT.** The fixture walks the active regulation's token forward and takes
+the first id this checkout does not carry, so it walks past that format the day Showdown ships it.
+
+### THE HAND LIST
+
+- **37 CALL SITES IN 35 FILES STILL PASS THE LITERAL `'gen9championsvgc2026regmb'` TO A DIRECT DEX** —
+  mostly probes, plus `build/build_browser_data.js`, `engine/derive_switch_carry.js` and
+  `engine/fixture_preflight.js`. They do **not** follow the active regulation, so they cannot switch
+  dex silently when `active` moves; they go wrong only on the day the pinned checkout stops carrying
+  Reg M-B, and on that day the file describes a dead regulation anyway. Left because routing 30-odd
+  test files while two agents held `tests/` was the worse trade, not because it is finished.
+- **`tests/mutation_harness.js` STATES THE EXISTENCE CLAUSE LOCALLY** rather than calling `dexFor`. It
+  reads its format id out of the frozen RELEASE, and a release cut before 2026-09-08 has no `dexFor`
+  to call; reaching into the live tree for the resolver would put a moving file inside a pinned block.
+  It is the one place the fact is written twice and it says so in place.
+- **`data/format-audit.json` AND A FRESH DERIVATION DISAGREE BY 268 LINES.** A smoke run of
+  `engine/format_audit.js` rewrote it much shorter; the file was restored with `git checkout --` and
+  the discrepancy was NOT chased. It is a claim about our own constants, not about the game.
+- **BOARD-MATERIAL WAS NOT RE-MEASURED AND THE LAST VALUE IS NOT RESTATED HERE.** Two agents were
+  writing `engine/rollout_leaf.js` (a SOURCE), `engine/register_reality.js` and `tests/roster.js`
+  within 48 minutes of this pass. An unpinned differential would have been a measurement taken beside
+  a writing agent; a `--release`-pinned one serves the frozen `champions_sim.js` and cannot see the
+  change at all. It is owed the next time the tree is quiet.
+- **`data/mechanics-census.json` WAS NOT REGENERATED**, for the same reason and because no mechanic
+  changed. It stands at 830 probed / 830 live / 0 missing / 0 unarmed, read from the artifact.
+- **`tests/test-pinch-family.js` IS RED AT 1 OF 61 AND IT IS NOT THIS PASS'S.** Clause 4, *"all five
+  0-use members are still in the ungated set"* — `ungated set is: firemane`. The file was stashed back
+  to `HEAD` and re-run and failed identically; the only edit here returns the same dex object by
+  identity. **Reported, not filed and not called a known failure** — it belongs to whoever owns the
+  `damageBoost` hp-gate set.
+- **`node engine/status.js --write` WAS NOT RUN**, per the brief. Nothing was committed.
 
 ## THE ABILITY-SWAP CONTROL WAS ANNOUNCING ITS OWN NAME — ROSTER ABILITIES **146 → 139 FIRED-AND-BOARDS-MATCH**, **CONTROL-NOT-QUIET 45 → 14**, **COULD-NOT-STAGE 124 → 158**, ZERO DIFFER AND ZERO DID-NOT-FIRE THROUGHOUT. **TWELVE OF THE 146 GREENS RESTED ON NOTHING BUT THE CONTROL DESCRIBING ITSELF.** BOARD-MATERIAL UNTOUCHED AT **0 OF 958**, CENSUS LEVEL AT 830/830. 2026-09-08
 

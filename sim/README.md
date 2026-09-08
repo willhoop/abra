@@ -13,6 +13,29 @@ npm install pokemon-showdown        # installs + builds the real Showdown sim
 node selfplay.js 20                 # 20 self-play Champions battles in the REAL engine
 ```
 
+**THE DEPENDENCY IS PINNED EXACTLY, AND THAT IS NOT A STYLE CHOICE.** `package.json` read
+`"^0.11.9"` until 2026-09-08. A caret range is not a pin: the oracle could move underneath a
+measurement between two `npm install`s, with nothing in any artifact saying which one ran. It now
+reads `"0.11.11"` — **the one version whose legality has actually been compared to ours.**
+
+**0.11.11 IS THE PIN BECAUSE IT WAS MEASURED, NOT BECAUSE IT IS NEWEST.**
+`data/verification/npm-oracle-2026-09-08/npm-oracle-legality.json` compares the published package
+against the pinned master checkout (`0.11.10` at `SHOWDOWN_PATH`) and reports
+`LEGAL_SETS_IDENTICAL: true` — 347 species, 500 moves, 148 items, 316 abilities with zero members on
+either side only, an identical resolved rule table, all three Champions formats defined identically,
+14,192 learnset cells with 0 diffs. **So the published package DOES carry the champions mod.** Any
+other version is unmeasured, and bumping this line without re-running that comparison replaces a
+verified oracle with an assumed one.
+
+*(An earlier draft of this note said the package is mainline-only, quoting `engine/champions_sim.js`'s
+header. That header is STALE and the artifact above is what was measured. Corrected in the same pass
+it was written.)*
+
+**Nothing in this folder feeds a published figure**, and `pokemon-showdown` is not installed in
+`sim/node_modules` at all today, so all four files here are running their `catch` branch. The
+authority for anything measured remains the built master checkout at `SHOWDOWN_PATH`, pinned by
+commit in `engine/champions_sim.js` and checked by `CS.verify()`.
+
 Expected output: N battles resolve with a winner and an average turn count — proof the engine runs and
 that two agents can battle each other. (`FORMAT=gen9championsrandombattle` auto-generates teams; for
 Reg M-B with your own teams, pass packed team strings — export from Showdown's teambuilder.)

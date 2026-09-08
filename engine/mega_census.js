@@ -65,9 +65,10 @@ function megaFormeSet() {
   try {
     const SP = require('./showdown_path.js');                     // sets SHOWDOWN_PATH as a side effect
     void SP;
-    const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
     const CS = require('./champions_sim.js');
-    const D = Dex.forFormat(CS.FORMAT);
+    /* `CS.dexFor`, not `Dex.forFormat`: an unavailable format id does not throw, it resolves to the
+     * BASE mod — mainline Gen 9 — and `/-Mega/` over the National Dex is a different answer. */
+    const D = CS.dexFor(CS.FORMAT);
     return new Set(D.species.all().filter(s => /-Mega/.test(s.name)).map(s => s.id));
   } catch (e) {
     /* ROADMAP #258 — the null is correct and the SILENCE was not. Every caller has to tell "I could

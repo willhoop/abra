@@ -619,6 +619,23 @@ function buildFormatOracle() {
   if (!FORMAT) throw new Error('the release\'s data/regulations.json names no showdownFormat for active regulation "'
     + REG.active + '" — refusing to guess one, because every BANNED-BY-FORMAT downgrade below depends on it');
   const { Dex } = require(p + '/dist/sim');
+  /* AND THE ID HAS TO BE ONE THIS CHECKOUT CARRIES. 2026-09-08. The block above refuses to GUESS a
+   * format and then handed the id it found to `Dex.forFormat`, which does not throw on an id
+   * Showdown has never heard of — it returns the BASE mod, mainline Gen 9 with every Champions
+   * override gone. Every BANNED-BY-FORMAT downgrade below would then have been decided against the
+   * National Dex, which is the direction this function says it must not fail in.
+   *
+   * The canonical refusal is `engine/champions_sim.js` `dexFor()`, and it is NOT called here on
+   * purpose: this oracle reads its format id out of the frozen RELEASE, and reaching into the live
+   * tree for the resolver would put a moving file inside a pinned block. A release cut before
+   * 2026-09-08 has no `dexFor` to call either. So the existence clause is stated locally, once. */
+  const _fmt = Dex.formats.get(FORMAT);
+  if (!_fmt || !_fmt.exists) {
+    throw new Error('the release names format "' + FORMAT + '", which this Showdown checkout does not '
+      + 'carry (' + p + '). Dex.forFormat would NOT throw — it returns the BASE mod, mainline Gen 9 — '
+      + 'so every BANNED-BY-FORMAT downgrade would be decided against the National Dex. '
+      + 'Update the checkout, or re-run against a release whose regulation it carries.');
+  }
   const F = Dex.forFormat(FORMAT);
   const legalAbilities = new Set();
   for (const s of F.species.all()) {

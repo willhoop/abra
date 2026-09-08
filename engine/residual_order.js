@@ -126,7 +126,11 @@ const FORMAT = (() => {
   if (!f) throw new Error('data/regulations.json names no showdownFormat for active regulation ' + r.active);
   return f;
 })();
-const DEX = Dex.forFormat(FORMAT);
+/* `dexFor`, not `Dex.forFormat`. 2026-09-08 — and this one matters more than most: the table this
+ * script writes, data/residual-order.json, is in engine_release.js's SOURCES, so it IS part of the
+ * engine. A resolver that silently returns the BASE mod on an unavailable format id would have
+ * regenerated the end-of-turn order off mainline Gen 9 and frozen it into the next release. */
+const DEX = require('./champions_sim.js').dexFor(FORMAT);
 
 const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const legal = x => !!x && x.exists && !x.isNonstandard;

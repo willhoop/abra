@@ -231,8 +231,9 @@ const PHAZE_THROUGH = has('--phaze-through');
 const PHAZE_MOVES = (() => {
   try {
     const CSx = require('./champions_sim.js');
-    const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-    return new Set(Dex.forFormat(CSx.FORMAT).moves.all()
+    /* `dexFor`, not `Dex.forFormat`: an id this checkout does not carry resolves to the BASE mod
+     * without throwing, and a phaze list read off mainline is a different list. */
+    return new Set(CSx.dexFor(CSx.FORMAT).moves.all()
       .filter(m => !m.isNonstandard && m.forceSwitch).map(m => m.id));
   } catch (e) {
     /* THIS USED TO `return null`, AND A NULL HERE SILENTLY UNDOES 3.99.1.

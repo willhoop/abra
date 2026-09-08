@@ -33,7 +33,9 @@ const SHOWDOWN = process.env.SHOWDOWN_PATH || 'C:/Users/willj/Projects/Pokemon/p
 const { Battle, Teams, Dex } = require(path.join(SHOWDOWN, 'dist', 'sim'));
 const TABLE = require(D('engine', 'residual_order.js'));
 const FORMAT = TABLE.FORMAT;
-const DEX = Dex.forFormat(FORMAT);
+/* `dexFor`, not `Dex.forFormat`. FORMAT comes out of the residual-order table, which follows the
+ * active regulation; an id this checkout does not carry would silently resolve to mainline. 2026-09-08. */
+const DEX = require(D('engine', 'champions_sim.js')).dexFor(FORMAT);
 const VERBOSE = process.argv.includes('--verbose');
 
 let fails = 0, checks = 0;

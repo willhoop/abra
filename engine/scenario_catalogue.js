@@ -55,8 +55,10 @@ const ONLY_UNCLASSED = process.argv.includes('--unclassed');
 
 require('./showdown_path.js');
 const CS = require('./champions_sim.js');
-const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-const D = Dex.forFormat(CS.FORMAT);
+/* `CS.dexFor`, not `Dex.forFormat`. 2026-09-08: `Dex.forFormat` does not throw on a format id this
+ * checkout does not carry — it returns the BASE mod, the whole National Dex with every Champions
+ * override gone. `CS.FORMAT` follows data/regulations.json, so this is armed the day it moves. */
+const D = CS.dexFor(CS.FORMAT);
 const TAGS = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'tags.json'), 'utf8'));
 const CLICKS = (() => {
   try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'click-counts.json'), 'utf8')); }

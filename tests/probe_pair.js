@@ -91,7 +91,8 @@ require(D('data', 'engine-data.js'));
 const MEDI = require(D('engine', 'medicham2-browser.js'));
 const CS = require(D('engine', 'champions_sim.js'));
 const MC = globalThis.MC;
-const dex = Dex.forFormat(CS.FORMAT);
+/* `CS.dexFor`, not `Dex.forFormat` — the latter returns the BASE mod for an unavailable id. 2026-09-08. */
+const dex = CS.dexFor(CS.FORMAT);
 
 /* THE QUIET ABILITY, NAMED. Illuminate touches no damage event, no speed event and no secondary — it
  * is what tests/test-damage-stages.js already uses as its control on both sides. Naming it here means

@@ -82,8 +82,11 @@ const FORMAT = (() => {
   return a.showdownFormat;
 })();
 
-const { Dex } = require(path.join(process.env.SHOWDOWN_PATH, 'dist', 'sim'));
-const dex = Dex.forFormat(FORMAT);
+/* `dexFor`, not `Dex.forFormat`. 2026-09-08. The block above already refuses a config that names no
+ * format — and then handed the id it DID find to a resolver that accepts anything, returning the BASE
+ * mod for an id this checkout does not carry. The comment above says guessing the format "would
+ * silently change the population"; that is exactly what was still possible one line later. */
+const dex = require('./champions_sim.js').dexFor(FORMAT);
 const toID = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
 /* THE THREE TARGET TYPES THE DRIVER ACTUALLY CHOOSES A FOE SLOT FOR. Taken from the branch in

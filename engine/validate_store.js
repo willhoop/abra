@@ -290,8 +290,11 @@ function judge(species, s) {
  * the question "could this game be a Zoroark reveal rather than contamination?" needs the set of
  * species that carry Illusion. Naming them here would be a Pokemon value typed from memory (S12)
  * and would go stale the moment the regulation adds one. Ask the format. */
-const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-const DEX = Dex.forFormat(FORMAT);
+/* `dexFor`, not `Dex.forFormat`. 2026-09-08: FORMAT is the ACTIVE regulation read out of
+ * data/regulations.json, and `Dex.forFormat` does not throw on an id this checkout does not carry —
+ * it returns the BASE mod. The Illusion set would then be derived from mainline Gen 9 and the
+ * validator would go on reporting success against a dex that is not this game. */
+const DEX = require('./champions_sim.js').dexFor(FORMAT);
 const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const ILLUSION = new Set();
 for (const sp of DEX.species.all()) {

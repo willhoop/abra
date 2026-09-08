@@ -74,7 +74,9 @@ if (!process.env.SHOWDOWN_PATH) {
 const { Dex, Teams } = require(path.join(process.env.SHOWDOWN_PATH, 'dist', 'sim'));
 const { Battle } = require(path.join(process.env.SHOWDOWN_PATH, 'dist', 'sim', 'battle.js'));
 const CS = require(D('engine', 'champions_sim.js'));
-const dex = Dex.forFormat(CS.FORMAT);
+/* `CS.dexFor`, not `Dex.forFormat`: an id this checkout does not carry resolves to the BASE mod
+ * without throwing, and an immunity sweep over the National Dex is a different sweep. 2026-09-08. */
+const dex = CS.dexFor(CS.FORMAT);
 
 require(D('data', 'engine-data.js'));
 const M = require(D('engine', 'medicham2-browser.js'));

@@ -8,6 +8,6 @@
     "selfplay": "node selfplay.js"
   },
   "dependencies": {
-    "pokemon-showdown": "^0.11.9"
+    "pokemon-showdown": "0.11.11"
   }
 }

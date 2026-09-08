@@ -62,7 +62,8 @@ require(D('engine', 'showdown_path.js'));
 const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
 const PP = require(D('tests', 'probe_pair.js'));
 const CS = require(D('engine', 'champions_sim.js'));
-const dex = Dex.forFormat(CS.FORMAT);
+/* `CS.dexFor`, not `Dex.forFormat` — the latter returns the BASE mod for an unavailable id. 2026-09-08. */
+const dex = CS.dexFor(CS.FORMAT);
 const MC = globalThis.MC;
 const MCKEY = require('../engine/mc_key.js');
 const TAGSJSON = JSON.parse(fs.readFileSync(D('data', 'tags.json'), 'utf8'));
