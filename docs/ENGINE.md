@@ -159,6 +159,173 @@ _stamped 2026-09-07 22:22_
 
 <!-- /GENERATED -->
 
+## NARRATION BATCH 2 — THE ORDERING CLASS. NARRATION **63 → 55** (raw 64 → 56), PROTOCOL **67 → 59**, ORDERING **24 → 16 GAMES**, BOARD-MATERIAL **0 OF 958 → 0 OF 958**, CENSUS LEVEL AT 830/830. THE FIRST CUT CLOSED FIVE AND OPENED THREE, AND TWO OF THE THREE WERE ITS OWN. 2026-09-07
+
+Three fixes, three new probes, each shown RED under its own knob first, each measured on its own
+frozen release with a prediction written before the run. Full account — the re-derived class counts,
+the three probe faults, the two corrections the first measurement forced, and the owed list:
+[docs/_reports/2026-09-07-narration-ordering.md](_reports/2026-09-07-narration-ordering.md).
+
+| step | release | narration raw | protocol | ordering | board-material |
+|---|---|---|---|---|---|
+| the batch's baseline | `f30bf025ae28` | 64 | 67 | 24 | 0 of 958 |
+| ~~two immunity families at the wrong hit step~~ **FIRST CUT, WITHDRAWN** | `fa835f7a4939` | *(62)* | *(65)* | *(19)* | 0 of 958 |
+| the same fix, the attribution narrowed twice | `76932bf6c654` | **60** | **63** | **19** | 0 of 958 |
+| an arriving ability announces inside the ONE `SwitchIn` event, **and** a pivot names its refuser | `fb0058fb5702` | **56** | **59** | **16** | **0 of 958** |
+
+Sample line, identical for every run but the release and the dump path:
+
+```
+SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> --arm middle \
+  --end-state --state --census data/verification/census-pin-9446a684709d.json \
+  --games 1200 --turns 50 --team-store data/team-pool-frozen \
+  --dump-games 200 --dump-out <path> --write
+```
+
+`--games 1200` and `--turns 50` are part of the SAMPLE, not a budget: **961 played, 958 readable,
+3 void**, and the verdict block is identical across all four runs (SAME-END-STATE 958,
+DIFFERENT-END-STATE 2, THREW 1). Predictions in
+`data/verification/_prediction-2026-09-07-batchO-{immune-step,immune-step2,entry-and-pivot}.json`,
+each written BEFORE its run.
+
+### THE CLASS COUNTS WERE RE-DERIVED FIRST, AND THE BRIEF'S NUMBERS HAD MOVED
+
+Off `end_state[0].summary.by_cause` — the **uncapped** 65 rows, never `first_divergences` (60,
+capped). `ordering` **24** (not 23), `event missing from medicham2` **19** (not 22), `extra event`
+**10** (not 14), `unrelated` 9, `-fail field 3` 4, `showdown stopped` 1. Ordering was the largest
+class and **every one of its 24 games was narration-only**; zero parted a board.
+
+### 1. TWO IMMUNITY FAMILIES ANSWERED AT THE WRONG HIT STEP, IN OPPOSITE DIRECTIONS
+
+`trySpreadMoveHit` is STEP-MAJOR (`sim/battle-actions.ts:550-610`), so the STEP a refusal answers at
+decides the ORDER of the `-immune` lines and the slot order does not.
+
+- **Levitate / Eelevate, one step EARLY.** `data/abilities.ts:2301` gives Levitate no handler at all —
+  the announcement is inside `runImmunity`, STEP 2, guarded on `isGrounded()` returning **null**.
+  This engine answered it from `absorbedBy` inside `_stepTryHit`, STEP 1.
+- **Soundproof / Bulletproof / Overcoat, two steps LATE.** All three are plain `onTryHit`
+  (`:4426`, `:470`, `:3098`) = STEP 1; this engine asked `moveClassBlocked` from `_stepTryImm`, STEP 3.
+
+`tests/probe_immune_step_order.js`, `MEDI_IMMUNE_STEP_LEGACY=1`. Six arms, and no single wrong rule
+satisfies two of them: RED-LEV needs the ability line SECOND, RED-SND needs it FIRST and against the
+slot order, RED-FLY needs it absent on a Flying-typed carrier, CTRL-ORDER/CTRL-DARK/CTRL-LAND hold in
+both arms. Five causes closed.
+
+**THE FIRST CUT WAS WRONG IN THE MEASUREMENT AND RIGHT IN THE ARGUMENT, AND THE RUN IS WHAT SAID SO.**
+It closed the five and opened three. Two were its own: `runImmunity`'s ternary reaches `isGrounded`
+only when the move type is **Ground** (`sim/pokemon.ts:2270`), so a Psycho Cut into a Hydreigon — a
+DARK immunity — was announced `[from] ability: Levitate`. Then the correction exposed a second fault
+one question over: the step-1 deferral was asking the ATTRIBUTION reader (*did the ability decide it*)
+where the question is MEMBERSHIP (*does the authority have a step-1 handler for this ability at all*),
+so a **Rotom-Fan** — Electric/**Flying** and Levitate, the only legal body in this format that
+separates the two — fell back into step 1 and was attributed. Split into `airborneAbilityHasNoTryHit`.
+**That arm was written as a control and the `--red` run proved it a THIRD RED**: the pre-batch engine
+attributed it too. No pinned-pool game can see it — Rotom-Fan is not in the frozen store — so the
+probe found it rather than being aimed at it.
+
+### 2. AN ARRIVING ABILITY SPOKE BETWEEN TWO `|switch|` LINES
+
+`switchIn` writes the `|switch|` line and merely QUEUES `{choice:'runSwitch'}`
+(`sim/battle-actions.ts:145-158`); `runSwitch` drains every consecutive one into a single speed-sorted
+`fieldEvent('SwitchIn', switchersIn)` (`:175-186`); and an ability's `onStart` runs AS an `onSwitchIn`
+handler inside that event, by `Battle#getCallback`'s substitution (`sim/battle.ts:1018-1031`).
+**Nothing an arriving ability says can appear between two `|switch|` lines.**
+
+`applyEntryConditions`'s header named this exception on 2026-08-27 and ended *"No card in the pinned
+pool lands on them and no probe fails on them yet."* **Three cards did.** The announcement is now
+collected as a thunk on the deferred entrant and fired inside `runEntryPass`, below the side
+conditions and above the entry effects. `tests/probe_entry_announce_batched.js`,
+`MEDI_ENTRY_ANNOUNCE_INLINE=1`; CTRL-ONE is the arm that refuses a fix which pushes the line to the
+end of the refill instead of into the entry pass. Three causes closed, zero added.
+
+**THE MAGIC ROOM ITEM PARK WAS DELIBERATELY NOT MOVED.** It is a STATE write, not an announcement; the
+authority has it inside the same event, no card lands on it, and moving a state write on an argument
+alone is how a narration fix parts a board. It stays on the hand list below.
+
+### 3. A PIVOT REFUSED BY AN ABILITY PRINTED A BARE `|-immune|`
+
+The comment one line above the defect already described it — WIRE 241 split Good as Gold out of this
+branch *"because this branch printed a bare `|-immune|` for Good as Gold where the authority names the
+ability"* — and left `moveClassBlocked` behind inside the same `if`. Parting Shot is the only pivot in
+this format carrying the `sound` flag. `tests/probe_pivot_immune_attr.js`, `MEDI_PIVOT_IMMUNE_BARE=1`.
+
+**IT WAS INVISIBLE UNTIL FIX 1 LANDED.** The one pool game that carries it recorded its first
+divergence two lines earlier, on the `-immune` ORDERING of the Clanging Scales that preceded it in the
+same turn. A **TRANSFER** — and the worked example of why a divergence count is a lower bound.
+
+### THE PROBE FAULTS, NAMED
+
+- **`G.lastSdLog()` WAS READ RAW**, so every `-damage` came back DOUBLED — Showdown writes `|split|pN`,
+  the omniscient line, then the same line as a percentage. Three of four LANDED clauses failed and none
+  of them was about the engine. Fixed by lifting `game_differential.js`'s own `sdStream` skip (:2340).
+- **`getImmunity` RETURNS TRUE WHEN THE BODY IS *NOT* IMMUNE**, and three clauses read it backwards, so
+  a whole fixture refused to stage.
+- **AN ARM'S BODY DID NOT KNOW THE MOVE THE SCRIPT CLICKED**, so Showdown rejected the choice and the
+  arm THREW where it would otherwise have read an empty list and looked like a verdict.
+- **A MOVE CARRYING `isNonstandard: 'Past'` REACHED A FIXTURE LIST.** Caught by the probe's own legality
+  block — and then removed from the other probe's preference list as well, because CLAUDE.md's rule is
+  that an entity outside the regulation is not NAMED, not that it is named and then filtered.
+
+### THE HAND LIST
+
+**Removed — three, and they are the three largest mechanisms the ordering class could reach:**
+
+- **`|-immune|` LINES IN A DIFFERENT ORDER, 5 GAMES** — `tests/probe_immune_step_order.js`. It closes
+  the row *"`|-immune|` LINES IN A DIFFERENT ORDER — 5 games, Levitate and Soundproof"* from narration
+  batch 1's list.
+- **SUPREME OVERLORD'S `-activate` AGAINST THE `|switch|` BESIDE IT, 3 GAMES** —
+  `tests/probe_entry_announce_batched.js`. It closes the identically-worded row from batch 1's list and
+  the exception `applyEntryConditions`'s header has carried since 2026-08-27.
+- **A PIVOT'S MOVE-CLASS REFUSAL ANNOUNCED WITHOUT ITS ABILITY** — `tests/probe_pivot_immune_attr.js`.
+  Not on any previous list: it did not exist as a first divergence until fix 1 revealed it.
+
+**Owed and named, not fixed here** (games, on release `fb0058fb5702`; the `ordering` class stands at 16):
+
+- **A RESIDUAL PAID ON THE WRONG BODY FIRST — 3 games** (`brn`, `psn`, Leftovers). `fieldEvent('Residual')`
+  speed-sorts its handlers once, before the walk.
+- **A `faint` AGAINST AN END-OF-TURN LINE — 3 games** (`upkeep`, `-end syrupbomb`, `perish0`).
+- **SUBSTITUTE AGAINST A DAMAGE LINE — 3 games** (`-end substitute`, `-activate substitute|[damage]`).
+- **SEVEN SINGLE-CARD ORDERING MECHANISMS**: Rough Skin against Poison Touch, Cursed Body against a
+  secondary status, Spicy Spray, Lightning Rod against a `-prepare`, Protect against a `move`, a `move`
+  pair, a `switch` pair.
+- **THE ZERO TO HERO `-activate` MOVED WITH SUPREME OVERLORD AND NOTHING STAGES IT.** Same site, same
+  rule, same argument; staging a Palafin returning as one of two simultaneous replacements needs a
+  three-turn script that was not built.
+- **THE MAGIC ROOM ITEM PARK IS STILL WRITTEN AT THE PLACEMENT**, for the reason above.
+- **`RED-FLY` HAS NO POOL WITNESS.** Rotom-Fan is not in the frozen team store.
+- **TWO `onTryHit` REFUSERS ON ONE SPREAD HIT ARE NOT MODELLED.** `runEvent('TryHit')` sorts by
+  `Battle.compareLeftToRightOrder` (`sim/battle.ts:421`) — `order`, then `priority`, then target index —
+  so Overcoat's `onTryHitPriority: 1` would sort above a Soundproof on a later target.
+- **`tests/probe_red_demo.js` IS STILL RED AT HEAD, AND THIS BATCH DID BREAK THREE CERTIFICATES AND
+  THEN RE-AIM THEM.** Measured rather than assumed: it read **15 COULD NOT BE APPLIED** on the way in,
+  **18** after the engine changes, and **15 again** after the three were re-aimed — WIRE 126 and both
+  WIRE 128 entries, all three of which patch the type-immunity gate or `moveClassBlocked`. Two are
+  narrower than they were (the anchor is the CONDITION and the body is left standing, so the reversal
+  is now exactly the dropped attacker); the Bulletproof one MOVED HOUSE, because the line its pattern
+  named is now `MEDI_IMMUNE_STEP_LEGACY`'s arm and a patch aimed at it would have modified a branch the
+  demonstration never enters — which reads exactly like a fix that works. **The remaining 15 and the 2
+  HOLLOW are the ones this session inherited and they are untouched:** re-aiming fifteen certificates
+  against engine internals is its own batch, and nothing in `run-all.js` wires this probe, so it goes
+  on being red without saying so.
+
+**Carried forward unchanged** from the hand lists below: a spread move's named target drawn at random
+by the authority and picked first-foe here, and the non-flat re-price at arrival 0 on 39 clicks.
+
+**THE CENSUS WAS REGENERATED AND DID NOT MOVE: 830 live / 830 probed / 0 missing.** The only content
+change in `data/mechanics-census.json` is one Monte-Carlo detail string (`formatSecondaryChance`, 19.9%
+→ 20.7% over 6,000 turns). The pinned copy the standing sample is steered by,
+`data/verification/census-pin-9446a684709d.json`, was NOT touched and every run above passed it
+explicitly.
+
+**FOUR ARTIFACTS WENT STALE THE MOMENT THE ENGINE MOVED, AND THAT IS THE EXPECTED COST, NOT A DEFECT.**
+`data/engine-diff.json`, the three `data/roster.*.json` and `data/all-mechanics-fire.json` all read
+`MEASURED AGAINST A DIFFERENT ENGINE` the moment the release was cut. **All five were re-run in this
+pass on `fb0058fb5702` and all five are green**: damage differential 0 of 6000 at the midpoint and
+both corners, roster 140/146/487 with zero DIFFER and zero DID-NOT-FIRE, and every mechanic anybody
+plays agreeing with the authority. `node engine/status.js` reads **8 of 9**, and the one failure is
+this batch's own clause at its new value: **NARRATION-ONLY 55 of 961**.
+
+
 ## A RED DEMONSTRATION APPLIED ITS OWN BREAK AND CAUGHT NOTHING, ON FOCUS SASH — ROSTER **ITEMS FAIL → PASS**, THE LAST RED WENT `NOT CAUGHT` → `CAUGHT`, AND ITEMS/ABILITIES/MOVES ARE FLAT AT **140 / 146 / 487, ZERO DIFFER AND ZERO DID-NOT-FIRE**. FOCUS SASH AGREES WITH SHOWDOWN — MEASURED FOR THE FIRST TIME. BOARD-MATERIAL **0 OF 958, UNTOUCHED**. CENSUS LEVEL AT 830/830. 2026-09-07
 
 **No engine byte moved.** Every change is in `tests/roster.js`. Full account, the boards, the derived

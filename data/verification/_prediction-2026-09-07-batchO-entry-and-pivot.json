@@ -1,0 +1,34 @@
+{
+  "written": "2026-09-07 BEFORE the measurement ran",
+  "by": "ENGINE, batch O, fixes 2 and 3, measured together",
+  "release": "fb0058fb5702",
+  "previous_release": "76932bf6c654",
+  "why_bundled": "The two causes are DISJOINT strings and neither writes state, so one run still attributes each. If board-material leaves 0 of 958 the bundle is bisected into two runs rather than reported.",
+  "baseline_at_76932bf6c654": {
+    "narration_only_raw": 60,
+    "protocol_parted": 63,
+    "causes": 61,
+    "board_material": "0 of 958",
+    "class_ordering_games": 19,
+    "class_immune_field_3_games": 1
+  },
+  "fix_2": "an arriving ability's announcement is deferred into the ONE SwitchIn event, so Supreme Overlord no longer speaks between two |switch| lines. Expected to close 3 games, all `ordering`.",
+  "fix_3": "the pivot branch names the ability on a move-class refusal (Parting Shot into Soundproof). Expected to close 1 game, `-immune field 3`.",
+  "point_estimate": {
+    "narration_only_raw": 56,
+    "protocol_parted": 59,
+    "class_ordering_games": 16,
+    "class_immune_field_3_games": 0,
+    "board_material": "0 of 958"
+  },
+  "band": {
+    "narration_only_raw": [56, 60],
+    "why": "LOWER BOUND. Four games close; any of them can re-enter on a later divergence, as one did on the previous run."
+  },
+  "named_risks": [
+    "The Supreme Overlord announcement now lands BELOW the entry side conditions (Stealth Rock, Healing Wish) for the same body, where it used to be above them. That is the authority's order (a side condition sorts ahead of an abilityState re-inited on arrival) but it is a second change riding on the first, and no pool card stages it.",
+    "The Zero to Hero forme `-activate` moves with it, on the same argument. Nothing stages it: staging a Palafin returning as one of TWO simultaneous replacements needs a three-turn script and was not built. Named, not measured.",
+    "The Magic Room item park was deliberately NOT moved: it is a state write and moving it on an argument alone is how a narration fix parts a board."
+  ],
+  "must_not_move": { "board_material": "0 of 958", "census": "830 live / 830 probed" }
+}

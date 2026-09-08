@@ -1,0 +1,37 @@
+{
+  "written": "2026-09-07 BEFORE the measurement ran",
+  "by": "ENGINE, batch O, fix 1 CORRECTED",
+  "release": "76932bf6c654",
+  "supersedes_run_on": "fa835f7a4939",
+  "baseline_release": "f30bf025ae28",
+  "what_the_first_cut_did": {
+    "narration_only_raw": "64 -> 62",
+    "protocol_parted": "67 -> 65",
+    "class_ordering_games": "24 -> 19",
+    "board_material": "0 of 958, unmoved",
+    "closed": 5,
+    "transferred_in": 3,
+    "transfers": [
+      "-immune field 3 :: |-immune|p1a <> |-immune|p1a|[from]levitate   -- MY BUG: Psycho Cut into Hydreigon is a DARK immunity and runImmunity only reaches isGrounded on a GROUND move",
+      "-immune field 3 :: |-immune|p2a <> |-immune|p2a|[from]levitate   -- the same bug, a Psychic",
+      "-immune field 3 :: |-immune|p2a|[from]soundproof <> |-immune|p2a -- NOT my bug: Parting Shot (a STATUS sound move) into Soundproof announces bare here and named on the authority. Pre-existing, revealed by the ordering fix, and NOT fixed in this cut."
+    ]
+  },
+  "what_changed_now": "airborneAbilityRefusing takes the effective move type and returns null unless it is Ground; the step-1 deferral asks airborneAbilityHasNoTryHit (membership of AIRBORNE_ABIL) instead, because Levitate has NO onTryHit handler and therefore never answers at step 1 whatever isGrounded says.",
+  "point_estimate": {
+    "narration_only_raw": 60,
+    "protocol_parted": 63,
+    "class_ordering_games": 19,
+    "immune_field_3_games": 1,
+    "board_material": "0 of 958"
+  },
+  "band": {
+    "narration_only_raw": [59, 62],
+    "why": "the two Levitate over-attributions should go; the Parting Shot game stays and is expected to remain as `-immune field 3`. A game leaving one cause can re-enter on another."
+  },
+  "named_risks": [
+    "The Parting Shot game may itself transfer again once its first divergence is closed. It is NOT closed here.",
+    "RED-FLY: a Flying-typed Levitate carrier was mis-attributed BEFORE this batch too. Rotom-Fan is not in the frozen team store, so no pool game can confirm or deny it; the probe is the only witness."
+  ],
+  "must_not_move": { "board_material": "0 of 958", "census": "830 live / 830 probed" }
+}

@@ -804,8 +804,14 @@ demoSource('WIRE 126 an -ate-converted move is judged on the type it BECAME',
  * AND AGAIN BY ROADMAP #81 WIRE 10, third time, same guard: the gate is now a STEP closure, so it
  * drops its row and returns instead of `continue`-ing a loop it no longer sits in. The reversal is
  * still exactly one argument — the attacker dropped from the type resolution. */
-  [['          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field, m)) === 0){_explicitFail=true;if(TR)TR.imm(tg);R.out=true;return;}',
-    '          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field)) === 0){_explicitFail=true;R.out=true;return;}']],
+/* RE-AIMED 2026-09-07 (BATCH O), FOURTH TIME. The gate's BODY became a block: it now asks
+ * `airborneAbilityRefusing`, so that a Levitate body's `-immune` carries at THIS step the attribution
+ * the authority writes at this step. The whole one-line pattern therefore stopped matching. The anchor
+ * is narrowed to the CONDITION and the body is left standing, which makes the reversal SMALLER than it
+ * was: it is now exactly the dropped attacker, where the old form also deleted the announcement as a
+ * side effect. The assertion below reads DAMAGE and never a line. */
+  [['          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field, m)) === 0){',
+    '          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field)) === 0){']],
   (E) => {
     const dealt = (ab) => {
       const me = bare('staraptor'), ally = bare('incineroar');
@@ -836,8 +842,12 @@ demoSource('WIRE 128 the loop asks about the ATTACKER before calling a type immu
 /* RE-TARGETED BY ROADMAP #84, which added `_explicitFail` to this same gate, and again by ROADMAP
  * #81 WIRE 10, which made the gate a STEP closure so it returns instead of `continue`-ing. The
  * reversal is still exactly the one call that carries the attacker into the immunity question. */
-  [['          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field, m)) === 0){_explicitFail=true;if(TR)TR.imm(tg);R.out=true;return;}',
-    '          if (mcEff(effMoveType(mv, a.move.id, field, m), tg.types) === 0){_explicitFail=true;R.out=true;return;}']],
+/* RE-AIMED 2026-09-07 (BATCH O), for the reason written one demonstration up: the gate's body became
+ * a block when the Levitate attribution moved into it, so the anchor is narrowed to the CONDITION and
+ * the body is left standing. The reversal is still the one call, with `mcEff` -- which takes no
+ * attacker -- put back in place of `typeEffAgainst`. */
+  [['          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field, m)) === 0){',
+    '          if (mcEff(effMoveType(mv, a.move.id, field, m), tg.types) === 0){']],
   (E) => {
     const dealt = (ab) => {
       const me = bare('incineroar'), ally = bare('corviknight');
@@ -883,8 +893,15 @@ demoSource('WIRE 128 a Mold Breaker goes through Bulletproof, which Showdown mar
  * the shared `moveClassImmuneAttr` reader so the attribution comes off the handler. The reversal is
  * unchanged in substance -- it is still the dropped ATTACKER argument, which is the only part WIRE
  * 128 is about; the announcement text plays no part in the assertion below. */
-  [["        if(moveClassBlocked(tg,a.move.id,m)){_explicitFail=true;if(TR)TR.imm(tg,moveClassImmuneAttr(tg,m));R.out=true;return;}   // WIRE 128 -- Mold Breaker suppresses Bulletproof too; #256 reads the attribution off the handler instead of pasting the id",
-    '        if(moveClassBlocked(tg,a.move.id)){_explicitFail=true;R.out=true;return;}']],
+/* RE-AIMED 2026-09-07 (BATCH O), AND THIS ONE MOVED HOUSE RATHER THAN CHANGING SHAPE. Soundproof,
+ * Bulletproof and Overcoat are plain `onTryHit` handlers, so the refusal was lifted out of
+ * `_stepTryImm` (Showdown's step 3) into `_stepTryHit` (its step 1). The line the old pattern named is
+ * still in the file as `MEDI_IMMUNE_STEP_LEGACY`'s arm and is NOT the live road any more, so a pattern
+ * aimed at it would have patched a branch this demonstration never enters -- which reads exactly like
+ * a fix that works. It is aimed at the live site, and the reversal is unchanged in substance: the one
+ * dropped ATTACKER argument, which is the only thing WIRE 128 is about. */
+  [['        if(!IMMUNE_STEP_LEGACY&&moveClassBlocked(tg,a.move.id,m)){',
+    '        if(!IMMUNE_STEP_LEGACY&&moveClassBlocked(tg,a.move.id)){']],
   (E) => {
     const dealt = (defAb, attAb) => {
       const me = bare('tyranitar'), ally = bare('corviknight');

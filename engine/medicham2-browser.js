@@ -111,6 +111,22 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * having nowhere to land (the authority writes the `-immune`). Both non-zero means the branch is
    * really a branch; either at zero would mean the knob is unwired. */
   absorbGiftLanded: 0, absorbImmuneAnnounced: 0,
+  /* BATCH O, 2026-09-07 -- WHICH HIT STEP ANSWERED AN IMMUNITY, because the step decides the ORDER
+   * of the `-immune` lines on a spread hit and nothing else does. `airborneImmuneAtTypeStep` is a
+   * Levitate/Eelevate Ground refusal answered by `_stepTypeImm` (the authority's step 2, inside
+   * `runImmunity`); `moveClassRefusedAtTryHit` is a Soundproof/Bulletproof/Overcoat refusal answered
+   * by `_stepTryHit` (the authority's step 1, a plain `onTryHit`). Both were answered at the WRONG
+   * step until this batch and both are zero under `MEDI_IMMUNE_STEP_LEGACY=1`, which is how
+   * `tests/probe_immune_step_order.js` proves the knob reached BOTH rules rather than one. */
+  airborneImmuneAtTypeStep: 0, moveClassRefusedAtTryHit: 0,
+  /* BATCH O, 2026-09-07 -- HOW MANY ARRIVING-ABILITY ANNOUNCEMENTS WERE DEFERRED OUT OF THE
+   * PLACEMENT AND INTO THE ENTRY PASS. Non-zero only on a DOUBLE replacement, which is the only
+   * caller that defers; zero under `MEDI_ENTRY_ANNOUNCE_INLINE=1`, which is how
+   * `tests/probe_entry_announce_batched.js` proves the knob reached the rule. */
+  entryAnnounceBatched: 0,
+  /* BATCH O, 2026-09-07 -- a move-class refusal on the PIVOT road that named its ability instead of
+   * printing a bare line. Zero under `MEDI_PIVOT_IMMUNE_BARE=1`. */
+  pivotMoveClassAttributed: 0,
   /* 2026-08-29 -- the VOLATILE gift, which used to be the one shape of `gain` this engine binned.
    *   absorbGiftVolatile        a volatile the absorber did NOT already hold, granted and announced.
    *   absorbGiftVolatileRepeat  it was already up, so `addVolatile` returns false and the authority's
@@ -6517,7 +6533,29 @@ function fieldOfBody(mon){ const sf=mon&&mon._sf; const S=sf&&sf._S; return (S&&
  * not break moulds. Only the damage path, which has an attacker, passes one.
  * `mvCategory` rides along for a category-gated breaker (Mycelium Might); `suppressedAbility` counts
  * a caller that cannot supply it rather than guessing. */
-function isGrounded(mon,att,mvCategory){
+/* 2026-09-07 -- `why` IS AN OPTIONAL OUT-PARAM AND IT EXISTS BECAUSE THE AUTHORITY'S GROUND IMMUNITY
+ * IS TRI-STATE WHILE THIS ONE IS A BOOLEAN.
+ *
+ *     sim/pokemon.ts:2153   isGrounded(): true | false | null      <- NULL means "lifted by the ability"
+ *     sim/pokemon.ts:2274   if (notImmune === null) {
+ *                             if (this.hasAbility('levitate'))  add('-immune', this, '[from] ability: Levitate');
+ *                             else if (this.hasAbility('eelevate')) ... Eelevate
+ *                             else add('-immune', this);
+ *                           } else add('-immune', this);
+ *
+ * So the ATTRIBUTION on a Ground `-immune` is not "does this body have Levitate" -- it is "did the
+ * LEVITATE CLAUSE decide it", and four clauses above it can answer first. Gravity, Ingrain, Smack
+ * Down and Iron Ball return TRUE and there is no immunity at all; the FLYING clause returns FALSE and
+ * the line is BARE. **Rotom-Fan is a legal Flying-typed Levitate carrier in this format**, so a
+ * reader that branched on the ability name would attribute its immunity to Levitate where the
+ * authority does not.
+ *
+ * ONE IMPLEMENTATION, NOT TWO. Copying these clauses into a second `airborneByAbility` predicate is
+ * the FACTS-ARE-GLOBAL rule broken inside one file -- the same seam that cost the census two rows
+ * when `typeEffAgainst` re-asked the airborne question with the defender's own ability. The out-param
+ * is the shape `priorityRefusedAbove` below already uses for the same reason. Every existing caller
+ * passes three arguments and is byte-for-byte unchanged. */
+function isGrounded(mon,att,mvCategory,why){
   if(!mon) return true;
   const g=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
   const it=g(mon.item);
@@ -6534,9 +6572,41 @@ function isGrounded(mon,att,mvCategory){
     if(!MEDFAILS.groundedBodyIncompleteFirst) MEDFAILS.groundedBodyIncompleteFirst=g(mon.ability)||'(no ability)';
   }
   if((mon.types||[]).indexOf('Flying')>=0) return false;
-  if(AIRBORNE_ABIL.has(g(att?suppressedAbility(att,mon,mvCategory):mon.ability))) return false;
+  if(AIRBORNE_ABIL.has(g(att?suppressedAbility(att,mon,mvCategory):mon.ability))){
+    if(why)why.byAbility=true;                    /* the authority's `null`, and only here */
+    return false;}
   for(const v of FLOATING_VOL) if(vol[v]>0) return false;
   return it!=='airballoon';
+}
+/* THE ONE READER OF THAT OUT-PARAM. Returns the ABILITY the authority would name on this `-immune`,
+ * or null for the bare line. Callers ask it INSTEAD of testing the ability themselves.
+ *
+ * `mvT` IS REQUIRED AND THE FIRST CUT DID NOT TAKE IT, WHICH COST TWO GAMES ON THE VERY RUN THAT
+ * MEASURED THE FIX. `runImmunity`'s ternary reaches `isGrounded` ONLY when the move type is Ground
+ * (sim/pokemon.ts:2270); every other immunity comes off `getImmunity` and is announced BARE however
+ * airborne the body is. Without this clause a Psycho Cut into a Hydreigon — a DARK-type immunity that
+ * has nothing to do with the floor — was announced `[from] ability: Levitate`, and the two games
+ * merely swapped one divergence for another. Measured, `f30bf025ae28` -> `fa835f7a4939`:
+ *     ordering :: |-immune|p1a <> |-immune|p1b|[from]levitate   CLOSED
+ *     -immune field 3 :: |-immune|p1a <> |-immune|p1a|[from]levitate   OPENED, same game */
+function airborneAbilityRefusing(mon,att,mvCategory,mvT){
+  if(mvT!=='Ground')return null;
+  const _w={};
+  if(isGrounded(mon,att,mvCategory,_w))return null;
+  if(!_w.byAbility)return null;
+  return att?suppressedAbility(att,mon,mvCategory):(mon&&mon.ability);
+}
+/* AND THE MEMBERSHIP QUESTION, WHICH IS A DIFFERENT ONE AND WAS CONFLATED WITH IT FOR ONE RUN.
+ * *"Would the authority have answered this at step 1?"* is decided by whether the ability HAS a
+ * `onTryHit` handler, and Levitate and Eelevate have none at all -- so they never answer there,
+ * whatever `isGrounded` goes on to say. Asking `airborneAbilityRefusing` instead let a FLYING-typed
+ * Levitate carrier fall back into step 1 and be announced `[from] ability: Levitate`, because the
+ * Flying clause had already returned and the ATTRIBUTION reader correctly said "not the ability" --
+ * a right answer to the wrong question. `tests/probe_immune_step_order.js` CTRL-FLYING is that case,
+ * and Rotom-Fan is the only legal body in this format that can produce it. */
+function airborneAbilityHasNoTryHit(mon,att,mvCategory){
+  const _ab=att?suppressedAbility(att,mon,mvCategory):(mon&&mon.ability);
+  return AIRBORNE_ABIL.has(String(_ab||'').toLowerCase().replace(/[^a-z0-9]/g,''));
 }
 /* `aimedAt` IS OPTIONAL AND THE TWO ARMS ARE NOT THE SAME QUESTION. The ability bar is a SIDE fact --
  * Queenly Majesty and Armor Tail protect their partner as well as themselves, so it is right to fold
@@ -13759,6 +13829,28 @@ const ARRIVAL_REPRICE_FLAT_ONLY=(typeof process!=='undefined'&&process.env&&proc
  * and that flag is set only when a SPLIT volley actually reached the driver, because a restore
  * nothing could observe is not a restore. */
 const SMARTTARGET_STEP_MAJOR=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SMARTTARGET_STEP_MAJOR==='1');
+/* BATCH O, 2026-09-07 -- `MEDI_ENTRY_ANNOUNCE_INLINE=1` PUTS AN ARRIVING ABILITY'S ANNOUNCEMENT BACK
+ * AT THE PLACEMENT, between the two `|switch|` lines of a double replacement, where this engine had
+ * it. See `bringIn`'s `_emitEntry`. Any run carrying it also carries a non-zero
+ * `MEDFAILS.entryAnnounceInlineRestored`. */
+const ENTRY_ANNOUNCE_INLINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ENTRY_ANNOUNCE_INLINE==='1');
+if(ENTRY_ANNOUNCE_INLINE)MEDFAILS.entryAnnounceInlineRestored=1;
+/* BATCH O, 2026-09-07 -- `MEDI_PIVOT_IMMUNE_BARE=1` RESTORES THE ATTRIBUTION-LESS `|-immune|` THE
+ * PIVOT BRANCH WROTE FOR A MOVE-CLASS REFUSAL. See the site in the `pivotStatus` branch. Any run
+ * carrying it also carries a non-zero `MEDFAILS.pivotImmuneBareRestored`. */
+const PIVOT_IMMUNE_BARE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PIVOT_IMMUNE_BARE==='1');
+if(PIVOT_IMMUNE_BARE)MEDFAILS.pivotImmuneBareRestored=1;
+/* BATCH O, 2026-09-07 -- `MEDI_IMMUNE_STEP_LEGACY=1` PUTS BOTH IMMUNITY FAMILIES BACK AT THE STEP
+ * THIS ENGINE ANSWERED THEM AT: Levitate/Eelevate back inside `_stepTryHit` (step 1, where the
+ * authority has no handler at all) and the move-class refusals back inside `_stepTryImm` (step 3,
+ * where the authority's are plain `onTryHit` at step 1).
+ *
+ * ONE FLAG FOR BOTH, DELIBERATELY. They are two halves of one claim -- *the step decides the order* --
+ * and `tests/probe_immune_step_order.js` needs both reds in one arm, because the two move in
+ * OPPOSITE directions and either alone can be satisfied by a rule that is wrong about the other.
+ * Any run carrying it also carries a non-zero `MEDFAILS.immuneStepLegacyRestored`. */
+const IMMUNE_STEP_LEGACY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_IMMUNE_STEP_LEGACY==='1');
+if(IMMUNE_STEP_LEGACY)MEDFAILS.immuneStepLegacyRestored=1;
 /* ROADMAP #499 -- THE SAME SWITCH, ONE DIE OVER. `MEDI_CRIT_ONCE_PER_CLICK=1` puts the single
  * per-click crit decision back at runtime, so the defect stays reachable for a paired measurement
  * without swapping a file, and any run carrying it also carries a non-zero
@@ -22331,18 +22423,53 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry,outgoing){
    * have to look the body up on the bench and would print `??`. `drag` is a caller flag: Showdown
    * distinguishes a chosen switch from a Roar/Dragon Tail one and the differ needs the same split. */
   if(TR)TR.swin(nx,TR.drag);
+  /* BATCH O, 2026-09-07 -- AN ARRIVING ABILITY'S ANNOUNCEMENT IS DEFERRED WITH THE REST OF ITS ENTRY
+   * PASS, BECAUSE THE AUTHORITY HAS IT INSIDE THE SAME EVENT.
+   *
+   * `switchIn` writes the `|switch|` line and merely QUEUES `{choice:'runSwitch'}`
+   * (sim/battle-actions.ts:145-158); `runSwitch` drains every consecutive one into a single
+   * speed-sorted `fieldEvent('SwitchIn', switchersIn)` (:175-186); and an ability's `onStart` is run
+   * AS an `onSwitchIn` handler inside that event -- `Battle#getCallback` substitutes it
+   * (sim/battle.ts:1018-1031), with the comment *"Abilities and items Start at different times
+   * during the SwitchIn event, so we run their onStart handlers during the SwitchIn event"*. **So
+   * nothing an arriving ability says can appear between two `|switch|` lines.**
+   *
+   * `applyEntryConditions`'s header has named this exception since 2026-08-27 -- *"the Zero to Hero
+   * `-activate`, the Supreme Overlord `-activate`/`-start` and the Magic Room item park are still
+   * written at the placement ... No card in the pinned pool lands on them"*. THREE CARDS NOW DO,
+   * release `f30bf025ae28`, all three Supreme Overlord and all three narration-only `ordering`:
+   *     showdown  |switch|p2a: Mawile|...   |-activate|p1a: Kingambit|ability: Supreme Overlord
+   *     medicham  |-activate|p1a: Kingambit|...   |switch|p2a: Mawile|...
+   *
+   * THE MAGIC ROOM PARK BELOW DOES NOT MOVE AND THAT IS A JUDGEMENT. It is a STATE write, not an
+   * announcement; the authority has it inside the same event, but no card lands on it and moving a
+   * state write on an argument alone is how a narration fix parts a board. It stays on the hand list.
+   *
+   * ONLY A CALLER THAT DEFERS IS AFFECTED -- `refill`, the one place two bodies arrive at the same
+   * instant. Every other caller runs `_emitEntry` immediately and is byte-for-byte unchanged, which
+   * is why a single replacement still announces directly under its own `|switch|`.
+   * Knob: MEDI_ENTRY_ANNOUNCE_INLINE=1 puts both back at the placement. */
+  const _entryAnn=[];
+  const _emitEntry=fn=>{
+    if(deferEntry&&!ENTRY_ANNOUNCE_INLINE){_entryAnn.push(fn);return;}
+    fn();
+  };
   /* WIRE 133 -- AND THE FORME'S OWN `-activate`, ONE LINE BELOW THE SWITCH, WHICH IS THE ORDER
    * SHOWDOWN PRODUCES: `onSwitchIn` runs after the entry is announced. Armed above, emitted here,
    * for the reason written there. */
   if(_announceForme){nx._formeAnnounced=true;MEDSEEN.formeAnnouncedOnReturn++;
-    if(TR)TR.act(nx,'ability: '+nx.ability);}
-  /* 2026-08-26 -- SUPREME OVERLORD ANNOUNCES THE DEAD IT WALKED IN ON, and it lands HERE for the two
-   * reasons the forme line above lands here: `onStart` runs after the entry is announced, so both
-   * lines sit BELOW the `|switch|`, and `ident()` reads the body's position on the field, so a line
-   * written before `act[i]=nx` prints `??`. `_fallenStuck` is stamped a few lines up from `sf.fainted`
-   * and is the same snapshot the damage site reads -- there is one count here, not two. */
+    if(TR){const _fab=nx.ability;_emitEntry(()=>TR.act(nx,'ability: '+_fab));}}
+  /* 2026-08-26 -- SUPREME OVERLORD ANNOUNCES THE DEAD IT WALKED IN ON, and it lands BELOW the
+   * `|switch|` for the reason the forme line above does: `onStart` runs after the entry is announced,
+   * and `ident()` reads the body's position on the field, so a line written before `act[i]=nx` prints
+   * `??`. `_fallenStuck` is stamped a few lines up from `sf.fainted` and is the same snapshot the
+   * damage site reads -- there is one count here, not two. THE COUNT IS TAKEN NOW AND THE LINE IS
+   * WRITTEN LATER: both replacements happen after every faint of the turn, so `_fallenStuck` cannot
+   * move between the two moments, and capturing it here keeps the number identical to what this
+   * engine has always printed. */
   {const _fn=fallenShown(nx);
-   if(_fn>0&&TR){TR.act(nx,'ability: '+nx.ability);TR.vstart(nx,'fallen'+_fn,'[silent]');
+   if(_fn>0&&TR){const _sab=nx.ability;
+     _emitEntry(()=>{TR.act(nx,'ability: '+_sab);TR.vstart(nx,'fallen'+_fn,'[silent]');});
      MEDSEEN.fallenAnnouncedOnEntry++;}}
   /* WIRE 133 -- MAGIC ROOM REACHES A BODY THAT ARRIVES WHILE IT IS UP. The suppression is a swap of
    * the item slot (see itemRoomSync), and a switch-in is the one path that can put an item on the
@@ -22369,9 +22496,14 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry,outgoing){
    * does. Every caller that does NOT defer is byte-for-byte unchanged: both blocks still run right
    * here and then the entry pass, in the same order they always did. */
   if(deferEntry){
+    /* THE COLLECTED ANNOUNCEMENTS RIDE WITH THE ENTRANT. `null` when there are none, so the walk in
+     * `refill` reads a fact rather than calling an empty function it cannot tell from a missing one. */
+    const _ann=_entryAnn.length
+      ? ()=>{for(const f of _entryAnn)f();MEDSEEN.entryAnnounceBatched++;}
+      : null;
     if(ENTRY_HAZARD_INLINE){MEDFAILS.entryHazardInlineRestored=1;applyEntryConditions(nx,sf,i,field);
-      deferEntry.push({nx,foes,act,i,sf:null});}
-    else deferEntry.push({nx,foes,act,i,sf});
+      deferEntry.push({nx,foes,act,i,sf:null,announce:_ann});}
+    else deferEntry.push({nx,foes,act,i,sf,announce:_ann});
     return nx;
   }
   applyEntryConditions(nx,sf,i,field);
@@ -22509,7 +22641,7 @@ function applyEntryConditions(nx,sf,i,field){
 /* THE FOUR CALLS THAT MAKE UP ONE BODY'S SWITCH-IN PASS, lifted out of bringIn() unchanged so that
  * `refill` can run them in a different ORDER from the one the bodies were placed in. Nothing about
  * WHAT they do moved; only who decides WHEN. */
-function runEntryPass(nx,foes,act,i,field,sf){
+function runEntryPass(nx,foes,act,i,field,sf,announce){
   /* 2026-08-27 -- AND THE SIDE/SLOT CONDITIONS FIRST, WHEN THE CALLER DEFERRED THEM. `sf` is null for
    * every caller that ran them at the placement, so those are unchanged; `refill` is the one caller
    * that hands them over, because it is the one place two bodies arrive at the same instant. WITHIN a
@@ -22517,6 +22649,12 @@ function runEntryPass(nx,foes,act,i,field,sf){
    * which is the authority's own effectOrder: a side condition laid earlier sorts ahead of an
    * abilityState that `switchIn` re-inits on arrival (sim/battle.ts:994-999). */
   if(sf)applyEntryConditions(nx,sf,i,field);
+  /* BATCH O, 2026-09-07 -- AND THE ARRIVING ABILITY'S OWN ANNOUNCEMENT, BELOW THE SIDE CONDITIONS AND
+   * ABOVE THE ENTRY EFFECTS, which is the position `fieldEvent('SwitchIn')` gives it for one body: a
+   * side condition laid earlier sorts ahead of an abilityState that `switchIn` re-inits on arrival
+   * (sim/battle.ts:994-999), and there is exactly one ability per body so nothing sorts against it
+   * here. `announce` is undefined for every caller that did not defer, so those are unchanged. */
+  if(announce)announce();
   /* WIRE 141 -- BEFORE the entry-effect pass, because the transform REPLACES the ability and the
    * replacement's own Start handler is what that pass runs. Doing it afterwards would fire Imposter's
    * (nothing) instead of the copied body's. */
@@ -31258,11 +31396,36 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _rf=tryHitRefusal(_bsrc,_pt,a.mv);
           if(_rf){announceTryHitRefusal(_rf,_pt);m._lastMove=a.mv;continue;}
         }
-        if(a.mv&&_pt&&!_pt.fainted
-           &&((shieldRefuses(_pt,a.mv))
-              ||moveClassBlocked(_pt,a.mv,_bsrc))){m._lastMove=a.mv;             // WIRE 66
-          if(TR){if(_pt.protect)TR.act(_pt,'move: Protect');else TR.imm(_pt);}
-          continue;}
+        /* BATCH O, 2026-09-07 -- AND THE MOVE-CLASS HALF NAMES ITS ABILITY, WHICH IS THE OTHER HALF
+         * OF THE WIRE 241 COMMENT DIRECTLY ABOVE. That note split Good as Gold out of this branch
+         * *"because this branch printed a bare `|-immune|` for Good as Gold where the authority names
+         * the ability"* -- and left `moveClassBlocked` behind inside the same `if`. Soundproof's
+         * handler writes `this.add('-immune', target, '[from] ability: Soundproof')`
+         * (data/abilities.ts:4429), and `moveClassImmuneAttr` is the reader every OTHER road into
+         * this refusal already uses.
+         *
+         * PARTING SHOT IS THE MEMBER: it is the only pivot in this format carrying the `sound` flag,
+         * so Chilly Reception, U-turn, Volt Switch, Flip Turn, Shed Tail and Baton Pass never reach
+         * the clause. One pinned-pool game, and it was INVISIBLE until the immunity-step fix above
+         * closed the `-immune` ORDERING two lines earlier in the same turn -- a transfer, and the
+         * reason a divergence count is a lower bound.
+         *
+         * THE TWO REFUSALS ARE SEPARATED RATHER THAN OR-ED, and the short-circuit is preserved: a
+         * SHIELD answers first (the authority's `onTryHit` priority) and announces `-activate move:
+         * Protect`, and a shield that is not Protect -- Wide Guard, Quick Guard, Crafty Shield --
+         * still writes the bare line it always did. Only the move-class arm gains an attribution.
+         * Knob: MEDI_PIVOT_IMMUNE_BARE=1. `tests/probe_pivot_immune_attr.js`. */
+        if(a.mv&&_pt&&!_pt.fainted){
+          const _shR=shieldRefuses(_pt,a.mv);
+          const _mcR=!_shR&&moveClassBlocked(_pt,a.mv,_bsrc);                    // WIRE 66
+          if(_shR||_mcR){m._lastMove=a.mv;
+            if(TR){
+              if(_pt.protect)TR.act(_pt,'move: Protect');
+              else if(_mcR&&!PIVOT_IMMUNE_BARE){MEDSEEN.pivotMoveClassAttributed++;
+                TR.imm(_pt,moveClassImmuneAttr(_pt,_bsrc));}
+              else TR.imm(_pt);}
+            continue;}
+        }
         /* WIRE 67 -- PARTING SHOT ACTUALLY DROPS THE TARGET. This engine has modelled the switch and
            not the -1 Attack / -1 Special Attack since pivotStatus was wired, and said so in a comment
            that ended "NO artifact this engine reads carries the numbers". It does now: tag_dex reads
@@ -34157,7 +34320,27 @@ function battleTurn(S,rng,actsForA,actsForB){
            * of "how effective is this", and it did not know about Scrappy or about Freeze-Dry's
            * override. dmgRange priced a Scrappy Body Slam into Gengar at 88 and this line refused it
            * as an immunity, so every rollout and every self-play game had Scrappy dealing zero. */
-          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field, m)) === 0){_explicitFail=true;if(TR)TR.imm(tg);R.out=true;return;}
+          if (typeEffAgainst(m, tg, mv, effMoveType(mv, a.move.id, field, m)) === 0){
+            _explicitFail=true;
+            /* BATCH O, 2026-09-07 -- AND THE LEVITATE ATTRIBUTION IS WRITTEN HERE, BECAUSE THIS IS
+             * WHERE THE AUTHORITY WRITES IT. `runImmunity` announces the whole Ground family --
+             * bare and attributed -- from ONE branch inside step 2 (sim/pokemon.ts:2270-2284), so a
+             * spread move's `-immune` lines come out in TARGET ORDER regardless of which body is
+             * airborne. This engine answered Levitate from `_stepTryHit` one step above, so the
+             * attributed line jumped ahead of every bare one: four narration-only games on the
+             * pinned pool, all in the `ordering` class, e.g.
+             *     showdown  |-immune|p1a: Charizard   |-immune|p1b: Hydreigon|[from] ability: Levitate
+             *     medicham  |-immune|p1b: Hydreigon|…Levitate   |-immune|p1a: Charizard
+             * `airborneAbilityRefusing` asks `isGrounded`'s own clause order rather than the ability
+             * name, so a Flying-typed Levitate carrier -- Rotom-Fan, legal here -- still announces
+             * BARE, which is the authority's answer too. */
+            if(TR){
+              const _lv=IMMUNE_STEP_LEGACY?null
+                :airborneAbilityRefusing(tg,m,(mv&&mv.c==='P')?'Physical':(mv&&mv.c==='S')?'Special':'Status',effMoveType(mv,a.move.id,field,m));
+              if(_lv){MEDSEEN.airborneImmuneAtTypeStep++;TR.imm(tg,'[from] ability: '+_lv);}
+              else TR.imm(tg);
+            }
+            R.out=true;return;}
         }
       };
       /* STEP 3 -- MOVE-SPECIFIC IMMUNITY (`hitStepTryImmunity`, battle-actions.ts:666). */
@@ -34173,7 +34356,11 @@ function battleTurn(S,rng,actsForA,actsForB){
          * docs/TAGS.md: "an immune target takes nothing -- not the damage, and not the secondary".
          * That rule was already written down and had one implementation per stage-3 mechanism instead
          * of one per stage. */
-        if(moveClassBlocked(tg,a.move.id,m)){_explicitFail=true;if(TR)TR.imm(tg,moveClassImmuneAttr(tg,m));R.out=true;return;}   // WIRE 128 -- Mold Breaker suppresses Bulletproof too; #256 reads the attribution off the handler instead of pasting the id
+        /* BATCH O, 2026-09-07 -- MOVED UP TO `_stepTryHit`, WHICH IS THE STEP THE THREE HANDLERS
+         * ACTUALLY HANG ON. This line stays as the LEGACY ARM: under MEDI_IMMUNE_STEP_LEGACY=1 the
+         * refusal answers here again, at step 3, so the probe's restore reproduces the old order
+         * rather than a third one. It is not dead code -- it is the knob's arm. */
+        if(IMMUNE_STEP_LEGACY&&moveClassBlocked(tg,a.move.id,m)){_explicitFail=true;if(TR)TR.imm(tg,moveClassImmuneAttr(tg,m));R.out=true;return;}   // WIRE 128 -- Mold Breaker suppresses Bulletproof too; #256 reads the attribution off the handler instead of pasting the id
         /* 2026-08-26 -- AND THE MOVE'S OWN onTryImmunity, which is the clause this step is NAMED after
          * and never had. ENDEAVOR is the one member of the family that reaches a damaging branch, and
          * it is the one member whose absence moved a board: `pokemon.hp < target.hp` is false at equal
@@ -34245,6 +34432,24 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* THE PROTECT BLOCK USED TO SIT HERE and moved above the accuracy roll (ROADMAP #81 WIRE 1).
            A shielded body never reaches this loop now; what still arrives shielded is the Piercing
            Drill contact case and a move that ignores Protect, and both are meant to. */
+        /* BATCH O, 2026-09-07 -- THE MOVE-CLASS REFUSALS BELONG HERE, TWO STEPS UP FROM WHERE THIS
+         * ENGINE ASKED THEM. Soundproof (data/abilities.ts:4426), Bulletproof (:470) and Overcoat
+         * (:3098) are all plain `onTryHit` handlers, and `hitStepTryHitEvent` is step 1; this engine
+         * asked `moveClassBlocked` from `_stepTryImm`, which is step 3. On a spread hit that is two
+         * whole passes over the target list, so the ability's line fell BEHIND a bare type immunity
+         * the authority prints AFTER it -- the pinned pool's Clanging Scales card:
+         *     showdown  |-immune|p2a: Kommo-o|[from] ability: Soundproof   |-immune|p2b: Mawile
+         *     medicham  |-immune|p2b: Mawile   |-immune|p2a: Kommo-o|…Soundproof
+         * IT IS NOT ONLY AN ORDER. Step 1 is above the type chart, so a body that is BOTH sound-immune
+         * and type-immune now names its ability where this engine printed the bare line -- which is
+         * what the authority's short-circuit does.
+         * Overcoat carries `onTryHitPriority: 1` and would sort above another `onTryHit` refuser on a
+         * LATER target within this same step (`compareLeftToRightOrder`, sim/battle.ts:421, orders by
+         * `order` then `priority` then target index). Two refusers on one spread hit is not staged by
+         * anything today and is NOT modelled here; it is named so its absence is a statement. */
+        if(!IMMUNE_STEP_LEGACY&&moveClassBlocked(tg,a.move.id,m)){
+          MEDSEEN.moveClassRefusedAtTryHit++;
+          _explicitFail=true;if(TR)TR.imm(tg,moveClassImmuneAttr(tg,m));R.out=true;return;}
         /* WIRE 11 -- the absorb GAIN. dmgRange already prices the hit at zero; HERE the absorber
          * collects what its handler grants -- Volt Absorb heals 1/4, Storm Drain banks +1 SpA,
          * Well-Baked Body +2 Def -- all from the artifact's gain param. The old 12-name table knew
@@ -34256,6 +34461,19 @@ function battleTurn(S,rng,actsForA,actsForB){
          * dmgRange had honoured the suppression since WIRE 37. Measured before the fix: a Mold
          * Breaker Tinkaton's Earthquake into a Levitate body was priced 60 and dealt 0. */
         const _ab=absorbedBy(m,tg,effMoveType(mv,a.move.id,field,m),(mv&&mv.c==='P')?'Physical':(mv&&mv.c==='S')?'Special':'Status');
+        /* BATCH O, 2026-09-07 -- AND LEVITATE IS NOT ONE OF THESE. `typeImmunity` is carried by
+         * thirteen abilities and twelve of them really are `onTryHit` -- Volt Absorb, Water Absorb,
+         * Flash Fire, Sap Sipper, Motor Drive, Lightning Rod, Storm Drain, Dry Skin, Well-Baked Body,
+         * Earth Eater (data/abilities.ts:1123, an onTryHit that HEALS) and the rest. Levitate and
+         * Eelevate have NO handler: `data/abilities.ts:2301` is a comment reading *"airborneness
+         * implemented in sim/pokemon.js:Pokemon#isGrounded"*, and the refusal is `runImmunity`'s at
+         * step 2. `_stepTypeImm` answers them and writes the attribution; this returns without
+         * consuming the row so the later step still sees it.
+         * THE MEMBERSHIP IS `AIRBORNE_ABIL`, READ THROUGH `isGrounded` -- the same predicate the damage
+         * table uses -- rather than a second list here. Earth Eater carries `typeImmunity {type:'Ground'}`
+         * too and is NOT airborne (Orthworm stands on the floor), so it stays at step 1, which is where
+         * its handler is. */
+        if(_ab&&!IMMUNE_STEP_LEGACY&&airborneAbilityHasNoTryHit(tg,m,(mv&&mv.c==='P')?'Physical':(mv&&mv.c==='S')?'Special':'Status'))return;
         if(_ab){
           /* 2026-08-24 -- THE `-immune` IS THE GIFT'S *ELSE*, NEVER ITS COMPANION. This block
              announced BOTH on every absorb, so Sap Sipper read `|-immune| |-boost|atk|1` against the
@@ -41837,7 +42055,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _order=entryOrder(_allActive,_arrived,field);
       for(let k=1;k<_order.length;k++)
         if(_order[k].spe===_order[k-1].spe)MEDFAILS.entryOrderTie++;
-      for(const e of _order)runEntryPass(e.nx,e.foes,e.act,e.i,field,e.sf);
+      for(const e of _order)runEntryPass(e.nx,e.foes,e.act,e.i,field,e.sf,e.announce);
       /* 2026-08-27 -- `onAnySwitchIn`, THE HERB'S FIRST TRIGGER, ON ITS FOURTH DOOR.
        *
        * ROADMAP #81 WIRE 11 wired all four of `whiteherb`'s handlers -- `onAnySwitchIn` (priority -2),

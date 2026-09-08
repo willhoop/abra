@@ -1,0 +1,37 @@
+{
+  "written": "2026-09-07 BEFORE the measurement ran",
+  "by": "ENGINE, batch O, fix 1",
+  "release": "fa835f7a4939",
+  "baseline_release": "f30bf025ae28",
+  "sample": "node engine/game_differential.js --steering empirical --release <id> --arm middle --end-state --state --census data/verification/census-pin-9446a684709d.json --games 1200 --turns 50 --team-store data/team-pool-frozen --dump-games 200",
+  "baseline": {
+    "narration_only_raw": 64,
+    "narration_only_declared_adjusted": 63,
+    "protocol_parted": 67,
+    "causes": 65,
+    "board_material": "0 of 958",
+    "class_ordering_games": 24
+  },
+  "what_changed": "Levitate/Eelevate Ground refusals move from _stepTryHit (step 1) to _stepTypeImm (step 2) and are attributed there; Soundproof/Bulletproof/Overcoat move from _stepTryImm (step 3) to _stepTryHit (step 1).",
+  "point_estimate": {
+    "games_closed": 5,
+    "narration_only_raw": 59,
+    "narration_only_declared_adjusted": 58,
+    "protocol_parted": 62,
+    "class_ordering_games": 19,
+    "board_material": "0 of 958"
+  },
+  "band": {
+    "narration_only_raw": [59, 64],
+    "why": "THE COUNT IS A LOWER BOUND. A game records only its FIRST divergence, so a game whose immune ordering is fixed can re-enter on a later cause. Any game that leaves and re-enters is a TRANSFER, not a miss, and is recorded as one."
+  },
+  "named_risks": [
+    "BOARD-MATERIAL. Moving the move-class refusal from step 3 to step 1 puts it ABOVE the type chart, so a body that is both sound-immune and type-immune now names its ability instead of printing the bare line, and it now short-circuits before `immunityGateRefuses`. Both match the authority; both are behaviour and not only order. If board-material leaves 0 of 958 this fix is withdrawn and re-cut.",
+    "`_explicitFail`. A Levitate refusal now sets it (step 2 does; the absorb path did not). That is the authority's own `atLeastOneFailure`, and it reaches Stomping Tantrum. Correct, and a live change beyond narration.",
+    "A Flying-typed Levitate carrier must still announce BARE (Rotom-Fan is legal here). `airborneAbilityRefusing` reads isGrounded's clause ORDER rather than the ability name, so the Flying clause answers first. Not staged by any probe arm; named."
+  ],
+  "must_not_move": {
+    "board_material": "0 of 958",
+    "census": "830 live / 830 probed"
+  }
+}
