@@ -1,0 +1,557 @@
+{
+  "by": "SEARCH — engine/miltank.js decision profile",
+  "generated": "2026-09-08T06:00:05.442Z",
+  "question": "Where does one real MILTANK decision spend its wall clock, and is it engine-bound?",
+  "engine_release": "cf8567c4db78",
+  "release_files": {
+    "engine/medicham2-browser.js": "5a86b1d52bd5",
+    "engine/board.js": "c85a3b756c98",
+    "engine/rollout_leaf.js": "1c4ba432e563",
+    "data/policy-weights.json": "626c1d240782",
+    "data/tags.json": "f3f6a00ff8a0"
+  },
+  "config": {
+    "n": 200,
+    "budgetMs": 20000,
+    "explore": 1,
+    "foePolicy": "uniform",
+    "turns": 14,
+    "turnsFrom": "data/rollout-switch-census.json",
+    "switchRate_resolved": 0.0998,
+    "previewN": 40,
+    "previewMs": 15000,
+    "defer": true,
+    "clock": false
+  },
+  "sample": {
+    "team_pool": "data/team-pool-frozen/games.ots.jsonl, 4167 lines, 2275 distinct sixes, 24 taken by stride",
+    "pool_sha256_12": "194667d1e28e",
+    "pool_filters_on": "COMPLETENESS, not quality",
+    "battle_seed": 20260908,
+    "matchup_p1": [
+      "blaziken",
+      "metagross",
+      "garchomp",
+      "sinistcha",
+      "floetteeternal",
+      "gyarados"
+    ],
+    "matchup_p2": [
+      "gardevoir",
+      "scizor",
+      "pelipper",
+      "sableye",
+      "raichu",
+      "basculegionf"
+    ],
+    "node": "v24.15.0"
+  },
+  "contention": {
+    "warning": "RATIOS ONLY. Two other agents were live in this tree; ms per battleTurn varied across the run and the slow decisions are contiguous in wall-clock time, which is what machine contention looks like. The cause was NOT isolated and is not claimed.",
+    "ms_per_battle_turn_min": 0.669,
+    "ms_per_battle_turn_max": 7.747,
+    "ms_per_battle_turn_spread_x": 11.6
+  },
+  "cpu_profiles": [
+    {
+      "file": "decision-move3.cpuprofile",
+      "samples": 38699,
+      "wall_ms": 24648,
+      "attributed_ms": 24648,
+      "instrument_ms": 290,
+      "net_ms": 24358,
+      "self_pct": {
+        "simulator_medicham2": 66.6,
+        "board_features": 1.6,
+        "engine_support_pp": 0.6,
+        "tag_lookup_layer": 24.6,
+        "leaf_rollout_leaf": 5.4,
+        "search_miltank": 0,
+        "v8_runtime": 0.7,
+        "engine_support_mc_key": 0.3,
+        "showdown_the_real_game": 0.2,
+        "engine_support_engine_data": 0,
+        "position_features": 0,
+        "policy_mag": 0
+      },
+      "inclusive_pct": {
+        "dmgMon": 2,
+        "playerAction": 7.6,
+        "buildSide": 2.5,
+        "leafAfterActions": 99.3,
+        "battleInit": 0.1,
+        "chooseAction": 5.2,
+        "battleTurn": 77.9,
+        "runPlayout": 74.9,
+        "applySideState": 4.2
+      },
+      "tags_self_pct": 24.6,
+      "tags_by_caller_pct": {
+        "medicham2-browser.js:16624 effSpeed": 4.1,
+        "rollout_leaf.js:1024 applySideState": 3.9,
+        "medicham2-browser.js:12014 dmgRangeOneHit": 2.5,
+        "medicham2-browser.js:24949 battleTurn": 1.9,
+        "medicham2-browser.js:11803 suppressesWeather": 1.5,
+        "medicham2-browser.js:10384 accModRow": 0.7,
+        "medicham2-browser.js:10925 berryRefusedByFoe": 0.6,
+        "medicham2-browser.js:10944 berryPinchUpdate": 0.5,
+        "medicham2-browser.js:10071 critChance": 0.5,
+        "medicham2-browser.js:42487 playerActionPrimary": 0.5,
+        "medicham2-browser.js:11936 auraStateOf": 0.5,
+        "medicham2-browser.js:11005 berryPPUpdate": 0.4
+      },
+      "top_functions_self_pct": {
+        "medicham2-browser.js:24949 battleTurn": 17.3,
+        "tags.js:65 norm": 9.5,
+        "tags.js:106 param": 5.9,
+        "tags.js:70 tagsFor": 4.3,
+        "medicham2-browser.js:12014 dmgRangeOneHit": 4.2,
+        "rollout_leaf.js:821 runPlayout": 3.4,
+        "medicham2-browser.js:16624 effSpeed": 3.4,
+        "medicham2-browser.js:9162 residualOrder": 2.5,
+        "medicham2-browser.js:25983 _updateEvent": 2.2,
+        "tags.js:144 withTag": 2.1,
+        "tags.js:151 (anon)": 1.9,
+        "medicham2-browser.js:10384 accModRow": 1.4
+      }
+    },
+    {
+      "file": "decision-move5.cpuprofile",
+      "samples": 31448,
+      "wall_ms": 20354,
+      "attributed_ms": 20352,
+      "instrument_ms": 305,
+      "net_ms": 20047,
+      "self_pct": {
+        "board_features": 2.1,
+        "simulator_medicham2": 65.3,
+        "leaf_rollout_leaf": 5.5,
+        "tag_lookup_layer": 25.5,
+        "showdown_the_real_game": 0.3,
+        "engine_support_pp": 0.5,
+        "search_miltank": 0.1,
+        "v8_runtime": 0.5,
+        "engine_support_mc_key": 0.2,
+        "engine_support_engine_data": 0.1,
+        "other": 0,
+        "policy_mag": 0,
+        "position_features": 0
+      },
+      "inclusive_pct": {
+        "dmgMon": 3,
+        "playerAction": 8.2,
+        "buildSide": 3.7,
+        "leafAfterActions": 99.4,
+        "applySideState": 5.9,
+        "battleTurn": 76.2,
+        "chooseAction": 7.9,
+        "runPlayout": 59.5,
+        "battleInit": 0.1
+      },
+      "tags_self_pct": 25.5,
+      "tags_by_caller_pct": {
+        "rollout_leaf.js:1024 applySideState": 5.4,
+        "medicham2-browser.js:16624 effSpeed": 3.5,
+        "medicham2-browser.js:12014 dmgRangeOneHit": 3,
+        "medicham2-browser.js:24949 battleTurn": 1.7,
+        "medicham2-browser.js:11803 suppressesWeather": 1.4,
+        "medicham2-browser.js:10384 accModRow": 0.7,
+        "medicham2-browser.js:10071 critChance": 0.6,
+        "medicham2-browser.js:24234 tracksTargetOf": 0.5,
+        "medicham2-browser.js:10925 berryRefusedByFoe": 0.5,
+        "medicham2-browser.js:11936 auraStateOf": 0.4,
+        "medicham2-browser.js:42487 playerActionPrimary": 0.4,
+        "medicham2-browser.js:10944 berryPinchUpdate": 0.4
+      },
+      "top_functions_self_pct": {
+        "medicham2-browser.js:24949 battleTurn": 15.4,
+        "tags.js:65 norm": 9.7,
+        "tags.js:106 param": 6.1,
+        "medicham2-browser.js:12014 dmgRangeOneHit": 4.9,
+        "tags.js:70 tagsFor": 3.6,
+        "medicham2-browser.js:16624 effSpeed": 3.2,
+        "tags.js:144 withTag": 3,
+        "rollout_leaf.js:821 runPlayout": 2.8,
+        "tags.js:151 (anon)": 2.4,
+        "medicham2-browser.js:25983 _updateEvent": 2.2,
+        "medicham2-browser.js:9162 residualOrder": 1.7,
+        "medicham2-browser.js:10384 accModRow": 1.6
+      }
+    },
+    {
+      "file": "decision-move6.cpuprofile",
+      "samples": 42510,
+      "wall_ms": 44151,
+      "attributed_ms": 44150,
+      "instrument_ms": 437,
+      "net_ms": 43713,
+      "self_pct": {
+        "simulator_medicham2": 66.3,
+        "tag_lookup_layer": 25.7,
+        "engine_support_pp": 0.5,
+        "board_features": 1.7,
+        "leaf_rollout_leaf": 3.7,
+        "showdown_the_real_game": 0.2,
+        "search_miltank": 1.2,
+        "v8_runtime": 0.4,
+        "engine_support_mc_key": 0.3,
+        "engine_support_engine_data": 0,
+        "position_features": 0,
+        "policy_mag": 0
+      },
+      "inclusive_pct": {
+        "playerAction": 6.3,
+        "applySideState": 5.2,
+        "leafAfterActions": 99.5,
+        "chooseAction": 9.4,
+        "battleTurn": 78.8,
+        "runPlayout": 59.5,
+        "buildSide": 3,
+        "dmgMon": 2.5,
+        "battleInit": 0.1
+      },
+      "tags_self_pct": 25.7,
+      "tags_by_caller_pct": {
+        "rollout_leaf.js:1024 applySideState": 4.8,
+        "medicham2-browser.js:16624 effSpeed": 3.6,
+        "medicham2-browser.js:12014 dmgRangeOneHit": 3.1,
+        "medicham2-browser.js:24949 battleTurn": 1.9,
+        "medicham2-browser.js:11803 suppressesWeather": 1.6,
+        "medicham2-browser.js:10384 accModRow": 0.8,
+        "medicham2-browser.js:10071 critChance": 0.6,
+        "medicham2-browser.js:10925 berryRefusedByFoe": 0.5,
+        "medicham2-browser.js:24234 tracksTargetOf": 0.5,
+        "medicham2-browser.js:10944 berryPinchUpdate": 0.4,
+        "medicham2-browser.js:17451 suppressedAbility": 0.4,
+        "medicham2-browser.js:11936 auraStateOf": 0.4
+      },
+      "top_functions_self_pct": {
+        "medicham2-browser.js:24949 battleTurn": 15.8,
+        "tags.js:65 norm": 10.3,
+        "tags.js:106 param": 6.2,
+        "medicham2-browser.js:12014 dmgRangeOneHit": 5.5,
+        "tags.js:70 tagsFor": 3.6,
+        "medicham2-browser.js:16624 effSpeed": 3.2,
+        "tags.js:144 withTag": 3,
+        "rollout_leaf.js:821 runPlayout": 2.5,
+        "medicham2-browser.js:25983 _updateEvent": 2.2,
+        "medicham2-browser.js:9162 residualOrder": 1.9,
+        "medicham2-browser.js:10384 accModRow": 1.8,
+        "tags.js:151 (anon)": 1.8
+      }
+    },
+    {
+      "file": "decision-move7.cpuprofile",
+      "samples": 25514,
+      "wall_ms": 30357,
+      "attributed_ms": 30356,
+      "instrument_ms": 3376,
+      "net_ms": 26980,
+      "self_pct": {
+        "search_miltank": 2.9,
+        "tag_lookup_layer": 27.1,
+        "board_features": 3,
+        "simulator_medicham2": 60.1,
+        "leaf_rollout_leaf": 5.3,
+        "engine_support_pp": 0.5,
+        "showdown_the_real_game": 0.3,
+        "engine_support_mc_key": 0.4,
+        "v8_runtime": 0.4,
+        "engine_support_engine_data": 0,
+        "position_features": 0,
+        "policy_mag": 0
+      },
+      "inclusive_pct": {
+        "dmgMon": 4.5,
+        "playerAction": 5,
+        "buildSide": 5.7,
+        "leafAfterActions": 99.5,
+        "battleInit": 0.2,
+        "applySideState": 10,
+        "battleTurn": 69.4,
+        "chooseAction": 8.6,
+        "runPlayout": 42.9
+      },
+      "tags_self_pct": 27.1,
+      "tags_by_caller_pct": {
+        "rollout_leaf.js:1024 applySideState": 9,
+        "medicham2-browser.js:16624 effSpeed": 3.2,
+        "medicham2-browser.js:12014 dmgRangeOneHit": 2.9,
+        "medicham2-browser.js:24949 battleTurn": 1.7,
+        "medicham2-browser.js:11803 suppressesWeather": 1.1,
+        "medicham2-browser.js:10384 accModRow": 0.7,
+        "medicham2-browser.js:24234 tracksTargetOf": 0.5,
+        "medicham2-browser.js:10071 critChance": 0.5,
+        "medicham2-browser.js:10925 berryRefusedByFoe": 0.5,
+        "medicham2-browser.js:37224 _stepEffects": 0.4,
+        "medicham2-browser.js:11936 auraStateOf": 0.4,
+        "medicham2-browser.js:17451 suppressedAbility": 0.3
+      },
+      "top_functions_self_pct": {
+        "medicham2-browser.js:24949 battleTurn": 15.2,
+        "tags.js:65 norm": 8.7,
+        "tags.js:144 withTag": 5.8,
+        "tags.js:106 param": 5.6,
+        "medicham2-browser.js:12014 dmgRangeOneHit": 5,
+        "rollout_leaf.js:821 runPlayout": 3.1,
+        "tags.js:151 (anon)": 3.1,
+        "tags.js:70 tagsFor": 3.1,
+        "medicham2-browser.js:16624 effSpeed": 2.9,
+        "miltank.js:546 leafAfterActions": 2.8,
+        "medicham2-browser.js:9162 residualOrder": 2.5,
+        "medicham2-browser.js:10384 accModRow": 1.9
+      }
+    }
+  ],
+  "self_pct_ranges": {
+    "simulator_medicham2": {
+      "min": 60.1,
+      "max": 66.6
+    },
+    "tag_lookup_layer": {
+      "min": 24.6,
+      "max": 27.1
+    },
+    "leaf_rollout_leaf": {
+      "min": 3.7,
+      "max": 5.5
+    },
+    "board_features": {
+      "min": 1.6,
+      "max": 3
+    },
+    "position_features": {
+      "min": 0,
+      "max": 0
+    },
+    "policy_mag": {
+      "min": 0,
+      "max": 0
+    },
+    "search_miltank": {
+      "min": 0,
+      "max": 2.9
+    },
+    "engine_support_pp": {
+      "min": 0.5,
+      "max": 0.6
+    },
+    "engine_support_mc_key": {
+      "min": 0.2,
+      "max": 0.4
+    },
+    "engine_support_engine_data": {
+      "min": 0,
+      "max": 0.1
+    },
+    "showdown_the_real_game": {
+      "min": 0.2,
+      "max": 0.3
+    },
+    "v8_runtime": {
+      "min": 0.4,
+      "max": 0.7
+    },
+    "other": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "seam_per_decision": [
+    {
+      "kind": "preview",
+      "k": 0,
+      "wall_ms": 15258,
+      "leaf_calls": 45,
+      "playouts": 1800,
+      "battle_turns": 14062,
+      "turns_per_playout": 7.81,
+      "ms_per_battle_turn": 0.908,
+      "battleTurn_pct": 83.7,
+      "playerAction_pct": 10.8,
+      "dmgMon_pct": 1.8,
+      "battleInit_pct": 0.7,
+      "battleInit_us_per_call": 55.9,
+      "seam_pct": 97.1
+    },
+    {
+      "kind": "move",
+      "k": 1,
+      "wall_ms": 26859,
+      "leaf_calls": 15,
+      "playouts": 1607,
+      "battle_turns": 13790,
+      "turns_per_playout": 8.58,
+      "ms_per_battle_turn": 1.592,
+      "battleTurn_pct": 81.8,
+      "playerAction_pct": 8.6,
+      "dmgMon_pct": 1.9,
+      "battleInit_pct": 0.1,
+      "battleInit_us_per_call": 15.6,
+      "seam_pct": 92.5
+    },
+    {
+      "kind": "move",
+      "k": 2,
+      "wall_ms": 39717,
+      "leaf_calls": 3,
+      "playouts": 534,
+      "battle_turns": 4371,
+      "turns_per_playout": 8.19,
+      "ms_per_battle_turn": 7.415,
+      "battleTurn_pct": 81.6,
+      "playerAction_pct": 9.3,
+      "dmgMon_pct": 1.8,
+      "battleInit_pct": 0.1,
+      "battleInit_us_per_call": 63.5,
+      "seam_pct": 93
+    },
+    {
+      "kind": "move",
+      "k": 3,
+      "wall_ms": 42773,
+      "leaf_calls": 3,
+      "playouts": 534,
+      "battle_turns": 4531,
+      "turns_per_playout": 8.49,
+      "ms_per_battle_turn": 7.747,
+      "battleTurn_pct": 82.1,
+      "playerAction_pct": 8.8,
+      "dmgMon_pct": 1.9,
+      "battleInit_pct": 0.2,
+      "battleInit_us_per_call": 126.7,
+      "seam_pct": 93.1
+    },
+    {
+      "kind": "switch",
+      "k": 0,
+      "wall_ms": 35351,
+      "leaf_calls": 2,
+      "playouts": 800,
+      "battle_turns": 6698,
+      "turns_per_playout": 8.37,
+      "ms_per_battle_turn": 4.277,
+      "battleTurn_pct": 81,
+      "playerAction_pct": 9.2,
+      "dmgMon_pct": 1.9,
+      "battleInit_pct": 0.1,
+      "battleInit_us_per_call": 49,
+      "seam_pct": 92.5
+    },
+    {
+      "kind": "move",
+      "k": 5,
+      "wall_ms": 21475,
+      "leaf_calls": 22,
+      "playouts": 3139,
+      "battle_turns": 25986,
+      "turns_per_playout": 8.28,
+      "ms_per_battle_turn": 0.669,
+      "battleTurn_pct": 81,
+      "playerAction_pct": 8.7,
+      "dmgMon_pct": 2.4,
+      "battleInit_pct": 0.1,
+      "battleInit_us_per_call": 10,
+      "seam_pct": 92.5
+    },
+    {
+      "kind": "move",
+      "k": 7,
+      "wall_ms": 22237,
+      "leaf_calls": 23,
+      "playouts": 3206,
+      "battle_turns": 25401,
+      "turns_per_playout": 7.92,
+      "ms_per_battle_turn": 0.708,
+      "battleTurn_pct": 80.9,
+      "playerAction_pct": 8.6,
+      "dmgMon_pct": 2.4,
+      "battleInit_pct": 0.2,
+      "battleInit_us_per_call": 10.7,
+      "seam_pct": 92.3
+    },
+    {
+      "kind": "move",
+      "k": 9,
+      "wall_ms": 21526,
+      "leaf_calls": 39,
+      "playouts": 5277,
+      "battle_turns": 20887,
+      "turns_per_playout": 3.96,
+      "ms_per_battle_turn": 0.796,
+      "battleTurn_pct": 77.2,
+      "playerAction_pct": 7.4,
+      "dmgMon_pct": 4.1,
+      "battleInit_pct": 0.2,
+      "battleInit_us_per_call": 9.5,
+      "seam_pct": 89.2
+    }
+  ],
+  "seam_ranges": {
+    "wall_ms": {
+      "min": 15258,
+      "max": 42773
+    },
+    "leaf_calls": {
+      "min": 2,
+      "max": 45
+    },
+    "playouts": {
+      "min": 534,
+      "max": 5277
+    },
+    "battleTurn_pct": {
+      "min": 77.2,
+      "max": 83.7
+    },
+    "playerAction_pct": {
+      "min": 7.4,
+      "max": 10.8
+    },
+    "dmgMon_pct": {
+      "min": 1.8,
+      "max": 4.1
+    },
+    "battleInit_pct": {
+      "min": 0.1,
+      "max": 0.7
+    },
+    "turns_per_playout": {
+      "min": 3.96,
+      "max": 8.58
+    }
+  },
+  "truncation_model": {
+    "reference_decision": "move 5",
+    "mean_turns_per_playout": 8.28,
+    "horizon": 14,
+    "per_turn_ms": 0.741,
+    "fixed_ms_per_playout": 0.608,
+    "fixed_share_pct": 9,
+    "per_turn_share_pct": 91,
+    "applySideState_inclusive_pct_mean": 6.3,
+    "speedup_if_truncated_at": {
+      "depth_2": 3.23,
+      "depth_3": 2.38,
+      "depth_4": 1.89,
+      "depth_5": 1.56
+    },
+    "accuracy_cost": "NOT MEASURED. medicham2 battleResult scores an unfinished playout by living-body count and then by summed normalised HP, so truncation converts the leaf into a material comparator. That is a leaf-calibration question and it is MEASURE's."
+  },
+  "verdict": {
+    "engine_bound": true,
+    "simulator_plus_tag_layer_self_pct": {
+      "min": 87.2,
+      "max": 92
+    },
+    "policy_mag_self_pct": 0,
+    "position_features_self_pct": 0,
+    "serial_fraction_note": "Playouts are independent by construction; the non-parallelisable part of a decision (menu build, expressibility filter, halving bookkeeping) is the miltank + board share."
+  },
+  "defects_filed_not_fixed": [
+    "a frozen release cannot serve rollout_leaf.census() — data/rollout-switch-census.json is not in engine_release.js SOURCES, so a snapshot-path load silently plays a switchless playout at horizon 60 and reports success. MEASURE.",
+    "engine/miltank.js seeds evalPair from Date.now(), so a decision cannot be replayed. SEARCH.",
+    "budgetMs is a checkpoint, not a deadline: the last finalist runs to completion past it."
+  ],
+  "report": "docs/_reports/2026-09-08-decision-profile.md"
+}
