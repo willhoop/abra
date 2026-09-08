@@ -1,0 +1,129 @@
+{
+  "written": "2026-09-08",
+  "division": "ENGINE",
+  "batch": "O",
+  "what": "The per-arrival volley re-price routed its closure on whether the arrivals' BANDS happened to be equal instead of on hitPlanOf's perHitPower, so a power-flat volley with a mixed per-arrival crit vector asked dmgRange for `onlyHitNo` on the road that does not read it and got the whole-volley band back. Plus: a forme absorb overwrites arrival 0's band after dmgRange returned, so its invariant was unsatisfiable.",
+  "measured_before_the_fix": {
+    "pool_receipt_batch_N": "offered 490, ran 850, MOVED 14, refused non-flat 180, drifted at arrival 0 39",
+    "drift_samples": [
+      "populationbomb 10 packets, crit0=true, price 42 reprice 420  (10x)",
+      "watershuriken 5 packets, crit0=false, price 6 reprice 30  (5x)",
+      "watershuriken 5 packets, crit0=false, price 7 reprice 35  (5x)"
+    ],
+    "staged_pre_fix": [
+      "bulletseed venusaur -> milotic+Rindo, prime 1: drift+1, crits [f,f,f,t], sd [154,116,78,28] vs me [154,135,116,91]  BOARD PARTS",
+      "tailslap lycanroc -> volcarona+Flame Body, prime 1: drift+1, crits [f,t,f], sd [138,123,114] vs me [138,107,88]  BOARD PARTS",
+      "iciclespear -> mimikyu Disguise: drift+1, price 0 reprice 84 (absorb signature)"
+    ]
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "claim": "All 180 non-flat clicks in the pinned pool price per arrival: `drifted at arrival 0` reads 0 and `offered` rises from 490 to about 529 (490 + 39).",
+      "confidence": "high"
+    },
+    {
+      "id": "P2",
+      "claim": "`arrivalRepriceMoved` rises above 14, because 39 previously-disarmed clicks can now move a number.",
+      "confidence": "medium \u2014 most volleys have nothing happening between arrivals, so the rise may be small."
+    },
+    {
+      "id": "P3",
+      "claim": "BOARD-MATERIAL stays 0 of 958. The fix makes medicham AGREE with the authority on the drifted clicks, so it can only remove divergences, never add them.",
+      "confidence": "high"
+    },
+    {
+      "id": "P4",
+      "claim": "NARRATION stays at 53 of 961 or falls. A re-price changes a number inside a `-damage` line the two engines already both write, so no line appears or disappears.",
+      "confidence": "medium \u2014 a changed damage number can change who faints and therefore which lines follow."
+    },
+    {
+      "id": "P5",
+      "claim": "The roster counts 140 items / 139 abilities / 487 moves do not move, and the census stays 830/830.",
+      "confidence": "high"
+    },
+    {
+      "id": "P6",
+      "claim": "`tests/probe_bond_arrival_reprice.js` and `tests/probe_arrival_reprice.js` stay green in both their arms: the Parental Bond road is perHitPower=true and keeps the `onlyHitNo` closure it already had.",
+      "confidence": "high"
+    },
+    {
+      "id": "P7",
+      "claim": "`arrivalRepricePlanRoadUnreported` reads 0 everywhere \u2014 dmgRange writes `planPerHitPower` beside the packets it already writes, so there is no price that hands back packets without it.",
+      "confidence": "high"
+    }
+  ],
+  "job2_expired_reasons": [
+    {
+      "id": "P8",
+      "claim": "leppaberry and shedshell can be staged today; their COULD-NOT-STAGE reasons are false and fall.",
+      "confidence": "medium \u2014 the reason being wrong does not make the fixture buildable."
+    },
+    {
+      "id": "P9",
+      "claim": "focusband, kingsrock and quickclaw keep their refusal; only the PRIMARY_ARM anchor in the wording is dead and gets re-anchored.",
+      "confidence": "high"
+    },
+    {
+      "id": "P10",
+      "claim": "galewings' reason is wrong about Drill Peck (Talonflame cannot learn it) and the refusal actually comes from the harness delivery table; the reason is repaired, not deleted.",
+      "confidence": "medium"
+    }
+  ],
+  "misses": [
+    {
+      "id": "P2",
+      "claim": "`arrivalRepriceMoved` rises above 14",
+      "outcome": "MISS. It reads 0 on BOTH the baseline (1415f271058e) and the fixed (7f012a9afe01) pinned pool run. In this sample nothing happens between the arrivals of the 14 drifted clicks, so the fix is visible in the staged probe and not in the pool. Same shape as CLAUDE.md's 'say which scoreboard it should move' rule: this is a lab fix."
+    },
+    {
+      "id": "P3-caveat",
+      "claim": "board-material stays 0 of 958",
+      "outcome": "The BAR DID NOT MOVE (2 -> 2) but the BASELINE IS NOT 0 of 958. Under the brief's own pins and flags the PRE-CHANGE engine reads 2 of 961, cause `|-activate|p1b|cudchew <> |upkeep` at turn 22, identical in both runs. Reported, not reconciled."
+    },
+    {
+      "id": "P8",
+      "claim": "leppaberry and shedshell can be staged today",
+      "outcome": "HIT. Both FIRED-AND-BOARDS-MATCH; items 140 -> 142, COULD-NOT-STAGE 8 -> 6."
+    },
+    {
+      "id": "P10",
+      "claim": "galewings' reason is repaired, not deleted",
+      "outcome": "HIT, and it derives more than expected: 0 of 1 carriers learn Drill Peck, and FOUR higher-power Flying moves a carrier does learn are refused by deliveryOf (Brave Bird 120 recoil, Sky Attack 140 charge, Hurricane 110 accuracy, Fly 90 charge)."
+    }
+  ],
+  "measured": {
+    "baseline_release": "1415f271058e",
+    "after_release": "7f012a9afe01",
+    "flags": "--arm middle --state --end-state --census data/verification/census-pin-9446a684709d.json --team-store data/team-pool-frozen --games 1200 --turns 50",
+    "games": 961,
+    "reprice_baseline": {
+      "offered": 102,
+      "ran": 139,
+      "moved": 0,
+      "refused_non_flat": 26,
+      "drifted": 14
+    },
+    "reprice_after": {
+      "offered": 116,
+      "ran": 156,
+      "moved": 0,
+      "refused_non_flat": 26,
+      "drifted": 0
+    },
+    "board_material": {
+      "baseline": "2/961",
+      "after": "2/961"
+    },
+    "narration": {
+      "baseline": "23 causes / 26 games",
+      "after": "23 causes / 26 games"
+    },
+    "roster": {
+      "items": "140 -> 142",
+      "abilities": "139 -> 139",
+      "moves": "487 -> 487"
+    },
+    "census": "830 live / 830 probed / 0 missing (unchanged)"
+  }
+}

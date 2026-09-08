@@ -1507,6 +1507,17 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                       re-price is reading a board that is not moving, which is the silent-default
    *                       shape: it would look identical to the old engine and cost a call per hit. */
   arrivalRepriceOffered: 0, arrivalRepriceRan: 0, arrivalRepriceMoved: 0,
+  /* BATCH O, 2026-09-08 -- the invariant was checked at an arrival PAST 0 because arrival 0 carried
+   * the forme absorb's zeroed band, which `dmgRange` never wrote and no re-price can reproduce. Zero
+   * on a run containing a multi-hit click into an intact Disguise means the clause is unwired and
+   * every absorbed volley is still disarming itself. */
+  arrivalRepriceInvariantAbsorbed: 0,
+  /* BATCH O, 2026-09-08 -- a volley whose arrivals do NOT share one band and which was nonetheless
+   * routed to the single-arrival (`hits: 1`) closure, because its power is flat and the bands differ
+   * only by the per-arrival CRIT. This is the population batch N sent to `onlyHitNo` and then refused
+   * at its own invariant; a zero here on a middle-arm run over the pool means the route is back on
+   * band equality. */
+  arrivalRepriceFlatPowerMixedBand: 0,
   /* 2026-08-29 -- a volley whose packet loop STOPPED at the KO, so the reaction count (`_react`) is
    * the LANDED count and not the drawn one. It is the population where the two numbers can differ at
    * all: everywhere else they are equal and this counter is silent. A zero over a run that killed
@@ -3379,6 +3390,10 @@ const MEDFAILS = { encoreAction: 0,
    * arrivalPriceOnceRestored            set to 1 for the whole run under MEDI_ARRIVAL_PRICE_ONCE=1. */
   arrivalRepriceRefusedNonFlat: 0, arrivalRepriceRefusedNonFlatFirst: '',
   arrivalRepriceDriftsAtArrivalZero: 0, arrivalRepriceDriftsAtArrivalZeroFirst: '',
+  /* BATCH O, 2026-09-08 -- the first FORTY drifts, with the shape of both sides. A tally cannot say
+   * WHY, and the 39 above sat open for a day on exactly that. Capped, so a pool run cannot grow it
+   * without bound; empty is the only value a healthy run may have. */
+  arrivalRepriceDriftsAtArrivalZeroSamples: [],
   arrivalRepricedButTotalUnchanged: 0,
   /* BATCH N, 2026-09-07 -- a non-flat re-price asked `dmgRange` for an arrival its hit plan does not
    * have. It CANNOT happen while the packet count and the plan come from the same call, and it is
@@ -3391,6 +3406,16 @@ const MEDFAILS = { encoreAction: 0,
    * non-flat volley having actually reached the site: a restore nothing could observe is not a
    * restore. */
   arrivalRepriceFlatOnlyRestored: 0,
+  /* BATCH O, 2026-09-08 -- set to 1 for the whole run when MEDI_ARRIVAL_REPRICE_BANDROUTE=1 routes the
+   * closure on band equality and checks the invariant at arrival 0, which is batch N's engine. Gated
+   * on a volley whose bands actually DIFFER having reached the site: that is the only case the two
+   * routes disagree about, and a restore nothing could observe is not a restore. */
+  arrivalRepriceBandRouteRestored: 0,
+  /* BATCH O, 2026-09-08 -- `dmgRange` handed back no `planPerHitPower`, so the re-price could not ask
+   * which road the price took and fell back to comparing the bands. MUST READ 0: it can only happen
+   * if the out-parameter stops being written while the packets it rides beside keep coming, which is
+   * the silent-default shape this whole wire keeps producing. */
+  arrivalRepricePlanRoadUnreported: 0, arrivalRepricePlanRoadUnreportedFirst: '',
   /* BATCH N, 2026-09-07 -- set to 1 for the whole run when MEDI_SMARTTARGET_STEP_MAJOR=1 walks a
    * SPLIT smartTarget volley step-major, which is batch M's engine. Gated on a split volley having
    * reached the driver. `smartTargetSegmentNotFound` is the loud half of the same wire: the driver
@@ -13828,6 +13853,30 @@ const VOLSRC_SLOT_ONLY=(typeof process!=='undefined'&&process.env&&process.env.M
  * Any run carrying it also carries a non-zero `MEDFAILS.arrivalRepriceFlatOnlyRestored`, and that
  * flag is set only when a non-flat volley actually reached the site. */
 const ARRIVAL_REPRICE_FLAT_ONLY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ARRIVAL_REPRICE_FLAT_ONLY==='1');
+/* ==== BATCH O, 2026-09-08 -- THE RE-PRICE ROUTED ON THE BANDS, AND DISARMED ITSELF ON 39 CLICKS ===
+ *
+ * `MEDI_ARRIVAL_REPRICE_BANDROUTE=1` puts batch N's TWO decisions back, and they are the whole of the
+ * defect this knob exists to demonstrate:
+ *
+ *   1. THE CLOSURE WAS CHOSEN BY WHETHER THE ARRIVALS' BANDS HAPPENED TO BE EQUAL. They are not equal
+ *      whenever the per-arrival crit vector is MIXED -- a Bullet Seed whose fourth arrival crits has
+ *      four bands and one base -- so a power-FLAT volley took the `onlyHitNo` road. `dmgRange` only
+ *      honours `onlyHitNo` inside its PER-HIT loop, and a power-flat volley never reaches that loop:
+ *      it returns the whole-volley band from the `!perHitPower` road above it. The re-price therefore
+ *      came back exactly N TIMES the arrival (`price 32 reprice 128`, `price 42 reprice 420`), the
+ *      arrival-0 invariant caught it, and the click fell back to whole-volley pricing.
+ *      THE ROUTE IS NOW `perHitPower` -- the same field, off the same `hitPlanOf`, that decides which
+ *      road `dmgRange` takes -- so the closure can never again ask a question the callee ignores.
+ *
+ *   2. THE INVARIANT WAS CHECKED AT ARRIVAL 0 EVEN WHEN ARRIVAL 0 WAS NEVER PRICED. A forme absorb
+ *      (Disguise, Ice Face) ZEROES packet 0 in the caller after `dmgRange` returned, so no re-price
+ *      can reproduce it and every absorbed volley disarmed itself. It is checked at the first arrival
+ *      the price actually priced.
+ *
+ * Any run carrying the knob also carries a non-zero `MEDFAILS.arrivalRepriceBandRouteRestored`, set
+ * only when a volley whose bands DIFFER actually reached the site -- the one case the two routes
+ * disagree about -- because a restore nothing could observe is not a restore. */
+const ARRIVAL_REPRICE_BANDROUTE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ARRIVAL_REPRICE_BANDROUTE==='1');
 /* BATCH N, 2026-09-07 -- A `smartTarget` VOLLEY WALKED STEP-MAJOR ACROSS BOTH BODIES, which is the
  * engine as it stood before this batch: dart 2 was priced before dart 1's `DamagingHit` handlers had
  * run, so a Spicy Spray burn raised by the first dart never reached the second. Same shape as the
@@ -13911,6 +13960,15 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
      * flag is the same fact -- and `bondPlan` returns ABOVE the rolled/multiHit branches in
      * `hitPlanOf`, so the two can never both be true. See `_stepHitCount`'s caller. */
     hit.hitcountBondPlan=!!_plan.bondPlan;
+    /* BATCH O, 2026-09-08 -- WHICH ROAD THIS CALL TOOK, HANDED BACK. `_stepApply`'s per-arrival
+     * re-price has to ask for one arrival in the way the callee can answer: `hits: 1` on the flat
+     * road below, `onlyHitNo` inside the per-hit loop. It used to choose by comparing the returned
+     * BANDS, which is a fact about the dice rather than about the move, and a power-flat volley with
+     * a mixed crit vector then asked for `onlyHitNo` on a road that does not read it -- handing back
+     * N times the arrival. Reported as an out-parameter rather than re-derived at the call site,
+     * because a second `hitPlanOf` call would double-count `parentalBondPlanned` and would be a
+     * second copy of a fact this file's own rule says has one owner. */
+    hit.planPerHitPower=!!_plan.perHitPower;
   }
   if(!_plan.perHitPower){
     /* ROADMAP #322 -- ASK FOR THE ONE-ARRIVAL BAND TOO, and only when the caller wants packets. A
@@ -35399,7 +35457,41 @@ function battleTurn(S,rng,actsForA,actsForB){
               }
               if(!_flatBand&&ARRIVAL_REPRICE_FLAT_ONLY)MEDFAILS.arrivalRepriceFlatOnlyRestored=1;
               else{
-              R.reprice=_flatBand
+              /* ==== BATCH O, 2026-09-08 -- THE ROUTE IS `perHitPower`, NOT BAND EQUALITY ==========
+               *
+               * MEASURED FIRST, on the pinned pool: `offered 490, ran 850, MOVED 14, drifted 39`,
+               * and `141 + 39 = 180`, the whole non-flat population. Every one of the 39 came back
+               * from the re-price at EXACTLY N TIMES the arrival -- `populationbomb price 42 reprice
+               * 420` at ten packets, `watershuriken price 6 reprice 30` at five -- because
+               * `dmgRange` honours `onlyHitNo` ONLY inside its per-hit loop, and a volley whose power
+               * does not vary by arrival never reaches that loop. It returns from the `!perHitPower`
+               * road above it with the WHOLE VOLLEY's band, and `onlyHitNo` is not read there at all.
+               *
+               * The clicks that landed in it are power-flat volleys whose per-arrival CRIT vector is
+               * mixed -- `crits=[false,false,false,true]` on a Bullet Seed -- so their SELECTED bands
+               * differ while their base does not. `_flatBand` is a fact about the bands; the callee
+               * branches on a fact about the MOVE. Routing on the first to predict the second is what
+               * put the two out of step, and it is exactly the shape this file has a rule about: the
+               * question has ONE owner, `hitPlanOf`, so the closure asks IT.
+               *
+               * `hits: 1` IS THE RIGHT QUESTION FOR A POWER-FLAT VOLLEY however its bands fell out:
+               * every arrival shares one base, so arrival k differs from arrival 1 only by the board
+               * it lands on and by its own crit -- and the crit is the argument. That is batch M's
+               * flat closure unchanged, now reached by the clicks it was always correct for. */
+              /* AND IT IS AN ERROR, NOT A DEFAULT, IF THE CALLEE DID NOT REPORT. `undefined` reads as
+               * `false` reads as "flat closure", which is a silent fallback to exactly the road this
+               * fix is about. The route falls back to the band comparison and SAYS SO. */
+              let _perHitPower;
+              if(typeof _hitCtx.planPerHitPower!=='boolean'){
+                MEDFAILS.arrivalRepricePlanRoadUnreported++;
+                if(!MEDFAILS.arrivalRepricePlanRoadUnreportedFirst)
+                  MEDFAILS.arrivalRepricePlanRoadUnreportedFirst=String(a.move.id);
+                _perHitPower=!_flatBand;
+              } else _perHitPower=_hitCtx.planPerHitPower;
+              const _useFlatClosure=ARRIVAL_REPRICE_BANDROUTE?_flatBand:!_perHitPower;
+              if(ARRIVAL_REPRICE_BANDROUTE&&!_flatBand)MEDFAILS.arrivalRepriceBandRouteRestored=1;
+              if(_useFlatClosure&&!_flatBand)MEDSEEN.arrivalRepriceFlatPowerMixedBand++;
+              R.reprice=_useFlatClosure
                 ? (isCrit)=>{
                     const c=Object.assign({},_hitCtx,{hits:1,wantPackets:false,wantFirst:false,
                       packets:null,rolls:[],rollsUnit:null,firstMin:null,firstMax:null});
@@ -35420,12 +35512,54 @@ function battleTurn(S,rng,actsForA,actsForB){
                * every volley. Checked on every click that offers a re-price, on BOTH roads -- and it
                * is what would catch a non-flat re-price that asked for the wrong arrival, since
                * arrival 0's band is the one number both sides must already agree on. */
-              const _chk=R.reprice(_crits?!!_crits[0]:!!R.crit,0);
-              if(!_chk||_chk[R.pkIdx[0]]!==_pkArr[0]){
+              /* ==== BATCH O -- AND THE FORME ABSORB MAKES ARRIVAL 0 UNREPRODUCIBLE ================
+               *
+               * A FORME ABSORB WRITES ARRIVAL 0'S BAND AFTER `dmgRange` HAS RETURNED: the `_absMulti`
+               * clause on the flat road overwrites `hit.packets[0]` with sixteen zeroes, so the number
+               * the invariant compares against is not one `dmgRange` produced. Asked again at price
+               * time it cannot come back either way -- the forme is still INTACT there, so a
+               * single-arrival question is absorbed WHOLE and answers 0 for every arrival. An Icicle
+               * Spear into a fresh Mimikyu therefore read `price 0 reprice 84` before this and
+               * `price 30 reprice 0` after; both are the same fact and neither is a drift.
+               *
+               * SO THE INVARIANT ASKS THE OTHER HALF OF THE SAME QUESTION: the re-price must AGREE
+               * THAT THE CLICK IS ABSORBED. It stays armed because the arrivals it actually serves are
+               * priced at APPLY time, below `_absPending.bust()` -- `formeAbsorbBustBetweenArrivals`
+               * runs at the foot of arrival 0's pass and the re-price runs at the head of arrival 1's,
+               * so the board it reads has the busted forme on it, which is the correct board and the
+               * whole point. `arrivalRepriceInvariantAbsorbed` is how many clicks took this branch;
+               * a zero on a run holding a multi-hit click into an intact Disguise means it is unwired
+               * and every absorbed volley is disarming itself again. */
+              let _iv=0,_absorbZeroed=false;
+              if(!ARRIVAL_REPRICE_BANDROUTE){
+                while(_iv<_pks.length-1&&_pkArr[_iv]===0&&_pks[_iv].band.every(v=>v===0))_iv++;
+                if(_iv>0&&_pks[_iv].band.every(v=>v===0))_iv=0;    // all-zero volley: check arrival 0
+                if(_iv>0){_absorbZeroed=true;MEDSEEN.arrivalRepriceInvariantAbsorbed++;}
+              }
+              const _chk=R.reprice(_crits?!!_crits[_iv]:!!R.crit,_iv);
+              const _want=_absorbZeroed?0:_pkArr[_iv];
+              if(!_chk||_chk[R.pkIdx[_iv]]!==_want){
                 MEDFAILS.arrivalRepriceDriftsAtArrivalZero++;
                 if(!MEDFAILS.arrivalRepriceDriftsAtArrivalZeroFirst)
-                  MEDFAILS.arrivalRepriceDriftsAtArrivalZeroFirst=String(a.move.id)+' price '+_pkArr[0]
-                    +' reprice '+(_chk?_chk[R.pkIdx[0]]:'null');
+                  MEDFAILS.arrivalRepriceDriftsAtArrivalZeroFirst=String(a.move.id)+' arrival '+_iv
+                    +' price '+_pkArr[_iv]+' reprice '+(_chk?_chk[R.pkIdx[_iv]]:'null');
+                /* BATCH O, 2026-09-08 -- THE COUNTER SAID *THAT* AND NEVER *WHY*, AND THE 39 SAT OPEN
+                 * FOR A DAY BECAUSE OF IT. A bare tally plus a first-name cannot separate "the
+                 * re-price asked for the wrong arrival" from "the two prices disagree about the
+                 * volley's SHAPE". These rows carry the shape of both sides, capped so a pool run
+                 * cannot grow without bound, and they are read by `tests/probe_arrival_drift_zero.js`
+                 * and printed by `engine/game_differential.js`. */
+                if(MEDFAILS.arrivalRepriceDriftsAtArrivalZeroSamples.length<40)
+                  MEDFAILS.arrivalRepriceDriftsAtArrivalZeroSamples.push({
+                    move:String(a.move.id), flat:!!_flatBand, packets:_pks.length,
+                    perHitPower:!!_perHitPower, arrival:_iv,
+                    crit:_crits?!!_crits[_iv]:!!R.crit, idx:R.pkIdx[_iv],
+                    crits:_crits?_crits.map(x=>!!x):null,
+                    bandsEqualToFirst:_pks.map(p=>p.band.every((v,j)=>v===_pks[0].band[j])),
+                    price:_pkArr[_iv], reprice:_chk?_chk[R.pkIdx[_iv]]:null,
+                    priceBand:_pks[_iv].band.slice(), repriceBand:_chk?_chk.slice():null,
+                    hits:(+_hitCtx.hits||0), att:String((m&&m.name)||''),
+                    def:String((tg&&tg.name)||'')});
                 R.reprice=null;
               } else MEDSEEN.arrivalRepriceOffered++;
               }

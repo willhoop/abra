@@ -1807,6 +1807,84 @@ function secondControl(e, sc, subject, delta, src, arm) {
  * SUCCEED in both engines. If it does not, the probe's action shape is wrong and "did not switch"
  * would be the fixture agreeing with itself — the ROADMAP #100 failure with a switch in it. That is
  * checked FIRST and a failure there is COULD-NOT-STAGE, never a finding. */
+/* ---- THE OTHER POLARITY: THE ENTITY IS WHAT LETS A TRAPPED BODY LEAVE ----------------------------
+ * (2026-09-08, batch O. `item/trapping-escape` — Shed Shell.)
+ *
+ * `switchVerdict` above asks "the entity TRAPS: does the authority refuse, and do we?". Shed Shell is
+ * the inverse — the trap is present in BOTH arms and the ITEM is what escapes it — so the two arms go
+ * in the other way round:
+ *
+ *     SUBJECT   trapped, HOLDING the item     the authority must let it LEAVE, and so must we
+ *     CONTROL   trapped, holding NOTHING      the authority must REFUSE the identical ask
+ *
+ * THE CONTROL IS WHAT MAKES THE ROW MEAN ANYTHING, exactly as it is one function up, and it is the
+ * half a naive version would drop: if the trap never bound at all, the subject leaving is the fixture
+ * agreeing with itself. That is checked FIRST and a failure there is COULD-NOT-STAGE.
+ *
+ * IT IS A SEPARATE FUNCTION AND NOT A FLAG, because every sentence of `switchVerdict`'s prose is
+ * written for one polarity ("with the move in place", "with the trap removed"). An inverted arm
+ * reading that prose would print the opposite of what happened, which is worse than no row. */
+function escapeVerdict(e, subject, control, base) {
+  const P = e.switchProbe;
+  const key = P.side === 'A' ? 'p1' : 'p2';
+  const refused = (r) => {
+    if (r.bad !== 'THREW') return false;
+    const w = String(r.why || '');
+    return /choice rejected[^"]*"[^"]*switch/i.test(w) || /can.?t switch/i.test(w);
+  };
+  const oursLeft = (r) => { const a = r.medi_active;
+    return a ? idOf((a[key] || [])[P.slot] || '') === idOf(P.to) : null; };
+  const sdLeft = (r) => { const b = (r.boards || [])[r.boards.length - 1];
+    if (!b || !b.sd) return null;
+    const act = ((b.sd.sides || {})[key] || {}).active || [];
+    return act[P.slot] ? idOf(act[P.slot].species) === idOf(P.to) : null; };
+  const say = (v, why, extra) => ({ ...base, verdict: v, why,
+    escape_probe: { asked: P, showdown_refused_control: refused(control),
+      ours_switched_control: oursLeft(control), showdown_switched_subject: sdLeft(subject),
+      ours_switched_subject: oursLeft(subject), subject_bad: subject.bad || null,
+      subject_why: subject.why || null, control_bad: control.bad || null,
+      control_why: control.why || null, ...(extra || {}) } });
+
+  /* 1. THE TRAP MUST HAVE BOUND. Without the item the identical ask must be REFUSED by the authority
+   *    and must leave the body in OUR slot too. Anything else and this row is measuring the fixture. */
+  if (!refused(control)) {
+    if (control.bad) return say('COULD-NOT-STAGE', 'THE CONTROL ARM DID NOT RUN and it was not a '
+      + 'refused switch: ' + control.bad + ' — ' + control.why + '  Without a trap that BINDS, the '
+      + 'subject leaving proves nothing.');
+    if (sdLeft(control) === true) return say('COULD-NOT-STAGE', 'THE TRAP NEVER BOUND. Without the '
+      + 'item the authority let the body leave anyway, so there is nothing for the item to escape and '
+      + 'this row would be the fixture agreeing with itself.');
+    return say('COULD-NOT-STAGE', 'the authority neither refused the control switch nor completed it '
+      + 'in a way this probe can read (showdown_left=' + sdLeft(control) + ', ours_left='
+      + oursLeft(control) + ')');
+  }
+  if (oursLeft(control) === true) return say('FIRED-AND-BOARDS-DIFFER',
+    'THE CONTROL PARTED BEFORE THE ITEM WAS EVEN ASKED ABOUT. With no item at all the authority '
+    + 'refused the switch (' + String(control.why).slice(0, 120) + ') and medicham2 let the body '
+    + 'leave, so this engine does not honour the trap itself. The item cannot be read until that is.');
+
+  /* 2. THE ITEM ARM. The authority must let it out. */
+  if (refused(subject)) return say('COULD-NOT-STAGE', 'THE AUTHORITY REFUSED THE SWITCH WITH THE ITEM '
+    + 'HELD (' + String(subject.why).slice(0, 160) + '). That is a claim about this FIXTURE — the trap '
+    + 'staged here is one the item does not escape in the authority — and not about our engine, so the '
+    + 'row is refused rather than scored.');
+  if (subject.bad) return say('COULD-NOT-STAGE', 'the SUBJECT arm did not run: ' + subject.bad + ' — '
+    + subject.why);
+  if (sdLeft(subject) !== true) return say('COULD-NOT-STAGE', 'the authority did not refuse the ask '
+    + 'and did not put ' + pretty(P.to) + ' in the slot either, so there is no answer to compare '
+    + '(showdown_left=' + sdLeft(subject) + ')');
+  if (oursLeft(subject) === null) return say('COULD-NOT-STAGE', 'the authority let the body out and '
+    + 'our own slot could not be read, so the two answers cannot be put beside each other.');
+  if (oursLeft(subject) !== true) return say('DID-NOT-FIRE',
+    'THE AUTHORITY LET THE HOLDER LEAVE AND THIS ENGINE KEPT IT IN THE SLOT. ' + e.name + ' does not '
+    + 'escape the trap here. The control proves the trap is real: without the item the same ask was '
+    + 'refused by the authority and refused by us.');
+  return say('FIRED-AND-BOARDS-MATCH',
+    'THE HOLDER LEFT IN BOTH ENGINES AND THE SAME ASK WITHOUT THE ITEM WAS REFUSED IN BOTH. '
+    + pretty(P.to) + ' stands in the slot on both sides; the authority rejected the control choice ('
+    + String(control.why).slice(0, 100) + ') and medicham2 kept the body there.');
+}
+
 function switchVerdict(e, subject, control, base) {
   const P = e.switchProbe;
   const key = P.side === 'A' ? 'p1' : 'p2';
@@ -2221,6 +2299,15 @@ function runEntryRaw(e) {
   if (subject.bad && !e.switchProbe) return { ...e, verdict: 'COULD-NOT-STAGE',
     why: 'the SUBJECT arm did not run: ' + subject.bad + ' — ' + subject.why };
   const control = play(ctrlSc, src, arm);
+  /* AN ESCAPE PROBE RUNS THE SAME TWO ARMS IN THE OTHER POLARITY, and it gets its own reader rather
+   * than a flag inside `switchVerdict` — every sentence in that function is written for "the entity
+   * TRAPS", and an inverted arm reading its prose would report the opposite of what happened. See
+   * `escapeVerdict`. (2026-09-08, batch O: this is what `item/trapping-escape` needs.) */
+  if (e.switchProbe && e.switchProbe.escape) return escapeVerdict(e, subject, control,
+    { ...e, boards: subject.boards,
+      compared: subject.boards.reduce((n, b) => n + b.compared, 0),
+      subject_diffs: splitDeclared(subject.boards.flatMap(b => b.diffs.map(d => ({ ...d, turn: b.turn }))),
+                                   subject.boards).kept });
   if (e.switchProbe) return switchVerdict(e, subject, control,
     { ...e, trap_exceptions: trapExceptionArms(e, src, arm),
       boards: subject.boards, compared: subject.boards.reduce((n, b) => n + b.compared, 0),
@@ -4233,6 +4320,107 @@ function noCoinWhy(list, chance, what) {
 }
 
 
+/* ---- THE PP FIXTURE, DERIVED — A CLICK THAT SPENDS A SLOT AND MOVES NOTHING ELSE ------------------
+ * (2026-09-08, batch O. `item/pp-restore` reads it; the reason it replaced was false.)
+ *
+ * A PP restore has to be shown against an EMPTY SLOT, and the only way to empty one here is to click
+ * it. So the click has to be inert in every other respect, and "inert" is derived rather than chosen:
+ * the foe is TYPE-IMMUNE to the move, so the damage, the secondaries and the effectiveness line are
+ * all zero by the type chart and the ONLY leaf that can move is the PP the click spent.
+ *
+ *   the move    the SMALLEST `pp.max` among the boring delivery moves (`deliveryOf`), because the
+ *               script is one turn per point and the maximum is the turn count
+ *   the wall    a buildable legal body with `getImmunity(type) === false`
+ *   the holder  a buildable legal body that LEARNS the move — asked of the learnset, never assumed,
+ *               which is the exact check `ability/priority-mod`'s Gale Wings reason turned out not
+ *               to make
+ *
+ * AND NEITHER BODY MAY CARRY PRESSURE. `carrierAbility`'s INTERFERES list is about damage and does
+ * not name `onDeductPP`, so a Pressure body would spend TWO points per click and the slot would empty
+ * on a turn this file did not schedule — a fixture that half-works and reports a pass. Refused here,
+ * by handler, for both bodies. */
+const PP_DRAIN_WHY_PARTS = [];
+const PP_DRAIN = (() => {
+  const taxesPP = sp => Object.values(sp.abilities || {})
+    .some(n => typeof dex.abilities.get(idOf(n)).onDeductPP !== 'undefined');
+  const ppMaxOf = m => {
+    const p = ((TAGS.moves[m.id] || {}).params || {}).pp;
+    return (p && +p.max > 0) ? Math.floor(+p.max) : null;
+  };
+  const cands = dex.moves.all()
+    .filter(m => m.exists && !m.isNonstandard && deliveryOf(m) && ppMaxOf(m))
+    .sort((a, b) => ppMaxOf(a) - ppMaxOf(b) || a.id.localeCompare(b.id));
+  if (!cands.length) { PP_DRAIN_WHY_PARTS.push('no boring delivery move in this format carries a '
+    + '`pp` row this rule can count'); return null; }
+  let sawWall = false, sawHolder = false;
+  for (const mv of cands) {
+    const wall = CANDIDATES.find(F => buildableSpecies(F.id) && !taxesPP(F)
+      && dex.getImmunity(mv.type, F.types) === false && carrierAbility(F));
+    if (!wall) continue;
+    sawWall = true;
+    const holder = CANDIDATES.find(F => buildableSpecies(F.id) && !taxesPP(F)
+      && idOf(F.id) !== idOf(wall.id) && learnsMove(F, mv.id) && carrierAbility(F));
+    if (!holder) continue;
+    sawHolder = true;
+    return { mv, wall, holder, clicks: ppMaxOf(mv) };
+  }
+  PP_DRAIN_WHY_PARTS.push(sawHolder ? 'a move, a wall and a holder were each found but never together'
+    : sawWall ? 'every type-immune wall this format offers belongs to a move NO buildable body learns'
+    : 'no buildable legal body is TYPE-IMMUNE to any of the ' + cands.length + ' boring delivery '
+      + 'moves, so there is no click that spends PP and moves nothing else');
+  return null;
+})();
+const PP_DRAIN_WHY = 'the fixture cannot be built: ' + (PP_DRAIN_WHY_PARTS[0] || 'unknown')
+  + '. This is a claim about THIS FILE and not about the item.';
+
+/* ---- THE TRAP-ESCAPE FIXTURE, DERIVED — A MOVE-LAID TRAP AND A BODY THAT ASKS TO LEAVE ------------
+ * (2026-09-08, batch O. `item/trapping-escape` reads it; the reason it replaced was false.)
+ *
+ *   the move     a `trapsTarget` tag whose params lay the `trapped` volatile ON THE TARGET, taken
+ *                from `data/tags.json` rather than by name — Mean Look, Block and Spirit Shackle are
+ *                the members today and a fourth would be picked up without editing this file
+ *   the trapper  a buildable legal body that LEARNS it
+ *   the holder   a buildable legal body that is NOT a Ghost type. Ghosts are untrappable outright
+ *                (`switchTrapVerdict`'s `_ghost` and the authority's `getImmunity('trapped')`), so a
+ *                Ghost holder would leave in BOTH arms and the row would read inert.
+ *   the bench    a fourth distinct body, named, because `{ sw: <species> }` resolves by species id
+ *                and an absent name resolves silently to `pass`
+ *
+ * NOTHING HERE IS TYPED. If this format ever loses its `trapsTarget` moves the fixture refuses with
+ * that as its reason instead of quietly staging something that traps nobody. */
+const TRAP_ESCAPE_WHY_PARTS = [];
+const TRAP_ESCAPE = (() => {
+  const laysTrap = id => {
+    const p = ((TAGS.moves[id] || {}).params || {}).trapsTarget;
+    return !!(p && p.volatile === 'trapped' && p.to === 'target' && !p.viaSecondary);
+  };
+  const moves = dex.moves.all()
+    .filter(m => m.exists && !m.isNonstandard && m.tier !== 'Illegal' && laysTrap(m.id)
+      && (m.accuracy === true || m.accuracy === 100)
+      && (m.target === 'normal' || m.target === 'any'))
+    .sort((a, b) => a.id.localeCompare(b.id));
+  if (!moves.length) { TRAP_ESCAPE_WHY_PARTS.push('this format has no 100-accuracy single-target move '
+    + 'that lays the `trapped` volatile, so there is no trap for the item to escape'); return null; }
+  const usable = CANDIDATES.filter(F => buildableSpecies(F.id) && carrierAbility(F));
+  for (const mv of moves) {
+    const trapper = usable.find(F => learnsMove(F, mv.id));
+    if (!trapper) continue;
+    const holder = usable.find(F => idOf(F.id) !== idOf(trapper.id) && !F.types.includes('Ghost'));
+    if (!holder) continue;
+    const partner = usable.find(F => idOf(F.id) !== idOf(trapper.id) && idOf(F.id) !== idOf(holder.id));
+    if (!partner) continue;
+    const bench = usable.find(F => idOf(F.id) !== idOf(trapper.id) && idOf(F.id) !== idOf(holder.id)
+      && idOf(F.id) !== idOf(partner.id));
+    if (!bench) continue;
+    return { mv, trapper, holder, partner, bench };
+  }
+  TRAP_ESCAPE_WHY_PARTS.push('no buildable legal body learns any of the ' + moves.length
+    + ' trapping move(s) this format carries, so the trap cannot be laid');
+  return null;
+})();
+const TRAP_ESCAPE_WHY = 'the fixture cannot be built: ' + (TRAP_ESCAPE_WHY_PARTS[0] || 'unknown')
+  + '. This is a claim about THIS FILE and not about the item.';
+
 const RULES = [
 
 /* ---------------------------------------------------------------------------- items -------------- */
@@ -4245,9 +4433,18 @@ const RULES = [
   match(e) {
     const m = /(\d+)% chance/.exec(e.shortDesc || '');
     if (!m || +m[1] >= 100) return null;
-    return cannot('its effect is a ' + m[1] + '% chance, and the driver\'s pin makes every sub-100% '
-      + 'roll fail in both engines (game_differential.js PRIMARY_ARM: "no secondary fires"). Nothing '
-      + 'staged here could distinguish a wired mechanic from an absent one.');
+    /* RE-ANCHORED 2026-09-08, batch O. THE CLAIM IS STILL TRUE AND THE ANCHOR WAS DEAD. This quoted
+     * `game_differential.js PRIMARY_ARM` for "no secondary fires" — and `PRIMARY_ARM` has meant the
+     * `middle` arm since 2026-08-13 (commit cf7a2c5), whose own `what` string says the OPPOSITE:
+     * "secondaries fire at their printed chance". The corner this file actually pins is its OWN
+     * `PRIMARY_ARM_ID`, and that is what the sentence now names. Same failure as the fourteen stale
+     * handoffs: a citation outliving the thing it cited, still reading as authoritative. */
+    return cannot('its effect is a ' + m[1] + '% chance, and this file pins `PRIMARY_ARM_ID = "'
+      + PRIMARY_ARM_ID + '"` (tests/roster.js), the corner on which every sub-100% roll fails in both '
+      + 'engines. Nothing staged on that corner could distinguish a wired mechanic from an absent one. '
+      + 'THE ROUTE THAT WOULD REACH IT EXISTS AND THIS ROW IS NOT ON IT YET: the live-die lane (`arm: "'
+      + LIVE_ARM + '"` with a coin receipt) was added 2026-09-07 and eight ability rules declare it; no '
+      + 'item rule does.');
   } },
 
 { id: 'item/crit-ratio', kind: 'item',
@@ -4260,12 +4457,44 @@ const RULES = [
 
 { id: 'item/trapping-escape', kind: 'item',
   reads: 'onTrapPokemon / onMaybeTrapPokemon',
-  why: 'the script language has no word for a VOLUNTARY SWITCH — `scripted()` returns a move or a '
-     + 'pass — and `board_state.js` publishes ability trapping in NOT_COMPARED with its reason. Both '
-     + 'halves of what this item does are outside the instrument.',
+  why: 'THE REASON THIS ROW CARRIED WAS FALSE ON BOTH HALVES, and it outlived what it described by a '
+     + 'month. It read "the script language has no word for a VOLUNTARY SWITCH" — `{ sw: <species> }` '
+     + 'became a legal step on 2026-08-08 and TEN rows including Shadow Tag are staged with it today — '
+     + 'and "board_state.js does not compare ability trapping", which is true and was never the '
+     + 'obstacle: `switchVerdict` compares the two engines in the TWO FORMS THEY ANSWER IN (Showdown '
+     + 'rejects the choice string, medicham2 leaves the body in the slot), which needs no leaf at all.\n'
+     + '     THE TRAP IS A MOVE, NOT AN ABILITY, and that is derived rather than chosen: this format\'s '
+     + 'only `preventsSwitch` ability sits on a MEGA forme, so an ability trap needs a mega ask and a '
+     + 'setup turn that the item stage has no way to build. `trapsTarget` moves (Mean Look, Block, '
+     + 'Spirit Shackle) lay the same `trapped` volatile, and the authority runs the item through the '
+     + 'SAME `TrapPokemon` event for both — `onTrapPokemonPriority: -10` clears `pokemon.trapped` last, '
+     + 'whatever set it (data/items.ts:5635). medicham2 spends the same `escapesTrap` param on its '
+     + 'move-laid branch, so both engines are being asked one question.\n'
+     + '     THE POLARITY IS INVERTED AND GETS ITS OWN READER. The trap is in BOTH arms and the ITEM '
+     + 'is the variable: the holder must LEAVE and the same body holding nothing must be REFUSED. See '
+     + '`escapeVerdict` — a control that was never trapped would make the subject leaving vacuous.',
   match(e) { if (!e.onTrapPokemon && !e.onMaybeTrapPokemon) return null;
-    return cannot('it undoes TRAPPING, which needs a voluntary switch to observe; the script language '
-      + 'has no switch action and board_state.js does not compare ability trapping at all'); } },
+    if (!TRAP_ESCAPE) return cannot(TRAP_ESCAPE_WHY);
+    const { mv, trapper, holder, partner, bench } = TRAP_ESCAPE;
+    return { switchProbe: { side: 'B', slot: 0, to: bench.id, turn: 2, escape: true },
+      note: pretty(trapper.id) + ' lays ' + mv.name + ' on ' + pretty(holder.id) + ' on turn 1; on '
+          + 'turn 2 the holder asks to leave for ' + pretty(bench.id) + '. WITH ' + e.name + ' it must '
+          + 'go, and the CONTROL — the same game with the item stripped — must be REFUSED by the '
+          + 'authority and refused by us. ' + pretty(holder.id) + ' is not a Ghost type (Ghosts ignore '
+          + 'trapping outright, which would make both arms leave).',
+      scenario: scaffold({
+        a0: mon(trapper.id, '', carrierAbility(trapper) || '', [mv.id]),
+        b0: mon(holder.id, e.id, carrierAbility(holder) || '', [INERT]),
+        /* `b1` IS NAMED SO THAT `b2` LANDS ON THE BENCH. `scaffold`'s `build(lead, second, third)`
+         * pushes `third` straight after `lead` when `second` is absent — so passing only `b0` and
+         * `b2` puts the arriving body in the ACTIVE ALLY SLOT, `{ sw: ... }` finds nobody on the
+         * bench by that name and resolves to `pass`, and Showdown rejects the choice with
+         * "Can't pass". Measured, on the first run of this rule. */
+        b1: mon(partner.id, '', carrierAbility(partner) || '', [INERT]),
+        b2: mon(bench.id, '', carrierAbility(bench) || '', [INERT]),
+        script: [turn([click(mv.id, 0), IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [{ sw: bench.id }, IDLE])] }) };
+  } },
 
 { id: 'item/mega-stone', kind: 'item',
   reads: 'megaStone — the base species and the forme it becomes',
@@ -4592,14 +4821,49 @@ const RULES = [
   } },
 
 { id: 'item/pp-restore', kind: 'item',
-  reads: 'shortDesc naming PP',
-  why: '`board_state.js` publishes PP in NOT_COMPARED with its reason — medicham2 does not track PP '
-     + 'at all — so a PP restore has no leaf to appear on. This rule exists so the entity gets that '
-     + 'as its reason rather than falling through to the generic staging and reading "inert", which '
-     + 'would be true and useless.',
-  match(e) { if (!/\bPP\b/.test(e.shortDesc || '')) return null;
-    return cannot('its whole effect is on PP, and board_state.js does not compare PP in either '
-      + 'engine (medicham2 does not track it at all), so there is no board leaf it could move'); } },
+  reads: 'restoresPP — the amount and the empty-slot preference, off the item\'s own tag params',
+  why: 'THE REASON THIS ROW CARRIED WAS FALSE, AND IT OUTLIVED THE THING IT DESCRIBED BY WEEKS. It '
+     + 'read "`board_state.js` publishes PP in NOT_COMPARED — medicham2 does not track PP at all". '
+     + 'Both halves are wrong today: `board_state.js` carries a LIVE leaf `pp-is-what-has-been-spent` '
+     + 'read through medicham2\'s own `ppSpentMap`, `engine/game_differential.js` compares PP on every '
+     + 'board unless a caller declares `ppHold` (this file declares none), and a real PP divergence '
+     + 'was measured on 2026-09-07. A written justification kept past the thing it described is the '
+     + 'most repeated defect in this repository, and this is one of them.\n'
+     + '     THE FIXTURE SPENDS A SLOT TO ZERO AND NOTHING ELSE. The holder clicks ONE derived move '
+     + 'at a body that is TYPE-IMMUNE to it, once per turn, `pp.max` times — so the only leaf that '
+     + 'can move is the PP the click spent. The berry fires on the click that empties the slot and '
+     + 'restores its amount, so the subject ends on 0 SPENT and the control (the same body holding '
+     + 'nothing) ends on the full maximum. Neither number is typed here: the count comes from the '
+     + 'move\'s own `pp` tag and the immunity from the type chart.',
+  match(e) {
+    if (!TAGS.items[e.id] || !(TAGS.items[e.id].tags || []).includes('restoresPP')) {
+      /* THE SHORTDESC IS STILL THE NET, because an item that mentions PP and carries no `restoresPP`
+       * tag must not fall through to the generic staging and read "inert" — that is the useless-true
+       * answer the old rule existed to prevent, and it is the half of it that was right. */
+      if (!/\bPP\b/.test(e.shortDesc || '')) return null;
+      return cannot('its shortDesc names PP but `data/tags.json` gives it no `restoresPP` params, so '
+        + 'the amount and the trigger this fixture would have to count are not derivable');
+    }
+    if (!PP_DRAIN) return cannot(PP_DRAIN_WHY);
+    const { mv, wall, holder, clicks } = PP_DRAIN;
+    /* EXACTLY `clicks` TURNS AND NOT ONE MORE, and the first cut of this rule had one more. The
+     * CONTROL arm holds no berry, so on turn `clicks + 1` its slot is EMPTY and Showdown rejects the
+     * choice outright — `Can't move: <body>'s <move> is disabled`, measured — which throws the arm
+     * this row is judged against. The restore is read at the boundary AFTER the emptying turn, where
+     * the subject has been given its amount back and the control has not. */
+    const script = [];
+    for (let t = 0; t < clicks; t++) script.push(turn([IDLE, IDLE], [click(mv.id, 0), IDLE]));
+    return { note: pretty(holder.id) + ' holds ' + e.name + ' and clicks ' + mv.name + ' at '
+        + pretty(wall.id) + ', which is IMMUNE to ' + mv.type + ' — so the click spends PP and moves '
+        + 'nothing else. `pp.max` for ' + mv.name + ' is ' + clicks + ', so the slot empties on turn '
+        + clicks + ' and the berry answers in that same update pass. The compared leaves are `pp.'
+        + mv.id + '` (SPENT — the subject gets its amount back, the control does not) and the '
+        + 'holder\'s `item`.',
+      scenario: scaffold({
+        a0: mon(wall.id, '', carrierAbility(wall) || '', [INERT]),
+        b0: mon(holder.id, e.id, carrierAbility(holder) || '', [mv.id]),
+        script }) };
+  } },
 
 { id: 'item/status-cure', kind: 'item',
   reads: 'onUpdate + shortDesc "cured if it is <status>" / "wakes up" / "confused" / "cures itself"',
@@ -6768,9 +7032,35 @@ const RULES = [
       && spd(F) > spd(sp) && dex.getImmunity(mv.type, F.types) !== false
       && maxRoll(sp, mv, F) >= flatL50(F.baseStats).hp * 1.2 && carrierAbility(F));
     const C = abilityCarrier(e, sp => !!(victim = pick(sp)));
-    if (!C) return cannot(noCarrierWhy(e, 'has a FASTER foe in this format that its own ' + T[0]
-      + ' click (' + mv.name + ') kills outright — the shift is invisible unless it takes an action '
-      + 'away from somebody'));
+    /* REPAIRED 2026-09-08, batch O. THIS SENTENCE SAID "ITS OWN ... CLICK" AND THE CLICK IS NOT ITS
+     * OWN. `hitOfType` reads the format-wide DELIVERY table — the highest-power move of that type
+     * passing `deliveryOf`, taken over the whole dex — and NOTHING in this rule asks whether the
+     * carrier can learn it. For Gale Wings that made the reason name Drill Peck as "Talonflame's own
+     * Flying click"; Talonflame cannot learn Drill Peck. The refusal is real and it belongs to the
+     * DELIVERY TABLE, so the reason names the table, the move it picked, and whether the carrier
+     * learns it — three facts a reader can check. It also names the route that is closed: the
+     * carrier's best legal Flying click is Brave Bird, which `deliveryOf` refuses on `m.recoil`
+     * because recoil would move the carrier's own HP inside the experiment. */
+    if (!C) {
+      const all = CARRIERS[e.id] || [];
+      const canClick = all.filter(sp => learnsMove(sp, mv.id));
+      const better = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.type === T[0]
+        && m.basePower > mv.basePower && !deliveryOf(m)
+        && all.some(sp => learnsMove(sp, m.id)));
+      return cannot(noCarrierWhy(e, 'has a FASTER foe in this format that the DELIVERY TABLE\'s '
+        + T[0] + ' click (' + mv.name + ', ' + mv.basePower + ' BP — the highest-power move of that '
+        + 'type passing `deliveryOf`, chosen over the WHOLE DEX and NOT off any carrier\'s learnset) '
+        + 'kills outright — the shift is invisible unless it takes an action away from somebody. '
+        + 'AND WHETHER A CARRIER CAN CLICK IT IS NOT ASKED BY THIS RULE: of the ' + all.length
+        + ' carrier(s) of this ability, ' + canClick.length + ' learn ' + mv.name
+        + (canClick.length ? ' (' + canClick.map(s => s.name).join(', ') + ')' : '')
+        + (better.length ? '. A HIGHER-POWER ' + T[0] + ' MOVE A CARRIER DOES LEARN EXISTS AND IS '
+            + 'REFUSED BY `deliveryOf`: ' + better.map(m => m.name + ' (' + m.basePower + ' BP)')
+            .join(', ') + ' — so this refusal is about the delivery pick and not about the format. '
+            + 'OWED WORK IN THIS FILE: a learnset-aware delivery move for this rule'
+          : '. No higher-power move of that type is learnable by a carrier either, so the delivery '
+            + 'pick is not what is refusing this row')));
+    }
     victim = pick(C.sp);
     return stageAbility(e, C, { hpA: 1, hpB: 4, moves: [mv.id],
       note: pretty(victim.id) + ' is FASTER (' + spd(victim) + ' against ' + spd(C.sp) + ') and is '
@@ -8142,9 +8432,18 @@ const RULES = [
      + 'the entry would read THE STAGING IS INERT for a reason that is about this file rather than '
      + 'about the engine. Said out loud instead.',
   match(e) { if (idOf(e.id) !== idOf(INERT)) return null;
+    /* REPAIRED 2026-09-08, batch O. THE SECOND CLAUSE HAD EXPIRED AND THE FIRST STILL BINDS. It read
+     * "Its effect — two critical-hit stages — is also not a leaf board_state.js compares", and that
+     * has been false since 2026-08-12, when `board_state.js` began comparing nine per-body volatiles
+     * with `focusenergy` among them (see this file's own header at the top). The stale half is
+     * removed rather than rewritten to agree with today: what refuses this row is the FIRST clause,
+     * on its own, and it is structural — no leaf could rescue a script that is identical in both
+     * arms. Moving the row would mean moving the INERT click, which every other move row rests on. */
     return cannot('this move IS the control arm\'s inert click (' + pretty(INERT) + '), so subject '
-      + 'and control would be the same script and the comparison would be vacuous. Its effect — two '
-      + 'critical-hit stages — is also not a leaf board_state.js compares.'); } },
+      + 'and control would be the same script and the delta would be empty by construction. That is '
+      + 'the whole refusal: `board_state.js` HAS compared `vol.focusenergy` since 2026-08-12, so the '
+      + 'effect is expressible — there is simply no arm to express it against while this move is the '
+      + 'control.'); } },
 
 /* ---- THE PRECONDITION RULES --------------------------------------------------------------------
  *
@@ -9632,11 +9931,24 @@ const RULES = [
     /* STRUGGLE CANNOT BE CLICKED FROM A SCRIPT AT ALL, and the rejection names the reason: Showdown
      * marks it DISABLED for any body that has a usable move, which every body in this file does.
      * Read off `struggleRecoil` — the field only Struggle carries — rather than off its name. */
+    /* REPAIRED 2026-09-08, batch O. THE SECOND CLAUSE HAD EXPIRED AND THE FIRST STILL BINDS. It read
+     * "which the script language has no way to arrange because medicham2 does not track PP at all
+     * (board_state.js NOT_COMPARED)". Both halves are false today: medicham2 has `ppSpentMap`,
+     * `board_state.js` carries the live `pp-is-what-has-been-spent` leaf, and `item/pp-restore`
+     * SPENDS A SLOT TO ZERO in this same file. What still refuses Struggle is arithmetic, not
+     * tracking, and it is now stated as such: emptying ONE slot is `pp.max` turns, and a body must
+     * have EVERY slot empty — `scaffold` appends the inert click to every body it builds, so the
+     * shortest such script is the sum of two maxima with the second one unreachable while the first
+     * still has PP. Named as owed work in this file rather than as a fact about the simulator. */
     if (e.struggleRecoil) return cannot('Showdown DISABLES Struggle for any body that still has a '
       + 'usable move, and every body this file stages carries at least the inert click — so the '
-      + 'scripted choice is rejected ("Struggle is disabled") and the game throws. Reaching it would '
-      + 'need a body whose whole moveset is spent, which the script language has no way to arrange '
-      + 'because medicham2 does not track PP at all (board_state.js NOT_COMPARED).');
+      + 'scripted choice is rejected ("Struggle is disabled") and the game throws. Reaching it needs '
+      + 'a body whose WHOLE moveset is spent. That is now expressible — medicham2 tracks PP through '
+      + '`ppSpentMap`, `board_state.js` compares it as `pp-is-what-has-been-spent`, and this file\'s '
+      + '`item/pp-restore` empties a slot by clicking it — but it is not built: `scaffold` appends '
+      + 'the inert click to every body, so a Struggle fixture must empty EVERY slot, and the inert '
+      + 'click cannot be chosen once the tested slot is dry without ending the run early. OWED WORK '
+      + 'IN THIS FILE, not a limit of the engine.');
     const arm = armFor(e);
     const b0 = quietBody({ arm, type: e.type }), b1 = quietBody({ arm, type: e.type, not: [b0 && b0.species] });
     if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type }));

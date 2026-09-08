@@ -50,7 +50,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_pivot_after_battle_end.js`, `tests/probe_status_chip_scaled.js`,
 `tests/probe_entry_update_before_mega.js`, `tests/probe_pickpocket_on_a_corpse.js`,
 `tests/probe_hazard_sweep_order.js`, `tests/probe_residual_faint_flush.js`,
-`tests/probe_unknown_format_refusal.js`
+`tests/probe_unknown_format_refusal.js`, `tests/probe_protect_tie_order.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -159,6 +159,232 @@ ENGINE — does the simulator do what Pokémon does
 _stamped 2026-09-08 13:41_
 
 <!-- /GENERATED -->
+
+## THE PER-ARRIVAL RE-PRICE STOPPED DISARMING ITSELF — **ALL 180 NON-FLAT CLICKS NOW PRICE PER ARRIVAL**, DRIFT **39 → 0**, OFFERED **500 → 539**. WILL'S TWO CASES ARE DEMONSTRATED RED-THEN-GREEN. BOARD-MATERIAL HOLDS AT **0 OF 958**, NARRATION UNMOVED AT 52 CAUSES / 54 GAMES, CENSUS 830/830. ROSTER ITEMS **140 → 142** — LEPPA BERRY AND SHED SHELL STAGED FOR THE FIRST TIME AFTER THEIR REASONS WERE MEASURED FALSE. 2026-09-08
+
+Full account, every command, both root causes and the eight reason audits:
+[docs/_reports/2026-09-08-volley-reprice-and-expired-reasons.md](_reports/2026-09-08-volley-reprice-and-expired-reasons.md).
+
+### THE COUNTER SAID *THAT* AND NEVER *WHY*, AND THE 39 SAT OPEN FOR A DAY BECAUSE OF IT
+
+The first change was to make the drift counter carry the SHAPE of both sides. Forty capped sample
+rows, and they came back unanimous:
+
+```
+populationbomb  10 packets  crit0=true   price 42  reprice 420      (x10)
+watershuriken    5 packets  crit0=false  price  6  reprice  30      (x5)
+```
+
+**The re-price was handing back exactly N TIMES the arrival**, which is what the arrival-0 invariant
+existed to catch. **It was protecting against the wire dealing four to ten times its real damage on
+every arrival of those clicks**, and it did.
+
+### ROOT CAUSE 1 — THE CLOSURE WAS ROUTED ON THE BANDS, AND THE CALLEE BRANCHES ON THE MOVE
+
+`dmgRange` honours `onlyHitNo` **only inside its per-hit loop**, and a volley whose power does not
+vary by arrival never reaches that loop — it returns from the `!perHitPower` road above with the
+WHOLE VOLLEY's band. Batch N chose between the two closures by comparing the returned BANDS, which is
+a fact about the DICE: a power-flat volley whose per-arrival crit vector is MIXED
+(`crits=[false,false,false,true]` on a Bullet Seed) has four bands and one base, so it asked for
+`onlyHitNo` on the road that does not read it.
+
+The route is now `hitPlanOf`'s own `perHitPower` — the same field, off the same call, that decides
+which road `dmgRange` takes. It is handed back as an out-parameter (`hit.planPerHitPower`) beside the
+packets, **not re-derived at the call site**: a second `hitPlanOf` call would double-count
+`MEDSEEN.parentalBondPlanned` and would be a second copy of a fact with one owner. A price that hands
+back packets and no road reading increments `MEDFAILS.arrivalRepricePlanRoadUnreported` and falls back
+loudly — it reads 0 everywhere.
+
+### ROOT CAUSE 2 — A FORME ABSORB MAKES ARRIVAL 0 UNREPRODUCIBLE, IN BOTH DIRECTIONS
+
+`_absMulti` overwrites `hit.packets[0]` with sixteen zeroes **after `dmgRange` returned**, so the
+number the invariant compared against is not one `dmgRange` produced. Icicle Spear into a fresh
+Mimikyu read `price 0 reprice 84` before, and `price 30 reprice 0` under the new route — both are the
+same fact and neither is a drift. The invariant now asks **the other half of the same question**: on
+an absorbed volley the re-price must AGREE THAT THE CLICK IS ABSORBED. The closure stays armed
+because the arrivals it serves are priced at APPLY time, below `_absPending.bust()`.
+
+### WILL'S TWO CASES, STAGED
+
+`tests/probe_arrival_drift_zero.js`, six arms, `middle`, against the authority.
+
+```
+RED-1  Venusaur Bullet Seed -> Milotic + RINDO BERRY     [the berry is eaten on arrival 1]
+       showdown [154, 116,  78,  28]      arrivals 2-4 are FULL
+       medicham [154, 135, 116,  91]      before -- still halved
+       medicham [154, 116,  78,  28]      after
+
+RED-2  Lycanroc Tail Slap -> Volcarona + FLAME BODY      [the attacker is burned on arrival 1]
+       showdown [138, 123, 114]           arrivals 2-3 are HALVED
+       medicham [138, 107,  88]           before -- not halved
+       medicham [138, 123, 114]           after
+```
+
+**`--red` REPRODUCES THE PRE-FIX ENGINE BYTE-FOR-BYTE.** `MEDI_ARRIVAL_REPRICE_BANDROUTE=1` restores
+batch N's two decisions and nothing else; `[154,135,116,91]` and `[138,107,88]` are exactly what the
+live tree produced before a byte moved, measured and recorded first.
+`MEDFAILS.arrivalRepriceBandRouteRestored` must read 1 in the red arm and 0 in the clean one, and it
+is gated on a volley whose bands actually differ reaching the site.
+
+**THE CONTROLS ARE SILENT IN THE COUNTER, NOT ONLY IN THE PROSE.** CTRL-A and CTRL-B play the SAME
+drifting volley as their red partners — same crit vector, same price — with only the item or the
+ability changed, and assert `arrivalRepriceMoved +0`. An HP comparison alone could not separate
+"nothing changed" from "two errors cancelled".
+
+### THE POOL, BOTH INSTRUMENTS
+
+`--steering empirical --arm middle --state --end-state --census data/verification/census-pin-9446a684709d.json --team-store data/team-pool-frozen --games 1200 --turns 50`, releases `1415f271058e` → `7f012a9afe01`:
+
+| | before | after |
+|---|---|---|
+| offered | 500 | **539** |
+| ran | 861 | **935** |
+| MOVED a number | 15 | 15 |
+| refused non-flat (the population census) | 180 | 180 |
+| **drifted at arrival 0** | **39** | **0** |
+| BOARD-MATERIAL (`state.games` less `games_board_never_diverged`) | 0/958 | **0/958** |
+| NARRATION-ONLY | 52 causes, 54 games | 52 causes, 54 games |
+
+**500 + 39 = 539**, and 141 + 39 = 180. The `coverage`-steered pair says the same on a different
+sample: offered 102 → 116, drifted 14 → 0.
+
+**`--steering` IS PART OF THE SAMPLE AND IT IS NOT IN THE BRIEF.** The default is `coverage`; every
+published figure here was produced under `empirical`, which is recorded in the artifact
+(`data/game-differential.json` → `steering.policy`) and nowhere else. Two full runs were spent
+measuring a correct before/after on the wrong instrument, and the write-up briefly said the brief's
+`0 of 958` did not reproduce. **It reproduces exactly, under the driver that produced it.**
+
+### THE ROSTER — TWO EXPIRED REASONS FELL AND FIVE WERE REPAIRED
+
+| row | the claim it carried | verdict |
+|---|---|---|
+| `leppaberry` | *"board_state.js does not compare PP in either engine"* | **FALSE — STAGED**, `FIRED-AND-BOARDS-MATCH` |
+| `shedshell` | *"the script language has no switch action"* | **FALSE — STAGED**, `FIRED-AND-BOARDS-MATCH` |
+| `focusenergy` | *"not a leaf board_state.js compares"* | expired (volatiles compared since 2026-08-12); the first clause binds |
+| `struggle` | *"medicham2 does not track PP at all"* | expired; the disable clause binds |
+| `focusband` / `kingsrock` / `quickclaw` | `game_differential.js PRIMARY_ARM: "no secondary fires"` | claim true, **anchor dead** since 2026-08-13 — re-anchored on this file's own `PRIMARY_ARM_ID` |
+| `galewings` | *"Talonflame's own Flying click (Drill Peck)"* | **FALSE** — Talonflame does not learn it; the click comes from the format-wide delivery table |
+
+```
+items      140 -> 142 MATCH,  0 DIFFER,  0 DID-NOT-FIRE,  COULD-NOT-STAGE 8 -> 6
+abilities  139 (unchanged),   0 DIFFER,  0 DID-NOT-FIRE
+moves      487 (unchanged),   0 DIFFER,  0 DID-NOT-FIRE
+```
+
+The Leppa fixture is derived end to end: the smallest-`pp.max` boring delivery move, a body TYPE-IMMUNE
+to it, and a body that LEARNS it — so the only leaf that can move is the PP the click spent. Neither
+body may carry Pressure (`onDeductPP` is not in `carrierAbility`'s damage-shaped `INTERFERES` list and
+would empty the slot a turn early), and the script is EXACTLY `pp.max` turns: one more and the control
+arm hits an empty slot and throws, measured on the first run. Shed Shell needed the opposite polarity
+— the trap is in BOTH arms and the ITEM is the variable — so it gets `escapeVerdict` rather than a
+flag inside `switchVerdict`, whose every sentence is written for "the entity TRAPS".
+
+### THE HAND LIST
+
+**Removed — the 39 arrival-0 drifts**, which are now `tests/probe_arrival_drift_zero.js`, and the
+`leppaberry` / `shedshell` staging reasons, which are now roster rows.
+
+- **THE PER-ARRIVAL CRIT VECTOR ON AN ABSORBED VOLLEY.** Found by CTRL-D and it is NOT this batch's —
+  it reads identically under `--red`. Mamoswine Icicle Spear into an intact Disguise: the absorb, the
+  bust, the chip (114 on both) and arrivals 3 and 4 (28 each) all agree, and **the authority draws a
+  `|-crit|` on arrival 2 that this engine does not** — 45 against 30. The probe asserts the parting is
+  EXACTLY that shape, so it goes red the day anything else moves and the day this is fixed.
+- **POPULATION BOMB INTO FLAME BODY PARTS AT EVERY PRIMING OFFSET, WITH `drift 0`.** The two engines
+  burn the attacker on DIFFERENT arrivals — the authority halves from arrival 2, this engine from
+  arrival 4 — and at one offset medicham landed one arrival where the authority landed six. Found
+  while searching for a drifting fixture; a different wire (per-arrival reaction dice under
+  `multiaccuracy`), untouched.
+- **`item/chance-gated` AND `item/crit-ratio` ARE REFUSED ON A CORNER THE FILE NO LONGER HAS TO USE.**
+  The live-die lane (`arm: 'middle'` with a coin receipt) landed 2026-09-07 and eight ability rules
+  declare it; **no item rule does.** Focus Band, King's Rock and Quick Claw are three rows waiting on
+  one lane change.
+- **`ability/priority-mod` PICKS ITS DELIVERY MOVE WITHOUT ASKING THE CARRIER'S LEARNSET.** Gale Wings
+  is refused on Drill Peck, which its only carrier cannot learn, while Brave Bird (120 BP) is excluded
+  by `deliveryOf`'s no-recoil clause. A learnset-aware pick is owed; it was not made here because
+  `DELIVERY` is shared by many rules and moving it moves the sample.
+- **STRUGGLE IS NOW ARITHMETIC RATHER THAN TRACKING.** PP is expressible and `item/pp-restore` empties
+  a slot; what is missing is a fixture that empties EVERY slot, which `scaffold`'s appended inert click
+  makes long. Owed in `tests/roster.js`.
+- **NOT OWED ANY MORE, AND RECORDED BECAUSE IT WAS FOR AN HOUR.** Moving the engine staled
+  `data/game-differential.json`, `data/engine-diff.json` and `data/all-mechanics-fire.json`, and
+  `status.js` correctly withheld all three (*"that is not a weaker answer, it is an answer about other
+  bytes"*). Each was re-run on `7f012a9afe01` with the command the gate itself prints, and **the gate
+  is back to `2 of 9 GATING clauses fail (CLOSED)`** — both of them the two the brief named:
+  NARRATION at 53 of 961, and ROADMAP #376.
+- **`node engine/status.js --write` WAS NOT RUN**, per the brief. Nothing was committed.
+- **`tests/test-pinch-family.js` IS RED AT 1 OF 61 AND IT IS NOT THIS PASS'S** — carried forward from
+  the pass below, on the same evidence.
+
+## THE THREE PROTECT/DETECT ORDERINGS ARE **NOT** THE SPEED-TIE DEVICE — THE DISCRIMINATOR READS **100.0%, 112 OF 112**, AND THE HYPOTHESIS THAT ONE SIDE'S DIE WAS LEFT ROLLING IS REFUTED AT THE LINE. NO ENGINE EDIT. CENSUS UNTOUCHED AT 830/830, BOARD-MATERIAL UNCHANGED AT 0 OF 958. 2026-09-08
+
+Full account, every command, every count and the eliminated hypotheses:
+[docs/_reports/2026-09-08-speed-tie-clause.md](_reports/2026-09-08-speed-tie-clause.md).
+
+**ROADMAP #376 SPECIFIED ITS OWN DISCRIMINATOR AND IT WAS RUN BEFORE ANYTHING WAS TOUCHED**: *"stage
+two bodies at identical `getActionSpeed()` both clicking Protect across N seeds and count agreement —
+about 50% is the tie device, 0% is an inverted alignment, 100% means these three are something else."*
+
+```
+SHOWDOWN_PATH=... node tests/probe_protect_tie_order.js --n 400 --release 1415f271058e
+
+  112 AGREE, 0 DISAGREE on turn order, out of 112 scored      AGREEMENT = 100.0%
+  0 fixture, 0 threw, 0 diverged for a DIFFERENT reason
+  CONTROL (medicham2's `tie` stream on a ramp):  2 AGREE, 110 DISAGREE
+```
+
+**THE CONTROL IS THE LOAD-BEARING HALF, AND A DIFFERENT CONSTANT WOULD NOT HAVE BEEN ONE.** Under the
+ramp, 110 of 112 arrangements produce **exactly #376's cause shape** — `|move|p1a|protect <>
+|move|p1b|protect` and its cross-net and cross-rung variants — so the instrument can manufacture the
+row's three causes on demand and manufactures none of them with the shipped rule. Swapping the pinned
+constant for another constant is NOT a control: every action would get the same key either way, the
+comparator returns 0, the group keeps its order, and the run comes back byte-identical.
+
+**"WE PINNED ONE SIDE'S DIE AND LEFT THE OTHER ROLLING" IS FALSE.** `engine/game_differential.js:1842`
+already hands medicham2 `o.tie = () => 0` in the middle arm, the honest mirror of `pinShuffle`'s
+no-op at `:1735`. Both devices have been pinned since #290.
+
+**THE FIXTURE SWEEPS THE REGULATION AND STAGES THE TIE THREE WAYS** — across the net at one spread
+rung, both bodies on ONE side, and across the net at different rungs — because a rule phrased about
+sides passes the first and fails the second, and a rule phrased about slot index passes the first two
+and fails the third. Every tie is VERIFIED against the authority's own `getActionSpeed()` at
+`when === 0` rather than intended; a staged tie that is not a tie is filed as FIXTURE and kept out of
+the rate. It read 0.
+
+**THE GARCHOMP CAVEAT IS EXERCISED RATHER THAN ARGUED.** `[still]` is `attrLastMove` blanking a move
+that did nothing (`sim/battle.ts:3128`), and Protect reaches it two ways —
+`!!this.queue.willAct() && this.runEvent('StallMove', pokemon)`. All four actives click Protect for
+two turns, so **112 of 112 arrangements failed a Protect and 112 of them did so on turn 2**, where the
+consecutive-use counter is the only thing that can refuse it. Both halves agree. The individual
+Garchomp game is NOT re-measurable and that is said rather than papered over.
+
+### THE HAND LIST
+
+- **#376'S OWN THREE CAUSES ARE GONE FROM THE SAMPLE, AND ITS INSTRUMENT IS RED FOR A DIFFERENT PAIR.**
+  Walked over `classes[].causes[]` on release `1415f271058e`: 14 `ordering` causes and not one is a
+  `protect`/`detect` pair. `node engine/quarantine.js --order-probe` exits 1 on
+  `ordering :: |move|p2a|closecombat <> |move|p2b|tailwind`, **gap 286**, same priority — an
+  UNEQUAL-speed disagreement, which is #290's clause and not #376's. One game of 961, writes no board.
+- **THE SNEASLER PAIR IS NOT UNBURDEN, AND THAT WAS MEASURED RATHER THAN ASSUMED.** Two arrangements
+  were staged, each with a control that moved the order: Unburden triggered at switch-in (324 vs 182,
+  both engines put Sneasler first; no herb reads 162 vs 182 and both flip) and Unburden triggered
+  MID-TURN by a self-drop with the order read on the FOLLOWING turn (same result, `div: NONE`). What
+  is left unstaged is the card's own arrangement — the herb consumed **after a pivot switch has
+  already resolved inside the turn**. It is owed a card of its own.
+- **#376'S REGISTER ROW WAS NOT EDITED.** Its story has been withdrawn once already; the honest state
+  is that the tie explanation is now measured false AND the instrument it names is red for a pair the
+  row does not describe. That is a re-scope, and it belongs with whoever also rules on the Sneasler
+  card.
+- **`data/mechanics-census.json` WAS NOT REGENERATED AND THE DIFFERENTIAL WAS NOT RE-RUN.** No
+  mechanic changed, so neither could move — and see the next row.
+- **A SECOND AGENT WAS WRITING `engine/medicham2-browser.js` DURING THIS PASS.** The brief said the
+  tree was clean at `61b7d426` with nobody else running; `HEAD` moved to `f79d29cd` at 14:06 local and
+  the engine picked up **18 uncommitted lines stamped `BATCH O, 2026-09-08`** at 14:42, which are not
+  this pass's. `game_differential.js` auto-cut release `68531bfd1959` under one of the runs as a
+  result. **Every figure above is pinned to `--release 1415f271058e` and re-ran identically after the
+  drift**, so nothing here is contaminated — but that is why nothing was regenerated.
+- **`tests/test-pinch-family.js` IS RED AT 1 OF 61, `test-docs-quarantine` IS RED, AND `status.js`
+  FAILS ITS FEATURE-SEMANTICS CHECK ON `data/policy-weights.json`.** All three were named as
+  pre-existing and none is this pass's. MAG is paused; that file was not touched.
 
 ## AN UNKNOWN FORMAT ID RESOLVED TO MAINLINE GEN 9 AND NOTHING THREW — **347 LEGAL SPECIES BECOMES 911**, ROCKY HELMET AND SILK TRAP BECOME LEGAL, AND IT WAS ARMED FOR THE DAY `active` MOVES. **228 CALL SITES ROUTED STRUCTURALLY WITH NO EDIT, 13 MORE BY HAND.** NO MECHANIC CHANGED, CENSUS UNTOUCHED AT 830/830, BOARD-MATERIAL NOT RE-MEASURED AND THAT IS DELIBERATE. 2026-09-08
 

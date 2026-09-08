@@ -1,10 +1,10 @@
 {
-  "current": "1415f271058e",
-  "cut": "2026-09-08T16:10:12.708Z",
-  "why": "settled tree 97d7b389 - re-measure board-material after champions_sim dexFor refusal and Proxy, and rollout_leaf ability control",
-  "cuts": 13,
-  "latest_cut": "2026-09-08T17:33:12.488Z",
+  "current": "7f012a9afe01",
+  "cut": "2026-09-08T19:21:57.561Z",
+  "why": "\"batch",
+  "cuts": 2,
+  "latest_cut": "2026-09-08T20:56:38.677Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-08T17:33:12.505Z",
+  "pointer_written": "2026-09-08T20:56:38.728Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }
