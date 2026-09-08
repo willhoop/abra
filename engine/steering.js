@@ -118,17 +118,29 @@ function driverCode(opts) {
   const entry = path.relative(ROOT, entryAbs).split(path.sep).join('/');
   const frozen = new Set(opts.frozen || []);
   const clo = ER.requireClosure([entry], ROOT);
-  const files = {};
+  /* CONTENT, NOT BYTES, AND THE BYTES ARE RECORDED BESIDE IT — 2026-09-08. `sha12Content` normalises
+   * line terminators and is otherwise `sha12`; see its header in engine_release.js. Eight of the
+   * eleven instrument files were CRLF in the working tree on the day this landed and pure LF in the
+   * index, so a checkout — not an edit — moved this digest and `comparable()` reads it as "the two
+   * arms provably played different code". `files_raw` keeps the byte answer so the difference is
+   * reported and never hidden. */
+  const files = {}, filesRaw = {};
   for (const f of [entry, ...clo.escapes.keys()].sort()) {
     if (frozen.has(f)) continue;              // served from the snapshot, stamped as source_digests
-    files[f] = sha12(path.join(ROOT, f));     // THROWS: an undigestable instrument file is a refusal
+    files[f] = ER.sha12Content(path.join(ROOT, f));  // THROWS: an undigestable instrument file is a refusal
+    filesRaw[f] = sha12(path.join(ROOT, f));
   }
-  const roll = Object.entries(files).map(([f, d]) => f + '@' + d).join('\n');
+  const rollOf = m => Object.entries(m).map(([f, d]) => f + '@' + d).join('\n');
+  const roll = rollOf(files);
   return {
     derived_from: 'engine/steering.js driverCode -> engine_release.requireClosure(' + entry + ')',
     entry,
     frozen_excluded: [...frozen].filter(f => clo.escapes.has(f) || f === entry).sort(),
     files,
+    files_raw: filesRaw,
+    digest_basis: 'sha256 over EOL-normalised bytes (engine_release.sha12Content) — a line ending is '
+                + 'not part of the instrument. `files_raw`/`raw_digest` carry the byte answer.',
+    raw_digest: crypto.createHash('sha256').update(rollOf(filesRaw)).digest('hex').slice(0, 12),
     digest: crypto.createHash('sha256').update(roll).digest('hex').slice(0, 12),
     /* Unresolved edges are REPORTED, never swallowed. Two of the three seen on this tree are prose
      * inside a block comment in engine_release.js (`./x.js`, `./literal`); they are carried anyway,
@@ -275,12 +287,18 @@ function resolve(opts) {
       + 'run steered by it would be steered by nothing.');
   }
 
-  const digest = sha12(src);
+  /* CONTENT, NOT BYTES — 2026-09-08, and the reason is on the tree right now: the live census is
+   * CRLF in the working tree and the pinned copies under data/verification/ are LF, so a pin that
+   * was a byte-copy of the census would read `matches_live: false` for no reason but a checkout.
+   * (It is a TRUE negative today — the two really differ in content — which is exactly why nobody
+   * would have caught it as a false one.) The raw digest is recorded beside it. */
+  const digest = require('./engine_release.js').sha12Content(src);
+  const rawDigest = sha12(src);
   /* The LIVE digest is recorded even when the run is pinned, so a reader can see whether the pin was
    * already stale when the run was taken. `null` when the live file cannot be digested — UNKNOWN,
    * never a false match. */
   let live = null;
-  try { live = sha12(LIVE_CENSUS); }
+  try { live = require('./engine_release.js').sha12Content(LIVE_CENSUS); }
   catch (e) { console.error('  steering: could not digest the live census (' + e.message
     + ') — matches_live reads UNKNOWN, not false'); }
 
@@ -321,6 +339,8 @@ function resolve(opts) {
     input: 'data/mechanics-census.json',
     input_read_from: pinned ? path.relative(ROOT, src).replace(/\\/g, '/') : 'data/mechanics-census.json',
     input_digest: digest,
+    input_raw_digest: rawDigest,
+    input_digest_basis: 'sha256 over EOL-normalised bytes (engine_release.sha12Content)',
     input_rows: obj.results.length,
     input_generated: obj.generated || null,
     input_live_digest: live,
@@ -408,6 +428,31 @@ const VERDICT = { OK: 'COMPARABLE', NO: 'NOT COMPARABLE', UNKNOWN: 'UNKNOWN' };
  * and the honest answer for those is NOT that they were comparable — it is that nothing recorded
  * whether they were. Returning "ok" for a missing declaration would launder exactly the four
  * before/after pairs this wire exists to re-examine. */
+/* ---- WHEN DO TWO DIGEST STAMPS AGREE? ONE RULE, FOR ALL FOUR AXES — 2026-09-08, MEASURE ---------
+ *
+ * Every axis below (`input_digest`, `driver_inputs`, `alignment_inputs`, `driver_code`) used to ask
+ * `!==` on a raw-byte digest, and on 2026-09-08 a `git` checkout moved two of those digests with
+ * nothing edited — `core.autocrlf` is `true` on the working machine. The producers now record a
+ * CONTENT digest (`sha12Content`, EOL-normalised) under `digest` and the byte digest under
+ * `raw_digest`, so a line ending can no longer move the compared value.
+ *
+ * THAT LEAVES THE MIGRATION, WHICH IS THE HALF A NEW DIGEST FUNCTION USUALLY GETS WRONG. Every
+ * artifact already on disk carries ONE field, `digest`, holding a RAW digest — some of them taken
+ * while the file was CRLF. Comparing those against a new arm's content digest would refuse the pair
+ * for exactly the reason this pass removes, one layer up.
+ *
+ * So the rule is SHARE-ANY-VALUE: two stamps agree if any recorded digest of one equals any recorded
+ * digest of the other. It cannot launder a real difference — for two different contents X and Y, no
+ * form of X hashes to any form of Y — and it lets an old raw stamp and a new pair of stamps meet on
+ * the value they have in common. */
+const digestValues = o => new Set([o && o.digest, o && o.raw_digest].filter(Boolean));
+function stampsAgree(x, y) {
+  const A = digestValues(x), B = digestValues(y);
+  if (!A.size || !B.size) return false;         // nothing recorded is never evidence of sameness
+  for (const v of A) if (B.has(v)) return true;
+  return false;
+}
+
 function comparable(a, b) {
   const bad = [];
   /* THINGS THAT COULD NOT BE SHOWN EQUAL, kept apart from things SHOWN DIFFERENT — 2026-09-05.
@@ -439,13 +484,23 @@ function comparable(a, b) {
    * `data/move-priors.json` moves whenever somebody runs `node engine/policy.js --promote`.
    * Compared by DIGEST LIST so an added or removed table is a difference too. Reached only when both
    * arms already agree on `policy`, which the clause above enforces. */
+  /* `listAgrees` compares the FILE SET first and then each file's stamp through `stampsAgree`, so an
+   * added or removed table is still a difference and a line ending is not. `digestsOf` remains the
+   * human-readable rendering used in the message. */
   const digestsOf = s => (s.driver_inputs || []).map(x => (x && x.file) + '@' + (x && x.digest)).sort().join(', ');
+  const byFile = l => new Map((l || []).filter(x => x && x.file).map(x => [x.file, x]));
+  const listAgrees = (la, lb) => {
+    const A = byFile(la), B = byFile(lb);
+    if (A.size !== B.size) return false;
+    for (const [f, x] of A) { if (!B.has(f) || !stampsAgree(x, B.get(f))) return false; }
+    return true;
+  };
   if (TABLE_DRIVEN.has(a.policy)) {
     const da = digestsOf(a), db = digestsOf(b);
     /* THE ABSENCE CASE IS REFUSED ONE LEVEL UP, by `vouches()`, and used to be spelled again here.
      * Two implementations of one refusal disagree eventually and both keep working — the message is
      * now written once, beside the selector list it belongs to. */
-    if (da !== db) {
+    if (!listAgrees(a.driver_inputs, b.driver_inputs)) {
       bad.push('the BEHAVIOUR TABLES differ: ' + da + ' vs ' + db + '. Under empirical-click/v1 these '
         + 'select the sample, so the two arms played different games for a reason unrelated to the '
         + 'change under test.');
@@ -463,7 +518,11 @@ function comparable(a, b) {
     .sort().join(', ');
   const aa = a.alignment_inputs, ab = b.alignment_inputs;
   if (aa && ab) {
-    if (alignOf(a) !== alignOf(b)) {
+    /* THROUGH `listAgrees`, NOT `!==` ON THE RENDERED STRING — 2026-09-08. This clause is compared
+     * UNCONDITIONALLY, so it was the one place where a line ending could refuse a pair outright: on
+     * the day it landed, `data/protocol-events.json` went 7c9de3868d6f -> 2638eb253525 on a checkout
+     * with `git status` clean and the file's content untouched. */
+    if (!listAgrees(aa, ab)) {
       bad.push('the ALIGNMENT RULE differs: ' + alignOf(a) + ' vs ' + alignOf(b) + '. '
         + 'data/protocol-events.json is the declared skip list — an event on it is deleted from the '
         + 'Showdown side before comparison, so a row added or removed moves every class count in the '
@@ -497,9 +556,13 @@ function comparable(a, b) {
    * and no work done today can recover it. The honest verdict is that the question was never asked. */
   const ca = a.driver_code, cb = b.driver_code;
   if (ca && cb) {
-    if (ca.digest !== cb.digest) {
+    /* SHARE-ANY-VALUE on the roll, and the per-file list is filtered the same way — see `stampsAgree`.
+     * Eight of the eleven instrument files were CRLF in the working tree on 2026-09-08 and pure LF in
+     * the index, so a checkout alone moved this roll. */
+    if (!stampsAgree(ca, cb)) {
       const moved = Object.keys(Object.assign({}, ca.files, cb.files))
-        .filter(f => (ca.files || {})[f] !== (cb.files || {})[f]).sort();
+        .filter(f => !stampsAgree({ digest: (ca.files || {})[f], raw_digest: (ca.files_raw || {})[f] },
+                                  { digest: (cb.files || {})[f], raw_digest: (cb.files_raw || {})[f] })).sort();
       bad.push('the INSTRUMENT differs: driver code ' + ca.digest + ' vs ' + cb.digest + '. '
         + moved.length + ' file(s) moved between the arms — ' + moved.join(', ')
         + '. The code that reads the tables selects the sample just as much as the tables do; on '
@@ -519,7 +582,8 @@ function comparable(a, b) {
       + 'not COMPARABLE. It cannot be repaired retroactively: re-take both arms under the stamp, or '
       + 'quote the pair as unchecked on the instrument axis.');
   }
-  if (a.input_digest !== b.input_digest) {
+  if (!stampsAgree({ digest: a.input_digest, raw_digest: a.input_raw_digest },
+                   { digest: b.input_digest, raw_digest: b.input_raw_digest })) {
     bad.push('the steering INPUT differs: ' + a.input + ' is ' + a.input_digest + ' in the before-arm and '
       + b.input_digest + ' in the after-arm (' + a.input_rows + ' vs ' + b.input_rows + ' rows, generated '
       + a.input_generated + ' vs ' + b.input_generated + '). The two arms played DIFFERENT GAMES for a '

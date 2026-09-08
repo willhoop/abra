@@ -2336,7 +2336,12 @@ const PROTO = JSON.parse(fs.readFileSync(PROTO_PATH, 'utf8'));
 const PROTO_INPUT = {
   file: 'data/protocol-events.json',
   read_from: path.relative(D('.'), PROTO_PATH).replace(/\\/g, '/'),
-  digest: ER.sha12(PROTO_PATH),
+  /* CONTENT DIGEST, WITH THE BYTES BESIDE IT — 2026-09-08. `arms_comparable.js` reads this field
+   * UNCONDITIONALLY, and on the day the field landed a `git` checkout took this file from
+   * 7c9de3868d6f to 2638eb253525 with `git status` clean and not a character edited. See
+   * engine_release.sha12Content. */
+  digest: ER.sha12Content(PROTO_PATH),
+  raw_digest: ER.sha12(PROTO_PATH),
   generated: PROTO.generated || null,
   rows: (PROTO.notEmitted || []).length,
   what: 'the DECLARED SKIP LIST — every event medicham2 says it does not emit is removed from the '
@@ -2379,9 +2384,14 @@ const CLAIMED = new Set(M.TRACE_EVENTS);
         + 'side: ' + added.join(', ') : '')
       + (gone.length ? '\n  NO LONGER CLAIMED: ' + gone.join(', ') : '') + fix);
   }
-  const deriveNow = ER.sha12(D('engine', 'derive_protocol_events.js'));
+  /* CONTENT, AND EITHER RECORDED FORM MAY MATCH. This clause THROWS, so a false fire here stops a
+   * measurement outright — and `engine/derive_protocol_events.js` is a text file on a machine where
+   * `core.autocrlf` rewrites text files on checkout. The stamp on disk was taken with the raw
+   * digest, so both are compared: a real edit still fails both. */
+  const dPath = D('engine', 'derive_protocol_events.js');
+  const deriveNow = ER.sha12Content(dPath), deriveNowRaw = ER.sha12(dPath);
   const deriveThen = (PROTO.source_digests || {})['engine/derive_protocol_events.js'] || null;
-  if (deriveThen && deriveNow !== deriveThen) {
+  if (deriveThen && deriveNow !== deriveThen && deriveNowRaw !== deriveThen) {
     throw new Error('data/protocol-events.json was produced by engine/derive_protocol_events.js '
       + deriveThen + ' and that file is now ' + deriveNow + '. The DECLARED list — every reason for '
       + 'not emitting an event — is typed inside that script, so the rule that decides which Showdown '
@@ -2617,7 +2627,7 @@ if (EMPIRICAL) {
       generated: EMP_PRIORS.generated, rows: EMP_PRIORS.species,
       what: 'P(move | species) over real recorded ladder clicks — the action distribution' },
     { file: 'data/rollout-switch-census.json', read_from: 'live tree (not an engine SOURCE)',
-      digest: ER.sha12(swPath), generated: EMP_SWITCH.generated,
+      digest: ER.sha12Content(swPath), raw_digest: ER.sha12(swPath), generated: EMP_SWITCH.generated,
       rows: EMP_SWITCH.games,
       what: 'the conditional voluntary-switch rate, ' + EMP_SWITCH.pct + '% of decisions taken with a '
           + 'live bench, measured off the raw logs of both human stores'
@@ -2633,7 +2643,7 @@ if (EMPIRICAL) {
     const jPath = D('data', 'joint-click-census.json');
     EMP_JOINT = EMP.loadJoint(fs.readFileSync(jPath, 'utf8'), 'data/joint-click-census.json');
     EMP_INPUTS.push({ file: 'data/joint-click-census.json', read_from: 'live tree (not an engine SOURCE)',
-      digest: ER.sha12(jPath), generated: EMP_JOINT.generated, rows: EMP_JOINT.games,
+      digest: ER.sha12Content(jPath), raw_digest: ER.sha12(jPath), generated: EMP_JOINT.generated, rows: EMP_JOINT.games,
       what: 'the joint TARGET draw (' + EMP_JOINT.pFocusPct + '% of human turns name the same foe, '
           + 'over ' + EMP_JOINT.clean_pairs + ' clean pairs) and the voluntary-switch rate by context ('
           + EMP_JOINT.cellRows + ' cells), measured off the raw logs of both human stores' });

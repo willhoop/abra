@@ -133,8 +133,8 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 ENGINE — does the simulator do what Pokémon does
   830/830 probed mechanics live, 0 missing   (census 2026-09-08 12:22)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 10.8 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-08 01:53)
+    never fired in the staged harness (all-mechanics-fire.json, 8 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-08 13:27)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -156,7 +156,7 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-08 12:44_
+_stamped 2026-09-08 13:41_
 
 <!-- /GENERATED -->
 
@@ -351,8 +351,14 @@ supply, so the next batch is aimed rather than re-derived:
 - **THREE ARE MESSAGE-ONLY AND CARRY NO BOARD LEAF AT ALL** — Frisk, Forewarn, Anticipation. Two are
   already on the owner's shelf; Frisk is the remaining one of that shape and closing it needs a
   comparison that is not a board leaf, like the switch probe.
-- **`node engine/status.js --write` IS OWED** and was deliberately not run — the abilities count is
-  stamped into `<!-- GENERATED -->` blocks and still reads 146 there.
+- **`node engine/status.js --write` IS OWED** and was deliberately not run. ~~the abilities count is
+  stamped into `<!-- GENERATED -->` blocks and still reads 146 there.~~ **CORRECTED 2026-09-08,
+  MEASURE: that sentence was wrong about where the number lives.** This file holds exactly ONE
+  `<!-- GENERATED -->` block and it contains neither 146 nor 139 — the roster counts are hand-authored
+  prose everywhere they appear here, so `--write` could never have restamped them and the restamp
+  this line asked for was not available to anyone. `--write` was run at the end of the 2026-09-08
+  MEASURE pass; the stale count it was expected to fix is corrected by hand below, because that is
+  the only way a hand-authored figure can be corrected.
 
 ## NARRATION BATCH P — THE ORDERING CLASS, SECOND PASS. NARRATION **55 → 53** (raw 56 → 54), PROTOCOL **59 → 57**, ORDERING **16 → 14 GAMES**, BOARD-MATERIAL **0 OF 958 → 0 OF 958**, CENSUS LEVEL AT 830/830. ONE FIX, ONE PROBE, THE PREDICTION HIT AT THE POINT ESTIMATE ON EVERY CLAUSE AND ZERO TRANSFERS. 2026-09-08
 
@@ -519,13 +525,22 @@ and the gate did not. The tree was re-cut as `f0f10cd06861` and all six artifact
 |---|---|---|
 | `data/engine-diff.json` | `tests/test-engine-diff.js --n 6000 --seed 20260804` | 0 of 6000, midpoint and all 14 interior indices |
 | `data/roster.items.json` | `tests/roster.js --stage items --reds --write` | 140 of 148, 0 DIFFER, 0 DID-NOT-FIRE, 0 NOT CAUGHT |
-| `data/roster.abilities.json` | `--stage abilities --reds --write` | 146 of 202, 0 DIFFER, 0 DID-NOT-FIRE, 0 NOT CAUGHT |
+| `data/roster.abilities.json` | `--stage abilities --reds --write` | ~~146 of 202~~ **SUPERSEDED — 139 of 202**, 0 DIFFER, 0 DID-NOT-FIRE, 0 NOT CAUGHT |
 | `data/roster.moves.json` | `--stage moves --reds --write` | 487 of 500, 0 DIFFER, 0 DID-NOT-FIRE, 0 NOT CAUGHT |
 | `data/all-mechanics-fire.json` | `engine/all_mechanics_fire.js --kind all --write` | 1313 games, 0 threw, every mechanic anybody plays agrees |
 | `data/mechanics-census.json` | `tests/test-mechanics.js` | 830 live / 830 probed / 0 missing |
 
 A comment-only change must reproduce every figure exactly, and it did — which is the check that the
 change really was comment-only.
+
+**THE ABILITIES ROW IS STRUCK BECAUSE THE RULER MOVED, NOT THE ENGINE — corrected 2026-09-08, MEASURE.**
+The 146 is what `f0f10cd06861` really measured and it is left visible rather than overwritten, because
+a dated measurement is evidence. It was never a claim about the engine: the section at the top of
+this ledger measured that **twelve of those 146 greens rested on the ability-swap control describing
+its own name**, so the honest count on the same bytes is **139**. Re-run on release `1415f271058e`
+(2026-09-08, MEASURE) it reads **139 of 202, 0 DIFFER, 0 DID-NOT-FIRE**, with items at 140 of 148 and
+moves at 487 of 500 — the same three numbers, so nothing about the engine moved with the release.
+Every other figure in the table above stands as taken.
 
 **WHAT IS OWED HERE.** The gate did not open and this ledger claims nothing downstream of it. `node
 engine/status.js --write` was **not** run by this pass — another agent was live — so the

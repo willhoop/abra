@@ -93,3 +93,48 @@ data/regulations.json            text eol=lf
 data/policy-weights.json         text eol=lf
 data/policy-weights-joint.json   text eol=lf
 data/rollout-switch-census.json  text eol=lf
+
+# ── THE THIRD OCCURRENCE, AND THIS ONE REACHED COMPARABILITY. 2026-09-08, MEASURE. ───────────────
+#
+# The block above pins the ENGINE's frozen sources. It does not pin the INSTRUMENT that measures
+# them, and on 2026-09-08 that gap moved two digests with nothing edited:
+#
+#   data/protocol-events.json   7c9de3868d6f -> 2638eb253525   (`git status` reports it CLEAN)
+#   engine/medicham2-browser.js 9a54ee6881cf -> 8bdea30dbb42   (CR-insensitive diff of ZERO lines)
+#
+# `data/protocol-events.json` is `steering.alignment_inputs` — the DECLARED SKIP LIST that decides
+# which Showdown lines may count as a divergence — and `engine/arms_comparable.js` compares it
+# UNCONDITIONALLY. So two runs with a BYTE-IDENTICAL skip list were one checkout away from being
+# called NOT COMPARABLE. A false refusal is not the safe direction: it is how a checker becomes the
+# thing people route around, which this repository has already paid for as "one of the two known
+# failures".
+#
+# THE SET BELOW IS DERIVED, NOT CHOSEN. It is every file whose CONTENT DIGEST decides a
+# comparability question and is not already pinned: `steering.driver_code`'s static require closure
+# of engine/game_differential.js, the alignment rule and the rule that derives it, the census that
+# selects the sample, and the artifact directory those runs are pinned to and compared against.
+# Re-derive it rather than trusting this list — a typed list is the ban list of four in a costume.
+#
+# THE NINE SOURCES NAMED ABOVE ARE STILL ABSENT and this block does not change that; pinning them
+# still moves every release id and still breaks `tests/roster.js`. That is why the digest fix is at
+# the READ as well: `engine_release.sha12Content` makes the comparability digests EOL-insensitive on
+# a machine that ALREADY holds the wrong bytes, which an attribute cannot do — an attribute only
+# fixes the next checkout. The two halves cover different populations and both are needed.
+#
+# Every blob below is pure LF in the index today with ZERO lone CRs, measured before adding this, so
+# these attributes move no byte now. They remove the translation that would move them tomorrow.
+engine/game_differential.js      text eol=lf
+engine/board_state.js            text eol=lf
+engine/diff_swarm.js             text eol=lf
+engine/divergence_shape.js       text eol=lf
+engine/effect_kind.js            text eol=lf
+engine/empirical_driver.js       text eol=lf
+engine/end_state_severity.js     text eol=lf
+engine/engine_release.js         text eol=lf
+engine/names.js                  text eol=lf
+engine/run_stamp.js              text eol=lf
+engine/steering.js               text eol=lf
+engine/derive_protocol_events.js text eol=lf
+data/protocol-events.json        text eol=lf
+data/mechanics-census.json       text eol=lf
+data/verification/*.json         text eol=lf

@@ -830,6 +830,43 @@ const countEol = s => ({ crlf: (s.match(/\r\n/g) || []).length,
                          lf: (s.match(/(?<!\r)\n/g) || []).length,
                          cr: (s.match(/\r(?!\n)/g) || []).length });
 
+/* ---- THE SECOND DIGEST: CONTENT, FOR THE QUESTIONS THAT ARE NOT IDENTITY — 2026-09-08, MEASURE ---
+ *
+ * `sha12` above is an IDENTITY and stays raw bytes forever; the block at the top of `classifyChange`
+ * argues that at length and it is right. This is the other half of that argument, which nothing had
+ * written down: NOT EVERY DIGEST IN THIS REPOSITORY IS AN IDENTITY. `steering.driver_code`,
+ * `steering.input_digest` and `steering.alignment_inputs` answer *did these two runs use the same
+ * RULE*, and `provenance.js` answers *is this artifact's stamped input still the file it read*.
+ * A carriage return is not part of a rule, and on 2026-09-08 it moved three of them at once:
+ * `data/protocol-events.json` went 7c9de3868d6f -> 2638eb253525 and `engine/medicham2-browser.js`
+ * went 9a54ee6881cf -> 8bdea30dbb42 with a CR-insensitive diff of ZERO lines, on files `git status`
+ * reports CLEAN, because `core.autocrlf` is `true` here and git rewrote them on a checkout.
+ *
+ * `alignment_inputs` is compared UNCONDITIONALLY by `arms_comparable.js`, so two runs with a
+ * BYTE-IDENTICAL skip list would have been called NOT COMPARABLE for no reason but which machine
+ * checked the file out. A false refusal is not the safe direction: it is how a checker becomes the
+ * thing people learn to route around, which this repository has already paid for once as "one of the
+ * two known failures".
+ *
+ * IT AGREES WITH `sha12` ON EVERY LF FILE, AND THAT IS THE WHOLE MIGRATION STORY. `eolNorm` is the
+ * identity map on bytes with no CR, so a digest recorded when a file was LF is reproduced here
+ * exactly. Only the stamps taken while a file was CRLF move — which are precisely the wrong ones.
+ * Measured on this tree: all 14 of the non-SOURCE files this now covers are pure LF in the index
+ * with ZERO lone CRs, so no digest changes value except the two named above.
+ *
+ * WHAT IT CLAIMS, said as narrowly as `classifyChange`'s `eol-only` says it: the two byte strings are
+ * equal once every line terminator is normalised — NOBODY EDITED A CHARACTER. It does not claim no
+ * number can change, because a CR inside a template literal is semantic. That is why every caller
+ * records the RAW digest beside this one: a byte difference is never HIDDEN, it merely stops being a
+ * refusal on the axes above. It is also why this is not, and must never become, what `sha12` does. */
+function sha12Content(abs) {
+  try {
+    return crypto.createHash('sha256')
+      .update(Buffer.from(eolNorm(asBytes(fs.readFileSync(abs))), 'latin1'))
+      .digest('hex').slice(0, 12);
+  } catch (e) { throw new Error('cannot content-digest ' + abs + ' — ' + e.message); }
+}
+
 /* THE CLASSIFIER. Two buffers in, one label out; `null` means the bytes could not be read, which is
  * a THIRD answer and never folded into either of the other two.
  *
@@ -1507,7 +1544,10 @@ function open(id, opts) {
 /* `exportedNames` is exported so it can be SHOWN correct against `surface()` rather than assumed —
  * it is the parser that read prose once already. It is not a substitute for `surface()`: use the
  * loader wherever the bodies still exist, and this only where they do not. */
+/* `sha12Content` is exported for the same reason and with the opposite warning: it is the digest for
+ * the questions that are NOT identity (see its header). Do not reach for it to name a release. */
 module.exports = { cut, list, verify, drift, open, rerender, surface, compat, sha12, sha12OrNull,
+                   sha12Content,
                    requireClosure, census, callerNeeds, exportedNames, PROVIDES_BY,
                    CUT_COUNTERS, SOURCES, POINTER, RELEASES,
                    /* the pin vocabulary and the live-tree stamp — see STAMP_SHAPE and liveStamp */

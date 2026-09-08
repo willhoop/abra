@@ -217,5 +217,114 @@ expect('verdict', r6.verdict, 'UNKNOWN');
 say('    Every pre-2026-09-05 before/after in this repository reads UNKNOWN on the instrument axis.');
 say('    That is not a new defect in those pairs. It is the axis never having been recorded.');
 
+/* ---- 7. A LINE ENDING MUST NOT DECIDE COMPARABILITY — 2026-09-08, MEASURE ----------------------
+ *
+ * THE DEFECT. `core.autocrlf` is `true` on the working machine, so git rewrites any file it calls
+ * text on checkout. On 2026-09-08 `data/protocol-events.json` — `steering.alignment_inputs`, the
+ * DECLARED SKIP LIST — went 7c9de3868d6f -> 2638eb253525 with `git status` reporting it CLEAN and
+ * not a character edited, and `engine/medicham2-browser.js` went 9a54ee6881cf -> 8bdea30dbb42 with a
+ * CR-insensitive diff of ZERO lines. `comparable()` reads the alignment axis UNCONDITIONALLY, so two
+ * runs holding a BYTE-IDENTICAL skip list would be refused as a before/after over which machine had
+ * checked the file out. This is the third occurrence of the class in this repository.
+ *
+ * NOTHING BELOW IS A TYPED DIGEST. Both byte forms of the real file are written to a temp directory
+ * and handed to the REAL producers — `ER.sha12` is what the code did before this pass and
+ * `ER.sha12Content` is what it does now — so the RED arm is the pre-fix producer's actual output,
+ * not a reconstruction of it. Every other field is held identical between the two arms.
+ *
+ * IT PLAYS NO GAMES AND IT WRITES NOTHING INTO THE REPOSITORY. The temp files are the two forms of a
+ * file already on disk; the artifact is never touched. */
+say('\n=== 7. LINE ENDINGS — the RED arm (pre-fix producer) then the GREEN arm (this pass) ===\n');
+const ER = require(path.join(ROOT, 'engine', 'engine_release.js'));
+const SRC = path.join(ROOT, 'data', 'protocol-events.json');
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eol-demo-'));
+/* latin1 is a byte-exact round trip, so these are the two BYTE forms of one content. */
+const raw = fs.readFileSync(SRC).toString('latin1');
+const lfBytes = Buffer.from(raw.replace(/\r\n/g, '\n'), 'latin1');
+const crlfBytes = Buffer.from(raw.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n'), 'latin1');
+const pLF = path.join(tmp, 'lf.json'), pCRLF = path.join(tmp, 'crlf.json');
+fs.writeFileSync(pLF, lfBytes); fs.writeFileSync(pCRLF, crlfBytes);
+say('    one content, two checkouts:  LF ' + lfBytes.length + ' bytes   CRLF ' + crlfBytes.length + ' bytes');
+
+/* The pair is a REAL artifact cloned twice, so nothing but the alignment stamp differs. */
+const base7 = load(path.join(ROOT, 'data', 'game-differential.json'));
+const armWith = (align) => {
+  const x = JSON.parse(JSON.stringify(base7));
+  x.steering.alignment_inputs = [Object.assign({ file: 'data/protocol-events.json' }, align)];
+  return x;
+};
+/* RED: what the producer wrote BEFORE this pass — one field, the raw byte digest. */
+const preLF = { digest: ER.sha12(pLF) }, preCRLF = { digest: ER.sha12(pCRLF) };
+const r7red = AC.compare(armWith(preLF), armWith(preCRLF));
+say('    RED  pre-fix producer:  ' + preLF.digest + ' vs ' + preCRLF.digest);
+expect('verdict', r7red.verdict, 'NOT COMPARABLE');
+expect('and the reason is the ALIGNMENT RULE',
+  String(r7red.proven.some(x => x.startsWith('the ALIGNMENT RULE differs'))), 'true');
+expect('exactly one reason — nothing else differs between the arms', String(r7red.proven.length), '1');
+
+/* GREEN: what the producer writes now — the content digest, with the bytes recorded beside it. */
+const postLF = { digest: ER.sha12Content(pLF), raw_digest: ER.sha12(pLF) };
+const postCRLF = { digest: ER.sha12Content(pCRLF), raw_digest: ER.sha12(pCRLF) };
+say('    GREEN this pass:        ' + postLF.digest + ' vs ' + postCRLF.digest
+    + '   (raw ' + postLF.raw_digest + ' vs ' + postCRLF.raw_digest + ', still recorded)');
+expect('the two checkouts now produce ONE digest', String(postLF.digest === postCRLF.digest), 'true');
+expect('and the byte difference is still on the record',
+  String(postLF.raw_digest !== postCRLF.raw_digest), 'true');
+const r7green = AC.compare(armWith(postLF), armWith(postCRLF));
+expect('verdict', r7green.verdict, 'COMPARABLE');
+if (!r7green.ok) for (const x of r7green.reasons) say('      unexpected refusal: ' + x);
+
+/* THE MIGRATION HALF, which a new digest function usually gets wrong. Every artifact on disk holds
+ * ONE field — a RAW digest — and `data/game-differential.json` holds 2638eb253525, taken while this
+ * machine's checkout was CRLF. A new run on that same machine must still meet it on the value they
+ * share, or the fix would refuse every existing before/after for the reason it exists to remove. */
+const r7mig = AC.compare(armWith({ digest: ER.sha12(pCRLF) }), armWith(postCRLF));
+expect('an OLD raw stamp against a NEW pair of stamps, same checkout', r7mig.verdict, 'COMPARABLE');
+/* AND THE LIMIT, MEASURED RATHER THAN LEFT FOR SOMEBODY TO DISCOVER. An old artifact stamped on a
+ * CRLF checkout against a new run on an LF one shares no value, because the old arm never recorded
+ * what its CONTENT digest was. That pair is still refused. It is a real gap and it is not repairable
+ * after the fact — the same shape as the pre-2026-09-05 pairs in case 6 — and it closes as soon as
+ * both arms are re-taken under the stamp. */
+const r7limit = AC.compare(armWith({ digest: ER.sha12(pCRLF) }), armWith(postLF));
+expect('an OLD raw-CRLF stamp against a NEW run on an LF checkout', r7limit.verdict, 'NOT COMPARABLE');
+/* AND IT MUST STILL REFUSE A REAL EDIT. Without this the clause could simply accept everything. */
+const pEdit = path.join(tmp, 'edited.json');
+const edited = JSON.parse(raw); edited.notEmitted = (edited.notEmitted || []).slice(1);
+fs.writeFileSync(pEdit, JSON.stringify(edited));
+const r7ctl = AC.compare(armWith(postLF),
+  armWith({ digest: ER.sha12Content(pEdit), raw_digest: ER.sha12(pEdit) }));
+say('    CONTROL a row removed from the skip list: ' + ER.sha12Content(pEdit));
+expect('a real content change is still refused', r7ctl.verdict, 'NOT COMPARABLE');
+for (const f of [pLF, pCRLF, pEdit]) fs.unlinkSync(f);
+fs.rmdirSync(tmp);
+
+/* ---- 8. THE SAME AXIS, ON THE INSTRUMENT ITSELF ------------------------------------------------
+ * `driver_code` is the wider exposure: 8 of the 11 files in the closure were CRLF in the working
+ * tree on 2026-09-08 and pure LF in the index, so a checkout alone moved the roll. Taken from the
+ * LIVE producer rather than constructed — `driverCode()` is run here and must record a content roll
+ * and a byte roll that a reader can tell apart. */
+say('\n=== 8. THE INSTRUMENT ROLL — content digest and byte digest are BOTH recorded ===\n');
+const STEERING = require(path.join(ROOT, 'engine', 'steering.js'));
+const dc = STEERING.driverCode({ entry: path.join(ROOT, 'engine', 'game_differential.js') });
+say('    ' + Object.keys(dc.files).length + ' instrument file(s)   digest ' + dc.digest
+    + '   raw_digest ' + dc.raw_digest);
+expect('the roll records a content digest', String(!!dc.digest), 'true');
+expect('and the byte roll beside it', String(!!dc.raw_digest), 'true');
+const crlfNow = Object.keys(dc.files).filter(f => dc.files[f] !== dc.files_raw[f]);
+say('    ' + crlfNow.length + ' of ' + Object.keys(dc.files).length
+    + ' differ raw-vs-content right now: ' + (crlfNow.join(', ') || '(none)'));
+/* A pair that differs ONLY on the raw roll must be COMPARABLE; the content roll is what decides. */
+const dcOther = JSON.parse(JSON.stringify(dc)); dcOther.raw_digest = 'ffffffffffff';
+const armDC = (d) => { const x = JSON.parse(JSON.stringify(base7)); x.steering.driver_code = d; return x; };
+expect('a pair differing only in the BYTE roll', AC.compare(armDC(dc), armDC(dcOther)).verdict, 'COMPARABLE');
+const dcMoved = JSON.parse(JSON.stringify(dc));
+dcMoved.digest = 'aaaaaaaaaaaa'; dcMoved.raw_digest = 'bbbbbbbbbbbb';
+const firstFile = Object.keys(dcMoved.files)[0];
+dcMoved.files[firstFile] = 'cccccccccccc'; dcMoved.files_raw[firstFile] = 'dddddddddddd';
+const r8 = AC.compare(armDC(dc), armDC(dcMoved));
+expect('a real instrument change is still refused', r8.verdict, 'NOT COMPARABLE');
+expect('and it names the file that moved',
+  String(r8.proven.some(x => x.includes(firstFile))), 'true');
+
 say('\n' + (fails ? '!! ' + fails + ' EXPECTATION(S) NOT MET' : 'ALL EXPECTATIONS MET') + '\n');
 process.exit(fails ? 1 : 0);

@@ -15,16 +15,16 @@ it does not compete on them.
 MEASURE — can we believe a number
   leaf calibration: QUARANTINED — the figure is withheld, not annotated.
     data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 7 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / NARRATION — protocol divergence with no board effect; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
   engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 7 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / NARRATION — protocol divergence with no board effect; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 184 unsafe, 2 void (declared), 39 possibly stale, 30 ok, 0 missing
+  provenance: 184 unsafe, 2 void (declared), 35 possibly stale, 34 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 7 of 9 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / NARRATION — protocol divergence with no board effect; mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 2 of 9 gate clauses fail (whole-game differential / NARRATION — protocol divergence with no board effect; no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
@@ -34,9 +34,61 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-09-07 13:11
 ```
 
-_stamped 2026-09-08 12:44_
+_stamped 2026-09-08 13:41_
 
 <!-- /GENERATED -->
+
+## A LINE ENDING COULD REFUSE A BEFORE/AFTER. NOT EVERY DIGEST IN THIS REPOSITORY IS AN IDENTITY, AND THAT DISTINCTION WAS NOWHERE. **23 AT-RISK FILES → 9.** THE FIVE STALED CLAUSES ALL REPRODUCE: **6000/6000/0, 140/148, 139/202, 487/500**, AND THE MECHANICS ARTIFACT FIELD FOR FIELD. 2026-09-08
+
+Full account: `docs/_reports/2026-09-08-crlf-digests-and-restale.md`. Row: `docs/RUNNING-NOTES.md`.
+
+**THE DEFECT, BOTH DIRECTIONS, ON FILES `git status` REPORTS CLEAN.** `data/protocol-events.json`
+went `7c9de3868d6f` → `2638eb253525` and `engine/medicham2-browser.js` went `9a54ee6881cf` →
+`8bdea30dbb42`, and in both cases **the old digest is the sha256 of the LF form of the same bytes**.
+`core.autocrlf` is `true` here; both index blobs are pure LF with **zero lone CRs**. `arms_comparable`
+compares the alignment axis UNCONDITIONALLY, so two runs holding a byte-identical skip list were one
+checkout away from NOT COMPARABLE. **A false refusal is not the safe direction** — it is how a checker
+becomes the thing people route around, which this repository already paid for as *"one of the two
+known failures"*.
+
+**THE FIX IS AT THE `.gitattributes` AND AT THE READ, BECAUSE THEY COVER DIFFERENT POPULATIONS.** An
+attribute pins the bytes a CHECKOUT writes and cannot help a tree that ALREADY holds CRLF, which is
+the state this one is in. So `engine_release.js` gained a **second** digest — `sha12Content`, sha256
+over EOL-normalised bytes — and `sha12` was NOT touched. That file already argues at length that the
+release digest must stay raw: it is an IDENTITY, it decides whether a measurement may be reused, and
+601 manifests hold raw digests. **What that argument never said is that not every digest here is an
+identity.** `driver_code`, `input_digest`, `alignment_inputs` and provenance's stamped-input check all
+ask *did these two runs use the same RULE*, and a carriage return is not part of a rule. Those four
+now use the content digest and record the byte digest beside it, so a byte difference is never hidden
+— it stops being a *refusal*. `sha12Content` agrees with `sha12` on every LF file, so only the stamps
+taken while a file was CRLF move, and those are exactly the wrong ones.
+
+**THE SET IS DERIVED, NOT CHOSEN — 41 members, 23 at risk, 9 after.** All nine remaining are release
+SOURCES, which is precisely the job `.gitattributes` already has filed: pinning them rewrites them,
+moves every release id, and breaks `tests/roster.js`, whose red demonstrations match `\r\n` against
+the simulator's source. **A hand-picked list of two was the ban list of four in a costume.**
+
+**SHOWN RED FIRST, WITH NO TYPED DIGEST.** `tests/probe_instrument_digest.js` case 7 writes both byte
+forms of the real file and hands them to the REAL producers, so the red arm is the pre-fix producer's
+own output: **NOT COMPARABLE, one reason, the ALIGNMENT RULE** — then **COMPARABLE** on this pass's
+producer with the raw digests still differing and still recorded. Two controls hold: a row removed
+from the skip list and a moved instrument file are both still refused, the second BY NAME. Case 8:
+**9 of 16 instrument files differ raw-vs-content on this tree right now.** And the limit is asserted
+rather than left to be found — a legacy raw-CRLF stamp against a new run on an LF checkout is **still
+refused**, because the old arm never recorded what its content digest was.
+
+**NO PUBLISHED FIGURE MOVED.** Provenance reads **184 UNSAFE, 2 VOID, 39 possibly stale, 30 ok, 0
+missing**, identical before and after: nothing was being falsely accused today, and the hazard is gone.
+
+**THE FIVE CLAUSES THE RELEASE CUT STALED, RE-RUN ON `1415f271058e`** — every command read off
+`status.js`, none reconstructed. `data/engine-diff.json` **6000 compared / 6000 agreed / 0 disagreed**;
+roster **items 140 of 148**, **abilities 139 of 202**, **moves 487 of 500**, each with **0
+FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE**; and `data/all-mechanics-fire.json` reproduces the
+pre-cut artifact **field for field** (moves 500/495/4/11, abilities 316/104/1, items 148/64/0) with
+only the release stamp moving. **That last one is the strongest reading of the five**: a release cut
+with no engine change should reproduce a measurement exactly, and it did. Census unchanged at **830
+rows** — `tests/test-mechanics.js` was deliberately not re-run, because it rewrites the file that
+steers the differential. **BOARD-MATERIAL untouched at 0 of 958**; no whole-game run was taken.
 
 ## THE DECLARED SKIP LIST IS AN ALIGNMENT INPUT NOW, AND THE REFIT MOVED NOTHING. 2026-09-08
 

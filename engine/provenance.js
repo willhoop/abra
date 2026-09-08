@@ -1014,6 +1014,31 @@ const digestOf = src => {
   }
   return null;
 };
+/* ---- AND THE SAME QUESTION ASKED WITHOUT LINE ENDINGS — 2026-09-08, MEASURE --------------------
+ *
+ * `digestOf` above is the BYTE answer and stays the byte answer: it is what the messages print, and a
+ * reader chasing a mismatch wants the digest that is actually on disk. But the QUESTION this file
+ * asks is *is the stamped input still the file the run read*, and a carriage return is not part of a
+ * file's content. `core.autocrlf` is `true` on the working machine, so `git` rewrote
+ * `engine/medicham2-browser.js` from 9a54ee6881cf to 8bdea30dbb42 on 2026-09-08 with a CR-insensitive
+ * diff of ZERO lines and `git status` reporting the file clean — which would mark every artifact
+ * stamped against the old form as COMPUTED FROM DIFFERENT CONTENT.
+ *
+ * EITHER FORM MAY MATCH THE STAMP, and that direction only ever CLEARS a false accusation: for two
+ * genuinely different contents no form of one hashes to any form of the other, so a real edit still
+ * fails both. `engine_release.sha12Content` is the one implementation — this file used to carry a
+ * fourth copy of the hash and the copies are how they diverge. */
+const contentDigestOf = src => {
+  for (const p of [D(src), D('data', src)]) {
+    try { if (fs.existsSync(p) && fs.statSync(p).isFile()) return require('./engine_release.js').sha12Content(p); }
+    catch (e) { digestFailures.push(src + ' (content): ' + String(e.message).slice(0, 80)); }
+  }
+  return null;
+};
+const p12 = v => String(v).slice(0, 12);
+/* One place decides "does this file still match its stamp", so the live check and the frozen-release
+ * check below cannot drift apart. */
+const matchesStamp = (src, want) => p12(digestOf(src)) === p12(want) || p12(contentDigestOf(src)) === p12(want);
 const FILTER_MT = (() => { for (const f of ['quality-filter.json']) { const m = mtime(f); if (m) return m; } return null; })();
 
 let cleanCount = null, openCleanCount = null, torn = 0;
@@ -1390,7 +1415,7 @@ for (const a of ARTIFACTS) {
       if (src === RUN_STAMP_NOTE_KEY) continue;
       const got = digestOf(src);
       if (!got) { notes.push(`stamped input ${src} cannot be read to verify`); digestState = 'unverifiable'; warn = true; continue; }
-      if (String(got).slice(0, 12) !== String(want).slice(0, 12)) {
+      if (!matchesStamp(src, want)) {
         /* A MEASUREMENT PINNED TO A FROZEN RELEASE IS A PHOTOGRAPH, NOT A MISMATCH.
          *
          * CLAUDE.md mandates that a measurement read a frozen release precisely SO the live tree may
@@ -1402,8 +1427,9 @@ for (const a of ARTIFACTS) {
          * is verified by CONTENT right here — a claimed release id whose snapshot does not carry these
          * bytes still falls through to UNSAFE, so the release name alone buys nothing. */
         const relId = j && j.engine_release;
-        const frozen = relId ? digestOf(`data/releases/${relId}/${src}`) : null;
-        if (frozen && String(frozen).slice(0, 12) === String(want).slice(0, 12)) {
+        const frozenSrc = `data/releases/${relId}/${src}`;
+        const frozen = relId ? digestOf(frozenSrc) : null;
+        if (frozen && matchesStamp(frozenSrc, want)) {
           notes.push(`pinned to engine release ${relId} — ${src} matches the frozen copy; ` +
                      `live is ${got} now (a PRE-CHANGE measurement of that release, not corruption)`);
           warn = true; if (digestState === 'verified') digestState = 'verified-against-release';
