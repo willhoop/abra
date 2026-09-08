@@ -546,7 +546,7 @@ measurements and not a restatement.
 
 | question | artifact | answer |
 |---|---|---|
-| the three roster stages | `data/roster.items.json`, `data/roster.abilities.json`, `data/roster.moves.json` | **140 / 129 / 475 tested**, 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on all three; red demonstrations 18 / 29 / 35, all caught |
+| the three roster stages | `data/roster.items.json`, `data/roster.abilities.json`, `data/roster.moves.json` | **the per-stage tested counts and the red-demonstration counts that stood here are RETRACTED, 2026-09-07** — they were measured before the roster grew its live-die lane and before its stat predictor was corrected, and the artifacts no longer contain them. **What survives and was re-measured on release `028392265ab7` is the CLAIM, not the counts: 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on all three stages, every red demonstration caught, no dead anchors.** Read the counts out of the three artifacts. |
 | what moved in that triple | the items stage only | `item:metronome` went `DEFERRED-BY-OWNER` → `FIRED-AND-BOARDS-MATCH`, taking that column 1 → **0** |
 | the same game on both engines | `data/game-differential.json` | **961 paired games, 6 raw divergences, 6 declared, 0 undeclared**; 12,445 turn boundaries compared, 12,445 identical — **PRIOR reading, superseded at 5.243.0**: it was taken on the census-coverage arm, where the games mostly do not end, and the artifact has since been republished from the empirical arm |
 | is that the same sample as before | the same artifact | **yes, proven not assumed** — same 643-row census pin, same frozen pool (**1,968 of 8,778** teams), same six first divergences in the same order |

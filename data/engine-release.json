@@ -2,9 +2,9 @@
   "current": "f30bf025ae28",
   "cut": "2026-09-07T23:31:43.434Z",
   "why": "syrupbomb source-faint: a per-turn-boost volatile dies when its source FAINTS, not only when it vacates a slot; sourceOffField is one reader for both sweeps",
-  "cuts": 6,
-  "latest_cut": "2026-09-08T00:15:21.010Z",
+  "cuts": 1306,
+  "latest_cut": "2026-09-08T00:47:53.238Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-08T00:15:21.026Z",
+  "pointer_written": "2026-09-08T00:47:53.253Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

@@ -6,7 +6,8 @@
  * THE HEAP WAS ALREADY DECLARED, IN PROSE, AND NOTHING COULD READ IT. The block below has said
  * `node --max-old-space-size=6144` since 2026-08-27; `tools/lownode.cmd` derives the ceiling from an
  * `ABRA-HEAP: <MB>` line and from nothing else, and CLAUDE.md mandates that wrapper for every heavy
- * run. So `tools\lownode.cmd testsoster.js --stage moves --reds --write` died at `Reached heap
+ * run. So `tools\lownode.cmd tests
+oster.js --stage moves --reds --write` died at `Reached heap
  * limit` — twice, reproducibly, 2026-09-04 — while the same command with the flag typed by hand
  * completes. A memory ceiling read as a verdict is the class this repository keeps paying for, and
  * the wrapper's own header says so about `tests/test-resolution-order.js`. One line, so the two
@@ -544,10 +545,104 @@ const WEAK_TO = {};
  * its buildPair header) and the damage step is Showdown's own at the maximum roll, which is the roll
  * the pin selects. Nothing here is compared against anything; it only picks a fixture that cannot be
  * survived, and if it is wrong the control arm reports the staging as inert exactly as before. */
-const flatL50 = bs => ({ hp: Math.floor((2 * bs.hp + 31) * 50 / 100) + 50 + 10,
+/* ---- 2026-09-07: THIS LINE WAS A SECOND IMPLEMENTATION OF A FACT THE DRIVER OWNS, AND THE DRIVER
+ * MOVED UNDER IT. THREE ROWS THREW BECAUSE OF IT AND NOTHING SAID WHY.
+ *
+ * The comment above says "flatL50 is the same line game_differential.js gives both engines". IT IS
+ * NOT, ANY MORE. `buildPair` now puts a real Champions SP spread on every body it builds
+ * (`spreadFor(index, sp)`: the higher attacking stat takes up to the 32 cap, Speed comes off a
+ * ladder keyed on the body's slot, the rest spills to Sp.Def then Def). This line assumed a BLANK
+ * spread, so every damage figure it fed was computed for a body that no longer exists.
+ *
+ * MEASURED, not inferred. `ability/pinch-offense` staged Dragapult's Ice Punch into Torterra and
+ * this predictor said 152 of 170 HP — "taken to 11%", comfortably above the 1/3 gate the rule needs.
+ * The authority dealt 188 and Torterra FAINTED; Milotic came in, the script's next click named a move
+ * Milotic does not have, the driver answered `pass`, and Showdown rejected it:
+ *   THREW — p2 choice rejected p2 "pass, move 1": Can't pass: Your Milotic must make a move
+ * Same shape killed `ability/speed-on-item-loss` (Slurpuff, Dire Claw). The difference is the whole
+ * of the SP budget: Dragapult builds at 190 Attack, not the 140 this line computed.
+ *
+ * SO IT ASKS THE BUILDER. `buildPair` is exported, it is the function `play()` itself uses, and it
+ * returns the built body with its stat block on it — so the roster now prices a body EXACTLY as the
+ * game it is about to play will build it, rather than carrying an arithmetic of its own. Half a
+ * millisecond per species, cached, ~350 species in the worst case.
+ *
+ * INDEX 0, AND THE ASSUMPTION IS DECLARED. `spreadFor` keys the Speed ladder on the body's position
+ * in its side, and every fixture this file builds puts the carrier at B0 and the aggressor at A0. A
+ * body priced here and then staged in slot 1 gets a different Speed investment than this predicts;
+ * that is a known limit of this predictor and it is the same limit the old line had, only now it is
+ * written down.
+ *
+ * THE FALLBACK IS LOUD. If the builder cannot build a body, the old arithmetic answers and the
+ * species is counted and NAMED — a silent default here would restore exactly the defect above. */
+let FLAT_FALLBACK = 0; const FLAT_FALLBACK_WHO = [];
+let BUILT_ST_THREW = 0; const BUILT_ST_THREW_WHO = [];
+/* the frozen engine, for its OWN stat line. Never a copy of the arithmetic. */
+const MEDI = REL.require('engine/medicham2-browser.js');
+const _RAW_L50 = bs => ({ hp: Math.floor((2 * bs.hp + 31) * 50 / 100) + 50 + 10,
   at: Math.floor((2 * bs.atk + 31) * 50 / 100) + 5, df: Math.floor((2 * bs.def + 31) * 50 / 100) + 5,
   sa: Math.floor((2 * bs.spa + 31) * 50 / 100) + 5, sd: Math.floor((2 * bs.spd + 31) * 50 / 100) + 5,
   sp: Math.floor((2 * bs.spe + 31) * 50 / 100) + 5 });
+/* the dex hands out ONE object per species, so identity is a safe key back to the species id */
+const _BS_OWNER = new Map();
+for (const _s of dex.species.all()) if (_s && _s.baseStats) _BS_OWNER.set(_s.baseStats, _s.id);
+/* three filler bodies so `buildPair` has a legal side of four, derived rather than typed */
+let _FILL = null;
+function _fillers(notId) {
+  if (!_FILL) _FILL = dex.species.all()
+    .filter(x => x.exists && !x.isNonstandard && x.tier !== 'Illegal' && !x.battleOnly
+                 && !x.forme.endsWith('Mega'))
+    .sort((a, b) => (b.baseStats.hp + b.baseStats.def) - (a.baseStats.hp + a.baseStats.def))
+    .slice(0, 8).map(x => x.id);
+  return _FILL.filter(x => x !== notId).slice(0, 3);
+}
+const _BUILT_ST = new Map();
+let _BP = null;
+function builtStats(speciesId) {
+  if (_BUILT_ST.has(speciesId)) return _BUILT_ST.get(speciesId);
+  let out = null;
+  try {
+    /* THE CLEAN DRIVER IS BOUND ONCE AND NEVER RE-ASKED FOR. `SB.harness(null)` RELOADS the driver
+     * whenever a PATCHED source is current, and `--reds` alternates patched and clean all run — so
+     * calling it here would thrash the require cache every time a species was priced for the first
+     * time under a plant. `buildPair` is only being asked for a SPREAD, which does not depend on the
+     * engine bytes at all (the stats come from `MEDI.spreadL50` below), so the first binding is the
+     * right one for the whole process. */
+    if (!_BP) _BP = SB.harness(null).buildPair;
+    const row = x => ({ species: x, item: '', ability: '', moves: ['focusenergy'] });
+    const pair = _BP([row(speciesId)].concat(_fillers(speciesId).map(row)), { hpBoost: 1 });
+    /* ---- THE **SPEC**, NOT THE BODY HANGING OFF IT, AND THE DIFFERENCE IS 18 ATTACK POINTS --------
+     *
+     * `buildPair` returns { medi, spec, sd } and `medi.st` is a stat block computed BEFORE the
+     * spread is resolved — `playGame` throws that body away and rebuilds every side through
+     * `freshBodies`, which reads `spec`. The driver's own header says so ("the body it was stamped
+     * on is not the body that plays"). Reading `medi.st` gave Dragapult 190 Attack against the 172 it
+     * actually plays at and Chesnaught 183 Defence against 142 — and 142/172 is exactly the 176 damage
+     * the authority dealt, against the 152 the wrong block predicted. So the numbers come from the
+     * SPEC through the engine's own exported line: base stats, the driver's spread, the driver's
+     * nature, `M.spreadL50`. Nothing here re-types a formula and nothing here invents a spread. */
+    const sp0 = pair && pair[0] && pair[0].spec;
+    if (sp0 && sp0.bs && typeof MEDI.spreadL50 === 'function')
+      out = MEDI.spreadL50(sp0.bs, sp0.sp || null, sp0.nature || 'Serious');
+  } catch (err) {
+    /* NOT SILENT. A body that will not build is a fixture sized on the blank-spread
+     * arithmetic — exactly the defect this function exists to end — so the failure is NAMED
+     * and COUNTED, and the count is read at the foot of the run beside FLAT_FALLBACK. */
+    BUILT_ST_THREW++;
+    if (BUILT_ST_THREW_WHO.length < 12) BUILT_ST_THREW_WHO.push(speciesId + ': ' + err.message);
+    out = null;
+  }
+  _BUILT_ST.set(speciesId, out);
+  return out;
+}
+const flatL50 = bs => {
+  const id = _BS_OWNER.get(bs);
+  const st = id ? builtStats(id) : null;
+  if (st) return st;
+  FLAT_FALLBACK++;
+  if (FLAT_FALLBACK_WHO.length < 12) FLAT_FALLBACK_WHO.push(id || '(base stats with no species)');
+  return _RAW_L50(bs);
+};
 function maxRoll(att, mv, def) {
   if (dex.getImmunity(mv.type, def.types) === false) return 0;
   const A = flatL50(att.baseStats), Dd = flatL50(def.baseStats);
@@ -927,7 +1022,21 @@ const ARM_FALLS_THROUGH = (typeof process !== 'undefined' && process.env
 /* WHICH ARM ACTUALLY REACHED THE DRIVER, counted per id. A LABEL IS NOT A RECEIPT — every row of the
  * 156 above carried the right label and the wrong dice — so this counts the object that was handed
  * over, and `tests/test-roster-arm-pin.js` asserts the set of ids seen here is exactly the set of ids
- * declared. A zero for a declared arm, or any count at all on `middle`, is a red run. */
+ * declared, and that no row took the DRIVER'S DEFAULT.
+ *
+ * ---- THIS SENTENCE USED TO END "...or any count at all on `middle`, is a red run", AND THAT WAS
+ * PROSE THE TEST NEVER IMPLEMENTED. 2026-09-07: `test-roster-arm-pin.js` §2 asserts three things —
+ * no `DRIVER-DEFAULT:` key, every DECLARED arm actually played, every played arm one the driver
+ * publishes — and none of them mentions `middle`. A ban that lives only in a comment is the
+ * hand-maintained ban list of four in a new costume, so it is written down as what it is.
+ *
+ * AND THE BAN WOULD NOW BE WRONG. Eight rules DECLARE `arm: 'middle'` by name (the live-die lane),
+ * because a 30% ability is a constant on either corner and an experiment only under real dice. What
+ * the corners still own is every OTHER rule in this file, and that is unchanged: `play()` resolves
+ * every arm BY ID, so `arm: undefined` is unreachable and no rule written against a constant corner
+ * can be handed a live one by accident. The replacement assertion is sharper than the ban was — §4
+ * requires every `middle` row to carry a COIN RECEIPT, i.e. the die that decided it was checked
+ * against the authority's own address log rather than assumed. */
 const ARM_PLAYED = new Map();
 function play(sc, src, armId) {
   const G = SB.harness(src);
@@ -947,6 +1056,24 @@ function play(sc, src, armId) {
   if (!a || !b) return { bad: 'NOT-STAGED',
     why: 'buildPair returned null for ' + (!a ? 'side A' : 'side B') + ' — fewer than four bodies '
        + 'on that side could be built, so the game was never played' };
+
+  /* ---- THE LIVE-DIE LANE'S ONE PIECE OF PLUMBING (2026-09-07) ------------------------------------
+   *
+   * Under a CORNER arm every draw is a constant, so the two engines cannot disagree about a die and
+   * there is nothing here to read. Under `middle` the die is real and EVENT-ADDRESSED, and a board
+   * difference means one of two completely different things:
+   *
+   *   the two engines drew the SAME address and disagreed   -> the engine. A finding.
+   *   the two engines drew DIFFERENT addresses              -> two independent coins. The RULER.
+   *
+   * `game_differential.js` already keeps both sides' address logs for exactly this reason (ROADMAP
+   * #220) and its own void check refuses to read a game whose streams are not shared — but that check
+   * runs inside the driver's main loop, not inside `playGame`, so a caller staging one scenario gets
+   * no verdict at all. The logs ARE reachable, so they are read here and handed to `runEntry`, which
+   * withholds rather than accuses when they part. Reset immediately before the game so the list
+   * belongs to THIS game and not to the previous one. */
+  const wantDice = !!(ARM && ARM.middle && typeof G.midResetAddresses === 'function');
+  if (wantDice) G.midResetAddresses();
 
   const boards = [];
   /* THE ENGINE'S OWN LIVE STATE, KEPT BY REFERENCE, AND IT IS ONLY EVER READ FOR ONE THING.
@@ -1002,14 +1129,53 @@ function play(sc, src, armId) {
     } });
   const actives = () => (Sref ? { p1: (Sref.actA || []).map(m => (m ? idOf(m.name) : null)),
                                  p2: (Sref.actB || []).map(m => (m ? idOf(m.name) : null)) } : null);
-  if (r.err) return { bad: 'THREW', why: r.err, boards, medi_active: actives() };
+  const dice = wantDice ? diceOf(G.midAddresses()) : null;
+  /* ---- A THROW WITH NO NARRATION IS A DEAD END, AND FOUR ROWS SAT ON ONE FOR WEEKS -----------------
+   * `overgrow`, `sharpness`, `unburden` and `shadowtag` all read
+   * "THREW — p2 choice rejected p2 \"pass, move 1\"" and nothing else, which names the choice string
+   * and not the reason the body could not take it. The last lines of this engine's own narration say
+   * whether somebody fainted, whether a charge is in the air, or whether a trap refused — three
+   * completely different fixture faults that produce the identical message. Cheap, and it is the
+   * difference between a row somebody can fix and a row somebody re-reads. */
+  if (r.err) return { bad: 'THREW', why: r.err
+      + '   [the last of this engine\'s narration: ' + (r.mediTrace || []).slice(-8).join(' ') + ']',
+    boards, medi_active: actives(), dice };
   if (r.turns !== sc.script.length) return { bad: 'SHORT', boards,
     why: 'the script declares ' + sc.script.length + ' turn(s) and ' + r.turns + ' were played' };
   if (boards.length !== sc.script.length + 1) return { bad: 'SHORT', boards,
     why: boards.length + ' boundaries were taken and ' + (sc.script.length + 1) + ' were expected' };
   if (boards.some(x => !x.compared)) return { bad: 'SHORT', boards,
     why: 'a boundary compared ZERO leaves — the state path is not armed' };
-  return { boards, medi_active: actives() };
+  return { boards, medi_active: actives(), dice };
+}
+
+/* ---- DID THE TWO ENGINES THROW THE SAME DICE? --------------------------------------------------
+ *
+ * The address is `seed|turn|category|move|target|nth` and is a PURE FUNCTION of the event, so two
+ * engines that build the same string get the same number by construction. The only question worth
+ * asking is therefore a set question, and the categories it is asked over are chosen the way
+ * `midGameVoid` chooses its own — WITH `any` ADDED, which is the whole point of this lane.
+ *
+ * `midGameVoid` deliberately EXCLUDES `any` and says why: pooled across 1,200 real games it swings
+ * between 37% and 95% from the same engine, so a rate floor over it voids three quarters of a run.
+ * That argument is about a RATE over a POPULATION. Here there is one staged game, a handful of
+ * draws, and the coin under test IS an `any` draw — every one of these twelve abilities rolls inside
+ * `runEvent('DamagingHit')` or at the residual, which is none of `hitStepAccuracy` / `secondaries` /
+ * `getDamage`, so the authority files it under `any` (game_differential.js says this in the block
+ * above `MID_ANY`). Excluding `any` here would be excluding the measurement.
+ *
+ * SO THE BAR IS EXACT SET EQUALITY, NOT A RATE. It is the conservative direction: a parted address
+ * can only ever make this file WITHHOLD, never accuse. The one exception is stated at the gate. */
+function diceOf(ad) {
+  const CATS = new Set(['acc', 'crit', 'sec', 'dmg', 'stall', 'any']);
+  const cat = a => String(a).split('|')[2];
+  const sd = (ad.sd || []).filter(x => CATS.has(cat(x)));
+  const me = (ad.me || []).filter(x => CATS.has(cat(x)));
+  const S = new Set(sd), M2 = new Set(me);
+  return { sd: sd.length, me: me.length, no_battle: ad.no_battle || 0,
+           shared: me.filter(x => S.has(x)).length,
+           sdAll: sd, meAll: me,
+           sdOnly: sd.filter(x => !M2.has(x)), meOnly: me.filter(x => !S.has(x)) };
 }
 
 /* THE CONTROL ARM, derived from the subject and never written beside it. Exactly one thing changes.
@@ -1545,7 +1711,26 @@ function secondControl(e, sc, subject, delta, src, arm) {
 function switchVerdict(e, subject, control, base) {
   const P = e.switchProbe;
   const key = P.side === 'A' ? 'p1' : 'p2';
-  const refused = (r) => !!(r.bad === 'THREW' && /choice rejected "[^"]*switch/i.test(String(r.why || '')));
+  /* ---- THE REFUSAL DETECTOR WENT STALE ON A MESSAGE FORMAT, AND IT COST SHADOW TAG ITS ROW --------
+   *
+   * This read `/choice rejected "[^"]*switch/`, which requires the quoted choice to follow
+   * `rejected ` immediately. `game_differential.js#refusedChoice` prepends the SIDE ID, so what the
+   * driver actually throws is
+   *
+   *     p1 choice rejected p1 "switch 3, move 1": Can't switch: The active Pokemon is trapped
+   *
+   * and the pattern could not reach the quote. THE ONE THING SHADOW TAG EXISTS TO PROVE — that the
+   * authority refuses the switch — was therefore read as "the subject arm did not run for a reason
+   * that is NOT a refused switch", i.e. the trap WORKING was filed as a broken fixture. Exactly the
+   * shape of the dead plant anchors: a string pattern outliving the string it names, failing silent.
+   *
+   * Both halves of the refusal are now matched — the CHOICE naming a switch and the AUTHORITY'S OWN
+   * reason — so a further change to either format degrades to one clause rather than to none. */
+  const refused = (r) => {
+    if (r.bad !== 'THREW') return false;
+    const w = String(r.why || '');
+    return /choice rejected[^"]*"[^"]*switch/i.test(w) || /can.?t switch/i.test(w);
+  };
   const oursLeft = (r) => { const a = r.medi_active;
     return a ? idOf((a[key] || [])[P.slot] || '') === idOf(P.to) : null; };
   const sdLeft = (r) => { const b = (r.boards || [])[r.boards.length - 1];
@@ -1854,7 +2039,80 @@ function carrierOf(sc) {
   return null;
 }
 
-function runEntry(e) {
+/* ---- THE LIVE-DIE GATE, 2026-09-07 ---------------------------------------------------------------
+ *
+ * Every rule in this file except the eight `by-chance` ones is written against a CONSTANT corner, and
+ * `tests/test-roster-arm-pin.js` exists because letting the middle arm reach those rules produced 156
+ * FALSE `FIRED-AND-BOARDS-DIFFER` rows out of 340 (45.9%) against 0.87% on the corner. NOTHING BELOW
+ * CHANGES THAT. A scenario reaches this gate only by DECLARING `arm: 'middle'`, and the eight rules
+ * that do are the only ones in the file whose premise is a live die rather than a pinned corner.
+ *
+ * WHAT THE GATE IS FOR. Under real dice, "Showdown's board moved and ours did not" has a second
+ * explanation that does not exist under a corner: the two engines threw DIFFERENT COINS. This
+ * project has already paid for that once — a dead `random(100)` in `selfDrops` shifted every draw
+ * behind it and made twelve unrelated abilities look broken. So an accusing verdict is allowed only
+ * when the subject arm's two address logs are IDENTICAL, and the one asymmetry that is allowed is
+ * named and is evidence rather than noise:
+ *
+ *   sdOnly non-empty, meOnly empty, and the row would read DID-NOT-FIRE
+ *       the authority asked a question this engine never asked. That IS the defect, printed as the
+ *       address it was asked at. Withholding here would hide exactly what the lane was built to see.
+ *
+ * Everything else parts -> COULD-NOT-STAGE / DICE-NOT-SHARED. It is a claim about the RULER. */
+function diceGate(res) {
+  const d = res && res.dice;
+  if (!d) return res;
+  const coin = (res.scenario && res.scenario.coin) || null;
+  const verdict = res.verdict;
+  if (verdict !== 'FIRED-AND-BOARDS-DIFFER' && verdict !== 'DID-NOT-FIRE'
+      && verdict !== 'FIRED-AND-BOARDS-MATCH') return res;
+  /* ---- A LANE THAT PLAYS LIVE DICE MUST NAME ITS OWN COIN ----------------------------------------
+   *
+   * THE FIRST TWO CUTS OF THIS GATE COMPARED THE WHOLE ADDRESS SET, AND BOTH WERE WRONG IN THE SAME
+   * DIRECTION — they withheld on the defect they were built to see. Under the Stench and Quick Draw
+   * plants the engine stops throwing the coin, the boards part on turn 2, and from turn 2 onward the
+   * two engines are legitimately playing different games: the victim that was flinched in one engine
+   * ACTS in the other, so it draws accuracy, crit and damage the authority never drew. Whole-game set
+   * equality reads that as "the ruler", and restricting to turns before the parting throws away the
+   * one address that matters, because the coin and its consequence are on the SAME turn.
+   *
+   * SO THE QUESTION IS NOT "DID THE TWO ENGINES DRAW THE SAME SET". It is "DID THE TWO ENGINES THROW
+   * **THIS** COIN AT THE SAME ADDRESS", and every rule in this lane already knows the answer it is
+   * looking for: it CHOSE the click and the turn so that the die at that address would come up. So
+   * the address travels with the scenario and is checked by name.
+   *
+   *   the authority never threw it   the fixture failed. COULD-NOT-STAGE, and it is about this file.
+   *   both threw it                  one die, one value, by construction. Any verdict stands.
+   *   only the authority threw it    this engine never asked. Under EVENT-ADDRESSED dice a skipped
+   *                                  draw shifts nothing, so that is the ENGINE — and it is the exact
+   *                                  shape a missing mechanic has. The address is printed as evidence.
+   *   only this engine threw it      we named an event the authority never named. THAT is the ruler.
+   *
+   * THE WHOLE-SET COMPARISON IS STILL TAKEN AND STILL PUBLISHED (`dice.sd_only` / `dice.me_only`),
+   * because it is real information about the arm — it simply does not decide a verdict.
+   *
+   * WHAT THIS STILL CANNOT SEE, STATED: two engines building the SAME address for DIFFERENT events.
+   * The strings match and the semantics do not, and no address comparison can tell. That is the
+   * residual risk of this arm and it is not closed here. */
+  if (!coin) return res;
+  const sdHas = (d.sdAll || []).includes(coin), meHas = (d.meAll || []).includes(coin);
+  if (!sdHas) return { ...res, verdict: 'COULD-NOT-STAGE', coin_missing: true, underlying: verdict,
+    why: 'THE AUTHORITY NEVER THREW THE COIN THIS ROW WAS BUILT AROUND, so whatever the boards did, '
+       + 'it was not this mechanic being tested. The rule chose the click and the turn to make the '
+       + 'die at ' + coin + ' come up and Showdown drew no such address — its own log for this game '
+       + 'is [' + (d.sdAll || []).join('  ') + ']. THIS IS A FAULT IN THE FIXTURE, not a finding '
+       + 'about the engine, and a trial that did not happen is not a pass.' };
+  if (meHas) return { ...res, coin_shared: true };
+  return { ...res, coin_one_sided: true,
+    why: (res.why || '') + '  THE COIN: the authority threw ' + coin + ' and this engine never asked '
+       + 'for that address at all. The dice are addressed rather than sequenced, so a draw this '
+       + 'engine skips shifts nothing else — the parting is the ENGINE, not two coins. This engine\'s '
+       + 'own log: [' + (d.meAll || []).join('  ') + ']' };
+}
+
+function runEntry(e) { return diceGate(runEntryRaw(e)); }
+
+function runEntryRaw(e) {
   const sc = e.scenario;
   const { sc: ctrlSc, ignore } = controlOf(sc);
   const src = e.brokenSrc || null;
@@ -1954,7 +2212,8 @@ function runEntry(e) {
   const mine = subjDiffs.filter(d => !ctrlKeys.has(d.turn + '|' + d.path));
   const shared = subjDiffs.filter(d => ctrlKeys.has(d.turn + '|' + d.path));
 
-  const base = { ...e, boards: subject.boards, sd_delta: sdMoved, us_delta: usMoved,
+  const base = { ...e, boards: subject.boards, dice: subject.dice || null,
+                 sd_delta: sdMoved, us_delta: usMoved,
                  subject_diffs: mine, shared_diffs: shared, control_diffs: ctrlDiffs, ignore,
                  second_control: SC || null,
                  compared: subject.boards.reduce((n, b) => n + b.compared, 0) };
@@ -3259,10 +3518,17 @@ function stageAbility(e, C, o) {
   sc.controlKind = 'ability';
   sc.abilityId = e.id;
   sc.carrierSpecies = sp.id;
+  /* THE ADDRESS OF THE DIE THE RULE BUILT THIS FIXTURE AROUND — see `diceGate`. Null on every
+   * corner-arm scenario, where the die is a constant and there is no coin to name. */
+  sc.coin = o.coin || null;
   return { note: o.note + '   [carrier ' + sp.name + ', control = ' + C.control
       + (sc.controlQuiet ? '' : ' — NOT A QUIET ABILITY, so any accusing verdict is downgraded to '
           + 'CONTROL-NOT-QUIET') + ']',
-    arm: o.arm || null, scenario: sc, tier: 'ALTERNATE', controlQuiet: sc.controlQuiet };
+    arm: o.arm || null, scenario: sc, tier: 'ALTERNATE', controlQuiet: sc.controlQuiet,
+    /* THE RECEIPT A RULE OWES FOR ITS OWN SETUP, and it was DROPPED here until 2026-09-07: a
+     * rule could pass `precondition` to this builder and the builder threw it away, so the
+     * clause never reached `runEntry` and a setup that failed read as an INERT board. */
+    precondition: o.precondition || null };
 }
 
 /* THE SAME BUILDER FOR A CARRIER THAT HAS NO SECOND ABILITY TO CONTROL WITH.
@@ -3300,10 +3566,12 @@ function stageAbilitySwap(e, C, o) {
   sc.controlKind = 'abilityswap';
   sc.abilityId = e.id;
   sc.carrierSpecies = sp.id;
+  sc.coin = o.coin || null;
   return { note: o.note + '   [' + C.tier + ' carrier ' + sp.name
       + (C.tier === 'MEGA' ? ' -> ' + pretty(C.forme) + ' via ' + pretty(C.stone) : '')
       + ', control = Skill Swap lends ' + SWAPPER.ability + ' off ' + SWAPPER.name + ' (' + S.why + ')]',
-    arm: o.arm || null, scenario: sc, tier: C.tier, controlQuiet: true };
+    arm: o.arm || null, scenario: sc, tier: C.tier, controlQuiet: true,
+    precondition: o.precondition || null };
 }
 /* one door for a rule that does not care which tier its carrier landed in */
 function stageAbilityAnyTier(e, C, o) {
@@ -3322,7 +3590,15 @@ function hitInBand(attSp, defSp, lo, hi) {
     if (!mv) continue;
     const d = maxRoll(attSp, mv, defSp);
     if (d < hp * lo || d > hp * hi) continue;
-    if (!best || d > best.d) best = { mv, d, hp };
+    /* THE SMALLEST HIT INSIDE THE BAND, NOT THE LARGEST — 2026-09-07, and the change is one
+     * comparison. Every caller wants a body brought INTO a band and left standing; `lo` is the gate
+     * it must cross and `hi` is the line it must not. Taking the LARGEST in-band hit put the body as
+     * close to death as the band allows, so any modelling error at all is fatal — and one arrived:
+     * `ability/pinch-offense` sized Drill Peck at 93% of Chesnaught, the authority dealt slightly
+     * more, the body FAINTED, its replacement was asked for a move it does not have and the game
+     * threw. The smallest in-band hit clears the same gate with the most headroom above death, and
+     * this predictor is an estimate however carefully it is built. */
+    if (!best || d < best.d) best = { mv, d, hp };
   }
   return best;
 }
@@ -3716,6 +3992,147 @@ const GROUND_CLICK = dex.moves.all().filter(m => m.exists && !m.isNonstandard &&
     && (m.secondaries || []).every(s => s.chance === 100)
     && (!m.secondary || m.secondary.chance === 100))
   .sort((a, b) => a.basePower - b.basePower)[0] || null;
+
+/* =================================================================================================
+ *  THE LIVE-DIE LANE — TWELVE ABILITIES WHOSE WHOLE CONTENT IS A COIN
+ * =================================================================================================
+ *
+ * Will, 2026-09-07: *"the chance-gated abilities CAN be staged — do it."*
+ *
+ * WHAT `ability/chance-gated` BELOW SAYS IS TRUE OF THE CORNERS AND OF NOTHING ELSE. `top-tie-first`
+ * pins every sub-100% roll FALSE and `bottom-tie-first` pins every one TRUE, so on the corners a 30%
+ * ability either never fires or always fires, in both engines, and either way the board is the pin's
+ * rather than the mechanic's. That is the correct refusal for those arms.
+ *
+ * THE `middle` ARM DRAWS REAL DICE AND SHARES THEM BY ADDRESS, which is a different question and one
+ * these twelve can answer. THE ARM IS NOT SWAPPED AND MUST NOT BE: every other rule in this file is
+ * written against a constant corner ("the pin makes every sub-100 move miss", "no crit lands", "the
+ * maximum roll is the roll the pin selects"), and on 2026-08-13 the middle arm silently became the
+ * DRIVER'S DEFAULT for every caller that omitted `arm` and produced 156 FALSE `FIRED-AND-BOARDS-DIFFER`
+ * rows of 340 (45.9%) against 0.87% on the corner. The eight rules below are a SEPARATE LANE that
+ * DECLARES `arm: 'middle'` by name; nothing else in this file reaches it, and `play()` still resolves
+ * every arm by id so `arm: undefined` remains unreachable.
+ *
+ * ---- WHAT MAKES A ROW IN THIS LANE MEAN ANYTHING -------------------------------------------------
+ *
+ *   1. THE DIE IS COMPUTED BEFORE THE GAME, NOT HOPED AT. `value = FNV1a(seed|turn|cat|move|target|nth)`
+ *      is a pure function, so the rule SEARCHES its legal clicks for one whose die falls below the
+ *      ability's own declared chance. A trial that did not fire is not a pass — it is the
+ *      "precondition never held" shape — so the click is chosen to make the coin come up and the
+ *      choice is printed in the row's note.
+ *   2. THE AUTHORITY MUST HAVE MOVED. `runEntry`'s existing inert gate already requires Showdown's
+ *      own board to differ with and without the ability, so a coin that did not come up returns
+ *      COULD-NOT-STAGE and never a green.
+ *   3. THE DICE MUST BE SHARED. See `diceGate`. A chance effect that fires in one engine and not the
+ *      other is only a defect if BOTH ENGINES DREW THE SAME DIE, and under this arm that is a fact
+ *      the instrument can check rather than assume.
+ *
+ * ---- WHY THE COIN IS AN `any` DRAW, WHICH IS THE WHOLE REASON CLAUSE 3 IS NEEDED -----------------
+ *
+ * Every one of these twelve rolls OUTSIDE `hitStepAccuracy`, `secondaries` and `getDamage` — inside
+ * `runEvent('DamagingHit')` for the contact family, at the residual for the rest — so the authority
+ * files it under `any`, and `midGameVoid`'s identity check deliberately EXCLUDES `any`. The driver's
+ * own note says nine of the 46 board-material first-divergence rows on release `2a5fd78725e7` are
+ * exactly this family and that the instrument could not say whether they were the engine or two
+ * different coins. This lane can say, because it checks one staged game rather than a pooled rate. */
+const LIVE_ARM = 'middle';
+/* `TAGS` here is the raw artifact rather than the tags MODULE, so the params are read by key. One
+ * accessor, not a walk at every call site, and it returns null rather than throwing on a missing row
+ * so a rule below reads "this ability does not carry that tag" and not "the artifact moved". */
+function abTag(id, name) {
+  const row = TAGS.abilities && TAGS.abilities[idOf(id)];
+  return (row && row.params && row.params[name]) || null;
+}
+/* THE PREDICTOR AND THE ARM MUST AGREE ABOUT THE SEED, OR EVERY "CHOSEN" CLICK BELOW IS A COIN. Read
+ * off the arm object the driver publishes and off the engine's own exported hash — never typed. */
+const MIDE = (() => {
+  const M = REL.require('engine/medicham2-browser.js');
+  const A = SB.harness(null).ARM_BY_ID.get(LIVE_ARM);
+  const seed = A ? A.middleSeed : null;
+  if (!A) return { ok: false, why: 'game_differential.js publishes no `' + LIVE_ARM + '` arm' };
+  if (typeof M.midEventValue !== 'function' || M.MID_EVENT_SEED == null)
+    return { ok: false, why: 'the frozen engine exports no midEventValue/MID_EVENT_SEED' };
+  if (seed !== M.MID_EVENT_SEED)
+    return { ok: false, why: 'the arm seeds its dice with ' + seed + ' and the engine\'s own '
+      + 'MID_EVENT_SEED is ' + M.MID_EVENT_SEED + ' — a prediction built on either one would be a '
+      + 'coin, so no live-die row may be staged' };
+  return { ok: true, seed, value: M.midEventValue };
+})();
+/* the address of a draw, exactly as `midEventBase` builds it, and never a second implementation */
+function midDie(turn, cat, move, target, nth) {
+  return MIDE.value([MIDE.seed, turn, cat, move || '-', target || '-', nth || 0].join('|'));
+}
+/* THE CARRIER STANDS IN B0 IN EVERY STAGING THIS FILE BUILDS (`stageAbility` says so), so a reaction
+ * addressed to the body the aggressor just hit carries `p20`. It is derived from that contract rather
+ * than typed: if `stageAbility` ever moves the carrier, this is wrong and the rows go INERT loudly. */
+const REACT_SLOT = 'p20';
+
+/* Every neutral 100-accuracy physical CONTACT click the standard aggressor can legally throw at a
+ * body, ordered by the die the middle arm will hand its post-hit reaction — LOWEST FIRST, so the
+ * caller can take the first one that clears its own chance threshold. */
+/* ---- EVERY (CLICK, TURN) THIS AGGRESSOR CAN PUT ON THE CARRIER, WITH THE DIE EACH ONE DRAWS ------
+ *
+ * THE SEARCH HAS TO BE WIDE OR THE LANE REFUSES ITS OWN MEMBERS FOR A REASON ABOUT THIS FILE. The
+ * first cut asked for a NEUTRAL contact click on turn 1 only, which is TWO dice against Bellibolt —
+ * the lowest was 0.6793 and Static came back "the coin never comes up", a fixture limit wearing a
+ * finding. Two widenings, both of which are free:
+ *
+ *   NOT IMMUNE rather than NEUTRAL. Effectiveness changes the DAMAGE and not the trigger; the punish
+ *   reads `flags.contact` and nothing else. The carrier's HP is inflated 6x by `scaffold`, so a
+ *   super-effective click is still a reading rather than a KO — and the inert gate would catch it if
+ *   it were not.
+ *
+ *   MORE THAN ONE TURN. `turn` is a field of the address, so the same click on turn 2 is an
+ *   INDEPENDENT die. The schedule repeats one click, so the address on the chosen turn is exactly the
+ *   one predicted here — and the prediction stays sound up to and including the first turn the coin
+ *   comes up on, because nothing before that turn has changed the board (no status means no
+ *   `|cant|par` roll sharing the base, which is the one thing that would shift `nth`).
+ */
+const LIVE_TURNS = 3;
+/* A RESIDUAL COIN HAS ONLY ONE FREE FIELD — THE TURN — so its search has to be deeper than the
+ * click family's. `<seed>|<turn>|any|-|-|0` reads 0.9706, 0.5083, 0.3403, 0.4296, 0.2615 over
+ * turns 1..5, so a 33% ability needs five turns and a three-turn ceiling would have refused Shed
+ * Skin for a reason about this constant. */
+const LIVE_RESIDUAL_TURNS = 10;
+/* `contact` narrows the pool to the physical contact click per type — which is what Static, Flame
+ * Body, Poison Point, Effect Spore and Poison Touch actually gate on. An `anyHit` reaction (Cursed
+ * Body) gates on nothing but damage, so it gets the WHOLE delivery table: Gengar is immune to Normal
+ * AND to Fighting, which left the contact pool at ONE move and three dice, and Cursed Body was
+ * refused for a reason about this list rather than about the coin. */
+function hitClicksAt(speciesId, atkSp, slot, opt) {
+  const sp = dex.species.get(speciesId);
+  const contactOnly = !!(opt && opt.contact);
+  const pool = [];
+  for (const t of Object.keys(DELIVERY)) {
+    if (contactOnly) { if (CONTACT[t]) pool.push(CONTACT[t]); continue; }
+    for (const mv of [DELIVERY[t].physical, DELIVERY[t].special]) if (mv) pool.push(mv);
+  }
+  const out = [], seen = new Set();
+  for (const mv of pool) {
+    if (seen.has(mv.id)) continue;
+    seen.add(mv.id);
+    if (dex.getImmunity(mv.type, sp.types) === false) continue;
+    if (!canClick(atkSp, mv.id)) continue;
+    for (let turn = 1; turn <= LIVE_TURNS; turn++)
+      out.push({ mv, turn, die: midDie(turn, 'any', mv.id, slot || REACT_SLOT, 0) });
+  }
+  /* soonest first, then lowest die — a shorter script drifts less */
+  return out.sort((a, b) => (a.turn - b.turn) || (a.die - b.die));
+}
+function contactClicksAt(speciesId, atkSp) {
+  return hitClicksAt(speciesId, atkSp, REACT_SLOT, { contact: true });
+}
+/* the sentence a live-die rule prints when no click it can throw makes the coin come up */
+function noCoinWhy(list, chance, what) {
+  const best = list.slice().sort((a, b) => a.die - b.die)[0];
+  return 'THE COIN NEVER COMES UP AND THAT IS A FACT ABOUT THIS FIXTURE. ' + what + ' rolls at '
+    + (chance * 100).toFixed(1) + '%, and the `' + LIVE_ARM + '` arm addresses that draw by event, so '
+    + 'its value is fixed before the game is played. Over the ' + list.length + ' (click, turn) pair(s) '
+    + 'this staging can reach, the lowest die is '
+    + (best ? best.die.toFixed(4) + ' (' + best.mv.name + ' on turn ' + best.turn + ')' : 'n/a')
+    + '. A staged trial that did not fire is NOT A PASS, so the row is refused rather than played.';
+}
+
 
 const RULES = [
 
@@ -4878,11 +5295,514 @@ const RULES = [
       + '. This is a property of the REGULATION, not of the simulator and not of this instrument.',
       'no-legal-carrier'); } },
 
+/* ---- 1. A CONTACT HIT THAT STATUSES THE ATTACKER BY CHANCE ---------------------------------------
+ * Static, Flame Body, Poison Point, Effect Spore. */
+{ id: 'ability/contact-statuses-the-attacker-by-chance', kind: 'ability',
+  reads: 'the `punishesAttacker.inflicts` tag — a list of statuses with a sub-100% cumulative chance',
+  why: 'THE COIN IS THE MECHANIC. Four abilities do nothing at all except roll for a status on the '
+     + 'body that just touched them, so under either corner they are a constant and under the middle '
+     + 'arm they are the experiment. The click is CHOSEN so the shared die falls below the ability\'s '
+     + 'own cumulative chance, and the aggressor is checked against that status\'s immunity first — a '
+     + 'Fire body cannot be burned and the row would have read INERT for a reason about the fixture.',
+  break: { why: 'the cumulative roll is forced past the top of the range, so the status never lands '
+              + 'while everything else about the punish stays exactly as it was',
+    patch: [['const _r=rng();let _cum=0;', 'const _r=1;let _cum=0;']] },
+  match(e) {
+    const p = abTag(e.id, 'punishesAttacker');
+    if (!p || !Array.isArray(p.inflicts) || !p.inflicts.length) return null;
+    const chance = p.inflicts.reduce((n, x) => n + (+x.chance || 0), 0);
+    if (!(chance > 0) || chance >= 1) return null;
+    if (!MIDE.ok) return cannot('the live-die lane cannot run: ' + MIDE.why);
+    if (p.trigger && p.trigger !== 'contact' && p.trigger !== 'anyHit')
+      return cannot('its punish trigger is `' + p.trigger + '`, which this staging does not produce');
+    const C = abilityCarrier(e);
+    if (!C) return cannot(noCarrierWhy(e, 'is buildable with a second ability to control with'));
+    /* THE AGGRESSOR MUST BE ABLE TO TAKE THE STATUS. Every branch of the cumulative roll is checked,
+     * because Effect Spore has three and a body immune to the first one still tests the other two. */
+    const atkSp = dex.species.get(CAST.ATTACKER().species);
+    const takes = p.inflicts.filter(x => {
+      const st = String(x.status || '').toLowerCase();
+      const code = st === 'paralysis' ? 'par' : st === 'poison' ? 'psn' : st === 'burn' ? 'brn'
+                 : st === 'sleep' ? 'slp' : st === 'freeze' ? 'frz' : st;
+      return dex.getImmunity(code, atkSp.types) !== false;
+    });
+    if (!takes.length) return cannot('the standard aggressor ' + atkSp.name + ' is immune to every '
+      + 'status this ability can inflict (' + p.inflicts.map(x => x.status).join(', ') + '), so the '
+      + 'coin could come up and the board would not move — an INERT row about the fixture');
+    /* the die only has to clear the branches the aggressor can actually take, and they are the FIRST
+     * entries of the cumulative range in artifact order, so the bar is their running total */
+    const reach = p.inflicts.reduce((acc, x) => {
+      acc.cum += (+x.chance || 0);
+      if (takes.includes(x)) acc.bar = acc.cum;
+      return acc; }, { cum: 0, bar: 0 }).bar;
+    const clicks = contactClicksAt(C.species, atkSp);
+    if (!clicks.length) return cannot('no 100-accuracy physical CONTACT click exists that the '
+      + 'aggressor can legally throw at ' + pretty(C.species) + ' without being immune to it, and '
+      + 'contact is this ability\'s own trigger');
+    const pick = clicks.find(c => c.die < reach);
+    if (!pick) return cannot(noCoinWhy(clicks, reach, pretty(e.id)));
+    return stageAbility(e, C, { hpA: 6, hpB: 6, moves: [INERT], arm: LIVE_ARM,
+      coin: [MIDE.seed, pick.turn, 'any', pick.mv.id, REACT_SLOT, 0].join('|'),
+      note: atkSp.name + ' clicks ' + pick.mv.name + ' at the carrier on turn(s) 1..' + pick.turn
+          + '; the `' + LIVE_ARM + '` arm addresses the post-hit coin `'
+          + [MIDE.seed, pick.turn, 'any', pick.mv.id, REACT_SLOT, 0].join('|') + '` = '
+          + pick.die.toFixed(4) + ', below the ' + (reach * 100).toFixed(1) + '% this ability can '
+          + 'reach on a ' + atkSp.name + ', so the roll is CHOSEN to come up rather than hoped at',
+      a0: mon(atkSp.id, '', CAST.ATTACKER().ability, [pick.mv.id]),
+      script: Array.from({ length: pick.turn },
+                         () => turn([click(pick.mv.id, 0), IDLE], [IDLE, IDLE])) });
+  } },
+
+/* ---- 2. A HIT THAT PLANTS A VOLATILE ON THE ATTACKER BY CHANCE -----------------------------------
+ * Cute Charm's attract. Cursed Body describes the same effect TWICE and is taken by rule 3. */
+{ id: 'ability/contact-plants-a-volatile-on-the-attacker-by-chance', kind: 'ability',
+  reads: 'the `punishesAttacker.inflictsVolatile` tag, on a row that carries no sharper tag',
+  why: 'THE ENGINE\'S OWN DISPATCH IS THE RULE, NOT A NAME. `punishesAttacker.inflictsVolatile` is '
+     + 'read only on a row carrying NOTHING ELSE, because a second tag means a sharper description '
+     + 'exists and the engine already spends it — Cursed Body\'s disable is described by both '
+     + '`inflictsVolatile` and `disablesAttacker` and lands through the latter. Matching on the tag '
+     + 'shape rather than the ability keeps this rule and the engine on the same side of that split.',
+  break: { why: 'the volatile is never planted, while the rest of the punish stays exactly as it was',
+    patch: [['else if(rng()<+(_pun.inflictsVolatile.chance==null?1:_pun.inflictsVolatile.chance))',
+             'else if(0&&rng()<+(_pun.inflictsVolatile.chance==null?1:_pun.inflictsVolatile.chance))']] },
+  match(e) {
+    const p = abTag(e.id, 'punishesAttacker');
+    const iv = p && p.inflictsVolatile;
+    if (!iv || !iv.volatile) return null;
+    const row = TAGS.abilities && TAGS.abilities[idOf(e.id)];
+    if (row && Array.isArray(row.tags) && row.tags.length > 1) return null;   // a sharper tag owns it
+    const chance = +(iv.chance == null ? 1 : iv.chance);
+    if (!(chance > 0) || chance >= 1) return null;
+    if (!MIDE.ok) return cannot('the live-die lane cannot run: ' + MIDE.why);
+    /* ---- THE ONE REFUSAL IN THIS LANE THAT IS ABOUT THE DRIVER AND NOT ABOUT THE PIN --------------
+     * Derived twice over rather than typed. (1) The volatile's own condition gates on GENDER — read
+     * off the move that owns it, not remembered. (2) `game_differential.js#buildPair` writes
+     * `gender: 'N'` on every body it builds, on both sides, deliberately: Showdown puts the gender in
+     * the `|switch|` details field and medicham2 has no gender at all, so a declared gender would
+     * part every switch line. The driver's own summary says so out loud — "gender is N on both sides,
+     * so Attract / Rivalry / Cute Charm are not exercised". Two genderless bodies fail
+     * `attract.condition.onStart` (`data/moves.ts`: `if (!(pokemon.gender === 'M' && source.gender
+     * === 'F') && !(...)) return false;`), so the coin can come up and no board will move. */
+    const vol = dex.moves.get(iv.volatile);
+    const gendered = vol && vol.exists && vol.condition && vol.condition.onStart
+      && /gender/.test(String(vol.condition.onStart));
+    if (gendered) return cannot('ITS VOLATILE IS GENDER-GATED AND THIS DRIVER BUILDS EVERY BODY '
+      + 'GENDERLESS. `' + vol.name + '`\'s own condition refuses unless the two bodies are opposite '
+      + 'sexes, and `game_differential.js#buildPair` writes `gender: \'N\'` on both sides by design — '
+      + 'Showdown carries gender in the `|switch|` details field and medicham2 has no gender at all, '
+      + 'so a declared one would part every switch line. The driver states this itself: "gender is N '
+      + 'on both sides, so Attract / Rivalry / Cute Charm are not exercised". THE COIN CAN COME UP '
+      + 'AND NO BOARD WILL MOVE, so this is a limit of the RIG and not of the pin and not of the '
+      + 'mechanic. It is owed a fixture that can declare a gender.');
+    const C = abilityCarrier(e);
+    if (!C) return cannot(noCarrierWhy(e, 'is buildable with a second ability to control with'));
+    const atkSp = dex.species.get(CAST.ATTACKER().species);
+    const clicks = contactClicksAt(C.species, atkSp);
+    if (!clicks.length) return cannot('no 100-accuracy physical CONTACT click exists that the '
+      + 'aggressor can legally throw at ' + pretty(C.species) + ' without being immune to it');
+    const pick = clicks.find(c => c.die < chance);
+    if (!pick) return cannot(noCoinWhy(clicks, chance, pretty(e.id)));
+    return stageAbility(e, C, { hpA: 6, hpB: 6, moves: [INERT], arm: LIVE_ARM,
+      coin: [MIDE.seed, pick.turn, 'any', pick.mv.id, REACT_SLOT, 0].join('|'),
+      note: atkSp.name + ' clicks ' + pick.mv.name + ' at the carrier on turn(s) 1..' + pick.turn
+          + '; the coin `' + [MIDE.seed, pick.turn, 'any', pick.mv.id, REACT_SLOT, 0].join('|') + '` = '
+          + pick.die.toFixed(4) + ' is below the ' + (chance * 100).toFixed(0) + '% this ability rolls',
+      a0: mon(atkSp.id, '', CAST.ATTACKER().ability, [pick.mv.id]),
+      script: Array.from({ length: pick.turn },
+                         () => turn([click(pick.mv.id, 0), IDLE], [IDLE, IDLE])) });
+  } },
+
+/* ---- 3. A HIT THAT SEALS THE MOVE THAT MADE IT, BY CHANCE ----------------------------------------
+ * Cursed Body. */
+{ id: 'ability/seals-the-attacking-move-by-chance', kind: 'ability',
+  reads: 'the `disablesAttacker` tag with a sub-100% chance',
+  why: 'Cursed Body\'s whole content is a 30% coin thrown after any damaging hit, and the seal it '
+     + 'plants is a BOARD LEAF (`vol.disable` on the attacker) rather than a message — so once the '
+     + 'die is live there is something to compare. The trigger is `anyHit`, not contact, and the '
+     + 'staging does not rely on contact for that reason.',
+  break: { why: 'the seal is never planted, so the attacker keeps its move',
+    patch: [['if(_cb&&_cb.chance&&!m.fainted&&!(m._vol&&m._vol.disable>0)&&_reactAddr(rng)<+_cb.chance){',
+             'if(0&&_cb&&_cb.chance&&!m.fainted&&!(m._vol&&m._vol.disable>0)&&_reactAddr(rng)<+_cb.chance){']] },
+  match(e) {
+    const d = abTag(e.id, 'disablesAttacker');
+    if (!d || !d.disables) return null;
+    const chance = +(d.chance == null ? 1 : d.chance);
+    if (!(chance > 0) || chance >= 1) return null;
+    if (!MIDE.ok) return cannot('the live-die lane cannot run: ' + MIDE.why);
+    const C = abilityCarrier(e);
+    if (!C) return cannot(noCarrierWhy(e, 'is buildable with a second ability to control with'));
+    const atkSp = dex.species.get(CAST.ATTACKER().species);
+    const clicks = hitClicksAt(C.species, atkSp, REACT_SLOT);
+    if (!clicks.length) return cannot('no 100-accuracy damaging click exists that the aggressor can '
+      + 'legally throw at ' + pretty(C.species) + ' without being immune to it');
+    const pick = clicks.find(c => c.die < chance);
+    if (!pick) return cannot(noCoinWhy(clicks, chance, pretty(e.id)));
+    return stageAbility(e, C, { hpA: 6, hpB: 6, moves: [INERT], arm: LIVE_ARM,
+      coin: [MIDE.seed, pick.turn, 'any', pick.mv.id, REACT_SLOT, 0].join('|'),
+      note: atkSp.name + ' clicks ' + pick.mv.name + ' at the carrier on turn(s) 1..' + pick.turn
+          + '; the coin `' + [MIDE.seed, pick.turn, 'any', pick.mv.id, REACT_SLOT, 0].join('|') + '` = '
+          + pick.die.toFixed(4) + ' is below the ' + (chance * 100).toFixed(0) + '% this ability rolls, '
+          + 'and the seal lands on the aggressor as `vol.disable`',
+      a0: mon(atkSp.id, '', CAST.ATTACKER().ability, [pick.mv.id]),
+      script: Array.from({ length: pick.turn },
+                         () => turn([click(pick.mv.id, 0), IDLE], [IDLE, IDLE])) });
+  } },
+
+/* ---- 4. THE CARRIER'S OWN CONTACT POISONS WHAT IT TOUCHES, BY CHANCE ----------------------------
+ * Poison Touch. The one member of the contact family whose coin is thrown on the carrier's OWN click,
+ * so the address names the body it is hitting — side A slot 0 — rather than the carrier. */
+{ id: 'ability/poisons-what-it-touches-by-chance', kind: 'ability',
+  reads: 'the `poisonsOnMyContact` tag',
+  why: 'THE DIRECTION IS THE WHOLE DIFFERENCE. Every other member of this family reacts to being hit; '
+     + 'Poison Touch rolls when the CARRIER lands a contact hit, so the aggressor and the carrier '
+     + 'swap places and the die is addressed to the body being hit. The victim is checked against '
+     + 'poison immunity first — a Steel or Poison body would swallow the coin and the row would read '
+     + 'INERT for a reason about the fixture.',
+  break: { why: 'the poison roll never passes, so a contact hit leaves the victim clean',
+    patch: [['if(_pt&&!dustBlocked&&(!_pt.needsContact||mvMakesContact(a.move.id,m,a.move.mv))&&_reactAddr(rng)<(+_pt.p||0.3))',
+             'if(0&&_pt&&!dustBlocked&&(!_pt.needsContact||mvMakesContact(a.move.id,m,a.move.mv))&&_reactAddr(rng)<(+_pt.p||0.3))']] },
+  match(e) {
+    const p = abTag(e.id, 'poisonsOnMyContact');
+    if (!p) return null;
+    const chance = +(p.p == null ? 0.3 : p.p);
+    if (!(chance > 0) || chance >= 1) return null;
+    if (!MIDE.ok) return cannot('the live-die lane cannot run: ' + MIDE.why);
+    const C = abilityCarrier(e);
+    if (!C) return cannot(noCarrierWhy(e, 'is buildable with a second ability to control with'));
+    const carSp = dex.species.get(C.species);
+    /* THE VICTIM MUST BE ABLE TO BE POISONED. The standard punching bag is pure Normal, which is
+     * exactly what this needs, and it is checked rather than assumed. */
+    const bag = dex.species.get(CAST.BAG().species);
+    if (dex.getImmunity('psn', bag.types) === false)
+      return cannot('the standard punching bag ' + bag.name + ' is immune to poison, so the coin '
+        + 'could come up and no board would move');
+    /* the carrier is B0 and the bag stands in A0, so the die this click throws is addressed p10 */
+    const VICTIM_SLOT = 'p10';
+    const cands = [];
+    for (const t of Object.keys(CONTACT)) {
+      const mv = CONTACT[t];
+      if (dex.getImmunity(mv.type, bag.types) === false) continue;
+      if (!canClick(carSp, mv.id)) continue;
+      for (let tn = 1; tn <= LIVE_TURNS; tn++)
+        cands.push({ mv, turn: tn, die: midDie(tn, 'any', mv.id, VICTIM_SLOT, 0) });
+    }
+    cands.sort((a, b) => (a.turn - b.turn) || (a.die - b.die));
+    if (!cands.length) return cannot('no 100-accuracy physical CONTACT click exists that '
+      + carSp.name + ' can legally throw at ' + bag.name + ' without being immune to it, and contact '
+      + 'is this ability\'s own gate');
+    const pick = cands.find(c => c.die < chance);
+    if (!pick) return cannot(noCoinWhy(cands, chance, pretty(e.id)));
+    return stageAbility(e, C, { hpA: 6, hpB: 6, moves: [pick.mv.id], arm: LIVE_ARM,
+      coin: [MIDE.seed, pick.turn, 'any', pick.mv.id, VICTIM_SLOT, 0].join('|'),
+      note: 'the CARRIER clicks ' + pick.mv.name + ' at ' + bag.name + ' on turn(s) 1..' + pick.turn
+          + '; the coin `' + [MIDE.seed, pick.turn, 'any', pick.mv.id, VICTIM_SLOT, 0].join('|') + '` = '
+          + pick.die.toFixed(4) + ' is below the ' + (chance * 100).toFixed(0) + '% this ability rolls',
+      a0: { ...CAST.BAG(), moves: [INERT] },
+      script: Array.from({ length: pick.turn },
+                         () => turn([IDLE, IDLE], [click(pick.mv.id, 0), IDLE])) });
+  } },
+
+/* ---- 5. A RESIDUAL COIN THAT WIPES A STATUS -----------------------------------------------------
+ * Shed Skin (self, 33%) and Healer (the adjacent ally, 50%). */
+{ id: 'ability/cures-a-status-at-the-residual-by-chance', kind: 'ability',
+  reads: 'the `curesStatusResidual` tag with a sub-100% chance',
+  why: 'A RESIDUAL COIN IS ADDRESSED WITHOUT A MOVE, and that is the only thing that makes this rule '
+     + 'different from the contact family. The authority clears `activeMove` at the top of the '
+     + 'residual (`sim/battle.ts:2810`), so both engines address the draw `<seed>|<turn>|any|-|-|0` — '
+     + 'MEASURED on a staged Scrafty, both logs printing the identical string. The turn is therefore '
+     + 'the only free variable and the rule picks the FIRST one whose die falls below the chance.\n'
+     + '     THE STATUS IS APPLIED BY A 100-ACCURACY CLICK, because move accuracy is a live die on '
+     + 'this arm too and a missed setup would leave the cure with nothing to wipe — a precondition '
+     + 'that did not land, which this file refuses rather than reports.',
+  break: { why: 'the residual cure never rolls through, so the status survives the turn',
+    patch: [['if(_wOK&&(+_cr.chance>=1||rng()<+_cr.chance)){',
+             'if(_wOK&&(+_cr.chance>=1||rng()<+_cr.chance)&&false){']] },
+  match(e) {
+    const cr = abTag(e.id, 'curesStatusResidual');
+    if (!cr) return null;
+    const chance = +(cr.chance == null ? 1 : cr.chance);
+    if (!(chance > 0) || chance >= 1) return null;
+    if (!MIDE.ok) return cannot('the live-die lane cannot run: ' + MIDE.why);
+    if (cr.weathers) return cannot('its cure is gated on a weather (' + [].concat(cr.weathers).join(', ')
+      + ') and this staging raises no sky, so the coin would be asked about a condition that never held');
+    if (cr.scope !== 'self' && cr.scope !== 'adjacentAllies')
+      return cannot('its cure scope is `' + cr.scope + '`, which this staging has no body for');
+    const C = abilityCarrier(e);
+    if (!C) return cannot(noCarrierWhy(e, 'is buildable with a second ability to control with'));
+    /* WHO CARRIES THE STATUS: the carrier itself, or the ally standing beside it. */
+    const carSp = dex.species.get(C.species);
+    const ally = cr.scope === 'adjacentAllies'
+      ? quietBody({ not: [C.species, CAST.ATTACKER().species] }) : null;
+    if (cr.scope === 'adjacentAllies' && !ally)
+      return cannot(noBodyWhy({ not: [C.species, CAST.ATTACKER().species] }));
+    const patientSp = ally ? dex.species.get(ally.species) : carSp;
+    const patientSlot = ally ? 1 : 0;
+    /* THE STATUS, AND IT IS DERIVED. A body immune to the one this file happens to reach first would
+     * make the whole row inert for a reason about the fixture, so every 100-accuracy status click the
+     * format offers is tried and the first the patient can actually take is used. */
+    const cand = Object.keys(STATUS_MOVE).map(st => ({ st, mv: STATUS_MOVE[st] }))
+      .filter(x => dex.getImmunity(x.st, patientSp.types) !== false
+                && dex.getImmunity(x.mv.type, patientSp.types) !== false);
+    if (!cand.length) return cannot(patientSp.name + ' is immune to every 100-accuracy status this '
+      + 'format can apply single-target (' + Object.keys(STATUS_MOVE).join(', ') + '), so there would '
+      + 'be nothing for the cure to wipe');
+    /* SLEEP IS REFUSED HERE ON PURPOSE: its own wake counter draws at the residual, at the SAME
+     * `-|-` address this coin uses, so it would move the repeat index under the measurement. */
+    const use = cand.find(x => x.st !== 'slp') || cand[0];
+    if (use.st === 'slp') return cannot('the only status ' + patientSp.name + ' can take here is '
+      + 'sleep, whose own wake counter draws at the residual on the same `-|-` address as this cure — '
+      + 'the two coins would share a base and shift each other\'s repeat index');
+    let pick = null;
+    for (let t = 2; t <= LIVE_RESIDUAL_TURNS; t++) {
+      const die = midDie(t, 'any', '-', '-', 0);
+      if (die < chance) { pick = { turn: t, die }; break; }
+    }
+    if (!pick) return cannot(noCoinWhy(
+      Array.from({ length: LIVE_RESIDUAL_TURNS - 1 },
+                 (_, i) => ({ mv: { name: 'the residual' }, turn: i + 2, die: midDie(i + 2, 'any', '-', '-', 0) })),
+      chance, pretty(e.id)));
+    const atkSp = dex.species.get(CAST.ATTACKER().species);
+    const script = Array.from({ length: pick.turn }, (_, i) => turn(
+      [i === 0 ? click(use.mv.id, patientSlot) : IDLE, IDLE], [IDLE, IDLE]));
+    return stageAbility(e, C, { hpA: 6, hpB: 6, moves: [INERT], arm: LIVE_ARM,
+      coin: [MIDE.seed, pick.turn, 'any', '-', '-', 0].join('|'),
+      note: atkSp.name + ' clicks ' + use.mv.name + ' at ' + patientSp.name + ' on turn 1; the residual '
+          + 'coin `' + [MIDE.seed, pick.turn, 'any', '-', '-', 0].join('|') + '` = ' + pick.die.toFixed(4)
+          + ' is the first turn below the ' + (chance * 100).toFixed(0) + '% this ability rolls, so the '
+          + 'game runs to turn ' + pick.turn + ' and the cure is CHOSEN to land there',
+      a0: mon(atkSp.id, '', CAST.ATTACKER().ability, [use.mv.id]),
+      b1: ally ? { ...ally, moves: [INERT] } : undefined,
+      script,
+      /* THE SETUP IS READ OFF SHOWDOWN'S OWN BOARD. A status that never landed would leave the cure
+       * with nothing to wipe, and the row would read INERT as though the ability were absent. */
+      precondition: { turn: 1, why: 'the authority\'s own board shows ' + patientSp.name + ' carrying '
+          + use.st + ' after turn 1, so there is a status for the residual coin to act on',
+        ok: (b) => {
+          const side = ((b.sd && b.sd.sides) || {}).p2 || {};
+          const act = (side.active || [])[patientSlot];
+          return !!(act && String(act.status || '').toLowerCase() === use.st);
+        } } });
+  } },
+
+/* ---- 6. A RESIDUAL COIN THAT HANDS A SPENT BERRY BACK --------------------------------------------
+ * Harvest. */
+{ id: 'ability/restores-a-spent-berry-by-chance', kind: 'ability',
+  reads: 'the `restoresBerryAtResidual` tag with a sub-100% chance',
+  why: 'HARVEST IS A CERTAINTY IN THE SUN AND A COIN OUTSIDE IT, and the coin is the half this lane '
+     + 'is for — so no sky is raised. The berry has to have been EATEN first, which means the carrier '
+     + 'must be chipped past the berry\'s own threshold by a real hit, and the hit is sized off the '
+     + 'format rather than guessed: the band is chosen so that even the MINIMUM damage roll this arm '
+     + 'can hand out crosses the threshold and the MAXIMUM does not faint the body.',
+  break: { why: 'the restore never rolls through, so the spent berry stays spent',
+    patch: [['if(_sun||rng()<(+_hv.chance||0.5)){', 'if((_sun||rng()<(+_hv.chance||0.5))&&false){']] },
+  match(e) {
+    const hv = abTag(e.id, 'restoresBerryAtResidual');
+    if (!hv) return null;
+    const chance = +(hv.chance == null ? 1 : hv.chance);
+    if (!(chance > 0) || chance >= 1) return null;
+    if (!MIDE.ok) return cannot('the live-die lane cannot run: ' + MIDE.why);
+    if (!HALF_HP_BERRY) return cannot('this format offers no berry that is eaten at an HP threshold, '
+      + 'so nothing can be spent for the restore to hand back');
+    const C = abilityCarrier(e);
+    if (!C) return cannot(noCarrierWhy(e, 'is buildable with a second ability to control with'));
+    const carSp = dex.species.get(C.species);
+    const atkSp = dex.species.get(CAST.ATTACKER().species);
+    /* THE DAMAGE BAND IS WIDENED FOR THE LIVE ROLL. `hitInBand` measures the MAXIMUM roll, which is
+     * what the pinned corner hands out; this arm draws a real index and the minimum is 85% of the
+     * maximum. So the band's floor is raised until 0.85 x floor still clears the berry threshold. */
+    const hit = hitInBand(atkSp, carSp, 0.62, 0.95);
+    if (!hit) return cannot('no derived delivery move puts ' + carSp.name + ' between 62% and 95% of '
+      + 'its own HP in one hit, so the berry cannot be made to trigger without risking a faint');
+    let pick = null;
+    for (let t = 2; t <= LIVE_RESIDUAL_TURNS; t++) {
+      const die = midDie(t, 'any', '-', '-', 0);
+      if (die < chance) { pick = { turn: t, die }; break; }
+    }
+    if (!pick) return cannot(noCoinWhy(
+      Array.from({ length: LIVE_RESIDUAL_TURNS - 1 },
+                 (_, i) => ({ mv: { name: 'the residual' }, turn: i + 2, die: midDie(i + 2, 'any', '-', '-', 0) })),
+      chance, pretty(e.id)));
+    /* hpB: 1 — the HP inflation and a threshold berry cannot both be in one scenario, because the
+     * band above is computed against the body's NATURAL pool. */
+    return stageAbility(e, C, { hpA: 6, hpB: 1, item: HALF_HP_BERRY.id, moves: [INERT], arm: LIVE_ARM,
+      coin: [MIDE.seed, pick.turn, 'any', '-', '-', 0].join('|'),
+      note: atkSp.name + ' clicks ' + hit.mv.name + ' at ' + carSp.name + ' on turn 1 for '
+          + hit.d + ' of ' + hit.hp + ' HP at the maximum roll, which spends the '
+          + pretty(HALF_HP_BERRY.id) + '; the residual coin `'
+          + [MIDE.seed, pick.turn, 'any', '-', '-', 0].join('|') + '` = ' + pick.die.toFixed(4)
+          + ' is the first turn below the ' + (chance * 100).toFixed(0) + '% Harvest rolls outside the sun',
+      a0: mon(atkSp.id, '', CAST.ATTACKER().ability, [hit.mv.id]),
+      script: Array.from({ length: pick.turn }, (_, i) => turn(
+        [i === 0 ? click(hit.mv.id, 0) : IDLE, IDLE], [IDLE, IDLE])),
+      precondition: { turn: 1, why: 'the authority\'s own board shows the carrier holding NOTHING '
+          + 'after turn 1 — the berry was actually eaten, so there is something for the restore to '
+          + 'hand back',
+        ok: (b) => {
+          const act = ((((b.sd && b.sd.sides) || {}).p2 || {}).active || [])[0];
+          return !!act && !act.item;
+        } } });
+  } },
+
+/* ---- 7. AN ABILITY THAT BOLTS A SECONDARY ONTO THE CARRIER'S OWN CLICKS -------------------------
+ * Stench. */
+{ id: 'ability/adds-its-own-secondary-by-chance', kind: 'ability',
+  reads: 'the `addsOwnSecondary` tag with a sub-100% chance',
+  why: 'THE ADDED SECONDARY IS A REAL SECONDARY, so its die is category `sec` and not `any` — the '
+     + 'authority pushes it onto `move.secondaries` in `onModifyMove` and rolls it inside '
+     + '`BattleActions#secondaries`. THE CLICK THEREFORE HAS TO CARRY NO SECONDARY OF ITS OWN, or the '
+     + 'move\'s own row takes `nth 0` and the added one lands on a different die than the one this '
+     + 'rule computed.\n'
+     + '     A FLINCH IS NOT A BOARD LEAF — it is set and cleared inside the turn, and every boundary '
+     + 'here is taken at the END of one. What IS on the board is its CONSEQUENCE, so the victim is '
+     + 'strictly slower than the carrier and is clicking a damaging move back: a flinch that lands '
+     + 'means the carrier is not hit, and that is an HP leaf.',
+  break: { why: 'the ability contributes no secondary at all, so the carrier\'s click is a bare hit',
+    patch: [["const p=TAGS.param('ability',mAb,'addsOwnSecondary');",
+             "const p=null&&TAGS.param('ability',mAb,'addsOwnSecondary');"]] },
+  match(e) {
+    const a = abTag(e.id, 'addsOwnSecondary');
+    if (!a) return null;
+    const chance = +(a.chance == null ? 1 : a.chance);
+    if (!(chance > 0) || chance >= 1) return null;
+    if (!MIDE.ok) return cannot('the live-die lane cannot run: ' + MIDE.why);
+    if (a.volatile !== 'flinch') return cannot('the secondary it adds is `'
+      + (a.volatile || a.status || 'nothing named') + '`, and this staging can only read a flinch — '
+      + 'which it reads through the victim\'s missing click rather than as a volatile');
+    const C = abilityCarrier(e);
+    if (!C) return cannot(noCarrierWhy(e, 'is buildable with a second ability to control with'));
+    const carSp = dex.species.get(C.species);
+    const spd = s => flatL50(s.baseStats).sp;
+    /* THE CLICK: a delivery move with NO secondary of its own, so the added one is `nth 0`. */
+    const clicks = [];
+    for (const t of Object.keys(DELIVERY))
+      for (const mv of [DELIVERY[t].physical, DELIVERY[t].special])
+        if (mv && !(mv.secondaries || []).length && !mv.secondary) clicks.push(mv);
+    /* THE VICTIM: strictly slower than the carrier, not able to refuse a flinch, not immune to the
+     * click, and able to hit back — its click is the whole observable. */
+    const foes = CANDIDATES.filter(s => buildableSpecies(s.id) && !s.forme.endsWith('Mega')
+      && s.id !== carSp.id && spd(s) < spd(carSp) && !canRefuseAFlinch(s));
+    /* THE TURN IS THE OUTER LOOP, AND THE FIRST CUT HAD IT INNERMOST — which cost Stench its row.
+     * The `sec` address is `turn|sec|move|p10|nth` and carries NO victim, so the foe changes nothing
+     * about the die: the real search space is 9 secondary-free clicks by N turns, not 49 x 9 x N. At
+     * a 10% chance and three turns that is 27 dice and the lowest was 0.13; the refusal read "every
+     * (victim, click, turn) triple" and was counting a dimension that does not exist. */
+    const back = neutralContactOn(carSp.id);
+    let pick = null;
+    const tried = [];
+    if (back && foes.length) {
+      for (let tn = 1; tn <= LIVE_RESIDUAL_TURNS && !pick; tn++) {
+        for (const mv of clicks) {
+          /* NO LEARNSET FILTER ON THE CARRIER'S CLICK, on the same footing as `abilityScenario`'s
+           * `carrierHit` and for the reason the fixture audit states in full: the roster builds
+           * BOARDS, not teams — `scaffold` multiplies HP by 8 and `buildPair` constructs the body in
+           * both engines directly, so this rig is already a position no validator would pass. Asking
+           * for it here cost Stench its row: Garbodor legally clicks exactly ONE of the nine
+           * secondary-free delivery moves, which is ten dice, and the lowest was 0.3853 against a 10%
+           * coin. Both engines receive the identical body, so nothing about the comparison moves. */
+          const f = foes.find(x => dex.getImmunity(mv.type, x.types) !== false);
+          if (!f) continue;
+          const die = midDie(tn, 'sec', mv.id, 'p10', 0);
+          tried.push({ mv, turn: tn, die });
+          if (die < chance) { pick = { foe: f, mv, back, turn: tn, die }; break; }
+        }
+      }
+    }
+    if (!back) return cannot('no neutral 100-accuracy physical CONTACT click exists for the victim to '
+      + 'throw back at ' + carSp.name + ', and the victim\'s missing click is the whole observable');
+    if (!foes.length) return cannot('no legal buildable body is BOTH strictly slower than ' + carSp.name
+      + ' (Speed ' + spd(carSp) + ') AND unable to refuse a flinch, so a flinch that landed would '
+      + 'either be refused or would cost the victim a click it had already taken');
+    if (!pick) return cannot(noCoinWhy(tried, chance, pretty(e.id)));
+    return stageAbility(e, C, { hpA: 8, hpB: 8, moves: [pick.mv.id], arm: LIVE_ARM,
+      coin: [MIDE.seed, pick.turn, 'sec', pick.mv.id, 'p10', 0].join('|'),
+      note: 'the CARRIER clicks ' + pick.mv.name + ' at ' + pick.foe.name + ' on turn(s) 1..' + pick.turn
+          + ' and ' + pick.foe.name + ' (Speed ' + spd(pick.foe) + ' against ' + spd(carSp)
+          + ', so it always moves second) clicks ' + pick.back.name + ' back; the added-secondary die `'
+          + [MIDE.seed, pick.turn, 'sec', pick.mv.id, 'p10', 0].join('|') + '` = ' + pick.die.toFixed(4)
+          + ' is below the ' + (chance * 100).toFixed(0) + '% this ability adds, so the flinch is '
+          + 'CHOSEN to land and the victim\'s click is the leaf',
+      a0: mon(pick.foe.id, '', carrierAbility(pick.foe) || '', [pick.back.id]),
+      script: Array.from({ length: pick.turn },
+                         () => turn([click(pick.back.id, 0), IDLE], [click(pick.mv.id, 0), IDLE])) });
+  } },
+
+/* ---- 8. AN ABILITY THAT JUMPS ITS OWN PRIORITY BRACKET BY CHANCE --------------------------------
+ * Quick Draw. */
+{ id: 'ability/jumps-its-priority-bracket-by-chance', kind: 'ability',
+  reads: 'the `fractionalPriority` tag on an ABILITY with a sub-100% chance',
+  why: 'A BRACKET JUMP IS ONLY ON THE BOARD IF THE ORDER DECIDES SOMETHING, so this rule stages a '
+     + 'KILL: the carrier is strictly slower than the victim and its click is lethal outright, so a '
+     + 'jump that fires means the victim never acts and the carrier is untouched. That HP leaf is the '
+     + 'measurement; the `-activate` line is not.\n'
+     + '     THE DIE IS THE RESIDUAL-SHAPED ONE (`<seed>|<turn>|any|-|-|0`) because the draw happens '
+     + 'during action ordering, before any move is active, on both sides — the same address family '
+     + '`tests/probe_fracpri_die_order.js` already reads. `excludesStatus` is why the setup turns cost '
+     + 'nothing: the carrier idles on the control click, which is a STATUS move, so no die is drawn '
+     + 'and the chosen turn\'s draw is `nth 0`.',
+  break: { why: 'the ability\'s bracket nudge is never read, so the slower carrier always moves second',
+    patch: [["const _fa=TAGS.param('ability',it.mon.ability,'fractionalPriority');",
+             "const _fa=null&&TAGS.param('ability',it.mon.ability,'fractionalPriority');"]] },
+  match(e) {
+    const fp = abTag(e.id, 'fractionalPriority');
+    if (!fp) return null;
+    const chance = +(fp.chance == null ? 1 : fp.chance);
+    if (!(chance > 0) || chance >= 1) return null;
+    if (!MIDE.ok) return cannot('the live-die lane cannot run: ' + MIDE.why);
+    if (fp.onlyStatus) return cannot('it nudges only STATUS clicks, and the control click this file '
+      + 'idles on is itself a status move — the two could not be separated');
+    const C = abilityCarrier(e);
+    if (!C) return cannot(noCarrierWhy(e, 'is buildable with a second ability to control with'));
+    const carSp = dex.species.get(C.species);
+    const spd = s => flatL50(s.baseStats).sp;
+    /* THE VICTIM MUST BE STRICTLY FASTER (never a speed tie, which is a branch and not a die) AND
+     * MUST DIE OUTRIGHT. The 1.35 margin is for the live damage roll: this arm draws a real index,
+     * whose MINIMUM is 85% of the maximum `lethalMove` measures, so 0.85 x 1.35 still kills. */
+    let pick = null;
+    for (const f of CANDIDATES) {
+      if (f.id === carSp.id || f.forme.endsWith('Mega') || !buildableSpecies(f.id)) continue;
+      if (spd(f) <= spd(carSp)) continue;
+      const kill = lethalMove(carSp, f, 1.35);
+      if (!kill) continue;
+      const back = lethalMove(f, carSp, 0.05);   // it only has to LAND, not to kill
+      if (!back) continue;
+      pick = { foe: f, kill: kill.mv, back: back.mv }; break;
+    }
+    if (!pick) return cannot('no legal buildable body is BOTH strictly faster than ' + carSp.name
+      + ' (Speed ' + spd(carSp) + ') AND killable outright by a derived delivery move with 35% of '
+      + 'headroom for the live damage roll. Without a kill the turn ends in the same state whichever '
+      + 'order it resolved in, and the bracket has no way onto the board.');
+    let when = null;
+    for (let t = 1; t <= LIVE_RESIDUAL_TURNS; t++) {
+      const die = midDie(t, 'any', '-', '-', 0);
+      if (die < chance) { when = { turn: t, die }; break; }
+    }
+    if (!when) return cannot(noCoinWhy(
+      Array.from({ length: LIVE_RESIDUAL_TURNS },
+                 (_, i) => ({ mv: { name: 'the ordering draw' }, turn: i + 1, die: midDie(i + 1, 'any', '-', '-', 0) })),
+      chance, pretty(e.id)));
+    /* hpA: 1 so the victim can actually be killed; hpB: 6 so the carrier survives the control arm,
+     * where it is hit first and the delta has to be an HP number rather than a faint. */
+    return stageAbility(e, C, { hpA: 1, hpB: 6, moves: [pick.kill.id], arm: LIVE_ARM,
+      coin: [MIDE.seed, when.turn, 'any', '-', '-', 0].join('|'),
+      note: carSp.name + ' (Speed ' + spd(carSp) + ') faces ' + pick.foe.name + ' (Speed '
+          + spd(pick.foe) + '), idles on the control click for ' + (when.turn - 1) + ' turn(s) — a '
+          + 'STATUS click, which this ability skips, so no die is spent — and on turn ' + when.turn
+          + ' clicks ' + pick.kill.name + ' while ' + pick.foe.name + ' clicks ' + pick.back.name
+          + ' back. The ordering die `' + [MIDE.seed, when.turn, 'any', '-', '-', 0].join('|') + '` = '
+          + when.die.toFixed(4) + ' is below the ' + (chance * 100).toFixed(0) + '% this ability '
+          + 'rolls, so the jump is CHOSEN to fire and the carrier\'s own HP is the leaf',
+      a0: mon(pick.foe.id, '', carrierAbility(pick.foe) || '', [pick.back.id]),
+      script: Array.from({ length: when.turn }, (_, i) => (i === when.turn - 1
+        ? turn([click(pick.back.id, 0), IDLE], [click(pick.kill.id, 0), IDLE])
+        : turn([IDLE, IDLE], [IDLE, IDLE]))) });
+  } },
+
 { id: 'ability/chance-gated', kind: 'ability',
   reads: 'shortDesc — a percentage that is not 100',
-  why: 'same argument as the item tier: the pin fixes every die to the corner where no sub-100% roll '
-     + 'succeeds, so an ability whose whole content is such a chance would stage two agreeing boards '
-     + 'on which nothing happened.',
+  why: 'the corner arms fix every die to the corner where no sub-100% roll succeeds, so an ability '
+     + 'whose whole content is such a chance would stage two agreeing boards on which nothing '
+     + 'happened. THE LIVE-DIE LANE ABOVE TAKES THE MEMBERS IT CAN STAGE; anything reaching here is '
+     + 'one no lane above could build a fixture for.',
   match(e) { const m = /(\d+)% chance/.exec(e.shortDesc || '');
     if (!m || +m[1] >= 100) return null;
     return cannot('its effect is a ' + m[1] + '% chance, and the driver\'s pin makes every sub-100% '
@@ -5412,6 +6332,12 @@ const RULES = [
     const usable = m => m.exists && !m.isNonstandard && m.basePower > 0 && m.category !== 'Status'
       && (m.accuracy === true || m.accuracy === 100) && (m.target === 'normal' || m.target === 'any')
       && !m.multihit && !m.drain && !m.self && !m.status && !m.volatileStatus && !m.boosts
+      /* A TWO-TURN MOVE IS NOT A CLICK, and Sharpness proved it: `slicing` picks SOLAR BLADE, which
+       * charges on turn 1 and is LOCKED on turn 2, so the script's turn-2 click resolved to `pass`
+       * and Showdown refused it — `Can't pass: Your Gallade must make a move`. `deliveryOf` has
+       * excluded charge and recharge everywhere else in this file since it was written; this pool
+       * is the one that did not, because it selects on the SCOPE rather than on being boring. */
+      && !(m.flags && (m.flags.charge || m.flags.recharge))
       && !(m.critRatio > 1) && !m.willCrit && !m.basePowerCallback && !m.ohko
       && !(m.secondaries || []).some(s => !s.chance || s.chance >= 100);
     const all = dex.moves.all().filter(usable);
@@ -6577,6 +7503,110 @@ const RULES = [
                turn([IDLE, IDLE], [IDLE, IDLE])] });
   } },
 
+/* ---- A FORME OR A TYPE THAT FOLLOWS THE FIELD, ON A CARRIER WITH NO SECOND ABILITY ---------------
+ *
+ * Forecast and Mimicry both read COULD-NOT-STAGE under `ability/entry` with a reason that is TRUE
+ * OF AN ENTRY EFFECT AND NOT TRUE OF THESE TWO: "an entry effect has already fired by the time any
+ * click resolves". Neither of these IS an entry effect. Castform's forme follows the SKY and
+ * Stunfisk-Galar's type follows the TERRAIN, continuously — so the effect can be made to happen on
+ * a turn of this file's choosing, long after the control click has landed. That is the whole
+ * difference, and it is why these two get a rule above the entry one rather than a better
+ * sentence inside it.
+ *
+ * THE CONTROL IS THE IN-PLAY SKILL SWAP on the prepended setup turn, exactly as every other
+ * SUPPRESS-tier row uses it. It is available here and it is CHECKED rather than assumed:
+ * `swapRefused` asks the format for `flags.failskillswap` per entity, and `swapControlWorks()`
+ * proves the exchange moves a board in both engines before any row is allowed off it. (Zero to
+ * Hero carries BOTH `failskillswap` and `cantsuppress`, so it has no control at all and stays
+ * refused — see `ability/entry`.)
+ *
+ * THE FIELD IS RAISED BY A MOVE, NOT BY AN ABILITY. `WEATHER_SETTER` is an ENTRY ability, so the
+ * sky would be up at boundary 0 — before the swap — and the forme change would be an entry effect
+ * after all, which is the exact thing this rule exists to get away from. The click sits on the
+ * OTHER side, so it is identical in both arms. */
+{ id: 'ability/forme-follows-the-sky', kind: 'ability',
+  reads: 'the `formeFollowsWeather` tag and the format\'s own weather-setting moves',
+  why: 'THE FORME FOLLOWS THE SKY AND THE SKY GOES UP ON A TURN THIS FILE PICKS, so the effect is '
+     + 'not an entry effect and an in-play control lands before it. The board leaf is the '
+     + 'carrier\'s own species and typing.',
+  break: { why: 'the weather-forme sync is skipped, so the carrier keeps the forme it walked in '
+              + 'with',
+    patch: [["    const p=TAGS.param('ability',m.ability,'formeFollowsWeather');",
+             "    const p=null&&TAGS.param('ability',m.ability,'formeFollowsWeather');"]] },
+  match(e) {
+    const P = abTag(e.id, 'formeFollowsWeather');
+    if (!P || !P.byWeather) return null;
+    /* THE SHORT SKY NAME AND THE MOVE'S LONG ONE ARE MATCHED BY PREFIX, which is this
+     * repository's established seam for exactly this pair — medicham2's own
+     * `restoresBerryAtResidual` reader does `'sunnyday'.indexOf('sun') === 0` and says why.
+     * Nothing here types a weather name. */
+    let pick = null;
+    for (const mv of dex.moves.all()) {
+      if (!mv.exists || mv.isNonstandard || !mv.weather || !alwaysHits(mv)) continue;
+      for (const k of Object.keys(P.byWeather)) {
+        if (idOf(String(mv.weather)).indexOf(idOf(k)) === 0) {
+          pick = { mv, sky: k, forme: P.byWeather[k] }; break; }
+      }
+      if (pick) break;
+    }
+    if (!pick) return cannot('this format has no 100-accuracy weather move raising any sky this '
+      + 'ability names (' + Object.keys(P.byWeather).join(', ') + '), so the condition cannot be '
+      + 'created by a click and would have to come from an entry ability — which fires before any '
+      + 'control could land');
+    const C = carrierFor(e);
+    if (!C) return cannot(noCarrierWhy(e, 'is a legal buildable body at all'));
+    const setter = quietBody({ not: [C.species] });
+    if (!setter) return cannot(noBodyWhy({ not: [C.species] }));
+    return stageAbilityAnyTier(e, C, { hpA: 1, hpB: 1, moves: [INERT],
+      note: pretty(setter.species) + ' clicks ' + pick.mv.name + ' on turn 2 — AFTER the control '
+          + 'turn, so the sky goes up with the ability already swapped away in the control arm — '
+          + 'and the carrier must become ' + pick.forme + ' in the subject arm and stay put in the '
+          + 'control',
+      a0: { ...setter, moves: [pick.mv.id] },
+      script: [turn([click(pick.mv.id), IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])],
+      precondition: { turn: 2, why: 'the sky ' + pick.mv.name + ' raises is actually on the '
+          + 'authority\'s own field after turn 2; without it the forme has nothing to follow',
+        ok: (b) => !!(b.sd && b.sd.field && b.sd.field.weather) } });
+  } },
+
+{ id: 'ability/type-follows-the-terrain', kind: 'ability',
+  reads: 'the `typeFollowsTerrain` tag and the format\'s own terrain moves',
+  why: 'the same argument as the sky rule directly above: the type follows the TERRAIN continuously, so it is not an entry effect and an in-play control reaches it. The board leaf is '
+     + 'the carrier\'s own type list.',
+  break: { why: 'the terrain retype is skipped, so the carrier keeps its natural typing',
+    patch: [["    const p=TAGS.param('ability',m.ability,'typeFollowsTerrain');",
+             "    const p=null&&TAGS.param('ability',m.ability,'typeFollowsTerrain');"]] },
+  match(e) {
+    const P = abTag(e.id, 'typeFollowsTerrain');
+    if (!P || !P.types) return null;
+    let pick = null;
+    for (const mv of dex.moves.all()) {
+      if (!mv.exists || mv.isNonstandard || !mv.terrain || !alwaysHits(mv)) continue;
+      for (const k of Object.keys(P.types)) {
+        if (idOf(String(mv.terrain)) === idOf(k)) { pick = { mv, terrain: k, type: P.types[k] }; break; }
+      }
+      if (pick) break;
+    }
+    if (!pick) return cannot('this format has no terrain move raising any terrain this ability '
+      + 'names (' + Object.keys(P.types).join(', ') + '), so the condition cannot be created by a '
+      + 'click');
+    const C = carrierFor(e);
+    if (!C) return cannot(noCarrierWhy(e, 'is a legal buildable body at all'));
+    const setter = quietBody({ not: [C.species] });
+    if (!setter) return cannot(noBodyWhy({ not: [C.species] }));
+    return stageAbilityAnyTier(e, C, { hpA: 1, hpB: 1, moves: [INERT],
+      note: pretty(setter.species) + ' clicks ' + pick.mv.name + ' on turn 2 — AFTER the control '
+          + 'turn — and the carrier must become ' + pick.type + '-type in the subject arm and keep '
+          + 'its own typing in the control',
+      a0: { ...setter, moves: [pick.mv.id] },
+      script: [turn([click(pick.mv.id), IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])],
+      precondition: { turn: 2, why: 'the terrain ' + pick.mv.name + ' raises is actually on the '
+          + 'authority\'s own field after turn 2; without it the typing has nothing to '
+          + 'follow',
+        ok: (b) => !!(b.sd && b.sd.field && b.sd.field.terrain) } });
+  } },
 { id: 'ability/entry', kind: 'ability',
   reads: 'onStart / onSwitchIn, with no onResidual',
   why: 'THE MOMENT IS THE MECHANIC. An entry ability has already acted by BOUNDARY 0 — before anybody '
@@ -6690,13 +7720,46 @@ const RULES = [
           + 'from the comparison because the forme change rewrites them by construction.',
         scenario: sc2, tier: 'MEGA', controlQuiet: true };
     }
-    if (C.tier !== 'ALTERNATE') return cannot('it is an ENTRY ability on a ' + C.tier + '-tier carrier'
+    /* ---- TWO DIFFERENT REFUSALS WORE ONE SENTENCE, AND THEY AGE DIFFERENTLY -----------------------
+     *
+     * The timing argument below is the right one for most of this family, and it is an INVITATION: a
+     * cleverer fixture can beat it, and two of them just did — Forecast and Mimikyu's cousin
+     * Stunfisk-Galar both looked like entry abilities on suppress-tier carriers and both stage now
+     * (`ability/forme-follows-the-sky`, `ability/type-follows-the-terrain`), because a forme that
+     * follows the SKY and a type that follows the TERRAIN are not entry effects at all and the field
+     * can be raised on a turn of this file's choosing, long after the control lands.
+     *
+     * ZERO TO HERO IS NOT THAT, and saying so is worth a clause of its own. Its trigger is a SWITCH
+     * OUT — turns after any control could land — so timing is not what stops it. What stops it is the
+     * REGULATION shutting all three control shapes at once, and both halves are read off the format
+     * rather than remembered:
+     *
+     *     Battle#skillSwap      sim/battle.ts:1316   targetAbility.flags['failskillswap'] -> false
+     *     Gastro Acid onTryHit  data/moves.ts:6437   target.getAbility().flags['cantsuppress'] -> false
+     *
+     * plus a carrier whose only ability slot holds it. THE DISTINCTION IS THE POINT: one refusal is a
+     * standing invitation to build something better and the other is a fact about the format, and a
+     * reader who cannot tell them apart wastes a session on the second one. */
+    if (C.tier !== 'ALTERNATE') {
+      const F = e.flags || {};
+      const shut = !!(F.failskillswap && F.cantsuppress);
+      return cannot('it is an ENTRY ability on a ' + C.tier + '-tier carrier'
       + ', where the ability cannot be written on the SHEET and every available control is a CLICK — '
       + 'a Skill Swap exchange (ROADMAP #138) or Gastro Acid suppression. AN ENTRY EFFECT HAS ALREADY '
       + 'FIRED BY THE TIME ANY CLICK RESOLVES'
       + (C.tier === 'MEGA' ? ': the forme change writes the ability at queue order 104 and a move '
           + 'resolves at 200, so the effect is on the board in BOTH arms before the control lands' : '')
-      + '. The positive and the control would be different experiments.');
+      + '. The positive and the control would be different experiments.'
+      + (shut ? '  AND THE TIMING IS NOT THE BINDING CONSTRAINT HERE, WHICH IS A DIFFERENT AND HARDER '
+          + 'REFUSAL: the format flags this ability BOTH `failskillswap` and `cantsuppress`, so '
+          + '`Battle#skillSwap` (sim/battle.ts:1316) returns false before anything is exchanged AND '
+          + 'Gastro Acid' + String.fromCharCode(39) + 's own `onTryHit` (data/moves.ts:6437) refuses '
+          + 'outright. Its only carriers (' + (CARRIERS[e.id] || []).map(x => x.name).join(', ')
+          + ') hold it in ability slot 0 with nothing beside it. ALL THREE CONTROL SHAPES ARE SHUT BY '
+          + 'THE REGULATION, so unlike the timing refusal above there is no cleverer fixture waiting '
+          + 'to be built — this one is closed until the instrument grows a control the format allows.'
+        : ''));
+    }
     return abilityScenario(e, C, 'entry');
   } },
 
@@ -9433,6 +10496,18 @@ function main() {
       redRows.push({ rule: rid, ok: false, anchor_dead: true, why: err });
     }
   }
+  /* THE STAT PREDICTOR'S OWN RECEIPT. Every derived hit in this file is sized off `flatL50`,
+   * which now asks `buildPair` for the body the game will actually build. A non-zero here means
+   * a body was priced with the OLD blank-spread arithmetic instead — the exact state that made
+   * three rows throw — so it is printed on every run and NAMED, never counted silently. */
+  console.log('\n  THE STAT PREDICTOR — every derived hit is sized off the body '
+    + '`buildPair` will actually build, never off an arithmetic of this file\'s:');
+  console.log('    ' + _BUILT_ST.size + ' species priced through the driver\'s own builder'
+    + (BUILT_ST_THREW ? '   ' + BUILT_ST_THREW + ' body/bodies THREW while being built: '
+        + [...new Set(BUILT_ST_THREW_WHO)].join('; ') + ' — a thrown build is NOT a clean row.' : '')
+    + (FLAT_FALLBACK ? '   ' + FLAT_FALLBACK + ' FELL BACK on the blank-spread arithmetic: '
+        + [...new Set(FLAT_FALLBACK_WHO)].join(', ') + ' — those fixtures are sized for a body '
+        + 'the driver does not build' : '   0 fell back'));
   console.log('\n  THE PLANT ANCHORS — every rule this stage used, checked against release ' + REL.id
     + ' BEFORE anything is believed:');
   console.log('    ' + (Object.keys(PLANT).length - deadAnchors.length) + ' of ' + Object.keys(PLANT).length
@@ -9843,6 +10918,23 @@ function main() {
         /* THE BODY THIS ROW WAS STAGED ON, as a field rather than as prose inside `note`. A shelf
          * that is decided by the CARRIER cannot be audited from outside without it. */
         carrier: r.carrier || null,
+        /* THE LIVE-DIE LANE'S RECEIPT, and it is the only thing that makes a `middle` row readable
+         * from outside. `sdOnly`/`meOnly` empty means the two engines drew EXACTLY the same set of
+         * addressed dice, so no verdict on this row can be the ruler's. Null on every corner row,
+         * where the die is a constant and there is nothing to share. */
+        dice: r.dice ? { sd: r.dice.sd, me: r.dice.me, shared: r.dice.shared,
+                         sd_only: r.dice.sdOnly, me_only: r.dice.meOnly,
+                         no_battle: r.dice.no_battle,
+                         /* the boundary the boards first parted on, or null if they never did — the
+                          * window the two address sets above were compared over */
+                         window: r.dice.window === undefined ? null : r.dice.window } : null,
+        /* THE COIN THE RULE BUILT THE FIXTURE AROUND, and which side actually threw it. A `middle`
+         * row with no `coin_shared` and no `coin_one_sided` was decided without the die being
+         * checked at all, which is the state this lane exists to make impossible. */
+        coin: (r.scenario && r.scenario.coin) || null,
+        coin_shared: r.coin_shared || false, coin_one_sided: r.coin_one_sided || false,
+        coin_missing: r.coin_missing || false,
+        underlying: r.underlying || null,
         /* WHO SHELVED THIS ROW, WHEN, AND WHY. It was computed and then dropped on the way to the
          * artifact, so `DEFERRED-BY-OWNER` arrived with no reason attached and every external reader
          * had to take the verdict on trust. */

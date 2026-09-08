@@ -69,6 +69,32 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [Unreleased] — 2026-09-07 — the chance-gated abilities are staged, and the roster was pricing bodies the driver stopped building
+- **What changed.** `tests/roster.js` and `tests/test-roster-arm-pin.js`. (1) A **LIVE-DIE LANE**: eight
+  ability rules that DECLARE `arm: 'middle'` by name, each computing the address of the die its own
+  mechanic turns on and choosing the click and the turn so that die comes up. `play()` reads both
+  engines' address logs (`G.midAddresses()`) and `diceGate()` refuses any verdict whose COIN the two
+  engines did not throw at the same address. **No other rule reaches the middle arm and the corner
+  assertions in `tests/test-roster-arm-pin.js` §1–§3 are untouched**; §4 is new and requires every
+  `middle` row to carry that receipt. (2) **`flatL50` now prices a body through `buildPair` + the
+  engine's own `M.spreadL50`** instead of its own blank-spread arithmetic — the driver started putting
+  a real Champions SP spread on every body and the roster's copy of the stat line did not follow, so
+  every derived hit in the file was sized for a body that no longer exists. (3) `hitInBand` takes the
+  SMALLEST in-band hit, `ability/base-power-scoped` no longer selects a CHARGE move, and
+  `switchVerdict`'s refusal pattern was stale against the driver's message format.
+- **Measured.** Release `028392265ab7`, all three stages. Abilities **129 → 146 FIRED-AND-BOARDS-MATCH,
+  141 → 124 COULD-NOT-STAGE**; moves **475 → 487 / 22 → 10**; items **140 / 8, unchanged**. FIRED-AND-
+  BOARDS-DIFFER and DID-NOT-FIRE are **0** on all three stages before and after. — `data/roster.abilities.json`,
+  `data/roster.moves.json`, `data/roster.items.json`. Eleven `middle` rows, every one `coin_shared`,
+  every one `sd_only: 0 / me_only: 0` over the whole game.
+- **Basis.** unchanged.
+- **Supersedes.** The roster triple and the red-demonstration counts in the 5.208.0 block of
+  `docs/SUMMARY.md` — **DELETED there in this pass, not captioned.** They were taken before this lane
+  and before the stat predictor was corrected, and the three artifacts no longer contain them. What
+  that block CLAIMED — zero FIRED-AND-BOARDS-DIFFER, zero DID-NOT-FIRE, every red demonstration
+  caught, no dead anchors — is re-measured above and still stands.
+- **Owed to the next major.** none.
+
 ## [Unreleased] — 2026-09-07 — the turn cap was the horizon, and the horizon was hiding a board divergence at turn 22
 - **What changed.** `engine/game_differential.js` and `engine/medicham2-browser.js`. (1) **THE DEFAULT TURN CAP IS 50, NOT 20** (`TURNS_DEFAULT`). At `--turns 20` the board-material bar read `0 of 958` while **35 of 958 games were still running when the instrument stopped watching**, and one of them parted a board at **turn 22**. (2) **THE TRUNCATION IS PRINTED NOW** — `state.games_cut_off_by_the_turn_cap`, published in the artifact and printed directly under the bar with an explicit warning when non-zero; shown RED on a deliberate `--turns 12` run at 48 of 129. (3) **A PER-TURN-BOOST VOLATILE DIES WHEN ITS SOURCE FAINTS, not only when it vacates a slot.** `syrupbomb.condition.onUpdate` tests `!source.isActive` (`data/moves.ts:18770-18774`) and `faintMessages` clears `isActive` at the faint (`sim/battle.ts:2563`), four statements after the `|faint|` line and long before a replacement. This engine tested SLOT MEMBERSHIP under a comment asserting the opposite in as many words, so a Syrup Bomb whose Hydrapple was KILLED kept taking a Speed stage every residual from a corpse. One fact had two implementations — the partial-trap sweep already had it right — and both sites now call one `sourceOffField`. Probe `tests/probe_syrupbomb_source_faint.js`, knob `MEDI_VOLSRC_SLOT_ONLY`.
 - **Measured.** Board-material **1 of 958 → 0 of 958 at `--turns 50`**, knob-controlled on ONE release — `data/verification/horizon/gd-cap50-{before,after}.json`, release `f30bf025ae28`, `--steering empirical --arm middle --end-state --state --census data/verification/census-pin-9446a684709d.json --games 1200 --turns 50 --team-store data/team-pool-frozen`, n = 961 played / 958 readable / 3 void. The cap sweep on identical pins: **cap 20 → 35 of 958 games ended AT THE CAP; cap 50 → 0; cap 100 → 0** (`gd-cap20.json`, `gd-cap50-after.json`, `gd-cap100.json`). The longest game in this pool reaches **turn 36**, so cap 50 and cap 100 play a byte-identical set of games: the two artifacts differ in exactly one key, `state.agreement_by_turn`, whose extra fifty rows all read `reached: 0`. Census unmoved at **830 live / 830 probed / 0 missing** — `data/mechanics-census.json`, regenerated on the fixed bytes.

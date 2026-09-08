@@ -159,6 +159,127 @@ _stamped 2026-09-07 19:51_
 
 <!-- /GENERATED -->
 
+## THE CHANCE-GATED ABILITIES CAN BE STAGED AND NOW ARE — ABILITIES **129 → 146 FIRED-AND-BOARDS-MATCH, 141 → 124 COULD-NOT-STAGE**, MOVES **475 → 487 / 22 → 10**, ITEMS FLAT AT **140 / 8**, ZERO DIFFER AND ZERO DID-NOT-FIRE THROUGHOUT. AND THE ROSTER HAD BEEN PRICING BODIES THE DRIVER STOPPED BUILDING. 2026-09-07
+
+Will, 2026-09-07: *"the chance-gated abilities CAN be staged — do it."*
+
+**Pinned engine release `028392265ab7` for every figure below**, because two other agents held
+`engine/medicham2-browser.js` and `engine/game_differential.js` while this ran. A release is a COPY,
+so none of their edits reach these numbers. **No engine byte moved on this pass** — every change is
+in `tests/roster.js` and `tests/test-roster-arm-pin.js`.
+
+### The lane, and why the arm was NOT swapped
+
+`ability/chance-gated` refused twelve abilities with a reason that is true of the CORNERS and of
+nothing else: the pin fixes every die, so a 30% ability either never fires or always fires and the
+board is the pin's. The `middle` arm draws real, event-addressed dice — and on 2026-08-13 that arm
+silently became the driver's default and produced **156 false `FIRED-AND-BOARDS-DIFFER` rows of 340
+(45.9%)** against 0.87% on the corner, because every other rule in the file is written against a
+constant. **So the arm is not swapped.** Eight new rules DECLARE `arm: 'middle'` by name; `play()`
+still resolves every arm by id, so `arm: undefined` stays unreachable and no corner-written rule can
+be handed a live die by accident.
+
+Three things make a lane row mean something:
+
+1. **The die is computed before the game.** `value = FNV1a(seed|turn|cat|move|target|nth)` is a pure
+   function, so each rule searches its legal clicks and turns for one whose die falls below the
+   ability's own declared chance, and prints the address it chose. A trial that did not fire is not
+   a pass.
+2. **The authority must have moved** — the existing inert gate already requires Showdown's own board
+   to differ with and without the ability.
+3. **The coin must be shared.** `play()` reads both address logs off `G.midAddresses()` and the
+   scenario carries the address its rule was built around. Authority never threw it → the FIXTURE
+   failed. Both threw it → one die, one value, any verdict stands. Only the authority threw it →
+   this engine never asked, which under addressed dice is the ENGINE and is printed as evidence.
+   Only this engine threw it → that is the RULER, and the row is withheld.
+
+**THE GATE WAS WRONG TWICE BEFORE IT WAS RIGHT, BOTH TIMES IN THE SAME DIRECTION — IT WITHHELD ON THE
+DEFECT IT EXISTS TO SEE.** Whole-game address-set equality reads the *consequences* of a divergence as
+the ruler (the victim that was flinched in one engine ACTS in the other and draws accuracy, crit and
+damage the authority never drew), and restricting to turns before the parting throws away the one
+address that matters, because the coin and its consequence are on the same turn. Asking about the
+named coin is what works. **Residual risk, stated and not closed:** two engines building the SAME
+address for DIFFERENT events — the strings match, the semantics do not, and no address comparison
+can tell.
+
+### The eleven staged rows
+
+Every one FIRED-AND-BOARDS-MATCH, `coin_shared: true`, and `sd_only: 0 / me_only: 0` over the whole
+game — the two engines drew the **identical set** of addressed dice.
+
+| ability | coin |
+|---|---|
+| Static / Flame Body / Poison Point / Effect Spore | `20260813\|3\|any\|bodyslam\|p20\|0` |
+| Cursed Body | `20260813\|1\|any\|thunderbolt\|p20\|0` |
+| Poison Touch | `20260813\|2\|any\|liquidation\|p10\|0` |
+| Shed Skin / Quick Draw | `20260813\|5\|any\|-\|-\|0` |
+| Healer / Harvest | `20260813\|3\|any\|-\|-\|0` |
+| Stench | `20260813\|2\|sec\|dragonclaw\|p10\|0` |
+
+Seven plants, seven CAUGHT: forcing the cumulative roll past the top of its range flips Static to
+DID-NOT-FIRE on `party.status, status`, and each other rule carries its own narrow anchor aimed at
+its own coin. The eighth rule (Cute Charm's shape) has no stageable member; its anchor is checked by
+the unconditional audit, which reads **40 of 40 apply exactly once** with no dead anchors.
+
+### The four THREW rows were ONE instrument defect, and it was in the stat model
+
+`tests/roster.js` carried its own level-50 stat line and its comment said *"flatL50 is the same line
+`game_differential.js` gives both engines"*. **That stopped being true.** `buildPair` now puts a real
+Champions SP spread on every body (`spreadFor`), and the roster assumed a blank one — so every
+derived hit in the file was sized for a body that no longer exists. Measured: `ability/pinch-offense`
+sized Dragapult's Ice Punch into Torterra at 152 of 170 HP; the authority dealt **188**, Torterra
+fainted, Milotic came in, the script's next click named a move Milotic does not have, the driver
+answered `pass`, and Showdown rejected it. **A second trap on the way to the fix:** `buildPair`
+returns `{ medi, spec, sd }` and `medi.st` is computed BEFORE the spread resolves — `playGame`
+rebuilds through `freshBodies`, which reads `spec`. `medi.st` gives Dragapult 190 Attack and
+Chesnaught 183 Defence; the spec gives 172 and 142, and **142/172 reproduces the authority's 176
+damage exactly**. The predictor now prices from the spec through the engine's own `M.spreadL50` and
+prints how many species it priced and how many fell back (**0 on all three stages**).
+
+Two smaller fixture faults fell out of the same run, both visible only because a thrown game now
+carries the last eight lines of this engine's own narration: `hitInBand` took the LARGEST in-band
+hit (no headroom above death — now the smallest), and `ability/base-power-scoped` selected SOLAR
+BLADE, a charge move, so the script's turn-2 click resolved to `pass`.
+
+### And a refusal detector that had gone stale on a message format
+
+`switchVerdict`'s `refused()` matched `/choice rejected "[^"]*switch/`, which requires the quoted
+choice to follow `rejected ` immediately. `refusedChoice` prepends the SIDE ID, so the driver throws
+`p1 choice rejected p1 "switch 3, move 1": Can't switch: The active Pokemon is trapped` and the
+pattern could not reach the quote. **The one thing Shadow Tag exists to prove — that the authority
+refuses the switch — was being read as a broken fixture.** Same class as a dead plant anchor: a
+string pattern outliving the string it names, failing silent. Shadow Tag now reads
+FIRED-AND-BOARDS-MATCH with its pre-mega in-game control landing and all six exception arms
+BOTH-ALLOWED; **nine trapping MOVES came back with it** (Block, Mean Look, Bind, Fire Spin,
+Infestation, Sand Tomb, Snap Trap, Whirlpool, Wrap).
+
+### Of the 21 rows that were genuinely untested, 17 stage and 4 are declared with DERIVED reasons
+
+- **11 chance-gated** — the lane above.
+- **Cute Charm** — NOT the pin. `attract.condition.onStart` (`data/moves.ts`) refuses unless the two
+  bodies are opposite sexes and `buildPair` writes `gender: 'N'` on both sides by design; the driver
+  says so itself. **The coin can come up and no board will move.** A limit of the RIG, and it is owed
+  a fixture that can declare a gender — `game_differential.js` was another agent's this pass.
+- **Overgrow, Sharpness, Unburden, Shadow Tag** — the four THREW rows, all four now staged.
+- **Forecast, Mimicry** — new rules `ability/forme-follows-the-sky` and
+  `ability/type-follows-the-terrain`. Neither is an entry effect: the forme follows the SKY and the
+  type follows the TERRAIN continuously, so the field is raised by a MOVE on a turn after the
+  in-play Skill Swap control has landed.
+- **Zero to Hero** — the timing argument is not what stops it; its trigger is a switch OUT. The
+  format shuts all three control shapes at once: `failskillswap` (`sim/battle.ts:1316`),
+  `cantsuppress` (`data/moves.ts:6437`), and a carrier whose only ability slot holds it. Recorded as
+  a harder refusal than a timing one, because one is an invitation to build a better fixture and the
+  other is a fact about the regulation.
+- **Arena Trap, Magnet Pull** — confirmed by derivation: **zero legal carriers** in this format
+  (`CARRIERS[id]` is empty over the filtered dex). Already tagged `no-legal-carrier` and out of scope.
+
+**WHAT IS OWED HERE.** The gate did not open and this section claims nothing downstream of it. `node
+engine/status.js --write` was NOT run by this pass and no `<!-- GENERATED -->` block was hand-edited,
+so the block above is stamped to an earlier pass. The mechanics census was not regenerated and no
+census figure is quoted. `data/roster.json` was deliberately left alone (`--keep-shared`) because two
+other agents were live. Cute Charm's genderless-fixture limit is owed to whoever holds
+`game_differential.js`. Full account: `docs/_reports/2026-09-07-chance-gated-abilities.md`.
+
 ## THE HORIZON WAS THE INSTRUMENT'S, NOT THE GAME'S — DEFAULT TURN CAP **20 → 50**, AND THE 20 WAS HIDING A BOARD DIVERGENCE AT TURN 22. BOARD-MATERIAL **1 OF 958 → 0 OF 958 AT `--turns 50`**, CENSUS LEVEL AT 830/830. THE 1-VERSUS-4 DISCREPANCY IS SETTLED BY A CONTROL: THE BAR IS RIGHT AND THE GAP IS THE VOID EXCLUSION. 2026-09-07
 
 Full account, every run log and the standalone replay:

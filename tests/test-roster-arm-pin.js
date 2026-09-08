@@ -30,6 +30,19 @@
  *        row DECLARED must appear as a key.
  *    §3  the RED demonstration — §2 re-run under `ROSTER_ARM_FALLS_THROUGH=1` MUST fail. A check
  *        that has never been red is not evidence.
+ *    §4  the LIVE-DIE LANE — added 2026-09-07 with the lane itself. Eight ability rules now DECLARE
+ *        `arm: 'middle'` by name, because a 30% ability is a constant on either corner and an
+ *        experiment only under real dice. §2 says nothing about that (its stage is items, which has
+ *        no such row), and `roster.js` carried a COMMENT claiming any count on `middle` was a red
+ *        run — prose this file never implemented, which is the hand-maintained ban list of four in a
+ *        new costume. THE REPLACEMENT IS SHARPER THAN THE BAN WOULD HAVE BEEN: a live-die row is
+ *        allowed, and is required to carry a COIN RECEIPT — the address of the die that decided it,
+ *        checked against the authority's own log — so no `middle` row can be believed without the
+ *        instrument having proved both engines threw the same coin.
+ *
+ *        NOTHING IN §1-§3 IS WEAKENED. The corner assertions are untouched, `play()` still resolves
+ *        every arm BY ID so `arm: undefined` stays unreachable, and every rule written against a
+ *        constant corner still gets one.
  *
  *  WHAT IT CANNOT SEE: whether an arm's dice are the RIGHT dice (that is `PIN_CLAIMS`, asserted in
  *  `game_differential.js`), and every OTHER caller of `playGame` that omits `arm` —
@@ -220,5 +233,66 @@ if (red) {
      + 'receipt is not reading the object that was handed over');
 }
 
+/* ---- §4 THE LIVE-DIE LANE CARRIES A COIN RECEIPT ------------------------------------------------
+ * ONE ENTITY, DERIVED, so this costs a few seconds rather than a whole stage. The member is
+ * chosen off `data/tags.json` — the first ability whose `punishesAttacker.inflicts` is a chance
+ * below 100% — because a name typed here would rot exactly like the comment this section
+ * replaces. If the artifact ever holds no such row the section says so and FAILS rather than
+ * passing vacuously: a lane with no members is a lane that stopped working. */
+console.log('\n  §4  the live-die lane — every `middle` row must carry a coin receipt');
+const TAGS = JSON.parse(REL.read('data/tags.json'));
+const liveDie = Object.keys((TAGS.abilities || {})).filter(id => {
+  const pa = ((TAGS.abilities[id] || {}).params || {}).punishesAttacker;
+  if (!pa || !Array.isArray(pa.inflicts) || !pa.inflicts.length) return false;
+  const c = pa.inflicts.reduce((n, x) => n + (+x.chance || 0), 0);
+  return c > 0 && c < 1;
+}).sort();
+console.log('        chance-gated contact abilities in data/tags.json: ' + (liveDie.join(', ') || '(none)'));
+ok('the tags artifact still holds at least one sub-100% contact-punish ability to ask with',
+   liveDie.length > 0, 'with none, this section would pass having tested nothing');
+if (liveDie.length) {
+  let j = null;
+  try {
+    let out;
+    try {
+      out = execFileSync(process.execPath,
+        [D('tests', 'roster.js'), '--stage', 'abilities', '--only', liveDie[0],
+         '--release', REL.id, '--json'],
+        { encoding: 'utf8', maxBuffer: 1 << 28, stdio: ['ignore', 'pipe', 'pipe'] });
+    } catch (e) { out = String(e.stdout || ''); if (out.indexOf('\n{') < 0) throw e; }
+    j = JSON.parse(out.slice(out.indexOf('\n{') + 1));
+  } catch (e) { ok('the roster staged ' + liveDie[0], false, String(e.message).slice(0, 300)); }
+  if (j) {
+    const rows = (j.results || []).filter(r => r.arm === 'middle');
+    console.log('        arms_played  ' + JSON.stringify(j.arms_played || {}));
+    console.log('        ' + liveDie[0] + '  ->  '
+      + (j.results || []).map(r => r.verdict + (r.coin ? '   coin ' + r.coin : '')).join('; '));
+    ok('the lane actually reached the `middle` arm — a declared arm that never runs is the '
+       + 'defect this whole file exists for',
+       Object.prototype.hasOwnProperty.call(j.arms_played || {}, 'middle'),
+       'arms_played ' + JSON.stringify(j.arms_played || {}));
+    ok('no live-die row took the driver' + String.fromCharCode(39) + 's default arm',
+       !Object.keys(j.arms_played || {}).some(k => k.startsWith('DRIVER-DEFAULT:')));
+    const noCoin = rows.filter(r => !r.coin);
+    ok('every `middle` row NAMES the coin its rule was built around',
+       rows.length > 0 && noCoin.length === 0,
+       rows.length ? noCoin.map(r => r.id).join(', ') + ' carry no coin address, so nothing '
+         + 'checked which die decided them'
+         : 'no `middle` row was produced at all, so this clause asked nothing');
+    const unchecked = rows.filter(r => /^(FIRED-AND-BOARDS-(MATCH|DIFFER)|DID-NOT-FIRE)$/.test(r.verdict)
+                                       && !r.coin_shared && !r.coin_one_sided);
+    ok('every compared `middle` row was DECIDED with the coin checked against the authority'
+       + String.fromCharCode(39) + 's own address log',
+       unchecked.length === 0,
+       unchecked.map(r => r.id + ' (' + r.verdict + ')').join(', ')
+         + ' reached a verdict with neither coin_shared nor coin_one_sided — the die that '
+         + 'decided the row was never compared');
+    const parted = rows.filter(r => r.dice && (r.dice.me_only || []).length
+                                    && !/COULD-NOT-STAGE/.test(r.verdict));
+    ok('no `middle` row ACCUSES while this engine drew an address the authority never named',
+       parted.length === 0,
+       parted.map(r => r.id).join(', ') + ' — that is the ruler, not the engine');
+  }
+}
 console.log('\n' + (FAILED ? '  ' + FAILED + ' FAILED' : '  all clauses pass'));
 process.exit(FAILED ? 1 : 0);
