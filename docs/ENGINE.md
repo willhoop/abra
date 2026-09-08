@@ -132,7 +132,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 ENGINE — does the simulator do what Pokémon does
   830/830 probed mechanics live, 0 missing   (census 2026-09-07 19:30)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 2.4 h old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 1.3 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-07 19:36)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -155,9 +155,136 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-07 19:51_
+_stamped 2026-09-07 22:22_
 
 <!-- /GENERATED -->
+
+## A RED DEMONSTRATION APPLIED ITS OWN BREAK AND CAUGHT NOTHING, ON FOCUS SASH — ROSTER **ITEMS FAIL → PASS**, THE LAST RED WENT `NOT CAUGHT` → `CAUGHT`, AND ITEMS/ABILITIES/MOVES ARE FLAT AT **140 / 146 / 487, ZERO DIFFER AND ZERO DID-NOT-FIRE**. FOCUS SASH AGREES WITH SHOWDOWN — MEASURED FOR THE FIRST TIME. BOARD-MATERIAL **0 OF 958, UNTOUCHED**. CENSUS LEVEL AT 830/830. 2026-09-07
+
+**No engine byte moved.** Every change is in `tests/roster.js`. Full account, the boards, the derived
+blast radius and the four owed items:
+[docs/_reports/2026-09-07-focus-sash-blind-test.md](_reports/2026-09-07-focus-sash-blind-test.md).
+
+Pinned release `f30bf025ae28`, census digest `4e024058c29b` (830 rows, **not regenerated** — see
+below), arm `top-tie-first`, format `gen9championsvgc2026regmb`.
+
+### THE PLANT WAS APPLIED, THE ANCHOR MATCHED, AND THE STAGE REPORTED CLEAN
+
+`data/roster.items.json` `reds[9]` read `{"ok": false, "moved": null}` under
+`plant_anchors {checked: 18, dead: []}`. Not a dead anchor — a check that could not see a failure it
+created itself, on a rule whose only member is `focussash`. `tests/probe_reds_plant_reaches.js` is the
+instrument that separates the three causes, and it was the failing probe:
+**`NO REACH item/hp-floor — Focus Sash: 0 leaf/leaves`**, with Showdown not in the path at all.
+
+### TWO INDEPENDENT FAULTS, AND EITHER ONE ALONE WOULD HAVE HIDDEN THE PLANT
+
+**1. THE ROSTER'S OWN CONTROL CLICK RETYPED THE BODY IT WAS HANDED TO.** `carrierAbility()` gave
+Meowscarada its **Protean**; the body clicked Focus Energy — the control click handed to every derived
+body so it has something to do when it must do nothing — and Protean rewrote it `dark/grass → normal`
+**on the board**, at turn 1, in both engines. `lethalMove()` had sized X-Scissor against the DEX
+typing (Bug 2x into Grass, 2x into Dark = 4x = *"1.8x its HP"*); against a Normal body the same click
+is neutral and lands for **69 of 151**. `69 x 4 / 151 = 1.83` recovers the rule's own figure exactly —
+the arithmetic was never wrong, the body was. **No body ever reached the HP floor, so Focus Sash never
+fired, so removing the floor moved nothing.** The green above it was two engines agreeing about a game
+the item was not in.
+
+**2. THE INERT GATE WAS SATISFIED BY THE CONTROL ARM DESCRIBING ITSELF.** `runEntryRaw` returns
+COULD-NOT-STAGE when Showdown's board is identical with and without the entity, and that guard should
+have caught fault 1 on its own. The entire `sd_delta` for the row was four leaves, all of them
+`p2.party.meowscarada.item`. `board_state.js` writes the held item **twice** — the active slot and the
+party row keyed by species — and `controlOf()` ignored only the first. So *"the board moved when the
+item was added"* was **true of every item row by construction**. This is the more general defect: fault
+1 broke one fixture, fault 2 disabled the guard that exists to catch that whole class.
+
+### THE FIX — AND THE PLANT IS BYTE-IDENTICAL TO WHAT IT WAS
+
+`INTERFERES` gained `onPrepareHit`, so a carrier may not rewrite itself as the move leaves.
+**Printed before it was wired:** exactly three legal abilities in this format register it — Protean and
+Libero, which are the type rewrite, and Parental Bond, which makes every damaging move hit twice. All
+three are disqualifying; **it is not an over-match.** `QUIET_EXCLUDE` already names this class in its
+own words for Multitype and RKS System, which register no handler and so had to be named by hand;
+these register one, so they are derived. **It moves two carriers and no candidate** — Greninja
+Protean → Torrent, Meowscarada Protean → Overgrow; the other two holders are mega formes, which
+`CANDIDATES` already excludes.
+
+`controlOf()` now also ignores the party-row copy of the subject's held item. **Measured before it was
+added**, because a change that can flip greens to COULD-NOT-STAGE is not one to make on an argument:
+across all 148 item rows, **0 of 140** greens rest only on that leaf and **140 of 140** move a leaf the
+item actually caused. Exactly one row had ever rested on it and no longer does. The hole is plugged and
+no row moves.
+
+### RED → GREEN, AND THEN THE QUESTION NOBODY HAD AN ANSWER TO
+
+```
+BEFORE  NO REACH item/hp-floor   Focus Sash: 0 leaf/leaves      NOT CAUGHT item/hp-floor
+AFTER   REACHES  item/hp-floor   Focus Sash: 29 leaf/leaves     CAUGHT     item/hp-floor
+        t2 p2.party.meowscarada.hp clean=1 planted=0 | .fainted clean=false planted=true
+```
+
+**Focus Sash agrees with Showdown.** Champions does not override it (no `focussash` in the mod's
+`items.ts`, and the format's resolved handler is byte-identical to `Dex.mod('gen9')`'s), so
+`data/items.ts:2265` governs: full HP **and** lethal **and** from a Move. All three clauses now land
+and both engines are identical on every one — a full-HP Meowscarada survives at **1 HP with the sash
+spent**; a Whimsicott one chip off full takes a lethal Dire Claw and **dies**; the survivor on 1 HP
+with the item gone takes a second X-Scissor and **is not saved twice**. Until this pass nothing in this
+repository had watched one of the most-played items in the format hold a body up **against the
+authority** — the census probes call into medicham2 and carry their own typed expectation.
+**No engine defect was found: the demonstration was blind and the engine was right.**
+
+### THE OTHER SEVENTEEN CATCH SOMETHING, AND THERE IS A STRUCTURAL REASON AS WELL AS AN EMPIRICAL ONE
+
+Empirically, every one names a substantive leaf — HP, a status, a forme, `field.weather_turns`, a
+boost, a volatile — and fault 2's signature is a plant whose ONLY moved field is a held-item leaf; no
+row has that shape. Structurally, the reds loop reads `subject_diffs` (the two-engine comparison in the
+planted arm) and never `sd_delta`, where fault 2 lived — so only one of the two faults can reach them.
+**Zero `NOT CAUGHT` across all three stages: items 18/18, abilities 40/40, moves 36/36.**
+
+### THE HAND LIST
+
+**Removed — one, and it was never a mechanic:**
+
+- **`item/hp-floor`'s RED DEMONSTRATION** — `tests/probe_reds_plant_reaches.js --stage items --rule
+  item/hp-floor`, red before and green after, and the artifact now carries
+  `plant_anchors.reds_ran: true`, 18 red rows, **0 not ok**. The roster/items gate clause went
+  **FAIL → PASS**; the gate reads **8 of 9**.
+
+**Owed and named, not fixed here:**
+
+- **`chipFor()` SIZES THE CHIP OFF THE WRONG ATTACKER.** It computes `maxRoll(CAST.ATTACKER(), …)`
+  while the `item/hp-floor` script throws the chip from `CAST.ATTACKER2()`. Predicted 22 off
+  Whimsicott, landed **11**. It hides nothing today, but the rule's printed `note` states a number the
+  game does not produce, and a fixture whose stated margin is 2x off is one bulk change from being
+  wrong in the direction that matters. Its own pass — it changes every `KILLABLE2` fixture.
+- **THE CONTROL ARM STRIPS THE ITEM FROM THE SUBJECT ONLY.** `item/hp-floor` puts the item on `b0`
+  AND `b1`; the negative body therefore holds a Focus Sash in both arms and cancels out of the delta.
+  The two-engine comparison still covers it — which is why the negative clause above is a real result
+  — but the *"the SAME scenario with no item at all"* selftest asks something narrower than it reads.
+- **THE INERT-CLICK ASSERTION IS PROVED ON THE CAST, NOT ON THE DERIVED CARRIERS.** The selftest shows
+  Focus Energy moves no board leaf — on the four fixed cast bodies. Protean was a DERIVED carrier, and
+  on it the control click moved `types`. `onPrepareHit` closes the three that rewrite or duplicate;
+  **nothing has enumerated the rest.**
+- **`tests/probe_red_demo.js` IS RED AT HEAD — EXIT 1, `200 demonstrations: 2 HOLLOW, 15 COULD NOT BE
+  APPLIED`.** Said out loud rather than filed. It is the same defect class as this pass one file over
+  — a certificate whose patch no longer matches the engine has not run — and the fifteen are WIRE 117,
+  121, 129, ROADMAP #81 WIRE 2/7/8/9/10 and #84, drifted by today's engine batches.
+  **This pass provably did not cause it:** the probe reads `engine/medicham2-browser.js`,
+  `engine/tags.js`, `engine/mc_key.js`, `data/engine-data.js` and `data/tags.json` from the live tree,
+  and `git status` over exactly those five is empty. **And nothing surfaces it** — `run-all.js:449`
+  deliberately does not wire it, and `status.js` prints `PASS  no open, known engine defect` beside it.
+  Not repaired here: fifteen re-aims against engine internals other agents hold tonight is its own
+  batch, and re-aiming an anchor while somebody is moving the line is how they drifted.
+- **THE CENSUS WAS DELIBERATELY NOT REGENERATED**, and that is a judgement rather than an omission. No
+  probe and no engine mechanic changed, so `tests/test-mechanics.js` would write 830 identical rows
+  under a new digest — and that digest is the pin steering the standing board-material sample.
+  Rewriting it would cost the pin's comparability and buy nothing.
+
+**Carried forward unchanged** from the hand lists below — this pass touched none of them.
+
+**BOARD-MATERIAL WAS NOT RE-MEASURED AND DID NOT NEED TO BE.** `git diff --stat engine/` is empty and
+`data/engine-release.json` still points at `f30bf025ae28`; `engine/game_differential.js` reads the
+simulator out of the frozen release and does not read `tests/roster.js` at all. The figure is
+structurally untouched rather than assumed untouched. The one remaining gate failure is
+**whole-game NARRATION, 63 of 961**, which is another agent's.
 
 ## THE CHANCE-GATED ABILITIES CAN BE STAGED AND NOW ARE — ABILITIES **129 → 146 FIRED-AND-BOARDS-MATCH, 141 → 124 COULD-NOT-STAGE**, MOVES **475 → 487 / 22 → 10**, ITEMS FLAT AT **140 / 8**, ZERO DIFFER AND ZERO DID-NOT-FIRE THROUGHOUT. AND THE ROSTER HAD BEEN PRICING BODIES THE DRIVER STOPPED BUILDING. 2026-09-07
 

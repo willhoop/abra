@@ -499,6 +499,23 @@ const INTERFERES = new RegExp('^(' + [
    * report read `Gyarados is at +1 Attack / ours at 0` — an Attack stage attributed to Choice Scarf.
    * A rule that KILLS something must not put a body on the field that is paid for killing. */
   'onSourceAfterFaint', 'onAnyFaint', 'onFaint', 'onAllyFaint',
+  /* AND ANYTHING THAT REWRITES THE CARRIER AS THE MOVE LEAVES, which is how `item/hp-floor`'s red
+   * demonstration came to apply its break and catch nothing (2026-09-07). `carrierAbility` handed
+   * MEOWSCARADA its Protean: the body then clicked the roster's own CONTROL CLICK, Focus Energy,
+   * Protean rewrote it `dark/grass -> normal` on the board, and the X-Scissor that `lethalMove` had
+   * sized at 1.8x its HP against Dark/Grass landed NEUTRAL for 69 of 151. No body ever reached the HP
+   * floor, so Focus Sash never fired, so dropping the floor from the simulator moved nothing. The
+   * green above it was two engines agreeing about a game the item was not in.
+   *
+   * QUIET_EXCLUDE ALREADY NAMES THIS CLASS — "rewrites the holder's TYPE ... and a type change is on
+   * the board", for Multitype and RKS System. Those two register no handler at all, so they had to be
+   * named; these register one, so they are DERIVED. Printed before it was wired, per the standing
+   * rule: exactly three legal abilities in this format register `onPrepareHit` — Protean and Libero,
+   * which are the type rewrite, and PARENTAL BOND, which makes every damaging move hit twice. All
+   * three are disqualifying and none of them is an over-match. It moves two carriers and no
+   * candidate: Greninja Protean -> Torrent, Meowscarada Protean -> Overgrow; the other two holders
+   * are mega formes, which `CANDIDATES` already excludes. */
+  'onPrepareHit',
 ].join('|') + ')$');
 function carrierAbility(sp) {
   const abs = Object.values(sp.abilities || {});
@@ -1201,6 +1218,20 @@ function controlOf(sc, rank) {
   if (sc.kind === 'item') {
     body.item = '';
     ignore.push((sideKey === 'A' ? 'p1' : 'p2') + '.active[' + idx + '].item');
+    /* AND THE PARTY-ROW COPY OF THE SAME FIELD, which was not ignored and is how `item/hp-floor`
+     * satisfied the inert gate on a fixture the item was never in (2026-09-07). `board_state.js`
+     * writes the held item TWICE — once on the active slot, once on the party row keyed by species —
+     * and only the first was named here. So `Showdown's board moved when the item was added` was
+     * TRUE OF EVERY ITEM ROW BY CONSTRUCTION: the control arm takes the item off, the party row says
+     * so, and `armDelta` counted it. Focus Sash's entire FIRED evidence was four leaves, all of them
+     * `p2.party.meowscarada.item` — the control arm describing itself.
+     *
+     * MEASURED BEFORE IT WAS ADDED, because a change that flips greens to COULD-NOT-STAGE is not one
+     * to make on an argument: across all 148 item rows on release f30bf025ae28, ONE rested on this
+     * leaf alone (focussash, before its carrier was fixed) and 140 of 140 greens move a leaf the item
+     * actually caused. It plugs the hole and moves no row. The subject's OWN row only — a leaf on
+     * another body is a real consequence (Symbiosis hands the item on) and is left visible. */
+    ignore.push((sideKey === 'A' ? 'p1' : 'p2') + '.party.' + idOf(body.species) + '.item');
   } else if (sc.kind === 'ability' && sc.controlKind === 'suppress') {
     /* THE ONE CARRIER SHAPE THAT HAS NO SECOND ABILITY. Mimikyu's only ability is Disguise, Morpeko's
      * only ability is Hunger Switch, and a MEGA forme's ability is written by the forme change — so

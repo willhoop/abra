@@ -1,10 +1,10 @@
 {
- "generated": "2026-09-08T01:05:44.557Z",
+ "generated": "2026-09-08T01:52:44.466Z",
  "by": "tests/roster.js",
  "stage": "items",
  "engine_release": "f30bf025ae28",
  "engine_release_cut": "2026-09-07T23:31:43.434Z",
- "engine_release_cuts": 1308,
+ "engine_release_cuts": 1309,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
   "engine/medicham2-browser.js": "d498ebe24f7e",
@@ -75,7 +75,7 @@
    "why": "the mega transformation is skipped — the choice is still made and still accepted, so only the FORME goes missing",
    "moved": {
     "member": "abomasite",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -91,7 +91,7 @@
    "why": "the resist berry stops halving anything — it is still held, still read, and the multiplier is dropped",
    "moved": {
     "member": "babiriberry",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -107,7 +107,7 @@
    "why": "the item stops scaling the drain heal — the damage and the drain both still happen",
    "moved": {
     "member": "bigroot",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -123,7 +123,7 @@
    "why": "the type-scoped item multiplier is dropped entirely",
    "moved": {
     "member": "blackbelt",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -139,7 +139,7 @@
    "why": "the accuracy modifier row is dropped, so every holder reads as untabled",
    "moved": {
     "member": "brightpowder",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -155,7 +155,7 @@
    "why": "the status cure is skipped — the berry is still held",
    "moved": {
     "member": "cheriberry",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -173,7 +173,7 @@
    "why": "the item speed multiplier is dropped from the speed used to order the turn",
    "moved": {
     "member": "choicescarf",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -200,7 +200,7 @@
    "why": "the duration extension is dropped and the base length is written instead",
    "moved": {
     "member": "damprock",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -215,7 +215,7 @@
    "why": "the super-effective damage multiplier is dropped",
    "moved": {
     "member": "expertbelt",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -227,9 +227,28 @@
   },
   {
    "rule": "item/hp-floor",
-   "ok": false,
+   "ok": true,
    "why": "the HP floor stops holding the body up — the item is still held and still read",
-   "moved": null
+   "moved": {
+    "member": "focussash",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.fainted",
+     "party.status",
+     "species",
+     "hp",
+     "maxhp",
+     "types",
+     "ability",
+     "vol.focusenergy",
+     "pp.focusenergy",
+     "pp.xscissor"
+    ]
+   }
   },
   {
    "rule": "item/residual-heal",
@@ -237,7 +256,7 @@
    "why": "the passive heal is skipped — the item is still held and still on the board",
    "moved": {
     "member": "leftovers",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -269,7 +288,7 @@
    "why": "the species-locked stat multiplier is dropped — the item is still held and still read",
    "moved": {
     "member": "lightball",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -285,7 +304,7 @@
    "why": "the volatile cure is skipped",
    "moved": {
     "member": "mentalherb",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -304,7 +323,7 @@
    "why": "the category-scoped base-power multiplier is dropped (it is a hardcoded NAME check in the simulator, not a tag read — see the rule comment)",
    "moved": {
     "member": "muscleband",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -320,7 +339,7 @@
    "why": "the threshold heal is skipped",
    "moved": {
     "member": "oranberry",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -338,7 +357,7 @@
    "why": "the after-attack heal is dropped — the attack still lands for the same damage",
    "moved": {
     "member": "shellbell",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -354,7 +373,7 @@
    "why": "the stat restoration is skipped",
    "moved": {
     "member": "whiteherb",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -397,22 +416,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.abomasnow.item",
-     "with": "abomasite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.abomasnow.species",
      "with": "abomasnowmega",
      "without": "abomasnow"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.abomasnow.item",
-     "with": "abomasite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -425,12 +432,6 @@
      "path": "p2.party.abomasnow.species",
      "with": "abomasnowmega",
      "without": "abomasnow"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.abomasnow.item",
-     "with": "abomasite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -466,22 +467,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.absol.item",
-     "with": "absolite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.absol.species",
      "with": "absolmega",
      "without": "absol"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.absol.item",
-     "with": "absolite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -506,12 +495,6 @@
      "path": "p2.party.absol.species",
      "with": "absolmega",
      "without": "absol"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.absol.item",
-     "with": "absolite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -559,22 +542,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.aerodactyl.item",
-     "with": "aerodactylite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.aerodactyl.species",
      "with": "aerodactylmega",
      "without": "aerodactyl"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.aerodactyl.item",
-     "with": "aerodactylite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -599,12 +570,6 @@
      "path": "p2.party.aerodactyl.species",
      "with": "aerodactylmega",
      "without": "aerodactyl"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.aerodactyl.item",
-     "with": "aerodactylite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -652,12 +617,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.aggron.item",
-     "with": "aggronite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.aggron.species",
      "with": "aggronmega",
@@ -668,12 +627,6 @@
      "path": "p2.party.aggron.types",
      "with": "steel",
      "without": "rock/steel"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.aggron.item",
-     "with": "aggronite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -710,12 +663,6 @@
      "path": "p2.party.aggron.types",
      "with": "steel",
      "without": "rock/steel"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.aggron.item",
-     "with": "aggronite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -769,22 +716,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.alakazam.item",
-     "with": "alakazite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.alakazam.species",
      "with": "alakazammega",
      "without": "alakazam"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.alakazam.item",
-     "with": "alakazite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -809,12 +744,6 @@
      "path": "p2.party.alakazam.species",
      "with": "alakazammega",
      "without": "alakazam"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.alakazam.item",
-     "with": "alakazite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -862,12 +791,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.altaria.item",
-     "with": "altarianite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.altaria.species",
      "with": "altariamega",
@@ -878,12 +801,6 @@
      "path": "p2.party.altaria.types",
      "with": "dragon/fairy",
      "without": "dragon/flying"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.altaria.item",
-     "with": "altarianite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -920,12 +837,6 @@
      "path": "p2.party.altaria.types",
      "with": "dragon/fairy",
      "without": "dragon/flying"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.altaria.item",
-     "with": "altarianite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -979,12 +890,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.ampharos.item",
-     "with": "ampharosite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.ampharos.species",
      "with": "ampharosmega",
@@ -995,12 +900,6 @@
      "path": "p2.party.ampharos.types",
      "with": "dragon/electric",
      "without": "electric"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.ampharos.item",
-     "with": "ampharosite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -1037,12 +936,6 @@
      "path": "p2.party.ampharos.types",
      "with": "dragon/electric",
      "without": "electric"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.ampharos.item",
-     "with": "ampharosite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -1122,12 +1015,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.audino.item",
-     "with": "audinite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.audino.species",
      "with": "audinomega",
@@ -1138,12 +1025,6 @@
      "path": "p2.party.audino.types",
      "with": "fairy/normal",
      "without": "normal"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.audino.item",
-     "with": "audinite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -1168,12 +1049,6 @@
      "path": "p2.party.audino.types",
      "with": "fairy/normal",
      "without": "normal"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.audino.item",
-     "with": "audinite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -1215,12 +1090,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.rhyperior.item",
-     "with": "babiriberry",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.rhyperior.hp",
      "with": 1098,
@@ -1260,22 +1129,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.banette.item",
-     "with": "banettite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.banette.species",
      "with": "banettemega",
      "without": "banette"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.banette.item",
-     "with": "banettite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -1300,12 +1157,6 @@
      "path": "p2.party.banette.species",
      "with": "banettemega",
      "without": "banette"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.banette.item",
-     "with": "banettite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -1353,12 +1204,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.barbaracle.item",
-     "with": "barbaracite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.barbaracle.species",
      "with": "barbaraclemega",
@@ -1369,12 +1214,6 @@
      "path": "p2.party.barbaracle.types",
      "with": "fighting/rock",
      "without": "rock/water"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.barbaracle.item",
-     "with": "barbaracite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -1399,12 +1238,6 @@
      "path": "p2.party.barbaracle.types",
      "with": "fighting/rock",
      "without": "rock/water"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.barbaracle.item",
-     "with": "barbaracite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -1446,22 +1279,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.beedrill.item",
-     "with": "beedrillite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.beedrill.species",
      "with": "beedrillmega",
      "without": "beedrill"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.beedrill.item",
-     "with": "beedrillite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -1486,12 +1307,6 @@
      "path": "p2.party.beedrill.species",
      "with": "beedrillmega",
      "without": "beedrill"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.beedrill.item",
-     "with": "beedrillite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -1539,28 +1354,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "bigroot",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.kangaskhan.item",
-     "with": "bigroot",
-     "without": ""
-    },
-    {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
      "with": 693,
      "without": 688
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.kangaskhan.item",
-     "with": "bigroot",
-     "without": ""
     },
     {
      "turn": 2,
@@ -1573,12 +1370,6 @@
      "path": "p2.party.kangaskhan.hp",
      "with": 714,
      "without": 704
-    },
-    {
-     "turn": 3,
-     "path": "p2.party.kangaskhan.item",
-     "with": "bigroot",
-     "without": ""
     },
     {
      "turn": 3,
@@ -1614,18 +1405,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "blackbelt",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "blackbelt",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 978,
@@ -1636,12 +1415,6 @@
      "path": "p2.active[0].hp",
      "with": 978,
      "without": 994
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "blackbelt",
-     "without": ""
     },
     {
      "turn": 2,
@@ -1683,18 +1456,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "blackglasses",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "blackglasses",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1001,
@@ -1705,12 +1466,6 @@
      "path": "p2.active[0].hp",
      "with": 1001,
      "without": 1014
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "blackglasses",
-     "without": ""
     },
     {
      "turn": 2,
@@ -1752,22 +1507,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.blastoise.item",
-     "with": "blastoisinite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.blastoise.species",
      "with": "blastoisemega",
      "without": "blastoise"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.blastoise.item",
-     "with": "blastoisinite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -1792,12 +1535,6 @@
      "path": "p2.party.blastoise.species",
      "with": "blastoisemega",
      "without": "blastoise"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.blastoise.item",
-     "with": "blastoisinite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -1845,22 +1582,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.blaziken.item",
-     "with": "blazikenite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.blaziken.species",
      "with": "blazikenmega",
      "without": "blaziken"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.blaziken.item",
-     "with": "blazikenite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -1897,12 +1622,6 @@
      "path": "p2.party.blaziken.species",
      "with": "blazikenmega",
      "without": "blaziken"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.blaziken.item",
-     "with": "blazikenite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -1962,22 +1681,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "brightpowder",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1080,
      "without": 1032
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.kangaskhan.item",
-     "with": "brightpowder",
-     "without": ""
     },
     {
      "turn": 1,
@@ -1990,12 +1697,6 @@
      "path": "p2.party.kangaskhan.hp",
      "with": 1080,
      "without": 984
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.kangaskhan.item",
-     "with": "brightpowder",
-     "without": ""
     },
     {
      "turn": 2,
@@ -2031,22 +1732,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.camerupt.item",
-     "with": "cameruptite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.camerupt.species",
      "with": "cameruptmega",
      "without": "camerupt"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.camerupt.item",
-     "with": "cameruptite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -2071,12 +1760,6 @@
      "path": "p2.party.camerupt.species",
      "with": "cameruptmega",
      "without": "camerupt"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.camerupt.item",
-     "with": "cameruptite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -2124,22 +1807,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.chandelure.item",
-     "with": "chandelurite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.chandelure.species",
      "with": "chandeluremega",
      "without": "chandelure"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.chandelure.item",
-     "with": "chandelurite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -2164,12 +1835,6 @@
      "path": "p2.party.chandelure.species",
      "with": "chandeluremega",
      "without": "chandelure"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.chandelure.item",
-     "with": "chandelurite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -2217,18 +1882,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "charcoal",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "charcoal",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1023,
@@ -2239,12 +1892,6 @@
      "path": "p2.active[0].hp",
      "with": 1023,
      "without": 1032
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "charcoal",
-     "without": ""
     },
     {
      "turn": 2,
@@ -2286,12 +1933,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.charizard.item",
-     "with": "charizarditex",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.charizard.species",
      "with": "charizardmegax",
@@ -2302,12 +1943,6 @@
      "path": "p2.party.charizard.types",
      "with": "dragon/fire",
      "without": "fire/flying"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.charizard.item",
-     "with": "charizarditex",
-     "without": ""
     },
     {
      "turn": 1,
@@ -2344,12 +1979,6 @@
      "path": "p2.party.charizard.types",
      "with": "dragon/fire",
      "without": "fire/flying"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.charizard.item",
-     "with": "charizarditex",
-     "without": ""
     },
     {
      "turn": 2,
@@ -2403,12 +2032,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.charizard.item",
-     "with": "charizarditey",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "field.weather",
      "with": "sun",
@@ -2425,12 +2048,6 @@
      "path": "p2.party.charizard.species",
      "with": "charizardmegay",
      "without": "charizard"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.charizard.item",
-     "with": "charizarditey",
-     "without": ""
     },
     {
      "turn": 1,
@@ -2467,12 +2084,6 @@
      "path": "p2.party.charizard.species",
      "with": "charizardmegay",
      "without": "charizard"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.charizard.item",
-     "with": "charizarditey",
-     "without": ""
     },
     {
      "turn": 2,
@@ -2519,12 +2130,6 @@
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [
-    {
-     "turn": 0,
-     "path": "p2.party.vivillon.item",
-     "with": "chartiberry",
-     "without": ""
-    },
     {
      "turn": 1,
      "path": "p2.party.vivillon.hp",
@@ -2613,12 +2218,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "cheriberry",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.status",
      "with": "",
@@ -2670,22 +2269,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.chesnaught.item",
-     "with": "chesnaughtite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.chesnaught.species",
      "with": "chesnaughtmega",
      "without": "chesnaught"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.chesnaught.item",
-     "with": "chesnaughtite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -2710,12 +2297,6 @@
      "path": "p2.party.chesnaught.species",
      "with": "chesnaughtmega",
      "without": "chesnaught"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.chesnaught.item",
-     "with": "chesnaughtite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -2762,12 +2343,6 @@
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [
-    {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "chestoberry",
-     "without": ""
-    },
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.status",
@@ -2838,12 +2413,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "chilanberry",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1047,
@@ -2883,12 +2452,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.chimecho.item",
-     "with": "chimechite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.chimecho.species",
      "with": "chimechomega",
@@ -2899,12 +2462,6 @@
      "path": "p2.party.chimecho.types",
      "with": "psychic/steel",
      "without": "psychic"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.chimecho.item",
-     "with": "chimechite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -2929,12 +2486,6 @@
      "path": "p2.party.chimecho.types",
      "with": "psychic/steel",
      "without": "psychic"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.chimecho.item",
-     "with": "chimechite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -2975,12 +2526,6 @@
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [
-    {
-     "turn": 0,
-     "path": "p2.party.charizard.item",
-     "with": "choicescarf",
-     "without": ""
-    },
     {
      "turn": 1,
      "path": "p1.party.sceptile.hp",
@@ -3123,12 +2668,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.avalugghisui.item",
-     "with": "chopleberry",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.avalugghisui.hp",
      "with": 22,
@@ -3216,12 +2755,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.clefable.item",
-     "with": "clefablite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.clefable.species",
      "with": "clefablemega",
@@ -3232,12 +2765,6 @@
      "path": "p2.party.clefable.types",
      "with": "fairy/flying",
      "without": "fairy"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.clefable.item",
-     "with": "clefablite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -3274,12 +2801,6 @@
      "path": "p2.party.clefable.types",
      "with": "fairy/flying",
      "without": "fairy"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.clefable.item",
-     "with": "clefablite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -3332,12 +2853,6 @@
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [
-    {
-     "turn": 0,
-     "path": "p2.party.chesnaught.item",
-     "with": "cobaberry",
-     "without": ""
-    },
     {
      "turn": 1,
      "path": "p2.party.chesnaught.hp",
@@ -3426,12 +2941,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.metagross.item",
-     "with": "colburberry",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.metagross.hp",
      "with": 886,
@@ -3471,22 +2980,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.crabominable.item",
-     "with": "crabominite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.crabominable.species",
      "with": "crabominablemega",
      "without": "crabominable"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.crabominable.item",
-     "with": "crabominite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -3511,12 +3008,6 @@
      "path": "p2.party.crabominable.species",
      "with": "crabominablemega",
      "without": "crabominable"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.crabominable.item",
-     "with": "crabominite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -3564,22 +3055,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "damprock",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "field.weather_turns",
      "with": 7,
      "without": 4
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.kangaskhan.item",
-     "with": "damprock",
-     "without": ""
     },
     {
      "turn": 2,
@@ -3588,34 +3067,16 @@
      "without": 3
     },
     {
-     "turn": 2,
-     "path": "p2.party.kangaskhan.item",
-     "with": "damprock",
-     "without": ""
-    },
-    {
      "turn": 3,
      "path": "field.weather_turns",
      "with": 5,
      "without": 2
     },
     {
-     "turn": 3,
-     "path": "p2.party.kangaskhan.item",
-     "with": "damprock",
-     "without": ""
-    },
-    {
      "turn": 4,
      "path": "field.weather_turns",
      "with": 4,
      "without": 1
-    },
-    {
-     "turn": 4,
-     "path": "p2.party.kangaskhan.item",
-     "with": "damprock",
-     "without": ""
     }
    ],
    "diffs": []
@@ -3645,22 +3106,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.delphox.item",
-     "with": "delphoxite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.delphox.species",
      "with": "delphoxmega",
      "without": "delphox"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.delphox.item",
-     "with": "delphoxite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -3685,12 +3134,6 @@
      "path": "p2.party.delphox.species",
      "with": "delphoxmega",
      "without": "delphox"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.delphox.item",
-     "with": "delphoxite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -3738,22 +3181,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.dragalge.item",
-     "with": "dragalgite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.dragalge.species",
      "with": "dragalgemega",
      "without": "dragalge"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.dragalge.item",
-     "with": "dragalgite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -3778,12 +3209,6 @@
      "path": "p2.party.dragalge.species",
      "with": "dragalgemega",
      "without": "dragalge"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.dragalge.item",
-     "with": "dragalgite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -3831,18 +3256,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "dragonfang",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "dragonfang",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 999,
@@ -3853,12 +3266,6 @@
      "path": "p2.active[0].hp",
      "with": 999,
      "without": 1011
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "dragonfang",
-     "without": ""
     },
     {
      "turn": 2,
@@ -3900,22 +3307,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.dragonite.item",
-     "with": "dragoninite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.dragonite.species",
      "with": "dragonitemega",
      "without": "dragonite"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.dragonite.item",
-     "with": "dragoninite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -3940,12 +3335,6 @@
      "path": "p2.party.dragonite.species",
      "with": "dragonitemega",
      "without": "dragonite"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.dragonite.item",
-     "with": "dragoninite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -3993,22 +3382,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.drampa.item",
-     "with": "drampanite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.drampa.species",
      "with": "drampamega",
      "without": "drampa"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.drampa.item",
-     "with": "drampanite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -4021,12 +3398,6 @@
      "path": "p2.party.drampa.species",
      "with": "drampamega",
      "without": "drampa"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.drampa.item",
-     "with": "drampanite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -4062,22 +3433,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.eelektross.item",
-     "with": "eelektrossite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.eelektross.species",
      "with": "eelektrossmega",
      "without": "eelektross"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.eelektross.item",
-     "with": "eelektrossite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -4102,12 +3461,6 @@
      "path": "p2.party.eelektross.species",
      "with": "eelektrossmega",
      "without": "eelektross"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.eelektross.item",
-     "with": "eelektrossite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -4155,22 +3508,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.emboar.item",
-     "with": "emboarite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.emboar.species",
      "with": "emboarmega",
      "without": "emboar"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.emboar.item",
-     "with": "emboarite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -4195,12 +3536,6 @@
      "path": "p2.party.emboar.species",
      "with": "emboarmega",
      "without": "emboar"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.emboar.item",
-     "with": "emboarite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -4248,22 +3583,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.excadrill.item",
-     "with": "excadrite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.excadrill.species",
      "with": "excadrillmega",
      "without": "excadrill"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.excadrill.item",
-     "with": "excadrite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -4288,12 +3611,6 @@
      "path": "p2.party.excadrill.species",
      "with": "excadrillmega",
      "without": "excadrill"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.excadrill.item",
-     "with": "excadrite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -4341,18 +3658,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "expertbelt",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "expertbelt",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 77,
@@ -4363,12 +3668,6 @@
      "path": "p2.active[0].hp",
      "with": 77,
      "without": 94
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "expertbelt",
-     "without": ""
     },
     {
      "turn": 2,
@@ -4410,18 +3709,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "fairyfeather",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "fairyfeather",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1019,
@@ -4432,12 +3719,6 @@
      "path": "p2.active[0].hp",
      "with": 1019,
      "without": 1029
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "fairyfeather",
-     "without": ""
     },
     {
      "turn": 2,
@@ -4479,22 +3760,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.falinks.item",
-     "with": "falinksite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.falinks.species",
      "with": "falinksmega",
      "without": "falinks"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.falinks.item",
-     "with": "falinksite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -4519,12 +3788,6 @@
      "path": "p2.party.falinks.species",
      "with": "falinksmega",
      "without": "falinks"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.falinks.item",
-     "with": "falinksite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -4572,12 +3835,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.feraligatr.item",
-     "with": "feraligite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.feraligatr.species",
      "with": "feraligatrmega",
@@ -4588,12 +3845,6 @@
      "path": "p2.party.feraligatr.types",
      "with": "dragon/water",
      "without": "water"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.feraligatr.item",
-     "with": "feraligite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -4630,12 +3881,6 @@
      "path": "p2.party.feraligatr.types",
      "with": "dragon/water",
      "without": "water"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.feraligatr.item",
-     "with": "feraligite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -4689,22 +3934,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.floetteeternal.item",
-     "with": "floettite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.floetteeternal.species",
      "with": "floettemega",
      "without": "floetteeternal"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.floetteeternal.item",
-     "with": "floettite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -4729,12 +3962,6 @@
      "path": "p2.party.floetteeternal.species",
      "with": "floettemega",
      "without": "floetteeternal"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.floetteeternal.item",
-     "with": "floettite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -4808,28 +4035,178 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.meowscarada.item",
-     "with": "focussash",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.meowscarada.item",
-     "with": "focussash",
-     "without": ""
+     "turn": 2,
+     "path": "p2.party.meowscarada.hp",
+     "with": 1,
+     "without": 0
     },
     {
      "turn": 2,
-     "path": "p2.party.meowscarada.item",
-     "with": "focussash",
-     "without": ""
+     "path": "p2.party.meowscarada.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.meowscarada.status",
+     "with": "",
+     "without": "fnt"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "meowscarada",
+     "without": "corviknight"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 1,
+     "without": 173
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].maxhp",
+     "with": 151,
+     "without": 173
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].types",
+     "with": "dark/grass",
+     "without": "flying/steel"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].ability",
+     "with": "overgrow",
+     "without": "pressure"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[1].species",
+     "with": "corviknight",
+     "without": "milotic"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[1].hp",
+     "with": 173,
+     "without": 170
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[1].maxhp",
+     "with": 173,
+     "without": 170
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[1].types",
+     "with": "flying/steel",
+     "without": "water"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[1].ability",
+     "with": "pressure",
+     "without": "marvelscale"
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].focusenergy",
+     "with": 2,
+     "without": 0
     },
     {
      "turn": 3,
-     "path": "p2.party.meowscarada.item",
-     "with": "focussash",
-     "without": ""
+     "path": "p1.pp[0].xscissor",
+     "with": 2,
+     "without": 3
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.corviknight.hp",
+     "with": 173,
+     "without": 161
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].species",
+     "with": "milotic",
+     "without": "corviknight"
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].hp",
+     "with": 170,
+     "without": 161
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].maxhp",
+     "with": 170,
+     "without": 173
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].types",
+     "with": "water",
+     "without": "flying/steel"
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].ability",
+     "with": "marvelscale",
+     "without": "pressure"
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].vol.focusenergy",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[1].species",
+     "with": "corviknight",
+     "without": "milotic"
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[1].hp",
+     "with": 173,
+     "without": 170
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[1].maxhp",
+     "with": 173,
+     "without": 170
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[1].types",
+     "with": "flying/steel",
+     "without": "water"
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[1].ability",
+     "with": "pressure",
+     "without": "marvelscale"
+    },
+    {
+     "turn": 3,
+     "path": "p2.pp[0].focusenergy",
+     "with": 0,
+     "without": 1
     }
    ],
    "diffs": []
@@ -4859,12 +4236,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.froslass.item",
-     "with": "froslassite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "field.weather",
      "with": "snow",
@@ -4881,12 +4252,6 @@
      "path": "p2.party.froslass.species",
      "with": "froslassmega",
      "without": "froslass"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.froslass.item",
-     "with": "froslassite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -4923,12 +4288,6 @@
      "path": "p2.party.froslass.species",
      "with": "froslassmega",
      "without": "froslass"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.froslass.item",
-     "with": "froslassite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -4976,22 +4335,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.gallade.item",
-     "with": "galladite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.gallade.species",
      "with": "gallademega",
      "without": "gallade"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.gallade.item",
-     "with": "galladite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -5016,12 +4363,6 @@
      "path": "p2.party.gallade.species",
      "with": "gallademega",
      "without": "gallade"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.gallade.item",
-     "with": "galladite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -5069,22 +4410,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.garchomp.item",
-     "with": "garchompite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.garchomp.species",
      "with": "garchompmega",
      "without": "garchomp"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.garchomp.item",
-     "with": "garchompite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -5109,12 +4438,6 @@
      "path": "p2.party.garchomp.species",
      "with": "garchompmega",
      "without": "garchomp"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.garchomp.item",
-     "with": "garchompite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -5162,22 +4485,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.gardevoir.item",
-     "with": "gardevoirite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.gardevoir.species",
      "with": "gardevoirmega",
      "without": "gardevoir"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.gardevoir.item",
-     "with": "gardevoirite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -5202,12 +4513,6 @@
      "path": "p2.party.gardevoir.species",
      "with": "gardevoirmega",
      "without": "gardevoir"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.gardevoir.item",
-     "with": "gardevoirite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -5255,22 +4560,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.gengar.item",
-     "with": "gengarite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.gengar.species",
      "with": "gengarmega",
      "without": "gengar"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.gengar.item",
-     "with": "gengarite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -5295,12 +4588,6 @@
      "path": "p2.party.gengar.species",
      "with": "gengarmega",
      "without": "gengar"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.gengar.item",
-     "with": "gengarite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -5348,22 +4635,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.glalie.item",
-     "with": "glalitite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.glalie.species",
      "with": "glaliemega",
      "without": "glalie"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.glalie.item",
-     "with": "glalitite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -5388,12 +4663,6 @@
      "path": "p2.party.glalie.species",
      "with": "glaliemega",
      "without": "glalie"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.glalie.item",
-     "with": "glalitite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -5441,22 +4710,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.glimmora.item",
-     "with": "glimmoranite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.glimmora.species",
      "with": "glimmoramega",
      "without": "glimmora"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.glimmora.item",
-     "with": "glimmoranite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -5481,12 +4738,6 @@
      "path": "p2.party.glimmora.species",
      "with": "glimmoramega",
      "without": "glimmora"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.glimmora.item",
-     "with": "glimmoranite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -5534,22 +4785,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.golurk.item",
-     "with": "golurkite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.golurk.species",
      "with": "golurkmega",
      "without": "golurk"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.golurk.item",
-     "with": "golurkite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -5574,12 +4813,6 @@
      "path": "p2.party.golurk.species",
      "with": "golurkmega",
      "without": "golurk"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.golurk.item",
-     "with": "golurkite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -5627,12 +4860,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.greninja.item",
-     "with": "greninjite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.greninja.species",
      "with": "greninjamega",
@@ -5643,12 +4870,6 @@
      "path": "p2.party.greninja.types",
      "with": "normal",
      "without": "dark/water"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.greninja.item",
-     "with": "greninjite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -5685,12 +4906,6 @@
      "path": "p2.party.greninja.types",
      "with": "normal",
      "without": "dark/water"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.greninja.item",
-     "with": "greninjite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -5744,12 +4959,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.gyarados.item",
-     "with": "gyaradosite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.gyarados.species",
      "with": "gyaradosmega",
@@ -5760,12 +4969,6 @@
      "path": "p2.party.gyarados.types",
      "with": "dark/water",
      "without": "flying/water"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.gyarados.item",
-     "with": "gyaradosite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -5802,12 +5005,6 @@
      "path": "p2.party.gyarados.types",
      "with": "dark/water",
      "without": "flying/water"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.gyarados.item",
-     "with": "gyaradosite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -5861,12 +5058,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.dragalge.item",
-     "with": "habanberry",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.dragalge.hp",
      "with": 792,
@@ -5906,18 +5097,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "hardstone",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "hardstone",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1029,
@@ -5928,12 +5107,6 @@
      "path": "p2.active[0].hp",
      "with": 1029,
      "without": 1037
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "hardstone",
-     "without": ""
     },
     {
      "turn": 2,
@@ -5975,22 +5148,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.hawlucha.item",
-     "with": "hawluchanite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.hawlucha.species",
      "with": "hawluchamega",
      "without": "hawlucha"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.hawlucha.item",
-     "with": "hawluchanite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -6015,12 +5176,6 @@
      "path": "p2.party.hawlucha.species",
      "with": "hawluchamega",
      "without": "hawlucha"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.hawlucha.item",
-     "with": "hawluchanite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -6068,22 +5223,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "heatrock",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "field.weather_turns",
      "with": 7,
      "without": 4
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.kangaskhan.item",
-     "with": "heatrock",
-     "without": ""
     },
     {
      "turn": 2,
@@ -6092,34 +5235,16 @@
      "without": 3
     },
     {
-     "turn": 2,
-     "path": "p2.party.kangaskhan.item",
-     "with": "heatrock",
-     "without": ""
-    },
-    {
      "turn": 3,
      "path": "field.weather_turns",
      "with": 5,
      "without": 2
     },
     {
-     "turn": 3,
-     "path": "p2.party.kangaskhan.item",
-     "with": "heatrock",
-     "without": ""
-    },
-    {
      "turn": 4,
      "path": "field.weather_turns",
      "with": 4,
      "without": 1
-    },
-    {
-     "turn": 4,
-     "path": "p2.party.kangaskhan.item",
-     "with": "heatrock",
-     "without": ""
     }
    ],
    "diffs": []
@@ -6149,22 +5274,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.heracross.item",
-     "with": "heracronite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.heracross.species",
      "with": "heracrossmega",
      "without": "heracross"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.heracross.item",
-     "with": "heracronite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -6189,12 +5302,6 @@
      "path": "p2.party.heracross.species",
      "with": "heracrossmega",
      "without": "heracross"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.heracross.item",
-     "with": "heracronite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -6242,22 +5349,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.houndoom.item",
-     "with": "houndoominite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.houndoom.species",
      "with": "houndoommega",
      "without": "houndoom"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.houndoom.item",
-     "with": "houndoominite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -6282,12 +5377,6 @@
      "path": "p2.party.houndoom.species",
      "with": "houndoommega",
      "without": "houndoom"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.houndoom.item",
-     "with": "houndoominite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -6335,22 +5424,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "icyrock",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "field.weather_turns",
      "with": 7,
      "without": 4
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.kangaskhan.item",
-     "with": "icyrock",
-     "without": ""
     },
     {
      "turn": 2,
@@ -6359,34 +5436,16 @@
      "without": 3
     },
     {
-     "turn": 2,
-     "path": "p2.party.kangaskhan.item",
-     "with": "icyrock",
-     "without": ""
-    },
-    {
      "turn": 3,
      "path": "field.weather_turns",
      "with": 5,
      "without": 2
     },
     {
-     "turn": 3,
-     "path": "p2.party.kangaskhan.item",
-     "with": "icyrock",
-     "without": ""
-    },
-    {
      "turn": 4,
      "path": "field.weather_turns",
      "with": 4,
      "without": 1
-    },
-    {
-     "turn": 4,
-     "path": "p2.party.kangaskhan.item",
-     "with": "icyrock",
-     "without": ""
     }
    ],
    "diffs": []
@@ -6415,12 +5474,6 @@
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [
-    {
-     "turn": 0,
-     "path": "p2.party.charizard.item",
-     "with": "ironball",
-     "without": ""
-    },
     {
      "turn": 1,
      "path": "p1.party.swampert.hp",
@@ -6557,22 +5610,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "kangaskhanite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.species",
      "with": "kangaskhanmega",
      "without": "kangaskhan"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.kangaskhan.item",
-     "with": "kangaskhanite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -6597,12 +5638,6 @@
      "path": "p2.party.kangaskhan.species",
      "with": "kangaskhanmega",
      "without": "kangaskhan"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.kangaskhan.item",
-     "with": "kangaskhanite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -6650,12 +5685,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.metagross.item",
-     "with": "kasibberry",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.metagross.hp",
      "with": 872,
@@ -6694,12 +5723,6 @@
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [
-    {
-     "turn": 0,
-     "path": "p2.party.whimsicott.item",
-     "with": "kebiaberry",
-     "without": ""
-    },
     {
      "turn": 1,
      "path": "p2.party.whimsicott.hp",
@@ -6814,22 +5837,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "leftovers",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 717,
      "without": 672
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.kangaskhan.item",
-     "with": "leftovers",
-     "without": ""
     },
     {
      "turn": 1,
@@ -6845,12 +5856,6 @@
     },
     {
      "turn": 2,
-     "path": "p2.party.kangaskhan.item",
-     "with": "leftovers",
-     "without": ""
-    },
-    {
-     "turn": 2,
      "path": "p2.active[0].hp",
      "with": 720,
      "without": 672
@@ -6860,12 +5865,6 @@
      "path": "p2.party.kangaskhan.hp",
      "with": 720,
      "without": 672
-    },
-    {
-     "turn": 3,
-     "path": "p2.party.kangaskhan.item",
-     "with": "leftovers",
-     "without": ""
     },
     {
      "turn": 3,
@@ -6927,22 +5926,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "lifeorb",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p1.party.dragapult.hp",
      "with": 881,
      "without": 978
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "lifeorb",
-     "without": ""
     },
     {
      "turn": 1,
@@ -6967,12 +5954,6 @@
      "path": "p1.party.dragapult.hp",
      "with": 784,
      "without": 978
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "lifeorb",
-     "without": ""
     },
     {
      "turn": 2,
@@ -7020,12 +6001,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.pikachu.item",
-     "with": "lightball",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p1.party.kangaskhan.hp",
      "with": 1384,
@@ -7036,12 +6011,6 @@
      "path": "p1.active[0].hp",
      "with": 1384,
      "without": 1411
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.pikachu.item",
-     "with": "lightball",
-     "without": ""
     }
    ],
    "diffs": []
@@ -7071,12 +6040,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "lightclay",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.screens.special",
      "with": 7,
@@ -7087,12 +6050,6 @@
      "path": "p2.screens.named.lightscreen",
      "with": 7,
      "without": 4
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.kangaskhan.item",
-     "with": "lightclay",
-     "without": ""
     },
     {
      "turn": 2,
@@ -7107,12 +6064,6 @@
      "without": 3
     },
     {
-     "turn": 2,
-     "path": "p2.party.kangaskhan.item",
-     "with": "lightclay",
-     "without": ""
-    },
-    {
      "turn": 3,
      "path": "p2.screens.special",
      "with": 5,
@@ -7125,12 +6076,6 @@
      "without": 2
     },
     {
-     "turn": 3,
-     "path": "p2.party.kangaskhan.item",
-     "with": "lightclay",
-     "without": ""
-    },
-    {
      "turn": 4,
      "path": "p2.screens.special",
      "with": 4,
@@ -7141,12 +6086,6 @@
      "path": "p2.screens.named.lightscreen",
      "with": 4,
      "without": 1
-    },
-    {
-     "turn": 4,
-     "path": "p2.party.kangaskhan.item",
-     "with": "lightclay",
-     "without": ""
     }
    ],
    "diffs": []
@@ -7176,12 +6115,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.lopunny.item",
-     "with": "lopunnite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.lopunny.species",
      "with": "lopunnymega",
@@ -7192,12 +6125,6 @@
      "path": "p2.party.lopunny.types",
      "with": "fighting/normal",
      "without": "normal"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.lopunny.item",
-     "with": "lopunnite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -7234,12 +6161,6 @@
      "path": "p2.party.lopunny.types",
      "with": "fighting/normal",
      "without": "normal"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.lopunny.item",
-     "with": "lopunnite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -7293,22 +6214,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.lucario.item",
-     "with": "lucarionite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.lucario.species",
      "with": "lucariomega",
      "without": "lucario"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.lucario.item",
-     "with": "lucarionite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -7333,12 +6242,6 @@
      "path": "p2.party.lucario.species",
      "with": "lucariomega",
      "without": "lucario"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.lucario.item",
-     "with": "lucarionite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -7386,12 +6289,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.goodrahisui.item",
-     "with": "lumberry",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.active[0].vol.confusion",
      "with": 0,
@@ -7425,18 +6322,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "magnet",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "magnet",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1023,
@@ -7447,12 +6332,6 @@
      "path": "p2.active[0].hp",
      "with": 1023,
      "without": 1032
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "magnet",
-     "without": ""
     },
     {
      "turn": 2,
@@ -7494,22 +6373,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.malamar.item",
-     "with": "malamarite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.malamar.species",
      "with": "malamarmega",
      "without": "malamar"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.malamar.item",
-     "with": "malamarite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -7522,12 +6389,6 @@
      "path": "p2.party.malamar.species",
      "with": "malamarmega",
      "without": "malamar"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.malamar.item",
-     "with": "malamarite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -7563,12 +6424,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.manectric.item",
-     "with": "manectite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p1.party.dragapult.boosts.atk",
      "with": -1,
@@ -7597,12 +6452,6 @@
      "path": "p2.party.manectric.species",
      "with": "manectricmega",
      "without": "manectric"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.manectric.item",
-     "with": "manectite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -7651,12 +6500,6 @@
      "path": "p2.party.manectric.species",
      "with": "manectricmega",
      "without": "manectric"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.manectric.item",
-     "with": "manectite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -7704,22 +6547,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.mawile.item",
-     "with": "mawilite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.mawile.species",
      "with": "mawilemega",
      "without": "mawile"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.mawile.item",
-     "with": "mawilite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -7744,12 +6575,6 @@
      "path": "p2.party.mawile.species",
      "with": "mawilemega",
      "without": "mawile"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.mawile.item",
-     "with": "mawilite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -7797,22 +6622,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.medicham.item",
-     "with": "medichamite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.medicham.species",
      "with": "medichammega",
      "without": "medicham"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.medicham.item",
-     "with": "medichamite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -7825,12 +6638,6 @@
      "path": "p2.party.medicham.species",
      "with": "medichammega",
      "without": "medicham"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.medicham.item",
-     "with": "medichamite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -7866,12 +6673,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.meganium.item",
-     "with": "meganiumite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.meganium.species",
      "with": "meganiummega",
@@ -7882,12 +6683,6 @@
      "path": "p2.party.meganium.types",
      "with": "fairy/grass",
      "without": "grass"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.meganium.item",
-     "with": "meganiumite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -7924,12 +6719,6 @@
      "path": "p2.party.meganium.types",
      "with": "fairy/grass",
      "without": "grass"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.meganium.item",
-     "with": "meganiumite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -7982,12 +6771,6 @@
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [
-    {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "mentalherb",
-     "without": ""
-    },
     {
      "turn": 1,
      "path": "p2.active[0].vol.taunt",
@@ -8052,22 +6835,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.meowstic.item",
-     "with": "meowsticite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.meowstic.species",
      "with": "meowsticmmega",
      "without": "meowstic"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.meowstic.item",
-     "with": "meowsticite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -8092,12 +6863,6 @@
      "path": "p2.party.meowstic.species",
      "with": "meowsticmmega",
      "without": "meowstic"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.meowstic.item",
-     "with": "meowsticite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -8145,22 +6910,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.metagross.item",
-     "with": "metagrossite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.metagross.species",
      "with": "metagrossmega",
      "without": "metagross"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.metagross.item",
-     "with": "metagrossite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -8185,12 +6938,6 @@
      "path": "p2.party.metagross.species",
      "with": "metagrossmega",
      "without": "metagross"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.metagross.item",
-     "with": "metagrossite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -8238,18 +6985,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "metalcoat",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "metalcoat",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1006,
@@ -8260,12 +6995,6 @@
      "path": "p2.active[0].hp",
      "with": 1006,
      "without": 1018
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "metalcoat",
-     "without": ""
     },
     {
      "turn": 2,
@@ -8307,18 +7036,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "metronome",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.kangaskhan.item",
-     "with": "metronome",
-     "without": ""
-    },
-    {
      "turn": 2,
      "path": "p1.party.dragapult.hp",
      "with": 949,
@@ -8329,12 +7046,6 @@
      "path": "p1.active[0].hp",
      "with": 949,
      "without": 952
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.kangaskhan.item",
-     "with": "metronome",
-     "without": ""
     },
     {
      "turn": 2,
@@ -8353,12 +7064,6 @@
      "path": "p1.active[0].hp",
      "with": 949,
      "without": 952
-    },
-    {
-     "turn": 3,
-     "path": "p2.party.kangaskhan.item",
-     "with": "metronome",
-     "without": ""
     }
    ],
    "diffs": []
@@ -8388,18 +7093,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "miracleseed",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "miracleseed",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1023,
@@ -8410,12 +7103,6 @@
      "path": "p2.active[0].hp",
      "with": 1023,
      "without": 1032
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "miracleseed",
-     "without": ""
     },
     {
      "turn": 2,
@@ -8457,18 +7144,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "muscleband",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "muscleband",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 112,
@@ -8479,12 +7154,6 @@
      "path": "p2.active[0].hp",
      "with": 112,
      "without": 118
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "muscleband",
-     "without": ""
     },
     {
      "turn": 2,
@@ -8526,18 +7195,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "mysticwater",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "mysticwater",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1001,
@@ -8548,12 +7205,6 @@
      "path": "p2.active[0].hp",
      "with": 1001,
      "without": 1014
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "mysticwater",
-     "without": ""
     },
     {
      "turn": 2,
@@ -8595,18 +7246,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "nevermeltice",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "nevermeltice",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1023,
@@ -8617,12 +7256,6 @@
      "path": "p2.active[0].hp",
      "with": 1023,
      "without": 1032
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "nevermeltice",
-     "without": ""
     },
     {
      "turn": 2,
@@ -8663,12 +7296,6 @@
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [
-    {
-     "turn": 0,
-     "path": "p2.party.scizor.item",
-     "with": "occaberry",
-     "without": ""
-    },
     {
      "turn": 1,
      "path": "p2.party.scizor.hp",
@@ -8757,12 +7384,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.feraligatr.item",
-     "with": "oranberry",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.feraligatr.hp",
      "with": 66,
@@ -8802,12 +7423,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.avalugghisui.item",
-     "with": "passhoberry",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.avalugghisui.hp",
      "with": 987,
@@ -8846,12 +7461,6 @@
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [
-    {
-     "turn": 0,
-     "path": "p2.party.toxicroak.item",
-     "with": "payapaberry",
-     "without": ""
-    },
     {
      "turn": 1,
      "path": "p2.party.toxicroak.hp",
@@ -8940,12 +7549,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "pechaberry",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 180,
@@ -9021,12 +7624,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.goodrahisui.item",
-     "with": "persimberry",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.active[0].vol.confusion",
      "with": 0,
@@ -9060,22 +7657,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.pidgeot.item",
-     "with": "pidgeotite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.pidgeot.species",
      "with": "pidgeotmega",
      "without": "pidgeot"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.pidgeot.item",
-     "with": "pidgeotite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -9100,12 +7685,6 @@
      "path": "p2.party.pidgeot.species",
      "with": "pidgeotmega",
      "without": "pidgeot"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.pidgeot.item",
-     "with": "pidgeotite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -9153,12 +7732,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.pinsir.item",
-     "with": "pinsirite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.pinsir.species",
      "with": "pinsirmega",
@@ -9169,12 +7742,6 @@
      "path": "p2.party.pinsir.types",
      "with": "bug/flying",
      "without": "bug"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.pinsir.item",
-     "with": "pinsirite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -9211,12 +7778,6 @@
      "path": "p2.party.pinsir.types",
      "with": "bug/flying",
      "without": "bug"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.pinsir.item",
-     "with": "pinsirite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -9270,18 +7831,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "poisonbarb",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "poisonbarb",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1023,
@@ -9292,12 +7841,6 @@
      "path": "p2.active[0].hp",
      "with": 1023,
      "without": 1032
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "poisonbarb",
-     "without": ""
     },
     {
      "turn": 2,
@@ -9339,22 +7882,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.pyroar.item",
-     "with": "pyroarite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.pyroar.species",
      "with": "pyroarmega",
      "without": "pyroar"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.pyroar.item",
-     "with": "pyroarite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -9379,12 +7910,6 @@
      "path": "p2.party.pyroar.species",
      "with": "pyroarmega",
      "without": "pyroar"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.pyroar.item",
-     "with": "pyroarite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -9458,12 +7983,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.raichu.item",
-     "with": "raichunitex",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "field.terrain",
      "with": "electric",
@@ -9480,12 +7999,6 @@
      "path": "p2.party.raichu.species",
      "with": "raichumegax",
      "without": "raichu"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.raichu.item",
-     "with": "raichunitex",
-     "without": ""
     },
     {
      "turn": 1,
@@ -9522,12 +8035,6 @@
      "path": "p2.party.raichu.species",
      "with": "raichumegax",
      "without": "raichu"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.raichu.item",
-     "with": "raichunitex",
-     "without": ""
     },
     {
      "turn": 2,
@@ -9575,22 +8082,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.raichu.item",
-     "with": "raichunitey",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.raichu.species",
      "with": "raichumegay",
      "without": "raichu"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.raichu.item",
-     "with": "raichunitey",
-     "without": ""
     },
     {
      "turn": 1,
@@ -9615,12 +8110,6 @@
      "path": "p2.party.raichu.species",
      "with": "raichumegay",
      "without": "raichu"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.raichu.item",
-     "with": "raichunitey",
-     "without": ""
     },
     {
      "turn": 2,
@@ -9693,12 +8182,6 @@
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [
-    {
-     "turn": 0,
-     "path": "p2.party.rhyperior.item",
-     "with": "rindoberry",
-     "without": ""
-    },
     {
      "turn": 1,
      "path": "p2.party.rhyperior.hp",
@@ -9787,12 +8270,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.pangoro.item",
-     "with": "roseliberry",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.pangoro.hp",
      "with": 60,
@@ -9880,22 +8357,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.sableye.item",
-     "with": "sablenite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.sableye.species",
      "with": "sableyemega",
      "without": "sableye"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.sableye.item",
-     "with": "sablenite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -9920,12 +8385,6 @@
      "path": "p2.party.sableye.species",
      "with": "sableyemega",
      "without": "sableye"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.sableye.item",
-     "with": "sablenite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -9973,12 +8432,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.sceptile.item",
-     "with": "sceptilite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.sceptile.species",
      "with": "sceptilemega",
@@ -9989,12 +8442,6 @@
      "path": "p2.party.sceptile.types",
      "with": "dragon/grass",
      "without": "grass"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.sceptile.item",
-     "with": "sceptilite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -10031,12 +8478,6 @@
      "path": "p2.party.sceptile.types",
      "with": "dragon/grass",
      "without": "grass"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.sceptile.item",
-     "with": "sceptilite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -10090,22 +8531,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.scizor.item",
-     "with": "scizorite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.scizor.species",
      "with": "scizormega",
      "without": "scizor"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.scizor.item",
-     "with": "scizorite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -10130,12 +8559,6 @@
      "path": "p2.party.scizor.species",
      "with": "scizormega",
      "without": "scizor"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.scizor.item",
-     "with": "scizorite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -10183,22 +8606,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.scolipede.item",
-     "with": "scolipite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.scolipede.species",
      "with": "scolipedemega",
      "without": "scolipede"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.scolipede.item",
-     "with": "scolipite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -10223,12 +8634,6 @@
      "path": "p2.party.scolipede.species",
      "with": "scolipedemega",
      "without": "scolipede"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.scolipede.item",
-     "with": "scolipite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -10302,22 +8707,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.scovillain.item",
-     "with": "scovillainite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.scovillain.species",
      "with": "scovillainmega",
      "without": "scovillain"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.scovillain.item",
-     "with": "scovillainite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -10342,12 +8735,6 @@
      "path": "p2.party.scovillain.species",
      "with": "scovillainmega",
      "without": "scovillain"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.scovillain.item",
-     "with": "scovillainite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -10395,12 +8782,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.scrafty.item",
-     "with": "scraftinite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p1.party.dragapult.boosts.atk",
      "with": -1,
@@ -10429,12 +8810,6 @@
      "path": "p2.party.scrafty.species",
      "with": "scraftymega",
      "without": "scrafty"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.scrafty.item",
-     "with": "scraftinite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -10483,12 +8858,6 @@
      "path": "p2.party.scrafty.species",
      "with": "scraftymega",
      "without": "scrafty"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.scrafty.item",
-     "with": "scraftinite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -10536,18 +8905,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "sharpbeak",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "sharpbeak",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1006,
@@ -10558,12 +8915,6 @@
      "path": "p2.active[0].hp",
      "with": 1006,
      "without": 1018
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "sharpbeak",
-     "without": ""
     },
     {
      "turn": 2,
@@ -10605,22 +8956,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.sharpedo.item",
-     "with": "sharpedonite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.sharpedo.species",
      "with": "sharpedomega",
      "without": "sharpedo"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.sharpedo.item",
-     "with": "sharpedonite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -10645,12 +8984,6 @@
      "path": "p2.party.sharpedo.species",
      "with": "sharpedomega",
      "without": "sharpedo"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.sharpedo.item",
-     "with": "sharpedonite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -10724,28 +9057,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "shellbell",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.kangaskhan.item",
-     "with": "shellbell",
-     "without": ""
-    },
-    {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
      "with": 1033,
      "without": 1032
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.kangaskhan.item",
-     "with": "shellbell",
-     "without": ""
     },
     {
      "turn": 2,
@@ -10758,12 +9073,6 @@
      "path": "p2.party.kangaskhan.hp",
      "with": 1034,
      "without": 1032
-    },
-    {
-     "turn": 3,
-     "path": "p2.party.kangaskhan.item",
-     "with": "shellbell",
-     "without": ""
     },
     {
      "turn": 3,
@@ -10798,12 +9107,6 @@
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [
-    {
-     "turn": 0,
-     "path": "p2.party.glimmora.item",
-     "with": "shucaberry",
-     "without": ""
-    },
     {
      "turn": 1,
      "path": "p2.party.glimmora.hp",
@@ -10892,18 +9195,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "silkscarf",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "silkscarf",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1001,
@@ -10914,12 +9205,6 @@
      "path": "p2.active[0].hp",
      "with": 1001,
      "without": 1014
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "silkscarf",
-     "without": ""
     },
     {
      "turn": 2,
@@ -10961,18 +9246,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "silverpowder",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "silverpowder",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1023,
@@ -10983,12 +9256,6 @@
      "path": "p2.active[0].hp",
      "with": 1023,
      "without": 1032
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "silverpowder",
-     "without": ""
     },
     {
      "turn": 2,
@@ -11030,12 +9297,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.feraligatr.item",
-     "with": "sitrusberry",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.feraligatr.hp",
      "with": 96,
@@ -11075,22 +9336,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.skarmory.item",
-     "with": "skarmorite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.skarmory.species",
      "with": "skarmorymega",
      "without": "skarmory"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.skarmory.item",
-     "with": "skarmorite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -11115,12 +9364,6 @@
      "path": "p2.party.skarmory.species",
      "with": "skarmorymega",
      "without": "skarmory"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.skarmory.item",
-     "with": "skarmorite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -11168,22 +9411,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.slowbro.item",
-     "with": "slowbronite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.slowbro.species",
      "with": "slowbromega",
      "without": "slowbro"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.slowbro.item",
-     "with": "slowbronite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -11208,12 +9439,6 @@
      "path": "p2.party.slowbro.species",
      "with": "slowbromega",
      "without": "slowbro"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.slowbro.item",
-     "with": "slowbronite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -11261,22 +9486,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "smoothrock",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "field.weather_turns",
      "with": 7,
      "without": 4
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.kangaskhan.item",
-     "with": "smoothrock",
-     "without": ""
     },
     {
      "turn": 2,
@@ -11285,34 +9498,16 @@
      "without": 3
     },
     {
-     "turn": 2,
-     "path": "p2.party.kangaskhan.item",
-     "with": "smoothrock",
-     "without": ""
-    },
-    {
      "turn": 3,
      "path": "field.weather_turns",
      "with": 5,
      "without": 2
     },
     {
-     "turn": 3,
-     "path": "p2.party.kangaskhan.item",
-     "with": "smoothrock",
-     "without": ""
-    },
-    {
      "turn": 4,
      "path": "field.weather_turns",
      "with": 4,
      "without": 1
-    },
-    {
-     "turn": 4,
-     "path": "p2.party.kangaskhan.item",
-     "with": "smoothrock",
-     "without": ""
     }
    ],
    "diffs": []
@@ -11342,18 +9537,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "softsand",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "softsand",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1023,
@@ -11364,12 +9547,6 @@
      "path": "p2.active[0].hp",
      "with": 1023,
      "without": 1032
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "softsand",
-     "without": ""
     },
     {
      "turn": 2,
@@ -11411,18 +9588,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "spelltag",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "spelltag",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.goodrahisui.hp",
      "with": 884,
@@ -11433,12 +9598,6 @@
      "path": "p2.active[0].hp",
      "with": 884,
      "without": 891
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "spelltag",
-     "without": ""
     },
     {
      "turn": 2,
@@ -11480,12 +9639,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.staraptor.item",
-     "with": "staraptite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.staraptor.species",
      "with": "staraptormega",
@@ -11496,12 +9649,6 @@
      "path": "p2.party.staraptor.types",
      "with": "fighting/flying",
      "without": "flying/normal"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.staraptor.item",
-     "with": "staraptite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -11538,12 +9685,6 @@
      "path": "p2.party.staraptor.types",
      "with": "fighting/flying",
      "without": "flying/normal"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.staraptor.item",
-     "with": "staraptite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -11597,22 +9738,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.starmie.item",
-     "with": "starminite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.starmie.species",
      "with": "starmiemega",
      "without": "starmie"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.starmie.item",
-     "with": "starminite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -11637,12 +9766,6 @@
      "path": "p2.party.starmie.species",
      "with": "starmiemega",
      "without": "starmie"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.starmie.item",
-     "with": "starminite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -11690,22 +9813,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.steelix.item",
-     "with": "steelixite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.steelix.species",
      "with": "steelixmega",
      "without": "steelix"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.steelix.item",
-     "with": "steelixite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -11730,12 +9841,6 @@
      "path": "p2.party.steelix.species",
      "with": "steelixmega",
      "without": "steelix"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.steelix.item",
-     "with": "steelixite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -11783,22 +9888,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.swampert.item",
-     "with": "swampertite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.swampert.species",
      "with": "swampertmega",
      "without": "swampert"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.swampert.item",
-     "with": "swampertite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -11823,12 +9916,6 @@
      "path": "p2.party.swampert.species",
      "with": "swampertmega",
      "without": "swampert"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.swampert.item",
-     "with": "swampertite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -11875,12 +9962,6 @@
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [
-    {
-     "turn": 0,
-     "path": "p2.party.malamar.item",
-     "with": "tangaberry",
-     "without": ""
-    },
     {
      "turn": 1,
      "path": "p2.party.malamar.hp",
@@ -11969,18 +10050,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "twistedspoon",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "twistedspoon",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1023,
@@ -11991,12 +10060,6 @@
      "path": "p2.active[0].hp",
      "with": 1023,
      "without": 1032
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "twistedspoon",
-     "without": ""
     },
     {
      "turn": 2,
@@ -12038,22 +10101,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.tyranitar.item",
-     "with": "tyranitarite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.tyranitar.species",
      "with": "tyranitarmega",
      "without": "tyranitar"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.tyranitar.item",
-     "with": "tyranitarite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -12066,12 +10117,6 @@
      "path": "p2.party.tyranitar.species",
      "with": "tyranitarmega",
      "without": "tyranitar"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.tyranitar.item",
-     "with": "tyranitarite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -12107,22 +10152,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.venusaur.item",
-     "with": "venusaurite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.venusaur.species",
      "with": "venusaurmega",
      "without": "venusaur"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.venusaur.item",
-     "with": "venusaurite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -12147,12 +10180,6 @@
      "path": "p2.party.venusaur.species",
      "with": "venusaurmega",
      "without": "venusaur"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.venusaur.item",
-     "with": "venusaurite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -12200,22 +10227,10 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.victreebel.item",
-     "with": "victreebelite",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.victreebel.species",
      "with": "victreebelmega",
      "without": "victreebel"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.victreebel.item",
-     "with": "victreebelite",
-     "without": ""
     },
     {
      "turn": 1,
@@ -12240,12 +10255,6 @@
      "path": "p2.party.victreebel.species",
      "with": "victreebelmega",
      "without": "victreebel"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.victreebel.item",
-     "with": "victreebelite",
-     "without": ""
     },
     {
      "turn": 2,
@@ -12293,12 +10302,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.blastoise.item",
-     "with": "wacanberry",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.blastoise.hp",
      "with": 885,
@@ -12337,12 +10340,6 @@
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [
-    {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "whiteherb",
-     "without": ""
-    },
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.boosts.atk",
@@ -12395,12 +10392,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "widelens",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p1.party.dragapult.hp",
      "with": 943,
@@ -12417,12 +10408,6 @@
      "path": "p2.party.kangaskhan.hp",
      "with": 1032,
      "without": 492
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.kangaskhan.item",
-     "with": "widelens",
-     "without": ""
     },
     {
      "turn": 1,
@@ -12524,18 +10509,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p1.party.dragapult.item",
-     "with": "wiseglasses",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.dragapult.item",
-     "with": "wiseglasses",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 127,
@@ -12546,12 +10519,6 @@
      "path": "p2.active[0].hp",
      "with": 127,
      "without": 132
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.item",
-     "with": "wiseglasses",
-     "without": ""
     },
     {
      "turn": 2,
@@ -12592,12 +10559,6 @@
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [
-    {
-     "turn": 0,
-     "path": "p2.party.torterra.item",
-     "with": "yacheberry",
-     "without": ""
-    },
     {
      "turn": 1,
      "path": "p2.party.torterra.hp",
@@ -12686,12 +10647,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.kangaskhan.item",
-     "with": "zoomlens",
-     "without": ""
-    },
-    {
      "turn": 1,
      "path": "p1.party.dragapult.hp",
      "with": 943,
@@ -12708,12 +10663,6 @@
      "path": "p2.party.kangaskhan.hp",
      "with": 1032,
      "without": 492
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.kangaskhan.item",
-     "with": "zoomlens",
-     "without": ""
     },
     {
      "turn": 1,

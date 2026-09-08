@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-08T01:06:31.104Z",
+ "generated": "2026-09-08T01:58:15.372Z",
  "by": "tests/roster.js",
  "stage": "moves",
  "engine_release": "f30bf025ae28",
@@ -254,7 +254,7 @@
    "why": "the shield is never raised — the click still resolves and still spends the turn",
    "moved": {
     "member": "banefulbunker",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -262,7 +262,14 @@
      "party.hp",
      "party.status",
      "hp",
-     "status"
+     "status",
+     "party.fainted",
+     "species",
+     "maxhp",
+     "types",
+     "ability",
+     "stall",
+     "pp.banefulbunker"
     ]
    }
   },
@@ -3643,12 +3650,6 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.meowscarada.types",
-     "with": "poison",
-     "without": "dark/grass"
-    },
-    {
-     "turn": 1,
      "path": "p2.active[0].species",
      "with": "meowscarada",
      "without": "corviknight"
@@ -3668,13 +3669,13 @@
     {
      "turn": 1,
      "path": "p2.active[0].types",
-     "with": "poison",
+     "with": "dark/grass",
      "without": "flying/steel"
     },
     {
      "turn": 1,
      "path": "p2.active[0].ability",
-     "with": "protean",
+     "with": "overgrow",
      "without": "pressure"
     },
     {
@@ -10751,12 +10752,6 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.meowscarada.types",
-     "with": "fighting",
-     "without": "dark/grass"
-    },
-    {
-     "turn": 1,
      "path": "p2.active[0].species",
      "with": "meowscarada",
      "without": "corviknight"
@@ -10776,13 +10771,13 @@
     {
      "turn": 1,
      "path": "p2.active[0].types",
-     "with": "fighting",
+     "with": "dark/grass",
      "without": "flying/steel"
     },
     {
      "turn": 1,
      "path": "p2.active[0].ability",
-     "with": "protean",
+     "with": "overgrow",
      "without": "pressure"
     },
     {
@@ -14183,7 +14178,7 @@
     {
      "turn": 1,
      "path": "p2.party.meowscarada.hp",
-     "with": 82,
+     "with": 1,
      "without": 0
     },
     {
@@ -14200,12 +14195,6 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.meowscarada.types",
-     "with": "normal",
-     "without": "dark/grass"
-    },
-    {
-     "turn": 1,
      "path": "p2.active[0].species",
      "with": "meowscarada",
      "without": "corviknight"
@@ -14213,7 +14202,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 82,
+     "with": 1,
      "without": 173
     },
     {
@@ -14225,13 +14214,13 @@
     {
      "turn": 1,
      "path": "p2.active[0].types",
-     "with": "normal",
+     "with": "dark/grass",
      "without": "flying/steel"
     },
     {
      "turn": 1,
      "path": "p2.active[0].ability",
-     "with": "protean",
+     "with": "overgrow",
      "without": "pressure"
     },
     {
@@ -23836,12 +23825,6 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.meowscarada.types",
-     "with": "steel",
-     "without": "dark/grass"
-    },
-    {
-     "turn": 1,
      "path": "p2.active[0].species",
      "with": "meowscarada",
      "without": "corviknight"
@@ -23861,13 +23844,13 @@
     {
      "turn": 1,
      "path": "p2.active[0].types",
-     "with": "steel",
+     "with": "dark/grass",
      "without": "flying/steel"
     },
     {
      "turn": 1,
      "path": "p2.active[0].ability",
-     "with": "protean",
+     "with": "overgrow",
      "without": "pressure"
     },
     {
@@ -32107,12 +32090,6 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.meowscarada.types",
-     "with": "normal",
-     "without": "dark/grass"
-    },
-    {
-     "turn": 1,
      "path": "p2.active[0].species",
      "with": "meowscarada",
      "without": "corviknight"
@@ -32132,13 +32109,13 @@
     {
      "turn": 1,
      "path": "p2.active[0].types",
-     "with": "normal",
+     "with": "dark/grass",
      "without": "flying/steel"
     },
     {
      "turn": 1,
      "path": "p2.active[0].ability",
-     "with": "protean",
+     "with": "overgrow",
      "without": "pressure"
     },
     {
@@ -40046,12 +40023,6 @@
     },
     {
      "turn": 1,
-     "path": "p2.party.meowscarada.types",
-     "with": "grass",
-     "without": "dark/grass"
-    },
-    {
-     "turn": 1,
      "path": "p2.active[0].species",
      "with": "meowscarada",
      "without": "corviknight"
@@ -40071,13 +40042,13 @@
     {
      "turn": 1,
      "path": "p2.active[0].types",
-     "with": "grass",
+     "with": "dark/grass",
      "without": "flying/steel"
     },
     {
      "turn": 1,
      "path": "p2.active[0].ability",
-     "with": "protean",
+     "with": "overgrow",
      "without": "pressure"
     },
     {
