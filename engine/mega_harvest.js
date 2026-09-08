@@ -36,7 +36,10 @@ async function getText(u) { const r = await fetch(u); return r.ok ? r.text() : n
 async function main() {
   const ids = new Set();
   for (let p = 1; p <= PAGES; p++) {
-    const list = await getJSON(`https://replay.pokemonshowdown.com/search.json?format=gen9championsvgc2026regmb&page=${p}`);
+    /* The ACTIVE regulation, from data/regulations.json via champions_sim — this harvester reads
+       what the GAME says, so it must read the game we are playing. Hardcoded, it would keep
+       harvesting the previous regulation's replays after a rotation and report success. */
+    const list = await getJSON(`https://replay.pokemonshowdown.com/search.json?format=${require('./champions_sim.js').FORMAT}&page=${p}`);
     if (!list || !list.length) break;
     list.forEach(r => ids.add(r.id));
   }

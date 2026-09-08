@@ -559,5 +559,81 @@ console.log('\nG. THE BROWSER COPY AGAINST THE NODE ORIGINAL — generated bundl
   }
 }
 
+/* ---------------------------------------------------------------------------------------------
+ * H. A LEGAL MEGA WITH NO ROW AT ALL — asked of the FORMAT, not of the builder
+ *
+ * EVERY CHECK ABOVE IS ALIGNED NOT TO SEE THIS, AND ON PURPOSE. Check B restates the builder's own
+ * guard so the builder is judged on the rows it WRITES — which means the rows it SKIPS are excluded
+ * from the audit as well. `merge_mega_into_engine.js` skips any forme that is neither in the store
+ * nor already in the artifact (`if (!f.in_our_store && !MC.mons[key])`), and checks A, E and F only
+ * ever walk rows that already exist. So a forme in NEITHER file is invisible to all of them.
+ *
+ * A NEW REGULATION IS EXACTLY THAT CASE. Its megas have no games in the previous regulation's store
+ * and no existing row, so every one of them is skipped into an anonymous counter — and then
+ * `buildMon` returns null on `!m.bs` and every damage-derived feature reads ZERO for it: no kill
+ * odds, no threat, no risk. That is the 2026-07-30 consequence one door over, when every mega in the
+ * game scored as threatening nothing and nobody noticed for weeks. The 2026-07-30 KEY MISMATCH is
+ * genuinely fixed and this is not it: same room, different door.
+ *
+ * THE POPULATION COMES FROM THE FORMAT, WHICH IS THE WHOLE POINT. The format's own items are walked
+ * for `megaStone` through `champions_sim.dexFor`, so a stone that ships tomorrow is in this check the
+ * day it ships, with no edit here and no list anywhere. Staged red first:
+ * tests/probe_new_mega_row.js removes one legal forme from the artifact AND from the mega source in
+ * memory and runs this same script — before this section it exited 0 with no GAP at all.
+ *
+ * NOT THROUGH `names.megaTable()`, AND THAT IS MEASURED RATHER THAN PREFERRED. That table is keyed by
+ * BASE species, so a base carrying two stones keeps only the last one written: it holds 74 entries
+ * against this format's 76 legal mega formes, losing one of Charizard-Mega-X/Y and one of
+ * Raichu-Mega-X/Y. An audit built on it would have been blind to exactly two formes and would have
+ * reported "all present" while saying nothing about them.
+ * ------------------------------------------------------------------------------------------- */
+console.log('\nH. A LEGAL MEGA WITH NO ROW AT ALL — the format asked, not the builder');
+try {
+  const CSH = require(D('engine', 'champions_sim.js'));
+  const dexH = CSH.dexFor(CSH.FORMAT);
+  /* CLAUDE.md: `.all()` is the National Dex. Filter every walk, every time. */
+  const legalH = x => !!(x && x.exists && !x.isNonstandard);
+  const formes = [];
+  for (const it of dexH.items.all()) {
+    if (!legalH(it) || !it.megaStone) continue;
+    for (const megaName of Object.values(it.megaStone)) {
+      const sp = dexH.species.get(megaName);
+      if (sp && sp.exists) formes.push({ forme: sp.id, formeName: sp.name, stone: it.name });
+    }
+  }
+  const stones = formes;
+  const artNorm = new Map(keys.map(k => [norm(k), k]));
+  const noRow = [], noStats = [];
+  for (const m of formes) {
+    const ak = artNorm.get(norm(m.forme)) || artNorm.get(norm(m.formeName));
+    if (!ak) { noRow.push(m.formeName); continue; }
+    /* `bs` and not merely "a row": buildMon opens `if (!m || !m.bs) return null`, so a row without
+     * base stats is the same silence as no row. The 2026-07-30 repair wrote `st` and forgot `bs` on
+     * 19 entries, which is why this asks for the field the builder actually gates on. */
+    if (empty(mons[ak].bs)) noStats.push(m.formeName);
+  }
+  console.log(`     ${stones.length} legal mega forme(s) named by the stones of ${CSH.FORMAT}; ` +
+    'every one is looked up in data/engine-data.js');
+  if (!stones.length) flag('GAP', 'judged 0 formes — a check that judges nothing clears everything');
+  else if (noRow.length) {
+    flag('GAP', `${noRow.length} of ${stones.length} legal mega forme(s) have NO ROW in ` +
+      `data/engine-data.js: ${noRow.slice(0, 8).join(', ')}${noRow.length > 8 ? ' …' : ''}`);
+    console.log('           buildMon returns null on !m.bs, so every damage-derived feature reads ZERO');
+    console.log('           for these — no kill odds, no threat, no risk, and no error anywhere.');
+    console.log('           fix: engine/merge_mega_into_engine.js skips a forme that is in neither the');
+    console.log('           store nor the artifact; a new regulation\'s megas are always in neither.');
+  } else if (noStats.length) {
+    flag('GAP', `${noStats.length} of ${stones.length} legal mega forme(s) have a row with NO base ` +
+      `stats: ${noStats.slice(0, 8).join(', ')}${noStats.length > 8 ? ' …' : ''}`);
+    console.log('           buildMon gates on `bs`, so a row without it is the same silence as no row.');
+  } else {
+    flag('ok', `all ${stones.length} legal mega formes have a row with base stats`);
+  }
+} catch (e) {
+  /* LOUD, like check D's dex-less branch: a run that could not ask must not read as one that asked
+   * and found nothing. */
+  flag('GAP', `could not ask the format for its mega stones, so this was NOT CHECKED — ${e.message}`);
+}
+
 console.log(`\n${problems ? problems + ' GAP(S) FOUND' : 'no gaps found'}`);
 process.exit(problems ? 1 : 0);

@@ -34,7 +34,12 @@
 'use strict';
 const SD = process.env.SHOWDOWN_PATH || 'C:/Users/willj/Projects/Pokemon/pokemon-showdown';
 const { Dex } = require(SD + '/dist/sim');
-const D = Dex.forFormat('gen9championsvgc2026regmb');
+/* THE FORMAT IS DERIVED, like everything else in this file. A preflight that answers about the
+ * previous regulation is worse than none — it REFUSES valid fixtures, silently, which the header
+ * above already records as the cost. Through champions_sim, which refuses an unknown id rather than
+ * returning mainline Gen 9. */
+const CS = require(require('path').join(__dirname, 'champions_sim.js'));
+const D = CS.dexFor(CS.FORMAT);
 
 const legal = (x) => !!(x && x.exists && !x.isNonstandard && x.tier !== 'Illegal');
 const id = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');

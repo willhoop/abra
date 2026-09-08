@@ -20,8 +20,53 @@ const ME=(process.env.ME||'willhoop').split(',').map(x=>x.toLowerCase().replace(
  * Set ABRA_UNFILTERED=1 to compute over everything, which is only ever useful for demonstrating the
  * difference the filter makes. */
 const UNFILTERED = !!process.env.ABRA_UNFILTERED;
-const games = Q.loadGames({ clean: !UNFILTERED, path: STORE });
+
+/* ---- ONE REGULATION PER MODEL. THE KEY WAS ALREADY IN EVERY ROW AND NOTHING READ IT -------------
+ *
+ * `format: ACTIVE_FORMAT` above is a LABEL — it says what this file is called, never what went into
+ * it. The corpus came from `Q.loadGames()`, which has no format logic at all, so every regulation in
+ * the store pooled into one distribution and the result was stamped with the ACTIVE regulation's
+ * name. On the day the ladder rotates that is not a rounding error: the new regulation's games land
+ * on top of the previous regulation's corpus, and `data/meta-usage.json` is what CHOMP reads.
+ *
+ * The segmentation key has existed in every row since 2026-08-31, derived by
+ * engine/durable-ingest.js from Showdown's own |tier| line precisely so a rotation would be visible,
+ * and until now build/triggers.js was its only reader. This is the second.
+ *
+ * THE TOKEN IS DERIVED THROUGH THE PARSER THAT WROTE IT, never re-spelled here — two copies of one
+ * derivation is how the two files come to disagree invisibly (CLAUDE.md: facts are global, and it is
+ * the same reason status.js shells out to provenance.js). `activeStoreFormat()` throws if the active
+ * regulation's label and its Showdown id disagree about which regulation it is.
+ *
+ * AN EMPTY RESULT IS A REFUSAL, NOT A MODEL. If the store holds rows and none of them are this
+ * regulation's — which is exactly what a store frozen on the old ladder looks like after the flip —
+ * writing a model computed from nothing is the silent default this project is named after. It stops.
+ *
+ * MEASURED WHEN THIS LANDED: 76,833 of 76,833 ladder rows are the active regulation, so no published
+ * figure moves today. Staged red first with real rows from another regulation
+ * (tests/probe_usage_regulation_pool.js): 41 Reg M-A games — 82 team-sides — were inside a model
+ * labelled gen9championsvgc2026regmb, and moved the top three species by 0.5-0.6 points. */
+const DI = require(path.join(__dirname, 'durable-ingest.js'));
+const ACTIVE_STORE_FORMAT = DI.activeStoreFormat();
+const _regTally = rows => { const t = {}; for (const g of rows) t[g.format || '(no format field)'] = (t[g.format || '(no format field)'] || 0) + 1; return t; };
+const _inActive = g => g.format === ACTIVE_STORE_FORMAT;
+
+const _allRows = Q.loadGames({ clean: false, path: STORE });
+const _byReg = _regTally(_allRows);
+const _otherRegs = Object.fromEntries(Object.entries(_byReg).filter(([k]) => k !== ACTIVE_STORE_FORMAT));
+const _otherN = Object.values(_otherRegs).reduce((a, b) => a + b, 0);
+
+const games = Q.loadGames({ clean: !UNFILTERED, path: STORE }).filter(_inActive);
 const _funnel = Q.funnel(STORE);
+if (_allRows.length && !games.length) {
+  process.stderr.write(`REFUSING TO WRITE A MODEL: the store holds ${_allRows.length} row(s) and NONE of them `
+    + `are ${ACTIVE_STORE_FORMAT} — it holds ${JSON.stringify(_byReg)}. Either data/regulations.json names a `
+    + `regulation this store does not contain, or the collector has stopped. A model computed from zero `
+    + `games of the active regulation is not a model.\n`);
+  process.exit(1);
+}
+if (_otherN) process.stderr.write(`format filter: ${games.length} usable games are ${ACTIVE_STORE_FORMAT}; `
+  + `${_otherN} stored row(s) from another regulation were EXCLUDED ${JSON.stringify(_otherRegs)}\n`);
 process.stderr.write(UNFILTERED
   ? `WARNING: ABRA_UNFILTERED — using all ${games.length} games, including bots and forfeits\n`
   : `quality filter: ${games.length} usable of ${_funnel.collected} collected (${(100*games.length/_funnel.collected).toFixed(1)}%)\n`);
@@ -91,7 +136,7 @@ if(mine.length){
  *
  * Both are written. Consumers must state which they used. */
 const out=usage(games,{humansOnly:true});
-const _all = Q.loadGames({ clean:false, path: STORE });
+const _all = _allRows.filter(_inActive);   // the ladder view is this regulation's ladder, not every regulation's
 const ladderOut = UNFILTERED ? out : usage(_all,{humansOnly:true});
 const view = o => ({
   sampledTeams:o.sides,
@@ -111,6 +156,13 @@ fs.writeFileSync('data/meta-usage.json',JSON.stringify({
     collected:_funnel.collected,
     usable:games.length,
     funnel:_funnel,
+    /* WHICH REGULATION THIS IS ABOUT, as the STORE spells it. `format` at the top level is the
+       Showdown id of the active regulation and is a label; this is the key the rows were actually
+       filtered on, plus everything that key excluded. The funnel above is store-wide and is counted
+       BEFORE this filter, which is why the two can differ. */
+    formatToken:ACTIVE_STORE_FORMAT,
+    rowsInStore:_allRows.length,
+    otherRegulations:_otherRegs,
     caveat:'Bot detection is name-based plus a team-invariance rule. Accounts that play few games or vary their team can still escape it. Describe this set as "no bot detected", not as human.',
   },
   /* Top level stays the COMPETITIVE view so existing consumers keep the corrected behaviour they

@@ -17,7 +17,7 @@
  * `onSwitchIn` / `onSwitchOut` handler is the ONLY thing that can reset a counter, because nothing
  * generic does.
  *
- * This script prints, for every legal entity in gen9championsvgc2026regmb, whether it declares a
+ * This script prints, for every legal entity in the ACTIVE regulation (data/regulations.json), whether it declares a
  * switch handler and (for the survivors) what that handler writes. It is DERIVED on every run --
  * no list of mechanics is typed here.
  *
@@ -29,8 +29,14 @@
 const path = require('path');
 const SP = process.env.SHOWDOWN_PATH;
 if (!SP) { console.error('SHOWDOWN_PATH is required'); process.exit(2); }
-const { Dex } = require(path.join(SP, 'dist/sim'));
-const D = Dex.forFormat('gen9championsvgc2026regmb');
+/* THE FORMAT COMES FROM data/regulations.json THROUGH champions_sim, never from a literal here: this
+ * script writes data/switchin-order.json, which is frozen into every engine release, so a stale
+ * format id would freeze the PREVIOUS regulation's switch order into the next one's releases.
+ * `dexFor` also refuses an id this checkout does not carry, where `Dex.forFormat` would hand back
+ * mainline Gen 9 and report success. */
+const CS = require(path.join(__dirname, 'champions_sim.js'));
+const FORMAT = CS.FORMAT;
+const D = CS.dexFor(FORMAT);
 
 /* CLAUDE.md: `.all()` is the National Dex. Filter every walk, every time. */
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
@@ -91,7 +97,7 @@ for (const m of D.moves.all()) {
     switchHandlers: Object.keys(m.condition).filter(k => SWITCH_KEYS.includes(k)) });
 }
 
-const out = { generated: new Date().toISOString(), format: 'gen9championsvgc2026regmb',
+const out = { generated: new Date().toISOString(), format: FORMAT,
   clearVolatileWipes: ['volatiles (all)', 'boosts', 'ability -> baseAbility', 'transformed',
     'moveSlots -> baseMoveSlots', 'species -> baseSpecies (and therefore TYPES)',
     'lastMove/lastMoveUsed/moveThisTurn/moveLastTurnResult', 'lastDamage/attackedBy/hurtThisTurn',

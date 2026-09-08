@@ -113,6 +113,65 @@ function addTgt(e, slot, mon, delta, nw, ko){
   return x;
 }
 
+/* THE REGULATION IN THIS TAG WAS A CONSTANT, AND THE ONLY ALARM THAT WATCHES FOR A ROTATION READS
+ * THIS FIELD. Every Champions tier collapsed to the literal 'champions-regmb', so a Reg M-A replay
+ * stored as `champions-regmb` (measured 2026-08-31 on 51 of them), and on the day the next
+ * regulation ships its games would have been stamped with the OLD regulation's name too.
+ * build/triggers.js's formatTrigger compares the modal format across the store against the recent
+ * window; with one constant on both sides it can never differ, so the rotation alarm was dead by
+ * construction — the exact shape CLAUDE.md opens with, a capability absent while everything
+ * reports success.
+ *
+ * The regulation is IN the tier line Showdown writes, so it is read rather than assumed:
+ *   |tier|[Gen 9 Champions] VGC 2026 Reg M-B (Bo3)  ->  champions-regmb
+ *   |tier|[Gen 9 Champions] VGC 2026 Reg M-A (Bo3)  ->  champions-regma
+ * REG M-B IS BYTE-IDENTICAL TO WHAT THE CONSTANT PRODUCED, deliberately: relabelling the active
+ * regulation would make every new row differ from every stored row and fire the rotation alarm on
+ * a rotation that had not happened. triggers.js's own comment says an alarm that cries wolf on day
+ * one is worse than no alarm. This refines the label; it does not rename anything already true.
+ *
+ * A Champions tier with no readable Reg token keeps its own value rather than borrowing a
+ * regulation's — 'champions-reg?' is visibly a gap, 'champions-regmb' would be a false fact. */
+
+/* IT IS A FUNCTION AND NOT AN INLINE EXPRESSION BECAUSE A SECOND READER NOW EXISTS. 2026-09-08.
+ * The token is the ONE segmentation key the store carries, and until today only build/triggers.js
+ * read it: engine/analyze.js pooled every regulation into one distribution and stamped the ACTIVE
+ * format's name on the result. That consumer needs the same derivation this parser uses, and a
+ * second copy of it is how two files come to disagree invisibly (CLAUDE.md: facts are global).
+ * Same expression, same output, one home. */
+function formatToken(tier){
+  const chReg=(tier||'').match(/\breg\s*([a-z0-9]+(?:-[a-z0-9]+)*)/i);
+  return (tier||'').toLowerCase().includes('champions')
+             ? 'champions-reg'+(chReg?chReg[1].toLowerCase().replace(/[^a-z0-9]/g,''):'?')
+           : /vgc/i.test(tier||'')?'vgc-'+((tier||'').match(/reg\w*\s*\w*/i)||['reg?'])[0].toLowerCase().replace(/[^a-z0-9]/g,'')
+           : 'other';
+}
+
+/* THE STORE TOKEN OF THE ACTIVE REGULATION — the key `data/regulations.json` never states.
+ *
+ * The config names a SHOWDOWN FORMAT ID (gen9championsvgc2026regmb); the store rows carry a TOKEN
+ * derived from the |tier| line (champions-regmb). Nothing joined the two, so no consumer could ask
+ * "is this row from the regulation we are modelling".
+ *
+ * DERIVED TWICE FROM TWO INDEPENDENT FIELDS, AND THEY MUST AGREE. The label goes through the SAME
+ * formatToken() above that stamped every row; the Showdown id contributes its own trailing reg
+ * token. A regulation added with a mistyped label, or with an id and a label naming different
+ * regulations, is a THROW here rather than a silently empty corpus downstream — the whole point of
+ * this seam is that a rotation must not be able to fail quietly. */
+function activeStoreFormat(){
+  const r=JSON.parse(fs.readFileSync(path.join(__dirname,'..','data','regulations.json'),'utf8'));
+  const a=(r.regulations||{})[r.active]||{};
+  const fromLabel=formatToken(a.label||'');
+  const m=/reg([a-z0-9]+)$/.exec(String(a.showdownFormat||''));
+  const fromId=m?'champions-reg'+m[1]:null;
+  if(!fromId) throw new Error('durable-ingest.activeStoreFormat: data/regulations.json active="'+r.active
+    +'" has no showdownFormat ending in a reg token, so the store token cannot be derived from it.');
+  if(fromLabel!==fromId) throw new Error('durable-ingest.activeStoreFormat: the label and the Showdown id '
+    +'of active="'+r.active+'" derive DIFFERENT store tokens ('+fromLabel+' from the label "'+(a.label||'')
+    +'", '+fromId+' from "'+a.showdownFormat+'"). One of the two is wrong; fix data/regulations.json.');
+  return fromId;
+}
+
 function extract(id, uploadtime, text){
   const P={p1:{},p2:{}}, poke={p1:[],p2:[]}, brought={p1:new Set(),p2:new Set()}, lead={p1:[],p2:[]};
   const sets={};           // species -> {moves:Set, item, ability}
@@ -438,30 +497,8 @@ function extract(id, uploadtime, text){
   // information regime + format tags (bo3 is open team sheet; players may also agree to it)
   const tier=(text.match(/^\|tier\|(.+)$/m)||[])[1]||null;
   const openSheet=/\|showteam\|/.test(text) || /best of three|bo3/i.test(tier||'');
-  /* THE REGULATION IN THIS TAG WAS A CONSTANT, AND THE ONLY ALARM THAT WATCHES FOR A ROTATION READS
-   * THIS FIELD. Every Champions tier collapsed to the literal 'champions-regmb', so a Reg M-A replay
-   * stored as `champions-regmb` (measured 2026-08-31 on 51 of them), and on the day the next
-   * regulation ships its games would have been stamped with the OLD regulation's name too.
-   * build/triggers.js's formatTrigger compares the modal format across the store against the recent
-   * window; with one constant on both sides it can never differ, so the rotation alarm was dead by
-   * construction — the exact shape CLAUDE.md opens with, a capability absent while everything
-   * reports success.
-   *
-   * The regulation is IN the tier line Showdown writes, so it is read rather than assumed:
-   *   |tier|[Gen 9 Champions] VGC 2026 Reg M-B (Bo3)  ->  champions-regmb
-   *   |tier|[Gen 9 Champions] VGC 2026 Reg M-A (Bo3)  ->  champions-regma
-   * REG M-B IS BYTE-IDENTICAL TO WHAT THE CONSTANT PRODUCED, deliberately: relabelling the active
-   * regulation would make every new row differ from every stored row and fire the rotation alarm on
-   * a rotation that had not happened. triggers.js's own comment says an alarm that cries wolf on day
-   * one is worse than no alarm. This refines the label; it does not rename anything already true.
-   *
-   * A Champions tier with no readable Reg token keeps its own value rather than borrowing a
-   * regulation's — 'champions-reg?' is visibly a gap, 'champions-regmb' would be a false fact. */
-  const chReg=(tier||'').match(/\breg\s*([a-z0-9]+(?:-[a-z0-9]+)*)/i);
-  const fmt=(tier||'').toLowerCase().includes('champions')
-             ? 'champions-reg'+(chReg?chReg[1].toLowerCase().replace(/[^a-z0-9]/g,''):'?')
-           : /vgc/i.test(tier||'')?'vgc-'+((tier||'').match(/reg\w*\s*\w*/i)||['reg?'])[0].toLowerCase().replace(/[^a-z0-9]/g,'')
-           : 'other';
+  const fmt=formatToken(tier);
+
   return { id, date:new Date(uploadtime*1000).toISOString().slice(0,16).replace('T',' '),
     format:fmt, openSheet,
     p1:P.p1, p2:P.p2, winner:winner||null, forfeit, sheets,
@@ -619,6 +656,10 @@ async function main(){
     }
   }
   const idsSeen=items.length;                       // BEFORE dedupe: what the search endpoint offered
+  /* WHEN the pool was uploaded, captured BEFORE the dedupe below throws the already-stored rows
+     away — after a rotation EVERY offered id is already stored, so the deduped list is empty and
+     the only surviving evidence about the ladder is in the rows we are about to discard. */
+  const offeredTimes=items.map(x=>+x.uploadtime).filter(t=>t>0).sort((a,b)=>a-b);
   const seen=new Set(); items=items.filter(x=>!seen.has(x.id)&&seen.add(x.id)&&!have.has(x.id));
   const newIds=items.length;
   process.stderr.write(`already stored: ${have.size}; new to fetch: ${newIds}\n`);
@@ -651,9 +692,52 @@ async function main(){
       +`(>50%). The log endpoint is failing; the ids were found but the logs were not fetched.\n`);
     process.exitCode=1; return;
   }
-  if(newIds===0) process.stderr.write(`nothing new: the search offered ${idsSeen} id(s) and every one was already stored.\n`);
+  if(newIds===0){
+    /* ---- A ROTATED LADDER IS NOT A QUIET ONE, AND THIS IS THE ONLY PLACE THAT CAN TELL ---------
+     * The ZERO-GAIN guard above is keyed on `idsSeen===0` and is right about what it watches: a
+     * live format always fills page one, so an empty search is the search failing. A ROTATION does
+     * not look like that. The old format's pool keeps offering its rolling ~1,250 stale ids for as
+     * long as they are retained, so `idsSeen` stays high, every id is already stored, `newIds` is 0
+     * and this line printed "nothing new" and exited 0 — forever. The store simply stops growing,
+     * and the shrink guard checks MONOTONICITY, so a file that never changes never trips it. That
+     * is the exact shape CLAUDE.md opens with: a capability absent while everything reports success.
+     *
+     * THE DISCRIMINATOR IS THE AGE OF THE POOL, AND IT SCALES ITSELF. On a live ladder the newest
+     * offered replay is minutes old; on a rotated one the pool freezes and its newest replay only
+     * ages. Measured against the live endpoint 2026-09-08: 1,275 ids offered, newest 0.02 h old,
+     * whole pool spanning 22.50 h. So the bar is the pool's OWN span — no game has been played in
+     * longer than it takes this pool to turn over — which relaxes automatically as a format gets
+     * quieter (the same 1,250 replays then cover more time) and tightens as it gets busier.
+     *
+     * WITH A FLOOR, BECAUSE THE SPAN ALONE WOULD FIRE ON AN OVERNIGHT LULL. A format busy enough to
+     * turn its pool over in six hours would otherwise raise the alarm after six quiet hours, and a
+     * guard that cries wolf is one people learn to waive (build/triggers.js makes the same argument
+     * about the rotation alarm). The floor is 24 h: this store averages 40.7 games/hour over its
+     * last 14 days, so a 24-hour window with literally zero replays is about a thousand missing
+     * games. STALE_LADDER_HOURS overrides it.
+     *
+     * IT REPORTS; IT DOES NOT DECIDE. What follows a rotation is a judgement — archive, add the
+     * regulation, flip `active` — and `node engine/next_regulation.js --checklist` prints the
+     * ordered steps. This guard's whole job is that the day it happens cannot pass unnoticed. */
+    const now=Date.now()/1000;
+    const newestAgeH=offeredTimes.length?(now-offeredTimes[offeredTimes.length-1])/3600:null;
+    const spanH=offeredTimes.length?(offeredTimes[offeredTimes.length-1]-offeredTimes[0])/3600:0;
+    const floorH=+(process.env.STALE_LADDER_HOURS||24);
+    const bar=Math.max(spanH,floorH);
+    if(newestAgeH!==null && newestAgeH>bar){
+      process.stderr.write(`STALE-LADDER: the search offered ${idsSeen} id(s) for ${FORMATS.join(',')}, every one `
+        +`already stored, and the NEWEST replay in that pool is ${newestAgeH.toFixed(1)} h old (the pool spans `
+        +`${spanH.toFixed(1)} h; the bar is ${bar.toFixed(1)} h). A quiet ladder still uploads; a pool whose `
+        +`newest replay is older than its own turnover is a ladder that has stopped. If the regulation has `
+        +`rotated: node engine/next_regulation.js --checklist\n`);
+      process.exitCode=1; return;
+    }
+    process.stderr.write(`nothing new: the search offered ${idsSeen} id(s) and every one was already stored`
+      +(newestAgeH!==null?`; the newest is ${newestAgeH.toFixed(1)} h old, so the ladder is quiet and not stopped`:'')
+      +`.\n`);
+  }
 }
 if(require.main===module) main();
 /* archiveThenStore is EXPORTED so a second ingest path cannot quietly grow its own ordering. Any
  * caller that has fetched logs writes them through this and inherits both halves of the invariant. */
-module.exports={extract,archiveThenStore};
+module.exports={extract,archiveThenStore,formatToken,activeStoreFormat};

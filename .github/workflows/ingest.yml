@@ -144,7 +144,11 @@ jobs:
       # value — so a dead replay API and a quiet hour both printed "appended 0 games" and exited 0.
       # The collector reported success for as long as it liked. durable-ingest.js now separates them
       # (the search offering ZERO ids cannot be a quiet ladder: the pool is a rolling ~1,250 per
-      # format, so a live format always fills page one) and exits non-zero. The pull steps keep
+      # format, so a live format always fills page one) and exits non-zero. A ROTATION is a third
+      # state and was invisible to both of them until 2026-09-08: the old format keeps offering its
+      # ~1,250 stale ids forever, so idsSeen is never 0, every id is already stored, and the store
+      # simply stops growing while this monotonicity guard stays green — a file that never changes
+      # never shrinks. durable-ingest.js now separates that too (STALE-LADDER). The pull steps keep
       # continue-on-error so the run still commits whatever it did get; THIS step is what fails.
       - name: Refuse to proceed if a store shrank
         run: |
@@ -179,13 +183,17 @@ jobs:
           done
 
           # THE PULL STEPS' REAL OUTCOME. continue-on-error hides it from the run's conclusion; it
-          # must not hide it from a human. A non-zero exit here means durable-ingest.js PROVED the
-          # endpoint was broken — not that it found nothing.
+          # must not hide it from a human. A non-zero exit here means durable-ingest.js PROVED that
+          # this was not a quiet ladder — either the endpoint was broken or the format has stopped —
+          # never merely that it found nothing.
           for o in "ladder:${{ steps.pull_ladder.outcome }}" "bo3:${{ steps.pull_bo3.outcome }}"; do
             k="${o%%:*}"; v="${o#*:}"
             if [ "$v" = "failure" ]; then
-              echo "::error::the $k pull reported a BROKEN ENDPOINT (durable-ingest.js exited non-zero)."
-              echo "::error::this is not a quiet ladder — read that step's 'ZERO-GAIN' line for which endpoint failed."
+              echo "::error::the $k pull exited non-zero: the endpoint was BROKEN, or the ladder has ROTATED."
+              echo "::error::this is not a quiet ladder. Read that step's 'ZERO-GAIN' line (the search offered"
+              echo "::error::no ids at all, so the endpoint failed) or its 'STALE-LADDER' line (the pool is full,"
+              echo "::error::every id is already stored, and its newest replay is older than the pool's own"
+              echo "::error::turnover — the format has stopped). For a rotation: node engine/next_regulation.js --checklist"
               fail=1
             fi
           done

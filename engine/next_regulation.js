@@ -383,13 +383,136 @@ function report(res) {
   }
 }
 
+/* ---- THE FLIP IS ONE EDIT AND IT MOVES EVERYTHING AT ONCE ---------------------------------------
+ *
+ * Setting `active` in data/regulations.json simultaneously re-points the ladder collector, re-labels
+ * data/meta-usage.json (which CHOMP reads), re-points CS.FORMAT for both live bots, and re-points the
+ * simulator at a format the pinned checkout may not carry. NOTHING SEQUENCES THOSE, and the report
+ * above deliberately leaves the edit to a person — correctly, but a person with no procedure.
+ *
+ * THE BLAST RADIUS IS DERIVED, THE ORDER IS A JUDGEMENT. The file list below is read out of the
+ * source on every run, so it cannot go stale the way a typed checklist would (this repository's
+ * fourteen handoffs and its ban list of four are what a typed one is worth). The ORDER is prose,
+ * because it follows the invalidation graph in docs/DIVISIONS.md and no scan can derive that.
+ *
+ * IT IS A PROCEDURE, NOT A GATE. Nothing here refuses anything; the gates that do are named in it. */
+const UNREADABLE_DIRS = [];
+function readersOfActive() {
+  const dirs = ['engine', 'build', 'tests', 'web', path.join('.github', 'workflows')];
+  const direct = [], viaSim = [];
+  const walk = (d, out = []) => {
+    let ents = [];
+    try { ents = fs.readdirSync(d, { withFileTypes: true }); }
+    catch (e) {
+      /* NOT SILENT. A directory this cannot read is a BLIND SPOT IN THE BLAST RADIUS, and the
+       * whole point of the checklist is that it derives the radius rather than listing it. A
+       * silent skip would under-report what the flip touches, which is the one failure this
+       * procedure exists to prevent. */
+      UNREADABLE_DIRS.push(d + ': ' + e.message);
+      return out;
+    }
+    for (const e of ents) {
+      if (e.isDirectory()) { if (!['node_modules', '.git'].includes(e.name)) walk(path.join(d, e.name), out); }
+      else if (/\.(js|py|yml|yaml)$/.test(e.name)) out.push(path.join(d, e.name));
+    }
+    return out;
+  };
+  for (const dir of dirs) {
+    for (const f of walk(path.join(ROOT, dir))) {
+      const rel = path.relative(ROOT, f).replace(/\\/g, '/');
+      if (rel.startsWith('engine/next_regulation')) continue;      // this file and its ingest
+      let t = '';
+      /* NOT SILENT, same reason as the directory walk: a file this cannot read is a file whose
+       * relationship to the flip is UNKNOWN, not absent. */
+      try { t = fs.readFileSync(f, 'utf8'); }
+      catch (e) { UNREADABLE_DIRS.push(rel + ': ' + e.message); continue; }
+      /* A READ, not a mention: the config name on the same line as a read or a require. Prose about
+       * data/regulations.json is not a reader, and several files in this repository carry a lot of it. */
+      const reads = t.split('\n').some(l => /regulations\.json/.test(l) && /(readFileSync|require|json\.load|open\()/i.test(l));
+      const usesFormat = /champions_sim/.test(t) && /(\.FORMAT\b|dexFor\s*\()/.test(t);
+      const writesData = /writeFileSync/.test(t) && /['"`]?data\//.test(t);
+      const net = /(replay|play)\.pokemonshowdown\.com/.test(t);
+      if (reads) direct.push({ rel, writesData, net });
+      else if (usesFormat) viaSim.push({ rel, writesData, net });
+    }
+  }
+  const bySize = (a, b) => a.rel.localeCompare(b.rel);
+  return { direct: direct.sort(bySize), viaSim: viaSim.sort(bySize) };
+}
+
+function checklist(res) {
+  const R = readersOfActive();
+  console.log('THE FLIP — what must happen in the same pass, and in this order\n');
+  const viaWriters = R.viaSim.filter(x => x.writesData).length;
+  console.log(`  ${R.direct.length} file(s) read data/regulations.json directly. ${R.viaSim.length} more take the`);
+  /* A COUNTER NOTHING READS IS NOT A COUNTER. An unreadable directory is a hole in a radius
+   * this command exists to DERIVE, so it is named here rather than skipped. */
+  if (UNREADABLE_DIRS.length) console.log('  ' + UNREADABLE_DIRS.length
+    + ' DIRECTORY/IES COULD NOT BE READ, so the radius below is INCOMPLETE: '
+    + UNREADABLE_DIRS.join('; '));
+  console.log(`  format from champions_sim (CS.FORMAT / dexFor), ${viaWriters} of which write a data/ artifact —`);
+  console.log('  those need no edit and are not listed: they follow the config by construction, which is');
+  console.log('  exactly why one edit has this blast radius.\n');
+  console.log('  The DIRECT readers that write an artifact are the ones to run and check by hand:\n');
+  for (const f of R.direct.filter(x => x.writesData)) console.log(`    WRITES   ${f.rel}${f.net ? '   [network]' : ''}`);
+  const quiet = R.direct.filter(x => !x.writesData);
+  console.log(`\n  and ${quiet.length} direct reader(s) write nothing: ` +
+    quiet.map(f => f.rel).join(', ') + '\n');
+
+  const steps = [
+    ['ARCHIVE THE OUTGOING REGULATION FIRST — it is the one unrecoverable step.',
+      ['node build/triggers.js            # says whether the archive is already due',
+       'node build/archive-regulation.js  # snapshots store + raw logs + models into data/archive/<reg>/']],
+    ['ASK WHETHER THE NEW FORMAT IS SIMULATABLE, NOT MERELY COLLECTABLE. These are two different',
+      ['authorities and the pinned checkout LAGS the server by days.',
+       'node engine/next_regulation.js    # "collectable, NOT simulatable" means pull pokemon-showdown first',
+       'node engine/champions_sim.js      # must print FOUND for the NEW id after the flip;',
+       '                                  # champions_sim.dexFor REFUSES an unknown id, so 228 call sites stop']]  ,
+    ['EDIT data/regulations.json: paste the block this script prints, then set "active".',
+      ['The label and the Showdown id must name the SAME regulation —',
+       'engine/durable-ingest.js activeStoreFormat() throws if they disagree, because the store rows',
+       'are keyed on a token derived from the label.']],
+    ['REBUILD WHAT THE FORMAT DECIDES, in the same pass. Every one of these is a frozen release source',
+      ['or an input to one, so a release cut before they settle freezes the previous regulation:',
+       'node build/build_browser_data.js         # data/mega-formes.js, data/move-effects.js',
+       'node engine/switchin_order.js --write    # data/switchin-order.json',
+       'node engine/tag_dex.js && node build/build_tags_js.js   # data/tags.json, data/abra-tags.js',
+       'node build/build_engine_data.js && node engine/merge_mega_into_engine.js  # data/engine-data.js',
+       'node engine/artifact_audit.js            # check H FAILS until every new mega has a row with bs']],
+    ['RE-POINT THE STORE AND THE MODEL.',
+      ['The new regulation has been collected into data/games.<newformat>.jsonl since the day it shipped',
+       '(engine/next_regulation_ingest.js). Decide which store is "the ladder" and say so.',
+       'node engine/analyze.js                   # REFUSES if the store holds no row of the active regulation',
+       'node build/triggers.js                   # the rotation alarm can only fire once rows carry the new token']],
+    ['ONLY THEN CUT A RELEASE AND RE-MEASURE.',
+      ['Every release cut before this describes the previous regulation.',
+       'node engine/status.js                    # what is stale, what is quarantined, what is owed',
+       'node engine/provenance.js']],
+  ];
+  steps.forEach(([head, rest], i) => {
+    console.log(`  ${i + 1}. ${head}`);
+    for (const l of rest) console.log('     ' + l);
+    console.log('');
+  });
+
+  const blk = configBlock(res);
+  if (blk) {
+    console.log('  The block to paste at step 3, read off the authority:');
+    console.log(JSON.stringify(blk, null, 2).split('\n').map(l => '    ' + l).join('\n'));
+  } else {
+    console.log('  No candidate regulation is live yet, so there is no block to paste at step 3.');
+  }
+}
+
 async function main() {
   const net = !process.argv.includes('--no-net');
   const res = await detect({ net });
   if (process.argv.includes('--json')) { console.log(JSON.stringify(res, null, 1)); return; }
+  if (process.argv.includes('--checklist')) { checklist(res); return; }
   report(res);
   console.log('');
   console.log('  (report only — the artifact is written by engine/next_regulation_ingest.js)');
+  console.log('  node engine/next_regulation.js --checklist   what the flip itself must move, in order');
 }
 
 if (require.main === module) main();
