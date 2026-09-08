@@ -1,0 +1,60 @@
+{
+  "written": "2026-09-08",
+  "by": "ENGINE",
+  "topic": "order_probe :: |move|p2a|closecombat <> |move|p2b|tailwind, speed gap 286, same priority",
+  "written_before": "any fix to engine/medicham2-browser.js and any re-run of engine/game_differential.js",
+
+  "what_was_already_measured_before_this_prediction": [
+    "The failing pool row is config omit-weather, seed gen9championsvgc2026regmbbo3-2655813620 vs -2655861625, turn 2, index 30.",
+    "Its showdown_before block is: Incineroar Parting Shot on Sneasler (-1 atk, -1 spa), the pivot switch to Rotom-Mow, then |-enditem|p2a: Sneasler|White Herb and |-clearnegativeboost|. Sneasler holds White Herb and Unburden on the pool sheet (derived from data/team-pool-frozen/games.bo3.jsonl).",
+    "A staged reconstruction (Morpeko @ Choice Scarf Parting Shot into Sneasler @ White Herb / Unburden, ally Dragapult clicking Tailwind) reproduces the identical shape: showdown runs Sneasler's move next, medicham2 runs Dragapult's Tailwind next.",
+    "Instrumenting Battle.prototype.runAction shows the authority's queue reading `Sneasler@344, Dragapult@184` immediately after `runSwitch Snorlax` — the re-sort at sim/battle.ts:2915-2923 sees the doubled Speed.",
+    "medicham2's own counters on that same game (read off the harness's module via REL.require) read queueResorted 2, queueResortChangedOrder 0 — the re-sort RAN and saw no speed change."
+  ],
+
+  "hypotheses_being_predicted": {
+    "gale_wings": "REFUTED for this row. Neither body carries Gale Wings; Sneasler's abilities are Pressure/Unburden/Poison Touch and Aerodactyl's are Rock Head/Pressure/Unnerve (derived). Talonflame is not in either sheet.",
+    "prankster": "REFUTED for this row. Tailwind's user is Aerodactyl (Unnerve). Prankster is not on the field.",
+    "actual_cause": "medicham2 calls _resortTail(actIdx) ABOVE _updateAll() in the action loop, while the authority's re-sort is the LAST statement of runAction (sim/battle.ts:2915-2923), below eachEvent('Update') (:2856). The mid-turn White Herb spend lives in _updateAll()'s restoreStatsAll, so the Unburden doubling lands one action too late to reach the sort."
+  },
+
+  "predictions": [
+    {
+      "id": "P1",
+      "claim": "A new probe staging the Parting Shot / White Herb / Unburden fixture is RED on the live engine before any edit — medicham2 moves the ally before the Unburden body, showdown moves the Unburden body first.",
+      "confidence": "high — already reproduced by hand"
+    },
+    {
+      "id": "P2",
+      "claim": "Moving the _resortTail(actIdx) call to below _updateAll() (leaving the _phasesDue gate read where it is) makes that probe green with no other engine change.",
+      "confidence": "high"
+    },
+    {
+      "id": "P3",
+      "claim": "The pinned differential's order_probe goes 1 -> 0 and the --order-probe clause turns green.",
+      "confidence": "medium-high"
+    },
+    {
+      "id": "P4",
+      "claim": "Board-material stays 0 of 958.",
+      "confidence": "high"
+    },
+    {
+      "id": "P5",
+      "claim": "Narration falls from 53 of 961 to 52, i.e. exactly the one game leaves. Nothing else in first_divergences has this shape (the other 13 ordering rows are residual/reaction orderings, not a move-vs-move pair).",
+      "confidence": "medium — a re-sort moved one action earlier can reorder other games too, in either direction"
+    },
+    {
+      "id": "P6",
+      "claim": "The census stays at 830/830 and no roster stage regresses.",
+      "confidence": "high"
+    },
+    {
+      "id": "P7",
+      "claim": "Gale Wings CAN be staged: Talonflame is its only legal carrier and does learn a Flying-type move the delivery table will accept once the pick is learnset-aware. The full-HP condition holds — a Talonflame below full HP must lose the bracket.",
+      "confidence": "medium — the roster's refusal is about the DELIVERY table, not about the ability"
+    }
+  ],
+
+  "how_a_miss_is_recorded": "Every prediction above is scored in docs/_reports/2026-09-08-gap-286-ordering.md with the measured number beside it, whether it hit or missed."
+}

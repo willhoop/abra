@@ -1,17 +1,17 @@
 {
- "generated": "2026-09-08T17:29:23.508Z",
+ "generated": "2026-09-08T20:20:37.639Z",
  "by": "tests/roster.js",
  "stage": "items",
  "swap_leaf_correction": {
   "self_describing_dropped": 0,
   "real_ability_rewrite_kept": 0
  },
- "engine_release": "1415f271058e",
- "engine_release_cut": "2026-09-08T16:10:12.708Z",
- "engine_release_cuts": 12,
+ "engine_release": "7f012a9afe01",
+ "engine_release_cut": "2026-09-08T19:21:57.561Z",
+ "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "8bdea30dbb42",
+  "engine/medicham2-browser.js": "fbbd41673b32",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "622482051bf4",
@@ -44,353 +44,36 @@
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
   "DEFERRED-BY-OWNER": 0,
-  "FIRED-AND-BOARDS-MATCH": 140,
+  "FIRED-AND-BOARDS-MATCH": 142,
   "CONTROL-NOT-QUIET": 0,
-  "COULD-NOT-STAGE": 8
+  "COULD-NOT-STAGE": 6
  },
  "arms_played": {
-  "top-tie-first": 316
+  "top-tie-first": 284
  },
  "scope": {
   "total": 148,
   "out_of_scope": 0,
   "out_of_scope_by": {},
   "in_scope": 148,
-  "tested": 140,
-  "matched": 140,
+  "tested": 142,
+  "matched": 142,
   "differ": 0,
   "silent": 0,
   "deferred": 0,
   "unattributable": 0,
   "unattributable_ids": [],
   "declared_untestable": [],
-  "could_not_stage_in_scope": 8,
+  "could_not_stage_in_scope": 6,
   "attributed_by_second_control": []
  },
  "plant_anchors": {
-  "release": "1415f271058e",
+  "release": "7f012a9afe01",
   "checked": 18,
   "dead": [],
-  "reds_ran": true
+  "reds_ran": false
  },
- "reds": [
-  {
-   "rule": "item/mega-stone",
-   "ok": true,
-   "why": "the mega transformation is skipped — the choice is still made and still accepted, so only the FORME goes missing",
-   "moved": {
-    "member": "abomasite",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.species",
-     "species"
-    ]
-   }
-  },
-  {
-   "rule": "item/resist-berry",
-   "ok": true,
-   "why": "the resist berry stops halving anything — it is still held, still read, and the multiplier is dropped",
-   "moved": {
-    "member": "babiriberry",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/drain-scaled",
-   "ok": true,
-   "why": "the item stops scaling the drain heal — the damage and the drain both still happen",
-   "moved": {
-    "member": "bigroot",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/type-scoped-power",
-   "ok": true,
-   "why": "the type-scoped item multiplier is dropped entirely",
-   "moved": {
-    "member": "blackbelt",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/accuracy-scaled",
-   "ok": true,
-   "why": "the accuracy modifier row is dropped, so every holder reads as untabled",
-   "moved": {
-    "member": "brightpowder",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/status-cure",
-   "ok": true,
-   "why": "the status cure is skipped — the berry is still held",
-   "moved": {
-    "member": "cheriberry",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.status",
-     "party.item",
-     "status",
-     "item"
-    ]
-   }
-  },
-  {
-   "rule": "item/speed-scaled",
-   "ok": true,
-   "why": "the item speed multiplier is dropped from the speed used to order the turn",
-   "moved": {
-    "member": "choicescarf",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "party.fainted",
-     "party.status",
-     "hp",
-     "fainted",
-     "status",
-     "species",
-     "maxhp",
-     "item",
-     "types",
-     "ability",
-     "vol.choicelock",
-     "pp.flamethrower"
-    ]
-   }
-  },
-  {
-   "rule": "item/extends-a-duration",
-   "ok": true,
-   "why": "the duration extension is dropped and the base length is written instead",
-   "moved": {
-    "member": "damprock",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "field.weather_turns"
-    ]
-   }
-  },
-  {
-   "rule": "item/super-effective-power",
-   "ok": true,
-   "why": "the super-effective damage multiplier is dropped",
-   "moved": {
-    "member": "expertbelt",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/hp-floor",
-   "ok": true,
-   "why": "the HP floor stops holding the body up — the item is still held and still read",
-   "moved": {
-    "member": "focussash",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "party.fainted",
-     "party.status",
-     "species",
-     "hp",
-     "maxhp",
-     "types",
-     "ability",
-     "vol.focusenergy",
-     "pp.focusenergy",
-     "pp.xscissor"
-    ]
-   }
-  },
-  {
-   "rule": "item/residual-heal",
-   "ok": true,
-   "why": "the passive heal is skipped — the item is still held and still on the board",
-   "moved": {
-    "member": "leftovers",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/all-damage-and-cost",
-   "ok": true,
-   "why": "the flat damage multiplier is dropped; the self-cost is left alone, so a break that moves only the target's HP is the localisation",
-   "moved": {
-    "member": "lifeorb",
-    "verdict": "FIRED-AND-BOARDS-DIFFER",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/species-locked-stat",
-   "ok": true,
-   "why": "the species-locked stat multiplier is dropped — the item is still held and still read",
-   "moved": {
-    "member": "lightball",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/cures-a-volatile",
-   "ok": true,
-   "why": "the volatile cure is skipped",
-   "moved": {
-    "member": "mentalherb",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.item",
-     "item",
-     "vol.taunt",
-     "vol.focusenergy",
-     "pp.focusenergy"
-    ]
-   }
-  },
-  {
-   "rule": "item/category-scoped-power",
-   "ok": true,
-   "why": "the category-scoped base-power multiplier is dropped (it is a hardcoded NAME check in the simulator, not a tag read — see the rule comment)",
-   "moved": {
-    "member": "muscleband",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/heals-at-threshold",
-   "ok": true,
-   "why": "the threshold heal is skipped",
-   "moved": {
-    "member": "oranberry",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "party.item",
-     "hp",
-     "item"
-    ]
-   }
-  },
-  {
-   "rule": "item/heal-on-attack",
-   "ok": true,
-   "why": "the after-attack heal is dropped — the attack still lands for the same damage",
-   "moved": {
-    "member": "shellbell",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "item/restores-lowered-stats",
-   "ok": true,
-   "why": "the stat restoration is skipped",
-   "moved": {
-    "member": "whiteherb",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.item",
-     "party.boosts.atk",
-     "item",
-     "boosts.atk"
-    ]
-   }
-  }
- ],
+ "reds": [],
  "mirror": {
   "pairs": 0,
   "same_numbers_swapped": []
@@ -3997,7 +3680,7 @@
    "reads": null,
    "note": null,
    "verdict": "COULD-NOT-STAGE",
-   "why": "its effect is a 10% chance, and the driver's pin makes every sub-100% roll fail in both engines (game_differential.js PRIMARY_ARM: \"no secondary fires\"). Nothing staged here could distinguish a wired mechanic from an absent one.",
+   "why": "its effect is a 10% chance, and this file pins `PRIMARY_ARM_ID = \"top-tie-first\"` (tests/roster.js), the corner on which every sub-100% roll fails in both engines. Nothing staged on that corner could distinguish a wired mechanic from an absent one. THE ROUTE THAT WOULD REACH IT EXISTS AND THIS ROW IS NOT ON IT YET: the live-die lane (`arm: \"middle\"` with a coin receipt) was added 2026-09-07 and eight ability rules declare it; no item rule does.",
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": null,
@@ -5799,7 +5482,7 @@
    "reads": null,
    "note": null,
    "verdict": "COULD-NOT-STAGE",
-   "why": "its effect is a 10% chance, and the driver's pin makes every sub-100% roll fail in both engines (game_differential.js PRIMARY_ARM: \"no secondary fires\"). Nothing staged here could distinguish a wired mechanic from an absent one.",
+   "why": "its effect is a 10% chance, and this file pins `PRIMARY_ARM_ID = \"top-tie-first\"` (tests/roster.js), the corner on which every sub-100% roll fails in both engines. Nothing staged on that corner could distinguish a wired mechanic from an absent one. THE ROUTE THAT WOULD REACH IT EXISTS AND THIS ROW IS NOT ON IT YET: the live-die lane (`arm: \"middle\"` with a coin receipt) was added 2026-09-07 and eight ability rules declare it; no item rule does.",
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": null,
@@ -5885,13 +5568,13 @@
    "id": "leppaberry",
    "name": "Leppa Berry",
    "rule": "item/pp-restore",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "its whole effect is on PP, and board_state.js does not compare PP in either engine (medicham2 does not track it at all), so there is no board leaf it could move",
+   "reads": "restoresPP — the amount and the empty-slot preference, off the item's own tag params",
+   "note": "Charizard holds Leppa Berry and clicks Dragon Pulse at Clefable, which is IMMUNE to Dragon — so the click spends PP and moves nothing else. `pp.max` for Dragon Pulse is 12, so the slot empties on turn 12 and the berry answers in that same update pass. The compared leaves are `pp.dragonpulse` (SPENT — the subject gets its amount back, the control does not) and the holder's `item`.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "charizard",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -5903,7 +5586,14 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 12,
+     "path": "p2.pp[0].dragonpulse",
+     "with": 2,
+     "without": 12
+    }
+   ],
    "diffs": []
   },
   {
@@ -7945,7 +7635,7 @@
    "reads": null,
    "note": null,
    "verdict": "COULD-NOT-STAGE",
-   "why": "its effect is a 20% chance, and the driver's pin makes every sub-100% roll fail in both engines (game_differential.js PRIMARY_ARM: \"no secondary fires\"). Nothing staged here could distinguish a wired mechanic from an absent one.",
+   "why": "its effect is a 20% chance, and this file pins `PRIMARY_ARM_ID = \"top-tie-first\"` (tests/roster.js), the corner on which every sub-100% roll fails in both engines. Nothing staged on that corner could distinguish a wired mechanic from an absent one. THE ROUTE THAT WOULD REACH IT EXISTS AND THIS ROW IS NOT ON IT YET: the live-die lane (`arm: \"middle\"` with a coin receipt) was added 2026-09-07 and eight ability rules declare it; no item rule does.",
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": null,
@@ -9016,13 +8706,13 @@
    "id": "shedshell",
    "name": "Shed Shell",
    "rule": "item/trapping-escape",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "it undoes TRAPPING, which needs a voluntary switch to observe; the script language has no switch action and board_state.js does not compare ability trapping at all",
+   "reads": "onTrapPokemon / onMaybeTrapPokemon",
+   "note": "Venusaur lays Block on Charizard on turn 1; on turn 2 the holder asks to leave for Beedrill. WITH Shed Shell it must go, and the CONTROL — the same game with the item stripped — must be REFUSED by the authority and refused by us. Charizard is not a Ghost type (Ghosts ignore trapping outright, which would make both arms leave).",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": "THE HOLDER LEFT IN BOTH ENGINES AND THE SAME ASK WITHOUT THE ITEM WAS REFUSED IN BOTH. Beedrill stands in the slot on both sides; the authority rejected the control choice (p2 choice rejected p2 \"switch 3, move 1\": Can't switch: The active Pokémon is trapped   [the last of) and medicham2 kept the body there.",
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "charizard",
    "dice": null,
    "coin": null,
    "coin_shared": false,

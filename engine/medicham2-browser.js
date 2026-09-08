@@ -1243,6 +1243,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *   queueResortChangedOrder  and the re-sort actually MOVED the next body -- a trigger whose sorts
    *                            are all no-ops is indistinguishable from no trigger at all. */
   queueResorted: 0, queueResortHeldNotAMove: 0, queueResortChangedOrder: 0,
+  /* 2026-09-08 -- the re-sort TRIGGER fired from its authority-faithful position, below the Update
+   * pass that closes the previous action. Zero here with a non-zero `queueResorted` means every
+   * re-sort came from the mega phase, i.e. the loop-top trigger is not running at all. */
+  queueResortBelowUpdate: 0,
   /* ROADMAP #311 -- THE PRIORITY BRACKET IS RE-DERIVED ON EVERY RE-SORT, and these are split apart
    * because one merged counter could not tell a fix from a no-op.
    *   bracketRederived         a queued action whose bracket was recomputed at a re-sort. This is the
@@ -15067,6 +15071,13 @@ const STATUS_CHIP_UNSCALED=(typeof process!=='undefined'&&process.env&&process.e
  * an entry White Herb is spent one whole action before the mega. Any run carrying the knob also
  * carries a non-zero `MEDFAILS.megaBeforeUpdateRestored`. */
 const MEGA_BEFORE_UPDATE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_MEGA_BEFORE_UPDATE==='1');
+/* 2026-09-08 -- MEDI_RESORT_BEFORE_UPDATE=1 RUNS THE POST-ACTION RE-SORT ABOVE `_updateAll()` AGAIN,
+ * i.e. before the pass that spends a mid-turn White Herb, exactly as this engine did until today.
+ * The authority's re-sort is the LAST statement of `runAction` (sim/battle.ts:2915-2923) and
+ * `eachEvent('Update')` is at :2856, so an `onUpdate` item is settled BEFORE the remaining queue is
+ * sorted -- which is the whole of Unburden's mid-turn speed tier. Any run carrying the knob also
+ * carries a non-zero `MEDFAILS.resortBeforeUpdateRestored`. */
+const RESORT_BEFORE_UPDATE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_RESORT_BEFORE_UPDATE==='1');
 /* 2026-09-06 -- MEDI_PICKPOCKET_ON_A_CORPSE=1 LETS A THIEF THAT DIED TO THE CONTACT HIT STILL STEAL,
  * exactly as this engine did until today. `runEvent` skips an Ability handler whose holder answers
  * `ignoringAbility()`, and that function opens `if (this.battle.gen >= 5 && !this.isActive) return
@@ -26697,8 +26708,20 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(MEGA_BEFORE_UPDATE&&_phasesDue){MEDFAILS.megaBeforeUpdateRestored=1;_megaPhase(actIdx);_chargePhase(actIdx);}
       /* ROADMAP #240 -- the post-action re-sort, gated on the head of the live queue. `actIdx > 0`
        * because nothing has happened yet before the first action: the top-of-turn sort IS the
-       * authority's `commitChoices` sort, and `runAction` has not run. See `_resortTail`. */
-      if(actIdx>0)_resortTail(actIdx);
+       * authority's `commitChoices` sort, and `runAction` has not run. See `_resortTail`.
+       *
+       * 2026-09-08 -- AND THE CALL NOW SITS BELOW `_updateAll()`, WHICH IS WHERE THE AUTHORITY PUTS
+       * IT. The re-sort is the LAST statement of `runAction` (sim/battle.ts:2915-2923) and
+       * `eachEvent('Update')` is at :2856, so an `onUpdate` item is spent BEFORE the remaining queue
+       * is sorted. This engine sorted first, so a White Herb spent by the Update pass that closes a
+       * PIVOT SWITCH -- the herb's `onAnySwitchIn` door, which reaches this engine only through
+       * `restoreStatsAll` inside `_updateAll` -- handed Unburden its doubling one whole action after
+       * the sort that needed it. Measured: order_probe row `ordering :: |move|p2a|closecombat <>
+       * |move|p2b|tailwind`, gap 286 at equal priority, the last unequal-speed pair in the pinned
+       * 961-game run; and on the staged fixture the live engine read `queueResorted 2,
+       * queueResortChangedOrder 0` -- the sort RAN and the item was still in the hand when it looked.
+       * `tests/probe_midturn_herb_resort.js`; `MEDI_RESORT_BEFORE_UPDATE=1` restores the old place. */
+      if(RESORT_BEFORE_UPDATE&&actIdx>0){MEDFAILS.resortBeforeUpdateRestored=1;_resortTail(actIdx);}
       /* ROADMAP #81 WIRE 7 -- `eachEvent('Update')`, THE THING THAT MAKES A BERRY A BERRY.
        *
        * Showdown runs it after every action (sim/battle.ts:2858, gen >= 5). Running it at the TOP of
@@ -26741,6 +26764,13 @@ function battleTurn(S,rng,actsForA,actsForB){
        * one there: the loop-top schedule cannot see the action that ended it. */
       if(sideWiped(S)){MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedMidAction++;break _TURN;}
       _updateAll();
+      /* 2026-09-08 -- ...AND THE POST-ACTION RE-SORT RUNS HERE, below the Update pass and above the
+       * mega phase, which is the authority's own order: `eachEvent('Update')` at sim/battle.ts:2856,
+       * the re-sort at :2915-2923 as the last statement of `runAction`, and the megaEvo action (queue
+       * order 104) is the NEXT action after that. `_megaPhase` still calls `_resortTail` itself at its
+       * end, so a mega's new Speed still gets this turn's move order. The gate `_phasesDue` is still
+       * read where it always was, above, for the reason its own header gives. */
+      if(!RESORT_BEFORE_UPDATE&&actIdx>0){MEDSEEN.queueResortBelowUpdate++;_resortTail(actIdx);}
       /* ...AND THE MEGA / CHARGE PHASES RUN HERE, one line below the Update pass that closes the
        * previous action. See the gate above for why the CONDITION is read up there and only the call
        * is deferred. ROADMAP #322's "104 THEN 107" ordering is preserved exactly. */

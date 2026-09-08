@@ -50,7 +50,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_pivot_after_battle_end.js`, `tests/probe_status_chip_scaled.js`,
 `tests/probe_entry_update_before_mega.js`, `tests/probe_pickpocket_on_a_corpse.js`,
 `tests/probe_hazard_sweep_order.js`, `tests/probe_residual_faint_flush.js`,
-`tests/probe_unknown_format_refusal.js`, `tests/probe_protect_tie_order.js`
+`tests/probe_unknown_format_refusal.js`, `tests/probe_protect_tie_order.js`,
+`tests/probe_midturn_herb_resort.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -70,6 +71,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
 |---|---|---|
+| `probe_midturn_herb_resort.js` | is the post-action re-sort the LAST thing in the action, the way `Battle#runAction` puts it (`sim/battle.ts:2915-2922`, below `eachEvent('Update')` at `:2856`) — so an `onUpdate` item spent by the pass that CLOSES a pivot switch reaches the sort that follows it. The cast is derived from `data/tags.json` on every run (`speedOnItemLoss`, `restoresStats`) and from the format (the one self-switch Status move aimed at a foe), never named; 37 candidate boards are enumerated and each is accepted only when the AUTHORITY's own `getActionSpeed()` readings satisfy all three inequalities the probe rests on — holder slower than its ally, twice the holder faster than the ally, the pivot faster than both — with a refusal printed BY NAME per clause, because a COULD-NOT-STAGE is a claim about the fixture. Three arms: REAL (the speed ability), SILENT (a non-speed ability on the SAME body, which must go the other way in BOTH engines), and `MEDI_RESORT_BEFORE_UPDATE=1` in a child, which must part the real arm and move the silent one not at all. It also reads the differential's boundary-by-boundary speed comparison and asserts ZERO disagreeing readings in both knob positions, which is what localises the defect to WHEN the queue was sorted rather than to the number sorted on | the herb's OTHER doors — `onAnyAfterMove` and the entry spend are `probe_refill_entry_herb.js`'s and `probe_unburden_herb_paths.js`'s, and only the `onAnySwitchIn` door is staged here. Whether the re-sort's BRACKET re-derivation is right, which is `test-bracket-regain.js`'s. And any second `onUpdate` item racing the herb in the same pass, which no arm stages |
 | `probe_hazard_sweep_order.js` | does a `removesHazards` sweep run its clauses in the ORDER the handler runs them — the family is DERIVED off `data/tags.json` on every run and the file FAILS BY NAME if a carrier ever has a clause shape no arm stages. The three legal shapes disagree with each other and this engine had ONE order for all of them: the spin family is `leechseed -> own hazards -> partial trap`, Defog is `target screens -> target hazards -> own hazards -> terrain`, Tidy Up is `every doll -> own hazards -> foe hazards`. Nothing is typed — both engines play the identical script and the assertion is that the `(event, subject, effect)` SEQUENCE agrees; the CONTROL is the same body clicking a non-sweeping move, which must write no `-end`/`-sideend` in either engine. `MEDI_SWEEP_LEGACY_ORDER=1` restores the old order verbatim (it RELOCATES and skips nothing, so the board is identical under it) and the parent re-runs itself under the knob and FAILS if the child passes — it goes red on all three arms | the `[from] move: <Move>` ATTRIBUTION on the swept lines, which is PRINTED and not asserted: the authority attributes the spin family's and Defog's and leaves Tidy Up's bare, the discriminator is a HANDLER fact no param in `data/tags.json` carries, and deriving one needs `tag_dex.js`, which exhausts the heap. And the effect LABEL (`move: stealthrock` against `Stealth Rock`), which the differential's own `effect-namespace` equivalence collapses, so it is not a divergence by the instrument that decides the protocol number |
 | `probe_default_target_side.js` | when a move is SUBSTITUTED into an action — Encore at selection, Encore at execution (WIRE 143), or the called-move branch (Copycat / Metronome / Sleep Talk / Mirror Move) — does it take its target from its own target class, the way `Battle#getRandomTarget` answers `self`, `all`, `allySide`, `allyTeam`, `adjacentAllyOrSelf` and `adjacentAlly` BEFORE it ever looks at a foe. Twelve arms over two engines under the differential's own `middle` pin: six red (an Encored Helping Hand, mirrored whole, and again against the format's OTHER live priority refuser, and again with the refuser's ability traded away so only the wrong SIDE is left; an Encored Coaching, where no priority is involved and +1/+1 lands on a foe; and a COPIED Coaching, which is the second draw site and not Encore at all) and six controls (a plain clicked Helping Hand, which was NEVER broken; the foe axis clicked directly and again through the override; the far-side draw at priority 0 on both doors, which fails if a die moves; and a `self` move where the near-side branch fires and nothing may change). Nothing is typed — the four counted facts are read off BOTH streams and compared to each other, deliberately coarse (`cant` as holder-side/ability, a single-turn mark as side/label, a boost as side/stat/stage, the move line as move->side) so an arm cannot fail on a spelling difference between the narrators and cannot pass while a body on the wrong half of the field takes the effect | the 87 near-side moves whose aim `playerAction` discards before it reaches an action — Protect, Tailwind, Rain Dance and Wide Guard all return a kind carrying no target, so only the four `adjacentAlly` chooseables are observable from outside at all. And Instruct, which reaches the authority through `runMove(..., targetLoc)` rather than through `getRandomTarget` and is a different rule |
 | `probe_partingshot_conditional.js` | is a `selfSwitch` field a PROMISE or a DEFAULT the handler can take back — the ONE move in this format whose own `onHit` deletes it (`data/moves.ts:13180`, one hit in the whole dex) when its stat drop landed on NOBODY, with one ability named as an exception. Nineteen arms over two engines under the differential's own `middle` pin: five red across THREE doors (an ability refusing both stats, staged on two different bodies; the ALLY door, where the refusal is on the body beside the target and covers Grass types only; both stats at the STAT FLOOR, driven there over five turns with no ability anywhere; and one of each, which neither door reaches alone) and fourteen controls, every red paired with one on the SAME BODY. The controls are the half that matters, because a fix keyed on "a stat was refused" strands bodies that are correct today: a PARTIAL refusal, which `Battle#boost` counts as a SUCCESS; an INVERTED drop; a partial floor on either stat; the format's other legal status pivot, whose `selfSwitch` nothing deletes; and a bare voluntary switch. Nothing is typed — the observable is the whole BOARD at every boundary plus which body is standing in the user's slot, Showdown supplies the answer, and each arm asserts the branch COUNTS (cancel exactly 1 on a red, 0 on a control; the exception exactly 1 on the Mirror Armor arm) because that arm agreed BEFORE the fix as well | the stat floor UNDER Mirror Armor, which cannot be reached from a foe's drops at all — every drop bounces, so nothing a foe does moves it toward -6; and the NARRATION at the floor, where the authority writes `|-unboost|TARGET|atk|0` and this engine writes `|-fail|…|ability: Clear Body` (board-identical, so this instrument is blind to it by construction) |
@@ -159,6 +161,112 @@ ENGINE — does the simulator do what Pokémon does
 _stamped 2026-09-08 13:41_
 
 <!-- /GENERATED -->
+
+## THE POST-ACTION RE-SORT RAN **ABOVE** THE UPDATE PASS, SO A WHITE HERB SPENT BY A PIVOT SWITCH HANDED UNBURDEN ITS DOUBLING **ONE ACTION TOO LATE** — `order_probe` **1 → 0** AND `--order-probe` IS **GREEN**. BOARD-MATERIAL HOLDS AT **0 OF 958**, NARRATION **53 → 52**, CENSUS 830/830, ALL THREE ROSTER STAGES RE-RUN AND UNCHANGED. TRICK ROOM, GALE WINGS AND PRANKSTER ALL REFUTED. 2026-09-08
+
+Full account, every command, every count, the four hypotheses and the scored predictions:
+[docs/_reports/2026-09-08-gap-286-ordering.md](_reports/2026-09-08-gap-286-ordering.md).
+
+**THE ROW.** `ordering :: |move|p2a|closecombat <> |move|p2b|tailwind`, speed gap 286 at **identical
+priority** — the one row in the pinned 961-game run carrying `speed_tied: false` AND
+`same_priority: true`, which is ROADMAP #290's gate and one of the two clauses holding the quarantine
+shut.
+
+```
+config omit-weather, seed ...bo3-2655813620 vs ...bo3-2655861625, turn 2, index 30
+  |move|p1a: Incineroar|Parting Shot|p2a: Sneasler
+  |-unboost|p2a: Sneasler|atk|1  /  |-unboost|p2a: Sneasler|spa|1
+  |switch|p1a: Rotom|Rotom-Mow, L50|125/125|[from] Parting Shot
+  |-enditem|p2a: Sneasler|White Herb   /   |-clearnegativeboost|p2a: Sneasler|[silent]
+showdown   |move|p2a: Sneasler|Close Combat|p1a: Rotom
+medicham2  |move|p2b: Aerodactyl|tailwind|p2b: Aerodactyl
+```
+
+**THE RULE, READ OFF THE AUTHORITY.** The re-sort is the LAST statement of `Battle#runAction`
+(`sim/battle.ts:2915-2922`) and `eachEvent('Update')` is at `:2856` — so an `onUpdate` item is
+**spent before the remaining queue is sorted**. medicham2 has no queue object; the tail of action k-1
+is emulated at the top of iteration k, and `_resortTail(actIdx)` sat ABOVE `_updateAll()`, above the
+pass carrying `restoreStatsAll` — White Herb's only mid-turn door here. The sort ran and the item was
+still in the hand when it looked: `queueResorted 2, queueResortChangedOrder 0`. The call now sits
+below `_updateAll()` and above the mega phase, which is the authority's own order;
+`MEDSEEN.queueResortBelowUpdate` counts it and `MEDI_RESORT_BEFORE_UPDATE=1` restores the old
+placement verbatim.
+
+**WHICH ENGINE WAS WRONG, AND ABOUT WHAT — BOTH SIDES READ, NEITHER ASSUMED.** A parted order has
+exactly two causes needing different fixes: the engines disagree about the SPEED, or they agree about
+the speed and disagree about WHEN they sorted. The probe now asks the first, so the second is not an
+inference. **Under the knob the engines agree on EVERY speed reading (0 disagreeing) and the order
+still parts.** Both put the same number in the sort key; medicham2 was wrong about the moment.
+
+**THE ARITHMETIC CLOSES IT.** Sneasler 664 = 166 ×2 (Tailwind) ×2 (Unburden); Aerodactyl 378 = 189 ×2.
+Without the doubling Sneasler reads 332 and **loses** to 378. `332 < 378 < 664` is the probe's fixture
+inequality exactly, which is why this row and no other in the run has this shape.
+
+### THE FOUR HYPOTHESES — THREE REFUTED BY MEASUREMENT, NOT BY ARGUMENT
+
+| | verdict |
+|---|---|
+| **Trick Room** — the best *a priori* fit, since it flips a large gap with priority untouched | **REFUTED.** Champions NEGATES rather than using mainline's `10000 - speed` (`data/mods/champions/scripts.ts:45-53`, *"Remove Trick Room underflow"*). The row reads **Sneasler 664, Aerodactyl 378 — both POSITIVE**. Under Trick Room both would be negative |
+| **Gale Wings** | **REFUTED for this row** — its only legal carrier is Talonflame and neither body is one (Sneasler `Pressure/Unburden/Poison Touch`, Aerodactyl `Rock Head/Pressure/Unnerve`, derived) |
+| **Prankster** | **REFUTED for this row**, and its green roster row is NOT self-describing: carrier Whimsicott is SLOWER than its target (168 vs 194) and dies to the foe's move, so its Noble Roar lands only if the shift moved it first; `sd_delta` shows `-1 atk / -1 spa` with and `0` without, and a SECOND control (Chlorophyll as well as Infiltrator) agrees leaf for leaf, 16 each |
+| **The mid-turn herb** | **SURVIVES. It is the cause.** |
+
+**AND THE BRIEF'S GALE WINGS PREMISE WAS WRONG, WHICH IS THE USEFUL PART.** It was carried as
+*"`COULD-NOT-STAGE` in `data/roster.abilities.json` — never once exercised."* It has been exercised all
+along, by a different instrument: **three live census rows**, including *"Gale Wings puts a full-HP
+Flying move in front, and not a chipped one"* (`full HP 0`, `at 60% 60`) and *"the Gale Wings body ONE
+HP below full was refused false / landed true"* — which is precisely the control the brief asked to
+construct. **A `COULD-NOT-STAGE` on one instrument was read as an absence across all of them.** The
+roster refusal is real and is about its DELIVERY TABLE, and it stays on the hand list below.
+
+### THE MEASUREMENT
+
+`--steering empirical --arm middle --games 1200 --team-store data/team-pool-frozen --end-state --write`,
+release `7f012a9afe01` → `f6f44b329132`, census `886d47cf7fef` (830 rows, CREDITED ONLY under empirical
+steering), pins `de38d17e15a2`, cap 50.
+
+| | before | after |
+|---|---|---|
+| **`order_probe` rows carrying the conjunction** | **1** | **0** |
+| BOARD-MATERIAL (`state.games` less `games_board_never_diverged`) | 0/958 | **0/958** |
+| NARRATION-ONLY | 53 | **52** |
+| protocol diverged (raw) | 57 | 56 |
+| `ordering` class | 14 games | **13 games** |
+| turn boundaries compared / identical | — | 10,675 / 10,675 |
+| roster items / abilities / moves, DIFFER + DID-NOT-FIRE | 0 | **0** (all three re-run on the new release, every count identical) |
+
+**THIRTEEN OF THE FOURTEEN `ordering` CAUSES ARE BYTE-IDENTICAL AND ONE IS GONE.** A re-sort moved one
+action earlier could have reordered other games in either direction; it reordered none.
+
+**SAY THE HONEST THING ABOUT THE GREEN.** `--order-probe` passes *"clean by absence: 961 games produced
+NO move-vs-move ordering pair to probe. That is a fact about the pool, not a demonstration that the
+turn order is right."* The differential proves **the row is gone**; what proves the MECHANIC is the
+probe, which stages the fixture deliberately and has a knob-cleared control. That is the pinned pool
+and the lab answering their two different questions, and the clause says so itself.
+
+### THE HAND LIST
+
+**Removed — the mid-turn herb re-sort**, which is now `tests/probe_midturn_herb_resort.js`, and the
+speed-gap-286 ordering row, which is now absent from the artifact.
+
+- **`orderProbeClause`'s RERUN HINT OMITS `--end-state` AND IT COST A 13-MINUTE RUN HERE.** The baseline
+  carries `state_mode: true` / `end_state_mode: true`; the line the clause prints has no `--end-state`,
+  so the run came back with `state: null` and no board comparison at all.
+  `game_differential.js:200-207` already says *"A RUN WITH IT IS NOT THE SAME SAMPLE AS A RUN WITHOUT
+  IT"*. One line in `engine/quarantine.js`; reported and NOT changed, because it belongs in a pass that
+  can show it red first.
+- **517 SPEED READINGS DISAGREE IN 223 OF 961 GAMES, EVERY ONE A `REAL GAP` AND EVERY ONE CARRYING
+  `status=-/sd:fnt`** — the authority's body is fainted where this engine's is not, e.g.
+  `p1a sneasler showdown 166 medicham 332`. Almost certainly the READER (a dead body has no Unburden
+  volatile to read) and it parts no board. **Not investigated and not claimed either way**, recorded so
+  it is mistaken neither for a finding nor for a clean bill.
+- **`ability/priority-mod` PICKS ITS DELIVERY MOVE WITHOUT ASKING THE CARRIER'S LEARNSET.** Carried
+  forward unchanged from the pass below — but re-scoped: the MECHANIC is covered by three live census
+  rows, so this is a roster-coverage debt and not an engine hole.
+- **`node engine/status.js --write` WAS NOT RUN**, per the brief, and nothing was committed.
+- **Carried forward unchanged** from the hand lists below: the per-arrival crit vector on an absorbed
+  volley, Population Bomb into Flame Body, `item/chance-gated` and `item/crit-ratio` on a dead corner,
+  Struggle's every-slot fixture, and `tests/test-pinch-family.js` red at 1 of 61.
 
 ## THE PER-ARRIVAL RE-PRICE STOPPED DISARMING ITSELF — **ALL 180 NON-FLAT CLICKS NOW PRICE PER ARRIVAL**, DRIFT **39 → 0**, OFFERED **500 → 539**. WILL'S TWO CASES ARE DEMONSTRATED RED-THEN-GREEN. BOARD-MATERIAL HOLDS AT **0 OF 958**, NARRATION UNMOVED AT 52 CAUSES / 54 GAMES, CENSUS 830/830. ROSTER ITEMS **140 → 142** — LEPPA BERRY AND SHED SHELL STAGED FOR THE FIRST TIME AFTER THEIR REASONS WERE MEASURED FALSE. 2026-09-08
 
