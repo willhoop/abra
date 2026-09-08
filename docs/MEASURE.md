@@ -38,6 +38,43 @@ _stamped 2026-09-07 19:51_
 
 <!-- /GENERATED -->
 
+## THE SPEED MARGIN OVER SHOWDOWN IS 3.94x, NOT 117x AND NOT 24.9x, AND IT IS SHRINKING. 2026-09-08
+
+Full account: `docs/_reports/2026-09-08-engine-speed-comparison.md`. Row: `docs/RUNNING-NOTES.md`.
+Artifacts and the harness: `data/verification/speed-2026-09-08/`.
+
+MEDICHAM **134 whole games/sec, 1,482 turns/sec** against Showdown's own `Battle` at **33.7 games/sec,
+375 turns/sec** — same box, same 40 pinned team pairs, same `runPlayout(explore=1.0, uniform,
+switchRate 0.0998)` policy, arms **interleaved in one process** so contention is common-mode. Release
+`fb0058fb5702`, `--team-store data/team-pool-frozen`, Showdown `20ad99ff`, **12,000 games per engine**.
+Ratio **3.94x** over 8 contention-free reps (3.75–4.07); **noise floor 0.3% / 2.7%** by half-split of
+the same arm. Against Showdown's own documented interface — `BattleStream` + `RandomPlayerAI` — the
+gap is **16.1x**. THROUGHPUT ONLY; the quarantine on MEDICHAM's accuracy is untouched.
+
+**SHOWDOWN DID NOT GET FASTER — WE GOT SLOWER, AND THAT IS THE FINDING.** 117x (July, never had an
+artifact) → 24.9x (2026-08-06) → 3.94x. MEDICHAM's own throughput went 13,041 → ~1,800
+(`data/medicham-speed.json`, 2026-08-28) → 1,482 turns/sec. Roughly **8.8x of the engine's speed has
+been spent on mechanics in 33 days**, and only the mechanics count is on the status board. **The
+turns/sec belongs beside it**, because the two are trading against each other and nothing prints the
+trade.
+
+**AND THE SEARCH ARITHMETIC IS THE PART TO SIT WITH.** Derived from this run, a `rolloutWinProb` call
+at n=200 and cap 14 costs **~1.37 s** on one core — which agrees with the 1,144–1,270 ms already in
+`data/medicham-speed.json`. MILTANK's default 20,000 ms budget therefore buys **~15 leaf calls per
+decision on one core**; on Showdown's raw `Battle` the same budget buys **~4**. *"You cannot put that
+slowdown beneath a rollout search"* is fair about the 16x documented interface and is **not** fair
+about the 4x raw one. Whether 15 beats 4 by enough to matter is a decisive-pair question for SEARCH
+(ROADMAP #62), and nothing in this measurement answers it in either direction.
+
+**NO PUBLIC ENGINE IS A SHORTCUT, AND NOT BECAUSE OF SPEED.** `@pkmn/engine` is RBY/GSC and rules
+format mods out *by design*; `poke-engine` is singles-only even though it already carries this
+regulation's mechanics in Rust; `battler` has Gen 9 doubles and no Champions mod; `@pkmn/sim` ships
+`gen1…gen8legends` and **zero** champions files. Only Showdown plays this format. **But
+`pokemon-showdown@0.11.11` on npm now ships the mod** — 7 of 8 mod files byte-identical to our pinned
+checkout, `[Gen 9 Champions] VGC 2026 Reg M-B` present, 2.588 ms/turn against the checkout's 2.579 —
+so `engine/champions_sim.js`'s "requires a built master checkout" header is stale as of 2026-07-28.
+Filed for ENGINE, not fixed here.
+
 ## SEVEN DEAD PLANT ANCHORS, AND THE CHECK THAT FINDS THEM NOW RUNS ON EVERY ROSTER RUN. 2026-09-07
 
 Full account: `docs/_reports/2026-09-07-red-plant-repair.md`. Row: `docs/RUNNING-NOTES.md`.
