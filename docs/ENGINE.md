@@ -131,10 +131,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  830/830 probed mechanics live, 0 missing   (census 2026-09-07 19:30)
+  830/830 probed mechanics live, 0 missing   (census 2026-09-08 12:22)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 1.3 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-07 19:36)
+    never fired in the staged harness (all-mechanics-fire.json, 10.8 h old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-08 01:53)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -156,7 +156,7 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-07 22:22_
+_stamped 2026-09-08 12:44_
 
 <!-- /GENERATED -->
 
