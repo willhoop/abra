@@ -2086,6 +2086,30 @@ Division ledger: `docs/SEARCH.md`. Paper: `docs/MILTANK.md`.
 > load. Every figure below is read out of the artifact named in its **Code** line. Where a model has
 > **no measured verdict**, it says **NOT MEASURED** rather than describing itself as working.
 
+### OWED AFTER MEDICHAM — MILTANK DOES NOT APPEAR TO KNOW SPEED TIES EXIST
+
+**Will, 2026-09-08: *"make sure that miltank knows there are such things as speed ties that we need to
+explore both branches"*** — and then, on being told MEDICHAM comes first: *"just add it to miltank notes
+that we can review once medicham is done."* **Recorded, deliberately not actioned.**
+
+**The evidence that it does not branch, such as it is:** a grep for `speed tie`, `speedTie`, `tieBranch`
+and `tie.*branch` across `engine/miltank.js`, `engine/rollout_leaf.js` and `engine/board.js` returns
+**nothing**, and `tie` does not appear in `rollout_leaf.js` at all. **That is an absence, not a
+measurement** — it says the concept is unnamed in those files, not that the behaviour is wrong. Somebody
+must actually read the resolution path before this is treated as established.
+
+**Why it matters, and why it is NOT the same as the differential fix.** ROADMAP #376 is about pinning a
+tie for MEASUREMENT so the two engines resolve a tied group the same way. **This is the opposite
+concern.** In real play a speed tie is a **BRANCH, not a die**: both orders are live and a search that
+samples one at random is planning against a coin it does not control. **A determinism introduced for the
+differential must never leak into the player** — that would be a far worse defect than the three games
+#376 closes, and it would be invisible, because a player that always wins ties looks like a player that
+is simply doing well.
+
+**What to check when this is picked up:** whether the rollout resolves a tie by sampling, and if so
+whether MILTANK's value for that action is an average over both orders or a single draw. **An average
+over one sample is not an average.**
+
 ## GARY — the opponent inside the search (named 2026-08-06)
 **Job:** decide what the OTHER side clicks on every turn of an imagined game. MILTANK ranks a move by
 imagining the rest of the battle ~200 times and counting wins; GARY is whoever plays the foe in those

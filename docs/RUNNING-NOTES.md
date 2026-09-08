@@ -69,6 +69,14 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [Unreleased] — 2026-09-08 — MILTANK does not appear to know speed ties exist, and that is written down rather than fixed
+- **What changed.** `docs/MODELS.md` only — a note under MILTANK, on Will's instruction (*"just add it to miltank notes that we can review once medicham is done"*). **No code, no measurement, no figure.**
+- **Measured.** NO FIGURE. The supporting evidence is an **absence and is labelled as one**: a grep for `speed tie`, `speedTie`, `tieBranch`, `tie.*branch` across `engine/miltank.js`, `engine/rollout_leaf.js` and `engine/board.js` returns nothing, and `tie` does not appear in `rollout_leaf.js` at all. That says the concept is unnamed in those files, **not** that the behaviour is wrong.
+- **Supersedes.** Nothing.
+- **Basis.** unchanged — a note records an open question; it moves no published figure.
+- **Owed to the next major.** none. **Owed to SEARCH after MEDICHAM:** read the tie resolution path and establish whether a rollout SAMPLES a tie or branches on it — and whether MILTANK's value for that action averages over both orders or over a single draw. **A determinism introduced for the differential (ROADMAP #376) must never leak into the player**, and would be invisible if it did, because a player that always wins ties looks like a player that is doing well.
+
+
 ## [Unreleased] — 2026-09-08 — a line ending could refuse a before/after, and the five clauses the release cut staled all reproduce
 
 - **What changed.** `engine/engine_release.js` gains `sha12Content` — a SECOND digest, sha256 over EOL-normalised bytes, beside `sha12` and never replacing it. `sha12` stays raw bytes because a release id is an IDENTITY and 601 manifests hold raw digests; the file's own header already argues that and is untouched. The four axes that are NOT identities now use the content digest and record the byte digest beside it: `steering.driver_code` (+`files_raw`, `raw_digest`), `steering.input_digest` (+`input_raw_digest`), `steering.alignment_inputs` and `driver_inputs` in `engine/game_differential.js` (+`raw_digest`), and `engine/provenance.js`'s stamped-input check, which stops carrying a fourth copy of the hash. `steering.stampsAgree` gives all four one share-any-value rule so an artifact holding only an old raw digest still meets a new arm. `.gitattributes` pins the 14 non-SOURCE files the derivation named. `tests/probe_instrument_digest.js` gains the RED/GREEN demonstration. Then the five stale gate clauses were re-run on release `1415f271058e`, every command read off `engine/status.js`.
