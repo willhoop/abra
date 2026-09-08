@@ -69,6 +69,15 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [Unreleased] — 2026-09-08 — the three Protect/Detect orderings are not the tie device, and #376's instrument is red for a pair the row does not describe
+- **What changed.** `tests/probe_protect_tie_order.js` — new, and it is the discriminator ROADMAP #376 wrote for itself. **No engine file was edited.** `docs/ENGINE.md` gains the pass and its hand list.
+- **Measured.** **100.0% agreement, 112 of 112** — two bodies at an identical authority `getActionSpeed()`, both clicking Protect, over every base-Speed group in the regulation that carries two Protect learners, staged three geometries deep, release `1415f271058e`, arm `middle`, 2 turns, 0 fixture / 0 threw / 0 other. **The control moves it: 110 of 112 DISAGREE** with medicham2's `tie` stream on a ramp instead of the arm's constant, reproducing #376's exact cause shape on demand. By the row's own branch table 100% means *"these three are something else"*. Board-material **0 of 958, unchanged** — `data/game-differential.json`, release `1415f271058e`, generated 2026-09-08T16:15:01.893Z.
+- **Supersedes.** Nothing measured. It **refutes an unmeasured hypothesis** — that the differential pinned one side's tie die and left the other rolling. `engine/game_differential.js:1842` has set `o.tie = () => 0` in the middle arm since #290; both devices were already pinned.
+- **Basis.** unchanged.
+- **Owed to the next major.** none. **Owed now:** #376's register row is a re-scope, not a close — its tie explanation is measured false and `node engine/quarantine.js --order-probe` is red on `ordering :: |move|p2a|closecombat <> |move|p2b|tailwind`, **gap 286, same priority**, which is an unequal-speed disagreement belonging to #290. Unburden was staged twice with controls that moved the order and **eliminated** as its cause. Full account: `docs/_reports/2026-09-08-speed-tie-clause.md`.
+- **Warning recorded, not a figure.** A second agent wrote `engine/medicham2-browser.js` during this pass (18 uncommitted `BATCH O` lines, 14:42 local) and `HEAD` moved to `f79d29cd`; every figure above is `--release`-pinned and re-ran identically after the drift, which is why the census and the differential were deliberately NOT regenerated.
+
+
 ## [Unreleased] — 2026-09-08 — MILTANK does not appear to know speed ties exist, and that is written down rather than fixed
 - **What changed.** `docs/MODELS.md` only — a note under MILTANK, on Will's instruction (*"just add it to miltank notes that we can review once medicham is done"*). **No code, no measurement, no figure.**
 - **Measured.** NO FIGURE. The supporting evidence is an **absence and is labelled as one**: a grep for `speed tie`, `speedTie`, `tieBranch`, `tie.*branch` across `engine/miltank.js`, `engine/rollout_leaf.js` and `engine/board.js` returns nothing, and `tie` does not appear in `rollout_leaf.js` at all. That says the concept is unnamed in those files, **not** that the behaviour is wrong.

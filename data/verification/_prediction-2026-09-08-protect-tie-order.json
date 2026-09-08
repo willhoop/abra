@@ -1,0 +1,50 @@
+{
+  "written": "2026-09-08",
+  "by": "ENGINE",
+  "roadmap": 376,
+  "question": "Stage two bodies at identical getActionSpeed(), both clicking Protect, across N arrangements under the differential's primary (middle) arm. What fraction of arrangements do the two engines agree on for turn order?",
+  "discriminator_from_the_row": {
+    "~50%": "the tie device — one side is rolling a coin the other is not; option (i) is the fix",
+    "0%": "our tie alignment is INVERTED — a different and worse bug",
+    "100%": "the three #376 causes are something else entirely"
+  },
+  "prediction": {
+    "agreement_pct": "100",
+    "confidence": "high",
+    "why": [
+      "engine/game_differential.js:1842 already sets o.tie = () => 0 in the middle arm, so medicham2's tied-group key is a CONSTANT in the same arm whose pinShuffle is a no-op. Both dice are already pinned; the coordinator's 'we pinned one side and left the other rolling' reading looks REFUTED at the line.",
+      "tests/test-speed-tie.js is green on all five arrangements today on release 1415f271058e, including a same-side tie and a three-way tie.",
+      "data/game-differential.json on release 1415f271058e (961 games, generated 2026-09-08T16:15Z) carries 14 ordering causes and NOT ONE of the three #376 protect/detect pairs.",
+      "So the expected finding is that #376's three causes have already been fixed by later work (the selection-sort reproduction, #290's tie stream, #422's sort sites, #493's residual handler list) and the row is stale rather than live."
+    ],
+    "risk_to_this_prediction": "the five arrangements in test-speed-tie.js are hand-picked and could all be geometries that happen to agree. If a wide sweep over real base-Speed groups finds a systematic disagreement class, the prediction is wrong and the row is live."
+  },
+  "job2_prediction": {
+    "claim": "the second #376 pair (|move|p1b: Garchomp|Protect||[still]) is a DIFFERENT mechanism, not tie-only",
+    "prediction": "cannot be settled from the current artifact because the cause is absent from it; expect to settle it by reading the [still] tag's meaning rather than by re-measuring",
+    "confidence": "low"
+  },
+  "sample_pins_intended": {
+    "release": "1415f271058e",
+    "arm": "middle (primary)",
+    "note": "this is a STAGED lab probe, not a pool run: no --team-store, no --games, no census steering. Teams are constructed from Dex.forFormat('gen9championsvgc2026regmb') filtered legal + TeamValidator checkCanLearn on Protect."
+  },
+  "outcome": {
+    "recorded": "2026-09-08, AFTER the run. The prediction block above is unedited.",
+    "sample": "node tests/probe_protect_tie_order.js --n 400 --release 1415f271058e  (112 arrangements, 2 turns, arm middle)",
+    "agreement_pct": 100,
+    "agree": 112,
+    "disagree": 0,
+    "fixture": 0,
+    "threw": 0,
+    "other": 0,
+    "control": "tie stream on a ramp: 2 AGREE / 110 DISAGREE, reproducing #376 cause shape",
+    "job1": "HIT — predicted 100, measured 100.0 (112/112).",
+    "job2": "PARTIAL HIT — predicted the individual Garchomp row could not be settled from the artifact, and it could not (the cause is absent). NOT predicted, and better than predicted: the MECHANISM the caveat names was staged and agrees 112/112, with 112 of those failing a Protect on turn 2 where StallMove is the only refuser.",
+    "misses": [
+      "The prediction did not anticipate that the instrument #376 names (quarantine.js --order-probe) would be RED for a DIFFERENT pair -- ordering :: |move|p2a|closecombat <> |move|p2b|tailwind, gap 286, same priority. That is the live finding and it was not foreseen.",
+      "The prediction did not anticipate that a second agent would be writing engine/medicham2-browser.js during the pass, forcing an auto-cut of release 68531bfd1959 mid-session."
+    ],
+    "board_material": "0 of 958, unchanged (data/game-differential.json, release 1415f271058e, generated 2026-09-08T16:15:01.893Z)"
+  }
+}
