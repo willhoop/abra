@@ -82,8 +82,15 @@ function compare(a, b) {
         + 'This is REPORTED ABOVE as UNKNOWN rather than waved through: on 2026-09-05 an edit to '
         + 'engine/empirical_driver.js moved a run from 138 to 167 divergences under otherwise '
         + 'byte-identical pins, and this check said COMPARABLE about exactly that pair.',
-    'data/protocol-events.json — the DECLARED SKIP LIST. It decides which Showdown lines are removed '
-      + 'before alignment, so a change to it moves every class count in the table. Not stamped.',
+    /* COMPUTED FROM THE TWO BLOCKS IN FRONT OF IT, like the driver line above — 2026-09-08. A limits
+     * list that says the same thing whatever it is handed is prose outliving what it described, and
+     * this line went on reading "Not stamped" for as long as nobody stamped it. */
+    ([a, b].every(x => x.steering && x.steering.alignment_inputs)
+      ? 'data/protocol-events.json — the DECLARED SKIP LIST — is CHECKED for this pair '
+        + '(steering.alignment_inputs, both arms).'
+      : 'data/protocol-events.json — the DECLARED SKIP LIST. It decides which Showdown lines are '
+        + 'removed before alignment, so a change to it moves every class count in the table. '
+        + 'REPORTED ABOVE as UNKNOWN for this pair.'),
     'the Showdown checkout beyond its commit hash — an uncommitted edit in SHOWDOWN_PATH is invisible '
       + 'to `showdown_commit`.',
   ];

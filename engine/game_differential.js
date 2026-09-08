@@ -2319,8 +2319,83 @@ const MODE = 'A/' + PRIMARY_ARM.id + '/pins:' + PIN_DIGEST + '/credit:' + CREDIT
            + '/nature:' + NATURE_MODE;
 
 /* ---- THE SKIP LIST, READ FROM THE DERIVATION ---------------------------------------------------- */
-const PROTO = JSON.parse(fs.readFileSync(D('data', 'protocol-events.json'), 'utf8'));
+/* PINNABLE AND DIGESTED — 2026-09-08. THE DECLARED SKIP LIST IS THE ALIGNMENT RULE: every event on
+ * it is deleted from the Showdown side before comparison, so it decides which lines may count as a
+ * divergence. It was in NO digest set at all — not in the release's SOURCE files, not in
+ * `steering.driver_code.files` (it is read with readFileSync, so `requireClosure` cannot see it), not
+ * in `driver_inputs`, not in `pins` — while the artifact went on recording `driver_code_stable: true`.
+ * A pin that does not pin.
+ *
+ * It goes to `steering.resolve()` as an ALIGNMENT INPUT rather than into `driverCode()`'s closure
+ * (that derives from static `require` and covers CODE; a data file could only be a typed exception
+ * inside the one function built to avoid typed lists) or into the engine release (a before-arm run on
+ * an old release would then take the OLD alignment rule, so the two arms would be measured with
+ * different rules by construction — steering.js's rejected option (1)). */
+const PROTO_PATH = flag('--protocol-events', null) || D('data', 'protocol-events.json');
+const PROTO = JSON.parse(fs.readFileSync(PROTO_PATH, 'utf8'));
+const PROTO_INPUT = {
+  file: 'data/protocol-events.json',
+  read_from: path.relative(D('.'), PROTO_PATH).replace(/\\/g, '/'),
+  digest: ER.sha12(PROTO_PATH),
+  generated: PROTO.generated || null,
+  rows: (PROTO.notEmitted || []).length,
+  what: 'the DECLARED SKIP LIST — every event medicham2 says it does not emit is removed from the '
+      + 'Showdown side before alignment, so this decides what can count as a divergence',
+  derived_from_medicham2: (PROTO.source_digests || {})['engine/medicham2-browser.js'] || null,
+  medicham2_played: (REL.stamp().source_digests || {})['engine/medicham2-browser.js'] || null,
+};
 const CLAIMED = new Set(M.TRACE_EVENTS);
+
+/* ---- IS THE SKIP LIST STILL A DERIVATION OF WHAT THIS RUN PLAYS? --------------------------------
+ * REFUSE, do not caption. A skip list derived from a different simulator over-skips exactly the lines
+ * a narration fix has just started emitting, and `undeclared_event_drops` cannot see that direction —
+ * it fires when Showdown emits something neither claimed nor declared, never when medicham2 has
+ * STARTED claiming something still on the list.
+ *
+ * THE CLAUSES ASK WHETHER THE FEATURE FUNCTION MOVED, NOT WHETHER A STAMP MATCHES, and that is
+ * deliberate. `data/protocol-events.json` is a function of exactly three things: medicham2's
+ * TRACE_EVENTS, the derivation rule, and the Showdown checkout. A digest-equality guard on
+ * medicham2's WHOLE FILE fires on every damage-table edit that leaves TRACE_EVENTS untouched —
+ * measured 2026-09-08, the engine moved 1337ff095e92 -> 5a86b1d52bd5 with the claim byte-identical,
+ * so a stamp guard would have refused a run whose alignment rule had not moved at all. An
+ * over-firing gate is the one people learn to ignore (#148). The stamp is still RECORDED above, in
+ * `alignment_inputs`, so a change can never be silent; what THROWS is a moved function. */
+{
+  const relDigest = PROTO_INPUT.medicham2_played;
+  const claimNow = M.TRACE_EVENTS.slice().sort().join(',');
+  const claimThen = (PROTO.emitted || []).slice().sort().join(',');
+  const fix = '\n  Regenerate it —  node engine/derive_protocol_events.js --write  — or pin the list '
+    + 'this run should be measured against:  --protocol-events <path>  (an older one is recoverable '
+    + 'with `git show <commit>:data/protocol-events.json`). This is a REFIT, not a restamp: the '
+    + 'feature FUNCTION changed.';
+  if (claimNow !== claimThen) {
+    const added = M.TRACE_EVENTS.filter(n => !(PROTO.emitted || []).includes(n));
+    const gone = (PROTO.emitted || []).filter(n => !M.TRACE_EVENTS.includes(n));
+    throw new Error('data/protocol-events.json is the ALIGNMENT RULE and it was derived from a '
+      + 'DIFFERENT simulator claim. It recorded ' + claimThen.split(',').length + ' emitted events '
+      + '(from engine/medicham2-browser.js ' + PROTO_INPUT.derived_from_medicham2 + ') and this run '
+      + 'plays ' + M.TRACE_EVENTS.length + ' (' + relDigest + ').'
+      + (added.length ? '\n  NOW CLAIMED, and the list may still be deleting them from the Showdown '
+        + 'side: ' + added.join(', ') : '')
+      + (gone.length ? '\n  NO LONGER CLAIMED: ' + gone.join(', ') : '') + fix);
+  }
+  const deriveNow = ER.sha12(D('engine', 'derive_protocol_events.js'));
+  const deriveThen = (PROTO.source_digests || {})['engine/derive_protocol_events.js'] || null;
+  if (deriveThen && deriveNow !== deriveThen) {
+    throw new Error('data/protocol-events.json was produced by engine/derive_protocol_events.js '
+      + deriveThen + ' and that file is now ' + deriveNow + '. The DECLARED list — every reason for '
+      + 'not emitting an event — is typed inside that script, so the rule that decides which Showdown '
+      + 'lines are deleted before alignment has moved under the artifact.' + fix);
+  }
+  const sdNow = CS.PINNED_COMMIT || null;
+  const sdThen = PROTO.showdown_pinned_commit || null;
+  if (sdThen && sdNow && sdNow !== sdThen) {
+    throw new Error('data/protocol-events.json was derived from Showdown ' + sdThen + ' and this run '
+      + 'plays against ' + sdNow + '. The event universe the skip list is a complement of comes from '
+      + 'that checkout, so an event added or renamed upstream is a line this run would drop or count '
+      + 'for a reason nobody recorded.' + fix);
+  }
+}
 const DECLARED_NOT_EMITTED = new Set((PROTO.notEmitted || []).map(e => e.event));
 /* TRANSPORT, NOT PROTOCOL. These four are not in `data/protocol-events.json` at all — they are not
  * rule events and `engine/derive_protocol_events.js` does not scan the paths that emit them, so they
@@ -2579,7 +2654,7 @@ if (EMPIRICAL) {
  * a run that started at 02:27:14 and published a number. */
 const DRIVER_CODE = STEERING.driverCode({ frozen: Object.keys((REL.manifest && REL.manifest.files) || {}) });
 const STEER = STEERING.resolve({ censusPath: CENSUS_PIN, mode: STEER_MODE, driverInputs: EMP_INPUTS,
-                                 driverCode: DRIVER_CODE });
+                                 driverCode: DRIVER_CODE, alignmentInputs: [PROTO_INPUT] });
 const CENSUS = STEER.census;
 const SECTION = { item: 'items', move: 'moves', ability: 'abilities' };
 const COV_TARGETS = [];      // { key, kind, tag, label, entities:Set }

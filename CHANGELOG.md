@@ -10,6 +10,106 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.267.0] — 2026-09-08
+
+### Changed
+- **THE SPEED MARGIN OVER SHOWDOWN IS 3.94x. `24.9x` STOOD AS THE CURRENT RATIO IN SIX LIVING
+  DOCUMENTS AND HAS BEEN REWRITTEN OUT OF ALL OF THEM, NOT CAPTIONED.** Measured 2026-09-08 with
+  both engines interleaved in ONE process so machine contention is common-mode, 40 pinned team pairs
+  from `data/team-pool-frozen`, the same `runPlayout(explore=1.0, uniform, switchRate 0.0998)`
+  policy on both sides: MEDICHAM **1,482 turns/sec (134 whole games/sec, 0.675 ms/turn)** against
+  Showdown's raw `Battle` at **375 turns/sec (33.7 games/sec, 2.665 ms/turn)**. **12,000 games per
+  engine**, 8 contention-free reps giving a paired ratio of min 3.75 / median **3.94** / max 4.07,
+  both arms reaching a real result in **100%** of games at 11.05 against 11.13 mean turns. Noise
+  floor by half-split of one arm on ms/turn: **0.3%** MEDICHAM, **2.7%** Showdown, so a 294%
+  difference sits about 100x above the floor. Pins: release `fb0058fb5702`, Showdown commit
+  `20ad99ff`, census digest `b599f8d581b5`, flags
+  `--pairs 40 --per-pair 10 --reps 6|9 --caps 60,14`.
+  Harness and artifacts: `data/verification/speed-2026-09-08/`. Full account:
+  `docs/_reports/2026-09-08-engine-speed-comparison.md`.
+- **THE RATIO DEPENDS ON HOW SHOWDOWN IS DRIVEN AND BOTH FIGURES ARE PUBLISHED TOGETHER.** Against
+  the raw `Battle` class — no `BattleStream`, no protocol strings parsed, the fastest interface it
+  has — the gap is **3.94x**. Against the interface its own documentation tells a user to write,
+  `BattleStream` plus the official `RandomPlayerAI`, the same comparison reads **92 turns/sec** and
+  **16.1x**. Quoting one without naming the interface is how `117x` survived a year, so every
+  rewritten passage states both.
+- **THE `8.8x` SLOWDOWN IS WITHDRAWN BEFORE IT WAS EVER PUBLISHED IN A LIVING DOCUMENT, AND NO
+  SLOWDOWN FIGURE REPLACES IT.** The rewrite initially carried *"13,041 turns/sec (2026-08-06) →
+  1,482 (2026-09-08), roughly 8.8x in 33 days"*, and the bisection Will asked for opened by killing
+  its own premise: **the two endpoints do not measure the same amount of work.** Divide each reading
+  by its own battles/sec — 13,041 / 217 is **60.1 turns per battle**, every battle running to the
+  60-turn cap on an engine that did not finish games; a same-day sibling reading is **2.0 turns per
+  battle**; 1,482 / 134 is **11.06**, with 100% of games reaching a result. Three populations of
+  "a turn", so a ratio across them is not a slowdown measurement, and every document now says so
+  instead of quoting one. An intermediate 2026-08-28 reading is **additionally withheld rather than
+  captioned**, because it sits in an artifact `engine/quarantine.js` withholds. Account:
+  `docs/_reports/2026-09-08-speed-regression-bisect.md`.
+- **WHAT THE NEW RATIO COSTS THE ARGUMENT, STATED RATHER THAN SOFTENED.** *"You cannot put a 117x
+  slowdown beneath a rollout search"* was load-bearing in ADR-002 and is not load-bearing at 3.94x;
+  it remains fair about the 16.1x documented interface. **The `~15 leaf calls against ~4` arithmetic
+  that first replaced it is ALSO withdrawn** — it counted leaf CALLS as though they were playouts,
+  when a call at `n=200` is 200 playouts, and a profile of one real in-game decision has since
+  located the binding constraint elsewhere. Its figures are not quoted, because that artifact is
+  withheld too. The decision itself is unaffected for a different reason that IS measured: no public
+  engine can load `gen9championsvgc2026regmb` faster, because the only code that loads it at all is
+  Showdown's simulator and its repackagings. Whether re-solving per turn pays remains ROADMAP #62.
+- **THE DURABLE FINDING IS THE ABSENCE, NOT THE NUMBER. Nothing in this repository ratchets engine
+  speed**, and the cost is larger than a stale figure: four readings of one quantity were each taken
+  a different way, so **the project cannot presently say whether its own engine got faster or slower
+  over a month.** `engine/game_differential.js` additionally refuses every release before
+  2026-08-12, so the window both disputed figures came from cannot be re-measured by the instrument
+  that produced today's. MEDICHAM's turns/sec belongs on the status board beside its mechanics
+  count, measured one way, every time.
+- **THE SIX DOCUMENTS WERE DERIVED, NOT LISTED, AND THE BRIEF'S COUNT OF THREE WAS LOW.**
+  `engine/docs_scan.js` `livingDocs()` returns 25 documents; six of them stated a dead speed figure
+  as current: `docs/ABRA-whitepaper.md` (§3.0 and open-question 8), `docs/ABRA-technical-docs.md`
+  (the 3.62.2 correction and the *"do not quote an engine-speed figure"* rule),
+  `docs/SUMMARY.md`, `docs/MODELS.md` (CHAMPIONS_SIM), `docs/ADR-002-showdown-is-the-authority.md`,
+  and two that a `24.9` search does not find — `docs/ABRA-deck-plain-english.md` slide 9f
+  (*"about 25 times slower"*) and `docs/MEW-whitepaper.md` §4.1 (*"117× faster"*), plus
+  `docs/GAME-DIFFERENTIAL-DESIGN.md` §7 (*"~1,600–2,000 battles/sec"*). All rewritten.
+  `docs/ADR-001-use-the-champions-mod.md` and `docs/ROADMAP.md` carry the figure too and are
+  **deliberately untouched**: neither is in the derived living set, both are dated records, and a
+  decision record's evidence is not rewritten in place. ADR-002 keeps both of its dated correction
+  blocks and gains a third; the 2026-08-06 block is marked superseded rather than edited.
+
+### Added
+- **`pokemon-showdown@0.11.11` ON npm IS THE SAME ORACLE AS OUR PINNED CHECKOUT ON EVERY LEGALITY
+  AXIS, DERIVED RATHER THAN ASSERTED.** The package published 2026-07-28 ships the Champions mod, so
+  `engine/champions_sim.js`'s *"requires a built master checkout"* header has been stale for six
+  weeks. **7 of the 8 mod files are SHA-256 identical** to our build; `formats-data.js` is the one
+  that differs and it differs by **three `tier` labels and nothing else** — Medicham-Mega,
+  Froslass-Mega and Polteageist move `UU` → `UUBL`, which reaches Polteageist-Antique through its
+  base forme, for **four changed dex entries**. `UUBL` is a Smogon singles label; this format's
+  filter reads `isNonstandard` and `tier !== 'Illegal'`, and neither moved on any entity.
+  **The legal SETS are identical, compared element by element and not by count**: 347 species, 500
+  moves, 148 items, 316 abilities, zero members on either side only, **zero `isNonstandard`
+  differences**. So are the three Champions format definitions, the resolved 29-rule table, and all
+  **14,192 learnset cells** over the 347 legal species. The decisive instrument agrees: `TeamValidator`
+  on every open-sheet team in `data/team-pool-frozen` gives **0 accept/reject differences**, 6,450
+  valid on both builds. Artifact and re-runnable harness:
+  `data/verification/npm-oracle-2026-09-08/`. Report:
+  `docs/_reports/2026-09-08-retract-24x-and-npm-legality.md`.
+- **WHAT DOES DIFFER BETWEEN THE TWO BUILDS, IN FULL, SO THE SWITCH IS NOT A LEAP.** Six of 323
+  files under `dist/data` and `dist/sim`: the two `formats-data.js` (tier labels only, and the base
+  one moves three species that are `isNonstandard: 'Past'` here and therefore outside this
+  regulation), `data/rulesets.js` (a `desc` string on `godlygiftmod` and a `battleOnly` array fix
+  inside `hackmonsformelegality` — **neither rule appears in this format's rule table**),
+  `data/mods/gen8/rulesets.js`, `sim/team-validator.js` (the Nickname Clause length MESSAGE was
+  reworded, which is the sole source of the 539 verdict-text differences and moves no verdict), and
+  `sim/side.js` (`this.active.length > 1` → `this.battle.activePerHalf > 1` in the choice-details
+  string, equal in a `doubles` gametype). **MEASURE's verdict is that the switch is safe and MEASURE
+  did not perform it** — it is ENGINE/OPS work and belongs in its own attributable change.
+
+### Notes
+- **Basis unchanged.** Every figure above answers the same question ADR-001 and ADR-002 asked, on
+  the same machine, re-measured; a reader can be told `24.9x` became `3.94x`, which is a routine
+  revision of a series rather than a change of basis. Hence MINOR, per the SemVer reading in
+  `CLAUDE.md`.
+- **Throughput only.** Nothing here touches MEDICHAM's accuracy quarantine, and a fast engine that
+  is wrong is still wrong. No engine byte moved in this release: it is a documentation pass plus one
+  new read-only comparison harness.
+
 ## [5.266.0] — 2026-09-06
 
 ### Added

@@ -1381,14 +1381,43 @@ can find the weak states of such a map. This project therefore tests one claim: 
 computes a new answer each turn is more difficult to exploit than an agent that recalls a stored
 answer. **This claim is not proven. It is the experiment.**
 
-The speed figure also changed. ADR-001 recorded 29 against 3,401 battles/sec/core. It gave a ratio of
-117x. The measurement was made again on this machine. Both engines used the same four teams. The
-teams are derived from the store. Each run was 8 seconds with a 60-turn limit. MEDICHAM gives 13,041
-turns/sec and 217 battles/sec. `champions_sim` gives 523 turns/sec and 28 battles/sec. The ratio is
-24.9x. Use `turns/sec`. Do not use `battles/sec`: MEDICHAM ran to its 60-turn limit and Showdown ran
-with `choose('default')` to a natural end, so a battle is not the same quantity of work in the two
-engines. The old figures stay in ADR-001. The decision in ADR-001 stays correct. The stated reason for
-that decision changed: the engine is justified if, and only if, the search gives a measured gain.
+The speed figure also changed, twice. ADR-001 recorded 29 against 3,401 battles/sec/core. It gave a
+ratio of 117x. A measurement on 2026-08-06 gave 24.9x. **Both figures are superseded.** The
+measurement was made again on 2026-09-08. The two engines ran interleaved in one process. They used
+the same 40 team pairs from the frozen pool. They used the same random policy. MEDICHAM gives 1,482
+turns/sec. Showdown's raw `Battle` gives 375 turns/sec. **The ratio is 3.94x.**
+
+The ratio depends on how you drive Showdown. Two figures are correct at the same time. Against the
+raw `Battle` class, which is the fastest interface Showdown has, the ratio is 3.94x. Against
+`BattleStream` with the official `RandomPlayerAI`, which is the interface the Showdown documentation
+tells a user to write, Showdown gives 92 turns/sec and the ratio is 16.1x. State which interface you
+mean. A ratio given without the interface cannot be checked.
+
+Use `turns/sec`. Do not use `battles/sec` when the two engines end a battle under different rules.
+In the 2026-09-08 run both engines played to a real result in 100 percent of games, at 11.05 and
+11.13 mean turns, so the two units agree there.
+
+The sample is 12,000 games for each engine. The paired ratio over the 8 reps without machine
+contention runs from 3.75 to 4.07, with a median of 3.94. The noise floor is 0.3 percent for
+MEDICHAM and 2.7 percent for Showdown. The pins are engine release `fb0058fb5702`, team store
+`data/team-pool-frozen`, Showdown commit `20ad99ff`, and switch census digest `b599f8d581b5`. The
+harness and the artifacts are in `data/verification/speed-2026-09-08/`.
+
+**Do not write that MEDICHAM got slower. It is not established.** The 2026-08-06 reading of 13,041
+turns/sec and the 2026-09-08 reading of 1,482 do not measure the same amount of work. Divide each by
+its own battles/sec. The August reading is **60.1 turns per battle**, because every battle ran to the
+60-turn cap on an engine that did not finish games. A same-day sibling reading is **2.0 turns per
+battle**. This run is **11.06**, and 100 percent of its games reach a result. These are three
+different populations of a turn. A ratio across them is not a measurement. **This document therefore
+publishes no slowdown figure.** A bisection over the frozen releases is in progress. It measures the
+curve on one instrument. Wait for it.
+
+An intermediate reading from 2026-08-28 also exists. **It is not stated in this document.** It sits in
+an artifact the quarantine withholds. A withheld figure is withheld. It does not get a caveat.
+
+The old figures stay in ADR-001. The decision in ADR-001 stays correct, because no public engine can
+load this format faster. The stated reason for that decision changed: the engine is justified if,
+and only if, the search gives a measured gain.
 
 The work is now in four phases. Complete MEDICHAM. Then run gate ROADMAP #62. If the gate passes,
 build the search and measure the exploitability against approximately 100%. If the gate does not
@@ -1579,13 +1608,20 @@ describe what ran; use `source_digests` instead. `source_digests` holds hashes o
 and `git.blobs` holds git object names. Do not compare the two. On Windows they differ because git
 changes the line endings.
 
-**Do not quote an engine-speed figure from a document (added 3.62.2).**
-There is no script in this repository that measures the speed of the two engines. Three figures are on
-record for MEDICHAM — 3,401 battles/sec in ADR-001, 1,606 battles/sec in ROADMAP #61 and 13,041
-turns/sec in the 3.62.2 correction. No artifact holds any of them. No test compares them. No ratchet
-fails when one of them moves. If you need a speed figure, measure it, record the method beside it, and
-state the unit: `turns/sec` compares the two engines and `battles/sec` does not, because the two
-engines end a battle under different rules.
+**Do not quote an engine-speed figure from a document (added 3.62.2, corrected 2026-09-08).**
+Four figures are on record for MEDICHAM — 3,401 battles/sec in ADR-001, 1,606 battles/sec in
+ROADMAP #61, 13,041 turns/sec in the 3.62.2 correction, and 1,482 turns/sec on 2026-09-08. The first
+three hold no artifact and no test compares them. **This paragraph said there is no script that
+measures the two engines. That is corrected.** `engine/bench_speed.js` measures MEDICHAM and writes
+a consolidated range; `data/verification/speed-2026-09-08/bench_two_engines.js` measures both engines
+interleaved in one process. What remains true is that **no ratchet fails when a speed figure moves**,
+and the cost of that is larger than a number going stale: the four readings were taken under
+different drives, so they cannot be assembled into a series and the project cannot say from them
+whether its engine got faster or slower. If you need a speed
+figure, measure it, record the method and the pins beside it, and state the unit and the interface:
+`turns/sec` compares the two engines and `battles/sec` does not when they end a battle under
+different rules, and a Showdown figure is meaningless without saying whether it was driven through
+the raw `Battle` class or through `BattleStream`.
 
 **Write a stamp from a new measurement (added 3.33.0).**
 Call `require('./run_stamp.js').writeStamp({...})` at the point the run writes its numbers.

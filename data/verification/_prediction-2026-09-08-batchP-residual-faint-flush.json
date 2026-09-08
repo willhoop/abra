@@ -1,0 +1,42 @@
+{
+  "what": "WRITTEN BEFORE THE RUN. ENGINE batch P, fix 1 of 1: `fieldEvent('Residual')` pays the faint queue after a SURVIVING duration handler, which for the order-24 perish group this engine could not do. Prediction recorded so a miss is a miss rather than a re-description.",
+  "written": "2026-09-08",
+  "by": "ENGINE",
+  "baseline": {
+    "release": "fb0058fb5702",
+    "artifact": "data/verification/batchP/gd-baseline-published.json (a byte copy of data/game-differential.json as published by batch O)",
+    "narration_raw_games": 56,
+    "protocol_parted_games": 59,
+    "by_cause_rows": 57,
+    "ordering_games": 16,
+    "board_material": "0 of 958 (state.games 958 - state.games_board_never_diverged 958)",
+    "by_cause_totals_BOARD_MATERIAL": 3,
+    "games_played": 961,
+    "games_readable": 958,
+    "games_void": 3
+  },
+  "sample_line_all_runs_identical_but_release_and_paths": "SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> --arm middle --end-state --state --census data/verification/census-pin-9446a684709d.json --games 1200 --turns 50 --team-store data/team-pool-frozen --dump-games 200 --dump-out <path> --out <path> --write",
+  "the_change": "engine/medicham2-browser.js: at the close of the residual body loop, a body that ran the perish handler and did NOT take the fainting duration-expiry branch now drains the faint queue (sim/battle.ts:565, reached through the callback branch). Knob MEDI_RESIDUAL_FAINT_AT_GROUP_END=1 restores. drainFaints emits lines and writes no state, so no board can move by construction.",
+  "probe": "tests/probe_residual_faint_flush.js — RED-LAST, RED-MID, CTRL-NONE. Shown red on both RED arms before any engine byte moved (sequence parted, faintDrainResidualBodyStep +0); green after; the knob reverses both REDs and moves CTRL-NONE not at all.",
+  "predictions": {
+    "ordering_games": 14,
+    "narration_raw_games": 54,
+    "protocol_parted_games": 57,
+    "by_cause_rows": 55,
+    "board_material": "0 of 958 — UNCHANGED. This is the hard clause: a narration fix that parts a board is a regression, not a trade.",
+    "games_played": 961,
+    "games_readable": 958,
+    "games_void": 3,
+    "closed_by_name": [
+      "ordering :: |faint|p1a <> |upkeep   (seed ...bo3-2661861148, turn 4 — two perish0 expiries then an Incineroar at perish2)",
+      "ordering :: |faint|p2b <> |-start|p1b|perish0   (seed ...bo3-2658309440, turn 10 — a Gengar expires, an Excadrill at perish1 pays for it, two more expire after)"
+    ],
+    "new_causes_expected": 0
+  },
+  "risks_named_before_the_run": [
+    "TRANSFER. Both games are known to carry other machinery — ...bo3-2661861148 is the game whose Light Screen tick is named in the residual-stop block's own header — so either may re-enter the count on a later divergence. A game that leaves and re-enters on a different cause is a TRANSFER and is reported as one, not as a failure to close.",
+    "OVER-FIRE. The drain is gated on `_ranExpiryHandler`, set by the perish step alone, so it cannot reach a group with no perish counter in it. A rise in narration would mean the group-major walk emits a perishN line at a point the authority does not, which the probe's CTRL-NONE arm would not have seen.",
+    "BOARD. drainFaints writes no state; the only thing it moves is faintQueueOwed(), which the group-top stop reads — and the new call is placed BELOW the existing wipe block, which has already broken out of the turn on the one path where the two interact. If board-material moves at all, this run's narration figures are WITHHELD and the fix is corrected."
+  ],
+  "lower_bound_note": "The ordering count is a LOWER BOUND on what is left: a game records only its FIRST divergence, so closing one cause can reveal another in the same game."
+}

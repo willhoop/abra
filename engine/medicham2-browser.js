@@ -2789,6 +2789,12 @@ const MEDFAILS = { encoreAction: 0,
      boundary, so a side wiped part-way through a group still has its remaining bodies stepped. Must
      read 0 on any shipping run. See the block at the close of the residual body loop. */
   residualStopGroupOnlyRestored: 0,
+  /* BATCH P, 2026-09-08 -- MEDI_RESIDUAL_FAINT_AT_GROUP_END=1 is armed: a perish counter that
+     SURVIVES its residual pays nothing, so a `|faint|` queued by an expiry above it waits for the
+     foot of the walk or for `|upkeep|`. Set only where the restored engine actually held a line
+     back, so it cannot read non-zero on a board the knob could not move. Must read 0 on any
+     shipping run. See the in-group drain at the close of the residual body loop. */
+  residualFaintAtGroupEndRestored: 0,
   /* 2026-09-04 -- MEDI_CONFUSION_DMG_ADDR_LEGACY=1 is armed: the confusion self-hit's damage draw is
      back at the CLICK'S target instead of the confused body. Must read 0 on any shipping run. */
   confusionDmgAddrLegacyRestored: 0,
@@ -19222,6 +19228,11 @@ const CONFUSION_THIRD = (typeof process !== 'undefined' && process.env
 /* 2026-09-07 -- see the close of the residual body loop. Restores the GROUP-only stop granularity. */
 const RESIDUAL_STOP_GROUP_ONLY = (typeof process !== 'undefined' && process.env
                                   && process.env.MEDI_RESIDUAL_STOP_GROUP_ONLY === '1');
+/* BATCH P, 2026-09-08 -- see the in-group drain at the close of the residual body loop. Restores the
+ * engine in which a SURVIVING duration handler paid nothing, so every `|faint|` a duration EXPIRY
+ * queued waited for the foot of the walk or for `|upkeep|`. */
+const RESIDUAL_FAINT_AT_GROUP_END = (typeof process !== 'undefined' && process.env
+                                     && process.env.MEDI_RESIDUAL_FAINT_AT_GROUP_END === '1');
 /* THE RESTORE KNOB FOR THE SELF-HIT DAMAGE ADDRESS -- see confusionSelfDamage. It puts the damage
  * draw back at the CLICK'S target, which is where it sat until 2026-09-04, so
  * tests/probe_confusion_selfhit_address.js can be shown RED rather than told it was. */
@@ -23924,6 +23935,12 @@ function drainFaints(where){
      `faintMessages()` at sim/battle.ts:565. Counted apart because it is the ONLY drain that also
      ends the turn on the spot. */
   else if(where==='residualBody')MEDSEEN.faintDrainResidualBody=(MEDSEEN.faintDrainResidualBody|0)+1;
+  /* BATCH P, 2026-09-08 -- the drain a SURVIVING duration handler performs, which is `fieldEvent`'s
+     `faintMessages()` at sim/battle.ts:565 reached through the callback branch rather than the
+     expiry `continue`. Counted apart from `residualBody` because that one also ENDS the turn and
+     this one never does. */
+  else if(where==='residualBodyStep')
+    MEDSEEN.faintDrainResidualBodyStep=(MEDSEEN.faintDrainResidualBodyStep|0)+1;
   return n;
 }
 function lastFaintSeq(arr){ let n=-1;
@@ -38505,12 +38522,36 @@ function battleTurn(S,rng,actsForA,actsForB){
        * -- a second change wearing the first one's clothes. Nothing below is re-gated: the `if` on the
        * next line is the line that was cut from the top of `_stepEffects`, character for character.
        *
-       * ITS ORDER AGAINST `_stepDamagingHit` IS UNOBSERVABLE, AND THAT IS DERIVED RATHER THAN HOPED:
+       * ~~ITS ORDER AGAINST `_stepDamagingHit` IS UNOBSERVABLE, AND THAT IS DERIVED RATHER THAN HOPED:
        * both read the TARGET's ability, a body holds one ability, and no entity in data/tags.json
        * carries both `buffsHolderOnHit` and `punishesAttacker` (checked over the whole artifact --
        * Cursed Body carries `punishesAttacker` + `disablesAttacker` and no buff). So the two can never
        * both fire on one body, and the authority's single `DamagingHit` event is faithfully
-       * reproduced by two adjacent steps.
+       * reproduced by two adjacent steps.~~
+       *
+       * **THAT PARAGRAPH IS TRUE OF ONE BODY AND FALSE OF A SPREAD HIT, AND THE PINNED POOL REFUTES
+       * IT. CORRECTED 2026-09-08 RATHER THAN DELETED, because the derivation is dated evidence and
+       * the hole it left is the point.** The premise -- "a body holds one ability" -- silently assumes
+       * ONE body. The driver is step-outer/row-inner, so on a spread hit these two adjacent steps
+       * become [every row's punish] then [every row's buff]: a buff on row 0 lands BELOW a punish on
+       * row 1. The authority raises ONE `runEvent('DamagingHit', damagedTargets, ...)`
+       * (data/mods/champions/scripts.ts:410) whose handler list holds every damaged target's
+       * `onDamagingHit` AND the source's `onSourceDamagingHit`, `speedSort`ed together.
+       *
+       * MEASURED, release `fb0058fb5702` of the pinned pool, `ordering :: |-boost|p1a|def|1 <>
+       * |-status|p2b|brn|[from]spicyspray`: a Muddy Water into an Archaludon (STAMINA) and a
+       * Scovillain (SPICY SPRAY) -- two bodies, one ability each, both halves of the same event.
+       *     showdown  -boost p1a def 1     -status p2b brn [from] Spicy Spray
+       *     medicham  -status p2b brn      -boost p1a def 1
+       * Two more rows of the same class are the same event read the other way round: Rough Skin
+       * against POISON TOUCH, which is `onSourceDamagingHit` (data/abilities.ts:3360) and not a
+       * secondary, and Cursed Body against a Matcha Gotcha secondary.
+       *
+       * NOT FIXED HERE, AND THE REASON IS THE DICE. Every member of the event is chance-gated --
+       * Cursed Body's `randomChance(3,10)`, Poison Touch's, Static's, Flame Body's, Effect Spore's --
+       * and `_reactAddr` spends them at an `nth`-counted address, so merging and speed-sorting the two
+       * steps reorders draws at a shared address and moves boards. It needs its own batch with a
+       * bisect budget: docs/_reports/2026-09-08-narration-ordering-2.md section C.
        *
        * IT STAYS ABOVE `_stepAfterHit`, which is where it already was and where the authority puts
        * it -- the five staged Knock Off turns in `_stepDamagingHit`'s header measured the reaction
@@ -41562,6 +41603,45 @@ function battleTurn(S,rng,actsForA,actsForB){
           MEDSEEN.turnEndedSideWipedMidGroup++;MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedInResidual++;
           break _TURN;
         }
+      }
+      /* ==== BATCH P, 2026-09-08 -- AND THE SAME `faintMessages()` WHEN THE SIDE IS *NOT* WIPED ====
+       *
+       * The block directly above pays the queue when a surviving handler discovers the battle is
+       * over, because that is `fieldEvent`'s `faintMessages(); if (this.ended) return;`. THE DRAIN IS
+       * NOT CONDITIONAL ON `this.ended` IN THE AUTHORITY -- only the `return` is:
+       *
+       *     if (handler.callback) this.singleEvent(handlerEventid, ...);   // the perishN line
+       *     this.faintMessages();                        sim/battle.ts:565
+       *     if (this.ended) return;                      sim/battle.ts:566
+       *
+       * so a body whose counter SURVIVES announces `perishN` and then pays for every body above it
+       * that expired, wiped side or not. The expiry branch `continue`s past both lines
+       * (sim/battle.ts:514-524), which is why the queue exists at all.
+       *
+       * `RESIDUAL_AFTER_PERISH` ALREADY MODELS EVERY *OTHER* HANDLER THAT DOES THIS and deliberately
+       * excludes `r === perish` -- perish is the group itself, and that derivation is about handlers
+       * BELOW it. So the one handler at the same order as the expiry was the one that could not pay,
+       * and its drain is at the FOOT of the walk, which cannot put a `|faint|` BETWEEN two `perishN`
+       * lines. Both shapes are in the pinned pool, both `ordering`, both narration-only:
+       *     ...bo3-2661861148 t4  |faint|p1a <> |upkeep
+       *     ...bo3-2658309440 t10 |faint|p2b <> |-start|p1b|perish0
+       *
+       * IT MOVES NO STATE AND THAT IS CHECKABLE RATHER THAN CLAIMED. `queueFaint` has already
+       * written `curHP`, `fainted` and the faint sequence at the transition; `drainFaints` emits
+       * lines and nothing else. What it DOES move is `faintQueueOwed()`, which the group-top stop
+       * reads -- so it is placed BELOW the wipe block above, which has already broken out of the turn
+       * on the one path where the two interact.
+       *
+       * NARROWER THAN THE AUTHORITY, SAID PLAINLY: `_ranExpiryHandler` is set by the perish step
+       * alone, so this reproduces the rule for the order-24 group and not for an ordinary chip that
+       * kills at order 9 and is announced at the foot of the walk here. That is a second gap with a
+       * second fixture and folding it in would destroy this one's attribution.
+       *
+       * `MEDI_RESIDUAL_FAINT_AT_GROUP_END=1` restores the engine that could not pay here.
+       * tests/probe_residual_faint_flush.js stages all three positions of the survivor. */
+      if(_ranExpiryHandler&&!_expiryQueuedFaint&&faintQueueOwed()){
+        if(RESIDUAL_FAINT_AT_GROUP_END)MEDFAILS.residualFaintAtGroupEndRestored=1;
+        else drainFaints('residualBodyStep');
       }
     }
     /* 2026-08-22 -- `eachEvent('Update')` HAS EXACTLY TWO POSITIONS IN THE AUTHORITY'S TURN END, AND

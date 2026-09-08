@@ -115,7 +115,15 @@ code in the project.
 
 ### 4.1 The official engine, not ours
 
-**Alternative rejected:** generate games with `medicham2-browser.js`, which is 117× faster.
+**Alternative rejected:** generate games with `medicham2-browser.js`, which is faster.
+
+**How much faster was written as 117× and that is dead.** Re-measured 2026-09-08 with both engines
+interleaved in one process on 40 pinned team pairs, MEDICHAM runs at **1,482 turns/sec** against
+Showdown's raw `Battle` at **375** — **3.94×**, or **16.1×** against Showdown's own documented
+`BattleStream` interface. Artifacts: `data/verification/speed-2026-09-08/`. **The decision below does
+not depend on the size of the gap**, which is the point of stating it: it was rejected on the label
+being wrong, and a 3.94× engine with a wrong label is rejected for exactly the same reason a 117×
+one would be.
 
 Rejected because that engine disagrees with the official simulator by **31.1 percentage points** of
 win probability and flips the favourite in 3 of 8 matchups (ADR-001). Self-play amplifies engine

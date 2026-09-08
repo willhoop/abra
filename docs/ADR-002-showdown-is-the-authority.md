@@ -77,13 +77,13 @@ survivable under MILTANK, which decides by playing positions out thousands of ti
 cannot put a 117× slowdown beneath a rollout search. The project acquired a search player after
 ADR-001 was written, and that changes what the runtime has to be.
 
-> **CORRECTED 2026-08-06 (3.59.0). The ratio quoted in the paragraph above is not true, and this
-> ADR's conclusion does not depend on it.** Re-measured on the same machine, the same four teams
-> (derived from the store), 8-second runs at a 60-turn cap: MEDICHAM **13,041** turns/sec against
-> `champions_sim`'s **523** — a ratio of **24.9x**, not 117x. On battles/sec the figures are 217
-> against 28, but the two engines were driven differently (MEDICHAM to its 60-turn cap, Showdown with
-> `choose('default')` to a natural end), so **turns/sec is the comparable unit and battles/sec is
-> not**. The prior figures are kept above rather than rewritten. The argument here needs only that
+> **CORRECTED 2026-08-06 (3.59.0) — AND THIS CORRECTION IS ITSELF SUPERSEDED; READ THE 2026-09-08
+> BLOCK BELOW BEFORE QUOTING ANY FIGURE IN THIS ONE.** Re-measured on the same machine, the same four
+> teams (derived from the store), 8-second runs at a 60-turn cap: MEDICHAM **13,041** turns/sec
+> against `champions_sim`'s **523** — a ratio of **24.9x**, not 117x. On battles/sec the figures are
+> 217 against 28, but the two engines were driven differently (MEDICHAM to its 60-turn cap, Showdown
+> with `choose('default')` to a natural end), so **turns/sec is the comparable unit and battles/sec
+> is not**. The prior figures are kept above rather than rewritten. The argument here needs only that
 > the gap is large enough to sit under a per-turn rollout search, and 24.9x is: MILTANK already needs
 > **26 s against a 20 s budget** on one core, and 24.9x that is not a search, it is a forfeit.
 >
@@ -91,6 +91,38 @@ ADR-001 was written, and that changes what the runtime has to be.
 > number that is not true, and the honest statement is now the one ADR-003 makes: MEDICHAM exists so
 > that per-turn re-solving is affordable, and **the engine work is justified if and only if search
 > pays**. That is a falsifiable claim with a gate attached (ROADMAP #62), which the 117x never was.
+
+> **RE-MEASURED 2026-09-08. THE RATIO IS 3.94x, AND THE ARGUMENT IN THE BLOCK ABOVE NO LONGER
+> CARRIES.** Both blocks above are kept as dated evidence and neither is edited in place; this one
+> states what is true now. Both engines interleaved in ONE process so contention is common-mode, 40
+> pinned team pairs from `data/team-pool-frozen`, the same random policy on both sides: MEDICHAM
+> **1,482** turns/sec against Showdown's raw `Battle` at **375** — **3.94x**. 12,000 games per
+> engine, 8 contention-free reps spanning 3.75–4.07, noise floor 0.3% and 2.7% by half-split of one
+> arm, both arms reaching a real result in 100% of games at 11.05 against 11.13 mean turns. Release
+> `fb0058fb5702`, Showdown commit `20ad99ff`, census digest `b599f8d581b5`; harness and artifacts in
+> `data/verification/speed-2026-09-08/`. **The interface decides the number and both are true:** raw
+> `Battle` is the fastest thing Showdown has and gives 3.94x; `BattleStream` plus the official
+> `RandomPlayerAI`, which is what its documentation tells a user to write, gives 92 turns/sec and
+> **16.1x**.
+>
+> **WHETHER MEDICHAM GOT SLOWER IS NOT ESTABLISHED, AND THIS BLOCK DELIBERATELY DOES NOT SAY IT
+> DID.** The tempting sentence is that 13,041 turns/sec in August became 1,482 in September. Divide
+> each reading by its own battles/sec: August is **60.1 turns per battle** — every battle running to
+> the 60-turn cap, on an engine that did not finish games — a same-day sibling reading is **2.0**,
+> and this run is **11.06** with 100% of games reaching a result. Three different populations of a
+> turn; a ratio across them is not a slowdown. **No slowdown figure is stated here.** A bisection
+> over the frozen releases is measuring the curve on one instrument, and an intermediate 2026-08-28
+> reading is additionally withheld because it sits in a quarantined artifact.
+>
+> **WHAT THIS COSTS THE ARGUMENT, PLAINLY.** *"You cannot put a 117x slowdown beneath a rollout
+> search"* was the load-bearing sentence, and at 3.94x it is no longer load-bearing. It remains fair
+> about the 16.1x documented interface. **An earlier version of this block converted the margin into
+> "about 15 leaf calls per decision against 4" and that is withdrawn** — it counted leaf CALLS as
+> though they were playouts, when a call at `n=200` is 200 playouts, and a profile of one real
+> decision has since located the binding constraint elsewhere. **This ADR's conclusion is unchanged,
+> because it never rested on the ratio:** Showdown is the authority on the RULES, and keeping
+> MEDICHAM as the runtime is justified if and only if search pays (ROADMAP #62). What is retired is
+> the claim that speed alone settles it.
 
 **3. Nothing about this weakens the oracle.** Keeping MEDICHAM as the runtime does not promote it to
 the authority. Every disagreement remains MEDICHAM's fault by construction.
@@ -140,12 +172,16 @@ must not be attributed to them. They are ADR-001's record of what was known in J
 decision reversal is only legible beside the evidence it reverses. If any of them matters again it
 gets re-measured before it is quoted.
 
-**And one of the three has now been re-measured, which is why that sentence was written.** The
-timing was re-run on 2026-08-06 and came back at **24.9x** on turns/sec, not 117x — see the
-correction note in point 2 above. It has no artifact under `data/` either; it is a benchmark of two
-engines on one machine at one moment, and this ADR states it as such rather than citing a file that
-does not exist. **Nothing about the 31.1-point or 4.35-point figures has changed**, and neither
-should be quoted until it has been through the same treatment.
+**And one of the three has now been re-measured twice, which is why that sentence was written.** The
+timing was re-run on 2026-08-06 and came back at 24.9x on turns/sec rather than 117x; it was re-run
+again on 2026-09-08 and came back at **3.94x** against Showdown's raw `Battle` and **16.1x** against
+its documented `BattleStream` interface — see the two correction notes in point 2 above, the second
+of which supersedes the first. The 2026-08-06 reading had no artifact under `data/`. **The 2026-09-08
+reading does**, and that is the substantive change: the harness and its outputs are in
+`data/verification/speed-2026-09-08/`, with the release, the team store, the Showdown commit, the
+census digest and every command-line flag recorded, so it can be re-run rather than believed.
+**Nothing about the 31.1-point or 4.35-point figures has changed**, and neither should be quoted
+until it has been through the same treatment.
 
 *(The doc-currency check flagged those three as figures a cited artifact does not contain. It was
 right to. They are historical quotes sitting in a document that also cites live artifacts, and the

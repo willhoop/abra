@@ -293,6 +293,26 @@ function resolve(opts) {
     census_role: M.tableDriven ? 'CREDITED ONLY — it measures coverage and does not select'
                                : 'SELECTS THE SAMPLE — covWant reads it at every decision',
     driver_inputs: driverInputs || null,
+    /* WHAT DECIDES WHICH LINES MAY COUNT AS A DIVERGENCE, as opposed to which games get played —
+     * 2026-09-08. `data/protocol-events.json` is the declared skip list: every event on it is deleted
+     * from the Showdown side before alignment, so a row added or removed moves every class count in
+     * the table. It was in no digest set at all while the artifact recorded `driver_code_stable`.
+     *
+     * SEPARATE FROM `driver_inputs` because it applies under EVERY policy, including the 34
+     * coverage-arm artifacts where `driver_inputs` is null — a clause that fires on 70 of 112
+     * artifacts is not a guard. REFUSED ON ABSENCE for the same reason an unreadable census is: a run
+     * whose alignment rule nobody recorded is a run measured with an unknown ruler, and it cannot be
+     * compared with any other run. */
+    alignment_inputs: (() => {
+      const a = opts.alignmentInputs;
+      if (!Array.isArray(a) || !a.length || a.some(x => !x || !x.file || !x.digest)) {
+        throw new Error('steering: no alignmentInputs. data/protocol-events.json decides which '
+          + 'Showdown lines are deleted before alignment, so it moves every class count; a run that '
+          + 'does not digest it cannot be compared with any other run. Pass '
+          + '`alignmentInputs: [{ file, read_from, digest, ... }]`.');
+      }
+      return a;
+    })(),
     /* THE CODE THAT REALISES THE POLICY. See `driverCode` above for the receipt. The caller passes
      * the frozen set because it is the one holding the release handle — the same argument the
      * `driverInputs` note makes one field up. A caller that passes nothing gets the closure computed
@@ -430,6 +450,31 @@ function comparable(a, b) {
         + 'select the sample, so the two arms played different games for a reason unrelated to the '
         + 'change under test.');
     }
+  }
+  /* THE ALIGNMENT RULE — 2026-09-08. NOT gated on `TABLE_DRIVEN`: the skip list applies under all
+   * three arms, including the 34 `census-coverage-seeking/v1` artifacts where `driver_inputs` is
+   * null, and a clause that fires on 70 of 112 artifacts is not a guard.
+   *
+   * ABSENCE IS `unknown`, NOT A REFUSAL, and deliberately NOT added to `vouches()`. Every artifact on
+   * disk predates this field; putting it in the one-sided check would flip all 112 from UNKNOWN to
+   * NOT COMPARABLE, asserting they were SHOWN to differ — the same laundering as waving them through,
+   * pointed the other way. "Nothing recorded it" is not evidence either way. */
+  const alignOf = s => (s.alignment_inputs || []).map(x => (x && x.file) + '@' + (x && x.digest))
+    .sort().join(', ');
+  const aa = a.alignment_inputs, ab = b.alignment_inputs;
+  if (aa && ab) {
+    if (alignOf(a) !== alignOf(b)) {
+      bad.push('the ALIGNMENT RULE differs: ' + alignOf(a) + ' vs ' + alignOf(b) + '. '
+        + 'data/protocol-events.json is the declared skip list — an event on it is deleted from the '
+        + 'Showdown side before comparison, so a row added or removed moves every class count in the '
+        + 'table for a reason unrelated to the change under test.');
+    }
+  } else {
+    unknown.push((aa || ab ? 'only the ' + (aa ? 'before' : 'after') + '-arm records'
+                           : 'NEITHER arm records') + ' `alignment_inputs`, so the '
+      + 'data/protocol-events.json bytes that decided which lines could count as a divergence are not '
+      + 'on record. It moved once already (9c1dfeb7973c on 2026-08-07 -> 9abf74a7597e on 2026-08-26) '
+      + 'and it is DERIVED from engine/medicham2-browser.js, which moves constantly.');
   }
   /* THE INSTRUMENT ITSELF — 2026-09-05. Six runs on one identical set of pins read 121/138/147/167
    * because `engine/empirical_driver.js` was rewritten between them, and this function answered

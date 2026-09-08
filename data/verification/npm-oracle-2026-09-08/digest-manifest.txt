@@ -1,0 +1,7 @@
+DIFFERS dist/data/./formats-data.js
+DIFFERS dist/data/./mods/champions/formats-data.js
+DIFFERS dist/data/./mods/gen8/rulesets.js
+DIFFERS dist/data/./rulesets.js
+DIFFERS dist/sim/./side.js
+DIFFERS dist/sim/./team-validator.js
+identical=317 differs=6

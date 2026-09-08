@@ -1,10 +1,10 @@
 {
-  "current": "fb0058fb5702",
-  "cut": "2026-09-08T03:35:30.680Z",
-  "why": "batch O fixes 2+3: an arriving ability announces inside the ONE SwitchIn event (Supreme Overlord no longer speaks between two switch lines); and the pivot branch names the ability on a move-class refusal",
-  "cuts": 2,
-  "latest_cut": "2026-09-08T04:05:38.027Z",
+  "current": "f0f10cd06861",
+  "cut": "2026-09-08T05:41:16.014Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 12,
+  "latest_cut": "2026-09-08T06:17:10.780Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-08T04:05:38.045Z",
+  "pointer_written": "2026-09-08T06:17:10.797Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

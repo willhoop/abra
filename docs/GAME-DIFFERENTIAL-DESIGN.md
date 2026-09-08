@@ -698,9 +698,16 @@ to notice, because the census asks *does the mechanic fire*, not *is the number 
 ## 7. Cost, and what is honestly unknown
 
 Building it is roughly a day: both engines already play games, `tests/test-engine-diff.js` already
-solves the die-pinning traps, and the store already holds the teams. Running it is cheap — MEDICHAM
-measures ~1,600–2,000 battles/sec, so 1,000 games is under a minute and the official engine is the
-slower side.
+solves the die-pinning traps, and the store already holds the teams. Running it is cheap, and the
+official engine is the slower side.
+
+**The throughput sentence here read ~1,600–2,000 battles/sec for MEDICHAM and is superseded.**
+Re-measured 2026-09-08 on this box, 40 pinned team pairs, both engines interleaved in one process:
+MEDICHAM **134 whole games/sec** and Showdown's raw `Battle` **33.7** — so 1,000 games is about 8
+seconds of play on MEDICHAM and about 30 on Showdown. Those are PLAY time only. This instrument also
+aligns two protocol logs per game, which is in neither figure, so do not read them as a runtime
+estimate for the differential itself. Artifacts and pins:
+`data/verification/speed-2026-09-08/`.
 
 **The fix cycle afterwards is not estimable, and saying otherwise would be a number to retract
 later.** Nobody knows what it finds, because it is the first instrument that could see a sequencing

@@ -172,8 +172,13 @@ console.log('\n5. arms_comparable / steering.comparable REFUSES A CROSS-POLICY P
    * engine/empirical_driver.js was rewritten between them. A fixture that omitted the field would make
    * this section's control assert something it never intended to be about. Both sides carry the same
    * digest, so the instrument axis is held still and the tables are the only thing varying. */
+  /* `alignment_inputs` IS PART OF THE FIXTURE FOR THE SAME REASON — 2026-09-08. A pair where
+   * neither arm digests data/protocol-events.json reads UNKNOWN, because the declared skip list
+   * deletes Showdown lines before alignment and therefore moves every class count. Held identical on
+   * both sides so this section's subject stays the tables. */
   const common = { input_digest: 'ccc', input_rows: 1, input_generated: 'g',
                    driver_code: { digest: 'ddddddddddd0', files: { 'engine/game_differential.js': 'x' } },
+                   alignment_inputs: [{ file: 'data/protocol-events.json', digest: '9abf74a7597e' }],
                    team_pool_digest: 'ppp', team_pool_teams: 1, team_pool_picked: 1 };
   const cov = Object.assign({ policy: STEERING.POLICY, driver_inputs: null }, common);
   const emp = Object.assign({ policy: STEERING.POLICY_EMPIRICAL, driver_inputs: inputs }, common);
@@ -201,6 +206,21 @@ console.log('\n5. arms_comparable / steering.comparable REFUSES A CROSS-POLICY P
                                 Object.assign({}, emp, { driver_code: undefined }));
   ok(!f.ok && f.verdict === STEERING.VERDICT.UNKNOWN,
     'two arms that BOTH predate the instrument stamp read UNKNOWN, not COMPARABLE', JSON.stringify(f));
+  /* THE ALIGNMENT AXIS — 2026-09-08. Same policy, same tables, same driver code, DIFFERENT skip
+   * list. This is the knob reaching the rule: nothing else in the fixture moves. */
+  const g = STEERING.comparable(emp, Object.assign({}, emp,
+    { alignment_inputs: [{ file: 'data/protocol-events.json', digest: '9c1dfeb7973c' }] }));
+  ok(!g.ok && g.verdict === STEERING.VERDICT.NO && g.reasons.some(r => /ALIGNMENT RULE differs/.test(r)),
+    'two arms with identical tables and a DIFFERENT declared skip list are NOT comparable',
+    JSON.stringify(g));
+  /* AND THE ABSENCE CASE READS UNKNOWN, NOT A REFUSAL. Every artifact on disk predates the field;
+   * "nothing recorded it" is no more evidence that they differed than that they matched. */
+  const h = STEERING.comparable(Object.assign({}, emp, { alignment_inputs: undefined }),
+                                Object.assign({}, emp, { alignment_inputs: undefined }));
+  ok(!h.ok && h.verdict === STEERING.VERDICT.UNKNOWN
+     && h.reasons.some(r => /NEITHER arm records `alignment_inputs`/.test(r)),
+    'two arms that BOTH predate the alignment stamp read UNKNOWN, not NOT-COMPARABLE',
+    JSON.stringify(h));
 }
 
 /* ---- 6. THE MODE MUST BE NAMED BY ID ----------------------------------------------------------- */
@@ -210,10 +230,20 @@ console.log('\n6. THE ARM IS ASKED FOR BY ID');
     'an unknown steering mode is a refusal, not a fallback to the default');
   throws(() => STEERING.resolve({ mode: 'empirical' }),
     'the empirical mode with no declared driverInputs is a refusal');
-  const r = STEERING.resolve({ mode: 'coverage' });
+  /* THE ALIGNMENT RULE IS REQUIRED UNDER EVERY ARM — 2026-09-08. `data/protocol-events.json` is the
+   * declared skip list and it applies under coverage as much as under empirical, so it is passed on
+   * both call sites below and its absence is its own refusal. */
+  const ALIGN = [{ file: 'data/protocol-events.json', digest: 'p1' }];
+  throws(() => STEERING.resolve({ mode: 'coverage' }),
+    'a run that does not digest the declared skip list is a refusal — it decides which lines may '
+    + 'count as a divergence');
+  const r = STEERING.resolve({ mode: 'coverage', alignmentInputs: ALIGN });
   ok(r.policy === STEERING.POLICY && r.driver_inputs === null,
     'the default arm is unchanged and declares no driver inputs', r.policy);
-  const e = STEERING.resolve({ mode: 'empirical',
+  ok(r.alignment_inputs && r.alignment_inputs.length === 1,
+    'the coverage arm records the alignment rule even though it has no driver inputs',
+    JSON.stringify(r.alignment_inputs));
+  const e = STEERING.resolve({ mode: 'empirical', alignmentInputs: ALIGN,
     driverInputs: [{ file: 'data/move-priors.json', digest: 'x' }] });
   ok(e.policy === STEERING.POLICY_EMPIRICAL && /CREDITED ONLY/.test(e.census_role),
     'the empirical arm says the census no longer selects', e.census_role);

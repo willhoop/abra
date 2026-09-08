@@ -51,20 +51,38 @@ Ratio **3.94x** over 8 contention-free reps (3.75–4.07); **noise floor 0.3% / 
 the same arm. Against Showdown's own documented interface — `BattleStream` + `RandomPlayerAI` — the
 gap is **16.1x**. THROUGHPUT ONLY; the quarantine on MEDICHAM's accuracy is untouched.
 
-**SHOWDOWN DID NOT GET FASTER — WE GOT SLOWER, AND THAT IS THE FINDING.** 117x (July, never had an
-artifact) → 24.9x (2026-08-06) → 3.94x. MEDICHAM's own throughput went 13,041 → ~1,800
-(`data/medicham-speed.json`, 2026-08-28) → 1,482 turns/sec. Roughly **8.8x of the engine's speed has
-been spent on mechanics in 33 days**, and only the mechanics count is on the status board. **The
-turns/sec belongs beside it**, because the two are trading against each other and nothing prints the
-trade.
+**THE RATIO SERIES IS 117x (July, never had an artifact) → 24.9x (2026-08-06) → 3.94x.** Only the
+last has an artifact on disk.
 
-**AND THE SEARCH ARITHMETIC IS THE PART TO SIT WITH.** Derived from this run, a `rolloutWinProb` call
-at n=200 and cap 14 costs **~1.37 s** on one core — which agrees with the 1,144–1,270 ms already in
-`data/medicham-speed.json`. MILTANK's default 20,000 ms budget therefore buys **~15 leaf calls per
-decision on one core**; on Showdown's raw `Battle` the same budget buys **~4**. *"You cannot put that
-slowdown beneath a rollout search"* is fair about the 16x documented interface and is **not** fair
-about the 4x raw one. Whether 15 beats 4 by enough to matter is a decisive-pair question for SEARCH
-(ROADMAP #62), and nothing in this measurement answers it in either direction.
+**THE `8.8x` SLOWDOWN IS WITHDRAWN, AND THIS SECTION SAID IT FIRST. Corrected 2026-09-08.** The
+paragraph here read *"we got slower — 13,041 → 1,482, roughly 8.8x in 33 days"*, and the bisection
+Will asked for opened by killing its own premise: **the two endpoints do not measure the same amount
+of work.** Divide each reading by its own battles/sec — 13,041 / 217 is **60.1 turns per battle**,
+every battle running to the 60-turn cap on an engine that did not finish games; a same-day sibling
+reading is **2.0**; 1,482 / 134 is **11.06**, with 100% of games reaching a result. Three populations
+of "a turn", so the ratio is not a slowdown and **no slowdown figure is published anywhere.** Worse
+for the instrument: `engine/game_differential.js` refuses every release before 2026-08-12, so the
+window both disputed figures came from **cannot be re-measured by the thing that produced today's
+number**. Full account: `docs/_reports/2026-09-08-speed-regression-bisect.md`.
+
+**THE INTERMEDIATE READING IS WITHHELD, NOT CAPTIONED. Corrected 2026-09-08.** This section also
+quoted a 2026-08-28 midpoint and a leaf-cost range out of `engine/bench_speed.js`'s consolidated
+artifact. **That artifact is in the withheld set** — `tests/test-docs-quarantine.js` said so and was
+RED on this page — so its figures come out rather than gaining a caveat.
+
+**AND THE `~15 LEAF CALLS AGAINST ~4` ARITHMETIC IS WITHDRAWN TOO.** It counted leaf CALLS as though
+they were playouts; a call at `n=200` is 200 playouts, so thousands of rollouts already happen inside
+one decision. A profile of one real in-game decision has since located the binding constraint
+elsewhere, and its figures are not repeated here because that artifact is withheld as well. What
+survives: *"you cannot put that slowdown beneath a rollout search"* is fair about the 16x documented
+interface and is **not** fair about the 4x raw one, and whether re-solving per turn pays is a
+decisive-pair question for SEARCH (ROADMAP #62) that nothing in this measurement answers.
+
+**THE DURABLE FINDING IS THE ABSENCE, NOT THE NUMBER.** Nothing in this repository ratchets engine
+speed, and the cost of that is not a stale figure — it is that four readings of one quantity were
+each taken a different way, so **the project cannot presently say whether its own engine got faster
+or slower over a month.** MEDICHAM's turns/sec belongs on the status board beside its mechanics
+count, measured one way, every time.
 
 **NO PUBLIC ENGINE IS A SHORTCUT, AND NOT BECAUSE OF SPEED.** `@pkmn/engine` is RBY/GSC and rules
 format mods out *by design*; `poke-engine` is singles-only even though it already carries this
@@ -74,6 +92,42 @@ regulation's mechanics in Rust; `battler` has Gen 9 doubles and no Champions mod
 checkout, `[Gen 9 Champions] VGC 2026 Reg M-B` present, 2.588 ms/turn against the checkout's 2.579 —
 so `engine/champions_sim.js`'s "requires a built master checkout" header is stale as of 2026-07-28.
 Filed for ENGINE, not fixed here.
+
+## THE DEAD RATIO IS OUT OF SIX LIVING DOCUMENTS, AND THE npm ORACLE'S LEGAL SETS ARE IDENTICAL TO OURS. 2026-09-08
+
+Full account: `docs/_reports/2026-09-08-retract-24x-and-npm-legality.md`. Row: `docs/RUNNING-NOTES.md`
+5.267.0. Artifact: `data/verification/npm-oracle-2026-09-08/npm-oracle-legality.json`.
+
+**SIX, NOT THREE, AND THE DIFFERENCE IS WHY THE SET IS DERIVED.** `24.9x` stood as the CURRENT ratio
+in six of the 25 documents `engine/docs_scan.js` `livingDocs()` returns, and **a `24.9` search finds
+only four of them.** The deck says *"about 25 times slower"* in words, `docs/MEW-whitepaper.md` still
+said *"117× faster"*, and `docs/GAME-DIFFERENTIAL-DESIGN.md` quoted MEDICHAM at *"~1,600–2,000
+battles/sec"*. All six are REWRITTEN to 3.94x rather than captioned. `docs/ADR-001-*.md` and
+`docs/ROADMAP.md` carry the figure, are not in the derived set, and are left as dated records.
+`docs/ADR-002-*.md` is BOTH — living and dated — so its 2026-08-06 block is kept and marked
+superseded, and a 2026-09-08 block sits beside it. That block retires an argument as well as a
+number: *"the gap is large enough to sit under a per-turn rollout search"* was load-bearing at 24.9x
+and is not at 3.94x.
+
+**THE npm PACKAGE IS THE SAME ORACLE, AND THAT IS A DERIVED CLAIM RATHER THAN A COUNT MATCH.**
+`pokemon-showdown@0.11.11` (published 2026-07-28) against our pinned checkout (commit `20ad99ff`,
+2026-07-22): **`LEGAL_SETS_IDENTICAL: true`** — 347 species, 500 moves, 148 items, 316 abilities with
+**zero** members on either side only and **zero `isNonstandard` differences**; the resolved 29-rule
+rule table identical; all three Champions format definitions identical; **14,192 learnset cells, 0
+diffs**; and `TeamValidator` over every open-sheet team in `data/team-pool-frozen` with **0
+accept/reject differences**, 6,450 valid on both builds. **6 of 323 files differ** under `dist/data`
+and `dist/sim` and every one is accounted for: three `tier` labels move `UU` → `UUBL` in the champions
+`formats-data.js` (reaching four dex entries through a base forme), three more move in the base file
+on species that are `isNonstandard: 'Past'` here, two rules change in `data/rulesets.js` that **do not
+appear in this format's rule table**, the Nickname Clause length MESSAGE was reworded — the sole
+source of 539 verdict-text differences and of no verdict change — and `sim/side.js` swaps
+`this.active.length > 1` for `this.battle.activePerHalf > 1`, which are equal in a `doubles` gametype.
+
+**RECOMMENDED, NOT PERFORMED.** The switch buys an immutable published version in place of a git
+checkout pinned by convention, and one `npm install` in place of building a TypeScript project. It is
+ENGINE/OPS work and belongs in its own attributable change; MEASURE decided only whether it is safe.
+`engine/champions_sim.js`'s *"requires a built master checkout"* header has been false since
+2026-07-28.
 
 ## SEVEN DEAD PLANT ANCHORS, AND THE CHECK THAT FINDS THEM NOW RUNS ON EVERY ROSTER RUN. 2026-09-07
 

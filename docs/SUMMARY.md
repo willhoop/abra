@@ -1197,18 +1197,36 @@ against a 20 s budget on one core of sixteen, so sixteen cores fixes the clock �
 parallelisation scales **sublinearly**, so it converts a failed budget into a met one rather than a
 shallow search into a deep one.
 
-### The correction that came with it: 117x was 24.9x
+### The correction that came with it: 117x was 24.9x, and 24.9x is now 3.94x
 
 ADR-001 chose to keep a hand-written simulator on a benchmark of **29 vs 3,401 battles/sec/core —
-117x**. Re-measured on this machine, same four teams (derived from the store), 8-second runs at a
-60-turn cap: MEDICHAM **13,041 turns/sec / 217 battles/sec**, `champions_sim` **523 / 28** — a ratio
-of **24.9x**. **`turns/sec` is the comparable unit and `battles/sec` is not**, because MEDICHAM ran to
-its 60-turn cap and Showdown ran with `choose('default')` to a natural end. The old figures are kept in
-ADR-001 with a dated correction beside them. **The decision stands and its stated justification does
-not** — a 24.9x gap still rules out live browser simulation, but the reason for the engine is now the
-falsifiable one above. A third reading exists that is neither: ROADMAP #61 measured 1,606 battles/sec.
-**Nothing in this repository ratchets engine speed**, which is how three readings of one quantity
-disagreed by an order of magnitude with no test going red.
+117x**. That was corrected to **24.9x** on 2026-08-06, and **the correction has itself been
+superseded.** Re-measured on 2026-09-08 with both engines interleaved in ONE process, the same 40
+pinned team pairs and the same random policy: MEDICHAM **1,482 turns/sec** against Showdown's raw
+`Battle` at **375** — a ratio of **3.94x**. 12,000 games per engine, 8 contention-free reps spanning
+3.75–4.07, a noise floor of 0.3% and 2.7% by half-split of the same arm, both arms reaching a real
+result in 100% of games. Release `fb0058fb5702`, `--team-store data/team-pool-frozen`, Showdown
+`20ad99ff`; harness and artifacts in `data/verification/speed-2026-09-08/`.
+
+**Which number you get depends on how you drive Showdown, and both are true.** Against the raw
+`Battle` class — the fastest interface it has — the gap is **3.94x**. Against `BattleStream` plus the
+official `RandomPlayerAI`, the interface Showdown's own documentation tells you to write, it is
+**16.1x**. Naming the interface is the difference between a checkable figure and the 117x.
+
+**AND WHETHER MEDICHAM GOT SLOWER IS NOT ESTABLISHED — THE OLD READINGS CANNOT BE LINED UP.** The
+obvious sentence is that 13,041 turns/sec in August became 1,482 in September. It is not written,
+because the two do not measure the same amount of work: divide each by its own battles/sec and the
+August figure is **60.1 turns per battle** (every battle running to the cap, on an engine that did not
+finish games), a same-day sibling reading is **2.0**, and this run is **11.06** with 100% of games
+reaching a result. **No slowdown figure is published on this page.** A bisection over the frozen
+releases is measuring the curve; an intermediate 2026-08-28 reading is additionally withheld, because
+it sits in a quarantined artifact. **The decision stands and its stated justification is thinner** — no
+public engine can load this format faster, so there was nothing better to adopt, but a 3.94x gap does
+not by itself rule a rollout search on Showdown out. **An earlier version of this paragraph converted
+the margin into "15 leaf calls per decision against 4"; that counted leaf CALLS as though they were
+playouts and is withdrawn.** Whether re-solving per turn pays is the falsifiable claim above, gated by
+ROADMAP #62. **Nothing in this repository ratchets engine speed**, which is how four readings of one
+quantity disagreed by an order of magnitude with no test going red.
 
 ## The finding that shapes everything
 

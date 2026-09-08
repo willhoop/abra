@@ -1,13 +1,13 @@
 {
-  "generated": "2026-08-26 22:47:00",
+  "generated": "2026-09-08 05:36:17",
   "source": "engine/derive_protocol_events.js",
   "source_digests": {
     "engine/derive_protocol_events.js": "477e53d8315b",
-    "engine/medicham2-browser.js": "1337ff095e92"
+    "engine/medicham2-browser.js": "5a86b1d52bd5"
   },
   "showdown_pinned_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "derivedFrom": {
-    "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown",
+    "showdown": "C:\\Users\\willj\\Projects\\Pokemon\\pokemon-showdown",
     "scanned": [
       "sim/battle.ts",
       "sim/battle-actions.ts",

@@ -49,7 +49,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_smart_target_redirect.js`, `tests/probe_selfboost_empty_foe_side.js`,
 `tests/probe_pivot_after_battle_end.js`, `tests/probe_status_chip_scaled.js`,
 `tests/probe_entry_update_before_mega.js`, `tests/probe_pickpocket_on_a_corpse.js`,
-`tests/probe_hazard_sweep_order.js`
+`tests/probe_hazard_sweep_order.js`, `tests/probe_residual_faint_flush.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -158,6 +158,186 @@ ENGINE — does the simulator do what Pokémon does
 _stamped 2026-09-07 22:22_
 
 <!-- /GENERATED -->
+
+## NARRATION BATCH P — THE ORDERING CLASS, SECOND PASS. NARRATION **55 → 53** (raw 56 → 54), PROTOCOL **59 → 57**, ORDERING **16 → 14 GAMES**, BOARD-MATERIAL **0 OF 958 → 0 OF 958**, CENSUS LEVEL AT 830/830. ONE FIX, ONE PROBE, THE PREDICTION HIT AT THE POINT ESTIMATE ON EVERY CLAUSE AND ZERO TRANSFERS. 2026-09-08
+
+One fix, shown RED under its own knob first, with a prediction written before the run. Full
+account — the six mechanisms the 16 actually are, the diagnosis of the 14 that remain, the probe
+fault its own staging claim caught, and the instrument that moved under the batch:
+[docs/_reports/2026-09-08-narration-ordering-2.md](_reports/2026-09-08-narration-ordering-2.md).
+
+| step | release | driver code | narration raw | protocol | ordering | board-material |
+|---|---|---|---|---|---|---|
+| the batch's baseline | `fb0058fb5702` | `4dd225b7e8c9` | 56 | 59 | 16 | 0 of 958 |
+| a surviving residual handler pays the faint queue | `cf8567c4db78` | `4dd225b7e8c9` | **54** | **57** | **14** | **0 of 958** |
+| the same engine plus one comment correction, re-cut | `f0f10cd06861` | `81b6bca47dab` | 54 | 57 | 14 | 0 of 958 |
+
+**THE CONTROLLED COMPARISON IS THE FIRST TWO ROWS.** The driver column is not decoration: another
+agent edited `engine/game_differential.js` and `engine/steering.js` between the second run and the
+third, so the third is a different instrument answering the same question. It agrees on every figure,
+which says the driver change moved none of them here — it does not make the third row the measurement.
+
+Sample line, identical for every run but the release and the dump path:
+
+```
+SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> --arm middle \
+  --end-state --state --census data/verification/census-pin-9446a684709d.json \
+  --games 1200 --turns 50 --team-store data/team-pool-frozen \
+  --dump-games 200 --dump-out <path> --write
+```
+
+`--games 1200` and `--turns 50` are part of the SAMPLE, not a budget: **961 played, 958 readable,
+3 void**, zero cut off by the turn cap, and the verdict block is identical across all three runs
+(SAME-END-STATE 958, DIFFERENT-END-STATE 2, THREW 1). Prediction in
+`data/verification/_prediction-2026-09-08-batchP-residual-faint-flush.json`, written BEFORE the run.
+
+### THE 16 ARE SIX MECHANISMS, NOT SIXTEEN
+
+Re-derived off `end_state[0].summary.by_cause` — the **uncapped** 57 rows, never `first_divergences`,
+which is capped at 60 and keyed on the first PROTOCOL divergence while the board bar reads the first
+BOARD one. The brief's 16 is confirmed exactly and every one of them is NARRATION-ONLY.
+
+| mechanism | games |
+|---|---|
+| **a `\|faint\|` owed by a residual EXPIRY, paid at the wrong point** | **3 — taken** |
+| the residual walk's ORDER between two bodies at the same `onResidualOrder` | 3 |
+| a Substitute intercepted at the damage step instead of step 0 of `spreadMoveHit` | 3 |
+| `onDamagingHit` / `onSourceDamagingHit` as ONE speed-sorted event | 3 |
+| turn order / replacement order between two bodies | 2 |
+| target selection announced above the move's own `TryMove` (Lightning Rod) | 1 |
+| a `smartTarget` volley into a shielded body announcing nothing | 1 |
+
+### `fieldEvent('Residual')` PAYS THE FAINT QUEUE AFTER A *SURVIVING* HANDLER
+
+`Battle#fieldEvent` runs `this.faintMessages()` after every handler (sim/battle.ts:565) and the
+duration-expiry branch `continue`s past it (:514-524). So a Perish Song counter that reaches ZERO
+announces `perish0`, queues a `|faint|` and announces nothing — and **the next handler to reach :565
+pays it, which may be a body whose own counter SURVIVED, inside the same order-24 group.**
+
+`RESIDUAL_AFTER_PERISH` already models every handler that sorts BELOW `perishsong@24.2` and is
+untouched; it excludes `r === perish`, correctly, because it is a derivation about what comes after.
+So the one handler at the SAME order was the one that could not pay, and the drain it does run is at
+the FOOT of the walk — which cannot put a `|faint|` BETWEEN two `perishN` lines. Both shapes were in
+the pool.
+
+`tests/probe_residual_faint_flush.js`, `MEDI_RESIDUAL_FAINT_AT_GROUP_END=1`. Three arms on one script
+and one pair of teams, differing only in the bench body that walks in on turn 2: **RED-LAST** (the
+survivor slowest — it pays all three faints above `|upkeep|`), **RED-MID** (the survivor at index 1 —
+one faint above the upkeep line and two below it in the same turn, which is what refuses a fix that
+simply moved the whole drain), and **CTRL-NONE**, the over-fire control, which is the authority
+baseline `RESIDUAL_AFTER_PERISH`'s own header was built on: nothing survives, nothing pays,
+`perish0 x4 | upkeep | faint x4` on both engines before the fix, after it, and under the knob.
+
+**IT MOVES NO STATE, AND THAT IS CHECKABLE RATHER THAN CLAIMED.** `queueFaint` has already written
+`curHP`, `fainted` and the faint sequence at the transition; `drainFaints` emits lines and nothing
+else. A board cannot move by construction, and the run confirms 0 of 958 either side.
+
+**A PROBE FAULT ITS OWN STAGING CLAIM CAUGHT.** The first cut picked its three replacements off BASE
+Speed. `buildMon`'s spread is not neutral — a base-120 Alakazam sorts BELOW a base-110 Gengar — so
+the intended "survivor first" arm was a survivor at index 1 and the intended "middle" arm was a
+duplicate of "last". The staging claim reads the survivor's position off the AUTHORITY's own log and
+failed on both, which is why it was a probe fault and not a finding.
+
+### THE HAND LIST
+
+**Removed — one, and it is the largest single mechanism the ordering class held:**
+
+- **A `faint` AGAINST AN END-OF-TURN LINE — 3 GAMES on batch O's list, 2 of them `ordering`** —
+  `tests/probe_residual_faint_flush.js`. It closes the `upkeep` row and the `perish0` row of batch O's
+  *"A `faint` AGAINST AN END-OF-TURN LINE — 3 games (`upkeep`, `-end syrupbomb`, `perish0`)"*. The
+  third, `-end syrupbomb`, is a different mechanism and is re-worded below.
+
+**Owed and named, not fixed here** (games, on release `f0f10cd06861`; the `ordering` class stands at
+**14**). Every row now carries the reason it was left, so the next batch is aimed rather than
+re-derived:
+
+- **A SUBSTITUTE INTERCEPTED AT THE DAMAGE STEP — 3 games.** `spreadMoveHit` step 0 is
+  `tryPrimaryHitEvent` over ALL targets, and Substitute's `onTryPrimaryHit` calls `getDamage` itself,
+  so the doll's OWN effectiveness line is written there too. **LEFT BECAUSE OF THE DICE:** the clean
+  fix is a doll-first row order for `_stepDamage`, which is where the damage and crit dice are drawn,
+  and `_subAddr` counts `nth` per address STRING against an address that can collide with a live row's
+  slot. The emission-only variant closes 2 of the 3 and TRANSFERS the third.
+- **THE RESIDUAL WALK'S ORDER BETWEEN TWO BODIES AT THE SAME `onResidualOrder` — 3 games** (`brn`,
+  `psn`, Leftovers). **NOT an unresolved tie coin** — checked: `game_differential.js` sets
+  `o.tie = () => 0` for the middle arm precisely because `pinShuffle` is a no-op on the authority side.
+  It is the limitation `residualOrder`'s own header declares, and the `brn` card proves it: the same
+  two Sinistcha come out `p1b,p2b` at order 5 and `p2b,p1b` at order 9/10 **in the authority**, which
+  no per-group body sort can produce. Closing it means building the flat handler list.
+- **`onDamagingHit` AND `onSourceDamagingHit` ARE ONE SPEED-SORTED EVENT — 3 games.**
+  `_stepDamagingHit`'s own header claimed the split from `_stepBuffOnHit` was unobservable; **the pool
+  refutes it and the header is corrected in place rather than deleted.** The premise "a body holds one
+  ability" silently assumes ONE body, and a Muddy Water into an Archaludon (Stamina) and a Scovillain
+  (Spicy Spray) is two. **LEFT BECAUSE OF THE DICE:** every member is chance-gated and `_reactAddr`
+  spends them at an `nth`-counted address.
+- **TWO ORDER-OF-ACTION DISAGREEMENTS — 2 games**, one in the turn queue (`closecombat` against
+  `tailwind`) and one in the post-KO replacement pass (`archaludon` against `gholdengo`). Both are a
+  single adjacent PAIR on the same side, and in the switch card the two engines AGREE on the third
+  body, so the sort mechanism is not simply absent. **These are worth the most beyond narration** — a
+  turn-order rule reaches boards everywhere — and neither can be diagnosed without the two teams'
+  actual spreads out of the frozen pool. Deliberately not guessed at.
+- **LIGHTNING ROD'S `-activate` BELONGS ABOVE THE `-prepare` — 1 game.** `RedirectTarget` is raised
+  inside `getMoveTargets` (sim/pokemon.ts:829, from battle-actions.ts:466) and the charge move's
+  `-prepare` comes from `singleEvent('TryMove')` at :590. This engine runs the charge block ~430 lines
+  ABOVE the redirect block. Hoisting only the ANNOUNCEMENT would put the redirect decision in two
+  places, which is the facts-are-global breach.
+- **A `smartTarget` VOLLEY INTO A SHIELDED BODY ANNOUNCES NOTHING — 1 game.** Dragon Darts into a
+  field where the partner slot is EMPTY and the only foe Protected: the authority writes
+  `-activate move: Protect` and this engine writes nothing at all. A MISSING EVENT wearing an
+  `ordering` label.
+- **`|faint|` BEFORE `|-end|…|syrupbomb|[silent]` — 1 game**, and it is the narration residue of the
+  `sourceOffField` board fix landed earlier the same day. `isActive` is cleared INSIDE `faintMessages`
+  (sim/battle.ts:2563) and this engine's reader is `fainted`, which `queueFaint` sets at the state
+  transition. **NOT TAKEN because the obvious repair moves STATE:** making `sourceOffField` wait for
+  the drain would let the volatile survive into the residual, which is exactly the board defect that
+  fix closed.
+- **AN ORDINARY CHIP THAT KILLS AT RESIDUAL ORDER 9/10 IS STILL ANNOUNCED AT THE FOOT OF THE WALK.**
+  The authority pays it under the chip's own `-damage` line. The drain landed here is gated on
+  `_ranExpiryHandler`, set by the perish step alone, so it does not reach this. **No pool witness
+  exists** among the 59 baseline divergences, so a probe would have to construct the fixture.
+
+**Carried forward unchanged** from batch O: the Zero to Hero `-activate`, the Magic Room item park,
+`RED-FLY`'s missing pool witness, two `onTryHit` refusers on one spread hit, the spread move's named
+target drawn at random by the authority, and the non-flat re-price at arrival 0.
+
+**`tests/probe_red_demo.js`'s COUNT IS WITHHELD, AND THE REASON IS NOT THIS ENGINE.** Four reads
+during this batch gave **15, 10, 9 and 8 COULD NOT BE APPLIED** on an engine tree that did not move
+between the last three (`engine_release.js drift('f0f10cd06861')` is `[]` before and after all of
+them). The file was being re-aimed by another agent while I read it — its diff carries
+`RE-AIMED 2026-09-08, MEASURE` headers on three of the five that changed answer. Every one of those
+reads is a torn read, **including the first, which happened to match batch O's number.** What is
+attributable: this batch invalidated no certificate, 2 HOLLOW is stable across all four reads, and the
+one hard failure (`WIRE 120 Parting Shot … reverted-arm=true`) is present in batch O's logs and in
+this batch's first and last reads, unchanged and inherited.
+
+**THE CENSUS WAS REGENERATED AND DID NOT MOVE: 830 live / 830 probed / 0 missing.**
+
+### THE ARTIFACTS THE ENGINE CHANGE INVALIDATED — RE-RUN TWICE, AND THE SECOND TIME IS THE POINT
+
+Cutting a release restamps every artifact measured on the old bytes. All five were re-run on
+`cf8567c4db78` and all five were clean. Then correcting `_stepBuffOnHit`'s header edited
+`engine/medicham2-browser.js` AFTER the measurement, and **`status.js` did not catch it**: it compares
+an artifact's stamped release against the POINTER in `data/engine-release.json`, which had not moved,
+so the gate read 8 of 9 PASS on bytes that had stopped existing — `engine_release.js drift` said so
+and the gate did not. The tree was re-cut as `f0f10cd06861` and all six artifacts re-run on it:
+
+| artifact | re-run | result |
+|---|---|---|
+| `data/engine-diff.json` | `tests/test-engine-diff.js --n 6000 --seed 20260804` | 0 of 6000, midpoint and all 14 interior indices |
+| `data/roster.items.json` | `tests/roster.js --stage items --reds --write` | 140 of 148, 0 DIFFER, 0 DID-NOT-FIRE, 0 NOT CAUGHT |
+| `data/roster.abilities.json` | `--stage abilities --reds --write` | 146 of 202, 0 DIFFER, 0 DID-NOT-FIRE, 0 NOT CAUGHT |
+| `data/roster.moves.json` | `--stage moves --reds --write` | 487 of 500, 0 DIFFER, 0 DID-NOT-FIRE, 0 NOT CAUGHT |
+| `data/all-mechanics-fire.json` | `engine/all_mechanics_fire.js --kind all --write` | 1313 games, 0 threw, every mechanic anybody plays agrees |
+| `data/mechanics-census.json` | `tests/test-mechanics.js` | 830 live / 830 probed / 0 missing |
+
+A comment-only change must reproduce every figure exactly, and it did — which is the check that the
+change really was comment-only.
+
+**WHAT IS OWED HERE.** The gate did not open and this ledger claims nothing downstream of it. `node
+engine/status.js --write` was **not** run by this pass — another agent was live — so the
+`<!-- GENERATED -->` block above is stamped to an earlier pass and no `<!-- GENERATED -->` block was
+hand-edited; read the gate, not the block. The `probe_red_demo` count is withheld rather than
+annotated. Eight ordering mechanisms are named above and unclosed, two of them (the doll's step and
+the single `DamagingHit` event) needing a bisect budget because they move dice.
 
 ## NARRATION BATCH 2 — THE ORDERING CLASS. NARRATION **63 → 55** (raw 64 → 56), PROTOCOL **67 → 59**, ORDERING **24 → 16 GAMES**, BOARD-MATERIAL **0 OF 958 → 0 OF 958**, CENSUS LEVEL AT 830/830. THE FIRST CUT CLOSED FIVE AND OPENED THREE, AND TWO OF THE THREE WERE ITS OWN. 2026-09-07
 

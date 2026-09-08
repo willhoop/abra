@@ -1,0 +1,155 @@
+{
+ "generated": "2026-09-08T05:45:36.803Z",
+ "by": "data/verification/npm-oracle-2026-09-08/compare_oracle_legality.js (MEASURE)",
+ "what": "Does the published npm Showdown build change what is LEGAL in gen9championsvgc2026regmb?",
+ "not_an_accuracy_claim": "This compares LEGALITY and validator verdicts only. It says nothing about simulation behaviour.",
+ "format": "gen9championsvgc2026regmb",
+ "build_a": {
+  "path": "C:/Users/willj/Projects/Pokemon/pokemon-showdown/dist/sim",
+  "version": "0.11.10"
+ },
+ "build_b": {
+  "path": "C:/Users/willj/AppData/Local/Temp/psnpm/package/dist/sim",
+  "version": "0.11.11"
+ },
+ "team_pool": "data/team-pool-frozen/games.ots.jsonl",
+ "counters": {
+  "walks": 8,
+  "empty_walks": 0,
+  "validator_threw": 0,
+  "store_lines_unparsed": 0
+ },
+ "tables": {
+  "species": {
+   "count_a": 347,
+   "count_b": 347,
+   "set_equal": true,
+   "only_a": [],
+   "only_b": [],
+   "field_diffs": [
+    {
+     "id": "medichammega",
+     "field": "tier",
+     "a": "UU",
+     "b": "UUBL"
+    },
+    {
+     "id": "froslassmega",
+     "field": "tier",
+     "a": "UU",
+     "b": "UUBL"
+    },
+    {
+     "id": "polteageist",
+     "field": "tier",
+     "a": "UU",
+     "b": "UUBL"
+    },
+    {
+     "id": "polteageistantique",
+     "field": "tier",
+     "a": "UU",
+     "b": "UUBL"
+    }
+   ]
+  },
+  "moves": {
+   "count_a": 500,
+   "count_b": 500,
+   "set_equal": true,
+   "only_a": [],
+   "only_b": [],
+   "field_diffs": []
+  },
+  "items": {
+   "count_a": 148,
+   "count_b": 148,
+   "set_equal": true,
+   "only_a": [],
+   "only_b": [],
+   "field_diffs": []
+  },
+  "abilities": {
+   "count_a": 316,
+   "count_b": 316,
+   "set_equal": true,
+   "only_a": [],
+   "only_b": [],
+   "field_diffs": []
+  }
+ },
+ "formats_identical": true,
+ "rule_table_identical": true,
+ "learn_cells": {
+  "a": 14192,
+  "b": 14192
+ },
+ "learn_diffs": [],
+ "teams": {
+  "a": 8334,
+  "b": 8334,
+  "valid_a": 6450,
+  "valid_b": 6450,
+  "rejected_a": 1884,
+  "rejected_b": 1884
+ },
+ "team_verdicts": {
+  "compared": 8334,
+  "accept_reject_diffs": 0,
+  "wording_only_diffs": 539,
+  "examples": [
+   {
+    "k": "gen9championsvgc2026regmb-2635875534:p2",
+    "a": "Nickname \"sinistchamasterpiece\" too long (should be 18 characters or fewer)",
+    "b": "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.) ;; Sinistcha-Masterpiece's nickname \"sinistchamasterpiece\" is too long."
+   },
+   {
+    "k": "gen9championsvgc2026regmb-2636059187:p2",
+    "a": "Nickname \"sinistchamasterpiece\" too long (should be 18 characters or fewer)",
+    "b": "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.) ;; Sinistcha-Masterpiece's nickname \"sinistchamasterpiece\" is too long."
+   },
+   {
+    "k": "gen9championsvgc2026regmb-2635518681:p2",
+    "a": "Nickname \"sinistchamasterpiece\" too long (should be 18 characters or fewer) ;; incineroar has exactly 0 Stat Points - did you forget to invest it? (If this was intentional, change your Nature to a different neutral Nature, which won't change its stats but will tell us that it wasn't a mistake).",
+    "b": "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.) ;; Sinistcha-Masterpiece's nickname \"sinistchamasterpiece\" is too long. ;; incineroar has exactly 0 Stat Points - did you forget to invest it? (If this was intentional, change your Nature to a different neutral Nature, which won't change its stats but will tell us that it wasn't a mistake)."
+   },
+   {
+    "k": "gen9championsvgc2026regmb-2635346040:p2",
+    "a": "Nickname \"sinistchamasterpiece\" too long (should be 18 characters or fewer) ;; floetteeternal must have at least three perfect IVs because it's a legendary in Gen 6 or later.",
+    "b": "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.) ;; Sinistcha-Masterpiece's nickname \"sinistchamasterpiece\" is too long. ;; floetteeternal must have at least three perfect IVs because it's a legendary in Gen 6 or later."
+   },
+   {
+    "k": "gen9championsvgc2026regmb-2634753127:p1",
+    "a": "Nickname \"sinistchamasterpiece\" too long (should be 18 characters or fewer)",
+    "b": "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.) ;; Sinistcha-Masterpiece's nickname \"sinistchamasterpiece\" is too long."
+   },
+   {
+    "k": "gen9championsvgc2026regmb-2634962431:p2",
+    "a": "Nickname \"sinistchamasterpiece\" too long (should be 18 characters or fewer)",
+    "b": "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.) ;; Sinistcha-Masterpiece's nickname \"sinistchamasterpiece\" is too long."
+   },
+   {
+    "k": "gen9championsvgc2026regmb-2634900385:p1",
+    "a": "Nickname \"sinistchamasterpiece\" too long (should be 18 characters or fewer)",
+    "b": "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.) ;; Sinistcha-Masterpiece's nickname \"sinistchamasterpiece\" is too long."
+   },
+   {
+    "k": "gen9championsvgc2026regmb-2634678577:p2",
+    "a": "Nickname \"sinistchamasterpiece\" too long (should be 18 characters or fewer)",
+    "b": "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.) ;; Sinistcha-Masterpiece's nickname \"sinistchamasterpiece\" is too long."
+   },
+   {
+    "k": "gen9championsvgc2026regmb-2634633890:p1",
+    "a": "Nickname \"sinistchamasterpiece\" too long (should be 18 characters or fewer) ;; floetteeternal must have at least three perfect IVs because it's a legendary in Gen 6 or later.",
+    "b": "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.) ;; Sinistcha-Masterpiece's nickname \"sinistchamasterpiece\" is too long. ;; floetteeternal must have at least three perfect IVs because it's a legendary in Gen 6 or later."
+   },
+   {
+    "k": "gen9championsvgc2026regmb-2634891086:p2",
+    "a": "Nickname \"sinistchamasterpiece\" too long (should be 18 characters or fewer)",
+    "b": "(It's 20 characters long, but should be 18 or less. Some characters, like emojis, may count as more than one.) ;; Sinistcha-Masterpiece's nickname \"sinistchamasterpiece\" is too long."
+   }
+  ]
+ },
+ "legality_field_diffs": [],
+ "LEGAL_SETS_IDENTICAL": true
+}

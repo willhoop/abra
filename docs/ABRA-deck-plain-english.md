@@ -1666,29 +1666,54 @@ Being wrong here would be a real finding about Pokémon, not a failure.
 
 ---
 
-## Slide 9f — We had a number that justified two years of work, and it was wrong by five times (3.62.2)
+## Slide 9f — We had a number that justified two years of work. It was wrong, we corrected it, and the correction was wrong too (updated 2026-09-08)
 
 **The claim.** We wrote our own Pokémon simulator instead of using the official one, and the reason
 written down in every document was: **the official one is 117 times slower.** That number decided the
 architecture.
 
-**We measured it again. It's about 25 times slower, not 117.**
+**We measured it in August and got 25 times. We measured it properly in September and got about
+4 times.** Our simulator plays 1,482 turns a second; the official one plays 375. That is the
+current number, and the two older ones are gone.
+
+**Two answers, both true, and you have to say which one you mean.** The official simulator can be
+driven two ways. If you reach past its front door and call the raw battle class — the fastest thing
+it has — we are **4 times faster**. If you use it the way its own documentation tells you to, we are
+**16 times faster**. A speed claim with no interface named cannot be checked, which is exactly how
+"117 times" survived a year.
+
+**The uncomfortable part, which is the real finding, and it is worse than a wrong number.** We
+believed our own engine had got much slower over the past month — and **we cannot actually tell.**
+The August measurement counted 60 turns per battle, because back then our engine never finished a
+game and simply ran until the clock stopped. A second measurement from the same day counted 2 turns
+per battle. Today's counts 11, and every game reaches a real ending. Those are not the same thing
+being counted, so lining them up and dividing produces a number that means nothing. We are running a
+proper comparison across saved copies of the engine; until it finishes, **the only speed figure we
+will stand behind is today's.** (A reading from the middle of that period exists too. We are not
+printing it, because it lives in a file our own quarantine rules say we may not quote from yet, and
+the honest thing is to leave it out rather than print it with an excuse attached.)
 
 **Why we're telling you rather than quietly fixing it.** Three things.
 
-1. The old number stays in the documents, with a dated correction beside it, because this project
-   does not rewrite a past conclusion as though it were never made.
-2. **The decision it justified is still right** — 25 times slower is still far too slow to think
-   during a live game. So nothing is being rebuilt.
-3. **But the reason has to be a real reason.** "117 times" was doing work it hadn't earned. The
-   honest version is now a claim you could prove us wrong about: *we wrote a fast simulator so the bot
-   can re-think every turn — so the simulator is worth building **if and only if** re-thinking
-   actually helps.* We are about to run the test that decides it.
+1. The old numbers stay in the documents, each with a dated correction beside it, because this
+   project does not rewrite a past conclusion as though it were never made.
+2. **The decision it justified is still right, for a different reason than the one written down.**
+   No public simulator can play this format faster — the only code that can play it at all is the
+   official one and its repackagings, and they all run at the same speed. There was nothing better
+   to buy then and there is nothing better now.
+3. **But the argument built on the number is gone.** "You cannot think during a game on something
+   117 times slower" was the sentence, and at 4 times it does not hold. We first wrote that a
+   20-second turn budget affords our engine about 15 full evaluations and the official one about 4.
+   **We have taken that back** — it counted the wrong unit, and a separate measurement of one real
+   in-game decision has since pointed at a different bottleneck altogether. So the simulator is
+   worth building **if and only if** re-thinking every turn actually helps, and that is a test we
+   still have to run.
 
-**The part that should worry a reader most.** We have three different speed measurements of our own
-simulator, taken two weeks apart, that disagree by a factor of ten — and **not one test noticed.**
-We measure win rates to three decimal places and check them against a noise floor. We had never once
-checked the speed of the thing everything else runs on.
+**The part that should worry a reader most.** We now have four speed measurements of our own
+simulator that disagree by a factor of ten, **not one test noticed any of them, and they were each
+taken in a way that stops us comparing them to each other.** We measure win rates to three decimal
+places against a noise floor. We cannot currently say whether our own engine got faster or slower
+over a month, because nothing in the project watches speed at all.
 
 ---
 

@@ -1562,31 +1562,63 @@ the worst relative error fell to 0%; the artifact has said so since 2026-08-08 a
 not move with it. The artifact's own caveat still governs what the agreement means: it is agreement
 on the DAMAGE FORMULA only, and says nothing about move selection, the accuracy model, or mechanics.
 
-### 3.0 Why a hand-written engine exists at all, and the corrected speed figure (3.62.2)
+### 3.0 Why a hand-written engine exists at all, and the speed figure it rests on (re-measured 2026-09-08)
 
 **ADR-001 decided this architecture on a benchmark of 29 against 3,401 battles/sec/core — a ratio of
-117x — and that ratio does not reproduce.** Re-measured on the same machine, both engines on the same
-four teams (derived from the store rather than typed), 8-second runs at a 60-turn cap:
+117x — and no version of that ratio has survived measurement.** It was corrected to 24.9x on
+2026-08-06 against `champions_sim`, and **that reading is superseded in turn.** Re-measured on
+2026-09-08 with both engines interleaved in ONE process, on the same 40 pinned team pairs and under
+the same random policy, the margin is **3.94x**:
 
 ```
-                 turns/sec    battles/sec
-MEDICHAM           13,041         217
-champions_sim         523          28
-ratio               24.9x         7.7x
+                        turns/sec   whole games/sec   ms/turn
+MEDICHAM                    1,482             134       0.675
+Showdown, raw `Battle`        375            33.7       2.665
+ratio                        3.94x           3.94x
 ```
 
-**`turns/sec` is the comparable unit and `battles/sec` is not.** The two engines were driven
-differently — MEDICHAM to its 60-turn cap, Showdown with `choose('default')` to a natural end — so a
-"battle" is not the same amount of work on the two sides, and the 7.7x is not like-for-like. The
-honest statement of the gap is **24.9x**. The July figures are retained above and in ADR-001 because
-a prior conclusion in this project is never silently rewritten, and a third reading exists that is
-neither: ROADMAP #61 measured MEDICHAM at 1,606 battles/sec. **Nothing ratchets engine speed**, which
-is how three readings of one quantity can differ by an order of magnitude with no test going red.
+**The ratio depends on how Showdown is driven, and both numbers are true.** Driven through the
+fastest interface it has — a bare `Battle`, no `BattleStream`, no protocol strings parsed — the gap
+is **3.94x**. Driven through the interface its own documentation tells a user to write —
+`BattleStream` plus the official `RandomPlayerAI` — the same comparison reads **92 turns/sec** and a
+gap of **16.1x**. The first is an upper bound on Showdown's engine; the second is the bound on
+Showdown as anyone actually uses it. Quoting either without naming which one is how a speed claim
+survives for a year.
 
-**The architectural decision survives the correction, but its justification changes.** A 24.9x gap
-still rules out live browser simulation, so ADR-001's conclusion stands. What no longer stands is
-"117x" as the reason. The reason is now the one §0.3 gives and it is falsifiable: **the engine work
-is justified if and only if search pays**, gated by ROADMAP #62.
+**Sample and pins.** 12,000 games per engine; 8 contention-free reps at a 60-turn cap giving a paired
+ratio of min 3.75, median 3.94, max 4.07; both arms reached a real result in 100% of games at 11.05
+against 11.13 mean turns. The noise floor, measured as the first half of one arm's clean reps against
+the second half on ms/turn, is 0.3% for MEDICHAM and 2.7% for Showdown — a 294% difference against a
+floor under 4% is an effect. Engine release `fb0058fb5702`, `--team-store data/team-pool-frozen`,
+Showdown commit `20ad99ff`, switch census digest `b599f8d581b5`, flags
+`--pairs 40 --per-pair 10 --reps 9 --caps 60,14`.
+Harness and artifacts: `data/verification/speed-2026-09-08/`. Throughput
+only; this section makes no claim about correctness and does not touch the quarantine.
+
+**HAS MEDICHAM GOT SLOWER? NOT ESTABLISHED, AND THE OLDER READINGS CANNOT ANSWER IT.** The obvious
+sentence to write here is that 13,041 turns/sec in August became 1,482 in September. **It is not
+written, because those two numbers do not measure the same amount of work.** Divide each reading by
+its own battles/sec and the tell is immediate: the 2026-08-06 figure was taken at **60.1 turns per
+battle** — every battle running to the 60-turn cap, on an engine that did not finish games — a
+same-day sibling reading was taken at **2.0**, and this run is taken at **11.06**, with 100% of games
+reaching a result. Three different populations of "a turn", so a ratio across them is not a slowdown
+measurement and none is published here. A bisection over the frozen releases is measuring the curve
+on one instrument and against one pool; **until it reports, the only comparable throughput figure in
+this document is today's.** What is certain either way, and is the durable finding: **nothing in this
+repository ratchets engine speed**, so four readings of one quantity can differ by an order of
+magnitude with no test going red, and the engine's turns/sec is still not printed beside its
+mechanics count.
+
+**The architectural decision survives, and this section does not attempt to settle whether 3.94x
+justifies the engine.** No public engine can play this format faster: the only code that loads
+`gen9championsvgc2026regmb` is Showdown's simulator and its repackagings, all of which run at the
+same speed, so there was no faster mod-capable engine to adopt then and there is none now. **An
+earlier draft of this section converted the margin into a count of leaf evaluations per decision.
+That conversion counted leaf CALLS as though they were playouts and is withdrawn** — a decision at
+`n=200` is 200 playouts per call, and a profile of one real decision has since shown the binding
+constraint to be somewhere else entirely. The reason for the engine is therefore the one §0.3 gives,
+and it is falsifiable: **the engine work is justified if and only if search pays**, gated by
+ROADMAP #62. Nothing above answers that in either direction.
 
 ### 3.1 The engine can now say WHAT it did, not only what state it reached (3.58.0)
 
@@ -1840,11 +1872,21 @@ cores beat which" and for quantifying how cyclic the meta really is.
    run — the 2026-08-04 void *was* an exploitability run, so this is a demonstrated failure mode
    rather than a hypothetical one.
 
-8. **Two speed readings of the same engine differ by an order of magnitude and nothing caught it**
-   (added 3.62.2, §3.0). 3,401, 1,606 and 13,041 are three measurements of MEDICHAM's throughput
-   taken over two weeks; the first two are battles/sec and the third is turns/sec, and no ratchet,
-   test or artifact compares any of them. A project whose central architectural decision rests on a
-   speed ratio should measure that ratio the way it measures a win rate. It does not, yet.
+8. **Speed readings of the same engine differ by an order of magnitude and for two months nothing
+   caught it** (added 3.62.2, §3.0; updated 2026-09-08). 3,401, 1,606 and 13,041 are three
+   measurements of MEDICHAM's throughput taken over two weeks; the first two are battles/sec and the
+   third is turns/sec, and when this item was written no ratchet, test or artifact compared any of
+   them. That part is no longer true — `engine/bench_speed.js` has consolidated MEDICHAM timings
+   since 2026-08-28 (into an artifact the quarantine withholds, so no figure of its is quoted
+   anywhere in this document), and the two-engine harness under
+   `data/verification/speed-2026-09-08/` measures both sides at once and is not withheld. What is
+   still true is the second half, and it got worse rather than better: **nothing ratchets engine
+   speed**, and the consequence is not merely that a number moved unnoticed — it is that the
+   readings were taken under three different drives, at 60.1, 2.0 and 11.06 turns per battle, so
+   **they cannot be assembled into a series at all.** The project cannot presently say whether its
+   own engine got faster or slower over a month, and it found that out by asking rather than by
+   being told. A project whose central architectural decision rests on a speed ratio should watch
+   that ratio the way it watches a win rate. `node engine/status.js` still does not print it.
 
 ## 7. The road to ALAKAZAM
 
