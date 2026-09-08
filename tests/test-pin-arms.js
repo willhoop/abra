@@ -318,8 +318,13 @@ console.log('\nPART 4 — two arms pinned differently are NOT a before/after, an
      * read 138 and 167 after engine/empirical_driver.js was rewritten between them. Both sides here
      * carry the SAME digest, which holds that axis still and leaves the pin set as the only variable —
      * omitting it would have turned this control red for a reason PART 4 is not about. */
+    /* `alignment_inputs` IS PART OF THE FIXTURE FOR THE SAME REASON — 2026-09-08. The declared skip
+     * list `data/protocol-events.json` decides which Showdown lines are deleted before alignment, so
+     * a pair where neither side records it reads UNKNOWN too. Held IDENTICAL on both sides, which
+     * leaves the pin set as PART 4's only variable. */
     steering: { policy: 'census-coverage-seeking/v1', input: 'data/mechanics-census.json',
                 driver_code: { digest: 'cccccccccccc', files: { 'engine/game_differential.js': 'x' } },
+                alignment_inputs: [{ file: 'data/protocol-events.json', digest: 'dddddddddddd' }],
                 input_digest: 'aaaaaaaaaaaa', input_rows: 299, team_pool_digest: 'bbbbbbbbbbbb' } });
   const same = AC.compare(base(), base());
   if (!same.ok) fail('THE CONTROL FAILED: two artifacts with the SAME pin set are reported as not '

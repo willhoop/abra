@@ -21,7 +21,7 @@ to re-derive the case.
 | Showdown, its DOCUMENTED interface (`BattleStream` + `RandomPlayerAI`) | ratio **16.1x** |
 | what 20 s of decision budget buys today | **~15 leaf calls** on MEDICHAM, ~4 on Showdown |
 | what Will wants | **thousands** of rollouts — roughly **130x** short |
-| the direction of travel | **13,041 -> ~1,800 -> 1,482 turns/sec in 33 days** |
+| ~~the direction of travel~~ | **WITHDRAWN 2026-09-08 — see below. There is no measured slowdown figure.** |
 
 Method: 12,000 games per engine, arms INTERLEAVED in one process so contention hits both equally, 8
 contention-free reps spanning 3.75-4.07, noise floor 0.3%/2.7%, release `fb0058fb5702`, Showdown
@@ -88,3 +88,43 @@ fixes.**
   proven identical.
 - **The 24.9x figure is dead** and stands in three living documents. It is a retraction, not a caption,
   and it is being handled now rather than parked.
+
+
+---
+
+## MEASURED AFTER THIS PAGE WAS FIRST WRITTEN — the premise held, and two figures died
+
+**The decision IS engine-bound, decisively.** One real `chooseMove` at the shipped `n=200`/`budgetMs=20000`:
+simulator + its lookup layer **87.2-92.0%** of self time; leaf inclusive **99.3-99.5%**; `battleTurn`
+**77.2-83.7%** on an independent wall-clock seam. **`magnemite.js` (MAG) 0.0%. `position_features.js`
+0.0%.** So the engine is the right target and the policy is not even measurable — Amdahl was the right
+question and it came back the other way. `docs/_reports/2026-09-08-decision-profile.md`.
+
+**TWO FIGURES THE COORDINATOR PUT IN FRONT OF WILL ARE WITHDRAWN:**
+- **"20 s buys ~15 rollouts"** — those were leaf CALLS, and a call at `n=200` is 200 playouts. The real
+  figure is **534-5,277 playouts** per decision. Thousands of rollouts already exist.
+- **"we got 8.8x slower"** — see above. Never a measured quantity.
+
+**WHAT REPLACES THEM AS THE REAL FINDING: menu coverage, not throughput.** On the slow decisions the
+screen evaluated **2 of 30 legal pairs** before its allowance ran out, because `screenN` keys off MENU
+WIDTH and never off OBSERVED PLAYOUT COST. **No amount of engine speed removes that.** It is a
+scheduling defect and it was invisible while everyone argued about the simulator.
+
+**Revised ranking, by measurement:**
+1. **Memoise the tag layer** — 24.6-27.1% of self time; `norm` alone 8.7-10.3%, and `withTag` is a full
+   table scan. ENGINE.
+2. **Hoist `applySideState`'s four per-playout table rescans** — 4.2-10.0%, identical every playout. SEARCH.
+3. **Threads** — serial fraction under 3%, Amdahl ceiling ~50x, so 8-10x is real.
+4. **Fix `screenN`** so the candidate count reacts to observed cost. This is the one that changes what the
+   search actually considers.
+
+**Rollout-length lever is smaller than claimed: 1.89x at depth 4, 2.38x at depth 3, not 3x** — mean
+playout is 8.28 turns against a census-derived horizon of 14 (NOT the 60 in `MILTANK.md`'s flag table),
+and 9.0% of a playout is fixed setup. **The accuracy cost is NOT measured**: `battleResult` scores an
+unfinished playout on living bodies then HP, so depth 3-4 makes the leaf a material comparator. That is
+MEASURE's calibration question and must not be assumed away.
+
+**Three defects filed by the profile, not fixed:** a frozen release **cannot serve `rollout_leaf.census()`**
+— the census JSON is not in `SOURCES`, so a snapshot-path load silently plays a SWITCHLESS playout at
+horizon 60 **and reports success**; `miltank.js` seeds `evalPair` from `Date.now()`, so a decision cannot
+be replayed; and `budgetMs` overran to 2.1x (26.9-42.8 s against a declared 20 s, under a 55 s cap).

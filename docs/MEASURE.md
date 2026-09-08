@@ -38,6 +38,75 @@ _stamped 2026-09-07 19:51_
 
 <!-- /GENERATED -->
 
+## THE DECLARED SKIP LIST IS AN ALIGNMENT INPUT NOW, AND THE REFIT MOVED NOTHING. 2026-09-08
+
+Full account: `docs/_reports/2026-09-08-skiplist-refit-and-red-demo.md`. Row: `docs/RUNNING-NOTES.md`.
+
+`data/protocol-events.json` decides which Showdown lines are deleted before comparison, so it decides
+what may count as a divergence — and it was in **no digest set at all**: not in the release's SOURCE
+files, not in `steering.driver_code.files` (it is read with `readFileSync`, so `requireClosure` cannot
+see it), not in `driver_inputs`, not in `pins`, while `data/game-differential.json` went on recording
+`driver_code_stable: true`. **A pin that does not pin.** It is now `steering.alignment_inputs`,
+compared **UNCONDITIONALLY** in `comparable()` — not inside `TABLE_DRIVEN`, which would skip the 34
+coverage-arm artifacts — with **absence reading `unknown`** rather than being added to `vouches()`,
+which would flip 112 artifacts from UNKNOWN to NOT COMPARABLE and assert something false about them.
+
+**THE REFIT WAS RUN AND NARRATION DID NOT MOVE.** `derive_protocol_events.js --write` re-derived the
+list against the current engine and reproduced it **byte-identical** outside `generated`,
+`source_digests` and `derivedFrom`: 44 emitted, 50 declared, 10 partial, 91 event rows, both gate
+arrays empty. The reason is measurable rather than lucky — the artifact's only dependence on the
+simulator is `medicham2.TRACE_EVENTS`, and that list is **unchanged between 2026-08-26 and 2026-09-08,
+zero added and zero removed**, across an engine that moved `1337ff095e92` → `5a86b1d52bd5` →
+`9a54ee6881cf`.
+
+**AND THAT IS WHY THE GUARD ASKS ABOUT THE FUNCTION AND NOT THE STAMP.** A digest-equality guard on
+medicham2's whole file — which is what the triage proposed — would have refused two runs THAT DAY
+whose alignment rule had not moved at all. An over-firing gate is the one people learn to ignore. The
+three clauses that throw are the three things the artifact is a function of: the engine's CLAIM
+(`PROTO.emitted` against the played release's `TRACE_EVENTS`), the DERIVATION RULE
+(`derive_protocol_events.js`, which holds every declared reason as typed text), and the AUTHORITY
+(`showdown_pinned_commit`). The stamp is still RECORDED beside the played digest, so a difference is
+never silent — it simply does not stop a run whose ruler has not changed.
+
+**The cost, stated rather than discovered later.** Every artifact on disk predates the field, so
+`arms_comparable.js` reads UNKNOWN on the alignment axis for every pair drawn from them and
+`game_differential.js --baseline <old artifact>` exits 3. That is the same cost `driver_code` imposed
+on 2026-09-05 and the same honest answer. Three controls went vacuous the instant the axis existed
+(`test-empirical-driver`, `test-pin-arms`, `probe_instrument_digest`) and were repaired in the same
+pass; two of them carry the 2026-09-05 pass's comment directly above the line this pass edited.
+
+## FIFTEEN "SHOWN RED BEFORE TRUSTED" CERTIFICATES HAD NOT RUN SINCE THE WIRES THAT STRANDED THEM. 2026-09-08
+
+`tests/probe_red_demo.js` read **200 demonstrations, 2 HOLLOW, 15 COULD NOT BE APPLIED**, exit 1, and
+**nothing surfaced it**. It reads **0 HOLLOW, 0 COULD NOT BE APPLIED, `ABRA-EXIT 0 VERDICT-GREEN`**
+now, on a settled tree with `engine/medicham2-browser.js` at `9a54ee6881cf` and `data/abra-tags.js` at
+`d144f744d2af` asserted either side of the run.
+
+**ONE OF THE TWO "HOLLOW" ROWS WAS NEVER HOLLOW.** Four sites outside `demoSource` did
+`ran++; failures++; stale.push(...)`, so a stale reversal landed in the HOLLOW count and the
+COULD-NOT-BE-APPLIED list at once, and `failures` outranks `cannot` — which is verbatim the failure
+the 2026-08-26 exit-code split was written to end, and is how ROADMAP #273 was once published as a
+broken simulator. All four now match the canonical path.
+
+**Every re-aim is an ANCHOR move and every one NARROWS the anchor.** No claim was changed, no
+assertion relaxed, no control dropped. The recurring cause is the file's own: an anchor that is a
+literal source string goes stale on the next wire. Two rows were not merely stale — `WIRE 7 the Sitrus
+is eaten between the two attackers` went hollow the moment it applied, because a **fourth** Update
+site landed on 2026-09-06, and `WIRE 120 Parting Shot does not jump the queue` still MATCHED and had
+stopped deciding anything (WIRE 118 put a `_selMv` early return above the kind branches). The reverted
+WIRE 120 arm reproduces the wire's own measured numbers — user 0, replacement 54 — which is what says
+the re-aim is at the right knob rather than a convenient one.
+
+**IT IS A GATE NOW, and the exemption that kept it out was checkable and wrong.** `PENDING_WIRE` said
+`engine/register_reality.js` runs it — true of the MARKER, false of the COVERAGE, because
+`register_reality.js` is itself in `PENDING_WIRE`. Add that `data/register-reality.json` is stamped
+2026-08-27, and that #273 and #449 are CLOSED rows while `quarantine.js`'s `no open, known engine
+defect` clause counts only OPEN ones, and a red here reached **no gate at all**. `status.js` was not
+changed: it prints nothing about this file, and widening the narrow clause to closed rows would make
+it fire on history. The hole was the missing runner.
+
+
+
 ## THE SPEED MARGIN OVER SHOWDOWN IS 3.94x, NOT 117x AND NOT 24.9x, AND IT IS SHRINKING. 2026-09-08
 
 Full account: `docs/_reports/2026-09-08-engine-speed-comparison.md`. Row: `docs/RUNNING-NOTES.md`.

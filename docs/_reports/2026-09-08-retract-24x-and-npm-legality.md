@@ -234,13 +234,21 @@ Also fixed in this pass: `tests/test-docs-current.js` clause 3b(c) caught a team
 `docs/MODELS.md` with no artifact citation. The sentence was rephrased to state the claim without the
 bare figure; the number lives here and in the notes row, both of which cite the artifact.
 
-**STILL RED AND OWNED ELSEWHERE.** As of 02:08 on 2026-09-08, `tests/test-docs-quarantine.js` fails on
-**`docs/RUNNING-NOTES.md:73` only** — a row added by a concurrent profile pass at 02:01, citing
-`data/search-decision-profile.json`, which the quarantine withholds. **This pass contributes zero
-entries to that failure**; the gate's own listing names one file and one line. It is not edited here,
-because that row belongs to an agent that is still writing it and was observed correcting the same row
-twice inside ten minutes — editing another live writer's file is the clobber this repository has
-already paid for once. Reported, not touched.
+**STILL RED, COMMITTED, AND OWNED ELSEWHERE — ROUTE IT.** `tests/test-docs-quarantine.js` fails on
+**one row and nothing else**: the concurrent profile pass's `docs/RUNNING-NOTES.md` entry (line 83
+after this pass's insertion), landed in commit `84756494` at 02:06, which states **15 figures sourced
+from `data/search-decision-profile.json`** — an artifact `engine/quarantine.js` withholds. **This pass
+contributes zero entries to that failure**; the gate's own listing names one file and one line, and
+every document this pass touched is clean.
+
+**It is not edited here, and the reason is a judgement rather than caution.** Those figures are that
+pass's measurement, and there are two defensible fixes that only its author can choose between: delete
+the figures from the row, or argue that the classifier is wrong. The second is worth stating, because
+**this is the same shape as the `data/medicham-speed.json` red fixed above** — both are TIMING /
+ATTRIBUTION artifacts about the engine, withheld because their generator reaches
+`engine/medicham2-browser.js`, when the quarantine's own stated principle is that an artifact which
+MEASURES the engine is not downstream of it. Two false positives in one night is a pattern worth a
+look at `engine/quarantine.js`'s classifier, and it is not this pass's to change.
 
 ## Left alone, reported rather than touched
 

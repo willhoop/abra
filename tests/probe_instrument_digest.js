@@ -175,10 +175,20 @@ expect('the cap is still caught', String(r3.proven.some(x => x.startsWith('`turn
  * six hours old and both sittings used release 688e696f00c8. So the after-arm here is the real
  * artifact with `engine_release` set to a5c736283129, a real release id from earlier the same night.
  * That is exactly what a controlled before/after looks like: the engine moved, nothing else did. */
+/* AND THE ALIGNMENT AXIS IS HELD STILL TOO, ADDED 2026-09-08 — CONSTRUCTED, AND SAID SO, for the
+ * third time in this file and for the same reason. `steering.alignment_inputs` (the digest of
+ * `data/protocol-events.json`, the declared skip list that decides which Showdown lines may count as
+ * a divergence) landed today, and `cap20-control-12.json` was taken before it existed — so BOTH sides
+ * of this control lack it and the pair reads UNKNOWN on an axis this case is not about. That is the
+ * clause behaving correctly and it makes the control vacuous, exactly as omitting `driver_code` would
+ * have. An IDENTICAL block is written into both sides; the real artifact on disk is untouched. */
 say('\n=== 4. CONTROL — same instrument, same pins, only the ENGINE RELEASE differs ===\n');
-const after = JSON.parse(JSON.stringify(base));
+const ctlBefore = JSON.parse(JSON.stringify(base));
+const ALIGN_HELD = [{ file: 'data/protocol-events.json', digest: '7c9de3868d6f' }];
+ctlBefore.steering.alignment_inputs = JSON.parse(JSON.stringify(ALIGN_HELD));
+const after = JSON.parse(JSON.stringify(ctlBefore));
 after.engine_release = 'a5c736283129';
-const r4 = AC.compare(base, after);
+const r4 = AC.compare(ctlBefore, after);
 expect('verdict', r4.verdict, 'COMPARABLE');
 expect('ok', String(r4.ok), 'true');
 if (!r4.ok) for (const x of r4.reasons) say('      unexpected refusal: ' + x);

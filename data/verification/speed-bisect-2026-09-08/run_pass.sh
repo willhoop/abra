@@ -18,7 +18,7 @@ if [ "$2" = "rev" ]; then IDS=$(echo "$IDS" | tac); fi
 for id in $IDS; do
   if [ -f "$OUT/r-$id-p$PASS.json" ]; then continue; fi
   echo "=== pass $PASS $id $(date -u +%H:%M:%S)"
-  cmd.exe //c "tools\lownode.cmd data\verification\speed-2026-09-08\bench_two_engines.js --release $id --team-store data\team-pool-frozen --protocol-events $OUTW\proto\$id.json --pairs 20 --per-pair 5 --reps 2 --caps 60 --out $OUTW\r-$id-p$PASS.json > $OUTW\r-$id-p$PASS.log 2>&1"
+  cmd.exe //c "tools\lownode.cmd data\verification\speed-2026-09-08\bench_two_engines.js --release $id --team-store data\team-pool-frozen --protocol-events data/verification/speed-bisect-2026-09-08/proto/$id.json --pairs 20 --per-pair 5 --reps 2 --caps 60 --out $OUTW\r-$id-p$PASS.json > $OUTW\r-$id-p$PASS.log 2>&1"
   echo "    exit=$?"
 done
 echo "PASS $PASS DONE $(date -u)"

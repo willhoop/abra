@@ -1,0 +1,229 @@
+{
+  "generated": "2026-09-08T06:33:40.183Z",
+  "by": "scratchpad bench_two_engines.js (MEASURE)",
+  "what": "Whole-battle throughput, MEDICHAM vs Showdown sim, same machine, same teams, interleaved.",
+  "not_an_accuracy_claim": "MEDICHAM is quarantined for correctness. Speed says nothing about it.",
+  "engine_release": "22e5fc7b7000",
+  "team_store_pinned_to": "data\\team-pool-frozen",
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "format": "gen9championsvgc2026regmb",
+  "sd_module": "sibling master checkout via champions_sim.js",
+  "node": "v24.15.0",
+  "cores": 16,
+  "census": {
+    "switchRate": 0.0998,
+    "maxTurns": 14,
+    "generated": "2026-08-11T01:29:29.102Z",
+    "digest": "b599f8d581b5"
+  },
+  "load_ms_excluded": 468,
+  "game_differential_digest_before": "e5e7246179d2",
+  "pairs": 20,
+  "games_per_pair_per_rep": 5,
+  "reps": 2,
+  "caps": [
+    60
+  ],
+  "counters": {
+    "pair_build_fail": 0,
+    "medi_threw": 0,
+    "sd_threw": 0,
+    "sd_rejected_choice": 0,
+    "sd_fell_back_to_default": 0,
+    "sd_stuck": 0,
+    "sd_no_request": 156
+  },
+  "by_cap": {
+    "60": {
+      "legs": [
+        {
+          "rep": 0,
+          "medicham": {
+            "engine": "medicham",
+            "cap": 60,
+            "games": 100,
+            "turns": 1155,
+            "reached_a_result_pct": 100,
+            "mean_turns": 11.55,
+            "construct_ms": 9.7,
+            "play_ms": 635.9,
+            "total_ms": 645.7,
+            "play_games_per_sec": 157.2,
+            "total_games_per_sec": 154.9,
+            "play_ms_per_game": 6.3594,
+            "total_ms_per_game": 6.4567,
+            "play_ms_per_turn": 0.5506,
+            "total_ms_per_turn": 0.559,
+            "turns_per_sec_play": 1816,
+            "turns_per_sec_total": 1789
+          },
+          "showdown": {
+            "engine": "showdown",
+            "cap": 60,
+            "games": 100,
+            "turns": 1126,
+            "reached_a_result_pct": 100,
+            "mean_turns": 11.26,
+            "construct_ms": 70.5,
+            "play_ms": 3761.5,
+            "total_ms": 3832,
+            "play_games_per_sec": 26.6,
+            "total_games_per_sec": 26.1,
+            "play_ms_per_game": 37.6153,
+            "total_ms_per_game": 38.3201,
+            "play_ms_per_turn": 3.3406,
+            "total_ms_per_turn": 3.4032,
+            "turns_per_sec_play": 299,
+            "turns_per_sec_total": 294,
+            "chooser_ms": 16.4,
+            "engine_only_ms": 3745.1,
+            "engine_only_games_per_sec": 26.7,
+            "engine_only_ms_per_turn": 3.326,
+            "mean_log_lines_per_game": 301.5
+          },
+          "ratio_play": 5.91,
+          "ratio_total": 5.93,
+          "ratio_per_turn": 6.07,
+          "ratio_per_turn_conservative": 6.04
+        },
+        {
+          "rep": 1,
+          "medicham": {
+            "engine": "medicham",
+            "cap": 60,
+            "games": 100,
+            "turns": 1155,
+            "reached_a_result_pct": 100,
+            "mean_turns": 11.55,
+            "construct_ms": 9.7,
+            "play_ms": 582.4,
+            "total_ms": 592.2,
+            "play_games_per_sec": 171.7,
+            "total_games_per_sec": 168.9,
+            "play_ms_per_game": 5.8243,
+            "total_ms_per_game": 5.9217,
+            "play_ms_per_turn": 0.5043,
+            "total_ms_per_turn": 0.5127,
+            "turns_per_sec_play": 1983,
+            "turns_per_sec_total": 1950
+          },
+          "showdown": {
+            "engine": "showdown",
+            "cap": 60,
+            "games": 100,
+            "turns": 1126,
+            "reached_a_result_pct": 100,
+            "mean_turns": 11.26,
+            "construct_ms": 67.2,
+            "play_ms": 3663.4,
+            "total_ms": 3730.7,
+            "play_games_per_sec": 27.3,
+            "total_games_per_sec": 26.8,
+            "play_ms_per_game": 36.6345,
+            "total_ms_per_game": 37.3066,
+            "play_ms_per_turn": 3.2535,
+            "total_ms_per_turn": 3.3132,
+            "turns_per_sec_play": 307,
+            "turns_per_sec_total": 302,
+            "chooser_ms": 13.8,
+            "engine_only_ms": 3649.6,
+            "engine_only_games_per_sec": 27.4,
+            "engine_only_ms_per_turn": 3.2412,
+            "mean_log_lines_per_game": 301.5
+          },
+          "ratio_play": 6.29,
+          "ratio_total": 6.3,
+          "ratio_per_turn": 6.45,
+          "ratio_per_turn_conservative": 6.43
+        }
+      ],
+      "medicham_play_games_per_sec": {
+        "min": 157.2,
+        "median": 157.2,
+        "max": 171.7,
+        "spread_pct": 9.2,
+        "all": [
+          157.2,
+          171.7
+        ]
+      },
+      "showdown_play_games_per_sec": {
+        "min": 26.6,
+        "median": 26.6,
+        "max": 27.3,
+        "spread_pct": 2.6,
+        "all": [
+          26.6,
+          27.3
+        ]
+      },
+      "medicham_total_games_per_sec": {
+        "min": 154.9,
+        "median": 154.9,
+        "max": 168.9,
+        "spread_pct": 9,
+        "all": [
+          154.9,
+          168.9
+        ]
+      },
+      "showdown_total_games_per_sec": {
+        "min": 26.1,
+        "median": 26.1,
+        "max": 26.8,
+        "spread_pct": 2.7,
+        "all": [
+          26.1,
+          26.8
+        ]
+      },
+      "ratio_play_paired": {
+        "min": 5.91,
+        "median": 5.91,
+        "max": 6.29,
+        "spread_pct": 6.4,
+        "all": [
+          5.91,
+          6.29
+        ]
+      },
+      "ratio_total_paired": {
+        "min": 5.93,
+        "median": 5.93,
+        "max": 6.3,
+        "spread_pct": 6.2,
+        "all": [
+          5.93,
+          6.3
+        ]
+      },
+      "ratio_per_turn_paired": {
+        "min": 6.07,
+        "median": 6.07,
+        "max": 6.45,
+        "spread_pct": 6.3,
+        "all": [
+          6.07,
+          6.45
+        ]
+      },
+      "ratio_per_turn_conservative_paired": {
+        "min": 6.04,
+        "median": 6.04,
+        "max": 6.43,
+        "spread_pct": 6.5,
+        "all": [
+          6.04,
+          6.43
+        ]
+      },
+      "noise_floor": {
+        "medicham_half_split_pct": 8.4,
+        "showdown_half_split_pct": 2.6,
+        "what": "same arm, first half of reps vs second half, ms/turn"
+      }
+    }
+  },
+  "game_differential_digest_after": "e5e7246179d2",
+  "harness_moved_under_the_run": false
+}
