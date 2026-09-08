@@ -67,7 +67,11 @@
  *   node engine/register_reality.js            # run every marked row, and WRITE the verdicts
  *   node engine/register_reality.js --list     # coverage only; runs nothing AND writes nothing
  *   node engine/register_reality.js --json
+ *   node engine/register_reality.js --only 273 # run ONLY those rows; runs instruments, writes NOTHING
  *   node engine/register_reality.js --selftest # every verdict on synthetic input, red and green
+ *
+ * An argument this file cannot name is REFUSED (exit 2), not ignored. Until 2026-09-08 `--only 273`
+ * was two inert tokens: it ran all 73 instruments and republished the artifact.
  *
  * Exit 1 on any STALE ROW or PREMATURE CLOSE. Runs no games. The MEASURING invocations write one
  * artifact; `--list` writes nothing at all, and that is enforced structurally — see THE SPLIT. */
@@ -82,6 +86,53 @@ const Q = require('./quarantine.js');
 
 const has = (f) => process.argv.includes(f);
 const TIMEOUT_MS = 10 * 60 * 1000;
+
+/* ================= `--only` WAS NOT A BROKEN FLAG. IT WAS NOT A FLAG. ============================
+ *
+ * 2026-09-08. An agent ran `node engine/register_reality.js --only 273` to check one row. The string
+ * `--only` appeared NOWHERE in this file, `has()` is asked about known flags and nothing looked at
+ * the rest of argv, so both tokens were inert: the run measured all 73 instruments and REPUBLISHED
+ * data/register-reality.json — 112 rows to 123 — beside live writing agents. Two rows were checked by
+ * hand and stand; the rest are reads taken over a moving tree.
+ *
+ * THE DEFECT IS NOT THE MISSING FILTER. It is that an argument this file does not understand did
+ * something OTHER than what its author asked for, silently. `--onyl`, `--dry-run`, `--row 273` and
+ * `-n` all behaved identically: full run, full publish. That is the CLAUDE.md failure shape reached
+ * through argv — the capability was absent and the run reported success — so the fix is BOTH halves:
+ * implement the filter, and REFUSE anything this file cannot name.
+ *
+ * AND `--only` MAY NOT PUBLISH. A partial run cannot produce a whole-register artifact, and the
+ * write site takes the whole artifact or nothing. It is refused the way #369 is refused — on the
+ * DATA, in publish(), because a measurement built from a filtered row set carries `partial` and the
+ * writer will not take one. A `has('--only')` test at the write site would be the flag check that
+ * failure already taught us not to write. */
+const KNOWN_FLAGS = new Set(['--list', '--json', '--selftest']);
+const VALUE_FLAGS = new Set(['--only']);
+function readArgv(argv) {
+  const t = (argv || process.argv).slice(2);
+  let only = null;
+  for (let i = 0; i < t.length; i++) {
+    const a = t[i];
+    if (KNOWN_FLAGS.has(a)) continue;
+    if (VALUE_FLAGS.has(a)) {
+      const v = t[i + 1];
+      if (v === undefined || /^--/.test(v)) {
+        return { err: a + ' needs a value: one or more register row ids, e.g. `' + a + ' 273` or `' + a + ' 273,449`.' };
+      }
+      const ids = String(v).split(/[,\s]+/).filter(Boolean);
+      const bad = ids.filter(x => !/^#?\d+$/.test(x));
+      if (bad.length) return { err: a + ' takes register row ids and was given ' + JSON.stringify(bad.join(' ')) + '.' };
+      only = new Set([...(only || []), ...ids.map(x => +String(x).replace('#', ''))]);
+      i++;
+      continue;
+    }
+    return { err: 'unrecognised argument ' + JSON.stringify(a) + '.\n'
+      + '  It was IGNORED before 2026-09-08, which is how `--only 273` came to run all 73 instruments\n'
+      + '  and republish data/register-reality.json. This file now refuses what it cannot name.\n'
+      + '  Known: ' + [...KNOWN_FLAGS].join(' ') + ' ' + [...VALUE_FLAGS].map(f => f + ' <ids>').join(' ') };
+  }
+  return { only };
+}
 
 /* THE MARKER IS UPPERCASE AND FENCED, so it is visible to a human reading the table and cannot be
  * produced by ordinary prose. The command must start with `node ` and name a path inside the
@@ -583,14 +634,43 @@ function enumerate(lines) {
 const readRegister = () =>
   enumerate(fs.readFileSync(path.join(ROOT, 'docs', 'ROADMAP.md'), 'utf8').split(/\r?\n/));
 
-/* THE ONLY PLACE AN INSTRUMENT IS STARTED, AND THE ONLY PLACE A MEASUREMENT IS MINTED. */
-function measure(en) {
+/* THE ONLY PLACE AN INSTRUMENT IS STARTED, AND THE ONLY PLACE A MEASUREMENT IS MINTED.
+ *
+ * `only` is a Set of register row ids or null. A filtered measurement carries `partial`, which is
+ * what publish() refuses on — the filter is a property of the MEASUREMENT, not a mode flag the write
+ * site re-reads. `missing` is carried too, so `--only 9999` says "no such marked row" instead of
+ * running nothing and printing a clean sheet. */
+function measure(en, only) {
+  const sel = only ? en.marked.filter(r => only.has(r.n)) : en.marked;
+  const before = treeState();
   const results = [];
-  for (const r of en.marked) {
+  for (const r of sel) {
     const res = run(r.cmd);
     results.push({ ...r, ...res, verdict: verdict(r, res.green, res.kind) });
   }
-  return { token: MEASUREMENT_TOKEN, en, results };
+  const missing = only ? [...only].filter(n => !en.marked.some(r => r.n === n)) : [];
+  const after = treeState();
+  return { token: MEASUREMENT_TOKEN, en, results,
+           partial: only ? [...only].sort((a, b) => a - b) : null, missing,
+           tree: { head: before.head, dirty_at_start: before.dirty, dirty_at_end: after.dirty,
+                   moved_during_the_run: JSON.stringify(before.dirty) !== JSON.stringify(after.dirty),
+                   settled: before.dirty !== null && before.dirty.length === 0
+                            && JSON.stringify(before.dirty) === JSON.stringify(after.dirty),
+                   read_error: before.err || after.err || null } };
+}
+
+/* `null` FOR dirty MEANS "COULD NOT ASK", WHICH IS NOT THE SAME AS "CLEAN" — the empty array is
+ * clean. Collapsing the two is how a missing capability comes to read as a passing one. */
+function treeState() {
+  try {
+    const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+    const dirty = execFileSync('git', ['status', '--porcelain', '--untracked-files=no'],
+                               { cwd: ROOT, encoding: 'utf8' })
+      .split('\n').map(s => s.trim()).filter(Boolean).sort();
+    return { head, dirty, err: null };
+  } catch (e) {
+    return { head: null, dirty: null, err: 'git could not be asked: ' + String((e && e.message) || e).split('\n')[0] };
+  }
 }
 
 function buildArtifact(m) {
@@ -601,6 +681,14 @@ function buildArtifact(m) {
   return {
     generated: new Date().toISOString(),
     by: 'engine/register_reality.js',
+    /* WAS THE TREE HOLDING STILL? Added 2026-09-08. Every one of these 73 exit codes is a read of
+     * the working tree, so a run taken while another division is mid-edit is a torn read — and until
+     * now the artifact recorded nothing about that, so a torn run and a settled one were the same
+     * file. `tree_state.dirty` is `git status --porcelain` at the start of the run and again at the
+     * end; a non-empty list, or two lists that DIFFER, means the tree moved under the measurement.
+     * Not a gate — a fact the artifact carries, so the question can be asked at all. An artifact with
+     * no `tree_state` key predates this and cannot answer it. */
+    tree_state: m.tree,
     what: 'Every register row that names the instrument deciding it, run, with its exit code compared '
         + 'to the row\'s open/closed status.',
     why: 'docs/ROADMAP.md is read by engine/quarantine.js as a GATE INPUT and nothing checked it against '
@@ -665,6 +753,15 @@ function publish(m, art) {
     throw new Error('register_reality: REFUSING to write data/register-reality.json — publish() was not '
       + 'handed a measurement. This artifact records WHEN each verdict was measured; writing it from '
       + 'anything but a run of the instruments makes that timestamp a lie (ROADMAP #369).');
+  /* A PARTIAL RUN MAY NOT REPUBLISH THE WHOLE REGISTER. Same refusal shape as #369 and the same
+   * reason: this artifact is read row-by-row by engine/quarantine.js openDefectClause, so writing it
+   * from a run that started one instrument would replace 122 measured verdicts with nothing. Refused
+   * on the DATA the measurement carries, never on the flag. */
+  if (m.partial)
+    throw new Error('register_reality: REFUSING to write data/register-reality.json — this measurement '
+      + 'ran only row(s) ' + m.partial.join(', ') + '. The artifact is the WHOLE register and is read '
+      + 'row-by-row by the MEDICHAM gate; a filtered run cannot produce it. Re-run without --only to '
+      + 'publish, and only over a settled tree.');
   for (const r of art[Q.REGISTER_REALITY.rowsKey])
     if (!VERDICTS.has(r.verdict))
       throw new Error('register_reality: REFUSING to write data/register-reality.json — row #' + r.n
@@ -1025,6 +1122,7 @@ if (has('--selftest')) {
   const m0 = measure(EN0);                       /* no row names an instrument, so nothing is run */
   const notMine = threw(() => publish({ token: {}, results: [] }, { [Q.REGISTER_REALITY.rowsKey]: [] }));
   const badVerdict = threw(() => publish(m0, { [Q.REGISTER_REALITY.rowsKey]: [{ n: 1, verdict: 'NOT RUN' }] }));
+  const partial = threw(() => publish({ ...m0, partial: [273] }, { [Q.REGISTER_REALITY.rowsKey]: [] }));
   let listingErr = null;
   console.log = () => {};
   listingErr = threw(() => { renderListing(EN0); renderListing(EN0, { json: true }); });
@@ -1040,6 +1138,51 @@ if (has('--selftest')) {
   ok('RED — THE WHOLE LISTING PATH RUNS, BOTH RENDERERS, WITH fs.writeFileSync BOOBY-TRAPPED, AND '
     + 'NEVER TOUCHES IT. This is the assertion #369 is about',
     listingErr === null && trap.length === 0, { listingErr: listingErr && listingErr.message, trap });
+
+  /* -- `--only` DID NOT EXIST, SO IT RAN EVERYTHING AND PUBLISHED — 2026-09-08 ------------------
+   *
+   * Shown red on the pre-fix bytes: `grep -c -- --only engine/register_reality.js` returned 0, and
+   * `--list` printed byte-identical output with and without `--only 273`. Both halves are asserted
+   * here — the filter, and the refusal of anything this file cannot name — because the defect was
+   * not a broken filter, it was an argument that silently did something else. */
+  ok('RED — publish() REFUSES a PARTIAL measurement. A filtered run cannot replace a whole-register '
+    + 'artifact the MEDICHAM gate reads row by row',
+    partial && /REFUSING to write/.test(String(partial)) && /273/.test(String(partial)) && trap.length === 0,
+    String(partial));
+  ok('RED — an argument this file cannot name is REFUSED, not ignored. `--only 273` was two inert '
+    + 'tokens and ran all 73 instruments',
+    !!readArgv(['node', 'x', '--onyl', '273']).err
+    && /unrecognised/.test(readArgv(['node', 'x', '--onyl', '273']).err));
+  ok('and a value-less or non-numeric --only is refused by name rather than defaulting to everything',
+    !!readArgv(['node', 'x', '--only']).err && !!readArgv(['node', 'x', '--only', 'banana']).err);
+  /* THE KNOB IS CLEARED — the same parser, three argvs, three different answers. A parser that
+   * refused everything would pass the two assertions above while breaking the tool. */
+  ok('CONTROL — the same parser accepts the flags it knows and reads the ids it was given',
+    readArgv(['node', 'x', '--list']).err === undefined
+    && readArgv(['node', 'x']).only === null
+    && [...(readArgv(['node', 'x', '--only', '273,449']).only || [])].join(',') === '273,449');
+  /* AND THE FILTER SELECTS. Two marked rows in, one id named, one instrument's worth of results out
+   * — driven through measure() with a stub runner so no child process is started. */
+  {
+    const EN2 = enumerate([
+      '| #11 | **A.** <!-- VERIFIED BY: `node tests/a.js` --> | open — DEFECT |',
+      '| #12 | **B.** <!-- VERIFIED BY: `node tests/b.js` --> | open — DEFECT |',
+    ]);
+    ok('the fixture has two marked rows, so a filter has something to remove',
+       EN2.marked.length === 2, EN2.marked.map(r => r.n));
+    const mSel = measure(EN2, new Set([12]));
+    ok('--only 12 runs ONE of the two marked rows, and it is #12',
+       mSel.results.length === 1 && mSel.results[0].n === 12, mSel.results.map(r => r.n));
+    ok('and the measurement carries `partial`, which is what publish() refuses on — the write site '
+      + 'never re-reads the mode flag',
+       Array.isArray(mSel.partial) && mSel.partial[0] === 12);
+    const mAll = measure(EN2, null);
+    ok('CONTROL — no filter runs both, so the filter is doing the removing and not the fixture',
+       mAll.results.length === 2 && mAll.partial === null, mAll.results.map(r => r.n));
+    ok('--only naming a row that is not marked says so instead of reporting a clean sheet',
+       measure(EN2, new Set([9999])).missing.join(',') === '9999');
+
+  }
 
   /* -- A REFUSAL IS NOT A RED VERDICT ----------------------------------------------------------
    *
@@ -1168,6 +1311,11 @@ if (has('--selftest')) {
  * renderListing() and exits. It never names measure(), buildArtifact() or publish(), and publish()
  * would refuse it if it did. Everything below the exit is the MEASUREMENT, and it writes because it
  * measured. */
+const ARGV = readArgv();
+if (ARGV.err) {
+  console.error('register_reality: ' + ARGV.err);
+  process.exit(2);
+}
 const en = readRegister();
 
 if (has('--list')) {
@@ -1175,7 +1323,24 @@ if (has('--list')) {
   process.exit(0);          /* --list is an inventory, not a verdict, and never a publication. */
 }
 
-const m = measure(en);
+/* THE FILTERED PATH RUNS INSTRUMENTS AND PUBLISHES NOTHING. It is the one an agent checking a single
+ * row wants, and it is the one that did not exist — so the agent got the unfiltered, publishing one. */
+if (ARGV.only) {
+  const mo = measure(en, ARGV.only);
+  console.log('\nREGISTER REALITY --only ' + [...ARGV.only].sort((a, b) => a - b).join(',')
+    + ' — ' + mo.results.length + ' instrument(s) run. NOTHING WAS WRITTEN.\n');
+  for (const r of mo.results)
+    console.log('  ' + r.verdict.padEnd(22) + '#' + String(r.n).padEnd(5)
+      + ((r.why || '') + (r.cached ? ' (cached)' : '')).padEnd(22) + r.title);
+  if (mo.missing.length)
+    console.log('\n  NO SUCH MARKED ROW: ' + mo.missing.map(n => '#' + n).join(', ')
+      + ' — the row is absent, closed without a marker, or its marker was rejected. `--list` shows which.');
+  console.log('\n  data/register-reality.json was NOT written. A filtered run cannot produce the whole\n'
+    + '  register, and the MEDICHAM gate reads that artifact row by row.\n');
+  process.exit(mo.results.some(r => BAD.has(r.verdict)) ? 1 : 0);
+}
+
+const m = measure(en, null);
 const art = buildArtifact(m);
 publish(m, art);
 const results = m.results;

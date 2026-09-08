@@ -84,7 +84,14 @@ const B = REL.require('engine/board.js', { need: ['Board'] });
 LOAD.board = ms(t, process.hrtime.bigint());
 
 t = process.hrtime.bigint();
-const RL = REL.require('engine/rollout_leaf.js', { need: ['rolloutWinProb', 'runPlayout', 'census'] });
+/* `dataMissingOk` DECLARES THE WORKAROUND BELOW RATHER THAN LEAVING IT IMPLICIT. From 2026-09-08
+ * `REL.require` REFUSES a .js source whose snapshot does not also carry the data files it opens with
+ * `fs` — which is every release cut before that date, for exactly the census this file reads live.
+ * This caller is the one that is allowed through, because it does the work: it reads the artifact
+ * itself twenty lines down, digests it into the artifact, and passes `switchRate` explicitly into
+ * every call. Delete the CENSUS block and this declaration becomes a lie. */
+const RL = REL.require('engine/rollout_leaf.js', { need: ['rolloutWinProb', 'runPlayout', 'census'],
+                                                   dataMissingOk: ['data/rollout-switch-census.json'] });
 LOAD.rollout_leaf = ms(t, process.hrtime.bigint());
 
 t = process.hrtime.bigint();

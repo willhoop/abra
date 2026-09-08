@@ -675,6 +675,15 @@ function census() {
         ok: true,
       };
     } catch (e) {
+      /* A PRINTED LINE IS NOT A COUNTER, AND THE DIFFERENCE COST A MEASUREMENT ON 2026-09-08. This
+       * stderr line was already here and was already correct; a profiling run under a frozen release
+       * printed it, and the run reported success anyway because nothing downstream could see it. The
+       * fallback is now COUNTED as well as announced, on the counter block `miltank.js` already
+       * stamps into every decision row — so `switchRate: 0` arrived at by DEGRADATION is
+       * distinguishable from `switchRate: 0` chosen deliberately, which is a documented setting.
+       * `engine/engine_release.js` refuses the snapshot load outright; this covers every other way
+       * in. */
+      SWITCH_COUNTERS.censusFallback++;
       console.error('rollout_leaf: data/rollout-switch-census.json unavailable (' + ((e && e.message) || e) +
         ') — THE PLAYOUT CANNOT SWITCH and the horizon falls back to the caller\'s. Run: node engine/rollout_switch_census.js');
       _census = { switchRate: 0, maxTurns: 0, generated: null, ok: false };
@@ -710,8 +719,11 @@ function census() {
  * decisions` is the number that compares to it — and a playout spends much of its length at an empty
  * bench, which a real game also does. Guessing the denominator is how a rate comes to be wrong by a
  * factor of two while every line of the draw is correct. */
+/* `censusFallback` is NOT a switch counter and it lives here anyway, because this block is the one
+ * thing about the playout that a decision row already carries. A number is only a counter if
+ * something reads it. */
 const SWITCH_COUNTERS = { decisions: 0, benchAvailable: 0, offered: 0, executed: 0, refused: 0,
-                          noBench: 0, drainedIntoSwitch: 0 };
+                          noBench: 0, drainedIntoSwitch: 0, censusFallback: 0 };
 
 /* Pick from the mon's OWN moveset, weighted by how often that species really clicks each one.
  * Moves it is not carrying are skipped rather than renormalised away silently. */

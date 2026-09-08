@@ -168,6 +168,35 @@ const SOURCES = [
    * set from the sources themselves and `cut()` REFUSES when it escapes the list, so a fifth
    * omission is a refusal at second zero rather than a void measurement at minute thirty-nine. */
   'engine/pp.js',
+  /* THE FIFTH INSTANCE, 2026-09-08 — AND IT WAS FOUND BY `requireClosure`'s DECLARED GAP, EXACTLY
+   * WHERE THAT COMMENT SAID IT WOULD BE. `engine/rollout_leaf.js census()` opens
+   * `data/rollout-switch-census.json` with `fs.readFileSync` against its OWN `__dirname`, so a copy
+   * loaded out of `data/releases/<id>/engine/` looks in `data/releases/<id>/data/` and finds
+   * nothing. `requireClosure` walks static `require()` edges and says in its own header that it
+   * cannot see an `fs.readFileSync`, so the cut was never refused.
+   *
+   * IT IS THE FIRST OF THE FIVE THAT DID NOT CRASH. The other four were found by a run dying
+   * (`Cannot find module`) or refused at the cut. This one takes a DOCUMENTED FALLBACK —
+   * `switchRate: 0`, so the playout cannot switch at all, and `maxTurns: 0`, which makes
+   * `miltank.js` fall back to a horizon of 60 instead of the store-measured 14 — prints one line on
+   * stderr, and plays a materially different player while reporting success. Measured on release
+   * f0f10cd06861: the snapshot arm returns {switchRate:0, maxTurns:0, ok:false} where the live arm
+   * returns {switchRate:0.0998, maxTurns:14, ok:true}. That is the failure this project is named
+   * after, and it sat in the path of every quarantined re-run.
+   *
+   * IT MEETS THIS LIST'S OWN CRITERION — its CONTENT changes a number. How often a playout leaves
+   * the field and how long it runs are two of the largest parameters the leaf has. It is DERIVED
+   * (`node engine/rollout_switch_census.js`) off the raw logs of both human stores, so freezing it
+   * freezes WHICH derivation the run used, which is the identical argument data/residual-order.json
+   * and data/switchin-order.json are here on.
+   *
+   * ADDING IT STRANDS NOTHING, AND THAT WAS MEASURED RATHER THAN ASSUMED. A release is judged
+   * `runnable` by `census()` on what a live caller REL.requires, never on `missing_sources`; no
+   * caller requires this path, and `surface()` loads a snapshot file directly. Before: 26 sources,
+   * 4 of 6 runnable over a six-release probe store. After: 27 sources, 4 of 6, same rows. What it
+   * does NOT do is repair the 485 already-cut snapshots whose frozen rollout_leaf.js reads this
+   * file — those bytes cannot be changed, which is why the refusal below exists as well. */
+  'data/rollout-switch-census.json',
 ];
 
 /* WHAT THE LIST ABOVE CANNOT KNOW ABOUT ITSELF, DERIVED RATHER THAN REMEMBERED.
@@ -1225,17 +1254,34 @@ function census(opts) {
      * releases "predate a source" — arithmetically true, useless as a diagnosis, and it buried the
      * one cause that matters. `missing_sources` is kept as a FACT on every row and is never the
      * verdict; the verdict is whether a snapshot can serve somebody. */
-    const lacks = [], unloadable = [], absent = [];
+    const lacks = [], unloadable = [], absent = [], dataGone = [];
     for (const [rel, syms] of union) {
       const s = surface(id, rel, opts);
       if (s.status === 'file-absent') { absent.push(rel); continue; }
       if (s.status !== 'ok') { unloadable.push(rel + ': ' + (s.why || s.status)); continue; }
       for (const k of syms) if (!s.exports.includes(k)) lacks.push(rel + '::' + k);
+      /* THE CENSUS MUST NOT SAY RUNNABLE WHERE `REL.require` REFUSES, and for one run on 2026-09-08
+       * it did: `surface()` loads the snapshot file directly and never passes through `open()`, so a
+       * release missing data/rollout-switch-census.json read `serviceable` while a real caller was
+       * being thrown at. Two answers to one question is the failure this whole file exists to stop.
+       *
+       * A CALLER'S `dataMissingOk` IS DELIBERATELY NOT HONOURED HERE. This census asks the HARDEST
+       * question any live caller asks — that is already why `union` is a union — and one caller
+       * handling the absence itself does not make the snapshot able to serve the others. */
+      if (/\.js$/.test(rel)) {
+        try {
+          for (const d of dataDepsOf(fs.readFileSync(path.join(dir, rel), 'utf8'))) {
+            if (!(d in (man.files || {}))) dataGone.push(rel + ' opens ' + d);
+          }
+        } catch (e) { unloadable.push(rel + ': could not be read for its data deps: ' + e.message); }
+      }
     }
     row.lacks = lacks;
+    row.data_not_frozen = dataGone;
     if (unloadable.length) { row.cause = 'unloadable'; row.why = unloadable.join(' | ').slice(0, 240); }
     else if (absent.length) { row.cause = 'predates-a-source'; row.why = 'froze ' + row.files_frozen + ' files and never held ' + absent.join(', '); }
     else if (lacks.length) { row.cause = 'predates-an-export'; row.why = 'the frozen bytes never exported ' + lacks.join(', '); }
+    else if (dataGone.length) { row.cause = 'data-not-frozen'; row.why = 'loads, exports everything, and would run a DIFFERENT player: ' + dataGone.join('; '); }
     else { row.cause = 'serviceable'; row.runnable = true; }
     rows.push(row);
   }
@@ -1273,9 +1319,48 @@ function compat(rel, symbols, opts) {
   return rows;
 }
 
-/* THE TWO REFUSALS, WRITTEN ONCE. Both say the same three things, because a reader hitting either one
- * needs the same three things: this is not corruption, the snapshot cannot be repaired, and here is
- * the command that finds a release which can. */
+/* ---- THE DATA A FROZEN SOURCE OPENS WITH `fs`, WHICH `requireClosure` SAYS IT CANNOT SEE --------
+ *
+ * ADDING THE CENSUS TO SOURCES FIXES THE NEXT RELEASE AND NOT THE 485 ALREADY ON DISK. Their frozen
+ * `rollout_leaf.js` bytes still hold the degrading `census()`, and frozen bytes cannot be edited —
+ * that is the whole point of them. So the guard has to live in the LIVE, unfrozen loader, where it
+ * applies to every snapshot ever cut.
+ *
+ * Measured 2026-09-08 over the 600 release directories: 485 hold a `rollout_leaf.js` that reads
+ * `data/rollout-switch-census.json` and ZERO carry the file. `engine/rollout_leaf.js` has a SECOND
+ * read of the same shape — `data/move-priors.json`, whose absence downgrades every playout to a
+ * uniform move draw and announces it on one stderr line — so this is a class, not an instance, and
+ * it is derived rather than listed.
+ *
+ * DERIVED FROM THE SNAPSHOT'S OWN BYTES, and intersected with SOURCES. Comments are stripped first
+ * (`rollout_leaf.js` names the census a dozen times in prose and reads it once), and only a `.json`
+ * literal that TODAY'S SOURCES list also names is treated as a dependency.
+ *
+ * THAT INTERSECTION IS A DELIBERATE UNDER-COUNT AND IT IS NAMED HERE RATHER THAN IMPLIED. It drops
+ * `data/store-validation.json` (read by `engine/quality.js`) and `data/smogon-priors-bo3.json` (a
+ * WRITER literal in `engine/smogon_priors.js`, never read at run time) — the first is a real gap,
+ * the second is a false positive this rule avoids. A guard that names its own gap is not the same
+ * thing as one that implies it is complete, and this repository has paid for the second.
+ *
+ * IT GUARDS `require()` AND NOT `path()`. `engine/argmax_paired.js` deliberately takes `REL.path()`
+ * and aliases the snapshot module onto its LIVE filename, so its `__dirname` is the live `engine/`
+ * and every `fs` read resolves against the live tree correctly. Refusing there would be a false
+ * alarm on the one technique that works. */
+function dataDepsOf(srcText) {
+  const src = String(srcText).replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+  const out = new Set();
+  const re = /['"]([\w.\-]+\.json)['"]/g;
+  let m;
+  while ((m = re.exec(src))) {
+    const rel = 'data/' + m[1];
+    if (SOURCES.includes(rel)) out.add(rel);
+  }
+  return [...out].sort();
+}
+
+/* THE THREE REFUSALS, WRITTEN ONCE. All three say the same things, because a reader hitting any one
+ * needs the same things: this is not corruption, the snapshot cannot be repaired, and here is the
+ * command that finds a release which can. */
 function fileRefusal(id, man, rel) {
   const n = Object.keys(man.files || {}).length;
   return new Error('release ' + id + ' does not contain ' + rel + '.\n'
@@ -1291,6 +1376,21 @@ function symbolRefusal(id, man, rel, missing, provided) {
     + '  predates ' + (missing.length === 1 ? 'that one' : 'those') + '.\n'
     + '  It cannot be repaired: the frozen bytes never had it. Pick a release that does:\n'
     + '    node engine/engine_release.js compat ' + rel + ' ' + missing.join(' '));
+}
+function dataRefusal(id, man, rel, missing) {
+  const n = Object.keys(man.files || {}).length;
+  return new Error('release ' + id + ' froze ' + rel + ' but NOT the data it opens: ' + missing.join(', ') + '\n'
+    + '  It froze ' + n + ' files at ' + man.cut + '. Those bytes read the file(s) above through\n'
+    + '  `fs` against their own __dirname, so out of this snapshot they resolve to\n'
+    + '    data/releases/' + id + '/' + missing[0] + '   — which does not exist.\n'
+    + '  THIS WOULD NOT HAVE CRASHED. Each of these reads has a documented fallback that prints one\n'
+    + '  line and carries on with a DIFFERENT player — the census falls to switchRate 0 (the playout\n'
+    + '  cannot switch) and horizon 60; move-priors falls to a uniform move draw. A run that takes\n'
+    + '  either is not measuring the engine it says it is measuring, and it reports success.\n'
+    + '  It cannot be repaired: a release is a photograph and the data was not in the frame.\n'
+    + '  Cut a new release, or — if this caller reads the file from the live tree ITSELF, digests it\n'
+    + '  and passes the values in explicitly, as engine/bench_speed.js does — declare it:\n'
+    + '    REL.require(' + JSON.stringify(rel) + ', { dataMissingOk: ' + JSON.stringify(missing) + ' })');
 }
 
 function open(id, opts) {
@@ -1349,6 +1449,16 @@ function open(id, opts) {
      *         working feature until someone measures it. */
     require(rel, opts2) {
       const abs = frozen(rel);
+      /* CHECKED BEFORE THE MODULE RUNS. A degrading data read is memoised on first use, so once the
+       * module has loaded and answered once, nothing downstream can tell the fallback from the real
+       * thing. `dataMissingOk` is the same explicit contract as `need`/`want` directly below: a
+       * caller that supplies the value itself says so, by name, in a diff somebody can see. */
+      if (/\.js$/.test(rel)) {
+        const ok = (opts2 && opts2.dataMissingOk) || [];
+        const gone = dataDepsOf(fs.readFileSync(abs, 'utf8'))
+          .filter(d => !(d in (v.manifest.files || {})) && !ok.includes(d));
+        if (gone.length) throw dataRefusal(id, v.manifest, rel, gone);
+      }
       const mod = require(abs);
       const need = (opts2 && opts2.need) || [];
       const want = (opts2 && opts2.want) || [];

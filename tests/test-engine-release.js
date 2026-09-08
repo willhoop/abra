@@ -445,5 +445,85 @@ console.log('\n  -- generated sources are not subject to EOL translation (CRLF s
   }
 }
 
+/* ---- 11. THE DATA A FROZEN SOURCE OPENS WITH `fs` — 2026-09-08 ---------------------------------
+ *
+ * §9 closes the REQUIRE closure and says in its own header that it cannot see an `fs.readFileSync`.
+ * This is that gap, and it was live: `engine/rollout_leaf.js census()` opens
+ * `data/rollout-switch-census.json` against its own `__dirname`, the file was not in SOURCES, and
+ * 485 of the 600 snapshots on disk therefore serve a leaf that CANNOT SWITCH and runs to a horizon
+ * of 60 instead of the store-measured 14 — while printing one stderr line and reporting success.
+ *
+ * THIS IS THE ONE OF THE FIVE SOURCES GROWTHS THAT DID NOT CRASH, which is why it needs a test and
+ * the other four did not. `Cannot find module` is self-reporting. A documented fallback is not.
+ *
+ * THREE ARMS, so the green is the guard working and not the query answering the same for everything:
+ *   RED      an existing release cut before the fix -> REFUSED, naming the file and the data.
+ *   CONTROL  the SAME release with dataMissingOk declared -> loads. The knob is cleared: the refusal
+ *            is the data check and nothing else about that snapshot.
+ *   GREEN    a release cut NOW carries the census -> loads with nothing declared. */
+console.log('\n  -- the data a frozen source opens with fs (the census that was not in the frame)');
+{
+  const CENSUS = 'data/rollout-switch-census.json';
+  ok(REL.SOURCES.includes(CENSUS), 'the census is one of the frozen sources');
+
+  const UNREADABLE = [];
+  /* The newest release on disk that does NOT carry the census. Derived, never named: once every
+   * release predates the fix this arm goes away on its own and says so rather than failing. */
+  const preFix = REL.list().map(id => {
+    try {
+      const m = JSON.parse(fs.readFileSync(D('data', 'releases', id, 'release.json'), 'utf8'));
+      return { id, cut: m.cut, has: CENSUS in (m.files || {}), pruned: !!m.bodies_pruned,
+               leaf: 'engine/rollout_leaf.js' in (m.files || {}) };
+    } catch (e) {
+      /* NOT SILENT. An unreadable release dropped quietly would shrink the candidate set, and if
+       * enough of them dropped this arm would report itself RETIRED rather than BLIND -- which is
+       * the opposite of what happened. Named and counted; read below. */
+      UNREADABLE.push(id + ': ' + e.message);
+      return null;
+    }
+  }).filter(r => r && !r.has && !r.pruned && r.leaf)
+    .sort((a, b) => String(b.cut).localeCompare(String(a.cut)))[0];
+
+  if (!preFix) {
+    console.log('  ..   no release on disk predates the census being frozen — the RED arm is retired, not skipped'
+      + (UNREADABLE.length ? '  (BUT ' + UNREADABLE.length + ' release(s) could not be READ, so this may be blindness rather than retirement: '
+          + UNREADABLE.slice(0, 3).join('; ') + ')' : ''));
+  } else {
+    let threw = null;
+    try { REL.open(preFix.id).require('engine/rollout_leaf.js'); }
+    catch (e) { threw = e.message; }
+    ok(threw !== null, `RED — release ${preFix.id} (cut ${preFix.cut}) refuses the leaf it froze`);
+    ok(threw !== null && threw.includes(CENSUS), 'and the refusal NAMES the data file, not just the module');
+    ok(threw !== null && /switchRate 0|cannot switch/i.test(threw),
+       'and says what the fallback would have DONE, because a silent fallback is the defect');
+    ok(threw !== null && !/Cannot find module/.test(threw),
+       'and it is not a bare resolver error — the read would have succeeded and degraded');
+
+    /* THE KNOB IS CLEARED. Same release, same file, one declaration — and it loads. */
+    let ctlThrew = null;
+    try { REL.open(preFix.id).require('engine/rollout_leaf.js', { dataMissingOk: [CENSUS] }); }
+    catch (e) { ctlThrew = e.message.split('\n')[0]; }
+    ok(ctlThrew === null,
+       'CONTROL — the same release with dataMissingOk declared loads, so the refusal is the data check',
+       ctlThrew || 'engine/bench_speed.js is the caller that declares it');
+  }
+
+  const T2 = fs.mkdtempSync(path.join(os.tmpdir(), 'abra-relstore-data-'));
+  try {
+    const c = REL.cut('test-engine-release.js §11 — a release cut after the census joined SOURCES', { store: T2 });
+    const man = JSON.parse(fs.readFileSync(path.join(T2, 'releases', c.id, 'release.json'), 'utf8'));
+    ok(CENSUS in (man.files || {}), 'GREEN — a release cut now freezes the census with the leaf');
+    ok(fs.existsSync(path.join(T2, 'releases', c.id, CENSUS)),
+       'and the bytes are in the snapshot, not merely the digest in the manifest');
+    let newThrew = null;
+    try { REL.open(c.id, { store: T2 }).require('engine/rollout_leaf.js'); }
+    catch (e) { newThrew = e.message.split('\n')[0]; }
+    ok(newThrew === null, 'and the leaf requires out of it with nothing declared', newThrew || '');
+  } finally {
+    try { fs.rmSync(T2, { recursive: true, force: true }); }
+    catch (e) { console.error('  (throwaway store left behind at ' + T2 + ': ' + e.message + ')'); }
+  }
+}
+
 console.log(`\nENGINE RELEASE TESTS: ${P} passed, ${F} failed`);
 process.exit(F ? 1 : 0);

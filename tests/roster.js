@@ -1215,6 +1215,35 @@ function controlOf(sc, rank) {
   const [sideKey, idx] = [sc.subject[0] === 'A' ? 'A' : 'B', +sc.subject[1]];
   const body = c[sideKey][idx];
   const ignore = [];
+  /* ---- THE ABILITY-SWAP CONTROL DESCRIBES ITSELF, AND THAT WAS COUNTED AS EVIDENCE ---------------
+   *
+   * `board_state.js` writes the carrier's ability onto TWO leaves — `pN.active[i].ability` and
+   * `pN.party.<species>.ability` — so an arm that swaps the ability CANNOT be played without moving
+   * them. Four boundaries x two leaves x two engines is SIXTEEN leaves that exist for every ability
+   * row by construction. THIS IS THE FOCUS SASH DEFECT ON THE ABILITY AXIS (2026-09-07): there the
+   * control took the ITEM off, the party row said so, and Focus Sash's whole FIRED evidence was four
+   * `p2.party.meowscarada.item` leaves. The item branch below was taught to ignore both leaves; this
+   * branch ignored nothing.
+   *
+   * MEASURED BEFORE IT WAS ADDED, on release f0f10cd06861: of the 45 CONTROL-NOT-QUIET ability rows,
+   * 45 of 45 had a control arm whose ENTIRE delta was the swap — one mechanism, not forty-five — and
+   * 12 of the 146 FIRED-AND-BOARDS-MATCH rows had NO other evidence at all. Those twelve were green
+   * because both engines write the ability name we set them.
+   *
+   * IT IS CONDITIONED ON THE VALUES, NEVER ON THE PATH. For Trace, Receiver, Protean and every forme
+   * change the `.ability` leaf IS the effect: Gardevoir's slot really does stop saying `trace` and
+   * start saying the foe's `pressure`, in both engines, on this very fixture. A blanket path ignore
+   * would delete exactly that and leave Trace unmeasurable for ever. So a leaf is dropped only when it
+   * reads `with=<the ability under test> without=<this arm's control ability>` — the swap and nothing
+   * else — and `tests/probe_control_self_name.js` clause C fails if Trace stops being released.
+   *
+   * THE COST IS STATED: the active-slot half matches ANY index on the subject's side, because a bench
+   * carrier that walks in has no fixed slot. It is bounded by the side, by the `.ability` path and by
+   * the control value, so the only way to over-match is for a body on the subject's side that was
+   * NOT swapped to end the turn holding one of the control abilities in the control arm and the
+   * ability under test in the subject arm — i.e. the entity performing our own swap for us. */
+  const swap = { side: sideKey === 'A' ? 'p1' : 'p2', subject: idOf(sc.abilityId || ''),
+                 species: [], controls: new Set() };
   if (sc.kind === 'item') {
     body.item = '';
     ignore.push((sideKey === 'A' ? 'p1' : 'p2') + '.active[' + idx + '].item');
@@ -1298,9 +1327,14 @@ function controlOf(sc, rank) {
        * is the whole reason the second arm can say anything. */
       const alt = ranked[R] || ranked[0];
       if (!alt) continue;
+      swap.species.push(idOf(b.species)); swap.controls.add(idOf(alt));
       b.ability = alt; swapped++;
     }
-    if (!swapped) body.ability = (R ? sc.controlAbility2 : sc.controlAbility) || sc.controlAbility;
+    if (!swapped) {
+      const alt = (R ? sc.controlAbility2 : sc.controlAbility) || sc.controlAbility;
+      swap.species.push(idOf(body.species)); swap.controls.add(idOf(alt));
+      body.ability = alt;
+    }
   } else if (sc.kind === 'pair') {
     /* BOTH modifiers come off at once. The pair arm asks whether two handlers AT THE SAME STAGE are
      * folded into one modifier and spent once — which is what the authority does — or applied
@@ -1314,13 +1348,30 @@ function controlOf(sc, rank) {
       if (a && idOf(a.m) === idOf(sc.entityId)) { a.m = INERT; delete a.t; }
     }
   }
-  return { sc: c, ignore };
+  return { sc: c, ignore, swap };
+}
+
+/* Does this diff read as the ability swap and nothing else? Path AND both values, on the subject's
+ * own side. `armDelta` pushes `with: d.medicham` (the SUBJECT arm) and `without: d.showdown` (the
+ * CONTROL arm) — the names come from `BS.compare`'s two operands, not from the two engines. */
+function swapLeaf(swap, path, subjVal, ctrlVal) {
+  if (!swap || !swap.controls.size || !/\.ability$/.test(path)) return 0;
+  const own = new RegExp('^' + swap.side + '\\.(active\\[\\d+\\]|party\\.(?:'
+    + swap.species.map(s => s.replace(/[^a-z0-9]/g, '')).join('|') + '))\\.ability$');
+  if (!swap.species.length || !own.test(path)) return 0;
+  if (!swap.controls.has(String(ctrlVal))) return 0;
+  /* 2 = the swap itself, drop it.  1 = the slot moved to something that is NOT the ability under
+   * test, so the entity rewrote its own ability and this is the effect — kept, but flagged, because
+   * the control arm's value on this leaf is the CONTROL'S IDENTITY and therefore differs between two
+   * control arms by construction. Keying `DKEY` on it would make such a leaf unable to survive a
+   * second control however inert both controls were. */
+  return String(subjVal) === swap.subject ? 2 : 1;
 }
 
 /* WHAT THE ENTITY DID TO ONE ENGINE'S OWN BOARD. `BS.compare` is the shared comparator and is used
  * here rather than a second walk, so this file cannot come to disagree with the differential about
  * what a board leaf is. Both sides of this call are boards of the SAME engine — with and without. */
-function armDelta(subject, control, ignore) {
+function armDelta(subject, control, ignore, swap) {
   const out = [];
   const n = Math.min(subject.boards.length, control.boards.length);
   for (let i = 0; i < n; i++) {
@@ -1335,8 +1386,15 @@ function armDelta(subject, control, ignore) {
          * The prefix is written by `controlOf`, printed on the entry, and deliberately narrow: the
          * SUBJECT'S OWN SLOT AND PARTY ROW, never a whole side. */
         if (ignore.some(p => (p.endsWith('*') ? d.path.startsWith(p.slice(0, -1)) : d.path === p))) continue;
+        /* THE SWAP ITSELF IS NOT EVIDENCE. See the block in `controlOf`. Counted rather than
+         * silently skipped: a capability that cannot prove it ran is assumed broken, and the run
+         * prints both numbers — how many leaves were the control describing itself, and how many
+         * were a REAL ability rewrite that the value condition preserved. */
+        const sl = swapLeaf(swap, d.path, d.medicham, d.showdown);
+        if (sl === 2) { SWAP_SELF_DROPPED++; continue; }
+        if (sl === 1) SWAP_REWRITE_KEPT++;
         out.push({ engine: who, turn: subject.boards[i].turn, path: d.path,
-                   with: d.medicham, without: d.showdown });
+                   with: d.medicham, without: d.showdown, ctrl_value_is_the_control: sl === 1 });
       }
     }
   }
@@ -1675,13 +1733,23 @@ function noQuietControlWhy(abilityId) {
  * moved it to 933" count as one observation, which is the confusion this whole function exists to
  * remove. Conservative in the safe direction: a leaf both the subject and a control touch is DROPPED
  * rather than charged to the subject. */
-const DKEY = d => d.engine + '|' + d.turn + '|' + d.path + '|' + String(d.with) + '|' + String(d.without);
+/* AND THE CONTROL'S OWN IDENTITY IS NORMALISED OUT OF THE KEY. Where the leaf is the carrier's
+ * `.ability` and the control-arm value is the control ability, that value differs between the two
+ * control arms BY CONSTRUCTION — arm one says `synchronize`, arm two says `telepathy`. Keying on it
+ * meant Trace's real evidence (`with=pressure`, the copy actually happening, in BOTH engines) could
+ * never survive a second control however inert both controls were. The SUBJECT value still keys, so
+ * "the subject moved it to 955" and "the control moved it to 933" are still two observations. */
+const DKEY = d => d.engine + '|' + d.turn + '|' + d.path + '|' + String(d.with) + '|'
+  + (d.ctrl_value_is_the_control ? '«CONTROL-ABILITY»' : String(d.without));
+/* Counters, printed by the run. Zero on an ability stage would mean this whole correction never
+ * reached a leaf — the silent-default failure it exists to remove. */
+let SWAP_SELF_DROPPED = 0, SWAP_REWRITE_KEPT = 0;
 
 /* Returns null when the format offers no second control at all — the DECLARE case. Otherwise it plays
  * the third arm and hands back the SPLIT: what survives both controls, and what does not. */
 function secondControl(e, sc, subject, delta, src, arm) {
   if (sc.kind !== 'ability' || !sc.controlAbility2) return null;
-  const { sc: c2, ignore: ig2 } = controlOf(sc, 1);
+  const { sc: c2, ignore: ig2, swap: sw2 } = controlOf(sc, 1);
   const run = play(c2, src, arm);
   const head = 'THE SECOND CONTROL: the identical scenario played a third time with '
     + pretty(sc.controlAbility2) + ' in the slot instead of ' + pretty(sc.controlAbility) + '. ';
@@ -1689,7 +1757,7 @@ function secondControl(e, sc, subject, delta, src, arm) {
     why: head + 'IT DID NOT RUN (' + run.bad + ' — ' + run.why + '), so the delta could not be varied '
        + 'and this row stays unattributable. A control that cannot be varied is a control that cannot '
        + 'be cleared.' };
-  const delta2 = armDelta(subject, run, ig2);
+  const delta2 = armDelta(subject, run, ig2, sw2);
   const B = new Set(delta2.map(DKEY)), A = new Set(delta.map(DKEY));
   const attributed = delta.filter(d => B.has(DKEY(d)));
   const dropped = delta.filter(d => !B.has(DKEY(d)))
@@ -2145,7 +2213,7 @@ function runEntry(e) { return diceGate(runEntryRaw(e)); }
 
 function runEntryRaw(e) {
   const sc = e.scenario;
-  const { sc: ctrlSc, ignore } = controlOf(sc);
+  const { sc: ctrlSc, ignore, swap } = controlOf(sc);
   const src = e.brokenSrc || null;
   const arm = sc.arm || null;
 
@@ -2201,7 +2269,7 @@ function runEntryRaw(e) {
     }
   }
 
-  let delta = armDelta(subject, control, ignore);
+  let delta = armDelta(subject, control, ignore, swap);
   const subjDiffs = splitDeclared(subject.boards.flatMap(b => b.diffs.map(d => ({ ...d, turn: b.turn }))),
                                   subject.boards).kept;
   let ctrlDiffs = splitDeclared(control.boards.flatMap(b => b.diffs.map(d => ({ ...d, turn: b.turn }))),
@@ -7638,6 +7706,229 @@ const RULES = [
           + 'follow',
         ok: (b) => !!(b.sd && b.sd.field && b.sd.field.terrain) } });
   } },
+
+/* ---- THE PP TAX, AND WHY IT SITS ABOVE `ability/entry` -----------------------------------------
+ *
+ * MEASURED 2026-09-08. Pressure registers `onStart` AND `onDeductPP`, so the ordered list handed it to
+ * `ability/entry` — whose script is three IDLE turns by construction, because it asks a question about
+ * the MOMENT a body arrives. Nobody attacks anybody on that fixture, so the one thing Pressure does
+ * cannot happen, and the row came back with a delta of sixteen leaves that were all the control arm
+ * announcing its own name. `onStart` here prints a message and nothing else.
+ *
+ * THE PROOF THAT THIS IS STAGEABLE CAME OFF ANOTHER ROW, NOT OFF AN ARGUMENT. Super Luck's fixture
+ * has Absol controlled BY Pressure, and its dropped-leaf list carried
+ * `p1.pp[0].direclaw with=1 without=2` in BOTH engines — the tax landing, on a board leaf, in a
+ * comparison where it was the contaminant. So the leaf exists, `board_state.js` compares it, and both
+ * engines write it; all that was missing was a fixture in which somebody swings.
+ *
+ * THE SHAPE, NOT THE NAME: any ability carrying `onDeductPP`. */
+{ id: 'ability/pp-tax', kind: 'ability',
+  reads: 'onDeductPP',
+  why: 'THE COST OF BEING AIMED AT. The aggressor throws the same neutral 100-accuracy click at the '
+     + 'CARRIER on two consecutive turns, and the leaf that carries the answer is the aggressor\'s own '
+     + '`pp` — two spent per click with the ability, one without. It is a whole-number difference with '
+     + 'no die anywhere in it. THE NEGATIVE IS TURN 3, aimed at the carrier\'s PARTNER, which taxes '
+     + 'nothing in either arm: an engine that had simply started charging two PP for everything would '
+     + 'part there rather than passing.',
+  break: { why: 'the extra PP a Pressure-class ability charges is never added, so every click costs '
+              + 'the same whoever it is aimed at',
+    patch: [['if(p&&+p.extra>0){ extra+=+p.extra; MEDSEEN.ppPressureCharged++; }',
+             'if(false){ extra+=+p.extra; MEDSEEN.ppPressureCharged++; }']] },
+  match(e) {
+    if (typeof e.onDeductPP !== 'function') return null;
+    const C = abilityCarrier(e, sp => !!neutralHit2(sp.id, []));
+    if (!C) return cannot(noCarrierWhy(e, 'can be reached by a neutral 100-accuracy delivery move, '
+      + 'which is what the aggressor has to spend PP on'));
+    const hit = neutralHit2(C.species, []);
+    /* THE ONE CLICK MUST BE NEUTRAL ON BOTH BODIES, so the PARTNER IS CHOSEN TO SUIT THE CLICK rather
+     * than the other way round — the first attempt picked the partner first and Moonblast came out
+     * super-effective on it, which the guard below caught. If turn 3's negative landed a different
+     * amount of damage on the partner than turn 1 did on the carrier, the hp leaves would become the
+     * finding instead of the pp leaf. */
+    const partnerSp = CANDIDATES.find(s => idOf(s.id) !== idOf(C.species)
+      && idOf(s.id) !== idOf(CAST.ATTACKER().species)
+      && dex.getImmunity(hit.type, s.types) !== false
+      && dex.getEffectiveness(hit.type, s.types) === 0);
+    if (!partnerSp)
+      return cannot('the delivery move that is neutral on ' + dex.species.get(C.species).name
+        + ' (' + hit.name + ') is neutral on no buildable partner, so turn 3\'s negative would move '
+        + 'hp as well as pp and the row could not be read.');
+    return stageAbility(e, C, { hpA: 6, hpB: 6, moves: [INERT],
+      note: 'the aggressor throws ' + hit.name + ' at the carrier on turns 1 and 2 — two PP each with '
+          + 'the ability, one each without — and at the PARTNER on turn 3, which must cost one in both '
+          + 'arms',
+      a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [hit.id]),
+      b1: mon(partnerSp.id, '', carrierAbility(partnerSp) || '', [INERT]),
+      script: [turn([click(hit.id, 0), IDLE], [IDLE, IDLE]),
+               turn([click(hit.id, 0), IDLE], [IDLE, IDLE]),
+               turn([click(hit.id, 1), IDLE], [IDLE, IDLE])] });
+  } },
+
+/* ---- THE ALLY'S SPREAD MOVE GOES THROUGH IT --------------------------------------------------
+ *
+ * MEASURED 2026-09-08. Telepathy fell to `ability/generic`, whose script has the AGGRESSOR swinging
+ * and the carrier swinging back — and Telepathy refuses damage from an ALLY and from nobody else. So
+ * the fixture could not touch it and the row's entire delta was the control arm announcing its name.
+ *
+ * THE SHAPE WAS PRINTED BEFORE IT WAS WIRED, because a derived tag over-matching is this project's
+ * standing failure: an `onTryHit` whose source names `isAlly(` matches EXACTLY ONE legal ability in
+ * this format, Telepathy. Soundproof, Bulletproof and Wonder Guard all register `onTryHit` and none
+ * of them mentions an ally, so a match on the handler NAME would have swept up three abilities whose
+ * fixtures are already correct. */
+{ id: 'ability/refuses-the-ally-spread', kind: 'ability',
+  reads: 'an onTryHit handler whose source names `isAlly(`',
+  why: 'THE PARTNER IS THE ATTACKER, WHICH NO OTHER ABILITY RULE STAGES. It clicks a 100-accuracy '
+     + '`allAdjacent` move, which in doubles reaches the carrier standing beside it; with the ability '
+     + 'the carrier takes NOTHING and without it takes the hit, so the leaf is the carrier\'s own hp '
+     + 'and there is no die in the fixture. THE NEGATIVE IS THE TWO FOES, who are hit by the same '
+     + 'click in BOTH arms — an engine that had stopped resolving the click at all, rather than '
+     + 'refusing it for the ally, parts there instead of passing.',
+  break: { why: 'the ally exemption is dropped and the spread move damages the carrier as well',
+    patch: [['if(_tp&&_tp.refuses&&att&&def&&att!==def){', 'if(false&&_tp&&_tp.refuses&&att&&def&&att!==def){']] },
+  match(e) {
+    if (typeof e.onTryHit !== 'function' || !/isAlly\(/.test(String(e.onTryHit))) return null;
+    /* the click: an `allAdjacent` damaging move with no die, no multi-hit and no secondary */
+    const spread = dex.moves.all().filter(m => m.exists && !m.isNonstandard
+      && m.target === 'allAdjacent' && m.category !== 'Status'
+      && (m.accuracy === true || m.accuracy === 100)
+      && !m.multihit && !m.secondaries && !m.selfdestruct && !m.basePowerCallback);
+    if (!spread.length) return cannot('this format has no 100-accuracy `allAdjacent` damaging move '
+      + 'with no die in it, so the ally cannot be made to swing through its own partner');
+    const C = abilityCarrier(e, sp => spread.some(m => dex.getImmunity(m.type, sp.types) !== false
+      && CANDIDATES.some(p => idOf(p.id) !== idOf(sp.id) && learnsMove(p, m.id))));
+    if (!C) return cannot(noCarrierWhy(e, 'can be REACHED by an `allAdjacent` move that some other '
+      + 'buildable body actually learns — the carrier being immune to the only such move would make '
+      + 'the fixture inert in both arms'));
+    const csp = dex.species.get(C.species);
+    let mv = null, ally = null;
+    for (const m of spread) {
+      if (dex.getImmunity(m.type, csp.types) === false) continue;
+      const p = CANDIDATES.find(x => idOf(x.id) !== idOf(csp.id)
+        && idOf(x.id) !== idOf(CAST.ATTACKER().species) && learnsMove(x, m.id));
+      if (p) { mv = m; ally = p; break; }
+    }
+    if (!mv) return cannot('no legal body learns an `allAdjacent` move the carrier is not immune to');
+    return stageAbility(e, C, { hpA: 6, hpB: 6, moves: [INERT],
+      note: 'the carrier\'s PARTNER ' + ally.name + ' clicks ' + mv.name + ' on turns 1 and 2 — an '
+          + '`allAdjacent` move, so it reaches the carrier beside it. With the ability the carrier '
+          + 'takes nothing; without it the carrier is damaged. Both foes are hit in both arms.',
+      a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [INERT]),
+      b1: mon(ally.id, '', carrierAbility(ally) || '', [mv.id]),
+      script: [turn([IDLE, IDLE], [IDLE, click(mv.id)]),
+               turn([IDLE, IDLE], [IDLE, click(mv.id)]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+/* ---- DAMAGE THAT IS NOT A MOVE ----------------------------------------------------------------
+ *
+ * MEASURED 2026-09-08. Magic Guard fell to `ability/generic`, where the only damage in the fixture is
+ * a MOVE — which is the one kind Magic Guard does not touch. Every leaf on the row was the control
+ * arm announcing its own name.
+ *
+ * THE SHAPE WAS PRINTED BEFORE IT WAS WIRED: an `onDamage` whose source compares `effectType` against
+ * `"Move"` matches EXACTLY ONE legal ability here, Magic Guard. (Poison Heal's `onDamage` keys on the
+ * status id instead and is deliberately NOT swept up — it needs a poisoned carrier, which this
+ * fixture does not supply, and a rule that claimed it would move it from an inert fixture to another
+ * inert fixture while looking like coverage.)
+ *
+ * THE SOURCE OF THE INDIRECT DAMAGE IS THE CARRIER'S OWN HELD ITEM, AND THE FIRST ATTEMPT USED THE
+ * SKY AND WAS WRONG. A sand fixture worked — twelve real hp leaves, both engines agreeing — and then
+ * came out CONTROL-NOT-QUIET, because the second control on the carrier this rule picked is OVERCOAT,
+ * which blocks weather damage too. The two controls cancelled the effect in the same way and no arm
+ * could separate them. The recoil item is untouched by every alternate ability these carriers have,
+ * so it is the honest fixture: no weather, no status roll, no accuracy roll, no switch. */
+{ id: 'ability/refuses-indirect-damage', kind: 'ability',
+  reads: 'an onDamage handler that compares the effect against "Move"',
+  why: 'THE ONLY DAMAGE IN THE GENERIC FIXTURE IS A MOVE, which is exactly what this family does not '
+     + 'refuse. The carrier holds the recoil item and clicks a neutral 100-accuracy move on turns 1 '
+     + 'and 2: without the ability its own hp falls by the item\'s share of its maximum after each '
+     + 'click, with it the carrier is untouched, and the foe takes the same damage in both arms. THE '
+     + 'NEGATIVE IS TURN 3, on which nobody clicks and neither arm may move — an engine that had '
+     + 'started charging the recoil unconditionally would part there rather than passing.',
+  break: { why: 'the refusal is dropped and the weather residual reaches the carrier again',
+    patch: [['const _r=TAGS.param(\'ability\',m.ability,\'refusesIndirectDamage\');\n  if(!_r)return false;',
+             'const _r=TAGS.param(\'ability\',m.ability,\'refusesIndirectDamage\');\n  if(_r||!_r)return false;']] },
+  match(e) {
+    if (typeof e.onDamage !== 'function'
+        || !/effectType\s*!==\s*["']Move["']/.test(String(e.onDamage))) return null;
+    /* THE ITEM IS DERIVED, NEVER NAMED: the legal item whose `onAfterMoveSecondarySelf` damages its
+     * own holder. Exactly one in this format. If the regulation ever bans it this rule says so with
+     * its own sentence instead of staging a body holding nothing. */
+    const ORB = dex.items.all().find(it => it.exists && !it.isNonstandard
+      && /damage\(/.test(String(it.onAfterMoveSecondarySelf || '')));
+    if (!ORB) return cannot('no legal item in this format damages its own holder after a click, so '
+      + 'the fixture has no source of damage that is not a move');
+    const hit = neutralHit2(CAST.ATTACKER().species, []);
+    if (!hit) return cannot('no neutral 100-accuracy delivery move reaches the aggressor, so the '
+      + 'carrier cannot be made to click and the item never charges');
+    const C = abilityCarrier(e, () => true);
+    if (!C) return cannot(noCarrierWhy(e, 'has a second ability to control with'));
+    return stageAbility(e, C, { hpA: 6, hpB: 4, item: ORB.name, moves: [hit.id],
+      note: 'the carrier holds ' + ORB.name + ' and clicks ' + hit.name + ' on turns 1 and 2. WITHOUT '
+          + 'the ability its own hp falls after each click; WITH it the carrier is untouched, and the '
+          + 'foe takes the same damage in both arms. Turn 3 is the negative: nobody clicks and '
+          + 'neither arm may move.',
+      a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [INERT]),
+      b1: mon((CANDIDATES.find(s => idOf(s.id) !== idOf(C.species)
+                && idOf(s.id) !== idOf(CAST.ATTACKER().species)) || dex.species.get('snorlax')).id,
+              '', '', [INERT]),
+      script: [turn([IDLE, IDLE], [click(hit.id, 0), IDLE]),
+               turn([IDLE, IDLE], [click(hit.id, 0), IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+/* ---- THE STATUS THAT HEALS INSTEAD OF HURTING --------------------------------------------------
+ *
+ * MEASURED 2026-09-08. Poison Heal fell to `ability/generic`, where nobody is poisoned, so the one
+ * handler it registers could not fire and its whole delta was the control arm announcing its name.
+ *
+ * THE SHAPE WAS PRINTED BEFORE IT WAS WIRED: an `onDamage` whose source names the poison status ids
+ * matches EXACTLY ONE legal ability here. It is deliberately a DIFFERENT clause from
+ * `ability/refuses-indirect-damage` above, which keys on `effectType` — the two families both hang
+ * off `onDamage` and a rule matching the handler NAME would have taken both and staged one of them
+ * wrongly.
+ *
+ * THE SIGN IS THE POINT AND IT IS WHY NO CHIP IS NEEDED. `docs/LESSONS.md` §5 says a per-turn heal on
+ * a full-hp body is 0 = 0. Here the CONTROL arm is not zero: without the ability the poison takes hp
+ * away every residual phase, so the two arms part on the first boundary whatever the carrier's hp. */
+{ id: 'ability/heals-from-its-own-poison', kind: 'ability',
+  reads: 'an onDamage handler whose source names the poison status ids',
+  why: 'THE CARRIER HAS TO BE POISONED AND NOTHING IN THE GENERIC FIXTURE POISONS IT. The aggressor '
+     + 'clicks the format\'s one 100-accuracy poisoning status move at the carrier on turn 1, and '
+     + 'boundaries 2 and 3 each carry a residual phase: WITHOUT the ability the carrier loses hp on '
+     + 'each of them, WITH it the carrier does not — so the arms part on SIGN, not on a heal that a '
+     + 'full-hp body would round to nothing. THE NEGATIVE IS BOUNDARY 1, before the poison lands, on '
+     + 'which the two arms must be identical.',
+  break: { why: 'the poison-heal exemption is dropped and the status damages its holder as usual',
+    patch: [['const _ph=!!(_phl&&Array.isArray(_phl.statuses)&&_phl.statuses.includes(m.status));',
+             'const _ph=false&&!!(_phl&&Array.isArray(_phl.statuses)&&_phl.statuses.includes(m.status));']] },
+  match(e) {
+    if (typeof e.onDamage !== 'function'
+        || !/["'](psn|tox)["']/.test(String(e.onDamage))) return null;
+    const psn = dex.moves.all().find(m => m.exists && !m.isNonstandard && m.category === 'Status'
+      && (m.status === 'psn' || m.status === 'tox')
+      && (m.accuracy === true || m.accuracy === 100)
+      && (m.target === 'normal' || m.target === 'any'));
+    if (!psn) return cannot('this format has no 100-accuracy single-target poisoning status move, so '
+      + 'the carrier cannot be poisoned without a die in the fixture');
+    /* A POISON-IMMUNE CARRIER MAKES THE FIXTURE INERT IN BOTH ARMS, and the immunity is asked of the
+     * format rather than typed. */
+    const C = abilityCarrier(e, sp => dex.getImmunity('Poison', sp.types) !== false);
+    if (!C) return cannot(noCarrierWhy(e, 'can actually be poisoned — a carrier the format makes '
+      + 'immune to ' + psn.name + ' would leave the fixture inert in BOTH arms'));
+    return stageAbility(e, C, { hpA: 4, hpB: 4, moves: [INERT],
+      note: 'the aggressor clicks ' + psn.name + ' at the carrier on turn 1; boundaries 2 and 3 each '
+          + 'carry a residual phase, on which the carrier LOSES hp without the ability and does not '
+          + 'with it. Boundary 1 is the negative, before the status lands.',
+      a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [psn.id]),
+      b1: mon((CANDIDATES.find(s => idOf(s.id) !== idOf(C.species)
+                && idOf(s.id) !== idOf(CAST.ATTACKER().species)) || dex.species.get('snorlax')).id,
+              '', '', [INERT]),
+      script: [turn([IDLE, IDLE], [IDLE, IDLE]),
+               turn([click(psn.id, 0), IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
 { id: 'ability/entry', kind: 'ability',
   reads: 'onStart / onSwitchIn, with no onResidual',
   why: 'THE MOMENT IS THE MECHANIC. An entry ability has already acted by BOUNDARY 0 — before anybody '
@@ -10917,8 +11208,28 @@ function main() {
     console.log('    ' + String(n).padStart(5) + '  ' + k
       + (k.startsWith('DRIVER-DEFAULT:') ? '   <-- NOT PINNED BY NAME. This run is not the arm it says it is.' : ''));
 
+  /* THE ABILITY-SWAP CORRECTION, PROVED TO HAVE RUN. A silent default looks exactly like a working
+   * feature, so both halves are printed: what the control arm was saying about itself, and what the
+   * value condition preserved. On an ability stage a ZERO in the first column means the correction
+   * never reached a leaf. */
+  if (STAGE === 'abilities' || SWAP_SELF_DROPPED || SWAP_REWRITE_KEPT) {
+    console.log('');
+    console.log('  THE ABILITY-SWAP CONTROL DESCRIBING ITSELF (board_state.js writes the ability onto '
+              + 'the active slot AND the party row, so the control arm cannot be played without moving '
+              + 'them):');
+    console.log('    ' + String(SWAP_SELF_DROPPED).padStart(5) + '  leaves DROPPED — `with=<the '
+              + 'ability under test> without=<this arm\'s control ability>`, the swap and nothing else'
+              + (SWAP_SELF_DROPPED ? '' : '   <-- ZERO. On an ability stage the correction never '
+                 + 'reached a leaf and every row below is judged by the old ruler.'));
+    console.log('    ' + String(SWAP_REWRITE_KEPT).padStart(5) + '  leaves KEPT — the carrier\'s own '
+              + 'ability field moved to something that is NOT the ability under test, so the entity '
+              + 'rewrote it (Trace, Receiver, a forme). A blanket path ignore would delete these.');
+  }
+
   if (JSONOUT || HAS('--write')) {
     const art = { generated: new Date().toISOString(), by: 'tests/roster.js', stage: STAGE,
+      swap_leaf_correction: { self_describing_dropped: SWAP_SELF_DROPPED,
+                              real_ability_rewrite_kept: SWAP_REWRITE_KEPT },
       /* THE WHOLE STAMP, NOT THE ID — 2026-09-04. `engine_release: REL.id` alone is a CLAIM about
        * which bytes this run read; `source_digests` is the receipt, and it is the only thing
        * `engine/provenance.js` can verify BY CONTENT ("newer than its source is no evidence at all",

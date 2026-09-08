@@ -1,0 +1,77 @@
+{
+ "written": "2026-09-08",
+ "by": "ENGINE",
+ "question": "The 45 CONTROL-NOT-QUIET ability rows: what mechanism, and what happens when the instrument is corrected?",
+ "read_before_predicting": [
+  "data/roster.abilities.json (release f0f10cd06861, generated 2026-09-08T05:54:19.689Z)",
+  "tests/roster.js controlOf / armDelta / secondControl / DKEY",
+  "docs/_reports/2026-09-07-focus-sash-blind-test.md (the precedent)"
+ ],
+ "measured_before_the_prediction": {
+  "note": "these are readings off the existing artifact, not predictions",
+  "control_not_quiet_rows": 45,
+  "all_45_are_one_branch": "second control RAN and leaves_kept == 0",
+  "min_arm_delta_is_pure_self_describing_ability_leaf": "45 of 45",
+  "self_describing_share_of_all_dropped_leaves": "1380 of 1738 = 79.4%",
+  "green_rows_whose_entire_evidence_is_the_self_describing_leaf": 12,
+  "green_rows_named": [
+   "cloudnine",
+   "leafguard",
+   "lightmetal",
+   "longreach",
+   "magician",
+   "naturalcure",
+   "plus",
+   "quickfeet",
+   "receiver",
+   "symbiosis",
+   "synchronize",
+   "unaware"
+  ]
+ },
+ "predictions": [
+  {
+   "id": "P1",
+   "claim": "The mechanism is ONE, not 45: board_state writes the carrier's ability onto both its active slot and its party row, the ability-swap control necessarily changes that field, and armDelta counts it. It is the Focus Sash item-leaf defect on the ability axis.",
+   "falsifier": "a CONTROL-NOT-QUIET row whose minimum arm carries a leaf that is not the swap itself"
+  },
+  {
+   "id": "P2",
+   "claim": "A value-conditioned ignore (drop an .ability leaf only when with==<ability under test> and without==<that arm's control ability>) plus normalising the control-arm ability value inside DKEY moves the ability roster to: FIRED-AND-BOARDS-MATCH 135, CONTROL-NOT-QUIET 14, COULD-NOT-STAGE 166, DEFERRED-BY-OWNER 1, total 316.",
+   "detail": "146 -> 134 as the 12 vacuous greens fall to COULD-NOT-STAGE; +1 because Trace is released; 45 -> 14 as 30 inert fixtures fall to COULD-NOT-STAGE and Trace is released"
+  },
+  {
+   "id": "P3",
+   "claim": "Trace is the ONLY one of the 45 carrying a real ability-change leaf (with=pressure, i.e. it copied the foe's Pressure). Both engines agree on it, so Trace becomes FIRED-AND-BOARDS-MATCH and not a divergence.",
+   "falsifier": "Trace comes out FIRED-AND-BOARDS-DIFFER"
+  },
+  {
+   "id": "P4",
+   "claim": "No new FIRED-AND-BOARDS-DIFFER appears anywhere in the ability stage. The 45 are inert fixtures, not hidden engine defects, so this pass finds NO engine defect in medicham2-browser.js.",
+   "falsifier": "any FIRED-AND-BOARDS-DIFFER > 0"
+  },
+  {
+   "id": "P5",
+   "claim": "The 133 greens that already carry a non-ability leaf all keep their green.",
+   "falsifier": "green count below 134 before Trace is added back"
+  }
+ ],
+ "scored": {
+  "when": "2026-09-08",
+  "measured_on": "release f0f10cd06861, tests/roster.js --stage abilities --reds --write",
+  "P1": "HIT — 45 of 45 rows had a control arm whose entire delta was the swap",
+  "P2": "PARTIAL MISS — FIRED 135 and CONTROL-NOT-QUIET 14 were exact; COULD-NOT-STAGE came out 162 not 166 and DEFERRED-BY-OWNER 5 not 1, because four owner deferrals (anticipation, forewarn, pickup, stall) were themselves hidden behind the same leaf: the shelf branch is gated on !sdMoved.length and the swap leaf kept sdMoved non-empty. The prediction did not know the shelf was invisible.",
+  "P3": "HIT — Trace was the only real ability-change leaf and it came out FIRED-AND-BOARDS-MATCH",
+  "P4": "HIT — 0 FIRED-AND-BOARDS-DIFFER before and after. No engine defect.",
+  "P5": "HIT — all 133 greens carrying a non-ability leaf kept their green; the 12 that fell are exactly the 12 named above",
+  "final_counts_after_four_new_rules": {
+   "FIRED-AND-BOARDS-DIFFER": 0,
+   "DID-NOT-FIRE": 0,
+   "DEFERRED-BY-OWNER": 5,
+   "FIRED-AND-BOARDS-MATCH": 139,
+   "CONTROL-NOT-QUIET": 14,
+   "COULD-NOT-STAGE": 158
+  },
+  "report": "docs/_reports/2026-09-08-control-not-quiet.md"
+ }
+}

@@ -562,6 +562,11 @@ function install(bot, o) {
         ? (require('./rollout_leaf.js').census().switchRate) : SWITCH_RATE,
       switchesOffered: require('./rollout_leaf.js').SWITCH_COUNTERS.offered,
       switchesExecuted: require('./rollout_leaf.js').SWITCH_COUNTERS.executed,
+      /* NON-ZERO MEANS THIS ROW'S `switchRate` AND `turns` ARE A DEGRADATION, NOT A SETTING. A
+       * frozen release that does not carry data/rollout-switch-census.json makes census() fall to
+       * switchRate 0 / horizon 60, which is a different player and used to be visible only as one
+       * stderr line at the top of a run. 2026-09-08. */
+      censusFallback: require('./rollout_leaf.js').SWITCH_COUNTERS.censusFallback,
       previewN: PREVIEW_N, previewMs: PREVIEW_MS, budgetMs: opts.budgetMs || 20000,
       clock: CLOCK.enabled, early: EARLY_DEFER, bankMs: CLOCK.bankMs(), notes: CLOCK.stats().notes,
     }, extra || {}));

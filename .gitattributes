@@ -92,3 +92,4 @@ data/move-priors.json            text eol=lf
 data/regulations.json            text eol=lf
 data/policy-weights.json         text eol=lf
 data/policy-weights-joint.json   text eol=lf
+data/rollout-switch-census.json  text eol=lf

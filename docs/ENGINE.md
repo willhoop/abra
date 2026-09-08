@@ -159,6 +159,116 @@ _stamped 2026-09-07 22:22_
 
 <!-- /GENERATED -->
 
+## THE ABILITY-SWAP CONTROL WAS ANNOUNCING ITS OWN NAME — ROSTER ABILITIES **146 → 139 FIRED-AND-BOARDS-MATCH**, **CONTROL-NOT-QUIET 45 → 14**, **COULD-NOT-STAGE 124 → 158**, ZERO DIFFER AND ZERO DID-NOT-FIRE THROUGHOUT. **TWELVE OF THE 146 GREENS RESTED ON NOTHING BUT THE CONTROL DESCRIBING ITSELF.** BOARD-MATERIAL UNTOUCHED AT **0 OF 958**, CENSUS LEVEL AT 830/830. 2026-09-08
+
+**The 45 are ONE mechanism, not forty-five, and it is the instrument.** `engine/board_state.js`
+writes a body's ability onto TWO leaves — `pN.active[i].ability` and `pN.party.<species>.ability` —
+so an ability control arm, which SWAPS the ability, cannot be played without moving them. Four
+boundaries x two leaves x two engines is sixteen leaves of "evidence" that exist for every ability row
+**by construction**. It is the Focus Sash defect of 2026-09-07 on the ability axis, at twelve times
+the scale. Full account, the grouping, the four new rules and the enumerated remainder:
+[docs/_reports/2026-09-08-control-not-quiet.md](_reports/2026-09-08-control-not-quiet.md).
+
+| measured off the PRE-FIX artifact (`data/roster.abilities.prev.json`) | |
+|---|---|
+| unattributable rows whose smaller control arm was 100% the swap leaf | **45 of 45** |
+| dropped leaves across those rows that were the swap leaf | **1,380 of 1,738 — 79.4%** |
+| `FIRED-AND-BOARDS-MATCH` rows with **no other evidence at all** | **12 of 146** |
+| rows carrying a REAL ability rewrite | **1** — Trace, `with=pressure`, in BOTH engines |
+
+| verdict | before | after |
+|---|---|---|
+| FIRED-AND-BOARDS-DIFFER | 0 | **0** |
+| DID-NOT-FIRE | 0 | **0** |
+| FIRED-AND-BOARDS-MATCH | 146 | **139** |
+| CONTROL-NOT-QUIET | 45 | **14** |
+| COULD-NOT-STAGE | 124 | **158** |
+| DEFERRED-BY-OWNER | 1 | **5** |
+| red demonstrations | — | **44 of 44 CAUGHT, 0 NOT CAUGHT, 0 WEAK** |
+
+**NO ENGINE DEFECT WAS FOUND AND NONE IS HANDED OVER.** `engine/medicham2-browser.js` is untouched.
+The 45 were not diverging from Showdown; they were not being exercised.
+
+**THE EXCLUSION IS CONDITIONED ON THE VALUES, NEVER ON THE PATH, AND THAT IS THE WHOLE DESIGN.** For
+Trace, Receiver, Protean and every forme change the `.ability` leaf IS the effect. A blanket path
+ignore — the obvious fix, and the one the item branch uses — would have deleted Trace's only evidence
+and made it permanently unmeasurable. A leaf is dropped only when it reads `with=<the ability under
+test> without=<that arm's control ability>`; `DKEY` normalises the control-arm value on a leaf the
+entity itself rewrote, because that value is the control's IDENTITY and differs between two control
+arms by construction — which is why Trace could never survive a second control however inert both
+controls were. **Trace was released by the correction alone and came out `FIRED-AND-BOARDS-MATCH`.**
+
+**THE CORRECTION WAS ITSELF WRONG FIRST AND ITS OWN COUNTER CAUGHT IT.** `swapLeaf` read `d.with` /
+`d.without` where `BS.compare` writes `.medicham` / `.showdown`, so every field was `undefined`, every
+leaf classified as "not ours", and nothing changed — the row still printed
+`FIRED-AND-BOARDS-MATCH` and the probe still failed. The run printed
+`0 leaves DROPPED   <-- ZERO. the correction never reached a leaf and every row below is judged by the
+old ruler.` That took two minutes instead of an hour. A silent default here would have looked exactly
+like a working feature.
+
+**AND THE OWNER'S SHELF WAS HIDDEN BY THE SAME LEAF, WHICH WAS NOT PREDICTED.** `DEFERRED-BY-OWNER`
+went 1 → 5: Anticipation, Forewarn, Pickup and Stall were already shelved, and the shelf branch is
+gated on `!sdMoved.length` — the swap leaf kept `sdMoved` non-empty, so four deferrals never printed.
+A shelf nobody can see is the invisible exception `tests/roster.js` exists to prevent, and it was
+invisible for as long as the leaf was counted. The miss is recorded in
+`data/verification/_prediction-2026-09-08-control-not-quiet.json`.
+
+### THE HAND LIST
+
+**Removed — the whole `CONTROL-NOT-QUIET` sweep, and five abilities measured for the first time:**
+
+- **THE 45 CONTROL-NOT-QUIET ABILITY ROWS** — `tests/probe_control_self_name.js`, RED 2 of 7 before
+  and GREEN 7 of 7 after, with two silent controls in-band (Contrary must KEEP its green on 24 real
+  leaves with the correction firing on its row; Trace must be RELEASED, which refuses a blanket
+  ignore). The census now carries the counters: `swap_leaf_correction.self_describing_dropped` 5,344
+  and `real_ability_rewrite_kept` 48, published in the artifact and printed by `engine/status.js`.
+- **PRESSURE** — `ability/pp-tax`, matching `onDeductPP`. It was claimed by `ability/entry`, whose
+  script is three IDLE turns by construction, so nobody ever swung at the carrier. The leaf is the
+  aggressor's own `p1.pp[0].moonblast`, two spent per click against one. `CAUGHT … DID-NOT-FIRE on
+  pp.moonblast`.
+- **TELEPATHY** — `ability/refuses-the-ally-spread`, matching an `onTryHit` whose source names
+  `isAlly(` — **exactly one legal ability, printed before it was wired**; a match on the handler NAME
+  would have swept up Soundproof, Bulletproof and Wonder Guard, whose fixtures are already correct.
+  The carrier's PARTNER clicks an `allAdjacent` move. `CAUGHT … DID-NOT-FIRE on party.hp, hp`.
+- **MAGIC GUARD** — `ability/refuses-indirect-damage`, matching an `onDamage` comparing `effectType`
+  to `"Move"`. The only damage in the generic fixture is a MOVE, the one kind it does not refuse.
+  **The first fixture was wrong and the instrument said so**: sand from a partner produced twelve real
+  hp leaves and then read `CONTROL-NOT-QUIET`, because Reuniclus's second control is **Overcoat**,
+  which blocks weather damage too — two controls live in the same way on the same leaves is the case
+  the second-control machinery declares it cannot see, and it declared it. The recoil item (derived:
+  the one legal item whose `onAfterMoveSecondarySelf` damages its holder) is untouched by any
+  alternate these carriers have. `CAUGHT … DID-NOT-FIRE on party.hp, hp`.
+- **POISON HEAL** — `ability/heals-from-its-own-poison`, matching an `onDamage` naming the poison
+  status ids — a DIFFERENT clause from Magic Guard's on purpose, because both families hang off
+  `onDamage`. Nobody is poisoned in the generic fixture. The arms part on SIGN, so `docs/LESSONS.md`
+  §5 (a heal on a full-hp body is 0 = 0) does not bite. `CAUGHT … DID-NOT-FIRE on party.hp, hp`.
+
+**Owed and named, not fixed here** (release `f0f10cd06861`). Every row carries what its fixture has to
+supply, so the next batch is aimed rather than re-derived:
+
+- **14 ROWS ARE STILL `CONTROL-NOT-QUIET`, AND NONE OF THEM IS RECLASSIFIED.** Each now has a sharp
+  diagnosis instead of a shape argument: **one arm is at exactly ZERO** and the other arm's leaves are
+  the other control's own work. Intimidate owns four of them (Anger Point, Justified, Moxie, Rivalry,
+  44 leaves each); Weak Armor two (Aftermath, Keen Eye); then Supersweet Syrup (Sticky Hold), Stamina
+  (Stalwart), Anger Point (Magma Armor), Speed Boost (Opportunist), Protean (Battle Bond), Snow Cloak
+  (Slush Rush), Electromorphosis (Damp) and Pressure's own PP tax (Super Luck). **"One arm is zero"
+  does NOT prove the subject inert** — it could be duplicating that control's effect, and two arms
+  cannot separate those. Each needs a fixture, not a verdict.
+- **34 ABILITIES ARE NOW HONESTLY `COULD-NOT-STAGE`** — the 22 released from CONTROL-NOT-QUIET plus
+  the 12 vacuous greens — grouped by what the fixture has to supply: a landed CRIT (Sniper,
+  Merciless); a MISS (Compound Eyes, No Guard, Tangled Feet, Illuminate); a BERRY and a threshold
+  (Cheek Pouch, Gluttony, Cud Chew); a WEIGHT-BASED click (Heavy Metal, Light Metal); the counterpart
+  on the PARTNER (Plus, Minus); a STATUS on the carrier (Early Bird, Hydration, Leaf Guard, Quick
+  Feet, Synchronize, Natural Cure); an ITEM in play (Klutz, Magician, Pickpocket, Symbiosis); a fallen
+  ALLY (Supreme Overlord, Receiver); a SCREEN (Screen Cleaner); the carrier moving LAST (Analytic); a
+  MULTI-HIT click (Skill Link); a FLINCH (Steadfast); a drop below half (Berserk); a CONTACT reaction
+  on the foe (Long Reach); a BOOSTED foe (Unaware); a WEATHER (Cloud Nine).
+- **THREE ARE MESSAGE-ONLY AND CARRY NO BOARD LEAF AT ALL** — Frisk, Forewarn, Anticipation. Two are
+  already on the owner's shelf; Frisk is the remaining one of that shape and closing it needs a
+  comparison that is not a board leaf, like the switch probe.
+- **`node engine/status.js --write` IS OWED** and was deliberately not run — the abilities count is
+  stamped into `<!-- GENERATED -->` blocks and still reads 146 there.
+
 ## NARRATION BATCH P — THE ORDERING CLASS, SECOND PASS. NARRATION **55 → 53** (raw 56 → 54), PROTOCOL **59 → 57**, ORDERING **16 → 14 GAMES**, BOARD-MATERIAL **0 OF 958 → 0 OF 958**, CENSUS LEVEL AT 830/830. ONE FIX, ONE PROBE, THE PREDICTION HIT AT THE POINT ESTIMATE ON EVERY CLAUSE AND ZERO TRANSFERS. 2026-09-08
 
 One fix, shown RED under its own knob first, with a prediction written before the run. Full
