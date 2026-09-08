@@ -14,7 +14,7 @@
 
 **GATE.** `engine/status.js` computes nine clauses. **Two fail.** They are the whole-game board-material clause and the whole-game narration clause. **Both fail on measured counts.** Neither fails on staleness. Eight of the nine clauses gate. Narration does not gate. **One of the eight gating clauses fails.** The gate reads CLOSED. Do not print the nine-clause count and the eight-clause count together.
 
-**RE-RUN ARTIFACTS.** `data/engine-diff.json` compares 6,000 pairs. It reports 0 disagreements. The seed is 20260804. It skips 134 multi-hit comparisons by construction. `data/roster.items.json` reports 0 `FIRED-AND-BOARDS-DIFFER` and 0 `DID-NOT-FIRE`. It tests 140 of 148. `data/roster.abilities.json` reports 0 and 0. It tests 129 of 202. `data/roster.moves.json` reports 0 and 0. It tests 475 of 500. `data/all-mechanics-fire.json` plays 1,313 games. It reports 0 threw. `data/mechanics-census.json` reads 830 live of 830 probed and 0 missing.
+**RE-RUN ARTIFACTS.** `data/engine-diff.json` compares 6,000 pairs. It reports 0 disagreements. The seed is 20260804. It skips 134 multi-hit comparisons by construction. `data/roster.items.json` reports 0 `FIRED-AND-BOARDS-DIFFER` and 0 `DID-NOT-FIRE`. It tests 140 of 148. `data/roster.abilities.json` reports 0 and 0. It tests 146 of 202. `data/roster.moves.json` reports 0 and 0. It tests 487 of 500. `data/all-mechanics-fire.json` plays 1,313 games. It reports 0 threw. `data/mechanics-census.json` reads 830 live of 830 probed and 0 missing.
 
 **PREDICTION.** `data/verification/_prediction-remeasure-57679ef9a4a3.json` was written before the run. It carries `written_before_the_run: true`. It claims no tolerance band. It predicts six values. All six are correct.
 
