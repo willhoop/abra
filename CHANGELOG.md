@@ -10,6 +10,40 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.270.2] — 2026-09-09
+
+### Added
+- **`engine/major_readiness.js`** — *would 6.0.0 be honest today, and what would it have to say?*
+  Built because the scope of the major was assembled BY HAND from five commands three times in one
+  night and **two of the three were wrong**: `33 untraceable figures` was 33 only because a
+  bibliography counted as unsourced claims, and `~13 figures in the living set` counted one of the
+  three ways a figure needs attention and it was the smallest. Each count was correct about its own
+  question; nothing put the three questions side by side, so the one being quoted was whichever had
+  been run last. It **reuses** `docs_scan.js` and `quarantine.js` through their exports and
+  re-implements no count. **It decides nothing** — whether to release, and whether a red clause is
+  waived, is the owner's.
+
+### Fixed
+- **`data/abra-tags.js` rebuilt from `data/tags.json`.** Batches S and T moved the tag derivation and
+  left the browser copy behind; the pre-commit gate blocked a commit on it, correctly.
+  `engine/artifact_audit.js` now reports no gaps.
+
+### Changed
+- **The living-document rewrite is 119 figure-level edits, not the 85–90 estimated by hand** — 13
+  resting on a withheld artifact, 84 stale citations, 22 untraceable, across the five documents in
+  the fold-in. A re-run today would **lift 40 artifacts and leave 24 withheld**, each named with its
+  generator. 45 of 100 notes rows owed. Gate CLOSED at 1 of 9.
+
+### Notes
+- **A release re-cut is OWED and was deliberately not taken here.** Releases cut between 02:54 and
+  03:55 froze a new `tags.json` beside the old `abra-tags.js`, and both are frozen SOURCES. Under node
+  this changed nothing — `engine/tags.js:56` requires `tags.json`, and the browser copy is only read
+  on the browser path — so measurements from that window stand. But 6.0.0 must not rest on an
+  internally inconsistent snapshot. Not done here because an agent was mid-run and cuts its own.
+- No published figure moves, so this is a PATCH.
+
+---
+
 ## [5.270.1] — 2026-09-09
 
 ### Changed
