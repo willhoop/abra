@@ -191,3 +191,43 @@ compares CONTENT rather than mtime, which is the whole reason it was rewritten.
 **15 of the 182 are scratch files** with a leading underscore (`_void-final.json`, `_turncap-cap30.json`
 and so on). They are working artifacts and are counted beside published ones, which is a third
 instance of tonight's pattern — a count that is correct and is not a workload.
+
+---
+
+# THIRD PASS: THE 119 IS TWO JOBS, NOT ONE, AND ONLY ONE OF THEM IS WRITING
+
+`engine/major_readiness.js` now derives the scope, and reading the three categories against WHAT THEY
+CONTAIN collapses the plan considerably.
+
+| category | count | what 6.0.0 actually does with it |
+|---|---|---|
+| **stale citation** | **84** | **REWRITE.** The artifact was re-run and moved under the sentence. This is the real writing job, and it is mechanical once the numbers exist. |
+| resting on a withheld artifact | 13 | **STATE AS ABSENT**, with the reason — for the ones whose artifact does not lift |
+| untraceable | 22 | **STATE AS ABSENT** too, for the same underlying reason |
+
+## Why the untraceable set is not 22 decisions
+
+Sampled by reading the lines rather than assumed from the count:
+
+- `docs/ABRA-whitepaper.md:2357` and `:2358` — *"the refit, given fixed features"*, literally the MAG refit
+- `docs/ABRA-whitepaper.md:1802` — the pair-scoring layer (DODUO), a model downstream of the weights
+- `docs/MODELS.md:1065`, `:1070–1072`, `:1080`, `:1115` — the 2026-08-02 joint refit and the imitation weights
+- `docs/MODELS.md:1123` and `docs/ABRA-whitepaper.md:1808` — already inside their own WITHDRAWN/CORRECTED notice; the record working as designed, needing nothing
+
+**Roughly 20 of the 22 are MAG-family figures**, and the MAG refit is sequenced AFTER 6.0.0. So they
+cannot be re-derived at this major whatever anyone decides — they are the same job as the 13, which is
+to say *absent, with a reason*, not *decided one at a time*. `docs/ARCHITECTURE.md:163` is the clear
+exception and is about `data/status.js`, not a model.
+
+## What this does to the plan
+
+**The 6.0.0 writing job is the 84 stale citations**, and it is mechanical: each cites an artifact that
+the re-run brings back, so the new value is read rather than judged. Examples already seen — `934`
+cited where `data/game-differential.json` now holds **961**, `818` where the census holds **830**.
+
+**The other 35 are one paragraph, not 35 edits** — a single derived list of what is absent and why,
+which `engine/major_readiness.js` already prints with a generator per artifact.
+
+**This is a simplification, not a shrink.** The same figures are handled; they are handled in two
+batches instead of one undifferentiated pile of 119, and one of the batches is a table rather than
+prose. The earlier framing was not wrong, it was unsorted.
