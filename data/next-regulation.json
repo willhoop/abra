@@ -1,8 +1,8 @@
 {
- "generated": "2026-09-09T20:52:03.218Z",
+ "generated": "2026-09-09T23:23:42.968Z",
  "mode": "scheduled",
  "detection": {
-  "generated": "2026-09-09T20:52:03.215Z",
+  "generated": "2026-09-09T23:23:42.966Z",
   "authorities": {
    "live": {
     "url": "https://play.pokemonshowdown.com/data/formats.js",
@@ -11,10 +11,10 @@
     "vgc_reg_rows": 4
    },
    "dex": {
-    "path": "C:\\Users\\willj\\Projects\\Pokemon\\pokemon-showdown",
-    "reached": true,
-    "formats_listed": 333,
-    "vgc_reg_rows": 4
+    "path": null,
+    "reached": false,
+    "formats_listed": 0,
+    "vgc_reg_rows": 0
    },
    "replays": {
     "url": "https://replay.pokemonshowdown.com/search.json?page=1",
@@ -34,7 +34,7 @@
      "gen9championsvgc2026regmc",
      "gen9championsvgc2026regmcbo3"
     ],
-    "vgc_reg_rows": 2
+    "vgc_reg_rows": 0
    }
   },
   "active_regulation": "regmb",
@@ -44,72 +44,20 @@
    "gen9championsvgc2026regmbbo3"
   ],
   "counters": {
-   "vgc_regulation_formats_detected": 6,
+   "vgc_regulation_formats_detected": 4,
    "known": 2,
-   "unknown": 4,
+   "unknown": 2,
    "candidates": 2,
-   "superseded": 2,
-   "collectable_not_simulatable": 2,
-   "replay_only": 2,
-   "problems": 0
+   "superseded": 0,
+   "collectable_not_simulatable": 4,
+   "replay_only": 0,
+   "problems": 1
   },
   "formats": [
    {
-    "name": "[Gen 9 Champions] VGC 2026 Reg M-A",
-    "seen_in": [
-     "live",
-     "dex"
-    ],
-    "ruleset": [
-     "Flat Rules",
-     "VGC Timer",
-     "Open Team Sheets"
-    ],
-    "id": "gen9championsvgc2026regma",
-    "gen": 9,
-    "year": 2026,
-    "token": "ma",
-    "bo3": false,
-    "bo3_source": "ruleset",
-    "open_team_sheets": "optional",
-    "known": false,
-    "later_than_active": false,
-    "classification": "superseded",
-    "recent_replays": 0,
-    "simulatable": true,
-    "collectable": true
-   },
-   {
-    "name": "[Gen 9 Champions] VGC 2026 Reg M-A (Bo3)",
-    "seen_in": [
-     "live",
-     "dex"
-    ],
-    "ruleset": [
-     "Flat Rules",
-     "VGC Timer",
-     "Force Open Team Sheets",
-     "Best of = 3"
-    ],
-    "id": "gen9championsvgc2026regmabo3",
-    "gen": 9,
-    "year": 2026,
-    "token": "ma",
-    "bo3": true,
-    "bo3_source": "ruleset",
-    "open_team_sheets": "forced",
-    "known": false,
-    "later_than_active": false,
-    "classification": "superseded",
-    "recent_replays": 0,
-    "simulatable": true,
-    "collectable": true
-   },
-   {
     "name": "[Gen 9 Champions] VGC 2026 Reg M-B",
     "seen_in": [
-     "live",
-     "dex"
+     "live"
     ],
     "ruleset": [
      "Flat Rules",
@@ -126,15 +74,14 @@
     "known": true,
     "later_than_active": false,
     "classification": "known",
-    "recent_replays": 0,
-    "simulatable": true,
+    "recent_replays": 1,
+    "simulatable": false,
     "collectable": true
    },
    {
     "name": "[Gen 9 Champions] VGC 2026 Reg M-B (Bo3)",
     "seen_in": [
-     "live",
-     "dex"
+     "live"
     ],
     "ruleset": [
      "Flat Rules",
@@ -153,48 +100,55 @@
     "later_than_active": false,
     "classification": "known",
     "recent_replays": 0,
-    "simulatable": true,
+    "simulatable": false,
     "collectable": true
    },
    {
     "name": "[Gen 9 Champions] VGC 2026 Reg M-C",
     "seen_in": [
-     "replay"
+     "live"
     ],
-    "ruleset": [],
+    "ruleset": [
+     "Flat Rules",
+     "VGC Timer",
+     "Open Team Sheets"
+    ],
     "id": "gen9championsvgc2026regmc",
     "gen": 9,
     "year": 2026,
     "token": "mc",
     "bo3": false,
-    "bo3_source": null,
-    "replay_games": 51,
-    "replay_newest": "2026-09-09T20:52:03.000Z",
+    "bo3_source": "ruleset",
+    "open_team_sheets": "optional",
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 9,
+    "recent_replays": 5,
     "simulatable": false,
     "collectable": true
    },
    {
     "name": "[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)",
     "seen_in": [
-     "replay"
+     "live"
     ],
-    "ruleset": [],
+    "ruleset": [
+     "Flat Rules",
+     "VGC Timer",
+     "Force Open Team Sheets",
+     "Best of = 3"
+    ],
     "id": "gen9championsvgc2026regmcbo3",
     "gen": 9,
     "year": 2026,
     "token": "mc",
     "bo3": true,
-    "bo3_source": "idsuffix",
-    "replay_games": 51,
-    "replay_newest": "2026-09-09T20:52:01.000Z",
+    "bo3_source": "ruleset",
+    "open_team_sheets": "forced",
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 5,
+    "recent_replays": 10,
     "simulatable": false,
     "collectable": true
    }
@@ -203,106 +157,117 @@
    {
     "name": "[Gen 9 Champions] VGC 2026 Reg M-C",
     "seen_in": [
-     "replay"
+     "live"
     ],
-    "ruleset": [],
+    "ruleset": [
+     "Flat Rules",
+     "VGC Timer",
+     "Open Team Sheets"
+    ],
     "id": "gen9championsvgc2026regmc",
     "gen": 9,
     "year": 2026,
     "token": "mc",
     "bo3": false,
-    "bo3_source": null,
-    "replay_games": 51,
-    "replay_newest": "2026-09-09T20:52:03.000Z",
-    "known": false,
-    "later_than_active": true,
-    "classification": "candidate",
-    "recent_replays": 9,
-    "simulatable": false,
-    "collectable": true
-   },
-   {
-    "name": "[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)",
-    "seen_in": [
-     "replay"
-    ],
-    "ruleset": [],
-    "id": "gen9championsvgc2026regmcbo3",
-    "gen": 9,
-    "year": 2026,
-    "token": "mc",
-    "bo3": true,
-    "bo3_source": "idsuffix",
-    "replay_games": 51,
-    "replay_newest": "2026-09-09T20:52:01.000Z",
+    "bo3_source": "ruleset",
+    "open_team_sheets": "optional",
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
     "recent_replays": 5,
     "simulatable": false,
     "collectable": true
+   },
+   {
+    "name": "[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)",
+    "seen_in": [
+     "live"
+    ],
+    "ruleset": [
+     "Flat Rules",
+     "VGC Timer",
+     "Force Open Team Sheets",
+     "Best of = 3"
+    ],
+    "id": "gen9championsvgc2026regmcbo3",
+    "gen": 9,
+    "year": 2026,
+    "token": "mc",
+    "bo3": true,
+    "bo3_source": "ruleset",
+    "open_team_sheets": "forced",
+    "known": false,
+    "later_than_active": true,
+    "classification": "candidate",
+    "recent_replays": 10,
+    "simulatable": false,
+    "collectable": true
    }
   ],
-  "problems": []
+  "problems": [
+   "locate a pokemon-showdown checkout: SHOWDOWN_PATH unset and no sibling checkout"
+  ]
  },
  "counters": {
-  "vgc_regulation_formats_detected": 6,
+  "vgc_regulation_formats_detected": 4,
   "known": 2,
-  "unknown": 4,
+  "unknown": 2,
   "candidates": 2,
-  "superseded": 2,
-  "collectable_not_simulatable": 2,
-  "replay_only": 2,
-  "problems": 0,
+  "superseded": 0,
+  "collectable_not_simulatable": 4,
+  "replay_only": 0,
+  "problems": 1,
   "formats_collected": 2,
-  "games_appended": 19,
+  "games_appended": 569,
   "stores_written": 2
  },
  "collected": [
   {
    "format": "gen9championsvgc2026regmc",
    "store": "games.gen9championsvgc2026regmc.jsonl",
-   "before": 1399,
-   "after": 1412,
-   "appended": 13,
-   "ingest_said": "coverage: gen9championsvgc2026regmc pages=25 offered=1275 unique=1250 new=13 held=1237 oldest_offered=2026-09-09T10:59:21Z newest_offered=2026-09-09T20:52:03Z newest_stored=2026-09-09T20:48:00Z"
+   "before": 1412,
+   "after": 1732,
+   "appended": 320,
+   "ingest_said": "coverage: gen9championsvgc2026regmc pages=25 offered=1275 unique=1251 new=320 held=931 oldest_offered=2026-09-09T14:21:40Z newest_offered=2026-09-09T23:23:04Z newest_stored=2026-09-09T20:52:00Z"
   },
   {
    "format": "gen9championsvgc2026regmcbo3",
    "store": "games.gen9championsvgc2026regmcbo3.jsonl",
-   "before": 721,
-   "after": 727,
-   "appended": 6,
-   "ingest_said": "coverage: gen9championsvgc2026regmcbo3 pages=15 offered=742 unique=727 new=6 held=721 oldest_offered=2026-09-09T08:08:33Z newest_offered=2026-09-09T20:52:01Z newest_stored=2026-09-09T20:47:00Z"
+   "before": 727,
+   "after": 976,
+   "appended": 249,
+   "ingest_said": "coverage: gen9championsvgc2026regmcbo3 pages=20 offered=995 unique=976 new=249 held=727 oldest_offered=2026-09-09T08:08:33Z newest_offered=2026-09-09T23:23:32Z newest_stored=2026-09-09T20:52:00Z"
   }
  ],
  "reconciled": [
   {
    "store": "games.gen9championsvgc2026regmc.jsonl",
-   "rows": 1412,
-   "before": 1412,
-   "from_gz": 1399,
-   "from_plain": 13,
+   "rows": 1732,
+   "before": 1732,
+   "from_gz": 1412,
+   "from_plain": 320,
    "wrote": true
   },
   {
    "store": "games.gen9championsvgc2026regmcbo3.jsonl",
-   "rows": 727,
-   "before": 727,
-   "from_gz": 721,
-   "from_plain": 6,
+   "rows": 976,
+   "before": 976,
+   "from_gz": 727,
+   "from_plain": 249,
    "wrote": true
   }
  ],
- "problems": [],
+ "problems": [
+  "locate a pokemon-showdown checkout: SHOWDOWN_PATH unset and no sibling checkout"
+ ],
  "by": "engine/next_regulation_ingest.js",
  "source_digests": {
-  "engine/next_regulation_ingest.js": "1a378ccb7f37",
-  "engine/next_regulation.js": "724909f35601",
-  "engine/durable-ingest.js": "05b87610883b",
+  "engine/next_regulation_ingest.js": "2e6b6d1fbcbd",
+  "engine/next_regulation.js": "fa6fdbd24009",
+  "engine/durable-ingest.js": "e4f66ba5451d",
   "data/regulations.json": "6c1995e9a9fb",
   "note": "Content, not mtime. A checkout moves an mtime without moving code."
  },
  "note": "Rewritten only when the detection changes. engine/next_regulation_ingest.js runs every six hours; an old `generated` means the answer has not moved, NOT that the check stopped. The run log is the record that it ran.",
- "signature": "{\"formats\":[[\"gen9championsvgc2026regma\",\"superseded\",\"live+dex\"],[\"gen9championsvgc2026regmabo3\",\"superseded\",\"live+dex\"],[\"gen9championsvgc2026regmb\",\"known\",\"live+dex\"],[\"gen9championsvgc2026regmbbo3\",\"known\",\"live+dex\"],[\"gen9championsvgc2026regmc\",\"candidate\",\"replay\"],[\"gen9championsvgc2026regmcbo3\",\"candidate\",\"replay\"]],\"candidates\":2,\"unknown\":4,\"lagging\":2,\"collected\":2,\"problems\":0}"
+ "signature": "{\"formats\":[[\"gen9championsvgc2026regmb\",\"known\",\"live\"],[\"gen9championsvgc2026regmbbo3\",\"known\",\"live\"],[\"gen9championsvgc2026regmc\",\"candidate\",\"live\"],[\"gen9championsvgc2026regmcbo3\",\"candidate\",\"live\"]],\"candidates\":2,\"unknown\":2,\"lagging\":4,\"collected\":2,\"problems\":1}"
 }
