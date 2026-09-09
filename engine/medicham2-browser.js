@@ -2234,6 +2234,21 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      above because the immunity and the 20-vs-30 split are two different reads of the same `m.ohko`
      string, and one can be wired while the other is not. */
   ohkoImmune: 0,
+  /* BATCH X, 2026-09-09 -- the same fact ANNOUNCED at the accuracy step. It is kept apart from
+     `ohkoImmune` above because that one is incremented inside `hitChance`, which every VALUATION
+     site also calls, so it counts prices as well as resolutions; this one is incremented once per
+     ROW that `_stepAccuracy` refused, which is both the number of `|-immune|…|[ohko]` lines written
+     and the number of accuracy draws NOT taken. tests/probe_ohko_type_immunity.js. */
+  ohkoImmuneAnnounced: 0,
+  /* BATCH X, 2026-09-09 -- a redirect click that ACTUALLY PUT ITS MARK UP. It is the receipt the
+     refusal counter below needs: an arm reading `refused 1, markSet 0` did not stage the mechanic,
+     it merely failed the move. tests/probe_redirect_volatile_already_up.js. */
+  redirectMarkSet: 0,
+  /* ...and the same click REFUSED because the mark was already there. The authority's `addVolatile`
+     returns false on a volatile with no `onRestart`, so the move does nothing and `|-fail|` is
+     written on the USER. Reachable only through Instruct, so a zero on a corpus run is expected and
+     a zero on the probe is a dead branch. */
+  redirectRefusedVolatileUp: 0,
   /* ROADMAP #213 -- a crit made CERTAIN by the attacker's ability (`critRatioUp.guaranteed`;
      Merciless into a poisoned target is the only member). Zero unless a Toxapex hits something it
      has poisoned. */
@@ -5690,6 +5705,22 @@ if(BOUNCE_KEEPS_SOURCE)MEDFAILS.bounceKeepsAddressRestored=1;
  * tests/probe_instruct_lastmove_pp.js green. */
 const INSTRUCT_NO_PP_REFUSAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_INSTRUCT_NO_PP_REFUSAL==='1');
 if(INSTRUCT_NO_PP_REFUSAL)MEDFAILS.instructNoPpRefusalRestored=1;
+/* BATCH X, 2026-09-09 -- MEDI_NO_OHKO_IMMUNE_LINE=1 restores the pre-fix accuracy road for an OHKO
+ * move whose type gate the target carries: the immunity is priced as an accuracy of ZERO and then
+ * ROLLED, so the row leaves through the miss door with `|-miss|` on it and an `acc` draw spent that
+ * the authority never spends. It restores that and NOTHING else -- `hitChance` still returns 0 for
+ * the same case, so nothing that PRICES a click moves under this knob and only the RESOLUTION does.
+ * tests/probe_ohko_type_immunity.js. */
+const NO_OHKO_IMMUNE_LINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_OHKO_IMMUNE_LINE==='1');
+if(NO_OHKO_IMMUNE_LINE)MEDFAILS.ohkoImmuneLineSuppressed=1;
+/* BATCH X, 2026-09-09 -- MEDI_REDIRECT_REAPPLIES_SILENTLY=1 restores the pre-fix redirect branch: the
+ * mark is written and the `-singleturn` announced whether or not the body already carries it, so a
+ * body Instructed into the move it just used announces the volatile twice where the authority writes
+ * `|-fail|`. It restores that and NOTHING else -- the mark, the redirection draw and the per-turn
+ * clear are untouched. tests/probe_redirect_volatile_already_up.js. */
+const REDIRECT_REAPPLIES_SILENTLY=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_REDIRECT_REAPPLIES_SILENTLY==='1');
+if(REDIRECT_REAPPLIES_SILENTLY)MEDFAILS.redirectReappliesSilentlyRestored=1;
 /* 2026-08-26 -- MEDI_LOCK_STALE_ON_HANDED_ACTION=1 restores the raw `mon._lock` read at the collect
  * site, so a CALLER-SUPPLIED action is bound by a lock whose Choice item has already left. The chooser
  * path is untouched by this knob and stays correct, which is exactly how the defect hid: the re-read
@@ -11609,7 +11640,7 @@ function hitChance(att,def,id,field,ctx){
       const _has=(m,t)=>!!(m&&m.types&&m.types.some(x=>String(x).toLowerCase()===String(t).toLowerCase()));
       /* The gate type is an outright immunity, not a resistance: Showdown emits `-immune [ohko]`
        * and never rolls. A body that cannot be hit is 0, not a low chance. */
-      if(_oh.typeGate&&_has(def,_oh.typeGate)){MEDSEEN.ohkoImmune++;return 0;}
+      if(ohkoTypeImmune(def,id)){MEDSEEN.ohkoImmune++;return 0;}
       return (_oh.accIfNotGateType!=null&&_oh.typeGate&&!_has(att,_oh.typeGate))
         ? _oh.accIfNotGateType : _oh.acc;
     }
@@ -11826,6 +11857,28 @@ function hitChance(att,def,id,field,ctx){
  *       C  this function              1638 / 1640 / 1692 ms
  * The spread WITHIN one variant across rounds is larger than the spread between variants, and the
  * fastest variant is a different one in each round. There is no cost to report. */
+/* BATCH X, 2026-09-09 -- THE OHKO TYPE GATE, ONE IMPLEMENTATION, BECAUSE TWO SITES ASK IT.
+ *
+ * `hitChance` needs it to PRICE a click (an immune body is worth nothing) and `_stepAccuracy` needs
+ * it to RESOLVE one (the authority announces `|-immune|…|[ohko]` and takes NO draw). CLAUDE.md's
+ * rule about a FACT living in one place is what this function is: two copies of "is this body
+ * immune to this OHKO move" would agree today and drift the first time the tag gains a clause.
+ *
+ * The authority's test is `move.ohko === true || !target.hasType(move.ohko)` inverted
+ * (sim/battle-actions.ts:703) -- so a BOOLEAN `ohko` short-circuits and no body is ever immune to
+ * Fissure, Horn Drill or Guillotine. `tag_dex` records that distinction as `typeGate: null` against
+ * `typeGate: 'Ice'`, so the boolean case falls out of the artifact and is not special-cased here.
+ *
+ * THE OTHER TWO CLAUSES OF THE SAME `else` ARE FORMAT FACTS AND ARE STATED, NOT MODELLED:
+ * `pokemon.level >= target.level` always holds at Level 50, and `target.volatiles['dynamax']`
+ * cannot exist in Champions. Neither is an approximation. */
+function ohkoTypeImmune(def,id){
+  const _oh=TAGS.param('move',id,'ohko');
+  if(!_oh||!_oh.ohko||!_oh.typeGate)return false;
+  /* `.types` is the live array every other reader in this file uses, so a Soaked or Protean body is
+     judged on what it is NOW rather than on what it was built as. */
+  return !!(def&&def.types&&def.types.some(x=>String(x).toLowerCase()===String(_oh.typeGate).toLowerCase()));
+}
 function accMustRoll(acc){
   /* Infinity is this engine's `accuracy === true`, and `isFinite` is the whole rule. Anything more
    * elaborate here is a second accuracy authority, which is what WIRE 124 was. */
@@ -15145,6 +15198,43 @@ const SHIELD_PUNISH_RAW_BOOST=(typeof process!=='undefined'&&process.env&&proces
  * it was until today. Any run carrying it also carries a non-zero
  * `MEDFAILS.beforeMoveLineSuppressed`. Same shape as MEDI_SMART_PROTECT_LINE above. */
 const NO_BEFOREMOVE_LINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_BEFOREMOVE_LINE==='1');
+/* BATCH X, 2026-09-09 -- MEDI_PREMAJOR_AT_MOVE_LINE=1 puts that same line back at the `|move|` line,
+ * where this engine wrote it until today, so a body whose move is REFUSED at BeforeMove prints
+ * nothing. It restores the POSITION and nothing else: the record, the guard and the suppression knob
+ * above are untouched. tests/probe_premajor_above_refusals.js. */
+const PREMAJOR_AT_MOVE_LINE=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_PREMAJOR_AT_MOVE_LINE==='1');
+if(PREMAJOR_AT_MOVE_LINE)MEDFAILS.premajorAtMoveLineRestored=1;
+/* BATCH X, 2026-09-09 -- THE `onBeforeMove` ANNOUNCEMENT, ONE READER AND ONE EMITTER.
+ *
+ * `runEvent('BeforeMove')` sorts HIGH PRIORITY FIRST, and the only member of this family in the
+ * format is Chilly Reception's condition at priority 100 -- the TOP of a list whose next entry is
+ * `mustrecharge` at 11 and whose bottom is `destinybond` at -1 (enumerated over the format on every
+ * run of the probe). So the line is owed ABOVE every refusal, and this engine wrote it at the
+ * `|move|` line, which a refused body never reaches. Card
+ * `|-prepare|p2a|chillyreception|[premajor] <> |cant|p2a|par` of the pinned pool, release
+ * `7489a6cc064d`, and the old site's own header had named the same hole about the FLINCH since
+ * 2026-08-24.
+ *
+ * IT IS A FUNCTION BECAUSE TWO SITES CALL IT AND ONLY ONE MAY FIRE. Leaving the read inline at both
+ * would be two answers to "does this move announce above itself", which is the shape CLAUDE.md's
+ * FACTS-ARE-GLOBAL rule is about; and the record's own `move === mid` guard is what keeps a hoisted
+ * emission from writing a `-prepare` over every refused body in the game. */
+function premajorRecord(mid){
+  if(!mid)return null;
+  const _va=TAGS.param('move',mid,'volatileAnnounce');
+  if(!_va||!_va.byVolatile)return null;
+  return Object.values(_va.byVolatile).map(e=>e&&e.beforeOwnMove).find(b=>b&&b.move===mid)||null;
+}
+function emitBeforeMoveAnnounce(mon,mid){
+  const _bm=premajorRecord(mid);
+  if(!_bm)return;
+  if(_bm.event!=='-prepare'){
+    MEDFAILS.volatileBeforeMoveUnknownEvent=(MEDFAILS.volatileBeforeMoveUnknownEvent||0)+1;return;}
+  if(NO_BEFOREMOVE_LINE){MEDFAILS.beforeMoveLineSuppressed=1;return;}
+  MEDSEEN.volatileAnnouncedBeforeMove++;
+  if(TR)TR.prep(mon,_bm.desc,_bm.arg||undefined);
+}
 /* 2026-08-24 -- MEDI_SWITCH_CAUSE_BLIND=1 TAKES THE `[from]` OFF EVERY ENTRY LINE, so a U-turn,
  * Parting Shot, Baton Pass or Chilly Reception pivot writes the bare `|switch|` this engine wrote
  * until today. ONE knob for all three doors, because the authority writes the field from ONE line
@@ -28049,6 +28139,12 @@ function battleTurn(S,rng,actsForA,actsForB){
       else if(!actionMoveId(it.a)){ MEDSEEN.beforeMoveGateSkipped++; }
       else {
       if(it.a&&(it.a.kind==='switch'||it.a.kind==='pass'))MEDSEEN.beforeMoveGateOnMoveKindedSwitchOrPass++;
+      /* BATCH X, 2026-09-09 -- PRIORITY 100 IS THE TOP OF THIS BLOCK, SO THE LINE IS WRITTEN HERE.
+       * Above the recharge (11), the sleep and freeze ticks (10), the flinch (8), confusion (3),
+       * Attract (2) and the paralysis coin (1) -- every one of which `continue`s out and used to
+       * swallow it. See `emitBeforeMoveAnnounce`; the old site at the `|move|` line now runs only
+       * under MEDI_PREMAJOR_AT_MOVE_LINE=1, so the line is written exactly once either way. */
+      if(!PREMAJOR_AT_MOVE_LINE)emitBeforeMoveAnnounce(m,actionMoveId(it.a));
       /* 2026-08-25 -- DESTINY BOND'S WINDOW CLOSES WHEN ITS USER MOVES AGAIN, AND IT NEVER CLOSED.
        *
        * This engine wrote `_vol.destinybond` and then no line in the file ever read it or removed it,
@@ -28889,14 +28985,12 @@ function battleTurn(S,rng,actsForA,actsForB){
            * Slowking that is flinched still prints `|-prepare|` in the authority and prints nothing
            * here, because this site is the `|move|` line and a refused body never reaches it. Not
            * reachable from the census fixture, counted rather than claimed absent. */
-          {const _va=TAGS.param('move',_mid,'volatileAnnounce');
-           const _bm=_va&&_va.byVolatile
-             ? Object.values(_va.byVolatile).map(e=>e&&e.beforeOwnMove).find(b=>b&&b.move===_mid)
-             : null;
-           if(_bm&&_bm.event==='-prepare'&&NO_BEFOREMOVE_LINE)MEDFAILS.beforeMoveLineSuppressed=1;
-           else if(_bm&&_bm.event==='-prepare'){MEDSEEN.volatileAnnouncedBeforeMove++;
-             TR.prep(m,_bm.desc,_bm.arg||undefined);}
-           else if(_bm)MEDFAILS.volatileBeforeMoveUnknownEvent=(MEDFAILS.volatileBeforeMoveUnknownEvent||0)+1;}
+          /* BATCH X, 2026-09-09 -- THIS SITE IS NOW THE KNOB'S ROAD AND NOTHING ELSE. The line is
+           * owed at BeforeMove priority 100 and is written at the head of that block; see
+           * `emitBeforeMoveAnnounce`. The paragraph above -- "a Slowking that is flinched still
+           * prints |-prepare| in the authority and prints nothing here" -- was this engine naming
+           * the defect, and it is closed rather than restated. */
+          if(PREMAJOR_AT_MOVE_LINE)emitBeforeMoveAnnounce(m,_mid);
           /* 2026-09-06 -- THE MOVE'S OWN `onModifyMove` ANNOUNCEMENT, WHICH SITS ABOVE ITS `|move|` LINE.
            *
            * `singleEvent('ModifyMove', move, ...)` is sim/battle-actions.ts:431 and
@@ -32280,7 +32374,44 @@ function battleTurn(S,rng,actsForA,actsForB){
        * normal-priority attack looks for it, and a redirector that moves after an attacker correctly
        * fails to catch it. The volatile name is kept rather than a boolean so the attacker's side can
        * apply Rage Powder's powder immunity without asking which move set the mark. */
-      if(a.kind==='redirect'){m._redirect=a.mv;m._lastMove=a.mv;if(TR)TR.st1(m,'move: '+a.mv);continue;}
+      if(a.kind==='redirect'){
+        /* BATCH X, 2026-09-09 -- A VOLATILE THAT IS ALREADY UP REFUSES THE MOVE, AND THIS BRANCH
+         * WROTE THE MARK UNCONDITIONALLY.
+         *
+         *     Pokemon#addVolatile   if (this.volatiles[status.id]) {
+         *                             if (!status.onRestart) return false;
+         *     moveHit               if (moveData.volatileStatus) {
+         *                             hitResult = target.addVolatile(...);
+         *                             didSomething = combineResults(didSomething, hitResult);
+         *     moveHit               if (didAnything === false) { add('-fail', source);
+         *                                                        attrLastMove('[still]'); }
+         *                                            sim/battle-actions.ts:1236-1238, 1305-1306
+         *
+         * Neither `followme` nor `ragepowder` carries an `onRestart` (derived on every run of the
+         * probe), so the second application returns false, the move does NOTHING, and the authority
+         * writes `|-fail|<THE USER>` -- not on the target, and not a `-singleturn`.
+         *
+         * ONLY INSTRUCT CAN REACH IT. `_redirect` is cleared once per turn with `protect` and the
+         * rest of the per-turn clock, so a body has to click the move twice inside ONE turn, and
+         * Instruct is the only thing in this format that makes that happen. Card
+         * `|-fail|p2a <> |-singleturn|p2a|ragepowder` of the pinned pool, release `7489a6cc064d`.
+         *
+         * `attrStill()` IS PART OF THE FIX AND NOT DECORATION: it BLANKS field 4 of the `|move|` line
+         * already emitted, exactly as `attrLastMove('[still]')` does. The differ strips the FLAG and
+         * does not restore the target, so writing the `-fail` without it would have replaced one
+         * divergence with another one line higher.
+         *
+         * NARROWED AND DECLARED: `_redirect` holds ONE id, so a body Instructed into a DIFFERENT
+         * redirect move than the one it clicked would overwrite the first mark where the authority
+         * carries both volatiles. No legal species here learns both, so nothing can reach it. */
+        if(!REDIRECT_REAPPLIES_SILENTLY&&m._redirect===a.mv){
+          MEDSEEN.redirectRefusedVolatileUp++;
+          m._lastMove=a.mv;                       // the move was USED; it simply did nothing
+          mvFail(m); if(TR)TR.attrStill();
+          continue;
+        }
+        MEDSEEN.redirectMarkSet++;
+        m._redirect=a.mv;m._lastMove=a.mv;if(TR)TR.st1(m,'move: '+a.mv);continue;}
       /* WIRE 140 -- ALLY SWITCH. THE MOVE DID NOT EXIST HERE AT ALL, and it is the sharpest possible
        * test of WIRE 139's rule: it moves two bodies between slots with NEITHER of them leaving the
        * field, so the weaker "has my target left" question answers no and a Pokemon-first engine
@@ -35798,6 +35929,35 @@ function battleTurn(S,rng,actsForA,actsForB){
          * step is the last such row, which is what the authority carries into `spreadMoveHit`'s
          * substitute check. See `_subAddr`. */
         _accLastSlot=midEventSlot(tg);
+        /* BATCH X, 2026-09-09 -- THE OHKO IMMUNITY IS AN ANNOUNCEMENT, NOT AN ACCURACY OF ZERO.
+         *
+         *     } else {
+         *       this.battle.add('-immune', target, '[ohko]');
+         *       hitResults[i] = false;
+         *       continue;                       sim/battle-actions.ts:705-708
+         *
+         * `continue` is the load-bearing word: the authority leaves the per-target loop ABOVE its own
+         * `randomChance`, so no accuracy die is drawn at all. This engine expressed the immunity as
+         * `hitChance -> 0`, which is FINITE, so `accMustRoll` said yes, the draw was spent and the row
+         * left through the miss door carrying `|-miss|<user>|<target>`. Card
+         * `|-immune|p2a|[ohko] <> |-miss|p1b|p2a` of the pinned pool, release `7489a6cc064d`.
+         *
+         * IT IS ABOVE `hitChance` AND NOT INSIDE IT because `hitChance` is also the VALUATION reader
+         * (WIRE 131) and a price is not allowed to write a protocol line. `hitChance` still answers 0
+         * here, unchanged; only the resolution road moved.
+         *
+         * THE AUTHORITY'S `!target.isSemiInvulnerable()` GUARD IS NOT RESTATED, and that is derived
+         * rather than dropped: `_stepInvuln` is the FIRST step in this list and marks such a row
+         * `out`, and the driver skips an `out` row for every step that does not carry `runsWhenOut`.
+         * A row that reaches here is a row the authority's guard would also have let through. */
+        if(!NO_OHKO_IMMUNE_LINE&&ohkoTypeImmune(tg,a.move.id)){
+          MEDSEEN.ohkoImmuneAnnounced++;
+          if(TR)TR.imm(tg,'[ohko]');
+          /* `hitResults[i] = false` is the same false a MISS returns, so this counts for
+             `atLeastOneFailure` exactly as the miss below does -- which is what Stomping Tantrum
+             reads. No `attrLastMove('[miss]')`: the authority's `continue` is above that line too. */
+          _explicitFail=true;R.out=true;return;
+        }
         {
           /* THE DEFENDER IS THE ROW'S OWN BODY, UNCONDITIONALLY. `a.move.spread` is not consulted:
            * the authority does not branch on it here either, and a branch is exactly what let the

@@ -51,7 +51,9 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_entry_update_before_mega.js`, `tests/probe_pickpocket_on_a_corpse.js`,
 `tests/probe_hazard_sweep_order.js`, `tests/probe_residual_faint_flush.js`,
 `tests/probe_unknown_format_refusal.js`, `tests/probe_protect_tie_order.js`,
-`tests/probe_midturn_herb_resort.js`
+`tests/probe_midturn_herb_resort.js`,
+`tests/probe_ohko_type_immunity.js`, `tests/probe_redirect_volatile_already_up.js`,
+`tests/probe_premajor_above_refusals.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -133,10 +135,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  830/830 probed mechanics live, 0 missing   (census 2026-09-09 06:46)
+  830/830 probed mechanics live, 0 missing   (census 2026-09-09 07:54)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 7 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-09 06:49)
+    never fired in the staged harness (all-mechanics-fire.json, 12 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-09 07:57)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -158,9 +160,109 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-09 07:04_
+_stamped 2026-09-09 08:09_
 
 <!-- /GENERATED -->
+
+## BATCH X — **THREE NARRATION CAUSES CLOSED, ZERO TRANSFERS, AND THE SUBSTITUTE QUESTION IS ANSWERED: IT IS A LOOP-NESTING PROBLEM, NOT A STEP-LIST ONE.** NARRATION-ONLY **16 → 13 CAUSES**, **GATE NARRATION 15 → 12 OF 961**, **BOARD-MATERIAL 0 OF 958 AFTER EVERY ONE OF THE THREE EDITS**, CENSUS 830/830, ROSTER ZERO DIFFER / ZERO DID-NOT-FIRE WITH EVERY ANCHOR LIVE AND NONE DEAD (18/44/36/17), `test-engine-diff` 6000/6000, `all_mechanics_fire` 1313 GAMES / 0 THREW, `probe_red_demo` 200 / 0 HOLLOW / 0 UNAPPLIABLE, `test-resolution-order` STILL 26/26. GATE **1 OF 9 CLAUSES FAILING**. 2026-09-09
+
+Full account, every command, every pin, the step-list answer and the two corrections to standing
+derivations: [docs/_reports/2026-09-09-batch-X.md](_reports/2026-09-09-batch-X.md).
+
+### AN OHKO IMMUNITY IS AN ANNOUNCEMENT, NOT AN ACCURACY OF ZERO — AND IT WAS ALSO A DRAW
+
+`hitStepAccuracy` writes `add('-immune', target, '[ohko]')` and **`continue`s above its own
+`randomChance`** (`sim/battle-actions.ts:705-708`), so no die is spent. This engine priced the immunity
+as `hitChance -> 0`, and **zero is finite**, so `accMustRoll` said yes, `_stepAccuracy` drew, and the row
+left through the MISS door. Two defects in one return value: the wrong line AND an `acc` address the
+authority never consumes — invisible because the identity floor is 0.9. Fixed with a shared
+`ohkoTypeImmune(def, id)` that `hitChance` and `_stepAccuracy` both call, so nothing that PRICES a click
+moved. `tests/probe_ohko_type_immunity.js`, four arms; the sharpest control is Fissure (`ohko: true`,
+for which `move.ohko === true` short-circuits the type test) at the **identical** pure-Ice body.
+`MEDI_NO_OHKO_IMMUNE_LINE=1`.
+
+### A VOLATILE THAT IS ALREADY UP REFUSES ITS OWN MOVE
+
+`addVolatile` returns false on a condition with no `onRestart`, `didSomething` folds to false, and the
+authority writes `|-fail|<THE USER>` with `attrLastMove('[still]')`. This engine's redirect branch wrote
+the mark and the `-singleturn` unconditionally, so a body Instructed into the Rage Powder it had just
+clicked announced it twice. **`attrStill()` is part of the fix**: it blanks field 4 of the `|move|` line,
+and without it the `-fail` would have replaced one divergence with another one line higher.
+`tests/probe_redirect_volatile_already_up.js`; the knob-cleared control clicks the same move on the NEXT
+turn, which is the arm a forgotten per-turn clear breaks. `MEDI_REDIRECT_REAPPLIES_SILENTLY=1`.
+
+### THE `[premajor]` LINE IS OWED AT PRIORITY 100, ABOVE EVERY REFUSAL — AND THIS FILE SAID SO IN AUGUST
+
+Chilly Reception's condition announces from `onBeforeMove` at **priority 100**, the maximum of the
+fifteen `onBeforeMove` handlers a legal entity of this format can raise (enumerated on every probe run:
+`mustrecharge` 11, `slp`/`frz` 10, `truant` 9, `flinch` 8 … `par` 1, `destinybond` -1). This engine wrote
+it at the `|move|` line, which a refused body never reaches — **and the emitting block had named exactly
+that hole about the flinch since 2026-08-24.** Moved to the head of this engine's own BeforeMove block,
+emitted from ONE shared function so it cannot be written twice.
+`tests/probe_premajor_above_refusals.js`, staged on a Fake Out flinch rather than the card's 1-in-8
+paralysis coin and saying so. `MEDI_PREMAJOR_AT_MOVE_LINE=1`.
+
+### THE STEP-LIST QUESTION, ANSWERED
+
+**A correct slot for the doll cannot be created, and the reason is not the step list.** The authority's
+arrival loop (`hitStepMoveHitLoop`) has the WHOLE of `spreadMoveHit` — including step 0's doll absorb —
+as its body; this engine walks `_STEPS` once per move and keeps the arrivals in a loop **inside
+`_stepApply`**. A new step-0 doll step is constructible and probably costs no dice (`_subAddr` already
+pins the doll's rolls to `_accLastSlot`, and `nth` counts per address string), but **it fixes arrival 1
+only** — arrivals 2..n never leave `_stepApply`, so the doll rule would exist in two implementations,
+which is what batch V's fix removed. The correct change is to make the ARRIVAL loop the outer loop over
+the `_stepDamage` … `_stepAfterHitField` segment, which is exactly `spreadMoveHit` and exactly the
+segment batch N already looks up **dynamically** for `smartTarget`. One batch, one named trap
+(`_stepUpdate`, deliberately left step-major by batch N), and `test-resolution-order`'s declared
+KNOWN-OPEN arm closes as the receipt.
+
+### THE HAND LIST
+
+**Removed — the OHKO card** (carried as UNDIAGNOSED since batch U; closed), **the Chilly Reception
+card** (closed), and **the Rage Powder `-fail` card** (closed). All three now have probes.
+
+- **THE SUBSTITUTE FAMILY IS NO LONGER "DEFERRED ON THE SAME DIAGNOSIS".** It has a plan; see above and
+  section 3 of the report. Sixth batch to leave it, first with a costed route out.
+- **TWO STANDING DERIVATIONS IN THE ENGINE'S OWN COMMENTS ARE WRONG AND ARE NAMED.** (1) `DamagingHit`
+  is sorted by `compareLeftToRightOrder` — order ASC, priority DESC, **target INDEX** ASC, deterministic
+  — and **not** `speedSort` (`sim/battle.ts:789 -> :421`); `_stepBuffOnHit`'s header says speed, and the
+  dice argument that deferred the Spicy Spray fix rests on that. (2) The same header lists
+  `electromorphosis` among the `onDamagingHitOrder: 1` members living in `_stepDamagingHit`; it is tagged
+  `buffsHolderOnHit`, so it is in `_stepBuffOnHit`, a step BELOW.
+- **THE SPICY SPRAY CARD IS BLOCKED ON `data/tags.json`.** The correct walk is order-1 handlers in
+  row-index order, then default-order ones in row-index order, and `punishesAttacker` carries no order
+  field — so it needs an `order` param in `engine/tag_dex.js` and a regeneration of both frozen SOURCES.
+  A batch of its own.
+- **THE SUCKER PUNCH AND LIGHTNING ROD CARDS ARE ONE STRUCTURAL TRADE.** `singleEvent('Try')` is
+  `sim/battle-actions.ts:590`, **above** the `moveSteps` array, and `getMoveTargets`'s redirect is above
+  that again; this engine has the terrain/priority bar as a PRE-DISPATCH gate (WIRE 85) and the redirect
+  ~270 lines below the charge block. Hoisting the move's-own-`onTry` family loses ROADMAP #403's
+  post-redirect aim; lowering the gate loses WIRE 85's all-kinds coverage.
+- **THE PERISH `|upkeep|` DRAIN IS NARROWED TO ONE DECISION.** `fieldEvent` runs `faintMessages()` after
+  every handler WITH A CALLBACK but a duration expiry `continue`s past it, so a perish faint is owed to
+  `runAction`'s drain, eighteen lines below `add('upkeep')`. This engine models all of that;
+  `residualFollowerRuns` answered TRUE where the authority had no follower, and because that emptied the
+  queue `_endedAtUpkeep` then suppressed `|upkeep|` entirely. **Which follower matched is not
+  determinable from the dump and was not guessed** — the next step is to have that function return its
+  reason. Recorded in passing and not chased: the same game reads `mediResult: 0` against showdown's
+  `winner: "B"` on a simultaneous double wipe, which the differential does not compare.
+- **THE POST-KO SWITCH-IN ORDER HAS A KEY, AND IT IS THE CORPSE.** A replacement is
+  `{choice: 'instaswitch', pokemon: <the FAINTED body>, target: <the arrival>}` and `getActionSpeed`
+  reads `action.pokemon` — so the authority sorts on the OUTGOING body's Speed while `entryOrder` here
+  sorts on the arriving one's. It does not yet explain the card (both engines put a base-65 Pelipper
+  first), so the real SP spreads are in play and a probe needs them first.
+- **THE RESIDUAL TRIO WAS SKIPPED ENTIRELY AND DELIBERATELY**, as the brief instructed. Seventh batch.
+- **`node engine/status.js --write` WAS RUN**; nothing was committed, per the brief. `CHANGELOG.md`, the
+  version bump and the `docs/RUNNING-NOTES.md` row are owed to the coordinator.
+- **Carried forward unchanged** from the hand lists below: Trick's missing `-fail`; `kind === 'boostally'`'s
+  silent shield; Reflect Type's unmodelled effect; Yawn's `runStatusImmunity('slp')` half; a bounced
+  move's status source and its unmodelled `pranksterBoosted = false`; the max-HP recoil road
+  (`directDamage`); the 560 speed-reading disagreements that look like the instrument; the second
+  `eachEvent('Update')` pass; `orderProbeClause`'s rerun hint omitting `--end-state`;
+  `ability/priority-mod` picking its delivery move without asking the carrier's learnset; the per-arrival
+  crit vector on an absorbed volley; Population Bomb into Flame Body; `item/chance-gated` and
+  `item/crit-ratio` on a dead corner; Struggle's every-slot fixture; and `tests/test-pinch-family.js` red
+  at 1 of 61.
 
 ## BATCH W — **THE RED TEST IS GREEN WITH ALL SIX ANCHORS RE-AIMED, AND BOTH HIDDEN BOARD DEFECTS ARE CLOSED.** `test-resolution-order` **10 FAILING → 0 OF 26, EXIT 0**. NARRATION-ONLY **18 → 16 CAUSES / 18 → 16 GAMES**, **GATE NARRATION 17 → 15 OF 961**, **ZERO TRANSFERS**, **BOARD-MATERIAL 0 OF 958 BEFORE, AFTER AND AFTER EVERY EDIT**, CENSUS 830/830, ROSTER ZERO DIFFER / ZERO DID-NOT-FIRE WITH EVERY ANCHOR LIVE (18/44/36/17), `test-engine-diff` 6000/6000, `all_mechanics_fire` 1313 GAMES / 0 THREW, `probe_red_demo` 200 / 0 HOLLOW / 0 UNAPPLIABLE. **BATCH V'S PERISH FINDING IS RETRACTED — IT WAS THE TEN-LINE DUMP WINDOW.** GATE **1 OF 9 CLAUSES FAILING**. 2026-09-09
 

@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-09T10:57:17.087Z",
- "engine_release": "7489a6cc064d",
- "engine_release_cut": "2026-09-09T10:46:50.529Z",
- "engine_release_cuts": 5,
+ "generated": "2026-09-09T11:57:33.266Z",
+ "engine_release": "b730e44f3314",
+ "engine_release_cut": "2026-09-09T11:45:50.749Z",
+ "engine_release_cuts": 2,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "00b8d20a1c84",
+  "engine/medicham2-browser.js": "ff11f67fff65",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "622482051bf4",
@@ -33,7 +33,7 @@
   "engine/pp.js": "30b12a4ef623",
   "data/rollout-switch-census.json": "b599f8d581b5"
  },
- "release": "7489a6cc064d",
+ "release": "b730e44f3314",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -55415,7 +55415,7 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 76
    },
-   "seconds": 15.3
+   "seconds": 5.4
   },
   "abilities": {
    "exist": 316,
@@ -55432,7 +55432,7 @@
    "diverged_including_shelved": 2,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 25.6
+   "seconds": 9.4
   },
   "then_what": {
    "rows": 64,
@@ -55458,7 +55458,7 @@
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 12.2
+   "seconds": 4.6
   },
   "board_state": {
    "rows": 15,
@@ -56037,8 +56037,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "7489a6cc064d",
-    "roster_generated": "2026-09-09T10:47:06.472Z",
+    "roster_release": "b730e44f3314",
+    "roster_generated": "2026-09-09T11:54:46.419Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."

@@ -10,6 +10,46 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.274.0] — 2026-09-09
+
+### Fixed
+- **AN IMMUNITY PRICED AS A ZERO CHANCE STILL DREW A DIE.** `hitStepAccuracy` `continue`s ABOVE its
+  own `randomChance`; this engine priced a type immunity as `hitChance -> 0`, and **zero is finite**,
+  so it drew and missed. Two defects in one return value — the wrong line AND an accuracy draw the
+  authority never takes. `tests/probe_ohko_type_immunity.js`, 4 arms.
+- **A REDIRECT WROTE ITS MARK AND ITS LINE UNCONDITIONALLY.** `addVolatile` returns false on a
+  condition with no `onRestart`. `attrStill()` is part of the fix, not decoration.
+  `tests/probe_redirect_volatile_already_up.js`, 3 arms.
+- **A CHARGE MOVE’S PRE-MAJOR LINE IS OWED AT `onBeforeMove` PRIORITY 100**, the maximum of fifteen,
+  and was written at the `|move|` line — which a refused body never reaches. **The engine’s own
+  comment had named this hole on 2026-08-24.** `tests/probe_premajor_above_refusals.js`, 3 arms.
+
+### Changed
+- **Gate narration 15 → 12 of 961, causes 16 → 13, zero transfers.** **BOARD-MATERIAL 0 of 958 after
+  every one of the three edits, on three separate releases** — not once at the end. Cards’ own games:
+  **3 stopped, 0 started, 0 changed cause.**
+
+### Notes
+- **THE SUBSTITUTE FAMILY IS NOT A STEP-LIST PROBLEM, AND NOW HAS A PLAN.** Four batches deferred it
+  on the diagnosis that no correct slot exists. A step-0 doll slot IS constructible and probably costs
+  no dice — but it fixes **arrival 1 only**, because this engine’s arrival loop lives INSIDE
+  `_stepApply` while the authority’s is OUTSIDE `spreadMoveHit`. The correct change is to make the
+  arrival loop the **outer** loop over the `_stepDamage` … `_stepAfterHitField` segment — the same
+  segment already looked up dynamically for `smartTarget`. One batch, one named trap (`_stepUpdate`),
+  and `test-resolution-order`’s declared KNOWN-OPEN arm closes as the receipt.
+- **TWO STANDING DERIVATIONS IN THE ENGINE’S OWN COMMENTS ARE WRONG AND ARE NOW NAMED.** `DamagingHit`
+  sorts by `compareLeftToRightOrder` — order, priority, target INDEX, deterministic — and **not** by
+  `speedSort`, **so the dice argument that deferred the Spicy Spray fix rests on a false premise**. And
+  `electromorphosis`, an order-1 member, sits in `_stepBuffOnHit`. A comment that asserts a derivation
+  is exactly as authoritative-looking as one that was read, which is the failure this repository
+  already names about typed Pokémon values.
+- **Six causes left with their derivation rather than a guess**, including the post-KO switch order,
+  whose authority sort key is the **fainted** body’s Speed and not the arriving one’s.
+- **Two probe errors of the batch’s own are recorded in the probes themselves** rather than in a report
+  nobody re-reads.
+
+---
+
 ## [5.273.0] — 2026-09-09
 
 ### Fixed
