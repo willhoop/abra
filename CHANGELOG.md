@@ -10,6 +10,49 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.273.0] — 2026-09-09
+
+### Fixed
+- **A RED TEST IS GREEN.** `tests/test-resolution-order.js` **10 failing → 0 of 26, exit 0**. All
+  **six** stale PLANT anchors re-aimed and reading CAUGHT; **none retired** — every one still
+  described reachable behaviour and had merely named a NEIGHBOUR it did not care about (a step
+  inserted by an earlier batch, a condition that grew a sibling, a block line rewritten). Each anchor
+  is now the smallest unique string that IS the fix.
+- **The four `residualUpdate*` rows were the ENGINE moving and the COUNTER not following** — a correct
+  third `eachEvent(‘Update’)` caller added 2026-09-06 folded itself into two counters whose declared
+  nouns forbade it. **The counter was repaired, not the WANTs**: raising them would have destroyed the
+  one distinction the arm exists for.
+- **A BOUNCED STATUS MOVE DREW AT THE WRONG ADDRESS.** Magic Bounce answers at `TryHit` step 2 and
+  `hitStepAccuracy` is step 5, so the pair takes ONE draw and it belongs to the COPY. The count was
+  right and the address was wrong. `tests/probe_bounce_accuracy_address.js`, knob
+  `MEDI_BOUNCE_KEEPS_SOURCE=1`, parts on the card line for line.
+- **Instruct was missing its `(moveSlot && moveSlot.pp <= 0)` refusal.** Shown RED on pre-fix bytes.
+  `tests/probe_instruct_lastmove_pp.js`, knob `MEDI_INSTRUCT_NO_PP_REFUSAL=1`.
+
+### Changed
+- **Gate narration 17 → 15 of 961, causes 18 → 16, zero transfers.** Both cards’ games:
+  **2 stopped, 0 started, 0 changed cause.** **BOARD-MATERIAL 0 of 958** before, after, and after
+  every edit. Gate reads **8 PASS / 1 FAIL**.
+
+### Notes
+- **RETRACTION — the hiding class is 2 of 19, not 3.** ~~About one narration card in six is a board
+  difference erased within the turn~~ (5.272.0) is **withdrawn**. One of the two survivors batch V
+  counted was an artefact of the **ten-line `--dump-games` window**: our two extra lines pushed the
+  authority’s `-start` to line eleven, so it read as absent. Instruct’s board consequence is **nil**.
+  The measured rate is **2 of 19, about one in ten**, and the method is otherwise unchanged.
+- **The bound itself still stands and 6.0.0 must still say it:** `BOARD-MATERIAL 0 of 958` means no
+  board difference **survived to a compared boundary**, not that none occurred. Only the rate moved.
+- **Two gaps deliberately left at the bounce site**, written into the engine comment rather than into
+  a report nobody re-reads: the bounced status still carries the CLICKER as its source, and
+  `pranksterBoosted = false` is unmodelled.
+- **Not attempted:** the residual trio (skipped per brief, sixth batch to leave it) and the substitute
+  family (batch V’s step-boundary diagnosis stands — there is no correct slot in the current step
+  list).
+- `data/all-mechanics-fire.json` was re-run: the gate first withheld it as MEASURED AGAINST A
+  DIFFERENT ENGINE, which is the check working.
+
+---
+
 ## [5.272.0] — 2026-09-09
 
 ### Fixed

@@ -1,10 +1,10 @@
 {
-  "current": "f6ecf4222048",
-  "cut": "2026-09-09T09:37:26.662Z",
-  "why": "narration batch V: a multi-hit volley does not stop at the doll it breaks",
-  "cuts": 2,
-  "latest_cut": "2026-09-09T09:59:17.290Z",
+  "current": "7489a6cc064d",
+  "cut": "2026-09-09T10:46:50.529Z",
+  "why": "batch W: a bounced move draws at the address of the body it came back at; Instruct is refused when the slot it would repeat is empty; the residual Update counters exclude the refill pass",
+  "cuts": 5,
+  "latest_cut": "2026-09-09T10:57:12.983Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-09T09:59:17.305Z",
+  "pointer_written": "2026-09-09T10:57:13.022Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

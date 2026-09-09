@@ -597,7 +597,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                                and gone after. Not bodies checked, and not eats anywhere else in
    *                                the turn: a berry eaten off the weather chip at order 1 is in
    *                                `residualBerryAte` and NOT in this one, which is the exact split
-   *                                the two authority call sites make. */
+   *                                the two authority call sites make.
+   * 2026-09-09 (BATCH W) -- ALL FIVE OF THE COUNTERS IN THIS BLOCK AND THE ONE ABOVE EXCLUDE THE
+   * REFILL PASS, which is the THIRD caller added on 2026-09-06 and which has its own two counters
+   * below. They did not exclude it for three days, and the three sentences above were false for that
+   * whole time: `residualUpdateAfterUpkeep` read TWO per residual, not "exactly one". Nothing was
+   * wrong with the engine's play -- the pass is correct and stays -- and nothing was wrong with the
+   * expectation either. See the header on `residualUpdatePass` for why the counter was repaired
+   * rather than the WANT raised. */
   residualUpdatePasses: 0, residualUpdateAfterUpkeep: 0, residualBerryAteAfterUpkeep: 0,
   /* 2026-09-06 -- AND THE THIRD `eachEvent('Update')` OF THE TURN: the one that closes the REPLACEMENT
    * SWITCH's own action (sim/battle.ts:2858 again, reached a second time because the replacement is a
@@ -1876,6 +1883,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-25 -- a reflectable STATUS or SHAREHP move sent back at its user by Magic Bounce. Zero on
    * a run where a bouncer took a Thunder Wave means the re-aim is eating the bounce again. */
   statusBouncedBackAtUser: 0,
+  /* 2026-09-09 (BATCH W) -- a bounced status move whose ACCURACY DRAW was re-addressed onto the body
+   * it came back at, which is where the authority's `useMove(newMove, target, {target: source})`
+   * puts `activeTarget`. IT IS A STRICT SUBSET OF `statusBouncedBackAtUser` and must EQUAL it on any
+   * run that bounced anything: a gap between the two means a bounce resolved at the clicker's
+   * address again. Zero beside a non-zero bounce count is the pre-2026-09-09 engine. */
+  bounceAddressReaimed: 0,
   /* 2026-08-25 -- a Leech Seed that was reflected and credited to the REFLECTOR rather than to the
    * body that clicked it. Zero on a run where a bouncer took a Leech Seed means the credit is back
    * on the clicker and the drain nets to nothing. */
@@ -2089,6 +2102,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * `instructRepeat` on a board where a shield is standing is the state this engine was in: the
    * second action was handed out THROUGH a raised Protect. */
   instructRefusedByShield: 0,
+  /* 2026-09-09 (BATCH W) -- an Instruct refused because the slot it would REPEAT is empty, which is
+   * the last clause of the authority's `onHit` and the one this branch never carried. It is NOT the
+   * same event as the `|cant|…|nopp|` this engine used to print one step later: that one is the
+   * repeat being refused AFTER it was granted, and it leaves two lines the authority does not write.
+   * A zero here beside a non-zero `instructRepeat` on a board whose target has a spent last move is
+   * the pre-2026-09-09 engine. */
+  instructRefusedByLastMovePP: 0,
   /* ROADMAP #534 -- WHICH ROAD THE REPEAT'S AIM CAME DOWN, four ways, because "the repeat happened"
    * cannot tell them apart and `instructRepeat` was non-zero throughout the whole defect.
    *   instructAimReused         the slot the click named still holds a live body, and it is hit.
@@ -5654,6 +5674,22 @@ const IMPRISON_SEALS_NOTHING=(typeof process!=='undefined'&&process.env&&process
  * is untouched, so a knob run leaves the non-pivot reflectable arm green, which is what says this was
  * one shut door rather than a broken ability. */
 const PIVOT_IGNORES_BOUNCE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PIVOT_IGNORES_BOUNCE==='1');
+/* 2026-09-09 (BATCH W) -- MEDI_BOUNCE_KEEPS_SOURCE=1 restores the pre-fix status branch: a bounced
+ * reflectable status move goes on being resolved as the CLICKER's move, so its accuracy draw is
+ * addressed at the slot the click named, its accuracy modifiers are read off the clicker, and a miss
+ * names the clicker. It restores that and NOTHING else -- `bounceOff` itself, the re-aim and the
+ * announcement line are untouched, which is why the knob leaves `statusBouncedBackAtUser` exactly
+ * where it was and moves only `bounceAddressReaimed`. tests/probe_bounce_accuracy_address.js. */
+const BOUNCE_KEEPS_SOURCE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_BOUNCE_KEEPS_SOURCE==='1');
+if(BOUNCE_KEEPS_SOURCE)MEDFAILS.bounceKeepsAddressRestored=1;
+/* 2026-09-09 (BATCH W) -- MEDI_INSTRUCT_NO_PP_REFUSAL=1 restores the pre-fix instruct branch: the
+ * last clause of the authority's `onHit` -- the repeated move's own slot being empty -- is not
+ * asked, so the second action is queued and then refused one step later with `|cant|…|nopp|`. It
+ * restores that and NOTHING else: the shield, the ability, the `refuses` list, the charge/recharge
+ * clauses and the aim are all untouched, which is why a knob run leaves both controls in
+ * tests/probe_instruct_lastmove_pp.js green. */
+const INSTRUCT_NO_PP_REFUSAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_INSTRUCT_NO_PP_REFUSAL==='1');
+if(INSTRUCT_NO_PP_REFUSAL)MEDFAILS.instructNoPpRefusalRestored=1;
 /* 2026-08-26 -- MEDI_LOCK_STALE_ON_HANDED_ACTION=1 restores the raw `mon._lock` read at the collect
  * site, so a CALLER-SUPPLIED action is bound by a lock whose Choice item has already left. The chooser
  * path is untouched by this knob and stays correct, which is exactly how the defect hid: the re-read
@@ -11302,9 +11338,39 @@ function berryPPUpdate(m,foes){
  * `residualBerryAteOffOldSlot` goes on meaning exactly what #221 defined it to mean -- an eat somewhere
  * other than the fixed slot the pre-#221 loop used -- rather than quietly becoming a different number.
  * SPEED ORDER, through `residualOrder`, because `eachEvent` speed-sorts `getAllActive()` (:468). */
+/* ===== 2026-09-09 (BATCH W) -- `gi === RESIDUAL_GI_REFILL` IS THE REPLACEMENT'S OWN ACTION, AND IT
+ * IS EXCLUDED FROM EVERY RESIDUAL-PHASE COUNTER HERE.
+ *
+ * THE ENGINE MOVED AND THE COUNTER DID NOT, WHICH IS THE OPPOSITE OF WHAT IT LOOKED LIKE. On
+ * 2026-09-06 a THIRD caller of this function was added below `refill()` -- the replacement switch's
+ * own `eachEvent('Update')` (sim/battle.ts:2858, reached a second time because the replacement is a
+ * separate action). It is a correct, authority-derived call and it is NOT being reverted. What it
+ * also did, silently, was bump the two counters directly above, whose declared nouns are:
+ *
+ *   residualUpdatePasses      "1 with no weather up (the post-upkeep one) and 2 with a weather up"
+ *   residualUpdateAfterUpkeep "Exactly one per residual that did not wipe a side"
+ *
+ * Both statements became FALSE the moment the third call site existed, and
+ * `tests/test-resolution-order.js` said so: a4-red read `residualUpdatePasses WANT 5 GOT 10` over
+ * five turns and a4-control-sandstorm `WANT 4 GOT 6` over two -- one extra pass per turn, exactly
+ * one refill call each.
+ *
+ * THE REPAIR IS THE COUNTER AND NOT THE EXPECTATION, and that direction is the whole point. Raising
+ * the WANTs to 10 and 6 would have made this arm unable to tell "the residual Update pass ran twice"
+ * from "refill ran once" -- and separating those two is precisely why `refillUpdatePasses` and
+ * `refillUpdateAte` were introduced in the same commit as the third call site. A counter that folds
+ * in a caller it was defined to exclude is an instrument agreeing with itself.
+ *
+ * THE REFILL PASS STILL HAS A RECEIPT AND IT IS ASSERTED: `refillUpdatePasses > 0` and
+ * `refillUpdateAte` in `tests/probe_refill_update_pass.js`. Nothing here can hide a dead pass.
+ * NO BOARD BEHAVIOUR CHANGES -- these are four `++` sites and not one line of resolution. */
+const RESIDUAL_GI_REFILL = -2;
 function residualUpdatePass(actA,actB,field,gi){
-  MEDSEEN.residualUpdatePasses++;
-  if(gi<0)MEDSEEN.residualUpdateAfterUpkeep++;
+  const _refill=(gi===RESIDUAL_GI_REFILL);
+  if(!_refill){
+    MEDSEEN.residualUpdatePasses++;
+    if(gi<0)MEDSEEN.residualUpdateAfterUpkeep++;
+  }
   for(const m of residualOrder(actA,actB,field)){
     if(!m||m.fainted||m.curHP<=0)continue;
     const _foes=(actA.indexOf(m)>=0?actB:actA), _it0=m.item;
@@ -11317,7 +11383,7 @@ function residualUpdatePass(actA,actB,field,gi){
      * whole-block rule. The side is found by identity because this walk covers both sides. */
     berryPinchUpdate(m,_foes);   // ROADMAP #81 WIRE 7 -- one implementation
     berryPPUpdate(m,_foes);      // ROADMAP #144 -- Leppa, on the same clock
-    if(m.item!==_it0){
+    if(m.item!==_it0&&!_refill){
       MEDSEEN.residualBerryAte++;
       if(gi!==RESIDUAL_OLD_BERRY_GI)MEDSEEN.residualBerryAteOffOldSlot++;
       if(gi<0)MEDSEEN.residualBerryAteAfterUpkeep++;
@@ -31471,6 +31537,37 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _mid=t&&t._lastMove;
         const _refused=_mid&&(_ip.refuses||[]).indexOf(_mid)>=0;
         if(!t||!_mid||_refused||t._charging||t._recharge){mvFail(m);continue;}
+        /* ===== 2026-09-09 (BATCH W) -- AND THE LAST CLAUSE OF `onHit`, WHICH THIS BRANCH NEVER HAD.
+         *
+         *     const moveSlot = target.getMoveData(lastMove.id);
+         *     if ( ... || (moveSlot && moveSlot.pp <= 0)) return false;      data/moves.ts, instruct
+         *
+         * Champions does not override Instruct (re-derived on every run of the probe), so that is the
+         * handler. The clause asks the LAST MOVE'S OWN SLOT -- not the body, not any other slot --
+         * and `return false` inside `onHit` fails the MOVE, so the authority writes `|-fail|` on the
+         * INSTRUCTOR and never the `-singleturn`.
+         *
+         * THE ENGINE ALREADY KNEW AND ASKED ONE STEP TOO LATE. The repeat was spliced in, met the
+         * ordinary selection gate, and printed `|cant|<target>|nopp|<move>` -- two lines the
+         * authority does not carry, out of a refusal this file was already capable of making. Card
+         * `|-fail|p2a <> |-singleturn|p1a|instruct` on release f6ecf4222048 (`pair-speedctrl`
+         * …bo3-2655613153, turn 11) is that pair of lines exactly, and our own `nopp` line one below
+         * the divergence names the cause.
+         *
+         * `=== 0` AND NOT `!ppLeft(...)`, WHICH IS THE `moveSlot &&` OF THE AUTHORITY'S CLAUSE.
+         * `ppLeft` answers `null` when this engine's PP artifact has no row for the move (see its
+         * own header), and that is the same "there is no slot to ask about" as a falsy `moveSlot`.
+         * A null must not refuse; the loud version of a missing row is `ppUnknownMove`, which is not
+         * this site's business.
+         *
+         * IT IS BELOW THE `refuses` LINE AND ABOVE THE AIM, because the authority's order is exactly
+         * that: every clause of the `if` is evaluated before the `-singleturn` is written and before
+         * `targetLoc` is read. Nothing between the two lines has a side effect, so the position is
+         * the authority's rather than an arbitrary one. */
+        if(!INSTRUCT_NO_PP_REFUSAL&&ppLeft(t,_mid)===0){
+          MEDSEEN.instructRefusedByLastMovePP++;
+          mvFail(m);continue;
+        }
         const _side=actA.indexOf(t)>=0?'A':'B';
         const _foes=_side==='A'?actB:actA;
         /* ROADMAP #534 -- THE REPEAT GOES BACK AT THE SLOT THE CLICK NAMED. IT USED TO PICK AGAIN.
@@ -33285,9 +33382,53 @@ function battleTurn(S,rng,actsForA,actsForB){
          * `reaimToSlot` looks the bounced body up by the ACTION'S foe slot and hands back the
          * original target, so Magic Bounce was computed and discarded on every status move. */
         const _b0=BOUNCE_UNDONE_BY_REAIM?a.target:reaimToSlot(a.target,it,actA,actB,a.mv);
-        let t=bounceOff(m,_b0,a.mv,true);
+        const _bInfo={};
+        let t=bounceOff(m,_b0,a.mv,true,_bInfo);
         const _stBounced=(t===m&&_b0&&_b0!==m);
         if(_stBounced)MEDSEEN.statusBouncedBackAtUser++;
+        /* ===== 2026-09-09 (BATCH W) -- A BOUNCED MOVE IS THE BOUNCER'S MOVE, AND THIS BRANCH WENT ON
+         * RESOLVING IT AS THE CLICKER'S. `MEDI_BOUNCE_KEEPS_SOURCE=1` is the revert.
+         *
+         *     const newMove = this.dex.getActiveMove(move.id);
+         *     newMove.hasBounced = true;
+         *     this.actions.useMove(newMove, target, { target: source });   data/abilities.ts:2433-2436
+         *
+         * `useMove` is a WHOLE MOVE with the BOUNCER as its source, not a re-aim: it runs its own
+         * eight hit steps and `useMoveInner` writes `this.battle.activeTarget = source` for it. And
+         * the ORIGINAL click never reaches a die at all -- Magic Bounce answers in `TryHit`, step 2
+         * of eight, and `hitStepAccuracy` is step 5 -- so the pair takes exactly ONE accuracy draw
+         * and it belongs to the copy.
+         *
+         * THIS ENGINE HAD THE COUNT RIGHT AND THE ADDRESS WRONG, which is why no identity check ever
+         * saw it. `MID_TGT` is written once at the top of the action from the target the CLICK named
+         * (`_midWriteActionAddr`) and nothing moved it when the move changed hands, so the middle
+         * arm's address read `…|sleeppowder|p1a…` -- the BOUNCER's slot -- where the authority read
+         * `…|sleeppowder|p2a…`. Two engines answering different questions with the same number of
+         * draws. Measured on the card `|-miss|p1a|p2a <> |-status|p2a|slp|[from]sleeppowder`
+         * (release f6ecf4222048, `pair-protect-bust` …bo3-2661562027, turn 4): a body ASLEEP here
+         * and awake on the authority, erased later in the same turn by a Dazzling Gleam that killed
+         * it on both engines -- which is the whole reason it read NARRATION-ONLY.
+         *
+         * THE THREE THINGS THAT MOVE ARE ONE FACT and are therefore one knob:
+         *   the DRAW's address    `MID_TGT` becomes the body the move came back at;
+         *   the ACCURACY's owner  `hitChance` is asked with the BOUNCER as attacker, because the
+         *                         accuracy modifiers in the authority are read off `newMove`'s
+         *                         source;
+         *   the `-miss` LINE      names the BOUNCER, because `hitStepAccuracy` writes
+         *                         `add('-miss', pokemon, target)` with `pokemon` being the move's
+         *                         source. Without this the address fix would REPLACE one divergence
+         *                         with another -- `|-miss|p2a|p2a` against `|-miss|p1a|p2a` -- which
+         *                         is why it is not a separate batch.
+         *
+         * WHAT IS **NOT** MOVED, DECLARED RATHER THAN LEFT TO BE FOUND: the status is still applied
+         * with the CLICKER as its source, so Safeguard and Synchronize still attribute it to the
+         * body that clicked instead of to the bouncer. That is a second defect at a different site
+         * (`applyStatus`'s source argument, WIRE 133) and nothing in this batch measured it; folding
+         * it in here would have made the arm below unattributable. `newMove.pranksterBoosted=false`
+         * is likewise not modelled -- a Prankster clicker's bounced move is still refused by a Dark
+         * type here. Both are owed. */
+        const _bSrc=(!BOUNCE_KEEPS_SOURCE&&_bInfo.bouncedBy)?_bInfo.bouncedBy:m;
+        if(_bSrc!==m){MID_TGT=midEventSlot(t);MEDSEEN.bounceAddressReaimed++;}
         /* WIRE 137 -- A MOVE TARGETS A SLOT, AND THIS BRANCH WAS STILL TARGETING A BODY.
          *
          * The attack branch has resolved its aim to "whoever is in that slot NOW" since voluntary
@@ -33449,11 +33590,13 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(SUB_STATUS_AT_TRYHIT&&subBlocks(m,t,a.mv)){subStatusRefuseOld(m,t,'[block]');continue;}
         if(powderBlocked(t,a.mv)){if(TR)TR.imm(t,powderImmuneAttr(t,m));continue;}     // Grass / Overcoat / Safety Goggles; #256
         if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;} // Prankster does not touch Dark types
-        const acc=hitChance(m,t,a.mv,field,{targetAlreadyMoved:!unresolved.has(t)});   // WIRE 124/129 -- one accuracy authority, not a second copy
+        /* `_bSrc` IS `m` ON EVERY ROAD WITH NO BOUNCE IN IT, so this is character-for-character the
+           old call except on the one path batch W is about. See the block above. */
+        const acc=hitChance(_bSrc,t,a.mv,field,{targetAlreadyMoved:!unresolved.has(t)});   // WIRE 124/129 -- one accuracy authority, not a second copy
         /* ROADMAP #264 -- this site used to roll UNCONDITIONALLY, which over-draws in the other
          * direction: a Poison-type's Toxic, a Lock-On'd status move and anything aimed past No Guard
          * all return Infinity here, and the authority takes no draw for those at all. */
-        if(accMustRoll(acc)&&_R.acc()*100>acc){if(TR)TR.miss(m,t);continue;}          // status moves miss (T-Wave 90, W-o-W 85); ROADMAP #222
+        if(accMustRoll(acc)&&_R.acc()*100>acc){if(TR)TR.miss(_bSrc,t);continue;}      // status moves miss (T-Wave 90, W-o-W 85); ROADMAP #222
         /* AND HERE IS WHERE IT ACTUALLY GOES -- `moveSteps` index 7, below index 4. */
         if(!SUB_STATUS_AT_TRYHIT&&subBlocks(m,t,a.mv)){subStatusRefuse(m,t);continue;}
         /* WIRE 133 -- THE SOURCE TRAVELS WITH THE STATUS, and it has to: Safeguard refuses what the
@@ -43751,7 +43894,10 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _bodies=[...actA,...actB];
       const _it0=_bodies.map(m=>m?m.item:null);
       MEDSEEN.refillUpdatePasses++;
-      residualUpdatePass(actA,actB,field,-1);
+      /* `RESIDUAL_GI_REFILL`, not -1 -- see the header on `residualUpdatePass`. It is still a
+       * BELOW-UPKEEP pass in every behavioural sense (the berries it offers are the same ones), and
+       * the sentinel changes nothing except which counters it is allowed to touch. */
+      residualUpdatePass(actA,actB,field,RESIDUAL_GI_REFILL);
       for(let _i=0;_i<_bodies.length;_i++){
         const _m=_bodies[_i];
         if(_m&&_it0[_i]!==_m.item)MEDSEEN.refillUpdateAte++;

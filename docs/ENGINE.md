@@ -133,10 +133,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  830/830 probed mechanics live, 0 missing   (census 2026-09-09 05:34)
+  830/830 probed mechanics live, 0 missing   (census 2026-09-09 06:46)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 13 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-09 05:40)
+    never fired in the staged harness (all-mechanics-fire.json, 7 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-09 06:49)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -158,9 +158,78 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-09 06:12_
+_stamped 2026-09-09 07:04_
 
 <!-- /GENERATED -->
+
+## BATCH W — **THE RED TEST IS GREEN WITH ALL SIX ANCHORS RE-AIMED, AND BOTH HIDDEN BOARD DEFECTS ARE CLOSED.** `test-resolution-order` **10 FAILING → 0 OF 26, EXIT 0**. NARRATION-ONLY **18 → 16 CAUSES / 18 → 16 GAMES**, **GATE NARRATION 17 → 15 OF 961**, **ZERO TRANSFERS**, **BOARD-MATERIAL 0 OF 958 BEFORE, AFTER AND AFTER EVERY EDIT**, CENSUS 830/830, ROSTER ZERO DIFFER / ZERO DID-NOT-FIRE WITH EVERY ANCHOR LIVE (18/44/36/17), `test-engine-diff` 6000/6000, `all_mechanics_fire` 1313 GAMES / 0 THREW, `probe_red_demo` 200 / 0 HOLLOW / 0 UNAPPLIABLE. **BATCH V'S PERISH FINDING IS RETRACTED — IT WAS THE TEN-LINE DUMP WINDOW.** GATE **1 OF 9 CLAUSES FAILING**. 2026-09-09
+
+Full account, every command, every pin, the retraction and the predictions that missed:
+[docs/_reports/2026-09-09-batch-W.md](_reports/2026-09-09-batch-W.md).
+
+### THE RED TEST: SIX ANCHORS RE-AIMED, NONE RETIRED, AND FOUR COUNTERS REPAIRED
+
+All six stale PLANT anchors described behaviour that is still reachable. Each had named a NEIGHBOUR
+it did not care about, and the neighbour moved — `_stepThawDamagingHit` inserted between two names by
+batch Q2, a condition that grew a Parental Bond sibling on 2026-09-07, a nine-line block one of whose
+lines was rewritten on 2026-09-06. Each anchor is now the **smallest unique string that IS the fix**,
+verified to appear exactly once before use. All six read CAUGHT.
+
+The four `residualUpdate*` mismatches were **the engine moving and the counter not following**. A
+correct third caller of `residualUpdatePass` — the replacement switch's own `eachEvent('Update')`,
+added 2026-09-06 — folded itself into two counters whose declared nouns say *"1 with no weather up"*
+and *"exactly one per residual"*. Both sentences were false for three days. **The counter was
+repaired, not the expectation**: raising the WANTs would have made the arm unable to tell "the
+residual pass ran twice" from "refill ran once", which is the one thing it exists to separate.
+
+### A BOUNCED MOVE IS THE BOUNCER'S MOVE — AND IT NEEDED NO NEW DIE
+
+Batch V filed the bounced Sleep Powder as needing an accuracy draw *"which moves the die stream and
+can void games"*. **It needs no new draw.** Magic Bounce answers at `TryHit`, step 2 of eight, and
+`hitStepAccuracy` is step 5 — so the original click never reaches a die, and the `useMove`d copy takes
+the one draw of the pair with `activeTarget` set to the body it came back at. The count was already
+right here; the ADDRESS was not. `tests/probe_bounce_accuracy_address.js`, `MEDI_BOUNCE_KEEPS_SOURCE=1`.
+
+### INSTRUCT'S LAST CLAUSE, AND OUR OWN NEXT LINE NAMED IT
+
+`(moveSlot && moveSlot.pp <= 0)` is the last refusal in Instruct's `onHit` and this branch never had
+it, so the repeat was queued and then refused one step later with `|cant|…|nopp|…` — two lines the
+authority does not write. `tests/probe_instruct_lastmove_pp.js` drains a real 8-PP Protect slot rather
+than declaring one empty; `MEDI_INSTRUCT_NO_PP_REFUSAL=1`.
+
+### THE HAND LIST
+
+**Removed — the bounced Sleep Powder** (a board difference, closed), **Instruct's refusal** (closed),
+and **`tests/test-resolution-order.js` being red** (green, 26/26).
+
+- **BATCH V'S PERISH FINDING IS RETRACTED.** It reported the authority starting `perish1` on both foes
+  against our one. That is the **ten-line `--dump-games` window**: our two extra lines pushed
+  `|-start|p2a: Oranguru|perish1` to line eleven. It is exactly the bound batch V declared about its
+  own method, landing on its own finding. **The hiding class is 2 of 19, not 3** — the multi-hit volley
+  and the bounced Sleep Powder, both now fixed.
+- **A BOUNCED MOVE'S STATUS SOURCE IS STILL THE CLICKER**, so Safeguard and Synchronize attribute it
+  to the wrong body; and **`newMove.pranksterBoosted = false` is not modelled**, so a Prankster
+  clicker's bounced move is still refused by a Dark type. Both are written into the engine comment at
+  the site. Not exercised by the card; folding either in would have destroyed this batch's attribution.
+- **THE SUBSTITUTE FAMILY, STILL FOUR CARDS** — batch V's step-boundary diagnosis stands unchanged.
+  Fifth batch to leave it.
+- **THE RESIDUAL TRIO WAS SKIPPED ENTIRELY AND DELIBERATELY**, as the brief instructed. Sixth batch.
+- **`data/all-mechanics-fire.json` HAD TO BE RE-RUN** and the gate caught it as
+  `MEASURED AGAINST A DIFFERENT ENGINE … EVERY COUNT IS WITHHELD` — the withhold-rather-than-caption
+  rule working. Back to PASS on the new bytes.
+- **`node engine/status.js --write` WAS RUN**; nothing was committed, per the brief. `CHANGELOG.md`
+  and the version bump are owed to the coordinator.
+- **Carried forward unchanged** from the hand lists below: Trick's missing `-fail`; the perish
+  `|upkeep|` drain; the OHKO card; the Stamina / Spicy Spray card; the redirect vs `-prepare` order;
+  the post-KO switch-in order; the Chilly Reception card; the Rage Powder and Psychic Terrain `-fail`
+  cards; `kind === 'boostally'`'s silent shield; Reflect Type's unmodelled effect; Yawn's
+  `runStatusImmunity('slp')` half; the max-HP recoil road (`directDamage`); the 560 speed-reading
+  disagreements that look like the instrument; the second `eachEvent('Update')` pass;
+  `_stepDamagingHit` mixing the order-1 punishers with the default-order ones; `orderProbeClause`'s
+  rerun hint omitting `--end-state`; `ability/priority-mod` picking its delivery move without asking
+  the carrier's learnset; the per-arrival crit vector on an absorbed volley; Population Bomb into
+  Flame Body; `item/chance-gated` and `item/crit-ratio` on a dead corner; Struggle's every-slot
+  fixture; and `tests/test-pinch-family.js` red at 1 of 61.
 
 ## BATCH V — **THE BOARD DEFECT WEARING A NARRATION LABEL IS CLOSED, AND THE HIDING CLASS IS COUNTED.** NARRATION-ONLY **19 → 18 CAUSES / 19 → 18 GAMES**, **GATE NARRATION 18 → 17 OF 961**, **ZERO TRANSFERS**, **BOARD-MATERIAL 0 OF 958 BEFORE, AFTER AND AFTER EVERY EDIT**, CENSUS 830/830, ROSTER ZERO DIFFER / ZERO DID-NOT-FIRE WITH EVERY ANCHOR LIVE (18/44/36/17), `test-engine-diff` 6000/6000, `all_mechanics_fire` 1313 GAMES / 0 THREW, `probe_red_demo` **200 / 0 HOLLOW / 0 UNAPPLIABLE**. THE ONE-ROOT HYPOTHESIS IS **REFUTED**. GATE **1 OF 9 CLAUSES FAILING**. 2026-09-09
 

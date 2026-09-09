@@ -174,12 +174,20 @@ function harness(src) {
 /* ---- THE BREAKS. ONE PER FIX, EACH REVERTING EXACTLY THAT FIX AND NOTHING ELSE ------------------
  * A pair whose `from` does not appear EXACTLY ONCE is a FAILURE of this file, never a skip. */
 const BREAKS = {
+  /* RE-ANCHORED 2026-09-09 (batch W), AND THE STALENESS WAS NOT A TYPO IN THIS FILE. The old anchor
+     was `_stepDamagingHit,_stepBuffOnHit,` and the step list now reads
+     `_stepDamagingHit,_stepThawDamagingHit,_stepBuffOnHit,` — BATCH Q2 inserted `_stepThawDamagingHit`
+     BETWEEN the two names the anchor spelled, so the plant matched zero times and the three A1 arms
+     stopped asserting anything at all. THE CLAIM IS UNCHANGED; only the spelling of the neighbour is.
+     BOTH EDITS ARE NOW MINIMAL — `,_stepBuffOnHit,` and `_stepSelfPay,` — because the previous two
+     re-aims of this file were both caused by an anchor that named a NEIGHBOUR it did not care about.
+     Each is verified unique in the engine, which is the exactly-once rule below doing the work. */
   'buff-above-secondaries': {
     what: 'puts `_stepBuffOnHit` back where it lived until 2026-08-22 — at the top of the secondaries '
         + 'step instead of beside `DamagingHit`. Two edits because the member has to leave one slot '
         + 'and enter another; a one-sided patch would delete the mechanic rather than move it.',
-    edits: [['_stepDamagingHit,_stepBuffOnHit,', '_stepDamagingHit,'],
-            ['_stepSelfPay,_stepEffects,', '_stepSelfPay,_stepBuffOnHit,_stepEffects,']] },
+    edits: [[',_stepBuffOnHit,', ','],
+            ['_stepSelfPay,', '_stepSelfPay,_stepBuffOnHit,']] },
 
   /* RE-ANCHORED 2026-08-24. The old anchor was `_arrived.sort((x,y)=>compareEntryOrder(...))` at the
      faint-refill site, and that line NO LONGER EXISTS: the entry pass now ranks every active body
@@ -205,12 +213,19 @@ const BREAKS = {
         else if(!m.fainted&&TAGS.has('move',a.move.id,'recharge')){
           MEDSEEN.rechargeSkippedNoTarget++;_rechargeArmed=true;}`, '        ;']] },
 
+  /* RE-ANCHORED 2026-09-09 (batch W). The old anchor was the whole one-line statement
+     `if(R.hitcount&&_landed>0)R.hitLanded=_landed;`, and 2026-09-07 wrapped that condition in a
+     Parental Bond clause (`if(...bondPlan...){...}else if(R.hitcount&&_landed>0){...}`) — so the
+     anchor named a CONDITION that had grown a sibling and matched zero times, and both A3 hitcount
+     arms stopped asserting. The revert is the same one: the ASSIGNMENT is what defers the line, so
+     the anchor is now the assignment alone. The Bond suppression clause above it is deliberately left
+     standing — it decides WHETHER a count is owed, not WHERE the line is written, and reverting it
+     here would fold two fixes into one break. */
   'hitcount-in-the-packet-loop': {
     what: 'emits `|-hitcount|` from inside the damage step again, which reverts BOTH halves of card '
         + '39 at once — the line goes back above `|faint|` AND back to naming a live `p2a:` body, '
         + 'because `TR.hitcount` picks the de-activated ident off `fainted` and nothing is fainted yet.',
-    edits: [['if(R.hitcount&&_landed>0)R.hitLanded=_landed;',
-             'if(TR&&R.hitcount&&_landed>0)TR.hitcount(tg,_landed);']] },
+    edits: [['R.hitLanded=_landed;', 'if(TR)TR.hitcount(tg,_landed);']] },
 
   /* ROADMAP #331, THE HALF THAT DID REPRODUCE (2026-08-22). The first draft of the arm below had the
    * TARGET protecting, so nothing fainted and it agreed while staging nothing — the `selfdestruct:
@@ -257,15 +272,15 @@ const BREAKS = {
         + 'reactor of a volley is paid by the deferred `_stepDamagingHit` below the whole loop — i.e. '
         + 'exactly the engine as it stood until 2026-08-30, printing `dmg dmg react react`. The COUNT '
         + 'is untouched (`_react` still settles the remainder), so the arm parts on the POSITION.',
-    edits: [[`            if(i<_packets.length-1&&tg.curHP>0){
-              if(REACT_BATCHED)MEDFAILS.reactBatchedRestored=1;
-              else{
-                R._reactPaid=(R._reactPaid|0)+1;
-                _damagingHit(1);
-                _stepBuffOnHit(R,1);
-                MEDSEEN.reactionPaidPerArrival++;
-              }
-            }`, '            ;']] },
+    /* RE-ANCHORED 2026-09-09 (batch W). The old anchor was the whole nine-line block, and 2026-09-06
+       rewrote one line inside it (`_damagingHit(1)` became `_reactAddr(()=>_damagingHit(1))`, the
+       lingering-address fix) plus a four-line comment — so the plant matched zero times and this arm
+       stopped asserting. THE BODY IS NOT WHAT THIS BREAK IS ABOUT: the block contains nothing but the
+       per-arrival payment, so closing its GUARD deletes exactly that payment and survives any future
+       edit inside it. `_react` still settles the remainder in the deferred `_stepDamagingHit` below,
+       so the COUNT is untouched and the arm parts on the POSITION, which is what the `what` claims. */
+    edits: [['if(i<_packets.length-1&&tg.curHP>0){',
+             'if(false&&i<_packets.length-1&&tg.curHP>0){']] },
 
   'berry-at-every-group': {
     what: 'runs the `onUpdate` pass after EVERY residual group instead of only after the weather, '
