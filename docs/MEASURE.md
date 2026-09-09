@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 1 of 9 gate clauses fail (whole-game differential / NARRATION — protocol divergence with no board effect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 182 unsafe, 2 void (declared), 40 possibly stale, 31 ok, 0 missing
+  provenance: 182 unsafe, 2 void (declared), 35 possibly stale, 36 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 1 of 9 gate clauses fail (whole-game differential / NARRATION — protocol divergence with no board effect)
@@ -29,15 +29,36 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-09 07:45
+    moved after the fit: engine/medicham2-browser.js  2026-09-09 11:44
     moved after the fit: data/engine-data.js  2026-08-31 00:08
     moved after the fit: data/abra-tags.js  2026-09-09 03:55
 ```
 
-_stamped 2026-09-09 08:09_
+_stamped 2026-09-09 14:14_
 
 <!-- /GENERATED -->
 
+## TWENTY-TWO FIGURES THE ARTIFACTS CONTRADICTED CAME OUT OF SEVEN LIVING DOCUMENTS, AND THE GATE THAT SHOULD HAVE CAUGHT THEM HAS A BLIND SPOT FOUND BY MUTATION. 2026-09-09, CHANGELOG 5.275.0
+
+**THE RETRACTIONS.** Five refuted mechanisms and 22 numeric values across 21 figure locations in seven
+documents were stated as fact against artifacts already on disk — WAR, NMF, CHOMP-EV, the XATU clone
+and the §1 ceiling, the last two in NO artifact at all. Every replacement was READ (`data/war.json`,
+`data/nmf-roles.json`, `data/nmf-rank-selection.json`, `data/chomp-ev.json`, `data/policy-eval.json`),
+none was re-run, and all four artifacts predate quality filter 1.3.0, so the thesis defence's re-run is
+still owed. The §5e correction note above already records that the 71.6% this ledger quotes is PORY-NN's
+auc and not the clone's top-3; it is not repeated here. Account and the proposed hand-typed `RETRACTED`
+entries: `docs/_reports/2026-09-09-fix-retractions.md`. `tests/test-docs-current.js` 32/1 -> 33/0.
+
+**THE BLIND SPOT — FILED AS OPEN WORK, NOT FIXED.** Mutation on `docs/MODELS.md:7`, a paragraph citing
+`data/game-differential.json`: `board-material 27 of 961` -> `41 of 961` passed byte-identical to
+green; `27 of 962` passed; only a figure absent from the artifact (777) was caught. Two mechanisms, read
+at source: `engine/docs_scan.js:626` — `QUALIFIED` exempts the WHOLE paragraph if any of `prior`,
+`void`, `former`, `superseded` … appears in it, and MODELS.md's headline paragraph says "superseded";
+and `:496` `artifactHas` — set-membership of the figure in every number the artifact contains, so a
+wrong headline whose digits occur anywhere in a 471 KB artifact passes. The share of living-document
+paragraphs that qualify was not measured and is owed. This is the instrument this division is judged by,
+and it is the SKILL §7 "231 inside a 308 KB census" defect still live for the citation clause.
+Account: `docs/_reports/2026-09-09-pre-600-test-breaks.md` §h.
 ## A LINE ENDING COULD REFUSE A BEFORE/AFTER. NOT EVERY DIGEST IN THIS REPOSITORY IS AN IDENTITY, AND THAT DISTINCTION WAS NOWHERE. **23 AT-RISK FILES → 9.** THE FIVE STALED CLAUSES ALL REPRODUCE: **6000/6000/0, 140/148, 139/202, 487/500**, AND THE MECHANICS ARTIFACT FIELD FOR FIELD. 2026-09-08
 
 Full account: `docs/_reports/2026-09-08-crlf-digests-and-restale.md`. Row: `docs/RUNNING-NOTES.md`.
@@ -5335,7 +5356,10 @@ shape as P0 #40 — two ratchets that crashed rather than failed for the same re
 **Still red, not filed:** `data/pory-nn.json` at **29.4% corpus drift**. The command is
 `python engine/pory_nn.py`; it is a neural-net train and it republishes `val_logloss` 0.612 and
 `auc` 71.6%, which MODELS.md, the white paper and SUMMARY.md all quote. That is a stop-and-ask, not
-a refresh.
+a refresh. *(Corrected 2026-09-09: as the 5e table row above already records, the 71.6% those documents
+quoted was the policy clone's top-3 — a different measurement that happened to match — and that clone
+figure is now withdrawn against `data/policy-eval.json`; the auc on this line is PORY-NN's own and is
+unaffected.)*
 
 ### 5f. IS THE DRIFT THRESHOLD A TREADMILL? Yes, and the unit is wrong — DECIDED 2026-08-04
 

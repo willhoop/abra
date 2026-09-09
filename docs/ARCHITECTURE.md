@@ -39,8 +39,12 @@ forme to `brought`, so a Pokémon that mega-evolved counted twice. `brought` bec
 games, which failed CHOMP-EV's "exactly four" filter and collapsed its eval set from ~1,200 games to
 **43**. No test guarded the shape of the store.
 
-**1.6 Half the store was duplicate rows.** 14,361 lines, 7,315 unique games — 7,040 duplicates from
-`merge -X ours` reconciliations. Every "14,355 games" claim was inflated ~2×, and duplicated rows
+**1.6 Half the store was duplicate rows.** 14,361 lines, 7,315 unique games — 7,040 duplicate lines from
+divergent reconciliations of the append-only store. *(This document first named `merge -X ours` as the
+mechanism. CHANGELOG 3.1.2 withdrew that diagnosis the same day in favour of the `merge=union` driver,
+and CHANGELOG 3.23.0 then recorded a fourth duplication AFTER that driver was removed — so the mechanism
+is a hypothesis with a known counter-example, not a confirmed cause; corrected here 2026-09-09.)* Every
+"14,355 games" claim was inflated ~2×, and duplicated rows
 narrow confidence intervals without adding information. Two marginal results lost significance when
 it was fixed.
 

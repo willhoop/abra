@@ -10,6 +10,137 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.275.0] — 2026-09-09
+
+### Added
+- **Two review documents, landed as dated records.** `docs/ARCHITECTURE-REVIEW-2026-09-09.md`
+  (verdict: FIX THEN SHIP) and `docs/THESIS-DEFENCE-REVIEW-2026-09-09.md` with its `.pdf` (verdict:
+  MAJOR REVISIONS), fed by nine `docs/_reports/2026-09-09-pre-600-*.md`, `-fix-*.md` and
+  thesis-notes records. Both are declared `unversioned_exempt` in `data/docs-currency-baseline.json`,
+  because a dated review is a record, not a living document, and a page of raw readings cannot pass
+  the untraceable-figures clause — the same reason `docs/_reports/` is exempt.
+- `data/smogon-priors.observed.json` — the cron's new write target, twinned from the frozen file
+  (see Fixed). It must be added by name with this release; a `git add` on a missing path exits 128
+  under `bash -e` and kills the collector's commit step.
+- `docs/ROADMAP.md` #550 — the store drop, the two guards that looked past it, and the guard that
+  now exists. The runner wiring stays open on that row.
+- `build/compress-stores.js --check` gained a clause: the shards on disk must carry every id git
+  tracked at `HEAD~1`, in either tracked form (`data/parsed/<store>/*.jsonl.gz` or the retired
+  `data/<store>.jsonl.gz`). It reads git, never the local file, and THROWS on a shallow clone rather
+  than passing quietly.
+
+### Fixed
+- **THE SHARDING CUTOVER DROPPED 15,862 GAMES FROM THE TRACKED STORE AND EVERY CHECK WAS GREEN.**
+  `18432bcb` (2026-09-06 16:25 -0400) sharded the LOCAL plain file, two weeks behind origin, 51
+  minutes after `d2a418a5` had committed 88,346 ladder and 31,286 bo3 ids to the monoliths;
+  `--verify-parsed` proved the shards identical to the wrong file. Recovered from `d2a418a5`
+  into five new write-once shards: ladder 81,269 -> 92,379 ids, bo3 28,049 -> 32,801, ots
+  unchanged at 4,167; `comm -23` of the monolith ids against all shards 0 / 0 / 0; no existing
+  shard changed. `build/compress-stores.js --check` now asserts the shards carry every id git
+  tracked at `HEAD~1` in either form — red on a one-row break, red on a worktree at `18432bcb`
+  (`LOST 11513` ladder, `LOST 5764` bo3), green on the tree in 8.7 s. `engine/dedupe_store.py`
+  wrote CRLF on Windows (Python text mode, `os.linesep`), measured on a 5-row probe and fixed with
+  `newline='\n'` before it touched the store. `engine/sanity_check.py` reads 94/2 instead of 95/1:
+  the added red is a `brought` of six on one recovered game the tracked store already held at
+  `d2a418a5` — an ingest defect the recovery surfaced, not one it created.
+  `docs/_reports/2026-09-09-fix-store-recovery.md`.
+- **THE SMOGON CRON REWROTE A FROZEN ENGINE SOURCE EVERY MONTH.** `engine/smogon_priors.js` stamps
+  `generated: <today>` unconditionally, `data/smogon-priors.json` is in `SOURCES`, and
+  `smogon-stats.yml` staged it on the 4th and 11th — proven 2026-09-09: same month in, same month
+  out, two lines changed, both the date; three bot commits (08-04, 08-11, 09-04) each minted a new
+  engine digest and stranded every release before it. The workflow now writes
+  `data/smogon-priors.observed.json` and restores the frozen file; the engine's copy moves only by a
+  hand run of `node engine/smogon_priors.js`. Mirrors the `move-priors.observed.json` fix in
+  `ingest.yml`. Workflow-only, so release `b730e44f3314` reads NO-DRIFT.
+  `docs/_reports/2026-09-09-fix-smogon-cron.md`.
+- **FIVE REFUTED MECHANISMS WERE STILL STATED AS FACT IN THE LIVING DOCUMENTS.** The union merge driver
+  as "the confirmed cause" of the store duplicating (`CLAUDE.md`) — 3.23.0 had already recorded a fourth
+  duplication 208 commits after the driver was removed and a fifth event of a different shape; it is now a
+  hypothesis with its counter-examples, the prohibition on restoring the driver unchanged. A SIXTH shape
+  is recorded: the 2026-09-06 sharding cutover (`18432bcb`) sharded a stale local file and dropped 11,110
+  ladder and 4,752 bo3 games from the tracked shards (id set difference against `d2a418a5`); recovered
+  above. `docs/ARCHITECTURE.md` §1.6 blamed `merge -X ours`, retracted by 3.1.2 the same day it was
+  written. `docs/SEARCH.md` argued from an auto-commit timer dead since 2026-07-25. `docs/ENGINE.md`
+  still headed "ABOUT ONE IN SIX" and instructed 6.0.0 to say "3 causes" — 5.273.0 had retracted both to
+  2 of 19, one hundred lines above. The DAMP STALE marker in `CLAUDE.md` said the other three 2026-08-08
+  defects were "not re-checked"; all four were, with receipts (3.79.0, ROADMAP #100,
+  `chargeSkippedByWeather`, `tests/probe_transform_faint_revert.js`).
+  `docs/_reports/2026-09-09-fix-retractions.md`.
+- **Restated from the artifacts on disk, which the documents contradicted:** WAR `data/war.json`
+  0.6936 vs coin 0.6931, accuracy 0.504, n=3,663, λ=200 selected on held-out (verdict: worse than a coin
+  at every regularisation strength tested); NMF `data/nmf-roles.json` reconstruction error 0.682 at
+  rank 6, and `data/nmf-rank-selection.json` rank 6 at −0.107 excess over null against rank 4 at +0.0775;
+  CHOMP-EV `data/chomp-ev.json` n_test 1,102, log-loss 0.6921, sign test 0.5123 [0.4997, 0.5246],
+  forfeits dropped 0.5082, selection audit n_excluded_human 0; the policy clone `data/policy-eval.json`
+  top-1 0.2979 [0.2914, 0.3045], top-3 0.6564, CE 2.6353 vs baselines 4.7346 / 3.0286.
+- `data/docs-currency-baseline.json`: the two 2026-09-09 reviews declared unversioned; three known
+  retraction restatements recorded for the dated thesis review, on the 07-28 review's precedent.
+- **FIVE CHECKS DIED OF HEAP AFTER THE STORE RECOVERY, AND `status.js --write` RESTAMPED EVERY LEDGER
+  `provenance: NOT DERIVED` AT EXIT 0.** `data/games.bo3.jsonl` at 32,801 rows / 298 MB pushed
+  `tests/test-medicham-coverage.js`, `tests/test-quality.js`, `engine/selftest.js` and
+  `engine/provenance.js` past node's default old space — exit 134, `Ineffective mark-compacts near heap
+  limit`, under `tools/lownode.cmd`. Each now declares `ABRA-HEAP: 4096`, which lownode and
+  `tests/run-all.js` already derive from the script's own source. `tests/test-site-data-fresh.js` was
+  reported OUT OF HEAP by run-all and never was: the FATAL in its stderr came from its bare-`node` child
+  spawn of `provenance.js`, the same spawn shape as `engine/status.js`; both spawns now read the child's
+  declaration and pass the flag BEFORE the script path. Exit codes under lownode, before → after:
+  medicham-coverage 134 → 0, quality 134 → 1, site-data-fresh 1 → 1, selftest 134 → 1, provenance
+  134 → 0 — the 1s are each check's own pre-existing red, not a memory ceiling. No assertion touched.
+  `tests/run-all.js` was not re-run. `docs/_reports/2026-09-09-fix-heap-declarations.md`.
+
+### Removed
+- **RETRACTED — WAR on the clean store: ~~0.7048, accuracy 0.502~~** (the v3.2.0 run on 1,061 games) and
+  the sentences "carries a small real signal", "barely clears" / "only edges" a coin and "beats the rating
+  baseline (0.6905)" — `data/war.json` contains no rating baseline and its verdict forbids the reading.
+  Deleted from the white paper, MODELS, SUMMARY, ROLE-FAMILY and PUBLICATION.
+- **RETRACTED — NMF ~~error 0.53~~** and "topic coherence is the next refinement" (white paper, MODELS,
+  ROLE-FAMILY). The 2026-07-31 defence ruled that *next* is not a justification; the shipped rank is below
+  the null on the project's own criterion and the documents now say so.
+- **RETRACTED — CHOMP-EV ~~1,205 games~~, ~~0.6918~~, ~~0.512 [0.493, 0.535]~~, ~~0.505~~**, and the
+  selection audit "~~eval 6.5 turns / 1280 rating vs 6.08 / 1267 excluded~~ … making the null
+  conservative". `engine/chomp_ev.js:120` drops non-clean games above the qualify test at `:128`, so
+  `audExcl` is structurally empty: the artifact reads `n_excluded_human` 0 and `excluded_mean_turns`
+  null. The comparison was never made; "conservative" is withdrawn with it.
+- **RETRACTED — XATU clone ~~top-1 35.9% (CI 35.2–36.5), top-3 71.6%, CE 2.27, baselines 4.54 / 2.91~~**
+  (white paper §4.2, MODELS, DEFENSE). In no artifact; the cited harness artifact holds different values,
+  now stated beside the withdrawal.
+- **WITHDRAWN — the §1 ceiling ~~0.687 against a coin's 0.693~~ and ~~52.4%, 95% CI [49.9, 54.9]~~**
+  (white paper §1, SUMMARY "Honest ceilings", PUBLICATION item 1). `engine/predictability.py` writes
+  nothing; `data/skill-variance.json` was never built. Both return when an artifact exists.
+- **The 2026-09-06 sharding row's "Supersedes. Nothing. No published figure changed value."** is
+  superseded by the recovery row: the tracked corpus shrank at that commit and no check said so, so
+  every count published off the tracked store between `18432bcb` and 5.275.0 is short by up to
+  11,110 ladder and 4,752 bo3 games.
+
+### Notes
+- **THIS IS A MINOR, NOT A PATCH AND NOT A MAJOR.** Published figures moved — 22 numeric values
+  withdrawn or replaced across 21 figure locations in 7 documents, and the tracked corpus count
+  moved — under an UNCHANGED basis: every replacement answers the same question the old number
+  did, and is read from an artifact already on disk. Nothing here re-ran a generator; each
+  replacement is dated by its artifact's commit (`war.json` 2026-07-28, `nmf-roles.json`
+  2026-08-04, `chomp-ev.json` 2026-08-01, `policy-eval.json` 2026-07-31). All four predate quality
+  filter 1.3.0 (2026-08-27) — the thesis defence's item 11 re-run is still owed and is not claimed.
+- The `52.4%` and `1280 / 1267` literals are written in this file only, on purpose: struck through
+  in a scanned document they would register and accuse `docs/MEASURE.md`'s turn-0 majority-class
+  baseline and `docs/ENGINE.md`'s "1,280 lines", the 9.7%-accuses-10% failure. The hand-typed
+  `RETRACTED` list in `tests/test-docs-current.js` is the right home and is proposed, not written.
+- **Filed, not fixed, this release.** (1) The three games the differential voids as `low-identity`
+  are exactly the three board-parted games — `data/game-differential.json`
+  `mid_void.void_game_tags[].board_parted_at_turn` 4 / 6 / 3 on release `b730e44f3314` — so the
+  6.0.0 sentence is "0 of 958 usable, 3 voided", never "0 of 961"; owed one probe and one
+  attribution per game (ENGINE ledger). (2) The documentation gate has a blind spot found by
+  mutation: `engine/docs_scan.js:626` exempts a whole paragraph from the citation clause if ANY
+  qualifier word appears in it, and `:496` tests a figure by set-membership over every number in
+  the artifact, so `27 of 961 -> 41 of 961` on `docs/MODELS.md:7` passed byte-identical to green
+  (MEASURE ledger, `docs/_reports/2026-09-09-pre-600-test-breaks.md` §h).
+- `tests/test-docs-current.js`: 32/1 before the retraction pass (clause 2b, the undeclared 09-09
+  review), 33/0 after; the derived registry now reads the XATU rates and the CHOMP-EV game count as
+  retracted in writing.
+- Not run this release: `tests/run-all.js` and anything that plays a game. No engine source moved;
+  `node engine/engine_release.js drift b730e44f3314` reads NO-DRIFT.
+
+---
+
 ## [5.274.0] — 2026-09-09
 
 ### Fixed

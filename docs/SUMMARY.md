@@ -1307,7 +1307,7 @@ carry one reconstructed from the commit that contained them, labelled inferred r
 | **DUSK** | Endgame exact solver | 🔜 Roadmap | Solves small boards (≤2v2, 1v1) perfectly — sharpens ALAKAZAM's endgame and gives clean training targets for PORY |
 | **HYPNO** | Opponent read / exploitability dial | 🔜 Roadmap | Estimates opponent strength + predictability; tells ALAKAZAM when to play safe (vs strong) or exploit (vs weak/predictable) |
 | **ROLES** | Multi-label team composition (26 roles) | ✅ Built | Role-pair matrix pools data to median cell **n=20** across 1,051 cells (vs old single-label n=11–18) — the 7,971 once published was retracted in 2.7.0; preview roles tie a coin (honest null) |
-| **WAR** | Wins Above Replacement (species RAPM) | ⚠️ **Null** | **Withdrawn 2026-07-25.** Beat a coin only on the unfiltered store (0.6860). On clean games: **0.7048 vs coin 0.6931, accuracy 0.502** — the signal was four bots playing one team 1,446 times |
+| **WAR** | Wins Above Replacement (species RAPM) | ⚠️ **Null** | **Withdrawn 2026-07-25.** Beat a coin only on the unfiltered store (0.6860). On clean games the artifact `data/war.json` (n=3,663, λ=200 selected on held-out) reads **0.6936 vs coin 0.6931, accuracy 0.504**, verdict *worse than a coin at every regularisation strength tested* (~~0.7048 vs coin 0.6931, accuracy 0.502~~ withdrawn 2026-09-09 — the v3.2.0 run, not the artifact); the unfiltered signal was four bots playing one team 1,446 times |
 | **NMF** | Emergent roles / archetypes | ⚠️ **Rank not defensible** | Rank 6 ships, but the project's own criterion (`engine/nmf_rank.py`, bootstrap factor stability, cf. Brunet et al. 2004) selects **rank 4** — and rank 6 scores **−0.107 excess over null**, i.e. its factors are *less* reproducible across resamples than factors fitted to shuffled data. The old justification here was reconstruction error 0.53, which that same script states **cannot select a rank** (it falls monotonically by construction). A team is a *blend*, learned not hand-labelled — but the number of blends is not currently defended |
 
 **Multiplicity, corrected 2026-07-31.** The fit reports a 95% interval for all 56 features, so at alpha 0.05 about **2.8 of them clear zero by chance alone**. The family is **every feature in the shipped fit**, because every one is reported to the reader — choosing a smaller family after seeing which are large is the practice the correction exists to prevent. Uncorrected, **53** clear zero. Under **Benjamini–Hochberg** (FDR, 1995) **53** survive; under **Bonferroni** (FWER) **49**. Nothing significant uncorrected fails the FDR correction, so the headline count is not an artefact of having looked at 56. Computed by `engine/weight_multiplicity.js` → `data/weight-multiplicity.json`. **This says which weights are distinguishable from zero. It says nothing about whether an imitation-fitted weight is evidence about WINNING** — a separate and larger question this project has measured going the other way.
@@ -1389,8 +1389,9 @@ used.
 ## Honest ceilings
 
 Predicting the match winner from sheets is a coin flip in this format — and the previously published
-55.0% skill ceiling was itself measured with bots included. Removing them gives 52.4%, an interval
-that contains a coin flip. Every preview-level model now sits at that ceiling: JOLTEON, roles,
+55.0% skill ceiling was itself measured with bots included, and its bot-filtered replacement is withdrawn
+2026-09-09 because no artifact carries it (`engine/predictability.py` writes none; `data/skill-variance.json`
+was never built). Every preview-level model now sits at that ceiling: JOLTEON, roles,
 CHOMP-EV, and as of 3.2.0 **WAR, whose result is withdrawn**.
 
 Most results here are also **underpowered**: 1,124 clean games can only detect an edge of ~4.2

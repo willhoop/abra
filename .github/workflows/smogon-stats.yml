@@ -47,10 +47,23 @@ jobs:
       # Rebuild the derived priors, or a newly-fetched month sits unused until someone remembers.
       # smogon_priors.js defaults to the newest archived month, so July's file is picked up the
       # moment it lands. This is the step that actually feeds set construction and the spreads.
-      - name: Rebuild priors from the newest month
+      #
+      # BUT THIS JOB MAY NOT WRITE data/smogon-priors.json — IT IS A FROZEN ENGINE SOURCE
+      # (engine/engine_release.js SOURCES; board.js reads it at run time). smogon_priors.js stamps
+      # `generated: <today>` unconditionally, so a SAME-MONTH re-run rewrites the frozen file with
+      # nothing but a new date. Proven 2026-09-09: month 2026-08 in, 2026-08 out, 2 lines changed,
+      # both the date. Each such commit (2026-08-04, 08-11, 09-04) minted a new engine digest and
+      # stranded every release cut before it. Same defect, same fix as data/move-priors.json in
+      # ingest.yml: the cron COLLECTS into an .observed twin; the engine's copy moves only when a
+      # person runs `node engine/smogon_priors.js` by hand and commits it as a decision.
+      # The redirect lives HERE and not in the script because the script is itself a frozen source —
+      # adding a flag to it would move the tree digest for exactly the reason this step exists.
+      # The restore is unconditional so a dirty frozen file can never reach the rebase below.
+      - name: Rebuild priors from the newest month (observed twin — never the frozen file)
         continue-on-error: true
         run: |
-          node engine/smogon_priors.js
+          node engine/smogon_priors.js && cp -f data/smogon-priors.json data/smogon-priors.observed.json
+          git checkout -- data/smogon-priors.json
           # The Bo3 OPEN-TEAM-SHEET population, into its own file. Smogon has always published it and
           # fetch_smogon_stats.js has always downloaded it; nothing read it until 3.9.0. Separate
           # output on purpose — writing it over smogon-priors.json would repoint every set, spread,
@@ -80,7 +93,7 @@ jobs:
         run: |
           git config user.name  "abra-bot"
           git config user.email "abra-bot@users.noreply.github.com"
-          git add data/smogon-stats data/smogon-priors.json data/smogon-priors-bo3.json data/mew.js
+          git add data/smogon-stats data/smogon-priors.observed.json data/smogon-priors-bo3.json data/mew.js
           if git diff --cached --quiet; then
             echo "no new stats this run"; exit 0
           fi

@@ -59,10 +59,10 @@ the logistic slope of ¼ at a coin flip:
 
 > **WAR = 0.25 × (β − β_replacement) × games appeared.**
 
-**Result — WITHDRAWN.** The species model appeared to beat a coin at held-out log-loss 0.6875 vs 0.6931, a figure **withdrawn 2026-07-25** — that figure was measured on the UNFILTERED store; on quality-filtered games WAR scores 0.7048 against a coin's 0.6931 (accuracy 0.502). The apparent signal was four bot accounts playing one team in 1,446 games — and beats the
-rating baseline (0.6905). So *which specific species* you bring at preview carries a small, real signal
-that roles alone and raw sheets do not. Leaders: Basculegion, Kingambit, Sylveon; trailers negative
-(Maushold, Raichu). Effect sizes are small and the magnitudes are ridge-shrunk, so WAR is an exploratory
+**Result — WITHDRAWN.** The species model appeared to beat a coin at held-out log-loss 0.6875 vs 0.6931, a figure **withdrawn 2026-07-25** — that figure was measured on the UNFILTERED store. The clean-store figure this paragraph then carried (~~0.7048 against a coin's 0.6931, accuracy 0.502, "and beats the rating baseline (0.6905)"~~) is withdrawn 2026-09-09: `data/war.json` (2026-07-28; n_games 3,663; λ = 200 selected on held-out log-loss) reads **0.6936 against a coin's 0.6931, accuracy 0.504**, verdict *"WORSE THAN A COIN AT EVERY REGULARISATION STRENGTH TESTED"*, and it contains no rating baseline at all. The apparent signal was four bot accounts playing one team in 1,446 games.
+**WAR does not beat a coin; which specific species you bring at preview carries no demonstrated signal.**
+Leaders: Basculegion, Kingambit, Sylveon; trailers negative
+(Maushold, Raichu) — a descriptive ordering of preview co-occurrence, ridge-shrunk, not evidence that a species wins games: an exploratory
 ordering, not settled wins.
 
 ## 4. Emergent archetypes (NMF)
@@ -78,7 +78,7 @@ Two cuts:
 
 - **Team × move usage** (weighted by real in-battle usage, which down-weights the closed-sheet censoring
   bias) recovers **offensive cores** but is dominated by attacking moves — reconstruction error 0.79.
-- **Team × role** recovers **six clean archetypes** — reconstruction error **0.53**:
+- **Team × role** at the shipped rank 6 — reconstruction error **0.682** (`data/nmf-roles.json:archetype_recon_error`, 2026-08-04; ~~0.53~~ withdrawn 2026-09-09, an earlier run's value). On the project's own criterion the shipped rank scores **−0.107** excess over a shuffled null (`data/nmf-rank-selection.json`; rank 4 is the most reproducible at +0.0775), so the six below are named, not defended:
 
 | # | Archetype | Composition (top roles) | Share |
 |---|---|---|---|
@@ -95,13 +95,15 @@ which the move-level cut could not surface. The only human choices are the **ran
 
 ## 5. Honest limits
 
-- Preview composition barely separates from a coin. Role-level winner prediction ties it; WAR only
-  edges it. The game is decided in play, not at preview — consistent with ABRA's central finding.
+- Preview composition does not separate from a coin. Role-level winner prediction ties it; WAR loses to
+  it (`data/war.json` verdict; ~~"WAR only edges it"~~ withdrawn 2026-09-09). The game is decided in play, not at preview — consistent with ABRA's central finding.
 - Role tags are a **censored lower bound** on capability: closed sheets reveal only the moves that were
   actually clicked.
 - NMF factors are soft, and at the move level attacker roles dominate. Reconstruction error is **not**
-  comparable across different weightings; the correct model-selection criterion is **topic coherence**
-  (Mimno et al., 2011), which is the noted next refinement rather than something already done.
+  comparable across different weightings and cannot select a rank (`engine/nmf_rank.py`); the criterion this
+  project actually ran — bootstrap factor stability — puts the shipped rank 6 below the null (§4).
+  ~~Topic coherence (Mimno et al., 2011) is the noted next refinement~~ — deleted 2026-09-09: not run, and
+  *next* is not a justification.
 
 ## Sources
 

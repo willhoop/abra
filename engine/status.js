@@ -216,7 +216,13 @@ const PROV_RUN = (() => {
    * the same "provenance did not speak" state the diagnostics line describes. */
   if (process.argv.includes('--selftest')) return { txt: '', tripped: false, err: null, skipped: true };
   try {
-    const txt = execFileSync(process.execPath, [D('engine', 'provenance.js'), '--verdicts-out=' + VOUT],
+    /* HONOUR THE CHILD'S OWN `ABRA-HEAP` DECLARATION, as tests/run-all.js and tools/lownode.cmd do.
+     * 2026-09-09: provenance.js reads the store whole and dies at exit 134 at the default heap since
+     * the store recovery. Spawned bare, it died with no stdout, and `--write` then restamped every
+     * ledger `provenance: NOT DERIVED` and exited 0. The flag goes BEFORE the script path. */
+    const provHeap = (fs.readFileSync(D('engine', 'provenance.js'), 'utf8').match(/ABRA-HEAP:\s*(\d+)/) || [])[1];
+    const txt = execFileSync(process.execPath,
+      [...(provHeap ? ['--max-old-space-size=' + provHeap] : []), D('engine', 'provenance.js'), '--verdicts-out=' + VOUT],
       { encoding: 'utf8', maxBuffer: 1 << 24 });
     loadVerdicts();
     return { txt, tripped: false, err: null };

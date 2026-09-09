@@ -1,5 +1,10 @@
 /* test-quality.js — the JS and Python quality filters must select the SAME games.
  *
+ * ABRA-HEAP: 4096
+ * (declared 2026-09-09: reads a store whole, and data/games.bo3.jsonl is 32,801 rows / 298 MB since the
+ * store recovery that day; at the default heap this died at exit 134, `Ineffective mark-compacts near
+ * heap limit`. tools/lownode.cmd and tests/run-all.js derive the flag from this line.)
+ *
  * Two readers of one config is still two implementations, and the architecture review's finding was
  * that duplication which cannot be removed must at least be OBSERVABLE. This is that check: it runs
  * both readers over the real store and asserts the selected id sets are identical. If someone edits

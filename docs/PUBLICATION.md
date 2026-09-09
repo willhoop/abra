@@ -13,12 +13,15 @@ ties a coin.** So we stopped predicting outcomes and built a *decision* stack; e
 proper score, a confidence interval, and an honest baseline.
 
 ## Headline findings (each measured, with a baseline)
-1. **Winner-from-sheets ≈ a coin.** Player-Elo held-out log-loss 0.687 vs coin 0.693. A cloned-policy
+1. **Winner-from-sheets ≈ a coin.** ~~Player-Elo held-out log-loss 0.687 vs coin 0.693~~ — withdrawn 2026-09-09:
+   no artifact carries it (`engine/predictability.py` writes nothing; `data/skill-variance.json` does not
+   exist). The artifact-backed nulls are items 4, 7 and 8 below. A cloned-policy
    rollout win% is *below* a coin — systematically inverted (backs fast offensive teams that lose).
 2. **The damage engine is exact.** Within 5% of the Smogon damage calculator on 100% of 31 scenarios (median 0%).
 3. **RETRACTED — the live board is predictable only in the sense that counting Pokémon predicts it.** PORY mid-game win% log-loss 0.567 vs coin 0.693,
    calibrated to ECE 1.6%, clustered CI [0.548, 0.583].
-4. **Picking the team doesn't beat a coin (honest null).** CHOMP-EV on 1,205 held-out games: bring
+4. **Picking the team doesn't beat a coin (honest null).** CHOMP-EV on ~~1,205~~ **1,102** held-out games
+   (`data/chomp-ev.json:n_test`; the struck count is in no artifact and is withdrawn 2026-09-09): bring
    quality ties coin/Elo/usage; robust to dropping forfeits; a belief-weighted variant also ties.
 5. **The meta *looks* rock-paper-scissors, but it's a hint.** Playstyle cycle (Trick Room → Hyper
    Offense → Sand) on only 13–18 games/leg, CIs cross 50% — suggestive, not settled.
@@ -28,9 +31,9 @@ proper score, a confidence interval, and an honest baseline.
    26 functional roles it reveals (not one archetype) lifts the median matchup cell from n≈15 to
    **n=20** across 1,051 cells (2026-07-25, clean games) — still above the old single-label cells of 11–18, but only just. An earlier n=7,971 was retracted in 2.7.0 as an over-tagging artifact. But predicting the winner from preview
    roles still **ties a coin** (0.694 vs 0.693): roles describe and attribute, they don't predict.
-8. **WAR: which *species* you bring carries a small real signal.** A ridge Adjusted-Plus-Minus (RAPM)
-   model on preview species appeared to beat a coin (0.6875 vs 0.6931), a result **withdrawn 2026-07-25** — that figure was measured on the UNFILTERED store; on quality-filtered games WAR scores 0.7048 against a coin's 0.6931 (accuracy 0.502). The apparent signal was four bot accounts playing one team in 1,446 games — where
-   roles and raw sheets do not. Leaders Basculegion / Kingambit / Sylveon; effect sizes small, ridge-shrunk.
+8. **WAR: a null — which *species* you bring carries no demonstrated signal.** A ridge Adjusted-Plus-Minus (RAPM)
+   model on preview species appeared to beat a coin (0.6875 vs 0.6931), a result **withdrawn 2026-07-25** — that figure was measured on the UNFILTERED store. The clean-store figure this item then carried (~~0.7048 against a coin's 0.6931, accuracy 0.502~~) is withdrawn 2026-09-09: `data/war.json` (n=3,663, λ=200 selected on held-out) reads 0.6936 vs coin 0.6931, accuracy 0.504, verdict *worse than a coin at every regularisation strength tested*. The apparent unfiltered signal was four bot accounts playing one team in 1,446 games.
+   Leaders Basculegion / Kingambit / Sylveon are a descriptive ordering only; effect sizes small, ridge-shrunk.
 9. **Roles can be discovered, not declared.** NMF of the team×role matrix recovers six interpretable
    archetypes — Intimidate+Fake-Out control, physical offense, special offense+sustain,
    bulky wall+screens+redirection, Tailwind+Encore, priority — with each team a *blend*, never one label.

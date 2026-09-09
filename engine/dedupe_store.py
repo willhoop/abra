@@ -62,7 +62,10 @@ def main():
         return 1
     d = os.path.dirname(path)
     fd, tmp = tempfile.mkstemp(dir=d, suffix='.tmp')   # same filesystem, so the replace is atomic
-    with os.fdopen(fd, 'w', encoding='utf-8') as out:
+    # newline='\n' because Python text mode writes os.linesep, which is CRLF on Windows: measured
+    # 2026-09-09, a 5-row LF store came back with 5 CR bytes and a different sha256. The shards are
+    # a byte-identity contract (compress-stores.js --verify-parsed), so the terminator is content.
+    with os.fdopen(fd, 'w', encoding='utf-8', newline='\n') as out:
         out.write('\n'.join(keep) + '\n')
     os.replace(tmp, path)
     after, dup_after, _, _ = scan(path)

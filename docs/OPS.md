@@ -12,17 +12,40 @@ game rather than a re-run.
 
 ```
 OPS — the live bot and the store
-  store: 81173 games, 26233 usable (32.3%), 23306 teams   (live.js 2026-09-09)
+  store: 81269 games, 26262 usable (32.3%), 23332 teams   (live.js 2026-09-09)
   live-games/: 34 battles recorded
-  data/games.ladder.jsonl      last written 2026-09-04 01:30
-  data/games.bo3.jsonl         last written 2026-09-04 01:30  <- the Force-OTS format, collected hourly
-  data/games.ots.jsonl         last written 2026-08-21 22:35  <- FROZEN external import, complete; date is an import, not a heartbeat
+  data/games.ladder.jsonl      last written 2026-09-09 13:05
+  data/games.bo3.jsonl         last written 2026-09-09 13:05  <- the Force-OTS format, collected hourly
+  data/games.ots.jsonl         last written 2026-09-09 13:01  <- FROZEN external import, complete; date is an import, not a heartbeat
 ```
 
-_stamped 2026-09-09 08:09_
+_stamped 2026-09-09 14:14_
 
 <!-- /GENERATED -->
 
+## THE SHARDING CUTOVER DROPPED 11,110 LADDER AND 4,752 BO3 GAMES FROM THE TRACKED STORE AND TWO GUARDS LOOKED PAST IT; RECOVERED. THE SMOGON CRON STOPS REWRITING A FROZEN SOURCE. 2026-09-09, CHANGELOG 5.275.0
+
+**THE STORE.** `18432bcb` (2026-09-06) sharded the LOCAL plain file, two weeks behind origin, 51 minutes
+after `d2a418a5` had committed 88,346 ladder and 31,286 bo3 ids. `--verify-parsed` proved the shards
+identical to the wrong file; the runner's shrink guard measures `wc -l` against a store restored FROM
+the shards, so a short shard set was the new floor. Recovered into five write-once shards
+(`data/parsed/games.{ladder,bo3}/20260909T1708-*`): ladder 81,269 -> 92,379 ids, bo3 28,049 -> 32,801,
+ots 4,167 unchanged; `comm -23` of the monolith ids against all shards 0 / 0 / 0; no existing shard
+changed. `build/compress-stores.js --check` now asserts the shards carry every id git tracked at
+`HEAD~1`, shown red on a replay of the cutover. Register row #550. Account:
+`docs/_reports/2026-09-09-fix-store-recovery.md`.
+
+**THE CRON.** `.github/workflows/smogon-stats.yml` staged `data/smogon-priors.json` — a release SOURCE —
+on the 4th and 11th, and the only bytes that moved were the `generated` date: three engine digests
+minted for nothing. It now writes `data/smogon-priors.observed.json` and restores the frozen file;
+promotion is a hand run of `node engine/smogon_priors.js`. Account: `docs/_reports/2026-09-09-fix-smogon-cron.md`.
+
+**OPS OWES, in this order:** `git add` the five shards and the observed twin by name — the twin is
+untracked and the collector's `git add` exits 128 without it; wire `--check` into `ingest.yml` after
+its shard step (on a `fetch-depth: 1` checkout it throws on `HEAD~1`, which is the loud answer);
+`engine/sanity_check.py` is 94/2 and both reds are parser defects the store now exhibits — a `brought`
+of six on `gen9championsvgc2026regmb-2676161109` and two non-ASCII `winner` mismatches — and it reads
+the local ladder file only.
 ## TWO STORE DEFECTS THIS LEDGER HELD AS PROSE ARE NOW REGISTER ROWS, AND NEITHER HAS AN INSTRUMENT. 2026-09-04, CHANGELOG 5.246.0
 
 **NOTHING IN THE STORE MOVED IN THIS PASS.** No ingest, no bot session, no publication, no re-parse.

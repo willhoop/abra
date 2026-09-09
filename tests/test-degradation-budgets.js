@@ -1,6 +1,10 @@
 /* test-degradation-budgets.js — this project already measures its own degradation. Nothing fails
  * when it gets bad. That is the universal defect, and this is the universal guard.
  *
+ * ABRA-HEAP: 4096
+ *   (2026-09-09: the store recovery took data/games.bo3.jsonl to 32,801 rows / 298 MB, and this test
+ *   reads a store whole — it died at the default heap, exit 134, in the clean suite run that evening.)
+ *
  *   node tests/test-degradation-budgets.js            check against data/degradation-budgets.json
  *   node tests/test-degradation-budgets.js --measure  print today's rates without judging them
  *   node tests/test-degradation-budgets.js --ratchet  tighten every budget to today's rate

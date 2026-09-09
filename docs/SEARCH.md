@@ -28,7 +28,7 @@ SEARCH — does MILTANK choose better than MAG
     data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
     MEDICHAM is not correct — 1 of 9 gate clauses fail (whole-game differential / NARRATION — protocol divergence with no board effect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-09-09 07:45):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-09-09 11:44):
     PRE-CHANGE games.r4c-shipped2.jsonl  2026-08-14 22:28
     PRE-CHANGE games.r4c-shipped.jsonl  2026-08-14 17:21
     PRE-CHANGE games.r4b-search.jsonl  2026-08-14 13:02
@@ -36,7 +36,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
 ```
 
-_stamped 2026-09-09 08:09_
+_stamped 2026-09-09 14:14_
 
 <!-- /GENERATED -->
 
@@ -2503,7 +2503,9 @@ never existed.
 
 **Why a digest set and not a git tag.** A tag names a commit, and this repo has already published a
 result whose own stamp reads *"TREE WAS DIRTY — trust source_digests, not the commit"* (R3, in the
-generated block above). An unattended auto-commit publishes on a timer here, so a commit id is not a
+generated block above). ~~An unattended auto-commit publishes on a timer here~~ *(struck 2026-09-09: that
+timer last fired 2026-07-25 16:51 and was measured dead on 2026-08-06 — CLAUDE.md, "THE AUTO-COMMIT IS
+DEAD"; the dirty-tree reason alone carries the argument)*, so a commit id is not a
 stable statement about what a process loaded; the bytes are. A tag is still worth pushing as a human
 handle (`git tag engine/E1-2026-08-05`), and it is a **convenience, not the authority**.
 

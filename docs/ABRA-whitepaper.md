@@ -1488,11 +1488,16 @@ does not buy depth, and the phase-2 gate is about depth.
 
 ## 1. The empirical ceiling (why the design is what it is)
 
-On 600+ held-out real Champions games, a Bradley-Terry player-Elo model reaches a held-out log-loss of
-**0.687 against a coin's 0.693** — a real but negligible edge. **A 2026-07-25 re-measurement makes the
-ceiling lower still:** the previously published "higher-rated player wins 55.0%" was computed with a
-name-only bot filter that missed six high-volume accounts. Removing them gives **52.4%, 95% CI
-[49.9, 54.9]** — an interval containing a coin flip. A cloned-policy rollout engine
+**Withdrawn 2026-09-09 — the ceiling figures this section carried have no artifact.** It stated a
+Bradley-Terry player-Elo held-out log-loss against a coin's on 600+ held-out real Champions games, and a
+bot-filtered "higher-rated player wins" rate with its 95% CI (which had replaced an earlier figure that
+was computed with a name-only bot filter that missed six high-volume accounts). Neither number exists in
+any artifact: `engine/predictability.py` prints and writes nothing (no `json.dump`), and the deliverable
+that `docs/STUDY-DESIGN-skill-vs-luck.md` §6 specifies — `engine/skill_variance.py` →
+`data/skill-variance.json` — does not exist. Both figures are deleted rather than captioned, and return
+when that artifact does. The qualitative claim of this section — that preview-level prediction sits at a
+coin — is carried by the artifact-backed nulls in §4 and the appendix (`data/roles-eval.json`,
+`data/war.json`, `data/chomp-ev.json`). A cloned-policy rollout engine
 (MEDICHAM) does *worse* than a coin as a raw win-predictor.
 
 **Re-measured 2026-08-04 on 6,886 clean games**, against the leaves MILTANK actually calls rather than
@@ -1673,9 +1678,13 @@ simulated) payoff matrix that SLOWKING solves. Output: `data/guru-matchups.json`
 
 ### 4.2 XATU — opponent belief (modest, useful)
 `engine/xatu.py` learns, per species, the set (item/ability/moves) usually run, and predicts the
-opponent's next move from state. On held-out human moves the behaviour-clone reaches **top-1 35.9%
-(CI 35.2–36.5), top-3 71.6%**, cross-entropy 2.27 nats — beating a species-agnostic baseline (4.54) and
-uniform-over-moveset (2.91). A modest but real signal; human move choice has genuine entropy. Output:
+opponent's next move from state. On held-out human moves the behaviour-clone was reported here at
+~~top-1 35.9% (CI 35.2–36.5), top-3 71.6%, cross-entropy 2.27 nats, baselines 4.54 and 2.91~~ — **withdrawn
+2026-09-09: no artifact carries those figures.** The harness artifact this sentence cites,
+`data/policy-eval.json` (`species_only_clone`, committed 2026-07-31), reads top-1 0.2979 [0.2914, 0.3045],
+top-3 0.6564, cross-entropy 2.6353 nats against baselines 4.7346 (global move frequency) and 3.0286
+(uniform over moveset). The clone beats both baselines there too, so the qualitative reading — a modest
+signal, with genuine entropy in human move choice — stands on the artifact's numbers, not on the withdrawn ones. Output:
 `data/xatu.json`, `data/xatu.js`; harness `engine/eval_policy.py` → `data/policy-eval.json`.
 
 ### 4.3 PORY — mid-game win probability (RETRACTED as a value net; it is material arithmetic)
@@ -1688,14 +1697,20 @@ wired into KADABRA as a per-turn "you're at X%". Output: `data/pory.js`; report 
 ### 4.4 CHOMP-EV — do CHOMP's brings beat humans'? (honest NULL)
 The winnable team-preview test. For each held-out game (both full sixes, both actual brings, the
 winner), `engine/chomp_ev.js` ranks each side's *actual* bring among all 15 candidate brings by
-CHOMP's exact-damage coverage, and asks whether that quality signal tracks who won. On **1,205 games**:
-CHOMP's bring ranking **does not beat a coin** (held-out log-loss 0.6918 vs 0.6931, CIs overlap), ties
+CHOMP's exact-damage coverage, and asks whether that quality signal tracks who won. On **1,102 games**
+(`data/chomp-ev.json:n_test`; the ~~1,205~~ this sentence carried is withdrawn 2026-09-09 — it is in no artifact):
+CHOMP's bring ranking **does not beat a coin** (held-out log-loss 0.6921 vs 0.6931, CIs overlap), ties
 an Elo and a usage-prior baseline, and winners are only marginally more CHOMP-aligned than losers
-(sign test 0.512, CI [0.493, 0.535]). It is **robust to forfeits** (0.505; a forfeit is usually a
-concession from a losing position, and dropping all forfeits does not change the result), and a
-measured **selection audit** shows the required "all four revealed" filter is a mild bias (eval 6.5
-turns / 1280 rating vs 6.08 / 1267 excluded) that, if anything, *favours* CHOMP — making the null
-conservative. A **belief-weighted** variant (coverage vs the opponent's likely-4) also ties the coin
+(sign test 0.5123, CI [0.4997, 0.5246]). It is **robust to forfeits** (0.5082 with every forfeit dropped; a
+forfeit is usually a concession from a losing position, and dropping them does not change the result).
+The **selection audit** this paragraph cited as measured — the required "all four revealed" filter as a
+mild, CHOMP-favouring bias "making the null conservative" — is withdrawn 2026-09-09: the artifact's audit
+measured ZERO excluded games (`selection_audit.n_excluded_human` = 0, `excluded_mean_turns` = null),
+because `engine/chomp_ev.js` drops every non-clean game before the qualifying test and the clean set already
+enforces `require_full_bring`, so the comparison was never made. The four audit numbers previously printed
+here are deleted, not restated; no artifact establishes the direction of the bias, and the only measurement
+of it is a dated, non-artifact pass recorded in `docs/_reports/2026-09-09-thesis-defence-notes.md`, which
+is not a published figure. A **belief-weighted** variant (coverage vs the opponent's likely-4) also ties the coin
 (0.6924). Interpretation: the bring decision sits at the same near-coin ceiling as pre-game prediction;
 CHOMP's damage math stays validated and useful as a calculator, but "CHOMP builds better brings" is not
 yet empirically supported. This negative is a guardrail: it stops optimising a bring metric that
@@ -1965,25 +1980,30 @@ logistic slope 1/4 at p = 0.5,
 
   WAR_s = 0.25 · (β_s − β_replacement) · (games s appeared).
 
-Held-out, the species model reached log-loss 0.6875 against a coin's 0.6931 — a result now **withdrawn 2026-07-25** — that figure was measured on the UNFILTERED store; on quality-filtered games WAR scores 0.7048 against a coin's 0.6931 (accuracy 0.502). The apparent signal was four bot accounts playing one team in 1,446 games. It does not beat a coin: *which specific species* you bring at preview carries a small real signal that roles and raw
-sheets do not. Leaders are Basculegion, Kingambit, Sylveon; trailers are negative. Effect sizes are small
-and magnitudes ridge-shrunk — reported as an exploratory ordering, not settled wins.
+Held-out, the species model reached log-loss 0.6875 against a coin's 0.6931 — a result now **withdrawn 2026-07-25** — that figure was measured on the UNFILTERED store. The clean-store figure this paragraph then carried (~~0.7048 against a coin's 0.6931, accuracy 0.502~~, the v3.2.0 run on the smaller clean store of that date) is withdrawn 2026-09-09 as well, because it is not what the artifact says. `data/war.json` (2026-07-28; n_games 3,663; λ = 200 selected on held-out log-loss over an eleven-point grid) reads **0.6936 against a coin's 0.6931, accuracy 0.504**, verdict *"WORSE THAN A COIN AT EVERY REGULARISATION STRENGTH TESTED"* — the model loses at its own optimum, and that optimum was selected on the same held-out partition it is scored on, which biases the score in the model's favour. The apparent signal in the unfiltered run was four bot accounts playing one team in 1,446 games.
+**WAR does not beat a coin, and which specific species you bring at preview carries no demonstrated signal.** Leaders (Basculegion, Kingambit, Sylveon) and trailers are a descriptive ordering of preview co-occurrence, stable across λ, and not evidence that a species wins games —
+an exploratory ordering, not settled wins.
 
 ### Emergent roles by NMF
 Rather than hand-declaring roles, we factorize the data with **Non-negative Matrix Factorization**
 (Lee & Seung 1999): X ≈ W H with W, H ≥ 0, so each team is a non-negative **blend** of latent roles and
 each role is a recipe over features. Two cuts: (1) the team×move usage matrix (usage-weighted, which
 down-weights the closed-sheet censoring skew) recovers **offensive cores** but is dominated by attacking
-moves (relative reconstruction error 0.79); (2) the team×role matrix recovers **six clean archetypes**
-(error 0.53): Intimidate+Fake-Out control, physical offense, special offense+sustain, bulky wall+screens+
-redirection, Tailwind+Encore, priority. A move's loading on a role is **learned, not typed** — this is the
+moves (relative reconstruction error 0.79); (2) the team×role matrix at the shipped rank 6 has reconstruction
+error **0.682** (`data/nmf-roles.json:archetype_recon_error`, regenerated 2026-08-04; the ~~0.53~~ this
+sentence carried is withdrawn 2026-09-09 — an earlier run's value) and names six archetypes: Intimidate+Fake-Out control, physical offense, special offense+sustain, bulky wall+screens+
+redirection, Tailwind+Encore, priority. **The shipped rank is below the null on the project's own criterion:**
+`data/nmf-rank-selection.json` (bootstrap factor stability against a shuffled-data null, Brunet et al. 2004)
+gives rank 6 an excess over null of **−0.107** (stability 0.8148 against a null of 0.9218) and selects
+**rank 4** as the most reproducible (+0.0775). A move's loading on a role is **learned, not typed** — this is the
 principled source of graded primary/secondary strength (Label Distribution Learning, Geng 2016). The rank
-and the human names are the only non-data choices. Reconstruction error is **not** comparable across
-weightings; the correct model-selection criterion is **topic coherence** (Mimno et al. 2011), noted as the
-next refinement.
+and the human names are the only non-data choices, and the rank is not defended. Reconstruction error is **not** comparable across
+weightings and `engine/nmf_rank.py` states it cannot select a rank (it falls monotonically by construction).
+Topic coherence (Mimno et al. 2011) was named here as "the next refinement"; it has not been run, and
+*next* is not a justification (the 2026-07-31 defence's ruling, applied here 2026-09-09).
 
 ### Honest limits
-Preview-composition signal is small; role-level winner-prediction ties a coin and WAR barely clears it.
+Preview-composition signal is not demonstrated: role-level winner-prediction ties a coin and WAR loses to one (`data/war.json` verdict — worse than a coin at every regularisation strength tested; ~~"WAR barely clears it"~~ withdrawn 2026-09-09).
 Role tags are a censored lower bound on capability (closed sheets reveal only used moves). NMF factors are
 soft and attacker-dominated at the move level. None of these is hidden; each is reported with its baseline.
 

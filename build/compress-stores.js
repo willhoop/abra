@@ -2,7 +2,7 @@
 /* compress-stores.js — write the compressed shards that git actually tracks.
  *
  *   node build/compress-stores.js                    # shard any parsed store row git does not have
- *   node build/compress-stores.js --check            # exit 1 if the shards lag a store, change nothing
+ *   node build/compress-stores.js --check            # exit 1 if the shards lag a store OR lost an id HEAD~1 tracked; changes nothing
  *   node build/compress-stores.js --verify-parsed    # reassemble to a temp dir, sha256 vs the store
  *   node build/compress-stores.js --restore-parsed   # rebuild the plain parsed stores from shards
  *   node build/compress-stores.js --raw              # append this run's NEW raw logs as a dated shard
@@ -285,20 +285,33 @@ function shardedRows(dir) {
   return { ids, rows, bytes, shards: shardsIn(dir).length };
 }
 
-/* THE SAME COUNT WITHOUT THE ID SET, BECAUSE `--check` IS A GATE AND A 58-SECOND GATE GETS SKIPPED.
+/* THE CHECK THAT WOULD HAVE CAUGHT 2026-09-06. The cutover (18432bcb) sharded a LOCAL plain file
+ * that was two weeks behind origin, and --verify-parsed proved the shards byte-identical TO THAT
+ * FILE — so 11,110 ladder and 4,752 bo3 games that d2a418a5 tracked left the tracked store with
+ * every check green. The comparison nobody made was tracked-now against tracked-before. This reads
+ * the ids git TRACKED one commit ago — both forms, the shards and the retired monolith, so a cutover
+ * between forms is inside the claim — and never the local file, because the local file was the thing
+ * that was wrong. It THROWS rather than skips when HEAD~1 cannot be read (a shallow clone), because
+ * a check that quietly passes on missing history is the shape of failure it exists to catch.
  *
- * Measured 2026-09-06: shardedRows() over all three stores costs 58 s, and essentially all of it is
- * the latin1 decode plus regex on 106,522 rows averaging ~5 KB. Counting newlines on the buffer is
- * 6 s for the same gunzip. `--check` only ever asked "do the shards carry every row of the store",
- * and under append-only-and-deduped-by-id — which is a CONSTRUCTION property of these files, not an
- * assumption — the row count answers exactly that.
- *
- * IT IS A COUNT AND IT SAYS SO. A count cannot tell you a row is the WRONG row. `--verify-parsed` is
- * the claim that the bytes match, and it is 8 s because it never builds an id set either. */
-function shardedCount(dir) {
-  let rows = 0;
-  for (const f of shardsIn(dir)) rows += countLines(zlib.gunzipSync(fs.readFileSync(path.join(dir, f))));
-  return { rows, shards: shardsIn(dir).length };
+ * COST. `--check` used to count newlines instead of building the id set, on a 2026-09-06 measurement
+ * of 58 s for shardedRows(). Re-measured 2026-09-09 on the same code: 2.2 s ladder, 1.4 s bo3, and
+ * `git show` of all 45 tracked blobs 2.2 s — so the whole --check is ~10 s, and it now builds the id
+ * set it needs. */
+function trackedIds(rev, store) {
+  const cp = require('child_process');
+  const ROOT = path.join(__dirname, '..');
+  const git = args => {
+    const r = cp.spawnSync('git', args, { cwd: ROOT, maxBuffer: 256 * 1024 * 1024 });
+    if (r.status !== 0) throw new Error(`git ${args.join(' ')} failed (no ${rev}? shallow clone?): ${String(r.stderr).trim()}`);
+    return r.stdout;
+  };
+  const shardDir = path.relative(ROOT, parsedDirFor(store)).split(path.sep).join('/');
+  const paths = git(['ls-tree', '-r', '--full-tree', '--name-only', rev, '--', shardDir, `data/${store}.gz`])
+    .toString('utf8').split('\n').filter(Boolean);
+  const ids = new Set();
+  for (const p of paths) for (const line of linesOf(zlib.gunzipSync(git(['show', `${rev}:${p}`])))) if (!isBlank(line)) ids.add(idOfBuf(line));
+  return ids;
 }
 
 /* Reassemble a store from its shards into `dst`.
@@ -391,7 +404,7 @@ if (RESTOREPARSED || SYNC) {
  *   - the SHRINK GUARD (2026-08-21) still refuses when the tracked side holds more records than the
  *     local store, because that means the local file is BEHIND and writing would publish a loss;
  *   - `--check` still reports rather than repairs, and now compares ROW COUNTS instead of mtimes. */
-let stale = 0, wrote = 0, missing = 0, retired = 0;
+let stale = 0, wrote = 0, missing = 0, retired = 0, lost = 0;
 
 for (const name of STORES) {
   const src = path.join(D, name), gz = src + '.gz', dir = parsedDirFor(name);
@@ -418,7 +431,7 @@ for (const name of STORES) {
     process.exit(1);
   }
   const srcLines = countLines(raw);
-  const have = CHECK ? shardedCount(dir) : shardedRows(dir);
+  const have = shardedRows(dir);
 
   /* THE SHRINK GUARD — 2026-08-21, carried over verbatim in intent. The Action appends on GitHub
    * every six hours, so the tracked side routinely holds MORE games than a laptop's plain .jsonl,
@@ -438,9 +451,19 @@ for (const name of STORES) {
     process.exit(1);
   }
 
-  /* `--check` stops here: it has the two counts, which is the whole question, and building the
-   * fresh list would cost the id set it deliberately skipped. */
+  /* `--check` stops here. Two questions, both answered against what is TRACKED: did the tracked
+   * store lose an id since the last commit (trackedIds), and does every store row have a shard. */
   if (CHECK) {
+    const prev = trackedIds('HEAD~1', name);
+    let gone = 0;
+    for (const id of prev) if (!have.ids.has(id)) gone++;
+    if (gone) {
+      lost++;
+      console.error(`  ${label} LOST ${gone} id(s) that HEAD~1 tracked (${prev.size} then, ${have.ids.size} in the shards now). `
+        + `Do not commit — this is the 2026-09-06 shape; recover from history, never from the local file.`);
+    } else {
+      console.log(`  ${label} carries every id HEAD~1 tracked (${prev.size})`);
+    }
     if (have.rows === srcLines) { console.log(`  ${label} up to date (${have.rows} rows across ${have.shards} shard(s), ${mb(shardBytesOnDisk(dir))})`); continue; }
     stale++;
     console.log(`  ${label} STALE — ${srcLines - have.rows} row(s) of the store are in no shard`);
@@ -496,6 +519,10 @@ if (retired) {
   console.log('missing, so remove them by hand once the plain stores are materialised.');
 }
 if (missing) { console.error(`\n${missing} store(s) absent entirely.`); process.exit(1); }
+if (CHECK && lost) {
+  console.error(`\n${lost} store(s) LOST ids that HEAD~1 tracked. Nothing may be committed until they are back.`);
+  process.exit(1);
+}
 if (CHECK && stale) {
   console.error(`\n${stale} store(s) have rows in no shard. Run: node build/compress-stores.js`);
   process.exit(1);

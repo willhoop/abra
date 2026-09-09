@@ -354,8 +354,18 @@ own merits — a half-finished rebase is dangerous whoever interrupts it:
   way. Its header comments still describe the retracted timer diagnosis and point at
   `find-autocommit-task.bat`, which was deleted — ignore both.
 - Never use `git merge -X ours`, and never restore `merge=union` in `.gitattributes`. The union driver
-  is the confirmed cause of the store duplicating, it applies to `rebase` as well as `merge`, and it is
-  why switching to rebase alone did not stop it. See `.gitattributes` and CHANGELOG 3.1.2.
+  applies to `rebase` as well as `merge`, which is why switching to rebase alone did not stop the store
+  duplicating — but it is a HYPOTHESIS, not a confirmed cause. *(Corrected 2026-09-09; this line said
+  "confirmed cause" from 3.1.2 onward.)* The record supports it for the events inside the driver's
+  active window and for nothing else: CHANGELOG 3.23.0's ancestry check found the large doublings at
+  depths 329, 336 and 383 with the driver active (307–417), then a FOURTH duplication (`009af264`, 137
+  lines) 208 commits after the driver was removed, and a FIFTH event of a different shape — a commit
+  that published a store of 0 lines and nothing caught it. See `.gitattributes`, CHANGELOG 3.1.2 and
+  3.23.0. **A SIXTH shape, 2026-09-06:** the sharding cutover (`18432bcb`) cut the tracked shards from
+  a stale local plain file and dropped **11,110 ladder and 4,752 bo3 games** that the tracked monolith
+  at `d2a418a5` held — verified by game-id set difference,
+  `docs/_reports/2026-09-09-pre-600-store-and-authority.md` §1a-bis. None of the earlier guards saw
+  it; recovery is in flight as of 2026-09-09.
 
 ## What ABRA is
 The Automated Battle Replay Analyzer. It ingests public Champions Reg M-B replays from Pokémon
@@ -584,7 +594,14 @@ because the paragraph is dated evidence from 2026-08-08 and a dated claim is not
 Damp is implemented at WIRE 46 and **both engines refuse the move identically** — asserted at exact
 zero by `selfKOAlwaysAboveTheHit`, with a knob-cleared control (the same Swampert carrying Torrent
 instead of Damp) moving the counter 0 → 1, so the instrument could have seen a difference. The other
-three items in the sentence were not re-checked in that pass and are NOT claimed fixed here. **Read the
+three items have each been re-checked and closed since, on their own receipts — Weather Ball
+(CHANGELOG 3.79.0; `docs/ENGINE.md` "WEATHER BALL IS CORRECT AND IS NOW PROVEN CATEGORICALLY"), Sand
+Rush (CHANGELOG 3.79.0 "Sand Rush (1,426 uses) and Damp (623) are CORRECT", and ROADMAP #100: the
+roster's control arm was measuring the control, which manufactured the finding), Solar Beam's charge
+(`chargeSkippedByWeather` LIVE, `docs/ENGINE.md`) and the transform revert
+(`tests/probe_transform_faint_revert.js`, knob `MEDI_TRANSFORM_SURVIVES_FAINT=1`). *(This marker said
+"not re-checked in that pass and NOT claimed fixed" until 2026-09-09; the marker's sentence is
+corrected, the dated paragraph above it is not.)* **Read the
 gate, not this paragraph** — `node engine/status.js` computes what is actually broken today.)*
 
 QUARANTINED — do not cite until MEDICHAM passes its gate and the run is repeated:

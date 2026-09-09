@@ -1,8 +1,8 @@
 {
-  "generated": "2026-09-09T06:37:15.416Z",
+  "generated": "2026-09-09T17:12:42.597Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "5.270.0",
+  "changelog_top_at_baseline": "5.274.0",
   "version_pins": {
     "docs/ADR-002-showdown-is-the-authority.md": {
       "version": "3.50.0",
@@ -88,6 +88,7 @@
     "docs/ADR-001-use-the-champions-mod.md",
     "docs/ALAKAZAM-v2-spec.md",
     "docs/ARCHITECTURE-REVIEW-2026-07-27.md",
+    "docs/ARCHITECTURE-REVIEW-2026-09-09.md",
     "docs/ARTIFACT-ACCESS-RULES.md",
     "docs/BACKLOG.md",
     "docs/CARD-REVIEW-2026-08-22.md",
@@ -137,6 +138,7 @@
     "docs/THESIS-DEFENCE-REVIEW-2026-07-27.md",
     "docs/THESIS-DEFENCE-REVIEW-2026-07-28.md",
     "docs/THESIS-DEFENCE-REVIEW-2026-07-31.md",
+    "docs/THESIS-DEFENCE-REVIEW-2026-09-09.md",
     "docs/THESIS-REVIEW-v2.md",
     "docs/WEB.md"
   ],
@@ -176,7 +178,10 @@
       "docs/SESSION-REVIEW-2026-07-28.md|63%|63.2%",
       "docs/THE-PLAN.md|63%|63.2%",
       "docs/THESIS-DEFENCE-REVIEW-2026-07-28.md|47.5%|47.5%",
-      "docs/THESIS-DEFENCE-REVIEW-2026-07-28.md|63.2%|63.2%"
+      "docs/THESIS-DEFENCE-REVIEW-2026-07-28.md|63.2%|63.2%",
+      "docs/THESIS-DEFENCE-REVIEW-2026-09-09.md|1,205|1205",
+      "docs/THESIS-DEFENCE-REVIEW-2026-09-09.md|35.9%|35.9%",
+      "docs/THESIS-DEFENCE-REVIEW-2026-09-09.md|71.6%|71.6%"
     ],
     "citation_mismatches": [
       "docs/ABRA-deck-plain-english.md|4.8%|data/game-differential.json",
@@ -190,12 +195,10 @@
       "docs/ABRA-whitepaper.md|18|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|236|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|31%|data/slowking-eval.json,data/slowking-playstyle-eval.json",
-      "docs/ABRA-whitepaper.md|4.54|data/xatu.json,data/policy-eval.json",
       "docs/ABRA-whitepaper.md|47%|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|51%|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|67%|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|71%|data/slowking-eval.json,data/slowking-playstyle-eval.json",
-      "docs/ABRA-whitepaper.md|71.6%|data/xatu.json,data/policy-eval.json",
       "docs/ABRA-whitepaper.md|73%|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|756|data/slowking-eval.json,data/slowking-playstyle-eval.json",
       "docs/ABRA-whitepaper.md|829|data/mechanics-census.json,data/engine-diff.json",

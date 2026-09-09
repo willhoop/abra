@@ -207,8 +207,15 @@ const statusInputs = [...new Set([...statusSrc.matchAll(/readJSON\(\s*'(data\/[^
  * tests/test-timestamps.js listing the artifacts that still carry a naive stamp. */
 let provText = '';
 try {
+  /* HONOUR THE CHILD'S OWN `ABRA-HEAP` DECLARATION, as tests/run-all.js and tools/lownode.cmd do.
+   * 2026-09-09: provenance.js reads the store whole and dies at exit 134 at the default heap since the
+   * store recovery; spawned bare here, that FATAL landed in this test's stderr and run-all read it as
+   * this test being out of heap. The flag goes BEFORE the script path or it is argv and does nothing. */
+  const provSrc = fs.readFileSync(D('engine', 'provenance.js'), 'utf8');
+  const provHeap = (provSrc.match(/ABRA-HEAP:\s*(\d+)/) || [])[1];
   provText = require('child_process').execFileSync(
-    process.execPath, [D('engine', 'provenance.js')], { encoding: 'utf8', maxBuffer: 1 << 24 });
+    process.execPath, [...(provHeap ? ['--max-old-space-size=' + provHeap] : []), D('engine', 'provenance.js')],
+    { encoding: 'utf8', maxBuffer: 1 << 24 });
 } catch (e) {
   console.error('  (cannot run engine/provenance.js: ' + String(e.message).split('\n')[0] + ')');
 }

@@ -244,7 +244,8 @@ probabilistic model of human choice than picking uniformly at random, and the fi
 coefficient of only **+0.25** — i.e. it wants the clone flattened by a factor of four. Popularity is
 real signal about which move gets clicked, but as a distribution it is far too confident. That is a
 finding about the clone, not about this fit, and it is why the clone's own top-1 of 27.1% here sits
-below the 35.9% `eval_policy.py` reports: that harness scores over a move list, this one over
+below the 29.8% `eval_policy.py` reports (`data/policy-eval.json`, `species_only_clone.top1_accuracy` 0.2979; the
+35.9% this line quoted until 2026-09-09 was in no artifact and is withdrawn): that harness scores over a move list, this one over
 (move, target) pairs, and the extra choice is the one the clone has no opinion about at all.
 
 **THE ASSUMPTION, WHICH IS THE INTERESTING PART: independence of irrelevant alternatives.** Logit

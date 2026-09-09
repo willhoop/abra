@@ -135,9 +135,9 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  830/830 probed mechanics live, 0 missing   (census 2026-09-09 07:54)
+  830/830 probed mechanics live, 0 missing   (census 2026-09-09 13:43)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 12 min old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 6.3 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-09 07:57)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -152,7 +152,7 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is da8597c45bb8 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 072c4c61ed23 now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 285/301 probed, 16 unprobed;  278/301 have an engine consumer, 23 have none
@@ -160,10 +160,22 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-09 08:09_
+_stamped 2026-09-09 14:14_
 
 <!-- /GENERATED -->
 
+## THE THREE VOID GAMES ARE THE THREE BOARD-PARTED GAMES — FILED, NOT FIXED. 2026-09-09, CHANGELOG 5.275.0
+
+`data/game-differential.json` on release `b730e44f3314` (961 played, 958 usable) voids 3 games as
+`low-identity`, and `mid_void.void_game_tags[].board_parted_at_turn` reads **4 / 6 / 3** — every game the
+instrument sets aside is a game whose boards parted (`omit-protect` seed `…2662758209 vs …2662995339`
+at turn 4; `omit-spread` `…2657358877 vs …2657413811` at turn 6 and `…2658645239 vs …2658775286` at
+turn 3). So **BOARD-MATERIAL 0 of 958** is a statement about the usable games only, and the 6.0.0
+sentence must read "0 of 958 usable, 3 voided", never "0 of 961". The pre-600 engine review's
+candidates — a charge-move release striking a different body than it announced, a Future Sight /
+Reflect residual-end order, and a post-switch secondary that may be the instrument — are hypotheses
+with no probe behind them. Owed: one probe per game and an attribution. Nothing in the engine moved for
+this. Account: `docs/_reports/2026-09-09-pre-600-engine-review.md` §1x.
 ## BATCH X — **THREE NARRATION CAUSES CLOSED, ZERO TRANSFERS, AND THE SUBSTITUTE QUESTION IS ANSWERED: IT IS A LOOP-NESTING PROBLEM, NOT A STEP-LIST ONE.** NARRATION-ONLY **16 → 13 CAUSES**, **GATE NARRATION 15 → 12 OF 961**, **BOARD-MATERIAL 0 OF 958 AFTER EVERY ONE OF THE THREE EDITS**, CENSUS 830/830, ROSTER ZERO DIFFER / ZERO DID-NOT-FIRE WITH EVERY ANCHOR LIVE AND NONE DEAD (18/44/36/17), `test-engine-diff` 6000/6000, `all_mechanics_fire` 1313 GAMES / 0 THREW, `probe_red_demo` 200 / 0 HOLLOW / 0 UNAPPLIABLE, `test-resolution-order` STILL 26/26. GATE **1 OF 9 CLAUSES FAILING**. 2026-09-09
 
 Full account, every command, every pin, the step-list answer and the two corrections to standing
@@ -401,7 +413,7 @@ agree), while every other row's is a step-1 line (card 1 proves it — `-end|p2a
 and *emit*. **Fourth batch to leave it; first to name the reason as a step boundary rather than a
 risk.**
 
-### HOW MANY MORE CARDS ARE HIDING? ABOUT ONE IN SIX
+### HOW MANY MORE CARDS ARE HIDING? ~~ABOUT ONE IN SIX~~ — RETRACTED 5.273.0: 2 OF 19, ABOUT ONE IN TEN
 
 **The method:** a divergence can only be a board difference if the two streams differ in the MULTISET
 of state-bearing lines, not merely in their order — an `ordering` divergence is a permutation and the
@@ -409,18 +421,23 @@ boards reconverge. Applied to every NARRATION-ONLY game's divergence window, can
 differential's own `stat-attribution` rule. **Its bound:** the window is the 10 lines the dump keeps
 (`game_differential.js:4391`).
 
-**16 of 18 are permutations; 2 differ.** With the one closed here that is **3 of the 19 causes this
-batch started with**, and both survivors have the Dual Wingbeat card's shape — the body that differed
+**16 of 18 are permutations; 2 differ.** With the one closed here that is ~~**3 of the 19 causes this
+batch started with**~~ — **retracted at 5.273.0 (THE HAND LIST above; commit `47bcc4d4`): 2 of the 19.**
+The second survivor below was the ten-line `--dump-games` window, not the game; the one that stands has
+the Dual Wingbeat card's shape — the body that differed
 stopped mattering before a boundary was sampled:
 
 - **the bounced Sleep Powder** — the authority's reflected copy MISSES and ours LANDS, so Vivillon is
   asleep here and awake there; it dies to a Dazzling Gleam later in the same turn on both engines;
-- **Instruct and the perish counter** — the authority REFUSES the Instruct and ours executes it, and
-  downstream the authority starts `perish1` on BOTH foes where ours starts it on one.
+- ~~**Instruct and the perish counter** — the authority REFUSES the Instruct and ours executes it, and
+  downstream the authority starts `perish1` on BOTH foes where ours starts it on one.~~ **Retracted
+  5.273.0:** our two extra lines pushed the authority's `|-start|p2a: Oranguru|perish1` to line eleven
+  of the ten-line window, so it read as absent. Instruct's board consequence is nil.
 
 Neither perish nor sleep is in `end_state_not_compared`, so both WOULD have been visible at a
 boundary. **`BOARD-MATERIAL 0 of 958` means no board difference SURVIVED to a compared boundary, not
-that none occurred, and on this sample the gap is about 3 causes. 6.0.0 should say so in those
+that none occurred, and on this sample the gap is ~~about 3 causes~~ 2 causes (retracted to 2 of 19 at
+5.273.0; the bound itself is unchanged). 6.0.0 should say so in those
 words.** The classifier over-fired at 4 before the `[from]`-on-boost rule was applied; that is
 reported rather than quietly tuned.
 

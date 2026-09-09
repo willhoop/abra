@@ -1,5 +1,10 @@
 /* selftest.js — assertions on the parts of the pipeline that fail SILENTLY.
  *
+ * ABRA-HEAP: 4096
+ * (declared 2026-09-09: reads a store whole, and data/games.bo3.jsonl is 32,801 rows / 298 MB since the
+ * store recovery that day; at the default heap this died at exit 134, `Ineffective mark-compacts near
+ * heap limit`. tools/lownode.cmd and tests/run-all.js derive the flag from this line.)
+ *
  * WHY THIS EXISTS
  * ---------------
  * Every defect this project has shipped produced plausible output while being wrong. None of them

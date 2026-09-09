@@ -1,5 +1,10 @@
 /* IS MEDICHAM WIRED ON THE THINGS PEOPLE ACTUALLY CLICK?   node tests/test-medicham-coverage.js
  *
+ * ABRA-HEAP: 4096
+ * (declared 2026-09-09: reads a store whole, and data/games.bo3.jsonl is 32,801 rows / 298 MB since the
+ * store recovery that day; at the default heap this died at exit 134, `Ineffective mark-compacts near
+ * heap limit`. tools/lownode.cmd and tests/run-all.js derive the flag from this line.)
+ *
  * Will set the bar on 2026-08-06: *"i still want medicham to be fully wired and tested on every move
  * and ability and item in the regulation (with any usage at all) before we start taking its output
  * and using them."* Then he approved a target for this session: **99% OF USAGE**, plus a **CARVE-OUT**
