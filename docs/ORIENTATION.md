@@ -55,18 +55,18 @@ games were in that state. Two guards now exist:
 `tests/test-quality.js` asserts both select an identical set of ids.
 
 <!-- BEGIN:FUNNEL -->
-Of **81,290** games collected, **20,148** are usable — **24.8%**.
+Of **92,431** games collected, **24,704** are usable — **26.7%**.
 
 Games are dropped for five reasons, in this order:
 
 | Stage | Games remaining |
 |---|---|
-| collected | 81,290 |
-| after removing named bots | 43,267 |
-| after removing accounts that behave like bots | 38,723 |
-| after removing forfeits | 25,379 |
-| after removing games under 3 turns | 25,179 |
-| after requiring all four brought to be revealed | **20,148** |
+| collected | 92,431 |
+| after removing named bots | 53,330 |
+| after removing accounts that behave like bots | 47,289 |
+| after removing forfeits | 31,053 |
+| after removing games under 3 turns | 30,818 |
+| after requiring all four brought to be revealed | **24,704** |
 <!-- END:FUNNEL -->
 
 1. **Named bots** — accounts whose usernames announce them.
@@ -99,7 +99,7 @@ metagame. That is the concrete reason this filter exists and why every engine mu
 
 `engine/argmax_paired.js`, `engine/bench_speed_consolidate.js`, `engine/calibrate.py`, `engine/click_census.js`, `engine/click_counts.js`, `engine/coach.js`, `engine/derive_sets.js`, `engine/durable-ingest.js`, `engine/feature_engine_contrast.js`, `engine/forced_switch_audit.js`, `engine/joint_click_census.js`, `engine/medicham2-browser.js`, `engine/mega_census.js`, `engine/mega_sets_from_sheets.js`, `engine/mew_farm.js`, `engine/next_regulation_ingest.js`, `engine/replay_differential.js`, `engine/rollout_r1_join.py`, `engine/rollout_switch_census.js`, `engine/sheet_usage.js`, `engine/smogon_coverage.js`, `engine/stamp.js`, `engine/validate_store.js`, `tests/test-medicham-coverage.js`, `tests/test-next-regulation.js`, `tests/test-parse.js`, `tests/test-side-guard-chooser.js`, `tests/test-workflow-paths.js`
 
-Anything they publish is computed over a store that is 75.2% unusable.
+Anything they publish is computed over a store that is 73.3% unusable.
 <!-- END:RAWREADERS -->
 
 
