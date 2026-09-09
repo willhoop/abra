@@ -35,43 +35,33 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 const ROOT = path.join(__dirname, '..');
 
-const CALL = /(?:forFormat\s*\(|search\.json\?format=)\s*['"`]?(gen\d[a-z0-9]+)/i;
-const COMMENT = /^\s*(?:\*|\/\/|\/\*)/;
-const SKIP_DIRS = new Set(['node_modules', '.git', 'data', 'docs', 'web', 'app']);
+/* THE PREDICATE LIVES IN engine/format_id_scan.js AND IS NOT RESTATED HERE. Two callers ask this
+ * same question for two different reasons — this probe asks IS IT RED, and
+ * engine/next_regulation.js --checklist asks WHAT DOES THE FLIP HAVE TO DECIDE. Two files that both
+ * decide what counts as a call site would disagree eventually, and the disagreement would be
+ * invisible because both would keep working. CLAUDE.md: FEATURES ARE PER-MODEL, FACTS ARE GLOBAL. */
+const SCAN = require(path.join(ROOT, 'engine', 'format_id_scan.js'));
+const { offenders, filesUnder } = SCAN;
 const GATED = ['engine', 'build'];
 const REPORTED = ['tests'];
 
-function walk(dir, out = []) {
-  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (e.isDirectory()) { if (!SKIP_DIRS.has(e.name)) walk(path.join(dir, e.name), out); }
-    else if (e.name.endsWith('.js')) out.push(path.join(dir, e.name));
-  }
-  return out;
-}
-function offenders(text, rel) {
-  const hits = [];
-  text.split('\n').forEach((line, i) => {
-    if (COMMENT.test(line)) return;
-    const m = CALL.exec(line);
-    if (m) hits.push(`${rel}:${i + 1}  ${m[1]}`);
-  });
-  return hits;
-}
 let NOT_IN_HEAD = 0; const GIT_FAILED = [];
 function scan(dirs) {
-  const files = dirs.flatMap(d => walk(path.join(ROOT, d)))
-    .map(f => path.relative(ROOT, f).replace(/\\/g, '/'))
-    .filter(f => !f.startsWith('tests/probe_format_id_derivation'));
+  const files = filesUnder(dirs);
   const now = [], head = [];
   for (const rel of files) {
     now.push(...offenders(fs.readFileSync(path.join(ROOT, rel), 'utf8'), rel));
     let h = null;
-    try { h = execFileSync('git', ['show', 'HEAD:' + rel], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }); }
+    /* maxBuffer: the default 1 MB threw ENOBUFS on engine/medicham2-browser.js (3.2 MB) and on
+       * tests/test-mechanics.js, so the BEFORE side silently lost the two largest files it scans.
+       * stderr is CAPTURED, not ignored: without git's own message a brand-new file and a real git
+       * failure are indistinguishable, and this probe was calling the former the latter. */
+      try { h = execFileSync('git', ['show', 'HEAD:' + rel], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024 }); }
     catch (e) {
       /* A FILE NOT IN HEAD IS EXPECTED -- this probe is new and so are its neighbours. ANY OTHER
        * git failure is not, and swallowing it would silently shrink the BEFORE side of the
        * comparison, which is how a ratchet reports an improvement it did not make. */
-      const msg = String((e && e.message) || e);
+      const msg = String((e && e.stderr) || (e && e.message) || e);
       if (/exists on disk, but not in|does not exist in|unknown revision|fatal: path/i.test(msg)) NOT_IN_HEAD++;
       else { GIT_FAILED.push(rel + ': ' + msg.split(String.fromCharCode(10))[0]); }
       h = null;

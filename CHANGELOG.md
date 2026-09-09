@@ -10,6 +10,40 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.268.1] — 2026-09-08
+
+### Fixed
+- **THE ROTATION CHECKLIST COULD NOT SEE A TYPED FORMAT ID, BY CONSTRUCTION.**
+  `engine/next_regulation.js --checklist` derives what a regulation flip touches from files that
+  READ `data/regulations.json` or take the format from `champions_sim`. A file with the id typed
+  into it does NEITHER, so it was invisible to a derivation whose whole value is completeness — it
+  keeps working after the flip, about the previous regulation, and reports success. The checklist
+  now names them as step 6, derived at run time: **35 live call site(s) across 33 file(s)**, all
+  naming `gen9championsvgc2026regmb`. Stated as a DECISION per site rather than a find-and-replace,
+  because a format id under `tests/` is usually a pin on what was MEASURED and rewriting those would
+  be editing the record.
+- **`tests/probe_format_id_derivation.js` was under-reading its own BEFORE side and mislabelling it.**
+  `execFileSync` ran at the default 1 MB `maxBuffer` and threw `ENOBUFS` on the two largest files it
+  scans (`engine/medicham2-browser.js`, `tests/test-mechanics.js`), and it ignored git stderr, so a
+  brand-new file and a genuine git failure were indistinguishable — it was reporting the former as
+  the latter. Now 64 MB and stderr-captured: **0 git failures** where it reported 1, then 3.
+
+### Added
+- **`engine/format_id_scan.js`** — the predicate, owned once. The probe asks *is it red*; the
+  checklist asks *what does the flip have to decide*. Two files that both decided what counts as a
+  call site would disagree eventually, and the disagreement would be invisible because both would
+  keep working (CLAUDE.md: FEATURES ARE PER-MODEL, FACTS ARE GLOBAL). The probe now requires it and
+  restates nothing; its verdict is unchanged — GREEN, 0 live call sites across 233 .js files under
+  `engine/` and `build/`.
+
+### Notes
+- **Reg M-C does not exist yet.** `engine/next_regulation.js` reads 4 Champions VGC formats from the
+  live authority and none sorts after `gen9championsvgc2026regmb`, so no rotation work is owed
+  tonight. This closes the hole ahead of it rather than in response to it.
+- No published figure moves, so this is a PATCH.
+
+---
+
 ## [5.268.0] — 2026-09-08
 
 ### Fixed

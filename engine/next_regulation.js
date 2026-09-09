@@ -396,6 +396,13 @@ function report(res) {
  * because it follows the invalidation graph in docs/DIVISIONS.md and no scan can derive that.
  *
  * IT IS A PROCEDURE, NOT A GATE. Nothing here refuses anything; the gates that do are named in it. */
+/* THE RADIUS BELOW CANNOT SEE A TYPED FORMAT ID, BY CONSTRUCTION. It derives what the flip touches
+ * from files that READ data/regulations.json or take the format from champions_sim. A file with the
+ * id typed into it does NEITHER, so it is invisible to the derivation that exists to be complete —
+ * and it keeps working after the flip, about the previous regulation, reporting success. The
+ * predicate is engine/format_id_scan.js and is not restated here. */
+const FORMAT_IDS = require(path.join(__dirname, 'format_id_scan.js'));
+
 const UNREADABLE_DIRS = [];
 function readersOfActive() {
   const dirs = ['engine', 'build', 'tests', 'web', path.join('.github', 'workflows')];
@@ -442,6 +449,8 @@ function readersOfActive() {
 
 function checklist(res) {
   const R = readersOfActive();
+  const PINS = FORMAT_IDS.liveCallSites(['tests']);
+  const PINNED_FILES = new Set(PINS.hits.map(h => h.split(':')[0])).size;
   console.log('THE FLIP — what must happen in the same pass, and in this order\n');
   const viaWriters = R.viaSim.filter(x => x.writesData).length;
   console.log(`  ${R.direct.length} file(s) read data/regulations.json directly. ${R.viaSim.length} more take the`);
@@ -484,6 +493,13 @@ function checklist(res) {
        '(engine/next_regulation_ingest.js). Decide which store is "the ladder" and say so.',
        'node engine/analyze.js                   # REFUSES if the store holds no row of the active regulation',
        'node build/triggers.js                   # the rotation alarm can only fire once rows carry the new token']],
+    ['DECIDE EVERY FORMAT ID TYPED UNDER tests/. ' + PINS.hits.length + ' live call site(s) across ' + PINNED_FILES + ' file(s)',
+      ['name a format directly instead of following the config, so after the flip each one keeps',
+       'passing about the PREVIOUS regulation. Most are legitimate pins on what was MEASURED and',
+       'rewriting those would be editing the record — so this is a DECISION per site, not a',
+       'find-and-replace, and it is the one step here that nothing else in this repository schedules.',
+       'node tests/probe_format_id_derivation.js  # lists them; engine/ and build/ are the GATE and are 0',
+       'ids named today: ' + FORMAT_IDS.idsNamed(PINS.hits).join(', ')]],
     ['ONLY THEN CUT A RELEASE AND RE-MEASURE.',
       ['Every release cut before this describes the previous regulation.',
        'node engine/status.js                    # what is stale, what is quarantined, what is owed',
