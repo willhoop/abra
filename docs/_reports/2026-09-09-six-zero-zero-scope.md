@@ -121,3 +121,47 @@ which numbers are absent and why. The back-cast obligation stands. The 42 owed n
 **The lesson is the one this repository keeps re-learning: a count is evidence of what exists, never
 of how much work it is.** Both headline numbers survived contact with a `--json` split for about two
 hours.
+
+---
+
+# SECOND CORRECTION, same night. `~13` UNDERSTATED THE LIVING-DOCUMENT REWRITE, BECAUSE IT COUNTED ONE OF THREE CATEGORIES.
+
+The correction above is right about what it measured and wrong as a total. "Figures resting on a
+withheld artifact" is **one** of three ways a figure in a living document needs attention at a major,
+and it is the smallest of the three. Stated here rather than left standing, because it is a number
+somebody would plan against.
+
+## The three categories, and they are different questions
+
+| | count | what it means | can it be fixed before the re-run? |
+|---|---|---|---|
+| resting on a **withheld** artifact | **13** | the artifact exists but is quarantined | **no** — waits for step 6 |
+| **stale citation** — cited to an artifact that no longer holds that value | **61 keys, 84 lines** | the artifact was re-run and moved under the sentence | yes |
+| **untraceable** — no artifact behind it at all | **~16** (23 less the 7 inside their own withdrawal notice) | nothing to re-run | yes, by deriving, citing or deleting |
+
+**All 84 stale-citation lines are in the living set**: `docs/MODELS.md` 41, `docs/ABRA-whitepaper.md`
+20, `docs/SUMMARY.md` 19, `docs/ABRA-technical-docs.md` 3, `docs/ABRA-deck-plain-english.md` 1. So the
+earlier line that the deck and SUMMARY "carry ZERO" is true **only** of the withheld category, and
+misleading if read as a total. SUMMARY carries 19 stale citations and the deck carries 1.
+
+Examples, and they are exactly the shape you would expect from an engine that has been fixed for a
+month: `934` cited to `data/game-differential.json`, which now holds **961**. `818` cited to
+`data/mechanics-census.json`, which now holds **830**.
+
+## THESE ARE ACCEPTED, NOT UNKNOWN — AND ACCEPTED IS NOT DONE
+
+**Zero of the 84 are new.** All map onto the 61 keys in `data/docs-currency-baseline.json`, each
+carrying a written reason, which is why `tests/test-docs-current.js` passes 33 of 33. The gate is
+correct.
+
+But a baseline is a statement that a mismatch is *understood*, not that it is *resolved*. At a major
+the documents are rewritten, and a figure whose artifact moved under it is precisely what the rewrite
+is for. **Carrying 61 accepted mismatches through a major would be the caption-is-not-a-quarantine
+failure in a third costume.**
+
+## So the honest size of the 6.0.0 living-document pass
+
+Roughly **85–90 figure-level edits**, before counting the 42 notes rows that fold in. Bounded, and
+about a day of writing — not the ~13 the correction above implies and not the 72 the original section
+implies. **Three counts existed, each was correct about its own question, and none of them was the
+workload.**
