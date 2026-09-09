@@ -133,10 +133,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  830/830 probed mechanics live, 0 missing   (census 2026-09-09 04:57)
+  830/830 probed mechanics live, 0 missing   (census 2026-09-09 05:34)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 10 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-09 05:04)
+    never fired in the staged harness (all-mechanics-fire.json, 13 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-09 05:40)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -158,9 +158,139 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-09 05:14_
+_stamped 2026-09-09 06:12_
 
 <!-- /GENERATED -->
+
+## BATCH V — **THE BOARD DEFECT WEARING A NARRATION LABEL IS CLOSED, AND THE HIDING CLASS IS COUNTED.** NARRATION-ONLY **19 → 18 CAUSES / 19 → 18 GAMES**, **GATE NARRATION 18 → 17 OF 961**, **ZERO TRANSFERS**, **BOARD-MATERIAL 0 OF 958 BEFORE, AFTER AND AFTER EVERY EDIT**, CENSUS 830/830, ROSTER ZERO DIFFER / ZERO DID-NOT-FIRE WITH EVERY ANCHOR LIVE (18/44/36/17), `test-engine-diff` 6000/6000, `all_mechanics_fire` 1313 GAMES / 0 THREW, `probe_red_demo` **200 / 0 HOLLOW / 0 UNAPPLIABLE**. THE ONE-ROOT HYPOTHESIS IS **REFUTED**. GATE **1 OF 9 CLAUSES FAILING**. 2026-09-09
+
+Full account, every command, every pin, the refuted hypothesis and the count of hidden board
+defects: [docs/_reports/2026-09-09-batch-V.md](_reports/2026-09-09-batch-V.md).
+
+### A VOLLEY DOES NOT STOP AT THE DOLL IT BREAKS
+
+Batch U's card, `event missing from medicham2 :: |-damage|p1a|H/H <> |move|p1a|psyshock`, and it left
+the open question honestly: *"whether `R.out` drops the row for the whole volley or only for that hit
+was read from the card, not from the loop."* **The loop says: only for that hit.**
+
+```
+for (hit = 1; hit <= targetHits; hit++) { ...
+  } else { targetsCopy = targets.slice(0); }              <- REMADE EVERY ARRIVAL
+  [moveDamageThisHit, targetsCopy] = this.spreadMoveHit(targetsCopy, ...)
+                                            data/mods/champions/scripts.ts:459-518
+spreadMoveHit: if (damage[i] === HIT_SUBSTITUTE) { damage[i] = true; targets[i] = null; }   :351-354
+```
+
+`targets[i] = null` is written into the **copy**, which is thrown away and remade. None of the three
+loop guards stops the volley either: `damage[i]` folds to `0` and not `false`, `moveDamage` holds
+`true`, and `targets.every(t => !t?.hp)` reads the **original** list, whose body still has HP.
+
+**RED FIRST, on a fixture derived from the format** (`tests/probe_multihit_through_doll.js`; the only
+fixed-count, certain, single-target, non-`smartTarget` volley here is Twin Beam, and its only legal
+user is Farigiraf). The knob is the attacker's offensive stat and it moves the click through four
+different resolutions of one board:
+
+| arm | authority | ours, PRE-FIX |
+|---|---|---|
+| DOLL-HOLDS | 2 x `-activate\|[damage]`, `-hitcount 2` | **ONE** `-activate`, **no** `-hitcount` |
+| BREAK-LAST | `-activate`, `-end`, `-hitcount 2` | **ONE** `-end`, **no** `-hitcount` |
+| **BREAK-FIRST** | `-end`, `-damage 81/165`, `-hitcount 2` | `-end` and nothing — body **124/165** |
+| **LETHAL** | body **0 fnt** | body **124/165, ALIVE** |
+| NO-DOLL | 122/165, 79/165, `-hitcount 2` | matches — and is UNMOVED by the knob |
+
+`MEDI_VOLLEY_STOPS_AT_DOLL=1` restores all nine failing clauses and moves no control. **The pool
+card's own game is shown to have stopped diverging**, by a `--dump-games` diff on `config + seed`:
+1 game stopped, **0 started, 0 changed cause**.
+
+**THE ARRIVALS ARE SKIPPED, NOT SLICED** — `R.pkIdx[i]`, `R.crits[i]` and `R.reprice(crit, i)` are all
+keyed on the ORIGINAL arrival number, so the vector is left whole and the body loop starts at
+`R.pkFrom`. **`_dollPaid` is an OFFSET inside `_reDealt`, not a fourth call site**, so Endure, the
+Focus Sash and the arrival re-price keep speaking about the body's half alone and cannot forget the
+doll's. And `-hitcount` is announced over a row the doll dropped — the authority's line fires on
+`move.multihit` alone, below the loop — through `_stepHitCount.runsWhenOut`, a flag on the step rather
+than a flush below the driver, because that line's position against `_stepFaint` and
+`_stepHpThresholdBoost` is the whole of two earlier wires.
+
+### THE ONE-ROOT HYPOTHESIS IS REFUTED, AND THE REPLACEMENT IS SHARPER
+
+The four substitute cards are **unmoved**. Same line, **different axis**:
+
+- **this batch is PER ARRIVAL, inside one row** — the branch ended the ROW where the authority ends
+  one arrival;
+- **the family is PER STEP, across rows** — the authority absorbs the doll at `spreadMoveHit`
+  **step 0** (`tryPrimaryHitEvent`), above step 1's effectiveness lines and step 2's `-damage`; this
+  engine absorbs it inside `_stepApply`, which **is** step 2.
+
+**And the cheap fix cannot work, which is the part three batches had not established.** "Move only
+where it ANNOUNCES" needs a slot BELOW the doll row's own effectiveness line and ABOVE every other
+row's, and none exists: the doll's own `-resisted` comes from the `getDamage` call INSIDE
+`onTryPrimaryHit` (card 3 proves it — `-resisted|p2b` precedes `-activate|p2b` and both engines already
+agree), while every other row's is a step-1 line (card 1 proves it — `-end|p2a` precedes
+`-resisted|p1b` although p2a is LAST in the target list). It needs `_stepDamage` split into *price*
+and *emit*. **Fourth batch to leave it; first to name the reason as a step boundary rather than a
+risk.**
+
+### HOW MANY MORE CARDS ARE HIDING? ABOUT ONE IN SIX
+
+**The method:** a divergence can only be a board difference if the two streams differ in the MULTISET
+of state-bearing lines, not merely in their order — an `ordering` divergence is a permutation and the
+boards reconverge. Applied to every NARRATION-ONLY game's divergence window, canonicalised by the
+differential's own `stat-attribution` rule. **Its bound:** the window is the 10 lines the dump keeps
+(`game_differential.js:4391`).
+
+**16 of 18 are permutations; 2 differ.** With the one closed here that is **3 of the 19 causes this
+batch started with**, and both survivors have the Dual Wingbeat card's shape — the body that differed
+stopped mattering before a boundary was sampled:
+
+- **the bounced Sleep Powder** — the authority's reflected copy MISSES and ours LANDS, so Vivillon is
+  asleep here and awake there; it dies to a Dazzling Gleam later in the same turn on both engines;
+- **Instruct and the perish counter** — the authority REFUSES the Instruct and ours executes it, and
+  downstream the authority starts `perish1` on BOTH foes where ours starts it on one.
+
+Neither perish nor sleep is in `end_state_not_compared`, so both WOULD have been visible at a
+boundary. **`BOARD-MATERIAL 0 of 958` means no board difference SURVIVED to a compared boundary, not
+that none occurred, and on this sample the gap is about 3 causes. 6.0.0 should say so in those
+words.** The classifier over-fired at 4 before the `[from]`-on-boost rule was applied; that is
+reported rather than quietly tuned.
+
+### THE HAND LIST
+
+**Removed — the multi-hit volley that stopped at a broken doll**, which was batch U's board-defect
+card, and the missing `-hitcount` over a row a doll dropped.
+
+- **THE SUBSTITUTE FAMILY, STILL FOUR CARDS**, now diagnosed to a step boundary (above). Measured as
+  narration by the multiset test, so a fix that moves only the emission would be board-safe — but no
+  single insertion point in the current step list gives the authority's order.
+- **THE BOUNCED SLEEP POWDER IS A BOARD DEFECT, NOT AN OBSERVATION.** Batch U named it as *"a new
+  observation, not a finding"*; §4 of the report measures it as a state difference. Fixing it adds an
+  accuracy draw to the bounce road, which moves the die stream and can void games. Filed.
+- **INSTRUCT'S REFUSAL IS ALSO A BOARD DEFECT.** Batch S diagnosed the refusal; the perish counter it
+  costs downstream is new. Filed.
+- **`tests/test-resolution-order.js` IS RED AT 10 OF 26 ARMS AND WAS RED BEFORE THIS BATCH** —
+  demonstrated by re-running it under `MEDI_VOLLEY_STOPS_AT_DOLL=1`, which restores the pre-batch
+  engine and fails the identical 10. Six are **stale PLANT anchors** (`buff-above-secondaries` x3,
+  `hitcount-in-the-packet-loop` x2, `react-batched` x1 — source patterns that no longer exist, the
+  same disease `probe_red_demo` had) and four are **counter mismatches** (`residualUpdatePasses` 5/10
+  and 4/6, `residualUpdateAfterUpkeep` 5/10 and 2/4). Not filed as a known failure: named, attributed
+  and handed to the coordinator, with the six that are a re-aim separated from the four that are not.
+- **`tests/probe_red_demo.js` WAS BROKEN BY THIS BATCH AND IS NOW BETTER THAN IT WAS.** The engine
+  edits stranded five source patches; both anchors were re-aimed with the claim unchanged, and the
+  SIXTH — stranded since before this batch, a self-KO line that had become `faintLineOut(m)` — was
+  re-aimed too. **1 → 6 → 0 unappliable**, measured in both directions; the file exits 0 where it
+  exited 2.
+- **THE RESIDUAL TRIO WAS SKIPPED ENTIRELY AND DELIBERATELY**, as the brief instructed. Fifth batch.
+- **`node engine/status.js --write` WAS RUN**; nothing was committed, per the brief.
+- **Carried forward unchanged** from the hand lists below: Trick's missing `-fail` (blocked on the
+  coarse mega-stone guard); the perish `|upkeep|` drain; the OHKO card, undiagnosed; the Stamina /
+  Spicy Spray card; the redirect vs `-prepare` order; the post-KO switch-in order; `kind ===
+  'boostally'`'s silent shield; Reflect Type's unmodelled effect; Yawn's `runStatusImmunity('slp')`
+  half; the max-HP recoil road (`directDamage`); the 560 speed-reading disagreements that look like
+  the instrument; the remaining bare `|-fail|` causes; the second `eachEvent('Update')` pass;
+  `_stepDamagingHit` mixing the order-1 punishers with the default-order ones; `orderProbeClause`'s
+  rerun hint omitting `--end-state`; `ability/priority-mod` picking its delivery move without asking
+  the carrier's learnset; the per-arrival crit vector on an absorbed volley; Population Bomb into
+  Flame Body; `item/chance-gated` and `item/crit-ratio` on a dead corner; Struggle's every-slot
+  fixture; and `tests/test-pinch-family.js` red at 1 of 61.
 
 ## NARRATION BATCH U — **THREE MECHANISMS, TWO CAUSES CLOSED, ONE TRANSFER.** NARRATION-ONLY **21 → 19 CAUSES / 21 → 19 GAMES**, **GATE NARRATION 20 → 18 OF 961**, **BOARD-MATERIAL 0 OF 958 AFTER EVERY MEASUREMENT AND AFTER EVERY EDIT**, CENSUS 830/830, ROSTER ZERO DIFFER / ZERO DID-NOT-FIRE WITH EVERY ANCHOR LIVE (18/44/36/17) ON BOTH RELEASES, `test-engine-diff` 6000/6000, `all_mechanics_fire` 1313 GAMES / 0 THREW. **A CENSUS PROBE WAS PINNING ONE OF THE BUGS** AND WENT MISSING THE MOMENT THE ENGINE WAS CORRECTED. GATE **1 OF 9 CLAUSES FAILING**. 2026-09-09
 

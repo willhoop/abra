@@ -1,10 +1,10 @@
 {
-  "current": "7c6716f23df6",
-  "cut": "2026-09-09T08:57:57.692Z",
-  "why": "narration batch U3: entry hazards bite in the order they were laid",
-  "cuts": 4,
-  "latest_cut": "2026-09-09T09:15:16.062Z",
+  "current": "f6ecf4222048",
+  "cut": "2026-09-09T09:37:26.662Z",
+  "why": "narration batch V: a multi-hit volley does not stop at the doll it breaks",
+  "cuts": 2,
+  "latest_cut": "2026-09-09T09:59:17.290Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-09T09:15:16.078Z",
+  "pointer_written": "2026-09-09T09:59:17.305Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

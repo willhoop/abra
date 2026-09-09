@@ -10,6 +10,51 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.272.0] — 2026-09-09
+
+### Fixed
+- **A MULTI-HIT VOLLEY STOPPED AT THE DOLL IT BROKE.** `hitStepMoveHitLoop` remakes
+  `targetsCopy = targets.slice(0)` every arrival, so `targets[i] = null` from `HIT_SUBSTITUTE` drops
+  the row for **that arrival only** — the next hit lands on the body once the doll is gone. This
+  engine dropped it for the whole volley. Probe `tests/probe_multihit_through_doll.js`, knob
+  `MEDI_VOLLEY_STOPS_AT_DOLL=1` restores all 9 clauses and leaves the NO-DOLL control untouched.
+  **RED on the pre-fix bytes across four arms**: BREAK-FIRST left 43 HP unpaid, and LETHAL was
+  **a kill that is not a kill** — the authority reads `0 fnt` where this engine read 124/165 alive.
+  The pool card is shown fixed by a `--dump-games` diff on `config + seed`: 1 stopped, 0 started,
+  0 changed cause.
+
+### Changed
+- **Gate narration 18 → 17 of 961, causes 19 → 18, zero transfers.** **BOARD-MATERIAL 0 of 958
+  before, after, and after every edit.** Census 830/830; roster 0 DIFFER / 0 DID-NOT-FIRE with
+  anchors 18/44/36/17; engine-diff 6000/6000.
+
+### Notes
+- **THE ONE-ROOT HYPOTHESIS WAS REFUTED, AND THE REFUTATION IS THE USEFUL PART.** Same source line,
+  different axis: this defect is per-ARRIVAL inside a row; the substitute family is per-STEP across
+  rows — the authority absorbs the doll at `spreadMoveHit` **step 0**, this engine at step 2. All four
+  family cards were unmoved by the fix, as a refuted hypothesis predicts. And the cheap
+  "move only the announcement" fix cannot work: the correct slot is below the doll row’s own
+  effectiveness line and above every other row’s, and no such point exists in the current step list.
+  **Fourth batch to leave the family alone, and the first to name the reason as a step boundary.**
+- **ABOUT ONE NARRATION CARD IN SIX IS A BOARD DIFFERENCE ERASED WITHIN THE TURN.** Method: a
+  divergence can only be a board difference if the two streams differ in the MULTISET of state-bearing
+  lines, not merely their order. Over every NARRATION-ONLY window, **16 of 18 are permutations and 2
+  differ**; with this batch’s closed, that is **3 of 19, about one in six**. Bounded by the 10-line
+  dump window. The two survivors are a bounced sleep move (a body asleep here, awake there) and
+  Instruct’s refusal (the authority starts the countdown on both foes, this engine on one) — both
+  erased within the turn.
+- **SO 6.0.0 MUST SAY THE HEADLINE MEANS "no board difference SURVIVED TO A COMPARED BOUNDARY", NOT
+  "none occurred".** That bound is already published by `data/game-differential.json` about itself;
+  what is new is a measured rate for it.
+- **A RED TEST IS CARRIED INTO THIS COMMIT AND NAMED, NOT FILED:** `tests/test-resolution-order.js`
+  is **red at 10 of 26 arms** — 6 stale PLANT anchors and 4 `residualUpdate*` counter mismatches. It
+  was demonstrated red on the PRE-batch engine under the knob, so it is not this batch’s doing. It is
+  being worked in this session rather than reported as a status.
+- **`probe_red_demo.js` went 1 → 6 → 0 unappliable source anchors** — this batch broke 5 and re-aimed
+  them plus a 6th that was already stranded. Exits 0.
+
+---
+
 ## [5.271.0] — 2026-09-09
 
 ### Fixed

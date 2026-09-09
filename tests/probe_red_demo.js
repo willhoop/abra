@@ -1398,8 +1398,12 @@ demoSource('WIRE 130 a sound move and an Infiltrator go THROUGH the doll',
    * body: it is about the CONDITION, `subBlocks(...)` against a bare `_sub > 0`. So the reversal now
    * rewrites the test and leaves the block alone, which is the shape that cannot go stale on the next
    * line somebody adds inside it. */
-  [["        if(subBlocks(m,tg,a.move.id)){const _s0=tg._sub;",
-    "        if(tg._sub>0){const _s0=tg._sub;   // reverted -- WIRE 130: the doll ate everything"]],
+  /* RE-AIMED 2026-09-09 (BATCH V): the branch opens on its own line now — the arrival walk that
+   * follows it needs `_dollVolley` and `_s0` as separate statements — so the two-statement pattern
+   * stopped matching. The anchor is the CONDITION alone, exactly as the paragraph above says it
+   * should be, and it is now the whole of the line it sits on. */
+  [["        if(subBlocks(m,tg,a.move.id)){",
+    "        if(tg._sub>0){   // reverted -- WIRE 130: the doll ate everything"]],
   (E) => {
     const beam = twoOn(E, { setupFoe: 'substitute', move: 'icebeam' });
     const sound = twoOn(E, { setupFoe: 'substitute', move: 'hypervoice' });
@@ -3215,8 +3219,13 @@ demoSource('ROADMAP #81 WIRE 7  the Substitute -start precedes the -damage that 
      from `costsUserHP.rounds` rather than hard-floored. Nothing about the ORDER claim changed. */
   /* RE-AIMED 2026-08-26 (ROADMAP #449): two more columns of indentation — ROADMAP #331's `_hpCostAfterBoosts`
    * branch wrapped the block. The three lines and the claim are untouched. */
-  [['grantSubstitute(m,a.mv||a.move.id);\n            m.curHP-=_rnd(m.st.hp*+_cu.costsFraction);\n            if(TR)TR.dmg(m);\n            if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;if(TR)TR.faint(m);continue;}',
-    'm.curHP-=_rnd(m.st.hp*+_cu.costsFraction);\n            if(TR)TR.dmg(m);\n            if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);continue;}\n            grantSubstitute(m,a.mv||a.move.id);']],
+  /* RE-AIMED 2026-09-09 (BATCH V, and this one was NOT this batch's doing — it was already
+   * unappliable at commit 44db658e). The self-KO line stopped being `if(TR)TR.faint(m);` and became
+   * `faintLineOut(m);`, so the four-line pattern no longer existed and the certificate had silently
+   * stopped running. Neither half's CLAIM moved: the order of `grantSubstitute` against the cost is
+   * what this demonstrates. */
+  [['grantSubstitute(m,a.mv||a.move.id);\n            m.curHP-=_rnd(m.st.hp*+_cu.costsFraction);\n            if(TR)TR.dmg(m);\n            if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;faintLineOut(m);continue;}',
+    'm.curHP-=_rnd(m.st.hp*+_cu.costsFraction);\n            if(TR)TR.dmg(m);\n            if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);continue;}\n            grantSubstitute(m,a.mv||a.move.id);']],
   (E) => {
     const { me, ally, f1, f2, S } = W7.board(E, 'garchomp', 'incineroar', 'garchomp', 'garchomp');
     const trace = []; S._trace = trace;
@@ -3757,7 +3766,11 @@ demoSource('ROADMAP #84  the variablePower gate lets a KINDLESS member through, 
  * The evidence that it is aimed at the right knob is that all four rows FLIP: three demonstrations
  * separate on the reverted build and the single-target CONTROL stays byte-identical, which is the
  * arrangement that makes a green here mean the step order and not the fixture. */
-const W10_REVERT = [['        for(const _step of steps)for(const R of _rows){if(R.out)continue;MID_TGT=midEventSlot(R.tg);_step(R);}',
+/* RE-AIMED 2026-09-09 (BATCH V): `_walk` grew a `runsWhenOut` clause so that `-hitcount` is still
+ * announced over a row a Substitute dropped. The REVERSAL is unchanged in substance — it is the
+ * row-major walk this engine had before ROADMAP #81 WIRE 10, which is the OLD engine and therefore
+ * carries no flag at all. Only the pattern being searched for moved. */
+const W10_REVERT = [['        for(const _step of steps)for(const R of _rows){if(R.out&&!_step.runsWhenOut)continue;MID_TGT=midEventSlot(R.tg);_step(R);}',
                      '        for(const R of _rows)for(const _step of steps){if(R.out)break;MID_TGT=midEventSlot(R.tg);_step(R);}']];
 const W10 = {
   /* two identical Milotic, the first optionally left on 1 HP so the spread click kills it */
