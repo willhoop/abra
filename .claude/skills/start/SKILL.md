@@ -645,6 +645,24 @@ the resolver the only door and check that every caller goes through it, not to e
 would catch a second instance spelled differently.** If it would not, say so in the gate's own header —
 that is the difference between coverage and the appearance of it.
 
+- **A tag NAMED for two halves had a probe for one.** `ignoresScreensAndSubs` carried NINE live census rows for the
+  subs half — each properly paired, *refuses without / passes with* — and **zero** for screens,
+  Safeguard or Mist. Nothing read as missing, because the tag’s NAME supplied the coverage. The
+  screens half is the one with a numeric board consequence.
+- **A count is evidence of what EXISTS, never of how much work it is.** The 6.0.0 scope was assembled
+  by hand three times in one night from three counts — 72 withheld-source, 84 stale-citation, 22
+  untraceable. **Each was correct about its own question and none of them was the workload**, so the
+  number quoted was whichever had been run last.
+- **A bibliography scored as unsourced claims.** The untraceable census read `arXiv:2007.13544` and
+  `DOI:10.1126/...` as measurements, so the part of a document that is MOST traceable counted as the
+  least — 10 of 33. Clearing one would have meant deleting a citation to satisfy a gate.
+- **An engine COMMENT asserting a derivation is exactly as authoritative-looking as one that was read.**
+  Two were false; one had deferred a real fix for days on a dice argument whose premise — that a
+  post-hit event sorts by speed — is not what the authority does.
+- **The dump window can fake an absence.** A ten-line `--dump-games` window pushed the authority’s line
+  to eleven, so it read as missing. That faked a board difference, reached a published rate, and had
+  to be retracted a batch later.
+
 ---
 
 ## 8. SOURCES THAT EXIST AND ARE NOT OBVIOUS
@@ -878,6 +896,22 @@ returning zero is not evidence the mechanic is missing** — check `data/tags.js
 - `docs/CARD-REVIEW-2026-08-22.md` — Will read 40 divergence cards by hand and found ~20 root causes
   where the automated rollup found none. **The method is grouping by MECHANISM, not by comparator
   class**, and it is still the highest-yield thing anyone has done here.
+
+- **`engine/tags.js:56` requires `data/tags.json` under node; `data/abra-tags.js` is the BROWSER path
+  only.** Both are frozen SOURCES, so they can part silently — a release then freezes a mismatched
+  pair. Rebuild with `node build/build_tags_js.js` in the same pass as any tag change.
+- **`tests/roster.js` takes `--stage`, NOT `--kind`, and writing needs `--write`.** A wrong flag runs
+  the SPINE stage silently; a missing `--write` changes nothing at all and looks like a clean run.
+- **A probe that loads `engine/game_differential.js` WITHOUT `--release` CUTS A RELEASE as a side
+  effect.** `tests/probe_trap_timing.js` refuses outright; the `staged_board` harness does not.
+- **`build/build_pdfs.js` with an unrecognised flag does a FULL BUILD** — 11 PDFs, ~13 MB of churn,
+  from something typed as a list command.
+- **`node engine/major_readiness.js`** — the whole 6.0.0 scope derived in one view: gate state, the
+  three figure categories side by side, what a re-run would lift versus leave withheld with a
+  generator per artifact, and the owed backlog. Built because the hand assembly was wrong twice.
+- **`node engine/docs_scan.js --quarantine --json`** — `quarantined_figures.hits`,
+  `citation_mismatches` and `untraceable.where` carry PER-FIGURE detail (doc, line, value, text) that
+  the text mode only counts.
 
 ---
 
