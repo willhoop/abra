@@ -133,10 +133,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  830/830 probed mechanics live, 0 missing   (census 2026-09-09 00:42)
+  830/830 probed mechanics live, 0 missing   (census 2026-09-09 02:02)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 17 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-09 00:46)
+    never fired in the staged harness (all-mechanics-fire.json, 13 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-09 02:12)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -153,14 +153,141 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is da8597c45bb8 now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 285/301 probed, 16 unprobed;  277/301 have an engine consumer, 24 have none
+  tag coverage: 285/301 probed, 16 unprobed;  278/301 have an engine consumer, 23 have none
     a tag with no consumer is derived and read by nothing — engine/tag_dex.js greps board.js and
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-09 00:59_
+_stamped 2026-09-09 02:27_
 
 <!-- /GENERATED -->
+
+## NARRATION BATCH S — **THE `-fail` FAMILY IS FOUR MECHANISMS, TEN CAUSES.** NARRATION-ONLY **32 → 22 CAUSES / 34 → 22 GAMES**, **GATE NARRATION 33 → 21 OF 961**, PROTOCOL **37 → 25**, **BOARD-MATERIAL 0 OF 958 AFTER BOTH MEASUREMENTS**, CENSUS 830/830, ROSTER 142/139/487 AND SPINE WITH ZERO DIFFER, ZERO DID-NOT-FIRE AND EVERY ANCHOR LIVE, `test-engine-diff` 6000/6000. **ZERO TRANSFERS AT EITHER STEP.** AN OVER-MATCH NEGATIVE WRITTEN TO PROVE A FIX WAS NARROW **FOUND A BOARD DEFECT INSTEAD** AND IT IS REPORTED, NOT FIXED. 2026-09-09
+
+Full account, every command, every pin, the fixture searches and the scored predictions:
+[docs/_reports/2026-09-09-narration-batch-S.md](_reports/2026-09-09-narration-batch-S.md).
+
+**THE NINE BARE `|-fail|` ROWS ARE SEVEN MECHANISMS, NOT ONE**, which is what the handover suspected
+and could not say. Read card by card off a dump taken on the baseline release: Yawn at a sleeping body
+(2), Leech Seed at a seeded body (2), Dire Claw's Champions-only refusal (1 cause / 2 games), Trick
+with no item to swap, Rage Powder clicked twice through Instruct, Instruct refused by the authority
+and EXECUTED here, and Sucker Punch's `onTry` refusal. The first three are fixed; the last four are
+diagnosed and named below. The field-3 cluster is **three** causes and four games, not four causes —
+the same correction batch R had to make one cluster over.
+
+### THE FOUR MECHANISMS
+
+| # | what the authority does | probe | knob |
+|---|---|---|---|
+| S1 | `allyswitch.onHit` and `substitute.onTryHit` announce their OWN refusal, NAME the move, and return `NOT_FAIL` — and the threshold refusal carries `[weak]` in field 4 | `tests/probe_fail_names_the_move.js` | `MEDI_BARE_FAIL_LABELS=1` |
+| S2 | the Champions mod rewrites Dire Claw's whole secondary and announces on an already-statused target, naming the status when the roll matches it | `tests/probe_direclaw_refusal_line.js` | `MEDI_NO_PROCEDURAL_REFUSAL_LINE=1` |
+| S3 | `runMoveEffects` writes `|-fail|<mover>` + `[still]` for a Yawn at a statused body and a Leech Seed at a seeded one — both were silent conjuncts in a guard here | `tests/probe_refusal_this_engine_swallowed.js` | `MEDI_SWALLOW_REFUSALS=1` |
+| S4 | `Battle#spreadDamage` refuses a body at 0 HP, so an attacker killed by Rough Skin pays no recoil and no line is written | `tests/probe_recoil_on_a_corpse.js` | `MEDI_RECOIL_ON_A_CORPSE=1` |
+
+**S4 IS THE CORPSE RULE FOR THE THIRD TIME.** `cureStatus` refuses a corpse (batch R), `removeVolatile`
+refuses a corpse (batch R), and `spreadDamage` refuses one here —
+`if (!target || !target.hp) { retVals[i] = 0; continue; }` (`sim/battle.ts:2102-2105`). The handover
+predicted the rhyme and it held. **S2 IS ITS OPPOSITE AND THAT IS WHY THE ARM EXISTS:** `this.add`
+carries no HP guard at all, so Dire Claw's refusal line is owed on a corpse too — the KO-ON-A-CORPSE
+arm asserts it sits BETWEEN the lethal `-damage` and the `|faint|`, which is both pool cards.
+
+### THE TAG LEARNED TWO FIELDS, AND PRINTING THE MATCH IS WHAT SAVED BOTH
+
+Both fixes were one step from being keyed on the TAG, and both tags contain a member that refuses in
+SILENCE. `engine/tag_dex.js` gained `costsUserHP.announcesFailBelow` (derived from the FOUR-argument
+`this.add('-fail', X, 'move: N', '[flag]')`) and `proceduralStatus.announcesRefusalOnStatus` (derived
+from the mod's `if (target.status)` block). Regenerated and diffed entity by entity: **exactly three
+rows moved** — `substitute`, `shedtail`, `direclaw`. **`clangoroussoul` refuses with a bare
+`return false` and `triattack` goes straight to `trySetStatus`; both correctly gained nothing.** A
+tag-keyed fix would have invented a line on 190 and on 2,300 corpus clicks. No tag membership changed.
+
+### THE DIE MOVED ON ONE ROAD, AND IT WAS SAID BEFORE THE RUN
+
+Leech Seed is 90% accurate and `hitStepAccuracy` sits ABOVE `runMoveEffects`, so the authority ROLLS on
+a repeat click and this engine rolled nothing. Moving the already-seeded test below the die ADDS a
+draw — at the address the authority already spends, which under the middle arm's
+`FNV1a(seed|turn|category|move|slot|nth)` is an ALIGNMENT rather than a shift. **Asserted rather than
+argued:** the SEED-REPEAT arms compare the whole `-start`/`-fail`/`-miss` list IN ORDER over six clicks
+on two arms, and the middle arm's list contains a `-miss` at click 5 which both engines now produce at
+the same click. The Grass refusal (`onTryImmunity`) and the Prankster one keep skipping the roll, which
+is what the SEED-GRASS control asserts.
+
+### THE MEASUREMENT
+
+| | baseline `2c4e125866cc` | S1+S2 `ccdda3181a45` | S3+S4 `5381b07ea2fa` |
+|---|---|---|---|
+| **BOARD-MATERIAL** | 0 / 958 | **0 / 958** | **0 / 958** |
+| NARRATION-ONLY causes | 32 | 28 | **22** |
+| NARRATION-ONLY games | 34 | 28 | **22** |
+| protocol diverged (raw) | 37 | 31 | **25** |
+| transfers | — | **0** | **0** |
+
+Every cluster predicted the pinned pool moves and the lab sits still — no new mechanic fires, a line
+either starts or stops being written. That is what happened.
+
+### THE OVER-MATCH NEGATIVE FOUND A BOARD DEFECT
+
+The arm written to prove the Yawn fix was keyed on `target.status` and not on the wider
+`canTakeStatus` measured the AUTHORITY refusing a Yawn under Safeguard —
+`onTryAddVolatile` names `yawn` explicitly (`data/moves.ts:15601-15607`) and returns null with
+`-activate|TARGET|move: Safeguard` — where **this engine lands the drowse**. It falsifies a comment
+that had been standing in the yawn branch since WIRE 241 (*"Safeguard is an `onSetStatus`, so a
+Safeguarded body takes the drowse in the authority"*); the comment is corrected in place. It is a
+BOARD defect with no pinned-pool witness and was not fixed inside a narration pass.
+
+### THE RESIDUAL TRIO — THE STEP BATCH Q NAMED, TAKEN, AND IT REFUTES A SINGLE STORY
+
+Sinistcha vs **Sinistcha** (70/70), Primarina vs Clefable (60/60), Umbreon vs Scovillain (**65/75**).
+Two same-base-Speed pairs and one that is not, so the class is **not one mechanism** and batch Q was
+right to withhold a clean bill. The third row has the slower body on paper moving FIRST in the
+authority, which points at a speed READING; this run's own instrument prints **560 disagreeing speed
+readings in 236 of 961 games**, every top row carrying `status=…/sd:fnt` and differing by exactly a
+Choice Scarf, an Unburden, a Swift Swim or a paralysis multiplier — which reads like the INSTRUMENT
+reading a modifier-free stat off a body Showdown has already fainted. Recorded as an observation with
+no diagnosis. **STILL OPEN, no fix attempted.**
+
+### THE HAND LIST
+
+**Removed — the four mechanisms above**, each now carried by a probe named in the table. All ten pool
+rows are absent from the artifact. **Removed — the field-3 cluster and four of the nine bare `-fail`
+rows**, which batch R left undiagnosed.
+
+- **THE FOUR REMAINING BARE `|-fail|` CAUSES ARE NOW DIAGNOSED AND NOT ATTEMPTED.** Trick that finds
+  no item to swap (`!yourItem && !myItem` -> `return false`); Rage Powder clicked a second time in one
+  turn through Instruct, where this engine RE-WRITES the `-singleturn`; Instruct refused by the
+  authority and EXECUTED here; and Sucker Punch's `onTry` refusal when the target has already moved,
+  which this engine lets through to the Psychic Terrain block instead. **The last two are behavioural,
+  not narration**, and each needs its own probe.
+- **THE YAWN / SAFEGUARD BOARD DEFECT.** Measured on every run of
+  `tests/probe_refusal_this_engine_swallowed.js`, unfixed, no pinned-pool witness.
+- **YAWN'S `runStatusImmunity('slp')` HALF** — an Insomnia or Vital Spirit body with no status is a
+  real `-fail` on the authority and is not wired here. Named, not assumed absent.
+- **THE MAX-HP RECOIL ROAD.** Struggle and Steel Beam pay through `directDamage`, whose guard is the
+  identical `if (!target?.hp) return 0;` (`sim/battle.ts:2210`), asserted by the probe. Steel Beam is
+  not contact so nothing can kill its user in the gap; Struggle is, and reaching it costs a body's
+  whole PP. **Left unfixed because it could not be staged, not because it is believed correct.**
+- **THE RESIDUAL TRIO**, and now known not to be one mechanism. Open.
+- **THE 560 SPEED-READING DISAGREEMENTS** in 236 of 961 games, all carrying `sd:fnt`. Looks like the
+  instrument; not diagnosed here.
+- **`--out` DIVERTS THE WRITE AWAY FROM THE GATE'S SLOT AND THAT COST A RE-RUN.** The first two
+  measurements used `--out`, so `data/game-differential.json` stayed on batch R's release and
+  `engine/status.js` read **3 of 9** clauses failing, two of them `MEASURED AGAINST A DIFFERENT ENGINE`
+  against a stale artifact. Re-run without `--out`, plus `engine/all_mechanics_fire.js --kind all
+  --write` for the same reason; the gate is back to **1 of 9**. A flag that quietly moves the
+  published number is the shape this repository keeps paying for.
+- **THE CENSUS DIGEST IN THE BRIEF (`0b88d51b3463`) IS NOT THE ONE ANY RUN REPORTS (`e6cb76df93f5`),
+  AND THE CONTENT DID NOT MOVE.** 830 rows, `matches_live`, on the before-run and every after-run; the
+  file's only diff across the batch is its timestamp and one stochastic detail string.
+- **`node engine/status.js --write` WAS RUN**; nothing was committed, per the brief.
+- **Carried forward unchanged** from the hand lists below: the other eight `tryHitRefusal` sites and
+  `moveClassBlocked` against the Prankster refusal; Substitute as step 0 over all targets (3 games);
+  the second `eachEvent('Update')` pass (1 game); `_stepDamagingHit` mixing the order-1 punishers with
+  the default-order ones (1 game); the post-KO replacement switch-in order and the redirect activation
+  against a `-prepare` (1 game each); `orderProbeClause`'s rerun hint omitting `--end-state`;
+  `ability/priority-mod` picking its delivery move without asking the carrier's learnset; the
+  per-arrival crit vector on an absorbed volley; Population Bomb into Flame Body; `item/chance-gated`
+  and `item/crit-ratio` on a dead corner; Struggle's every-slot fixture; and
+  `tests/test-pinch-family.js` red at 1 of 61.
 
 ## NARRATION BATCH R — **FIVE MECHANISMS, SIXTEEN CAUSES.** NARRATION-ONLY **48 → 32 CAUSES / 50 → 34 GAMES**, **GATE NARRATION 49 → 33 OF 961**, PROTOCOL **53 → 37**, **BOARD-MATERIAL 0 OF 958 AFTER EVERY ONE OF THE FOUR MEASUREMENTS**, CENSUS 830/830, ROSTER 142/139/487 WITH ZERO DIFFER AND ZERO DID-NOT-FIRE, `test-engine-diff` 6000/6000. **ZERO TRANSFERS AT EVERY STEP AND EVERY PREDICTION HIT AT THE POINT ESTIMATE.** ONE ARM WAS WRITTEN EXPECTING A LINE AND WAS RED ON THE AUTHORITY — IT IS KEPT AS A NEGATIVE. 2026-09-08
 

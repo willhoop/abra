@@ -1,10 +1,10 @@
 {
-  "current": "2c4e125866cc",
-  "cut": "2026-09-09T04:38:16.572Z",
-  "why": "narration batch R clusters 5+6 — the absorbed gift ends on switch-out; the pivot shield answers first",
-  "cuts": 7,
-  "latest_cut": "2026-09-09T05:03:24.612Z",
+  "current": "5381b07ea2fa",
+  "cut": "2026-09-09T05:56:58.095Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 16,
+  "latest_cut": "2026-09-09T06:29:29.214Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-09T05:03:24.626Z",
+  "pointer_written": "2026-09-09T06:29:29.229Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

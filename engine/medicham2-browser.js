@@ -1641,6 +1641,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* ROADMAP #256 -- a failure whose `|-fail|` the CALLER already wrote on the target, so `mvFail`'s
    * second line on the mover would have been an event the authority never emits. */
   mvFailAnnouncedByCaller: 0,
+  /* NARRATION BATCH S, 2026-09-09 -- a refusal whose OWN handler names the move in field 3 (and,
+   * for the `costsUserHP` threshold, carries `[weak]` in field 4). Counts LINES WRITTEN in that
+   * shape; `First` keeps the label so a run can say which member fired. A zero on a run that clicked
+   * a partnerless Ally Switch or a Substitute at low HP means this wire stopped firing. */
+  failNamedByHandler: 0, failNamedByHandlerFirst: '',
   /* ROADMAP #306 -- a type writer refused by a target that already carries the type. A zero in a run
    * that clicked one is the guard never reaching its condition, not proof there was nothing to refuse. */
   typeWriteRefused: 0,
@@ -2375,6 +2380,20 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      ever rolled `slp` must show the second -- a zero on the second with the first non-zero says the
      branch is running and the bare arm is not reached. */
   proceduralStatusApplied: 0, slpUnattributedAnonEffect: 0,
+  /* NARRATION BATCH S, 2026-09-09 -- the procedural roll landing on a body that already carries a
+   * major status. `RefusedOnStatus` counts the REFUSALS (every member) and `RefusalAnnounced` counts
+   * the LINES (only the members whose handler announces, which is Dire Claw and not Tri Attack), so a
+   * run can tell "the refusal fired" apart from "the refusal spoke". `First` keeps the move, the
+   * status held and the status rolled. */
+  proceduralStatusRefusedOnStatus: 0, proceduralRefusalAnnounced: 0, proceduralRefusalAnnouncedFirst: '',
+  /* NARRATION BATCH S, 2026-09-09 -- two refusals this engine already made and made in SILENCE, now
+   * each with a `|-fail|<mover>` behind it. A zero on a run that clicked a Yawn at a statused body or
+   * a Leech Seed at a seeded one means the wire stopped firing. */
+  yawnRefusedOnStatus: 0, yawnRefusedOnStatusFirst: '', seedRefusedAlreadySeeded: 0,
+  /* NARRATION BATCH S, 2026-09-09 -- an attacker that was already at 0 HP when its own recoil came
+   * due, so `Battle#spreadDamage`'s corpse guard refused the payment and the line with it. Rare by
+   * construction: only a damaging-hit punisher fits in that gap. */
+  recoilRefusedOnCorpse: 0,
   forcedBerryEaten: 0, forcedBerryEffectUnexpressed: 0, teatimeFieldPass: 0, stuffCheeksNoBerry: 0,
   /* 2026-08-23 -- a berry REFUSED because an Unnerve body was standing opposite. It counts the
      REFUSAL and not the walk, so it cannot rise merely because the reader was called; a zero on a
@@ -4625,7 +4644,13 @@ const TRACE=(function(){
      * charge moves pass nothing and their line is unchanged -- `push` drops a trailing undefined. */
     prep(m,id,extra){ this.push(['-prepare',ident(m),id,extra]); },
     recharge(m){ this.push(['-mustrecharge',ident(m)]); },
-    fail(m,what){ this.push(['-fail',ident(m),what]); },
+    /* `flag` is the FOURTH field and exists for one authority shape: the `costsUserHP` threshold
+     * refusal, `this.add('-fail', source, 'move: Substitute', '[weak]')` (data/moves.ts:18314, and
+     * Shed Tail at :16176). push() drops a trailing undefined, so every existing two- and three-field
+     * caller is unchanged. It is NOT stripped by the differ's `display-flags` rule -- that rule names
+     * `[silent] [still] [miss] [spread] [anim]` and `[weak]` is none of them -- so this field is
+     * compared and had to be emitted rather than approximated. */
+    fail(m,what,flag){ this.push(['-fail',ident(m),what,flag]); },
     /* A REFUSED STAT DROP IS AN ANNOUNCEMENT, and Showdown writes it in two shapes depending on
      * whether the refuser blocks EVERY stat or one named stat (data/abilities.ts, verified live):
      *     |-fail|p2a: Metagross|unboost|[from] ability: Clear Body|[of] p2a: Metagross
@@ -15563,6 +15588,63 @@ const NO_ABSORB_GIFT_END_ON_LEAVE=(typeof process!=='undefined'&&process.env
  * `MEDFAILS.pivotAbilityBeforeShieldRestored = 1`. */
 const PIVOT_ABILITY_BEFORE_SHIELD=(typeof process!=='undefined'&&process.env
                                    &&process.env.MEDI_PIVOT_ABILITY_BEFORE_SHIELD==='1');
+/* NARRATION BATCH S, 2026-09-09 -- MEDI_BARE_FAIL_LABELS=1 PUTS BOTH HANDLER-WRITTEN `-fail` LINES
+ * BACK TO THE GENERIC TWO-FIELD SHAPE, i.e. the engine exactly as it stood before batch S: an Ally
+ * Switch with no partner to swap with, and a Substitute clicked at or below its HP threshold, both
+ * write `|-fail|<mover>` where the authority's own handler names the move (and, for the threshold
+ * refusal, carries `[weak]`). See the `slotswap` branch and the `costsUserHP` threshold gate; any run
+ * carrying it also carries `MEDFAILS.bareFailLabelsRestored = 1`. Stamped at LOAD TIME for the reason
+ * every knob above is. */
+const BARE_FAIL_LABELS=(typeof process!=='undefined'&&process.env
+                        &&process.env.MEDI_BARE_FAIL_LABELS==='1');
+if(BARE_FAIL_LABELS)MEDFAILS.bareFailLabelsRestored=1;
+/* NARRATION BATCH S, 2026-09-09 -- MEDI_NO_PROCEDURAL_REFUSAL_LINE=1 TAKES DIRE CLAW'S CHAMPIONS-ONLY
+ * REFUSAL LINE BACK OUT, i.e. the engine exactly as it stood before batch S: a procedural status
+ * rolled at a body that already carries one is refused SILENTLY. See the `proceduralStatus` block; any
+ * run carrying it also carries `MEDFAILS.proceduralRefusalLineRestored = 1`. Stamped at LOAD TIME. */
+const NO_PROCEDURAL_REFUSAL_LINE=(typeof process!=='undefined'&&process.env
+                                  &&process.env.MEDI_NO_PROCEDURAL_REFUSAL_LINE==='1');
+if(NO_PROCEDURAL_REFUSAL_LINE)MEDFAILS.proceduralRefusalLineRestored=1;
+/* NARRATION BATCH S, 2026-09-09 -- MEDI_SWALLOW_REFUSALS=1 PUTS BOTH SILENT REFUSALS BACK, i.e. the
+ * engine exactly as it stood before batch S: a Yawn clicked at an already-statused body and a Leech
+ * Seed clicked at an already-seeded one both say nothing at all. IT ALSO PUTS THE ACCURACY ROLL BACK
+ * WHERE IT WAS -- the seed road skipped `_R.acc()` entirely for a seeded target -- because a knob
+ * that reverted the LINE and kept the DRAW would revert neither behaviour honestly. ONE knob for two
+ * doors deliberately: they are one root (a refusal expressed as a silent conjunct) and a knob per
+ * door would let a partial revert look like a pass. Any run carrying it also carries
+ * `MEDFAILS.swallowedRefusalsRestored = 1`. Stamped at LOAD TIME. */
+const SWALLOW_REFUSALS=(typeof process!=='undefined'&&process.env
+                        &&process.env.MEDI_SWALLOW_REFUSALS==='1');
+if(SWALLOW_REFUSALS)MEDFAILS.swallowedRefusalsRestored=1;
+/* NARRATION BATCH S, 2026-09-09 -- MEDI_RECOIL_ON_A_CORPSE=1 TAKES THE HP GUARD BACK OUT OF THE
+ * RECOIL PAYMENT, i.e. the engine exactly as it stood before batch S: an attacker killed by the
+ * target's Rough Skin is still charged recoil and still says so, above nothing at all. See the
+ * recoil block; any run carrying it also carries `MEDFAILS.recoilOnCorpseRestored = 1`. Stamped at
+ * LOAD TIME. */
+const RECOIL_ON_A_CORPSE=(typeof process!=='undefined'&&process.env
+                          &&process.env.MEDI_RECOIL_ON_A_CORPSE==='1');
+if(RECOIL_ON_A_CORPSE)MEDFAILS.recoilOnCorpseRestored=1;
+/* THE HANDLER-WRITTEN FAILURE, IN ONE PLACE, because two call sites deciding "does this refusal name
+ * its own move" is the shape CLAUDE.md's FACTS-ARE-GLOBAL rule forbids -- and the two sites here are
+ * exactly the pair that had drifted (ROADMAP #241 wired substitute's REPEAT branch and left its
+ * THRESHOLD branch and Ally Switch's whole `onHit` writing the generic line).
+ *
+ * `label` IS THE ARTIFACT'S DISPLAY NAME AND `flag` IS THE ARTIFACT'S FLAG. A caller that cannot
+ * supply a label is COUNTED and falls back to the bare line, because a silent fallback here looks
+ * exactly like the two-field bug being fixed.
+ *
+ * `mvFailAnnouncedByCaller`, NOT `mvFail`: every authority site of this shape ends
+ * `return this.NOT_FAIL`, so exactly ONE line reaches the wire and the generic one never runs. The
+ * `_mvRes` write is identical either way, so this changes the LINE and nothing else -- the same
+ * scope note `mvFailAnnouncedByCaller`'s own header carries. */
+function mvFailNamed(mon,label,flag,still){
+  if(BARE_FAIL_LABELS){mvFail(mon);return;}
+  if(!label){MEDFAILS.failLabelNoName++;mvFail(mon);return;}
+  if(TR){TR.fail(mon,'move: '+label,flag||undefined);if(still)TR.attrStill();}
+  MEDSEEN.failNamedByHandler++;
+  if(!MEDSEEN.failNamedByHandlerFirst)MEDSEEN.failNamedByHandlerFirst=String(label)+(flag?' '+flag:'');
+  mvFailAnnouncedByCaller(mon);
+}
 /* M4, 2026-09-04 -- MEDI_NO_CHOICELOCK_REQUEST_SWEEP=1 PUTS THE LAZY-ONLY CHOICE LOCK BACK: the lock
  * is destroyed only when something asks the menu, and never at all when the locked MOVE has gone. See
  * `choiceLockRequestSweep`; any run carrying it also carries
@@ -28930,7 +29012,25 @@ function battleTurn(S,rng,actsForA,actsForB){
              which needs the check ORDER as well as the number) -- but the rounding is fixed here too
              so the two sites cannot disagree the next time a member is added. */
           const _rnd=(_cu.rounds==='ceil')?Math.ceil:Math.floor;
-          if(m.curHP<=_rnd(m.st.hp*(+_cu.failsBelow||+_cu.costsFraction))){m._lastMove=a.mv||a.move.id;mvFail(m);continue;}
+          /* NARRATION BATCH S, 2026-09-09 -- THE THRESHOLD REFUSAL NAMES THE MOVE AND CARRIES
+           * `[weak]`, AND ONLY FOR THE MEMBERS WHOSE HANDLER SAYS SO. Substitute and Shed Tail
+           * announce it themselves and return NOT_FAIL (`this.add('-fail', source, 'move: Substitute',
+           * '[weak]')`, data/moves.ts:18314 and :16176). CLANGOROUS SOUL DOES NOT -- its `onTry` is a
+           * bare `return false`, so the generic two-field line is the RIGHT answer for it and this
+           * engine was already correct there. Keying on the TAG rather than on this field would have
+           * invented a line on 190 corpus clicks; the tag carries `announcesFailBelow` per member and
+           * an absent field means the generic line, with no default flag anywhere.
+           * NO `[still]`: substitute's and Shed Tail's handlers do not call `attrLastMove`, and Ally
+           * Switch's does -- the difference is invisible to the differ (`display-flags` drops `[still]`
+           * and `move-target-field` slices the move line to four fields) and is honoured anyway.
+           * The pre-existing REPEAT branch above still writes an `attrStill` the authority does not;
+           * it is invisible for the same two reasons and is named here rather than changed inside an
+           * announcement pass. */
+          if(m.curHP<=_rnd(m.st.hp*(+_cu.failsBelow||+_cu.costsFraction))){
+            m._lastMove=a.mv||a.move.id;
+            const _ann=_cu.announcesFailBelow;
+            if(_ann&&_ann.label)mvFailNamed(m,_ann.label,_ann.flag,false); else mvFail(m);
+            continue;}
           /* WIRE 130 -- AND THE DOLL IS ACTUALLY BUILT. See grantSubstitute: the paying half of this
              move ran and the granting half did not, on 1,976 corpus clicks.
              ROADMAP #81 WIRE 7 -- AND IT IS BUILT *BEFORE* THE HP IS PAID. `moveHit` adds
@@ -31535,6 +31635,34 @@ function battleTurn(S,rng,actsForA,actsForB){
           MEDSEEN.volFailLinesWritten++;
           if(TR)TR.attrStill();
           mvFail(m);
+        }
+        /* NARRATION BATCH S, 2026-09-09 -- AND THE ALREADY-STATUSED CLAUSE NOW HAS A CONSEQUENCE.
+         * `yawn.onTryHit(target) { if (target.status || !target.runStatusImmunity('slp')) return
+         * false; }` (data/moves.ts) is a bare `return false`, which `runMoveEffects` turns into the
+         * generic `|-fail|<mover>` + `[still]` -- the same line the already-drowsing branch directly
+         * above writes, by a different road. Two pool cards, both a Yawn clicked at a SLEEPING body.
+         *
+         * IT IS `t.status` AND DELIBERATELY NOT `canTakeStatus`, WHICH IS THE WHOLE POINT. The comment
+         * that stood here was right that `canTakeStatus` is wider than the authority's clause and
+         * would over-fire; it is kept as the reason this branch is narrow. What it got WRONG is which
+         * way Safeguard falls, and that is corrected rather than left standing: Safeguard carries an
+         * `onTryAddVolatile` that names `yawn` explicitly and returns null with
+         * `-activate|TARGET|move: Safeguard` (data/moves.ts:15601-15607) -- so the authority refuses
+         * the DROWSE, not the sleep two turns later, and this engine lands it. That is a BOARD defect
+         * with no pinned-pool witness; it is MEASURED on every run by
+         * `tests/probe_refusal_this_engine_swallowed.js`'s YAWN-SAFEGUARD arm and is NOT fixed here.
+         *
+         * THE OTHER HALF OF THE AUTHORITY'S CLAUSE -- `!runStatusImmunity('slp')`, i.e. an Insomnia or
+         * Vital Spirit body with NO status -- is also a real `-fail` and is also not wired here. It is
+         * named rather than assumed absent, on the same rule.
+         *
+         * NO DIE MOVES: yawn's printed accuracy is `true`, so `hitStepAccuracy` draws nothing on
+         * either engine and this branch spends nothing. */
+        else if(!_yBlocked&&t.status&&!SWALLOW_REFUSALS){
+          MEDSEEN.yawnRefusedOnStatus++;
+          if(!MEDSEEN.yawnRefusedOnStatusFirst)MEDSEEN.yawnRefusedOnStatusFirst=String(t.status);
+          if(TR)TR.attrStill();
+          mvFail(m);
         } else if(!_yBlocked&&canTakeStatus(t,'slp'))
           /* +1 because the end-of-turn tick below fires on the APPLICATION turn too. Without it a
              delay of 1 puts the target to sleep on the turn Yawn was clicked, which is a turn early
@@ -31650,7 +31778,18 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(m._aswCount<_max)m._aswCount=(m._aswCount||_first)*_grow;
           m._aswDur=_dur;
         } else { m._aswCount=_first; m._aswDur=_dur; }
-        if(me<0||!partner||partner.fainted||partner.curHP<=0){ mvFail(m); continue; }
+        /* NARRATION BATCH S, 2026-09-09 -- AND IT NAMES THE MOVE. `allyswitch.onHit` announces its
+         * own refusal, `this.add('-fail', pokemon, 'move: Ally Switch'); this.attrLastMove('[still]');
+         * return this.NOT_FAIL;` (data/moves.ts:326-328) -- a THREE-field line where `mvFail`'s
+         * generic announcement writes two. THE OTHER ROAD OUT OF THIS BRANCH IS DIFFERENT AND STAYS
+         * DIFFERENT: the consecutive-use refusal above is `condition.onRestart`, which deletes the
+         * volatile and returns false with no `add` of its own, so `useMoveInner` writes the BARE line.
+         * Two roads, two shapes; `tests/probe_fail_names_the_move.js` holds the stall road as the
+         * control that must not move. The label is the ARTIFACT'S display name, never a string typed
+         * here. */
+        if(me<0||!partner||partner.fainted||partner.curHP<=0){
+          const _asRec=TAGS.tagsFor?TAGS.tagsFor('move',a.mv):null;
+          mvFailNamed(m,_asRec&&_asRec.name,null,true); continue; }
         own[me]=partner; own[other]=m;
         MEDSEEN.allySwitchSwapped++;
         /* 2026-08-12 -- AND IT ANNOUNCES NOTHING. A `TR.st1` stood here and `-singleturn` is
@@ -32759,7 +32898,26 @@ function battleTurn(S,rng,actsForA,actsForB){
          * host them honestly; a tag consumed HALF-right is how the 20-mechanic batch went wrong. */
         if(!st){
           const _pt=TAGS.param('move',a.mv,'perTurnHP');
-          if(_pt&&_pt.effect==='drain'&&_pt.on==='target'&&_pt.per&&!t._seededBy
+          /* NARRATION BATCH S, 2026-09-09 -- `!t._seededBy` WAS A CONJUNCT HERE AND IT WAS THE SILENT
+           * ONE. An already-seeded target skipped this whole block: no line, and NO ACCURACY ROLL.
+           * The authority does neither -- `leechseed` carries `volatileStatus: 'leechseed'`, and
+           * `hitStepAccuracy` (90%) runs ABOVE `runMoveEffects`, so the click ROLLS and then either
+           * misses or reaches `addVolatile`, which returns a bare `false` for a volatile already
+           * present with no `onRestart` (sim/pokemon.ts:1994-1997) and becomes the generic
+           * `|-fail|<mover>` + `[still]` at battle-actions.ts:1303-1309. Two pool cards.
+           *
+           * SO THE TEST MOVED DOWN, PAST THE DIE, AND THE DIE IS THE PART THAT NEEDED CARE. This adds
+           * a draw where this engine made none. Under the middle arm the die is an ADDRESS
+           * (`FNV1a(seed|turn|category|move|slot|nth)`), so a draw taken at the address the authority
+           * already spends is an ALIGNMENT, not a shift -- and the probe asserts the whole
+           * `-start`/`-fail`/`-miss` list IN ORDER over six clicks on two arms, one of which contains
+           * a MISS, which is what would catch a roll landing anywhere else.
+           *
+           * THE OTHER TWO CONJUNCTS STAY WHERE THEY ARE. The Grass refusal is `onTryImmunity` and the
+           * Prankster one is `hitStepTryImmunity`; both sit ABOVE `hitStepAccuracy` in `moveSteps`, so
+           * they must keep skipping the roll. Only the VOLATILE's own refusal moved. */
+          if(_pt&&_pt.effect==='drain'&&_pt.on==='target'&&_pt.per
+             &&!(SWALLOW_REFUSALS&&t._seededBy)
              &&!(_pt.immuneType&&t.types.includes(_pt.immuneType))
              &&!pranksterBlocked(m,t,a.mv)){
             /* 2026-08-27 -- THE DOLL LEFT THIS CONJUNCT, AND IT WAS THE SILENT ONE. It read
@@ -32782,6 +32940,13 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(!accMustRoll(acc)||_R.acc()*100<=acc){
               /* THE DIE IS PASSED, SO THE DOLL IS FINALLY ASKED -- `moveSteps` index 7, below 4. */
               if(_lsDoll){subStatusRefuse(m,t);m._lastMove=a.mv;continue;}
+              /* NARRATION BATCH S -- AND THE VOLATILE'S OWN REFUSAL, BELOW THE DIE AND BELOW THE
+               * DOLL, which is where `runMoveEffects` asks it. See the header on the guard above. */
+              if(t._seededBy){
+                MEDSEEN.seedRefusedAlreadySeeded++;
+                if(TR)TR.attrStill();
+                mvFail(m);
+                m._lastMove=a.mv;continue;}
               /* 2026-08-25 -- A BOUNCED SEED BELONGS TO THE BOUNCER, exactly as a bounced trap does
                * (2026-08-24). `useMove(newMove, target, {target: source})` makes the reflected move's
                * USER the body that reflected it (data/abilities.ts:2436), so the drain is credited to
@@ -38530,9 +38695,49 @@ function battleTurn(S,rng,actsForA,actsForB){
               * `onHit` -> `trySetStatus` -> `slp.onStart`. This engine drew it from `any` and the
               * authority from `sec`, which are two independent dice at two different addresses. See
               * sleepDurationDraw for the whole derivation and the Golurk measurement. */
+             /* NARRATION BATCH S, 2026-09-09 -- A BODY THAT ALREADY CARRIES A STATUS REFUSES THIS
+              * ROLL, AND CHAMPIONS MAKES IT SAY SO. The mod rewrites Dire Claw's whole secondary
+              * (data/mods/champions/moves.ts:194-208) and puts, ABOVE `trySetStatus`:
+              *     if (target.status) {
+              *       if (target.status === status) { this.add('-fail', target, status); }
+              *       else                          { this.add('-fail', target); }
+              *       return;
+              *     }
+              * TWO SHAPES AND BOTH ARE THE AUTHORITY'S. The roll landing on the status the body
+              * already has names it in field 3; any other status writes the bare two-field line.
+              *
+              * IT IS THE MEMBER'S RULE, NOT THE TAG'S, and that is the whole reason the tag carries
+              * `announcesRefusalOnStatus`. TRI ATTACK is not overridden by the mod: its secondary
+              * goes straight to `trySetStatus`, which refuses an already-statused body in SILENCE. A
+              * fix keyed on `proceduralStatus` would have invented a `-fail` on every Tri Attack, and
+              * `tests/probe_direclaw_refusal_line.js` holds that arm as the negative.
+              *
+              * NO HP GUARD, DELIBERATELY, AND IT IS THE OPPOSITE OF batch R's CORPSE RULE. `cureStatus`
+              * and `removeVolatile` both open `if (!this.hp) return false`; `this.add` opens with
+              * nothing at all. So a body killed by the very hit that rolled this still gets the line --
+              * which is both pool cards, a Sneasler Dire Claw into a poisoned body it also kills.
+              *
+              * THE DRAW IS UNMOVED. `_R.sec()` above has already been spent on the pick, exactly where
+              * the authority spends it (`this.sample` runs BEFORE the status test), so an announced
+              * refusal and a landed status consume the same dice in the same order. */
+             const _pick=CODE_OF_STATUS[_ps.oneOf[_i]]||_ps.oneOf[_i];
+             const _pAnn=_ps.announcesRefusalOnStatus;
+             if(_pAnn&&tg&&tg.status){
+               if(!NO_PROCEDURAL_REFUSAL_LINE){
+                 if(TR){
+                   if(_pAnn.namesStatusWhenSame&&tg.status===_pick)TR.fail(tg,String(tg.status));
+                   else if(_pAnn.bareWhenDifferent)TR.fail(tg);
+                 }
+                 MEDSEEN.proceduralRefusalAnnounced++;
+                 if(!MEDSEEN.proceduralRefusalAnnouncedFirst)
+                   MEDSEEN.proceduralRefusalAnnouncedFirst=String(a.move.id)+' '+String(tg.status)+'/'+String(_pick);
+               }
+               MEDSEEN.proceduralStatusRefusedOnStatus++;
+             } else {
              MEDSEEN.proceduralStatusApplied++;
-             applyStatus(tg,CODE_OF_STATUS[_ps.oneOf[_i]]||_ps.oneOf[_i],m,ATTR.moveAnon(a.move.id),
+             applyStatus(tg,_pick,m,ATTR.moveAnon(a.move.id),
                          undefined,_R.sec);
+             }
            }}
           /* WIRE 156 -- FAKE OUT'S FLINCH IS A SECONDARY, AND THE HARDCODE THAT USED TO SIT HERE
            * SAID IT WAS NOT.
@@ -39921,7 +40126,31 @@ function battleTurn(S,rng,actsForA,actsForB){
        * 'recoil')` (sim/battle-actions.ts:1391), a Condition, so it is refused. Struggle's is
        * `directDamage` one line up (`:1388`) and is NOT -- that is the max-HP block below, which
        * carries its own note. */
-      if(_rcF&&dealt>0&&!refusesIndirect(m)){m.curHP-=_rcDmg;
+      /* NARRATION BATCH S, 2026-09-09 -- AND A BODY ALREADY AT 0 HP PAYS NOTHING AND SAYS NOTHING.
+       * THIS IS THE THIRD MECHANISM WEARING THE RULE batch R found twice: `cureStatus` refuses a
+       * corpse (the thaw), `removeVolatile` refuses a corpse (the absorbed gift), and the payment
+       * road refuses one here --
+       *     if (!target || !target.hp) { retVals[i] = 0; continue; }        sim/battle.ts:2102-2105
+       * inside `Battle#spreadDamage`, which is where `applyRecoilDamage`'s
+       * `this.battle.damage(recoilDamage, pokemon, pokemon, effect)` (battle-actions.ts:1392) lands.
+       *
+       * THE GAP IS REAL AND NARROW: the only thing that can kill the attacker between its own hit
+       * landing and its recoil being paid is the target's damaging-hit punisher, which in this
+       * regulation is Rough Skin. Both pool cards are exactly that.
+       *
+       * IT IS NARRATION AND NOT A BOARD because the HP is already 0 -- the deduction below was a
+       * no-op and only the line was invented. The ORDER this engine already had right (the payment
+       * sits BELOW the faint) is what made the invented line visible at all.
+       *
+       * THE OTHER RECOIL ROAD IS NOT TOUCHED AND IS NAMED RATHER THAN LEFT TO BE FOUND: the max-HP
+       * block below pays through `directDamage`, whose guard is the identical `if (!target?.hp)
+       * return 0;` (sim/battle.ts:2210). Steel Beam is not a contact move so nothing can kill its
+       * user in that gap; Struggle is, and reaching it costs a body's whole PP, which no pinned-pool
+       * game does. Unfixed, unstaged, and stated. */
+      const _rcOwed=!!(_rcF&&dealt>0&&!refusesIndirect(m));
+      const _rcCorpse=_rcOwed&&m.curHP<=0;
+      if(_rcCorpse)MEDSEEN.recoilRefusedOnCorpse++;
+      if(_rcOwed&&(!_rcCorpse||RECOIL_ON_A_CORPSE)){m.curHP-=_rcDmg;
         /* ROADMAP #234 -- `dex.conditions.getByID('recoil')` is `new Condition({name: 'Recoil'})`
          * (sim/dex-conditions.ts:699), a Condition and not a Move, so its fullname carries NO
          * namespace prefix -- and the capital is the authority's, which is why the id passed here is

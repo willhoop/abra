@@ -1813,7 +1813,27 @@ const MOVE_TAGS = [
       if (!gate) return null;
       const failsBelow = (+(gate[1] || 1)) / (+gate[2]);
       const rounds = /directDamage\(\s*Math\.ceil\(/.test(src) ? 'ceil' : 'trunc';
-      return { costsFraction, failsBelow, rounds };
+      /* 2026-09-09, NARRATION BATCH S -- WHAT THE THRESHOLD REFUSAL *SAYS*, AND IT IS NOT THE SAME
+       * FOR ALL THREE MEMBERS. Substitute and Shed Tail announce it themselves and return NOT_FAIL:
+       *     this.add('-fail', source, 'move: Substitute', '[weak]');    data/moves.ts:18314
+       *     this.add('-fail', source, 'move: Shed Tail',  '[weak]');    data/moves.ts:16176
+       * Clangorous Soul does NOT -- its `onTry` is a bare `return false`, so `useMoveInner` writes
+       * the generic two-field `|-fail|<mover>`.
+       *
+       * THAT DIFFERENCE IS THE WHOLE REASON THIS FIELD EXISTS. medicham2 wrote the bare line for all
+       * three, which is right for one member and wrong for two; a consumer that "fixed" it by
+       * labelling every member would have invented a line on Clangorous Soul. The probe that drove
+       * this printed the match first and caught exactly that (tests/probe_fail_names_the_move.js §0).
+       *
+       * THE FOUR-ARGUMENT `add` IS THE DISCRIMINATOR, not the move name: substitute's OTHER refusal
+       * (a doll already standing) is a THREE-argument add and is a different branch with a different
+       * line, already consumed elsewhere. Absent -> the field is absent, and the consumer writes the
+       * generic line; there is no default flag. */
+      const said = (flat(m.onTry) + flat(m.onTryHit))
+        .match(/this\.add\(["']-fail["'],\s*\w+,\s*["']move: ([^"']+)["'],\s*["'](\[[a-z]+\])["']\s*\)/);
+      const out = { costsFraction, failsBelow, rounds };
+      if (said) out.announcesFailBelow = { label: said[1], flag: said[2] };
+      return out;
     } },
   /* ROADMAP #139 -- A MOVE THAT REFUSES ITSELF. No Retreat's `onTry` is
    * `if (source.volatiles['noretreat']) return false;` -- the second click FAILS OUTRIGHT, boosting
@@ -4337,7 +4357,32 @@ const MOVE_TAGS = [
         if (!pick) continue;
         const list = pick[1].split(',').map(x => x.replace(/[^a-z]/gi, '')).filter(Boolean);
         if (!list.length) continue;
-        return { p: sec.chance / 100, oneOf: list, each: +(sec.chance / 100 / list.length).toFixed(3) };
+        /* 2026-09-09, NARRATION BATCH S -- CHAMPIONS GIVES ONE MEMBER A REFUSAL ANNOUNCEMENT AND
+         * MAINLINE GIVES NEITHER MEMBER ONE. Reading data/moves.ts here would have been reading the
+         * wrong game: the mod rewrites Dire Claw's whole secondary
+         * (data/mods/champions/moves.ts:194-209) and adds, above `trySetStatus`,
+         *     if (target.status) {
+         *       if (target.status === status) { this.add('-fail', target, status); }
+         *       else                          { this.add('-fail', target); }
+         *       return;
+         *     }
+         * with its own comment "This seems to only happen with Dire Claw". Tri Attack is NOT
+         * overridden by the mod and goes straight to `trySetStatus`, which refuses an already-statused
+         * body SILENTLY. So the announcement is one member's and a consumer keyed on the TAG rather
+         * than on this field would have invented a `-fail` on every Tri Attack.
+         *
+         * TWO SHAPES, BOTH CARRIED, because they are different lines: the roll landing on the status
+         * the body ALREADY has names it in field 3, and any other status writes the bare two-field
+         * line. Read off the handler that runs, so a member added later arrives with its own answer
+         * and one that announces nothing gets no field at all. */
+        const src2 = src.replace(/\s+/g, ' ');
+        const ann = /if\s*\(\s*target\.status\s*\)\s*\{/.test(src2)
+          ? { namesStatusWhenSame: /this\.add\(["']-fail["'],\s*target,\s*status\s*\)/.test(src2),
+              bareWhenDifferent: /this\.add\(["']-fail["'],\s*target\s*\)/.test(src2) }
+          : null;
+        const row = { p: sec.chance / 100, oneOf: list, each: +(sec.chance / 100 / list.length).toFixed(3) };
+        if (ann && (ann.namesStatusWhenSame || ann.bareWhenDifferent)) row.announcesRefusalOnStatus = ann;
+        return row;
       }
       return null;
     } },

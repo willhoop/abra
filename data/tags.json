@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-07T17:10:07.420Z",
+ "generated": "2026-09-09T05:31:43.815Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -2710,8 +2710,8 @@
    "kind": "item",
    "param": "a status is removed the moment it lands",
    "why": "Lum (107 uses), Chesto, Rawst. Every status move aimed at the holder is a wasted turn, and inflictsStatus has no idea",
-   "consumedBy": null,
-   "used": false,
+   "consumedBy": "lumberry",
+   "used": true,
    "n": 6,
    "uses": 507,
    "examples": [
@@ -9792,7 +9792,11 @@
       "par",
       "slp"
      ],
-     "each": 0.1
+     "each": 0.1,
+     "announcesRefusalOnStatus": {
+      "namesStatusWhenSame": true,
+      "bareWhenDifferent": true
+     }
     },
     "formatSecondaryCount": {
      "count": 1
@@ -29003,7 +29007,11 @@
     "costsUserHP": {
      "costsFraction": 0.5,
      "failsBelow": 0.5,
-     "rounds": "ceil"
+     "rounds": "ceil",
+     "announcesFailBelow": {
+      "label": "Shed Tail",
+      "flag": "[weak]"
+     }
     },
     "targetClass": {
      "target": "self",
@@ -31436,7 +31444,11 @@
     "costsUserHP": {
      "costsFraction": 0.25,
      "failsBelow": 0.25,
-     "rounds": "trunc"
+     "rounds": "trunc",
+     "announcesFailBelow": {
+      "label": "Substitute",
+      "flag": "[weak]"
+     }
     },
     "targetClass": {
      "target": "self",

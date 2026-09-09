@@ -10,6 +10,60 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.270.0] — 2026-09-09
+
+### Fixed
+- **NARRATION BATCH S — FOUR MECHANISMS IN THE `-fail` FAMILY, TEN NARRATION-ONLY CAUSES.** Each has
+  a probe shown RED on the pre-fix bytes and a knob that reproduces the old behaviour exactly.
+  (1) **A `-fail` the handler writes itself NAMES the move.** `allyswitch.onHit` and
+  `substitute.onTryHit` announce their own refusal and return `NOT_FAIL`, so exactly one line reaches
+  the wire and it carries the move — and, for the threshold refusal, `[weak]` in field 4. This engine
+  wrote the generic two-field line for both. `tests/probe_fail_names_the_move.js`, knob
+  `MEDI_BARE_FAIL_LABELS=1`. (2) **Champions gives Dire Claw a refusal line mainline does not have** —
+  the mod rewrites the whole secondary (`data/mods/champions/moves.ts:191-209`) and announces when the
+  target already carries a status, naming the status when the roll matches it. Tri Attack is NOT
+  overridden and refuses in silence. `tests/probe_direclaw_refusal_line.js`, knob
+  `MEDI_NO_PROCEDURAL_REFUSAL_LINE=1`. (3) **Two refusals this engine already made, and made in
+  silence** — a Yawn clicked at a statused body and a Leech Seed clicked at a seeded one, both
+  expressed as a silent conjunct in a guard rather than a branch with a consequence. The seed road
+  also skipped the authority's 90% accuracy roll entirely; the test moved BELOW the die.
+  `tests/probe_refusal_this_engine_swallowed.js`, knob `MEDI_SWALLOW_REFUSALS=1`. (4) **A body at 0 HP
+  pays no recoil and says nothing** — `Battle#spreadDamage` opens
+  `if (!target || !target.hp) { retVals[i] = 0; continue; }`, the third mechanism wearing the rule
+  batch R found twice. `tests/probe_recoil_on_a_corpse.js`, knob `MEDI_RECOIL_ON_A_CORPSE=1`.
+
+### Changed
+- **Gate NARRATION 33 → 21 of 961; NARRATION-ONLY 32 → 22 causes and 34 → 22 games; protocol
+  divergence 37 → 25.** **BOARD-MATERIAL holds at 0 of 958**, checked after both measurements.
+  `engine/status.js` is back to **1 of 9 gate clauses failing** — NARRATION, and nothing else. Census
+  unchanged at 830 live / 0 missing / 830 probed; all four roster stages 0 DIFFER, 0 DID-NOT-FIRE with
+  every anchor live; `tests/test-engine-diff.js` 6000/6000.
+- **`engine/tag_dex.js` gained two derived params and the diff was printed before anything read
+  them:** `costsUserHP.announcesFailBelow` and `proceduralStatus.announcesRefusalOnStatus`. **Exactly
+  three entities moved** — `substitute`, `shedtail`, `direclaw` — and `clangoroussoul` and `triattack`
+  gained nothing, which is the point: both tags contain a member that refuses SILENTLY, so a fix keyed
+  on the tag would have invented a line on 190 and on 2,300 corpus clicks respectively.
+
+### Notes
+- **An over-match negative found a board defect and it is REPORTED, NOT FIXED.** The arm written to
+  prove the Yawn fix was keyed on `target.status` rather than on the wider `canTakeStatus` measured
+  the authority refusing a Yawn under SAFEGUARD — `onTryAddVolatile` names `yawn` explicitly
+  (`data/moves.ts:15601-15607`) — where this engine lands the drowse. That falsifies a comment
+  standing in the yawn branch, which has been corrected in place. No pinned-pool witness, so it was
+  not fixed inside a narration pass.
+- **The residual-order trio was investigated as instructed and stays OPEN.** Two of the three rows are
+  same-base-Speed pairs and the third is 65 against 75, so "the residual order is a speed tie" is not
+  one mechanism. Full account: `docs/_reports/2026-09-09-narration-batch-S.md`.
+
+- **A FIGURE STOPPED BEING TRACEABLE WITHOUT ANYONE EDITING IT.** `docs/MODELS.md:1081` states
+  "a further 15,279 turns" about the 2026-08-02 joint refit. No artifact in `data/` has ever held
+  15279 — it scored as traceable on an arithmetic collision with a digit run in an artifact batch S
+  re-wrote, and the collision broke. Same class as the `docs/MEDICHAM-SPRINT-NOTES.md|117` entry
+  already in the baseline. **Baselined with a stated expiry, not accepted indefinitely:** it is a
+  MAG/joint figure, `data/policy-weights.json` is quarantined, and the MAG refit is sequenced after
+  6.0.0 — it is re-derived or cut there. Not cut now, because MAG is paused and this repository does
+  not edit a dated argument to make a gate green.
+
 ## [5.269.1] — 2026-09-09
 
 ### Fixed

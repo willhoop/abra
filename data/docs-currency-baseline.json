@@ -1,8 +1,8 @@
 {
-  "generated": "2026-09-09T06:08:25.189Z",
+  "generated": "2026-09-09T06:37:15.416Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "5.269.0",
+  "changelog_top_at_baseline": "5.270.0",
   "version_pins": {
     "docs/ADR-002-showdown-is-the-authority.md": {
       "version": "3.50.0",
@@ -242,16 +242,13 @@
       "docs/SUMMARY.md|934|data/game-differential.json"
     ],
     "untraceable_by_doc": {
-      "docs/ABRA-whitepaper.md": 10,
+      "docs/ABRA-whitepaper.md": 9,
       "docs/ARCHITECTURE.md": 1,
-      "docs/MODELS.md": 13,
-      "docs/ROLE-FAMILY.md": 2,
-      "docs/SLOWKING-whitepaper.md": 7
+      "docs/MODELS.md": 13
     },
     "untraceable_figures": [
       "docs/ABRA-whitepaper.md|1.0021",
       "docs/ABRA-whitepaper.md|1.0208",
-      "docs/ABRA-whitepaper.md|2304.08272",
       "docs/ABRA-whitepaper.md|24,997",
       "docs/ABRA-whitepaper.md|82,483",
       "docs/ABRA-whitepaper.md|−0.000076",
@@ -270,15 +267,7 @@
       "docs/MODELS.md|−3.989",
       "docs/MODELS.md|−4.125",
       "docs/MODELS.md|−4.986",
-      "docs/MODELS.md|−5.054",
-      "docs/ROLE-FAMILY.md|2304.08272",
-      "docs/SLOWKING-whitepaper.md|10.1126",
-      "docs/SLOWKING-whitepaper.md|2007.13544",
-      "docs/SLOWKING-whitepaper.md|2112.03178",
-      "docs/SLOWKING-whitepaper.md|2301.04104",
-      "docs/SLOWKING-whitepaper.md|2503.04094",
-      "docs/SLOWKING-whitepaper.md|2504.04395",
-      "docs/SLOWKING-whitepaper.md|2506.10326"
+      "docs/MODELS.md|−5.054"
     ]
   },
   "reasons": {
@@ -290,7 +279,8 @@
     "docs/SUMMARY.md|829|data/mechanics-census.json": "HAND EDIT, 2026-09-06, by MEASURE, the 5.265.0 publish pass. THE FIGURE DID NOT CHANGE AND NEITHER DID ITS DOCUMENT - the ARTIFACT it cites moved underneath it. docs/SUMMARY.md carries this figure in EIGHT dated blocks, the one the gate named being :204 at the time of the failing run (the dated 5.252.0 table, \"mechanics live in the census | 829 of 829\"); each records what data/mechanics-census.json read on the day it was written: 829 live of 829 probed, 0 missing. On the same day a later pass added one census row for Rapid Spin's own partial-trap clear, which had no probe anywhere, and the file now reads 830 of 830 with 0 missing. Nothing went down. A dated version block is a historical record and is NOT rewritten in place (CLAUDE.md), so the alternative to this entry is editing a shipped conclusion, which is worse. The CURRENT census figure is stated by the 5.265.0 block at the top of the same document and cites the same artifact, so the document is not missing a live citation - it is carrying a superseded one, in order. This entry retires only if the dated line is removed, which CLAUDE.md forbids, so it stands for as long as the block does. All eight collapse to this one ratchet key, which is keyed on document, figure and cited artifact rather than on line, so one entry covers all of them and none of them was edited.",
     "docs/*|934|data/game-differential.json": "HAND EDIT, 2026-09-07, long-tail batch M. THE FIGURE DID NOT CHANGE AND NEITHER DID ITS DOCUMENT — the ARTIFACT it was coincidentally matching did, exactly as in the 2026-08-13 entry above. 934 is `state.games_board_never_diverged` as 5.264.0 published it (board-material 27 of 961 on release d9e551ed0d5a). Five long-tail batches have superseded it since and none folded the documents in, which is the deferral docs/RUNNING-NOTES.md exists to carry. It stayed GREEN on a COINCIDENCE: every re-run of data/game-differential.json happened to contain 934 somewhere else — `state.agreement_by_turn[4].reached` — so the citation check was matching a different quantity with the same value. Batch M's void-game correction filters three unreadable games out of the state population, that incidental 934 became 931, and the coincidence ended. THE CHECK IS RIGHT AND HAS BEEN WRONG-GREEN: these four citations are stale and are owed to the next documentation pass, not to ENGINE mid-batch. Retires itself the moment the white paper, docs/SUMMARY.md and docs/ABRA-technical-docs.md are folded in.",
     "docs/ABRA-whitepaper.md|113|data/game-differential.json": "HAND EDIT, 2026-09-07, MEASURE settled-tree re-measurement. THE FIGURE DID NOT CHANGE AND NEITHER DID ITS DOCUMENT - the ARTIFACT it was coincidentally matching did, which is the same shape as the 2026-08-13 entry above. docs/ABRA-whitepaper.md:59 is a block stamped 5.262.0 narrating a fix SEQUENCE: \"King's Shield's stat punish routed through Battle#boost (board-material 50 to 48, protocol 114 to 113)\". 113 is a historical WAYPOINT in that sequence, never a claim about what data/game-differential.json holds today; it passed only because 113 happened to occur somewhere in the artifact. That artifact was republished on release f30bf025ae28 (2026-09-08T01:04:31Z, cap 50, 961 games, arm middle, census pin 9446a684709d, pool 0d103fb9fa87) and the coincidence is gone. EDITING THE 5.262.0 BLOCK TO REMOVE THE NUMBER WOULD REWRITE A DATED CLAIM IN PLACE, which CLAUDE.md forbids, and would destroy the record of what those six fixes actually moved. REPORTED DEFECT, NOT AN APPROVAL: the real repair is a citation form that can name a historical value without being read as a live one. docs/_reports/2026-09-07-settled-gate-and-reason-audit.md",
-    "docs/SUMMARY.md|85|data/game-differential.json,data/policy-weights.json,data/smogon-coverage-2026-08.json": "HAND EDIT, 2026-09-07, ENGINE narration batch 2. THE FIGURE DID NOT CHANGE AND NEITHER DID ITS DOCUMENT -- the ARTIFACT it was coincidentally matching did. docs/SUMMARY.md:328 is a DATED 5.244.0 block, and its `85` is a claim about the STORE: \"our own store was re-measured rather than re-discovered at 85 species that are `isNonstandard: 'Past'`\". None of the three artifacts its block cites is the source of that number; it passed the citation check because 85 happened to appear somewhere in data/game-differential.json. Republishing that artifact on release fb0058fb5702 (narration 63 -> 55 of 961) removed the collision. Nothing about the 85 is now less true than it was, and nothing about it was ever CHECKED -- which is the defect this entry reports rather than approves. The right repair is for the block to cite the store artifact the number came from, which is a documentation pass and not this one."
+    "docs/SUMMARY.md|85|data/game-differential.json,data/policy-weights.json,data/smogon-coverage-2026-08.json": "HAND EDIT, 2026-09-07, ENGINE narration batch 2. THE FIGURE DID NOT CHANGE AND NEITHER DID ITS DOCUMENT -- the ARTIFACT it was coincidentally matching did. docs/SUMMARY.md:328 is a DATED 5.244.0 block, and its `85` is a claim about the STORE: \"our own store was re-measured rather than re-discovered at 85 species that are `isNonstandard: 'Past'`\". None of the three artifacts its block cites is the source of that number; it passed the citation check because 85 happened to appear somewhere in data/game-differential.json. Republishing that artifact on release fb0058fb5702 (narration 63 -> 55 of 961) removed the collision. Nothing about the 85 is now less true than it was, and nothing about it was ever CHECKED -- which is the defect this entry reports rather than approves. The right repair is for the block to cite the store artifact the number came from, which is a documentation pass and not this one.",
+    "docs/MODELS.md|15,279": "COINCIDENCE BROKE, 2026-09-09, narration batch S. THE FIGURE DID NOT CHANGE AND NEITHER DID ITS DOCUMENT -- the ARTIFACTS it was matching did. docs/MODELS.md:1081 states \"a further 15,279 turns\" about the 2026-08-02 joint refit, and no artifact in data/ has ever contained 15279; it was scoring as traceable on an arithmetic collision with a digit run in some artifact that batch S re-wrote. This is the same class as docs/MEDICHAM-SPRINT-NOTES.md|117|data/tags.json, recorded above and for the same reason. IT IS NOT ACCEPTED INDEFINITELY AND IT NAMES ITS OWN EXPIRY: it is a MAG/joint-refit figure, data/policy-weights.json is quarantined, and Will sequenced the MAG refit AFTER 6.0.0 (2026-09-09: \"yes skip mag it comes after 6.0.0\"). It is re-derived or cut at that refit. It is not cut now because MAG is paused and this repository does not edit a dated argument to make a gate green."
   },
   "note_unversioned": "These documents carry no version header, so nothing can say whether they are current. They are EXEMPT FROM RULE 1 ONLY - they are still scanned by the retracted-number rules. The list may only shrink: give a document a version header matching the CHANGELOG and it leaves this list and joins the figure scans.",
   "note_archive": "docs/archive/ files that do NOT declare a SUPERSEDED replacement. Grandfathering here only stops the SUPERSEDED-header rule failing; it grants NO exemption from the content scans, and the sixteen files archived on 2026-08-05 were deliberately left undeclared for exactly that reason. Moving a file into docs/archive/ must not convert a caught retracted figure into an uncaught one, so these carry a provenance header (what it claimed / when / what replaced it / what in it is retracted) and STAY in rules 1, 1b and 3b. Use the SUPERSEDED form only for a document whose content is wholly reproduced elsewhere. docs/archive/INDEX.md is GENERATED by build/build_archive_index.js and is the index over this directory, not an archived document.",
