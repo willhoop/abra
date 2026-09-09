@@ -817,6 +817,25 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * written `move.smartTarget = false` at target selection. A zero on a board where the dart met one
    * live foe behind a shield means this engine is back to reading the tag instead of the split. */
   smartTargetUnsplitAnnounced: 0,
+  /* NARRATION BATCH U, 2026-09-09 -- AND THE FOURTH ROAD OFF THE SAME ONE-SHOT: a TYPE IMMUNITY on a
+   * smart-target move. `hitStepTypeImmunity` asks `targets[i].runImmunity(move, !move.smartTarget)`
+   * (sim/battle-actions.ts:661) and `runImmunity` opens its announcement with `if (!message) return
+   * false` -- so a dart that meets an immune body while the one-shot is still unspent writes NOTHING
+   * AT ALL. This engine wrote the line every time. A zero on a board where a dart met an immune
+   * partner means the silence is not happening. */
+  /* NARRATION BATCH U, 2026-09-09 -- CLAW ROLLS TAKEN ON A CLICK ABOVE BRACKET 0, which is the road
+   * the old `_fpOk` gate refused outright. A zero says no run reached it and the fix is unwitnessed. */
+  fracPriAboveBracketZero: 0,
+  /* NARRATION BATCH U, 2026-09-09 -- ENTRIES ONTO A SIDE CARRYING MORE THAN ONE HAZARD, which is the
+   * only population in which the lay order can be observed at all. A zero says this run never saw a
+   * board that could tell the two orders apart. */
+  hazardsBitInLayOrder: 0,
+  smartTargetImmuneSilent: 0,
+  /* AND ITS PAIR: the immunity that WAS announced because the shield road had already spent the
+   * one-shot, or because the darts never split. The two counters together are the receipt -- a run
+   * with `Silent` non-zero and this at zero on a board that also had a shield up is the silence
+   * over-firing, which is the shape the shield half of this rule got wrong first. */
+  smartTargetImmuneAnnounced: 0,
   /* NARRATION BATCH Q2, 2026-09-08 -- THE TWO `DamagingHit` HANDLERS THAT USED TO BE PAID INSIDE
    * `_stepEffects` AND ARE NOW PAID AT THE STEP THE AUTHORITY PAYS THEM AT. `dhAbilityAtDamagingHit`
    * is Cursed Body's road, `dhSourceAtDamagingHit` is Poison Touch's. Both count the HANDLER RUNNING,
@@ -3146,6 +3165,26 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-09-06 -- set for the whole run when MEDI_SMART_TARGET_SURVIVES_REDIRECT=1 lets the dart split
      survive a redirect on purpose. Same shape as selfSwitchUpdateSuppressed. */
   smartTargetSurvivesRedirectRestored: 0,
+  /* NARRATION BATCH U, 2026-09-09 -- MEDI_SMART_IMMUNE_LINE=1 was set: a smart-target move's type
+   * immunity announces on every visit again, which is the engine as it stood before batch U. */
+  smartImmuneLineRestored: 0,
+  /* NARRATION BATCH U, 2026-09-09 -- MEDI_FRACPRI_PRIORITY_GATE=1 was set: the claw is refused above
+   * bracket 0 again, which is the engine as it stood before batch U. */
+  fracPriPriorityGateRestored: 0,
+  /* NARRATION BATCH U, 2026-09-09 -- MEDI_HAZARD_FIXED_ORDER=1 was set on a board where it could
+   * matter: the entry hazards bite in source order again. */
+  hazardFixedOrderRestored: 0,
+  /* AND A HAZARD LAYER WITH NO RECORDED LAY ORDINAL -- a board seeded straight into `sf.hz` without
+   * going through `layHazard`. It keeps the source order, which is the pre-batch behaviour, and is
+   * counted rather than guessed at: a hazard given an invented ordinal would sort somewhere nobody
+   * chose, and a silent default looks exactly like a working feature. */
+  hazardLayOrderUnknown: 0, hazardLayOrderUnknownFirst: null,
+  /* NARRATION BATCH U, 2026-09-09 -- THE ONE CASE THIS ENGINE'S SILENCE IS NARROWER THAN THE
+   * AUTHORITY'S: `hitStepTypeImmunity` reads `move.smartTarget` for EVERY target in one step and the
+   * step loop clears the field only afterwards, so TWO immune bodies in one volley are both silent
+   * upstream and only the first is silent here. It needs both foes immune to the dart's type. LOUD
+   * rather than silent, because a silent approximation is indistinguishable from a working feature. */
+  smartImmuneSecondTargetAnnounced: 0,
   /* 2026-08-27 -- set for the whole run when MEDI_MULTIHIT_UPDATE_ONCE=1 puts the Update event back
      to once per MOVE on purpose, so a deliberate restore arm and an unwired between-hit pass can
      never be read as the same thing. Same shape as inMoveUpdateSuppressed. */
@@ -3725,12 +3764,12 @@ const MEDFAILS = { encoreAction: 0,
    * see the fractionalPriority loop in battleTurn -- and this one is counted rather than approximated,
    * so the population is visible. A zero means no board reached it. */
   fracPriMyceliumDrawUnmodelled: 0,
-  /* 2026-08-27 -- the claw's EFFECT gate, which the DRAW no longer shares. `_fpOk` refuses the nudge
-   * on a move whose printed priority is above 0; the authority's `priority <= 0` is a test on the
-   * event's RELAY VAR (`runEvent(..., 0)`), not on the move, so it rolls and applies there too. The
-   * die now agrees with the authority on every move action; the OUTCOME still does not, and this is
-   * the size of that gap. Non-zero is a real defect and it is a different line from the draw. */
-  fracPriPriorityGateUnmodelled: 0,
+  /* NARRATION BATCH U, 2026-09-09 -- `fracPriPriorityGateUnmodelled` STOOD HERE AND IS GONE, because
+   * the gap it measured is closed: the claw now applies above bracket 0, which is the authority's own
+   * reading of its `priority <= 0` (a test on the event's RELAY VAR, `runEvent(..., 0)`, not on the
+   * move). It is DELETED rather than left at a permanent zero -- a MEDFAILS row that can never move
+   * reads as "no board reached it", which is the silent-default shape this file is organised against.
+   * The population it used to describe is now `MEDSEEN.fracPriAboveBracketZero`. */
   /* 2026-08-17 -- an `announce` record naming an event `TRACE.announced` has no emitter for. The four
    * carriers this format admits use `-activate` and `-ability` and nothing else; a fifth shape would
    * be SILENT rather than approximated, so it is counted and named instead of guessed at. */
@@ -14996,6 +15035,24 @@ const SMART_PROTECT_LINE=(typeof process!=='undefined'&&process.env&&process.env
  * shields, this one announces on none, and the authority announces on N-1. Any run carrying it also
  * carries a non-zero `MEDFAILS.smartShieldAllSilentRestored`. Same knob shape as the two above. */
 const SMART_SHIELD_ALL_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SMART_SHIELD_ALL_SILENT==='1');
+/* NARRATION BATCH U, 2026-09-09 -- MEDI_SMART_IMMUNE_LINE=1 PUTS THE `|-immune|` BACK ON A SMART-TARGET
+ * MOVE'S TYPE IMMUNITY, which is what this engine did until today: it announced on every visit where
+ * the authority announces only once the one-shot is gone. Any run carrying it also carries a non-zero
+ * `MEDFAILS.smartImmuneLineRestored`. Same knob shape as the two above.
+ * Probe: tests/probe_smart_target_immune_line.js. */
+const SMART_IMMUNE_LINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SMART_IMMUNE_LINE==='1');
+/* NARRATION BATCH U, 2026-09-09 -- MEDI_FRACPRI_PRIORITY_GATE=1 REFUSES THE FRACTIONAL-PRIORITY ITEM
+ * ABOVE BRACKET 0 AGAIN, which is what this engine did until today: the die was drawn at the
+ * authority's address and the RESULT discarded on any priority click. Any run carrying it also carries
+ * a non-zero `MEDFAILS.fracPriPriorityGateRestored`.
+ * Probe: tests/probe_quick_claw_above_bracket_zero.js. */
+const FRACPRI_PRIORITY_GATE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FRACPRI_PRIORITY_GATE==='1');
+/* NARRATION BATCH U, 2026-09-09 -- MEDI_HAZARD_FIXED_ORDER=1 BITES THE ENTRY HAZARDS IN THIS FILE'S
+ * SOURCE ORDER AGAIN (Stealth Rock, Spikes, Toxic Spikes, Sticky Web) instead of in the order they
+ * were laid, which is what this engine did until today. Any run carrying it, on a side holding more
+ * than one hazard, also carries a non-zero `MEDFAILS.hazardFixedOrderRestored`.
+ * Probe: tests/probe_hazard_lay_order.js. */
+const HAZARD_FIXED_ORDER=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HAZARD_FIXED_ORDER==='1');
 /* NARRATION BATCH Q2, 2026-09-08 -- MEDI_DH_IN_EFFECTS=1 PAYS CURSED BODY AND POISON TOUCH BACK INSIDE
  * `_stepEffects`, i.e. a whole step above the authority's single `DamagingHit` event, which is what
  * this engine did until today. It is a GAME knob and not an instrument one: it moves the LINE ORDER
@@ -22629,6 +22686,22 @@ function layHazard(sf,hz,cap,setter,sideLabel,say){
   else lim=+cap;
   if(before>=lim)return false;
   bag[hz]=before+1;
+  /* NARRATION BATCH U, 2026-09-09 -- WHEN IT WAS CREATED, because that is what decides which hazard
+   * bites first. Every hazard is a SIDE CONDITION with an `onSwitchIn` and none of the four declares
+   * a priority, so they tie on speed, priority and subOrder, and `resolvePriority` breaks the tie on
+   * `effectOrder` -- ascending, i.e. the condition created FIRST fires first (sim/battle.ts:994-999
+   * and comparePriority at :407-412; the authority's own comment there names the case, *"If multiple
+   * hazards are present on one side ... they should activate in the order they were created"*).
+   *
+   * STAMPED ON CREATION AND NEVER ON A RESTART, which is `initEffectState`'s own rule
+   * (sim/battle.ts:3319-3326): `addSideCondition` on a condition that already exists calls
+   * `onSideRestart` and does not re-stamp, so a second Spikes layer does not move Spikes down the
+   * list. `before === 0` is exactly that test.
+   *
+   * THE SEQUENCE IS PER SIDE, not per battle. The authority's counter is battle-global, but the only
+   * comparison anything makes is between two conditions on the SAME side, so a per-side counter gives
+   * the identical order and cannot leak between games. */
+  if(before===0)(sf.hzOrd=sf.hzOrd||{})[hz]=(sf._hzSeq=(sf._hzSeq||0)+1);
   /* WIRE 138 -- WHO LAID IT, kept on the layer because it outlives whoever set it, exactly as
      Showdown's `effectState.source` does. Sticky Web's -1 Speed HAS a source and therefore DOES
      trigger Defiant. Only recorded when a caller names one. */
@@ -22763,6 +22836,9 @@ function sweepField(rm,user,srcSf,tgtSf,field,acts){
     for(const hz of (rm.hazards||[])){
       if(!(sf.hz[hz]>0))continue;
       delete sf.hz[hz]; if(sf.hzBy)delete sf.hzBy[hz];
+      /* AND THE LAY ORDINAL WITH IT -- the authority REMOVES the side condition, so a hazard laid
+       * again afterwards is a NEW effect state with a NEW effectOrder and goes to the back. */
+      if(sf.hzOrd)delete sf.hzOrd[hz];
       n++; MEDSEEN.hazardSwept++;
       if(TR)TR.sendSide(_lab(sf),hz);
     }
@@ -23185,23 +23261,60 @@ function applyEntryConditions(nx,sf,i,field){
      * THAT chip is refused in the residual) and one drops a stat. A gate written around the whole
      * `sf.hz` block would have made Magic Guard immune to Sticky Web, which is not the ability. */
     const _hzGuard=refusesIndirect(nx);
-    if(sf.hz.stealthrock&&!_hzGuard){nx.curHP-=Math.floor(nx.st.hp*mcEff('Rock',nx.types)/8);
-      if(TR)TR.dmg(nx,'[from] Stealth Rock');}
-    if(sf.hz.spikes&&_grounded&&!_hzGuard){
-      nx.curHP-=Math.floor(nx.st.hp/[8,8,6,4][Math.min(sf.hz.spikes,3)]);
-      if(TR)TR.dmg(nx,'[from] Spikes');}
-    if(sf.hz.toxicspikes&&_grounded&&nx.curHP>0){
-      if(nx.types.indexOf('Poison')>=0){sf.hz.toxicspikes=0;if(TR)TR.send(nx,'Toxic Spikes');}
-      else if(applyStatus(nx,sf.hz.toxicspikes>=2?'tox':'psn'))MEDSEEN.hazardResolvedOnEntry++;
-    }
-    if(sf.hz.stickyweb&&_grounded&&nx.curHP>0){
-      if(TR)TR.act(nx,'move: Sticky Web');
-      /* WIRE 138 -- THE SETTER, recorded when the layer went down (`hzBy`). Showdown's stickyweb
-         condition boosts with `this.effectState.source`, so the drop HAS a source and Defiant fires on
-         it. A layer with no recorded setter (a seeded mid-game board) passes `undefined`, which keeps
-         the pre-wire behaviour and is counted in MEDSEEN.retaliateSourceUnknown. */
-      applyStatDrop(nx,'sp',1,'Sticky Web',(sf.hzBy&&sf.hzBy.stickyweb)||undefined);MEDSEEN.hazardResolvedOnEntry++;
-    }
+    /* NARRATION BATCH U, 2026-09-09 -- AND THEY BITE IN THE ORDER THEY WERE LAID, NOT IN THE ORDER
+     * THEY ARE WRITTEN HERE.
+     *
+     * The four blocks below used to run as four consecutive `if`s, so a side carrying Toxic Spikes
+     * and Stealth Rock always chipped before it poisoned. The authority sorts the `SwitchIn` handlers
+     * and breaks their perfect tie on `effectOrder` ASCENDING -- see the header on `layHazard` for the
+     * citation and for why the ordinal is stamped at creation only. The pinned pool's card is
+     * `|-status|p1a|tox <> |-damage|p1a|H/H|[from]stealthrock`: the same two lines, the other way up.
+     *
+     * A LAYER WITH NO RECORDED ORDINAL KEEPS THE OLD PLACE AND IS COUNTED. A seeded mid-game board
+     * writes `sf.hz` directly and never goes through `layHazard`, so it has no ordinal; those sort
+     * LAST among themselves in the source order, which is exactly the pre-batch behaviour, and
+     * `MEDFAILS.hazardLayOrderUnknown` is the receipt. A guessed ordinal would be a silent default.
+     *
+     * MEDI_HAZARD_FIXED_ORDER=1 restores the source order for the red arm.
+     * Probe: tests/probe_hazard_lay_order.js. */
+    const _hzSrc=['stealthrock','spikes','toxicspikes','stickyweb'];
+    const _hzBite={
+      stealthrock:()=>{ if(sf.hz.stealthrock&&!_hzGuard){nx.curHP-=Math.floor(nx.st.hp*mcEff('Rock',nx.types)/8);
+        if(TR)TR.dmg(nx,'[from] Stealth Rock');} },
+      spikes:()=>{ if(sf.hz.spikes&&_grounded&&!_hzGuard){
+        nx.curHP-=Math.floor(nx.st.hp/[8,8,6,4][Math.min(sf.hz.spikes,3)]);
+        if(TR)TR.dmg(nx,'[from] Spikes');} },
+      toxicspikes:()=>{ if(sf.hz.toxicspikes&&_grounded&&nx.curHP>0){
+        if(nx.types.indexOf('Poison')>=0){sf.hz.toxicspikes=0;
+          /* THE ABSORBED LAYER IS REMOVED, so its ordinal goes too -- the authority calls
+           * `side.removeSideCondition('toxicspikes')` and a re-laid layer is a new effect state. */
+          if(sf.hzOrd)delete sf.hzOrd.toxicspikes;
+          if(TR)TR.send(nx,'Toxic Spikes');}
+        else if(applyStatus(nx,sf.hz.toxicspikes>=2?'tox':'psn'))MEDSEEN.hazardResolvedOnEntry++;
+      } },
+      stickyweb:()=>{ if(sf.hz.stickyweb&&_grounded&&nx.curHP>0){
+        if(TR)TR.act(nx,'move: Sticky Web');
+        /* WIRE 138 -- THE SETTER, recorded when the layer went down (`hzBy`). Showdown's stickyweb
+           condition boosts with `this.effectState.source`, so the drop HAS a source and Defiant fires
+           on it. A layer with no recorded setter (a seeded mid-game board) passes `undefined`, which
+           keeps the pre-wire behaviour and is counted in MEDSEEN.retaliateSourceUnknown. */
+        applyStatDrop(nx,'sp',1,'Sticky Web',(sf.hzBy&&sf.hzBy.stickyweb)||undefined);
+        MEDSEEN.hazardResolvedOnEntry++;
+      } },
+    };
+    const _hzVal=h=>{
+      const o=sf.hzOrd&&sf.hzOrd[h];
+      if(o==null){ if(sf.hz[h]){ MEDFAILS.hazardLayOrderUnknown++;
+        if(!MEDFAILS.hazardLayOrderUnknownFirst)MEDFAILS.hazardLayOrderUnknownFirst=String(h)
+          +' (no lay ordinal -- a board seeded straight into sf.hz, keeping the source order)'; }
+        return Number.MAX_SAFE_INTEGER; }
+      return o;
+    };
+    let _hzRun=_hzSrc;
+    if(HAZARD_FIXED_ORDER){ if(_hzSrc.filter(h=>sf.hz[h]).length>1)MEDFAILS.hazardFixedOrderRestored=1; }
+    else _hzRun=_hzSrc.slice().sort((a,b)=>(_hzVal(a)-_hzVal(b))||(_hzSrc.indexOf(a)-_hzSrc.indexOf(b)));
+    if(_hzSrc.filter(h=>sf.hz[h]).length>1)MEDSEEN.hazardsBitInLayOrder++;
+    for(const _h of _hzRun)_hzBite[_h]();
     if(nx.curHP<=0){nx.curHP=0;nx.fainted=true,noteFaint(nx);if(nx._sf)nx._sf.fainted++;faintLineOut(nx);}
   }
 }
@@ -25999,7 +26112,32 @@ function battleTurn(S,rng,actsForA,actsForB){
          constructed-game run caught `|-activate|p1a: Corviknight|item: quickclaw` on a REPLACEMENT
          SWITCH, against a `|switch|` line on the authority's side. */
       const _fpMid=actionMoveId(it.a);
-      const _fpOk=!!_fp&&!!_fpMid&&actionPriority(it,field)<=0;
+      /* NARRATION BATCH U, 2026-09-09 -- `priority <= 0` IS THE RELAY VAR AND THIS LINE READ IT AS THE
+       * MOVE'S BRACKET, WHICH THE PARAGRAPH BELOW HAS SAID SINCE 2026-08-27 AND ONLY FIXED FOR THE DIE.
+       *
+       *     action.fractionalPriority = runEvent('FractionalPriority', action.pokemon, null,
+       *                                          action.move, 0);        sim/battle-queue.ts:249
+       *     quickclaw.onFractionalPriority(priority, ...) {
+       *       if (priority <= 0 && this.randomChance(1, 5)) { add('-activate', ...); return 0.1; } }
+       *                                                                  data/items.ts:4985-4993
+       *     action.priority = priority + action.fractionalPriority;      sim/battle.ts:2644
+       *
+       * The trailing `0` IS the `priority` the handler receives on an ordinary claw holder, so the
+       * test passes on a Protect and on a Quick Attack exactly as it does on a Body Press, and the
+       * 0.1 is added to whatever bracket the move already had. Champions overrides neither the item
+       * nor the queue. THE DIE DOES NOT MOVE: `_fpDraws` below never contained this term, so the roll
+       * was already being taken at the authority's address and merely thrown away.
+       *
+       * The pinned pool's card is a Rotom holding a claw clicking PROTECT (+4): the authority
+       * announced the claw and moved the SLOWER body first, and this engine did neither.
+       * `MEDI_FRACPRI_PRIORITY_GATE=1` puts the gate back.
+       * Probe: tests/probe_quick_claw_above_bracket_zero.js. */
+      const _fpOk=!!_fp&&!!_fpMid&&(!FRACPRI_PRIORITY_GATE||actionPriority(it,field)<=0);
+      /* THE POPULATION THE OLD GATE USED TO REFUSE, KEPT AS A COUNTER RATHER THAN DELETED: a claw
+       * holder clicking ABOVE bracket 0 is exactly the road this batch opened, and a zero here says
+       * the run never went down it. It was `MEDFAILS.fracPriPriorityGateUnmodelled` while it was a
+       * declared gap; it is a MEDSEEN now because it is no longer a gap. */
+      if(!!_fp&&!!_fpMid&&actionPriority(it,field)>0)MEDSEEN.fracPriAboveBracketZero++;
       /* ---- 2026-08-27 -- THE DIE IS NOW TAKEN ON THE ACTIONS THE AUTHORITY TAKES IT ON, AND THE
        * PARAGRAPH ABOVE SAID THIS WOULD NEED ITS OWN PROBE. It has one:
        * `tests/probe_fractional_priority_draw.js`.
@@ -26029,9 +26167,11 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * TWO CONDITIONS THIS ENGINE STILL DOES NOT MODEL, COUNTED RATHER THAN IGNORED, because a
        * silent approximation is indistinguishable from a working feature:
-       *   fracPriPriorityGateUnmodelled  `_fpOk` refuses the claw above bracket 0 and the authority
-       *                                  does not. The DIE now agrees; the EFFECT does not, and that
-       *                                  is a separate defect on a separate line.
+       *   (CLOSED, NARRATION BATCH U 2026-09-09. This line read "fracPriPriorityGateUnmodelled --
+       *    `_fpOk` refuses the claw above bracket 0 and the authority does not. The DIE now agrees;
+       *    the EFFECT does not, and that is a separate defect on a separate line." It was, and it is
+       *    fixed at `_fpOk` above. The population is still counted, as
+       *    `MEDSEEN.fracPriAboveBracketZero`.)
        *   fracPriMyceliumDrawUnmodelled  quickclaw returns before the roll when the move is Status and
        *                                  the holder has Mycelium Might. Expressed as a TAG SHAPE -- an
        *                                  ability carrying `fractionalPriority` with `onlyStatus` --
@@ -26089,7 +26229,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           MEDSEEN.fracPriItemDie++;
           _itHit=(rng()<+_fp.chance)&&_fpOk;
         }
-        if(_fpDraws&&!_fpOk)MEDFAILS.fracPriPriorityGateUnmodelled++;
+        if(FRACPRI_PRIORITY_GATE&&_fpDraws&&!_fpOk)MEDFAILS.fracPriPriorityGateRestored=1;
       };
       const _rollAb=()=>{
         if(!_fa)return;
@@ -34406,7 +34546,13 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* NARRATION BATCH Q, 2026-09-08 -- THE SILENCE IS SPENT ONCE PER MOVE USE, NOT ONCE PER SHIELD.
        * See the shield loop below; declared here because `move.smartTarget` is a field on the ACTIVE
        * MOVE in the authority and this is the move's scope. */
-      let _smartShieldSpent=false;
+      /* NARRATION BATCH U, 2026-09-09 -- RENAMED, BECAUSE IT IS NOT THE SHIELD'S FLAG. It is
+       * `move.smartTarget` itself, and the shield is only one of the roads that spends it: the
+       * TYPE-IMMUNITY step below reads the same field (`runImmunity(move, !move.smartTarget)`,
+       * sim/battle-actions.ts:661). Two flags for one field would be the private-copy shape
+       * CLAUDE.md's FACTS-ARE-GLOBAL rule forbids, and the two roads would have drifted the first
+       * time either one moved. */
+      let _smartSpent=false;
       /* NARRATION BATCH Q, 2026-09-08 -- AND `smartTarget` IS CLEARED AT TARGET SELECTION WHEN THE
        * MOVE CANNOT ACTUALLY SPLIT. `Pokemon#getSmartTargets` (sim/pokemon.ts:757-768) is called from
        * `getMoveTargets` (:838-840), i.e. BEFORE any step runs, and it WRITES THE FIELD:
@@ -34835,8 +34981,8 @@ function battleTurn(S,rng,actsForA,actsForB){
            * the split roads so a run can say which of the two clauses fired. */
           else if(_smartTarget&&!_smartSplit&&!SMART_PROTECT_LINE&&!SMART_SHIELD_ALL_SILENT){
             MEDSEEN.smartTargetUnsplitAnnounced++; if(TR)TR.act(tg,'move: Protect');}
-          else if(_smartSplit&&!_smartShieldSpent&&!SMART_PROTECT_LINE){
-            _smartShieldSpent=true; MEDSEEN.smartTargetShieldSilent++;}
+          else if(_smartSplit&&!_smartSpent&&!SMART_PROTECT_LINE){
+            _smartSpent=true; MEDSEEN.smartTargetShieldSilent++;}
           else{if(SMART_PROTECT_LINE&&_smartTarget)MEDFAILS.smartProtectLineRestored=1;
                if(_smartSplit)MEDSEEN.smartTargetShieldAnnounced++;
                if(TR)TR.act(tg,'move: Protect');}
@@ -35232,7 +35378,44 @@ function battleTurn(S,rng,actsForA,actsForB){
              * `airborneAbilityRefusing` asks `isGrounded`'s own clause order rather than the ability
              * name, so a Flying-typed Levitate carrier -- Rotom-Fan, legal here -- still announces
              * BARE, which is the authority's answer too. */
-            if(TR){
+            /* NARRATION BATCH U, 2026-09-09 -- AND A SMART-TARGET MOVE REFUSES IN SILENCE, OFF THE
+             * SAME ONE-SHOT THE SHIELD ROAD ALREADY SPENDS.
+             *
+             *     hitStepTypeImmunity: hitResults[i] = targets[i].runImmunity(move, !move.smartTarget)
+             *                                                     sim/battle-actions.ts:661
+             *     runImmunity(source, message) { ... if (!message) return false;   <- NO LINE AT ALL
+             *                                        ... this.battle.add('-immune', this); }
+             *                                                     sim/pokemon.ts
+             *
+             * Champions overrides neither function (asserted on every run of the probe), and the
+             * format carries ONE smart-target move. So a Dragon Darts that meets an immune partner
+             * writes nothing, drops that body and puts both darts into the other foe -- which this
+             * engine already did for the DAMAGE and announced an `|-immune|` on top of. It is the
+             * pinned pool's `|-damage|p2a|H/H <> |-immune|p2b` card verbatim.
+             *
+             * `_smartSpent` IS THE AUTHORITY'S `move.smartTarget` AND IS SHARED WITH THE SHIELD ROAD
+             * ABOVE, which is the whole reason it was renamed: the SPENT arm of the probe shields the
+             * other foe, the shield eats the silence at step 2, and this immunity is then ANNOUNCED --
+             * same move, same immune body, and the line comes back.
+             *
+             * IT IS SPENT HERE TOO. The authority does not clear the field inside this step; the step
+             * loop clears it immediately afterwards (`if (move.smartTarget && atLeastOneFailure)
+             * move.smartTarget = false`, sim/battle-actions.ts:607), so everything BELOW this step
+             * sees it gone. The one case that differs is TWO immune bodies in ONE volley, where the
+             * authority silences both and this silences the first -- it needs both foes immune to the
+             * dart's type, and it is COUNTED rather than left to be found.
+             *
+             * MEDI_SMART_IMMUNE_LINE=1 announces on every visit again, which is this engine until
+             * today. Probe: tests/probe_smart_target_immune_line.js. */
+            const _smartQuiet=_smartSplit&&!_smartSpent&&!SMART_IMMUNE_LINE;
+            if(SMART_IMMUNE_LINE&&_smartSplit&&!_smartSpent)MEDFAILS.smartImmuneLineRestored=1;
+            if(_smartQuiet){
+              _smartSpent=true; MEDSEEN.smartTargetImmuneSilent++;
+            } else if(_smartTarget&&_smartSplit&&_smartSpent&&!SMART_IMMUNE_LINE){
+              MEDSEEN.smartTargetImmuneAnnounced++;
+              MEDFAILS.smartImmuneSecondTargetAnnounced++;
+            }
+            if(TR&&!_smartQuiet){
               const _lv=IMMUNE_STEP_LEGACY?null
                 :airborneAbilityRefusing(tg,m,(mv&&mv.c==='P')?'Physical':(mv&&mv.c==='S')?'Special':'Status',effMoveType(mv,a.move.id,field,m));
               if(_lv){MEDSEEN.airborneImmuneAtTypeStep++;TR.imm(tg,'[from] ability: '+_lv);}

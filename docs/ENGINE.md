@@ -133,10 +133,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  830/830 probed mechanics live, 0 missing   (census 2026-09-09 03:41)
+  830/830 probed mechanics live, 0 missing   (census 2026-09-09 04:57)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 13 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-09 03:43)
+    never fired in the staged harness (all-mechanics-fire.json, 10 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-09 05:04)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -158,9 +158,121 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-09 04:02_
+_stamped 2026-09-09 05:14_
 
 <!-- /GENERATED -->
+
+## NARRATION BATCH U — **THREE MECHANISMS, TWO CAUSES CLOSED, ONE TRANSFER.** NARRATION-ONLY **21 → 19 CAUSES / 21 → 19 GAMES**, **GATE NARRATION 20 → 18 OF 961**, **BOARD-MATERIAL 0 OF 958 AFTER EVERY MEASUREMENT AND AFTER EVERY EDIT**, CENSUS 830/830, ROSTER ZERO DIFFER / ZERO DID-NOT-FIRE WITH EVERY ANCHOR LIVE (18/44/36/17) ON BOTH RELEASES, `test-engine-diff` 6000/6000, `all_mechanics_fire` 1313 GAMES / 0 THREW. **A CENSUS PROBE WAS PINNING ONE OF THE BUGS** AND WENT MISSING THE MOMENT THE ENGINE WAS CORRECTED. GATE **1 OF 9 CLAUSES FAILING**. 2026-09-09
+
+Full account, every command, every pin, the three fixture errors and everything deliberately not
+attempted: [docs/_reports/2026-09-09-narration-batch-U.md](_reports/2026-09-09-narration-batch-U.md).
+
+### THE THREE MECHANISMS
+
+| # | what the authority does | probe | knob |
+|---|---|---|---|
+| **U1** | `hitStepTypeImmunity` asks `targets[i].runImmunity(move, !move.smartTarget)` (`sim/battle-actions.ts:661`) and `runImmunity` opens with `if (!message) return false` — a Dragon Darts that meets an immune body writes **nothing at all**. This engine wrote the line every time. | `tests/probe_smart_target_immune_line.js` | `MEDI_SMART_IMMUNE_LINE=1` |
+| **U2** | Quick Claw's `priority <= 0` is the **relay var**, not the move's bracket — `runEvent('FractionalPriority', ..., action.move, 0)` (`sim/battle-queue.ts:249`) — so the claw rolls, announces and adds its 0.1 on a PRIORITY click too. This engine refused it above bracket 0: no line and no nudge. | `tests/probe_quick_claw_above_bracket_zero.js` | `MEDI_FRACPRI_PRIORITY_GATE=1` |
+| **U3** | Entry hazards tie on speed, priority and subOrder, so `resolvePriority` stamps `effectOrder` on `SwitchIn` handlers and `comparePriority` sorts it ASCENDING (`sim/battle.ts:994-999`, `:407-412`) — **they bite in the order they were laid**. This engine ran four `if` blocks in a fixed source order. | `tests/probe_hazard_lay_order.js` | `MEDI_HAZARD_FIXED_ORDER=1` |
+
+`_smartShieldSpent` is renamed **`_smartSpent`** and now serves both the shield road and the immunity
+road, because it IS `move.smartTarget` and two flags for one field is the private-copy shape the
+FACTS-ARE-GLOBAL rule forbids. `MEDFAILS.fracPriPriorityGateUnmodelled` is **deleted** rather than
+left at a permanent zero: a MEDFAILS row that can never move reads as *"no board reached it"*. The
+population is now `MEDSEEN.fracPriAboveBracketZero`.
+
+### A CENSUS PROBE WAS ASSERTING THE BUG, AND IT WAS SETTLED BY MEASUREMENT
+
+`item/fractionalPriorityAnnounce` asserted in as many words that *"a SWITCH and a PRIORITY CLICK must
+both stay silent on a winning roll"*. **The switch half is right; the priority half was false**, and
+the row was green for exactly as long as the engine shared the misreading. The census went **830 live
+/ 1 missing** the moment U2 landed, and the row named itself. It was corrected against a MEASUREMENT
+and not a re-reading: the probe watches the authority write `|-activate|...|item: Quick Claw` on a +1
+click and put the SLOWER body first on exactly that turn, and the pinned pool's own card is the same
+thing at +4. The struck sentence is left in place with the correction beside it.
+
+### THE SCOREBOARDS WERE NAMED BEFORE EACH RUN
+
+All three predicted **the pool moves by one cause and the lab sits still** — three narration roads
+with pool witnesses and no mechanic that a census row or a roster row can stage. Two hit exactly. U2's
+lab prediction was **WRONG**, and that miss is the finding above.
+
+### THE MEASUREMENT
+
+| | baseline `2a90ecca8005` | U1+U2 `a0b78b1f0f62` | U3 `7c6716f23df6` |
+|---|---|---|---|
+| **BOARD-MATERIAL** | **0 / 958** | **0 / 958** | **0 / 958** |
+| NARRATION-ONLY causes / games | 21 / 21 | **19 / 19** | **19 / 19** |
+| causes closed | — | 2 | 1 |
+| transfers | — | **0** | **1** |
+
+**THE BASELINE WAS RE-TAKEN AND THAT IS NOT BOOKKEEPING.** Batch T published on `eb46032d332c`;
+`data/abra-tags.js` was rebuilt afterwards, so every whole-game and roster clause read *"MEASURED
+AGAINST A DIFFERENT ENGINE"* at the start of this batch. The fresh baseline reproduces batch T's 21
+causes string for string, so the before/after here is like-for-like.
+
+**U3 CLOSED ITS CAUSE AND ONE TRANSFERRED**, so the headline did not move on that step: the hazard
+cause went and `ordering :: |-end|p2a|substitute <> |-resisted|p1b|1` took its place — a **FOURTH**
+member of the substitute family batch T diagnosed as one mechanism and deliberately left alone.
+
+**THE TRANSFER IS MEASURED, NOT INFERRED.** A `--dump-games` pass on the final release, diffed against
+the baseline dump on `config + seed`: **2 games stopped diverging** (the two closed causes), **0 games
+started**, and **1 game changed cause** — the hazard game itself, running on to its next parted line.
+
+### THE HAND LIST
+
+**Removed — the Dragon Darts `-immune` line, the Quick Claw priority gate, and the hazard lay order.**
+
+- **THE SUBSTITUTE FAMILY IS NOW FOUR CARDS**, not three. Same diagnosis as batch T, same reason for
+  leaving it: the absorption is `onTryPrimaryHit` at step 0, above the damage step, so moving where it
+  RESOLVES can part a board. Third batch to say so.
+- **ONE CARD IS A BOARD DEFECT WEARING A NARRATION LABEL.**
+  `|-damage|p1a|H/H <> |move|p1a|psyshock` is a two-hit Dual Wingbeat into a Delphox behind a
+  Substitute: the authority breaks the doll and lands the second hit for **79 HP** plus `-hitcount|2`;
+  this engine breaks the doll and **stops the volley**. It reads NARRATION-ONLY only because Delphox
+  died in the same turn in both engines, so no board was ever sampled between the two states. The
+  candidate site is the substitute road's `R.out = true; return;` in the hit loop — the authority's
+  `onTryPrimaryHit` returns a NUMBER and `hitResults[i] || hitResults[i] === 0` KEEPS the target for
+  the next hit. **A candidate site, not a fix**: whether `R.out` drops the row for the whole volley was
+  read off the card, not off the loop.
+- **TRICK'S MISSING `-fail`, NEWLY DIAGNOSED AND BLOCKED.** `trick.onHit` restores both items and
+  `return false`s — the generic `-fail` on the MOVER — whenever
+  `target.item || source.item || (!yourItem && !myItem)`, and `takeItem` refuses a mega stone whose
+  `megaEvolves` matches its OWN holder. This engine refuses **any** mega stone on either side, which
+  is coarser, so emitting the `-fail` on that road would write a line where the authority swaps. The
+  guard has to be tightened first and that moves a BOARD. Filed, not folded in.
+- **THE PERISH `|upkeep|` DRAIN IS A MISS INSIDE AN EXISTING MODEL.** `RESIDUAL_AFTER_PERISH` and
+  `residualFollowerRuns()` already implement the authority's rule (a duration expiry `continue`s past
+  `fieldEvent`'s `faintMessages()`, `sim/battle.ts:565`). **Next step named:** replay this card's seed
+  with `residualFollowerRuns` instrumented and print WHICH follower it found on a board whose only
+  remaining handlers were three perishing bodies.
+- **THE OHKO CARD IS UNDIAGNOSED AND IS SAID SO.** The authority's only `-immune ... [ohko]` site
+  needs `dynamax`, a level gap, or an Ice-typed target; the card is L50 Sheer Cold into a L50
+  Grass/Dark body, which satisfies none. Not staged, so no claim.
+- **A NEW OBSERVATION, NOT A FINDING:** `|-miss|p1a|p2a <> |-status|p2a|slp|[from]sleeppowder` is a
+  Sleep Powder BOUNCED by Magic Bounce — the authority's copy MISSES and this engine's lands, which
+  points at the bounce road not rolling accuracy or rolling it at a different address. Adding a draw
+  moves the stream, so it is not a one-line change.
+- **THE RESIDUAL TRIO WAS SKIPPED ENTIRELY AND DELIBERATELY**, as the brief allowed: no new idea, and
+  a fourth batch with no clean bill is the correct outcome.
+- **THE STAMINA / SPICY SPRAY CARD**, **THE REDIRECT vs `-prepare` ORDER** and **THE POST-KO SWITCH-IN
+  ORDER** are carried from batch T unchanged. One reading was added to the last: the authority DOES
+  speed-sort replacement switches (`resolveAction` → `getActionSpeed` → `speedSort`), so a side-order
+  model is wrong in principle — **the two bodies' actual Speeds were still not read**, so it stays a
+  hypothesis exactly as batch T left it.
+- **THE STRAY-RELEASE SEAM THE BRIEF ASKED ABOUT IS ALREADY FIXED.** `tests/_live_release.js`
+  redirects `cut`/`open` to a scratch store and says so on stderr; all three of this batch's probes
+  require it on their first line and **no stray release directory was created**.
+- **`node engine/status.js --write` WAS RUN**; nothing was committed, per the brief.
+- **Carried forward unchanged** from the hand lists below: `kind === 'boostally'`'s silent shield;
+  Reflect Type's unmodelled effect; Yawn's `runStatusImmunity('slp')` half; the max-HP recoil road
+  (`directDamage`); the 560 speed-reading disagreements that look like the instrument; the remaining
+  bare `|-fail|` causes (Rage Powder through Instruct, and Instruct executed here); the second
+  `eachEvent('Update')` pass; `_stepDamagingHit` mixing the order-1 punishers with the default-order
+  ones; `orderProbeClause`'s rerun hint omitting `--end-state`; `ability/priority-mod` picking its
+  delivery move without asking the carrier's learnset; the per-arrival crit vector on an absorbed
+  volley; Population Bomb into Flame Body; `item/chance-gated` and `item/crit-ratio` on a dead corner;
+  Struggle's every-slot fixture; and `tests/test-pinch-family.js` red at 1 of 61.
 
 ## NARRATION BATCH T — **A BOARD DEFECT, TEN MIS-ORDERED CALL SITES AND ONE ORDERING CAUSE.** NARRATION-ONLY **22 → 21 CAUSES / 22 → 21 GAMES**, **GATE NARRATION 21 → 20 OF 961**, PROTOCOL **25 → 24**, **BOARD-MATERIAL 0 OF 958 AFTER EVERY MEASUREMENT AND AFTER EVERY EDIT**, CENSUS 830/830, ROSTER 142/139/487/20 WITH ZERO DIFFER, ZERO DID-NOT-FIRE AND EVERY ANCHOR LIVE (18/44/36/17), `test-engine-diff` 6000/6000. **ZERO TRANSFERS AT EVERY STEP.** THE SAFEGUARD BOARD DEFECT BATCH S FOUND AND LEFT IS CLOSED, AND **TWO PROBE ASSERTIONS REFUTED THE FIX BEFORE IT SHIPPED**. 2026-09-09
 

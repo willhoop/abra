@@ -187,7 +187,7 @@
     "exploitability.json",
     "medicham-bench.json"
   ],
-  "verified": 2,
+  "verified": 10,
   "graph_files": [
     "_bench-belownormal.json",
     "_bench-headline.json",
@@ -465,7 +465,8 @@
     "_fire-items-D.json",
     "_fire-items-E.json",
     "_fire-items-F.json",
-    "_narrationT-dump.json",
+    "_narrationU-after-dump.json",
+    "_narrationU-dump.json",
     "_r220-dump-post.json",
     "_r220-dump-pre.json",
     "_scratch-jobs3.json",
@@ -1100,5 +1101,5 @@
       ]
     }
   ],
-  "generated": "2026-09-09T08:05:10.876Z"
+  "generated": "2026-09-09T09:14:20.991Z"
 }

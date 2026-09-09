@@ -10,6 +10,46 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.271.0] — 2026-09-09
+
+### Fixed
+- **A SMART-TARGET MOVE ANNOUNCED A TYPE IMMUNITY THE AUTHORITY SILENCES.** `hitStepTypeImmunity`
+  asks `runImmunity(move, !move.smartTarget)` and `runImmunity` opens `if (!message) return false`.
+  Probe `tests/probe_smart_target_immune_line.js`, knob `MEDI_SMART_IMMUNE_LINE=1`.
+- **QUICK CLAW READ THE EVENT RELAY VAR, NOT THE MOVE BRACKET.** Its `priority <= 0` test was against
+  the event relay rather than the move, so the claw fired, announced and nudged on a priority click.
+  Probe `tests/probe_quick_claw_above_bracket_zero.js`, knob `MEDI_FRACPRI_PRIORITY_GATE=1`.
+- **ENTRY HAZARDS BITE IN THE ORDER THEY WERE LAID** — `effectOrder`, ascending. Probe
+  `tests/probe_hazard_lay_order.js`, knob `MEDI_HAZARD_FIXED_ORDER=1`.
+
+### Changed
+- **Gate narration 20 → 18 of 961, causes 21 → 19.** Three mechanisms closed, two causes net —
+  U1+U2 closed two with zero transfers; U3 closed one and transferred one, MEASURED rather than
+  inferred by a `--dump-games` diff on `config + seed`: **2 games stopped diverging, 0 started, 1
+  changed cause**. **BOARD-MATERIAL holds at 0 of 958 throughout.**
+
+### Notes
+- **A CENSUS PROBE WAS PINNING THE QUICK CLAW BUG.** `item/fractionalPriorityAnnounce` asserted that
+  a claw stays silent on a priority click. It was green for exactly as long as the engine agreed with
+  it, and went MISSING the moment the engine was corrected — a test that could not fail. Settled
+  against a measured authority stream rather than a re-reading. Census back to 830/830.
+- **ONE CARD IS A BOARD DEFECT WEARING A NARRATION-ONLY LABEL, AND IT MATTERS MORE THAN THE THREE
+  FIXES.** A two-hit volley into a body behind a Substitute: the authority breaks the doll and lands
+  the second hit for **79 HP**; this engine stops the volley. It reads NARRATION-ONLY only because the
+  body died later in the same turn in BOTH engines, so no board was ever sampled between the two
+  states. **So `BOARD-MATERIAL 0 of 958` means no board difference SURVIVED TO A COMPARED BOUNDARY,
+  not that none occurred** — a bound `data/game-differential.json` already publishes about itself, now
+  with a named instance. Stated as a candidate site, not fixed, because whether `R.out` drops the row
+  for the whole volley or only for that hit was read from the card and not from the loop.
+- **Deliberately not attempted, each said out loud:** the residual trio (skipped entirely, no new
+  idea, third batch); the substitute family (now four cards, board-risky); Trick’s `-fail` (newly
+  diagnosed, blocked on a mega-stone guard coarser than the authority’s — tightening it moves a
+  board); the perish `|upkeep|` drain; and the OHKO card, undiagnosed and said so.
+- `data/releases` went 629 → 631, exactly the two cuts this batch took and no strays — the
+  side-effect release cutting batch T reported did not recur.
+
+---
+
 ## [5.270.2] — 2026-09-09
 
 ### Added

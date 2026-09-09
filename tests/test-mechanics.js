@@ -15886,18 +15886,36 @@ probe('item', 'fractionalPriorityAnnounce', 'Quick Claw and Quick Draw announce 
   const clawIn = run('quickclaw', '', 0.05), clawOut = run('quickclaw', '', 0.90);
   const drawIn = run('', 'quickdraw', 0.05), drawOut = run('', 'quickdraw', 0.90);
   const stall = run('', 'stall', 0.05);                 /* fires ALWAYS and announces NEVER */
-  /* THE TWO ARMS THE CONSTRUCTED-GAME RUN CAUGHT. `sim/battle-queue.ts:249` runs the whole event for
-     `choice === 'move'` only, and Quick Claw's own handler adds `priority <= 0` — so a SWITCH and a
-     PRIORITY CLICK must both stay silent on a winning roll. The engine rolled on every action kind,
-     which was inert for order and stopped being inert once the roll announced itself. */
+  /* THE TWO ARMS THE CONSTRUCTED-GAME RUN CAUGHT, AND ONE OF THEM WAS ASSERTING THE BUG.
+   *
+   * ~~`sim/battle-queue.ts:249` runs the whole event for `choice === 'move'` only, and Quick Claw's
+   * own handler adds `priority <= 0` — so a SWITCH and a PRIORITY CLICK must both stay silent on a
+   * winning roll.~~
+   *
+   * THE SWITCH HALF IS RIGHT AND STAYS. THE PRIORITY HALF WAS FALSE, and this probe was GREEN on it
+   * for as long as the engine shared the misreading — the shape CLAUDE.md calls a test that pins the
+   * bug. The call is
+   *     runEvent('FractionalPriority', action.pokemon, null, action.move, 0)   sim/battle-queue.ts:249
+   * and the trailing `0` is the RELAY VAR, which is what `onFractionalPriority(priority, ...)`
+   * receives — NOT the move's bracket. So the claw rolls and applies on a priority click too, and
+   * `action.priority = priority + action.fractionalPriority` (sim/battle.ts:2644) adds the 0.1 to
+   * whatever bracket the move already had.
+   *
+   * MEASURED IN THE AUTHORITY, NOT RE-READ. `tests/probe_quick_claw_above_bracket_zero.js` plays a
+   * Quick Claw holder clicking a +1 Normal attack against a faster foe clicking the same move, on a
+   * board where every click is a type immunity so nothing else can move: the authority writes
+   * `|-activate|p1a: Typhlosion|item: Quick Claw` and puts the SLOWER body first on exactly the turn
+   * it wrote it. The pinned whole-game differential's own card is the same thing at +4 — a Rotom
+   * holding a claw clicking Protect (release `2a90ecca8005`, config omit-intimidate). */
   const clawSwitch = run('quickclaw', '', 0.05, 'switch');
-  const clawPrio = run('quickclaw', '', 0.05, 'fakeout');
+  const clawPrio = run('quickclaw', '', 0.05, 'fakeout');            /* +3, and it DOES announce */
   const one = (rows, want) => rows.length === 1 && rows[0] === M.traceCanon(want);
   return { works: control.length === 0
                   && one(clawIn, '|-activate|p1a: slowbro-galar|item: quickclaw') && clawOut.length === 0
                   && one(drawIn, '|-activate|p1a: slowbro-galar|ability: quickdraw') && drawOut.length === 0
                   && stall.length === 0
-                  && clawSwitch.length === 0 && clawPrio.length === 0,
+                  && clawSwitch.length === 0
+                  && one(clawPrio, '|-activate|p1a: slowbro-galar|item: quickclaw'),
            arms: { control: 'none held ' + JSON.stringify(control) + ', stall ' + JSON.stringify(stall)
                           + ', switching ' + JSON.stringify(clawSwitch) + ', +priority click '
                           + JSON.stringify(clawPrio),
@@ -15907,9 +15925,10 @@ probe('item', 'fractionalPriorityAnnounce', 'Quick Claw and Quick Draw announce 
                  + 'inside ' + JSON.stringify(drawIn) + ' and outside ' + JSON.stringify(drawOut)
                  + '; STALL, whose handler is a bare -0.1 with no roll and no `add`, ' + JSON.stringify(stall)
                  + ' (must stay empty — it nudges every turn). The same claw on a winning roll while '
-                 + 'SWITCHING ' + JSON.stringify(clawSwitch) + ' and while clicking a +3 move '
-                 + JSON.stringify(clawPrio) + ' — the authority runs the event for move actions at '
-                 + 'priority <= 0 and for nothing else' };
+                 + 'SWITCHING ' + JSON.stringify(clawSwitch) + ' (must stay empty — the event is raised '
+                 + "for `choice === 'move'` only) and while clicking a +3 move "
+                 + JSON.stringify(clawPrio) + " (must announce — `priority <= 0` is the event's RELAY "
+                 + "VAR, not the move's bracket)" };
 });
 
 /* WIRE 103 -- King's Rock. */
