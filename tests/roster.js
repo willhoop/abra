@@ -5784,8 +5784,13 @@ const RULES = [
      + 'die is live there is something to compare. The trigger is `anyHit`, not contact, and the '
      + 'staging does not rely on contact for that reason.',
   break: { why: 'the seal is never planted, so the attacker keeps its move',
-    patch: [['if(_cb&&_cb.chance&&!m.fainted&&!(m._vol&&m._vol.disable>0)&&_reactAddr(rng)<+_cb.chance){',
-             'if(0&&_cb&&_cb.chance&&!m.fainted&&!(m._vol&&m._vol.disable>0)&&_reactAddr(rng)<+_cb.chance){']] },
+    /* RE-AIMED 2026-09-08, NARRATION BATCH Q2. The guard and the coin used to sit on one line inside
+     * `_stepEffects`; the handler is now a deferred closure paid at `_stepDamagingHitLate`, so the
+     * guard is re-read at the top of the closure and the coin stands alone. The anchor is the COIN,
+     * which is what this break is about — the roster reports a DEAD ANCHOR and refuses to call the
+     * stage clean if this ever stops matching exactly once. */
+    patch: [['if(_reactAddr(rng)<+_cb.chance){',
+             'if(0&&_reactAddr(rng)<+_cb.chance){']] },
   match(e) {
     const d = abTag(e.id, 'disablesAttacker');
     if (!d || !d.disables) return null;
@@ -5822,8 +5827,11 @@ const RULES = [
      + 'poison immunity first — a Steel or Poison body would swallow the coin and the row would read '
      + 'INERT for a reason about the fixture.',
   break: { why: 'the poison roll never passes, so a contact hit leaves the victim clean',
-    patch: [['if(_pt&&!dustBlocked&&(!_pt.needsContact||mvMakesContact(a.move.id,m,a.move.mv))&&_reactAddr(rng)<(+_pt.p||0.3))',
-             'if(0&&_pt&&!dustBlocked&&(!_pt.needsContact||mvMakesContact(a.move.id,m,a.move.mv))&&_reactAddr(rng)<(+_pt.p||0.3))']] },
+    /* RE-AIMED 2026-09-08, NARRATION BATCH Q2, for the reason given on the Cursed Body rule above:
+     * the eligibility test and the coin are two statements now, because the handler is paid at
+     * `_stepDamagingHitLate` and not inside the secondary step. */
+    patch: [["if(_reactAddr(rng)<(+_pt.p||0.3))applyStatus(tg,'psn',m,ATTR.ability(m.ability,m));",
+             "if(0&&_reactAddr(rng)<(+_pt.p||0.3))applyStatus(tg,'psn',m,ATTR.ability(m.ability,m));"]] },
   match(e) {
     const p = abTag(e.id, 'poisonsOnMyContact');
     if (!p) return null;

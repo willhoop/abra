@@ -10,6 +10,46 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.268.0] — 2026-09-08
+
+### Fixed
+- **THE SMART-TARGET SHIELD LINE.** `move.smartTarget` is a ONE-SHOT on the active move
+  (`data/moves.ts:1008-1013`) and `getSmartTargets` CLEARS it at target selection when the move
+  cannot split (`sim/pokemon.ts:757-768`), so N shields yield N-1 refusal lines and a dart into a
+  side holding one live body announces normally. This engine silenced every refusal. Probe:
+  `tests/probe_smart_target_shield_line.js` — four arms, two knobs, the authority gives 1 line where
+  `MEDI_SMART_SHIELD_ALL_SILENT=1` gives 0 and `MEDI_SMART_PROTECT_LINE=1` gives 2.
+- **THE `DamagingHit` EVENT WAS PAID IN THE SECONDARY STEP.** It is ONE event raised BELOW the
+  secondaries and sorted `onDamagingHitOrder` ascending, then priority, then TARGET INDEX ascending —
+  never by Speed (`data/mods/champions/scripts.ts:374-410`, `sim/battle.ts:789` and `:421`). Cursed
+  Body and Poison Touch were settled inside `_stepEffects` and are now deferred to a new
+  `_stepDamagingHitLate`. Probe: `tests/probe_damaginghit_order.js`, knob `MEDI_DH_IN_EFFECTS=1`
+  inverts the arm. Their two roster red-anchors went DEAD on the edit and were re-aimed; both read
+  CAUGHT.
+
+### Changed
+- **Gate narration 52 → 49 of 961**, and the `ordering` NARRATION-ONLY causes **13 → 10** — thirteen
+  causes re-derived from `end_state[0].summary.by_cause` rather than from the capped
+  `first_divergences` list, and read by mechanism they are SEVEN mechanisms, of which these two are
+  closed. **BOARD-MATERIAL holds at 0 of 958 across both fixes.** Protocol raw 56 → 53.
+  `data/game-differential.json`, releases `f6f44b329132` → `3b30a88ffa23` → `0c5a4da9c512`,
+  `--steering empirical --arm middle --end-state --games 1200 --team-store data/team-pool-frozen
+  --turns 50`, 961 games, cap 50, census `87d990cf3634` (830 rows), pins `de38d17e15a2`, pool
+  `0d103fb9fa87`. `engine/status.js` reads **1 of 9 gate clauses fail**, the same NARRATION clause.
+
+### Notes
+- **The residual-order class (3 games) is OPEN WITH NO EXPLANATION rather than given a clean bill.**
+  Two deliberate fixtures show the engines agreeing both at different Speeds and at an exact
+  cross-side tie, so it is not a sort bug and the next pass must read those three games' actual
+  Speeds. Substitute step 0 (3 games) and the second `eachEvent('Update')` below `faintMessages`
+  (1 game) are diagnosed with source lines and deliberately not attempted, because both can move a
+  board. Full account: `docs/_reports/2026-09-08-narration-ordering-3.md`.
+- One prediction MISSED: clause 2 of the shield rule alone was correct in the lab and moved the pool
+  by zero — reading the row showed the pool's card was clause 1. Every other clause of both batches
+  hit at the point estimate with zero transfers.
+
+---
+
 ## [5.267.0] — 2026-09-08
 
 ### Changed

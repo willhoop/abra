@@ -162,6 +162,171 @@ _stamped 2026-09-08 19:24_
 
 <!-- /GENERATED -->
 
+## NARRATION BATCH Q — THE ORDERING CLASS, THIRD PASS. THE THIRTEEN `ordering` CAUSES ARE **SEVEN MECHANISMS**, AND TWO ARE CLOSED: **ORDERING 13 → 10 CAUSES**, **GATE NARRATION 52 → 49 OF 961**, PROTOCOL **56 → 53**, **BOARD-MATERIAL 0 OF 958 THROUGHOUT**, CENSUS 830/830, ROSTER 142/139/487 WITH ZERO DIFFER AND ZERO DID-NOT-FIRE. ONE FIX WAS RIGHT IN THE LAB AND CLOSED NOTHING IN THE POOL, WHICH IS HOW THE SECOND CLAUSE WAS FOUND. 2026-09-08
+
+Full account, every command, the seven-mechanism re-derivation and the scored predictions:
+[docs/_reports/2026-09-08-narration-ordering-3.md](_reports/2026-09-08-narration-ordering-3.md).
+
+**THE RE-DERIVATION FIRST, AND IT IS THE HEADLINE.** Taken from
+`end_state[0].summary.by_cause` filtered to `materiality === 'NARRATION-ONLY'` and `cause` starting
+`ordering` — never from `first_divergences`. **13 causes, one game each, and they collapse to SEVEN
+mechanisms**, three of them carrying three games:
+
+| mechanism | games |
+|---|---|
+| **M1** the `DamagingHit` event is fragmented across four medicham2 steps | 3 |
+| **M2** substitute step 0 is not run over all targets before the damage step | 3 |
+| **M3** the residual order across two bodies | 3 |
+| **M4** post-KO replacement switch-in order | 1 |
+| **M5** the redirect activation against the charge `-prepare` | 1 |
+| **M6** the `faint` message against a volatile ended by its source leaving | 1 |
+| **M7** the smart-target shield line | 1 |
+
+**THE CLASS NAMES THE COMPARATOR, NOT THE DEFECT, AND M7 IS THE PROOF.** `ordering ::
+|-activate|p1a|protect <> |move|p2a|flareblitz` has nothing out of order in it at all: medicham2 is
+one LINE SHORT, and the comparator reports the first pair that fails to match. Worked off the rollup
+alone it would have been chased as a turn-order bug.
+
+### BATCH Q1 — THE SMART-TARGET SHIELD LINE HAS TWO CLAUSES AND THIS ENGINE HAD NEITHER
+
+**Clause 2, the silence is a ONE-SHOT.** `if (move.smartTarget) { move.smartTarget = false; } else {
+this.add('-activate', target, 'move: Protect'); }` (`data/moves.ts:1008-1013`, the same block in every
+shield condition) assigns to a field on the ACTIVE MOVE, and every visit happens inside ONE
+`runEvent('TryHit', targets, pokemon, move)` (`sim/battle-actions.ts:642`) whose handlers are collected
+per target (`sim/battle.ts:1037-1047`) and sorted LEFT TO RIGHT (`:421`, via the `'TryHit'` branch at
+`:789`). **N shields yield N-1 lines.** This engine read it as a mode and wrote none.
+
+**Clause 1, `smartTarget` is CLEARED AT TARGET SELECTION when the move cannot split.**
+
+```
+getSmartTargets(target, move) {
+  const target2 = target.adjacentAllies()[0];
+  if (!target2 || target2 === this || !target2.hp) { move.smartTarget = false; return [target]; }
+  if (!target.hp)                                  { move.smartTarget = false; return [target2]; }
+  return [target, target2];
+}                                 sim/pokemon.ts:757-768, from getMoveTargets at :838-840
+```
+
+**THE FIRST FIX WAS CORRECT AND CLOSED NOTHING, AND THAT IS THE USEFUL PART.** Clause 2 alone was
+landed and MEASURED on release `04f6aae3cb27`: board-material 0 of 958, ordering still 13, the
+flareblitz row byte-identical. **The prediction MISSED.** Reading that row's own `showdown_before`
+block said why — the defending side held ONE live body at turn 8, so the dart was never a
+smart-target move by the time the shield answered. Clause 1 followed. A fix that is right in the lab
+and moves nothing in the pool is not a fix of the pool's defect, and saying so is cheaper than
+assuming it is.
+
+**MEASURED IN THE AUTHORITY BEFORE A BYTE MOVED**, one staged doubles turn each:
+
+| | showdown | medicham2, pre-fix |
+|---|---|---|
+| smart move, BOTH foes Protect | **1**, on the SECOND foe | 0 |
+| smart move, only the FAR foe shielded | 0 | 0 |
+| non-smart move, both Protect | 1, on the FIRST foe | 1 |
+| smart move into a side holding ONE live body | **1** | 0 |
+
+`tests/probe_smart_target_shield_line.js` stages all four, 27 assertions. Its **SOLO** arm is clause
+1's only lab witness and is CONSTRUCTED rather than found — three self-fainting clicks with no bench
+behind them empty the defending side's second slot — and it checks its own claim on the authority's
+stream before asserting anything. Its first draft picked an evasion boost as the idle click, which
+made the third self-faint MISS and left a body standing: a fixture failure that reads exactly like a
+mechanic that cannot be staged. **Two knobs, one on each side of the rule**:
+`MEDI_SMART_SHIELD_ALL_SILENT=1` (new) is the engine as it stood until today and reads **0**,
+`MEDI_SMART_PROTECT_LINE=1` is the engine before 2026-08-24 and reads **2**, the authority reads
+**1** — three distinct readings, so the knob reaches the rule.
+
+### BATCH Q2 — `DamagingHit` IS ONE EVENT, IT RUNS BELOW THE SECONDARIES, AND IT SORTS BY TARGET INDEX
+
+`runEvent('DamagingHit', damagedTargets, …)` is step **7** of `spreadMoveHit`, BELOW `runMoveEffects`
+(3), `selfDrops` (4) and `secondaries` (5) — `data/mods/champions/scripts.ts:374-410`. `runEvent` puts
+it in the `compareLeftToRightOrder` branch (`sim/battle.ts:789`), which is **`onDamagingHitOrder` ASC →
+priority DESC → TARGET INDEX ASC** (`:421`) and **never speed**. Within one index the collection order
+is status, volatiles, ABILITY, item, and the SOURCE's `onSource…` handlers LAST (`:1053-1069`).
+**Derived on the run: six abilities carry `onDamagingHitOrder: 1` here** — aftermath,
+electromorphosis, innardsout, ironbarbs, roughskin, windpower.
+
+medicham2 paid **Cursed Body** and **Poison Touch** inside `_stepEffects`, the SECONDARY step. **Both
+sites said so in their own comments** — *"a DIFFERENT STEP and a separate question"* — and neither had
+a witness until this pass found two in the pinned pool. They are now deferred to a new
+`_stepDamagingHitLate`, the last two entries of one index in the authority's sorted list, and **the
+die moves with the effect** because the authority throws `randomChance` inside the handler. The
+ADDRESS is untouched, so under the middle arm this re-orders draws and not their values.
+
+**THE FIXTURE HAD TO BE SEARCHED, AND THAT IS A FACT ABOUT THE INSTRUMENT.** The middle arm keys every
+draw on the ADDRESS, so replaying one board gives the SAME 30% every time. A first attempt varied the
+game seed forty times and the poison never landed once — one fixture has one answer.
+`tests/probe_damaginghit_order.js` therefore enumerates candidate triples in a derived order and takes
+the first where the AUTHORITY writes both lines, refusing each earlier one BY NAME. It chose
+**Toxicroak @ Poison Touch clicks Payback at Sharpedo @ Rough Skin**; the silent arm is the same board
+with Toxicroak's other legal ability. Under `MEDI_DH_IN_EFFECTS=1` the arm INVERTS and parts.
+
+**THE ROSTER'S RED ANCHORS DIED ON THIS EDIT AND THE ROSTER SAID SO.** Two `break.patch` anchors in
+`tests/roster.js` quoted the old one-line form and matched **0 times**; the abilities stage printed
+`42 of 44 apply exactly once`, named both DEAD ANCHORs and **exited 1** with every count otherwise
+unchanged. Re-aimed onto the coin; `44 of 44` again, and both read **CAUGHT** under `--reds`. **A
+green stage with a dead anchor is vacuous and the exit code was the only thing that said so.**
+
+### THE MEASUREMENT
+
+```
+SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> \
+  --arm middle --end-state --games 1200 --team-store data/team-pool-frozen --turns 50 --write
+```
+releases `f6f44b329132` → `3b30a88ffa23` → `0c5a4da9c512`, census `87d990cf3634` (830 rows, live),
+pins `de38d17e15a2`, pool `0d103fb9fa87`, 961 games, cap 50.
+
+| | before | after Q1 | after Q2 |
+|---|---|---|---|
+| **BOARD-MATERIAL** (`state.games` less `state.games_board_never_diverged`) | 0 / 958 | 0 / 958 | **0 / 958** |
+| `ordering` NARRATION-ONLY causes | 13 | 12 | **10** |
+| NARRATION-ONLY causes / games | 51 / 53 | 50 / 52 | **48 / 50** |
+| gate narration (declared-adjusted) | 52 | 51 | **49 of 961** |
+| protocol diverged (raw) | 56 | 55 | **53** |
+| census live | 830 / 830 | 830 / 830 | **830 / 830** |
+| roster items / abilities / moves, DIFFER + DID-NOT-FIRE | 0 | 0 | **0** (142 / 139 / 487, all three re-run) |
+| `data/engine-diff.json` | — | — | **6000 compared / 6000 agreed / 0 disagreed** |
+
+**ZERO TRANSFERS.** Every cause that was not closed is byte-identical across all three runs. Both
+scored predictions after the first miss hit **at the point estimate on every clause**.
+`data/all-mechanics-fire.json` was staled by the engine edit and re-published on the same release
+(1313 games, 0 threw); without that the gate reads 2 of 9 for a staleness reason and not an engine
+one. `engine/status.js` now reads **1 of 9 gate clauses fail** — the same NARRATION clause.
+
+### THE HAND LIST
+
+**Removed — the smart-target shield line**, now `tests/probe_smart_target_shield_line.js`, and **the
+`DamagingHit` event's two `_stepEffects` residents**, now `tests/probe_damaginghit_order.js`. Both
+pool rows are absent from the artifact.
+
+- **THE RESIDUAL-ORDER CLASS IS *NOT* EXPLAINED, AND IT IS NOT A CLEAN BILL EITHER.** Three pool games
+  (`brn p2b/p1b`, `psn p1a/p1b`, `leftovers p1b/p2a`). Two deliberate fixtures say the rule is right:
+  at clearly different Speeds (182 against 62) both engines walk the Leftovers residual fast-first,
+  and at an EXACT cross-side tie (the same species both sides, both reading 112) both order `p1b,
+  p2b`. So "the residual sort is broken" is refuted and nothing has replaced it. **The next pass reads
+  those three games' actual Speeds first** rather than assuming a sort bug.
+- **SUBSTITUTE IS STEP 0 OVER *ALL* TARGETS AND THIS ENGINE PRICES THE DOLL PER TARGET INSIDE
+  `_stepApply`** — `tryPrimaryHitEvent` at `data/mods/champions/scripts.ts:341-348`, above
+  `getSpreadDamage`. Three pool games. Not attempted: it moves the doll's damage roll, which is a
+  board risk on the one clause that must stay at zero.
+- **THE AUTHORITY RAISES `eachEvent('Update')` TWICE AND THIS ENGINE RAISES IT ONCE** — inside the hit
+  loop at `data/mods/champions/scripts.ts:538` (ABOVE `faintMessages` at `:547`) and again below it at
+  `:574`; `isActive` is cleared INSIDE `faintMessages` (`sim/battle.ts:2563`), so `sourceOffField`'s
+  `curHP<=0` test fires a step early and the Syrup Bomb `-end` lands above the `|faint|` instead of
+  below it. One pool game. The fix is a second Update pass plus a real `isActive` flag, which can move
+  a berry and therefore a board.
+- **`_stepDamagingHit` STILL MIXES THE ORDER-1 PUNISHERS WITH THE DEFAULT-ORDER ONES**, so a spread hit
+  whose order-1 reactor stands at a HIGHER target index than a default-order reactor runs them
+  index-major where the authority runs the order-1 one first. One pool game
+  (`-boost p1a def 1 <> -status p2b brn [spicyspray]`). Named in the new step's own header.
+- **The post-KO replacement switch-in order** and **the redirect activation against a charge move's
+  `-prepare`** — one pool game each, not investigated.
+- **`node engine/status.js --write` WAS NOT RUN**, per the brief, and nothing was committed.
+- **Carried forward unchanged** from the hand lists below: `orderProbeClause`'s rerun hint omitting
+  `--end-state`; the 517 speed readings that disagree in 223 games, every one carrying `sd:fnt`;
+  `ability/priority-mod` picking its delivery move without asking the carrier's learnset; the
+  per-arrival crit vector on an absorbed volley; Population Bomb into Flame Body;
+  `item/chance-gated` and `item/crit-ratio` on a dead corner; Struggle's every-slot fixture; and
+  `tests/test-pinch-family.js` red at 1 of 61.
+
 ## THE POST-ACTION RE-SORT RAN **ABOVE** THE UPDATE PASS, SO A WHITE HERB SPENT BY A PIVOT SWITCH HANDED UNBURDEN ITS DOUBLING **ONE ACTION TOO LATE** — `order_probe` **1 → 0** AND `--order-probe` IS **GREEN**. BOARD-MATERIAL HOLDS AT **0 OF 958**, NARRATION **53 → 52**, CENSUS 830/830, ALL THREE ROSTER STAGES RE-RUN AND UNCHANGED. TRICK ROOM, GALE WINGS AND PRANKSTER ALL REFUTED. 2026-09-08
 
 Full account, every command, every count, the four hypotheses and the scored predictions:

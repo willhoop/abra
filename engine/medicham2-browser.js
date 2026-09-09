@@ -780,6 +780,27 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * the format reaches it (Dragon Darts), so a zero on a board where it was clicked into a Protect
    * means the silence is not happening and the stream carries a line the authority does not. */
   smartTargetShieldSilent: 0,
+  /* NARRATION BATCH Q, 2026-09-08 -- AND THE REFUSALS THAT DID WRITE THE LINE BECAUSE THE SILENCE WAS
+   * ALREADY SPENT. `move.smartTarget = false` is a ONE-SHOT on the active move (data/moves.ts:1010,
+   * each shield condition's `onTryHit`), and `runEvent('TryHit', targets, ...)` visits every target in
+   * one event -- so N protecting bodies produce N-1 lines, not zero. MEASURED in the authority before
+   * a byte moved here: Dragon Darts into two Protecting foes reads exactly one
+   * `|-activate|p2b: ...|move: Protect`. The pair is the receipt: `Silent` must be at most one per
+   * move use, and a run with `Silent` non-zero and this at zero on a two-shield board is the silence
+   * over-firing again. */
+  smartTargetShieldAnnounced: 0,
+  /* NARRATION BATCH Q, 2026-09-08 -- AND THE THIRD ROAD: a smart-target move that NEVER SPLIT, whose
+   * shield refusal is announced because `Pokemon#getSmartTargets` (sim/pokemon.ts:757-768) had already
+   * written `move.smartTarget = false` at target selection. A zero on a board where the dart met one
+   * live foe behind a shield means this engine is back to reading the tag instead of the split. */
+  smartTargetUnsplitAnnounced: 0,
+  /* NARRATION BATCH Q2, 2026-09-08 -- THE TWO `DamagingHit` HANDLERS THAT USED TO BE PAID INSIDE
+   * `_stepEffects` AND ARE NOW PAID AT THE STEP THE AUTHORITY PAYS THEM AT. `dhAbilityAtDamagingHit`
+   * is Cursed Body's road, `dhSourceAtDamagingHit` is Poison Touch's. Both count the HANDLER RUNNING,
+   * not the die coming up, so a zero on a board where the carrier was struck means the closure was
+   * never built and the deferral silently dropped the mechanic — which is the one way this change can
+   * be catastrophically wrong. */
+  dhAbilityAtDamagingHit: 0, dhSourceAtDamagingHit: 0,
   /* 2026-09-06 -- SHIELD STAT PUNISHES ROUTED THROUGH `applyStatDrop` rather than written straight
    * into `boosts`. King's Shield is the one member of `punishesContact` carrying `boosts` in this
    * format, so this counts King's Shield refusals of a CONTACT move; a zero on a board where one was
@@ -14849,6 +14870,19 @@ const NO_REFILL_UPDATE=(typeof process!=='undefined'&&process.env&&process.env.M
  * today. Any run carrying it also carries a non-zero `MEDFAILS.smartProtectLineRestored`. Same shape
  * as MEDI_SHIELD_SCOPED_FLAG above. */
 const SMART_PROTECT_LINE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SMART_PROTECT_LINE==='1');
+/* NARRATION BATCH Q, 2026-09-08 -- MEDI_SMART_SHIELD_ALL_SILENT=1 SILENCES *EVERY* SHIELD REFUSAL ON A
+ * SMART-TARGET MOVE, which is what this engine did between 2026-08-24 and today. The two knobs are the
+ * two ways to get the rule wrong and they bracket it: `MEDI_SMART_PROTECT_LINE=1` announces on all N
+ * shields, this one announces on none, and the authority announces on N-1. Any run carrying it also
+ * carries a non-zero `MEDFAILS.smartShieldAllSilentRestored`. Same knob shape as the two above. */
+const SMART_SHIELD_ALL_SILENT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SMART_SHIELD_ALL_SILENT==='1');
+/* NARRATION BATCH Q2, 2026-09-08 -- MEDI_DH_IN_EFFECTS=1 PAYS CURSED BODY AND POISON TOUCH BACK INSIDE
+ * `_stepEffects`, i.e. a whole step above the authority's single `DamagingHit` event, which is what
+ * this engine did until today. It is a GAME knob and not an instrument one: it moves the LINE ORDER
+ * against Rough Skin and against a secondary, and it can move a board wherever the poison would have
+ * been refused by a status the secondaries land first. Any run carrying it also carries a non-zero
+ * `MEDFAILS.dhInEffectsRestored`. */
+const DH_IN_EFFECTS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DH_IN_EFFECTS==='1');
 /* 2026-09-06 -- MEDI_SHIELD_PUNISH_RAW_BOOST=1 PUTS THE SHIELD'S STAT PUNISH BACK ON A RAW WRITE TO
  * `boosts`, i.e. King's Shield lowers Attack by one whatever the toucher's ability says, as this
  * engine did until today. Any run carrying it also carries a non-zero
@@ -33665,6 +33699,30 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_mate)targets=[targets[0],_mate];
       }
       const _smartTarget=!a.move.spread&&!!TAGS.param('move',a.move.id,'smartTarget');
+      /* NARRATION BATCH Q, 2026-09-08 -- THE SILENCE IS SPENT ONCE PER MOVE USE, NOT ONCE PER SHIELD.
+       * See the shield loop below; declared here because `move.smartTarget` is a field on the ACTIVE
+       * MOVE in the authority and this is the move's scope. */
+      let _smartShieldSpent=false;
+      /* NARRATION BATCH Q, 2026-09-08 -- AND `smartTarget` IS CLEARED AT TARGET SELECTION WHEN THE
+       * MOVE CANNOT ACTUALLY SPLIT. `Pokemon#getSmartTargets` (sim/pokemon.ts:757-768) is called from
+       * `getMoveTargets` (:838-840), i.e. BEFORE any step runs, and it WRITES THE FIELD:
+       *
+       *     const target2 = target.adjacentAllies()[0];
+       *     if (!target2 || target2 === this || !target2.hp) { move.smartTarget = false; return [target]; }
+       *     if (!target.hp)                                  { move.smartTarget = false; return [target2]; }
+       *     return [target, target2];
+       *
+       * So a dart aimed into a side with ONE live body is NOT a smart-target move by the time the
+       * shield answers, and the shield announces normally. `_smartTarget` above is read off the TAG
+       * alone and cannot see that; the widening block a few lines up is this engine's counterpart of
+       * `getSmartTargets`, so "did we end up with two rows" IS the authority's condition.
+       *
+       * IT IS DELIBERATELY A SECOND NAME AND NOT A NARROWING OF `_smartTarget`, because the authority
+       * reads the field two different ways and only one of them is the value. `-hitcount` is
+       * suppressed by `typeof move.smartTarget !== 'boolean'` (data/mods/champions/scripts.ts:548),
+       * which is TRUE for Dragon Darts whether the split happened or not -- so `R.hitcount` must keep
+       * reading `_smartTarget` and would be wrong if this replaced it. */
+      const _smartSplit=_smartTarget&&targets.length>1;
       const _spreadHit=!!a.move.spread&&(targets.length+(_allyHit?1:0))>1;
       /* THE SECOND HALF OF THE TERRAIN REWRITE, COUNTED SEPARATELY FROM THE FIRST. The widening is
        * only correct if the bodies it reaches are then charged the 0.75, and a fix that did one and
@@ -34043,9 +34101,40 @@ function battleTurn(S,rng,actsForA,actsForB){
            * counterpart here: the refused body is dropped from `targets` on the next line, and the
            * dart-splitting rule already reads how many rows SURVIVED (`_smartRows`).
            *
-           * MEDI_SMART_PROTECT_LINE=1 puts the line back. */
-          if(_smartTarget&&!SMART_PROTECT_LINE)MEDSEEN.smartTargetShieldSilent++;
+           * MEDI_SMART_PROTECT_LINE=1 puts the line back on EVERY shield, which is the engine as it
+           * stood before 2026-08-24 and is neither arm of the rule.
+           *
+           * NARRATION BATCH Q, 2026-09-08 -- AND THE SILENCE IS A ONE-SHOT, WHICH THIS READ AS A MODE.
+           * `move.smartTarget = false` is an assignment on the ACTIVE MOVE, so the branch above it is
+           * false for every later visit; `runEvent('TryHit', targets, pokemon, move)`
+           * (sim/battle-actions.ts:642, `hitStepTryHitEvent`) raises ONE event over ALL targets, and
+           * `findEventHandlers` walks them left to right. So two Protecting foes yield ONE line, on
+           * the SECOND of them, and this engine wrote none at all.
+           *
+           * MEASURED IN THE AUTHORITY BEFORE A BYTE MOVED HERE, one staged doubles turn each
+           * (tests/probe_smart_target_shield_line.js stages all four):
+           *     smart move, BOTH foes Protect     showdown 1 (p2b)   medicham 0
+           *     smart move, only the FAR foe      showdown 0         medicham 0
+           *     non-smart move, both Protect      showdown 1 (p2a)   medicham 1
+           *     the same real arm under the knob                     medicham 2
+           * -- three distinct medicham readings across the knob, so the knob reaches the rule.
+           *
+           * It is card `pair-redirect-priority ...bo3-2657802642` of the pinned differential, whose
+           * first parted line is `|-activate|p1a|protect <> |move|p2a|flareblitz`: the class names the
+           * COMPARATOR, and the defect is a missing line rather than a swapped pair. */
+          if(_smartTarget&&SMART_SHIELD_ALL_SILENT&&!SMART_PROTECT_LINE){
+            MEDFAILS.smartShieldAllSilentRestored=1; MEDSEEN.smartTargetShieldSilent++;}
+          /* THE DART THAT NEVER SPLIT IS NOT A SMART-TARGET REFUSAL AT ALL — `getSmartTargets` already
+           * cleared the field, so the shield announces exactly as it would for any other move. This is
+           * the `pair-redirect-priority ...bo3-2657802642` card: p1b was EMPTY, the darts had one body
+           * to reach, and the authority wrote the line this engine was silencing. Counted apart from
+           * the split roads so a run can say which of the two clauses fired. */
+          else if(_smartTarget&&!_smartSplit&&!SMART_PROTECT_LINE&&!SMART_SHIELD_ALL_SILENT){
+            MEDSEEN.smartTargetUnsplitAnnounced++; if(TR)TR.act(tg,'move: Protect');}
+          else if(_smartSplit&&!_smartShieldSpent&&!SMART_PROTECT_LINE){
+            _smartShieldSpent=true; MEDSEEN.smartTargetShieldSilent++;}
           else{if(SMART_PROTECT_LINE&&_smartTarget)MEDFAILS.smartProtectLineRestored=1;
+               if(_smartSplit)MEDSEEN.smartTargetShieldAnnounced++;
                if(TR)TR.act(tg,'move: Protect');}
           const _pc=TAGS.param('move',tg._protectMove,'punishesContact');
           /* ROADMAP #331 -- `!m.fainted` IS `spreadDamage`'s OWN `if (!target || !target.hp)`, AND IT
@@ -38223,7 +38312,26 @@ function battleTurn(S,rng,actsForA,actsForB){
             * reaction rides, with `activeTarget` still on the last body `getSpreadDamage` reached.
             * This engine pays it in `_stepEffects`, which is a DIFFERENT STEP and a separate
             * question; the ADDRESS is the same either way. See `_reactAddr`. */
-           if(_pt&&!dustBlocked&&(!_pt.needsContact||mvMakesContact(a.move.id,m,a.move.mv))&&_reactAddr(rng)<(+_pt.p||0.3))applyStatus(tg,'psn',m,ATTR.ability(m.ability,m));}
+           /* NARRATION BATCH Q2, 2026-09-08 -- AND IT IS PAID AT THE DAMAGINGHIT STEP NOW, NOT HERE.
+            * The comment above already said this site is "a DIFFERENT STEP and a separate question";
+            * this is that question, and the pinned pool had a witness for it all along --
+            * `omit-weather ...bo3-2661573110`, `-damage p1a [roughskin] <> -status p2a psn
+            * [poisontouch]`. Rough Skin carries `onDamagingHitOrder: 1` (data/abilities.ts, derived,
+            * six members in this format) and `onSourceDamagingHit` carries none, and `runEvent` sorts
+            * the ONE `DamagingHit` event by `compareLeftToRightOrder` -- order ASC, then priority,
+            * then target index (sim/battle.ts:789 and :421). So the toll is above the poison in the
+            * authority and was below it here, because this site runs a whole step early.
+            *
+            * THE DIE MOVES WITH THE EFFECT, deliberately: the authority throws `randomChance` INSIDE
+            * the handler, so a fix that left the roll here and moved only the application would put
+            * the draw at a moment the authority never draws at. The ADDRESS is untouched -- it is
+            * still `_reactAddr`, still the lingering slot -- so under the middle arm this re-orders
+            * draws and not their values. `tests/probe_damaginghit_order.js` stages it. */
+           if(_pt&&!dustBlocked&&(!_pt.needsContact||mvMakesContact(a.move.id,m,a.move.mv))){
+             const _ptPay=()=>{ MEDSEEN.dhSourceAtDamagingHit++;
+               if(_reactAddr(rng)<(+_pt.p||0.3))applyStatus(tg,'psn',m,ATTR.ability(m.ability,m)); };
+             if(DH_IN_EFFECTS){ MEDFAILS.dhInEffectsRestored=1; _ptPay(); } else R._dhSrc=_ptPay;
+           }}
           /* WIRE 30 -- blocksHealing. Psychic Noise is a DAMAGING move whose whole point is the two
            * turns of Heal Block it leaves behind, and the engine landed the 75 base power and none of
            * the effect. It is the counter to the entire healing family, so it lands in the same pass
@@ -38321,7 +38429,19 @@ function battleTurn(S,rng,actsForA,actsForB){
             * reached and not the body the handler is running on. This engine pays Cursed Body in
             * `_stepEffects` rather than at `_stepDamagingHit` -- a step-order divergence that is a
             * separate, un-bundled question -- and the address is the same either way. */
-           if(_cb&&_cb.chance&&!m.fainted&&!(m._vol&&m._vol.disable>0)&&_reactAddr(rng)<+_cb.chance){
+           /* NARRATION BATCH Q2, 2026-09-08 -- PAID AT THE DAMAGINGHIT STEP NOW, for the reason the
+            * comment above names and leaves open. `onDamagingHit` is BELOW the secondaries in the
+            * authority (`runMoveEffects` and `secondaries` are steps 3 and 5 of `spreadMoveHit`,
+            * `runEvent('DamagingHit')` is step 7 -- data/mods/champions/scripts.ts:374-410), and this
+            * site is inside the secondary step. The pool's witness is `omit-weather ...bo3-2662074768`:
+            * a Matcha Gotcha spread whose 20% burn landed on the SECOND body while Cursed Body sat on
+            * the FIRST, so the authority wrote the burn first and this engine wrote the disable first.
+            * The guard is re-read inside the closure rather than captured, because `m.fainted` and
+            * `m._vol.disable` can both move between the two steps. */
+           const _cbPay=()=>{
+             if(!(!m.fainted&&!(m._vol&&m._vol.disable>0)))return;
+             MEDSEEN.dhAbilityAtDamagingHit++;
+             if(_reactAddr(rng)<+_cb.chance){
              /* ROADMAP #111 -- THROUGH THE SHARED DURATION MODEL, and `alreadyMoved` is FALSE here on
               * purpose. The body Cursed Body seals is the one that is MOVING RIGHT NOW, and Showdown
               * spells that out as the second half of disable's own clause --
@@ -38352,7 +38472,9 @@ function battleTurn(S,rng,actsForA,actsForB){
                  TR.act(tg,'ability: '+tg.ability); TR.vstart(m,'Disable',a.move.id); }
                else TR.vstart(m,'Disable',a.move.id,'[from] ability: '+tg.ability,tg);
              }
-           }}
+           }};
+           if(_cb&&_cb.chance){ if(DH_IN_EFFECTS){ MEDFAILS.dhInEffectsRestored=1; _cbPay(); }
+                                else R._dhAbil=_cbPay; }}
         }
         /* Spicy Spray's burn was an independent hardcode here, gated on PHYSICAL -- the handler
          * has no such gate; it burns on ANY damaging hit. Now served by the punishesAttacker wire
@@ -38649,6 +38771,37 @@ function battleTurn(S,rng,actsForA,actsForB){
        * Stamina and therefore the same step; it takes NO address, because `cureStatus` throws no die
        * and `_reactAddr` exists to place one. */
       const _stepThawDamagingHit=(R)=>{ if(!R._thawDh)return; const _f=R._thawDh; R._thawDh=null; _f(); };
+      /* NARRATION BATCH Q2, 2026-09-08 -- THE REST OF THE AUTHORITY'S SINGLE `DamagingHit` EVENT.
+       *
+       * `runEvent('DamagingHit', damagedTargets, …)` sorts by `compareLeftToRightOrder`
+       * (sim/battle.ts:789 -> :421): `onDamagingHitOrder` ASC, then priority DESC, then TARGET INDEX
+       * ASC -- never speed. Within one index the collection order is the body's own status, then its
+       * volatiles, then its ABILITY, then its item, and the SOURCE's `onSource…` handlers last
+       * (`findEventHandlers`, sim/battle.ts:1053-1069). So:
+       *
+       *   `_stepDamagingHit`   the punish family, which is where every `onDamagingHitOrder: 1` member
+       *                        lives (aftermath, electromorphosis, innardsout, ironbarbs, roughskin,
+       *                        windpower -- DERIVED, six in this format)
+       *   `_stepBuffOnHit`     the holder's own default-order ability boost
+       *   THIS STEP           `_dhAbil` -- a default-order ability effect that is not a boost
+       *                        (Cursed Body) -- then `_dhSrc`, the attacker's `onSource` handler
+       *                        (Poison Touch). Both used to be paid inside `_stepEffects`, a whole
+       *                        step early, and both said so in their own comments.
+       *
+       * ONE STEP RATHER THAN TWO because the two closures are the last two entries of ONE index in
+       * the authority's sorted list and the step driver is step-outside/target-inside: running them
+       * together keeps the row order the authority has and needs no second pass over the rows.
+       *
+       * WHAT IS STILL OUT OF ORDER, SAID PLAINLY: `_stepDamagingHit` mixes the order-1 punishers with
+       * the default-order ones, so a spread hit whose order-1 reactor stands at a HIGHER target index
+       * than a default-order reactor still runs them index-major where the authority runs the order-1
+       * one first. That is the remaining half of this mechanism (the pinned pool's
+       * `-boost p1a def 1 <> -status p2b brn [spicyspray]` row) and it is named rather than assumed
+       * absent. */
+      const _stepDamagingHitLate=(R)=>{
+        if(R._dhAbil){ const _f=R._dhAbil; R._dhAbil=null; _f(); }
+        if(R._dhSrc){ const _g=R._dhSrc; R._dhSrc=null; _g(); }
+      };
       /* BATCH K -- the `thawsTarget` thaw, `frz.onAfterMoveSecondary`. Same event as Pickpocket and
        * the HP-threshold boost, so the same place in the list: below `-hitcount`. */
       const _stepThawAfterSecondary=(R)=>{ if(!R._thawAms)return; const _f=R._thawAms; R._thawAms=null; _f(); };
@@ -39211,6 +39364,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                     _stepClearScreens,                 // 2026-08-24 -- the move's own `onTryHit`
                     _stepDamage,_stepApply,_stepSelfPay,_stepEffects,
                     _stepDamagingHit,_stepThawDamagingHit,_stepBuffOnHit,  // 2026-08-22 -- ONE `DamagingHit`
+                    _stepDamagingHitLate,              // BATCH Q2 -- its last two handlers per row
                     _stepAfterHit,
                     _stepAfterHitField,                // 2026-08-23 -- the other two onAfterHit families
                     _stepUpdate,                       // 2026-08-23 -- eachEvent('Update'), :967

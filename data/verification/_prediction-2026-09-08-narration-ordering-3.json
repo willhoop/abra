@@ -1,0 +1,196 @@
+{
+  "what": "NARRATION BATCH Q \u2014 the ordering class, third pass. Predictions written BEFORE the measuring run, per docs/LESSONS. Scored in docs/_reports/2026-09-08-narration-ordering-3.md.",
+  "written": "2026-09-08",
+  "baseline": {
+    "artifact": "data/game-differential.json",
+    "generated": "2026-09-08T22:34:13.648Z",
+    "engine_release": "f6f44b329132",
+    "census_digest": "886d47cf7fef",
+    "sample": "--steering empirical --release f6f44b329132 --arm middle --end-state --games 1200 --team-store data/team-pool-frozen --turns 50 --write",
+    "games": 961,
+    "state_games": 958,
+    "state_games_board_never_diverged": 958,
+    "board_material": 0,
+    "narration_only_causes": 51,
+    "narration_only_games": 53,
+    "by_cause_totals_causes": 54,
+    "by_cause_totals_games": 56,
+    "ordering_narration_causes": 13,
+    "ordering_narration_games": 13,
+    "protocol_diverged_raw": 56,
+    "gate_narration_declared_adjusted": 52
+  },
+  "re_derivation": {
+    "claim": "the 13 NARRATION-ONLY `ordering` causes collapse to SEVEN mechanisms",
+    "mechanisms": [
+      {
+        "id": "M1 DamagingHit fragmented across steps",
+        "games": 3,
+        "cards": [
+          "stamina vs spicyspray",
+          "roughskin vs poisontouch",
+          "cursedbody vs a secondary"
+        ]
+      },
+      {
+        "id": "M2 substitute step 0 not run over all targets first",
+        "games": 3,
+        "cards": [
+          "-end sub vs -damage 0fnt",
+          "-activate sub vs -damage",
+          "-end sub vs -resisted"
+        ]
+      },
+      {
+        "id": "M3 residual order across two bodies",
+        "games": 3,
+        "cards": [
+          "brn p2b/p1b",
+          "psn p1a/p1b",
+          "leftovers p1b/p2a"
+        ]
+      },
+      {
+        "id": "M4 post-KO replacement switch-in order",
+        "games": 1
+      },
+      {
+        "id": "M5 redirect activation vs the charge -prepare",
+        "games": 1
+      },
+      {
+        "id": "M6 faint message vs a volatile ended by its source leaving",
+        "games": 1
+      },
+      {
+        "id": "M7 smart-target shield line",
+        "games": 1
+      }
+    ]
+  },
+  "batch_Q1": {
+    "fix": "M7 \u2014 `move.smartTarget = false` is a ONE-SHOT on the active move, so N shields yield N-1 `|-activate|move: Protect` lines. medicham2 silenced every one.",
+    "probe": "tests/probe_smart_target_shield_line.js",
+    "predictions": [
+      {
+        "clause": "board-material (state.games less state.games_board_never_diverged)",
+        "point": 0,
+        "band": "exactly 0 of 958 \u2014 a narration fix that parts a board is a regression"
+      },
+      {
+        "clause": "the `ordering :: |-activate|p1a|protect <> |move|p2a|flareblitz` cause",
+        "point": "absent",
+        "band": "absent"
+      },
+      {
+        "clause": "ordering NARRATION-ONLY causes",
+        "point": 12,
+        "band": "12, or 13 if the same game re-enters on another ordering cause (a TRANSFER)"
+      },
+      {
+        "clause": "gate narration (games_narration_only less declared less impact)",
+        "point": 51,
+        "band": "51, or 52 on a transfer"
+      },
+      {
+        "clause": "NARRATION-ONLY causes (summary.by_cause)",
+        "point": 50,
+        "band": "50-51; 51 means the game transferred rather than closed"
+      },
+      {
+        "clause": "by_cause_totals.games",
+        "point": 55,
+        "band": "55-56"
+      },
+      {
+        "clause": "protocol diverged (raw)",
+        "point": 55,
+        "band": "55-56"
+      },
+      {
+        "clause": "census rows live",
+        "point": 830,
+        "band": "exactly 830 of 830 \u2014 this fix touches no mechanic"
+      },
+      {
+        "clause": "roster items / abilities / moves DIFFER + DID-NOT-FIRE",
+        "point": 0,
+        "band": "0 throughout"
+      }
+    ],
+    "risk_named_before_the_run": "Dragon Darts is the format's ONLY smart-target move and 452 corpus clicks; the fix ADDS a line, so any game where medicham2 previously agreed by writing nothing and the authority also wrote nothing (one shield only) would now part. SILENT B is exactly that board and reads 0/0 in the probe, so the prediction is that no game moves the wrong way.",
+    "result_first_attempt": {
+      "note": "clause 2 alone landed on release 04f6aae3cb27 and moved NOTHING - board-material 0/958, ordering 13, the flareblitz row byte-identical. The prediction MISSED. Reading the row showed the pool card is clause 1 (one live body), not clause 2 (two shields)."
+    },
+    "result": {
+      "release": "3b30a88ffa23",
+      "board_material": "0 of 958",
+      "ordering_narration_causes": 12,
+      "NARRATION_ONLY_causes": 50,
+      "games_narration_only": 52,
+      "protocol_raw": 55,
+      "gate_narration": 51,
+      "transfers": 0,
+      "census": "830 of 830",
+      "roster": "items 142 / abilities 139 / moves 487, 0 DIFFER 0 DID-NOT-FIRE"
+    }
+  },
+  "batch_Q2": {
+    "fix": "M1 (partial) - Cursed Body and Poison Touch were paid inside _stepEffects, the SECONDARY step, where the authority pays them in the single runEvent(DamagingHit) below the secondaries and sorted order-ASC then target-index-ASC. Both deferred to a new _stepDamagingHitLate.",
+    "probe": "tests/probe_damaginghit_order.js",
+    "knob": "MEDI_DH_IN_EFFECTS=1",
+    "predictions": [
+      {
+        "clause": "board-material (state.games less state.games_board_never_diverged)",
+        "point": 0,
+        "band": "exactly 0 of 958"
+      },
+      {
+        "clause": "the `ordering :: |-damage|p1a|H/H|[from]roughskin <> |-status|p2a|psn|[from]poisontouch` cause",
+        "point": "absent",
+        "band": "absent"
+      },
+      {
+        "clause": "the `ordering :: |-status|p1b|brn <> |-start|p2b|disable|matchagotcha|[from]cursedbody` cause",
+        "point": "absent",
+        "band": "absent"
+      },
+      {
+        "clause": "ordering NARRATION-ONLY causes",
+        "point": 10,
+        "band": "10-12; above 10 means a transfer"
+      },
+      {
+        "clause": "NARRATION-ONLY causes (summary.by_cause)",
+        "point": 48,
+        "band": "48-50"
+      },
+      {
+        "clause": "games_narration_only",
+        "point": 50,
+        "band": "50-52"
+      },
+      {
+        "clause": "protocol diverged (raw)",
+        "point": 53,
+        "band": "53-55"
+      },
+      {
+        "clause": "gate narration (declared-adjusted)",
+        "point": 49,
+        "band": "49-51"
+      },
+      {
+        "clause": "census rows live",
+        "point": 830,
+        "band": "exactly 830 of 830"
+      },
+      {
+        "clause": "roster items / abilities / moves DIFFER + DID-NOT-FIRE",
+        "point": 0,
+        "band": "0 throughout"
+      }
+    ],
+    "risk_named_before_the_run": "This is a GAME change, not a narration-only one. Poison Touch now runs BELOW the secondaries, so a secondary that lands a status first will refuse it where it used to land - and Cursed Body now reads m.fainted and m._vol.disable one step later. Either can move a board. The two 30% dice also change their relative nth at a shared address on a hit where both fire, so a value can swap there. Board-material is the clause that decides."
+  }
+}
