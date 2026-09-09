@@ -1,17 +1,17 @@
 {
- "generated": "2026-09-09T06:40:00.023Z",
+ "generated": "2026-09-09T07:50:52.293Z",
  "by": "tests/roster.js",
  "stage": "abilities",
  "swap_leaf_correction": {
-  "self_describing_dropped": 4192,
-  "real_ability_rewrite_kept": 36
+  "self_describing_dropped": 5344,
+  "real_ability_rewrite_kept": 48
  },
- "engine_release": "5381b07ea2fa",
- "engine_release_cut": "2026-09-09T05:56:58.095Z",
- "engine_release_cuts": 16,
+ "engine_release": "eb46032d332c",
+ "engine_release_cut": "2026-09-09T07:41:01.847Z",
+ "engine_release_cuts": 3,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "aa75fdfc6eac",
+  "engine/medicham2-browser.js": "fc09f4f5a19d",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "622482051bf4",
@@ -32,7 +32,7 @@
   "data/quality-filter.json": "3c733e7a0bfb",
   "data/engine-data.js": "bbc417dfae0e",
   "data/abra-tags.js": "8e39fdea2ceb",
-  "data/tags.json": "c339cc8aefe5",
+  "data/tags.json": "30ce4b64c9eb",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
@@ -49,9 +49,9 @@
   "COULD-NOT-STAGE": 158
  },
  "arms_played": {
-  "top-tie-first": 452,
-  "middle": 30,
-  "bottom-tie-first": 19
+  "top-tie-first": 579,
+  "middle": 49,
+  "bottom-tie-first": 24
  },
  "scope": {
   "total": 316,
@@ -194,12 +194,736 @@
   ]
  },
  "plant_anchors": {
-  "release": "5381b07ea2fa",
+  "release": "eb46032d332c",
   "checked": 44,
   "dead": [],
-  "reds_ran": false
+  "reds_ran": true
  },
- "reds": [],
+ "reds": [
+  {
+   "rule": "ability/entry",
+   "ok": true,
+   "why": "the entry stat drop is skipped — the ability is still on the body and still named. It is aimed at one MEMBER of the family, so a rule that catches it has proved the entry path is live rather than that every entry ability is",
+   "moved": {
+    "member": "intimidate",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.boosts.atk",
+     "boosts.atk"
+    ]
+   }
+  },
+  {
+   "rule": "ability/blocks-priority",
+   "ok": true,
+   "why": "the priority block is skipped, so the shielded side takes the fast move",
+   "moved": {
+    "member": "armortail",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/aids-its-ally",
+   "ok": true,
+   "why": "the ally damage reduction is dropped",
+   "moved": {
+    "member": "friendguard",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/refuses-a-crit",
+   "ok": true,
+   "why": "the crit refusal is skipped, so the armoured body takes the crit like anything else",
+   "moved": {
+    "member": "battlearmor",
+    "verdict": "CONTROL-NOT-QUIET",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/stat-drop-reaction",
+   "ok": true,
+   "why": "the boost-refusal path is removed, so an ability that should block a drop lets it through",
+   "moved": {
+    "member": "bigpecks",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.boosts.def",
+     "boosts.def"
+    ]
+   }
+  },
+  {
+   "rule": "ability/pinch-offense",
+   "ok": true,
+   "why": "the pinch multiplier is dropped — the ability is still on the body and still named, and the HP gate is still crossed",
+   "moved": {
+    "member": "blaze",
+    "verdict": "CONTROL-NOT-QUIET",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/absorbs-a-type",
+   "ok": true,
+   "why": "the type/flag immunity is dropped, so the absorbed hit lands as ordinary damage",
+   "moved": {
+    "member": "dryskin",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/weather-speed",
+   "ok": true,
+   "why": "the weather Speed multiplier is dropped, so the carrier never outruns anybody",
+   "moved": {
+    "member": "chlorophyll",
+    "verdict": "COULD-NOT-STAGE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": "the SUBJECT arm did not run: SHORT — the script declares 2 turn(s) and 1 were played",
+    "fields": []
+   }
+  },
+  {
+   "rule": "ability/entry-aids-ally",
+   "ok": true,
+   "why": "the entry heal is skipped — the carrier still switches in and is still named",
+   "moved": {
+    "member": "hospitality",
+    "verdict": "CONTROL-NOT-QUIET",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/seals-the-attacking-move-by-chance",
+   "ok": true,
+   "why": "the seal is never planted, so the attacker keeps its move",
+   "moved": {
+    "member": "cursedbody",
+    "verdict": "CONTROL-NOT-QUIET",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "vol.disable"
+    ]
+   }
+  },
+  {
+   "rule": "ability/ground-immunity",
+   "ok": true,
+   "why": "the airborne-ability set is emptied, so the carrier is grounded and arm A lands",
+   "moved": {
+    "member": "eelevate",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.boosts.accuracy",
+     "hp",
+     "boosts.accuracy"
+    ]
+   }
+  },
+  {
+   "rule": "ability/contact-statuses-the-attacker-by-chance",
+   "ok": true,
+   "why": "the cumulative roll is forced past the top of the range, so the status never lands while everything else about the punish stays exactly as it was",
+   "moved": {
+    "member": "effectspore",
+    "verdict": "CONTROL-NOT-QUIET",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.status",
+     "hp",
+     "status"
+    ]
+   }
+  },
+  {
+   "rule": "ability/damage-taken-scoped",
+   "ok": true,
+   "why": "the scoped damage reduction is dropped",
+   "moved": {
+    "member": "heatproof",
+    "verdict": "CONTROL-NOT-QUIET",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/forme-follows-the-sky",
+   "ok": true,
+   "why": "the weather-forme sync is skipped, so the carrier keeps the forme it walked in with",
+   "moved": {
+    "member": "forecast",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.species",
+     "party.types",
+     "species",
+     "types"
+    ]
+   }
+  },
+  {
+   "rule": "ability/unconditional-stat-multiplier",
+   "ok": true,
+   "why": "the doubled attacking stat is dropped — the ability is still on the body and still named, and the click is still inside its category",
+   "moved": {
+    "member": "hugepower",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/restores-a-spent-berry-by-chance",
+   "ok": true,
+   "why": "the restore never rolls through, so the spent berry stays spent",
+   "moved": {
+    "member": "harvest",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/cures-a-status-at-the-residual-by-chance",
+   "ok": true,
+   "why": "the residual cure never rolls through, so the status survives the turn",
+   "moved": {
+    "member": "healer",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.status",
+     "status"
+    ]
+   }
+  },
+  {
+   "rule": "ability/residual",
+   "ok": true,
+   "why": "THE ENTRY GATE IS REMOVED and the per-turn effect fires unconditionally — which is the exact defect this family was written against, and it can only be caught by a staging that has a mid-turn entrant in it",
+   "moved": {
+    "member": "speedboost",
+    "verdict": "CONTROL-NOT-QUIET",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.boosts.spe",
+     "boosts.spe"
+    ]
+   }
+  },
+  {
+   "rule": "ability/weather-residual",
+   "ok": true,
+   "why": "the residual weather effect is skipped",
+   "moved": {
+    "member": "icebody",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/refuses-one-status",
+   "ok": true,
+   "why": "the status refusal is skipped, so the named status lands on the carrier anyway",
+   "moved": {
+    "member": "immunity",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.status",
+     "hp",
+     "status"
+    ]
+   }
+  },
+  {
+   "rule": "ability/base-power-scoped",
+   "ok": true,
+   "why": "the scoped base-power multiplier is dropped",
+   "moved": {
+    "member": "ironfist",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/redirects-a-type",
+   "ok": true,
+   "why": "the redirection is skipped, so the drawn move stays on its original target",
+   "moved": {
+    "member": "lightningrod",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.boosts.spa",
+     "party.hp",
+     "boosts.spa",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/type-conversion",
+   "ok": true,
+   "why": "the type rewrite is skipped, so the move keeps its printed type",
+   "moved": {
+    "member": "liquidvoice",
+    "verdict": "CONTROL-NOT-QUIET",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/refuses-indirect-damage",
+   "ok": true,
+   "why": "the refusal is dropped and the weather residual reaches the carrier again",
+   "moved": {
+    "member": "magicguard",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/private-sky",
+   "ok": true,
+   "why": "the private sky is switched off, so Weather Ball stays Normal and Solar Beam charges",
+   "moved": {
+    "member": "megasol",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp",
+     "vol.charging"
+    ]
+   }
+  },
+  {
+   "rule": "ability/type-follows-the-terrain",
+   "ok": true,
+   "why": "the terrain retype is skipped, so the carrier keeps its natural typing",
+   "moved": {
+    "member": "mimicry",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.types",
+     "types"
+    ]
+   }
+  },
+  {
+   "rule": "ability/ignores-abilities",
+   "ok": true,
+   "why": "the suppression is skipped, so the target keeps its ability and the click is refused",
+   "moved": {
+    "member": "moldbreaker",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.boosts.accuracy",
+     "hp",
+     "boosts.accuracy"
+    ]
+   }
+  },
+  {
+   "rule": "ability/pierces-protect",
+   "ok": true,
+   "why": "the pierce is skipped, so the shield refuses the contact click like any other",
+   "moved": {
+    "member": "piercingdrill",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/heals-from-its-own-poison",
+   "ok": true,
+   "why": "the poison-heal exemption is dropped and the status damages its holder as usual",
+   "moved": {
+    "member": "poisonheal",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/poisons-what-it-touches-by-chance",
+   "ok": true,
+   "why": "the poison roll never passes, so a contact hit leaves the victim clean",
+   "moved": {
+    "member": "poisontouch",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.status",
+     "hp",
+     "status"
+    ]
+   }
+  },
+  {
+   "rule": "ability/priority-mod",
+   "ok": true,
+   "why": "the priority shift is dropped, so the carrier moves in plain speed order",
+   "moved": {
+    "member": "prankster",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.boosts.atk",
+     "party.boosts.spa",
+     "boosts.atk",
+     "boosts.spa"
+    ]
+   }
+  },
+  {
+   "rule": "ability/pp-tax",
+   "ok": true,
+   "why": "the extra PP a Pressure-class ability charges is never added, so every click costs the same whoever it is aimed at",
+   "moved": {
+    "member": "pressure",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "pp.moonblast"
+    ]
+   }
+  },
+  {
+   "rule": "ability/jumps-its-priority-bracket-by-chance",
+   "ok": true,
+   "why": "the ability's bracket nudge is never read, so the slower carrier always moves second",
+   "moved": {
+    "member": "quickdraw",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": []
+   }
+  },
+  {
+   "rule": "ability/switch-out",
+   "ok": true,
+   "why": "the switch-out heal is skipped",
+   "moved": {
+    "member": "regenerator",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/no-recoil",
+   "ok": true,
+   "why": "the recoil exemption is dropped, so the holder pays the recoil anyway",
+   "moved": {
+    "member": "rockhead",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/weather-evasion",
+   "ok": true,
+   "why": "the evasion stage is ignored when accuracy is computed",
+   "moved": {
+    "member": "sandveil",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/trap-arrives-with-a-mega",
+   "ok": true,
+   "why": "the ability trap no longer holds the switch",
+   "moved": {
+    "member": "shadowtag",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": []
+   }
+  },
+  {
+   "rule": "ability/deletes-secondaries",
+   "ok": true,
+   "why": "the secondary filter is skipped, so the 100% flinch and the 100% drop both land",
+   "moved": {
+    "member": "shielddust",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.boosts.spa",
+     "party.boosts.spd",
+     "party.boosts.spe",
+     "boosts.spa",
+     "boosts.spd",
+     "boosts.spe",
+     "pp.quiverdance",
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/adds-its-own-secondary-by-chance",
+   "ok": true,
+   "why": "the ability contributes no secondary at all, so the carrier's click is a bare hit",
+   "moved": {
+    "member": "stench",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "pp.dragonclaw",
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/survives-from-full",
+   "ok": true,
+   "why": "the survive-from-full floor is dropped",
+   "moved": {
+    "member": "sturdy",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.fainted",
+     "party.status",
+     "species",
+     "hp",
+     "types",
+     "ability",
+     "vol.focusenergy",
+     "pp.focusenergy"
+    ]
+   }
+  },
+  {
+   "rule": "ability/refuses-a-forced-switch",
+   "ok": true,
+   "why": "the drag-out refusal is skipped, so the carrier is thrown out like anything else (UNEXERCISED IF THE TAG IS ABSENT — see the verdict text)",
+   "moved": {
+    "member": "suctioncups",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": []
+   }
+  },
+  {
+   "rule": "ability/refuses-the-ally-spread",
+   "ok": true,
+   "why": "the ally exemption is dropped and the spread move damages the carrier as well",
+   "moved": {
+    "member": "telepathy",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/speed-on-item-loss",
+   "ok": true,
+   "why": "the speed multiplier on item loss is dropped — the item is still consumed",
+   "moved": {
+    "member": "unburden",
+    "verdict": "CONTROL-NOT-QUIET",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/blocks-foe-berry",
+   "ok": true,
+   "why": "the berry block is skipped, so the foe eats it anyway",
+   "moved": {
+    "member": "unnerve",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.item",
+     "hp",
+     "item"
+    ]
+   }
+  }
+ ],
  "mirror": {
   "pairs": 29,
   "same_numbers_swapped": [

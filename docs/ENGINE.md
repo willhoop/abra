@@ -133,10 +133,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  830/830 probed mechanics live, 0 missing   (census 2026-09-09 02:02)
+  830/830 probed mechanics live, 0 missing   (census 2026-09-09 03:41)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
     never fired in the staged harness (all-mechanics-fire.json, 13 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-09 02:12)
+  0/6000 differential comparisons disagree with Showdown   (2026-09-09 03:43)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -158,9 +158,126 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-09 02:27_
+_stamped 2026-09-09 04:02_
 
 <!-- /GENERATED -->
+
+## NARRATION BATCH T — **A BOARD DEFECT, TEN MIS-ORDERED CALL SITES AND ONE ORDERING CAUSE.** NARRATION-ONLY **22 → 21 CAUSES / 22 → 21 GAMES**, **GATE NARRATION 21 → 20 OF 961**, PROTOCOL **25 → 24**, **BOARD-MATERIAL 0 OF 958 AFTER EVERY MEASUREMENT AND AFTER EVERY EDIT**, CENSUS 830/830, ROSTER 142/139/487/20 WITH ZERO DIFFER, ZERO DID-NOT-FIRE AND EVERY ANCHOR LIVE (18/44/36/17), `test-engine-diff` 6000/6000. **ZERO TRANSFERS AT EVERY STEP.** THE SAFEGUARD BOARD DEFECT BATCH S FOUND AND LEFT IS CLOSED, AND **TWO PROBE ASSERTIONS REFUTED THE FIX BEFORE IT SHIPPED**. 2026-09-09
+
+Full account, every command, every pin, the fixture searches and the scored predictions:
+[docs/_reports/2026-09-09-narration-batch-T.md](_reports/2026-09-09-narration-batch-T.md).
+
+### THE FIVE MECHANISMS
+
+| # | what the authority does | probe | knob |
+|---|---|---|---|
+| T1 | `safeguard.condition.onTryAddVolatile` names `yawn` and `confusion` EXPLICITLY and refuses the DROWSE with `-activate\|TARGET\|move: Safeguard`. **A BOARD DEFECT** — this engine landed it and slept the body two turns later | `tests/probe_yawn_safeguard_refusal.js` | `MEDI_YAWN_THROUGH_SAFEGUARD=1` |
+| T1b | the same handler's FIRST line exempts an INFILTRATING move aimed at a foe — the clause a comment had declared unreachable | same probe, INFIL arms | `MEDI_SIDEBUFF_IGNORES_INFILTRATOR=1` |
+| T2 | inside step 1, `findPokemonEventHandlers` gathers VOLATILES before ABILITIES, so Protect answers above Good as Gold and above the absorbers; the Prankster refusal is two steps lower still | `tests/probe_shield_before_ability.js` | `MEDI_ABILITY_BEFORE_SHIELD=1` |
+| T2b | `protect.condition.onTryHit` returns `NOT_FAIL`, which SUPPRESSES the generic `-fail` — the `healdesc` road wrote both lines | same probe, PLAIN-SHIELD arm | `MEDI_SHIELDED_HEAL_FAILS=1` |
+| T3 | `isActive` is cleared INSIDE `faintMessages`, so on the update pass a corpse is STILL ACTIVE and a `!source.isActive` handler owes its `-end` to the next pass, BELOW the `\|faint\|` | `tests/probe_faint_before_source_gone_end.js` | `MEDI_FAINT_CLEARS_ACTIVE_EARLY=1` |
+
+### THE SCOREBOARDS WERE NAMED BEFORE EACH RUN AND ALL THREE HELD
+
+T1 and T2 are the rare shape — **the pool sits still, the lab moves** — because no pinned-pool game
+witnesses a Yawn into a Safeguard and batch R had already measured that no pool card names those ten
+branches. The 22 causes on `88ad0cd7c052` are the **same 22 strings in the same order** as the
+baseline. T3 is the opposite and was said so: it HAS a pool witness, predicted 22 → 21 causes with no
+transfer, and hit at the point estimate.
+
+### TWO PROBE ASSERTIONS REFUTED THE FIX BEFORE ANY MEASUREMENT, AND THAT IS THE BATCH'S LESSON
+
+- **The engine comment said the `infiltrates` exemption was unreachable** — *"no legal Infiltrator
+  carrier learns Yawn"*. That claim was put in the probe as a question to the FORMAT instead of typed
+  into the engine as a fact, and it came back RED naming **Meowstic and Meowstic-F**. Had it stayed a
+  comment, T1 would have shipped a NEW board defect.
+- **The census refuted the T3 guard's first working form.** `!src._faintOut` turned
+  `move/trapEndsWithTrapper` MISSING (829 live / 1 missing), because that probe stages its corpse by
+  writing `curHP = 0; fainted = true` BY HAND — no `noteFaint`, no line — so the loose reading treated
+  it as a body whose faint was owed forever. There are THREE states and only the middle one is the
+  guard's: the test is `=== false`. Census back to 830/830.
+
+Two earlier T3 attempts were wrong for recorded reasons: `_FAINTQ` membership (the faint line is
+written directly by `_stepFaint`, never through the queue) and `TR._traceFainted` (**a BOARD fact
+decided by whether a trace was attached**, which is the FACTS-ARE-GLOBAL rule broken). All 28 call
+sites of `TR.faint` now go through one `faintLineOut(m)` that stamps the body whether or not anybody
+is watching.
+
+### THE TAG LEARNED A FIELD, AND THE MEMBERSHIP WAS PRINTED FIRST
+
+`sideBuff.blocksVolatile` means *"the condition HAS an `onTryAddVolatile`"*, not *"it refuses THIS
+volatile"* — read at face value it would have made Safeguard a Leech Seed, Taunt and Encore shield.
+`engine/tag_dex.js` now derives `blocksVolatileIds` from the handler's own `status.id === 'x'`
+occurrences. **One member in this format (`safeguard`, 37 uses); exactly one row moved and it gained
+exactly one field.** No tag membership changed. The SG-SEED arm is the over-match negative.
+
+### THE PROBE'S MOVE SET IS DERIVED FROM THE FORMAT, AND THAT IS WHAT FOUND THE EXTRA DEFECTS
+
+`probe_shield_before_ability.js` names no branch: it takes **every legal Status move carrying the
+`protect` flag and aimed at one body** (60 staged; Parting Shot skipped as batch R's road, Spore has
+no legal carrier), pairs each with a derived carrier, and plays it twice at a Gholdengo. Nineteen
+SHIELDED arms were RED; every BARE arm was green. Two of the nineteen were **not** the reorder and
+would never have been found from a branch list: `kind === 'lockon'` had **no shield check at all**,
+and `kind === 'pass'` — an unmodelled click — asked only the ability, which is how Reflect Type wrote
+the Good as Gold line where the authority writes the shield's.
+
+### THE MEASUREMENT
+
+| | baseline `5381b07ea2fa` | T1+T2 `88ad0cd7c052` | T3 `eb46032d332c` |
+|---|---|---|---|
+| **BOARD-MATERIAL** | 0 / 958 | **0 / 958** | **0 / 958** |
+| NARRATION-ONLY causes | 22 | **22** | **21** |
+| NARRATION-ONLY games | 22 | **22** | **21** |
+| protocol diverged (raw) | 25 | **25** | **24** |
+| transfers | — | **0** | **0** |
+
+### THE HAND LIST
+
+**Removed — the Yawn / Safeguard board defect** (batch S's open item, now closed with a probe whose
+SG-YAWN arm parts the board on the pre-fix bytes). **Removed — the other eight `tryHitRefusal` sites**
+carried since batch R; the true count was TEN and all ten are converted. **Removed — the syrupbomb
+faint-order cause.**
+
+- **`kind === 'boostally'` HAS A SHIELD THAT SAYS NOTHING.** `_blocked` is computed from
+  `shieldRefuses` and then suppresses the boost SILENTLY, where the authority writes
+  `-activate|move: Protect`. Deliberately NOT folded into T2, because that is a MISSING announcement
+  and not a wrong order — folding it in would have turned a reorder into a new line. Named, not fixed.
+- **REFLECT TYPE'S EFFECT IS STILL UNMODELLED.** T2 fixed the narration of the branch it falls into
+  and nothing else; `MEDFAILS.typeWriterCopyUnmodelled` still counts it.
+- **THE SUBSTITUTE TRIO IS ONE MECHANISM AND IS STILL NOT ATTEMPTED.** All three cards read together:
+  **this engine defers a substitute's `-activate|[damage]` / `-end` until after the OTHER target's
+  damage; the authority finishes each target in turn order.** The HP outcomes are identical, so an
+  emission-only fix would be board-safe in principle — but the absorption itself is `onTryPrimaryHit`
+  at step 0, above the damage step, and moving where it RESOLVES can part a board. **A written
+  diagnosis and no edit, for the second batch running.**
+- **THE REDIRECT vs `-prepare` ORDER, DIAGNOSED.** `useMoveInner` resolves `RedirectTarget` BEFORE
+  `singleEvent('TryMove')`, which is where the charge writes `-prepare`. This engine's charge block
+  sits ~400 lines above its redirect block, so the two are inverted. Hoisting the target resolution
+  above the charge is structural and it moves `targets` before the charge decides whether it fires at
+  all (Electro Shot in rain skips it — which is exactly this card). Not attempted.
+- **THE POST-KO SWITCH-IN ORDER, DIAGNOSED, WITH A HYPOTHESIS AND NOT A FINDING.** A double
+  replacement: the authority sends p2a (Archaludon) first and this engine sends p1a (Gholdengo), i.e.
+  SIDE order here against something else there. Base Speeds 85 and 84 are consistent with a speed
+  sort, **but base Speed is not the answer under SP spreads and a tie rule**, so it stays a hypothesis.
+- **THE STAMINA vs SPICY SPRAY CARD IS THE RESIDUAL-TRIO FAMILY.** Two after-hit ability responses on
+  two bodies, and the question is the ORDER of the `DamagingHit` handlers across targets — a
+  speed-sorted handler list. Not attempted while that class is unexplained. The
+  `[from] ability: Stamina` field is NOT the divergence: the differential's `stat-attribution` rule
+  drops `[from]`/`[of]` on boost lines.
+- **THE RESIDUAL TRIO IS UNTOUCHED AND UNEXPLAINED**, for the third batch running. No clean bill.
+- **A PROBE THAT LOADS `engine/game_differential.js` CUTS A RELEASE AS A SIDE EFFECT** unless given
+  `--release`. `tests/probe_trap_timing.js` refuses outright and says so; the `staged_board` harness
+  does not, so several `data/releases/<id>/` directories were created by probe runs during this batch.
+  Reported, not cleaned.
+- **`node engine/status.js --write` WAS RUN**; nothing was committed, per the brief.
+- **Carried forward unchanged** from the hand lists below: Yawn's `runStatusImmunity('slp')` half; the
+  max-HP recoil road (`directDamage`); the 560 speed-reading disagreements that look like the
+  instrument; the four remaining bare `|-fail|` causes; the second `eachEvent('Update')` pass;
+  `_stepDamagingHit` mixing the order-1 punishers with the default-order ones; `orderProbeClause`'s
+  rerun hint omitting `--end-state`; `ability/priority-mod` picking its delivery move without asking
+  the carrier's learnset; the per-arrival crit vector on an absorbed volley; Population Bomb into Flame
+  Body; `item/chance-gated` and `item/crit-ratio` on a dead corner; Struggle's every-slot fixture; and
+  `tests/test-pinch-family.js` red at 1 of 61.
 
 ## NARRATION BATCH S — **THE `-fail` FAMILY IS FOUR MECHANISMS, TEN CAUSES.** NARRATION-ONLY **32 → 22 CAUSES / 34 → 22 GAMES**, **GATE NARRATION 33 → 21 OF 961**, PROTOCOL **37 → 25**, **BOARD-MATERIAL 0 OF 958 AFTER BOTH MEASUREMENTS**, CENSUS 830/830, ROSTER 142/139/487 AND SPINE WITH ZERO DIFFER, ZERO DID-NOT-FIRE AND EVERY ANCHOR LIVE, `test-engine-diff` 6000/6000. **ZERO TRANSFERS AT EITHER STEP.** AN OVER-MATCH NEGATIVE WRITTEN TO PROVE A FIX WAS NARROW **FOUND A BOARD DEFECT INSTEAD** AND IT IS REPORTED, NOT FIXED. 2026-09-09
 
@@ -258,8 +375,8 @@ rows**, which batch R left undiagnosed.
   authority and EXECUTED here; and Sucker Punch's `onTry` refusal when the target has already moved,
   which this engine lets through to the Psychic Terrain block instead. **The last two are behavioural,
   not narration**, and each needs its own probe.
-- **THE YAWN / SAFEGUARD BOARD DEFECT.** Measured on every run of
-  `tests/probe_refusal_this_engine_swallowed.js`, unfixed, no pinned-pool witness.
+- ~~**THE YAWN / SAFEGUARD BOARD DEFECT.**~~ **CLOSED BY BATCH T** —
+  `tests/probe_yawn_safeguard_refusal.js`, whose SG-YAWN arm parts the board on the pre-fix bytes.
 - **YAWN'S `runStatusImmunity('slp')` HALF** — an Insomnia or Vital Spirit body with no status is a
   real `-fail` on the authority and is not wired here. Named, not assumed absent.
 - **THE MAX-HP RECOIL ROAD.** Struggle and Steel Beam pay through `directDamage`, whose guard is the
@@ -279,8 +396,9 @@ rows**, which batch R left undiagnosed.
   AND THE CONTENT DID NOT MOVE.** 830 rows, `matches_live`, on the before-run and every after-run; the
   file's only diff across the batch is its timestamp and one stochastic detail string.
 - **`node engine/status.js --write` WAS RUN**; nothing was committed, per the brief.
-- **Carried forward unchanged** from the hand lists below: the other eight `tryHitRefusal` sites and
-  `moveClassBlocked` against the Prankster refusal; Substitute as step 0 over all targets (3 games);
+- **Carried forward unchanged** from the hand lists below: ~~the other eight `tryHitRefusal` sites~~
+  (**CLOSED BY BATCH T**, and the true count was ten) and `moveClassBlocked` against the Prankster
+  refusal; Substitute as step 0 over all targets (3 games);
   the second `eachEvent('Update')` pass (1 game); `_stepDamagingHit` mixing the order-1 punishers with
   the default-order ones (1 game); the post-KO replacement switch-in order and the redirect activation
   against a `-prepare` (1 game each); `orderProbeClause`'s rerun hint omitting `--end-state`;

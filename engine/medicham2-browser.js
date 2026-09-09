@@ -1393,6 +1393,20 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      BOTH roads, because both go through the one reader; a zero after real games says the near axis
      has come unwired again, which is otherwise indistinguishable from "no Safeguard was up". */
   allySideBuffRefused: 0,
+  /* NARRATION BATCH T, 2026-09-09 -- and the OTHER half of that same clause: an INFILTRATING move
+     aimed at a FOE, which every handler in the sideBuff family exempts on its first line and this
+     engine refused on every road. Counted across all three roads (status, volatile, stat drop)
+     because one reader answers all three; a zero on a run holding an Infiltrator body opposite a
+     Safeguard says the exemption has come unwired. */
+  sideBuffInfiltrated: 0,
+  /* NARRATION BATCH T, 2026-09-09 -- an ability refusal SUPPRESSED because the target's shield
+     answers first. It counts only the asks where the order CHANGED an answer, so a zero on a run
+     that shielded a Good as Gold body says the reorder has come unwired. */
+  shieldBeforeAbility: 0, shieldBeforeAbilityFirst: '',
+  /* NARRATION BATCH T, 2026-09-09 -- a source asked about while its own `|faint|` line was still
+     queued, i.e. the authority still had it ACTIVE. A zero on a run in which anything died to a
+     move while holding a Syrup Bomb or a partial trap says the guard has come unwired. */
+  sourceStillActiveFaintOwed: 0,
   /* WIRE 160 -- TRACE. `traceCopied` is the mechanic; `traceFoundNothing` is a legitimate board (every
    * foe carries an untraceable ability); `traceAmbiguousChoice` is THE HONEST SIZE OF WHAT IS GUESSED.
    *
@@ -1658,6 +1672,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * and the `|move|` line is naming the user; a zero on the second is only meaningful opposite a
    * `refusesStatusMoves` carrier. */
   unmodelledClickKeptTarget: 0, unmodelledClickRefused: 0,
+  /* NARRATION BATCH T, 2026-09-09 -- an unmodelled click answered by the target's SHIELD, which
+     is a line the authority writes and this branch did not. Kept apart from
+     `unmodelledClickRefused` because they are two different authority answers on one road. */
+  unmodelledClickShielded: 0,
   /* ROADMAP #256 -- the split of every move-class `|-immune|` into the ones that name their refuser
    * and the ones the authority writes bare. A run with a Soundproof, Overcoat or Bulletproof body in
    * it and ZERO on `Attributed` means `immuneToMoveClass.announcesWith` stopped being read and the
@@ -2390,6 +2408,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * each with a `|-fail|<mover>` behind it. A zero on a run that clicked a Yawn at a statused body or
    * a Leech Seed at a seeded one means the wire stopped firing. */
   yawnRefusedOnStatus: 0, yawnRefusedOnStatusFirst: '', seedRefusedAlreadySeeded: 0,
+  /* NARRATION BATCH T, 2026-09-09 -- the DROWSE refused by a Safeguard, which is the second half of
+   * `safeguard.onTryAddVolatile` and had no reader at all (the confusion half has had one since WIRE
+   * 133). `Announced` is a SECOND counter and not a flag on the first, for the reason the Dire Claw
+   * pair above carries: the refusal and the SENTENCE are two facts, and the authority announces only
+   * for a Move with no secondaries. Yawn is the only legal route today and it does announce, so the
+   * two read alike -- which is a measurement of the regulation, not a licence to collapse them. */
+  yawnRefusedBySideBuff: 0, yawnRefusedBySideBuffFirst: '', yawnSideBuffRefusalAnnounced: 0,
   /* NARRATION BATCH S, 2026-09-09 -- an attacker that was already at 0 HP when its own recoil came
    * due, so `Battle#spreadDamage`'s corpse guard refused the payment and the line with it. Rare by
    * construction: only a damaging-hit punisher fits in that gap. */
@@ -5795,7 +5820,35 @@ function perTurnBoostVolatiles(){
  * the authority never gives it to. */
 function sourceOffField(src,actA,actB){
   if(!src)return false;                      // an unknown source keeps the old behaviour, deliberately
-  if(src.fainted||src.curHP<=0)return true;  // sim/battle.ts:2563 -- isActive is cleared AT the faint
+  /* NARRATION BATCH T, 2026-09-09 -- A BODY WHOSE `|faint|` IS STILL OWED IS STILL ON THE FIELD, AND
+   * THE LINE BELOW USED TO SAY OTHERWISE WHILE CITING THE SOURCE THAT REFUTES IT.
+   *
+   * `isActive` is not cleared when the HP reaches zero. It is cleared inside `faintMessages`, in the
+   * same three statements that WRITE the line (sim/battle.ts):
+   *
+   *     this.add('faint', pokemon);  ...  pokemon.fainted = true;  pokemon.isActive = false;
+   *
+   * and the hit loop runs `eachEvent('Update')` ABOVE that call (sim/battle-actions.ts:967 against
+   * :976). So on the update pass immediately after a lethal hit the corpse is at 0 HP and STILL
+   * ACTIVE: every `!source.isActive` handler declines, and whatever it owes is owed to the NEXT
+   * update -- which is below the `|faint|`. This engine answered "gone" at the HP transition, one
+   * whole step early, and Syrup Bomb's `-end` came out above the faint line it should follow.
+   *
+   * `_FAINTQ` IS THE EXACT MOMENT, not an approximation of it: `queueFaint` pushes the body and
+   * `drainFaints` writes the lines, so membership of that queue IS "the authority has not run
+   * faintMessages for this body yet". One reader, so the trap sweep and the per-turn-boost sweep
+   * cannot disagree about when a corpse leaves. `tests/probe_faint_before_source_gone_end.js`. */
+  /* `=== false` AND DELIBERATELY NOT `!src._faintOut`, AND THE CENSUS IS WHY. `noteFaint` OPENS the
+   * window (undefined -> false) and `faintLineOut` CLOSES it (-> true); a body that never went
+   * through `noteFaint` at all has no window and reads `undefined`. That is not a hypothetical:
+   * `tests/test-mechanics.js` stages `trapEndsWithTrapper` by writing `curHP = 0; fainted = true`
+   * onto the trapper by hand, and the loose reading turned that census row MISSING -- the engine
+   * treating a hand-made corpse as a body whose faint line was still owed, forever. Three states,
+   * not two, and only the middle one is this guard's. */
+  if(!FAINT_CLEARS_ACTIVE_EARLY&&(src.fainted||src.curHP<=0)&&src._faintOut===false){
+    MEDSEEN.sourceStillActiveFaintOwed++;return false;}
+  if(FAINT_CLEARS_ACTIVE_EARLY)MEDFAILS.faintClearsActiveEarlyRestored=1;
+  if(src.fainted||src.curHP<=0)return true;  // sim/battle.ts -- isActive is cleared IN faintMessages
   return actA.indexOf(src)<0&&actB.indexOf(src)<0;   // sim/battle-actions.ts:120 -- it walked out
 }
 /* ROADMAP #139 -- WHICH VOLATILES LAST EXACTLY ONE TURN AND FLOOR THEIR HOLDER'S HP. Endure is the
@@ -15624,6 +15677,26 @@ if(SWALLOW_REFUSALS)MEDFAILS.swallowedRefusalsRestored=1;
 const RECOIL_ON_A_CORPSE=(typeof process!=='undefined'&&process.env
                           &&process.env.MEDI_RECOIL_ON_A_CORPSE==='1');
 if(RECOIL_ON_A_CORPSE)MEDFAILS.recoilOnCorpseRestored=1;
+/* NARRATION BATCH T, 2026-09-09 -- MEDI_YAWN_THROUGH_SAFEGUARD=1 TAKES THE DROWSE REFUSAL BACK OUT,
+ * i.e. the engine exactly as it stood before batch T: a Yawn aimed at a body standing behind a
+ * Safeguard LANDS, and that body falls asleep two turns later where the authority never sleeps it.
+ * It is the WHOLE clause -- the volatile is written, the `-start` line goes out and the sleep
+ * arrives -- so the red arm is the before-state rather than half of it. See the yawn branch; any run
+ * carrying it also carries `MEDFAILS.yawnThroughSafeguardRestored = 1`. Stamped at LOAD TIME. */
+const YAWN_THROUGH_SAFEGUARD=(typeof process!=='undefined'&&process.env
+                              &&process.env.MEDI_YAWN_THROUGH_SAFEGUARD==='1');
+if(YAWN_THROUGH_SAFEGUARD)MEDFAILS.yawnThroughSafeguardRestored=1;
+/* NARRATION BATCH T, 2026-09-09 -- MEDI_SIDEBUFF_IGNORES_INFILTRATOR=1 TAKES THE `infiltrates`
+ * EXEMPTION BACK OUT OF `sideBuffRefuses`, i.e. the engine exactly as it stood before batch T: a
+ * Safeguard refuses an INFILTRATING move aimed at a foe, which the authority's handlers all let
+ * through on their first line. It is a SECOND knob rather than a clause of MEDI_YAWN_THROUGH_SAFEGUARD
+ * deliberately: they are two independent defects that met in one branch, and a single knob reverting
+ * both could not tell "the drowse is not refused" apart from "it is refused when it should not be" --
+ * with both off, an infiltrating Yawn lands for the WRONG REASON and the arm would pass. Any run
+ * carrying it also carries `MEDFAILS.sideBuffIgnoresInfiltratorRestored = 1`. Stamped at LOAD TIME. */
+const SIDEBUFF_IGNORES_INFILTRATOR=(typeof process!=='undefined'&&process.env
+                                    &&process.env.MEDI_SIDEBUFF_IGNORES_INFILTRATOR==='1');
+if(SIDEBUFF_IGNORES_INFILTRATOR)MEDFAILS.sideBuffIgnoresInfiltratorRestored=1;
 /* THE HANDLER-WRITTEN FAILURE, IN ONE PLACE, because two call sites deciding "does this refusal name
  * its own move" is the shape CLAUDE.md's FACTS-ARE-GLOBAL rule forbids -- and the two sites here are
  * exactly the pair that had drifted (ROADMAP #241 wired substitute's REPEAT branch and left its
@@ -18218,6 +18291,33 @@ const invSign=x=>{
  * without swapping a file; any run carrying it also carries a non-zero
  * `MEDFAILS.pranksterSideBlindRestored`. Same shape as MEDI_ORB_STALE_RANGE and MEDI_BENCH_APPEND. */
 const PRANKSTER_SIDE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PRANKSTER_SIDE_BLIND==='1');
+/* NARRATION BATCH T, 2026-09-09 -- MEDI_FAINT_CLEARS_ACTIVE_EARLY=1 PUTS THE EARLY READING BACK: a
+ * body is off the field the moment its HP reaches zero, rather than when `faintMessages` writes its
+ * line. That is the engine exactly as it stood before batch T, and it is the whole clause -- every
+ * `sourceOffField` reader (the per-turn-boost sweep and the partial-trap sweep) goes back together,
+ * because they share the one predicate. Any run carrying it also carries
+ * `MEDFAILS.faintClearsActiveEarlyRestored = 1`. `tests/probe_faint_before_source_gone_end.js`. */
+const FAINT_CLEARS_ACTIVE_EARLY=(typeof process!=='undefined'&&process.env
+                                 &&process.env.MEDI_FAINT_CLEARS_ACTIVE_EARLY==='1');
+/* NARRATION BATCH T, 2026-09-09 -- MEDI_ABILITY_BEFORE_SHIELD=1 PUTS THE OLD ORDER BACK AT THE TEN
+ * SITES `abilityRefusalUnderShield` converted, i.e. the engine exactly as it stood before batch T: a
+ * Protecting Gholdengo answers a Trick, a Soak, a Skill Swap or a Yawn with
+ * `|-immune|…|[from] ability: Good as Gold` where the authority writes `|-activate|…|move: Protect`.
+ * It is a SECOND knob and deliberately does not touch the pivot road, which has had its own
+ * (`MEDI_PIVOT_ABILITY_BEFORE_SHIELD`) since batch R -- one knob for both could not tell a fix that
+ * regressed the pivot apart from one that never reached these ten. Any run carrying it also carries
+ * `MEDFAILS.abilityBeforeShieldRestored = 1`. `tests/probe_shield_before_ability.js` is the arm. */
+const ABILITY_BEFORE_SHIELD=(typeof process!=='undefined'&&process.env
+                             &&process.env.MEDI_ABILITY_BEFORE_SHIELD==='1');
+/* NARRATION BATCH T, 2026-09-09 -- MEDI_SHIELDED_HEAL_FAILS=1 PUTS THE SECOND LINE BACK on the
+ * `healdesc` shield road: a Heal Pulse turned away by a Protect writes `-activate|move: Protect` AND
+ * a generic `|-fail|<mover>`, where the authority writes only the first. It is its OWN knob rather
+ * than a clause of MEDI_ABILITY_BEFORE_SHIELD because the two are independent -- this one is reachable
+ * against ANY Protecting body, not just one carrying Good as Gold, and it stayed invisible only
+ * because the ability refusal above it answered first on the arm anyone had staged. Any run carrying
+ * it also carries `MEDFAILS.shieldedHealFailsRestored = 1`. */
+const SHIELDED_HEAL_FAILS=(typeof process!=='undefined'&&process.env
+                           &&process.env.MEDI_SHIELDED_HEAL_FAILS==='1');
 function pranksterBlocked(attacker,target,moveId){
   if(!isPrankster(attacker)) return false;
   const fx=moveFx(moveId);
@@ -18296,6 +18396,44 @@ function tryHitRefusal(m,t,mv){
    * it instead of growing a twenty-second copy. */
   {const _abs=absorbRefusal(m,t,mv); if(_abs) return _abs;}
   return null;
+}
+/* NARRATION BATCH T, 2026-09-09 -- THE SHIELD ANSWERS ABOVE ALL THREE OF THOSE, AT TEN MORE SITES.
+ *
+ * Batch R hoisted the shield above `tryHitRefusal` on the PIVOT branch alone and filed the rest as an
+ * open question: *"Eight other `tryHitRefusal` sites have a shield check below them in the same shape
+ * and are NOT touched here."* Counted again with a window over CODE lines rather than raw ones (some
+ * of these carry a twenty-line comment between the two checks) it is TEN.
+ *
+ * THE RULE IS THE AUTHORITY'S STEP LIST AND ITS HANDLER GATHER ORDER, both read this run by
+ * `tests/probe_shield_before_ability.js`:
+ *   `moveSteps` is step-major and `hitStepTryHitEvent` is step 1; the Prankster/Dark refusal is in
+ *   `hitStepTryImmunity`, step 4. Inside step 1, `findPokemonEventHandlers` gathers the STATUS, then
+ *   the VOLATILES, then the ABILITY, then the ITEM -- so Protect (a volatile) is asked before Good as
+ *   Gold and before the absorbers (abilities). Every clause `tryHitRefusal` answers therefore sits
+ *   BELOW the shield.
+ *
+ * IT IS A REORDER AND NOT A NEW REFUSAL, WHICH IS WHY IT TAKES THE SITE'S OWN GUARD. `willAnswer` is
+ * the condition the site's own shield block carries -- `_isFoe` at five of them, `t !== m` at two,
+ * nothing at the rest -- so this suppresses the ability answer EXACTLY when the shield block below is
+ * going to speak, and never when it would stay silent. A blanket hoist is the over-match this project
+ * has paid for, and the one site it would have broken is real: `kind === 'boostally'` computes
+ * `_blocked` from `shieldRefuses` and then says NOTHING AT ALL, so suppressing Good as Gold there
+ * would have replaced a wrong line with no line. That site is deliberately NOT converted and is
+ * reported as a separate defect.
+ *
+ * THE COUNTER IS TAKEN WHERE THE ORDER CHANGED AN ANSWER, not where the shield fired: `tryHitRefusal`
+ * is still ASKED under the shield, its answer discarded, so a run's counter is the exact number of
+ * refusals the reorder moved. Counting on the shield alone would have described the fixture. */
+function abilityRefusalUnderShield(m,t,mv,willAnswer){
+  if(willAnswer!==false&&!ABILITY_BEFORE_SHIELD&&t&&!t.fainted&&shieldRefuses(t,mv)){
+    const _would=tryHitRefusal(m,t,mv);
+    if(_would){MEDSEEN.shieldBeforeAbility++;
+      if(!MEDSEEN.shieldBeforeAbilityFirst)
+        MEDSEEN.shieldBeforeAbilityFirst=String(mv)+' -> '+String((t&&(t.name||t.sp))||'?');}
+    return null;
+  }
+  if(ABILITY_BEFORE_SHIELD)MEDFAILS.abilityBeforeShieldRestored=1;
+  return tryHitRefusal(m,t,mv);
 }
 /* 2026-08-25 -- IS THIS *STATUS* MOVE ABSORBED BY THE TARGET'S ABILITY. See MEDI_STATUS_ABSORB_BLIND.
  *
@@ -19190,7 +19328,33 @@ function restoreStatsAll(a,b){
  * suppress its `-fail`. Counting there made one near-side Glare read 2, so the number described the
  * fixture rather than the defect -- the exact failure the knob-count comment two lines below is
  * about. Measured before it was fixed: the probe read 4 for three refusals. */
-function sideBuffRefuses(t,src,what,quiet){
+/* NARRATION BATCH T, 2026-09-09 -- `vol` NAMES THE VOLATILE BEING ASKED ABOUT, AND WITHOUT IT THE
+ * `blocksVolatile` ROAD WAS A BLANKET.
+ *
+ * `blocksVolatile` is derived as "the condition HAS an `onTryAddVolatile`", which is not the same
+ * fact as "it refuses THIS volatile". Safeguard's handler names exactly two --
+ * `if ((status.id === 'confusion' || status.id === 'yawn') && target !== source)` -- and refuses
+ * nothing else, so a reader that took the boolean at face value would turn a Safeguard into a Leech
+ * Seed, Taunt and Encore shield as well. That was unreachable while `applyConfusion` was the ONLY
+ * caller (it can only ever ask about confusion); it became reachable the moment the yawn road got a
+ * reader, so the ids live on the tag (`blocksVolatileIds`, derived in engine/tag_dex.js) and the
+ * check lives HERE rather than at either call site -- two copies of "which volatiles does this
+ * refuse" is the drift CLAUDE.md's FACTS-ARE-GLOBAL rule forbids.
+ *
+ * A CALLER THAT NAMES NO VOLATILE IS UNCHANGED, and a tag row with no ids list is COUNTED rather
+ * than defaulted: an unparsed handler and a handler that names nothing must not look alike, and
+ * silently refusing on a row we could not read is the silent-default shape. The behaviour on that
+ * path is deliberately the old one (refuse), so the counter is the only thing that moves. */
+/* DOES THIS BODY'S MOVE CARRY `infiltrates`? One reader, because `subBlocks` already answers the same
+ * question off the same tag and two copies of "what Infiltrator does" is the drift the FACTS ARE
+ * GLOBAL rule forbids. It asks the ABILITY and not the move, which is where the authority puts it:
+ * `infiltrator.onModifyMove(move) { move.infiltrates = true; }` (data/abilities.ts; Champions
+ * overrides no `infiltrator` key). */
+function sideBuffInfiltrated(src){
+  const p=src&&TAGS.param('ability',src.ability,'ignoresScreensAndSubs');
+  return !!(p&&p.ignoresSubstitute);
+}
+function sideBuffRefuses(t,src,what,quiet,vol){
   if(!t||!src||src===t)return null;
   const sf=t._sf; if(!sf||!sf.sc)return null;
   const _near=!!(src._sf&&src._sf===sf);
@@ -19198,6 +19362,39 @@ function sideBuffRefuses(t,src,what,quiet){
     if(!(sf.sc[id]>0))continue;
     const p=TAGS.param('move',id,'sideBuff');
     if(!(p&&p[what]))continue;
+    if(what==='blocksVolatile'&&vol){
+      const _ids=p.blocksVolatileIds;
+      if(!Array.isArray(_ids)){
+        MEDFAILS.sideBuffVolatileIdsUnknown++;
+        if(!MEDFAILS.sideBuffVolatileIdsUnknownFirst)MEDFAILS.sideBuffVolatileIdsUnknownFirst=String(id);
+      } else if(_ids.indexOf(vol)<0)continue;
+    }
+    /* NARRATION BATCH T, 2026-09-09 -- AN INFILTRATING MOVE AIMED AT A FOE IS NOT REFUSED AT ALL, and
+     * this engine refused it on every road.
+     *
+     * The clause is the FIRST line of all three handlers in this family and it is word for word the
+     * same in each -- `if (effect.effectType === 'Move' && effect.infiltrates && !target.isAlly(source))
+     * return;` at safeguard's `onSetStatus` (data/moves.ts:15592), safeguard's `onTryAddVolatile`
+     * (:15603) and mist's `onTryBoost` (:12087). So it is a property of the FAMILY and belongs here,
+     * beside the near-side rule it is the mirror of: `_near` says an ALLY'S infiltrating move is
+     * still refused (`!target.isAlly(source)`), and this says a FOE'S is not.
+     *
+     * `move.infiltrates` IS SET BY THE ABILITY, and the tag that carries that fact is the one
+     * `subBlocks` already reads -- `ignoresScreensAndSubs.ignoresSubstitute` -- so the two cannot
+     * drift about what Infiltrator does. Membership printed before this was wired: **one ability,
+     * `infiltrator`, 221 uses, and nothing else in the format.** Two MOVES also set the flag
+     * (`pollenpuff` only when aimed at an ally, `present` on a 2-in-10 branch); neither can write a
+     * status, a confusion or a drowse, and Pollen Puff's is ally-only, which `!isAlly` excludes
+     * anyway -- so no move road is modelled and that is stated rather than assumed.
+     *
+     * IT WAS FOUND BY A PROBE ASSERTION THAT WENT RED. The yawn fix's header claimed the exemption
+     * was unreachable in this regulation; `tests/probe_yawn_safeguard_refusal.js` checks that against
+     * the format on every run and named **Meowstic and Meowstic-F** -- legal Infiltrator carriers
+     * that learn Yawn. The claim was wrong, so the clause is modelled instead of declared away. */
+    if(!_near&&!SIDEBUFF_IGNORES_INFILTRATOR&&sideBuffInfiltrated(src)){
+      if(!quiet)MEDSEEN.sideBuffInfiltrated++;
+      return null;
+    }
     /* THE KNOB COUNT IS TAKEN WHERE THE REFUSAL WOULD HAVE HAPPENED, not at the top of the function.
      * Returning early on `_near` before the condition is matched would bump this once per near-side
      * status call on a bare side, and the number would then describe the fixture rather than the
@@ -19623,7 +19820,7 @@ function applyConfusion(t,src,field,viaSecondary,viaFatigue){
    if(_rv&&Array.isArray(_rv.refuses)&&_rv.refuses.indexOf('confusion')>=0&&!_rv.requiresForme){
      MEDSEEN.confusionRefusedByAbility++;
      return false;}}
-  {const _sb=sideBuffRefuses(t,src,'blocksVolatile');
+  {const _sb=sideBuffRefuses(t,src,'blocksVolatile',false,'confusion');
    if(_sb){MEDSEEN.confusionRefusedBySideBuff++;
      if(TR&&!viaSecondary)TR.act(t,'move: '+(_sb.startsAs||_sb.sideCondition));
      return false;}}
@@ -20700,7 +20897,7 @@ function confusionBeforeMove(m,rng,_R){
   const d=confusionSelfDamage(m,rng,_R);
   m.curHP-=d;MEDSEEN.confusionSelfHit++;
   if(TR)TR.dmg(m,'[from] confusion');
-  if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
+  if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);}
   return true;
 }
 
@@ -23005,7 +23202,7 @@ function applyEntryConditions(nx,sf,i,field){
          the pre-wire behaviour and is counted in MEDSEEN.retaliateSourceUnknown. */
       applyStatDrop(nx,'sp',1,'Sticky Web',(sf.hzBy&&sf.hzBy.stickyweb)||undefined);MEDSEEN.hazardResolvedOnEntry++;
     }
-    if(nx.curHP<=0){nx.curHP=0;nx.fainted=true,noteFaint(nx);if(nx._sf)nx._sf.fainted++;if(TR)TR.faint(nx);}
+    if(nx.curHP<=0){nx.curHP=0;nx.fainted=true,noteFaint(nx);if(nx._sf)nx._sf.fainted++;faintLineOut(nx);}
   }
 }
 
@@ -23777,6 +23974,11 @@ let _FAINT_SEQ=0, _FAINT_EPOCH=0;
  * `queueFaint` was tried first and the probe stayed red: Memento's self-KO (line ~21876) is one of the
  * inline sites and never reaches that road. */
 function noteFaint(m){ if(!m)return; if(m._fEpoch!==_FAINT_EPOCH){m._fEpoch=_FAINT_EPOCH;m._faintSeq=++_FAINT_SEQ;}
+  /* NARRATION BATCH T -- THE WINDOW OPENS HERE AND `faintLineOut` CLOSES IT. The HP has reached
+     zero and the authority has NOT run `faintMessages` yet, so `isActive` is still true over there.
+     Every inline faint site writes the line in the same statement, so the window is empty for those;
+     the one that matters is the hit loop, where `_stepUpdate` runs between the two. */
+  if(!m._faintOut)m._faintOut=false;
   /* WHAT THE AUTHORITY'S `Faint` EVENT SEES, captured before the line below puts it back to base.
    * `runEvent('Faint')` is sim/battle.ts:2549 and `clearVolatile` is :2560, so a Faint consumer reads
    * the ability the body was WEARING -- for a transformed body, the copied one. `receiverSweep` is
@@ -24274,6 +24476,18 @@ function faintHousekeeping(m){
  * queue is empty as well as whether a side is out of bodies. One reader, so the two places that ask
  * cannot drift. */
 function faintQueueOwed(){ return _FAINTQ.length>0; }
+/* NARRATION BATCH T, 2026-09-09 -- THE ONE WRITER OF THE `|faint|` LINE, AND IT STAMPS THE BODY.
+ *
+ * `sourceOffField` needs to know whether the authority has run `faintMessages` for a body yet,
+ * because that is where `isActive` is cleared -- see that function. The obvious flag,
+ * `TR._traceFainted`, is set by the TRACE, so a run with no trace would answer differently from one
+ * with a trace: a BOARD fact decided by whether anybody was watching, which is the exact shape
+ * CLAUDE.md's FACTS-ARE-GLOBAL rule forbids. So the stamp is made HERE, on the body, whether or not
+ * a trace is attached, and all 28 call sites of `TR.faint` go through this one function.
+ *
+ * `noteFaint` clears it at the HP transition; this sets it when the line is written. Between those
+ * two moments the authority still has the body ACTIVE. */
+function faintLineOut(m){ if(m)m._faintOut=true; if(TR)TR.faint(m); }
 /* The STATE transition, unchanged, plus a deferred line. Callers that need `_sub`, `_sf.fainted` or
  * anything else keep doing it themselves -- this owns the three writes every one of the 27 sites
  * shared and nothing more. */
@@ -24288,7 +24502,7 @@ function queueFaint(m,site){
    * fix is about. Without this line a released charge whose user is then knocked out would report a
    * clock the authority has already wiped. */
   if(m._ttmWrap){m._ttmWrap=null;MEDSEEN.chargeWrapClearedOnFaint++;}
-  if(FAINT_INLINE){ MEDFAILS.faintInlineRestored=1; MEDSEEN.faintLineInline++; if(TR)TR.faint(m); return true; }
+  if(FAINT_INLINE){ MEDFAILS.faintInlineRestored=1; MEDSEEN.faintLineInline++; faintLineOut(m); return true; }
   if(_FAINTQ.indexOf(m)<0){ _FAINTQ.push(m); MEDSEEN.faintLineQueued++; }
   return true;
 }
@@ -24297,7 +24511,7 @@ function queueFaint(m,site){
 function drainFaints(where){
   if(!_FAINTQ.length)return 0;
   const n=_FAINTQ.length;
-  for(const m of _FAINTQ) if(TR)TR.faint(m);
+  for(const m of _FAINTQ) faintLineOut(m);
   _FAINTQ.length=0;
   MEDSEEN.faintDrains++;
   if(where==='weatherGroup')MEDSEEN.faintDrainWeatherGroup++;
@@ -29071,7 +29285,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             grantSubstitute(m,a.mv||a.move.id);
             m.curHP-=_rnd(m.st.hp*+_cu.costsFraction);
             if(TR)TR.dmg(m);
-            if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;if(TR)TR.faint(m);continue;}
+            if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;faintLineOut(m);continue;}
           }
         }
       }
@@ -29239,7 +29453,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(a._hpCostAfterBoosts!=null){
           m.curHP-=a._hpCostAfterBoosts;
           if(TR)TR.dmg(m);
-          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;if(TR)TR.faint(m);}
+          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;faintLineOut(m);}
         }
         continue;
       }
@@ -29676,7 +29890,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              so in as many words and this one contradicted it. tests/test-mechanics.js
              `userFaintsSilent` holds both halves, with a body that faints the ORDINARY way as the
              control, because "never announce damage before a faint" is the wrong fix. */
-          if(_landed&&_ufa&&_ufa.faints&&!m.fainted){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
+          if(_landed&&_ufa&&_ufa.faints&&!m.fainted){m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);}
         }
         /* 2026-08-12 -- AND THE MOVE SAYS SO WHEN THE SEALER WAS THE WHOLE MOVE AND IT REFUSED.
          *
@@ -29819,8 +30033,8 @@ function battleTurn(S,rng,actsForA,actsForB){
           * not-emitted list with the reason *"Pain Split is not modelled"*, which stopped being true
           * when the move was wired; see engine/derive_protocol_events.js. */
          if(TR){TR.sethp(t,'[from] move: '+a.mv,true);TR.sethp(m,'[from] move: '+a.mv,false);}
-         if(t.curHP<=0){t.curHP=0;t.fainted=true,noteFaint(t);if(TR)TR.faint(t);}
-         if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}}
+         if(t.curHP<=0){t.curHP=0;t.fainted=true,noteFaint(t);faintLineOut(t);}
+         if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);}}
         continue;
       }
       /* ROADMAP #139 -- COPYCAT. It does not have an effect of its own; it RE-USES the last move
@@ -30338,7 +30552,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* Showdown emits `|-start|X|Substitute` BEFORE the `|-damage|` that pays for it -- read off
            * a real battle.log -- which is why grantSubstitute() emits and this line follows it. */
           if(TR)TR.dmg(m);
-          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;if(TR)TR.faint(m);}
+          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;faintLineOut(m);}
         } else mvFail(m);
         m._lastMove=a.mv;continue;
       }
@@ -30726,7 +30940,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         m._lastMove=a.mv;
         const _rp=TAGS.param('move',a.mv,'removesPP')||{};
         const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
-        {const _rf=tryHitRefusal(m,t,a.mv);if(_rf){announceTryHitRefusal(_rf,t);continue;}}
+        {const _rf=abilityRefusalUnderShield(m,t,a.mv);if(_rf){announceTryHitRefusal(_rf,t);continue;}}
         /* 2026-08-27 -- THE SHIELD IS PULLED OUT OF THIS CONJUNCTION BECAUSE IT IS THE ONE MEMBER OF
          * IT THAT SAYS SOMETHING. A shielded Spite printed nothing at all; the authority prints
          * `|-activate|<target>|move: Protect`. The other two conjuncts keep their silence, which is
@@ -30815,7 +31029,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         for(const t of _tl){
           if(!t||t.fainted||t.curHP<=0)continue;
           /* WIRE 241 -- a Trick into a Good as Gold kept both items and said nothing at all. */
-          {const _rf=tryHitRefusal(m,t,a.mv);if(_rf){announceTryHitRefusal(_rf,t);continue;}}
+          {const _rf=abilityRefusalUnderShield(m,t,a.mv);if(_rf){announceTryHitRefusal(_rf,t);continue;}}
           if(shieldRefuses(t,a.mv)){if(TR)TR.act(t,'move: Protect');continue;}
           /* 2026-08-26 -- THE MOVE'S OWN onTryImmunity, and it is Trick's and Switcheroo's door.
            * `abilityRefusesItemLoss` in the chain below was already refusing a Sticky Hold body, so the
@@ -30906,7 +31120,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _ty=(MC.moves[a.mv]||{}).t;
         /* WIRE 241 -- Soak / Magic Powder / Trick-or-Treat / Forest's Curse into a Good as Gold wrote
          * no type and printed nothing; the authority prints the ability's own line. */
-        {const _rf=tryHitRefusal(m,t,a.mv);if(_rf){announceTryHitRefusal(_rf,t);continue;}}
+        {const _rf=abilityRefusalUnderShield(m,t,a.mv);if(_rf){announceTryHitRefusal(_rf,t);continue;}}
         /* 2026-08-27 -- LIFTED OUT OF THE GUARD FOR THE REASON THE `pploss` ONE WAS: a shielded Soak
          * (203 corpus uses, the busiest move in this whole family) printed NOTHING, and the shield is
          * the one member of that conjunction the authority narrates. */
@@ -30990,7 +31204,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * After You at your OWN Gholdengo is refused too. `_isFoe` still gates `_ok` below, which is
            * the Protect check and genuinely is foe-only. */
           {
-            const _rf=tryHitRefusal(m,t,a.mv);
+            const _rf=abilityRefusalUnderShield(m,t,a.mv,_isFoe);
             if(_rf){announceTryHitRefusal(_rf,t);continue;}
           }
           /* 2026-08-27 -- AND THE SHIELD ANSWERS ON THE TARGET, ABOVE EVERYTHING BELOW IT. It used to
@@ -31186,7 +31400,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * ROADMAP #255 -- ungated: a partner's Skill Swap is refused by its own Gholdengo, and this
            * was the sharpest arm of the defect, because our Raichu WALKED AWAY WITH GOOD AS GOLD. */
           {
-            const _rf=tryHitRefusal(m,t,a.mv);
+            const _rf=abilityRefusalUnderShield(m,t,a.mv,_isFoe);
             if(_rf){announceTryHitRefusal(_rf,t);continue;}
           }
           /* 2026-08-27 -- THE SHIELD IS ITS OWN ANSWER AND LEAVES `_ok`. A shielded Skill Swap (198
@@ -31232,7 +31446,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            *     showdown |-immune|p1a: Incineroar     ours |-fail|p2b: Whimsicott       */
           /* ROADMAP #255 -- ungated for the same reason as Skill Swap above. */
           {
-            const _rf=tryHitRefusal(m,t,a.mv);
+            const _rf=abilityRefusalUnderShield(m,t,a.mv,_isFoe);
             if(_rf){announceTryHitRefusal(_rf,t);continue;}
           }
           /* 2026-08-26 -- THE MOVE'S OWN onTryImmunity, and it is Worry Seed's door. The `refused`
@@ -31320,7 +31534,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(t&&t!==m){
           const _isFoe=m._sf&&t._sf!==m._sf;
           {
-            const _rf=tryHitRefusal(m,t,a.mv);
+            const _rf=abilityRefusalUnderShield(m,t,a.mv,_isFoe);
             if(_rf){announceTryHitRefusal(_rf,t);continue;}
           }
           /* 2026-08-27 -- THE SAME LIFT AS ITS NEIGHBOURS, AND IT IS THE ONE THAT CANNOT FIRE TODAY.
@@ -31370,7 +31584,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * ability rewrite above.
          * ROADMAP #255 -- ungated; a partner's Speed Swap is refused by its own Gholdengo. */
         {
-          const _rf=tryHitRefusal(m,t,a.mv);
+          const _rf=abilityRefusalUnderShield(m,t,a.mv,!!(t&&t!==m&&_isFoe));
           if(_rf){announceTryHitRefusal(_rf,t);continue;}
         }
         /* 2026-08-27 -- THE OTHER ROW THE PINNED POOL CARRIED: a shielded Speed Swap printed
@@ -31413,7 +31627,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             const dmg=Math.max(1,Math.floor(t.curHP/2));
             t.curHP=Math.max(0,t.curHP-dmg);
             if(TR)TR.dmg(t);
-            if(t.curHP<=0){t.fainted=true,noteFaint(t);if(t._sf)t._sf.fainted++;if(TR)TR.faint(t);
+            if(t.curHP<=0){t.fainted=true,noteFaint(t);if(t._sf)t._sf.fainted++;faintLineOut(t);
               /* 2026-08-25 -- THE SECOND FAINT SITE WHERE THE EFFECT IS A MOVE. The halving branch does
                * not go through the hit loop, so it needs the Faint event of its own; every other faint
                * site in this file is self-damage, a residual, a hazard or the delayed-move payout, and
@@ -31567,7 +31781,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * this whole row is about. The gate is now the one announcer; the clause it replaces read
          * `TAGS.has(...)&&t!==m` and `tryHitRefusal` carries that `t!==m` itself. */
         if(!_vv&&t&&!t.fainted){
-          const _rf=tryHitRefusal(m,t,a.mv);
+          const _rf=abilityRefusalUnderShield(m,t,a.mv);
           if(_rf){announceTryHitRefusal(_rf,t);m._lastMove=a.mv;continue;}
         }
         /* ROADMAP #241(3) -- A SECOND YAWN INTO A BODY THAT IS ALREADY DROWSING FAILS, AND THE
@@ -31631,6 +31845,12 @@ function battleTurn(S,rng,actsForA,actsForB){
           else{subStatusRefuse(m,t);m._lastMove=a.mv;continue;}
         }
         const _yBlocked=!t||_vv||t.fainted||t.protect||pranksterBlocked(m,t,a.mv);
+        /* Declared here and ASSIGNED INSIDE THE CHAIN so `sideBuffRefuses` is asked only on the road
+         * that can act on the answer: it bumps `MEDSEEN.allySideBuffRefused` where the refusal
+         * happens, and hoisting the call above the two `-fail` branches would count refusals that
+         * never occurred -- the same "the number describes the fixture" trap that function's own
+         * `quiet` argument exists for. */
+        let _sbYawn=null;
         if(!_yBlocked&&t._yawn!=null){
           MEDSEEN.volFailLinesWritten++;
           if(TR)TR.attrStill();
@@ -31648,9 +31868,10 @@ function battleTurn(S,rng,actsForA,actsForB){
          * way Safeguard falls, and that is corrected rather than left standing: Safeguard carries an
          * `onTryAddVolatile` that names `yawn` explicitly and returns null with
          * `-activate|TARGET|move: Safeguard` (data/moves.ts:15601-15607) -- so the authority refuses
-         * the DROWSE, not the sleep two turns later, and this engine lands it. That is a BOARD defect
-         * with no pinned-pool witness; it is MEASURED on every run by
-         * `tests/probe_refusal_this_engine_swallowed.js`'s YAWN-SAFEGUARD arm and is NOT fixed here.
+         * the DROWSE, not the sleep two turns later, and this engine landed it. NARRATION BATCH T
+         * closes that in the branch below; `tests/probe_yawn_safeguard_refusal.js` is the arm and
+         * `tests/probe_refusal_this_engine_swallowed.js`'s YAWN-SAFEGUARD arm still measures it from
+         * the other direction.
          *
          * THE OTHER HALF OF THE AUTHORITY'S CLAUSE -- `!runStatusImmunity('slp')`, i.e. an Insomnia or
          * Vital Spirit body with NO status -- is also a real `-fail` and is also not wired here. It is
@@ -31663,6 +31884,61 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(!MEDSEEN.yawnRefusedOnStatusFirst)MEDSEEN.yawnRefusedOnStatusFirst=String(t.status);
           if(TR)TR.attrStill();
           mvFail(m);
+        }
+        /* NARRATION BATCH T, 2026-09-09 -- SAFEGUARD REFUSES THE DROWSE ITSELF, AND THIS IS A BOARD
+         * FIX RATHER THAN A LINE.
+         *
+         *     safeguard.condition.onTryAddVolatile(status, target, source, effect) {
+         *       if (!effect || !source) return;
+         *       if (effect.effectType === 'Move' && effect.infiltrates && !target.isAlly(source)) return;
+         *       if ((status.id === 'confusion' || status.id === 'yawn') && target !== source) {
+         *         if (effect.effectType === 'Move' && !effect.secondaries)
+         *           this.add('-activate', target, 'move: Safeguard');
+         *         return null; } }                                              data/moves.ts
+         *
+         * The CONFUSION half has had a reader since WIRE 133; the YAWN half had none, so the drowse
+         * landed and the body fell asleep two turns later where the authority never sleeps it. Not
+         * narration: the probe's SG-YAWN arm parts the board at `party.<x>.status`.
+         *
+         * IT IS THE SHARED READER AND NOT A SECOND COPY. `sideBuffRefuses(t, m, 'blocksVolatile',
+         * false, 'yawn')` is the same function `applyConfusion` asks, so the near-side rule (the
+         * authority's clause is `target !== source` -- IDENTITY, not side, corrected 2026-08-29) and
+         * the source-less exemption cannot come apart between the two volatiles. The fifth argument
+         * is the volatile, added in the same pass, because `blocksVolatile` on the tag says only that
+         * the condition HAS the handler -- see that function's header for why reading the boolean
+         * alone would have made Safeguard a Leech Seed shield.
+         *
+         * THE POSITION IS THE AUTHORITY'S. `Pokemon#addVolatile` returns for an ALREADY-PRESENT
+         * volatile (sim/pokemon.ts:1988-1991) BEFORE it runs `TryAddVolatile`, and yawn's own
+         * `onTryHit` status refusal is a whole step higher in `spreadMoveHit` -- so both branches
+         * above win over this one, and both write `-fail` where this writes `-activate`.
+         *
+         * THE SENTENCE IS CONDITIONAL WHERE THE REFUSAL IS NOT, exactly as the Electric Terrain road
+         * at the top of this branch already handles: the authority announces only for a Move with no
+         * secondaries, and `formatSecondaryCount.count` on the tag row IS `effect.secondaries.length`.
+         * Yawn is 0 today, so every legal route announces -- read rather than collapsed, because the
+         * regulation is what makes that true and the regulation changes.
+         *
+         * THE `infiltrates` EXEMPTION IS MODELLED, AND THE FIRST DRAFT OF THIS COMMENT DECLARED IT
+         * UNREACHABLE INSTEAD. That claim -- "no legal Infiltrator carrier learns Yawn" -- was put in
+         * the probe as an assertion against the format rather than typed here as a fact, and it went
+         * RED naming **Meowstic and Meowstic-F**. The clause now lives in `sideBuffRefuses` beside
+         * the near-side rule it mirrors, so all three roads in the family get it; see that function.
+         *
+         * NO DIE MOVES: yawn's accuracy is `true`, so neither engine draws on this road. */
+        else if(!_yBlocked&&!YAWN_THROUGH_SAFEGUARD
+                &&(_sbYawn=sideBuffRefuses(t,m,'blocksVolatile',false,'yawn'))){
+          MEDSEEN.yawnRefusedBySideBuff++;
+          if(!MEDSEEN.yawnRefusedBySideBuffFirst)
+            MEDSEEN.yawnRefusedBySideBuffFirst=String(_sbYawn.sideCondition||'?');
+          let _sayY=true;
+          {const _scY=TAGS.param('move',a.mv,'formatSecondaryCount');
+           if(!_scY){MEDFAILS.yawnRefusalSecondaryUnknown++;
+             if(!MEDFAILS.yawnRefusalSecondaryUnknownFirst)MEDFAILS.yawnRefusalSecondaryUnknownFirst=String(a.mv);}
+           else _sayY=!(+_scY.count);}
+          if(_sayY){
+            if(TR)TR.act(t,'move: '+(_sbYawn.startsAs||_sbYawn.sideCondition));
+            MEDSEEN.yawnSideBuffRefusalAnnounced++;}
         } else if(!_yBlocked&&canTakeStatus(t,'slp'))
           /* +1 because the end-of-turn tick below fires on the APPLICATION turn too. Without it a
              delay of 1 puts the target to sleep on the turn Yawn was clicked, which is a turn early
@@ -32178,7 +32454,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              `clampIntRange` TRUNCS, so a 135 HP Gengar pays 67 and not 68. */
           m.curHP-=Math.max(1,Math.trunc(m.st.hp*+_ts.hasTypeCostFraction));
           if(TR)TR.dmg(m);
-          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;if(TR)TR.faint(m);}
+          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;faintLineOut(m);}
         }
         MEDSEEN.curseGhost++;
         continue;
@@ -32226,7 +32502,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           grantSubstitute(m,a.mv);
           m.curHP-=_rnd(m.st.hp*+_cu.costsFraction);
           if(TR)TR.dmg(m);
-          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;if(TR)TR.faint(m);continue;}
+          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);m._sub=0;faintLineOut(m);continue;}
         }
         /* ============ 2026-09-06 -- `eachEvent('Update')` BEFORE THE BODY LEAVES ==================
          *
@@ -32420,6 +32696,17 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* WIRE 241 -- AND THIS BRANCH HAD NO REFUSAL AT ALL, which the emission survey found: Lock-On
          * into a Gholdengo applied the guarantee and printed nothing, where the authority refuses it
          * at `onTryHit` and says so. Lock-On is a Status move, so Good as Gold answers it. */
+        /* NARRATION BATCH T, 2026-09-09 -- AND THE SHIELD, WHICH THIS BRANCH ASKED NOWHERE. Lock-On
+         * carries `flags.protect`, so a Protecting body answers it at step 1 with
+         * `-activate|move: Protect` and the ability never speaks; this branch had the ability refusal
+         * and NO shield check of any kind, so a Lock-On at a Protecting Gholdengo wrote the ability
+         * line and a Lock-On at a Protecting anything-else applied the mark. It is a MISSING check
+         * rather than a misplaced one, which is why it is written out here instead of going through
+         * `abilityRefusalUnderShield` -- that helper reorders two existing checks and there was only
+         * one. Found by `tests/probe_shield_before_ability.js`, whose move set is derived from the
+         * format rather than from the branch list. */
+        if(!ABILITY_BEFORE_SHIELD&&_gt&&!_gt.fainted&&shieldRefuses(_gt,a.mv)){
+          shieldRefusalAnnounce(_gt);MEDSEEN.guaranteeRefused++;continue;}
         {const _rf=tryHitRefusal(m,_gt,a.mv);
          if(_rf){announceTryHitRefusal(_rf,_gt);MEDSEEN.guaranteeRefused++;continue;}}
         /* 2026-08-27 -- AND THE DOLL, WHICH THIS BRANCH ASKED NOWHERE. It is written as its own
@@ -32698,15 +32985,24 @@ function battleTurn(S,rng,actsForA,actsForB){
            * `|-fail|<target>|heal` followed by `|-fail|<mover>` whenever the body happened to be full.
            * DECLARED RESIDUE, not this wire's to fix: that second `|-fail|<mover>` is emitted on the
            * ordinary full-HP path too, and the authority emits only the first. */
-          {const _rf=tryHitRefusal(m,_t,a.mv);
+          {const _rf=abilityRefusalUnderShield(m,_t,a.mv,_t!==m);
            if(_rf){announceTryHitRefusal(_rf,_t);continue;}}
           /* PROTECT REFUSES IT, and it is the ALLY'S Protect that matters here rather than a foe's:
              Heal Pulse carries `flags.protect` and the authority's shield has no ally exemption --
              staged and read off a real game, a Heal Pulse aimed at a Protecting partner heals
              nothing at all. */
+          /* NARRATION BATCH T, 2026-09-09 -- AND THE `mvFail` BESIDE IT IS A LINE THE AUTHORITY DOES
+           * NOT WRITE. `protect.condition.onTryHit` ends `return this.NOT_FAIL`, which is precisely
+           * the value that SUPPRESSES `useMoveInner`'s generic `|-fail|<mover>` -- so a Heal Pulse
+           * into a Protect is one line, not two. Measured on the authority by
+           * `tests/probe_shield_before_ability.js`: `|-activate|p2a: Gholdengo|move: Protect` and
+           * nothing else, against this engine's Protect line FOLLOWED BY `|-fail|p1a: Clefable`.
+           * It was invisible until the shield stopped being shadowed by the ability refusal above it,
+           * which is what a reorder does: it moves the next defect into view. */
           if(_t!==m&&shieldRefuses(_t,a.mv)){
             if(TR)TR.act(_t,'move: Protect');
-            mvFail(m);continue;}
+            if(SHIELDED_HEAL_FAILS){MEDFAILS.shieldedHealFailsRestored=1;mvFail(m);}
+            continue;}
           /* 2026-08-27 -- AND THE DOLL, WHICH THIS BRANCH ASKED NOWHERE. Below the shield, which is
            * step 2, and ABOVE the two refusals underneath -- the same-status one and the full-HP one
            * -- because both of those are the member's own `onHit` (Heal Pulse's `if (!success)
@@ -32802,7 +33098,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            reads `|move|p1a: Clefable|Healing Wish|p1a: Clefable` then `|faint|p1a: Clefable` with
            nothing between them. */
         if(_hd.userFaints){m.curHP=0;m.fainted=true,noteFaint(m);MEDSEEN.healDescriptorFaint++;
-          if(TR)TR.faint(m);}
+          faintLineOut(m);}
         continue;
       }
       /* A status move inflicts the status THAT MOVE inflicts, at THAT MOVE's accuracy. This line used
@@ -33136,9 +33432,25 @@ function battleTurn(S,rng,actsForA,actsForB){
        * PLACED HERE, DIRECTLY ABOVE THE ATTACK GATE, because a pass touches nothing between the
        * `|move|` line and this point: the stream is `|move|` then `|-immune|`, which is the
        * authority's order. */
+      /* NARRATION BATCH T, 2026-09-09 -- AND THE SHIELD ANSWERS ABOVE THE ABILITY HERE TOO, ON A
+       * CLICK THIS ENGINE DOES NOT MODEL AT ALL.
+       *
+       * An unmodelled move still reaches the authority's step 1, so a Protecting body answers it with
+       * `-activate|move: Protect` and the ability never speaks. This branch asked only the ability, so
+       * a Reflect Type into a Protecting Gholdengo wrote `-immune|[from] ability: Good as Gold` where
+       * the authority writes the shield line -- caught by `tests/probe_shield_before_ability.js`,
+       * which derives its move set from the FORMAT and therefore reached a branch nobody was aiming
+       * at. Reflect Type is `MEDFAILS.typeWriterCopyUnmodelled`, so this fixes the NARRATION of a move
+       * whose effect is still not modelled, and that is stated rather than left to look like a
+       * completed mechanic. */
       if(a.kind==='pass'&&a.target){
-        const _rf=tryHitRefusal(m,a.target,a.mv);
-        if(_rf){MEDSEEN.unmodelledClickRefused++;announceTryHitRefusal(_rf,a.target);}
+        if(!ABILITY_BEFORE_SHIELD&&!a.target.fainted&&shieldRefuses(a.target,a.mv)){
+          MEDSEEN.unmodelledClickShielded++;
+          shieldRefusalAnnounce(a.target);
+        } else {
+          const _rf=tryHitRefusal(m,a.target,a.mv);
+          if(_rf){MEDSEEN.unmodelledClickRefused++;announceTryHitRefusal(_rf,a.target);}
+        }
       }
       if(a.kind!=='attack')continue;
       /* THE CHARGE TURN. Ten moves cost a turn before they land and this engine played all of them
@@ -34303,7 +34615,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(refusesIndirect(m))return;
         m.curHP-=Math.floor(m.st.hp*+_cm.fraction);
         if(TR)TR.dmg(m,'[from] '+a.move.id);
-        if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
+        if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);}
       };
       /* ROADMAP #331 -- THE USER'S OWN FAINT IS QUEUED DURING THE MOVE AND ANNOUNCED AFTER IT, and
        * holding those two apart is the whole fix. `Pokemon#faint()` (sim/pokemon.ts:1587-1598) sets
@@ -34541,7 +34853,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_pc&&_pc.onContact&&mvMakesContact(a.move.id,m,a.move.mv)&&!m.fainted){
             if(_pc.fraction){m.curHP-=Math.floor(m.st.hp/(+_pc.fraction));
               if(TR)TR.dmg(m,'[from] move: '+tg._protectMove,tg);
-              if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}}
+              if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);}}
             if(_pc.inflicts&&!m.fainted)applyStatus(m,CODE_OF_STATUS[_pc.inflicts]||_pc.inflicts);
             /* 2026-09-06 -- THE SHIELD'S STAT PUNISH IS `Battle#boost`, NOT A WRITE TO `boosts`.
              *
@@ -34613,7 +34925,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `trySpreadMoveHit` has returned false. Counted separately from the backstop because "no target
        * survived the shield" and "a Substitute ate the hit" are different facts. */
       if(_hadTargets&&!targets.length){
-        if(_selfKOPending){_selfKOPending=false;MEDSEEN.selfKOLineFromShieldExit++;if(TR)TR.faint(m);}
+        if(_selfKOPending){_selfKOPending=false;MEDSEEN.selfKOLineFromShieldExit++;faintLineOut(m);}
         m._mvRes=null;_crashOnFail();continue;}
       /* ROADMAP #81 WIRE 10 -- THE ACCURACY ROLL IS STEP 4, AND IT USED TO SIT HERE, AT STEP 0.
        *
@@ -39059,10 +39371,10 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* ROADMAP #331 -- THE QUEUE IS DRAINED HERE, AND THE USER IS AT THE FRONT OF IT. Above the
          * `!R.fainted` early return on purpose: the user's line is owed whether or not the target
          * died, and it is owed BEFORE the target's, because `faintQueue` holds it first. */
-        if(_selfKOPending){_selfKOPending=false;_afterFaintN++;if(TR)TR.faint(m);}
+        if(_selfKOPending){_selfKOPending=false;_afterFaintN++;faintLineOut(m);}
         if(!R.fainted)return;
         _afterFaintN++;
-        if(TR)TR.faint(tg);
+        faintLineOut(tg);
         /* 2026-08-25 -- `runEvent('Faint', pokemon, faintData.source, faintData.effect)`, sim/battle.ts
          * :2551, ONE LINE BELOW THE `|faint|` THIS STEP JUST WROTE. This is the move-damage arm of the
          * faint event and it is the ONLY arm Destiny Bond fires on -- see destinyBondOnFaint for the
@@ -40157,7 +40469,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * 'Recoil' and not 'recoil'. Struggle's is a different string for a different reason; see the
          * maxhp block below. Routed through the one derivation rather than spelled here. */
         if(TR)TR.dmg(m,ATTR.from(ATTR.cond('Recoil')));
-        if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}}
+        if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);}}
       /* ROADMAP #139 -- THE OTHER RECOIL, AND IT IS A DIFFERENT CURRENCY. The block above reads
        * `mv.rc`, a share of the DAMAGE DEALT. Steel Beam and Struggle pay a share of the USER'S OWN
        * MAXIMUM instead, and the move table carries no `rc` for either -- so Steel Beam, a 140 base
@@ -40210,7 +40522,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           * {fraction, of:'maxhp'}` is identical on both rows -- and the authority separates them with
           * a switch on the id, so this does the same rather than inventing a third rule. */
          if(TR)TR.dmg(m,ATTR.from(ATTR.cond(a.move.id==='struggle'?'recoil':a.move.id)));
-         if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}}}
+         if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);}}}
       /* ============ 2026-09-06 -- THE AUTHORITY'S *SECOND* IN-MOVE `eachEvent('Update')` ==========
        *
        * data/mods/champions/scripts.ts:575 -- the Champions mod overrides `hitStepMoveHitLoop` and
@@ -40602,7 +40914,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           let _loName=(_loRec&&_loRec.name)||'';
           if(!_loName){ MEDFAILS.orbLabelNoName++; _loName=String(m.item); }
           if(TR)TR.dmg(m,'[from] item: '+_loName);
-          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}}
+          if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);}}
       }
       /* ROADMAP #175 -- MAGICIAN. The `takesFrom:'target'` HALF of `stealsItem`.
        *
@@ -40840,12 +41152,12 @@ function battleTurn(S,rng,actsForA,actsForB){
            `sim/pokemon.ts:1587`, which sets hp to 0 and emits nothing; `faintMessages` writes the one
            line. A `-damage` here parted the two streams on all five members of the family. */
         if(_uf&&_uf.faints&&(_uf.faints==='always'||dealt>0)&&!m.fainted){m.curHP=0;m.fainted=true,noteFaint(m);
-          if(TR)TR.faint(m);}
+          faintLineOut(m);}
         /* ROADMAP #331 -- THE BACKSTOP, AND IT IS NOT DEAD CODE. `_stepFaint` drains the pending
          * self-KO line, and a hit a SUBSTITUTE ate returns out of `_stepApply` before it, so the
          * state change would otherwise stand with no line at all. Counted, because a backstop that
          * fires silently is the shape this project keeps being caught by. */
-        if(_selfKOPending){_selfKOPending=false;MEDSEEN.selfKOLineFromBackstop++;if(TR)TR.faint(m);}
+        if(_selfKOPending){_selfKOPending=false;MEDSEEN.selfKOLineFromBackstop++;faintLineOut(m);}
       }
       /* WIRE 43 -- ARM THE RECHARGE.
        *
@@ -41685,7 +41997,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              if(TR&&damageIsComputed(_rF.mv))TR.eff(m,_d.eff);
              if(TR&&_fcrit)TR.crit(m);
              if(TR)TR.dmg(m);
-             if(m.curHP<=0){m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
+             if(m.curHP<=0){m.fainted=true,noteFaint(m);faintLineOut(m);}
            }
          } else MEDSEEN.delayedHitWasted++;
        }}
@@ -42060,7 +42372,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(--m._trap.turns<=0){const _tmv=m._trap.mv;m._trap=null;MEDSEEN.partialTrapExpired++;
               MEDFAILS.trapTickBeforeClockRestored++;
               if(TR)TR.vend(m,_tmv||'partiallytrapped',_tmv?'[partiallytrapped]':'');}
-            if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
+            if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);}
           }
           else if(--m._trap.turns<=0){
             const _tmv=m._trap.mv;m._trap=null;MEDSEEN.partialTrapExpired++;
@@ -42075,7 +42387,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                   if(!MEDFAILS.trapSourceUnknownFirst)MEDFAILS.trapSourceUnknownFirst=String(m.name||'?');}
                 const _ta=m._trap.mv?ATTR.from(ATTR.move(m._trap.mv)):'[from] partiallytrapped';
                 TR.dmg(m,_ta,null,'[partiallytrapped]');}}
-            if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
+            if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);}
           }
         }
       }
@@ -42361,7 +42673,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * with `fainted` false or was a no-op behind `TR.faint`'s own dedupe. */
       if(m.curHP<=0&&!m.fainted){
         if(_G.has('weather'))queueFaint(m,'weatherGroup');
-        else{m.curHP=0;m.fainted=true,noteFaint(m);if(TR)TR.faint(m);}
+        else{m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);}
       }
       /* ==== 2026-09-07 -- A DURATION EXPIRY DOES NOT END THE BATTLE UNTIL THE NEXT HANDLER =======
        *

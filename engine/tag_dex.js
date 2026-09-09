@@ -3829,6 +3829,23 @@ const MOVE_TAGS = [
       if (c.onSetStatus) out.blocksStatus = true;
       if (c.onTryBoost) out.blocksStatDrop = true;
       if (c.onTryAddVolatile) out.blocksVolatile = true;
+      /* NARRATION BATCH T, 2026-09-09 -- AND *WHICH* VOLATILES, BECAUSE THE BOOLEAN IS NOT THE FACT.
+       * `blocksVolatile` says only that the condition HAS an `onTryAddVolatile`; Safeguard's names
+       * exactly two -- `if ((status.id === 'confusion' || status.id === 'yawn') && target !== source)`
+       * -- and refuses NOTHING else, so a consumer reading the boolean as "refuses every volatile"
+       * would turn Safeguard into a blanket Leech Seed / Taunt / Encore shield. That is the same
+       * over-match the paragraph above is about, one level down, and it was reachable the moment the
+       * yawn road acquired a reader.
+       *
+       * DERIVED FROM THE HANDLER'S OWN SOURCE, never from a list typed here, so a member that names a
+       * third volatile arrives wired. A handler that names none leaves the field ABSENT rather than
+       * empty, and medicham2's reader COUNTS that case instead of defaulting -- an empty array and an
+       * unparsed handler must not look alike. */
+      if (c.onTryAddVolatile) {
+        const ids = [...String(c.onTryAddVolatile).matchAll(/status\.id\s*===\s*["']([a-z0-9]+)["']/g)]
+          .map(x => x[1]);
+        if (ids.length) out.blocksVolatileIds = [...new Set(ids)];
+      }
       /* THE PROTOCOL LABEL IS THE AUTHORITY'S OWN, and it is NOT uniform upstream: Reflect and
        * Safeguard announce a bare name while Light Screen, Aurora Veil and Stealth Rock announce
        * `move: NAME`. Read out of the `-sidestart` call so this engine emits what Showdown emits
