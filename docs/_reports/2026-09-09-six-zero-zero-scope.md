@@ -72,3 +72,52 @@ that gets decided rather than carried forward again.
 
 The narration clause itself, the roster's 14 control-not-quiet abilities, and the ability rows with no
 legal carrier — all engine work, all upstream of this, all tracked in `docs/RUNNING-NOTES.md`.
+
+---
+
+# CORRECTION, same night, ~2 hours later. BOTH HEADLINE NUMBERS WERE TOO HIGH, AND ONE OF THEM WAS AN INSTRUMENT.
+
+The two hardest-looking jobs above were the two that had not been split by document. Splitting
+them is what showed that neither is what it looked like. **Nothing above is edited — a dated
+record is not rewritten to agree with today.**
+
+## 1. `33 untraceable figures` was 33 only because a bibliography counted as unsourced claims
+
+**10 of the 33 were reference entries** — `arXiv:2007.13544`, `DOI:10.1126/sciadv.adg3256` and five
+more in one bibliography, plus `arXiv 2304.08272` cited in two other documents. A references block
+is the one place a document is MOST traceable, and clearing any of them would have meant deleting a
+citation to satisfy a gate.
+
+Fixed at the lexer (5.269.1), with the control case that keeps it honest: a real figure standing
+beside a citation is still read.
+
+**~~33 across 5 documents~~ → 23 across 3.** `docs/SLOWKING-whitepaper.md` and `docs/ROLE-FAMILY.md`
+leave the census entirely.
+
+**And 7 of the remaining 23 need no action at 6.0.0** — they are figures quoted inside their own
+WITHDRAWN/CORRECTED notice in `docs/MODELS.md` and `docs/ABRA-whitepaper.md`, which is the record
+working as designed. So the real decision list is about **16**, not 33.
+
+## 2. `72 figures resting on a withheld artifact` is right, and most of them are not in a document that gets rewritten
+
+The 72 is correct as a count. It was misleading as a **workload**, because it had not been split:
+
+| where the 72 actually are | count | does 6.0.0 rewrite it? |
+|---|---|---|
+| `docs/RUNNING-NOTES.md`, `docs/ROADMAP.md` | 26 | **no** — declared residuals; rows are folded in, not rewritten |
+| division ledgers (`MEASURE` 15, `ENGINE` 6, `SEARCH` 6, `OPS` 1) | 28 | they owe currency, but they get no PDF and no fold-in |
+| **the living set** — `ABRA-whitepaper` 4, `ABRA-technical-docs` 3, `MODELS` 6 | **13** | **yes** |
+| dated reviews and side documents | 5 | mostly no |
+
+**So the living-document rewrite is ~13 figures, not 72.** `docs/ABRA-deck-plain-english.md` and
+`docs/SUMMARY.md` carry ZERO figures resting on a withheld artifact.
+
+## What this does not change
+
+The MAG finding stands and is still the load-bearing one: `data/policy-weights.json` is not re-run
+before 6.0.0, so the figures resting on it stay withheld through the major and the documents must say
+which numbers are absent and why. The back-cast obligation stands. The 42 owed notes rows stand.
+
+**The lesson is the one this repository keeps re-learning: a count is evidence of what exists, never
+of how much work it is.** Both headline numbers survived contact with a `--json` split for about two
+hours.
