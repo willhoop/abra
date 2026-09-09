@@ -1,8 +1,8 @@
 {
-  "generated": "2026-09-08T22:51:49.831Z",
+  "generated": "2026-09-09T06:08:25.189Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "5.267.0",
+  "changelog_top_at_baseline": "5.269.0",
   "version_pins": {
     "docs/ADR-002-showdown-is-the-authority.md": {
       "version": "3.50.0",
@@ -244,7 +244,7 @@
     "untraceable_by_doc": {
       "docs/ABRA-whitepaper.md": 10,
       "docs/ARCHITECTURE.md": 1,
-      "docs/MODELS.md": 14,
+      "docs/MODELS.md": 13,
       "docs/ROLE-FAMILY.md": 2,
       "docs/SLOWKING-whitepaper.md": 7
     },
@@ -260,7 +260,6 @@
       "docs/ABRA-whitepaper.md|−5.054",
       "docs/ARCHITECTURE.md|200,004",
       "docs/MODELS.md|14,995",
-      "docs/MODELS.md|15,279",
       "docs/MODELS.md|24,997",
       "docs/MODELS.md|63,305",
       "docs/MODELS.md|66,520",
