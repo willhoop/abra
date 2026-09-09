@@ -133,10 +133,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  830/830 probed mechanics live, 0 missing   (census 2026-09-08 17:46)
+  830/830 probed mechanics live, 0 missing   (census 2026-09-09 00:42)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 13 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-08 19:09)
+    never fired in the staged harness (all-mechanics-fire.json, 17 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-09 00:46)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -158,9 +158,117 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-08 19:24_
+_stamped 2026-09-09 00:59_
 
 <!-- /GENERATED -->
+
+## NARRATION BATCH R — **FIVE MECHANISMS, SIXTEEN CAUSES.** NARRATION-ONLY **48 → 32 CAUSES / 50 → 34 GAMES**, **GATE NARRATION 49 → 33 OF 961**, PROTOCOL **53 → 37**, **BOARD-MATERIAL 0 OF 958 AFTER EVERY ONE OF THE FOUR MEASUREMENTS**, CENSUS 830/830, ROSTER 142/139/487 WITH ZERO DIFFER AND ZERO DID-NOT-FIRE, `test-engine-diff` 6000/6000. **ZERO TRANSFERS AT EVERY STEP AND EVERY PREDICTION HIT AT THE POINT ESTIMATE.** ONE ARM WAS WRITTEN EXPECTING A LINE AND WAS RED ON THE AUTHORITY — IT IS KEPT AS A NEGATIVE. 2026-09-08
+
+Full account, every command, every pin and the scored predictions:
+[docs/_reports/2026-09-08-narration-batch-R.md](_reports/2026-09-08-narration-batch-R.md).
+
+**THE POPULATION WAS RE-DERIVED AND THE HANDOVER'S BUCKETING WAS CORRECTED TWICE.** Taken from
+`end_state[0].summary.by_cause` filtered to `materiality === 'NARRATION-ONLY'` on release
+`0c5a4da9c512` — 48 causes, 50 games, never from `first_divergences`. Cluster 3 is FIVE causes and
+not four (two rows spell `|-boost|p2a|atk|0` and differ in their against-event); the `-fail` field-3
+cluster is THREE causes and four games. Everything else held.
+
+| # | mechanism | causes | probe |
+|---|---|---|---|
+| R1 | a NON-PERMANENT forme revert is **silent** — this engine paid it through `formeSwap`, which announces | 3 | `tests/probe_forme_revert_silent.js` |
+| R2 | `cureStatus` refuses a body at 0 HP, so a frozen body killed by its own thawing hit is **not cured** | 3 | `tests/probe_thaw_on_a_corpse.js` |
+| R3 | an ABILITY's clamped stat change **still announces, at magnitude zero** | 5 | `tests/probe_ability_zero_boost_line.js` |
+| R5 | the absorbed gift's `-end` on the **switch-out** road, which had no implementation | 2 | `tests/probe_absorb_gift_end_on_leave.js` |
+| R6 | the **shield answers before the ability** on the pivot road, and two steps before the Prankster refusal | 3 | `tests/probe_pivot_shield_before_ability.js` |
+
+### THE THREE AUTHORITY LINES THAT DID THE WORK, AND THEY ARE THE SAME SHAPE
+
+`Pokemon#cureStatus` opens `if (!this.hp || !this.status) return false;` (`sim/pokemon.ts:1680-1681`)
+and `Pokemon#removeVolatile` opens `if (!this.hp) return false;` (`:2040-2041`). **A corpse is not
+cured and its volatiles are not removed, so neither writes a line.** R2 is the first of those and R5's
+FAINT arm is the second — and that arm was WRITTEN EXPECTING A LINE, because `faintMessages` really
+does fire the corpse's ability End below `this.add('faint', pokemon)`. The argument looked airtight
+and the authority refused it one level down. It is kept as the negative that stops the fix being
+applied to both roads because both roads obviously run the same event.
+
+The third is `Battle#boost`'s zero branch, and its counter-intuitive half is `effect ||= this.effect`
+at the top of the function: Defiant, Competitive and Gooey all pass an explicit `null` and still land
+in the ABILITY branch, because `this.effect` while a handler runs IS that ability. Read this run by
+the probe, never recalled.
+
+### THE MEASUREMENT
+
+Four runs, identical six-flag sample, only `--release` moving:
+
+```
+node engine/game_differential.js --steering empirical --release <id> --arm middle --end-state \
+  --games 1200 --team-store data/team-pool-frozen --turns 50 --write
+```
+census `0b88d51b3463` (830 rows, `identical to the live census`), pins `de38d17e15a2`, pool
+`0d103fb9fa87`, 961 games played, cap 50.
+
+| | `0c5a4da9c512` | R1 `5495f4d9dbd8` | R2 `af6a898e02f2` | R3 `8772eb46927c` | R5+R6 `2c4e125866cc` |
+|---|---|---|---|---|---|
+| **BOARD-MATERIAL** | 0 / 958 | **0 / 958** | **0 / 958** | **0 / 958** | **0 / 958** |
+| NARRATION-ONLY causes / games | 48 / 50 | 45 / 47 | 42 / 44 | 37 / 39 | **32 / 34** |
+| gate narration (declared-adjusted) | 49 of 961 | — | — | — | **33 of 961** |
+| protocol diverged (raw) | 53 | — | — | — | **37** |
+| transfers | — | 0 | 0 | 0 | **0** |
+
+R5 and R6 were batched into ONE measurement because their cause sets are disjoint — two `flashfire`
+rows and three Parting Shot rows — so a bad result would still have been attributable to one fix or
+the other.
+
+**THE SCOREBOARD WAS NAMED BEFORE EACH RUN.** Every cluster predicted *the pinned pool moves and the
+lab sits still*: no new mechanic fires in any of the five, a line either starts or stops being
+written. That is what happened — census **830 live / 830 probed**, unchanged, roster stages unchanged
+in scope and verdict. Predictions in
+`data/verification/_prediction-2026-09-09-narration-batch-R.json`, written before each release was cut.
+
+`engine/status.js` reads **1 of 9 gate clauses fail** — NARRATION, and nothing else. Re-run after the
+last engine edit: `tests/test-mechanics.js` 830/830 (its only diff is the timestamp and one stochastic
+detail string), `all_mechanics_fire.js` 1313 games / 0 threw, all four roster stages 0 DIFFER and 0
+DID-NOT-FIRE with **every anchor live** (18/18, 44/44, 36/36, 17/17), `test-engine-diff --n 6000
+--seed 20260804` 6000 agreed / 0 disagreed.
+
+### THE HAND LIST
+
+**Removed — the five mechanisms above**, each now carried by a probe named in the table. All sixteen
+pool rows are absent from the artifact.
+
+- **THE OTHER EIGHT `tryHitRefusal` SITES ASK IN THE SAME WRONG ORDER AND ARE NOT FIXED.** Counted
+  over the file: **21 call sites, 9 of them with a `shieldRefuses` check within 14 lines below**. R6
+  hoists the shield on the PIVOT branch alone, because each of the others guards its shield on a
+  different condition (`_isFoe`, `t !== m`) and announces differently, and no pinned-pool card names
+  any of them. A blanket hoist is the over-match this project has paid for. **This is an open
+  question, not a clean bill.**
+- **`moveClassBlocked` (Soundproof) IS TWO STEPS EARLY AGAINST THE PRANKSTER REFUSAL** on the same
+  branch. Left alone deliberately: against the ABILITY refusal it changes nothing measurable, since
+  one body cannot carry both. Same open question as above.
+- **CLUSTER 4, `-fail` FIELD 3** — 3 causes, 4 games (`|-fail|pXY|allyswitch` twice and
+  `|-fail|p1b|substitute|[weak]`, all against a bare `|-fail|pXY`). Not attempted.
+- **CLUSTER 7, THE BARE `|-fail|`** — 9 causes, 10 games, and the handover's own note that it is
+  probably several mechanisms wearing one shape is why it was left last. **Not attempted and not
+  diagnosed** — no reading of it is offered here.
+- **THE CENSUS DIGEST IN THE BRIEF DOES NOT MATCH THE ONE EVERY RUN REPORTS.** Brief:
+  `87d990cf3634`. Measured, on every run of this batch: `0b88d51b3463`, 830 rows, `matches_live`. The
+  before-run and every after-run read the SAME census, so this batch's comparison holds; the
+  discrepancy is recorded rather than smoothed over, because a census digest is part of a sample.
+- **THE ROSTER FLAG IS `--stage`, NOT `--kind`, AND `--kind` IS SILENTLY IGNORED.** Three re-runs
+  invoked as `--kind <k> --write` all executed the SPINE stage and overwrote `data/roster.spine.json`
+  three times; `--write` without `--reds` also stamped `reds: []` on them. Re-run correctly
+  afterwards and green, but a flag that is not read and does not complain is the shape this
+  repository keeps paying for.
+- **`node engine/status.js --write` WAS RUN**; nothing was committed, per the brief.
+- **Carried forward unchanged** from the hand lists below: the residual-order class (3 games,
+  refuted-but-unexplained); Substitute as step 0 over all targets (3 games); the second
+  `eachEvent('Update')` pass (1 game); `_stepDamagingHit` mixing the order-1 punishers with the
+  default-order ones (1 game); the post-KO replacement switch-in order and the redirect activation
+  against a `-prepare` (1 game each); `orderProbeClause`'s rerun hint omitting `--end-state`; the 517
+  speed readings that disagree in 223 games; `ability/priority-mod` picking its delivery move without
+  asking the carrier's learnset; the per-arrival crit vector on an absorbed volley; Population Bomb
+  into Flame Body; `item/chance-gated` and `item/crit-ratio` on a dead corner; Struggle's every-slot
+  fixture; and `tests/test-pinch-family.js` red at 1 of 61.
 
 ## NARRATION BATCH Q — THE ORDERING CLASS, THIRD PASS. THE THIRTEEN `ordering` CAUSES ARE **SEVEN MECHANISMS**, AND TWO ARE CLOSED: **ORDERING 13 → 10 CAUSES**, **GATE NARRATION 52 → 49 OF 961**, PROTOCOL **56 → 53**, **BOARD-MATERIAL 0 OF 958 THROUGHOUT**, CENSUS 830/830, ROSTER 142/139/487 WITH ZERO DIFFER AND ZERO DID-NOT-FIRE. ONE FIX WAS RIGHT IN THE LAB AND CLOSED NOTHING IN THE POOL, WHICH IS HOW THE SECOND CLAUSE WAS FOUND. 2026-09-08
 

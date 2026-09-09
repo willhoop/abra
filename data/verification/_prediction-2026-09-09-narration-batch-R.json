@@ -1,0 +1,119 @@
+{
+  "what": "NARRATION BATCH R \u2014 predictions written BEFORE each measurement, so a miss cannot be reread as a hit. One block per cluster.",
+  "who": "ENGINE",
+  "sample": {
+    "command": "node engine/game_differential.js --steering empirical --release <id> --arm middle --end-state --games 1200 --team-store data/team-pool-frozen --turns 50 --write",
+    "census": "87d990cf3634 (830 rows)",
+    "pins": "de38d17e15a2",
+    "pool": "0d103fb9fa87",
+    "games_played": 961,
+    "turns_cap": 50
+  },
+  "clusters": [
+    {
+      "id": "R1 \u2014 the non-permanent forme revert is SILENT",
+      "written_before_release": "5495f4d9dbd8",
+      "which_scoreboard_should_move": "BOTH. All three causes come from the pinned pool, so the pool must move; the lab (roster/census counts) should NOT, because no new mechanic fires \u2014 only a line stops being written.",
+      "predict": {
+        "board_material": "0 / 958",
+        "narration_causes": 45,
+        "narration_games": 47,
+        "causes_that_close": [
+          "extra event emitted by medicham2 :: |faint|p1a <> |detailschange|p1a|aegislash,l50",
+          "extra event emitted by medicham2 :: |faint|p2a <> |detailschange|p2a|aegislash,l50",
+          "extra event emitted by medicham2 :: |faint|p1b <> |detailschange|p1b|aegislash,l50"
+        ],
+        "transfers": 0
+      },
+      "measured": {
+        "board_material": "0 / 958",
+        "narration_causes": 45,
+        "narration_games": 47,
+        "closed": 3,
+        "transfers": 0,
+        "verdict": "HIT at the point estimate on every clause"
+      }
+    },
+    {
+      "id": "R2 \u2014 a body killed by its own thawing hit is not cured",
+      "written_before_release": "af6a898e02f2",
+      "which_scoreboard_should_move": "BOTH, for the same reason as R1: three pool causes, no new mechanic. The census and roster counts should sit still.",
+      "predict": {
+        "board_material": "0 / 958",
+        "narration_causes": 42,
+        "narration_games": 44,
+        "causes_that_close": [
+          "extra event emitted by medicham2 :: |-weather|snowscape|[upkeep] <> |-curestatus|p1a|frz|[msg]",
+          "extra event emitted by medicham2 :: |-start|p2b|perish3 <> |-curestatus|p2a|frz|[msg]",
+          "extra event emitted by medicham2 :: |faint|p1b <> |-curestatus|p1b|frz|[msg]"
+        ],
+        "transfers": 0,
+        "named_risk": "The guard also skips the STATE change, so a corpse now leaves the field still carrying `frz` where this engine used to clear it. That is what the authority does (`cureStatus` returns before `setStatus('')`), and the probe asserts the boards on both roads \u2014 but a benched body's `status` leaf is exactly the kind of thing that could part a board somewhere the probe does not stage."
+      },
+      "measured": {
+        "board_material": "0 / 958",
+        "narration_causes": 42,
+        "narration_games": 44,
+        "closed": 3,
+        "transfers": 0,
+        "verdict": "HIT at the point estimate on every clause"
+      }
+    },
+    {
+      "id": "R3 - an ability's clamped stat change still announces at zero",
+      "written_before_release": "8772eb46927c",
+      "which_scoreboard_should_move": "BOTH. Five pool causes, and Defiant is 17,379 sheets in the corpus so this is not an obscure-tail fix. The census and roster counts should sit still - no new mechanic fires, a line that was suppressed is written.",
+      "predict": {
+        "board_material": "0 / 958",
+        "narration_causes": 37,
+        "narration_games": 39,
+        "causes_that_close": [
+          "event missing from medicham2 :: |-boost|p2b|atk|0 <> |move|p2b|ragefist",
+          "event missing from medicham2 :: |-unboost|p1b|spe|0 <> |faint|p2a",
+          "event missing from medicham2 :: |-boost|p1b|atk|0 <> |upkeep",
+          "event missing from medicham2 :: |-boost|p2a|atk|0 <> |move|p1a|calmmind",
+          "event missing from medicham2 :: |-boost|p2a|atk|0 <> |switch|p1a|metagross,l50|H/H"
+        ],
+        "transfers": 0,
+        "named_risk": "This ADDS lines rather than removing them, which is the direction that can unmask a later divergence in the same game. A transfer is therefore more likely here than in R1 or R2, and it would show as a new cause rather than as a board part."
+      },
+      "measured": {
+        "board_material": "0 / 958",
+        "narration_causes": 37,
+        "narration_games": 39,
+        "closed": 5,
+        "transfers": 0,
+        "verdict": "HIT at the point estimate on every clause"
+      }
+    },
+    {
+      "id": "R5+R6 - the absorbed gift ends on switch-out, and the shield answers before the ability on the pivot road",
+      "written_before_release": "2c4e125866cc",
+      "batched_because": "the two cause sets are DISJOINT (two flashfire rows, three Parting Shot rows), so a bad result is still attributable to one fix or the other.",
+      "which_scoreboard_should_move": "BOTH for R6 (Parting Shot is 7,184 corpus uses and all three causes are pool cards). R5 is narrower: Flash Fire is 1,545 sheets and only the SWITCH road is in the pool, so the two pool rows should close and the lab should sit still.",
+      "predict": {
+        "board_material": "0 / 958",
+        "narration_causes": 32,
+        "narration_games": 34,
+        "causes_that_close": [
+          "event missing from medicham2 :: |-end|p1a|flashfire <> |switch|p1a|garchomp,l50|H/H",
+          "event missing from medicham2 :: |-end|p2a|flashfire <> |switch|p2a|gengarmega,l50|H/H",
+          "unrelated event mismatch :: |-activate|p1a|protect <> |-immune|p1a",
+          "unrelated event mismatch :: |-activate|p2a|protect <> |-immune|p2a|[from]goodasgold",
+          "unrelated event mismatch :: |-activate|p1b|protect <> |-immune|p1b|[from]goodasgold"
+        ],
+        "transfers": 0,
+        "named_risk": "R6 changes WHICH refusal is announced, and R5 ADDS a line. Both directions can unmask a later divergence in the same game, so a transfer is more likely here than in R1/R2. The shield hoist also short-circuits earlier than the ability refusal did; if any downstream state hung off the ability branch running, it would show as a board part rather than as a cause."
+      },
+      "measured": {
+        "board_material": "0 / 958",
+        "narration_causes": 32,
+        "narration_games": 34,
+        "closed": 5,
+        "transfers": 0,
+        "verdict": "HIT at the point estimate on every clause"
+      }
+    }
+  ],
+  "note_on_the_census_digest": "Every run of this batch reports census 0b88d51b3463 (830 rows, matches_live). The brief named 87d990cf3634. Same row count; the before-run and every after-run read the SAME census, so the comparison inside this batch holds."
+}

@@ -138,6 +138,18 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                             the one that granted it (the authority's `onEnd`). */
   absorbGiftVolatile: 0, absorbGiftVolatileRepeat: 0, absorbGiftVolatilePaid: 0,
   absorbGiftVolatileEnded: 0,
+  /* NARRATION BATCH R, 2026-09-08 -- the same gift ended by the OTHER End moment, the switch-out
+   * road. Counted APART from the rewrite road above because they are two different authority call
+   * sites and only one of them was implemented: `abRewrite`'s own comment said the switch road
+   * 'already empties `_vol` wholesale', which it does, SILENTLY. There is deliberately NO faint
+   * counter -- `removeVolatile` refuses a body at 0 HP (sim/pokemon.ts:2040-2041), so the corpse
+   * writes nothing and `tests/probe_absorb_gift_end_on_leave.js` keeps that road as a NEGATIVE. */
+  absorbGiftEndedOnSwitch: 0, absorbGiftEndedOnSwitchFirst: '',
+  /* NARRATION BATCH R, 2026-09-08 -- the pivot road's shield answering AHEAD of the target's
+   * ability and of the Prankster refusal, which is the authority's step order. A zero on a run
+   * carrying a shielded Parting Shot means the hoist is unwired and the ability is speaking over
+   * the shield again. */
+  pivotShieldBeforeAbility: 0, pivotShieldBeforeAbilityFirst: '',
   /* 2026-08-24 -- a bounced status move that wrote the authority's second `|move|` line. Zero would
    * mean the announcement never reaches a real resolution, which is what it looked like before. */
   bounceAnnounced: 0,
@@ -415,6 +427,17 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * counts every deferred cure that actually fired; `thawAboveDamageRestored` counts the ones spent
    * early because MEDI_THAW_BEFORE_SECONDARY=1 put the defect back, so a restore arm and a broken
    * engine can never read as the same run. */
+  /* NARRATION BATCH R, 2026-09-08 -- the HP guard REFUSING, which is `Pokemon#cureStatus`'s own
+   * first line (`if (!this.hp || !this.status) return false;`). Counted APART from the cures that
+   * landed: a zero here beside a non-zero `thawBelowSecondary` says the guard is unwired and every
+   * frozen body killed by its own thawing hit announces a cure the authority never writes. */
+  thawRefusedOnFaint: 0, thawRefusedOnFaintFirst: '',
+  /* NARRATION BATCH R, 2026-09-08 -- a ZERO-MAGNITUDE stat line written from one of the two ABILITY
+   * sites, which is `Battle#boost`'s `else if (effect?.effectType === 'Ability') { if (isSecondary ||
+   * isSelf) ... }`. Counted APART from `boostZeroAnnounced` because that total is dominated by the
+   * MOVE-primary branch, which has worked since ROADMAP #289 -- a zero here beside a healthy total
+   * would say the two new opt-ins are dead and look exactly like the feature working. */
+  abilityZeroBoostAnnounced: 0, abilityZeroBoostAnnouncedFirst: '',
   thawBelowSecondary: 0, thawAboveDamageRestored: 0,
   /* ROADMAP #210 -- a Last Resort refused because a slot on its own user is still unspent. A zero in a
    * game where Last Resort was clicked on turn one means the precondition is not being asked and the
@@ -2217,6 +2240,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * non-zero. The stamp now has TWO doors (Hunger Switch's residual flip and Stance Change's
    * on-click flip) and a total cannot say which one is dead. */
   formeTempStampedFirst: '', formeTempRevertedFirst: '',
+  /* NARRATION BATCH R, 2026-09-08 -- the revert's ANNOUNCEMENT being parked, counted APART from the
+   * revert itself. `formeTempReverted` non-zero with this at zero means the silencer is unwired and
+   * every one of those reverts wrote a `detailschange` the authority never writes. */
+  formeRevertSilent: 0, formeRevertSilentFirst: '',
   preTurnShieldAnnounced: 0, preTurnShieldRefused: 0, sleepMoveUsedAsleep: 0, callMoveOwnRandom: 0,
   /* ROADMAP #322 -- THE THREE THAT CAN SEE A POSITION, which `preTurnShieldAnnounced` cannot: it
    * counts LINES WRITTEN and read non-zero for the whole period the line was written at order 0
@@ -4033,6 +4060,21 @@ const MEDFAILS = { encoreAction: 0,
   /* M3, 2026-09-04 -- the switch-out forme revert's restore knob has swallowed at least one revert.
    * See NO_TEMP_FORME_REVERT; any shipping run must read 0. */
   tempFormeRevertSuppressed: 0,
+  /* NARRATION BATCH R, 2026-09-08 -- the thaw has cured a body at 0 HP at least once, which the
+   * authority refuses. See THAW_CURES_A_CORPSE; any shipping run must read 0. */
+  thawOnCorpseRestored: 0,
+  /* NARRATION BATCH R, 2026-09-08 -- an ability's clamped stat change has been swallowed at least
+   * once, which the authority announces. See NO_ABILITY_ZERO_BOOST; any shipping run must read 0. */
+  abilityZeroBoostRestored: 0,
+  /* NARRATION BATCH R, 2026-09-08 -- the absorbed gift has left the field silently at least once.
+   * See NO_ABSORB_GIFT_END_ON_LEAVE; any shipping run must read 0. */
+  absorbGiftEndOnLeaveRestored: 0,
+  /* NARRATION BATCH R, 2026-09-08 -- the pivot road has asked the ability before the shield at
+   * least once. See PIVOT_ABILITY_BEFORE_SHIELD; any shipping run must read 0. */
+  pivotAbilityBeforeShieldRestored: 0,
+  /* NARRATION BATCH R, 2026-09-08 -- the forme revert has ANNOUNCED itself at least once, which the
+   * authority never does. See FORME_REVERT_ANNOUNCES; any shipping run must read 0. */
+  formeRevertAnnounceRestored: 0,
   /* M4, 2026-09-04 -- the choice-lock request sweep's restore knob has swallowed at least one sweep.
    * See NO_CHOICELOCK_SWEEP; any shipping run must read 0. */
   choiceLockSweepSuppressed: 0,
@@ -15489,6 +15531,38 @@ const MULTIACC_RAW_ACC=(typeof process!=='undefined'&&process.env
  * `MEDFAILS.tempFormeRevertSuppressed = 1`. */
 const NO_TEMP_FORME_REVERT=(typeof process!=='undefined'&&process.env
                             &&process.env.MEDI_NO_TEMP_FORME_REVERT==='1');
+/* NARRATION BATCH R, 2026-09-08 -- MEDI_FORME_REVERT_ANNOUNCES=1 PUTS THE `|detailschange|` BACK ON
+ * THE NON-PERMANENT FORME REVERT, i.e. the engine exactly as it stood before batch R. See
+ * `revertTempFormeOnLeave`; any run carrying it also carries
+ * `MEDFAILS.formeRevertAnnounceRestored = 1`. Same shape as MEDI_SMART_PROTECT_LINE above. */
+const FORME_REVERT_ANNOUNCES=(typeof process!=='undefined'&&process.env
+                              &&process.env.MEDI_FORME_REVERT_ANNOUNCES==='1');
+/* NARRATION BATCH R, 2026-09-08 -- MEDI_THAW_CURES_A_CORPSE=1 TAKES THE HP GUARD BACK OUT OF THE
+ * FROZEN-TARGET THAW, i.e. the engine exactly as it stood before batch R: a body killed by its own
+ * Fire or `thawsTarget` hit is cured and says so. See `_thawCure`; any run carrying it also carries
+ * `MEDFAILS.thawOnCorpseRestored = 1`. */
+const THAW_CURES_A_CORPSE=(typeof process!=='undefined'&&process.env
+                           &&process.env.MEDI_THAW_CURES_A_CORPSE==='1');
+/* NARRATION BATCH R, 2026-09-08 -- MEDI_NO_ABILITY_ZERO_BOOST=1 PUTS THE TWO ABILITY SITES BACK TO
+ * SWALLOWING A CLAMPED STAT CHANGE, i.e. the engine exactly as it stood before batch R: Defiant
+ * and Competitive retaliating at +6, and a contact punisher dropping a stat already at -6, both say
+ * nothing. See `retaliateWhenLowered` and the punisher boost loop; any run carrying it also carries
+ * `MEDFAILS.abilityZeroBoostRestored = 1`. */
+const NO_ABILITY_ZERO_BOOST=(typeof process!=='undefined'&&process.env
+                             &&process.env.MEDI_NO_ABILITY_ZERO_BOOST==='1');
+/* NARRATION BATCH R, 2026-09-08 -- MEDI_NO_ABSORB_GIFT_END_ON_LEAVE=1 TAKES THE ABSORBED GIFT'S
+ * `-end` BACK OFF THE SWITCH-OUT ROAD, i.e. the engine exactly as it stood before batch R: a Flash
+ * Fire body that pivots after eating a Fire move says nothing. See `endAbsorbGiftVolatile`; any run
+ * carrying it also carries `MEDFAILS.absorbGiftEndOnLeaveRestored = 1`. */
+const NO_ABSORB_GIFT_END_ON_LEAVE=(typeof process!=='undefined'&&process.env
+                                   &&process.env.MEDI_NO_ABSORB_GIFT_END_ON_LEAVE==='1');
+/* NARRATION BATCH R, 2026-09-08 -- MEDI_PIVOT_ABILITY_BEFORE_SHIELD=1 PUTS THE PIVOT ROAD BACK TO
+ * ASKING THE ABILITY FIRST, i.e. the engine exactly as it stood before batch R: a Parting Shot into
+ * a PROTECTING Good as Gold body answers with the ability, and into a protecting Dark body with the
+ * bare Prankster `-immune`. See the `kind==='switch'` branch; any run carrying it also carries
+ * `MEDFAILS.pivotAbilityBeforeShieldRestored = 1`. */
+const PIVOT_ABILITY_BEFORE_SHIELD=(typeof process!=='undefined'&&process.env
+                                   &&process.env.MEDI_PIVOT_ABILITY_BEFORE_SHIELD==='1');
 /* M4, 2026-09-04 -- MEDI_NO_CHOICELOCK_REQUEST_SWEEP=1 PUTS THE LAZY-ONLY CHOICE LOCK BACK: the lock
  * is destroyed only when something asks the menu, and never at all when the locked MOVE has gone. See
  * `choiceLockRequestSweep`; any run carrying it also carries
@@ -18627,6 +18701,34 @@ function refuseStatDrop(target,engStat,effectName,isSecondary,src,amount){
  *
  * A CALLER THAT CANNOT NAME THE SOURCE keeps the pre-wire behaviour and is COUNTED, because a silent
  * default here reads exactly like the ability working. */
+/* NARRATION BATCH R, 2026-09-08 -- THE ONE PLACE THAT DECIDES WHETHER AN ABILITY'S CLAMPED STAT
+ * CHANGE ANNOUNCES, so the retaliator and the punisher cannot drift apart on it.
+ *
+ *     } else if (effect?.effectType === 'Ability') {
+ *       if (isSecondary || isSelf) this.add(msg, target, boostName, boostBy);
+ *     } else if (!isSecondary && !isSelf) {
+ *       this.add(msg, target, boostName, boostBy);
+ *     }                                                     sim/battle.ts, Battle#boost
+ *
+ * `effect` is NOT the argument the handler passed: `boost()` opens with `effect ||= this.effect`, so
+ * Defiant, Competitive and Gooey -- all three of which pass an explicit `null` -- still land in the
+ * ABILITY branch, because `this.effect` while a handler runs IS that ability. Read this run by
+ * `tests/probe_ability_zero_boost_line.js` rather than asserted here.
+ *
+ * SO THE ANSWER IS `isSecondary || isSelf`, AND IT IS A FACT ABOUT THE CALL, not about the tag.
+ * Defiant and Competitive are `this.boost({...}, target, target, null, false, true)` -- isSelf.
+ * Gooey is `this.boost({spe: -1}, source, target, null, true)` -- isSecondary. A future carrier that
+ * passed NEITHER would be silent, which is why this is a function taking the flag rather than a
+ * blanket `true` at two call sites, and why the caller passes what it knows about its own handler.
+ *
+ * IT DOES NOT DECIDE WHETHER THE BODY IS AT A CAP. `TR.bst` already refuses a zero that is not at
+ * +6/-6 and counts it (`MEDFAILS.boostZeroNotAtCap`), because a refusal (Clear Body) and a no-op
+ * multiplier also arrive with d === 0 and the authority writes a `-fail` or nothing for those. */
+function abilityZeroAnnounces(secondaryOrSelf){
+  if(!secondaryOrSelf)return false;
+  if(NO_ABILITY_ZERO_BOOST){MEDFAILS.abilityZeroBoostRestored=1;return false;}
+  return true;
+}
 function retaliateWhenLowered(f,src){
   if(!f||f.fainted||!f.boosts)return false;
   const ab=(f.ability||'').replace(/[^a-z0-9]/g,'');
@@ -18641,9 +18743,19 @@ function retaliateWhenLowered(f,src){
   const bo=p.boosts||(ab==='defiant'?{atk:2}:ab==='competitive'?{spa:2}:null);
   if(!bo)return false;
   if(TR)TR.ab(f,ab,'boost');
+  /* NARRATION BATCH R -- `isSelf`, so a retaliation the cap swallows STILL announces at magnitude
+   * zero. Four of the batch's NARRATION-ONLY causes are this one line: a Defiant body at +6 takes
+   * Parting Shot's second drop and the authority writes `|-boost|pXY|atk|0`. Both legal carriers
+   * pass `(target, target, null, false, true)`; the membership is printed by the probe. */
+  const _zeroSays=abilityZeroAnnounces(true);
   for(const k in bo){const _s=SD2ENG[k];if(_s&&f.boosts[_s]!=null){
     const _b=f.boosts[_s];f.boosts[_s]=clamp(f.boosts[_s]+bo[k],-6,6);
-    if(TR)TR.bst(f,_s,f.boosts[_s]-_b);}}
+    const _d=f.boosts[_s]-_b;
+    if(!_d&&_zeroSays&&(f.boosts[_s]===6||f.boosts[_s]===-6)){
+      MEDSEEN.abilityZeroBoostAnnounced++;
+      if(!MEDSEEN.abilityZeroBoostAnnouncedFirst)
+        MEDSEEN.abilityZeroBoostAnnouncedFirst=String(f.name)+'/'+ab+'/'+_s;}
+    if(TR)TR.bst(f,_s,_d,'',_zeroSays);}}
   MEDSEEN.retaliateWhenLowered++;
   return true;
 }
@@ -21733,10 +21845,43 @@ function stampTempForme(m,how,displayName){
  * that header explicitly declined to make ("NOT CLAIMED HERE"), and this is it.
  *
  * `where` IS RECORDED RATHER THAN INFERRED, so `formeTempRevertedFirst` says which road paid. */
+/* NARRATION BATCH R, 2026-09-08 -- AND IT IS SILENT, WHICH IT WAS NOT.
+ *
+ * The authority reverts through `clearVolatile()`'s closing `this.setSpecies(this.baseSpecies)`
+ * (`data/mods/champions/scripts.ts`, and Champions DOES override that method, so this is the mod's
+ * own line and not mainline's). `setSpecies` assigns `this.species` and calls `setType`; it writes
+ * NO protocol line at all. The one `detailschange` a faint can produce lives in `faintMessages`
+ * (`sim/battle.ts`), is guarded by `if (pokemon.formeRegression)` and carries `[silent]` -- and
+ * Champions' `formeChange` sets `formeRegression` in the Tera branch ALONE, having deleted mainline's
+ * second assignment in the Item/mega branch ("Don't revert Mega Evolutions after fainting"). Stance
+ * Change calls `formeChange(targetForme)` with no `isPermanent` at all, so it reaches neither branch.
+ * The authority therefore says NOTHING on either road off the field.
+ *
+ * THIS ENGINE PAID THE REVERT THROUGH `formeSwap`, WHOSE WHOLE JOB IS TO ANNOUNCE ONE. That wrote a
+ * `|detailschange|pXY: Aegislash|aegislash, L50` immediately above the `|faint|` -- three
+ * NARRATION-ONLY causes of `data/game-differential.json` on release `0c5a4da9c512` (p1a, p2a, p1b),
+ * and the switch-out road as well, which the pinned pool did not happen to surface and
+ * `tests/probe_forme_revert_silent.js` stages on purpose.
+ *
+ * THE TRACE IS PARKED, NOT THE SWAP. `formeSwap` also rebuilds the body out of `data/engine-data.js`,
+ * which is the half that MUST still happen -- Blade and Shield carry different base stats, so a
+ * corpse or a benched body left in the wrong forme parts `party.<name>.species`, `.stats` and
+ * `.types`. The probe asserts BOARD-IDENTICAL on both roads for exactly that reason: deleting the
+ * revert would silence the line and cannot pass. The same `TR=null` idiom is used at the Stance
+ * Change door itself, which has been parking `formeSwap`'s line since 2026-08-11.
+ *
+ * `MEDI_FORME_REVERT_ANNOUNCES=1` is the pre-fix engine and marks its own run. */
 function revertTempFormeOnLeave(m,where){
   if(!m||m._formeTempBase==null||m.name===m._formeTempBase)return false;
   if(NO_TEMP_FORME_REVERT){MEDFAILS.tempFormeRevertSuppressed=1;return false;}
-  if(m._formeTempHow==='swap')formeSwap(m,m._formeTempBaseName||m._formeTempBase,where);
+  if(m._formeTempHow==='swap'){
+    const _prevTR=TR;
+    if(FORME_REVERT_ANNOUNCES)MEDFAILS.formeRevertAnnounceRestored=1;
+    else { TR=null; MEDSEEN.formeRevertSilent++;
+           if(!MEDSEEN.formeRevertSilentFirst)MEDSEEN.formeRevertSilentFirst=String(m.name)+' @'+where; }
+    try{ formeSwap(m,m._formeTempBaseName||m._formeTempBase,where); }
+    finally{ TR=_prevTR; }
+  }
   else { m.name=m._formeTempBase; weightFollowsForme(m); }
   MEDSEEN.formeTempReverted++;
   if(!MEDSEEN.formeTempRevertedFirst)MEDSEEN.formeTempRevertedFirst=String(m.name)+' @'+where;
@@ -21787,6 +21932,41 @@ function revertWeatherFormeOnLeave(m,where){
   }
   return moved;
 }
+/* NARRATION BATCH R, 2026-09-08 -- ONE IMPLEMENTATION OF "THE ABILITY'S END TAKES THE GIFT WITH IT",
+ * BECAUSE THE AUTHORITY HAS TWO CALL SITES FOR IT AND THIS ENGINE HAD ONE.
+ *
+ *   flashfire.onEnd(pokemon)            `pokemon.removeVolatile('flashfire')`      data/abilities.ts
+ *   flashfire.condition.onEnd(target)   `this.add('-end', target, 'ability: Flash Fire', '[silent]')`
+ *
+ * and the ability's End is fired from THREE places, of which two are a body leaving the field:
+ *   sim/pokemon.ts        `setAbility` -> singleEvent('End', oldAbility, ...)      -- the rewrite
+ *   sim/battle-actions.ts singleEvent('End', oldActive.getAbility(), ...)          -- the switch
+ *   sim/battle.ts         singleEvent('End', pokemon.getAbility(), ...) in faintMessages
+ *
+ * THE THIRD ONE WRITES NOTHING AND THAT IS MEASURED, NOT ASSUMED. `removeVolatile` opens with
+ * `if (!this.hp) return false;` (sim/pokemon.ts:2040-2041), the same shape as `cureStatus`, so the
+ * corpse never reaches the condition's End. The probe's FAINT arm was WRITTEN EXPECTING A LINE and
+ * was red on the AUTHORITY; it is kept as the negative that stops this being applied to both roads.
+ *
+ * `abRewrite` carried this inline and the switch road had none -- two NARRATION-ONLY causes on
+ * release `0c5a4da9c512` (`|-end|pXa|flashfire <> |switch|pXa|...`). A fact with two
+ * implementations is the breach CLAUDE.md names; here the second implementation was simply MISSING,
+ * which reads exactly like the feature working from the rewrite board -- and the rewrite board is
+ * the one anybody looked at.
+ *
+ * `ab` IS THE ABILITY THAT OWNS THE GIFT and defaults to the body's current one, so the rewrite
+ * caller can pass the OUTGOING ability while the switch caller passes nothing. */
+function endAbsorbGiftVolatile(m,where,ab){
+  if(!m)return false;
+  const _ab=ab!=null?ab:m.ability;
+  const _ti=TAGS.param('ability',_ab,'typeImmunity');
+  const _g=_ti&&_ti.gain;
+  if(!(_g&&_g.volatile&&_g.volatileBoost&&_g.volatileBoost.endsWithAbility))return false;
+  if(!(m._vol&&m._vol[_g.volatile]>0))return false;
+  delete m._vol[_g.volatile];
+  if(TR)TR.vend(m,(_g.volatileBoost.announce)||('ability: '+_ab),'[silent]');
+  return true;
+}
 function abRewrite(m,ab){
   if(!m)return;
   /* 2026-08-29 -- AND AN ABSORBED GIFT ENDS WITH THE ABILITY THAT GRANTED IT. Flash Fire's
@@ -21796,13 +21976,8 @@ function abRewrite(m,ab){
    * Read off the tag's own `endsWithAbility`, so an ability whose condition does NOT remove itself
    * would keep it. `m.ability` is still the OUTGOING one on this line, which is the whole point of
    * doing it here rather than after the assignment. */
-  {const _ti=TAGS.param('ability',m.ability,'typeImmunity');
-   const _g=_ti&&_ti.gain;
-   if(_g&&_g.volatile&&_g.volatileBoost&&_g.volatileBoost.endsWithAbility
-      &&m._vol&&m._vol[_g.volatile]>0&&String(m.ability)!==String(ab)){
-     delete m._vol[_g.volatile];MEDSEEN.absorbGiftVolatileEnded++;
-     if(TR)TR.vend(m,(_g.volatileBoost.announce)||('ability: '+m.ability),'[silent]');
-   }}
+  if(String(m.ability)!==String(ab)&&endAbsorbGiftVolatile(m,'abRewrite',m.ability))
+    MEDSEEN.absorbGiftVolatileEnded++;
   if(m._preAb===undefined)m._preAb=m.ability;
   m.ability=ab;
 }
@@ -22956,6 +23131,19 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * (sim/battle.ts:2553). */
   {const _fn=fallenShown(out);
    if(_fn>0&&TR){TR.vend(out,'fallen'+_fn,'[silent]');MEDSEEN.fallenClosedOnSwitchOut++;}}
+  /* NARRATION BATCH R, 2026-09-08 -- AND THE ABSORBED GIFT CLOSES AT THE SAME MOMENT AND FOR THE
+   * SAME REASON: both are the outgoing body's ability End (sim/battle-actions.ts, at the comment
+   * "will definitely switch out at this point"), which the authority fires ABOVE the replacement's
+   * `|switch|`. It sits here rather than beside the `_vol={}` wipe below for the reason the fallen
+   * line gives: that block exists to erase the body and `ident()` must still find it in the slot.
+   * See `endAbsorbGiftVolatile` for why the FAINT road is deliberately not a second call site. */
+  if(!NO_ABSORB_GIFT_END_ON_LEAVE){
+    if(endAbsorbGiftVolatile(out,'switchOut')){
+      MEDSEEN.absorbGiftEndedOnSwitch++;
+      if(!MEDSEEN.absorbGiftEndedOnSwitchFirst)
+        MEDSEEN.absorbGiftEndedOnSwitchFirst=String(out.name)+'/'+String(out.ability);
+    }
+  } else MEDFAILS.absorbGiftEndOnLeaveRestored=1;
   /* ROADMAP #81 WIRE 12 -- CAPTURED HERE, at the top, BEFORE the clearing below. Every line from
      `out.protect=false` down exists to erase what does not survive a switch, and what Baton Pass
      exists to do is survive one; reading after the clear would have handed the replacement a body
@@ -31531,6 +31719,45 @@ function battleTurn(S,rng,actsForA,actsForB){
          * bare `|-immune|` for Good as Gold where the authority names the ability. It is split out
          * above the shield/move-class gate because those two announce differently and folding all
          * three into one `TR.imm` is what made this look correct. */
+        /* NARRATION BATCH R, 2026-09-08 -- THE SHIELD IS ASKED FIRST, BECAUSE THE AUTHORITY ASKS IT
+         * FIRST TWICE OVER.
+         *
+         *   `trySpreadMoveHit`'s `moveSteps` list is STEP-MAJOR (sim/battle-actions.ts):
+         *     1 hitStepTryHitEvent   runEvent('TryHit')   <- Protect AND Good as Gold
+         *     2 hitStepTypeImmunity
+         *     3 hitStepTryImmunity   <- the Dark-is-immune-to-Prankster refusal
+         *   and INSIDE step 1 the handlers for one target are collected status -> VOLATILES ->
+         *   ABILITY -> item (`findPokemonEventHandlers`, sim/battle.ts). Protect is a volatile and
+         *   Good as Gold is an ability, so the shield speaks and the ability never does; the
+         *   Prankster refusal is not even in the same STEP.
+         *
+         * This branch ran `tryHitRefusal` -- Good as Gold, the Prankster block, the absorbers --
+         * and only then the shield, so a shielded Parting Shot announced the wrong refusal. THREE
+         * NARRATION-ONLY causes on release `0c5a4da9c512`, all of them Parting Shot: one bare
+         * `-immune` (Prankster into Kingambit) and two `[from] ability: Good as Gold`.
+         *
+         * IT IS THE SHIELD ALONE THAT IS HOISTED, not the whole conjunction below. `moveClassBlocked`
+         * (Soundproof) is an ABILITY handler at the same tier as Good as Gold, so moving it would
+         * re-order two refusals that cannot both sit on one body -- a change with no witness. The
+         * block below keeps `_shR` in its guard deliberately: it still owns the non-Protect shields'
+         * bare line, and re-homing a working branch so a new one reads tidily is how a green test
+         * stops testing anything.
+         *
+         * SCOPED TO THIS BRANCH. Eight other `tryHitRefusal` sites have a shield check below them
+         * in the same shape and are NOT touched here: each guards the shield on a different
+         * condition (`_isFoe`, `t!==m`) and announces differently, no pinned-pool card names any of
+         * them, and a blanket hoist is the kind of over-match this project has paid for. Recorded
+         * as an open question in docs/_reports/2026-09-08-narration-batch-R.md rather than fixed
+         * blind. */
+        if(a.mv&&_pt&&!_pt.fainted&&!PIVOT_ABILITY_BEFORE_SHIELD&&shieldRefuses(_pt,a.mv)){
+          m._lastMove=a.mv;
+          if(TR){ if(_pt.protect)TR.act(_pt,'move: Protect'); else TR.imm(_pt); }
+          MEDSEEN.pivotShieldBeforeAbility++;
+          if(!MEDSEEN.pivotShieldBeforeAbilityFirst)
+            MEDSEEN.pivotShieldBeforeAbilityFirst=String(a.mv)+' -> '+String(_pt.name);
+          continue;
+        }
+        if(PIVOT_ABILITY_BEFORE_SHIELD)MEDFAILS.pivotAbilityBeforeShieldRestored=1;
         if(a.mv&&_pt&&!_pt.fainted){
           const _rf=tryHitRefusal(_bsrc,_pt,a.mv);
           if(_rf){announceTryHitRefusal(_rf,_pt);m._lastMove=a.mv;continue;}
@@ -36275,9 +36502,39 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _thawFire=effMoveType(mv,a.move.id,field,m)==='Fire';
           const _thawBody=tg;
           const _thawCure=()=>{
-            /* Re-read the status at the moment the event fires: a body that fainted to this hit
-             * carries 'fnt', and `Pokemon#cureStatus` does nothing for it in the authority either. */
+            /* Re-read the status at the moment the event fires. */
             if(_thawBody.status!=='frz')return;
+            /* NARRATION BATCH R, 2026-09-08 -- AND RE-READ THE HP, WHICH IS THE HALF THE COMMENT
+             * HERE USED TO GET WRONG. It said "a body that fainted to this hit carries 'fnt', and
+             * `Pokemon#cureStatus` does nothing for it in the authority either" -- the second clause
+             * is true and the FIRST IS NOT: this engine leaves `status` at 'frz' on a corpse, so the
+             * status re-read let every one of them through. The authority's guard is on the HP and is
+             * the first line of the function:
+             *
+             *     cureStatus(silent = false) {
+             *       if (!this.hp || !this.status) return false;              sim/pokemon.ts:1680-1681
+             *
+             * Both thaw routes reach it -- `frz.onAfterMoveSecondary` for `thawsTarget` and
+             * `frz.onDamagingHit` for a Fire move (data/conditions.ts:112-121, neither overridden by
+             * Champions) -- so a frozen body killed by its own thawing hit is NOT cured and NOTHING
+             * is announced. This engine wrote `|-curestatus|pXY|frz|[msg]` for all of them: three
+             * NARRATION-ONLY causes on release `0c5a4da9c512`, one per route and slot.
+             *
+             * THE GUARD IS HERE AND NOT IN THE EMITTER, because the authority's refusal skips the
+             * STATE change as well: `setStatus('')` never runs, so the corpse is still carrying `frz`
+             * when it is put on the bench. `tests/probe_thaw_on_a_corpse.js` asserts the boards on
+             * both roads for exactly that reason. `MEDI_THAW_CURES_A_CORPSE=1` is the pre-fix engine.
+             *
+             * ONLY THIS SITE. The other ten `TR.cure` callers in this file are start-of-turn, switch,
+             * heal-move and ability doors whose body is alive by construction; this is the one that
+             * runs inside the hit resolution, i.e. the one that can be handed a corpse. */
+            if(!(_thawBody.curHP>0)){
+              if(THAW_CURES_A_CORPSE)MEDFAILS.thawOnCorpseRestored=1;
+              else { MEDSEEN.thawRefusedOnFaint++;
+                     if(!MEDSEEN.thawRefusedOnFaintFirst)
+                       MEDSEEN.thawRefusedOnFaintFirst=String(_thawBody.name)+' <- '+String(a.move&&a.move.id);
+                     return; }
+            }
             _thawBody.status='';
             if(TR)TR.cure(_thawBody,'frz',ATTR.cured(false).from);
             MEDSEEN.thawBelowSecondary++; };
@@ -37038,7 +37295,20 @@ function battleTurn(S,rng,actsForA,actsForB){
                    * unchanged. */
                   if(TR&&_d&&!_abSaid){TR.ab(m,tg.ability,'boost');_abSaid=true;
                                        MEDSEEN.punishBoostAbilityLine++;}
-                  if(TR)TR.bst(m,_st,_d,PUNISH_ANNOUNCE_BLIND?'[from] ability: '+tg.ability:undefined);}
+                  /* NARRATION BATCH R -- AND THE CLAMPED ONE STILL ANNOUNCES, AT ZERO. The comment
+                   * above says the zero line is `bst`'s own business, and it was: `bst` suppresses
+                   * a zero unless the site opts in, and this site never had. Gooey's `-1` Speed on
+                   * an attacker already at -6 is one of the batch's NARRATION-ONLY causes
+                   * (`|-unboost|p1b|spe|0 <> |faint|p2a`). The flag is the handler's own fifth
+                   * argument, which `boostsSecondary` already carries -- the SAME expression
+                   * `_abSaid` was initialised from, so the two cannot disagree about what this
+                   * call passed. */
+                  const _pz=abilityZeroAnnounces(_pun.boostsSecondary!==false);
+                  if(!_d&&_pz&&(m.boosts[_st]===6||m.boosts[_st]===-6)){
+                    MEDSEEN.abilityZeroBoostAnnounced++;
+                    if(!MEDSEEN.abilityZeroBoostAnnouncedFirst)
+                      MEDSEEN.abilityZeroBoostAnnouncedFirst=String(m.name)+'/'+tg.ability+'/'+_st;}
+                  if(TR)TR.bst(m,_st,_d,PUNISH_ANNOUNCE_BLIND?'[from] ability: '+tg.ability:undefined,_pz);}
               }
             }
             /* ONE roll against the cumulative, because the artifact's list entries are exclusive

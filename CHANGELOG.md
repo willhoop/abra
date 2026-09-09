@@ -10,6 +10,52 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.269.0] — 2026-09-09
+
+### Fixed
+- **A NON-PERMANENT FORME REVERT IS SILENT.** Champions’ `clearVolatile` reverts through
+  `setSpecies`, which emits nothing; this engine paid it through `formeSwap`, which announces.
+  3 causes. Probe: `tests/probe_forme_revert_silent.js`.
+- **`cureStatus` REFUSES A BODY AT 0 HP**, so a frozen body killed by its own thawing hit is never
+  cured. `_thawCure` re-read the STATUS, and its own comment claiming corpses carry `fnt` was false.
+  3 causes. Probe: `tests/probe_thaw_on_a_corpse.js`.
+- **AN ABILITY’S CLAMPED STAT CHANGE STILL ANNOUNCES AT ZERO** — the isSelf and isSecondary roads.
+  `effect ||= this.effect` is why a handler passing `null` still reaches the Ability branch.
+  5 causes. Probe: `tests/probe_ability_zero_boost_line.js`.
+- **THE ABSORBED GIFT’S `-end` ON THE SWITCH-OUT ROAD had no implementation at all.** 2 causes.
+  Probe: `tests/probe_absorb_gift_end_on_leave.js`.
+- **THE SHIELD ANSWERS BEFORE THE ABILITY ON THE PIVOT ROAD**, and two steps before the Prankster
+  refusal. All 3 causes were one move. Probe: `tests/probe_pivot_shield_before_ability.js`.
+
+### Changed
+- **Gate narration 49 → 33 of 961**, NARRATION-ONLY causes **48 → 32** — sixteen closed across five
+  mechanisms. **BOARD-MATERIAL holds at 0 of 958**, checked after every one of the four measurements.
+  Zero transfers at every step. `engine/status.js` reads **1 of 9 gate clauses fail**, the same
+  NARRATION clause. Roster **142 / 139 / 487** with 0 FIRED-AND-BOARDS-DIFFER, 0 DID-NOT-FIRE and
+  every anchor live; `test-engine-diff` 6000/6000; docs gate 33/0.
+
+### Notes
+- **THE CENSUS PIN DIGEST MOVED AND THE SAMPLE IS STILL COMPARABLE — SAID HERE RATHER THAN LEFT AS A
+  DISCREPANCY.** Batch Q ran under `87d990cf3634`, batch R under `0b88d51b3463`. The content is
+  materially unchanged: **830 rows both**, and the whole diff is the `generated` timestamp plus one
+  re-measured secondary-rate detail line (19.8% against 20.0%, 26.9% against 27.8%, over 6000 turns
+  each) — sampling noise, no row added or removed. A census regeneration between two runs is
+  normally what makes them not a before/after; this one is not that, and the check is why it can be
+  claimed.
+- **A prediction MISSED and is kept as a negative arm.** The Flash Fire faint road was predicted to
+  write a second `-end`; the authority writes none, because `removeVolatile` refuses at 0 HP — the
+  same shape as `cureStatus` above. The arm was RED on Showdown and is retained.
+- **Re-running the differential turned `tests/test-docs-current.js` red on 4 citation rows that had
+  been passing on a coincidence.** Fixed in-pass by marking a now-false sentence SUPERSEDED in place,
+  dated, in 4 living documents — not rewritten, because a dated claim is not edited to agree with
+  today. No 5.249.0 figure changed.
+- **Still open, with no clean bill:** the other 8 `tryHitRefusal` sites in the same wrong order (21
+  sites, 9 with an adjacent shield check — no pool witness, so not fixed); `-fail` field 3 (3
+  causes); the bare `-fail` cluster (9 causes, undiagnosed); the 10 `ordering` causes carried from
+  batch Q.
+
+---
+
 ## [5.268.1] — 2026-09-08
 
 ### Fixed
