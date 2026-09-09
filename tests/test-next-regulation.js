@@ -1,3 +1,4 @@
+// RAW-STORE-NOT-READ: the three store filenames are listed only to assert the next-regulation collector keeps its output SEPARATE from them; nothing here opens a store.
 /* test-next-regulation.js — the next-regulation collector can prove it ran, and prove it declined.
  *
  * WHY THIS SHAPE. The capability under test spends the next two weeks doing NOTHING, on purpose.
@@ -79,6 +80,34 @@ const ok = (cond, msg, detail) => {
       'the ordering is asymmetric in the right direction',
       `${active} > ${older[0]}`);
   }
+
+  /* ---- 3b: THE REPLAY-SEARCH ARM IS WIRED. Added 2026-09-09, the day formats.js lagged the replay
+   * server and the detector said "does not exist" over a format with a thousand public games.
+   * Offline, with the search injected: the fake answers games for the FIRST derived next-letter id
+   * and nothing else. A candidate must appear, seen only in `replay`; with a fake that answers
+   * nothing, none may. Same knob, two settings, and the outcome has to move. */
+  const probe = NR.probeIds(NR.parseFormatId(active));
+  const nextTok = NR.parseFormatId(active).token;
+  const advanced = nextTok.slice(0, -1) + String.fromCharCode(nextTok.charCodeAt(nextTok.length - 1) + 1);
+  ok(probe.length === 2 * NR.PROBE_LETTERS && probe.every(id => NR.parseFormatId(id)),
+    'the probe derives 2 ids per letter (bo1 + bo3), all matching the regulation shape', `${probe.length} ids, cap ${NR.PROBE_LETTERS}`);
+  ok(NR.parseFormatId(probe[0]).token === advanced && NR.laterThan(NR.parseFormatId(probe[0]), NR.parseFormatId(active)),
+    'and the first derived id is one letter past the active regulation, not a typed constant', `${active} -> ${probe[0]}`);
+  const hit = probe[0];
+  const fakeHit = async id => id === hit ? [{ id: id + '-1', uploadtime: 1, format: 'FAKE ' + id }] : [];
+  const fakeMiss = async () => [];
+  const withHit = await NR.detect({ net: false, replaySearch: fakeHit });
+  const withMiss = await NR.detect({ net: false, replaySearch: fakeMiss });
+  ok(withMiss.counters.candidates === 0, 'a replay search that answers nothing yields no candidate', String(withMiss.counters.candidates));
+  const cand = withHit.candidates.find(r => r.id === hit);
+  ok(!!cand && withHit.counters.candidates === withMiss.counters.candidates + 1,
+    'a replay search that answers games for the derived id yields exactly that one candidate',
+    `candidates ${withMiss.counters.candidates} -> ${withHit.counters.candidates}`);
+  ok(!!cand && cand.seen_in.join('+') === 'replay' && cand.collectable && !cand.simulatable && cand.name === 'FAKE ' + hit,
+    'and it is collectable, not simulatable, seen only in replay, named from the search row',
+    cand ? `${cand.seen_in.join('+')} collectable=${cand.collectable} simulatable=${cand.simulatable}` : 'no candidate');
+  ok(withHit.counters.replay_only === 1 && withHit.authorities.replay_search.hits.length === 1,
+    'and the replay_only counter and the hit list both say one', `replay_only=${withHit.counters.replay_only} hits=${withHit.authorities.replay_search.hits.length}`);
 
   /* ---- the live arm, reported ------------------------------------------------------------------ */
   const live = await NR.detect({ net: true });

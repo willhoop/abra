@@ -439,7 +439,43 @@ function seedEventsFromRecord(dir, prev) {
  * silent forever, which is exactly the condition under which a check quietly stops running and
  * nobody notices — `setSheet()` existed and `magnemite.js` never called it. Counted, exported, and
  * printed by the CLI. */
-const CUT_COUNTERS = { closure_scans: 0, closure_refusals: 0, closure_unresolved: 0 };
+const CUT_COUNTERS = { closure_scans: 0, closure_refusals: 0, closure_unresolved: 0,
+                       authority_checks: 0, authority_refusals: 0, authority_drift_allowed: 0 };
+
+/* ---- THE AUTHORITY PIN GETS A CONSUMER — 2026-09-09 ---------------------------------------------
+ *
+ * `champions_sim.js` has carried `PINNED_COMMIT` and computed `verify().commit_matches` since the
+ * pin was added, and NOTHING READ IT. A checkout at any other Showdown commit cut releases, stamped
+ * `showdown_commit` faithfully, and measured against a reference engine the project never validated —
+ * the pin was a caption, and this repository's rule is that a caption is not a quarantine.
+ *
+ * So the check lives HERE, at the cut, which is the one step every measurement passes through
+ * (`game_differential.js` calls `cut()` at startup unless handed an existing release). A cut over a
+ * drifted authority THROWS, naming both commits; `--allow-authority-drift` (CLI) or
+ * `{ allowAuthorityDrift: true }` (API) lets it through and records the drift in the cut event, so a
+ * release cut that way says so forever rather than in a terminal somebody has closed.
+ *
+ * UNKNOWN IS NOT A MISMATCH. When the checkout has no readable HEAD (`actualCommit()` null), nothing
+ * can be compared and the cut proceeds with a printed line — `champions_sim`'s own header makes the
+ * point that null must never be read as a match, and it is never read as a mismatch here either.
+ *
+ * `authority` on `opts` is an injection point for the selftest and the receipt below, on the same
+ * reasoning as `store`: a value passed by a caller is visible in the caller; an env override is not. */
+function authorityDrift(inject) {
+  const o = inject || {};
+  let pinned = o.pinned, actual = o.actual;
+  if (pinned === undefined || actual === undefined) {
+    try {
+      const CS = require('./champions_sim.js');
+      if (pinned === undefined) pinned = CS.PINNED_COMMIT || null;
+      if (actual === undefined) actual = CS.actualCommit ? CS.actualCommit() : null;
+    } catch (e) {
+      return { pinned: pinned || null, actual: null, drifted: false, unknown: true, why: e.message };
+    }
+  }
+  if (!pinned || !actual) return { pinned: pinned || null, actual: actual || null, drifted: false, unknown: true };
+  return { pinned, actual, drifted: actual !== pinned, unknown: false };
+}
 
 /* ---- THE DIGEST OF THE LIVE TREE, WITHOUT WRITING ANYTHING — 2026-09-04 ------------------------
  *
@@ -503,6 +539,29 @@ function liveStamp() {
 
 function cut(why, opts) {
   const S = store(opts);
+  /* THE AUTHORITY CHECK COMES FIRST — before a byte is hashed or written, so a refusal leaves no
+   * partial snapshot and no event. See `authorityDrift` for why this is the cut's job. */
+  const AUTH = authorityDrift(opts && opts.authority);
+  CUT_COUNTERS.authority_checks++;
+  if (AUTH.drifted && !(opts && opts.allowAuthorityDrift)) {
+    CUT_COUNTERS.authority_refusals++;
+    throw new Error('cannot cut a release — THE SHOWDOWN CHECKOUT IS NOT THE PINNED AUTHORITY.\n'
+      + '  pinned   ' + AUTH.pinned + '  (champions_sim.js PINNED_COMMIT)\n'
+      + '  checkout ' + AUTH.actual + '  (HEAD of the Showdown checkout that would load)\n'
+      + '  A release cut here would stamp `showdown_commit` faithfully and measure MEDICHAM against a\n'
+      + '  reference engine this project has never validated. Check out the pinned commit, or move the\n'
+      + '  pin deliberately in champions_sim.js, or pass --allow-authority-drift (API: { allowAuthorityDrift:\n'
+      + '  true }) to cut anyway with the drift recorded in the cut event.');
+  }
+  if (AUTH.drifted) {
+    CUT_COUNTERS.authority_drift_allowed++;
+    console.error('  !! AUTHORITY DRIFT ALLOWED: the Showdown checkout is ' + AUTH.actual + ', the pin is '
+      + AUTH.pinned + '. Recorded in the cut event; every number measured under this release is against an'
+      + ' unvalidated reference engine.');
+  } else if (AUTH.unknown) {
+    console.error('  !! the Showdown checkout commit is UNKNOWN' + (AUTH.why ? ' (' + AUTH.why + ')' : '')
+      + ', so the authority pin ' + (AUTH.pinned || '(none)') + ' could not be checked. Not read as a match.');
+  }
   const T = treeDigest();
   const files = T.files;
   const missing = T.missing;
@@ -598,7 +657,8 @@ function cut(why, opts) {
   const sc = showdownCommit();
   appendEvent(dir, Object.assign(
     { at: new Date().toISOString(), why: why || '(no reason given)', showdown_commit: sc },
-    repaired.length ? { repaired } : {}));
+    repaired.length ? { repaired } : {},
+    AUTH.drifted ? { authority_drift_allowed: { pinned: AUTH.pinned, checkout: AUTH.actual } } : {}));
 
   const events = readEvents(dir);
   const first = events[0] || {};
@@ -1546,7 +1606,7 @@ function open(id, opts) {
  * loader wherever the bodies still exist, and this only where they do not. */
 /* `sha12Content` is exported for the same reason and with the opposite warning: it is the digest for
  * the questions that are NOT identity (see its header). Do not reach for it to name a release. */
-module.exports = { cut, list, verify, drift, open, rerender, surface, compat, sha12, sha12OrNull,
+module.exports = { cut, list, verify, drift, open, rerender, surface, compat, sha12, sha12OrNull, authorityDrift,
                    sha12Content,
                    requireClosure, census, callerNeeds, exportedNames, PROVIDES_BY,
                    CUT_COUNTERS, SOURCES, POINTER, RELEASES,
@@ -1560,7 +1620,9 @@ module.exports = { cut, list, verify, drift, open, rerender, surface, compat, sh
 if (require.main === module) {
   const [cmd, arg] = process.argv.slice(2);
   if (cmd === 'cut') {
-    const m = cut(arg);
+    /* `arg` is the reason; a flag in that slot is not a reason. The authority check is inside cut(). */
+    const why = process.argv.slice(3).find(a => !String(a).startsWith('--'));
+    const m = cut(why, { allowAuthorityDrift: process.argv.includes('--allow-authority-drift') });
     const n = (m.cuts || []).length;
     console.log(`cut engine release ${m.id}`);
     console.log(`  first frozen: ${m.cut}`);

@@ -18,10 +18,21 @@ state-conditioned policy also takes obvious KOs and Protects when threatened; th
 only *raise* agreement on the turns they fire (KO-available / in-danger turns), so this is a
 conservative lower bound on the full policy's human-match. State-conditioned eval is the next step.
 """
-import json, os, math, random, collections
+import json, os, math, random, collections, hashlib, datetime
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 RAW = os.path.join(ROOT, "data", "games.ladder.raw-logs.jsonl")
 OUT = os.path.join(ROOT, "data", "policy-eval.json")
+
+def _receipt(path):
+    """path / bytes / sha256 of the file this run actually opened (ROADMAP #288: an artifact whose
+    generator reads a game file carries the digest of that file). RAW is gitignored, so this digest is
+    the only pin a reader has on the sample."""
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return {"path": os.path.relpath(path, ROOT).replace(os.sep, "/"), "bytes": os.path.getsize(path),
+            "sha256": h.hexdigest()}
 MIN_TRAIN = 25          # only score species with at least this many training clicks (meaningful prior)
 random.seed(42)
 norm = lambda s: "".join(c for c in s.lower() if c.isalnum())
@@ -61,9 +72,12 @@ def _clean_ids():
     return {g.get("id") for g in quality.load_games(clean=True) if g.get("id")}
 
 
+_LOAD = {}   # counts and receipts from load(), written into the artifact as fields
+
 def load():
     games = []
     ok_ids = _clean_ids()
+    _LOAD["clean_ids"] = len(ok_ids)
     kept = dropped = 0
     for line in open(RAW, encoding="utf-8"):
         line = line.strip()
@@ -77,6 +91,7 @@ def load():
             kept += 1
             games.append(clicks_from_log(r["log"]))
     print("clean filter: kept %d logs, dropped %d that quality.py rejects" % (kept, dropped))
+    _LOAD.update(logs_kept=kept, logs_dropped_by_quality=dropped)
     return games
 
 def main():
@@ -134,8 +149,23 @@ def main():
     top1, top3 = col(0), col(1)
     ce_c, ce_g, ce_u = col(2), col(3), col(4)
     top1P, ce_cP = col(5), col(6)
+    qf = os.path.join(ROOT, "data", "quality-filter.json")
     res = {
         "generated": "engine/eval_policy.py — behaviour-clone move priors vs held-out human clicks",
+        "generated_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "source": _receipt(RAW),
+        # the clean-id gate reads three more files, and a byte-identical store gave two different
+        # samples on 2026-09-09 because data/store-validation.json had moved in between (nmf_roles.py
+        # found it). Receipt every input the sample depends on.
+        "quality_inputs": {k: _receipt(os.path.join(ROOT, "data", f)) for k, f in
+                           (("store", "games.ladder.jsonl"), ("quality_filter", "quality-filter.json"),
+                            ("store_validation", "store-validation.json"))
+                           if os.path.exists(os.path.join(ROOT, "data", f))},
+        "clean_ids_from_quality": _LOAD.get("clean_ids"),
+        "logs_kept": _LOAD.get("logs_kept"), "logs_dropped_by_quality": _LOAD.get("logs_dropped_by_quality"),
+        "quality_filter_version": (json.load(open(qf, encoding="utf-8")).get("version") if os.path.exists(qf) else None),
+        "split_rule": "temporal: first 80% of kept logs in file order train, last 20% test",
+        "seed": 42,
         "n_games": n, "train_games": len(train_g), "test_games": len(test_g),
         "test_clicks_scored": N, "test_clicks_skipped_thin_prior": skipped,
         "min_train_clicks_per_species": MIN_TRAIN,

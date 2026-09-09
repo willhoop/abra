@@ -10,6 +10,116 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.276.0] — 2026-09-09
+
+### Added
+- **The gate re-measured on the fixed engine, release `b0f5c159c46e`.** BOARD-MATERIAL reads 0 of 961
+  with 0 void games (was 0 of 958 with the 3 board-parted games voided out); NARRATION 13 of 961 across 14
+  causes is the only red clause of 9. Damage differential 6000/0, roster and census unchanged field for
+  field. Prediction written before the run and hit at the point estimate
+  (`docs/_reports/2026-09-09-wave-remeasure.md`).
+- **`data/test-waivers.json` and waiver printing in `tests/run-all.js`.** A red test Will waived by
+  name (7 entries: 4 web, 3 MAG — *"yes web paused and mag paused all i care about is medicham
+  working"*) is printed `WAIVED <path> — by Will <date>: <reason>`, counted separately, and never
+  silently skipped; a waiver whose check passes prints `ok (waiver no longer needed)`; a waiver naming
+  no real check fails the runner. `--only a,b` runs a filtered set the runner labels as not the suite.
+  `engine/em_validation.js` is deliberately not waived (red on a recorded Stage C verdict, a different
+  mechanism). `CLAUDE.md` "KNOWN FAILURE" carries the one-line rule.
+- **Hourly Reg M-C collection.** `.github/workflows/next-regulation.yml` pulls every `candidate`
+  format in `data/next-regulation.json` hourly, in the same `ingest` concurrency group as the
+  six-hourly ingest so the two never race. `engine/durable-ingest.js` prints a coverage line every
+  run and `GAP:` when no offered id is held and the search window is newer than the store
+  (`--strict-gap` / `STRICT_GAP=1` for exit 1); `--raw` shards next-regulation raw logs, and
+  `build/compress-stores.js` knows those shards. Stores `data/games.gen9championsvgc2026regmc.jsonl.gz`
+  (1,412 rows) and `...regmcbo3.jsonl.gz` (727 rows) at 20:52Z. Nothing is simulated.
+- **Release `b730e44f3314` is tracked** (29 files) — the release every current gate artifact stamps;
+  it was untracked (review finding 4).
+- **The authority pin has a consumer.** `engine/engine_release.js cut` refuses (exit 1, both commits
+  named) when the Showdown checkout is not `champions_sim.js`'s `PINNED_COMMIT`;
+  `--allow-authority-drift` records the drift in the cut event. `engine/game_differential.js` refuses
+  likewise on `--release`.
+- `ingest.yml` runs `build/compress-stores.js --check` after sharding and before commit, on both the
+  first attempt and the push-race retry; checkout depth 2 so `HEAD~1` exists (#550's runner wiring).
+- Two engine probes with restoring knobs: `tests/probe_misty_terrain_status.js`
+  (`MEDI_MISTY_STATUS_UNREFUSED`) and `tests/probe_charge_release_chosen_slot.js`
+  (`MEDI_CHARGE_REMEMBERS_REAIMED`), each RED on HEAD bytes and green on the fix.
+- `docs/ROADMAP.md` #553–#555: Reg M-C's move and item changes (sequenced after the Reg M-B gate
+  opens), the pre-commit hook failing on a fresh clone, and the roster's `in_scope` derivation;
+  #536 closed, #551 attributed, #552 closed.
+
+### Changed
+- **The BOARD-MATERIAL quarantine clause counts void games whose boards parted before going
+  low-identity.** `engine/quarantine.js` reads `3 of 961` on `data/game-differential.json` (release
+  `b730e44f3314`) where it read `0 of 958`, and the gate re-closes on the board clause. Same artifact,
+  no re-run; the old figure was the count after the three counterexamples left the denominator.
+- **NMF ships rank 4, read from the artifact that selects it.** `engine/nmf_roles.py` reads
+  `data/nmf-rank-selection.json:most_reproducible.rank` and fails if absent (was hand-set 6), and
+  writes rank source, store and quality-input receipts; `data/nmf-roles.json` regenerated
+  (`archetype_recon_error` 0.738). `engine/nmf_rank.py` takes the bootstrap pair count from argv and
+  records `cophenetic_correlation: null`. `engine/eval_policy.py` stamps source, quality-input
+  receipts, split rule and seed; `data/policy-eval.json` re-run under quality filter 1.3.0
+  (`species_only_clone` top-1 0.293, top-3 0.6459, CE 2.3365 vs 4.7124 / 3.6978, 118,274 clicks).
+- `data/games.selfplay.jsonl`: 89 colliding `selfplay-1-N` ids from the 2026-08-19 batch re-id'd as
+  `selfplay-1-1787183460-N`; 3,090 lines, 3,090 unique ids; no game dropped (closes #536).
+- `data/store-validation.json` refreshed on 92,379 games; `tests/test-quality.js` 29/3 → 31/1.
+
+### Fixed
+- **The next-regulation detector trusted the client bundle over the replay server.** Reg M-C
+  (`gen9championsvgc2026regmc`, `...regmcbo3`) was playable and had replays while
+  `engine/next_regulation.js` printed "does not exist yet", because its arrival signal was
+  `play.pokemonshowdown.com/data/formats.js` (a day stale) and its replay sample was page 1 of ALL
+  formats (0 of 51). It now probes `search.json?format=<id>` for ids derived by advancing the active
+  regulation's letter, and names both formats `candidate [replay]`. The scheduled ingest collects them
+  on its next run with no config edit; Reg M-B stays active and nothing is simulated.
+  `tests/test-next-regulation.js` +6 checks, green.
+
+- **The archive index was stale on a fresh clone.** `tests/test-docs-current.js` clause "the archive
+  index matches the headers in docs/archive/" is green locally only because the working tree carries
+  a rebuilt copy; a clean checkout at `49793320` fails it. Rebuilt with `node build/build_archive_index.js`
+  and committed, so CI and a fresh clone read the same gate the laptop does.
+- **Two of the three void games were the engine.** Misty Terrain refuses every status on a grounded
+  body, announcing only for a top-level-`status` move or Yawn (`data/moves.ts:12173-12179`); a charge
+  move's release slot is the slot as CHOSEN (`sim/battle-actions.ts:291`, `data/conditions.ts:298`),
+  not the body the charge turn was re-aimed onto. The third is the instrument
+  (`engine/game_differential.js:1623`, a stale `activeTarget` addressed into a between-action die)
+  and stays on #551, owed to MEASURE. Census 830/830 unchanged.
+- **`engine/docs_scan.js` rule 3d (#552):** a block-level qualifier word and set-membership over the
+  whole artifact let a mutated headline pass byte-identically; now sentence-scoped, field-aware, dated
+  against the artifact's own `generated` stamp (a predating figure is reported, not accused), and the
+  19 browser bundles parse. `tests/test-docs-current.js` 32/1 → 35/0; baseline re-keyed 59 → 45
+  with reasons; the MILTANK profile row's figures are withheld, not captioned.
+- Three float-LCG generators in `tests/` replaced by the shared mulberry32 (`test-prng` 6/1 → 7/0);
+  the two hard identity reads in `probe_weather_forme_faint.js` go through `stableKey`
+  (`identity_audit` 2 UNROUTED → 0); two artifacts' `generated` stamps inside conformance's header
+  window and five RAW-STORE declarations folded into their opening comments (convention 29 → 24;
+  `selftest` raw readers 16 → 4).
+- 11 fixture pairings the Champions validator refuses, plus one stray literal, repaired across
+  `probe_turn_order.js`, `probe_hazard_sweep_order.js` and `probe_punish_side_and_sky.js` with derived
+  carriers; the hazard-sweep SPIN control no longer passes on an empty log.
+- The roles count (52, not 26) in five living documents; GURU 0.7122 → 0.7124 with the family
+  statement; both VGC-Bench titles; the PokeAgent arXiv id restored as verified; XATU's clone figures
+  in SUMMARY re-derived from `data/policy-eval.json`.
+- `docs/ARCHITECTURE-REVIEW-2026-09-09.md` gains a same-day corrections section: finding 11 (roster
+  139 of 202) is withdrawn on Will's ruling that the untested abilities have no legal carrier; the
+  fresh-clone finding; the numbers-corrected row no longer restates withheld MILTANK figures.
+
+### Removed
+- Nothing from the engine. The review's pre-6.0.0 item 11 is withdrawn, not deleted — the record
+  keeps it struck with the ruling beside it.
+
+### Notes
+- **MINOR.** Figures moved under an unchanged basis: NMF rank 4 (was hand-set 6), the XATU clone
+  re-derived under quality filter 1.3.0, and the board clause now counting the parted void games
+  (`3 of 961` where `0 of 958` was read from the same artifact). No published figure answers a
+  different question than before.
+- **The whole-game gate clauses are being re-measured on the moved engine in this same release** —
+  the two engine fixes above moved `engine/medicham2-browser.js` after `b730e44f3314` was cut, so
+  every clause reading that release says `MEASURED AGAINST A DIFFERENT ENGINE` until the pinned
+  re-run lands. A notes row follows it; nothing in this entry claims the re-measured count.
+- The first scheduled run of `next-regulation.yml` is not observed; the automatic path is proven
+  locally only. Reg M-C is collected, not simulated, and its move/item changes are #553.
+- The Reg M-C stores and raw shards from the rehearsal pulls land with this release.
+
 ## [5.275.0] — 2026-09-09
 
 ### Added

@@ -93,8 +93,22 @@ const STORES = ['games.ladder.jsonl', 'games.ots.jsonl', 'games.bo3.jsonl'];
  * STORES today and goes stale the day a fourth store is added, silently, because nothing would
  * compare them. The naming rule is not a coincidence to be re-stated — it is engine/durable-ingest.js's
  * own `const RAW = STORE.replace(/\.jsonl$/,'') + '.raw-logs.jsonl'`, applied here to the same list. */
-const RAW_STORES = STORES.map(s => s.replace(/\.jsonl$/, '') + '.raw-logs.jsonl');
 const RAW_DIR = path.join(D, 'raw');
+/* THE NEXT-REGULATION RAW LOGS, WHOSE STORE NAMES DO NOT EXIST UNTIL SHOWDOWN SHIPS THE FORMAT.
+ * engine/next_regulation_ingest.js writes data/games.<formatid>.jsonl and, through the same
+ * durable-ingest.js rule, data/games.<formatid>.raw-logs.jsonl. Those raw logs are gitignored like
+ * the others and until 2026-09-09 nothing sharded them, so every log CI collected for a new
+ * regulation lived on one runner for one job and was gone — the exact hole the raw shards were built
+ * to close, open again for the one corpus that cannot be re-fetched later. DERIVED FROM DISK, never
+ * typed: a plain archive under data/, or a shard directory already under data/raw/ (a fresh runner
+ * has the shards and not the plain file). The shape is the collector's own file name. */
+const NEXT_REG_RAW = (() => {
+  const s = new Set();
+  try { for (const f of fs.readdirSync(D)) if (/^games\.gen9champions[a-z0-9]+\.raw-logs\.jsonl$/.test(f)) s.add(f); } catch (e) { /* no data dir */ }
+  try { for (const f of fs.readdirSync(RAW_DIR)) if (/^games\.gen9champions[a-z0-9]+$/.test(f)) s.add(f + '.raw-logs.jsonl'); } catch (e) { /* no shards yet */ }
+  return [...s].sort();
+})();
+const RAW_STORES = STORES.map(s => s.replace(/\.jsonl$/, '') + '.raw-logs.jsonl').concat(NEXT_REG_RAW);
 const PARSED_DIR = path.join(D, 'parsed');
 const CHECK = process.argv.includes('--check');
 const SYNC  = process.argv.includes('--sync');

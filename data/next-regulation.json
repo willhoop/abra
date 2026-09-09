@@ -1,13 +1,13 @@
 {
- "generated": "2026-09-01T02:19:11.186Z",
+ "generated": "2026-09-09T20:52:03.218Z",
  "mode": "scheduled",
  "detection": {
-  "generated": "2026-09-01T02:19:11.181Z",
+  "generated": "2026-09-09T20:52:03.215Z",
   "authorities": {
    "live": {
     "url": "https://play.pokemonshowdown.com/data/formats.js",
     "reached": true,
-    "formats_listed": 342,
+    "formats_listed": 345,
     "vgc_reg_rows": 4
    },
    "dex": {
@@ -19,6 +19,22 @@
    "replays": {
     "url": "https://replay.pokemonshowdown.com/search.json?page=1",
     "sample": 51
+   },
+   "replay_search": {
+    "url": "https://replay.pokemonshowdown.com/search.json?format=<id>",
+    "probed": [
+     "gen9championsvgc2026regmc",
+     "gen9championsvgc2026regmcbo3",
+     "gen9championsvgc2026regmd",
+     "gen9championsvgc2026regmdbo3",
+     "gen9championsvgc2026regme",
+     "gen9championsvgc2026regmebo3"
+    ],
+    "hits": [
+     "gen9championsvgc2026regmc",
+     "gen9championsvgc2026regmcbo3"
+    ],
+    "vgc_reg_rows": 2
    }
   },
   "active_regulation": "regmb",
@@ -28,12 +44,13 @@
    "gen9championsvgc2026regmbbo3"
   ],
   "counters": {
-   "vgc_regulation_formats_detected": 4,
+   "vgc_regulation_formats_detected": 6,
    "known": 2,
-   "unknown": 2,
-   "candidates": 0,
+   "unknown": 4,
+   "candidates": 2,
    "superseded": 2,
-   "collectable_not_simulatable": 0,
+   "collectable_not_simulatable": 2,
+   "replay_only": 2,
    "problems": 0
   },
   "formats": [
@@ -109,7 +126,7 @@
     "known": true,
     "later_than_active": false,
     "classification": "known",
-    "recent_replays": 7,
+    "recent_replays": 0,
     "simulatable": true,
     "collectable": true
    },
@@ -135,37 +152,157 @@
     "known": true,
     "later_than_active": false,
     "classification": "known",
-    "recent_replays": 4,
+    "recent_replays": 0,
     "simulatable": true,
+    "collectable": true
+   },
+   {
+    "name": "[Gen 9 Champions] VGC 2026 Reg M-C",
+    "seen_in": [
+     "replay"
+    ],
+    "ruleset": [],
+    "id": "gen9championsvgc2026regmc",
+    "gen": 9,
+    "year": 2026,
+    "token": "mc",
+    "bo3": false,
+    "bo3_source": null,
+    "replay_games": 51,
+    "replay_newest": "2026-09-09T20:52:03.000Z",
+    "known": false,
+    "later_than_active": true,
+    "classification": "candidate",
+    "recent_replays": 9,
+    "simulatable": false,
+    "collectable": true
+   },
+   {
+    "name": "[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)",
+    "seen_in": [
+     "replay"
+    ],
+    "ruleset": [],
+    "id": "gen9championsvgc2026regmcbo3",
+    "gen": 9,
+    "year": 2026,
+    "token": "mc",
+    "bo3": true,
+    "bo3_source": "idsuffix",
+    "replay_games": 51,
+    "replay_newest": "2026-09-09T20:52:01.000Z",
+    "known": false,
+    "later_than_active": true,
+    "classification": "candidate",
+    "recent_replays": 5,
+    "simulatable": false,
     "collectable": true
    }
   ],
-  "candidates": [],
+  "candidates": [
+   {
+    "name": "[Gen 9 Champions] VGC 2026 Reg M-C",
+    "seen_in": [
+     "replay"
+    ],
+    "ruleset": [],
+    "id": "gen9championsvgc2026regmc",
+    "gen": 9,
+    "year": 2026,
+    "token": "mc",
+    "bo3": false,
+    "bo3_source": null,
+    "replay_games": 51,
+    "replay_newest": "2026-09-09T20:52:03.000Z",
+    "known": false,
+    "later_than_active": true,
+    "classification": "candidate",
+    "recent_replays": 9,
+    "simulatable": false,
+    "collectable": true
+   },
+   {
+    "name": "[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)",
+    "seen_in": [
+     "replay"
+    ],
+    "ruleset": [],
+    "id": "gen9championsvgc2026regmcbo3",
+    "gen": 9,
+    "year": 2026,
+    "token": "mc",
+    "bo3": true,
+    "bo3_source": "idsuffix",
+    "replay_games": 51,
+    "replay_newest": "2026-09-09T20:52:01.000Z",
+    "known": false,
+    "later_than_active": true,
+    "classification": "candidate",
+    "recent_replays": 5,
+    "simulatable": false,
+    "collectable": true
+   }
+  ],
   "problems": []
  },
  "counters": {
-  "vgc_regulation_formats_detected": 4,
+  "vgc_regulation_formats_detected": 6,
   "known": 2,
-  "unknown": 2,
-  "candidates": 0,
+  "unknown": 4,
+  "candidates": 2,
   "superseded": 2,
-  "collectable_not_simulatable": 0,
+  "collectable_not_simulatable": 2,
+  "replay_only": 2,
   "problems": 0,
-  "formats_collected": 0,
-  "games_appended": 0,
-  "stores_written": 0
+  "formats_collected": 2,
+  "games_appended": 19,
+  "stores_written": 2
  },
- "collected": [],
- "reconciled": [],
+ "collected": [
+  {
+   "format": "gen9championsvgc2026regmc",
+   "store": "games.gen9championsvgc2026regmc.jsonl",
+   "before": 1399,
+   "after": 1412,
+   "appended": 13,
+   "ingest_said": "coverage: gen9championsvgc2026regmc pages=25 offered=1275 unique=1250 new=13 held=1237 oldest_offered=2026-09-09T10:59:21Z newest_offered=2026-09-09T20:52:03Z newest_stored=2026-09-09T20:48:00Z"
+  },
+  {
+   "format": "gen9championsvgc2026regmcbo3",
+   "store": "games.gen9championsvgc2026regmcbo3.jsonl",
+   "before": 721,
+   "after": 727,
+   "appended": 6,
+   "ingest_said": "coverage: gen9championsvgc2026regmcbo3 pages=15 offered=742 unique=727 new=6 held=721 oldest_offered=2026-09-09T08:08:33Z newest_offered=2026-09-09T20:52:01Z newest_stored=2026-09-09T20:47:00Z"
+  }
+ ],
+ "reconciled": [
+  {
+   "store": "games.gen9championsvgc2026regmc.jsonl",
+   "rows": 1412,
+   "before": 1412,
+   "from_gz": 1399,
+   "from_plain": 13,
+   "wrote": true
+  },
+  {
+   "store": "games.gen9championsvgc2026regmcbo3.jsonl",
+   "rows": 727,
+   "before": 727,
+   "from_gz": 721,
+   "from_plain": 6,
+   "wrote": true
+  }
+ ],
  "problems": [],
  "by": "engine/next_regulation_ingest.js",
  "source_digests": {
-  "engine/next_regulation_ingest.js": "6708405545bd",
-  "engine/next_regulation.js": "6664afe6622c",
-  "engine/durable-ingest.js": "7861dd8766a0",
+  "engine/next_regulation_ingest.js": "1a378ccb7f37",
+  "engine/next_regulation.js": "724909f35601",
+  "engine/durable-ingest.js": "05b87610883b",
   "data/regulations.json": "6c1995e9a9fb",
   "note": "Content, not mtime. A checkout moves an mtime without moving code."
  },
  "note": "Rewritten only when the detection changes. engine/next_regulation_ingest.js runs every six hours; an old `generated` means the answer has not moved, NOT that the check stopped. The run log is the record that it ran.",
- "signature": "{\"formats\":[[\"gen9championsvgc2026regma\",\"superseded\",\"live+dex\"],[\"gen9championsvgc2026regmabo3\",\"superseded\",\"live+dex\"],[\"gen9championsvgc2026regmb\",\"known\",\"live+dex\"],[\"gen9championsvgc2026regmbbo3\",\"known\",\"live+dex\"]],\"candidates\":0,\"unknown\":2,\"lagging\":0,\"collected\":0,\"problems\":0}"
+ "signature": "{\"formats\":[[\"gen9championsvgc2026regma\",\"superseded\",\"live+dex\"],[\"gen9championsvgc2026regmabo3\",\"superseded\",\"live+dex\"],[\"gen9championsvgc2026regmb\",\"known\",\"live+dex\"],[\"gen9championsvgc2026regmbbo3\",\"known\",\"live+dex\"],[\"gen9championsvgc2026regmc\",\"candidate\",\"replay\"],[\"gen9championsvgc2026regmcbo3\",\"candidate\",\"replay\"]],\"candidates\":2,\"unknown\":4,\"lagging\":2,\"collected\":2,\"problems\":0}"
 }

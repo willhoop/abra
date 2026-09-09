@@ -18,11 +18,13 @@ numbers were untrustworthy and the "rock-paper-scissors" cycle had error bars cr
 
 The literature is explicit about the right framing: multi-label classification (Tsoumakas & Katakis,
 2007), team-as-a-mixture-of-latent-roles (topic models; Blei, Ng & Jordan, 2003), and the finding that
-latent roles beat raw identity for outcome prediction in team sports (arXiv 2304.08272).
+latent roles beat raw identity for outcome prediction in team sports (arXiv 2304.08272 — cited as
+motivation; no method from it is used here).
 
 ## 2. The role model
 
-We define **26 functional roles** — speed control (Tailwind, Trick Room, speed drops), weather, terrain,
+We define **52 functional roles** (`data/pokemon-roles.json:roles`, 52 keys; 47 credited to at least one
+species above `rate_floor` 0.05, 40 at `present_at` 0.5; the "26" typed here until 2026-09-09 was stale) — grouped as speed control (Tailwind, Trick Room, speed drops), weather, terrain,
 disruption (Fake Out, redirection, Taunt, Encore), status, debuff (Intimidate and stat drops), priority,
 prankster, setup, healing, screens, walls, pivot, trapping, Perish, ally-support, item-disruption, and
 physical / special attacker.
@@ -51,7 +53,7 @@ measured directly from the turn log.
 ## 3. WAR — Wins Above Replacement
 
 To attribute wins to individual Pokémon while controlling for teammates and opponents, we borrow
-basketball's **Regularized Adjusted Plus-Minus (RAPM)**. One row per game, label 1 if player-1 won,
+basketball's **Regularized Adjusted Plus-Minus (RAPM)** (Rosenbaum 2004, Sill 2010). One row per game, label 1 if player-1 won,
 features = the difference of the two teams' species-presence vectors at preview. A ridge-regularized
 logistic regression gives each species an adjusted win contribution β; ridge shrinks rare species toward
 zero so a three-game fluke cannot post a huge number. With replacement set at the 20th-percentile β and
@@ -72,26 +74,34 @@ Factorization** (Lee & Seung, *Nature* 1999): approximate the big table as X ≈
 non-negative, so each team is a **blend** of latent roles and each role is a recipe over features. Because
 nothing is negative, a team reads as "60% Intimidate control + 30% Tailwind offense," never as one minus
 another. A move's loading on a role is **learned**, which is the principled source of the graded strength
-we refused to type by hand (Label Distribution Learning; Geng, 2016).
+we refused to type by hand (Label Distribution Learning, Geng 2016, is cited as motivation — nothing here
+implements LDL).
 
 Two cuts:
 
 - **Team × move usage** (weighted by real in-battle usage, which down-weights the closed-sheet censoring
-  bias) recovers **offensive cores** but is dominated by attacking moves — reconstruction error 0.79.
-- **Team × role** at the shipped rank 6 — reconstruction error **0.682** (`data/nmf-roles.json:archetype_recon_error`, 2026-08-04; ~~0.53~~ withdrawn 2026-09-09, an earlier run's value). On the project's own criterion the shipped rank scores **−0.107** excess over a shuffled null (`data/nmf-rank-selection.json`; rank 4 is the most reproducible at +0.0775), so the six below are named, not defended:
+  bias) recovers **offensive cores** but is dominated by attacking moves — reconstruction error **0.8348**
+  (`data/nmf-roles.json:reconstruction_error_ratio`, 64,179 team-docs × 375 moves).
+- **Team × role** at **rank 4** — the rank is read from `data/nmf-rank-selection.json:most_reproducible.rank` by
+  `engine/nmf_roles.py` since 2026-09-09 (it was hand-set to 6 before, and the script now fails if the artifact
+  is absent). Reconstruction error **0.738** (`data/nmf-roles.json:archetype_recon_error`, regenerated
+  2026-09-09 over 63,882 team-sides × 52 roles; `store.sha256` cde0fa05d517…,
+  `archetype_rank_source.sha256` f1354dd83974…). The ~~0.682~~ at rank 6 is superseded and not
+  comparable. On the project's own criterion, `data/nmf-rank-selection.json` (2026-07-28, `bootstrap_pairs` 6, `iters` 300, `matrix` 7,330 × 46) scores rank 4 at `stability` 0.9992 against a shuffled `null_stability` of 0.9217 (`excess_over_null` **+0.0775**, the maximum over ranks 2–12); the previously shipped rank 6 scored **-0.107** (0.8148 vs 0.9218). The four below are composed by the data and
+  **named** by a human:
 
-| # | Archetype | Composition (top roles) | Share |
+| # | Archetype (human name) | Composition (`top_roles`, share of the factor) | Share (`prevalence`) |
 |---|---|---|---|
-| A1 | Intimidate control | Debuff/Intimidate 56% · Fake Out 19% · Pivot 5% | 20% |
-| A2 | Physical offense | Physical attacker 83% · Pivot 5% · Item disruption 5% | 19% |
-| A3 | Special offense + sustain | Special attacker 81% · Status 7% · Healing 5% | 18% |
-| A4 | Bulky wall + support | Wall 49% · Screens 9% · Redirection 8% · Healing 5% | 17% |
-| A5 | Tailwind offense | Tailwind 85% · Encore 9% | 15% |
-| A6 | Priority offense | Priority 89% · Setup 4% · Fake Out 3% | 11% |
+| A1 | Physical + priority offense | Physical attacker 39% · Priority attacker 22% · Setup / sweeper 6% · Tailwind (speed up) 6% | 27.1% |
+| A2 | Bulky support + rain | Bulky wall / support 23% · Special attacker 15% · Rain setter 10% · Redirection 6% | 25.7% |
+| A3 | Spread offense | Spread attacker (both foes) 54% · Special attacker 8% · Tailwind (speed up) 6% · Sand setter 4% | 25.2% |
+| A4 | Intimidate + Fake Out control | Debuff (Intimidate / drops) 42% · Fake Out (tempo) 26% · Pivot 8% · Setup / sweeper 3% | 22.1% |
 
-The support/redirection core (A4) — the interesting, non-obvious structure — separates out cleanly here,
-which the move-level cut could not surface. The only human choices are the **rank** (six) and the
-**names**; everything else is from ~13,000 team-sides across the store.
+The Intimidate + Fake Out control core (A4) and the bulky-support core (A2, with rain and redirection loading on
+it) are the non-obvious structure the move-level cut could not surface. The only human choice left is the
+**names**; the rank is read from the selection artifact and everything else is from 63,882 team-sides across
+the store. The selection artifact is the weak link: 2026-07-28, 6 bootstrap pairs (the defence asks ≥ 50),
+no cophenetic correlation — `python engine/nmf_rank.py 50` is owed.
 
 ## 5. Honest limits
 
@@ -101,12 +111,17 @@ which the move-level cut could not surface. The only human choices are the **ran
   actually clicked.
 - NMF factors are soft, and at the move level attacker roles dominate. Reconstruction error is **not**
   comparable across different weightings and cannot select a rank (`engine/nmf_rank.py`); the criterion this
-  project actually ran — bootstrap factor stability — puts the shipped rank 6 below the null (§4).
+  project actually ran — bootstrap factor stability — now SETS the shipped rank (4, §4), but from a
+  6-pair selection on a 2026-07-28 store, so the rank is read rather than defended until
+  `python engine/nmf_rank.py 50` is run.
   ~~Topic coherence (Mimno et al., 2011) is the noted next refinement~~ — deleted 2026-09-09: not run, and
   *next* is not a justification.
 
 ## Sources
 
 Tsoumakas & Katakis 2007 (multi-label) · Blei, Ng & Jordan 2003 (LDA) · Lee & Seung 1999 (NMF) ·
-Geng 2016 (Label Distribution Learning) · Mimno et al. 2011 (topic coherence) · Rosenbaum-style RAPM
-(basketball adjusted plus-minus) · latent roles in team sports (arXiv 2304.08272).
+Geng 2016 (Label Distribution Learning — motivation) · Mimno et al. 2011 (topic coherence — not run) ·
+Rosenbaum 2004, *Measuring How NBA Players Help Their Teams Win*, 82games.com, and Sill 2010, *Improved NBA
+Adjusted +/- Using Regularization and Out-of-Sample Testing*, MIT SSAC (RAPM) · Pearl 1988, *Probabilistic
+Reasoning in Intelligent Systems*, Morgan Kaufmann (noisy-OR, `engine/roles.py` `team_roles`) · latent roles
+in team sports (arXiv 2304.08272 — motivation).

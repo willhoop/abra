@@ -77,7 +77,10 @@ const REPS = 5;
 
 /* A deterministic stream. Math.random would make two runs incomparable, and the engine's own seeded
  * rng is what the rest of the harness uses. */
-function lcg(seed) { let s = seed >>> 0; return () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return (s % 10000) / 10000; }; }
+/* mulberry32 — the same generator engine/chomp_ev.js and build/build_mew_bundle.js use. The float LCG
+ * `(s * 1103515245 + 12345) & 0x7fffffff` that sat here overflows float53 and cycles (tests/test-prng.js);
+ * the stream changed with it, so a ms/turn read before 2026-09-09 is not a comparand for one after. */
+function lcg(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) | 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
 function loadEngine(relId) {
   for (const k of Object.keys(require.cache)) if (/medicham2-browser/.test(k)) delete require.cache[k];

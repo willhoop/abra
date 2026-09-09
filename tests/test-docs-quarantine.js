@@ -92,7 +92,6 @@ const BASELINE = new Set([
   "docs/MEASURE.md|396,288|data/policy-weights-joint.json",
   "docs/MEASURE.md|44,982|data/sheet-channel-value.json",
   "docs/MEASURE.md|48,274|data/censoring-value.json",
-  "docs/MEASURE.md|51.25%|data/winrate-backtest.json",
   "docs/MEASURE.md|55.92%|data/leaf-position-contrast.json",
   "docs/MEASURE.md|6,890|data/winrate-backtest.json",
   "docs/MEASURE.md|7,994|data/leaf-engine-contrast.json",

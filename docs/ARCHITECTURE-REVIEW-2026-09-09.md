@@ -653,7 +653,7 @@ listed in the report's OWED block and in §8):
 | functional roles | 26 | 52 in `ROLE_SIGNALS`; 46 matrix columns | whitepaper `:1945`; `ROLE-FAMILY.md:25`; `SUMMARY.md:1309` |
 | ROLE-FAMILY §4 archetype table and names | the 2026-07-24 run's | `data/nmf-roles.json:archetypes` | `docs/ROLE-FAMILY.md` §4; whitepaper, MODELS |
 | store sharding | "Supersedes. Nothing." | 11,110 + 4,752 ids dropped from the tracked store — superseded by the record-keeping pass's store-recovery row (§3.5) | `docs/RUNNING-NOTES.md:573` block |
-| MILTANK profile figures in a notes row | 66.6%, 27.1%, 92.0%, 25514, 42510, 99.5%, 78.8%, 83.7% | withheld (STAY artifact `data/search-decision-profile.json`) | `docs/RUNNING-NOTES.md:286` |
+| MILTANK profile figures in a notes row | eight values from a STAY artifact — not restated here, because quoting a withheld figure to say it is withheld still publishes it | withheld (STAY artifact `data/search-decision-profile.json`) | `docs/RUNNING-NOTES.md:286` |
 | SOURCES count | "twenty-five" | 27 (`require('./engine/engine_release.js').SOURCES.length`) | `CLAUDE.md`; `.gitattributes` says 26 |
 | ingest cadence | "hourly" | every six hours since 2026-08-21 (`ingest.yml:5-16`) | `CLAUDE.md:286`, `:706` |
 
@@ -1096,3 +1096,51 @@ the coordinator's own commands; everything else is cited to the division report 
 Nothing under `engine/`, `tests/` or `data/` was edited by the review draft; the three fix passes it
 records (§3) edited `build/compress-stores.js`, `engine/dedupe_store.py`, `data/parsed/` (additions
 only) and `data/docs-currency-baseline.json`, and nothing under `tests/`. This file is a dated record.*
+
+---
+
+## Corrections, same day
+
+*Added 2026-09-09, after the review was written. The body above is a dated record and is not edited
+(the scope report's precedent); each line here names what changed and where the receipt is.*
+
+- **Finding 11 and pre-6.0.0 item 11 are WITHDRAWN.** Will, 2026-09-09: *"the abilities not tested are
+  not in the game so we removed them please stop quoting them."* The abilities the roster gate did not
+  test have no legal carrier in Reg M-B — `data/roster.abilities.json:scope.out_of_scope_by` reads
+  `no-legal-carrier` 114 and those rows are gone from `results` — so "139 of 202" was never evidence
+  for a claim about legal abilities the gate skipped: the in-scope remainder is 44 COULD-NOT-STAGE, 14
+  CONTROL-NOT-QUIET and 5 DEFERRED-BY-OWNER beside 139 FIRED-AND-BOARDS-MATCH, and the three real
+  ones are the instrument's debt (item 16 stands). The owed wiring is that `tests/roster.js` derives
+  `in_scope` by LEGAL CARRIER so the gate's SCOPE line stops printing them: ROADMAP #555, ENGINE, not
+  a 6.0.0 blocker. Item 11's "state the compared set" wording goes with it.
+- **The pre-commit hook cannot pass on a fresh clone — finding 4 predicted the shape and the hook
+  demonstrated it.** A clean checkout at `49793320` fails `tests/test-artifact-rerunnable.js` ("99
+  stamped artifacts over 36 releases: 99 STRANDED" — `data/releases/` is gitignored except the
+  force-added few), the generated-bundle gate's MTIME clause ("`data/engine-data.js` is older than
+  source" on bytes identical to a commit that passed), and the archive-index clause (rebuilt and
+  committed in 5.276.0, the only one of the three now closed). Every commit therefore comes from this
+  laptop. ROADMAP #554, MEASURE. Receipts: the coordinator's log, 2026-09-09.
+- **The "Numbers corrected" row for the MILTANK profile figures no longer restates the withheld
+  values.** `tests/test-docs-quarantine.js` flagged the row (eight figures read from
+  `data/search-decision-profile.json`, a STAY artifact); the coordinator replaced them with the
+  withholding. A caption is not a quarantine, and a review table quoting a withheld figure to say it
+  is withheld is a caption.
+- **Landed after this document was written**, one line each (all in CHANGELOG 5.276.0):
+  - Void games: two of three were the engine and are closed (Misty Terrain's `onSetStatus`; a charge
+    move's release at the CHOSEN slot), one is the instrument (`game_differential.js:1623`, a stale
+    `activeTarget`) — item 3, `docs/_reports/2026-09-09-void-games-attribution.md`.
+  - Board clause: `engine/quarantine.js` counts a void game whose board parted — **3 of 961** on the
+    same artifact where this review read 0 of 958; MEASURE §3's bound, made a count.
+  - Release `b730e44f3314` tracked, 29 files — item 5.
+  - Pin refusal: `engine_release.js cut` and the differential's `--release` path refuse when the
+    Showdown checkout is off `PINNED_COMMIT` — item 19.
+  - Ingest guard wired: `compress-stores.js --check` runs in `ingest.yml` before commit, depth-2
+    checkout — item 2's remainder.
+  - Self-play store: 3,090 lines / 3,090 unique ids — #536 closed.
+  - Docs gate: rule 3d, `tests/test-docs-current.js` 35/0, the 27 → 41 mutation caught by name —
+    item 6, #552 closed.
+  - Seven waivers by name in `data/test-waivers.json`, printed by the runner — item 7's second half.
+  - Hourly Reg M-C collector (`next-regulation.yml`) and the ingest gap detector; Reg M-C's own move
+    and item changes are #553, sequenced after the Reg M-B gate opens.
+  - NMF ships rank 4, read from `data/nmf-rank-selection.json`; `data/policy-eval.json` re-run under
+    quality filter 1.3.0 — T1, T6, T8 and T9 in part.

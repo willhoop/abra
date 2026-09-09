@@ -1771,6 +1771,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * turns later. So a run with Electric Terrain and a Yawn in it where `Yawn` stays 0 while `Sleep`
    * moves is precisely the half-wired state, and one merged counter could not have said so. */
   terrainRefusedSleep: 0, terrainRefusedYawn: 0,
+  /* 2026-09-09 -- MISTY TERRAIN'S `onSetStatus` (data/moves.ts:12173-12179, no Champions override).
+   * `mistyRefusedStatus` is every refusal; `mistyRefusalAnnounced` the subset that wrote
+   * `-activate|TARGET|move: Misty Terrain`, which the authority writes only for a move carrying a
+   * top-level `status` or for the yawn condition. Kept apart for the same reason as the Electric pair
+   * above: a refusal that fires and never announces is the half-wired state. Zero on the pinned pool's
+   * `omit-protect 2662758209` game means the terrain is up and not consulted. */
+  mistyRefusedStatus: 0, mistyRefusalAnnounced: 0,
   /* 2026-09-01 -- the `-activate|TARGET|move: Electric Terrain` the refusal writes. Counted apart from
    * the refusal itself because the authority's announce is CONDITIONAL where the refusal is not: a run
    * where `terrainRefusedSleep` moves and this never does is an engine refusing silently. */
@@ -2715,6 +2722,16 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * DECLARED HERE for the reason directly above: an undeclared key makes `++` produce NaN, which
    * prints as `null` and reads exactly like a counter that never fired. */
   chargeReleasedAtRememberedSlot: 0, chargeReleaseSlotVacated: 0, chargeReleaseNoRememberedSlot: 0,
+  /* 2026-09-09 -- WHERE THE CHARGE TURN TOOK ITS MEMORY FROM.
+   *   chargeSlotFromChosen              the remembered slot is `it.tgtSlot`, the slot as CHOSEN, which is
+   *                                     the authority's `lastMoveTargetLoc` (sim/battle-actions.ts:291).
+   *   chargeSlotChosenDiffersFromReaimed  the chosen slot and the body the charge actually struck at
+   *                                     disagree -- the aimed foe died before the charge ran and the
+   *                                     dispatch re-aim moved `a.target`. This is the pinned pool's
+   *                                     `omit-spread 2658645239`: a Phantom Force aimed at a Slowbro that
+   *                                     Flare Blitz killed first released at the LIEPARD beside it, where
+   *                                     the authority released at the MUDSDALE that took Slowbro's slot. */
+  chargeSlotFromChosen: 0, chargeSlotChosenDiffersFromReaimed: 0,
   /* 2026-09-05 -- a charge dropped because the BeforeMove gate refused the move, which is the
    * authority's `twoturnmove.onMoveAborted`. Zero on a run containing a flinched or slept charge means
    * the marker never armed and the wrapper is surviving a refusal again. */
@@ -19768,6 +19785,32 @@ function allyRefusesVolatile(t,vol){
  * THE FIELD IS READ OFF THE BODY'S OWN SIDE, the same road ROADMAP #213's Leaf Guard arm takes, and a
  * body with no side stamp is COUNTED rather than defaulted. Silently reading "no terrain" would turn
  * the protection off in exactly the bare unit-test call, which is the silent-default shape. */
+/* 2026-09-09 -- MISTY TERRAIN'S `onSetStatus`, THE WHOLE OF IT (data/moves.ts:12173-12179; the Champions
+ * mod does not name mistyterrain at all, so mainline is the authority):
+ *
+ *     onSetStatus(status, target, source, effect) {
+ *       if (!target.isGrounded() || target.isSemiInvulnerable()) return;
+ *       if (effect && ((effect as Move).status || effect.id === 'yawn')) {
+ *         this.add('-activate', target, 'move: Misty Terrain');
+ *       }
+ *       return false;
+ *     }
+ *
+ * EVERY status, EVERY source -- a move's primary, a secondary, an orb, Toxic Spikes, Rest's own sleep --
+ * on a grounded body that is not semi-invulnerable. The same three tests as the Electric predicate below
+ * it, with the terrain id and no status filter. What differs is only the SENTENCE, decided at the caller. */
+function mTerrainRefusesStatusOn(t){
+  if(MISTY_STATUS_UNREFUSED)return false;
+  if(!t)return false;
+  const _S=t._sf&&t._sf._S,_f=_S&&_S.field;
+  if(!_f){MEDFAILS.terrainStatusFieldUnknown++;
+    if(!MEDFAILS.terrainStatusFieldUnknownFirst)MEDFAILS.terrainStatusFieldUnknownFirst=String(t.name||t.sp||'?');
+    return false;}
+  if(terrainId(_f.terrain)!=='misty')return false;
+  if(!isGrounded(t))return false;
+  if(t._invuln&&t._charging&&TAGS.has('move',t._charging,'semiInvulnerable'))return false;
+  return true;
+}
 function eTerrainRefusesSleepOn(t){
   if(ETERRAIN_ALLOWS_SLEEP)return false;
   if(!t)return false;
@@ -19839,6 +19882,30 @@ function applyStatus(t,st,src,eff,why,dstream){
       else _say=!(+_sc.count);
     }
     if(_say&&TR){TR.act(t,'move: Electric Terrain');MEDSEEN.terrainRefusalAnnounced++;}
+    if(why){why.reason='terrain';why.ability=null;}
+    return false;
+  }
+  /* 2026-09-09 -- MISTY TERRAIN'S `onSetStatus`, beside Electric Terrain's and for the same reason it
+   * sits here: it is the FIELD's refusal, above the target's own immunity table. Read off the pinned
+   * pool (`omit-protect 2662758209`): Clefable set Misty Terrain on turn 3, Klefki entered on turn 4 and
+   * this engine burned it off a Scorching Sands secondary, then paralysed a Typhlosion off Thunder Wave
+   * on turn 5, and the authority did neither -- the board parted at turn 4 on Klefki's status and HP.
+   *
+   * THE SENTENCE IS `(effect as Move).status || effect.id === 'yawn'` -- the move carries a TOP-LEVEL
+   * `status`, not a secondary. That is exactly the `inflicts*` tag's `via: 'primary'` (tag_dex.js:766
+   * derives it from `m.status === st`), so Thunder Wave announces and Scorching Sands is silent, which is
+   * what the authority's own log for this game shows (`-activate|p2a: Typhlosion|move: Misty Terrain` on
+   * turn 5; nothing at all under the turn-4 Scorching Sands). Rest has no top-level `status`
+   * (data/moves.ts:14978 calls `setStatus` from `onHit`), so it is refused silently here too. */
+  if(mTerrainRefusesStatusOn(t)){
+    MEDSEEN.mistyRefusedStatus++;
+    let _say=!!(eff&&String(eff.id||'')==='yawn');
+    if(!_say&&eff&&eff.kind==='move'){
+      const _pt={par:'inflictsParalysis',brn:'inflictsBurn',psn:'inflictsPoison',tox:'inflictsToxic',slp:'inflictsSleep',frz:'inflictsFreeze'}[st];
+      const _pp=_pt?TAGS.param('move',eff.id,_pt):null;
+      _say=!!(_pp&&_pp.via==='primary');
+    }
+    if(_say&&TR){TR.act(t,'move: Misty Terrain');MEDSEEN.mistyRefusalAnnounced++;}
     if(why){why.reason='terrain';why.ability=null;}
     return false;
   }
@@ -24547,6 +24614,20 @@ if(TERRAIN_SCALED_UNGATED)MEDFAILS.terrainScaledUngatedRestored=1;
 const ETERRAIN_ALLOWS_SLEEP=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_ETERRAIN_ALLOWS_SLEEP==='1');
 if(ETERRAIN_ALLOWS_SLEEP)MEDFAILS.eTerrainSleepAllowedRestored=1;
+/* 2026-09-09 -- `MEDI_MISTY_STATUS_UNREFUSED=1` RESTORES MISTY TERRAIN'S `onSetStatus` BEING ABSENT.
+ * The engine modelled the terrain's Dragon halving and declared its confusion refusal as a gap, and had
+ * NOTHING for the status refusal at all -- a grounded Klefki was burned by a Scorching Sands secondary and
+ * a grounded Typhlosion paralysed by Thunder Wave with the terrain up, on the pinned pool
+ * (`omit-protect 2662758209`, turns 4 and 5). Probe: tests/probe_misty_terrain_status.js. */
+const MISTY_STATUS_UNREFUSED=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_MISTY_STATUS_UNREFUSED==='1');
+if(MISTY_STATUS_UNREFUSED)MEDFAILS.mistyStatusUnrefusedRestored=1;
+/* 2026-09-09 -- `MEDI_CHARGE_REMEMBERS_REAIMED=1` RESTORES THE CHARGE TURN REMEMBERING THE RE-AIMED BODY'S
+ * SLOT rather than the slot as CHOSEN. See the charge site in `mk` and
+ * tests/probe_charge_release_chosen_slot.js. */
+const CHARGE_REMEMBERS_REAIMED=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_CHARGE_REMEMBERS_REAIMED==='1');
+if(CHARGE_REMEMBERS_REAIMED)MEDFAILS.chargeRemembersReaimedRestored=1;
 /* 2026-09-04 -- `MEDI_FRZ_IN_SUN=1` RESTORES THE SKY'S `onImmunity` BEING ABSENT: an Ice Punch freezes
  * a body standing under the sun exactly as it does on a clear field. That is what this engine did for
  * as long as it has had weather -- the sun's `onWeatherModifyDamage` was read and its `onImmunity` was
@@ -34002,9 +34083,25 @@ function battleTurn(S,rng,actsForA,actsForB){
              * `a.target` is the aim as CHOSEN, above `reaimToSlot`, which is the authority's own
              * "the location of the originally targeted slot before any redirection". A move with no
              * body attached leaves it null and the release falls back loudly. */
+            /* 2026-09-09 -- AND THE COMMENT ABOVE WAS FALSE: `a.target` is NOT the aim as chosen. The
+             * dispatch re-aim (`reaimToSlot` at the top of the kind dispatch) MUTATES `it.a.target` before
+             * this line runs, and when the chosen foe has already fainted this turn it moves the aim to the
+             * other live foe. So a Phantom Force aimed at a Slowbro that Flare Blitz killed first remembered
+             * the LIEPARD's slot and released there; the authority's `lastMoveTargetLoc` is written from the
+             * ORIGINAL `targetLoc` (sim/battle-actions.ts:291 `pokemon.moveUsed(move, targetLoc)`,
+             * sim/pokemon.ts:919), `twoturnmove.onStart` copies it (data/conditions.ts:298,308), and the
+             * release struck the MUDSDALE that took Slowbro's slot (pinned pool, `omit-spread 2658645239`,
+             * turn 3: `|-damage|p2a: Mudsdale|0 fnt` against `|-resisted|p2b: Liepard|1`).
+             *
+             * `it.tgtSlot` IS the chosen slot -- it is what `reaimToSlot` itself reads -- so the memory is
+             * taken from there. The old `indexOf(a.target)` stays as the fallback for an action that carries
+             * no foe slot, and as the knob's restore. */
             {const _cf=it.side==='A'?actB:actA;
              const _cix=a.target?_cf.indexOf(a.target):-1;
-             m._ttmTgtSlot=_cix>=0?_cix:null;}
+             const _chosen=(it&&typeof it.tgtSlot==='number'&&it.tgtSlot>=0)?it.tgtSlot:-1;
+             if(CHARGE_REMEMBERS_REAIMED){MEDFAILS.chargeRemembersReaimedRestored=1;m._ttmTgtSlot=_cix>=0?_cix:null;}
+             else if(_chosen>=0){MEDSEEN.chargeSlotFromChosen++;if(_cix>=0&&_cix!==_chosen)MEDSEEN.chargeSlotChosenDiffersFromReaimed++;m._ttmTgtSlot=_chosen;}
+             else m._ttmTgtSlot=_cix>=0?_cix:null;}
             m._invuln=TAGS.has('move',a.move.id,'semiInvulnerable');
             /* THE WRAPPER, ADDED HERE AND ONLY HERE, because the authority adds it here and only
              * here: `attacker.addVolatile('twoturnmove', defender)` is the LAST line of the handler,

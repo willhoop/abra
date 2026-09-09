@@ -2,6 +2,11 @@
  *
  *   SHOWDOWN_PATH=/path/to/pokemon-showdown node tests/run-all.js
  *   node tests/run-all.js --list          show what would run, and what would be skipped
+ *   node tests/run-all.js --only a,b      run only checks whose path contains a or b (NOT the suite)
+ *
+ * WAIVERS. A red check is fixed, or waived by Will by name — the waiver lives in data/test-waivers.json
+ * with his words and the date, and this runner PRINTS it as `WAIVED <path> — by Will <date>: <reason>`,
+ * counts it in its own `N waived` total, and leaves it out of the exit code. See the block by `all`.
  *
  * WHY THIS EXISTS
  * ---------------
@@ -590,6 +595,31 @@ const staleExemption = [...Object.keys(NOT_A_CHECK), ...Object.keys(PENDING_WIRE
 
 const all = [...testFiles, ...GATES];
 
+/* ---- waivers --------------------------------------------------------------------------------- */
+/* A RED TEST IS FIXED, OR WAIVED BY WILL, BY NAME, OUT LOUD (CLAUDE.md, "KNOWN FAILURE" IS A BANNED
+ * PHRASE). A waiver lives in data/test-waivers.json with his words and the date, and this runner
+ * PRINTS it on every run — a waived red is visible state, never a silent skip. It does not set the
+ * exit code. A waived check that PASSES is printed as no longer needing its waiver, so a stale entry
+ * is seen and removed; a waiver naming a path that is not in the suite is an ERROR, because a waiver
+ * must name a real check. The exit-2 SKIP path is untouched: a waived check that cannot run is a SKIP. */
+const WAIVER_FILE = D('data/test-waivers.json');
+const WAIVERS = new Map(fs.existsSync(WAIVER_FILE)
+  ? JSON.parse(fs.readFileSync(WAIVER_FILE, 'utf8')).waivers.map(w => [w.path, w]) : []);
+{
+  const unknown = [...WAIVERS.keys()].filter(p => !all.includes(p));
+  if (unknown.length) {
+    console.error(`ERROR — data/test-waivers.json names ${unknown.length} path(s) that are not in the suite: ` +
+      `${unknown.join(', ')}\n  A waiver must name a real check. Fix the path or delete the entry.`);
+    process.exit(1);
+  }
+}
+const waiverLine = w => `by ${w.waived_by} ${w.date}: ${w.reason}`;
+/* --only a,b  runs only the checks whose path contains one of the substrings. The coverage verdict
+ * and the exit rule are unchanged; it exists so a change to THIS runner can be exercised without a
+ * 45-minute suite on a loaded machine. It is not a substitute for the suite and says so when used. */
+const ONLY_AT = process.argv.indexOf('--only');
+const ONLY = ONLY_AT > 0 ? (process.argv[ONLY_AT + 1] || '').split(',').filter(Boolean) : null;
+
 /* ---- the coverage verdict, computed once and printed the same way everywhere ------------------ */
 
 function reportCoverage() {
@@ -727,8 +757,10 @@ if (LIST_ONLY) {
     const extra = p.args.slice(p.args.indexOf(D(rel)) + 1);
     console.log(`  ${p.skip ? 'SKIP' : 'RUN '}  ${rel}${p.skip ? '   — ' + p.skip : ''}` +
       (extra.length ? `   ${extra.join(' ')}` : '') +
-      (p.heap ? `   [ABRA-HEAP ${p.heap} MB — --max-old-space-size=${p.heap}]` : ''));
+      (p.heap ? `   [ABRA-HEAP ${p.heap} MB — --max-old-space-size=${p.heap}]` : '') +
+      (WAIVERS.has(rel) ? `   [WAIVED ${waiverLine(WAIVERS.get(rel))}]` : ''));
   }
+  console.log(`\n  ${WAIVERS.size} waiver(s) in data/test-waivers.json — a red on a waived check is printed WAIVED and does not set the exit code`);
   reportCoverage();
   process.exit(0);   /* --list is an inventory, not a verdict. --coverage is the verdict. */
 }
@@ -740,8 +772,10 @@ console.log(`RUN-ALL — ${all.length} checks discovered ` +
 console.log(`  simulator: ${HAS_SIM ? process.env.SHOWDOWN_PATH : 'NOT SET — simulator checks will be skipped'}`);
 console.log(`  python:    ${PY || 'NOT FOUND — python checks will be skipped'}\n`);
 
-const pass = [], fail = [], skip = [];
+if (ONLY) console.log(`  --only ${ONLY.join(',')}: A FILTERED RUN IS NOT THE SUITE. The full run is still owed.\n`);
+const pass = [], fail = [], skip = [], waived = [];
 for (const rel of all) {
+  if (ONLY && !ONLY.some(s => rel.includes(s))) continue;
   const p = plan(rel);
   if (p.skip) { skip.push([rel, p.skip]); console.log(`  SKIP  ${rel}  — ${p.skip}`); continue; }
   const started = Date.now();
@@ -766,7 +800,12 @@ for (const rel of all) {
     env: Object.assign({}, process.env, { ABRA_STRICT_SEMANTICS: '1', ABRA_SUITE_STARTED_AT: String(SUITE_STARTED_AT) }),
   });
   const secs = ((Date.now() - started) / 1000).toFixed(1);
-  if (r.status === 0) { pass.push(rel); console.log(`  ok    ${rel}  (${secs}s)`); }
+  if (r.status === 0) {
+    pass.push(rel);
+    console.log(WAIVERS.has(rel)
+      ? `  ok (waiver no longer needed)  ${rel}  (${secs}s)  — remove its entry from data/test-waivers.json`
+      : `  ok    ${rel}  (${secs}s)`);
+  }
   /* EXIT 2 MEANS "I COULD NOT RUN", NOT "I FAILED". A gate whose input is gitignored must be able to
    * say that without turning every clean checkout red — and must still be listed, so the distinction
    * between "passed" and "never ran" stays visible. */
@@ -787,16 +826,27 @@ for (const rel of all) {
     const tail = out.trim().split('\n').slice(-14);
     if (oom && !p.heap) tail.push('    ^ RAN OUT OF HEAP. This is a memory ceiling, not a verdict about the game. ' +
       'Declare `ABRA-HEAP: <MB>` in this file\'s header and run-all will honour it.');
-    fail.push([rel, r.status, tail]);
-    console.log(`  FAIL  ${rel}  (exit ${r.status}, ${secs}s)` +
-      (oom ? `  — OUT OF HEAP${p.heap ? ` even at the declared ${p.heap} MB` : ', and no ABRA-HEAP is declared'}` : ''));
+    const oomNote = oom ? `  — OUT OF HEAP${p.heap ? ` even at the declared ${p.heap} MB` : ', and no ABRA-HEAP is declared'}` : '';
+    /* A WAIVED RED IS PRINTED, COUNTED SEPARATELY, AND KEPT OUT OF THE EXIT CODE. It is never a pass. */
+    if (WAIVERS.has(rel)) {
+      waived.push([rel, r.status]);
+      console.log(`  WAIVED  ${rel}  — ${waiverLine(WAIVERS.get(rel))}  (exit ${r.status}, ${secs}s)${oomNote}`);
+    } else {
+      fail.push([rel, r.status, tail]);
+      console.log(`  FAIL  ${rel}  (exit ${r.status}, ${secs}s)${oomNote}`);
+    }
   }
 }
 
 console.log(`\n${'-'.repeat(78)}`);
-console.log(`  ${pass.length} passed, ${fail.length} failed, ${skip.length} skipped`);
+console.log(`  ${pass.length} passed, ${fail.length} failed, ${waived.length} waived, ${skip.length} skipped`);
 
 const coverageFailures = reportCoverage();
+
+if (waived.length) {
+  console.log(`\n  WAIVED (red, by Will's name — not passed, not counted against the exit code):`);
+  for (const [rel, status] of waived) console.log(`    ${rel}  (exit ${status})  — ${waiverLine(WAIVERS.get(rel))}`);
+}
 
 if (skip.length) {
   console.log(`\n  SKIPPED (not passed — a skip is not a result):`);

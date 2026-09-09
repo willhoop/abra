@@ -28,23 +28,26 @@ proper score, a confidence interval, and an honest baseline.
 6. **Intuitions flatten under data.** After fixing a classifier bug (Charizard = Sun/Mega-Y), Sun went
    15 → 1,367 teams and Rain vs Sun is even (51/49, n=236); Tailwind vs no-Tailwind is 47% (n=756).
 7. **Single-label archetypes were the bug; multi-label roles pool the data.** Tagging each team by the
-   26 functional roles it reveals (not one archetype) lifts the median matchup cell from n≈15 to
+   52 functional roles it reveals (`data/pokemon-roles.json:roles`; the "26" typed here was stale) (not one archetype) lifts the median matchup cell from n≈15 to
    **n=20** across 1,051 cells (2026-07-25, clean games) — still above the old single-label cells of 11–18, but only just. An earlier n=7,971 was retracted in 2.7.0 as an over-tagging artifact. But predicting the winner from preview
    roles still **ties a coin** (0.694 vs 0.693): roles describe and attribute, they don't predict.
 8. **WAR: a null — which *species* you bring carries no demonstrated signal.** A ridge Adjusted-Plus-Minus (RAPM)
    model on preview species appeared to beat a coin (0.6875 vs 0.6931), a result **withdrawn 2026-07-25** — that figure was measured on the UNFILTERED store. The clean-store figure this item then carried (~~0.7048 against a coin's 0.6931, accuracy 0.502~~) is withdrawn 2026-09-09: `data/war.json` (n=3,663, λ=200 selected on held-out) reads 0.6936 vs coin 0.6931, accuracy 0.504, verdict *worse than a coin at every regularisation strength tested*. The apparent unfiltered signal was four bot accounts playing one team in 1,446 games.
    Leaders Basculegion / Kingambit / Sylveon are a descriptive ordering only; effect sizes small, ridge-shrunk.
-9. **Roles can be discovered, not declared.** NMF of the team×role matrix recovers six interpretable
-   archetypes — Intimidate+Fake-Out control, physical offense, special offense+sustain,
-   bulky wall+screens+redirection, Tailwind+Encore, priority — with each team a *blend*, never one label.
-   Move-level NMF is coarser (offensive cores dominate).
-   **The number six is not defended, and this claim must not be published without that caveat.** The
-   project's own criterion (`engine/nmf_rank.py`, bootstrap factor stability, cf. Brunet et al. 2004)
-   selects **rank 4**; rank 6 scores **−0.107 excess over null**, meaning its factors are *less*
-   reproducible across resamples than factors fitted to shuffled data. Reconstruction error 0.53 was
-   cited here as the justification and has been withdrawn: `nmf_rank.py` states that it cannot select
-   a rank, because it falls monotonically with rank by construction. "Topic coherence is next" was
-   also removed — the 2026-07-31 defence ruled that *next* is not a justification.
+9. **Roles can be discovered, not declared.** NMF of the team×role matrix at **rank 4** — the rank read
+   from `data/nmf-rank-selection.json:most_reproducible.rank` by `engine/nmf_roles.py` since 2026-09-09, not typed — recovers
+   4 archetypes, composed by the data and named by a human: A1 physical + priority offense (physical attacker 39%, priority attacker 22%; share 27.1%); A2 bulky support + rain (bulky wall / support 23%, special attacker 15%; share 25.7%); A3 spread offense (spread attacker (both foes) 54%, special attacker 8%; share 25.2%); A4 intimidate + fake out control (debuff (intimidate / drops) 42%, fake out (tempo) 26%; share 22.1%)
+   (`data/nmf-roles.json`, regenerated 2026-09-09, `archetype_recon_error` 0.738, 63,882 team-sides ×
+   52 roles). Each team is a *blend*, never one label. Move-level NMF is coarser (offensive cores
+   dominate; `reconstruction_error_ratio` 0.8348). The six archetypes published here before were at a
+   hand-set rank 6 that scored **-0.107** excess over a shuffled null on the project's own criterion
+   (`engine/nmf_rank.py`, bootstrap factor stability, cf. Brunet et al. 2004); rank 4 scores
+   **+0.0775**. **The caveat that travels with this claim:** the selection artifact is from
+   2026-07-28 at 6 bootstrap pairs (the defence asks ≥ 50) with no cophenetic correlation, so the rank
+   is *read* rather than *defended* until `python engine/nmf_rank.py 50` is run. Reconstruction error was
+   cited here as the justification and has been withdrawn: `nmf_rank.py` states that it cannot select a
+   rank, because it falls monotonically with rank by construction. "Topic coherence is next" was also
+   removed — the 2026-07-31 defence ruled that *next* is not a justification.
 
 10. **The field really does tech for the metagame — measured.** Rare "tech" move slots carry
     **+0.0386** more meta-weighted type coverage than a species' standard kit (95% CI

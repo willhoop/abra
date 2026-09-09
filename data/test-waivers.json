@@ -1,0 +1,68 @@
+{
+  "_": "A red test is fixed, or waived by Will BY NAME, out loud (CLAUDE.md, 'KNOWN FAILURE' is a banned phrase). tests/run-all.js reads this file: a listed check that FAILS is printed WAIVED with the reason and does not set the exit code; a listed check that PASSES is printed 'ok (waiver no longer needed)' so the entry can be removed; a path not in the suite is an ERROR. Paths are repo-relative with forward slashes. Never add an entry without his words.",
+  "waivers": [
+    {
+      "path": "tests/test-site-sync.js",
+      "group": "web",
+      "reason": "web/{stadium,status,tower}.html must be byte-identical to app/, and app/ is not republished while WEB is paused.",
+      "waived_by": "Will",
+      "date": "2026-09-09",
+      "quote": "yes web paused and mag paused all i care about is medicham working",
+      "lifts_when": "WEB unpaused and app/ republished"
+    },
+    {
+      "path": "tests/test-site-data-fresh.js",
+      "group": "web",
+      "reason": "Every bundle the site loads must be newer than the newest game data, and the bundles are not regenerated while WEB is paused.",
+      "waived_by": "Will",
+      "date": "2026-09-09",
+      "quote": "yes web paused and mag paused all i care about is medicham working",
+      "lifts_when": "WEB unpaused and app/ republished"
+    },
+    {
+      "path": "tests/test-web-quarantine-loaders.js",
+      "group": "web",
+      "reason": "The committed web/quarantine-data.js and the stadium.html block must withhold the set the builder decides now, and they are not rebuilt while WEB is paused.",
+      "waived_by": "Will",
+      "date": "2026-09-09",
+      "quote": "yes web paused and mag paused all i care about is medicham working",
+      "lifts_when": "WEB unpaused and app/ republished"
+    },
+    {
+      "path": "tests/test-web-status.js",
+      "group": "web",
+      "reason": "web/status-data.js (board of 2026-08-11) must match the artifacts it is built from, and the board is not rebuilt while WEB is paused.",
+      "waived_by": "Will",
+      "date": "2026-09-09",
+      "quote": "yes web paused and mag paused all i care about is medicham working",
+      "lifts_when": "WEB unpaused and app/ republished"
+    },
+    {
+      "path": "tests/test-forced-switch.js",
+      "group": "MAG",
+      "reason": "makeScoringPlayer() -> loadWeights -> checkSemantics throws because data/policy-weights.json refuses to load under the FEATURE SEMANTICS check while the MAG refit is sequenced after 6.0.0.",
+      "waived_by": "Will",
+      "date": "2026-09-09",
+      "quote": "yes web paused and mag paused all i care about is medicham working",
+      "lifts_when": "the MAG refit lands after 6.0.0 and data/policy-weights.json loads under ABRA_STRICT_SEMANTICS=1 (feature_fixture.verify of its featureHashes; note feature_fixture --check alone exits 0 today and is not the gate)"
+    },
+    {
+      "path": "tests/test-team-preview-race.js",
+      "group": "MAG",
+      "reason": "showdown_bot.js constructs ScoringPlayerAI -> loadWeights -> checkSemantics, which throws because data/policy-weights.json refuses to load under the FEATURE SEMANTICS check while the MAG refit is sequenced after 6.0.0.",
+      "waived_by": "Will",
+      "date": "2026-09-09",
+      "quote": "yes web paused and mag paused all i care about is medicham working",
+      "lifts_when": "the MAG refit lands after 6.0.0 and data/policy-weights.json loads under ABRA_STRICT_SEMANTICS=1 (feature_fixture.verify of its featureHashes; note feature_fixture --check alone exits 0 today and is not the gate)"
+    },
+    {
+      "path": "tests/test-wiring.js",
+      "group": "MAG",
+      "reason": "Every configuration runs mew.js --policy score, whose makeScoringPlayer() throws because data/policy-weights.json refuses to load under the FEATURE SEMANTICS check while the MAG refit is sequenced after 6.0.0, so no capability line is ever printed; re-run the day the weights load.",
+      "waived_by": "Will",
+      "date": "2026-09-09",
+      "quote": "yes web paused and mag paused all i care about is medicham working",
+      "lifts_when": "the MAG refit lands after 6.0.0 and data/policy-weights.json loads under ABRA_STRICT_SEMANTICS=1 (feature_fixture.verify of its featureHashes; note feature_fixture --check alone exits 0 today and is not the gate)"
+    }
+  ]
+}

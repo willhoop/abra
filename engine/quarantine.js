@@ -1446,7 +1446,8 @@ const MATCHER_THREW = [];
 const REPORTS_NOT_GATES =
   ' THIS CLAUSE REPORTS, IT DOES NOT HOLD THE GATE SHUT — Will, 2026-08-22: board-material now,'
   + ' narration as its own separate gate afterwards. The GATING whole-game clause counts'
-  + ' BOARD-MATERIAL games (`state.games` less `state.games_board_never_diverged`) and is a different'
+  + ' BOARD-MATERIAL games (`state.games` less `state.games_board_never_diverged`, plus every'
+  + ' `mid_void` game whose board parted before it went low-identity) and is a different'
   + ' number on the line above this one; do not read the two as one quantity. Narration exits'
   + ' non-zero on its own through `node engine/quarantine.js --narration`.';
 
@@ -2323,6 +2324,13 @@ function wholeGameDoor(NAME, artifact) {
  * to take — the row is a NARRATION declaration and the register printer names it there — but a board
  * clause that computed the exact quantity a live declaration is falsified by, and said nothing, would
  * be the silent default rebuilt inside the fix for it.
+ *
+ * AND THE VOID SET IS PART OF THE COUNT — 2026-09-09. `state.games` is the USABLE count; a game the
+ * differential voids as `low-identity` AFTER its board parted was dropped from both operands, and on
+ * release b730e44f3314 that read `0 of 958` over three such games (boards parted turn 4, 6, 3) while
+ * the same artifact's `end_state` attribution said `games_board_material: 3`. The clause now adds
+ * every `mid_void.void_game_tags[]` row with a non-null `board_parted_at_turn`, prints them by seed,
+ * and counts the denominator as usable + void. See the comment at the computation.
  * ============================================================================================== */
 function wholeGameClause(artifact) {
   const NAME = 'whole-game differential / BOARD-MATERIAL — games whose boards part';
@@ -2377,13 +2385,49 @@ function wholeGameClause(artifact) {
          + 'engine/game_differential.js --steering empirical --release <id> --arm middle --end-state '
          + '--census <pin> --games 1200 --team-store data/team-pool-frozen --write' };
   }
-  const material = games - never;
-  if (material < 0) {
+  const stateMaterial = games - never;
+  if (stateMaterial < 0) {
     return { name: NAME, ok: false, cannot_answer: true, generated: j.generated || null, pins: RCPT,
       why: 'THE ARTIFACT CONTRADICTS ITSELF — `state.games_board_never_diverged` is ' + never
          + ' out of `state.games` ' + games + ', which is more games than were played. No board '
          + 'figure can be taken from a run whose own two fields disagree.' };
   }
+  /* ==============================================================================================
+   * A VOID GAME THAT PARTED A BOARD IS A BOARD-MATERIAL GAME — 2026-09-09.
+   * ==============================================================================================
+   * `state.games` is the USABLE count: `game_differential.js` drops a game from `state` as
+   * `low-identity` when the two engines' dice addresses stop lining up, and records it under
+   * `mid_void.void_game_tags[]` with the turn its board parted (or null if it never did). The void
+   * rule exists for games whose addresses NEVER lined up — a comparison that was not a comparison.
+   * It was never meant for a game that parted a board on turn 4 and THEN drifted so far the dice
+   * stopped matching: that game diverged so hard the instrument lost it, and subtracting it from
+   * the count let the clause read `0 of 958` over an artifact whose own `end_state` attribution
+   * already said `games_board_material: 3`. Read on release b730e44f3314: state 958/958, three
+   * void games with `board_parted_at_turn` 4, 6 and 3 — the gate opened on a subtraction.
+   *
+   * SO THE VOID SET IS READ, NOT RE-DERIVED. Every `void_game_tags[]` row with a non-null
+   * `board_parted_at_turn` is added, the denominator becomes usable + void (`games_void_excluded`,
+   * falling back on the tag count only when the field is absent), and the added games are printed
+   * BY SEED so the sentence "+3 void games that parted a board" can be checked against the artifact
+   * rather than believed. A void game whose board never parted is not counted — the instrument
+   * says its board held for as long as it could see it, and nothing here knows better. */
+  const mv = (j.mid_void && typeof j.mid_void === 'object') ? j.mid_void : null;
+  const voidTags = (mv && Array.isArray(mv.void_game_tags)) ? mv.void_game_tags : [];
+  const voidParted = voidTags.filter((t) => t && typeof t.board_parted_at_turn === 'number');
+  const voidExcluded = num(st.games_void_excluded) !== null ? num(st.games_void_excluded)
+    : (mv && num(mv.void_games) !== null ? num(mv.void_games) : voidTags.length);
+  const played = games + voidExcluded;
+  const material = stateMaterial + voidParted.length;
+  const voidLine = !voidParted.length ? ''
+    : NL + '  +' + voidParted.length + ' void game(s) that parted a board before going low-identity —'
+      + ' dropped from `state` by the void rule, which exists for games whose dice addresses never'
+      + ' lined up, not for games that diverged so hard the dice stopped matching. Read straight off'
+      + ' `mid_void.void_game_tags[]`, by seed:'
+      + voidParted.map((t) => NL + '      board parted turn ' + t.board_parted_at_turn
+          + (typeof t.protocol_diverged_at_turn === 'number' ? ' (protocol turn ' + t.protocol_diverged_at_turn + ')'
+             : ' (protocol never diverged)')
+          + '  ' + String(t.config || '?') + '  ' + String(t.seed || '?').slice(0, 96)
+          + '  ' + String(t.why || '?')).join('');
   /* ==============================================================================================
    * THE UNCAUSED SET — A BOARD THAT PARTS WITH NOTHING IN THE NARRATION POINTING AT IT.
    * ==============================================================================================
@@ -2402,7 +2446,11 @@ function wholeGameClause(artifact) {
    * `Math.max(0, ...)` here would turn a broken instrument into a clean bill of health. */
   const P = num(st.protocol_diverged_games), Pn = num(st.protocol_diverged_board_never_did);
   const bothParted = (P === null || Pn === null) ? null : P - Pn;
-  const uncaused = bothParted === null ? null : material - bothParted;
+  /* The four `state` fields describe the USABLE games only, so the subtraction is over
+   * `stateMaterial`; a void game is uncaused iff its own tag says the protocol never diverged. */
+  const voidUncaused = voidParted.filter((t) => t.protocol_diverged_at_turn === null
+    || t.protocol_diverged_at_turn === undefined).length;
+  const uncaused = bothParted === null ? null : (stateMaterial - bothParted) + voidUncaused;
   const uncausedLine = (() => {
     if (uncaused === null) {
       return NL + '  UNCAUSED — NOT COMPUTED. This artifact carries no `state.protocol_diverged_games`'
@@ -2450,22 +2498,33 @@ function wholeGameClause(artifact) {
     + ' data/decision-impact.json row can be subtracted from this count. Both attribute by protocol'
     + ' CAUSE over `classes[].causes[]`, and the artifact records no cause for a parted board — a'
     + ' board divergence is a leaf PATH. The NARRATION clause is where a declaration subtracts.';
-  const pct = (100 * material / games).toFixed(1);
+  const pct = (100 * material / played).toFixed(1);
+  const denom = played === games ? String(games) + ' games'
+    : played + ' games (' + games + ' usable + ' + voidExcluded + ' void)';
   return {
     name: NAME, ok: material === 0, gates: true, generated: j.generated || null, pins: RCPT,
     quantity: 'board_material_games',
-    games, board_material: material, board_never_diverged: never,
+    games, games_played: played, games_void_excluded: voidExcluded,
+    board_material: material, board_material_from_state: stateMaterial,
+    board_material_void_parted: voidParted.length,
+    board_material_void_parted_seeds: voidParted.map((t) => t.seed || null),
+    board_never_diverged: never,
     protocol_diverged_games: P, protocol_diverged_board_never_did: Pn,
     board_material_uncaused_by_protocol: uncaused,
     why: (material === 0
-      ? 'BOARD-MATERIAL: 0 of ' + games + ' games. Every compared turn boundary in every game holds '
-        + 'the SAME BOARD on both engines. This is the quantity Will named on 2026-08-22 — '
+      ? 'BOARD-MATERIAL: 0 of ' + denom + '. Every compared turn boundary in every game holds '
+        + 'the SAME BOARD on both engines' + (voidExcluded ? ', and none of the ' + voidExcluded
+          + ' void game(s) parted a board before going low-identity' : '')
+        + '. This is the quantity Will named on 2026-08-22 — '
         + 'commentary may differ, boards may not — and it is met.'
-      : 'BOARD-MATERIAL: ' + material + ' of ' + games + ' = ' + pct + '% of games reach a turn '
-        + 'boundary whose BOARD differs between the two engines (' + games + ' games less ' + never
-        + ' whose board never diverged, both read straight off `state`). Mode A pins every die on '
+      : 'BOARD-MATERIAL: ' + material + ' of ' + denom + ' = ' + pct + '% of games reach a turn '
+        + 'boundary whose BOARD differs between the two engines (' + games + ' usable games less '
+        + never + ' whose board never diverged, both read straight off `state`'
+        + (voidParted.length ? ', plus ' + voidParted.length + ' void game(s) whose'
+            + ' `mid_void` tag carries a `board_parted_at_turn`' : '')
+        + '). Mode A pins every die on '
         + 'both sides, so each one is a RULE they disagree about. This clause fails until it is zero.')
-      + rawLine + uncausedLine + orderLine + boundLine,
+      + voidLine + rawLine + uncausedLine + orderLine + boundLine,
   };
 }
 
@@ -2906,7 +2965,8 @@ function narrationVerdict(artifact, wgDecisionImpact, boardClause) {
   const GATING_SENTENCE = gatingNow ? GATES_NOW
     : REPORTS_NOT_GATES + ' The BOARD-MATERIAL clause is still failing'
       + (boardClause && typeof boardClause.board_material === 'number'
-          ? ' (' + boardClause.board_material + ' of ' + boardClause.games + ')' : '')
+          ? ' (' + boardClause.board_material + ' of '
+            + (typeof boardClause.games_played === 'number' ? boardClause.games_played : boardClause.games) + ')' : '')
       + ', and this clause begins gating AUTOMATICALLY when that one reads zero.';
 
   return {
@@ -3993,8 +4053,17 @@ function withholder(gate, rows) {
       /* THE CLAUSE SUMMARY IS A COUNT, NOT THE FIRST CLAUSE'S PROSE. Repeating one clause's full
        * sentence under every withheld line printed the same 150 characters six times and buried the
        * fact that the other three clauses fail too. The banner carries the detail once. */
-      clause: `${gate.failing.length} of ${gate.clauses.length} gate clauses fail `
-            + `(${gate.failing.map(c => c.name).join('; ')})`,
+      /* AND IT COUNTS THE GATING CLAUSES ONLY — 2026-09-09. `failing` is every red clause including
+       * the ones that REPORT (`gates: false`); `gate_failing` is the subset that holds the gate. With
+       * the board clause red and narration stood down, `failing` read "2 of 9 gate clauses fail"
+       * and named a clause that was not gating. The reporting reds are still printed, as reporting. */
+      clause: (() => {
+        const gf = Array.isArray(gate.gate_failing) ? gate.gate_failing : gate.failing;
+        const gating = gate.clauses.filter(c => c.gates !== false);
+        const rep = gate.failing.filter(c => !gf.includes(c));
+        return `${gf.length} of ${gating.length} gate clauses fail (${gf.map(c => c.name).join('; ')})`
+          + (rep.length ? `; ${rep.length} reporting clause(s) also red (${rep.map(c => c.name).join('; ')})` : '');
+      })(),
     };
   };
   fn.set = set;
@@ -5372,6 +5441,49 @@ if (require.main === module) {
           state: { games: 1000, games_board_never_diverged: 1000,
                    protocol_diverged_games: 0, protocol_diverged_board_never_did: 0,
                    planted_state_proof_ok: true, mappings_all_proved: true } })).ok === true);
+
+      /* -- A VOID GAME THAT PARTED A BOARD IS COUNTED; ONE THAT NEVER PARTED IS NOT — 2026-09-09 --
+       *
+       * The shape of release b730e44f3314: `state` reads 958 of 958 boards held, and three games
+       * the differential voided as low-identity carry a `board_parted_at_turn`. The old arithmetic
+       * read 0 and opened the gate. The control (same fixture, void set empty) is what shows the
+       * knob is WIRED rather than the clause failing for some other reason. */
+      const VOID_STATE = { games: 958, games_board_never_diverged: 958, games_void_excluded: 3,
+        protocol_diverged_games: 13, protocol_diverged_board_never_did: 13,
+        planted_state_proof_ok: true, mappings_all_proved: true, first_board_divergences: [] };
+      const VOID_TAGS = [
+        { config: 'omit-protect', seed: 'fixture-void-a vs fixture-void-b', why: 'low-identity',
+          turns: 7, protocol_diverged_at_turn: 4, board_parted_at_turn: 4 },
+        { config: 'omit-spread', seed: 'fixture-void-c vs fixture-void-d', why: 'low-identity',
+          turns: 3, protocol_diverged_at_turn: null, board_parted_at_turn: 3 },
+        { config: 'omit-spread', seed: 'fixture-void-e vs fixture-void-f', why: 'low-identity',
+          turns: 5, protocol_diverged_at_turn: 2, board_parted_at_turn: null },
+      ];
+      const VOIDED = SPLIT({ games: 961, diverged: 16, classes: [], state: VOID_STATE,
+        mid_void: { void_games: 3, usable_games: 958, void_game_tags: VOID_TAGS } });
+      const vB = wholeGameClause(VOIDED);
+      ok('VOID / RED — two void games whose tags carry a `board_parted_at_turn` are ADDED to the '
+        + 'board count and the third, whose board never parted, is not: 0 from `state` + 2 = 2 of 961',
+        vB.ok === false && vB.board_material === 2 && vB.board_material_from_state === 0
+        && vB.board_material_void_parted === 2 && vB.games_played === 961
+        && /BOARD-MATERIAL: 2 of 961 games \(958 usable \+ 3 void\)/.test(vB.why)
+        && /\+2 void game\(s\) that parted a board before going low-identity/.test(vB.why)
+        && /fixture-void-a vs fixture-void-b/.test(vB.why) && /fixture-void-c vs fixture-void-d/.test(vB.why)
+        && !/fixture-void-e vs fixture-void-f/.test(vB.why),
+        vB.why);
+      ok('VOID — the void game whose own tag says the protocol NEVER diverged lands in UNCAUSED (1), '
+        + 'and the one whose protocol parted too does not',
+        vB.board_material_uncaused_by_protocol === 1, String(vB.board_material_uncaused_by_protocol));
+      ok('VOID — ...and the NARRATION clause reads the board verdict and stands back down to '
+        + 'reporting only, because the board clause is no longer zero',
+        narrationClause(VOIDED, INERT).gates === false, JSON.stringify(narrationClause(VOIDED, INERT).gates_because));
+      const VOIDLESS = SPLIT({ games: 961, diverged: 16, classes: [], state: VOID_STATE,
+        mid_void: { void_games: 3, usable_games: 958, void_game_tags: [] } });
+      const cB = wholeGameClause(VOIDLESS);
+      ok('VOID / CONTROL — the same fixture with the void tags removed reads 0 of 961 and PASSES, so '
+        + 'the two arms above moved on the void set and nothing else',
+        cB.ok === true && cB.board_material === 0 && cB.games_played === 961
+        && /BOARD-MATERIAL: 0 of 961 games \(958 usable \+ 3 void\)/.test(cB.why), cB.why);
 
       /* -- AND THE GATE ITSELF: A REPORTING CLAUSE MAY NOT DECIDE IT, AND MUST STILL BE SEEN ---
        *

@@ -187,7 +187,7 @@
     "exploitability.json",
     "medicham-bench.json"
   ],
-  "verified": 10,
+  "verified": 11,
   "graph_files": [
     "_bench-belownormal.json",
     "_bench-headline.json",
@@ -494,7 +494,9 @@
     "raw-log-census.json",
     "regulations.json",
     "scenarios-from-will.json",
-    "side-selection-declarations.json"
+    "side-selection-declarations.json",
+    "smogon-priors.observed.json",
+    "test-waivers.json"
   ],
   "discoveries": [
     {
@@ -1099,5 +1101,5 @@
       ]
     }
   ],
-  "generated": "2026-09-09T15:49:16.688Z"
+  "generated": "2026-09-09T22:26:58.716Z"
 }

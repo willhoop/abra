@@ -49,7 +49,8 @@ const mon = (key, moves, ability, item) => {
 };
 /* A reproducible stream. Math.random would make a red run unrepeatable, which is the one thing a
  * failing test must not be. */
-const mkRng = (seed) => { let s = seed >>> 0; return () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; }; };
+/* mulberry32, as engine/chomp_ev.js — the float LCG it replaces overflows float53 (tests/test-prng.js). */
+const mkRng = (seed) => { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) | 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
 
 /* Drive both sides from a fixed script, exactly as tests/test-game-diff.js does: nothing is chosen
  * by a policy, so a run is a function of its seed. `null` in a slot means "let the engine choose",

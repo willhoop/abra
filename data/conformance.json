@@ -1,7 +1,7 @@
 {
- "generated": "2026-09-06T19:58:31.309Z",
+ "generated": "2026-09-09T22:22:28.864Z",
  "by": "engine/conformance.js",
- "files": 617,
+ "files": 681,
  "findings": [
   {
    "std": "S12",
@@ -63,12 +63,6 @@
   },
   {
    "std": "S12",
-   "file": "engine/derive_switch_carry.js",
-   "what": "hardcodes \"gen9championsvgc2026regmb\"",
-   "why": "lives in data/regulations.json (showdownFormat) — reference it"
-  },
-  {
-   "std": "S12",
    "file": "engine/divergence_shape.js",
    "what": "names 2 Pokemon thing(s) in code: move:protect, move:tailwind",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
@@ -86,6 +80,12 @@
     "move:detect",
     "move:protect"
    ]
+  },
+  {
+   "std": "convention",
+   "file": "engine/durable-ingest.js",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
   },
   {
    "std": "S12",
@@ -148,12 +148,6 @@
    "detail": [
     "move:detect"
    ]
-  },
-  {
-   "std": "S12",
-   "file": "engine/fixture_preflight.js",
-   "what": "hardcodes \"gen9championsvgc2026regmb\"",
-   "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
   {
    "std": "convention",
@@ -294,12 +288,6 @@
   },
   {
    "std": "S12",
-   "file": "engine/mega_harvest.js",
-   "what": "hardcodes \"gen9championsvgc2026regmb\"",
-   "why": "lives in data/regulations.json (showdownFormat) — reference it"
-  },
-  {
-   "std": "S12",
    "file": "engine/million_run.js",
    "what": "names 4 Pokemon thing(s) in code: move:detect, move:protect, ability:levitate, item:sitrusberry",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
@@ -333,6 +321,12 @@
     "move:trickroom",
     "move:uturn"
    ]
+  },
+  {
+   "std": "convention",
+   "file": "engine/next_regulation_ingest.js",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
   },
   {
    "std": "S12",
@@ -447,17 +441,6 @@
   },
   {
    "std": "S12",
-   "file": "engine/scenario_catalogue.js",
-   "what": "names 3 Pokemon thing(s) in code: move:protect, move:tailwind, ability:intimidate",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "ability:intimidate",
-    "move:protect",
-    "move:tailwind"
-   ]
-  },
-  {
-   "std": "S12",
    "file": "engine/selftest.js",
    "what": "names 4 Pokemon thing(s) in code: move:protect, move:detect, move:tailwind, item:choicescarf",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
@@ -553,12 +536,6 @@
   },
   {
    "std": "S12",
-   "file": "build/build_browser_data.js",
-   "what": "hardcodes \"gen9championsvgc2026regmb\"",
-   "why": "lives in data/regulations.json (showdownFormat) — reference it"
-  },
-  {
-   "std": "S12",
    "file": "build/build_mag_data.js",
    "what": "names 2 Pokemon thing(s) in code: move:tailwind, move:protect",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
@@ -584,7 +561,31 @@
   },
   {
    "std": "S12",
+   "file": "tests/probe_ability_zero_boost_line.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_absorb_gift_end_on_leave.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_accuracy_modifier_chain.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
    "file": "tests/probe_afterfaint_boundary.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_charge_release_chosen_slot.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
@@ -602,6 +603,12 @@
   },
   {
    "std": "S12",
+   "file": "tests/probe_confusion_selfhit_chance.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
    "file": "tests/probe_contact_ability_transfer.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
@@ -609,6 +616,12 @@
   {
    "std": "S12",
    "file": "tests/probe_defog_target_side.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_direclaw_refusal_line.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
@@ -626,7 +639,19 @@
   },
   {
    "std": "S12",
+   "file": "tests/probe_faint_before_source_gone_end.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
    "file": "tests/probe_fatigue_tag.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_forme_revert_silent.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
@@ -656,6 +681,18 @@
   },
   {
    "std": "S12",
+   "file": "tests/probe_mental_herb_update.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_misty_terrain_status.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
    "file": "tests/probe_multiaccuracy_address.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
@@ -680,7 +717,37 @@
   },
   {
    "std": "S12",
+   "file": "tests/probe_pivot_shield_before_ability.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_pressure_terrain_target.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_recoil_on_a_corpse.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
    "file": "tests/probe_red_demo.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_refusal_this_engine_swallowed.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_residual_stop_body.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
@@ -693,6 +760,12 @@
   {
    "std": "S12",
    "file": "tests/probe_selfdrop_address.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_shield_before_ability.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
@@ -728,6 +801,12 @@
   },
   {
    "std": "S12",
+   "file": "tests/probe_thaw_on_a_corpse.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
    "file": "tests/probe_trace_choice.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
@@ -757,6 +836,18 @@
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
   {
+   "std": "S12",
+   "file": "tests/probe_weather_forme_faint.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_yawn_safeguard_refusal.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
    "std": "convention",
    "file": "tests/test-dynamics.js",
    "what": "header is one line",
@@ -779,6 +870,12 @@
    "file": "tests/test-mod-conformance.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "convention",
+   "file": "tests/test-next-regulation.js",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
   },
   {
    "std": "S12",
@@ -818,6 +915,12 @@
    "file": "tests/test-unmodelled-clicks.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "convention",
+   "file": "tests/test-workflow-paths.js",
+   "what": "no opening comment",
+   "why": "every file states why it exists"
   },
   {
    "std": "convention",
@@ -1187,12 +1290,6 @@
   },
   {
    "std": "S13",
-   "file": "data/replay-differential-freezes.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
    "file": "data/replay-differential-sheets-freezes.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
@@ -1253,9 +1350,27 @@
   },
   {
    "std": "S13",
+   "file": "data/smogon-priors.observed.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "the artifact DECLARES its origin and the declaration names no script on disk: \"smogon 2026-08 gen9championsvgc2026regmb-1630\""
+   ]
+  },
+  {
+   "std": "S13",
    "file": "data/tag-consumption.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
+  },
+  {
+   "std": "S13",
+   "file": "data/test-waivers.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "named in the CODE of tests/run-all.js but never beside a write: those files READ it. Nothing in this repository can be shown to generate it."
+   ]
   },
   {
    "std": "S13",
@@ -1266,12 +1381,6 @@
   {
    "std": "S13",
    "file": "data/value-net.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
-  },
-  {
-   "std": "S13",
-   "file": "data/whole-game-baseline.json",
    "what": "generated but does not say so",
    "why": "generated files carry a GENERATED header"
   },

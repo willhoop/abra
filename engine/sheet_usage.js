@@ -1,4 +1,5 @@
 /* HOW OFTEN IS EACH ABILITY AND ITEM ACTUALLY BROUGHT — counted from declared team sheets.
+ * RAW-STORE-OK: counts how often each ability and item is DECLARED on a sheet so the MEDICHAM gate can defer roster rows on usage; a mechanic present in a stored game must be simulated whoever brought it. A mechanics-coverage count, not a prior about play — a bot that brings one team 500 times inflates its own abilities here, and any reader wanting HUMAN usage must go through quality.js instead.
  *
  * WHY THIS FILE EXISTS. `engine/click_counts.js` says, in its own header, that abilities and items
  * are "NOT counted here and deliberately so… the store does not know which ability a body had unless

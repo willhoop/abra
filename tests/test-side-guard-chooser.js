@@ -1,4 +1,5 @@
-/* CAN THE INTERNAL CHOOSER CLICK A SIDE GUARD, AND AT WHAT RATE?   node tests/test-side-guard-chooser.js
+/* RAW-STORE-NOT-READ: the header cites two numbers MEASURED on the ladder store on 2026-08-10; this test holds them and opens no store.
+ * CAN THE INTERNAL CHOOSER CLICK A SIDE GUARD, AND AT WHAT RATE?   node tests/test-side-guard-chooser.js
  *
  * Will, 2026-08-10: *"its gotta be able to click it man"*.
  *

@@ -1,7 +1,7 @@
 {
-  "note": "One readable frozen state per diverging turn. Open one and the mistake should be visible without running anything. `board_after_LOG` is what really happened; `board_after_OURS` is what our engine could reach under any of its pins. `clicks[].reconstruction` says how sure the choice recovery was — a board that differs because the wrong click was fed in is not an engine defect.",
   "engine_release": "a63f0f139f37",
   "generated": "2026-08-11T05:52:06.470Z",
+  "note": "One readable frozen state per diverging turn. Open one and the mistake should be visible without running anything. `board_after_LOG` is what really happened; `board_after_OURS` is what our engine could reach under any of its pins. `clicks[].reconstruction` says how sure the choice recovery was — a board that differs because the wrong click was fed in is not an engine defect.",
   "total_diverging_turns": 125,
   "shown": 40,
   "freezes": [

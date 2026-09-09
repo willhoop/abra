@@ -29,10 +29,23 @@ const BENCH = (...names) => names.map(n => ({ species: n, item: '', ability: '',
 
 /* THE FIXTURES. Species are named deliberately (a staged board cannot be derived from a tag — the
  * same declared exception game_differential.js's DIRECTED table makes). Speeds are NOT typed here. */
+/* EVERY MOVE SITS ON A BODY THAT CAN LEARN IT IN THIS REGULATION, AND THE PAIRINGS WERE DERIVED, NOT
+ * RECALLED. tests/test-fixture-legality.js (2026-09-09) refused eight pairings here — Incineroar with
+ * Knock Off, Agility or Tailwind; Garchomp with Thunder Wave, Tailwind or Knock Off; Milotic with
+ * Agility; Whimsicott with Agility — every one legal in mainline and absent from
+ * data/mods/champions/learnsets.ts, read through `champions_sim.canLearn`. The repairs keep each arm's
+ * premise: a filler that is never clicked becomes another legal move on the SAME body (Flare Blitz,
+ * Earthquake, Dragon Claw); a clicked priority-0 filler becomes a legal priority-0 Status move that
+ * touches no Speed stat (Bulk Up on Incineroar, Cotton Guard on Whimsicott); where the MOVE is the
+ * point, the BODY changes to a legal carrier at the nearest base Speed (Toucannon 60 and Pidgeot 101
+ * carry Tailwind for Incineroar 60 and Garchomp 102; Archaludon carries Thunder Wave; Toucannon carries
+ * Knock Off; Maushold 111 carries the Scarf-and-Agility arm at an ODD base Speed, as the odd-Speed
+ * argument below requires). Abilities on the new bodies are their slot-0 ability from the dex, none of
+ * which touches Speed, priority or entry. */
 const SCEN = [
   { name: 'four Protects — one bracket (+4), four speeds, slot order != speed order',
     A: stage([['whimsicott', '', 'Chlorophyll', ['Protect', 'Tailwind']],
-              ['incineroar', '', 'Blaze', ['Protect', 'Knock Off']]]).concat(BENCH('milotic', 'clefable')),
+              ['incineroar', '', 'Blaze', ['Protect', 'Flare Blitz']]]).concat(BENCH('milotic', 'clefable')),
     B: stage([['garchomp', '', 'Rough Skin', ['Protect', 'Earthquake']],
               ['corviknight', '', 'Pressure', ['Protect', 'Brave Bird']]]).concat(BENCH('snorlax', 'toxapex')),
     script: [{ p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'protect' }, { m: 'protect' }] }] },
@@ -50,25 +63,33 @@ const SCEN = [
    * bracket — both arms matched and neither tested anything. Agility is priority 0, harmless to the
    * board, and leaves the +1 as the only thing that can move the order. Talonflame also sits in the
    * SECOND slot so it is not the fastest body on the field: `spreadFor` gives slot 0 +32 Speed and
-   * slot 1 +22, so Dragapult leads it. Moving first is then a bracket and cannot be speed. */
+   * slot 1 +22, so Dragapult leads it. Moving first is then a bracket and cannot be speed.
+   *
+   * WHIMSICOTT'S PRIORITY-0 FILLER IS COTTON GUARD, NOT AGILITY. tests/test-fixture-legality.js
+   * (2026-09-09): Whimsicott cannot learn Agility in this regulation, and `champions_sim.canLearn`
+   * over the legal roster finds no Chlorophyll body that learns Agility, Tailwind, Sunny Day and
+   * Protect — so the BODY stays (the Chlorophyll x Sunny Day arms below need it) and the filler
+   * moves. Cotton Guard is Status, priority 0, self-target, and touches no Speed stat, which is all
+   * the Gale Wings arms ask of the click; in the odd-Speed chain arm it replaces Whimsicott's own
+   * stacking boost, whose subject was always the Scarfed Corviknight and never Whimsicott. */
   { name: 'Gale Wings gives a FLYING-type STATUS move its bracket — Tailwind out of a full-HP Talonflame',
-    A: stage([['incineroar', '', 'Blaze', ['Agility', 'Protect']],
+    A: stage([['incineroar', '', 'Blaze', ['Bulk Up', 'Protect']],
               ['talonflame', '', 'Gale Wings', ['Tailwind', 'Protect']]]).concat(BENCH('milotic', 'clefable')),
     B: stage([['dragapult', '', 'Clear Body', ['Agility', 'Protect']],
-              ['whimsicott', '', 'Chlorophyll', ['Agility', 'Protect']]]).concat(BENCH('snorlax', 'toxapex')),
-    script: [{ p1: [{ m: 'agility' }, { m: 'tailwind' }], p2: [{ m: 'agility' }, { m: 'agility' }] }] },
+              ['whimsicott', '', 'Chlorophyll', ['Cotton Guard', 'Protect']]]).concat(BENCH('snorlax', 'toxapex')),
+    script: [{ p1: [{ m: 'bulkup' }, { m: 'tailwind' }], p2: [{ m: 'agility' }, { m: 'cottonguard' }] }] },
 
   { name: 'the NEGATIVE — the same Tailwind out of a Talonflame with no Gale Wings',
-    A: stage([['incineroar', '', 'Blaze', ['Agility', 'Protect']],
+    A: stage([['incineroar', '', 'Blaze', ['Bulk Up', 'Protect']],
               ['talonflame', '', 'Flame Body', ['Tailwind', 'Protect']]]).concat(BENCH('milotic', 'clefable')),
     B: stage([['dragapult', '', 'Clear Body', ['Agility', 'Protect']],
-              ['whimsicott', '', 'Chlorophyll', ['Agility', 'Protect']]]).concat(BENCH('snorlax', 'toxapex')),
-    script: [{ p1: [{ m: 'agility' }, { m: 'tailwind' }], p2: [{ m: 'agility' }, { m: 'agility' }] }] },
+              ['whimsicott', '', 'Chlorophyll', ['Cotton Guard', 'Protect']]]).concat(BENCH('snorlax', 'toxapex')),
+    script: [{ p1: [{ m: 'bulkup' }, { m: 'tailwind' }], p2: [{ m: 'agility' }, { m: 'cottonguard' }] }] },
 
   { name: 'four Tailwinds — one bracket (0), four speeds, and the field changes under the turn',
     A: stage([['whimsicott', '', 'Chlorophyll', ['Tailwind', 'Protect']],
-              ['incineroar', '', 'Blaze', ['Tailwind', 'Protect']]]).concat(BENCH('milotic', 'clefable')),
-    B: stage([['garchomp', '', 'Rough Skin', ['Tailwind', 'Protect']],
+              ['toucannon', '', 'Keen Eye', ['Tailwind', 'Protect']]]).concat(BENCH('milotic', 'clefable')),
+    B: stage([['pidgeot', '', 'Keen Eye', ['Tailwind', 'Protect']],
               ['corviknight', '', 'Pressure', ['Tailwind', 'Protect']]]).concat(BENCH('snorlax', 'toxapex')),
     script: [{ p1: [{ m: 'tailwind' }, { m: 'tailwind' }], p2: [{ m: 'tailwind' }, { m: 'tailwind' }] }] },
 
@@ -78,13 +99,13 @@ const SCEN = [
    * the OTHER side, so a slot walk cannot pass both. */
   { name: 'both sides switch — the faster OUTGOING body is on p1',
     A: stage([['whimsicott', '', 'Chlorophyll', ['Protect', 'Tailwind']],
-              ['incineroar', '', 'Blaze', ['Protect', 'Knock Off']]]).concat(BENCH('milotic', 'clefable')),
+              ['incineroar', '', 'Blaze', ['Protect', 'Flare Blitz']]]).concat(BENCH('milotic', 'clefable')),
     B: stage([['garchomp', '', 'Rough Skin', ['Protect', 'Earthquake']],
               ['corviknight', '', 'Pressure', ['Protect', 'Brave Bird']]]).concat(BENCH('snorlax', 'toxapex')),
     script: [{ p1: [{ sw: 'milotic' }, { m: 'protect' }], p2: [{ sw: 'snorlax' }, { m: 'protect' }] }] },
 
   { name: 'both sides switch — the faster OUTGOING body is on p2',
-    A: stage([['incineroar', '', 'Blaze', ['Protect', 'Knock Off']],
+    A: stage([['incineroar', '', 'Blaze', ['Protect', 'Flare Blitz']],
               ['snorlax', '', 'Thick Fat', ['Protect', 'Body Slam']]]).concat(BENCH('milotic', 'clefable')),
     B: stage([['whimsicott', '', 'Chlorophyll', ['Protect', 'Tailwind']],
               ['corviknight', '', 'Pressure', ['Protect', 'Brave Bird']]]).concat(BENCH('garchomp', 'toxapex')),
@@ -92,7 +113,7 @@ const SCEN = [
 
   { name: 'all four switch at once — four outgoing speeds, one bracket',
     A: stage([['whimsicott', '', 'Chlorophyll', ['Protect', 'Tailwind']],
-              ['incineroar', '', 'Blaze', ['Protect', 'Knock Off']],
+              ['incineroar', '', 'Blaze', ['Protect', 'Flare Blitz']],
               ['milotic', '', 'Marvel Scale', ['Protect', 'Scald']],
               ['clefable', '', 'Unaware', ['Protect', 'Moonblast']]]),
     B: stage([['garchomp', '', 'Rough Skin', ['Protect', 'Earthquake']],
@@ -118,9 +139,9 @@ const SCEN = [
  * where the authority's truncation and a float multiply part company. */
 const SPEED = [
   { name: 'Choice Scarf on every body — the authority truncates the modifier chain',
-    A: stage([['whimsicott', 'Choice Scarf', 'Chlorophyll', ['Protect', 'Sunny Day', 'Agility', 'Tailwind']],
-              ['incineroar', 'Choice Scarf', 'Blaze', ['Protect', 'Knock Off']]]).concat(BENCH('milotic', 'clefable')),
-    B: stage([['garchomp', 'Choice Scarf', 'Rough Skin', ['Protect', 'Thunder Wave', 'Agility']],
+    A: stage([['whimsicott', 'Choice Scarf', 'Chlorophyll', ['Protect', 'Sunny Day', 'Cotton Guard', 'Tailwind']],
+              ['incineroar', 'Choice Scarf', 'Blaze', ['Protect', 'Flare Blitz']]]).concat(BENCH('milotic', 'clefable')),
+    B: stage([['garchomp', 'Choice Scarf', 'Rough Skin', ['Protect', 'Earthquake', 'Dragon Claw']],
               ['corviknight', 'Choice Scarf', 'Pressure', ['Protect', 'Brave Bird']]]).concat(BENCH('snorlax', 'toxapex')),
     script: [{ p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'protect' }, { m: 'protect' }] },
              { p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'protect' }, { m: 'protect' }] }] },
@@ -137,29 +158,31 @@ const SPEED = [
    * `SPE_LADDER`, the scenarios declare no nature so `natureFor` returns Serious, and Champions'
    * non-level-clause branch is `stat = stat + evs + 20` (data/mods/champions/scripts.ts:24). So an
    * active body's Speed is `base + 52` or `base + 42` — odd exactly when its BASE Speed is odd.
-   * Corviknight (67) and Milotic (81) are the two odd-Speed bodies in this fixture's cast, read out
-   * of `Dex.forFormat('gen9championsvgc2026regmb')` rather than recalled.
+   * Corviknight (67) and Maushold (111) are the odd-Speed bodies these arms put the Scarf on, read out
+   * of `Dex.forFormat('gen9championsvgc2026regmb')` rather than recalled. (The paralysis arm carried
+   * the Scarf on Milotic, 81, until 2026-09-09; Milotic cannot learn Agility in this regulation, and
+   * Maushold is the odd-base-Speed body in the legal roster that learns it.)
    *
    * AND THE ARM CHECKS IT ANYWAY. `exercised` below re-derives the condition from the reading the
    * authority actually produced, so this paragraph being wrong shows up as NOT-EXERCISED instead of
    * as a green. */
   { name: 'Scarf x Tailwind x a stacking boost on an odd-Speed body — one chain, three multipliers',
-    A: stage([['whimsicott', '', 'Chlorophyll', ['Sunny Day', 'Agility', 'Protect']],
-              ['incineroar', '', 'Blaze', ['Protect', 'Agility']]]).concat(BENCH('milotic', 'clefable')),
-    B: stage([['garchomp', '', 'Rough Skin', ['Tailwind', 'Protect']],
+    A: stage([['whimsicott', '', 'Chlorophyll', ['Sunny Day', 'Cotton Guard', 'Protect']],
+              ['incineroar', '', 'Blaze', ['Protect', 'Bulk Up']]]).concat(BENCH('milotic', 'clefable')),
+    B: stage([['pidgeot', '', 'Keen Eye', ['Tailwind', 'Protect']],
               ['corviknight', 'Choice Scarf', 'Pressure', ['Agility', 'Protect']]]).concat(BENCH('snorlax', 'toxapex')),
     script: [{ p1: [{ m: 'sunnyday' }, { m: 'protect' }], p2: [{ m: 'tailwind' }, { m: 'agility' }] },
-             { p1: [{ m: 'agility' }, { m: 'agility' }], p2: [{ m: 'protect' }, { m: 'agility' }] },
-             { p1: [{ m: 'agility' }, { m: 'agility' }], p2: [{ m: 'protect' }, { m: 'agility' }] }] },
+             { p1: [{ m: 'cottonguard' }, { m: 'bulkup' }], p2: [{ m: 'protect' }, { m: 'agility' }] },
+             { p1: [{ m: 'cottonguard' }, { m: 'bulkup' }], p2: [{ m: 'protect' }, { m: 'agility' }] }] },
 
   { name: 'paralysis on a Scarf holder — the authority floors AFTER spending the whole chain',
-    A: stage([['milotic', 'Choice Scarf', 'Marvel Scale', ['Agility', 'Protect']],
-              ['incineroar', '', 'Blaze', ['Protect', 'Agility']]]).concat(BENCH('whimsicott', 'clefable')),
-    B: stage([['garchomp', '', 'Rough Skin', ['Thunder Wave', 'Protect']],
+    A: stage([['maushold', 'Choice Scarf', 'Friend Guard', ['Agility', 'Protect']],
+              ['incineroar', '', 'Blaze', ['Protect', 'Bulk Up']]]).concat(BENCH('whimsicott', 'clefable')),
+    B: stage([['archaludon', '', 'Stamina', ['Thunder Wave', 'Protect']],
               ['corviknight', '', 'Pressure', ['Protect', 'Agility']]]).concat(BENCH('snorlax', 'toxapex')),
     script: [{ p1: [{ m: 'agility' }, { m: 'protect' }], p2: [{ m: 'thunderwave', t: 0 }, { m: 'protect' }] },
-             { p1: [{ m: 'agility' }, { m: 'agility' }], p2: [{ m: 'protect' }, { m: 'agility' }] },
-             { p1: [{ m: 'agility' }, { m: 'agility' }], p2: [{ m: 'protect' }, { m: 'agility' }] }] },
+             { p1: [{ m: 'agility' }, { m: 'bulkup' }], p2: [{ m: 'protect' }, { m: 'agility' }] },
+             { p1: [{ m: 'agility' }, { m: 'bulkup' }], p2: [{ m: 'protect' }, { m: 'agility' }] }] },
 
   /* UNBURDEN — THE OTHER HALF OF THE SPEED DISAGREEMENT, AND IT IS NOT ARITHMETIC.
    *
@@ -178,28 +201,28 @@ const SPEED = [
   { exercise: 'modified',
     name: 'Unburden ARM A — the item is knocked off and the doubling appears',
     A: stage([['sneasler', 'Sitrus Berry', 'Unburden', ['Protect', 'Agility']],
-              ['incineroar', '', 'Blaze', ['Protect', 'Agility']]]).concat(BENCH('milotic', 'clefable')),
-    B: stage([['garchomp', '', 'Rough Skin', ['Knock Off', 'Protect']],
+              ['incineroar', '', 'Blaze', ['Protect', 'Bulk Up']]]).concat(BENCH('milotic', 'clefable')),
+    B: stage([['toucannon', '', 'Keen Eye', ['Knock Off', 'Protect']],
               ['corviknight', '', 'Pressure', ['Protect', 'Agility']]]).concat(BENCH('snorlax', 'toxapex')),
     /* THE BODY BEING KNOCKED OFF MUST NOT CLICK PROTECT, and the first draft had it do exactly that:
      * the Knock Off was clicked, the shield ate it, Sneasler kept its berry and both engines read
      * the same unmodified Speed all game. A green that means the fixture never happened. */
     script: [{ p1: [{ m: 'agility' }, { m: 'protect' }], p2: [{ m: 'knockoff', t: 0 }, { m: 'protect' }] },
-             { p1: [{ m: 'agility' }, { m: 'agility' }], p2: [{ m: 'protect' }, { m: 'agility' }] },
-             { p1: [{ m: 'agility' }, { m: 'agility' }], p2: [{ m: 'protect' }, { m: 'agility' }] }] },
+             { p1: [{ m: 'agility' }, { m: 'bulkup' }], p2: [{ m: 'protect' }, { m: 'agility' }] },
+             { p1: [{ m: 'agility' }, { m: 'bulkup' }], p2: [{ m: 'protect' }, { m: 'agility' }] }] },
 
   { exercise: 'modified',
     name: 'Unburden ARM B — the boost does NOT survive a switch out and back',
     A: stage([['sneasler', 'Sitrus Berry', 'Unburden', ['Protect', 'Agility']],
-              ['incineroar', '', 'Blaze', ['Protect', 'Agility']],
-              ['milotic', '', 'Marvel Scale', ['Protect', 'Agility']],
+              ['incineroar', '', 'Blaze', ['Protect', 'Bulk Up']],
+              ['milotic', '', 'Marvel Scale', ['Protect', 'Recover']],
               ['clefable', '', 'Unaware', ['Protect', 'Agility']]]),
-    B: stage([['garchomp', '', 'Rough Skin', ['Knock Off', 'Protect']],
+    B: stage([['toucannon', '', 'Keen Eye', ['Knock Off', 'Protect']],
               ['corviknight', '', 'Pressure', ['Protect', 'Agility']]]).concat(BENCH('snorlax', 'toxapex')),
     script: [{ p1: [{ m: 'agility' }, { m: 'protect' }], p2: [{ m: 'knockoff', t: 0 }, { m: 'protect' }] },
              { p1: [{ sw: 'milotic' }, { m: 'protect' }], p2: [{ m: 'protect' }, { m: 'protect' }] },
              { p1: [{ sw: 'sneasler' }, { m: 'protect' }], p2: [{ m: 'protect' }, { m: 'protect' }] },
-             { p1: [{ m: 'agility' }, { m: 'agility' }], p2: [{ m: 'protect' }, { m: 'agility' }] }] },
+             { p1: [{ m: 'agility' }, { m: 'bulkup' }], p2: [{ m: 'protect' }, { m: 'agility' }] }] },
 ];
 
 const NL = String.fromCharCode(10);

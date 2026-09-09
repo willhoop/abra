@@ -25019,7 +25019,7 @@ const secRate = (moveId, stat, n) => {
   let hits = 0;
   for (let i = 0; i < n; i++) {
     let s = (i * 2654435761) >>> 0;
-    const rng = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return (s % 100000) / 100000; };
+    const rng = () => { s = (s + 0x6D2B79F5) | 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; /* mulberry32, as engine/chomp_ev.js; the float LCG overflowed (tests/test-prng.js) */
     const B = board('farigiraf', 'farigiraf', 'incineroar', 'farigiraf');
     unfaintable(B.f1);
     M.battleTurn(B.S, rng,
@@ -25075,7 +25075,7 @@ const frzRate = (moveId, n) => {
   let frz = 0;
   for (let i = 0; i < n; i++) {
     let s = (i * 2654435761) >>> 0;
-    const rng = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return (s % 100000) / 100000; };
+    const rng = () => { s = (s + 0x6D2B79F5) | 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; /* mulberry32, as engine/chomp_ev.js; the float LCG overflowed (tests/test-prng.js) */
     const B = board('glaceon', 'farigiraf', 'garchomp', 'farigiraf');
     unfaintable(B.f1);
     M.battleTurn(B.S, rng,
@@ -25170,7 +25170,7 @@ const selfBoostRate = (moveId, stat, n) => {
   let hits = 0;
   for (let i = 0; i < n; i++) {
     let s = (i * 2654435761) >>> 0;
-    const rng = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return (s % 100000) / 100000; };
+    const rng = () => { s = (s + 0x6D2B79F5) | 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; /* mulberry32, as engine/chomp_ev.js; the float LCG overflowed (tests/test-prng.js) */
     const B = board('volcarona', 'farigiraf', 'farigiraf', 'farigiraf');
     unfaintable(B.f1);
     M.battleTurn(B.S, rng,

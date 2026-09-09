@@ -2,7 +2,8 @@
 """
 nmf_rank.py — choose the NMF rank by a criterion instead of by eye.
 
-    python engine/nmf_rank.py            ->  data/nmf-rank-selection.json
+    python engine/nmf_rank.py [pairs]    ->  data/nmf-rank-selection.json   (default 6 pairs; the
+                                             2026-09-09 defence asks for >= 50 -- pass 50)
 
 WHY THIS EXISTS
 ---------------
@@ -55,7 +56,8 @@ from isotime import utc_now
 OUT = os.path.join(ROOT, "data", "nmf-rank-selection.json")
 
 RANKS = list(range(2, 13))
-PAIRS = 6          # bootstrap pairs per rank
+PAIRS = int(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].isdigit() else 6   # bootstrap pairs per rank
+SHIPPED = os.path.join(ROOT, "data", "nmf-roles.json")
 ITERS = 300
 rng_global = np.random.default_rng(20260728)
 
@@ -202,17 +204,23 @@ def main():
 
     # Selection is on EXCESS over the null, not raw stability.
     best = max(results, key=lambda d: d["excess_over_null"])
-    shipped = next((d for d in results if d["rank"] == 6), None)
+    # THE SHIPPED RANK IS READ FROM THE SHIPPED ARTIFACT, NOT TYPED. This line said `== 6` while
+    # nmf_roles.py hard-coded 6; since 2026-09-09 nmf_roles.py reads its rank from THIS file's
+    # most_reproducible.rank, so the two would otherwise disagree the first time this re-ran.
+    shipped_rank = None
+    if os.path.exists(SHIPPED):
+        shipped_rank = json.load(open(SHIPPED, encoding="utf-8")).get("archetype_rank")
+    shipped = next((d for d in results if d["rank"] == shipped_rank), None)
     print("")
     print(f"  most reproducible rank ABOVE THE NULL: {best['rank']} (excess {best['excess_over_null']:+.4f})")
     if shipped:
-        print(f"  the shipped rank 6:                    excess {shipped['excess_over_null']:+.4f}")
+        print(f"  the shipped rank {shipped_rank}:                    excess {shipped['excess_over_null']:+.4f}")
         gap = best["excess_over_null"] - shipped["excess_over_null"]
-        if best["rank"] == 6 or gap < 0.02:
-            print("  -> rank 6 is at or within noise of the most reproducible rank. The archetype")
+        if best["rank"] == shipped_rank or gap < 0.02:
+            print(f"  -> rank {shipped_rank} is at or within noise of the most reproducible rank. The archetype")
             print("     claims survive this test.")
         else:
-            print(f"  -> rank 6 is {gap:.4f} less reproducible than rank {best['rank']}. The archetypes")
+            print(f"  -> rank {shipped_rank} is {gap:.4f} less reproducible than rank {best['rank']}. The archetypes")
             print("     were chosen by eye and a different rank reproduces better; the downstream")
             print("     matchup claims rest on a rank this criterion does not support.")
 
@@ -231,6 +239,8 @@ def main():
         matrix=dict(rows=int(X.shape[0]), cols=int(X.shape[1]), roles=vocab),
         bootstrap_pairs=PAIRS, iters=ITERS,
         results=results, most_reproducible=best, shipped_rank=shipped,
+        shipped_rank_read_from=(os.path.relpath(SHIPPED, ROOT).replace(os.sep, "/") + ":archetype_rank"),
+        cophenetic_correlation=None,   # Brunet et al. 2004 consensus cophenetic: NOT computed (owed; needs scipy or a hand-rolled average linkage)
         caveat=("Reconstruction error falls monotonically with rank by construction and cannot select "
                 "it; it is reported beside stability, not instead of it. This selects a rank, it does "
                 "not name the factors, and it makes no claim that the selected rank is 'true'."),

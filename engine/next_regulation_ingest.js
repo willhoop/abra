@@ -1,3 +1,4 @@
+// RAW-STORE-NOT-READ: this collector never opens games.ladder.jsonl, games.bo3.jsonl or games.ots.jsonl; the names appear only in the header that explains WHY a next regulation gets its own file.
 /* next_regulation_ingest.js — COLLECT THE NEXT REGULATION FROM DAY ONE, WITH NO CODE EDIT.
  *
  * WHAT THIS IS FOR

@@ -189,12 +189,14 @@ Node ≥20 refuses to spawn a `.cmd` directly (the 2024 batch-injection advisory
 
 ## WHO MAY WRITE TO THIS REPO (S11 — one publisher)
 
-Three agents can touch these files. Only one may touch git.
+Four agents can touch these files. Only one may touch git from a keyboard; the bot commits from a
+workflow, into `data/` and `docs/ORIENTATION.md` and nowhere else.
 
 | Agent | May run tests/engines | May run git |
 |---|---|---|
 | **Claude Code** (runs on the machine, has the credentials) | yes | **yes — only this one** |
 | **Cowork** (isolated VM, no git credentials, `push` cannot authenticate) | no — it has no real store | **never** |
+| **abra-bot** (GitHub Actions: the six-hourly ingest, and since 5.276.0 the hourly next-regulation collector) | the ingest only | **yes, from the workflow — `data/` and `docs/ORIENTATION.md` only**; race-safe by the shared `ingest` concurrency group |
 | ~~**The workspace auto-commit**~~ — **DEAD since 2026-07-25 16:51. See below before reasoning from it.** | n/a | no longer fires |
 
 **Cowork proposes; Claude Code applies and pushes.** Cowork must not run a git command at all. Not a
@@ -546,6 +548,9 @@ Will, by name, out loud**. There is no third state, and reporting one is what th
 stop.
 
 *(Will, 2026-07-30: "HOW WAS CLAUDE.MD JUST BEING IGNORED")*
+
+A waiver lives in `data/test-waivers.json` with his words and the date, and `tests/run-all.js` prints
+it on every run as `WAIVED` — a waived red is visible state, never a silent skip.
 
 The rule below — living docs move in the same pass as the code — was written, was given a guard
 (`tests/test-docs-current.js`, built 2026-07-25), and was broken anyway for two consecutive days

@@ -222,24 +222,52 @@ function arm(label, p1sets, p2sets, sdScript, mediBuild) {
 /* ================================================================================================
  * 2 — CONTROL. The SAME spin board with a non-sweeping click of the same body. Both engines must
  * write no `-end`/`-sideend` at all, or the arms below are reading something else.
+ *
+ * THE CONTROL CLICK IS SWORDS DANCE, NOT IRON HEAD, SINCE 2026-09-09. With Torterra as the trapper, a
+ * +4 Iron Head KOs it, and the authority then writes `-end|Excadrill|Sand Tomb|[partiallytrapped]|[silent]`
+ * — a trap ending because its SOURCE fainted, which is a real `-end` line on a board where nothing was
+ * swept. (Against Toxapex it did not KO, so this control was honest by accident; while Excadrill was
+ * fainting on turn 3 it passed on an EMPTY log, which is a vacuous pass.) A third Swords Dance is a
+ * non-sweeping, non-damaging click on the same body, so the only lines a sweep could write are absent
+ * for the right reason. The script and the build read the move's `target` off the dex and pass no
+ * target for a self-move — the authority REFUSES `move swordsdance 1` outright.
  * ============================================================================================= */
 const SPIN_P1 = [set('Excadrill', ['Rapid Spin', 'Iron Head', 'Swords Dance']),
                  set('Corviknight', ['Bulk Up', 'Roost'])];
-const SPIN_P2 = [set('Toxapex', ['Stealth Rock', 'Infestation']),
-                 set('Whimsicott', ['Leech Seed', 'Moonblast'])];
+/* THE CARRIERS ARE DERIVED, NOT RECALLED. tests/test-fixture-legality.js (2026-09-09): Toxapex
+ * cannot learn Stealth Rock in this regulation, and `champions_sim.canLearn` over the whole legal
+ * roster finds NO body that learns both Stealth Rock and Infestation, so the SPIN arm's three roles
+ * (own hazard, seed, trap) cannot sit on the two bodies they sat on. Torterra learns Stealth Rock AND
+ * Sand Tomb — the same `partiallytrapped` volatile Infestation set, which is what the spin's third
+ * clause removes — at base Speed 56, so it still moves AFTER Excadrill (88) exactly as Toxapex (35)
+ * did. Garganacl (base Speed 35, the same as Toxapex) learns Stealth Rock, Recover and Substitute
+ * and is the drop-in for the DEFOG and TIDY UP arms. Two more pairings the same check refused on
+ * 2026-09-09, both repaired on the SAME body: Milotic cannot learn Reflect here but learns Light
+ * Screen, which is the same `sideCondition` class Defog removes, so the DEFOG arm's "target screens"
+ * role stands; Archaludon cannot learn Body Press but learns Dragon Claw, a priority-0 physical hit
+ * with no secondary, which is all the TIDY UP arm's post-sweep attack has to be.
+ *
+ * WHIMSICOTT'S FILLER IS COTTON GUARD, NOT MOONBLAST, AND THE REASON WAS READ OFF THE AUTHORITY'S LOG.
+ * Sand Tomb is Ground into a Ground/Steel Excadrill — 2x where Toxapex's Infestation was 0.5x — and
+ * with two Moonblasts, the seed and the trap chip the authority wrote `|faint|p1a: Excadrill` on turn 3
+ * BEFORE Rapid Spin resolved, so both engines swept nothing and the "actually swept something" clause
+ * went red (2026-09-09). Cotton Guard is Status, self-target and legal on Whimsicott; the same script
+ * then leaves Excadrill on 44/185 and the spin removes seed, rocks and trap — the three roles. */
+const SPIN_P2 = [set('Torterra', ['Stealth Rock', 'Sand Tomb']),
+                 set('Whimsicott', ['Leech Seed', 'Cotton Guard'])];
 const spinScript = (mv) => [
   ['move swordsdance, move bulkup', 'move stealthrock, move leechseed 1'],
-  ['move swordsdance, move bulkup', 'move infestation 1, move moonblast 1'],
-  ['move ' + mv + ' 1, move bulkup', 'move stealthrock, move moonblast 1'],
+  ['move swordsdance, move bulkup', 'move sandtomb 1, move cottonguard'],
+  ['move ' + mv + (dex.moves.get(mv).target === 'self' ? '' : ' 1') + ', move bulkup', 'move stealthrock, move cottonguard'],
 ];
 const spinBuild = (mv) => (A, B) => [
   [[{ m: 'swordsdance' }, { m: 'bulkup' }], [{ m: 'stealthrock' }, { m: 'leechseed', t: A[0] }]],
-  [[{ m: 'swordsdance' }, { m: 'bulkup' }], [{ m: 'infestation', t: A[0] }, { m: 'moonblast', t: A[0] }]],
-  [[{ m: mv, t: B[0] }, { m: 'bulkup' }], [{ m: 'stealthrock' }, { m: 'moonblast', t: A[0] }]],
+  [[{ m: 'swordsdance' }, { m: 'bulkup' }], [{ m: 'sandtomb', t: A[0] }, { m: 'cottonguard' }]],
+  [[{ m: mv, t: dex.moves.get(mv).target === 'self' ? null : B[0] }, { m: 'bulkup' }], [{ m: 'stealthrock' }, { m: 'cottonguard' }]],
 ];
 {
-  const sd = sdRun(SPIN_P1, SPIN_P2, spinScript('ironhead'));
-  const me = mediRun(SPIN_P1, SPIN_P2, spinBuild('ironhead')).lines;
+  const sd = sdRun(SPIN_P1, SPIN_P2, spinScript('swordsdance'));
+  const me = mediRun(SPIN_P1, SPIN_P2, spinBuild('swordsdance')).lines;
   ok(sd.length === 0 && me.length === 0,
      'CONTROL: the same Excadrill clicking a non-sweeping move writes no -end/-sideend',
      'authority ' + JSON.stringify(sd) + '   medicham2 ' + JSON.stringify(me));
@@ -251,25 +279,25 @@ const spinBuild = (mv) => (A, B) => [
 arm('SPIN (seed, own hazards, trap)', SPIN_P1, SPIN_P2, spinScript('rapidspin'), spinBuild('rapidspin'));
 
 const DEFOG_P1 = [set('Corviknight', ['Defog', 'Roost']), set('Archaludon', ['Stealth Rock', 'Reflect'])];
-const DEFOG_P2 = [set('Toxapex', ['Stealth Rock', 'Recover']), set('Milotic', ['Reflect', 'Recover'])];
+const DEFOG_P2 = [set('Garganacl', ['Stealth Rock', 'Recover']), set('Milotic', ['Light Screen', 'Recover'])];
 arm('DEFOG (target screens, target hazards, own hazards)', DEFOG_P1, DEFOG_P2, [
   ['move roost, move stealthrock', 'move stealthrock, move recover'],
-  ['move roost, move reflect', 'move recover, move reflect'],
+  ['move roost, move reflect', 'move recover, move lightscreen'],
   ['move defog 1, move stealthrock', 'move recover, move recover'],
 ], (A, B) => [
   [[{ m: 'roost' }, { m: 'stealthrock' }], [{ m: 'stealthrock' }, { m: 'recover' }]],
-  [[{ m: 'roost' }, { m: 'reflect' }], [{ m: 'recover' }, { m: 'reflect' }]],
+  [[{ m: 'roost' }, { m: 'reflect' }], [{ m: 'recover' }, { m: 'lightscreen' }]],
   [[{ m: 'defog', t: B[0] }, { m: 'stealthrock' }], [{ m: 'recover' }, { m: 'recover' }]],
 ]);
 
-const TIDY_P1 = [set('Maushold', ['Tidy Up', 'Substitute']), set('Archaludon', ['Stealth Rock', 'Body Press'])];
-const TIDY_P2 = [set('Toxapex', ['Stealth Rock', 'Substitute']), set('Milotic', ['Recover', 'Scald'])];
+const TIDY_P1 = [set('Maushold', ['Tidy Up', 'Substitute']), set('Archaludon', ['Stealth Rock', 'Dragon Claw'])];
+const TIDY_P2 = [set('Garganacl', ['Stealth Rock', 'Substitute']), set('Milotic', ['Recover', 'Scald'])];
 arm('TIDY UP (every doll, own hazards, foe hazards)', TIDY_P1, TIDY_P2, [
   ['move substitute, move stealthrock', 'move stealthrock, move recover'],
-  ['move tidyup, move bodypress 1', 'move substitute, move recover'],
+  ['move tidyup, move dragonclaw 1', 'move substitute, move recover'],
 ], (A, B) => [
   [[{ m: 'substitute' }, { m: 'stealthrock' }], [{ m: 'stealthrock' }, { m: 'recover' }]],
-  [[{ m: 'tidyup' }, { m: 'bodypress', t: B[0] }], [{ m: 'substitute' }, { m: 'recover' }]],
+  [[{ m: 'tidyup' }, { m: 'dragonclaw', t: B[0] }], [{ m: 'substitute' }, { m: 'recover' }]],
 ]);
 
 /* ================================================================================================

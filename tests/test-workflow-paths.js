@@ -1,3 +1,4 @@
+// RAW-STORE-NOT-READ: the store path appears only as the thing a workflow must NOT git-add; this test reads workflow files, never a store.
 /* test-workflow-paths.js — A WORKFLOW THAT `git add`s AN IGNORED PATH IS A DEAD COLLECTOR.
  *
  * WHY THIS EXISTS. On 2026-07-28 commit acf7124 moved the game stores to being tracked COMPRESSED

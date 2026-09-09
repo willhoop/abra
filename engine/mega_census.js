@@ -1,4 +1,5 @@
 /* HOW MUCH OF THIS FORMAT IS ACTUALLY A MEGA — derived from the store, because nothing else knows.
+ * RAW-STORE-OK: counts mega EVENTS per stored game so mega formes can rank in the coverage bar at all; a mega the engine must simulate does not care who clicked it, and filtering would understate the very share this file exists to expose. A mechanics-coverage count, not a prior about play.
  *
  * WHY THIS EXISTS. Will, 2026-08-10: *"megas need to be the number one priority wtf"*, then
  * *"how tf did we get this far without this coming up"*. The second question has a measured answer:

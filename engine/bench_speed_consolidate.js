@@ -1,4 +1,5 @@
-/* bench_speed_consolidate.js — ONE artifact for the MEDICHAM speed question, derived from every
+/* RAW-STORE-NOT-READ: this file opens no store. games.ladder.jsonl is named once, inside a caveat string written into the artifact to say the ladder store is NOT in the frozen pool that was timed.
+ * bench_speed_consolidate.js — ONE artifact for the MEDICHAM speed question, derived from every
  * timed run rather than from whichever run happened to be last.
  *
  *   node engine/bench_speed_consolidate.js

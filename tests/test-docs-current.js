@@ -533,14 +533,52 @@ function figureRules(base, next) {
   for (const h of viol) console.log(`         [known] ${h.doc}:${h.line}  ${h.figure}  (retracted by ${h.by[0]})`);
 
   console.log('\n== 3b(b). a figure attributed to an artifact is IN that artifact ==');
+  /* THE RULE CARRIES ITS OWN RED DEMONSTRATION — ROADMAP #552, 2026-09-09. This clause passed
+   * BYTE-IDENTICALLY when `27 of 961` was changed to `41 of 961` in docs/MODELS.md beside a citation
+   * of data/game-differential.json (docs/_reports/2026-09-09-pre-600-test-breaks.md, break h): one
+   * "superseded" anywhere in the block exempted every figure in it, and 41 was somewhere in the file
+   * as a turn index. The cases in engine/docs_scan.js pin each mechanism that closed it — the sentence
+   * as the unit of a qualifier AND of a citation, a `data/x.json:field` citation judged against the
+   * field, a backticked key path bound to the figure beside it, a struck span withdrawn, and a block
+   * that PREDATES the artifact on disk reported rather than accused — each with the case it must
+   * refuse, through the shipping function on injected input. Same discipline as 3b(a) above. */
+  const cproof = S.citationProof();
+  const cBroken = cproof.filter(p => !p.holds);
+  ok(cBroken.length === 0,
+    `the citation rule reads a sentence, a field and a key path as it must (${cproof.length - cBroken.length}/${cproof.length} demonstration cases hold)` +
+    (cBroken.length ? '\n         BROKEN:\n         ' + cBroken.map(p =>
+      `${p.id}: must ${p.expected ? 'CATCH' : 'REFUSE'} ${p.figure} and did ${p.caught ? 'catch' : 'not'}` +
+      (p.predated ? ' (filed as predating)' : '') + `\n           ${p.why}`).join('\n         ') : ''));
+  /* AND THE BROWSER BUNDLES PARSE. Nineteen data/*.js files printed "present but unparsable" on every
+   * run and scored nothing; each wrapper shape build/ writes is pinned, and a JS object literal must
+   * come back as NOT DATA rather than be executed. */
+  const bproof = S.bundleProof();
+  const bBroken = bproof.filter(p => !p.holds);
+  ok(bBroken.length === 0,
+    `the browser bundles under data/ parse as artifacts by wrapper shape (${bproof.length - bBroken.length}/${bproof.length} shapes hold)` +
+    (bBroken.length ? '\n         BROKEN:\n         ' + bBroken.map(p => `${p.id}: expected ${JSON.stringify(p.expected)} got ${JSON.stringify(p.got)}`).join('\n         ') : ''));
+
   const mism = S.citationMismatches(livingPlusNotes);
   const mkey = h => `${h.doc}|${h.figure}|${h.cites.join(',')}`;
   const mseen = new Map(mism.map(h => [mkey(h), h]));
   const rm = ratchet('figures a cited artifact does not contain', [...mseen.keys()], known.citation_mismatches || [],
-    k => { const h = mseen.get(k); return `${h.doc}:${h.line}  ${h.figure}  not in ${h.cites.join(', ')}\n           ${h.text}`; });
+    k => { const h = mseen.get(k); return `${h.doc}:${h.line}  ${h.figure}  not in ${h.cites.join(', ')}` +
+      (h.field ? `  (field ${h.field}${h.expected !== undefined ? ' reads ' + h.expected : ''})` : '') + `\n           ${h.text}`; });
   const byDoc = {};
   for (const h of mism) byDoc[h.doc] = (byDoc[h.doc] || 0) + 1;
   for (const [d, n] of Object.entries(byDoc).sort((a, b) => b[1] - a[1])) console.log(`         ${String(n).padStart(4)}  ${d}`);
+  /* REPORTED, NOT GATED: a figure in a dated block whose every cited artifact was regenerated AFTER
+   * the block was written. No instrument reading the disk can say whether that record was right, so
+   * accusing it is the treadmill and excusing it silently was the defect. The debt it represents is
+   * the documents pass, which clause 5 counts. */
+  const predates = mism.predates || [];
+  if (predates.length) {
+    const per = {};
+    for (const h of predates) per[h.doc] = (per[h.doc] || 0) + 1;
+    console.log(`         ${predates.length} figure(s) sit in dated blocks whose cited artifact was regenerated after the block —`);
+    console.log('         reported, not judged (the disk no longer holds the instance the block read):');
+    for (const [d, n] of Object.entries(per).sort((a, b) => b[1] - a[1])) console.log(`         ${String(n).padStart(4)}  ${d}`);
+  }
 
   console.log('\n== 3b(c). census: figures with no artifact behind them anywhere ==');
   /* THE LEXER CARRIES ITS OWN RED DEMONSTRATION — 2026-09-04, the same discipline as 3b(a) above.

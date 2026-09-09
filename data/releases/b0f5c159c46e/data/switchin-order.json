@@ -1,0 +1,211 @@
+{
+ "what": "every ability declaring onSwitchInPriority, the key Battle#comparePriority sorts BEFORE speed",
+ "generated": "2026-08-22T04:48:50.356Z",
+ "format": "gen9championsvgc2026regmb",
+ "source": "Dex.forFormat(...).abilities.all() — onSwitchInPriority; carriers filtered to the regulation",
+ "declaring": 16,
+ "with_legal_carriers": 5,
+ "items_declaring": 8,
+ "items_declaring_and_legal": 0,
+ "items": [
+  {
+   "id": "boosterenergy",
+   "priority": -2,
+   "nonstandard": "Past",
+   "legal": false
+  },
+  {
+   "id": "electricseed",
+   "priority": -1,
+   "nonstandard": "Past",
+   "legal": false
+  },
+  {
+   "id": "grassyseed",
+   "priority": -1,
+   "nonstandard": "Past",
+   "legal": false
+  },
+  {
+   "id": "mistyseed",
+   "priority": -1,
+   "nonstandard": "Past",
+   "legal": false
+  },
+  {
+   "id": "psychicseed",
+   "priority": -1,
+   "nonstandard": "Past",
+   "legal": false
+  },
+  {
+   "id": "roomservice",
+   "priority": -1,
+   "nonstandard": "Past",
+   "legal": false
+  },
+  {
+   "id": "blueorb",
+   "priority": -1,
+   "nonstandard": "Past",
+   "legal": false
+  },
+  {
+   "id": "redorb",
+   "priority": -1,
+   "nonstandard": "Past",
+   "legal": false
+  }
+ ],
+ "rows": [
+  {
+   "id": "neutralizinggas",
+   "name": "Neutralizing Gas",
+   "priority": 2,
+   "nonstandard": null,
+   "championsOverride": false,
+   "carriers": []
+  },
+  {
+   "id": "terashift",
+   "name": "Tera Shift",
+   "priority": 2,
+   "nonstandard": null,
+   "championsOverride": false,
+   "carriers": []
+  },
+  {
+   "id": "asoneglastrier",
+   "name": "As One (Glastrier)",
+   "priority": 1,
+   "nonstandard": null,
+   "championsOverride": false,
+   "carriers": []
+  },
+  {
+   "id": "asonespectrier",
+   "name": "As One (Spectrier)",
+   "priority": 1,
+   "nonstandard": null,
+   "championsOverride": false,
+   "carriers": []
+  },
+  {
+   "id": "klutz",
+   "name": "Klutz",
+   "priority": 1,
+   "nonstandard": null,
+   "championsOverride": false,
+   "carriers": [
+    "Audino",
+    "Golurk",
+    "Lopunny"
+   ]
+  },
+  {
+   "id": "unnerve",
+   "name": "Unnerve",
+   "priority": 1,
+   "nonstandard": null,
+   "championsOverride": false,
+   "carriers": [
+    "Aerodactyl",
+    "Arbok",
+    "Corviknight",
+    "Houndoom",
+    "Pyroar",
+    "Tyranitar"
+   ]
+  },
+  {
+   "id": "mimicry",
+   "name": "Mimicry",
+   "priority": -1,
+   "nonstandard": null,
+   "championsOverride": false,
+   "carriers": [
+    "Stunfisk-Galar"
+   ]
+  },
+  {
+   "id": "schooling",
+   "name": "Schooling",
+   "priority": -1,
+   "nonstandard": null,
+   "championsOverride": false,
+   "carriers": []
+  },
+  {
+   "id": "shieldsdown",
+   "name": "Shields Down",
+   "priority": -1,
+   "nonstandard": null,
+   "championsOverride": false,
+   "carriers": []
+  },
+  {
+   "id": "costar",
+   "name": "Costar",
+   "priority": -2,
+   "nonstandard": null,
+   "championsOverride": false,
+   "carriers": []
+  },
+  {
+   "id": "flowergift",
+   "name": "Flower Gift",
+   "priority": -2,
+   "nonstandard": null,
+   "championsOverride": false,
+   "carriers": []
+  },
+  {
+   "id": "forecast",
+   "name": "Forecast",
+   "priority": -2,
+   "nonstandard": null,
+   "championsOverride": false,
+   "carriers": [
+    "Castform",
+    "Castform-Rainy",
+    "Castform-Snowy",
+    "Castform-Sunny"
+   ]
+  },
+  {
+   "id": "hospitality",
+   "name": "Hospitality",
+   "priority": -2,
+   "nonstandard": null,
+   "championsOverride": false,
+   "carriers": [
+    "Sinistcha",
+    "Sinistcha-Masterpiece"
+   ]
+  },
+  {
+   "id": "iceface",
+   "name": "Ice Face",
+   "priority": -2,
+   "nonstandard": null,
+   "championsOverride": false,
+   "carriers": []
+  },
+  {
+   "id": "protosynthesis",
+   "name": "Protosynthesis",
+   "priority": -2,
+   "nonstandard": null,
+   "championsOverride": false,
+   "carriers": []
+  },
+  {
+   "id": "quarkdrive",
+   "name": "Quark Drive",
+   "priority": -2,
+   "nonstandard": null,
+   "championsOverride": false,
+   "carriers": []
+  }
+ ]
+}

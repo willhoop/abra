@@ -1670,22 +1670,54 @@ Every probability ships a **proper score** (log-loss and/or Brier), a **confiden
 to JSON and gated in CI.
 
 ### 4.1 GURU — meta / matchup matrix (descriptive)
-From REAL outcomes, `engine/guru.py` builds an archetype × archetype matchup matrix (K is chosen from the data; see `data/archetypes.json`) over the generated game count in `data/live.js` (hardcoded sizes are retracted, S13) —
-games, each cell a win-rate with a **Wilson score interval**. GURU is *descriptive*: its own predictive
-test shows per-game winner prediction from the matrix ties a coin (log-loss 0.7122 vs 0.6931), exactly
-as §1 predicts. Its value is honest matchup structure with error bars, and it is the real (not
-simulated) payoff matrix that SLOWKING solves. Output: `data/guru-matchups.json`, `data/guru.js`.
+From REAL outcomes, `engine/guru.py` builds an archetype × archetype matchup matrix over **5,265 clean
+games** (`data/guru-matchups.json:n_games`, generated 2026-07-31) with **K = 12** archetypes
+(`n_archetypes`; K is chosen from the data by `engine/archetypes.py`), each cell a win-rate with a
+**Wilson score interval**. GURU is *descriptive*: its own predictive test shows per-game winner prediction
+from the matrix ties a coin — **log-loss 0.7124 vs 0.6931** over 1,053 held-out games
+(`predictive_test.log_loss_matchup_prior` / `.log_loss_coin` / `.test_games`; the ~~0.7122~~ this sentence
+carried until 2026-09-09 is in no artifact), exactly as §1 predicts.
+
+**The decisive cells are in-sample.** The matrix is tallied over all 5,265 games; only the predictive test
+uses the temporal 80/20 split (`engine/guru.py:59-60`). So the **6 directed = 3 distinct** cells whose 95%
+interval excludes 50% (`n_decisive` 6) were found on the same games that produced them. **And none survives
+the family** (carried here from `docs/MODELS.md` GURU): 66 unordered pairs, each its own 95% test, so
+**3.3** false positives are expected with no real effect anywhere — and **3 appear**. Smallest exact
+two-sided binomial p **6.1e-3** against a Bonferroni / BH threshold of **7.6e-4**: **0 survive**
+(`data/guru.js:multiplicity` — `pairs_examined` 66, `expected_false_positives` 3.3,
+`observed_uncorrected` 3, `smallest_pvalue` 0.006106, `bonferroni_threshold` 0.0007576,
+`survive_bonferroni` 0, `survive_bh_fdr_05` 0; `n_decisive_corrected` 0). GURU establishes descriptive
+matchup structure with error bars; it does not establish that any archetype beats any other.
+
+**Pinned, not regenerated (2026-09-09).** The labelling is the `data/archetypes.json` that `guru.py` read on
+2026-07-31. No committed version of that file matches GURU's 12 names (checked against `7215fff2`,
+`d88fea4b`, `1ffa031f^`), so **the silhouette for GURU's own labelling is not recoverable from the
+repository**; `guru-matchups.json` does not carry it. The current `data/archetypes.json` (`k_selected` 12,
+`silhouette` 0.126, `n_games` 19,978; regenerated 2026-08-25) is a *different* labelling, and GURU is
+deliberately not re-run on it: that moves every number the GURU booth renders, so it is a joint pass with
+WEB, which is paused. It is the real (not simulated) payoff matrix that SLOWKING solves. Output:
+`data/guru-matchups.json`, `data/guru.js`.
 
 ### 4.2 XATU — opponent belief (modest, useful)
 `engine/xatu.py` learns, per species, the set (item/ability/moves) usually run, and predicts the
 opponent's next move from state. On held-out human moves the behaviour-clone was reported here at
 ~~top-1 35.9% (CI 35.2–36.5), top-3 71.6%, cross-entropy 2.27 nats, baselines 4.54 and 2.91~~ — **withdrawn
-2026-09-09: no artifact carries those figures.** The harness artifact this sentence cites,
-`data/policy-eval.json` (`species_only_clone`, committed 2026-07-31), reads top-1 0.2979 [0.2914, 0.3045],
-top-3 0.6564, cross-entropy 2.6353 nats against baselines 4.7346 (global move frequency) and 3.0286
-(uniform over moveset). The clone beats both baselines there too, so the qualitative reading — a modest
-signal, with genuine entropy in human move choice — stands on the artifact's numbers, not on the withdrawn ones. Output:
-`data/xatu.json`, `data/xatu.js`; harness `engine/eval_policy.py` → `data/policy-eval.json`.
+2026-09-09: no artifact carries those figures.** The harness artifact this sentence cites is
+`data/policy-eval.json`, **re-run 2026-09-09** (`generated_at` 2026-09-09T21:04:26Z) by `engine/eval_policy.py`,
+which reads `data/games.ladder.raw-logs.jsonl` (`source.sha256` 4a332aeee377…, 413,935,110 bytes) and plays
+no game, gating the logs by the same `engine/quality.py` rule as every clean figure (`quality_filter_version`
+1.3.0; `quality_inputs.store.sha256` cde0fa05d517…, `quality_inputs.store_validation.sha256` b1846b6b9a60…;
+`clean_ids_from_quality` 32,040; `logs_kept` 24,114 / `logs_dropped_by_quality` 53,120; `split_rule` temporal
+80/20 in file order, `seed` 42). Field by field: `n_games` 24,114 (`train_games` 19,291 / `test_games` 4,823;
+`test_clicks_scored` 118,274, `test_clicks_skipped_thin_prior` 95); `species_only_clone.top1_accuracy`
+**0.293** (`top1_ci95` [0.2904, 0.2956]); `top3_accuracy` **0.6459** (`top3_ci95` [0.6432, 0.6486]);
+`cross_entropy_nats` **2.3365** (`ce_ci95` [2.3288, 2.3441]); against `baselines.global_move_freq_ce` 4.7124
+and `baselines.uniform_moveset_ce` 3.6978. The `phase_conditioned_clone` lifts top-1 to 0.3068 but worsens
+cross-entropy to 2.5087, so the species-only prior is retained (`verdict`). The clone beats both baselines, so
+the qualitative reading — a modest signal, with genuine entropy in human move choice — stands on the
+artifact's numbers, not on the withdrawn ones. The 2026-07-31 run of the same harness, on a pre-1.3.0 clean
+set an order of magnitude smaller, is superseded by this one. Output: `data/xatu.json`, `data/xatu.js`; harness
+`engine/eval_policy.py` → `data/policy-eval.json`.
 
 ### 4.3 PORY — mid-game win probability (RETRACTED as a value net; it is material arithmetic)
 The pivot's proof. `engine/pory.py` reconstructs per-turn board state (mons alive out of four, mean
@@ -1778,7 +1810,7 @@ Nested or mixed logit is the remedy and neither is implemented, so the fitted pr
 good ranking and only an approximate distribution.
 
 **Equilibrium and exploitability.** Each preview is a two-player zero-sum matrix game on an
-antisymmetric edge matrix `M[i,j] = (p(i>j) − p(j>i))/2`. Regret matching (Hart & Mas-Colell) converges
+antisymmetric edge matrix `M[i,j] = (p(i>j) − p(j>i))/2`. Regret matching (Hart & Mas-Colell 2000, ref. 16) converges
 to an ε-Nash. For a strategy `x`, **exploitability** `= −minⱼ (x·M[:,j])` — the worst-case loss to a
 best response; the Nash value is 0, so a Nash strategy scores ≈ 0 and a predictable single-deck
 strategy is punished.
@@ -1930,7 +1962,7 @@ the method is published and reproducible.
 2. Lanctot et al., *Monte Carlo Sampling for Regret Minimization* (MCCFR), 2009.
 3. Moravčík et al., *DeepStack*, Science 2017. · Brown & Sandholm, *Libratus*, Science 2018.
 4. Brown et al., *Combining Deep RL and Search* (ReBeL), NeurIPS 2020. · Schmid et al., *Player of Games*, 2021.
-5. Angliss, Cui, Hu, Rahman & Stone, *VGC-Bench: A Benchmark and Strategy Suite for Competitive Pokémon Doubles Battling*, AAMAS 2026, [arXiv 2506.10326](https://arxiv.org/abs/2506.10326) — the only published work in this exact format; the source of the ~100%-exploitable finding and of the professional-beating result quoted in §0. · Grigsby, Xie, Sasek, Zheng & Zhu, *Metamon* (offline RL + large sequence models, no search), RLC 2025, [arXiv 2504.04395](https://arxiv.org/abs/2504.04395). · Full survey of the field, with what each project implies for this one: `docs/PRIOR-ART.md`.
+5. Angliss, Cui, Hu, Rahman & Stone, *VGC-Bench: Towards Mastering Diverse Team Strategies in Competitive Pokémon*, AAMAS 2026, [arXiv 2506.10326](https://arxiv.org/abs/2506.10326) (title read from the arXiv record 2026-09-09 — this entry and `docs/SLOWKING-whitepaper.md` ref. 8 had each carried a different, unverified subtitle; both corrected) — the only published work in this exact format; the source of the ~100%-exploitable finding and of the professional-beating result quoted in §0. · Grigsby, Xie, Sasek, Zheng & Zhu, *Metamon* (offline RL + large sequence models, no search), RLC 2025, [arXiv 2504.04395](https://arxiv.org/abs/2504.04395). · Full survey of the field, with what each project implies for this one: `docs/PRIOR-ART.md`.
 6. Perolat et al., *DeepNash / R-NaD* (Stratego), Science 2022. · Vinyals et al., *AlphaStar*, 2019.
 7. Meta FAIR, *CICERO / piKL* (human-regularised RL, Diplomacy), Science 2022.
 8. Chen & Joachims, *Modeling Intransitivity in Matchup Data* (blade-chest), WSDM 2016. · Balduzzi et al., *Re-evaluating Evaluation* (Nash-averaging), NeurIPS 2018.
@@ -1938,6 +1970,10 @@ the method is published and reproducible.
 10. Wilson, *Probable Inference, the Law of Succession, and Statistical Inference*, JASA 1927.
 11. McFadden, *Conditional Logit Analysis of Qualitative Choice Behavior*, in Zarembka (ed.), **Frontiers in Econometrics**, Academic Press 1974 — the discrete-choice model the scoring bot's policy is fitted with (§5).
 12. the Smogon damage calculator — community damage ground-truth. · Pokémon Showdown replay API.
+13. Rosenbaum, D. T., *Measuring How NBA Players Help Their Teams Win*, 82games.com, 2004 — adjusted plus-minus, the estimator WAR descends from (role-family section).
+14. Sill, J., *Improved NBA Adjusted +/- Using Regularization and Out-of-Sample Testing*, MIT Sloan Sports Analytics Conference 2010 — ridge-regularised APM (RAPM), the estimator `engine/war.py` implements.
+15. Pearl, J., *Probabilistic Reasoning in Intelligent Systems: Networks of Plausible Inference*, Morgan Kaufmann 1988 — the noisy-OR combination `engine/roles.py` uses for team-level role presence.
+16. Hart, S. & Mas-Colell, A., *A Simple Adaptive Procedure Leading to Correlated Equilibrium*, Econometrica 68(5), 2000 — regret matching, the equilibrium procedure of §5 and SLOWKING.
 
 ---
 
@@ -1954,15 +1990,21 @@ of a **multi-label** object: a real team is Sun *and* Tailwind *and* Fake Out at
 discards most of the information and shatters the data into archetype×archetype cells of n≈11–18, which
 is why those matchup numbers were untrustworthy. The literature is explicit: multi-label classification
 (Tsoumakas & Katakis 2007), team-as-mixture-of-latent-roles (topic models; Blei-Ng-Jordan 2003), and
-latent roles beating raw identity for outcome prediction in team sports (arXiv 2304.08272).
+latent roles beating raw identity for outcome prediction in team sports (arXiv 2304.08272 — cited as
+*motivation*; no method from it is implemented here).
 
 ### Role tagging (leak-free, data-earned)
-We define 26 functional roles. A **species earns a role from data** — it is credited once it is observed
+We define **52 functional roles** (`data/pokemon-roles.json:roles`, 52 keys, identical to `engine/roles.py`
+`ROLE_SIGNALS`; 47 of them are credited to at least one species above the artifact's `rate_floor` 0.05, 40 at
+its `present_at` 0.5; the "26" this sentence carried until 2026-09-09 was typed and stale). A **species earns a role from data** — it is credited once it is observed
 performing the role (≥2 times) across the store. Multi-effect moves carry several *factual* roles
 (Matcha Gotcha = special+heal+status; Body Press = wall+attack; Fake Out = tempo, not attacker). Role
 *presence* is binary; graded *strength* is deliberately **not** hand-set (asserting weights violates the
 project's measurement standard). A team's role vector is built from the **team-preview six**, which are
-public in every closed-sheet game, so the representation is uncensored and non-leaking.
+public in every closed-sheet game, so the representation is uncensored and non-leaking. Where per-species
+role *probabilities* are used (`engine/roles.py`, `team_roles`), the team-level probability that at least
+one of the six plays role r is the **noisy-OR** 1 − ∏ᵢ(1 − pᵢ) (Pearl 1988, ref. 15) — an independence
+assumption across teammates that has not been checked against the observed sixes (defence item 7, owed).
 
 Each ordered role pair (a, b) aggregates outcomes across every game where one side had a and the other
 had b, with a Wilson score interval. Because roles co-occur, each game contributes to many cells, so the
@@ -1973,7 +2015,7 @@ as **win-credit per role**; KO-credit per species is measured directly from the 
 
 ### WAR — Wins Above Replacement (species RAPM)
 To attribute wins to individual Pokémon while controlling for teammates and opponents, we use basketball's
-**Regularized Adjusted Plus-Minus**. With one row per game, label y = 1 if p1 won and features
+**Regularized Adjusted Plus-Minus** (RAPM; Rosenbaum 2004, Sill 2010 — refs. 13–14). With one row per game, label y = 1 if p1 won and features
 x_s = 1[s ∈ p1 six] − 1[s ∈ p2 six], a ridge logistic regression yields β_s, species s's adjusted win
 contribution. Ridge shrinks rare species toward zero. With replacement β at the 20th percentile and the
 logistic slope 1/4 at p = 0.5,
@@ -1989,18 +2031,32 @@ Rather than hand-declaring roles, we factorize the data with **Non-negative Matr
 (Lee & Seung 1999): X ≈ W H with W, H ≥ 0, so each team is a non-negative **blend** of latent roles and
 each role is a recipe over features. Two cuts: (1) the team×move usage matrix (usage-weighted, which
 down-weights the closed-sheet censoring skew) recovers **offensive cores** but is dominated by attacking
-moves (relative reconstruction error 0.79); (2) the team×role matrix at the shipped rank 6 has reconstruction
-error **0.682** (`data/nmf-roles.json:archetype_recon_error`, regenerated 2026-08-04; the ~~0.53~~ this
-sentence carried is withdrawn 2026-09-09 — an earlier run's value) and names six archetypes: Intimidate+Fake-Out control, physical offense, special offense+sustain, bulky wall+screens+
-redirection, Tailwind+Encore, priority. **The shipped rank is below the null on the project's own criterion:**
-`data/nmf-rank-selection.json` (bootstrap factor stability against a shuffled-data null, Brunet et al. 2004)
-gives rank 6 an excess over null of **−0.107** (stability 0.8148 against a null of 0.9218) and selects
-**rank 4** as the most reproducible (+0.0775). A move's loading on a role is **learned, not typed** — this is the
-principled source of graded primary/secondary strength (Label Distribution Learning, Geng 2016). The rank
-and the human names are the only non-data choices, and the rank is not defended. Reconstruction error is **not** comparable across
-weightings and `engine/nmf_rank.py` states it cannot select a rank (it falls monotonically by construction).
-Topic coherence (Mimno et al. 2011) was named here as "the next refinement"; it has not been run, and
-*next* is not a justification (the 2026-07-31 defence's ruling, applied here 2026-09-09).
+moves (relative reconstruction error **0.8348**, `data/nmf-roles.json:reconstruction_error_ratio`, 64,179 team-docs × 375 moves; the value this sentence carried before 2026-09-09 was an earlier run's and is deleted); (2) the team×role matrix at **rank 4**.
+
+**The rank is read, not typed (2026-09-09).** `engine/nmf_roles.py` carried `ARCH_RANK = 6` by hand from
+2026-07-24 while the project's own selection artifact scored that rank below the null. It now reads the rank
+from `data/nmf-rank-selection.json:most_reproducible.rank` and fails if the artifact or field is absent.
+`data/nmf-rank-selection.json` (2026-07-28, `bootstrap_pairs` 6, `iters` 300, `matrix` 7,330 × 46) scores rank 4 at `stability` 0.9992 against a shuffled `null_stability` of 0.9217 (`excess_over_null` **+0.0775**, the maximum over ranks 2–12); the previously shipped rank 6 scored **-0.107** (0.8148 vs 0.9218). The ~~0.682~~ reconstruction error published here for rank 6 (2026-08-04) is superseded, not
+comparable: a different rank on a store one-quarter the size. Receipt: `data/nmf-roles.json` regenerated 2026-09-09: `archetype_rank` 4, read from `data/nmf-rank-selection.json:most_reproducible.rank` (`archetype_rank_source.sha256` f1354dd83974…), `archetype_recon_error` **0.738**, `n_team_sides_role_matrix` 63,882 × `n_roles_role_matrix` 52, `store.path` data/games.ladder.jsonl (481,072,929 bytes, `store.sha256` cde0fa05d517…). The store digest alone does not pin this sample: `engine/quality.py` also reads `data/store-validation.json`, and a second run over the byte-identical store on the same day read a different usable-game count after that file moved — so `nmf_roles.py` now receipts the quality inputs too, and the re-run that carries them is owed (it exceeded the ten-minute budget on a loaded machine and was stopped).
+
+The 4 archetypes, composed by the data and **named by a human** (the name is the one non-data choice left):
+
+| # | Archetype (human name) | Composition (`top_roles`, share of the factor) | Share (`prevalence`) |
+|---|---|---|---|
+| A1 | Physical + priority offense | Physical attacker 39% · Priority attacker 22% · Setup / sweeper 6% · Tailwind (speed up) 6% | 27.1% |
+| A2 | Bulky support + rain | Bulky wall / support 23% · Special attacker 15% · Rain setter 10% · Redirection 6% | 25.7% |
+| A3 | Spread offense | Spread attacker (both foes) 54% · Special attacker 8% · Tailwind (speed up) 6% · Sand setter 4% | 25.2% |
+| A4 | Intimidate + Fake Out control | Debuff (Intimidate / drops) 42% · Fake Out (tempo) 26% · Pivot 8% · Setup / sweeper 3% | 22.1% |
+
+The selection artifact itself is the weak link and is stated as such: it was computed on 2026-07-28 over a
+7,330-row matrix at 6 bootstrap pairs — below the ≥ 50 the 2026-09-09 defence asks for — and
+Brunet's cophenetic correlation is not implemented (`cophenetic_correlation: null`); its re-run at 50 pairs is
+owed (`python engine/nmf_rank.py 50`). A move's loading on a role is **learned, not typed** — graded
+primary/secondary strength is read off the factorisation rather than typed (Label Distribution Learning, Geng
+2016, is cited as the *motivation* for graded degrees; nothing here implements LDL). Reconstruction error is
+**not** comparable across weightings or ranks and `engine/nmf_rank.py` states it cannot select a rank (it falls
+monotonically by construction). Topic coherence (Mimno et al. 2011) was named here as "the next refinement"; it
+has not been run, and *next* is not a justification (the 2026-07-31 defence's ruling, applied here 2026-09-09).
 
 ### Honest limits
 Preview-composition signal is not demonstrated: role-level winner-prediction ties a coin and WAR loses to one (`data/war.json` verdict — worse than a coin at every regularisation strength tested; ~~"WAR barely clears it"~~ withdrawn 2026-09-09).

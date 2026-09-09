@@ -79,6 +79,11 @@ const MEDI = G.REL.require('engine/medicham2-browser.js',
                            { want: ['MEDSEEN', 'MEDFAILS'] });
 const SWARM = require(D('engine', 'diff_swarm.js'));
 const CS = require(D('engine', 'champions_sim.js'));
+/* THE ONE DOOR FOR "WHICH ROSTER BODY IS THIS". engine/identity_audit.js enforces that a HARD identity
+ * read (`_switchKey`, `set.species`, `set.name`) goes through engine/board_state.js `stableKey`; this
+ * file re-derived it inline and was the audit's two UNROUTED sites on 2026-09-09. */
+const BS = require(D('engine', 'board_state.js'));
+const normId = (v) => String(v || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const { Dex } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
 const TAGS = require(D('data', 'tags.json'));
@@ -150,9 +155,8 @@ console.log('  pool built in ' + ((Date.now() - t0) / 1000).toFixed(1) + 's — 
           for (const [lab, team, side] of [['p1', S.sfA && S.sfA.team, battle.sides[0]],
                                            ['p2', S.sfB && S.sfB.team, battle.sides[1]]]) {
             for (const m of (team || [])) {
-              const key = String((m && (m._switchKey || m.name)) || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-              const p = side.pokemon.find(x => String((x.set && (x.set.species || x.set.name)) || '')
-                .toLowerCase().replace(/[^a-z0-9]/g, '') === key);
+              const key = BS.stableKey(m, normId);
+              const p = key && side.pokemon.find(x => BS.stableKey(x, normId) === key);
               if (!p) continue;
               cells.push({ slot: lab + '.' + key,
                            meName: m.name, meTypes: (m.types || []).join('/'), meFnt: !!m.fainted,

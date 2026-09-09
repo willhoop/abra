@@ -1,0 +1,15 @@
+{
+  "written": "2026-09-09T21:40:41Z",
+  "by": "MEASURE, before engine/game_differential.js step (d) of the wave re-measurement ran",
+  "release_measured": "b0f5c159c46e",
+  "release_previous": "b730e44f3314",
+  "previous_artifact": "data/game-differential.json generated 2026-09-09T11:48:00.710Z: 961 played / 958 readable / 3 void (low-identity); BOARD-MATERIAL 0 of 958; 13 diverged among usable",
+  "evidence_in_hand": "omit-spread config replayed alone on b0f5c159c46e with the 1623 instrument edit: 128 played, 0 void (was 2), BOARD-MATERIAL 0/128, NARRATION-ONLY 3 games (2656930062, 2657358877 = ex-void now Future Sight -end narration, 2636020596). Ex-void 2658645239 now AGREES.",
+  "prediction": {
+    "games_played": 961,
+    "void_games": 0,
+    "board_material": { "point": 0, "range": [0, 1], "why": "the two omit-spread ex-void games are board-clean in the replay; the omit-protect ex-void game (2662758209 vs 2662995339) rests on ENGINE's Misty Terrain / charge-release fixes and could still part a board" },
+    "narration_only_games": { "point": 14, "range": [13, 15], "why": "13 before + 2657358877 joins as narration + 0 or 1 from the omit-protect ex-void game - 0 or 1 cleared elsewhere by the two engine fixes" },
+    "narration_causes": { "point": 14, "range": [13, 16] }
+  }
+}

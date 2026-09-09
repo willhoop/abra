@@ -1,4 +1,5 @@
-/* ABRA — replay parse tests.  Run: node tests/test-parse.js
+/* RAW-STORE-NOT-READ: the fixture log is hand-written from protocol SHAPES taken out of the raw-logs file; this test opens no store.
+ * ABRA — replay parse tests.  Run: node tests/test-parse.js
  * Feeds a hand-written Showdown log to the shipped extractor and checks every
  * field. Expected values are derived by hand from the log below, not captured. */
 const { extract } = require('../engine/durable-ingest.js');

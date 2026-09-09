@@ -1,3 +1,4 @@
+// RAW-STORE-OK: this is the INGEST -- it WRITES the store. Filtering on the way in would discard games that could never be recovered; every filter runs on top of the store, never inside the pull.
 /* ABRA — Automated Battle Replay Analyzer — durable, incremental, no-redo ingest.
  * Stores EVERY game's raw facts keyed by id (append-only, dedup).
  * Rating + bot tagged so any cutoff is a re-filter, never a re-pull.
@@ -22,9 +23,23 @@ function activeFormats(){
 const FORMATS=(process.env.FORMATS ? process.env.FORMATS.split(',') : (activeFormats()||['gen9championsvgc2026regmb']))
   .map(s=>s.trim()).filter(Boolean);
 const PAGES=+(process.env.PAGES||25), CONC=+(process.env.CONC||16);  // was 2 (~100 games/run); 25 exhausts the public pool (~1250/format), auto-stops when empty
-const STORE=process.argv[2]||'games.jsonl';
+/* The store is the first NON-FLAG argument, so `--strict-gap` (below) can sit anywhere on the line
+ * without being mistaken for a file name. */
+const STORE=process.argv.slice(2).find(a=>!a.startsWith('--'))||'games.jsonl';
 const RAW=process.env.RAW||(STORE.replace(/\.jsonl$/,'')+'.raw-logs.jsonl');
 const MODE=process.env.MODE||'fetch'; // fetch | reparse | backfill
+/* ---- THE GAP DETECTOR'S SWITCH ---------------------------------------------------------------
+ * `--strict-gap` (or STRICT_GAP=1 in the environment, for callers that spawn this file and pass env
+ * through — engine/next_regulation_ingest.js does) turns a GAP from a loud warning into exit 1. The
+ * DEFAULT IS TO WARN AND STILL COMMIT: a gap means games are already gone, and refusing the run
+ * would lose the games that WERE fetched on top of the ones that were not. See the GAP block in
+ * main(). */
+const STRICT_GAP=process.argv.includes('--strict-gap')||!!process.env.STRICT_GAP;
+/* The store's `date` is UTC "YYYY-MM-DD HH:MM", derived from uploadtime in extract(); this is the
+ * one inverse of that, shared by the backfill and the gap detector so the two cannot drift. */
+const tsFromDate=d=>{ if(!d) return null; const ms=Date.parse(String(d).replace(' ','T')+':00Z');
+  return Number.isFinite(ms)?Math.floor(ms/1000):null; };
+const iso=t=>t?new Date(t*1000).toISOString().replace(/\.000Z$/,'Z'):'none';
 /* `x.setEncoding('utf8')` IS LOAD-BEARING AND ITS ABSENCE CORRUPTED THE STORE. Found 2026-08-28 by
  * MEASURE, chasing engine/sanity_check.py's `the winner is always one of the two players (2 bad)`.
  *
@@ -581,9 +596,8 @@ async function main(){
     if(!missing.length){ process.stderr.write('archive is complete: every stored game has its raw log; nothing to do\n'); return; }
     // The .json endpoint carries the authoritative `uploadtime`. extract() derives `date` from it
     // (new Date(uploadtime*1000)), so guessing it corrupts the date on every backfilled record.
-    // Fall back to reconstructing the timestamp from the store's own date string, which is UTC.
-    const tsFromDate=d=>{ if(!d) return null; const ms=Date.parse(String(d).replace(' ','T')+':00Z');
-      return Number.isFinite(ms)?Math.floor(ms/1000):null; };
+    // Fall back to reconstructing the timestamp from the store's own date string, which is UTC
+    // (tsFromDate, module scope — shared with the gap detector).
     const res=await pool(missing, async id=>{
       let log=null, uploadtime=null;
       try{ const j=JSON.parse(await get(`https://replay.pokemonshowdown.com/${id}.json`)); log=j.log; uploadtime=j.uploadtime; }catch(e){}
@@ -639,10 +653,15 @@ async function main(){
     out.end(); out.on('finish',()=>{ fs.renameSync(tmp,STORE); process.stderr.write(`reparsed ${n} games from raw archive -> ${STORE}\n`); });
     return;
   }
-  const have=new Set();
-  if(fs.existsSync(STORE)) for(const l of fs.readFileSync(STORE,'utf8').split('\n')) if(l.trim()){try{have.add(JSON.parse(l).id);}catch(e){}}
+  /* `newestStored` is read BEFORE this run appends anything: it is the far edge of what we already
+   * hold, and the gap detector below compares the search window's near edge against it. */
+  const have=new Set(); let newestStored=0;
+  if(fs.existsSync(STORE)) for(const l of fs.readFileSync(STORE,'utf8').split('\n')) if(l.trim()){try{
+    const g=JSON.parse(l); have.add(g.id); const t=tsFromDate(g.date); if(t&&t>newestStored) newestStored=t; }catch(e){}}
   let items=[], pagesOk=0, pagesFailed=0;
+  const coverage={};                               // per format: what the search offered this run
   for(const FORMAT of FORMATS){
+    const cov=coverage[FORMAT]={pages:0,offered:0,ids:new Set(),times:[]};
     for(let p=1;p<=PAGES;p++){
       const j=await get(`https://replay.pokemonshowdown.com/search.json?format=${FORMAT}&page=${p}`);
       /* A REQUEST THAT NEVER COMPLETED IS NOT "NO MORE PAGES". Both used to arrive here as '' and
@@ -652,6 +671,8 @@ async function main(){
       if(!Array.isArray(arr)){ pagesFailed++; process.stderr.write(`search page ${p} of ${FORMAT}: body is not a list\n`); break; }
       pagesOk++;
       if(!arr.length) break;
+      cov.pages++; cov.offered+=arr.length;
+      for(const x of arr){ cov.ids.add(x.id); if(+x.uploadtime>0) cov.times.push(+x.uploadtime); }
       items.push(...arr);
     }
   }
@@ -670,6 +691,67 @@ async function main(){
     +`logsRequested=${logsRequested} logsNull=${logsNull} archived=${r.archived} `
     +`rows=${r.added} unparsed=${r.unparsed} searchPagesOk=${pagesOk} searchPagesFailed=${pagesFailed}\n`);
   process.stderr.write(`appended ${r.added} games. store now ${have.size+r.added} total. raw archived -> ${RAW}\n`);
+
+  /* ---- THE GAP DETECTOR: DID THE WINDOW MOVE PAST WHAT WE HOLD? -------------------------------
+   * The pool is a rolling ~1,250 per format (above). Every id the search offers this run has an
+   * uploadtime; the OLDEST of them is the near edge of the window. Every row already in the store
+   * has a date; the NEWEST of them is the far edge of what we hold. If the window's oldest is NEWER
+   * than the store's newest, the two do not overlap: everything uploaded between them aged out of
+   * the pool before any run saw it, and no later run can reach it. That is a GAP, and it is the one
+   * failure this collector cannot undo — the ZERO-GAIN and STALE-LADDER guards below catch a
+   * search that is broken or a ladder that has stopped; neither can see a ladder that is simply
+   * FASTER than the cadence. Written 2026-09-09, the day Reg M-C shipped at ~140 games/h against a
+   * six-hourly schedule and a ~9 h window.
+   *
+   * THE ESTIMATE IS THE WINDOW'S OWN RATE APPLIED TO THE HOLE. ids offered / hours spanned is the
+   * arrival rate this run can measure; multiplied by the unheld hours it is a floor-ish guess, not a
+   * count — nothing can count games nobody saw. It is printed so the number is a magnitude and not
+   * an adjective.
+   *
+   * IT WARNS BY DEFAULT AND COMMITS ANYWAY. A gap means the missing games are ALREADY unreachable;
+   * a non-zero exit would add the games that were fetched to the ones that were not. `--strict-gap`
+   * / STRICT_GAP=1 makes it exit 1 for a caller that wants the run to be red. Printed on EVERY run,
+   * gap or not, so that a quiet line can be read as "checked, fine" and not "did not look".
+   *
+   * `newest stored` is over the whole STORE, which is one format by construction (one store per
+   * format id; FORMATS with two ids into one store is an env override and reads the union).
+   *
+   * NO OVERLAP MEANS NO SHARED ID, NOT ONLY A LATER TIMESTAMP. The store's `date` is minute-floored
+   * ("YYYY-MM-DD HH:MM"), so `newestStored` sits up to 59 s BEFORE the true uploadtime of the newest
+   * stored game. A run whose oldest offered id IS that game therefore reads it as "newer than the
+   * store" by those seconds — a false GAP on exactly the run where the window has just caught up.
+   * `held===0` is the direct statement of "nothing offered was already stored"; the timestamp
+   * comparison then only fixes the DIRECTION (the window moved forward, not an old pool re-offered)
+   * and rules out the empty-store first run.
+   *
+   * IT IS THE LAST THING THIS RUN PRINTS, ON PURPOSE. engine/next_regulation_ingest.js relays ONE
+   * line of this file's stderr — the last — into the workflow log and the artifact as `ingest_said`.
+   * With the block placed before the guards, an all-held run ended on "nothing new: ..." and the
+   * coverage line never reached CI. So it is a function, called once at the end of main() after the
+   * ZERO-GAIN and STALE-LADDER guards: on a healthy run the relayed line IS the coverage line, or
+   * the GAP line when there is one. A guard that fires exits before it, keeping its own reason as
+   * the relayed line — the run is red then, and the reason matters more than the coverage. */
+  const reportCoverage=()=>{
+    let gap=false;
+    for(const FORMAT of FORMATS){
+      const c=coverage[FORMAT]; const ts=c.times.sort((a,b)=>a-b);
+      const oldest=ts[0]||0, newest=ts[ts.length-1]||0;
+      const uniq=c.ids.size, held=[...c.ids].filter(id=>have.has(id)).length, fresh=uniq-held;
+      process.stderr.write(`coverage: ${FORMAT} pages=${c.pages} offered=${c.offered} unique=${uniq} new=${fresh} held=${held} `
+        +`oldest_offered=${iso(oldest)} newest_offered=${iso(newest)} newest_stored=${iso(newestStored)}`
+        +(newestStored?'':' (empty store: no gap can be measured on a first run)')+`\n`);
+      if(uniq&&held===0&&oldest&&newestStored&&oldest>newestStored){
+        gap=true;
+        const spanH=(newest-oldest)/3600, rate=spanH>0?uniq/spanH:null, holeH=(oldest-newestStored)/3600;
+        const est=rate!==null?Math.round(rate*holeH):null;
+        process.stderr.write(`GAP: ${FORMAT} — search window oldest ${iso(oldest)} is newer than store newest ${iso(newestStored)}; `
+          +`~${est===null?'?':est} games unreachable (${holeH.toFixed(2)} h unheld at ${rate===null?'?':rate.toFixed(0)} games/h `
+          +`measured over this window's ${spanH.toFixed(2)} h). The pool is rolling; these cannot be re-fetched.`
+          +(STRICT_GAP?' --strict-gap: exiting non-zero AFTER committing what was fetched.':'')+`\n`);
+      }
+    }
+    if(gap&&STRICT_GAP) process.exitCode=1;
+  };
 
   /* ---- A ZERO-GAIN RUN MUST NOT LOOK LIKE A QUIET DAY -----------------------------------------
    * "appended 0 games" was printed with exit 0 whether the API was dead or nothing new had been
@@ -736,6 +818,7 @@ async function main(){
       +(newestAgeH!==null?`; the newest is ${newestAgeH.toFixed(1)} h old, so the ladder is quiet and not stopped`:'')
       +`.\n`);
   }
+  reportCoverage();   // LAST, so next_regulation_ingest.js's one relayed line is coverage or GAP
 }
 if(require.main===module) main();
 /* archiveThenStore is EXPORTED so a second ingest path cannot quietly grow its own ordering. Any

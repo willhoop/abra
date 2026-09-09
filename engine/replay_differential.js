@@ -1,4 +1,5 @@
-/* replay_differential.js — ROADMAP #68. REPLAY REAL STORED GAMES THROUGH THE ENGINE AND COUNT THE
+/* RAW-STORE-OK: replays STORED GAMES through the engine and compares the board to what the log says happened. The log is the authority whoever played it; a bot's game is exactly as valid a test of the simulator as a human's, and filtering would drop cases without changing what any divergence means.
+ * replay_differential.js — ROADMAP #68. REPLAY REAL STORED GAMES THROUGH THE ENGINE AND COUNT THE
  * DIVERGENCES AGAINST WHAT ACTUALLY HAPPENED.
  *
  * ================= WHY THIS EXISTS =================================================================

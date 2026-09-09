@@ -53,7 +53,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_unknown_format_refusal.js`, `tests/probe_protect_tie_order.js`,
 `tests/probe_midturn_herb_resort.js`,
 `tests/probe_ohko_type_immunity.js`, `tests/probe_redirect_volatile_already_up.js`,
-`tests/probe_premajor_above_refusals.js`
+`tests/probe_premajor_above_refusals.js`,
+`tests/probe_misty_terrain_status.js`, `tests/probe_charge_release_chosen_slot.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -73,6 +74,8 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
 |---|---|---|
+| `probe_misty_terrain_status.js` | does Misty Terrain's `onSetStatus` (`data/moves.ts:12173-12179`, no Champions override) refuse EVERY status on a grounded body — a primary AND a secondary — and announce `-activate|…|move: Misty Terrain` only for a move carrying a top-level `status` or for Yawn. Six arms over two engines under `bottom-tie-first`, two turns each (both leads switch to two fresh entrants; Thunder Wave at slot 0, a burn secondary at slot 1, so no body is asked to `pass` and no body needs two statuses): CONTROL / TERRAIN with a DERIVED non-Ground burn carrier, SANDS-CONTROL / SANDS with the pool game's own Scorching Sands, AIR-CONTROL / AIRBORNE on Flying entrants. Every cast is fixed by its control on the AUTHORITY's log (both statuses must land with no terrain) and the terrain arm replays exactly that cast. `MEDI_MISTY_STATUS_UNREFUSED=1` must part TERRAIN and SANDS and move no control; `--medi <file>` compiles other bytes under the release for a pre-fix demonstration (RED, 8 cells, on HEAD of 2026-09-09). Counters asserted at exact per-arm equality; `terrainStatusFieldUnknown` asserted at zero | Rest's heal being withheld when the terrain refuses its sleep (the authority sets the status before it heals) — no arm stages Rest; the terrain's `onTryAddVolatile` (confusion), still a declared gap; a semi-invulnerable body under the terrain (`isSemiInvulnerable`), which the predicate models and no arm reaches |
+| `probe_charge_release_chosen_slot.js` | does a two-turn move release at the slot AS CHOSEN — `runMove`'s own `targetLoc` (`sim/battle-actions.ts:291` -> `sim/pokemon.ts:919`), copied onto the charge volatile by `twoturnmove.onStart` (`data/conditions.ts:298,308`) and read back by `sim/side.ts:675-684` — rather than at the body the charge turn was re-aimed onto when the chosen foe had already fainted. The carrier is DERIVED as the one legal single-target charge move that breaks protection (Phantom Force, of seven), so the release turn can be read with Protect in slot a whoever the driver sent in. Three arms: RED (a killer faster than both KOs slot a before `-prepare`; the bench refills it; the release must strike the NEW occupant), FOE-ALIVE (same cast, the killer boosts instead; both release at the chosen body) and SLOT-B (aim slot b while slot a empties — what stops the fix reading as 'always slot a'). The fixture is proven off the authority's turn 1 by name (fainted before `-prepare`, never moved, slot refilled). `MEDI_CHARGE_REMEMBERS_REAIMED=1` must part RED and move no control; `--medi <file>` shows HEAD of 2026-09-09 RED in 4 cells. `chargeSlotChosenDiffersFromReaimed` asserted at exactly 1 on RED and 0 on both controls | a chosen slot that is EMPTY at release (no bench body to refill it) — the authority falls to `getRandomTarget`, this engine to `live(foes)[0]`, counted as `chargeReleaseSlotVacated`; a charge called by another move (Metronome, `effect.sourceEffect`), which the authority re-targets at random; Stalwart / Propeller Tail on the charger |
 | `probe_midturn_herb_resort.js` | is the post-action re-sort the LAST thing in the action, the way `Battle#runAction` puts it (`sim/battle.ts:2915-2922`, below `eachEvent('Update')` at `:2856`) — so an `onUpdate` item spent by the pass that CLOSES a pivot switch reaches the sort that follows it. The cast is derived from `data/tags.json` on every run (`speedOnItemLoss`, `restoresStats`) and from the format (the one self-switch Status move aimed at a foe), never named; 37 candidate boards are enumerated and each is accepted only when the AUTHORITY's own `getActionSpeed()` readings satisfy all three inequalities the probe rests on — holder slower than its ally, twice the holder faster than the ally, the pivot faster than both — with a refusal printed BY NAME per clause, because a COULD-NOT-STAGE is a claim about the fixture. Three arms: REAL (the speed ability), SILENT (a non-speed ability on the SAME body, which must go the other way in BOTH engines), and `MEDI_RESORT_BEFORE_UPDATE=1` in a child, which must part the real arm and move the silent one not at all. It also reads the differential's boundary-by-boundary speed comparison and asserts ZERO disagreeing readings in both knob positions, which is what localises the defect to WHEN the queue was sorted rather than to the number sorted on | the herb's OTHER doors — `onAnyAfterMove` and the entry spend are `probe_refill_entry_herb.js`'s and `probe_unburden_herb_paths.js`'s, and only the `onAnySwitchIn` door is staged here. Whether the re-sort's BRACKET re-derivation is right, which is `test-bracket-regain.js`'s. And any second `onUpdate` item racing the herb in the same pass, which no arm stages |
 | `probe_hazard_sweep_order.js` | does a `removesHazards` sweep run its clauses in the ORDER the handler runs them — the family is DERIVED off `data/tags.json` on every run and the file FAILS BY NAME if a carrier ever has a clause shape no arm stages. The three legal shapes disagree with each other and this engine had ONE order for all of them: the spin family is `leechseed -> own hazards -> partial trap`, Defog is `target screens -> target hazards -> own hazards -> terrain`, Tidy Up is `every doll -> own hazards -> foe hazards`. Nothing is typed — both engines play the identical script and the assertion is that the `(event, subject, effect)` SEQUENCE agrees; the CONTROL is the same body clicking a non-sweeping move, which must write no `-end`/`-sideend` in either engine. `MEDI_SWEEP_LEGACY_ORDER=1` restores the old order verbatim (it RELOCATES and skips nothing, so the board is identical under it) and the parent re-runs itself under the knob and FAILS if the child passes — it goes red on all three arms | the `[from] move: <Move>` ATTRIBUTION on the swept lines, which is PRINTED and not asserted: the authority attributes the spin family's and Defog's and leaves Tidy Up's bare, the discriminator is a HANDLER fact no param in `data/tags.json` carries, and deriving one needs `tag_dex.js`, which exhausts the heap. And the effect LABEL (`move: stealthrock` against `Stealth Rock`), which the differential's own `effect-namespace` equivalence collapses, so it is not a divergence by the instrument that decides the protocol number |
 | `probe_default_target_side.js` | when a move is SUBSTITUTED into an action — Encore at selection, Encore at execution (WIRE 143), or the called-move branch (Copycat / Metronome / Sleep Talk / Mirror Move) — does it take its target from its own target class, the way `Battle#getRandomTarget` answers `self`, `all`, `allySide`, `allyTeam`, `adjacentAllyOrSelf` and `adjacentAlly` BEFORE it ever looks at a foe. Twelve arms over two engines under the differential's own `middle` pin: six red (an Encored Helping Hand, mirrored whole, and again against the format's OTHER live priority refuser, and again with the refuser's ability traded away so only the wrong SIDE is left; an Encored Coaching, where no priority is involved and +1/+1 lands on a foe; and a COPIED Coaching, which is the second draw site and not Encore at all) and six controls (a plain clicked Helping Hand, which was NEVER broken; the foe axis clicked directly and again through the override; the far-side draw at priority 0 on both doors, which fails if a die moves; and a `self` move where the near-side branch fires and nothing may change). Nothing is typed — the four counted facts are read off BOTH streams and compared to each other, deliberately coarse (`cant` as holder-side/ability, a single-turn mark as side/label, a boost as side/stat/stage, the move line as move->side) so an arm cannot fail on a spelling difference between the narrators and cannot pass while a body on the wrong half of the field takes the effect | the 87 near-side moves whose aim `playerAction` discards before it reaches an action — Protect, Tailwind, Rain Dance and Wide Guard all return a kind carrying no target, so only the four `adjacentAlly` chooseables are observable from outside at all. And Instruct, which reaches the authority through `runMove(..., targetLoc)` rather than through `getRandomTarget` and is a different rule |
@@ -135,10 +138,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  830/830 probed mechanics live, 0 missing   (census 2026-09-09 13:43)
+  830/830 probed mechanics live, 0 missing   (census 2026-09-09 07:54)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 6.3 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-09 07:57)
+    never fired in the staged harness (all-mechanics-fire.json, 17 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-09 17:41)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -160,9 +163,68 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-09 14:14_
+_stamped 2026-09-09 18:00_
 
 <!-- /GENERATED -->
+
+## THE ROSTER'S UNTESTED ABILITIES ARE NOT IN THE GAME, AND THE GATE'S SCOPE LINE STILL PRINTS THEM — WIRING OWED, NOT A 6.0.0 BLOCKER. 2026-09-09, CHANGELOG 5.276.0
+
+Will, 2026-09-09: *"the abilities not tested are not in the game so we removed them please stop quoting
+them."* `data/roster.abilities.json:scope` reads `out_of_scope` 114, every one `no-legal-carrier`, and
+those rows are gone from `results`; what is in scope is 139 FIRED-AND-BOARDS-MATCH beside 44
+COULD-NOT-STAGE, 14 CONTROL-NOT-QUIET and 5 DEFERRED-BY-OWNER, and only the last three are a remainder.
+The review's finding 11 ("139 of 202") is withdrawn on that ruling. Owed to this division: `tests/roster.js`
+derives `in_scope` by LEGAL CARRIER so `engine/status.js`'s SCOPE line stops printing a "not tested"
+count that includes carriers the regulation does not have. Register row #555. The void-games entry
+below is the same day's other item: two engine fixes, one instrument, census 830/830 unchanged, and
+board-material being re-measured on the moved engine in 5.276.0 — its row follows. Reg M-C's own move
+and item changes are #553 and are sequenced after the Reg M-B gate opens.
+
+
+## THE THREE VOID GAMES ARE ATTRIBUTED — TWO WERE THE ENGINE AND ARE CLOSED, ONE IS THE INSTRUMENT AND IS NAMED. CENSUS 830/830 → 830/830. BOARD-MATERIAL NOT RE-MEASURED. 2026-09-09
+
+Account: `docs/_reports/2026-09-09-void-games-attribution.md`. Each `low-identity` void game on release `b730e44f3314` was
+replayed through the differential's own driver with the artifact's flags (`--games 1200 --steering empirical --arm middle
+--turns 50 --team-store data/team-pool-frozen --end-state`) and reproduced its parting turn (4 / 6 / 3) before anything
+was read. Under the default `--steering coverage` the same pair is a DIFFERENT GAME — the census steers that sample and
+the census had moved — so the steering flag is part of the sample definition, like `--games`.
+
+- **`omit-protect` …2662758209 — ENGINE, closed.** Misty Terrain's `onSetStatus` (`data/moves.ts:12173-12179`, no
+  Champions override) was absent: a grounded Klefki was burned by a Scorching Sands secondary and a grounded Typhlosion
+  paralysed by Thunder Wave under the terrain. `applyStatus` now refuses every status on a grounded, non-semi-invulnerable
+  body while the terrain is up and announces only for a top-level-`status` move or Yawn (`inflicts*.via === 'primary'`).
+  `tests/probe_misty_terrain_status.js`: RED on HEAD bytes (8 cells), green on the fix (27/27), `MEDI_MISTY_STATUS_UNREFUSED=1`
+  restores the pool game's exact t4 parting. Replay on the fix: 10 turns, boards identical at all 11 boundaries.
+- **`omit-spread` …2658645239 — ENGINE, closed.** A charge move remembered the slot of the body the dispatch re-aim
+  (`:27974`, `it.a.target = _aimed`) had moved the aim onto, not the slot AS CHOSEN; the authority stores `runMove`'s own
+  `targetLoc` (`sim/battle-actions.ts:291`, `sim/pokemon.ts:919`, `data/conditions.ts:298,308`). The memory is now
+  `it.tgtSlot`. `tests/probe_charge_release_chosen_slot.js`: RED on HEAD bytes (4 cells), green on the fix (18/18),
+  `MEDI_CHARGE_REMEMBERS_REAIMED=1` restores the t3 parting. Replay on the fix: 8 turns, boards identical at all 9 boundaries.
+- **`omit-spread` …2657358877 — INSTRUMENT.** Turn 6's single `any`-bucket die (Farigiraf's Quick Claw, drawn in
+  `runEvent('FractionalPriority')`) was addressed `…|6|any|-|p20|0` by the authority and `…|6|any|-|-|0` here — two
+  coins. `Battle#clearActiveMove` (`sim/battle.ts:376-384`) nulls `activeTarget` only when a move is active, and Future
+  Sight's residual hit writes `activeTarget` with none (`sim/battle-actions.ts:693`, `:1154`), so Morpeko stayed in it
+  from t5's residual into t6's sort. **Edit owed to MEASURE at `engine/game_differential.js:1623`:**
+  `tg = mv ? (b && b.activeTarget) : null`. Not applied here.
+
+**The killed agent's diff was kept whole** — all four hunks verified against the authority and by replay — **and its probe
+was rewritten**: it passed a body (`null`) the authority rejects, asked one body for two statuses on consecutive turns,
+and fired a Ground move at a Flying type in its airborne arm. Its announced second probe did not exist and was written.
+
+### THE HAND LIST
+
+- **FUTURE SIGHT INTO AN IMMUNE TARGET** (game 2, recorded and not fixed): this engine drew `crit|futuresight` and
+  `dmg|futuresight` into a Dark type the authority never rolled for, and wrote neither `-end|…|Future Sight` nor
+  `-immune`. Board-identical; it feeds the `low-identity` void rule. Owed a probe.
+- **REST UNDER MISTY TERRAIN.** The authority sets the sleep first and heals only on success (`rest.onHit`), so a grounded
+  Rest under the terrain fails and does not heal. `applyStatus` now refuses the sleep here too; whether this engine's Rest
+  path (tag `healsSelf`, no explicit Rest site) then withholds the heal was not probed.
+- **RELEASE `b730e44f3314` DOES NOT OPEN IN THIS TREE** (`verify()` reports 20+ snapshot files MODIFIED; its directory is
+  staged and CRLF). `b0f5c159c46e` (18:49, an unpinned run, not this batch) is `current` and equals the live tree. The
+  pre-fix control was HEAD's bytes compiled under it via the harness. Reported, not touched; no release was cut.
+- **THE FULL DIFFERENTIAL IS OWED**, pinned, on a release cut over this tree — the command is in the report's
+  `OWED, NOT RUN`. BOARD-MATERIAL is not claimed here.
+- **Carried forward unchanged** from the hand lists below.
 
 ## THE THREE VOID GAMES ARE THE THREE BOARD-PARTED GAMES — FILED, NOT FIXED. 2026-09-09, CHANGELOG 5.275.0
 

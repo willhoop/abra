@@ -33,6 +33,10 @@ paper. This project retracts its own numbers publicly; quoting somebody else's u
 ## 2. VGC-Bench — the only one in our format, and it is serious
 
 Angliss, Cui, Hu, Rahman, **Peter Stone**. AAMAS 2026. [arXiv 2506.10326](https://arxiv.org/abs/2506.10326)
+Title, read from the arXiv record 2026-09-09 (`export.arxiv.org/api/query?id_list=2506.10326`): *VGC-Bench:
+Towards Mastering Diverse Team Strategies in Competitive Pokémon*, Cameron Angliss, Jiaxun Cui, Jiaheng Hu,
+Arrasy Rahman, Peter Stone; first version 2025-06-12. This repository carried two OTHER subtitles for it
+(`docs/ABRA-whitepaper.md` ref. 5, `docs/SLOWKING-whitepaper.md` ref. 8); both were corrected in the same pass.
 
 - **~10^139 team configurations** — the paper states this is larger than Chess, Go, Poker, StarCraft
   or Dota. That number is worth carrying: it is the best available answer to *why is this hard*.
@@ -211,7 +215,10 @@ keeping the team balanced, with a worked example that *is* THE SACK, and it asse
 achieve it by MinMax or MCTS lookahead alone. Its ELO caveat is load-bearing for us: comparing human
 and AI ratings is invalid **unless they played each other** — laddering with ALAKAZAM is exactly that.
 
-**PokeAgent Challenge**, NeurIPS 2025, [arXiv 2603.15563](https://arxiv.org/abs/2603.15563). Two
+**PokeAgent Challenge**, NeurIPS 2025 — Karten, Grigsby et al., *The PokeAgent Challenge: Competitive and
+Long-Context Learning at Scale*, [arXiv 2603.15563](https://arxiv.org/abs/2603.15563). The id is genuine:
+read from the arXiv record 2026-09-09 (`export.arxiv.org/api/query?id_list=2603.15563`), v2 dated 2026-03-16 —
+the write-up postdates the competition it reports, which is why a NeurIPS 2025 event carries a 2026 id. Two
 tracks, 100+ teams. **Not yet read.**
 
 **poke-env**, [repo](https://github.com/hsahovic/poke-env) — the Python/Gymnasium standard for

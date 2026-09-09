@@ -25,6 +25,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # TWO COMMITS, NOT ONE. `node build/compress-stores.js --check` (run below, before the
+          # commit) proves the shard id set is a SUPERSET of what HEAD~1 tracked, and it reads
+          # HEAD~1 out of git. A depth-1 checkout has no HEAD~1, so the guard would fail on every
+          # run for the wrong reason. Depth 2 is the minimum that makes the question answerable.
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
 
@@ -284,6 +290,13 @@ jobs:
           # write-once: never rewritten, never compacted.
           node build/compress-stores.js --raw
 
+          # THE SHARD-SUPERSET GUARD, BEFORE ANYTHING IS STAGED — 2026-09-09. `--check` exits 1 if
+          # a store has rows in no shard OR if the shards on disk have LOST an id that HEAD~1
+          # tracked (the 2026-09-06 shape: a shard set that shrank and was committed anyway). It
+          # changes nothing; it only refuses. It runs here, after both shard passes and before
+          # `add_artifacts`, so a red guard means no commit rather than a commit with a warning.
+          node build/compress-stores.js --check
+
           # ADD ONLY WHAT EXISTS, AND SAY SO WHEN SOMETHING DOES NOT.
           # `git add` on a pathspec that matches nothing exits 1, this block runs under `bash -e`,
           # and the commit then never happens — silently, because every derivation step above is
@@ -419,6 +432,10 @@ jobs:
             # this self-healing in a push race rather than a lost shard, and it cannot duplicate:
             # the id set is rebuilt from the shards on disk every time.
             node build/compress-stores.js --raw
+            # THE SUPERSET GUARD AGAIN, ON THE RE-SHARDED RESULT. `git reset --hard origin/main`
+            # moved HEAD, so HEAD~1 is now origin's previous commit and the question is asked
+            # against the shard set this attempt would actually commit. Same guard, same refusal.
+            node build/compress-stores.js --check
             add_artifacts
             if git diff --cached --quiet; then
               echo "origin already has everything from this run"; exit 0

@@ -373,7 +373,17 @@ if (!process.env.SHOWDOWN_PATH) {
  * append a cut event describing a tree this run never used. */
 const ER = require('./engine_release.js');
 const REL_ID = flag('--release', null);
-if (!REL_ID) ER.cut('game differential mode A — the comparison driver, ROADMAP #68 step two');
+/* THE AUTHORITY IS LOADED LIVE WHATEVER RELEASE IS NAMED, so the pin is checked on both paths. `cut()`
+ * refuses on drift by itself; the `--release <id>` path never cuts, so it asks the same question here.
+ * Six lines, before any game is played — 2026-09-09. */
+const AUTH_DRIFT = ER.authorityDrift ? ER.authorityDrift() : { drifted: false };
+if (AUTH_DRIFT.drifted && !process.argv.includes('--allow-authority-drift')) {
+  console.error('REFUSED: the Showdown checkout ' + AUTH_DRIFT.actual + ' is not the pinned authority '
+    + AUTH_DRIFT.pinned + ' (champions_sim.js PINNED_COMMIT). Pass --allow-authority-drift to measure anyway.');
+  process.exit(2);
+}
+if (!REL_ID) ER.cut('game differential mode A — the comparison driver, ROADMAP #68 step two',
+  { allowAuthorityDrift: process.argv.includes('--allow-authority-drift') });
 const REL = ER.open(REL_ID);
 REL.require('data/engine-data.js');
 /* WHAT THIS DRIVER NEEDS THE FROZEN ENGINE TO EXPORT — declared, so an old release is refused BY NAME
@@ -1610,7 +1620,14 @@ function makeArm(spec) {
   const midDraw = (cat, battle) => {
     MID_DRAWS.sd[cat] = (MID_DRAWS.sd[cat] || 0) + 1;
     const b = battle && battle.activeMove !== undefined ? battle : MIDW.battle;
-    const mv = b && b.activeMove, tg = b && b.activeTarget;
+    /* ROADMAP #551 (2026-09-09) — A DIE DRAWN BETWEEN ACTIONS MUST NOT BE ADDRESSED TO A TARGET.
+     * Battle#clearActiveMove (sim/battle.ts:376-384) nulls activeTarget only under `if (this.activeMove)`,
+     * and a residual hit — Future Sight, sim/battle-actions.ts:693 and :1154 — writes activeTarget with
+     * NO active move, so the stale body survived into the next turn's FractionalPriority sort and
+     * Quick Claw's die read `any|-|p20|0` here against `any|-|-|0` on the medicham side: one die, two
+     * addresses, and a whole game voided as low-identity. The target is folded in only while a move
+     * is active, which is the only time it names the body the draw is about. */
+    const mv = b && b.activeMove, tg = mv ? (b && b.activeTarget) : null;
     if (!b) MID_NO_BATTLE_DRAWS++;
     /* ROADMAP #478 — the two target categories are addressed from the ARGUMENTS `getRandomTarget` was
      * handed, because `activeMove`/`activeTarget` are both null at that instant. Everything else keeps

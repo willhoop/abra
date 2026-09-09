@@ -9,7 +9,8 @@ Non-negative Matrix Factorization factors that big (documents x moves) table int
 Because nothing is negative, a team is a SUM of roles ("40% sun + 30% Trick Room + ..."), and each
 role is a non-negative recipe over moves. H's rows ARE the discovered roles; a move's loading on a
 role is LEARNED, not typed — this is where the primary/secondary weights legitimately come from
-(Label Distribution Learning, Geng 2016: real-valued description degrees, derived not asserted).
+(Label Distribution Learning, Geng 2016, is the MOTIVATION for real-valued degrees derived rather than
+asserted; nothing here implements LDL — the estimator is plain multiplicative-update NMF).
 
 Output: data/nmf-roles.json (+ data/nmf.js for the site). Factors are UNLABELED by design — the model
 finds the clusters, a human names them. We attach a *suggested* label by overlap with the curated
@@ -18,7 +19,7 @@ roles, but it is only a hint.
     python3 engine/nmf_roles.py [rank]      # default rank 10
 Read-only on the store.
 """
-import json, os, sys, math
+import json, os, sys, math, hashlib
 import numpy as np
 from collections import Counter
 
@@ -59,15 +60,74 @@ _qspec = _ilu.spec_from_file_location("quality", D("engine", "quality.py"))
 _quality = _ilu.module_from_spec(_qspec); _qspec.loader.exec_module(_quality)
 _UNFILTERED = bool(os.environ.get("ABRA_UNFILTERED"))
 
+_COUNTS = {}   # filled by load_games(); written into the artifact so the counts are fields, not a print
+
 def load_games():
     games = _quality.load_games(clean=not _UNFILTERED)
+    collected = len(_quality.read_store())
+    _COUNTS.update(n_games_usable=len(games), n_games_collected=collected, unfiltered=_UNFILTERED)
     _sys.stderr.write(
         ("WARNING: ABRA_UNFILTERED - all %d games, bots and forfeits included\n" % len(games))
         if _UNFILTERED else
-        ("quality filter: %d usable of %d collected\n" % (len(games), len(_quality.read_store()))))
+        ("quality filter: %d usable of %d collected\n" % (len(games), collected)))
     return iter(games)
 
+def _sha256(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+def store_receipt():
+    """The store file this run actually read, resolved by the SAME rule as engine/quality.py
+    (_store_handle: the plain .jsonl wins when both exist; else the .gz). A receipt written from the
+    canonical path rather than the opened one is the #547 defect, so the resolution is mirrored here
+    and the digest is taken over the bytes of the file that was opened."""
+    plain = STORE
+    path = plain if os.path.exists(plain) else (plain + ".gz" if os.path.exists(plain + ".gz") else plain)
+    return dict(path=os.path.relpath(path, ROOT).replace(os.sep, "/"),
+                bytes=os.path.getsize(path), sha256=_sha256(path))
+
+def quality_inputs_receipt():
+    """THE STORE DIGEST ALONE DOES NOT PIN THE SAMPLE. engine/quality.py also reads
+    data/quality-filter.json (the rules) and data/store-validation.json (species_flagged_ids), and on
+    2026-09-09 two runs over a byte-identical store read 32,092 and 32,040 usable games because the
+    validation file had been rewritten in between. So every input the filter reads is receipted."""
+    out = {}
+    for name in ("quality-filter.json", "store-validation.json"):
+        p = D("data", name)
+        if os.path.exists(p):
+            out[name.replace(".json", "").replace("-", "_")] = dict(
+                path=os.path.relpath(p, ROOT).replace(os.sep, "/"), bytes=os.path.getsize(p), sha256=_sha256(p))
+    return out
+
+SELECTION = D("data", "nmf-rank-selection.json")
+SELECTION_FIELD = "most_reproducible.rank"
+
+def read_selected_rank():
+    """The archetype rank comes from data/nmf-rank-selection.json:most_reproducible.rank and from
+    nowhere else. FAILS LOUDLY if the artifact or the field is absent: a default here would be the
+    hand-set rank returning under another name."""
+    if not os.path.exists(SELECTION):
+        raise SystemExit("nmf_roles.py: %s is absent. Run `python engine/nmf_rank.py` first; this "
+                         "script does not carry a default rank." % os.path.relpath(SELECTION, ROOT))
+    sel = json.load(open(SELECTION, encoding="utf-8"))
+    mr = sel.get("most_reproducible") or {}
+    rank = mr.get("rank")
+    if not isinstance(rank, int) or rank < 2:
+        raise SystemExit("nmf_roles.py: %s carries no integer %s; refusing to guess a rank."
+                         % (os.path.relpath(SELECTION, ROOT), SELECTION_FIELD))
+    src = dict(path=os.path.relpath(SELECTION, ROOT).replace(os.sep, "/"), field=SELECTION_FIELD,
+               sha256=_sha256(SELECTION), generated=sel.get("generated"),
+               criterion=sel.get("criterion"), bootstrap_pairs=sel.get("bootstrap_pairs"),
+               stability=mr.get("stability"), null_stability=mr.get("null_stability"),
+               excess_over_null=mr.get("excess_over_null"))
+    return rank, src
+
 def build():
+    store = store_receipt()
+    quality_inputs = quality_inputs_receipt()
     games = list(load_games())
     # per game-side move-usage counts (documents)
     docs = []                       # list of Counter(move -> uses by that side in that game)
@@ -151,7 +211,12 @@ def build():
     Xr = np.array(Xr_rows)
     rr2 = Xr.sum(1, keepdims=True); rr2[rr2 == 0] = 1
     Xrn = Xr / rr2
-    ARCH_RANK = 6
+    # THE RANK IS READ FROM THE SELECTION ARTIFACT, NEVER TYPED HERE. This line was `ARCH_RANK = 6`
+    # from 2026-07-24 to 2026-09-09 while data/nmf-rank-selection.json (engine/nmf_rank.py, bootstrap
+    # factor stability against a shuffled null) scored rank 6 at -0.107 excess over the null and named
+    # rank 4 the most reproducible. A hand-set rank beside an artifact that selects one is the ban list
+    # of four in a new costume, so the artifact is the only source and its absence is an error.
+    ARCH_RANK, RANK_SOURCE = read_selected_rank()
     Wa, Ha, arch_err = fit_nmf(Xrn, ARCH_RANK, iters=400)
     aprev = Wa.sum(0)
 
@@ -183,8 +248,15 @@ def build():
         generated=__import__("datetime").date.today().isoformat(),
         method=("Non-negative Matrix Factorization. Two cuts: (1) team x MOVE usage -> offensive cores; "
                 "(2) team x ROLE -> emergent archetypes (the clean view). Loadings are learned, not "
-                "declared (Lee & Seung 1999; Label Distribution Learning, Geng 2016)."),
+                "declared (Lee & Seung 1999). Label Distribution Learning (Geng 2016) is cited as the "
+                "MOTIVATION for graded loadings; nothing here implements LDL."),
         archetypes=archetypes, archetype_recon_error=round(float(arch_err), 4), archetype_rank=ARCH_RANK,
+        archetype_rank_source=RANK_SOURCE, store=store, quality_inputs=quality_inputs,
+        # the two counts load_games() prints, as FIELDS: a print is not something a document can cite
+        n_games_usable=_COUNTS.get("n_games_usable"), n_games_collected=_COUNTS.get("n_games_collected"),
+        quality_filter_version=(json.load(open(D("data", "quality-filter.json"), encoding="utf-8")).get("version")
+                                if os.path.exists(D("data", "quality-filter.json")) else None),
+        n_team_sides_role_matrix=int(Xr.shape[0]), n_roles_role_matrix=int(Xr.shape[1]),
         rank=RANK, n_documents=len(docs), n_moves=M, min_move_uses=MIN_USE,
         reconstruction_error_ratio=round(float(err), 4),
         factors=factors)
@@ -193,6 +265,12 @@ def build():
         f.write("window.NMF=" + json.dumps(out, allow_nan=False) + ";\n")
 
     print(f"nmf_roles.py — rank {RANK}, {len(docs):,} team-docs, {M} moves, recon-err {err:.3f}")
+    print(f"  archetypes: rank {ARCH_RANK} read from {RANK_SOURCE['path']}:{RANK_SOURCE['field']} "
+          f"(sha256 {RANK_SOURCE['sha256'][:12]}), recon-err {arch_err:.4f}, "
+          f"{Xr.shape[0]:,} team-sides x {Xr.shape[1]} roles")
+    print(f"  store: {store['path']} {store['bytes']:,} bytes sha256 {store['sha256'][:12]}")
+    for a in archetypes:
+        print(f"  {a['id']} ~{int(a['prevalence']*100):2d}%  " + " | ".join(f"{r['label']} {r['weight']:.2f}" for r in a['top_roles'][:4]))
     for fac in factors:
         tops = " ".join(t["move"] for t in fac["top_moves"][:6])
         print(f"  {fac['id']} ~{int(fac['prevalence']*100):2d}%  [{fac['suggested_label']}]  {tops}")

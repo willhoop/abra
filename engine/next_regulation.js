@@ -22,7 +22,10 @@
  *         It is pinned and it LAGS — measured 2026-08-31 the checkout is 72 commits behind — so a
  *         format can be collectable for days before it is simulatable. That gap is REPORTED rather
  *         than smoothed over: they answer two different questions.
- *   PLAY  replay.pokemonshowdown.com/search.json — evidence anybody is actually playing it.
+ *   PLAY  replay.pokemonshowdown.com/search.json — evidence anybody is actually playing it. Since
+ *         2026-09-09 this is an ARRIVAL authority in its own right: `?format=<id>` is probed for the
+ *         ids derived by advancing the active regulation's letter (see REPLAY_SEARCH_URL), because
+ *         formats.js is the client bundle and lagged the server by more than a day on the day.
  *
  * NOTHING HERE NAMES A FORMAT ID. A Champions VGC regulation is recognised by SHAPE:
  *
@@ -65,6 +68,21 @@ const REGS = path.join(ROOT, 'data', 'regulations.json');
 
 const LIVE_FORMATS_URL = 'https://play.pokemonshowdown.com/data/formats.js';
 const REPLAY_RECENT_URL = 'https://replay.pokemonshowdown.com/search.json?page=1';
+/* THE THIRD AUTHORITY, ADDED 2026-09-09 BECAUSE THE FIRST ONE LAGGED ON THE DAY.
+ * Reg M-C went live on the replay server on 2026-09-09 — `search.json?format=<id>` answered 51
+ * games for both the bo1 and bo3 ids — while play.pokemonshowdown.com/data/formats.js still carried
+ * a Last-Modified of 2026-09-08 02:10 GMT and no such format. formats.js is the CLIENT's bundle and
+ * is rebuilt on the client's deploy cadence, not the server's; a replay exists the moment the server
+ * accepts a battle. So this detector printed "THE NEXT REGULATION DOES NOT EXIST YET" for a format
+ * with a thousand public games in its pool, and the scheduled collector obeyed it.
+ *
+ * The id is appended at the call, never written here: engine/format_id_scan.js treats a literal
+ * format id after `search.json?format=` as a typed call site, and this file must derive its ids. */
+const REPLAY_SEARCH_URL = 'https://replay.pokemonshowdown.com/search.json?format=';
+/* How many regulation letters past the active one to probe. M-B -> M-C, M-D, M-E. A regulation is
+ * one letter later than its predecessor; three covers a skipped letter and a missed month without
+ * turning every scheduled run into a walk of the alphabet. */
+const PROBE_LETTERS = 3;
 
 /* Every failure this file survives is COUNTED and printed. A detector that cannot reach its
  * authority and says nothing is the exact shape of the bug it was written to prevent. */
@@ -169,12 +187,76 @@ async function recentTraffic() {
   let arr;
   try { arr = JSON.parse(r.body); } catch (e) { failedTo('parse recent replays', e); return null; }
   if (!Array.isArray(arr)) { failedTo('parse recent replays', 'not an array'); return null; }
-  const tally = {};
+  const tally = {}, names = {};
   for (const x of arr) {
     const fid = String(x && x.id || '').replace(/-\d+$/, '');
     if (fid) tally[fid] = (tally[fid] || 0) + 1;
+    /* search.json rows carry the display name ("[Gen 9 Champions] VGC 2026 Reg M-C"), which is the
+     * label the config block needs and formats.js would otherwise have supplied. */
+    if (fid && x.format && !names[fid]) names[fid] = String(x.format);
   }
-  return { sample: arr.length, tally };
+  return { sample: arr.length, tally, names };
+}
+
+/* ---- the replay-search arm ---------------------------------------------------------------------
+ * The candidate ids are DERIVED from the active regulation's triple by advancing the regulation
+ * letter — the last character of the token — and asking the replay server whether anybody has
+ * uploaded a game under that id. A hit is a format the server accepts battles in, whatever the
+ * client bundle says. It is capped at PROBE_LETTERS and stops at 'z'; nothing here spells an id.
+ *
+ * The bo3 sibling is probed alongside, because the two ids ship together and the bo3 pool is the
+ * open-sheet corpus this project actually studies. */
+function probeIds(activeTriple, letters) {
+  if (!activeTriple || !activeTriple.token) return [];
+  const t = activeTriple.token;
+  const last = t.charCodeAt(t.length - 1);
+  if (last < 97 || last > 122) return [];       // the token does not end in a letter; nothing to advance
+  const out = [];
+  for (let i = 1; i <= (letters || PROBE_LETTERS); i++) {
+    const code = last + i;
+    if (code > 122) break;
+    const tok = t.slice(0, -1) + String.fromCharCode(code);
+    const base = 'gen' + activeTriple.gen + 'championsvgc' + activeTriple.year + 'reg' + tok;
+    out.push(base, base + 'bo3');
+  }
+  return out;
+}
+
+/* `search` is injectable so the arm can be proved WIRED offline: a fake that answers games for the
+ * advanced id must produce a candidate, and a fake that answers nothing must not. */
+async function replaySearch(id) {
+  const r = await httpGet(REPLAY_SEARCH_URL + encodeURIComponent(id));
+  if (r.code !== 200 || !r.body) { failedTo('search replays for ' + id, r.error || ('HTTP ' + r.code)); return null; }
+  let arr;
+  try { arr = JSON.parse(r.body); } catch (e) { failedTo('parse the replay search for ' + id, e); return null; }
+  return Array.isArray(arr) ? arr : null;
+}
+
+async function replayFormats(activeTriple, search, recent) {
+  const ids = probeIds(activeTriple);
+  const out = [];
+  const seen = new Set();
+  const add = (id, name, games, newest, via) => {
+    if (seen.has(id)) return;
+    seen.add(id);
+    out.push({ id, name: name || null, mod: null, gameType: null, ruleset: [], replay_games: games, replay_newest: newest || null, via });
+  };
+  for (const id of ids) {
+    const arr = await search(id);
+    if (!arr || !arr.length) continue;
+    const newest = arr.reduce((m, x) => Math.max(m, +(x && x.uploadtime) || 0), 0);
+    add(id, arr[0] && arr[0].format, arr.length, newest ? new Date(newest * 1000).toISOString() : null, 'probe');
+  }
+  /* And whatever the global recent sample happened to carry. It is 51 replays across every format on
+   * the site, so it is corroboration on a busy day and silence on a quiet one — but a format whose
+   * token is NOT a one-letter advance (a new year, a skipped letter past the cap) can only arrive
+   * through here, so it is folded in rather than merely tallied. */
+  if (recent) {
+    for (const [fid, n] of Object.entries(recent.tally)) {
+      if (parseFormatId(fid)) add(fid, recent.names[fid], n, null, 'recent');
+    }
+  }
+  return { probed: ids, hits: out.filter(r => r.via === 'probe').map(r => r.id), rows: out };
 }
 
 /* ---- the config side -------------------------------------------------------------------------- */
@@ -249,6 +331,15 @@ async function detect(opts) {
   const nLive = feed(live, 'live');
   const nDex  = feed(dex, 'dex');
 
+  /* THE REPLAY-SEARCH ARM. Only ids the other two authorities did NOT list are fed from it, so a
+   * format that is in formats.js gains nothing here and the ingest artifact's signature — which
+   * records seen_in — cannot flicker with whichever 51 replays the global sample held this run. */
+  const search = o.replaySearch || (o.net === false ? null : replaySearch);
+  const replay = search ? await replayFormats(known.activeTriple, search, play) : null;
+  const replayNew = replay ? replay.rows.filter(f => { const t = parseFormatId(f.id); return t && !rows.has(t.id); }) : null;
+  const nReplay = feed(replayNew, 'replay');
+  if (replay) for (const f of replay.rows) { const r = rows.get(parseFormatId(f.id).id); if (r && r.seen_in.includes('replay')) { r.replay_games = f.replay_games; r.replay_newest = f.replay_newest; } }
+
   for (const r of rows.values()) {
     r.known = known.ids.has(r.id);
     r.later_than_active = laterThan(r, known.activeTriple);
@@ -256,7 +347,8 @@ async function detect(opts) {
       : (r.later_than_active ? 'candidate' : 'superseded');
     r.recent_replays = play ? (play.tally[r.id] || 0) : null;
     r.simulatable = r.seen_in.includes('dex');
-    r.collectable = r.seen_in.includes('live') || r.seen_in.includes('dex');
+    /* A replay is a battle the server accepted. That is the whole meaning of collectable. */
+    r.collectable = r.seen_in.includes('live') || r.seen_in.includes('dex') || r.seen_in.includes('replay');
   }
 
   const all = [...rows.values()].sort((a, b) =>
@@ -268,14 +360,20 @@ async function detect(opts) {
   /* THE LAG THAT WILL ACTUALLY BITE. A format on the live server and not in the pinned checkout can
    * be collected and cannot be simulated. That is not an error and it must not read as one — but it
    * is the thing somebody has to act on, so it gets its own counter. */
-  const collectable_not_simulatable = all.filter(r => r.seen_in.includes('live') && !r.seen_in.includes('dex'));
+  const collectable_not_simulatable = all.filter(r => r.collectable && !r.seen_in.includes('dex'));
+  /* The client bundle lagging the server: a format with games in its replay pool that formats.js
+   * does not list. This is the case that was missed on 2026-09-09 and it gets its own counter. */
+  const replay_only = all.filter(r => r.seen_in.includes('replay') && !r.seen_in.includes('live'));
 
   return {
     generated: new Date().toISOString(),
     authorities: {
       live: { url: LIVE_FORMATS_URL, reached: !!live, formats_listed: live ? live.length : 0, vgc_reg_rows: nLive },
       dex:  { path: process.env.SHOWDOWN_PATH || null, reached: !!dex, formats_listed: dex ? dex.length : 0, vgc_reg_rows: nDex },
-      replays: play ? { url: REPLAY_RECENT_URL, sample: play.sample } : { url: REPLAY_RECENT_URL, reached: false }
+      replays: play ? { url: REPLAY_RECENT_URL, sample: play.sample } : { url: REPLAY_RECENT_URL, reached: false },
+      replay_search: replay
+        ? { url: REPLAY_SEARCH_URL + '<id>', probed: replay.probed, hits: replay.hits, vgc_reg_rows: nReplay }
+        : { url: REPLAY_SEARCH_URL + '<id>', reached: false, probed: [] }
     },
     active_regulation: known.active,
     active_format: known.activeTriple ? known.activeTriple.id : null,
@@ -287,6 +385,7 @@ async function detect(opts) {
       candidates: candidates.length,
       superseded: all.filter(r => r.classification === 'superseded').length,
       collectable_not_simulatable: collectable_not_simulatable.length,
+      replay_only: replay_only.length,
       problems: PROBLEMS.length
     },
     formats: all,
@@ -326,14 +425,22 @@ function report(res) {
   console.log(`  live formats.js : ${res.authorities.live.reached ? res.authorities.live.formats_listed + ' formats listed' : 'NOT REACHED'}`);
   console.log(`  local dex       : ${res.authorities.dex.reached ? res.authorities.dex.formats_listed + ' formats listed' : 'NOT REACHED'}  ${res.authorities.dex.path || ''}`);
   console.log(`  active in config: ${res.active_format || 'NONE'}  (data/regulations.json -> ${res.active_regulation})`);
+  const rs = res.authorities.replay_search;
+  console.log(`  replay search   : ${rs && rs.probed && rs.probed.length ? rs.probed.length + ' derived id(s) probed, ' + (rs.hits || []).length + ' with games' : 'NOT PROBED'}`);
   console.log('');
   console.log(`  Champions VGC regulation formats detected: ${c.vgc_regulation_formats_detected}`);
   for (const r of res.formats) {
     const where = r.seen_in.join('+');
     const traffic = r.recent_replays === null ? '' : `  ${r.recent_replays} of the last 51 replays`;
-    console.log(`    ${r.id.padEnd(32)} ${r.classification.padEnd(10)} [${where}]${traffic}`);
+    const pool = r.replay_games ? `  ${r.replay_games} in its search pool${r.replay_newest ? ', newest ' + r.replay_newest : ''}` : '';
+    console.log(`    ${r.id.padEnd(32)} ${r.classification.padEnd(10)} [${where}]${traffic}${pool}`);
   }
   console.log('');
+  if (c.replay_only) {
+    console.log(`  ::warning::${c.replay_only} format(s) have games on the replay server and are NOT in formats.js yet.`);
+    console.log('  The client bundle lags the server; a replay is a battle the server accepted. Collectable now.');
+    console.log('');
+  }
 
   /* THE ZERO THAT IS AN ALARM. Nothing detected means the AUTHORITY broke, not that the game
    * changed — there has never been a moment with no Champions VGC format. */
@@ -343,7 +450,8 @@ function report(res) {
     console.log('  a format matching gen<N>championsvgc<YYYY>reg<token>. Nothing was collected.');
   } else if (c.candidates === 0) {
     console.log('  THE NEXT REGULATION DOES NOT EXIST YET. Nothing to collect, and nothing collected.');
-    console.log(`  Every detected format is already in the config or sorts before ${res.active_format}.`);
+    console.log(`  Every detected format is already in the config or sorts before ${res.active_format},`);
+    console.log(`  and none of the ${rs && rs.probed ? rs.probed.length : 0} derived next-letter id(s) has a replay.`);
     console.log('  This is the expected state until Showdown ships the format. It is not an error.');
   } else {
     console.log('  ::warning::A NEW CHAMPIONS VGC REGULATION IS LIVE.');
@@ -532,4 +640,4 @@ async function main() {
 }
 
 if (require.main === module) main();
-module.exports = { detect, parseFormatId, laterThan, toID, configBlock, report, VGC_REG };
+module.exports = { detect, parseFormatId, laterThan, toID, configBlock, report, VGC_REG, probeIds, PROBE_LETTERS };

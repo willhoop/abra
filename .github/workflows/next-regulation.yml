@@ -1,0 +1,275 @@
+name: next-regulation
+# Collect the NEXT Champions regulation every hour, from the hour it ships.
+#
+# WHY A SECOND WORKFLOW, AND WHY HOURLY (2026-09-09, measured on the day Reg M-C went live).
+# ingest.yml runs six-hourly and its cadence note is built on the ACTIVE ladder's arrival rate
+# (~1,100 games/day). A brand-new regulation is not that ladder. Measured against the live search
+# endpoint on Reg M-C's first evening (2026-09-09 ~20:49Z; docs/_reports/2026-09-09-regmc-hourly-collection.md):
+#
+#     gen9championsvgc2026regmc     176 games/h over pages 1..5 (last 1.45 h); 125/h averaged over the
+#                                   whole pool (1,250 unique ids spanning 10.0 h). The rate is RISING —
+#                                   the stored hourly counts run 34, 51, 79 ... 156 through the day.
+#     gen9championsvgc2026regmcbo3   61 games/h over pages 1..5 (last 4.2 h); pool not yet full (721).
+#
+# The public replay pool is a ROLLING ~1,250 per format, so at 176/h the bo1 window is ~7.1 h deep and
+# a six-hourly pull that slips once — a failed run, a rate-limit, a queued job — loses games nobody
+# can fetch again. At 3x that rate (~530/h, plausible on a launch weekend) the window is ~2.4 h deep and
+# six-hourly loses ~3.6 h of every interval even when nothing goes wrong. Hourly gives ~6 h of margin
+# today and ~1.4 h at 3x. Will, 2026-09-09: "there will probably be a lot of games played in the first
+# few days so its critical we scrape all of them and dont miss them."
+#
+# ingest.yml is NOT changed. It keeps collecting the active regulation into the three tracked stores
+# and keeps its own next-regulation step; this job adds frequency for the new format only, and the
+# two can never write the same file — see "how the two workflows avoid clobbering each other" below.
+#
+# :07, NOT :17 — offset from ingest.yml's `17 */6 * * *` so the two are never DUE in the same minute.
+on:
+  schedule:
+    - cron: '7 * * * *'        # hourly at :07 UTC
+  workflow_dispatch:           # allow a manual run from the Actions tab
+permissions:
+  contents: write              # so the job can commit the refreshed stores back
+# HOW THE TWO WORKFLOWS AVOID CLOBBERING EACH OTHER — two mechanisms, and both are needed.
+#
+# 1. THE SAME CONCURRENCY GROUP AS ingest.yml. GitHub concurrency groups are repository-wide, not
+#    per-workflow, so `group: ingest` here means this job and the six-hourly ingest NEVER run at the
+#    same time: whichever is due second waits for the first to finish. `cancel-in-progress: false`
+#    so a running collection is never killed mid-push. (GitHub keeps at most one PENDING run per
+#    group; an hourly run that gets superseded while waiting is picked up by the next hour, inside
+#    the ~8 h margin above.)
+#
+# 2. THE RESET-TO-ORIGIN RECONCILE LOOP, copied from ingest.yml's commit step. A manual push from
+#    the laptop can still move origin between this job's checkout and its push. So the push is never
+#    a merge: fetch, `git reset --hard origin/main`, re-union the gitignored plain store with
+#    ORIGIN'S .gz (first occurrence of each id wins, so it cannot double anything and cannot shrink),
+#    re-shard, re-stage, commit ON TOP of origin, push. The result always fast-forwards. Three
+#    attempts, then a loud failure — a push that never lands is silent data loss, not a transient.
+#
+# Both mechanisms operate on DIFFERENT FILES from ingest.yml's store commits anyway: this job stages
+# only data/games.gen9champions*.jsonl.gz, data/raw/games.gen9champions*/*.jsonl.gz and
+# data/next-regulation.json. games.ladder / games.bo3 / games.ots and their shards are unreachable
+# from engine/next_regulation_ingest.js by construction (its header says why).
+concurrency:
+  group: ingest
+  cancel-in-progress: false
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+
+      # THE PLAIN STORES ARE GITIGNORED; GIT CARRIES data/games.<formatid>.jsonl.gz. A fresh runner
+      # therefore has no plain store, and durable-ingest.js builds its already-have set from the
+      # PLAIN file — without this restore it would re-fetch the whole pool every hour and, worse, a
+      # later recompress would publish a store holding only this run. `--reconcile` is the
+      # collector's own restore: union of the .gz and whatever plain file exists, first occurrence
+      # of each id wins, refuses to write a smaller store than it found. No network. It is also run
+      # INSIDE next_regulation_ingest.js before every fetch; running it here as well gives the
+      # shrink guard below a BASELINE to compare against.
+      - name: Restore the next-regulation stores from their tracked .gz and record the baseline
+        run: |
+          set -eu
+          node engine/next_regulation_ingest.js --reconcile
+          : > "$RUNNER_TEMP/base-next"
+          # An unmatched glob leaves `$f` as the literal pattern, which `-e` rejects — a no-op, not
+          # the `bash -e` abort that killed ingest.yml for 24 days. Absent is the correct state
+          # before the first collection.
+          for f in data/games.gen9champions*.jsonl; do
+            if [ -e "$f" ]; then
+              n=$(wc -l < "$f")
+              echo "$f $n" >> "$RUNNER_TEMP/base-next"
+              echo "restored $f: $n records"
+            fi
+          done
+          if [ ! -s "$RUNNER_TEMP/base-next" ]; then echo "no next-regulation store on origin yet — this is the first collection"; fi
+
+      # THE AUTOMATIC PATH. engine/next_regulation.js derives the format set from the live server's
+      # format list and the local dex and compares it against data/regulations.json; no format id is
+      # typed in that pair of files. This is the step that is supposed to carry the job for good.
+      #
+      # `id:` alongside continue-on-error, as in ingest.yml: the step must not page the owner, but
+      # its outcome must still be readable by the guard step below.
+      - name: Collect the next Champions regulation (automatic path — the detector picks the formats)
+        id: auto
+        continue-on-error: true
+        run: PAGES=25 CONC=20 node engine/next_regulation_ingest.js
+
+      # BELT AND BRACES, BY NAME, UNTIL THE AUTOMATIC PATH IS PROVEN IN CI — 2026-09-09.
+      #
+      # The detector's fix (Showdown's formats.js lags the replay server on launch day) landed the
+      # same afternoon and has not yet been seen collecting on a scheduled run. Until it has, the two
+      # Reg M-C formats are named here explicitly. THIS IS A TYPED FORMAT ID IN A WORKFLOW, which the
+      # collector's own header argues against; it is here on purpose, dated, and to be REMOVED the
+      # first time the Actions log shows the automatic step above appending games on its own.
+      #
+      # IDEMPOTENT WITH THE STEP ABOVE. `--format` runs the same reconcile-then-durable-ingest path
+      # against the same store; durable-ingest.js appends only ids not already in the plain store, so
+      # a game the automatic step just fetched is "already stored" here and costs one search page,
+      # not a second row. (The one repeat it can produce is the standing one every run has: a log the
+      # parser cannot read is archived but has no row, so it is re-archived next time. That is
+      # documented in durable-ingest.js and preferred to not holding the log at all.)
+      #
+      # `--no-write` because the artifact's change-signature includes the count of formats
+      # collected, so a 1-format override run would otherwise rewrite data/next-regulation.json
+      # every hour in a different `mode` from the step above. The job log is the record of this
+      # step. While the detector lags, the artifact therefore UNDER-REPORTS games_appended; the log
+      # line `N -> M (+k)` on this step is the truth.
+      #
+      # THE GAP DETECTOR'S LINE LANDS HERE. durable-ingest.js prints `coverage: ...` (pages, ids
+      # offered / new / held, oldest and newest offered, newest stored) on every run, and `GAP: ...`
+      # when NO offered id is already stored AND the window's oldest replay is newer than the store's
+      # newest — i.e. games aged out of the rolling pool between runs and are unreachable.
+      # next_regulation_ingest.js relays the collector's LAST stderr line into its own output as
+      # `ingest_said`, and durable-ingest.js prints coverage/GAP LAST on every healthy run for exactly
+      # that reason — so the relayed line IS the coverage line on a clean run and the GAP line when
+      # there is one. Search the job log for "GAP:" — a hit means the hourly cadence was not enough
+      # for that hour. This step's output is also tee'd to a file so the guard step below can turn a
+      # GAP into a run-summary annotation (the artifact cannot carry it: this step is --no-write).
+      #
+      # Once the automatic step collects, this step's expected output is `+0` with the collector's
+      # "0 games appended" warning. That warning is the HEALTHY state here; it is what says the
+      # automatic path got there first, and it is the cue to delete this step.
+      - name: Belt and braces — collect Reg M-C by name (remove once the automatic step is seen collecting)
+        id: named
+        continue-on-error: true
+        run: |
+          set -u
+          fail=0
+          : > "$RUNNER_TEMP/named.log"
+          for f in gen9championsvgc2026regmc gen9championsvgc2026regmcbo3; do
+            echo "::group::$f"
+            # `set -o pipefail` so the tee cannot hide a crashed collector behind its own exit 0.
+            if ! ( set -o pipefail; PAGES=25 CONC=20 node engine/next_regulation_ingest.js --format "$f" --no-write 2>&1 | tee -a "$RUNNER_TEMP/named.log" ); then fail=1; fi
+            echo "::endgroup::"
+          done
+          exit "$fail"
+
+      # A STORE THAT SHRANK IS A BUG, NEVER AN UPDATE (ingest.yml's words, same reason). Every store
+      # here is append-only and deduped by id, so the count is monotonic by construction; if it
+      # fell, something lost history and committing it would overwrite the good copy on origin.
+      # The pull steps' REAL outcome is surfaced here too — continue-on-error hides it from the run's
+      # conclusion and must not hide it from a human. next_regulation_ingest.js itself exits 0 and
+      # records problems as `::error::` lines, so a failure outcome here means it CRASHED, not that
+      # it found nothing.
+      - name: Refuse to proceed if a store shrank; surface the pull outcomes
+        run: |
+          set -eu
+          fail=0
+          while read -r f was; do
+            now=0
+            if [ -e "$f" ]; then now=$(wc -l < "$f"); fi
+            if [ "$now" -lt "$was" ]; then
+              echo "::error::$f SHRANK: $was -> $now records. Refusing to commit."
+              fail=1
+            else
+              echo "$f: $was -> $now (+$((now - was)))"
+            fi
+          done < "$RUNNER_TEMP/base-next"
+          for o in "automatic:${{ steps.auto.outcome }}" "named:${{ steps.named.outcome }}"; do
+            k="${o%%:*}"; v="${o#*:}"
+            if [ "$v" = "failure" ]; then
+              echo "::error::the $k collection step exited non-zero — read its ::error:: lines above."
+              fail=1
+            fi
+          done
+          # THE GAP DETECTOR, MADE UNMISSABLE. A GAP line in a step's output is a real loss; it is
+          # repeated here as a workflow annotation so it shows on the run's summary page and not only
+          # inside a collapsed log group. It does NOT fail the job: the games are already gone, and
+          # refusing to commit would lose the ones that were fetched as well.
+          if [ -e data/next-regulation.json ] && grep -q '"ingest_said": *"GAP:' data/next-regulation.json; then
+            echo "::warning::GAP detected by the automatic step — the search window moved past what the store holds. See the GAP: line above."
+          fi
+          # The named step is --no-write, so its GAP never reaches the artifact; read its tee'd log.
+          if [ -e "$RUNNER_TEMP/named.log" ] && grep -q 'GAP:' "$RUNNER_TEMP/named.log"; then
+            echo "::warning::GAP detected by the named step — games aged out of the rolling pool between runs and cannot be re-fetched:"
+            grep 'GAP:' "$RUNNER_TEMP/named.log" | sed 's/^/::warning::/'
+          fi
+          [ "$fail" -eq 0 ]
+
+      # THE RAW LOGS ARE THE ONLY SOURCE OF TRUTH, AND UNTIL 2026-09-09 A NEW REGULATION'S WERE
+      # LOST EVERY RUN. data/games.<formatid>.raw-logs.jsonl is gitignored like every plain raw
+      # archive, and build/compress-stores.js sharded only the three tracked stores' archives. So
+      # every raw log CI collected for a new regulation lived on one runner for one job. --raw now
+      # derives the next-regulation archives from disk and cuts a write-once dated shard under
+      # data/raw/games.<formatid>/, deduped against the shards already on disk — so on a fresh
+      # runner with only this run's logs in the plain file, exactly this run's new logs are sharded.
+      - name: Shard this run's new raw logs
+        run: node build/compress-stores.js --raw
+
+      - name: Commit if a store changed
+        run: |
+          git config user.name  "abra-bot"
+          git config user.email "abra-bot@users.noreply.github.com"
+
+          # The artifact is rewritten before the retry loop below does `git reset --hard`, which
+          # would restore origin's copy over ours. Keep ours and put it back after each reset.
+          if [ -e data/next-regulation.json ]; then cp data/next-regulation.json "$RUNNER_TEMP/next-regulation.json"; fi
+
+          # ADD ONLY WHAT EXISTS, AND SAY SO WHEN SOMETHING DOES NOT. `git add` on a pathspec that
+          # matches nothing exits 1 under `bash -e` and the commit silently never happens — exactly
+          # how ingest.yml died for 24 days. Globs are walked and an unmatched glob is a no-op.
+          # NEVER `git add -A`: the runner holds ignored plain stores and possibly ladder shards.
+          add_artifacts() {
+            if [ -e data/next-regulation.json ]; then
+              git add data/next-regulation.json
+            else
+              echo "::warning::data/next-regulation.json was not produced this run; it is not in this commit"
+            fi
+            # ONE .gz PER FORMAT ID, named for the format, written by the collector's reconcile.
+            for f in data/games.gen9champions*.jsonl.gz; do
+              if [ -e "$f" ]; then
+                git add "$f"
+                echo "next-regulation store staged: $f ($(wc -c < "$f") bytes)"
+              fi
+            done
+            # ONLY the next-regulation shard directories — never data/raw/games.ladder or
+            # games.bo3, which belong to ingest.yml (and are empty on this runner anyway, since
+            # their plain archives are never restored here).
+            for f in data/raw/games.gen9champions*/*.jsonl.gz; do
+              if [ -e "$f" ]; then
+                git add "$f"
+                echo "raw log shard staged: $f ($(wc -c < "$f") bytes)"
+              fi
+            done
+          }
+          add_artifacts
+          if git diff --cached --quiet; then
+            echo "no new games this run"; exit 0
+          fi
+          git commit -m "next-regulation: new games $(date -u +%Y-%m-%dT%H:%MZ)"
+
+          # THE RECONCILE LOOP — see the concurrency note at the top. `git reset --hard origin/main`
+          # restores ORIGIN'S tracked .gz and shards; the gitignored plain store and plain raw archive
+          # survive it untouched. --reconcile unions origin's .gz with our plain store (origin's rows
+          # first, first occurrence wins, refuses to shrink) and rewrites the .gz; --raw recomputes
+          # "logs not already in a shard" against whatever shards origin actually has, so a shard
+          # staged before the loop is either still valid or superseded, never duplicated by id.
+          for i in 1 2 3; do
+            git fetch origin main || { echo "fetch failed"; sleep 5; continue; }
+            git reset --hard origin/main
+            node engine/next_regulation_ingest.js --reconcile
+            node build/compress-stores.js --raw
+            if [ -e "$RUNNER_TEMP/next-regulation.json" ]; then cp "$RUNNER_TEMP/next-regulation.json" data/next-regulation.json; fi
+
+            # THE SHRINK GUARD AGAIN, ON THE RECONCILED RESULT — the union is the step that could lose
+            # history in a push race, so it is checked on its own output.
+            while read -r f was; do
+              now=0
+              if [ -e "$f" ]; then now=$(wc -l < "$f"); fi
+              if [ "$now" -lt "$was" ]; then
+                echo "::error::$f shrank during reconcile ($was -> $now) — refusing to push"; exit 1
+              fi
+            done < "$RUNNER_TEMP/base-next"
+
+            add_artifacts
+            if git diff --cached --quiet; then
+              echo "origin already has everything from this run"; exit 0
+            fi
+            git commit -m "next-regulation: new games $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push origin main && exit 0
+            echo "push attempt $i failed; retrying"; sleep 5
+          done
+          echo "::error::next-regulation could not push after 3 attempts"
+          exit 1   # a push that never lands is SILENT DATA LOSS, not a transient — fail loudly

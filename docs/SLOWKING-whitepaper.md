@@ -361,8 +361,9 @@ and the corpus we already store is enough to learn it.**
    Competitive Pokémon.* ICML (spotlight). arXiv:2503.04094.
 7. UT Austin RPL (2025). *Metamon: Human-Level Competitive Pokémon via Scalable Offline RL with
    Transformers.* RLC. arXiv:2504.04395.
-8. Angliss, C. et al. (2025). *VGC-Bench: Generalizing Across Diverse Team Strategies in Competitive
-   Pokémon.* arXiv:2506.10326.
+8. Angliss, C., Cui, J., Hu, J., Rahman, A., Stone, P. (2025). *VGC-Bench: Towards Mastering Diverse Team
+   Strategies in Competitive Pokémon.* AAMAS 2026. arXiv:2506.10326. (Title corrected 2026-09-09 against the
+   arXiv record; this entry had carried a different subtitle.)
 9. Zinkevich, M., Johanson, M., Bowling, M., Piccione, C. (2007). *Regret Minimization in Games with
    Incomplete Information (CFR).* NIPS.
 10. Kumar, A., Zhou, A., Tucker, G., Levine, S. (2020). *Conservative Q-Learning for Offline RL.* NeurIPS.

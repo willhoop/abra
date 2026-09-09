@@ -12,16 +12,43 @@ game rather than a re-run.
 
 ```
 OPS — the live bot and the store
-  store: 81269 games, 26262 usable (32.3%), 23332 teams   (live.js 2026-09-09)
+  store: 81290 games, 26278 usable (32.3%), 23341 teams   (live.js 2026-09-09)
   live-games/: 34 battles recorded
   data/games.ladder.jsonl      last written 2026-09-09 13:05
   data/games.bo3.jsonl         last written 2026-09-09 13:05  <- the Force-OTS format, collected hourly
   data/games.ots.jsonl         last written 2026-09-09 13:01  <- FROZEN external import, complete; date is an import, not a heartbeat
 ```
 
-_stamped 2026-09-09 14:14_
+_stamped 2026-09-09 18:00_
 
 <!-- /GENERATED -->
+
+## REG M-C IS COLLECTED HOURLY INTO ITS OWN STORES, THE INGEST SAYS WHEN THE SEARCH WINDOW OUTRUNS THE STORE, AND WILL'S OWN GAME IS IN IT. NOTHING IS SIMULATED. 2026-09-09, CHANGELOG 5.276.0
+
+**THE STORES.** `data/games.gen9championsvgc2026regmc.jsonl.gz` 1,412 rows and
+`data/games.gen9championsvgc2026regmcbo3.jsonl.gz` 727 rows at 20:52Z (`gzip -dc | wc -l`); raw logs
+shard under `data/raw/games.gen9championsvgc2026regm*/` via `--raw`. Will's game
+`gen9championsvgc2026regmc-2678209853` (p1 `willhoop`, 2026-09-09 18:31) is in the bo1 store. Reg M-B
+stays `active` in `data/next-regulation.json`; both Reg M-C ids read `candidate [replay]` and the
+detector says "collectable, NOT simulatable" — the pinned Showdown checkout does not carry the format,
+and its move and item changes are #553, sequenced after the Reg M-B gate opens.
+
+**THE WORKFLOW.** `.github/workflows/next-regulation.yml` runs hourly for every `candidate` format, in
+the same `ingest` concurrency group as the six-hourly ingest, so the two never race. The run's coverage
+lines read 176 games/h (bo1) and 61 games/h (bo3) against a 7.1 h bo1 search window: an hourly pull
+holds the window, a six-hourly one does not. The first SCHEDULED run is not observed — the path is
+proven locally only; watch the first Actions log for `coverage:` on both steps and for `GAP:`.
+
+**THE GAP DETECTOR.** `engine/durable-ingest.js` prints a coverage line every run and `GAP:` when no
+offered id is held and the window's oldest game is newer than the store's newest (`--strict-gap` /
+`STRICT_GAP=1` for exit 1). Account: `docs/_reports/2026-09-09-regmc-hourly-collection.md`.
+
+**OPS OWES.** `tests/test-workflow-paths.js`'s shard-currency clause is red because the LOCAL
+`games.ladder.jsonl` (92,379 rows) is behind the tracked shards (92,400) — the 11:28Z CI ingest landed
+on origin, not this disk; `node build/compress-stores.js --restore-parsed` rewrites the store and was
+not run in this pass. `node engine/status.js --write` was NOT run; the block above is stamped to an
+earlier pass.
+
 
 ## THE SHARDING CUTOVER DROPPED 11,110 LADDER AND 4,752 BO3 GAMES FROM THE TRACKED STORE AND TWO GUARDS LOOKED PAST IT; RECOVERED. THE SMOGON CRON STOPS REWRITING A FROZEN SOURCE. 2026-09-09, CHANGELOG 5.275.0
 

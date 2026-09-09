@@ -1,4 +1,5 @@
 /* smogon_coverage.js — stamp an archived Smogon month as a COMPARISON SET, and say how far our own
+ * RAW-STORE-OK: asks which species the store CONTAINS at all, to say how far our store is from the ladder Smogon measured; a cleaned store would answer a different question (how far our USABLE corpus is), and the species list is reported, never used as a prior.
  * store is from the ladder Smogon measured.
  *
  * WHAT THIS IS NOT. It is not a second fetcher and not a second parser. engine/fetch_smogon_stats.js

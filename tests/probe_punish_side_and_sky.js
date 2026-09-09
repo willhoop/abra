@@ -158,7 +158,7 @@ const SC = {
   },
   'ROUGH SKIN (FAMILY CONTROL)': {
     kind: 'toll',
-    p1: sub => [mon('garchomp', sub === 'off' ? 'Sand Veil' : 'Rough Skin', [IDLE.garchomp]),
+    p1: sub => [mon('garchomp', sub, [IDLE.garchomp]),
                 mon('milotic', 'Marvel Scale', [IDLE.milotic]), ...BENCH.map(([s, m]) => mon(s, '', [m]))],
     p2: () => [mon('feraligatr', 'Torrent', ['Crunch']), mon('clefable', 'Magic Guard', [IDLE.clefable]),
                ...BENCH2.map(([s, m]) => mon(s, '', [m]))],
@@ -167,7 +167,11 @@ const SC = {
 };
 /* THE KNOB, PER SCENARIO: the subject's own ability against one of its OWN other legal abilities. */
 const SUBJECT = { hazard: ['Toxic Debris', 'Corrosion'], sky: ['Sand Spit', 'Shed Skin'],
-                  toll: ['on', 'off'] };
+                  /* The toll knob NAMES the abilities rather than saying 'on'/'off': a bare label inside a set
+                   * declaration reads as an entity that does not exist (tests/test-fixture-legality.js, 2026-09-09).
+                   * Garchomp's own two legal abilities, read from the dex: Rough Skin (H) is the toll, Sand Veil
+                   * (slot 0) is the quiet control. */
+                  toll: ['Rough Skin', 'Sand Veil'] };
 
 const TURNS = [1, 2];
 

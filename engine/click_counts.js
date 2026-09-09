@@ -1,4 +1,5 @@
-/* HOW OFTEN IS EACH MOVE ACTUALLY CLICKED — counted from the store, which is the authority.
+/* RAW-STORE-OK: counts how often each move RESOLVED so the MEDICHAM gate can defer rows on usage; a move the engine must simulate correctly does not care who clicked it, and the artifact's own `scope` field says so. A mechanics-coverage count, not a prior about play.
+ * HOW OFTEN IS EACH MOVE ACTUALLY CLICKED — counted from the store, which is the authority.
  *
  * WHY THIS FILE EXISTS. `data/tags.json` carries a `uses` field per move, and it UNDERCOUNTS. Measured
  * 2026-08-10 over the whole store: Toxic reads 1,132 there and 3,640 here; Terrain Pulse reads 9 and

@@ -94,6 +94,26 @@ data/policy-weights.json         text eol=lf
 data/policy-weights-joint.json   text eol=lf
 data/rollout-switch-census.json  text eol=lf
 
+# ── A TRACKED RELEASE SNAPSHOT IS BYTES, NOT TEXT. 2026-09-09, MEASURE. ───────────────────────────
+#
+# data/releases/<id>/ is a COPY of the frozen sources, and release.json holds the sha256 of the RAW
+# bytes of each copy at cut time — the id is the digest of those digests. Nine of the sources are
+# deliberately unpinned above and are CRLF in this working tree, so a release holds a MIX: 18 LF
+# files and 9 CRLF files, and open() refuses the release if a single byte of either moves.
+#
+# Measured 2026-09-09: b730e44f3314 was staged with `git add -f` (its 29 files carried no attribute,
+# so core.autocrlf normalised them to LF in the index) and the next checkout of those paths wrote
+# CRLF back over ALL of them. open() then refused it — engine/board.js: manifest c85a3b756c98,
+# snapshot 2e9c917b8e82, the CRLF form — and every gate artifact stamped against it went dark.
+#
+# `-text`, NOT `text eol=lf`. eol=lf would normalise the nine CRLF-at-cut files to LF on every
+# checkout and clone, so their digests would never again match the manifest and every release
+# holding them would be unopenable on every machine. `-text` switches conversion OFF in both
+# directions: the index stores exactly the bytes on disk and a checkout writes exactly the index.
+# It changes no release id, because release.json is not rewritten. Diff still works (-text is not
+# `binary`, which is `-text -diff`). NOT a merge attribute; see the top of this file.
+data/releases/**                 -text
+
 # ── THE THIRD OCCURRENCE, AND THIS ONE REACHED COMPARABILITY. 2026-09-08, MEASURE. ───────────────
 #
 # The block above pins the ENGINE's frozen sources. It does not pin the INSTRUMENT that measures

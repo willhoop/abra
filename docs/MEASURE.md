@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 1 of 9 gate clauses fail (whole-game differential / NARRATION — protocol divergence with no board effect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 182 unsafe, 2 void (declared), 35 possibly stale, 36 ok, 0 missing
+  provenance: 175 unsafe, 2 void (declared), 39 possibly stale, 39 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 1 of 9 gate clauses fail (whole-game differential / NARRATION — protocol divergence with no board effect)
@@ -29,14 +29,56 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-09 11:44
+    moved after the fit: engine/medicham2-browser.js  2026-09-09 16:46
     moved after the fit: data/engine-data.js  2026-08-31 00:08
     moved after the fit: data/abra-tags.js  2026-09-09 03:55
 ```
 
-_stamped 2026-09-09 14:14_
+_stamped 2026-09-09 18:00_
 
 <!-- /GENERATED -->
+
+## THE BOARD CLAUSE COUNTED THE GAMES THAT ANSWERED IT OUT OF ITS OWN DENOMINATOR — **3 OF 961** ON THE SAME ARTIFACT — AND THE DOCS GATE CAN NOW SEE A WRONG HEADLINE. SEVEN WAIVERS BY NAME; FIVE INSTRUMENTS GREENER. 2026-09-09, CHANGELOG 5.276.0
+
+**GATE HONESTY.** `engine/quarantine.js` adds every `mid_void.void_game_tags[]` row with a numeric
+`board_parted_at_turn` to the board count and the void set to the denominator. `data/game-differential.json`
+(release `b730e44f3314`) reads `state.games` 958, `state.games_board_never_diverged` 958,
+`mid_void.void_games` 3, all three parted — **3 of 961**, where the clause had read 0 of 958. Not a
+re-run: the same bytes through an honest clause, and the gate re-closes on the board clause. ENGINE
+attributed the three: two engine (closed, probes red-then-green), one INSTRUMENT — the one-line edit at
+`engine/game_differential.js:1623` is this division's and is owed with the pinned re-run (#551). Also
+landed: release `b730e44f3314` tracked (29 files); `engine_release.js cut` and the differential's
+`--release` path refuse when the Showdown checkout is off `PINNED_COMMIT`; `ingest.yml` runs
+`compress-stores.js --check` before commit; self-play store 3,090 lines / 3,090 unique ids (#536
+closed). Account: `docs/_reports/2026-09-09-fix-gate-honesty.md`.
+
+**THE DOCS GATE (#552, closed).** `engine/docs_scan.js` rule 3d: QUALIFIED and the citation scoped to
+the SENTENCE, a figure judged against a named field, a block dated against the artifact's own
+`generated` so a predating figure is REPORTED rather than accused, and the 19 browser bundles parse.
+The 27 → 41 mutation on `docs/MODELS.md:7` — 0 hits on the committed instrument — is red by name in a
+current or field-bound sentence. `tests/test-docs-current.js` 32/1 → 35/0; baseline 59 → 45 keys with
+reasons; 88 figures reported predating. The MILTANK profile row's figures are withheld, not captioned.
+Account: `docs/_reports/2026-09-09-fix-docs-gate-blindspot.md`.
+
+**WAIVERS.** `data/test-waivers.json`: 7 entries (4 web, 3 MAG), each with Will's words and the date;
+`tests/run-all.js` prints `WAIVED` per entry, keeps them out of the exit code, prints `ok (waiver no
+longer needed)` when one passes, and errors on a path not in the suite. `engine/em_validation.js` is
+NOT waived — red on its recorded Stage C verdict, not on the loader. Account:
+`docs/_reports/2026-09-09-fix-test-waivers.md`.
+
+**RED-TEST BATCH 1.** `test-prng` 6/1 → 7/0 (three float LCGs → mulberry32; the census byte-identical
+after); `identity_audit` 2 UNROUTED → 0; conformance convention 29 → 24; `selftest` raw readers 16 → 4;
+`test-quality` 29/3 → 31/1 on `data/store-validation.json` (2026-09-09T18:46Z, 92,379 games) — the
+remaining red is the 6.7-point drift the 15,862-game recovery caused, restamp owed in a pass that
+re-cuts the release; 11 illegal fixture pairings repaired across three probes with derived carriers,
+25 sets in 21 files still owed one file per pass. Account:
+`docs/_reports/2026-09-09-fix-red-tests-batch1.md`.
+
+**THIS DIVISION STILL OWES, UNCHANGED BY THE ABOVE.** Leaf calibration stays WITHHELD; the MAG refit
+stays a REFIT; the pinned whole-game re-run on the moved engine is in flight in this release and its
+row follows; the fresh-clone hook failure is #554. `node engine/status.js --write` was NOT run by this
+pass and no `<!-- GENERATED -->` block was hand-edited — the block above is stamped to an earlier pass.
+
 
 ## TWENTY-TWO FIGURES THE ARTIFACTS CONTRADICTED CAME OUT OF SEVEN LIVING DOCUMENTS, AND THE GATE THAT SHOULD HAVE CAUGHT THEM HAS A BLIND SPOT FOUND BY MUTATION. 2026-09-09, CHANGELOG 5.275.0
 
