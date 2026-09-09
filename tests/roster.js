@@ -11574,7 +11574,23 @@ function main() {
       reds: redRows,
       mirror: { pairs: mirrorPairs, same_numbers_swapped: mirrored.map(m => ({ a: m.a.id, b: m.b.id,
         verdicts: [m.a.verdict, m.b.verdict], leaves: m.swap })) },
-      results: results.map(r => ({ kind: r.kind, id: r.id, name: r.name, rule: r.rule, reads: r.reads || null,
+      /* AN ENTITY NO LEGAL SPECIES CAN CARRY IS NOT A ROW — WILL, 2026-09-09: *"if its not in the
+       * format then toss it out and stop putting here"*. 114 of the abilities stage's 316 rows were
+       * abilities this regulation does not contain, each carrying a full COULD-NOT-STAGE record, and
+       * they buried the real reading: `139 of 202`, printed as 139 out of 316.
+       *
+       * THE ROWS GO; THE COUNT DOES NOT. `scope.out_of_scope` and `scope.out_of_scope_by` are written
+       * above from the same `results` array before this filter and are DERIVED on every run, so the
+       * artifact still says how many were excluded and why. Dropping the count as well would be the
+       * worse bug: a future session reads the stage falling from 316 rows to 202 and cannot tell
+       * whether coverage fell or noise was removed — and unlike a typed note, a derived count cannot
+       * go stale.
+       *
+       * THIS IS THE REGULATION'S ANSWER, NOT THIS FILE'S. The rows are tagged at the refusal by
+       * `cannot(why, 'no-legal-carrier')`, which is reached only when the legal-species walk returns
+       * empty, so nothing here decides what is in the format. */
+      results: results.filter(r => r.out_of_scope !== 'no-legal-carrier')
+        .map(r => ({ kind: r.kind, id: r.id, name: r.name, rule: r.rule, reads: r.reads || null,
         note: r.note || null, verdict: r.verdict, why: r.why || null,
         arm: (r.scenario && r.scenario.arm) || PRIMARY_ARM_ID, control_why: r.control_why || null,
         /* THE BODY THIS ROW WAS STAGED ON, as a field rather than as prose inside `note`. A shelf

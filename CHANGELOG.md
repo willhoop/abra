@@ -10,6 +10,30 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.270.1] — 2026-09-09
+
+### Changed
+- **AN ABILITY NO LEGAL SPECIES CAN CARRY IS NOT A ROW.** `tests/roster.js` stops emitting the 114
+  `no-legal-carrier` rows into the abilities artifact. **The abilities artifact goes 316 rows → 202**
+  and `COULD-NOT-STAGE` **158 → 44**, which was always the in-scope figure; the reading is now
+  139 / 44 / 14 / 5 = 202. Will, 2026-09-09: *"if its not in the format then toss it out and stop
+  putting here"*.
+- **The rows go; the derived count stays.** `scope.out_of_scope` still reads 114 `no-legal-carrier`,
+  written from the same array before the filter. Dropping it would leave a future session unable to
+  tell whether the stage fell from 316 to 202 because coverage dropped or because noise was removed —
+  and a derived count cannot go stale the way a typed note would.
+
+### Notes
+- **The gate is unchanged.** `engine/status.js` still reads deliberate roster / abilities PASS at
+  *139 of 202 tested*, and still 1 of 9 clauses failing. The 202 was always the real denominator; 316
+  was the number being printed at it. Only abilities was affected — moves, items and spine carry zero
+  out-of-scope rows.
+- **Unchanged and still owed:** the 14 CONTROL-NOT-QUIET abilities. Those are the instrument's
+  debt, not the regulation's, and no row here touches them.
+- No published figure moves, so this is a PATCH.
+
+---
+
 ## [5.270.0] — 2026-09-09
 
 ### Fixed
