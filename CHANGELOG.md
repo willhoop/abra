@@ -10,6 +10,36 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.269.1] — 2026-09-09
+
+### Fixed
+- **AN arXiv ID AND A DOI WERE BEING READ AS MEASUREMENTS, SO A BIBLIOGRAPHY SCORED AS UNSOURCED
+  CLAIMS.** `engine/docs_scan.js`’s untraceable census counts a figure in a living document with no
+  artifact behind it. A references block is where a document is MOST traceable, and **10 of the 33
+  untraceable figures were reference entries** — `arXiv:2007.13544`, `DOI:10.1126/sciadv.adg3256`
+  and five more in `docs/SLOWKING-whitepaper.md`, plus `arXiv 2304.08272` cited in two other
+  documents. Clearing any of them would have meant deleting a citation to satisfy a gate — the exact
+  inversion the “lines N-M” strip was written about, in a second spelling. Two strips added to
+  `figuresIn`; `ID_WORD` could not carry it, because its lookbehind demands a space and both are
+  written with a colon.
+
+### Changed
+- **Untraceable figures 33 → 23; documents carrying them 5 → 3.** `docs/SLOWKING-whitepaper.md` and
+  `docs/ROLE-FAMILY.md` leave the census entirely. **The figure-lexer demonstration goes 7/7 → 10/10
+  cases**, including a control asserting that a real figure standing beside a citation is still read —
+  without it both strips could be satisfied by discarding the whole line.
+  `tests/test-docs-current.js` unchanged at 33 passed, 0 failed.
+
+### Notes
+- **7 of the remaining 23 are named rather than fixed.** They are figures quoted inside their own
+  WITHDRAWN/CORRECTED notice in `docs/MODELS.md` and `docs/ABRA-whitepaper.md` — the record working
+  as designed, needing no action at 6.0.0. Exempting them is a design question: the retraction
+  registry does not hold their values, and a looser predicate would let any figure be laundered by
+  wrapping it in the word WITHDRAWN. Deliberately not attempted.
+- No published figure moves, so this is a PATCH.
+
+---
+
 ## [5.269.0] — 2026-09-09
 
 ### Fixed

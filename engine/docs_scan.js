@@ -242,7 +242,19 @@ function figuresIn(line) {
      * THE HOUR AND MINUTE FIELDS ARE RANGE-CHECKED so this strips a CLOCK and not a ratio. `50:50`
      * and `16:9` survive; `02:49` and `22:15:24` do not. A bare `\d{2}:\d{2}` would have eaten the
      * first, which is a real way to write a split. */
-    .replace(/\b(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?\b/g, ' ');
+    .replace(/\b(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?\b/g, ' ')
+    /* AN arXiv ID AND A DOI ARE CITATION IDENTIFIERS, AND THIS SCAN READ THEM AS MEASUREMENTS — the
+     * exact inversion the "lines N-M" strip four rules up was written about, in a second spelling.
+     * A bibliography is where a document is MOST traceable, and 10 of the 33 untraceable figures this
+     * census reported on 2026-09-09 were reference entries: seven in `docs/SLOWKING-whitepaper.md`
+     * alone (`arXiv:2007.13544`, `DOI:10.1126/sciadv.adg3256` and five more), plus `arXiv 2304.08272`
+     * cited in two other documents. Nearly a third of the count, and clearing any of them would have
+     * meant deleting a citation to make a gate happy.
+     *
+     * ID_WORD cannot carry this and that is why it is a strip: its lookbehind is `(?<!\bID_WORD\s)`
+     * and demands a SPACE, while both of these are written with a colon — the identical reason `§`
+     * and `#` were given strips here after sitting in ID_WORD without ever firing. */
+    .replace(/\b(?:arxiv|doi)\s*:?\s*\d[\d.]*(?:\/\S+)?/gi, ' ');
   const out = [];
   let m;
   FIGURE_RE.lastIndex = 0;
@@ -347,6 +359,22 @@ const LEXING_CASES = [
        + 'range-checked, so a split written 50:50 or an aspect written 16:9 is still read. A bare '
        + '\\d{2}:\\d{2} would have silently eaten the first.',
     text: 'The arms split 43:21 by construction.', value: 43, find: true },
+
+  { id: 'an-arxiv-id-is-not-a-measurement',
+    why: 'A bibliography is where a document is MOST traceable, and this census counted reference '
+       + 'entries as unsourced claims — 10 of the 33 untraceable figures on 2026-09-09, seven in '
+       + 'docs/SLOWKING-whitepaper.md alone. Clearing one would have meant deleting a citation.',
+    text: 'ReBeL (NeurIPS). arXiv:2007.13544.', value: 2007.13544, find: false },
+
+  { id: 'a-doi-is-not-a-measurement',
+    why: 'The second spelling, and it fails a strip written only for arXiv. DOI prefixes are always '
+       + '10.NNNN, so a rule that reads them reports a figure of 10.1126 in every references block.',
+    text: 'Science Advances 9(46). DOI:10.1126/sciadv.adg3256.', value: 10.1126, find: false },
+
+  { id: 'a-figure-beside-a-citation-is-still-read',
+    why: 'THE CONTROL, and without it the two strips above could be satisfied by discarding the whole '
+       + 'line. The identifier goes; the measurement standing next to it does not.',
+    text: 'That method (arXiv:2007.13544) scored 4,321 games.', value: 4321, find: true },
 ];
 
 /** Runs every case through the real function. `holds` false means the lexer changed meaning.
