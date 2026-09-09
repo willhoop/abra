@@ -165,3 +165,29 @@ Roughly **85–90 figure-level edits**, before counting the 42 notes rows that f
 about a day of writing — not the ~13 the correction above implies and not the 72 the original section
 implies. **Three counts existed, each was correct about its own question, and none of them was the
 workload.**
+
+---
+
+# PROVENANCE IS NOT A 6.0.0 BLOCKER, AND THE HEADLINE COUNT SAYS OTHERWISE
+
+`engine/status.js` prints **182 UNSAFE** artifacts, which reads as 182 things to fix before a major
+can rest on them. Bucketed by reason it is one condition and four cases:
+
+| reason | count |
+|---|---|
+| `OLDER THAN THE QUALITY FILTER — computed under different rules about what counts` | **178** |
+| `older than its input regulations.json` | 1 |
+| `not store-derived: it records which artifacts are downstream` | 1 |
+| `COMPUTED FROM DIFFERENT CONTENT` — `engine/medicham2-browser.js`, `engine/next_regulation.js` | 2 |
+
+**The 178 are one systemic fact, not 178 findings**: they predate a change in what counts as a
+quality-filtered game, and most are quarantined anyway. Step 6 re-runs them and they get fresh
+stamps — the count falls out of the re-run rather than needing its own project.
+
+**The 2 `COMPUTED FROM DIFFERENT CONTENT` rows are tonight's own edits** — the simulator under batch S,
+and `next_regulation.js` under the rotation-checklist fix. Correct behaviour, not a defect: the check
+compares CONTENT rather than mtime, which is the whole reason it was rewritten.
+
+**15 of the 182 are scratch files** with a leading underscore (`_void-final.json`, `_turncap-cap30.json`
+and so on). They are working artifacts and are counted beside published ones, which is a third
+instance of tonight's pattern — a count that is correct and is not a workload.
