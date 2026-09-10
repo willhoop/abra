@@ -23,7 +23,7 @@ MEASURE — can we believe a number
     older than its input engine-data.js
     (+10 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 173 unsafe, 2 void (declared), 44 possibly stale, 36 ok, 0 missing
+  provenance: 173 unsafe, 2 void (declared), 42 possibly stale, 38 ok, 0 missing
   click censoring: WITHHELD — engine/provenance.js calls data/click-censoring-census.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     COMPUTED FROM DIFFERENT CONTENT — engine/fit_policy.js was 37df17935c16 at read time, is a963537c91e8 now
@@ -31,12 +31,12 @@ MEASURE — can we believe a number
     it becomes quotable again when this is re-run: node engine/click_census.js
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-10 02:30
+    moved after the fit: engine/medicham2-browser.js  2026-09-10 03:36
     moved after the fit: data/engine-data.js  2026-08-31 00:08
     moved after the fit: data/abra-tags.js  2026-09-09 20:53
 ```
 
-_stamped 2026-09-10 03:23_
+_stamped 2026-09-10 04:41_
 
 <!-- /GENERATED -->
 

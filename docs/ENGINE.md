@@ -141,7 +141,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 ENGINE — does the simulator do what Pokémon does
   835/835 probed mechanics live, 0 missing   (census 2026-09-10 02:56)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 22 min old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 1.7 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-10 02:59)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
@@ -164,9 +164,72 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-10 03:23_
+_stamped 2026-09-10 04:41_
 
 <!-- /GENERATED -->
+
+## THE SPEED-TIE CORNER ARMS MEASURE SOMETHING NOW, AND **TIES ARE CLEAN** — **71,009 TIE GROUPS RESOLVED ACROSS 1,922 GAMES, ZERO BOARD-MATERIAL DIVERGENCES ATTRIBUTABLE TO TIE ORDER.** BOARD-MATERIAL **16 OF 961** TOP AND **15 OF 961** BOTTOM (WAS `0 - 0` OVER AN EMPTY POPULATION). `mid_void` REPLACED ON A CORNER BY `corner_pin`, **0 UNPINNED SHAPES OR STREAMS**. AN EMPTY POPULATION NOW **REFUSES**. THE MIDDLE ARM IS **UNMOVED AT 0 OF 961 AND 0 UNDECLARED OF 961**. **NO ENGINE BYTE MOVED — RELEASE STILL `8ac9c4d888f1`.** 2026-09-10, CHANGELOG 5.282.0
+
+Full account, every flag and every pin: [docs/_reports/2026-09-10-corner-arms.md](_reports/2026-09-10-corner-arms.md).
+ROADMAP #569 (the empty population), #570 (`corner_pin`), #571 and #572 (filed, unfixed).
+
+**THE PROBE WAS WRITTEN FIRST AND WAS RED ON 15 CLAIMS.** `tests/probe_corner_arm_measures.js`. Two
+knob-cleared controls, because a green check with no red arm is a check that might be asking nothing:
+`MEDI_DIFF_LEGACY_PRIMARY=1` restores the defect and the run must REFUSE; `MEDI_CORNER_UNPIN=tgt` hands
+medicham2 one live LCG and `corner_pin` must name it and refuse. (`MEDI_CORNER_UNPIN=acc` never reaches
+the receipt — `PIN_CLAIMS` refuses it at module load, which is the stronger guard and was already there.)
+
+### WHAT THE THREE FIXES ARE
+
+- **`RUN_PRIMARY = ARMS_RUN[0]`.** `--arm` moved `ARMS_RUN` and not the arm whose games become
+  `results`, so a corner-only run played 961 games, assigned none of them, and published a bar of
+  `0 - 0` that is byte-identical to a perfect score. **`PRIMARY_ARM` is unchanged and still `ARMS[0]`** —
+  eight callers outside the file read it as the DEFAULT PIN for a staged game (`tests/roster.js`,
+  `engine/replay_one.js`, four probes, two tests), and `tests/roster.js` records by name what moving it
+  cost on 2026-08-13. Two questions, two names. On a default run and on `--arm middle` they are the
+  same object, which is why nothing published moves.
+- **`corner_pin` REPLACES `mid_void` ON A CORNER ARM.** A corner arm has NO dice stream: the
+  authority-side `random` is a pure function of its arguments and `mediRng` answers every named stream
+  with the corner constant. Nothing is excludable, so a void FILTER there can only publish a `0` that
+  reads as *the instrument could not tell*. The receipt measures the claim instead — one call shape, one
+  value, on both sides, over every draw taken — and it CAN fail, because `mediRng` builds the corner
+  object as a TYPED override list over a live `M.rngStreams` LCG. Measured: top **186,425** authority
+  draws over 20 shapes and **160,957** medicham draws over 8 streams, bottom **139,193** / 24 and
+  **132,463** / 8, **zero** with more than one value on either arm.
+- **AN EMPTY POPULATION REFUSES.** Three reachable clauses — no game, no compared boundary, or an
+  incomplete corner pin — set `void: true`, BLANK `diverged`/`mid_void`/`corner_pin`/`state` and exit
+  non-zero. A caption is not a quarantine.
+
+### THE TIE VERDICT
+
+`speed_ties` counts what Showdown's own `speedSort` asked its shuffle to resolve, and `sim/battle.ts`
+calls `prng.shuffle` ONLY when the tie group is larger than one — so the counter is tie groups and
+nothing else.
+
+| | tie groups resolved | sizes 2 / 3 / 4 / 5 / 6 | BOARD-MATERIAL | boundaries identical / compared |
+|---|---|---|---|---|
+| `top-tie-first` | **38,319** | 37,789 / 446 / 67 / 9 / 8 | **16 of 961** | 12,558 / 12,632 |
+| `bottom-tie-first` | **32,690** | 32,114 / 469 / 91 / 8 / 8 | **15 of 961** | 8,990 / 9,020 |
+| `middle` (recheck) | — | — | **0 of 961** | 10,705 / 10,705 |
+
+**Zero of those 31 board-material games is a tie.** The `ordering` protocol class is NOT the tie class:
+every row is two events reordered WITHIN a turn, not a different actor. The one `turn order` row is a
+speed VALUE gap — Showdown's `getStat('spe')` **91** against this engine's `effSpeed` **166** for the
+same body, `same_when_floored: false` — after a Speed Swap and a switch, and is filed as ROADMAP #571.
+The one `ordering` row that parts a board is the perish `|upkeep|` drain Will closeted on 2026-08-28,
+reaching a board in the BOTTOM corner where it reaches none in the middle.
+
+**NO `NOT A DEFECT` DECISION IS OWED TO WILL.** The brief anticipated a tie divergence with no correct
+answer; none was found.
+
+### AND THE SPEED-AGREEMENT TABLE IS NOT 735 SPEED DEFECTS
+
+Every grouped row on all three arms carries `status=-/sd:fnt` — Showdown's body is FAINTED at the
+reading, so its `ModifySpe` handlers do not fire and `getActionSpeed` returns the raw stored stat while
+ours returns the modified one. The ratios say it outright: Choice Scarf 98 → 147 (x1.5), Unburden
+162 → 324 (x2), Tailwind 173 → 346 (x2), paralysis 112 → 56 (x0.5), -2 stages 104 → 52 (x0.5). Recorded
+here so the next reader does not open the table as a finding.
+
 
 ## THE LAST ILLEGAL FIXTURE IS REPAIRED AND THE CENSUS IS RE-PINNED — CENSUS `1da84d77888e` → **`257acf955593`**, **835 PROBED / 835 LIVE / 0 MISSING, 0 ROWS ADDED, 0 REMOVED, 0 STATUS FLIPS**; THE WHOLE GATE CHAIN RE-RUN ON IT READS **GATE: OPEN, 9 OF 9 PASS**, BOARD-MATERIAL **0 OF 961**, NARRATION **0 UNDECLARED OF 961**, ROSTER **142 / 139 / 487**, `test-engine-diff` **6000/6000**, `all_mechanics_fire` **1313 GAMES / 0 THREW**. **NO ENGINE BYTE MOVED — THE RELEASE ID IS UNCHANGED AT `8ac9c4d888f1`.** 2026-09-10, CHANGELOG 5.280.0
 
@@ -230,6 +293,12 @@ fail is this repository's signature failure.**
   `if (PRIMARY_ARM.middle)` (`:7825`), so a corner arm cannot separate an engine board split from a
   dice-stream split — which is exactly the distinction a corner arm needs, because the corners
   deliberately stop sharing dice.
+- **SUPERSEDED 2026-09-10 (CHANGELOG 5.282.0) — the bullet below was computed over artifacts that
+  compared NO BOARD, in a different cause vocabulary (`end_state[0].summary.by_cause`). On the fixed
+  instrument the corners share three board-leaf shapes, the largest `active[].hp + party.<mon>.hp` at
+  4 top / 3 bottom, and the "unshared dice" reading cannot apply at all: `corner_pin` measures both
+  engines answering every draw from a constant with ZERO violations. The dated bullet is left standing
+  rather than edited, because a dated claim is not rewritten in place.**
 - **AND THE TWO CORNERS SHARE NOT ONE CAUSE.** The intersection of their board-material cause sets is
   **EMPTY** (14 top-only, 12 bottom-only), and both lists are dominated by `-miss`, `-crit`,
   `-supereffective`-against-`-miss` and one `-damage` whose entire disagreement is `131/135` against
@@ -243,9 +312,21 @@ write is gated on `WRITE` (`:9517`); the published slot is protected separately 
 
 ### THE HAND LIST
 
-- **DEFECT A AND DEFECT B ABOVE** — no probe fails on either yet, and the probe is the first thing owed:
-  it must assert that a corner-arm artifact carries `turn_boundaries_compared > 0`, and be shown RED on
-  these bytes.
+- ~~DEFECT A AND DEFECT B ABOVE~~ — closed above; `tests/probe_corner_arm_measures.js` was RED on 15
+  claims on those bytes and is green, with two knob-cleared controls. Defect B's FRAMING was refuted
+  rather than fixed: `mid_void` never applied to a corner arm, and `corner_pin` is what replaces it.
+- **A SPEED SWAP AND A SWITCH LEAVE THE TWO ENGINES 91 AGAINST 166 ON ONE BODY'S SPEED** — one
+  board-material game in `top-tie-first`, ROADMAP #571. Filed, not fixed; root cause deliberately not
+  guessed (Showdown's `clearVolatile` does not reset `storedStats`; this engine's `statrewire` writes
+  `m.st`/`t.st`).
+- **`engine/replay_one.js` REPRODUCES A CORNER-PRIMARY RUN'S SCHEDULE WRONG** — its warm-up asks
+  `PRIMARY_ARM` and not the run's primary, so it skips one stones-removed control game per pair.
+  Harmless until a corner arm could be primary. ROADMAP #572; owed is a `--run-primary` flag.
+- **THE PERISH DRAIN'S CLOSET RULING WAS MEASURED ON THE MIDDLE ARM AND PARTS A BOARD IN THE BOTTOM
+  CORNER.** The declaration's own `WOULD BE WRONG IF` clause (b) reads the middle-arm artifact and is
+  not tripped by this. Decide whether the ruling is arm-scoped and say so in the declaration.
+- **`tests/probe_corner_arm_measures.js` IS IN NO BATCH RUNNER.** It plays 5 x 40 games (~50s) and is
+  not registered in `tests/run-all.js`; a corner arm that stops measuring would not break the build.
 - **THE DAMAGE DIFFERENTIAL HAS STILL NEVER APPLIED A MULTI-HIT MOVE** — `skipped_multihit` **134** and
   `skipped_ability_multihit` **17** on the freshly written `data/engine-diff.json`. Its own batch.
 - **THE PERISH `|upkeep|` DRAIN** — CLOSETED by Will, and still the only raw narration row. Its

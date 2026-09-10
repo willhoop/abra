@@ -1601,6 +1601,48 @@ let BARE_FLOAT_DRAWS = 0;
 let SHUFFLE_CALLS = 0, SHUFFLE_TIE_GROUPS = 0;
 const SHUFFLE_GROUP_SIZES = new Map();
 
+/* ---- THE CORNER ARMS' EQUIVALENT OF `mid_void`, AND IT IS A DIFFERENT QUESTION -- 2026-09-10 -----
+ *
+ * The middle arm can VOID a game: its two engines read seeded streams addressed by event, so the
+ * addresses can fail to line up and then the two are not flipping the same coins. `mid_void` is that
+ * exclusion, and a corner-arm run carrying `usable_games: 0` was read as the corners being unable to
+ * tell an engine board split from a dice-stream split.
+ *
+ * THERE IS NO STREAM IN A CORNER ARM. This file's own ARMS comment says it — *"Every other arm's dice
+ * are a constant and cannot desynchronise"* — and the code says it twice over: the authority-side
+ * `random` on a corner arm is a PURE FUNCTION of its arguments (`m - 1` / `0` / `damageIndex` / `m`,
+ * no state read, no counter), and the medicham2 side is `() => spec.corner` for every named stream.
+ * Two engines whose draws do not depend on stream position cannot desynchronise a stream. So the
+ * honest instrument here is not a void FILTER — nothing is excludable — it is a PIN-COMPLETENESS
+ * RECEIPT, and the receipt has to be capable of failing or it is decoration.
+ *
+ * IT CAN FAIL, AND HERE IS THE SHAPE THAT WOULD DO IT. `mediRng` builds the corner object as
+ * `Object.assign({}, streams, { any, acc, crit, sec, dmg, stall, tgt, tie })` — a NAMED override list
+ * over a live `M.rngStreams` LCG. A stream key that medicham2 gains and this list does not name would
+ * come through LIVE on one side with a constant on the other: exactly the mispinned die of
+ * CHANGELOG 3.45.0, and exactly the corner-arm analogue of a desync. That key would return more than
+ * one distinct value over a run, and this is what measures it.
+ *
+ * KEYED BY ARM ID, because a default run plays all three and the top and bottom corners answer the
+ * same call shape with different values by construction. Pooling them would manufacture a violation.
+ * Values only, never positions: the claim is "one shape, one value", not "the same order". */
+/* THE KNOB THAT PROVES THE RECEIPT CAN FAIL. `MEDI_CORNER_UNPIN=<stream>` lets ONE named medicham2
+ * stream through as the live `M.rngStreams` LCG it would be if `mediRng`'s typed override list did
+ * not name it — which is the exact shape of the failure this receipt exists to catch. Off unless the
+ * variable is set, so an ordinary run is bit-identical; `tests/probe_corner_arm_measures.js` sets it
+ * and asserts the receipt flags the stream AND that the run then refuses to publish. A green check
+ * with no red arm is a check that might be asking nothing. */
+const CORNER_UNPIN = process.env.MEDI_CORNER_UNPIN || null;
+const CORNER_PIN_SD = new Map();   // arm id -> Map('random(m,n)' -> Map(value -> count))
+const CORNER_PIN_ME = new Map();   // arm id -> Map(stream key   -> Map(value -> count))
+function cornerRecord(store, armId, key, value) {
+  let byArm = store.get(armId);
+  if (!byArm) { byArm = new Map(); store.set(armId, byArm); }
+  let byKey = byArm.get(key);
+  if (!byKey) { byKey = new Map(); byArm.set(key, byKey); }
+  byKey.set(value, (byKey.get(value) || 0) + 1);
+}
+
 function makeArm(spec) {
   const top = spec.corner === CORNER_TOP;
   /* ---- THE MIDDLE ARM'S DICE. Both sides are built from ONE call into the engine's own stream
@@ -1726,14 +1768,18 @@ function makeArm(spec) {
       }
       return m + Math.floor(u * (n - m));                    // random(m, n) -> m..n-1
     }
+    /* THE PIN-COMPLETENESS RECEIPT — see CORNER_PIN_SD. The shape is the call, the value is what this
+     * arm answered it with; one shape answering with two values means this side is not pinned. */
+    const rec = (v) => { cornerRecord(CORNER_PIN_SD, spec.id,
+      'random(' + (m === undefined ? '' : m) + (n === undefined ? '' : ',' + n) + ')', v); return v; };
     if (n === undefined) {
-      if (m === undefined) { BARE_FLOAT_DRAWS++; return spec.corner; }   // random() -> a float in [0,1)
-      if (m === DAMAGE_ROLL_SIDES) return spec.damageIndex;              // 0 = MAX damage, 15 = MIN
-      return top ? m - 1 : 0;                                           // top / bottom of the range
+      if (m === undefined) { BARE_FLOAT_DRAWS++; return rec(spec.corner); }  // random() -> float in [0,1)
+      if (m === DAMAGE_ROLL_SIDES) return rec(spec.damageIndex);             // 0 = MAX damage, 15 = MIN
+      return rec(top ? m - 1 : 0);                                          // top / bottom of the range
     }
     /* THE RANGE FORM IS PINNED TO THE BOTTOM IN EVERY ARM — see the header. It is the sleep duration,
      * a multi-hit count and a queue insertion index, and it is NOT the speed-tie resolver. */
-    return m;
+    return rec(m);
   };
   /* `chance` MUST NOT go through the range form in the middle arm: `random(den) < num` re-derives a
    * uniform from a floor and loses resolution at small denominators. It draws the float directly. */
@@ -1859,7 +1905,12 @@ function makeArm(spec) {
       o.tie = () => 0;
       return o;
     }
-    return Object.assign({}, streams, {
+    /* THE PIN-COMPLETENESS RECEIPT, ON THE SIDE THAT CAN ACTUALLY LEAK — see CORNER_PIN_ME. The
+     * override list below is TYPED, and `streams` is a live LCG object; a key medicham2 gains that
+     * this list does not name comes through LIVE against a constant on the authority's side. Wrapping
+     * every function-valued key after the assign is what makes that visible instead of silent — the
+     * wrapper returns the value it was given and changes no behaviour. */
+    const pinned = Object.assign({}, streams, {
       any: scalar, acc: scalar, crit: scalar, sec: scalar, dmg: scalar, stall: scalar, split: false,
       /* ROADMAP #478 — NAMED EXPLICITLY, for exactly the reason `tie` below is. `streams` now carries
        * a `tgt` LCG, and letting it through would hand the three SCALAR arms a live random-target die
@@ -1873,6 +1924,17 @@ function makeArm(spec) {
        * generic scalar returned the corner constantly. This line keeps those runs bit-identical. */
       tie: scalar,
     });
+    if (CORNER_UNPIN && typeof streams[CORNER_UNPIN] === 'function') pinned[CORNER_UNPIN] = streams[CORNER_UNPIN];
+    for (const k of Object.keys(pinned)) {
+      if (typeof pinned[k] !== 'function') continue;
+      const f = pinned[k];
+      pinned[k] = function pinReceipt() {
+        const v = f.apply(this, arguments);
+        cornerRecord(CORNER_PIN_ME, spec.id, k, v);
+        return v;
+      };
+    }
+    return pinned;
   };
   return Object.assign({ sdShuffleReverses: false }, spec, { top, random, chance, shuffle, mediRng });
 }
@@ -2219,6 +2281,31 @@ const ARM_IDS = (() => {
   return ids;
 })();
 const ARMS_RUN = ARM_IDS.map(id => ARM_BY_ID.get(id));
+/* ---- THE ARM THIS RUN MEASURES, WHICH IS NOT THE SAME THING AS `PRIMARY_ARM` -- 2026-09-10 -------
+ *
+ * `--arm` moved `ARMS_RUN` and nothing else. `PRIMARY_ARM` is `ARMS[0]` — always `middle` — so a run
+ * asking for a corner arm ALONE played every game, assigned NONE of them to `results`, and published
+ * `state.games 0 / games_board_never_diverged 0 / turn_boundaries_compared 0`. The bar the quarantine
+ * clause names is `state.games` less `state.games_board_never_diverged`: on that artifact it is
+ * `0 - 0 = 0`, byte-identical to a perfect score. A capability absent and everything reporting
+ * success, inside the instrument that measures exactly that failure elsewhere.
+ *
+ * `PRIMARY_ARM` STAYS `ARMS[0]` AND IS STILL EXPORTED, because eight callers outside this file read
+ * it as the DEFAULT PIN for a staged game — `tests/roster.js`, `engine/replay_one.js`, four probes
+ * and two tests — and `tests/roster.js:1014` records by name what moving it cost the last time
+ * (cf7a2c5a, 2026-08-13: `ARMS[0]` silently stopped meaning `top-tie-first` and handed Showdown a
+ * live crit die while medicham kept a pinned one). Two different questions, so two names:
+ *
+ *     PRIMARY_ARM   the default pin a caller gets when it names no arm      = ARMS[0]
+ *     RUN_PRIMARY   the arm whose games become `results` on THIS run        = ARMS_RUN[0]
+ *
+ * On a default run and on `--arm middle` these are the same object, so no run that has ever been
+ * published moves. Only a run that asks for a corner does, and today that run measures nothing.
+ *
+ * THE KNOB RESTORES THE DEFECT, so the refusal below has a control it can be shown against rather
+ * than an argument. `tests/probe_corner_arm_measures.js` runs the identical command line under it. */
+const LEGACY_PRIMARY = process.env.MEDI_DIFF_LEGACY_PRIMARY === '1';
+const RUN_PRIMARY = LEGACY_PRIMARY ? PRIMARY_ARM : ARMS_RUN[0];
 /* ROADMAP #222 -- THE DICE MODEL IS PART OF THE PIN AND MUST MOVE THE DIGEST.
  *
  * This file's own header records the 2026-08-07 reset: "ANY RUN AFTER THIS IS NOT COMPARABLE WITH ANY
@@ -2305,7 +2392,10 @@ const PINS = {
   why: 'ONE PIN IS ONE CORNER. Every published number before 2026-08-07 describes `top-tie-in-order` '
      + 'and nothing else: max damage, every sub-100 move missing, and every speed tie resolving to '
      + 'input order in both engines BY CONSTRUCTION.',
-  arms_run: ARM_IDS, primary: PRIMARY_ARM.id, digest: PIN_DIGEST,
+  arms_run: ARM_IDS, primary: RUN_PRIMARY.id, digest: PIN_DIGEST,
+  primary_is_the_arm_results_come_from: 'RUN_PRIMARY = ARMS_RUN[0]. `PRIMARY_ARM` (ARMS[0]) is the '
+     + 'DEFAULT PIN for a caller that names no arm and is a different question — see the note beside '
+     + 'RUN_PRIMARY. They differ only on a run that does not include `middle`.',
   arms: ARMS_RUN.map(a => ({ id: a.id, what: a.what, corner: a.corner === CORNER_TOP ? 'top' : 'bottom',
                              damage_roll_index: a.damageIndex,
                              damage_roll_means: a.damageIndex === 0 ? 'MAXIMUM' : 'MINIMUM',
@@ -2332,7 +2422,7 @@ const CREDIT_POLICY = 'observed-effect/v1';
  * changes the stat line, which changes turn order, which changes which games get played — the same
  * class of change as the pin and the credit rule, so it rides in the same place and
  * `arms_comparable.js` refuses a pair that spans it. `NATURE_MODE` is declared beside buildPair. */
-const MODE = 'A/' + PRIMARY_ARM.id + '/pins:' + PIN_DIGEST + '/credit:' + CREDIT_POLICY
+const MODE = 'A/' + RUN_PRIMARY.id + '/pins:' + PIN_DIGEST + '/credit:' + CREDIT_POLICY
            + '/nature:' + NATURE_MODE;
 
 /* ---- THE SKIP LIST, READ FROM THE DERIVATION ---------------------------------------------------- */
@@ -7150,7 +7240,7 @@ if (!has('--proof')) {
                               maxGames: MAX_GAMES, poolLeft: WORK.length - played });
         break;
       }
-      for (let i = from; i < to; i++) playOne(PRIMARY_ARM, WORK[i].cfg, WORK[i].pr, true, primaryResults, primaryControl);
+      for (let i = from; i < to; i++) playOne(RUN_PRIMARY, WORK[i].cfg, WORK[i].pr, true, primaryResults, primaryControl);
       played = to;
       const now = creditedNow();
       const fresh = [...now].filter(k => !seen.has(k));
@@ -7173,14 +7263,14 @@ if (!has('--proof')) {
                       pool_pairs_available: WORK.length,
                       games_played: played, batches,
                       stopped_because: stop.reason, stopped_on_budget: !!stop.on_budget };
-    ARM_RUNS.push({ arm: PRIMARY_ARM, results: primaryResults, control: primaryControl,
+    ARM_RUNS.push({ arm: RUN_PRIMARY, results: primaryResults, control: primaryControl,
                     credit: new Map(COV_CREDIT), kinds: new Map(CREDIT_KIND), touched: new Set(COV_TOUCHED),
                     firstTurn: new Map(COV_FIRST_TURN), byTurn: new Map(CREDIT_BY_TURN) });
     results = primaryResults; control = primaryControl;
     /* EVERY OTHER ARM REPLAYS EXACTLY THE SAME GAMES. Same pairs, same order, same starting driver
      * state — so the arms share a denominator and a difference between two rows is the DIE. */
     for (const arm of ARMS_RUN) {
-      if (arm.id === PRIMARY_ARM.id) continue;
+      if (arm.id === RUN_PRIMARY.id) continue;
       driverReset();
       const armResults = [], armControl = [];
       for (let i = 0; i < played; i++) playOne(arm, WORK[i].cfg, WORK[i].pr, false, armResults, armControl);
@@ -7196,7 +7286,7 @@ if (!has('--proof')) {
      * different runs rather than one run under four pins. */
     driverReset();
     const armResults = [], armControl = [];
-    const isPrimary = arm.id === PRIMARY_ARM.id;
+    const isPrimary = arm.id === RUN_PRIMARY.id;
     for (const cfg of live) {
       let made = 0;
       for (const pr of pairsCached(cfg.config)) {
@@ -7718,7 +7808,7 @@ console.log('    body medicham2 gives a tie to. ' + SHUFFLE_TIE_GROUPS + ' tied 
   + 'this run (sizes ' + [...SHUFFLE_GROUP_SIZES].sort((a, b) => a[0] - b[0]).map(([n, c]) => n + 'x' + c).join(', ') + ').');
 if (!SHUFFLE_TIE_GROUPS) console.log('    ZERO TIED GROUPS — the tie arms tested NOTHING and would look exactly like arms that did.');
 console.log('');
-console.log('  DIVERGED (primary arm ' + PRIMARY_ARM.id + '): ' + diverged.length + ' of ' + results.length + ' games'
+console.log('  DIVERGED (primary arm ' + RUN_PRIMARY.id + '): ' + diverged.length + ' of ' + results.length + ' games'
   + (threw.length ? '   (' + threw.length + ' threw)' : ''));
 
 /* ---- ROADMAP #241(3) — WHAT DID THE BODY CLICK WHEN THE AUTHORITY FAILED IT? --------------------
@@ -7822,7 +7912,7 @@ console.log('  DIVERGED (primary arm ' + PRIMARY_ARM.id + '): ' + diverged.lengt
  * the middle arm has existed, so `data/game-differential.json` published a `diverged` whose
  * denominator INCLUDED every game the instrument could not read, and no reader could tell. */
 let MID_VOID_SUMMARY = null;
-if (PRIMARY_ARM.middle) {
+if (RUN_PRIMARY.middle) {
   const voided = results.filter(r => r._mid_void).length;
   const usable = results.filter(r => !r._mid_void);
   const divUsable = usable.filter(r => r.div).length;
@@ -8009,6 +8099,74 @@ if (PRIMARY_ARM.middle) {
       for (const a of x.me) console.log('       ME  ' + a);
     }
   }
+}
+
+/* ---- AND THE CORNER ARMS' EQUIVALENT, WHICH IS A RECEIPT AND NOT A FILTER -- 2026-09-10 ----------
+ *
+ * See CORNER_PIN_SD. A corner arm has no dice STREAM: both engines answer every draw from a constant,
+ * so no game is excludable and `usable_games` is every game by construction. That sentence is an
+ * ARGUMENT, and an argument is what this repository keeps paying for — so it is MEASURED. One shape,
+ * one value, on both sides, all run. The failure it can catch is a stream key medicham2 gains that
+ * `mediRng`'s typed override list does not name: that key comes through as a live LCG against a
+ * pinned constant on the authority's side, which is the corner-arm analogue of a desync, and it
+ * would show as a key with more than one distinct value. */
+let CORNER_PIN_SUMMARY = null;
+if (!RUN_PRIMARY.middle) {
+  const flat = (store) => {
+    const byArm = store.get(RUN_PRIMARY.id) || new Map();
+    const keys = [], multi = [];
+    let draws = 0;
+    for (const [k, vals] of byArm) {
+      let n = 0; for (const c of vals.values()) n += c;
+      draws += n;
+      keys.push({ key: k, draws: n, values: [...vals.keys()] });
+      if (vals.size > 1) multi.push({ key: k, draws: n, values: [...vals.keys()].slice(0, 8) });
+    }
+    keys.sort((a, b) => b.draws - a.draws);
+    return { keys, multi, draws };
+  };
+  const SD = flat(CORNER_PIN_SD), ME = flat(CORNER_PIN_ME);
+  CORNER_PIN_SUMMARY = {
+    what: 'THE CORNER ARM\'S EQUIVALENT OF `mid_void`, AND IT IS A DIFFERENT QUESTION. The middle arm '
+        + 'shares seeded streams addressed by event, so its addresses can fail to line up and a game '
+        + 'becomes unreadable. A corner arm shares NO stream: the authority-side `random` is a pure '
+        + 'function of its arguments and medicham2 answers every named stream with the corner '
+        + 'constant, so nothing can desynchronise and nothing is excludable. This is the receipt that '
+        + 'the pin is COMPLETE — one call shape, one value, all run, on both sides.',
+    why_not_mid_void: 'A void FILTER over a corner arm would have nothing to filter and would publish '
+        + 'a 0 that reads as "the instrument could not tell". The honest instrument is a receipt that '
+        + 'can FAIL: `mediRng` builds the corner object as a TYPED override list over a live '
+        + 'M.rngStreams LCG, so a stream key medicham2 gains and that list does not name would come '
+        + 'through LIVE against a constant — the mispinned die of CHANGELOG 3.45.0 — and would return '
+        + 'more than one value here.',
+    arm: RUN_PRIMARY.id,
+    usable_games: results.length,
+    void_games: 0,
+    void_games_are_zero_because: 'a corner arm has no stream to desynchronise; see `what` above. This '
+        + 'is not an unmeasured 0 — the two `*_with_more_than_one_value` lists below are what backs it.',
+    showdown_draws: SD.draws, showdown_draw_shapes: SD.keys.length,
+    showdown_shapes: SD.keys.slice(0, 40),
+    showdown_shapes_with_more_than_one_value: SD.multi,
+    medicham_draws: ME.draws, medicham_streams_drawn: ME.keys.length,
+    medicham_streams: ME.keys.slice(0, 40),
+    medicham_streams_with_more_than_one_value: ME.multi,
+    corner: RUN_PRIMARY.corner === CORNER_TOP ? 'top' : 'bottom',
+    damage_roll_index: RUN_PRIMARY.damageIndex,
+    speed_tie_key: RUN_PRIMARY.tieToSecondBody ? 'increasing (the LATER body)' : 'constant (the sort decides)',
+    showdown_shuffle: RUN_PRIMARY.sdShuffleReverses ? 'REVERSED' : 'identity (no-op)',
+    shuffle_calls: SHUFFLE_CALLS, shuffle_tie_groups: SHUFFLE_TIE_GROUPS,
+  };
+  console.log('  CORNER PIN RECEIPT (' + RUN_PRIMARY.id + ') — this arm has no dice stream, so no game '
+    + 'is excludable; usable ' + results.length + ' of ' + results.length);
+  console.log('    authority: ' + SD.draws + ' draws over ' + SD.keys.length + ' call shapes, '
+    + SD.multi.length + ' shape(s) with more than one value');
+  console.log('    medicham2: ' + ME.draws + ' draws over ' + ME.keys.length + ' streams, '
+    + ME.multi.length + ' stream(s) with more than one value');
+  for (const m of SD.multi) console.log('      !! AUTHORITY SHAPE NOT PINNED  ' + m.key + '  values ' + JSON.stringify(m.values));
+  for (const m of ME.multi) console.log('      !! MEDICHAM STREAM NOT PINNED  ' + m.key + '  values ' + JSON.stringify(m.values));
+  console.log('    speed-tie groups the authority was asked to resolve: ' + SHUFFLE_TIE_GROUPS
+    + ' of ' + SHUFFLE_CALLS + ' shuffle calls'
+    + (SHUFFLE_TIE_GROUPS ? '' : '   <-- ZERO: this run met no tie, so it says nothing about ties'));
 }
 console.log('');
 
@@ -8297,7 +8455,67 @@ const STATE_SUMMARY = ((allResults) => {
     mappings_all_proved: MAPPING_OK,
   };
 })(results);
-if (STATE_SUMMARY) {
+
+/* ---- A RUN THAT COMPARED NOTHING MUST REFUSE, NOT SCORE ZERO -- 2026-09-10 ----------------------
+ *
+ * `state.games` less `state.games_board_never_diverged` is the bar every whole-game figure in this
+ * project is read off. Over an EMPTY population it is `0 - 0 = 0`, which is byte-identical to a
+ * perfect run — and that is exactly what a corner-arm run published on 2026-09-10 07:10 and 07:12,
+ * exiting 0 with a 450 KB artifact that looked like a result.
+ *
+ * A CAPTION IS NOT A QUARANTINE (CLAUDE.md), so this does not annotate. It sets `void: true`, which
+ * `engine/provenance.js` honours as a self-declaration, BLANKS the three keys every reader quotes,
+ * and exits non-zero — the same treatment `driverCodeGuard` gives an instrument that moved mid-run.
+ *
+ * TWO CLAUSES, BOTH REACHABLE AND NEITHER INFERRED FROM THE OTHER:
+ *   - the primary arm produced NO GAMES. That is `--arm` moving `ARMS_RUN` without moving the arm
+ *     `results` comes from, and `MEDI_DIFF_LEGACY_PRIMARY=1` restores it on purpose so the refusal
+ *     has a control.
+ *   - games were played and NO TURN BOUNDARY was compared. The population is non-empty and the board
+ *     instrument still read nothing, so the bar is again a zero over a zero.
+ * The second is only asked when the board is being measured at all (`--state` / `--end-state`); a
+ * protocol-only run legitimately compares no board and says so by carrying no `state`. */
+const RUN_REFUSAL = (() => {
+  if (!results.length) {
+    return 'THE ARM THIS RUN MEASURES PLAYED NO GAMES. `results` is empty, so `state.games` and '
+      + '`state.games_board_never_diverged` are both 0 and the bar `state.games - '
+      + 'state.games_board_never_diverged` reads 0 over an EMPTY POPULATION — indistinguishable from a '
+      + 'perfect score. Arms run: ' + ARM_IDS.join(', ') + '; the arm results come from is '
+      + RUN_PRIMARY.id + (LEGACY_PRIMARY ? ' (MEDI_DIFF_LEGACY_PRIMARY=1 — the 2026-09-10 defect, '
+      + 'restored deliberately; drop the knob and this run measures something)' : '')
+      + '. The figures are withheld rather than captioned.';
+  }
+  if (STATE_SUMMARY && !STATE_SUMMARY.turn_boundaries_compared) {
+    return 'THIS RUN COMPARED NO TURN BOUNDARY. ' + results.length + ' game(s) were played and the '
+      + 'board instrument read none of them, so the bar `state.games - state.games_board_never_diverged` '
+      + 'is again 0 over an empty population and reads exactly like a perfect score. The figures are '
+      + 'withheld rather than captioned.';
+  }
+  /* AND THE THIRD CLAUSE IS THE CORNER ARM'S ATTRIBUTABILITY — see CORNER_PIN_SUMMARY. A corner arm's
+   * whole claim to attribute a board split to the ENGINE rests on both engines answering every draw
+   * from a constant. If any shape or stream answered with two values, they did not, and the number
+   * cannot tell the simulator from the ruler. That is a figure to WITHHOLD, never to caption. */
+  if (CORNER_PIN_SUMMARY) {
+    const bad = CORNER_PIN_SUMMARY.showdown_shapes_with_more_than_one_value
+      .concat(CORNER_PIN_SUMMARY.medicham_streams_with_more_than_one_value);
+    if (bad.length) {
+      return 'THE CORNER PIN IS INCOMPLETE, so this arm cannot tell an engine board split from the '
+        + 'ruler\'s own. ' + bad.length + ' draw shape(s)/stream(s) answered with more than one value: '
+        + bad.map(x => x.key + ' -> ' + JSON.stringify(x.values)).join('; ')
+        + (CORNER_UNPIN ? '   (MEDI_CORNER_UNPIN=' + CORNER_UNPIN + ' — this is the deliberate red arm)' : '')
+        + '. The figures are withheld rather than captioned.';
+    }
+  }
+  return null;
+})();
+if (RUN_REFUSAL) {
+  console.error('');
+  console.error('  !! ' + RUN_REFUSAL);
+  console.error('');
+  process.exitCode = 1;
+}
+
+if (STATE_SUMMARY && !RUN_REFUSAL) {
   const S2 = STATE_SUMMARY, pc = (a, b) => (b ? (100 * a / b).toFixed(1) + '%' : 'n/a');
   const T1 = S2.turn1;
   /* ---- PRINTED FIRST, AND IT IS THE ONLY NUMBER ON ITS OWN LINE --------------------------------- */
@@ -9284,6 +9502,10 @@ if (WRITE) {
      * population and the rate over it, plus why each unreadable game was unreadable. `null` when the
      * primary arm is a pinned one, whose constant die cannot desynchronise. */
     mid_void: MID_VOID_SUMMARY,
+    /* THE CORNER ARMS' EQUIVALENT — a pin-completeness RECEIPT, not a void filter. Null on the
+     * middle arm, which has `mid_void` instead; the two are never both present, because they are
+     * two different questions and an artifact carrying both would invite them to be read as one. */
+    corner_pin: CORNER_PIN_SUMMARY,
     /* THE STATE DIFFERENTIAL, in the same artifact as the protocol one so the two rates describe the
      * SAME games rather than two runs somebody has to hope were comparable. `null` when the run was
      * not asked for it, which is a different claim from zero. */
@@ -9513,7 +9735,7 @@ if (WRITE) {
      * exactly this block; an artifact without one fails that check CLOSED. */
     steering: STEER_STAMP,
     baseline_comparability: BASELINE_CHECK,
-  }, REL.stamp(), driverCodeGuard());
+  }, REL.stamp(), driverCodeGuard(), emptyPopulationGuard());
   const outPath = OUT ? path.resolve(OUT) : D('data', 'game-differential.json');
   fs.writeFileSync(outPath, JSON.stringify(artifact, null, 2) + '\n');
   console.log('  -> ' + (OUT ? outPath : 'data/game-differential.json'));
@@ -9534,6 +9756,24 @@ if (WRITE) {
  *
  * IT IS NOT A `catch {}`. An undigestable instrument file THROWS out of `driverCode`, because "we
  * could not check" must never render as "it did not move". */
+/* THE ARTIFACT HALF OF THE EMPTY-POPULATION REFUSAL — see RUN_REFUSAL above. Same treatment as the
+ * moved-instrument guard: `void: true` so `engine/provenance.js` honours the self-declaration, and
+ * the three keys a reader quotes BLANKED, because printing them with a caption beside them is the
+ * bug. Exit code is already non-zero by the time this runs. */
+function emptyPopulationGuard() {
+  if (!RUN_REFUSAL) return {};
+  return {
+    void: true, void_reason: RUN_REFUSAL,
+    empty_population: true,
+    arms_run: ARM_IDS, arm_results_came_from: RUN_PRIMARY.id,
+    legacy_primary_knob: LEGACY_PRIMARY,
+    games_played_by_the_primary_arm: results.length,
+    diverged: null, mid_void: null, corner_pin: null, state: null,
+    withheld: 'diverged, mid_void, corner_pin and state are WITHHELD. A bar of 0 over an empty '
+      + 'population is not a score.',
+  };
+}
+
 function driverCodeGuard() {
   const after = STEERING.driverCode({ frozen: Object.keys((REL.manifest && REL.manifest.files) || {}) });
   if (after.digest === DRIVER_CODE.digest) {

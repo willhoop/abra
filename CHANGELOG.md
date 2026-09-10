@@ -10,6 +10,64 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.282.0] — 2026-09-10
+### Fixed
+- **THE SPEED-TIE CORNER ARMS COMPARED NO BOARD AND THE GATE'S OWN ARITHMETIC READ IT AS A CLEAN
+  ZERO.** `--arm` moved `ARMS_RUN` and NOT the arm whose games become `results`
+  (`engine/game_differential.js`, `const PRIMARY_ARM = ARMS[0]`, always `middle`), so a corner-only run
+  played every game, assigned none of them, and published `state.games 0 /
+  games_board_never_diverged 0 / turn_boundaries_compared 0`. On that artifact the bar the quarantine
+  clause names — `state.games` less `state.games_board_never_diverged` — is `0 - 0` and is
+  BYTE-IDENTICAL to a perfect score. A capability absent and everything reporting success, inside the
+  instrument built to catch exactly that. `RUN_PRIMARY = ARMS_RUN[0]` now drives `results`, the
+  `mid_void` gate, `PINS.primary` and `MODE`; **`PRIMARY_ARM` is unchanged and still `ARMS[0]`**,
+  because eight callers outside the file read it as the default pin for a staged game and
+  `tests/roster.js` records by name what moving it cost on 2026-08-13. ROADMAP #569.
+- **A RUN THAT COMPARED NOTHING NOW REFUSES INSTEAD OF SCORING ZERO.** Three reachable clauses — the
+  primary arm played no game, no turn boundary was compared, or the corner pin is incomplete — set
+  `void: true` (which `engine/provenance.js` honours as a self-declaration), BLANK `diverged`,
+  `mid_void`, `corner_pin` and `state`, and exit non-zero. Same treatment `driverCodeGuard` gives an
+  instrument that moved mid-run, and for the same stated reason: a caption is not a quarantine.
+### Added
+- **`corner_pin` — THE CORNER ARMS' HONEST EQUIVALENT OF `mid_void`, WHICH IS A RECEIPT AND NOT A
+  FILTER.** The framing that the corner arms "cannot separate an engine board split from a dice-stream
+  split" is REFUTED: a corner arm has no dice stream. The authority-side `random` on a corner arm is a
+  pure function of its arguments and `mediRng` answers every named stream with the corner constant —
+  `engine/game_differential.js`'s own ARMS comment already said so. Nothing is excludable, so a void
+  FILTER there can only publish a `0` that reads as ignorance. `corner_pin` measures the claim instead:
+  one call shape, one value, on both sides, over every draw actually taken. Measured over 961 games —
+  top **186,425** authority draws / 20 shapes and **160,957** medicham draws / 8 streams, bottom
+  **139,193** / 24 and **132,463** / 8, **zero** shapes or streams with more than one value on either.
+  ROADMAP #570.
+- **`tests/probe_corner_arm_measures.js`**, written FIRST and shown RED on the pre-fix bytes (15
+  claims), green after. Two knob-cleared controls: `MEDI_DIFF_LEGACY_PRIMARY=1` restores the defect and
+  the run must REFUSE; `MEDI_CORNER_UNPIN=tgt` hands medicham2 one live LCG and the receipt must name
+  it and refuse. (`MEDI_CORNER_UNPIN=acc` is refused earlier still, by `PIN_CLAIMS` at module load.)
+### Notes
+- **THE TIE QUESTION IS ANSWERED AND IT IS CLEAN.** On the fixed instrument, release `8ac9c4d888f1`,
+  census `257acf955593`, pool `data/team-pool-frozen`, `--steering empirical --end-state --games 1200
+  --turns 50` (961 games played per arm): **71,009 speed-tie groups resolved** — 38,319 top, 32,690
+  bottom, counted by `speed_ties`, which Showdown's `speedSort` increments only for a genuine tie group
+  — and **zero board-material divergences attributable to tie order**. BOARD-MATERIAL, read as
+  `state.games` less `state.games_board_never_diverged`, is **16 of 961** on `top-tie-first` and **15 of
+  961** on `bottom-tie-first`. The `ordering` protocol class is NOT the tie class: every row is two
+  events reordered within a turn, not a different actor.
+- **THE ONE `turn order` BOARD-MATERIAL GAME IS A SPEED SWAP, NOT A TIE, AND IS FILED UNFIXED.** At the
+  deciding boundary Showdown's `getStat('spe')` reads **91** and this engine's `effSpeed` reads **166**
+  for the same body, `same_when_floored: false` — a real speed-VALUE gap. ROADMAP #571.
+- **THE MIDDLE ARM DID NOT MOVE.** Re-run on the same pins after the change:
+  961 games, 10,705 of 10,705 boundaries identical, **BOARD-MATERIAL 0 of 961**, **NARRATION 0
+  undeclared of 961**, `mode` byte-identical (`data/verification/game-differential-middle-recheck.json`,
+  generated 2026-09-10T08:03:18.736Z, against `data/game-differential.json` at 07:04:15.006Z).
+  `node engine/quarantine.js` → **GATE: OPEN**, nothing withheld. `data/game-differential.json` was NOT
+  overwritten.
+- **NO ENGINE BYTE MOVED.** The release cut after the edits is `8ac9c4d888f1`, unchanged —
+  `engine/game_differential.js` is not one of the frozen SOURCE files. Everything here is the
+  instrument.
+- Also filed unfixed: ROADMAP #572, `engine/replay_one.js`'s warm-up decides whether to play the
+  stones-removed control game from `PRIMARY_ARM` rather than the run's primary, so it now reproduces a
+  corner-primary run's schedule wrong. Full account: `docs/_reports/2026-09-10-corner-arms.md`.
+
 ## [5.281.0] — 2026-09-10
 
 ### Changed

@@ -1,0 +1,62 @@
+{
+  "what": "ENGINE prediction, written BEFORE any code was edited and before any leg ran. Corner arms of engine/game_differential.js: make them run as a primary arm, give them an honest equivalent of the middle arm's low-identity exclusion, refuse the empty case, then measure the speed-tie question.",
+  "written": "2026-09-10",
+  "pins_intended": {
+    "census": "data/mechanics-census.json digest 257acf955593",
+    "team_store": "data/team-pool-frozen",
+    "games": 1200,
+    "turns": 50,
+    "steering": "empirical",
+    "end_state": true,
+    "release": "cut fresh after the edits"
+  },
+  "predictions": [
+    {
+      "id": 0,
+      "claim": "The probe written first is RED on today's bytes: `--arm top-tie-first` alone writes an artifact whose state.turn_boundaries_compared is 0 and whose state.games is 0.",
+      "confidence": "certain — already observed in the two artifacts on disk (games 0, bnd 0)"
+    },
+    {
+      "id": 1,
+      "claim": "Defect A's cause is that PRIMARY_ARM is ARMS[0] unconditionally while --arm only moves ARMS_RUN. The fix is a separate RUN_PRIMARY = ARMS_RUN[0] used for the results assignment, the mid_void gate, MODE and PINS.primary; PRIMARY_ARM stays ARMS[0] because eight callers outside this file (roster.js, replay_one.js, four probes, two tests) read G.PRIMARY_ARM as a default pin and one of them names the 2026-08-13 defect that moving it caused.",
+      "confidence": "high"
+    },
+    {
+      "id": 2,
+      "claim": "Once a corner arm genuinely runs it will play 961 of 1200 requested games (the same pinned-pool truncation the middle arm takes) and compare between 8,000 and 16,000 turn boundaries, with top-tie-first comparing MORE than bottom-tie-first, because every sub-100 move misses on the top corner so games run longer.",
+      "confidence": "medium on the ordering, high on non-zero"
+    },
+    {
+      "id": 3,
+      "claim": "BOARD-MATERIAL (state.games less state.games_board_never_diverged) will be NON-ZERO on both corners: roughly 15 of 961 on top-tie-first and 13 of 961 on bottom-tie-first, allowing 5..30 either side. Basis: the per-arm end_state by_cause block already ran on these arms on 2026-09-10 07:10/07:12 and reported 14 causes / 15 games and 12 causes / 13 games.",
+      "confidence": "medium"
+    },
+    {
+      "id": 4,
+      "claim": "TIES ARE CLEAN — I expect the speed tie NOT to be a live defect. Reason, not a hope: CHANGELOG 3.74.0 fixed the tie at the root (medicham2 runs Showdown's own selection sort and resolves the residual group with the key it already drew), sdShuffleReverses is false in every shipped arm so the authority never re-orders a tied group, and the corner arms hand medicham2 a CONSTANT tie key, which is the honest mirror of a no-op shuffle. So I predict the `ordering` protocol class contributes ~0 board-material games in both corners, and that the corner board-material causes are dominated by damage / hp / status shapes that only the extremes reach.",
+      "falsifier": "an `ordering` class with board-material games, or a board-material cause whose diff is a turn-order swap, in either corner"
+    },
+    {
+      "id": 5,
+      "claim": "Defect B as framed is NOT reproducible, and mid_void is the wrong instrument for a corner arm. The corner arms have NO dice stream to desynchronise: this file's own ARMS comment says so ('Every other arm's dice are a constant and cannot desynchronise'), the Showdown-side `random` on a corner arm is a pure function of its arguments (m-1 / 0 / damageIndex / m) with no state, and the medicham side returns `() => spec.corner` for every named stream. The honest equivalent exclusion is therefore a PIN-COMPLETENESS receipt rather than a void filter, and I predict it reads ZERO violations: every Showdown call shape single-valued, every medicham stream key single-valued.",
+      "named_risk": "if M.rngStreams exposes a stream key that the corner arm's override list (any, acc, crit, sec, dmg, stall, tgt, tie) does not cover, that key is a LIVE LCG on the medicham side with no counterpart on the authority's — which IS the corner-arm equivalent of a desync and would make the corner numbers unattributable. I put this at about 25%.",
+      "confidence": "high on the framing, medium on zero violations"
+    },
+    {
+      "id": 6,
+      "claim": "Making the empty case refuse will not fire on any arm run at 1200 games; it fires only on a run whose primary arm produced no results or compared no boundary.",
+      "confidence": "high"
+    },
+    {
+      "id": 7,
+      "claim": "THE MIDDLE ARM DOES NOT MOVE. Re-run on the fresh release with the same pins it will read 961 games, 10,705 boundaries, BOARD-MATERIAL 0 of 961 and NARRATION 0 undeclared of 961 — because ARMS_RUN[0] is already `middle` on a `--arm middle` run and on a default run, so RUN_PRIMARY is identically PRIMARY_ARM there and no die, click or board moves.",
+      "falsifier": "any of those four numbers moving; if it moves, that is the finding and it gets reported as the finding",
+      "confidence": "high"
+    },
+    {
+      "id": 8,
+      "claim": "If a corner tie divergence does turn up, the likeliest verdict is NOT-A-DEFECT-DECISION rather than a bug, because Showdown resolves a residual tied group by whatever permutation its selection sort produced under a no-op shuffle and neither engine has a rule that is more right. I predict I will NOT have to file one, per prediction 4.",
+      "confidence": "low — this is the branch I expect not to take"
+    }
+  ]
+}

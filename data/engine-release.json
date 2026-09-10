@@ -2,9 +2,9 @@
   "current": "8ac9c4d888f1",
   "cut": "2026-09-10T05:41:36.883Z",
   "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 18,
-  "latest_cut": "2026-09-10T06:58:02.499Z",
-  "latest_why": "PHASE 1 of the 6.0.0 path — re-measure on the regenerated census 257acf955593 (this cut is an APPENDED EVENT over identical engine bytes; the id is unchanged from the narration-close chain, which is the finding: the engine did not move, only the instrument and the census did)",
-  "pointer_written": "2026-09-10T06:58:02.520Z",
+  "cuts": 23,
+  "latest_cut": "2026-09-10T08:31:46.584Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-09-10T08:31:46.599Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }
