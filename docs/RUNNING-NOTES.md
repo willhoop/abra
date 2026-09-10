@@ -140,6 +140,26 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
   MEASURE's files, so this pass FILED it (ROADMAP #575) rather than fixing it — but `--write` stamps
   that sentence into `docs/ENGINE.md`'s GENERATED block, so it is published and false.
 
+## [6.3.0] — 2026-09-10 — CLAUDE.md described the store's 100 MB deadline in the present tense after sharding removed it
+
+- **What changed.** Two passages in `CLAUDE.md` corrected. The file stated
+  `data/games.ladder.jsonl.gz` is "51.8 MB and grows 1.12 MB/day", crossing 100,000,000 bytes around
+  **2026-10-17** and taking the ingest with it, and called sharding "in flight". Sharding landed.
+- **Measured.** `git ls-files` returns **nothing** for either store monolith. The tracked store is
+  **30 parsed shards and 26 raw**; a routine shard is ~4 MB; the largest tracked blob under `data/` is
+  **58.7 MB**, the 2026-09-09 recovery shard holding the 15,862 recovered games. A dated shard is
+  written once and does not grow, so no tracked file is on a trajectory to the wall.
+- **Supersedes.** ~~`data/games.ladder.jsonl.gz` is 51.8 MB and grows 1.12 MB/day, crossing 100 MB
+  around 2026-10-17~~ — retracted. The 100 MB limit itself is unchanged and still binding; only the
+  deadline is gone. The dated reasoning in the PDF-churn section is left standing with a pointer,
+  because a dated paragraph is not rewritten in place.
+- **Basis.** unchanged.
+- **Owed to the next major.** None — `CLAUDE.md` is not in the living-document set.
+- **How it was found.** A session quoted the deadline to Will as live risk; he said *"i thought we
+  fixed the october looming issue"*. He had. Same shape as the fourteen handoffs and the ban list of
+  four, arriving through the file that names the failure. The durable lesson is in the correction:
+  **ask `git ls-files`, not `ls`** — an untracked 50 MB file threatens nothing.
+
 ## [6.0.2] — 2026-09-10 — the release 6.0.0 measured against was not in the repository
 
 - **What changed.** `git add -f data/releases/cbd510bc2b13` — 29 files, 6.8 MB. Before this commit

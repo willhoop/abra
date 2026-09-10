@@ -723,11 +723,25 @@ would have cost 203 files and saved nothing that matters. Cleanup aimed at the w
 repository cleanup. What actually worked was `git gc`: **1037 MiB → 525 MiB, nothing deleted.** Run
 that before proposing to remove anything.
 
-**THE 100 MB WALL, AND THE DATE.** GitHub hard-rejects any single file over 100 MB — a push failure,
-not a warning. `data/games.ladder.jsonl.gz` is **51.8 MB and grows 1.12 MB/day** (1.07–1.13 measured
-three ways), so it crosses 100,000,000 bytes around **2026-10-17** and takes the hourly ingest with
-it. Sharding is in flight. **State the growth budget in any change that touches the stores**, so a
-future session sees the wall from further off than six weeks.
+**THE 100 MB WALL — THE RULE STANDS, THE DEADLINE IS GONE, AND THIS PARAGRAPH DESCRIBED A FIXED
+PROBLEM IN THE PRESENT TENSE.** GitHub still hard-rejects any single file over 100 MB — a push
+failure, not a warning — and that half never expires. *(Corrected 2026-09-10.)* What is no longer
+true is the deadline: **`data/games.ladder.jsonl.gz` IS NOT TRACKED.** Sharding, which this paragraph
+called "in flight", landed. Measured 2026-09-10: `git ls-files` returns nothing for either monolith,
+the store is 30 tracked parsed shards and 26 raw, a routine shard is ~4 MB, and the largest tracked
+blob in `data/` is a **58.7 MB** one-off — the 2026-09-09 recovery shard carrying the 15,862
+recovered games. A dated shard is written once and never grows, so nothing is on a trajectory to the
+wall and there is no **2026-10-17**.
+
+**IT COST SOMETHING BEFORE IT WAS CAUGHT.** On 2026-09-10 a session read this paragraph and told Will
+the store was weeks from breaking the ingest. He answered *"i thought we fixed the october looming
+issue"* — he had, and the paragraph had outlived it. That is the same shape as the fourteen stale
+handoffs, the ban list of four and the auto-commit described in the present tense for twelve days,
+arriving through the file that names the failure.
+
+**The rule that survives: state the growth budget in any change that touches the stores, and check
+what is TRACKED rather than what is on disk** — `git ls-files` is the question, because an untracked
+50 MB file threatens nothing and a tracked one is the whole hazard.
 
 **A HISTORY REWRITE IS NOT AVAILABLE.** It would recover ~300 MB once and invalidate **271 distinct
 commit hashes that resolve today in tracked markdown** — and this project traces a figure back to the
@@ -849,8 +863,10 @@ future** — untracking them recovered zero bytes, per the rule two sections up.
 ### The measured reason
 Six version bumps in one night rebuilt the whole PDF set six times. **`docs/ENGINE.pdf` alone is
 28.8 MB per rebuild**, `.git` is **1.1 GB**, and pushes started returning **HTTP 408**. Separately and
-worse: GitHub hard-rejects any single file over **100 MB**, and `data/games.ladder.jsonl.gz` is
-**51.8 MB and growing hourly** — a wall this repo reaches on its own. Per-change PDF churn is the lever
+worse: GitHub hard-rejects any single file over **100 MB**, and `data/games.ladder.jsonl.gz` was then
+**51.8 MB and growing hourly** — a wall this repo was reaching on its own. *(That store is sharded and
+untracked as of 2026-09-10; the dated reasoning above is left standing, the store claim is corrected
+where it is stated as current, two sections up.)* Per-change PDF churn is the lever
 Will chose. **The documents were never the thing at risk; the ability to push was.**
 
 ### THE ONE WAY THIS GOES WRONG, AND WHAT REFUSES IT

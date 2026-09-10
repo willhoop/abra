@@ -10,6 +10,31 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.3.0] — 2026-09-10
+
+### Fixed
+- **`CLAUDE.md` described the store's 100 MB deadline in the present tense after sharding had removed
+  it.** The file stated `data/games.ladder.jsonl.gz` "is 51.8 MB and grows 1.12 MB/day", crossing
+  100,000,000 bytes around 2026-10-17 "and takes the hourly ingest with it", with sharding "in
+  flight". Sharding landed. Measured 2026-09-10: `git ls-files` returns **nothing** for either store
+  monolith; the tracked store is **30 parsed shards and 26 raw**; a routine shard is ~4 MB; the
+  largest tracked blob under `data/` is **58.7 MB**, the 2026-09-09 recovery shard carrying the
+  15,862 recovered games, written once and not growing. The 100 MB limit itself is unchanged and
+  still binding — only the deadline is gone. Found when the deadline was quoted to Will as live risk
+  and he replied that it had been fixed; it had, six days earlier.
+
+### Notes
+- **The MAG matching figure 7,471 (`docs/MODELS.md:2018`) was traceable only by coincidence, and
+  this entry is its trace.** It is a DERIVED figure — 228,084 seen less 220,613 kept, and equally
+  6,669 unmatched + 776 trivial + 26 ambiguous — read from `data/policy-weights.json` **on
+  2026-08-04**, as the sentence itself says. `engine/docs_scan.js` cannot check a subtraction, so the
+  only thing keeping it green was `"lightscreen": 7471`, an unrelated Light Screen usage count in
+  `data/regulation-usage.json`. That artifact was regenerated and the coincidence evaporated.
+  **Second figure tonight to fail this way** — the first was `7,381`, traced only to Raichu's usage
+  count. The figure is historical and correct and is NOT restated as current: `data/policy-weights.json`
+  now reads `seen` 241,927 and `kept` 232,815, and those values are **quarantined** — MAG is paused,
+  the weights are not re-fitted, and no current reading is published here.
+
 ## [6.2.0] — 2026-09-10
 
 ### Added
