@@ -1,0 +1,70 @@
+{
+  "written": "2026-09-10",
+  "before_any_code_moved": true,
+  "question": "tests/test-engine-diff.js (the DAMAGE differential) calls battle.actions.moveHit ONCE, so every multi-hit move and every Parental Bond click is skipped by construction. Wiring the authority's own volley loop makes them comparable for the first time. How many of the newly-compared comparisons DISAGREE?",
+  "baseline_artifact": {
+    "file": "data/engine-diff.json",
+    "generated": "2026-09-10T09:53:03.560Z",
+    "engine_release": "cbd510bc2b13",
+    "seed": 20260804,
+    "n": 6000,
+    "compared": 6000,
+    "disagreed": 0,
+    "skipped_multihit": 134,
+    "skipped_ability_multihit": 17,
+    "note": "0 of 6000 is a statement about SINGLE-HIT moves only."
+  },
+  "newly_comparable_rows_expected": {
+    "point": 151,
+    "why": "134 multi-hit-move rows + 17 Parental Bond rows at the same seed and --n. The draw order is unchanged by construction (the volley path consumes no extra draws from the sampler LCG), so the same rows should arrive; a materially different count means the sampler moved and the run is not comparable to the baseline."
+  },
+  "prediction": {
+    "disagreements_point": 15,
+    "disagreements_range": [5, 40],
+    "not_zero_because": "Nothing has ever compared them. A zero prior here would be the comfortable answer the ENGINE brief warns about.",
+    "mechanisms_predicted_in_rank_order": [
+      {
+        "name": "state that changes BETWEEN arrivals, which dmgRange cannot see",
+        "expected_rows": "5-20",
+        "detail": "The authority runs battle.eachEvent('Update') and the full onDamagingHit chain inside the hit loop, so arrival 2 lands on a body arrival 1 already changed. dmgRange is a PRICE with no arrival state. Named suspects, all defender slot-0 abilities this harness hands over: Disguise (Mimikyu: engine zeroes arrival 0 and DELIBERATELY omits the maxhp/8 chip, see medicham2-browser.js dmgRange _absMulti - so the reference should read maxhp/8 HIGHER), Ice Face, Weak Armor (Def falls, later arrivals hit harder), Stamina (Def rises, later arrivals hit softer), Cotton Down.",
+        "if_confirmed": "This is a REAL gap in dmgRange, not an instrument fault, but it may be out of this file's declared damage-only scope. Register it rather than suppress it."
+      },
+      {
+        "name": "the [2,5] count is sampled off the battle prng, not off the pinned battle.random override",
+        "expected_rows": "0, but this is the row that could make every 2-5 row wrong at once",
+        "detail": "hitStepMoveHitLoop samples via battle.sample -> prng directly (sim/battle.ts:355), which the harness's battle.random override cannot reach. The count must therefore be READ BACK from the authority per call and handed to MEDICHAM as hit.hits, never computed here. If the count is not identical across the sixteen roll indices the pairing is broken and every 2-5 row is noise."
+      },
+      {
+        "name": "Parental Bond's second packet",
+        "expected_rows": "0-4",
+        "detail": "The authority applies chainModify(0.25) at battle-actions.ts:1738 when move.multihitType==='parentalbond' && move.hit>1; MEDICHAM applies perHit.bondMult on packet 2 through hitPlanOf. Same fact, two implementations, never compared. A rounding difference of one point per packet would show as ~1-2% and stay inside the 12% band, so a DISAGREEMENT here would mean something structural."
+      },
+      {
+        "name": "per-hit escalation and per-hit accuracy (Triple Axel, Population Bomb)",
+        "expected_rows": "0-6",
+        "detail": "The authority's multiaccuracy break happens INSIDE the loop off the prng, so the landed arrival count can be shorter than the declared one. Handing MEDICHAM the LANDED count (not the declared one) is what makes this comparable; getting that wrong is how the King's Rock figure was lost - 1-(1-p)^n per arrival, not one die per click."
+      },
+      {
+        "name": "flat-road arithmetic",
+        "expected_rows": "0",
+        "detail": "MEDICHAM's flat road returns floor(roll(85)*n) and roll() is an integer, so n arrivals at one pinned index give exactly n times one arrival on both sides. This is the half I expect to be already correct, and if it is NOT the finding is large."
+      }
+    ]
+  },
+  "skips_predicted_on_the_new_artifact": {
+    "skipped_multihit": 0,
+    "skipped_ability_multihit": 0,
+    "residual_buckets_that_may_be_non_zero": [
+      "a row whose landed arrival count is ZERO (the authority's loop returned before any spreadMoveHit call) - cannot be paired, must be counted under its own name",
+      "a row whose landed arrival count differs across the sixteen roll indices for a reason other than the target fainting",
+      "Dragon Darts: move.smartTarget is a boolean, so the authority emits no -hitcount line; the arrival count has to come from the spreadMoveHit call count instead and the two must be cross-checked"
+    ]
+  },
+  "three_never_drawn_moves": {
+    "bonerush": "0 owners in data/move-priors.json",
+    "doublehit": "0 owners in data/move-priors.json",
+    "tailslap": "0 owners in data/move-priors.json",
+    "prediction": "They will STILL not be drawn by the sampler and that is not a hole to close by widening the draw - the sampler draws attackers and moves from real corpus usage on purpose, and nobody in this corpus clicks these three. They are legal and learnable in the pool (bonerush: lucario; doublehit: 23 learners; tailslap: 6), so they will be exercised by name through --case and reported, rather than left unmeasured."
+  },
+  "red_first_plan": "MEDI_DIFF_MULTIHIT=skip restores the old skip, so the instrument stays demonstrable. The volley path is shown RED before it is trusted green by planting a known-bad input: run with MEDI_MULTIHIT_ONE_INDEX=1, which puts back the shared-index volley split that ROADMAP #322 removed, and the multi-hit rows must light up. An instrument that cannot be made red on a mechanic it claims to cover is not covering it."
+}

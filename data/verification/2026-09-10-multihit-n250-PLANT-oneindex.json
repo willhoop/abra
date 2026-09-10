@@ -1,0 +1,303 @@
+{
+  "generated": "2026-09-10T17:18:19.815Z",
+  "by": "tests/test-engine-diff.js",
+  "engine_release": "3c2b2f9ac845",
+  "engine_release_cut": null,
+  "engine_release_cuts": 0,
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "source_digests": {
+    "engine/medicham2-browser.js": "dc8368438d90",
+    "engine/board.js": "c85a3b756c98",
+    "engine/rollout_leaf.js": "d00e77a7ac26",
+    "engine/position_features.js": "622482051bf4",
+    "engine/tags.js": "145a3cc9ce2f",
+    "engine/champions_sim.js": "5e5d21bf1fb1",
+    "data/residual-order.json": "eff160ad1c5a",
+    "data/switchin-order.json": "24a007a66b7d",
+    "engine/mc_key.js": "f57c27a6bf38",
+    "engine/lookup.js": "17f49e5aed43",
+    "engine/set_priors.js": "f8a81445ee3a",
+    "engine/smogon_priors.js": "5c039f9ebdbc",
+    "engine/quality.js": "e8a3b0a14884",
+    "engine/showdown_path.js": "0efe29f4245d",
+    "data/move-effects.js": "f35ecd91ba86",
+    "data/ability-blocks.json": "86741fd35452",
+    "data/smogon-priors.json": "f2dc78cea6c5",
+    "data/regulations.json": "6c1995e9a9fb",
+    "data/quality-filter.json": "3c733e7a0bfb",
+    "data/engine-data.js": "bbc417dfae0e",
+    "data/abra-tags.js": "44fd45e9e9ce",
+    "data/tags.json": "01aa85bf4e7f",
+    "data/policy-weights.json": "626c1d240782",
+    "data/policy-weights-joint.json": "e2aca467ff04",
+    "data/move-priors.json": "e667fe8ab457",
+    "engine/pp.js": "30b12a4ef623",
+    "data/rollout-switch-census.json": "b599f8d581b5"
+  },
+  "design": "Showdown is the authority. Same attacker, move and defender through both engines; a disagreement is a MEDICHAM bug, including one nobody thought to look for.",
+  "scope": "damage only, no items or abilities. Turn order, status duration and switching need a different harness and are not attempted here rather than attempted badly.",
+  "seed": 20260804,
+  "requested": 250,
+  "compared": 250,
+  "agreed": 250,
+  "disagreed": 0,
+  "worst": [],
+  "plant": null,
+  "arms": [
+    {
+      "arm": "top",
+      "what": "Showdown damage roll index 0 (MAXIMUM) against MEDICHAM's `max`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 250,
+      "agreed": 250,
+      "disagreed": 0,
+      "worst": []
+    },
+    {
+      "arm": "bottom",
+      "what": "Showdown damage roll index 15 (MINIMUM) against MEDICHAM's `min`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 250,
+      "agreed": 250,
+      "disagreed": 0,
+      "worst": []
+    },
+    {
+      "arm": "idx01",
+      "what": "Showdown damage roll index 1 (roll 99%) against MEDICHAM's own `rolls[1]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 250,
+      "agreed": 250,
+      "disagreed": 0,
+      "worst": []
+    },
+    {
+      "arm": "idx02",
+      "what": "Showdown damage roll index 2 (roll 98%) against MEDICHAM's own `rolls[2]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 250,
+      "agreed": 250,
+      "disagreed": 0,
+      "worst": []
+    },
+    {
+      "arm": "idx03",
+      "what": "Showdown damage roll index 3 (roll 97%) against MEDICHAM's own `rolls[3]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 250,
+      "agreed": 250,
+      "disagreed": 0,
+      "worst": []
+    },
+    {
+      "arm": "idx04",
+      "what": "Showdown damage roll index 4 (roll 96%) against MEDICHAM's own `rolls[4]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 250,
+      "agreed": 250,
+      "disagreed": 0,
+      "worst": []
+    },
+    {
+      "arm": "idx05",
+      "what": "Showdown damage roll index 5 (roll 95%) against MEDICHAM's own `rolls[5]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 250,
+      "agreed": 250,
+      "disagreed": 0,
+      "worst": []
+    },
+    {
+      "arm": "idx06",
+      "what": "Showdown damage roll index 6 (roll 94%) against MEDICHAM's own `rolls[6]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 250,
+      "agreed": 250,
+      "disagreed": 0,
+      "worst": []
+    },
+    {
+      "arm": "idx07",
+      "what": "Showdown damage roll index 7 (roll 93%) against MEDICHAM's own `rolls[7]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 250,
+      "agreed": 250,
+      "disagreed": 0,
+      "worst": []
+    },
+    {
+      "arm": "idx08",
+      "what": "Showdown damage roll index 8 (roll 92%) against MEDICHAM's own `rolls[8]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 250,
+      "agreed": 250,
+      "disagreed": 0,
+      "worst": []
+    },
+    {
+      "arm": "idx09",
+      "what": "Showdown damage roll index 9 (roll 91%) against MEDICHAM's own `rolls[9]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 250,
+      "agreed": 250,
+      "disagreed": 0,
+      "worst": []
+    },
+    {
+      "arm": "idx10",
+      "what": "Showdown damage roll index 10 (roll 90%) against MEDICHAM's own `rolls[10]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 250,
+      "agreed": 250,
+      "disagreed": 0,
+      "worst": []
+    },
+    {
+      "arm": "idx11",
+      "what": "Showdown damage roll index 11 (roll 89%) against MEDICHAM's own `rolls[11]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 250,
+      "agreed": 250,
+      "disagreed": 0,
+      "worst": []
+    },
+    {
+      "arm": "idx12",
+      "what": "Showdown damage roll index 12 (roll 88%) against MEDICHAM's own `rolls[12]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 250,
+      "agreed": 250,
+      "disagreed": 0,
+      "worst": []
+    },
+    {
+      "arm": "idx13",
+      "what": "Showdown damage roll index 13 (roll 87%) against MEDICHAM's own `rolls[13]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 250,
+      "agreed": 250,
+      "disagreed": 0,
+      "worst": []
+    },
+    {
+      "arm": "idx14",
+      "what": "Showdown damage roll index 14 (roll 86%) against MEDICHAM's own `rolls[14]`",
+      "tolerance": "the same 12% relative band the midpoint uses — this pass changed WHICH quantity is compared, not how close it must be",
+      "compared": 250,
+      "agreed": 250,
+      "disagreed": 0,
+      "worst": []
+    }
+  ],
+  "band_missing": 0,
+  "band_missing_first": null,
+  "band_why": "THREE SAMPLED POINTS OF A SIXTEEN-INDEX BAND CANNOT SPEAK FOR THE THIRTEEN THEY NEVER SAMPLE. On 2026-08-22 this clause read PASS — midpoint 0/6000, top 0/6000, bottom 0/6000 — beside a 157-row red in data/roster.moves.json. The corners are the only two points where an index and a span coincide, which is exactly why they agreed. `--plant band` is the interior arms' own red demonstration and leaves the midpoint and both corners at their unplanted values.",
+  "arms_why": "A MIDPOINT CANNOT SEE A RANGE THAT IS WRONG BY THE SAME AMOUNT AT BOTH ENDS. `--plant spread` widens MEDICHAM's range symmetrically and leaves `disagreed` at exactly its unplanted value while both arms light up, which is the demonstration that these two numbers are not restatements of the one above them.",
+  "skipped_non_finite": 0,
+  "skipped_moves": {},
+  "skipped_multihit": 0,
+  "skipped_multihit_moves": {},
+  "weather_forme_resolved": 2,
+  "weather_forme_by": {
+    "castformsnowy -> castform  (forecast, empty sky)": 2
+  },
+  "weather_forme_why": "This file's field is an empty sky by construction, and a Forecast body cannot stand in one -- Showdown reverts Castform-Snowy to Castform at switch-in and MEDICHAM's battleInit runs the same reconciliation (Normal in no sky, Ice behind an Abomasnow, Fire behind a Torkoal). The harness alone skipped it, because it calls buildMon and dmgRange with no field between them. Resolved on the SPECIES KEY via the ability's own revertsTo; the type map is never restated here.",
+  "ref_forme_changed": 0,
+  "ref_forme_by": {},
+  "ref_forme_first": null,
+  "skipped_ability_multihit": 0,
+  "skipped_ability_multihit_abilities": {},
+  "skipped_ability_multihit_moves": {},
+  "skipped_ability_multihit_why": "MEDICHAM's dmgRange prices the WHOLE click (both Parental Bond packets, summed) and one battle.actions.moveHit call is ONE packet. That is the same mismatch the multi-hit MOVES are skipped for, arriving through the attacker's ability instead of the move. Membership is DERIVED from the hitsTwice tag and the authority's own onPrepareHit handler decides per move. tests/test-mechanics.js is the only remaining guard on the mechanic.   *** SUPERSEDED 2026-09-10 BY VOLLEY FIX 17: the reference now enters at hitStepMoveHitLoop, so a bonded click is compared as TWO packets and this counter reads 0 unless MEDI_DIFF_MULTIHIT=skip is set. ***",
+  "volley": {
+    "move_rows": 5,
+    "bond_rows": 1,
+    "arrivals": {
+      "x4": 2,
+      "x2": 2,
+      "x3": 2
+    },
+    "moves": {
+      "pinmissile": 1,
+      "doubleedge": 1,
+      "bulletseed": 1,
+      "rockblast": 1,
+      "tripleaxel": 1,
+      "dualwingbeat": 1
+    },
+    "multihit_moves_not_drawn": [
+      "bonerush",
+      "doublehit",
+      "dragondarts",
+      "iciclespear",
+      "populationbomb",
+      "scaleshot",
+      "tailslap",
+      "twinbeam",
+      "watershuriken"
+    ],
+    "no_arrival": 0,
+    "no_arrival_first": null,
+    "count_varied": 2,
+    "count_varied_first": "heracrossmega pinmissile -> rotomwash   arrivals 4-5 across the sixteen indices",
+    "hitcount_mismatch": 0,
+    "hitcount_mismatch_first": null,
+    "prepare_hit_failed": 0,
+    "skip_restored": false,
+    "entry_point": "battle.actions.hitStepMoveHitLoop (sim/battle-actions.ts:857), step 7 of trySpreadMoveHit's eight — ABOVE moveHit and BELOW hitStepAccuracy, which is the only boundary at which a volley can be run without also rolling to hit.",
+    "why": "THE ARRIVAL COUNT IS READ BACK FROM THE AUTHORITY, NEVER COMPUTED HERE. The 2-5 family is sampled with battle.sample (sim/battle.ts:355), which goes straight to this.prng and cannot be reached by this file's battle.random override — so a count computed here would be a guess wearing a control's clothes. spreadMoveHit is wrapped for the duration of the call and every invocation with neither isSecondary nor isSelf is one arrival; the authority's own `|-hitcount|` is read from the log and cross-checked against it. That count is handed to MEDICHAM as `hit.hits`, the same field its battle loop hands in. A BOND row is handed NO count, because hitPlanOf's bondMultFor refuses the quarter-power second packet when `rolled > 1` and two full packets is not what the authority deals."
+  },
+  "dropped_by_exception": 0,
+  "dropped_where": {},
+  "pool": {
+    "priors": 345,
+    "drawable": 336,
+    "dropped": 9,
+    "droppedNames": [
+      "florgeswhite",
+      "amoonguss",
+      "jirachi",
+      "magnezone",
+      "walrein",
+      "ironvaliant",
+      "torracat",
+      "rillaboom",
+      "revavroom"
+    ],
+    "megas": 76
+  },
+  "pool_why": "A species with no MC.mons row can never be drawn, so it is invisible to `compared`. Resolved through engine/mc_key.js, the one doorway; a raw flattened lookup dropped every hyphenated forme and all 76 megas in silence.",
+  "controls": "both leads are really sent out on the Showdown side, so MEDICHAM is given the same switch-in (Intimidate, weather setters) through the engine's own applyEntryEffects/applyIntimidate; and the defender ability's onTryHit is asked directly, because Showdown's moveHit entry point does not run it.",
+  "touched": {
+    "intimidate": 9,
+    "weather": 2,
+    "absorbMon": 6,
+    "absorbFired": 0,
+    "bpCallback": 8
+  },
+  "NOT_PUBLISHED": {
+    "why": "this run was directed to --out and never asked the publish guard",
+    "published_artifact": "data/engine-diff.json",
+    "this_sample": 250,
+    "how_to_publish": "run without --out, at a sample at least as large as the published one",
+    "roadmap": "#257"
+  },
+  "accuracy_conformance": {
+    "compared": 500,
+    "disagreed": 0,
+    "unknown_accuracy": 0,
+    "worst": []
+  },
+  "accuracy_modifier_conformance": {
+    "handlers": 13,
+    "rows": 14,
+    "disagreed": 0,
+    "problems": []
+  },
+  "substitute_bypass_conformance": {
+    "compared": 500,
+    "inSet": 51,
+    "missing": [],
+    "extra": []
+  }
+}

@@ -69,6 +69,39 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [6.1.0] — 2026-09-10 — the damage differential runs the authority's volley loop, and `0 of 6000` stops being a claim about single-hit moves
+
+- **What changed.** `tests/test-engine-diff.js` entered the authority at `battle.actions.moveHit`, and
+  one `moveHit` call is ONE ARRIVAL — so every multi-hit move and every Parental Bond click was skipped
+  by construction. It now enters at `hitStepMoveHitLoop` (Champions overrides it at
+  `data/mods/champions/scripts.ts:428`) for a volley row only, reads the arrival count BACK from the
+  authority rather than computing it, and hands that count to MEDICHAM as `hit.hits`. Single-hit rows
+  still enter at `moveHit` and are byte-identical. `engine/medicham2-browser.js`: `dmgRange` now
+  pre-stamps move ids, because `hitPlanOf` reads `mv.id` and the lazy `stampMoveIds()` did not run
+  until `dmgRangeOneHit`, one call later.
+- **Measured.** `0 of 6000` unchanged, and **`skipped_multihit` 134 → 0, `skipped_ability_multihit`
+  17 → 0** — `data/engine-diff.json`, n=6000, seed 20260804, release `3c2b2f9ac845`, Showdown
+  `20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4`. **142 of those 6,000 rows are volleys**: `volley.move_rows`
+  130 across 14 move ids, `volley.bond_rows` 12, arrivals x1:7 x2:66 x3:20 x4:7 x5:36 x6:6, all sixteen
+  roll-index arms at 0. Predicted beforehand at 15 disagreements in a 5–40 interval
+  (`data/verification/_prediction-2026-09-10-multihit.json`). Census re-run and **unmoved at 835 live /
+  835 probed / 0 missing**; whole-game differential re-run on the new release and **unmoved** at
+  BOARD-MATERIAL 0 of 961 with 1 declared protocol divergence; `engine/quarantine.js` **GATE: OPEN**.
+- **Basis.** unchanged. The new sample is a strict superset of the old one — the same question over a
+  wider population, so `0` and `0` are one series.
+- **Supersedes.** ~~`skipped_multihit: 134`, `skipped_ability_multihit: 17`~~ retracted — those counters
+  now read 0 and the rows are compared. ~~*"tests/test-mechanics.js is now the ONLY guard"* on Parental
+  Bond and on the multi-hit family~~ retracted — the damage differential is a guard on both again.
+  The remaining skip is smaller and named: `volley.unstageable` 1 (Dragon Darts, the authority's own
+  loop throws) and `volley.no_arrival` 4 (Sucker Punch x3, Last Resort x1 — the authority refused the
+  click at `singleEvent('Try')`).
+- **Owed to the next major.** `docs/ABRA-technical-docs.md` and `docs/SUMMARY.md`, wherever the damage
+  differential's coverage is described. **AND ONE THING IS OWED NOW, NOT AT THE MAJOR:**
+  `engine/status.js:476-493` and `engine/coverage.js:647-652` print *"the volley loop has never been
+  damage-compared"* unconditionally and now name all fourteen `multiHit` moves as never drawn. Both are
+  MEASURE's files, so this pass FILED it (ROADMAP #575) rather than fixing it — but `--write` stamps
+  that sentence into `docs/ENGINE.md`'s GENERATED block, so it is published and false.
+
 ## [6.0.2] — 2026-09-10 — the release 6.0.0 measured against was not in the repository
 
 - **What changed.** `git add -f data/releases/cbd510bc2b13` — 29 files, 6.8 MB. Before this commit

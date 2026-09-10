@@ -10,6 +10,96 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.1.0] — 2026-09-10
+
+### Changed
+- **THE DAMAGE DIFFERENTIAL APPLIES MULTI-HIT MOVES. `skipped_multihit` **134 -> 0**,
+  `skipped_ability_multihit` **17 -> 0**, and **142 of 6,000 rows are now VOLLEYS** — 130 multi-hit
+  MOVE rows across 14 move ids and 12 Parental Bond rows. `disagreed` stays **0 of 6000** at the
+  midpoint, at both corners and at all fourteen interior indices.** `data/engine-diff.json`, seed
+  20260804, `--n 6000`, release `3c2b2f9ac845`, Showdown
+  `20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4`. `0 of 6000` had been quoted as general evidence of
+  damage correctness and was a statement about SINGLE-HIT moves only: `tests/test-engine-diff.js`
+  entered the authority at `battle.actions.moveHit` (`sim/battle-actions.ts:1370`) and one `moveHit`
+  call is ONE ARRIVAL, so 14 of the 500 legal moves were skipped by construction.
+- **VOLLEY FIX 17 — the reference enters one level up, at `hitStepMoveHitLoop`.** Champions
+  OVERRIDES that method at `data/mods/champions/scripts.ts:428` (mainline `sim/battle-actions.ts:857`);
+  it is step 7 of `trySpreadMoveHit`'s eight, above `moveHit` and below `hitStepAccuracy`, so the
+  harness gains the volley and gains no accuracy roll. **Every single-hit row still enters at
+  `moveHit` and draws byte-identical output**, which is what keeps a new red row attributable.
+  **THE ARRIVAL COUNT IS READ BACK, NEVER COMPUTED**: the 2-5 family is sampled with `battle.sample`,
+  which goes straight to `this.prng` (`sim/battle.ts:355`) and cannot be reached by this file's
+  `battle.random` override, so `spreadMoveHit` is wrapped and every call with neither `isSecondary`
+  nor `isSelf` is one arrival, cross-checked against the authority's own `|-hitcount|`
+  (`data/mods/champions/scripts.ts:550`). **That cross-check caught the counter double-counting
+  secondaries before it reached a comparison** — a Parental Bond Fake Out read four arrivals for two,
+  and Scale Shot would have been handed ten hits instead of five. MEDICHAM is asked PER INDEX,
+  because the top roll can kill the target early and shorten the volley; a bond row is handed NO
+  count, because `hitPlanOf`'s `bondMultFor` refuses the quarter-power second packet when
+  `rolled > 1`.
+- **`--plant volley` is the volley arm's own red demonstration, and it exists because the obvious
+  one did not work.** `MEDI_MULTIHIT_ONE_INDEX=1` was tried first and moved NOTHING (0 of 250) — it
+  restores the battle loop's shared-index packet split, which `dmgRange` does not go through. Under
+  `--plant volley` at `--n 250` all six volley rows light up (midpoint 6, top 5, bottom 6, interior
+  83 of 84) and the 244 single-hit rows are unmoved. `MEDI_DIFF_MULTIHIT=skip` restores the old skip
+  and stamps `volley.skip_restored` into the artifact.
+- **CONTROL FIX 18 and CONTROL FIX 19 — two inputs the volley had to hold equal, each checked
+  against the ENGINE before the control was written.** The authority's loop has arrival state and
+  `dmgRange` is a pure price, so the reference's boosts and `storedStats` are re-cleared between
+  arrivals (HP is not, or the loop's faint break could never fire); and the compared quantity is
+  `move.totalDamage`, the authority's own per-arrival accumulator, not the target's HP delta, because
+  `eachEvent('Update')` inside the loop is where DISGUISE deals its `baseMaxhp / 8` — the ABILITY's
+  damage, not the move's. Measured before the fixes, knob cleared each time:
+  `maushold populationbomb -> archaludon` (Stamina) 19-25 against 36-42, rel **77.3%**;
+  `toucannon dualwingbeat -> polteageist` (Weak Armor) 15.2%; `heracross rockblast -> mimikyu` 14.8%,
+  the gap exactly 16 at both corners against Mimikyu's 131 maxhp / 8. All read 0.0% after, and
+  `-> aggron` (Sturdy) reads 0.0% throughout as the cleared control.
+  **`tests/probe_arrival_reprice.js` proves the BATTLE LOOP already re-prices arrival k against the
+  board arrival k-1 left behind** — `arrivalRepriceMoved 3` on the three arms that change something
+  and 0 on the one that does not, with `MEDI_ARRIVAL_PRICE_ONCE=1` as the red knob. The loop is
+  right; the price is a price. **Both controls read ZERO on the published 6,000-row run and are
+  UNTESTED BY IT**, which the run prints and the artifact records.
+
+### Fixed
+- **THE FIRST `dmgRange` CALL IN A PROCESS PRICED THE CLICK WITH NO MOVE IDENTITY.**
+  `engine/medicham2-browser.js`. `stampMoveIds()` is lazy and was called from `dmgRangeOneHit`,
+  `printedAccuracy` and `effMoveType` — and `dmgRange` calls `hitPlanOf` BEFORE it reaches any of
+  them. `hitPlanOf` is keyed on `mv.id` at every clause it has, so Parental Bond, Beat Up and the
+  whole multi-hit family were invisible to the first click. MEASURED: `kangaskhanmega fakeout ->
+  pinsir`, same bodies, four consecutive calls, **37-45 then 44-55, 44-55, 44-55**, with
+  `MEDSEEN.parentalBondPlanned` 0 after call one; the control — `att.ability = 'none'` — returns
+  37-45 at every call, so the first click was priced as a body with no Parental Bond.
+  `MEDI_NO_MOVEID_PRESTAMP=1` restores the defect and stamps `MEDFAILS.moveIdPrestampRestored`.
+  One row per process inside a 6,000-row run and EVERYTHING inside `--case` and every one-shot probe
+  in `tests/`. ROADMAP #576.
+
+### Added
+- `data/engine-diff.json` carries a `volley` block: the row counts, the arrival histogram, the
+  per-move tally, the `multiHit` moves not drawn, and every remaining skip under its own name.
+- ROADMAP #574 (Dragon Darts is unstageable at a 1v1 entry point — `move.smartTarget` is never
+  cleared on a click that SUCCEEDS, so the Champions loop writes `damage[1]` against a one-element
+  `targets` and its EmergencyExit sweep throws; NOT patched, because forcing `smartTarget = false`
+  would be a differential editing the authority), #575 (`engine/status.js` and `engine/coverage.js`
+  print *"the volley loop has never been damage-compared"* unconditionally and now publish a false
+  sentence through `--write`; MEASURE owns both files, so it is FILED, not fixed), #576 (above).
+
+### Notes
+- Re-run on release `3c2b2f9ac845`, all of it: census **835 live / 835 probed / 0 missing**
+  (unmoved); three roster stages individually, **0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE** in
+  each; `engine/all_mechanics_fire.js --kind all` 1,313 games, 0 threw; the whole-game differential
+  **BOARD-MATERIAL 0 of 961**, 10,705/10,705 boundaries identical, 1 declared protocol divergence,
+  0 cut off at the cap of 50 — **compared field by field against `git show HEAD:` and unmoved**;
+  `engine/quarantine.js` **GATE: OPEN**.
+- The three moves the sampler still does not draw — `bonerush`, `doublehit`, `tailslap` — have **zero
+  owners in `data/move-priors.json`**. The sampler draws from real corpus usage on purpose, so that
+  is a fact about the metagame and not a hole. All fourteen `multiHit` moves were exercised by name
+  through `--case` against a legal learner from the pool; thirteen AGREE at 0.0% and the fourteenth
+  is Dragon Darts.
+- Full account, every flag and every pin:
+  [docs/_reports/2026-09-10-multihit-damage.md](docs/_reports/2026-09-10-multihit-damage.md).
+
+---
+
 ## [6.0.0] — 2026-09-10
 
 ### Changed

@@ -96,11 +96,20 @@ const PLANT = (() => {
    * perturbs the FOURTEEN INTERIOR ROLLS and leaves indices 0 and 15 alone, so the midpoint AND both
    * corners must read their unplanted values while the interior arms light up. An arm with no plant
    * that can move it is an arm nobody has checked. */
-  if (k !== 'spread' && k !== 'band') {
+  /* VOLLEY FIX 17 — `volley` IS THE VOLLEY ROAD'S OWN RED DEMONSTRATION, and it is the ONLY one that
+   * works. `MEDI_MULTIHIT_ONE_INDEX=1` was tried first and moved nothing: that flag restores the
+   * BATTLE LOOP's shared-index packet split, which `dmgRange` — the only thing this file calls —
+   * does not go through. An arm with no plant that can move it is an arm nobody has checked, so the
+   * plant asks MEDICHAM for ONE ARRIVAL of every volley, which is precisely the engine the old skip
+   * assumed it was looking at. Under it every multi-hit and bonded row must light up and every
+   * single-hit row must read its unplanted value, because a single-hit row never takes this road. */
+  if (k !== 'spread' && k !== 'band' && k !== 'volley') {
     console.error('  --plant takes:\n'
       + '    spread   widen MEDICHAM\'s range symmetrically — midpoint unmoved, BOTH CORNERS light up\n'
       + '    band     perturb the 14 INTERIOR rolls only — midpoint and both corners unmoved, the\n'
-      + '             interior arms light up');
+      + '             interior arms light up\n'
+      + '    volley   ask MEDICHAM for ONE ARRIVAL of every volley — every multi-hit and Parental\n'
+      + '             Bond row lights up, every single-hit row is unmoved BY CONSTRUCTION');
     process.exit(2);
   }
   return k;
@@ -334,6 +343,52 @@ const skippedMulti = { n: 0, moves: {} };
 /* DERIVED, not a list of names, and printed below before it is used. */
 const MULTIHIT = new Set(Object.keys(tags.moves || {}).filter(id =>
   (tags.moves[id].tags || []).indexOf('multiHit') >= 0));
+/* ==== VOLLEY FIX 17 — THE HARNESS NOW RUNS THE AUTHORITY'S OWN HIT LOOP. 2026-09-10 =============
+ *
+ * WHAT WAS WRONG, IN ONE SENTENCE: `0 of 6000 disagree` was a statement about SINGLE-HIT MOVES, and
+ * it had been quoted as general evidence of damage correctness. SKIP FIX 15 and the MULTIHIT skip
+ * above between them removed 134 + 17 rows from every run BY CONSTRUCTION, because this file entered
+ * the authority at `battle.actions.moveHit` (sim/battle-actions.ts:1370) and one `moveHit` call is
+ * ONE ARRIVAL. Fourteen of the 500 legal moves carry the `multiHit` tag and eleven of them were
+ * drawn and thrown away every run.
+ *
+ * THE REPAIR IS TO MOVE ONE LEVEL UP, NOT TO MULTIPLY. `hitStepMoveHitLoop`
+ * (CHAMPIONS OVERRIDES IT: data/mods/champions/scripts.ts:428; mainline is sim/battle-actions.ts:857)
+ * is step 7 of `trySpreadMoveHit`'s eight, so it sits ABOVE `moveHit`
+ * and BELOW `hitStepAccuracy` — which is exactly the boundary this harness needs. Entering there
+ * gives the authority's own arrival count, its own per-arrival `randomizer` draw, its own
+ * `eachEvent('Update')` between arrivals, and Parental Bond's `move.multihit = 2` (written by
+ * `onPrepareHit`, which `trySpreadMoveHit` raises at :591 and which this file previously could only
+ * PROBE on a throwaway copy). It does not give accuracy, priority or invulnerability, which stay out
+ * of this file's declared scope exactly as before.
+ *
+ * THE ARRIVAL COUNT IS READ BACK, NEVER COMPUTED. `hitStepMoveHitLoop` samples the 2-5 family with
+ * `battle.sample` (sim/battle.ts:355), which goes STRAIGHT to `this.prng` and cannot be reached by
+ * this file's `battle.random` override — so a count computed here would be a guess dressed as a
+ * control. Instead `spreadMoveHit` is wrapped for the duration of the call and every invocation is
+ * one arrival; the authority's own `|-hitcount|` line is read from the log and cross-checked against
+ * it. THAT count is then handed to MEDICHAM as `hit.hits`, which is the same field its battle loop
+ * hands in. This is the King's Rock lesson in the damage half: the authority rolls per LANDED
+ * ARRIVAL, so the comparison must be per landed arrival too.
+ *
+ * PARENTAL BOND IS THE ONE ROW THAT MUST NOT BE HANDED A COUNT. `hitPlanOf`'s `bondMultFor` refuses
+ * the second packet when `rolled > 1` — that clause is the authority's own `move.multihit` early
+ * return — so passing `hits: 2` would price two FULL packets instead of one plus a quarter. A bond
+ * row is therefore run with no `hits` at all and MEDICHAM's own plan supplies both packets.
+ *
+ * `MEDI_DIFF_MULTIHIT=skip` PUTS THE OLD SKIP BACK, so the check stays demonstrable: a run carrying
+ * it reports the pre-2026-09-10 counts and stamps `multihit_skip_restored` into the artifact. A
+ * switch that silently makes the instrument blind is the silent default this repo keeps paying for,
+ * so it is loud in the console and in the file. */
+const MULTIHIT_SKIP_RESTORED = process.env.MEDI_DIFF_MULTIHIT === 'skip';
+/* WHAT THE VOLLEY PATH ACTUALLY DID, counted rather than assumed. `arrivals` is a histogram of the
+ * authority's own landed-arrival count, so a family that silently collapsed to one hit would be
+ * readable here instead of hiding inside an agreement. */
+const volley = { moveRows: 0, bondRows: 0, arrivals: {}, moves: {},
+                 noArrival: 0, noArrivalFirst: '', countVaried: 0, countVariedFirst: '',
+                 hitcountMismatch: 0, hitcountMismatchFirst: '', prepareHitFailed: 0,
+                 midVolleyHeld: 0, midVolleyHeldFirst: '', abilityHpRows: 0, abilityHpFirst: '',
+                 unstageable: {}, unstageableFirst: '', noArrivalMoves: {} };
 /* CONTROL FIX 12 -- A MOVE WHOSE BASE POWER IS A COIN, AND THIS FILE WAS READING THE COIN. 2026-08-10.
  *
  * DERIVED from the artifact, never a name: every move carrying `conditionalPower {when: 'chance'}`.
@@ -367,7 +422,7 @@ const CONDCHANCE = new Set(Object.keys(tags.moves || {}).filter(id => {
  * engine/validate_damage_sim.js and cost that file two debugging rounds: randomChance() bypasses a
  * battle.random override entirely, so crits must be pinned with willCrit, and a fresh active move is
  * needed per call because moveHitData caches the crit decision per target slot. */
-function showdownDamage(attName, moveName, defName, roll, stats, defAbilId, condPin) {
+function showdownDamage(attName, moveName, defName, roll, stats, defAbilId, condPin, volleyOut) {
   const teamA = [mkSet(attName, moveName), ...FILLER.map(f => mkSet(f, inertMove(f)))];
   const teamB = [mkSet(defName, inertMove(defName)), ...FILLER.map(f => mkSet(f, inertMove(f)))];
   const battle = new Battle({ formatid: CS.FORMAT, seed: [1, 2, 3, 4] });
@@ -396,12 +451,17 @@ function showdownDamage(attName, moveName, defName, roll, stats, defAbilId, cond
    * not confirm it. */
   /* EXTRACTED SO IT CAN BE APPLIED TWICE -- see CONTROL FIX 8b below. Identical body, no behaviour
    * change on the first call. */
-  const alignStats = () => {
+  /* THE `withHp` ARGUMENT IS CONTROL FIX 18's AND IT DEFAULTS TO THE OLD BEHAVIOUR. Re-aligning
+   * BETWEEN two arrivals of a volley must not put the target's HP back, or the arrivals that have
+   * already landed would be undone and the faint break in `hitStepMoveHitLoop` could never fire.
+   * Both existing call sites pass nothing and are byte-identical. */
+  const alignStats = (withHp) => {
     if (!stats) return;
     src.storedStats.atk = stats.at;  src.storedStats.spa = stats.sa;
     src.storedStats.def = stats.adf; src.storedStats.spd = stats.asd;
     tgt.storedStats.atk = stats.dat; tgt.storedStats.spa = stats.dsa;
     tgt.storedStats.def = stats.df;  tgt.storedStats.spd = stats.sd;
+    if (withHp === false) return;
     src.maxhp = stats.ahp; src.hp = stats.ahp;
     tgt.maxhp = stats.hp;  tgt.hp = stats.hp;
   };
@@ -590,7 +650,7 @@ function showdownDamage(attName, moveName, defName, roll, stats, defAbilId, cond
    * THIS IS NOT CONTROL FIX 14 AND IT IS NOT A SECOND HALF OF IT. Parental Bond hangs off
    * `onPrepareHit`, which the authority runs at sim/battle-actions.ts:591-592 -- inside
    * `trySpreadMoveHit`, ABOVE this entry point -- and all it does is set `move.multihit = 2`. That
-   * field is read by `hitStepMoveHitLoop` (sim/battle-actions.ts:857), one level higher again.
+   * field is read by `hitStepMoveHitLoop` (data/mods/champions/scripts.ts:428), one level higher again.
    * `moveHit` calls `spreadMoveHit` ONCE and returns; running PrepareHit here would set the field
    * and change no number at all. So this cannot be repaired by moving the reference up two lines,
    * only by moving it up two LEVELS, and the two levels above this one also roll accuracy.
@@ -612,7 +672,7 @@ function showdownDamage(attName, moveName, defName, roll, stats, defAbilId, cond
    * authority's own handler whether IT would bond this move cannot perturb the move that is about
    * to be compared. Membership is the `hitsTwice` tag (one member today, printed before use); the
    * per-move exceptions are the authority's to answer and are not restated here. */
-  if (src.ability && HITSTWICE.has(src.ability)) {
+  if (!volleyOut && src.ability && HITSTWICE.has(src.ability)) {
     const ab = battle.dex.abilities.get(src.ability);
     if (ab && ab.exists && typeof ab.onPrepareHit === 'function') {
       const probe = battle.dex.getActiveMove(moveName);
@@ -645,6 +705,121 @@ function showdownDamage(attName, moveName, defName, roll, stats, defAbilId, cond
    * NOT a MEDICHAM bug and not fixable from here without leaving the moveHit layer, which is the
    * same boundary the Disguise SUSPECT row sits on. Recorded in docs/ENGINE.md as a known harness
    * exclusion rather than papered over -- but it is now COUNTED, which is the part that was wrong. */
+  /* VOLLEY FIX 17 — ONE LEVEL UP, AND ONLY WHEN THE CALLER ASKED FOR A VOLLEY. Every single-hit row
+   * in this file still enters at `moveHit` and draws byte-identical output, which is what keeps a
+   * new red row attributable to the volley rather than to a changed entry point.
+   *
+   * THE THREE LINES BEFORE THE LOOP ARE THE AUTHORITY'S OWN, IN ITS ORDER (sim/battle-actions.ts:
+   * 590-592): `singleEvent('Try')`, `singleEvent('PrepareHit')`, `runEvent('PrepareHit')`. The third
+   * is where Parental Bond writes `move.multihit = 2`; without it a bonded click would run the loop
+   * once and this fix would report a correct engine as twice too high. Written as the authority
+   * writes them rather than as they read best, so a diff against the source is the review. */
+  if (volleyOut) {
+    const hitResult = battle.singleEvent('Try', move, null, src, tgt, move) &&
+      battle.singleEvent('PrepareHit', move, {}, tgt, src, move) &&
+      battle.runEvent('PrepareHit', src, tgt, move);
+    if (!hitResult) { volleyOut.arrivals = 0; volleyOut.prepareHitFailed = true; return 0; }
+    /* THE ARRIVAL COUNT COMES FROM THE AUTHORITY, BY COUNTING ITS OWN CALLS. `hitStepMoveHitLoop`
+     * invokes `spreadMoveHit` exactly once per arrival, so a wrapper on the instance (shadowing the
+     * prototype method for the duration, restored in `finally`) counts arrivals without computing
+     * anything. The `|-hitcount|` the authority publishes is read below and cross-checked, because
+     * two ways of asking one question is how a miscount stops being invisible. */
+    const proto = battle.actions.spreadMoveHit;
+    let arrivals = 0;
+    const logAt = battle.log.length;
+    /* ONLY THE PRIMARY ARRIVAL IS AN ARRIVAL, and this counter was wrong before it was checked.
+     * `secondaries()` (sim/battle-actions.ts:1336, NOT overridden) and `selfDrops()` (:1317) both re-enter through
+     * `moveHit` -> `spreadMoveHit` carrying `isSecondary` or `isSelf`, so a Fake Out under Parental
+     * Bond counted FOUR calls for two arrivals and Scale Shot would have handed MEDICHAM twice its
+     * real hit count. The two flags are the authority's own way of saying "this is not a hit", and
+     * the `-hitcount` cross-check below is what made the miscount visible rather than plausible. */
+    /* ==== CONTROL FIX 18 — THE BOARD MAY NOT MOVE UNDER A PRICE. 2026-09-10 ======================
+     *
+     * `MEDI.dmgRange` IS A PURE PRICE. It is handed one board and returns one number; it has no
+     * arrival state and is not supposed to. The authority's hit loop DOES have arrival state — it
+     * runs `eachEvent('Update')` and the whole `onDamagingHit` chain between arrivals — so arrival 2
+     * lands on a body arrival 1 has already changed. Comparing the two without holding that equal is
+     * putting two different questions side by side, which is what CONTROL FIX 7's whole paragraph is
+     * about, arriving one level deeper.
+     *
+     * MEASURED, BEFORE THE FIX, WITH THE KNOB CLEARED IN EACH CASE:
+     *   heracross pinmissile   -> archaludon  (STAMINA)     showdown 17-21   medicham 20-24
+     *   maushold  populationbomb -> archaludon (STAMINA)    showdown 19-25   medicham 36-42
+     *   toucannon dualwingbeat -> polteageist (WEAK ARMOR)  showdown 127-137 medicham 102-122
+     * The same rows against a defender with no such ability read rel 0.0%.
+     *
+     * AND IT IS NOT A MEDICHAM DEFECT — THAT WAS CHECKED BEFORE THE CONTROL WAS WRITTEN, not after.
+     * `tests/probe_arrival_reprice.js` stages exactly these bodies through the BATTLE LOOP and passes
+     * with a red knob (`MEDI_ARRIVAL_PRICE_ONCE=1`) and a single-hit control: the loop re-prices
+     * arrival k against the board arrival k-1 left behind, `arrivalRepriceMoved` reads 3 on the three
+     * arms that change something and 0 on the arm that does not. The loop is right; the price is a
+     * price. So this is the harness's input to hold, not the engine's number to fix.
+     *
+     * CLEARING, NOT MIRRORING, per CONTROL FIX 7 — and it is COUNTED, so an over-reach is readable
+     * rather than assumed. `withHp === false` because putting the HP back would undo the arrivals
+     * that already landed and the loop's own faint break could never fire. */
+    battle.actions.spreadMoveHit = function (...a) {
+      if (!a[4] && !a[5]) {
+        arrivals++;
+        if (arrivals > 1) {
+          const wasBoosts = JSON.stringify([src.boosts, tgt.boosts]);
+          const wasStats = JSON.stringify([src.storedStats, tgt.storedStats]);
+          src.clearBoosts(); tgt.clearBoosts();
+          alignStats(false);
+          if (wasBoosts !== JSON.stringify([src.boosts, tgt.boosts])
+              || wasStats !== JSON.stringify([src.storedStats, tgt.storedStats])) {
+            volleyOut.midVolleyHeld = (volleyOut.midVolleyHeld || 0) + 1;
+          }
+        }
+      }
+      return proto.apply(this, a);
+    };
+    try { battle.actions.hitStepMoveHitLoop([tgt], src, move); }
+    catch (e) {
+      /* THE AUTHORITY'S OWN LOOP THREW. Counted under its own name, never pooled with a MEDICHAM
+       * disagreement and never left as a silent null — see the `unstageable` block in compareRow. */
+      volleyOut.threw = String((e && e.message) || e).slice(0, 90);
+      logDroppedRow('showdown hitStepMoveHitLoop ' + attName + ' ' + moveName + ' -> ' + defName, e);
+      return null;
+    } finally { delete battle.actions.spreadMoveHit; }
+    volleyOut.arrivals = arrivals;
+    /* `-hitcount` is `hit - 1` at data/mods/champions/scripts.ts:550, and it is NOT emitted when
+     * `typeof move.smartTarget === 'boolean'` — Dragon Darts is exactly that. So an absent line is a
+     * legitimate condition and only a PRESENT line that disagrees is a fault. */
+    volleyOut.hitcount = null;
+    for (let i = battle.log.length - 1; i >= logAt; i--) {
+      if (battle.log[i].startsWith('|-hitcount|')) { volleyOut.hitcount = +battle.log[i].split('|').pop(); break; }
+    }
+    volleyOut.bonded = move.multihitType === 'parentalbond';
+    /* ==== CONTROL FIX 19 — THE MOVE'S DAMAGE, NOT THE TARGET'S HP DELTA. 2026-09-10 ==============
+     *
+     * `before - tgt.hp` IS THE RIGHT QUANTITY FOR A SINGLE-HIT ROW AND THE WRONG ONE FOR A VOLLEY,
+     * and the difference is not a judgement call — it is which events ran. `moveHit` raises no
+     * `Update`, so under the single-hit path nothing but the move can touch the target's HP and the
+     * two quantities are the same number. `hitStepMoveHitLoop` raises `eachEvent('Update')` after
+     * every arrival (data/mods/champions/scripts.ts:538), which is where DISGUISE deals its `baseMaxhp / 8`
+     * (data/abilities.ts:996) — the ABILITY's damage, not the move's.
+     *
+     * MEASURED: `heracross rockblast -> mimikyu` read `showdown 100-116` against `medicham 84-100`,
+     * and the gap is 16 at both corners — Mimikyu's 131 maxhp over 8. MEDICHAM's `dmgRange` zeroes
+     * arrival one and returns `(n-1)/n` of the flat volley, and its own header says out loud that
+     * the chip belongs to the ability and is applied by the battle loop. Both engines are right and
+     * the comparison was adding one engine's ability damage to one side only.
+     *
+     * `move.totalDamage` IS THE AUTHORITY'S OWN ACCUMULATOR for exactly this, reset to 0 at the top
+     * of the loop and summed per arrival from what `spreadMoveHit` actually dealt — so it is capped
+     * at the target's HP for free, the same way the HP delta was.
+     *
+     * WHAT IT COSTS IS PUBLISHED, NOT BURIED. The difference between the two is carried out on every
+     * row as `abilityHp`, counted, named and written into the artifact — a row where an ability wrote
+     * to the target's HP inside the click is a fact this file now reports rather than a row it
+     * quietly stopped seeing. */
+    const hpDelta = before - tgt.hp;
+    const dealtV = Number.isFinite(move.totalDamage) ? move.totalDamage : hpDelta;
+    volleyOut.hpDelta = hpDelta;
+    volleyOut.abilityHp = hpDelta - dealtV;
+    return Number.isFinite(dealtV) ? dealtV : NOT_FINITE;
+  }
   try { battle.actions.moveHit(tgt, src, move); }
   catch (e) { logDroppedRow('showdown moveHit ' + attName + ' ' + moveName + ' -> ' + defName, e); return null; }
   const dealt = before - tgt.hp;
@@ -777,7 +952,14 @@ function compareRow(attId, mvId, defId) {
    * failures happened. So: skipped, counted, and printed. tests/test-mechanics.js `multiHit` is the
    * guard on the mechanic instead, and it is the ONLY guard -- said out loud so nobody deletes it
    * believing the differential covers it. */
-  if (MULTIHIT.has(mvId)) { skippedMulti.n++; skippedMulti.moves[mvId] = (skippedMulti.moves[mvId] || 0) + 1; return null; }
+  /* VOLLEY FIX 17 — the paragraph above is the harness as it stood until 2026-09-10 and it is kept
+   * because `MEDI_DIFF_MULTIHIT=skip` still runs it. What changed is the entry point, not the
+   * reasoning: entering at `hitStepMoveHitLoop` makes the reference a VOLLEY, so the two engines are
+   * no longer being asked about different numbers of packets and the skip is no longer honest. */
+  const moveVolley = MULTIHIT.has(mvId);
+  if (moveVolley && MULTIHIT_SKIP_RESTORED) {
+    skippedMulti.n++; skippedMulti.moves[mvId] = (skippedMulti.moves[mvId] || 0) + 1; return null;
+  }
   const attSp = dex.species.get(attId), defSp = dex.species.get(defId);
   if (!attSp.exists || !defSp.exists) return null;
 
@@ -826,7 +1008,187 @@ function compareRow(attId, mvId, defId) {
   let worstTop = null, worstBottom = null;
   /* ROADMAP #304 — the interior, worst-of-branches on the same rule as the two corners. */
   const worstBand = {};
+  /* VOLLEY FIX 17 — IS THE VOLLEY THE MOVE'S OR THE ABILITY'S? The two are priced by different roads
+   * in MEDICHAM and must be asked differently, so the question is settled ONCE, here, before any
+   * comparison. The ability half is answered by the AUTHORITY'S OWN `onPrepareHit` (the existing
+   * SKIP FIX 15 probe, which returns the ABILITY_MULTIHIT sentinel) rather than by a name list — the
+   * per-move exceptions (charge moves, `noparentalbond`, spread hits, an already-multi-hit move) stay
+   * the authority's to answer. One extra reference call, and only for a `hitsTwice` attacker. */
+  let bondVolley = false;
+  if (!moveVolley && !MULTIHIT_SKIP_RESTORED && HITSTWICE.has(A.ability)) {
+    let probe;
+    try { probe = showdownDamage(attSp.name, dexMove.name, defSp.name, 0, stats, B.ability, branches[0]); }
+    catch (e) { logDroppedRow('showdown bond detect ' + attId + ' ' + mvId + ' -> ' + defId, e); }
+    bondVolley = (probe === ABILITY_MULTIHIT);
+  }
   for (const pin of branches) {
+    /* ==== VOLLEY FIX 17 — THE VOLLEY ROAD =======================================================
+     *
+     * SIXTEEN REFERENCE CALLS, EACH CARRYING ITS OWN ARRIVAL COUNT, AND MEDICHAM ASKED FOR EXACTLY
+     * THAT COUNT AT EXACTLY THAT INDEX. The count can legitimately differ between indices — the top
+     * roll can KILL the target on arrival 3 of 5, and `hitStepMoveHitLoop` breaks on
+     * `targets.every(target => !target?.hp)` — so pinning one count across all sixteen would be
+     * inventing a control the authority does not have. Asking per index costs nothing extra: the
+     * sixteen reference battles were already being built.
+     *
+     * A MOVE VOLLEY GETS `hits`; A BOND VOLLEY MUST NOT. `hitPlanOf`'s `bondMultFor` refuses the
+     * quarter-power second packet when `rolled > 1`, which is the authority's own `move.multihit`
+     * early return, so handing `hits: 2` to a bonded click would price two FULL packets. The bond
+     * row therefore hands in no count and MEDICHAM's own plan supplies both packets — and the
+     * authority's arrival count is still read back and cross-checked against that plan. */
+    if (moveVolley || bondVolley) {
+      const FIELD0 = { weather: '', terrain: '', twA: 0, twB: 0, tr: 0 };
+      const sV = new Array(16), nArr = new Array(16);
+      for (let i = 0; i < 16; i++) {
+        const vo = {};
+        let d;
+        try { d = showdownDamage(attSp.name, dexMove.name, defSp.name, i, stats, B.ability, pin, vo); }
+        catch (e) { logDroppedRow('showdown volley idx' + i + ' ' + attId + ' ' + mvId + ' -> ' + defId, e); return null; }
+        if (d === NOT_FINITE) {
+          skipped.n++; skipped.moves[mvId] = (skipped.moves[mvId] || 0) + 1; return null;
+        }
+        /* ==== THE ONE FAMILY THIS ENTRY POINT CANNOT STAGE, NAMED RATHER THAN LOST ================
+         *
+         * DRAGON DARTS. `move.smartTarget` is `true` in the dex and NOTHING clears it on a click
+         * that succeeds — the three sites that clear it (sim/battle-actions.ts:607, :634, :740) all
+         * fire on a FAILURE. With one target the Champions loop pushes a second entry into
+         * `moveDamage` (data/mods/champions/scripts.ts:521) and writes `damage[1]`, and the
+         * EmergencyExit sweep below it then reads `targets[1].hp` on a one-element `targets` and
+         * throws `Cannot read properties of undefined (reading 'hp')`.
+         *
+         * THIS IS THE AUTHORITY'S CONDITION, NOT THE HARNESS'S, AND IT IS NOT PATCHED HERE. Forcing
+         * `move.smartTarget = false` would make the row compare and would be this file editing the
+         * authority to get an answer out of it, which is the one thing a differential may never do.
+         * It is COUNTED, NAMED and CARRIED INTO THE ARTIFACT instead: this is a smaller skip than
+         * the 134 it replaces and it is honest about which rows it is.
+         *
+         * NOTE THE LINE NUMBERS. Champions OVERRIDES `hitStepMoveHitLoop` and `spreadMoveHit` in
+         * `data/mods/champions/scripts.ts`; `sim/battle-actions.ts` is MAINLINE and is cited above
+         * only where the mod does not override. Reading the mainline file for a Champions question is
+         * the mistake CLAUDE.md records, and this row is where it would have been made. */
+        if (vo.threw) {
+          volley.unstageable[mvId] = (volley.unstageable[mvId] || 0) + 1;
+          if (!volley.unstageableFirst) {
+            volley.unstageableFirst = attId + ' ' + mvId + ' -> ' + defId + '   ' + vo.threw;
+          }
+          return null;
+        }
+        if (d == null) return null;
+        sV[i] = d; nArr[i] = vo.arrivals;
+        if (vo.prepareHitFailed) volley.prepareHitFailed++;
+        /* CONTROL FIX 18 and CONTROL FIX 19, counted at the row rather than at the index, so the
+         * numbers are rows and not sixteen times rows. */
+        if (i === 0) {
+          if (vo.midVolleyHeld) {
+            volley.midVolleyHeld++;
+            if (!volley.midVolleyHeldFirst) {
+              volley.midVolleyHeldFirst = attId + ' ' + mvId + ' -> ' + defId + '  [' + B.ability + ']';
+            }
+          }
+          if (vo.abilityHp) {
+            volley.abilityHpRows++;
+            if (!volley.abilityHpFirst) {
+              volley.abilityHpFirst = attId + ' ' + mvId + ' -> ' + defId + '  [' + B.ability
+                + '] wrote ' + vo.abilityHp + ' hp inside the click';
+            }
+          }
+        }
+        /* TWO WAYS OF ASKING ONE QUESTION. `-hitcount` is `hit - 1` at data/mods/champions/scripts.ts:550 and
+         * is ABSENT for Dragon Darts (`typeof move.smartTarget === 'boolean'`), so only a present
+         * line that disagrees with the counted `spreadMoveHit` calls is a fault. */
+        if (vo.hitcount != null && vo.hitcount !== vo.arrivals) {
+          volley.hitcountMismatch++;
+          if (!volley.hitcountMismatchFirst) {
+            volley.hitcountMismatchFirst = attId + ' ' + mvId + ' -> ' + defId
+              + '   -hitcount ' + vo.hitcount + ' vs ' + vo.arrivals + ' spreadMoveHit calls';
+          }
+        }
+      }
+      /* A ROW THE AUTHORITY NEVER LANDED CANNOT BE PAIRED, and calling it agreement is the silent
+       * default. Counted, named and dropped instead. */
+      if (nArr.some(n => !n)) {
+        volley.noArrival++;
+        volley.noArrivalMoves[mvId] = (volley.noArrivalMoves[mvId] || 0) + 1;
+        if (!volley.noArrivalFirst) volley.noArrivalFirst = attId + ' ' + mvId + ' -> ' + defId;
+        return null;
+      }
+      if (Math.min(...nArr) !== Math.max(...nArr)) {
+        volley.countVaried++;
+        if (!volley.countVariedFirst) {
+          volley.countVariedFirst = attId + ' ' + mvId + ' -> ' + defId
+            + '   arrivals ' + Math.min(...nArr) + '-' + Math.max(...nArr) + ' across the sixteen indices';
+        }
+      }
+      if (pin === branches[0]) {
+        if (moveVolley) volley.moveRows++; else volley.bondRows++;
+        volley.moves[mvId] = (volley.moves[mvId] || 0) + 1;
+        const kA = 'x' + nArr[0];
+        volley.arrivals[kA] = (volley.arrivals[kA] || 0) + 1;
+      }
+      const mV = new Array(16);
+      let mTopFall = null, mBotFall = null, rowBandMissing = false;
+      for (let i = 0; i < 16; i++) {
+        const hc = { rolls: [] };
+        if (moveVolley) hc.hits = (PLANT === 'volley' ? 1 : nArr[i]);
+        if (pin != null) hc.condPower = pin;
+        let mi;
+        /* `--plant volley` ON A BOND ROW IS THE ABILITY, NOT A COUNT. `hitPlanOf`'s `bondMultFor`
+         * refuses only when `rolled > 1`, so `hits: 1` would leave the second packet in place and
+         * the plant would silently do nothing on exactly the rows it exists to light up. Clearing
+         * the attacker's ability for the duration of the call is the knob that actually moves it. */
+        const abKeep = A.ability;
+        if (PLANT === 'volley' && bondVolley) A.ability = '';
+        try { mi = MEDI.dmgRange(A, B, MC.moves[mvId], FIELD0, false, false, hc); }
+        catch (e) { logDroppedRow('medicham volley dmgRange ' + attId + ' ' + mvId + ' -> ' + defId, e); A.ability = abKeep; return null; }
+        finally { A.ability = abKeep; }
+        if (!mi) return null;
+        if (i === 0) mTopFall = mi.max;
+        if (i === 15) mBotFall = mi.min;
+        if (hc.rolls.length === 16) mV[i] = hc.rolls[i];
+        else if (mi.min === mi.max) mV[i] = mi.min;      // no randomizer: the same at all sixteen
+        else { mV[i] = null; rowBandMissing = true; }
+      }
+      if (rowBandMissing) {
+        bandMissing.n++;
+        if (!bandMissing.first) bandMissing.first = attId + ' ' + mvId + ' -> ' + defId + ' (volley)';
+      }
+      const corner = (sd, me) => ((sd === 0 && me === 0) ? 0 : Math.abs(sd - me) / Math.max(1, sd));
+      let mTopV = (mV[0] != null ? mV[0] : mTopFall);
+      let mBotV = (mV[15] != null ? mV[15] : mBotFall);
+      if (PLANT === 'spread') { mTopV += PLANT_HALFWIDTH; mBotV -= PLANT_HALFWIDTH; }
+      const sTopV = cap(sV[0]), sBotV = cap(sV[15]);
+      mTopV = cap(mTopV); mBotV = cap(mBotV);
+      const nLabel = 'x' + (nArr[0] === nArr[15] ? nArr[0] : nArr[15] + '-' + nArr[0]) + ' ';
+      const label = (pin == null ? '' : (pin ? '[proc] ' : '[no-proc] ')) + nLabel;
+      const sMidV = (sTopV + sBotV) / 2, mMidV = (mTopV + mBotV) / 2;
+      const rV = (sMidV === 0 && mMidV === 0) ? 0 : Math.abs(sMidV - mMidV) / Math.max(1, sMidV);
+      if (!worst || rV > worst.rel) {
+        worst = { rel: rV, suspect: sMidV === 0 && mMidV > 0,
+                  showdown: label + sBotV + '-' + sTopV, medicham: mBotV + '-' + mTopV };
+      }
+      const rTv = corner(sTopV, mTopV), rBv = corner(sBotV, mBotV);
+      if (!worstTop || rTv > worstTop.rel) {
+        worstTop = { rel: rTv, suspect: sTopV === 0 && mTopV > 0,
+                     showdown: label + String(sTopV), medicham: String(mTopV) };
+      }
+      if (!worstBottom || rBv > worstBottom.rel) {
+        worstBottom = { rel: rBv, suspect: sBotV === 0 && mBotV > 0,
+                        showdown: label + String(sBotV), medicham: String(mBotV) };
+      }
+      if (!rowBandMissing) {
+        for (const i of BAND_IDX) {
+          const sVi = cap(sV[i]);
+          const mVi = cap(mV[i] + (PLANT === 'band' ? PLANT_HALFWIDTH : 0));
+          const rI = corner(sVi, mVi);
+          const k = bandKey(i);
+          if (!worstBand[k] || rI > worstBand[k].rel) {
+            worstBand[k] = { rel: rI, suspect: sVi === 0 && mVi > 0,
+                             showdown: label + String(sVi), medicham: String(mVi) };
+          }
+        }
+      }
+      continue;
+    }
     let m;
     const rollsOut = [];
     try {
@@ -985,11 +1347,20 @@ if (process.argv.includes('--case') && caseArg) {
      * species does not exist, and `--case` is the mode a fix gets checked in. The counters are the
      * same ones the run prints, read either side of the call so nothing new has to be trusted. */
     const b0 = skippedBond.n, m0 = skippedMulti.n, s0 = skipped.n;
+    /* VOLLEY FIX 17 added three more "no answer" conditions and they must each say their own name,
+     * for the reason the paragraph above gives. `--case` is the mode a fix is checked in, and a
+     * volley the authority refused reading as "unknown id" is exactly the confusion this block
+     * exists to prevent. */
+    const na0 = volley.noArrival, un0 = Object.values(volley.unstageable).reduce((t, n) => t + n, 0);
     const r = compareRow(a, mv, d);
+    const un1 = Object.values(volley.unstageable).reduce((t, n) => t + n, 0);
     if (!r) {
       const why = skippedBond.n > b0 ? 'SKIPPED — the attacker\'s ability makes this two packets (SKIP FIX 15)'
-                : skippedMulti.n > m0 ? 'SKIPPED — multi-hit move, one moveHit call is one sample'
+                : skippedMulti.n > m0 ? 'SKIPPED — multi-hit move, one moveHit call is one sample (MEDI_DIFF_MULTIHIT=skip is on)'
                 : skipped.n > s0 ? 'SKIPPED — Showdown returned a non-finite damage'
+                : un1 > un0 ? 'UNSTAGEABLE — the AUTHORITY\'S OWN hit loop threw on this row (Dragon Darts)'
+                : volley.noArrival > na0 ? 'UNSTAGEABLE — the authority REFUSED the click before its first arrival '
+                                         + '(Sucker Punch: nobody is attacking in a damage harness)'
                 : 'NOT COMPARABLE (unknown id, no base power, or buildMon refused)';
       console.log(`  ${one}  -> ${why}`); continue;
     }
@@ -1140,6 +1511,73 @@ console.log(`  rows skipped because the ATTACKER'S ABILITY makes the click two p
         .map(([id, n]) => id + ' x' + n).join(' ')
       + '\n    MEDICHAM prices both packets and one moveHit call is one packet. Same reason the'
       + '\n    multi-hit MOVES above are skipped. tests/test-mechanics.js is now the ONLY guard.' : ''));
+/* ---- VOLLEY FIX 17 — WHAT THE HIT LOOP ACTUALLY RAN, PRINTED UNCONDITIONALLY INCLUDING THE ZEROS.
+ *
+ * The two lines above are the SKIPS and they now read 0 on an ordinary run. A zero skip is only
+ * meaningful beside a non-zero COUNT of rows that took the volley road, or "we stopped looking" and
+ * "we looked and there was nothing" print identically — which is the failure this whole file exists
+ * to prevent. So the count, the arrival histogram and the three loud remainders are all here. */
+{
+  const arrH = Object.entries(volley.arrivals).sort((a, b) => (+a[0].slice(1)) - (+b[0].slice(1)))
+    .map(([k, n]) => k + ':' + n).join('  ');
+  console.log('\n  VOLLEY — rows run through the AUTHORITY\'S OWN hit loop (hitStepMoveHitLoop, one'
+    + '\n  level above moveHit), so a multi-hit click is compared as a VOLLEY rather than skipped:');
+  console.log('    multi-hit MOVE rows compared        ' + volley.moveRows
+    + (MULTIHIT_SKIP_RESTORED ? '   *** MEDI_DIFF_MULTIHIT=skip IS ON — the old skip is back ***' : ''));
+  console.log('    Parental Bond (ability) rows        ' + volley.bondRows);
+  console.log('    arrival counts the authority landed ' + (arrH || 'none'));
+  if (Object.keys(volley.moves).length) {
+    console.log('    by move   ' + Object.entries(volley.moves).sort((a, b) => b[1] - a[1])
+      .map(([id, n]) => id + ' x' + n).join('  '));
+  }
+  /* THE MOVES WITH THE TAG THAT THIS RUN NEVER SAW. A coverage claim that counts only what was drawn
+   * is the same shape as a residual that counts only what was compared. */
+  const unseen = [...MULTIHIT].filter(id => !volley.moves[id]).sort();
+  console.log('    multiHit moves NOT drawn this run   ' + (unseen.join(' ') || 'none')
+    + '\n      (the sampler draws attackers and moves from REAL corpus usage; a move nobody clicks'
+    + '\n       has no owner in data/move-priors.json and cannot be drawn. Exercise it by --case.)');
+  console.log('    rows the authority never landed     ' + volley.noArrival
+    + (volley.noArrival ? '   ' + Object.entries(volley.noArrivalMoves).sort((x, y) => y[1] - x[1])
+        .map(([id, n]) => id + ' x' + n).join(' ') : '')
+    + (volley.noArrivalFirst ? '\n      first: ' + volley.noArrivalFirst : '')
+    + '\n      A click the AUTHORITY refused before its first arrival. SUCKER PUNCH is the whole of'
+    + '\n      it on this corpus: its own `onTry` fails unless the target is about to use a damaging'
+    + '\n      move, and nobody is attacking in a one-click damage harness. Both sides would read 0'
+    + '\n      against a MEDICHAM price that has no such condition, which is a SUSPECT phantom zero'
+    + '\n      and not a comparison — so it is skipped, counted and named rather than scored.');
+  console.log('    rows whose arrival count VARIED across the sixteen roll indices  ' + volley.countVaried
+    + (volley.countVariedFirst ? '\n      first: ' + volley.countVariedFirst
+       + '\n      (legitimate when the TOP roll kills the target early — hitStepMoveHitLoop breaks on'
+       + '\n       `targets.every(target => !target?.hp)` — which is why MEDICHAM is asked per index.)' : ''));
+  console.log('    `-hitcount` disagreed with the counted spreadMoveHit calls  ' + volley.hitcountMismatch
+    + (volley.hitcountMismatchFirst ? '\n      first: ' + volley.hitcountMismatchFirst : '')
+    + '\n      (must be 0. Two ways of asking the authority one question; this cross-check caught the'
+    + '\n       counter double-counting secondaries and selfDrops before it reached a comparison.)');
+  console.log('    PrepareHit refused the click        ' + volley.prepareHitFailed);
+  {
+    const u = Object.entries(volley.unstageable).sort((a, b) => b[1] - a[1]);
+    console.log('    rows the AUTHORITY\'S OWN loop threw on (UNSTAGEABLE, still skipped): '
+      + u.reduce((t, [, n]) => t + n, 0) + (u.length ? '   ' + u.map(([id, n]) => id + ' x' + n).join(' ') : '')
+      + (volley.unstageableFirst ? '\n      first: ' + volley.unstageableFirst : '')
+      + '\n      Dragon Darts is the whole family: move.smartTarget stays true on a click that'
+      + '\n      succeeds, so the Champions loop writes damage[1] against a one-element targets and'
+      + '\n      its EmergencyExit sweep reads targets[1].hp. NOT patched here — forcing'
+      + '\n      smartTarget = false would be this file editing the authority to get an answer.');
+  }
+  console.log('    CONTROL FIX 18 — rows where the reference\'s board MOVED between arrivals and was'
+    + '\n      held equal (Stamina, Weak Armor, a forme change): ' + volley.midVolleyHeld
+    + (volley.midVolleyHeldFirst ? '\n      first: ' + volley.midVolleyHeldFirst : '')
+    + '\n      dmgRange is a PRICE with no arrival state; the BATTLE LOOP re-prices per arrival and'
+    + '\n      tests/probe_arrival_reprice.js proves it with a red knob. This is the harness holding'
+    + '\n      an input equal, NOT the engine being let off — and it is counted so it can be audited.');
+  console.log('    CONTROL FIX 19 — rows where an ABILITY wrote to the target\'s HP inside the click'
+    + '\n      (Disguise\'s baseMaxhp/8, raised by eachEvent(\'Update\') between arrivals): '
+    + volley.abilityHpRows
+    + (volley.abilityHpFirst ? '\n      first: ' + volley.abilityHpFirst : '')
+    + '\n      The compared quantity is `move.totalDamage`, the authority\'s own per-arrival'
+    + '\n      accumulator, because that is what dmgRange answers. The ability\'s own HP writes are'
+    + '\n      reported here rather than folded into the move\'s number on one side only.');
+}
 /* CONTROL FIX 16, PRINTED UNCONDITIONALLY INCLUDING THE ZERO. This counts `mediBody` CALLS, not
  * rows -- the pool filter builds every species once and a compared row builds two -- so it is a
  * usage signal, not a row count. A zero means no weather forme was drawn and the fix is untested by
@@ -1314,7 +1752,70 @@ const ARTIFACT = {
           + 'mismatch the multi-hit MOVES are skipped for, arriving through the attacker\'s ability '
           + 'instead of the move. Membership is DERIVED from the hitsTwice tag and the authority\'s '
           + 'own onPrepareHit handler decides per move. tests/test-mechanics.js is the only '
-          + 'remaining guard on the mechanic.',
+          + 'remaining guard on the mechanic.   *** SUPERSEDED 2026-09-10 BY VOLLEY FIX 17: the '
+          + 'reference now enters at hitStepMoveHitLoop, so a bonded click is compared as TWO '
+          + 'packets and this counter reads 0 unless MEDI_DIFF_MULTIHIT=skip is set. ***',
+  /* ---- VOLLEY FIX 17 — the rows that used to be the two skips above ---------------------------- */
+  volley: {
+    move_rows: volley.moveRows, bond_rows: volley.bondRows,
+    arrivals: volley.arrivals, moves: volley.moves,
+    multihit_moves_not_drawn: [...MULTIHIT].filter(id => !volley.moves[id]).sort(),
+    no_arrival: volley.noArrival, no_arrival_first: volley.noArrivalFirst || null,
+    no_arrival_moves: volley.noArrivalMoves,
+    no_arrival_why: 'A click the AUTHORITY refused before its first arrival, at the `singleEvent(Try)` '
+       + 'line the hit loop is entered through. Sucker Punch is the whole of it on this corpus: its '
+       + 'onTry fails unless the target is about to use a damaging move, and nobody is attacking in a '
+       + 'one-click damage harness. Scoring it would put a real MEDICHAM price against a zero the '
+       + 'authority produced for a reason dmgRange does not model — a SUSPECT phantom zero, which '
+       + 'this file already refuses to call an engine bug.',
+    count_varied: volley.countVaried, count_varied_first: volley.countVariedFirst || null,
+    hitcount_mismatch: volley.hitcountMismatch,
+    hitcount_mismatch_first: volley.hitcountMismatchFirst || null,
+    prepare_hit_failed: volley.prepareHitFailed,
+    /* THE REMAINING SKIP, NAMED. A smaller skip honestly named beats a zero reached by looking away. */
+    unstageable: volley.unstageable, unstageable_first: volley.unstageableFirst || null,
+    unstageable_why: 'Dragon Darts, and only Dragon Darts. `move.smartTarget` is true in the dex and '
+       + 'the three sites that clear it (sim/battle-actions.ts:607, :634, :740) all fire on a '
+       + 'FAILURE, so a click that succeeds keeps it. With ONE target the Champions loop pushes a '
+       + 'second entry into moveDamage (data/mods/champions/scripts.ts:521) and writes damage[1], '
+       + 'and the EmergencyExit sweep below reads targets[1].hp on a one-element targets and throws. '
+       + 'That is the AUTHORITY\'s condition at a 1v1 entry point, not a MEDICHAM defect and not a '
+       + 'harness bug; forcing move.smartTarget = false would be this file editing the authority to '
+       + 'get an answer out of it, which a differential may never do. tests/test-mechanics.js and '
+       + 'the whole-game differential are the guards on the mechanic. ROADMAP row filed.',
+    /* CONTROL FIX 18 */
+    mid_volley_board_held: volley.midVolleyHeld, mid_volley_board_held_first: volley.midVolleyHeldFirst || null,
+    mid_volley_why: 'dmgRange is a PURE PRICE with no arrival state and the authority\'s hit loop has '
+       + 'one, so the reference\'s boosts and storedStats are re-cleared between arrivals exactly as '
+       + 'CONTROL FIX 7 clears the switch-in before the click. Checked BEFORE the control was written '
+       + 'rather than after: tests/probe_arrival_reprice.js stages Stamina, Weak Armor and a resist '
+       + 'berry through MEDICHAM\'s BATTLE LOOP and passes with a red knob (MEDI_ARRIVAL_PRICE_ONCE=1) '
+       + 'and a single-hit control, so the loop already re-prices arrival k against the board arrival '
+       + 'k-1 left behind. The loop is right and the price is a price.',
+    /* CONTROL FIX 19 */
+    ability_hp_rows: volley.abilityHpRows, ability_hp_first: volley.abilityHpFirst || null,
+    ability_hp_why: 'The compared quantity for a volley is `move.totalDamage`, the authority\'s own '
+       + 'per-arrival accumulator, NOT the target\'s HP delta. `moveHit` raises no Update event so '
+       + 'the two are the same number on the single-hit path; `hitStepMoveHitLoop` raises '
+       + 'eachEvent(\'Update\') after every arrival, which is where Disguise deals its baseMaxhp/8 — '
+       + 'the ABILITY\'s damage, not the move\'s. Measured at 16 on Mimikyu (131 maxhp / 8) on both '
+       + 'corners of heracross rockblast. The difference is carried out on every row and counted here '
+       + 'rather than folded into the move\'s number on one side only.',
+    skip_restored: MULTIHIT_SKIP_RESTORED,
+    entry_point: 'battle.actions.hitStepMoveHitLoop — CHAMPIONS OVERRIDES IT at '
+               + 'data/mods/champions/scripts.ts:428 (mainline sim/battle-actions.ts:857) — step 7 of '
+               + 'trySpreadMoveHit\'s eight — ABOVE moveHit and BELOW hitStepAccuracy, which is the '
+               + 'only boundary at which a volley can be run without also rolling to hit.',
+    why: 'THE ARRIVAL COUNT IS READ BACK FROM THE AUTHORITY, NEVER COMPUTED HERE. The 2-5 family is '
+       + 'sampled with battle.sample (sim/battle.ts:355), which goes straight to this.prng and '
+       + 'cannot be reached by this file\'s battle.random override — so a count computed here would '
+       + 'be a guess wearing a control\'s clothes. spreadMoveHit is wrapped for the duration of the '
+       + 'call and every invocation with neither isSecondary nor isSelf is one arrival; the '
+       + 'authority\'s own `|-hitcount|` is read from the log and cross-checked against it. That '
+       + 'count is handed to MEDICHAM as `hit.hits`, the same field its battle loop hands in. A '
+       + 'BOND row is handed NO count, because hitPlanOf\'s bondMultFor refuses the quarter-power '
+       + 'second packet when `rolled > 1` and two full packets is not what the authority deals.',
+  },
   /* Five catch blocks used to drop a row and say nothing, which shrank the DENOMINATOR of the
    * headline residual without shrinking the claim built on it. */
   dropped_by_exception: errs.n, dropped_where: errs.where,
