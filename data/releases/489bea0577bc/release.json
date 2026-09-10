@@ -163,6 +163,26 @@
       "at": "2026-09-10T02:20:44.221Z",
       "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
       "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-09-10T02:56:37.823Z",
+      "why": "tests/probe_bigroot_family.js — freeze the tree under test",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-09-10T02:56:52.698Z",
+      "why": "tests/probe_gigaton_repeat.js — freeze the tree under test",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-09-10T02:57:15.333Z",
+      "why": "tests/probe_leechseed_silent.js — freeze the tree under test",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-09-10T02:57:18.572Z",
+      "why": "tests/probe_moldbreaker_ally_guard.js — freeze the tree under test",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
     }
   ],
   "files": {

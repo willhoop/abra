@@ -240,7 +240,11 @@ const CASES = [
         + 'more than once per arrival, so it reads 2 on one doubling. The arm next door asserts EXACT '
         + 'ZERO, which is the strong claim and the one that would catch a regression.' },
 
-  { id: 'roleplay-noflag', kind: 'control', A: [ZAM].concat(WALL_A), B: mover('lucario', 'Steadfast', 'Role Play'),
+  /* THE MOVER IS DELPHOX, NOT LUCARIO. Lucario does not learn Role Play in this format — the raw-learnset
+   * walk this file's gate used to carry accepted Riolu's gen-4..7 tutor rows (`7T`,`6T`,`5T`,`4T`); the
+   * validator refuses them (#565). Delphox is one of the 14 legal carriers, Blaze is quiet with no Fire
+   * move on the board, and it is not Alakazam, whose Inner Focus Role Play would refuse to copy onto itself. */
+  { id: 'roleplay-noflag', kind: 'control', A: [ZAM].concat(WALL_A), B: mover('delphox', 'Blaze', 'Role Play'),
     script: AT(PROT, 'roleplay'), mv: 'roleplay',
     what: 'THE OVER-FIRE CONTROL, AND IT IS THE SAME FAMILY. Role Play routes to `abilitycopy`, '
         + 'which carries the identical `mvFail`-on-shield code — but Role Play has NO `protect` flag '
@@ -280,18 +284,13 @@ const CASES = [
 /* ---- LEGALITY, DERIVED ------------------------------------------------------------------------- */
 const CS = require(D('engine', 'champions_sim.js'));
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
-const LS = dex.data.Learnsets;
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
-const learns = (sp, mv) => {
-  let s = dex.species.get(sp); const id = dex.moves.get(mv).id;
-  while (s && s.exists) {
-    const e = LS[s.id];
-    if (e && e.learnset && e.learnset[id]) return true;
-    s = s.prevo ? dex.species.get(s.prevo)
-      : (s.baseSpecies && s.baseSpecies !== s.name ? dex.species.get(s.baseSpecies) : null);
-  }
-  return false;
-};
+/* ROADMAP #565 — THE LEGALITY GATE ASKS THE VALIDATOR, NOT THE RAW ROWS. The prevo walk this line
+ * replaced accepted any entry on the species or on a prevo whatever its SOURCE tag, so a move a prevo
+ * learned by a gen-7 TM (`7M`, `7V`) read as legal here while `TeamValidator` refused it — which is how
+ * illegal fixtures passed their own gates (tests/test-fixture-legality.js, batch 2).
+ * `champions_sim.canLearn` IS `checkCanLearn`, cached per pair. */
+const learns = (sp, mv) => CS.canLearn(sp, mv);
 let illegal = 0;
 for (const c of CASES) for (const row of c.A.concat(c.B)) {
   const sp = dex.species.get(row[0]);

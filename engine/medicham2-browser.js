@@ -2079,6 +2079,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      finding rather than a pass. See `residualShadowRank`. */
   residualShadowBuilt: 0, residualShadowLargest: 0,
   residualShadowTieDecided: 0, residualShadowTieReordered: 0,
+  /* ROADMAP #563 -- the group walk read a body order off the shadow list (`Consulted`), and how often
+     that order differed from the body sort's (`Applied`). `Applied` at zero across a run with residual
+     ties in it is the replacement not firing, which is the defect this closes. */
+  residualHandlerOrderConsulted: 0, residualHandlerOrderApplied: 0,
   /* ROADMAP #262 -- the announcement-site event-address write actually MOVED the address, i.e. the
    * action was rewritten between the top of the action and `setActiveMove`'s counterpart. Zero over
    * 900 differential games; kept and counted rather than deleted, because "no probe can see it" and
@@ -4658,6 +4662,9 @@ const MEDFAILS = { encoreAction: 0,
      every index after it -- so the answer would be arbitrary while looking derived. `Unread` names the
      artifact volatile rows this engine has no presence reader for, computed at load. */
   residualShadowUnranked: 0, residualShadowTieNoDie: 0, residualShadowOff: 0,
+  /* ROADMAP #563 -- a group named its order with no shadow list built for the phase (the walk fell
+     back to the body order), and the knob that restores the body-only sort. */
+  residualHandlerListAbsent: 0, residualSortsBodiesRestored: 0,
   residualShadowUnread: '', residualShadowTableMissing: 0, residualShadowTableMissingWhy: '',
   residualShadowVolTableWhy: '',
   /* 2026-08-12. The other half of the same approximation, one step later in the battle: two bodies
@@ -9482,18 +9489,48 @@ function entryOrder(all,entrants,field){
  * what `prng.shuffle(list, sorted, sorted + n)` is. NO DIE IN SCOPE IS NOT SILENT:
  * `MEDFAILS.residualOrderTieNoDie` counts it.
  *
- * THE KEY IS DRAWN ONCE PER RESIDUAL PHASE, NOT ONCE PER CALL, and that is load-bearing rather than
- * an optimisation. The authority sorts its handler list ONCE and walks it; this engine walks GROUPS
- * and re-asks `residualOrder` for each (speeds move during the walk -- Speed Boost is itself a step at
- * order 28), so a fresh key per call would let one tied pair come out one way at order 5 and the other
- * way at order 9 -- an order the authority cannot produce. `_RES_TIE_GEN` is bumped once where the
- * residual phase opens and the key is memoised against it.
+ * THE KEY IS DRAWN ONCE PER RESIDUAL PHASE, NOT ONCE PER CALL. The authority sorts its handler list
+ * ONCE and walks it; this engine walks GROUPS and re-asks `residualOrder` for each (speeds move during
+ * the walk -- Speed Boost is itself a step at order 28), so the key is memoised against `_RES_TIE_GEN`,
+ * which is bumped once where the residual phase opens.
  *
- * WHAT THIS DOES *NOT* REPRODUCE, SAID PLAINLY. The authority's list at (1) holds every handler, not
+ * ~~a fresh key per call would let one tied pair come out one way at order 5 and the other way at
+ * order 9 -- an order the authority cannot produce.~~ **FALSE, AND CORRECTED 2026-09-10 (ROADMAP
+ * #563) RATHER THAN DELETED.** The authority produces exactly that order: under the differential's
+ * identity tie the `brn <> brn` pool row IS Leftovers p1b-then-p2b followed by brn p2b-then-p1b, because
+ * placing the order-5 group SWAPS a body's order-10 handler past its partner's (sim/battle.ts:445-451);
+ * and under real dice `speedSort` calls `prng.shuffle` PER TIED GROUP (sim/battle.ts:453-455), so two
+ * tied groups on one phase are independent coins there too. The per-phase key stays because it is
+ * harmless for the bodies it still governs (below); its justification was wrong.
+ *
+ * ~~WHAT THIS DOES *NOT* REPRODUCE, SAID PLAINLY. The authority's list at (1) holds every handler, not
  * every body, and a tied pair's final order depends on the swaps made while the OTHER handlers were
  * placed. This engine's walk is group-major over BODIES and does not know which handlers a body
  * actually has, so it reproduces (2) exactly and (1) only when the tied group's members are the whole
- * of what is in the list.
+ * of what is in the list.~~
+ *
+ * **REPRODUCED SINCE 2026-09-10 (ROADMAP #563).** The limitation above was the residual trio -- three
+ * pool rows (`brn<>brn`, `psn<>psn`, `leftovers<>leftovers`, release `7d66b526659e`), every one an
+ * exact tie in BUILT Speed (90/90, 117/117, 80/80) that six batches had read as "not a tie" off base
+ * Speeds. Two swap variants, one probe each:
+ *   (a) a tied body also carries a LOWER-order handler (Leftovers at 5 before brn at 10): placing the
+ *       order-5 group swaps its brn handler past its partner's. `tests/probe_residual_trio_lower_order_handler.js`.
+ *   (b) a FASTER body with NO residual handler shares the field: it is selected first in a BODY sort
+ *       and its swap carries one tied member past the other, while the authority's list never held it.
+ *       `tests/probe_residual_trio_handlerless_body.js`.
+ * The fix is not a second sort. `residualShadowBuild` already rebuilds the authority's handler list in
+ * its collection order and `residualShadowSort` runs the authority's algorithm over it; since #563 it is
+ * built on EVERY residual phase (not only when two side clocks tie) and each body entry carries its
+ * body. When a caller names the group's `order`, `residualOrder` sorts the bodies as before and then
+ * REPLACES the relative order of the bodies that hold a handler at that order with the order of their
+ * first entries in the sorted shadow list -- the authority's handler order, swap history included.
+ * Bodies with no handler at that order keep their live-speed positions: they run no step there, and a
+ * body whose handler the shadow cannot read (`MEDFAILS.residualShadowUnread`) degrades to the old
+ * speed order instead of vanishing from the walk. Nothing else moves: no die is added (the shadow's tie
+ * key is the same `medTieRng` stream, drawn only inside a tied group, the identity under a constant
+ * die), and the fainted-body handling, the per-group re-ask and the two older knobs are untouched.
+ * `MEDI_RESIDUAL_SORTS_BODIES=1` skips the replacement -- the body sort alone, the pre-#563 walk exactly
+ * -- and stamps `MEDFAILS.residualSortsBodiesRestored`, under which both probes read RED again.
  *
  * ~~Staged and measured: the two `|-sideend|…|tailwind` rows in the pool are a case it does NOT fix,
  * and the reason is written up in docs/_reports/2026-08-24-residual-order.md.~~
@@ -9515,7 +9552,38 @@ let _RES_TIE_GEN=0;
 /* THE OLD STABLE SORT, ON A KNOB, so the census probe can be shown MISSING on demand without swapping
  * a file. It is the pre-2026-08-24 line exactly. */
 const RESIDUAL_STABLE_SORT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_RESIDUAL_STABLE_SORT==='1');
-function residualOrder(actA,actB,field){
+/* ROADMAP #563 -- THE PRE-2026-09-10 WALK, ON A KNOB: the body sort alone, with no handler-list
+ * replacement. Stamped at load so a run under it can never be read as clean. */
+const RESIDUAL_SORTS_BODIES=(typeof process!=='undefined'&&process.env&&process.env.MEDI_RESIDUAL_SORTS_BODIES==='1');
+if(RESIDUAL_SORTS_BODIES)MEDFAILS.residualSortsBodiesRestored=1;
+/* ROADMAP #563 -- the replacement itself. `list` is the body sort's output for this group; `order` is
+ * the group's published order. The shadow list was built and sorted at the phase open
+ * (`residualShadowRank(...,true)`), so this reads it and draws nothing. */
+function residualHandlerOrderApply(list,order){
+  if(_RES_SHADOW_GEN!==_RES_TIE_GEN||!_RES_SHADOW_LIST){
+    /* A GROUP WALKED WITH NO LIST TO READ IS LOUD. It means a caller named an order outside the phase
+     * that builds the list, or the shadow is off -- either way the body order is what runs, and a
+     * counter says so rather than the walk quietly reverting. */
+    if(!RESIDUAL_SHADOW_OFF)MEDFAILS.residualHandlerListAbsent++;
+    return list;
+  }
+  MEDSEEN.residualHandlerOrderConsulted++;
+  const inList=new Set(list), seen=new Set(), seq=[];
+  for(const e of _RES_SHADOW_LIST){
+    if(e.ord!==order||!e.who||!inList.has(e.who)||seen.has(e.who))continue;
+    seen.add(e.who); seq.push(e.who);
+  }
+  if(seq.length<2)return list;
+  let k=0, moved=false;
+  for(let i=0;i<list.length;i++){
+    if(!seen.has(list[i]))continue;
+    if(list[i]!==seq[k])moved=true;
+    list[i]=seq[k++];
+  }
+  if(moved)MEDSEEN.residualHandlerOrderApplied++;
+  return list;
+}
+function residualOrder(actA,actB,field,opts){
   const list=[...actA,...actB].filter(Boolean);
   for(const x of list)x._resSpe=effSpeed(x,field,actA.indexOf(x)>=0?'A':'B');
   /* `compareTurnOrder` reads the field, so Trick Room comes free — the same call the mega step and
@@ -9551,6 +9619,10 @@ function residualOrder(actA,actB,field){
     }
     sorted+=next.length;
   }
+  /* ROADMAP #563 -- the handler-list order for the bodies that hold a handler at this group's order.
+   * Only when the caller names the order (the group walk); the onUpdate passes and the foot loop
+   * have no authority group and keep the body order. */
+  if(opts&&opts.order!=null&&!RESIDUAL_SORTS_BODIES)residualHandlerOrderApply(list,opts.order);
   return list;
 }
 /* ---- ROADMAP #242 -- THE SIDE AND FIELD CLOCKS, SPENT AT THE POSITION THE FORMAT PUBLISHES -------
@@ -9752,8 +9824,10 @@ function residualShadowVolPresent(id,m){
  * below every body of the same order. */
 function residualShadowBuild(field,sfA,sfB,actA,actB){
   const R=RESIDUAL_SHADOW_ROWS, L=[];
-  const push=(key,row,spe)=>{ if(!row)return;
-    L.push({key,ord:row.order==null?4294967296:row.order,sub:row.sub|0,spe:spe|0}); };
+  /* ROADMAP #563 -- `who` is the BODY an entry belongs to (null for a Side or Field holder), so the
+   * group walk can read a body order off the sorted list. It is not part of the comparator. */
+  const push=(key,row,spe,who)=>{ if(!row)return;
+    L.push({key,ord:row.order==null?4294967296:row.order,sub:row.sub|0,spe:spe|0,who:who||null}); };
   /* (1) `findFieldEventHandlers(field,'onFieldResidual','duration')` -- pseudoweathers, the sky, the
    * terrain. A SUPPRESSED sky is still in the list: suppression is read inside `runEvent`, not by the
    * collector, so `field.wSup` is deliberately not consulted here. */
@@ -9799,18 +9873,18 @@ function residualShadowBuild(field,sfA,sfB,actA,actB){
       const spe=(field&&field.tr>0)?-s0:s0;
       const at=S+si;
       const st=RESIDUAL_SHADOW_STATUS[_shadowId(m.status)];
-      if(st)push('status:'+st+'@'+at,R.byKey.get('status:'+st),spe);
-      for(const r of R.volatile)if(residualShadowVolPresent(r.id,m))push('vol:'+r.id+'@'+at,r,spe);
-      { const ab=_shadowId(m.ability); const r=R.byKey.get('ability:'+ab); if(r)push('ability:'+ab+'@'+at,r,spe); }
-      { const it=_shadowId(m.item);    const r=R.byKey.get('item:'+it);    if(r)push('item:'+it+'@'+at,r,spe); }
+      if(st)push('status:'+st+'@'+at,R.byKey.get('status:'+st),spe,m);
+      for(const r of R.volatile)if(residualShadowVolPresent(r.id,m))push('vol:'+r.id+'@'+at,r,spe,m);
+      { const ab=_shadowId(m.ability); const r=R.byKey.get('ability:'+ab); if(r)push('ability:'+ab+'@'+at,r,spe,m); }
+      { const it=_shadowId(m.item);    const r=R.byKey.get('item:'+it);    if(r)push('item:'+it+'@'+at,r,spe,m); }
       { const d=sf&&sf.slot&&sf.slot[si];
         const id=(d&&d.due)?(d.when==='futureHit'?'futuremove':(d.when==='endOfNextTurn'?'wish':'')):'';
-        if(id)push('slot:'+id+'@'+at,R.byKey.get('slot:'+id),spe); }
+        if(id)push('slot:'+id+'@'+at,R.byKey.get('slot:'+id),spe,m); }
       /* `findFieldEventHandlers(field,'onResidual',undefined,active)` -- Grassy Terrain's heal is the
        * one member, and it is collected per BODY and eleven orders above the terrain's own expiry. */
       { const tk=residualTerrainKey(field.terrain);
         const r=tk?R.byKey.get('fieldActive:'+tk):null;
-        if(r&&(field.terrainT|0)>0)push('fieldActive:'+tk+'@'+at,r,spe); }
+        if(r&&(field.terrainT|0)>0)push('fieldActive:'+tk+'@'+at,r,spe,m); }
     }
   }
   return L;
@@ -9858,11 +9932,14 @@ let _RES_SHADOW_GEN=-1,_RES_SHADOW_RANK=null,_RES_SHADOW_LIST=null;
 /* BUILT ONCE PER RESIDUAL PHASE, memoised against the same generation counter `residualOrder` uses.
  * The authority sorts its list ONCE at the top of `fieldEvent` and walks it; re-deriving per group
  * would let one tied pair come out one way at order 26 and the other way at 27. */
-function residualShadowRank(field,sfA,sfB,actA,actB){
+function residualShadowRank(field,sfA,sfB,actA,actB,force){
   if(RESIDUAL_SHADOW_OFF)return null;
-  if(_RES_SHADOW_GEN===_RES_TIE_GEN)return _RES_SHADOW_RANK;
+  /* ROADMAP #563 -- `force` builds the list whether or not two side clocks can tie, because the group
+   * walk now reads a BODY order off it on every phase. A phase that was memoised as "not needed" and
+   * is then forced is rebuilt once; a phase already built is served as before. */
+  if(_RES_SHADOW_GEN===_RES_TIE_GEN&&(_RES_SHADOW_LIST||!force))return _RES_SHADOW_RANK;
   _RES_SHADOW_GEN=_RES_TIE_GEN; _RES_SHADOW_RANK=null; _RES_SHADOW_LIST=null;
-  if(!residualShadowNeeded(field,sfA,sfB))return null;
+  if(!force&&!residualShadowNeeded(field,sfA,sfB))return null;
   const list=residualShadowSort(residualShadowBuild(field,sfA,sfB,actA,actB));
   const rank=new Map();
   for(let i=0;i<list.length;i++)rank.set(list[i].key,i);
@@ -42436,8 +42513,11 @@ function battleTurn(S,rng,actsForA,actsForB){
      * same moment: `fieldEvent` collects and sorts ONCE at the top of the residual (sim/battle.ts:490)
      * and everything below this line -- the weather chip, a faint, a Speed Boost -- happens after it.
      * Built here rather than at the first tie so it reads the same state the authority read; it costs
-     * nothing on a board where no two clocks can tie, because `residualShadowNeeded` says so first. */
-    residualShadowRank(field,sfA,sfB,actA,actB);
+     * nothing on a board where no two clocks can tie, because `residualShadowNeeded` says so first.
+     * ROADMAP #563, 2026-09-10 -- FORCED on every phase now (the `true`): the group walk reads the
+     * order of the bodies that hold a handler at each group's order off this list, so it is built
+     * whether or not a side clock can tie. Under `MEDI_RESIDUAL_SORTS_BODIES=1` the old gate stands. */
+    residualShadowRank(field,sfA,sfB,actA,actB,!RESIDUAL_SORTS_BODIES);
     /* ~~2026-08-26 -- AND `stall`'S DURATION IS SPENT HERE, because THIS is where the residual opens.
      * Above every remaining `break _TURN` and below the two that skip the residual entirely, which is
      * the whole point: a turn that ended before this line never spends the clock, exactly as
@@ -42633,7 +42713,10 @@ function battleTurn(S,rng,actsForA,actsForB){
      * at the close of the body loop; the flag is the group's because the authority's `this.ended`
      * survives from one handler to the next inside one `fieldEvent` walk. */
     let _grpExpiryFaint=false;
-    for(const m of residualOrder(actA,actB,field)){if(!m||m.fainted||m.curHP<=0)continue;
+    /* ROADMAP #563 -- the group's ORDER is named, so the bodies holding a handler at it come out in
+     * the authority's handler-list order (see `residualOrder`'s header). The per-group re-ask above
+     * still governs every body the list does not place. */
+    for(const m of residualOrder(actA,actB,field,{order:RESIDUAL_GROUPS[_gi].order})){if(!m||m.fainted||m.curHP<=0)continue;
       MEDSEEN.residualStepsRun+=_Gn;
       /* 2026-09-07 -- DID THIS BODY'S HANDLER TAKE THE DURATION-EXPIRY BRANCH? `fieldEvent`'s expiry
        * branch `continue`s PAST `faintMessages()` (sim/battle.ts:516-524), so a side wiped by an

@@ -70,18 +70,13 @@ const claim = (ok, what, detail) => {
 /* ---- THE FIXTURE, DERIVED ------------------------------------------------------------------------ */
 const CS = require(D('engine', 'champions_sim.js'));
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
-const LS = dex.data.Learnsets;
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
-const learns = (sp, mv) => {
-  let s = dex.species.get(sp); const id = dex.moves.get(mv).id;
-  while (s && s.exists) {
-    const e = LS[s.id];
-    if (e && e.learnset && e.learnset[id]) return true;
-    s = s.prevo ? dex.species.get(s.prevo)
-      : (s.baseSpecies && s.baseSpecies !== s.name ? dex.species.get(s.baseSpecies) : null);
-  }
-  return false;
-};
+/* ROADMAP #565 — THE LEGALITY GATE ASKS THE VALIDATOR, NOT THE RAW ROWS. The prevo walk this line
+ * replaced accepted any entry on the species or on a prevo whatever its SOURCE tag, so a move a prevo
+ * learned by a gen-7 TM (`7M`, `7V`) read as legal here while `TeamValidator` refused it — which is how
+ * illegal fixtures passed their own gates (tests/test-fixture-legality.js, batch 2).
+ * `champions_sim.canLearn` IS `checkCanLearn`, cached per pair. */
+const learns = (sp, mv) => CS.canLearn(sp, mv);
 
 const KANG = ['kangaskhan', 'Kangaskhanite', 'Scrappy', ['Double-Edge', 'Double Hit', 'Protect']];
 const CLEF = ['clefable', '', 'Unaware', ['Protect']];

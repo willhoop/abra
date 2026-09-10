@@ -13,6 +13,14 @@ silently rewritten; what changed and why is stated.
 ## [5.278.0] — 2026-09-10
 
 ### Added
+- **The residual trio, fixed at the handler list (ROADMAP #563).** `residualOrder` now sorts the bodies
+  holding a handler in the group being walked rather than every active body, matching the authority's
+  handler-list sort. Both derivation probes are green on current bytes and red under
+  `MEDI_RESIDUAL_SORTS_BODIES=1`. The header comment asserting the authority "cannot produce" that order
+  was false and is struck in place — it is why six batches left the trio unexplained.
+- **All 37 remaining raw-learnset walks in `tests/` now call `champions_sim.canLearn` (ROADMAP #565).**
+  The raw prevo walk accepted pre-Champions source tags, so probes could stage bodies this regulation
+  cannot field and still pass their own legality gate. Raw walks are at zero in `tests/`.
 - **The pre-commit hook passes on a fresh clone.** `tests/test-artifact-rerunnable.js` distinguishes a
   release absent from the machine from a stranded one and hashes every tracked release's COMMITTED bytes
   against its manifest (24 of 27 had never matched; renormalised in `0ec9c45a`); the bundle gate's mtime

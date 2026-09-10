@@ -35,13 +35,21 @@
  *   slow/fast    [X, s, X, F]: swap 0<->3 puts p2a's X ahead of p1a's     -> this engine p2a FIRST
  *   fast/fast    [X, F1, X, F2]: either swap history lands p2a first      -> this engine p2a FIRST
  * The authority answers p1a in every cell because its list is [leftovers, leftovers] in every cell.
- * The file REFUSES TO PASS if this engine gives the same answer on all four cells (then the partners did
- * not move the body sort and the knob is unwired), if either Leftovers fails to fire, if the pair's
- * cached Speeds differ, if a partner's Speed is not on the side of the pair the cell claims, or if the
- * authority's residual list holds anything but the two Leftovers entries.
+ * The file REFUSES TO PASS if either Leftovers fails to fire, if the pair's cached Speeds differ, if a
+ * partner's Speed is not on the side of the pair the cell claims, or if the authority's residual list
+ * holds anything but the two Leftovers entries.
  *
- * Exit 1 = a cell disagrees (the derivation stands and names its cell). Exit 0 = every cell agrees,
- * which on current bytes REFUTES it. Exit 2 = not run / could not stage. */
+ * ================= THE CONTROL, CHANGED 2026-09-10 WHEN THE FIX LANDED (ROADMAP #563) =================
+ * ~~The file REFUSES TO PASS if this engine gives the same answer on all four cells (then the partners did
+ * not move the body sort and the knob is unwired).~~ That guard was written against the BROKEN engine: a
+ * correct engine is indifferent to the partners on every cell, exactly as the authority is, so the guard
+ * could only ever pass while the defect stood. The wiredness of the fixture is now proved the other way
+ * round: this file re-runs ITSELF under `MEDI_RESIDUAL_SORTS_BODIES=1` (the body-only sort, the pre-fix
+ * walk) as a child process with `--knob-arm`, and refuses to pass unless that arm reads RED (exit 1) on
+ * the same derived fixture. A fixture the old sort cannot be seen swapping proves nothing.
+ *
+ * Exit 1 = a cell disagrees (the derivation stands and names its cell). Exit 0 = every cell agrees AND the
+ * knob arm reads RED. Exit 2 = not run / could not stage / the knob arm did not read RED. */
 'use strict';
 const path = require('path');
 const D = (...p) => path.join(__dirname, '..', ...p);
@@ -53,6 +61,7 @@ if (!arg('--release', null)) {
   process.exit(2);
 }
 if (!process.argv.includes('--team-store')) process.argv.push('--team-store', 'data/team-pool-frozen');
+const KNOB_ARM = process.argv.includes('--knob-arm');
 
 const SD = require(process.env.SHOWDOWN_PATH + '/dist/sim');
 let CAP = false; const SDRES = [];
@@ -154,7 +163,7 @@ console.log('    slow     ' + slow.name + ' (' + boostMoveOf(slow) + ')    fast 
 console.log('');
 console.log('  cell         partners p1b/p2b speed   authority heal order   medicham heal order   authority list');
 const CELLS = [['slow/slow', slow, slow], ['fast/slow', fast, slow], ['slow/fast', slow, fast], ['fast/fast', fast, fast]];
-let bad = 0, fixtureBad = 0; const meAnswers = new Set();
+let bad = 0, fixtureBad = 0;
 for (const [id, P1, P2] of CELLS) {
   const c = cell(id, pairSp, P1, P2);
   if (c.err) { console.log('  ' + id.padEnd(12) + ' THREW ' + c.err); fixtureBad++; continue; }
@@ -163,7 +172,6 @@ for (const [id, P1, P2] of CELLS) {
   const sideOk = pt && ((P1 === slow) ? pt.p1b.speed < X : pt.p1b.speed > X) && ((P2 === slow) ? pt.p2b.speed < X : pt.p2b.speed > X);
   const clean = c.res && cleanList(c.res) && pr.length === 2 && pr[0].speed === pr[1].speed && c.sd.length === 2 && c.me.length === 2 && sideOk && !c.res.trickRoom;
   const agree = JSON.stringify(c.sd) === JSON.stringify(c.me);
-  meAnswers.add(c.me.join(','));
   console.log('  ' + id.padEnd(12) + ' ' + (pt ? (pt.p1b.speed + '/' + pt.p2b.speed + ' (pair ' + X + ')') : '?').padEnd(25) + ' ' + c.sd.join(',').padEnd(22) + ' ' + c.me.join(',').padEnd(21) + ' '
     + (c.res ? c.res.handlers.map(h => h.who + ':' + h.id).join(' ') : '(none)')
     + (clean ? '' : '   <-- FIXTURE NOT CLEAN') + (clean && !agree ? '   <-- RED: the engines disagree' : ''));
@@ -171,10 +179,28 @@ for (const [id, P1, P2] of CELLS) {
 }
 console.log('');
 if (fixtureBad) { console.log('  NOT A PASS — ' + fixtureBad + ' cell(s) did not stage cleanly.'); process.exit(2); }
-if (meAnswers.size < 2) { console.log('  NOT A PASS — this engine gave the same heal order on every cell, so the partners never moved its body sort and the knob is unwired.'); process.exit(2); }
 if (bad) {
   console.log('  RED — ' + bad + ' of ' + CELLS.length + ' cells disagree. The authority\'s list is [leftovers, leftovers] in every cell and keeps p1a first; this engine\'s body sort lets a faster body with NO handler swap the tied pair. Fix site: engine/medicham2-browser.js residualOrder sorts every active body (fainted included) rather than the bodies that hold a handler in the group being walked.');
   process.exit(1);
 }
-console.log('  GREEN — every cell agrees. On current bytes this REFUTES the handler-less-body derivation.');
+if (KNOB_ARM) {
+  console.log('  knob arm (MEDI_RESIDUAL_SORTS_BODIES=1) — every cell agrees, so the body-only sort did NOT swap the pair on this fixture. The parent reads this as an unwired control.');
+  process.exit(0);
+}
+/* THE CONTROL: the same file, the same fixture, under the knob that restores the body-only sort. It must
+ * read RED, or the fixture cannot see the defect it was staged for. `--knob-arm` stops the child spawning
+ * a child of its own. */
+{
+  const { spawnSync } = require('child_process');
+  const child = spawnSync(process.execPath, [__filename, ...process.argv.slice(2), '--knob-arm'],
+    { env: Object.assign({}, process.env, { MEDI_RESIDUAL_SORTS_BODIES: '1' }), encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  const tail = String(child.stdout || '').trim().split(/\r?\n/).filter(l => /^\s{2}(slow|fast)\/(slow|fast)|RED|GREEN|NOT A PASS|knob arm/.test(l));
+  console.log('  control — the same fixture under MEDI_RESIDUAL_SORTS_BODIES=1 (the body-only sort), exit ' + child.status + ':');
+  for (const l of tail) console.log('    | ' + l);
+  if (child.status !== 1) {
+    console.log('  NOT A PASS — the knob arm did not read RED, so the body-only sort never swapped this pair and the fixture proves nothing about the fix.');
+    process.exit(2);
+  }
+}
+console.log('  GREEN — every cell agrees with the authority, and the body-only sort under MEDI_RESIDUAL_SORTS_BODIES=1 reads RED on the same fixture (the control is wired).');
 process.exit(0);
