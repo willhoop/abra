@@ -10,6 +10,77 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.0.0] — 2026-09-10
+
+### Changed
+- **THE MEDICHAM GATE IS OPEN — 9 OF 9 CLAUSES PASS on release `cbd510bc2b13` against Showdown commit
+  `20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4` — AND THIS IS A MAJOR BECAUSE THE BASIS MOVED, NOT
+  BECAUSE A BACKLOG NEEDED EMPTYING.** `data/game-differential.json`: BOARD-MATERIAL **0 of 961**
+  (`state.games` 961 less `state.games_board_never_diverged` 961), `state.games_void_excluded` 0,
+  `state.games_cut_off_by_the_turn_cap` 0 at `turns_cap` 50, `state.turn_boundaries_compared` 10,705
+  equal to `state.turn_boundaries_identical`, `state.first_board_divergences` empty, and
+  `end_state[0].summary.verdicts` SAME-END-STATE 960 / DIFFERENT-END-STATE 0 / ENDED-APART 0 / THREW 1.
+  NARRATION **0 undeclared of 961**, being `state.protocol_diverged_board_never_did` 1 less the one
+  closeted row (the perish drain above `|upkeep|`, ROADMAP #440, Will 2026-08-28).
+  `data/engine-diff.json` 6,000 compared / 0 disagreed at 17 roll indices.
+  `data/roster.items.json` 142 tested, `data/roster.abilities.json` 139 tested,
+  `data/roster.moves.json` 487 tested, all `differ` 0 and DID-NOT-FIRE 0, scope by legal carrier.
+  `data/mechanics-census.json` 835 live of 835 probed. `data/all-mechanics-fire.json` 1,313 games,
+  0 threw. **This is not 5.0.0 again:** that opening was measured on a coverage-seeking driver whose
+  games did not end, and was retracted at 5.243.0. This one is real teams, real recorded clicks,
+  whole games, one tracked release.
+- **The living-document set is folded in from 87 notes rows.** `docs/ABRA-whitepaper.md`,
+  `docs/ABRA-deck-plain-english.md`, `docs/ABRA-technical-docs.md`, `docs/SUMMARY.md`,
+  `docs/MODELS.md` and `docs/DAMAGE-STAGES.md` each carry a 6.0.0 block and a 6.0.0 header, and their
+  MEDICHAM sections are rewritten from the artifacts rather than restamped. Every `[Unreleased]`
+  heading in `docs/RUNNING-NOTES.md` is renamed to the version it landed as, **derived from the commit
+  that added the row** (its parent's CHANGELOG top, then the next version cut) rather than typed.
+  `node engine/docs_scan.js --owed` reads 0 of 100.
+- **All 23 cited-artifact mismatches in the living set are cleared, and none by a re-run.** Each was
+  re-cited against what its artifact says today where the claim still held — `data/wire-ladder.json`
+  `games_per_arm` is 1,997 and the white paper had written 1,995 since 3.68.0; `data/pory-eval.json`
+  `reduced_form` now reads 0.9809 / 1.4093; `data/side-selection-census.json` reads 103 sites with 78
+  undeclared; `data/protocol-events.json` reads `emittedCount` 44 and `notEmittedCount` 50 — or marked
+  as the dated reading it was. Two were notation rather than measurement: `24.2 / 26.5` in the
+  residual-order paragraph are order-and-subOrder pairs, and an ISO timestamp was being lexed as a
+  figure. `node engine/docs_scan.js --quarantine` reads **0 cited-artifact mismatches** and 0
+  retracted figures restated as fact.
+- **A PARTIAL LIFT, STATED AS ONE, AND NOTHING WAS RE-RUN.** `node engine/quarantine.js` lists 64
+  artifacts downstream of MEDICHAM that are now RE-RUNNABLE; `node engine/major_readiness.js` splits
+  them **40 LIFT / 24 STAY**. The 24 STAY because their generator writes or reads
+  `data/policy-weights.json`, or is MILTANK, and the MAG refit is sequenced after this release.
+  **The 40 were left stale by the owner's instruction** (Will, 2026-08-11: *"Dont re run the
+  artifacts weve bene over this"*), so leaf calibration, the leaf/engine contrast, the click-censoring
+  census, every rollout figure and every speed artifact remain ABSENT from the documents with their
+  generator named. Announcing "the quarantine lifted" while any of that is true would be the
+  PRE-CHANGE caption in a new costume.
+
+### Notes
+- **WHAT "CORRECT" DOES NOT MEAN, IN THE DOCUMENTS AND HERE.** The board comparison reads 54 of the 80
+  leaves a legal mechanic can write, and 54 is the ceiling: `tests/probe_uncompared_leaves.js`
+  `derive()` reads `hole` 20, of which 18 are duration-1 leaves ended in the residual and 2 remove
+  themselves inside the action, so `standing_at_the_boundary` is 0. `state.not_compared` declares 8
+  further board fields with a reason each. A board difference erased before a turn boundary is
+  invisible — measured at 2 of 19 narration causes on the batch V population, both since fixed. The
+  damage differential skips 134 multi-hit and 17 Parental Bond comparisons by construction, so the
+  volley loop has never been damage-compared there. Spreads are synthetic; natures are real. 43 teams
+  are dropped from the pool for carrying Illusion. **And "0 of 961" is one arm:** the two speed-tie
+  corner arms, measuring for the first time since 2026-09-10, part 16 of 961 and 15 of 961 on this
+  same release, with the ties themselves clean.
+- **THE MAG REFIT STAYS OWED AND IT IS A REFIT, NOT A RESTAMP.** `data/policy-weights.json` was not
+  touched; the damage table underneath the fitted vector has moved, so the feature function's input
+  changed and a restamp would write over the evidence for the refit instead of answering it.
+- **8 untraceable figures in the living set are handed to the owner rather than invented or deleted:**
+  DODUO's held-out log-likelihood table in `docs/MODELS.md`, the paired refit table in
+  `docs/ABRA-whitepaper.md` and `docs/MEASURE.md` §13, and the partial-label EM validation table in
+  `docs/ABRA-whitepaper.md`. Each needs a judgement on a model that is Will's, and each has two
+  options written out in `docs/_reports/2026-09-10-untraceable-sweep.md` §3.
+- Phase 1 of the four-phase plan is reached; phase 2 (ROADMAP #62) has not begun.
+- WEB is paused, so the live site is NOT updated by this release (`tests/test-site-sync.js` waived by
+  Will, 2026-09-09). Local: yes. GitHub: owed to the publisher. Live site: not updated.
+
+---
+
 ## [5.283.0] — 2026-09-10
 ### Added
 - **THE BOARD NOW COMPARES ITEM DISPOSITION, AND IT WAS WIRED ONLY AFTER ITS OWN `wrong_if` WAS

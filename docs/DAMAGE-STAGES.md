@@ -1,6 +1,13 @@
 # DAMAGE-STAGES — our damage formula against the authority, stage by stage
 
-**Version: 5.266.0 — 2026-09-06.**
+**Version: 6.0.0 — 2026-09-10.**
+
+**6.0.0 - NOTHING IN THE DAMAGE CHAIN MOVED, AND THE DIFFERENTIAL THAT SAYS SO IS RE-RUN ON THE RELEASE THAT OPENED THE MEDICHAM GATE.** `data/engine-diff.json`, generated `2026-09-10T09:53:03Z` on release `cbd510bc2b13` against Showdown commit `20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4`, reads `requested` **6,000**, `compared` **6,000**, `agreed` **6,000** and `disagreed` 0, at the midpoint and at every arm in `arms` — `top`, `bottom` and `idx01` to `idx14` — with `seed` 20260804 and `band_missing` 0. No stage, no multiplier and no rounding on this page changes. Beside it `accuracy_conformance` reads 500 compared and 0 disagreed, `accuracy_modifier_conformance` 13 handlers over 14 rows with 0 disagreed, and `substitute_bypass_conformance` 500 compared with `missing` and `extra` both empty.
+
+**THE SKIP IS A FAMILY, IT IS NOW TWO FAMILIES, AND IT IS STATED EVERY TIME.** `data/engine-diff.json` `skipped_multihit` is **134** comparisons across the moves in `skipped_multihit_moves`, because `dmgRange` prices a whole click and one `moveHit` call is one packet; `skipped_ability_multihit` is a further **17** Parental Bond clicks across the moves in `skipped_ability_multihit_moves`; and `pool.dropped` 9 prior rows have no damage-table row and can never be drawn. **The volley loop has still never been damage-compared here**, and a clean 0 of 6,000 says nothing about it. It IS exercised in whole games (`data/game-differential.json`, board-material 0 of 961) and staged in the roster, which is where its evidence lives.
+
+**AND THE HABIT THAT MAKES THIS RE-RUN LOOK RED IS THE SAME ONE NAMED AT 5.265.0.** `tests/test-engine-diff.js` invoked with no `--n` defaults to 150 comparisons against a published 6,000-comparison artifact. A smaller sample is not a contradiction of the larger one, and reading it as a regression is how a green chain gets reported red.
+
 
 **5.266.0 - NOTHING IN THE DAMAGE CHAIN MOVED, AND THIS TIME THE DIFFERENTIAL THAT SAYS SO IS RE-RUN AND PUBLISHED RATHER THAN WITHHELD.** 5.265.0 withheld it: the hazard-sweep order fix had moved `engine/medicham2-browser.js`, so `data/engine-diff.json` had been measured on release `d9e551ed0d5a` while the tree was `57679ef9a4a3`, and a damage verdict about other bytes is not a damage verdict. The re-run is done on the current release. **`data/engine-diff.json` on release `57679ef9a4a3` reads 0 disagreements of 6,000 comparisons**, seed 20260804, requested 6,000, clean at the midpoint and at every one of the sixteen band indices. No file in the damage chain was edited on this pass and no release SOURCE was touched.
 

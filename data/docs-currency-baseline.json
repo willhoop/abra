@@ -1,8 +1,8 @@
 {
-  "generated": "2026-09-10T08:11:13.818Z",
+  "generated": "2026-09-10T10:46:15.750Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "5.281.0",
+  "changelog_top_at_baseline": "6.0.0",
   "version_pins": {
     "docs/ADR-002-showdown-is-the-authority.md": {
       "version": "3.50.0",
@@ -184,22 +184,6 @@
       "docs/THESIS-DEFENCE-REVIEW-2026-09-09.md|71.6%|71.6%"
     ],
     "citation_mismatches": [
-      "docs/ABRA-technical-docs.md|21|data/side-selection-declarations.json,data/side-selection-census.json",
-      "docs/ABRA-technical-docs.md|81|data/side-selection-census.json",
-      "docs/ABRA-technical-docs.md|81|data/side-selection-declarations.json,data/side-selection-census.json",
-      "docs/ABRA-technical-docs.md|82|data/side-selection-census.json",
-      "docs/ABRA-whitepaper.md|1,995|data/wire-ladder.json",
-      "docs/ABRA-whitepaper.md|181|data/mechanics-census.json",
-      "docs/ABRA-whitepaper.md|19,589|data/quality-filter.json",
-      "docs/ABRA-whitepaper.md|24.2|data/residual-order.json",
-      "docs/ABRA-whitepaper.md|26.5|data/residual-order.json",
-      "docs/ABRA-whitepaper.md|26|data/policy-eval.json",
-      "docs/ABRA-whitepaper.md|322|data/policy-weights.json",
-      "docs/ABRA-whitepaper.md|8,713|data/quality-filter.json",
-      "docs/MODELS.md|0.9943|data/pory-eval.json",
-      "docs/MODELS.md|1.256|data/pory-eval.json",
-      "docs/MODELS.md|1.4080|data/pory-eval.json",
-      "docs/MODELS.md|1.544|data/pory-eval.json",
       "docs/RUNNING-NOTES.md|0.2914|data/policy-eval.json",
       "docs/RUNNING-NOTES.md|0.2979|data/policy-eval.json",
       "docs/RUNNING-NOTES.md|0.3045|data/policy-eval.json",
@@ -221,14 +205,7 @@
       "docs/RUNNING-NOTES.md|6.5|data/register-reality.json",
       "docs/RUNNING-NOTES.md|61|data/policy-weights.json",
       "docs/RUNNING-NOTES.md|67,384|data/policy-weights.json",
-      "docs/RUNNING-NOTES.md|76,833|data/policy-weights.json",
-      "docs/SUMMARY.md|1,163,315|data/live.js",
-      "docs/SUMMARY.md|144|data/guru-matchups.json",
-      "docs/SUMMARY.md|19,589|data/quality-filter.json",
-      "docs/SUMMARY.md|3.6978|data/policy-eval.json",
-      "docs/SUMMARY.md|56|data/policy-weights.json,data/protocol-events.json",
-      "docs/SUMMARY.md|8,713|data/quality-filter.json",
-      "docs/SUMMARY.md|85|data/smogon-coverage-2026-08.json"
+      "docs/RUNNING-NOTES.md|76,833|data/policy-weights.json"
     ],
     "untraceable_by_doc": {
       "docs/ABRA-whitepaper.md": 5,

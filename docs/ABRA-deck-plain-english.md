@@ -1,6 +1,16 @@
 # ABRA — the plain-English deck
 
-**Version 5.266.0 · 2026-09-06 · Will Hooper**
+**Version 6.0.0 · 2026-09-10 · Will Hooper**
+
+**6.0.0 - THE SIMULATOR PASSES. WE PLAY 961 REAL GAMES THROUGH OUR SIMULATOR AND THROUGH THE OFFICIAL ONE, AND THE BOARD NEVER DIFFERS - NOT ONCE, IN ANY GAME, AT ANY TURN WE CHECK.**
+
+**WHAT THE NUMBER IS.** We take 961 real ladder games played by real people, from a frozen copy of their teams, play every move the way real players actually clicked, force both simulators to roll the same dice, and then compare the board at the end of every turn. That is 10,705 turn boundaries. **On 0 of 961 games do the two boards ever differ.** We did not throw a single game away to get there, and we did not cut any game short: we watch for 50 turns and the longest game lasts 36. Last version this number was 27 of 961.
+
+**THE COMMENTARY IS A SEPARATE TEST, AND IT PASSES TOO.** Both simulators also write a running commentary of what happened. Once the boards stopped differing, Will made "does the commentary match?" a second bar, and it also reads zero - with exactly one exception we chose on purpose. One message about Perish Song is printed one line early on our side. It changes nothing on the board, we measured that it changes nothing, and Will ruled it acceptable on 2026-08-28. **That is a defect we decided not to fix, not one we missed**, and the tool prints it every time it runs.
+
+**WHAT THE NUMBER IS NOT.** It is about the parts of the board we check - 54 of the 80 things a move or ability can change. The other 26 are either gone before the turn ends, so nothing could ever see them, or they are 8 fields we have declared unchecked with a written reason each. A difference that appears and vanishes inside a single turn cannot be caught this way; we measured how often that had happened among the commentary differences we still had at one point, found 2 in 19, and fixed both. It is about real teams people actually brought, so it says nothing about a mechanic nobody used - a separate lab test stages every legal item, ability and move one at a time, and 142, 139 and 487 of them pass with none failing. And it is measured on one setting of the dice. **We also run two deliberately extreme dice settings, and those are not zero: they part on 16 games and on 15.** We publish those beside the headline rather than under it.
+
+**WHAT COMES BACK AND WHAT DOES NOT.** About 40 older results stop being blocked and become re-runnable - including our headline score, which is whether the engine's own confidence is honest. **Re-runnable is not the same as true, and we have not re-run any of them.** Will asked for them to be left alone: he is rebuilding the bot's weights and the search player, and re-running now would be work done twice. **A further 24 stay blank whatever we do**, because they depend on those weights. So this release restores nothing. It removes the reason those numbers were blocked, and names the reason each one is still blank. A note beside a number is not the same as leaving it out, and we leave them out.
 
 **5.266.0 - LAST VERSION WE PUBLISHED A BLANK WHERE OUR MAIN SCORE GOES. WE HAVE MEASURED IT AGAIN AND THE SCORE IS BACK.**
 
@@ -1112,12 +1122,13 @@ and we ran it over a large set of real ladder games twice: once through the old 
 the fixed one, on the same games with the same dice. The two engines differ in exactly one file, so
 nothing else can explain a difference.
 
-**We are not allowed to tell you what came out, and that is deliberate.** The simulator those scores
-were produced on has not passed its own correctness gate, so every number from this comparison is
-WITHHELD rather than printed with a warning beside it — this project has learned that a warning beside
-a number does not stop the number being quoted. There is no score, no error bar, no sample size and no
-count of who-got-what-right here, and you should not read the silence as "it was small" or "it was
-big". The moment the gate opens the comparison is re-run and the answer goes back in.
+**We still cannot tell you what came out, and at 6.0.0 the reason has changed.** The simulator those
+scores were produced on has now passed its correctness gate — but the scores were produced on the OLD
+simulator, so the comparison has to be run again before any of it means anything. It has not been run
+again: Will asked for the whole downstream set to be left alone until he has rebuilt the bot's weights
+and the search player. So there is still no score, no error bar, no sample size and no count of
+who-got-what-right here, and you should not read the silence as "it was small" or "it was big". It is
+one command away, on the day he wants it.
 
 What we CAN say is how it was built, because that part does not depend on the simulator being right:
 the same games, the same dice, two frozen copies of the code differing in exactly one file, a noise
@@ -1204,9 +1215,10 @@ in, and never has to re-download anything. It runs on a normal laptop; no specia
 
 Each model is a "house" you can visit on the site:
 
-- **MEDICHAM** — the damage engine. Matches the community standard, but disagrees with the game's
-  OFFICIAL engine by a wide margin, so it is being replaced by that engine and kept only as a
-  lookup.
+- **MEDICHAM** — our own battle simulator. As of 6.0.0 it agrees with the game's OFFICIAL engine on
+  the board at every checked turn of 961 real games, on 6,000 of 6,000 damage rolls, and on every
+  legal item, ability and move we can stage. It exists because it is much faster than the official
+  engine; whether that speed buys anything is the next question, and it is not settled.
 - **MEW** — plays the official engine against itself, so we are not limited to the games people
   happen to upload.
 - **GURU** — reads the metagame: which team styles beat which, from real results, with error bars.
@@ -1414,6 +1426,10 @@ was measured on a version of the bot that no longer exists, and the new attempt 
 better than quoting a number we cannot stand behind — that number had been called the most important
 one in the project.
 
+**Still true at 6.0.0, and now by choice rather than by accident.** The measurement that would answer
+it reads the bot's weights, and Will is rebuilding those after this release, so it stays blank until
+then. The simulator passing its gate did not release this one.
+
 One thing did survive, and it is genuinely useful: when the bot plays a mirror match against itself it
 wins 49.7% of the time, which is a coin flip. That confirms our testing setup does not quietly favour
 one side — a worry an earlier, smaller sample had raised.
@@ -1469,9 +1485,9 @@ replay just shows you using that move. Because it is a move you legitimately own
 said "looks like a normal choice" and the model dutifully learned it as one. The same thing happened
 whenever Roar or Whirlwind blew a Pokémon in — the replay writes that arrival exactly like a
 voluntary switch, so we were teaching the bot to make switches the player never made. **A slice of the
-recorded actions we were learning from were things no human chose.** The counts are WITHHELD — they
-come out of the fitted model's own corpus file, which was built on a simulator that has not passed its
-correctness gate — but the mechanism does not depend on the count: it is not a rounding error being fed
+recorded actions we were learning from were things no human chose.** The counts are still absent — they
+come out of the fitted model's own corpus file, which was built on the old simulator and has not been
+rebuilt — but the mechanism does not depend on the count: it is not a rounding error being fed
 to the model, it is outright fiction, and it was concentrated on the turns where the opponent had just
 outplayed the player. Those are gone now, and counted, so the number comes back the moment it may be
 quoted.
@@ -1690,8 +1706,8 @@ per battle. Today's counts 11, and every game reaches a real ending. Those are n
 being counted, so lining them up and dividing produces a number that means nothing. We are running a
 proper comparison across saved copies of the engine; until it finishes, **the only speed figure we
 will stand behind is today's.** (A reading from the middle of that period exists too. We are not
-printing it, because it lives in a file our own quarantine rules say we may not quote from yet, and
-the honest thing is to leave it out rather than print it with an excuse attached.)
+printing it, because it lives in a file that was measured on the old engine and has not been measured
+again, and the honest thing is to leave it out rather than print it with an excuse attached.)
 
 **Why we're telling you rather than quietly fixing it.** Three things.
 

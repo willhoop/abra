@@ -1,6 +1,130 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 5.266.0 · Last updated 2026-09-06**
+**Version 6.0.0 · Last updated 2026-09-10**
+
+**6.0.0 — MEDICHAM IS CORRECT AGAINST THE OFFICIAL SIMULATOR ON THE PINNED POOL, AND THE GATE IS OPEN. BOARD-MATERIAL 0 OF 961 WITH NONE EXCLUDED; NARRATION 0 UNDECLARED OF 961; RELEASE `cbd510bc2b13`. THIS IS A MAJOR BECAUSE THE BASIS MOVED, AND IT IS A PARTIAL LIFT.**
+
+**THE HEADLINE, WITH BOTH OPERANDS OF EVERY SUBTRACTION NAMED, BECAUSE THE WRONG OPERAND WOULD READ
+GREENER AND LOOK RIGHT.** `data/game-differential.json`, generated `2026-09-10T09:57:55Z` on release
+`cbd510bc2b13` against Showdown commit `20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4`: the gating quantity
+is `state.games` **961** less `state.games_board_never_diverged` **961**, which is **0**. No game was
+dropped to reach it — `state.games_void_excluded` is 0 against `state.games_before_void_exclusion`
+**961** — and none was cut short: `state.games_cut_off_by_the_turn_cap` is 0 at `turns_cap` **50**, and
+the longest game reaches turn **36**. `state.turn_boundaries_compared` **10,705** equals
+`state.turn_boundaries_identical` **10,705**, and `state.first_board_divergences` is empty. Every game
+ends the same way on every compared leaf: `end_state[0].summary.verdicts` reads SAME-END-STATE **960**,
+DIFFERENT-END-STATE 0, ENDED-APART 0, NO-COMPARABLE-BOARD 0 and THREW 1, the last being a harness
+choice rejection recorded in `errors[0]` rather than a rule disagreement. **This is the quantity Will
+named on 2026-08-22 — commentary may differ, boards may not — and it is met.**
+
+**THE NARRATION CLAUSE IS THE SECOND GATE WILL NAMED THAT DAY, IT BECAME A GATE THE MOMENT THE BOARDS
+STOPPED PARTING, AND IT READS ZERO.** In the same artifact `state.protocol_diverged_games` is 1 and
+`state.protocol_diverged_board_never_did` is 1; `state.board_parted_before_the_protocol_did` and
+`state.protocol_diverged_board_held_longer` are both 0; `end_state[0].summary.by_cause_totals` reads
+causes 1, NARRATION_ONLY 1, BOARD_MATERIAL 0, with `by_cause_reconciles` true. The single remaining row
+is DECLARED and does not vote — the perish drain written above `|upkeep|` where the authority puts it
+below, a real defect the owner closeted on 2026-08-28 (ROADMAP #440) and which `engine/status.js`
+prints on every run. **It is a lower bound, not a count of defects**: a game records only its FIRST
+divergence, so a defect that is never earliest is not in this number at all.
+
+**THE BOUND ON THE WORD "CORRECT", STATED WITH THE HEADLINE AND NOT BELOW IT.** The board comparison
+reads **54** of the **80** leaves a legal mechanic can write, and 54 is the CEILING rather than a
+shortfall: `tests/probe_uncompared_leaves.js` `derive()` reads `compared` 54, `ceiling` 54, `total` 80,
+`hole` 20 and `standing_at_the_boundary` 0, because 18 of the 20 are duration-1 leaves ended in the
+residual and 2 remove themselves inside the action, so neither can be standing when the comparator
+looks. Beside that, `state.not_compared` in `data/game-differential.json` declares 8 board FIELDS
+uncompared with a reason each — ability trapping, the yawn/attract/curse/heal-block volatiles,
+Unburden, Power Shift, the rampage count with the Ally Switch ladder, the two slot-condition
+countdowns, the trapper mark on the source, and the magnet-rise and syrup-bomb durations. **A board
+difference that exists only inside a turn and is gone by the boundary is invisible to this
+instrument**; that rate was measured at **2 of 19** narration causes on the batch-V population
+(`CHANGELOG.md` 5.273.0, retracted there from 3 of 19), and both were fixed. It is also a claim about
+**one driver** and about **real teams**.
+
+**THE SAMPLE, WHICH IS PART OF THE CLAIM.** `data/game-differential.json` `steering.policy` is
+`empirical-click/v1` — at every decision the driver draws from real recorded human play, P(move |
+species) over `data/game-differential.json:steering.driver_inputs` — **345** rows of `data/move-priors.json`
+— with a voluntary switch at the **9.98%** conditional rate measured in `data/rollout-switch-census.json`.
+The teams are real: `steering.team_store_pinned_to` is `data/team-pool-frozen`,
+`steering.team_pool_teams` **8,778** with `steering.team_pool_picked` **1,968** and
+`steering.team_pool_digest` `0d103fb9fa87`. Mode A pins every die on both engines (`pins.digest`
+`de38d17e15a2`), the census pin is `steering.input_digest` `ab219c68f165`, and the flags were
+`--steering empirical --arm middle --end-state --games 1200 --turns 50 --team-store data/team-pool-frozen`
+— **the game count is part of the sample definition and not a budget**, so it is recorded with the
+figure. Three exclusions are declared rather than absorbed: **43** teams are dropped from the pool for
+carrying Illusion (`closet.teams_dropped`, ROADMAP #160, Will 2026-08-11); the spreads are synthetic
+because an open sheet reveals none (`declared_gaps.spreads_absent`), while the natures are REAL —
+`declared_gaps.nature_declared` **17,440** against `declared_gaps.nature_fallback_to_serious` **96**;
+and `declared_gaps.mega_stones_kept` is **2,626** with `declared_gaps.mega_stones_stripped` 0.
+
+**THE DAMAGE DIFFERENTIAL, AND WHAT IT SKIPS BY CONSTRUCTION.** `data/engine-diff.json`, generated
+`2026-09-10T09:53:03Z` on the same release: `requested` **6,000**, `compared` **6,000**, `agreed`
+**6,000**, `disagreed` 0, at the midpoint and at every further roll index in `arms` — `top`, `bottom` and `idx01`–`idx14`, each 6,000 compared and 0 disagreed — with `seed` 20260804 and
+`band_missing` 0. It skips `skipped_multihit` **134** comparisons across the moves listed in `skipped_multihit_moves` and
+`skipped_ability_multihit` **17** Parental Bond clicks across the moves listed in `skipped_ability_multihit_moves`, because `dmgRange` prices a
+whole click and one `moveHit` call is one packet, and `pool.dropped` 9 prior rows have no damage-table
+row to draw. **The volley loop has therefore never been damage-compared here** — it is compared in
+whole games and staged in the roster, and that is the honest statement of the gap. Beside them
+`accuracy_conformance` reads 500 compared and 0 disagreed, `accuracy_modifier_conformance` 13 handlers
+over 14 rows with 0 disagreed, and `substitute_bypass_conformance` 500 compared with 51 in set, none
+missing and none extra.
+
+**THE DELIBERATE ROSTER, WITH SCOPE DECIDED BY LEGAL CARRIER RATHER THAN BY A SHAPE RULE.** Every stage
+derives its population over the **347** legal species of this regulation before any other filter runs
+(`data/roster.items.json` `scope.carrier_derivation`, predicate `exists && !isNonstandard && tier !==
+"Illegal"`, including 72 mega and 83 battle-only formes). `data/roster.items.json` `scope`: 148 in
+scope, **142 tested**, `differ` 0, DID-NOT-FIRE 0, 6 fixture gaps. `data/roster.abilities.json`
+`scope`: 316 total of which **115 have no legal carrier in this regulation** and are therefore not
+rows, 201 in scope, **139 tested**, `differ` 0, DID-NOT-FIRE 0, 43 fixture gaps, 14 CONTROL-NOT-QUIET
+and 5 deferred by the owner. `data/roster.moves.json` `scope`: 500 total, 2 with no legal carrier, 498
+in scope, **487 tested**, `differ` 0, DID-NOT-FIRE 0, 8 fixture gaps and 3 deferred. Each stage carries red demonstrations that ran:
+`plant_anchors` in `data/roster.items.json`, `data/roster.abilities.json` and `data/roster.moves.json`
+reads `checked` 18, 44 and 36 with `dead` empty and `reds_ran` true, so the greens are not vacuous. **The fixture gaps and the fourteen are the deprioritised lab
+tail** (Will, 2026-08-23), carried and named rather than removed, and never described as
+"unaccounted".
+
+**THE CENSUS AND THE STAGED GAMES.** `data/mechanics-census.json` reads `probed` **835**, `live`
+**835**, `armed` **835**, `missing` 0, `unarmed` 0, `hollow` 0, `threw` 0 and `run_ok` true.
+`data/all-mechanics-fire.json` plays **1,313** staged games with `games_threw` 0 and
+`sheets_unassembled` 0. The census is CREDITED ONLY in the differential — it measures coverage and no
+longer selects the sample.
+
+**THE TWO SPEED-TIE CORNER ARMS ARE THE HONEST EDGE OF THE HEADLINE, AND THEY DO NOT READ ZERO.**
+"Board-material 0 of 961" is a statement about ONE ARM, `middle`. The two corner arms were fixed on
+2026-09-10 — `--arm` had moved which arms RAN and not which arm's games became `results`, so a
+corner-only run published `0 − 0`, byte-identical to a perfect score — and on the current release they
+part **16 of 961** and **15 of 961** — `state.games` less `state.games_board_never_diverged` on
+`data/verification/gd-top-tie-first-2026-09-10.json` and
+`data/verification/gd-bottom-tie-first-2026-09-10.json`, both stamped release `cbd510bc2b13`, both
+recorded in `CHANGELOG.md` 5.282.0. Both engines
+draw from the same constant at a corner, so this is not dice noise. **The ties themselves are clean**:
+`speed_ties.tied_groups_resolved` reads 38,319 in `data/verification/gd-top-tie-first-2026-09-10.json`
+and 32,690 in `data/verification/gd-bottom-tie-first-2026-09-10.json`, and none of the parted boards is
+attributable to tie order (`docs/_reports/2026-09-10-corner-arms.md`). The corner arms are the pinned pool played at an extreme
+of the damage roll; they are reported because a headline measured on one arm should say so.
+
+**WHAT LIFTS AND WHAT STAYS WITHHELD — THIS IS A PARTIAL LIFT AND IS WRITTEN AS ONE.**
+`node engine/quarantine.js` prints **GATE: OPEN** and lists **64** artifacts that are downstream of
+MEDICHAM and are now RE-RUNNABLE. Re-runnable is not true: every one was measured under an engine that
+has since changed, so each must be re-run before it is quoted (ROADMAP #57). `node
+engine/major_readiness.js` splits them: **40 LIFT** — they would become quotable on a re-run — and
+**24 STAY**, because their generator writes or reads `data/policy-weights.json`, or is MILTANK, and
+Will sequenced the MAG refit after this release. **NONE OF THE 40 WAS RE-RUN FOR THIS VERSION, BY THE
+OWNER'S INSTRUCTION** (Will, 2026-08-11: *"Dont re run the artifacts weve bene over this"* — he is
+reworking MAG and MILTANK and does not want the time spent twice). So every figure downstream of
+MEDICHAM in this paper is **absent, with its generator named**, and no reader may infer a direction
+from the absence. **Leaf calibration — this project's one measurement number — is among the 40 and is
+not stated anywhere in this version.**
+
+**WHAT THIS VERSION DOES NOT ESTABLISH, WRITTEN OUT SO IT CANNOT BE INFERRED.** That MEDICHAM is
+correct on a mechanic nobody brought to the frozen pool: the pool is usage-weighted by construction,
+and the roster and census carry that tail entity by entity with their gaps listed above. That any model
+downstream is good, or even measured: a quarantined figure became re-runnable, not true, and none was
+re-run. That the corner arms are clean — they are not, and their number is printed above. That search
+pays (ROADMAP #62): phase 1 of §0.3 is reached and phase 2 has not begun. **The MAG refit stays OWED
+and it is a REFIT rather than a restamp:** `data/policy-weights.json` was not touched, and the damage
+table under the fitted vector has moved, so the feature function's input changed and a restamp would
+write over the evidence for the refit instead of answering it.
 
 **5.266.0 — THE WHOLE-GAME FIGURES ARE RESTORED ON MEASURED COUNTS: BOARD-MATERIAL 27 OF 961, PROTOCOL FIRST DIVERGENCE 93 OF 961, NARRATION-ONLY 70 OF 961, ON RELEASE `57679ef9a4a3`.** 5.265.0 published no whole-game count anywhere, and that was the correct answer at the time: the hazard-sweep order fix moved `engine/medicham2-browser.js`, so every whole-game artifact had been measured on release `d9e551ed0d5a` while the tree was `57679ef9a4a3`, and `engine/status.js` withheld rather than captioned. The re-measurement has been done. **This is a restoration and is written as one, not a silent reappearance.** `data/game-differential.json` is republished, generated `2026-09-06T17:42:35Z`, with pins identical to the superseded run: 961 games, cap 20, arm `middle`, steering `empirical-click/v1`, `--end-state`, census pin `data/verification/census-pin-9446a684709d.json`, pool `--team-store data/team-pool-frozen`, `team_pool_digest` `0d103fb9fa87` over 1,968 teams picked from a corpus of 8,778. Full account: `docs/_reports/2026-09-06-publish-5266.md`.
 
@@ -98,7 +222,7 @@
 
 **TWO PREDICTIONS MISSED AND BOTH MISSES ARE THE SAME CLASS OF ERROR, WHICH IS WHY THEY ARE PUBLISHED.** The Leech Seed step called **58 / 157** and read **56 / 158**: it reasoned from `state.first_board_divergences`, which is **capped at 40 rows and is a SAMPLE rather than the population**, and the sowerless chip was in the other nineteen. The Fairy Aura step called **54 / 156** and read **51 / 153**: it credited only the causes that name a Floette-Mega as the damage target, when the aura prices any Fairy move by any user with `target !== source` — **the cause string names the VICTIM, not the mechanic**, so a Gengar, an Archaludon and a Kingambit eating a boosted Fairy move were the same defect all along. Both misses ran in the good direction, and both are the identical mistake of treating a capped list as a census.
 
-**WHAT THIS VERSION DOES NOT ESTABLISH, WRITTEN OUT SO IT CANNOT BE INFERRED.** The gate did not open: `node engine/status.js` reads **7 of 9 clauses passing**, and the two that fail are the whole-game BOARD-MATERIAL clause, which gates, and the whole-game NARRATION clause, which reports. **No quarantined figure becomes quotable** — leaf calibration, every rollout figure, every head-to-head and every model report that reads a rollout stay WITHHELD rather than annotated. **The MAG refit stays OWED and it is a REFIT rather than a restamp:** `data/policy-weights.json` was not touched, no fit was started, and the damage table under the fitted vector has moved from 318 species to 322, so the feature function's input changed and a restamp would write over the evidence for the refit instead of answering it. Owed and not claimed fixed: Struggle's `-activate` line (17 games, pending a `tags.json` regeneration), Poltergeist announcing at use time where the authority announces inside `onTryHit` (7 games), and `mustrecharge` carrying priority 11 and so outranking sleep and freeze. Two narration gaps were measured beside the aura work and are NOT fixed — no Fairy Aura ability line on the carrier's entry or mega, and no Unnerve ability line on a switch-in — and both belong to the narration gate. Filed as INSTRUMENT rather than engine, with the reason stated: about 6 Poison Touch, Cursed Body and Flame Body games draw in the `any` bucket that `midGameVoid` already declares unreadable, and 5 `stall` games carry a board divergence with no protocol divergence at all, which `--dump-games` cannot show. Full accounts: `docs/_reports/2026-09-06-apply-three-fixes.md`, `docs/_reports/2026-09-05-longtail-batch-A.md`, `docs/_reports/2026-09-05-red-endpoints-and-protect-prior.md`, `docs/_reports/2026-09-06-publish-pass.md`.
+**WHAT THIS VERSION DOES NOT ESTABLISH, WRITTEN OUT SO IT CANNOT BE INFERRED.** The gate did not open: `node engine/status.js` reads **7 of 9 clauses passing**, and the two that fail are the whole-game BOARD-MATERIAL clause, which gates, and the whole-game NARRATION clause, which reports. **No quarantined figure becomes quotable** — leaf calibration, every rollout figure, every head-to-head and every model report that reads a rollout stay WITHHELD rather than annotated. **The MAG refit stays OWED and it is a REFIT rather than a restamp:** `data/policy-weights.json` was not touched, no fit was started, and the damage table under the fitted vector has grown past the 318 species stamped in it (the table's own species count is not a field of this artifact and is not cited to it), so the feature function's input changed and a restamp would write over the evidence for the refit instead of answering it. Owed and not claimed fixed: Struggle's `-activate` line (17 games, pending a `tags.json` regeneration), Poltergeist announcing at use time where the authority announces inside `onTryHit` (7 games), and `mustrecharge` carrying priority 11 and so outranking sleep and freeze. Two narration gaps were measured beside the aura work and are NOT fixed — no Fairy Aura ability line on the carrier's entry or mega, and no Unnerve ability line on a switch-in — and both belong to the narration gate. Filed as INSTRUMENT rather than engine, with the reason stated: about 6 Poison Touch, Cursed Body and Flame Body games draw in the `any` bucket that `midGameVoid` already declares unreadable, and 5 `stall` games carry a board divergence with no protocol divergence at all, which `--dump-games` cannot show. Full accounts: `docs/_reports/2026-09-06-apply-three-fixes.md`, `docs/_reports/2026-09-05-longtail-batch-A.md`, `docs/_reports/2026-09-05-red-endpoints-and-protect-prior.md`, `docs/_reports/2026-09-06-publish-pass.md`.
 
 **5.257.0 — THE DRIVER WAS NOT CHOOSING PROTECT TOO OFTEN. IT WAS BEING HANDED ONE OPTION, AND THAT IS A DIFFERENT DEFECT WITH A DIFFERENT FIX.** `engine/game_differential.js`'s `prefer` axis read as a preference and behaved as a **hard narrowing**, applied at every decision in two swarm configs of nine whose preferred set contains the protect family. **22.2% of decisions reached the sampler carrying exactly ONE candidate, and 60% of those were Protect** — so more than half the arm's protect clicks were never sampled at all, they were the only thing on the table. The diagnosis this replaces is the one a rate alone supports: that the policy over-weighted a move. It did not. **On decisions where the body still had its full four moves the arm already realised 15.3%, which is the human rate.** A sampler cannot be accused of a choice it was never offered, and no amount of re-weighting the input would have moved a decision with one candidate in it.
 
@@ -302,7 +426,7 @@
 
 **5.229.0 - `DamagingHit` IS RAISED PER HIT AND THE RESIST BERRY IS SPENT DURING THE DAMAGE CALCULATION; THIS ENGINE BATCHED THE FIRST BELOW THE WHOLE VOLLEY AND DEFERRED THE SECOND TO THE MOMENT THE HP MOVED.** `data/mods/champions/scripts.ts` overrides BOTH `spreadMoveHit` (`:315`) and `hitStepMoveHitLoop` (`:428`) and leaves both positions verbatim - checked first, the Encore batch having turned entirely on an override. `runEvent('DamagingHit', damagedTargets, ...)` is at `:409`, INSIDE `spreadMoveHit`, which `:518` calls once per hit, so a two-hit volley writes `damage, toll, damage, toll`; `engine/medicham2-browser.js` wrote `damage, damage, toll, toll`. Separately, `ModifyDamage` is raised at `sim/battle-actions.ts:1825` inside `getDamage` - BELOW the `-supereffective`/`-resisted` line (`:1800`/`:1807`) and BELOW `-crit` (`:1814`) - and the resist berry is an `onSourceModifyDamage` calling `target.eatItem()` (`data/items.ts:1038-1049`; `data/mods/champions/items.ts` carries no berry at all). Since `getSpreadDamage` runs for every target (`scripts.ts:361`) before `spreadDamage` moves any HP (`:368`), every target's berry is announced before any target's `-damage`; this engine's step-outer/row-inner driver put it between them. **They are TWO fixes and the shared-cause hypothesis is REFUTED rather than unconfirmed**: a 2x2 over `MEDI_REACT_BATCHED` and `MEDI_BERRY_AT_APPLY` in which each knob moves its own staged board and leaves the other byte-identical under both settings of the other, and the berry defect is visible on a SINGLE-HIT spread click where there is no packet loop at all. No damage number moved - `dmgRange` already applied the halve as a pure read, and the probe's empty-hand arms assert the holder took exactly half. Empirical protocol **191 -> 181 of 961** and the `ordering` class **43 -> 31**, with **exactly twelve causes removed, six naming a resist berry and six naming a damage reaction**, and two added that are the same games diverging later; board-parted **unmoved at 84** and end-state verdicts identical at 903 / 55 / 2 / 0 / 1. Census 808 -> 810 live / 810 probed / 0 missing. Artifact `data/verification/game-differential.packettiming.json`, release `a18431d6dbe2`, arm `middle`, census pin `9446a684709d`, pool `data/team-pool-frozen`, cap 12, steering `empirical-click/v1`, `arms_comparable` COMPARABLE. **The prediction, stated before the run, was 183 (band 179-189) / 84 unmoved / ordering 31 / end-state identical: three exact and one inside the band in the improving direction.** `tests/test-resolution-order.js`'s A1 arm, which had declared this interleaving unreachable without converting the hit loop, is promoted from KNOWN-OPEN to RED PROVEN.
 
-**5.228.0 - THE BURN CHIP IS RESIDUAL ORDER 10 AND RAN AT ORDER 9, AND PERISH SONG HAD NO RESIDUAL STEP AT ALL.** `data/conditions.ts` declares `brn.onResidualOrder: 10` (`:15`) against `psn` (`:133`) and `tox` (`:154`) at 9, and `data/moves.ts:13270` declares `perishsong.condition.onResidualOrder: 24`; `data/mods/champions/conditions.ts` carries exactly `par`, `slp` and `frz` and its `moves.ts` carries no `perishsong`, so mainline is the authority for all four and that was checked first. `Battle#comparePriority` (`sim/battle.ts:404`) sorts order ASC, priority DESC, speed DESC over ONE handler list built and `speedSort`ed BEFORE the walk (`:507`), so every body's poison chips before any body's burn; `engine/medicham2-browser.js` ran all three chips in one speed-sorted pass. Perish Song's tick stood below the whole walk, so `expiry:tailwind` at order 26 - spent inside the walk - announced above every `perishN`, and the counters were read off speeds the order-28 Speed Boost group had already moved. Neither fix wrote a byte of data: `data/residual-order.json` has published 9 / 9 / 10 / 24.2 / 26.5 since it was generated, and the whole of both changes is the step mapping in `RESIDUAL_GROUPS`. **They are TWO fixes and that was measured**: a 2x2 over the two revert knobs, one staged board per defect, in which each knob moves its own board and leaves the other byte-identical. The perish DEATH did not move - `onEnd` calls `Pokemon#faint()`, which writes no line, and the duration-expiry branch `continue`s past the `faintMessages()` at `:565`, so the step calls `queueFaint` exactly as the foot loop did and `residualFollowerRuns` still decides above-or-below `|upkeep|`. Empirical protocol **199 -> 191 of 961** and the `ordering` class **53 -> 43**, exactly the ten dumped games, with perish-vs-`-sideend` rows 5 -> 0 and psn-vs-brn rows 5 -> 0; board-parted **unmoved at 84** and end-state verdicts identical at 903 / 55 / 2 / 0 / 1. Census 806 -> 808 live / 808 probed / 0 missing. Artifact `data/verification/game-differential.residualorder.json`, release `b45e6b257029`, arm `middle`, census pin `9446a684709d`, pool `data/team-pool-frozen`, cap 12, steering `empirical-click/v1`. **The prediction, stated before the run, was 191 / 84 / unmoved and it HELD at its point estimate.** **The closeted ROADMAP #440 perish-drain row still holds** on falsifiers (a), (c) and (d); (b) rests on the coverage arm, which was not re-run and is named in OWED.
+**5.228.0 - THE BURN CHIP IS RESIDUAL ORDER 10 AND RAN AT ORDER 9, AND PERISH SONG HAD NO RESIDUAL STEP AT ALL.** `data/conditions.ts` declares `brn.onResidualOrder: 10` (`:15`) against `psn` (`:133`) and `tox` (`:154`) at 9, and `data/moves.ts:13270` declares `perishsong.condition.onResidualOrder: 24`; `data/mods/champions/conditions.ts` carries exactly `par`, `slp` and `frz` and its `moves.ts` carries no `perishsong`, so mainline is the authority for all four and that was checked first. `Battle#comparePriority` (`sim/battle.ts:404`) sorts order ASC, priority DESC, speed DESC over ONE handler list built and `speedSort`ed BEFORE the walk (`:507`), so every body's poison chips before any body's burn; `engine/medicham2-browser.js` ran all three chips in one speed-sorted pass. Perish Song's tick stood below the whole walk, so `expiry:tailwind` at order 26 - spent inside the walk - announced above every `perishN`, and the counters were read off speeds the order-28 Speed Boost group had already moved. Neither fix wrote a byte of data: `data/residual-order.json` has published orders 9 / 9 / 10 / 24 and 26 (the last two at subOrder 2 and 5) since it was generated, and the whole of both changes is the step mapping in `RESIDUAL_GROUPS`. **They are TWO fixes and that was measured**: a 2x2 over the two revert knobs, one staged board per defect, in which each knob moves its own board and leaves the other byte-identical. The perish DEATH did not move - `onEnd` calls `Pokemon#faint()`, which writes no line, and the duration-expiry branch `continue`s past the `faintMessages()` at `:565`, so the step calls `queueFaint` exactly as the foot loop did and `residualFollowerRuns` still decides above-or-below `|upkeep|`. Empirical protocol **199 -> 191 of 961** and the `ordering` class **53 -> 43**, exactly the ten dumped games, with perish-vs-`-sideend` rows 5 -> 0 and psn-vs-brn rows 5 -> 0; board-parted **unmoved at 84** and end-state verdicts identical at 903 / 55 / 2 / 0 / 1. Census 806 -> 808 live / 808 probed / 0 missing. Artifact `data/verification/game-differential.residualorder.json`, release `b45e6b257029`, arm `middle`, census pin `9446a684709d`, pool `data/team-pool-frozen`, cap 12, steering `empirical-click/v1`. **The prediction, stated before the run, was 191 / 84 / unmoved and it HELD at its point estimate.** **The closeted ROADMAP #440 perish-drain row still holds** on falsifiers (a), (c) and (d); (b) rests on the coverage arm, which was not re-run and is named in OWED.
 
 **5.227.0 - THE ON-KO BOOST RAN AFTER A BATTLE THE AUTHORITY HAD ALREADY ENDED, AND IT PAID ONCE PER CORPSE WHERE THE AUTHORITY PAYS ONCE PER DRAIN.** `sim/battle.ts:2532` `faintMessages()` holds three statements below its drain loop, and `engine/medicham2-browser.js` disagreed with all three. `runEvent('AfterFaint', ..., length)` at `:2596` is raised BELOW the whole `while`, ONCE, with `length` = the faint-queue depth at entry (`:2534`); and `checkWin` at `:2592` RETURNS above it, so a drain that empties a side ends the battle and the event never runs. `moxie` is `this.boost({atk: length}, source)` and `eelevate` the same expression on `getBestStat`, both read off `Dex.forFormat('gen9championsvgc2026regmb')`; `data/mods/champions/scripts.ts` overrides neither function, which was checked before mainline was treated as the authority. The payment moved into a once-per-move `_stepAfterFaint` between `_stepDrainFaints` and `_stepHitCount` - the authority's own order (`battle-actions.ts:976` against `:978`) - gated on `sideWiped(S)`, the engine's OWN `checkWin`. The reachable population is derived rather than named: of twelve legal abilities carrying a faint hook, eight are on `AfterFaint` and only Moxie (7 carriers) and Eelevate (Eelektross-Mega) have any, so **nine bodies across two abilities**. Empirical board-parted **88 -> 84 of 961** and protocol **204 -> 199**, with **five causes removed and none added, every one naming an on-KO `atk` boost**, and the only board-leaf families that moved being `party.boosts.atk` 9 -> 5 games and `active[].boosts.atk` 9 -> 5. DIFFERENT-WINNER reads 0 before and after. Census 804 -> 806 live / 806 probed / 0 missing. Artifact `data/verification/game-differential.afterfaint.json`, release `26787be1b8b4`, arm `middle`, census pin `9446a684709d`, pool `0d103fb9fa87`, cap 12. **The prediction, stated before the run, was "unmoved at 88" and it MISSED by 4 in the improving direction** - it assumed the two payment shapes always leave the same stage, which holds only while the battle continues. **ROADMAP #362 is NOT this site and its row is stale**: the winner defect it describes was closed by WIRE 160 on 2026-08-23.
 
@@ -1320,7 +1444,9 @@ than measurements taken through the simulator.
 `engine/wire_ladder.js` replays every frozen release of the 2026-08-06/07 wire night through the
 differential under one pinned census and one team pool, so all nine arms are mutually comparable rather
 than only adjacent — the defect that retracted the pairwise before/afters in 3.62.1.
-**Read every figure from `data/wire-ladder.json`.** On 1,995 games per arm the median game parts after
+**Read every figure from `data/wire-ladder.json`.** **Corrected 6.0.0: this paragraph wrote 1,995 games
+per arm at 3.68.0 and the artifact's `games_per_arm` has read 1,997 since it was generated.** On 1,997
+games per arm the median game parts after
 **one completed turn at every rung, unchanged**, and 22 of 1,995 games agree completely against 2 at the
 baseline. What did move is the DEPTH of the first divergence — mean 15.0 → 24.0 protocol lines, p90
 30 → 57 — and per-rung effects that a pairwise comparison had misattributed: an intermediate cut that
@@ -1471,11 +1597,16 @@ searches hits the engine-speed wall, and the pattern is clean:
 **The plan is four phases, and the fourth is a result rather than a defeat:**
 
 ```
-1  finish MEDICHAM        search needs an engine that is fast AND correct
+1  finish MEDICHAM        REACHED at 6.0.0 — correct against Showdown on the pinned pool
 2  GATE #62               does compute buy anything: untimed vs on-the-clock
 3  if yes -> search, and measure EXPLOITABILITY against their ~100%
 4  if no  -> adopt their recipe: BC + PPO self-play/FP/DO, open source, reproducible
 ```
+
+**Phase 1 is reached under the definition at the head of this paper, and phase 2 has not begun.** No
+untimed-versus-on-the-clock measurement exists, MILTANK is paused beside the MAG refit, and the
+artifact that would answer phase 2 is one of the 40 that lift on a re-run and were not re-run for this
+version.
 
 Phase 4 is cheap precisely because VGC-Bench made it so — the method is published, open-source and
 reproducible — and taking it would be a finding about VGC, not a failure of this project.
@@ -1511,15 +1642,18 @@ also lose to player-Elo. The reliability curve is nearly flat — the in-game le
 
 *This supersedes, and partly corrects, the earlier reading.* The 2026-07-23 figure ("log-loss ≈ 1.2;
 picks the winner on ~44% of decisive calls, i.e. systematically **inverted**") is retained here because
-a prior conclusion is never silently rewritten. **WHAT THE LARGER RE-MEASUREMENT SAID IS QUARANTINED —
-the figures are withheld, not annotated.** `data/winrate-backtest.json` is downstream of MEDICHAM: its
-generator `engine/backtest_winrate.js` is in the play layer, reaching `engine/medicham2-browser.js`
-through `require`, and the artifact was measured against a build of that simulator which no longer
-exists. MEDICHAM is not correct — `node engine/status.js` names the failing clauses. So no replication
-verdict, no bucket share, no calibration gap and no sample size is carried here: whether the inversion
-replicates is an OPEN question in this document, not a settled one, and the reader may not infer the
-direction from the absence. It becomes quotable again when the gate opens AND this is re-run:
-`node engine/backtest_winrate.js`.
+a prior conclusion is never silently rewritten. **WHAT THE LARGER RE-MEASUREMENT SAID IS STILL
+WITHHELD AT 6.0.0, AND THE REASON HAS CHANGED.** `data/winrate-backtest.json` is downstream of
+MEDICHAM: its generator `engine/backtest_winrate.js` is in the play layer, reaching
+`engine/medicham2-browser.js` through `require`, and the artifact was measured against a build of that
+simulator which no longer exists. **The gate is now OPEN, so the artifact is RE-RUNNABLE — and
+re-runnable is not true.** It is one of the 40 on `node engine/major_readiness.js`'s LIFT list and it
+was NOT re-run for this version, by the owner's instruction of 2026-09-09 that the downstream
+artifacts stay stale until he has reworked MAG and MILTANK. So no replication verdict, no bucket
+share, no calibration gap and no sample size is carried here: whether the inversion replicates is an
+OPEN question in this document, not a settled one, and the reader may not infer the direction from the
+absence. **This is MEASURE's one number and this version does not have it.** It becomes quotable on
+one command, when the owner asks for it: `node engine/backtest_winrate.js`.
 
 The conclusion is not "our models are weak." It is a property of the game: a two-player, zero-sum,
 **imperfect-information, simultaneous-move** game with a non-transitive metagame has an irreducible
@@ -1550,9 +1684,22 @@ grown hourly by a GitHub Action. The **governing rule** is *store raw, analyse o
 Changing how we segment games is free; the fetch is a one-time cost. About 2,600 public games/day are
 available, and the store grows ~18k/week, so every model below sharpens on its own over time.
 
-## 3. The validated foundation — exact damage (MEDICHAM)
+## 3. The validated foundation — a simulator that agrees with the authority (MEDICHAM)
 
-The one component that is *not* a coin flip is the damage engine. MEDICHAM's Gen-9 doubles damage
+The one component that is *not* a coin flip is the simulator. As of 6.0.0, MEDICHAM
+(`engine/medicham2-browser.js`) is validated against the **official Pokémon Showdown simulator**, which
+is the authority for this project (ADR-002), on three instruments that each stamp one frozen engine
+release: the whole-game differential (`data/game-differential.json` — board-material **0 of 961**,
+narration **0 undeclared of 961**, 10,705 of 10,705 turn boundaries identical, none excluded, none cut
+off), the damage differential (`data/engine-diff.json` — 6,000 compared, 0 disagreed, at 17 roll
+indices), and the deliberate roster — `data/roster.items.json` **142 tested**,
+`data/roster.abilities.json` **139 tested**, `data/roster.moves.json` **487 tested**, every stage with
+`differ` 0 and DID-NOT-FIRE 0 and its scope decided by legal carrier.
+The bound on the word "correct" is stated in the 6.0.0 block at the head of this paper
+and is not repeated here. The older, narrower Smogon-calculator check below is retained because it is
+still true of its own artifact.
+
+MEDICHAM's Gen-9 doubles damage
 pipeline (`engine/medicham2-browser.js`) is validated against the Smogon damage calculator (the community
 ground-truth). This is gated in CI (`engine/validate_damage.js` → `data/damage-validation.json`).
 Every model that reasons about damage builds on this, and "will this move KO?" is a *winnable*
@@ -1703,7 +1850,7 @@ WEB, which is paused. It is the real (not simulated) payoff matrix that SLOWKING
 opponent's next move from state. On held-out human moves the behaviour-clone was reported here at
 ~~top-1 35.9% (CI 35.2–36.5), top-3 71.6%, cross-entropy 2.27 nats, baselines 4.54 and 2.91~~ — **withdrawn
 2026-09-09: no artifact carries those figures.** The harness artifact this sentence cites is
-`data/policy-eval.json`, **re-run 2026-09-09** (`generated_at` 2026-09-09T21:04:26Z) by `engine/eval_policy.py`,
+`data/policy-eval.json`, **re-run 2026-09-09** (`generated_at` `2026-09-09T21:04:26Z`) by `engine/eval_policy.py`,
 which reads `data/games.ladder.raw-logs.jsonl` (`source.sha256` 4a332aeee377…, 413,935,110 bytes) and plays
 no game, gating the logs by the same `engine/quality.py` rule as every clean figure (`quality_filter_version`
 1.3.0; `quality_inputs.store.sha256` cde0fa05d517…, `quality_inputs.store_validation.sha256` b1846b6b9a60…;
@@ -1753,7 +1900,7 @@ carries no held-out winning signal . Report `data/chomp-ev.json`; test
 
 **A phrasing the filter itself mandates.** `require_full_bring` conditions on game length, so every bring statistic in this project is *"the bring, **among games long enough to show it**"*, which is not the same as "the bring". `data/quality-filter.json` states that at the point of filtering, in `rules.require_full_bring.known_limitation`, and requires it to be said downstream; this is that. The SIZE of the conditioning is the step the artifact actually records: `provenance.funnel.after_min_turns` **26,142** to `provenance.funnel.after_full_bring` **18,908**, on `provenance.store_size` **67,384** at `provenance.measured_on` 2026-08-27.
 
-**CORRECTION, 5.259.0 — THE THREE FIGURES THIS SENTENCE USED TO CARRY WERE NEVER IN THE ARTIFACT IT CITES.** The prior claim is stated first, in full, because a prior conclusion is never silently rewritten. Until 5.259.0 this paragraph read: *"`require_full_bring` conditions on game length: measured 2026-07-31, the games it keeps are 1.71x longer on average (7.4 vs 4.3 mean turns; 19,589 kept vs 8,713 dropped)"*, citing `data/quality-filter.json` for all three.
+**CORRECTION, 5.259.0 — THE THREE FIGURES THIS SENTENCE USED TO CARRY WERE NEVER IN THE ARTIFACT IT CITES.** The prior claim is stated first, in full, because a prior conclusion is never silently rewritten. Until 5.259.0 this paragraph **previously** read: *"`require_full_bring` conditions on game length: measured 2026-07-31, the games it keeps are 1.71x longer on average (7.4 vs 4.3 mean turns; 19,589 kept vs 8,713 dropped)"*, citing `data/quality-filter.json` for all three — **and none of those three figures is in that artifact, which is why the sentence was corrected.**
 That citation could not have supported any of them on any day. The file has six commits in its whole history and not one of them contains either count, and no version of it has ever carried a mean-turn field — the only turn keys it has ever held are `min_turns` and `after_min_turns`. This is not a figure that went stale; it is a citation that never held, which is the larger failure of the two.
 The counts were a REAL measurement of a DIFFERENT POPULATION, so they are corrected rather than called false: reconstructed at that commit they are a one-off pass over the UNION of the three raw, unfiltered stores as they stood on 2026-07-31 — a population the quality filter neither computes nor describes. `require_full_bring` in the artifact runs AFTER the bot, behavioural-bot, forfeit and min-turns rules; that measurement applied it to raw stores with none of them, which is why its counts are roughly four times the funnel's. The funnel's own answer is the one above: **18,908** kept and **7,234** dropped of the **26,142** that reach the rule, where the dropped count is the subtraction of two named fields and not a field itself.
 
@@ -1888,11 +2035,14 @@ cores beat which" and for quantifying how cyclic the meta really is.
    the two configurations do not give the same answer. Only the surviving calibration shape
    distinguished them, in hindsight.
 
-   **THE RATES AND INTERVALS THIS ITEM USED TO QUOTE ARE WITHHELD, 2026-08-22.** R1, R2 and R3 read
-   artifacts downstream of MEDICHAM, and `node engine/status.js` names each one QUARANTINED. The
-   limitation being described is about the CONFIGURATION RECORD and survives without them; a
-   quarantined figure printed with a caveat beside it is the failure this section is about, one level
-   up.
+   **THE RATES AND INTERVALS THIS ITEM USED TO QUOTE ARE STILL ABSENT AT 6.0.0, FOR A DIFFERENT
+   REASON THAN BEFORE.** R1, R2 and R3 read artifacts downstream of MEDICHAM. The gate is open, so
+   those artifacts are RE-RUNNABLE rather than quarantined — but re-runnable is not true, and none of
+   them was re-run for this version: R1 and R2 sit on `node engine/major_readiness.js`'s LIFT list and
+   were left stale by the owner's instruction, and `data/rollout-r3.json` is on the STAY list because
+   its generator `engine/rollout_r3.js` reaches the paused MAG weights. The limitation being described
+   is about the CONFIGURATION RECORD and survives without them; a figure printed with a caveat beside
+   it is the failure this section is about, one level up.
 
    Auditing the other rungs against the same standard produced two further findings. **The R3
    divergence gate publishes a rate and records no control.** Its own script computes
@@ -1922,13 +2072,20 @@ cores beat which" and for quantifying how cyclic the meta really is.
    run — the 2026-08-04 void *was* an exploitability run, so this is a demonstrated failure mode
    rather than a hypothetical one.
 
+   **STILL TRUE AT 6.0.0, AND NOW BY DECISION RATHER THAN BY ACCIDENT.** `data/exploitability.json`,
+   `data/exploitability-mag.json` and `data/exploitability-machamp.json` are all written by
+   `engine/exploit.js`, which reads `data/policy-weights.json`, and Will sequenced the MAG refit
+   *after* this major. `node engine/major_readiness.js` therefore keeps all three on its STAY list,
+   together with both exploit-step probes. **The gate opening released nothing here**, and saying so
+   is the point: a partial lift that is announced as a lift is the caption failure in a new costume.
+
 8. **Speed readings of the same engine differ by an order of magnitude and for two months nothing
    caught it** (added 3.62.2, §3.0; updated 2026-09-08). 3,401, 1,606 and 13,041 are three
    measurements of MEDICHAM's throughput taken over two weeks; the first two are battles/sec and the
    third is turns/sec, and when this item was written no ratchet, test or artifact compared any of
    them. That part is no longer true — `engine/bench_speed.js` has consolidated MEDICHAM timings
-   since 2026-08-28 (into an artifact the quarantine withholds, so no figure of its is quoted
-   anywhere in this document), and the two-engine harness under
+   since 2026-08-28 (into `data/medicham-speed.json`, which lifts on a re-run and was not re-run for
+   6.0.0, so no figure of its is quoted anywhere in this document), and the two-engine harness under
    `data/verification/speed-2026-09-08/` measures both sides at once and is not withheld. What is
    still true is the second half, and it got worse rather than better: **nothing ratchets engine
    speed**, and the consequence is not merely that a number moved unnoticed — it is that the
@@ -2074,8 +2231,9 @@ Three results, each read from its artifact.
 **The engine.** Wires 82–89 landed: the pre-turn shield class (Focus Punch / Beak Blast), the
 variable-power family, per-hit reactors, priority blocking across every move kind, Memento,
 drain-before-contact-toll order, the Steel Roller terrain gate, and secondary chances read from the
-FORMAT's rulebook with a drift counter. `data/mechanics-census.json` moved 167 → **181 live of 186
-probed, 5 missing with reasons**; the interaction matrix moved 68 disagreements → **13** (1,012 live
+FORMAT's rulebook with a drift counter. `data/mechanics-census.json` **was measured** at 167 → **181
+live of 186 probed, 5 missing with reasons** in that pass, and the artifact has been regenerated many
+times since — it reads 835 live of 835 probed at 6.0.0; the interaction matrix moved 68 disagreements → **13** (1,012 live
 carrier × reactor cases, 999 agree, 98.7%); the Showdown damage differential stands at 1/150, and
 the one row is a documented harness-layer artifact (Disguise), not an engine defect. Every new probe
 was demonstrated red against a deliberately broken in-memory engine before its green was believed.
