@@ -1,0 +1,89 @@
+{
+  "what": "PHASE 1 of the 6.0.0 path — settle the instruments (the last illegal fixture, then regenerate the census), cut ONE release over the settled tree, and re-run the whole gate chain on the NEW census. Written BEFORE any leg of the chain ran, so that a surprise is a finding rather than a rationalisation.",
+  "written": "2026-09-10T06:55:00Z",
+  "by": "ENGINE",
+  "state_before": {
+    "gate": "OPEN — 9 of 9 clauses PASS on release 8ac9c4d888f1",
+    "census": {
+      "path": "data/mechanics-census.json",
+      "sha256_16": "1da84d77888ebc90",
+      "steering_digest": "1da84d77888e",
+      "generated": "2026-09-10T02:07:00.933Z",
+      "probed": 835, "live": 835, "missing": 0,
+      "note": "the COMMITTED bytes, pinned deliberately through the last two chains so a fix could be attributed. They are a claim about release 489bea0577bc and are now three engine changes old."
+    },
+    "engine_diff": { "compared": 6000, "disagreed": 0, "skipped_multihit": 134, "skipped_ability_multihit": 17 },
+    "game_differential_middle": { "games": 961, "games_board_never_diverged": 961, "protocol_diverged_board_never_did": 1, "games_requested": 1200 },
+    "fixture_legality": "REPAIRED IN STEP 1 OF THIS PHASE, before any measurement — see prediction 0"
+  },
+
+  "predictions": [
+    {
+      "id": 0,
+      "leg": "tests/test-fixture-legality.js",
+      "predict": "ALL GREEN — 0 NEW illegal sets and 0 NEW illegal declarations; the 15 baselined verdicts and 15 baselined declarations all still produced.",
+      "why": "Incineroar cannot learn Knock Off. The Knock Off carrier at three load-bearing sites is replaced with Pangoro (derived from CS.moveCarriers('Knock Off'), 95 legal carriers; Dark for the STAB the arms are priced on, spe 58 vs 60 so no script's turn order moves), and the fourth site's Knock Off is a filler no script clicks, so the MOVE was replaced there rather than the body.",
+      "risk": "the Sitrus arm's premise is that the hit crosses BELOW half without killing. Pangoro's 124 Atk against Incineroar's 115 is 8% more damage, so the arm could over-run into a KO and pass while asserting nothing.",
+      "OUTCOME": "RAN FIRST, BEFORE THE PREDICTIONS BELOW. ALL GREEN. Gengar reads 133/405 after the hit (was 145/405), so the crossing is preserved and measured rather than assumed. tests/test-game-differential.js ALL PASSED: boost 1.479 vs 1.5 expected (tolerance 0.05), reduction 0.500, three arms distinguishable at 192/284/142."
+    },
+    {
+      "id": 1,
+      "leg": "cmd /c tools\\lownode.cmd tests\\test-mechanics.js",
+      "predict": "835 probed / 835 live / 0 missing — UNCHANGED. The file's sha256 CHANGES REGARDLESS, because `generated` is inside the bytes that are hashed.",
+      "why": "the census's rows are the probes written inside tests/test-mechanics.js itself, not a scan of tests/probe_*.js — so the three probe files added by the narration close cannot add rows. The three engine fixes were narration-shaped (a -fail label, a redirect hoist, a terrain gate moved below Try). Only the redirect hoist restructures the attack path, and no census probe reads a redirect line.",
+      "falsifier": "any row moving WORKS -> MISSING is a regression this phase caused and must be attributed to one of the three fixes, not carried."
+    },
+    {
+      "id": 2,
+      "leg": "the census's effect on the gate",
+      "predict": "the gate stays 9 of 9 PASS.",
+      "why": "under `--steering empirical` the whole-game artifact records `census_role: CREDITED ONLY — it measures coverage and does not select`, so a new census does not change WHICH games the whole-game leg plays. It does change the COVERAGE clause's denominator if any row moved, and it changes the steering digest that arms_comparable.js reads — which is why the runs either side of it are not a strict before/after even though the sample is expected to be identical.",
+      "risk": "the coverage clause ('every used mechanic is measured by something') is the one that can move on a census change without any engine change at all."
+    },
+    {
+      "id": 3,
+      "leg": "tests/test-engine-diff.js --write",
+      "predict": "6000 compared, 0 disagreed.",
+      "why": "the damage differential is unaffected by all three narration fixes and by the fixture swap; it was 0 of 6000 on 8ac9c4d888f1."
+    },
+    {
+      "id": 4,
+      "leg": "tests/roster.js --stage items|abilities|moves --reds --write",
+      "predict": "items 142 of 148 tested / 0 DIFFER / 0 DID-NOT-FIRE; abilities 139 of 201 / 0 / 0 with 0 dead anchors; moves 487 of 500 / 0 / 0.",
+      "why": "same engine bytes as the run that produced those numbers, plus a fixture repair the roster does not read. The abilities stage exits 1 by design on CONTROL-NOT-QUIET rows; the exit code is not the verdict."
+    },
+    {
+      "id": 5,
+      "leg": "engine/all_mechanics_fire.js --kind all --write --release <new>",
+      "predict": "~1313 games played, 0 threw; moves diverged 4, abilities 1, items 0.",
+      "why": "all_mechanics_fire IS steered by the census, so a census that gained or lost rows changes which scenarios play. The census is predicted unchanged in row count, so the game count should be within a few of 1313. If it moves materially, the census moved and prediction 1 was wrong.",
+      "falsifier": "a game count far from 1313 with an unchanged census row count means the steering is reading something else."
+    },
+    {
+      "id": 6,
+      "leg": "engine/game_differential.js --steering empirical --arm middle --games 1200 --team-store data/team-pool-frozen --turns 50 --write",
+      "predict": "961 games played of 1200 requested; BOARD-MATERIAL 0 of 961 (state.games less state.games_board_never_diverged); NARRATION 0 undeclared (1 raw, 1 declared — the closeted perish drain).",
+      "why": "the team pool is frozen and empirical steering does not select on the census, so the same 961 games should play. Nothing in this phase changes the engine.",
+      "falsifier": "a game count other than 961 means the pool or the steering moved and the two runs are not the same question."
+    },
+    {
+      "id": 7,
+      "leg": "the two corner arms — --arm top-tie-first and --arm bottom-tie-first, NEVER RUN ON A WHOLE GAME",
+      "predict": "GENUINELY UNKNOWN, and it is stated as unknown rather than guessed. The honest prior is that BOTH arms read board-material 0, because the tie die is shared and tests/test-resolution-order.js passes 26 arms; but no whole-game run has ever exercised these pins, and a corner arm is exactly where a tie-handling defect would hide.",
+      "why": "a board that parts only at a corner is a tie-handling defect. A board that parts at BOTH corners is not a tie question at all — it is a defect the middle arm's pin happens to hide.",
+      "note": "these are NOT --write. They go to data/verification/game-differential-<arm>.json and are not the published artifact."
+    },
+    {
+      "id": 8,
+      "leg": "the multi-hit scope, REPORTED NOT FIXED",
+      "predict": "skipped_multihit near 134 and skipped_ability_multihit near 17 on the fresh artifact.",
+      "why": "nothing in this phase wires the volley loop. Reported and left; it is its own batch."
+    }
+  ],
+
+  "out_of_scope": [
+    "the item-disposition leaf (lastItem/ateBerry, CANDIDATE in state.not_compared) — its own note says the expected effect is NOT zero and it is a published finding. It gets its own batch so a board-material change can be attributed to it.",
+    "docs/MODELS.md — another agent owns it this session.",
+    "fixing anything found in steps 2-6. A defect found and left is a correct outcome."
+  ]
+}

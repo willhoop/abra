@@ -23,7 +23,7 @@ MEASURE — can we believe a number
     older than its input engine-data.js
     (+10 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 173 unsafe, 2 void (declared), 43 possibly stale, 37 ok, 0 missing
+  provenance: 173 unsafe, 2 void (declared), 44 possibly stale, 36 ok, 0 missing
   click censoring: WITHHELD — engine/provenance.js calls data/click-censoring-census.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     COMPUTED FROM DIFFERENT CONTENT — engine/fit_policy.js was 37df17935c16 at read time, is a963537c91e8 now
@@ -36,7 +36,7 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-09-09 20:53
 ```
 
-_stamped 2026-09-10 02:49_
+_stamped 2026-09-10 03:23_
 
 <!-- /GENERATED -->
 

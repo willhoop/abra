@@ -6178,12 +6178,38 @@ const BENCH = (...names) => names.map(n => ({ species: n, item: '', ability: '',
  * predictions, and a fixed engine reported as a broken instrument is the worst reading available.
  * `expect: 'agree'` is a CLAIM, not a mute: the test fails just as loudly if one of these parts
  * again. */
+/* THE KNOCK OFF CARRIER, AND WHY IT IS NOT INCINEROAR — 2026-09-10.
+ *
+ * Every Knock Off fixture in this file used to be staged on an Incineroar. **Incineroar cannot learn
+ * Knock Off in this regulation**, which `tests/test-fixture-legality.js` reported as the last illegal
+ * fixture set in the repository: `[PAIRING] Incineroar can't learn Knock Off.` at four sites here. The
+ * game would refuse the team, so every one of those arms was measuring a matchup nobody can play.
+ *
+ * The replacement is DERIVED, never typed: `CS.moveCarriers('Knock Off')` answers 95 legal carriers in
+ * `gen9championsvgc2026regmb`, and the body chosen is the one that preserves what each arm actually
+ * needs from Incineroar:
+ *
+ *   Incineroar   Fire/Dark      atk 115   spe 60   Blaze
+ *   Pangoro      Fighting/Dark  atk 124   spe 58   Iron Fist        (canLearn Knock Off = true)
+ *
+ * DARK is the load-bearing half — Knock Off is a Dark move and every one of these arms is priced with
+ * STAB — and the speed is within two points, so the turn order of all three scripts is unchanged
+ * (Snorlax 30 still moves last, Gengar 110 still moves first). Iron Fist is inert here: Knock Off's
+ * flags are `{contact, protect, mirror, metronome}` with no `punch`, read off the move rather than
+ * recalled. The 8% more Attack moves the Sitrus arm's target from 145/405 to a slightly lower number
+ * and the arm's premise is that the hit crosses BELOW half without killing — measured after the swap,
+ * not assumed, because a hit that stops short leaves that arm passing while asserting nothing.
+ *
+ * THE SANDSTORM ARM IS REPAIRED THE OTHER WAY ROUND, on purpose. There Knock Off is a filler that no
+ * script ever clicks, and the premise IS Incineroar — a body slower than the Whimsicott sitting behind
+ * it in slot B, and one sandstorm can chip. Swapping the body there would have thrown away the thing
+ * the row exists to test in order to repair a decoration, so the decoration was replaced instead. */
 const DIRECTED = [
   { name: 'knock-off order — the item leaves before the HP is subtracted (§5a)',
     predicts: 'ordering', expect: 'agree',
     closed_by: 'ROADMAP #81 WIRE 7 — the strip moved below `tg.curHP -= dmg`, which is where '
              + 'Showdown\'s onAfterHit runs it',
-    A: stage([['incineroar', '', 'Blaze', ['Knock Off', 'Protect']]]).concat(BENCH('clefable', 'milotic', 'garchomp')),
+    A: stage([['pangoro', '', 'Iron Fist', ['Knock Off', 'Protect']]]).concat(BENCH('clefable', 'milotic', 'garchomp')),
     B: stage([['snorlax', 'Leftovers', 'Thick Fat', [TAKE_IT, 'Protect']]]).concat(BENCH('toxapex', 'corviknight', 'weavile')),
     script: [{ p1: [{ m: 'knockoff', t: 0 }, { m: 'protect' }], p2: [{ m: 'agility' }, { m: 'protect' }] }] },
   /* CLOSED 2026-08-18 (ROADMAP #304), AND THE WAY IT WAS BEING KEPT OPEN IS THE FINDING.
@@ -6253,7 +6279,11 @@ const DIRECTED = [
     predicts: 'ordering', expect: 'agree',
     closed_by: 'ROADMAP #218 — the weather residual is speed-sorted through the same function as the '
              + 'clock residual, so the faster body takes its sand chip first on both engines',
-    A: stage([['incineroar', '', 'Blaze', ['Protect', 'Knock Off']],
+    /* THE SECOND MOVESLOT IS A FILLER NO SCRIPT CLICKS — every click in this row is a Protect. It read
+     * `Knock Off`, which Incineroar cannot learn, so the fixture was illegal for a decoration. Replaced
+     * with Close Combat (`CS.canLearn('Incineroar','Close Combat')` = true); the BODY is left alone
+     * because the row's whole premise is that this Incineroar is SLOWER than the Whimsicott behind it. */
+    A: stage([['incineroar', '', 'Blaze', ['Protect', 'Close Combat']],
               ['whimsicott', '', 'Chlorophyll', ['Protect', 'Dazzling Gleam']]]).concat(BENCH('milotic', 'clefable')),
     B: stage([['tyranitar', '', 'Sand Stream', ['Protect', 'Rock Slide']],
               ['garchomp', '', 'Rough Skin', ['Protect', 'Earthquake']]]).concat(BENCH('corviknight', 'snorlax')),
@@ -6322,7 +6352,7 @@ function knockOffArms() {
   const out = [];
   for (const [item, why] of KO_TARGET_ITEMS) {
     /* Gengar is Ghost/Poison, so Knock Off is super-effective and Colbur is in scope. */
-    const A = stage([['incineroar', '', 'Blaze', ['Knock Off', 'Protect']]]).concat(BENCH('clefable', 'milotic', 'weavile'));
+    const A = stage([['pangoro', '', 'Iron Fist', ['Knock Off', 'Protect']]]).concat(BENCH('clefable', 'milotic', 'weavile'));
     const B = stage([['gengar', item, 'Cursed Body', [TAKE_IT, 'Protect']]]).concat(BENCH('toxapex', 'corviknight', 'snorlax'));
     const script = [{ p1: [{ m: 'knockoff', t: 0 }, { m: 'protect' }], p2: [{ m: 'agility' }, { m: 'protect' }] }];
     const a = buildPair(A, { hpBoost: 8 }), b = buildPair(B, { hpBoost: 8 });
@@ -6345,7 +6375,7 @@ function knockOffArms() {
    * strips it and it never procs. It needs a pool the Knock Off drops BELOW half without killing, so
    * it cannot ride on the ratio arms above (which are inflated x8 precisely so nothing dies). */
   const sitrus = (() => {
-    const A = stage([['incineroar', '', 'Blaze', ['Knock Off', 'Protect']]]).concat(BENCH('clefable', 'milotic', 'weavile'));
+    const A = stage([['pangoro', '', 'Iron Fist', ['Knock Off', 'Protect']]]).concat(BENCH('clefable', 'milotic', 'weavile'));
     const B = stage([['gengar', 'Sitrus Berry', 'Cursed Body', [TAKE_IT, 'Protect']]]).concat(BENCH('toxapex', 'corviknight', 'snorlax'));
     const script = [{ p1: [{ m: 'knockoff', t: 0 }, { m: 'protect' }], p2: [{ m: 'agility' }, { m: 'protect' }] }];
     const a = buildPair(A, { hpBoost: 3 }), b = buildPair(B, { hpBoost: 3 });

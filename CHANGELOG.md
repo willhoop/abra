@@ -10,6 +10,74 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.280.0] — 2026-09-10
+
+### Fixed
+- **The last illegal fixture in the repository is repaired.** `engine/game_differential.js` staged an
+  **Incineroar holding Knock Off** at four sites (`:6186`, `:6256`, `:6325`, `:6348`) — a set the game
+  would refuse, reported by `tests/test-fixture-legality.js` as `[PAIRING] Incineroar can't learn Knock
+  Off.` The replacement carrier is DERIVED from the format, never typed into a grep:
+  `champions_sim.moveCarriers('Knock Off')` answers **95 legal carriers** in
+  `gen9championsvgc2026regmb`, resolved against the damage engine's own table through
+  `engine/mc_key.js`.
+  - The three sites where Knock Off is CLICKED move to **Pangoro** — Fighting/**Dark**, so the STAB
+    every one of those arms is priced on survives; atk 124 against Incineroar's 115 and spe 58 against
+    60, so no script's turn order moves; ability `Iron Fist`, inert here because
+    `dex.moves.get('knockoff').flags` reads `{contact, protect, mirror, metronome}` with no `punch`.
+  - The fourth site is the sandstorm speed-sort row, where Knock Off is a filler no script clicks and
+    the row's premise IS Incineroar being slower than the Whimsicott behind it. There the DECORATION
+    was replaced (`Close Combat`, `canLearn` true) and the body left alone — repairing it by swapping
+    the body would have thrown away the thing the row exists to test.
+  - **The risk was named before the swap and then measured.** The Sitrus arm's premise is that the hit
+    crosses BELOW half without killing; 8% more Attack could have over-run it into a KO and left the
+    arm passing while asserting nothing. Measured off the authority's stream: `145/405` became
+    `133/405`, still below half and still alive. `tests/test-game-differential.js` is ALL PASSED, with
+    the three Knock Off arms still distinguishable at 192 / 284 / 142.
+  - `node tests/test-fixture-legality.js` now reads **ALL GREEN** — 0 new illegal sets, 0 new illegal
+    declarations, and all 15 baselined verdicts still produced.
+
+### Changed
+- **`data/mechanics-census.json` is regenerated and re-pinned**, after two chains of being deliberately
+  held so that engine fixes could be attributed. `1da84d77888e` -> **`257acf955593`**: **835 probed /
+  835 live / 0 missing**, with **0 rows added, 0 removed and 0 status flips**. Exactly two rows' content
+  moved and both stay LIVE — Iron Head's flinch rate reads 19.1% against 20.3% over 6000 unseeded turns,
+  and `seen.terrainSparedAirborne` reads **+4 -> +2**, which is the measurable footprint of 5.279.0's
+  terrain-gate fix rather than a defect.
+- **The whole gate chain was re-run on the new census and is unmoved.** BOARD-MATERIAL **0 of 961**
+  (10,705 of 10,705 turn boundaries identical), NARRATION **0 undeclared of 961**, damage differential
+  **0 of 6000**, roster **142 / 139 / 487** with zero DIFFER and zero DID-NOT-FIRE,
+  `all_mechanics_fire` **1313 games / 0 threw**. `node engine/quarantine.js` prints **GATE: OPEN**,
+  9 of 9 clauses PASS. **No engine byte moved** — the release id is unchanged at `8ac9c4d888f1`,
+  because neither `engine/game_differential.js` nor the census is among the 27 frozen SOURCES.
+  `node engine/arms_comparable.js` answers **NOT COMPARABLE** against the superseded artifact — the
+  instrument moved and the steering input moved — so this is recorded as *the chain re-run on the new
+  census reads the same*, never as a before/after.
+
+### Notes
+- **TWO INSTRUMENT DEFECTS were found in the corner arms and deliberately left unfixed**, with no figure
+  published from either. They are recorded rather than repaired because this pass was a measurement.
+  - `--arm top-tie-first` or `--arm bottom-tie-first` alone leaves `results` EMPTY:
+    `PRIMARY_ARM = ARMS[0]` is always `middle` (`engine/game_differential.js:1946`) and the per-arm loop
+    assigns `results` only when `isPrimary` (`:7199`). So a corner-arm artifact reads
+    `state.turn_boundaries_compared: 0`, and the bar the quarantine clause names —
+    `state.games` less `state.games_board_never_diverged` — computes `0 - 0 = 0` over an empty
+    population, indistinguishable from a perfect run. Cleared with a knob-varied control: the identical
+    command with `--arm middle` reads 961 games and 10,705 boundaries.
+  - The `mid_void` low-identity exclusion is computed only when `PRIMARY_ARM.middle` (`:7825`), so both
+    corner artifacts carry `usable_games: 0` and cannot separate an engine board split from a
+    dice-stream split.
+  - **The tie question is therefore still unanswered.** The two corner arms' board-material cause sets
+    share **zero** causes (14 top-only, 12 bottom-only) and are dominated by miss/crit/damage-roll
+    shapes, which is the signature of unshared dice rather than of tie order. Artifacts are unpublished
+    at `data/verification/game-differential-{top,bottom}-tie-first.json`.
+- **The damage differential has still never applied a multi-hit move** — `skipped_multihit` 134 and
+  `skipped_ability_multihit` 17 on the freshly written `data/engine-diff.json`. Reported, not fixed;
+  wiring the volley loop is its own batch.
+- Full account, every pin and every flag: `docs/_reports/2026-09-10-phase1-census-repin.md`. The
+  predictions were written before any leg ran, to
+  `data/verification/_prediction-2026-09-10-phase1.json`; all eight testable ones came out as predicted
+  and the ninth was declared UNKNOWN in advance.
+
 ## [5.279.0] — 2026-09-10
 
 ### Fixed

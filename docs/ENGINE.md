@@ -139,10 +139,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  835/835 probed mechanics live, 0 missing   (census 2026-09-09 22:07)
+  835/835 probed mechanics live, 0 missing   (census 2026-09-10 02:56)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 1.1 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-10 01:43)
+    never fired in the staged harness (all-mechanics-fire.json, 22 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-10 02:59)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -164,9 +164,109 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-10 02:49_
+_stamped 2026-09-10 03:23_
 
 <!-- /GENERATED -->
+
+## THE LAST ILLEGAL FIXTURE IS REPAIRED AND THE CENSUS IS RE-PINNED — CENSUS `1da84d77888e` → **`257acf955593`**, **835 PROBED / 835 LIVE / 0 MISSING, 0 ROWS ADDED, 0 REMOVED, 0 STATUS FLIPS**; THE WHOLE GATE CHAIN RE-RUN ON IT READS **GATE: OPEN, 9 OF 9 PASS**, BOARD-MATERIAL **0 OF 961**, NARRATION **0 UNDECLARED OF 961**, ROSTER **142 / 139 / 487**, `test-engine-diff` **6000/6000**, `all_mechanics_fire` **1313 GAMES / 0 THREW**. **NO ENGINE BYTE MOVED — THE RELEASE ID IS UNCHANGED AT `8ac9c4d888f1`.** 2026-09-10, CHANGELOG 5.280.0
+
+Full account, every pin, every flag, and the predictions written before the first leg ran:
+[docs/_reports/2026-09-10-phase1-census-repin.md](_reports/2026-09-10-phase1-census-repin.md) and
+`data/verification/_prediction-2026-09-10-phase1.json`. **Eight of the nine predictions came out exactly
+as written; the ninth was declared GENUINELY UNKNOWN in advance and stayed unknown for a reason worth
+more than the answer would have been.**
+
+**THE ILLEGAL FIXTURE, AND THE CARRIER WAS DERIVED RATHER THAN TYPED.** `engine/game_differential.js`
+staged an **Incineroar holding Knock Off** at `:6186`, `:6256`, `:6325` and `:6348` — a set the game
+would refuse, and the last one in the repository. `CS.moveCarriers('Knock Off')` answers **95 legal
+carriers** in `gen9championsvgc2026regmb`; resolved against the damage engine's own table through
+`engine/mc_key.js`, 80 of them are buildable. The three sites where Knock Off is CLICKED move to
+**Pangoro**: Fighting/**Dark**, so the STAB every one of those arms is priced on survives; atk 124
+against 115 and spe 58 against 60, so no script's turn order moves; `Iron Fist` is inert because
+`knockoff.flags` reads `{contact, protect, mirror, metronome}` with **no `punch`**, read off the move
+rather than recalled.
+
+**THE FOURTH SITE IS REPAIRED THE OTHER WAY ROUND AND THAT IS THE POINT.** At `:6256` the row is *the
+sandstorm residual is speed-sorted, not slot-ordered*, its script is four Protects, and Knock Off is a
+filler nothing clicks — the premise IS Incineroar being slower than the Whimsicott behind it. Swapping
+the body there would have repaired a decoration by destroying the thing the row exists to test, so the
+DECORATION was replaced (`Close Combat`). **The risk in the other direction was named first and then
+measured**: Pangoro's 8% more Attack could have pushed the Sitrus arm from below-half into a KO, leaving
+it green while asserting nothing. Off the authority's own stream, `145/405` became `133/405` — still
+below half, still alive. `tests/test-fixture-legality.js` reads **ALL GREEN**;
+`tests/test-game-differential.js` **ALL PASSED** with the three Knock Off arms still distinguishable at
+192 / 284 / 142.
+
+**THE CENSUS MOVED TWO ROWS AND NEITHER IS A DEFECT.** 835 rows in, 835 out, zero added, zero removed,
+zero status flips — so the row POPULATION either side is identical and no denominator changed. Exactly
+two rows' CONTENT differs: Iron Head's flinch reads 19.1% against 20.3% over 6000 unseeded turns, and
+`seen.terrainSparedAirborne` reads **+4 → +2**, which is **the measurable footprint of 5.279.0's
+terrain-gate fix** — the row's assertion is `must be > 0` and every damage figure in it is
+byte-identical. **The digest changed regardless**, because `generated` is inside the hashed bytes, which
+is why `arms_comparable.js` answers NOT COMPARABLE and why this is reported as *the chain re-run on the
+new census reads the same* and never as a before/after.
+
+### THE CORNER ARMS DO NOT ANSWER THE TIE QUESTION, AND THE REASON IS TWO INSTRUMENT DEFECTS
+
+Both were run for the first time on a whole game, on the same release and census, each to its own
+unpublished file under `data/verification/`. **Neither produced a usable board figure, and the way they
+fail is this repository's signature failure.**
+
+| | middle | top-tie-first | bottom-tie-first |
+|---|---|---|---|
+| `state.games` less `state.games_board_never_diverged` | 961 − 961 = **0** | **0 − 0** | **0 − 0** |
+| `state.turn_boundaries_compared` | **10,705** | **0** | **0** |
+| `end_state.by_cause` BOARD-MATERIAL | 0 causes / 0 games | 14 / 15 | 12 / 13 |
+| `mid_void.usable_games` | 961 | **0** | **0** |
+
+- **DEFECT A — A CORNER-ARM RUN COMPARES NO BOARD AND THE GATE'S OWN ARITHMETIC READS IT AS A CLEAN
+  ZERO.** `--arm` sets `ARMS_RUN` and does not move `PRIMARY_ARM`, which is `ARMS[0]` and therefore
+  always `middle` (`engine/game_differential.js:1946`); the per-arm loop assigns `results` only
+  `if (isPrimary)` (`:7199`), so a corner-only run leaves it empty and `STATE_SUMMARY` walks nothing.
+  The bar the quarantine clause NAMES then computes `0 − 0 = 0` over an empty population.
+  **Knob-cleared control**: the identical command with `--arm middle` reads 961 games and 10,705
+  boundaries; only `--arm` was varied.
+- **DEFECT B — THE LOW-IDENTITY EXCLUSION IS MIDDLE-ONLY.** `MID_VOID_SUMMARY` is computed inside
+  `if (PRIMARY_ARM.middle)` (`:7825`), so a corner arm cannot separate an engine board split from a
+  dice-stream split — which is exactly the distinction a corner arm needs, because the corners
+  deliberately stop sharing dice.
+- **AND THE TWO CORNERS SHARE NOT ONE CAUSE.** The intersection of their board-material cause sets is
+  **EMPTY** (14 top-only, 12 bottom-only), and both lists are dominated by `-miss`, `-crit`,
+  `-supereffective`-against-`-miss` and one `-damage` whose entire disagreement is `131/135` against
+  `132/135`. **Two disjoint sets of one-game causes made of dice shapes is the signature of unshared
+  dice, not of tie order.** No board-material figure is quoted from either arm.
+
+**`--write` IS REQUIRED FOR `--out` AND THE BRIEF SAID NOT TO PASS IT.** The first corner run used
+`--out` alone: it played all 961 games, printed 506 lines and **wrote no artifact**, exiting 0. The
+write is gated on `WRITE` (`:9517`); the published slot is protected separately by `WRITE && !OUT`
+(`:298`), so `--write --out <path>` cannot touch `data/game-differential.json` — and it did not.
+
+### THE HAND LIST
+
+- **DEFECT A AND DEFECT B ABOVE** — no probe fails on either yet, and the probe is the first thing owed:
+  it must assert that a corner-arm artifact carries `turn_boundaries_compared > 0`, and be shown RED on
+  these bytes.
+- **THE DAMAGE DIFFERENTIAL HAS STILL NEVER APPLIED A MULTI-HIT MOVE** — `skipped_multihit` **134** and
+  `skipped_ability_multihit` **17** on the freshly written `data/engine-diff.json`. Its own batch.
+- **THE PERISH `|upkeep|` DRAIN** — CLOSETED by Will, and still the only raw narration row. Its
+  no-board-effect evidence was measured on release `5f3f7141227c` and the clause prints
+  `EVIDENCE NOT RE-CHECKED` against `8ac9c4d888f1` on every run.
+- **THE SUPREME OVERLORD DECLARATION MATCHES NOTHING IN THE NARRATION CLAUSE.** Still matched by the
+  MECHANICS clause, so check both before withdrawing it.
+- **THE SIDE GUARDS ARE STILL AT `TryMove`.** Quick Guard and Wide Guard are `condition.onTryHit`, the
+  same step as the terrain, and `sideGuardRefuses` is still asked at the pre-dispatch gate above the
+  move's own `Try`. Same shape as the terrain fix; no failing probe on it yet.
+- **THE TERRAIN GATE USES THE PRE-REDIRECT AIM AND HAS NO ALLY CLAUSE** (`data/moves.ts:14122`).
+- **NO `|-ability|<x>|Lightning Rod|boost` LINE.** The differ normalises it away today.
+- **FUTURE SIGHT'S PAYOUT TAKES NO `acc` DRAW**, **`kind === 'boostally'`'s silent shield**, **REST
+  UNDER MISTY TERRAIN** — carried forward unchanged.
+- **`tests/test-mechanics.js`'s `DELIBERATE_BREAK` list names neither `redirectBelowChargeRestored` nor
+  `terrainBarAtTryMoveRestored`**, so a census run under either knob would write. Still owed, and
+  `subAbsorbAtApplyRestored` with them.
+- ~~THE LAST ILLEGAL FIXTURE (`Incineroar can't learn Knock Off`, four sites)~~ — closed above;
+  `tests/test-fixture-legality.js` carries it at ALL GREEN.
+- ~~THE CENSUS IS TWO ENGINE CHANGES OLD AND STILL PINNED~~ — closed above; regenerated to
+  `257acf955593` and every leg of the chain re-run on it.
 
 ## NARRATION IS CLOSED — **THE GATE READS `OPEN` AND ALL 9 CLAUSES PASS.** NARRATION **3 → 0 OF 961** (1 RAW, 1 DECLARED), BOARD-MATERIAL **0 OF 961** WITH 10,705 OF 10,705 BOUNDARIES IDENTICAL, ROSTER **142 / 139 / 487** WITH ZERO DIFFER, ZERO DID-NOT-FIRE AND **ZERO DEAD PLANT ANCHORS**, `test-engine-diff` **6000/6000**, `all_mechanics_fire` **1313 GAMES / 0 THREW**, `test-resolution-order` 26/26, `probe_red_demo` 200 / 0 HOLLOW. CENSUS PINNED AND UNTOUCHED AT **835 LIVE / 0 MISSING**. 2026-09-10, CHANGELOG 5.279.0
 
