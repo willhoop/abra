@@ -473,23 +473,61 @@ function engine() {
     say(`    seed ${d.seed == null ? 'NOT RECORDED — this residual is one draw and cannot be reproduced' : d.seed}`
       + `, requested ${d.requested == null ? '?' : d.requested}`
       + (skipped ? `, ${skipped} not comparable (multihit ${d.skipped_multihit || 0}, non-finite ${d.skipped_non_finite || 0}, threw ${d.dropped_by_exception || 0})` : ''));
-    /* `skipped_multihit` IS NOT A ROUNDING ERROR ON THE LINE ABOVE — IT IS A WHOLE FAMILY OF MOVES
-     * THIS INSTRUMENT HAS NEVER RUN. The count of skipped ROWS reads like sampling noise; the count
-     * of skipped MOVES says the volley loop has never been compared once. Derived through the same
-     * door tests/test-engine-diff.js uses to build the skip set — the `multiHit` tag — so the two
-     * cannot part. */
+    /* THE MULTI-HIT FAMILY: WHAT THIS DRAW ACTUALLY DID WITH IT, NEVER A SENTENCE ABOUT IT.
+     *
+     * THIS LINE PRINTED A FALSE CLAIM FOR AT LEAST ONE DAY — ROADMAP #575. It asserted, with no
+     * condition on anything, that the multi-hit moves "are skipped by construction, so the volley
+     * loop has never been damage-compared", and `--write` stamped that sentence into docs/ENGINE.md's
+     * GENERATED block. It had stopped being true: `data/engine-diff.json` reads `skipped_multihit` 0,
+     * `skipped_ability_multihit` 0, and 142 of 6,000 rows RAN as volleys (130 multi-hit move, 12
+     * Parental Bond). The artifact already carried every field needed to say so.
+     *
+     * It is the same defect class as a typed count — CLAUDE.md R12, state is printed, never typed —
+     * and it is nastier than a stale figure, because a stale NUMBER at least changes when the artifact
+     * changes, while a hardcoded SENTENCE beside a fresh number reads as freshly measured. So the
+     * fix is not a second constant saying the opposite: every clause below is conditional on a field.
+     *
+     * DRAWN IS TWO DOORS, AND READING ONE OF THEM IS HOW THE CLAIM SURVIVED. A multi-hit move now
+     * appears either in `skipped_multihit_moves` (a row the differential REFUSED) or in
+     * `volley.moves` (a row it RAN as a volley). This read only the first, so with the skip map empty
+     * every move in the family read as "never drawn at all" — 14 of 14 — which is exactly the shape
+     * the false sentence needed to look plausible.
+     *
+     * Membership still comes through the same door tests/test-engine-diff.js uses to build its skip
+     * set — the `multiHit` tag in data/tags.json — so the two cannot part. Cross-checked against the
+     * artifact's own derivation on this draw: `volley.multihit_moves_not_drawn` and the list below
+     * agree at bonerush, doublehit, tailslap. */
     {
       const T = j('tags.json');
       const mh = T && T.moves ? Object.keys(T.moves)
         .filter(id => (T.moves[id].tags || []).indexOf('multiHit') >= 0) : null;
       if (mh) {
-        const drawn = Object.keys(d.skipped_multihit_moves || {});
-        for (const s of COVERAGE.wrap(`the skip is a FAMILY, not a rounding error: ${mh.length} of `
-          + `${Object.keys(T.moves).length} legal moves carry the multiHit tag and are skipped by `
-          + `construction, so the volley loop has never been damage-compared. ${drawn.length} were drawn `
-          + `and skipped; ${mh.length - drawn.length} were never drawn at all`
-          + (mh.length - drawn.length ? ' (' + mh.filter(x => drawn.indexOf(x) < 0).join(', ') + ')' : '')
-          + '.', 4)) say(s);
+        const V = d.volley || {};
+        const drawnSet = new Set([...Object.keys(d.skipped_multihit_moves || {}),
+                                  ...Object.keys(V.moves || {})]);
+        const drawn = mh.filter(id => drawnSet.has(id));
+        const never = mh.filter(id => !drawnSet.has(id));
+        const skipped = (d.skipped_multihit || 0) + (d.skipped_ability_multihit || 0);
+        const volleyRows = (V.move_rows || 0) + (V.bond_rows || 0);
+        const tail = `${drawn.length} of the ${mh.length} moves carrying the multiHit tag were drawn`
+          + `; ${never.length} were never drawn at all`
+          + (never.length ? ' (' + never.join(', ') + ')' : '');
+        let line;
+        if (skipped) {
+          line = `the skip is a FAMILY, not a rounding error: ${mh.length} of `
+            + `${Object.keys(T.moves).length} legal moves carry the multiHit tag and ${skipped} row(s) `
+            + `were skipped for it, so the volley loop is NOT fully damage-compared in this draw. ${tail}.`;
+        } else if (volleyRows) {
+          line = `the volley loop IS damage-compared in this draw: ${volleyRows} of ${d.compared} rows `
+            + `ran as volleys (${V.move_rows || 0} multi-hit move, ${V.bond_rows || 0} Parental Bond) `
+            + `and 0 rows were skipped for multi-hit`
+            + (V.hitcount_mismatch != null ? `, with ${V.hitcount_mismatch} hit-count mismatch(es)` : '')
+            + `. ${tail} — never drawn is a SAMPLING gap, not an exclusion.`;
+        } else {
+          line = `no row in this draw ran as a volley and none was skipped for multi-hit, so this `
+            + `artifact says nothing either way about the volley loop. ${tail}.`;
+        }
+        for (const s of COVERAGE.wrap(line, 4)) say(s);
       }
     }
     for (const w of (d.worst || []).slice(0, 6)) {

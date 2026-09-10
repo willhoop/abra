@@ -139,15 +139,15 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  835/835 probed mechanics live, 0 missing   (census 2026-09-10 13:36)
+  835/835 probed mechanics live, 0 missing   (census 2026-09-10 14:32)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 21 min old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 1.2 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-10 13:54)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
-    the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
-    construction, so the volley loop has never been damage-compared. 0 were drawn and skipped; 14 were never drawn at
-    all (bonerush, bulletseed, doublehit, dragondarts, dualwingbeat, iciclespear, pinmissile, populationbomb,
-    rockblast, scaleshot, tailslap, tripleaxel, twinbeam, watershuriken).
+    the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
+    Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
+    multiHit tag were drawn; 3 were never drawn at all (bonerush, doublehit, tailslap) — never drawn is a SAMPLING
+    gap, not an exclusion.
     the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
     a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
@@ -165,7 +165,7 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-10 14:06_
+_stamped 2026-09-10 14:54_
 
 <!-- /GENERATED -->
 
@@ -326,6 +326,13 @@ fourteen moves — every clause false. `--write` stamps it into this file's `<!-
 so it is PUBLISHED and false. **Both files are MEASURE's**, so this pass FILED it (ROADMAP #575) and
 did not touch them; the fix is one condition and two fields the artifact already carries
 (`volley.moves`, `volley.multihit_moves_not_drawn`). Read the artifact, not the caption.
+
+*(**FIXED THE SAME DAY BY MEASURE, CHANGELOG 6.2.0 — ROADMAP #575 is CLOSED.** The paragraph above is
+dated ENGINE evidence and is left standing rather than edited. Both blocks branch on
+`skipped_multihit`/`skipped_ability_multihit` now and read DRAWN through two doors, and the GENERATED
+block in this file reads *the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as
+volleys ... 3 were never drawn at all*. A third clause in `engine/coverage.js` had the same shape and was
+read in the same pass. Read the gate, not this paragraph.)*
 
 ### The hand list
 

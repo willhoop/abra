@@ -10,6 +10,78 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.2.0] — 2026-09-10
+
+### Added
+- **RULE 5 in `engine/provenance.js`: A PUBLISHED FIGURE MAY NOT CITE A RELEASE WHOSE BYTES ARE NOT IN
+  THE REPOSITORY.** The defect occurred three times in two days and was hand-fixed three times —
+  `b730e44f3314` (found by the architecture review, graded BLOCKS 6.0.0), then `cbd510bc2b13`, then
+  `3c2b2f9ac845` on the very next release. The review asked for an enforcing clause and it was never
+  written, which is why the class stayed open. **The cited set is DERIVED, never enumerated**:
+  `docs_scan.livingDocs()` gives the declared public API (CLAUDE.md: the figures in the white paper, the
+  deck, `SUMMARY.md` and `MODELS.md`), `.claude/agents/*.md` gives the division ledgers, and
+  `citationsIn()` says which `data/*.json` each names. The verdict is GRADED — a living-document
+  citation is UNSAFE, so `status.js` withholds the figure; a ledger citation warns, because Will ruled
+  on 2026-09-06 that a ledger is a working document. **It asks the release MANIFEST, not the directory**,
+  so a partly-tracked release fails as well as an absent one, and a deliberately PRUNED release warns
+  rather than fails because its manifest digests still prove what it held.
+- **SHOWN RED FIRST, TWICE, ON A DELIBERATE BREAK.** Against a scratch `GIT_INDEX_FILE` with
+  `3c2b2f9ac845` removed, RULE 5 named the six instance-3 artifacts — `all-mechanics-fire.json`,
+  `engine-diff.json`, `game-differential.json`, `roster.abilities.json`, `roster.items.json`,
+  `roster.moves.json` — and exited 1. With ONE manifest file removed it read *partial — 1 of 27
+  manifest file(s) untracked*. The working tree and the real index were untouched by both.
+- **MEASURED ON THE CLEAN TREE: 4 published figures rest on a release that is not in this repository**
+  — `data/million-run.json` and `data/million-run-150k.json` (`84f466e7e0d2`),
+  `data/mutation-coverage.json` (`6fb9ebd3b704`), `data/search-decision-profile.json` (`cf8567c4db78`) —
+  and 21 more on the ledger arm. 32 of 646 release directories are tracked and THAT IS CORRECT: a
+  release is ~6.8 MB and this pack is 724 MB, so tracking all 26 offenders would cost ~177 MB. ROADMAP
+  #577. What the clause does NOT catch is written into its header: a release id typed into PROSE with no
+  artifact under it (40 such ids sit in living-document history rows, and a bare 12-hex token cannot be
+  told from a commit hash — 271 of those resolve in tracked markdown).
+
+### Fixed
+- **`engine/status.js` AND `engine/coverage.js` STOP ASSERTING THAT THE VOLLEY LOOP HAS NEVER BEEN
+  DAMAGE-COMPARED (ROADMAP #575).** The sentence was printed unconditionally and `--write` had already
+  stamped it into `docs/ENGINE.md`'s `<!-- GENERATED -->` block, so it was published and false. Both
+  blocks now READ `data/engine-diff.json`: at `skipped_multihit + skipped_ability_multihit` of 0 the
+  handoff prints *the volley loop IS damage-compared in this draw: **142 of 6000 rows ran as volleys**
+  (130 multi-hit move, 12 Parental Bond)*. **DRAWN is two doors** — `skipped_multihit_moves` (refused)
+  and `volley.moves` (run) — and reading only the first is why all 14 `multiHit` moves read as never
+  drawn; the true figure is **3** (bonerush, doublehit, tailslap), which is what the artifact's own
+  `volley.multihit_moves_not_drawn` says. `engine/coverage.js` counts a move as EXCLUDED only when this
+  run skipped it, so *moves the damage diff can compare* reads **500 of 500**, not 486. A THIRD
+  hardcoded clause was found in the same file in the same pass — *"the damage differential skips these
+  moves outright"* on the `ranged mechanics fully staged` row — and is read now too.
+
+### Changed
+- **`data/register-reality.json` REFRESHED — it was two days and ~25 commits stale, and the MEDICHAM
+  gate's *no open, known engine defect* clause was reading 123 verdicts out of it.** 2026-09-08T16:34:05Z
+  -> 2026-09-10T18:43:07Z, 123 -> 136 results over 81 distinct commands. **STALE ROW 10 -> 9, PREMATURE
+  CLOSE 3 -> 1, EXIT CODE UNDECLARED 1 -> 6, INSTRUMENT CANNOT ANSWER 0 -> 2, MARKER REJECTED 0 -> 9**;
+  8 rows changed verdict and 13 are new. The clause's ANSWER does not change — it was shut and is shut —
+  but its evidence does: ~~#376~~ (the open red row that held it) is now CLOSED and its instrument exits 2,
+  and **#389 is the single open red row today**.
+- **TWO ROWS THAT WERE GREEN ARE NOW RED, AND THAT IS THE FINDING, NOT A REGRESSION TO HIDE.** #389
+  (`node tests/test-red-run-writes.js`, exit 1): `tests/probe_item_disposition.js` writes its artifact at
+  line 216 and exits non-zero at line 225, so a red run republishes — a new member of the class that row
+  exists to close. #479 (`node tests/test-claim-truth.js`, exit 1), a CLOSED row: **357 claims extracted,
+  323 checkable, 1 FALSE** — `tests/test-stadium-roster.js` declares `engine/smogon_coverage.js ->
+  data/smogon-coverage-2026-08.json` and that write is not there. #479 is RE-OPENED.
+- **FIVE INSTRUMENTS STOPPED RETURNING A VERDICT (ROADMAP #578).** `#218`, `#290`, `#376`
+  (`engine/quarantine.js --whole-game` / `--order-probe`) and `#224` (`engine/gate_offfield_target.js`)
+  exit **2**; `#471` (`tests/test-quality.js`) exits **134**, a heap death rather than a verdict — it
+  needs an `ABRA-HEAP` line. `register_reality.js` refuses to read any of them as green or red, which is
+  correct and leaves five rows unmeasured. Nine new rows carry a marker that names a path instead of a
+  command and are audited by nothing (ROADMAP #579).
+- **Two provenance verdicts moved under RULE 5**: `search-decision-profile.json` ok -> UNSAFE,
+  `replay-differential-freezes.json` ok -> stale?. Totals 173 -> 174 UNSAFE, 38 -> 36 ok, 43 -> 44 stale?.
+
+### Notes
+- MINOR, not MAJOR: published figures moved (the volley sentence, the coverage row, four withheld
+  figures) under an unchanged BASIS — every one of them still answers the question it answered before.
+- No engine byte was touched. `engine/medicham2-browser.js` and the game logic are ENGINE's and were not
+  opened.
+
 ## [6.1.0] — 2026-09-10
 
 ### Changed

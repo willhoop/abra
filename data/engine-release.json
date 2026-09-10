@@ -1,10 +1,10 @@
 {
-  "current": "3c2b2f9ac845",
-  "cut": "2026-09-10T17:37:21.211Z",
-  "why": "multi-hit volley in the damage differential; dmgRange pre-stamps move ids",
-  "cuts": 1,
-  "latest_cut": "2026-09-10T17:37:21.211Z",
-  "latest_why": "multi-hit volley in the damage differential; dmgRange pre-stamps move ids",
-  "pointer_written": "2026-09-10T17:37:21.294Z",
+  "current": "49f914e83f77",
+  "cut": "2026-09-10T18:27:55.474Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 10,
+  "latest_cut": "2026-09-10T18:33:05.145Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-09-10T18:33:05.158Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

@@ -1,18 +1,22 @@
 {
-  "generated": "2026-09-08T16:34:05.206Z",
+  "generated": "2026-09-10T18:43:07.026Z",
   "by": "engine/register_reality.js",
   "tree_state": {
-    "head": "97d7b3894ab64e9b4def2b304cd22431fa839fe1",
+    "head": "7ff2d08edafb7f0686f80be350662ceae9f39b4d",
     "dirty_at_start": [
-      "M data/engine-release.json",
-      "M data/game-differential.json"
+      "M data/provenance-stamp.json",
+      "M engine/coverage.js",
+      "M engine/provenance.js",
+      "M engine/status.js"
     ],
     "dirty_at_end": [
       "M data/engine-release.json",
       "M data/forme-assert.json",
-      "M data/game-differential.json",
       "M data/mechanics-census.json",
-      "M data/provenance-stamp.json"
+      "M data/provenance-stamp.json",
+      "M engine/coverage.js",
+      "M engine/provenance.js",
+      "M engine/status.js"
     ],
     "moved_during_the_run": true,
     "settled": false,
@@ -22,23 +26,87 @@
   "why": "docs/ROADMAP.md is read by engine/quarantine.js as a GATE INPUT and nothing checked it against reality. On 2026-08-14 four rows were stale rather than live and two of them were put in front of a human as the place to start. A row nobody re-verifies is prose.",
   "weaker_than_it_looks": "A green instrument means THAT instrument sees nothing. It is not a derivation of the row's claim. It is strictly more than the register had, which was nothing.",
   "counts": {
-    "register_rows": 466,
-    "id_rows": 512,
-    "open_asserting_breakage": 53,
-    "marked": 123,
-    "open_asserting_breakage_and_marked": 8,
-    "stale_rows": 10,
-    "premature_closes": 3,
+    "register_rows": 493,
+    "id_rows": 539,
+    "open_asserting_breakage": 51,
+    "marked": 136,
+    "open_asserting_breakage_and_marked": 7,
+    "stale_rows": 9,
+    "premature_closes": 1,
     "unrunnable": 0,
-    "cannot_answer": 0,
-    "exit_codes_undeclared": 1,
+    "cannot_answer": 2,
+    "exit_codes_undeclared": 6,
     "instrument_owed": 47,
-    "open_asserting_breakage_and_owed": 23,
-    "markers_rejected": 0,
+    "open_asserting_breakage_and_owed": 22,
+    "markers_rejected": 9,
     "markers_rejected_and_open_asserting_breakage": 0,
-    "distinct_commands_run": 73
+    "distinct_commands_run": 81
   },
-  "markers_rejected": [],
+  "markers_rejected": [
+    {
+      "n": 553,
+      "cmd": "data/next-regulation.json",
+      "code": "NOT A COMMAND",
+      "why": "the marker does not begin with `node` — it is \"data/next-regulation.json\", which names no instrument this file can run",
+      "title": "REG M-C IS LIVE WITH MOVE UPDATES AND OTHER CHANGES, AND THE ENGINE DOES NOT KNOW THEM YET"
+    },
+    {
+      "n": 555,
+      "cmd": "engine/status.js",
+      "code": "NOT A COMMAND",
+      "why": "the marker does not begin with `node` — it is \"engine/status.js\", which names no instrument this file can run",
+      "title": "THE ROSTER GATE'S SCOPE LINE STILL PRINTS ABILITIES THAT ARE NOT IN THE GAME.** WIRING, en"
+    },
+    {
+      "n": 558,
+      "cmd": "engine/sanity_check.py",
+      "code": "NOT A COMMAND",
+      "why": "the marker does not begin with `node` — it is \"engine/sanity_check.py\", which names no instrument this file can run",
+      "title": "TWO LADDER ROWS HAVE A WINNER THAT IS NEITHER PLAYER, BECAUSE THE PRE-2026-08-28 FETCH SPL"
+    },
+    {
+      "n": 563,
+      "cmd": "tests/probe_residual_trio_lower_order_handler.js",
+      "code": "NOT A COMMAND",
+      "why": "the marker does not begin with `node` — it is \"tests/probe_residual_trio_lower_order_handler.js\", which names no instrument this file can run",
+      "title": "RESIDUAL TIE ORDER FOLLOWS THE BODY LIST, NOT THE HANDLER LIST — THE brn / psn / LEFTOVERS"
+    },
+    {
+      "n": 566,
+      "cmd": "--dump-out <absolute path>",
+      "code": "PLACEHOLDER",
+      "why": "the marker carries unexpanded template text (`<...>` or `...`), so it is an instruction to a human and cannot be run as written. Write the real value into the row.",
+      "title": "THE DIFFERENTIAL'S `--dump-out` WITH AN ABSOLUTE PATH WRITES NOTHING AND EXITS 1 — AFTER T"
+    },
+    {
+      "n": 569,
+      "cmd": "tests/probe_corner_arm_measures.js",
+      "code": "NOT A COMMAND",
+      "why": "the marker does not begin with `node` — it is \"tests/probe_corner_arm_measures.js\", which names no instrument this file can run",
+      "title": "THE SPEED-TIE CORNER ARMS COMPARED NO BOARD AND THE GATE'S OWN ARITHMETIC READ IT AS A CLE"
+    },
+    {
+      "n": 570,
+      "cmd": "tests/probe_corner_arm_measures.js",
+      "code": "NOT A COMMAND",
+      "why": "the marker does not begin with `node` — it is \"tests/probe_corner_arm_measures.js\", which names no instrument this file can run",
+      "title": "`mid_void` IS THE WRONG INSTRUMENT FOR A CORNER ARM, AND ITS 0 WAS READ AS \"THE CORNERS CA"
+    },
+    {
+      "n": 574,
+      "cmd": "data/engine-diff.json",
+      "code": "NOT A COMMAND",
+      "why": "the marker does not begin with `node` — it is \"data/engine-diff.json\", which names no instrument this file can run",
+      "title": "DRAGON DARTS CANNOT BE STAGED THROUGH A 1v1 DAMAGE HARNESS — THE AUTHORITY'S OWN HIT LOOP "
+    },
+    {
+      "n": 576,
+      "cmd": "tests/test-engine-diff.js --case kangaskhanmega,fakeout,pinsir",
+      "code": "NOT A COMMAND",
+      "why": "the marker does not begin with `node` — it is \"tests/test-engine-diff.js\", which names no instrument this file can run",
+      "title": "THE FIRST `dmgRange` CALL IN A PROCESS PRICED THE CLICK WITH NO MOVE IDENTITY, SO PARENTAL"
+    }
+  ],
   "instrument_owed": [
     {
       "n": 299,
@@ -237,7 +305,7 @@
     },
     {
       "n": 536,
-      "owes": "a cheap id-uniqueness check over the self-play store that plays no game and needs no extra heap, so this row can carry a marker that means what it says.",
+      "owes": "a cheap id-uniqueness check over the self-play store that plays no game and needs no extra heap, so this row can carry a marker that means what it says. **CLOSED 2026-09-09 BY MEASURE** (`docs/_reports/2026-09-09-fix-gate-honesty.md` §5): the 89 colliding ids of the 2026-08-19 batch re-id'd as `selfplay-1-1787183460-N` (run stamp); ~~3,001 unique~~ → **3,090 lines / 3,090 unique ids**, read directly over the store this pass, `engine/validate_selfplay.js` duplicate clause green. 8 rows of that batch keep plain ids. The cheap heap-free id-uniqueness check is still owed, so the row still carries no VERIFIED BY marker.",
       "title": "89 DUPLICATE IDS IN `data/games.selfplay.jsonl` — TWO BATCHES SHARE ONE `selfplay-1-N` SEQ"
     },
     {
@@ -288,7 +356,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1062,
+      "ms": 1401,
       "verdict": "CONFIRMED"
     },
     {
@@ -302,7 +370,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2143,
+      "ms": 2123,
       "verdict": "CONFIRMED"
     },
     {
@@ -316,7 +384,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1607,
+      "ms": 1383,
       "verdict": "CONFIRMED"
     },
     {
@@ -330,7 +398,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1197,
+      "ms": 1185,
       "verdict": "CONFIRMED"
     },
     {
@@ -340,12 +408,12 @@
       "saysBroken": true,
       "cmd": "node engine/quarantine.js --whole-game",
       "owed": null,
-      "green": true,
-      "kind": "VERDICT-GREEN",
+      "green": null,
+      "kind": "UNDECLARED",
       "declared": null,
-      "why": "exit 0",
-      "ms": 69,
-      "verdict": "STALE ROW"
+      "why": "exit 2 — a code outside {0,1} that the instrument never declared, so it is NOT read as a verdict. Declare it with a line `ABRA-EXIT 2 <VERDICT-RED|CANNOT-ANSWER>`",
+      "ms": 98,
+      "verdict": "EXIT CODE UNDECLARED"
     },
     {
       "n": 223,
@@ -358,7 +426,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 975,
+      "ms": 968,
       "verdict": "CONFIRMED"
     },
     {
@@ -368,12 +436,12 @@
       "saysBroken": true,
       "cmd": "node engine/gate_offfield_target.js",
       "owed": null,
-      "green": true,
-      "kind": "VERDICT-GREEN",
+      "green": null,
+      "kind": "UNDECLARED",
       "declared": null,
-      "why": "exit 0",
-      "ms": 60,
-      "verdict": "CONFIRMED"
+      "why": "exit 2 — a code outside {0,1} that the instrument never declared, so it is NOT read as a verdict. Declare it with a line `ABRA-EXIT 2 <VERDICT-RED|CANNOT-ANSWER>`",
+      "ms": 57,
+      "verdict": "EXIT CODE UNDECLARED"
     },
     {
       "n": 241,
@@ -382,12 +450,12 @@
       "saysBroken": false,
       "cmd": "node engine/gate_fail_and_silent.js",
       "owed": null,
-      "green": false,
-      "kind": "VERDICT-RED",
-      "declared": "VERDICT-RED",
-      "why": "exit 1 (declared VERDICT-RED)",
+      "green": null,
+      "kind": "CANNOT-ANSWER",
+      "declared": "CANNOT-ANSWER",
+      "why": "exit 2 — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to report about this row, and a refusal is not evidence in either direction",
       "ms": 57,
-      "verdict": "PREMATURE CLOSE"
+      "verdict": "INSTRUMENT CANNOT ANSWER"
     },
     {
       "n": 242,
@@ -400,7 +468,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 561,
+      "ms": 539,
       "verdict": "CONFIRMED"
     },
     {
@@ -414,7 +482,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 203,
+      "ms": 202,
       "verdict": "CONFIRMED"
     },
     {
@@ -428,7 +496,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 203,
+      "ms": 202,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -443,7 +511,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 203,
+      "ms": 202,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -458,7 +526,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 615,
+      "ms": 595,
       "verdict": "CONFIRMED"
     },
     {
@@ -472,7 +540,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 615,
+      "ms": 595,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -487,7 +555,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 615,
+      "ms": 595,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -502,7 +570,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 863,
+      "ms": 854,
       "verdict": "CONFIRMED"
     },
     {
@@ -516,7 +584,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 768,
+      "ms": 675,
       "verdict": "CONFIRMED"
     },
     {
@@ -530,7 +598,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 768,
+      "ms": 675,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -545,7 +613,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 768,
+      "ms": 675,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -560,7 +628,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 768,
+      "ms": 675,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -575,7 +643,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 675,
+      "ms": 564,
       "verdict": "CONFIRMED"
     },
     {
@@ -589,7 +657,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 10086,
+      "ms": 9063,
       "verdict": "CONFIRMED"
     },
     {
@@ -603,7 +671,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1163,
+      "ms": 1124,
       "verdict": "CONFIRMED"
     },
     {
@@ -617,7 +685,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 62,
+      "ms": 54,
       "verdict": "CONFIRMED"
     },
     {
@@ -631,7 +699,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1163,
+      "ms": 1124,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -646,7 +714,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1004,
+      "ms": 920,
       "verdict": "CONFIRMED"
     },
     {
@@ -660,7 +728,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 784,
+      "ms": 744,
       "verdict": "CONFIRMED"
     },
     {
@@ -670,12 +738,12 @@
       "saysBroken": true,
       "cmd": "node engine/quarantine.js --order-probe",
       "owed": null,
-      "green": false,
-      "kind": "VERDICT-RED",
+      "green": null,
+      "kind": "UNDECLARED",
       "declared": null,
-      "why": "exit 1",
-      "ms": 72,
-      "verdict": "PREMATURE CLOSE"
+      "why": "exit 2 — a code outside {0,1} that the instrument never declared, so it is NOT read as a verdict. Declare it with a line `ABRA-EXIT 2 <VERDICT-RED|CANNOT-ANSWER>`",
+      "ms": 100,
+      "verdict": "EXIT CODE UNDECLARED"
     },
     {
       "n": 296,
@@ -688,7 +756,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 838,
+      "ms": 804,
       "verdict": "CONFIRMED"
     },
     {
@@ -702,7 +770,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 806,
+      "ms": 889,
       "verdict": "CONFIRMED"
     },
     {
@@ -716,7 +784,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 806,
+      "ms": 889,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -731,7 +799,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1990,
+      "ms": 1956,
       "verdict": "CONFIRMED"
     },
     {
@@ -745,7 +813,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 14732,
+      "ms": 14687,
       "verdict": "STALE ROW"
     },
     {
@@ -759,7 +827,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1408,
+      "ms": 1360,
       "verdict": "CONFIRMED"
     },
     {
@@ -773,7 +841,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 174854,
+      "ms": 67635,
       "verdict": "CONFIRMED"
     },
     {
@@ -787,7 +855,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1093,
+      "ms": 1120,
       "verdict": "CONFIRMED"
     },
     {
@@ -801,7 +869,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 56688,
+      "ms": 130360,
       "verdict": "CONFIRMED"
     },
     {
@@ -815,7 +883,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1473,
+      "ms": 1332,
       "verdict": "CONFIRMED"
     },
     {
@@ -829,7 +897,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "verdict": "CONFIRMED"
     },
     {
@@ -843,7 +911,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -858,23 +926,23 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2751,
+      "ms": 937,
       "verdict": "CONFIRMED"
     },
     {
       "n": 376,
       "title": "THREE PROTECT/DETECT ORDERINGS ARE EXACT SPEED TIES, AND A TIE HAS NO CORRECT ANSWER — THI",
-      "closed": false,
+      "closed": true,
       "saysBroken": true,
       "cmd": "node engine/quarantine.js --order-probe",
       "owed": null,
-      "green": false,
-      "kind": "VERDICT-RED",
+      "green": null,
+      "kind": "UNDECLARED",
       "declared": null,
-      "why": "exit 1",
-      "ms": 72,
+      "why": "exit 2 — a code outside {0,1} that the instrument never declared, so it is NOT read as a verdict. Declare it with a line `ABRA-EXIT 2 <VERDICT-RED|CANNOT-ANSWER>`",
+      "ms": 100,
       "cached": true,
-      "verdict": "CONFIRMED"
+      "verdict": "EXIT CODE UNDECLARED"
     },
     {
       "n": 379,
@@ -887,7 +955,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 838,
+      "ms": 804,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -898,12 +966,12 @@
       "saysBroken": true,
       "cmd": "node tests/test-red-run-writes.js",
       "owed": null,
-      "green": true,
-      "kind": "VERDICT-GREEN",
+      "green": false,
+      "kind": "VERDICT-RED",
       "declared": null,
-      "why": "exit 0",
-      "ms": 4638,
-      "verdict": "STALE ROW"
+      "why": "exit 1",
+      "ms": 1209,
+      "verdict": "CONFIRMED"
     },
     {
       "n": 390,
@@ -916,7 +984,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 9477,
+      "ms": 3818,
       "verdict": "CONFIRMED"
     },
     {
@@ -930,7 +998,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1607,
+      "ms": 1383,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -945,7 +1013,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3117,
+      "ms": 956,
       "verdict": "STALE ROW"
     },
     {
@@ -959,7 +1027,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -974,7 +1042,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -989,7 +1057,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2706,
+      "ms": 986,
       "verdict": "CONFIRMED"
     },
     {
@@ -1003,7 +1071,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 863,
+      "ms": 854,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1018,7 +1086,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3117,
+      "ms": 956,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1033,7 +1101,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1607,
+      "ms": 1383,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1048,7 +1116,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1607,
+      "ms": 1383,
       "cached": true,
       "verdict": "STALE ROW"
     },
@@ -1063,7 +1131,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1078,7 +1146,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1775,
+      "ms": 668,
       "verdict": "CONFIRMED"
     },
     {
@@ -1092,7 +1160,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1848,
+      "ms": 723,
       "verdict": "CONFIRMED"
     },
     {
@@ -1106,7 +1174,7 @@
       "kind": "UNDECLARED",
       "declared": null,
       "why": "exit 4 — a code outside {0,1} that the instrument never declared, so it is NOT read as a verdict. Declare it with a line `ABRA-EXIT 4 <VERDICT-RED|CANNOT-ANSWER>`",
-      "ms": 1896,
+      "ms": 910,
       "verdict": "EXIT CODE UNDECLARED"
     },
     {
@@ -1120,7 +1188,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1135,7 +1203,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1150,7 +1218,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1165,7 +1233,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1180,7 +1248,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1195,7 +1263,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1210,7 +1278,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1225,7 +1293,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1240,7 +1308,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1255,7 +1323,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1270,7 +1338,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1285,7 +1353,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1300,7 +1368,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 31656,
+      "ms": 11256,
       "verdict": "STALE ROW"
     },
     {
@@ -1314,7 +1382,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 45358,
+      "ms": 17508,
       "verdict": "STALE ROW"
     },
     {
@@ -1328,7 +1396,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 45358,
+      "ms": 17508,
       "cached": true,
       "verdict": "STALE ROW"
     },
@@ -1343,7 +1411,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "STALE ROW"
     },
@@ -1358,7 +1426,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1373,7 +1441,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2888,
+      "ms": 1077,
       "verdict": "CONFIRMED"
     },
     {
@@ -1387,7 +1455,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3824,
+      "ms": 3365,
       "verdict": "CONFIRMED"
     },
     {
@@ -1401,7 +1469,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 10086,
+      "ms": 9063,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1416,7 +1484,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1677,
+      "ms": 1886,
       "verdict": "CONFIRMED"
     },
     {
@@ -1430,7 +1498,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1445,7 +1513,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1460,7 +1528,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1475,7 +1543,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1490,7 +1558,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1505,7 +1573,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1520,7 +1588,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1535,7 +1603,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1550,7 +1618,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1565,7 +1633,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 29307,
+      "ms": 22406,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1580,7 +1648,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2155,
+      "ms": 2352,
       "verdict": "CONFIRMED"
     },
     {
@@ -1594,7 +1662,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1927,
+      "ms": 2139,
       "verdict": "CONFIRMED"
     },
     {
@@ -1608,7 +1676,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1974,
+      "ms": 2200,
       "verdict": "CONFIRMED"
     },
     {
@@ -1622,7 +1690,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 134,
+      "ms": 146,
       "verdict": "CONFIRMED"
     },
     {
@@ -1632,12 +1700,12 @@
       "saysBroken": false,
       "cmd": "node tests/test-quality.js",
       "owed": null,
-      "green": false,
-      "kind": "VERDICT-RED",
+      "green": null,
+      "kind": "UNDECLARED",
       "declared": null,
-      "why": "exit 1",
-      "ms": 21730,
-      "verdict": "PREMATURE CLOSE"
+      "why": "exit 134 — a code outside {0,1} that the instrument never declared, so it is NOT read as a verdict. Declare it with a line `ABRA-EXIT 134 <VERDICT-RED|CANNOT-ANSWER>`",
+      "ms": 10022,
+      "verdict": "EXIT CODE UNDECLARED"
     },
     {
       "n": 474,
@@ -1650,7 +1718,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 558,
+      "ms": 548,
       "verdict": "CONFIRMED"
     },
     {
@@ -1664,7 +1732,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1940,
+      "ms": 2055,
       "verdict": "CONFIRMED"
     },
     {
@@ -1678,7 +1746,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1943,
+      "ms": 2077,
       "verdict": "CONFIRMED"
     },
     {
@@ -1692,7 +1760,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1945,
+      "ms": 2070,
       "verdict": "CONFIRMED"
     },
     {
@@ -1706,7 +1774,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2489,
+      "ms": 2630,
       "verdict": "CONFIRMED"
     },
     {
@@ -1716,12 +1784,12 @@
       "saysBroken": false,
       "cmd": "node tests/test-claim-truth.js",
       "owed": null,
-      "green": true,
-      "kind": "VERDICT-GREEN",
+      "green": false,
+      "kind": "VERDICT-RED",
       "declared": null,
-      "why": "exit 0",
-      "ms": 1664,
-      "verdict": "CONFIRMED"
+      "why": "exit 1",
+      "ms": 1796,
+      "verdict": "PREMATURE CLOSE"
     },
     {
       "n": 481,
@@ -1734,7 +1802,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3139,
+      "ms": 3237,
       "verdict": "CONFIRMED"
     },
     {
@@ -1748,7 +1816,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1965,
+      "ms": 2052,
       "verdict": "CONFIRMED"
     },
     {
@@ -1762,7 +1830,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1042,
+      "ms": 1109,
       "verdict": "CONFIRMED"
     },
     {
@@ -1776,7 +1844,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 4735,
+      "ms": 4994,
       "verdict": "CONFIRMED"
     },
     {
@@ -1790,7 +1858,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 5606,
+      "ms": 5916,
       "verdict": "CONFIRMED"
     },
     {
@@ -1804,7 +1872,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3403,
+      "ms": 3570,
       "verdict": "CONFIRMED"
     },
     {
@@ -1818,7 +1886,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 226732,
+      "ms": 226094,
       "verdict": "CONFIRMED"
     },
     {
@@ -1832,7 +1900,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2133,
+      "ms": 2226,
       "verdict": "CONFIRMED"
     },
     {
@@ -1846,7 +1914,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2263,
+      "ms": 2400,
       "verdict": "CONFIRMED"
     },
     {
@@ -1860,7 +1928,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2012,
+      "ms": 2142,
       "verdict": "CONFIRMED"
     },
     {
@@ -1874,7 +1942,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 45781,
+      "ms": 48509,
       "verdict": "CONFIRMED"
     },
     {
@@ -1888,7 +1956,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2055,
+      "ms": 2130,
       "verdict": "CONFIRMED"
     },
     {
@@ -1902,7 +1970,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 638,
+      "ms": 644,
       "verdict": "CONFIRMED"
     },
     {
@@ -1916,7 +1984,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 806,
+      "ms": 889,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1931,7 +1999,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 838,
+      "ms": 804,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1946,7 +2014,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2263,
+      "ms": 2400,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1961,7 +2029,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 244926,
+      "ms": 250278,
       "verdict": "CONFIRMED"
     },
     {
@@ -1975,7 +2043,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 4735,
+      "ms": 4994,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1990,7 +2058,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3532,
+      "ms": 3682,
       "verdict": "CONFIRMED"
     },
     {
@@ -2004,7 +2072,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 548,
+      "ms": 566,
       "verdict": "STALE ROW"
     },
     {
@@ -2018,7 +2086,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 5981,
+      "ms": 6243,
       "verdict": "CONFIRMED"
     },
     {
@@ -2032,7 +2100,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 6390,
+      "ms": 6705,
       "verdict": "CONFIRMED"
     },
     {
@@ -2046,8 +2114,186 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1100,
+      "ms": 977,
       "verdict": "CONFIRMED"
+    },
+    {
+      "n": 553,
+      "title": "REG M-C IS LIVE WITH MOVE UPDATES AND OTHER CHANGES, AND THE ENGINE DOES NOT KNOW THEM YET",
+      "closed": false,
+      "saysBroken": false,
+      "cmd": "data/next-regulation.json",
+      "owed": null,
+      "green": null,
+      "kind": "MARKER-REJECTED",
+      "reject": "NOT A COMMAND",
+      "why": "MARKER REJECTED (NOT A COMMAND): the marker does not begin with `node` — it is \"data/next-regulation.json\", which names no instrument this file can run  marker: `data/next-regulation.json`",
+      "verdict": "MARKER REJECTED"
+    },
+    {
+      "n": 555,
+      "title": "THE ROSTER GATE'S SCOPE LINE STILL PRINTS ABILITIES THAT ARE NOT IN THE GAME.** WIRING, en",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "engine/status.js",
+      "owed": null,
+      "green": null,
+      "kind": "MARKER-REJECTED",
+      "reject": "NOT A COMMAND",
+      "why": "MARKER REJECTED (NOT A COMMAND): the marker does not begin with `node` — it is \"engine/status.js\", which names no instrument this file can run  marker: `engine/status.js`",
+      "verdict": "MARKER REJECTED"
+    },
+    {
+      "n": 558,
+      "title": "TWO LADDER ROWS HAVE A WINNER THAT IS NEITHER PLAYER, BECAUSE THE PRE-2026-08-28 FETCH SPL",
+      "closed": false,
+      "saysBroken": false,
+      "cmd": "engine/sanity_check.py",
+      "owed": null,
+      "green": null,
+      "kind": "MARKER-REJECTED",
+      "reject": "NOT A COMMAND",
+      "why": "MARKER REJECTED (NOT A COMMAND): the marker does not begin with `node` — it is \"engine/sanity_check.py\", which names no instrument this file can run  marker: `engine/sanity_check.py`",
+      "verdict": "MARKER REJECTED"
+    },
+    {
+      "n": 559,
+      "title": "TRICK FAILS ON THE AUTHORITY WITH AN EMPTY TARGET SLOT, AND THIS ENGINE AGREES THE MOVE LI",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node engine/gate_fail_and_silent.js",
+      "owed": null,
+      "green": null,
+      "kind": "CANNOT-ANSWER",
+      "declared": "CANNOT-ANSWER",
+      "why": "exit 2 — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to report about this row, and a refusal is not evidence in either direction",
+      "ms": 57,
+      "cached": true,
+      "verdict": "INSTRUMENT CANNOT ANSWER"
+    },
+    {
+      "n": 560,
+      "title": "`ignoresScreensAndSubs` WAS NAMED FOR SCREENS AND SUBS AND CARRIED NINE CENSUS ROWS ON SUB",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-mechanics.js",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 22406,
+      "cached": true,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 561,
+      "title": "A CENSUS PROBE PINNED THE COARSE STONE GUARD THE AUTHORITY REFUTES — `trickSwapsItems` STA",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/test-mechanics.js",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 22406,
+      "cached": true,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 563,
+      "title": "RESIDUAL TIE ORDER FOLLOWS THE BODY LIST, NOT THE HANDLER LIST — THE brn / psn / LEFTOVERS",
+      "closed": false,
+      "saysBroken": false,
+      "cmd": "tests/probe_residual_trio_lower_order_handler.js",
+      "owed": null,
+      "green": null,
+      "kind": "MARKER-REJECTED",
+      "reject": "NOT A COMMAND",
+      "why": "MARKER REJECTED (NOT A COMMAND): the marker does not begin with `node` — it is \"tests/probe_residual_trio_lower_order_handler.js\", which names no instrument this file can run  marker: `tests/probe_residual_trio_lower_order_handler.js`",
+      "verdict": "MARKER REJECTED"
+    },
+    {
+      "n": 566,
+      "title": "THE DIFFERENTIAL'S `--dump-out` WITH AN ABSOLUTE PATH WRITES NOTHING AND EXITS 1 — AFTER T",
+      "closed": false,
+      "saysBroken": false,
+      "cmd": "--dump-out <absolute path>",
+      "owed": null,
+      "green": null,
+      "kind": "MARKER-REJECTED",
+      "reject": "PLACEHOLDER",
+      "why": "MARKER REJECTED (PLACEHOLDER): the marker carries unexpanded template text (`<...>` or `...`), so it is an instruction to a human and cannot be run as written. Write the real value into the row.  marker: `--dump-out <absolute path>`",
+      "verdict": "MARKER REJECTED"
+    },
+    {
+      "n": 569,
+      "title": "THE SPEED-TIE CORNER ARMS COMPARED NO BOARD AND THE GATE'S OWN ARITHMETIC READ IT AS A CLE",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "tests/probe_corner_arm_measures.js",
+      "owed": null,
+      "green": null,
+      "kind": "MARKER-REJECTED",
+      "reject": "NOT A COMMAND",
+      "why": "MARKER REJECTED (NOT A COMMAND): the marker does not begin with `node` — it is \"tests/probe_corner_arm_measures.js\", which names no instrument this file can run  marker: `tests/probe_corner_arm_measures.js`",
+      "verdict": "MARKER REJECTED"
+    },
+    {
+      "n": 570,
+      "title": "`mid_void` IS THE WRONG INSTRUMENT FOR A CORNER ARM, AND ITS 0 WAS READ AS \"THE CORNERS CA",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "tests/probe_corner_arm_measures.js",
+      "owed": null,
+      "green": null,
+      "kind": "MARKER-REJECTED",
+      "reject": "NOT A COMMAND",
+      "why": "MARKER REJECTED (NOT A COMMAND): the marker does not begin with `node` — it is \"tests/probe_corner_arm_measures.js\", which names no instrument this file can run  marker: `tests/probe_corner_arm_measures.js`",
+      "cached": true,
+      "verdict": "MARKER REJECTED"
+    },
+    {
+      "n": 574,
+      "title": "DRAGON DARTS CANNOT BE STAGED THROUGH A 1v1 DAMAGE HARNESS — THE AUTHORITY'S OWN HIT LOOP ",
+      "closed": false,
+      "saysBroken": false,
+      "cmd": "data/engine-diff.json",
+      "owed": null,
+      "green": null,
+      "kind": "MARKER-REJECTED",
+      "reject": "NOT A COMMAND",
+      "why": "MARKER REJECTED (NOT A COMMAND): the marker does not begin with `node` — it is \"data/engine-diff.json\", which names no instrument this file can run  marker: `data/engine-diff.json`",
+      "verdict": "MARKER REJECTED"
+    },
+    {
+      "n": 575,
+      "title": "`engine/status.js` AND `engine/coverage.js` PRINT \"THE VOLLEY LOOP HAS NEVER BEEN DAMAGE-C",
+      "closed": false,
+      "saysBroken": false,
+      "cmd": "node engine/status.js",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 67635,
+      "cached": true,
+      "verdict": "STALE ROW"
+    },
+    {
+      "n": 576,
+      "title": "THE FIRST `dmgRange` CALL IN A PROCESS PRICED THE CLICK WITH NO MOVE IDENTITY, SO PARENTAL",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "tests/test-engine-diff.js --case kangaskhanmega,fakeout,pinsir",
+      "owed": null,
+      "green": null,
+      "kind": "MARKER-REJECTED",
+      "reject": "NOT A COMMAND",
+      "why": "MARKER REJECTED (NOT A COMMAND): the marker does not begin with `node` — it is \"tests/test-engine-diff.js\", which names no instrument this file can run  marker: `tests/test-engine-diff.js --case kangaskhanmega,fakeout,pinsir`",
+      "verdict": "MARKER REJECTED"
     }
   ],
   "unverifiable_open_defects": [

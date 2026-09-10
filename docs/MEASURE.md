@@ -13,32 +13,77 @@ it does not compete on them.
 
 ```
 MEASURE — can we believe a number
-  leaf calibration: WITHHELD — engine/provenance.js calls data/winrate-backtest.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    older than its input engine-data.js
-    (+2 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/backtest_winrate.js
-  engine correctness -> leaf: WITHHELD — engine/provenance.js calls data/leaf-engine-contrast.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    older than its input engine-data.js
-    (+10 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 173 unsafe, 2 void (declared), 44 possibly stale, 37 ok, 0 missing
-  click censoring: WITHHELD — engine/provenance.js calls data/click-censoring-census.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — engine/fit_policy.js was 37df17935c16 at read time, is a963537c91e8 now
-    (+5 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/click_census.js
+  leaf calibration: QUARANTINED — the figure is withheld, not annotated.
+    data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 7 of 8 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part; mechanics / each one staged and compared against showdown; no open, known engine defect); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
+  engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
+    data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 7 of 8 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part; mechanics / each one staged and compared against showdown; no open, known engine defect); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
+  provenance: 174 unsafe, 2 void (declared), 43 possibly stale, 37 ok, 0 missing
+    RATCHET TRIPPED — the unstamped list grew; provenance.js exited non-zero: _diag41-sample.json, _diag46-cards.json, _diag46-sample.json, _diag46b-cards.json, _diag46b-sample.json, _diag77-cards.json
+    their generators ship without recording what CONTENT they read — stamp source_digests
+  click censoring: QUARANTINED — the figure is withheld, not annotated.
+    data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 7 of 8 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part; mechanics / each one staged and compared against showdown; no open, known engine defect); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
+  the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-10 13:16
+    moved after the fit: engine/medicham2-browser.js  2026-09-10 14:08
     moved after the fit: data/engine-data.js  2026-08-31 00:08
     moved after the fit: data/abra-tags.js  2026-09-09 20:53
 ```
 
-_stamped 2026-09-10 14:06_
+_stamped 2026-09-10 14:54_
 
 <!-- /GENERATED -->
+
+## A PUBLISHED FIGURE MAY NO LONGER CITE A RELEASE THAT IS NOT IN THE REPOSITORY — THE ENFORCING CLAUSE, WRITTEN AFTER THE THIRD HAND-FIX. **4 HARD-ARM ARTIFACTS, 21 SOFT.** PLUS THE REGISTER REFRESHED (TWO GREENS WENT RED) AND TWO INSTRUMENTS THAT WERE PRINTING A FALSE SENTENCE. 2026-09-10, CHANGELOG 6.2.0
+
+**THE CLASS WAS OPEN, NOT THE INSTANCES, AND THAT IS WHY IT RECURRED ON THE NEXT RELEASE.** `b730e44f3314`,
+`cbd510bc2b13`, `3c2b2f9ac845` — three untracked releases under published figures in two days, three
+force-adds by hand. The architecture review asked for an enforcing clause in `engine/provenance.js` and
+nobody wrote it. RULE 5 is that clause. **The cited set is derived twice over** — `docs_scan.livingDocs()`
+for the declared public API and `.claude/agents/*.md` for the ledgers — because a typed list of published
+artifacts is the failure this whole file is about. It asks the release MANIFEST rather than the directory,
+so a PARTLY tracked release fails too; a deliberately pruned one warns, because its digests still prove
+what it held.
+
+**THE GRADING IS THE DESIGN DECISION AND IT IS MEASURED, NOT GUESSED.** A living-document citation goes
+UNSAFE and `status.js` withholds the figure; a ledger citation warns. On the clean tree that is **4 hard**
+(`million-run.json`, `million-run-150k.json` — `84f466e7e0d2`; `mutation-coverage.json` — `6fb9ebd3b704`;
+`search-decision-profile.json` — `cf8567c4db78`) and **21 soft**. Enforcing all 26 would demand ~177 MB of
+new tracked bytes against a 724 MB pack, which is how a gate becomes the one people learn to ignore; the
+soft arm is PRINTED so that widening it is a decision with a number attached rather than a guess.
+
+**SHOWN RED FIRST, IN BOTH SHAPES, AGAINST A SCRATCH `GIT_INDEX_FILE`.** Remove `3c2b2f9ac845` from a copy
+of the index and the clause names the six instance-3 artifacts and exits 1; remove ONE manifest file and it
+reads *partial — 1 of 27 manifest file(s) untracked*. Neither touched the real index or the working tree.
+**What it cannot catch is in its header**: a release id typed into PROSE with no artifact under it. 40 such
+ids sit in living-document history rows, and a bare 12-hex token cannot be told from a commit hash — 271 of
+which resolve in tracked markdown. That arm is left unbuilt rather than built carelessly.
+
+**THE REGISTER WAS TWO DAYS STALE AND THE GATE WAS READING IT.** `data/register-reality.json` refreshed
+2026-09-08T16:34:05Z — 2026-09-10T18:43:07Z, 123 — 136 results, 81 commands. **STALE ROW 10—9, PREMATURE
+CLOSE 3—1, EXIT CODE UNDECLARED 1—6, CANNOT ANSWER 0—2, MARKER REJECTED 0—9.** The open-defect clause's
+ANSWER is unchanged — shut before, shut now — and its EVIDENCE is not: the row that held it (#376) is closed
+and its instrument exits 2, and **#389 is the only open red row today**. **Two rows that were green went
+red** and are reported rather than smoothed: #389 (`tests/probe_item_disposition.js` writes at line 216 and
+exits non-zero at 225) and #479 (1 FALSE claim — `tests/test-stadium-roster.js` declares a write
+`engine/smogon_coverage.js` does not make). Five instruments now exit outside {0,1} — including
+`tests/test-quality.js` at **134**, a heap death — so five rows are unmeasured, not cleared. ROADMAP #578,
+#579. Full account: [docs/_reports/2026-09-10-release-tracking-and-verdicts.md](_reports/2026-09-10-release-tracking-and-verdicts.md).
+
+**AND TWO OF THIS DIVISION'S OWN INSTRUMENTS WERE PRINTING A FALSE SENTENCE INTO A GENERATED BLOCK.**
+ROADMAP #575: *"the volley loop has never been damage-compared ... 14 were never drawn at all"*, printed
+unconditionally by `engine/status.js` and `engine/coverage.js` and stamped into `docs/ENGINE.md`. The true
+reading of `data/engine-diff.json` is **142 of 6,000 rows run as volleys**, `skipped_multihit` 0, and **3**
+moves never drawn. The bug was reading ONE door for `drawn` (`skipped_multihit_moves`) when there are two
+(the other is `volley.moves`). Both blocks branch on the counters now, `coverage.js` reads **500 of 500**
+rather than 486, and a third hardcoded clause in the same file was found and read in the same pass. **A
+hardcoded sentence beside a fresh number is worse than a stale number**, because the number at least moves.
 
 ## FIXTURE LEGALITY, BATCH 2 — **25 → 1 ILLEGAL SETS, 19 → 1 DECLARATIONS**, 24 FILES REPAIRED WITH FORMAT-DERIVED CARRIERS, AND THE PROBES' OWN LEGALITY GATES WERE THE INSTRUMENT THAT HAD PASSED THEM. PLUS THREE INSTRUMENT NOTES FROM THE TRIO DERIVATION. 2026-09-10, CHANGELOG 5.278.0
 

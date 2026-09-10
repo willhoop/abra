@@ -21,6 +21,13 @@
  * skip COUNT was already on status.js's differential line; what was missing is that the skip is a
  * whole FAMILY of moves the volley loop has never run.)
  *
+ * THE FIRST AND FOURTH ROWS ABOVE ARE HISTORY AS OF 2026-09-10 AND ARE LEFT STANDING RATHER THAN
+ * EDITED, because they are dated evidence of why this file exists. The volley loop IS compared now:
+ * data/engine-diff.json reads `skipped_multihit` 0 and `skipped_ability_multihit` 0 with 142 of
+ * 6,000 rows run as volleys. The live derivations below were CHANGED in that pass (ROADMAP #575) —
+ * they had gone on asserting the exclusion unconditionally, which is this file's own defect class
+ * arriving inside the file built to catch it. Read the derivation, never this paragraph.
+ *
  * So the verdict is read, the scope is not, and the next person to look somewhere new produces
  * another surprise. That is a REPORTING defect and this file is the fix: the counts a reader needs in
  * order to know how wide a clean verdict is, printed beside it, every one of them derived.
@@ -636,22 +643,45 @@ function finishLine() {
         'data/tags.json x data/mechanics-census.json results[].tag');
   } else nd('tags with an engine consumer', 'data/tags.json absent');
 
-  /* the damage differential's excluded moves — DERIVED THROUGH THE SAME DOOR the instrument uses.
-   * tests/test-engine-diff.js builds its skip set as `tags.moves[id].tags includes 'multiHit'`, so
-   * this reads that, never a list of names and never the dex's own `multihit` field. */
+  /* THE DAMAGE DIFFERENTIAL'S EXCLUDED MOVES — WHICH IS NOW A MEASURED SET, NOT THE WHOLE FAMILY.
+   *
+   * ROADMAP #575. The numerator here was `all - mh`: every move carrying the multiHit tag counted as
+   * uncomparable BY CONSTRUCTION, and the note said so in words. Both stopped being true when the
+   * reference moved to `hitStepMoveHitLoop` — `data/engine-diff.json` reads `skipped_multihit` 0 and
+   * `skipped_ability_multihit` 0 with 142 of 6,000 rows run as volleys. A coverage denominator that
+   * hardcodes an exclusion cannot report the day the exclusion ends, which is the one day it matters.
+   *
+   * SO THE EXCLUSION IS READ, NOT ASSUMED: a move is excluded when THIS RUN skipped it, i.e. when it
+   * appears in `skipped_multihit_moves`. Membership in the family still comes through the same door
+   * tests/test-engine-diff.js uses to build its skip set — the `multiHit` tag in data/tags.json —
+   * never a list of names and never the dex's own `multihit` field.
+   *
+   * NOT DRAWN IS NOT EXCLUDED, and conflating them is what made the old note read as an exclusion of
+   * fourteen. A move now counts as drawn if it appears in `volley.moves` (run as a volley) OR in
+   * `skipped_multihit_moves` (refused); what is in neither is a SAMPLING gap in a 6,000-row draw. */
   const Dd = readJson(D('data', 'engine-diff.json'));
   const T = readJson(D('data', 'tags.json'));
   if (T && T.moves) {
     const all = Object.keys(T.moves);
     const mh = all.filter(id => (T.moves[id].tags || []).indexOf('multiHit') >= 0);
-    const drawn = Object.keys((Dd && Dd.skipped_multihit_moves) || {});
+    const skipMap = (Dd && Dd.skipped_multihit_moves) || {};
+    const V = (Dd && Dd.volley) || {};
+    const excluded = mh.filter(id => skipMap[id]);
+    const drawn = mh.filter(id => skipMap[id] || (V.moves && V.moves[id]));
     const never = mh.filter(id => drawn.indexOf(id) < 0);
-    add('moves the damage diff can compare', all.length - mh.length, all.length,
-        `${mh.length} carry the multiHit tag and are skipped by construction — one moveHit call is`
-        + ` one packet. ${drawn.length} were drawn and skipped`
-        + (Dd ? ` ${Dd.skipped_multihit} times` : '') + `, ${never.length} were never drawn at all`
-        + (never.length ? ` (${never.join(', ')})` : ''),
-        'data/tags.json moves[].tags multiHit — the same set tests/test-engine-diff.js skips on');
+    const volleyRows = (V.move_rows || 0) + (V.bond_rows || 0);
+    add('moves the damage diff can compare', all.length - excluded.length, all.length,
+        (excluded.length
+          ? `${excluded.length} of the ${mh.length} multiHit-tagged moves were skipped by this run`
+            + (Dd ? ` (${Dd.skipped_multihit} row(s))` : '') + ' — one moveHit call is one packet'
+          : `${mh.length} moves carry the multiHit tag and NONE was skipped by this run`
+            + (Dd ? ` (skipped_multihit ${Dd.skipped_multihit}, skipped_ability_multihit `
+                    + `${Dd.skipped_ability_multihit}); ${volleyRows} row(s) ran as volleys` : ''))
+        + `. ${drawn.length} of the family were drawn, ${never.length} never drawn at all`
+        + (never.length ? ` (${never.join(', ')})` : '')
+        + (excluded.length ? '' : ' — a sampling gap, not an exclusion'),
+        'data/tags.json moves[].tags multiHit x data/engine-diff.json skipped_multihit_moves + volley'
+        + ' — the same set tests/test-engine-diff.js skips on, and what it actually did with it');
   } else nd('moves the damage differential can compare', 'data/tags.json has no moves block');
 
   /* a mechanic staged at one point of a declared range */
@@ -667,8 +697,21 @@ function finishLine() {
           + `${R.length - full} entit${R.length - full === 1 ? 'y is' : 'ies are'} wider than two points`
           + ` (${[...new Set(R.map(r => r.tag))].join(', ')}, width ${pts.join('/')}): `
           + `${R.filter(r => r.interior).map(r => r.id + ' ' + (r.lo + 1) + '-' + (r.hi - 1)).join(', ')}`
-          + ' — those counts are reached by no arm, and the damage differential skips these moves'
-          + ' outright, so nothing in the project compares them there either',
+          + ' — those counts are reached by no arm'
+          /* ROADMAP #575: this used to append 'and the damage differential skips these moves
+           * outright, so nothing in the project compares them there either' UNCONDITIONALLY. The
+           * differential stopped skipping them, so the sentence became a hardcoded falsehood
+           * beside a freshly-read number — the same class as a typed count. It is read now. */
+          + (Dd && Dd.skipped_multihit
+              ? ', and the damage differential skipped ' + Dd.skipped_multihit + ' multi-hit row(s)'
+                + ' in its current draw, so it reaches few of them either'
+              : (Dd ? ', though the damage differential no longer skips these moves (skipped_multihit '
+                      + Dd.skipped_multihit + ')'
+                      + (Dd.volley && Dd.volley.arrivals
+                          ? ' and its own rows arrived at ' + Object.keys(Dd.volley.arrivals).sort().join('/')
+                            + ' hits, so the interior IS reached there — by draw, not by an arm'
+                          : '')
+                    : '')),
           'data/tags.json params.<tag>.range, ends reached per tests/probe_multihit_corners.js — '
           + 'derived from the declared range, never from the roster row note, which was wrong for nine days');
     }

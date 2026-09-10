@@ -69,6 +69,44 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [6.2.0] — 2026-09-10 — a published figure may no longer cite a release that is not in the repository, and two instruments stop asserting the volley loop is uncompared
+
+- **What changed.** Three MEASURE items, no engine byte touched. (1) `engine/provenance.js` gains RULE 5:
+  a published figure may not rest on an engine release whose bytes are not tracked. The published set is
+  DERIVED — `docs_scan.livingDocs()` for the declared public API, `.claude/agents/*.md` for the division
+  ledgers — and the check asks the release MANIFEST, not the directory, so a partly-tracked release fails
+  too. (2) `engine/register_reality.js` re-run; the verdict artifact was two days and ~25 commits stale and
+  the MEDICHAM gate's open-defect clause was reading it. (3) `engine/status.js` and `engine/coverage.js`
+  stop printing *"the volley loop has never been damage-compared"* unconditionally (ROADMAP #575); both
+  blocks now branch on `skipped_multihit`/`skipped_ability_multihit` and read `volley`.
+- **Measured.** RULE 5, on the clean tree: **4 artifacts on the living-document arm cite a release that is
+  not in this repository** — `data/million-run.json` and `data/million-run-150k.json` (`84f466e7e0d2`),
+  `data/mutation-coverage.json` (`6fb9ebd3b704`), `data/search-decision-profile.json` (`cf8567c4db78`) — and
+  **21 more on the ledger arm**, out of 646 release directories of which 32 are tracked. Two provenance
+  verdicts moved: `search-decision-profile.json` ok — UNSAFE, `replay-differential-freezes.json` ok — stale?
+  (`data/provenance-stamp.json`, and the `--verdicts-out` sidecar). Register refresh, `data/register-reality.json`
+  2026-09-08T16:34:05Z — 2026-09-10T18:43:07Z, 123 — 136 results, 81 distinct commands: **STALE ROW 10 — 9,
+  PREMATURE CLOSE 3 — 1, EXIT CODE UNDECLARED 1 — 6, INSTRUMENT CANNOT ANSWER 0 — 2, MARKER REJECTED 0 — 9**;
+  8 rows changed verdict. **Two rows that were GREEN are now RED** — #389 (`tests/test-red-run-writes.js`,
+  exit 1: `tests/probe_item_disposition.js` writes at line 216 and exits non-zero at line 225) and #479
+  (`tests/test-claim-truth.js`, exit 1: 357 claims, 323 checkable, 1 FALSE). Volley sentence, from
+  `data/engine-diff.json`: **`volley.move_rows` 130 and `volley.bond_rows`
+  12 of the 6,000 rows ran as volleys**, `skipped_multihit` 0, `skipped_ability_multihit` 0, **3 of the 14 `multiHit`-tagged moves were never
+  drawn** (bonerush, doublehit, tailslap) — the same three `volley.multihit_moves_not_drawn` names.
+- **Basis.** unchanged. Every figure answers the question it answered before; what moved is which of them
+  may be quoted and what the handoff says about the multi-hit family.
+- **Supersedes.** ~~*"14 of 500 legal moves carry the multiHit tag and are skipped by construction, so the
+  volley loop has never been damage-compared. 0 were drawn and skipped; 14 were never drawn at all"*~~
+  retracted — it stood in the `<!-- GENERATED -->` block of `docs/ENGINE.md` and is REPLACED there by
+  `node engine/status.js --write` in this pass, not captioned. ~~*moves the damage diff can compare* 486 of
+  500~~ retracted — `engine/coverage.js` now counts a move as excluded only when this run skipped it, and
+  reads **500 of 500**. The MEDICHAM gate's open-defect clause is **still shut**, but on a different row:
+  ~~#376~~ is closed and its instrument no longer returns a verdict; **#389** is the single open red row now.
+- **Owed to the next major.** `docs/ABRA-technical-docs.md` and `docs/SUMMARY.md` for the release-tracking
+  rule; `docs/MODELS.md` and `docs/ABRA-whitepaper.md` own the four hard-arm figures and must either drop
+  them or cite a tracked release. Open rows: #577 (the 4 hard-arm figures), #578 (five instruments now exit
+  outside {0,1}), #579 (nine rejected markers), #479 (re-opened).
+
 ## [6.1.0] — 2026-09-10 — the damage differential runs the authority's volley loop, and `0 of 6000` stops being a claim about single-hit moves
 
 - **What changed.** `tests/test-engine-diff.js` entered the authority at `battle.actions.moveHit`, and

@@ -1044,6 +1044,160 @@ const p12 = v => String(v).slice(0, 12);
 /* One place decides "does this file still match its stamp", so the live check and the frozen-release
  * check below cannot drift apart. */
 const matchesStamp = (src, want) => p12(digestOf(src)) === p12(want) || p12(contentDigestOf(src)) === p12(want);
+
+/* ---- RULE 5: A PUBLISHED FIGURE MAY NOT REST ON A RELEASE WHOSE BYTES ARE NOT IN THE REPOSITORY --
+ *
+ * WHY THIS EXISTS. CLAUDE.md claims that a stamped release is "the first thing in this repo that can
+ * be VERIFIED rather than assumed". That claim is false for any release whose snapshot is only on
+ * this machine: from a fresh clone the evidence chain for the figure ends at a twelve-character
+ * string, and the four digest rules above cannot tell — `data/releases/<id>/…` is on the working
+ * disk, so `digestOf` reads it and the artifact clears.
+ *
+ * THE DEFECT OCCURRED THREE TIMES AND WAS HAND-FIXED THREE TIMES, which is what makes it a class
+ * rather than three incidents:
+ *   2026-09-09  b730e44f3314  data/roster.spine.json — found by the architecture review, graded
+ *                             BLOCKS 6.0.0, force-added.
+ *   2026-09-10  cbd510bc2b13  data/game-differential.json and the 6.0.0 headline in docs/MODELS.md,
+ *                             both citing BOARD-MATERIAL 0 of 961. `git ls-files` returned 0 rows.
+ *   2026-09-10  3c2b2f9ac845  six artifacts on the very next release. Untracked again.
+ * The review asked for an enforcing clause here and it was never written, which is why the next
+ * release reproduced it within hours. This is that clause.
+ *
+ * WHAT IT DOES NOT SAY: "track every release". 32 of 646 release directories are tracked and that is
+ * CORRECT — a release directory is ~6.8 MB, this pack is already 724 MB, and GitHub hard-rejects a
+ * single file over 100 MB. Tracking the 646 would cost ~4 GB to protect figures nobody publishes.
+ * The rule is the narrow one: a release a PUBLISHED FIGURE cites is tracked.
+ *
+ * WHAT "PUBLISHED" MEANS HERE, AND WHY THE SET IS DERIVED. CLAUDE.md names the declared public API
+ * of this project — "what a reader depends on is the numbers in the white paper, the deck,
+ * docs/SUMMARY.md and docs/MODELS.md" — and `engine/docs_scan.js` already derives that set from the
+ * version header in each document's masthead. So RULE 5 asks docs_scan for the LIVING documents,
+ * asks it which `data/*.json` each one cites, and enforces on exactly those artifacts. Nothing is
+ * enumerated by hand and a nineteenth living document joins the rule on the day it gets a header.
+ *
+ * TWO ARMS, GRADED, BECAUSE AN OVER-FIRING GATE IS THE ONE PEOPLE LEARN TO IGNORE:
+ *   UNSAFE  — an artifact a LIVING DOCUMENT cites. That is a published figure by the project's own
+ *             definition, so the figure is WITHHELD (status.js reads this verdict), not captioned.
+ *   stale?  — an artifact a DIVISION LEDGER cites. Will ruled on 2026-09-06 that a ledger is "a
+ *             working document ... handed to nobody"; it gets no PDF and is not the public API. It
+ *             is still named, with the release id, because silence here is how the class survived.
+ *             Measured at the time of writing: 4 artifacts on the hard arm, 22 more on the soft one,
+ *             and clearing all 26 by tracking would cost ~177 MB. Widening the hard arm is a
+ *             decision with that number attached, not a guess.
+ *
+ * WHAT IT WOULD AND WOULD NOT HAVE CAUGHT. All three instances above are caught by name: instance 2
+ * and instance 3 on the hard arm (game-differential.json, engine-diff.json, roster.{moves,items,
+ * abilities}.json and all-mechanics-fire.json are cited by the white paper, MODELS.md and SUMMARY.md),
+ * instance 1 on the soft arm (roster.spine.json is named only by docs/ENGINE.md). It does NOT catch:
+ *   - a release id typed into PROSE with no artifact under it. 40 distinct untracked ids appear in
+ *     living-document prose today, nearly all inside dated per-version history rows that the
+ *     documents keep as history and do not rewrite. A bare 12-hex token is also indistinguishable
+ *     from a commit hash, of which 271 resolve in tracked markdown, so accusing on the token alone
+ *     would fire on the wrong thing. That arm is left unbuilt rather than built carelessly.
+ *   - an artifact that records a release it did not actually read. That is the same limit the whole
+ *     file has and only re-running the generator can close it.
+ *   - a release whose bodies were deliberately PRUNED. `engine_release.prune` removes the copies and
+ *     keeps `release.json`, whose digests still prove what the snapshot contained; that is a recorded
+ *     decision, so it is reported as a warning and never as a failure.
+ *
+ * IT ASKS THE MANIFEST, NOT THE DIRECTORY, because a release that is PARTLY tracked is not openable
+ * and a fresh clone cannot tell the difference. `data/releases/<id>/release.json` must be tracked and
+ * every path in its `files` map must be tracked. Measured: two releases on disk carry a 1-file and a
+ * 2-file tracked footprint (both pruned, correctly) and one carries 13 (d3d04b669e18 — an early
+ * 12-source manifest, complete).
+ *
+ * IT FAILS OPEN AND SAYS SO. If `git` cannot answer, RULE 5 cannot run; that is recorded in
+ * READ_FAILURES and printed, never turned into "everything is tracked". A checker that becomes more
+ * permissive the less it can see is the failure mode `citedReleaseIds` in engine_release.js already
+ * carries a paragraph about. */
+const { execFileSync } = require('child_process');
+/* Release-family FIELD NAMES, matched exactly. Not `/release/i` on the key: `source_digests` is keyed
+ * by PATH, and `engine/engine_release.js` is a path containing the word — matching loosely credited
+ * data/conformance-baseline.json with citing five "releases" that are source digests. */
+const RELEASE_FIELDS = new Set(['engine_release', 'release', 'release_id', 'roster_release', 'source_release']);
+function releaseIdsDeclaredBy(j) {
+  const ids = new Set();
+  (function rec(o, depth) {
+    if (!o || depth > 3 || typeof o !== 'object') return;
+    for (const [k, v] of Object.entries(o)) {
+      if (RELEASE_FIELDS.has(k) && typeof v === 'string' && /^[0-9a-f]{12}$/.test(v)) ids.add(v);
+      else if (v && typeof v === 'object' && !Array.isArray(v)) rec(v, depth + 1);
+    }
+  })(j, 0);
+  return [...ids];
+}
+/* ONE `git ls-files`, cached, and `null` means git did not answer. */
+let TRACKED_FILES;
+function trackedFiles() {
+  if (TRACKED_FILES !== undefined) return TRACKED_FILES;
+  try {
+    const out = execFileSync('git', ['-C', ROOT, 'ls-files', '-z', '--', 'data/releases'],
+                             { encoding: 'utf8', maxBuffer: 1 << 28 });
+    TRACKED_FILES = new Set(out.split('\0').filter(Boolean));
+  } catch (e) {
+    TRACKED_FILES = null;
+    /* NOT logUnreadable(): that one is silent on ENOENT, and ENOENT here is "git is not installed",
+     * which is the single most likely way this rule stops running. It must be loud. */
+    failedToRead('`git ls-files data/releases` failed, so RULE 5 (a published figure may not cite an '
+               + 'untracked release) COULD NOT RUN for any artifact', e);
+  }
+  return TRACKED_FILES;
+}
+/* Is this release's snapshot in the repository, as opposed to on this disk? */
+function releaseBytesState(id) {
+  const T = trackedFiles();
+  if (!T) return { state: 'unknown' };
+  const manRel = `data/releases/${id}/release.json`;
+  if (!T.has(manRel)) return { state: 'absent' };
+  let man;
+  try { man = JSON.parse(fs.readFileSync(D(manRel), 'utf8')); }
+  catch (e) {
+    failedToRead(`the manifest of release ${id} is tracked but could not be read, so RULE 5 cannot `
+               + 'tell whether its bodies are in the repository', e);
+    return { state: 'unknown' };
+  }
+  if (man.bodies_pruned) return { state: 'pruned', when: man.bodies_pruned.at || null };
+  const files = Object.keys(man.files || {});
+  const missing = files.filter(f => !T.has(`data/releases/${id}/${f}`));
+  return missing.length ? { state: 'partial', missing, total: files.length } : { state: 'in-repo' };
+}
+/* WHICH ARTIFACTS CARRY A PUBLISHED FIGURE — derived, twice, from files that already answer it.
+ * `docs_scan.livingDocs()` is the version-header derivation; `.claude/agents/*.md` is the division
+ * list that `build/build_pdfs.js` and `engine/orient.js` both read for the same reason. Neither is
+ * typed here. A failure to derive is recorded, not swallowed: with no document set every artifact
+ * would read as unpublished and the rule would pass by being blind. */
+const PUBLISHED_BY = (() => {
+  const out = new Map();          // 'data/x.json' -> { hard: [docs], soft: [docs] }
+  const add = (art, doc, hard) => {
+    if (!out.has(art)) out.set(art, { hard: [], soft: [] });
+    out.get(art)[hard ? 'hard' : 'soft'].push(doc);
+  };
+  let DS = null;
+  try { DS = require('./docs_scan.js'); }
+  catch (e) { failedToRead('engine/docs_scan.js could not be loaded, so RULE 5 has no living-document '
+                         + 'set and enforces on NOTHING', e); return out; }
+  let living = [];
+  try { living = DS.livingDocs(); }
+  catch (e) { failedToRead('docs_scan.livingDocs() threw, so RULE 5 has no living-document set', e); }
+  let ledgers = [];
+  try {
+    ledgers = fs.readdirSync(D('.claude', 'agents')).filter(f => f.endsWith('.md'))
+                .map(f => 'docs/' + f.replace(/\.md$/, '').toUpperCase() + '.md')
+                .filter(f => fs.existsSync(D(f)));
+  } catch (e) { failedToRead('.claude/agents/ could not be listed, so RULE 5 cannot name the division '
+                           + 'ledgers and reports none of them', e); }
+  for (const [docs, hard] of [[living, true], [ledgers, false]]) {
+    for (const doc of docs) {
+      let text;
+      try { text = DS.readDoc(doc); }
+      catch (e) { failedToRead('RULE 5 could not read the published document ' + doc, e); continue; }
+      for (const art of DS.citationsIn(text.split('\n'))) if (art.endsWith('.json')) add(art, doc, hard);
+    }
+  }
+  return out;
+})();
+/* Named in full at the bottom of the run: artifact, release id, and the document that publishes it. */
+const UNTRACKED_RELEASE_CITES = [];
 const FILTER_MT = (() => { for (const f of ['quality-filter.json']) { const m = mtime(f); if (m) return m; } return null; })();
 
 let cleanCount = null, openCleanCount = null, torn = 0;
@@ -1445,6 +1599,42 @@ for (const a of ARTIFACTS) {
       }
     }
   }
+  /* RULE 5, applied. See the block at `releaseBytesState` for what this catches and what it does not.
+   * The verdict is graded: a LIVING DOCUMENT's citation is a published figure and goes UNSAFE, so
+   * status.js withholds it; a DIVISION LEDGER's citation is named and warns. Both are collected for
+   * the section printed at the end of the run, which lists artifact, id and the citing document —
+   * "by name" is the whole point, because the three hand-fixes each began with somebody running
+   * `git ls-files` on a hunch. */
+  {
+    const key = String(a.file).startsWith('data/') ? String(a.file) : 'data/' + a.file;
+    const pub = PUBLISHED_BY.get(key);
+    if (pub && j) {
+      for (const id of releaseIdsDeclaredBy(j)) {
+        const st = releaseBytesState(id);
+        if (st.state === 'in-repo') continue;
+        const hard = pub.hard.length > 0;
+        const where = (hard ? pub.hard : pub.soft).slice(0, 3).join(', ');
+        if (st.state === 'unknown') continue;      // already recorded in READ_FAILURES, and printed
+        if (st.state === 'pruned') {
+          notes.push(`cites engine release ${id}, whose file bodies were deliberately PRUNED`
+            + (st.when ? ` on ${String(st.when).slice(0, 10)}` : '') + ' — the manifest digests still '
+            + 'prove what it contained, but the bytes cannot be re-opened from a clone');
+          warn = true;
+          continue;
+        }
+        const what = st.state === 'absent'
+          ? `data/releases/${id}/ is not in the repository`
+          : `data/releases/${id}/ is only PARTLY in the repository — ${st.missing.length} of `
+            + `${st.total} manifest file(s) untracked, so it cannot be opened from a clone`;
+        UNTRACKED_RELEASE_CITES.push({ artifact: key, id, state: st.state, hard, docs: hard ? pub.hard : pub.soft });
+        notes.push((hard ? 'PUBLISHED FIGURE ON AN UNTRACKED RELEASE' : 'cites an untracked release')
+          + ` — ${what}. ${hard ? 'Cited by' : 'Named by'} ${where}`
+          + ((hard ? pub.hard : pub.soft).length > 3 ? ` (+${(hard ? pub.hard : pub.soft).length - 3} more)` : '')
+          + `. From a fresh clone this figure's evidence chain ends at the string "${id}".`);
+        if (hard) bad = true; else warn = true;
+      }
+    }
+  }
   rows.push({ ...a, status: isVoid ? 'VOID' : bad ? 'UNSAFE' : (warn ? 'stale?' : 'ok'), games: n, notes, digestState });
 }
 
@@ -1757,6 +1947,37 @@ if (newVoid.length) {
   console.log('  A generator invalidated its own run since the last stamp. Find out what moved under');
   console.log('  it before anything downstream is reported. This list may shrink and may never grow.');
   process.exitCode = 1;
+}
+
+
+/* RULE 5, NAMED. Every hand-fix of this defect started with somebody running `git ls-files` on a
+ * hunch, so the whole value of the clause is that it says WHICH artifact cites WHICH id without
+ * being asked. The hard arm exits non-zero on a plain report run, like the void ratchet above and
+ * unlike the UNSAFE table, because a published figure with no evidence in the repository is not a
+ * staleness verdict a reader can weigh — it is a broken chain. */
+const hardCites = UNTRACKED_RELEASE_CITES.filter(c => c.hard);
+const softCites = UNTRACKED_RELEASE_CITES.filter(c => !c.hard);
+if (UNTRACKED_RELEASE_CITES.length) {
+  console.log('');
+  console.log('  PUBLISHED FIGURES CITING A RELEASE THAT IS NOT IN THE REPOSITORY');
+  const line = c => `    ${c.artifact}  ->  ${c.id}  (${c.state})  cited by ${c.docs.slice(0, 4).join(', ')}`
+                  + (c.docs.length > 4 ? ` +${c.docs.length - 4}` : '');
+  if (hardCites.length) {
+    console.log(`  ${hardCites.length} on the LIVING-DOCUMENT arm — UNSAFE, so status.js withholds the figure:`);
+    for (const c of hardCites) console.log(line(c));
+  }
+  if (softCites.length) {
+    console.log(`  ${softCites.length} on the DIVISION-LEDGER arm — reported, not enforced (a ledger is a`);
+    console.log('  working document, Will 2026-09-06). Named so that widening the hard arm is a decision:');
+    for (const c of softCites) console.log(line(c));
+  }
+  console.log('  Fix by ONE of: re-run the artifact on a tracked release; stop citing it in a published');
+  console.log('  document; or `git add -f data/releases/<id>` if that figure must stay quotable. Tracking');
+  console.log('  every release is NOT the fix — a release directory is ~6.8 MB and there are 646 of them.');
+  if (hardCites.length) process.exitCode = 1;
+} else if (trackedFiles()) {
+  console.log('');
+  console.log('  RULE 5: every release cited by an artifact a published document names is in the repository.');
 }
 
 if (STRICT && (unsafe.length || OPTIN.length || newVoid.length)) process.exit(1);
