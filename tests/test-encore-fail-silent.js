@@ -191,7 +191,8 @@ const CASES = [
         + 'and Suction Cups\' onDragOut returns **null**, so the authority emits the `-activate` and '
         + 'nothing else. Malamar is the format\'s only Suction Cups body. Whirlwind carries no '
         + '`protect` flag, so the target clicking Protect does not shield it.',
-    A: [['snorlax', '', 'Thick Fat', ['Whirlwind', 'Protect']], CLEF],
+    /* Skarmory, not Snorlax (2026-09-10): Snorlax does not learn Whirlwind in Champions; Keen Eye is silent. */
+    A: [['skarmory', '', 'Keen Eye', ['Whirlwind', 'Protect']], CLEF],
     B: [['malamar', '', 'Suction Cups', ['Protect']], CORV],
     script: [T([{ m: 'whirlwind', t: 0 }, PROT], [PROT, PROT]),
              T(PP, [PROT, PROT])] },
@@ -237,16 +238,12 @@ const CS = require(D('engine', 'champions_sim.js'));
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 const LS = dex.data.Learnsets;
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
-const learns = (sp, mv) => {
-  let s = dex.species.get(sp);
-  while (s && s.exists) {
-    const e = LS[s.id];
-    if (e && e.learnset && e.learnset[dex.moves.get(mv).id]) return true;
-    s = s.prevo ? dex.species.get(s.prevo)
-      : (s.baseSpecies && s.baseSpecies !== s.name ? dex.species.get(s.baseSpecies) : null);
-  }
-  return false;
-};
+/* THE VALIDATOR'S OWN VERDICT, NOT A WALK OVER THE RAW LEARNSET ROWS (2026-09-10). The walk this
+ * replaced accepted any entry on the species or on a prevo whatever its SOURCE tag, so a move a prevo
+ * learned by a gen-7 TM (`7M`, `7V`) read as legal here while `TeamValidator` refused it — which is how
+ * this file's own legality gate passed sets tests/test-fixture-legality.js named as illegal.
+ * `champions_sim.canLearn` IS `checkCanLearn`, cached per pair. */
+const learns = (sp, mv) => CS.canLearn(sp, mv);
 let illegal = 0;
 for (const c of CASES) {
   for (const row of c.A.concat(c.B)) {

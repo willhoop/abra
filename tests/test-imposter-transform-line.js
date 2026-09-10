@@ -119,7 +119,7 @@ const FOES = stage([
  * body that cannot learn it is the copy proving it landed. */
 const mkA = ab => stage([
   ['ditto', '', ab, ['Transform']],
-  ['incineroar', '', 'Blaze', ['Protect', 'Knock Off']],
+  ['incineroar', '', 'Blaze', ['Protect', 'Flare Blitz']],
   ['toxapex', '', 'Regenerator', ['Protect', 'Liquidation']],
   ['corviknight', '', 'Pressure', ['Protect', 'Brave Bird']],
 ]);

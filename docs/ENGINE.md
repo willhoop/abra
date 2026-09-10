@@ -138,10 +138,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  835/835 probed mechanics live, 0 missing   (census 2026-09-09 20:00)
+  835/835 probed mechanics live, 0 missing   (census 2026-09-09 22:07)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 2 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-09 19:40)
+    never fired in the staged harness (all-mechanics-fire.json, 15 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-09 22:11)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -163,9 +163,106 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-09 20:04_
+_stamped 2026-09-09 22:27_
 
 <!-- /GENERATED -->
+
+## THE RESIDUAL TRIO IS ONE MECHANISM, DERIVED AND NOT YET FIXED — `residualOrder` SORTS BODIES WHERE THE AUTHORITY SORTS HANDLERS, ALL THREE PAIRS ARE EXACT TIES AT BUILT SPEED (90/90, 117/117, 80/80), AND THE "65/75, NOT A TIE" READING WAS BASE SPEED. TWO PROBES RED 2 OF 4 ON `7d66b526659e`. 2026-09-10, CHANGELOG 5.278.0
+
+**RECORDED BY MEASURE AT THE FIX-ROWS PASS; ENGINE's derivation, read-only on the simulator that night.** Full account:
+[docs/_reports/2026-09-10-residual-trio-derivation.md](_reports/2026-09-10-residual-trio-derivation.md). Register row #563.
+Batch Z's section directly below this one is landed by the same CHANGELOG entry, 5.278.0; its hand list carried the trio as
+"skipped as instructed", and this is what it turned out to be.
+
+**THE MECHANISM.** `residualOrder` sorts every active body — fainted included, handler or not — group by group. The authority
+sorts one flat list of residual HANDLERS (`sim/battle.ts:492-507`, `speedSort` `:429-458`). Under the differential's pin no tie
+die is drawn on either side (`engine/game_differential.js:1859` `o.tie = () => 0`; Showdown's `shuffle` is the identity), so a
+tied pair's order is whatever each SELECTION SORT's swap history leaves, and the swap
+`[list[sorted+i], list[index]] = [list[index], list[sorted+i]]` is what decides it. The two lists differ in two ways, each with
+its own probe: **(a) a tied body also carries a lower-order handler** — placing the order-5 Leftovers group moves p1b's brn
+handler from index 1 to index 4, past p2b's (`tests/probe_residual_trio_lower_order_handler.js`, RED 2 of 4: `none` and
+`lefto-on-p1a` agree, `lefto-on-p2a` and `lefto-on-both` part, so the knob is wired); **(b) a faster body with NO residual
+handler shares the field** — Overqwil at 127 with a Life Orb is not in the authority's list at all, but this engine's body
+sort selects it first and its swap carries Scovillain ahead of Umbreon (`tests/probe_residual_trio_handlerless_body.js`, RED
+2 of 4: `slow/slow` and `fast/slow` agree, `slow/fast` and `fast/fast` part).
+
+**THE RECEIPT THAT RETRACTS THE RECORD.** Batch S's hand list read "Sinistcha vs Sinistcha (70/70), Primarina vs Clefable
+(60/60), Umbreon vs Scovillain (65/75)" — two ties and one that is not, so not one mechanism. Those are BASE Speeds.
+`buildPair` assigns the SP spread by slot index (slot 0 → +32, slot 1 → +22, slot 2 → +11, slot 3 → 0), so Umbreon (65, slot 0)
+and Scovillain (75, slot 1) are both built at **117**, read off the authority's own `storedStats.spe` through a `speedSort` hook
+and off `freshBodies(buildPair(sheet))`. `scovillainmega` has base Speed 75 (derived), so the mega does not move it. All three
+are exact ties: 90/90, 117/117, 80/80. Ruled out with the line that rules it out — a die at a different address (none under the
+pin); a wrong Speed read (no Scarf, paralysis, Tailwind or stage in any card; `battle.ts:2811` refreshes speed before
+`fieldEvent('Residual')`); Trick Room (no user on the field; aside, Champions NEGATES speed under TR at
+`data/mods/champions/scripts.ts:46-51` where mainline uses `10000 - speed` — 92 of 32,462 hooked bodies, all under TR, not the
+cause); Moody (protocol agreed 61 lines through game 2's residual); sub-order (both members carry the same effect).
+
+**A SENTENCE IN THE ENGINE IS WRONG AND IS NOT EDITED HERE.** The header above `residualOrder` justifies the per-phase tie key
+with "a fresh key per call would let one tied pair come out one way at order 5 and the other way at order 9 — an order the
+authority cannot produce". Game 1 IS that order under the pin (Leftovers p1b → p2b, brn p2b → p1b), and under real dice
+`speedSort` calls `prng.shuffle` per tied group, so it produces it there too. The per-phase key is a fine design; the reason
+given for it is false. Owed to whoever applies the fix.
+
+**WHICH SCOREBOARD.** On `489bea0577bc` the trio is 3 of the 7 remaining narration causes (`data/game-differential.json`
+`first_divergences`: `omit-protect …2660452545` t7, `omit-spread …2636020596` t4, `pair-protect-bust …2659228530` t7). The fix
+at `residualOrder` — extend the residual shadow to body handlers, or sort only the bodies holding a handler in the group being
+walked — should turn both probes green with the mechanism restorable by a knob (the LAB), and close exactly three pool rows
+(narration 6 → 3 of 961) with board-material unchanged at 0. The one place this can part a board — a mutual residual KO — is
+unmeasured, as before. Related: #221 (the per-body walk, closed 2026-08-12 as one pass per order group) and #422 (the residual
+`Array.prototype.sort`, left as narration) — this is what that site costs today.
+
+**INSTRUMENT NOTES FROM THE SAME NIGHT ARE MEASURE's** and sit in `docs/MEASURE.md` and #566 / #567: `--dump-out` fails on an
+absolute path; the dump cards carry no Speeds; the pool pairing moved three times under identical flags.
+
+
+## NARRATION BATCH Z — **THE SUBSTITUTE FAMILY IS CLOSED, AND IT WAS A STEP, NOT THE LOOP-NESTING JOB FIVE BATCHES PLANNED.** NARRATION-ONLY **10 → 7 CAUSES / 10 → 7 GAMES**, **GATE NARRATION 9 → 6 OF 961**, **BOARD-MATERIAL 0 OF 961 WITH 0 VOID**, CENSUS **835 → 835 LIVE / 0 MISSING**, ROSTER ZERO DIFFER / ZERO DID-NOT-FIRE (142/139/487), `test-engine-diff` 6000/6000, `all_mechanics_fire` 1313 GAMES / 0 THREW, `test-resolution-order` 26/26, `probe_red_demo` 200 / 0 HOLLOW. **THREE OF THE FOUR CARDS' GAMES STOPPED, ONE CHANGED CAUSE TO THE NEXT CARD IN THE SAME GAME (SHED TAIL'S `[weak]`).** GATE **1 OF 9 CLAUSES FAILING**. 2026-09-10
+
+Full account, every command, every pin, the loop before and after against the authority's lines, the probe red on the
+pre-fix bytes: [docs/_reports/2026-09-10-narration-batch-Z-substitute.md](_reports/2026-09-10-narration-batch-Z-substitute.md).
+Release `489bea0577bc`. Prediction (`data/verification/_prediction-2026-09-10-batch-Z.json`, written before the cut) hit on
+BOARD-MATERIAL 0, void 0, census, roster, engine-diff and all-mechanics-fire, and MISSED on the narration counts by one:
+raw 7 against a predicted 6, clause 6 against 5, causes 7 against 6, and "0 changed cause" against 1 — the fourth card's
+game played past the substitute line and parted two lines later on a Shed Tail `-fail` this engine writes bare.
+
+### THE DOLL IS STEP 0 OF `spreadMoveHit`, OVER EVERY ROW, AND THIS ENGINE ABSORBED IT AT STEP 2
+
+All four cards were SINGLE-ARRIVAL SPREAD MOVES (Earthquake, Rock Slide twice, Matcha Gotcha) with a Substitute on one row.
+The authority (`data/mods/champions/scripts.ts:343-368`) walks step 0 (`tryPrimaryHitEvent` — the doll, whose handler runs its
+own `getDamage` and so writes the doll row's effectiveness line, `data/moves.ts:18335-18365`) over EVERY target, then step 1
+(`getSpreadDamage`, every other row's `-supereffective`/`-resisted`/`-crit`), then step 2 (`spreadDamage`, `-damage`). This engine
+wrote every row's step-1 line inside `_stepDamage` and absorbed the doll inside `_stepApply`, so `-resisted|body` and `-damage|body`
+landed above `-end|doll`. Fix: the whole substitute branch moved out of `_stepApply` into `_stepSubAbsorb`, a step walked between
+`_stepDamage` and a new `_stepPriceLines` that carries the step-1 writes `_stepDamage` used to make inline (the DECISIONS — which
+berry, whether the shield was pierced — stay at the price; only the WRITES move one step down). Each doll arrival of a volley now
+writes its own effectiveness/crit line, which batch V's loop did not (`probe_multihit_through_doll` filters those lines out and
+never saw it). Knob `MEDI_SUB_ABSORB_AT_APPLY=1` restores the pre-batch order and stamps `MEDFAILS.subAbsorbAtApplyRestored`.
+
+### WHY NOT THE LOOP-NESTING PLAN — DERIVED, AND THE PROBE REFUSES TO RUN THE DAY IT STOPS HOLDING
+
+Batch X's plan (make the arrival loop the outer loop over the whole `_stepDamage`..`_stepAfterHitField` segment) rested on
+"a step-0 doll slot fixes arrival 1 only". That needs a click that is BOTH multi-arrival AND multi-row. **No legal move in this
+format is both multi-hit and multi-target** (14 multi-hit moves, all `target: normal`; Dragon Darts is `smartTarget` and already
+row-major) **and Parental Bond refuses `move.spreadHit`** (`data/abilities.ts`, `parentalbond.onPrepareHit`). At one row the
+step-major and row-major walks are the same permutation, so every doll arrival lives in the one new step and `_stepApply`'s
+packet loop picks the volley up at `R.pkFrom` exactly as batch V left it — one doll implementation, one position. Both facts are
+derived on every run of `tests/probe_substitute_family.js`, which exits NOT RUN if either changes. **The receipt the brief named —
+`test-resolution-order`'s KNOWN-OPEN arm closing — does not exist: that arm was promoted to `red` on 2026-08-30 and already read
+RED PROVEN; the file stays 26/26 with every anchor CAUGHT.** The receipt is the probe: 5 RED (each PARTS under the knob at the
+card's own line; each PARTED CLEAN on release `7d66b526659e`) and 2 CONTROL HELD.
+
+### THE HAND LIST
+
+- **SHED TAIL'S `-fail` IS BARE** where the authority writes `|-fail|SOURCE|move: Shed Tail|[weak]` on `source.hp <= ceil(maxhp/2)`
+  (`data/moves.ts:16166-16177`; the substitute-already-up refusal writes `|move: Shed Tail` without `[weak]`, and the no-ally
+  refusal is bare). Surfaced by this batch in `pair-speedctrl …2654408616` t2 once the substitute line agreed. One cause.
+- **`tests/test-mechanics.js`'s `DELIBERATE_BREAK` list does not name `subAbsorbAtApplyRestored`**, so a census run under
+  `MEDI_SUB_ABSORB_AT_APPLY=1` would write. The file was not mine this wave; one-line addition proposed in the report.
+- **FUTURE SIGHT'S PAYOUT TAKES NO `acc` DRAW** — carried forward unchanged from batch Y.
+- **THE RESIDUAL TRIO** (brn<>brn, psn<>psn, leftovers<>leftovers) — 3 of the 7 remaining causes; skipped as instructed.
+- **THE PERISH `|upkeep|` DRAIN** — CLOSETED by Will.
+- **SUCKER PUNCH vs PSYCHIC TERRAIN, LIGHTNING ROD vs `-prepare`** — batch X's structural trade, not attempted.
+- **`kind === 'boostally'`'s silent shield**, **REST UNDER MISTY TERRAIN** — carried forward unchanged.
+- ~~THE SUBSTITUTE FAMILY (4 causes)~~ — closed above; `tests/probe_substitute_family.js` carries it.
 
 ## NARRATION BATCH Y — **FOUR CAUSES CLOSED, ZERO TRANSFERS, EACH SHOWN RED ON THE PRE-FIX BYTES FIRST.** NARRATION-ONLY **14 → 10 CAUSES / 14 → 10 GAMES**, **GATE NARRATION 13 → 9 OF 961**, **BOARD-MATERIAL 0 OF 961 WITH 0 VOID**, ROSTER ZERO DIFFER / ZERO DID-NOT-FIRE (142/139/487), `test-engine-diff` 6000/6000, `all_mechanics_fire` 1313 GAMES / 0 THREW, `probe_red_demo` 200 / 0 HOLLOW, `test-resolution-order` 26/26. **CENSUS 835 → 834 LIVE / 1 MISSING — A PROBE PINS A RULE THE AUTHORITY REFUTES, IN A FILE THAT WAS NOT MINE THIS WAVE.** GATE **1 OF 9 CLAUSES FAILING**. 2026-09-09
 

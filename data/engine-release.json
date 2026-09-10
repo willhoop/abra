@@ -1,10 +1,10 @@
 {
-  "current": "7d66b526659e",
-  "cut": "2026-09-09T23:38:55.328Z",
-  "why": "narration batch Y: Future Sight immune payout, Trick refusal, replacement-queue tie, DamagingHit walk order",
+  "current": "489bea0577bc",
+  "cut": "2026-09-10T02:07:36.611Z",
+  "why": "narration batch Z: the Substitute is absorbed at step 0 of spreadMoveHit over every row (_stepSubAbsorb), step-1 lines deferred to _stepPriceLines, each doll arrival of a volley writes its own effectiveness line",
   "cuts": 32,
-  "latest_cut": "2026-09-10T00:32:27.626Z",
+  "latest_cut": "2026-09-10T02:20:44.221Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-10T00:32:27.644Z",
+  "pointer_written": "2026-09-10T02:20:44.235Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

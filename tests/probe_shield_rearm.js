@@ -112,11 +112,16 @@ const ORAN = ['oranguru', '', 'Telepathy', ['Instruct', 'Calm Mind', 'Protect']]
  * authority writes `|move|X|Recover||[still]` and this engine `|move|X|recover|X` — so an arm using it
  * carries a second, unrelated divergence and could not say which one it had found. Haze always
  * succeeds, touches no HP and no counter, and clears the same boosts on both sides. */
-const TOX = ['toxapex', '', 'Regenerator', ['Protect', 'Haze', 'Wide Guard', 'Endure', 'Toxic Spikes']];
+/* FOUR MOVES, NOT FIVE (2026-09-10): the validator refuses five. Protect, Haze and Endure are clicked
+ * across the arms; the fourth slot is Wide Guard except on `encore-into-nonshield`, whose Toxic Spikes
+ * is the non-shield the Encore lands on. Same species, ability and speed on every arm. */
+const TOX = ['toxapex', '', 'Regenerator', ['Protect', 'Haze', 'Endure', 'Wide Guard']];
+const TOX_TS = ['toxapex', '', 'Regenerator', ['Protect', 'Haze', 'Endure', 'Toxic Spikes']];
 const MEOW = ['meowstic', '', 'Keen Eye', ['Charm', 'Protect', 'Helping Hand']];
 
 const SUB = stage([WHIM, ORAN]).concat(BENCH('clefable', 'snorlax'));
 const VIC = stage([TOX, MEOW]).concat(BENCH('garchomp', 'sylveon'));
+const VIC_TS = stage([TOX_TS, MEOW]).concat(BENCH('garchomp', 'sylveon'));
 
 const P = { m: 'protect' }, RC = { m: 'haze' }, C = { m: 'charm', t: 0 }, CM = { m: 'calmmind' },
       EN = { m: 'endure' }, WG = { m: 'wideguard' }, HH = { m: 'helpinghand' }, TS = { m: 'toxicspikes' },
@@ -172,7 +177,7 @@ const CASES = [
         + 'move at the gate, and the second use draws its own 1/3 off the shared counter. The knob '
         + 'must not move one byte of this.' },
 
-  { id: 'encore-into-nonshield', kind: 'control', mirror: false, rearm: 1, armed: 0,
+  { id: 'encore-into-nonshield', kind: 'control', mirror: false, rearm: 1, armed: 0, vic: VIC_TS,
     script: [{ p1: [C, CM], p2: [TS, C] }, { p1: [ENC0, CM], p2: [RC, C] }],
     what: 'THE RE-ARM FIRES AND ARMS NOTHING. The victim clicks Haze and is Encored into Toxic Spikes, '
         + 'which is neither a shield nor a `stallCounterChecks` member, so the re-ask runs and leaves '
@@ -201,18 +206,14 @@ const CS = require(D('engine', 'champions_sim.js'));
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 const LS = dex.data.Learnsets;
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
-const learns = (sp, mv) => {
-  let s = dex.species.get(sp); const id = dex.moves.get(mv).id;
-  while (s && s.exists) {
-    const e = LS[s.id];
-    if (e && e.learnset && e.learnset[id]) return true;
-    s = s.prevo ? dex.species.get(s.prevo)
-      : (s.baseSpecies && s.baseSpecies !== s.name ? dex.species.get(s.baseSpecies) : null);
-  }
-  return false;
-};
+/* THE VALIDATOR'S OWN VERDICT, NOT A WALK OVER THE RAW LEARNSET ROWS (2026-09-10). The walk this
+ * replaced accepted any entry on the species or on a prevo whatever its SOURCE tag, so a move a prevo
+ * learned by a gen-7 TM (`7M`, `7V`) read as legal here while `TeamValidator` refused it — which is how
+ * this file's own legality gate passed sets tests/test-fixture-legality.js named as illegal.
+ * `champions_sim.canLearn` IS `checkCanLearn`, cached per pair. */
+const learns = (sp, mv) => CS.canLearn(sp, mv);
 let illegal = 0;
-for (const row of SUB.concat(VIC)) {
+for (const row of SUB.concat(VIC, VIC_TS)) {
   const sp = dex.species.get(row.species);
   if (!legal(sp)) { console.log('ILLEGAL FIXTURE  ' + row.species + ' is not in this format'); illegal++; continue; }
   if (row.ability && !Object.values(sp.abilities).map(a => dex.abilities.get(a).id)
@@ -281,7 +282,8 @@ function play(G, c) {
   G.resetScriptCounters();
   const arm = G.ARM_BY_ID.get('middle');
   if (!arm) { console.log('NOT RUN — the driver has no arm named middle'); process.exit(2); }
-  const A = c.mirror ? VIC : SUB, B = c.mirror ? SUB : VIC;
+  const vic = c.vic || VIC;
+  const A = c.mirror ? vic : SUB, B = c.mirror ? SUB : vic;
   const a = G.buildPair(A), b = G.buildPair(B);
   if (!a || !b) return { notStaged: true };
   const vicSide = c.mirror ? 'A' : 'B';

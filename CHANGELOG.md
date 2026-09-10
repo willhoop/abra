@@ -10,6 +10,87 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.278.0] — 2026-09-10
+
+### Added
+- **The Reg M-C collector runs on two cron expressions (`:07` and `:37`).** GitHub skipped the
+  01:07 and 02:07 slots and the ingest's 00:17 slot on 2026-09-10; two manual dispatches covered the
+  window. Two expressions halve the longest gap a dropped slot leaves.
+- **`tests/probe_substitute_family.js`** — seven arms, both engines under the differential's `middle` pin: five RED
+  on release `7d66b526659e`, green live, each PARTING again under `MEDI_SUB_ABSORB_AT_APPLY=1` at the card's own
+  line; two controls held. It derives on every run that no legal move is both multi-hit and multi-target (14
+  multi-hit moves, all `target: normal`) and that Parental Bond refuses `move.spreadHit`, and exits NOT RUN the
+  day either stops holding — so the loop-nesting question re-opens itself rather than waiting to be remembered.
+- **Two residual-trio probes with a derivation and no fix yet.** `tests/probe_residual_trio_lower_order_handler.js`
+  and `tests/probe_residual_trio_handlerless_body.js`, each RED 2 of 4 on `7d66b526659e` with green control
+  cells, one per swap variant (`docs/_reports/2026-09-10-residual-trio-derivation.md`). The brn / psn / Leftovers
+  trio is ONE mechanism: `residualOrder` sorts every active body where the authority sorts residual handlers, and
+  under the pinned identity tie the two selection sorts have different swap histories. All three pairs are exact
+  ties in built Speed (90/90, 117/117, 80/80) — `buildPair` assigns SP by slot, so Umbreon and Scovillain are
+  both 117.
+- `docs/ROADMAP.md` #563–#567: the residual trio (ENGINE defect, mechanism derived, fix site `residualOrder`,
+  verified by the two probes, open until the fix lands); Shed Tail's `[weak]` refusal written bare (ENGINE);
+  37 probe files still walking raw learnsets for legality (MEASURE); the differential's `--dump-out` writing
+  nothing on an absolute path (MEASURE instrument); and the pool pairing moving three times under identical flags
+  (MEASURE, observed and not explained).
+
+### Changed
+- **Gate artifacts re-measured on release `489bea0577bc`** — `data/game-differential.json`, generated
+  2026-09-10T02:18Z, pins `--steering empirical --arm middle --end-state --state --games 1200 --turns 50
+  --team-store data/team-pool-frozen --census data/verification/census-pin-1da84d77888e.json`: `state.games`
+  961, `state.games_board_never_diverged` 961, `state.games_void_excluded` 0, `mid_void.diverged_among_usable`
+  7 — BOARD-MATERIAL 0 of 961 with 0 void; NARRATION ~~9 of 961, 10 causes~~ → 6 of 961 across 7 causes after
+  the one closeted row; 8 of 9 clauses PASS. Three of batch Z's four cards' games stopped, none started, one
+  changed cause. `data/engine-diff.json` 6000 / 6000 / 0; roster 142 / 139 / 487 tested, 0 DIFFER, 0
+  DID-NOT-FIRE (`data/roster.items.json`, `data/roster.abilities.json`, `data/roster.moves.json`);
+  `data/all-mechanics-fire.json` 1313 games / 0 threw, field for field; census 835 / 835 / 0
+  (`data/mechanics-census.json`). Prediction written before the cut hit on board, void, census, roster,
+  engine-diff and all-mechanics-fire, and missed the three narration counts by one each, because one card's game
+  surfaced its next card instead of stopping.
+- **13 probe legality gates ask the validator** (`champions_sim.canLearn`) instead of walking raw `Learnsets`
+  rows up the prevo chain — a walk that accepted a gen-7 TM on Clefairy as a Champions learnset entry for
+  Clefable. 37 files still carry the walk (#565).
+- `tests/probe_red_demo.js`: WIRE 130's anchor re-aimed to the new step's condition line; 200 demonstrations,
+  0 HOLLOW, 0 COULD NOT BE APPLIED.
+
+### Fixed
+- **A Substitute on one row of a spread hit was absorbed at step 2**, after every other row's effectiveness
+  line and `-damage`; the authority absorbs it at step 0 over every row (`data/mods/champions/scripts.ts:343-354`)
+  and the doll's own handler writes the doll row's effectiveness line. `engine/medicham2-browser.js`:
+  `_stepSubAbsorb` between `_stepDamage` and a new `_stepPriceLines` that carries the step-1 writes; every doll
+  arrival of a volley writes its own effectiveness / crit line; knob `MEDI_SUB_ABSORB_AT_APPLY=1` restores the
+  pre-batch stream byte for byte (`docs/_reports/2026-09-10-narration-batch-Z-substitute.md`).
+- **25 illegal fixture sets / 19 declarations the Champions validator refuses, across 24 probe and test
+  files**, repaired with carriers derived from `gen9championsvgc2026regmb` at Showdown `20ad99f` — Staraptor
+  Final Gambit, Umbreon Toxic and Curse, Hydreigon Roar + Dragon Tail, Gourgeist-Small Explosion, Scizor Knock
+  Off, Audino Simple Beam, Chandelure Power Split, Lucario Swords Dance, Garganacl and Vanilluxe Explosion,
+  Slowking as the one Substitute-probe mover, Snorlax Curse, Skarmory Whirlwind, Toucannon U-turn; six
+  over-four-move sets split per arm; the Nasty Plot filler's three illegal bodies swapped or re-fillered.
+  `tests/test-fixture-legality.js` NEW sets 25 → 1, NEW declarations 19 → 1; the survivor is
+  `engine/game_differential.js`'s Incineroar Knock Off at four sites. Two premises could not be kept and the
+  arms say so (no Infiltrator Simple Beam carrier exists; Incineroar has no legal damaging pivot). 24 of 25
+  touched probes green; `probe_default_target_side.js` is red on a `near-side draws` expectation that is red on
+  the HEAD fixture and on `7d66b526659e` too — pre-existing (`docs/_reports/2026-09-10-fixture-legality-batch2.md`).
+
+### Notes
+- MINOR: the narration figure moved under an unchanged basis.
+- **The record's loop-nesting plan is REFUTED, not deferred.** Batches X and Y planned to make the arrival
+  loop the outer loop over the `_stepDamage`…`_stepAfterHitField` segment; that needs a click both
+  multi-arrival and multi-row, and none exists in this format. The receipt the brief named —
+  `tests/test-resolution-order.js`'s "KNOWN-OPEN arm" closing — does not exist: `a1-multihit-frequency` was
+  promoted to `red` on 2026-08-30 and already read RED PROVEN; the file is 26/26 before and after.
+- **The residual trio is derived and NOT fixed in this entry.** ~~"70/70, 60/60, 65/75 — two ties and one that
+  is NOT"~~ retracted — it read base Speeds; both bodies are built at 117. The fix at `residualOrder` and a
+  re-measure follow in this same release (expect narration 6 → 3 of 961, board-material unchanged).
+- Owed, named: `tests/test-mechanics.js`'s `DELIBERATE_BREAK` list does not yet name
+  `subAbsorbAtApplyRestored`, so a census run under the new knob would write; `data/releases/489bea0577bc/` is
+  gitignored and owed `git add -f` as batch Y's release was; `data/all-mechanics-fire.json` still does not
+  stamp its census digest.
+- Not run in this record-keeping pass: `node engine/status.js --write`, `tests/run-all.js`, any differential or
+  game — a heavy chain follows this commit and restamps the generated blocks. `tests/test-fixture-legality.js`
+  was re-run to verify the survivor (2 FAILED: the one set and its one declaration).
+
+
 ## [5.277.0] — 2026-09-09
 
 ### Added

@@ -128,7 +128,13 @@ const FILL = (...names) => names.map(n => mon(n, '', '', ['Protect']));
 
 /* Incineroar carries BLAZE and not Intimidate on purpose: an Intimidate on the lead would put a
  * second `-unboost|atk` on the very leaf these arms are read on. */
-const A_SIDE = () => [mon('incineroar', '', 'Blaze', ['Parting Shot', 'U-turn', 'Taunt', 'Protect']),
+/* THE U-TURN ARM RUNS ON A TOUCANNON, NOT THE SAME INCINEROAR (2026-09-10). Incineroar does not learn
+ * U-turn in Champions, and of the seven legal self-switching moves the only one it learns is Baton
+ * Pass, which never touches the Espeon and so cannot ask what Magic Bounce does with an unreflectable
+ * move aimed at it. Toucannon is the same base Speed (60), Keen Eye announces nothing, and a non-STAB
+ * U-turn cannot KO the Espeon. The premise "same body" is NOT kept on that arm and the arm says so. */
+const A_SIDE = (uturn) => [uturn ? mon('toucannon', '', 'Keen Eye', ['U-turn', 'Protect'])
+                                 : mon('incineroar', '', 'Blaze', ['Parting Shot', 'Taunt', 'Protect']),
                       mon('clefable', '', 'Unaware', ['Protect'])].concat(FILL('milotic', 'toxapex'));
 /* Espeon clicks CALM MIND and not Protect: `protect`'s condition carries `onTryHitPriority: 3` and
  * Magic Bounce's `onTryHit` carries none, so a Protect would refuse the move ABOVE the ability and
@@ -166,12 +172,12 @@ const SCEN = [
   { id: 'uturn-is-not-reflectable',
     kind: 'ability', shape: 'THE OVER-FIRE CONTROL — a pivot with no `reflectable` flag',
     census: 'ability/reflectsStatusMoves — the `requiresFlag` clause',
-    what: 'THE OVER-FIRE CONTROL. The same Incineroar clicks U-TURN at the same Magic Bounce Espeon. '
-        + 'U-turn carries no `reflectable` flag, so the ability lets it through: Espeon takes the '
-        + 'damage and INCINEROAR pivots. A fix keyed on "this move is a pivot" instead of on the flag '
+    what: 'THE OVER-FIRE CONTROL. A Toucannon (Incineroar has no legal damaging pivot) clicks U-TURN at '
+        + 'the same Magic Bounce Espeon. U-turn carries no `reflectable` flag, so the ability lets it '
+        + 'through: Espeon takes the damage and TOUCANNON pivots. A fix keyed on "this move is a pivot" instead of on the flag '
         + 'would pass arm 1 and fail here.',
     negative: 'this arm IS a negative for arm 1.',
-    A: A_SIDE(), B: B_SIDE('Magic Bounce'),
+    A: A_SIDE(true), B: B_SIDE('Magic Bounce'),
     script: [
       { p1: [{ m: 'uturn', t: 0 }, { m: 'protect' }], p2: [{ m: 'calmmind' }, { m: 'protect' }] },
     ] },

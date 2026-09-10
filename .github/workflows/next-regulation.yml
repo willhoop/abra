@@ -26,6 +26,8 @@ name: next-regulation
 on:
   schedule:
     - cron: '7 * * * *'        # hourly at :07 UTC
+    - cron: '37 * * * *'       # and at :37 — GitHub skipped the 01:07 and 02:07 slots outright on 2026-09-10
+                               # (and the ingest's 00:17); two expressions halve the longest gap a dropped slot leaves
   workflow_dispatch:           # allow a manual run from the Actions tab
 permissions:
   contents: write              # so the job can commit the refreshed stores back

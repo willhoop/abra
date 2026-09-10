@@ -1410,8 +1410,11 @@ demoSource('WIRE 130 a sound move and an Infiltrator go THROUGH the doll',
    * follows it needs `_dollVolley` and `_s0` as separate statements — so the two-statement pattern
    * stopped matching. The anchor is the CONDITION alone, exactly as the paragraph above says it
    * should be, and it is now the whole of the line it sits on. */
-  [["        if(subBlocks(m,tg,a.move.id)){",
-    "        if(tg._sub>0){   // reverted -- WIRE 130: the doll ate everything"]],
+  /* RE-AIMED 2026-09-10 (NARRATION BATCH Z): the branch is its own step now -- `_stepSubAbsorb`, step 0 of the
+   * segment, above `_stepDamage`'s deferred lines -- and it opens with an early RETURN on the condition rather than
+   * an `if` around the body. The anchor is still the CONDITION alone and the reversal is still the bare `_sub > 0`. */
+  [["        if(!subBlocks(m,tg,a.move.id))return;",
+    "        if(!(tg._sub>0))return;   // reverted -- WIRE 130: the doll ate everything"]],
   (E) => {
     const beam = twoOn(E, { setupFoe: 'substitute', move: 'icebeam' });
     const sound = twoOn(E, { setupFoe: 'substitute', move: 'hypervoice' });

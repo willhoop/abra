@@ -181,8 +181,15 @@ function play(tag, armId, A, B, script) {
 
 const YA = [mon(YAWNER.name, '', '', ['Yawn', 'Thunder Wave', 'Protect']), mon('sableye', '', 'Prankster', ['Nasty Plot']),
             mon('gengar', '', 'Cursed Body', ['Nasty Plot']), mon('gholdengo', '', 'Good as Gold', ['Nasty Plot'])];
-const FOE = [mon('milotic', '', 'Marvel Scale', ['Nasty Plot']), mon('raichu', '', 'Static', ['Nasty Plot']),
-             mon('kingambit', '', 'Defiant', ['Nasty Plot']), mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
+/* THE FILLER IS NASTY PLOT AND THREE OF THE ORIGINAL BODIES COULD NOT LEARN IT (2026-09-10). The
+ * validator refuses Nasty Plot on Garchomp, Kingambit and Milotic, and the packed team carried it anyway
+ * because a raw Battle validates nothing. A body that is CLICKED (or can enter after a faint and then be
+ * clicked) is swapped for a legal Nasty Plot carrier of the same shape — Slowbro for the Water target,
+ * Sinistcha for the bench body that enters — and a body that is never clicked keeps its species with a
+ * move it legally learns. A scripted move the request does not offer is a silent `pass` on BOTH engines
+ * (`scriptMoveNotOnRequest`), which is why the clicked slots could not simply be given any legal move. */
+const FOE = [mon('slowbro', '', 'Oblivious', ['Nasty Plot']), mon('raichu', '', 'Static', ['Nasty Plot']),
+             mon('kingambit', '', 'Defiant', ['Swords Dance']), mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
 const T1 = k => ({ p1: [k, IDLE], p2: [IDLE, IDLE] });
 const YAWN_AT = { m: 'yawn', t: 0 };
 
@@ -200,15 +207,15 @@ const Y_DROWSE = play('YAWN-DROWSING', 'middle', YA, FOE, [T1(YAWN_AT), T1(YAWN_
  * `-fail` the authority never writes. */
 const YS = [mon(YAWNER.name, '', '', ['Yawn', 'Nasty Plot']), mon('sableye', '', 'Prankster', ['Nasty Plot']),
             mon('gengar', '', 'Cursed Body', ['Nasty Plot']), mon('gholdengo', '', 'Good as Gold', ['Nasty Plot'])];
-const YSB = [mon('milotic', '', 'Marvel Scale', ['Safeguard', 'Nasty Plot']), mon('raichu', '', 'Static', ['Nasty Plot']),
-             mon('kingambit', '', 'Defiant', ['Nasty Plot']), mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
+const YSB = [mon('slowbro', '', 'Oblivious', ['Safeguard', 'Nasty Plot']), mon('raichu', '', 'Static', ['Nasty Plot']),
+             mon('kingambit', '', 'Defiant', ['Swords Dance']), mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
 const Y_SAFE = play('YAWN-SAFEGUARD', 'middle', YS, YSB,
   [{ p1: [IDLE, IDLE], p2: [{ m: 'safeguard' }, IDLE] }, T1(YAWN_AT)]);
 
 const LA = [mon(SEEDER.name, '', '', ['Leech Seed', 'Nasty Plot']), mon('sableye', '', 'Prankster', ['Nasty Plot']),
             mon('gengar', '', 'Cursed Body', ['Nasty Plot']), mon('gholdengo', '', 'Good as Gold', ['Nasty Plot'])];
 const LG = [mon(GRASS.name, '', '', ['Nasty Plot']), mon('raichu', '', 'Static', ['Nasty Plot']),
-            mon('kingambit', '', 'Defiant', ['Nasty Plot']), mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
+            mon('kingambit', '', 'Defiant', ['Swords Dance']), mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
 const SEED = { m: 'leechseed', t: 0 };
 const SEED6 = [T1(SEED), T1(SEED), T1(SEED), T1(SEED), T1(SEED), T1(SEED)];
 const S_MID = play('SEED-REPEAT-mid', 'middle', LA, FOE, SEED6);
@@ -241,7 +248,7 @@ const mover = new RegExp('^\\|-fail\\|p1a ' + YAWNER.name.split('-')[0].toLowerC
 ok(sdHas(Y_PAR, mover), 'YAWN-AT-PAR — the authority failed the mover', Y_PAR.staged ? Y_PAR.sdLines.join(' | ') : Y_PAR.why);
 ok(sdHas(Y_SLP, mover), 'YAWN-AT-SLP — the authority failed the mover (the pool cards\' own shape)',
    Y_SLP.staged ? Y_SLP.sdLines.join(' | ') : Y_SLP.why);
-ok(Y_CLEAN.staged && !Y_CLEAN.sdLines.some(l => /^\|-fail\|/.test(l)) && sdHas(Y_CLEAN, /^\|-start\|p2a milotic\|move yawn$/),
+ok(Y_CLEAN.staged && !Y_CLEAN.sdLines.some(l => /^\|-fail\|/.test(l)) && sdHas(Y_CLEAN, /^\|-start\|p2a slowbro\|move yawn$/),
    'YAWN-CLEAN — the drowse LANDS and nothing fails (the control that stops "always -fail")',
    Y_CLEAN.staged ? Y_CLEAN.sdLines.join(' | ') : Y_CLEAN.why);
 const seedMover = new RegExp('^\\|-fail\\|p1a ' + SEEDER.name.split('-')[0].toLowerCase() + '$');
@@ -276,7 +283,7 @@ else {
   ok(!meHas(Y_SAFE, /^\|-fail\|/),
      'YAWN-SAFEGUARD — this engine writes NO `-fail` (a fix keyed on `canTakeStatus` would)',
      Y_SAFE.meLines.join(' | '));
-  ok(sdHas(Y_SAFE, /^\|-activate\|p2a milotic\|move safeguard$/),
+  ok(sdHas(Y_SAFE, /^\|-activate\|p2a slowbro\|move safeguard$/),
      'YAWN-SAFEGUARD — and the AUTHORITY refuses with `-activate move: Safeguard`, not with a `-fail`',
      Y_SAFE.sdLines.join(' | '));
   console.log('     REPORTED, NOT FIXED: this engine lands the drowse where the authority refuses it. '

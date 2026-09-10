@@ -111,20 +111,22 @@ function harness(knobOn) {
 }
 
 /* ---- THE BOARD ---------------------------------------------------------------------------------
- * Garchomp carries BOTH doors — Roar (status) and Dragon Tail (damaging) — so one body reaches the
+ * Hydreigon carries BOTH doors — Roar (status) and Dragon Tail (damaging) — so one body reaches the
  * two sites without changing the fixture between them. Its partner is Toxapex because the partner is
  * what gets dragged and it must not be immune to the damaging door: Dragon is neutral into
  * Poison/Water, where a Fairy partner would zero the damage, zero the target array and stage nothing.
- * Sand Veil and Merciless are slot-0 abilities and neither announces on entry or on being hit. */
+ * Levitate and Merciless announce nothing on entry or on being hit (no Ground move is on the board).
+ * Hydreigon rather than Garchomp (2026-09-10): Garchomp does not learn Roar in Champions —
+ * `checkCanLearn` refuses it; the raw-learnset walk this file used accepted it off a prevo. */
 const stage = rows => rows.map(r => ({ species: r[0], item: r[1] || '', ability: r[2] || '', moves: r[3] }));
 const BENCH = (...n) => n.map(x => ({ species: x, item: '', ability: '', moves: ['Protect'] }));
 
-const CHOMP = ['garchomp', '', 'Sand Veil', ['Roar', 'Dragon Tail', 'Protect']];
+const HYDRA = ['hydreigon', '', 'Levitate', ['Roar', 'Dragon Tail', 'Protect']];
 const PEX = ['toxapex', '', 'Merciless', ['Protect', 'Toxic']];
 const LAX = ['snorlax', '', 'Immunity', ['Protect']];
 const CLEF = ['clefable', '', 'Magic Guard', ['Protect']];
 
-const PHAZER = () => stage([CHOMP, PEX]).concat(BENCH('snorlax', 'clefable'));
+const PHAZER = () => stage([HYDRA, PEX]).concat(BENCH('snorlax', 'clefable'));
 const IDLE = () => stage([LAX, CLEF]).concat(BENCH('toxapex', 'garchomp'));
 
 const PR = { m: 'protect' };
@@ -151,7 +153,7 @@ const CASES = [
   /* ---- THE DEFECT ------------------------------------------------------------------------------- */
   { id: 'roar-at-ally', kind: 'red', own: 1,
     A: PHAZER(), B: IDLE(), script: [{ p1: [ROAR_ALLY, PR], p2: [PR, PR] }],
-    what: 'THE STATUS DOOR. Garchomp Roars its OWN partner, which `validTargetLoc` allows for a '
+    what: 'THE STATUS DOOR. Hydreigon Roars its OWN partner, which `validTargetLoc` allows for a '
         + '`normal` move and `forceSwitch` performs without asking whose side the body is on. This '
         + 'engine looked the partner up in the FOE array, scored -1, and failed the move.' },
 
@@ -191,16 +193,12 @@ const CS = require(D('engine', 'champions_sim.js'));
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 const LS = dex.data.Learnsets;
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
-const learns = (sp, mv) => {
-  let s = dex.species.get(sp); const id = dex.moves.get(mv).id;
-  while (s && s.exists) {
-    const e = LS[s.id];
-    if (e && e.learnset && e.learnset[id]) return true;
-    s = s.prevo ? dex.species.get(s.prevo)
-      : (s.baseSpecies && s.baseSpecies !== s.name ? dex.species.get(s.baseSpecies) : null);
-  }
-  return false;
-};
+/* THE VALIDATOR'S OWN VERDICT, NOT A WALK OVER THE RAW LEARNSET ROWS (2026-09-10). The walk this
+ * replaced accepted any entry on the species or on a prevo whatever its SOURCE tag, so a move a prevo
+ * learned by a gen-7 TM (`7M`, `7V`) read as legal here while `TeamValidator` refused it — which is how
+ * this file's own legality gate passed sets tests/test-fixture-legality.js named as illegal.
+ * `champions_sim.canLearn` IS `checkCanLearn`, cached per pair. */
+const learns = (sp, mv) => CS.canLearn(sp, mv);
 let illegal = 0;
 const seenRow = new Set();
 for (const c of CASES) for (const row of c.A.concat(c.B)) {

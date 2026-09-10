@@ -140,12 +140,19 @@ const FARI = ['farigiraf', '', 'Armor Tail', ['Protect']];
 const FARI_OFF = ['farigiraf', '', 'Sap Sipper', ['Protect']];
 /* THE FORMAT'S OTHER LIVE PRIORITY REFUSER, staged so the fix cannot be name-bound to Armor Tail. */
 const TSAR = ['tsareena', '', 'Queenly Majesty', ['Protect']];
-/* THE VICTIM'S PARTNER, AND THE SECOND VICTIM. Lucario is the only legal body that learns BOTH
- * Coaching and Copycat, which is what lets one fixture reach the Encore door and the called-move door
- * without changing the board between them. Inner Focus touches nothing here. */
-const LUCA = ['lucario', '', 'Inner Focus', ['Coaching', 'Copycat', 'Protect', 'Aura Sphere', 'Bullet Punch', 'Swords Dance']];
+/* THE VICTIM'S PARTNER, AND THE SECOND VICTIM. Lucario is the coach and the priority clicker; Clefable
+ * is the body that copies and the body that is Encored. Inner Focus touches nothing here.
+ * FOUR MOVES, NOT SIX (2026-09-10): the validator refuses a set of more than four, and the first cut of
+ * these two rows carried six each so one fixture could serve every arm. The arms still share one BOARD
+ * — same species, abilities and speeds — and differ only in the fourth slot: Lucario's is Bullet Punch
+ * on the +1 arms and Aura Sphere on the priority-0 arms; Clefable's is Follow Me on the redirector arm
+ * and Copycat on the two called-move arms. Lucario's Copycat and Clefable's Moonblast were never
+ * clicked and are gone. */
+const LUCA = ['lucario', '', 'Inner Focus', ['Coaching', 'Swords Dance', 'Protect', 'Bullet Punch']];
+const LUCA_AS = ['lucario', '', 'Inner Focus', ['Coaching', 'Swords Dance', 'Protect', 'Aura Sphere']];
 /* THE VICTIM. Magic Guard is inert on this board — nothing here is indirect damage. */
-const CLEF = ['clefable', '', 'Magic Guard', ['Helping Hand', 'Charm', 'Protect', 'Copycat', 'Follow Me', 'Moonblast']];
+const CLEF = ['clefable', '', 'Magic Guard', ['Helping Hand', 'Charm', 'Protect', 'Follow Me']];
+const CLEF_CC = ['clefable', '', 'Magic Guard', ['Helping Hand', 'Charm', 'Protect', 'Copycat']];
 
 const PR = { m: 'protect' };
 const CH0 = { m: 'charm', t: 0 };
@@ -169,7 +176,7 @@ const ENC0 = { m: 'encore', t: 0 };          // at the foes' slot 0 — Lucario
 const ENC1 = { m: 'encore', t: 1 };          // at the foes' slot 1 — Clefable
 
 const SIDE_REF = (ref) => stage([ref || FARI, WHIM]).concat(BENCH('snorlax', 'garchomp'));
-const SIDE_VIC = () => stage([LUCA, CLEF]).concat(BENCH('toxapex', 'incineroar'));
+const SIDE_VIC = (luca, clef) => stage([luca || LUCA, clef || CLEF]).concat(BENCH('toxapex', 'incineroar'));
 
 /* THE SCRIPTS. Turn 1 is what the victim must have used for the Encore to force it back; turn 2 is
  * the turn under the microscope. The refuser clicks Protect on both turns on every arm — its second
@@ -222,7 +229,7 @@ const CASES = [
         + 'nothing at all while reading green.' },
 
   { id: 'copycat-coaching', kind: 'red', near: 1,
-    A: SIDE_REF(), B: SIDE_VIC(),
+    A: SIDE_REF(), B: SIDE_VIC(LUCA, CLEF_CC),
     script: [{ p1: [PR, CH0], p2: [PR, CH0] }, { p1: [PR, CH0], p2: [CO, CC] }],
     what: 'THE SECOND DRAW SITE, WHICH IS NOT ENCORE AT ALL. Lucario coaches its partner and Clefable '
         + '— slowest on the field — copies it. The authority calls `useMove(id, pokemon)` with no '
@@ -256,14 +263,14 @@ const CASES = [
         + 'refusal must still fire, on both engines, on both loads.' },
 
   { id: 'encore-aurasphere', kind: 'control', near: 0,
-    A: SIDE_REF(), B: SIDE_VIC(),
+    A: SIDE_REF(), B: SIDE_VIC(LUCA_AS),
     script: [{ p1: [PR, CH0], p2: [AS0, CH0] }, { p1: [PR, ENC0], p2: [PR, CH0] }],
     what: 'THE FOE DRAW AT PRIORITY 0. Nothing is refused and nothing about the draw may change; this '
         + 'arm fails if the shared reader consumes a different die on the far-side road, which would '
         + 'move every Encored attack in the pool.' },
 
   { id: 'copycat-aurasphere', kind: 'control', near: 0,
-    A: SIDE_REF(), B: SIDE_VIC(),
+    A: SIDE_REF(), B: SIDE_VIC(LUCA_AS, CLEF_CC),
     script: [{ p1: [PR, CH0], p2: [PR, CH0] }, { p1: [PR, CH0], p2: [AS0, CC] }],
     what: 'THE FAR-SIDE ROAD OF THE CALLED-MOVE DOOR. Same fixture, same turn, a `normal` move copied '
         + 'instead of an `adjacentAlly` one. ROADMAP #308\'s addressed draw must be untouched.' },
@@ -283,16 +290,12 @@ const CS = require(D('engine', 'champions_sim.js'));
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 const LS = dex.data.Learnsets;
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
-const learns = (sp, mv) => {
-  let s = dex.species.get(sp); const id = dex.moves.get(mv).id;
-  while (s && s.exists) {
-    const e = LS[s.id];
-    if (e && e.learnset && e.learnset[id]) return true;
-    s = s.prevo ? dex.species.get(s.prevo)
-      : (s.baseSpecies && s.baseSpecies !== s.name ? dex.species.get(s.baseSpecies) : null);
-  }
-  return false;
-};
+/* THE VALIDATOR'S OWN VERDICT, NOT A WALK OVER THE RAW LEARNSET ROWS (2026-09-10). The walk this
+ * replaced accepted any entry on the species or on a prevo whatever its SOURCE tag, so a move a prevo
+ * learned by a gen-7 TM (`7M`, `7V`) read as legal here while `TeamValidator` refused it — which is how
+ * this file's own legality gate passed sets tests/test-fixture-legality.js named as illegal.
+ * `champions_sim.canLearn` IS `checkCanLearn`, cached per pair. */
+const learns = (sp, mv) => CS.canLearn(sp, mv);
 let illegal = 0;
 const seenRow = new Set();
 for (const c of CASES) for (const row of c.A.concat(c.B)) {

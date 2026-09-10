@@ -198,14 +198,21 @@ function play(tag, A, B, script) {
 
 /* Gholdengo carries Good as Gold and Protect and nothing else that could answer first. The mover
  * holds Leftovers so the item-swapping members of the set have something to trade. */
+/* THE FILLER IS NASTY PLOT AND THREE OF THE ORIGINAL BODIES COULD NOT LEARN IT (2026-09-10). The
+ * validator refuses Nasty Plot on Garchomp, Kingambit and Milotic, and the packed team carried it anyway
+ * because a raw Battle validates nothing. A body that is CLICKED (or can enter after a faint and then be
+ * clicked) is swapped for a legal Nasty Plot carrier of the same shape — Slowbro for the Water target,
+ * Sinistcha for the bench body that enters — and a body that is never clicked keeps its species with a
+ * move it legally learns. A scripted move the request does not offer is a silent `pass` on BOTH engines
+ * (`scriptMoveNotOnRequest`), which is why the clicked slots could not simply be given any legal move. */
 const foe = () => [mon('gholdengo', '', 'Good as Gold', ['Protect', 'Nasty Plot']),
                    mon('raichu', '', 'Static', ['Nasty Plot']),
-                   mon('kingambit', '', 'Defiant', ['Nasty Plot']),
+                   mon('kingambit', '', 'Defiant', ['Swords Dance']),
                    mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
 const usr = x => [mon(x.user, 'leftovers', '', [x.name, 'Nasty Plot']),
                   mon('sableye', '', 'Prankster', ['Nasty Plot']),
                   mon('gengar', '', 'Cursed Body', ['Nasty Plot']),
-                  mon('milotic', '', 'Marvel Scale', ['Nasty Plot'])];
+                  mon('milotic', '', 'Marvel Scale', ['Recover'])];
 
 console.log(NL + '2. THE ARMS — one SHIELDED / BARE pair per move');
 const results = [];
@@ -243,9 +250,9 @@ for (const R of results) {
  * KNOB: `MEDI_SHIELDED_HEAL_FAILS=1`.
  * ============================================================================================== */
 const HP = withCarrier.find(x => x.mv === 'healpulse');
-const plainFoe = [mon('milotic', '', 'Marvel Scale', ['Protect', 'Nasty Plot']),
+const plainFoe = [mon('milotic', '', 'Marvel Scale', ['Protect', 'Recover']),
                   mon('raichu', '', 'Static', ['Nasty Plot']),
-                  mon('kingambit', '', 'Defiant', ['Nasty Plot']),
+                  mon('kingambit', '', 'Defiant', ['Swords Dance']),
                   mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
 const HEALSH = HP ? play('healpulse/PLAIN-SHIELD', usr(HP), plainFoe,
   [{ p1: [{ m: 'healpulse', t: 0 }, IDLE], p2: [{ m: 'protect' }, IDLE] }])

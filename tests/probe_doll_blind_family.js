@@ -157,27 +157,28 @@ const MACH = ['machamp', '', 'Steadfast', ['Seismic Toss', 'Bulk Up', 'Protect']
 const BENCH_HP = [MACH, ['toxapex', '', 'Regenerator', ['Protect']], ['corviknight', '', 'Pressure', ['Protect']]];
 
 /* ---- THE MOVERS, one row per red arm ------------------------------------------------------------
- * Four of them are chosen so the over-fire control is the SAME SPECIES with ONE ABILITY CHANGED:
- * Malamar, Whimsicott and Dragapult each carry Infiltrator legally, which sets `move.infiltrates`
- * and is the authority's own second escape from the doll. */
+ * Three of them are chosen so the over-fire control is the SAME SPECIES with ONE ABILITY CHANGED:
+ * Chandelure, Whimsicott and Dragapult each carry Infiltrator legally, which sets `move.infiltrates`
+ * and is the authority's own second escape from the doll. Simple Beam has NO Infiltrator carrier in
+ * this regulation — its only legal carrier is Audino — so it has no over-fire control and says so.
+ * (2026-09-10: the first cut staged both stat/ability rewrites on Malamar, which learns neither.) */
 const MV = {
   trickortreat: ['gourgeist', '', 'Frisk', ['Trick-or-Treat', 'Protect']],
   forestscurse: ['trevenant', '', 'Natural Cure', ["Forest's Curse", 'Protect']],
   magicpowder:  ['hatterene', '', 'Healer', ['Magic Powder', 'Protect']],
   soak:         ['pelipper', '', 'Keen Eye', ['Soak', 'Protect']],
   entrainment:  ['audino', '', 'Klutz', ['Entrainment', 'Protect']],
-  simplebeam:   ['malamar', '', 'Suction Cups', ['Simple Beam', 'Protect']],
+  simplebeam:   ['audino', '', 'Klutz', ['Simple Beam', 'Protect']],
   worryseed:    ['whimsicott', '', 'Chlorophyll', ['Worry Seed', 'Protect']],
   guardsplit:   ['bastiodon', '', 'Sturdy', ['Guard Split', 'Protect']],
-  powersplit:   ['malamar', '', 'Suction Cups', ['Power Split', 'Protect']],
+  powersplit:   ['chandelure', '', 'Flash Fire', ['Power Split', 'Protect']],
   decorate:     ['alcremie', '', 'Sweet Veil', ['Decorate', 'Protect']],
   healpulse:    ['slowbro', '', 'Oblivious', ['Heal Pulse', 'Calm Mind', 'Protect']],
   lockon:       ['dragapult', '', 'Clear Body', ['Lock-On', 'Protect']],
   quash:        ['tinkaton', '', 'Own Tempo', ['Quash', 'Protect']],
 };
 const INF = {
-  simplebeam: ['malamar', '', 'Infiltrator', ['Simple Beam', 'Protect']],
-  powersplit: ['malamar', '', 'Infiltrator', ['Power Split', 'Protect']],
+  powersplit: ['chandelure', '', 'Infiltrator', ['Power Split', 'Protect']],
   worryseed:  ['whimsicott', '', 'Infiltrator', ['Worry Seed', 'Protect']],
   lockon:     ['dragapult', '', 'Infiltrator', ['Lock-On', 'Protect']],
 };
@@ -279,16 +280,12 @@ const CS = require(D('engine', 'champions_sim.js'));
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 const LS = dex.data.Learnsets;
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
-const learns = (sp, mv) => {
-  let s = dex.species.get(sp); const id = dex.moves.get(mv).id;
-  while (s && s.exists) {
-    const e = LS[s.id];
-    if (e && e.learnset && e.learnset[id]) return true;
-    s = s.prevo ? dex.species.get(s.prevo)
-      : (s.baseSpecies && s.baseSpecies !== s.name ? dex.species.get(s.baseSpecies) : null);
-  }
-  return false;
-};
+/* THE VALIDATOR'S OWN VERDICT, NOT A WALK OVER THE RAW LEARNSET ROWS (2026-09-10). The walk this
+ * replaced accepted any entry on the species or on a prevo whatever its SOURCE tag, so a move a prevo
+ * learned by a gen-7 TM (`7M`, `7V`) read as legal here while `TeamValidator` refused it — which is how
+ * this file's own legality gate passed sets tests/test-fixture-legality.js named as illegal.
+ * `champions_sim.canLearn` IS `checkCanLearn`, cached per pair. */
+const learns = (sp, mv) => CS.canLearn(sp, mv);
 let illegal = 0;
 const seen = new Set();
 for (const c of CASES) for (const row of c.A.concat(c.B)) {
@@ -497,6 +494,6 @@ if (REASON_DERIVATION_FAILED) {
 console.log(NL + ran + ' arms staged, ' + bad + ' failing, ' + excluded + ' excluded and not scored');
 console.log(bad ? 'FAIL' : 'PASS — all seven doll-blind kinds ask the doll, all thirteen answer '
   + '`-fail` on the mover with `[still]`, every red arm parts under the revert knob, and the twelve '
-  + 'no-doll arms, the four Infiltrator arms, the bypasssub arm, the damaging road and both transform '
+  + 'no-doll arms, the ' + Object.keys(INF).length + ' Infiltrator arms, the bypasssub arm, the damaging road and both transform '
   + 'arms hold under that same knob');
 process.exit(bad ? 1 : 0);

@@ -167,9 +167,18 @@ function play(tag, armId, A, B, script) {
  * psn / par / slp, so whichever status the sample picks can actually be carried. */
 const DCA = [mon(DC_USER.name, '', '', ['Dire Claw']), mon('sableye', '', 'Prankster', ['Nasty Plot']),
              mon('gengar', '', 'Cursed Body', ['Nasty Plot']), mon('gholdengo', '', 'Good as Gold', ['Nasty Plot'])];
-const DCB = [mon('garchomp', '', 'Sand Veil', ['Nasty Plot']), mon('raichu', '', 'Static', ['Nasty Plot']),
-             mon('kingambit', '', 'Defiant', ['Nasty Plot']), mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
-const DC_TURN = { p1: [{ m: 'direclaw', t: 0 }, IDLE], p2: [IDLE, IDLE] };
+/* THE FILLER IS NASTY PLOT AND THREE OF THE ORIGINAL BODIES COULD NOT LEARN IT (2026-09-10). The
+ * validator refuses Nasty Plot on Garchomp, Kingambit and Milotic, and the packed team carried it anyway
+ * because a raw Battle validates nothing. A body that is CLICKED (or can enter after a faint and then be
+ * clicked) is swapped for a legal Nasty Plot carrier of the same shape — Slowbro for the Water target,
+ * Sinistcha for the bench body that enters — and a body that is never clicked keeps its species with a
+ * move it legally learns. A scripted move the request does not offer is a silent `pass` on BOTH engines
+ * (`scriptMoveNotOnRequest`), which is why the clicked slots could not simply be given any legal move. */
+/* Garchomp is KEPT as the Ground target (nothing in the regulation both resists Poison and learns Nasty
+ * Plot with a quiet ability); its own idle click is Swords Dance, which is `self`, priority 0 and legal. */
+const DCB = [mon('garchomp', '', 'Sand Veil', ['Swords Dance']), mon('raichu', '', 'Static', ['Nasty Plot']),
+             mon('kingambit', '', 'Defiant', ['Swords Dance']), mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
+const DC_TURN = { p1: [{ m: 'direclaw', t: 0 }, IDLE], p2: [{ m: 'swordsdance' }, IDLE] };
 const DC_SCRIPT = [DC_TURN, DC_TURN, DC_TURN, DC_TURN, DC_TURN];
 
 const SAME = play('SAME-STATUS', 'bottom-tie-first', DCA, DCB, DC_SCRIPT);
@@ -182,8 +191,8 @@ const NOSEC = play('NO-SECONDARY', 'top-tie-first', DCA, DCB, DC_SCRIPT);
  * planted by an ally so the arm does not depend on which way an earlier roll fell. */
 const KOA = [mon(DC_USER.name, '', '', ['Dire Claw']), mon(TRI_USER.name, '', '', ['Thunder Wave', 'Nasty Plot']),
              mon('gengar', '', 'Cursed Body', ['Nasty Plot']), mon('gholdengo', '', 'Good as Gold', ['Nasty Plot'])];
-const KOB = [mon('milotic', '', 'Marvel Scale', ['Nasty Plot']), mon('raichu', '', 'Static', ['Nasty Plot']),
-             mon('kingambit', '', 'Defiant', ['Nasty Plot']), mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
+const KOB = [mon('slowbro', '', 'Oblivious', ['Nasty Plot']), mon('raichu', '', 'Static', ['Nasty Plot']),
+             mon('sinistcha', '', 'Heatproof', ['Nasty Plot']), mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
 const KO_TURN = k => ({ p1: [{ m: 'direclaw', t: 0 }, k], p2: [IDLE, IDLE] });
 const KO_SCRIPT = [KO_TURN({ m: 'thunderwave', t: 0 }), KO_TURN(IDLE), KO_TURN(IDLE), KO_TURN(IDLE),
                    KO_TURN(IDLE), KO_TURN(IDLE)];
@@ -192,8 +201,8 @@ const KO = play('KO-ON-A-CORPSE', 'bottom-tie-first', KOA, KOB, KO_SCRIPT);
 /* TRI ATTACK. The target is a Water body — immune to none of brn / par / frz. */
 const TRA = [mon(TRI_USER.name, '', '', ['Tri Attack', 'Thunder Wave']), mon('sableye', '', 'Prankster', ['Nasty Plot']),
              mon('gengar', '', 'Cursed Body', ['Nasty Plot']), mon('gholdengo', '', 'Good as Gold', ['Nasty Plot'])];
-const TRB = [mon('milotic', '', 'Marvel Scale', ['Nasty Plot']), mon('raichu', '', 'Static', ['Nasty Plot']),
-             mon('kingambit', '', 'Defiant', ['Nasty Plot']), mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
+const TRB = [mon('slowbro', '', 'Oblivious', ['Nasty Plot']), mon('raichu', '', 'Static', ['Nasty Plot']),
+             mon('sinistcha', '', 'Heatproof', ['Nasty Plot']), mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
 const TRI = k => ({ p1: [k, IDLE], p2: [IDLE, IDLE] });
 const TRI_CLEAN = play('TRI-CLEAN', 'bottom-tie-first', TRA, TRB,
   [TRI({ m: 'triattack', t: 0 }), TRI({ m: 'triattack', t: 0 })]);
@@ -231,13 +240,13 @@ ok(nofail(NOSEC), 'NO-SECONDARY — the authority wrote NO `-fail` at all (the a
 /* THE ORDER IS THE ASSERTION HERE, not merely the presence: the `-fail` must sit between the lethal
  * `-damage` and the `|faint|`, which is where the pool cards put it. */
 const koRaw = KO.staged ? KO.sd.map(String) : [];
-const koDmg = koRaw.findIndex(l => /^\|-damage\|p2a: Milotic\|0 fnt/.test(l));
-const koFaint = koRaw.findIndex(l => /^\|faint\|p2a: Milotic/.test(l));
-const koFail = koRaw.findIndex((l, i) => i > koDmg && /^\|-fail\|p2a: Milotic/.test(l));
+const koDmg = koRaw.findIndex(l => /^\|-damage\|p2a: Slowbro\|0 fnt/.test(l));
+const koFaint = koRaw.findIndex(l => /^\|faint\|p2a: Slowbro/.test(l));
+const koFail = koRaw.findIndex((l, i) => i > koDmg && /^\|-fail\|p2a: Slowbro/.test(l));
 ok(KO.staged && koDmg >= 0 && koFaint > koDmg && koFail > koDmg && koFaint > koFail,
    'KO-ON-A-CORPSE — the authority writes the refusal BETWEEN the lethal `-damage` and the `|faint|`',
    KO.staged ? koRaw.slice(Math.max(0, koDmg - 1), koFaint + 1).join(NL) : KO.why);
-ok(has(TRI_CLEAN, /^\|-status\|p2a milotic\|(brn|par|frz)$/),
+ok(has(TRI_CLEAN, /^\|-status\|p2a slowbro\|(brn|par|frz)$/),
    'TRI-CLEAN — Tri Attack\'s secondary DOES fire under this arm, so TRI-STATUSED is not vacuous',
    TRI_CLEAN.staged ? TRI_CLEAN.sdLines.join(' | ') : TRI_CLEAN.why);
 ok(nofail(TRI_STAT),

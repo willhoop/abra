@@ -236,8 +236,10 @@ const CASES = [
         ['banette', '', 'Insomnia', ['Nasty Plot', 'Protect']]],
     B: [['forretress', '', 'Overcoat', ['Explosion', 'Protect']],
         ['garbodor', '', 'Aftermath', ['Explosion', 'Protect']],
-        ['steelix', '', 'Sheer Force', ['Explosion', 'Protect']],
-        ['reuniclus', '', 'Overcoat', ['Explosion', 'Protect']]],
+        /* Garganacl and Vanilluxe, not Steelix and Reuniclus (2026-09-10): neither of those learns
+         * Explosion in Champions. Both replacements do, and both abilities announce nothing here. */
+        ['garganacl', '', 'Purifying Salt', ['Explosion', 'Protect']],
+        ['vanilluxe', '', 'Ice Body', ['Explosion', 'Protect']]],
     script: [T([BOOM, { m: 'nastyplot' }], [BOOM, BOOM]),
              T([BOOM, { m: 'nastyplot' }], [BOOM, BOOM])] },
 
@@ -354,17 +356,12 @@ const CS = require(D('engine', 'champions_sim.js'));
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 const LS = dex.data.Learnsets;
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
-const learns = (sp, mv) => {
-  let s = dex.species.get(sp);
-  const mid = dex.moves.get(mv).id;
-  while (s && s.exists) {
-    const e = LS[s.id];
-    if (e && e.learnset && e.learnset[mid]) return true;
-    s = s.prevo ? dex.species.get(s.prevo)
-      : (s.baseSpecies && s.baseSpecies !== s.name ? dex.species.get(s.baseSpecies) : null);
-  }
-  return false;
-};
+/* THE VALIDATOR'S OWN VERDICT, NOT A WALK OVER THE RAW LEARNSET ROWS (2026-09-10). The walk this
+ * replaced accepted any entry on the species or on a prevo whatever its SOURCE tag, so a move a prevo
+ * learned by a gen-7 TM (`7M`, `7V`) read as legal here while `TeamValidator` refused it — which is how
+ * this file's own legality gate passed sets tests/test-fixture-legality.js named as illegal.
+ * `champions_sim.canLearn` IS `checkCanLearn`, cached per pair. */
+const learns = (sp, mv) => CS.canLearn(sp, mv);
 let illegal = 0;
 for (const c of CASES) {
   for (const row of c.A.concat(c.B)) {

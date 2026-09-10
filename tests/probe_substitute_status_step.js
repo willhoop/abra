@@ -145,13 +145,17 @@ const WALL_A = [['clefable', '', 'Unaware', ['Protect']], ['milotic', '', 'Marve
 const WALL_B = [['garchomp', '', 'Rough Skin', ['Protect']], ['toxapex', '', 'Regenerator', ['Protect']],
   ['corviknight', '', 'Pressure', ['Protect']]];
 
-/* THE MOVERS. Oblivious rather than Own Tempo on the Swagger arm's Slowbro is irrelevant to the
- * target and is kept identical across arms so nothing but the CLICK differs between them. */
-const BRO_TW = [['slowbro', '', 'Oblivious', ['Thunder Wave', 'Protect']]].concat(WALL_B);
-const BRO_SW = [['slowbro', '', 'Oblivious', ['Swagger', 'Protect']]].concat(WALL_B);
-const BRO_BL = [['slowbro', '', 'Oblivious', ['Block', 'Protect']]].concat(WALL_B);
-const BRO_HP = [['slowbro', '', 'Oblivious', ['Hydro Pump', 'Protect']]].concat(WALL_B);
-const BRO_DI = [['slowbro', '', 'Oblivious', ['Disable', 'Protect']]].concat(WALL_B);
+/* THE MOVERS. Oblivious rather than Own Tempo on the Swagger arm's Slowking is irrelevant to the
+ * target and is kept identical across arms so nothing but the CLICK differs between them.
+ * SLOWKING, NOT SLOWBRO (2026-09-10): Slowbro does not learn Swagger in Champions, and the only legal
+ * bodies that learn all five of Thunder Wave, Swagger, Block, Hydro Pump and Disable are Slowking and
+ * Slowking-Galar (derived). Slowking keeps base 30 Speed, Oblivious, and the same Special Attack, so
+ * every arm still shares one mover and the premise holds. */
+const BRO_TW = [['slowking', '', 'Oblivious', ['Thunder Wave', 'Protect']]].concat(WALL_B);
+const BRO_SW = [['slowking', '', 'Oblivious', ['Swagger', 'Protect']]].concat(WALL_B);
+const BRO_BL = [['slowking', '', 'Oblivious', ['Block', 'Protect']]].concat(WALL_B);
+const BRO_HP = [['slowking', '', 'Oblivious', ['Hydro Pump', 'Protect']]].concat(WALL_B);
+const BRO_DI = [['slowking', '', 'Oblivious', ['Disable', 'Protect']]].concat(WALL_B);
 const FOR_PS = [['forretress', '', 'Sturdy', ['Pain Split', 'Protect']]].concat(WALL_B);
 const APP_LS = [['appletun', '', 'Ripen', ['Leech Seed', 'Protect']]].concat(WALL_B);
 
@@ -187,7 +191,7 @@ const CASES = [
     refuseClean: 1, refuseKnob: 1,
     what: 'A THIRD BRANCH — `sharesHP`. Pain Split is 100%%, so the ORDER cannot show here and only '
         + 'the LINE can: it is the arm that says the two halves are separable and that both are '
-        + 'wrong. Forretress rather than Slowbro because Slowbro does not learn it.' },
+        + 'wrong. Forretress rather than Slowking because Slowking does not learn it.' },
 
   { id: 'block-trap', kind: 'red', arm: 'top-tie-first', A: [ZAM].concat(WALL_A), B: BRO_BL,
     script: AT(SUB, 'block'), mv: 'block',
@@ -251,16 +255,12 @@ const CS = require(D('engine', 'champions_sim.js'));
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 const LS = dex.data.Learnsets;
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
-const learns = (sp, mv) => {
-  let s = dex.species.get(sp); const id = dex.moves.get(mv).id;
-  while (s && s.exists) {
-    const e = LS[s.id];
-    if (e && e.learnset && e.learnset[id]) return true;
-    s = s.prevo ? dex.species.get(s.prevo)
-      : (s.baseSpecies && s.baseSpecies !== s.name ? dex.species.get(s.baseSpecies) : null);
-  }
-  return false;
-};
+/* THE VALIDATOR'S OWN VERDICT, NOT A WALK OVER THE RAW LEARNSET ROWS (2026-09-10). The walk this
+ * replaced accepted any entry on the species or on a prevo whatever its SOURCE tag, so a move a prevo
+ * learned by a gen-7 TM (`7M`, `7V`) read as legal here while `TeamValidator` refused it — which is how
+ * this file's own legality gate passed sets tests/test-fixture-legality.js named as illegal.
+ * `champions_sim.canLearn` IS `checkCanLearn`, cached per pair. */
+const learns = (sp, mv) => CS.canLearn(sp, mv);
 let illegal = 0;
 for (const c of CASES) for (const row of c.A.concat(c.B)) {
   const sp = dex.species.get(row[0]);

@@ -49,7 +49,9 @@ const st = r => ({ species: r[0], item: r[1] || '', ability: r[2] || '', moves: 
  * Defiant — otherwise a boost leaf would move for a reason that is not the move under test, and the
  * empty-board arm would credit Haze for somebody else's work. */
 const A = [
-  st(['meowscarada', '', 'Overgrow', ['Swords Dance', 'Protect']]),
+  /* Lucario, not Meowscarada (2026-09-10): Meowscarada does not learn Swords Dance in Champions and its
+   * legal self-boosts move Speed or Special Attack, not the Attack this test reads. Inner Focus moves no stat. */
+  st(['lucario', '', 'Inner Focus', ['Swords Dance', 'Protect']]),
   st(['primarina', '', 'Torrent', ['Haze', 'Protect']]),
   st(['clefable', '', 'Unaware', ['Protect']]),
   st(['milotic', '', 'Marvel Scale', ['Protect']]),

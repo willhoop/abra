@@ -35,7 +35,7 @@
  * THE THREE ARMS.
  *
  *   RED        A DOUBLE replacement in which the Supreme Overlord body is placed FIRST. Its corpse
- *              (Gengar, 110) is faster than the other side's (Pikachu, 90), so `_refills` places
+ *              (Gourgeist-Small, 99) is faster than the other side's (Pikachu, 90), so `_refills` places
  *              Kingambit first and the old code spoke before the second `|switch|`. Placing it LAST
  *              would have made the wrong engine look right, which is why the speeds are asserted.
  *   CTRL-ONE   The SAME click with the other side immune, so exactly ONE body is replaced. The
@@ -81,18 +81,18 @@ const CS = require(D('engine', 'champions_sim.js'));
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 const LS = dex.data.Learnsets;
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
-const learns = (sp, mv) => {
-  let s = dex.species.get(sp); const id = dex.moves.get(mv).id;
-  while (s && s.exists) {
-    const e = LS[s.id];
-    if (e && e.learnset && e.learnset[id]) return true;
-    s = s.prevo ? dex.species.get(s.prevo)
-      : (s.baseSpecies && s.baseSpecies !== s.name ? dex.species.get(s.baseSpecies) : null);
-  }
-  return false;
-};
+/* THE VALIDATOR'S OWN VERDICT, NOT A WALK OVER THE RAW LEARNSET ROWS (2026-09-10). The walk this
+ * replaced accepted any entry on the species or on a prevo whatever its SOURCE tag, so a move a prevo
+ * learned by a gen-7 TM (`7M`, `7V`) read as legal here while `TeamValidator` refused it — which is how
+ * this file's own legality gate passed sets tests/test-fixture-legality.js named as illegal.
+ * `champions_sim.canLearn` IS `checkCanLearn`, cached per pair. */
+const learns = (sp, mv) => CS.canLearn(sp, mv);
 
-const BOOM = ['gengar', '', 'Cursed Body', ['Explosion', 'Protect']];
+/* THE EXPLODER IS GOURGEIST-SMALL, NOT GENGAR (2026-09-10): Gengar does not learn Explosion in
+ * Champions — `checkCanLearn` refuses it; the raw-learnset walk below used to accept it off Haunter's
+ * gen-7 TM entry. Gourgeist-Small is the only non-mega legal Explosion carrier faster than Pikachu (99
+ * against 90), which is the whole premise of the RED arm. Insomnia announces nothing here. */
+const BOOM = ['gourgeistsmall', '', 'Insomnia', ['Explosion', 'Protect']];
 /* THE SURVIVOR ON BOTH SIDES. It shields, so it is not a target at all and prints nothing. */
 const WALL = ['rotom', '', 'Levitate', ['Protect']];
 /* THE SAME BODY WITH THE SCRIPT'S CLICK ON IT. CTRL-ONE puts a Ghost in the p2a slot so that nobody
@@ -100,7 +100,7 @@ const WALL = ['rotom', '', 'Levitate', ['Protect']];
  * not KNOW the move is passed by the driver and Showdown rejects the choice outright, which is how
  * the first cut of this arm THREW instead of measuring anything. */
 const WALL_TB = ['rotom', '', 'Levitate', ['Thunderbolt', 'Protect']];
-/* THE OTHER CORPSE. Slower than Gengar, which is what puts the Supreme Overlord body FIRST in the
+/* THE OTHER CORPSE. Slower than Gourgeist-Small, which is what puts the Supreme Overlord body FIRST in the
  * replacement order — the whole point of the RED arm. Its click is aimed at a shielded slot so it
  * moves nothing this file reads; it dies before it acts in any case. */
 const DIES = ['pikachu', '', 'Static', ['Thunderbolt', 'Protect']];
@@ -115,8 +115,8 @@ const SCRIPT = [{ p1: [{ m: 'explosion', t: 0 }, PROT], p2: [{ m: 'thunderbolt',
 const CASES = [
   { id: 'RED',
     name: 'RED       a DOUBLE replacement — the Supreme Overlord body is placed FIRST',
-    what: 'Gengar explodes, killing itself and the Pikachu opposite; both Rotoms are shielded and are '
-        + 'not targets. Two slots refill. Gengar (110) outruns Pikachu (90), so Kingambit is placed '
+    what: 'Gourgeist-Small explodes, killing itself and the Pikachu opposite; both Rotoms are shielded and '
+        + 'are not targets. Two slots refill. Gourgeist-Small (99) outruns Pikachu (90), so Kingambit is placed '
         + 'FIRST — and the authority still writes BOTH |switch| lines before it says a word.',
     A: [BOOM, WALL], Abench: [KING_SO, FILL1], B: [DIES, WALL], Bbench: [FILL2, FILL1],
     want: ['switch:p1a:kingambit', 'switch:p2a:milotic', 'so:p1a', 'fallen:p1a:1'],
@@ -125,7 +125,7 @@ const CASES = [
   { id: 'CTRL-ONE',
     name: 'CTRL-ONE  a SINGLE replacement — the announcement must still follow its own |switch|',
     what: 'The identical click with a Rotom opposite instead of a Pikachu: Normal cannot touch a '
-        + 'Ghost, so only Gengar dies and only one slot refills. A fix that deferred the '
+        + 'Ghost, so only Gourgeist-Small dies and only one slot refills. A fix that deferred the '
         + 'announcement to the END of the refill instead of into the entry pass passes RED and '
         + 'fails here.',
     A: [BOOM, WALL], Abench: [KING_SO, FILL1], B: [WALL_TB, WALL2()], Bbench: [FILL2, FILL1],
@@ -176,8 +176,8 @@ for (const row of ROWS) {
     bad('Pikachu has become Normal-immune and would not die');
   /* THE SPEED ORDER IS THE WHOLE OF THE RED ARM. Placing the Supreme Overlord body LAST would make
    * the OLD engine look right, so this is asserted rather than assumed. */
-  const gs = dex.species.get('gengar').baseStats.spe, ps = dex.species.get('pikachu').baseStats.spe;
-  if (!(gs > ps)) bad('Gengar base Speed ' + gs + ' no longer outruns Pikachu ' + ps
+  const gs = dex.species.get(BOOM[0]).baseStats.spe, ps = dex.species.get('pikachu').baseStats.spe;
+  if (!(gs > ps)) bad(dex.species.get(BOOM[0]).name + ' base Speed ' + gs + ' no longer outruns Pikachu ' + ps
     + ', so the Supreme Overlord body would not be placed first and RED would be vacuous');
   const so = dex.abilities.get('supremeoverlord');
   if (!so.onStart) bad('Supreme Overlord no longer has an onStart handler');

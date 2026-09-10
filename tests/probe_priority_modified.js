@@ -149,8 +149,9 @@ const CLEF = ['clefable', '', 'Magic Guard', ['Protect', 'Moonblast']];
 /* THE ONE LEGAL GALE WINGS CARRIER IN THE REGULATION, and the SAME BODY carrying its own slot-0
  * Flame Body. Flame Body is inert against every click staged here (nothing makes contact with
  * Talonflame). */
-const TALON = ['talonflame', '', 'Gale Wings', ['Brave Bird', 'Tailwind', 'Protect', 'Feather Dance', 'Roost']];
-const TALON_F = ['talonflame', '', 'Flame Body', ['Brave Bird', 'Tailwind', 'Protect', 'Feather Dance', 'Roost']];
+/* FOUR MOVES (2026-09-10): the validator refuses five, and Roost was never clicked. */
+const TALON = ['talonflame', '', 'Gale Wings', ['Brave Bird', 'Tailwind', 'Protect', 'Feather Dance']];
+const TALON_F = ['talonflame', '', 'Flame Body', ['Brave Bird', 'Tailwind', 'Protect', 'Feather Dance']];
 /* A PRANKSTER CARRIER. Klefki does NOT learn Charm — checked, not assumed — so the foe-aimed status
  * control is Thunder Wave. */
 const KLEF = ['klefki', '', 'Prankster', ['Thunder Wave', 'Sunny Day', 'Spikes', 'Protect']];

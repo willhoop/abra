@@ -332,6 +332,9 @@ const PROT = { m: 'protect' };
 const CASES = [
 
   /* =============================== A1 — `onDamagingHit` BELOW THE SECONDARIES =================== */
+  /* The Stamina body's own click is Dragon Claw (2026-09-10): Archaludon does not learn Body Press in
+   * Champions — `checkCanLearn` refuses it — and the click is only there so the body acts at priority 0
+   * with no secondary of its own. */
   { id: 'a1-red', group: 'A1', kind: 'red', brk: 'buff-above-secondaries',
     what: 'Incineroar clicks LOW SWEEP into an Archaludon with STAMINA. Low Sweep carries '
         + '`secondary: {chance: 100, boosts: {spe: -1}}`, so the two lines land on the SAME BODY in '
@@ -342,10 +345,10 @@ const CASES = [
     A: [['incineroar', '', 'Blaze', ['Low Sweep', 'Brick Break', 'Protect']],
         ['corviknight', '', 'Pressure', ['Protect']],
         ['clefable', '', 'Unaware', ['Protect']], ['milotic', '', 'Marvel Scale', ['Protect']]],
-    B: [['archaludon', '', 'Stamina', ['Body Press', 'Protect']],
+    B: [['archaludon', '', 'Stamina', ['Dragon Claw', 'Protect']],
         ['snorlax', '', 'Thick Fat', ['Protect']],
         ['garchomp', '', 'Rough Skin', ['Protect']], ['toxapex', '', 'Regenerator', ['Protect']]],
-    script: [T([{ m: 'lowsweep', t: 0 }, PROT], [{ m: 'bodypress', t: 1 }, PROT])] },
+    script: [T([{ m: 'lowsweep', t: 0 }, PROT], [{ m: 'dragonclaw', t: 1 }, PROT])] },
 
   { id: 'a1-control-no-secondary', group: 'A1', kind: 'control', brk: 'buff-above-secondaries',
     what: 'the SAME board and the same Stamina body, hit with BRICK BREAK — which carries no '
@@ -355,10 +358,10 @@ const CASES = [
     A: [['incineroar', '', 'Blaze', ['Low Sweep', 'Brick Break', 'Protect']],
         ['corviknight', '', 'Pressure', ['Protect']],
         ['clefable', '', 'Unaware', ['Protect']], ['milotic', '', 'Marvel Scale', ['Protect']]],
-    B: [['archaludon', '', 'Stamina', ['Body Press', 'Protect']],
+    B: [['archaludon', '', 'Stamina', ['Dragon Claw', 'Protect']],
         ['snorlax', '', 'Thick Fat', ['Protect']],
         ['garchomp', '', 'Rough Skin', ['Protect']], ['toxapex', '', 'Regenerator', ['Protect']]],
-    script: [T([{ m: 'brickbreak', t: 0 }, PROT], [{ m: 'bodypress', t: 1 }, PROT])] },
+    script: [T([{ m: 'brickbreak', t: 0 }, PROT], [{ m: 'dragonclaw', t: 1 }, PROT])] },
 
   { id: 'a1-control-roughskin', group: 'A1', kind: 'control', brk: 'buff-above-secondaries',
     what: 'Low Sweep into a ROUGH SKIN Garchomp — `punishesAttacker`, the other half of the same hook, '
@@ -476,7 +479,7 @@ const CASES = [
         + 'berry can be eaten on the authority, and healed above zero here.',
     counters: { residualBerryAteAfterUpkeep: 1, residualBerryAte: 1,
                 residualUpdatePasses: 5, residualUpdateAfterUpkeep: 5 },
-    A: [['clefable', '', 'Unaware', ['Toxic', 'Calm Mind', 'Protect']],
+    A: [['umbreon', '', 'Inner Focus', ['Toxic', 'Calm Mind', 'Protect']],
         ['corviknight', '', 'Pressure', ['Iron Defense', 'Protect']],
         ['incineroar', '', 'Blaze', ['Protect']], ['garchomp', '', 'Rough Skin', ['Protect']]],
     B: [['snorlax', 'Sitrus Berry', 'Thick Fat', ['Amnesia', 'Protect']],
@@ -520,18 +523,21 @@ const CASES = [
         + 'whole question. On the authority the USER is queued first — `damageCallback(pokemon) '
         + '{ const damage = pokemon.hp; pokemon.faint(); return damage; }` (data/moves.ts:5306-5310) '
         + 'runs while the damage is being COMPUTED, so `faintQueue` holds the user before the target '
-        + 'is ever hit, and `faintMessages()` drains it in order. Basculegion is 195 HP against a '
-        + 'Weavile on 145, so the kill needs no roll.',
-    A: [['basculegion', '', 'Adaptability', ['Final Gambit', 'Protect']],
+        + 'is ever hit, and `faintMessages()` drains it in order. Staraptor is 160 HP against a '
+        + 'Weavile on 145, so the kill needs no roll (2026-09-10: Basculegion does not learn Final '
+        + 'Gambit in Champions; Staraptor does, and Reckless touches no non-recoil move).',
+    A: [['staraptor', '', 'Reckless', ['Final Gambit', 'Protect']],
         ['corviknight', '', 'Pressure', ['Protect']],
         ['clefable', '', 'Unaware', ['Protect']], ['milotic', '', 'Marvel Scale', ['Protect']]],
-    B: [['weavile', '', 'Pressure', ['Ice Shard', 'Protect']],
+    B: [['weavile', '', 'Pressure', ['Ice Shard', 'Swords Dance', 'Protect']],
         ['snorlax', '', 'Thick Fat', ['Protect']],
         ['garchomp', '', 'Rough Skin', ['Protect']], ['toxapex', '', 'Regenerator', ['Protect']]],
     /* THE TARGET MUST NOT PROTECT, AND THE FIRST DRAFT OF THIS ARM HAD IT PROTECTING — which is the
      * `selfdestruct: 'ifHit'` control arm below wearing the red arm's name, and it agreed cleanly
-     * while staging no faint at all. Weavile clicks Ice Shard so the Gambit connects. */
-    script: [T([{ m: 'finalgambit', t: 0 }, PROT], [{ m: 'iceshard', t: 0 }, PROT])] },
+     * while staging no faint at all. Weavile clicks Swords Dance so the Gambit connects — and NOT an
+     * attack: Final Gambit deals the user's CURRENT HP, and a +1 Ice Shard landing first would take
+     * Staraptor's 160 below Weavile's 145 (Basculegion's 195 had the margin; Staraptor does not). */
+    script: [T([{ m: 'finalgambit', t: 0 }, PROT], [{ m: 'swordsdance' }, PROT])] },
 
   { id: 'a3-gambit-control-blocked', group: 'A3', kind: 'control', brk: 'selfko-below-the-target',
     what: 'the SAME Final Gambit into a PROTECT. `selfdestruct: \'ifHit\'` (data/moves.ts:5311) means '
@@ -541,10 +547,10 @@ const CASES = [
         + 'at all, and it is a second claim in its own right: the new site sits in `_stepApply`, '
         + 'below every refusal gate, so an engine that spent the user on a blocked click would part '
         + 'here.',
-    A: [['basculegion', '', 'Adaptability', ['Final Gambit', 'Protect']],
+    A: [['staraptor', '', 'Reckless', ['Final Gambit', 'Protect']],
         ['corviknight', '', 'Pressure', ['Protect']],
         ['clefable', '', 'Unaware', ['Protect']], ['milotic', '', 'Marvel Scale', ['Protect']]],
-    B: [['weavile', '', 'Pressure', ['Ice Shard', 'Protect']],
+    B: [['weavile', '', 'Pressure', ['Ice Shard', 'Swords Dance', 'Protect']],
         ['snorlax', '', 'Thick Fat', ['Protect']],
         ['garchomp', '', 'Rough Skin', ['Protect']], ['toxapex', '', 'Regenerator', ['Protect']]],
     script: [T([{ m: 'finalgambit', t: 0 }, PROT], [PROT, PROT])],
@@ -786,17 +792,12 @@ const CS = require(D('engine', 'champions_sim.js'));
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 const LS = dex.data.Learnsets;
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
-const learns = (sp, mv) => {
-  let s = dex.species.get(sp);
-  const id = dex.moves.get(mv).id;
-  while (s && s.exists) {
-    const e = LS[s.id];
-    if (e && e.learnset && e.learnset[id]) return true;
-    s = s.prevo ? dex.species.get(s.prevo)
-      : (s.baseSpecies && s.baseSpecies !== s.name ? dex.species.get(s.baseSpecies) : null);
-  }
-  return false;
-};
+/* THE VALIDATOR'S OWN VERDICT, NOT A WALK OVER THE RAW LEARNSET ROWS (2026-09-10). The walk this
+ * replaced accepted any entry on the species or on a prevo whatever its SOURCE tag, so a move a prevo
+ * learned by a gen-7 TM (`7M`, `7V`) read as legal here while `TeamValidator` refused it — which is how
+ * this file's own legality gate passed sets tests/test-fixture-legality.js named as illegal.
+ * `champions_sim.canLearn` IS `checkCanLearn`, cached per pair. */
+const learns = (sp, mv) => CS.canLearn(sp, mv);
 let illegal = 0;
 for (const c of CASES) {
   for (const row of c.A.concat(c.B)) {

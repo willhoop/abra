@@ -89,11 +89,13 @@ const SCEN = [
     kind: 'item', shape: 'choicelock removed with the item',
     census: 'item/choiceLock — data/conditions.ts:350 `!pokemon.getItem().isChoice`',
     what: 'Weavile holds a Choice Scarf and clicks Ice Shard on turn 1, which arms the lock. On turn '
-        + '2 Incineroar Knocks the Scarf off. `onDisableMove` runs when the turn-3 request is built '
+        + '2 Scizor Knocks the Scarf off. `onDisableMove` runs when the turn-3 request is built '
         + 'and `getItem().isChoice` is now false, so the authority carries NO lock into turn 3.',
     negative: 'turn 1 is the negative and it is on the same board — the lock must be ARMED there, or '
             + 'this scenario passes on an engine that never locks anything.',
-    A: [mon('incineroar', '', 'Intimidate', ['Knock Off', 'Protect']),
+    /* Scizor, not Incineroar (2026-09-10): Incineroar does not learn Knock Off in Champions. Light Metal
+     * touches nothing on this board; Ice Shard into Bug/Steel is resisted, so the knocker lives. */
+    A: [mon('scizor', '', 'Light Metal', ['Knock Off', 'Protect']),
         mon('clefable', '', 'Unaware', ['Protect'])].concat(FILL('milotic', 'toxapex')),
     B: [mon('weavile', 'choicescarf', 'Pressure', ['Ice Shard', 'Swords Dance', 'Protect']),
         mon('snorlax', '', 'Thick Fat', ['Protect'])].concat(FILL('garchomp', 'corviknight')),

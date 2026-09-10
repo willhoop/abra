@@ -81,16 +81,12 @@ const CS = require(D('engine', 'champions_sim.js'));
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 const LS = dex.data.Learnsets;
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
-const learns = (sp, mv) => {
-  let s = dex.species.get(sp); const id = dex.moves.get(mv).id;
-  while (s && s.exists) {
-    const e = LS[s.id];
-    if (e && e.learnset && e.learnset[id]) return true;
-    s = s.prevo ? dex.species.get(s.prevo)
-      : (s.baseSpecies && s.baseSpecies !== s.name ? dex.species.get(s.baseSpecies) : null);
-  }
-  return false;
-};
+/* THE VALIDATOR'S OWN VERDICT, NOT A WALK OVER THE RAW LEARNSET ROWS (2026-09-10). The walk this
+ * replaced accepted any entry on the species or on a prevo whatever its SOURCE tag, so a move a prevo
+ * learned by a gen-7 TM (`7M`, `7V`) read as legal here while `TeamValidator` refused it — which is how
+ * this file's own legality gate passed sets tests/test-fixture-legality.js named as illegal.
+ * `champions_sim.canLearn` IS `checkCanLearn`, cached per pair. */
+const learns = (sp, mv) => CS.canLearn(sp, mv);
 {
   const cu = dex.moves.get('curse');
   const src = String(cu.onModifyMove || '');
@@ -113,11 +109,13 @@ const learns = (sp, mv) => {
 }
 
 /* ---- 2. THE FIXTURE, EVERY ROW CHECKED AGAINST THE FORMAT ---------------------------------------- */
-/* Clefable is one of 133 legal non-Ghost Curse learners and Gengar one of 31 Ghost ones (both lists
- * derived below, not typed); Corviknight is one of 7 legal Pressure carriers and is the one the
- * corpus actually runs. Milotic stands in for it in the no-Pressure control — same slot, same click,
- * a body whose ability charges nothing. */
-const CLEF = ['clefable', '', 'Unaware', ['Curse', 'Protect']];
+/* Umbreon is a legal non-Ghost Curse learner and Gengar a legal Ghost one — asked of the validator in
+ * the gate below, not typed (the first cut used Clefable, whose Curse the raw-learnset walk accepted
+ * off a gen-7 prevo entry and `checkCanLearn` refuses; 2026-09-10). Inner Focus touches nothing here.
+ * Corviknight is one of the legal Pressure carriers and is the one the corpus actually runs. Milotic
+ * stands in for it in the no-Pressure control — same slot, same click, a body whose ability charges
+ * nothing. */
+const UMBR = ['umbreon', '', 'Inner Focus', ['Curse', 'Protect']];
 const GENG = ['gengar', '', 'Cursed Body', ['Curse', 'Protect']];
 const CORV = ['corviknight', '', 'Pressure', ['Protect', 'Iron Defense']];
 const MILO = ['milotic', '', 'Marvel Scale', ['Protect', 'Recover']];
@@ -138,24 +136,24 @@ const CASES = [
         + 'USER and Pressure refuses an ally: 1 PP. The residue predicted this engine would charge '
         + 'the named foe. It does not — the type split is resolved when the ACTION is built, so the '
         + 'PP road already sees the user in the target field.',
-    A: [CLEF, AERO], B: [CORV, MILO],
+    A: [UMBR, AERO], B: [CORV, MILO],
     script: [{ p1: [{ m: 'curse', t: 0 }, PROT], p2: [IDLE_C, IDLE_M] }] },
 
   { name: 'THE ACCUSATION, DOUBLED  TWO Pressure foes', charge: 0,
     what: 'Two apparent targets would be two extra PP under the accused reading. Carried because a '
         + 'single-foe arm cannot distinguish "charges nobody" from "charges one body once".',
-    A: [CLEF, AERO], B: [CORV, ABSO],
+    A: [UMBR, AERO], B: [CORV, ABSO],
     script: [{ p1: [{ m: 'curse', t: 0 }, PROT], p2: [IDLE_C, IDLE_A] }] },
 
   { name: 'THE ACCUSATION, MOVED  the Pressure body stands in the OTHER slot', charge: 0,
     what: 'The click names a body with no Pressure while a Pressure body watches from the partner '
         + 'slot. Pins that the answer is not "it charges whichever slot 0 holds".',
-    A: [CLEF, AERO], B: [MILO, ABSO],
+    A: [UMBR, AERO], B: [MILO, ABSO],
     script: [{ p1: [{ m: 'curse', t: 0 }, PROT], p2: [IDLE_M, IDLE_A] }] },
 
   { name: 'THE ACCUSATION, AIMED  the click names the Pressure body in slot 1', charge: 0,
     what: 'The same board with the aim moved onto the Pressure body itself.',
-    A: [CLEF, AERO], B: [MILO, ABSO],
+    A: [UMBR, AERO], B: [MILO, ABSO],
     script: [{ p1: [{ m: 'curse', t: 1 }, PROT], p2: [IDLE_M, IDLE_A] }] },
 
   { name: 'CONTROL  a GHOST Curse at the SAME Pressure foe — the counter MUST move', charge: 1,
@@ -182,7 +180,7 @@ for (const c of CASES) for (const row of c.A.concat(c.B)) {
   }
 }
 /* AND THE TWO TYPE FACTS THE ARMS TURN ON, asked rather than asserted in prose. */
-if (dex.species.get('clefable').types.includes('Ghost')) {
+if (dex.species.get('umbreon').types.includes('Ghost')) {
   console.log('FIXTURE WRONG — the non-Ghost user is Ghost'); illegal++; }
 if (!dex.species.get('gengar').types.includes('Ghost')) {
   console.log('FIXTURE WRONG — the Ghost user is not Ghost'); illegal++; }

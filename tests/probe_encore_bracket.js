@@ -144,9 +144,12 @@ const WHIM_I = ['whimsicott', '', 'Infiltrator', ['Encore', 'Charm', 'Protect']]
  * Keen Eye touch neither speed nor bracket. */
 const FURF = ['furfrou', '', 'Fur Coat', ['Charm', 'Protect']];
 const MEOW = ['meowstic', '', 'Keen Eye', ['Charm', 'Protect']];
-/* THE VICTIM. Cute Charm needs contact to fire and nothing on this board contacts it. */
-const SYLV = item => ['sylveon', item || '', 'Cute Charm',
-  ['Helping Hand', 'Charm', 'Quick Attack', 'Moonblast', 'Protect', 'Calm Mind']];
+/* THE VICTIM. Cute Charm needs contact to fire and nothing on this board contacts it.
+ * FOUR MOVES, NOT SIX (2026-09-10): the validator refuses more than four. Charm, Quick Attack and
+ * Protect are clicked across the Sylveon arms; the fourth slot is Calm Mind except on `already-moved`,
+ * whose +5 Helping Hand is the whole arm. Moonblast was never clicked and is gone. */
+const SYLV = (item, fourth) => ['sylveon', item || '', 'Cute Charm',
+  ['Charm', 'Quick Attack', 'Protect', fourth || 'Calm Mind']];
 /* THE PRANKSTER VICTIM, for the arm that separates a re-derivation from the delta formula. */
 const SABL = ['sableye', '', 'Prankster', ['Calm Mind', 'Shadow Ball', 'Protect']];
 
@@ -160,7 +163,7 @@ const ENC0 = { m: 'encore', t: 0 };   // at the foes' slot 0
 
 /* p1 = the encorer's side; p2 slot 1 = the victim. `mirror` swaps the two sides whole. */
 const SIDE_ENC = (enc) => stage([enc || WHIM, FURF]).concat(BENCH('clefable', 'snorlax'));
-const SIDE_VIC = (row, item) => stage([MEOW, row === SABL ? SABL : SYLV(item)])
+const SIDE_VIC = (row, item, fourth) => stage([MEOW, row === SABL ? SABL : SYLV(item, fourth)])
   .concat(BENCH('garchomp', 'toxapex'));
 
 const CASES = [
@@ -227,7 +230,7 @@ const CASES = [
         + 'reordered on the fact of an Encore rather than on the bracket breaks here.' },
 
   { id: 'already-moved', kind: 'control', vic: 'sylveon', reloc: 0,
-    A: SIDE_ENC(), B: SIDE_VIC(SYLV, ''),
+    A: SIDE_ENC(), B: SIDE_VIC(SYLV, '', 'Helping Hand'),
     script: [{ p1: [CH, CH], p2: [CH, CH] },
       { p1: [ENC1, CH], p2: [CH, HH] }],
     what: '`willMove(target)` RETURNS NULL AND THE AUTHORITY TAKES THE OTHER BRANCH. The victim clicks '
@@ -265,16 +268,12 @@ const CS = require(D('engine', 'champions_sim.js'));
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 const LS = dex.data.Learnsets;
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
-const learns = (sp, mv) => {
-  let s = dex.species.get(sp); const id = dex.moves.get(mv).id;
-  while (s && s.exists) {
-    const e = LS[s.id];
-    if (e && e.learnset && e.learnset[id]) return true;
-    s = s.prevo ? dex.species.get(s.prevo)
-      : (s.baseSpecies && s.baseSpecies !== s.name ? dex.species.get(s.baseSpecies) : null);
-  }
-  return false;
-};
+/* THE VALIDATOR'S OWN VERDICT, NOT A WALK OVER THE RAW LEARNSET ROWS (2026-09-10). The walk this
+ * replaced accepted any entry on the species or on a prevo whatever its SOURCE tag, so a move a prevo
+ * learned by a gen-7 TM (`7M`, `7V`) read as legal here while `TeamValidator` refused it — which is how
+ * this file's own legality gate passed sets tests/test-fixture-legality.js named as illegal.
+ * `champions_sim.canLearn` IS `checkCanLearn`, cached per pair. */
+const learns = (sp, mv) => CS.canLearn(sp, mv);
 let illegal = 0;
 const seenRow = new Set();
 for (const c of CASES) for (const row of c.A.concat(c.B)) {

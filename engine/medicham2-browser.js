@@ -989,6 +989,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * dead again. `subVolleyArrivalsOnBody` is how many arrivals reached the body that way, which is
    * the size of the gap in hits rather than in clicks. */
   subVolleyArrivalsAbsorbed: 0, subVolleyBrokeThrough: 0, subVolleyArrivalsOnBody: 0,
+  /* NARRATION BATCH Z, 2026-09-10 -- `subAbsorbAtStepZero` counts the rows `_stepSubAbsorb` absorbed, i.e. the
+   * doll met at STEP 0 of the segment, over every row, before any row's step-1 line; a zero on a run holding a
+   * Substitute and a damaging click into it means the step is out of the list. `subVolleyDollArrivalLines` counts
+   * the doll ARRIVALS of a volley that wrote their own effectiveness or crit line (step 0's own `getDamage`);
+   * `priceLinesDeferred` counts the rows whose step-1 lines were written by `_stepPriceLines` rather than inline. */
+  subAbsorbAtStepZero: 0, subVolleyDollArrivalLines: 0, priceLinesDeferred: 0,
   /* ROADMAP #139 -- Rough Skin, Weak Armor and every other `onDamagingHit` reactor firing TWICE off
    * one bonded click, which is the reaction half of "two separate hits". */
   parentalBondReactedTwice: 0,
@@ -3591,6 +3597,10 @@ const MEDFAILS = { encoreAction: 0,
   /* NARRATION BATCH Y -- MEDI_DH_STEPS_SPLIT=1 is armed: the four step-major `DamagingHit` steps are back, so
      a spread hit pays every target's punish before any target's buff. MUST READ 0 on any shipping run. */
   dhStepsSplitRestored: 0,
+  /* NARRATION BATCH Z -- MEDI_SUB_ABSORB_AT_APPLY=1 is armed: the doll is absorbed at the head of `_stepApply`
+     again and `_stepDamage` writes its lines inline, so a body row's `-resisted` and `-damage` land above the doll
+     row's `-end`. MUST READ 0 on any shipping run. */
+  subAbsorbAtApplyRestored: 0,
   /* NARRATION BATCH Y -- a payout whose priced band came back at ZERO on a body that is NOT type-immune.
    * The immune road above it is the only zero this engine can explain; anything else is a silent
    * no-op wearing a `-end` line, so it is counted and the move named rather than left to be found. */
@@ -14341,6 +14351,12 @@ if(DELAYED_HIT_SILENT_IMMUNE)MEDFAILS.delayedHitSilentImmuneRestored=1;   // sta
  * `MEDFAILS.dhStepsSplitRestored`. Probe: tests/probe_damaginghit_walk.js. */
 const DH_STEPS_SPLIT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DH_STEPS_SPLIT==='1');
 if(DH_STEPS_SPLIT)MEDFAILS.dhStepsSplitRestored=1;
+/* NARRATION BATCH Z, 2026-09-10 -- MEDI_SUB_ABSORB_AT_APPLY=1 PUTS THE SUBSTITUTE ABSORB BACK INSIDE `_stepApply`
+ * (step 2 of `spreadMoveHit`) and the step-1 lines back inline in `_stepDamage`, which on a spread hit writes a body
+ * row's `-resisted` / `-damage` above the doll row's `-activate` / `-end` -- the pinned pool's four substitute cards.
+ * Any run carrying it also carries a non-zero `MEDFAILS.subAbsorbAtApplyRestored`. Probe: tests/probe_substitute_family.js. */
+const SUB_ABSORB_AT_APPLY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SUB_ABSORB_AT_APPLY==='1');
+if(SUB_ABSORB_AT_APPLY)MEDFAILS.subAbsorbAtApplyRestored=1;
 /* NARRATION BATCH Y, 2026-09-09 -- MEDI_REPLACE_ORDER_STABLE=1 PUTS THE END-OF-TURN REPLACEMENT QUEUE BACK ON
  * `Array.prototype.sort` over `compareTurnOrder` -- a STABLE sort, so two corpses on equal raw Speed refill in
  * side order (p1 first) where the authority's `speedSort` resolves the tie with its die. Any run carrying it
@@ -36656,6 +36672,9 @@ function battleTurn(S,rng,actsForA,actsForB){
          * only one engine makes is harmless by construction -- game_differential.js's middle-arm
          * header states exactly that -- and under a pinned corner every draw returns the same value.
          * ========================================================================================= */
+        /* NARRATION BATCH Z, 2026-09-10 -- THE STEP-1 LINES ARE BUILT HERE AND WRITTEN ONE STEP LATER. See
+         * `R._priceLines` at the foot of this step and `_stepSubAbsorb` / `_stepPriceLines` below it. */
+        let _lineSpend=null,_pierceLine=false,_multiPkRow=false;   /* `_multiPk` is scoped inside the crit block below; the closure needs it out here */
         let _crits=null,_pkCrit=null,_pkSel=null,_reprice=false;
         {const _cc=critChance(a.move.id,m,suppressedAbility(m,tg),tg);   // WIRE 128 -- one owner; ROADMAP #222 -- its own die
          /* THE ARRIVAL COUNT COMES OFF THE PLAIN PACKETS, which is the only place this engine knows
@@ -36820,8 +36839,10 @@ function battleTurn(S,rng,actsForA,actsForB){
            while(_crits.length<_pkSel.length)_crits.push(_c0);
          }
          const _multiPk=!!(_pkSel&&_pkSel.length>1);
+         _multiPkRow=_multiPk;
          R.effShow=damageIsComputed(a.move.id)?d.eff:0;
-         if(TR&&!_multiPk){TR.eff(tg,R.effShow);if(R.crit)TR.crit(tg);}
+         /* NARRATION BATCH Z -- the `TR.eff` / `TR.crit` pair that stood here is written by `R._priceLines`, one
+          * step below the doll absorb. See the foot of this step. */
          /* ==== 2026-08-30 -- THE TYPE-RESIST BERRY IS SPENT IN THE CALCULATION, NOT AT THE APPLY ==
           *
           * `chopleberry.onSourceModifyDamage` (data/items.ts:1038-1049, the same body on every member
@@ -36902,7 +36923,7 @@ function battleTurn(S,rng,actsForA,actsForB){
               MEDSEEN.resistBerrySpent++; };
             if(BERRY_AT_APPLY){R._berryApply=_spend;MEDFAILS.berryAtApplyRestored=1;}
             else if(_multiPk){R._berry=_spend;MEDSEEN.resistBerryAtFirstArrival++;}
-            else _spend();
+            else _lineSpend=_spend;   /* NARRATION BATCH Z -- spent by `R._priceLines`, under the eff/crit pair, one step below the doll absorb */
           }}}
         /* ==== ROADMAP #322 -- ONE INDEX PER ARRIVAL, WHICH IS WHAT THE AUTHORITY DRAWS ============
          *
@@ -37158,7 +37179,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * streams on the very line that proves it pierced. `-zbroken` is NOT claimed
            * (`derive_protocol_events.js` declares it dropped) and is not emitted here. Emitted after
            * the effectiveness and crit lines above, which is the order the authority prints. */
-          if(TR)TR.ab(m,m.ability);
+          if(TR)_pierceLine=true;   /* NARRATION BATCH Z -- written by `R._priceLines`; the QUARTER above stays here */
         }
         /* ROADMAP #139 -- HOW MUCH OF THAT TOTAL ARRIVED AS THE FIRST PACKET. `dmgRange` writes it
          * back on the hit context for any plan that ran its per-hit loop -- Parental Bond, Beat Up,
@@ -37212,11 +37233,284 @@ function battleTurn(S,rng,actsForA,actsForB){
         R.hitcount=!!(_hitCtx.hitcountable&&!_smartTarget);
         R.hitcountBondPlan=!!_hitCtx.hitcountBondPlan;
         R.d=d;R.dmg=dmg;
+        /* ==== NARRATION BATCH Z, 2026-09-10 -- THE STEP-1 LINES, BUILT HERE, WRITTEN BY `_stepPriceLines` ====
+         *
+         * `-supereffective` / `-resisted` / `-crit` for a SINGLE-PACKET row, the resist berry's `-enditem` pair
+         * under them, and the Unseen Fist `-ability` line: all of them are `getSpreadDamage` lines, step 1 of
+         * `spreadMoveHit` (data/mods/champions/scripts.ts:360-361, emitted at :271/:278/:285). The doll is
+         * absorbed at step 0 (:343-354), over EVERY row, so a body row's step-1 line may not be written until
+         * every doll row has been asked -- and this step used to write it inline, one row at a time. The
+         * closure keeps the DECISIONS here (which berry, against which type, whether the shield was pierced)
+         * and moves only the WRITES one step down. A `_multiPk` row's effectiveness and crit lines are per
+         * arrival and stay in `_stepApply`'s packet loop; its berry stays in `R._berry`. */
+        R._priceLines=()=>{
+          if(TR&&!_multiPkRow){TR.eff(tg,R.effShow);if(R.crit)TR.crit(tg);}
+          if(_lineSpend){const _sp=_lineSpend;_lineSpend=null;_sp();}
+          if(_pierceLine&&TR)TR.ab(m,m.ability);
+        };
+        if(SUB_ABSORB_AT_APPLY){const _pl=R._priceLines;R._priceLines=null;_pl();}   /* the pre-batch order: inline */
+      };
+      /* ==== NARRATION BATCH Z, 2026-09-10 -- STEP 0 OF `spreadMoveHit`: THE DOLL, OVER EVERY ROW, FIRST ==========
+       *
+       * THE FOUR CARDS (`data/game-differential.json`, release `7d66b526659e`, 961 games on the pinned pool):
+       *     omit-protect      ...2655715488 t5    Earthquake     |-end|p2a: Dragapult|Substitute   <> |-resisted|p1b: Sinistcha|1
+       *     pair-protect-bust ...2653957635 t10   Rock Slide     |-end|p1b: Klefki|Substitute      <> |-damage|p1a: Meowstic|0 fnt
+       *     pair-protect-bust ...2654266369 t9    Matcha Gotcha  |-activate|p2b: Overqwil|...      <> |-damage|p2a: Froslass|42/145
+       *     pair-speedctrl    ...2654408616 t2    Rock Slide     |-end|p1b: Sinistcha|Substitute   <> |-resisted|p1a: Orthworm|1
+       * Every one is a SINGLE-ARRIVAL SPREAD MOVE with a doll on one of its rows.
+       *
+       * THE AUTHORITY, READ RATHER THAN RECALLED. Champions overrides `spreadMoveHit` (data/mods/champions/
+       * scripts.ts:315-427) and does not override `substitute`. Within one arrival every step is walked over
+       * every target before the next step begins:
+       *     :343-347   // 0. check for substitute  -> tryPrimaryHitEvent(damage, targets, ...)
+       *     :351-354   if (damage[i] === HIT_SUBSTITUTE) { damage[i] = true; targets[i] = null; }
+       *     :360-361   // 1. getSpreadDamage           (`-supereffective` / `-resisted` / `-crit`)
+       *     :367-368   // 2. spreadDamage              (`-damage`)
+       * and `substitute.condition.onTryPrimaryHit` (data/moves.ts:18335-18365) runs ITS OWN `getDamage` -- so the
+       * doll row's effectiveness and crit lines are STEP 0 lines -- then clamps to the doll's hp, writes
+       * `-activate|...|[damage]` or removes the volatile (`-end`), then pays that arrival's recoil and drain.
+       *
+       * WHAT THIS ENGINE DID. `_stepDamage` (step 1) wrote every row's effectiveness line and `_stepApply` (step 2)
+       * absorbed the doll, so `-resisted|body` and even `-damage|body` were written above `-end|doll`. Card 3 is the
+       * proof the doll's OWN line was already right (`-resisted|p2b` then `-activate|p2b` agreed): only the OTHER
+       * rows' step-1 and step-2 lines were early.
+       *
+       * WHY THIS IS A STEP AND NOT THE LOOP-NESTING JOB BATCH X PLANNED. Batch X read the per-arrival doll loop
+       * inside `_stepApply` and concluded a step-0 slot "fixes arrival 1 only", so the arrival loop had to become
+       * the outer loop over the whole `_stepDamage`..`_stepAfterHitField` segment. That premise needs a click that
+       * is BOTH multi-arrival AND multi-row, and this format has none: every legal multi-hit move is `target:
+       * normal` (Dragon Darts is `smartTarget` and already row-major), and Parental Bond refuses `move.spreadHit`
+       * (data/abilities.ts, `parentalbond.onPrepareHit`). `tests/probe_substitute_family.js` derives both facts on
+       * every run and refuses to run the day either stops holding. At ONE row the step-major and the row-major walks
+       * are the same permutation, so the whole doll loop -- every arrival the doll eats -- lives HERE, at step 0,
+       * and `_stepApply`'s packet loop picks the volley up at `R.pkFrom` exactly as batch V left it. One doll
+       * implementation, one position, no second copy for arrivals 2..n.
+       *
+       * AND THE VOLLEY GAINED ITS LINES. Each doll arrival is its own `getDamage` in the authority, so a Twin Beam
+       * into a doll on a Fighting/Poison body writes `-supereffective` above EACH `-activate` / `-end`; batch V's
+       * loop wrote only the doll's own line (`probe_multihit_through_doll` filters effectiveness lines out and so
+       * never saw it). `R.effShow` and `R.crits[i]` are the price step's own, so the line and the number cannot
+       * disagree about which arrival crit.
+       *
+       * THE DICE DO NOT MOVE. Nothing here draws: every crit and damage index was drawn in `_stepDamage`, at the
+       * doll's lingering address (`_subAddr`), before this step runs -- exactly as before.
+       *
+       * `MEDI_SUB_ABSORB_AT_APPLY=1` takes the two new steps out of `_STEPS`, calls this step from the head of
+       * `_stepApply` and has `_stepDamage` write its lines inline: the pre-batch order, byte for byte in the stream.
+       *
+       * WIRE 42 -- THE SUBSTITUTE EATS THE HIT, and the whole hit ends here.
+       *    WHAT THAT SKIPS IS STATED RATHER THAN DISCOVERED: no item is knocked off, no resist berry
+       *    is spent, no contact punish is paid and no secondary lands. Three of those four are the
+       *    real rule; the CONTACT PUNISH is not -- Rough Skin does toll an attacker that broke a
+       *    substitute -- and it is left out because the punish block sits below this line and moving
+       *    it would reorder five other mechanics for one. Sound moves and Infiltrator also go through
+       *    a real substitute and are not tracked at the hit site. Both are divergences in the same
+       *    direction (a substitute here is slightly better than the game's) and both are small.
+       * WIRE 130 -- a SOUND move and an Infiltrator go straight through, which was named as a
+       *    divergence here and is now the rule: subBlocks owns it for the damage path and for every
+       *    status path, so one substitute cannot mean two things inside one turn. */
+      /* ROADMAP #331 -- A `damageCallback` THAT KILLS ITS OWN USER RUNS INSIDE `getDamage`, so for a doll row it
+       * runs at STEP 0 (inside `onTryPrimaryHit`) and for a body row at step 1 -- both after every gate. One
+       * function, two callers (`_stepSubAbsorb`, `_stepApply`); the body below is byte-identical to the block that
+       * stood at the head of `_stepApply`, because `tests/test-resolution-order.js`'s `selfko-below-the-target`
+       * plant quotes it. Idempotent through `!m.fainted`. The whole derivation is at `_stepApply`'s head. */
+      const _damageCallbackKO=()=>{
+        {const _ufd=TAGS.param('move',a.move.id,'userFaints');
+         const _fdc=TAGS.param('move',a.move.id,'fixedDamage');
+         if(_ufd&&_ufd.faints==='ifHit'&&_fdc&&_fdc.source==='myRemainingHP'&&!m.fainted){
+           m.curHP=0;m.fainted=true,noteFaint(m);_selfKOPending=true;MEDSEEN.selfKOAtDamageCallback++;}}
+      };
+      const _stepSubAbsorb=(R)=>{const tg=R.tg;
+        if(!subBlocks(m,tg,a.move.id))return;
+        let dmg=R.dmg;
+        if(!SUB_ABSORB_AT_APPLY)MEDSEEN.subAbsorbAtStepZero++;   /* under the knob this step is called from `_stepApply`, i.e. at step 2 */
+        _damageCallbackKO();
+        /* THE DOLL ROW'S OWN STEP-0 LINES for a single-packet click: `onTryPrimaryHit`'s `getDamage` writes the
+         * effectiveness and crit lines above the doll's own line. (The resist berry inside is refused on a doll
+         * row by the handler's own `hitSub` check, which the price step's `!subBlocks` guard already models.) */
+        if(R._priceLines){const _pl=R._priceLines;R._priceLines=null;_pl();}
+        connected=true;
+        /* ==== BATCH V, 2026-09-09 -- A VOLLEY MEETS THE DOLL ONE ARRIVAL AT A TIME =============
+         *
+         * THIS BRANCH USED TO BE ONE SUBTRACTION AND ONE `return`, and both halves were wrong for a
+         * multi-hit move. The authority runs `spreadMoveHit` once per arrival, so the doll is asked
+         * `onTryPrimaryHit` once per arrival, and `HIT_SUBSTITUTE` drops the row for THAT ARRIVAL
+         * ONLY -- `targets[i] = null` is written into `targetsCopy`, which
+         * `hitStepMoveHitLoop` remakes from `targets.slice(0)` at the top of every iteration
+         * (data/mods/champions/scripts.ts:459-473 and :351-354). Once the doll is gone the next
+         * arrival finds no `substitute` volatile at all and lands on the body.
+         *
+         * SO THERE ARE TWO DEFECTS ON ONE LINE and they are separated below:
+         *   - the LINES. A two-hit volley whose doll survives arrival 1 writes
+         *     `-activate|[damage]` then `-end`; this engine folded the whole swing into one
+         *     subtraction and therefore wrote ONE line. Narration.
+         *   - the ARRIVALS. A volley that BREAKS the doll on arrival k still owes arrivals
+         *     k+1..n to the body, and this engine threw them away with the row. **BOARD.**
+         *     Measured against the authority, Farigiraf Twin Beam into a substituted Abomasnow with
+         *     the attacker's SpA scaled so one arrival overkills the doll:
+         *         x2  authority body 57/165, ours 124/165   -- 67 HP
+         *         x4  authority body 0 fnt,  ours 124/165   -- a kill that is not a kill
+         *     `tests/probe_multihit_through_doll.js`, `MEDI_VOLLEY_STOPS_AT_DOLL=1` is the knob.
+         *
+         * THE ARRIVALS ARE SKIPPED, NOT SLICED. `R.pkIdx`, `R.crits` and `R.reprice(crit, i)` are
+         * all indexed by the ORIGINAL arrival number -- Parental Bond's arrival 2 and Triple Axel's
+         * arrival 3 have their own base power -- so the packet vector is left whole and the body
+         * loop in `_stepApply` starts at `R.pkFrom`. Slicing would have re-numbered every one of them.
+         *
+         * `_dollVolley` TAKES THE SAME GUARD THE BODY LOOP TAKES (`R.pk.length > 1 && dmg === R.dmg`)
+         * so the two roads cannot disagree about whether this click is addressable; a single-packet
+         * click keeps the old one-subtraction road exactly, which is what makes every existing arm
+         * byte-identical. */
+        const _dollVolley=(!VOLLEY_STOPS_AT_DOLL&&Array.isArray(R.pk)&&R.pk.length>1&&dmg===R.dmg)?R.pk:null;
+        if(VOLLEY_STOPS_AT_DOLL&&Array.isArray(R.pk)&&R.pk.length>1)MEDFAILS.volleyStopsAtDollRestored=1;
+        const _s0=tg._sub;                 /* the doll's HP before ANY arrival of this click */
+        let _ate=0,_absorbed=0;
+        if(_dollVolley){
+          while(_ate<_dollVolley.length&&tg._sub>0){
+            const _sBefore=tg._sub;
+            /* NARRATION BATCH Z -- EACH DOLL ARRIVAL IS ITS OWN `getDamage`, so its effectiveness and crit
+             * lines are written above its own `-activate` / `-end` (scripts.ts:271/278/285 inside
+             * data/moves.ts:18339). `R.crits[_ate]` is this arrival's own decision, drawn at the price step. */
+            {const _cI=!!(R.crits&&R.crits[_ate]);
+             if(TR&&!SUB_ABSORB_AT_APPLY){TR.eff(tg,R.effShow);if(_cI)TR.crit(tg);   /* the knob restores batch V's silent doll arrivals */
+               if((R.effShow>0&&R.effShow!==1)||_cI)MEDSEEN.subVolleyDollArrivalLines++;}}
+            /* data/moves.ts:18341-18344 -- the clamp is per ARRIVAL and against the doll's hp AT
+             * THAT MOMENT, which is why it is read inside the loop and not once above it. */
+            const _take=Math.min(_dollVolley[_ate],_sBefore);
+            tg._sub=_sBefore-_take;_absorbed+=_take;_ate++;
+            if(TR){ if(tg._sub<=0)TR.vend(tg,'Substitute');
+                    else TR.act(tg,'move: Substitute','[damage]'); }
+          }
+          MEDSEEN.subVolleyArrivalsAbsorbed+=_ate;
+        }else{
+          tg._sub=Math.max(0,_s0-dmg);
+          _absorbed=Math.min(dmg,_s0);_ate=1;
+          if(TR){ if(_s0>0&&tg._sub<=0)TR.vend(tg,'Substitute');
+                  else TR.act(tg,'move: Substitute','[damage]'); }
+        }
+        _subAte=true;                      // ROADMAP #72 -- see the declaration for why this is not `!connected`
+        /* ==== ROADMAP #416, 2026-09-03 -- AN OVERKILL INTO A DOLL IS PAID ON THE DOLL'S LAST HP ===
+         *
+         * THE AUTHORITY, READ AND NOT RECALLED. Champions does not override Substitute (`grep
+         * substitute data/mods/champions/moves.ts` -> 0), so it is mainline's handler and the clamp
+         * sits ABOVE everything that reads the number:
+         *
+         *     data/moves.ts:18341-18343  if (damage > target.volatiles['substitute'].hp)
+         *                                  damage = target.volatiles['substitute'].hp;
+         *     data/moves.ts:18344        target.volatiles['substitute'].hp -= damage;
+         *     data/moves.ts:18345        source.lastDamage = damage;
+         *     data/moves.ts:18352-18354  if (damage) this.actions.applyRecoilDamage(damage, move, source);
+         *     data/moves.ts:18355-18357  if (move.drain) this.heal(ceil(damage * drain[0]/drain[1]), ...)
+         *
+         * AND NOTHING DOUBLE-PAYS IT: `spreadMoveHit` turns a HIT_SUBSTITUTE result into
+         * `damage[i] = true` (data/mods/champions/scripts.ts:351-353), which the hit loop folds to 0
+         * before `move.totalDamage += damage[i]` (sim/battle-actions.ts:961-965), so the OUTER
+         * `applyRecoilDamage(move.totalDamage, ...)` at :982 sees nothing from a doll.
+         *
+         * MEASURED, tests/probe_sub_clamp.js: a Double-Edge into a 35-HP doll paid the authority 12
+         * (`round(35 * 33/100)`) and this engine 25; a Bitter Blade into a 41-HP doll healed the
+         * authority 21 and this engine 62. The WIDE-DOLL control -- the identical pair with the
+         * target's max HP multiplied so the doll survives -- agreed at -25 and +75 on both engines
+         * before this line existed and must still agree after it.
+         *
+         * DECLARED REMAINDER, NOT FIXED HERE AND NOT BUNDLED: the authority's drain on this road is
+         * `Math.ceil` (data/moves.ts:18356) where `_payDrainRow` is `Math.round` (sim/battle.ts:2168,
+         * the ordinary road's rule). The two coincide for every 1/2-fraction drain move and part on
+         * a 3/4 one. That is a different defect on a different line, already declared in
+         * `_payDrainRow`'s own header, and folding it in here would destroy the attribution of this
+         * one.
+         *
+         * BATCH V -- `_absorbed` IS THE SUM OF THE PER-ARRIVAL CLAMPS, which for a single-packet
+         * click is exactly `Math.min(dmg, _s0)`. NARRATION BATCH Z -- the row's payment is booked here
+         * directly rather than through `_stepApply`'s `_reDealt`, because on the eaten road `_stepApply`
+         * never runs for this row any more: `dealt` gains the doll's share (the recoil the authority pays
+         * inside the handler is a share of it) and `_dealtEach` keeps one entry per row that was priced. */
+        const _dollDealt=SUB_DEALT_UNCLAMPED?Math.min(dmg,tg.curHP):_absorbed;
+        if(SUB_DEALT_UNCLAMPED)MEDFAILS.subDealtUnclampedRestored=1;
+        else if(dmg>_absorbed)MEDSEEN.subDealtCapped++;
+        /* ROADMAP #357 -- THE DECLARED REMAINDER OF THE TIMES-HIT COUNTER, COUNTED RATHER THAN
+         * ARGUED AWAY. The authority increments `timesAttacked` on `typeof moveDamage[i] ===
+         * 'number'` and a substitute-eaten hit still produces a number, so it counts THERE. This
+         * road drops the row before the counter site in `_stepApply`, so it does not count HERE.
+         *
+         * BATCH V, 2026-09-09 -- NARROWER NOW: a volley that breaks through keeps its row alive and
+         * reaches the counter site with `_landed` starting at `R.pkFrom`, so its doll arrivals ARE
+         * counted, exactly as the authority counts them (`hit - 1` covers every arrival). The gap
+         * that remains is the click the doll ate WHOLE, which is what the bump below measures. */
+        const _dollAteEverything=!(_dollVolley&&_ate<_dollVolley.length);
+        if(m!==tg&&_dollAteEverything)MEDFAILS.timesHitSubstituteUncounted++;
+        /* 2026-08-23 -- A BREAKING SUBSTITUTE WRITES `-end` AND NOT `-activate`. THE TWO LINES ARE
+         * THE TWO ARMS OF ONE `if` (data/moves.ts:18350-18356), and the arrival walk above is that `if`,
+         * once per arrival: every arrival the doll survives writes `-activate|[damage]` and the one that
+         * breaks it writes `-end`. */
+        /* ==== BATCH V -- WHAT THE DOLL COULD NOT EAT GOES ON TO THE BODY ========================
+         *
+         * The row stays LIVE and `_stepApply`'s body loop picks the volley up at `R.pkFrom`, which is
+         * the authority's next `spreadMoveHit` finding no `substitute` volatile. Everything the
+         * row still owes -- the Focus Sash, Endure, the per-arrival re-price, the `DamagingHit`
+         * handlers, the faint, `-hitcount` -- therefore runs where the authority runs it.
+         *
+         * `R._dollPaid` IS SET HERE AND NOWHERE ELSE. `_stepApply` folds it into the row total and into
+         * every later `_reDealt` clamp, so the Sash and the re-price keep speaking about the BODY's half
+         * alone and the row total still carries both. `R.first` is re-aimed at the first arrival the
+         * BODY meets, because that is the packet `onDamage` is asked about.
+         *
+         * THE DOLL'S DRAIN IS PAID HERE, at its own site, because the body's arrivals pay their own
+         * inside `_stepApply`'s loop; its foot call subtracts `_dollPaid` so a collapsed volley cannot
+         * pay the doll's share twice. */
+        const _restPk=(_dollVolley&&_ate<_dollVolley.length)?_dollVolley.slice(_ate):null;
+        if(_restPk){
+          MEDSEEN.subVolleyBrokeThrough++;
+          MEDSEEN.subVolleyArrivalsOnBody+=_restPk.length;
+          _payDrainRow(_absorbed,tg);
+          R._dollPaid=_absorbed;
+          R.pkFrom=_ate;
+          R.first=_dollVolley[_ate];
+          R.dmg=_restPk.reduce((s,p)=>s+p,0);
+        }else{
+          /* ==== BATCH V -- A VOLLEY THE DOLL ATE WHOLE STILL ANNOUNCES ITS COUNT ================
+           *
+           *     if (hit === 1) return damage.fill(false);                 scripts.ts:538
+           *     if (move.multihit && typeof move.smartTarget !== 'boolean' &&
+           *         !(move.hit === 1 && move.multihitType === 'parentalbond'))
+           *       this.battle.add('-hitcount', targets[0], hit - 1);      scripts.ts:547-551
+           *
+           * `hit` is the loop counter and NOTHING about a substitute stops it advancing -- the row
+           * is nulled inside `spreadMoveHit`'s copy and the loop guards read the original list. So
+           * a two-hit volley absorbed entirely by a doll still prints `|-hitcount|TARGET|2`, and
+           * this engine printed nothing at all because `R.out` dropped the row before
+           * `_stepHitCount`. Measured on the DOLL-HOLDS and BREAK-LAST arms of
+           * tests/probe_multihit_through_doll.js: authority 2, ours null.
+           *
+           * THE NUMBER IS `_ate`, WHICH IS THE ARRIVALS THE DOLL WAS ASKED ABOUT, i.e. the same
+           * `hit - 1`. The COLLAPSE road keeps the same refusal the body road already makes: a
+           * click whose packets could not be addressed does not know its own count, and writing
+           * `1` there would be an invented number rather than a missing one. */
+          if(R.hitcount){
+            if(_dollVolley)R.hitLanded=_ate;
+            else if(R.pk&&R.pk.length>1)MEDFAILS.hitCountDroppedOnCollapse=(MEDFAILS.hitCountDroppedOnCollapse|0)+1;
+            else R.hitLanded=1;
+          }
+          dealt+=_dollDealt;
+          _dealtEach.push(_dollDealt);                 /* ROADMAP #339 -- one entry per priced row */
+          /* 2026-08-24 -- AND THE DOLL FEEDS A DRAIN MOVE, below its own line, which is where
+             `onTryPrimaryHit` puts it (data/moves.ts:18359, after the `-activate` / `-end` arm). */
+          _payDrainRow(_dollDealt,tg);
+          R.out=true;
+        }
+      };
+      /* NARRATION BATCH Z -- STEP 1's LINES, for every row still live after the doll step. See the foot of
+       * `_stepDamage` for what the closure holds. Nothing here decides anything; it only writes. */
+      const _stepPriceLines=(R)=>{
+        if(R._priceLines){const _pl=R._priceLines;R._priceLines=null;_pl();MEDSEEN.priceLinesDeferred++;}
       };
       /* STEP 7b -- spreadDamage (battle-actions.ts:1079): the HP actually moves, for every target,
        * and only now. `d` and `dmg` are carried on the row rather than recomputed, because the price
        * was fixed at the previous step -- which is the whole of this wire. */
       const _stepApply=(R)=>{const tg=R.tg;let d=R.d,dmg=R.dmg;
+        /* NARRATION BATCH Z -- the pre-batch order, under the knob only: the doll is absorbed HERE, at step 2,
+         * and `_STEPS` carries neither `_stepSubAbsorb` nor `_stepPriceLines`. */
+        if(SUB_ABSORB_AT_APPLY){_stepSubAbsorb(R);if(R.out)return;dmg=R.dmg;}
         /* ROADMAP #331 -- A `damageCallback` THAT KILLS ITS OWN USER RUNS BEFORE THE TARGET IS HIT,
          * SO THE USER'S `|faint|` COMES FIRST. MEASURED, not reasoned: staged as
          * `tests/test-resolution-order.js a3-gambit-red` on the tree of 2026-08-22 --
@@ -37255,20 +37549,23 @@ function battleTurn(S,rng,actsForA,actsForB){
          * IT IS GATED ON REACHING THIS STEP, which is `faints: 'ifHit'` exactly. Every refusal --
          * Protect, an immunity, a miss -- returns above `_stepApply`, so a blocked Final Gambit costs
          * its user nothing, and `a3-gambit-control-blocked` is the arm that holds it to that. */
-        {const _ufd=TAGS.param('move',a.move.id,'userFaints');
-         const _fdc=TAGS.param('move',a.move.id,'fixedDamage');
-         if(_ufd&&_ufd.faints==='ifHit'&&_fdc&&_fdc.source==='myRemainingHP'&&!m.fainted){
-           m.curHP=0;m.fainted=true,noteFaint(m);_selfKOPending=true;MEDSEEN.selfKOAtDamageCallback++;}}
+        /* NARRATION BATCH Z -- the block is `_damageCallbackKO`, defined above `_stepSubAbsorb`, because a doll
+         * row's `getDamage` runs at step 0 and a body row's at step 1: one function, two callers. */
+        _damageCallbackKO();
         /* ROADMAP #81 WIRE 11 -- assigned after the HP moves, read by the `onFaintOnly` gate inside
          * `_damagingHit`. A `let` rather than a `const` at the assignment because the revert in
          * `tests/probe_red_demo.js` sets it to the OLD reading (`dmg >= tg.curHP`, taken before the
          * Focus Sash) at the old call site, and a probe that could not express the old engine would
          * not be a demonstration of anything. */
         let _koThisHit=false;
-        dealt+=Math.min(dmg,tg.curHP);
+        /* NARRATION BATCH Z -- `R._dollPaid` is what the doll on this row already took at step 0 (`_stepSubAbsorb`),
+         * on the break-through road only; 0 on every row that met no doll. The row total carries both halves, as
+         * it did when `_reDealt(_absorbed, Infinity)` folded it in from inside this step. */
+        const _dollPaid=(R._dollPaid|0);
+        dealt+=Math.min(dmg,tg.curHP)+_dollPaid;
         /* CAPTURED ONCE, BEFORE THE PACKET LOOP MOVES `tg.curHP`, so the per-row drain below is paid
            the identical number `_dealtEach` carries. */
-        let _rowDealt=Math.min(dmg,tg.curHP);
+        let _rowDealt=Math.min(dmg,tg.curHP)+_dollPaid;
         _dealtEach.push(_rowDealt);                   /* ROADMAP #339 -- the same number, kept apart */
         /* 2026-08-27 -- AND IT IS RE-READ WHEN AN `onDamage` HANDLER CLAMPS THE NUMBER UNDER IT.
          *
@@ -37302,7 +37599,6 @@ function battleTurn(S,rng,actsForA,actsForB){
          * re-price -- speaks about the BODY's half alone. Folding the doll's half in here means those
          * three call sites are untouched and cannot forget it; it stays 0 on every road that has no
          * doll in it, so every existing arm is byte-identical. */
-        let _dollPaid=0;
         const _reDealt=(nd,cap)=>{
           if(DEALT_BEFORE_CLAMP){MEDFAILS.dealtBeforeClampRestored=1;return;}
           const v=Math.max(0,Math.min(nd,(cap==null?tg.curHP:cap)))+_dollPaid;
@@ -37312,225 +37608,10 @@ function battleTurn(S,rng,actsForA,actsForB){
           _rowDealt=v;
           MEDSEEN.dealtReReadAfterClamp++;
         };
-        /* WIRE 42 -- THE SUBSTITUTE EATS THE HIT, and the whole hit ends here.
-           WHAT THAT SKIPS IS STATED RATHER THAN DISCOVERED: no item is knocked off, no resist berry
-           is spent, no contact punish is paid and no secondary lands. Three of those four are the
-           real rule; the CONTACT PUNISH is not -- Rough Skin does toll an attacker that broke a
-           substitute -- and it is left out because the punish block sits below this line and moving
-           it would reorder five other mechanics for one. Sound moves and Infiltrator also go through
-           a real substitute and are not tracked at the hit site. Both are divergences in the same
-           direction (a substitute here is slightly better than the game's) and both are small. */
+        /* NARRATION BATCH Z, 2026-09-10 -- THE SUBSTITUTE BRANCH THAT STOOD HERE IS `_stepSubAbsorb`, step 0 of the
+         * segment, two steps up. WIRE 42 / WIRE 130 / ROADMAP #416 / BATCH V's derivations moved with it. On the
+         * break-through road this step is entered with `R.pkFrom`, `R.first`, `R.dmg` and `R._dollPaid` already set. */
         connected=true;
-        /* WIRE 130 -- a SOUND move and an Infiltrator go straight through, which was named as a
-           divergence here and is now the rule: subBlocks owns it for the damage path and for every
-           status path, so one substitute cannot mean two things inside one turn. */
-        if(subBlocks(m,tg,a.move.id)){
-          /* ==== BATCH V, 2026-09-09 -- A VOLLEY MEETS THE DOLL ONE ARRIVAL AT A TIME =============
-           *
-           * THIS BRANCH USED TO BE ONE SUBTRACTION AND ONE `return`, and both halves were wrong for a
-           * multi-hit move. The authority runs `spreadMoveHit` once per arrival, so the doll is asked
-           * `onTryPrimaryHit` once per arrival, and `HIT_SUBSTITUTE` drops the row for THAT ARRIVAL
-           * ONLY -- `targets[i] = null` is written into `targetsCopy`, which
-           * `hitStepMoveHitLoop` remakes from `targets.slice(0)` at the top of every iteration
-           * (data/mods/champions/scripts.ts:459-473 and :351-354). Once the doll is gone the next
-           * arrival finds no `substitute` volatile at all and lands on the body.
-           *
-           * SO THERE ARE TWO DEFECTS ON ONE LINE and they are separated below:
-           *   - the LINES. A two-hit volley whose doll survives arrival 1 writes
-           *     `-activate|[damage]` then `-end`; this engine folded the whole swing into one
-           *     subtraction and therefore wrote ONE line. Narration.
-           *   - the ARRIVALS. A volley that BREAKS the doll on arrival k still owes arrivals
-           *     k+1..n to the body, and this engine threw them away with the row. **BOARD.**
-           *     Measured against the authority, Farigiraf Twin Beam into a substituted Abomasnow with
-           *     the attacker's SpA scaled so one arrival overkills the doll:
-           *         x2  authority body 57/165, ours 124/165   -- 67 HP
-           *         x4  authority body 0 fnt,  ours 124/165   -- a kill that is not a kill
-           *     `tests/probe_multihit_through_doll.js`, `MEDI_VOLLEY_STOPS_AT_DOLL=1` is the knob.
-           *
-           * THE ARRIVALS ARE SKIPPED, NOT SLICED. `R.pkIdx`, `R.crits` and `R.reprice(crit, i)` are
-           * all indexed by the ORIGINAL arrival number -- Parental Bond's arrival 2 and Triple Axel's
-           * arrival 3 have their own base power -- so the packet vector is left whole and the body
-           * loop below starts at `R.pkFrom`. Slicing would have re-numbered every one of them.
-           *
-           * `_dollVolley` TAKES THE SAME GUARD THE BODY LOOP TAKES (`R.pk.length > 1 && dmg === R.dmg`)
-           * so the two roads cannot disagree about whether this click is addressable; a single-packet
-           * click keeps the old one-subtraction road exactly, which is what makes every existing arm
-           * byte-identical. */
-          const _dollVolley=(!VOLLEY_STOPS_AT_DOLL&&Array.isArray(R.pk)&&R.pk.length>1&&dmg===R.dmg)?R.pk:null;
-          if(VOLLEY_STOPS_AT_DOLL&&Array.isArray(R.pk)&&R.pk.length>1)MEDFAILS.volleyStopsAtDollRestored=1;
-          const _s0=tg._sub;                 /* the doll's HP before ANY arrival of this click */
-          let _ate=0,_absorbed=0;
-          if(_dollVolley){
-            while(_ate<_dollVolley.length&&tg._sub>0){
-              const _sBefore=tg._sub;
-              /* data/moves.ts:18341-18344 -- the clamp is per ARRIVAL and against the doll's hp AT
-               * THAT MOMENT, which is why it is read inside the loop and not once above it. */
-              const _take=Math.min(_dollVolley[_ate],_sBefore);
-              tg._sub=_sBefore-_take;_absorbed+=_take;_ate++;
-              if(TR){ if(tg._sub<=0)TR.vend(tg,'Substitute');
-                      else TR.act(tg,'move: Substitute','[damage]'); }
-            }
-            MEDSEEN.subVolleyArrivalsAbsorbed+=_ate;
-          }else{
-            tg._sub=Math.max(0,_s0-dmg);
-            _absorbed=Math.min(dmg,_s0);_ate=1;
-            if(TR){ if(_s0>0&&tg._sub<=0)TR.vend(tg,'Substitute');
-                    else TR.act(tg,'move: Substitute','[damage]'); }
-          }
-          _subAte=true;                      // ROADMAP #72 -- see the declaration for why this is not `!connected`
-          /* ==== ROADMAP #416, 2026-09-03 -- AN OVERKILL INTO A DOLL IS PAID ON THE DOLL'S LAST HP ===
-           *
-           * The paragraph a few lines below this one already stated the gap rather than hiding it --
-           * *"the authority CLAMPS `damage` to the doll's remaining HP and assigns the clamped value
-           * to `source.lastDamage`, which recoil and drain then read … This engine passes the
-           * unclamped `dmg` to both."* This is that sentence closed.
-           *
-           * THE AUTHORITY, READ AND NOT RECALLED. Champions does not override Substitute (`grep
-           * substitute data/mods/champions/moves.ts` -> 0), so it is mainline's handler and the clamp
-           * sits ABOVE everything that reads the number:
-           *
-           *     data/moves.ts:18341-18343  if (damage > target.volatiles['substitute'].hp)
-           *                                  damage = target.volatiles['substitute'].hp;
-           *     data/moves.ts:18344        target.volatiles['substitute'].hp -= damage;
-           *     data/moves.ts:18345        source.lastDamage = damage;
-           *     data/moves.ts:18352-18354  if (damage) this.actions.applyRecoilDamage(damage, move, source);
-           *     data/moves.ts:18355-18357  if (move.drain) this.heal(ceil(damage * drain[0]/drain[1]), ...)
-           *
-           * AND NOTHING DOUBLE-PAYS IT: `spreadMoveHit` turns a HIT_SUBSTITUTE result into
-           * `damage[i] = true` (data/mods/champions/scripts.ts:351-353), which the hit loop folds to 0
-           * before `move.totalDamage += damage[i]` (sim/battle-actions.ts:961-965), so the OUTER
-           * `applyRecoilDamage(move.totalDamage, ...)` at :982 sees nothing from a doll.
-           *
-           * `_s0` IS THE CEILING AND IT IS THE DOLL'S HP *BEFORE* THIS HIT, which is exactly the
-           * authority's `target.volatiles['substitute'].hp` at the moment of the comparison -- read on
-           * the line above, before the subtraction, so the two cannot drift.
-           *
-           * MEASURED, tests/probe_sub_clamp.js: a Double-Edge into a 35-HP doll paid the authority 12
-           * (`round(35 * 33/100)`) and this engine 25; a Bitter Blade into a 41-HP doll healed the
-           * authority 21 and this engine 62. The WIDE-DOLL control -- the identical pair with the
-           * target's max HP multiplied so the doll survives -- agreed at -25 and +75 on both engines
-           * before this line existed and must still agree after it.
-           *
-           * DECLARED REMAINDER, NOT FIXED HERE AND NOT BUNDLED: the authority's drain on this road is
-           * `Math.ceil` (data/moves.ts:18356) where `_payDrainRow` is `Math.round` (sim/battle.ts:2168,
-           * the ordinary road's rule). The two coincide for every 1/2-fraction drain move and part on
-           * a 3/4 one. That is a different defect on a different line, already declared in
-           * `_payDrainRow`'s own header, and folding it in here would destroy the attribution of this
-           * one. */
-          /* BATCH V -- `_absorbed` IS THE SUM OF THE PER-ARRIVAL CLAMPS, which for a single-packet
-           * click is exactly `Math.min(dmg, _s0)` and therefore exactly what `_reDealt(dmg, _s0)`
-           * computed before this batch. `Infinity` is the cap because the clamping has already
-           * happened, arrival by arrival, above -- passing `_s0` again would re-clamp a number that
-           * is already at or under it and would silently hide a walk that overdrew the doll. */
-          if(SUB_DEALT_UNCLAMPED)MEDFAILS.subDealtUnclampedRestored=1;
-          else{ if(dmg>_absorbed)MEDSEEN.subDealtCapped++; _reDealt(_absorbed,Infinity); }
-          /* ROADMAP #357 -- THE DECLARED REMAINDER OF THE TIMES-HIT COUNTER, COUNTED RATHER THAN
-           * ARGUED AWAY. The authority increments `timesAttacked` on `typeof moveDamage[i] ===
-           * 'number'` and a substitute-eaten hit still produces a number, so it counts THERE. This
-           * road returns before the counter site below, so it does not count HERE. Non-zero after a
-           * game with a Substitute and an Annihilape in it is the size of the gap, in arrivals.
-           *
-           * BATCH V, 2026-09-09 -- NARROWER NOW, AND NARROWER BECAUSE THE ROAD CHANGED RATHER THAN
-           * BECAUSE THE COUNTER WAS RELAXED. A volley that breaks through keeps its row alive and
-           * reaches the counter site with `_landed` starting at `R.pkFrom`, so its doll arrivals ARE
-           * counted, exactly as the authority counts them (`hit - 1` covers every arrival). The gap
-           * that remains is the click the doll ate WHOLE, which is what the bump below now measures. */
-          const _dollAteEverything=!(_dollVolley&&_ate<_dollVolley.length);
-          if(m!==tg&&_dollAteEverything)MEDFAILS.timesHitSubstituteUncounted++;
-          /* 2026-08-23 -- A BREAKING SUBSTITUTE WRITES `-end` AND NOT `-activate`. THE TWO LINES ARE
-           * THE TWO ARMS OF ONE `if`, AND THIS ENGINE WROTE BOTH.
-           *
-           *     data/moves.ts:18350-18356   substitute.condition.onTryPrimaryHit
-           *       if (target.volatiles['substitute'].hp <= 0) {
-           *         if (move.ohko) this.add('-ohko');
-           *         target.removeVolatile('substitute');      // -> onEnd -> add('-end', target, 'Substitute')
-           *       } else {
-           *         this.add('-activate', target, 'move: Substitute', '[damage]');
-           *       }
-           *
-           * `-activate|…|[damage]` is the ELSE arm: it is the doll REPORTING that it soaked a hit and
-           * is still standing. The `-end` at data/moves.ts:18367 is the doll breaking. Emitting both
-           * says the doll survived and then vanished, which is two events where the game has one --
-           * and it is two whole-game divergences in `data/game-differential.json`, both read as
-           * `extra event emitted by medicham2` because our `-activate` arrives where the authority's
-           * `-end` does.
-           *
-           * NO STATE MOVES HERE AND THAT IS CHECKABLE RATHER THAN CLAIMED: `tg._sub` is already
-           * clamped to 0 on the line above and `TR.vend` already fired on exactly this condition, so
-           * the only thing this changes is whether the surviving-doll line is ALSO printed. The
-           * substitute's own removal was already correct.
-           *
-           * WHAT THIS DOES NOT TOUCH, STATED: the authority CLAMPS `damage` to the doll's remaining
-           * HP and assigns the clamped value to `source.lastDamage`, which recoil and drain then read
-           * (data/moves.ts:18345-18348). This engine passes the unclamped `dmg` to both. That is a
-           * STATE divergence, it is not narration, and it is left for the road that owns it rather
-           * than folded into a line-ordering fix.
-           *
-           * BATCH V, 2026-09-09 -- THE LINE MOVED INTO THE ARRIVAL WALK ABOVE, because there is one
-           * of them PER ARRIVAL and the `if` above is the same `if`: every arrival the doll survives
-           * writes `-activate|[damage]` and the one that breaks it writes `-end`. The old single line
-           * was right for a single-packet click and wrote one line for a whole volley. */
-          /* ==== BATCH V -- WHAT THE DOLL COULD NOT EAT GOES ON TO THE BODY ========================
-           *
-           * The row stays LIVE and the body loop below picks the volley up at `R.pkFrom`, which is
-           * the authority's next `spreadMoveHit` finding no `substitute` volatile. Everything the
-           * row still owes -- the Focus Sash, Endure, the per-arrival re-price, the `DamagingHit`
-           * handlers, the faint, `-hitcount` -- therefore runs where the authority runs it.
-           *
-           * `_dollPaid` IS SET HERE AND NOWHERE ELSE. `_reDealt` folds it into every later clamp, so
-           * the Sash and the re-price keep speaking about the BODY's half alone and the row total
-           * still carries both. `R.first` is re-aimed at the first arrival the BODY meets, because
-           * that is the packet `onDamage` is asked about.
-           *
-           * THE DOLL'S DRAIN IS PAID HERE, at its own site, because the body's arrivals pay their own
-           * inside the loop; the foot call subtracts `_dollPaid` so a collapsed volley cannot pay the
-           * doll's share twice.
-           *
-           * DECLARED AND NOT FIXED HERE: the authority's arrival 1 runs `getDamage` INSIDE
-           * `onTryPrimaryHit`, so a resist berry is spent on the doll's arrival and halves it. This
-           * engine's price step refuses the berry on a doll row (see the `!subBlocks` guard there) and
-           * that refusal is unchanged by this batch -- it is the WIRE 42 header's own "no resist berry
-           * is spent", now reachable on a road that continues. */
-          const _restPk=(_dollVolley&&_ate<_dollVolley.length)?_dollVolley.slice(_ate):null;
-          if(_restPk){
-            MEDSEEN.subVolleyBrokeThrough++;
-            MEDSEEN.subVolleyArrivalsOnBody+=_restPk.length;
-            _payDrainRow(_absorbed,tg);
-            _dollPaid=_absorbed;
-            R.pkFrom=_ate;
-            R.first=_dollVolley[_ate];
-            dmg=_restPk.reduce((s,p)=>s+p,0);
-            R.dmg=dmg;
-            _reDealt(Math.min(dmg,tg.curHP),Infinity);
-          }else{
-            /* ==== BATCH V -- A VOLLEY THE DOLL ATE WHOLE STILL ANNOUNCES ITS COUNT ================
-             *
-             *     if (hit === 1) return damage.fill(false);                 scripts.ts:538
-             *     if (move.multihit && typeof move.smartTarget !== 'boolean' &&
-             *         !(move.hit === 1 && move.multihitType === 'parentalbond'))
-             *       this.battle.add('-hitcount', targets[0], hit - 1);      scripts.ts:547-551
-             *
-             * `hit` is the loop counter and NOTHING about a substitute stops it advancing -- the row
-             * is nulled inside `spreadMoveHit`'s copy and the loop guards read the original list. So
-             * a two-hit volley absorbed entirely by a doll still prints `|-hitcount|TARGET|2`, and
-             * this engine printed nothing at all because `R.out` dropped the row before
-             * `_stepHitCount`. Measured on the DOLL-HOLDS and BREAK-LAST arms of
-             * tests/probe_multihit_through_doll.js: authority 2, ours null.
-             *
-             * THE NUMBER IS `_ate`, WHICH IS THE ARRIVALS THE DOLL WAS ASKED ABOUT, i.e. the same
-             * `hit - 1`. The COLLAPSE road keeps the same refusal the body road already makes: a
-             * click whose packets could not be addressed does not know its own count, and writing
-             * `1` there would be an invented number rather than a missing one. */
-            if(R.hitcount){
-              if(_dollVolley)R.hitLanded=_ate;
-              else if(R.pk&&R.pk.length>1)MEDFAILS.hitCountDroppedOnCollapse=(MEDFAILS.hitCountDroppedOnCollapse|0)+1;
-              else R.hitLanded=1;
-            }
-            /* 2026-08-24 -- AND THE DOLL FEEDS A DRAIN MOVE, below its own line, which is where
-               `onTryPrimaryHit` puts it (data/moves.ts:18359, after the `-activate` / `-end` arm). */
-            _payDrainRow(_rowDealt,tg);
-            R.out=true;return;}
-        }
         /* THE BERRY IS CONSUMED HERE AND ONLY HERE. dmgRange applied the halve as a pure read --
          * it is called dozens of times per turn on hypothetical moves and must never mutate -- so
          * the one-shot is spent at the point a real hit lands, exactly like the Sitrus line below. */
@@ -41110,7 +41191,12 @@ function battleTurn(S,rng,actsForA,actsForB){
                     _stepBreakProtect,                                   // ROADMAP #272 -- step 5
                     _stepAnnounceItem,                 // 2026-09-06 -- the move's own `onTryHit`, the announcing half
                     _stepClearScreens,                 // 2026-08-24 -- the move's own `onTryHit`
-                    _stepDamage,_stepApply,_stepSelfPay,_stepEffects,
+                    _stepDamage,
+                    /* NARRATION BATCH Z, 2026-09-10 -- step 0 of `spreadMoveHit` (the doll, over every row) and then
+                     * step 1's lines (every live row's effectiveness / crit / berry / pierce line), BETWEEN the price
+                     * and the apply. The knob takes both out and `_stepApply` absorbs the doll at its head again. */
+                    ...(SUB_ABSORB_AT_APPLY?[]:[_stepSubAbsorb,_stepPriceLines]),
+                    _stepApply,_stepSelfPay,_stepEffects,
                     /* NARRATION BATCH Y, 2026-09-09 -- ONE `DamagingHit`, in the authority's sort order: every
                      * order-1 handler index-major, then every undeclared-order handler index-major. See
                      * `_stepDamagingHitEarly`. The knob restores the 2026-08-22 / BATCH Q2 four-step layout. */

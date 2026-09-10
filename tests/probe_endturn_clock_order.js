@@ -196,14 +196,17 @@ const CASES = [
         + 'for the rest of the script, and that is not decoration: Protect is priority +4, so a '
         + 'protecting target is already behind its shield when a priority-0 Disable arrives and the '
         + 'move is simply blocked — the first draft of this arm staged nothing for exactly that '
-        + 'reason. Nothing on this board takes a point of damage.',
+        + 'reason. Nothing on this board takes a point of damage. Its filler after the Disable is CURSE '
+        + '(2026-09-10: Snorlax does not learn Double Team in Champions) — a non-Ghost Curse is `self`, '
+        + 'costs no HP, never fails inside five turns, and the Speed it sheds belongs to the slowest body '
+        + 'on the field.',
     A: [['alakazam', '', 'Synchronize', ['Disable', 'Protect']], ['clefable', '', 'Unaware', ['Protect']], ...BENCH_A2],
-    B: [['sharpedo', '', 'Speed Boost', ['Protect']], ['snorlax', '', 'Thick Fat', ['Amnesia', 'Double Team']], ...BENCH_B],
+    B: [['sharpedo', '', 'Speed Boost', ['Protect']], ['snorlax', '', 'Thick Fat', ['Amnesia', 'Curse']], ...BENCH_B],
     script: [T(P4, [PROT, { m: 'amnesia' }]),
-             T([{ m: 'disable', t: 1 }, PROT], [PROT, { m: 'doubleteam' }]),
-             T(P4, [PROT, { m: 'doubleteam' }]),
-             T(P4, [PROT, { m: 'doubleteam' }]),
-             T(P4, [PROT, { m: 'doubleteam' }])] },
+             T([{ m: 'disable', t: 1 }, PROT], [PROT, { m: 'curse' }]),
+             T(P4, [PROT, { m: 'curse' }]),
+             T(P4, [PROT, { m: 'curse' }]),
+             T(P4, [PROT, { m: 'curse' }])] },
 
   /* ========================= DISABLE@17 ABOVE PERISH SONG@24 — THE CARD ========================= */
   { id: 'disable-vs-perish', kind: 'red',
@@ -217,12 +220,12 @@ const CASES = [
         + 'claim.',
     A: [['alakazam', '', 'Synchronize', ['Disable', 'Protect']], ['primarina', '', 'Torrent', ['Perish Song', 'Protect']],
         ...BENCH_A2],
-    B: [['archaludon', '', 'Stamina', ['Protect']], ['snorlax', '', 'Thick Fat', ['Amnesia', 'Double Team']], ...BENCH_B],
+    B: [['archaludon', '', 'Stamina', ['Protect']], ['snorlax', '', 'Thick Fat', ['Amnesia', 'Curse']], ...BENCH_B],
     script: [T(P4, [PROT, { m: 'amnesia' }]),
-             T([{ m: 'disable', t: 1 }, PROT], [PROT, { m: 'doubleteam' }]),
-             T([PROT, { m: 'perishsong' }], [PROT, { m: 'doubleteam' }]),
-             T(P4, [PROT, { m: 'doubleteam' }]),
-             T(P4, [PROT, { m: 'doubleteam' }])] },
+             T([{ m: 'disable', t: 1 }, PROT], [PROT, { m: 'curse' }]),
+             T([PROT, { m: 'perishsong' }], [PROT, { m: 'curse' }]),
+             T(P4, [PROT, { m: 'curse' }]),
+             T(P4, [PROT, { m: 'curse' }])] },
 
   /* ========================= THE CONTROLS ====================================================== */
   { id: 'speedboost-alone', kind: 'control',
@@ -231,12 +234,12 @@ const CASES = [
         + 'family must not move a line. Without this arm, "the streams agree" would be '
         + 'indistinguishable from a knob that never reached the engine.',
     A: [['alakazam', '', 'Synchronize', ['Disable', 'Protect']], ['clefable', '', 'Unaware', ['Protect']], ...BENCH_A2],
-    B: [['sharpedo', '', 'Speed Boost', ['Protect']], ['snorlax', '', 'Thick Fat', ['Amnesia', 'Double Team']], ...BENCH_B],
+    B: [['sharpedo', '', 'Speed Boost', ['Protect']], ['snorlax', '', 'Thick Fat', ['Amnesia', 'Curse']], ...BENCH_B],
     script: [T(P4, [PROT, { m: 'amnesia' }]),
-             T(P4, [PROT, { m: 'doubleteam' }]),
-             T(P4, [PROT, { m: 'doubleteam' }]),
-             T(P4, [PROT, { m: 'doubleteam' }]),
-             T(P4, [PROT, { m: 'doubleteam' }])] },
+             T(P4, [PROT, { m: 'curse' }]),
+             T(P4, [PROT, { m: 'curse' }]),
+             T(P4, [PROT, { m: 'curse' }]),
+             T(P4, [PROT, { m: 'curse' }])] },
 
   { id: 'leechseed-vs-speedboost', kind: 'control',
     what: 'LEECH SEED IS `onResidualOrder: 8` — a member of the walk this engine ALREADY placed '
@@ -267,17 +270,12 @@ const CS = require(D('engine', 'champions_sim.js'));
 const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 const LS = dex.data.Learnsets;
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
-const learns = (sp, mv) => {
-  let s = dex.species.get(sp);
-  const id = dex.moves.get(mv).id;
-  while (s && s.exists) {
-    const e = LS[s.id];
-    if (e && e.learnset && e.learnset[id]) return true;
-    s = s.prevo ? dex.species.get(s.prevo)
-      : (s.baseSpecies && s.baseSpecies !== s.name ? dex.species.get(s.baseSpecies) : null);
-  }
-  return false;
-};
+/* THE VALIDATOR'S OWN VERDICT, NOT A WALK OVER THE RAW LEARNSET ROWS (2026-09-10). The walk this
+ * replaced accepted any entry on the species or on a prevo whatever its SOURCE tag, so a move a prevo
+ * learned by a gen-7 TM (`7M`, `7V`) read as legal here while `TeamValidator` refused it — which is how
+ * this file's own legality gate passed sets tests/test-fixture-legality.js named as illegal.
+ * `champions_sim.canLearn` IS `checkCanLearn`, cached per pair. */
+const learns = (sp, mv) => CS.canLearn(sp, mv);
 let illegal = 0;
 for (const c of CASES) {
   for (const row of c.A.concat(c.B)) {

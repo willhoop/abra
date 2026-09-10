@@ -211,8 +211,15 @@ function play(tag, armId, A, B, script) {
 const P1 = [mon(YAWNER.name, '', '', ['Yawn', 'Thunder Wave', 'Safeguard', 'Nasty Plot']),
             mon(SEEDER.name, '', '', ['Leech Seed', 'Nasty Plot']),
             mon('gengar', '', 'Cursed Body', ['Nasty Plot']), mon('gholdengo', '', 'Good as Gold', ['Nasty Plot'])];
+/* THE FILLER IS NASTY PLOT AND THREE OF THE ORIGINAL BODIES COULD NOT LEARN IT (2026-09-10). The
+ * validator refuses Nasty Plot on Garchomp, Kingambit and Milotic, and the packed team carried it anyway
+ * because a raw Battle validates nothing. A body that is CLICKED (or can enter after a faint and then be
+ * clicked) is swapped for a legal Nasty Plot carrier of the same shape — Slowbro for the Water target,
+ * Sinistcha for the bench body that enters — and a body that is never clicked keeps its species with a
+ * move it legally learns. A scripted move the request does not offer is a silent `pass` on BOTH engines
+ * (`scriptMoveNotOnRequest`), which is why the clicked slots could not simply be given any legal move. */
 const P2 = [mon(VICTIM.name, '', '', ['Safeguard', 'Nasty Plot']), mon('raichu', '', 'Static', ['Nasty Plot']),
-            mon('kingambit', '', 'Defiant', ['Nasty Plot']), mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
+            mon('kingambit', '', 'Defiant', ['Swords Dance']), mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
 /* The ALLY arm: the Yawn user's own side puts Safeguard up and then Yawns its OWN partner. */
 const P1A = [mon(YAWNER.name, '', '', ['Yawn', 'Safeguard', 'Nasty Plot']),
              mon(PARTNER.name, '', '', ['Nasty Plot']),

@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 1 of 9 gate clauses fail (whole-game differential / NARRATION — protocol divergence with no board effect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 177 unsafe, 2 void (declared), 43 possibly stale, 33 ok, 0 missing
+  provenance: 176 unsafe, 2 void (declared), 44 possibly stale, 33 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 1 of 9 gate clauses fail (whole-game differential / NARRATION — protocol divergence with no board effect)
@@ -29,14 +29,75 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-09 19:37
+    moved after the fit: engine/medicham2-browser.js  2026-09-09 22:05
     moved after the fit: data/engine-data.js  2026-08-31 00:08
-    moved after the fit: data/abra-tags.js  2026-09-09 18:56
+    moved after the fit: data/abra-tags.js  2026-09-09 20:53
 ```
 
-_stamped 2026-09-09 20:04_
+_stamped 2026-09-09 22:27_
 
 <!-- /GENERATED -->
+
+## FIXTURE LEGALITY, BATCH 2 — **25 → 1 ILLEGAL SETS, 19 → 1 DECLARATIONS**, 24 FILES REPAIRED WITH FORMAT-DERIVED CARRIERS, AND THE PROBES' OWN LEGALITY GATES WERE THE INSTRUMENT THAT HAD PASSED THEM. PLUS THREE INSTRUMENT NOTES FROM THE TRIO DERIVATION. 2026-09-10, CHANGELOG 5.278.0
+
+**THE GATE WAS THE PROBES', NOT THE SWEEP'S.** Thirteen probes carry a "LEGALITY, DERIVED AND REFUSED" gate, and every one of them
+had passed the sets `tests/test-fixture-legality.js` refuses. Their `learns(sp, mv)` walked `dex.data.Learnsets` up the prevo chain
+and returned true on ANY entry whatever its source tag — `clefable curse` via Clefairy `["7V"]`, `gengar explosion` via Haunter's
+gen-7 TM, `incineroar knockoff` with no entry on Incineroar, Torracat or Litten. `TeamValidator#checkCanLearn` says no to all of
+them. The 13 gates now ask `champions_sim.canLearn`, the validator's own verdict and the function the sweep uses. **37 files still
+carry the raw walk** at this pass (`grep -l "e.learnset && e.learnset\[id\]" tests/*.js`; the report's 34 was 47 − 13 by
+arithmetic, and one of the 37 is `tests/probe_substitute_family.js`, new the same night) — #565, and not a sed, because in some
+files the same walk DERIVES a cast and the switch would move what the probe prints. Full account:
+[docs/_reports/2026-09-10-fixture-legality-batch2.md](_reports/2026-09-10-fixture-legality-batch2.md).
+
+**MEASURED, RE-RUN AT THIS PASS.** `node tests/test-fixture-legality.js`: 632 files, 2367 set declarations, 753 distinct sets;
+**1 NEW illegal set / 1 NEW illegal declaration** — `incineroar @ (no item) / Blaze / [Knock Off, Protect]` at
+`engine/game_differential.js:6186,6256,6325,6348`, the differential's directed Knock Off scenarios and `ko/<item>` damage-interior
+fixtures, whose Knock Off figure must be re-derived for the replacement body (Scizor / Light Metal by this batch's precedent).
+Exit 2 FAILED, and that is the survivor, not a regression. Every one of the 15 baselined verdicts and declarations still produced;
+the 41-verdict origin set intact; the ratchet still discriminates. 24 of the 25 touched probes green on the final tree;
+`tests/probe_default_target_side.js` RED 12 of 12 on `near-side draws counted clean 3-6, expected 0/1` — **attributed by three
+controls before being called anything**: the same red on the HEAD fixture and on release `7d66b526659e`, cut before that night's
+engine rewrite, while boards and all four protocol facts agree on both engines. Pre-existing; ENGINE owns `nearSideDraws` and the
+probe's `near:` expectation is the question. Three regressions of the batch's own — literal `Milotic` in two probes' judgement
+regexes, a slot-1 body given a filler the request never offers (the authority rejected `move 1 1, pass`: "Your Kingambit must make
+a move") — caught by HEAD-fixture controls and fixed.
+
+**TWO PREMISES COULD NOT BE KEPT, AND THE ARMS SAY SO RATHER THAN PRETEND.** Simple Beam has ONE legal carrier (Audino) and Audino
+has no Infiltrator slot, so the same-species Infiltrator control is deleted and the header says why. Incineroar's only legal
+self-switching move is Baton Pass, and no legal body learns both Parting Shot and U-turn, so the U-turn arm runs on Toucannon and
+the "same Incineroar" premise is stated as not kept. A green arm on an impossible premise is the "green asking nothing" shape.
+
+**A FAKE GREEN, RECORDED BECAUSE IT IS EXACTLY THE SHAPE THIS FILE EXISTS FOR.** Under Git Bash, `cmd /c tools\lownode.cmd …`
+never launched node and returned exit 0 for every probe in the first chain — twelve greens in seconds. Caught on the timing, re-run
+with `cmd //c`. This pass hit the same thing once (`tools\lownode.cmd` printed a cmd banner and nothing else) and re-ran the sweep
+with `node` directly, which is legitimate for a file sweep that plays no game.
+
+**THREE INSTRUMENT NOTES FROM THE TRIO DERIVATION (ENGINE's night, MEASURE's instruments).**
+- **`--dump-out` with an absolute path writes nothing and exits 1** (#566): `engine/game_differential.js:49`
+  `D = (...p) => path.join(__dirname, '..', ...p)` is applied to `DUMP_OUT` at the `writeFileSync` (`:9609`), so
+  `C:\Users\…` becomes `ABRA\C:\Users\…`. Batches Y and Z wrote through `../../../AppData/…` to get round it. It cost two steps
+  once — a stale dump from an earlier agent sat in the shared scratchpad and read as fresh output. One-line fix owed:
+  `path.isAbsolute(DUMP_OUT) ? DUMP_OUT : D(DUMP_OUT)`.
+- **`--dump-games` cards carry no Speeds**, so a speed-order divergence cannot be read from a dump alone; the trio needed a
+  `speedSort` hook on the authority. And `lastSdLog()` carries both copies of every `|split|` line — a probe counting `-damage`
+  lines must drop one, as the instrument does at `:2440-2445`.
+- **The pool pairing moved three times in one evening under identical flags and a FROZEN pool** (#567): 21:05, 21:50, 22:05
+  local on 2026-09-09, `--team-store data/team-pool-frozen --release 7d66b526659e`. `diff_swarm.buildSwarm`'s predicates read
+  live `data/tags.json` (regenerated 20:53:59) and `data/diff-team-pool.json` was rewritten 21:04:29 — candidates, not a
+  diagnosis. **Stated as observed, not explained.** The consequence is already paid: the artifact's exact games could not be
+  replayed, so the trio was derived from slot-determined Speeds and sheet-determined handler lists instead. The pool pin is
+  necessary and this shows it is not sufficient; #547's receipt cannot see it because the pool bytes did not change.
+
+**THIS PASS.** Record-keeping only: the three rows on `docs/RUNNING-NOTES.md`, the 5.278.0 CHANGELOG entry, #563–#567, this
+section and one in `docs/ENGINE.md`. Every figure was read from its artifact before it was written — `data/game-differential.json`
+(release `489bea0577bc`, generated 2026-09-10T02:18Z: 961 / 961 / 0 void / 7 diverged among usable → NARRATION 6 of 961, 7 causes),
+`data/engine-diff.json` 6000 / 6000 / 0, the three roster artifacts 142 / 139 / 487 with 0 differ, `data/all-mechanics-fire.json`
+1313 games, `data/mechanics-census.json` 835 / 835 / 0, all stamped to the same release. `node engine/status.js --write` was NOT run
+by this pass and no `<!-- GENERATED -->` block was hand-edited — a heavy chain follows this commit and restamps; the block above is
+stamped to an earlier pass. Nothing here played a game. Leaf calibration stays WITHHELD; the refit stays OWED and is a REFIT, not a
+restamp — `engine/medicham2-browser.js` moved again tonight and is named among the inputs that moved after the fit.
+
 
 ## CLOSE PASS FOR 5.277.0 — THE CENSUS ROW THAT PINNED A BUG IS RE-AIMED AND READS 835/835 AGAIN; EVERY GATE ARTIFACT IS STAMPED TO `7d66b526659e`; 8 OF 9 CLAUSES PASS AND THE DOCS GATE STAYS 34/1 ON A SAME-DAY REGENERATION. 2026-09-10, CHANGELOG 5.277.0
 

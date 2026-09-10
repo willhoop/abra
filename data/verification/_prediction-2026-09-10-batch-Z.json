@@ -1,0 +1,25 @@
+{
+  "what": "NARRATION BATCH Z — the substitute family. Written BEFORE the release was cut and before any measurement ran, so the numbers below cannot have been read off the result.",
+  "written": "2026-09-10T00:40:00Z",
+  "engine_before": "7d66b526659e",
+  "change": "The substitute absorb moved out of _stepApply (step 2 of spreadMoveHit) into its own step _stepSubAbsorb at step 0, walked over every row between _stepDamage and a new _stepPriceLines that carries the step-1 lines _stepDamage used to write inline; each doll arrival of a volley writes its own effectiveness/crit line. Knob MEDI_SUB_ABSORB_AT_APPLY=1 restores the pre-batch order.",
+  "pins": {
+    "steering": "empirical", "arm": "middle", "end_state": true, "state": true,
+    "games": 1200, "turns": 50, "team_store": "data/team-pool-frozen",
+    "census_pin": "a fresh copy of the census this tree regenerates (data/verification/census-pin-<digest>.json)"
+  },
+  "prediction": {
+    "games_played": 961,
+    "void": { "point": 0, "range": [0, 1] },
+    "board_material": { "point": 0, "range": [0, 1], "note": "the absorb moves between steps, not between arrivals; every number the doll pays is unchanged and no die moves" },
+    "narration_only_raw": { "point": 6, "range": [5, 7], "note": "10 raw before, minus the four substitute cards" },
+    "narration_clause": { "point": 5, "range": [4, 6], "note": "raw less the 1 closeted perish |upkeep| row" },
+    "causes": { "point": 6, "range": [5, 7] },
+    "pool_moves_by_exactly_the_four_games": { "stopped": 4, "started": 0, "cause_changed": 0 },
+    "census": { "live": 835, "missing": 0, "note": "must not go down; a row going MISSING would mean it pinned the old order and is to be read, not edited" },
+    "roster": { "differ": 0, "did_not_fire": 0, "match": [142, 139, 487] },
+    "engine_diff": { "compared": 6000, "disagreed": 0 },
+    "all_mechanics_fire": { "threw": 0 }
+  },
+  "scoreboards_named_before_the_run": "Both should move: the four cards are spread moves into a Substitute on the pinned pool (POOL moves by exactly four games) and the lab's census/roster stage Substitute directly (LAB must not move at all — the fix is an ordering, and every board is unchanged)."
+}

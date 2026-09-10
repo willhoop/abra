@@ -189,15 +189,22 @@ function play(tag, armId, A, B, script) {
            div: r.div ? { sd: r.div.sdRaw, me: r.div.meRaw } : null };
 }
 
+/* THE FILLER IS NASTY PLOT AND THREE OF THE ORIGINAL BODIES COULD NOT LEARN IT (2026-09-10). The
+ * validator refuses Nasty Plot on Garchomp, Kingambit and Milotic, and the packed team carried it anyway
+ * because a raw Battle validates nothing. A body that is CLICKED (or can enter after a faint and then be
+ * clicked) is swapped for a legal Nasty Plot carrier of the same shape — Slowbro for the Water target,
+ * Sinistcha for the bench body that enters — and a body that is never clicked keeps its species with a
+ * move it legally learns. A scripted move the request does not offer is a silent `pass` on BOTH engines
+ * (`scriptMoveNotOnRequest`), which is why the clicked slots could not simply be given any legal move. */
 const P2 = [mon(SRC.name, '', '', ['Syrup Bomb', 'Nasty Plot']),
             mon('raichu', '', 'Static', ['Nasty Plot']),
-            mon('kingambit', '', 'Defiant', ['Nasty Plot']),
+            mon('sinistcha', '', 'Heatproof', ['Nasty Plot']),
             mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
-const P1 = [mon('milotic', '', 'Marvel Scale', ['Nasty Plot']),
+const P1 = [mon('slowbro', '', 'Oblivious', ['Nasty Plot']),
             mon(KILLER.name, '', '', ['Moonblast', 'Nasty Plot']),
             mon('gengar', '', 'Cursed Body', ['Nasty Plot']),
             mon('gholdengo', '', 'Good as Gold', ['Nasty Plot'])];
-const P1W = PHAZER ? [mon('milotic', '', 'Marvel Scale', ['Nasty Plot']),
+const P1W = PHAZER ? [mon('slowbro', '', 'Oblivious', ['Nasty Plot']),
                       mon(PHAZER.name, '', '', ['Whirlwind', 'Nasty Plot']),
                       mon('gengar', '', 'Cursed Body', ['Nasty Plot']),
                       mon('gholdengo', '', 'Good as Gold', ['Nasty Plot'])] : null;

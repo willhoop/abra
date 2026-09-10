@@ -186,10 +186,17 @@ const ASW_DEAD = play('ASW-DEAD-PARTNER', ASW_A, ASW_B, [
 /* The stall arm keeps BOTH bodies alive and clicks Ally Switch twice in a row. Turn 1 always
  * succeeds (the volatile is fresh), which swaps the two bodies, so turn 2's click comes from the
  * OTHER slot — the body is the same one. */
+/* THE FILLER IS NASTY PLOT AND THREE OF THE ORIGINAL BODIES COULD NOT LEARN IT (2026-09-10). The
+ * validator refuses Nasty Plot on Garchomp, Kingambit and Milotic, and the packed team carried it anyway
+ * because a raw Battle validates nothing. A body that is CLICKED (or can enter after a faint and then be
+ * clicked) is swapped for a legal Nasty Plot carrier of the same shape — Slowbro for the Water target,
+ * Sinistcha for the bench body that enters — and a body that is never clicked keeps its species with a
+ * move it legally learns. A scripted move the request does not offer is a silent `pass` on BOTH engines
+ * (`scriptMoveNotOnRequest`), which is why the clicked slots could not simply be given any legal move. */
 const STALL_A = [mon('gengar', '', 'Cursed Body', ['Nasty Plot']), mon('sableye', '', 'Prankster', ['Nasty Plot']),
-                 mon('garchomp', '', 'Rough Skin', ['Nasty Plot']), mon('gholdengo', '', 'Good as Gold', ['Nasty Plot'])];
+                 mon('garchomp', '', 'Rough Skin', ['Swords Dance']), mon('gholdengo', '', 'Good as Gold', ['Nasty Plot'])];
 const STALL_B = [mon('farigiraf', '', 'Cud Chew', ['Ally Switch']), mon('raichu', '', 'Static', ['Nasty Plot']),
-                 mon('kingambit', '', 'Defiant', ['Nasty Plot']), mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
+                 mon('kingambit', '', 'Defiant', ['Swords Dance']), mon('incineroar', '', 'Intimidate', ['Nasty Plot'])];
 const ASW_STALL = play('ASW-STALLED', STALL_A, STALL_B, [
   { p1: [IDLE, IDLE], p2: [{ m: 'allyswitch' }, IDLE] },
   { p1: [IDLE, IDLE], p2: [IDLE, { m: 'allyswitch' }] },
@@ -199,14 +206,18 @@ const ASW_STALL = play('ASW-STALLED', STALL_A, STALL_B, [
  * breaks it in the same turn; each doll costs a quarter of max HP, so five turns walk the body from
  * full down past the threshold. Turn 2's attacker idles, so turn 3's click meets a doll that is
  * still standing — that is SUB-REPEAT, in the same game and on the same body. */
-const SUB_A = [mon('kingambit', '', 'Defiant', ['Iron Head', 'Nasty Plot']), mon('sableye', '', 'Prankster', ['Nasty Plot']),
-               mon('garchomp', '', 'Rough Skin', ['Nasty Plot']), mon('gholdengo', '', 'Good as Gold', ['Nasty Plot'])];
+/* Kingambit stays the attacker (base 50, slower than the doll holder; a STAB Iron Head breaks a 56-HP
+ * doll on any roll and nothing spills) and its turn-2 idle is its own Swords Dance — the doll absorbs
+ * the boosted hits exactly as it absorbed the plain ones. */
+const SUB_A = [mon('kingambit', '', 'Defiant', ['Iron Head', 'Swords Dance']), mon('sableye', '', 'Prankster', ['Nasty Plot']),
+               mon('garchomp', '', 'Rough Skin', ['Swords Dance']), mon('gholdengo', '', 'Good as Gold', ['Nasty Plot'])];
 const SUB_B = [mon('farigiraf', '', 'Cud Chew', ['Substitute']), mon('raichu', '', 'Static', ['Nasty Plot']),
-               mon('incineroar', '', 'Intimidate', ['Nasty Plot']), mon('milotic', '', 'Marvel Scale', ['Nasty Plot'])];
+               mon('incineroar', '', 'Intimidate', ['Nasty Plot']), mon('milotic', '', 'Marvel Scale', ['Recover'])];
 const HIT = { m: 'ironhead', t: 0 };
+const SD_K = { m: 'swordsdance' };
 const subTurn = (k) => ({ p1: [k, IDLE], p2: [{ m: 'substitute' }, IDLE] });
 const SUB = play('SUB-WEAK+SUB-REPEAT', SUB_A, SUB_B,
-  [subTurn(HIT), subTurn(IDLE), subTurn(HIT), subTurn(HIT), subTurn(HIT), subTurn(HIT)]);
+  [subTurn(HIT), subTurn(SD_K), subTurn(HIT), subTurn(HIT), subTurn(HIT), subTurn(HIT)]);
 
 /* ==================================================================================================
  * 2. THE JUDGEMENT — the whole `-fail` list in order, never a count

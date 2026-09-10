@@ -84,16 +84,12 @@ const dex = CS.sim().Dex.forFormat(CS.FORMAT);
 const LS = dex.data.Learnsets;
 const TAGS = require(D('data', 'tags.json'));
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
-const learns = (sp, mv) => {
-  let s = dex.species.get(sp); const id = dex.moves.get(mv).id;
-  while (s && s.exists) {
-    const e = LS[s.id];
-    if (e && e.learnset && e.learnset[id]) return true;
-    s = s.prevo ? dex.species.get(s.prevo)
-      : (s.baseSpecies && s.baseSpecies !== s.name ? dex.species.get(s.baseSpecies) : null);
-  }
-  return false;
-};
+/* THE VALIDATOR'S OWN VERDICT, NOT A WALK OVER THE RAW LEARNSET ROWS (2026-09-10). The walk this
+ * replaced accepted any entry on the species or on a prevo whatever its SOURCE tag, so a move a prevo
+ * learned by a gen-7 TM (`7M`, `7V`) read as legal here while `TeamValidator` refused it — which is how
+ * this file's own legality gate passed sets tests/test-fixture-legality.js named as illegal.
+ * `champions_sim.canLearn` IS `checkCanLearn`, cached per pair. */
+const learns = (sp, mv) => CS.canLearn(sp, mv);
 
 /* ==== THE MEMBERSHIP, PRINTED BEFORE IT IS TRUSTED, AND CHECKED AGAINST THE SOURCE ================
  * A derived tag that over-matches is this repository's standing failure (`refusesStatusMoves` caught
@@ -116,8 +112,10 @@ console.log('  the source (a handler passing `message` to effectiveWeather):    
 console.log('  shape-only: ' + (SHAPE.filter(x => !SOURCE.includes(x)).join(', ') || '(none)')
   + '   source-only: ' + (SOURCE.filter(x => !SHAPE.includes(x)).join(', ') || '(none)') + NL);
 
-const MEGA = ['meganium', 'Meganiumite', 'Overgrow', ['Solar Beam', 'Synthesis', 'Weather Ball', 'Sunny Day', 'Protect']];
-const BASE = ['meganium', '', 'Overgrow', ['Solar Beam', 'Synthesis', 'Weather Ball', 'Sunny Day', 'Protect']];
+/* FOUR MOVES (2026-09-10): the validator refuses five, and Meganium never clicks Protect — every PROT in
+ * the scripts below is the partner's. */
+const MEGA = ['meganium', 'Meganiumite', 'Overgrow', ['Solar Beam', 'Synthesis', 'Weather Ball', 'Sunny Day']];
+const BASE = ['meganium', '', 'Overgrow', ['Solar Beam', 'Synthesis', 'Weather Ball', 'Sunny Day']];
 const CLEF = ['clefable', '', 'Unaware', ['Protect']];
 /* THE GHOST IS CTRL-C'S WHOLE POINT. Weather Ball is NORMAL with no weather and FIRE under the
  * private sun, and Normal cannot touch a Ghost at all — so "did the private sun still work while
