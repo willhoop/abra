@@ -140,8 +140,8 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 ENGINE — does the simulator do what Pokémon does
   835/835 probed mechanics live, 0 missing   (census 2026-09-09 22:07)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 15 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-09 22:11)
+    never fired in the staged harness (all-mechanics-fire.json, 12 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-10 00:30)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -163,9 +163,86 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-09 22:27_
+_stamped 2026-09-10 00:46_
 
 <!-- /GENERATED -->
+
+## THE WHOLE GATE CHAIN IS RE-MEASURED ON THE CURRENT BYTES — **8 OF 9 CLAUSES PASS**, **BOARD-MATERIAL 0 OF 961**, **NARRATION 6 → 3 OF 961 ACROSS 4 CAUSES**, ROSTER **142 / 139 / 487 WITH ZERO DIFFER AND ZERO DID-NOT-FIRE**, `test-engine-diff` **6000/6000**, `all_mechanics_fire` **1313 GAMES / 0 THREW**, CENSUS PINNED AND UNTOUCHED AT **835 LIVE / 835 PROBED / 0 MISSING**. **NO ENGINE BYTE MOVED.** 2026-09-10
+
+**Nothing was fixed here. Six clauses had stopped saying anything and now say something.** Before this
+pass `engine/status.js` read **6 FAIL / 2 PASS and every one of the six failures was the same kind** —
+`MEASURED AGAINST A DIFFERENT ENGINE — ran on release 489bea0577bc, tree is 5a7bd8a8178a`. Not one
+clause asserted breakage. `engine/medicham2-browser.js` moved at 2026-09-10T02:59:28Z (commit
+`75efb271`, the residual handler-list sort) and no instrument had been run against those bytes, so
+nothing was KNOWN about this engine. Full account, with every pin and flag:
+[docs/_reports/2026-09-10-remeasure-batch-AB.md](_reports/2026-09-10-remeasure-batch-AB.md).
+
+**ONE RELEASE, CUT ONCE, HANDED TO EVERY LEG** — `5a7bd8a8178a`, 27 files frozen, appended as cut 7 of
+an identical tree. **Three things pinned on every leg that measures**: the release, the census
+(`data/mechanics-census.json`, digest `1da84d77888e`, the COMMITTED bytes — `git diff HEAD` empty — and
+the same digest the superseded run used), and `--team-store data/team-pool-frozen`. `--games 1200`,
+961 played; arm `middle`; `--turns 50`; empirical steering; seed 20260804 on the damage arm.
+
+**THE CENSUS WAS PINNED, NOT REGENERATED, AND THAT IS DELIBERATE.** `tests/test-mechanics.js` was not
+run: regenerating the census changes the steering bytes and a mechanics count taken either side of a
+census regeneration is not a before/after. So the census figure — **835 live of 835 probed, 0
+missing** — is a claim about `489bea0577bc` and is carried unchanged rather than restated as new. Its
+re-run is the first item in the report's `OWED, NOT RUN` block, and it must come before the next
+whole-game arm rather than after it.
+
+**WHAT THE GATE READS NOW.**
+
+| clause | before | after |
+|---|---|---|
+| game differential (damage) | FAIL — re-run owed | **PASS** — 0 of 6000 at the midpoint and at all sixteen indices |
+| roster / items | FAIL — re-run owed | **PASS** — 142 of 148, zero differ |
+| roster / abilities | FAIL — re-run owed | **PASS** — 139 of 201, zero differ |
+| roster / moves | FAIL — re-run owed | **PASS** — 487 of 498, zero differ |
+| coverage | PASS | **PASS** |
+| whole-game / BOARD-MATERIAL | FAIL — re-run owed | **PASS — 0 of 961** |
+| whole-game / NARRATION | FAIL — re-run owed | **FAIL — 3 of 961, 4 causes, one game each** |
+| mechanics / staged and compared | FAIL — re-run owed | **PASS** — 5 diverge, 1 declared, 4 below the reach shelf, leaving 0 |
+| no open, known engine defect | PASS | **PASS** |
+
+**THE ONE RED IS A MEASURED RED, AND IT IS THE WHOLE GATE.** NARRATION reads 4 raw less 1 declared (the
+closeted perish drain) = **3 of 961**, across four causes that occur in exactly one game each:
+`|-activate|p1a|lightningrod <> |-prepare|p1b|electroshot`, `|upkeep <> |faint|p1a`,
+`|-fail|p1a|shedtail|[weak] <> |-fail|p1a`, and `|-fail|p2b <> |-activate|p1a|psychicterrain`.
+
+**THE THREE CAUSES THAT DISAPPEARED ARE EXACTLY THE THREE THE FIX WAS AIMED AT**, and that is the
+attribution rather than the total: the brn pair, the psn pair and the Leftovers pair — all three
+`ordering ::` rows in the residual phase — are gone, and every other field of the artifact is
+identical (961 games, 10705 boundaries, coverage 732, 43 teams dropped, `threw` 1,
+`choices_refused` 2). `node engine/arms_comparable.js` answers **COMPARABLE** on the pair, so the
+difference is the change under test and nothing else. **This section supersedes the derivation section
+below it, which was written when the trio was derived and not yet fixed.**
+
+**THE PREDICTION WAS WRITTEN FIRST AND HIT AT THE POINT ESTIMATE ON EVERY CLAUSE** —
+`data/verification/_prediction-2026-09-10-batch-AB.json`, written before the first run: damage 0 of
+6000, roster zero differ, BOARD-MATERIAL 0 of 961, NARRATION 3 of 961 inside a declared 3–6 range. It
+also named the risk that did NOT fire: a residual ORDER change is not automatically narration, because
+if two bodies both die to residual damage the walk order decides which faints first, and a faint order
+is board state.
+
+**`--stage all` DOES NOT WRITE THE THREE ARTIFACTS THE GATE READS.** It writes `data/roster.all.json`
+and the `roster.json` convenience copy; `roster.items.json`, `roster.abilities.json` and
+`roster.moves.json` keep their old mtimes. The three per-stage runs were run as well — without them
+three clauses would have gone on reading `489bea0577bc` artifacts while the run reported success,
+which is the silent-default shape this division exists to catch.
+
+**FOUND AND LEFT, BECAUSE A TREE THAT MOVES MID-CHAIN VOIDS THE CHAIN.**
+- `data/roster.all.json` reads **2 FIRED-AND-BOARDS-DIFFER — `axekick` and `electrify`** — where
+  `data/roster.moves.json` reads both as DEFERRED-BY-OWNER, *"SHELVED ON USAGE"* at 2 and 18 clicks
+  across 64,846 stored games against a shelf of 25. Real, reproducible, shelved by one artifact and
+  not the other. **Not new**: `roster.all.prev.json` (2026-08-23, release `39ac0253d3ca`) carries the
+  same two rows with the same verdict.
+- `declared_gaps.choices_refused` **2** and `threw` **1** persist, both printed `MUST READ 0`,
+  unchanged from the superseded artifact.
+- `all_mechanics_fire` still reports `axekick` and `clearsmog` parting a BOARD **with the two protocol
+  streams in agreement** — a silent state defect the protocol arm structurally cannot see — plus
+  `healbell` and `reflecttype`. All four are below the reach shelf, which is why the mechanics clause
+  passes at 0.
+
 
 ## THE RESIDUAL TRIO IS ONE MECHANISM, DERIVED AND NOT YET FIXED — `residualOrder` SORTS BODIES WHERE THE AUTHORITY SORTS HANDLERS, ALL THREE PAIRS ARE EXACT TIES AT BUILT SPEED (90/90, 117/117, 80/80), AND THE "65/75, NOT A TIE" READING WAS BASE SPEED. TWO PROBES RED 2 OF 4 ON `7d66b526659e`. 2026-09-10, CHANGELOG 5.278.0
 

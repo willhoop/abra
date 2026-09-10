@@ -1,0 +1,63 @@
+{
+  "written": "2026-09-10 (before the first run of the chain)",
+  "by": "ENGINE re-measure batch AB",
+  "why": "engine/medicham2-browser.js moved at 2026-09-10T02:59Z (residual handler-list sort, ROADMAP #563, commit 75efb271). Every gate artifact stands on release 489bea0577bc. This prediction is written BEFORE any instrument runs on the new bytes.",
+  "pins_intended": {
+    "release": "<cut on the current tree; one id handed to every leg>",
+    "census": "data/mechanics-census.json digest 1da84d77888e (committed bytes, identical to the census the 489bea0577bc run used, so the arms are comparable)",
+    "team_store": "data/team-pool-frozen",
+    "games_flag": 1200,
+    "turns": 50,
+    "arm": "middle",
+    "steering": "empirical",
+    "damage_diff": "--n 6000 --seed 20260804"
+  },
+  "baseline_being_superseded": {
+    "release": "489bea0577bc",
+    "engine_diff": { "compared": 6000, "disagreed": 0 },
+    "roster": {
+      "items": { "FIRED-AND-BOARDS-MATCH": 142, "FIRED-AND-BOARDS-DIFFER": 0, "COULD-NOT-STAGE": 6 },
+      "abilities": { "FIRED-AND-BOARDS-MATCH": 139, "FIRED-AND-BOARDS-DIFFER": 0, "COULD-NOT-STAGE": 158, "CONTROL-NOT-QUIET": 14, "DEFERRED-BY-OWNER": 5 },
+      "moves": { "FIRED-AND-BOARDS-MATCH": 487, "FIRED-AND-BOARDS-DIFFER": 0, "COULD-NOT-STAGE": 10, "DEFERRED-BY-OWNER": 3 }
+    },
+    "all_mechanics_fire": { "moves.resolved": 495, "moves.exist": 500, "moves.diverged": 4, "abilities.fired": 104, "items.fired": 64 },
+    "whole_game": { "games": 961, "games_board_never_diverged": 961, "board_material": "0 of 961", "narration": "6 of 961 across 7 causes" },
+    "census": { "probed": 835, "live": 835, "note": "NOT regenerated this session; the census is a pin, not an output" }
+  },
+  "prediction": {
+    "damage_differential": {
+      "disagreed": 0,
+      "compared": 6000,
+      "confidence": "high",
+      "reason": "the residual handler-list sort touches the order bodies are walked in the residual phase; it cannot reach dmgRange, which the harness calls with no field between buildMon and the roll."
+    },
+    "roster_all_stages": {
+      "FIRED-AND-BOARDS-DIFFER": "0 across items, abilities and moves",
+      "counts": "identical to the baseline above, +/- 0",
+      "confidence": "high",
+      "reason": "each roster row stages one entity against its own control; the residual ORDER between two bodies is not what any of these fixtures varies. If a count moves at all it is the instrument, not the fix."
+    },
+    "all_mechanics_fire": {
+      "moves.diverged": 4,
+      "moves.resolved": 495,
+      "confidence": "medium-high",
+      "reason": "same argument as the roster. The residual-order change can only show here if a staged fixture happens to hold two residual handlers on tied bodies, which none is built to do."
+    },
+    "whole_game_differential": {
+      "games": 961,
+      "board_material": "0 of 961",
+      "board_material_confidence": "medium",
+      "narration": "3 of 961",
+      "narration_range": "3 to 6 of 961",
+      "narration_confidence": "medium",
+      "reason": "the three residual-trio games are inside the baseline's narration 6. Both probes (probe_residual_trio_lower_order_handler.js, probe_residual_trio_handlerless_body.js) are GREEN bare and RED 2 of 4 under MEDI_RESIDUAL_SORTS_BODIES=1, so the mechanism is proven in both directions in the lab. If the trio stops diverging, narration reads 3."
+    }
+  },
+  "do_i_agree_with_the_prior_session": {
+    "board_material_0_of_961": "AGREE, with a named risk below.",
+    "narration_3_to_6": "AGREE on the range; I commit to the point estimate 3, because the trio is exactly three games and the mechanism was demonstrated both directions.",
+    "the_risk_the_prior_prediction_does_not_state": "A residual ORDER change is not automatically narration. If two bodies both die to residual damage in a real game, which one is walked first decides which faints first, and a faint order is board state. So board-material CAN move off 0 on this fix. If it does, that is a NEW finding on the new bytes and not a re-run failure, and it must be recorded as a defect and left, not fixed inside this chain.",
+    "second_risk": "The narration causes are read from the artifact's own by-cause NARRATION-ONLY attribution, not from state.first_divergences (capped at 60) and not from by_cause_totals.games_board_material. If narration lands at 4 or 5 rather than 3, the trio may have been three games with two causes each rather than three causes."
+  },
+  "what_would_falsify_the_whole_chain": "An artifact whose `generated` stamp did not move, or an output too small to be a real run (a run-all is ~660 lines). The exit code is not evidence."
+}

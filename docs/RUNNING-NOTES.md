@@ -69,6 +69,13 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [5.278.0] — 2026-09-10 — the whole gate chain is re-measured on the residual handler-list sort, and narration reads 3 of 961
+- **What changed.** NO CODE. Six gate clauses read `MEASURED AGAINST A DIFFERENT ENGINE` because `engine/medicham2-browser.js` moved at 02:59Z (commit `75efb271`) and nothing had been re-run. One release was cut (`5a7bd8a8178a`) and handed to all four instruments; the census was PINNED at the committed bytes, not regenerated. Full account: `docs/_reports/2026-09-10-remeasure-batch-AB.md`.
+- **Measured.** BOARD-MATERIAL **0 of 961**, NARRATION **3 of 961 across 4 causes** — `data/game-differential.json`, `--games 1200` (961 played), arm `middle`, empirical steering, census `1da84d77888e`, `--team-store data/team-pool-frozen`, `--turns 50`, release `5a7bd8a8178a`. Damage differential **0 of 6000** (`data/engine-diff.json`, seed 20260804); roster **142 / 139 / 487 with 0 DIFFER and 0 DID-NOT-FIRE** (`data/roster.{items,abilities,moves}.json`); `data/all-mechanics-fire.json` 1313 games, 0 threw. Gate **8 of 9 PASS**, NARRATION alone red. `node engine/arms_comparable.js` answers **COMPARABLE** against the superseded arm — same steering digest, same 961 games — so this is a back-cast.
+- **Basis.** unchanged — a re-measurement on comparable arms is a back-cast, not a basis change, and it was checked rather than asserted.
+- **Supersedes.** ~~NARRATION 6 of 961 across 7 causes~~ retracted — it was a claim about release `489bea0577bc` and was never stated as current in a living document. The three causes that stopped are exactly the three residual-order rows (brn, psn and Leftovers).
+- **Owed to the next major.** none.
+
 ## [5.278.0] — 2026-09-10 — the handoff collector was dropping more than half of every session's owed commands at the first shell comment
 - **What changed.** `engine/orient.js` tracks fence state when it walks an `OWED, NOT RUN` block. It ended the block at the first markdown heading, and a `#` shell comment at column zero inside a ```bash fence matched that test — so any report that COMMENTED its commands was truncated at the first comment. Found because this session's own close report contributed ZERO commands: its OWED body was read as four lines. A `#` inside a fence is a comment, not a heading. Also added to `.claude/skills/start/SKILL.md` §7.
 - **Measured.** Over the same 450 reports, before → after: **108 reports with runnable OWED commands / 339 commands → 166 / 710**; reports with an OWED heading but no command line fell 219 → 161. `node tests/test-orient.js` GREEN.
