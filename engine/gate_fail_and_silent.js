@@ -114,13 +114,16 @@ const has = (f) => process.argv.includes(f);
  * population underneath it changed. That refusal is the same rule `engine/arms_comparable.js` applies
  * to two arms and the same one CLAUDE.md states about SLOWKING's cycle: check the corpus stamps
  * before crediting a lever. */
-const PIN = 30;
-const SAMPLE = { census: '2e3953f1f882', pool: '631d4ea60a80', games: 995 };
-const PIN_NOTE = 're-seeded 2026-08-18 by MEASURE at 30 causes / 51 games (995 games, arm A/middle, '
-  + 'release 978ca8fe72c9, census 2e3953f1f882, team pool 631d4ea60a80). NOT a before/after against '
-  + 'the earlier seed of 3 or the row\'s older upper bound of 8: the paired --release arm shows this '
-  + 'class byte-identical across both releases under one sample, so every one of those differences is '
-  + 'the sample and none of it is the engine.';
+const PIN = 1;
+const SAMPLE = { census: '098de5770623', pool: '0d103fb9fa87', games: 961 };
+const PIN_NOTE = 're-seeded 2026-09-09 by MEASURE at 1 cause / 1 game (961 games, release b0f5c159c46e, '
+  + 'census 098de5770623 pinned, team pool data/team-pool-frozen 0d103fb9fa87). The 2026-08-18 seed of 30 causes / '
+  + '51 games was stamped to a LIVE-pool sample (census 2e3953f1f882 / pool 631d4ea60a80 / 995 games) that no run '
+  + 'can reproduce, so every run since read A DIFFERENT SAMPLE and the REGRESSION branch was unreachable — a pin '
+  + 'nothing can ever exceed is a stale expectation, not a ratchet. Pinned pool + pinned census IS reproducible, so '
+  + 'the pin now lives there. NOT a before/after against 30: the population moved, the engine also moved. The one '
+  + 'cause at the seed is `|-fail|p2a <> |move|p2b|rockslide` (Trick failing, ENGINE card in '
+  + 'docs/_reports/2026-09-09-raw-shard-cap.md).';
 const CLASS = 'event missing from medicham2';
 
 /* THE SAMPLE THIS ARTIFACT ACTUALLY MEASURED, read from the run's own stamp rather than assumed. */

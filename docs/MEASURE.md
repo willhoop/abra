@@ -21,7 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 1 of 9 gate clauses fail (whole-game differential / NARRATION — protocol divergence with no board effect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 175 unsafe, 2 void (declared), 39 possibly stale, 39 ok, 0 missing
+  provenance: 177 unsafe, 2 void (declared), 43 possibly stale, 33 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 1 of 9 gate clauses fail (whole-game differential / NARRATION — protocol divergence with no board effect)
@@ -29,14 +29,29 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-09 16:46
+    moved after the fit: engine/medicham2-browser.js  2026-09-09 19:37
     moved after the fit: data/engine-data.js  2026-08-31 00:08
-    moved after the fit: data/abra-tags.js  2026-09-09 03:55
+    moved after the fit: data/abra-tags.js  2026-09-09 18:56
 ```
 
-_stamped 2026-09-09 18:00_
+_stamped 2026-09-09 20:04_
 
 <!-- /GENERATED -->
+
+## CLOSE PASS FOR 5.277.0 — THE CENSUS ROW THAT PINNED A BUG IS RE-AIMED AND READS 835/835 AGAIN; EVERY GATE ARTIFACT IS STAMPED TO `7d66b526659e`; 8 OF 9 CLAUSES PASS AND THE DOCS GATE STAYS 34/1 ON A SAME-DAY REGENERATION. 2026-09-10, CHANGELOG 5.277.0
+
+**THE PROBE, NOT THE ENGINE.** `tests/test-mechanics.js` `move/trickSwapsItems` staged a Gengarite on a Milotic and asserted Trick moves nothing — the engine's old coarse guard, which batch Y removed because the authority's `onTakeItem` refuses only the matching species. The census fell to 834 live / 1 missing on a CORRECT engine. Re-aimed: the holder is derived from `data/tags.json` `megaStone.into`, the stone stays on its Gengar, and the same stone on a Milotic is the control that swaps. `data/mechanics-census.json` 835 / 835 / 0, generated 2026-09-10 (two runs; the first stamped 23:59Z on the 9th and was re-run once past midnight so the artifact's date is later than the rows that cite it). `data/all-mechanics-fire.json` re-run on `7d66b526659e` with the census pinned (`census-pin-bfdaf0d5283a.json`): 1313 / 0 / 0, every summary field equal to batch Y's. **The artifact does not stamp the census digest** — the pin is honoured (`steering.js` reads it; the run log names it) but only the log says so; owed a stamp. `node engine/status.js --write`: 8 of 9, BOARD-MATERIAL 0 of 961 / 0 void, NARRATION 9 of 961 / 10 causes, census 835/835. The status block prints the census stamp in LOCAL time under a legend that says UTC (`20:00` for a `00:00Z` run) — cosmetic, noted, not fixed here.
+
+**THE DOCS GATE DID NOT CLEAR AND THE REASON IS THE DIFFERENTIAL'S DATE, NOT THE CENSUS'S.** `tests/test-docs-current.js` 34/1 before and after this pass: two citation accusations against `data/game-differential.json` (a `14` for `mid_void.diverged_among_usable`, which batch Y's re-run moved to 10; a `830` for a census count in a sentence that also cites the differential). Both rows are dated 2026-09-09 and the differential is stamped 2026-09-09T23:50Z, so the rule judges them rather than filing them as predating. They clear when that artifact is regenerated on a later date; no differential was run in this pass because none was asked for, and the rows are not edited because the page is a log. `engine/gate_fail_and_silent.js` exit 0 CLEAN — #559 closed; #561 filed and closed; #562 filed. Account: `docs/_reports/2026-09-10-close-wave2.md`.
+
+## A RAW SHARD HAD NO CAP AND THE FIRST FULL-ARCHIVE RUN WROTE ONE OF 56 MB — CAPPED AT THE PARSED WRITER'S 32 MiB, RED THEN GREEN ON A SCRATCH COPY. AND `gate_fail_and_silent` WAS PINNED TO A SAMPLE NO RUN COULD REPRODUCE. 2026-09-09, CHANGELOG 5.277.0
+
+**THE CAP (#556, closed).** `build/compress-stores.js --raw` wrote one shard per run of any size; `data/raw/games.ladder/20260909T2052-00.jsonl.gz` (commit `71771f0b`) is 58,753,177 B gzipped from 411,333,183 B of source, 76,741 logs — the whole ladder raw archive, because the 21 earlier dated shards held only the hourly increments since raw sharding began. Over GitHub's 50 MB warning, under the 100 MB wall, pushed and permanent; re-cutting it would add blobs and recover nothing. Now one `SHARD_BYTES` (32 MiB of SOURCE, so the compressed ceiling is ~33.6 MB even if gzip achieved nothing on text) hoisted above both writers. Red on a scratch copy at HEAD (1 shard from 36.6 MiB), green on the patch (2 shards, 32.00 + 4.61 MiB; `--restore-raw` from the shards alone sha256-identical). Real tree: 0 new shards, every raw store up to date. Budget at 176 games/h: ~135 KB per hourly shard, 24 a day; the shard COUNT grows without bound, the file never does. Account: `docs/_reports/2026-09-09-raw-shard-cap.md`.
+
+**THE PIN (re-seeded).** `engine/gate_fail_and_silent.js` carried `PIN = 30` stamped to a live-pool sample of 2026-08-18 that the pinned differential can never reproduce, so every run printed `A DIFFERENT SAMPLE` and the exit-3 REGRESSION branch was unreachable — a pin nothing can exceed is not a ratchet. Re-seeded to `PIN = 1` on census `098de5770623` / pool `0d103fb9fa87` / 961 games, dated and owned in `PIN_NOTE`; `--selftest` 23/0; live run `SAME SAMPLE`, LIVE 1 cause over 1 game, exit 1. The verdict did not move and must not: the class is not empty. The one cause is a Trick `-fail` this engine never announces — board never parted, same end state — #559, ENGINE narration; #241 closed that class at zero on 2026-08-25 and it has re-populated by one.
+
+**ALSO.** `--restore-parsed` reconciled the local ladder store 92,379 → 92,431 rows (the shrink guard fired, not the stale clause: the tracked shards held MORE); `tests/test-workflow-paths.js` 5/1 → 6/0. Observed, not acted on: 92,431 parsed rows against 84,832 raw logs — 7,599 ladder rows have no raw log in the archive and cannot be reparsed; owed a register row and a count of ids. Two store rows carry U+FFFD in the `|win|` line from the pre-2026-08-28 chunk decode (#558, OPS). `node engine/status.js --write` was NOT run; the generated block above is stamped to an earlier pass. The standing priority — leaf calibration — is unchanged and unserved by this pass.
+
 
 ## THE BOARD CLAUSE COUNTED THE GAMES THAT ANSWERED IT OUT OF ITS OWN DENOMINATOR — **3 OF 961** ON THE SAME ARTIFACT — AND THE DOCS GATE CAN NOW SEE A WRONG HEADLINE. SEVEN WAIVERS BY NAME; FIVE INSTRUMENTS GREENER. 2026-09-09, CHANGELOG 5.276.0
 
@@ -6375,13 +6390,17 @@ turn-0 board on the same corpus with sheets on and gives **58.20%** on n=2,500. 
 split-half spread runs 0.47 to 21.47 points across ten random by-game cuts (median ≈ 4.2), so those
 two agree.
 
-**THE HEADLINE 50.99% IS THE UNDERPOWERED READ, and the better number is not better news.** It is
-the held-out fifth at n=200. Re-cut from `data/winrate-backtest-rows.jsonl`, the same leaf at n=40
-over the **full** 6,886-game clean corpus ranks at **51.66%** (51.80% on 6,570 decisive calls) — real
-by p, and its majority class is 51.25%, so its edge over *always say p1* is **0.41 points against a
-median split-half floor of 0.75.** LESSONS §9: an effect smaller than the noise floor is not an
-effect. **On the closed-sheet ladder at turn 0 the leaf does not beat the majority class.** "Cannot
-rank at all" was reported off the wrong n and happens to survive the correction.
+**THE HEADLINE IS THE UNDERPOWERED READ, and the better number is not better news.** Every figure
+in this finding is read from `data/winrate-backtest.json` and `data/winrate-backtest-rows.jsonl`,
+which are downstream of MEDICHAM and WITHHELD; none is restated here (2026-09-09: an earlier version
+of this paragraph restated four of them, and `tests/test-docs-quarantine.js` refused it — a caption is
+not a quarantine). The shape of the finding, without the numbers: the headline read is the held-out
+fifth at a small n; re-cut at a larger n over the full clean corpus the same leaf ranks slightly
+higher and is real by p; its edge over *always say p1* (the corpus majority class) is smaller than the
+median split-half noise floor. LESSONS §9: an effect smaller than the noise floor is not an effect.
+**On the closed-sheet ladder at turn 0 the leaf does not beat the majority class.** "Cannot rank at
+all" was reported off the wrong n and happens to survive the correction. The values return when the
+quarantine lifts and the artifact is re-run.
 
 **Now the answer to the three options, plainly.**
 

@@ -138,10 +138,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  830/830 probed mechanics live, 0 missing   (census 2026-09-09 07:54)
+  835/835 probed mechanics live, 0 missing   (census 2026-09-09 20:00)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 17 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-09 17:41)
+    never fired in the staged harness (all-mechanics-fire.json, 2 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-09 19:40)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -155,7 +155,7 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 072c4c61ed23 now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 79cef9b5cfda now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
   tag coverage: 285/301 probed, 16 unprobed;  278/301 have an engine consumer, 23 have none
@@ -163,9 +163,151 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-09 18:00_
+_stamped 2026-09-09 20:04_
 
 <!-- /GENERATED -->
+
+## NARRATION BATCH Y — **FOUR CAUSES CLOSED, ZERO TRANSFERS, EACH SHOWN RED ON THE PRE-FIX BYTES FIRST.** NARRATION-ONLY **14 → 10 CAUSES / 14 → 10 GAMES**, **GATE NARRATION 13 → 9 OF 961**, **BOARD-MATERIAL 0 OF 961 WITH 0 VOID**, ROSTER ZERO DIFFER / ZERO DID-NOT-FIRE (142/139/487), `test-engine-diff` 6000/6000, `all_mechanics_fire` 1313 GAMES / 0 THREW, `probe_red_demo` 200 / 0 HOLLOW, `test-resolution-order` 26/26. **CENSUS 835 → 834 LIVE / 1 MISSING — A PROBE PINS A RULE THE AUTHORITY REFUTES, IN A FILE THAT WAS NOT MINE THIS WAVE.** GATE **1 OF 9 CLAUSES FAILING**. 2026-09-09
+
+Full account, every command, every pin, every probe error recorded in its own file:
+[docs/_reports/2026-09-09-narration-batch-Y.md](_reports/2026-09-09-narration-batch-Y.md). Release `7d66b526659e`.
+The four cards' own games STOPPED diverging and no game STARTED and no cause CHANGED (`first_divergences` before/after,
+14 → 10, keyed on config+seed). Prediction (`data/verification/_prediction-2026-09-09-batch-Y.json`, written before the
+cut) hit at the point on every clause: raw 10, clause 9, causes 10, BOARD-MATERIAL 0, void 0.
+
+### A FUTURE SIGHT THAT COMES DUE ON AN IMMUNE COLLECTOR WRITES `-end` AND `-immune` AND DRAWS NO DIE
+
+`futuremove.onEnd` writes `-end` UNCONDITIONALLY after the fainted/user check and then `trySpreadMoveHit`, whose step 2
+refuses a type-immune body with `-immune` before `getDamage` ever rolls (`data/conditions.ts:395-415`,
+`sim/battle-actions.ts:654`; the booked `moveData` carries `ignoreImmunity: false`). This engine priced first, drew crit
+and dmg, and wrote `-end` inside `if(_d.max>0)` — two dice the authority never drew (the ex-void game) and two lines it
+wrote. `tests/probe_delayed_hit_immune.js`, 3 arms; `MEDI_DELAYED_HIT_SILENT_IMMUNE=1`. **Observed with a number and
+not fixed:** the authority's payout also draws `acc` on a printed 100 (1 address vs 0 here).
+
+### A TRICK THE AUTHORITY REFUSES IS `-fail` + `[still]`, AND A STONE REFUSES ONLY THE BODY IT BELONGS TO
+
+`onTakeItem(item, source) { return !item.megaStone?.[source.baseSpecies.baseSpecies]; }` — every stone, Champions
+inherits. Trick's `onHit` fails on `yourItem === false || myItem === false || (!yourItem && !myItem)` and again when the
+RECEIVER's species refuses the stone; `attrLastMove('[still]')` blanks the `|move|` line's target. This engine refused
+ANY stone on EITHER body in silence and announced a swap of two empty hands. `itemRefusesTake` (the fine rule Knock Off
+already asked) now runs through `stoneRefusesBody(item, body)` so the receiver is asked too, and reads the tag LIVE.
+`tests/probe_trick_refusal.js`, 6 arms — the probe was wrong twice before the engine was (a field this checkout no
+longer carries; an arm declared unreachable that Metagross reaches), both recorded in the file. `MEDI_TRICK_REFUSAL_SILENT=1`.
+
+### THE REPLACEMENT QUEUE IS THE AUTHORITY'S SELECTION SORT, TIE DIE AND ALL — THE KEY WAS RIGHT, THE SORT WAS NOT
+
+Batch X's lead ("the fainted body's Speed") was already the engine's key. The replay of the card through the
+differential's own driver read `MEDFAILS.replaceOrderTie = 1`: the Swampert and the Swampert-Mega corpses TIE on raw
+Speed, and `_refills.sort(compareTurnOrder)` is a STABLE sort with no die where `Battle#speedSort` is a selection sort
+whose first swap (the faster Annihilape corpse to the front) carries p1a's action behind p2a's. `entrySpeedSort` — the
+entry pass's selection sort with the tie die — now sorts the refills too. `tests/probe_replacement_tie.js`: a
+two-corpse tie does NOT separate the sorts (measured, both loads agreed); the fixture is three Mementos with a faster
+third corpse, and a Choice Scarf decides the move-order tie so the second Memento always finds a living target.
+`MEDI_REPLACE_ORDER_STABLE=1`.
+
+### `DamagingHit` IS WALKED ORDER-1-FIRST AND THEN BY TARGET INDEX, AND THE TAG CARRIES THE NUMBER
+
+`compareLeftToRightOrder` (`sim/battle.ts:789 → :421`): `onDamagingHitOrder` ASC with undeclared LAST, priority DESC,
+target index ASC — deterministic, no speed, no die. Batch X's deferral ("`speedSort`ed together … reorders draws") rested
+on a false sentence in `_stepBuffOnHit`'s own header; **both sentences are corrected in place**, as is the
+`_stepDamagingHitLate` header's six-member order-1 list (derived unfiltered; `electromorphosis` is `buffsHolderOnHit`;
+in-format the order-1 members are aftermath, innardsout, roughskin, electromorphosis). `engine/tag_dex.js` derives
+`order` on `punishesAttacker` and `buffsHolderOnHit` (membership printed first; `data/tags.json` params/tags diff vs
+HEAD = the new field and nothing else; `data/abra-tags.js` rebuilt, `--check` clean), and the four step-major steps
+became `_stepDamagingHitEarly` / `_stepDamagingHitBody`. `tests/probe_damaginghit_walk.js`, 3 arms (batch Q2's
+`probe_damaginghit_order.js` owns the STEP and is untouched and green) — the card's own Muddy Water is 85 and MISSED its
+second target on both engines under the pin, so the fixture clicks a 100-accuracy spread move. `MEDI_DH_STEPS_SPLIT=1`.
+Two plants re-aimed after the restructure and both green again: `test-resolution-order`'s `buff-above-secondaries`
+(its first edit now matched only the knob branch, so the buff was paid twice under the break) and `probe_red_demo`'s
+`WIRE 111 megaStone` (a Gengarite on a MILOTIC, asserting the coarse guard).
+
+### THE HAND LIST
+
+- **`tests/test-mechanics.js:15571` `move/trickSwapsItems` PINS THE COARSE STONE GUARD** — its third arm puts a Gengarite on
+  a Milotic and asserts Trick moves nothing; the authority swaps it (`onTakeItem` refuses only `Gengar`). The census reads
+  **834 live / 1 MISSING** until the fixture puts the stone on a Gengar. The file belongs to another agent this wave and
+  was not edited; the one-line change is in the report. **This is the ENGINE number going down for a probe, not an engine.**
+- **FUTURE SIGHT'S PAYOUT TAKES NO `acc` DRAW** where the authority draws one on a printed 100 — measured 1 vs 0
+  `acc|futuresight` addresses on the neutral arm. A die-count gap on every landing payout; board-material only once an
+  evasion or accuracy stage is on the field. Named in the engine comment.
+- **THE SUBSTITUTE FAMILY (4 causes)** — batch X's loop-nesting plan, unchanged, not started.
+- **THE RESIDUAL TRIO** — skipped as instructed; no new derivation.
+- **THE PERISH `|upkeep|` DRAIN** — CLOSETED by Will.
+- **SUCKER PUNCH vs PSYCHIC TERRAIN, LIGHTNING ROD vs `-prepare`** — batch X's structural trade, not attempted.
+- **`kind === 'boostally'`'s silent shield**, **REST UNDER MISTY TERRAIN** — carried forward unchanged.
+- **Carried forward unchanged** from the hand lists below.
+
+## THE SCREENS HALF OF `ignoresScreensAndSubs` HAS AN INSTRUMENT AND ALL FOUR SCREENS MATCH THE AUTHORITY — CENSUS **830 → 835** LIVE / 835 PROBED / 0 MISSING; COMPOUND EYES HAS ITS FIRST TO-HIT ROW. NO ENGINE EDIT. 2026-09-09, CHANGELOG 5.277.0
+
+Full account: `docs/_reports/2026-09-09-screen-probes.md`. Register row #560 — filed and closed in one motion; no row had ever existed for the screens half.
+
+`tests/test-mechanics.js` gains `screenArms` — `dollArms` with a screen where the doll was — and five census rows on `ability | ignoresScreensAndSubs` and `accuracyMod`: Reflect, Light Screen, Aurora Veil (under snow, a special move so snow's Ice Defense boost never enters) and Safeguard each read control → screened → Infiltrator-through-the-standing-screen, and Compound Eyes lands a 90-accuracy hit on the roll that misses without it. `tests/probe_screens_infiltrator.js` runs the same arms on the official simulator: in every damage row, on BOTH engines, screened `=== battle.modify(control, [2732, 4096])` — the authority's own `modify`, called not retyped — and the Infiltrator arm equals the control exactly; the probe is 15 of 15 and derives every body, ability and click legal on every run (28 derived facts). The regulation has FOUR screens — Mist is `isNonstandard: 'Past'` — derived, not typed; Champions overrides none of the four moves, nor Infiltrator, nor Compound Eyes.
+
+**The instrument was wrong before the engine was, once.** The first Reflect fixture aimed a Dragon move into a Fairy — IMMUNE, typed from memory as a resist — and read 0 in every arm, so the row said MISSING about a screen it never reached; the probe also asserted this engine's internal weather id where the authority's is `snowscape`. Neither touched the engine. `data/mechanics-census.json` reads 835 probed / 835 live / 835 armed / 0 missing / 0 threw / 0 hollow, `run_ok` true.
+
+**The two-halves sweep (report §3).** One tag carries a conjunction in its NAME (`ignoresScreensAndSubs`) and it is the one closed here. Under a keyword heuristic over the param keys, 41 tags have a parameter half no census row mentions, and `refusesCopy` has no census row at all — #557, open, lab tail. The right next step is not 41 probes: decide half-vs-qualifier in `docs/TAGS.md`, then probe the halves.
+
+The roster-scope section below (#555, closed this release) was written by the wave that did that work and is not repeated here. `node engine/status.js --write` was NOT run by this pass; the generated block above is stamped to an earlier one.
+
+
+## THE ROSTER'S SCOPE IS DERIVED BY LEGAL CARRIER — ONE RESOLVER FOR ALL THREE STAGES. ABILITIES OUT OF SCOPE **114 → 115**, MOVES **0 → 2**, ITEMS **0 → 0**; TESTED **139 / 487 / 142 UNMOVED**, ZERO DIFFER, ZERO DID-NOT-FIRE. AND THE 62 THE SCOPE LINE STILL PRINTS ARE **IN THE GAME**. 2026-09-09
+
+Full account: `docs/_reports/2026-09-09-roster-scope-by-carrier.md`. Register row #555.
+
+`tests/roster.js` now asks ONE question before any shape rule runs — `legalCarriers(kind, e)`, derived over
+the 347 legal species (`exists && !isNonstandard && tier !== 'Illegal'`, 72 mega formes and 83 battle-only
+formes among them): an ability by any ability slot, a move by the learnset walked up the prevo chain (Struggle
+declared as carried by every legal species, and the declaration is checked against the learnsets every run), an
+item by its mega-stone base, its `itemUser`, or anybody. Zero carriers → `out_of_scope: 'no-legal-carrier'`,
+never staged, dropped from `results`, COUNTED in `scope.out_of_scope` beside `scope.carrier_derivation`. The
+two rules that used to decide the tag on their own (`ability/no-legal-carrier`, the trap rule) read it from the
+resolver now, so the scope no longer depends on which rule matched first.
+
+**What moved, all on release `b0f5c159c46e`, `--reds --write`, three stages one at a time:**
+
+| stage | out_of_scope | in_scope | tested | could_not_stage_in_scope | unattributable | deferred | differ / silent |
+|---|---|---|---|---|---|---|---|
+| abilities | 114 → **115** | 202 → **201** | 139 → 139 | 44 → **43** | 14 → 14 | 5 → 5 | 0 / 0 |
+| moves | 0 → **2** | 500 → **498** | 487 → 487 | 10 → **8** | 0 | 3 → 3 | 0 / 0 |
+| items | 0 → 0 | 148 | 142 → 142 | 6 → 6 | 0 | 0 | 0 / 0 |
+
+- **Guard Dog** was the one ability the old tagging missed: carried by nothing here, caught by
+  `ability/refuses-a-forced-switch` before `ability/no-legal-carrier` could see it, counted in scope.
+- **Spore and Power Shift** were staged, MATCHED and counted as tested moves. Spore's twelve learners are all
+  `Past` here; Power Shift is in no Champions learnset at all. Both are out. The moves `tested` count stayed at
+  487 only because two rows entered in the same run — see below — so the composition moved and the total did not.
+- **Imprison and Memento THREW on `pass, move 1` — BOTH WERE THE HARNESS, not the engine.** Memento
+  (`move/boosts-target`) was clicked twice and the user faints on the first, so turn 2 asked the replacement for
+  a move it never had; it is thrown once now (`selfdestruct`, derived). Imprison (`move/volatile`) seals every
+  move it shares with the foes and `scaffold()` gives every body the inert click, so the foes' turn-2 request
+  offered nothing but Struggle; the foes now carry a neutral delivery click the user does not know
+  (`onFoeDisableMove` on the condition, derived; Imprison is the only legal self volatile with it). Both read
+  FIRED-AND-BOARDS-MATCH.
+
+**THE BAD NEWS, PLAINLY.** Will's ruling — *"the abilities not tested are not in the game"* — is true of 115
+abilities, and the roster had already excluded 114 of them. The `62 unaccounted` the gate's SCOPE line prints for
+abilities is what is left AFTER the carrier filter, and every one of those 62 has a legal carrier: **43** are
+fixture gaps (staging inert on the body, a mega-only forme that cannot be controlled, a gender gate this driver
+cannot build, a berry-only hook — named in the report), **14** are CONTROL-NOT-QUIET, **5** are DEFERRED by the
+owner. That line cannot be made to read zero by scoping; it needs fixtures. It is the tail Will deprioritised on
+2026-08-23, and it is carried, not removed.
+
+`tests/test-stadium-roster.js` is **ALL PASS** (was 3 failures): `ALAKAZAM` declared NOT_A_CABINET, six generators
+declared NOT_A_MODEL by the test's own question, four exceptions MODELS.md had overtaken deleted. Nothing in `web/`.
+
+### THE HAND LIST
+
+- **43 abilities in scope with no fixture** — the list is in the report; the largest class (34) is "the staging is
+  inert on this carrier", then the four mega-only formes (Aerilate, Dragonize, Filter, Mega Launcher) waiting on a
+  mega-ask fixture in `stageAbility`, then Fur Coat and Gale Wings (a carrier exists and the rule's own condition
+  cannot use it), Cute Charm (gender gate), Ripen (berry-only hook), Zero to Hero (suppress tier).
+- **8 moves and 6 items in scope with no fixture**: the three priority-bracket moves, the two forme-keyed types,
+  Struggle, Upper Hand (inert), Focus Energy (it IS the control click); the two sub-100 chance items, the two
+  crit items, the two berries whose status no 100-accuracy move inflicts.
+- **`node engine/status.js --write` was NOT run** (the wave brief forbade `status.js` beyond a read-only print),
+  so the generated blocks in this ledger are one pass behind these numbers. `tests/test-roster-arm-pin.js` and
+  `tests/test-roster-identity.js` were not re-run (they play games and do not `require` roster.js).
+- **Carried forward unchanged** from the hand lists below.
 
 ## THE ROSTER'S UNTESTED ABILITIES ARE NOT IN THE GAME, AND THE GATE'S SCOPE LINE STILL PRINTS THEM — WIRING OWED, NOT A 6.0.0 BLOCKER. 2026-09-09, CHANGELOG 5.276.0
 

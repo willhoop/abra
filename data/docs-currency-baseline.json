@@ -1,8 +1,8 @@
 {
-  "generated": "2026-09-09T21:49:04.454Z",
+  "generated": "2026-09-10T00:49:33.581Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "5.276.0",
+  "changelog_top_at_baseline": "5.277.0",
   "version_pins": {
     "docs/ADR-002-showdown-is-the-authority.md": {
       "version": "3.50.0",
@@ -209,6 +209,7 @@
       "docs/RUNNING-NOTES.md|1,800|data/medicham-speed.json",
       "docs/RUNNING-NOTES.md|112|data/register-reality.json",
       "docs/RUNNING-NOTES.md|13,041|data/medicham-speed.json",
+      "docs/RUNNING-NOTES.md|14|data/game-differential.json",
       "docs/RUNNING-NOTES.md|2.6353|data/policy-eval.json",
       "docs/RUNNING-NOTES.md|28.0%|data/policy-weights.json",
       "docs/RUNNING-NOTES.md|3.0286|data/policy-eval.json",
@@ -222,6 +223,7 @@
       "docs/RUNNING-NOTES.md|61|data/policy-weights.json",
       "docs/RUNNING-NOTES.md|67,384|data/policy-weights.json",
       "docs/RUNNING-NOTES.md|76,833|data/policy-weights.json",
+      "docs/RUNNING-NOTES.md|830|data/game-differential.json",
       "docs/SUMMARY.md|1,163,315|data/live.js",
       "docs/SUMMARY.md|144|data/guru-matchups.json",
       "docs/SUMMARY.md|19,589|data/quality-filter.json",
@@ -234,7 +236,7 @@
       "docs/ABRA-technical-docs.md": 1,
       "docs/ABRA-whitepaper.md": 12,
       "docs/ARCHITECTURE.md": 1,
-      "docs/MODELS.md": 30,
+      "docs/MODELS.md": 29,
       "docs/SUMMARY.md": 1,
       "docs/TAG-COVERAGE.md": 13
     },
@@ -269,7 +271,6 @@
       "docs/MODELS.md|63,305",
       "docs/MODELS.md|66,520",
       "docs/MODELS.md|7,184",
-      "docs/MODELS.md|7,381",
       "docs/MODELS.md|82,483",
       "docs/MODELS.md|−0.000013",
       "docs/MODELS.md|−0.28071",

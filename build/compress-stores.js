@@ -117,6 +117,23 @@ const RESTORERAW = process.argv.includes('--restore-raw');
 const RESTOREPARSED = process.argv.includes('--restore-parsed');
 const VERIFYPARSED  = process.argv.includes('--verify-parsed');
 
+/* THE ONE CAP FOR BOTH WRITERS — 2026-09-09, MEASURE.
+ *
+ * The parsed writer has capped a shard at 32 MiB of SOURCE since 2026-09-06. The raw writer did not
+ * cap at all: it joined every fresh log into ONE body and wrote ONE shard. That was fine while a run
+ * carried an hour of logs and it was not fine the first time it carried the whole archive —
+ * data/raw/games.ladder/20260909T2052-00.jsonl.gz, committed in 71771f0b, is 76,741 logs,
+ * 411,333,183 B of source, 58,753,177 B gzipped (14.3%), and GitHub warned on the push (>50 MB
+ * recommended; the hard wall is 100 MB and history is permanent, so it stays). Under this cap the
+ * same run writes 13 shards of <=32 MiB source, ~4.6 MB each.
+ *
+ * WHY THE CAP IS ON SOURCE BYTES AND NOT ON THE COMPRESSED SIZE. A compressed-size cap needs the
+ * bytes compressed before the cut is known — either a second pass or a streaming deflate with
+ * flush points — and buys nothing: gzip cannot EXPAND text by more than ~0.03%, so 32 MiB of source
+ * is a hard ceiling of ~33.6 MB compressed even if compression collapsed to nothing, which is
+ * already under the 50 MB warning. At the measured 14.3% a full shard is ~4.6 MB. One constant,
+ * one meaning, both writers — two caps would drift exactly as two lists do. */
+const SHARD_BYTES = 32 * 1024 * 1024;   // of SOURCE, so a fatter row cannot walk the shard toward 100 MB
 const mb = b => (b / 1048576).toFixed(1) + ' MB';
 /* Counted on the buffer rather than by splitting a 288 MB string into an array of 64,000. */
 const countLines = buf => {
@@ -237,12 +254,27 @@ if (RAW) {
      * plus a `<stamp>-2.jsonl.gz` collision suffix sorts the SECOND shard first ('-' 0x2D sorts
      * before '.' 0x2E), silently replaying an append-only archive out of order. */
     const s = stamp(); let n = 0, out;
-    do { out = path.join(dir, `${s}-${String(n++).padStart(2, '0')}.jsonl.gz`); } while (fs.existsSync(out));
-    const body = Buffer.from(fresh.join('\n') + '\n', 'utf8');
-    fs.writeFileSync(out, zlib.gzipSync(body, { level: 9 }));
-    const g = fs.statSync(out).size;
-    wroteAny++;
-    console.log(`  ${name.padEnd(34)} +${fresh.length} log(s) -> ${path.relative(D, out)}  ${mb(body.length)} -> ${mb(g)} (${(100 * g / body.length).toFixed(1)}%)`);
+    const nextPath = () => { do { out = path.join(dir, `${s}-${String(n++).padStart(2, '0')}.jsonl.gz`); } while (fs.existsSync(out)); return out; };
+    /* CAPPED AT SHARD_BYTES OF SOURCE, SPLIT INTO -00, -01, ... EXACTLY AS THE PARSED WRITER DOES.
+     * Filename order stays chronological order, which is all --restore-raw relies on. Before this
+     * the whole fresh set went into one body; see THE ONE CAP FOR BOTH WRITERS at the top. */
+    let chunk = [], chunkBytes = 0, written = 0, shards = 0, srcBytes = 0, gzBytes = 0;
+    const flush = () => {
+      if (!chunk.length) return;
+      const body = Buffer.from(chunk.join('\n') + '\n', 'utf8');
+      const p = nextPath();
+      fs.writeFileSync(p, zlib.gzipSync(body, { level: 9 }));
+      const g = fs.statSync(p).size;
+      console.log(`  ${name.padEnd(34)} ${chunk.length} log(s) -> ${path.relative(D, p)}  ${mb(body.length)} -> ${mb(g)} (${(100 * g / body.length).toFixed(1)}%)`);
+      written += chunk.length; shards++; srcBytes += body.length; gzBytes += g; chunk = []; chunkBytes = 0;
+    };
+    for (const line of fresh) {
+      chunk.push(line); chunkBytes += Buffer.byteLength(line, 'utf8') + 1;
+      if (chunkBytes >= SHARD_BYTES) flush();
+    }
+    flush();
+    wroteAny += shards;
+    console.log(`  ${name.padEnd(34)} +${written} log(s) sharded into ${shards} shard(s), ${mb(srcBytes)} of source -> ${mb(gzBytes)}`);
   }
   console.log(`\n${wroteAny} raw shard(s) written. Shards are write-once: never rewritten, never compacted.`);
   process.exit(0);
@@ -279,7 +311,7 @@ if (RESTORERAW) {
  * A SHARD IS NEVER REWRITTEN AND NEVER DELETED. NO COMPACTION. Identical rule to the raw shards,
  * and for the identical reason: compaction turns an append-only history into a mutable one.
  */
-const SHARD_BYTES = 32 * 1024 * 1024;   // of SOURCE, so a fatter row cannot walk the shard toward 100 MB
+/* SHARD_BYTES is declared above the --raw block, which shares it. See THE ONE CAP FOR BOTH WRITERS. */
 const parsedDirFor = store => path.join(PARSED_DIR, store.replace(/\.jsonl$/, ''));
 
 /* Every row id already inside the shards, and the row count behind it. One pass, so a caller that

@@ -5621,7 +5621,7 @@ const RULES = [
       return cannot(head + scope
         + noCarrierWhy(e, 'can be put on the field with a second ability to control it with')
         + '  The probe itself is not the obstacle and that is measured rather than assumed: '
-        + PROOF.why, all.length === 0 ? 'no-legal-carrier' : null);
+        + PROOF.why, legalCarriers('ability', e).length === 0 ? 'no-legal-carrier' : null);
     }
     const victim = CANDIDATES.find(s => s.id !== C.species && buildableSpecies(s.id) && carrierAbility(s)
       && (!needTypes.length || needTypes.some(t => (s.types || []).includes(t)))
@@ -5652,11 +5652,18 @@ const RULES = [
      + 'amount of instrument work changes that.',
   match(e) { if (carrierFor(e)) return null;
     const all = (CARRIERS[e.id] || []).map(s => s.id);
-    return cannot('NO LEGAL SPECIES IN ' + CS.FORMAT + ' CARRIES IT'
+    /* THE SCOPE TAG IS THE RESOLVER'S, NOT THIS RULE'S (ROADMAP #555). `assign()` has already sent
+     * every zero-carrier entity out of scope before any rule ran, so a row reaching here HAS a legal
+     * carrier this file cannot put on the field — an instrument fact, in scope. The tag is still
+     * computed rather than hard-wired to null, so the two can never disagree if the call order moves. */
+    const legal = legalCarriers('ability', e);
+    return cannot((legal.length ? 'A LEGAL CARRIER EXISTS (' + legal.map(s => s.id).join(', ')
+        + ') AND THIS FILE CANNOT PUT IT ON THE FIELD — an instrument limit, in scope'
+      : 'NO LEGAL SPECIES IN ' + CS.FORMAT + ' CARRIES IT'
       + (all.length ? ' in a form this file can put on the field (' + all.join(', ') + ')'
-                    : ' — every body that has it is isNonstandard in this format')
-      + '. This is a property of the REGULATION, not of the simulator and not of this instrument.',
-      'no-legal-carrier'); } },
+                    : ' — every body that has it is isNonstandard in this format'))
+      + '. ' + (legal.length ? '' : 'This is a property of the REGULATION, not of the simulator and not of this instrument.'),
+      legal.length ? null : 'no-legal-carrier'); } },
 
 /* ---- 1. A CONTACT HIT THAT STATUSES THE ATTACKER BY CHANCE ---------------------------------------
  * Static, Flame Body, Poison Point, Effect Spore. */
@@ -9625,14 +9632,24 @@ const RULES = [
     const b0 = quietBody({ arm, type: e.type, powder: pw });
     const b1 = quietBody({ arm, type: e.type, powder: pw, not: [b0 && b0.species] });
     if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type, powder: pw }));
+    /* A SELF-KO CLICK IS THROWN ONCE, AND THIS ROW THREW FOR WEEKS BECAUSE IT WAS THROWN TWICE.
+     * Memento (`selfdestruct: 'ifHit'`) faints its user on turn 1; the driver mirrors the replacement
+     * in, and the turn-2 script named Memento again for a body — Milotic — that never had it.
+     * `scripted()` answered `pass`, the authority refused it ("Can't pass: Your Milotic must make a
+     * move"), and the SUBJECT arm never ran. A HARNESS fault, not an engine one: the fix is the
+     * script. The second and third turns click the inert move, which every body carries, and the
+     * -2 this rule wants to see is what one Memento already writes. Derived from the move's own
+     * `selfdestruct` field; Memento is the only legal member of this rule with it (checked). */
+    const selfKO = !!e.selfdestruct;
     return { arm,
-      note: 'thrown at ' + pretty(b0.species) + ' twice; ' + pretty(b1.species) + ' stands beside it '
+      note: 'thrown at ' + pretty(b0.species) + (selfKO ? ' ONCE — the user faints on the click, so '
+          + 'the replacement idles' : ' twice') + '; ' + pretty(b1.species) + ' stands beside it '
           + 'and is never aimed at' + armNote(e),
       scenario: scaffold({ hpA: 4, hpB: 4,
         a0: { ...CLICKER(arm), moves: [e.id] },
         b0: { ...b0, moves: [INERT] }, b1: { ...b1, moves: [INERT] },
         script: [turn([throwIt(e, 0), IDLE], [IDLE, IDLE]),
-                 turn([throwIt(e, 0), IDLE], [IDLE, IDLE]),
+                 turn([selfKO ? IDLE : throwIt(e, 0), IDLE], [IDLE, IDLE]),
                  turn([IDLE, IDLE], [IDLE, IDLE])] }) };
   } },
 
@@ -9800,15 +9817,32 @@ const RULES = [
     const b0 = quietBody({ arm, type: e.type }), b1 = quietBody({ arm, type: e.type, not: [b0 && b0.species] });
     if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type }));
     if (!aimsAtFoe(e)) {
-      /* a SELF volatile — the user raises it on itself, and the partner is the negative */
+      /* A SELF VOLATILE THAT SEALS THE FOES' MOVES NEEDS FOES WHO HAVE ONE IT DOES NOT KNOW.
+       * Imprison's condition carries `onFoeDisableMove`: every move the user knows is disabled on
+       * every foe, and `scaffold()` pushes the inert click onto EVERY body — the user included. So
+       * both foes knew nothing but a sealed move, the authority's turn-2 request offered them only
+       * Struggle, `scripted()` found no match and answered `pass`, and Showdown refused it ("Can't
+       * pass: Your Goodra must make a move"). A HARNESS fault: the SUBJECT arm never ran. The shape is
+       * read off the condition, not the name; Imprison is the only legal self volatile carrying it
+       * (Follow Me and Rage Powder carry `onFoeRedirectTarget`, which seals nothing). The foes get a
+       * neutral delivery click aimed at the user and click it on turns 2 and 3, where the seal is on
+       * the board; turn 1 they idle so the seal lands first. */
+      const seals = !!(e.condition && typeof e.condition.onFoeDisableMove === 'function');
+      const back = seals ? neutralHit(b0.species, e.id) : null;
+      if (seals && !back) return cannot('it seals every move the foes share with the user, and no '
+        + 'neutral 100-accuracy delivery move exists for the foes to click that the user does not know');
+      const foeMoves = seals ? [back.id] : [INERT];
+      const foeClick = seals ? click(back.id, 0) : IDLE;
       return { arm, note: e.volatileStatus + ' on the user; ' + pretty(b1.species) + ' beside it must '
-          + 'not gain it' + armNote(e),
+          + 'not gain it' + (seals ? '; the foes click ' + back.name + ' on turns 2 and 3 because the '
+            + 'seal disables the inert click they would otherwise share with the user' : '') + armNote(e),
         scenario: scaffold({ hpA: 4, hpB: 8,
-          a0: { ...CLICKER(arm), moves: [INERT] },
+          a0: { ...CLICKER(arm), moves: foeMoves },
+          a1: seals ? mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, foeMoves) : undefined,
           b0: { ...b0, moves: [e.id] }, b1: { ...b1, moves: [INERT] },
           script: [turn([IDLE, IDLE], [throwIt(e), IDLE]),
-                   turn([IDLE, IDLE], [IDLE, IDLE]),
-                   turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+                   turn([foeClick, foeClick], [IDLE, IDLE]),
+                   turn([foeClick, foeClick], [IDLE, IDLE])] }) };
     }
     /* TWO CLICKS, ALTERNATED, AND THAT IS NOT COSMETIC. The target has to be USING a move for Taunt,
      * Encore and Disable to have anything to bite — and the first version gave it ONE, which DISABLE
@@ -10478,6 +10512,101 @@ function population(kind) {
 }
 
 /* =================================================================================================
+ *  THE ONE CARRIER RESOLVER — WHAT IS IN THIS GAME IS DECIDED BY WHO CAN CARRY IT (ROADMAP #555)
+ * =================================================================================================
+ *
+ * Will, 2026-09-09: *"the abilities not tested are not in the game so we removed them please stop
+ * quoting them."* The regulation's own rule (CLAUDE.md): an entity walk is filtered by CARRIER, never
+ * by `isNonstandard` alone — Neutralizing Gas reads legal and has zero carriers, Spore reads legal
+ * and every one of its twelve learners is `Past` here.
+ *
+ * UNTIL THIS FUNCTION EXISTED THE SCOPE WAS DECIDED BY WHICHEVER RULE MATCHED FIRST. The abilities
+ * stage tagged `no-legal-carrier` inside `ability/no-legal-carrier`, which sits BEHIND thirty
+ * specialised rules in `RULES` — so Guard Dog, carried by NOTHING in this format, was caught by
+ * `ability/refuses-a-forced-switch` first, refused with a fixture sentence, and counted IN SCOPE as a
+ * could-not-stage. The moves and items stages had no carrier notion at all: Spore and Power Shift
+ * were staged, matched and counted as tested coverage of a game neither is in. Measured before this
+ * landed, against the format: abilities 115 with zero carrier (the roster said 114), moves 2, items 0.
+ *
+ * SO EVERY STAGE ASKS HERE, BEFORE ANY RULE RUNS. `assign()` calls it first; the two rules that used
+ * to decide the tag themselves now read it from here too, so there is one answer to "is this in the
+ * regulation" and it cannot depend on rule order.
+ *
+ * WHAT A CARRIER IS, PER KIND — derived, never listed:
+ *   ability  a legal species with the ability in any slot. Mega formes and battle-only formes COUNT:
+ *            Aerilate lives only on Pinsir-Mega and Pinsir-Mega is legal, so Aerilate is in this game
+ *            and its row is a FIXTURE gap (the forme change writes the ability, nothing can control
+ *            it), not a regulation fact. Conflating the two is what this function replaces.
+ *   move     a legal species whose learnset — walked up the prevo chain and across to the base forme,
+ *            exactly as `learnsMove` does — lists it. ONE declared exception: Struggle is in no
+ *            learnset because the authority assigns it to any body with no usable move, so its
+ *            carrier set is every legal species. The exception is CHECKED, not trusted: if a learnset
+ *            ever lists Struggle the declaration is stale and this throws.
+ *   item     a mega stone is carried by its base species (the `megaStone` map's keys); an item with
+ *            `itemUser` by one of those; every other item by any legal species.
+ *
+ * LEGAL means `exists && !isNonstandard && tier !== 'Illegal'` — the same predicate CLAUDE.md prints,
+ * and the `tier` clause is not decorative: ten formes in this format pass `isNonstandard` and are
+ * `Illegal` (Meloetta-Pirouette, Minior-Meteor, the four Tera Ogerpon formes, ...). */
+const LEGAL_SPECIES = dex.species.all().filter(s => s.exists && !s.isNonstandard && s.tier !== 'Illegal');
+const STRUGGLE_ID = 'struggle';
+const CARRIER_DERIVATION = {
+  legal_species: LEGAL_SPECIES.length,
+  legal_species_predicate: 'exists && !isNonstandard && tier !== "Illegal"',
+  mega_formes_included: LEGAL_SPECIES.filter(s => s.forme && s.forme.endsWith('Mega')).length,
+  battle_only_formes_included: LEGAL_SPECIES.filter(s => s.battleOnly).length,
+  ability: 'a legal species with the ability in any slot',
+  move: 'a legal species whose learnset (prevo chain + base forme, as learnsMove walks it) lists it; '
+      + 'Struggle is carried by every legal species because the authority assigns it without a learnset',
+  item: 'a mega stone by its base species; an itemUser item by one of its users; any other item by any legal species',
+  format: CS.FORMAT,
+};
+const _LC = new Map();
+function legalCarriers(kind, e) {
+  const k = kind + '|' + e.id;
+  if (_LC.has(k)) return _LC.get(k);
+  let out;
+  if (kind === 'ability') {
+    out = LEGAL_SPECIES.filter(s => Object.values(s.abilities || {}).some(n => idOf(n) === e.id));
+  } else if (kind === 'move') {
+    if (e.id === STRUGGLE_ID) {
+      /* the declaration is checked every run — a learnset that lists Struggle would make this stale */
+      if (LEGAL_SPECIES.some(s => learnsMove(s, STRUGGLE_ID)))
+        throw new Error('legalCarriers: a learnset lists Struggle, so the "assigned without a learnset" '
+          + 'declaration is stale — remove the exception');
+      out = LEGAL_SPECIES.slice();
+    } else out = LEGAL_SPECIES.filter(s => learnsMove(s, e.id));
+  } else if (kind === 'item') {
+    if (e.megaStone) {
+      const bases = new Set(Object.keys(e.megaStone).map(idOf));
+      out = LEGAL_SPECIES.filter(s => bases.has(s.id));
+    } else if (Array.isArray(e.itemUser) && e.itemUser.length) {
+      const users = new Set(e.itemUser.map(idOf));
+      out = LEGAL_SPECIES.filter(s => users.has(s.id));
+    } else out = LEGAL_SPECIES.slice();
+  } else out = LEGAL_SPECIES.slice();
+  _LC.set(k, out);
+  return out;
+}
+/* the sentence a row carries when the resolver says nobody legal can carry it */
+function noLegalCarrierWhy(kind, e) {
+  const group = kind === 'item' ? dex.items : kind === 'ability' ? dex.abilities : dex.moves;
+  const x = group.get(e.id);
+  let anyAtAll = [];
+  if (kind === 'ability') anyAtAll = dex.species.all().filter(s => s.exists
+    && Object.values(s.abilities || {}).some(n => idOf(n) === x.id)).map(s => s.id);
+  else if (kind === 'move') anyAtAll = dex.species.all().filter(s => s.exists && learnsMove(s, x.id)).map(s => s.id);
+  else if (kind === 'item' && x.megaStone) anyAtAll = Object.keys(x.megaStone).map(idOf);
+  else if (kind === 'item' && x.itemUser) anyAtAll = x.itemUser.map(idOf);
+  return 'NO LEGAL SPECIES IN ' + CS.FORMAT + ' CARRIES IT — derived over ' + LEGAL_SPECIES.length
+    + ' legal species (' + CARRIER_DERIVATION.legal_species_predicate + '). '
+    + (anyAtAll.length ? 'Every body that has it is outside the regulation: ' + anyAtAll.slice(0, 12).join(', ')
+        + (anyAtAll.length > 12 ? ', +' + (anyAtAll.length - 12) + ' more' : '')
+      : 'No species in the dex has it at all')
+    + '. This is a property of the REGULATION, not of the simulator and not of this instrument.';
+}
+
+/* =================================================================================================
  *  ARM 1 — TWO MODIFIERS AT ONE STAGE. THE ONE THING EVERY ENTRY ABOVE IS BLIND TO.
  *
  * Every roster entry so far stages exactly ONE thing, which is precisely the shape the defect class
@@ -10549,6 +10678,14 @@ function assign(kind) {
   const rules = RULES.filter(r => r.kind === kind);
   const out = [];
   for (const e of legal) {
+    /* THE CARRIER QUESTION IS ASKED FIRST AND ONCE, so no rule's own refusal can decide the scope by
+     * matching earlier — see `legalCarriers`. A row with no legal carrier is OUT OF SCOPE and never
+     * staged: it is not in this game. */
+    if (!legalCarriers(kind, e).length) {
+      out.push({ kind, id: e.id, name: e.name, rule: 'scope/no-legal-carrier',
+        verdict: 'COULD-NOT-STAGE', why: noLegalCarrierWhy(kind, e), out_of_scope: 'no-legal-carrier' });
+      continue;
+    }
     let hit = null;
     for (const r of rules) {
       let m = null;
@@ -11497,6 +11634,9 @@ function main() {
     declared_untestable: unattributable.filter(r => r.declared_untestable).map(r => r.id),
     could_not_stage_in_scope: nOf('COULD-NOT-STAGE') - oos.length,
     attributed_by_second_control: results.filter(r => r.second_control && r.second_control.ran).map(r => r.id),
+    /* HOW THE OUT-OF-SCOPE COUNT WAS DERIVED, beside the count (ROADMAP #555). A count with no
+     * derivation is a caption; this is the walk, so a reader can re-run it rather than trust it. */
+    carrier_derivation: CARRIER_DERIVATION,
   };
 
   console.log('\nSUMMARY   ' + STAGE);
@@ -11506,7 +11646,10 @@ function main() {
   console.log('    ' + scope.tested + ' TESTED (the authority answered and the two engines were compared) '
     + 'of ' + scope.in_scope + ' IN SCOPE, of ' + scope.total + ' total');
   console.log('    ' + scope.out_of_scope + ' OUT OF SCOPE — a fact about the regulation, not a gap: '
-    + (Object.entries(oosBy).map(([k, v]) => v + ' ' + k).join(', ') || 'none'));
+    + (Object.entries(oosBy).map(([k, v]) => v + ' ' + k).join(', ') || 'none')
+    + '   [derived by CARRIER over ' + CARRIER_DERIVATION.legal_species + ' legal species ('
+    + CARRIER_DERIVATION.legal_species_predicate + '), ' + CARRIER_DERIVATION.mega_formes_included
+    + ' mega formes and ' + CARRIER_DERIVATION.battle_only_formes_included + ' battle-only formes among them]');
   console.log('    ' + scope.could_not_stage_in_scope + ' in scope and NOT STAGEABLE by this instrument '
     + '(inert staging, a chance below 100%, no usable carrier for the rule, an unusable control tier)');
   console.log('    ' + scope.unattributable + ' UNATTRIBUTABLE — the control is itself a live ability and '

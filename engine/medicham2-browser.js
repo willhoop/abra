@@ -735,6 +735,16 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                              damage step behind it. Expected 0; a non-zero is the silent-default
    *                              shape and is printed rather than swallowed. */
   reactionAddrFromLastSlot: 0, reactionAddrNoDamageSlot: 0,
+  /* NARRATION BATCH Y, 2026-09-09 -- two or more corpses on EQUAL raw Speed at the end-of-turn refill,
+   * resolved through the same selection sort and tie die the entry pass uses (`entrySpeedSort`), which
+   * is the authority's one `speedSort` over the queued `instaswitch` actions. Used to be
+   * `MEDFAILS.replaceOrderTie`: a tie the engine could see and did not resolve. */
+  replaceTieResolved: 0,
+  /* NARRATION BATCH Y, 2026-09-09 -- a `DamagingHit` handler carrying `onDamagingHitOrder: 1` (Rough Skin,
+   * Aftermath, Innards Out, Electromorphosis in this format -- read off the tag, never a name) paid in the
+   * EARLY pass, ahead of every undeclared-order handler on every target. Zero over a run with a Rough Skin
+   * body being touched means the pass is not firing. */
+  dhOrder1Early: 0,
   /* 2026-09-06 -- AND THE SUBSTITUTE'S OWN ROLL, an INSTRUMENT counter for the same reason.
    *   subRollAddrFromLastAccTarget   PRICED DOLL ROWS whose damage and crit draws were addressed to
    *                                  the last body `hitStepAccuracy` reached rather than to the body
@@ -2147,6 +2157,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* ROADMAP #212 -- a strip refused by the holder's own ability (`refusesItemLoss`; Sticky Hold is
      the format's only carrier). Counted so the capability can prove it ran. */
   itemLossRefused: 0,
+  /* NARRATION BATCH Y, 2026-09-09 -- a Trick / Switcheroo whose swap the authority's `onHit` refuses --
+     `yourItem === false || myItem === false || (!yourItem && !myItem)`, or a stone the RECEIVER's own
+     species refuses -- announced as `|-fail|MOVER` with the `|move|` line's target blanked (`[still]`).
+     This engine `continue`d in silence on the stone road and wrote `-activate` on the empty-hands road. */
+  swapRefusedAnnounced: 0,
   /* ROADMAP #212 -- Rivalry's base-power modifier actually applied (`damageByGender`). Zero on a
      genderless board, which is every fixture in this repo until one declares a gender. */
   damageByGender: 0,
@@ -2316,6 +2331,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * reached the board without spending the die -- which is the defect this pair was added to close,
    * and which read as ZERO movement across a pinned crit die for as long as it lasted. */
   delayedHitCritDrawn: 0, delayedHitCrit: 0,
+  /* NARRATION BATCH Y, 2026-09-09 -- a payout that came due on a body IMMUNE to its type. The authority
+   * writes `-end` (the condition's own line) and then `-immune` out of `hitStepTypeImmunity`, and draws
+   * NO die -- `getDamage` is never reached. This engine drew crit and dmg into a Dark type and wrote
+   * nothing at all (the pinned pool's `|-end|p2a|futuresight <> |-sideend|p1:|reflect` card). */
+  delayedHitImmune: 0,
   /* WIRE 141 -- a forme that flipped on the CLOCK (Hunger Switch). A zero after real games with a
    * Morpeko in them means the residual block never reached the ability.
    * flingThrown / flingRefused are the two halves of Fling and are counted APART because the refusal
@@ -2965,6 +2985,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * different step and with a different LINE, which is the whole finding. */
   ghostRefusedTrap: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* 2026-09-09 -- DECLARED HERE BECAUSE `tests/test-counter-init.js` WENT RED ON BOTH. `undefined++` is
+     `NaN`, so each of these had been incrementing a field this literal never declared: a counter that could
+     never read zero and never read non-zero. `sideBuffVolatileIdsUnknown` -- a `sideBuff.blocksVolatile` row
+     with no `blocksVolatileIds` list (see sideBuffRefuses); `yawnRefusalSecondaryUnknown` -- a Yawn refused by
+     a side buff whose `formatSecondaryCount` row is absent. Both are WENT-WRONG counters, so MEDFAILS. */
+  sideBuffVolatileIdsUnknown: 0, sideBuffVolatileIdsUnknownFirst: '',
+  yawnRefusalSecondaryUnknown: 0, yawnRefusalSecondaryUnknownFirst: '',
   /* 2026-09-07 -- MEDI_NO_CURE_ON_SET=1 is armed: a Lum Berry waits for the following `Update`
      instead of eating inside `setStatus`, which is the engine as it stood before that fix. Must
      read 0 on any shipping run. See berryCureOnSet. */
@@ -3058,6 +3085,9 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-08-28 -- MEDI_SWAP_LINES_BLIND=1 is armed, so Switcheroo names itself and the empty-handed
      side gets no `-enditem`. MUST READ 0 on any shipping run. */
   swapLinesBlindRestored: 0,
+  /* NARRATION BATCH Y -- MEDI_TRICK_REFUSAL_SILENT=1 is armed: the coarse any-mega-stone guard refuses in
+     silence and empty hands announce a swap. MUST READ 0 on any shipping run. */
+  trickRefusalSilentRestored: 0,
   /* 2026-08-28 -- MEDI_LEPPA_LINE_BARE=1 is armed, so the PP berry announces three fields again.
      MUST READ 0 on any shipping run. */
   leppaLineBareRestored: 0,
@@ -3555,6 +3585,16 @@ const MEDFAILS = { encoreAction: 0,
    * the main path's so a regression in one cannot be masked by the other. Non-zero means the delayed
    * hit fell back to the SPAN interpolation, which is the defect this counter was added to close. */
   delayedHitBandMissing: 0, delayedHitBandMissingFirst: '',
+  /* NARRATION BATCH Y -- set to 1 for the run when MEDI_DELAYED_HIT_SILENT_IMMUNE=1 restores the road
+   * where an immune collector drew the dice and announced nothing. Must read 0 on any shipping run. */
+  delayedHitSilentImmuneRestored: 0,
+  /* NARRATION BATCH Y -- MEDI_DH_STEPS_SPLIT=1 is armed: the four step-major `DamagingHit` steps are back, so
+     a spread hit pays every target's punish before any target's buff. MUST READ 0 on any shipping run. */
+  dhStepsSplitRestored: 0,
+  /* NARRATION BATCH Y -- a payout whose priced band came back at ZERO on a body that is NOT type-immune.
+   * The immune road above it is the only zero this engine can explain; anything else is a silent
+   * no-op wearing a `-end` line, so it is counted and the move named rather than left to be found. */
+  delayedHitZeroBandUnannounced: 0, delayedHitZeroBandUnannouncedFirst: '',
   /* ROADMAP #419, 2026-09-03 -- set to 1 for the whole run when MEDI_DELAYED_HIT_NO_CRIT=1 puts the
    * missing crit draw back on purpose, so a deliberate restore arm and an engine that has regressed
    * can never be read as the same thing. Same shape as MEDI_DAMAGE_SPAN_DRAW and
@@ -4548,6 +4588,10 @@ const MEDFAILS = { encoreAction: 0,
      the group kept the order the selection sort handed it and this engine did not decide. Non-zero is
      honest, not a bug; it is every caller that hands `battleInit` no rng. */
   entryOrderTieNoDie: 0,
+  /* NARRATION BATCH Y, 2026-09-09 -- MEDI_REPLACE_ORDER_STABLE=1 is armed: the replacement queue is sorted
+     by a STABLE sort with no tie die, so two corpses on equal raw Speed refill in side order. MUST READ 0
+     on any shipping run. See `_refills`. */
+  replaceOrderStableRestored: 0,
   /* A record `entryOrder` was asked to place that was not in the ALL-ACTIVE list it ranked. That is a
      caller bug, not a game event, and it falls back to the old speed comparison for that pair. Must
      read 0. */
@@ -4610,7 +4654,7 @@ const MEDFAILS = { encoreAction: 0,
      replacing a faint on the same request whose DEPARTING speeds are equal. Showdown shuffles the
      instaswitch pair; this engine keeps side order and counts the event, because drawing a number
      here would move the RNG stream of every seeded run in the repo. */
-  replaceOrderTie: 0,
+  replaceOrderTie: 0,   /* NARRATION BATCH Y: increments only under MEDI_REPLACE_ORDER_STABLE=1 now; the live road resolves the tie (MEDSEEN.replaceTieResolved) */
   /* 2026-08-27 -- MEDI_REPLACE_SPEED_MODIFIED=1 restores the pre-fix sort key for the announcement
      order of a faint replacement: `effSpeed`, i.e. the corpse's speed WITH its boosts, its item, its
      ability and its side's Tailwind. The authority drops all of them (see the `_refills` header), so
@@ -9923,13 +9967,24 @@ function effWeight(m){
   MEDSEEN.weightModified++;
   return (p.truncates?Math.trunc(hg):hg)/10;
 }
-function itemRefusesTake(m){
-  if(!m||!m.item||!holdsMegaStone(m.item))return false;
+function itemRefusesTake(m){ return stoneRefusesBody(m&&m.item,m); }
+/* NARRATION BATCH Y, 2026-09-09 -- THE SAME RULE, ASKED OF AN (ITEM, BODY) PAIR. The mega stone's
+ * `onTakeItem(item, source) { if (item.megaEvolves === source.baseSpecies.baseSpecies) return false; }`
+ * is asked TWICE by Trick (data/moves.ts, `trick.onHit`): once through `takeItem` for the body that HOLDS
+ * the stone, and once through `singleEvent('TakeItem', myItem, ..., target, ...)` for the body that would
+ * RECEIVE it -- a Metagrossite cannot be given to a Metagross any more than taken from one. `itemRefusesTake`
+ * is the first question and this is the shared reader both questions go through. */
+function stoneRefusesBody(item,m){
+  /* THE TAG IS READ LIVE BEFORE THE CACHED TABLE IS CONSULTED. `megaIntoTable()` is built once from the
+   * `megaStone` tag and cached; an item that does not carry the tag NOW cannot refuse as a stone, whatever the
+   * cache remembers. Production never changes the tag set mid-process; `tests/probe_red_demo.js` does
+   * (`TAGS.__setDB`), and its WIRE 111 demonstration is what proves this guard watches the tag. */
+  if(!m||!item||!TAGS.has('item',item,'megaStone')||!holdsMegaStone(item))return false;
   const K=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
   const T=megaIntoTable();
   const here=K(m.name);
   const base=T.rev[here]||here;      // a mega forme maps back to the base the stone names
-  return !!T.fwd[K(m.item)+'|'+base];
+  return !!T.fwd[K(item)+'|'+base];
 }
 /* A MEGA NEVER CHANGES ITS MOVESET, so a mega row with `mv: []` is never legitimate -- it is a hole in
  * data/engine-data.js and the body it produces THREATENS NOTHING, which every scorer in this project
@@ -14273,6 +14328,25 @@ const FORMEONHIT_CLICK_WIDE_RESTORED=(typeof process!=='undefined'&&process.env&
  * rather than a third behaviour, and any run carrying it also carries a non-zero
  * `MEDFAILS.delayedHitNoCritRestored`. */
 const DELAYED_HIT_NO_CRIT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DELAYED_HIT_NO_CRIT==='1');
+/* NARRATION BATCH Y, 2026-09-09 -- THE SAME SWITCH FOR THE IMMUNE COLLECTOR. `MEDI_DELAYED_HIT_SILENT_IMMUNE=1`
+ * puts back the road where `condition:futuremove`'s payout priced a type-immune body, spent the crit and
+ * dmg dice on it, and -- because the band was zero -- wrote neither `-end` nor `-immune`. Any run carrying it
+ * also carries a non-zero `MEDFAILS.delayedHitSilentImmuneRestored`. Probe: tests/probe_delayed_hit_immune.js. */
+const DELAYED_HIT_SILENT_IMMUNE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DELAYED_HIT_SILENT_IMMUNE==='1');
+if(DELAYED_HIT_SILENT_IMMUNE)MEDFAILS.delayedHitSilentImmuneRestored=1;   // stamped at LOAD, so an arm with no payout still proves the knob bound
+/* NARRATION BATCH Y, 2026-09-09 -- MEDI_DH_STEPS_SPLIT=1 PUTS THE `DamagingHit` STEP LIST BACK TO ITS FOUR
+ * STEP-MAJOR STEPS (`_stepDamagingHit`, `_stepThawDamagingHit`, `_stepBuffOnHit`, `_stepDamagingHitLate`),
+ * which on a spread hit pays every target's punish before any target's buff -- the pinned pool's
+ * `-boost p1a def 1 <> -status p2b brn [spicyspray]` card. Any run carrying it also carries a non-zero
+ * `MEDFAILS.dhStepsSplitRestored`. Probe: tests/probe_damaginghit_walk.js. */
+const DH_STEPS_SPLIT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DH_STEPS_SPLIT==='1');
+if(DH_STEPS_SPLIT)MEDFAILS.dhStepsSplitRestored=1;
+/* NARRATION BATCH Y, 2026-09-09 -- MEDI_REPLACE_ORDER_STABLE=1 PUTS THE END-OF-TURN REPLACEMENT QUEUE BACK ON
+ * `Array.prototype.sort` over `compareTurnOrder` -- a STABLE sort, so two corpses on equal raw Speed refill in
+ * side order (p1 first) where the authority's `speedSort` resolves the tie with its die. Any run carrying it
+ * also carries a non-zero `MEDFAILS.replaceOrderStableRestored`. Probe: tests/probe_replacement_tie.js. */
+const REPLACE_ORDER_STABLE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REPLACE_ORDER_STABLE==='1');
+if(REPLACE_ORDER_STABLE)MEDFAILS.replaceOrderStableRestored=1;
 function damageRollIndex(u){
   const i=DAMAGE_ROLL_SIDES-1-Math.floor(u*DAMAGE_ROLL_SIDES);
   return i<0?0:(i>DAMAGE_ROLL_SIDES-1?DAMAGE_ROLL_SIDES-1:i);
@@ -15361,6 +15435,13 @@ const HP_THRESHOLD_BOOST_EARLY=(typeof process!=='undefined'&&process.env
  * behaviour. Any run carrying it also carries a non-zero `MEDFAILS.swapLinesBlindRestored`. */
 const SWAP_LINES_BLIND=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_SWAP_LINES_BLIND==='1');
+/* NARRATION BATCH Y, 2026-09-09 -- MEDI_TRICK_REFUSAL_SILENT=1 PUTS THE ITEM-SWAP REFUSAL BACK TO WHAT IT WAS:
+ * ANY mega stone on either body refuses the whole move in SILENCE (no `-fail`, no `[still]`), and two empty
+ * hands announce `-activate` over a swap of nothing. Both are the pre-2026-09-09 lines exactly. Any run
+ * carrying it also carries a non-zero `MEDFAILS.trickRefusalSilentRestored`. Probe: tests/probe_trick_refusal.js. */
+const TRICK_REFUSAL_SILENT=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_TRICK_REFUSAL_SILENT==='1');
+if(TRICK_REFUSAL_SILENT)MEDFAILS.trickRefusalSilentRestored=1;
 /* 2026-08-28 -- MEDI_LEPPA_LINE_BARE=1 PUTS THE PP-BERRY'S `-activate` BACK TO THREE FIELDS, with no
  * slot name and no `[consumed]` -- exactly what it wrote until today, so it reproduces the SAME red
  * rather than a third behaviour. Any run carrying it also carries a non-zero
@@ -31453,10 +31534,46 @@ function battleTurn(S,rng,actsForA,actsForB){
            * `onTakeItem` and stays where it is, because it also answers for Knock Off, Thief and Covet,
            * none of which carry an `immunityGate` row. This one answers for the move. */
           if(immunityGateRefuses(m,t,a.mv)){immunityGateAnnounce(t,a.mv);continue;}
-          if(t===m
-             ||moveClassBlocked(t,a.mv,m)||pranksterBlocked(m,t,a.mv)
-             ||TAGS.has('item',itemOn(m),'megaStone')||TAGS.has('item',itemOn(t),'megaStone')
-             ||abilityRefusesItemLoss(t,m))continue;
+          if(t===m||moveClassBlocked(t,a.mv,m)||pranksterBlocked(m,t,a.mv))continue;
+          /* ==== NARRATION BATCH Y, 2026-09-09 -- A REFUSED SWAP IS A `-fail`, AND THE STONE RULE IS THE
+           * BODY'S, NOT THE ITEM CLASS'S. =======================================================
+           *
+           * `trick.onHit` (data/moves.ts; no Champions override -- asserted by the probe) read whole:
+           *     const yourItem = target.takeItem(source);
+           *     const myItem = source.takeItem();
+           *     if (yourItem === false || myItem === false || (!yourItem && !myItem)) { ...put back; return false; }
+           *     if ((myItem && !singleEvent('TakeItem', myItem, source.itemState, target, source, move, myItem)) ||
+           *         (yourItem && !singleEvent('TakeItem', yourItem, target.itemState, source, target, move, yourItem)))
+           *       { ...put back; return false; }
+           * `Pokemon#takeItem` returns FALSE only when `runEvent('TakeItem')` refuses -- a mega stone on the
+           * body it belongs to (`item.megaEvolves === source.baseSpecies.baseSpecies`), or Sticky Hold, which
+           * Trick's own `onTryImmunity` has already answered one step up. A handler returning false out of
+           * `moveHit` is `|-fail|SOURCE` plus `attrLastMove('[still]')`, which BLANKS the `|move|` line's
+           * target (sim/battle.ts:3120-3134).
+           *
+           * THIS ENGINE refused on `TAGS.has('item', ..., 'megaStone')` -- ANY stone on EITHER body -- in
+           * silence, and let two empty hands through to the `-activate` below. The pinned pool's
+           * `pair-protect-bust …2654619049` (t4) is a Rotom-Heat Tricking a Metagross-Mega that holds its own
+           * Metagrossite: the authority writes `|move|p2a: Rotom|Trick||[still]` then `|-fail|p2a: Rotom`;
+           * this engine wrote the `|move|` line with its target and then nothing. The fine rule already
+           * existed as `itemRefusesTake`; `stoneRefusesBody` is the same reader asked of the RECEIVER too.
+           *
+           * `MEDI_TRICK_REFUSAL_SILENT=1` restores the coarse silent guard exactly. */
+          if(TRICK_REFUSAL_SILENT){
+            if(TAGS.has('item',itemOn(m),'megaStone')||TAGS.has('item',itemOn(t),'megaStone')
+               ||abilityRefusesItemLoss(t,m))continue;
+          } else if(_ti.swaps){
+            const _mine=itemOn(m),_theirs=itemOn(t);
+            const _refused=itemRefusesTake(t)||itemRefusesTake(m)          // takeItem false: the holder's own stone
+                         ||abilityRefusesItemLoss(t,m)                     // takeItem false: the holder's ability
+                         ||(!_mine&&!_theirs)                              // !yourItem && !myItem
+                         ||stoneRefusesBody(_mine,t)||stoneRefusesBody(_theirs,m);   // the RECEIVER's species refuses
+            if(_refused){
+              MEDSEEN.swapRefusedAnnounced++;
+              if(TR){TR.attrStill();TR.fail(m);}
+              continue;
+            }
+          } else if(abilityRefusesItemLoss(t,m))continue;
           /* ROADMAP #462 -- BOTH HALVES OF THE SWAP GO THROUGH THE DOORS. The authority's Trick is
            * `target.takeItem(source)` then `source.takeItem()`, neither of which consults
            * `ignoringItem()`, so a Trick inside a Magic Room really does swap two parked items -- and
@@ -40346,6 +40463,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        *   `_stepDamagingHit`   the punish family, which is where every `onDamagingHitOrder: 1` member
        *                        lives (aftermath, electromorphosis, innardsout, ironbarbs, roughskin,
        *                        windpower -- DERIVED, six in this format)
+       *                        ^ CORRECTED 2026-09-09 (NARRATION BATCH Y), kept as dated evidence: that
+       *                        list was derived over the UNFILTERED ability table, and one of its six is
+       *                        on the wrong side of the split it describes -- `electromorphosis` is tagged
+       *                        `buffsHolderOnHit` and lives in `_stepBuffOnHit`. Filtered to this format's
+       *                        legal carriers the order-1 members are aftermath, innardsout, roughskin
+       *                        (punish) and electromorphosis (buff); ironbarbs and windpower have none.
+       *                        The number is on the TAG now (`punishesAttacker.order`, `buffsHolderOnHit
+       *                        .order`, tag_dex.js) and `_stepDamagingHitEarly` reads it.
        *   `_stepBuffOnHit`     the holder's own default-order ability boost
        *   THIS STEP           `_dhAbil` -- a default-order ability effect that is not a boost
        *                        (Cursed Body) -- then `_dhSrc`, the attacker's `onSource` handler
@@ -40361,7 +40486,11 @@ function battleTurn(S,rng,actsForA,actsForB){
        * than a default-order reactor still runs them index-major where the authority runs the order-1
        * one first. That is the remaining half of this mechanism (the pinned pool's
        * `-boost p1a def 1 <> -status p2b brn [spicyspray]` row) and it is named rather than assumed
-       * absent. */
+       * absent.
+       *   CLOSED 2026-09-09 (NARRATION BATCH Y) -- and the card named here was never the order-1 half:
+       *   Stamina and Spicy Spray are BOTH undeclared-order, and the card is the step-major walk itself
+       *   ([every row's punish] then [every row's buff]) against the authority's index-major one. Both
+       *   halves are closed by `_stepDamagingHitEarly` / `_stepDamagingHitBody`, below `_stepBuffOnHit`. */
       const _stepDamagingHitLate=(R)=>{
         if(R._dhAbil){ const _f=R._dhAbil; R._dhAbil=null; _f(); }
         if(R._dhSrc){ const _g=R._dhSrc; R._dhSrc=null; _g(); }
@@ -40418,6 +40547,9 @@ function battleTurn(S,rng,actsForA,actsForB){
        * row 1. The authority raises ONE `runEvent('DamagingHit', damagedTargets, ...)`
        * (data/mods/champions/scripts.ts:410) whose handler list holds every damaged target's
        * `onDamagingHit` AND the source's `onSourceDamagingHit`, `speedSort`ed together.
+       *   ^ FALSE, AND CORRECTED 2026-09-09 (NARRATION BATCH Y) RATHER THAN DELETED. The list is sorted
+       *   by `Battle.compareLeftToRightOrder` (sim/battle.ts:789 -> :421): `onDamagingHitOrder` ASC with
+       *   undeclared LAST, then priority DESC, then TARGET INDEX ASC. No speed, no die, no tie.
        *
        * MEASURED, release `fb0058fb5702` of the pinned pool, `ordering :: |-boost|p1a|def|1 <>
        * |-status|p2b|brn|[from]spicyspray`: a Muddy Water into an Archaludon (STAMINA) and a
@@ -40429,6 +40561,10 @@ function battleTurn(S,rng,actsForA,actsForB){
        * secondary, and Cursed Body against a Matcha Gotcha secondary.
        *
        * NOT FIXED HERE, AND THE REASON IS THE DICE. Every member of the event is chance-gated --
+       *   ^ THE PREMISE OF THIS PARAGRAPH IS THE FALSE SENTENCE ABOVE IT. A deterministic re-sort moves
+       *   no draw between addresses; only the `nth` count at `_reactAddr`'s one shared address can move,
+       *   and only when two chance-gated reactors fire on one spread hit. FIXED 2026-09-09 in
+       *   `_stepDamagingHitEarly` / `_stepDamagingHitBody`; the paragraph stands as dated evidence.
        * Cursed Body's `randomChance(3,10)`, Poison Touch's, Static's, Flame Body's, Effect Spore's --
        * and `_reactAddr` spends them at an `nth`-counted address, so merging and speed-sorting the two
        * steps reorders draws at a shared address and moves boards. It needs its own batch with a
@@ -40577,6 +40713,54 @@ function battleTurn(S,rng,actsForA,actsForB){
             }
           }
         }
+      };
+      /* ==== NARRATION BATCH Y, 2026-09-09 -- ONE `DamagingHit` EVENT, WALKED IN THE AUTHORITY'S SORT ORDER ====
+       *
+       * `runEvent('DamagingHit', damagedTargets, pokemon, move)` (data/mods/champions/scripts.ts, spreadMoveHit)
+       * collects, PER TARGET INDEX, the target's status, volatiles, ability, item, then the source's
+       * `onSource…` handler (sim/battle.ts:1035-1075 `findEventHandlers` over an array, `handler.index = i`;
+       * `findPokemonEventHandlers` for the within-body order), and sorts the whole list ONCE by
+       * `compareLeftToRightOrder` (sim/battle.ts:789 -> :421):
+       *     -((b.order || 4294967296) - (a.order || 4294967296)) || (b.priority - a.priority) || -((b.index) - (a.index))
+       * i.e. declared `onDamagingHitOrder` first (an undeclared order sorts LAST), then priority, then target
+       * index. A stable sort, so within one index the collection order holds. DETERMINISTIC -- no speed, no die.
+       *
+       * THIS ENGINE'S DRIVER IS STEP-OUTER / ROW-INNER, and the event was FOUR steps -- [every row's punish],
+       * [every row's thaw], [every row's buff], [every row's late pair] -- so on a spread hit a buff on row 0
+       * landed BELOW a punish on row 1. The pinned pool's baseline card `2634643227 vs 2635701832` (t2) is
+       * exactly that: Muddy Water into an Archaludon (Stamina, index 0) and a Scovillain-Mega (Spicy Spray,
+       * index 1), both undeclared-order, authority `-boost p1a def 1` THEN `-status p2b brn`, this engine the
+       * reverse. The header above this block said the list was `speedSort`ed and deferred the fix on a dice
+       * argument; both are corrected in place above.
+       *
+       * TWO STEPS RATHER THAN ONE, because the step driver is what gives the index-major walk for free:
+       *   EARLY  every row: its `onDamagingHitOrder: 1` handler, if it has one   (pass 1, index-major)
+       *   BODY   every row: status (frz thaw) -> ability (punish OR buff) -> `_dhAbil` (Cursed Body) ->
+       *          `_dhSrc` (the source's onSource handler)                        (pass 2, index-major)
+       * The ORDER NUMBER IS READ OFF THE TAG (`punishesAttacker.order` / `buffsHolderOnHit.order`, derived by
+       * tag_dex.js from the handler's own `onDamagingHitOrder`), never off a name. Items carrying the event
+       * (Rocky Helmet, order 2) are banned in this format and not modelled here.
+       *
+       * THE FOUR OLD STEPS ARE KEPT AND CALLED FROM HERE -- what moved is the WALK, not the payers. The
+       * per-arrival interior calls inside `_stepApply` (`_reactAddr(()=>_damagingHit(1))`,
+       * `_stepBuffOnHit(R,1)`) are untouched. `R._buffDone` guards the buff so a row whose buff was paid
+       * early is not paid again in the body pass. `MEDI_DH_STEPS_SPLIT=1` restores the four-step layout
+       * exactly (the spread of the ternary below). */
+      const _dhOrderOf=(R)=>{const tg=R.tg;
+        const _p=tg&&tg.ability?TAGS.param('ability',tg.ability,'punishesAttacker'):null;
+        const _b=tg&&tg.ability?TAGS.param('ability',tg.ability,'buffsHolderOnHit'):null;
+        return {pun:(_p&&_p.order!=null)?+_p.order:null, buff:(_b&&_b.order!=null)?+_b.order:null};
+      };
+      const _stepDamagingHitEarly=(R)=>{
+        const _o=_dhOrderOf(R);
+        if(_o.pun===1&&R._dh){const _f=R._dh;R._dh=null;MEDSEEN.dhOrder1Early++;_reactAddr(_f);}
+        if(_o.buff===1&&!R._buffDone){R._buffDone=true;MEDSEEN.dhOrder1Early++;_stepBuffOnHit(R);}
+      };
+      const _stepDamagingHitBody=(R)=>{
+        _stepThawDamagingHit(R);                          // the STATUS handler is collected first within a body
+        _stepDamagingHit(R);                              // the ability, undeclared order (null if paid early)
+        if(!R._buffDone){R._buffDone=true;_stepBuffOnHit(R);}   // the ability, undeclared order (a body has one)
+        _stepDamagingHitLate(R);                          // `_dhAbil`, then the source's `onSource…` handler
       };
       /* `AfterHit` -- `if (moveData.onAfterHit && pokemon.hp)` at battle-actions.ts:953. The item
        * strip, moved out of `_stepApply` unchanged. Its own header there records WHAT it takes and the
@@ -40927,8 +41111,11 @@ function battleTurn(S,rng,actsForA,actsForB){
                     _stepAnnounceItem,                 // 2026-09-06 -- the move's own `onTryHit`, the announcing half
                     _stepClearScreens,                 // 2026-08-24 -- the move's own `onTryHit`
                     _stepDamage,_stepApply,_stepSelfPay,_stepEffects,
-                    _stepDamagingHit,_stepThawDamagingHit,_stepBuffOnHit,  // 2026-08-22 -- ONE `DamagingHit`
-                    _stepDamagingHitLate,              // BATCH Q2 -- its last two handlers per row
+                    /* NARRATION BATCH Y, 2026-09-09 -- ONE `DamagingHit`, in the authority's sort order: every
+                     * order-1 handler index-major, then every undeclared-order handler index-major. See
+                     * `_stepDamagingHitEarly`. The knob restores the 2026-08-22 / BATCH Q2 four-step layout. */
+                    ...(DH_STEPS_SPLIT?[_stepDamagingHit,_stepThawDamagingHit,_stepBuffOnHit,_stepDamagingHitLate]
+                                      :[_stepDamagingHitEarly,_stepDamagingHitBody]),
                     _stepAfterHit,
                     _stepAfterHitField,                // 2026-08-23 -- the other two onAfterHit families
                     _stepUpdate,                       // 2026-08-23 -- eachEvent('Update'), :967
@@ -42649,6 +42836,40 @@ function battleTurn(S,rng,actsForA,actsForB){
          delete _scF[_siF];
          const _src=_rF.src, _row=MC.moves[_rF.mv];
          if(_src&&_row&&m!==_src&&!m.fainted&&m.curHP>0){
+           /* ==== NARRATION BATCH Y, 2026-09-09 -- THE `-end` LINE IS THE CONDITION'S, AND AN IMMUNE
+            * COLLECTOR TAKES NO DIE. ================================================================
+            *
+            * `futuremove.onEnd` (data/conditions.ts:395-415, no Champions override) read whole:
+            *     if (target.fainted || target === data.source) { hint; return; }
+            *     this.add('-end', target, 'move: ' + move.name);          <- UNCONDITIONAL from here
+            *     ...
+            *     this.actions.trySpreadMoveHit([target], data.source, hitMove, true);
+            * and `trySpreadMoveHit` runs the step list -- `hitStepTypeImmunity` (battle-actions.ts:654)
+            * is step 2, `runImmunity(move, true)` writes `|-immune|TARGET` and returns false, and the
+            * move-hit loop is never entered, so `getDamage` never rolls. The booked `moveData` carries
+            * `ignoreImmunity: false` (data/moves.ts:6408), which is what makes step 2 bite.
+            *
+            * THIS ENGINE wrote `-end` INSIDE `if(_d.max>0)` -- so a zero band silenced the condition's
+            * own line -- and priced, crit-rolled and dmg-rolled the body first. Into a Dark type that
+            * was two dice the authority never drew and two lines it wrote; the differential's
+            * `low-identity` void rule caught the dice and the pinned pool's omit-spread card
+            * `2657358877 vs 2657413811` (t5, Morpeko) is the lines. `typeEffAgainst` is the SAME
+            * predicate `_stepTypeImm` asks on the direct road, and the Levitate attribution is the
+            * same call, so the two roads cannot come to disagree about what is immune.
+            *
+            * THE AUTHORITY'S OTHER PRE-DAMAGE STEPS ARE NOT RESTATED HERE AND ARE SAID: the payout's
+            * `hitStepAccuracy` (a printed 100 that still draws) and `hitStepTryHitEvent` are not
+            * modelled on this road today. Named, not folded in -- one mechanism per batch.
+            *
+            * `MEDI_DELAYED_HIT_SILENT_IMMUNE=1` restores the old road exactly. */
+           if(TR&&!DELAYED_HIT_SILENT_IMMUNE)TR.vend(m,'move: '+_rF.mv);
+           const _fsType=effMoveType(_row,_rF.mv,field,_src);
+           if(!DELAYED_HIT_SILENT_IMMUNE&&typeEffAgainst(_src,m,_row,_fsType)===0){
+             MEDSEEN.delayedHitImmune++;
+             if(TR){const _lvF=airborneAbilityRefusing(m,_src,'Special',_fsType);
+                    if(_lvF){MEDSEEN.airborneImmuneAtTypeStep++;TR.imm(m,'[from] ability: '+_lvF);}
+                    else TR.imm(m);}
+           } else {
            /* ROADMAP #304, 2026-08-23 -- THE PAYOUT SELECTS OUT OF THE SIXTEEN-ROLL BAND LIKE EVERY
             * OTHER HIT IN THIS ENGINE, AND IT USED TO INTERPOLATE A SPAN.
             *
@@ -42746,8 +42967,10 @@ function battleTurn(S,rng,actsForA,actsForB){
                                        :_d.min+Math.floor(_fu*(_d.max-_d.min+1)));
            if(_d.max>0){
              /* `|-end|TARGET|move: NAME` before the damage -- the condition announces its own expiry
-              * on the body that collects, which is the one line the authority writes here. */
-             if(TR)TR.vend(m,'move: '+_rF.mv);
+              * on the body that collects, which is the one line the authority writes here.
+              * NARRATION BATCH Y -- written ABOVE the pricing now (the condition's line is not the
+              * hit's); this site fires only under the restore knob, so the line is written once either way. */
+             if(TR&&DELAYED_HIT_SILENT_IMMUNE)TR.vend(m,'move: '+_rF.mv);
              m.curHP=Math.max(0,m.curHP-_dm);
              MEDSEEN.delayedHitLanded++;
              /* 2026-08-23 -- AND THE EFFECTIVENESS LINE, ABOVE THE DAMAGE, because the payout goes
@@ -42777,7 +43000,12 @@ function battleTurn(S,rng,actsForA,actsForB){
              if(TR&&_fcrit)TR.crit(m);
              if(TR)TR.dmg(m);
              if(m.curHP<=0){m.fainted=true,noteFaint(m);faintLineOut(m);}
+           } else if(!DELAYED_HIT_SILENT_IMMUNE){
+             /* NARRATION BATCH Y -- a zero band on a body the type chart does NOT refuse. Loud. */
+             MEDFAILS.delayedHitZeroBandUnannounced++;
+             if(!MEDFAILS.delayedHitZeroBandUnannouncedFirst)MEDFAILS.delayedHitZeroBandUnannouncedFirst=String(_rF.mv||'?');
            }
+           }   /* end of the non-immune road (NARRATION BATCH Y) */
          } else MEDSEEN.delayedHitWasted++;
        }}
       if(_G.has('wish')){const _sf2=actA.indexOf(m)>=0?sfA:sfB, _si2=actA.indexOf(m)>=0?actA.indexOf(m):actB.indexOf(m);
@@ -44002,9 +44230,32 @@ function battleTurn(S,rng,actsForA,actsForB){
       for(let i=0;i<_r.act.length;i++)
         if(_r.act[i]&&_r.act[i].fainted)
           _refills.push(Object.assign({i,spe:_corpseSpe(_r.act[i],_r.side)},_r));
-    _refills.sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},field));
-    for(let k=1;k<_refills.length;k++)
-      if(_refills[k].spe===_refills[k-1].spe)MEDFAILS.replaceOrderTie++;
+    /* ==== NARRATION BATCH Y, 2026-09-09 -- THE REFILL QUEUE IS THE AUTHORITY'S `speedSort`, TIE DIE AND ALL ====
+     *
+     * Every forced replacement is an `instaswitch` action queued at once (`Side#chooseSwitch`,
+     * sim/side.ts:1009, one per empty slot, p1's then p2's) and sorted ONCE by `BattleQueue#sort` ->
+     * `Battle#speedSort` under `comparePriority`: same order, same priority, so the corpse's
+     * `getActionSpeed()` decides and a tie goes to `prng.shuffle` (sim/battle.ts:429-459). The key was
+     * already right here (the block above); the SORT was `Array.prototype.sort`, which is STABLE and
+     * draws nothing -- so two corpses on equal raw Speed refilled in side order, p1 first, every time.
+     *
+     * MEASURED on the pinned pool's `pair-protect-bust …2635037737` (t4): a Swampert and a Swampert-Mega
+     * die in the same turn on equal raw Speed (`replaceOrderTie` read 1 on the replay), the authority
+     * announces p2's Archaludon then p1's Gholdengo, this engine the reverse. `entrySpeedSort` is the
+     * selection sort with the tie die the entry pass already uses for the SwitchIn ranking (2026-08-24),
+     * and it is the same algorithm the authority runs on this queue -- one implementation, two callers.
+     * `MEDI_REPLACE_ORDER_STABLE=1` restores the stable sort exactly. */
+    if(REPLACE_ORDER_STABLE){
+      _refills.sort((x,y)=>compareTurnOrder({spe:x.spe},{spe:y.spe},field));
+      for(let k=1;k<_refills.length;k++)
+        if(_refills[k].spe===_refills[k-1].spe)MEDFAILS.replaceOrderTie++;
+    } else {
+      let _tied=false;
+      for(let k=0;k<_refills.length&&!_tied;k++)for(let j=k+1;j<_refills.length;j++)
+        if(_refills[j].spe===_refills[k].spe){_tied=true;break;}
+      entrySpeedSort(_refills,field);
+      if(_tied)MEDSEEN.replaceTieResolved++;
+    }
     const refill=()=>{
       const _arrived=[];
       for(const r of _refills){

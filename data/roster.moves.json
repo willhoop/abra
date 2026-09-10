@@ -1,17 +1,17 @@
 {
- "generated": "2026-09-09T21:42:53.187Z",
+ "generated": "2026-09-09T23:41:29.535Z",
  "by": "tests/roster.js",
  "stage": "moves",
  "swap_leaf_correction": {
   "self_describing_dropped": 0,
   "real_ability_rewrite_kept": 0
  },
- "engine_release": "b0f5c159c46e",
- "engine_release_cut": "2026-09-09T18:49:11.654Z",
- "engine_release_cuts": 17,
+ "engine_release": "7d66b526659e",
+ "engine_release_cut": "2026-09-09T23:38:55.328Z",
+ "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "9425672e294d",
+  "engine/medicham2-browser.js": "6b7a4610050f",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "622482051bf4",
@@ -31,8 +31,8 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "3c733e7a0bfb",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "01acc1099ee8",
-  "data/tags.json": "30ce4b64c9eb",
+  "data/abra-tags.js": "44fd45e9e9ce",
+  "data/tags.json": "01aa85bf4e7f",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
@@ -49,14 +49,16 @@
   "COULD-NOT-STAGE": 10
  },
  "arms_played": {
-  "top-tie-first": 828,
+  "top-tie-first": 826,
   "bottom-tie-first": 266
  },
  "scope": {
   "total": 500,
-  "out_of_scope": 0,
-  "out_of_scope_by": {},
-  "in_scope": 500,
+  "out_of_scope": 2,
+  "out_of_scope_by": {
+   "no-legal-carrier": 2
+  },
+  "in_scope": 498,
   "tested": 487,
   "matched": 487,
   "differ": 0,
@@ -65,11 +67,21 @@
   "unattributable": 0,
   "unattributable_ids": [],
   "declared_untestable": [],
-  "could_not_stage_in_scope": 10,
-  "attributed_by_second_control": []
+  "could_not_stage_in_scope": 8,
+  "attributed_by_second_control": [],
+  "carrier_derivation": {
+   "legal_species": 347,
+   "legal_species_predicate": "exists && !isNonstandard && tier !== \"Illegal\"",
+   "mega_formes_included": 72,
+   "battle_only_formes_included": 83,
+   "ability": "a legal species with the ability in any slot",
+   "move": "a legal species whose learnset (prevo chain + base forme, as learnsMove walks it) lists it; Struggle is carried by every legal species because the authority assigns it without a learnset",
+   "item": "a mega stone by its base species; an itemUser item by one of its users; any other item by any legal species",
+   "format": "gen9championsvgc2026regmb"
+  }
  },
  "plant_anchors": {
-  "release": "b0f5c159c46e",
+  "release": "7d66b526659e",
   "checked": 36,
   "dead": [],
   "reds_ran": true
@@ -22995,9 +23007,9 @@
    "name": "Imprison",
    "rule": "move/volatile",
    "reads": "volatileStatus",
-   "note": "imprison on the user; Torterra beside it must not gain it",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "the SUBJECT arm did not run: THREW — p1 choice rejected p1 \"pass, move 1\": Can't pass: Your Goodra must make a move (or switch)   [the last of this engine's narration: |-start|p2b: Torterra|move: focusenergy |upkeep |turn|2 |move|p2a: Goodra|focusenergy|p2a: Goodra |-start|p2a: Goodra|move: focusenergy |cant|p1b: Corviknight|move: Imprison|focusenergy |move|p2b: Torterra|focusenergy|p2b: Torterra |upkeep]",
+   "note": "imprison on the user; Torterra beside it must not gain it; the foes click Dragon Pulse on turns 2 and 3 because the seal disables the inert click they would otherwise share with the user",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "goodrahisui",
@@ -23012,7 +23024,68 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.active[0].vol.focusenergy",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].vol.imprison",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].imprison",
+     "with": 2,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].vol.imprison",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].imprison",
+     "with": 2,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].vol.imprison",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.pp[0].imprison",
+     "with": 2,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.pp[0].focusenergy",
+     "with": 2,
+     "without": 3
+    }
+   ],
    "diffs": []
   },
   {
@@ -26667,9 +26740,9 @@
    "name": "Memento",
    "rule": "move/boosts-target",
    "reads": "boosts + a target that is not the user",
-   "note": "thrown at Goodra-Hisui twice; Torterra stands beside it and is never aimed at",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "the SUBJECT arm did not run: THREW — p1 choice rejected p1 \"pass, move 1\": Can't pass: Your Milotic must make a move (or switch)   [the last of this engine's narration: |-start|p2b: Torterra|move: focusenergy |upkeep |switch|p1a: Milotic|milotic, L50|680/680 |turn|2 |move|p2a: Goodra|focusenergy|p2a: Goodra |move|p1b: Corviknight|focusenergy|p1b: Corviknight |move|p2b: Torterra|focusenergy|p2b: Torterra |upkeep]",
+   "note": "thrown at Goodra-Hisui ONCE — the user faints on the click, so the replacement idles; Torterra stands beside it and is never aimed at",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "goodrahisui",
@@ -26684,7 +26757,266 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.party.goodrahisui.hp",
+     "with": 0,
+     "without": 620
+    },
+    {
+     "turn": 1,
+     "path": "p1.party.goodrahisui.fainted",
+     "with": true,
+     "without": false
+    },
+    {
+     "turn": 1,
+     "path": "p1.party.goodrahisui.status",
+     "with": "fnt",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].species",
+     "with": "milotic",
+     "without": "goodrahisui"
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].hp",
+     "with": 680,
+     "without": 620
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].maxhp",
+     "with": 680,
+     "without": 620
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].types",
+     "with": "water",
+     "without": "dragon/steel"
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].ability",
+     "with": "marvelscale",
+     "without": "shellarmor"
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].vol.focusenergy",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[0].focusenergy",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[0].memento",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.goodrahisui.boosts.atk",
+     "with": -2,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.goodrahisui.boosts.spa",
+     "with": -2,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].boosts.atk",
+     "with": -2,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].boosts.spa",
+     "with": -2,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p1.party.goodrahisui.hp",
+     "with": 0,
+     "without": 620
+    },
+    {
+     "turn": 2,
+     "path": "p1.party.goodrahisui.fainted",
+     "with": true,
+     "without": false
+    },
+    {
+     "turn": 2,
+     "path": "p1.party.goodrahisui.status",
+     "with": "fnt",
+     "without": ""
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].species",
+     "with": "milotic",
+     "without": "goodrahisui"
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 680,
+     "without": 620
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].maxhp",
+     "with": 680,
+     "without": 620
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].types",
+     "with": "water",
+     "without": "dragon/steel"
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].ability",
+     "with": "marvelscale",
+     "without": "shellarmor"
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].focusenergy",
+     "with": 1,
+     "without": 2
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].memento",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.goodrahisui.boosts.atk",
+     "with": -2,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.goodrahisui.boosts.spa",
+     "with": -2,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].boosts.atk",
+     "with": -2,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].boosts.spa",
+     "with": -2,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.goodrahisui.hp",
+     "with": 0,
+     "without": 620
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.goodrahisui.fainted",
+     "with": true,
+     "without": false
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.goodrahisui.status",
+     "with": "fnt",
+     "without": ""
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].species",
+     "with": "milotic",
+     "without": "goodrahisui"
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 680,
+     "without": 620
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].maxhp",
+     "with": 680,
+     "without": 620
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].types",
+     "with": "water",
+     "without": "dragon/steel"
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].ability",
+     "with": "marvelscale",
+     "without": "shellarmor"
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[0].focusenergy",
+     "with": 2,
+     "without": 3
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[0].memento",
+     "with": null,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.goodrahisui.boosts.atk",
+     "with": -2,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.goodrahisui.boosts.spa",
+     "with": -2,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].boosts.atk",
+     "with": -2,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].boosts.spa",
+     "with": -2,
+     "without": 0
+    }
+   ],
    "diffs": []
   },
   {
@@ -31561,75 +31893,6 @@
      "path": "p2.active[0].hp",
      "with": 1206,
      "without": 1240
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "move",
-   "id": "powershift",
-   "name": "Power Shift",
-   "rule": "move/volatile",
-   "reads": "volatileStatus",
-   "note": "powershift on the user; Torterra beside it must not gain it",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "goodrahisui",
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 0,
-     "without": 1
-    },
-    {
-     "turn": 1,
-     "path": "p2.pp[0].powershift",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.pp[0].focusenergy",
-     "with": 0,
-     "without": 1
-    },
-    {
-     "turn": 2,
-     "path": "p2.pp[0].powershift",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p2.pp[0].focusenergy",
-     "with": 1,
-     "without": 2
-    },
-    {
-     "turn": 3,
-     "path": "p2.pp[0].powershift",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 3,
-     "path": "p2.pp[0].focusenergy",
-     "with": 2,
-     "without": 3
     }
    ],
    "diffs": []
@@ -40517,159 +40780,6 @@
      "path": "p2.pp[0].focusenergy",
      "with": 1,
      "without": 2
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "move",
-   "id": "spore",
-   "name": "Spore",
-   "rule": "move/status-inflict",
-   "reads": "status",
-   "note": "slp onto Goodra-Hisui; the second click must FAIL, and Torkoal beside it must stay clean",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "goodrahisui",
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 1,
-     "path": "p1.active[0].vol.focusenergy",
-     "with": 0,
-     "without": 1
-    },
-    {
-     "turn": 1,
-     "path": "p1.pp[0].spore",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p1.pp[0].focusenergy",
-     "with": 0,
-     "without": 1
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.goodrahisui.status",
-     "with": "slp",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.goodrahisui.status_counter",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].status",
-     "with": "slp",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].status_counter",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 0,
-     "without": 1
-    },
-    {
-     "turn": 1,
-     "path": "p2.pp[0].focusenergy",
-     "with": 0,
-     "without": 1
-    },
-    {
-     "turn": 2,
-     "path": "p1.active[0].vol.focusenergy",
-     "with": 0,
-     "without": 1
-    },
-    {
-     "turn": 2,
-     "path": "p1.pp[0].spore",
-     "with": 2,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p1.pp[0].focusenergy",
-     "with": 0,
-     "without": 2
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.goodrahisui.status",
-     "with": "slp",
-     "without": ""
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.goodrahisui.status_counter",
-     "with": 2,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].status",
-     "with": "slp",
-     "without": ""
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].status_counter",
-     "with": 2,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 0,
-     "without": 1
-    },
-    {
-     "turn": 2,
-     "path": "p2.pp[0].focusenergy",
-     "with": 0,
-     "without": 2
-    },
-    {
-     "turn": 3,
-     "path": "p1.pp[0].spore",
-     "with": 2,
-     "without": 0
-    },
-    {
-     "turn": 3,
-     "path": "p1.pp[0].focusenergy",
-     "with": 1,
-     "without": 3
-    },
-    {
-     "turn": 3,
-     "path": "p2.pp[0].focusenergy",
-     "with": 1,
-     "without": 3
     }
    ],
    "diffs": []

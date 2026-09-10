@@ -1,7 +1,7 @@
 {
- "generated": "2026-09-09T22:22:28.864Z",
+ "generated": "2026-09-10T00:37:33.580Z",
  "by": "engine/conformance.js",
- "files": 681,
+ "files": 686,
  "findings": [
   {
    "std": "S12",
@@ -754,6 +754,12 @@
   {
    "std": "S12",
    "file": "tests/probe_sand_force.js",
+   "what": "hardcodes \"gen9championsvgc2026regmb\"",
+   "why": "lives in data/regulations.json (showdownFormat) — reference it"
+  },
+  {
+   "std": "S12",
+   "file": "tests/probe_screens_infiltrator.js",
    "what": "hardcodes \"gen9championsvgc2026regmb\"",
    "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
@@ -1555,6 +1561,15 @@
   {
    "std": "S13",
    "file": "data/_fire-items-F.json",
+   "what": "no generator writes it",
+   "why": "a file nobody generates is a file that will lie",
+   "detail": [
+    "NO file in engine/build/tests names this artifact at all, in code or in a comment. Either no script was ever committed for it, or its writer takes the output path from a runtime argument (a flag, an environment variable) so no literal reaches a write call. This scan cannot tell those apart, and the artifact declares nothing."
+   ]
+  },
+  {
+   "std": "S13",
+   "file": "data/_narrationY-after-dump.json",
    "what": "no generator writes it",
    "why": "a file nobody generates is a file that will lie",
    "detail": [

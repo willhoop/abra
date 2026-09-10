@@ -424,9 +424,17 @@ demo('WIRE 90b refusesStatusMoves -- Good as Gold refuses the foe-aimed Decorate
     return f1.boosts.at === 0;   /* refused */
   });
 
+/* RE-AIMED 2026-09-09 (NARRATION BATCH Y). The stone sat on a MILOTIC, and the demo asserted it did not
+ * move -- which was the engine's coarse "any mega stone refuses" guard, not the game's rule. The
+ * authority's stone handler is `onTakeItem(item, source) { return !item.megaStone?.[source.baseSpecies
+ * .baseSpecies]; }` (data/items.ts): a Gengarite refuses a GENGAR and nobody else, so a Gengarite on a
+ * Milotic is Tricked away like any other item, and the engine now does exactly that
+ * (tests/probe_trick_refusal.js, arm `trick-of-a-foreign-stone-into-another-species`). The body under
+ * the stone is a Gengar now, so the shipped arm is the RULE and the stripped arm is the rule gone:
+ * `stoneRefusesBody` reads `megaIntoTable()`, which is built from the `megaStone` tag's `into` map. */
 demo('WIRE 111 megaStone -- the stone guard on Trick reads the tag', shipped, without('item', 'gengarite', 'megaStone'), () => {
   const me = bare('sableye'), ally = bare('corviknight');
-  const f1 = bare('milotic'), f2 = bare('garchomp');
+  const f1 = bare('gengar'), f2 = bare('garchomp');
   me.item = 'quickclaw'; f1.item = 'gengarite';
   const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
   M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'trick', f1, S.field)], [ally, { kind: 'pass' }]]),

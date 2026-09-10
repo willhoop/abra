@@ -12,16 +12,27 @@ game rather than a re-run.
 
 ```
 OPS — the live bot and the store
-  store: 81290 games, 26278 usable (32.3%), 23341 teams   (live.js 2026-09-09)
+  store: 92431 games, 32132 usable (34.8%), 27573 teams   (live.js 2026-09-09)
   live-games/: 34 battles recorded
-  data/games.ladder.jsonl      last written 2026-09-09 13:05
-  data/games.bo3.jsonl         last written 2026-09-09 13:05  <- the Force-OTS format, collected hourly
-  data/games.ots.jsonl         last written 2026-09-09 13:01  <- FROZEN external import, complete; date is an import, not a heartbeat
+  data/games.ladder.jsonl      last written 2026-09-09 18:46
+  data/games.bo3.jsonl         last written 2026-09-09 18:46  <- the Force-OTS format, collected hourly
+  data/games.ots.jsonl         last written 2026-09-09 18:46  <- FROZEN external import, complete; date is an import, not a heartbeat
 ```
 
-_stamped 2026-09-09 18:00_
+_stamped 2026-09-09 20:04_
 
 <!-- /GENERATED -->
+
+## THE RAW SHARD WRITER IS CAPPED, TWO STORE ROWS CARRY A SPLIT CHARACTER IN THEIR `|win|` LINE, AND THE HOURLY COLLECTOR HAS NOT YET RUN ON CI. 2026-09-09, CHANGELOG 5.277.0
+
+**THE CAP (#556, closed by MEASURE).** `build/compress-stores.js --raw` now shards at `SHARD_BYTES` (32 MiB of source) like the parsed writer; the one uncapped write, `data/raw/games.ladder/20260909T2052-00.jsonl.gz` at 58,753,177 B (56.03 MiB, 76,741 logs, commit `71771f0b`), stays — under the 100 MB wall, over the 50 MB warning, permanent. Budget at 176 games/h: one ~135 KB shard per hourly run, 24 a day, in one directory per store; that is a tree-object cost, not a per-file wall. Account: `docs/_reports/2026-09-09-raw-shard-cap.md`.
+
+**THE TWO ROWS (#558, open, OPS).** `gen9championsvgc2026regmb-2662690089` and `gen9championsvgc2026regmb-2672145722` have `winner` equal to neither player: U+FFFD sits ONLY in the `|win|` line — a multi-byte character split across two HTTP chunks and decoded chunk by chunk, the fetch defect `engine/durable-ingest.js` fixed on 2026-08-28 with `setEncoding('utf8')`. Showdown serves both replays clean today. The repair is a re-fetch that replaces both the parsed row and the raw log (a raw shard is write-once, so the corrected raw log is a new shard, or the correction lands in the plain archive); do not delete rows. `engine/sanity_check.py`'s winner clause goes 2 → 0 on that repair and on nothing else. The same defect left 194 raw logs / 496 U+FFFD in nicknames — the same repair, wider.
+
+**THE HOURLY COLLECTOR ON CI.** `gh run list --workflow next-regulation.yml` at 23:11Z on 2026-09-09 lists NO run: the workflow has not fired since it was committed in `71771f0b` (22:32Z). The last `ingest` run, id `34404028238`, completed `success` at 20:56Z — before that commit, so no CI run has yet gunzipped the 56 MB shard; locally the step was given `--max-old-space-size=5120` and the default heap was not measured. Watch the first hourly run for `coverage:` and `GAP:` on both steps, and for an exit 134 on the raw step.
+
+**ALSO.** The local `data/games.ladder.jsonl` was reconciled 92,379 → 92,431 rows via `--restore-parsed` — the OPS OWES item in the block below is closed by that; `tests/test-workflow-paths.js` 6/0. 7,599 ladder rows have no raw log in the archive (92,431 parsed vs 84,832 raw) — owed a register row and a count of ids, not filed here. `node engine/status.js --write` was NOT run.
+
 
 ## REG M-C IS COLLECTED HOURLY INTO ITS OWN STORES, THE INGEST SAYS WHEN THE SEARCH WINDOW OUTRUNS THE STORE, AND WILL'S OWN GAME IS IN IT. NOTHING IS SIMULATED. 2026-09-09, CHANGELOG 5.276.0
 

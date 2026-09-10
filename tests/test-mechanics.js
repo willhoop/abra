@@ -519,6 +519,15 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * widens under Psychic Terrain and the spread 0.75 would otherwise ride on top of the multiplier this
  * family is trying to read.
  *
+ * `screenArms(` added 2026-09-09 with the SCREENS half of `ignoresScreensAndSubs`, declared HERE and
+ * with its reason on the same rule. It stages a real doubles board through `board()` -> `battleInit`
+ * and spends TWO real turns through `battleTurn` -- the setup turn on which the FOE raises the screen
+ * by a legal click, and the turn the move is aimed through it -- exactly as `dollArms(` does for the
+ * doll. It has to: the screen multiplier sits inside the damage chain behind `def._sf`, which only a
+ * body that has been through `battleInit` carries, and the Infiltrator exemption is read off the
+ * ATTACKER'S ability at that site; a direct `dmgRange` call would hand in two loose bodies with no
+ * side stamp and the screen branch would never be reached, green on an engine that never asked.
+ *
  * `megaWtTarget(` added 2026-08-29 with the mega-weight family, declared HERE and with its reason on
  * the same rule. It stages a real doubles board through `board()` -> `battleInit` and spends a real
  * turn through `battleTurn`, FOUR times per arm — the weight move and a fixed-power control move, each
@@ -526,7 +535,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * rewrites part-way through the turn, so a probe that priced the move before the turn started would
  * read the un-evolved body every time, which is exactly what the engine was doing.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(/;
+const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -15559,10 +15568,20 @@ probe('ability', 'intimidateRetaliationNet', 'Intimidate into Defiant is net +1 
 
 /* WIRE 107 -- the matrix rows `trick/switcheroo -> quickclaw`: Showdown swapped the items and this
  * engine did not. */
-probe('move', 'trickSwapsItems', 'Trick swaps the two items; Corrosive Gas only deletes; a mega stone does not move', () => {
-  const stage = (myItem, foeItem, click) => {
+/* CLOSE PASS 5.277.0, 2026-09-10 -- THE STONE ARM USED TO STAGE A GENGARITE ON A MILOTIC and assert that
+ * Trick "moves nothing". The authority refuses only the MATCHING body -- `onTakeItem(item, source)
+ * { return !item.megaStone?.[source.baseSpecies.baseSpecies]; }` (data/items.ts, every stone; Champions
+ * inherits) -- so a foreign stone is Tricked away like any other item, and the old arm pinned the
+ * engine's coarse guard rather than the game (docs/_reports/2026-09-09-narration-batch-Y.md section 0).
+ * The holder is DERIVED from the artifact's `megaStone.into` table, never typed, and the foreign-stone
+ * case is kept as the control that says the coarse guard is gone. */
+probe('move', 'trickSwapsItems', 'Trick swaps the two items; Corrosive Gas only deletes; a mega stone does not move off ITS OWN body', () => {
+  const INTO = ((((require(D('data', 'tags.json')).items || {}).gengarite || {}).params || {}).megaStone || {}).into || {};
+  const owner = Object.keys(INTO)[0];
+  if (!owner) throw new Error('data/tags.json carries no megaStone.into for gengarite -- the probe cannot derive the holder');
+  const stage = (myItem, foeItem, click, foeSpecies = 'milotic') => {
     const me = bare('sableye'), ally = bare('corviknight');
-    const f1 = bare('milotic'), f2 = bare('garchomp');
+    const f1 = bare(foeSpecies), f2 = bare('garchomp');
     me.item = myItem; f1.item = foeItem;
     const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
     M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, click, f1, S.field)], [ally, { kind: 'pass' }]]),
@@ -15571,13 +15590,16 @@ probe('move', 'trickSwapsItems', 'Trick swaps the two items; Corrosive Gas only 
   };
   const swap = stage('quickclaw', '', 'trick');
   const gas = stage('', 'leftovers', 'corrosivegas');
-  const stone = stage('quickclaw', 'gengarite', 'trick');
+  const stone = stage('quickclaw', 'gengarite', 'trick', owner);      // the stone on the body it belongs to
+  const foreign = stage('quickclaw', 'gengarite', 'trick');           // the same stone on a Milotic: swaps
   return { works: swap.mine === '(none)' && swap.theirs === 'quickclaw'
-                  && gas.theirs === '(none)' && stone.theirs === 'gengarite' && stone.mine === 'quickclaw',
+                  && gas.theirs === '(none)' && stone.theirs === 'gengarite' && stone.mine === 'quickclaw'
+                  && foreign.theirs === 'quickclaw' && foreign.mine === 'gengarite',
            arms: { control: 'quickclaw/(none)', test: swap.mine + '/' + swap.theirs },
            detail: `Trick: user quickclaw -> ${swap.mine}, target (none) -> ${swap.theirs}; `
-                 + `Corrosive Gas leaves the target ${gas.theirs}; Trick at a Gengarite holder moves nothing `
-                 + `(${stone.mine} / ${stone.theirs})` };
+                 + `Corrosive Gas leaves the target ${gas.theirs}; Trick at a Gengarite on a ${owner} (derived from `
+                 + `tags.json megaStone.into) moves nothing (${stone.mine} / ${stone.theirs}); the same stone on a `
+                 + `Milotic swaps (${foreign.mine} / ${foreign.theirs})` };
 });
 
 /* 2026-08-28 -- WHAT THE ITEM-SWAP FAMILY *SAYS*, WHICH `trickSwapsItems` ABOVE CANNOT SEE.
@@ -17882,6 +17904,142 @@ probe('ability', 'ignoresScreensAndSubs', 'Infiltrator hits the body behind a su
            arms: { control: blocked.dmg, test: through.dmg },
            detail: `Ice Beam into a substituted Garchomp -- no ability ${blocked.dmg}, Infiltrator `
                  + `${through.dmg} with the doll still standing at ${through.sub}` };
+});
+
+/* 2026-09-09 -- THE OTHER HALF OF THE TAG'S NAME. `ignoresScreensAndSubs` is named for SCREENS and
+ * SUBS, and until tonight every row that paired Infiltrator with something paired it with a
+ * Substitute: the row above and the nine doll rows before it. ZERO rows paired it with a screen. The
+ * engine implements the screens half at the `DOUBLES_SCREEN` site in dmgRange (`!TAGS.has('ability',
+ * attAb,'ignoresScreensAndSubs')`) and the Safeguard half in `sideBuffRefuses` -> `sideBuffInfiltrated`,
+ * and neither had an instrument on it. A bypassed screen is a x4096/2732 damage roll, so unlike most
+ * of the narration tail this is BOARD-MATERIAL. Found by docs/_reports/2026-09-09-session-close.md
+ * §1 reading the tag's NAME against the census.
+ *
+ * THE FOUR SCREENS ARE DERIVED, NOT TYPED. `Dex.forFormat('gen9championsvgc2026regmb').moves.all()`
+ * filtered to `sideCondition` set AND the condition's source reading `move.infiltrates` /
+ * `effect.infiltrates` gives FIVE -- auroraveil, lightscreen, mist, reflect, safeguard -- and `mist`
+ * is `isNonstandard: 'Past'` in the Champions mod, so the regulation has FOUR. (The session-close
+ * report said "all five"; it counted Mist.) The clause the ability defeats is word for word the same
+ * in the three damage screens -- `if (!target.getMoveHitData(move).crit && !move.infiltrates)` at
+ * data/moves.ts:857 (auroraveil), :10338 (lightscreen), :14857 (reflect), with `chainModify([2732,
+ * 4096])` when `activePerHalf > 1` -- and `if (effect.effectType === 'Move' && effect.infiltrates &&
+ * !target.isAlly(source)) return;` at safeguard's `onSetStatus` (:15592). Champions overrides none of
+ * the four moves and not `infiltrator` (`data/mods/champions/moves.ts`, `abilities.ts` checked).
+ *
+ * THE SHAPE IS `dollArms` WITH A SCREEN WHERE THE DOLL WAS. `control` has the foe click a neutral
+ * self-targeting move -- Work Up raises the TARGET'S OWN Atk/SpA and cannot move the damage IT
+ * takes, and is chosen over Swords Dance because Clefable does not learn Swords Dance -- so both arms
+ * spend the same number of turns; `test` has the foe click the screen; `inf` puts INFILTRATOR on the
+ * mover and requires the move to land THROUGH the standing screen at the unscreened number, which is
+ * what separates "the screen cost it" from "Infiltrator is a name the engine also ignores". The
+ * ability is assigned directly rather than by picking a different species, exactly as the doll rows
+ * do it, so the arms differ in ONE field.
+ *
+ * ONE REASON ONLY. The screened arm must be reduced by the screen and by nothing else: no crit (rng5
+ * never crits), the target statusless and un-boosted, the field clear. The Safeguard target must be
+ * burnable for one reason to fail -- Clefable is Fairy, `bare` blanks its ability, no terrain.
+ *
+ * THE FIRST REFLECT FIXTURE WAS DRAGON CLAW INTO THAT CLEFABLE AND READ 0 IN EVERY ARM. Fairy is
+ * IMMUNE to Dragon (`Dex.getImmunity('Dragon', ['Fairy'])` is false), which had been typed from memory
+ * as a resist -- so the screened arm was refused for a SECOND reason and the row said MISSING about a
+ * screen it never reached. Suspect the instrument first: Facade is Normal, 70, no secondary, neutral
+ * into Fairy, and Dragapult learns it.
+ *
+ * EVERY BODY AND CLICK IS LEARNSET-LEGAL IN THIS FORMAT, derived from `data/mods/champions/learnsets`
+ * while these were written and asserted on every run by tests/probe_screens_infiltrator.js, which
+ * stages the identical fixtures on the official simulator: Dragapult (Infiltrator carrier) learns
+ * Facade; Chandelure (Infiltrator carrier) learns Hex and Will-O-Wisp; Clefable learns Reflect,
+ * Light Screen, Safeguard and Work Up; Ninetales-Alola learns Aurora Veil and Nasty Plot. Aurora Veil
+ * fails outside snow on both engines, so its arms set snow on the field first (`weatherId('snow')`),
+ * and the move aimed through it is SPECIAL so snow's Ice-type Defense boost never enters. */
+const screenArms = (moverSp, moveId, foeSp, neutral, screenId, opts) => {
+  const run = (setupFoe, ab) => {
+    const B = board(moverSp, 'incineroar', foeSp, 'incineroar');
+    if (!(opts && opts.status)) unfaintable(B.f1);
+    if (opts && opts.stage) opts.stage(B);
+    if (ab) B.me.ability = ab;
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+      new Map([[B.f1, M.playerAction(B.f1, setupFoe, null, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, moveId, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    const sc = (B.S.sfB && B.S.sfB.sc && B.S.sfB.sc[screenId]) || 0;
+    return { dmg: before - B.f1.curHP, status: B.f1.status || '-', up: sc };
+  };
+  return { ctrl: run(neutral, null), scr: run(screenId, null), inf: run(screenId, 'infiltrator') };
+};
+/* `works` for the three DAMAGE screens: the control landed, the screen was up and cost the hit, and
+ * Infiltrator went through the STANDING screen for exactly the unscreened number. */
+const screenWorks = (a) => a.ctrl.dmg > 0 && a.ctrl.up === 0
+  && a.scr.up > 0 && a.scr.dmg > 0 && a.scr.dmg < a.ctrl.dmg
+  && a.inf.up > 0 && a.inf.dmg === a.ctrl.dmg;
+const screenDetail = (a, what) => 'after ' + what + ' [' + a.ctrl.dmg + ' dmg, screen ' + a.ctrl.up
+  + ']; under the screen [' + a.scr.dmg + ', screen ' + a.scr.up + ']; Infiltrator through the same screen ['
+  + a.inf.dmg + ', screen ' + a.inf.up + ']';
+
+probe('ability', 'ignoresScreensAndSubs', 'Reflect costs a physical hit, and Infiltrator lands the unscreened number through it', () => {
+  const a = screenArms('dragapult', 'facade', 'clefable', 'workup', 'reflect');
+  return { works: screenWorks(a), arms: { control: a.scr.dmg, test: a.inf.dmg },
+           detail: 'Dragapult Facade into Clefable -- ' + screenDetail(a, 'Work Up') };
+});
+
+probe('ability', 'ignoresScreensAndSubs', 'Light Screen costs a special hit, and Infiltrator lands the unscreened number through it', () => {
+  const a = screenArms('chandelure', 'hex', 'clefable', 'workup', 'lightscreen');
+  return { works: screenWorks(a), arms: { control: a.scr.dmg, test: a.inf.dmg },
+           detail: 'Chandelure Hex into Clefable -- ' + screenDetail(a, 'Work Up') };
+});
+
+probe('ability', 'ignoresScreensAndSubs', 'Aurora Veil under snow costs a special hit, and Infiltrator lands the unscreened number through it', () => {
+  const snow = (B) => { B.S.field.weather = M.weatherId('snow'); B.S.field.weatherT = 5; };
+  const a = screenArms('chandelure', 'hex', 'ninetalesalola', 'nastyplot', 'auroraveil', { stage: snow });
+  return { works: screenWorks(a), arms: { control: a.scr.dmg, test: a.inf.dmg },
+           detail: 'Chandelure Hex into Ninetales-Alola under snow -- ' + screenDetail(a, 'Nasty Plot') };
+});
+
+/* SAFEGUARD IS THE FOURTH AND IT REFUSES A STATUS RATHER THAN HALVING A HIT, so the read is the
+ * target's status and the screen is asserted standing on both screened arms. The authority's clause
+ * is the FIRST line of `safeguard.onSetStatus` (data/moves.ts:15592) and it is the one an
+ * infiltrating FOE'S move takes; an ALLY'S infiltrating move is still refused, which is the row
+ * `sideBuff | Safeguard refuses the status its OWN PARTNER wrote` already holds. */
+probe('ability', 'ignoresScreensAndSubs', 'Safeguard refuses a Will-O-Wisp, and Infiltrator burns through it', () => {
+  const a = screenArms('chandelure', 'willowisp', 'clefable', 'workup', 'safeguard', { status: true });
+  return { works: a.ctrl.status === 'brn' && a.ctrl.up === 0
+                  && a.scr.status === '-' && a.scr.up > 0
+                  && a.inf.status === 'brn' && a.inf.up > 0,
+           arms: { control: [a.scr.status, a.scr.up], test: [a.inf.status, a.inf.up] },
+           detail: 'Chandelure Will-O-Wisp into Clefable [status, Safeguard turns] -- after Work Up ['
+                 + a.ctrl.status + ', ' + a.ctrl.up + ']; under Safeguard [' + a.scr.status + ', ' + a.scr.up
+                 + ']; Infiltrator through the same Safeguard [' + a.inf.status + ', ' + a.inf.up + ']' };
+});
+
+/* 2026-09-09 -- COMPOUND EYES, ON ITS LEGAL CARRIER, THROUGH THE TO-HIT ROLL. 1,671 pool bodies and
+ * no lab row that ever made the ability decide a hit: the `accuracyMod` rows above vary Sand Veil,
+ * Bright Powder, Wide Lens, Coil and Minimize, and the ability sat in ACCMOD as a table entry nobody
+ * had rolled. The authority is `compoundeyes.onSourceModifyAccuracy -> chainModify([5325, 4096])`
+ * (data/abilities.ts; Champions overrides no `compoundeyes` key), applied inside `runEvent(
+ * 'ModifyAccuracy')` at sim/battle-actions.ts:713 BEFORE the stage block at :714-727, so a printed 90
+ * becomes 117 and the stage arithmetic then has nothing to do -- both stages are zero on this board,
+ * which is the one-reason discipline: the roll is decided by the printed accuracy and the ability,
+ * and by nothing else.
+ *
+ * DERIVED, NOT TYPED: the only legal Compound Eyes line in this format is Vivillon (twenty pattern
+ * formes, one learnset), and the printed-under-100 damaging moves it learns are Giga Impact, Hyper
+ * Beam and Skitter Smack, all 90. Skitter Smack is the one without a recharge turn. Roll 0.95 sits
+ * between 90 and 117: the bare body misses, the Compound Eyes body cannot. The target Garchomp is
+ * neutral to Bug, unboosted, ability blanked -- no evasion and no Sand Veil to be a second reason.
+ * tests/probe_screens_infiltrator.js stages the same click on the official simulator and reads the
+ * number the authority hands to `randomChance(accuracy, 100)`. */
+probe('ability', 'accuracyMod', 'Compound Eyes lands a 90% Skitter Smack on a roll that misses without it', () => {
+  const CESPS = ['vivillon', 'incineroar', 'garchomp', 'incineroar'];
+  const bareEye = hitOnRoll(CESPS, 0.95, 'skittersmack');
+  const eyes = hitOnRoll(CESPS, 0.95, 'skittersmack', { stage: (B) => { B.me.ability = 'compoundeyes'; } });
+  /* And the roll that lands for BOTH, so "Compound Eyes hit" is not "Skitter Smack always hits". */
+  const both = hitOnRoll(CESPS, 0.85, 'skittersmack');
+  return { works: bareEye === 0 && eyes > 0 && both > 0,
+           arms: { control: [bareEye, both], test: [eyes, both] },
+           detail: 'Vivillon Skitter Smack (90 printed) into Garchomp -- at roll 0.95 with no ability '
+                 + bareEye + ', with Compound Eyes ' + eyes + '; at roll 0.85 with no ability ' + both };
 });
 
 probe('move', 'swapsAbilities', 'Skill Swap exchanges the two abilities, and Good as Gold refuses it', () => {

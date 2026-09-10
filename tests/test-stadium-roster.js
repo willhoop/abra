@@ -59,6 +59,11 @@ const NOT_A_CABINET = {
   /* The version is part of the heading, so this entry goes stale on a MODELS.md version bump and
    * check 3 will demand it be re-stated. That is the check working, not a defect here. */
   'Measurement environment, 3.39.0': 'a read-before-quoting preamble about the conditions numbers were measured under, not a component',
+  /* Added 2026-09-09. The heading landed 2026-09-04 (MODELS.md 5.244.0) as the capstone PLACEHOLDER:
+   * it states the model's QUESTION and nothing else, because ALAKAZAM is unbuilt — no artifact, no
+   * decision, no result. A cabinet for it would be a box on the Stadium with nothing inside, and the
+   * day it is built this entry becomes a contradiction check 3 will refuse. */
+  'ALAKAZAM':                 'unbuilt — heading added 2026-09-04 as the capstone placeholder; no artifact, no decision',
   'ROLES':                    'a labelling of teams, consumed by models rather than deciding',
   /* Added 2026-08-13. It is the COMPOSITION of six models that each already have a cabinet — the
    * sentence saying which one runs when. It owns no artifact and decides nothing on its own, and
@@ -204,7 +209,6 @@ const NOT_A_MODEL = {
    *     from its name. The check warns that a wrong declaration stops it asking permanently and
    *     silently, so the evidence is quoted here and the reader can check it in one command. --- */
   'engine/diff_swarm.js':         'a pipeline step, not a model: its own header is "TEAM SELECTION FOR THE WHOLE-GAME DIFFERENTIAL" (ROADMAP #68). It picks which team CONFIGURATIONS the differential plays and fits nothing; its RAW-STORE-OK note says outright that the teams are test inputs and not evidence about play. The claim belongs to the differential it feeds',
-  'engine/leaf_engine_contrast.js': 'a measurement, not a model: its own header asks "DOES A MORE CORRECT ENGINE MAKE BETTER PREDICTIONS?" It scores two ALREADY-FITTED leaves against each other over paired positions and returns a difference with a noise floor. Nothing is fitted here — the models it contrasts each owe their own ledger entry, and this file owes the answer',
   'engine/mega_decision_census.js': 'a feasibility census, not a model: its own header asks "IS \'WHEN DO I MEGA\' A DECISION, AND IS IT FITTABLE?" It exists BEFORE any mega feature is written, to count whether the decision is real and separable — Will, 2026-08-06, "WHAT IF WE ADD MEGA EVOLUTION TO THE MAG WEIGHTS". If a mega model is later fitted, THAT owes docs/MODELS.md an entry and this file stays a census — ROADMAP #31',
   'engine/validate_store.js':     'an auditor, not a model: it hands every stored set to Showdown\'s own TeamValidator and reports which games contain something the format refuses. The judgement is Showdown\'s; this file only classifies the errors it gets back, separating illegality from a partial closed-sheet reveal',
   'build/build_mag_data.js':      'wraps MAGNEMITE\'s weights and priors as data/mag.js; the claim is MAG\'s',
@@ -245,7 +249,6 @@ const NOT_A_MODEL = {
   'engine/recall_at_k.js':           'is MAG good enough to PRUNE — the number the search layer needs about MAG',
   'engine/conformance.js':           'does every file obey the standards the project set itself — a statement about this repository',
   'engine/double_protect.js':        'how often both slots Protect, our bot against humans — a realism diagnostic of our own player',
-  'engine/nmf_rank.py':              'chooses NMF\'s rank by a criterion instead of by eye; a hyper-parameter selection for NMF, which has its own ledger entry',
   'engine/pory_nn.py':               'would a neural network beat counting Pokemon — a negative-result experiment; nothing reads data/pory-nn.json but a human',
   'engine/lookahead_bound.py':       'GATE — is there anything for a search to find; an oracle upper bound on OUR search',
   'engine/lookahead_clock_control.py':'GATE — is the oracle gain information or is it just the clock; the control for the bound above',
@@ -280,7 +283,6 @@ const NOT_A_MODEL = {
    *     statements ABOUT CHAMPIONS, so none of them could be given a truthful entry in this table.
    *     MEASURE closed them the right way, with ledger entries (META-USAGE, PORYGON2, MOVE PRIORS,
    *     SPECIES SETS, COUNTERS), and arm (a) accounts for them now. --- */
-  'engine/click_census.js':          'labels every human action in OUR fit corpus CLEAN / PARTIAL / COERCED / ERASED (docs/CLICK-CENSORING-FIX.md Stage A). A census of what our own data can and cannot see; more games raise its coverage and do not move any claim about the game',
   'engine/em_validation.js':         'plants a known weight vector, censors it the way the real corpus is censored, and asks whether EM recovers it (Stage C). A validation of OUR fitting procedure against a synthetic truth — its own `reading` field says neither number is a win rate or a held-out accuracy',
   /* --- Added 2026-08-05 (docs/MEASURE.md §17). It asks whether two BUILDS OF OUR OWN CODE are the
    *     same function on our own corpus, which is the question that decides whether an artifact
@@ -317,7 +319,18 @@ const NOT_A_MODEL = {
    *     engine/leaf_engine_contrast.js, engine/mega_decision_census.js) are ENGINE's and MEASURE's
    *     and are REPORTED rather than declared here. A wrong declaration is worse than a red row: it
    *     stops the check asking, permanently and silently. --- */
-  'engine/quarantine.js':            'GATE (CLAUDE.md, "EVERYTHING DOWNSTREAM OF MEDICHAM IS QUARANTINED UNTIL MEDICHAM IS CORRECT") — data/quarantine-stamp.json records which of OUR artifacts are downstream of OUR simulator, whether OUR gate is open, and where a withheld figure is still cited. Every field in it is about ABRA\'s own bookkeeping; not one is about Champions, its players or the metagame, and no player, bot or team-builder reads it. Settling question — if the stamp is wrong, the people misled are US, about what we may quote. It is the sibling of engine/provenance.js, which this table has never had to consider only because provenance writes no data/* artifact of its own',
+  /* --- Added 2026-09-09 (docs/_reports/2026-09-09-thesis-quick-items.md §6). Six generators in
+   *     neither file, each settled by this table's own question — "if this number is wrong, who is
+   *     misled?" — and for every one the answer is ONLY US, so each is a pipeline step. The four
+   *     exceptions that used to sit here for leaf_engine_contrast, nmf_rank, click_census and
+   *     quarantine were deleted the same day: docs/MODELS.md now names all four, and check 7 says an
+   *     exception the ledger has overtaken is a contradiction, not a judgement. --- */
+  'build/build_engine_data.js':      'writes data/engine-data-purity.json, a CONFORMANCE receipt for our own generated engine-data.js against its sources (the artifact_audit rule: a derived artifact is not a fact until something compares it to its source). A statement about whether OUR build is pure; nothing about Champions, nobody outside this repository reads it',
+  'engine/bench_speed.js':           'writes data/medicham-speed.json — how many turns per second OUR simulator runs. A cost figure about our instrument, not a claim about the game; if it is wrong, the only people misled are us, about our own budget',
+  'engine/joint_click_census.js':    'a CENSUS read off raw Showdown protocol — its own header: "WHAT A PAIR OF HUMAN CLICKS LOOKS LIKE, AND WHEN A HUMAN LEAVES". Store-derived and upstream of the simulator, like rollout_switch_census.js; it counts what humans did so the empirical driver\'s two declared gaps (no target model, no switch model) can be sized, and it fits nothing',
+  'engine/next_regulation_ingest.js': 'a COLLECTOR, not a model — its own header: "COLLECT THE NEXT REGULATION FROM DAY ONE, WITH NO CODE EDIT". data/next-regulation.json is the receipt of what the six-hourly pull has stored for the format that has not started yet; a corpus-bookkeeping figure about OUR store, and if it is wrong the only people misled are us, about what we collected',
+  'engine/side_selection_census.js': 'a CENSUS of OUR SIMULATOR\'s own source — its own header: "EVERY PLACE THIS ENGINE WRITES DOWN A SIDE, AND WHICH QUESTION IT IS ANSWERING" — ratcheted so a new undeclared site fails by name. It reads code, not games; it asserts nothing about who should be chosen and a model that decided a bring would own its own ledger entry',
+  'engine/smogon_coverage.js':       'writes data/smogon-coverage-2026-08.json — what fraction of the species in OUR corpus the Smogon priors we consume actually cover. A coverage reading of one external input over our own store; the priors themselves are the SMOGON PRIORS ledger entry and this file only measures their reach',
 };
 
 /* MODELS.md headings look like "## NAME — long description (added ...)". Take the part

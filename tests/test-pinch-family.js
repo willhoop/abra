@@ -271,12 +271,31 @@ for (const id of AUTH_PINCH) {
   pinchRows(id, p, BODY_ND3, 'Special');
 }
 
-/* ================= 4. THE POSITIVE CONTROL — the five that already worked ====================== */
+/* ================= 4. THE POSITIVE CONTROL — the ungated members the FORMAT still has ============
+ * 2026-09-09. This clause was RED for one reason that had nothing to do with the consumer: it typed the five
+ * zero-use members by name, and `data/tags.json` is derived over the LEGAL format, so a member with no legal
+ * carrier in Reg M-B (Dragon's Maw, Rocky Payload, Steelworker, Transistor — derived below, never assumed)
+ * is not in the artifact at all. Four of the five were absent for that reason and the ungated set read
+ * `firemane` alone. A hand list of five is the hand-maintained-list failure this repository opens on, so
+ * the expectation is now DERIVED: a historical member must be in ALWAYS iff the format has a legal carrier
+ * for it, and the set must not be empty — a positive control with nobody in it proves nothing. */
 console.log('\n4. THE POSITIVE CONTROL — the ungated members the consumer already served');
-ok('all five 0-use members are still in the ungated set',
-   ['dragonsmaw', 'firemane', 'rockypayload', 'steelworker', 'transistor']
-     .every(x => ALWAYS.some(a => a[0] === x)),
-   'ungated set is: ' + ALWAYS.map(a => a[0]).join(', '));
+{
+  const legalSp = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
+  const carriersOf = abId => dex.species.all().filter(legalSp)
+    .filter(sp => Object.values(sp.abilities).some(a => dex.abilities.get(a).id === abId)).map(sp => sp.name);
+  const HIST = ['dragonsmaw', 'firemane', 'rockypayload', 'steelworker', 'transistor'];
+  const expected = HIST.filter(id => carriersOf(id).length > 0);
+  const absent = HIST.filter(id => carriersOf(id).length === 0);
+  console.log('    historical members with a legal carrier: ' + (expected.join(', ') || '(none)')
+    + '   |   without one (so not in the artifact): ' + (absent.join(', ') || '(none)'));
+  ok('every historical 0-use member the format still carries is in the ungated set, and the set is not empty',
+     ALWAYS.length > 0 && expected.every(x => ALWAYS.some(a => a[0] === x)),
+     'ungated set is: ' + ALWAYS.map(a => a[0]).join(', ') + '   expected: ' + expected.join(', '));
+  ok('a historical member with NO legal carrier is not in the artifact (the artifact is format-filtered)',
+     absent.every(x => !ALWAYS.some(a => a[0] === x) && !TAGSJSON.abilities[x]),
+     'absent: ' + absent.join(', '));
+}
 for (const [id, p] of ALWAYS) {
   /* `damageBoost.onType` IS A LIST FROM 2026-08-27 (Sand Force's handler names three types and the
    * artifact held one). Passing the ARRAY to `hitOfType` looked up a move of type "Fire" spelled as

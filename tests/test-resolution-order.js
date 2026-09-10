@@ -182,11 +182,19 @@ const BREAKS = {
      BOTH EDITS ARE NOW MINIMAL — `,_stepBuffOnHit,` and `_stepSelfPay,` — because the previous two
      re-aims of this file were both caused by an anchor that named a NEIGHBOUR it did not care about.
      Each is verified unique in the engine, which is the exactly-once rule below doing the work. */
+  /* RE-ANCHORED 2026-09-09 (NARRATION BATCH Y). `_stepBuffOnHit` is no longer a member of `_STEPS`: the
+     `DamagingHit` event is walked by `_stepDamagingHitEarly` / `_stepDamagingHitBody`, and the buff is CALLED
+     from the body pass. The old first edit (`,_stepBuffOnHit,` -> `,`) now matches only the knob-restore
+     branch of the step list, which is inert on a clean load, so under the break the buff was paid TWICE --
+     once by the body pass and once by the inserted call -- and the no-secondary CONTROL over-fired on a
+     second `-boost`. The plant did its job. The revert is the same one, moved to where the call now
+     lives: delete the body pass's call, insert the old one at the top of the secondaries step. */
   'buff-above-secondaries': {
     what: 'puts `_stepBuffOnHit` back where it lived until 2026-08-22 — at the top of the secondaries '
         + 'step instead of beside `DamagingHit`. Two edits because the member has to leave one slot '
         + 'and enter another; a one-sided patch would delete the mechanic rather than move it.',
-    edits: [[',_stepBuffOnHit,', ','],
+    edits: [['        if(!R._buffDone){R._buffDone=true;_stepBuffOnHit(R);}   // the ability, undeclared order (a body has one)',
+             '        ;'],
             ['_stepSelfPay,', '_stepSelfPay,_stepBuffOnHit,']] },
 
   /* RE-ANCHORED 2026-08-24. The old anchor was `_arrived.sort((x,y)=>compareEntryOrder(...))` at the

@@ -1,0 +1,27 @@
+{
+  "written": "2026-09-09T23:40:00Z",
+  "by": "ENGINE, narration batch Y, before the release was cut and before engine/game_differential.js ran",
+  "release_previous": "b0f5c159c46e",
+  "previous_artifact": "data/game-differential.json generated 2026-09-09T21:46:58Z: 961 played / 961 readable / 0 void; BOARD-MATERIAL 0 of 961; NARRATION-ONLY 14 raw (clause 13 of 961, 1 closeted) across 14 causes",
+  "pins": "--steering empirical --arm middle --end-state --state --games 1200 --team-store data/team-pool-frozen --turns 50 --census data/verification/census-pin-<live digest>.json",
+  "fixes_in_the_release": [
+    "Future Sight payout into a type-immune collector: -end then -immune, no crit/dmg die (tests/probe_delayed_hit_immune.js, MEDI_DELAYED_HIT_SILENT_IMMUNE) -- targets omit-spread 2657358877 vs 2657413811",
+    "Trick refused by onHit: -fail + [still], and the mega-stone rule is the body's (tests/probe_trick_refusal.js, MEDI_TRICK_REFUSAL_SILENT) -- targets pair-protect-bust 2654619049 vs 2654751965",
+    "end-of-turn replacement queue sorted by the authority's selection sort with the tie die (tests/probe_replacement_tie.js, MEDI_REPLACE_ORDER_STABLE) -- targets pair-protect-bust 2635037737 vs 2635936827",
+    "DamagingHit walked order-1-first then index-major (tests/probe_damaginghit_walk.js, MEDI_DH_STEPS_SPLIT; tag_dex adds punishesAttacker.order / buffsHolderOnHit.order) -- targets baseline 2634643227 vs 2635701832"
+  ],
+  "evidence_in_hand": "each of the four fixes was shown RED on release b0f5c159c46e (its card reproduced line for line in a staged fixture) and green on the live tree; the four pool games themselves were NOT replayed on the fixed bytes before this prediction was written, so a later divergence inside any of them (a transfer) is possible",
+  "prediction": {
+    "games_played": 961,
+    "void_games": { "point": 0, "range": [0, 1], "why": "the Future Sight fix REMOVES two dice the authority never drew, which raises identity; the refill sort ADDS a tie draw only where a tie exists, through the same die the entry pass already spends" },
+    "board_material": { "point": 0, "range": [0, 1], "why": "the DamagingHit restructure moves the frz thaw ahead of an undeclared-order punish on the same body and can move the nth count at _reactAddr when two chance-gated reactors fire on one spread hit; neither shape is expected in the pool but neither is excluded" },
+    "narration_only_raw": { "point": 10, "range": [9, 12], "why": "14 - 4 closed cards; +1 if a fixed game diverges later on something else (a transfer), -1 if a second game shared one of the four mechanisms" },
+    "narration_clause": { "point": 9, "range": [8, 11], "why": "raw less the 1 closeted perish |upkeep| row" },
+    "narration_causes": { "point": 10, "range": [9, 12] }
+  },
+  "scoreboards_named_before_the_run": {
+    "pool": "moves by exactly the four games named above, no more",
+    "census": "must not go down: live 835 rows / 835 live before the batch (830 at HEAD plus five uncommitted screen probes from another agent)",
+    "roster": "unchanged: 0 DIFFER / 0 DID-NOT-FIRE on items, abilities, moves"
+  }
+}

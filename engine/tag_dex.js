@@ -7961,8 +7961,14 @@ const ABILITY_TAGS = [
       const vol = (src.match(/addVolatile\(\s*["'](\w+)["']/) || [])[1] || null;
       /* ROADMAP #101 -- AND WHEN. `when: null` is the honest reading for Stamina, which really has no
        * gate; it is not a "could not read this" placeholder. See hitCondIn. */
+      /* NARRATION BATCH Y, 2026-09-09 -- AND WHERE IN THE EVENT IT RUNS. `runEvent('DamagingHit', ...)` is
+       * sorted by `compareLeftToRightOrder` (sim/battle.ts:789 -> :421): `onDamagingHitOrder` ASC with an
+       * undeclared order LAST, then priority DESC, then target index ASC. A member declaring `order: 1`
+       * therefore runs before EVERY undeclared member on EVERY target, and the engine's step list cannot
+       * place it without the number. Read off the handler's own field; `null` is "undeclared", which is
+       * the authority's default and not a placeholder. Electromorphosis and Wind Power carry 1 here. */
       return { compounds: true, boosts: Object.keys(boosts).length ? boosts : null, gainsVolatile: vol,
-               when: hitCondIn(src) };
+               when: hitCondIn(src), order: a.onDamagingHitOrder != null ? +a.onDamagingHitOrder : null };
     } },
   { tag: 'punishesAttacker', param: 'the ATTACKER pays a flat toll, which does NOT compound', probe: 'punishesAttacker',
     why: 'Rough Skin (3,762) chips, Static/Flame Body/Poison Point status, Cursed Body disables. '
@@ -7996,6 +8002,9 @@ const ABILITY_TAGS = [
       }
       const hazard = (src.match(/addSideCondition\(\s*"(\w+)"/) || [])[1] || null;
       return { compounds: false, trigger,
+               /* NARRATION BATCH Y -- the DamagingHit sort key, see buffsHolderOnHit. Rough Skin, Iron Barbs,
+                * Aftermath and Innards Out carry 1; Static, Flame Body, Spicy Spray and the rest are undeclared. */
+               order: a.onDamagingHitOrder != null ? +a.onDamagingHitOrder : null,
                onFaintOnly: /!target\.hp\b/.test(src) || null,
                requiresForme: formes ? formes.split(',').map(s => s.trim().replace(/["']/g, '')).filter(Boolean) : null,
                inflicts: statusIn(src),

@@ -1,10 +1,10 @@
 {
-  "current": "b0f5c159c46e",
-  "cut": "2026-09-09T18:49:11.654Z",
-  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 48,
-  "latest_cut": "2026-09-09T22:18:21.446Z",
+  "current": "7d66b526659e",
+  "cut": "2026-09-09T23:38:55.328Z",
+  "why": "narration batch Y: Future Sight immune payout, Trick refusal, replacement-queue tie, DamagingHit walk order",
+  "cuts": 32,
+  "latest_cut": "2026-09-10T00:32:27.626Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-09T22:18:21.465Z",
+  "pointer_written": "2026-09-10T00:32:27.644Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

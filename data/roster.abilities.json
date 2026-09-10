@@ -1,17 +1,17 @@
 {
- "generated": "2026-09-09T21:42:27.825Z",
+ "generated": "2026-09-09T23:41:03.402Z",
  "by": "tests/roster.js",
  "stage": "abilities",
  "swap_leaf_correction": {
   "self_describing_dropped": 5344,
   "real_ability_rewrite_kept": 48
  },
- "engine_release": "b0f5c159c46e",
- "engine_release_cut": "2026-09-09T18:49:11.654Z",
- "engine_release_cuts": 17,
+ "engine_release": "7d66b526659e",
+ "engine_release_cut": "2026-09-09T23:38:55.328Z",
+ "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "9425672e294d",
+  "engine/medicham2-browser.js": "6b7a4610050f",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "622482051bf4",
@@ -31,8 +31,8 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "3c733e7a0bfb",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "01acc1099ee8",
-  "data/tags.json": "30ce4b64c9eb",
+  "data/abra-tags.js": "44fd45e9e9ce",
+  "data/tags.json": "01aa85bf4e7f",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
@@ -55,11 +55,11 @@
  },
  "scope": {
   "total": 316,
-  "out_of_scope": 114,
+  "out_of_scope": 115,
   "out_of_scope_by": {
-   "no-legal-carrier": 114
+   "no-legal-carrier": 115
   },
-  "in_scope": 202,
+  "in_scope": 201,
   "tested": 139,
   "matched": 139,
   "differ": 0,
@@ -83,7 +83,7 @@
    "superluck"
   ],
   "declared_untestable": [],
-  "could_not_stage_in_scope": 44,
+  "could_not_stage_in_scope": 43,
   "attributed_by_second_control": [
    "adaptability",
    "aftermath",
@@ -191,10 +191,20 @@
    "trace",
    "vitalspirit",
    "weakarmor"
-  ]
+  ],
+  "carrier_derivation": {
+   "legal_species": 347,
+   "legal_species_predicate": "exists && !isNonstandard && tier !== \"Illegal\"",
+   "mega_formes_included": 72,
+   "battle_only_formes_included": 83,
+   "ability": "a legal species with the ability in any slot",
+   "move": "a legal species whose learnset (prevo chain + base forme, as learnsMove walks it) lists it; Struggle is carried by every legal species because the authority assigns it without a learnset",
+   "item": "a mega stone by its base species; an itemUser item by one of its users; any other item by any legal species",
+   "format": "gen9championsvgc2026regmb"
+  }
  },
  "plant_anchors": {
-  "release": "b0f5c159c46e",
+  "release": "7d66b526659e",
   "checked": 44,
   "dead": [],
   "reds_ran": true
@@ -5355,32 +5365,6 @@
      "without": 0
     }
    ],
-   "diffs": []
-  },
-  {
-   "kind": "ability",
-   "id": "guarddog",
-   "name": "Guard Dog",
-   "rule": "ability/refuses-a-forced-switch",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "no carrier this rule can use exists. Every species with it: none. Of those, NONE are legal, buildable and have a second ability to control with — and the shortfall is already there, before this rule's own condition (can be put on the field with a second ability to control it with).",
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": null,
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [],
    "diffs": []
   },
   {

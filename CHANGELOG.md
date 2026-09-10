@@ -10,6 +10,90 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.277.0] — 2026-09-09
+
+### Added
+- **The screens half of `ignoresScreensAndSubs` has an instrument.** Four paired census rows — Reflect,
+  Light Screen, Aurora Veil and Safeguard, each with and without Infiltrator — and one for Compound Eyes'
+  to-hit roll, each with an official-simulator arm (`tests/probe_screens_infiltrator.js`, 15 of 15; 28
+  derived legality facts). Census 830 → 835 probed / 835 live / 835 armed / 0 missing
+  (`data/mechanics-census.json`). On both engines the screened number is the authority's own
+  `modify(control, [2732, 4096])` and the Infiltrator arm equals the control. The regulation has FOUR
+  screens — Mist is `Past` — derived, not typed. No engine edit (`docs/_reports/2026-09-09-screen-probes.md`).
+- `docs/ROADMAP.md` #556–#560: the raw shard cap (closed); 41 tags with a parameter half no census row
+  mentions plus `refusesCopy` with none (open, ENGINE, lab tail); two store rows with U+FFFD in `|win|`,
+  194 raw logs / 496 U+FFFD in nicknames from the same fetch defect (open, OPS); a Trick `-fail` this
+  engine never announces, the one live cause in `engine/gate_fail_and_silent.js` (open, ENGINE narration;
+  #241's class re-populated by one); and the Infiltrator screens hole (closed — it never had a row).
+  #555 closed.
+
+### Changed
+- **`tests/roster.js` decides scope by legal carrier before any shape rule runs**, for abilities, moves
+  and items alike, through one resolver over the 347 legal species (72 mega and 83 battle-only formes
+  included); the artifact carries `scope.carrier_derivation`. Abilities out of scope 114 → 115, in scope
+  202 → 201, could-not-stage 44 → 43; moves out of scope 0 → 2, in scope 500 → 498, could-not-stage
+  10 → 8; items unmoved at 148 in scope / 142 tested / 6 could-not-stage; tested 139 / 487 / 142 unmoved,
+  zero DIFFER, zero DID-NOT-FIRE, release `b0f5c159c46e` (#555;
+  `docs/_reports/2026-09-09-roster-scope-by-carrier.md`). The 43 + 14 + 5 the abilities SCOPE line still
+  prints all have legal carriers — the lab tail, carried not removed.
+- `engine/gate_fail_and_silent.js`: `PIN` re-seeded 30 → 1 on the reproducible pinned sample (census
+  `098de5770623` / pool `0d103fb9fa87` / 961 games); exit 3 REGRESSION is reachable again; verdict
+  unchanged at LIVE, exit 1, one cause; `--selftest` 23/0.
+- Local `data/games.ladder.jsonl` reconciled from the tracked shards, 92,379 → 92,431 rows;
+  `tests/test-workflow-paths.js` 5/1 → 6/0. Observed: 92,431 parsed rows against 84,832 raw logs — 7,599
+  ladder rows have no raw log.
+
+- **Gate artifacts re-measured on release `7d66b526659e`**: `data/game-differential.json` `state.games` 961,
+  `state.games_board_never_diverged` 961, `state.games_void_excluded` 0, `mid_void.diverged_among_usable` 10 —
+  BOARD-MATERIAL 0 of 961 with 0 void; NARRATION ~~13 of 961, 14 causes~~ → 9 of 961 across 10 causes after
+  the one closeted row; 8 of 9 clauses PASS. `data/all-mechanics-fire.json` re-run on the same release with
+  the regenerated census pinned: 1313 games / 0 threw / 0 sheets unassembled; abilities 316 / 104 fired /
+  1 diverged, items 148 / 64 / 0, moves 495 resolved / 4 diverged / 4 announcement-only, field for field.
+  `engine/gate_fail_and_silent.js` exit 0 CLEAN. `tests/test-pinch-family.js` derives its positive control
+  from the format; `tests/test-counter-init.js` green (two MEDFAILS fields declared).
+- `docs/ROADMAP.md` #559 closed (batch Y's Trick `-fail`); #561 filed and closed (the `trickSwapsItems`
+  fixture); #562 open (Future Sight's payout draws no `acc` die where the authority draws one on a printed
+  100 — a die-count gap, not a board one).
+
+### Fixed
+- **`build/compress-stores.js --raw` caps a raw shard at the same 32 MiB of source as the parsed
+  writer** and splits into numbered shards; before, one run wrote one shard of any size, and the first
+  full-archive run wrote `data/raw/games.ladder/20260909T2052-00.jsonl.gz` at 58,753,177 B (56.03 MiB)
+  from 411,333,183 B / 76,741 logs — over GitHub's 50 MB warning, under the 100 MB wall, kept because
+  history is never rewritten. Red on a scratch copy (1 shard from 36.6 MiB) then green (2 shards,
+  32.00 + 4.61 MiB, `--restore-raw` sha256-identical). Growth budget at 176 games/h: ~135 KB per hourly
+  shard, 24 a day, cap reached only at 6,260 logs in one run, worst case 33.6 MB
+  (`docs/_reports/2026-09-09-raw-shard-cap.md`).
+- Imprison and Memento no longer THREW on the roster — a self-KO is clicked once, and the foes of a
+  move-sealing self volatile carry a click the user does not know. Both were fixture faults; both
+  FIRED-AND-BOARDS-MATCH.
+- `tests/test-stadium-roster.js` green: ALAKAZAM declared, six pipeline generators declared, four
+  overtaken exceptions removed.
+
+- **Narration batch Y — four causes closed in `engine/medicham2-browser.js`, each shown red on the pre-fix
+  bytes (`b0f5c159c46e`) first** (`docs/_reports/2026-09-09-narration-batch-Y.md`). A Future Sight that came
+  due on a body immune to its type priced it, spent two dice and wrote nothing; it writes the condition's
+  `-end` and the target's `-immune` and spends no die. Trick refused by its own `onHit` (a stone on the body
+  it belongs to, on either side or as the receiver; two empty hands) `continue`d in silence or announced a
+  swap of nothing; it fails with `[still]`, and a foreign stone swaps (`stoneRefusesBody`; closes #559). Two
+  corpses on equal raw Speed refilled in side order; the replacement queue now goes through the selection
+  sort and tie die the entry pass uses (`entrySpeedSort`). A spread hit's `DamagingHit` handlers ran
+  step-major; they run order-1-first then by target index, and the tags carry `onDamagingHitOrder`.
+- **`tests/test-mechanics.js` `trickSwapsItems` pinned the coarse stone guard the authority refutes** — its
+  third arm staged a Gengarite on a Milotic and asserted Trick moves nothing. The holder is now derived from
+  `data/tags.json` `megaStone.into` (a Gengar) and the foreign-stone case is the control that swaps. Census
+  ~~835 probed / 834 live / 1 missing~~ → 835 / 835 / 0 (`data/mechanics-census.json`), no engine change
+  (#561; `docs/_reports/2026-09-10-close-wave2.md`).
+
+### Notes
+- MINOR: the census and roster scope figures moved under an unchanged basis.
+- Narration batch Y (simulator, probes, gate artifacts) and its re-measurement join this entry in the
+  same release, landed by the coordinator when the batch reports. Nothing in this record-keeping pass
+  played a game.
+- Not run in this pass: `node engine/status.js --write`, `tests/run-all.js`, any differential; the
+  generated ledger blocks are stamped to an earlier pass.
+
+
 ## [5.276.0] — 2026-09-09
 
 ### Added
