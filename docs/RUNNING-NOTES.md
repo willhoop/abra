@@ -69,6 +69,24 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [6.0.2] — 2026-09-10 — the release 6.0.0 measured against was not in the repository
+
+- **What changed.** `git add -f data/releases/cbd510bc2b13` — 29 files, 6.8 MB. Before this commit
+  `git ls-files data/releases/cbd510bc2b13` returned **0** while `data/game-differential.json` and
+  `docs/MODELS.md`'s 6.0.0 headline both cite that id by name. From a fresh clone the evidence chain
+  for BOARD-MATERIAL 0 of 961 ended at a twelve-character id, and CLAUDE.md's claim that a stamped
+  release is "the first thing in this repo that can be VERIFIED rather than assumed" held only on one
+  laptop.
+- **Measured.** 29 files tracked, previously 0. 30 of 645 release directories are tracked; the rest are
+  intentionally not, but a release a PUBLISHED FIGURE cites is not optional.
+- **Supersedes.** Nothing. No figure moves — the bytes were always on disk; they were not in the repo.
+- **Basis.** unchanged.
+- **Owed to the next major.** None. **But the enforcing check is still owed**: this is the SECOND
+  occurrence. `b730e44f3314` was force-added after the 2026-09-09 architecture review found the same
+  defect, and the clause in `engine/provenance.js` that would FAIL on a cited-but-untracked release was
+  never written — so it recurred on the very next release, which is the one 6.0.0 shipped against.
+  Found by the review-extraction pass, not by any instrument.
+
 ## [6.0.1] — 2026-09-10 — the white paper PDF is rebuilt after a quotation was corrected to its real date
 
 - **What changed.** `docs/ABRA-whitepaper.pdf` rebuilt (2,760 KB) by `node build/build_pdfs.js`, which
