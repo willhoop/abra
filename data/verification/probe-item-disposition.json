@@ -1,0 +1,993 @@
+{
+ "generated": "2026-09-10T09:03:34.663Z",
+ "what": "the wrong_if falsification for the item-disposition leaf — raw `lastItem`/`ateBerry` from both engines",
+ "removal_arms_parting": 0,
+ "consumption_arms_parting": 0,
+ "verdict": "SURVIVED — no removal path writes the field",
+ "arms": [
+  {
+   "id": "ko-leftovers",
+   "kind": "REMOVAL",
+   "why": "Knock Off takes an inert item — the row's own wrong_if",
+   "expect": "neither engine writes either field",
+   "err": null,
+   "bodies": {
+    "p1": {
+     "medi": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "sd": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "match": true,
+     "boundaries": [
+      {
+       "b": 0,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 1,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 2,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 3,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      }
+     ]
+    },
+    "p2": {
+     "medi": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "sd": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "match": true,
+     "boundaries": [
+      {
+       "b": 0,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 1,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 2,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 3,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "ko-colbur",
+   "kind": "CONSUMPTION",
+   "why": "the published knock_off_roadmap_80 arm — Colbur resists the Dark move and is EATEN inside the damage calculation, so Knock Off never gets to take it",
+   "expect": "BOTH engines write colburberry / ate",
+   "err": null,
+   "bodies": {
+    "p1": {
+     "medi": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "sd": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "match": true,
+     "boundaries": [
+      {
+       "b": 0,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 1,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 2,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 3,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      }
+     ]
+    },
+    "p2": {
+     "medi": {
+      "lastItem": "colburberry",
+      "ateBerry": true
+     },
+     "sd": {
+      "lastItem": "colburberry",
+      "ateBerry": true
+     },
+     "match": true,
+     "boundaries": [
+      {
+       "b": 0,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 1,
+       "medi": {
+        "lastItem": "colburberry",
+        "ateBerry": true
+       },
+       "sd": {
+        "lastItem": "colburberry",
+        "ateBerry": true
+       }
+      },
+      {
+       "b": 2,
+       "medi": {
+        "lastItem": "colburberry",
+        "ateBerry": true
+       },
+       "sd": {
+        "lastItem": "colburberry",
+        "ateBerry": true
+       }
+      },
+      {
+       "b": 3,
+       "medi": {
+        "lastItem": "colburberry",
+        "ateBerry": true
+       },
+       "sd": {
+        "lastItem": "colburberry",
+        "ateBerry": true
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "ko-sitrus",
+   "kind": "REMOVAL",
+   "why": "Sitrus is `onUpdate` and tests hp <= maxhp/2 AFTER the hit, by which time the item is already gone — a removal that a careless model records as an eat",
+   "expect": "neither engine writes either field",
+   "err": null,
+   "bodies": {
+    "p1": {
+     "medi": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "sd": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "match": true,
+     "boundaries": [
+      {
+       "b": 0,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 1,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 2,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 3,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      }
+     ]
+    },
+    "p2": {
+     "medi": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "sd": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "match": true,
+     "boundaries": [
+      {
+       "b": 0,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 1,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 2,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 3,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "eat-sitrus",
+   "kind": "CONSUMPTION",
+   "why": "THE CONTROL. The same berry on the same body, crossed below half by a move that does not strip. If this arm does not write on both engines the fixture is broken and every other row here is unreadable.",
+   "expect": "BOTH engines write sitrusberry / ate",
+   "err": null,
+   "bodies": {
+    "p1": {
+     "medi": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "sd": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "match": true,
+     "boundaries": [
+      {
+       "b": 0,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 1,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 2,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 3,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      }
+     ]
+    },
+    "p2": {
+     "medi": {
+      "lastItem": "sitrusberry",
+      "ateBerry": true
+     },
+     "sd": {
+      "lastItem": "sitrusberry",
+      "ateBerry": true
+     },
+     "match": true,
+     "boundaries": [
+      {
+       "b": 0,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 1,
+       "medi": {
+        "lastItem": "sitrusberry",
+        "ateBerry": true
+       },
+       "sd": {
+        "lastItem": "sitrusberry",
+        "ateBerry": true
+       }
+      },
+      {
+       "b": 2,
+       "medi": {
+        "lastItem": "sitrusberry",
+        "ateBerry": true
+       },
+       "sd": {
+        "lastItem": "sitrusberry",
+        "ateBerry": true
+       }
+      },
+      {
+       "b": 3,
+       "medi": {
+        "lastItem": "sitrusberry",
+        "ateBerry": true
+       },
+       "sd": {
+        "lastItem": "sitrusberry",
+        "ateBerry": true
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "sash-used",
+   "kind": "CONSUMPTION",
+   "why": "the `useItem` family. Showdown writes `lastItem` at sim/pokemon.ts:1846; medicham2 spends the Sash through `_sv.consumesItem` and writes no field at all",
+   "expect": "the authority writes focussash / --, and this engine writes nothing",
+   "err": null,
+   "bodies": {
+    "p1": {
+     "medi": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "sd": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "match": true,
+     "boundaries": [
+      {
+       "b": 0,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 1,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 2,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 3,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      }
+     ]
+    },
+    "p2": {
+     "medi": {
+      "lastItem": "focussash",
+      "ateBerry": false
+     },
+     "sd": {
+      "lastItem": "focussash",
+      "ateBerry": false
+     },
+     "match": true,
+     "boundaries": [
+      {
+       "b": 0,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 1,
+       "medi": {
+        "lastItem": "focussash",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "focussash",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 2,
+       "medi": {
+        "lastItem": "focussash",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "focussash",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 3,
+       "medi": {
+        "lastItem": "focussash",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "focussash",
+        "ateBerry": false
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "trick-swap",
+   "kind": "REMOVAL",
+   "why": "a SWAP — `takeItem` then `setItem` on both bodies",
+   "expect": "neither engine writes either field on either body",
+   "err": null,
+   "bodies": {
+    "p1": {
+     "medi": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "sd": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "match": true,
+     "boundaries": [
+      {
+       "b": 0,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 1,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 2,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 3,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      }
+     ]
+    },
+    "p2": {
+     "medi": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "sd": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "match": true,
+     "boundaries": [
+      {
+       "b": 0,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 1,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 2,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 3,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "thief-steal",
+   "kind": "REMOVAL",
+   "why": "a removal where the item MOVES to the attacker",
+   "expect": "neither engine writes either field on either body",
+   "err": null,
+   "bodies": {
+    "p1": {
+     "medi": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "sd": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "match": true,
+     "boundaries": [
+      {
+       "b": 0,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 1,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 2,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 3,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      }
+     ]
+    },
+    "p2": {
+     "medi": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "sd": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "match": true,
+     "boundaries": [
+      {
+       "b": 0,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 1,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 2,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 3,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "eat-then-switch",
+   "kind": "CONSUMPTION",
+   "why": "the berry is eaten and the body then LEAVES. Both engines must still hold the record on the benched body — neither `clearVolatile` nor a medicham2 switch-out may drop it.",
+   "expect": "BOTH engines hold sitrusberry / ate on the BENCHED Gengar",
+   "err": null,
+   "bodies": {
+    "p1": {
+     "medi": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "sd": {
+      "lastItem": "",
+      "ateBerry": false
+     },
+     "match": true,
+     "boundaries": [
+      {
+       "b": 0,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 1,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 2,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 3,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      }
+     ]
+    },
+    "p2": {
+     "medi": {
+      "lastItem": "sitrusberry",
+      "ateBerry": true
+     },
+     "sd": {
+      "lastItem": "sitrusberry",
+      "ateBerry": true
+     },
+     "match": true,
+     "boundaries": [
+      {
+       "b": 0,
+       "medi": {
+        "lastItem": "",
+        "ateBerry": false
+       },
+       "sd": {
+        "lastItem": "",
+        "ateBerry": false
+       }
+      },
+      {
+       "b": 1,
+       "medi": {
+        "lastItem": "sitrusberry",
+        "ateBerry": true
+       },
+       "sd": {
+        "lastItem": "sitrusberry",
+        "ateBerry": true
+       }
+      },
+      {
+       "b": 2,
+       "medi": {
+        "lastItem": "sitrusberry",
+        "ateBerry": true
+       },
+       "sd": {
+        "lastItem": "sitrusberry",
+        "ateBerry": true
+       }
+      },
+      {
+       "b": 3,
+       "medi": {
+        "lastItem": "sitrusberry",
+        "ateBerry": true
+       },
+       "sd": {
+        "lastItem": "sitrusberry",
+        "ateBerry": true
+       }
+      }
+     ]
+    }
+   }
+  }
+ ]
+}

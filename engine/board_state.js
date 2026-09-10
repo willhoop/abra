@@ -85,37 +85,27 @@ const NOT_COMPARED = [
     /* NO LEAF IN THE AUTHORITY'S VOCABULARY: Showdown holds this as `pokemon.trapped`, a boolean
      * recomputed when a request is built, and not as a volatile / side / slot / pseudo condition. */
     leaves: [] },
-  /* ---- THE REASON ON THIS ROW WAS FALSE, AND IT IS CORRECTED HERE RATHER THAN DELETED (2026-08-28).
-   * It read: *"medicham2 has no `lastItem` and no `ateBerry`: once an item is gone the body records
-   * only that it is gone."* THE ENGINE HAS HELD BOTH SINCE ROADMAP #128. `consumeBerry` writes
-   * `m._lastItem` and `m._ateBerry` on the same two lines (engine/medicham2-browser.js:8786-8787),
-   * the per-turn reset deliberately does NOT clear them (:20425, "Harvest and Cud Chew are about what
-   * the body spent, not about when"), and a berry-gated move's fix landed on that exact latch tonight.
-   * The declaration outlived what it described, which is this repository's most expensive recurring
-   * failure and the one `NOT_COMPARED` exists to prevent — so the row now says what is true today and
-   * what would make the NEW reason wrong.
+  /* ---- ITEM DISPOSITION IS NOW COMPARED, AND THIS ROW RECORDS WHAT IT COST TO GET THERE.
    *
-   * A DECLARATION IS ONLY AS GOOD AS ITS MECHANISM. The mechanism is gone, so this is no longer a
-   * justified omission: it is a CANDIDATE that has not been wired. It stays listed — an unlisted
-   * omission reads as agreement — with the honest label. */
-  { field: 'item DISPOSITION (eaten vs knocked off vs used) — `lastItem` / `ateBerry`',
-    why: 'BOTH ENGINES HOLD IT AND NOTHING COMPARES IT. medicham2 writes `_lastItem` and `_ateBerry` '
-       + 'in `consumeBerry` (medicham2-browser.js:8786-8787) and does not clear them at the turn reset '
-       + '(:20425); Showdown writes `lastItem`/`ateBerry` in `eatItem` (sim/pokemon.ts:1805-1809) and '
-       + '`lastItem` in `useItem` (:1846). THE TWO WRITE SITES LINE UP: `takeItem` (sim/pokemon.ts:'
-       + '1856-1870, the Knock Off / Thief / Trick path) writes NEITHER field, which is the same '
-       + 'narrowing medicham2 makes deliberately, so wiring this would NOT part every knocked-off item. '
-       + 'The current item IS compared, which is the fact that changes damage and speed.',
-    status: 'CANDIDATE — comparable, not compared. The reason it was left out no longer exists.',
-    cost: 'it would part exactly the boards where the two engines disagree about eaten-vs-taken, which '
-        + 'is a PUBLISHED finding rather than a hypothesis (data/game-differential.json '
-        + 'knock_off_roadmap_80: Showdown records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED OFF). '
-        + 'So the expected effect is NOT zero and it must be measured before it is landed.',
-    wrong_if: 'a path in either engine writes the field on a REMOVAL rather than on a consumption — '
-        + 'then the two shapes diverge on bookkeeping and the leaf would manufacture divergences. '
-        + 'Falsified by a staged Knock Off with both fields printed side by side.',
-    read_by: 'Harvest, Recycle, Belch, Cud Chew and Unburden.',
-    leaves: [] },
+   * IT WAS DECLARED FALSELY FIRST (until 2026-08-28) -- *"medicham2 has no `lastItem` and no
+   * `ateBerry`"* -- when the engine had held both since ROADMAP #128. Corrected then to a CANDIDATE,
+   * and WIRED on 2026-09-10 after its own `wrong_if` was staged and survived. The leaf is
+   * `last_item` / `ate_berry` in `mediBody` and `sdBody`; the reasoning lives beside it there.
+   *
+   * TWO THINGS THIS ROW GOT WRONG, BOTH KEPT RATHER THAN QUIETLY DELETED:
+   *
+   *   - its `cost` clause cited `knock_off_roadmap_80`'s verdict -- *"Showdown records Colbur as
+   *     EATEN BY ITSELF, medicham2 as KNOCKED OFF"* -- as a PUBLISHED finding. That sentence is
+   *     STALE and the same artifact's own arms block already contradicted it: both engines emit
+   *     `[eat]` then `[weaken]` on the Colbur arm, and the probe reads `colburberry/ate` on both.
+   *     The predicted effect was real and it came from somewhere else entirely.
+   *   - its `wrong_if` named only ONE way the two write-site sets could fail to line up -- a REMOVAL
+   *     writing the field. The other direction, a CONSUMPTION one engine records and the other does
+   *     not, is what was actually there: the authority's `useItem` family (White Herb, Mental Herb,
+   *     Focus Sash in this regulation, plus Fling's own condition) wrote `lastItem` and medicham2
+   *     had no `useItem` door at all. Fixed in the same pass; the leaf is what found it.
+   *
+   * A wired leaf keeps no row here. The next entry down is the next omission. */
   /* PP WAS HERE AND IS NOW COMPARED. The entry read "medicham2 does not track PP at all", which was
    * true when it was written and stopped being true at ROADMAP #144 — the engine has held a full `_pp`
    * map, `ppMax`/`ppLeft`/`ppDeduct` and four counters since. The declaration outlived what it
@@ -953,6 +943,33 @@ function mediBody(m, id, ctx) {
      * empties the slot AND the park, so a knocked-off item reads `""` on both sides. The two states
      * this leaf could not previously tell apart are exactly the two ROADMAP #462 is about. */
     item: id(m.item || m._roomItem || ''),
+    /* ---- ITEM DISPOSITION, 2026-09-10 -- WIRED AFTER ITS OWN `wrong_if` WAS RUN AND SURVIVED ------
+     *
+     * This sat in `NOT_COMPARED` as a CANDIDATE whose row named the one thing that would refuse it:
+     * *"a path in either engine writes the field on a REMOVAL rather than on a consumption -- then the
+     * two shapes diverge on bookkeeping and the leaf would MANUFACTURE divergences."*
+     *
+     * `tests/probe_item_disposition.js` STAGED THAT AND IT SURVIVED. Four removal arms -- Knock Off
+     * against an inert Leftovers, Knock Off against a Sitrus (taken before its `onUpdate` can see the
+     * HP), Trick, Thief -- read `-/--` on BOTH engines. It is also what the source says: Showdown's
+     * `takeItem` (sim/pokemon.ts:1856-1870) writes neither field, and gen 9 has exactly THREE write
+     * sites (`eatItem` :1805 and :1809, `useItem` :1846; the `battle-actions.ts:128` carry is
+     * `gen <= 4` and cannot fire here).
+     *
+     * AND THE PROBE ASKED THE CONVERSE, WHICH THE ROW DID NOT. A row that only checks "does a removal
+     * write it" cannot see the other way two write-site sets fail to line up -- a CONSUMPTION one
+     * engine records and the other does not. The authority's `useItem` family is legal in this
+     * regulation for exactly three items (White Herb, Mental Herb, Focus Sash; every other carrier is
+     * `isNonstandard: 'Past'`) plus Fling's own condition, and medicham2 recorded none of them until
+     * the same pass that wired this leaf. That is an ENGINE defect this leaf REVEALS, and narrowing
+     * the leaf to stop seeing it would be closing an instrument rather than fixing a defect.
+     *
+     * `_lastItem` and `_ateBerry` are medicham2's own names for `Pokemon#lastItem` and
+     * `Pokemon#ateBerry` -- its header block says so at the `consumeBerry` door. Neither engine clears
+     * either field at a turn reset or across a switch-out, so the leaf is compared on a BENCHED body
+     * too; the probe's `eat-then-switch` arm reads both engines' benched Gengar and they agree. */
+    last_item: id(m._lastItem || ''),
+    ate_berry: m._ateBerry ? 1 : 0,
     /* ---- ROADMAP #225 -- TYPING AND ABILITY, AND THEIR ABSENCE MADE THE COMPARISON UNABLE TO SEE
      * THE WORST DEFECT WE HAVE FOUND. ------------------------------------------------------------
      *
@@ -1329,6 +1346,11 @@ function sdBody(p, id, ctx) {
                   : (p.status === 'slp' ? sleptTurns(p.statusState)
                   : (p.status === 'frz' ? frozenTurns(p.statusState) : 0)),
     item: id(p.item || ''),
+    /* THE AUTHORITY'S SIDE OF ITEM DISPOSITION. Raw fields on both sides -- nothing is recomputed
+     * here, so a disagreement is the engines' and never this reader's. See mediBody for the
+     * falsification that had to survive before either half was wired. */
+    last_item: id(p.lastItem || ''),
+    ate_berry: p.ateBerry ? 1 : 0,
     /* ROADMAP #225 -- the authority's side of the same two leaves. `getTypes()` is the METHOD, not
      * the species default: it answers what the body is RIGHT NOW, after a mega, a Protean or a Soak,
      * which is exactly the question. `ability` is the live slot, so Skill Swap and Trace show. */

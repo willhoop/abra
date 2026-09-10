@@ -139,10 +139,10 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  835/835 probed mechanics live, 0 missing   (census 2026-09-10 02:56)
+  835/835 probed mechanics live, 0 missing   (census 2026-09-10 05:11)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 1.7 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-10 02:59)
+    never fired in the staged harness (all-mechanics-fire.json, 14 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-10 05:53)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -164,9 +164,91 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-10 04:41_
+_stamped 2026-09-10 06:08_
 
 <!-- /GENERATED -->
+
+## THE BOARD COMPARES ITEM DISPOSITION NOW, AND THE FIRST RUN WITH IT PARTED **192 OF 961** — BECAUSE THIS ENGINE HAD NO `useItem` DOOR AND NEVER RECORDED A SPENT ITEM. FIXED IN THE SAME PASS: **192 → 0 OF 961** ON THE SAME SAMPLE. CORNER ARMS UNMOVED AT **16** AND **15 OF 961**, CENSUS **835 LIVE / 0 MISSING**, GATE **OPEN, 9 OF 9 PASS**. RELEASE `cbd510bc2b13`. 2026-09-10, CHANGELOG 5.283.0
+
+Full account, every flag and every pin:
+[docs/_reports/2026-09-10-item-disposition-leaf.md](_reports/2026-09-10-item-disposition-leaf.md).
+ROADMAP #573 filed and unfixed.
+
+**THE `wrong_if` WAS RUN FIRST AND IT SURVIVED.** The `NOT_COMPARED` row named what would refuse the
+wire — *"a path in either engine writes the field on a REMOVAL rather than on a consumption — then the
+two shapes diverge on bookkeeping and the leaf would MANUFACTURE divergences"* —
+and `tests/probe_item_disposition.js` staged it. Four REMOVAL arms (Knock Off against an inert
+Leftovers; Knock Off against a Sitrus, taken before its `onUpdate` can see the HP; Trick; Thief) read
+`-/--` on BOTH engines. So does the source: gen 9 Showdown has exactly THREE write sites —
+`eatItem` (`sim/pokemon.ts:1805` `lastItem`, `:1809` `ateBerry`) and `useItem` (`:1846`, `lastItem`
+alone) — and `takeItem` (`:1856-1870`) is not one of them; the `battle-actions.ts:128` carry is
+guarded on `gen <= 4`.
+
+**THE ROW ASKED ONE OF THE TWO DIRECTIONS, AND THE OTHER ONE IS WHAT WAS THERE.** A CONSUMPTION that
+one engine records and the other does not parts a board exactly as hard as a removal would. The
+authority's `useItem` family, derived over the format: **White Herb, Mental Herb, Focus Sash** are the
+whole legal population (every other carrier — Booster Energy, Room Service, Weakness Policy, Air
+Balloon, Power Herb, the Eject items, the type gems — is `isNonstandard: 'Past'`), plus **Fling**,
+whose own condition writes the same two fields directly. medicham2 recorded **none** of them:
+`_lastItem` was written in `consumeBerry` and nowhere else, so Recycle could give back a berry and
+never a spent Sash.
+
+**MEASURED IN TWO STAGES SO THE EFFECT IS ATTRIBUTABLE TO THE LEAF ALONE.** BOARD-MATERIAL is
+`state.games` less `state.games_board_never_diverged`; flags `--games 1200 --turns 50 --arm middle
+--steering empirical --end-state --team-store data/team-pool-frozen`, 961 games played.
+
+| stage | release | board-material | families |
+|---|---|---|---|
+| leaf wired, engine UNFIXED | `8ac9c4d888f1` | **192 of 961** | `active[].last_item` and nothing else |
+| leaf wired, engine FIXED | `ea3fead04c70` | **0 of 961** | none |
+
+The two are the SAME sample, proved rather than assumed: identical `first_divergences` head,
+identical `coverage` block, identical `classes`. `ate_berry` contributed **zero** at both stages — the
+berry road already agreed, including on a BENCHED body after a switch-out, which an actives-only
+reader could not have seen. Predicted in writing beforehand at 250 in a 100–450 interval
+(`data/verification/_prediction-2026-09-10-item-disposition.json`).
+
+**THE PROBE WAS WRONG TWICE BEFORE THE ENGINE WAS**, both caught by printing rather than reasoning:
+the first run read `-/--` in all sixteen cells because the target's first click was `Protect`, so
+Knock Off never landed — identical output across a varied knob is an unwired knob; and the bench arm
+asked for a switch to a body that was already standing in the partner slot, which Showdown rejected.
+
+**THE FIX IS ONE DOOR AND IT RECORDS WITHOUT ANNOUNCING.** `recordItemUsed(m, itemId)` sits beside
+`consumeBerry` and writes `_lastItem` and `_usedItemThisTurn` — never `_ateBerry`, because nothing was
+eaten, which is the authority's own split. Six call sites, two of which cannot fire in this regulation
+and are kept correct rather than deleted. Each caller keeps its own `-enditem` line and its own
+measured line ORDER; folding six orderings into one door in the same pass as a state fix is how a
+refactor eats a fix. `MEDSEEN.itemUsedRecorded` reads `0 → 1` on one staged Focus Sash, with
+`MEDFAILS.itemUsedWithNoId` at 0 — **read through `REL.require`, because a first check read `0 → 0`
+off the LIVE module while the run was playing the release snapshot's bytes.**
+
+**A PUBLISHED VERDICT THAT ITS OWN ARMS CONTRADICTED.** `knock_off_roadmap_80.verdict` ended *"What
+differs is the item DISPOSITION: Showdown records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED
+OFF."* Both engines emit `[eat]` then `[weaken]` on that arm in the same artifact, and the probe reads
+`colburberry/ate` off both. The sentence had been quoted verbatim into `board_state.js` as a PUBLISHED
+FINDING and was used to price this batch; **the prediction it produced was right by accident** — the
+192 games came from the Focus Sash and from no berry at all. Corrected in
+`engine/game_differential.js` with the record of what it said. The row's line citations
+(`:8786-8787`, `:20425`) were also stale by ~2,400 lines: the claim was right, the citation was not.
+
+**THE CORNER ARMS ARE UNMOVED AND THAT IS MEASURED, NOT ASSUMED** — 16 of 961 top and 15 of 961
+bottom, with **identical capped first-board-divergence seed sets** before and after. The new leaf
+appears there only as an extra differing field inside games that had already parted
+(`active[].last_item` 1 top / 2 bottom, `active[].ate_berry` 1 bottom). It added no corner-arm game.
+
+**THE GATE WAS ALREADY OPEN BEFORE THIS BATCH.** `data/game-differential.json` at 07:04:15Z read
+board-material 0 of 961 with its one protocol divergence declared. Nothing here opened it; what
+changed is that it now holds under a strictly wider board comparison — `mediBody` and `sdBody` each
+grew two leaves.
+
+### The hand list
+
+**Leaving it:** the Fling booking, two thirds of it — `lastItem` and `usedItemThisTurn` are now
+written at the spend site.
+
+**Joining it:** nothing. The remaining third is ROADMAP #573 (`AfterUseItem`, so Symbiosis does not
+answer a spent Mental Herb or a flung item; 3 legal carriers), and `MEDFAILS.flingSpendNotBooked` is
+narrowed to count exactly that and keeps its name so the reports that quoted it still trace.
 
 ## THE SPEED-TIE CORNER ARMS MEASURE SOMETHING NOW, AND **TIES ARE CLEAN** — **71,009 TIE GROUPS RESOLVED ACROSS 1,922 GAMES, ZERO BOARD-MATERIAL DIVERGENCES ATTRIBUTABLE TO TIE ORDER.** BOARD-MATERIAL **16 OF 961** TOP AND **15 OF 961** BOTTOM (WAS `0 - 0` OVER AN EMPTY POPULATION). `mid_void` REPLACED ON A CORNER BY `corner_pin`, **0 UNPINNED SHAPES OR STREAMS**. AN EMPTY POPULATION NOW **REFUSES**. THE MIDDLE ARM IS **UNMOVED AT 0 OF 961 AND 0 UNDECLARED OF 961**. **NO ENGINE BYTE MOVED — RELEASE STILL `8ac9c4d888f1`.** 2026-09-10, CHANGELOG 5.282.0
 
@@ -27639,9 +27721,13 @@ reason written at the plant.
   this engine runs each target through the whole gauntlet. Visible as ANNOUNCEMENT-ONLY on
   `corrosivegas` (protect activations before the enditem) and `berserk` (the carrier's boost before the
   attacker's self-drops). No board moves.
-- **FLING BOOKS NOTHING WHEN IT SPENDS.** The authority's `fling` condition sets `lastItem` and
-  `usedItemThisTurn` and runs `AfterUseItem`; this engine's does none of the three, so Recycle, Harvest
-  and Symbiosis cannot see a flung item. Counted as `flingSpendNotBooked`.
+- ~~**FLING BOOKS NOTHING WHEN IT SPENDS.**~~ **TWO THIRDS CLOSED 2026-09-10** — the spend site in the
+  update pass now calls `recordItemUsed`, so `lastItem` and `usedItemThisTurn` ARE booked and Recycle
+  and Pickup can see a flung item. Found by the `last_item` board leaf, which read the authority's
+  `lightball` against an empty string here in the pinned pool. **THE REMAINING THIRD IS STILL OPEN AND
+  IS ROADMAP #573**: no `AfterUseItem`, so Symbiosis (3 legal carriers) does not answer a flung item or
+  a spent Mental Herb. `flingSpendNotBooked` is narrowed to mean exactly that third and keeps its name
+  so the reports that quoted it still trace.
 - **A CALLED MOVE STILL BECOMES `lastMove` HERE.** `runMove` writes `moveUsed()` under
   `if (!externalMove)`, so Sleep Talk's Ice Beam is not what a later Spite, Encore or Disable reaches
   for. The PP half of that same guard IS fixed; this half is not.

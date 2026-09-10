@@ -1,0 +1,70 @@
+{
+ "written": "2026-09-10",
+ "written_before": "the leaf was wired and before any whole-game differential was run with it",
+ "what": "wiring the item-DISPOSITION leaf (`lastItem` / `ateBerry`) into engine/board_state.js",
+ "clause_being_predicted": "board-material = state.games less state.games_board_never_diverged",
+ "baseline": {
+  "artifact": "data/game-differential.json",
+  "generated": "2026-09-10T07:04:15.006Z",
+  "release": "8ac9c4d888f1",
+  "games": 961,
+  "flag_games": 1200,
+  "board_material": 0,
+  "note": "0 of 961 with the leaf ABSENT. That zero is the number this prediction is against."
+ },
+ "pins_for_the_measurement": {
+  "census": "data/mechanics-census.json digest 257acf955593",
+  "team_store": "data/team-pool-frozen",
+  "games": 1200,
+  "turns": 50,
+  "arm": "middle",
+  "steering": "empirical",
+  "end_state": true
+ },
+
+ "what_is_already_measured_and_therefore_not_a_prediction": {
+  "probe": "tests/probe_item_disposition.js -> data/verification/probe-item-disposition.json",
+  "removal_paths": "4 REMOVAL arms (Knock Off vs Leftovers, Knock Off vs Sitrus, Trick, Thief) read `-/--` on BOTH engines. The row's own `wrong_if` is FALSIFIED: no removal path in either engine writes either field. This is also what the source says — Showdown's `takeItem` (sim/pokemon.ts:1856-1870) writes neither, and Showdown has exactly THREE write sites in gen 9 (`eatItem` :1805 + :1809, `useItem` :1846; the `battle-actions.ts:128` carry is `gen <= 4`).",
+  "berry_paths": "3 CONSUMPTION arms agree exactly: Colbur eaten inside the damage calculation, Sitrus eaten at `onUpdate`, and the same Sitrus record still on the BENCHED body after a switch. All read `<berry>/ate` on both engines.",
+  "the_one_disagreement": "`sash-used`. The authority writes `focussash / --` and medicham2 writes nothing at all. medicham2 has no `useItem` door: `_lastItem` is written ONLY in `consumeBerry`, so every non-berry SPEND goes unrecorded."
+ },
+
+ "the_population_that_can_part": {
+  "derived": "every item in gen9championsvgc2026regmb whose consumption runs Showdown's `useItem` rather than `eatItem`",
+  "legal_members": ["whiteherb", "mentalherb", "focussash"],
+  "everything_else_is_past": ["boosterenergy", "roomservice", "weaknesspolicy", "airballoon", "powerherb", "ejectbutton", "ejectpack", "mirrorherb", "berryjuice", "throatspray", "blunderpolicy", "adrenalineorb", "absorbbulb", "cellbattery", "luminousmoss", "snowball", "the type gems"],
+  "plus": "Fling, whose own condition writes `lastItem`/`usedItemThisTurn` directly (data/moves.ts fling.condition.onUpdate) — medicham2's `_flingSpend` site writes neither",
+  "pool_prevalence_of_the_three_on_a_SHEET": {
+   "source": "data/team-pool-frozen/games.bo3.jsonl, 13,214 games",
+   "focussash": 12392,
+   "whiteherb": 2753,
+   "mentalherb": 913,
+   "any_of_the_three": 12639,
+   "caveat": "THIS IS AN UPPER BOUND AND NOT THE PREDICTION. Carrying a Focus Sash is not spending one — the holder must be at full HP and take a lethal hit — and the differential brings only the first four buildable bodies per side."
+  }
+ },
+
+ "PREDICTION": {
+  "stage_1_leaf_wired_engine_UNFIXED": {
+   "board_material_of_961": "NOT ZERO. Point estimate 250; stated interval 100 to 450.",
+   "why": "the Sash is on 93.8% of pool sheets and a 50-turn empirical-click game gives it many chances to fire; every firing writes `lastItem` on the authority and nothing here, so the board parts on `active[].last_item` or `party.<body>.last_item` and stays parted for the rest of the game.",
+   "dominant_field": "last_item",
+   "dominant_value": "focussash on the authority against an empty string here",
+   "ate_berry_contribution": "ZERO. Both engines route every berry through one consumption site and the probe shows three berry arms agreeing, including across a switch.",
+   "falsified_if": "board-material comes back at or near 0. That would mean either the leaf is not reaching the comparison at all (an unwired knob gives identical output — CLAUDE.md) or the Sash never fires in this pool, and the FIRST of those must be excluded before the second is believed."
+  },
+  "stage_2_leaf_wired_engine_FIXED": {
+   "board_material_of_961": "0, the same as the baseline.",
+   "why": "the fix records the spend at medicham2's four reachable non-berry consumption sites (White Herb in `restoreStatsUpdate`, Mental Herb in `mentalHerbCures`, the Focus Sash branch of `consumesItem`, and the Fling spend), which is the whole legal population above.",
+   "falsified_if": "any residue remains — that would name a `useItem` path neither the source read nor the probe found."
+  },
+  "second_order_effects_the_fix_carries": {
+   "recycle": "medicham2's Recycle is gated on `_lastItem` and could therefore only ever restore a berry. After the fix it restores a spent Sash or herb, which is what the authority does.",
+   "pickup": "gated on `_lastItem && _usedItemThisTurn`, so the same.",
+   "harvest_belch_cudchew": "UNAFFECTED — all three are gated on `_ateBerry`, which the fix does not set."
+  }
+ },
+
+ "what_would_make_me_refuse_the_wire": "a PARTS on a REMOVAL arm. There is none, so the wire proceeds.",
+ "note_on_the_artifact_row_that_asked_for_this": "`knock_off_roadmap_80.verdict` says *\"Showdown records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED OFF\"*. That sentence is STALE. The same artifact's own `arms` block already shows both engines emitting `[eat]` then `[weaken]`, and the probe reads `colburberry/ate` on both. The predicted effect therefore does NOT come from Colbur; it comes from the Focus Sash, which that row does not mention."
+}

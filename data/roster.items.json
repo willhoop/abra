@@ -1,17 +1,17 @@
 {
- "generated": "2026-09-10T06:59:45.818Z",
+ "generated": "2026-09-10T09:53:13.737Z",
  "by": "tests/roster.js",
  "stage": "items",
  "swap_leaf_correction": {
   "self_describing_dropped": 0,
   "real_ability_rewrite_kept": 0
  },
- "engine_release": "8ac9c4d888f1",
- "engine_release_cut": "2026-09-10T05:41:36.883Z",
- "engine_release_cuts": 18,
+ "engine_release": "cbd510bc2b13",
+ "engine_release_cut": "2026-09-10T09:51:30.573Z",
+ "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "204e6c4e9548",
+  "engine/medicham2-browser.js": "09f8bd4f2b5e",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "622482051bf4",
@@ -78,7 +78,7 @@
   }
  },
  "plant_anchors": {
-  "release": "8ac9c4d888f1",
+  "release": "cbd510bc2b13",
   "checked": 18,
   "dead": [],
   "reds_ran": true
@@ -106,7 +106,7 @@
    "why": "the resist berry stops halving anything — it is still held, still read, and the multiplier is dropped",
    "moved": {
     "member": "babiriberry",
-    "verdict": "DID-NOT-FIRE",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -178,7 +178,9 @@
      "party.status",
      "party.item",
      "status",
-     "item"
+     "item",
+     "last_item",
+     "ate_berry"
     ]
    }
   },
@@ -257,6 +259,7 @@
      "species",
      "hp",
      "maxhp",
+     "last_item",
      "types",
      "ability",
      "vol.focusenergy",
@@ -326,6 +329,7 @@
     "fields": [
      "party.item",
      "item",
+     "last_item",
      "vol.taunt",
      "vol.focusenergy",
      "pp.focusenergy"
@@ -362,7 +366,9 @@
      "party.hp",
      "party.item",
      "hp",
-     "item"
+     "item",
+     "last_item",
+     "ate_berry"
     ]
    }
   },
@@ -396,6 +402,7 @@
      "party.item",
      "party.boosts.atk",
      "item",
+     "last_item",
      "boosts.atk"
     ]
    }
@@ -1115,6 +1122,18 @@
      "path": "p2.active[0].hp",
      "with": 1098,
      "without": 1056
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "babiriberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -2183,6 +2202,18 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "chartiberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.active[0].types",
      "with": "bug/flying",
      "without": "flying/steel"
@@ -2245,6 +2276,18 @@
      "without": "par"
     },
     {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "cheriberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
      "turn": 2,
      "path": "p2.party.kangaskhan.status",
      "with": "",
@@ -2255,6 +2298,18 @@
      "path": "p2.active[0].status",
      "with": "",
      "without": "par"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].last_item",
+     "with": "cheriberry",
+     "without": ""
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -2384,6 +2439,18 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "chestoberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.active[0].vol.focusenergy",
      "with": 1,
      "without": 0
@@ -2391,6 +2458,18 @@
     {
      "turn": 1,
      "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].last_item",
+     "with": "chestoberry",
+     "without": ""
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].ate_berry",
      "with": 1,
      "without": 0
     },
@@ -2438,6 +2517,18 @@
      "path": "p2.active[0].hp",
      "with": 1047,
      "without": 1014
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "chilanberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -2720,6 +2811,18 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "chopleberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.active[0].types",
      "with": "ice/rock",
      "without": "flying/steel"
@@ -2906,6 +3009,18 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "cobaberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.active[0].types",
      "with": "fighting/grass",
      "without": "flying/steel"
@@ -2966,6 +3081,18 @@
      "path": "p2.active[0].hp",
      "with": 886,
      "without": 842
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "colburberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -4087,6 +4214,12 @@
     },
     {
      "turn": 2,
+     "path": "p2.active[0].last_item",
+     "with": "focussash",
+     "without": ""
+    },
+    {
+     "turn": 2,
      "path": "p2.active[0].types",
      "with": "dark/grass",
      "without": "flying/steel"
@@ -5083,6 +5216,18 @@
      "path": "p2.active[0].hp",
      "with": 792,
      "without": 744
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "habanberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -5710,6 +5855,18 @@
      "path": "p2.active[0].hp",
      "with": 872,
      "without": 814
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "kasibberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -5773,6 +5930,18 @@
      "path": "p2.active[0].maxhp",
      "with": 135,
      "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "kebiaberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
     },
     {
      "turn": 1,
@@ -5914,6 +6083,18 @@
    "second_control": null,
    "switch_probe": null,
    "sd_delta": [
+    {
+     "turn": 12,
+     "path": "p2.active[0].last_item",
+     "with": "leppaberry",
+     "without": ""
+    },
+    {
+     "turn": 12,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
     {
      "turn": 12,
      "path": "p2.pp[0].dragonpulse",
@@ -6312,9 +6493,33 @@
    "sd_delta": [
     {
      "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "lumberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.active[0].vol.confusion",
      "with": 0,
      "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].last_item",
+     "with": "lumberry",
+     "without": ""
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -6795,6 +7000,12 @@
    "sd_delta": [
     {
      "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "mentalherb",
+     "without": ""
+    },
+    {
+     "turn": 1,
      "path": "p2.active[0].vol.taunt",
      "with": 0,
      "without": 2
@@ -6810,6 +7021,12 @@
      "path": "p2.pp[0].focusenergy",
      "with": 1,
      "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].last_item",
+     "with": "mentalherb",
+     "without": ""
     },
     {
      "turn": 2,
@@ -7356,6 +7573,18 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "occaberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.active[0].types",
      "with": "bug/steel",
      "without": "flying/steel"
@@ -7416,6 +7645,18 @@
      "path": "p2.active[0].hp",
      "with": 66,
      "without": 56
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "oranberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -7455,6 +7696,18 @@
      "path": "p2.active[0].hp",
      "with": 987,
      "without": 954
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "passhoberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -7518,6 +7771,18 @@
      "path": "p2.active[0].maxhp",
      "with": 158,
      "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "payapaberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
     },
     {
      "turn": 1,
@@ -7595,6 +7860,18 @@
      "without": "psn"
     },
     {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "pechaberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
      "with": 180,
@@ -7617,6 +7894,18 @@
      "path": "p2.active[0].status",
      "with": "",
      "without": "psn"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].last_item",
+     "with": "pechaberry",
+     "without": ""
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -7647,9 +7936,33 @@
    "sd_delta": [
     {
      "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "persimberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.active[0].vol.confusion",
      "with": 0,
      "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].last_item",
+     "with": "persimberry",
+     "without": ""
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -8242,6 +8555,18 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "rindoberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.active[0].types",
      "with": "ground/rock",
      "without": "flying/steel"
@@ -8326,6 +8651,18 @@
      "path": "p2.active[0].maxhp",
      "with": 170,
      "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "roseliberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
     },
     {
      "turn": 1,
@@ -9167,6 +9504,18 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "shucaberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.active[0].types",
      "with": "poison/rock",
      "without": "flying/steel"
@@ -9329,6 +9678,18 @@
      "path": "p2.active[0].hp",
      "with": 96,
      "without": 56
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "sitrusberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -10022,6 +10383,18 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "tangaberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
      "path": "p2.active[0].types",
      "with": "dark/psychic",
      "without": "flying/steel"
@@ -10334,6 +10707,18 @@
      "path": "p2.active[0].hp",
      "with": 885,
      "without": 846
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "wacanberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
     }
    ],
    "diffs": []
@@ -10370,6 +10755,12 @@
     },
     {
      "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "whiteherb",
+     "without": ""
+    },
+    {
+     "turn": 1,
      "path": "p2.active[0].boosts.atk",
      "with": 0,
      "without": -1
@@ -10379,6 +10770,12 @@
      "path": "p2.party.kangaskhan.boosts.atk",
      "with": -1,
      "without": -2
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].last_item",
+     "with": "whiteherb",
+     "without": ""
     },
     {
      "turn": 2,
@@ -10616,6 +11013,18 @@
      "path": "p2.active[0].maxhp",
      "with": 170,
      "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "yacheberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
     },
     {
      "turn": 1,

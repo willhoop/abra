@@ -10,6 +10,76 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.283.0] — 2026-09-10
+### Added
+- **THE BOARD NOW COMPARES ITEM DISPOSITION, AND IT WAS WIRED ONLY AFTER ITS OWN `wrong_if` WAS
+  STAGED.** `engine/board_state.js` gains `last_item` and `ate_berry` on both body readers. The row
+  in `NOT_COMPARED` had declared what would refuse the wire — *"a path in either engine writes the
+  field on a REMOVAL rather than on a consumption"* — and `tests/probe_item_disposition.js` staged
+  it: four REMOVAL arms (Knock Off against Leftovers, Knock Off against a Sitrus taken before its
+  `onUpdate` can see the HP, Trick, Thief) read `-/--` on BOTH engines, and so does the source —
+  gen 9 Showdown has exactly three write sites (`sim/pokemon.ts:1805`, `:1809`, `:1846`) and
+  `takeItem` (`:1856-1870`) is not one of them. Three CONSUMPTION arms agree exactly, including on a
+  BENCHED body after a switch-out, which an actives-only reader could not have seen. The probe was
+  wrong twice before the engine was, both caught by printing: a first run read `-/--` in all sixteen
+  cells because the target's first click was Protect, and the bench arm switched to a body that was
+  already active.
+- `MEDSEEN.itemUsedRecorded` and `MEDFAILS.itemUsedWithNoId`, so the new door cannot run or fail
+  silently. Measured through the release snapshot rather than the live module: `0 -> 1` on one staged
+  Focus Sash, failure counter 0, `berryConsumed` 0 as the control.
+
+### Fixed
+- **MEDICHAM2 HAD NO `Pokemon#useItem` DOOR, SO EVERY NON-BERRY SPEND WENT UNRECORDED.** `_lastItem`
+  was written in `consumeBerry` and nowhere else, so a spent White Herb, Mental Herb or Focus Sash —
+  and an item thrown by Fling, whose own condition writes the same two fields — left no record at
+  all, and `spendsLastItem` (Recycle) could give back a berry and **never** a spent Sash or herb.
+  `recordItemUsed` is that door, at six call sites: `restoreStatsUpdate` (White Herb),
+  `mentalHerbCures`, the Focus Sash branch of `consumesItem`, the Fling spend in the update pass, and
+  two that cannot fire in Reg M-B and are kept correct rather than deleted (Power Herb, which is
+  `isNonstandard: 'Past'`, and the non-berry branch of `berryCureUpdate`). The population is DERIVED,
+  not recalled: every other `useItem` carrier in the dex — Booster Energy, Room Service, Weakness
+  Policy, Air Balloon, the Eject items, the type gems — is `Past`. **It records and does not
+  announce**: each caller keeps its own `-enditem` line and its own measured line order.
+- **A PUBLISHED VERDICT THAT ITS OWN ARMS CONTRADICTED.** `knock_off_roadmap_80.verdict` ended *"What
+  differs is the item DISPOSITION: Showdown records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED
+  OFF."* The same artifact's `showdown_enditem` / `medicham_enditem` lists on the Colbur arm are both
+  `[eat]` then `[weaken]`, and the probe reads `colburberry/ate` off both engines. The sentence had
+  been quoted verbatim into `board_state.js`'s `NOT_COMPARED` row as a PUBLISHED FINDING and was used
+  to price this batch; the prediction it produced was right by accident, because the 192 parted games
+  came from the Focus Sash and from no berry at all. Corrected in `engine/game_differential.js` with
+  the record of what it said.
+
+### Changed
+- `MEDFAILS.flingSpendNotBooked` is NARROWED, not retired: two of its three halves (`lastItem`,
+  `usedItemThisTurn`) are now done and it counts only the remaining `AfterUseItem` third. The name is
+  kept deliberately — a counter renamed the day it narrows cannot be traced through the reports that
+  quoted it.
+
+### Notes
+- **MEASURED, and the two stages are the same sample.** The leaf parted **192 of 961** pinned-pool
+  games with the engine unfixed and **0 of 961** with it fixed. BOARD-MATERIAL is `state.games` less
+  `state.games_board_never_diverged`; flags `--games 1200 --turns 50 --arm middle --steering empirical
+  --end-state --team-store data/team-pool-frozen`, 961 games played. Identical `first_divergences`
+  head, `coverage` block and `classes` across the two stages. Every one of the 192 was
+  `active[].last_item`; `ate_berry` contributed **zero**. Predicted in writing first at 250 in a
+  100–450 interval, `data/verification/_prediction-2026-09-10-item-disposition.json`.
+- **THE FULL GATE CHAIN, all on release `cbd510bc2b13`:** `data/engine-diff.json` 6000 compared / 0
+  disagreed; roster items 0 DIFFER / 0 DID-NOT-FIRE / 142 matched, abilities 0 / 0 / 139, moves 0 / 0
+  / 487; `data/game-differential.json` BOARD-MATERIAL **0 of 961**; census **835 live / 0 missing**,
+  unchanged; `node engine/quarantine.js` → **GATE: OPEN**, every clause PASS.
+- **THE CORNER ARMS ARE UNMOVED — 16 of 961 and 15 of 961**, with identical capped
+  first-board-divergence seed sets before and after. The new leaf appears there only as an extra
+  differing field inside games that had already parted (`active[].last_item` 1 top / 2 bottom,
+  `active[].ate_berry` 1 bottom). It added no corner-arm game.
+- **THE GATE WAS ALREADY OPEN BEFORE THIS BATCH** — `data/game-differential.json` at 07:04:15Z read
+  board-material 0 of 961 with its single protocol divergence declared. Nothing here opened it. What
+  changed is that it now holds under a strictly wider board comparison.
+- **REGISTERED AND LEFT: ROADMAP #573** — `AfterUseItem` is raised at two of the six spend sites and
+  not at the other four, so Symbiosis (3 legal carriers) does not answer a spent Mental Herb or a
+  flung item. Kept out of a batch of one that was expected to move boards.
+- The line numbers in the `NOT_COMPARED` row (`:8786-8787`, `:20425`) were stale by ~2,400 lines. The
+  claim was right; the citation was not.
+
 ## [5.282.0] — 2026-09-10
 ### Fixed
 - **THE SPEED-TIE CORNER ARMS COMPARED NO BOARD AND THE GATE'S OWN ARITHMETIC READ IT AS A CLEAN

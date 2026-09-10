@@ -2843,6 +2843,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *   harvestRestored           a spent berry came back.
    *   pickupTook                an item was taken off a body that spent one this turn. */
   berryConsumed: 0, cheekPouchHealed: 0, ripenDoubled: 0, gluttonyRaisedThreshold: 0,
+  /* 2026-09-10 -- THE OTHER HALF OF THE SAME RECORD, AND IT DID NOT EXIST. `berryConsumed` counts
+     `Pokemon#eatItem`; `itemUsedRecorded` counts `Pokemon#useItem`, which writes `lastItem` and
+     `usedItemThisTurn` and NOT `ateBerry` (sim/pokemon.ts:1846-1848). This engine had no such door
+     at all, so a spent White Herb, Mental Herb or Focus Sash -- and an item thrown by Fling, whose
+     own condition writes the same two fields (data/moves.ts fling.condition.onUpdate) -- left no
+     record, and Recycle could therefore only ever give back a berry. Found by the item-disposition
+     board leaf on the run that wired it: 192 of 961 pinned-pool games parted on `last_item` alone.
+     A zero here over a real sample means the door is dead again and Recycle is berry-only. */
+  itemUsedRecorded: 0,
   /* 2026-09-07 -- a cure berry eaten INSIDE `Pokemon#setStatus`, on its `onAfterSetStatus` handler,
      rather than at the following `Update`. One legal member today (Lum), derived rather than named;
      see berryCureOnSet. A zero over a sample containing a statused Lum holder means the wire is
@@ -3041,6 +3050,11 @@ const MEDFAILS = { encoreAction: 0,
      the queue. A non-zero says an Encore volatile arrived from a road this engine has not modelled --
      loud, because a silent skip here is indistinguishable from the defect this counter's fix closed. */
   encoreRelocateNoQueue: 0,
+  /* 2026-09-10 -- `recordItemUsed` was called with no item id, so the spend was not recorded and the
+     caller believes it was. It must read 0: every one of the six call sites reads the slot before it
+     empties it. A non-zero means a site emptied the slot first, which is the exact shape of the
+     defect this door closes. */
+  itemUsedWithNoId: 0,
   /* 2026-08-29 -- `defaultTargetOf` was asked about a move with no `targetClass` row, so the near/far
      question was unanswerable and the caller's far-side draw was used -- the pre-change behaviour.
      It must read 0 over legal moves: tag_dex derives `targetClass.target` for all 500. A non-zero
@@ -4166,7 +4180,12 @@ const MEDFAILS = { encoreAction: 0,
    * non-zero means a new member arrived rather than that Fling is broken. */
   flingEffectUnmodelled: 0, flingEffectUnmodelledFirst: '',
   /* ROADMAP #308 -- a Fling that spent an item WITHOUT booking `lastItem`/`usedItemThisTurn` or
-   * running AfterUseItem, which the authority's `fling` condition does. Counted, not fixed. */
+   * running AfterUseItem, which the authority's `fling` condition does.
+   * NARROWED 2026-09-10: two of the three are now done. The spend site calls `recordItemUsed`, so
+   * `lastItem` and `usedItemThisTurn` ARE booked and Recycle and Pickup can see a flung item. WHAT
+   * THIS COUNTER NOW MEANS IS THE REMAINING THIRD: no `AfterUseItem`, so Symbiosis does not answer.
+   * ROADMAP #573. The name is kept rather than changed because a counter renamed the day it narrows
+   * cannot be traced back through the reports that quoted it. */
   flingSpendNotBooked: 0,
   /* ROADMAP #308 -- a cancelling pre-turn shield that got as far as the attack branch, i.e. after
    * the PP was spent and the move line written. Must stay 0; a non-zero is the upper gate missing. */
@@ -11191,6 +11210,53 @@ function consumeBerry(m,itemId,onEat){
    * the one that was eaten. The authority's ordering is the same -- `onEatItem` runs on the eater
    * before `onAllyAfterUseItem` reaches the neighbour. */
   passItemFromAlly(m);
+}
+/* ---- THE `useItem` HALF OF THE RECORD, AND UNTIL 2026-09-10 THERE WAS NO SUCH DOOR --------------
+ *
+ * `consumeBerry` above is this engine's `Pokemon#eatItem`. The authority has a SECOND consumption
+ * road — `Pokemon#useItem` (sim/pokemon.ts:1815-1852) — and its bookkeeping is deliberately not the
+ * same shape:
+ *
+ *     this.lastItem = this.item;  this.item = '';  this.usedItemThisTurn = true;      :1846-1848
+ *     this.battle.runEvent('AfterUseItem', ...)                                       :1849
+ *
+ * `ateBerry` is NOT written, because nothing was eaten. Every one of this engine's non-berry spends
+ * wrote `m.item = ''` and recorded nothing at all, so the record Recycle and Pickup read did not
+ * exist for them: `spendsLastItem` is gated on `_lastItem`, which only `consumeBerry` ever set, and
+ * Recycle could therefore give back a berry and NEVER a spent Sash or herb.
+ *
+ * FOUND BY AN INSTRUMENT AND NOT BY READING. The item-disposition board leaf (`last_item` /
+ * `ate_berry` in engine/board_state.js) was wired on 2026-09-10 after its own falsification survived,
+ * and the first run with it parted **192 of 961 pinned-pool games**, every one of them on
+ * `active[].last_item`, us `""` against the authority's `focussash`, `whiteherb` or `lightball`.
+ * `ate_berry` parted ZERO — the berry road already agreed.
+ *
+ * THE POPULATION IS DERIVED AND IT IS SMALL. Every item in gen9championsvgc2026regmb whose
+ * consumption runs `useItem`: **White Herb, Mental Herb, Focus Sash**. Every other carrier —
+ * Booster Energy, Room Service, Weakness Policy, Air Balloon, Power Herb, the Eject items, the type
+ * gems — is `isNonstandard: 'Past'` and cannot be brought. FLING is the fourth road and is not an
+ * item handler at all: its own condition writes the identical two fields directly, which is why
+ * `lightball` appears in the divergence list.
+ *
+ * IT RECORDS AND DOES NOT ANNOUNCE. Each caller already owns its own `-enditem` line and its own
+ * line ORDER — the herb's `-enditem` sits above its `-clearnegativeboost`, the Sash's above the
+ * `-damage` it survived — and folding those into one door would rewrite six measured orderings in
+ * the same pass as a state fix. What is shared is the FACT, which is the rule this repository has:
+ * one implementation, every caller reads it.
+ *
+ * THE `AfterUseItem` EVENT IS **NOT** RAISED HERE AND THAT IS DECLARED, NOT FORGOTTEN. Two of the
+ * six callers (White Herb, Focus Sash) already call `passItemFromAlly` themselves and would fire it
+ * twice; the other four do not call it at all, which is a SECOND defect — Symbiosis has 3 legal
+ * carriers in this format — and it is registered rather than smuggled into a batch measuring one
+ * change. `MEDFAILS.itemUsedWithNoId` is the loud version of the one way this can be called wrong. */
+function recordItemUsed(m,itemId){
+  if(!m)return '';
+  const _id=String(itemId||'');
+  if(!_id){MEDFAILS.itemUsedWithNoId++;return '';}
+  m._lastItem=_id;
+  m._usedItemThisTurn=true;
+  MEDSEEN.itemUsedRecorded++;
+  return _id;
 }
 /* HOW MUCH A BERRY EFFECT IS WORTH TO THIS HOLDER. Ripen doubles EVERY berry effect and the artifact
  * used to say only that it halves a resist-berry hit (`damageReduce`), so a Sitrus under Ripen healed
@@ -19716,6 +19782,7 @@ function restoreStatsUpdate(m){
   /* The item goes FIRST and the stages second, which is the order the protocol shows: `useItem()`
    * writes the `-enditem` and the handler's `onUse` writes the `-clearnegativeboost` after it. */
   const _it=m.item; m.item='';
+  recordItemUsed(m,_it);   /* :1846-1848  lastItem / usedItemThisTurn */
   if(TR)TR.enditem(m,_it);
   for(const k in m.boosts)if(m.boosts[k]<0)m.boosts[k]=0;
   if(TR)TR.clearNeg(m);
@@ -20266,6 +20333,7 @@ function itemCuresVolatile(m,vol){
     else MEDFAILS.volatileCuredByNonBerry++;
     if(m._vol)delete m._vol[vol];
     m.item='';
+    recordItemUsed(m,it);   /* not eaten, so `_ateBerry` stays false -- the authority's split */
     if(TR){TR.enditem(m,it,'[eat]');TR.vend(m,vol);}
   } else {
     /* `onEat` is the berry's own effect -- `removeVolatile('confusion')`, which writes the `-end`.
@@ -21209,6 +21277,7 @@ function mentalHerbCures(who,vol){
       TR.vend(who,'move: '+vol);TR.enditem(who,who.item);}
     else{TR.enditem(who,who.item);TR.vend(who,'move: '+vol);MEDSEEN.herbSpentBeforeEnd++;}
   }
+  recordItemUsed(who,who.item);
   who.item='';
   return true;
 }
@@ -27201,6 +27270,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * branch for the measured line order this closes. */
       for(const e of _all){
         if(e.m._flingSpend){const _fi=e.m._flingSpend;e.m._flingSpend=null;e.m.item='';
+          recordItemUsed(e.m,_fi);   /* fling.condition.onUpdate writes lastItem itself, not via useItem */
           if(TR)TR.enditem(e.m,_fi,'[from] move: fling');MEDSEEN.flingSpentAtUpdate++;}
       }
       /* 2026-08-23 -- A PER-TURN-BOOST VOLATILE DIES WITH ITS SOURCE, AND THAT IS AN `onUpdate`
@@ -34578,7 +34648,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              announcement -- so the `|-enditem|` follows both. UNREACHABLE IN CHAMPIONS: the item is
              `isNonstandard: 'Past'`, checked against the format rather than remembered, so no probe
              is written for it and the branch is kept correct rather than deleted. */
-          if(_herb){if(TR)TR.enditem(m,m.item);m.item='';}
+          if(_herb){if(TR)TR.enditem(m,m.item);recordItemUsed(m,m.item);m.item='';}
         }
       }
       /* ROADMAP #118 -- THE ARMING THAT STOOD HERE IS GONE, AND ITS ABSENCE IS THE FIX. It read
@@ -35201,8 +35271,12 @@ function battleTurn(S,rng,actsForA,actsForB){
            * steps at all. Only the moment the item leaves has moved.
            *
            * WHAT IS STILL NOT DONE, SAID RATHER THAN LEFT TO BE FOUND: the authority's `onUpdate`
-           * also sets `lastItem` and `usedItemThisTurn` and runs `AfterUseItem` (Symbiosis). This
-           * engine's Fling never did, that is unchanged by this pass, and it is counted. */
+           * also sets `lastItem` and `usedItemThisTurn` and runs `AfterUseItem` (Symbiosis).
+           * 2026-09-10 -- TWO OF THE THREE ARE DONE. The spend site in the update pass now calls
+           * `recordItemUsed`, so a flung item IS booked and Recycle and Pickup can see it; the board
+           * leaf that found it read the authority's `lastItem: lightball` against an empty one here.
+           * The `AfterUseItem` third is still absent and `flingSpendNotBooked` now counts only that --
+           * ROADMAP #573, filed rather than folded into the batch that found it. */
           m._flingSpend=m.item;
           m._flingItem=m.item;
           MEDFAILS.flingSpendNotBooked++;
@@ -38141,7 +38215,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                `-enditem` above instead. `announce` carries the event and the prefix, read in tag_dex
                from each handler's own `this.add`; a hardcoded `'ability: '` here was right for one of
                the three and wrong for the other two. */
-            if(_sv.consumesItem){if(TR)TR.enditem(tg,tg.item);tg.item='';passItemFromAlly(tg);}
+            if(_sv.consumesItem){if(TR)TR.enditem(tg,tg.item);recordItemUsed(tg,tg.item);tg.item='';passItemFromAlly(tg);}
             else if(TR)TR.announced(tg,_sv.announce,_svId);
           }
         }

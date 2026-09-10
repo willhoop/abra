@@ -9491,10 +9491,24 @@ if (WRITE) {
     knock_off_roadmap_80: { arms: KO.arms.map(({ showdown_stream, medicham_stream, ...a }) => a),
                             sitrus_half: KO.sitrus_half, boost_half: KO.boost_half,
                             reduction_half: KO.reduction_half, net: KO.net,
+                            /* THE SECOND SENTENCE OF THIS VERDICT WAS STALE AND IT SENT A BATCH THE WRONG WAY,
+                             * 2026-09-10. It read: *"What differs is the item DISPOSITION: Showdown records
+                             * Colbur as EATEN BY ITSELF, medicham2 as KNOCKED OFF."* THE ARMS ABOVE IT ALREADY
+                             * CONTRADICTED IT — `showdown_enditem` and `medicham_enditem` on the Colbur arm are
+                             * both `[eat]` then `[weaken]` — and `tests/probe_item_disposition.js` reads
+                             * `colburberry / ateBerry` off BOTH engines. It was quoted verbatim into
+                             * board_state.js's NOT_COMPARED row as a PUBLISHED finding and used to predict the
+                             * cost of wiring the item-disposition leaf. The prediction was right by accident:
+                             * the leaf DID part 192 of 961 pinned-pool games, on the FOCUS SASH and not on any
+                             * berry. A verdict outliving its own arms is this repository's most expensive
+                             * recurring failure; the sentence is corrected here rather than deleted. */
                             verdict: 'the predicted DAMAGE bug does not reproduce — medicham2 prices both '
                               + 'halves correctly because playerAction computes the range at CLICK time, '
-                              + 'before the item is stripped. What differs is the item DISPOSITION: Showdown '
-                              + 'records Colbur as EATEN BY ITSELF, medicham2 as KNOCKED OFF.' },
+                              + 'before the item is stripped. AND THE ITEM DISPOSITION AGREES TOO: both '
+                              + 'engines record Colbur as EATEN, writing `[eat]` then `[weaken]` and setting '
+                              + 'lastItem/ateBerry, which the `last_item` and `ate_berry` board leaves have '
+                              + 'compared since 2026-09-10. This clause claimed the opposite until that date '
+                              + 'while the two `*_enditem` lists above it said otherwise.' },
     diverged: diverged.length, threw: threw.length,
     /* `diverged` ABOVE IS OVER EVERY GAME PLAYED, INCLUDING THE ONES THE INSTRUMENT COULD NOT READ.
      * That is the number this file has always published and it is kept, but on its own it is a ratio

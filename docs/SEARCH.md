@@ -14,7 +14,7 @@ mid-run silently invalidates the run, and the run still prints a result.
 SEARCH — does MILTANK choose better than MAG
   R1 leaf accuracy: WITHHELD — engine/provenance.js calls data/rollout-r1-explore1.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    pinned to engine release 3932186b59ef — engine/medicham2-browser.js matches the frozen copy; live is 204e6c4e9548 now (a PRE-CHANGE measurement of that release, not corruption)
+    pinned to engine release 3932186b59ef — engine/medicham2-browser.js matches the frozen copy; live is 09f8bd4f2b5e now (a PRE-CHANGE measurement of that release, not corruption)
     (+16 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/rollout_r1_artifact.js
   R2 leaf cost: WITHHELD — engine/provenance.js calls data/rollout-cost.json UNSAFE.
@@ -26,7 +26,7 @@ SEARCH — does MILTANK choose better than MAG
   R4 does it win: WITHHELD — engine/provenance.js calls data/rollout-r4.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     it becomes quotable again when this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-09-10 03:36):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-09-10 05:51):
     PRE-CHANGE games.r4c-shipped2.jsonl  2026-08-14 22:28
     PRE-CHANGE games.r4c-shipped.jsonl  2026-08-14 17:21
     PRE-CHANGE games.r4b-search.jsonl  2026-08-14 13:02
@@ -34,7 +34,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
 ```
 
-_stamped 2026-09-10 04:41_
+_stamped 2026-09-10 06:08_
 
 <!-- /GENERATED -->
 
