@@ -13,6 +13,12 @@ silently rewritten; what changed and why is stated.
 ## [5.278.0] — 2026-09-10
 
 ### Added
+- **The start skill gains two failure shapes and one source from this session** — a killed agent's
+  notification can show its first message rather than its last (read the tree, not the notification);
+  a stale generated bundle hides untraceable figures, so regenerating one can orphan a published number;
+  and a probe loading the differential refuses to run without `--release <id>` because requiring that
+  module unpinned cuts a release. `docs/_reports/2026-09-10-session-close.md` carries the session's
+  OWED as commands under an `OWED` heading for `engine/orient.js` to collect.
 - **The residual trio, fixed at the handler list (ROADMAP #563).** `residualOrder` now sorts the bodies
   holding a handler in the group being walked rather than every active body, matching the authority's
   handler-list sort. Both derivation probes are green on current bytes and red under

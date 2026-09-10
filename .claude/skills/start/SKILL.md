@@ -495,6 +495,23 @@ what kept them out of every work queue. Five names collide in this regulation.
 Read this before believing any number, including your own. Every line is a real event with a receipt in
 `CHANGELOG.md`. **They are ordered by how often they have bitten.**
 
+**A KILLED AGENT'S COMPLETION NOTIFICATION CAN SHOW ITS FIRST MESSAGE, NOT ITS LAST — SO THE
+NOTIFICATION IS EVIDENCE ABOUT NOTHING.** 2026-09-10: the weekly rate limit killed two agents at once
+and both notifications read *"I'll start by reading the required docs"*. Both had in fact done nearly
+all of their work — 39 modified files, a complete engine fix with counters and a knob, and a finished
+244-line report on disk. Relaunching them on the strength of those notifications would have redone
+finished work and clobbered a verified fix. **Read the TREE and `docs/_reports/`, never the
+notification text**: `git status --short`, then look for the agent's report file. An agent that got far
+leaves artifacts; an agent that died early leaves none.
+
+**A STALE GENERATED BUNDLE HIDES UNTRACEABLE FIGURES, SO REGENERATING ONE CAN ORPHAN A PUBLISHED
+NUMBER.** `data/board-data.js` carried `Generated 2026-08-03`. Rebuilding it from the current
+`data/smogon-priors.json` moved six spread percentages and `tests/test-docs-current.js` immediately read
+`docs/MODELS.md` at **30 untraceable figures where it had read 29** — one published number had been
+traceable only to month-old bytes. The gate cannot see this while the bundle sits still: staleness reads
+GREENER than currency. **Regenerate every bundle deliberately and read the figure count on both sides**;
+a bundle nobody rebuilds is a citation nobody can fail. ROADMAP #568.
+
 **THE INSTRUMENT IS WRONG BEFORE THE ENGINE IS.** Five times in two days.
 - The roster asked for its pinned dice **by omission** and had been rolling live ones for nine days:
   **169 accusations against the simulator, 162 of them the ruler.** Moves read 157 DIFFER; the truth was 5.
@@ -709,6 +726,15 @@ observable to an instrument.
 
 *Which question: "did the engine change, or did a byte that is not code?"*
 
+
+**A PROBE THAT LOADS THE DIFFERENTIAL REFUSES TO RUN BARE, AND THAT REFUSAL IS THE GUARD WORKING.**
+`tests/probe_residual_trio_*.js` and every probe that requires `engine/game_differential.js` exit with
+*"REFUSED — pass `--release <id>`"* rather than running, because requiring that module without a pinned
+release CUTS A RELEASE as a side effect. To verify such a probe: cut one release
+(`engine/engine_release.js cut "<why>"`), then pass `--release <id>` to every arm, knob runs included.
+A tail-only read of the refusal looks like an ordinary verdict line.
+
+*Which question: "why did my probe print nothing useful, and what is a release doing in data/releases?"*
 
 **A YOUTUBE TRANSCRIPT IS ONE COMMAND, AND FIVE HAND-ROLLED ROUTES ALL FAIL.**
 `bash tools/yt_transcript.sh <url-or-id> [outfile]`. WebFetch returns the site footer; the `timedtext`
