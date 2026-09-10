@@ -69,6 +69,13 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [5.278.0] — 2026-09-10 — the handoff collector was dropping more than half of every session's owed commands at the first shell comment
+- **What changed.** `engine/orient.js` tracks fence state when it walks an `OWED, NOT RUN` block. It ended the block at the first markdown heading, and a `#` shell comment at column zero inside a ```bash fence matched that test — so any report that COMMENTED its commands was truncated at the first comment. Found because this session's own close report contributed ZERO commands: its OWED body was read as four lines. A `#` inside a fence is a comment, not a heading. Also added to `.claude/skills/start/SKILL.md` §7.
+- **Measured.** Over the same 450 reports, before → after: **108 reports with runnable OWED commands / 339 commands → 166 / 710**; reports with an OWED heading but no command line fell 219 → 161. `node tests/test-orient.js` GREEN.
+- **Basis.** unchanged.
+- **Supersedes.** ~~"92 with runnable OWED commands (293 commands)"~~ and every later printed pair — the collector was under-reporting, not the reports under-writing.
+- **Owed to the next major.** none.
+
 ## [5.278.0] — 2026-09-10 — two failure shapes and one source went back into the start skill, and the session's OWED is a command block the next session's map collects
 - **What changed.** `.claude/skills/start/SKILL.md` §7 gains two shapes, each with its receipt: a killed agent's completion notification can carry its FIRST message rather than its last (the weekly limit killed two agents whose notifications both read "I'll start by reading the required docs" while one had 39 modified files and a finished engine fix and the other a complete 244-line report — read the TREE and `docs/_reports/`, never the notification), and a stale generated bundle HIDES untraceable figures so regenerating one can orphan a published number (`data/board-data.js`, ROADMAP #568). §8 gains the source: a probe that loads `engine/game_differential.js` REFUSES to run without `--release <id>` because requiring that module unpinned cuts a release as a side effect. `docs/_reports/2026-09-10-session-close.md` carries this session's OWED as commands under an `OWED` heading, which `engine/orient.js` collects and prints under IN FLIGHT.
 - **Measured.** `node tests/test-orient.js` GREEN — the map derives every section and each fails loudly when its input goes.

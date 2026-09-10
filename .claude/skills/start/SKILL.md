@@ -495,6 +495,14 @@ what kept them out of every work queue. Five names collide in this regulation.
 Read this before believing any number, including your own. Every line is a real event with a receipt in
 `CHANGELOG.md`. **They are ordered by how often they have bitten.**
 
+**THE HANDOFF COLLECTOR WAS SILENTLY DROPPING MORE THAN HALF OF EVERY SESSION'S OWED WORK.**
+`engine/orient.js` ends an OWED block at the first markdown heading — and a `#` shell comment at column
+zero inside a ```bash fence matched that test, so any report that COMMENTED its commands was truncated
+at the first comment. Measured the moment it was found: **108 reports / 339 commands became 166 reports
+/ 710 commands** once fence state was tracked. The reports that explain their commands are exactly the
+ones worth collecting, and they were the ones being cut. **A collector that finds SOMETHING is not a
+collector that found everything** — the printed count was real, and less than half.
+
 **A KILLED AGENT'S COMPLETION NOTIFICATION CAN SHOW ITS FIRST MESSAGE, NOT ITS LAST — SO THE
 NOTIFICATION IS EVIDENCE ABOUT NOTHING.** 2026-09-10: the weekly rate limit killed two agents at once
 and both notifications read *"I'll start by reading the required docs"*. Both had in fact done nearly

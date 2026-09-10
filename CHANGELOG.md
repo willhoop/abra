@@ -13,6 +13,10 @@ silently rewritten; what changed and why is stated.
 ## [5.278.0] — 2026-09-10
 
 ### Added
+- **`engine/orient.js` was dropping more than half of every session's owed commands.** It ended an
+  `OWED, NOT RUN` block at the first markdown heading, and a `#` shell comment inside a fenced command
+  block matched that test — so reports that commented their commands were truncated at the first
+  comment. Fence state is now tracked. Over 450 reports: 108 reports / 339 commands became 166 / 710.
 - **The start skill gains two failure shapes and one source from this session** — a killed agent's
   notification can show its first message rather than its last (read the tree, not the notification);
   a stale generated bundle hides untraceable figures, so regenerating one can orphan a published number;

@@ -347,8 +347,15 @@ head(7, 'IN FLIGHT — OWED, NOT RUN, collected as COMMANDS  [source: docs/_repo
       if (i < 0) { noOwed++; continue; }
       const level = (lines[i].match(/^#+/) || ['##'])[0].length;
       const body = [];
+      /* A `#` INSIDE A FENCE IS A SHELL COMMENT, NOT A HEADING. Measured 2026-09-10: a session-close
+       * report whose OWED block opened with a commented ```bash fence was truncated to FOUR lines and
+       * contributed ZERO commands -- the `# cut ONE release ...` comment read as an h1 and closed the
+       * block. Reports that comment their commands are exactly the ones worth collecting, so fence
+       * state is tracked and only a heading OUTSIDE a fence can end the block. */
+      let inFence = false;
       for (let j = i + 1; j < lines.length; j++) {
-        const h = lines[j].match(/^(#+)\s/);
+        if (/^\s*```/.test(lines[j])) inFence = !inFence;
+        const h = inFence ? null : lines[j].match(/^(#+)\s/);
         if (h && h[1].length <= level) break;
         body.push(lines[j]);
       }
