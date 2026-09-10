@@ -244,23 +244,32 @@ for (const S of SOURCES) {
 }
 
 /* ---------------------------------------------------------------------------------------------
- * C. STALENESS — an artifact older than the thing that builds it
+ * C. STALENESS — judged by CONTENT, never by mtime. THE MTIME CLAUSE WAS DROPPED 2026-09-10 (#554).
+ *
+ * This section used to stat three files and flag a GAP when data/engine-data.js was older than
+ * mega-dex-official.json or engine/merge_mega_into_engine.js. On 2026-09-09 it blocked a commit in a
+ * fresh checkout — "data/engine-data.js is older than source ... and builder ..." — on bytes identical
+ * to a commit that had passed this same gate an hour earlier. A checkout gives every file the checkout
+ * time and the order those times land in is arbitrary, so the clause fired on every fresh clone and
+ * pinned every commit to one machine. The NOTE this section has always printed says the same thing
+ * from the other side: newer-than-source is no evidence of correct. Neither direction is evidence.
+ * engine/provenance.js took the identical step in August (CONTENT digests, never mtime) after a void
+ * artifact passed as `ok` for being newer than an input it had never read.
+ *
+ * THERE IS NO CONTENT CLAUSE ADDED HERE BECAUSE BOTH ALREADY RUN IN THIS FILE. Check B holds every
+ * value the source carries against the artifact field by field — that IS the staleness question for
+ * this pair, asked of the bytes. Check G runs the builder the artifact declares in its own header
+ * (build/build_engine_data.js --check). engine/merge_mega_into_engine.js has no --check of its own and
+ * is not re-run by anything here; B is the content clause for what it writes. A third comparison of the
+ * same fact would be the two-implementations failure this repository keeps paying for.
  * ------------------------------------------------------------------------------------------- */
-console.log('\nC. STALENESS — derived artifact older than its builder or its source');
-const mtime = p => { try { return fs.statSync(p).mtimeMs; } catch (e) { return null; } };
+console.log('\nC. STALENESS — judged by CONTENT (B: field by field, G: the builder\'s --check); mtime is not consulted');
 for (const S of SOURCES) {
-  const art = mtime(D('data', 'engine-data.js'));
-  const src = mtime(D('data', S.source));
-  const bld = mtime(D(S.builder));
-  const older = [];
-  if (src && art && art < src) older.push(`source ${S.source}`);
-  if (bld && art && art < bld) older.push(`builder ${S.builder}`);
-  if (older.length) flag('GAP', `data/engine-data.js is older than ${older.join(' and ')}`);
-  else flag('ok', `data/engine-data.js is newer than ${S.source} and its builder`);
+  console.log(`     data/engine-data.js vs ${S.source}: no mtime clause — see B above and G below`);
 }
-console.log('\n     NOTE: newer is NOT proof of correct. engine-data.js is newer than the mega merge');
-console.log('     and still lost its output, because a LATER regeneration rewrote the whole MC table.');
-console.log('     Timestamps catch stale artifacts; only check B catches overwritten ones.');
+console.log('\n     NOTE: newer is NOT proof of correct, and older is NOT proof of stale. engine-data.js was once');
+console.log('     newer than the mega merge and had still lost its output; on a fresh clone every file carries');
+console.log('     the checkout time. Only B and G, which read CONTENT, can answer either question.');
 
 /* ---------------------------------------------------------------------------------------------
  * D. THE FORMAT SAYS OTHERWISE — the artifact carries the field, and it DISAGREES

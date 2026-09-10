@@ -23,6 +23,16 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+/* EVERY READ STRIPS CR, AND THE COMPARISON IS MADE ON STRIPPED TEXT — 2026-09-10, ROADMAP #554.
+ * core.autocrlf is true on the working machine, so a FRESH checkout of docs/archive/*.md is CRLF while
+ * the laptop's copies, written by tools, are LF. In JavaScript `.` does not match `\r`, so the header
+ * pattern `(.*)$` below could not reach its `$` on a CRLF line and EVERY field was lost: the fresh
+ * checkout rebuilt the index as "0 declare their provenance, 24 predate the convention, 0 carry a
+ * retracted figure" against 16 / 8 / 6 on the same bytes here — a WRONG index, not a line-ending
+ * quibble — and `--check` failed HEAD's own INDEX.md in the clone while passing it here. The reader is
+ * the one engine/docs_scan.js uses for the same defect (its `stripCR`), so there is one implementation
+ * of "a CR is not content"; the output is written LF and git normalises it on commit as it always did. */
+const { stripCR } = require(path.join(__dirname, '..', 'engine', 'docs_scan.js'));
 
 const ROOT = path.join(__dirname, '..');
 const ARCH = path.join(ROOT, 'docs', 'archive');
@@ -66,7 +76,7 @@ function docDate(rel, h) {
 
 const files = fs.readdirSync(ARCH).filter(f => f.endsWith('.md') && f !== 'INDEX.md').sort();
 const rows = files.map(f => {
-  const text = fs.readFileSync(path.join(ARCH, f), 'utf8');
+  const text = stripCR(fs.readFileSync(path.join(ARCH, f), 'utf8'));
   const h = parseHeader(text);
   const sup = (text.split('\n').slice(0, 15).join('\n').match(SUPERSEDED_RE) || [])[1] || null;
   return {
@@ -147,7 +157,7 @@ if (!undeclared.length) { W('None. Every archived document declares its provenan
 W('');
 
 const body = P.join('\n');
-const before = fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8') : '';
+const before = fs.existsSync(OUT) ? stripCR(fs.readFileSync(OUT, 'utf8')) : '';
 
 if (CHECK) {
   if (before !== body) {

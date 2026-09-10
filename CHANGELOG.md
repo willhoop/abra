@@ -13,6 +13,11 @@ silently rewritten; what changed and why is stated.
 ## [5.278.0] — 2026-09-10
 
 ### Added
+- **The pre-commit hook passes on a fresh clone.** `tests/test-artifact-rerunnable.js` distinguishes a
+  release absent from the machine from a stranded one and hashes every tracked release's COMMITTED bytes
+  against its manifest (24 of 27 had never matched; renormalised in `0ec9c45a`); the bundle gate's mtime
+  clause is gone; the archive-index builder strips CR. ROADMAP #554 closed. The 6.0.0 MEDICHAM
+  document pass is drafted OLD → NEW in `docs/_reports/2026-09-10-600-medicham-doc-pass-draft.md`.
 - **The Reg M-C collector runs on two cron expressions (`:07` and `:37`).** GitHub skipped the
   01:07 and 02:07 slots and the ingest's 00:17 slot on 2026-09-10; two manual dispatches covered the
   window. Two expressions halve the longest gap a dropped slot leaves.

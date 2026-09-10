@@ -94,14 +94,68 @@
  * judged on openability alone. That under-reports, never over-reports. The fix belongs in
  * `callerNeeds` — one requirement reader, not a second one in here — and is filed, not done here.
  *
+ * ================= ABSENT IS NOT STRANDED — 2026-09-10, ROADMAP #554 ==============================
+ *
+ * `data/releases/` is gitignored; a release reaches the repository only by `git add -f`. On the laptop
+ * every release an artifact names is on disk. On a fresh clone only the force-added ones are, and the
+ * first clone run of this file read "99 stamped artifacts: 99 STRANDED" — a release ABSENT from the
+ * machine reported as a release that will not open. Those are different facts about different things:
+ * STRANDED is a property of the artifact-release pair and follows it everywhere; absence is a property
+ * of the clone. A gate that fails on every fresh clone is a gate everyone learns to bypass (#148), and
+ * it pinned every commit to one keyboard.
+ *
+ * So git is asked, once, what it carries, and the open failure is split by that answer:
+ *   - not on this disk AND not tracked in git  -> ABSENT-ON-THIS-MACHINE. Counted, printed per release,
+ *     NOT a failure and NOT in the ratchet. `--stamp` refuses while any exist, because a floor written
+ *     on a clone that cannot see half the releases is not the floor.
+ *   - tracked in git (or on disk) and will not open -> STRANDED, exactly as before. A release the
+ *     repository claims to carry and cannot serve is broken wherever it is read, and the ratchet holds it.
+ *
+ * AND THE COMMITTED BYTES ARE HASHED, NOT THE WORKING COPY'S. The same clone run found five tracked
+ * releases reading MODIFIED with every file `i/lf w/crlf`: force-added in August under core.autocrlf
+ * before `data/releases/** -text` existed, so git NORMALISED the blobs and the committed copy has never
+ * hashed to its manifest — while the laptop's copy, CRLF and stat-clean, verifies and `git status`
+ * says nothing. A check against the working tree can only see that from a second machine. This one
+ * streams every tracked release's blobs through `git cat-file --batch` (~3s, measured, 676 files) and
+ * fails BY NAME on the laptop too, which is where the fix (`git add --renormalize`) has to be made.
+ *
  *   node tests/test-artifact-rerunnable.js
  *   node tests/test-artifact-rerunnable.js --stamp   # accept the current count as the new ratchet
  */
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const { spawnSync } = require('child_process');
 const D = (...p) => path.join(__dirname, '..', ...p);
 const ER = require(D('engine', 'engine_release.js'));
+
+/* ---- 0. WHAT GIT CARRIES, ASKED ONCE -------------------------------------------------------------
+ * One `git ls-files -s` over the release store and the artifact directory: which release ids the
+ * repository tracks, the blob id of every tracked release file, and which data/*.json artifacts are
+ * tracked. A git that cannot be asked is a printed fact, not a silent default: without it nothing here
+ * can tell ABSENT from STRANDED, so the split is not made and the old, over-accusing verdict stands. */
+function gitTracked() {
+  const out = { ok: false, why: null, releases: new Set(), blobs: new Map(), artifacts: new Set() };
+  const r = spawnSync('git', ['ls-files', '-s', '-z', '--', 'data/releases', 'data/*.json'],
+    { cwd: D(), encoding: 'utf8', maxBuffer: 64 << 20 });
+  if (r.error || r.status !== 0) {
+    out.why = r.error ? r.error.message : ('git ls-files exit ' + r.status + ': ' + String(r.stderr || '').trim());
+    return out;
+  }
+  for (const line of r.stdout.split('\0')) {
+    if (!line) continue;
+    const tab = line.indexOf('\t');
+    const sha = line.slice(0, tab).split(' ')[1];
+    const p = line.slice(tab + 1);
+    const m = p.match(/^data\/releases\/([0-9a-f]{12})\//);
+    if (m) { out.releases.add(m[1]); out.blobs.set(p, sha); }
+    else if (/^data\/[^/]+\.json$/.test(p)) out.artifacts.add(p);
+  }
+  out.ok = true;
+  return out;
+}
+const GIT = gitTracked();
 
 let fails = 0, checks = 0;
 const ok = (cond, label, extra) => {
@@ -213,7 +267,22 @@ function surfaceOf(id, rel) {
 function judge(a, byCaller) {
   if (a.retired && a.why) return { band: 'RETIRED', detail: oneLine(a.why).slice(0, 100) };
   const o = openOf(a.id);
-  if (o.err) return { band: 'STRANDED', detail: 'the release will not open — ' + oneLine(o.err) };
+  if (o.err) {
+    /* THE SPLIT. Absent from this disk and unknown to git is a fact about the clone; anything else
+     * that will not open is a fact about the release, and it travels with the artifact. When git could
+     * not be asked the split is not made — the old verdict is the over-accusing one, which is the safe
+     * direction for a ratchet, and the reason is printed beside every row it touches. */
+    const onDisk = fs.existsSync(D('data', 'releases', a.id));
+    const tracked = GIT.releases.has(a.id);
+    if (GIT.ok && !onDisk && !tracked) {
+      return { band: 'ABSENT-ON-THIS-MACHINE',
+               detail: 'data/releases/' + a.id + ' is not on this clone and is not tracked in git — a fact about the machine, not the artifact' };
+    }
+    const where = !GIT.ok ? '[git could not be asked: ' + GIT.why + ']'
+                : tracked ? '[TRACKED in git — broken on every clone]'
+                : '[on this disk, untracked]';
+    return { band: 'STRANDED', detail: 'the release will not open — ' + oneLine(o.err) + '  ' + where };
+  }
   if (a.retired) return { band: 'STRANDED', detail: 'declares "rerun": false with NO reason — a blank is not a declaration' };
 
   const req = a.producer ? byCaller.get(a.producer) : null;
@@ -250,18 +319,44 @@ const { out: arts, prose, scratch, unreadable } = stampedArtifacts();
 const rows = arts.map(a => ({ ...a, ...judge(a, byCaller) }));
 
 console.log('');
-const ORDER = { 'STRANDED': 0, 'UNKNOWN-PRODUCER': 1, 'RETIRED': 2, 'RE-RUNNABLE': 3 };
+const ORDER = { 'STRANDED': 0, 'UNKNOWN-PRODUCER': 1, 'RETIRED': 2, 'RE-RUNNABLE': 3, 'ABSENT-ON-THIS-MACHINE': 4 };
 for (const r of [...rows].sort((x, y) => ORDER[x.band] - ORDER[y.band] || x.file.localeCompare(y.file))) {
+  if (r.band === 'ABSENT-ON-THIS-MACHINE') continue;              /* grouped by release below */
   console.log('  ' + r.band.padEnd(17) + r.id + '  ' + r.file.padEnd(48)
     + (r.producer || '(no by)').padEnd(34) + (r.detail || ''));
 }
 
 const bad = rows.filter(r => r.band === 'STRANDED');
 const unknown = rows.filter(r => r.band === 'UNKNOWN-PRODUCER');
+const absent = rows.filter(r => r.band === 'ABSENT-ON-THIS-MACHINE');
 console.log('\n  ' + rows.length + ' stamped artifact(s) over ' + new Set(rows.map(r => r.id)).size + ' release(s):  '
   + rows.filter(r => r.band === 'RE-RUNNABLE').length + ' re-runnable, '
   + rows.filter(r => r.band === 'RETIRED').length + ' retired, '
-  + unknown.length + ' unknown-producer, ' + bad.length + ' STRANDED and undeclared.');
+  + unknown.length + ' unknown-producer, ' + bad.length + ' STRANDED and undeclared, '
+  + absent.length + ' absent on this machine.');
+
+/* WHAT GIT WAS ASKED, AND WHAT IT SAID. Printed every run so a clone and the laptop can be told apart
+ * from the output alone. "TRACKED artifacts naming an untracked release" is ROADMAP #554's option 1
+ * made a number: those are re-runnable HERE and absent on every other clone, and the count only falls
+ * when a release is force-added or the artifact is re-run on a tracked one. */
+if (!GIT.ok) {
+  console.log('\n  GIT COULD NOT BE ASKED (' + GIT.why + ') -- ABSENT and STRANDED are NOT split this run; every');
+  console.log('  unopenable release is reported STRANDED, which over-accuses and never under-accuses.');
+} else {
+  const strandedOnClone = arts.filter(a => GIT.artifacts.has('data/' + a.file) && !GIT.releases.has(a.id));
+  console.log('\n  git tracks ' + GIT.releases.size + ' release(s) under data/releases/ and ' + GIT.artifacts.size + ' data/*.json file(s); '
+    + strandedOnClone.length + ' TRACKED artifact(s) name a release that is NOT tracked (re-runnable here, absent on every other clone).');
+}
+if (absent.length) {
+  const byId = new Map();
+  for (const r of absent) { if (!byId.has(r.id)) byId.set(r.id, []); byId.get(r.id).push(r.file); }
+  console.log('\n  ABSENT ON THIS MACHINE -- ' + absent.length + ' artifact(s) over ' + byId.size + ' release(s) that are neither on this disk nor');
+  console.log('  tracked in git. This is a fact about the CLONE, not about the artifacts: nothing here says whether they');
+  console.log('  would re-run where the release exists, and they are NOT counted as stranded and NOT in the ratchet.');
+  for (const [id, files] of [...byId].sort()) {
+    console.log('    ' + id + '  ' + files.length + ' artifact(s): ' + files.slice(0, 4).join(', ') + (files.length > 4 ? ', ...' : ''));
+  }
+}
 
 /* THE EXCLUSIONS ARE PRINTED, NEVER SILENT. A file this check skips is a file it makes no claim
  * about, and a skip nobody can see is indistinguishable from a pass. */
@@ -349,6 +444,75 @@ if (legacy.length) {
        : parsed.length + ' exports, ' + ER.PROVIDES_BY);
 }
 
+/* ---- 5b. THE COMMITTED COPY OF EVERY TRACKED RELEASE HASHES TO ITS MANIFEST -------------------------
+ * 2026-09-10 (ROADMAP #554). Five tracked releases opened on the laptop and read MODIFIED on a fresh
+ * clone: force-added in August under core.autocrlf before `data/releases/** -text` existed, so git
+ * normalised their blobs to LF while the manifests digest the CRLF bytes `cut` copied. The laptop's
+ * working copy is stat-clean, so `git status` says nothing and `verify()` passes — the only machine
+ * that could see the defect was one that did not have the file. So the INDEX is hashed, not the disk:
+ * every blob of every tracked release goes through one `git cat-file --batch` and is sha256'd against
+ * the manifest committed beside it. Fails by name, on the laptop, where `git add --renormalize` fixes it. */
+{
+  const catBatch = (shas) => {
+    const r = spawnSync('git', ['cat-file', '--batch'], { cwd: D(), input: shas.join('\n') + '\n', maxBuffer: 1 << 30 });
+    if (r.error || r.status !== 0) throw new Error(r.error ? r.error.message : 'git cat-file exit ' + r.status);
+    const out = new Map(); const buf = r.stdout; let i = 0;
+    while (i < buf.length) {
+      const nl = buf.indexOf(10, i); if (nl < 0) break;
+      const [sha, type, sz] = buf.slice(i, nl).toString().split(' ');
+      if (type !== 'blob') { out.set(sha, null); i = nl + 1; continue; }     /* "missing" has no body */
+      const size = +sz; out.set(sha, buf.slice(nl + 1, nl + 1 + size)); i = nl + 1 + size + 1;
+    }
+    return out;
+  };
+  const ids = [...GIT.releases].sort();
+  const notes = []; let checked = 0, files = 0, pruned = 0; let why = null;
+  if (!GIT.ok) why = 'git could not be asked: ' + GIT.why;
+  else if (!ids.length) why = 'no release is tracked in git';
+  else {
+    try {
+      const manShas = ids.map(id => GIT.blobs.get('data/releases/' + id + '/release.json'));
+      const mans = catBatch(manShas.filter(Boolean));
+      const want = [];   /* {id, rel, digest, sha} */
+      ids.forEach((id, k) => {
+        const body = manShas[k] && mans.get(manShas[k]);
+        if (!body) { notes.push(id + ': release.json is not tracked, so the release is tracked in name only'); return; }
+        let man; try { man = JSON.parse(body.toString('utf8')); } catch (e) { notes.push(id + ': committed release.json does not parse'); return; }
+        /* PRUNED IS A RECORDED DECISION, NOT A DEFECT — the same distinction open() makes. The manifest
+         * and cut history are tracked so the release can still PROVE what it froze; its bodies are gone
+         * on purpose, here and on every clone alike. Counted, not accused. */
+        if (man.bodies_pruned) { pruned++; return; }
+        let missing = null;
+        for (const [rel, digest] of Object.entries(man.files || {})) {
+          const sha = GIT.blobs.get('data/releases/' + id + '/' + rel);
+          if (!sha) { if (!missing) missing = rel; continue; }
+          want.push({ id, rel, digest, sha });
+        }
+        if (missing) notes.push(id + ': ' + missing + ' is in the manifest and NOT in git — tracked in name only');
+        checked++;
+      });
+      const blobs = catBatch([...new Set(want.map(w => w.sha))]);
+      const firstBad = new Map();
+      for (const w of want) {
+        files++;
+        const b = blobs.get(w.sha);
+        const got = b ? crypto.createHash('sha256').update(b).digest('hex').slice(0, 12) : null;
+        if (got !== w.digest && !firstBad.has(w.id)) firstBad.set(w.id, w.rel + ' committed ' + got + ', manifest ' + w.digest);
+      }
+      for (const [id, d] of [...firstBad].sort()) notes.push(id + ': ' + d + ' — the committed copy is not the release');
+      if (firstBad.size) notes.push('FIX, on the machine whose working copies verify: git add --renormalize -- '
+        + [...firstBad.keys()].sort().map(id => 'data/releases/' + id).join(' ') + '  (then commit; data-only)');
+    } catch (e) { why = 'could not read the committed blobs: ' + oneLine(e.message); }
+  }
+  ok(!why && notes.length === 0,
+     'the COMMITTED bytes of every tracked release hash to its manifest (what a clone will get)',
+     why ? why + ' — NOT CHECKED, which is not a pass'
+         : notes.length ? (notes.length - (notes.some(n => n.startsWith('FIX,')) ? 1 : 0)) + ' of ' + checked
+           + ' tracked release(s) BROKEN IN GIT — a clone cannot open them: ' + notes.join(' ;; ')
+         : checked + ' tracked release(s), ' + files + ' committed file(s) hashed against their manifests'
+           + (pruned ? ', ' + pruned + ' pruned (manifest only, by decision)' : ''));
+}
+
 /* ---- 6. THE RATCHET ----------------------------------------------------------------------------- */
 const BASE = D('data', 'artifact-rerunnable-baseline.json');
 let base = null, baseWhy = null;
@@ -368,6 +532,12 @@ if (baseWhy) {
 }
 
 if (process.argv.includes('--stamp')) {
+  if (absent.length) {
+    console.error('\n  REFUSING TO --stamp on a clone with ' + absent.length + ' artifact(s) whose release is ABSENT from this '
+      + 'machine. Their verdict is unknown here, so a floor written now would be below the truth and the '
+      + 'machine that holds the releases would read it as a regression. Stamp where the releases are.');
+    process.exit(2);
+  }
   if (baseWhy) {
     console.error('\n  REFUSING TO --stamp over an UNREADABLE baseline (' + baseWhy + '). Stamping now '
       + 'would write a fresh floor over a record nobody has read. Repair or delete the file first.');
@@ -400,7 +570,7 @@ if (!base) {
      'no artifact became unre-runnable since the baseline',
      fresh.length ? 'NEW: ' + fresh.map(r => r.file + ' — ' + r.detail).join('; ')
                   : bad.length + ' known, was ' + base.stranded);
-  if (bad.length < base.stranded) {
+  if (bad.length < base.stranded && !absent.length) {
     console.log('  note  the ratchet TIGHTENED: ' + base.stranded + ' -> ' + bad.length
       + '. Re-stamp with --stamp so it cannot drift back up.');
   }

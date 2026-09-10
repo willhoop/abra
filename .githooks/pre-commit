@@ -126,6 +126,16 @@ fi
 # COST 1.6s, measured. It writes nothing: artifact_audit.js has no write call, and every builder it
 # spawns returns from its --check branch before its own write. It does not need SHOWDOWN_PATH --
 # without it checks D and E stand down and G still answers.
+#
+# NO MTIME CLAUSE, SINCE 2026-09-10 (ROADMAP #554). artifact_audit.js check C used to flag
+# data/engine-data.js as a GAP for being OLDER than its source or its builder. In a fresh checkout it
+# blocked a commit on bytes identical to one that had passed an hour earlier: a clone gives every file
+# the checkout time, and which lands later is arbitrary. This repository's own rule is that newer-than-
+# source is no evidence; the converse is none either. The content comparisons for the same pair (check
+# B field by field, check G the builder's own --check) were already in the same run, so the mtime clause
+# was dropped rather than replaced -- a clause that fires on every fresh clone is a clause everyone
+# learns to bypass, and a third comparison of one fact is the two-implementations failure. This gate now
+# passes on identical bytes wherever they are checked out.
 if command -v node >/dev/null 2>&1; then
   echo "pre-commit: generated-bundle gate (~1.6s) -- every data/*.js against the source it declares"
   if ! AA_OUT=$(node engine/artifact_audit.js 2>&1); then
