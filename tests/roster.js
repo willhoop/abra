@@ -7098,10 +7098,12 @@ const RULES = [
      + 'in both arms: an engine that had stopped resolving anything at all would otherwise read as a '
      + 'correct block.',
   break: { why: 'the priority block is skipped, so the shielded side takes the fast move',
-    /* RE-AIMED 2026-09-04: the function grew a fourth parameter (`why`) and the anchor did not, so the
-     * plant matched 0 times. The signature is read off the engine rather than remembered. */
-    patch: [['function priorityRefusedAbove(defenders, field, aimedAt, why){',
-             'function priorityRefusedAbove(defenders, field, aimedAt, why){if(1)return Infinity;']] },
+    /* RE-AIMED 2026-09-04 and again 2026-09-10: the function has now grown a `why` out-param and an
+     * `only` source selector, and each time the anchor did not follow it the plant matched 0 times and
+     * every row this rule produced asserted nothing. The signature is read off the engine, never
+     * remembered -- `anchor_dead` in the artifact is what says so. */
+    patch: [['function priorityRefusedAbove(defenders, field, aimedAt, why, only){',
+             'function priorityRefusedAbove(defenders, field, aimedAt, why, only){if(1)return Infinity;']] },
   match(e) {
     if (typeof e.onFoeTryMove !== 'function') return null;
     if (!PRIORITY_HIT) return cannot('this format has no 100-accuracy single-target damaging move '

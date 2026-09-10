@@ -10,6 +10,63 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.279.0] — 2026-09-10
+
+### Fixed
+- **The three undeclared narration causes are closed, and the MEDICHAM gate reads OPEN.** Each fix was
+  written against an authority line, shown RED on the pre-fix bytes by a new probe, and carries a
+  `MEDI_*` knob that restores the defect.
+  - **Shed Tail's refusals were all bare.** `shedtail.onTryHit` (`data/moves.ts:16166-16179`) writes
+    three different lines — bare when nobody can come in, `move: Shed Tail` when a doll is already up,
+    and `move: Shed Tail` + `[weak]` below `ceil(maxhp/2)`. The `passstate` branch that owns the CHECK
+    ORDER (an empty-bench Shed Tail must cost nothing) wrote `mvFail` on all three; it now routes
+    through `mvFailNamed`, the same function the generic `costsUserHP` block already used, so the
+    family has one implementation. Probe `tests/probe_shedtail_refusal_line.js`, knob
+    `MEDI_BARE_FAIL_LABELS=1`.
+  - **The redirect draw sat below the charge.** `getMoveTargets` (`sim/battle-actions.ts:466`) holds
+    `RedirectTarget` and runs above `PrepareHit` (`:591`), where `electroshot.onTryMove` writes
+    `-prepare`. The aim/target/redirect segment is hoisted to the top of the attack path and the draw
+    is gated on the authority's own `isCharging` (`sim/pokemon.ts:829-835`) — which matters, because on
+    a REAL charge turn the authority skips the draw entirely and a hoist without the guard would invent
+    a line. The skip decision is computed once and read by the charge branch too. Probe
+    `tests/probe_redirect_above_prepare.js`, knob `MEDI_REDIRECT_BELOW_CHARGE=1`.
+  - **The terrain half of the priority bar was two steps early.** The ability bar hangs on
+    `onFoeTryMove`, raised by `runEvent('TryMove')` (`:486`); a terrain hangs on `onTryHit`, raised
+    inside the `moveSteps` loop (`:559`/`:644`); and the move's own `singleEvent('Try')` (`:590`) sits
+    BETWEEN them. Folded into one number, a Sucker Punch the game refuses for its own reason was
+    refused by the floor. `priorityRefusedAbove` gained an `only` source selector (a two- or
+    three-argument caller is unchanged, so `board.js` and `position_features.js` are untouched) and the
+    attack path now asks the terrain below its `Try` family. Probe
+    `tests/probe_sucker_try_above_terrain.js`, knob `MEDI_TERRAIN_BAR_AT_TRYMOVE=1`.
+- **`tests/roster.js`'s `ability/blocks-priority` plant anchor is re-aimed** — for the second time, and
+  for the same reason as 2026-09-04: `priorityRefusedAbove` grew a parameter and the anchor did not
+  follow, so the plant matched 0 times and the artifact recorded `anchor_dead: true`. The row counts
+  were identical either side of it, which is why the count is not the check.
+- **One figure in `docs/MODELS.md` lost its only trace, and the trace had always been a coincidence.**
+  `tests/test-docs-current.js` failed on `docs/MODELS.md: 30 untraceable figures, was 29` and named
+  the figure: the `n_games` **7,381** in the PORY coefficient-correction block. **Re-derived, not
+  retracted — it is true.** `git show 44e0fb0:data/pory-eval.json` (2026-07-24) records `n_games`
+  **7,381**, and the `weights` and `feat_std` stored in that same blob reduce to **1.2561 / 1.5436**,
+  which is the coefficient pair the paragraph attributes to that run. What had been making it
+  *traceable to the gate* was an unrelated species usage count in `data/meta-usage.json` — `raichu`,
+  `n` **7,381**, now **7,385** — which the hourly ingest rewrote at commit `dd09c24b`. Nothing
+  tonight orphaned it and no engine byte is involved. The block also claims `data/pory-eval.json`
+  carries a per-run history; it does not, it carries `reduced_form` alone, and that is marked in
+  place rather than edited out of a dated paragraph. Full account:
+  `docs/_reports/2026-09-10-models-orphan.md`.
+
+### Notes
+- Measured on release `8ac9c4d888f1`, census `1da84d77888e` (the committed bytes, **not** regenerated),
+  `--team-store data/team-pool-frozen`, `--games 1200` (961 played), arm `middle`, `--turns 50`,
+  empirical steering. NARRATION **0 of 961** (1 raw less 1 declared), BOARD-MATERIAL **0 of 961**,
+  10,705 of 10,705 turn boundaries identical; damage differential **0 of 6000**; roster
+  **142 / 139 / 487** with 0 DIFFER and 0 DID-NOT-FIRE; `all_mechanics_fire` 1313 games, 0 threw.
+  `node engine/quarantine.js` prints **GATE: OPEN — MEDICHAM passes both conditions**, 9 of 9 PASS.
+- **The gate opening is a basis change and this release does not declare one.** Nothing downstream has
+  been re-run, so no withheld figure has been restored: a quarantined number does not become true when
+  MEDICHAM becomes correct, it becomes re-runnable. That is ROADMAP #57 and the `X.0.0` that carries it.
+- Full account, every command and every pin: `docs/_reports/2026-09-10-narration-close.md`.
+
 ## [5.278.0] — 2026-09-10
 
 ### Added

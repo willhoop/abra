@@ -13,28 +13,30 @@ it does not compete on them.
 
 ```
 MEASURE — can we believe a number
-  leaf calibration: QUARANTINED — the figure is withheld, not annotated.
-    data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 1 of 9 gate clauses fail (whole-game differential / NARRATION — protocol divergence with no board effect)
-    it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
-  engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
-    data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 1 of 9 gate clauses fail (whole-game differential / NARRATION — protocol divergence with no board effect)
-    it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 173 unsafe, 2 void (declared), 46 possibly stale, 34 ok, 0 missing
-  click censoring: QUARANTINED — the figure is withheld, not annotated.
-    data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 1 of 9 gate clauses fail (whole-game differential / NARRATION — protocol divergence with no board effect)
-    it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
-  the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
+  leaf calibration: WITHHELD — engine/provenance.js calls data/winrate-backtest.json UNSAFE.
+    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
+    older than its input engine-data.js
+    (+2 more — node engine/provenance.js)
+    it becomes quotable again when this is re-run: node engine/backtest_winrate.js
+  engine correctness -> leaf: WITHHELD — engine/provenance.js calls data/leaf-engine-contrast.json UNSAFE.
+    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
+    older than its input engine-data.js
+    (+10 more — node engine/provenance.js)
+    it becomes quotable again when this is re-run: node engine/leaf_engine_contrast.js
+  provenance: 173 unsafe, 2 void (declared), 43 possibly stale, 37 ok, 0 missing
+  click censoring: WITHHELD — engine/provenance.js calls data/click-censoring-census.json UNSAFE.
+    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
+    COMPUTED FROM DIFFERENT CONTENT — engine/fit_policy.js was 37df17935c16 at read time, is a963537c91e8 now
+    (+5 more — node engine/provenance.js)
+    it becomes quotable again when this is re-run: node engine/click_census.js
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-09 22:59
+    moved after the fit: engine/medicham2-browser.js  2026-09-10 02:30
     moved after the fit: data/engine-data.js  2026-08-31 00:08
     moved after the fit: data/abra-tags.js  2026-09-09 20:53
 ```
 
-_stamped 2026-09-10 00:46_
+_stamped 2026-09-10 02:49_
 
 <!-- /GENERATED -->
 

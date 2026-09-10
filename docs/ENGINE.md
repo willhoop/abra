@@ -19,7 +19,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_room_unburden.js`, `tests/probe_trap_timing.js`,
 `tests/probe_spread_secondary_address.js`, `tests/probe_reaction_address.js`,
 `tests/probe_substitute_roll_address.js`, `tests/probe_refill_update_pass.js`,
-`tests/probe_curse_pressure_pp.js`,
+`tests/probe_curse_pressure_pp.js`, `tests/probe_shedtail_refusal_line.js`,
+`tests/probe_redirect_above_prepare.js`, `tests/probe_sucker_try_above_terrain.js`,
 `tests/probe_mid_cat_reload.js`, `tests/probe_party_key_collision.js`, `engine/identity_audit.js`,
 `tests/probe_transform_faint_revert.js`, `tests/probe_refill_entry_herb.js`,
 `tests/probe_recoil_after_clamp.js`, `tests/probe_poltergeist_use_time.js`,
@@ -140,8 +141,8 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 ENGINE — does the simulator do what Pokémon does
   835/835 probed mechanics live, 0 missing   (census 2026-09-09 22:07)
     the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 12 min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-10 00:30)
+    never fired in the staged harness (all-mechanics-fire.json, 1.1 h old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-10 01:43)
     seed 20260804, requested 6000, 134 not comparable (multihit 134, non-finite 0, threw 0)
     the skip is a FAMILY, not a rounding error: 14 of 500 legal moves carry the multiHit tag and are skipped by
     construction, so the volley loop has never been damage-compared. 11 were drawn and skipped; 3 were never drawn at
@@ -163,9 +164,106 @@ ENGINE — does the simulator do what Pokémon does
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-10 00:46_
+_stamped 2026-09-10 02:49_
 
 <!-- /GENERATED -->
+
+## NARRATION IS CLOSED — **THE GATE READS `OPEN` AND ALL 9 CLAUSES PASS.** NARRATION **3 → 0 OF 961** (1 RAW, 1 DECLARED), BOARD-MATERIAL **0 OF 961** WITH 10,705 OF 10,705 BOUNDARIES IDENTICAL, ROSTER **142 / 139 / 487** WITH ZERO DIFFER, ZERO DID-NOT-FIRE AND **ZERO DEAD PLANT ANCHORS**, `test-engine-diff` **6000/6000**, `all_mechanics_fire` **1313 GAMES / 0 THREW**, `test-resolution-order` 26/26, `probe_red_demo` 200 / 0 HOLLOW. CENSUS PINNED AND UNTOUCHED AT **835 LIVE / 0 MISSING**. 2026-09-10, CHANGELOG 5.279.0
+
+Full account, every command, every pin, each probe red on the pre-fix bytes:
+[docs/_reports/2026-09-10-narration-close.md](_reports/2026-09-10-narration-close.md). Release `8ac9c4d888f1`,
+census `1da84d77888e` (the committed bytes, **not** regenerated), `--team-store data/team-pool-frozen`,
+`--games 1200` (961 played), arm `middle`, `--turns 50`, empirical steering.
+`node engine/arms_comparable.js` answers **COMPARABLE** against the superseded arm.
+
+**THE CLAUSE, NAMED.** `whole-game differential / NARRATION — protocol divergence with no board effect`
+reads *"ZERO undeclared across 961 games — every protocol divergence in this run either parts a board
+(and is the other clause's) or is declared (1 narration-only raw, 1 declared, 0 cleared on decision
+impact)"*. The one raw row is the perish drain Will closeted on 2026-08-28. `node engine/quarantine.js`
+prints **GATE: OPEN — MEDICHAM passes both conditions; nothing is withheld**, and `status.js` now prints
+no QUARANTINE block at all. **The gate is READ, not declared** — `gates` on this clause is the board
+clause's own verdict and would flip back the moment a board parted again.
+
+**AND OPENING IT RESTORES NOTHING BY ITSELF.** A quarantined number does not become true when MEDICHAM
+becomes correct; it becomes RE-RUNNABLE. ROADMAP #57 is the list, and 9 figures remain WITHHELD on
+PROVENANCE, which is a different condition and does not lift with the gate.
+
+### THE THREE CAUSES — EACH A LOCATION ON THE CARD AND A DIFFERENT MECHANISM UNDERNEATH
+
+**SHED TAIL'S THREE REFUSALS ARE THREE DIFFERENT LINES AND THIS ENGINE WROTE ONE.** `shedtail.onTryHit`
+(`data/moves.ts:16166-16179`) writes a bare `|-fail|<source>` when nobody can come in,
+`|-fail|<source>|move: Shed Tail` when a doll is already standing, and `...|[weak]` below
+`ceil(maxhp/2)`. **It was not a missing field**: `mvFailNamed` and `costsUserHP.announcesFailBelow`
+have existed since batch S and the tag already carried `{label:'Shed Tail', flag:'[weak]'}`, DERIVED
+from the handler. Shed Tail simply never reaches the generic `costsUserHP` block — `a.kind==='passstate'`
+is excluded there on purpose, because THE ORDER OF THE THREE CHECKS IS PART OF THE MOVE — and the branch
+that owns the order had never been handed the label. Both sites now call `mvFailNamed`.
+`tests/probe_shedtail_refusal_line.js`, knob `MEDI_BARE_FAIL_LABELS=1`; SHED-NOBENCH is the control that
+must stay bare. **The first SHED-WEAK arm was NOT STAGED because one Flamethrower takes Orthworm from
+145/145 to `0 fnt`** — the body now walks itself down on its own Substitute cost, `floor(maxhp/4)` three
+times, so no damage estimate is anywhere in the arm.
+
+**THE REDIRECT DRAW IS ABOVE THE CHARGE, AND OFF ON A TURN THE MOVE ACTUALLY SPENDS CHARGING.**
+`getMoveTargets` (`sim/battle-actions.ts:466`) holds `RedirectTarget` and runs above `PrepareHit`
+(`:591`), where `electroshot.onTryMove` writes `-prepare`. The aim/target/redirect segment is hoisted to
+the top of the attack path — authority-correct against every refusal it now passes, since `:466` is above
+`TryMove` `:486`, `Try` `:590` and `PrepareHit` `:591`. **The guard is the load-bearing half:**
+`sim/pokemon.ts:829-835` skips the draw entirely while `isCharging`, so a real charge turn writes no rod
+line, and this engine already wrote none — correctly, but by accident of position. Hoisting without the
+guard INVENTS a line on every charge turn; `tests/probe_redirect_above_prepare.js`'s ROD-NORAIN arm is
+what catches it. The skip decision is computed once and read by the charge branch too. Knob
+`MEDI_REDIRECT_BELOW_CHARGE=1`. **The probe was wrong before the engine was**: its first run compared
+`ability: Lightning Rod` against `lightningrod` and called all three arms red, on a difference the
+whole-game differ normalises away.
+
+**A MOVE'S OWN `Try` OUTRANKS THE TERRAIN BAR.** The ability bar hangs on `onFoeTryMove`
+(`runEvent('TryMove')`, `:486`); a terrain hangs on `onTryHit` (`hitStepTryHitEvent`, `:559`/`:644`); and
+`singleEvent('Try')` (`:590`) sits BETWEEN them — `moveSteps` is declared above the `Try` gate and RUN
+below it. This engine folded both sources into one `priorityRefusedAbove` call at the `TryMove` position,
+so a Sucker Punch the game refuses for its own reason (`data/moves.ts:18399`) was refused by the floor.
+`priorityRefusedAbove` gained an `only` selector — a two- or three-argument caller is unchanged, so
+`board.js` and `position_features.js` are untouched — and the attack path asks the terrain BELOW its
+`Try` family. `tests/probe_sucker_try_above_terrain.js`, knob `MEDI_TERRAIN_BAR_AT_TRYMOVE=1`;
+SUCKER-ATTACKING is the control that stops the bar being moved out of the way altogether.
+
+### A PLANT ANCHOR WENT DEAD AND THE COUNTS DID NOT MOVE
+
+The abilities roster clause went **PASS → FAIL** on the first chain run, and it was this pass's own
+change: `ability/blocks-priority` plants its break by string-matching
+`function priorityRefusedAbove(defenders, field, aimedAt, why){`, the terrain fix added a fifth
+parameter, and the plant matched **0 times** — `anchor_dead: true`, *"every row this rule produced is
+asserting nothing until it is re-aimed."* **The row counts were byte-identical either side of it**
+(139 tested, 0 DIFFER, 0 DID-NOT-FIRE), which is exactly why the count is not the check. Re-aimed at
+`tests/roster.js:7105`; its comment now records that this is the SECOND time the same anchor has been
+outrun by the same function's signature. All three roster artifacts read 18 / 36 / 44 reds with zero
+not-ok.
+
+### THE HAND LIST
+
+- **THE PERISH `|upkeep|` DRAIN** — CLOSETED by Will, and the only raw narration row left. Its
+  no-board-effect evidence was measured on release `5f3f7141227c` and the clause prints
+  `EVIDENCE NOT RE-CHECKED` against `8ac9c4d888f1` on every run.
+- **THE SUPREME OVERLORD DECLARATION MATCHED NOTHING IN THE NARRATION CLAUSE** this run — *"a
+  declaration that covers no cause is a claim that has quietly become false"*. It is still matched by
+  the MECHANICS clause, so check both before withdrawing it.
+- **THE SIDE GUARDS ARE STILL AT `TryMove`.** Quick Guard and Wide Guard are `condition.onTryHit`, the
+  same step as the terrain, and `sideGuardRefuses` is still asked at the pre-dispatch gate above the
+  move's own `Try`. Same shape as the terrain fix; no failing probe on it yet.
+- **THE TERRAIN GATE USES THE PRE-REDIRECT AIM AND HAS NO ALLY CLAUSE.** The authority hands
+  `psychicterrain.onTryHit` the post-redirect body and returns outright on `target.isAlly(source)`
+  (`data/moves.ts:14122`). Both are named rather than folded in, because no probe fails on them today.
+- **NO `|-ability|<x>|Lightning Rod|boost` LINE.** Seen while staging the redirect probe and not that
+  card: the authority writes `|-ability|...|boost` then `|-boost|...|spa|1`, and this engine writes one
+  `|-boost|` with `[from] ability: lightningrod`. The differ normalises it away today.
+- **FUTURE SIGHT'S PAYOUT TAKES NO `acc` DRAW** — carried forward unchanged.
+- **`kind === 'boostally'`'s silent shield**, **REST UNDER MISTY TERRAIN** — carried forward unchanged.
+- ~~SHED TAIL'S `-fail` IS BARE~~ — closed above; `tests/probe_shedtail_refusal_line.js` carries it.
+- ~~SUCKER PUNCH vs PSYCHIC TERRAIN, LIGHTNING ROD vs `-prepare`~~ — closed above;
+  `tests/probe_sucker_try_above_terrain.js` and `tests/probe_redirect_above_prepare.js` carry them.
+- ~~THE RESIDUAL TRIO~~ — closed at 5.278.0; all three causes are gone from the pool.
+- **`tests/test-mechanics.js`'s `DELIBERATE_BREAK` list names neither `redirectBelowChargeRestored` nor
+  `terrainBarAtTryMoveRestored`**, so a census run under either knob would write. The file was not mine
+  this wave; the same one-line addition is still owed for `subAbsorbAtApplyRestored`.
 
 ## THE WHOLE GATE CHAIN IS RE-MEASURED ON THE CURRENT BYTES — **8 OF 9 CLAUSES PASS**, **BOARD-MATERIAL 0 OF 961**, **NARRATION 6 → 3 OF 961 ACROSS 4 CAUSES**, ROSTER **142 / 139 / 487 WITH ZERO DIFFER AND ZERO DID-NOT-FIRE**, `test-engine-diff` **6000/6000**, `all_mechanics_fire` **1313 GAMES / 0 THREW**, CENSUS PINNED AND UNTOUCHED AT **835 LIVE / 835 PROBED / 0 MISSING**. **NO ENGINE BYTE MOVED.** 2026-09-10
 

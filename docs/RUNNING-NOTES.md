@@ -69,6 +69,39 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [5.279.0] — 2026-09-10 — the one figure blocking every commit was traced to a species usage count, and it is true
+- **What changed.** NO CODE, and no engine byte. `tests/test-docs-current.js` was red on
+  `docs/MODELS.md: 30 untraceable figures, was 29`, which blocks `.githooks/pre-commit` for the whole
+  repository. The gate named the figure — the `n_games` **7,381** in the PORY coefficient-correction
+  block of `docs/MODELS.md`. It was **re-derived, not retracted.** The blob written by that run, at
+  commit `44e0fb0` (2026-07-24), states `n_games` **7,381**, and the `weights` and `feat_std` it
+  stores reduce to **1.2561 / 1.5436** — the coefficient pair the paragraph attributes to that run.
+  Read it back with `git show 44e0fb0:data/pory-eval.json`. The re-derivation is recorded in
+  `CHANGELOG.md`, which is the trace `engine/docs_scan.js` accepts for a superseded historical
+  figure, and a marker in `docs/MODELS.md` records that the per-run history the block claims the
+  artifact carries is not in the file. **The ratchet in `data/docs-currency-baseline.json` was NOT
+  touched.** Full account: `docs/_reports/2026-09-10-models-orphan.md`.
+- **Measured.** `docs/MODELS.md` **30 → 29** untraceable figures, the ratchet's value —
+  `node engine/docs_scan.js --quarantine --json`, `untraceable.per`; the total across the same 6
+  documents falls by one, and the citation-mismatch ratchet is unmoved. The orphaning event is the
+  hourly ingest at commit `dd09c24b` (2026-09-10T04:50Z), which rewrote `data/meta-usage.json`:
+  `raichu`'s `n` reads **7,385** there now, and the value it moved off was the figure's only trace
+  under `data/` — a species usage count that never made the claim.
+- **Basis.** unchanged — no published figure moved. The figure stands and is now traced to the run
+  that produced it.
+- **Supersedes.** Nothing. `7,381` is unretracted and unchanged; only its trace moved.
+- **Owed to the next major.** none for the figure. `docs/MODELS.md:2202` is the same shape and is not
+  fixed here: five of its six store counts are already untraceable and the sixth, **9,759**, is
+  traced only by `data/board-data.js` — the month-old bundle of ROADMAP #568 — so regenerating that
+  bundle orphans it next.
+
+## [5.279.0] — 2026-09-10 — the three undeclared narration causes are closed and the MEDICHAM gate reads OPEN
+- **What changed.** Three engine fixes in `engine/medicham2-browser.js`, each with a probe shown RED on the pre-fix bytes and a `MEDI_*` knob that restores the defect. (1) Shed Tail's `passstate` branch wrote a bare `-fail` on all three of its refusals where `shedtail.onTryHit` (`data/moves.ts:16166-16179`) names the move on two of them and adds `[weak]` on one — routed through the existing `mvFailNamed`, so the family has one implementation. (2) The aim/target/redirect segment was hoisted above the charge branch, where `getMoveTargets` sits in the authority (`sim/battle-actions.ts:466` against `PrepareHit` at `:591`), and the draw is gated on the authority's own `isCharging` (`sim/pokemon.ts:829-835`) so a REAL charge turn still draws nothing. (3) `priorityRefusedAbove` gained an `only` source selector: the ability half stays at `TryMove` (`:486`) and the terrain half moved below the move's own `Try` (`:590`), so a Sucker Punch the game refuses for its own reason is no longer refused by the floor. `tests/roster.js:7105`'s `blocks-priority` plant anchor was re-aimed after (3) changed the signature it string-matches. Full account: `docs/_reports/2026-09-10-narration-close.md`.
+- **Measured.** NARRATION **0 of 961** — clause `whole-game differential / NARRATION`, 1 narration-only raw less 1 declared (the closeted perish drain, ROADMAP #440); BOARD-MATERIAL **0 of 961**, 10,705 of 10,705 turn boundaries identical — `data/game-differential.json`, `--games 1200` (961 played), arm `middle`, empirical steering, census `1da84d77888e` (committed bytes, NOT regenerated), `--team-store data/team-pool-frozen`, `--turns 50`, release `8ac9c4d888f1`. Damage differential **0 of 6000** (`data/engine-diff.json`, seed 20260804); roster **142 / 139 / 487, 0 DIFFER, 0 DID-NOT-FIRE, 0 dead plant anchors** (`data/roster.{items,abilities,moves}.json`); `data/all-mechanics-fire.json` 1313 games, 0 threw. `node engine/quarantine.js` prints **GATE: OPEN**, 9 of 9 clauses PASS. `node engine/arms_comparable.js` answers **COMPARABLE** against the superseded arm — same steering digest, same 961 games.
+- **Basis.** unchanged — 3 of 961 became 0 of 961, which is the same question answered better, and the arms were checked COMPARABLE rather than assumed. **The gate OPENING is a basis change and it is NOT declared here**: nothing downstream has been re-run, so no withheld figure has been restored and no reader can yet be told anything new. That fold-in is ROADMAP #57 and it is Will's release to declare.
+- **Supersedes.** ~~NARRATION 3 of 961 across 4 causes~~ retracted — it was a claim about release `5a7bd8a8178a` and stood in no living document. The three causes that stopped are Shed Tail's `[weak]`, Lightning Rod against `-prepare`, and Sucker Punch against Psychic Terrain.
+- **Owed to the next major.** `docs/ABRA-whitepaper.md`, `docs/ABRA-technical-docs.md`, `docs/SUMMARY.md` and `docs/MODELS.md` all describe MEDICHAM as under quarantine; the gate opening rewrites that section rather than restamping it.
+
 ## [5.278.0] — 2026-09-10 — the whole gate chain is re-measured on the residual handler-list sort, and narration reads 3 of 961
 - **What changed.** NO CODE. Six gate clauses read `MEASURED AGAINST A DIFFERENT ENGINE` because `engine/medicham2-browser.js` moved at 02:59Z (commit `75efb271`) and nothing had been re-run. One release was cut (`5a7bd8a8178a`) and handed to all four instruments; the census was PINNED at the committed bytes, not regenerated. Full account: `docs/_reports/2026-09-10-remeasure-batch-AB.md`.
 - **Measured.** BOARD-MATERIAL **0 of 961**, NARRATION **3 of 961 across 4 causes** — `data/game-differential.json`, `--games 1200` (961 played), arm `middle`, empirical steering, census `1da84d77888e`, `--team-store data/team-pool-frozen`, `--turns 50`, release `5a7bd8a8178a`. Damage differential **0 of 6000** (`data/engine-diff.json`, seed 20260804); roster **142 / 139 / 487 with 0 DIFFER and 0 DID-NOT-FIRE** (`data/roster.{items,abilities,moves}.json`); `data/all-mechanics-fire.json` 1313 games, 0 threw. Gate **8 of 9 PASS**, NARRATION alone red. `node engine/arms_comparable.js` answers **COMPARABLE** against the superseded arm — same steering digest, same 961 games — so this is a back-cast.

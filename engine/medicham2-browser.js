@@ -3119,6 +3119,16 @@ const MEDFAILS = { encoreAction: 0,
      once per draw that WOULD have gone to a partner and did not, so the number is the defect's own
      size. MUST READ 0 on any shipping run. */
   redirectFoeOnlyRestored: 0,
+  /* NARRATION, 2026-09-10 -- MEDI_REDIRECT_BELOW_CHARGE=1 is armed, so the redirect draw runs at its
+     pre-hoist position, below the charge branch, and a weather-skipped charge writes `|-prepare|`
+     above the drawer's line instead of below it. Stamped at the moment the choice is taken, once per
+     move, so a run under the knob cannot look like a run without it. MUST READ 0 on any shipping run. */
+  redirectBelowChargeRestored: 0,
+  /* NARRATION, 2026-09-10 -- MEDI_TERRAIN_BAR_AT_TRYMOVE=1 is armed, so the terrain half of the
+     priority bar is asked at the `TryMove` position instead of at `TryHit`, above the move's own
+     `Try`. Bumped once per action that takes the early road, so the number is the arm's own size.
+     MUST READ 0 on any shipping run. */
+  terrainBarAtTryMoveRestored: 0,
   /* THE LOUD HALF OF THE NEW PARAMETER. `redirectDrawnTo` gained an `allies` axis and both of its
      callers pass it; a THIRD caller that forgets would silently reproduce card C2 forever, which is
      exactly the silent-default shape this file keeps paying for. Bumped once per call that arrives
@@ -5737,6 +5747,23 @@ const GRAVITY_GROUNDS_EVERY_CHARGE=(typeof process!=='undefined'&&process.env&&p
  * NOTHING else -- the semi-invulnerability already ended at execution and still does -- so a knob run
  * turns exactly the one `chargeTurn` clock row red and leaves the invulnerability row green. */
 const CHARGE_WRAP_CLEARED_AT_EXECUTION=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CHARGE_WRAP_CLEARED_AT_EXECUTION==='1');
+/* NARRATION, 2026-09-10 -- MEDI_REDIRECT_BELOW_CHARGE=1 RUNS THE REDIRECT DRAW AT ITS OLD POSITION,
+ * below the charge branch and below the priority gate, which is the engine exactly as it stood before
+ * the hoist. It is ONE implementation called from one of two places, not a second copy: the closure is
+ * built where the target list is, and this decides which site calls it. Under it a charge that the
+ * weather SKIPS writes `|-prepare|` above the `|-activate|<drawer>|ability: Lightning Rod` the
+ * authority writes below it, which is the divergence the hoist closes. Any run carrying it also
+ * carries `MEDFAILS.redirectBelowChargeRestored`. */
+const REDIRECT_BELOW_CHARGE=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_REDIRECT_BELOW_CHARGE==='1');
+/* NARRATION, 2026-09-10 -- MEDI_TERRAIN_BAR_AT_TRYMOVE=1 PUTS THE TERRAIN HALF OF THE PRIORITY BAR
+ * BACK AT THE `TryMove` POSITION, folded into the same number as the ability half, which is the engine
+ * exactly as it stood before this pass. The ability half does not move under it and never has: its
+ * handlers really are `onFoeTryMove`. Under the knob a Sucker Punch whose own `onTry` refuses it is
+ * refused by a Psychic Terrain instead, one step too early. Any run carrying it also carries
+ * `MEDFAILS.terrainBarAtTryMoveRestored`. */
+const TERRAIN_BAR_AT_TRYMOVE=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_TERRAIN_BAR_AT_TRYMOVE==='1');
 /* 2026-09-05 -- MEDI_CHARGE_REAIMS_FIRST_LIVE_FOE=1 restores the pre-fix release rule: the second turn
  * of a two-turn move is rebuilt against `live(foes)[0]` instead of the slot the charge was aimed at.
  * It restores that and NOTHING else -- the charge turn still records the slot, the wrapper still
@@ -6992,17 +7019,26 @@ function airborneAbilityHasNoTryHit(mon,att,mvCategory){
  * emit NOTHING when no ability held the bar -- a terrain refusing a move in silence. `why` is filled
  * as `{by:'ability'|'terrain', holder, bodies:[...]}`. The three-argument shape is unchanged, which
  * is what keeps board.js's feature read out of this. */
-function priorityRefusedAbove(defenders, field, aimedAt, why){
+/* NARRATION, 2026-09-10 -- `only` NAMES WHICH SOURCE OF THE BAR IS BEING ASKED, AND IT EXISTS BECAUSE
+ * THE TWO SOURCES SIT AT DIFFERENT STEPS OF `useMoveInner`. The ability half hangs on `onFoeTryMove`,
+ * raised by `runEvent('TryMove')` at sim/battle-actions.ts:486; the terrain half hangs on `onTryHit`,
+ * raised by `hitStepTryHitEvent` inside the `moveSteps` loop at :559/:644 -- and the move's OWN
+ * `singleEvent('Try')` (:590) sits BETWEEN them. Folded into one number, this engine refused a Sucker
+ * Punch by the floor that the game refuses for its own reason. A caller passing nothing gets both, so
+ * board.js's three-argument feature read is untouched; the header above still holds for `aimedAt`. */
+function priorityRefusedAbove(defenders, field, aimedAt, why, only){
+  const _wantAbility=(only!=='terrain');
+  const _wantTerrain=(only!=='ability');
   const bar=priorityBlockAbilities();
   let out=Infinity;
-  for(const d of (defenders||[])){
+  if(_wantAbility)for(const d of (defenders||[])){
     if(!d||d.fainted) continue;
     const ab=String(d.ability||'').toLowerCase().replace(/[^a-z0-9]/g,'');
     if(ab&&bar.has(ab)&&bar.get(ab)<out){ out=bar.get(ab); if(why){why.by='ability';why.holder=d;} }
   }
   /* THROUGH terrainId. This line tested `psychicterrain` — the BOARD's spelling — while the artifact's
    * `psychicsurge` sets `psychic`, so the ability that puts the terrain up could never trigger it. */
-  if(field&&terrainId(field.terrain)==='psychic'){
+  if(_wantTerrain&&field&&terrainId(field.terrain)==='psychic'){
     const aim=aimedAt?[aimedAt]:(defenders||[]);
     let blocked=false,airborne=false;
     for(const d of aim){
@@ -29581,7 +29617,15 @@ function battleTurn(S,rng,actsForA,actsForB){
              the ability bar is a per-side one. Without it a grounded partner would refuse a priority
              move aimed at the airborne body standing next to it. */
           const _pWhy={};
-          if(_gpri>priorityRefusedAbove(_pf,field,a.target,_pWhy)){m._lastMove=_pmv;
+          /* NARRATION, 2026-09-10 -- AN ATTACK ASKS ONLY THE ABILITY HALF HERE. This gate sits at the
+           * authority's `TryMove` position, which is right for `onFoeTryMove` (Armor Tail, Queenly
+           * Majesty, Dazzling) and two steps above where a terrain's `onTryHit` is raised. An attack
+           * carries its own `Try` refusals -- Sucker Punch, Thunderclap, Upper Hand -- and the
+           * authority asks those FIRST, so the terrain half is deferred to the attack path's own
+           * gate, which now sits below them. Every OTHER action kind keeps the whole bar here,
+           * because no status kind has a `Try` refusal for the terrain to jump. */
+          if(_gpri>priorityRefusedAbove(_pf,field,a.target,_pWhy,
+               (a.kind==='attack'&&!TERRAIN_BAR_AT_TRYMOVE)?'ability':undefined)){m._lastMove=_pmv;
             /* `cant|HOLDER|ability: Armor Tail|MOVE|[of] ATTACKER` -- data/abilities.ts:225, and the
              * POKEMON field is the REFUSER rather than the attacker, which is the one shape in this
              * family that inverts. The holder is found by asking which live foe carries a
@@ -33181,18 +33225,43 @@ function battleTurn(S,rng,actsForA,actsForB){
         const bench=it.side==='A'?benchA:benchB, sf=it.side==='A'?sfA:sfB;
         const _ps=TAGS.param('move',a.mv,'passesState');
         m._lastMove=a.mv;
+        /* NARRATION, 2026-09-10 -- THE THREE REFUSALS ARE THREE DIFFERENT LINES, AND THIS BRANCH WROTE
+         * ONE. `shedtail.onTryHit` (data/moves.ts:16166-16179) writes a BARE `|-fail|<source>` when
+         * nobody can come in, `|-fail|<source>|move: Shed Tail` when a doll is already standing, and
+         * `|-fail|<source>|move: Shed Tail|[weak]` below the HP threshold. The generic `costsUserHP`
+         * block above already emits the second and third shapes through `mvFailNamed`, and this branch
+         * never reaches it -- `a.kind!=='passstate'` excludes Shed Tail there ON PURPOSE, because the
+         * ORDER of the three checks is part of the move (an empty-bench Shed Tail must cost nothing).
+         * So it is one family with two implementations, and only one of them had been told the label.
+         * ROUTED THROUGH `mvFailNamed`, NOT COPIED: that function is where "does this refusal name its
+         * own move" is decided (CLAUDE.md -- one implementation, everybody calls it), so this branch
+         * inherits `MEDI_BARE_FAIL_LABELS=1`, the `failLabelNoName` counter and the NOT_FAIL semantics
+         * for free, and the two sites cannot drift again.
+         * NO `[still]`: `shedtail.onTryHit` never calls `attrLastMove`, on any of the three roads.
+         * THE BENCH REFUSAL STAYS BARE and is the control the probe asserts must not move. */
         if(!_live(bench).length){MEDFAILS.passesStateNoBench++;mvFail(m);continue;}
         const _cu=TAGS.param('move',a.mv,'costsUserHP');
         if(_cu&&_cu.costsFraction&&m.st){
-          /* A SECOND DOLL FAILS AND COSTS NOTHING -- the same guard the generic cost block makes. */
-          if(m._sub>0&&TAGS.has('move',a.mv,'substitute')){mvFail(m);continue;}
+          /* A SECOND DOLL FAILS AND COSTS NOTHING -- the same guard the generic cost block makes.
+             THE LABEL IS THE ARTIFACT'S OWN DISPLAY NAME, exactly as the generic block reads it, so a
+             third member of this family arrives with its own name and none is typed here. */
+          if(m._sub>0&&TAGS.has('move',a.mv,'substitute')){
+            const _srec=TAGS.tagsFor?TAGS.tagsFor('move',a.mv):null;
+            mvFailNamed(m,_srec&&_srec.name,undefined,false);
+            continue;}
           /* THE THRESHOLD ROUNDS THE WAY THE COST DOES. `rounds` is derived from the handler
              (`directDamage(Math.ceil(...))` vs a bare division), so Shed Tail's CEIL and Substitute's
              TRUNC are the artifact's answer rather than one shared floor. Measured against the
              authority on a 137 HP Heliolisk: the cost is 69 there and this engine charged 68. */
           const _rnd=(_cu.rounds==='ceil')?Math.ceil:Math.floor;
           const _thr=_rnd(m.st.hp*(+_cu.failsBelow||+_cu.costsFraction));
-          if(m.curHP<=_thr){mvFail(m);continue;}
+          if(m.curHP<=_thr){
+            /* AND ONLY FOR A MEMBER WHOSE OWN HANDLER ANNOUNCES. `announcesFailBelow` is absent on a
+               member that refuses with the generic two-field line, so an absent field means `mvFail`
+               and no flag is invented -- the same rule the generic block applies. */
+            const _ann=_cu.announcesFailBelow;
+            if(_ann&&_ann.label)mvFailNamed(m,_ann.label,_ann.flag,false); else mvFail(m);
+            continue;}
           grantSubstitute(m,a.mv);
           m.curHP-=_rnd(m.st.hp*+_cu.costsFraction);
           if(TR)TR.dmg(m);
@@ -34222,6 +34291,184 @@ function battleTurn(S,rng,actsForA,actsForB){
        * Showdown announces the wind-up and fires in the same turn. (3) STATE, and it is the one that
        * costs damage: ELECTRO SHOT IN RAIN FIRED WITH NO +1 SPECIAL ATTACK. Staged against the
        * official engine, Archaludon into a Snorlax under Drizzle -- Showdown 97, medicham2 65. */
+      /* ============ NARRATION, 2026-09-10 -- THE TARGET LIST IS BUILT ABOVE THE CHARGE ==========
+       *
+       * THE AUTHORITY RESOLVES THE TARGET FIRST AND WINDS THE MOVE UP AFTERWARDS, and the two steps
+       * are 125 lines apart in the same function:
+       *
+       *     sim/battle-actions.ts:466   const { targets, pressureTargets } = pokemon.getMoveTargets(move, target);
+       *     sim/pokemon.ts:829-835        if (activePerHalf > 1 && !move.tracksTarget) {
+       *                                     const isCharging = move.flags['charge'] && !this.volatiles['twoturnmove'] &&
+       *                                       !(move.id.startsWith('solarb') && [sun]) &&
+       *                                       !(move.id === 'electroshot' && [rain]) &&
+       *                                       !(this.hasItem('powerherb') && move.id !== 'skydrop');
+       *                                     if (!isCharging) target = priorityEvent('RedirectTarget', ...); }
+       *     sim/battle-actions.ts:591   singleEvent('PrepareHit', ...)   ->  electroshot.onTryMove:
+       *                                   this.add('-prepare', attacker, move.name);
+       *
+       * So `|-activate|<drawer>|ability: Lightning Rod` is written ABOVE `|-prepare|`, and this engine
+       * wrote it below -- the whole aim/target/redirect segment used to sit 350 lines further down,
+       * under the charge branch AND under the priority gate. Both moves are the authority's:
+       * `getMoveTargets` is above `runEvent('TryMove')` (the ability bar, :486), above
+       * `singleEvent('Try')` (:590) and above `PrepareHit` (:591), so every refusal between here and
+       * the old position is one the authority also asks BELOW the draw.
+       *
+       * AND THE DRAW IS OFF ON A TURN THE MOVE ACTUALLY SPENDS CHARGING. That is not a nicety: before
+       * this pass the charge branch `continue`d above the draw, so a real charge turn drew nothing --
+       * correctly, by accident of position. Hoisting the segment without the authority's own
+       * `isCharging` guard would INVENT a rod line on every charge turn. `tests/probe_redirect_above_prepare.js`
+       * stages that case as ROD-NORAIN and it is the arm that catches it.
+       *
+       * THE SKIP DECISION IS COMPUTED ONCE, HERE, AND THE CHARGE BRANCH READS IT -- CLAUDE.md's
+       * facts-are-global rule. `isCharging` and "does this charge spend the turn" are the same
+       * question, and two copies of it would disagree the next time a member of `chargeSkippedByWeather`
+       * arrives.
+       *
+       * MEDI_REDIRECT_BELOW_CHARGE=1 runs the draw at the OLD position instead (one implementation, two
+       * call sites) and stamps `MEDFAILS.redirectBelowChargeRestored`. */
+      const _chgFlag=TAGS.has('move',a.move.id,'chargeTurn');
+      const _chgRelease=!!(_chgFlag&&m._charging===a.move.id);
+      const _chgHerb=!!(_chgFlag&&m.item==='powerherb');
+      let _chgSkipWeather=false;
+      if(_chgFlag){const _sk=TAGS.param('move',a.move.id,'chargeSkippedByWeather');
+                   _chgSkipWeather=!!(_sk&&_sk.skipsIn&&effWeatherOf(field,m)===_sk.skipsIn);}
+      const _isCharging=_chgFlag&&!_chgRelease&&!_chgSkipWeather&&!_chgHerb;
+      const mv=a.move.mv;
+      /* 2026-09-01 -- THE FIELD REWRITES THE TARGET, AND IT IS ANSWERED HERE BECAUSE THE AUTHORITY
+       * ANSWERS IT HERE. `onModifyMove` runs inside `useMove`, not at the moment the action was
+       * chosen -- so a Psychic Terrain that went up earlier THIS TURN, from a faster body, still
+       * widens the move. Deciding it in `playerActionPrimary` alone would answer last turn's
+       * question, which is the same mistake `a.rescript` exists to avoid two blocks down.
+       *
+       * RE-DERIVED, NOT OR-ED IN. The right-hand side is `SPREAD.has(...) || widened`, the whole
+       * expression the three construction sites use, so an action object reused on a later turn with
+       * the terrain gone falls back to the dex answer instead of staying spread forever. A bare
+       * `a.move.spread=true` would have been a one-way latch.
+       *
+       * ONE ASSIGNMENT AND NOT NINE LOCALS. Nine sites below read `a.move.spread` -- the priority
+       * gate's aim, the target list, the redirection gate, the ally-hit test, the smart-target test,
+       * `_spreadHit`, and the three guard-class reads -- and "is this a spread move" is ONE fact. A
+       * second local carried past them is how two answers to one question start. */
+      let _terrainWidened=false;
+      {
+        const _w=terrainWidensToSpread(a.move.id,m,field);
+        if(_w&&!SPREAD.has(a.move.id)){_terrainWidened=true;MEDSEEN.terrainTargetWidened++;}
+        a.move.spread=SPREAD.has(a.move.id)||_w;
+      }
+      const foes=it.side==='A'?actB:actA;
+      /* Resolve the aim to whoever is in that slot NOW. WIRE 139 -- through the shared reader, which
+         is this site's own rule generalised: it was the ONLY branch that had it, and the version here
+         re-aimed only when the body had left `foes`, so a body that changed SLOT on the same side
+         (Ally Switch) was followed by object. It also gains the `tracksTarget` exception, which this
+         site never had. */
+      let aim=reaimToSlot(a.target,it,actA,actB,a.move&&a.move.id);
+      /* ROADMAP #139 -- A `scripted` MOVE AIMS AT WHOEVER JUST HIT IT, AND THAT IS ONLY KNOWN NOW.
+       * Counter, Mirror Coat, Metal Burst and Comeuppance carry Showdown target `scripted`, resolved
+       * in `onModifyTarget` at execution. `playerAction` priced the click against the foe it would
+       * hurt most and flagged it; this is where the aim becomes the real one. A body that has taken
+       * nothing this turn finds nobody and the move FAILS -- which is the authority's own `onTry`
+       * (`if (!lastDamagedBy?.thisTurn) return false`), expressed through `_took`, whose whole
+       * lifetime is one turn. */
+      /* ROADMAP #210 -- THROUGH `scriptedAimOf`, WHICH THE PP SITE NOW ASKS TOO. This block held the
+       * only copy of the rule and read `_took.by` -- whoever hit LAST in ANY category -- while its own
+       * `_catOK` term already knew the category mattered. On a turn where a physical click and a
+       * special click both land on the user, Counter and Mirror Coat therefore answered the SAME body
+       * and one of the two was always wrong. See the helper for the authority's split. */
+      if(a.rescript){
+        const _by=scriptedAimOf(m,a.move.id);
+        if(!_by){ MEDSEEN.scriptedTargetMissing++;mvFail(m);continue; }
+        aim=_by;
+      }
+      let targets=a.move.spread?live(foes):[aim].filter(t=>t&&!t.fainted&&t.curHP>0);
+      /* REDIRECTION APPLIES HERE, and only to SINGLE-TARGET moves aimed at the other side. Spread
+       * moves already hit everything so there is nothing to draw, and the redirector must be a live
+       * FOE of this attacker — a Follow Me on my own side does not pull my partner's attack.
+       *
+       * Rage Powder is a powder move, so a Grass type, Overcoat, or Safety Goggles ignores the draw
+       * and hits what it aimed at; powderBlocked() already knows that and already lists ragepowder,
+       * so the immunity is asked of the same helper Sleep Powder uses rather than restated. Follow Me
+       * is not a powder and draws regardless. Getting this half-right — drawing everything, always —
+       * would silently make every Amoonguss immune matchup wrong in the same direction. */
+      /* ROADMAP #175 -- AND STALWART TURNS THE WHOLE DRAW OFF, WHICH THIS SITE NEVER ASKED.
+       *
+       * `Pokemon#getMoveTargets` (sim/pokemon.ts:829): `if (this.battle.activePerHalf > 1 &&
+       * !move.tracksTarget) { ... priorityEvent('RedirectTarget', ...) }` -- the redirection event is
+       * GATED on tracksTarget, so an attacker whose ability sets it is not redirected at all, by Follow
+       * Me, Rage Powder, Lightning Rod or Storm Drain alike. Stalwart's legal carriers here are
+       * **Archaludon and Skarmory-Mega**, derived from the format rather than recalled, and Archaludon
+       * is a real member of this metagame -- so every rollout in which an Amoonguss drew an Archaludon's
+       * click was a turn that cannot happen.
+       *
+       * THE SAME PREDICATE THE SLOT RE-AIM USES, thirty lines up in this file, because "does this
+       * attacker track its target" is ONE fact about the game (CLAUDE.md) and this site having its own
+       * answer is how the two drift. `a.rescript` is the scripted flag the ability's own handler
+       * excludes. */
+      /* ROADMAP #362 -- THE DRAW ITSELF NOW LIVES IN `redirectDrawnTo`, one function above
+       * `reaimToSlot`, because a single-target STATUS move is redirected by exactly the same event and
+       * this branch was the only place that knew how. The two announcements stay HERE, where their
+       * position relative to the `|move|` line is known. Everything below this line is the block that
+       * used to compute the draw inline; the comments are kept because they are the derivation. */
+      /* 2026-09-06 -- WAS THE AIM REDIRECTED AT ALL. Read at the draw and consumed by the
+       * `smartTarget` split ~470 lines down; see that block for the derivation. It is a `let` at
+       * ACTION scope for `_allyHit`'s reason -- the two ends of the fact are in different places and
+       * a flag on the mon would survive into a turn that redirected nothing. */
+      let _aimRedirected=false;
+      const _drawRedirect=()=>{
+        if(!a.move.spread&&targets.length&&!_isCharging){
+          const _dr=redirectDrawnTo(m,targets[0],foes,mv,a.move.id,field,!!a.rescript,
+                                    it.side==='A'?actA:actB);
+          const drawer=_dr&&!_dr.announce?_dr.to:null;
+          if(drawer){
+            /* Showdown REWRITES the target field of the move line it already emitted
+             * (`retargetLastMove`, sim/battle.ts:3140) rather than adding an event, so the trace does
+             * the same -- an extra line here would misalign every redirected turn in the differ.
+             *
+             * ROADMAP #81 WIRE 7 -- AND THE COMMENT ABOVE WAS RIGHT WHILE THE LINE UNDER IT WAS NOT.
+             * It said "an extra line here would misalign every redirected turn" and then emitted one:
+             * `TR.act(drawer, 'move: followme')`. Read `followme`'s and `ragepowder`'s conditions
+             * (data/moves.ts): the ONLY thing either announces is `|-singleturn|X|move: Follow Me` on
+             * the turn the move is USED -- which this engine already emits at the redirect action -- and
+             * `onFoeRedirectTarget` returns the new target with no `add()` in it at all. Confirmed in
+             * the authority: `|move|p1a: Garchomp|Thunderbolt|p2b: Maushold` and nothing else.
+             *
+             * THE ROADMAP'S READING OF THIS ONE DOES NOT SURVIVE THE SOURCE, and that is the honest
+             * result. It filed the row `SD |-immune|p2b <> MC |-activate|p2b|followme` as "redirection
+             * beating a type immunity". Redirection is NOT gated on immunity in Showdown -- Follow Me
+             * redirects unconditionally and Rage Powder only asks `runStatusImmunity('powder')`, which
+             * this engine already asks. The draw is right; the announcement was the defect. */
+            targets=[drawer]; _aimRedirected=true;
+            if(TR)TR.retarget(drawer);}
+          /* WIRE 25 -- redirectsType. Lightning Rod (1,901) and Storm Drain draw a move of their TYPE
+           * to themselves, and the engine only ever looked for the Follow Me / Rage Powder volatile.
+           * So an Electric move aimed past a Lightning Rod sailed straight into its partner.
+           *
+           * THE DRAW IS THE WHOLE MECHANIC HERE; THE ABSORB ALREADY WORKED. `lightningrod` carries
+           * BOTH tags -- typeImmunity{type:Electric, gain:{spa:+1}} and redirectsType{type:Electric} --
+           * and the immunity half has been live since WIRE 11. That is why the probe for this asserts
+           * that the AIMED target stops taking the hit and the holder's Special Attack RISES, rather
+           * than that the holder takes damage: it takes none, and the boost is the receipt.
+           *
+           * AFTER the volatile draw and only if that did not fire, because Follow Me and Rage Powder
+           * outrank an ability redirect in the real order. Checked against the move's EFFECTIVE type
+           * so an -ate-converted or weather-converted move is drawn by the rod it has actually become,
+           * which is the same helper the immunity below uses -- one implementation of "what type is
+           * this move really", not two. */
+          if(!drawer&&_dr&&_dr.announce){
+            const _rod=_dr.to;
+            /* ROADMAP #81 WIRE 7 -- AND THE ABILITY REDIRECT ANNOUNCES THE OTHER WAY ROUND. Unlike
+             * Follow Me, Lightning Rod and Storm Drain DO write a line when they pull, and it is an
+             * `|-activate|` naming the ability, not an `|-ability|`:
+             *     this.add('-activate', this.effectState.target, 'ability: Lightning Rod');
+             * (data/abilities.ts onAnyRedirectTarget). `TR.ab` emitted `|-ability|`, which is the shape
+             * Intimidate uses and a different event. Two redirect families, two announcements, and this
+             * engine had them exactly swapped -- silence where a line belongs and the wrong line where
+             * silence does. */
+            targets=[_rod]; _aimRedirected=true;
+            if(TR){TR.act(_rod,_dr.announce);TR.retarget(_rod);}
+          }
+        }
+      };
+      if(REDIRECT_BELOW_CHARGE)MEDFAILS.redirectBelowChargeRestored=1; else _drawRedirect();
       if(TAGS.has('move',a.move.id,'chargeTurn')){
         if(m._charging===a.move.id){
           /* 2026-08-26 -- TWO VOLATILES, TWO LIFETIMES, AND THIS LINE USED TO END BOTH OF THEM.
@@ -34283,9 +34530,8 @@ function battleTurn(S,rng,actsForA,actsForB){
            * ABOVE the Power Herb clause because the authority's weather test is above its
            * `runEvent('ChargeMove')` — a herb does not silence it. See `announcePrivateWeather`. */
           announcePrivateWeather(field,m,a.move.id,TR);
-          const _sk=TAGS.param('move',a.move.id,'chargeSkippedByWeather');
-          const _herb=m.item==='powerherb';
-          if(!(_sk&&_sk.skipsIn&&effWeatherOf(field,m)===_sk.skipsIn)&&!_herb){
+          const _herb=_chgHerb;
+          if(!_chgSkipWeather&&!_herb){
             m._charging=a.move.id;
             /* 2026-09-05 -- THE AIM IS REMEMBERED HERE BECAUSE THE AUTHORITY REMEMBERS IT HERE:
              * `twoturnmove.onStart` stores `attacker.lastMoveTargetLoc` on the sub-volatile in the
@@ -34334,28 +34580,6 @@ function battleTurn(S,rng,actsForA,actsForB){
              is written for it and the branch is kept correct rather than deleted. */
           if(_herb){if(TR)TR.enditem(m,m.item);m.item='';}
         }
-      }
-      const mv=a.move.mv;
-      /* 2026-09-01 -- THE FIELD REWRITES THE TARGET, AND IT IS ANSWERED HERE BECAUSE THE AUTHORITY
-       * ANSWERS IT HERE. `onModifyMove` runs inside `useMove`, not at the moment the action was
-       * chosen -- so a Psychic Terrain that went up earlier THIS TURN, from a faster body, still
-       * widens the move. Deciding it in `playerActionPrimary` alone would answer last turn's
-       * question, which is the same mistake `a.rescript` exists to avoid two blocks down.
-       *
-       * RE-DERIVED, NOT OR-ED IN. The right-hand side is `SPREAD.has(...) || widened`, the whole
-       * expression the three construction sites use, so an action object reused on a later turn with
-       * the terrain gone falls back to the dex answer instead of staying spread forever. A bare
-       * `a.move.spread=true` would have been a one-way latch.
-       *
-       * ONE ASSIGNMENT AND NOT NINE LOCALS. Nine sites below read `a.move.spread` -- the priority
-       * gate's aim, the target list, the redirection gate, the ally-hit test, the smart-target test,
-       * `_spreadHit`, and the three guard-class reads -- and "is this a spread move" is ONE fact. A
-       * second local carried past them is how two answers to one question start. */
-      let _terrainWidened=false;
-      {
-        const _w=terrainWidensToSpread(a.move.id,m,field);
-        if(_w&&!SPREAD.has(a.move.id)){_terrainWidened=true;MEDSEEN.terrainTargetWidened++;}
-        a.move.spread=SPREAD.has(a.move.id)||_w;
       }
       /* ROADMAP #118 -- THE ARMING THAT STOOD HERE IS GONE, AND ITS ABSENCE IS THE FIX. It read
        *   if(!m._lock&&TAGS.has('item',m.item,'choiceLock')){m._lock=a.move.id;m._lockT=Infinity;}
@@ -34566,7 +34790,12 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _foes=it.side==='A'?actB:actA;
         const _aim=(a.target&&_foes.indexOf(a.target)>=0&&!a.move.spread)?a.target:null;
         const _aWhy={};
-        if(gatePriority(m,a.move.id,field,0)>priorityRefusedAbove(_foes,field,_aim,_aWhy)){
+        /* NARRATION, 2026-09-10 -- THE ABILITY HALF ONLY. See `_stepTerrainBar` below: the terrain's
+         * refusal is `onTryHit` and belongs under the move's own `Try`, which is 130 lines down. The
+         * terrain branch of the narration below is kept and is REACHABLE ONLY under the restore knob,
+         * which is why it is not deleted. */
+        if(gatePriority(m,a.move.id,field,0)>priorityRefusedAbove(_foes,field,_aim,_aWhy,
+             TERRAIN_BAR_AT_TRYMOVE?undefined:'ability')){
           if(TR){const _h=_foes.find(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksMove'));
                  if(_h)TR.cant(_h,'ability: '+_h.ability,a.move.id,m);
                  /* THE SAME TERRAIN LINE AS THE PRE-DISPATCH GATE, because this branch answers the
@@ -34581,117 +34810,9 @@ function battleTurn(S,rng,actsForA,actsForB){
                  }}
           continue;}
       }
-      const foes=it.side==='A'?actB:actA;
-      /* Resolve the aim to whoever is in that slot NOW. WIRE 139 -- through the shared reader, which
-         is this site's own rule generalised: it was the ONLY branch that had it, and the version here
-         re-aimed only when the body had left `foes`, so a body that changed SLOT on the same side
-         (Ally Switch) was followed by object. It also gains the `tracksTarget` exception, which this
-         site never had. */
-      let aim=reaimToSlot(a.target,it,actA,actB,a.move&&a.move.id);
-      /* ROADMAP #139 -- A `scripted` MOVE AIMS AT WHOEVER JUST HIT IT, AND THAT IS ONLY KNOWN NOW.
-       * Counter, Mirror Coat, Metal Burst and Comeuppance carry Showdown target `scripted`, resolved
-       * in `onModifyTarget` at execution. `playerAction` priced the click against the foe it would
-       * hurt most and flagged it; this is where the aim becomes the real one. A body that has taken
-       * nothing this turn finds nobody and the move FAILS -- which is the authority's own `onTry`
-       * (`if (!lastDamagedBy?.thisTurn) return false`), expressed through `_took`, whose whole
-       * lifetime is one turn. */
-      /* ROADMAP #210 -- THROUGH `scriptedAimOf`, WHICH THE PP SITE NOW ASKS TOO. This block held the
-       * only copy of the rule and read `_took.by` -- whoever hit LAST in ANY category -- while its own
-       * `_catOK` term already knew the category mattered. On a turn where a physical click and a
-       * special click both land on the user, Counter and Mirror Coat therefore answered the SAME body
-       * and one of the two was always wrong. See the helper for the authority's split. */
-      if(a.rescript){
-        const _by=scriptedAimOf(m,a.move.id);
-        if(!_by){ MEDSEEN.scriptedTargetMissing++;mvFail(m);continue; }
-        aim=_by;
-      }
-      let targets=a.move.spread?live(foes):[aim].filter(t=>t&&!t.fainted&&t.curHP>0);
-      /* REDIRECTION APPLIES HERE, and only to SINGLE-TARGET moves aimed at the other side. Spread
-       * moves already hit everything so there is nothing to draw, and the redirector must be a live
-       * FOE of this attacker — a Follow Me on my own side does not pull my partner's attack.
-       *
-       * Rage Powder is a powder move, so a Grass type, Overcoat, or Safety Goggles ignores the draw
-       * and hits what it aimed at; powderBlocked() already knows that and already lists ragepowder,
-       * so the immunity is asked of the same helper Sleep Powder uses rather than restated. Follow Me
-       * is not a powder and draws regardless. Getting this half-right — drawing everything, always —
-       * would silently make every Amoonguss immune matchup wrong in the same direction. */
-      /* ROADMAP #175 -- AND STALWART TURNS THE WHOLE DRAW OFF, WHICH THIS SITE NEVER ASKED.
-       *
-       * `Pokemon#getMoveTargets` (sim/pokemon.ts:829): `if (this.battle.activePerHalf > 1 &&
-       * !move.tracksTarget) { ... priorityEvent('RedirectTarget', ...) }` -- the redirection event is
-       * GATED on tracksTarget, so an attacker whose ability sets it is not redirected at all, by Follow
-       * Me, Rage Powder, Lightning Rod or Storm Drain alike. Stalwart's legal carriers here are
-       * **Archaludon and Skarmory-Mega**, derived from the format rather than recalled, and Archaludon
-       * is a real member of this metagame -- so every rollout in which an Amoonguss drew an Archaludon's
-       * click was a turn that cannot happen.
-       *
-       * THE SAME PREDICATE THE SLOT RE-AIM USES, thirty lines up in this file, because "does this
-       * attacker track its target" is ONE fact about the game (CLAUDE.md) and this site having its own
-       * answer is how the two drift. `a.rescript` is the scripted flag the ability's own handler
-       * excludes. */
-      /* ROADMAP #362 -- THE DRAW ITSELF NOW LIVES IN `redirectDrawnTo`, one function above
-       * `reaimToSlot`, because a single-target STATUS move is redirected by exactly the same event and
-       * this branch was the only place that knew how. The two announcements stay HERE, where their
-       * position relative to the `|move|` line is known. Everything below this line is the block that
-       * used to compute the draw inline; the comments are kept because they are the derivation. */
-      /* 2026-09-06 -- WAS THE AIM REDIRECTED AT ALL. Read at the draw and consumed by the
-       * `smartTarget` split ~470 lines down; see that block for the derivation. It is a `let` at
-       * ACTION scope for `_allyHit`'s reason -- the two ends of the fact are in different places and
-       * a flag on the mon would survive into a turn that redirected nothing. */
-      let _aimRedirected=false;
-      if(!a.move.spread&&targets.length){
-        const _dr=redirectDrawnTo(m,targets[0],foes,mv,a.move.id,field,!!a.rescript,
-                                  it.side==='A'?actA:actB);
-        const drawer=_dr&&!_dr.announce?_dr.to:null;
-        if(drawer){
-          /* Showdown REWRITES the target field of the move line it already emitted
-           * (`retargetLastMove`, sim/battle.ts:3140) rather than adding an event, so the trace does
-           * the same -- an extra line here would misalign every redirected turn in the differ.
-           *
-           * ROADMAP #81 WIRE 7 -- AND THE COMMENT ABOVE WAS RIGHT WHILE THE LINE UNDER IT WAS NOT.
-           * It said "an extra line here would misalign every redirected turn" and then emitted one:
-           * `TR.act(drawer, 'move: followme')`. Read `followme`'s and `ragepowder`'s conditions
-           * (data/moves.ts): the ONLY thing either announces is `|-singleturn|X|move: Follow Me` on
-           * the turn the move is USED -- which this engine already emits at the redirect action -- and
-           * `onFoeRedirectTarget` returns the new target with no `add()` in it at all. Confirmed in
-           * the authority: `|move|p1a: Garchomp|Thunderbolt|p2b: Maushold` and nothing else.
-           *
-           * THE ROADMAP'S READING OF THIS ONE DOES NOT SURVIVE THE SOURCE, and that is the honest
-           * result. It filed the row `SD |-immune|p2b <> MC |-activate|p2b|followme` as "redirection
-           * beating a type immunity". Redirection is NOT gated on immunity in Showdown -- Follow Me
-           * redirects unconditionally and Rage Powder only asks `runStatusImmunity('powder')`, which
-           * this engine already asks. The draw is right; the announcement was the defect. */
-          targets=[drawer]; _aimRedirected=true;
-          if(TR)TR.retarget(drawer);}
-        /* WIRE 25 -- redirectsType. Lightning Rod (1,901) and Storm Drain draw a move of their TYPE
-         * to themselves, and the engine only ever looked for the Follow Me / Rage Powder volatile.
-         * So an Electric move aimed past a Lightning Rod sailed straight into its partner.
-         *
-         * THE DRAW IS THE WHOLE MECHANIC HERE; THE ABSORB ALREADY WORKED. `lightningrod` carries
-         * BOTH tags -- typeImmunity{type:Electric, gain:{spa:+1}} and redirectsType{type:Electric} --
-         * and the immunity half has been live since WIRE 11. That is why the probe for this asserts
-         * that the AIMED target stops taking the hit and the holder's Special Attack RISES, rather
-         * than that the holder takes damage: it takes none, and the boost is the receipt.
-         *
-         * AFTER the volatile draw and only if that did not fire, because Follow Me and Rage Powder
-         * outrank an ability redirect in the real order. Checked against the move's EFFECTIVE type
-         * so an -ate-converted or weather-converted move is drawn by the rod it has actually become,
-         * which is the same helper the immunity below uses -- one implementation of "what type is
-         * this move really", not two. */
-        if(!drawer&&_dr&&_dr.announce){
-          const _rod=_dr.to;
-          /* ROADMAP #81 WIRE 7 -- AND THE ABILITY REDIRECT ANNOUNCES THE OTHER WAY ROUND. Unlike
-           * Follow Me, Lightning Rod and Storm Drain DO write a line when they pull, and it is an
-           * `|-activate|` naming the ability, not an `|-ability|`:
-           *     this.add('-activate', this.effectState.target, 'ability: Lightning Rod');
-           * (data/abilities.ts onAnyRedirectTarget). `TR.ab` emitted `|-ability|`, which is the shape
-           * Intimidate uses and a different event. Two redirect families, two announcements, and this
-           * engine had them exactly swapped -- silence where a line belongs and the wrong line where
-           * silence does. */
-          targets=[_rod]; _aimRedirected=true;
-          if(TR){TR.act(_rod,_dr.announce);TR.retarget(_rod);}
-        }
-      }
+      /* THE KNOB'S CALL SITE -- the draw as it stood before 2026-09-10, below the charge and below the
+       * priority gate. See the header above the hoisted segment. */
+      if(REDIRECT_BELOW_CHARGE)_drawRedirect();
       /* ROADMAP #403, THE SECOND ROAD -- THE REFUSAL IS ASKED OF THE BODY THE MOVE ARRIVES AT, AND
        * THIS BLOCK USED TO SIT 137 LINES ABOVE THE DRAW.
        *
@@ -34873,6 +34994,55 @@ function battleTurn(S,rng,actsForA,actsForB){
               MEDFAILS.targetItemEventUnknownFirst=String(a.move.id)+' -> '+String(_ai.event); }
         }
       }
+      /* ============ NARRATION, 2026-09-10 -- THE TERRAIN HALF OF THE PRIORITY BAR, AT `TryHit` =====
+       *
+       * A PSYCHIC TERRAIN REFUSES A PRIORITY MOVE ONE STEP LOWER THAN AN ARMOR TAIL DOES, and this
+       * engine asked both at the same moment. The authority's own step list:
+       *
+       *     sim/battle-actions.ts:486   runEvent('TryMove')    <- onFoeTryMove: Armor Tail, Queenly
+       *                                                            Majesty, Dazzling -- the gate above
+       *     sim/battle-actions.ts:590   singleEvent('Try')     <- suckerpunch.onTry (data/moves.ts:18399),
+       *                                                            poltergeist.onTry (:13608)
+       *     sim/battle-actions.ts:559/:644  hitStepTryHitEvent -> runEvent('TryHit')
+       *                                                         <- psychicterrain.condition.onTryHit
+       *                                                            (data/moves.ts:14117-14131)
+       *
+       * So a Sucker Punch aimed at a body that is not attacking refuses ITSELF -- the bare
+       * `|-fail|<mover>` with `[still]` at battle-actions.ts:592-596 -- and the terrain never speaks.
+       * This engine wrote `|-activate|<target>|move: Psychic Terrain` instead, on the pinned pool's
+       * `pair-speedctrl ...2657550729` t7.
+       *
+       * IT IS THE SAME `priorityRefusedAbove` AND THE SAME NARRATION, asked with `'terrain'` -- one
+       * implementation of "is this priority move refused", split by SOURCE because the two sources sit
+       * at different steps, never by a second copy of the rule.
+       *
+       * THE AIM EXPRESSION IS THE GATE ABOVE'S, UNCHANGED, so this moves WHEN the question is asked
+       * and nothing about WHAT is asked. (The authority hands `onTryHit` the post-redirect body and
+       * exempts an ally outright; both are true here too and neither is claimed by this pass -- named
+       * rather than folded in, because no probe fails on them today.)
+       *
+       * ONLY THE ATTACK PATH. The pre-dispatch gate still asks the whole bar for every status kind,
+       * for the reason its own comment gives: no status kind in this format carries a `Try` refusal
+       * for the terrain to jump over, so there is nothing there for the split to separate.
+       *
+       * MEDI_TERRAIN_BAR_AT_TRYMOVE=1 skips this gate and puts the terrain back in the number above. */
+      if(!TERRAIN_BAR_AT_TRYMOVE){
+        const _tFoes=it.side==='A'?actB:actA;
+        const _tAim=(a.target&&_tFoes.indexOf(a.target)>=0&&!a.move.spread)?a.target:null;
+        const _tWhy={};
+        if(gatePriority(m,a.move.id,field,0)>priorityRefusedAbove(_tFoes,field,_tAim,_tWhy,'terrain')){
+          if(TR){
+            if(_tWhy.by==='terrain'&&(_tWhy.bodies||[]).length){
+              for(const _tb of _tWhy.bodies)TR.terrainAct(_tb,terrainId(field.terrain));
+              MEDSEEN.priorityRefusedByTerrain++;
+            }else{
+              /* The only source this call can return is the terrain, so a bar with nothing behind it
+               * is a broken reader rather than a quiet refusal. Loud, like its twin above. */
+              MEDFAILS.priorityRefusedSilently++;
+              if(!MEDFAILS.priorityRefusedSilentlyFirst)MEDFAILS.priorityRefusedSilentlyFirst=String(a.move.id);
+            }}
+          continue;}
+      } else MEDFAILS.terrainBarAtTryMoveRestored++;
       /* WIRE 47 -- CRASH ON MISS. High Jump Kick, Axe Kick and Supercell Slam (209 uses) missed
          correctly and cost the user nothing, so a 90%-accurate 130 BP move had no downside at all --
          the same "priority move with no drawback" shape that made the search reach for Sucker Punch.
