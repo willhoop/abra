@@ -977,7 +977,7 @@ is 0 on the turn a body switches in, and this engine's own comment said the gate
 here" — true of `_turnsOut` and untrue since WIRE 135 added `_newlySwitched`, a reason that was
 correct when written and stale when read. **A move targets a SLOT, not a Pokemon** (Will: *"we gotta
 target slots, not mons"*): `Battle#getTarget` resolves from `targetLoc` at execution time, and five of
-this engine's seven branches held the object they aimed at, so Charm and Parting Shot (10,535 uses: Charm 1,625 + Parting Shot 8,910, `data/tags.json`; this read 7,184 when first written and the corpus has grown since)
+this engine's seven branches held the object they aimed at, so Charm and Parting Shot (10,535 uses: Charm 1,625 + Parting Shot 8,910, `data/tags.json`; this read 7,184 when first written, which is Parting Shot ALONE in the tag artifact at commit `a39a33ce` (re-derived 2026-09-10), and the corpus has grown since)
 dropped stats on a body sitting on the BENCH. One shared reader now answers it everywhere, with
 `tracksTarget` (Snipe Shot, Stalwart) as the negative. **Ally Switch did not exist** — 202 uses
 resolving to a wasted turn — and it is the sharpest test of the slot rule, because both bodies stay on

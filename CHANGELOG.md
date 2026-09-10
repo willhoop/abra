@@ -10,6 +10,115 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [5.281.0] — 2026-09-10
+
+### Changed
+- **PHASE 3: THE UNTRACEABLE FIGURES IN THE LIVING DOCUMENTS ARE RESOLVED ONE AT A TIME, AND MOST OF
+  THEM WERE TRUE.** `node engine/major_readiness.js` reported **42 UNTRACEABLE** figures across the
+  five living documents — no artifact behind them at all. Each was answered individually, with the
+  evidence chain CLAUDE.md requires: a value read back out of the blob the run actually wrote, named
+  by commit and by field. **25 re-derived, 9 struck as unsourced, 8 handed back.** No re-run was
+  needed and no artifact, engine byte or test was touched. Full account:
+  `docs/_reports/2026-09-10-untraceable-sweep.md`.
+- **RE-DERIVED — the value, the commit, the file and the FIELD, so a reader can check each in one
+  command.** Every one was confirmed by PARSING the blob and reading the named key, never by matching
+  digits inside it; `docs/_reports/2026-09-10-models-orphan.md` is why that distinction is spelled out.
+  - **7,184** — `git show a39a33ce:data/tags.json`, `moves.partingshot.uses` = 7184. It is Parting
+    Shot ALONE, not the Charm + Parting Shot sum the WIRE 138-140 paragraph now carries; the same
+    blob puts `moves.charm.uses` at 1252. It stands in four documents (white paper, technical docs,
+    `SUMMARY.md`, `MODELS.md`), which is one folded paragraph and not four claims. This answers the
+    question 3.87.0's own change record left open — it said the figure "may also simply be wrong" —
+    and the answer is that it is right, and was measuring a different quantity.
+  - **−5.054** and **−3.989** — `git show c1566ee1:data/policy-weights-joint.json`, the
+    `jointFeatures` weights `spreadFreeBesideAlly` (−5.054471) and `terrainSetupHelpsPartner`
+    (−3.989105) of the 48-feature fit generated 2026-07-28, at `lambda` 0. The third price in that
+    sentence, `screenWhileThreatened` −3.372, is −3.371658 in the same blob.
+  - **−4.986** and **−4.125** — `git show b030ca03:data/policy-weights-joint.json` (generated
+    2026-07-31, 56 features): −4.986332 and −4.125228, with `screenWhileThreatened` −2.981969.
+    These are a DIFFERENT FIT from the −5.054 / −3.989 pair three lines up, which is why
+    `docs/MODELS.md` has carried two "before" values for one feature without contradicting itself.
+  - **63,305** — `git show fc7e76ce:data/policy-weights-joint.json`, `corpus.pairs` = 63305: the
+    2026-08-01 fit whose three weights read +0.863392, +2.004697 and +0.110014, which is the sign
+    flip the withdrawal in `docs/MODELS.md` rests on.
+  - **66,520** and **14,995** — `git show 52645850:data/policy-weights-joint.json`, `corpus` reads
+    games 7454 / pairs 81515 / heldOut 14995. 66,520 is the train remainder, 81,515 − 14,995. The
+    "66,236 before" in the same sentence is `corpus.pairs` of the preceding blob, `988cf1dc`.
+  - **1.544** (and the 1.256 beside it) — `git show 44e0fb03:data/pory-eval.json`, `n_games` 7381:
+    `weights` [0, 0.86626, 0.48742, 0.41143, −0.41143, 0] over `feat_std`
+    [1.0008, 0.31577, 1.0536, 1.0536, 0.32952] reduce to alive_diff 1.25607 and hp_diff **1.54359**.
+    5.279.0 recorded that pair as 1.2561 / 1.5436 and the document writes it as 1.256 / 1.544, which
+    is exactly why the figure was STILL untraceable after that pass: a trace has to carry the digits
+    the document wrote, because the census compares at the document's own precision.
+  - **1.0259** and **1.4347** — `git show 7f74236e:data/pory-eval.json`, `n_games` 1421, reducing to
+    alive_diff **1.02589** and hp_diff **1.43471**. That is the commit `docs/MODELS.md` names as the
+    one that put every model behind the clean filter, and the coefficients did move to those values.
+  - **−0.28071**, **0.629799**, **0.629778** and **−0.000013** — all four in one blob,
+    `git show 8e2dc0a7:data/pory-eval.json`, `n_games` 4623: `weights[4]` = −0.28071, exactly
+    antisymmetric to `weights[3]` (which is the structural claim that paragraph makes), and the
+    paired-tie block carrying PORY 0.629799 against the two-feature baseline's 0.629778, with a CI
+    whose lower bound is −0.000013.
+  - **52,966**, **13,263**, **10,480** and **10,440** — `git show ba117b14:data/meta-usage.json`,
+    generated 2026-08-04: `views.ladder.sampledTeams` = 52966, and `provenance.funnel` reads
+    `collected` 39792 → `after_bot_filter` **13263** → `after_behavioural_bots` **10480** →
+    `after_forfeit_filter` **10440** → `after_min_turns` 9759 → `after_full_bring` 7123. The species
+    counts in the same sentence are `views.ladder.threats` 261 and `views.competitive.threats` 239,
+    also exact.
+
+### Removed
+- **STRUCK AS UNSOURCED — 9 figures, none shown to be wrong, none recoverable.** Each is struck in
+  place with the reason on the line, because a caption is not a quarantine and this repository has
+  twice paid for printing a figure beside a warning.
+  - ~~**`24,997` of `82,483`** joint turns~~ (white paper, `docs/MODELS.md` twice) — counters
+    `engine/fit_joint.js` PRINTED. **All 18 revisions of `data/policy-weights-joint.json` were parsed
+    and none holds either value**; the file carried no `matching` block at all before 2026-08-02. The
+    substance both blocks rest on is untouched, and is better evidenced now than it was: the three
+    weights flip sign between `b030ca03` and `fc7e76ce` on 63,305 pairs (which IS in that blob).
+  - ~~**`37,460`**~~ (white paper) — struck where the paragraph itself said, on 2026-08-15, that no
+    artifact in this repository backs it. It was printed in order to say it was withheld; it is now
+    struck, which is what the rule actually asks for.
+  - ~~**`10,125` games / `15,544` test states**~~ (`docs/MODELS.md`) — `data/value-net.json` has carried
+    exactly `w`, `mu`, `sd`, `test_logloss` and `test_brier` at every one of its three revisions
+    (`3373299e`, `7215fff2`, `d6f1d709`). It records no sample size at all. The log-loss `0.6536`
+    and Brier `0.2306` beside them ARE in it, at `d6f1d709`, and stand — they need no trace here.
+  - ~~**`1.824` / `1.863`**~~ (`docs/MODELS.md`) — the pre-correction XATU cross-entropies, on a line
+    that has said since 2026-08-05 that not one of those figures is in `data/xatu-belief.json`.
+- **The strikes were written WITHOUT the words "retracted", "withdrawn", "superseded" or "void" on the
+  same line, and that is a measured choice rather than a stylistic one.**
+  `engine/docs_scan.js#retractionRegistry` promotes a strikethrough to a STRONG registry entry only
+  when one of those four words shares its line, and a registry entry then accuses every unqualified
+  restatement in the corpus. **`82,483` is restated unqualified at `docs/ROADMAP.md:317` and twice in
+  `docs/archive/HANDOFF-2026-08-02.md`, and `37,460` at `docs/MEASURE.md:6126`** — registering them
+  would have turned four correct historical records into build failures. The census reads a
+  strikethrough as struck either way (`sentencesOf` blanks it before any figure is extracted), so the
+  figure leaves the count without the registry firing on documents that are doing nothing wrong.
+
+### Notes
+- **HANDED BACK — 8 figures, three groups, each needing a decision this division does not own.**
+  Named, with the two options, and left standing rather than quietly deleted.
+  - **`−3.3425` / `−3.3318` / `−3.2447`** — `docs/MODELS.md`'s DODUO held-out log-likelihood table.
+    `data/policy-weights-joint.json` has never carried a held-out evaluation block at any of its 18
+    revisions, so the table is `fit_joint.js` console output. Options: (a) withhold the table on the
+    2026-08-15 precedent set in the white paper, or (b) have the next joint fit persist a `heldOut`
+    block and re-cite. It is a MAG-family judgement, and MAG is paused.
+  - **`−0.000076` / `−0.000172` / `−0.117`** — the paired refit table in the white paper and
+    `docs/MEASURE.md` §13. **No artifact and no generator exists**: nothing under `engine/` or
+    `build/` contains the figures, and the three arms were scored by a script that was not kept. The
+    `46,162` held-out decisions ARE real — `data/policy-weights-pre-censoring.json`, `corpus.test` —
+    but the paired differences are not. Five of that table's eight figures escape the census only by
+    a ×100 scaling collision with unrelated artifacts, so the honest unit is the WHOLE TABLE and not
+    the three cells the gate happens to name. Options: withhold the table, or re-run the comparison
+    and persist it.
+  - **`1.0208` / `1.0021`** — the white paper's partial-label EM validation table.
+    `data/partial-label-em.json` was regenerated 2026-08-26 and holds none of the six figures in that
+    table; its current values are NOT reproduced here, because the artifact is one of the 64 that
+    `engine/quarantine.js` withholds and a quarantined figure is not written down. Options: withhold
+    the table until the artifact is quotable, or restate it from the 2026-08-26 blob once quarantine
+    lifts. Either way the whole table moves, not the two cells the gate names.
+- **`data/docs-currency-baseline.json` was NOT hand-edited.** CLAUDE.md forbids editing a ratchet to
+  make a gate pass; it moved on its own, downward, as the counts fell.
+
+---
+
 ## [5.280.0] — 2026-09-10
 
 ### Fixed

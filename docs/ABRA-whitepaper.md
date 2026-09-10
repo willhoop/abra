@@ -1192,7 +1192,7 @@ is 0 on the turn a body switches in, and this engine's own comment said the gate
 here" — true of `_turnsOut` and untrue since WIRE 135 added `_newlySwitched`, a reason that was
 correct when written and stale when read. **A move targets a SLOT, not a Pokemon** (Will: *"we gotta
 target slots, not mons"*): `Battle#getTarget` resolves from `targetLoc` at execution time, and five of
-this engine's seven branches held the object they aimed at, so Charm and Parting Shot (10,535 uses: Charm 1,625 + Parting Shot 8,910, `data/tags.json`; this read 7,184 when first written and the corpus has grown since)
+this engine's seven branches held the object they aimed at, so Charm and Parting Shot (10,535 uses: Charm 1,625 + Parting Shot 8,910, `data/tags.json`; this read 7,184 when first written, which is Parting Shot ALONE in the tag artifact at commit `a39a33ce` (re-derived 2026-09-10), and the corpus has grown since)
 dropped stats on a body sitting on the BENCH. One shared reader now answers it everywhere, with
 `tracksTarget` (Snipe Shot, Stalwart) as the negative. **Ally Switch did not exist** — 202 uses
 resolving to a wasted turn — and it is the sharpest test of the slot rule, because both bodies stay on
@@ -1849,15 +1849,18 @@ cores beat which" and for quantifying how cyclic the meta really is.
    The cleanest demonstration is the pair-scoring layer (DODUO), which is **built, wired, controlled
    and measured, and loses at 42.0%** [39.9, 44.3] over 1,934 seed-paired games against its own
    zeroed control. Its fit prices "use a spread move beside my own ally that does not hurt it" at
-   **−5.054** — a statement that humans rarely click it, not that it is bad. Refitting those weights
+   **−5.054** (`spreadFreeBesideAlly` in the 48-feature joint fit of 2026-07-28, commit `c1566ee1`,
+   re-derived 2026-09-10) — a statement that humans rarely click it, not that it is bad. Refitting those weights
    for *winning* rather than *resemblance* is untested and is the project's top open question.
 
    > **CORRECTED 2026-08-01, and this paragraph should no longer be cited as it stands.** The −5.054
    > was not a statement about human preference. `fit_joint.js` matched a human's click by requiring
    > the candidate's target to match, and a spread move is built with no target because it is not
    > aimed — so **no spread click could ever match**. Spread moves are 14.94% of all human move clicks
-   > and 99.7% of them were thrown away; the fit used 24,997 of 82,483 joint turns, and the discarded
-   > 70% was exactly the turns containing the play the feature describes. Refitted, the weight is
+   > and 99.7% of them were thrown away; the fit used ~~24,997 of 82,483~~ joint turns — UNSOURCED, struck
+   > 2026-09-10: those are counters `fit_joint.js` printed, and no artifact records them — all 18 revisions of
+   > the joint weights file were checked — and the discarded majority was exactly the turns containing
+   > the play the feature describes. Refitted, the weight is
    > **+0.863**, and the corrected vector beats the shipped one at **66.7%** and **65.9%** of decisive
    > pairs on two disjoint seed blocks. DODUO's 42.0% was measured on the contaminated vector and does
    > not describe the current one. The imitation-versus-winning argument stands on its other evidence —
@@ -2453,7 +2456,8 @@ declare an ability and 100.0% declare four moves**, and the fit discards both.
 | games touched | 238 (19.83%) | **1,197 of 1,200 (99.75%)** |
 
 > **TWO FIGURES WITHHELD 2026-08-15, AND THE REASON MATTERS MORE THAN THE NUMBERS.** The two cells above
-> read **37,460 (15.95%)** and **16,177 (50.47%)**. **No artifact in this repository backs either
+> read **~~37,460 (15.95%)~~** and **~~16,177 (50.47%)~~** — struck 2026-09-10, both cells whole,
+> because half a struck cell still reads as a figure. **No artifact in this repository backs either
 > one** — `37,460` occurs in no file at all, and `16,177` occurs only in unrelated artifacts it has
 > nothing to do with. They are withheld rather than captioned, because
 > [CLAUDE.md](../CLAUDE.md) is explicit that a caption is not a quarantine and printing a figure with a

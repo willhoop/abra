@@ -726,7 +726,7 @@ is 0 on the turn a body switches in, and this engine's own comment said the gate
 here" — true of `_turnsOut` and untrue since WIRE 135 added `_newlySwitched`, a reason that was
 correct when written and stale when read. **A move targets a SLOT, not a Pokemon** (Will: *"we gotta
 target slots, not mons"*): `Battle#getTarget` resolves from `targetLoc` at execution time, and five of
-this engine's seven branches held the object they aimed at, so Charm and Parting Shot (10,535 uses: Charm 1,625 + Parting Shot 8,910, `data/tags.json`; this read 7,184 when first written and the corpus has grown since)
+this engine's seven branches held the object they aimed at, so Charm and Parting Shot (10,535 uses: Charm 1,625 + Parting Shot 8,910, `data/tags.json`; this read 7,184 when first written, which is Parting Shot ALONE in the tag artifact at commit `a39a33ce` (re-derived 2026-09-10), and the corpus has grown since)
 dropped stats on a body sitting on the BENCH. One shared reader now answers it everywhere, with
 `tracksTarget` (Snipe Shot, Stalwart) as the negative. **Ally Switch did not exist** — 202 uses
 resolving to a wasted turn — and it is the sharpest test of the slot rule, because both bodies stay on
@@ -1063,7 +1063,10 @@ DODUO — none exists.* First evidence it moves at all: two iterations at 40 gam
 `focusFireKills` **+0.094** — self-play wants focus fire more than the human fit did.
 
 **Refitted 2026-08-02 on `engine/click_match.js`** — 7,454 clean games, **81,515 usable joint turns**
-(66,236 before; 24,997 before the spread-matcher fix), 66,520 train / 14,995 held out:
+(66,236 before; ~~24,997~~ before the spread-matcher fix — struck 2026-09-10, that counter was printed
+by the fitter and no artifact records it), 66,520 train / 14,995 held out. Re-derived 2026-09-10 from
+the blob that run wrote, commit `52645850`: `corpus` reads games 7,454 / pairs 81,515 / heldOut 14,995,
+and 66,520 is the train remainder.
 
 | predicting which PAIR a human clicked | log-lik | top-1 |
 |---|---|---|
@@ -1114,7 +1117,8 @@ tempo. It KOs less (22.3% against 25.1%) and Protects nearly twice as often (1.7
 
 **Why, and it is the same lesson MACHAMP taught.** These are IMITATION weights. The fit prices
 `spreadFreeBesideAlly` at −5.054, `terrainSetupHelpsPartner` at −3.989 and
-`screenWhileThreatened` at −3.372, at lambda = 0. Those are statements that humans rarely click
+`screenWhileThreatened` at −3.372, at lambda = 0 (re-derived 2026-09-10: those are the three
+`jointFeatures` weights in the 48-feature fit of 2026-07-28, commit `c1566ee1`). Those are statements that humans rarely click
 those pairs, not that the pairs are bad — and a bot told to avoid a free spread move beside its
 own ally by −5 will decline its best plays. Predicting a human pair (14.5% top-1, up from 5.9%)
 and winning are different objectives, and this is the cleanest separation of the two the project
@@ -1124,10 +1128,14 @@ has measured.
 > `fit_joint.js` required the candidate's target to match the human's recorded target, and a spread
 > candidate is built with `targetMon: null` because Earthquake is not aimed — so **no spread click
 > could ever match**. Spread moves are 14.94% of all human move clicks and 1,393 of 1,397 were
-> discarded; the fit ran on 24,997 of 82,483 joint turns, and the missing 70% was precisely the turns
+> discarded; the fit ran on ~~24,997 of 82,483~~ joint turns — struck 2026-09-10, those two counters are
+> `fit_joint.js` console output and no artifact records either, every revision of the joint weights file
+> checked — and the missing majority was precisely the turns
 > these three features describe. Refitted on 63,305 turns, all three change sign:
 > `spreadFreeBesideAlly` −4.986 → **+0.863**, `terrainSetupHelpsPartner` −4.125 → **+2.005**,
-> `screenWhileThreatened` −2.982 → **+0.110**.
+> `screenWhileThreatened` −2.982 → **+0.110**. Re-derived 2026-09-10, both halves: the three “before”
+> weights are the `jointFeatures` entries of commit `b030ca03` (fit of 2026-07-31) and the three “after”
+> weights, together with `corpus.pairs` 63,305, are those of commit `fc7e76ce` (2026-08-01).
 >
 > The corrected vector then **beat the shipped one at 66.7% and 65.9% of decisive pairs** on two
 > disjoint seed blocks. So the paragraph above has it backwards for these three: the imitation fit was
@@ -1469,7 +1477,7 @@ because the weather and terrain cores *are* megas. See ROLES.
 >
 > **The retraction's substance is unaffected, and it is structural rather than numeric.** Every state is emitted from both perspectives with the label flipped, so the gradient on any column identical across the two rows cancels exactly: the intercept and `turn/10` are pinned to `0.000000000` at *every* generation, not shrunk to it. `my_alive` and `foe_alive` swap across the two rows and come back exactly antisymmetric (+0.28071 / −0.28071, summing to 0.000000000), so they fold into `alive_diff`. Five features, two degrees of freedom, and more data cannot change that.
 >
-> **"Ties exactly" is now a measurement rather than an inference.** `engine/pory.py` was replayed on the identical 4,623-game sample and returned this file's weights, `feat_std` and log-loss bit-for-bit. Against a logistic on `[alive_diff, hp_diff]` alone — same gradient descent, same standardisation, same temporal split — PORY scores **0.629799 to 0.629778**, a paired difference of **+0.000021 (PORY worse), 95% CI [−0.000013, +0.000056]** clustered by game over 925 held-out games. The interval contains zero. Re-fitting on the current corpus (5,456 games) gives **−0.000001, CI [−0.000031, +0.000030]** — the tie holds at the larger sample. Restamped again 2026-08-05 at 5,883 games (the §5f corpus-drift refit): baseline 0.623623, paired tie **+0.000001, CI [−0.000026, +0.000029]** over 1,177 held-out games. Three corpora, one conclusion; the retraction stands.
+> **"Ties exactly" is now a measurement rather than an inference.** `engine/pory.py` was replayed on the identical 4,623-game sample and returned this file's weights, `feat_std` and log-loss bit-for-bit. Against a logistic on `[alive_diff, hp_diff]` alone — same gradient descent, same standardisation, same temporal split — PORY scores **0.629799 to 0.629778**, a paired difference of **+0.000021 (PORY worse), 95% CI [−0.000013, +0.000056]** clustered by game over 925 held-out games. The interval contains zero. (Re-derived 2026-09-10: 0.629799, 0.629778 and the CI bound −0.000013 are read back from the blob that run wrote, commit `8e2dc0a7`, `n_games` 4,623 — the same blob whose `weights` carry the ±0.28071 above and reduce to 0.9943 / 1.4080.) Re-fitting on the current corpus (5,456 games) gives **−0.000001, CI [−0.000031, +0.000030]** — the tie holds at the larger sample. Restamped again 2026-08-05 at 5,883 games (the §5f corpus-drift refit): baseline 0.623623, paired tie **+0.000001, CI [−0.000026, +0.000029]** over 1,177 held-out games. Three corpora, one conclusion; the retraction stands.
 >
 > **`data/pory-eval.json` said the opposite until 2026-08-04, and not because it was stale.** `engine/pory.py` gated its verdict on `hi < coin and hi < material_heuristic`, where `material_heuristic` is a crude 0.75/0.25/0.5 *sign* rule. PORY's interval genuinely clears that, so every re-run re-asserted "a real, calibrated value net" ten days after the retraction. Restamping the artifact alone would have been undone by the next run; the gate now reads the paired difference against the two-feature baseline, and the withdrawn string travels with the file under `withdrawn_verdict`.
 >
@@ -1647,7 +1655,7 @@ while this file documented only its PARTS, which is the shape CLAUDE.md names �
 one list, drifting, with nothing on screen looking wrong. That test's declaration for ALAKAZAM says
 it is to be deleted the day a heading lands here. It has landed.
 ## The learning core (the flywheel)
-**value net:** `engine/train_value.py` reconstructs per-turn HP state and regresses the outcome → `data/value-net.json`. Held-out **log-loss 0.6536**, Brier **0.2306**, accuracy **61.4%** against a coin's 0.6931 and an alive-count heuristic's 0.662, on 10,125 games / 15,544 test states. Calibrated in the middle and compressed at the tails, where the data is thin ([0.8,1.0): predicts 0.85, observes 0.80 on n=225). It's SLOWKING's leaf evaluator. *(The `0.682` this line carried until 2026-08-04 was in no artifact; the committed file said 0.6638.)*
+**value net:** `engine/train_value.py` reconstructs per-turn HP state and regresses the outcome → `data/value-net.json`. Held-out **log-loss 0.6536**, Brier **0.2306**, accuracy **61.4%** against a coin's 0.6931 and an alive-count heuristic's 0.662, on ~~10,125 games / 15,544 test states~~ — struck 2026-09-10: that artifact has carried only `w`, `mu`, `sd`, `test_logloss` and `test_brier` at every one of its three revisions (`3373299e`, `7215fff2`, `d6f1d709`), so it records no sample size, no accuracy and no baseline; the log-loss and the Brier score above are the only two figures in this sentence it holds. Calibrated in the middle and compressed at the tails, where the data is thin ([0.8,1.0): predicts 0.85, observes 0.80 on n=225). It's SLOWKING's leaf evaluator. *(The `0.682` this line carried until 2026-08-04 was in no artifact; the committed file said 0.6638.)*
 
 > **THE WALK WAS DISCARDING EVERY FORME-CHANGED BODY, SILENTLY. Fixed 2026-08-04.** `idn()`
 > normalises punctuation and nothing else, so the event stream's `charizardmegay` never matched the
@@ -1828,7 +1836,7 @@ not be quoted as evidence that species choice predicts outcomes.
 **Method:** prior P(move | species) fitted on TRAIN games only; on held-out games we walk the turns in order and predict each move before seeing it, using only what that Pokémon revealed earlier in that same game. Scored by cross-entropy against two baselines (uniform, and the usage prior). The "already revealed" boost is **measured on train data**, not chosen: P(next move is one already seen) = 0.558, and the boost is its odds form, 1.26. An earlier draft asserted 3.0, which flattered the model — the measured value is smaller and so is the gain.
 **Result:** cross-entropy **1.9889 vs the usage prior's 2.0329** (uniform floor 6.0707), top-1 **31.23% vs 30.39%**. Improvement **0.0324, 95% CI [0.028, 0.0364]** clustered by game — clears zero. On the **3.84%** of events where all four moves are already known, belief **1.7874 vs prior 2.3428**: that is the four-move cap doing the work.
 
-*Corrected 2026-08-05. This paragraph previously read 1.824 / 1.863, top-1 35.7% vs 34.8%, improvement 0.028 [0.024, 0.031], and 1.695 vs 2.219 on 2.4% of events. Not one of those figures is in `data/xatu-belief.json`. Note the retracted headline, 0.028, is exactly the artifact's lower CI bound — a value read out of the wrong end of an interval rather than a stale run. The verdict is unchanged: XATU clears zero and remains the strongest model in the project. Only the numbers move.*
+*Corrected 2026-08-05. This paragraph previously read ~~1.824 / 1.863~~, top-1 35.7% vs 34.8%, improvement 0.028 [0.024, 0.031], and 1.695 vs 2.219 on 2.4% of events. Not one of those figures is in `data/xatu-belief.json`. Note the retracted headline, 0.028, is exactly the artifact's lower CI bound — a value read out of the wrong end of an interval rather than a stale run. The verdict is unchanged: XATU clears zero and remains the strongest model in the project. Only the numbers move.*
 **Honest scope:** this is the move slot only. Items and abilities are unknown-until-proven in the same way and are tracked as possibility sets but not yet scored. **EVs are different in kind** — a damage roll bounds an attacking stat to an interval and moving first proves only an inequality, so an EV spread never collapses to a value the way an ability or item does. That needs a separate interval estimator.
 **Code:** `engine/xatu_belief.py` → `data/xatu-belief.json`. Tests: `tests/test-xatu-belief.py` (14, incl. the uniform floor derived by hand as ln(V) and the boost re-derived from its own probability).
 
@@ -2211,7 +2219,7 @@ clean games, 14,246 sampled teams, 239 species) and `ladder` (everything stored,
 39,792 games, 52,966 teams, 261 species), with the file's own instruction that *"they answer
 different questions and neither is 'the' metagame."*
 **Corpus:** **7,123 clean of 39,792 collected**, generated **2026-08-04**, `provenance` **ok**. The
-funnel is carried in the artifact: 39,792 → 13,263 after the name-based bot rule → 10,480 after the
+funnel is carried in the artifact, and re-derived 2026-09-10 from the blob of that date, commit `ba117b14`, whose `provenance.funnel` reads it exactly and whose `views.ladder` carries `sampledTeams` 52,966 with 261 threats against `views.competitive`'s 14,246 and 239: 39,792 → 13,263 after the name-based bot rule → 10,480 after the
 behavioural one → 10,440 forfeits → 9,759 min-turns → **7,123** full-bring.
 **Two facts that have to travel with it.** It was **24.1% behind the corpus until 2026-08-04**, when
 it was regenerated at Will's instruction — `docs/MEASURE.md` §5c had it filed **ASK** rather than
