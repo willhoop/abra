@@ -10,6 +10,14 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.9.2] — 2026-09-11
+
+### Added
+- **The first measurement of what a rollout's position copy costs.** About a third of one turn in MEDICHAM
+  and slightly under half in Showdown, roughly 6% of a full rollout in both, so copying is not what limits
+  search. MEDICHAM's copies are independent; Showdown's in-memory JSON copy shares the original's log and
+  is not.
+
 ## [6.9.1] — 2026-09-11
 
 ### Added

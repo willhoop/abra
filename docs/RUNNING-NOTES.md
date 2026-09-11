@@ -69,6 +69,14 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [6.9.2] — 2026-09-11 — copying a mid-game position costs about a third of one turn in MEDICHAM, and its copies are independent
+
+- **What changed.** Added a copy-cost bench under `data/verification/clone-cost-2026-09-11/`, run on frozen release 2b5a6585d8cf and the pinned Showdown checkout over 48 positions from the pinned pool at turn depths 2, 5, 8 and 12, with each copy interleaved against a turn play in one process.
+- **Measured.** A copy costs 0.32 of one turn in MEDICHAM and 0.44 in Showdown's string round trip, median over all depths; copy plus three turns is 2.52 turns in MEDICHAM and 3.28 in Showdown; the copy is about 6% of a full rollout in both, so playing turns, not copying positions, limits search. MEDICHAM's rebuild-from-board copy is independent on all 48 positions; Showdown's in-memory JSON copy is not — it shares the original's log and fails every check on all 48. Taken under contention, so the ratios are the figures of record. Detail: `docs/_reports/2026-09-11-clone-cost.md`.
+- **Supersedes.** Nothing.
+- **Basis.** unchanged.
+- **Owed to the next major.** None. Owed as work: a quiet-machine re-run for absolute times, and a check that two live MEDICHAM positions played alternately stay independent, since the engine keeps its current battle in shared module variables.
+
 ## [6.9.1] — 2026-09-11 — a staging planner derives a legal fixture for 841 of the 847 mechanics with a legal carrier
 
 - **What changed.** Added `engine/stage_planner.js` and `tests/test-stage-planner.js`. For every legal move, ability and item — and abilities a legal move can confer — the planner derives what the mechanic needs from the authority's handlers and the tag params, then constructs a legal board that supplies it, with a control differing in one leaf and inert for one reason, on both sides and at the slot where the mechanic reads position. No game is played.

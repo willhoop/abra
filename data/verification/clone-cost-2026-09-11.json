@@ -1,0 +1,1607 @@
+{
+  "generated": "2026-09-11T08:39:40.637Z",
+  "by": "data/verification/clone-cost-2026-09-11/bench_clone.js (SEARCH)",
+  "what": "Cost of copying a mid-game position before each rollout, MEDICHAM vs Showdown, as ratios to one turn from the same position; plus whether each copy is independent of the original.",
+  "not_an_accuracy_claim": "MEDICHAM is quarantined for correctness. Cost and copy-independence only.",
+  "contended": "An ENGINE agent was pinning every core. Every absolute time here is CONTENDED and is owed a quiet re-run; the ratios are within-engine and within-rep, so contention is common-mode.",
+  "engine_release": "2b5a6585d8cf",
+  "engine_release_cut": "2026-09-11T06:06:45.568Z",
+  "engine_release_cuts": 129,
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "source_digests": {
+    "engine/medicham2-browser.js": "31855b504052",
+    "engine/board.js": "c85a3b756c98",
+    "engine/rollout_leaf.js": "d00e77a7ac26",
+    "engine/position_features.js": "622482051bf4",
+    "engine/tags.js": "145a3cc9ce2f",
+    "engine/champions_sim.js": "5e5d21bf1fb1",
+    "data/residual-order.json": "eff160ad1c5a",
+    "data/switchin-order.json": "24a007a66b7d",
+    "engine/mc_key.js": "f57c27a6bf38",
+    "engine/lookup.js": "17f49e5aed43",
+    "engine/set_priors.js": "f8a81445ee3a",
+    "engine/smogon_priors.js": "5c039f9ebdbc",
+    "engine/quality.js": "c6de8fb66ea3",
+    "engine/showdown_path.js": "0efe29f4245d",
+    "data/move-effects.js": "f35ecd91ba86",
+    "data/ability-blocks.json": "86741fd35452",
+    "data/smogon-priors.json": "f2dc78cea6c5",
+    "data/regulations.json": "6c1995e9a9fb",
+    "data/quality-filter.json": "771c3bd3e544",
+    "data/engine-data.js": "bbc417dfae0e",
+    "data/abra-tags.js": "27bd584a5c91",
+    "data/tags.json": "f1d5cf3bd94d",
+    "data/policy-weights.json": "626c1d240782",
+    "data/policy-weights-joint.json": "e2aca467ff04",
+    "data/move-priors.json": "e667fe8ab457",
+    "engine/pp.js": "30b12a4ef623",
+    "data/rollout-switch-census.json": "b599f8d581b5"
+  },
+  "showdown_commit_checkout": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "format": "gen9championsvgc2026regmb",
+  "team_store_pinned_to": "data/team-pool-frozen",
+  "team_store_bo3_sha12": "5e10d7ba991f",
+  "census": {
+    "switchRate": 0.0998,
+    "digest": "b599f8d581b5"
+  },
+  "explore": 1,
+  "foe_policy": "uniform",
+  "flags": {
+    "release": "2b5a6585d8cf",
+    "team_store": "data/team-pool-frozen",
+    "games": 16,
+    "stride": 800,
+    "depths": [
+      2,
+      5,
+      8,
+      12
+    ],
+    "reps": 12,
+    "full_reps": 4,
+    "k": 10,
+    "mem_n": 30,
+    "warm_ms": 20000,
+    "full_cap": 20,
+    "smoke": false,
+    "argv": [],
+    "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown"
+  },
+  "node": "v24.15.0",
+  "cores": 16,
+  "freemem_gb_at_start": 6.57,
+  "gc_available": true,
+  "load_ms_excluded": 464,
+  "copy_paths": {
+    "medicham": "rollout_leaf.rolloutWinProb (release rollout_leaf.js:1241; per-sample rebuild :1299-1343) with maxTurns:-1 — the real function; no state-copy exists in medicham2-browser.js",
+    "showdown_mem": "Battle.fromJSON(b.toJSON()) — sim/battle.ts:318-323, used in memory by sim/tools/runner.ts:218,233",
+    "showdown_str": "Battle.fromJSON(JSON.stringify(b.toJSON()))",
+    "showdown_memfix": "mem + c.log = c.log.slice() (not in Showdown; the smallest unsharing change)",
+    "structuredClone_md": "structuredClone of a rebuilt MEDICHAM state — NOT in the engine; informational only"
+  },
+  "board_population": "boards are filled from Showdown state via the Board public API; volatiles, status clock and weather age are not populated",
+  "counters": {
+    "pair_skipped": 0,
+    "sd_rejected_choice": 1,
+    "sd_fell_back_to_default": 1,
+    "sd_threw": 0,
+    "sd_stuck": 0,
+    "md_copy_null": 0,
+    "md_threw": 0,
+    "sclone_threw": 0,
+    "sclone_first_error": null,
+    "positions_md_unbuildable": 0
+  },
+  "pairs": [
+    {
+      "id": "gen9championsvgc2026regmbbo3-2653923955",
+      "line": 0
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2654041758",
+      "line": 800
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2654871097",
+      "line": 1600
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2655564007",
+      "line": 2400
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656215226",
+      "line": 3200
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656757633",
+      "line": 4000
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657333637",
+      "line": 4800
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657885399",
+      "line": 5600
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2658541856",
+      "line": 6400
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2659193490",
+      "line": 7200
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2659804913",
+      "line": 8000
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660319505",
+      "line": 8800
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660954203",
+      "line": 9600
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2661415911",
+      "line": 10400
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2662101759",
+      "line": 11200
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2662719936",
+      "line": 12000
+    }
+  ],
+  "positions": [
+    {
+      "game": "gen9championsvgc2026regmbbo3-2653923955",
+      "turn": 2,
+      "log_lines": 80,
+      "state_bytes": 29878
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2653923955",
+      "turn": 5,
+      "log_lines": 173,
+      "state_bytes": 33244
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2654041758",
+      "turn": 2,
+      "log_lines": 94,
+      "state_bytes": 31237
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2654041758",
+      "turn": 5,
+      "log_lines": 171,
+      "state_bytes": 33151
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2654041758",
+      "turn": 8,
+      "log_lines": 249,
+      "state_bytes": 36522
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2654041758",
+      "turn": 12,
+      "log_lines": 355,
+      "state_bytes": 41201
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2654871097",
+      "turn": 2,
+      "log_lines": 77,
+      "state_bytes": 31277
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2654871097",
+      "turn": 5,
+      "log_lines": 173,
+      "state_bytes": 34955
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2655564007",
+      "turn": 2,
+      "log_lines": 77,
+      "state_bytes": 30425
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2655564007",
+      "turn": 5,
+      "log_lines": 190,
+      "state_bytes": 35440
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2656215226",
+      "turn": 2,
+      "log_lines": 86,
+      "state_bytes": 30616
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2656215226",
+      "turn": 5,
+      "log_lines": 159,
+      "state_bytes": 33213
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2656215226",
+      "turn": 8,
+      "log_lines": 228,
+      "state_bytes": 35108
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2656757633",
+      "turn": 2,
+      "log_lines": 83,
+      "state_bytes": 30509
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2656757633",
+      "turn": 5,
+      "log_lines": 164,
+      "state_bytes": 34172
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2656757633",
+      "turn": 8,
+      "log_lines": 248,
+      "state_bytes": 36867
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2657333637",
+      "turn": 2,
+      "log_lines": 82,
+      "state_bytes": 30350
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2657333637",
+      "turn": 5,
+      "log_lines": 172,
+      "state_bytes": 34036
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2657333637",
+      "turn": 8,
+      "log_lines": 270,
+      "state_bytes": 37345
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2657333637",
+      "turn": 12,
+      "log_lines": 365,
+      "state_bytes": 40032
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2657885399",
+      "turn": 2,
+      "log_lines": 74,
+      "state_bytes": 29764
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2657885399",
+      "turn": 5,
+      "log_lines": 146,
+      "state_bytes": 33191
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2657885399",
+      "turn": 8,
+      "log_lines": 217,
+      "state_bytes": 35548
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2657885399",
+      "turn": 12,
+      "log_lines": 281,
+      "state_bytes": 38272
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2658541856",
+      "turn": 2,
+      "log_lines": 84,
+      "state_bytes": 30448
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2658541856",
+      "turn": 5,
+      "log_lines": 156,
+      "state_bytes": 33913
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2658541856",
+      "turn": 8,
+      "log_lines": 235,
+      "state_bytes": 35889
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2658541856",
+      "turn": 12,
+      "log_lines": 316,
+      "state_bytes": 39099
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2659193490",
+      "turn": 2,
+      "log_lines": 101,
+      "state_bytes": 31900
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2659193490",
+      "turn": 5,
+      "log_lines": 206,
+      "state_bytes": 34901
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2659804913",
+      "turn": 2,
+      "log_lines": 83,
+      "state_bytes": 30585
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2659804913",
+      "turn": 5,
+      "log_lines": 139,
+      "state_bytes": 32556
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2659804913",
+      "turn": 8,
+      "log_lines": 209,
+      "state_bytes": 35310
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2659804913",
+      "turn": 12,
+      "log_lines": 326,
+      "state_bytes": 39657
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2660319505",
+      "turn": 2,
+      "log_lines": 83,
+      "state_bytes": 30265
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2660319505",
+      "turn": 5,
+      "log_lines": 176,
+      "state_bytes": 33513
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2660954203",
+      "turn": 2,
+      "log_lines": 75,
+      "state_bytes": 30223
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2660954203",
+      "turn": 5,
+      "log_lines": 147,
+      "state_bytes": 33304
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2660954203",
+      "turn": 8,
+      "log_lines": 211,
+      "state_bytes": 34826
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2661415911",
+      "turn": 2,
+      "log_lines": 76,
+      "state_bytes": 30168
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2661415911",
+      "turn": 5,
+      "log_lines": 147,
+      "state_bytes": 33546
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2661415911",
+      "turn": 8,
+      "log_lines": 239,
+      "state_bytes": 36073
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2661415911",
+      "turn": 12,
+      "log_lines": 322,
+      "state_bytes": 38718
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2662101759",
+      "turn": 2,
+      "log_lines": 96,
+      "state_bytes": 30781
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2662719936",
+      "turn": 2,
+      "log_lines": 78,
+      "state_bytes": 30846
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2662719936",
+      "turn": 5,
+      "log_lines": 159,
+      "state_bytes": 34134
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2662719936",
+      "turn": 8,
+      "log_lines": 234,
+      "state_bytes": 34940
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2662719936",
+      "turn": 12,
+      "log_lines": 306,
+      "state_bytes": 38587
+    }
+  ],
+  "red_demo": {
+    "showdown_alias_moveslots": {
+      "tally": {
+        "C1": {
+          "pass": 3,
+          "fail": 45
+        },
+        "C3": {
+          "pass": 3,
+          "fail": 45
+        }
+      },
+      "first_C1_fail": {
+        "at": "g0 t2",
+        "diff": [
+          "$.sides[0].pokemon[0].moveSlots[2].pp: 20  vs  18",
+          "$.sides[0].pokemon[0].moveSlots[2].used: false  vs  true",
+          "$.sides[0].pokemon[0].moveSlots[3].pp: 8  vs  7",
+          "$.sides[0].pokemon[0].moveSlots[3].used: false  vs  true"
+        ]
+      }
+    },
+    "showdown_alias_prng_between_copies": {
+      "tally": {
+        "C2": {
+          "pass": 2,
+          "fail": 46
+        }
+      },
+      "first_C2_fail": {
+        "at": "g0 t2",
+        "diff": [
+          "$.sides[0].pokemon[0].attackedBy[0].damage: 132  vs  128",
+          "$.sides[0].pokemon[0].attackedBy[0].damageValue: 132  vs  128",
+          "$.sides[0].pokemon[0].hp: 8  vs  12",
+          "$.sides[0].pokemon[1].lastMove.totalDamage: 64  vs  69"
+        ]
+      }
+    },
+    "medicham_alias_pp_ledger": {
+      "tally": {
+        "M1": {
+          "pass": 0,
+          "fail": 48
+        },
+        "M3": {
+          "pass": 3,
+          "fail": 45
+        }
+      },
+      "first_M1_fail": {
+        "at": "g0 t2",
+        "diff": [
+          "$.sides.p1.active.a.pp.haze: undefined  vs  19"
+        ]
+      }
+    },
+    "medicham_shared_rng_stream": {
+      "tally": {
+        "M2": {
+          "pass": 0,
+          "fail": 48
+        }
+      },
+      "first_M2_fail": {
+        "at": "g0 t2",
+        "diff": [
+          "$.field._pendingLastMove: \"swordsdance\"  vs  \"blizzard\"",
+          "$.field._pendingLastBy.name: \"kingambit\"  vs  \"froslass-mega\"",
+          "$.field._pendingLastBy.types[0]: \"Dark\"  vs  \"Ice\"",
+          "$.field._pendingLastBy.types[1]: \"Steel\"  vs  \"Ghost\""
+        ]
+      },
+      "note": "aliases the DICE, not the copy — shows the M2 comparison can see a divergence at all"
+    },
+    "all_red_variants_caught": true
+  },
+  "real_checks": {
+    "showdown": {
+      "mem": {
+        "tally": {
+          "C1": {
+            "pass": 0,
+            "fail": 48
+          },
+          "C2": {
+            "pass": 0,
+            "fail": 48
+          },
+          "C3": {
+            "pass": 0,
+            "fail": 48
+          }
+        },
+        "first_C1_fail": {
+          "at": "g0 t2",
+          "diff": [
+            "$.log: length 80 vs 147",
+            "$.log[80]: undefined  vs  \"|\"",
+            "$.log[81]: undefined  vs  \"|t:|\"",
+            "$.log[82]: undefined  vs  \"|detailschange|p1b: Froslass|Froslass-Mega, L50, F\""
+          ]
+        },
+        "first_C2_fail": {
+          "at": "g0 t2",
+          "diff": [
+            "$.lastMoveLine: 141  vs  208"
+          ]
+        },
+        "first_C3_fail": {
+          "at": "g0 t2",
+          "diff": [
+            "$.log: length 80 vs 147",
+            "$.log[80]: undefined  vs  \"|\"",
+            "$.log[81]: undefined  vs  \"|t:|\"",
+            "$.log[82]: undefined  vs  \"|detailschange|p1b: Froslass|Froslass-Mega, L50, F\""
+          ]
+        },
+        "C4_shared_with_original_excluding_dex_objects": {
+          "positions": 48,
+          "with_any_shared": 48,
+          "max_shared": 33,
+          "example": [
+            "$.sides[].team[] x8",
+            "$.sides[].team[].moves x8",
+            "$.sides[].team[].evs x8",
+            "$.sides[].team[].ivs x8",
+            "$.log x1"
+          ]
+        }
+      },
+      "str": {
+        "tally": {
+          "C1": {
+            "pass": 48,
+            "fail": 0
+          },
+          "C2": {
+            "pass": 48,
+            "fail": 0
+          },
+          "C3": {
+            "pass": 48,
+            "fail": 0
+          }
+        },
+        "first_C1_fail": null,
+        "first_C2_fail": null,
+        "first_C3_fail": null,
+        "C4_shared_with_original_excluding_dex_objects": {
+          "positions": 48,
+          "with_any_shared": 0,
+          "max_shared": 0,
+          "example": []
+        }
+      },
+      "memfix": {
+        "tally": {
+          "C1": {
+            "pass": 48,
+            "fail": 0
+          },
+          "C2": {
+            "pass": 48,
+            "fail": 0
+          },
+          "C3": {
+            "pass": 48,
+            "fail": 0
+          }
+        },
+        "first_C1_fail": null,
+        "first_C2_fail": null,
+        "first_C3_fail": null,
+        "C4_shared_with_original_excluding_dex_objects": {
+          "positions": 48,
+          "with_any_shared": 48,
+          "max_shared": 32,
+          "example": [
+            "$.sides[].team[] x8",
+            "$.sides[].team[].moves x8",
+            "$.sides[].team[].evs x8",
+            "$.sides[].team[].ivs x8"
+          ]
+        }
+      }
+    },
+    "medicham": {
+      "tally": {
+        "M1": {
+          "pass": 48,
+          "fail": 0
+        },
+        "M2": {
+          "pass": 48,
+          "fail": 0
+        },
+        "M2_raw": {
+          "pass": 7,
+          "fail": 41
+        },
+        "M3": {
+          "pass": 48,
+          "fail": 0
+        }
+      },
+      "first_M2_raw_fail": {
+        "at": "g0 t2",
+        "diff": [
+          "$.field._pendingLastBy._sf.team[2]._hitBy.<Set>[0]._sf.team[2]._faintSeq: 591  vs  593",
+          "$.field._pendingLastBy._sf.team[2]._faintSeq: 590  vs  592"
+        ]
+      },
+      "first_M1_fail": null,
+      "first_M2_fail": null,
+      "first_M3_fail": null,
+      "M4_copy_vs_copy": {
+        "positions": 48,
+        "with_any_shared": 0,
+        "max_shared": 0,
+        "example": []
+      },
+      "M4_copy_vs_board": {
+        "positions": 48,
+        "with_any_shared": 0,
+        "max_shared": 0,
+        "example": []
+      },
+      "M4_copy_vs_MC": {
+        "positions": 48,
+        "with_any_shared": 0,
+        "max_shared": 0,
+        "example": []
+      },
+      "M2_math_random_calls": {
+        "total": 0,
+        "in_failing_positions": 0,
+        "in_passing_positions": 0
+      },
+      "M2_fails_at": [],
+      "M2_all_fail_diffs": [],
+      "M2_raw_fail_diff_fields": [
+        "_faintSeq",
+        "_rtieGen"
+      ]
+    },
+    "medicham_structuredClone": {
+      "threw": 0,
+      "first_error": null,
+      "tally": {
+        "M1": {
+          "pass": 48,
+          "fail": 0
+        },
+        "M2": {
+          "pass": 48,
+          "fail": 0
+        },
+        "M2_raw": {
+          "pass": 7,
+          "fail": 41
+        },
+        "clone_plays_like_rebuild": {
+          "pass": 48,
+          "fail": 0
+        },
+        "clone_plays_like_rebuild_raw": {
+          "pass": 7,
+          "fail": 41
+        }
+      },
+      "first_clone_vs_rebuild_diff": null,
+      "M4": {
+        "positions": 48,
+        "with_any_shared": 0,
+        "max_shared": 0,
+        "example": []
+      },
+      "clone_vs_rebuild_all_fail_diffs": [],
+      "M2_all_fail_diffs": []
+    }
+  },
+  "math_random_calls_during_checks": 0,
+  "by_depth": {
+    "2": {
+      "positions": 16,
+      "abs_contended": {
+        "md_copy": {
+          "n": 192,
+          "median_ms": 0.364,
+          "p90_ms": 0.423
+        },
+        "md_turn1": {
+          "n": 192,
+          "median_ms": 1.208,
+          "p90_ms": 1.684
+        },
+        "md_roll3": {
+          "n": 192,
+          "median_ms": 3.268,
+          "p90_ms": 3.94
+        },
+        "md_full": {
+          "n": 64,
+          "median_ms": 7.497,
+          "p90_ms": 11.11
+        },
+        "md_sclone": {
+          "n": 192,
+          "median_ms": 0.118,
+          "p90_ms": 0.143
+        },
+        "sd_copy_mem": {
+          "n": 192,
+          "median_ms": 1.091,
+          "p90_ms": 1.297
+        },
+        "sd_copy_str": {
+          "n": 192,
+          "median_ms": 1.379,
+          "p90_ms": 1.743
+        },
+        "sd_copy_memfix": {
+          "n": 192,
+          "median_ms": 1.17,
+          "p90_ms": 1.457
+        },
+        "sd_turn1": {
+          "n": 192,
+          "median_ms": 3.286,
+          "p90_ms": 4.364
+        },
+        "sd_roll3": {
+          "n": 192,
+          "median_ms": 11.031,
+          "p90_ms": 13.639
+        },
+        "sd_full": {
+          "n": 64,
+          "median_ms": 30.6,
+          "p90_ms": 47.817
+        }
+      },
+      "ratios": {
+        "medicham_copy_over_turn": {
+          "positions": 16,
+          "median": 0.29,
+          "p90": 0.32,
+          "min": 0.25,
+          "max": 0.35
+        },
+        "medicham_roll3_over_turn": {
+          "positions": 16,
+          "median": 2.65,
+          "p90": 2.81,
+          "min": 2.37,
+          "max": 2.91
+        },
+        "medicham_full_over_turn": {
+          "positions": 16,
+          "median": 5.84,
+          "p90": 9.07,
+          "min": 4.8,
+          "max": 9.73
+        },
+        "medicham_structuredClone_over_turn": {
+          "positions": 16,
+          "median": 0.09,
+          "p90": 0.11,
+          "min": 0.08,
+          "max": 0.12
+        },
+        "showdown_copy_str_over_turn": {
+          "positions": 16,
+          "median": 0.41,
+          "p90": 0.49,
+          "min": 0.32,
+          "max": 0.5
+        },
+        "showdown_copy_mem_over_turn": {
+          "positions": 16,
+          "median": 0.32,
+          "p90": 0.38,
+          "min": 0.25,
+          "max": 0.38
+        },
+        "showdown_copy_memfix_over_turn": {
+          "positions": 16,
+          "median": 0.34,
+          "p90": 0.4,
+          "min": 0.28,
+          "max": 0.41
+        },
+        "showdown_roll3_over_turn": {
+          "positions": 16,
+          "median": 3.39,
+          "p90": 3.79,
+          "min": 2.85,
+          "max": 3.83
+        },
+        "showdown_full_over_turn": {
+          "positions": 16,
+          "median": 8.85,
+          "p90": 11.87,
+          "min": 3.49,
+          "max": 12.9
+        },
+        "showdown_turn_over_medicham_turn": {
+          "positions": 16,
+          "median": 2.65,
+          "p90": 3.07,
+          "min": 2.31,
+          "max": 3.23
+        },
+        "showdown_copy_str_over_medicham_copy": {
+          "positions": 16,
+          "median": 3.75,
+          "p90": 4.06,
+          "min": 3.09,
+          "max": 4.13
+        }
+      },
+      "noise_floor_half_split_pct": {
+        "md_copy": 4.95,
+        "md_turn1": 6,
+        "sd_copy_str": 9.04,
+        "sd_turn1": 0.46
+      },
+      "median_turns_in_full_playout": {
+        "md": 8.8,
+        "sd": 10
+      },
+      "mean_log_lines": 83.06,
+      "mean_state_bytes": 30580
+    },
+    "5": {
+      "positions": 15,
+      "abs_contended": {
+        "md_copy": {
+          "n": 180,
+          "median_ms": 0.367,
+          "p90_ms": 0.429
+        },
+        "md_turn1": {
+          "n": 180,
+          "median_ms": 1.116,
+          "p90_ms": 1.453
+        },
+        "md_roll3": {
+          "n": 180,
+          "median_ms": 2.961,
+          "p90_ms": 3.525
+        },
+        "md_full": {
+          "n": 60,
+          "median_ms": 5.577,
+          "p90_ms": 8.903
+        },
+        "md_sclone": {
+          "n": 180,
+          "median_ms": 0.129,
+          "p90_ms": 0.151
+        },
+        "sd_copy_mem": {
+          "n": 180,
+          "median_ms": 1.06,
+          "p90_ms": 1.359
+        },
+        "sd_copy_str": {
+          "n": 180,
+          "median_ms": 1.416,
+          "p90_ms": 1.801
+        },
+        "sd_copy_memfix": {
+          "n": 180,
+          "median_ms": 1.164,
+          "p90_ms": 1.413
+        },
+        "sd_turn1": {
+          "n": 180,
+          "median_ms": 3.059,
+          "p90_ms": 3.78
+        },
+        "sd_roll3": {
+          "n": 180,
+          "median_ms": 9.965,
+          "p90_ms": 12.736
+        },
+        "sd_full": {
+          "n": 60,
+          "median_ms": 18.733,
+          "p90_ms": 43.215
+        }
+      },
+      "ratios": {
+        "medicham_copy_over_turn": {
+          "positions": 15,
+          "median": 0.32,
+          "p90": 0.39,
+          "min": 0.29,
+          "max": 0.43
+        },
+        "medicham_roll3_over_turn": {
+          "positions": 15,
+          "median": 2.74,
+          "p90": 2.82,
+          "min": 1.79,
+          "max": 2.83
+        },
+        "medicham_full_over_turn": {
+          "positions": 15,
+          "median": 4.57,
+          "p90": 7.34,
+          "min": 1.81,
+          "max": 10.21
+        },
+        "medicham_structuredClone_over_turn": {
+          "positions": 15,
+          "median": 0.11,
+          "p90": 0.14,
+          "min": 0.1,
+          "max": 0.16
+        },
+        "showdown_copy_str_over_turn": {
+          "positions": 15,
+          "median": 0.46,
+          "p90": 0.58,
+          "min": 0.35,
+          "max": 0.65
+        },
+        "showdown_copy_mem_over_turn": {
+          "positions": 15,
+          "median": 0.34,
+          "p90": 0.41,
+          "min": 0.28,
+          "max": 0.48
+        },
+        "showdown_copy_memfix_over_turn": {
+          "positions": 15,
+          "median": 0.37,
+          "p90": 0.47,
+          "min": 0.3,
+          "max": 0.53
+        },
+        "showdown_roll3_over_turn": {
+          "positions": 15,
+          "median": 3.31,
+          "p90": 3.6,
+          "min": 1.55,
+          "max": 3.87
+        },
+        "showdown_full_over_turn": {
+          "positions": 15,
+          "median": 5.5,
+          "p90": 13.11,
+          "min": 1.48,
+          "max": 15.99
+        },
+        "showdown_turn_over_medicham_turn": {
+          "positions": 15,
+          "median": 2.64,
+          "p90": 3.35,
+          "min": 1.84,
+          "max": 4.09
+        },
+        "showdown_copy_str_over_medicham_copy": {
+          "positions": 15,
+          "median": 3.94,
+          "p90": 4.18,
+          "min": 3.47,
+          "max": 4.2
+        }
+      },
+      "noise_floor_half_split_pct": {
+        "md_copy": 0.43,
+        "md_turn1": 5.96,
+        "sd_copy_str": 8.43,
+        "sd_turn1": 3.91
+      },
+      "median_turns_in_full_playout": {
+        "md": 6.7,
+        "sd": 6
+      },
+      "mean_log_lines": 165.2,
+      "mean_state_bytes": 33818
+    },
+    "8": {
+      "positions": 10,
+      "abs_contended": {
+        "md_copy": {
+          "n": 120,
+          "median_ms": 0.373,
+          "p90_ms": 0.441
+        },
+        "md_turn1": {
+          "n": 120,
+          "median_ms": 1.101,
+          "p90_ms": 1.493
+        },
+        "md_roll3": {
+          "n": 120,
+          "median_ms": 2.496,
+          "p90_ms": 3.537
+        },
+        "md_full": {
+          "n": 40,
+          "median_ms": 3.453,
+          "p90_ms": 9.589
+        },
+        "md_sclone": {
+          "n": 120,
+          "median_ms": 0.133,
+          "p90_ms": 0.159
+        },
+        "sd_copy_mem": {
+          "n": 120,
+          "median_ms": 1.029,
+          "p90_ms": 1.345
+        },
+        "sd_copy_str": {
+          "n": 120,
+          "median_ms": 1.372,
+          "p90_ms": 1.65
+        },
+        "sd_copy_memfix": {
+          "n": 120,
+          "median_ms": 1.139,
+          "p90_ms": 1.362
+        },
+        "sd_turn1": {
+          "n": 120,
+          "median_ms": 2.859,
+          "p90_ms": 3.81
+        },
+        "sd_roll3": {
+          "n": 120,
+          "median_ms": 9.152,
+          "p90_ms": 12.436
+        },
+        "sd_full": {
+          "n": 40,
+          "median_ms": 13.566,
+          "p90_ms": 37.889
+        }
+      },
+      "ratios": {
+        "medicham_copy_over_turn": {
+          "positions": 10,
+          "median": 0.32,
+          "p90": 0.46,
+          "min": 0.28,
+          "max": 0.5
+        },
+        "medicham_roll3_over_turn": {
+          "positions": 10,
+          "median": 2.41,
+          "p90": 2.67,
+          "min": 1.85,
+          "max": 2.7
+        },
+        "medicham_full_over_turn": {
+          "positions": 10,
+          "median": 3.1,
+          "p90": 5.04,
+          "min": 2.19,
+          "max": 10
+        },
+        "medicham_structuredClone_over_turn": {
+          "positions": 10,
+          "median": 0.12,
+          "p90": 0.16,
+          "min": 0.1,
+          "max": 0.18
+        },
+        "showdown_copy_str_over_turn": {
+          "positions": 10,
+          "median": 0.46,
+          "p90": 0.64,
+          "min": 0.4,
+          "max": 0.68
+        },
+        "showdown_copy_mem_over_turn": {
+          "positions": 10,
+          "median": 0.33,
+          "p90": 0.5,
+          "min": 0.29,
+          "max": 0.51
+        },
+        "showdown_copy_memfix_over_turn": {
+          "positions": 10,
+          "median": 0.35,
+          "p90": 0.53,
+          "min": 0.32,
+          "max": 0.54
+        },
+        "showdown_roll3_over_turn": {
+          "positions": 10,
+          "median": 3.14,
+          "p90": 3.53,
+          "min": 2.92,
+          "max": 4
+        },
+        "showdown_full_over_turn": {
+          "positions": 10,
+          "median": 3.62,
+          "p90": 10.64,
+          "min": 2.15,
+          "max": 15.64
+        },
+        "showdown_turn_over_medicham_turn": {
+          "positions": 10,
+          "median": 2.74,
+          "p90": 3.11,
+          "min": 1.71,
+          "max": 3.15
+        },
+        "showdown_copy_str_over_medicham_copy": {
+          "positions": 10,
+          "median": 3.8,
+          "p90": 3.91,
+          "min": 3.44,
+          "max": 3.95
+        }
+      },
+      "noise_floor_half_split_pct": {
+        "md_copy": 5.66,
+        "md_turn1": 6.45,
+        "sd_copy_str": 10.73,
+        "sd_turn1": 1.26
+      },
+      "median_turns_in_full_playout": {
+        "md": 4.6,
+        "sd": 5
+      },
+      "mean_log_lines": 234,
+      "mean_state_bytes": 35843
+    },
+    "12": {
+      "positions": 7,
+      "abs_contended": {
+        "md_copy": {
+          "n": 84,
+          "median_ms": 0.359,
+          "p90_ms": 0.439
+        },
+        "md_turn1": {
+          "n": 84,
+          "median_ms": 0.897,
+          "p90_ms": 1.316
+        },
+        "md_roll3": {
+          "n": 84,
+          "median_ms": 1.595,
+          "p90_ms": 2.867
+        },
+        "md_full": {
+          "n": 28,
+          "median_ms": 1.778,
+          "p90_ms": 7.729
+        },
+        "md_sclone": {
+          "n": 84,
+          "median_ms": 0.134,
+          "p90_ms": 0.166
+        },
+        "sd_copy_mem": {
+          "n": 84,
+          "median_ms": 1.048,
+          "p90_ms": 1.265
+        },
+        "sd_copy_str": {
+          "n": 84,
+          "median_ms": 1.437,
+          "p90_ms": 1.752
+        },
+        "sd_copy_memfix": {
+          "n": 84,
+          "median_ms": 1.098,
+          "p90_ms": 1.377
+        },
+        "sd_turn1": {
+          "n": 84,
+          "median_ms": 2.182,
+          "p90_ms": 3.479
+        },
+        "sd_roll3": {
+          "n": 84,
+          "median_ms": 6.15,
+          "p90_ms": 11.04
+        },
+        "sd_full": {
+          "n": 28,
+          "median_ms": 7.059,
+          "p90_ms": 32.565
+        }
+      },
+      "ratios": {
+        "medicham_copy_over_turn": {
+          "positions": 7,
+          "median": 0.4,
+          "p90": 0.66,
+          "min": 0.26,
+          "max": 0.66
+        },
+        "medicham_roll3_over_turn": {
+          "positions": 7,
+          "median": 1.95,
+          "p90": 2.44,
+          "min": 1.4,
+          "max": 2.44
+        },
+        "medicham_full_over_turn": {
+          "positions": 7,
+          "median": 2.16,
+          "p90": 6.44,
+          "min": 1.23,
+          "max": 6.44
+        },
+        "medicham_structuredClone_over_turn": {
+          "positions": 7,
+          "median": 0.14,
+          "p90": 0.25,
+          "min": 0.11,
+          "max": 0.25
+        },
+        "showdown_copy_str_over_turn": {
+          "positions": 7,
+          "median": 0.68,
+          "p90": 1.2,
+          "min": 0.35,
+          "max": 1.2
+        },
+        "showdown_copy_mem_over_turn": {
+          "positions": 7,
+          "median": 0.5,
+          "p90": 0.78,
+          "min": 0.27,
+          "max": 0.78
+        },
+        "showdown_copy_memfix_over_turn": {
+          "positions": 7,
+          "median": 0.52,
+          "p90": 0.81,
+          "min": 0.28,
+          "max": 0.81
+        },
+        "showdown_roll3_over_turn": {
+          "positions": 7,
+          "median": 2.59,
+          "p90": 3.69,
+          "min": 2.34,
+          "max": 3.69
+        },
+        "showdown_full_over_turn": {
+          "positions": 7,
+          "median": 2.56,
+          "p90": 10.94,
+          "min": 2.04,
+          "max": 10.94
+        },
+        "showdown_turn_over_medicham_turn": {
+          "positions": 7,
+          "median": 2.48,
+          "p90": 3.59,
+          "min": 2.12,
+          "max": 3.59
+        },
+        "showdown_copy_str_over_medicham_copy": {
+          "positions": 7,
+          "median": 3.89,
+          "p90": 4.19,
+          "min": 3.62,
+          "max": 4.19
+        }
+      },
+      "noise_floor_half_split_pct": {
+        "md_copy": 1.47,
+        "md_turn1": 6.98,
+        "sd_copy_str": 8.48,
+        "sd_turn1": 2.23
+      },
+      "median_turns_in_full_playout": {
+        "md": 2.3,
+        "sd": 2
+      },
+      "mean_log_lines": 324.43,
+      "mean_state_bytes": 39367
+    }
+  },
+  "all_depths": {
+    "positions": 48,
+    "abs_contended": {
+      "md_copy": {
+        "n": 576,
+        "median_ms": 0.367,
+        "p90_ms": 0.434
+      },
+      "md_turn1": {
+        "n": 576,
+        "median_ms": 1.121,
+        "p90_ms": 1.555
+      },
+      "md_roll3": {
+        "n": 576,
+        "median_ms": 2.884,
+        "p90_ms": 3.698
+      },
+      "md_full": {
+        "n": 192,
+        "median_ms": 6.221,
+        "p90_ms": 9.589
+      },
+      "md_sclone": {
+        "n": 576,
+        "median_ms": 0.127,
+        "p90_ms": 0.152
+      },
+      "sd_copy_mem": {
+        "n": 576,
+        "median_ms": 1.061,
+        "p90_ms": 1.311
+      },
+      "sd_copy_str": {
+        "n": 576,
+        "median_ms": 1.409,
+        "p90_ms": 1.749
+      },
+      "sd_copy_memfix": {
+        "n": 576,
+        "median_ms": 1.153,
+        "p90_ms": 1.416
+      },
+      "sd_turn1": {
+        "n": 576,
+        "median_ms": 3.012,
+        "p90_ms": 4.079
+      },
+      "sd_roll3": {
+        "n": 576,
+        "median_ms": 10.074,
+        "p90_ms": 13.07
+      },
+      "sd_full": {
+        "n": 192,
+        "median_ms": 21.21,
+        "p90_ms": 43.67
+      }
+    },
+    "ratios": {
+      "medicham_copy_over_turn": {
+        "positions": 48,
+        "median": 0.32,
+        "p90": 0.46,
+        "min": 0.25,
+        "max": 0.66
+      },
+      "medicham_roll3_over_turn": {
+        "positions": 48,
+        "median": 2.52,
+        "p90": 2.8,
+        "min": 1.4,
+        "max": 2.91
+      },
+      "medicham_full_over_turn": {
+        "positions": 48,
+        "median": 4.91,
+        "p90": 7.91,
+        "min": 1.23,
+        "max": 10.21
+      },
+      "medicham_structuredClone_over_turn": {
+        "positions": 48,
+        "median": 0.11,
+        "p90": 0.16,
+        "min": 0.08,
+        "max": 0.25
+      },
+      "showdown_copy_str_over_turn": {
+        "positions": 48,
+        "median": 0.44,
+        "p90": 0.68,
+        "min": 0.32,
+        "max": 1.2
+      },
+      "showdown_copy_mem_over_turn": {
+        "positions": 48,
+        "median": 0.34,
+        "p90": 0.5,
+        "min": 0.25,
+        "max": 0.78
+      },
+      "showdown_copy_memfix_over_turn": {
+        "positions": 48,
+        "median": 0.37,
+        "p90": 0.53,
+        "min": 0.28,
+        "max": 0.81
+      },
+      "showdown_roll3_over_turn": {
+        "positions": 48,
+        "median": 3.28,
+        "p90": 3.78,
+        "min": 1.55,
+        "max": 4
+      },
+      "showdown_full_over_turn": {
+        "positions": 48,
+        "median": 6.07,
+        "p90": 11.87,
+        "min": 1.48,
+        "max": 15.99
+      },
+      "showdown_turn_over_medicham_turn": {
+        "positions": 48,
+        "median": 2.66,
+        "p90": 3.2,
+        "min": 1.71,
+        "max": 4.09
+      },
+      "showdown_copy_str_over_medicham_copy": {
+        "positions": 48,
+        "median": 3.82,
+        "p90": 4.13,
+        "min": 3.09,
+        "max": 4.2
+      }
+    },
+    "noise_floor_half_split_pct": {
+      "md_copy": 3.26,
+      "md_turn1": 5.38,
+      "sd_copy_str": 8.97,
+      "sd_turn1": 0.97
+    },
+    "median_turns_in_full_playout": {
+      "md": 7.1,
+      "sd": 7
+    },
+    "mean_log_lines": 175.38,
+    "mean_state_bytes": 33969
+  },
+  "memory": {
+    "2": {
+      "game": "gen9championsvgc2026regmbbo3-2653923955",
+      "showdown_str_bytes_heap": 62427,
+      "showdown_mem_bytes_heap": 49801,
+      "showdown_serialized_json_bytes": 29878,
+      "medicham_rebuild_bytes_heap": 6962
+    },
+    "5": {
+      "game": "gen9championsvgc2026regmbbo3-2653923955",
+      "showdown_str_bytes_heap": 58790,
+      "showdown_mem_bytes_heap": 42725,
+      "showdown_serialized_json_bytes": 33244,
+      "medicham_rebuild_bytes_heap": 7020
+    },
+    "8": {
+      "game": "gen9championsvgc2026regmbbo3-2654041758",
+      "showdown_str_bytes_heap": 85544,
+      "showdown_mem_bytes_heap": 66480,
+      "showdown_serialized_json_bytes": 36522,
+      "medicham_rebuild_bytes_heap": 7236
+    },
+    "12": {
+      "game": "gen9championsvgc2026regmbbo3-2654041758",
+      "showdown_str_bytes_heap": 91723,
+      "showdown_mem_bytes_heap": 67263,
+      "showdown_serialized_json_bytes": 41201,
+      "medicham_rebuild_bytes_heap": 7159
+    }
+  },
+  "memory_method": "heapUsed delta holding 30 copies, after a discarded warm pass and gc x2, median of 3 trials; an estimate",
+  "MC_table_digest": {
+    "before_checks": "cf76ac629a00",
+    "after_everything": "49b36e59f49e",
+    "unchanged": false,
+    "phases": [
+      {
+        "phase": "after_primer_one_copy_and_3_turns",
+        "digest": "49b36e59f49e",
+        "changed_since_start": true,
+        "changed_since_previous": true,
+        "first_diffs_vs_start": [
+          "$.moves.acidspray.id: undefined  vs  \"acidspray\"",
+          "$.moves.bodyslam.id: undefined  vs  \"bodyslam\"",
+          "$.moves.bulldoze.id: undefined  vs  \"bulldoze\"",
+          "$.moves.bulletseed.id: undefined  vs  \"bulletseed\""
+        ],
+        "first_diffs_vs_previous": [
+          "$.moves.acidspray.id: undefined  vs  \"acidspray\"",
+          "$.moves.bodyslam.id: undefined  vs  \"bodyslam\"",
+          "$.moves.bulldoze.id: undefined  vs  \"bulldoze\"",
+          "$.moves.bulletseed.id: undefined  vs  \"bulletseed\""
+        ]
+      },
+      {
+        "phase": "after_red_demo",
+        "digest": "49b36e59f49e",
+        "changed_since_start": true,
+        "changed_since_previous": false,
+        "first_diffs_vs_start": [
+          "$.moves.acidspray.id: undefined  vs  \"acidspray\"",
+          "$.moves.bodyslam.id: undefined  vs  \"bodyslam\"",
+          "$.moves.bulldoze.id: undefined  vs  \"bulldoze\"",
+          "$.moves.bulletseed.id: undefined  vs  \"bulletseed\""
+        ]
+      },
+      {
+        "phase": "after_real_checks",
+        "digest": "49b36e59f49e",
+        "changed_since_start": true,
+        "changed_since_previous": false,
+        "first_diffs_vs_start": [
+          "$.moves.acidspray.id: undefined  vs  \"acidspray\"",
+          "$.moves.bodyslam.id: undefined  vs  \"bodyslam\"",
+          "$.moves.bulldoze.id: undefined  vs  \"bulldoze\"",
+          "$.moves.bulletseed.id: undefined  vs  \"bulletseed\""
+        ]
+      },
+      {
+        "phase": "after_timing",
+        "digest": "49b36e59f49e",
+        "changed_since_start": true,
+        "changed_since_previous": false,
+        "first_diffs_vs_start": [
+          "$.moves.acidspray.id: undefined  vs  \"acidspray\"",
+          "$.moves.bodyslam.id: undefined  vs  \"bodyslam\"",
+          "$.moves.bulldoze.id: undefined  vs  \"bulldoze\"",
+          "$.moves.bulletseed.id: undefined  vs  \"bulletseed\""
+        ]
+      },
+      {
+        "phase": "after_memory",
+        "digest": "49b36e59f49e",
+        "changed_since_start": true,
+        "changed_since_previous": false,
+        "first_diffs_vs_start": [
+          "$.moves.acidspray.id: undefined  vs  \"acidspray\"",
+          "$.moves.bodyslam.id: undefined  vs  \"bodyslam\"",
+          "$.moves.bulldoze.id: undefined  vs  \"bulldoze\"",
+          "$.moves.bulletseed.id: undefined  vs  \"bulletseed\""
+        ]
+      }
+    ]
+  },
+  "rollout_leaf_guards": {
+    "FALLEN_GUARD": {
+      "checked": 39578,
+      "agreed": 39578,
+      "mismatch": 0,
+      "noRecord": 0,
+      "first": null,
+      "warned": false
+    }
+  },
+  "elapsed_s": 85
+}
