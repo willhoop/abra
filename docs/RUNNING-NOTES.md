@@ -52,6 +52,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.32.0] — 2026-09-11 — the white paper's roster sentence carried four superseded counts, and a bold-only replacement fixed two of them
+
+- **What changed.** The head block's deliberate-roster sentence in `docs/ABRA-whitepaper.md` stated the item and ability stage counts as they read before the staging pass. Two were corrected in the previous commit and two were not, because the replacement matched only the emphasised figures and the other two are written plain. All four are now read from the artifacts rather than typed, and the PDF is rebuilt. A superseded figure in a living document is a retraction, and a retraction never waits for the documentation pass — which is why this does not sit behind the 7.0.0 release Will has put on hold.
+- **Measured.** NO NEW MEASUREMENT. The values are read from the item and ability stage artifacts of release `534442d71183`, the same run the previous row reports.
+- **Supersedes.** The four counts as the sentence previously stated them.
+- **Basis.** unchanged.
+- **Owed to the next major.** Nothing for this; the sentence now derives from the artifacts.
+
 ## [6.31.0] — 2026-09-12 — the untested in-scope mechanics are staged: every item, and a quiet control for the carriers that had none
 
 - **What changed.** `tests/roster.js` only — no engine byte, so **no release was cut** (it is not one of

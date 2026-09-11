@@ -10,6 +10,14 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.32.0] — 2026-09-11
+
+### Fixed
+- **Four superseded roster counts in the white paper's head block**, two of which a bold-only text
+  replacement had skipped in the previous commit because they are written without emphasis. Every figure in
+  that sentence is now read from the stage artifacts rather than typed, and the PDF is rebuilt. A superseded
+  figure in a living document is a retraction, and a retraction does not wait for the documentation pass.
+
 ## [6.31.0] — 2026-09-12
 
 ### Added
