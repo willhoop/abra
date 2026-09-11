@@ -44,6 +44,14 @@ reads SemVer 2.0.0 clauses 6, 7 and 8 against an API that is the figures this pr
 Copy this shape. Four lines is a good row; a paragraph is a report and belongs in `docs/_reports/`.
 
 ```
+## [6.16.0] — 2026-09-11 — the five living documents stop saying the MEDICHAM gate is open, and each now says so in a dated correction
+
+- **What changed.** `docs/ABRA-whitepaper.md`, `docs/ABRA-technical-docs.md`, `docs/ABRA-deck-plain-english.md`, `docs/SUMMARY.md` and `docs/MODELS.md` carry a dated correction above the 6.0.0 headline block, and at each of eleven body sites that stated the gate open or an artifact re-runnable as a present-tense fact. The 6.0.0 text stands as dated evidence. PDFs rebuilt. No version header moved: this is the retraction, not the fold-in.
+- **Measured.** `node engine/quarantine.js`: GATE: CLOSED — 2 of 9 gating clauses fail — ten open register rows name a red instrument, and 9 of 16 diverging mechanics are played and uncleared. The real ladder games still show no board difference on the middle arm. Detail: `docs/_reports/2026-09-11-gate-closed-docs.md`.
+- **Supersedes.** The present-tense claims that the gate is open and that MEDICHAM is correct against the official simulator on the pinned pool, in the 6.0.0 headline blocks; and the 6.0.0 split of the downstream artifacts into ones that lift and ones that stay — every artifact downstream of MEDICHAM is withheld by the gate again. The 6.0.0 reading itself is not struck: it was true on the release it measured. No figure is withdrawn, because 6.0.0 re-ran none.
+- **Basis.** unchanged.
+- **Owed to the next major.** Fold the correction into the rewritten headline sections.
+
 ## [6.15.0] — 2026-09-11 — the gate's instruments are attributed correctly again, two quarantined ledger figures are withdrawn, and three more hook checks judge the commit
 
 - **What changed.** `engine/provenance.js` no longer credits a write joined onto a temp directory as a write into `data/`: `tests/probe_divergence_rank_side.js` had taken the game differential's own artifact from `engine/game_differential.js` that way, so the quarantine withheld 23 instrument artifacts. The pre-commit hook passes `--staged` to `engine/artifact_audit.js`, `tests/test-roadmap-register.js` and the archive-index check, through `engine/docs_scan.js`'s index reader. `docs/MEASURE.md` withdraws the leaf calibration's ranking figure in a table and a sentence, and `docs/SEARCH.md` a position count from the same quarantined sweep.

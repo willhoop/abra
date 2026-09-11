@@ -1,6 +1,14 @@
 # Supporting Decisions in a Near-Unpredictable Game
 
-**Version 6.0.0 · Last updated 2026-09-10**
+**Version 6.0.0 · Last updated 2026-09-11**
+
+**CORRECTION, 2026-09-11 — THE GATE IS CLOSED AGAIN. THE 6.0.0 BLOCK BELOW IS KEPT AS DATED EVIDENCE; ITS "THE GATE IS OPEN" AND "MEDICHAM IS CORRECT" ARE NOT TRUE AS STATEMENTS ABOUT TODAY.** `node engine/quarantine.js`, run at HEAD `bf2d594f` at `2026-09-11T12:21Z`, prints `GATE: CLOSED — 2 of 9 GATING clauses fail`. The first failing clause is *no open, known engine defect*, which prints `10 OPEN roadmap row(s) name an instrument that is RED` — ROADMAP #535, #529, #318, #348, #375, #380, #412, #425, #467 and #511. The second is *mechanics / each one staged and compared against showdown*, which prints `9 of 16 DIVERGING MECHANICS ARE PLAYED AND UNCLEARED`, every one of them among the partings registered as ROADMAP #593–#600. The other seven clauses still pass, both whole-game clauses among them.
+
+**WHY IT CLOSED: THE INSTRUMENTS GOT BETTER, THE ENGINE DID NOT GET WORSE — AND THE DEFECTS ARE REAL.** Two instruments added after 6.0.0 see what the 6.0.0 gate could not. CHANGELOG 6.13.0 gave a deciding probe to twenty register rows that had asserted a live defect with nothing checking them, and ten of those probes read RED. CHANGELOG 6.14.0 put the staging planner inside the harness, so each mechanic is staged on a fixture built from its own requirements instead of on hand-picked bodies, and staged mechanics that fired rose from 740 to 783 of 845. On the new boards eight mechanics part from the official simulator. Four change the board: Oblivious lets Taunt through, Magic Bounce does not bounce Spite, a Super Luck or Scope Lens holder misses the guaranteed critical hit after Focus Energy, and a mega stone held under Klutz does not evolve. Four differ in narration only: Cute Charm, Own Tempo, Sweet Veil and Covet. No fix introduced any of them. They were in the engine at 6.0.0, and the 6.0.0 gate had no instrument that staged them. **So "MEDICHAM is correct" was true of that day's instruments, and it is withdrawn as a statement about the engine.**
+
+**WHAT DID NOT MOVE.** The pinned real-game pool. `data/game-differential.json`, generated `2026-09-11T11:23:47Z` on release `aefcb93baf14`, reads `state.games` 961 and `state.games_board_never_diverged` 961 on the middle arm — the arm the 6.0.0 headline used — so board-material is still 0 of 961. The lab moved and the pool sat still, which is the split expected when the new defects are rare mechanics.
+
+**WHAT THIS DOES TO THE QUARANTINE.** With the gate closed, every artifact `node engine/quarantine.js` lists as downstream of MEDICHAM is WITHHELD again, not re-runnable, and the split the 6.0.0 block draws between artifacts that lift and artifacts that stay no longer describes anything: no re-run makes any of them quotable until the gate opens again. No published figure is withdrawn by this, because 6.0.0 re-ran none of them and published none of them. Leaf calibration stays absent, and it now needs the gate to open AND `node engine/backtest_winrate.js` to be re-run. Accounts: `docs/_reports/2026-09-11-integration.md`, `docs/_reports/2026-09-11-owed-instruments.md` and `docs/_reports/2026-09-11-gate-closed-docs.md`.
 
 **6.0.0 — MEDICHAM IS CORRECT AGAINST THE OFFICIAL SIMULATOR ON THE PINNED POOL, AND THE GATE IS OPEN. BOARD-MATERIAL 0 OF 961 WITH NONE EXCLUDED; NARRATION 0 UNDECLARED OF 961; RELEASE `cbd510bc2b13`. THIS IS A MAJOR BECAUSE THE BASIS MOVED, AND IT IS A PARTIAL LIFT.**
 
@@ -1658,6 +1666,11 @@ OPEN question in this document, not a settled one, and the reader may not infer 
 absence. **This is MEASURE's one number and this version does not have it.** It becomes quotable on
 one command, when the owner asks for it: `node engine/backtest_winrate.js`.
 
+**CORRECTED 2026-09-11: THE GATE IS CLOSED AGAIN, SO THIS ARTIFACT IS WITHHELD BY THE GATE, NOT
+RE-RUNNABLE, AND ONE COMMAND IS NO LONGER ENOUGH.** `data/winrate-backtest.json` is on the withheld
+list `node engine/quarantine.js` prints. It becomes quotable only when the gate opens again AND
+`node engine/backtest_winrate.js` is re-run. Why the gate closed is at the head of this paper.
+
 The conclusion is not "our models are weak." It is a property of the game: a two-player, zero-sum,
 **imperfect-information, simultaneous-move** game with a non-transitive metagame has an irreducible
 outcome-prediction ceiling from team sheets alone. This is the same reason expected-goals (xG) models
@@ -2047,6 +2060,9 @@ cores beat which" and for quantifying how cyclic the meta really is.
    is about the CONFIGURATION RECORD and survives without them; a figure printed with a caveat beside
    it is the failure this section is about, one level up.
 
+   **CORRECTED 2026-09-11:** the gate is CLOSED again, so the R1, R2 and R3 artifacts are withheld by
+   the gate once more, not merely re-runnable. Why the gate closed is at the head of this paper.
+
    Auditing the other rungs against the same standard produced two further findings. **The R3
    divergence gate publishes a rate and records no control.** Its own script computes
    the quantity that makes a divergence rate mean anything — the same search on a different seed
@@ -2082,6 +2098,9 @@ cores beat which" and for quantifying how cyclic the meta really is.
    together with both exploit-step probes. **The gate opening released nothing here**, and saying so
    is the point: a partial lift that is announced as a lift is the caption failure in a new costume.
 
+   **CORRECTED 2026-09-11:** the gate is CLOSED again, so all three exploitability artifacts and both
+   exploit-step probes are withheld by the gate as well as by decision.
+
 8. **Speed readings of the same engine differ by an order of magnitude and for two months nothing
    caught it** (added 3.62.2, §3.0; updated 2026-09-08). 3,401, 1,606 and 13,041 are three
    measurements of MEDICHAM's throughput taken over two weeks; the first two are battles/sec and the
@@ -2097,6 +2116,9 @@ cores beat which" and for quantifying how cyclic the meta really is.
    own engine got faster or slower over a month, and it found that out by asking rather than by
    being told. A project whose central architectural decision rests on a speed ratio should watch
    that ratio the way it watches a win rate. `node engine/status.js` still does not print it.
+
+   **CORRECTED 2026-09-11:** the gate is CLOSED again, so `data/medicham-speed.json` is withheld by the
+   gate; "lifts on a re-run" above no longer holds.
 
 ## 7. The road to ALAKAZAM
 

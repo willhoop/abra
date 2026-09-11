@@ -2,6 +2,16 @@
 
 **Version 6.0.0 · 2026-09-10 · Will Hooper**
 
+**CORRECTION, 2026-09-11 - THE SIMULATOR NO LONGER PASSES OUR RELEASE CHECK. THE 6.0.0 PAGE BELOW IS LEFT AS IT WAS WRITTEN, BUT ITS HEADLINE IS NOT TRUE TODAY.**
+
+**WHAT CHANGED: OUR TESTS GOT BETTER, NOT OUR SIMULATOR WORSE.** After 6.0.0 we added twenty new checks for problems our own records said might still be there. We also rebuilt the lab that tests one mechanic at a time, so that it builds a proper setup for each mechanic instead of reusing a few stock Pokemon; it now reaches 783 of the 845 mechanics it tries, where it reached 740 (CHANGELOG 6.14.0). The better tests found real problems the old ones could not see. Ten known problems fail their check today. Eight mechanics now play out differently from the official simulator. In four of them the board itself ends up different: Oblivious lets Taunt through, Magic Bounce fails to bounce Spite, a Pokemon with Super Luck or a Scope Lens misses a critical hit that Focus Energy should guarantee, and a Pokemon holding its mega stone under Klutz fails to mega evolve. In the other four only the commentary differs. So the release check now fails on two of its nine tests.
+
+**NONE OF THIS IS NEW DAMAGE, AND THAT DOES NOT MAKE IT LESS REAL.** No fix broke anything. These problems were already in the simulator at 6.0.0; we had no test that could see them. "The simulator passes" was true of the tests we had then. It is not true of the tests we have now.
+
+**WHAT DID NOT CHANGE.** The 6.0.0 headline test, measured again on the new code: across the 961 real ladder games, there is still no game where the two boards ever differ.
+
+**WHAT IT MEANS FOR EVERYTHING ELSE.** The results built on top of the simulator are blocked again - not "re-runnable", blocked. That includes our headline score, whether the model's confidence is honest. Nothing we had published has to be taken back, because at 6.0.0 we had not re-run any of them.
+
 **6.0.0 - THE SIMULATOR PASSES. WE PLAY 961 REAL GAMES THROUGH OUR SIMULATOR AND THROUGH THE OFFICIAL ONE, AND THE BOARD NEVER DIFFERS - NOT ONCE, IN ANY GAME, AT ANY TURN WE CHECK.**
 
 **WHAT THE NUMBER IS.** We take 961 real ladder games played by real people, from a frozen copy of their teams, play every move the way real players actually clicked, force both simulators to roll the same dice, and then compare the board at the end of every turn. That is 10,705 turn boundaries. **On 0 of 961 games do the two boards ever differ.** We did not throw a single game away to get there, and we did not cut any game short: we watch for 50 turns and the longest game lasts 36. Last version this number was 27 of 961.

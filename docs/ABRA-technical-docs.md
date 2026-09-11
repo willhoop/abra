@@ -1,6 +1,16 @@
 # ABRA — Technical Documentation
 
-**Version 6.0.0 · Last updated 2026-09-10**
+**Version 6.0.0 · Last updated 2026-09-11**
+
+**CORRECTION 2026-09-11 - THE GATE IS CLOSED. THE 6.0.0 BLOCK BELOW IS DATED EVIDENCE. ITS STATEMENTS "THE GATE IS OPEN" AND "MEDICHAM IS CORRECT" ARE NOT TRUE NOW.**
+
+**GATE.** Run `node engine/quarantine.js`. At HEAD `bf2d594f`, at `2026-09-11T12:21Z`, it printed `GATE: CLOSED — 2 of 9 GATING clauses fail`. The clause "no open, known engine defect" fails. It printed `10 OPEN roadmap row(s) name an instrument that is RED`. The rows are ROADMAP #535, #529, #318, #348, #375, #380, #412, #425, #467 and #511. The clause "mechanics / each one staged and compared against showdown" fails. It printed `9 of 16 DIVERGING MECHANICS ARE PLAYED AND UNCLEARED`. All of them are among ROADMAP #593 to #600. The other seven clauses pass.
+
+**CAUSE.** The instruments changed. The engine did not get worse. CHANGELOG 6.13.0 added a deciding probe to twenty register rows. Ten of the probes are RED. CHANGELOG 6.14.0 put the staging planner in the harness. Staged mechanics that fired increased from 740 to 783 of 845. Eight mechanics part from the authority on the new boards. Four change the board: Oblivious lets Taunt through; Magic Bounce does not bounce Spite; a Super Luck or Scope Lens holder misses the guaranteed critical hit after Focus Energy; a mega stone held under Klutz does not evolve. Four differ in narration only: Cute Charm, Own Tempo, Sweet Veil and Covet. **RULE.** These defects are real. They were in the engine at 6.0.0. The 6.0.0 gate did not stage them. Do not write "MEDICHAM is correct" as a current statement.
+
+**POOL.** Read `data/game-differential.json`. It was generated at `2026-09-11T11:23:47Z` on release `aefcb93baf14`. `state.games` is 961. `state.games_board_never_diverged` is 961. Board-material on the middle arm is 0 of 961. It did not change.
+
+**QUARANTINE.** The gate is closed. Every artifact that `node engine/quarantine.js` lists as downstream of MEDICHAM is withheld. The split that the 6.0.0 block makes into LIFT and STAY does not apply. A re-run does not make an artifact quotable until the gate opens. No published figure is withdrawn. Version 6.0.0 re-ran none of them and published none of them. Leaf calibration stays withheld. It needs the gate to open and `node engine/backtest_winrate.js` to run. Full account: `docs/_reports/2026-09-11-gate-closed-docs.md`.
 
 **6.0.0 - MEDICHAM IS CORRECT AGAINST THE AUTHORITY ON THE PINNED POOL. THE GATE IS OPEN. THIS IS A MAJOR RELEASE.**
 

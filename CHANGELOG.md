@@ -10,6 +10,14 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.16.0] — 2026-09-11
+
+### Fixed
+- **The living documents no longer say the MEDICHAM gate is open.** It closed when new instruments found ten live
+  defects and new mechanics that part from the official simulator; it now fails 2 of its 9 clauses. Each document
+  carries a dated correction; the 6.0.0 text is kept as dated evidence. The instruments improved, the engine did
+  not get worse, and the defects are real. Everything downstream of MEDICHAM is withheld again.
+
 ## [6.15.0] — 2026-09-11
 
 ### Fixed
