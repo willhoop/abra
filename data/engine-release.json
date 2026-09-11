@@ -1,10 +1,10 @@
 {
-  "current": "2b5a6585d8cf",
-  "cut": "2026-09-11T06:06:45.568Z",
-  "why": "ENGINE 2026-09-11 speed-tie corner batches 2+3: Stockpile refund refused with no foe left (sim/battle.ts:2028), Reflect Type modelled as a typecopy of the target's typing onto the user; batch 2's three end-of-battle clock cards DECLARED (no code)",
-  "cuts": 27,
-  "latest_cut": "2026-09-11T07:07:52.290Z",
+  "current": "13257c8bc397",
+  "cut": "2026-09-11T09:25:57.830Z",
+  "why": "ENGINE batch B 2026-09-11: tag_dex consumedBy reads TAGS lookups (tag_lookups.js); refusedByAbilityFlag tag + abilityFlagRefusal at Simple Beam/Worry Seed/Entrainment, Skill Swap and Gastro Acid",
+  "cuts": 25,
+  "latest_cut": "2026-09-11T10:09:23.343Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-11T07:07:52.337Z",
+  "pointer_written": "2026-09-11T10:09:23.362Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

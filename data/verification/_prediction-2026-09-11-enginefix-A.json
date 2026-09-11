@@ -1,0 +1,48 @@
+{
+  "batch": "ENGINE batch A — five engine defects, each shown red first with its own MEDI_* knob",
+  "written_before_any_run": "2026-09-11T09:02Z",
+  "release": "d44869164a40",
+  "pins": "--release d44869164a40 --census data/mechanics-census.json --team-store data/team-pool-frozen --games 1200 --turns 50 --steering empirical --end-state",
+  "fixes": {
+    "simple_via_simple_beam": "invSign returns amplifiesBoosts.mult; Simple admitted to data/tags.json as a conferred ability (engine/legal_scope.js). Knob MEDI_SIMPLE_UNAMPLIFIED. Probe tests/probe_simple_beam.js",
+    "magnet_rise_clock": "expiryClock reader: duration 5 and order 18 off data/residual-order.json, -end Magnet Rise. Knob MEDI_MAGNETRISE_NO_CLOCK. Probe tests/probe_magnetrise_clock.js",
+    "heal_block_restart": "a second Psychic Noise keeps the running clock. Knob MEDI_HEALBLOCK_REFRESH. Probe tests/probe_healblock_clock.js arm 8",
+    "parental_bond_per_arrival": "self: drop and rulebook secondaries run per landed arrival. Knob MEDI_BOND_SECONDARY_ONCE. Probe tests/probe_bond_secondary_order.js",
+    "rampage_length": "trueDuration drawn on a new `range` stream between turnsMin and turnsMax, duration re-armed on restart; game_differential pins `range` to 0 in every arm (mirror of the authority's random(m,n)->m). Knob MEDI_RAMPAGE_TWO_TURNS. Probe tests/probe_rampage_length.js"
+  },
+  "before": {
+    "census": { "live": 856, "probed": 856, "missing": 0, "artifact": "git HEAD data/mechanics-census.json + scratch copy census.before-A.json" },
+    "engine_diff": { "compared": 6000, "disagreed": 0, "release": "2b5a6585d8cf" },
+    "roster": {
+      "items":     { "DIFFER": 0, "DID-NOT-FIRE": 0, "MATCH": 142, "COULD-NOT-STAGE": 6 },
+      "abilities": { "DIFFER": 0, "DID-NOT-FIRE": 0, "MATCH": 139, "DEFERRED": 5, "CONTROL-NOT-QUIET": 14, "COULD-NOT-STAGE": 158 },
+      "moves":     { "DIFFER": 0, "DID-NOT-FIRE": 0, "MATCH": 487, "DEFERRED": 3, "COULD-NOT-STAGE": 10 }
+    },
+    "all_mechanics_fire": { "games": 1522, "threw": 0, "moves_diverged": 4, "abilities_diverged": 2, "items_diverged": 0, "red_ok": true },
+    "differential": {
+      "middle":           { "games": 961, "board_material": 0, "protocol_diverged": 1 },
+      "top-tie-first":    { "games": 961, "board_material": 1, "protocol_diverged": 13 },
+      "bottom-tie-first": { "games": 961, "board_material": 2, "protocol_diverged": 18 }
+    },
+    "gate": "OPEN, 9 of 9 on 2b5a6585d8cf (status.js at 04:56 local reads 6 of 8 clauses stale: MEASURED AGAINST A DIFFERENT ENGINE)"
+  },
+  "predicted_after": {
+    "census": { "live": 861, "probed": 861, "missing": 0, "already_measured": "2026-09-11T08:55:31Z, before this file; the five new rows were shown MISSING together under the five knobs first" },
+    "engine_diff": { "disagreed": 0, "why": "none of the five touches the single-hit damage formula" },
+    "roster": { "items": "DIFFER 0 / DID-NOT-FIRE 0", "abilities": "DIFFER 0 / DID-NOT-FIRE 0", "moves": "DIFFER 0 / DID-NOT-FIRE 0", "counts_unchanged": "expected, low-medium confidence: the roster stages one turn per entity; a rampage row runs under the arms' range pin (2 turns both), and no roster row stages a second Psychic Noise, a Simple body's later boost, or five Magnet Rise turns" },
+    "all_mechanics_fire": { "abilities_diverged": 1, "moves_diverged": 4, "items_diverged": 0, "why": "abilities:parentalbond (Body Slam ordering under bottom-tie-first) is the defect fixed; NOT a clean before/after because the census gained 5 rows and it steers the sample" },
+    "differential": {
+      "middle":           { "board_material": 0, "confidence": "medium" },
+      "top-tie-first":    { "board_material": 1, "why": "the declared end-of-battle clock card, ROADMAP #584" },
+      "bottom-tie-first": { "board_material": 2, "why": "the two declared clock cards; a Parental Bond volley with a secondary could MOVE this if the pool holds one under this corner, and the direction would be toward agreement" }
+    },
+    "gate": "OPEN, 9 of 9",
+    "scoreboard_said_before_the_run": "LAB moves (census +5, all_mechanics_fire parentalbond). The POOL is expected to sit still: Simple Beam is declared in 37 of 17,381 pinned games, Magnet Rise on 1 team, a second Psychic Noise inside a live block is rare, the corners and middle arm pin every rampage to two turns, and every arm has read 0 board-material games on Kangaskhan-Mega so far."
+  },
+  "would_falsify": [
+    "any new board-material game in any arm",
+    "a roster DIFFER or DID-NOT-FIRE row",
+    "abilities:parentalbond still diverging in all_mechanics_fire",
+    "engine-diff disagreements above 0"
+  ]
+}

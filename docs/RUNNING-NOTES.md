@@ -85,6 +85,50 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 - **Basis.** unchanged.
 - **Owed to the next major.** None. Still open: the gate reads working-tree artifacts, not the commit being made.
 
+## [6.12.0] — 2026-09-11 — the tag detector reads lookups, every in-scope tag is probed, and five moves that fail on an ability flag now ask it
+- **What changed.** `engine/tag_dex.js`: `consumedBy` also reads TAGS lookups by name, through
+  `engine/tag_lookups.js`, and 18 tags flip to consumed (each printed; 0 tags or params move); a derived move tag
+  `refusedByAbilityFlag` (6 members, printed before wiring). `engine/medicham2-browser.js`: `abilityFlagRefusal` at
+  the Simple Beam / Worry Seed / Entrainment branch, the Skill Swap branch and the status branch's TryHit step
+  (`MEDI_ABILITY_FLAG_REFUSAL_UNREAD`). `tests/test-mechanics.js`: 11 new rows and 4 retags. New probe
+  `tests/probe_ability_flag_refusal.js`, red on five of six flagged arms before the change.
+- **Measured.** Release `13257c8bc397`. `data/mechanics-census.json` 872 live / 872 probed / 0 missing; the 3 refusal
+  rows go MISSING under the knob alone and all 15 new or retagged rows under `ABRA_TAGS_OFF`. `engine/coverage.js`:
+  consumer 293 of 295 in scope, probed 295 of 295. `data/engine-diff.json` disagreed 0 of 6000. The three roster
+  stages: FIRED-AND-BOARDS-DIFFER 0, DID-NOT-FIRE 0, counts unchanged, no dead plant anchors.
+  `data/all-mechanics-fire.json`: moves diverged 4, abilities 1, items 0, 1,522 games, 0 threw.
+  `data/game-differential.json` state.games 961, state.games_board_never_diverged 961;
+  `data/verification/game-differential-top-tie-first.json` 961 and 960;
+  `data/verification/game-differential-bottom-tie-first.json` 961 and 959. `engine/quarantine.js`: GATE OPEN,
+  9 of 9. Predicted first in `data/verification/_prediction-2026-09-11-enginefix-B.json`; every figure landed on it.
+- **Supersedes.** census ~~861 live~~ retracted, now 872. The generated coverage line in `docs/ENGINE.md` is
+  restamped by `node engine/status.js --write`.
+- **Basis.** unchanged.
+- **Owed to the next major.** `docs/ABRA-technical-docs.md` (the consumer rule and `refusedByAbilityFlag`).
+
+## [6.11.0] — 2026-09-11 — five engine defects fixed, each shown red against the authority first: Simple via Simple Beam, Magnet Rise's clock, a second Psychic Noise, Parental Bond's per-hit secondaries, the three-turn rampage
+- **What changed.** `engine/medicham2-browser.js`, five fixes each behind its own knob: `invSign` returns the
+  `amplifiesBoosts` multiplier (`MEDI_SIMPLE_UNAMPLIFIED`); an `expiryClock` reader gives Magnet Rise its duration
+  and `-end` off `data/residual-order.json` (`MEDI_MAGNETRISE_NO_CLOCK`); `applyHealBlock` keeps a running clock
+  on restart (`MEDI_HEALBLOCK_REFRESH`); a Parental Bond volley pays `self:` drops and secondaries per landed
+  arrival (`MEDI_BOND_SECONDARY_ONCE`); a rampage's length is drawn on a new `range` stream and the lock carries
+  both of the authority's counters (`MEDI_RAMPAGE_TWO_TURNS`). `engine/tag_dex.js` admits Simple as a conferred
+  ability. `engine/game_differential.js` pins `range` to 0 in every arm. Five probes, five census rows.
+- **Measured.** Release `d44869164a40`. `data/mechanics-census.json` 861 live / 861 probed / 0 missing; the five new
+  rows were shown MISSING together under the five knobs first. `data/engine-diff.json` disagreed 0 of 6000.
+  `data/roster.items.json`, `data/roster.abilities.json`, `data/roster.moves.json`: FIRED-AND-BOARDS-DIFFER 0 and
+  DID-NOT-FIRE 0, counts unchanged. `data/all-mechanics-fire.json`: abilities diverged 2 → 1 (the `parentalbond`
+  row, `diverged: false`), moves 4, items 0, 1,522 games, 0 threw. `data/game-differential.json` (middle):
+  state.games 961, state.games_board_never_diverged 961. `data/verification/game-differential-top-tie-first.json`:
+  961 and 960. `data/verification/game-differential-bottom-tie-first.json`: 961 and 959, protocol_diverged_games
+  18 → 17 (a Kangaskhan Ice Punch whose freeze the authority lands between the two hits). `engine/quarantine.js`:
+  GATE OPEN, 9 of 9. Predicted first in `data/verification/_prediction-2026-09-11-enginefix-A.json`; every figure
+  landed on the prediction.
+- **Supersedes.** census ~~856 live~~ retracted, now 861.
+- **Basis.** unchanged.
+- **Owed to the next major.** `docs/ABRA-technical-docs.md` (the rampage's two counters and the `range` stream);
+  `docs/ABRA-whitepaper.md` restates the census.
+
 ## [6.10.0] — 2026-09-11 — which mechanics exist in the regulation is decided in one place, and the planner's in-scope count was wrong on three rows in two directions
 
 - **What changed.** `engine/legal_scope.js` is the one implementation of scope: `verdict(kind, id)` returns in or out of scope with a code (CARRIED, LEARNED, INJECTED, CONFERRED, HELD; or NO-LEGAL-CARRIER, VALIDATOR-REFUSED, NO-LEGAL-READER). `engine/stage_planner.js` imports it and deletes its own carrier-list scope and conferral scan; `engine/coverage.js` lists out-of-scope rows by code; `tests/test-stage-planner.js` clause `oneScope` fails when the planner or the coverage counter returns a different in-scope set.

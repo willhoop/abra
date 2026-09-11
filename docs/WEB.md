@@ -23,7 +23,7 @@ WEB — the site, and what it is allowed to publish
     DRIFTED — the committed bundle is not what the gate says today.
       published clause(s) the gate no longer has: whole-game differential / the same game on both engines
       clause(s) the gate has and the bundle does not: whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect
-    withheld set: 60 artifact(s) in the bundle against 64 quarantined today
+    withheld set: 60 artifact(s) in the bundle against 87 quarantined today
     0 figure(s) are RELEASED to the pages; every other slot carries no value at all, which is the withheld-not-annotated rule in the bundle itself
   web/status-data.js: built 2026-08-10 21:32  — 13 of 51 slot(s) carry state "quarantined" and publish no value
   docs/WEB.md: no figure in it is sourced from an artifact the gate currently withholds (engine/docs_scan.js --quarantine).
@@ -31,7 +31,7 @@ WEB — the site, and what it is allowed to publish
   rebuild the bundles: node web/build-quarantine.js && node web/build-status.js   — a PUBLISH (app/) is Will's call and this file never makes one.
 ```
 
-_stamped 2026-09-11 03:11_
+_stamped 2026-09-11 06:12_
 
 <!-- /GENERATED -->
 

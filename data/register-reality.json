@@ -1,40 +1,12 @@
 {
-  "generated": "2026-09-11T07:09:29.419Z",
+  "generated": "2026-09-11T10:09:50.590Z",
   "by": "engine/register_reality.js",
   "tree_state": {
-    "head": "ea4379350cf6f655b3868de3f392226275398e01",
+    "head": "3e7125c2dc970e0b7ab9bc0fa273c38876d255d8",
     "dirty_at_start": [
       "M CHANGELOG.md",
+      "M data/abra-tags.js",
       "M data/all-mechanics-fire.json",
-      "M data/engine-diff.json",
-      "M data/engine-release.json",
-      "M data/game-differential.json",
-      "M data/mechanics-census.json",
-      "M data/provenance-stamp.json",
-      "M data/published-samples.json",
-      "M data/roster.abilities.json",
-      "M data/roster.abilities.prev.json",
-      "M data/roster.items.json",
-      "M data/roster.items.prev.json",
-      "M data/roster.json",
-      "M data/roster.moves.json",
-      "M data/roster.moves.prev.json",
-      "M data/verification/game-differential-bottom-tie-first.json",
-      "M data/verification/game-differential-top-tie-first.json",
-      "M docs/ENGINE.md",
-      "M docs/OPS.md",
-      "M docs/ROADMAP.md",
-      "M docs/RUNNING-NOTES.md",
-      "M docs/SEARCH.md",
-      "M docs/WEB.md",
-      "M engine/medicham2-browser.js",
-      "M tests/probe_red_demo.js",
-      "M tests/test-mechanics.js"
-    ],
-    "dirty_at_end": [
-      "M CHANGELOG.md",
-      "M data/all-mechanics-fire.json",
-      "M data/docs-currency-baseline.json",
       "M data/engine-diff.json",
       "M data/engine-release.json",
       "M data/forme-assert.json",
@@ -42,6 +14,8 @@
       "M data/mechanics-census.json",
       "M data/provenance-stamp.json",
       "M data/published-samples.json",
+      "M data/releases/2b5a6585d8cf/cuts.jsonl",
+      "M data/releases/2b5a6585d8cf/release.json",
       "M data/roster.abilities.json",
       "M data/roster.abilities.prev.json",
       "M data/roster.items.json",
@@ -49,20 +23,61 @@
       "M data/roster.json",
       "M data/roster.moves.json",
       "M data/roster.moves.prev.json",
-      "M data/unmodelled-clicks.json",
+      "M data/tags.json",
       "M data/verification/game-differential-bottom-tie-first.json",
       "M data/verification/game-differential-top-tie-first.json",
       "M docs/ENGINE.md",
+      "M docs/MEASURE.md",
       "M docs/OPS.md",
       "M docs/ROADMAP.md",
       "M docs/RUNNING-NOTES.md",
       "M docs/SEARCH.md",
       "M docs/WEB.md",
+      "M engine/game_differential.js",
       "M engine/medicham2-browser.js",
-      "M tests/probe_red_demo.js",
+      "M engine/tag_dex.js",
+      "M tests/probe_healblock_clock.js",
+      "M tests/test-docs-current.js",
       "M tests/test-mechanics.js"
     ],
-    "moved_during_the_run": true,
+    "dirty_at_end": [
+      "M CHANGELOG.md",
+      "M data/abra-tags.js",
+      "M data/all-mechanics-fire.json",
+      "M data/engine-diff.json",
+      "M data/engine-release.json",
+      "M data/forme-assert.json",
+      "M data/game-differential.json",
+      "M data/mechanics-census.json",
+      "M data/provenance-stamp.json",
+      "M data/published-samples.json",
+      "M data/releases/2b5a6585d8cf/cuts.jsonl",
+      "M data/releases/2b5a6585d8cf/release.json",
+      "M data/roster.abilities.json",
+      "M data/roster.abilities.prev.json",
+      "M data/roster.items.json",
+      "M data/roster.items.prev.json",
+      "M data/roster.json",
+      "M data/roster.moves.json",
+      "M data/roster.moves.prev.json",
+      "M data/tags.json",
+      "M data/verification/game-differential-bottom-tie-first.json",
+      "M data/verification/game-differential-top-tie-first.json",
+      "M docs/ENGINE.md",
+      "M docs/MEASURE.md",
+      "M docs/OPS.md",
+      "M docs/ROADMAP.md",
+      "M docs/RUNNING-NOTES.md",
+      "M docs/SEARCH.md",
+      "M docs/WEB.md",
+      "M engine/game_differential.js",
+      "M engine/medicham2-browser.js",
+      "M engine/tag_dex.js",
+      "M tests/probe_healblock_clock.js",
+      "M tests/test-docs-current.js",
+      "M tests/test-mechanics.js"
+    ],
+    "moved_during_the_run": false,
     "settled": false,
     "read_error": null
   },
@@ -70,21 +85,21 @@
   "why": "docs/ROADMAP.md is read by engine/quarantine.js as a GATE INPUT and nothing checked it against reality. On 2026-08-14 four rows were stale rather than live and two of them were put in front of a human as the place to start. A row nobody re-verifies is prose.",
   "weaker_than_it_looks": "A green instrument means THAT instrument sees nothing. It is not a derivation of the row's claim. It is strictly more than the register had, which was nothing.",
   "counts": {
-    "register_rows": 501,
-    "id_rows": 547,
-    "open_asserting_breakage": 50,
-    "marked": 144,
-    "open_asserting_breakage_and_marked": 6,
-    "stale_rows": 9,
-    "premature_closes": 1,
+    "register_rows": 509,
+    "id_rows": 555,
+    "open_asserting_breakage": 35,
+    "marked": 155,
+    "open_asserting_breakage_and_marked": 0,
+    "stale_rows": 4,
+    "premature_closes": 3,
     "unrunnable": 2,
     "cannot_answer": 1,
     "exit_codes_undeclared": 0,
-    "instrument_owed": 47,
-    "open_asserting_breakage_and_owed": 22,
+    "instrument_owed": 45,
+    "open_asserting_breakage_and_owed": 17,
     "markers_rejected": 9,
     "markers_rejected_and_open_asserting_breakage": 0,
-    "distinct_commands_run": 88
+    "distinct_commands_run": 93
   },
   "markers_rejected": [
     {
@@ -163,11 +178,6 @@
       "title": "THE CATCH BLOCK THAT REPORTS A FAILED SHOWDOWN WRAP CANNOT RUN, SO A BAD `SHOWDOWN_PATH` K"
     },
     {
-      "n": 301,
-      "owes": "the miss count published in the artifact and a clause that fails while it is non-zero, since a run marked MUST READ 0 that reads 22 is currently caught only by a human reading stdout",
-      "title": "`switch lookups that MISSED: medicham 22, showdown 0` ON A LINE THE RUN ITSELF MARKS `MUST"
-    },
-    {
       "n": 318,
       "owes": "the `LEARNSET CLAUSE IS REPORT-ONLY` count published into the roster artifact, so this row can be decided by a file rather than by a person.",
       "title": "THE MOVE STAGE HANDS EVERY MOVE IN THE FORMAT TO ONE CARRIER THAT CANNOT LEARN 331 OF THEM"
@@ -216,11 +226,6 @@
       "n": 369,
       "owes": "a self-test asserting that a coverage-only invocation leaves `data/register-reality.json` byte-identical, in the style of the `--selftest` already in that file",
       "title": "`engine/register_reality.js --list` SAYS IT RUNS NOTHING AND IT STILL OVERWRITES THE VERDI"
-    },
-    {
-      "n": 370,
-      "owes": "a red demonstration pair per matching rule in `engine/docs_scan.js` on synthetic documents, in the style of the `equal`/`distinct` pairs the differential's own normaliser already carries, plus a distinctiveness floor for percents stated as a rule rather than as a magnitude",
-      "title": "THE DERIVED RETRACTION REGISTRY MATCHES ON A ROUNDED VALUE, SO ONE RETRACTED FIGURE ACCUSE"
     },
     {
       "n": 375,
@@ -308,14 +313,19 @@
       "title": "SUCKER PUNCH LANDED ON A TARGET THAT HAD ALREADY MOVED, AND THE THIRD CLAUSE OF AN `if` TH"
     },
     {
-      "n": 413,
-      "owes": "the assertion re-aimed so that the reverted arm must fail, with the arm printed on every run",
-      "title": "A RED-DEMO ROW WENT HOLLOW: `WIRE 7 the Sitrus is eaten between the two attackers, not at "
+      "n": 412,
+      "owes": "that same test with the RUNTIME_ALLOWED entry deleted, which is the fix itself.",
+      "title": "`engine/position_features.js:249` READS A LIVE STONE-HOLDER’S DECLARED ABILITY WHERE `engi"
     },
     {
       "n": 425,
       "owes": "a check that the canonical artifact carries all three populations before the clause reads it",
       "title": "`engine/all_mechanics_fire.js` DEFAULTS TO `--kind moves`, AND ITS CONSUMER SILENTLY DISAB"
+    },
+    {
+      "n": 440,
+      "owes": "a staged perish board with nothing following the perish group, asserting the faint's position against the authority. Related: #584.",
+      "title": "A PERISH DEATH'S `\\|faint\\|` IS ONE LINE EARLY WHEN NOTHING FOLLOWS THE PERISH GROUP IN TH"
     },
     {
       "n": 495,
@@ -373,11 +383,6 @@
       "title": "AN ABILITY SWAPPED ONTO AN ATTACKER IS ANNOUNCED ON THE WRONG BODY AND NEITHER ACQUIRED AB"
     },
     {
-      "n": 542,
-      "owes": "a staged Moonblast under the `middle` pin with a Fairy Aura holder entering, leaving and fainting on the turn of the hit, asserting the damage on both engines against a knob-cleared control (the same board with the aura body replaced by a non-aura forme) — the aura's `\\",
-      "title": "THE `-damage field 3` FAMILY IS AT LEAST FOUR MECHANISMS AND MAY NOT BE WORKED AS ONE — FO"
-    },
-    {
       "n": 544,
       "owes": "a staged Beat Up under the differential's `middle` pin whose user's side has SWITCHED at least once before the click, asserting the per-hit `-damage` sequence on both engines against a control on the identical board with no switch — the control is the half that matters, because build order and live order coincide there and an arm that only played the control would pass today.",
       "title": "BEAT UP'S `move.allies` IS `side.pokemon`, AN ARRAY SHOWDOWN PERMUTES ON EVERY SWITCH-IN, "
@@ -400,7 +405,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1072,
+      "ms": 3113,
       "verdict": "CONFIRMED"
     },
     {
@@ -414,7 +419,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2145,
+      "ms": 7500,
       "verdict": "CONFIRMED"
     },
     {
@@ -428,7 +433,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1421,
+      "ms": 3757,
       "verdict": "CONFIRMED"
     },
     {
@@ -442,13 +447,13 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1214,
+      "ms": 3139,
       "verdict": "CONFIRMED"
     },
     {
       "n": 218,
       "title": "THE WHOLE-GAME DIFFERENTIAL SAYS 39.6% OF GAMES DIVERGE, IT GATES NOTHING, AND I QUOTED TH",
-      "closed": false,
+      "closed": true,
       "saysBroken": true,
       "cmd": "node engine/quarantine.js --whole-game",
       "owed": null,
@@ -456,8 +461,8 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 66,
-      "verdict": "STALE ROW"
+      "ms": 175,
+      "verdict": "CONFIRMED"
     },
     {
       "n": 223,
@@ -470,7 +475,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 964,
+      "ms": 2523,
       "verdict": "CONFIRMED"
     },
     {
@@ -484,7 +489,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 56,
+      "ms": 157,
       "verdict": "CONFIRMED"
     },
     {
@@ -498,7 +503,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 54,
+      "ms": 140,
       "verdict": "CONFIRMED"
     },
     {
@@ -512,7 +517,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 558,
+      "ms": 1432,
       "verdict": "CONFIRMED"
     },
     {
@@ -526,7 +531,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 209,
+      "ms": 567,
       "verdict": "CONFIRMED"
     },
     {
@@ -540,7 +545,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 209,
+      "ms": 567,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -555,7 +560,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 209,
+      "ms": 567,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -570,7 +575,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 630,
+      "ms": 1603,
       "verdict": "CONFIRMED"
     },
     {
@@ -584,7 +589,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 630,
+      "ms": 1603,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -599,7 +604,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 630,
+      "ms": 1603,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -610,12 +615,12 @@
       "saysBroken": true,
       "cmd": "node tests/test-no-silent-failure.js",
       "owed": null,
-      "green": true,
-      "kind": "VERDICT-GREEN",
+      "green": false,
+      "kind": "VERDICT-RED",
       "declared": null,
-      "why": "exit 0",
-      "ms": 879,
-      "verdict": "CONFIRMED"
+      "why": "exit 1",
+      "ms": 2226,
+      "verdict": "PREMATURE CLOSE"
     },
     {
       "n": 267,
@@ -628,7 +633,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 722,
+      "ms": 1813,
       "verdict": "CONFIRMED"
     },
     {
@@ -642,7 +647,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 722,
+      "ms": 1813,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -657,7 +662,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 722,
+      "ms": 1813,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -672,7 +677,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 722,
+      "ms": 1813,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -687,7 +692,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 589,
+      "ms": 1532,
       "verdict": "CONFIRMED"
     },
     {
@@ -701,7 +706,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 11229,
+      "ms": 26679,
       "verdict": "CONFIRMED"
     },
     {
@@ -715,7 +720,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1137,
+      "ms": 2863,
       "verdict": "CONFIRMED"
     },
     {
@@ -729,7 +734,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 50,
+      "ms": 137,
       "verdict": "CONFIRMED"
     },
     {
@@ -743,7 +748,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1137,
+      "ms": 2863,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -758,7 +763,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 940,
+      "ms": 2455,
       "verdict": "CONFIRMED"
     },
     {
@@ -772,7 +777,21 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 766,
+      "ms": 1965,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 289,
+      "title": "THIS ENGINE COULD NOT EMIT A ZERO-MAGNITUDE STAT LINE AT ALL, AND THE MISSING LINE WAS THE",
+      "closed": true,
+      "saysBroken": true,
+      "cmd": "node tests/test-mechanics.js",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 25394,
       "verdict": "CONFIRMED"
     },
     {
@@ -786,7 +805,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 67,
+      "ms": 64,
       "verdict": "CONFIRMED"
     },
     {
@@ -800,7 +819,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 999,
+      "ms": 819,
       "verdict": "CONFIRMED"
     },
     {
@@ -814,7 +833,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 496,
+      "ms": 472,
       "verdict": "CONFIRMED"
     },
     {
@@ -828,7 +847,52 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 496,
+      "ms": 472,
+      "cached": true,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 301,
+      "title": "`switch lookups that MISSED: medicham 22, showdown 0` ON A LINE THE RUN ITSELF MARKS `MUST",
+      "closed": true,
+      "saysBroken": true,
+      "cmd": "node engine/quarantine.js --whole-game",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 175,
+      "cached": true,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 314,
+      "title": "`STATE_PLANTS` AIMS AT SLOTS WITHOUT CHECKING ANYBODY IS STANDING THERE, AND `applied` MEA",
+      "closed": true,
+      "saysBroken": true,
+      "cmd": "node engine/quarantine.js --whole-game",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 175,
+      "cached": true,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 315,
+      "title": "A FAINTED MEGA'S FORME REGRESSES IN SHOWDOWN AND NOT HERE.** `sim/battle.ts:2554-2557` and",
+      "closed": true,
+      "saysBroken": true,
+      "cmd": "node engine/quarantine.js --whole-game",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 175,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -843,13 +907,13 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1942,
+      "ms": 1876,
       "verdict": "CONFIRMED"
     },
     {
       "n": 319,
       "title": "157 OF 500 MOVES PART FROM THE AUTHORITY BY 1–4 HP, AND NOTHING HAS SEEN IT SINCE 2026-08-",
-      "closed": false,
+      "closed": true,
       "saysBroken": true,
       "cmd": "node tests/roster.js --stage moves",
       "owed": null,
@@ -857,8 +921,8 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 16280,
-      "verdict": "STALE ROW"
+      "ms": 13988,
+      "verdict": "CONFIRMED"
     },
     {
       "n": 320,
@@ -871,7 +935,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1044,
+      "ms": 989,
       "verdict": "CONFIRMED"
     },
     {
@@ -885,7 +949,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 156877,
+      "ms": 69027,
       "verdict": "CONFIRMED"
     },
     {
@@ -899,7 +963,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2597,
+      "ms": 1116,
       "verdict": "CONFIRMED"
     },
     {
@@ -913,7 +977,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 69810,
+      "ms": 132893,
       "verdict": "CONFIRMED"
     },
     {
@@ -927,7 +991,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1350,
+      "ms": 1323,
       "verdict": "CONFIRMED"
     },
     {
@@ -941,7 +1005,8 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
+      "cached": true,
       "verdict": "CONFIRMED"
     },
     {
@@ -955,7 +1020,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -970,8 +1035,22 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 921,
+      "ms": 896,
       "verdict": "CONFIRMED"
+    },
+    {
+      "n": 370,
+      "title": "THE DERIVED RETRACTION REGISTRY MATCHES ON A ROUNDED VALUE, SO ONE RETRACTED FIGURE ACCUSE",
+      "closed": false,
+      "saysBroken": false,
+      "cmd": "node tests/test-docs-current.js",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 3899,
+      "verdict": "STALE ROW"
     },
     {
       "n": 376,
@@ -984,7 +1063,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 67,
+      "ms": 64,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -999,7 +1078,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 999,
+      "ms": 819,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1014,7 +1093,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1176,
+      "ms": 1154,
       "verdict": "CONFIRMED"
     },
     {
@@ -1028,7 +1107,8 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3920,
+      "ms": 3899,
+      "cached": true,
       "verdict": "CONFIRMED"
     },
     {
@@ -1042,7 +1122,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1421,
+      "ms": 3757,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1057,7 +1137,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 925,
+      "ms": 916,
       "verdict": "STALE ROW"
     },
     {
@@ -1071,7 +1151,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1086,7 +1166,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1101,7 +1181,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 966,
+      "ms": 935,
       "verdict": "CONFIRMED"
     },
     {
@@ -1111,13 +1191,13 @@
       "saysBroken": false,
       "cmd": "node tests/test-no-silent-failure.js",
       "owed": null,
-      "green": true,
-      "kind": "VERDICT-GREEN",
+      "green": false,
+      "kind": "VERDICT-RED",
       "declared": null,
-      "why": "exit 0",
-      "ms": 879,
+      "why": "exit 1",
+      "ms": 2226,
       "cached": true,
-      "verdict": "CONFIRMED"
+      "verdict": "PREMATURE CLOSE"
     },
     {
       "n": 410,
@@ -1130,7 +1210,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 925,
+      "ms": 916,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1145,24 +1225,24 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1421,
+      "ms": 3757,
       "cached": true,
       "verdict": "CONFIRMED"
     },
     {
-      "n": 412,
-      "title": "`engine/position_features.js:249` READS A LIVE STONE-HOLDER’S DECLARED ABILITY WHERE `engi",
-      "closed": false,
+      "n": 413,
+      "title": "A RED-DEMO ROW WENT HOLLOW: `WIRE 7 the Sitrus is eaten between the two attackers, not at ",
+      "closed": true,
       "saysBroken": true,
-      "cmd": "node tests/test-effective-identity.js",
+      "cmd": "node tests/probe_red_demo.js",
       "owed": null,
       "green": true,
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1421,
+      "ms": 26679,
       "cached": true,
-      "verdict": "STALE ROW"
+      "verdict": "CONFIRMED"
     },
     {
       "n": 415,
@@ -1175,7 +1255,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1190,7 +1270,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 642,
+      "ms": 619,
       "verdict": "CONFIRMED"
     },
     {
@@ -1204,7 +1284,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 677,
+      "ms": 655,
       "verdict": "CONFIRMED"
     },
     {
@@ -1218,7 +1298,7 @@
       "kind": "CANNOT-ANSWER",
       "declared": "CANNOT-ANSWER",
       "why": "exit 4 — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to report about this row, and a refusal is not evidence in either direction",
-      "ms": 849,
+      "ms": 820,
       "verdict": "INSTRUMENT CANNOT ANSWER"
     },
     {
@@ -1232,7 +1312,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1247,7 +1327,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1262,7 +1342,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1277,7 +1357,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1292,7 +1372,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1307,7 +1387,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1322,7 +1402,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1337,7 +1417,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1352,7 +1432,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1367,7 +1447,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1382,7 +1462,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1397,14 +1477,14 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
     {
       "n": 438,
       "title": "A MOVE TRAP SURVIVES ON OUR BOARD AFTER THE AUTHORITY HAS RELEASED IT, AND BOTH NARRATION ",
-      "closed": false,
+      "closed": true,
       "saysBroken": true,
       "cmd": "node engine/all_mechanics_fire.js --kind abilities",
       "owed": null,
@@ -1412,37 +1492,23 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 11635,
-      "verdict": "STALE ROW"
+      "ms": 11388,
+      "verdict": "CONFIRMED"
     },
     {
       "n": 439,
       "title": "A KO'D SPREAD TARGET'S `\\|faint\\|` IS ANNOUNCED BELOW THE MOVE'S OWN SECONDARY, WHERE THE ",
-      "closed": false,
+      "closed": true,
       "saysBroken": true,
-      "cmd": "node engine/game_differential.js --arm middle --team-store data/team-pool-frozen",
+      "cmd": "node engine/quarantine.js --whole-game",
       "owed": null,
       "green": true,
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 18552,
-      "verdict": "STALE ROW"
-    },
-    {
-      "n": 440,
-      "title": "A PERISH DEATH'S `\\|faint\\|` IS ONE LINE EARLY WHEN NOTHING FOLLOWS THE PERISH GROUP IN TH",
-      "closed": false,
-      "saysBroken": true,
-      "cmd": "node engine/game_differential.js --arm middle --team-store data/team-pool-frozen",
-      "owed": null,
-      "green": true,
-      "kind": "VERDICT-GREEN",
-      "declared": null,
-      "why": "exit 0",
-      "ms": 18552,
+      "ms": 175,
       "cached": true,
-      "verdict": "STALE ROW"
+      "verdict": "CONFIRMED"
     },
     {
       "n": 444,
@@ -1455,7 +1521,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "STALE ROW"
     },
@@ -1470,7 +1536,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1485,7 +1551,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1040,
+      "ms": 1005,
       "verdict": "CONFIRMED"
     },
     {
@@ -1499,7 +1565,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3346,
+      "ms": 3182,
       "verdict": "CONFIRMED"
     },
     {
@@ -1513,7 +1579,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 11229,
+      "ms": 26679,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1528,7 +1594,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1813,
+      "ms": 1750,
       "verdict": "CONFIRMED"
     },
     {
@@ -1542,7 +1608,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1557,7 +1623,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1572,7 +1638,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1587,7 +1653,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1602,7 +1668,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1617,7 +1683,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1632,7 +1698,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1647,7 +1713,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1662,7 +1728,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1677,7 +1743,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1692,7 +1758,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2294,
+      "ms": 2225,
       "verdict": "CONFIRMED"
     },
     {
@@ -1706,7 +1772,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2073,
+      "ms": 2032,
       "verdict": "CONFIRMED"
     },
     {
@@ -1720,7 +1786,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2123,
+      "ms": 2058,
       "verdict": "CONFIRMED"
     },
     {
@@ -1734,7 +1800,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 144,
+      "ms": 137,
       "verdict": "CONFIRMED"
     },
     {
@@ -1748,7 +1814,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 28775,
+      "ms": 26979,
       "verdict": "CONFIRMED"
     },
     {
@@ -1762,7 +1828,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 632,
+      "ms": 542,
       "verdict": "CONFIRMED"
     },
     {
@@ -1776,7 +1842,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2234,
+      "ms": 2020,
       "verdict": "CONFIRMED"
     },
     {
@@ -1790,7 +1856,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 12534,
+      "ms": 2000,
       "verdict": "CONFIRMED"
     },
     {
@@ -1804,7 +1870,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 20985,
+      "ms": 2014,
       "verdict": "CONFIRMED"
     },
     {
@@ -1818,7 +1884,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 32018,
+      "ms": 2538,
       "verdict": "CONFIRMED"
     },
     {
@@ -1832,7 +1898,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 22491,
+      "ms": 1889,
       "verdict": "CONFIRMED"
     },
     {
@@ -1846,7 +1912,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 27047,
+      "ms": 3158,
       "verdict": "CONFIRMED"
     },
     {
@@ -1860,7 +1926,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 5030,
+      "ms": 1992,
       "verdict": "CONFIRMED"
     },
     {
@@ -1874,7 +1940,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2647,
+      "ms": 1072,
       "verdict": "CONFIRMED"
     },
     {
@@ -1888,7 +1954,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 17354,
+      "ms": 4865,
       "verdict": "CONFIRMED"
     },
     {
@@ -1902,7 +1968,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 17401,
+      "ms": 5817,
       "verdict": "CONFIRMED"
     },
     {
@@ -1916,7 +1982,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 8781,
+      "ms": 3461,
       "verdict": "CONFIRMED"
     },
     {
@@ -1930,7 +1996,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 337695,
+      "ms": 222192,
       "verdict": "CONFIRMED"
     },
     {
@@ -1944,7 +2010,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2186,
+      "ms": 2089,
       "verdict": "CONFIRMED"
     },
     {
@@ -1958,7 +2024,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2422,
+      "ms": 2251,
       "verdict": "CONFIRMED"
     },
     {
@@ -1972,7 +2038,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2147,
+      "ms": 2105,
       "verdict": "CONFIRMED"
     },
     {
@@ -1986,7 +2052,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 56887,
+      "ms": 55706,
       "verdict": "CONFIRMED"
     },
     {
@@ -2000,7 +2066,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2433,
+      "ms": 2788,
       "verdict": "CONFIRMED"
     },
     {
@@ -2014,7 +2080,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 722,
+      "ms": 837,
       "verdict": "CONFIRMED"
     },
     {
@@ -2028,7 +2094,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 496,
+      "ms": 472,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2043,7 +2109,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 999,
+      "ms": 819,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2058,7 +2124,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2422,
+      "ms": 2251,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2073,7 +2139,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 298083,
+      "ms": 249377,
       "verdict": "CONFIRMED"
     },
     {
@@ -2087,7 +2153,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 17354,
+      "ms": 4865,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2102,7 +2168,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 4051,
+      "ms": 3533,
       "verdict": "CONFIRMED"
     },
     {
@@ -2116,7 +2182,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 600,
+      "ms": 538,
       "verdict": "STALE ROW"
     },
     {
@@ -2130,7 +2196,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 7600,
+      "ms": 6122,
       "verdict": "CONFIRMED"
     },
     {
@@ -2144,7 +2210,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 40341,
+      "ms": 6616,
       "verdict": "CONFIRMED"
     },
     {
@@ -2158,7 +2224,22 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 11601,
+      "ms": 987,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 542,
+      "title": "THE `-damage field 3` FAMILY IS AT LEAST FOUR MECHANISMS AND MAY NOT BE WORKED AS ONE — FO",
+      "closed": true,
+      "saysBroken": true,
+      "cmd": "node engine/quarantine.js --whole-game",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 175,
+      "cached": true,
       "verdict": "CONFIRMED"
     },
     {
@@ -2211,7 +2292,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 54,
+      "ms": 140,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2226,7 +2307,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2241,7 +2322,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 25349,
+      "ms": 25394,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2309,7 +2390,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 27984,
+      "ms": 2113,
       "verdict": "CONFIRMED"
     },
     {
@@ -2336,7 +2417,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 156877,
+      "ms": 69027,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2364,7 +2445,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 138442,
+      "ms": 51307,
       "verdict": "PREMATURE CLOSE"
     },
     {
@@ -2377,7 +2458,7 @@
       "green": null,
       "kind": "NOT-STARTED",
       "why": "the instrument could not be run: spawnSync C:\\Program Files\\nodejs\\node.exe ETIMEDOUT",
-      "ms": 600026,
+      "ms": 600027,
       "verdict": "INSTRUMENT UNRUNNABLE"
     },
     {
@@ -2390,7 +2471,7 @@
       "green": null,
       "kind": "NOT-STARTED",
       "why": "the instrument could not be run: spawnSync C:\\Program Files\\nodejs\\node.exe ETIMEDOUT",
-      "ms": 600026,
+      "ms": 600027,
       "cached": true,
       "verdict": "INSTRUMENT UNRUNNABLE"
     },
@@ -2405,7 +2486,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3521,
+      "ms": 1246,
       "verdict": "CONFIRMED"
     },
     {
@@ -2419,7 +2500,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 9900,
+      "ms": 3287,
       "verdict": "CONFIRMED"
     },
     {
@@ -2433,7 +2514,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 6065,
+      "ms": 2416,
       "verdict": "CONFIRMED"
     },
     {
@@ -2447,7 +2528,91 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 95437,
+      "ms": 17000,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 585,
+      "title": "A BODY GIVEN SIMPLE BY SIMPLE BEAM TOOK EVERY MOVE-DRIVEN STAT CHANGE AT FACE VALUE. CLOSE",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/probe_simple_beam.js",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 1308,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 586,
+      "title": "MAGNET RISE NEVER ENDED. CLOSED 2026-09-11 BY ENGINE.** DEFECT, engine. `magnetrise.condit",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/probe_magnetrise_clock.js",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 1459,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 587,
+      "title": "A SECOND PSYCHIC NOISE RESTARTED A RUNNING HEAL BLOCK. CLOSED 2026-09-11 BY ENGINE.** DEFE",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/probe_healblock_clock.js",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 2866,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 588,
+      "title": "A PARENTAL BOND VOLLEY PAID ITS SECONDARY AND ITS SELF-DROP ONCE, BELOW BOTH HITS — BOARD-",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/probe_bond_secondary_order.js",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 1091,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 589,
+      "title": "EVERY RAMPAGE LASTED TWO TURNS; THE AUTHORITY DRAWS TWO OR THREE. CLOSED 2026-09-11 BY ENG",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/probe_rampage_length.js",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 1391,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 590,
+      "title": "SIMPLE BEAM, WORRY SEED AND ENTRAINMENT REWROTE A STANCE CHANGE, SKILL SWAP SWAPPED ONE AW",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/probe_ability_flag_refusal.js",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 1444,
       "verdict": "CONFIRMED"
     }
   ],
@@ -2461,20 +2626,8 @@
       "title": "THE WEATHER RESIDUAL RAN IN SLOT ORDER WHILE THE CLOCK RESIDUAL HAD BEEN SPEED-SORTED SINC"
     },
     {
-      "n": 289,
-      "title": "THIS ENGINE COULD NOT EMIT A ZERO-MAGNITUDE STAT LINE AT ALL, AND THE MISSING LINE WAS THE"
-    },
-    {
       "n": 310,
       "title": "EVERY ROLLOUT STILL TAKES A FIXED TRACE INDEX; ONLY THE DIFFERENTIAL GOT A STREAM.** `batt"
-    },
-    {
-      "n": 314,
-      "title": "`STATE_PLANTS` AIMS AT SLOTS WITHOUT CHECKING ANYBODY IS STANDING THERE, AND `applied` MEA"
-    },
-    {
-      "n": 315,
-      "title": "A FAINTED MEGA'S FORME REGRESSES IN SHOWDOWN AND NOT HERE.** `sim/battle.ts:2554-2557` and"
     },
     {
       "n": 323,
@@ -2517,10 +2670,6 @@
       "title": "A CENSUS WAS COMMITTED CLAIMING 674 WORKING MECHANICS WHILE THE COMMITTED ENGINE GAVE 673 "
     },
     {
-      "n": 446,
-      "title": "`tests/test-resolution-order.js` DIES OOM AT NODE'S DEFAULT HEAP, AND HAS BEEN RED FOR LON"
-    },
-    {
       "n": 467,
       "title": "A DIVERGENCE PROPOSED AS `INCOMPARABLE` IS A SHARED-STREAM ADDRESS BUG, AND THE VOID GAME "
     },
@@ -2537,8 +2686,8 @@
       "title": "A FROZEN RELEASE DOES NOT FREEZE `data/rollout-switch-census.json`, SO A RELEASE-PINNED LE"
     },
     {
-      "n": 549,
-      "title": "THE STAGING SCRIPT LANGUAGE HAS NO SWITCH ACTION, SO EVERY MECHANIC THAT NEEDS A SWITCH TO"
+      "n": 592,
+      "title": "NO BODY IN ANY HARNESS CARRIES A GENDER, SO ATTRACT, CUTE CHARM AND RIVALRY ARE NEVER EXER"
     }
   ]
 }

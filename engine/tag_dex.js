@@ -474,6 +474,48 @@ const CHOOSABLE_TARGETS = (() => {
 const BOARD = fs.readFileSync(D('engine', 'board.js'), 'utf8');
 const DMG = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
 const readsIt = probe => (BOARD.includes(probe) || DMG.includes(probe));
+/* 2026-09-11 -- THE ENGINE READS A TAG BY ITS NAME, AND THE GREP ABOVE COULD NOT SEE THAT.
+ *
+ * `readsIt` looks for each tag's `probe:` string. The engines read tags through
+ * `TAGS.param('<kind>', id, '<tag>')` / `TAGS.has(...)`, and a probe string is often prose that can never
+ * appear in code (`'minimize-flagged move into a minimized body'`) or a dead name (`'naturalGift'`). So
+ * 17 of the 19 in-scope tags this file called unconsumed were read by the engine all along
+ * (docs/_reports/2026-09-11-plan-tags.md §2; docs/_reports/2026-09-11-coverage-counters.md §2).
+ *
+ * ONE DETECTOR, NOT A SECOND ONE. `engine/tag_lookups.js` `sourceConsumers` (MEASURE, 2026-09-11) scans
+ * every lookup's argument list to its BALANCED close, skipping strings, template literals, regex literals
+ * and comments, and returns the tag names that are literal arguments at the call's own level. It is the
+ * same module tests/mutation_harness.js now requires, so the two can no longer disagree.
+ *
+ * A TAG IS CONSUMED WHEN EITHER HOLDS: its probe string appears (the old rule, kept so no tag that read
+ * consumed yesterday reads unconsumed today), or its name is looked up in engine/board.js or
+ * engine/medicham2-browser.js. Every tag this second clause newly admits is PRINTED below, per LESSONS §4.
+ * A throw here is printed and falls back to the probe grep alone -- the old behaviour, never a wider one. */
+const LOOKED_UP = (() => {
+  const s = new Set();
+  try {
+    const { sourceConsumers } = require('./tag_lookups.js');
+    for (const t of sourceConsumers(BOARD)) s.add(t);
+    for (const t of sourceConsumers(DMG)) s.add(t);
+  } catch (e) {
+    console.log('  tag_lookups THREW (' + String((e && e.message) || e).split('\n')[0]
+      + ') -- consumedBy falls back to the probe grep alone this run, and that is printed rather than assumed.');
+  }
+  return s;
+})();
+const consumerOf = t => readsIt(t.probe) ? t.probe : (LOOKED_UP.has(t.tag) ? 'TAGS lookup: ' + t.tag : null);
+/* 2026-09-11 -- A HANDLER THAT HANDS ITS WHOLE JOB TO A `Battle` METHOD IS READ THROUGH THAT METHOD.
+ * Skill Swap's move entry is `onHit(target, source, move) { return this.skillSwap(source, target); }`;
+ * every refusal it has lives in `Battle#skillSwap` (dist/sim/battle.js). A derivation that reads only the
+ * move's own handlers sees nothing there. Used by `refusedByAbilityFlag` below; LOUD when the simulator
+ * cannot be read, because a silent null here would drop Skill Swap from the tag. */
+const BATTLE_PROTO = (() => {
+  try { return require(path.join(process.env.SHOWDOWN_PATH || '', 'dist', 'sim', 'battle.js')).Battle.prototype; }
+  catch (e) { console.log('  battleMethodSrc: dist/sim/battle.js unreadable (' + String((e && e.message) || e).split('\n')[0]
+    + ') -- a handler that delegates to a Battle method is read WITHOUT that method this run'); return null; }
+})();
+const battleMethodSrc = n => (BATTLE_PROTO && Object.prototype.hasOwnProperty.call(BATTLE_PROTO, n)
+  && typeof BATTLE_PROTO[n] === 'function') ? String(BATTLE_PROTO[n]).replace(/\s+/g, ' ') : null;
 
 /* ---- USAGE, so the report is ordered by what actually turns up ------------------------------- */
 let F_GAMES = null;                 /* kept so the mega-reachable sweep can reuse the same corpus */
@@ -5589,6 +5631,43 @@ const MOVE_TAGS = [
                alsoCuresSleep: /cureStatus\(\)/.test(src) };
     } },
 
+  /* 2026-09-11 -- A MOVE THAT FAILS ON AN ABILITY FLAG, AND WHOSE FLAG IT ASKS.
+   *
+   * docs/_reports/2026-09-11-plan-tags.md §3b: `refusesCopy` carries Showdown's own copy/suppress flags
+   * per ABILITY, and only Trace, Receiver and Role Play asked them. The MOVE side -- which move fails on
+   * which flag, of which body -- was carried for the three rewriters as a single `refusedBy` string and
+   * for nothing else, so Gastro Acid (`target.getAbility().flags['cantsuppress']`) and Skill Swap
+   * (`Battle#skillSwap`: `sourceAbility.flags['failskillswap'] || targetAbility.flags['failskillswap']`)
+   * had no shape the engine could read at all.
+   *
+   * THE SHAPE: every `<body>.getAbility().flags['X']` read in the move's own refusing handlers, and in
+   * any `Battle` method a handler delegates to, keyed by WHICH body (`target` / `source`). A local
+   * (`const targetAbility = target.getAbility()`) is followed to its body. Membership PRINTED over the
+   * whole legal move table before it was wired (probe below): entrainment {target cantsuppress, source
+   * noentrain}, gastroacid, simplebeam and worryseed {target cantsuppress}, roleplay {target failroleplay,
+   * source cantsuppress}, skillswap {both failskillswap}. */
+  { tag: 'refusedByAbilityFlag', param: 'the move FAILS when the target\'s (or the user\'s) ability carries one of these Showdown flags',
+    probe: 'refusedByAbilityFlag',
+    why: 'Gastro Acid into Disguise and Skill Swap into Zero to Hero both fail in the authority; with no '
+       + 'shape to read, this engine suppressed and swapped them',
+    of: m => {
+      const srcs = [];
+      for (const h of ['onTryHit', 'onTry', 'onTryImmunity', 'onHit', 'onPrepareHit'])
+        if (typeof m[h] === 'function') srcs.push(String(m[h]).replace(/\s+/g, ' '));
+      for (const s of srcs.slice()) for (const mm of s.matchAll(/this\.(\w+)\(/g)) {
+        const body = battleMethodSrc(mm[1]); if (body) srcs.push(body);
+      }
+      const out = { target: new Set(), source: new Set() };
+      for (const s of srcs) {
+        const vars = {};
+        for (const mm of s.matchAll(/(?:const|let|var) (\w+) = (target|source)\.getAbility\(\)/g)) vars[mm[1]] = mm[2];
+        for (const mm of s.matchAll(/(target|source)\.getAbility\(\)\.flags\[["'](\w+)["']\]/g)) out[mm[1]].add(mm[2]);
+        for (const mm of s.matchAll(/(\w+)\.flags\[["'](\w+)["']\]/g)) if (vars[mm[1]]) out[vars[mm[1]]].add(mm[2]);
+      }
+      if (!out.target.size && !out.source.size) return null;
+      return { target: [...out.target].sort(), source: [...out.source].sort() };
+    } },
+
   /* THE OTHER DIRECTION, AND IT IS A DIFFERENT MECHANIC RATHER THAN A MIRROR — ROADMAP #360.
    *
    * `rewritesTargetAbility` above reads `target.setAbility(...)`: the CLICKER changes somebody else.
@@ -9664,7 +9743,7 @@ function noteThrow(kind, tag, o, why) {
 function collect(kind, all, tags, usageMap) {
   const entries = {}, index = {};
   for (const t of tags) index[t.tag] = { tag: t.tag, kind, param: t.param, why: t.why,
-    consumedBy: readsIt(t.probe) ? t.probe : null, used: readsIt(t.probe), n: 0, uses: 0, examples: [] };
+    consumedBy: consumerOf(t), used: !!consumerOf(t), n: 0, uses: 0, examples: [] };
   for (const o of all) {
     if (!o || !o.exists || o.isNonstandard) continue;
     const id = norm(o.id || o.name);
@@ -9730,12 +9809,44 @@ const LEGAL_CARRIED = (() => {
   }
   return set;
 })();
+/* ---- 2026-09-11 -- AN ABILITY A LEGAL MOVE WRITES ONTO A BODY IS A FACT ABOUT THIS FORMAT ----------
+ *
+ * ROADMAP #175 tossed every ability no legal species carries, and that rule is right for an ability
+ * nothing can put on the board. It is wrong for one a LEGAL MOVE writes: Simple Beam
+ * (`setAbility('simple')`, two legal learners, 37 of 17,381 pinned games declare it) puts Simple on its
+ * target, and the engine then has to know that Simple doubles every stat change -- which it could only
+ * ask by NAME, because the artifact had no Simple row (`TAGS.param('ability','simple','amplifiesBoosts')`
+ * returned null and the doubling lived on a string bridge in one of fourteen boost sites).
+ *
+ * THE LIST IS NOT DERIVED HERE. `engine/legal_scope.js` `derive().conferred` is the one implementation
+ * (MEASURE, 2026-09-11): it reads the ability-writing methods out of the compiled simulator and scans
+ * every in-scope move, ability and item handler for a literal argument to one of them. Only a MOVE
+ * source with a legal learner is admitted, and every admitted name is PRINTED before it is used, per
+ * LESSONS §4. A throw is printed and admits nothing -- which is exactly the pre-change behaviour, so a
+ * broken scope module cannot silently widen the artifact. */
+const CONFERRED = (() => {
+  const out = new Map();
+  try {
+    for (const c of require('./legal_scope.js').derive().conferred || []) {
+      const via = (c.via || []).filter(v => v.kind === 'move' && (v.holders | 0) > 0);
+      if (c.legalInDex && via.length) out.set(norm(c.ability), via.map(v => v.id + ' (' + v.holders + ' legal learners)'));
+    }
+  } catch (e) {
+    console.log('  CONFERRED: engine/legal_scope.js THREW (' + String((e && e.message) || e).split('\n')[0]
+      + ') -- NO conferred ability is admitted this run, and that is printed rather than assumed.');
+  }
+  return out;
+})();
+console.log(`  conferred abilities admitted (no legal carrier, written by a legal move): `
+  + (CONFERRED.size ? [...CONFERRED].map(([a, v]) => a + ' via ' + v.join(', ')).join('; ') : '(none)'));
 const moves = collect('move', dex.moves.all(), MOVE_TAGS, U.move);
 const items = collect('item', dex.items.all(), ITEM_TAGS, U.item);
-const abils = collect('ability', dex.abilities.all().filter(a => LEGAL_CARRIED.has(norm(a && (a.id || a.name)))),
+const abils = collect('ability', dex.abilities.all().filter(a => LEGAL_CARRIED.has(norm(a && (a.id || a.name)))
+    || CONFERRED.has(norm(a && (a.id || a.name)))),
   ABILITY_TAGS, U.ability);
 console.log(`  abilities: ${LEGAL_CARRIED.size} of ${dex.abilities.all().length} have a legal carrier in `
-  + `this regulation; the rest are not derived (ROADMAP #175 — "if no legal species, then toss it").`);
+  + `this regulation, plus ${CONFERRED.size} conferred by a legal move; the rest are not derived `
+  + `(ROADMAP #175 — "if no legal species, then toss it").`);
 
 /* ---- CARD 35's C4 -- WHAT THE LEGALITY FILTER DROPPED THAT WOULD OTHERWISE HAVE CARRIED A TAG ----
  *
@@ -9755,7 +9866,7 @@ console.log(`  abilities: ${LEGAL_CARRIED.size} of ${dex.abilities.all().length}
   const dropped = [];
   for (const a of dex.abilities.all()) {
     if (!a || !a.exists || a.isNonstandard) continue;
-    if (LEGAL_CARRIED.has(norm(a.id || a.name))) continue;
+    if (LEGAL_CARRIED.has(norm(a.id || a.name)) || CONFERRED.has(norm(a.id || a.name))) continue;
     const would = [];
     for (const t of ABILITY_TAGS) {
       let v = null;
@@ -9924,6 +10035,12 @@ for (const [k, v] of Object.entries(linkage).sort((a,b) => b[1].reactorUses - a[
 }
 
 const all = [...Object.values(moves.index), ...Object.values(items.index), ...Object.values(abils.index)];
+{
+  /* THE ROWS THE LOOKUP CLAUSE ADMITTED, NAMED -- the over-match check LESSONS §4 asks for, every run. */
+  const byLookup = [...new Set(all.filter(r => r.consumedBy && String(r.consumedBy).startsWith('TAGS lookup: ')).map(r => r.tag))].sort();
+  console.log(`  consumedBy: ${byLookup.length} tag(s) read by NAME through a TAGS lookup and not by their probe string: `
+    + (byLookup.join(', ') || '(none)'));
+}
 const totalUses = { move: Object.values(U.move).reduce((a, b) => a + b, 0),
                     item: Object.values(U.item).reduce((a, b) => a + b, 0),
                     ability: Object.values(U.ability).reduce((a, b) => a + b, 0) };
@@ -10091,8 +10208,10 @@ fs.writeFileSync(D('data', 'tags.json'), JSON.stringify({
             + 'drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER '
             + 'PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, '
             + 'onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.',
-  consumedBy: 'CHECKED by grepping engine/board.js and engine/medicham2-browser.js for the tag probe. '
-            + 'A tag whose probe appears in neither is reported NOT READ regardless of intent.',
+  consumedBy: 'CHECKED against engine/board.js and engine/medicham2-browser.js: the tag probe string appears, '
+            + 'OR the tag name is a literal argument of a TAGS.param/has/withTag/reactorsTo call '
+            + '(engine/tag_lookups.js sourceConsumers, balanced parentheses; value prefixed "TAGS lookup: "). '
+            + 'A tag that neither reaches is reported NOT READ regardless of intent.',
   sheet_entries: U.entries,
   tags: all, linkage, moves: moves.entries, items: items.entries, abilities: abils.entries,
 }, null, 1));

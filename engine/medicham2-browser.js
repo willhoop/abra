@@ -2422,6 +2422,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * mechanic. */
   residualClockInWalk: 0,
   volDurationApplied: 0, volDurationTicked: 0, volDurationExpired: 0,
+  /* 2026-09-11 -- the `expiryClock` reader (Magnet Rise) and Heal Block's kept-on-restart clock. */
+  volDurationFromExpiryRow: 0, expiryClockTicked: 0, expiryClockEnded: 0, magnetRiseClockExpired: 0,
+  healBlockRestartKept: 0, boostAmplified: 0,
+  rampageLengthDrawn: 0, rampageLengthLong: 0, lockRestartRearmed: 0, lockEndedUnfatigued: 0,
+  bondSecondaryPerArrival: 0, bondSelfDropPerArrival: 0, abilityFlagRefused: 0,
   volDurationFromBoostTag: 0, perTurnVolatileBoost: 0, perTurnVolatileBoostEnded: 0,
   /* 2026-08-23 -- the volatile ended because its SOURCE LEFT THE FIELD, which is a different exit
    * from the clock running out and had no reader at all. Zero across a corpus that contains a Syrup
@@ -9047,10 +9052,46 @@ if (MEGA_TRACE_LATE) MEDFAILS.megaTraceLate = 1;
 const MEGA_STAT_DELTA = (typeof process !== 'undefined' && process.env
   && process.env.MEDI_MEGA_STAT_DELTA === '1');
 if (MEGA_STAT_DELTA) MEDFAILS.megaStatDelta = 1;
+/* ---- 2026-09-11 -- MAGNET RISE GETS ITS CLOCK: THE `expiryClock` READER ---------------------------
+ *
+ * `magnetrise.condition` (data/moves.ts:10875-10887, no Champions override) is `duration: 5`,
+ * `onResidualOrder: 18` and an `onEnd` that writes `this.add('-end', target, 'Magnet Rise')` -- a
+ * volatile whose WHOLE lifetime is a bare duration spent by `fieldEvent('Residual')` (sim/battle.ts
+ * :515-523). This engine wrote it as the generic bare `1` and nothing ever ticked it, so a body that
+ * clicked Magnet Rise floated for the rest of the game. `residualExpiryDeferred()` has named it
+ * `magnetrise@18` since 2026-08-27 as "a MISSING TICK rather than a misplaced one".
+ *
+ * THE NUMBERS ARE THE ARTIFACT'S. `data/residual-order.json` already carries the row the walk places
+ * (`expiry:magnetrise`, site volatile, order 18) and it carries the condition's `duration` (5), its
+ * `name` and whether `onEnd` announces. `EXPIRY_CLOCK_ROWS` reads those three fields for every
+ * volatile-site expiry row; the reader below is joined only by members this engine keeps in `_vol`
+ * and has a probe for -- today, Magnet Rise alone (tests/probe_magnetrise_clock.js). The rest of the
+ * artifact's rows are unchanged and still print from `residualClockPlacement()`.
+ *
+ * `MEDI_MAGNETRISE_NO_CLOCK=1` restores the bare `1` AND the missing tick, and stamps
+ * `MEDFAILS.magnetRiseNoClockRestored`, so the probe can be shown red on demand. */
+const MAGNETRISE_NO_CLOCK = (typeof process !== 'undefined' && process.env
+  && process.env.MEDI_MAGNETRISE_NO_CLOCK === '1');
+if (MAGNETRISE_NO_CLOCK) MEDFAILS.magnetRiseNoClockRestored = 1;
+const EXPIRY_CLOCK_ROWS = (() => {
+  const out = new Map();
+  let rows = null;
+  try { rows = require('../data/residual-order.json').rows; }
+  catch (e) { rows = null; MEDFAILS.expiryClockTableMissingWhy = String((e && e.message) || e); }
+  for (const r of (rows || [])) if (r.ns === 'expiry' && r.site === 'volatile' && +r.duration > 0)
+    out.set(r.id, { duration: +r.duration, name: r.name, announces: !!r.announces, line: r.announceLine || null });
+  return out;
+})();
 /* `volDuration` = spend it through `m._vol[id]` and `endDurationVolatile`, which is what the foot
- * loop over `durationVolatiles()` did; the other three are this engine's own named fields. */
+ * loop over `durationVolatiles()` did; the other three are this engine's own named fields.
+ * `expiryClock` = spend `m._vol[id]` and end it with the ARTIFACT's own name and announcement
+ * (`expiryClockEnd`), for a volatile whose condition is a duration and an `onEnd` and nothing else. */
 const RESIDUAL_CLOCK_READER = { taunt: 'volDuration', encore: 'volDuration', disable: 'volDuration',
                                 healblock: 'healBlock', throatchop: 'soundLock', yawn: 'yawn' };
+if (!MAGNETRISE_NO_CLOCK) {
+  if (EXPIRY_CLOCK_ROWS.has('magnetrise')) RESIDUAL_CLOCK_READER.magnetrise = 'expiryClock';
+  else MEDFAILS.magnetRiseClockRowMissing = 1;   // loud: the row went missing, the clock did not
+}
 /* id -> {order, sub}, read off the SAME artifact `RESIDUAL_EXPIRY` reads, including the rows that
  * are not `expiry:` (Encore owns an `onResidual`, so it is a `condition:` row and cannot appear in
  * `RESIDUAL_EXPIRY` at all -- it ticked in the very same foot loop and is the seventh member). */
@@ -9351,6 +9392,16 @@ const RESIDUAL_CLOCKS_AT = RESIDUAL_GROUPS.map(g => g.steps.filter(s => s.starts
  * block; nothing about what they DO has changed and that is the point — the knob has to isolate the
  * position or the probe beside it proves nothing. A fainted holder never reaches here: the walk's own
  * body loop `continue`s on `fainted`, which is `residualEvent`'s own first line. */
+/* THE END OF AN `expiryClock` VOLATILE. The name and whether a line is written come off the artifact row
+ * (`onEnd` is `this.add('-end', target, 'Magnet Rise')` -- the condition's NAME, with no `move: ` prefix,
+ * which is why `endDurationVolatile`'s `'move: ' + id` label is not reused here). */
+function expiryClockEnd(m, id) {
+  if (m._vol) delete m._vol[id];
+  MEDSEEN.expiryClockEnded++;
+  if (id === 'magnetrise') MEDSEEN.magnetRiseClockExpired++;
+  const r = EXPIRY_CLOCK_ROWS.get(id);
+  if (TR && r && r.announces && r.line === '-end') TR.vend(m, r.name);
+}
 function residualClockTick(m, id) {
   const how = RESIDUAL_CLOCK_READER[id];
   if (!how || !m) return;
@@ -9377,6 +9428,12 @@ function residualClockTick(m, id) {
       if (HEALBLOCK_CLOCK_LONG) MEDFAILS.healBlockClockLongRestored++;
       else if (TR) TR.vend(m, 'move: Heal Block');
     }
+    return;
+  }
+  if (how === 'expiryClock') {
+    if (!(m._vol && m._vol[id] > 0)) return;
+    MEDSEEN.residualClockInWalk++; MEDSEEN.expiryClockTicked++;
+    if (--m._vol[id] <= 0) expiryClockEnd(m, id);
     return;
   }
   if (how === 'soundLock') {
@@ -16217,6 +16274,15 @@ const TRAP_TICK_BEFORE_CLOCK=(typeof process!=='undefined'&&process.env&&process
  * authority does, and the lapse writes no `-end` line. Any run carrying it also carries a non-zero
  * `MEDFAILS.healBlockClockLongRestored`. `tests/probe_healblock_clock.js` is the arm. */
 const HEALBLOCK_CLOCK_LONG=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HEALBLOCK_CLOCK_LONG==='1');
+/* 2026-09-11 -- MEDI_HEALBLOCK_REFRESH=1 puts back the unconditional overwrite in applyHealBlock, so a
+ * second Psychic Noise restarts the clock again. See the comment there. */
+const HEALBLOCK_REFRESH=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HEALBLOCK_REFRESH==='1');
+/* 2026-09-11 -- MEDI_RAMPAGE_TWO_TURNS=1 puts back the fixed two-turn rampage: no length draw and the
+ * one-counter lock. See the lock-arming site in battleTurn and tests/probe_rampage_length.js. */
+const RAMPAGE_TWO_TURNS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_RAMPAGE_TWO_TURNS==='1');
+/* 2026-09-11 -- MEDI_BOND_SECONDARY_ONCE=1 puts back the once-per-volley `self:` drop and secondaries for a
+ * Parental Bond volley. See `_bondArrivalEffects` and tests/probe_bond_secondary_order.js. */
+const BOND_SECONDARY_ONCE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_BOND_SECONDARY_ONCE==='1');
 /* 2026-09-04 -- MEDI_PERISH_ALWAYS_ACTIVATES=1 PUTS PERISH SONG'S OLD SHAPE BACK: the loop asks no
  * `moveClassBlocked`, so a Soundproof body is marked, and `-fieldactivate` is pushed at the foot of
  * the loop whether or not anything landed, so a click into an already-counting field never fails.
@@ -19171,12 +19237,34 @@ function isPrankster(mon){
  * until the regeneration lands, the two known non-inverters are excluded HERE by name, stated as
  * the bridge it is -- the same pattern as the Defiant amounts in applyStatDrop. Post-regeneration
  * both name checks go structurally dead.
- * The DOUBLING at these move-driven sites (a Simple body's Swords Dance is +4) is not modelled --
- * it was not modelled before WIRE 100b either -- and only applyStatDrop applies the x2, exactly as
- * the pre-rewire code did. Declared, not discovered. */
+ * The DOUBLING at these move-driven sites (a Simple body's Swords Dance is +4) was not modelled
+ * until 2026-09-11 -- only applyStatDrop applied the x2 -- and this comment declared that.
+ *
+ * 2026-09-11 -- IT IS MODELLED NOW, AND IT IS MODELLED HERE, BECAUSE EVERY CALLER ALREADY MULTIPLIES.
+ * This function returns the MULTIPLIER a stat change is taken at: -1 for `invertsBoosts`, the
+ * artifact's `amplifiesBoosts.mult` for Simple (2), and 1 otherwise. All twelve callers compute
+ * `amount * invSign(body)` and clamp, and `simple.onChangeBoost` is `boost[i] *= 2` inside
+ * `Battle#boost` (data/abilities.ts:4274-4281, no Champions override) -- the same place Contrary's
+ * `*= -1` sits -- so the doubling belongs at exactly the sites the sign already does.
+ *
+ * Simple could not be read BY SHAPE until today: no legal species carries it, so `data/tags.json` had no
+ * row for it. It has one now because Simple Beam (legal, two learners) writes it: engine/tag_dex.js
+ * admits an ability that `engine/legal_scope.js` finds a legal move conferring.
+ *
+ * DECLARED REMAINDER, UNCHANGED FOR SIMPLE AND FOR CONTRARY ALIKE: the boost sites that do not ask this
+ * function -- a move that boosts an ALLY (`boostsTarget`, Coaching/Decorate), a contact punish that drops
+ * the ATTACKER (Gooey), a shield punish, and item boosts -- and a Mold Breaker source, which ignores both
+ * breakable abilities. `tests/probe_simple_beam.js` stages a self-boost and a foe's drop, both of which
+ * reach this function. `MEDI_SIMPLE_UNAMPLIFIED=1` takes the multiplier back out. */
+const SIMPLE_UNAMPLIFIED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SIMPLE_UNAMPLIFIED==='1');
+if(SIMPLE_UNAMPLIFIED)MEDFAILS.simpleUnamplifiedRestored=1;
 const _NOT_INVERTERS=new Set(['simple','ripen']);   // WIRE 113 bridge; dead after the staged regen
 const invSign=x=>{
   const _ab=String((x&&x.ability)||'').replace(/[^a-z0-9]/g,'');
+  if(!SIMPLE_UNAMPLIFIED){
+    const _amp=TAGS.param('ability',_ab,'amplifiesBoosts');
+    if(_amp&&+_amp.mult>1){MEDSEEN.boostAmplified++;return +_amp.mult;}
+  }
   if(_NOT_INVERTERS.has(_ab))return 1;
   return TAGS.param('ability',_ab,'invertsBoosts')?-1:1;
 };
@@ -21588,6 +21676,11 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
   let _dur2=_dur;
   if(_dur2==null){ const _pb=perTurnBoostVolatiles().get(vol);
     if(_pb&&_pb.pb.duration!=null&&+_pb.pb.duration>0){_dur2=+_pb.pb.duration;MEDSEEN.volDurationFromBoostTag++;} }
+  /* 2026-09-11 -- A THIRD SOURCE, FOR AN `expiryClock` VOLATILE ONLY: the condition's own `duration` off
+   * its `data/residual-order.json` expiry row (Magnet Rise: 5). Read only for a member of that reader,
+   * so no other volatile's bare `1` moves. See `EXPIRY_CLOCK_ROWS`. */
+  if(_dur2==null&&RESIDUAL_CLOCK_READER[vol]==='expiryClock'){ const _er=EXPIRY_CLOCK_ROWS.get(vol);
+    if(_er&&_er.duration>0){_dur2=_er.duration;MEDSEEN.volDurationFromExpiryRow++;} }
   const _tn=_dur2!=null?_dur2:((_sm&&+_sm.turns)||1);
   if(_dur2!=null) MEDSEEN.volDurationApplied++;
   (who._vol=who._vol||{})[vol]=_tn;
@@ -21684,6 +21777,43 @@ function mentalHerbCures(who,vol){
   who.item='';
   return true;
 }
+/* ==== 2026-09-11 -- A MOVE THAT FAILS ON AN ABILITY FLAG, ASKED OF THE ARTIFACT ======================
+ *
+ * Showdown marks abilities that may not be copied, swapped or suppressed with FLAGS (`cantsuppress`,
+ * `failskillswap`, `noentrain`, `failroleplay`, ...), and the moves that honour them read the flag in their
+ * own refusing handler:
+ *     simplebeam / worryseed / gastroacid  onTryHit: target.getAbility().flags['cantsuppress']
+ *     entrainment                          onTryHit: ... || source.getAbility().flags['noentrain']
+ *     skillswap                            onHit -> Battle#skillSwap: sourceAbility.flags['failskillswap']
+ *                                                   || targetAbility.flags['failskillswap']   (sim/battle.ts)
+ * `data/tags.json` carries both halves: `refusedByAbilityFlag {target:[...], source:[...]}` on the MOVE
+ * (engine/tag_dex.js, derived from those handlers and from the Battle method a handler delegates to) and
+ * `refusesCopy` on the ABILITY (the flags themselves). This engine read the ability half from Trace,
+ * Receiver and Role Play only, so Simple Beam, Worry Seed and Entrainment rewrote a Stance Change or a
+ * Zero to Hero, Skill Swap swapped one away, and Gastro Acid suppressed a Disguise -- every one of which
+ * the authority refuses. Shown against it by tests/probe_ability_flag_refusal.js before this landed.
+ *
+ * Returns the refusing flag, or null. Role Play's own branch keeps reading its `copiesTargetAbility`
+ * flags and does not call this, so no refusal is asked twice. `MEDI_ABILITY_FLAG_REFUSAL_UNREAD=1` makes
+ * this answer null everywhere and stamps MEDFAILS. */
+const ABILITY_FLAG_REFUSAL_UNREAD=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ABILITY_FLAG_REFUSAL_UNREAD==='1');
+if(ABILITY_FLAG_REFUSAL_UNREAD)MEDFAILS.abilityFlagRefusalUnread=1;
+function abilityFlagRefusal(user,target,mvId){
+  if(ABILITY_FLAG_REFUSAL_UNREAD)return null;
+  const p=TAGS.param('move',mvId,'refusedByAbilityFlag');
+  if(!p)return null;
+  const ask=(who,flags)=>{
+    if(!who||!Array.isArray(flags)||!flags.length)return null;
+    const rc=TAGS.param('ability',String(who.ability||'').replace(/[^a-z0-9]/g,''),'refusesCopy');
+    if(!rc)return null;
+    for(const f of flags)if(rc[f])return f;
+    return null;
+  };
+  const f=ask(target,p.target)||ask(user,p.source);
+  if(f){MEDSEEN.abilityFlagRefused++;
+    if(!MEDSEEN.abilityFlagRefusedFirst)MEDSEEN.abilityFlagRefusedFirst=String(mvId)+':'+f;}
+  return f;
+}
 /* ROADMAP #161 -- HEAL BLOCK, AND THE FIELD THE ENGINE ACTUALLY READS.
  *
  * `healBlocked` (one reader, ~:2534) asks `_healBlock > 0`; the residual ticks `_healBlock`; the
@@ -21713,6 +21843,16 @@ function applyHealBlock(who,mvId){
   const _bh=TAGS.param('move',mvId,'blocksHealing');
   if(!_bh||!(+_bh.turns>0)){ MEDFAILS.healBlockNoDuration++; return false; }
   const _h0=who._healBlock;
+  /* 2026-09-11 -- A SECOND APPLICATION DOES NOT RESTART THE CLOCK. `Pokemon#addVolatile` answers a
+   * volatile the body already carries with `if (!status.onRestart) return false; return
+   * this.battle.singleEvent('Restart', ...)` (sim/pokemon.ts:1987-1990) and never touches `duration`,
+   * and Heal Block's `onRestart` (data/moves.ts:8337-8344, no Champions override) opens
+   * `if (effect?.name === 'Psychic Noise') return;` -- nothing is written and the turn-1 clock keeps
+   * running. This overwrote it, so a Psychic Noise on turn 2 bought one more refused residual and a
+   * `-end` a turn late. Measured before the change in tests/probe_healblock_clock.js arm 8: authority
+   * `-end` turn 2, this engine turn 3. `MEDI_HEALBLOCK_REFRESH=1` restores the overwrite. */
+  if(_h0>0&&!HEALBLOCK_REFRESH){ MEDSEEN.healBlockRestartKept++; mentalHerbCures(who,'healblock'); return true; }
+  if(_h0>0&&HEALBLOCK_REFRESH)MEDFAILS.healBlockRefreshRestored=1;
   who._healBlock=+_bh.turns+(HEALBLOCK_CLOCK_LONG?1:0);
   if(TR&&!(_h0>0))TR.vstart(who,'move: Heal Block');
   MEDSEEN.healBlockApplied++;
@@ -26362,7 +26502,15 @@ function scriptedAimOf(m,mvId){
  * die. A named stream lets an instrument address the one draw the way the authority can address it,
  * without touching the six streams beside it, and leaves live play and every rollout drawing from
  * whatever function the caller passed (`rngStreams` aliases every stream to it). */
-const RNG_STREAMS = ['acc', 'crit', 'sec', 'dmg', 'stall', 'tie', 'tgt'];
+/* `range` JOINED THE LIST 2026-09-11, AND IT IS THE AUTHORITY'S TWO-ARGUMENT `random(m, n)`. The one
+ * member today is a rampage's length -- `lockedmove.onStart` draws `trueDuration = this.random(2, 4)`
+ * (data/conditions.ts:264-266) -- which this engine did not draw at all: every rampage was two turns.
+ * Every differential arm pins that form to `m` on the authority's side ("THE RANGE FORM IS PINNED TO THE
+ * BOTTOM IN EVERY ARM", engine/game_differential.js), so the arms hand this stream `() => 0` and the two
+ * engines keep agreeing under measurement, while live play and every seeded rollout draw it for real.
+ * Its own name, for the reason `tie` and `tgt` got theirs: a draw one side pins must be pinnable here
+ * without moving the streams beside it. */
+const RNG_STREAMS = ['acc', 'crit', 'sec', 'dmg', 'stall', 'tie', 'tgt', 'range'];
 function rngStreams(src) {
   /* ALREADY A STRUCT: pass it through, but fill any missing stream from `any` so a partial struct
    * degrades to today's behaviour rather than to undefined. */
@@ -30738,6 +30886,12 @@ function battleTurn(S,rng,actsForA,actsForB){
         };
         /* STEP 1 -- `hitStepTryHitEvent`: Protect, the doll, Good as Gold, the absorbers. */
         const _asTryHit=(R)=>{const _t=R.tg;
+          /* 2026-09-11 -- THE MOVE'S OWN `onTryHit` ANSWERS FIRST. `Battle#runEvent` puts the effect's own
+           * handler ahead of every handler it collects, so Gastro Acid's `target.getAbility().flags
+           * ['cantsuppress']` refuses before Protect or Good as Gold is asked, and the whole TryHit event
+           * then writes `-fail` on the user and blanks the move line (`hitStepTryHitEvent`,
+           * sim/battle-actions.ts). This branch suppressed a Disguise. See `abilityFlagRefusal`. */
+          if(abilityFlagRefusal(m,_t,a.mv)){if(TR)TR.attrStill();mvFail(m);R.out=true;return;}
           /* WIRE 151 -- THE `ignoresProtect` GUARD, WHICH THIS BRANCH ALONE DID NOT ASK.
            * This line read a bare `if(_t.protect)`. Four other sites in this file already write the
            * pair (`_t.protect && !TAGS.has('move',a.mv,'ignoresProtect')`) and `guardRefusalOf` reads
@@ -32699,6 +32853,12 @@ function battleTurn(S,rng,actsForA,actsForB){
             continue;
           }
           const _ok=!_isFoe||!moveClassBlocked(t,a.mv,m);
+          /* 2026-09-11 -- `Battle#skillSwap` REFUSES A `failskillswap` ABILITY ON EITHER BODY (sim/battle.ts,
+           * `if (sourceAbility.flags['failskillswap'] || targetAbility.flags['failskillswap']) return false`).
+           * It is the move's `onHit`, so it sits BELOW the shield and Good as Gold above, and a `false` from
+           * `onHit` is the authority's `-fail` on the user with the move line blanked. This branch swapped
+           * Stance Change and Zero to Hero away. See `abilityFlagRefusal`. */
+          if(_ok&&abilityFlagRefusal(m,t,a.mv)){if(TR)TR.attrStill();mvFail(m);continue;}
           /* ROADMAP #307 -- BOTH ENDS remember. A swap is two rewrites and `clearVolatile` undoes
              whichever body leaves first, independently of the other. */
           if(_ok){const _ab=m.ability;abRewrite(m,t.ability);abRewrite(t,_ab);
@@ -32762,7 +32922,10 @@ function battleTurn(S,rng,actsForA,actsForB){
            * Tantrum reads that failure -- so it is a `mvFail`, not a silent skip. */
           const _blocked=!_ok||!_want||_want==='none'
             ||(a.refused||[]).indexOf(String(t.ability||''))>=0
-            ||String(t.ability||'')===String(_want);
+            ||String(t.ability||'')===String(_want)
+            /* 2026-09-11 -- and the handler's FLAG clause (`cantsuppress` on the target, Entrainment's
+             * `noentrain` on the user), asked of the artifact. See `abilityFlagRefusal`. */
+            ||!!abilityFlagRefusal(m,t,a.mv);
           if(_blocked){mvFail(m);}
           /* 2026-08-27 -- AND THE DOLL, WHICH THIS BRANCH ASKED NOWHERE. It is BELOW `_blocked` and
            * not above it, and that is the authority's order rather than a convenience: every reason
@@ -39060,6 +39223,9 @@ function battleTurn(S,rng,actsForA,actsForB){
              * with no argument. Passing the count explicitly is also what keeps this line out of
              * `_react`'s temporal dead zone -- the `const` is declared below this loop, because it
              * needs `_landed`. */
+            /* 2026-09-11 -- a Parental Bond arrival that is not the last pays its own `self:` drop and
+             * secondaries HERE, above its DamagingHit pass. See `_bondArrivalEffects`. */
+            if(i<_packets.length-1&&tg.curHP>0&&R.hitcountBondPlan)_bondArrivalEffects(R);
             if(i<_packets.length-1&&tg.curHP>0){
               if(REACT_BATCHED)MEDFAILS.reactBatchedRestored=1;
               else{
@@ -40136,7 +40302,10 @@ function battleTurn(S,rng,actsForA,actsForB){
       };
       /* STEP 7c -- runMoveEffects / selfDrops / secondaries (battle-actions.ts:1086-1101): everything
        * a connecting hit leaves behind, for every target, AFTER every target's damage. */
-      const _stepEffects=(R)=>{const tg=R.tg;const _react=R.react;
+      /* `_fxOpt.secOnly` (2026-09-11): run ONLY the move's own secondaries loop, for an interior arrival of
+       * a Parental Bond volley -- see `_bondArrivalEffects`. The row has not been marked `R.hit` yet at
+       * that point (it is marked below the arrival loop), and the arrival DID land, so the gate is skipped. */
+      const _stepEffects=(R,_fxOpt)=>{const tg=R.tg;const _react=R.react;const _secOnly=!!(_fxOpt&&_fxOpt.secOnly);
         /* ROADMAP #161 -- A TARGET THAT DIED TO THIS HIT STILL RUNS THE HIT'S EFFECTS, AND THE ONES
          * THAT LAND ON THE ATTACKER STILL LAND.
          *
@@ -40160,7 +40329,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * false` (sim/pokemon.ts:1980), and `canTakeStatus` in this file already refuses a fainted
          * body on its first line. The two boost sites below and applyMoveVolatile carry the first
          * two; that is where the authority puts them. */
-        if(!R.hit&&!R.fainted)return;
+        if(!R.hit&&!R.fainted&&!_secOnly)return;
         /* 2026-08-22 -- THE POSITION WITNESS FOR `_stepBuffOnHit`, AND IT EXISTS BECAUSE AN
          * APPLICATION COUNTER CANNOT SEE A POSITION. Moving the buff below the secondaries does not
          * change how many buffs are applied, so a counter of applications rises identically under the
@@ -40632,6 +40801,11 @@ function battleTurn(S,rng,actsForA,actsForB){
               }
             }
           }
+          /* 2026-09-11 -- AN INTERIOR PARENTAL BOND ARRIVAL STOPS HERE: it has rolled the move's own
+           * secondaries, which is what the authority's per-hit `spreadMoveHit` step 5 does. Everything
+           * below is either once per move in the authority too, or (King's Rock) already counted per
+           * landed arrival by the final call. See `_bondArrivalEffects`. */
+          if(_secOnly)return;
           /* WIRE 133 -- BURNING JEALOUSY AND ALLURING VOICE (`punishesBoostedTarget`, 219 uses).
            *
            * THE CONDITION IS THE MECHANIC and it is the half a naive fix drops: the effect lands ONLY
@@ -42057,6 +42231,45 @@ function battleTurn(S,rng,actsForA,actsForB){
        * 4" and only act in the second case. A plain `m._recharge` read would not do it: the SKIPPED
        * branch arms nothing and still has to stop the backstop double-counting. */
       let _rechargeArmed=false;
+      /* ==== 2026-09-11 -- A PARENTAL BOND VOLLEY PAYS STEPS 4 AND 5 ON EVERY ARRIVAL ====================
+       *
+       * The Champions hit loop (data/mods/champions/scripts.ts, the loop at :428) calls `spreadMoveHit`
+       * ONCE PER HIT, and `spreadMoveHit` runs `selfDrops` (step 4, :385) and `secondaries` (step 5, :388)
+       * inside it. Parental Bond turns a single-target move into two hits (`onPrepareHit`,
+       * data/abilities.ts:3160-3166), so a Body Slam rolls its paralysis on arrival 1 and again on
+       * arrival 2, a Crunch can drop Defence twice, and a Hammer Arm drops its user's Speed twice --
+       * `selfDrops` only sets `move.selfDropped` when `!move.multihit`, and a bonded move IS multihit.
+       * This engine ran both steps once, below the whole volley.
+       *
+       * MEASURED BEFORE THE CHANGE, tests/probe_bond_secondary_order.js on the bottom-tie-first pin
+       * (every secondary fires): Crunch -> the authority `-unboost def` after EACH arrival, this engine
+       * once; Hammer Arm -> the authority `-unboost spe` twice, this engine once; Body Slam -> the
+       * authority's paralysis between the arrivals, this engine's after both. The first two are
+       * BOARD-MATERIAL, and arrival 2 is priced against the dropped stat (BATCH M's re-price reads it).
+       *
+       * SO AN INTERIOR ARRIVAL RUNS THOSE TWO AND NOTHING ELSE, in the authority's order, above that
+       * arrival's `DamagingHit` pass (`spreadMoveHit` raises DamagingHit after step 5). The LAST arrival
+       * still gets the ordinary `_stepSelfPay` -> `_stepEffects` pair below the loop, so the count is
+       * exactly one per landed arrival and a volley whose first arrival kills pays once. Everything else
+       * in both steps -- the drain knob, the recharge, King's Rock, the tag blocks -- stays once per move.
+       *
+       * Only Parental Bond reaches this: `R.hitcountBondPlan` is its plan flag, and no natural multi-hit
+       * move in this format carries a target secondary (tests/probe_multihit_update.js derives that).
+       * DECLARED REMAINDER: the procedural secondaries (Dire Claw's `onHit` table) and a secondary
+       * `onHit` closure still run once; no legal Parental Bond carrier learns a move that has one.
+       * `MEDI_BOND_SECONDARY_ONCE=1` restores the once-per-volley behaviour and stamps MEDFAILS. */
+      const _bondArrivalEffects=(R)=>{
+        if(BOND_SECONDARY_ONCE){MEDFAILS.bondSecondaryOnceRestored=1;return;}
+        const _via=selfBoostVia(a.move.id);
+        const _sd=(!m.fainted&&_via!=='selfBoost')?(a.move.mv&&a.move.mv.self):null;
+        if(_sd){const sgn=invSign(m);
+          for(const k in _sd){const _st=SD2ENG[k];if(_st&&m.boosts[_st]!=null){const _b0=m.boosts[_st];
+            m.boosts[_st]=clamp(m.boosts[_st]+_sd[k]*sgn,-6,6);
+            if(TR)TR.bst(m,_st,m.boosts[_st]-_b0);}}
+          MEDSEEN.bondSelfDropPerArrival++;}
+        _stepEffects(R,{secOnly:true});
+        MEDSEEN.bondSecondaryPerArrival++;
+      };
       const _stepSelfPay=()=>{
         if(_selfPaid)return; _selfPaid=true;
         /* 2026-08-24 -- THE DRAIN IS PAID PER TARGET NOW, at the target's own `-damage` line inside
@@ -43272,7 +43485,37 @@ function battleTurn(S,rng,actsForA,actsForB){
           MEDSEEN.lockSkippedNoTarget++;
         }
         else if(!(m._mtLock&&m._mtLock.move===a.move.id)){
-          m._mtLock={move:a.move.id,left:_lt,confuse:!!_lk.confuseOnEnd,vol:_lk.volatile||null,
+          /* 2026-09-11 -- THE LENGTH IS A DRAW, AND THE LOCK CARRIES THE AUTHORITY'S TWO COUNTERS.
+           *
+           *     duration: 2,
+           *     onStart(...)   { this.effectState.trueDuration = this.random(2, 4); ... }
+           *     onRestart()    { if (this.effectState.trueDuration >= 2) this.effectState.duration = 2; }
+           *     onResidual(t)  { if (t.status === 'slp') delete t.volatiles['lockedmove'];
+           *                      this.effectState.trueDuration--; }
+           *     onAfterMove(p) { if (this.effectState.duration === 1) p.removeVolatile('lockedmove'); }
+           *     onEnd(t)       { if (this.effectState.trueDuration > 1) return; t.addVolatile('confusion'); }
+           *                                                   data/conditions.ts:253-286, no Champions override
+           *
+           * This engine armed `left = turns` (2) and never read `turnsMax`, so no rampage ever lasted three
+           * turns; every differential arm pins the authority's draw to its bottom, which is why nothing
+           * measured it. `left` is now `trueDuration`, drawn on the `range` stream between the tag's
+           * `turnsMin` and `turnsMax` exactly as `random(min, max + 1)` does, and `dur` is `duration`,
+           * re-armed on each locked use while `left >= 2`. The two part only when the body is PREVENTED from
+           * moving mid-lock: a three-turn lock flinched on turn 2 ends at that residual with NO fatigue.
+           * A lock whose length is not a draw (Uproar: turnsMin === turnsMax) keeps `dur: null` and the
+           * one-counter road below it is byte-for-byte what it was. Shown against the authority in
+           * tests/probe_rampage_length.js; `MEDI_RAMPAGE_TWO_TURNS=1` restores the fixed two turns. */
+          let _len=_lt, _ldur=null;
+          const _tMin=+_lk.turnsMin, _tMax=+_lk.turnsMax;
+          if(_tMax>_tMin&&_tMin>0){
+            if(RAMPAGE_TWO_TURNS)MEDFAILS.rampageTwoTurnsRestored=1;
+            else{
+              _len=Math.min(_tMax,_tMin+Math.floor(_R.range()*(_tMax-_tMin+1)));
+              _ldur=(+_lk.duration>0)?+_lk.duration:_lt;
+              MEDSEEN.rampageLengthDrawn++; if(_len>_tMin)MEDSEEN.rampageLengthLong++;
+            }
+          }
+          m._mtLock={move:a.move.id,left:_len,dur:_ldur,confuse:!!_lk.confuseOnEnd,vol:_lk.volatile||null,
                      blockSleep:!!_lk.blocksSleep};
           /* The field fact changes the instant the lock is armed, so a Spore thrown LATER IN THE SAME
            * TURN is refused. Recomputed rather than set, so it cannot disagree with the turn-top pass. */
@@ -43282,6 +43525,11 @@ function battleTurn(S,rng,actsForA,actsForB){
            * protocol differential's business, so the announcement is read off the condition rather
            * than given to both. */
           if(TR&&_lk.volatile==='uproar')TR.vstart(m,'Uproar');
+        }
+        /* 2026-09-11 -- `lockedmove.onRestart`: a locked use that connected re-arms `duration` while
+         * `trueDuration >= 2`. Only the drawn family carries `dur`; see the arming branch above. */
+        else if(m._mtLock.dur!=null&&_reached>0&&m._mtLock.left>=2){
+          m._mtLock.dur=(+_lk.duration>0)?+_lk.duration:_lt; MEDSEEN.lockRestartRearmed++;
         }
         /* UPROAR WAKES EVERY SLEEPER ON THE FIELD, BOTH SIDES. `data/moves.ts` uproar.onTryHit walks
          * `target.side.activeTeam()` AND `target.side.foe.activeTeam()` and calls `cureStatus()` on
@@ -43326,10 +43574,14 @@ function battleTurn(S,rng,actsForA,actsForB){
          * resolved" guard as the arming site, and the authority raises `AfterMove` even for a locked
          * move that MISSED. A missed last-turn Outrage therefore still fatigues at the residual here.
          * The state is the same either way; only the position differs, and it is unmeasured. */
-        if(_lk&&_lk.expiresAtMove&&m._mtLock&&m._mtLock.move===a.move.id&&m._mtLock.left<=1){
+        /* 2026-09-11 -- the drawn family ends here on `duration === 1` (`onAfterMove`) and fatigues only
+         * when `trueDuration` has run out (`onEnd`); a lock with `dur: null` is unchanged. */
+        if(_lk&&_lk.expiresAtMove&&m._mtLock&&m._mtLock.move===a.move.id
+           &&(m._mtLock.dur!=null?m._mtLock.dur===1:m._mtLock.left<=1)){
           const _lc=m._mtLock; m._mtLock=null; MEDSEEN.lockExpired++; MEDSEEN.lockExpiredAtMove++;
           refreshSleepBlock(actA,actB,sfA,sfB);
-          if(_lc.confuse){ MEDSEEN.lockExpiredConfused++; applyConfusion(m,null,field,false,true); }
+          if(_lc.confuse&&(_lc.dur==null||_lc.left<=1)){ MEDSEEN.lockExpiredConfused++; applyConfusion(m,null,field,false,true); }
+          else if(_lc.confuse)MEDSEEN.lockEndedUnfatigued++;
         }
       }
       /* WIRE 44 -- THE OLD TIMED LOCKOUT, NOW REACHABLE ONLY UNDER THE RESTORE KNOB. The clean engine
@@ -45064,6 +45316,12 @@ function battleTurn(S,rng,actsForA,actsForB){
          `throatchop@22` -- this clock ticks in the foot-of-turn block rather than at residual order
          22 -- and that gap is unchanged here. What was missing was the line, not its neighbourhood. */
       if(ENDTURN_CLOCKS_AT_FOOT&&x._noSound>0&&--x._noSound<=0){MEDSEEN.soundLockEnded++;if(TR)TR.vend(x,'Throat Chop','[silent]');}
+      /* 2026-09-11 -- and the `expiryClock` members (Magnet Rise), for the same reason: the knob moves a
+       * POSITION and must not delete the clock it moves. */
+      if(ENDTURN_CLOCKS_AT_FOOT&&x._vol)for(const _ec in RESIDUAL_CLOCK_READER){
+        if(RESIDUAL_CLOCK_READER[_ec]!=='expiryClock')continue;
+        if(x._vol[_ec]>0&&--x._vol[_ec]<=0)expiryClockEnd(x,_ec);
+      }
       if(CANTUSETWICE_EXEC_REFUSE&&x._noRepeatT>0&&--x._noRepeatT<=0)x._noRepeat=null;
       /* WIRE 144 -- THE LOCK-IN CLOCK, AND THE THREE LINES BELOW ARE SHOWDOWN'S RESIDUAL IN ITS OWN
        * ORDER. `Battle#residualEvent` decrements the effect's duration FIRST and calls `end` if it
@@ -45091,7 +45349,19 @@ function battleTurn(S,rng,actsForA,actsForB){
        * body that MOVED expires inside `lockedmove.onAfterMove`, immediately below its own `-damage`
        * -- see the block at the lock-arming site, gated on the derived `expiresAtMove`. `uproar` has
        * no `onAfterMove`, so its expiry really is here and nothing about it changed. */
-      if(x._mtLock&&x._mtLock.left>0){
+      /* 2026-09-11 -- THE DRAWN FAMILY (a `dur` on the lock): `residualEvent` spends `duration` FIRST and
+       * ends the volatile on zero, `onEnd` fatiguing only when `trueDuration <= 1`; otherwise
+       * `onResidual` runs -- the sleep clause, then `trueDuration--`. See the arming site. */
+      if(x._mtLock&&x._mtLock.dur!=null){
+        x._mtLock.dur--;
+        if(x._mtLock.dur<=0){
+          const _lc=x._mtLock; x._mtLock=null; MEDSEEN.lockExpired++;
+          if(_lc.confuse&&_lc.left<=1){ MEDSEEN.lockExpiredConfused++; applyConfusion(x,null,field,false,true); }
+          else if(_lc.confuse)MEDSEEN.lockEndedUnfatigued++;
+        } else if(x.status==='slp'){ x._mtLock=null; MEDSEEN.lockBrokenBySleep++; }
+        else x._mtLock.left--;
+      }
+      else if(x._mtLock&&x._mtLock.left>0){
         x._mtLock.left--;
         if(x._mtLock.left<=0){
           const _lc=x._mtLock;

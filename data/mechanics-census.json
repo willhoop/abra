@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-11T07:06:07.090Z",
+  "generated": "2026-09-11T10:01:14.689Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 856,
-  "live": 856,
+  "probed": 872,
+  "live": 872,
   "missing": 0,
-  "armed": 856,
+  "armed": 872,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -839,6 +839,146 @@
       "directCall": false
     },
     {
+      "kind": "ability",
+      "tag": "amplifiesBoosts",
+      "label": "Simple (written by Simple Beam) doubles every stat change, raised and lowered",
+      "live": true,
+      "detail": "multiplier off data/tags.json simple.amplifiesBoosts = 2. Swords Dance then a Tickle at Garchomp — no Simple Beam: Atk +2, Def -1; after Simple Beam (ability \"simple\"): Atk +4, Def -2 (each must be the control times the multiplier)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statusInflict",
+      "label": "Magnet Rise ENDS on its duration, and a Ground move lands again the next turn",
+      "live": true,
+      "detail": "duration off data/residual-order.json = 5. High Horsepower at Steelix every turn: no rise, lands again on turn 2; after Magnet Rise on turn 1, lands again on turn 6 and `-end … Magnet Rise` on turn(s) [5] (must be turn 5, then a hit on 6)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "blocksHealing",
+      "label": "a SECOND Psychic Noise while the block is up does not restart its clock",
+      "live": true,
+      "detail": "Heal Block turns left after each residual — a second click on turn 3, AFTER the lapse: [1,0,1] (a fresh block lands); a second click on turn 2, while it is up: [1,0,0] (the turn-1 clock must still lapse at turn 2)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "isBerry",
+      "label": "Stuff Cheeks succeeds on a berry with no effect of its own (Chople), and fails on Leftovers",
+      "live": true,
+      "detail": "[Defence stage, held item] after Stuff Cheeks — holding a CHOPLE BERRY [2, -]; CONTROL holding LEFTOVERS [0, leftovers] (must fail, item kept)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesCopy",
+      "label": "Trace skips a `notrace` foe (Stance Change) and copies an Intimidate one",
+      "live": true,
+      "detail": "the Trace holder's ability after entry — facing Intimidate: \"intimidate\"; facing only Stance Change: \"trace\"",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesCopy",
+      "label": "Role Play into a `failroleplay` body (Stance Change) fails; into Intimidate it copies",
+      "live": true,
+      "detail": "the user's ability after Role Play — into Intimidate \"intimidate\"; into Stance Change \"marvelscale\"",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesCopy",
+      "label": "Receiver refuses a fainted `noreceiver` partner (Zero to Hero) and takes a Flash Fire one",
+      "live": true,
+      "detail": "the Receiver's ability after its partner fainted — a Flash Fire partner: \"flashfire\"; a Zero to Hero partner: \"receiver\"",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesCopy",
+      "label": "Skill Swap into a `failskillswap` body (Zero to Hero) fails; into Intimidate it swaps",
+      "live": true,
+      "detail": "[user, target] abilities after Skill Swap — into Intimidate [\"intimidate\",\"blaze\"]; into Zero to Hero [\"blaze\",\"zerotohero\"] (Battle#skillSwap: `targetAbility.flags['failskillswap']` returns false)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesCopy",
+      "label": "Simple Beam into a `cantsuppress` body (Stance Change) fails; into Intimidate it writes Simple",
+      "live": true,
+      "detail": "the target's ability after Simple Beam — Intimidate became \"simple\"; Stance Change stayed \"stancechange\"",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "refusedByAbilityFlag",
+      "label": "Gastro Acid into a `cantsuppress` body (Disguise) fails; into Intimidate it suppresses",
+      "live": true,
+      "detail": "target carries the gastroacid volatile after the click — Intimidate: true; Disguise: false (gastroacid.onTryHit: `target.getAbility().flags[\"cantsuppress\"]` returns false)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "escapesTrap",
+      "label": "Shed Shell walks out of Shadow Tag; the same body with no item is held",
+      "live": true,
+      "detail": "slot after the switch click under a foe Shadow Tag — no item: milotic (held); Shed Shell: incineroar (walked out)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "healFromDamageDealt",
+      "label": "Shell Bell heals trunc(dealt / div) off the damage dealt; no item heals nothing",
+      "live": true,
+      "detail": "divisor off data/tags.json = 8. Dragon Claw from a half-HP Garchomp — no item: dealt 100, healed 0; Shell Bell: dealt 100, healed 12 (the authority's rounding gives 12)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "statMult",
+      "label": "Light Ball doubles a Pikachu's physical AND special damage, and nothing for a Raichu",
+      "live": true,
+      "detail": "mult off data/tags.json = 2 on [\"atk\",\"spa\"], only Pikachu. Pikachu Body Slam 27 -> 53, Thunderbolt 74 -> 144; Raichu Thunderbolt 96 -> 96 (must not move)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "scalesOwnStatusDamage",
+      "label": "Heatproof scales its own burn chip by the tag's multiplier; Hospitality on the same body does not",
+      "live": true,
+      "detail": "mult off data/tags.json = 0.5 on [\"brn\"]. One turn of burn on a passing Sinistcha — Hospitality lost 9, Heatproof lost 4 (must be max(1, floor(9 x 0.5)))",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "move",
       "tag": "copiesTargetAbility",
       "label": "Role Play takes the TARGET's ability onto the USER",
@@ -863,7 +1003,7 @@
       "tag": "rewritesStoredStats",
       "label": "the two WIRE 159 counters are non-zero",
       "live": true,
-      "detail": "abilityRewritten 3 -> 4, statRewired 3 -> 4 over one Worry Seed and one Speed Swap (both must rise; a zero means the click is back to being a no-op turn)",
+      "detail": "abilityRewritten 5 -> 6, statRewired 3 -> 4 over one Worry Seed and one Speed Swap (both must rise; a zero means the click is back to being a no-op turn)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2880,7 +3020,7 @@
     },
     {
       "kind": "ability",
-      "tag": "untagged",
+      "tag": "condStatMult",
       "label": "Marvel Scale raises Defense while statused",
       "live": true,
       "detail": "Earthquake into a Milotic, [no ability, Marvel Scale] — clean 93,93 (must be equal: the ability does nothing on a healthy body), burned 178,148 (the Marvel Scale one must take less; both readings carry the same burn chip)",
@@ -4073,7 +4213,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 21.4% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 27.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4281,6 +4421,16 @@
     {
       "kind": "ability",
       "tag": "hitsTwice",
+      "label": "a Parental Bond volley pays its secondary AND its self-drop on each arrival",
+      "live": true,
+      "detail": "every secondary firing — Crunch: target Def -1 with no ability, -2 with Parental Bond; Hammer Arm: user Spe -1 with no ability, -2 with Parental Bond (each must be twice the control)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "hitsTwice",
       "label": "Parental Bond adds a quarter-strength second hit, and not on a spread move",
       "live": true,
       "detail": "single-target: none 136 -> Parental Bond 169 (x1.25); spread Earthquake must not move: 56 -> 56",
@@ -4420,7 +4570,7 @@
     },
     {
       "kind": "ability",
-      "tag": "untagged",
+      "tag": "refusesSecondaries",
       "label": "Shield Dust blocks a move SECONDARY and does not block a status MOVE",
       "live": true,
       "detail": "into a Shield Dust Vivillon -- Nuzzle's secondary par: none (blocked; with no ability it is par, so the arm ran), Will-O-Wisp: brn, T-Wave/Spore/Toxic: par,slp,tox",
@@ -4430,7 +4580,7 @@
     },
     {
       "kind": "ability",
-      "tag": "untagged",
+      "tag": "refusesSecondaries",
       "label": "Shield Dust does not stop Static, and does stop Poison Touch",
       "live": true,
       "detail": "Static onto the attacker -- no ability par, Shield Dust par (not blocked); Poison Touch onto the target -- no ability psn, Shield Dust none (blocked, and Showdown says so in its own handler)",
@@ -4440,7 +4590,7 @@
     },
     {
       "kind": "ability",
-      "tag": "untagged",
+      "tag": "refusesSecondaries",
       "label": "Shield Dust drops the target's stat drop and keeps the attacker's own boost",
       "live": true,
       "detail": "against a Shield Dust body -- Icy Wind's target spe 0 (dropped; with no ability -1), Trailblaze's own spe 1 (kept; with no ability 1)",
@@ -5824,6 +5974,16 @@
       "label": "the LENGTH and the fatigue are per-move, from the condition",
       "live": true,
       "detail": "over four turns of clicking Dragon Claw after turn 1: Outrage ran 2 turns and left confusion 2; Uproar ran 3 turns and left confusion 0. Both freed the user by turn 4 (dragonclaw / dragonclaw)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "locksIntoMove",
+      "label": "the LENGTH is a draw from turnsMin to turnsMax, and the fatigue lands on the last turn",
+      "live": true,
+      "detail": "tag turnsMin 2, turnsMax 3. Seeded 0.1: Outrage ran 2 turn(s), fatigue on turn 2; seeded 0.9: ran 3, fatigue on turn 3",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7543,7 +7703,7 @@
       "tag": "passiveHeal",
       "label": "Leftovers heals at order 5 and the burn chips at order 10 — a full-HP burned holder still loses the tick",
       "live": true,
-      "detail": "Snorlax at full HP (235) holding Leftovers, one passing turn. NOT burned 235 (the heal has nothing to do); BURNED 221 = 235 - 14. Under a body-major walk the chip runs first and Leftovers restores the identical 1/16 after it, so the burned arm reads 235 and the status is free. The two orders differ ONLY at the top and bottom of the bar, which is why no damage differential can see this. The walk itself is counted on the same turn: 23 groups entered (of 23) and 108 step slots (of 108 = every step on all four living bodies) — a zero on either is the loop not running, not a mechanic being absent",
+      "detail": "Snorlax at full HP (235) holding Leftovers, one passing turn. NOT burned 235 (the heal has nothing to do); BURNED 221 = 235 - 14. Under a body-major walk the chip runs first and Leftovers restores the identical 1/16 after it, so the burned arm reads 235 and the status is free. The two orders differ ONLY at the top and bottom of the bar, which is why no damage differential can see this. The walk itself is counted on the same turn: 24 groups entered (of 24) and 112 step slots (of 112 = every step on all four living bodies) — a zero on either is the loop not running, not a mechanic being absent",
       "hollow": false,
       "armed": true,
       "directCall": false

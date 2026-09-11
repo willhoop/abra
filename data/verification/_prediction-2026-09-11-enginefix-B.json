@@ -1,0 +1,51 @@
+{
+  "batch": "ENGINE batch B — the tag consumer detector, the in-scope unprobed tags, and the refusesCopy flag halves the probes found unread",
+  "written_before_any_run": "2026-09-11T09:26Z",
+  "release": "cut after this file is written; the id is recorded in docs/_reports/2026-09-11-engine-fixes.md",
+  "pins": "--release <B> --census data/mechanics-census.json --team-store data/team-pool-frozen --games 1200 --turns 50 --steering empirical --end-state",
+  "changes": {
+    "detector": "engine/tag_dex.js consumedBy = probe string OR a literal TAGS lookup (engine/tag_lookups.js sourceConsumers). 18 tags flip to consumed, every one printed; 0 entity tags or params move.",
+    "new_tag": "refusedByAbilityFlag (move): entrainment, gastroacid, roleplay, simplebeam, skillswap, worryseed — derived from each refusing handler and from Battle#skillSwap, printed before wiring",
+    "engine": "abilityFlagRefusal() read at the abilitywrite branch (Simple Beam / Worry Seed / Entrainment), the abilityswap branch (Skill Swap, below the shield) and the affect branch's TryHit step (Gastro Acid, first). Knob MEDI_ABILITY_FLAG_REFUSAL_UNREAD. Probe tests/probe_ability_flag_refusal.js, red on 5 of 6 TEST arms before the change.",
+    "census": "11 new rows (isBerry, escapesTrap, healFromDamageDealt, statMult, scalesOwnStatusDamage, 5 refusesCopy halves, 1 refusedByAbilityFlag) and 4 retags (3 Shield Dust -> refusesSecondaries, Marvel Scale -> condStatMult)"
+  },
+  "before": {
+    "release": "d44869164a40 (batch A)",
+    "census": { "live": 861, "probed": 861, "missing": 0 },
+    "coverage": { "consumer": "275 of 294 in scope (coverage-counters report) ", "probed": "287 of 294 in scope" },
+    "engine_diff": { "disagreed": 0 },
+    "roster": {
+      "items":     { "DIFFER": 0, "DID-NOT-FIRE": 0, "MATCH": 142, "COULD-NOT-STAGE": 6 },
+      "abilities": { "DIFFER": 0, "DID-NOT-FIRE": 0, "MATCH": 139, "DEFERRED": 5, "CONTROL-NOT-QUIET": 14, "COULD-NOT-STAGE": 158 },
+      "moves":     { "DIFFER": 0, "DID-NOT-FIRE": 0, "MATCH": 487, "DEFERRED": 3, "COULD-NOT-STAGE": 10 }
+    },
+    "all_mechanics_fire": { "games": 1522, "threw": 0, "moves_diverged": 4, "abilities_diverged": 1, "items_diverged": 0 },
+    "differential": {
+      "middle":           { "board_material": 0, "protocol_diverged": 1 },
+      "top-tie-first":    { "board_material": 1, "protocol_diverged": 13 },
+      "bottom-tie-first": { "board_material": 2, "protocol_diverged": 17 }
+    },
+    "gate": "OPEN, 9 of 9 (quarantine.js on d44869164a40)"
+  },
+  "predicted_after": {
+    "census": { "live": 872, "probed": 872, "missing": 0, "already_measured": "2026-09-11T09:21:54Z; the 3 refusal rows shown MISSING under MEDI_ABILITY_FLAG_REFUSAL_UNREAD alone, all 15 new/retagged rows MISSING under ABRA_TAGS_OFF, both before restore" },
+    "coverage": { "consumer": "293 of 295 in scope (already measured)", "probed": "295 of 295 in scope (already measured)" },
+    "engine_diff": { "disagreed": 0 },
+    "roster": "counts unchanged, 0 DIFFER, 0 DID-NOT-FIRE on all three stages (no roster target carries a refusing ability; medium confidence)",
+    "all_mechanics_fire": { "moves_diverged": 4, "abilities_diverged": 1, "items_diverged": 0,
+      "why": "move:gastroacid's divergence is NOT the refusal: it is Gastro Acid into a Feraligatr with no flag, medicham2 writing `-start|…|move: gastroacid` where the authority writes no such line — a narration row this batch does not touch" },
+    "differential": {
+      "middle":           { "board_material": 0, "protocol_diverged": 1 },
+      "top-tie-first":    { "board_material": 1, "protocol_diverged": 13 },
+      "bottom-tie-first": { "board_material": 2, "protocol_diverged": 17 }
+    },
+    "gate": "OPEN, 9 of 9",
+    "scoreboard_said_before_the_run": "LAB only. The copy-move refusals need a Skill Swap / Simple Beam / Worry Seed / Entrainment / Gastro Acid aimed at Aegislash, Palafin, Mimikyu or Morpeko, and every arm read 0 board-material on this sample before the fix — a parted ability leaf would have shown. The detector and the census rows are non-behavioural."
+  },
+  "would_falsify": [
+    "any new board-material game in any arm",
+    "a roster DIFFER or DID-NOT-FIRE row",
+    "all_mechanics_fire moves_diverged or abilities_diverged rising",
+    "engine-diff disagreements above 0"
+  ]
+}

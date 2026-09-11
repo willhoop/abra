@@ -1903,6 +1903,13 @@ function makeArm(spec) {
        * sort, exactly as the authority does; what is removed is a die the authority does not roll.
        * Under real dice `rngStreams` gives `tie` its own sequence and a tie is a coin flip again. */
       o.tie = () => 0;
+      /* 2026-09-11 — AND THE RANGE STREAM, for the same reason as the corner list's `range` line: the
+       * authority's `random(m, n)` outside the damage machinery returns `m` here too (`MID_RANGE_PINNED`),
+       * so a rampage's length is pinned to its bottom on both sides. Left unset, `rngStreams` would fill
+       * it from `any` — a live address die against a constant. Under `MEDI_MID_RANGE_DRAWS=1` the
+       * authority draws that form live; this line does not follow it, and a run under that knob is a
+       * before-arm for a different defect, not a measurement of this one. */
+      o.range = () => 0;
       return o;
     }
     /* THE PIN-COMPLETENESS RECEIPT, ON THE SIDE THAT CAN ACTUALLY LEAK — see CORNER_PIN_ME. The
@@ -1923,6 +1930,13 @@ function makeArm(spec) {
        * every run since 2026-08-07 resolved a tied group by the selection sort alone, because the
        * generic scalar returned the corner constantly. This line keeps those runs bit-identical. */
       tie: scalar,
+      /* 2026-09-11 — medicham2's `range` stream is the authority's two-argument `random(m, n)` (its one
+       * member is a rampage's length), and THE RANGE FORM IS PINNED TO THE BOTTOM IN EVERY ARM on the
+       * authority's side (see the header and `pinRandom`). `() => 0` is that same pin mirrored — NOT
+       * `scalar`, which is the top corner's constant in the top arm and would hand this engine a
+       * three-turn rampage against the authority's two. A release frozen before the stream existed never
+       * reads the key, so nothing about an older run moves. */
+      range: () => 0,
     });
     if (CORNER_UNPIN && typeof streams[CORNER_UNPIN] === 'function') pinned[CORNER_UNPIN] = streams[CORNER_UNPIN];
     for (const k of Object.keys(pinned)) {

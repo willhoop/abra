@@ -88,7 +88,7 @@ const dex = Dex.forFormat(CS.FORMAT);
 const { mcKey } = require(D('engine', 'mc_key.js'));
 const TAGS = require(D('data', 'tags.json'));
 
-const CHILD = process.env.MEDI_HEALBLOCK_CLOCK_LONG === '1';
+const CHILD = process.env.MEDI_HEALBLOCK_CLOCK_LONG === '1' || process.env.MEDI_HEALBLOCK_REFRESH === '1';
 let bad = 0, stage = 0;
 const ok = (cond, what, detail) => {
   console.log('  ' + (cond ? 'PASS' : 'FAIL') + '  ' + what + (detail ? '\n          ' + detail : ''));
@@ -116,9 +116,15 @@ const BLK = FAM[0];
 
 /* THE ATTACKER learns the blocker, a HARMLESS non-blocking control move of the same category, and a
  * self-target filler it can click on every later turn without touching the victim. */
+/* 2026-09-11 -- A PURE SELF-BOOST, AND THE FIRST FILTER LET ALLY SWITCH THROUGH. `target: 'self'` with no
+ * charge, pivot, stall or heal flag still admits Ally Switch, which SWAPS THE TWO SLOTS: after turn 1 the
+ * authority's slot a held the partner, so any later click aimed "from slot a" came from the wrong body,
+ * while medicham2 (which clicks per BODY) did not move. Arm 8 read that as a clock result. A filler must
+ * change nothing but the clicker's own stages, so it now has to be a boost table with no handler. */
 const SELF_STATUS = s => Object.keys(LS(s)).filter(id => { const m = dex.moves.get(id);
   return m.exists && !m.isNonstandard && m.category === 'Status' && m.target === 'self'
-    && !m.flags.charge && !m.selfSwitch && !m.stallingMove && !m.heal; });
+    && !m.flags.charge && !m.selfSwitch && !m.stallingMove && !m.heal
+    && m.boosts && !m.onHit && !m.onTryHit && !m.onTry && !m.volatileStatus; });
 let PICK = null;
 for (const s of dex.species.all().filter(legal).sort((a, b) => a.name.localeCompare(b.name))) {
   if (!LS(s)[BLK.id]) continue;
@@ -164,7 +170,9 @@ const TURNS = BLK.turns + 4;
  * a secondary between the fixture and its own claim. The gap is wide enough that the heal never caps. */
 const GAP = 60;
 
-function runMedi(firstClick) {
+/* `again` IS THE LIST OF LATER TURNS ON WHICH THE ATTACKER CLICKS `firstClick` AGAIN, AIMED AT THE SAME
+ * VICTIM (2026-09-11, arm 8). Absent, every run is the single application it always was. */
+function runMedi(firstClick, again) {
   const mk = (name, moves, item) => { const b = MEDI.buildMon(mcKey(name, { mayMiss: 'a probe body must be a real row' }), {});
     if (!b) throw new Error('buildMon failed for ' + name);
     b.moves = moves.map(m => dex.moves.get(m).id); b.item = item || ''; b.ability = 'none'; return b; };
@@ -177,9 +185,10 @@ function runMedi(firstClick) {
   const hp = [], ends = [];
   for (let t = 1; t <= TURNS; t++) {
     const n0 = trace.length;
-    const mv = t === 1 ? firstClick : PICK.fill;
+    const aimed = t === 1 || !!(again && again.indexOf(t) >= 0);
+    const mv = aimed ? firstClick : PICK.fill;
     MEDI.battleTurn(S, rng,
-      new Map([[A, MEDI.playerAction(A, mv, t === 1 ? V : null, S.field)], [A2, MEDI.playerAction(A2, PICK.fill, null, S.field)]]),
+      new Map([[A, MEDI.playerAction(A, mv, aimed ? V : null, S.field)], [A2, MEDI.playerAction(A2, PICK.fill, null, S.field)]]),
       new Map([[V, MEDI.playerAction(V, VIC.fill, null, S.field)], [V2, MEDI.playerAction(V2, VIC.fill, null, S.field)]]));
     hp.push(V.curHP);
     if (trace.slice(n0).some(l => /^\|-end\|/.test(String(l)) && /heal *block/i.test(String(l)))) ends.push(t);
@@ -187,7 +196,7 @@ function runMedi(firstClick) {
   return { maxhp: V.st.hp, hp, ends, blockLeft: V._healBlock | 0 };
 }
 
-function runSD(firstClick) {
+function runSD(firstClick, again) {
   const set = (n, mv, item) => ({ name: n, species: n, item: item || '', ability: dex.species.get(n).abilities[0],
     moves: mv.map(m => dex.moves.get(m).name),
     nature: 'Serious', evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
@@ -199,14 +208,28 @@ function runSD(firstClick) {
   const vic = b.sides[1].active[0];
   vic.hp = Math.max(1, vic.maxhp - GAP);
   const hp = [], ends = [];
+  let landed2 = null;
   for (let t = 1; t <= TURNS; t++) {
     const n0 = b.log.length;
-    b.choose('p1', (t === 1 ? ('move ' + firstClick + ' 1') : ('move ' + PICK.fill)) + ', move ' + PICK.fill);
+    const aimed = t === 1 || !!(again && again.indexOf(t) >= 0);
+    b.choose('p1', (aimed ? ('move ' + firstClick + ' 1') : ('move ' + PICK.fill)) + ', move ' + PICK.fill);
     b.choose('p2', 'move ' + VIC.fill + ', move ' + VIC.fill);
     hp.push(vic.hp);
-    if (b.log.slice(n0).some(l => /^\|-end\|/.test(l) && /Heal Block/i.test(l))) ends.push(t);
+    const seg = b.log.slice(n0);
+    if (seg.some(l => /^\|-end\|/.test(l) && /Heal Block/i.test(l))) ends.push(t);
+    /* THE SECOND CLICK LANDED: its `|move|` line names the victim and nothing between it and the next
+     * `|move|` refuses it. Read off the log, never assumed. */
+    if (t === 2 && again && again.indexOf(2) >= 0) {
+      const mvName = dex.moves.get(firstClick).name;
+      const i = seg.findIndex(l => l.startsWith('|move|p1a') && l.split('|')[3] === mvName && /\|p2a/.test(l));
+      if (i >= 0) {
+        const j = seg.findIndex((l, k) => k > i && l.startsWith('|move|'));
+        const tail = seg.slice(i + 1, j < 0 ? seg.length : j);
+        landed2 = !tail.some(l => /^\|-(fail|miss|immune|activate)\|/.test(l)) && tail.some(l => /^\|-damage\|p2a/.test(l));
+      } else landed2 = false;
+    }
   }
-  return { maxhp: vic.maxhp, hp, ends };
+  return { maxhp: vic.maxhp, hp, ends, landed2 };
 }
 
 /* Healing turns: from turn 2 onward the only thing that can RAISE the victim's hp is the item. */
@@ -267,17 +290,61 @@ ok((C.healBlockApplied || 0) > 0 && (C.healBlockExpired || 0) > 0,
   + '  healBlockExpired=' + (C.healBlockExpired === undefined ? 'ABSENT' : C.healBlockExpired));
 
 /* ================================================================================================
- * THE KNOB.
+ * 8 — TEST: A SECOND APPLICATION WHILE THE BLOCK IS STILL UP DOES NOT RESTART THE CLOCK. 2026-09-11.
+ *
+ * `Pokemon#addVolatile` (sim/pokemon.ts:1987-1990) answers a volatile the body already carries with
+ *     if (!status.onRestart) return false;
+ *     return this.battle.singleEvent('Restart', status, this.volatiles[status.id], ...);
+ * and never touches `duration`. Heal Block's `onRestart` (data/moves.ts:8337-8344, no Champions
+ * override) opens `if (effect?.name === 'Psychic Noise') return;` — so a second Psychic Noise on turn 2
+ * leaves the turn-1 clock running: it lapses at turn 2's residual exactly as if the second click had
+ * missed. medicham2's `applyHealBlock` overwrote `_healBlock` unconditionally, which bought one more
+ * blocked residual and a `-end` a turn late.
+ *
+ * THE CLICK IS THE SAME MOVE ON TURNS 1 AND 2, at the same victim. Everything else is the block arm.
+ * `MEDI_HEALBLOCK_REFRESH=1` puts the overwrite back; the parent re-runs itself under it below.
+ * ============================================================================================= */
+const M2 = runMedi(BLK.id, [2]), S2 = runSD(BLK.id, [2]);
+console.log('\n  TWICE  medi  healed on ' + JSON.stringify(healedOn(M2)) + '  `-end` on ' + JSON.stringify(M2.ends)
+  + '\n         sd    healed on ' + JSON.stringify(healedOn(S2)) + '  `-end` on ' + JSON.stringify(S2.ends) + '\n');
+/* THE FIXTURE CLAIM IS THAT THE SECOND CLICK REALLY LANDED IN THE AUTHORITY — not a typed turn. The turn
+ * the block lapses is the authority's answer and the TEST line below compares against it. */
+ok(S2.landed2 === true && S2.ends.length === 1,
+  'FIXTURE — in the authority the second ' + BLK.id + ' really hit the victim on turn 2, and the block lapsed once',
+  'sd second click landed=' + S2.landed2 + '  `-end` on ' + JSON.stringify(S2.ends));
+ok(M2.ends.length === S2.ends.length && M2.ends[0] === S2.ends[0]
+   && healedOn(M2)[0] != null && healedOn(M2)[0] === healedOn(S2)[0],
+  'TEST — a SECOND application while the block is up does not restart the clock (same `-end` turn, same first heal)',
+  'medi `-end` ' + JSON.stringify(M2.ends) + ' first heal ' + healedOn(M2)[0]
+  + '   authority `-end` ' + JSON.stringify(S2.ends) + ' first heal ' + healedOn(S2)[0]
+  + (M2.ends[0] > S2.ends[0] ? '   <-- medicham2 restarted the clock on the second click' : ''));
+if (!CHILD) {
+  const C8 = MEDI.MEDSEEN || {};
+  ok((C8.healBlockRestartKept || 0) > 0,
+    'COUNTER — the restart branch was reached and KEPT the running clock',
+    'healBlockRestartKept=' + (C8.healBlockRestartKept === undefined ? 'ABSENT' : C8.healBlockRestartKept));
+}
+
+/* ================================================================================================
+ * THE KNOBS. Each re-runs this file as a child and must RED it on its own arm.
  * ============================================================================================= */
 if (!CHILD) {
   const { spawnSync } = require('child_process');
-  const r = spawnSync(process.execPath, [__filename],
-    { env: { ...process.env, MEDI_HEALBLOCK_CLOCK_LONG: '1' }, encoding: 'utf8' });
-  const out = String(r.stdout || '') + String(r.stderr || '');
-  const line = (out.match(/^ *(PASS|FAIL) *TEST — the number of residuals.*$/m) || [''])[0].trim();
-  ok(r.status !== 0,
+  const kid = (env, pat) => {
+    const r = spawnSync(process.execPath, [__filename], { env: { ...process.env, ...env }, encoding: 'utf8' });
+    const out = String(r.stdout || '') + String(r.stderr || '');
+    return { status: r.status, line: (out.match(pat) || [''])[0].trim() };
+  };
+  const r = kid({ MEDI_HEALBLOCK_CLOCK_LONG: '1' }, /^ *(PASS|FAIL) *TEST — the number of residuals.*$/m);
+  ok(r.status !== 0 && /FAIL/.test(r.line),
     'KNOB — restoring the turns+1 clock and the silent lapse REDS this probe',
-    'child exit ' + r.status + '   ' + (line || '(the arm printed nothing — the knob is not wired)'));
+    'child exit ' + r.status + '   ' + (r.line || '(the arm printed nothing — the knob is not wired)'));
+  const r2 = kid({ MEDI_HEALBLOCK_REFRESH: '1' }, /^ *(PASS|FAIL) *TEST — a SECOND application.*$/m);
+  const r2single = kid({ MEDI_HEALBLOCK_REFRESH: '1' }, /^ *(PASS|FAIL) *TEST — the number of residuals.*$/m);
+  ok(r2.status !== 0 && /FAIL/.test(r2.line) && /PASS/.test(r2single.line),
+    'KNOB — restoring the restart overwrite REDS the second-application arm and ONLY that arm',
+    'child exit ' + r2.status + '   ' + (r2.line || '(the arm printed nothing — the knob is not wired)')
+    + '   single-application arm under the same knob: ' + (r2single.line || '(nothing)'));
 }
 
 console.log('\n  ' + (stage ? stage + ' FIXTURE problem(s) — a claim about the fixture, never about the mechanic. ' : '')

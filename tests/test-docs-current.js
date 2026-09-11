@@ -578,7 +578,13 @@ function figureRules(base, next) {
   /* REPORTED, NOT GATED: a figure in a dated block whose every cited artifact was regenerated AFTER
    * the block was written. No instrument reading the disk can say whether that record was right, so
    * accusing it is the treadmill and excusing it silently was the defect. The debt it represents is
-   * the documents pass, which clause 5 counts. */
+   * the documents pass, which clause 5 counts.
+   *
+   * "AFTER" IS ORDERED BY THE CLOCK ON A SAME-DAY TIE — 2026-09-11. By day alone, the 6.7.0 notes row
+   * (committed 07:16Z) was judged against a census regenerated at 08:55Z the same day and blocked every
+   * commit. A tie is now ordered by the line's git commit instant against the artifact's `generated`
+   * instant; an uncommitted line, or a stamp with no time or no zone, is still judged. regeneratedAfter
+   * in engine/docs_scan.js; pinned both ways in the citation and trace cases above. */
   const predates = mism.predates || [];
   if (predates.length) {
     const per = {};

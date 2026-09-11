@@ -56,7 +56,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_ohko_type_immunity.js`, `tests/probe_redirect_volatile_already_up.js`,
 `tests/probe_premajor_above_refusals.js`,
 `tests/probe_misty_terrain_status.js`, `tests/probe_charge_release_chosen_slot.js`,
-`tests/probe_corner_mechanisms.js`
+`tests/probe_corner_mechanisms.js`, `tests/probe_simple_beam.js`, `tests/probe_magnetrise_clock.js`,
+`tests/probe_rampage_length.js`, `tests/probe_bond_secondary_order.js`, `tests/probe_ability_flag_refusal.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -141,18 +142,13 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  856/856 probed mechanics live, 0 missing   (census 2026-09-11 03:56)
-    the census probes what somebody thought to probe: 287 of 294 in-scope tags carry a probe, 7 carry none (9 of 303
-    tags have no in-scope carrier); 68 mechanics have never fired in the staged harness (all-mechanics-fire.json, 10
+  872/872 probed mechanics live, 0 missing   (census 2026-09-11 06:01)
+    the census probes what somebody thought to probe: 295 of 295 in-scope tags carry a probe, 0 carry none (9 of 304
+    tags have no in-scope carrier); 68 mechanics have never fired in the staged harness (all-mechanics-fire.json, 38
     min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-11 02:13)
-    seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
-    the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
-    Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
-    multiHit tag were drawn; 3 were never drawn at all (bonerush, doublehit, tailslap) — never drawn is a SAMPLING
-    gap, not an exclusion.
-    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
-    a differential hit is NOT in the census count above — the census probes what someone thought to probe
+  differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/13257c8bc397/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "13257c8bc397".
+    it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     older than its input engine-data.js
@@ -163,14 +159,52 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0394e3673b5b now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: WITHHELD — engine/provenance.js calls data/tags.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    it becomes quotable again when this is re-run: node engine/tag_dex.js
+  tag coverage: 295/295 in-scope probed, 0 unprobed;  293/295 have an engine consumer on every in-scope row, 2 do not;  9 of 304 tags have no in-scope carrier
+    consumedBy comes from engine/tag_dex.js grepping board.js and medicham2-browser.js for a hint
+    string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-11 04:05_
+_stamped 2026-09-11 06:12_
 
 <!-- /GENERATED -->
+
+## FIVE ENGINE DEFECTS FIXED, THEN FIVE MOVES THAT IGNORED AN ABILITY FLAG — EVERY ONE PROBED RED AGAINST THE AUTHORITY FIRST. EVERY IN-SCOPE TAG PROBED, **295 OF 295**. CENSUS **856 → 872 LIVE**. BOARDS UNMOVED: MIDDLE **0**, TOP **1**, BOTTOM **2 OF 961**. GATE **OPEN, 9 OF 9** ON BOTH RELEASES, `d44869164a40` AND `13257c8bc397`. 2026-09-11, CHANGELOG 6.11.0–6.12.0
+
+Full account, every red and every prediction: [docs/_reports/2026-09-11-engine-fixes.md](_reports/2026-09-11-engine-fixes.md).
+ROADMAP #585–#590 closed; #591 and #592 open.
+
+**BATCH A WAS FIVE HYPOTHESES AND ALL FIVE HELD.** Simple written by Simple Beam now doubles every stat change (it
+doubled only Intimidate). Magnet Rise ends at its fifth residual (it never ended). A second Psychic Noise keeps the
+running Heal Block clock (it restarted it). A rampage lasts two or three turns (it was always two). Each has its own
+two-engine probe and its own knob.
+
+**PARENTAL BOND WAS NOT ONLY AN ORDERING.** The harness saw Body Slam's paralysis land between the two hits. The probe
+found the board half: the Champions hit loop runs `selfDrops` and `secondaries` per hit, so Crunch can drop Defence
+twice and Hammer Arm drops its user's Speed twice. An interior arrival now pays both, above its DamagingHit pass.
+
+**THE ONE INSTRUMENT EDIT IS A MIRROR.** The rampage length is drawn on a new `range` stream, and every differential
+arm pins it to 0, because the authority's own `random(m, n)` is pinned to `m` in every arm. No pin digest moved.
+
+**THE TAG PROBES FOUND WHAT THE PLAN DID NOT CHECK.** `tag_dex.js` now counts a tag as read when the engine looks it up
+by name: 18 tags flipped and nothing else moved. The new `refusesCopy` rows showed that only Trace, Receiver and Role
+Play asked Showdown's copy and suppress flags. Simple Beam, Worry Seed, Entrainment, Gastro Acid and Skill Swap did
+not. One derived move tag, `refusedByAbilityFlag`, and one reader fix all five.
+
+**GENDER IS DESIGNED, NOT LANDED.** The readers exist, but no harness body carries a gender. The engine half alone
+cannot prove it ran while every harness forces `'N'`, so it waits for `buildPair` (MEASURE). ROADMAP #592.
+
+### The hand list
+
+**Leaving it:** Parental Bond's secondary against its second hit, now `tests/probe_bond_secondary_order.js` and census
+row `ability/hitsTwice`.
+
+**Joining it:** Gastro Acid's `-endability` announcement (ROADMAP #591); gender (#592); Simple and Contrary at the
+boost sites that do not ask `invSign` (an ally-targeted boost move, a contact or shield punish, item boosts) and
+under a Mold Breaker source; Parental Bond's procedural secondaries (no legal carrier learns one); a three-turn
+rampage interrupted on turn 2 (both counters exist, nothing stages it); Shed Shell's request-layer `maybeTrapped`
+half.
+
+**Still on it:** unchanged from the section below.
 
 ## THE HARNESS COMPARES THE ACT OF EVOLVING. **BOARDS COMPARED 739 → 832 OF 964**: ALL 75 MEGA STONES, 15 NO-CONTROL ABILITIES PROVEN OFF THE AUTHORITY'S LOG, IMPOSTER, LIMBER, STRUGGLE. **NO NEW BOARD PARTS.** ONE NEW PROTOCOL DIVERGENCE, PARENTAL BOND, BOARD-CLEAN. GATE **OPEN, 9 OF 9**; CENSUS **856 LIVE**, UNCHANGED. RELEASE `2b5a6585d8cf`. 2026-09-11, CHANGELOG 6.8.0
 

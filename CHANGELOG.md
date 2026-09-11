@@ -25,6 +25,44 @@ silently rewritten; what changed and why is stated.
   line's commit instant against the artifact's `generated` instant, and a row written after the
   regeneration is still judged.
 
+## [6.12.0] — 2026-09-11
+
+### Fixed
+- **Five moves that fail on an ability flag now ask the flag.** Showdown marks the abilities that may not be
+  copied, swapped or suppressed, and Simple Beam, Worry Seed, Entrainment and Gastro Acid read that mark in their
+  own `onTryHit` while Skill Swap reads it inside `Battle#skillSwap`. This engine asked only for Trace, Receiver and
+  Role Play, so it rewrote a Stance Change, swapped a Zero to Hero away and suppressed a Disguise, each of which
+  the authority refuses. A derived move tag, `refusedByAbilityFlag`, carries which flag each move asks and of which
+  body, and one reader applies it at the three branches.
+- **`engine/tag_dex.js` counts a tag as read when the engine looks it up by name**, through
+  `engine/tag_lookups.js`, not only when a hint string happens to appear. Eighteen tags the file had called
+  unread were read all along; no tag or parameter moved.
+
+### Added
+- A census probe for every in-scope tag that had none — Chople Berry under Stuff Cheeks, Shed Shell, Shell Bell,
+  Light Ball, Heatproof, and the copy-refusal flags — and `tests/probe_ability_flag_refusal.js`. Three live Shield
+  Dust rows and one Marvel Scale row now carry their real tags.
+
+## [6.11.0] — 2026-09-11
+
+### Fixed
+- **Five engine defects, each probed red against the authority first and each behind its own `MEDI_*` knob.**
+  A body given Simple by Simple Beam now doubles every stat change it takes, a raise as well as a drop
+  (`simple.onChangeBoost`, `data/abilities.ts:4274-4281`); only Intimidate had been doubled. Magnet Rise now
+  ends after its five residuals and writes its `-end`; it had never ended. A second Psychic Noise on a body
+  that is still heal-blocked no longer restarts the clock (`Pokemon#addVolatile` routes it to `onRestart`,
+  which sets no duration). A Parental Bond volley rolls its secondary and pays its `self:` drop on each hit,
+  as the Champions hit loop does, so a Crunch can drop Defence twice and a Hammer Arm drops its user's Speed
+  twice. A rampage now lasts two or three turns, drawn as `lockedmove` draws it, where it was always two.
+- **Simple is in `data/tags.json`.** No legal species carries it, but a legal move writes it, so
+  `engine/tag_dex.js` admits an ability that `engine/legal_scope.js` finds a legal move conferring.
+- **The differential pins the new `range` stream to its bottom in every arm**, mirroring the authority's own
+  pin on `random(m, n)`, so the rampage draw cannot part the engines under measurement.
+
+### Added
+- Five two-engine probes (`tests/probe_simple_beam.js`, `probe_magnetrise_clock.js`, `probe_rampage_length.js`,
+  `probe_bond_secondary_order.js`, and arm 8 of `probe_healblock_clock.js`) and five census rows.
+
 ## [6.10.0] — 2026-09-11
 
 ### Changed
