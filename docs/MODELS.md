@@ -1076,34 +1076,26 @@ DODUO — none exists.* First evidence it moves at all: two iterations at 40 gam
 `bothSameTarget` **+0.164** (third-largest change in the whole vector), `overkill` **+0.120**,
 `focusFireKills` **+0.094** — self-play wants focus fire more than the human fit did.
 
-**Refitted 2026-08-02 on `engine/click_match.js`** — 7,454 clean games, **81,515 usable joint turns**
-(66,236 before; ~~24,997~~ before the spread-matcher fix — struck 2026-09-10, that counter was printed
-by the fitter and no artifact records it), 66,520 train / 14,995 held out. Re-derived 2026-09-10 from
-the blob that run wrote, commit `52645850`: `corpus` reads games 7,454 / pairs 81,515 / heldOut 14,995,
-and 66,520 is the train remainder.
+**Refitted 2026-08-02 on `engine/click_match.js`**, on clean games, split into train and held-out.
+**Its corpus counts are withheld** (withdrawn 2026-09-11). They were re-derived on 2026-09-10 from the
+blob that run wrote, commit `52645850`, which is a version of `data/policy-weights-joint.json`, and the
+matcher's kept-turn counts before and after the fix sit in `data/redirect-audit.json` and
+`data/collinearity-joint.json`; the gate withholds all three.
 
-| predicting which PAIR a human clicked | log-lik | top-1 |
-|---|---|---|
-| two moves decided separately (what MAG does) | −3.3425 | 10.1% |
-| refitted, joint terms forced to zero | −3.3318 | 9.4% |
-| with the joint terms | −3.2447 | **12.2%** |
-
-Read the middle row before the last: refitting the single-move weights on pair data buys nothing on
-its own here, and **the whole gain belongs to the coordination terms**. (At 48 features on 2026-07-28
-the split was the other way round — over half the gain was the refit — so this reads differently now
-that the matcher is not discarding a quarter of the turns.) All of it predicts a human click; it is
+It compared three predictors of which PAIR a human clicked — two moves decided separately (what MAG
+does), the refit with its joint terms forced to zero, and the refit with them — on held-out
+log-likelihood and top-1. Those figures are withheld with the joint weights, and so is which of the
+refit and the coordination terms carried the gain. All of it predicts a human click; it is
 not evidence the pair wins more games.
 
-**Stability, and it is the answer to a question that was open:** the 2026-08-01 refit flipped **nine
-of eighteen** pair signs, which looked like an unstable block. Handed a further 15,279 turns, this
-refit flips **none of 74** weights and moves the vector 12.0% in L2. `engine/collinearity_joint.js`
-says why: the highest VIF in the pair block is **2.2** and no other exceeds 1.7, so there is no
-credit-splitting to destabilise it. The nine flips were the matcher fix changing what the data said,
-not noise.
+**Stability was measured against the refit before it:** sign flips across the pair block, the
+vector's movement in L2 and the pair block's variance-inflation factors
+(`engine/collinearity_joint.js`). Those figures, and the verdict they supported, are withheld with
+`data/collinearity-joint.json` (withdrawn 2026-09-11).
 
-**What the audit did find** is the opposite failure — three weights fitted on almost nothing:
-`terrainSetupHelpsPartner` carries the block's **largest** coefficient (+1.605) and fires on 0.00% of
-enumerated alternatives; `weatherSetupHelpsPartner` 0.04%; `boostMayConvertKill` 0.06%.
+**What the audit looked for** is the opposite failure — weights fitted on almost nothing, where a large
+coefficient rests on a feature that almost never fires among the enumerated alternatives. Which weights
+it found, their coefficients and their fire rates are withheld with the artifact.
 `data/collinearity-joint.json` records the fire rate beside every weight, because in a table of
 coefficients a barely-observed one looks identical to a well-supported one.
 **Now wired into `magnemite.js` for the first time** (`--joint`, off by default). It had never once
@@ -1130,12 +1122,12 @@ tempo. It KOs less (22.3% against 25.1%) and Protects nearly twice as often (1.7
 0.93%).
 
 **Why, and it is the same lesson MACHAMP taught.** These are IMITATION weights. The fit prices
-`spreadFreeBesideAlly` at −5.054, `terrainSetupHelpsPartner` at −3.989 and
-`screenWhileThreatened` at −3.372, at lambda = 0 (re-derived 2026-09-10: those are the three
-`jointFeatures` weights in the 48-feature fit of 2026-07-28, commit `c1566ee1`). Those are statements that humans rarely click
-those pairs, not that the pairs are bad — and a bot told to avoid a free spread move beside its
-own ally by −5 will decline its best plays. Predicting a human pair (14.5% top-1, up from 5.9%)
-and winning are different objectives, and this is the cleanest separation of the two the project
+`spreadFreeBesideAlly`, `terrainSetupHelpsPartner` and `screenWhileThreatened` strongly negative, at
+lambda = 0 (re-derived 2026-09-10: the three `jointFeatures` weights in the fit of 2026-07-28, commit
+`c1566ee1`; the values are withheld with the joint weights, withdrawn 2026-09-11). Those are statements
+that humans rarely click those pairs, not that the pairs are bad — and a bot told to avoid a free spread
+move beside its own ally that strongly will decline its best plays. Predicting a human pair (the fit's
+held-out top-1 is withheld with the joint weights) and winning are different objectives, and this is the cleanest separation of the two the project
 has measured.
 
 > **WITHDRAWN 2026-08-01. All three of those numbers were a fitter defect, not a preference.**
@@ -1145,11 +1137,10 @@ has measured.
 > discarded; the fit ran on ~~24,997 of 82,483~~ joint turns — struck 2026-09-10, those two counters are
 > `fit_joint.js` console output and no artifact records either, every revision of the joint weights file
 > checked — and the missing majority was precisely the turns
-> these three features describe. Refitted on 63,305 turns, all three change sign:
-> `spreadFreeBesideAlly` −4.986 → **+0.863**, `terrainSetupHelpsPartner` −4.125 → **+2.005**,
-> `screenWhileThreatened` −2.982 → **+0.110**. Re-derived 2026-09-10, both halves: the three “before”
-> weights are the `jointFeatures` entries of commit `b030ca03` (fit of 2026-07-31) and the three “after”
-> weights, together with `corpus.pairs` 63,305, are those of commit `fc7e76ce` (2026-08-01).
+> these three features describe. Refitted, all three change sign. Re-derived 2026-09-10 from the
+> `jointFeatures` entries of commit `b030ca03` (fit of 2026-07-31) and of commit `fc7e76ce`
+> (2026-08-01), both versions of the joint weights file, which the gate withholds; the before and after
+> values and the refit's turn count are withheld with it (withdrawn 2026-09-11).
 >
 > The corrected vector then **beat the shipped one at 66.7% and 65.9% of decisive pairs** on two
 > disjoint seed blocks. So the paragraph above has it backwards for these three: the imitation fit was
@@ -1259,12 +1250,13 @@ held-out confirmation set whose sizes are withheld with the rest of that artifac
 UTC while it was running**, `engine/board.js` was written mid-search, and
 `engine/medicham2-browser.js` changed content twice more after it, sampled 90 seconds apart. Its
 figures are not quotable and are recorded struck through in `docs/SEARCH.md` §R8.
-**Two things survive, and both are about the tool rather than about MAG.** The hill-climb accepted
-**1 of 24** steps (against 10 of 18 in the 17-feature run) and its step scale decayed to 0.0168, so
-from round ~10 it was perturbing a near-copy of MAG — **the attack dies in 58 dimensions and would
-have returned an uninformative null on a still tree too.** And `provenance.js` now marks
+**Two things survive, and both are about the tool rather than about MAG.** The hill-climb almost
+never accepted a step, and its step scale decayed until it was perturbing a near-copy of MAG — **the
+attack dies at the shipped dimension and would have returned an uninformative null on a still tree
+too.** The acceptance count, the comparison with the earlier smaller-feature run and the decayed step
+scale are withheld with the void run (withdrawn 2026-09-11). And `provenance.js` now marks
 `exploitability.json` **`ok`**, falsely: the artifact is 153 s newer than the weights file but was
-computed from a version of it 34 minutes older, and an mtime check cannot see that.
+computed from a version of it more than half an hour older, and an mtime check cannot see that.
 **So MAG's readability is UNMEASURED, not merely stale.** `docs/SEARCH.md` §R8 has the timeline, the
 corpus, the five defects in `engine/exploit.js`, and the prepared re-run with its preconditions.
 **Read it with MACHAMP:** MACHAMP raises the bar, WOBBUFFET measures how easily the bar is cleared. Together they are the win-objective loop; separately neither means much.
@@ -1582,9 +1574,8 @@ independently of that fix.
 
 > **A note on this ledger, recorded because it is the same class of defect.** `docs/MODELS.md` was
 > found drifted on 2026-08-04 in three separate places and all three are corrected in this pass:
-> MAG's fit read *6,091 games / 146,910 decisions / 53 features* against `data/policy-weights.json`'s
-> **8,414 / 220,613 / 58**; MAG's corpus line read *198,157 decisions from 7,507 games* against the
-> same file's **220,613 kept of 228,084 seen from 8,414**; and SLOWKING's headline mixture,
+> MAG's fit line and MAG's corpus line both disagreed with `data/policy-weights.json` (the counts on
+> both sides are withheld with the MAG weights, withdrawn 2026-09-11); and SLOWKING's headline mixture,
 > exploitability, cycle and CI existed **in no file on disk at all**. A fourth reported drift did not
 > reproduce: the mechanics census reads **102 live of 144 probed, 42 missing** in
 > `data/mechanics-census.json`, `docs/ENGINE.md:15` already prints exactly that, and `docs/MODELS.md`
@@ -1888,9 +1879,9 @@ not be quoted as evidence that species choice predicts outcomes.
 **Method:** three files. `engine/board.js` reconstructs the state a decision was made against and turns (move, target) pairs into **58 features** (12 at 3.21.0); `engine/fit_policy.js` fits those features to real human clicks by **conditional logit** (McFadden 1974) over the fit corpus; `engine/magnemite.js` plays the fitted distribution inside the official engine. `mew.js --policy score`. **6.0.0 — THE CORPUS SIZES ARE STILL ABSENT, AND IT IS NOW A DECISION.** `data/policy-weights.json` is reserved for a refit sequenced AFTER 6.0.0 (Will, 2026-09-09), so `node engine/major_readiness.js` keeps it and every artifact that reads it on the STAY list. The games, decisions, train and held-out counts were taken through a simulator that no longer exists and are absent rather than captioned. They return when the owner asks for the refit: `node engine/fit_policy.js`. **CORRECTED 2026-09-11:** the gate is CLOSED again, so this is a gate as well as a decision — `data/policy-weights.json` is on the withheld list `node engine/quarantine.js` prints, and a refit alone does not make these counts quotable.
 
 > **Every figure in that line was corrected 2026-08-04 and none of them was a typo.** It read
-> 53 features / 6,091 games / 146,910 decisions / 117,824 train / 29,086 held out. The artifact —
-> `data/policy-weights.json`, generated `2026-08-04T02:17:31Z` — carries `features` of length **58**
-> and `corpus` of **8,414 / 220,613 / 176,580 / 44,033**. The ledger was describing the fit before
+> an older fit's feature count and corpus counts. The artifact — `data/policy-weights.json`, generated
+> `2026-08-04T02:17:31Z` — carried a different feature count and corpus; both sets of counts are
+> withheld with the MAG weights (withdrawn 2026-09-11). The ledger was describing the fit before
 > last, and a second heading two screens down still said "56 FEATURES AS OF 3.29.0" while the method
 > line above it said 53, so the file disagreed with itself as well as with the artifact. This is the
 > drift `docs/MODELS.md`'s own header warns about, recurring in the entry for the model at the centre
@@ -1921,7 +1912,7 @@ top-1, no logL effect, no interval and no noise floor is carried here, and no di
 of the absence. They become quotable again when the gate opens AND these are re-run:
 `node --max-old-space-size=4096 engine/fit_joint.js` and `node engine/sheet_channel_value.js`.
 
-**THE OUTPLAYED TURNS ARE IN THE FIT NOW, AND 1,336 THINGS THAT WERE IN IT ARE NOT — 3.42.0.**
+**THE OUTPLAYED TURNS ARE IN THE FIT NOW, AND THINGS THAT WERE IN IT ARE NOT — 3.42.0.**
 `docs/CLICK-CENSORING-FIX.md`, all four stages, artifacts `data/click-censoring-census.json`,
 `data/partial-label-em.json`, `data/censoring-value.json`.
 
@@ -1943,22 +1934,20 @@ fitted as human choices. A further class is redirected attacks whose recorded ta
 redirector; those are now fitted under the marginal likelihood over a two-member candidate set instead
 of as a confident wrong label.
 
-The refit's own movement is legible without the corpus counts: `‖new − old‖₂ = 0.8030`, 9 of 58
-weights past 2 SE, and the largest single movement is `stallIntoEncore` — *"I am about to Protect and
-something across from me can Encore me for it"* — at **−1.0502 → −1.6281**, which is the direction the
-mechanism predicts.
+The refit's movement was read the same way — its L2 change, how many weights moved past two standard
+errors, and which moved most — and those figures are withheld with the MAG weights. The mechanism
+predicts that `stallIntoEncore` — "I am about to Protect and something across from me can Encore me
+for it" — should fall; whether it did is withheld with them.
 
-**The measured value, and the half that did not work.** 48,274 paired held-out decisions over 1,851
-games, bootstrapped over GAMES (`engine/censoring_value.js`, re-run 2026-08-05 under the current
-engine on a corpus grown to 10,009 games; the 3.42.0 run measured 47,195 decisions over 1,809 games
-and every figure below is inside that run's interval): on **COERCED** turns the model now puts
-**−0.002613 [−0.003650, −0.001672]** less probability on the action no human chose — the poison
-unlearned. On **REDIRECTION** turns there is **no improvement**: mass on the true candidate set
-+0.000122 [−0.000261, +0.000514], and the log-likelihood on the set is very slightly worse. Corpus
-top-1 is flat (−0.008 points, contains zero), which the spec disclaimed in advance. The estimator
-itself is sound — it recovers **97.4%** of a planted censoring bias when censoring is heavy — and at
-the corpus's real rate the bias is **inside its own noise floor**, which is why nothing moved. Every
-effect here is smaller than its class's split-half floor and resolves only because it is paired.
+**The measured value is withheld, with the figures it rested on** (withdrawn 2026-09-11).
+`engine/censoring_value.js` scored paired held-out decisions, bootstrapped over GAMES, on **COERCED**
+turns (probability left on the action no human chose), on **REDIRECTION** turns (mass and
+log-likelihood on the true candidate set) and on corpus top-1; the estimator's recovery of a planted
+censoring bias was checked separately. `data/censoring-value.json` and `data/partial-label-em.json`
+are both on the withheld list `node engine/quarantine.js` prints, so no sample size, effect, interval
+or verdict is carried here, and no direction may be inferred from the absence. They become quotable
+again when the gate opens AND these are re-run: `node engine/censoring_value.js` and
+`node engine/em_validation.js`.
 
 **Two changes to how the policy is USED beat every change to what it knows.** Measured 2026-07-30:
 taking the best move instead of sampling is worth **+12 points raw / 79.7% of decisive pairs**, and
@@ -2470,10 +2459,11 @@ from this file, which is correct — this is evidence, not a rule.
   than struck through, and its interval and control go with it. The retraction stands on its own
   reasons: 17 features against 58, an engine 25 wire-fixes old, computed before the quality filter
   existed. It becomes quotable again when the gate opens AND this is re-run: `node engine/exploit.js`.
-- **MAG's weights moved, and it changed nothing measurable.** The board weather defect was real (14 of
-  58 columns, 10.72% of turn-boards) and worth fixing on its own terms; refitting on top of it returned
-  an interval containing zero on both metrics.
-- **MAG is fitted without the ability and moves its live player reads.** 50.47% of the decisions it
-  trains on are priced against a board `magnemite.js` does not present. Unfixed by decision — it
+- **MAG's weights moved; what the move was worth is withdrawn.** The board weather defect was real and
+  worth fixing on its own terms; the paired measurement of the refit on top of it traces to no artifact
+  and compared two MAG vectors the gate withholds, so it is not carried (withdrawn 2026-09-11).
+- **MAG is fitted without the ability and moves its live player reads.** The share of the decisions it
+  trains on that are priced against a board `magnemite.js` does not present is not carried: no artifact
+  backs it, and it is a count over the withheld MAG fit. Unfixed by decision — it
   requires a full refit and a prior answer about opponents who decline open team sheets.
 

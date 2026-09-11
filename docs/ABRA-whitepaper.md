@@ -1644,14 +1644,12 @@ coin — is carried by the artifact-backed nulls in §4 and the appendix (`data/
 `data/war.json`, `data/chomp-ev.json`). A cloned-policy rollout engine
 (MEDICHAM) does *worse* than a coin as a raw win-predictor.
 
-**Re-measured 2026-08-04 on 6,886 clean games**, against the leaves MILTANK actually calls rather than
-the `winProb2` entry point the earlier readings scored. Paired against a coin on identical turn-0
-positions, the in-game leaf (`explore=1.0`, 200 rollouts, held-out n=1,378) loses by **Brier +0.0502,
-95% CI [0.0371, 0.0628]**, and the team-preview leaf (n=6,886) by **+0.0740 [0.0668, 0.0813]**; both
-also lose to player-Elo. The reliability curve is nearly flat — the in-game leaf's 90-100% bucket wins
-53.6% and its 0-10% bucket wins 53.8% — and it names the winner on **50.99% of 1,314 decisive calls,
-95% CI [48.3, 53.7]**, which is a coin. The preview leaf discriminates barely: 53.22% of 6,700
-(CI [52.0, 54.4]), about 1.9 points above its own split-half noise floor.
+**Re-measured 2026-08-04**, against the leaves MILTANK actually calls rather than the `winProb2`
+entry point the earlier readings scored. The in-game rollout leaf and the team-preview leaf were each
+paired against a coin on identical turn-0 positions and compared with player-Elo, with a reliability
+curve, a decisive-call rate and a split-half noise floor measured beside them. **Every figure that
+re-measurement produced is withheld, its sample sizes included, and so is its verdict** (withdrawn
+2026-09-11): it comes out of the artifact the next paragraph names, which the gate withholds.
 
 *This supersedes, and partly corrects, the earlier reading.* The 2026-07-23 figure ("log-loss ≈ 1.2;
 picks the winner on ~44% of decisive calls, i.e. systematically **inverted**") is retained here because
@@ -1914,7 +1912,7 @@ yet empirically supported. This negative is a guardrail: it stops optimising a b
 carries no held-out winning signal . Report `data/chomp-ev.json`; test
 `tests/test-chomp-ev.js`.
 
-**Multiplicity, corrected 2026-07-31.** The fit reports a 95% interval for all 56 features, so at alpha 0.05 about **2.8 of them clear zero by chance alone**. The family is **every feature in the shipped fit**, because every one is reported to the reader — choosing a smaller family after seeing which are large is the practice the correction exists to prevent. Uncorrected, **53** clear zero. Under **Benjamini–Hochberg** (FDR, 1995) **53** survive; under **Bonferroni** (FWER) **49**. Nothing significant uncorrected fails the FDR correction, so the headline count is not an artefact of having looked at 56. Computed by `engine/weight_multiplicity.js` → `data/weight-multiplicity.json`. **This says which weights are distinguishable from zero. It says nothing about whether an imitation-fitted weight is evidence about WINNING** — a separate and larger question this project has measured going the other way.
+**Multiplicity, corrected 2026-07-31.** The fit reports a 95% interval for every feature, so at alpha 0.05 some of them clear zero by chance alone. The family is **every feature in the shipped fit**, because every one is reported to the reader — choosing a smaller family after seeing which are large is the practice the correction exists to prevent. The counts that clear zero uncorrected, under **Benjamini–Hochberg** (FDR, 1995) and under **Bonferroni** (FWER), and whether anything significant uncorrected fails the FDR correction, are **withheld** (withdrawn 2026-09-11): the artifact is on the withheld list `node engine/quarantine.js` prints, and the counts this paragraph carried no longer matched it. Computed by `engine/weight_multiplicity.js` → `data/weight-multiplicity.json`. **This says which weights are distinguishable from zero. It says nothing about whether an imitation-fitted weight is evidence about WINNING** — a separate and larger question this project has measured going the other way.
 
 **A phrasing the filter itself mandates.** `require_full_bring` conditions on game length, so every bring statistic in this project is *"the bring, **among games long enough to show it**"*, which is not the same as "the bring". `data/quality-filter.json` states that at the point of filtering, in `rules.require_full_bring.known_limitation`, and requires it to be said downstream; this is that. The SIZE of the conditioning is the step the artifact actually records: `provenance.funnel.after_min_turns` **26,142** to `provenance.funnel.after_full_bring` **18,908**, on `provenance.store_size` **67,384** at `provenance.measured_on` 2026-08-27.
 
@@ -2013,21 +2011,22 @@ cores beat which" and for quantifying how cyclic the meta really is.
 
    The cleanest demonstration is the pair-scoring layer (DODUO), which is **built, wired, controlled
    and measured, and loses at 42.0%** [39.9, 44.3] over 1,934 seed-paired games against its own
-   zeroed control. Its fit prices "use a spread move beside my own ally that does not hurt it" at
-   **−5.054** (`spreadFreeBesideAlly` in the 48-feature joint fit of 2026-07-28, commit `c1566ee1`,
-   re-derived 2026-09-10) — a statement that humans rarely click it, not that it is bad. Refitting those weights
+   zeroed control. Its fit prices "use a spread move beside my own ally that does not hurt it" strongly
+   negative (`spreadFreeBesideAlly` in the joint fit of 2026-07-28, commit `c1566ee1`, re-derived
+   2026-09-10; the value is withheld with the joint weights, withdrawn 2026-09-11) — a statement that humans rarely click it, not that it is bad. Refitting those weights
    for *winning* rather than *resemblance* is untested and is the project's top open question.
 
-   > **CORRECTED 2026-08-01, and this paragraph should no longer be cited as it stands.** The −5.054
+   > **CORRECTED 2026-08-01, and this paragraph should no longer be cited as it stands.** That weight
    > was not a statement about human preference. `fit_joint.js` matched a human's click by requiring
    > the candidate's target to match, and a spread move is built with no target because it is not
    > aimed — so **no spread click could ever match**. Spread moves are 14.94% of all human move clicks
    > and 99.7% of them were thrown away; the fit used ~~24,997 of 82,483~~ joint turns — UNSOURCED, struck
    > 2026-09-10: those are counters `fit_joint.js` printed, and no artifact records them — all 18 revisions of
    > the joint weights file were checked — and the discarded majority was exactly the turns containing
-   > the play the feature describes. Refitted, the weight is
-   > **+0.863**, and the corrected vector beats the shipped one at **66.7%** and **65.9%** of decisive
-   > pairs on two disjoint seed blocks. DODUO's 42.0% was measured on the contaminated vector and does
+   > the play the feature describes. Refitted, the weight changes
+   > sign, and the corrected vector was played against the shipped one on two disjoint seed blocks; the
+   > refitted value is withheld with the joint weights, and the two decisive-pair shares are withdrawn
+   > with it, because no artifact records them (2026-09-11). DODUO's 42.0% was measured on the contaminated vector and does
    > not describe the current one. The imitation-versus-winning argument stands on its other evidence —
    > greedy action selection is worth about 12 points — but not on this example.
 
@@ -2286,7 +2285,7 @@ all four channels, with a point-of-use counter showing the share of scored decis
 declared channels reached the board — an environment match stated by measurement, not by
 diff-reading. The fit's decision counts (at the 3.40.0 fit, and after the 3.42.0 click-censoring
 pass) and the counter's share are withheld with the MAG weights (withdrawn 2026-09-11). The pre-refit weights are preserved and the two-channel incumbent is frozen as a
-release (`d3d04b669e18`) for the pending paired held-out comparison against the 0.192-point noise
+release (`d3d04b669e18`) for the pending paired held-out comparison against its split-half noise
 floor. The joint (pair) layer is **not yet refitted**; until it is, the pair layer still prices
 against the two-channel board, and no improvement claim is made for either layer.
 
@@ -2369,15 +2368,14 @@ p_{c'}` and the M-step is the existing conditional-logit gradient on `q`-weighte
 
 **The estimator was validated on planted weights before the refit ran.** Real corpus feature rows,
 synthetic labels drawn from a known `w*`, the real censoring process applied to those labels, three
-seeds (`data/partial-label-em.json`):
+seeds (`data/partial-label-em.json`), in two regimes: heavy, systematic censoring, and the corpus's
+own rate. Each regime set the oracle, naive and EM fits' distance from the planted weights against a
+noise floor.
 
-| regime | rows censored | ‖ŵ − w*‖₂ oracle | naive | EM | noise floor |
-|---|---|---|---|---|---|
-| heavy, systematic | 20.96% | 0.9978 | **1.8913** | **1.0208** | 0.2600 |
-| the corpus's own rate | 0.44% | 0.9978 | 0.9948 | 1.0021 | 0.2600 |
-
-EM recovers **97.4%** of the censoring bias where the naive fit is visibly wrong, and at the rate the
-corpus actually censors the bias is **−0.0030 against a 0.2600 floor** — inside the noise.
+**The recovery figures are withheld** (withdrawn 2026-09-11), and so is the reading drawn from them.
+`data/partial-label-em.json` is on the withheld list `node engine/quarantine.js` prints, and the table
+that stood here no longer matched it: the artifact was re-run on 2026-08-26 and the table was not. It
+becomes quotable again when the gate opens AND this is re-run: `node engine/em_validation.js`.
 
 **THE PAIRED HELD-OUT RESULT IS QUARANTINED — every figure it carried is withheld, not annotated.**
 `data/censoring-value.json` is downstream of MEDICHAM: its generator `engine/censoring_value.js` is in
@@ -2395,11 +2393,12 @@ justification for the fix, which never depended on the measurement: a wrong labe
 and the redirection class was always small enough that its own validation predicted almost no bias to
 remove. No corpus-wide top-1 improvement was ever claimed for it.
 
-The mechanism is legible in the refit: of 58 weights, 9 moved past 2 SE and the largest single
-movement is `stallIntoEncore` — *"I am about to Protect and something across from me can Encore me
-for it"* — at **−1.0502 → −1.6281**. The poisoned rows were victims "choosing" their last move under
-an active Encore; deleting them makes clicking into an Encore threat look worse, which is the
-direction the mechanic predicts.
+The mechanism was checked against the refit's weight movement — how many weights moved past two
+standard errors, and which moved most — and those figures are withheld with the MAG weights. The
+poisoned rows were victims choosing their last move under an active Encore, so the mechanic predicts
+that deleting them makes clicking into an Encore threat look worse — the weight it names is
+`stallIntoEncore`, "I am about to Protect and something across from me can Encore me for it" — and
+whether the refit moved that way is withheld with them.
 
 **Three limits, stated.** (i) The two vectors also differ by 86 games of corpus growth and by the
 refit itself, so the attribution rests on the weight-movement pattern rather than on an isolated
@@ -2576,22 +2575,18 @@ while its secondary-suppression half worked — strictly worse than no ability. 
 injection point (`__setDB` plus the derived-set rebuild hook the amended plan requires) landed and
 was exercised 26 times by the probe-red-demonstration harness.
 
-**Measure:** the JOINT layer is refitted on the four-channel sheet — 95,886 usable joint turns,
-channel-reach counters at 99.7%, feature semantics verified — closing the second half of the
-fitting-environment gap. The held-out channel-value measurement ran A/B/C against the frozen
-two-channel incumbent (release `d3d04b669e18`), 44,982 paired decisions, 10,000 game-bootstrap
-resamples:
+**Measure:** the JOINT layer is refitted on the four-channel sheet, with its channel-reach counters
+and feature semantics checked — closing the second half of the fitting-environment gap. The held-out
+channel-value measurement ran A/B/C against the frozen two-channel incumbent (release
+`d3d04b669e18`), paired per decision and bootstrapped over games, on three contrasts: the information
+alone with weights frozen, the refit given the information, and everything against what shipped, each
+on log-likelihood per decision and on top-1, beside a split-half noise floor for the shipping arm.
 
-| paired difference | logL/decision | top-1 points |
-|---|---|---|
-| information alone, weights frozen | **+0.002853** [0.001611, 0.004072] | +0.009 [−0.140, +0.157] |
-| refit, given the information | **+0.002234** [0.001638, 0.002831] | +0.165 [0.029, 0.299] |
-| everything vs what shipped | **+0.005087** [0.003854, 0.006331] | +0.173 [−0.011, +0.360] |
-
-Split-half noise floor of the shipping arm: **0.331 top-1 points** (median, 20 cuts). The honest
-reading: the sheet channels buy a real per-decision likelihood gain — every logL interval clears
-zero — and **no demonstrable top-1 gain**; the one clearing interval is half the noise floor and
-resolves only because the comparison is paired. The first measurement attempt self-voided when the
+**Every figure that refit and this measurement produced is withheld (withdrawn 2026-09-11)** — the
+joint layer's turn count and reach share, the sample size, each contrast and its interval, and the
+noise floor — and so is the reading drawn from them; no direction may be inferred from the absence.
+`data/policy-weights-joint.json` and `data/sheet-channel-value.json` are both on the withheld list
+`node engine/quarantine.js` prints. The first measurement attempt self-voided when the
 engine moved mid-run and was re-run clean — the release discipline working as designed.
 
 **And the tags regeneration was gated the way the rules demand:** after the staged derivations
@@ -2601,7 +2596,7 @@ so the night's fits stand unre-run.
 
 ## Measuring an engine that is being edited (3.36.0 – 3.39.0)
 
-### A refit that bought nothing, reported as such
+### A refit whose measured effect is withdrawn
 
 The feature function was wrong about the weather on 10.72% of turn-boards: `engine/board.js` carried a
 private weather map that recognised Desolate Land and Primordial Sea — neither of which this format can
@@ -2615,17 +2610,18 @@ are among the three whose MEANING changed under the mega work — `switchSurvive
 Paired per decision on the same held-out split of the 3.40.0 fit corpus (its decision and game counts
 are withheld with the pre-refit weights, withdrawn 2026-09-11), bootstrapped over game resamples:
 
-| paired difference | logL / decision | top-1 points |
-|---|---|---|
-| fix alone, weights frozen | **+0.000348** [0.000075, 0.000623] | **+0.048** [0.009, 0.093] |
-| the refit, given fixed features | −0.000076 [−0.000172, +0.000021] | −0.074 [−0.155, +0.004] |
-| everything vs what shipped | +0.000273 [−0.000010, +0.000556] | −0.026 [−0.117, +0.064] |
+It measured three paired contrasts — the fix alone with weights frozen, the refit given fixed
+features, and everything against what shipped — each on log-likelihood per decision and on top-1,
+beside a split-half noise floor for the refitted arm and a count of the weights that moved.
 
-Split-half noise floor for the refitted arm, 20 cuts: **median 0.192 top-1 points**. The fix is
-detectable *only* because the comparison is paired, and it is a quarter of that floor. **Refitting bought
-nothing** — the interval contains zero on both metrics, 1 of 58 weights moved beyond 2 SE, and the L2 of
-the whole weight change is 0.216. The fix was worth making because the feature function was wrong about
-the game, not because a metric improved; it did not need one and it did not get one.
+**All of it is withdrawn, 2026-09-11, and so is the verdict this section's heading used to state.** No
+artifact carries any of it: the scoring script was not kept, and most of its cells escaped the
+untraceable-figure census only by coincidence with unrelated artifacts
+(`docs/_reports/2026-09-10-untraceable-sweep.md`). The two vectors it compared are MAG weight vectors,
+which the gate withholds, and a refit measured through withheld inputs with no record behind it is not
+quotable. No effect, interval, floor or verdict is carried here, and no direction may be inferred from
+the absence. The fix was worth making because the feature function was wrong about the game, not
+because a metric improved; it did not need one.
 
 ### The fitting environment is not the playing environment, and the gap is 20× the defect above
 
@@ -2695,11 +2691,11 @@ project's own rules discredit by name — and now compares content digests, hono
 ratcheted downward. On its first run the content check caught a rollout artifact computed against a
 version of its own generator that had since changed.
 
-**Consequently ABRA publishes no exploitability figure.** The prior 63.2% [56.6, 69.3] is retracted on
-its own merits — 17 features against the 58 shipped, an engine 25 wire-fixes old, computed before the
-quality filter existed — and the re-run is void. One figure from the void run survives, because both of
-its legs fall inside a single stable window: the mirror control at **49.7% [46.2, 53.2]**, n=782, which
-retires the concern that an earlier 47.5% indicated a seat or pairing asymmetry rather than noise at
-n=217. A separate finding stands independently of the invalid tree: the attack **dies in 58 dimensions**,
-accepting 1 of 24 hill-climb steps against 10 of 18 at 17 features, so the step rule needs correcting
-before the re-run is worth its cost.
+**Consequently ABRA publishes no exploitability figure.** The prior figure is retracted on its own
+merits — it was fitted on fewer features than the shipped vector, against an engine many wire-fixes
+old, before the quality filter existed — and the re-run is void. The void run's mirror control was
+published here as its one surviving figure; it is withheld with the void run's held-out artifact,
+which the gate withholds (withdrawn 2026-09-11), so the seat-asymmetry concern it was read as retiring
+is open again rather than settled. A separate finding about the tool stands independently of the
+invalid tree: the hill-climb stalls at the shipped dimension — the step counts that showed it are
+withheld with the void run — so the step rule needs correcting before the re-run is worth its cost.

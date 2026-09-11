@@ -1553,9 +1553,10 @@ release.
 
 **Change record for 3.41.0.** The simulator covers 202 of 205 probed mechanics. Three are missing.
 Each has a written reason. The interaction matrix agrees with the official engine on 899 of 899
-cases. The pair-layer fit now uses all four team-sheet channels (95,886 turns, 99.7% channel
-reach). The value of the sheet was measured on 44,982 held-out decisions: the likelihood gain is
-real; a top-1 gain is not shown. The pory family was refit on the current corpus. The DEAD-tag
+cases. The pair-layer fit now uses all four team-sheet channels. The turn count and the
+channel reach are withheld with the pair-layer weights. The value of the sheet was measured on
+held-out decisions. The sample size and the result are withheld, because the gate withholds that
+artifact. The pory family was refit on the current corpus. The DEAD-tag
 count fell from 61 to 38.
 
 **Change record for 3.40.0.** The simulator covers 181 of 186 probed mechanics. Five are missing.

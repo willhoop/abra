@@ -447,12 +447,12 @@ pairs** are scored, and why an SPRT is used rather than a fixed-n win rate.
 > issue of it being exploitable."*
 
 **~~Also measured, and this is the uncomfortable part.~~ RETRACTED 2026-08-04 — ABRA does NOT have a
-number for this.** WOBBUFFET — a counter hill-climbed over MAG's own feature weights — beat MAG
-~~**63.2%, 95% CI [56.6, 69.3]**, with a mirror control at 47.5%, found in forty minutes~~ on a
+number for this.** WOBBUFFET — a counter hill-climbed over MAG's own feature weights — was published as beating MAG,
+by a margin now retracted and withheld with its mirror control, on a
 **17-feature** vector, against an engine 25 wire-fixes old, **before the quality filter existed**.
 `provenance.js` carried it as its only `UNSAFE` artifact for that reason. The 2026-08-04 re-run on
 the shipped 58 features is **void** — the defender was refitted mid-run and the simulator moved twice
-more — and its search accepted only 1 of 24 steps, so it would have been uninformative anyway. See
+more — and its search stalled (the step count is withheld with the void run, withdrawn 2026-09-11), so it would have been uninformative anyway. See
 `docs/SEARCH.md` §R8. **Their prediction may well be correct; we currently have no measurement either
 way, and saying we do would be worse than the gap.**
 

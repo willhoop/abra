@@ -86,13 +86,20 @@ const ok = (pass, name, detail) => {
  * and the engine coverage plan. Three more fell with them, because they shared the rewritten
  * sentences or the artifact: the white paper's MAG decision count, and the step probe's cheapest-split
  * budget in SEARCH R9 and in the coverage-plan review. This file printed exactly those 7 under "DELETE
- * these lines" (docs/_reports/2026-09-11-withdrawals-2.md). */
+ * these lines" (docs/_reports/2026-09-11-withdrawals-2.md).
+ *
+ * 2026-09-11, SHRUNK BY 4 MORE, DERIVED BY RUNNING THIS FILE. The third withdrawals pass took out the
+ * channel-value sample (white paper and technical docs), the censoring value's sample and the
+ * 2026-08-02 joint refit's turn count (docs/MODELS.md). This file printed exactly those 4 under
+ * "DELETE these lines" (docs/_reports/2026-09-11-withdrawals-3.md). The `14.757%` and `49.3%` keys
+ * that stand in those three documents match a MAG weight by digits only: `14.757%` is a store-derived
+ * human click rate and `49.3%` is a game-differential share (474 of 961). In docs/MODELS.md the 49.3%
+ * key also covers a DODUO harness rate that traces to no artifact at all. They stay because they still
+ * fire, and a key is deleted only when this file says so. */
 const BASELINE = new Set([
   "docs/ABRA-technical-docs.md|14.757%|data/policy-weights.json",
-  "docs/ABRA-technical-docs.md|44,982|data/sheet-channel-value.json",
   "docs/ABRA-technical-docs.md|49.3%|data/policy-weights.json",
   "docs/ABRA-whitepaper.md|14.757%|data/policy-weights.json",
-  "docs/ABRA-whitepaper.md|44,982|data/sheet-channel-value.json",
   "docs/ABRA-whitepaper.md|49.3%|data/policy-weights.json",
   "docs/ENGINE.md|1,136,845|data/feature-engine-contrast.json",
   "docs/ENGINE.md|48,274|data/censoring-value.json",
@@ -105,9 +112,7 @@ const BASELINE = new Set([
   "docs/MEASURE.md|14.757%|data/policy-weights.json",
   "docs/MEASURE.md|8,855|data/leaf-engine-contrast.json",
   "docs/MODELS.md|14.757%|data/policy-weights.json",
-  "docs/MODELS.md|48,274|data/censoring-value.json",
   "docs/MODELS.md|49.3%|data/policy-weights.json",
-  "docs/MODELS.md|81,515|data/redirect-audit.json",
   "docs/OPS.md|1.744%|data/collinearity-joint.json",
   "docs/PRIOR-ART.md|186,494|data/policy-weights.json",
   "docs/PRIORITIES.md|6,890|data/winrate-backtest.json",

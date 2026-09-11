@@ -1125,7 +1125,7 @@ mappings red-demonstrated in both directions and 25 planted state divergences, e
 caught at the planted boundary and localised to the planted field — 25/25 on all fourteen arms.
 
 **What changed (3.69.0): we asked whether making the simulator more correct makes the bot predict
-better, and the answer is no.**
+better. The answer is held back with the rest of it.**
 
 A night of engine fixes made our simulator agree with the official one for much longer before the two
 part company. The obvious next question is whether that helps — and nobody had checked. So we took the
@@ -1148,12 +1148,12 @@ floor measured before any effect was believed, and a re-measurement of the faith
 confirm it lines up with
 itself.
 
-**So what IS wrong with the bot's guess?** It is wildly overconfident. It uses the full range from 6%
-to 94%, but reality only moves between 44% and 59%. When it says "94% sure", it wins 59% of the time.
-That is the thing to fix, and no amount of further engine work touches it.
+**So what IS wrong with the bot's guess?** We used to answer that here with its reliability curve —
+how often it actually wins when it says it is sure — and with the conclusion we drew from it. That
+curve comes from the same held-back measurements, so neither is given here any more.
 
-The honest summary: the engine fixes were real and worth having, and they bought nothing for the
-decision the bot makes. We are saying so rather than quietly moving on.
+The honest summary: the engine fixes were real and worth having. Whether they changed the decision the
+bot makes is exactly the measurement that is held back, so we are not saying either way.
 
 **What changed (3.68.0): we went back and checked what a night of engine fixes was actually worth,
 and the honest answer is less than it looked.**
@@ -1442,9 +1442,10 @@ one in the project.
 it reads the bot's weights, and Will is rebuilding those after this release, so it stays blank until
 then. The simulator passing its gate did not release this one.
 
-One thing did survive, and it is genuinely useful: when the bot plays a mirror match against itself it
-wins 49.7% of the time, which is a coin flip. That confirms our testing setup does not quietly favour
-one side — a worry an earlier, smaller sample had raised.
+We used to say one thing survived: a mirror match of the bot against itself, which checks that our
+testing setup does not quietly favour one side. That number came from the same void run, so it is now
+held back with the rest of it, and the worry an earlier, smaller sample raised is open again rather
+than settled.
 
 ## Slide 9 — Practising in different conditions from the match
 
@@ -1465,8 +1466,9 @@ before, in exactly this shape, and it is worth one deliberate decision rather th
 
 **Update (version 3.40.0).** The decision was made: the bot plays with the full team sheet, always,
 and the rarer no-sheet games are set aside for now. The first half of the retraining is done — the
-move-picking layer now learns from the same information it plays with, and we *counted* that the
-information actually arrived during training (99.7% of decisions) instead of assuming it. The second
+move-picking layer now learns from the same information it plays with, and we *counted* how often the
+information actually arrived during training instead of assuming it (that count is held back with the
+bot's weights). The second
 half (the layer that picks pairs of actions) is queued next. No claim yet that the retrained bot is
 better — that comparison is set up against a frozen copy of the old one and runs next.
 

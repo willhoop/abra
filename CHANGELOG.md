@@ -10,6 +10,20 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.23.0] — 2026-09-11
+
+### Removed
+- **The last figures still printed from artifacts the quarantine gate withholds**, from the white paper, deck,
+  technical docs, SUMMARY and MODELS (and the step count from PRIORITIES and EXTERNAL-EVIDENCE): the void
+  exploitability run's mirror control and step count, the joint layer's turn count and reach share, the 3.41.0
+  channel-value table, the leaf backtest, the multiplicity counts, the EM validation table, the censoring value and
+  refit movement, the 2026-08-02 joint refit's figures, and joint weights read from pinned commits. A caption is not a
+  quarantine, so each figure is deleted and the sentence saying what was measured stays.
+- **The white paper's 3.36.0 paired-refit table**, its noise floor, its weight-movement counts and the "refit bought
+  nothing" verdict, with the SUMMARY and MODELS restatements. Nothing records the measurement and it compared two
+  withheld MAG vectors.
+- **Four baseline keys from `tests/test-docs-quarantine.js`**, each printed by the test as no longer firing.
+
 ## [6.22.0] — 2026-09-11
 
 ### Fixed
