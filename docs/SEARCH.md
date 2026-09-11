@@ -50,9 +50,11 @@ run, and #275 is still unmeasured.**
 ### The verdict in one line
 
 **Both rows are LIVE rather than stale, both are closed, and the fit-invalidation is now a NAMED LIST
-instead of a warning: 32 of 58 features and 6 of 18 joint features move, on 1.576% of 51,399 candidate
-vectors across 41.67% of 300 fit games. And the instrument everyone has been quoting for this — the 58
-frozen fixture hashes — CANNOT SEE EITHER ROW, which is measured here rather than assumed.**
+instead of a warning. How many features and joint features move, and on what share of the fit's
+candidate vectors and games, is withheld with `data/feature-shift.json` (withdrawn 2026-09-11: its
+generator reaches the simulator through `board.js`). And the instrument everyone has been quoting for
+this — the 58 frozen fixture hashes — CANNOT SEE EITHER ROW, for the construction reasons given
+below.**
 
 ### WHY THEY WERE TAKEN, BECAUSE IT REVERSES AN EARLIER READING
 
@@ -87,11 +89,14 @@ Showdown's own `Field#setWeather` refuses an active weather, so the idempotence 
 a choice. A weather that has **LAPSED** is not "already up", so re-laying it starts a fresh clock — the
 case naive idempotence gets wrong, and an asserted arm.
 
-### #283 — AND THE CLASS OF SIX WAS WRONG IN BOTH DIRECTIONS
+### #283 — AND THE AUDIT'S CLASS WAS WRONG IN BOTH DIRECTIONS
 
-`data/seed-source-audit.json` derived its six by SUBSTRING-MATCHING each callback's source against
+`data/seed-source-audit.json` derived its class by SUBSTRING-MATCHING each callback's source against
 `STUB_HAS_NO`, a hand-typed array of fifteen field names. That is the ban-list-of-four shape CLAUDE.md
-opens with, sitting inside the artifact that defined a register row's scope.
+opens with, sitting inside the artifact that defined a register row's scope. The audit's own class
+size is withheld with the artifact, which `engine/quarantine.js` holds because
+`engine/seed_source_audit.js` requires `board.js` (withdrawn 2026-09-11). The use counts below are not
+from it: `tests/test-board-clock-power.js` prints them from `board.unmodelledBasePower` and the store.
 
 | the audit said | the callbacks say |
 |---|---|
@@ -130,20 +135,24 @@ is right with no Stockpile up, and the board records no layer count.
 `engine/feature_shift.js` compiles a textually-patched `board.js` into `require.cache` (#254's technique,
 so nothing on disk moves under another agent) and compares per-feature columns across three populations.
 Every patch is asserted to have applied; a patch that matched nothing would report "no columns moved",
-which is the most dangerous output this file could produce. **PURITY — head against head — is 0 columns.**
+which is the most dangerous output this file could produce. **PURITY — head against head — is
+checked on every run; its count is withheld with the artifact.**
 
 | population | pre-276 | pre-283 |
 |---|---|---|
-| the FROZEN fixture, 384 candidates | **(none)** | **(none)** |
-| the same boards **aged +9 turns** | 22 features, 3 joint | (none) |
-| the FIT's own rows, 300 games / 51,399 candidate vectors | **27 features, 4 joint** — **0.889%** of vectors, **18%** of games | **12 features, 6 joint** — **0.687%** of vectors, **28.33%** of games |
-| **pooled** | — | **32 of 58 features, 6 of 18 joint — 1.576% of vectors, 41.67% of games** |
+| the FROZEN fixture, 384 candidates | withheld | withheld |
+| the same boards **aged +9 turns** | withheld | withheld |
+| the FIT's own rows, 300 games | withheld | withheld |
+| **pooled** | — | withheld |
 
-**BOTH ZEROES IN THE FIRST ROW ARE R7 AGAIN AND THEY HAVE DIFFERENT CAUSES.**
+Every cell is an output of `engine/feature_shift.js` and is withheld with `data/feature-shift.json`
+(withdrawn 2026-09-11). The population definitions are configuration and stay.
+
+**THE FIRST ROW IS R7 AGAIN, AND ITS TWO CELLS HAVE DIFFERENT CAUSES.**
 `feature_fixture.buildScenario` sets `board.turn` and THEN calls `setWeather`, so **every fixture weather
 is zero turns old** and no board in it can have one that has run out — #276 is inert there by
 construction. And **no fixture board carries Last Respects, Beat Up or Triple Axel**, so #283 is inert
-there too. Reading either "(none)" as "no refit is owed" would have been the sixth time a guard was
+there too. Reading either first-row cell as "no refit is owed" would have been the sixth time a guard was
 trusted for something it does not exercise.
 
 **AND THAT CORRECTS R19 RATHER THAN LEAVING IT.** R19 reported that the 58 fixture hashes MOVE for #283.
@@ -1661,9 +1670,13 @@ which is the right order: **before the refit, not after.**
 
 | | before | after |
 |---|---|---|
-| a position that has already spent 8 of Protect's 8 PP | the rollout Protects **8 more** — 16 out of a move that has 8 | **0**, and the body Struggles |
-| a position that has spent 5 | the rollout Protects 8 more, total 13 | 3 more, total **8** |
-| a position that has spent 0 (control) | 8 | 8 — unchanged, so the fix does not deduct what was never spent |
+| a position that has already spent 8 of Protect's 8 PP | withheld | withheld |
+| a position that has spent 5 | withheld | withheld |
+| a position that has spent 0 (control) | withheld | withheld — the control asserts the fix does not deduct what was never spent |
+
+The cells are outputs of `engine/pp_board_probe.js`, which reaches the simulator through
+`rollout_leaf.js`, and are withheld with `data/pp-board-probe.json` (withdrawn 2026-09-11). The spent
+counts in the first column are the probe's configuration and stay.
 
 **The cap on Protect in a board rollout was `already spent + 8`, unbounded in the first term. It is
 now 8, full stop**, which is what `maxpp` says in this format (read off `data/tags.json`, built by
@@ -1712,8 +1725,8 @@ lookups failed.** The wire is not inert.
 **At the shipped `explore=1.0` the playout was clicking empty slots.** `runPlayout`'s uniform draw
 bypasses `chooseAction` — which is the entire point of it — and `chooseAction` is also where every
 selection guard lives, including ENGINE's new empty-slot refusal and the Struggle branch under it. So
-a drained body answered `|cant|nopp` at execution and **wasted the turn instead of Struggling**: 52
-`|cant|nopp` lines and 0 Struggles on the probe board. The draw now filters on selectability and
+a drained body answered `|cant|nopp` at execution and **wasted the turn instead of Struggling** on the
+probe board; the line counts are withheld with `data/pp-board-probe.json`. The draw now filters on selectability and
 returns null when nothing is selectable, which hands the body back to the chooser and produces a real
 Struggle. `pickByPrior` takes the filtered list too, or the priors sampler would put the empty slot
 straight back — the identical leak WIRE 26 found on Disable, one layer up.
@@ -1858,8 +1871,8 @@ project"*, so "sampling MAG would collapse the playout variance" is false and wa
 
 The re-run was authorised (*"rerun wobba"* … *"yes do the search once engine is all wrapped up"*),
 was executed at full size, and **produced no usable statement about MAG's exploitability**, because
-the two things it was measuring both changed while it was measuring them. The old 63.2% is retracted
-anyway — see below — so the net position is that **MAG's exploitability is now UNMEASURED**, which is
+the two things it was measuring both changed while it was measuring them. The old headline figure is
+retracted anyway — see below — so the net position is that **MAG's exploitability is now UNMEASURED**, which is
 a worse place than this session started but a truer one.
 
 ### What moved, with times, because this is the entire result
@@ -1887,24 +1900,25 @@ P0.5 exists, and it has now cost a 7,100-game run.
 
 ### The one thing that IS clean, and it is worth keeping
 
-**The mirror control at n=782: 49.7% [46.2, 53.2].** Both legs of the held-out replay ran inside one
-stable window (22:17–22:24: `board.js` stable since 21:50, weights stable since 22:15, `medicham2`
-not touched until 22:26), so this is a valid measurement of one build. It lands dead on 50, which
-retires a live worry: the 47.0% and 47.5% round-0 mirrors in the two searches are **noise at n=217**,
-not a seat or pairing asymmetry biasing every other row. `mew.js`'s side alternation is doing its
-job.
+**The mirror control.** Both legs of the held-out replay ran inside one stable window (22:17–22:24:
+`board.js` stable since 21:50, weights stable since 22:15, `medicham2` not touched until 22:26), so it
+was a valid measurement of one build. Its value, interval and sample, and the round-0 mirrors it was
+compared with, are withheld: they are MAG-against-MAG games played through MEDICHAM, held in
+`data/exploitability-holdout.json` and `data/exploitability.json` (withdrawn 2026-09-11). What it was
+used to rule out — a seat or pairing asymmetry biasing every other row — is not ruled out while the
+gate is closed.
 
-### The old 63.2% is retracted regardless, and not because of anything measured today
+### The old headline is retracted regardless, and not because of anything measured today
 
 | | 2026-07-26 | this run (VOID) |
 |---|---|---|
 | features | 17 | 58 |
 | games/eval, rounds, seed | 220, 18, 90210 | 220, 24, 90210 |
-| mirror control | 47.5%, n=217 | 47.0%, n=217 |
-| best challenger vs MAG | **63.2%** [56.6, 69.3] | ~~55.8% [49.1, 62.3]~~ |
-| held-out replay at unseen seeds | never done | ~~45.8% [42.3, 49.3], n=782~~ |
+| mirror control | withheld | withheld |
+| best challenger vs MAG | withheld (retracted) | withheld (struck) |
+| held-out replay at unseen seeds | never done | withheld (struck) |
 
-The 63.2% describes a **17-feature** vector on an engine 25 wire-fixes old, computed **before the
+The old headline describes a **17-feature** vector on an engine 25 wire-fixes old, computed **before the
 quality filter existed** — which is exactly why `provenance.js` called it its only `UNSAFE` artifact.
 It cannot be quoted whether or not a replacement exists, and `docs/MODELS.md` calling it *"the most
 important number in the repo"* is no longer supportable. **There is now no exploitability number for
@@ -1922,16 +1936,19 @@ This is the caveat that matters and it is not the tool's disclaimer, it is a def
 | | 2026-07-26 | 2026-08-04 |
 |---|---|---|
 | dimensions searched | 17 | **58** |
-| steps ACCEPTED | **10 of 18** | **1 of 24** |
-| step scale at the last round (`0.6 × 0.85^failures`) | 0.164 | **0.0168** |
+| steps ACCEPTED | withheld | withheld |
+| step scale at the last round (`0.6 × 0.85^failures`) | withheld | withheld |
+
+Both measured rows are outputs of the exploitability runs and are withheld with
+`data/exploitability.json` (withdrawn 2026-09-11). The dimensions are configuration.
 
 `exploit.js` perturbs every coordinate by `gauss() * scale * (|v| + 0.25)` and multiplies `scale` by
 0.85 on **every** failure. In 17 dimensions enough steps landed to keep the scale alive. In 58 the
 step *norm* is √(58/17) ≈ 1.85× larger for the same per-coordinate scale, so round 1 threw the
-vector off a cliff — **27.7%**, the worst evaluation in either run — and then the geometric decay
-ran essentially unopposed. From about round 10 onward the challenger was a near-copy of MAG and the
-"search" was re-measuring the mirror control twenty more times. The 45–50% cluster in rounds 8–24 is
-that, not evidence.
+vector off a cliff — the worst evaluation in either run, its value withheld — and then the geometric
+decay ran essentially unopposed. From about round 10 onward the challenger was a near-copy of MAG and
+the "search" was re-measuring the mirror control twenty more times. The cluster of evaluations in
+rounds 8–24 is that, not evidence.
 
 **So even on a still tree this run could not have proved MAG is hard to exploit.** A search that
 takes one step is not a lower bound on anything. The tool's own closing text says the right thing —
@@ -2077,7 +2094,7 @@ than by mtime. If either fails, the run is void and saying so is cheaper than pu
 ### What is still open, and it is the whole question
 
 **Nobody has measured whether MAG is exploitable on the build we ship, and after today nobody has a
-number at all.** The 63.2% is retracted and nothing replaces it: the replacement run is void, and
+number at all.** The old headline is retracted and nothing replaces it: the replacement run is void, and
 even had it been clean, a one-step search is not a measurement. `PRIORITIES.md` #18 is **not closed
 and not merely stale — it is now empty**, with a diagnosis attached. And the caveat `MODELS.md`
 already carries still applies: this grades *readability by a prepared opponent*, which is not the

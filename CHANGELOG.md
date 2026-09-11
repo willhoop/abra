@@ -10,6 +10,23 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.20.0] — 2026-09-11
+
+### Fixed
+- **The quarantine classifier withholds what CLAUDE.md's list names and releases what measures the engine, by rule
+  rather than by name.** Three routes in `engine/quarantine.js`, each shown failing on the old classifier first: a
+  generator holding MEDICHAM and the official engine side by side, reaching no `board.js`, is an instrument, which
+  releases the replay differential, the immunity sweep and the speed benchmark; a Python generator is read for the
+  MEDICHAM-played dumps it names, which holds the seven PORYGON2 artifacts, PORY-NN, both lookahead artifacts and
+  the withdrawn R1 join; an artifact with no discoverable writer is held by what it says about itself and never
+  cleared that way, which holds the pre-censoring MAG vector and the exploitability holdout. 64 artifacts withheld
+  before, 69 after. No gate clause changed.
+
+### Removed
+- **The figures from the newly withheld artifacts, and SEARCH's remaining withheld figures** — PORY-NN's retrain and
+  the separation gate from the MEASURE ledger; the 3.40.0 fit corpus and the PORYGON2 table from MODELS; SEARCH's R8,
+  R12 and R20 figures and the seed-source audit's class size. Withheld, not annotated.
+
 ## [6.19.0] — 2026-09-11
 
 ### Removed

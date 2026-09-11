@@ -40,6 +40,32 @@ _stamped 2026-09-11 10:46_
 
 <!-- /GENERATED -->
 
+## THE QUARANTINE CLASSIFIER GETS THREE ROUTES RIGHT THAT IT GOT WRONG, AND THE WITHHELD SET GOES 64 → 69. 2026-09-11
+
+**WHAT CHANGED IN `engine/quarantine.js`, BY RULE AND NOT BY NAME.** (1) A generator that loads
+MEDICHAM and the official engine side by side and reaches no `board.js` is an instrument
+(`sideBySideInstruments`). It releases `data/replay-differential*.json` (six files),
+`data/immunity-sweep.json` and `data/speed-vs-pokeenv.json`, and it derives `engine/million_run.js`,
+which is no longer declared. DITTO's shape — MEDICHAM without `board.js` and without the official
+engine — is the control that stays held. (2) A Python generator is read for the MEDICHAM dumps it
+reads (`foreignSource`). That holds the seven PORYGON2 artifacts, `data/pory-nn.json`, both lookahead
+artifacts and `data/rollout-r1-withdrawn-join.json`. (3) An artifact with no discoverable writer is
+judged by what it says about itself, only in the withholding direction (`describedBySelf`). That
+holds `data/policy-weights-pre-censoring.json`, a key-for-key twin of the MAG vector, and
+`data/exploitability-holdout.json`, which declares `data/exploitability.json` as its source. Every
+route was shown RED on the old classifier first, beside a control that stays green.
+
+**WHAT THE LAST PASS SUSPECTED, AND WHAT WAS FOUND.** `data/replay-differential*.json` is an
+instrument and is released. `data/exploit-step-probe*.json` is NOT: it reads MAG's vector for its
+coordinate scales, and its generator requires `exploit.js`, which reaches `board.js`, so it stays
+withheld on both routes and SEARCH's R9 and R10 still print its figures. That is owed to SEARCH.
+PORYGON2 and the pre-censoring vector are now withheld, as CLAUDE.md's quarantine list says.
+
+**WITHDRAWN IN THIS PASS:** the PORY-NN retrain figures (the §5d addendum, §5e and §5f), every result
+in §18 (the PORYGON2 separation gate, verdict included), MODELS' 3.40.0 fit corpus and PORYGON2
+table, SEARCH's R8, R12 and R20 figures, and the seed-source audit's class size. Full account:
+[docs/_reports/2026-09-11-quarantine-classifier.md](_reports/2026-09-11-quarantine-classifier.md).
+
 ## THE R4 VERDICT, THE REFIT FIGURES AND THE REST OF THE ROLLOUT, FIT AND CONTRAST FIGURES ARE WITHDRAWN FROM THIS LEDGER, AND SEARCH'S EXPLORE-SWEEP TABLES FROM SEARCH'S. 2026-09-11
 
 **THE THREE ITEMS THE PREVIOUS PASS RECORDED AS OWED ARE WITHDRAWN:** the R4 verdict under "R4 has an
@@ -5620,8 +5646,8 @@ Also found: `build_mag_data.js` and `build_scoreboard.js` **crash without `SHOWD
 shape as P0 #40 — two ratchets that crashed rather than failed for the same reason.
 
 **Still red, not filed:** `data/pory-nn.json` at **29.4% corpus drift**. The command is
-`python engine/pory_nn.py`; it is a neural-net train and it republishes `val_logloss` 0.612 and
-`auc` 71.6%, which MODELS.md, the white paper and SUMMARY.md all quote. That is a stop-and-ask, not
+`python engine/pory_nn.py`; it is a neural-net train and it republishes its `val_logloss` and `auc`
+(both withheld since 2026-09-11), which MODELS.md, the white paper and SUMMARY.md all quoted. That is a stop-and-ask, not
 a refresh. *(Corrected 2026-09-09: as the 5e table row above already records, the 71.6% those documents
 quoted was the policy clone's top-3 — a different measurement that happened to match — and that clone
 figure is now withdrawn against `data/policy-eval.json`; the auc on this line is PORY-NN's own and is
@@ -5630,7 +5656,8 @@ unaffected.)*
 ### 5f. IS THE DRIFT THRESHOLD A TREADMILL? Yes, and the unit is wrong — DECIDED 2026-08-04
 
 `data/pory-nn.json` was regenerated on the current corpus and `tests/test-site-data-fresh.js`
-immediately reported **CORPUS DRIFT 15.7% — declares 6,008, 7,123 clean now**. The store grew during
+immediately reported **CORPUS DRIFT 15.7% — against 7,123 clean now** (the count the artifact declares is withheld with
+it since 2026-09-11). The store grew during
 the retrain. That is not a bug in either tool; it is what a percentage of an unbounded append-only
 corpus does.
 
@@ -6342,10 +6369,11 @@ unmatch at a higher rate. The ceiling is untouched; the call on it is Will's.
 **PORY family regenerated, and `tests/test-site-data-fresh.js` is GREEN (7/7)** — §5d addendum has
 the pory-eval numbers; `data/nmf-roles.json` moved 13,258 → 14,808 team-docs, 258 → 263 moves,
 recon-err 0.8346 → 0.8356, rank 10 unchanged, and both site bundles (`data/pory.js`, `data/nmf.js`)
-were rewritten by their own generators in the same runs. `data/pory-nn.json` retrained at 6,289
-games / 106,782 states (was 6,008 / 102,296): every arm ordering holds — N6 0.6201, NR 0.6132 and
-LR 0.6064 all still beat the two-feature bar at 0.6229, nonlinearity is still worth ~0.003 and
-representation ~0.016 — and no living doc quotes these figures (§5c). The first retrain immediately
+were rewritten by their own generators in the same runs. `data/pory-nn.json` was retrained on the
+current corpus; its corpus, its arm scores and their ordering are withheld as of 2026-09-11, because
+`engine/pory_nn.py` names MEDICHAM's self-play store and `engine/quarantine.js` now reads Python
+generators for the dumps they read. Its `sources` receipt says ladder only and cannot clear it: the
+`--transfer` arm trains on self-play and writes the same ladder-only receipt. The first retrain immediately
 re-red the drift check at 15.1%, the §5f false-denominator class to the letter: its population is
 the raw-logs subset. Both `engine/pory.py` and `engine/pory_nn.py` now declare `population_ceiling`
 (the artifact's own generator wrote it; the retrain reproduced every arm to the digit under its
@@ -6978,60 +7006,53 @@ Three things to check before quoting any of it:
 `writeStamp()` is the only mode worth trusting, because only the run knows its own settings.
 `reconstruct()` exists for the artifacts that predate it and labels itself on every line.
 
-### 18. THE PORYGON2 SEPARATION GATE — PRIORITIES #23. **PASS**, and the interesting number is the one that is not in the verdict. 2026-08-06
+### 18. THE PORYGON2 SEPARATION GATE — PRIORITIES #23. **VERDICT WITHHELD 2026-09-11**, and so is the number that is not in the verdict. 2026-08-06
 
-`engine/porygon2_separation_gate.py` → `data/porygon2-separation-gate.json`. **The MILTANK leaf
-redesign (#24) is buildable.** PORYGON2 does not collapse a subtree to one number.
+`engine/porygon2_separation_gate.py` → `data/porygon2-separation-gate.json`. **Every result in this
+section is withheld as of 2026-09-11**, the verdict and what it said about #24 included. PORYGON2 is
+trained on `data/games.selfplay.porygon2.raw-logs.jsonl`, which `engine/mew.js` wrote by playing
+MEDICHAM, and `engine/quarantine.js` now reads Python generators for the dumps they read.
 
-**39,843 same-game position pairs two turns apart, across 6,328 clean HUMAN ladder games**, every
-interval bootstrapped with the GAME as the cluster. Thresholds were written to disk at
+**Same-game position pairs two turns apart, across the clean HUMAN ladder games whose raw log is
+present** (both counts withheld), every interval bootstrapped with the GAME as the cluster. Thresholds were written to disk at
 **05:59:44Z**, the run wrote at **06:56:06Z**, and `--run` refuses to start unless the declaration
 on disk matches the block in the generator character for character.
 
 | | measured | declared bar | |
 |---|---|---|---|
-| **T1 separation** median \|Δscore\| over 2 turns | **0.1628** [0.1600, 0.1653] | ≥ 0.02 | PASS |
-| **T2 locality** same-game 0.1985 vs unrelated 0.2801; D | **+0.0815** [0.0786, 0.0845] | CI lower > 0.0043 | PASS |
-| **T2 locality** ratio R = same / unrelated | **0.709** [0.700, 0.718] | ≤ 0.75 | PASS |
-| **T3 direction** agrees with the material sign | **85.58%** [85.16, 85.98] | CI lower > 50, point ≥ 60 | PASS |
-| T3 secondary, moves toward the eventual winner | 61.59% [61.12, 62.07] | reported, not gated | |
+| **T1 separation** median \|Δscore\| over 2 turns | withheld | ≥ 0.02 | withheld |
+| **T2 locality** same-game vs unrelated; D | withheld | CI lower > 0.0043 | withheld |
+| **T2 locality** ratio R = same / unrelated | withheld | ≤ 0.75 | withheld |
+| **T3 direction** agrees with the material sign | withheld | CI lower > 50, point ≥ 60 | withheld |
+| T3 secondary, moves toward the eventual winner | withheld | reported, not gated | |
 
-All eight PORYGON2 arms pass — 17 and 19 features, plain and weighted, k=50 and k=200 — with R
-between 0.684 and 0.739. The verdict is read off **17f weighted k=50**, which is what
-`docs/MODELS.md` headlines.
+Eight PORYGON2 arms were run — 17 and 19 features, plain and weighted, k=50 and k=200; their
+verdicts and R are withheld. The verdict is read off **17f weighted k=50**, which is what
+`docs/MODELS.md` headlined. The declared bars are configuration and stay.
 
-**THE NEGATIVE CONTROLS DID THEIR JOB, AND THE SECOND ONE IS THE ONE THAT MATTERS.** A constant 0.5
-leaf fails all three (median 0, R undefined, direction 0%). That was the required control and it is
-the weaker one. A **uniform-random** leaf **PASSES T1 with a median of 0.2924 — nearly twice
-PORYGON2's separation** — and fails T2 (R = 0.995 [0.985, 1.004], D CI [−0.0012, +0.0049] straddling
-zero) and T3 (50.28% [49.72, 50.87]). So separation alone cannot tell a value function from noise,
-which is precisely why T2 was written as the deciding test. A gate proved only against a constant
-would have been passed by static.
+**THE NEGATIVE CONTROLS, AND WHY THE SECOND ONE IS THE ONE THAT MATTERS.** A constant 0.5 leaf was
+the required control and it is the weaker one. A **uniform-random** leaf is the stronger one, because
+random scores separate by construction: separation alone cannot tell a value function from noise,
+which is why T2 was written as the deciding test. A gate proved only against a constant would be
+passed by static. Both controls' results are withheld with the artifact.
 
-**AND THE FINDING THE VERDICT DOES NOT CONTAIN.** A bare material count — `0.5 + 0.15·alive_diff`,
+**AND THE FINDING THE VERDICT DID NOT CONTAIN.** A bare material count — `0.5 + 0.15·alive_diff`,
 the same rule `porygon2.py` scores itself against — was run through the identical pipeline as a
-BASELINE rather than a control. At a two-turn gap **it passes the gate too**: R = 0.703
-[0.692, 0.715], statistically indistinguishable from PORYGON2's 0.709. Read alone, that says the 17
-features buy no locality at all.
+BASELINE rather than a control, at a two-turn gap and, in the addendum, at the ONE-turn gap the
+search actually operates at. How it compared with PORYGON2 at each gap is withheld with the artifact.
+What stands without a figure: a material count changes only when a Pokemon faints, so every branch it
+cannot separate is a branch the argmax decides by tie-break. Whether that makes the case for #24 is a
+measured question, and the measurement is withheld.
 
-It is not read alone, because the addendum below settles it. **At the ONE-turn gap the search
-actually operates at, the material count goes flat: its median \|Δ\| is 0.000 and it returns the
-identical number on 58% of adjacent positions**, while PORYGON2 moves on 99.3% of them with a median
-of 0.1154 and its locality gets *better*, R = 0.5464 [0.5392, 0.5534]. Every branch a material leaf
-cannot separate is a branch the argmax decides by tie-break. That is the case for #24, and it is a
-different case from the one the headline makes.
+Two comparisons in that block look like findings and are not. Their figures are withheld; the
+reasons they were never findings stand:
 
-Two comparisons in that block that look like findings and are not, stated so nobody quotes them:
-
-- the material baseline's *toward-the-eventual-winner* rate (64.77%) is **higher** than PORYGON2's
-  (61.59%) — but its score moves on only 21,975 of 39,843 pairs, i.e. only where a Pokemon actually
-  fainted. It is scoring the easy subset. The two rates are computed on different populations and
-  are not comparable.
-- the gate produces properly-intervalled accuracies for free: **17f weighted k=50 at 63.11%
-  [62.32, 63.81]** against the material sign's 61.02% [60.06, 61.96] on the same 52,501 positions.
-  These are **separate** game-clustered intervals, **not a paired test**. `docs/MODELS.md`'s 63.59%
-  is still marked **NOT MEASURED** and this **supersedes nothing** — a paired difference with a
-  split-half floor is what would close it, and nobody has run one.
+- the material baseline's *toward-the-eventual-winner* rate is scored only on pairs where its score
+  moves, i.e. only where a Pokemon actually fainted. It is scoring the easy subset. The two rates are
+  computed on different populations and are not comparable.
+- the gate's per-arm accuracies are **separate** game-clustered intervals, **not a paired test**, and
+  they supersede nothing in `docs/MODELS.md` — a paired difference with a split-half floor is what
+  would close that, and nobody has run one.
 
 **WHAT WAS FROZEN, AND WHAT COULD NOT BE.** The gate is stamped to engine release `4c73f9cafa4b` and
 that stamp is honest about its own limits: **none of PORYGON2's sources are in the frozen set** —
@@ -7066,9 +7087,9 @@ Three smaller things the gate needed and now does:
 
 **Disclosed rather than omitted:** a 150-game smoke run of this pipeline executed at 06:02Z, after
 the declaration and before the headline sample, to find bugs. Its numbers were seen first. No
-threshold changed — the equality check enforces that — but the smoke run's R landed at 0.735 against
-a 0.75 bar, close enough that saying nothing about it would be the omission this division exists to
-prevent.
+threshold changed — the equality check enforces that — but the smoke run's R landed close to the
+0.75 bar (its value is withheld with the artifact), close enough that saying nothing about it would be
+the omission this division exists to prevent.
 
 **What this gate does NOT establish**, and #24 should not be read as having it:
 
@@ -7078,15 +7099,16 @@ prevent.
   Siblings differ by one action from an identical board and are more alike than anything measured
   here. The lag-1 addendum is the closest available proxy and it is a proxy.
 - T3's ground truth is `alive_diff + hp_total_diff`, which are two of PORYGON2's own inputs
-  (`alive_diff` carries a learned weight of 5.12 against a mean of 1.0). It asks whether the model
+  (`alive_diff` carries PORYGON2's largest learned weight; the value is withheld with
+  `data/porygon2.json`). It asks whether the model
   respects its strongest features. A k-NN guarantees no such thing, so it is not vacuous — but it is
   not independent, which is why the outcome-anchored secondary is reported beside it.
 - **no split-half was run.** The noise floor here is built into the design instead: T2's
   unrelated-pair arm *is* the floor for the effect claimed, and every interval is game-clustered.
   The estimator is deterministic given the game set, so a split-half would re-measure what the
   bootstrap already reports. The one stochastic input — how the unrelated partner is drawn — was
-  checked by a second mechanism: the any-turn control gives R ≈ 0.74 against the turn-matched 0.709,
-  so the conclusion does not depend on the draw.
+  checked by a second mechanism, an any-turn control against the turn-matched draw; both R values
+  are withheld with the artifact.
 
 ### 19. THE STRONG-PLAYER BASELINE — the cutoff gradient exists and is free; §1.3's "real humans" column cannot be compared to it; and "flat in rating" is NOT MEASURED. 2026-08-06
 

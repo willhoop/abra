@@ -3601,14 +3601,18 @@ function gateVerdict(clauses) {
  */
 
 const SIMULATOR = 'engine/medicham2-browser.js';
+/* The next arrow in docs/DIVISIONS.md (MEDICHAM → board.js → MAG weights → MILTANK), and the authority
+ * the differentials compare against. Two roots, not a list of modules: see `sideBySideInstruments`. */
+const MODEL_LAYER = 'engine/board.js';
+const OFFICIAL = 'engine/champions_sim.js';
 
 /* WHAT NO DERIVATION HERE REACHES, DECLARED WITH ITS REASON — the RAW-STORE-OK convention.
  *
  * THIS LIST IS THE RESIDUAL AND NOTHING ELSE. Most instruments are now DERIVED from the gate's own
  * reads — see `gateInputArtifacts` below, which is where `game_differential.js` and
  * `derive_protocol_events.js` used to be typed and no longer are. What stays here is the set the
- * derivation provably cannot see, and it is TWO modules rather than the seven a hand-maintained list
- * would have grown to.
+ * derivation provably cannot see, and it is ONE module (two until 2026-09-11, when the rate runner
+ * became derived) rather than the seven a hand-maintained list would have grown to.
  *
  * MEASURED, not assumed: `engine/game_differential.js` and `engine/backtest_winrate.js` have the same
  * graph signature. Both load the simulator, both load Showdown, both play games. The only difference
@@ -3619,23 +3623,27 @@ const SIMULATOR = 'engine/medicham2-browser.js';
  * it holds — all 44 play-layer modules that write an artifact sit inside `champions_sim.js`'s
  * closure, so "it also drives the official engine" separates nothing.
  *
+ * CORRECTED 2026-09-11: the SIGNAL above was measured correctly and the CONCLUSION was wrong. The two
+ * files do NOT share a graph signature: engine/backtest_winrate.js reaches engine/board.js, the
+ * model side of the DIVISIONS arrow, and engine/game_differential.js does not. That split, with a
+ * DIRECT require of the official engine, is `sideBySideInstruments` below. The paragraph above is
+ * left as dated evidence.
+ *
  * It is CHECKED rather than trusted: an exemption naming a module that is not in the play layer is a
  * claim that has quietly become false, and `--check` fails on it. That is the same discipline
  * tests/roster.js applies to its own DECLARED divergences ("a declared divergence that matched
  * nothing is a claim that has quietly become false"). */
 const MEASURES_THE_ENGINE = [
-  { module: 'engine/million_run.js',
-    why: 'THE RATE RUNNER. It plays MEDICHAM at volume and tallies what the dice actually did against '
-       + 'what data/million-targets.json says they should do — every row of which carries a DERIVED or '
-       + 'READ provenance stamp, so the authority is the format, never MEDICHAM. The artifact is the '
-       + 'comparison; a wrong simulator makes the number LARGER, not less quotable. Nothing in the '
-       + 'gate reads it, so no derivation here finds it.' },
+  /* engine/million_run.js, THE RATE RUNNER, was declared here until 2026-09-11 and is DERIVED now:
+   * it loads MEDICHAM and the official engine side by side and reaches no model, so
+   * `sideBySideInstruments` finds it without being told. This list is the residual the derivations
+   * cannot see, and that entry had stopped being residual. */
   { module: 'engine/medicham_coverage.js',
     why: 'THE CLICK-COVERAGE PROBE. It asks what fraction of the moves HUMANS clicked in the stored '
        + 'open-sheet corpus MEDICHAM can represent at all, against MEDICHAM\'s own predicates. Its '
        + 'authority is the store, which is upstream of the simulator; its number is a property OF the '
        + 'engine, and it is the figure that says whether a rollout leaf is worth building. Nothing in '
-       + 'the gate reads it either.' },
+       + 'the gate reads it, and it reaches engine/board.js, so neither derivation finds it.' },
 ];
 
 function stripComments(s) {
@@ -3734,17 +3742,48 @@ function requiresOf(src, id) {
   return [...out].filter(x => src[x]);
 }
 
-function playLayer(src) {
-  const play = new Set([SIMULATOR]);
+/* Every module whose require closure reaches `root`. The play layer is this with the simulator as the
+ * root; the model layer is this with engine/board.js as the root. One closure, two roots. */
+function reachers(src, root) {
+  const set = new Set([root]);
   for (let i = 0; i < 32; i++) {
     let grew = false;
     for (const id of Object.keys(src)) {
-      if (play.has(id)) continue;
-      if (requiresOf(src, id).some(r => play.has(r))) { play.add(id); grew = true; }
+      if (set.has(id)) continue;
+      if (requiresOf(src, id).some(r => set.has(r))) { set.add(id); grew = true; }
     }
     if (!grew) break;
   }
-  return play;
+  return set;
+}
+
+function playLayer(src) { return reachers(src, SIMULATOR); }
+
+/* A GENERATOR `require` CANNOT REACH IS STILL READ FOR THE DUMPS IT READS — 2026-09-11.
+ *
+ * The play layer is a JavaScript `require` closure, so a Python generator can never be in it, and the
+ * only route by which one can be downstream is the next one: reading a dump MEDICHAM played. That route
+ * read `src`, which holds engine/*.js and build/*.js and nothing else, so a Python generator came out
+ * "not downstream" for having no source at all. engine/porygon2.py trains on
+ * data/games.selfplay.porygon2.raw-logs.jsonl, which engine/mew.js wrote by playing MEDICHAM. CLAUDE.md
+ * names PORYGON2 in its quarantine list, and this file withheld none of its seven artifacts.
+ *
+ * ONLY `.py`. tests/*.js IS LEFT OUT ON PURPOSE: tests/ is outside `sources()` by design, because it is
+ * where the instruments live (section 2's header), and reading it here would put
+ * data/degradation-budgets.json in the set on one self-play path. That is reported as a residual in
+ * docs/_reports/2026-09-11-quarantine-classifier.md, not decided here.
+ *
+ * Docstrings and `#` comments are stripped, for the reason `stripComments` gives: a dump discussed in
+ * prose is not a dump being read. */
+function foreignSource(id, opts = {}) {
+  if (!/\.py$/.test(String(id || ''))) return '';
+  let s = '';
+  if (opts.readSource) s = opts.readSource(id) || '';
+  else {
+    try { s = fs.readFileSync(D(id), 'utf8'); }
+    catch (e) { SWALLOWED.push('read the Python generator ' + id + ' for the dumps it reads: ' + why(e)); return ''; }
+  }
+  return s.replace(/"""[\s\S]*?"""|'''[\s\S]*?'''/g, ' ').replace(/(^|\s)#[^\n]*/g, '$1');
 }
 
 /* Files a play-layer module WRITES that are not artifacts in the graph — row dumps and self-play game
@@ -3866,6 +3905,8 @@ function engineInputArtifacts(g) {
  * 44 play-layer modules that writes an artifact is in `engine/champions_sim.js`'s closure —
  * `fit_policy.js` and `backtest_winrate.js` exactly as much as `game_differential.js`. The signal is
  * dead, and that is now a measurement rather than a sentence.
+ * (CORRECTED 2026-09-11: dead as a TRANSITIVE signal, alive as a DIRECT one beside "reaches no
+ * board.js" — see `sideBySideInstruments`.)
  *
  * WHAT *CAN* BE DERIVED IS THE ONE CLASS THAT MATTERS MOST, AND IT IS THE FILE'S OWN STATED REASON.
  * The header above says the instruments "are the ones that will say when the quarantine can lift, so
@@ -3884,6 +3925,8 @@ function engineInputArtifacts(g) {
  *
  * AND WHAT IT DOES NOT REACH STAYS DECLARED, WITH THE HOLE PRINTED. `million_run.js` and
  * `medicham_coverage.js` are instruments no derivation here finds: the gate does not read them.
+ * (Since 2026-09-11 `sideBySideInstruments` finds million_run.js; medicham_coverage.js reaches
+ * board.js and stays declared.)
  * `gateInputsWithheld` is the loud half — a gate input that comes out QUARANTINED is a contradiction
  * in this file's own terms, and it is reported by name rather than silently exempted. */
 function gateInputArtifacts(opts = {}) {
@@ -3938,6 +3981,100 @@ function instrumentsOfTheGate(g, play, gateInputs) {
   return { modules, closure };
 }
 
+/* ================================================================================================
+ * THE SECOND DERIVED CLASS — BOTH ENGINES SIDE BY SIDE, AND NOTHING FROM THE MODEL — 2026-09-11.
+ * ================================================================================================
+ * The 2026-09-06 block above concluded that "measures" and "consumes" cannot be told apart from the
+ * source, because every play-layer writer sits inside champions_sim.js's closure. That measured one
+ * signal and missed a second. docs/DIVISIONS.md has a second arrow, MEDICHAM → board.js, and
+ * everything to the right of MEDICHAM (features, the leaf, the fitted weights, MILTANK) is computed
+ * through board.js.
+ *
+ * MEASURED ON THE TREE, 2026-09-11 (docs/_reports/2026-09-11-quarantine-classifier.md): of 80
+ * play-layer modules, 68 reach board.js. Of the 12 that do not, 8 require the official engine in
+ * their OWN source: game_differential, derive_protocol_events, all_mechanics_fire, million_run,
+ * replay_differential, immunity_sweep, speed_vs_pokeenv and replay_one. Every one of the 8 compares
+ * MEDICHAM against an authority. This file already exempted four of them by other routes without
+ * knowing this rule, which is the evidence that the rule describes something real. The other 4 are
+ * the simulator, a re-export (exposure.js), a printer over the differential (explain_divergence.js)
+ * and DITTO (ditto.js).
+ *
+ * DITTO IS WHY IT TAKES BOTH HALVES. ditto.js re-ranks teams with MEDICHAM rollouts and never touches
+ * board.js, so "reaches no model" alone would clear a consumer the day DITTO writes an artifact.
+ * backtest_winrate.js is why it takes the other half: it loads Showdown too, and reaches board.js.
+ *
+ * WHAT THIS DOES NOT PROVE. It is a structural rule measured on one day's tree, not a theorem: a
+ * future module could load both engines, skip board.js and still consume. So the exemption lands on
+ * the GENERATOR only (the transitive rule still holds its readers), `--graph` prints it per module,
+ * and the selftest carries DITTO's shape and the backtest's shape as controls. */
+function sideBySideInstruments(src, play, model) {
+  const out = new Map();
+  for (const m of play) {
+    if (m === SIMULATOR || model.has(m)) continue;
+    if (requiresOf(src, m).includes(OFFICIAL)) out.set(m, true);
+  }
+  return out;
+}
+
+/* AN ARTIFACT NOBODY CAN BE SHOWN TO WRITE IS JUDGED BY WHAT IT SAYS ABOUT ITSELF — AND ONLY IN THE
+ * WITHHOLDING DIRECTION. 2026-09-11.
+ *
+ * The unknown set is reported and never defaulted (see `unclassified`), and that stays true: nothing
+ * here CLEARS an unknown. But two unknowns state in their own bytes where they came from, and ignoring
+ * that left a MAG vector and a MAG-vs-MAG replay quotable while the gate was closed:
+ *
+ *   data/policy-weights-pre-censoring.json   carries exactly the sixteen top-level keys of
+ *       data/policy-weights.json. It is the 3.42.0 incumbent preserved by hand (engine/censoring_value.js
+ *       reads it as WEIGHTS_OLD), so provenance.js correctly finds no writer. It is fit_policy.js's
+ *       output under another name, and CLAUDE.md names the MAG weights first in its quarantine list.
+ *   data/exploitability-holdout.json   carries `source_artifact: "data/exploitability.json"`. It is the
+ *       held-out MAG mirror behind SEARCH R8, played through MEDICHAM.
+ *
+ * TWO FORMS, BOTH READ, NEITHER TYPED:
+ *   DECLARED INPUT  a top-level field whose WHOLE value is the filename of a quarantined artifact other
+ *                   than itself. The existing transitive rule then applies unchanged.
+ *   SCHEMA TWIN     an exact top-level key set shared with a quarantined artifact, at five keys or more.
+ *                   A two-key schema such as {generated, rows} is shared by accident; every twin on the
+ *                   2026-09-11 tree has ten or more.
+ *
+ * RESEMBLANCE ONLY EVER WITHHOLDS. A twin of a CLEAN artifact is not cleared. It stays unknown, which is
+ * why the six other policy-weights-*.json variants (fifteen keys, no exact twin) are still printed as
+ * unclassified rather than resolved in either direction. The row keeps `by: null`, because nothing here
+ * claims to know who wrote it. `unclassified` still lists it for that reason, so this file and
+ * provenance.js keep naming the same unknown set (tests/test-provenance-discovery.js). */
+function describedBySelf(rows, unknownRows, opts = {}) {
+  const read = opts.readArtifact || (f => readJson(D('data', f)));
+  const shape = (o) => (o && typeof o === 'object' && !Array.isArray(o)) ? Object.keys(o).sort() : null;
+  const twins = new Map();
+  for (const r of rows.values()) {
+    if (!r.quarantined || !/\.json$/.test(r.file)) continue;
+    const k = shape(read(r.file));
+    if (k && k.length >= 5 && !twins.has(JSON.stringify(k))) twins.set(JSON.stringify(k), r);
+  }
+  const out = [];
+  for (const u of unknownRows || []) {
+    if (!/\.json$/.test(u.file) || rows.has(u.file)) continue;
+    const o = read(u.file), k = shape(o);
+    if (!k) continue;
+    const inputs = Object.values(o)
+      .filter(v => typeof v === 'string' && /^(data[\\/])?[A-Za-z0-9_.\-]+\.json$/.test(v))
+      .map(v => v.replace(/^data[\\/]/, ''))
+      .filter(v => v !== u.file && rows.has(v) && rows.get(v).quarantined);
+    const twin = k.length >= 5 ? twins.get(JSON.stringify(k)) : null;
+    const origin = inputs.length ? rows.get(inputs[0]) : twin;
+    if (!origin) continue;
+    out.push({ file: u.file, by: null, from: inputs, quarantined: true, upstream: false, exempt: null,
+      reason: inputs.length
+        ? `no writer can be found for it, but it declares data/${inputs[0]} as its source, which is quarantined`
+        : `no writer can be found for it, but it carries exactly the top-level keys of data/${twin.file}, `
+          + 'which is quarantined — it is that generator\'s output under another name',
+      selfDescribed: inputs.length ? 'declared input' : 'schema twin',
+      rerun: `nothing re-runs this file — it has no discoverable writer. Its ${inputs.length ? 'source' : 'twin'} `
+        + `data/${origin.file} re-runs with ${origin.by ? 'node ' + origin.by : 'no command either'}` });
+  }
+  return out;
+}
+
 function graph() {
   /* ONE DERIVATION OF THE ARTIFACT GRAPH, and it is provenance.js's. status.js shells out to
    * provenance.js rather than reimplementing its staleness rules; this does the same for its edges. */
@@ -3968,6 +4105,12 @@ function classify(opts = {}) {
       + 'exit-condition instrument: withholding it would have the gate decide MEDICHAM\'s fate off a '
       + 'number it also refuses to print.');
   }
+  const sideBySide = sideBySideInstruments(src, play, opts.model || reachers(src, MODEL_LAYER));
+  for (const m of sideBySide.keys()) {
+    if (!exempt.has(m)) exempt.set(m, `DERIVED — it loads ${SIMULATOR} and the official engine `
+      + `(${OFFICIAL}) side by side and reaches no model: nothing it requires touches ${MODEL_LAYER}, `
+      + 'so it can compute no feature, leaf, weight or policy, only our engine against the authority.');
+  }
 
   const upstream = opts.upstream || engineInputArtifacts(g);
   /* A row dump is almost never in provenance's `from` — that arm tracks .json/.js artifacts and the
@@ -3978,7 +4121,7 @@ function classify(opts = {}) {
   const READ = /readFileSync|createReadStream|require\s*\(|open\s*\(|read_json|json\.load|loadGames|load_games/;
   const WROTE = /writeFileSync|createWriteStream|appendFileSync|json\.dump/;
   const namesProduct = (id) => {
-    const code = stripComments(src[id] || '');
+    const code = src[id] !== undefined ? stripComments(src[id]) : foreignSource(id, opts);
     const hits = [];
     /* A READ VERB IS THE STRONG SIGNAL, AND A BARE MENTION IS THE COMMON ONE. Both R1 and R4 — the two
      * gates this clause exists to catch — bind their input through a default:
@@ -4038,15 +4181,23 @@ function classify(opts = {}) {
    * puts data/weight-multiplicity.json, data/mag.js, data/scoreboard.js and data/ladder.json in the
    * set — they read policy-weights.json, and the weights were fitted on features computed through a
    * simulator we know is wrong. The refit is exactly the event that clears them, and it is gated. */
-  for (let i = 0; i < 32; i++) {
-    let grew = false;
-    for (const r of rows.values()) {
-      if (r.quarantined || r.upstream) continue;
-      const hit = r.from.find(f => rows.has(f) && rows.get(f).quarantined);
-      if (hit) { r.quarantined = true; r.reason = `it reads ${hit}, which is quarantined`; grew = true; }
+  const transitive = () => {
+    for (let i = 0; i < 32; i++) {
+      let grew = false;
+      for (const r of rows.values()) {
+        if (r.quarantined || r.upstream) continue;
+        const hit = r.from.find(f => rows.has(f) && rows.get(f).quarantined);
+        if (hit) { r.quarantined = true; r.reason = `it reads ${hit}, which is quarantined`; grew = true; }
+      }
+      if (!grew) break;
     }
-    if (!grew) break;
-  }
+  };
+  transitive();
+  /* AFTER the transitive pass, because a self-described artifact is judged against what is already
+   * held, and AGAIN after it, because something may read the file that was just held. */
+  const selfDescribed = describedBySelf(rows, unknownRows, opts);
+  for (const r of selfDescribed) rows.set(r.file, r);
+  if (selfDescribed.length) transitive();
   /* THE LOUD HALF. A gate input that still comes out QUARANTINED is this file contradicting itself —
    * the gate would be deciding whether MEDICHAM is correct off a figure it simultaneously refuses to
    * print. The derivation above cannot produce that on its own (it exempts the generator), but the
@@ -4056,8 +4207,9 @@ function classify(opts = {}) {
     .filter(f => rows.has(f) && rows.get(f).quarantined)
     .map(f => ({ file: f, by: rows.get(f).by, reason: rows.get(f).reason })).sort((a, b) => a.file.localeCompare(b.file));
 
-  return { rows, play, exempt, declared, derived: gate.modules, gateInputs: gate.closure,
-           gateInputsWithheld, staleExemptions, products, unknownRows };
+  return { rows, play, exempt, declared, derived: gate.modules, sideBySide, gateInputs: gate.closure,
+           gateInputsWithheld, staleExemptions, products, unknownRows,
+           selfDescribed: selfDescribed.map(r => r.file) };
 }
 
 /* THE ONE ENTRY POINT EVERY CALLER USES. status.js asks two questions — is the gate open, and is this
@@ -4118,7 +4270,7 @@ function withholder(gate, rows) {
     return {
       file: 'data/' + f,
       because: r ? r.reason : 'downstream of ' + SIMULATOR,
-      rerun: r ? `node ${r.by}` : null,
+      rerun: r ? (r.by ? `node ${r.by}` : (r.rerun || null)) : null,
       /* THE CLAUSE SUMMARY IS A COUNT, NOT THE FIRST CLAUSE'S PROSE. Repeating one clause's full
        * sentence under every withheld line printed the same 150 characters six times and buried the
        * fact that the other three clauses fail too. The banner carries the detail once. */
@@ -4149,6 +4301,7 @@ function state() {
     ok: gate.ok, gate, rows: c.rows, error: c.error, play: c.play,
     staleExemptions: c.staleExemptions || [],
     declared: c.declared || new Map(), derived: c.derived || new Map(),
+    sideBySide: c.sideBySide || new Map(),
     gateInputsWithheld: c.gateInputsWithheld || [],
     unclassified: unclassified(c.rows, c.unknownRows),
     unknownRows: c.unknownRows || [],
@@ -6178,6 +6331,79 @@ if (require.main === module) {
         gi.gateInputsWithheld.length === 0, gi.gateInputsWithheld);
     }
 
+    /* -- 2026-09-11: THREE ROUTES THE 2026-09-06 CLASSIFIER GOT WRONG, EACH SHOWN RED ON IT FIRST ---
+     * These arms were written BEFORE the fix and run against the old classifier, which failed every
+     * arm marked RED (docs/_reports/2026-09-11-quarantine-classifier.md). Each RED arm has a CONTROL
+     * beside it, because a rule loosened far enough to pass its red arm is what the control catches. */
+    {
+      const src2 = { ...src,
+        'engine/champions_sim.js': 'module.exports={sim}',
+        /* A DIFFERENTIAL: our engine and the official one side by side, and nothing from the model
+         * side of the DIVISIONS arrow. engine/replay_differential.js has this shape. */
+        'engine/differ.js': "const CS=require('./champions_sim.js'); const M=REL.require('engine/medicham2-browser.js');",
+        /* DITTO's shape: MEDICHAM without board.js and WITHOUT the official engine. engine/ditto.js
+         * re-ranks teams with MEDICHAM rollouts and never touches board.js, so "reaches no model"
+         * ALONE would clear a consumer. This arm is why the rule needs both halves. */
+        'engine/teamrank.js': "const { winProb2 } = require('./medicham2-browser.js');",
+        /* BOTH engines AND the model layer, engine/backtest_winrate.js's shape. Loading Showdown is
+         * not a pass: everything here that plays a game loads it. */
+        'engine/leafcheck.js': "const CS=require('./champions_sim.js'); const B=require('./board.js');",
+      };
+      const play2 = playLayer(src2);
+      const PY = {
+        'engine/model.py': 'ROWS = os.path.join(ROOT, "data", "rows.jsonl")\nfor line in open(ROWS): pass\n',
+        'engine/ladder_model.py': 'for line in open(os.path.join(ROOT, "data", "games.ladder.jsonl")): pass\n',
+        'engine/doc_model.py': '"""In the old days this read rows.jsonl."""\nx = 1  # and rows.jsonl here too\n',
+      };
+      const ART = {
+        'consumer.json': { a: 1, b: 2, c: 3, d: 4, e: 5 },
+        'clean.json': { p: 1, q: 2, r: 3, s: 4, t: 5 },
+        'copy.json': { a: 9, b: 8, c: 7, d: 6, e: 5 },
+        'replay.json': { source_artifact: 'data/consumer.json', n: 3 },
+        'lookalike.json': { p: 0, q: 0, r: 0, s: 0, t: 0 },
+        'selfname.json': { _file: 'data/selfname.json', z: 1 },
+      };
+      const g2 = [...g,
+        { file: 'differ.json', by: 'engine/differ.js', from: [] },
+        { file: 'teamrank.json', by: 'engine/teamrank.js', from: [] },
+        { file: 'leafcheck.json', by: 'engine/leafcheck.js', from: [] },
+        { file: 'model.json', by: 'engine/model.py', from: [] },
+        { file: 'ladder-model.json', by: 'engine/ladder_model.py', from: [] },
+        { file: 'doc-model.json', by: 'engine/doc_model.py', from: [] },
+        { file: 'copy.json', by: null, from: [], unknown: true, why: 'synthetic' },
+        { file: 'replay.json', by: null, from: [], unknown: true, why: 'synthetic' },
+        { file: 'lookalike.json', by: null, from: [], unknown: true, why: 'synthetic' },
+        { file: 'selfname.json', by: null, from: [], unknown: true, why: 'synthetic' },
+      ];
+      const c2 = classify({ src: src2, play: play2, graph: g2, exemptions: [], gateInputs: [],
+                            readSource: (id) => PY[id], readArtifact: (f) => ART[f] || null });
+      const held = (f) => { const r = c2.rows.get(f); return !!(r && r.quarantined); };
+      const stillUnknown = (f) => !c2.rows.has(f) && (c2.unknownRows || []).some(u => u.file === f);
+      ok('RED — a generator holding MEDICHAM and the OFFICIAL engine side by side, reaching no model, '
+        + 'is an instrument: the old rule withheld engine/replay_differential.js for exactly this shape',
+        !held('differ.json') && !!(c2.sideBySide && c2.sideBySide.has('engine/differ.js')));
+      ok('CONTROL — DITTO\'s shape (MEDICHAM, no board.js, no official engine) stays QUARANTINED',
+        held('teamrank.json'));
+      ok('CONTROL — both engines AND board.js stays QUARANTINED: loading Showdown clears nothing',
+        held('leafcheck.json'));
+      ok('RED — a PYTHON generator reading a dump MEDICHAM played is QUARANTINED: `require` cannot see '
+        + 'it, so the dump route is its only route, and the old rule read no source but .js',
+        held('model.json'));
+      ok('CONTROL — a Python generator reading only a HUMAN store is not', !held('ladder-model.json'));
+      ok('CONTROL — a dump named only in a Python docstring or # comment is not a read',
+        !held('doc-model.json'));
+      ok('RED — an artifact with NO discoverable writer that is a key-for-key twin of a quarantined one '
+        + 'is QUARANTINED (data/policy-weights-pre-censoring.json has this shape)', held('copy.json'));
+      ok('RED — an artifact with no writer that DECLARES a quarantined artifact as its source is '
+        + 'QUARANTINED (data/exploitability-holdout.json has this shape)', held('replay.json'));
+      ok('CONTROL — resemblance only ever WITHHOLDS: a twin of a CLEAN artifact is not cleared, it '
+        + 'stays unclassified', stillUnknown('lookalike.json'));
+      ok('CONTROL — a field naming the file ITSELF declares no input', stillUnknown('selfname.json'));
+      const wSelf = withholder({ ok: false, clauses: [{}], failing: [{ name: 'x' }] }, c2.rows)('data/copy.json');
+      ok('RED — a withheld writerless artifact names what would re-run it, and never `node null`',
+        !!(wSelf && wSelf.rerun && !/\bnull\b/.test(wSelf.rerun)), wSelf);
+    }
+
     /* -- WITHHOLDING, both directions, THROUGH THE REAL FUNCTION -------------------------------
      * The first draft of this block wrote its own two-line withhold() and asserted against that,
      * which proves the test can implement a quarantine and says nothing about the one that ships.
@@ -6208,6 +6434,9 @@ if (require.main === module) {
     /* THE TWO HALVES ARE PRINTED APART, because the whole point of the 2026-09-06 change is that the
      * typed half is the RESIDUAL. A reader who cannot see which is which cannot see it shrinking. */
     for (const [m, f] of S.derived) console.log(`  DERIVED INSTRUMENT:  ${m}\n    the gate reads data/${f}`);
+    for (const m of S.sideBySide.keys()) {
+      if (!S.derived.has(m)) console.log(`  DERIVED INSTRUMENT:  ${m}\n    both engines side by side, no model — it requires ${OFFICIAL} and reaches no ${MODEL_LAYER}`);
+    }
     for (const e of MEASURES_THE_ENGINE) console.log(`  DECLARED INSTRUMENT: ${e.module}\n    ${e.why.replace(/\s+/g, ' ')}`);
     console.log('');
     if (S.error) { console.log('  GRAPH UNAVAILABLE: ' + S.error); process.exit(1); }
@@ -6225,7 +6454,9 @@ if (require.main === module) {
     for (const r of [...S.rows.values()].sort((a, b) => a.file.localeCompare(b.file))) {
       console.log('  ' + pad(r.file, 34) + pad(r.quarantined ? 'HELD' : 'ok', 6) +
         (r.quarantined ? r.reason
-          : (r.exempt ? (S.derived.has(r.by) ? 'DERIVED INSTRUMENT — the gate reads it' : 'DECLARED INSTRUMENT')
+          : (r.exempt ? (S.derived.has(r.by) ? 'DERIVED INSTRUMENT — the gate reads it'
+                         : S.sideBySide.has(r.by) ? 'DERIVED INSTRUMENT — both engines, no model'
+                         : 'DECLARED INSTRUMENT')
                       : 'not downstream of the simulator')));
     }
     process.exit(0);
@@ -6321,7 +6552,7 @@ if (require.main === module) {
         + ` They are NOT withheld and they are NOT current — every one was measured under an engine`
         + ` that has since changed, so each must be re-run before it is quoted (ROADMAP #57):`
       : `  ${held.length} of ${S.rows.size} artifacts are downstream of MEDICHAM and are WITHHELD:`);
-    for (const r of held) console.log('    data/' + pad2(r.file, 34) + ' re-run: node ' + r.by);
+    for (const r of held) console.log('    data/' + pad2(r.file, 34) + ' re-run: ' + (r.by ? 'node ' + r.by : r.rerun));
     console.log('');
     console.log('  Re-running is not optional once the gate opens. A quarantined number does not become');
     console.log('  true when MEDICHAM becomes correct; it becomes re-runnable. ROADMAP #57.');
@@ -6331,13 +6562,22 @@ if (require.main === module) {
      * anybody acted on it: the scan reads tests/ now, and these files are unknown for five different
      * reasons, one of which is that they are CONFIG and correctly have no generator at all. Each row
      * carries its own derived reason and this prints that. */
-    if (S.unclassified.length) {
+    /* A WRITERLESS ARTIFACT HELD BY WHAT IT SAYS ABOUT ITSELF is in the WITHHELD list above with its
+     * reason, so it is not repeated here under "neither cleared nor withheld", which would be two
+     * contradictory sentences about one file. It stays in `S.unclassified`, because that answers the
+     * WRITER question and must match provenance.js's unknown set. */
+    const neither = S.unclassified.filter(f => !S.set.has(f));
+    if (S.unclassified.length > neither.length) {
+      console.log('');
+      console.log(`  ${S.unclassified.length - neither.length} artifact(s) with NO DISCOVERABLE WRITER are WITHHELD above, by what they say about themselves.`);
+    }
+    if (neither.length) {
       const whyOf = new Map((S.unknownRows || []).map(r => [r.file, r.why]));
       console.log('');
-      console.log(`  ${S.unclassified.length} artifact(s) on disk have NO DISCOVERABLE WRITER and are neither`);
+      console.log(`  ${neither.length} artifact(s) on disk have NO DISCOVERABLE WRITER and are neither`);
       console.log('  cleared nor withheld. The set holds instruments AND consumers, so it cannot be');
       console.log('  defaulted either way. Reasons are derived per file by engine/provenance.js:');
-      for (const f of S.unclassified) {
+      for (const f of neither) {
         console.log('    ' + f);
         const w = whyOf.get(f) || 'NO REASON RECORDED — engine/provenance.js did not examine this file at all.';
         let cur = '';

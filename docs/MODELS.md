@@ -4,6 +4,8 @@
 
 **CORRECTION, 2026-09-11 - THE GATE IS CLOSED AGAIN, SO THE DISTANCE TO IT IS NOT ZERO. THE 6.0.0 BLOCK BELOW IS DATED EVIDENCE; ITS "THE GATE IS OPEN", "NINE PASS" AND "NOW A DECISION RATHER THAN A GATE" ARE NOT TRUE TODAY.** `node engine/quarantine.js` at HEAD `bf2d594f`, `2026-09-11T12:21Z`, prints `GATE: CLOSED — 2 of 9 GATING clauses fail`. The failing clauses are the open-defect clause (`10 OPEN roadmap row(s) name an instrument that is RED`: ROADMAP #535, #529, #318, #348, #375, #380, #412, #425, #467, #511) and the staged-mechanics clause (`9 of 16 DIVERGING MECHANICS ARE PLAYED AND UNCLEARED`, all among the partings registered as ROADMAP #593–#600). It closed because instruments added after 6.0.0 see more, not because the engine got worse: CHANGELOG 6.13.0 gave twenty register rows a deciding probe, and CHANGELOG 6.14.0 put the staging planner inside the harness, raising staged mechanics that fired from 740 to 783 of 845. The defects those instruments see are real, and they were in the engine at 6.0.0. The pinned pool did not move: `data/game-differential.json` on release `aefcb93baf14` reads `state.games` 961 and `state.games_board_never_diverged` 961. The full account is at the head of `docs/ABRA-whitepaper.md`.
 
+**UPDATE, 2026-09-11 (6.18.0):** `node engine/quarantine.js` now prints `GATE: CLOSED — 1 of 9 GATING clauses fail` (re-read at HEAD `b8f7d999`, `2026-09-11T15:03Z`). The mechanics clause passes again; the one clause still failing is the open-defect clause, on two named rows — #318 (roster move scenarios staged on bodies that cannot legally learn the move) and #511 (the survival clamp applied per volley rather than per hit). The 2-of-9 reading above is kept as dated evidence.
+
 **FOR THIS LEDGER, THE MODEL FIGURES ARE WITHHELD BY THE GATE AGAIN, AND NOT BY DECISION ALONE.** Every artifact `node engine/quarantine.js` lists as downstream of MEDICHAM is WITHHELD, and the LIFT and STAY split in the 6.0.0 block no longer applies. No figure is withdrawn, because none was re-run or published under that split. **LEAF CALIBRATION — MEASURE'S ONE NUMBER — NO LONGER "NEEDS ONE COMMAND AND NO PERMISSION FROM THE GATE"**, as the 6.0.0 block says. `data/winrate-backtest.json` is withheld by the gate, and it becomes quotable only when the gate opens again AND `node engine/backtest_winrate.js` is re-run.
 
 **6.0.0 - THE DISTANCE TO THE GATE IS ZERO AND THE GATE IS OPEN. THIS LEDGER STILL CARRIES NO MODEL FIGURE, AND THAT IS NOW A DECISION RATHER THAN A GATE.** Every model in this ledger sits downstream of MEDICHAM, so for two months the only quantity this file could honestly carry was how far the engine was from its gate. That distance is now zero. `data/game-differential.json` on release `cbd510bc2b13`: board-material **0 of 961** — `state.games` **961** less `state.games_board_never_diverged` **961** — with `state.games_void_excluded` 0, `state.games_cut_off_by_the_turn_cap` 0 at `turns_cap` **50**, and `state.turn_boundaries_compared` **10,705** equal to `state.turn_boundaries_identical`; narration **0 undeclared of 961**, being `state.protocol_diverged_board_never_did` 1 less the 1 declared row. `data/engine-diff.json` reads `compared` **6,000** and `disagreed` 0. `data/roster.items.json` **142 tested**, `data/roster.abilities.json` **139 tested** and `data/roster.moves.json` **487 tested**, every stage with `differ` 0 and DID-NOT-FIRE 0. `data/mechanics-census.json` reads `live` **835** of `probed` **835**. `node engine/status.js` computes nine clauses and **nine PASS**.
@@ -1302,6 +1304,8 @@ than Pelipper plus Archaludon** — the same expressiveness failure as DODUO, on
 
 **MECHANICS STATE, CORRECTED 2026-09-11 — THE GATE IS CLOSED. THE 6.1.0 PARAGRAPH BELOW ENDS "`node engine/quarantine.js` reports the gate OPEN"; THAT IS DATED EVIDENCE AND IS NOT TRUE TODAY.** At HEAD `bf2d594f`, `2026-09-11T12:21Z`, the same command prints `GATE: CLOSED — 2 of 9 GATING clauses fail`: the open-defect clause and the staged-mechanics clause. Both fail on instruments added after 6.0.0 (CHANGELOG 6.13.0 and 6.14.0), and the defects they see are real. The pinned pool did not move: `data/game-differential.json` on release `aefcb93baf14` reads `state.games` 961 and `state.games_board_never_diverged` 961. The account is at the head of this ledger.
 
+**UPDATE, 2026-09-11 (6.18.0):** `node engine/quarantine.js` now prints `GATE: CLOSED — 1 of 9 GATING clauses fail` (re-read at HEAD `b8f7d999`, `2026-09-11T15:03Z`). The mechanics clause passes again; the one clause still failing is the open-defect clause, on two named rows — #318 (roster move scenarios staged on bodies that cannot legally learn the move) and #511 (the survival clamp applied per volley rather than per hit). The 2-of-9 reading above is kept as dated evidence.
+
 **MECHANICS STATE, 6.1.0 — THE DAMAGE DIFFERENTIAL NOW APPLIES MULTI-HIT MOVES, AND THE SKIP IT CARRIED IS GONE.** `data/engine-diff.json` on release `3c2b2f9ac845` against authority commit `20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4`, seed 20260804: `compared` **6,000**, `agreed` **6,000**, `disagreed` 0 at the midpoint and at every one of the sixteen arms, `band_missing` 0, and `skipped_multihit` and `skipped_ability_multihit` both **0**. `volley.move_rows` **130** and `volley.bond_rows` **12**, so **142** of those 6,000 comparisons are volleys run through the authority own hit loop. What remains skipped is named in the same object: `volley.unstageable` **1** (Dragon Darts) and `volley.no_arrival` **4**. `data/mechanics-census.json` unmoved at `live` **835** of `probed` **835**, `missing` 0. `data/game-differential.json` re-run on the same release and unmoved: board-material **0 of 961**, **10,705** of **10,705** boundaries identical. `node engine/quarantine.js` reports the gate OPEN.
 
 
@@ -1893,15 +1897,16 @@ not be quoted as evidence that species choice predicts outcomes.
 > of the refit. Quote `data/policy-weights.json`; it is one `corpus` object and it cannot drift.
 
 **REFITTED ON THE FOUR-CHANNEL SHEET, 3.40.0 (2026-08-04T23:37Z artifact).** Will's decision: open
-team sheets always; closed sheets deferred. *At that release* `data/policy-weights.json` read corpus
-**8,856 games / 231,722 decisions (185,560 train / 46,162 held out)** — **superseded by the 3.42.0
-click-censoring refit below, which is the live figure; this paragraph is the 3.40.0 record and its
-numbers are no longer in the artifact.** `fitEnvironment.sheet_channels`
+team sheets always; closed sheets deferred. *At that release* `data/policy-weights.json` read a
+corpus whose counts are withheld — **superseded by the 3.42.0 click-censoring refit below; this
+paragraph is the 3.40.0 record.** The 3.40.0 vector survives as
+`data/policy-weights-pre-censoring.json`, and `engine/quarantine.js` holds it as a key-for-key twin of
+the MAG vector (withdrawn 2026-09-11). `fitEnvironment.sheet_channels`
 = [nature, item, ability, moves]`, `matches_player: true`, and a **point-of-use reach counter** —
-the declared ability/moves arrived on the board for 99.67% of scored decisions — so the
-environment match is measured, not asserted. The two-channel incumbent is preserved
+the share of scored decisions on which the declared ability/moves arrived on the board is withheld
+with the fit — so the environment match was measured, not asserted. The two-channel incumbent is preserved
 (`data/policy-weights-presheet.json`) and frozen in release `d3d04b669e18` as arm A of the pending
-paired held-out comparison against the 0.192-point noise floor (`engine/sheet_channel_value.js`,
+paired held-out comparison against its noise floor, withheld with `data/sheet-channel-value.json` (`engine/sheet_channel_value.js`,
 not yet run). **The JOINT (pair) layer is NOT yet refitted** — until it is, the pair layer prices
 against the two-channel board, and no improvement claim exists for either layer.
 
@@ -2294,18 +2299,18 @@ proposes training on self-play and calibrating on humans.
 (`status_diff`, `boost_diff`, `tailwind_diff`, `screen_diff`, `hazard_diff`, `trickroom`,
 `weather_on`, `terrain_on`) and matchup (`matchup_edge`, `speed_edge`, `type_threat`) — and looks up
 the k nearest neighbours. No weights are fitted; it is a lookup.
-**Corpus:** **trained on 3,898 self-play games / 73,368 positions**, **evaluated on 2,274 held-out
-clean HUMAN ladder games / 12,000 positions**. Generated **2026-07-28**, `provenance` **ok**.
+**Corpus:** **trained on self-play games, evaluated on held-out clean HUMAN ladder games** (all four
+counts withheld). Generated **2026-07-28**. **WITHHELD SINCE 2026-09-11:** the self-play is
+`data/games.selfplay.porygon2.raw-logs.jsonl`, which `engine/mew.js` wrote by playing MEDICHAM, so
+every PORYGON2 artifact is downstream of the simulator; `engine/quarantine.js` now reads Python
+generators for the dumps they read.
 
-| arm | accuracy | Brier | log-loss |
-|---|---|---|---|
-| coin | 50.22% | 0.2500 | 0.6931 |
-| **material sign** — the baseline that matters | 60.22% | 0.2254 | 0.6410 |
-| plain k=200 | 62.61% | 0.2194 | **0.6258** |
-| weighted k=50 | **63.59%** | 0.2239 | 0.6483 |
+Four arms were scored — a coin, the **material sign** (the baseline that matters), a plain
+nearest-neighbour lookup and a distance-weighted one — and every accuracy, Brier score and log-loss
+among them is withheld with `data/porygon2.json`.
 
-**Honest status: it beats material by about 2.4 accuracy points and 0.015 of log-loss, and NOT ONE
-OF THOSE NUMBERS HAS AN INTERVAL.** The artifact publishes six point estimates and no CI, no paired
+**Honest status: how far it beats material, if at all, is withheld, and NOT ONE OF THE ARTIFACT'S
+NUMBERS HAS AN INTERVAL.** The artifact publishes six point estimates and no CI, no paired
 test and no split-half floor, so *"beats material"* is currently an ordering of six numbers, not a
 result. The smallest split-half floor this project has published is 0.43 points. **NOT MEASURED.**
 Note also that its best accuracy and its best log-loss come from **different arms**, which is what a

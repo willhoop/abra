@@ -65,7 +65,21 @@ const ok = (pass, name, detail) => {
   if (!pass) failed++;
 };
 
-/* ---- THE SEEDED CENSUS — 2026-09-06, gate CLOSED, 63 artifacts withheld. MAY ONLY SHRINK. ----- */
+/* ---- THE SEEDED CENSUS — 2026-09-06, gate CLOSED, 63 artifacts withheld. MAY ONLY SHRINK. -----
+ *
+ * 2026-09-11, SHRUNK BY 17, DERIVED BY RUNNING THIS FILE. The ledger passes of 2026-09-11 withdrew
+ * the figures behind 15 keys, and the quarantine-classifier pass withdrew SEARCH R20's two. This file
+ * printed exactly those 17 under "DELETE these lines"; none was hand-picked
+ * (docs/_reports/2026-09-11-quarantine-classifier.md).
+ *
+ * 2026-09-11, AND FOUR KEYS WERE ADDED: THE ONE PLACE THIS LIST GREW, AND WHY. engine/quarantine.js
+ * learned to hold an artifact with no discoverable writer by what it says about itself, and
+ * data/policy-weights-pre-censoring.json is a key-for-key twin of the MAG vector. Its corpus counts
+ * (the 3.40.0 fit's decisions and held-out split) were ALREADY standing in the four documents below
+ * when the classifier started seeing them. No document gained a figure in that pass. This is the
+ * 2026-09-06 re-seed's shape ("PLUS 40 THAT NOTHING COULD SEE UNTIL TODAY"), not a republication
+ * waved through. The documents belong to passes that brief did not own, so the figures are OWED OUT
+ * of them; delete each key the day its figure goes. */
 const BASELINE = new Set([
   "docs/ABRA-technical-docs.md|14.757%|data/policy-weights.json",
   "docs/ABRA-technical-docs.md|44,982|data/sheet-channel-value.json",
@@ -83,22 +97,9 @@ const BASELINE = new Set([
   "docs/ENGINE.md|6,371|data/leaf-position-contrast.json",
   "docs/EXTERNAL-EVIDENCE.md|6,890|data/winrate-backtest.json",
   "docs/GAME-DIFFERENTIAL-DESIGN.md|8,855|data/leaf-engine-contrast.json",
-  "docs/MEASURE.md|1,136,845|data/feature-engine-contrast.json",
   "docs/MEASURE.md|14.757%|data/policy-weights.json",
-  "docs/MEASURE.md|202,343|data/policy-weights-joint.json",
-  "docs/MEASURE.md|202,918|data/policy-weights-joint.json",
-  "docs/MEASURE.md|220,932|data/feature-engine-contrast.json",
-  "docs/MEASURE.md|395,130|data/policy-weights-joint.json",
-  "docs/MEASURE.md|396,288|data/policy-weights-joint.json",
-  "docs/MEASURE.md|44,982|data/sheet-channel-value.json",
-  "docs/MEASURE.md|48,274|data/censoring-value.json",
-  "docs/MEASURE.md|6,890|data/winrate-backtest.json",
-  "docs/MEASURE.md|7,994|data/leaf-engine-contrast.json",
   "docs/MEASURE.md|8,855|data/leaf-engine-contrast.json",
-  "docs/MEASURE.md|91,240|data/feature-engine-contrast.json",
   "docs/MODELS.md|14.757%|data/policy-weights.json",
-  "docs/MODELS.md|2.92%|data/policy-weights.json",
-  "docs/MODELS.md|23.4%|data/policy-weights.json",
   "docs/MODELS.md|48,274|data/censoring-value.json",
   "docs/MODELS.md|49.3%|data/policy-weights.json",
   "docs/MODELS.md|81,515|data/redirect-audit.json",
@@ -112,11 +113,12 @@ const BASELINE = new Set([
   "docs/ROADMAP.md|6779|data/leaf-position-contrast.json",
   "docs/ROADMAP.md|81,515|data/redirect-audit.json",
   "docs/SEARCH.md|1,600|data/exploitability.json",
-  "docs/SEARCH.md|1.576%|data/feature-shift.json",
-  "docs/SEARCH.md|51,399|data/feature-shift.json",
-  "docs/SEARCH.md|64.24%|data/rollout-r1-explore-sweep.json",
-  "docs/SEARCH.md|66.645%|data/rollout-r1-explore-sweep.json",
   "docs/SEARCH.md|960,000|data/exploit-step-probe.json",
+  /* the four made visible on 2026-09-11 — see the note above; owed out of these documents */
+  "docs/ABRA-technical-docs.md|231,722|data/policy-weights-pre-censoring.json",
+  "docs/ABRA-whitepaper.md|231,722|data/policy-weights-pre-censoring.json",
+  "docs/ABRA-whitepaper.md|46,162|data/policy-weights-pre-censoring.json",
+  "docs/ENGINE-COVERAGE-PLAN.md|231,722|data/policy-weights-pre-censoring.json",
 ]);
 
 console.log('\n  QUARANTINED FIGURES IN LIVING DOCUMENTS — the citation was faithful and that is the bug\n');
