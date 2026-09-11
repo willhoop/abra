@@ -10,6 +10,13 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.9.1] — 2026-09-11
+
+### Added
+- **A staging planner** (`engine/stage_planner.js`) that constructs a legal fixture, a one-variable control
+  and a failure plant for every mechanic in the regulation — 841 of the 847 with a legal carrier — to
+  replace the harness's hand-picked defaults, each of which was hiding mechanics.
+
 ## [6.9.0] — 2026-09-11
 
 ### Changed

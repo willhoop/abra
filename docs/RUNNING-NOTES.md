@@ -69,6 +69,14 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [6.9.1] — 2026-09-11 — a staging planner derives a legal fixture for 841 of the 847 mechanics with a legal carrier
+
+- **What changed.** Added `engine/stage_planner.js` and `tests/test-stage-planner.js`. For every legal move, ability and item — and abilities a legal move can confer — the planner derives what the mechanic needs from the authority's handlers and the tag params, then constructs a legal board that supplies it, with a control differing in one leaf and inert for one reason, on both sides and at the slot where the mechanic reads position. No game is played.
+- **Measured.** 841 of 964 mechanics carry a validated fixture, 841 of the 847 with a legal carrier; 1,359 distinct teams pass Showdown's TeamValidator. 123 refused with codes: no legal carrier 117, needs engine capability 3 (gender, pinned by the driver at `engine/game_differential.js:3412`, not by medicham2), validator refused 1, no legal reader 1, planner cannot construct 1. The test is green, and all 13 of its checks were shown red on a broken planner. Detail: `docs/_reports/2026-09-11-stage-planner.md`.
+- **Supersedes.** Nothing.
+- **Basis.** unchanged.
+- **Owed to the next major.** None. Owed as work: integrate into `engine/all_mechanics_fire.js` once the engine batch holding the game slot lands; an opt-in declared spread for 13 speed-dependent fixtures; `engine/fixture_preflight.js` cannot read a move's category (Prankster, Gale Wings, Pickpocket, Triage).
+
 ## [6.9.0] — 2026-09-11 — the coverage counters count only boards on mechanics that fired, over one derived scope
 
 - **What changed.** `engine/coverage.js`: the boards line counts a board only where the mechanic fired, over the in-scope denominator, with the out-of-scope count printed beside it; a tag is scored on every in-scope row, not its first; both staged lines take their scope from the new `engine/legal_scope.js` (a legal carrier the TeamValidator accepts, mega formes included, sim-injected moves in). `tests/mutation_harness.js` uses the new `engine/tag_lookups.js`, which scans each lookup to its balanced close. `engine/status.js` prints the in-scope tag denominator.
