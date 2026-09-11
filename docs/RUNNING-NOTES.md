@@ -69,6 +69,14 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [6.8.1] — 2026-09-11 — a grandfathered figure leaves the list only when a document binds it, and MODELS.md's 925 is bound to the commit that wrote it
+
+- **What changed.** `engine/docs_scan.js`: a grandfathered figure that some file on disk happens to contain now stays on the list as dormant; it retires only when its sentence or value is edited, or when a binding a document wrote holds it — the CHANGELOG entry its block names, or a commit-pinned blob. A commit-pinned citation (a commit hash, a colon, then a data path and an optional field) is read from git as a bound trace, not as a citation of today's file. `docs/MODELS.md:1493` binds its held-out figure to the commit that produced it. `tests/test-docs-current.js` writes the list through `retainGrandfathered`, and its bound-trace demonstration grows from 16 to 23 cases.
+- **Measured.** The gate was red on MODELS.md's 925: the bootstrap had read an older meta-usage artifact in which an unrelated species threat count equals 925, so the figure was bound by coincidence and never grandfathered, and the next ingest removed it. The commit that carried that ingest in through a rebase was never gated on its own tree, because the pre-commit hook skips a rebase. The first green run after the bootstrap retired two white-paper figures nobody had edited, and a third was one run from the same. The old rule fails the new flaw case, a keep-while-unedited rule fails both controls, and the shipped rule passes every case; the list goes from 2,256 to 2,249, all seven retired by the new pin; gate 37 of 37. Detail: `docs/_reports/2026-09-11-ratchet-925.md`.
+- **Supersedes.** Nothing.
+- **Basis.** unchanged.
+- **Owed to the next major.** None — no published figure moved. Still unprotected: 1,317 figures bound only by a file on disk and on no list, which an artifact regeneration can still turn red; and the hook's rebase skip.
+
 ## [6.8.0] — 2026-09-11 — the harness compares the act of evolving: boards compared 739 → 832 of 964, no new board parts
 - **What changed.** `engine/all_mechanics_fire.js` only.
   - The 75 mega stones are staged as a mega evolution, where they used to be excused.

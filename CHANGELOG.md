@@ -10,6 +10,15 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.8.1] — 2026-09-11
+
+### Fixed
+- **The traceability ratchet no longer drops a figure because an artifact happens to contain it.** A
+  grandfathered figure now retires only when a document binds it — its sentence is edited, or the
+  CHANGELOG entry its block names or a commit-pinned blob holds it. The flaw had already fired within
+  hours of landing, and roughly two hourly ingests in nine would have turned the gate red with no
+  document edited. MODELS.md's held-out figure is bound to the commit that wrote it.
+
 ## [6.8.0] — 2026-09-11
 
 ### Added

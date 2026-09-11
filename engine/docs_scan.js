@@ -24,6 +24,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { execFileSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
@@ -503,10 +504,7 @@ function artifactObject(rel) {
      * whose whole job is to catch false claims. Announced, and the caller is told to skip rather
      * than to score against an empty set. */
     try {
-      const text = fs.readFileSync(p, 'utf8');
-      const body = /\.js$/i.test(rel) ? bundleJson(text) : text;
-      if (body === null) throw new Error('no JSON value found after the wrapper');
-      j = JSON.parse(body);
+      j = parseArtifactText(rel, fs.readFileSync(p, 'utf8'));
     } catch (parseErr) {
       console.error('  docs_scan: ' + rel + ' is present but unparsable (' + (parseErr.message || parseErr).split('\n')[0]
         + ') — NOT scoring any figure against it, because an empty set would make every citation look wrong');
@@ -514,6 +512,40 @@ function artifactObject(rel) {
     }
   }
   parsedCache.set(rel, j);               // cached so the warning is said once, not once per citation
+  return j;
+}
+/** One parse for an artifact's text, whether it came off the disk or out of a commit. Throws. */
+function parseArtifactText(rel, text) {
+  const body = /\.js$/i.test(rel) ? bundleJson(text) : text;
+  if (body === null) throw new Error('no JSON value found after the wrapper');
+  return JSON.parse(body);
+}
+
+/* ---- A COMMIT-PINNED BLOB: the one trace an artifact regeneration cannot move -------------------
+ * `8e2dc0a7:data/x.json` in a paragraph binds what that commit wrote. Only a commit IN THIS HISTORY
+ * counts: a hash that resolves locally but was rebased away (the ratchet's own commit ea437935 was, the
+ * night this was written) would bind on this machine and on no clone. Either failure is SAID and binds
+ * nothing — a missing blob must read as missing, never as empty (the artifactObject rule above). */
+const blobCache = new Map();
+function blobObject(rev, rel) {
+  const k = rev + ':' + rel;
+  if (blobCache.has(k)) return blobCache.get(k);
+  const git = args => execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 28, stdio: ['ignore', 'pipe', 'pipe'] });
+  let j;
+  try { git(['merge-base', '--is-ancestor', rev, 'HEAD']); }
+  catch (e) {
+    console.error('  docs_scan: ' + rev + ' is not a commit in this history (rebased away, mistyped, or a shallow clone) — `'
+      + k + '` binds NOTHING this run');
+    blobCache.set(k, undefined);
+    return undefined;
+  }
+  try { j = parseArtifactText(rel, git(['show', k])); }
+  catch (e) {
+    console.error('  docs_scan: `' + k + '` could not be read or parsed (' + String(e.message || e).split('\n')[0]
+      + ') — it binds NOTHING this run');
+    j = null;
+  }
+  blobCache.set(k, j);
   return j;
 }
 
@@ -606,11 +638,23 @@ function paragraphs(text) {
 /** The data artifacts a block names. A citation is a promise that the number came from that file.
  *  A browser bundle under data/ counts since 2026-09-09 — build/ writes it from a measurement and the
  *  documents cite it by name (`data/engine-data.js` 101 times, `data/live.js` 15); see bundleJson(). */
+/* A COMMIT-PINNED MENTION IS NOT A CITATION OF THE FILE ON DISK — 2026-09-11. `8e2dc0a7:data/x.json`
+ * names the bytes that commit wrote, which is the evidence chain this repository traces a figure by,
+ * and it was being read as today's `data/x.json`: the figures beside it were judged against a file
+ * regenerated since. The same lookbehind is applied here, in the field citation and in the census's
+ * bare-mention test, so every rule agrees on it; pinnedCitationsIn reads the pinned form instead. */
+const PIN_BEHIND = '(?<!\\b[0-9a-f]{7,40}:)';
+const CITE_RE = new RegExp(PIN_BEHIND + '\\b(data\\/[A-Za-z0-9_.\\-]+\\.(?:json|js))\\b', 'g');
 function citationsIn(block) {
   const s = block.join('\n');
   const out = new Set();
-  for (const m of s.matchAll(/\b(data\/[A-Za-z0-9_.\-]+\.(?:json|js))\b/g)) out.add(m[1]);
+  for (const m of s.matchAll(CITE_RE)) out.add(m[1]);
   return [...out];
+}
+/** `8e2dc0a7:data/x.json`, or `8e2dc0a7:data/x.json:a.b` for one field of it — the blob a commit wrote. */
+const PIN_CITE_RE = /\b([0-9a-f]{7,40}):(data\/[A-Za-z0-9_.\-]+\.(?:json|js))(?::([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*|\[\d*\])*))?/g;
+function pinnedCitationsIn(text) {
+  return [...String(text).matchAll(PIN_CITE_RE)].map(m => ({ rev: m[1], rel: m[2], field: m[3] || null }));
 }
 
 /* ---- rule 3, part c: retractions, DERIVED from the documents themselves -----------------------
@@ -906,7 +950,7 @@ function retractionProof() {
  *  n_games and accused a correct sentence. `bound` is the nearest figure after the citation within a
  *  short connector ("reads", "is", "of", "at"), else the nearest figure before it within a parenthetical
  *  reach; every other figure in the sentence is judged against the whole artifact as before. */
-const FIELD_CITE_RE = /\b(data\/[A-Za-z0-9_.\-]+\.json):([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*|\[\d*\])*)/g;
+const FIELD_CITE_RE = new RegExp(PIN_BEHIND + /\b(data\/[A-Za-z0-9_.\-]+\.json):([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*|\[\d*\])*)/.source, 'g');
 const NUM = '(?:' + MINUS + '?(?:\\d{1,3}(?:,\\d{3})+|\\d+(?:\\.\\d+)?)\\s*%?)';
 const AFTER_RE = new RegExp('^`?\\)?\\*{0,2}\\s*(?:reads?|is|was|=|:|of|at|→|->|—|-|holds|says|gives)?\\s*\\*{0,2}(' + NUM + ')');
 const BEFORE_RE = new RegExp('(' + NUM + ')\\*{0,2}[^\\d\\n]{0,60}$');
@@ -1628,7 +1672,7 @@ function grandfatheredTraces() {
  * `total / per / where` — unchanged in meaning, so major_readiness.js and the ratchet read it as
  * before — plus `bound`, `grandfathered_keys`, `grandfathered_by_doc` and `unbound`. */
 function untraceableCensus(docs, { read = readDoc, artifact = artifactObject, all = null, changelog = null,
-                                   grandfathered, observe = null } = {}) {
+                                   grandfathered, observe = null, blob = blobObject } = {}) {
   /* `observe`, when given, is told the class of every figure and what could have bound it, so a
    * measurement of HOW MUCH a binding means is taken through this function rather than a copy of it. */
   const see = observe || (() => {});
@@ -1662,6 +1706,7 @@ function untraceableCensus(docs, { read = readDoc, artifact = artifactObject, al
   const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   const per = {}, where = {}, unbound = new Map(), seenGf = new Set(), predates = [];
+  const dormantGf = new Set(), boundGf = new Set();   // listed and bound: by a file on disk / by what the documents wrote
   const bound = { paragraph: 0, entry: 0, by_artifact: {} };
   let total = 0;
   for (const rel of docs) {
@@ -1682,9 +1727,20 @@ function untraceableCensus(docs, { read = readDoc, artifact = artifactObject, al
         if (!fieldsOf.has(fc.c)) fieldsOf.set(fc.c, []);
         fieldsOf.get(fc.c).push(fc.field);
       }
+      /* A commit-pinned blob is checked FIRST: when it and a file on disk both hold a figure, the
+       * binding that cannot move is the one recorded, so a grandfathered figure it holds retires. */
       const scopes = [];
+      for (const p of pinnedCitationsIn(joined)) {
+        if (!isArtifactRel(p.rel)) continue;
+        const j = blob(p.rev, p.rel);
+        if (j === undefined || j === null) continue;
+        let nums = null;
+        if (p.field) nums = fieldScopeOf(j, p.field);
+        else { nums = new Set(); walkNumbers(j, nums); }
+        if (nums) scopes.push({ c: p.rev + ':' + p.rel + (p.field ? ':' + p.field : ''), nums, fixed: true });
+      }
       for (const c of pc) {
-        const bare = new RegExp(esc(c) + '(?![\\w\\-]|\\.\\w|:[A-Za-z_$])').test(joined);
+        const bare = new RegExp(PIN_BEHIND + esc(c) + '(?![\\w\\-]|\\.\\w|:[A-Za-z_$])').test(joined);
         if (bare || !fieldsOf.has(c)) { scopes.push({ c, nums: numsOf(c) }); continue; }
         for (const fld of fieldsOf.get(c)) { const s = fieldScopeOf(artifact(c), fld); if (s) scopes.push({ c, nums: s }); }
       }
@@ -1714,13 +1770,30 @@ function untraceableCensus(docs, { read = readDoc, artifact = artifactObject, al
             const line = b.start + i;
             const ctx = { doc: rel, line, figure: f, cited: cites.length > 0, leaf: leaf || null,
                           scopes: leaf ? [] : scopes.map(sc => sc.nums), entrySets: vers.map(v => entries.get(v)) };
+            const keyOf = () => {
+              if (sentence === null) sentence = unitOf(i, s.at) || s.raw.replace(/\s+/g, ' ').trim();
+              return rel + '|' + traceHash(sentence) + '|' + f.raw;
+            };
+            /* WHICH BINDING RETIRES A GRANDFATHERED FIGURE — 2026-09-11. One that a file on disk happens
+             * to satisfy does NOT: it lasts until that file regenerates, and a list that dropped the
+             * figure on that evidence left it neither bound nor grandfathered the moment the value
+             * moved — a red on whoever commits next, for no document edit. Measured: the first green run
+             * after the bootstrap retired two white-paper figures nobody had touched (112 and 181),
+             * because game-differential.json and mechanics-census.json had just been regenerated to
+             * contain them. So a listed figure bound by a file on disk is DORMANT: kept, counted. It
+             * retires only on a binding the documents wrote and nothing regenerates — the CHANGELOG
+             * entry its block names, or a commit-pinned blob — or when its sentence or value is edited. */
             if (holder) {
               bound.paragraph++; bound.by_artifact[holder.c] = (bound.by_artifact[holder.c] || 0) + 1;
+              if (gf) { const k = keyOf(); if (gf.has(k)) (holder.fixed ? boundGf : dormantGf).add(k); }
               see({ ...ctx, cls: 'paragraph', by: holder.c }); continue;
             }
-            if (vers.some(v => entryHas(entries.get(v), f))) { bound.entry++; see({ ...ctx, cls: 'entry' }); continue; }
-            if (sentence === null) sentence = unitOf(i, s.at) || s.raw.replace(/\s+/g, ' ').trim();
-            const key = rel + '|' + traceHash(sentence) + '|' + f.raw;
+            if (vers.some(v => entryHas(entries.get(v), f))) {
+              bound.entry++;
+              if (gf) { const k = keyOf(); if (gf.has(k)) boundGf.add(k); }
+              see({ ...ctx, cls: 'entry' }); continue;
+            }
+            const key = keyOf();
             if (gf && gf.has(key)) { seenGf.add(key); see({ ...ctx, cls: 'grandfathered', key }); continue; }
             if (!cites.length && !artifactHas(universe, f) && !anywhereInChangelog(f)) {
               n++;
@@ -1750,7 +1823,17 @@ function untraceableCensus(docs, { read = readDoc, artifact = artifactObject, al
   const grandfathered_by_doc = {};
   for (const k of seenGf) { const d = k.slice(0, k.indexOf('|')); grandfathered_by_doc[d] = (grandfathered_by_doc[d] || 0) + 1; }
   return { total, per, where, bound, grandfathered_keys: [...seenGf].sort(), grandfathered_by_doc,
+           grandfathered_dormant: [...dormantGf].sort(), grandfathered_bound: [...boundGf].sort(),
            grandfather_list_present: !!gf, unbound: [...unbound.values()], predates };
+}
+
+/** The grandfather list after a run. An entry STAYS while its figure rests on it or is bound only by a
+ *  file on disk that can regenerate (dormant). It LEAVES when its sentence or value was edited — the key
+ *  is gone — or when a binding the documents wrote now holds it. Never adds. The gate writes this; the
+ *  red demonstration below threads it between runs, so the two cannot disagree about what retires. */
+function retainGrandfathered(list, census) {
+  const keep = new Set([...census.grandfathered_keys, ...(census.grandfathered_dormant || [])]);
+  return [...list].filter(k => keep.has(k));
 }
 
 /* ---- THE RED DEMONSTRATION FOR THE BOUND TRACE, one case per binding and one against each --------
@@ -1814,17 +1897,61 @@ const TRACE_CASES = [
   { id: 'editing-the-sentence-loses-grandfathering', expect: 'unbound',
     why: 'New words around the same digits are a new claim too.',
     gf: 'The sweep scored 4,321 games on the frozen pool.', text: 'The sweep scored 4,321 games on the live pool.' },
+  /* A COMMIT-PINNED BLOB. `abc1234` is served PROOF_TRACE_BLOB by the stub below; any other hash is a
+   * commit outside this history. The file on disk (PROOF_TRACE_JSON) holds 961 and 4,321 throughout. */
+  { id: 'a-commit-pinned-field-binds-its-value', expect: 'bound',
+    why: 'The one binding nothing can regenerate: the bytes that commit wrote, at the field named.',
+    text: 'The run is `abc1234:data/_proof-trace.json:paired`. It held out 4,321 games.' },
+  { id: 'a-commit-pinned-field-binds-nothing-else-in-its-blob', expect: 'unbound', all: [4322],
+    why: 'The control. 4,322 is elsewhere in the same blob, and the paragraph pointed at `paired`.',
+    text: 'The run is `abc1234:data/_proof-trace.json:paired`. It held out 4,322 games.' },
+  { id: 'a-pinned-blob-is-not-the-file-on-disk', expect: 'unbound', all: [961],
+    why: 'The file on disk holds 961 and the blob does not. Read as today\'s file, the pin would bind a '
+       + 'figure the pinned run never wrote — the defect the lookbehind in citationsIn removes.',
+    text: 'The run is `abc1234:data/_proof-trace.json`. It scored 961 games.' },
+  { id: 'a-pin-to-a-commit-outside-this-history-binds-nothing', expect: 'unbound',
+    why: 'A rebased-away or mistyped hash names bytes no clone holds.',
+    text: 'The run is `fff9999:data/_proof-trace.json:paired`. It held out 4,321 games.' },
+  /* THE RETIREMENT RULE, run the way the gate runs it: `steps` are green runs between the bootstrap and
+   * the final one, and the list is threaded through `retain` exactly as tests/test-docs-current.js
+   * writes it. Pinned in both directions — the first case fails the rule that shipped in ea437935, and
+   * the other two fail "never retire while the sentence is unchanged". */
+  { id: 'a-grandfathered-figure-an-artifact-happens-to-hold-keeps-its-place', expect: 'grandfathered', all: [4324],
+    why: 'THE FLAW, 2026-09-11. The cited file regenerates to hold 4,324, a green run retired the entry, '
+       + 'the file regenerates again, and a sentence nobody edited turned red.',
+    gf: 'The source is `data/_proof-trace.json`. The sweep scored 4,324 games on the frozen pool.',
+    steps: [{ text: 'The source is `data/_proof-trace.json`. The sweep scored 4,324 games on the frozen pool.',
+              json: { ...PROOF_TRACE_JSON, state: { ...PROOF_TRACE_JSON.state, regenerated: 4324 } } }],
+    text: 'The source is `data/_proof-trace.json`. The sweep scored 4,324 games on the frozen pool.' },
+  { id: 'a-grandfathered-figure-its-document-binds-to-an-entry-leaves-the-list', expect: 'unbound',
+    why: 'The control. Naming the entry that records it is a document edit, so the entry retires; undo the '
+       + 'edit and the figure is bound to nothing and on no list.',
+    gf: 'The sweep scored 4,321 games on the frozen pool.',
+    steps: [{ text: '## The sweep (9.2.0)\n\nThe sweep scored 4,321 games on the frozen pool.' }],
+    text: 'The sweep scored 4,321 games on the frozen pool.' },
+  { id: 'a-grandfathered-figure-its-document-pins-to-a-commit-leaves-the-list', expect: 'unbound',
+    why: 'The control for the pin: a commit-pinned blob cannot regenerate, so it retires the entry like a named entry.',
+    gf: 'The sweep scored 4,321 games on the frozen pool.',
+    steps: [{ text: 'The run is `abc1234:data/_proof-trace.json:paired`. The sweep scored 4,321 games on the frozen pool.' }],
+    text: 'The sweep scored 4,321 games on the frozen pool.' },
 ];
+const PROOF_TRACE_PIN = 'abc1234';
+const PROOF_TRACE_BLOB = { generated: '2026-08-04T00:00:00Z', paired: { n_test_games: 4321 }, elsewhere: 4322 };
 
-/** Runs every case through the real census. `holds` false means the rule changed meaning. */
-function traceProof() {
-  const artifact = rel => (rel === PROOF_TRACE_ARTIFACT ? PROOF_TRACE_JSON
+/** Runs every case through the real census. `holds` false means the rule changed meaning. `retain` is
+ *  injectable only so the rule that shipped before it can be shown failing the same cases. */
+function traceProof({ retain = retainGrandfathered } = {}) {
+  const artifactFor = json => rel => (rel === PROOF_TRACE_ARTIFACT ? json
     : rel === 'data/open-work.json' ? { rows: [{ quoted: 4321 }] } : undefined);
-  const run = (text, all, grandfathered) => untraceableCensus([PROOF_DOC], {
-    read: () => '# proof\n\n' + text + '\n', artifact, all: new Set(all), changelog: PROOF_TRACE_CHANGELOG, grandfathered });
+  const blob = (rev, rel) => (rev === PROOF_TRACE_PIN && rel === PROOF_TRACE_ARTIFACT ? PROOF_TRACE_BLOB : undefined);
+  const run = (text, all, grandfathered, json = PROOF_TRACE_JSON) => untraceableCensus([PROOF_DOC], {
+    read: () => '# proof\n\n' + text + '\n', artifact: artifactFor(json), blob, all: new Set(all),
+    changelog: PROOF_TRACE_CHANGELOG, grandfathered });
   return TRACE_CASES.map(c => {
-    const gf = c.gf ? new Set(run(c.gf, [4321], new Set()).unbound.map(u => u.key)) : new Set();
-    const r = run(c.text, c.all || [4321], gf);
+    const all = c.all || [4321];
+    let gf = c.gf ? new Set(run(c.gf, [...new Set([4321, ...all])], new Set()).unbound.map(u => u.key)) : new Set();
+    for (const st of c.steps || []) gf = new Set(retain(gf, run(st.text, all, gf, st.json)));
+    const r = run(c.text, all, gf);
     const got = r.unbound.length ? 'unbound' : r.total ? 'untraceable' : r.predates.length ? 'predates'
       : r.grandfathered_keys.length ? 'grandfathered'
       : (r.bound.paragraph + r.bound.entry) ? 'bound' : 'nothing';
@@ -2476,6 +2603,7 @@ module.exports = {
   artifactHas, paragraphs, citationsIn,
   retractionRegistry, retractionViolations, citationMismatches, untraceableCensus,
   traceProof, TRACE_CASES, grandfatheredTraces, changelogEntries, entryHas, headingVersions, versionsIn, traceUnits,
+  retainGrandfathered, pinnedCitationsIn, blobObject, parseArtifactText,
   fieldScopeOf, isArtifactRel, NOT_AN_ARTIFACT,
   isDistinctive, sigFigs, truncateTo, restatesFigure, retractionProof, RETRACTION_CASES,
   archiveState, supersededHeader, QUALIFIED,

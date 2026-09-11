@@ -676,9 +676,19 @@ function figureRules(base, next) {
     ok(false, '--bootstrap-grandfather REFUSED: the grandfather list already exists and may only shrink. A ' +
       'second bootstrap would grandfather every figure written since the first.');
   } else {
-    ratchet('figures bound to no trace (grandfathered)', [...seenGf, ...unboundByKey.keys()], [...GF],
+    /* A DORMANT entry — listed, and bound this run only by a file on disk that can regenerate — is
+     * CURRENT, not retired (see untraceableCensus). Counting it as retired is what dropped two white-paper
+     * figures on 2026-09-11 with no document edit, leaving each one regeneration away from a red. */
+    const dormant = census.grandfathered_dormant || [];
+    ratchet('figures bound to no trace (grandfathered)', [...seenGf, ...dormant, ...unboundByKey.keys()], [...GF],
       k => { const u = unboundByKey.get(k); return `${u.doc}:${u.line}  ${u.value} — ${u.why}\n           ${u.text}`; });
-    gfNext = [...GF].filter(k => seenGf.has(k));          // NEVER adopts — not even into an empty list
+    gfNext = S.retainGrandfathered(GF, census);          // NEVER adopts — not even into an empty list
+    const dormantOnly = dormant.filter(k => !seenGf.has(k)).length;   // a repeated sentence can be both
+    if (dormantOnly) console.log(`         ${dormantOnly} listed figure(s) are bound this run only by a file on disk that can ` +
+      'regenerate — KEPT, because only a document edit retires an entry');
+    const boundFor = (census.grandfathered_bound || []).filter(k => !seenGf.has(k)).length;
+    if (boundFor) console.log(`         ${boundFor} listed figure(s) retire because a binding the documents wrote now holds them ` +
+      '(the CHANGELOG entry the block names, or a commit-pinned blob)');
     if (unboundByKey.size) {
       console.log('         BIND IT: name the artifact that holds it in the same paragraph (`data/x.json`, or');
       console.log('         `data/x.json:field` to point at the value), or name the CHANGELOG version whose entry');
