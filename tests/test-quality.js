@@ -21,7 +21,18 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); c ? P++ : F
 console.log('== the config is the only place a threshold lives ==');
 const cfg = Q.config();
 ok(cfg.rules.min_turns.value === 3, `min_turns comes from the config (${cfg.rules.min_turns.value})`);
-ok(Object.keys(cfg.rules).length === 6, `six rules defined (${Object.keys(cfg.rules).join(', ')})`);
+ok(Object.keys(cfg.rules).length === 7, `seven rules defined (${Object.keys(cfg.rules).join(', ')})`);
+/* A DECLARATION, NOT A DETECTOR (ROADMAP #558). Every id the corrupt-winner rule excludes is named with
+ * its defect and its re-fetch receipt. A rule keyed on `winner` would absorb the next corrupt row with
+ * no register entry; engine/sanity_check.py fails on an undeclared bad winner instead. */
+{
+  const CW = cfg.rules.exclude_corrupt_winner || {};
+  const ids = Object.keys(CW.declared || {});
+  const bare = ids.filter(id => { const e = CW.declared[id]; return !(e && e.defect && e.refetched_log_sha256); });
+  ok(!!CW.register && ids.length > 0 && bare.length === 0,
+    `the corrupt-winner rule is a declaration: ${ids.length} ids, each with its defect and re-fetch receipt (${CW.register})`
+    + (bare.length ? ` - BARE: ${bare.join(', ')}` : ''));
+}
 /* THE ONE THING THIS RULE MUST NEVER DO. A move-level TeamValidator rejection is the Illusion
  * signature — a disguised Zoroark reveals the moves of the body it is wearing, so "X can't learn Y"
  * is produced by a LEGAL team as a matter of mechanics, on 1,175 games in this store. Keying on it
@@ -115,7 +126,19 @@ ok(f.after_behavioural_bots >= f.after_forfeit_filter, 'removing forfeits cannot
 ok(f.after_forfeit_filter >= f.after_min_turns, 'the turn floor cannot increase the count');
 ok(f.after_min_turns >= f.after_full_bring, 'requiring a full bring cannot increase the count');
 ok(f.after_full_bring >= f.after_legality, 'the legality rule cannot increase the count');
-ok(f.clean === f.after_legality, 'the clean count equals the last stage');
+ok(f.after_legality >= f.after_corrupt_winner, 'the declared corrupt-winner rule cannot increase the count');
+ok(f.clean === f.after_corrupt_winner, 'the clean count equals the last stage');
+/* THE DECLARATION IS HONOURED, BY BOTH THE REASON AND THE CLEAN SET. A declared id the store holds must
+ * carry `corrupt_winner` and must not be in loadGames(). */
+{
+  const C = f.corrupt_winner || {};
+  const clean = new Set(jsIds);
+  const leaked = (C.found || []).filter(id => clean.has(id));
+  ok(!!C.on && C.flagged_anywhere === (C.found || []).length && leaked.length === 0,
+    `every declared corrupt-winner id in the store is excluded with its reason `
+    + `(${(C.found || []).length} of ${C.declared} found, ${C.removed_from_clean} removed from clean)`
+    + (leaked.length ? ` - LEAKED INTO THE CLEAN SET: ${leaked.join(', ')}` : ''));
+}
 /* THE FILTER MUST BE ABLE TO PROVE IT RAN. An absent verdict, or an id list the reader could only
  * partly resolve, both leave a corpus that looks clean and is not — the project's signature failure.
  * These assert the capability, not a count, so store growth does not make them stale. */
@@ -139,7 +162,7 @@ console.log('== the recorded provenance matches what the code actually produces 
  *   3. the clean SHARE has not moved much, which is what would change if the filter itself broke.
  * Growth is expected. A shifting selection rate is not. */
 const rec = cfg.provenance.funnel;
-const stages = ['collected', 'after_bot_filter', 'after_behavioural_bots', 'after_forfeit_filter', 'after_min_turns', 'after_full_bring', 'after_legality'];
+const stages = ['collected', 'after_bot_filter', 'after_behavioural_bots', 'after_forfeit_filter', 'after_min_turns', 'after_full_bring', 'after_legality', 'after_corrupt_winner'];
 
 const mono = (o, label) => {
   const bad = [];
@@ -155,7 +178,8 @@ mono(rec, 'recorded');
  * existed ends at after_full_bring, and comparing today's clean share to that one would read a rule
  * change as drift. */
 const shareNow = f.clean / f.collected;
-const shareRec = (rec.after_legality != null ? rec.after_legality : rec.after_full_bring) / rec.collected;
+const shareRec = (rec.after_corrupt_winner != null ? rec.after_corrupt_winner
+                : rec.after_legality != null ? rec.after_legality : rec.after_full_bring) / rec.collected;
 const drift = Math.abs(shareNow - shareRec) * 100;
 ok(drift <= 3,
   `clean share is stable: ${(100 * shareNow).toFixed(1)}% now vs ${(100 * shareRec).toFixed(1)}% recorded ` +

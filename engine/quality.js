@@ -288,6 +288,14 @@ function reasons(g, cfg, bots) {
    * rejections are the Illusion signature and are deliberately not keyed. */
   if (r.exclude_illegal_teams && r.exclude_illegal_teams.on && illegalTeams().ids.has(g.id))
     bad.push('illegal_team');
+  /* DECLARED, NEVER DETECTED — ROADMAP #558. Excludes exactly the ids listed under
+   * rules.exclude_corrupt_winner.declared, each carrying its evidence, and nothing else. It does NOT
+   * test `winner` against the players: that would be a silent filter, absorbing the next corrupt row
+   * with no register entry, and a smaller corpus looks exactly like a cleaner one. engine/sanity_check.py
+   * still counts every bad winner in the store; it fails on any that is undeclared, and on any declared
+   * id whose winner has since been corrected, so a declaration cannot outlive its defect. */
+  const cw = r.exclude_corrupt_winner;
+  if (cw && cw.on && Object.prototype.hasOwnProperty.call(cw.declared || {}, g.id)) bad.push('corrupt_winner');
   return bad;
 }
 
@@ -342,6 +350,9 @@ const FUNNEL_STEPS = [
    * today. Appending leaves the five historical stages meaning exactly what they meant, and the
    * legality drop is read off the bottom of the funnel where it belongs. */
   ['after_legality', 'illegal_team'],
+  /* APPENDED after legality for the reason legality was appended after the bring rule: every
+   * historical stage keeps meaning what it meant. ROADMAP #558, a declared exclusion. */
+  ['after_corrupt_winner', 'corrupt_winner'],
 ];
 function funnel(p) {
   const games = readStore(p), cfg = config();
@@ -372,6 +383,17 @@ function funnel(p) {
     removed_from_clean: all.filter(rs => rs.length === 1 && rs[0] === 'illegal_team').length,
     flagged_anywhere: all.filter(rs => rs.includes('illegal_team')).length,
   };
+  /* COUNT, RATE AND REASON FOR THE DECLARED RULE TOO, and WHICH declared ids this store holds. The
+   * declaration names ladder games, so a funnel over another store should say it found none rather than
+   * leave a reader to wonder whether the rule ran. */
+  const CW = cfg.rules.exclude_corrupt_winner || {};
+  const declared = CW.declared || {};
+  out.corrupt_winner = {
+    on: !!CW.on, register: CW.register || null, declared: Object.keys(declared).length,
+    found: games.filter(g => Object.prototype.hasOwnProperty.call(declared, g.id)).map(g => g.id),
+    removed_from_clean: all.filter(rs => rs.length === 1 && rs[0] === 'corrupt_winner').length,
+    flagged_anywhere: all.filter(rs => rs.includes('corrupt_winner')).length,
+  };
   return out;
 }
 
@@ -386,7 +408,8 @@ if (require.main === module) {
                 ['after_forfeit_filter', 'after removing forfeits'],
                 ['after_min_turns', 'after removing games under 3 turns'],
                 ['after_full_bring', 'after requiring all four brought to be revealed'],
-                ['after_legality', 'after removing teams Showdown rejects (species/item)']];
+                ['after_legality', 'after removing teams Showdown rejects (species/item)'],
+                ['after_corrupt_winner', 'after removing DECLARED corrupt-winner rows']];
   let prev = t;
   for (const [k, label] of rows) {
     if (!(k in f)) continue;
@@ -414,5 +437,15 @@ if (require.main === module) {
     if (L.verdict_judged_games && L.verdict_judged_games < t)
       console.log(`  UNJUDGED     ${(t - L.verdict_judged_games).toLocaleString()} games arrived after the verdict `
         + `was generated and have not been checked at all.`);
+  }
+
+  /* A DECLARED EXCLUSION SAYS WHAT IT DECLARED, WHAT IT FOUND AND WHAT IT REMOVED. */
+  const C = f.corrupt_winner || {};
+  console.log(`\nDECLARED EXCLUSION — corrupt_winner (${C.register || 'no register row'})`);
+  if (!C.on) console.log('  OFF — no game is excluded as a declared corrupt winner.');
+  else {
+    console.log(`  declared     ${C.declared} ids in data/quality-filter.json rules.exclude_corrupt_winner, each with its evidence`);
+    console.log(`  in store     ${C.found.length} of ${C.declared}` + (C.found.length ? `: ${C.found.join(', ')}` : ''));
+    console.log(`  removed      ${C.removed_from_clean} games that passed every other rule; ${C.flagged_anywhere} flagged in all`);
   }
 }

@@ -1,7 +1,8 @@
 {
- "version": "1.3.0",
- "updated": "2026-08-27",
+ "version": "1.4.0",
+ "updated": "2026-09-11",
  "changelog": {
+  "1.4.0": "exclude_corrupt_winner added (ROADMAP #558). A DECLARATION, not a detector: two named ladder games whose stored `winner` is neither player, because the pre-2026-08-28 fetch split a multi-byte character across two HTTP chunks and left U+FFFD in the `|win|` line only. Both replays re-fetch clean with the winner a player (receipts under the rule). The rows are not repaired because build/compress-stores.js cannot express a correction (docs/_reports/2026-09-10-corrupted-winners.md). Will, 2026-09-11: 'exclude now, fix later'. Measured on the live store of 2026-09-11 (92,594 ladder games): gen9championsvgc2026regmb-2662690089 passed every other rule and gen9championsvgc2026regmb-2672145722 was already excluded by require_full_bring, so the clean ladder corpus moves 32,193 -> 32,192 (-1). No bo3 or ots game is affected: neither id is in those stores.",
   "1.3.0": "exclude_illegal_teams added. Games whose revealed team is rejected by Showdown's own TeamValidator with a SPECIES-level or ITEM-level reason are excluded. Keyed on data/store-validation.json, which marks and does not delete. MOVE-level rejections are deliberately NOT keyed: a learnset contradiction is the Illusion signature (engine/illusion.js), so keying on it would throw away the Zoroark corpus. Measured on the verdict of 2026-08-27T05:14:06Z over 67,384 ladder games: 77 games carry a species or item reason, 49 of them survived the other five rules, so the clean ladder corpus moves 18,908 -> 18,859 (-0.259%). Contamination is 2.27x DENSER in the clean corpus than in the raw store, because bots do not play custom-rules rooms. 65 species lose all clean support (335 -> 270) - they were never in this regulation.",
   "1.2.0": "exclude_forfeits narrowed to forfeits BEFORE ANY ACTION, after measuring that the player who quit was behind on mons in 86.8% of cases and ahead in 0.9%. Clean open-sheet games 2,114 -> 2,860 (+35%); clean ladder games 2,653 -> 3,571 (+35%). Mean game length in the clean corpus moves 8.46 -> 8.09 turns; median (8) and p90 (12) do not move, because require_full_bring already excluded the genuinely abandoned games. EVERY number computed on a clean corpus before this date was computed on a different, smaller population and needs re-running."
  },
@@ -99,6 +100,43 @@
     "distinct_species_in_clean_corpus": "335 -> 270"
    },
    "known_limitation": "THREE, and none of them is hidden. (1) COVERAGE: engine/validate_store.js judges data/games.ladder.jsonl only, so this rule is a NO-OP on games.bo3.jsonl and games.ots.jsonl - those corpora are unfiltered for legality, not clean. (2) FRESHNESS: the verdict is a snapshot. Games appended after it was generated have not been judged and pass unexamined; the reader prints the verdict's stamp and its judged-game count so the gap is visible rather than assumed. (3) NO DRIFT DETECTOR: engine/validate_store.js's header cites engine/format_drift.js as the thing that separates a contaminated game from a stale rulebook, and THAT FILE DOES NOT EXIST (checked 2026-08-27; the only references to the name in the whole repository are that comment and reports quoting it). So this rule cannot tell 'played under custom rules' from 'our Showdown checkout is behind the regulation'. It is safe in the direction that matters today - the eleven items it actually sees are Booster Energy, Throat Spray, Eviolite, Salamencite, Diancite, Covert Cloak, Misty Seed, Choice Specs, Clear Amulet, Red Card and Assault Vest: four are on this format's explicit ban list, two are mega stones for species the format does not contain, and the rest are held by bodies that are themselves out of format - but if the regulation turns over and the checkout lags, this rule will delete legitimate games and nothing will say so. The mitigation available today is that the rule removes 0.26% of the clean corpus and prints exactly what it removed."
+  },
+  "exclude_corrupt_winner": {
+   "on": true,
+   "reason": "corrupt_winner",
+   "test": "the game's id is a key of `declared` below. NOTHING here tests `winner` against the players: the rule excludes exactly the ids a person has declared, with evidence, and no other.",
+   "register": "ROADMAP #558",
+   "report": "docs/_reports/2026-09-10-corrupted-winners.md",
+   "declared": {
+    "gen9championsvgc2026regmb-2662690089": {
+     "defect": "stored `winner` carries 3 U+FFFD. The `|win|` line is the ONLY protocol line that differs from the re-fetched log, which rules out Showdown having changed the replay.",
+     "players": ["blackred123永雏塔菲侠", "MadMax_1704"],
+     "refetched_winner": "blackred123永雏塔菲侠",
+     "refetched_log_sha256": "64fda03cfca8b32adc16f2f2db80a46eba77826b2924f52e11de5c46ef51fb04",
+     "corrected_row_sha256": "7f67ba5683f3893b96889e55794dcd939cd8a04462dad9e9f254ae900fdd8284",
+     "corrected_row_note": "NOT a one-field repair: the stored row predates `preTurn`, so extract() over the fetched log also rewrites `turns`.",
+     "other_reasons_when_declared": "none. It passed every other rule, so this declaration removes it from the clean corpus."
+    },
+    "gen9championsvgc2026regmb-2672145722": {
+     "defect": "stored `winner` carries 2 U+FFFD. The `|win|` line is the ONLY protocol line that differs from the re-fetched log, which rules out Showdown having changed the replay.",
+     "players": ["It’sJustKen VGC", "mythofoxical"],
+     "refetched_winner": "It’sJustKen VGC",
+     "refetched_log_sha256": "0119e8cd4b935c14ff212499b92b5377596aba3a0b8c53e78bce7af6fcd382ce",
+     "corrected_row_sha256": "2eb81b40eae8d1718b44622df6077f69fc81c45090ff86e87dde24bb4344da18",
+     "corrected_row_note": "a one-field repair: extract() over the stored raw log is byte-identical to the stored row, and the corrected row differs in `winner` only.",
+     "other_reasons_when_declared": "partial_bring (p1 revealed 3). Already excluded, so this declaration removes nothing from the clean corpus."
+    }
+   },
+   "rationale": "Will, 2026-09-11: 'exclude now, fix later'. These two rows record a winner who did not play, so anything that reads the outcome (a win rate, a backtest, a matchup cell) scores them for nobody. The correct fix is a hash-bound correction in the store tooling, and build/compress-stores.js cannot express one today: first occurrence wins, a correction shard trips the shrink guard, and --check compares ids and counts, not content. That fix is OPS's. Until it lands the rows are excluded by name, with their evidence, rather than left in.",
+   "why_a_declaration_and_not_a_check": "A rule keyed on `winner not in (p1, p2)` would be a silent filter: it would remove the next such game with no evidence and no register row. engine/sanity_check.py already counts every bad winner in the store. It attributes a declared id to this rule and FAILS on an undeclared one, so a new corrupt row must be investigated and declared, never absorbed.",
+   "expires": "Per id, when the hash-bound correction for that id lands in the store. The entry comes OUT of `declared` in the same pass. engine/sanity_check.py fails on a declared id whose stored winner is one of the players, so a declaration cannot outlive its defect and become a silent filter on a good game.",
+   "measured": {
+    "on": "data/games.ladder.jsonl, 2026-09-11, 92,594 games",
+    "clean_ladder_before_after": "32,193 -> 32,192",
+    "removed_from_the_clean_corpus": 1,
+    "flagged_anywhere": 2
+   },
+   "known_limitation": "THREE. (1) LADDER ONLY: both ids are absent from games.bo3.jsonl and games.ots.jsonl, so the rule is a no-op there. (2) NOT THE WIDER DAMAGE: the chunk-split defect recorded in engine/durable-ingest.js's header also left 194 raw logs with 496 U+FFFD in nicknames and usernames. Those are NOT declared, because their `winner` still matches a player: the outcome is intact and only a name string is damaged. (3) NOT A BOT REASON: engine/quality_bots.js does not key on corrupt_winner. Its three census callers read clicks and sheets and never `winner`, and a corrupt winner does not make a game non-human or out of format."
   }
  },
  "provenance": {

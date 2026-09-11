@@ -212,6 +212,12 @@ def reasons(g, cfg=None, bots=None):
     ill = r.get('exclude_illegal_teams')
     if ill and ill.get('on') and g.get('id') in illegal_teams()['ids']:
         bad.append('illegal_team')
+    # DECLARED, NEVER DETECTED - ROADMAP #558. Mirrors reasons() in engine/quality.js: exactly the ids
+    # listed under rules.exclude_corrupt_winner.declared, and nothing else. `winner` is not tested here;
+    # engine/sanity_check.py counts every bad winner and fails on an undeclared one.
+    cw = r.get('exclude_corrupt_winner')
+    if cw and cw.get('on') and g.get('id') in (cw.get('declared') or {}):
+        bad.append('corrupt_winner')
     return bad
 
 
@@ -238,6 +244,8 @@ FUNNEL_STEPS = [
     # printed against every step below it and break comparison with every funnel recorded before
     # 2026-08-27. Mirrors FUNNEL_STEPS in engine/quality.js exactly.
     ('after_legality', 'illegal_team'),
+    # APPENDED after legality, for the same reason. ROADMAP #558, a declared exclusion.
+    ('after_corrupt_winner', 'corrupt_winner'),
 ]
 
 
@@ -273,6 +281,16 @@ def funnel(path=None):
         'removed_from_clean': sum(1 for rs in all_reasons if rs == ['illegal_team']),
         'flagged_anywhere': sum(1 for rs in all_reasons if 'illegal_team' in rs),
     }
+    # Count, rate and reason for the declared rule too, and WHICH declared ids this store holds.
+    # Mirrors out.corrupt_winner in engine/quality.js.
+    cw = cfg['rules'].get('exclude_corrupt_winner') or {}
+    declared = cw.get('declared') or {}
+    out['corrupt_winner'] = {
+        'on': bool(cw.get('on')), 'register': cw.get('register'), 'declared': len(declared),
+        'found': [g.get('id') for g in games if g.get('id') in declared],
+        'removed_from_clean': sum(1 for rs in all_reasons if rs == ['corrupt_winner']),
+        'flagged_anywhere': sum(1 for rs in all_reasons if 'corrupt_winner' in rs),
+    }
     return out
 
 
@@ -286,7 +304,8 @@ if __name__ == '__main__':
               ('after_forfeit_filter', 'after removing forfeits'),
               ('after_min_turns', 'after removing games under 3 turns'),
               ('after_full_bring', 'after requiring all four brought to be revealed'),
-              ('after_legality', 'after removing teams Showdown rejects (species/item)')]
+              ('after_legality', 'after removing teams Showdown rejects (species/item)'),
+              ('after_corrupt_winner', 'after removing DECLARED corrupt-winner rows')]
     prev = total
     for key, label in labels:
         if key not in f:
@@ -322,3 +341,15 @@ if __name__ == '__main__':
         if lg['verdict_judged_games'] and lg['verdict_judged_games'] < total:
             print(f"  UNJUDGED     {total - lg['verdict_judged_games']:,} games arrived after the "
                   f"verdict was generated and have not been checked at all.")
+    # A declared exclusion says what it declared, what it found and what it removed.
+    cw = f.get('corrupt_winner') or {}
+    print(f"\nDECLARED EXCLUSION - corrupt_winner ({cw.get('register') or 'no register row'})")
+    if not cw.get('on'):
+        print('  OFF - no game is excluded as a declared corrupt winner.')
+    else:
+        found = cw.get('found') or []
+        print(f"  declared     {cw['declared']} ids in data/quality-filter.json "
+              f"rules.exclude_corrupt_winner, each with its evidence")
+        print(f"  in store     {len(found)} of {cw['declared']}" + (f": {', '.join(found)}" if found else ''))
+        print(f"  removed      {cw['removed_from_clean']} games that passed every other rule; "
+              f"{cw['flagged_anywhere']} flagged in all")

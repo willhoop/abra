@@ -133,6 +133,15 @@ print("== 6. store integrity ==")
 # A parser change that breaks these must fail here, immediately. Recording mega evolution once added
 # the mega forme to `brought`, so a Pokemon that megad counted twice; `brought` became 5 in ~4,700
 # games and CHOMP-EV's eval set silently collapsed from ~1,200 games to 43. Nothing caught it.
+# THE WINNER CLAUSE HONOURS A DECLARATION; IT IS NOT LOOSENED. data/quality-filter.json declares, by id
+# and with evidence, the rows whose stored winner is known corrupt (rule exclude_corrupt_winner, ROADMAP
+# #558). Every bad winner is still counted. A declared one is attributed to that rule. An undeclared one
+# FAILS. A declared id whose winner is now one of the players also FAILS: the correction landed and the
+# declaration must come out, or it becomes a silent filter on a good game.
+_qf = load("data", "quality-filter.json") or {}
+_cw = (_qf.get("rules") or {}).get("exclude_corrupt_winner") or {}
+_cw_declared = set((_cw.get("declared") or {}).keys()) if _cw.get("on") else set()
+_cw_bad, _cw_stale = [], []
 _bad_subset = _bad_lead = _bad_winner = _missing = 0
 _seen_ids, _dup_ids, _bad_json = set(), 0, 0
 _brought_len = {}
@@ -156,12 +165,19 @@ with open(D("data","games.ladder.jsonl"), encoding="utf-8") as fh:
             if not set(br) <= six: _bad_subset += 1
             if not set(ld) <= set(br): _bad_lead += 1
         w = g.get("winner")
-        if w and w not in (g["p1"].get("name"), g["p2"].get("name")): _bad_winner += 1
+        _names = (g["p1"].get("name"), g["p2"].get("name"))
+        if g.get("id") in _cw_declared:
+            (_cw_bad if (w and w not in _names) else _cw_stale).append(g.get("id"))
+        elif w and w not in _names: _bad_winner += 1
 ok(_dup_ids == 0,    f"store: no duplicate ids across ALL {_total} lines ({_dup_ids} dup, {len(_seen_ids)} unique)")
 ok(_bad_json == 0,   f"store: every line parses as JSON ({_bad_json} bad)")
 ok(_bad_subset == 0, f"store shape: every `brought` is a subset of `six` ({_bad_subset} bad of {_total} games)")
 ok(_bad_lead == 0,   f"store shape: every `lead` is a subset of `brought` ({_bad_lead} bad)")
-ok(_bad_winner == 0, f"store shape: the winner is always one of the two players ({_bad_winner} bad)")
+ok(_bad_winner == 0 and not _cw_stale,
+   f"store shape: the winner is always one of the two players ({_bad_winner} bad undeclared; "
+   f"{len(_cw_bad)} declared corrupt_winner, excluded by data/quality-filter.json, {_cw.get('register', 'no register row')}"
+   + (f"; STALE DECLARATION - winner now valid, remove from `declared`: {', '.join(_cw_stale)}" if _cw_stale else "")
+   + ")")
 ok(_missing == 0,    f"store shape: every record carries every field ({_missing} missing)")
 ok(max(_brought_len) <= 4, f"store shape: nobody brings more than four ({dict(sorted(_brought_len.items()))})")
 

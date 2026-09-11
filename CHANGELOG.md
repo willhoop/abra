@@ -10,6 +10,15 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.6.1] — 2026-09-11
+
+### Fixed
+- **The two #558 ladder rows whose recorded winner is neither player are excluded by declaration**
+  (`data/quality-filter.json` 1.4.0, reason `corrupt_winner`), as Will chose on 2026-09-11 over building
+  a correction mechanism tonight. `engine/sanity_check.py` goes 94/2 -> 95/1 by honouring the
+  declaration, not by loosening its check, and still fails on any undeclared bad winner or on a declared
+  row that has since been corrected. No store byte written; 92,594 ladder rows unchanged.
+
 ## [6.6.0] — 2026-09-10
 
 ### Fixed
