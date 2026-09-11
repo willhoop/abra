@@ -10,6 +10,14 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.10.0] — 2026-09-11
+
+### Changed
+- **Which mechanics exist in Reg M-B is decided by one module, `engine/legal_scope.js`**, instead of two that
+  had already disagreed. The disagreement was three rows in both directions — Battle Bond out, Simple in,
+  Gluttony out — hidden inside totals that differed by only two. The staging planner's denominator is
+  corrected accordingly, and a test now fails if a second scope derivation ever reappears.
+
 ## [6.9.2] — 2026-09-11
 
 ### Added

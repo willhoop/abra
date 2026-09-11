@@ -33,6 +33,8 @@
  *   5. SIDE SELECTION IS A CLASS OF BUG. Every fixture is also emitted mirrored (far side), and at slot
  *      b wherever the handler reads adjacency, allies or position.
  *   6. MATCH ON SHAPE. No mechanic name appears in a decision below; ids appear only in comments.
+ *   7. SCOPE IS IMPORTED. Which mechanics exist in the regulation is engine/legal_scope.js's answer; this
+ *      file decides only how to stage them (tests/test-stage-planner.js clause oneScope).
  *
  * NO POKEMON VALUE IS TYPED HERE. Speeds come from the Champions mod's own `statModify`, called with the
  * declared spread; crit tiers from `critMult` read out of `sim/battle-actions.ts`; accuracy multipliers
@@ -47,6 +49,7 @@ const crypto = require('crypto');
 require('./showdown_path.js');
 const CS = require('./champions_sim.js');
 const PRE = require('./fixture_preflight.js');
+const LS = require('./legal_scope.js');
 
 const ROOT = path.join(__dirname, '..');
 const SDP = process.env.SHOWDOWN_PATH;
@@ -159,7 +162,7 @@ function universe(opt) {
     }
   }
   U = { tags, T, ROSTER, SHEET, POOL, POOL_FAILS, learners, MOVES, ABILITIES, ITEMS, bearers,
-        conferred: conferrals(MOVES, ABILITIES, ITEMS, learners, bearers),
+        scope: LS.derive(),
         crit: critTable(), arms: armIds(),
         hitCheck: cite('sim/battle-actions.ts', /randomChance\(\s*accuracy\s*,\s*100\s*\)/),
         genderPin: cite('engine/game_differential.js', /gender:\s*'N',\s*level:\s*50/),
@@ -167,24 +170,10 @@ function universe(opt) {
   return U;
 }
 
-/* CONFERRAL — AN ABILITY NO LEGAL SPECIES CARRIES CAN STILL REACH A BOARD THROUGH A LEGAL MOVE (the
- * 2026-09-11 boards plan: Simple, by way of Simple Beam). Derived: every legal move, ability and item
- * handler is scanned for `setAbility("<literal>")`; a move source counts only with a legal learner. */
-function conferrals(MOVES, ABILITIES, ITEMS, learners, bearers) {
-  const out = new Map();
-  const scan = (kind, e) => {
-    for (const h of handlersOf(e)) for (const m of h.src.matchAll(/setAbility\(\s*["']([a-z0-9]+)["']/g)) {
-      const k = m[1];
-      if (!out.has(k)) out.set(k, []);
-      const n = kind === 'move' ? (learners.get(e.id) || []).length : (bearers.get(e.id) || []).length;
-      out.get(k).push({ via: kind + ':' + e.id, handler: h.name, carriers: n });
-    }
-  };
-  for (const m of MOVES) scan('move', m);
-  for (const a of ABILITIES) scan('ability', a);
-  for (const i of ITEMS) scan('item', i);
-  return out;
-}
+/* CONFERRAL IS engine/legal_scope.js's (2026-09-11). This file scanned `setAbility("<literal>")` itself, a
+ * second derivation of a scope fact; legal_scope reads every ability-writing method out of the compiled sim
+ * (skillSwap, formeChange and transformInto as well) and asks the validator about the source's learner.
+ * A CONFERRED verdict carries its sources, and `stageConferred` stages the first move source it can. */
 
 /* THE KNOB MAP — which `MEDI_*` switch in medicham2 sits beside a lookup of which tag. Derived by
  * proximity (the knob line and a TAGS lookup within 25 lines), so every entry is a CANDIDATE plant and
@@ -1925,27 +1914,34 @@ function planMechanic(kind, e) {
   out.observe = observeOf(kind, e);
   out.roll = rollOf(e);
   out.slotSensitive = slotSensitive(kind, e);
-  /* ---- scope ---- */
-  let bearers = carriersFor(kind, e, trig);
-  let conf = [];
-  if (kind === 'abilities') conf = (U.conferred.get(e.id) || []).filter(c => c.via.startsWith('move:') && c.carriers > 0 && BRK !== 'no-conferral');
-  if (!bearers.length && !conf.length) {
-    const inj = kind === 'moves' && (cite('sim/pokemon.ts', new RegExp('["\']' + e.id + '["\']')) || cite('sim/battle-actions.ts', new RegExp('["\']' + e.id + '["\']')));
-    if (inj) {
-      /* NOTHING LEARNS IT AND THE SIMULATOR INJECTS IT (cited): stage the state that makes the injection */
-      out.injectedAt = inj.at;
-      try { out.fixtures.push(buildOne(kind, e, trig, null, 'injected', () => stageStruggle(e, inj))); }
-      catch (err) { out.refusal = { code: err instanceof PlanError ? err.code : 'PLANNER-ERROR', reason: String(err.reason || err.message) }; }
-      return out;
-    }
-    const all = (U.conferred.get(e.id) || []);
-    out.refusal = { code: 'NO-LEGAL-CARRIER', reason: kind === 'items' ? 'no legal holder can use it (mega forme or item user absent from the regulation)' : 'no legal species carries it, and no legal move with a legal learner confers it',
-                    conferralChecked: kind === 'abilities', conferralSources: all };
+  /* ---- scope: IMPORTED from engine/legal_scope.js, the one implementation (2026-09-11) ----
+   * This block derived scope a second time off the planner's own carrier list, and the two disagreed on
+   * three rows: Battle Bond counted in here (its one carrier is refused by the validator, which the planner
+   * only found when its staging failed), Gluttony out here and in there, Simple in here and out there —
+   * 847 against 845. The planner now asks, and decides only HOW to stage what is in scope. A mechanic in
+   * scope that it finds no body for is refused as its own gap (PLANNER-CANNOT-CONSTRUCT), never as the
+   * format's. */
+  const SV = U.scope.verdict(KEYK[kind], e.id);
+  out.scope = { inScope: SV.inScope, code: SV.code };
+  const bearers = carriersFor(kind, e, trig);
+  const conf = SV.code === 'CONFERRED' && BRK !== 'no-conferral' ? (SV.sources || []).filter(s => s.startsWith('move:')).map(s => ({ via: s })) : [];
+  const injected = kind === 'moves' && SV.code === 'INJECTED';
+  const inScope = BRK === 'second-scope' ? !!(bearers.length || conf.length || injected) : SV.inScope;
+  if (!inScope) {
+    const cf = U.scope.conferred.find(x => x.ability === e.id);
+    out.refusal = { code: SV.code, reason: SV.why, outOfScope: true, basis: 'engine/legal_scope.js',
+                    conferralChecked: kind === 'abilities', conferralSources: cf ? cf.via : [], illegalReaders: SV.illegalReaders };
     return out;
   }
-  const rbo = trig.find(t => t.kind === 'read-by-others' && !t.legalReaders.length && t.illegalReaders.length);
-  if (rbo && !out.observe.leaves.length) {
-    out.refusal = { code: 'NO-LEGAL-READER', reason: 'it only writes ' + rbo.state + ', and every entity that reads it is out of the regulation (' + rbo.illegalReaders.join(', ') + ')', illegalReaders: rbo.illegalReaders };
+  if (injected && !bearers.length) {
+    /* NOTHING LEARNS IT AND THE SIMULATOR INJECTS IT (legal_scope cites the line): stage the state that makes the injection */
+    out.injectedAt = SV.cite;
+    try { out.fixtures.push(buildOne(kind, e, trig, null, 'injected', () => stageStruggle(e, { at: SV.cite }))); }
+    catch (err) { out.refusal = { code: err instanceof PlanError ? err.code : 'PLANNER-ERROR', reason: String(err.reason || err.message) }; }
+    return out;
+  }
+  if (!bearers.length && !conf.length) {
+    out.refusal = { code: 'PLANNER-CANNOT-CONSTRUCT', reason: 'engine/legal_scope.js admits it (' + SV.code + ') and the planner found no body to stage it on', formatClaim: false };
     return out;
   }
   /* ---- the main fixture ---- */
@@ -2016,6 +2012,7 @@ const BREAKS = {
   'no-conferral': 'conferral is ignored — Simple must go red',
   'no-setter': 'the duration-extension setter click is dropped — the weather-rock case must go red',
   'prankster-fast': 'the speed window is not enforced — the Prankster case must go red',
+  'second-scope': 'the planner decides scope from its own carrier list again, as it did until 2026-09-11 — the one-scope clause must go red',
 };
 function plan(opt) {
   opt = opt || {};
@@ -2068,7 +2065,8 @@ function plan(opt) {
            mechanics: all, branches, summary: S };
 }
 function summarise(all, branches) {
-  const S = { mechanics: all.length, withFixture: 0, refused: {}, byKind: {}, controlAB: 0, controlBoardOnly: 0, variants: 0,
+  const S = { mechanics: all.length, inScope: all.filter(m => !(m.refusal && m.refusal.outOfScope)).length, scopeBasis: 'engine/legal_scope.js',
+              withFixture: 0, refused: {}, byKind: {}, controlAB: 0, controlBoardOnly: 0, variants: 0,
               halves: { needed: 0, staged: 0 }, branches: { total: branches.length, uncovered: branches.filter(b => b.status !== 'COVERED').length },
               assumptions: 0, arms: {} };
   for (const m of all) {
@@ -2096,7 +2094,7 @@ if (require.main === module) {
   const P = plan({ only: flag('--only') ? flag('--only').split(',') : null, tagsLive: argv.includes('--tags-live') });
   const S = P.summary;
   console.log('stage_planner — ' + P.meta.format + ' | tags ' + P.meta.tags + ' | ' + P.meta.ms + ' ms' + (P.meta.break ? ' | BREAK ' + P.meta.break : ''));
-  console.log('  mechanics ' + S.mechanics + ' | with a fixture ' + S.withFixture + ' | refused ' + (S.mechanics - S.withFixture));
+  console.log('  mechanics ' + S.mechanics + ' | in scope ' + S.inScope + ' (' + S.scopeBasis + ') | with a fixture ' + S.withFixture + ' | refused ' + (S.mechanics - S.withFixture));
   for (const [k, v] of Object.entries(S.byKind)) console.log('    ' + k.padEnd(8) + v.fixture + ' / ' + v.total + '   ' + Object.entries(v.refused).map(([c, n]) => c + ' ' + n).join(', '));
   console.log('  refusals ' + Object.entries(S.refused).sort((a, b) => b[1] - a[1]).map(([c, n]) => c + ' ' + n).join(' | '));
   console.log('  controls: A/B ' + S.controlAB + ', board-only ' + S.controlBoardOnly + ' | variants ' + S.variants + ' | halves ' + S.halves.staged + '/' + S.halves.needed

@@ -33,6 +33,8 @@ const fs = require('fs');
 require(path.join(__dirname, '..', 'engine', 'showdown_path.js'));
 const CS = require(path.join(__dirname, '..', 'engine', 'champions_sim.js'));
 const SP = require(path.join(__dirname, '..', 'engine', 'stage_planner.js'));
+const LS = require(path.join(__dirname, '..', 'engine', 'legal_scope.js'));
+const COV = require(path.join(__dirname, '..', 'engine', 'coverage.js'));
 const { Dex, Teams, TeamValidator } = CS.sim();
 const D = Dex.forFormat(SP.FORMAT);
 const id = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -178,6 +180,43 @@ C.arm = P => {
   }
   return bad;
 };
+/* 8 ONE-SCOPE — which mechanics exist in the regulation is ONE fact with ONE implementation,
+ * engine/legal_scope.js. On 2026-09-11 the planner's own carrier list and legal_scope's validator-checked
+ * scope met and said 847 and 845, and they disagreed on three rows that the two totals only partly showed.
+ * So: the rows the planner refuses as OUT OF SCOPE (a scope code, refused before any staging attempt) are
+ * exactly the rows legal_scope puts out, with the same code; the planner stages nothing legal_scope puts out;
+ * the planner prints legal_scope's count; and coverage.js, the other entrypoint, which prints the
+ * denominator, returns the identical in-scope set. Out of scope is read off the planner's BEHAVIOUR (code and
+ * no attempt), not off a flag it sets, so a planner that grew its own scope again would be caught. */
+const SCOPE_CODES = new Set(['NO-LEGAL-CARRIER', 'VALIDATOR-REFUSED', 'NO-LEGAL-READER']);
+C.oneScope = (P, only) => {
+  const bad = [];
+  const S = LS.derive();
+  if (typeof S.verdict !== 'function') bad.push('engine/legal_scope.js exposes no verdict(kind, id) — there is no one answer to import');
+  const cov = COV.legalScope();
+  if (!cov.S) return bad.concat(['engine/coverage.js could not derive a scope: ' + cov.why]);
+  for (const kind of ['move', 'ability', 'item']) {
+    const a = new Set(S.inScopeIds(kind)), b = new Set(cov.S.inScopeIds(kind));
+    for (const x of a) if (!b.has(x)) bad.push(kind + ':' + x + ': in scope for legal_scope, out for coverage.js');
+    for (const x of b) if (!a.has(x)) bad.push(kind + ':' + x + ': in scope for coverage.js, out for legal_scope');
+  }
+  const keys = new Set(population(only));
+  for (const m of P.mechanics) {
+    if (!keys.has(m.key)) continue;
+    const plannerOut = !!(m.refusal && SCOPE_CODES.has(m.refusal.code) && !(m.attempts || []).length && !m.fixtures.length);
+    const lsIn = S.inScope(m.kind, m.id);
+    if (plannerOut === lsIn) bad.push(m.key + ': planner ' + (plannerOut ? 'OUT (' + m.refusal.code + ')' : 'IN' + (m.refusal ? ' (' + m.refusal.code + ' after staging)' : ''))
+      + ', legal_scope ' + (lsIn ? 'IN' : 'OUT (' + S.why(m.kind, m.id) + ')'));
+    else if (plannerOut && typeof S.verdict === 'function' && S.verdict(m.kind, m.id).code !== m.refusal.code)
+      bad.push(m.key + ': both OUT, codes differ — planner ' + m.refusal.code + ', legal_scope ' + S.verdict(m.kind, m.id).code);
+    if ((m.fixtures.length || (m.wouldBe || []).length) && !lsIn) bad.push(m.key + ': the planner built a fixture for a mechanic legal_scope puts out');
+  }
+  if (!only) {
+    const n = ['move', 'ability', 'item'].reduce((s, k) => s + S.inScopeCount[k], 0);
+    if (P.summary.inScope !== n) bad.push('the planner prints ' + P.summary.inScope + ' in scope, legal_scope ' + n);
+  }
+  return bad;
+};
 /* ---- the known-hard cases ---- */
 const statSpe = b => {
   const sp = D.species.get(b.field || b.species);
@@ -267,7 +306,8 @@ let fails = 0;
 const say = (ok, name, detail) => { console.log((ok ? '  PASS  ' : '  FAIL  ') + name + (detail ? '  ' + detail : '')); if (!ok) fails++; };
 const t0 = Date.now();
 const KNOWN = ['ability:hospitality', 'ability:prankster', 'item:damprock', 'item:lightclay', 'item:heatrock', 'item:smoothrock', 'item:icyrock',
-  'ability:lightningrod', 'ability:voltabsorb', 'item:charizarditey', 'item:floettite', 'ability:fairyaura', 'ability:simple', 'ability:infiltrator'];
+  'ability:lightningrod', 'ability:voltabsorb', 'item:charizarditey', 'item:floettite', 'ability:fairyaura', 'ability:simple', 'ability:infiltrator',
+  'ability:battlebond', 'ability:gluttony', 'move:struggle', 'move:spore'];
 const P = SP.plan(QUICK ? { only: KNOWN, brk: null } : { brk: null });
 const only = QUICK ? KNOWN : null;
 console.log('test-stage-planner — ' + (QUICK ? 'known cases' : 'full population') + ', planner ' + P.meta.ms + ' ms, tags ' + P.meta.tags);
@@ -294,6 +334,7 @@ const RED = [
   ['feraligatr-only', 'k4Receiver', ['ability:lightningrod', 'ability:voltabsorb']],
   ['no-mega', 'k5Megas', ['item:charizarditey', 'item:floettite', 'ability:fairyaura']],
   ['no-conferral', 'k6Simple', ['ability:simple']],
+  ['second-scope', 'oneScope', ['ability:battlebond', 'ability:gluttony', 'ability:simple', 'move:struggle', 'move:spore', 'item:charizarditey']],
 ];
 console.log('  red demonstrations — each broken planner must fail its clause; the same subset unbroken must pass it');
 const covered = new Set();

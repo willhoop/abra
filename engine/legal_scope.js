@@ -1,46 +1,56 @@
-/* legal_scope.js — WHICH MOVES, ABILITIES AND ITEMS OF THE ACTIVE REGULATION CAN REACH A BOARD.
+/* legal_scope.js — WHICH MOVES, ABILITIES AND ITEMS OF THE ACTIVE REGULATION CAN REACH A BOARD, AND WHY NOT.
  *
  *   const LS = require('./legal_scope.js');
- *   const S = LS.derive();          // memoised per process
- *   S.inScope('ability', 'fairyaura')   -> true / false
- *   S.why('move', 'spore')              -> the reason it is out, or null
- *   node engine/legal_scope.js          -> prints the derivation
+ *   const S = LS.derive();                 // memoised per process
+ *   S.inScope('ability', 'fairyaura')      -> true / false
+ *   S.verdict('ability', 'simple')         -> { inScope, code, why, ... } — the one answer, with its reason
+ *   S.why('move', 'spore')                 -> the reason it is out, or null
+ *   node engine/legal_scope.js             -> prints the derivation
  *
- * ONE IMPLEMENTATION, AND IT IS NOT YET THE ONLY ONE (2026-09-11, MEASURE). Scope is decided in four
- * places today and they disagree:
+ * ONE FACT, ONE IMPLEMENTATION (2026-09-11, MEASURE). "Which mechanics exist in Reg M-B" is decided HERE.
+ * engine/coverage.js (the denominator) and engine/stage_planner.js (the fixtures) import it, and
+ * tests/test-stage-planner.js clause oneScope fails if either returns a different in-scope set. The day the
+ * planner's own carrier list met this file they printed 847 and 845 for one fact, and disagreed on three
+ * rows the totals only partly showed (docs/_reports/2026-09-11-scope-unified.md). Three of ENGINE's files
+ * still decide scope their own way — engine/all_mechanics_fire.js, tests/roster.js, engine/tag_dex.js
+ * LEGAL_CARRIED — and that report names the lines that move to this module in the next engine pass.
  *
- *   engine/all_mechanics_fire.js  LEGAL_SPECIES drops `isMega` and `battleOnly`, so the 14 abilities
- *                                 only a mega carries are reported NO LEGAL CARRIER, and it excuses all
- *                                 75 mega stones as out of scope. It is the artifact's scope.
- *   tests/roster.js               CARRIERS keeps megas and battle-only formes and has no tier check.
- *   engine/tag_dex.js             LEGAL_CARRIED filters species only, abilities only.
- *   engine/coverage.js            read the artifact's `unreachable` / `out_of_scope` flags, and so
- *                                 inherited the first file's error. It now calls THIS.
+ * THE CODES — every part read off the format, never typed:
  *
- * The first three are ENGINE's files. This module is where they should come, so there is one answer.
+ *   IN SCOPE
+ *   CARRIED    ability  a legal species (`x.exists && !x.isNonstandard && x.tier !== 'Illegal'`, megas and
+ *                       battle-only formes INCLUDED) carries it, and Showdown's own TeamValidator accepts that
+ *                       species with it. Asked, not reasoned about; one accepted carrier is enough.
+ *   LEARNED    move     a legal species can learn it (`dex.species.getMovePool`, the function the validator
+ *                       reasons from). Checked against `champions_sim.canLearn` on 2026-09-11: every such move
+ *                       has a learner the validator accepts, 0 exceptions.
+ *   INJECTED   move     the simulator hands it to a body without a learnset — read out of `getMoves`' own
+ *                       fallback literal, which is how Struggle stays in scope.
+ *   CONFERRED  ability  no accepted carrier, but an in-scope source WRITES it onto a body (`setAbility` or a
+ *                       forme change with a literal argument) and, for a move, the validator accepts a learner
+ *                       holding that move. Simple, by way of Simple Beam on Audino.
+ *   HELD       item     legal; a mega stone only when one of its mega formes is legal, and an item with
+ *                       `itemUser` only when one of those users is legal.
  *
- * THE RULE, EVERY PART READ OFF THE FORMAT:
+ *   OUT OF SCOPE
+ *   NO-LEGAL-CARRIER    nothing legal carries, learns or holds it, and nothing in scope confers or injects it.
+ *   VALIDATOR-REFUSED   legal species carry it and the validator refuses every one. Battle Bond: Greninja's
+ *                       `S` slot names it and the validator answers "Greninja (Greninja-Bond) does not exist
+ *                       in Gen 9".
+ *   NO-LEGAL-READER     an ability or item whose EVERY handler only writes `abilityState.<k>`, where nothing in
+ *                       the regulation reads <k> — no legal move, ability or item handler other than itself, no
+ *                       line of the sim — and something out of the regulation does. It sits on a board and can
+ *                       change none. Gluttony: its two handlers set `abilityState.gluttony`, and the fourteen
+ *                       pinch berries that read it are all `isNonstandard: 'Past'`. An assignment reads nothing,
+ *                       so Neutralizing Gas's `abilityState.gluttony = false` is not a reader. A MOVE is never
+ *                       put out this way: it acts by being clicked, whatever its handlers write.
  *
- *   species   `x.exists && !x.isNonstandard && x.tier !== 'Illegal'` — megas and battle-only formes
- *             INCLUDED. A mega's ability is on the board the turn it evolves, and Fairy Aura sits on
- *             the third most-held stone in the pinned pool.
- *   ability   in scope when a legal species carries it AND Showdown's own TeamValidator accepts that
- *             species with that ability. The validator is asked, not reasoned about: Greninja's `S`
- *             slot names Battle Bond, and the validator refuses it ("Greninja-Bond does not exist in
- *             Gen 9"). One accepted carrier is enough; carriers are tried until one is accepted.
- *   move      in scope when a legal species can learn it (`dex.species.getMovePool`, the function the
- *             validator reasons from) OR the simulator injects it without a learnset. The injected set
- *             is read out of the sim's own `getMoves` fallback, never typed: it is how Struggle, which
- *             nothing learns and every body can use, stays in scope.
- *   item      in scope when it is legal, and a mega stone only when one of its mega formes is legal,
- *             and an item with `itemUser` only when one of those users is legal.
- *
- * CONFERRED ABILITIES ARE REPORTED, NOT ADMITTED. A legal move can put an ability on a body that no
- * legal species carries (Simple Beam writes Simple). Whether that makes the ability in scope is Will's
- * call, not this file's, so `conferred` lists every such ability with the sources that can write it
- * and `inScope` does NOT count it. The list is derived: the simulator methods that write an ability
- * are found by reading the sim source, and every legal move, carried ability and legal item handler is
- * scanned for a call to one of them with a literal argument. */
+ * CONFERRED ABILITIES ARE ADMITTED. The first version of this file reported them and left the decision to
+ * Will. Measured since: Simple Beam is legal, the validator accepts Audino holding it, 37 of 17,381 pinned
+ * games declare it and 19 click it; engine/tag_dex.js already admits Simple from this module's `conferred`
+ * list, and engine/medicham2-browser.js now applies its multiplier. A denominator that leaves out a mechanic
+ * the engine models and the ladder plays is not the regulation's. The tag plan filed it "out of scope unless
+ * Will says so" (docs/_reports/2026-09-11-plan-tags.md, B6-b); if he says no, ADMIT_CONFERRED is the line. */
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -48,6 +58,9 @@ const path = require('path');
 const FILTER = "x.exists && !x.isNonstandard && x.tier !== 'Illegal'";
 const legal = x => !!(x && x.exists && !x.isNonstandard && x.tier !== 'Illegal');
 const idOf = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const ADMIT_CONFERRED = true;
+const IN_CODES = Object.freeze(['CARRIED', 'LEARNED', 'INJECTED', 'CONFERRED', 'HELD']);
+const OUT_CODES = Object.freeze(['NO-LEGAL-CARRIER', 'VALIDATOR-REFUSED', 'NO-LEGAL-READER']);
 
 /* every function reachable on a dex entry (its own handlers, `condition`, `secondary`, `self`) */
 function fnSources(o, depth = 0, seen = new Set(), pre = '') {
@@ -147,6 +160,22 @@ function teamEntryFor(dex, c, ability) {
   return { species: c.species, ability, via: null };
 }
 
+/* NO-LEGAL-READER, THE SHAPE: every handler body is nothing but `<x>.abilityState.<k> = <expr>;`. Returns the
+ * keys written, or null when any handler does anything else (then it can act on its own). */
+const STATE_WRITE = /[\w$.]+\.abilityState\.([A-Za-z_$][\w$]*)\s*=(?!=)[^;]*;/g;
+function stateOnlyKeys(e) {
+  const F = fnSources(e);
+  if (!F.length) return null;
+  const keys = new Set();
+  for (const f of F) {
+    const i = f.src.indexOf('{'), j = f.src.lastIndexOf('}');
+    const body = i >= 0 && j > i ? f.src.slice(i + 1, j) : f.src;
+    for (const m of body.matchAll(STATE_WRITE)) keys.add(m[1]);
+    if (body.replace(STATE_WRITE, '').trim() !== '') return null;
+  }
+  return keys.size ? [...keys] : null;
+}
+
 let MEMO = null;
 function derive(opts = {}) {
   if (MEMO && !opts.fresh) return MEMO;
@@ -154,6 +183,7 @@ function derive(opts = {}) {
   const dex = CS.dexFor(CS.FORMAT);
   const simDir = path.join(require('./showdown_path.js').resolve() || '', 'dist', 'sim');
   const failures = [];
+  const V = { move: new Map(), ability: new Map(), item: new Map() };
 
   const species = dex.species.all().filter(legal);
 
@@ -164,11 +194,11 @@ function derive(opts = {}) {
     if (!abCarriers.has(k)) abCarriers.set(k, []);
     abCarriers.get(k).push({ species: s.id, slot, mega: !!s.isMega, battleOnly: !!s.battleOnly });
   }
-  const abilityOut = new Map(), abilityIn = new Map(), refused = [];
+  const abilityIn = new Map(), refused = [];
   const legalAbilities = dex.abilities.all().filter(a => a.exists && !a.isNonstandard).map(a => a.id);
   for (const a of legalAbilities) {
     const list = abCarriers.get(a) || [];
-    if (!list.length) { abilityOut.set(a, 'no legal species carries it'); continue; }
+    if (!list.length) { V.ability.set(a, { inScope: false, code: 'NO-LEGAL-CARRIER', why: 'no legal species carries it' }); continue; }
     let accepted = null;
     for (const c of list) {
       const entry = teamEntryFor(dex, c, a);
@@ -176,9 +206,10 @@ function derive(opts = {}) {
       if (v && v.legal) { accepted = Object.assign({ via: entry.via }, c); break; }
       refused.push({ ability: a, species: c.species, slot: c.slot, via: entry.via, problems: (v && v.problems) || [] });
     }
-    if (accepted) abilityIn.set(a, accepted);
-    else abilityOut.set(a, 'every legal carrier is refused by the TeamValidator ('
-      + list.map(c => c.species + ' slot ' + c.slot).join(', ') + ')');
+    if (accepted) { abilityIn.set(a, accepted); V.ability.set(a, { inScope: true, code: 'CARRIED', why: null, carrier: accepted }); }
+    else V.ability.set(a, { inScope: false, code: 'VALIDATOR-REFUSED', why: 'every legal carrier is refused by the TeamValidator ('
+      + list.map(c => c.species + ' slot ' + c.slot).join(', ') + ')',
+      problems: refused.filter(r => r.ability === a).map(r => r.problems[0]).filter(Boolean) });
   }
 
   /* moves — learners, plus what the sim injects */
@@ -193,30 +224,30 @@ function derive(opts = {}) {
   /* only an injected LEGAL move matters; the fallback also names moves this dex does not carry */
   const injectedAll = simInjectedMoves(simDir, failures);
   const injected = injectedAll.filter(x => legalMoves.includes(x.id));
-  const injectedSet = new Set(injected.map(x => x.id));
-  const moveOut = new Map(), moveIn = new Set();
   for (const m of legalMoves) {
-    if ((learners.get(m) || []).length || injectedSet.has(m)) moveIn.add(m);
-    else moveOut.set(m, 'no legal species learns it and the sim does not inject it');
+    const inj = injected.find(x => x.id === m);
+    if ((learners.get(m) || []).length) V.move.set(m, { inScope: true, code: 'LEARNED', why: null, learners: learners.get(m).length });
+    else if (inj) V.move.set(m, { inScope: true, code: 'INJECTED', why: null, cite: inj.cite });
+    else V.move.set(m, { inScope: false, code: 'NO-LEGAL-CARRIER', why: 'no legal species learns it and the sim does not inject it' });
   }
 
   /* items */
-  const itemOut = new Map(), itemIn = new Set();
   const legalItems = dex.items.all().filter(i => i.exists && !i.isNonstandard);
   for (const it of legalItems) {
     if (it.megaStone && !Object.entries(it.megaStone).some(([b, f]) => legal(dex.species.get(b)) && legal(dex.species.get(f))))
-      itemOut.set(it.id, 'a mega stone with no legal mega forme');
+      V.item.set(it.id, { inScope: false, code: 'NO-LEGAL-CARRIER', why: 'a mega stone with no legal mega forme' });
     else if (it.itemUser && !it.itemUser.some(u => legal(dex.species.get(u))))
-      itemOut.set(it.id, 'no legal species can use it (' + it.itemUser.join(', ') + ')');
-    else itemIn.add(it.id);
+      V.item.set(it.id, { inScope: false, code: 'NO-LEGAL-CARRIER', why: 'no legal species can use it (' + it.itemUser.join(', ') + ')' });
+    else V.item.set(it.id, { inScope: true, code: 'HELD', why: null });
   }
 
-  /* conferred — abilities a legal source can WRITE onto a body with no legal species carrier */
+  /* conferred — abilities a legal source can WRITE onto a body with no accepted legal carrier. The list is
+   * computed BEFORE admission, so its shape and `reason` are what engine/tag_dex.js already reads. */
   const writers = abilityWriters(simDir, failures);
   const sources = [];
-  for (const m of legalMoves) if (moveIn.has(m)) sources.push({ kind: 'move', e: dex.moves.get(m) });
+  for (const m of legalMoves) if (V.move.get(m).inScope) sources.push({ kind: 'move', e: dex.moves.get(m) });
   for (const a of abilityIn.keys()) sources.push({ kind: 'ability', e: dex.abilities.get(a) });
-  for (const i of itemIn) sources.push({ kind: 'item', e: dex.items.get(i) });
+  for (const i of legalItems) if (V.item.get(i.id).inScope) sources.push({ kind: 'item', e: i });
   const writes = [];
   for (const S of sources) for (const f of fnSources(S.e)) for (const w of writers) for (const arg of firstArgs(f.src, w)) {
     const lit = literalOf(arg);
@@ -230,54 +261,110 @@ function derive(opts = {}) {
     if (!a || abilityIn.has(a)) continue;
     const A = dex.abilities.get(a);
     if (!conferredMap.has(a)) conferredMap.set(a, { ability: a, name: A.name, legalInDex: !!(A.exists && !A.isNonstandard),
-      reason: abilityOut.get(a) || 'not a legal ability', via: [] });
+      reason: (V.ability.get(a) || {}).why || 'not a legal ability', via: [] });
     const c = conferredMap.get(a);
     if (!c.via.some(v => v.kind === w.kind && v.id === w.id))
       c.via.push({ kind: w.kind, id: w.id, handler: w.handler, call: w.via,
                    holders: w.kind === 'move' ? (learners.get(w.id) || []).length : null });
   }
+  /* ADMISSION. A move source counts when the validator accepts one of its learners holding it (a mega
+   * learner is asked as its base holding the stone); a carried ability or a held item is in scope already. */
+  for (const c of conferredMap.values()) {
+    c.admitted = false; c.admittedBy = null;
+    if (!ADMIT_CONFERRED || !c.legalInDex) continue;
+    for (const v of c.via) {
+      if (v.kind !== 'move') { c.admittedBy = { kind: v.kind, id: v.id, accepted: 'in scope as ' + V[v.kind].get(v.id).code }; break; }
+      const mv = dex.moves.get(v.id);
+      const ls = (learners.get(v.id) || []).map(sid => dex.species.get(sid)).sort((x, y) => (!!x.isMega - !!y.isMega) || (!!x.battleOnly - !!y.battleOnly));
+      for (const sp of ls) {
+        const entry = teamEntryFor(dex, { species: sp.id }, null);
+        const r = CS.checkLegal({ species: entry.species, item: entry.item, moves: [mv.name] });
+        if (r && r.legal) { c.admittedBy = { kind: 'move', id: v.id, accepted: entry.species + (entry.item ? ' @ ' + entry.item : '') + ' with ' + mv.name }; break; }
+      }
+      if (c.admittedBy) break;
+    }
+    if (!c.admittedBy) continue;
+    c.admitted = true;
+    V.ability.set(c.ability, { inScope: true, code: 'CONFERRED', why: null, conferredBy: c.admittedBy, sources: c.via.map(v => v.kind + ':' + v.id) });
+  }
 
-  const out = { move: moveOut, ability: abilityOut, item: itemOut };
-  const inn = { move: moveIn, ability: new Set(abilityIn.keys()), item: itemIn };
+  /* NO LEGAL READER — the effect is a flag only out-of-regulation entities read */
+  let simSrc = '';
+  for (const f of ['pokemon.js', 'battle.js', 'battle-actions.js', 'field.js', 'side.js']) {
+    try { simSrc += fs.readFileSync(path.join(simDir, f), 'utf8') + '\n'; } catch (e) { failures.push('sim source unreadable: ' + f + ' (' + e.message + ')'); }
+  }
+  const everyEntry = dex.moves.all().concat(dex.abilities.all(), dex.items.all()).filter(x => x.exists);
+  const srcOf = new Map();
+  const text = x => { if (!srcOf.has(x)) srcOf.set(x, fnSources(x).map(f => f.src).join('\n')); return srcOf.get(x); };
+  const noReader = [];
+  for (const [kind, list] of [['ability', legalAbilities.map(a => dex.abilities.get(a))], ['item', legalItems]]) for (const e of list) {
+    if (!V[kind].get(e.id).inScope) continue;
+    const keys = stateOnlyKeys(e);
+    if (!keys) continue;
+    const per = keys.map(k => {
+      const reads = new RegExp('abilityState\\.' + k + '\\b(?!\\s*=[^=])');
+      const readers = everyEntry.filter(x => x.id !== e.id && reads.test(text(x)));
+      return { key: k, legalReaders: readers.filter(x => !x.isNonstandard).map(x => x.id),
+               illegalReaders: readers.filter(x => x.isNonstandard).map(x => x.id), sim: reads.test(simSrc) };
+    });
+    if (per.every(p => !p.legalReaders.length && !p.sim) && per.some(p => p.illegalReaders.length)) {
+      const ill = [...new Set(per.flatMap(p => p.illegalReaders))];
+      V[kind].set(e.id, { inScope: false, code: 'NO-LEGAL-READER', why: 'it only writes ' + per.map(p => 'abilityState.' + p.key).join(', ')
+        + ', and every entity that reads it is out of the regulation (' + ill.join(', ') + ')', illegalReaders: ill, was: V[kind].get(e.id).code });
+      noReader.push(kind + ':' + e.id);
+    }
+  }
+
+  const ids = kind => [...V[kind].entries()];
+  const inIds = kind => ids(kind).filter(([, v]) => v.inScope).map(([k]) => k);
+  const count = kind => ids(kind).reduce((o, [, v]) => (o[v.code] = (o[v.code] || 0) + 1, o), {});
   MEMO = {
-    format: CS.FORMAT, filter: FILTER,
+    format: CS.FORMAT, filter: FILTER, admitConferred: ADMIT_CONFERRED,
     species: species.length,
     speciesMega: species.filter(s => s.isMega).length,
     speciesBattleOnly: species.filter(s => s.battleOnly && !s.isMega).length,
     legal: { move: legalMoves.length, ability: legalAbilities.length, item: legalItems.length },
-    inScopeCount: { move: moveIn.size, ability: abilityIn.size, item: itemIn.size },
-    injected, refused, writers: [...writers].sort(),
+    inScopeCount: { move: inIds('move').length, ability: inIds('ability').length, item: inIds('item').length },
+    codes: { move: count('move'), ability: count('ability'), item: count('item') },
+    injected, refused, writers: [...writers].sort(), noReader,
     copies: writes.filter(w => !w.abilities).map(w => w.kind + ':' + w.id + ' ' + w.via + '(' + w.arg + ')'),
     conferred: [...conferredMap.values()],
     failures,
-    inScope: (kind, id) => inn[kind] ? inn[kind].has(idOf(id)) : null,
-    inScopeIds: kind => [...(inn[kind] || [])],
-    isLegal: (kind, id) => ({ move: legalMoves, ability: legalAbilities, item: legalItems.map(i => i.id) }[kind] || []).includes(idOf(id)),
-    why: (kind, id) => (out[kind] && out[kind].get(idOf(id))) || null,
-    outOfScope: kind => [...(out[kind] || new Map()).entries()].map(([id, why]) => ({ id, why })),
+    verdict: (kind, id) => (V[kind] && V[kind].get(idOf(id))) || { inScope: false, code: 'NOT-LEGAL', why: 'not a legal ' + kind + ' in ' + CS.FORMAT },
+    inScope: (kind, id) => V[kind] ? !!(V[kind].get(idOf(id)) || {}).inScope : null,
+    inScopeIds: kind => V[kind] ? inIds(kind) : [],
+    isLegal: (kind, id) => !!(V[kind] && V[kind].has(idOf(id))),
+    why: (kind, id) => { const v = V[kind] && V[kind].get(idOf(id)); return v && !v.inScope ? v.why : null; },
+    outOfScope: kind => ids(kind).filter(([, v]) => !v.inScope).map(([id, v]) => ({ id, code: v.code, why: v.why })),
   };
   return MEMO;
 }
 
-module.exports = { derive, FILTER, abilityWriters, simInjectedMoves };
+module.exports = { derive, FILTER, IN_CODES, OUT_CODES, abilityWriters, simInjectedMoves };
 
 if (require.main === module) {
   const t0 = Date.now();
   const S = derive();
+  const tally = o => Object.entries(o).sort((a, b) => b[1] - a[1]).map(([c, n]) => c + ' ' + n).join(', ');
   console.log(`LEGAL SCOPE — ${S.format}, species filter ${S.filter}`);
   console.log(`  species ${S.species} (${S.speciesMega} mega formes, ${S.speciesBattleOnly} other battle-only formes included)`);
+  const total = ['move', 'ability', 'item'].reduce((n, k) => n + S.inScopeCount[k], 0);
+  const legalN = ['move', 'ability', 'item'].reduce((n, k) => n + S.legal[k], 0);
+  console.log(`  IN SCOPE ${total} of ${legalN} legal mechanics`);
   for (const k of ['move', 'ability', 'item']) {
     const o = S.outOfScope(k);
-    console.log(`  ${{ move: 'moves', ability: 'abilities', item: 'items' }[k]}: ${S.inScopeCount[k]} in scope of ${S.legal[k]} legal; ${o.length} out`
-      + (o.length && o.length <= 12 ? ' — ' + o.map(x => x.id + ' (' + x.why + ')').join('; ') : ''));
+    console.log(`  ${{ move: 'moves', ability: 'abilities', item: 'items' }[k]}: ${S.inScopeCount[k]} in scope of ${S.legal[k]} legal (${tally(S.codes[k])})`
+      + (o.length && o.length <= 12 ? ' — out: ' + o.map(x => x.id + ' [' + x.code + ']').join(', ') : ''));
   }
   console.log('  injected by the sim: ' + (S.injected.map(x => x.id + ' ' + x.cite).join(', ') || 'none'));
   console.log('  validator refusals: ' + (S.refused.map(r => r.species + '/' + r.ability + ' slot ' + r.slot + ': '
     + (r.problems[0] || '')).join(' | ') || 'none'));
+  console.log('  no legal reader: ' + (S.noReader.map(k => k + ' — ' + S.verdict(...k.split(':')).why).join(' | ') || 'none'));
   console.log('  sim methods that write an ability: ' + S.writers.join(', '));
   console.log('  copies (confer only an ability already on a body): ' + S.copies.length + ' — ' + S.copies.join('; '));
-  console.log('  CONFERRED with no legal carrier: ' + (S.conferred.map(c => c.name + ' via '
-    + c.via.map(v => v.kind + ':' + v.id + (v.holders != null ? ' (' + v.holders + ' legal learners)' : '')).join(', ')).join('; ') || 'none'));
+  console.log('  CONFERRED (no accepted carrier, written by an in-scope source): ' + (S.conferred.map(c => c.name + ' via '
+    + c.via.map(v => v.kind + ':' + v.id + (v.holders != null ? ' (' + v.holders + ' legal learners)' : '')).join(', ')
+    + (c.admitted ? ' — ADMITTED, the validator accepts ' + c.admittedBy.accepted : ' — not admitted')).join('; ') || 'none'));
   if (S.failures.length) { console.log('  DERIVATION FAILURES: ' + S.failures.join(' | ')); process.exitCode = 1; }
   console.log(`  ${Date.now() - t0} ms`);
 }

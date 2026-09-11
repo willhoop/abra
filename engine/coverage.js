@@ -564,8 +564,11 @@ function boardRows(F, S) {
   const K = ['moves', 'abilities', 'items'];
   const sum = key => K.reduce((n, k) => n + per[k][key], 0);
   const outN = K.reduce((n, k) => n + per[k].out.length, 0);
-  const outTxt = K.filter(k => per[k].out.length).map(k => `${k} ${per[k].out.length}`
-    + (per[k].out.length <= 12 ? ' (' + per[k].out.map(o => o.id).join(', ') + ')' : '')).join(', ');
+  /* BY CODE (engine/legal_scope.js verdicts), so a row that changes membership shows where a total does not
+   * move — on 2026-09-11 Gluttony left, Simple joined, and the ability total stayed 200. */
+  const byCode = out => Object.entries(out.reduce((o, x) => ((o[x.code || 'OUT'] = o[x.code || 'OUT'] || []).push(x.id), o), {}))
+    .sort((a, b) => b[1].length - a[1].length).map(([c, ids]) => c + ' ' + ids.length + (ids.length <= 3 ? ' ' + ids.join('/') : '')).join(', ');
+  const outTxt = K.filter(k => per[k].out.length).map(k => `${k} ${per[k].out.length} (${byCode(per[k].out)})`).join(', ');
   const trail = (drift.length ? ` PER-ROW AND SUMMARY FIRED COUNTS DISAGREE: ${drift.join('; ')}.` : '')
     + (notLegal.length ? ` ${notLegal.length} artifact row(s) are not legal in the dex this read (${cap(notLegal)}) — the artifact and the checkout disagree.` : '')
     + (missing.length ? ` ${missing.length} in-scope mechanic(s) have no row at all (${cap(missing)}).` : '')
@@ -587,7 +590,9 @@ function boardRows(F, S) {
       + ` and are NOT counted (${tally(nfBoard)}) — a board on a mechanic that never acted compares`
       + ' nothing about its effect.'
       + (sum('firedNoBoard') ? ` ${sum('firedNoBoard')} fired with no board.` : '')
-      + (S.conferred.length ? ' OUT OF SCOPE IS NOT "CANNOT OCCUR": ' + S.conferred.map(c => `${c.name} is carried by`
+      + (S.conferred.some(c => c.admitted) ? ' IN SCOPE WITH NO LEGAL CARRIER (CONFERRED, counted): ' + S.conferred.filter(c => c.admitted)
+         .map(c => `${c.name} — ${c.via.map(v => v.id).join(', ')} writes it and the validator accepts ${c.admittedBy.accepted}`).join('; ') + '.' : '')
+      + (S.conferred.some(c => !c.admitted && c.legalInDex) ? ' OUT OF SCOPE IS NOT "CANNOT OCCUR": ' + S.conferred.filter(c => !c.admitted && c.legalInDex).map(c => `${c.name} is carried by`
          + ` no legal species but ${c.via.map(v => v.id + (v.holders != null ? ' (' + v.holders + ' legal learners)' : '')).join(', ')}`
          + ' writes it onto a body').join('; ') + ' — reachable in play and counted in no denominator.' : '')
       + trail,

@@ -69,6 +69,14 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [6.10.0] — 2026-09-11 — which mechanics exist in the regulation is decided in one place, and the planner's in-scope count was wrong on three rows in two directions
+
+- **What changed.** `engine/legal_scope.js` is the one implementation of scope: `verdict(kind, id)` returns in or out of scope with a code (CARRIED, LEARNED, INJECTED, CONFERRED, HELD; or NO-LEGAL-CARRIER, VALIDATOR-REFUSED, NO-LEGAL-READER). `engine/stage_planner.js` imports it and deletes its own carrier-list scope and conferral scan; `engine/coverage.js` lists out-of-scope rows by code; `tests/test-stage-planner.js` clause `oneScope` fails when the planner or the coverage counter returns a different in-scope set.
+- **Measured.** The two derivations disagreed on three rows, found as a set difference: Battle Bond is out (its only carrier is refused by the TeamValidator), Simple is in (Simple Beam is legal and the validator accepts a holder), Gluttony is out (the only readers of its flag are 14 banned berries). 845 of 964 mechanics are in scope, the same total as the coverage counter's with two members swapped; the planner's fixtures stay at 841, now of 845. The clause was red on the pre-change code (6 failures) and on a planted second derivation. Detail: `docs/_reports/2026-09-11-scope-unified.md`.
+- **Supersedes.** The in-scope denominator in the 6.9.1 row and CHANGELOG 6.9.1, which counted Battle Bond and Gluttony and left out Simple; the correct denominator is 845.
+- **Basis.** unchanged.
+- **Owed to the next major.** None. Owed as work: `engine/all_mechanics_fire.js`, `tests/roster.js`, `engine/tag_dex.js` and `champions_sim.unreachable()` still decide scope their own way.
+
 ## [6.9.2] — 2026-09-11 — copying a mid-game position costs about a third of one turn in MEDICHAM, and its copies are independent
 
 - **What changed.** Added a copy-cost bench under `data/verification/clone-cost-2026-09-11/`, run on frozen release 2b5a6585d8cf and the pinned Showdown checkout over 48 positions from the pinned pool at turn depths 2, 5, 8 and 12, with each copy interleaved against a turn play in one process.
