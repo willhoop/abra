@@ -1,8 +1,8 @@
 {
- "generated": "2026-09-11T20:33:00.315Z",
+ "generated": "2026-09-11T22:09:04.240Z",
  "engine_release": "534442d71183",
  "engine_release_cut": "2026-09-11T20:25:57.786Z",
- "engine_release_cuts": 2,
+ "engine_release_cuts": 43,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
   "engine/medicham2-browser.js": "4b2bc0128dea",
@@ -28620,20 +28620,6 @@
    },
    {
     "kind": "move",
-    "id": "powershift",
-    "name": "Power Shift",
-    "resolved": false,
-    "attempted": false,
-    "why": "NO-LEGAL-CARRIER — no legal species learns it and the sim does not inject it",
-    "scope_code": "NO-LEGAL-CARRIER",
-    "unreachable": true,
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species learns it and the sim does not inject it"
-    }
-   },
-   {
-    "kind": "move",
     "id": "powersplit",
     "name": "Power Split",
     "carrier": "araquanid",
@@ -36013,20 +35999,6 @@
    },
    {
     "kind": "move",
-    "id": "softboiled",
-    "name": "Soft-Boiled",
-    "resolved": false,
-    "attempted": false,
-    "why": "NO-LEGAL-CARRIER — no legal species learns it and the sim does not inject it",
-    "scope_code": "NO-LEGAL-CARRIER",
-    "unreachable": true,
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species learns it and the sim does not inject it"
-    }
-   },
-   {
-    "kind": "move",
     "id": "solarbeam",
     "name": "Solar Beam",
     "carrier": "abomasnow",
@@ -37065,20 +37037,6 @@
       "why": "-fail"
      }
     ]
-   },
-   {
-    "kind": "move",
-    "id": "spore",
-    "name": "Spore",
-    "resolved": false,
-    "attempted": false,
-    "why": "NO-LEGAL-CARRIER — no legal species learns it and the sim does not inject it",
-    "scope_code": "NO-LEGAL-CARRIER",
-    "unreachable": true,
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species learns it and the sim does not inject it"
-    }
    },
    {
     "kind": "move",
@@ -45953,20 +45911,6 @@
    },
    {
     "kind": "ability",
-    "id": "airlock",
-    "name": "Air Lock",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "analytic",
     "name": "Analytic",
     "carrier": "starmie",
@@ -46284,20 +46228,6 @@
    },
    {
     "kind": "ability",
-    "id": "angershell",
-    "name": "Anger Shell",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "anticipation",
     "name": "Anticipation",
     "carrier": "hatterene",
@@ -46541,20 +46471,6 @@
      "why": "THE EFFECT IS A MESSAGE. Anticipation's whole content is a switch-in shudder — no HP, no stat stage, no volatile, no field change — so there is nothing a BOARD comparison can read, and this instrument compares boards. The only instrument that could ever test it is the PROTOCOL TRACE, which is a different comparison and does not exist here. Usage measured at 6, across two legal carriers in this format. Will: \"ANTICIPATION AND FOREWARN LETS PUT INTO THE QUARANTINE CLOSET NO ONE USES THEM.\""
     },
     "counts_against_the_gate": false
-   },
-   {
-    "kind": "ability",
-    "id": "arenatrap",
-    "name": "Arena Trap",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -47029,90 +46945,6 @@
    },
    {
     "kind": "ability",
-    "id": "asoneglastrier",
-    "name": "As One (Glastrier)",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "asonespectrier",
-    "name": "As One (Spectrier)",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "aurabreak",
-    "name": "Aura Break",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "baddreams",
-    "name": "Bad Dreams",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "ballfetch",
-    "name": "Ball Fetch",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "battery",
-    "name": "Battery",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "battlearmor",
     "name": "Battle Armor",
     "carrier": "Falinks",
@@ -47268,54 +47100,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Defiant) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "battlebond",
-    "name": "Battle Bond",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "VALIDATOR-REFUSED",
-    "why": "VALIDATOR-REFUSED — every legal carrier is refused by the TeamValidator (greninja slot S)",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "VALIDATOR-REFUSED",
-     "reason": "every legal carrier is refused by the TeamValidator (greninja slot S)"
-    },
-    "deferred": {
-     "by": "Will",
-     "on": "2026-08-10",
-     "why": "ZERO of 26,232 declared-sheet teams, AND THE FORME IT EXISTS FOR IS BANNED HERE. Greninja-Bond and Greninja-Ash are both isNonstandard: 'Past' in this format. Standard Greninja still LISTS Battle Bond and is on 189 teams, but nobody takes it, because the thing it exists to do cannot happen. Will: \"only the special greninja gets battle bond, its not in the game.\" I gave two WRONG reasons for this shelf before measuring: first that the carrier was rare (it is not, 189 teams), then that it was a rejected choice (it is not a live choice at all). Deliberately not built. Underlying: COULD-NOT-STAGE."
-    },
-    "counts_against_the_gate": false
-   },
-   {
-    "kind": "ability",
-    "id": "beadsofruin",
-    "name": "Beads of Ruin",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "beastboost",
-    "name": "Beast Boost",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -48290,20 +48074,6 @@
    },
    {
     "kind": "ability",
-    "id": "chillingneigh",
-    "name": "Chilling Neigh",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "chlorophyll",
     "name": "Chlorophyll",
     "carrier": "leafeon",
@@ -48829,48 +48599,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Natural Cure) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "colorchange",
-    "name": "Color Change",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "comatose",
-    "name": "Comatose",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "commander",
-    "name": "Commander",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -49572,34 +49300,6 @@
    },
    {
     "kind": "ability",
-    "id": "costar",
-    "name": "Costar",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "cottondown",
-    "name": "Cotton Down",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "cudchew",
     "name": "Cud Chew",
     "carrier": "Farigiraf",
@@ -50278,7 +49978,7 @@
      "notes": [
       "C idles with Sleep Talk (its onTry fails for a healthy body)",
       "genders declared for the opposite-gender case the handler reads: C Clefable M, R Feraligatr F",
-      "plays through the driver's declared-gender seam (engine/game_differential.js:3432): the caller must pass declaredGender"
+      "plays through the driver's declared-gender seam (engine/game_differential.js:3468): the caller must pass declaredGender"
      ],
      "assumptions": []
     },
@@ -50471,76 +50171,6 @@
    },
    {
     "kind": "ability",
-    "id": "dancer",
-    "name": "Dancer",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "darkaura",
-    "name": "Dark Aura",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "dauntlessshield",
-    "name": "Dauntless Shield",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "dazzling",
-    "name": "Dazzling",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "defeatist",
-    "name": "Defeatist",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "defiant",
     "name": "Defiant",
     "carrier": "Annihilape",
@@ -50729,34 +50359,6 @@
    },
    {
     "kind": "ability",
-    "id": "deltastream",
-    "name": "Delta Stream",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "desolateland",
-    "name": "Desolate Land",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "disguise",
     "name": "Disguise",
     "carrier": "Mimikyu",
@@ -50896,20 +50498,6 @@
       "near-a=FIRED-UNCONTROLLED",
       "far-a=UNPROVEN-UNCONTROLLED"
      ]
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "download",
-    "name": "Download",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
     }
    },
    {
@@ -51098,20 +50686,6 @@
      "verdict": "UNPROVEN-UNCONTROLLED",
      "why": "the planner has no single-leaf control for this fixture (NO-SINGLE-VARIABLE-CONTROL) and the authority's log never shows Dragonize acting for the subject",
      "board": "NO-DIVERGENCE"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "dragonsmaw",
-    "name": "Dragon's Maw",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
     }
    },
    {
@@ -52610,76 +52184,6 @@
    },
    {
     "kind": "ability",
-    "id": "embodyaspectcornerstone",
-    "name": "Embody Aspect (Cornerstone)",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "embodyaspecthearthflame",
-    "name": "Embody Aspect (Hearthflame)",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "embodyaspectteal",
-    "name": "Embody Aspect (Teal)",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "embodyaspectwellspring",
-    "name": "Embody Aspect (Wellspring)",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "emergencyexit",
-    "name": "Emergency Exit",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "fairyaura",
     "name": "Fairy Aura",
     "carrier": "Floette-Eternal",
@@ -53378,20 +52882,6 @@
    },
    {
     "kind": "ability",
-    "id": "flareboost",
-    "name": "Flare Boost",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "flashfire",
     "name": "Flash Fire",
     "carrier": "arcanine",
@@ -53625,20 +53115,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Intimidate) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "flowergift",
-    "name": "Flower Gift",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -54884,20 +54360,6 @@
    },
    {
     "kind": "ability",
-    "id": "fullmetalbody",
-    "name": "Full Metal Body",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "furcoat",
     "name": "Fur Coat",
     "carrier": "furfrou",
@@ -55218,34 +54680,6 @@
    },
    {
     "kind": "ability",
-    "id": "galvanize",
-    "name": "Galvanize",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "gluttony",
-    "name": "Gluttony",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-READER",
-    "why": "NO-LEGAL-READER — it only writes abilityState.gluttony, and every entity that reads it is out of the regulation (aguavberry, apicotberry, custapberry, figyberry, ganlonberry, iapapaberry, lansatberry, liechiberry, magoberry, micleberry, petayaberry, salacberry, starfberry, wikiberry)",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-READER",
-     "reason": "it only writes abilityState.gluttony, and every entity that reads it is out of the regulation (aguavberry, apicotberry, custapberry, figyberry, ganlonberry, iapapaberry, lansatberry, liechiberry, magoberry, micleberry, petayaberry, salacberry, starfberry, wikiberry)"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "goodasgold",
     "name": "Good as Gold",
     "carrier": "Gholdengo",
@@ -55546,90 +54980,6 @@
    },
    {
     "kind": "ability",
-    "id": "gorillatactics",
-    "name": "Gorilla Tactics",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "grasspelt",
-    "name": "Grass Pelt",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "grassysurge",
-    "name": "Grassy Surge",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "grimneigh",
-    "name": "Grim Neigh",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "guarddog",
-    "name": "Guard Dog",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "gulpmissile",
-    "name": "Gulp Missile",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "guts",
     "name": "Guts",
     "carrier": "conkeldurr",
@@ -55833,20 +55183,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Sheer Force) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "hadronengine",
-    "name": "Hadron Engine",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -56617,20 +55953,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Sturdy) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "honeygather",
-    "name": "Honey Gather",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -57835,34 +57157,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Own Tempo) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "iceface",
-    "name": "Ice Face",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "icescales",
-    "name": "Ice Scales",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -59378,34 +58672,6 @@
    },
    {
     "kind": "ability",
-    "id": "intrepidsword",
-    "name": "Intrepid Sword",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "ironbarbs",
-    "name": "Iron Barbs",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "ironfist",
     "name": "Iron Fist",
     "carrier": "Conkeldurr",
@@ -60446,20 +59712,6 @@
    },
    {
     "kind": "ability",
-    "id": "libero",
-    "name": "Libero",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "lightmetal",
     "name": "Light Metal",
     "carrier": "metagross",
@@ -61042,34 +60294,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Mold Breaker) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "lingeringaroma",
-    "name": "Lingering Aroma",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "liquidooze",
-    "name": "Liquid Ooze",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -62089,20 +61313,6 @@
    },
    {
     "kind": "ability",
-    "id": "magnetpull",
-    "name": "Magnet Pull",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "marvelscale",
     "name": "Marvel Scale",
     "carrier": "milotic",
@@ -62972,20 +62182,6 @@
    },
    {
     "kind": "ability",
-    "id": "mindseye",
-    "name": "Mind's Eye",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "minus",
     "name": "Minus",
     "carrier": "Manectric",
@@ -63333,20 +62529,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Pressure) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "mistysurge",
-    "name": "Misty Surge",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -64185,20 +63367,6 @@
    },
    {
     "kind": "ability",
-    "id": "multitype",
-    "name": "Multitype",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "mummy",
     "name": "Mummy",
     "carrier": "Cofagrigus",
@@ -64382,20 +63550,6 @@
       "C idles with Sleep Talk (its onTry fails for a healthy body)"
      ],
      "assumptions": []
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "myceliummight",
-    "name": "Mycelium Might",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
     }
    },
    {
@@ -64594,34 +63748,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Cloud Nine) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "neuroforce",
-    "name": "Neuroforce",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "neutralizinggas",
-    "name": "Neutralizing Gas",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -64848,20 +63974,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Iron Fist) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "normalize",
-    "name": "Normalize",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -65212,20 +64324,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Frisk) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "orichalcumpulse",
-    "name": "Orichalcum Pulse",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -65853,34 +64951,6 @@
       "near-a=FIRED-UNCONTROLLED",
       "far-a=UNPROVEN-UNCONTROLLED"
      ]
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "pastelveil",
-    "name": "Pastel Veil",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "perishbody",
-    "name": "Perish Body",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
     }
    },
    {
@@ -67175,20 +66245,6 @@
    },
    {
     "kind": "ability",
-    "id": "poisonpuppeteer",
-    "name": "Poison Puppeteer",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "poisontouch",
     "name": "Poison Touch",
     "carrier": "Dragalge",
@@ -67346,48 +66402,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Poison Point) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "powerconstruct",
-    "name": "Power Construct",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "powerofalchemy",
-    "name": "Power of Alchemy",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "powerspot",
-    "name": "Power Spot",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -67755,48 +66769,6 @@
    },
    {
     "kind": "ability",
-    "id": "primordialsea",
-    "name": "Primordial Sea",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "prismarmor",
-    "name": "Prism Armor",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "propellertail",
-    "name": "Propeller Tail",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "protean",
     "name": "Protean",
     "carrier": "Meowscarada",
@@ -67954,48 +66926,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Overgrow) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "protosynthesis",
-    "name": "Protosynthesis",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "psychicsurge",
-    "name": "Psychic Surge",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "punkrock",
-    "name": "Punk Rock",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -68384,20 +67314,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Sturdy) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "quarkdrive",
-    "name": "Quark Drive",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -69141,20 +68057,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Torrent) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "rattled",
-    "name": "Rattled",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -70257,7 +69159,7 @@
      ],
      "notes": [
       "genders declared for the same-gender case the handler reads: C Luxray M, R Feraligatr M",
-      "plays through the driver's declared-gender seam (engine/game_differential.js:3432): the caller must pass declaredGender"
+      "plays through the driver's declared-gender seam (engine/game_differential.js:3468): the caller must pass declaredGender"
      ],
      "assumptions": [],
      "verdict": "UNPROVEN-UNCONTROLLED",
@@ -70266,20 +69168,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Intimidate) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "rkssystem",
-    "name": "RKS System",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -70455,20 +69343,6 @@
    },
    {
     "kind": "ability",
-    "id": "rockypayload",
-    "name": "Rocky Payload",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "roughskin",
     "name": "Rough Skin",
     "carrier": "Garchomp",
@@ -70628,20 +69502,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Sand Veil) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "runaway",
-    "name": "Run Away",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -71650,20 +70510,6 @@
    },
    {
     "kind": "ability",
-    "id": "schooling",
-    "name": "Schooling",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "scrappy",
     "name": "Scrappy",
     "carrier": "Decidueye-Hisui",
@@ -72047,48 +70893,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Tangled Feet) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "seedsower",
-    "name": "Seed Sower",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "serenegrace",
-    "name": "Serene Grace",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "shadowshield",
-    "name": "Shadow Shield",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -73114,20 +71918,6 @@
    },
    {
     "kind": "ability",
-    "id": "shieldsdown",
-    "name": "Shields Down",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "simple",
     "name": "Simple",
     "carrier": "Abomasnow",
@@ -73482,20 +72272,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Keen Eye) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "slowstart",
-    "name": "Slow Start",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -74502,20 +73278,6 @@
    },
    {
     "kind": "ability",
-    "id": "soulheart",
-    "name": "Soul-Heart",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "soundproof",
     "name": "Soundproof",
     "carrier": "Abomasnow",
@@ -74999,20 +73761,6 @@
       "near-a=FIRED-UNCONTROLLED",
       "far-a=UNPROVEN-UNCONTROLLED"
      ]
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "stakeout",
-    "name": "Stakeout",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
     }
    },
    {
@@ -76087,48 +74835,6 @@
    },
    {
     "kind": "ability",
-    "id": "steamengine",
-    "name": "Steam Engine",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "steelworker",
-    "name": "Steelworker",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "steelyspirit",
-    "name": "Steely Spirit",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "stench",
     "name": "Stench",
     "carrier": "garbodor",
@@ -76514,20 +75220,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Supersweet Syrup) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "stormdrain",
-    "name": "Storm Drain",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -78383,20 +77075,6 @@
    },
    {
     "kind": "ability",
-    "id": "swordofruin",
-    "name": "Sword of Ruin",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "symbiosis",
     "name": "Symbiosis",
     "carrier": "Floette-Eternal",
@@ -78787,20 +77465,6 @@
    },
    {
     "kind": "ability",
-    "id": "tabletsofruin",
-    "name": "Tablets of Ruin",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "tangledfeet",
     "name": "Tangled Feet",
     "carrier": "Mr. Rime",
@@ -78961,20 +77625,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Ice Body) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "tanglinghair",
-    "name": "Tangling Hair",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -79342,76 +77992,6 @@
    },
    {
     "kind": "ability",
-    "id": "teraformzero",
-    "name": "Teraform Zero",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "terashell",
-    "name": "Tera Shell",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "terashift",
-    "name": "Tera Shift",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "teravolt",
-    "name": "Teravolt",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "thermalexchange",
-    "name": "Thermal Exchange",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "thickfat",
     "name": "Thick Fat",
     "carrier": "Appletun",
@@ -79566,20 +78146,6 @@
      ],
      "notes": [],
      "assumptions": []
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "tintedlens",
-    "name": "Tinted Lens",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
     }
    },
    {
@@ -79970,34 +78536,6 @@
    },
    {
     "kind": "ability",
-    "id": "toxicboost",
-    "name": "Toxic Boost",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "toxicchain",
-    "name": "Toxic Chain",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "toxicdebris",
     "name": "Toxic Debris",
     "carrier": "Glimmora",
@@ -80366,62 +78904,6 @@
      ],
      "notes": [],
      "assumptions": []
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "transistor",
-    "name": "Transistor",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "triage",
-    "name": "Triage",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "truant",
-    "name": "Truant",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "turboblaze",
-    "name": "Turboblaze",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
     }
    },
    {
@@ -81165,34 +79647,6 @@
      "verdict": "UNPROVEN-UNCONTROLLED",
      "why": "the planner has no single-leaf control for this fixture (NO-SINGLE-VARIABLE-CONTROL) and the authority's log never shows Unseen Fist acting for the subject",
      "board": "NO-DIVERGENCE"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "vesselofruin",
-    "name": "Vessel of Ruin",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "victorystar",
-    "name": "Victory Star",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
     }
    },
    {
@@ -82010,34 +80464,6 @@
    },
    {
     "kind": "ability",
-    "id": "watercompaction",
-    "name": "Water Compaction",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "waterveil",
-    "name": "Water Veil",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
     "id": "weakarmor",
     "name": "Weak Armor",
     "carrier": "Armarouge",
@@ -82175,20 +80601,6 @@
       "near-a=FIRED-UNCONTROLLED",
       "far-a=UNPROVEN-UNCONTROLLED"
      ]
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "wellbakedbody",
-    "name": "Well-Baked Body",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
     }
    },
    {
@@ -82350,90 +80762,6 @@
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Shell Armor) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
-   },
-   {
-    "kind": "ability",
-    "id": "wimpout",
-    "name": "Wimp Out",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "windpower",
-    "name": "Wind Power",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "windrider",
-    "name": "Wind Rider",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "wonderguard",
-    "name": "Wonder Guard",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "wonderskin",
-    "name": "Wonder Skin",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
-   },
-   {
-    "kind": "ability",
-    "id": "zenmode",
-    "name": "Zen Mode",
-    "fired": false,
-    "unreachable": true,
-    "scope_code": "NO-LEGAL-CARRIER",
-    "why": "NO-LEGAL-CARRIER — no legal species carries it",
-    "stage": "out-of-scope",
-    "planner": {
-     "refusal": "NO-LEGAL-CARRIER",
-     "reason": "no legal species carries it"
-    }
    },
    {
     "kind": "ability",
@@ -106657,11 +104985,172 @@
    }
   ]
  },
+ "scope": {
+  "moves": {
+   "legal": 500,
+   "in_scope": 497,
+   "attempted": 500,
+   "published": 497,
+   "out_of_scope": 3,
+   "out_of_scope_by": {
+    "NO-LEGAL-CARRIER": 3
+   },
+   "out_of_scope_ids": [
+    "powershift",
+    "softboiled",
+    "spore"
+   ],
+   "basis": "engine/legal_scope.js"
+  },
+  "abilities": {
+   "legal": 316,
+   "in_scope": 200,
+   "attempted": 316,
+   "published": 200,
+   "out_of_scope": 116,
+   "out_of_scope_by": {
+    "NO-LEGAL-CARRIER": 114,
+    "VALIDATOR-REFUSED": 1,
+    "NO-LEGAL-READER": 1
+   },
+   "out_of_scope_ids": [
+    "airlock",
+    "angershell",
+    "arenatrap",
+    "asoneglastrier",
+    "asonespectrier",
+    "aurabreak",
+    "baddreams",
+    "ballfetch",
+    "battery",
+    "battlebond",
+    "beadsofruin",
+    "beastboost",
+    "chillingneigh",
+    "colorchange",
+    "comatose",
+    "commander",
+    "costar",
+    "cottondown",
+    "dancer",
+    "darkaura",
+    "dauntlessshield",
+    "dazzling",
+    "defeatist",
+    "deltastream",
+    "desolateland",
+    "download",
+    "dragonsmaw",
+    "embodyaspectcornerstone",
+    "embodyaspecthearthflame",
+    "embodyaspectteal",
+    "embodyaspectwellspring",
+    "emergencyexit",
+    "flareboost",
+    "flowergift",
+    "fullmetalbody",
+    "galvanize",
+    "gluttony",
+    "gorillatactics",
+    "grasspelt",
+    "grassysurge",
+    "grimneigh",
+    "guarddog",
+    "gulpmissile",
+    "hadronengine",
+    "honeygather",
+    "iceface",
+    "icescales",
+    "intrepidsword",
+    "ironbarbs",
+    "libero",
+    "lingeringaroma",
+    "liquidooze",
+    "magnetpull",
+    "mindseye",
+    "mistysurge",
+    "multitype",
+    "myceliummight",
+    "neuroforce",
+    "neutralizinggas",
+    "normalize",
+    "orichalcumpulse",
+    "pastelveil",
+    "perishbody",
+    "poisonpuppeteer",
+    "powerconstruct",
+    "powerofalchemy",
+    "powerspot",
+    "primordialsea",
+    "prismarmor",
+    "propellertail",
+    "protosynthesis",
+    "psychicsurge",
+    "punkrock",
+    "quarkdrive",
+    "rattled",
+    "rkssystem",
+    "rockypayload",
+    "runaway",
+    "schooling",
+    "seedsower",
+    "serenegrace",
+    "shadowshield",
+    "shieldsdown",
+    "slowstart",
+    "soulheart",
+    "stakeout",
+    "steamengine",
+    "steelworker",
+    "steelyspirit",
+    "stormdrain",
+    "swordofruin",
+    "tabletsofruin",
+    "tanglinghair",
+    "teraformzero",
+    "terashell",
+    "terashift",
+    "teravolt",
+    "thermalexchange",
+    "tintedlens",
+    "toxicboost",
+    "toxicchain",
+    "transistor",
+    "triage",
+    "truant",
+    "turboblaze",
+    "vesselofruin",
+    "victorystar",
+    "watercompaction",
+    "waterveil",
+    "wellbakedbody",
+    "wimpout",
+    "windpower",
+    "windrider",
+    "wonderguard",
+    "wonderskin",
+    "zenmode"
+   ],
+   "basis": "engine/legal_scope.js"
+  },
+  "items": {
+   "legal": 148,
+   "in_scope": 148,
+   "attempted": 148,
+   "published": 148,
+   "out_of_scope": 0,
+   "out_of_scope_by": {},
+   "out_of_scope_ids": [],
+   "basis": "engine/legal_scope.js"
+  }
+ },
  "summary": {
   "moves": {
    "exist": 500,
+   "in_scope": 497,
+   "out_of_scope": 3,
    "attempted": 497,
-   "tried": 500,
+   "tried": 497,
    "resolved": 497,
    "diverged": 4,
    "diverged_including_shelved": 7,
@@ -106701,24 +105190,26 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 76
    },
-   "seconds": 35
+   "seconds": 37.1
   },
   "abilities": {
    "exist": 316,
-   "tried": 316,
+   "in_scope": 200,
+   "out_of_scope": 116,
+   "tried": 200,
    "fired": 140,
    "showdown_only": 7,
    "medicham_only": 0,
    "did_not_fire": 21,
-   "unreachable": 116,
+   "unreachable": 0,
    "control_not_quiet": 128,
    "cannot_fire_in_this_fixture": 13,
    "did_not_fire_unexplained": 9,
    "diverged": 1,
    "diverged_including_shelved": 3,
-   "shelved_by_owner": 6,
+   "shelved_by_owner": 5,
    "shelved_by_owner_diverging": 2,
-   "seconds": 48.8,
+   "seconds": 17.6,
    "board_only": {
     "rows": 17,
     "staged": 17,
@@ -106783,6 +105274,7 @@
   "then_what_rows_with_a_consequence": 11,
   "items": {
    "exist": 148,
+   "in_scope": 148,
    "tried": 148,
    "fired": 148,
    "showdown_only": 0,
@@ -106797,7 +105289,7 @@
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 6,
    "board_state_fired": 5,
-   "seconds": 40,
+   "seconds": 7.9,
    "stones": {
     "rows": 0,
     "staged": 0,
@@ -107021,7 +105513,7 @@
  },
  "planner": {
   "meta": {
-   "generated": "2026-09-11T20:33:00.146Z",
+   "generated": "2026-09-11T22:09:04.063Z",
    "by": "engine/stage_planner.js",
    "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\534442d71183\\data\\tags.json",
    "tags_digest": "d88b5a6c36f1e231",
@@ -107051,11 +105543,11 @@
     "bottom-tie-first"
    ],
    "genderPin": {
-    "at": "engine/game_differential.js:3432",
+    "at": "engine/game_differential.js:3468",
     "text": "const gender = (opts && opts.declaredGender && (p.gender === 'M' || p.gender === 'F')) ? p.gender : 'N';"
    },
    "genderSeam": {
-    "at": "engine/game_differential.js:3432",
+    "at": "engine/game_differential.js:3468",
     "text": "const gender = (opts && opts.declaredGender && (p.gender === 'M' || p.gender === 'F')) ? p.gender : 'N';"
    },
    "normalised": [],
@@ -107069,7 +105561,7 @@
     "stench: secondary (the handler assigns move.secondaries)",
     "kingsrock: secondary (the handler assigns move.secondaries)"
    ],
-   "ms": 19410
+   "ms": 25583
   },
   "summary": {
    "mechanics": 964,
@@ -107124,7 +105616,7 @@
    }
   },
   "played": {
-   "plan_ms": 19469,
+   "plan_ms": 25682,
    "rows": 347,
    "fixtures": 853,
    "variants": 1968,

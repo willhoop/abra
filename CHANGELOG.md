@@ -10,6 +10,41 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.28.0] — 2026-09-11
+
+### Fixed
+- **An entity no legal body can carry is no longer counted as a staging gap (ROADMAP #603).** `tests/roster.js`
+  dropped its out-of-scope rows from the written `results` on 2026-09-09 and went on building its verdict
+  BUCKETS over every legal entity, so `data/roster.abilities.json` published `counts` summing to 316 — the whole
+  legal ability list — beside a `results` array of 200. 116 abilities this regulation does not contain were
+  counted as COULD-NOT-STAGE, printing a staging gap of 43 as **159**. The buckets, the `scope` block's own
+  count and the written rows now share one `OUT_OF_SCOPE` predicate, so they cannot disagree; it was three
+  spellings before, the loosest of which let a rule-level tag count as out of scope while its row stayed in the
+  artifact. Abilities COULD-NOT-STAGE **159 → 43**, moves **11 → 8**, items unchanged at 6.
+- **`engine/all_mechanics_fire.js` publishes only in-scope rows and keeps the excluded count.** `rows.abilities`
+  held 316 rows of which 176 read not-fired, 116 of them abilities with no legal carrier, while
+  `summary.abilities.exist`, `.tried` and `.unreachable` all described the dex rather than the game. A new
+  `publishRows(kind, rows)` splits on `engine/legal_scope.js`'s verdict and writes `report.scope[kind]` with the
+  legal list, the in-scope denominator, the excluded count, the codes and the excluded ids. `rows.abilities`
+  **316 → 200** (not-fired **176 → 60**), `rows.moves` 500 → 497, `summary.*.unreachable` **116 → 0**.
+
+### Changed
+- **The denominator travels with every count.** Roster artifacts carry `counts_in_scope` and `counts_basis`;
+  fire summaries carry `in_scope` and `out_of_scope` beside `exist`. `engine/status.js` printed a bare *"N
+  mechanics have never fired in the staged harness"* — a count read against the only other number in sight, the
+  legal dex list — and now prints *"N of M in-scope"* from the artifact's own scope block, saying DENOMINATOR
+  NOT CARRIED for an artifact that predates it rather than falling back to the legal total.
+
+### Notes
+- **The control moved nothing, which is what makes the knob wired.** The items stage (148 of 148 in scope) and
+  `data/mechanics-census.json` (883 probed, 883 live, 0 missing) are byte-for-byte unchanged in their counts.
+  `node engine/coverage.js` still reads **785 of 845**: it already derived its denominator from
+  `engine/legal_scope.js`, so it was right throughout — the harness now agrees with it.
+- **Not touched, and named:** `data/roster.all.json` (2026-09-10, counts sum 964 against 847 rows — a
+  `--stage all` run is its own measurement), `data/all-mechanics-fire.boardstate.json` (2026-08-19), and
+  `engine/quarantine.js`, which is held by another division this pass. Full account:
+  `docs/_reports/2026-09-11-scope-counts.md`.
+
 ## [6.26.0] — 2026-09-11
 
 ### Fixed

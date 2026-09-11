@@ -4730,22 +4730,65 @@ const report = { generated: new Date().toISOString(),
                  ...GD.REL.stamp(), release: GD.REL.id || null, arm: ARM.id,
                  format: CS.FORMAT, red: REDS, red_ok: RED_OK, trailing_turns_forced: TRAILING,
                  closet: { source: 'tests/roster.js DEFERRED', ids: Object.keys(CLOSET) },
-                 rows: {}, summary: {} };
+                 rows: {}, scope: {}, summary: {} };
+
+/* ---- AN ENTITY NO LEGAL BODY CAN CARRY IS NOT A ROW HERE EITHER — 2026-09-11 --------------------
+ *
+ * Will, for the fifth time: *"all the banned abilities remove them from all counts ive asked this like
+ * 5 times now"*. `tests/roster.js` dropped its out-of-scope rows on 2026-09-09; this file kept them,
+ * so `rows.abilities` held 316 rows of which 176 read not-fired — and 116 of those 176 are abilities
+ * this regulation does not contain. `summary.abilities.exist` and `.tried` both read 316 beside them.
+ * Any reader counting `!fired`, or dividing by `exist`, got a coverage hole that is 116 rows of dex
+ * trivia. The verdict buckets themselves were already clean (an out-of-scope row carries no `verdict`),
+ * which is precisely why nothing caught it: the wrong number only appears in the DENOMINATOR and in a
+ * row count, and both look authoritative.
+ *
+ * THE ROWS GO; THE COUNT DOES NOT. `report.scope[kind]` carries the legal list, the in-scope
+ * denominator, the excluded count, the codes and the excluded ids, all derived on every run — so a
+ * future reader seeing abilities fall from 316 rows to 200 can tell noise removal from lost coverage.
+ * Scope is engine/legal_scope.js's answer and this file decides none of it. */
+const SCOPE_KIND = { moves: 'move', abilities: 'ability', items: 'item' };
+const LEGAL_OF = { moves: LEGAL_MOVES, abilities: LEGAL_ABILITIES, items: LEGAL_ITEMS };
+function publishRows(k, rows) {
+  const kind = SCOPE_KIND[k];
+  const keep = [], out = [], by = {};
+  for (const r of rows) {
+    const v = SCOPE.verdict(kind, r.id);
+    if (v.inScope) { keep.push(r); continue; }
+    out.push(r);
+    by[v.code] = (by[v.code] || 0) + 1;
+  }
+  report.scope[k] = { legal: LEGAL_OF[k].length, in_scope: SCOPE.inScopeCount[kind],
+                      attempted: rows.length, published: keep.length,
+                      out_of_scope: out.length, out_of_scope_by: by,
+                      out_of_scope_ids: out.map(r => r.id), basis: 'engine/legal_scope.js' };
+  report.rows[k] = keep;
+  console.log('    SCOPE — ' + keep.length + ' row(s) published against ' + SCOPE.inScopeCount[kind]
+    + ' in scope; ' + out.length + ' NOT BUCKETED because no legal body can carry them ('
+    + (Object.entries(by).map(([c, n]) => c + ' ' + n).join(', ') || 'none') + '), of '
+    + LEGAL_OF[k].length + ' legal in the dex');
+  return keep;
+}
 
 if (KIND === 'moves' || KIND === 'all') {
   const list = pick(LEGAL_MOVES);
   console.log('\n  MOVES — ' + list.length + ' of ' + LEGAL_MOVES.length + ' attempted');
   const t0 = Date.now();
-  const rows = runMoves(list);
-  plannedMoveStage(rows);
-  report.rows.moves = rows;
+  const staged = runMoves(list);
+  plannedMoveStage(staged);
+  const rows = publishRows('moves', staged);
   const resolved = rows.filter(r => r.resolved);
   const attempted = rows.filter(r => r.attempted);
   const divergedAll = rows.filter(r => r.diverged);
   const shelvedN = applyCloset('move', rows);
   const diverged = divergedAll.filter(r => !r.deferred);
   const disagree = rows.filter(r => r.attempted && r.resolved !== r.medicham_resolved);
-  report.summary.moves = { exist: LEGAL_MOVES.length, attempted: attempted.length, tried: rows.length,
+  report.summary.moves = { exist: LEGAL_MOVES.length,
+                           /* THE DENOMINATOR EVERY RATE HERE IS OVER. `exist` is the dex's legal list
+                            * and is not one: 3 of those moves have no legal carrier. */
+                           in_scope: report.scope.moves.in_scope,
+                           out_of_scope: report.scope.moves.out_of_scope,
+                           attempted: attempted.length, tried: rows.length,
                            resolved: resolved.length, diverged: diverged.length,
                            diverged_including_shelved: divergedAll.length,
                            shelved_by_owner: shelvedN.total,
@@ -4758,7 +4801,7 @@ if (KIND === 'moves' || KIND === 'all') {
                            announcement_only: rows.filter(r => r.announcement_only).length,
                            leaf_effect: Object.assign({}, MOVE_THEN_WHAT_SEEN),
                            seconds: +((Date.now() - t0) / 1000).toFixed(1) };
-  console.log('    RESOLVED ' + resolved.length + ' of ' + rows.length + ' tried, of ' + LEGAL_MOVES.length + ' that exist'
+  console.log('    RESOLVED ' + resolved.length + ' of ' + rows.length + ' tried, of ' + report.scope.moves.in_scope + ' in scope'
             + '   (' + ((Date.now() - t0) / 1000).toFixed(1) + 's)');
   /* THE HEADLINE COUNT SPLITS, because a single partner-slot bug used to inflate it by one per row
    * that happened to contain it. Both numbers are printed; neither is hidden. */
@@ -4823,14 +4866,21 @@ if (KIND === 'abilities' || KIND === 'all') {
   const list = pick(LEGAL_ABILITIES);
   console.log('\n  ABILITIES — ' + list.length + ' of ' + LEGAL_ABILITIES.length + ' attempted');
   const t0 = Date.now();
-  const rows = runPlanned('ability', list, runAbilities);
-  report.rows.abilities = rows;
+  const rows = publishRows('abilities', runPlanned('ability', list, runAbilities));
   const fired = rows.filter(r => r.verdict === 'FIRED');
   const _shelvedAb = applyCloset('ability', rows);
-  report.summary.abilities = { exist: LEGAL_ABILITIES.length, tried: rows.length, fired: fired.length,
+  report.summary.abilities = { exist: LEGAL_ABILITIES.length,
+    /* `exist` is the dex's legal list — 116 of those abilities are carried by no legal body. Every
+     * rate below is over `in_scope`, and the rows themselves are the in-scope ones. */
+    in_scope: report.scope.abilities.in_scope,
+    out_of_scope: report.scope.abilities.out_of_scope,
+    tried: rows.length, fired: fired.length,
     showdown_only: rows.filter(r => r.verdict === 'SHOWDOWN-ONLY').length,
     medicham_only: rows.filter(r => r.verdict === 'MEDICHAM-ONLY').length,
     did_not_fire: rows.filter(r => r.verdict === 'DID-NOT-FIRE').length,
+    /* IN-SCOPE ROWS THIS HARNESS STILL MARKED UNREACHABLE. It used to be the out-of-scope count
+     * wearing another name (116 = every excluded row); those rows are gone, so a non-zero here is a
+     * DISAGREEMENT between this harness and engine/legal_scope.js and is printed as one below. */
     unreachable: rows.filter(r => r.unreachable).length,
     control_not_quiet: rows.filter(r => r.control_not_quiet).length,
     /* THE SPLIT OF `did_not_fire`, ADDED BESIDE IT AND NOT INSTEAD OF IT. `did_not_fire` keeps its old
@@ -4902,10 +4952,11 @@ if (KIND === 'items' || KIND === 'all') {
   const list = pick(LEGAL_ITEMS);
   console.log('\n  ITEMS — ' + list.length + ' of ' + LEGAL_ITEMS.length + ' attempted');
   const t0 = Date.now();
-  const rows = runPlanned('item', list, runItems);
-  report.rows.items = rows;
+  const rows = publishRows('items', runPlanned('item', list, runItems));
   const _shelvedIt = applyCloset('item', rows);
-  report.summary.items = { exist: LEGAL_ITEMS.length, tried: rows.length,
+  report.summary.items = { exist: LEGAL_ITEMS.length,
+    in_scope: report.scope.items.in_scope,
+    tried: rows.length,
     fired: rows.filter(r => r.verdict === 'FIRED').length,
     showdown_only: rows.filter(r => r.verdict === 'SHOWDOWN-ONLY').length,
     medicham_only: rows.filter(r => r.verdict === 'MEDICHAM-ONLY').length,

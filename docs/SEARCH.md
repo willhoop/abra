@@ -26,7 +26,7 @@ SEARCH — does MILTANK choose better than MAG
   R4 does it win: WITHHELD — engine/provenance.js calls data/rollout-r4.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     it becomes quotable again when this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-09-11 16:25):
+  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-09-11 17:30):
     PRE-CHANGE games.r4c-shipped2.jsonl  2026-08-14 22:28
     PRE-CHANGE games.r4c-shipped.jsonl  2026-08-14 17:21
     PRE-CHANGE games.r4b-search.jsonl  2026-08-14 13:02
@@ -34,7 +34,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
 ```
 
-_stamped 2026-09-11 17:25_
+_stamped 2026-09-11 18:16_
 
 <!-- /GENERATED -->
 

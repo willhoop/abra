@@ -12337,8 +12337,25 @@ function main() {
   }
 
   /* ---- the report ------------------------------------------------------------------------------ */
+  /* AN ENTITY NO LEGAL BODY CAN CARRY IS NOT A BUCKET — 2026-09-11. Will, for the fifth time:
+   * *"all the banned abilities remove them from all counts ive asked this like 5 times now"*.
+   *
+   * The rows have been dropped from the written `results` since 2026-09-09 (see the filter below) and
+   * the BUCKETS were still built over every row, so `counts` read
+   * `{FIRED-AND-BOARDS-MATCH 139, COULD-NOT-STAGE 159, ...}` — summing to 316, the whole legal ability
+   * list — beside a `results` array of 200. A reader taking the count at face value saw a staging gap
+   * of 159 where the real one is 43: the other 116 are abilities this regulation does not contain, and
+   * an out-of-scope entity re-bucketed as "could not stage" is exactly the reading CLAUDE.md forbids.
+   *
+   * ONE PREDICATE, USED EVERYWHERE. `OUT_OF_SCOPE` decides the buckets, the `scope` block's own count
+   * and the written rows, so the three can no longer disagree. It was three spellings before: the
+   * buckets used none, `scope.out_of_scope` used `r.out_of_scope` (any tag), and the written filter
+   * used `scope_verdict || out_of_scope === 'no-legal-carrier'` — a rule-level tag with any other
+   * value counted as out of scope while its row stayed in the artifact. */
+  const OUT_OF_SCOPE = r => !!r.scope_verdict || r.out_of_scope === 'no-legal-carrier';
+  const inScopeResults = results.filter(r => !OUT_OF_SCOPE(r));
   const by = {};
-  for (const r of results) (by[r.verdict] = by[r.verdict] || []).push(r);
+  for (const r of inScopeResults) (by[r.verdict] = by[r.verdict] || []).push(r);
 
   for (const v of VERDICT_ORDER) {
     const rows = by[v] || [];
@@ -12565,31 +12582,40 @@ function main() {
    * out-of-scope arm is TAGGED AT THE REFUSAL (`cannot(why, 'no-legal-carrier')`), not matched out of
    * the reason string afterwards — a substring test over prose is how `ladder.json` came to be a
    * substring of `games.ladder.jsonl`. */
-  const oos = results.filter(r => r.out_of_scope);
+  const oos = results.filter(OUT_OF_SCOPE);
   const oosBy = {};
-  for (const r of oos) oosBy[r.out_of_scope] = (oosBy[r.out_of_scope] || 0) + 1;
+  for (const r of oos) oosBy[r.out_of_scope || String(r.scope_verdict).toLowerCase()] =
+    (oosBy[r.out_of_scope || String(r.scope_verdict).toLowerCase()] || 0) + 1;
   const nOf = v => (by[v] || []).length;
   const unattributable = (by['CONTROL-NOT-QUIET'] || []);
   const scope = {
+    /* `total` is the LEGAL list and is the one number here that is not a denominator for anything.
+     * Every bucket above is counted over `in_scope`, which is what `counts` now sums to. */
     total: results.length,
     out_of_scope: oos.length, out_of_scope_by: oosBy,
-    in_scope: results.length - oos.length,
+    in_scope: inScopeResults.length,
     tested: nOf('FIRED-AND-BOARDS-MATCH') + nOf('FIRED-AND-BOARDS-DIFFER') + nOf('DID-NOT-FIRE'),
     matched: nOf('FIRED-AND-BOARDS-MATCH'), differ: nOf('FIRED-AND-BOARDS-DIFFER'),
     silent: nOf('DID-NOT-FIRE'), deferred: nOf('DEFERRED-BY-OWNER'),
     unattributable: unattributable.length,
     unattributable_ids: unattributable.map(r => r.id),
     declared_untestable: unattributable.filter(r => r.declared_untestable).map(r => r.id),
-    could_not_stage_in_scope: nOf('COULD-NOT-STAGE') - oos.length,
+    /* The buckets no longer contain an out-of-scope row, so this is the bucket itself rather than the
+     * bucket less a correction. It read `nOf('COULD-NOT-STAGE') - oos.length` while `by` held every
+     * row: the right answer computed from the wrong base, which is why `scope` was right and `counts`
+     * was wrong on the same artifact. */
+    could_not_stage_in_scope: nOf('COULD-NOT-STAGE'),
     attributed_by_second_control: results.filter(r => r.second_control && r.second_control.ran).map(r => r.id),
     /* HOW THE OUT-OF-SCOPE COUNT WAS DERIVED, beside the count (ROADMAP #555). A count with no
      * derivation is a caption; this is the walk, so a reader can re-run it rather than trust it. */
     carrier_derivation: CARRIER_DERIVATION,
   };
 
-  console.log('\nSUMMARY   ' + STAGE);
+  console.log('\nSUMMARY   ' + STAGE + '   (every bucket is over the IN-SCOPE set)');
   for (const v of VERDICT_ORDER) console.log('  ' + String((by[v] || []).length).padStart(4) + '  ' + v);
-  console.log('  ' + String(results.length).padStart(4) + '  total');
+  console.log('  ' + String(inScopeResults.length).padStart(4) + '  IN SCOPE — the total these buckets sum to');
+  console.log('  ' + String(oos.length).padStart(4) + '  out of scope, NOT BUCKETED (of ' + results.length
+    + ' legal in the dex) — not in this game, so not a gap');
   console.log('\n  THE DENOMINATOR — a count with no denominator is a caption, not a result:');
   console.log('    ' + scope.tested + ' TESTED (the authority answered and the two engines were compared) '
     + 'of ' + scope.in_scope + ' IN SCOPE, of ' + scope.total + ' total');
@@ -12649,6 +12675,11 @@ function main() {
        * needs editing. */
       ...REL.stamp(), format: CS.FORMAT,
       counts: Object.fromEntries(VERDICT_ORDER.map(v => [v, (by[v] || []).length])),
+      /* THE BASE TRAVELS WITH THE COUNTS. `counts` sums to this and to nothing else; a reader that
+       * finds only `counts` cannot now mistake it for the legal list, which is `scope.total`. */
+      counts_in_scope: inScopeResults.length,
+      counts_basis: 'engine/legal_scope.js in-scope set; out-of-scope entities are excluded from every '
+        + 'bucket rather than counted as COULD-NOT-STAGE',
       /* THE ARM THAT ACTUALLY RAN, counted per id rather than copied off the row's label. A row's
        * `arm` is what the RULE asked for; this is what `play()` handed the driver. They were not the
        * same thing between 2026-08-13 and 2026-08-22 and nothing could see it — see `ARM_PLAYED`. */
@@ -12680,8 +12711,9 @@ function main() {
        * THIS IS THE REGULATION'S ANSWER, NOT THIS FILE'S. The rows are tagged at the refusal by
        * `cannot(why, 'no-legal-carrier')`, which is reached only when the legal-species walk returns
        * empty, so nothing here decides what is in the format. */
-      /* 2026-09-11 — and every row the scope VERDICT put out (`scope_verdict`), whatever its code. */
-      results: results.filter(r => !r.scope_verdict && r.out_of_scope !== 'no-legal-carrier')
+      /* 2026-09-11 — and every row the scope VERDICT put out (`scope_verdict`), whatever its code.
+       * THE SAME `OUT_OF_SCOPE` PREDICATE THE BUCKETS USE, so the rows and the counts cannot part. */
+      results: inScopeResults
         .map(r => ({ kind: r.kind, id: r.id, name: r.name, rule: r.rule, reads: r.reads || null,
         note: r.note || null, verdict: r.verdict, why: r.why || null,
         arm: (r.scenario && r.scenario.arm) || PRIMARY_ARM_ID, control_why: r.control_why || null,

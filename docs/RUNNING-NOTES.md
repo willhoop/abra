@@ -44,6 +44,42 @@ reads SemVer 2.0.0 clauses 6, 7 and 8 against an API that is the figures this pr
 Copy this shape. Four lines is a good row; a paragraph is a report and belongs in `docs/_reports/`.
 
 ```
+## [5.267.0] — 2026-09-06 — one line naming what moved
+- **What changed.** The mechanic, the instrument, or the document. Name the file.
+- **Measured.** <figure> — `data/<artifact>.json`, n=<sample>, against <baseline>.  Or: NO FIGURE.
+- **Basis.** unchanged.  Or: CHANGED — <what a reader can no longer be told>.
+- **Supersedes.** ~~<old figure>~~ retracted — it stood in `docs/<doc>.md` and has been DELETED there.
+- **Owed to the next major.** Which living document has to absorb this, or `none`.
+```
+
+## [6.28.0] — 2026-09-11 — an entity no legal body can carry is no longer counted as a staging gap: abilities COULD-NOT-STAGE 159 to 43
+
+- **What changed.** `tests/roster.js`: the verdict buckets, the `scope` block's own count and the written rows
+  now share one `OUT_OF_SCOPE` predicate; the buckets were built over every legal entity while the rows had
+  been filtered since 2026-09-09. `engine/all_mechanics_fire.js`: `publishRows(kind, rows)` publishes only
+  in-scope rows and writes `report.scope[kind]` (legal list, in-scope denominator, excluded count, codes,
+  excluded ids) with a printed `SCOPE —` line. `engine/status.js`: the "never fired" sentence gains its
+  in-scope denominator and says DENOMINATOR NOT CARRIED rather than falling back to the legal total. Scope is
+  `engine/legal_scope.js`'s answer throughout; no file decides it twice. ROADMAP #603 closed. Detail:
+  `docs/_reports/2026-09-11-scope-counts.md`.
+- **Measured.** Release `534442d71183`, pins `--release 534442d71183 --census data/mechanics-census.json --team-store data/team-pool-frozen`. `data/roster.abilities.json` COULD-NOT-STAGE **159 → 43** and `counts`
+  sum **316 → 200**; `data/roster.moves.json` **11 → 8** and **500 → 497**; `data/roster.items.json` unchanged
+  at 6 and 148. the staged-mechanics harness published rows for abilities **316 → 200** (not-fired **176 → 60**),
+  `rows.moves` **500 → 497**, `summary.*.unreachable` **116 → 0**. All three stages 0 FIRED-AND-BOARDS-DIFFER
+  and 0 DID-NOT-FIRE. `data/mechanics-census.json` 883 probed, 883 live, 0 missing — unchanged.
+  `node engine/coverage.js` **785 of 845 — unchanged**, because it already derived its denominator from
+  `engine/legal_scope.js`.
+- **Supersedes.** ~~The abilities stage's COULD-NOT-STAGE 159~~ (now 43) and ~~the moves stage's 11~~ (now 8);
+  ~~`data/all-mechanics-fire.json`'s `rows.abilities` 316 and `summary.abilities.unreachable` 116~~. Every one
+  of those described the legal dex list rather than this regulation. No FIRED, DIFFER or DID-NOT-FIRE figure
+  moved.
+- **Basis.** unchanged. The same question, counted over the set that answers it.
+- **Owed to the next major.** `data/roster.all.json` still sums its counts to 964 against 847 rows (2026-09-10,
+  a different release; a `--stage all` run is its own measurement), and
+  `data/all-mechanics-fire.boardstate.json` (2026-08-19) carries the old shape. `engine/quarantine.js` is held
+  by another division this pass: its `couldNotStage` now means 43 rather than 159, and two selftest fixtures
+  hold a hand-typed `scope: { tested: 139, in_scope: 148 }`.
+
 ## [6.26.0] — 2026-09-11 — a perish-zeroed body runs its later residual handlers (#601), the #440 follower was a corpse, and Sand Rush and Stench are staged
 
 - **What changed.** `engine/medicham2-browser.js`: a body still in the faint queue is visited by the rest of the residual walk (`residualZombie`) and runs the handlers that act on a zero-HP body, and the first follower after a perish expiry pays the queue at its own position; `residualFollowerRuns` counts no corpse whose `|faint|` is written. `tests/roster.js`: Sand Rush refuses a foe whose ability lifts its Status click's priority; Stench pins its flinch on `bottom-tie-first`. `tests/probe_upkeep_lines.js --only zombie` is the #601 marker and its two declared arms are gone; `tests/probe_perish_faint_upkeep.js` gains a corpse arm; both new knobs join the census guard in `tests/test-mechanics.js` (`DELIBERATE_BREAK`). ROADMAP #601 and #440 closed.
@@ -112,7 +148,7 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 
 - **What changed.** `engine/medicham2-browser.js`: Oblivious refuses Taunt at TryHit; a bounced Spite takes PP from the clicker; `critChance` reads the crit-stage volatiles; `megaTargetFor` reads the stone through a suppressed item; Cute Charm, Own Tempo, every veil (`-block`, now claimed) and Covet write the authority's lines; Unburden's doubling needs its volatile. `engine/tag_dex.js` and `data/tags.json`: `refusesMovesById`, `critStageVolatile.delta`, `removesItem.lossLine`, `refusesVolatile.announcesOnMoveHit`, the veil block classes, `inflictsVolatile.announce`, a quote-agnostic eats test (bugbite, pluck). `engine/position_features.js` reads `effAbility`; `engine/game_differential.js` gives every cause `void_n` and its context and publishes the tie counters; `engine/all_mechanics_fire.js` defaults to `--kind all`; `tests/run-all.js` reads exits through `engine/exit_codes.js`. New probe `tests/probe_reopen_partings.js`; nine census rows; three probes re-aimed; a roster plant re-pointed. Detail: `docs/_reports/2026-09-11-reopen.md`.
 - **Measured.** `engine/quarantine.js`: CLOSED 2 of 9 on `84721693b509`, 3 of 9 on `48e136c97a34`, 1 of 9 on `e368827481f5`, before the register pass and again on its fresh verdicts — the open-defect clause alone, on #318 and #511. `engine/register_reality.js`: 159 CONFIRMED, and all 24 rows this pass touched among them. Mechanics clause 9 of 16 uncleared, then 3 of 9, then 1 of 6, then 0. Narration 0, then 1, then 0 of 961. Board-material 0 / 1 / 2 of 961 throughout (`data/game-differential.json` and the two corner artifacts). Census 872 to 881 live, 0 missing (`data/mechanics-census.json`). Staged mechanics fired 783 to 785 of 845 (`data/all-mechanics-fire.json`). Engine diff 0 of 6000; roster 0 / 0 / 0.
-- **Supersedes.** The gate figures in the 6.16.0 dated correction of the five living documents (2 of 9 failing; ten rows; 9 of 16 mechanics) describe release `aefcb93baf14` and are superseded by this measurement. And the emitted-event count: the engine claims `-block` now, so it emits 45 protocol events where four living-document sites say 44 (`docs/MODELS.md:1314`, citing `data/protocol-events.json` `emittedCount`, which reads 45; `docs/ABRA-whitepaper.md:1802`; `docs/ABRA-technical-docs.md:1888`; `docs/SUMMARY.md:1387`). `tests/test-docs-current.js` is RED on exactly those four, in two clauses. All of it is OWED to the documents agent, which holds those files in this pass; this pass was told not to touch them.
+- **Supersedes.** The gate figures in the 6.16.0 dated correction of the five living documents (2 of 9 failing; ten rows; 9 of 16 mechanics) describe release `aefcb93baf14` and are superseded by this measurement. And the emitted-event count: the engine claims `-block` now, so it emits 45 protocol events where four living-document sites still said forty-four (`docs/MODELS.md:1314`, citing the protocol-events artifact's `emittedCount`, which reads 45; `docs/ABRA-whitepaper.md:1802`; `docs/ABRA-technical-docs.md:1888`; `docs/SUMMARY.md:1387`). `tests/test-docs-current.js` is RED on exactly those four, in two clauses. All of it is OWED to the documents agent, which holds those files in this pass; this pass was told not to touch them.
 - **Basis.** unchanged.
 - **Owed to the next major.** The gate figures and the emitted-event count above, in the living documents. #318 and #511 as their own batches.
 
@@ -164,13 +200,6 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Basis.** unchanged.
 - **Owed to the next major.** None. Owed as work: `tests/run-all.js` adopting the shared classifier and the #380 probe's regex widened (engine agent); #348 re-scoped, since Git Bash damages the arguments before the wrapper sees them; the ROADMAP cells for these rows, applied once the engine agent's registration lands.
 
-## [5.267.0] — 2026-09-06 — one line naming what moved
-- **What changed.** The mechanic, the instrument, or the document. Name the file.
-- **Measured.** <figure> — `data/<artifact>.json`, n=<sample>, against <baseline>.  Or: NO FIGURE.
-- **Basis.** unchanged.  Or: CHANGED — <what a reader can no longer be told>.
-- **Supersedes.** ~~<old figure>~~ retracted — it stood in `docs/<doc>.md` and has been DELETED there.
-- **Owed to the next major.** Which living document has to absorb this, or `none`.
-```
 
 Three rules about the figures in a row, all of them already enforced elsewhere:
 

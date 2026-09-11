@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-11T20:33:24.663Z",
+ "generated": "2026-09-11T22:08:19.986Z",
  "by": "tests/roster.js",
  "stage": "moves",
  "swap_leaf_correction": {
@@ -8,7 +8,7 @@
  },
  "engine_release": "534442d71183",
  "engine_release_cut": "2026-09-11T20:25:57.786Z",
- "engine_release_cuts": 1,
+ "engine_release_cuts": 43,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
   "engine/medicham2-browser.js": "4b2bc0128dea",
@@ -46,8 +46,10 @@
   "DEFERRED-BY-OWNER": 3,
   "FIRED-AND-BOARDS-MATCH": 486,
   "CONTROL-NOT-QUIET": 0,
-  "COULD-NOT-STAGE": 11
+  "COULD-NOT-STAGE": 8
  },
+ "counts_in_scope": 497,
+ "counts_basis": "engine/legal_scope.js in-scope set; out-of-scope entities are excluded from every bucket rather than counted as COULD-NOT-STAGE",
  "arms_played": {
   "top-tie-first": 824,
   "bottom-tie-first": 266

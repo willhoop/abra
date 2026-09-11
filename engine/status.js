@@ -445,12 +445,22 @@ function engine() {
       const F = j('all-mechanics-fire.json');
       const nf = F && F.summary ? ['abilities', 'items']
         .reduce((n, k) => n + (+((F.summary[k] || {}).did_not_fire) || 0), 0) : null;
+      /* THE DENOMINATOR, READ OFF THE ARTIFACT'S OWN SCOPE BLOCK (engine/legal_scope.js) — 2026-09-11.
+       * This printed a bare count, which a reader scales against the only other number in sight: the
+       * legal dex list of 316 abilities and 148 items. 116 of those abilities are carried by no legal
+       * body and are not in this game at all. An artifact with no scope block says so rather than
+       * falling back to the legal total — a silent default looks exactly like a working feature. */
+      const nfOf = F && F.scope ? ['abilities', 'items']
+        .reduce((n, k) => n + (+((F.scope[k] || {}).in_scope) || 0), 0) : null;
       const age = COVERAGE.artifactAge('all-mechanics-fire.json');
       for (const s of COVERAGE.wrap('the census probes what somebody thought to probe: '
         + (tc && tc.probed != null ? `${tc.probed} of ${tc.inScope} in-scope tags carry a probe, ${tc.unprobed.length} carry none`
                                      + ` (${tc.outOfScope.length} of ${tc.unique} tags have no in-scope carrier)`
                                    : 'tag coverage NOT DERIVED')
-        + (nf == null ? '' : `; ${nf} mechanics have never fired in the staged harness`
+        + (nf == null ? '' : `; ${nf}`
+            + (nfOf ? ` of ${nfOf} in-scope` : '')
+            + ` mechanics have never fired in the staged harness`
+            + (nfOf ? '' : ' (DENOMINATOR NOT CARRIED — the artifact predates the scope block)')
             + (age ? ` (all-mechanics-fire.json, ${COVERAGE.humanAge(age.ageMs)})` : ''))
         + '.  node engine/coverage.js', 4)) say(s);
     }

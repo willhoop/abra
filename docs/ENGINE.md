@@ -154,13 +154,18 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  883/883 probed mechanics live, 0 missing   (census 2026-09-11 17:07)
+  883/883 probed mechanics live, 0 missing   (census 2026-09-11 18:13)
     the census probes what somebody thought to probe: 296 of 296 in-scope tags carry a probe, 0 carry none (9 of 305
-    tags have no in-scope carrier); 21 mechanics have never fired in the staged harness (all-mechanics-fire.json, 52
-    min old). node engine/coverage.js
-  differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/534442d71183/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "534442d71183".
-    it becomes quotable again when this is re-run: node tests/test-engine-diff.js
+    tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
+    (all-mechanics-fire.json, 8 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-11 16:35)
+    seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
+    the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
+    Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
+    multiHit tag were drawn; 3 were never drawn at all (bonerush, doublehit, tailslap) — never drawn is a SAMPLING
+    gap, not an exclusion.
+    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
+    a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     older than its input engine-data.js
@@ -176,9 +181,63 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-11 17:25_
+_stamped 2026-09-11 18:16_
 
 <!-- /GENERATED -->
+
+## AN ENTITY NO LEGAL BODY CAN CARRY IS NOT A COUNT — ABILITIES **COULD-NOT-STAGE 159 → 43**, THE STAGED HARNESS'S ABILITY ROWS **316 → 200**. CENSUS **883 LIVE**, COVERAGE **UNMOVED AT 785 OF 845**. RELEASE `534442d71183`. 2026-09-11, CHANGELOG 7.0.0-pending
+
+Will, for the fifth time: *"all the banned abilities remove them from all counts ive asked this like 5 times now"*.
+Full account: `docs/_reports/2026-09-11-scope-counts.md`.
+
+- **`engine/legal_scope.js` was already right and two producers walked the superset anyway.** It reports
+  abilities **200 in scope of 316 legal** (NO-LEGAL-CARRIER 114, VALIDATOR-REFUSED 1 `battlebond`, NO-LEGAL-READER
+  1 `gluttony`), moves 497 of 500 (`powershift`, `softboiled`, `spore`), items 148 of 148.
+- **`tests/roster.js` dropped the ROWS and kept the BUCKETS.** `data/roster.abilities.json` published
+  `counts` summing to **316** beside a `results` array of **200**, with 116 abilities this regulation does not
+  contain counted as COULD-NOT-STAGE — a staging gap of 43 printed as 159. The artifact's own `scope` block said
+  `in_scope: 200` on the same page. `could_not_stage_in_scope` was the bucket *less a correction*
+  (`nOf('COULD-NOT-STAGE') - oos.length`), which is the right answer computed from the wrong base.
+- **One predicate now, three uses.** `OUT_OF_SCOPE` decides the buckets, the `scope` block's own count and the
+  written rows. It was three spellings before, and the loosest of them let a rule-level tag count as out of scope
+  while its row stayed in the artifact.
+- **`engine/all_mechanics_fire.js` excludes the rows and keeps the count.** `publishRows(kind, rows)` splits on
+  the verdict, publishes the in-scope rows, writes `report.scope[kind]` (legal list, in-scope denominator,
+  excluded count, codes, excluded ids) and prints a `SCOPE —` line every run. `rows.abilities` **316 → 200**
+  (not-fired **176 → 60**), `rows.moves` 500 → 497, `summary.*.unreachable` **116 → 0** — that field was the
+  out-of-scope count wearing another name.
+- **The base travels with the counts.** Roster artifacts carry `counts_in_scope` and `counts_basis`; fire
+  summaries carry `in_scope` and `out_of_scope` beside `exist`. `engine/status.js` printed a bare *"N mechanics
+  have never fired"*; it now reads *"N of M in-scope"* from the artifact's scope block, and says DENOMINATOR NOT
+  CARRIED rather than falling back to the legal total.
+- **The control is the items stage and the census, and both are unmoved.** Items 148 of 148 in scope: no row is
+  excluded and nothing changed. Census 883 probed / 883 live / 0 missing, identical. The knob moved abilities by
+  116 and moves by 3 — exactly the out-of-scope counts `legal_scope.js` reports — and moved items and the census
+  by zero, which is what an unwired knob could not have done.
+- **Coverage did not move, and that is the point.** `engine/coverage.js` already derived its denominator from
+  `engine/legal_scope.js`, so **785 of 845** was right the whole time. What changed is that the harness now
+  agrees with it, and its *"the harness marks N of these in-scope rows unreachable"* warning has nothing left to
+  report.
+- **The corrected gap lists.** Abilities: 43 COULD-NOT-STAGE, 13 CONTROL-NOT-QUIET, 5 DEFERRED-BY-OWNER. Moves:
+  8 COULD-NOT-STAGE, 3 DEFERRED-BY-OWNER. Items: 6 COULD-NOT-STAGE. All three stages 0 FIRED-AND-BOARDS-DIFFER
+  and 0 DID-NOT-FIRE. Every name is in the report.
+
+### The hand list
+
+**Leaving it:** `engine/quarantine.js` is held by another division this pass and is NOT edited. Its
+`couldNotStage: c['COULD-NOT-STAGE']` (line 628 at mtime 21:53Z) now carries 43 rather than 159; nothing reads
+it for a verdict, and the gate clause (`differ`/`silent`/`badReds`/`staleShelf`) did not move. Match on the
+code, not the line number — that file is moving.
+
+- **`data/roster.all.json` STILL SUMS ITS COUNTS TO 964 AGAINST 847 ROWS.** 2026-09-10, a different release.
+  Regenerating it is a `--stage all` run, which is its own measurement.
+- **`data/all-mechanics-fire.boardstate.json` carries the old shape** — 2026-08-19, `moves 500 / abilities 316 /
+  items 148`. A variant run's artifact from three weeks ago.
+- **`engine/quarantine.js`'s selftest fixtures hold a hand-typed `scope: { tested: 139, in_scope: 148 }`** at two
+  places. They are synthetic and read no artifact, so they are not wrong — they are the last hand-typed
+  denominator in that file.
+- **`engine/stage_planner.js`'s `summary.byKind[kind].total` is still the legal list**, but it sits beside
+  `fixture` and `refused` and under a top-level `inScope`, so the base is stated. Left alone.
 
 ## #601 FIXED: A PERISH-ZEROED BODY RUNS ITS LATER RESIDUAL HANDLERS. #440'S FOLLOWER WAS A CORPSE, POOL **1 → 0 OF 961**. SAND RUSH AND STENCH STAGED, ABILITIES **137 → 139**, REDS **44 OF 44**
 
