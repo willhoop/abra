@@ -19,7 +19,7 @@ rather than tools:
 WEB — the site, and what it is allowed to publish
   no sprint marker on disk (docs/MEDICHAM-SPRINT-NOTES.md absent) — the living-docs rule is fully armed for this division too.
   web/quarantine-data.js: built 2026-08-25 19:07  — the site publishes 3 of 8 clauses failing, gate CLOSED
-    the LIVE gate says 7 of 8 GATING clauses fail  (CLOSED)
+    the LIVE gate says 0 of 9 GATING clauses fail  (OPEN)
     DRIFTED — the committed bundle is not what the gate says today.
       published clause(s) the gate no longer has: whole-game differential / the same game on both engines
       clause(s) the gate has and the bundle does not: whole-game differential / BOARD-MATERIAL — games whose boards part; whole-game differential / NARRATION — protocol divergence with no board effect
@@ -27,10 +27,11 @@ WEB — the site, and what it is allowed to publish
     0 figure(s) are RELEASED to the pages; every other slot carries no value at all, which is the withheld-not-annotated rule in the bundle itself
   web/status-data.js: built 2026-08-10 21:32  — 13 of 51 slot(s) carry state "quarantined" and publish no value
   docs/WEB.md: no figure in it is sourced from an artifact the gate currently withholds (engine/docs_scan.js --quarantine).
+    ...and that is because the GATE IS OPEN today, not because the file is clean: with nothing withheld this clause can accuse nothing.
   rebuild the bundles: node web/build-quarantine.js && node web/build-status.js   — a PUBLISH (app/) is Will's call and this file never makes one.
 ```
 
-_stamped 2026-09-10 14:54_
+_stamped 2026-09-10 21:59_
 
 <!-- /GENERATED -->
 

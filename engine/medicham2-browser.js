@@ -1608,6 +1608,25 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                         packet shape could not be trusted and ONE line was emitted. This is the
    *                         declared, narrow remainder of the WIRE 12 divergence -- LOUD on purpose. */
   fixedDamageNoCrit: 0, multiHitPacketsDealt: 0, multiHitPacketsCollapsed: 0,
+  /* 2026-09-10 -- A `preventsCrit` REFUSAL THE HANDLER'S OWN CONDITIONS LIFTED (see `critRefusedBy`).
+   * They count DECISIONS, not clicks: `dmgRange`'s certain-crit door asks `critChance` too, so a
+   * valuation pass adds to them. A zero on a run that crit a busted Mimikyu means the lift is unwired.
+   *   BySpecies     the body is not a forme the handler names (Mimikyu-Busted)
+   *   BySub         the hit lands on a Substitute the move does not bypass
+   *   AfterBreak    arrivals 2+ of a volley whose first arrival broke an intact `formeOnHit` body */
+  critRefusalLiftedBySpecies: 0, critRefusalLiftedBySub: 0, critRefusalLiftedAfterBreak: 0,
+  /* 2026-09-10 -- THE TWO ROADS THAT NEVER ASKED `hitChance` (tests/probe_accuracy_roads.js).
+   *   pivotAccDrawn / pivotMissed            the pivot branch's step 4 -- Parting Shot
+   *   delayedHitAccDrawn / delayedHitMissed  `futuremove`'s payout's step 4 -- Future Sight
+   * A zero `*AccDrawn` on a run that clicked either move means the step is unwired. */
+  pivotAccDrawn: 0, pivotMissed: 0, delayedHitAccDrawn: 0, delayedHitMissed: 0,
+  /* 2026-09-10 -- rows whose accuracy roll was skipped because an `absorbMakesClickSure` ability
+   * (Flash Fire) absorbed the SAME click at TryHit. A zero on a run with a spread Fire move into a
+   * Flash Fire body and a partner means the flag is unwired. */
+  accTrueByTryHit: 0,
+  /* 2026-09-10 -- an intact `formeOnHit` body whose hit landed on its DOLL, so the disguise was not asked
+   * (see `formeOnHitAbsorbs`). Counts decisions, valuation included. */
+  formeOnHitDollTookIt: 0,
   /* ==== BATCH M, 2026-09-07 -- THE VOLLEY IS PRICED PER ARRIVAL, NOT ONCE ========================
    * arrivalRepriceOffered   a flat volley whose per-arrival re-price closure was built AND passed its
    *                       arrival-0 invariant. Zero on a run that clicked Dual Wingbeat means the
@@ -3004,6 +3023,22 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * different step and with a different LINE, which is the whole finding. */
   ghostRefusedTrap: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* 2026-09-10 -- `critRefusedBy`'s LOUD DOORS. Each is a refusal decided WITHOUT the information the
+     authority's handler asks for, so it falls back on the old ability-only answer and is counted:
+       preventsCritShapeUnknown  the tag row carries no `conditional` key (an artifact older than the
+                                 derivation) or a conditional shape the engine does not read (`unparsed`,
+                                 `onlyCategory` -- Ice Face's, which has no legal carrier)
+       preventsCritNoBody        a conditional refusal asked with no defender body to read
+       preventsCritNoSpecies     a conditional refusal asked of a body with no species name
+     `preventsCritAbilityOnlyRestored` is MEDI_PREVENTSCRIT_ABILITY_ONLY=1's stamp, set at load. */
+  preventsCritShapeUnknown: 0, preventsCritShapeUnknownFirst: '', preventsCritNoBody: 0, preventsCritNoBodyFirst: '',
+  preventsCritNoSpecies: 0, preventsCritNoSpeciesFirst: '', preventsCritAbilityOnlyRestored: 0,
+  /* 2026-09-10 -- MEDI_PIVOT_NO_ACCURACY=1's and MEDI_DELAYED_HIT_NO_ACCURACY=1's stamps, set at load. */
+  pivotNoAccuracyRestored: 0, delayedHitNoAccuracyRestored: 0,
+  /* 2026-09-10 -- MEDI_ABSORB_ACC_LOCAL=1's stamp, set at load. */
+  absorbAccLocalRestored: 0,
+  /* 2026-09-10 -- MEDI_FORMEONHIT_THROUGH_DOLL=1's stamp, set at load. */
+  formeOnHitThroughDollRestored: 0,
   /* 2026-09-09 -- DECLARED HERE BECAUSE `tests/test-counter-init.js` WENT RED ON BOTH. `undefined++` is
      `NaN`, so each of these had been incrementing a field this literal never declared: a counter that could
      never read zero and never read non-zero. `sideBuffVolatileIdsUnknown` -- a `sideBuff.blocksVolatile` row
@@ -4881,6 +4916,24 @@ const TRACE=(function(){
     failUnboost(m,label,ab){ this.push(['-fail',ident(m),'unboost',label||'',
                                        '[from] ability: '+ab,'[of] '+ident(m)]); },
     miss(src,tgt){ this.push(['-miss',ident(src),tgt?ident(tgt):'']); },
+    /* 2026-09-10 -- A `-miss` WHOSE SOURCE MAY BE OFF THE FIELD. Future Sight's payout names the BOOKER
+     * (`hitStepAccuracy`'s `this.battle.add('-miss', pokemon, target)` with `pokemon = data.source`),
+     * and the booker can have switched out. `Pokemon#toString()` (sim/pokemon.ts:531-534) writes
+     * `p2a: Name` for an active body and a bare `p2: Name` otherwise -- the pool card reads
+     * `|-miss|p2: Reuniclus|p1a: Talonflame`. Same shape `hitcount` takes for a corpse, and narrow for
+     * the same reason: `ident` itself is untouched. The side is read off the party, never guessed; a body
+     * on neither party falls back to `ident`, which counts it in `traceBodyOffField`. */
+    missFrom(src,tgt){
+      const S=this.S;
+      const on=S&&((S.actA&&S.actA.indexOf(src)>=0)||(S.actB&&S.actB.indexOf(src)>=0));
+      let who=null;
+      if(src&&!on&&S){
+        const inA=S.sfA&&Array.isArray(S.sfA.team)&&S.sfA.team.indexOf(src)>=0;
+        const inB=S.sfB&&Array.isArray(S.sfB.team)&&S.sfB.team.indexOf(src)>=0;
+        if(inA!==inB)who=(inB?'p2':'p1')+': '+identName(src);
+      }
+      this.push(['-miss',who||ident(src),tgt?ident(tgt):'']);
+    },
     /* `extra2` exists for ONE authority line shape and is named rather than smuggled: Spite's
      * `this.add('-activate', target, 'move: Spite', move.name, ppDeducted)` carries TWO trailing
      * fields. push() drops empties, so every existing two-field caller is unaffected. */
@@ -10571,10 +10624,72 @@ const CRIT_BY_STAGE=[1/24,1/8,1/2,1];
  * `-immune` IS NOT IN THIS SET AND MUST NOT BE. `runImmunity` sits ABOVE all four early returns, so
  * Seismic Toss still does nothing to a Ghost and still says so. */
 function damageIsComputed(moveId){ return !(moveId&&TAGS.has('move',moveId,'fixedDamage')); }
-function critChance(moveId,att,defAbility,defBody){
+/* ==== 2026-09-10 -- A CRIT REFUSAL IS THE HANDLER'S, AND DISGUISE'S HANDLER ASKS TWO QUESTIONS FIRST ====
+ *
+ * `critChance` returned 0 whenever the defender's ability carried `preventsCrit`. That is Shell Armor
+ * and Battle Armor exactly -- their `onCriticalHit` is the literal `false`. Disguise's is a function
+ * (data/abilities.ts:969-979; the Champions override at data/mods/champions/abilities.ts:14-33 replaces
+ * `onEffectiveness` only):
+ *     if (!['mimikyu', 'mimikyutotem'].includes(target.species.id)) return;
+ *     const hitSub = target.volatiles['substitute'] && !move.flags['bypasssub'] && !(move.infiltrates && gen >= 6);
+ *     if (hitSub) return;
+ *     if (!target.runImmunity(move)) return;
+ *     return false;
+ * and it runs AFTER the die (sim/battle-actions.ts:1637-1643 draws, :1645-1647 offers the crit to the
+ * event). So a busted Mimikyu, a Mimikyu behind its doll, and arrivals 2+ of a volley into an intact one
+ * (`eachEvent('Update')` changes the forme between hits) are all crit by the authority and were never
+ * crit here. The pinned pool's bottom corner held four board-material games that were the busted case
+ * (tests/probe_disguise_crit.js; seeds in data/verification/_prediction-2026-09-10-corner-fixes.json).
+ *
+ * THE CONDITIONS COME OFF THE TAG, read by engine/tag_dex.js out of the handler's own source --
+ * `conditional`, `onlySpecies`, `notThroughSub` -- so no species name and no ability name is typed here.
+ * The doll is asked through `subBlocks`, the one predicate every other doll site uses; the species through
+ * `pasteKey`/`normAb`, the same two steps `formeOnHitAbsorbs` takes, so the refusal and the absorb can
+ * never disagree about what "Mimikyu" is called. `runImmunity` is not restated: an immune body never
+ * reaches a crit decision on any road in this file.
+ *
+ * EVERY FALLBACK IS THE OLD ANSWER AND EVERY FALLBACK IS COUNTED (MEDFAILS.preventsCrit*): a tag row with
+ * no `conditional` key, a shape this reader does not know, no body, or a body with no species. A refusal
+ * decided blind would look exactly like the lift working.
+ *
+ * MEDI_PREVENTSCRIT_ABILITY_ONLY=1 puts the ability-only refusal back, stamped at load in
+ * `MEDFAILS.preventsCritAbilityOnlyRestored`. */
+const PREVENTSCRIT_ABILITY_ONLY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PREVENTSCRIT_ABILITY_ONLY==='1');
+if(PREVENTSCRIT_ABILITY_ONLY)MEDFAILS.preventsCritAbilityOnlyRestored=1;
+function critRefusedBy(pc,moveId,att,defBody,opts){
+  if(PREVENTSCRIT_ABILITY_ONLY)return true;
+  if(pc.conditional===undefined||pc.unparsed||pc.onlyCategory){
+    MEDFAILS.preventsCritShapeUnknown++;
+    if(!MEDFAILS.preventsCritShapeUnknownFirst)MEDFAILS.preventsCritShapeUnknownFirst=JSON.stringify(pc);
+    return true;
+  }
+  if(!pc.conditional)return true;                       // Shell Armor, Battle Armor: the literal `false`
+  if(!defBody){
+    MEDFAILS.preventsCritNoBody++;
+    if(!MEDFAILS.preventsCritNoBodyFirst)MEDFAILS.preventsCritNoBodyFirst=String(moveId||'?');
+    return true;
+  }
+  if(pc.notThroughSub&&subBlocks(att,defBody,moveId)){MEDSEEN.critRefusalLiftedBySub++;return false;}
+  if(Array.isArray(pc.onlySpecies)){
+    const spec=s=>normAb(pasteKey(s)||s);
+    const have=defBody.name?spec(defBody.name):'';
+    if(!have){
+      MEDFAILS.preventsCritNoSpecies++;
+      if(!MEDFAILS.preventsCritNoSpeciesFirst)MEDFAILS.preventsCritNoSpeciesFirst=String(defBody.ability||'?');
+      return true;
+    }
+    if(pc.onlySpecies.map(spec).indexOf(have)<0){MEDSEEN.critRefusalLiftedBySpecies++;return false;}
+    /* THE VOLLEY: the caller says the body stopped being the named forme after arrival 1. Only the arrival
+     * loop can know that, because only it knows which arrival it is pricing. */
+    if(opts&&opts.formeBrokeEarlier){MEDSEEN.critRefusalLiftedAfterBreak++;return false;}
+  }
+  return true;
+}
+function critChance(moveId,att,defAbility,defBody,opts){
   /* THE DEFENDER ARRIVES AS AN ABILITY STRING, NOT A BODY, so a Mold Breaker attacker can hand in the
    * SUPPRESSED ability (WIRE 37) without this function having to know what suppression is. */
-  if(defAbility&&TAGS.param('ability',defAbility,'preventsCrit'))return 0;
+  const _pc=defAbility&&TAGS.param('ability',defAbility,'preventsCrit');
+  if(_pc&&critRefusedBy(_pc,moveId,att,defBody,opts))return 0;
   /* ROADMAP #151 -- THE RATE IS ZERO WHEN THERE IS NO DAMAGE FORMULA TO CRIT. Placed here rather than
    * at the two call sites because a crit is ONE fact: the battle loop's rolled die, `dmgRangeOneHit`'s
    * `critChance(...) === 1` certain-crit door and every hypothetical price all read this function, and
@@ -14279,7 +14394,7 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    * itself, because on the FLAT road this function is handed the whole count and cannot see an
    * arrival boundary. Unset everywhere else, so a single-arrival click is byte-for-byte what it
    * was and CONTROL B of that probe pins it. */
-  if(!absBypass&&formeOnHitAbsorbs(def)){
+  if(!absBypass&&formeOnHitAbsorbs(def,att,mv&&mv.id)){
     if(hit&&Array.isArray(hit.rolls)){hit.rolls.length=0;for(let i=0;i<16;i++)hit.rolls.push(0);}
     if(hit&&Array.isArray(hit.rollsUnit)){hit.rollsUnit.length=0;for(let i=0;i<16;i++)hit.rollsUnit.push(0);}
     return {min:0,max:0,eff,type:mvT};
@@ -14527,6 +14642,19 @@ const DELAYED_HIT_NO_CRIT=(typeof process!=='undefined'&&process.env&&process.en
  * also carries a non-zero `MEDFAILS.delayedHitSilentImmuneRestored`. Probe: tests/probe_delayed_hit_immune.js. */
 const DELAYED_HIT_SILENT_IMMUNE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DELAYED_HIT_SILENT_IMMUNE==='1');
 if(DELAYED_HIT_SILENT_IMMUNE)MEDFAILS.delayedHitSilentImmuneRestored=1;   // stamped at LOAD, so an arm with no payout still proves the knob bound
+/* 2026-09-10 -- MEDI_PIVOT_NO_ACCURACY=1 PUTS BACK THE PIVOT ROAD WITH NO STEP 4, and
+ * MEDI_DELAYED_HIT_NO_ACCURACY=1 PUTS BACK THE FUTURE SIGHT PAYOUT WITH NO STEP 4 -- each the ONE
+ * expression its fix turns on, so a restore reproduces the same red rather than a third behaviour. Both
+ * are stamped at LOAD. Probe: tests/probe_accuracy_roads.js. */
+const PIVOT_NO_ACCURACY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PIVOT_NO_ACCURACY==='1');
+if(PIVOT_NO_ACCURACY)MEDFAILS.pivotNoAccuracyRestored=1;
+const DELAYED_HIT_NO_ACCURACY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DELAYED_HIT_NO_ACCURACY==='1');
+if(DELAYED_HIT_NO_ACCURACY)MEDFAILS.delayedHitNoAccuracyRestored=1;
+/* 2026-09-10 -- MEDI_ABSORB_ACC_LOCAL=1 PUTS BACK THE ACCURACY STEP THAT IGNORED A TRYHIT ABSORB ELSEWHERE
+ * IN THE CLICK: every row rolls its own printed accuracy even after Flash Fire wrote `move.accuracy = true`
+ * on the shared move. Stamped at LOAD. Probe: tests/probe_accuracy_roads.js, arm HW-FLASHFIRE. */
+const ABSORB_ACC_LOCAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ABSORB_ACC_LOCAL==='1');
+if(ABSORB_ACC_LOCAL)MEDFAILS.absorbAccLocalRestored=1;
 /* NARRATION BATCH Y, 2026-09-09 -- MEDI_DH_STEPS_SPLIT=1 PUTS THE `DamagingHit` STEP LIST BACK TO ITS FOUR
  * STEP-MAJOR STEPS (`_stepDamagingHit`, `_stepThawDamagingHit`, `_stepBuffOnHit`, `_stepDamagingHitLate`),
  * which on a spread hit pays every target's punish before any target's buff -- the pinned pool's
@@ -14608,8 +14736,8 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
      * level knows the arrival count: the flat road prices all N in one call with `hitsOverride`,
      * so the callee cannot tell arrival 1 from arrival 4. Asked once, read twice (the bypass and
      * the range below), so the two cannot disagree about whether the disguise is intact. */
-    const _absMulti=!!(_plan.total>1.0000001&&formeOnHitAbsorbs(def)&&!FORMEONHIT_CLICK_WIDE_RESTORED);
-    if(FORMEONHIT_CLICK_WIDE_RESTORED&&_plan.total>1.0000001&&formeOnHitAbsorbs(def))MEDFAILS.formeOnHitClickWideRestored=1;
+    const _absMulti=!!(_plan.total>1.0000001&&formeOnHitAbsorbs(def,att,mv&&mv.id)&&!FORMEONHIT_CLICK_WIDE_RESTORED);
+    if(FORMEONHIT_CLICK_WIDE_RESTORED&&_plan.total>1.0000001&&formeOnHitAbsorbs(def,att,mv&&mv.id))MEDFAILS.formeOnHitClickWideRestored=1;
     const _flat=dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,1,_plan.total,null,_absMulti);
     if(hit&&hit.wantPackets){
       const _n=Math.round(_plan.total);
@@ -14663,7 +14791,7 @@ function dmgRange(att,def,mv,field,spread,isCrit,hit){
    * out. A fix nothing can show red-then-green is not a fix. Counted so it is a number.
    * Non-zero here with `formeAbsorbArrivalOnly` at zero means the whole absorb road moved to the
    * per-hit plan and this fix stopped covering it. */
-  if(_plan.n>1&&formeOnHitAbsorbs(def)){
+  if(_plan.n>1&&formeOnHitAbsorbs(def,att,mv&&mv.id)){
     MEDFAILS.formeAbsorbPerHitPlan++;
     if(!MEDFAILS.formeAbsorbPerHitPlanFirst)MEDFAILS.formeAbsorbPerHitPlanFirst=String((mv&&mv.id)||'?');
   }
@@ -14917,10 +15045,24 @@ function rollConditionalPower(moveId,rnd){
  * MEDI_FORMEONHIT_SPECIES_BLIND=1 puts the flag-only gate back, so the census row can be shown MISSING
  * on demand without swapping a file. Any run carrying it also carries a non-zero
  * `MEDFAILS.formeOnHitSpeciesBlindRestored`. */
-function formeOnHitAbsorbs(tg){
+function formeOnHitAbsorbs(tg,att,mvId){
   if(!tg||tg._disguiseBusted)return null;
   const fh=TAGS.param('ability',tg&&tg.ability,'formeOnHit');
   if(!fh||!fh.becomes)return null;
+  /* 2026-09-10 -- A HIT THAT LANDS ON THE DOLL NEVER REACHES THE DISGUISE. Disguise's absorb is its
+   * `onDamage` (data/abilities.ts:962-968, inherited by the Champions override), a handler on the POKEMON's
+   * damage event -- and a hit on a Substitute never raises that event: the Champions `spreadMoveHit`'s own
+   * `// 0. check for substitute` (data/mods/champions/scripts.ts:342) sends it to the doll, which takes
+   * `getDamage`'s number off its own HP. This gate asked the ability and the species and never the doll, so
+   * `dmgRange` priced a hit on Mimikyu's Substitute at ZERO and the doll kept every HP -- the probe's DOLL
+   * arm read `vol.substitute` 32 here against the authority's 16, on the pre-fix engine and after the crit
+   * fix alike. `subBlocks` is the one doll predicate (bypasssub, Infiltrator), so an Infiltrator's hit
+   * still meets the disguise, as it does in the authority.
+   *
+   * THE CALLERS PASS THE ATTACKER AND THE MOVE, all six of them. NOT MODELLED, named: a volley whose first
+   * arrival breaks the doll and whose later arrivals meet the disguise -- the gate is asked once per click,
+   * with the doll standing, so no arrival is absorbed. No pool game and no probe arm stages it. */
+  if(att&&mvId&&!FORMEONHIT_THROUGH_DOLL&&subBlocks(att,tg,mvId)){MEDSEEN.formeOnHitDollTookIt++;return null;}
   if(FORMEONHIT_SPECIES_BLIND)MEDFAILS.formeOnHitSpeciesBlindRestored++;
   else{
     /* BOTH SIDES THROUGH THE SAME TWO STEPS, and that is not tidiness. `pasteKey` returns the table's
@@ -15189,6 +15331,12 @@ const PROTEAN_ATTACK_ONLY=(typeof process!=='undefined'&&process.env&&process.en
  * can be shown MISSING on demand without swapping a file. Any run carrying it also carries a non-zero
  * `MEDFAILS.formeOnHitSpeciesBlindRestored`. Same shape as MEDI_PROTEAN_ATTACK_ONLY above. */
 const FORMEONHIT_SPECIES_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FORMEONHIT_SPECIES_BLIND==='1');
+/* 2026-09-10 -- MEDI_FORMEONHIT_THROUGH_DOLL=1 PUTS BACK THE DISGUISE THAT ABSORBED A HIT ON ITS OWN DOLL:
+ * `formeOnHitAbsorbs` stops asking `subBlocks`, so `dmgRange` prices a hit on the Substitute at zero again
+ * and the doll keeps every HP. Stamped at LOAD in `MEDFAILS.formeOnHitThroughDollRestored`.
+ * Probe: tests/probe_disguise_crit.js, arm DOLL. */
+const FORMEONHIT_THROUGH_DOLL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FORMEONHIT_THROUGH_DOLL==='1');
+if(FORMEONHIT_THROUGH_DOLL)MEDFAILS.formeOnHitThroughDollRestored=1;
 /* 2026-08-23 -- MEDI_SUCKER_QUEUE_BLIND=1 PUTS THE WHOLE-TURN LOOKUP BACK: `queueWillMove` stops asking
  * whether the target still has an outstanding action and answers from the whole turn's `acts` list, the
  * way this engine did until today -- so a target that has ALREADY MOVED still reads as "about to
@@ -33065,6 +33213,37 @@ function battleTurn(S,rng,actsForA,actsForB){
          * `true` = at least one stage actually changed. It is three answers rather than two because
          * the pivot gate below may only fire on the middle one: a move that never reached the drop
          * at all (no target, a refusal above) keeps exactly the behaviour it had. */
+        /* ==== 2026-09-10 -- STEP 4, WHICH THIS ROAD NEVER HAD =======================================
+         *
+         * `trySpreadMoveHit`'s step list is the same for every move that reaches a target: 0 the
+         * semi-invulnerable body (the generic non-attack step above this branch already asks it, because
+         * `actionMoveId` returns the pivot's move), 1 TryHit (the shield, Good as Gold, Magic Bounce,
+         * Soundproof -- all asked above), 2 the type chart, 3 the Prankster refusal -- and then
+         * `hitStepAccuracy` (sim/battle-actions.ts:690-754). This branch ran 0-3 and went straight to the
+         * drop, so a Parting Shot into Bright Powder, Sand Veil or Snow Cloak, a +evasion body or from a
+         * -accuracy user always landed and always pivoted. A MISS here is the authority's: `[miss]` on the
+         * move line, `|-miss|USER|TARGET`, `useMove` writes false, `onHit` never runs so nothing is
+         * dropped, and `selfSwitch` is never reached, so the user STAYS. Pool card: top corner,
+         * `…2634132571`, Parting Shot into a Bright Powder Whimsicott.
+         *
+         * THE ROLL IS `hitChance`'s -- the one to-hit authority -- and the draw rule is `accMustRoll`'s, the
+         * same pair every other roll site uses. `_bsrc` is the body the authority made the user, so a
+         * bounced Parting Shot rolls as the bouncer's move against the original user (the bounce is step 1,
+         * above this). A self-aimed click (`_pt === _bsrc`) is not a hit and is left alone.
+         *
+         * MEDI_PIVOT_NO_ACCURACY=1 skips it and stamps `MEDFAILS.pivotNoAccuracyRestored` at load. */
+        if(a.mv&&_pt&&!_pt.fainted&&_pt!==_bsrc&&!PIVOT_NO_ACCURACY){
+          const _pacc=hitChance(_bsrc,_pt,a.mv,field,{targetAlreadyMoved:!unresolved.has(_pt)});
+          if(accMustRoll(_pacc)){
+            MEDSEEN.pivotAccDrawn++;
+            if(_R.acc()*100>_pacc){
+              MEDSEEN.pivotMissed++;
+              if(TR){TR.attr('[miss]');TR.miss(_bsrc,_pt);}
+              m._mvRes=false; m._lastMove=a.mv;
+              continue;
+            }
+          }
+        }
         let _dropLanded=null;
         if(a.mv&&_pt&&!_pt.fainted){
           const _sc2=TAGS.param('move',a.mv,'statChangeInCode');
@@ -35215,6 +35394,11 @@ function battleTurn(S,rng,actsForA,actsForB){
        * false and therefore COUNT; an absorbing ability's onTryHit returns null and does NOT, which
        * is why this is a flag rather than `!_reached`. */
       let _explicitFail=false;
+      /* 2026-09-10 -- SET BY `_stepTryHit` WHEN AN `absorbMakesClickSure` ABILITY ABSORBS THIS CLICK, READ BY
+       * `_stepAccuracy`. It is click-level because the authority's is: Flash Fire writes `move.accuracy = true`
+       * on the ONE ActiveMove every target shares, and `_walk` is step-major like `moveSteps`, so every row's
+       * TryHit has run before any row's roll. */
+      let _accSureByTryHit=false;
       /* WIRE 54 / ROADMAP #81 WIRE 7 -- PROTEAN CONVERTS *BEFORE* THE HIT, AND THAT IS THE WHOLE
          ABILITY. The user BECOMES the type of the move it is about to use, so the move gets the new
          STAB; `oncePerSwitchIn` is the Gen-9 rule and is the tag's own field, and `_proteanUsed` is
@@ -36463,6 +36647,13 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _gift=absorbGift(tg,_ab);
           if(_gift)MEDSEEN.absorbGiftLanded++;
           else absorbRefusalAnnounce(tg,_ab);     /* ROADMAP #456 -- ally refusals say -activate */
+          /* 2026-09-10 -- AND THE ABSORB CAN MAKE THE REST OF THE CLICK SURE. Flash Fire's `onTryHit` writes
+           * `move.accuracy = true` whether it grants the boost or answers `-immune`, so both branches above
+           * set it. The ability is the one `absorbedBy` answered for (the suppression-aware read), and the
+           * tag's `onType` must be the type that was absorbed. */
+          {const _sure=TAGS.param('ability',suppressedAbility(m,tg),'absorbMakesClickSure');
+           const _abT=effMoveType(mv,a.move.id,field,m);
+           if(_sure&&(!_sure.onType||String(_sure.onType).toLowerCase()===String(_abT).toLowerCase()))_accSureByTryHit=true;}
           R.out=true;return;
         }
       };
@@ -36543,8 +36734,14 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* THE DEFENDER IS THE ROW'S OWN BODY, UNCONDITIONALLY. `a.move.spread` is not consulted:
            * the authority does not branch on it here either, and a branch is exactly what let the
            * spread case pick up the attacker's modifiers and nobody else's. */
-          const _mvAcc=hitChance(m,tg,a.move.id,field,
+          let _mvAcc=hitChance(m,tg,a.move.id,field,
                                  {targetAlreadyMoved:!!(tg&&!unresolved.has(tg))});
+          /* 2026-09-10 -- `move.accuracy === true` FOR THE WHOLE CLICK once an `absorbMakesClickSure` body
+           * absorbed it at TryHit: `hitStepAccuracy` reads `let accuracy = move.accuracy`, every ModifyAccuracy
+           * handler returns on a non-number, and `randomChance` is never called. Infinity is this engine's
+           * `true`, so `accMustRoll` skips the draw exactly as the authority does. Pool cards: top corner,
+           * …2659430913 and …2655570367, both a Charizard's Heat Wave beside a Flash Fire Ceruledge. */
+          if(_accSureByTryHit&&!ABSORB_ACC_LOCAL){MEDSEEN.accTrueByTryHit++;_mvAcc=Infinity;}
           /* ROADMAP #264 -- accMustRoll, not `_mvAcc<100`. A printed-100 move into a +2 evasion body
            * already rolled here (hitChance returns 60); what did NOT roll is the same move under a
            * Wide Lens or a Coil, where the modifier lands the number at or above 100 and the
@@ -37033,10 +37230,20 @@ function battleTurn(S,rng,actsForA,actsForB){
           * is one arrival and takes exactly one draw, byte-identical to every run before this. */
          if(CRIT_ONCE_PER_CLICK_RESTORED)MEDFAILS.critOncePerClickRestored=1;
          const _nArr=(_pkPlain&&!CRIT_ONCE_PER_CLICK_RESTORED)?_pkPlain.length:1;
+         /* 2026-09-10 -- AND THE RATE IS PER ARRIVAL TOO, BECAUSE THE BODY CAN CHANGE SPECIES BETWEEN THEM.
+          * An intact `formeOnHit` body absorbs arrival 1 and its `onUpdate` renames it before arrival 2
+          * (`eachEvent('Update')` is inside the authority's hit loop), and Disguise's crit refusal names
+          * the INTACT species only -- so arrivals 2+ are asked with `formeBrokeEarlier`. Everything else,
+          * including a volley into a doll (the doll takes the hit, not the disguise), keeps one rate for
+          * the whole click and draws exactly what it drew before. The die is still drawn per arrival
+          * UNCONDITIONALLY (WIRE 35), so a refused arrival and a lifted one spend the same stream. */
+         const _ccLater=(_nArr>1&&formeOnHitAbsorbs(tg,m,a.move.id))
+           ?critChance(a.move.id,m,suppressedAbility(m,tg),tg,{formeBrokeEarlier:true}):_cc;
          _crits=[];
          for(let i=0;i<_nArr;i++){
+           const _ci=i===0?_cc:_ccLater;
            const _cri=_subAddr(_dollRow,_R.crit);   /* 2026-09-06 -- the doll's crit rides the same address */
-           _crits.push((_cc>=1)||(_cc>0&&_cc<1&&_cri<_cc));
+           _crits.push((_ci>=1)||(_ci>0&&_ci<1&&_cri<_ci));
          }
          if(CRIT_ONCE_PER_CLICK_RESTORED&&_pkPlain)while(_crits.length<_pkPlain.length)_crits.push(_crits[0]);
          if(_nArr>1)MEDSEEN.perArrivalCritDecision+=_nArr;
@@ -38077,7 +38284,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * actually asking is "would this move have connected damagingly", which is the MOVE and the
            * TYPE CHART, not the post-absorb number: a damaging move (`bp>0`) that is not immune
            * (`d.eff>0`). `eff` survives the absorb because `dmgRange` returns it unchanged. */
-          const _abs=formeOnHitAbsorbs(tg);
+          const _abs=formeOnHitAbsorbs(tg,m,a.move.id);
           if(_abs&&mv&&(mv.bp>0)&&d&&d.eff>0){
             const _fh=_abs.fh;
             tg._disguiseBusted=true;
@@ -43342,6 +43549,35 @@ function battleTurn(S,rng,actsForA,actsForB){
            let _fsRolls=_fsCtx.rolls;
            const _mv0=MID_MOVE,_at0=MID_ATT,_tg0=MID_TGT;
            MID_MOVE=String(_rF.mv||'-');MID_ATT=midEventSlot(_src);MID_TGT=midEventSlot(m);
+           /* ==== 2026-09-10 -- AND STEP 4, WHICH THE COMMENT ABOVE NAMED AND NOBODY WIRED ==============
+            *
+            * `futuremove.onEnd` pays out through `trySpreadMoveHit` (data/conditions.ts:415), so after the
+            * type chart the payout meets `hitStepAccuracy` like any other hit: `pokemon` is the BOOKER
+            * (`data.source`) and `randomChance(accuracy, 100)` is drawn even for Future Sight's printed
+            * 100. Bright Powder, Sand Veil, Snow Cloak and an evasion stage on the collector all make it
+            * miss. This road never asked, so it landed through all of them. Pool card: top corner,
+            * `…2657333637`, a Reuniclus's payout onto a Bright Powder Talonflame after Reuniclus had left.
+            *
+            * INSIDE THE ADDRESS WINDOW, ABOVE THE CRIT AND DAMAGE DRAWS: the authority's order is step 4 and
+            * then `getDamage`, and the address is the booked move, the booker and the collector, the same
+            * as the two draws below. `targetAlreadyMoved` is true because this is the residual -- no action
+            * is left in the queue, which is what Zoom Lens's `!this.queue.willMove(target)` reads.
+            *
+            * A MISS SPENDS NO CRIT AND NO DAMAGE DIE AND WRITES NO HIT LINE, only `[miss]` and `-miss`,
+            * after the condition's `-end` that is already written above.
+            *
+            * MEDI_DELAYED_HIT_NO_ACCURACY=1 skips it and stamps `MEDFAILS.delayedHitNoAccuracyRestored`. */
+           let _fsMiss=false;
+           if(!DELAYED_HIT_NO_ACCURACY){
+             const _facc=hitChance(_src,m,_rF.mv,field,{targetAlreadyMoved:true});
+             if(accMustRoll(_facc)){
+               MEDSEEN.delayedHitAccDrawn++;
+               if(((_R&&_R.acc)?_R.acc():rng())*100>_facc){
+                 _fsMiss=true; MEDSEEN.delayedHitMissed++;
+                 if(TR){TR.attr('[miss]');TR.missFrom(_src,m);}
+               }
+             }
+           }
            /* ==== ROADMAP #419 -- THE PAYOUT ROLLS THE ORDINARY CRIT, BECAUSE IT IS AN ORDINARY HIT ==
             *
             * The paragraph that used to sit at the `-crit` site said the gap out loud rather than
@@ -43386,7 +43622,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             * because `dmgRangeOneHit` PUSHES onto `rolls` rather than replacing it. */
            let _fcrit=false;
            if(DELAYED_HIT_NO_CRIT)MEDFAILS.delayedHitNoCritRestored=1;
-           else{
+           else if(!_fsMiss){
              const _fcc=critChance(_rF.mv,_src,suppressedAbility(_src,m),m);
              const _fcr=(_R&&_R.crit)?_R.crit():rng();
              MEDSEEN.delayedHitCritDrawn++;
@@ -43400,7 +43636,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                }
              }
            }
-           const _fu=(_R&&_R.dmg)?_R.dmg():rng();
+           const _fu=_fsMiss?0:((_R&&_R.dmg)?_R.dmg():rng());
            MID_MOVE=_mv0;MID_ATT=_at0;MID_TGT=_tg0;
            const _fsBand=(_fsRolls&&_fsRolls.length===DAMAGE_ROLL_SIDES)?_fsRolls:null;
            if(!_fsBand){MEDFAILS.delayedHitBandMissing++;
@@ -43408,7 +43644,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            else MEDSEEN.delayedHitBandSelected++;
            const _dm=Math.max(1,_fsBand?_fsBand[damageRollIndex(_fu)]
                                        :_d.min+Math.floor(_fu*(_d.max-_d.min+1)));
-           if(_d.max>0){
+           if(_d.max>0&&!_fsMiss){
              /* `|-end|TARGET|move: NAME` before the damage -- the condition announces its own expiry
               * on the body that collects, which is the one line the authority writes here.
               * NARRATION BATCH Y -- written ABOVE the pricing now (the condition's line is not the
@@ -43443,7 +43679,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              if(TR&&_fcrit)TR.crit(m);
              if(TR)TR.dmg(m);
              if(m.curHP<=0){m.fainted=true,noteFaint(m);faintLineOut(m);}
-           } else if(!DELAYED_HIT_SILENT_IMMUNE){
+           } else if(!DELAYED_HIT_SILENT_IMMUNE&&!_fsMiss){
              /* NARRATION BATCH Y -- a zero band on a body the type chart does NOT refuse. Loud. */
              MEDFAILS.delayedHitZeroBandUnannounced++;
              if(!MEDFAILS.delayedHitZeroBandUnannouncedFirst)MEDFAILS.delayedHitZeroBandUnannouncedFirst=String(_rF.mv||'?');

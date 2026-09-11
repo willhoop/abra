@@ -1,6 +1,6 @@
 {
   "note": "RATCHET. `clashes` may fall and may never rise. Two rulebooks state the same move facts; this counts where they DISAGREE today. Which one wins is an architecture decision and is not settled here.",
-  "generated": "2026-09-04 03:20",
+  "generated": "2026-09-10 23:30",
   "compared": 151,
   "agree": 149,
   "clashes": 2,
@@ -141,7 +141,7 @@
       "fact": "P(flinch)",
       "tag": "flinches",
       "id": "ironhead",
-      "uses": 14500,
+      "uses": 20463,
       "tagValue": 20,
       "fxValue": 30
     },
@@ -149,7 +149,7 @@
       "fact": "the stats it changes on the target",
       "tag": "statChange",
       "id": "toxicthread",
-      "uses": 6,
+      "uses": 7,
       "tagValue": "[[\"spe\",-2]]",
       "fxValue": "[[\"spe\",-1]]"
     }

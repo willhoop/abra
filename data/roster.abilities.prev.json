@@ -1,17 +1,17 @@
 {
- "generated": "2026-09-10T09:53:39.843Z",
+ "generated": "2026-09-11T00:55:42.574Z",
  "by": "tests/roster.js",
  "stage": "abilities",
  "swap_leaf_correction": {
-  "self_describing_dropped": 5344,
+  "self_describing_dropped": 5328,
   "real_ability_rewrite_kept": 48
  },
- "engine_release": "cbd510bc2b13",
- "engine_release_cut": "2026-09-10T09:51:30.573Z",
+ "engine_release": "cee38e7e9891",
+ "engine_release_cut": "2026-09-11T00:43:56.465Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "09f8bd4f2b5e",
+  "engine/medicham2-browser.js": "f3e809de5d63",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "622482051bf4",
@@ -29,10 +29,10 @@
   "data/ability-blocks.json": "86741fd35452",
   "data/smogon-priors.json": "f2dc78cea6c5",
   "data/regulations.json": "6c1995e9a9fb",
-  "data/quality-filter.json": "3c733e7a0bfb",
+  "data/quality-filter.json": "36812acec7f8",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "44fd45e9e9ce",
-  "data/tags.json": "01aa85bf4e7f",
+  "data/abra-tags.js": "641f0dae1799",
+  "data/tags.json": "6477f8e2c3c0",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
@@ -51,7 +51,7 @@
  "arms_played": {
   "top-tie-first": 579,
   "middle": 49,
-  "bottom-tie-first": 24
+  "bottom-tie-first": 22
  },
  "scope": {
   "total": 316,
@@ -204,12 +204,27 @@
   }
  },
  "plant_anchors": {
-  "release": "cbd510bc2b13",
+  "release": "cee38e7e9891",
   "checked": 44,
-  "dead": [],
+  "dead": [
+   {
+    "rule": "ability/refuses-a-crit",
+    "kind": "ability",
+    "matched": 0,
+    "anchor": "if(defAbility&&TAGS.param('ability',defAbility,'preventsCrit'))return 0;",
+    "rows": 2,
+    "staged": 2
+   }
+  ],
   "reds_ran": true
  },
  "reds": [
+  {
+   "rule": "ability/refuses-a-crit",
+   "ok": false,
+   "anchor_dead": true,
+   "why": "THE PLANT DID NOT APPLY — the anchor matched 0 time(s), not exactly once. An unapplied plant reads exactly like a comparator that found nothing, so every row this rule produced is asserting nothing until it is re-aimed. Anchor: if(defAbility&&TAGS.param('ability',defAbility,'preventsCrit'))return 0;"
+  },
   {
    "rule": "ability/entry",
    "ok": true,
@@ -249,22 +264,6 @@
    "moved": {
     "member": "friendguard",
     "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/refuses-a-crit",
-   "ok": true,
-   "why": "the crit refusal is skipped, so the armoured body takes the crit like anything else",
-   "moved": {
-    "member": "battlearmor",
-    "verdict": "CONTROL-NOT-QUIET",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,

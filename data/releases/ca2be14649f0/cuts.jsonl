@@ -1,0 +1,1 @@
+{"at":"2026-09-11T00:27:01.256Z","why":"ENGINE corner fixes batch 1 (re-cut): Disguise's crit refusal is the handler's (intact forme only, never through a doll, lifted after a volley's first arrival) AND Disguise no longer absorbs a hit that lands on its own Substitute (tests/probe_disguise_crit.js)","showdown_commit":"20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"}

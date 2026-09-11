@@ -1,14 +1,21 @@
 {
   "note": "RATCHET. citation_sites may SHRINK and may never grow while the MEDICHAM quarantine is closed. A new entry means a withheld figure was just published somewhere.",
   "source_digests": {
-    "engine/quarantine.js": "a6b7b602d93f",
-    "engine/provenance.js": "58ccb92d8075",
+    "engine/quarantine.js": "7342f3a9c2ef",
+    "engine/provenance.js": "8df8da3955dc",
     "note": "Content, not mtime. A checkout moves an mtime without moving code."
   },
   "not_store_derived": "it records which artifacts are downstream of the simulator and where they are still cited. No game is counted anywhere in it, so the quality filter has no bearing.",
   "gate_open": false,
   "failing_clauses": [
-    "whole-game differential / the same game on both engines"
+    "game differential",
+    "deliberate roster / items",
+    "deliberate roster / abilities",
+    "deliberate roster / moves",
+    "whole-game differential / BOARD-MATERIAL — games whose boards part",
+    "whole-game differential / NARRATION — protocol divergence with no board effect",
+    "mechanics / each one staged and compared against showdown",
+    "no open, known engine defect"
   ],
   "quarantined": [
     "_bench-headline.json",
@@ -23,7 +30,6 @@
     "_bench-scaling.json",
     "_scratch-bench-smoke.json",
     "ab-batch-effect.json",
-    "all-mechanics-fire.json",
     "brood.json",
     "censoring-value.json",
     "click-censoring-census.json",
@@ -44,13 +50,8 @@
     "leaf-position-contrast.json",
     "lookahead-cost.json",
     "mag.js",
-    "medicham-represented-clicks.json",
     "medicham-speed.json",
     "mew.js",
-    "million-run-150k.json",
-    "million-run-staged.json",
-    "million-run.json",
-    "open-work.json",
     "opponent-calibration.json",
     "opponent-recall.json",
     "partial-label-em.json",
@@ -58,10 +59,8 @@
     "policy-weights-joint.json",
     "policy-weights.json",
     "pp-board-probe.json",
-    "quarantine-stamp.json",
     "recall-at-k.json",
     "redirect-audit.json",
-    "register-reality.json",
     "replay-differential-bo3-freezes.json",
     "replay-differential-bo3.json",
     "replay-differential-freezes.json",
@@ -77,11 +76,11 @@
     "rollout-switch-probe.json",
     "scoreboard.js",
     "scoreboard.json",
+    "search-decision-profile.json",
     "seed-source-audit.json",
     "sheet-channel-value.json",
     "speed-vs-pokeenv.json",
     "weight-multiplicity.json",
-    "whole-game-baseline.json",
     "winrate-backtest.json"
   ],
   "citation_sites": [
@@ -89,5 +88,5 @@
     "web/build-status.js",
     "web/publish-rule.js"
   ],
-  "generated": "2026-09-04T03:35:23.636Z"
+  "generated": "2026-09-10T23:44:15.041Z"
 }

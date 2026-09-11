@@ -185,7 +185,7 @@ function abilityUnreachable(id) {
     _legalAbilities = new Set();
     require(D('engine', 'showdown_path.js'));
     const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-    const DX = Dex.forFormat('gen9championsvgc2026regmb');
+    const DX = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
     const legal = (x) => x.exists && !x.isNonstandard && x.tier !== 'Illegal';
     for (const sp of DX.species.all()) {
       if (!legal(sp)) continue;
@@ -1334,8 +1334,10 @@ demoSource('WIRE 129 the attack-site roll knows WHO it is aimed at',
    * the one thing this claim is about: hand `hitChance` no defender at all. Every modifier that lives
    * on the target side — Bright Powder, Sand Veil, an evasion stage — then goes unread, and the
    * attacker-side control (Wide Lens) is unmoved, which is what separates the arms. */
-  [["          const _mvAcc=hitChance(m,tg,a.move.id,field,",
-    "          const _mvAcc=hitChance(m,null,a.move.id,field,   // reverted -- WIRE 129: the roll did not know its defender"]],
+  /* RE-AIMED 2026-09-10: the site declares `let` now, because a Flash Fire absorb elsewhere in the click can
+   * overwrite the number with Infinity (`absorbMakesClickSure`). The reversal is unchanged. */
+  [["          let _mvAcc=hitChance(m,tg,a.move.id,field,",
+    "          let _mvAcc=hitChance(m,null,a.move.id,field,   // reverted -- WIRE 129: the roll did not know its defender"]],
   (E) => {
     const at = (roll, stage) => hitOn(E, roll, 'hydropump', stage ? { stage } : null);
     const lens = at(0.85, (B) => { B.me.item = 'widelens'; }) > 0;   // attacker side: TRUE on both engines
@@ -2977,7 +2979,7 @@ const W6 = {
     if (W6._pass) return W6._pass;
     require(D('engine', 'showdown_path.js'));
     const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-    const DX = Dex.forFormat('gen9championsvgc2026regmb');
+    const DX = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
     const legal = (x) => x.exists && !x.isNonstandard && x.tier !== 'Illegal';
     const me = bare('incineroar'), foe = bare('garchomp');
     const found = [];

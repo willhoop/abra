@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-10T17:44:55.545Z",
- "engine_release": "3c2b2f9ac845",
- "engine_release_cut": "2026-09-10T17:37:21.211Z",
+ "generated": "2026-09-11T00:56:10.522Z",
+ "engine_release": "cee38e7e9891",
+ "engine_release_cut": "2026-09-11T00:43:56.465Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "dc8368438d90",
+  "engine/medicham2-browser.js": "f3e809de5d63",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "622482051bf4",
@@ -23,17 +23,17 @@
   "data/ability-blocks.json": "86741fd35452",
   "data/smogon-priors.json": "f2dc78cea6c5",
   "data/regulations.json": "6c1995e9a9fb",
-  "data/quality-filter.json": "3c733e7a0bfb",
+  "data/quality-filter.json": "36812acec7f8",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "44fd45e9e9ce",
-  "data/tags.json": "01aa85bf4e7f",
+  "data/abra-tags.js": "641f0dae1799",
+  "data/tags.json": "6477f8e2c3c0",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
   "engine/pp.js": "30b12a4ef623",
   "data/rollout-switch-census.json": "b599f8d581b5"
  },
- "release": "3c2b2f9ac845",
+ "release": "cee38e7e9891",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -55415,7 +55415,7 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 76
    },
-   "seconds": 5.6
+   "seconds": 6
   },
   "abilities": {
    "exist": 316,
@@ -55432,7 +55432,7 @@
    "diverged_including_shelved": 2,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 10
+   "seconds": 10.4
   },
   "then_what": {
    "rows": 64,
@@ -55458,7 +55458,7 @@
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 4.9
+   "seconds": 5.8
   },
   "board_state": {
    "rows": 15,
@@ -56031,8 +56031,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "3c2b2f9ac845",
-    "roster_generated": "2026-09-10T17:43:46.850Z",
+    "roster_release": "cee38e7e9891",
+    "roster_generated": "2026-09-11T00:55:17.249Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."

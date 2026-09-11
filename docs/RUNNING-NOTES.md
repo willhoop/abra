@@ -69,6 +69,13 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [6.5.0] — 2026-09-10 — the speed-tie corner arms' engine defects: Disguise's crit refusal, three accuracy roads, and a Flash Fire absorb; Encore registered, not fixed
+- **What changed.** `engine/medicham2-browser.js`, `engine/tag_dex.js` (`preventsCrit` params, new tag `absorbMakesClickSure`), `data/tags.json` + `data/abra-tags.js` rebuilt. Disguise refuses a crit only on the intact forme and never through a doll; it no longer absorbs a hit on its own Substitute; Parting Shot's pivot and Future Sight's payout roll accuracy; a Flash Fire absorb makes the rest of the click sure. Probes `tests/probe_disguise_crit.js`, `tests/probe_accuracy_roads.js` (red on the pre-fix release, green now, five knobs), `tests/probe_encore_pp_end.js` (read, `--assert`). Two instrument anchors re-aimed (`tests/roster.js`, `tests/probe_red_demo.js`). Releases `9c7e1f2710eb` (superseded), `ca2be14649f0`, `cee38e7e9891`.
+- **Measured.** Corner arms on `cee38e7e9891`: top-tie-first **12 of 961**, bottom-tie-first **11 of 961** board-material (`data/verification/game-differential-top-tie-first.json`, `data/verification/game-differential-bottom-tie-first.json`, n=961), exactly the eight identified seeds gone and none new. Middle arm 0 of 961 (`data/game-differential.json`); damage differential 0 of 6,000 (`data/engine-diff.json`); roster 0 FIRED-AND-BOARDS-DIFFER, 0 DID-NOT-FIRE on all three stages (`data/roster.{items,abilities,moves}.json`); gate OPEN, 9 of 9 (`engine/quarantine.js`). Census **839** live, 0 missing (`data/mechanics-census.json`).
+- **Basis.** unchanged.
+- **Supersedes.** The current corner reading: 16 and 15 of 961 remain true of `data/verification/gd-{top,bottom}-tie-first-2026-09-10.json` on `cbd510bc2b13`, which the living documents cite; not retracted. Census 835 → 839 live.
+- **Owed to the next major.** `docs/ABRA-whitepaper.md`, `docs/ABRA-technical-docs.md` and `docs/SUMMARY.md` take the new corner reading; ROADMAP #580 (Encore at 0 PP) is open. Full account: `docs/_reports/2026-09-10-corner-fixes.md`.
+
 ## [6.2.0] — 2026-09-10 — a published figure may no longer cite a release that is not in the repository, and two instruments stop asserting the volley loop is uncompared
 
 - **What changed.** Three MEASURE items, no engine byte touched. (1) `engine/provenance.js` gains RULE 5:

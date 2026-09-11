@@ -1,0 +1,54 @@
+{
+  "written": "2026-09-10",
+  "by": "ENGINE division, before any engine byte moved for this batch",
+  "question": "How many of the corner arms' board-material games (top-tie-first 16 of 961, bottom-tie-first 15 of 961 on release 8ac9c4d888f1, --games 1200 --turns 50 --steering empirical --end-state --team-store data/team-pool-frozen) does each fix remove?",
+  "baseline_note": "The 16 / 15 were measured on 8ac9c4d888f1. The pre-fix engine today is 3c2b2f9ac845 (the live medicham2-browser.js equals it with line endings ignored). ENGINE.md records cbd510bc2b13 as unmoving the corners and 3c2b2f9ac845 as moving no whole-game figure, so the prediction assumes the pre-fix baseline on today's engine is still 16 / 15. It is re-measured before the first fix is judged; if it is not 16 / 15 the deltas below are read against the re-measured baseline instead.",
+  "identified_before_the_fix": {
+    "mimikyu_busted_crit": {
+      "arm": "bottom-tie-first",
+      "games": [
+        "baseline gen9championsvgc2026regmbbo3-2658446009 vs gen9championsvgc2026regmbbo3-2658516709",
+        "omit-spread gen9championsvgc2026regmbbo3-2656940771 vs gen9championsvgc2026regmbbo3-2656933790",
+        "omit-spread gen9championsvgc2026regmbbo3-2659986881 vs gen9championsvgc2026regmbbo3-2660067024",
+        "pair-protect-bust gen9championsvgc2026regmbbo3-2655157363 vs gen9championsvgc2026regmbbo3-2655222311"
+      ],
+      "how": "engine/replay_one.js on 8ac9c4d888f1: every one is a |detailschange| to Mimikyu-Busted followed by the authority's |-crit| on that body, where medicham2 wrote the hit with no crit. None is the doll or the volley case.",
+      "also_protocol_only": "omit-intimidate gen9championsvgc2026regmbbo3-2635223573 vs gen9championsvgc2026regmbbo3-2635335327 (|-crit|p2a: Mimikyu <> |-damage|; not in the board list)"
+    },
+    "parting_shot_accuracy": {
+      "arm": "top-tie-first",
+      "games": ["omit-protect gen9championsvgc2026regmbbo3-2634132571 vs gen9championsvgc2026regmbbo3-2635990839"],
+      "how": "replay_one: Incineroar Parting Shot into a Bright Powder Whimsicott; the authority writes |-miss|, medicham2 drops the stats and pivots"
+    },
+    "future_sight_landing_accuracy": {
+      "arm": "top-tie-first",
+      "games": ["omit-protect gen9championsvgc2026regmbbo3-2657333637 vs gen9championsvgc2026regmbbo3-2657252654"],
+      "how": "replay_one: Reuniclus's Future Sight lands on a Bright Powder Talonflame; the authority writes |-miss|p2: Reuniclus|p1a: Talonflame, medicham2 KOs it"
+    },
+    "heat_wave_pair_low_confidence": {
+      "arm": "top-tie-first",
+      "games": [
+        "baseline gen9championsvgc2026regmbbo3-2659430913 vs gen9championsvgc2026regmbbo3-2659495931",
+        "omit-intimidate gen9championsvgc2026regmbbo3-2655570367 vs gen9championsvgc2026regmbbo3-2655647168"
+      ],
+      "how": "medicham2 misses a Charizard Heat Wave the authority lands; cause not yet read. Not fixed unless a dumped accuracy input names the rule."
+    },
+    "encore_probe_only": {
+      "arm": "top-tie-first",
+      "games": 5,
+      "how": "four `|-end|<mon>|Encore` <> `|upkeep` cards plus omit-weather 2661290217 (an Encored Incineroar: the authority repeats Flare Blitz, medicham2 clicks Parting Shot). Not fixed in this batch."
+    }
+  },
+  "prediction": {
+    "after_mimikyu": {
+      "bottom_tie_first": { "point": 11, "interval": [11, 12], "why": "the four busted-crit games leave; a fixed game can part later for an unrelated reason, so one may transfer" },
+      "top_tie_first": { "point": 16, "interval": [16, 16], "why": "no crit die lands on the top corner, so the fix cannot reach it" },
+      "middle": { "point": 0, "interval": [0, 0], "why": "the middle arm is 0 of 961 and a correct fix cannot part a board there" }
+    },
+    "after_accuracy_roads": {
+      "top_tie_first": { "point": 14, "interval": [14, 15], "why": "Parting Shot and Future Sight each remove one; either may transfer" },
+      "bottom_tie_first": { "point": 11, "interval": [11, 12], "why": "every accuracy check hits on the bottom corner, so neither road can move it" },
+      "middle": { "point": 0, "interval": [0, 0], "why": "unchanged unless a real Bright Powder / evasion Parting Shot or Future Sight landing is in the middle-arm sample, which would then be a newly AGREEING game, not a parted one" }
+    }
+  }
+}

@@ -139,17 +139,12 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  835/835 probed mechanics live, 0 missing   (census 2026-09-10 14:32)
-    the census probes what somebody thought to probe: 285 of 301 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 1.2 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-10 13:54)
-    seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
-    the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
-    Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
-    multiHit tag were drawn; 3 were never drawn at all (bonerush, doublehit, tailslap) — never drawn is a SAMPLING
-    gap, not an exclusion.
-    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
-    a differential hit is NOT in the census count above — the census probes what someone thought to probe
+  839/839 probed mechanics live, 0 missing   (census 2026-09-10 21:32)
+    the census probes what somebody thought to probe: 286 of 302 tags carry a probe, 16 carry none; 67 mechanics have
+    never fired in the staged harness (all-mechanics-fire.json, 1.1 h old). node engine/coverage.js
+  differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/cee38e7e9891/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "cee38e7e9891".
+    it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     older than its input engine-data.js
@@ -160,14 +155,56 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 79cef9b5cfda now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 285/301 probed, 16 unprobed;  278/301 have an engine consumer, 23 have none
+  tag coverage: 286/302 probed, 16 unprobed;  280/302 have an engine consumer, 22 have none
     a tag with no consumer is derived and read by nothing — engine/tag_dex.js greps board.js and
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-10 14:54_
+_stamped 2026-09-10 21:59_
 
 <!-- /GENERATED -->
+
+## THE SPEED-TIE CORNER ARMS' ENGINE DEFECTS ARE FIXED BUT ONE — **TOP 16 → 12 OF 961, BOTTOM 15 → 11 OF 961**, EXACTLY THE EIGHT IDENTIFIED GAMES GONE AND NONE NEW. DISGUISE'S CRIT REFUSAL WAS THE ABILITY'S AND IS NOW THE HANDLER'S; PARTING SHOT, FUTURE SIGHT'S PAYOUT AND A FLASH FIRE ABSORB TAKE STEP 4 THE AUTHORITY'S WAY. ENCORE AT 0 PP IS PROBED AND REGISTERED, NOT FIXED. GATE **OPEN, 9 OF 9**; CENSUS **839 LIVE**. RELEASES `ca2be14649f0`, `cee38e7e9891`. 2026-09-10, CHANGELOG 6.5.0
+
+Full account, every pin and every seed: [docs/_reports/2026-09-10-corner-fixes.md](_reports/2026-09-10-corner-fixes.md).
+ROADMAP #580 (open), #581 and #582 (closed).
+
+**BATCHES OF ONE, AND THE SEED DIFF IS THE ATTRIBUTION.** Batch 1 (Disguise, `ca2be14649f0`) moved the
+bottom corner 15 → 11 and the top not at all; batch 2 (the accuracy roads, `cee38e7e9891`) moved the top
+16 → 12 and the bottom not at all. Each run's departed seeds are exactly the games replayed and named before
+the fix, and no new game parted. Predicted in writing first
+(`data/verification/_prediction-2026-09-10-corner-fixes.json`): bottom 11 — hit; top 14 for the two roads —
+12 measured, the extra two being the Heat Wave pair, whose rule was named after the prediction was written.
+
+**THE HEAT WAVE PAIR WAS LOW CONFIDENCE AND THE DUMP SETTLED IT.** Wrapping the authority's
+`hitStepAccuracy` showed both games reaching step 4 with `accuracy true` and no draw: Ceruledge's Flash Fire
+had written `move.accuracy = true` onto the shared ActiveMove at step 1. A derived tag
+(`absorbMakesClickSure`, Flash Fire only) and a click-level flag in the step-major walk.
+
+**THE PROBE FOUND A SECOND DISGUISE DEFECT AND IT WENT INTO THE SAME BATCH.** The DOLL arm's board parted
+after the crit fix: `formeOnHitAbsorbs` never asked `subBlocks`, so a hit on Mimikyu's Substitute was priced
+at zero. The first cut (`9c7e1f2710eb`) was superseded before it was measured.
+
+**TWO INSTRUMENTS PLANTED ON TEXT THE FIX REWROTE.** `tests/roster.js`'s `ability/refuses-a-crit` break
+matched nothing (`anchor_dead`), and that alone shut the gate's abilities clause at 8 of 9; re-aimed, 9 of 9.
+`tests/probe_red_demo.js` WIRE 129 likewise. A source-text plant is a dependency on the line, and a fix that
+rewrites the line owes the plant.
+
+**MY OWN PROBES WERE WRONG THREE TIMES BEFORE THE ENGINE WAS.** The accuracy probe copied another probe's
+`Iron Defense`/`Amnesia` filler, which the validator refuses; then read ids as objects; the Encore probe
+assumed a 5-PP slot holds 5 (it holds `pp × 8/5` = 8) and then took the lowest PP over every legal move.
+Each failed as NOT STAGED, loudly.
+
+### The hand list
+
+**Leaving it:** nothing from the lists below — the three fixed clusters arrived as corner-arm cards, were
+never on a hand list, and leave as four census rows (`preventsCrit`, `absorbMakesClickSure`, `pivotStatus`,
+`delayedHit`) and two probe files.
+
+**Joining it:** Encore's early end at 0 PP (ROADMAP #580; `tests/probe_encore_pp_end.js --assert` is red);
+the fifth Encore-grouped corner game (`…2661290217`), never staged; a volley that breaks the doll on arrival 1
+and meets the disguise on arrival 2 (named in `formeOnHitAbsorbs`, not modelled); step 0 on Future Sight's
+payout road (a semi-invulnerable collector), still unmodelled.
 
 ## THE DAMAGE DIFFERENTIAL NEVER APPLIED A MULTI-HIT MOVE, SO **`0 OF 6000` WAS A CLAIM ABOUT SINGLE-HIT MOVES** AND HAD BEEN QUOTED AS GENERAL EVIDENCE OF DAMAGE CORRECTNESS. THE AUTHORITY'S OWN HIT LOOP IS WIRED IN: `skipped_multihit` **134 → 0**, `skipped_ability_multihit` **17 → 0**, **142 OF 6,000 ROWS NOW RUN AS VOLLEYS**, AND `disagreed` STAYS **0 OF 6000** AT THE MIDPOINT, AT BOTH CORNERS AND AT ALL FOURTEEN INTERIOR INDICES. ONE ENGINE DEFECT FOUND AND FIXED ON THE WAY. CENSUS **835 LIVE / 835 PROBED / 0 MISSING**, UNMOVED. WHOLE-GAME **BOARD-MATERIAL 0 OF 961**, UNMOVED. GATE **OPEN**. RELEASE `3c2b2f9ac845`. 2026-09-10, CHANGELOG 6.1.0
 

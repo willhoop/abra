@@ -10,6 +10,51 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.5.0] — 2026-09-10
+
+### Fixed
+- **Disguise refused a crit for every holder.** `disguise.onCriticalHit` refuses only while the body is the
+  intact species and never through a Substitute; `critChance` read `preventsCrit` off the ability alone, so a
+  busted Mimikyu was never crit. `engine/tag_dex.js` now derives `conditional` / `onlySpecies` /
+  `notThroughSub` from the handler, and a volley's arrivals after the forme break are asked separately.
+  Bottom speed-tie corner **15 → 11 of 961**, exactly the four busted-Mimikyu games.
+- **Disguise absorbed a hit that landed on its own Substitute** (`dmgRange` priced the doll's hit at zero).
+  Found by the new probe's DOLL arm; no pool game stages it.
+- **Parting Shot's pivot and Future Sight's payout never rolled accuracy**, so Bright Powder, Sand Veil,
+  Snow Cloak and evasion stages were ignored on both roads. Future Sight's `-miss` names an off-field booker
+  side-only (`p2: Reuniclus`), as the authority does.
+- **A Flash Fire absorb did not make the rest of the click sure.** Its `onTryHit` writes `move.accuracy =
+  true` on the click's shared move (read off the authority's `hitStepAccuracy`); new derived tag
+  `absorbMakesClickSure`, membership Flash Fire only. Top corner **16 → 12 of 961**, exactly the Parting
+  Shot, Future Sight and two Heat Wave games.
+
+### Added
+- `tests/probe_disguise_crit.js`, `tests/probe_accuracy_roads.js` — red on the pre-fix release, green on
+  `cee38e7e9891`; knobs `MEDI_PREVENTSCRIT_ABILITY_ONLY`, `MEDI_FORMEONHIT_THROUGH_DOLL`,
+  `MEDI_PIVOT_NO_ACCURACY`, `MEDI_DELAYED_HIT_NO_ACCURACY`, `MEDI_ABSORB_ACC_LOCAL`.
+- `tests/probe_encore_pp_end.js` — reads whether Encore ends at 0 PP (`--assert` exits 1 while it does not).
+- Four census rows; `data/mechanics-census.json` **835 → 839** live, 0 missing.
+
+### Changed
+- `tests/roster.js` (rule `ability/refuses-a-crit`) and `tests/probe_red_demo.js` (WIRE 129) re-aimed at the
+  rewritten source lines. The dead roster plant had shut the gate's abilities clause; the gate is **OPEN, 9 of
+  9**, on `cee38e7e9891`.
+
+### Notes
+- **Encore is probed, not fixed** — the authority ends it when the encored move reaches 0 PP and this engine
+  does not; the formatting reading is refuted. ROADMAP #580. The next `engine/register_reality.js` refresh
+  will read its instrument red and the open-defect clause will then fail.
+- Releases cut: `9c7e1f2710eb` (superseded), `ca2be14649f0`, `cee38e7e9891` — untracked. Full account:
+  `docs/_reports/2026-09-10-corner-fixes.md`.
+
+### Notes
+- **A correction to 6.0.0's wording, recorded here rather than by editing a released entry.** 6.0.0 says the
+  speed-tie corner arms were "measuring for the first time since 2026-09-10". They were not new: they ran
+  for months as the DEFAULT arms. What was first on 2026-09-10 is a BOARD-MATERIAL reading of a corner on
+  the empirical driver. The older corner figure in `engine/game_differential.js:1752` ("2 of 155", "0 of
+  183") counts one protocol message class, not boards, so it is not a baseline for this one either way.
+  On the current driver the corners now read 12 and 11 of 961.
+
 ## [6.4.1] — 2026-09-10
 
 ### Fixed

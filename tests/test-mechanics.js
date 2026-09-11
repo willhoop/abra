@@ -7846,6 +7846,24 @@ probe('ability', 'weatherSetter', 'an entry SPEED TIE is broken by the selection
 /* ARMED, 2026-08-06. The control is Snarl — another status click aimed at the same foe that drops
  * the same stat and does NOT pivot. "The bench body is on the field" is what an engine that swapped
  * on every status move would print too, and that engine loses a game a turn. */
+/* 2026-09-10 -- THE PIVOT ROAD ROLLS STEP 4. It ran the shield, the try-hit refusals and the move-class block
+ * and then dropped and pivoted, with no `hitStepAccuracy` at all. At rng 0.99 a printed 100 still lands
+ * (the authority draws and 99 < 100), and Bright Powder's 0.9 makes it miss: the drop must land on the bare
+ * body and NOT on the powdered one. One top-corner game on the pinned pool (tests/probe_accuracy_roads.js). */
+probe('move', 'pivotStatus', 'Parting Shot rolls accuracy — through Bright Powder it misses and drops nothing', () => {
+  const run = (item) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'snorlax', 'garchomp');
+    f1.item = item;
+    M.battleTurn(S, rngLose, new Map([[me, M.playerAction(me, 'partingshot', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return f1.boosts.at;
+  };
+  const control = run(''), test = run('brightpowder');
+  return { works: control === -1 && test === 0, arms: { control: [control], test: [test] },
+           detail: 'the target\'s Attack stage after Parting Shot at rng 0.99 — bare ' + control + ', holding Bright Powder '
+                 + test + ' (must be -1, then 0)' };
+});
+
 probe('move', 'pivotStatus', 'Parting Shot switches the user out', () => {
   const run = (mv) => {
     const me = bare('incineroar'), ally = bare('corviknight'), bench = bare('milotic');
@@ -10521,6 +10539,45 @@ probe('ability', 'preventsCrit', 'Shell Armor takes the guaranteed crit off Flow
            arms: { control, test },
            detail: `[Flower Trick (always crits), Knock Off (cannot crit at rng 0.99)] — no ability `
                  + `${control}, Shell Armor ${test} (only the certain crit may move)` };
+});
+
+/* 2026-09-10 -- DISGUISE'S REFUSAL IS THE HANDLER'S, NOT THE ABILITY'S. `disguise.onCriticalHit`
+ * (data/abilities.ts:969-979, inherited by Champions) refuses a crit only while the body IS `mimikyu` and
+ * the hit is not on a Substitute; this engine refused it for every Disguise holder, so a busted Mimikyu
+ * was never crit (four bottom-corner games on the pinned pool; tests/probe_disguise_crit.js).
+ * THE DIE IS HANDED PER CATEGORY so only the crit draw differs between arms: the same busted body, the
+ * same click, the same damage index. BASE is no crit; TEST is a crit die on a Disguise holder, which must
+ * land; CONTROL is the same crit die on a Shell Armor holder, which must still be refused and read BASE. */
+probe('ability', 'preventsCrit', 'Disguise refuses a crit on the INTACT forme only — a busted Mimikyu is crit, a Shell Armor one is not', () => {
+  const die = (crit) => ({ any: () => 0.5, acc: () => 0, crit: () => crit, sec: () => 0.999, dmg: () => 0.5,
+                           stall: () => 0.999, tie: () => 0, split: true, seed: null });
+  const hit = (ab, crit) => turnDamageBig(['meowscarada', 'corviknight', 'mimikyu-busted', 'milotic'],
+    (B) => { B.f1.ability = ab; B.f1.item = ''; }, 'knockoff', die(crit));
+  const base = hit('disguise', 0.999), test = hit('disguise', 0), control = hit('shellarmor', 0);
+  return { works: base > 0 && test > base && control === base,
+           arms: { control: [control], test: [test] },
+           detail: 'Knock Off into a BUSTED Mimikyu — no crit ' + base + ', crit die on Disguise ' + test
+                 + ', crit die on Shell Armor ' + control + ' (the Disguise arm must crit, the Shell Armor arm must not)' };
+});
+
+/* 2026-09-10 -- `absorbMakesClickSure`. Flash Fire's `onTryHit` writes `move.accuracy = true` on the click's
+ * one ActiveMove before it returns null, and the step list is step-major, so the PARTNER of the absorber is
+ * hit with no accuracy roll at all. At rng 0.99 Heat Wave's 90 misses; the CONTROL is the same Arcanine
+ * carrying Justified, which has no opinion about a Fire hit, and there the partner must be missed. Two
+ * top-corner games on the pinned pool were exactly this (tests/probe_accuracy_roads.js, arm HW-FLASHFIRE). */
+probe('ability', 'absorbMakesClickSure', 'a Flash Fire absorb makes the rest of a spread Fire click unmissable', () => {
+  const run = (ab) => {
+    const { me, ally, f1, f2, S } = board('charizard', 'corviknight', 'arcanine', 'snorlax');
+    f1.ability = ab; unfaintable(f2);
+    const before = f2.curHP;
+    M.battleTurn(S, rngLose, new Map([[me, M.playerAction(me, 'heatwave', null, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return before - f2.curHP;
+  };
+  const control = run('justified'), test = run('flashfire');
+  return { works: control === 0 && test > 0, arms: { control: [control], test: [test] },
+           detail: 'the partner\'s HP lost to Heat Wave at rng 0.99 (90 misses) — beside a Justified Arcanine '
+                 + control + ', beside a Flash Fire Arcanine ' + test + ' (must be 0, then more than 0)' };
 });
 
 /* ARMED, 2026-08-04. `0 / 0` on its own is also what a probe reads off two bodies whose stages were
@@ -28056,6 +28113,30 @@ probe('move', 'delayedHit', 'Future Sight books the hit and lands it TWO turns l
                  + `${JSON.stringify(seq)} — must be 0, 0, a hit, 0.  The click turn moves NOTHING; `
                  + 'the later clicks FAIL because the slot already holds one; and only the third turn '
                  + 'pays out, which is the end of the SECOND turn after the booking' };
+});
+
+/* 2026-09-10 -- THE PAYOUT ROLLS STEP 4. `futuremove.onEnd` pays out through `trySpreadMoveHit`, so
+ * `hitStepAccuracy` runs on it; this engine's payout said so in a comment and never rolled. At rng 0.99 the
+ * printed 100 still lands and Bright Powder's 0.9 misses: the bare collector must lose HP and the powdered
+ * one must lose none. One top-corner game on the pinned pool (tests/probe_accuracy_roads.js). */
+probe('move', 'delayedHit', 'the payout rolls accuracy — Bright Powder on the collector makes it miss', () => {
+  const run = (item) => {
+    const B = board('alakazam', 'incineroar', 'garchomp', 'milotic');
+    B.me.moves = ['futuresight']; unfaintable(B.f1); B.f1.item = item;
+    let lost = 0;
+    for (let i = 0; i < 3; i++) {
+      const before = B.f1.curHP;
+      M.battleTurn(B.S, rngLose,
+        new Map([[B.me, M.playerAction(B.me, 'futuresight', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+        PASS2(B.f1, B.f2));
+      lost += before - B.f1.curHP;
+    }
+    return lost;
+  };
+  const control = run(''), test = run('brightpowder');
+  return { works: control > 0 && test === 0, arms: { control: [control], test: [test] },
+           detail: 'HP off the collector over the three turns at rng 0.99 — bare ' + control + ', holding Bright Powder '
+                 + test + ' (must be more than 0, then 0)' };
 });
 
 /* ================================================================================================

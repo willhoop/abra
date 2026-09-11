@@ -7783,8 +7783,12 @@ const RULES = [
      + 'damage number. The carrier, the click and the control are chosen together so that neither the '
      + 'type chart nor the control ability can shrink or fake that gap.',
   break: { why: 'the crit refusal is skipped, so the armoured body takes the crit like anything else',
-    patch: [["if(defAbility&&TAGS.param('ability',defAbility,'preventsCrit'))return 0;",
-             "if(false&&defAbility&&TAGS.param('ability',defAbility,'preventsCrit'))return 0;"]] },
+    /* 2026-09-10 -- RE-AIMED. `critChance` now reads the tag into `_pc` and asks `critRefusedBy` (Disguise's
+     * refusal carries conditions; Shell Armor's and Battle Armor's do not), so the old one-line anchor matched
+     * NOTHING and the plant went dead -- `anchor_dead: true` on release cee38e7e9891, which shut the
+     * abilities clause. `false&&` on the new line skips every refusal, exactly what the old plant did. */
+    patch: [["if(_pc&&critRefusedBy(_pc,moveId,att,defBody,opts))return 0;",
+             "if(false&&_pc&&critRefusedBy(_pc,moveId,att,defBody,opts))return 0;"]] },
   match(e) {
     if (e.onCriticalHit !== false) return null;
     const crits = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.willCrit

@@ -7716,9 +7716,72 @@ const ABILITY_TAGS = [
     why: 'Unaware, 172 uses. Ignores the opponent stat stages in BOTH directions, so their setup is '
        + 'worthless and so is yours. Same parameter Darkest Lariat sets for one move',
     of: a => a.onAnyModifyBoost ? { ignores: 'all opposing stages' } : null },
-  { tag: 'preventsCrit', param: 'P(crit) = 0', probe: 'onCriticalHit',
-    why: 'Shell Armor and Battle Armor. Turns Flower Trick from a guaranteed crit into an ordinary hit',
-    of: a => a.onCriticalHit !== undefined ? { pCrit: 0 } : null },
+  /* 2026-09-10 -- THE REFUSAL IS A HANDLER, AND TWO OF ITS FOUR MEMBERS ANSWER A QUESTION FIRST.
+   *
+   * `{ pCrit: 0 }` was the whole param for every member, and it is right for exactly two of them:
+   * Shell Armor and Battle Armor carry the LITERAL `onCriticalHit: false`, which refuses every crit.
+   * Disguise carries a FUNCTION (data/abilities.ts:969-979, not overridden by the Champions mod):
+   *     if (!['mimikyu', 'mimikyutotem'].includes(target.species.id)) return;   <- the busted forme
+   *     const hitSub = target.volatiles['substitute'] && !move.flags['bypasssub'] && ...;
+   *     if (hitSub) return;                                                    <- a doll
+   *     if (!target.runImmunity(move)) return;
+   *     return false;
+   * so a busted Mimikyu, a Mimikyu behind its Substitute and arrivals 2+ of a volley (the forme
+   * changes between hits) ARE crit. The engine read the ability alone; the pinned pool's bottom corner
+   * held four board-material games that were exactly the busted case.
+   *
+   * THE CONDITIONS ARE READ OFF THE HANDLER'S SOURCE, never typed: the species list out of the
+   * `[...].includes(target.species.id)` literal (or a single `species.id !== '…'`), the doll clause
+   * out of `volatiles['substitute']`, a category gate out of `move.category !== '…'`. `conditional`
+   * is ALWAYS written, true or false, so a consumer can tell a member this derivation read from one
+   * it never saw -- an absent key means an artifact older than this rule, and the engine counts that
+   * rather than guessing. A function whose shape none of the three patterns matches is written as
+   * `conditional: true, unparsed: true`, which the engine also counts.
+   *
+   * MEMBERSHIP PRINTED BEFORE THIS WAS WIRED (the LESSONS §4 rule): over the format, Battle Armor and
+   * Shell Armor are `false` literals; Disguise is the one legal function; Ice Face is the other
+   * function upstream and has no legal carrier (Eiscue is `isNonstandard: 'Past'`). */
+  { tag: 'preventsCrit', param: 'P(crit) = 0, unconditionally or under the handler\'s own conditions', probe: 'onCriticalHit',
+    why: 'Shell Armor and Battle Armor always; Disguise only on the intact forme and never through a Substitute. '
+       + 'Turns Flower Trick from a guaranteed crit into an ordinary hit',
+    of: a => {
+      if (a.onCriticalHit === undefined) return null;
+      if (typeof a.onCriticalHit !== 'function') return { pCrit: 0, conditional: false };
+      const src = String(a.onCriticalHit);
+      const out = { pCrit: 0, conditional: true };
+      const list = src.match(/\[([^\]]*)\]\.includes\(\s*target\.species\.id\s*\)/);
+      const one = src.match(/target\.species\.id\s*!==\s*["']([a-z0-9]+)["']/);
+      if (list) out.onlySpecies = (list[1].match(/["']([a-z0-9]+)["']/g) || []).map(s => s.slice(1, -1));
+      else if (one) out.onlySpecies = [one[1]];
+      if (/volatiles\[\s*["']substitute["']\s*\]/.test(src)) out.notThroughSub = true;
+      const cat = src.match(/move\.category\s*!==\s*["'](\w+)["']/);
+      if (cat) out.onlyCategory = cat[1];
+      if (!out.onlySpecies && !out.notThroughSub && !out.onlyCategory) out.unparsed = true;
+      return out;
+    } },
+  /* 2026-09-10 -- AN ABSORB THAT MAKES THE REST OF THE CLICK UNMISSABLE.
+   *
+   * Flash Fire's `onTryHit` writes `move.accuracy = true` BEFORE it returns null (data/abilities.ts; no
+   * Champions override). `move` is the click's one ActiveMove, shared by every target, and `moveSteps` is
+   * step-major: TryHit (step 1) runs for every target before `hitStepAccuracy` (step 4) runs for any. So a
+   * Heat Wave into a Flash Fire body and a partner lands on the partner with NO accuracy roll at all --
+   * `let accuracy = move.accuracy` is `true`, Bright Powder's handler ignores a non-number, and
+   * `randomChance` is never called. Read off the authority with `hitStepAccuracy` wrapped: both top-corner
+   * Heat Wave cards on the pinned pool (…2659430913, …2655570367) reached step 4 with `accuracy true`.
+   *
+   * DERIVED ON THE ASSIGNMENT, not on a name: any `onTryHit` that sets `move.accuracy = true`. MEMBERSHIP
+   * PRINTED BEFORE THIS WAS WIRED, over the legal format: Flash Fire, and nothing else. `onType` is the
+   * type the handler gates on (`move.type === '…'`), read off the same source. */
+  { tag: 'absorbMakesClickSure', param: 'after this ability absorbs the click at TryHit, every other target of the SAME click skips its accuracy roll',
+    probe: 'absorbMakesClickSure',
+    why: 'Flash Fire. A spread Fire move into a Flash Fire body and a partner lands on the partner without rolling, '
+       + 'because the handler writes move.accuracy = true on the shared ActiveMove',
+    of: a => {
+      const src = String(a.onTryHit || '');
+      if (!/move\.accuracy\s*=\s*true/.test(src)) return null;
+      const ty = src.match(/move\.type\s*===\s*["'](\w+)["']/);
+      return { onType: ty ? ty[1] : null };
+    } },
   /* {sets:true} named neither WHICH weather nor which terrain — the boolean-instead-of-parameter
    * defect, found again when Will listed the real switch-in threats ("weather, type immunities, or
    * farigaraf blocking prio") and none of the three carried a consumable value. */

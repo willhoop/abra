@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-10T18:32:19.981Z",
+  "generated": "2026-09-11T01:32:04.540Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 835,
-  "live": 835,
+  "probed": 839,
+  "live": 839,
   "missing": 0,
-  "armed": 835,
+  "armed": 839,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -1811,6 +1811,16 @@
     {
       "kind": "move",
       "tag": "pivotStatus",
+      "label": "Parting Shot rolls accuracy — through Bright Powder it misses and drops nothing",
+      "live": true,
+      "detail": "the target's Attack stage after Parting Shot at rng 0.99 — bare -1, holding Bright Powder 0 (must be -1, then 0)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "pivotStatus",
       "label": "Parting Shot switches the user out",
       "live": true,
       "detail": "active side A after the turn — after Charm incineroar,corviknight (the user must stay); after Parting Shot milotic,corviknight",
@@ -2604,6 +2614,26 @@
       "label": "Shell Armor takes the guaranteed crit off Flower Trick and leaves an ordinary move alone",
       "live": true,
       "detail": "[Flower Trick (always crits), Knock Off (cannot crit at rng 0.99)] — no ability 123,76, Shell Armor 82,76 (only the certain crit may move)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "preventsCrit",
+      "label": "Disguise refuses a crit on the INTACT forme only — a busted Mimikyu is crit, a Shell Armor one is not",
+      "live": true,
+      "detail": "Knock Off into a BUSTED Mimikyu — no crit 79, crit die on Disguise 120, crit die on Shell Armor 79 (the Disguise arm must crit, the Shell Armor arm must not)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "absorbMakesClickSure",
+      "label": "a Flash Fire absorb makes the rest of a spread Fire click unmissable",
+      "live": true,
+      "detail": "the partner's HP lost to Heat Wave at rng 0.99 (90 misses) — beside a Justified Arcanine 0, beside a Flash Fire Arcanine 73 (must be 0, then more than 0)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4033,7 +4063,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 26.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.3% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7249,6 +7279,16 @@
       "directCall": false
     },
     {
+      "kind": "move",
+      "tag": "delayedHit",
+      "label": "the payout rolls accuracy — Bright Powder on the collector makes it miss",
+      "live": true,
+      "detail": "HP off the collector over the three turns at rng 0.99 — bare 157, holding Bright Powder 0 (must be more than 0, then 0)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "ability",
       "tag": "buffsHolderOnHit",
       "label": "Anger Point takes a guaranteed crit to +6 Attack",
@@ -7783,7 +7823,7 @@
       "tag": "pivotStatus",
       "label": "a frozen body clicking a PIVOT move is refused like any other move — the pivot is a move, not a switch",
       "live": true,
-      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 53 to 55",
+      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 55 to 57",
       "hollow": false,
       "armed": true,
       "directCall": false
