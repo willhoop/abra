@@ -44,6 +44,14 @@ reads SemVer 2.0.0 clauses 6, 7 and 8 against an API that is the figures this pr
 Copy this shape. Four lines is a good row; a paragraph is a report and belongs in `docs/_reports/`.
 
 ```
+## [6.12.2] — 2026-09-11 — the optimization pass is planned from a profile, and skipping narration in rollouts would save nothing
+
+- **What changed.** Added a profiling script and summaries under `data/verification/opt-plan-2026-09-11/` and the plan for ROADMAP #130. No engine code changed.
+- **Measured.** Release 13257c8bc397, 300 pinned-pool rollout games per phase, reported as shares of samples: `battleTurn`'s own body 18.1% (it deoptimises repeatedly on changing object shapes), tag lookup in `engine/tags.js` 16.9% (half of it one regex re-normalising ids), speed recomputation 13.0%. The protocol trace is already off in rollouts, so a narration-skipping mode would save nothing. Detail: `docs/_reports/2026-09-11-opt-plan.md`.
+- **Supersedes.** Nothing.
+- **Basis.** unchanged.
+- **Owed to the next major.** None. Owed as work: the before/after equivalence harness (the plan's first batch), then cached id normalisation, stable shapes for `battleTurn`, and a membership index for tag lookups, each admitted only through that harness.
+
 ## [6.12.1] — 2026-09-11 — seven instrument defects confirmed by tonight's new probes are fixed, including seven checks that exited zero after failing to stage
 
 - **What changed.** `engine/exit_codes.js` (new): one exit-code classifier, adopted by `engine/register_reality.js` and `engine/wire_ladder.js`. The mutation harness examines class-A siblings and counts mutated citations as skipped rather than scored, each behind a knob; `engine/quarantine.js`, `engine/divergence_report.js` and `engine/divergence_cards.js` fix the open-defect and card defects; seven COULD-NOT-STAGE paths across four probe files now report that they cannot answer instead of exiting 0. `data/mutation-coverage.json` is regraded by a new mode that plays no games.

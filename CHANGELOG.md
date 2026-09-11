@@ -10,6 +10,14 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.12.2] — 2026-09-11
+
+### Added
+- **A profile-based plan for the MEDICHAM optimization pass (#130).** A rollout turn spends its time in a
+  body that keeps deoptimising, in tag lookups that re-normalise ids on every call, and in speed
+  recomputation; skipping narration would save nothing because rollouts already run with it off. No
+  optimization lands until a before/after harness proves boards byte-identical.
+
 ## [6.12.1] — 2026-09-11
 
 ### Fixed

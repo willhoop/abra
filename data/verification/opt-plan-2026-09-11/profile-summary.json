@@ -1,0 +1,3174 @@
+{
+  "generated": "2026-09-11T11:09:47.247Z",
+  "by": "data/verification/opt-plan-2026-09-11/profile_turn.js (ENGINE, planning only)",
+  "what": "Share of CPU samples per function while playing rollout games (RL.runPlayout from a fresh battleInit), trace off (A1, A2) and trace on (B).",
+  "contended": "Machine busy; run under tools/lownode.cmd (BELOWNORMAL). Shares are the figures of record; absolute ms are CONTENDED.",
+  "engine_release": "13257c8bc397",
+  "engine_release_cut": "2026-09-11T09:25:57.830Z",
+  "engine_release_cuts": 25,
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "source_digests": {
+    "engine/medicham2-browser.js": "4da5525e6d7c",
+    "engine/board.js": "c85a3b756c98",
+    "engine/rollout_leaf.js": "d00e77a7ac26",
+    "engine/position_features.js": "622482051bf4",
+    "engine/tags.js": "145a3cc9ce2f",
+    "engine/champions_sim.js": "5e5d21bf1fb1",
+    "data/residual-order.json": "eff160ad1c5a",
+    "data/switchin-order.json": "24a007a66b7d",
+    "engine/mc_key.js": "f57c27a6bf38",
+    "engine/lookup.js": "17f49e5aed43",
+    "engine/set_priors.js": "f8a81445ee3a",
+    "engine/smogon_priors.js": "5c039f9ebdbc",
+    "engine/quality.js": "c6de8fb66ea3",
+    "engine/showdown_path.js": "0efe29f4245d",
+    "data/move-effects.js": "f35ecd91ba86",
+    "data/ability-blocks.json": "86741fd35452",
+    "data/smogon-priors.json": "f2dc78cea6c5",
+    "data/regulations.json": "6c1995e9a9fb",
+    "data/quality-filter.json": "771c3bd3e544",
+    "data/engine-data.js": "bbc417dfae0e",
+    "data/abra-tags.js": "aee4c5d28405",
+    "data/tags.json": "2e0f2c702e0f",
+    "data/policy-weights.json": "626c1d240782",
+    "data/policy-weights-joint.json": "e2aca467ff04",
+    "data/move-priors.json": "e667fe8ab457",
+    "engine/pp.js": "30b12a4ef623",
+    "data/rollout-switch-census.json": "b599f8d581b5"
+  },
+  "team_store": "data/team-pool-frozen",
+  "team_store_bo3_sha12": "5e10d7ba991f",
+  "census": {
+    "switchRate": 0.0998,
+    "digest": "b599f8d581b5"
+  },
+  "cap": 20,
+  "explore": 1,
+  "foe_policy": "uniform",
+  "sampling_interval_us": 100,
+  "body_builder": "MEDI.buildMonFromSet (release export), sp {}, sheet nature; the brought four when the store names them",
+  "node": "v24.15.0",
+  "cores": 16,
+  "pairs": [
+    {
+      "id": "gen9championsvgc2026regmbbo3-2653923955",
+      "line": 0
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2653835002",
+      "line": 97
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2653793848",
+      "line": 194
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2653751339",
+      "line": 291
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2653688499",
+      "line": 388
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2654285263",
+      "line": 485
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2654215984",
+      "line": 582
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2654140620",
+      "line": 679
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2654059532",
+      "line": 776
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2653997882",
+      "line": 873
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2654325935",
+      "line": 970
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2654388372",
+      "line": 1067
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2654497688",
+      "line": 1164
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2654614648",
+      "line": 1261
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2654738626",
+      "line": 1358
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2654821687",
+      "line": 1455
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2654909029",
+      "line": 1552
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2655038900",
+      "line": 1649
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2655139869",
+      "line": 1746
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2655205183",
+      "line": 1843
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2655265709",
+      "line": 1940
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2655339919",
+      "line": 2037
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2655374581",
+      "line": 2134
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2655512758",
+      "line": 2231
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2655601125",
+      "line": 2328
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2655676159",
+      "line": 2425
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2655704057",
+      "line": 2522
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2655763032",
+      "line": 2619
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2655814557",
+      "line": 2716
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2655903060",
+      "line": 2813
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656191697",
+      "line": 2910
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656140183",
+      "line": 3007
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656024328",
+      "line": 3104
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656213177",
+      "line": 3201
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656325755",
+      "line": 3298
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656274589",
+      "line": 3395
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656463416",
+      "line": 3492
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656714242",
+      "line": 3589
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656673339",
+      "line": 3686
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656624489",
+      "line": 3783
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656519224",
+      "line": 3880
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656772362",
+      "line": 3977
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656830101",
+      "line": 4074
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656940771",
+      "line": 4171
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656886783",
+      "line": 4268
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657058511",
+      "line": 4365
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657161277",
+      "line": 4462
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657225377",
+      "line": 4559
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657176927",
+      "line": 4656
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657357491",
+      "line": 4753
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657292052",
+      "line": 4850
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657456391",
+      "line": 4947
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657557129",
+      "line": 5044
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657498045",
+      "line": 5141
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657589281",
+      "line": 5238
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657746961",
+      "line": 5335
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657831051",
+      "line": 5432
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657769527",
+      "line": 5529
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657864278",
+      "line": 5626
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657926112",
+      "line": 5723
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657995912",
+      "line": 5820
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2658326761",
+      "line": 5917
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2658260793",
+      "line": 6014
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2658213391",
+      "line": 6111
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2658146572",
+      "line": 6208
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2658497581",
+      "line": 6305
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2658543032",
+      "line": 6402
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2658635470",
+      "line": 6499
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2658668049",
+      "line": 6596
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2658761203",
+      "line": 6693
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2658830960",
+      "line": 6790
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2658908084",
+      "line": 6887
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2658936767",
+      "line": 6984
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2659043393",
+      "line": 7081
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2659203308",
+      "line": 7178
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2659164446",
+      "line": 7275
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2659276672",
+      "line": 7372
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2659359290",
+      "line": 7469
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2659290406",
+      "line": 7566
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2659480719",
+      "line": 7663
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2659511118",
+      "line": 7760
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2659613178",
+      "line": 7857
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2659670177",
+      "line": 7954
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2659772844",
+      "line": 8051
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2659857980",
+      "line": 8148
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2659942630",
+      "line": 8245
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660030692",
+      "line": 8342
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660087217",
+      "line": 8439
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660184414",
+      "line": 8536
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660244477",
+      "line": 8633
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660346208",
+      "line": 8730
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660303915",
+      "line": 8827
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660458916",
+      "line": 8924
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660393384",
+      "line": 9021
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660507882",
+      "line": 9118
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660583390",
+      "line": 9215
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660690694",
+      "line": 9312
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660759398",
+      "line": 9409
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660853883",
+      "line": 9506
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660953367",
+      "line": 9603
+    }
+  ],
+  "per_pair": 3,
+  "flags": [
+    "--pairs",
+    "100",
+    "--per-pair",
+    "3"
+  ],
+  "counters": {
+    "lines_read": 100,
+    "pair_skipped_parse": 0,
+    "pair_skipped_body": 0,
+    "games_threw": 0,
+    "first_throw": null,
+    "math_random_calls_in_play": 0,
+    "trace_lines_total": 53532
+  },
+  "phases": {
+    "A1": {
+      "games": 300,
+      "turns": 3308,
+      "mean_turns": 11.03,
+      "ms_contended": 8218.8,
+      "ms_per_turn_contended": 2.4845,
+      "samples": 13830,
+      "self_top": [
+        {
+          "name": "battleTurn @ REL:engine/medicham2-browser.js:26786",
+          "samples": 2319,
+          "pct": 16.77
+        },
+        {
+          "name": "norm @ REL:engine/tags.js:65",
+          "samples": 1048,
+          "pct": 7.58
+        },
+        {
+          "name": "runPlayout @ REL:engine/rollout_leaf.js:833",
+          "samples": 967,
+          "pct": 6.99
+        },
+        {
+          "name": "param @ REL:engine/tags.js:106",
+          "samples": 771,
+          "pct": 5.57
+        },
+        {
+          "name": "effSpeed @ REL:engine/medicham2-browser.js:17918",
+          "samples": 494,
+          "pct": 3.57
+        },
+        {
+          "name": "dmgRangeOneHit @ REL:engine/medicham2-browser.js:12957",
+          "samples": 447,
+          "pct": 3.23
+        },
+        {
+          "name": "residualOrder @ REL:engine/medicham2-browser.js:9924",
+          "samples": 353,
+          "pct": 2.55
+        },
+        {
+          "name": "post @ node:inspector:115",
+          "samples": 335,
+          "pct": 2.42
+        },
+        {
+          "name": "dispatch @ ",
+          "samples": 329,
+          "pct": 2.38
+        },
+        {
+          "name": "_updateEvent @ REL:engine/medicham2-browser.js:27847",
+          "samples": 319,
+          "pct": 2.31
+        },
+        {
+          "name": "tagsFor @ REL:engine/tags.js:70",
+          "samples": 296,
+          "pct": 2.14
+        },
+        {
+          "name": "_walk @ REL:engine/medicham2-browser.js:42473",
+          "samples": 253,
+          "pct": 1.83
+        },
+        {
+          "name": "dmgRange @ REL:engine/medicham2-browser.js:14965",
+          "samples": 164,
+          "pct": 1.19
+        },
+        {
+          "name": "(garbage collector) @ ",
+          "samples": 163,
+          "pct": 1.18
+        },
+        {
+          "name": "accModRow @ REL:engine/medicham2-browser.js:11228",
+          "samples": 160,
+          "pct": 1.16
+        },
+        {
+          "name": "_stepEffects @ REL:engine/medicham2-browser.js:40308",
+          "samples": 146,
+          "pct": 1.06
+        },
+        {
+          "name": "_stepDamage @ REL:engine/medicham2-browser.js:37499",
+          "samples": 140,
+          "pct": 1.01
+        },
+        {
+          "name": "residualShadowBuild @ REL:engine/medicham2-browser.js:10163",
+          "samples": 136,
+          "pct": 0.98
+        },
+        {
+          "name": "_stepApply @ REL:engine/medicham2-browser.js:38600",
+          "samples": 131,
+          "pct": 0.95
+        },
+        {
+          "name": "_updateAll @ REL:engine/medicham2-browser.js:28014",
+          "samples": 130,
+          "pct": 0.94
+        },
+        {
+          "name": "playerActionPrimary @ REL:engine/medicham2-browser.js:46030",
+          "samples": 114,
+          "pct": 0.82
+        },
+        {
+          "name": "residualExpireAt @ REL:engine/medicham2-browser.js:10303",
+          "samples": 113,
+          "pct": 0.82
+        },
+        {
+          "name": "has @ REL:engine/tags.js:116",
+          "samples": 100,
+          "pct": 0.72
+        },
+        {
+          "name": "hitChance @ REL:engine/medicham2-browser.js:12135",
+          "samples": 100,
+          "pct": 0.72
+        },
+        {
+          "name": "residualShadowVolPresent @ REL:engine/medicham2-browser.js:10154",
+          "samples": 99,
+          "pct": 0.72
+        },
+        {
+          "name": "residualShadowRank @ REL:engine/medicham2-browser.js:10273",
+          "samples": 94,
+          "pct": 0.68
+        },
+        {
+          "name": "refreshAura @ REL:engine/medicham2-browser.js:12899",
+          "samples": 93,
+          "pct": 0.67
+        },
+        {
+          "name": "switchOut @ REL:engine/medicham2-browser.js:24586",
+          "samples": 92,
+          "pct": 0.67
+        },
+        {
+          "name": "opportunistSnapshot @ REL:engine/medicham2-browser.js:6933",
+          "samples": 89,
+          "pct": 0.64
+        },
+        {
+          "name": "suppressesWeather @ REL:engine/medicham2-browser.js:12746",
+          "samples": 82,
+          "pct": 0.59
+        },
+        {
+          "name": "actionPriority @ REL:engine/medicham2-browser.js:18221",
+          "samples": 65,
+          "pct": 0.47
+        },
+        {
+          "name": "commitQueueSort @ REL:engine/medicham2-browser.js:9605",
+          "samples": 63,
+          "pct": 0.46
+        },
+        {
+          "name": "ppLeft @ REL:engine/medicham2-browser.js:6476",
+          "samples": 62,
+          "pct": 0.45
+        },
+        {
+          "name": "tracksTargetOf @ REL:engine/medicham2-browser.js:26063",
+          "samples": 62,
+          "pct": 0.45
+        },
+        {
+          "name": "sideWiped @ REL:engine/medicham2-browser.js:25981",
+          "samples": 59,
+          "pct": 0.43
+        },
+        {
+          "name": "auraStateOf @ REL:engine/medicham2-browser.js:12879",
+          "samples": 56,
+          "pct": 0.4
+        },
+        {
+          "name": "moveFx @ REL:engine/medicham2-browser.js:18573",
+          "samples": 55,
+          "pct": 0.4
+        },
+        {
+          "name": "typeEffAgainst @ REL:engine/medicham2-browser.js:18839",
+          "samples": 54,
+          "pct": 0.39
+        },
+        {
+          "name": "_sig @ REL:engine/medicham2-browser.js:42814",
+          "samples": 54,
+          "pct": 0.39
+        },
+        {
+          "name": "noteFaint @ REL:engine/medicham2-browser.js:25178",
+          "samples": 53,
+          "pct": 0.38
+        },
+        {
+          "name": "playerAction @ REL:engine/medicham2-browser.js:46026",
+          "samples": 51,
+          "pct": 0.37
+        },
+        {
+          "name": "critChance @ REL:engine/medicham2-browser.js:10914",
+          "samples": 47,
+          "pct": 0.34
+        },
+        {
+          "name": "pick @ REL:engine/rollout_leaf.js:862",
+          "samples": 46,
+          "pct": 0.33
+        },
+        {
+          "name": "(anonymous) @ REL:engine/medicham2-browser.js:26918",
+          "samples": 46,
+          "pct": 0.33
+        },
+        {
+          "name": "berryRefusedByFoe @ REL:engine/medicham2-browser.js:11816",
+          "samples": 45,
+          "pct": 0.33
+        },
+        {
+          "name": "reaimToSlot @ REL:engine/medicham2-browser.js:26210",
+          "samples": 45,
+          "pct": 0.33
+        },
+        {
+          "name": "movePriority @ REL:engine/medicham2-browser.js:5681",
+          "samples": 44,
+          "pct": 0.32
+        },
+        {
+          "name": "refill @ REL:engine/medicham2-browser.js:45616",
+          "samples": 42,
+          "pct": 0.3
+        },
+        {
+          "name": "ppDeduct @ REL:engine/medicham2-browser.js:6486",
+          "samples": 42,
+          "pct": 0.3
+        },
+        {
+          "name": "bringIn @ REL:engine/medicham2-browser.js:23926",
+          "samples": 41,
+          "pct": 0.3
+        },
+        {
+          "name": "residualFollowerRuns @ REL:engine/medicham2-browser.js:9228",
+          "samples": 41,
+          "pct": 0.3
+        },
+        {
+          "name": "midEventSlot @ REL:engine/medicham2-browser.js:26696",
+          "samples": 38,
+          "pct": 0.27
+        },
+        {
+          "name": "berryPinchUpdate @ REL:engine/medicham2-browser.js:11835",
+          "samples": 35,
+          "pct": 0.25
+        },
+        {
+          "name": "mk @ REL:engine/medicham2-browser.js:26963",
+          "samples": 35,
+          "pct": 0.25
+        },
+        {
+          "name": "residualHandlerOrderApply @ REL:engine/medicham2-browser.js:9900",
+          "samples": 34,
+          "pct": 0.25
+        },
+        {
+          "name": "turnOrderKey @ REL:engine/medicham2-browser.js:18420",
+          "samples": 34,
+          "pct": 0.25
+        },
+        {
+          "name": "redirectDrawnTo @ REL:engine/medicham2-browser.js:26386",
+          "samples": 33,
+          "pct": 0.24
+        },
+        {
+          "name": "tagParam @ REL:engine/pp.js:90",
+          "samples": 32,
+          "pct": 0.23
+        },
+        {
+          "name": "terrainId @ REL:engine/medicham2-browser.js:8098",
+          "samples": 32,
+          "pct": 0.23
+        },
+        {
+          "name": "restoreStatsAll @ REL:engine/medicham2-browser.js:20297",
+          "samples": 31,
+          "pct": 0.22
+        },
+        {
+          "name": "premajorRecord @ REL:engine/medicham2-browser.js:15947",
+          "samples": 30,
+          "pct": 0.22
+        },
+        {
+          "name": "receiverSweep @ REL:engine/medicham2-browser.js:23644",
+          "samples": 30,
+          "pct": 0.22
+        },
+        {
+          "name": "flattenedTotal @ REL:engine/medicham2-browser.js:18969",
+          "samples": 29,
+          "pct": 0.21
+        },
+        {
+          "name": "effMoveType @ REL:engine/medicham2-browser.js:12604",
+          "samples": 28,
+          "pct": 0.2
+        },
+        {
+          "name": "(anonymous) @ REL:engine/medicham2-browser.js:45421",
+          "samples": 28,
+          "pct": 0.2
+        },
+        {
+          "name": "suppressedAbility @ REL:engine/medicham2-browser.js:18769",
+          "samples": 27,
+          "pct": 0.2
+        },
+        {
+          "name": "hitPlanOf @ REL:engine/medicham2-browser.js:15152",
+          "samples": 27,
+          "pct": 0.2
+        },
+        {
+          "name": "buildMonFromSet @ REL:engine/medicham2-browser.js:10695",
+          "samples": 27,
+          "pct": 0.2
+        },
+        {
+          "name": "printedAccuracy @ REL:engine/medicham2-browser.js:10982",
+          "samples": 26,
+          "pct": 0.19
+        },
+        {
+          "name": "residualUpdatePass @ REL:engine/medicham2-browser.js:12005",
+          "samples": 26,
+          "pct": 0.19
+        }
+      ],
+      "inclusive_top": [
+        {
+          "name": "processTicksAndRejections @ node:internal/process/task_queues:72",
+          "samples": 13646,
+          "pct": 98.67
+        },
+        {
+          "name": "(anonymous) @ opt-plan-2026-09-11/profile_turn.js:175",
+          "samples": 13639,
+          "pct": 98.62
+        },
+        {
+          "name": "playOne @ opt-plan-2026-09-11/profile_turn.js:121",
+          "samples": 12951,
+          "pct": 93.64
+        },
+        {
+          "name": "runPlayout @ REL:engine/rollout_leaf.js:833",
+          "samples": 12832,
+          "pct": 92.78
+        },
+        {
+          "name": "battleTurn @ REL:engine/medicham2-browser.js:26786",
+          "samples": 10512,
+          "pct": 76.01
+        },
+        {
+          "name": "_walk @ REL:engine/medicham2-browser.js:42473",
+          "samples": 2418,
+          "pct": 17.48
+        },
+        {
+          "name": "param @ REL:engine/tags.js:106",
+          "samples": 1971,
+          "pct": 14.25
+        },
+        {
+          "name": "pick @ REL:engine/rollout_leaf.js:862",
+          "samples": 1341,
+          "pct": 9.7
+        },
+        {
+          "name": "tagsFor @ REL:engine/tags.js:70",
+          "samples": 1340,
+          "pct": 9.69
+        },
+        {
+          "name": "dmgRange @ REL:engine/medicham2-browser.js:14965",
+          "samples": 1261,
+          "pct": 9.12
+        },
+        {
+          "name": "effSpeed @ REL:engine/medicham2-browser.js:17918",
+          "samples": 1236,
+          "pct": 8.94
+        },
+        {
+          "name": "residualOrder @ REL:engine/medicham2-browser.js:9924",
+          "samples": 1187,
+          "pct": 8.58
+        },
+        {
+          "name": "playerAction @ REL:engine/medicham2-browser.js:46026",
+          "samples": 1177,
+          "pct": 8.51
+        },
+        {
+          "name": "playerActionPrimary @ REL:engine/medicham2-browser.js:46030",
+          "samples": 1088,
+          "pct": 7.87
+        },
+        {
+          "name": "norm @ REL:engine/tags.js:65",
+          "samples": 1048,
+          "pct": 7.58
+        },
+        {
+          "name": "dmgRangeOneHit @ REL:engine/medicham2-browser.js:12957",
+          "samples": 1023,
+          "pct": 7.4
+        },
+        {
+          "name": "_updateEvent @ REL:engine/medicham2-browser.js:27847",
+          "samples": 927,
+          "pct": 6.7
+        },
+        {
+          "name": "_updateAll @ REL:engine/medicham2-browser.js:28014",
+          "samples": 899,
+          "pct": 6.5
+        },
+        {
+          "name": "_stepDamage @ REL:engine/medicham2-browser.js:37499",
+          "samples": 834,
+          "pct": 6.03
+        },
+        {
+          "name": "fn @ node:internal/util:498",
+          "samples": 683,
+          "pct": 4.94
+        },
+        {
+          "name": "(anonymous) @ node:internal/util:499",
+          "samples": 678,
+          "pct": 4.9
+        },
+        {
+          "name": "post @ node:inspector:115",
+          "samples": 676,
+          "pct": 4.89
+        },
+        {
+          "name": "residualShadowRank @ REL:engine/medicham2-browser.js:10273",
+          "samples": 549,
+          "pct": 3.97
+        },
+        {
+          "name": "residualShadowBuild @ REL:engine/medicham2-browser.js:10163",
+          "samples": 437,
+          "pct": 3.16
+        },
+        {
+          "name": "hitChance @ REL:engine/medicham2-browser.js:12135",
+          "samples": 412,
+          "pct": 2.98
+        },
+        {
+          "name": "dispatch @ ",
+          "samples": 329,
+          "pct": 2.38
+        },
+        {
+          "name": "suppressesWeather @ REL:engine/medicham2-browser.js:12746",
+          "samples": 292,
+          "pct": 2.11
+        },
+        {
+          "name": "_stepApply @ REL:engine/medicham2-browser.js:38600",
+          "samples": 279,
+          "pct": 2.02
+        },
+        {
+          "name": "_price @ REL:engine/medicham2-browser.js:37626",
+          "samples": 246,
+          "pct": 1.78
+        },
+        {
+          "name": "_stepEffects @ REL:engine/medicham2-browser.js:40308",
+          "samples": 241,
+          "pct": 1.74
+        },
+        {
+          "name": "hitProb @ REL:engine/medicham2-browser.js:12525",
+          "samples": 240,
+          "pct": 1.74
+        },
+        {
+          "name": "has @ REL:engine/tags.js:116",
+          "samples": 236,
+          "pct": 1.71
+        },
+        {
+          "name": "_stepUpdate @ REL:engine/medicham2-browser.js:41418",
+          "samples": 235,
+          "pct": 1.7
+        },
+        {
+          "name": "residualShadowVolPresent @ REL:engine/medicham2-browser.js:10154",
+          "samples": 232,
+          "pct": 1.68
+        },
+        {
+          "name": "accModRow @ REL:engine/medicham2-browser.js:11228",
+          "samples": 211,
+          "pct": 1.53
+        },
+        {
+          "name": "_stepAccuracy @ REL:engine/medicham2-browser.js:37221",
+          "samples": 208,
+          "pct": 1.5
+        },
+        {
+          "name": "pivotFrom @ REL:engine/medicham2-browser.js:24580",
+          "samples": 201,
+          "pct": 1.45
+        },
+        {
+          "name": "residualExpireAt @ REL:engine/medicham2-browser.js:10303",
+          "samples": 192,
+          "pct": 1.39
+        },
+        {
+          "name": "refill @ REL:engine/medicham2-browser.js:45616",
+          "samples": 191,
+          "pct": 1.38
+        },
+        {
+          "name": "(anonymous) @ REL:engine/medicham2-browser.js:33923",
+          "samples": 190,
+          "pct": 1.37
+        },
+        {
+          "name": "_resortTail @ REL:engine/medicham2-browser.js:28083",
+          "samples": 182,
+          "pct": 1.32
+        },
+        {
+          "name": "switchOut @ REL:engine/medicham2-browser.js:24586",
+          "samples": 180,
+          "pct": 1.3
+        },
+        {
+          "name": "residualUpdatePass @ REL:engine/medicham2-browser.js:12005",
+          "samples": 172,
+          "pct": 1.24
+        },
+        {
+          "name": "commitQueueSort @ REL:engine/medicham2-browser.js:9605",
+          "samples": 170,
+          "pct": 1.23
+        },
+        {
+          "name": "berryCureUpdate @ REL:engine/medicham2-browser.js:11683",
+          "samples": 164,
+          "pct": 1.19
+        },
+        {
+          "name": "(garbage collector) @ ",
+          "samples": 163,
+          "pct": 1.18
+        },
+        {
+          "name": "refreshAura @ REL:engine/medicham2-browser.js:12899",
+          "samples": 153,
+          "pct": 1.11
+        },
+        {
+          "name": "reaimToSlot @ REL:engine/medicham2-browser.js:26210",
+          "samples": 146,
+          "pct": 1.06
+        },
+        {
+          "name": "actionPriority @ REL:engine/medicham2-browser.js:18221",
+          "samples": 144,
+          "pct": 1.04
+        },
+        {
+          "name": "typeEffAgainst @ REL:engine/medicham2-browser.js:18839",
+          "samples": 136,
+          "pct": 0.98
+        },
+        {
+          "name": "(anonymous) @ REL:engine/rollout_leaf.js:878",
+          "samples": 127,
+          "pct": 0.92
+        },
+        {
+          "name": "berryPinchUpdate @ REL:engine/medicham2-browser.js:11835",
+          "samples": 123,
+          "pct": 0.89
+        },
+        {
+          "name": "bodyLeft @ REL:engine/pp.js:245",
+          "samples": 117,
+          "pct": 0.85
+        },
+        {
+          "name": "bodySelectable @ REL:engine/pp.js:246",
+          "samples": 117,
+          "pct": 0.85
+        },
+        {
+          "name": "_neverMissAb @ REL:engine/medicham2-browser.js:11241",
+          "samples": 113,
+          "pct": 0.82
+        },
+        {
+          "name": "berryRefusedByFoe @ REL:engine/medicham2-browser.js:11816",
+          "samples": 110,
+          "pct": 0.8
+        },
+        {
+          "name": "tracksTargetOf @ REL:engine/medicham2-browser.js:26063",
+          "samples": 107,
+          "pct": 0.77
+        },
+        {
+          "name": "left @ REL:engine/pp.js:131",
+          "samples": 105,
+          "pct": 0.76
+        },
+        {
+          "name": "turnOrderKey @ REL:engine/medicham2-browser.js:18420",
+          "samples": 104,
+          "pct": 0.75
+        },
+        {
+          "name": "bringIn @ REL:engine/medicham2-browser.js:23926",
+          "samples": 100,
+          "pct": 0.72
+        },
+        {
+          "name": "redirectDrawnTo @ REL:engine/medicham2-browser.js:26386",
+          "samples": 99,
+          "pct": 0.72
+        },
+        {
+          "name": "runEntryPass @ REL:engine/medicham2-browser.js:24382",
+          "samples": 97,
+          "pct": 0.7
+        },
+        {
+          "name": "auraStateOf @ REL:engine/medicham2-browser.js:12879",
+          "samples": 95,
+          "pct": 0.69
+        },
+        {
+          "name": "critChance @ REL:engine/medicham2-browser.js:10914",
+          "samples": 94,
+          "pct": 0.68
+        },
+        {
+          "name": "sortTurnOrder @ REL:engine/medicham2-browser.js:18499",
+          "samples": 94,
+          "pct": 0.68
+        },
+        {
+          "name": "_midWriteActionAddr @ REL:engine/medicham2-browser.js:28351",
+          "samples": 93,
+          "pct": 0.67
+        },
+        {
+          "name": "_drawRedirect @ REL:engine/medicham2-browser.js:35220",
+          "samples": 93,
+          "pct": 0.67
+        },
+        {
+          "name": "opportunistSnapshot @ REL:engine/medicham2-browser.js:6933",
+          "samples": 89,
+          "pct": 0.64
+        },
+        {
+          "name": "effMoveType @ REL:engine/medicham2-browser.js:12604",
+          "samples": 85,
+          "pct": 0.61
+        },
+        {
+          "name": "berryRefusedByFoeNew @ REL:engine/medicham2-browser.js:11831",
+          "samples": 84,
+          "pct": 0.61
+        },
+        {
+          "name": "tagParam @ REL:engine/pp.js:90",
+          "samples": 79,
+          "pct": 0.57
+        },
+        {
+          "name": "maxPP @ REL:engine/pp.js:114",
+          "samples": 79,
+          "pct": 0.57
+        },
+        {
+          "name": "mk @ REL:engine/medicham2-browser.js:26963",
+          "samples": 79,
+          "pct": 0.57
+        },
+        {
+          "name": "noteFaint @ REL:engine/medicham2-browser.js:25178",
+          "samples": 78,
+          "pct": 0.56
+        },
+        {
+          "name": "_actionNamedTgt @ REL:engine/medicham2-browser.js:28347",
+          "samples": 73,
+          "pct": 0.53
+        },
+        {
+          "name": "movePriority @ REL:engine/medicham2-browser.js:5681",
+          "samples": 72,
+          "pct": 0.52
+        },
+        {
+          "name": "_stepDamagingHitBody @ REL:engine/medicham2-browser.js:41969",
+          "samples": 70,
+          "pct": 0.51
+        },
+        {
+          "name": "_sig @ REL:engine/medicham2-browser.js:42814",
+          "samples": 70,
+          "pct": 0.51
+        },
+        {
+          "name": "ppLeft @ REL:engine/medicham2-browser.js:6476",
+          "samples": 69,
+          "pct": 0.5
+        },
+        {
+          "name": "_stepTryHit @ REL:engine/medicham2-browser.js:37111",
+          "samples": 69,
+          "pct": 0.5
+        },
+        {
+          "name": "suppressedAbility @ REL:engine/medicham2-browser.js:18769",
+          "samples": 67,
+          "pct": 0.48
+        },
+        {
+          "name": "_stepTypeImm @ REL:engine/medicham2-browser.js:36947",
+          "samples": 66,
+          "pct": 0.48
+        },
+        {
+          "name": "(anonymous) @ opt-plan-2026-09-11/profile_turn.js:122",
+          "samples": 66,
+          "pct": 0.48
+        },
+        {
+          "name": "buildMonFromSet @ REL:engine/medicham2-browser.js:10695",
+          "samples": 64,
+          "pct": 0.46
+        },
+        {
+          "name": "berryStatusCureNow @ REL:engine/medicham2-browser.js:11715",
+          "samples": 63,
+          "pct": 0.46
+        },
+        {
+          "name": "hitPlanOf @ REL:engine/medicham2-browser.js:15152",
+          "samples": 63,
+          "pct": 0.46
+        },
+        {
+          "name": "restoreStatsAll @ REL:engine/medicham2-browser.js:20297",
+          "samples": 61,
+          "pct": 0.44
+        },
+        {
+          "name": "sideWiped @ REL:engine/medicham2-browser.js:25981",
+          "samples": 61,
+          "pct": 0.44
+        },
+        {
+          "name": "receiverSweep @ REL:engine/medicham2-browser.js:23644",
+          "samples": 57,
+          "pct": 0.41
+        },
+        {
+          "name": "moveFx @ REL:engine/medicham2-browser.js:18573",
+          "samples": 55,
+          "pct": 0.4
+        }
+      ],
+      "by_file_self": [
+        {
+          "name": "REL:engine/medicham2-browser.js",
+          "samples": 9602,
+          "pct": 69.43
+        },
+        {
+          "name": "REL:engine/tags.js",
+          "samples": 2221,
+          "pct": 16.06
+        },
+        {
+          "name": "REL:engine/rollout_leaf.js",
+          "samples": 1019,
+          "pct": 7.37
+        },
+        {
+          "name": "node:inspector",
+          "samples": 347,
+          "pct": 2.51
+        },
+        {
+          "name": "dispatch",
+          "samples": 329,
+          "pct": 2.38
+        },
+        {
+          "name": "(garbage collector)",
+          "samples": 163,
+          "pct": 1.18
+        },
+        {
+          "name": "REL:engine/pp.js",
+          "samples": 79,
+          "pct": 0.57
+        },
+        {
+          "name": "(program)",
+          "samples": 20,
+          "pct": 0.14
+        },
+        {
+          "name": "opt-plan-2026-09-11/profile_turn.js",
+          "samples": 13,
+          "pct": 0.09
+        },
+        {
+          "name": "REL:engine/mc_key.js",
+          "samples": 12,
+          "pct": 0.09
+        },
+        {
+          "name": "REL:data/engine-data.js",
+          "samples": 8,
+          "pct": 0.06
+        },
+        {
+          "name": "node:internal/process/task_queues",
+          "samples": 7,
+          "pct": 0.05
+        },
+        {
+          "name": "node:internal/util",
+          "samples": 7,
+          "pct": 0.05
+        },
+        {
+          "name": "hrtimeBigInt",
+          "samples": 3,
+          "pct": 0.02
+        }
+      ]
+    },
+    "B": {
+      "games": 300,
+      "turns": 3308,
+      "mean_turns": 11.03,
+      "ms_contended": 8824.4,
+      "ms_per_turn_contended": 2.6676,
+      "samples": 14859,
+      "self_top": [
+        {
+          "name": "battleTurn @ REL:engine/medicham2-browser.js:26786",
+          "samples": 2411,
+          "pct": 16.23
+        },
+        {
+          "name": "norm @ REL:engine/tags.js:65",
+          "samples": 1121,
+          "pct": 7.54
+        },
+        {
+          "name": "runPlayout @ REL:engine/rollout_leaf.js:833",
+          "samples": 1029,
+          "pct": 6.93
+        },
+        {
+          "name": "param @ REL:engine/tags.js:106",
+          "samples": 760,
+          "pct": 5.11
+        },
+        {
+          "name": "dmgRangeOneHit @ REL:engine/medicham2-browser.js:12957",
+          "samples": 488,
+          "pct": 3.28
+        },
+        {
+          "name": "effSpeed @ REL:engine/medicham2-browser.js:17918",
+          "samples": 479,
+          "pct": 3.22
+        },
+        {
+          "name": "residualOrder @ REL:engine/medicham2-browser.js:9924",
+          "samples": 348,
+          "pct": 2.34
+        },
+        {
+          "name": "dispatch @ ",
+          "samples": 339,
+          "pct": 2.28
+        },
+        {
+          "name": "post @ node:inspector:115",
+          "samples": 331,
+          "pct": 2.23
+        },
+        {
+          "name": "tagsFor @ REL:engine/tags.js:70",
+          "samples": 292,
+          "pct": 1.97
+        },
+        {
+          "name": "_updateEvent @ REL:engine/medicham2-browser.js:27847",
+          "samples": 290,
+          "pct": 1.95
+        },
+        {
+          "name": "_walk @ REL:engine/medicham2-browser.js:42473",
+          "samples": 275,
+          "pct": 1.85
+        },
+        {
+          "name": "dmgRange @ REL:engine/medicham2-browser.js:14965",
+          "samples": 195,
+          "pct": 1.31
+        },
+        {
+          "name": "_stepApply @ REL:engine/medicham2-browser.js:38600",
+          "samples": 173,
+          "pct": 1.16
+        },
+        {
+          "name": "accModRow @ REL:engine/medicham2-browser.js:11228",
+          "samples": 160,
+          "pct": 1.08
+        },
+        {
+          "name": "_stepDamage @ REL:engine/medicham2-browser.js:37499",
+          "samples": 152,
+          "pct": 1.02
+        },
+        {
+          "name": "residualShadowBuild @ REL:engine/medicham2-browser.js:10163",
+          "samples": 152,
+          "pct": 1.02
+        },
+        {
+          "name": "_updateAll @ REL:engine/medicham2-browser.js:28014",
+          "samples": 151,
+          "pct": 1.02
+        },
+        {
+          "name": "(garbage collector) @ ",
+          "samples": 137,
+          "pct": 0.92
+        },
+        {
+          "name": "residualExpireAt @ REL:engine/medicham2-browser.js:10303",
+          "samples": 124,
+          "pct": 0.83
+        },
+        {
+          "name": "playerActionPrimary @ REL:engine/medicham2-browser.js:46030",
+          "samples": 110,
+          "pct": 0.74
+        },
+        {
+          "name": "refreshAura @ REL:engine/medicham2-browser.js:12899",
+          "samples": 103,
+          "pct": 0.69
+        },
+        {
+          "name": "switchOut @ REL:engine/medicham2-browser.js:24586",
+          "samples": 99,
+          "pct": 0.67
+        },
+        {
+          "name": "_stepEffects @ REL:engine/medicham2-browser.js:40308",
+          "samples": 93,
+          "pct": 0.63
+        },
+        {
+          "name": "residualShadowRank @ REL:engine/medicham2-browser.js:10273",
+          "samples": 89,
+          "pct": 0.6
+        },
+        {
+          "name": "hitChance @ REL:engine/medicham2-browser.js:12135",
+          "samples": 88,
+          "pct": 0.59
+        },
+        {
+          "name": "residualShadowVolPresent @ REL:engine/medicham2-browser.js:10154",
+          "samples": 88,
+          "pct": 0.59
+        },
+        {
+          "name": "tracksTargetOf @ REL:engine/medicham2-browser.js:26063",
+          "samples": 87,
+          "pct": 0.59
+        },
+        {
+          "name": "has @ REL:engine/tags.js:116",
+          "samples": 85,
+          "pct": 0.57
+        },
+        {
+          "name": "noteFaint @ REL:engine/medicham2-browser.js:25178",
+          "samples": 82,
+          "pct": 0.55
+        },
+        {
+          "name": "suppressesWeather @ REL:engine/medicham2-browser.js:12746",
+          "samples": 79,
+          "pct": 0.53
+        },
+        {
+          "name": "playerAction @ REL:engine/medicham2-browser.js:46026",
+          "samples": 74,
+          "pct": 0.5
+        },
+        {
+          "name": "sideWiped @ REL:engine/medicham2-browser.js:25981",
+          "samples": 72,
+          "pct": 0.48
+        },
+        {
+          "name": "opportunistSnapshot @ REL:engine/medicham2-browser.js:6933",
+          "samples": 70,
+          "pct": 0.47
+        },
+        {
+          "name": "commitQueueSort @ REL:engine/medicham2-browser.js:9605",
+          "samples": 66,
+          "pct": 0.44
+        },
+        {
+          "name": "actionPriority @ REL:engine/medicham2-browser.js:18221",
+          "samples": 64,
+          "pct": 0.43
+        },
+        {
+          "name": "mv @ REL:engine/medicham2-browser.js:4937",
+          "samples": 63,
+          "pct": 0.42
+        },
+        {
+          "name": "residualHandlerOrderApply @ REL:engine/medicham2-browser.js:9900",
+          "samples": 58,
+          "pct": 0.39
+        },
+        {
+          "name": "at @ REL:engine/medicham2-browser.js:10306",
+          "samples": 57,
+          "pct": 0.38
+        },
+        {
+          "name": "typeEffAgainst @ REL:engine/medicham2-browser.js:18839",
+          "samples": 56,
+          "pct": 0.38
+        },
+        {
+          "name": "auraStateOf @ REL:engine/medicham2-browser.js:12879",
+          "samples": 55,
+          "pct": 0.37
+        },
+        {
+          "name": "refill @ REL:engine/medicham2-browser.js:45616",
+          "samples": 54,
+          "pct": 0.36
+        },
+        {
+          "name": "residualFollowerRuns @ REL:engine/medicham2-browser.js:9228",
+          "samples": 53,
+          "pct": 0.36
+        },
+        {
+          "name": "ppLeft @ REL:engine/medicham2-browser.js:6476",
+          "samples": 51,
+          "pct": 0.34
+        },
+        {
+          "name": "moveFx @ REL:engine/medicham2-browser.js:18573",
+          "samples": 51,
+          "pct": 0.34
+        },
+        {
+          "name": "reaimToSlot @ REL:engine/medicham2-browser.js:26210",
+          "samples": 51,
+          "pct": 0.34
+        },
+        {
+          "name": "ppDeduct @ REL:engine/medicham2-browser.js:6486",
+          "samples": 49,
+          "pct": 0.33
+        },
+        {
+          "name": "berryRefusedByFoe @ REL:engine/medicham2-browser.js:11816",
+          "samples": 49,
+          "pct": 0.33
+        },
+        {
+          "name": "critChance @ REL:engine/medicham2-browser.js:10914",
+          "samples": 48,
+          "pct": 0.32
+        },
+        {
+          "name": "(anonymous) @ REL:engine/medicham2-browser.js:26918",
+          "samples": 47,
+          "pct": 0.32
+        },
+        {
+          "name": "dmg @ REL:engine/medicham2-browser.js:5079",
+          "samples": 47,
+          "pct": 0.32
+        },
+        {
+          "name": "bringIn @ REL:engine/medicham2-browser.js:23926",
+          "samples": 44,
+          "pct": 0.3
+        },
+        {
+          "name": "statWithBoost @ REL:engine/medicham2-browser.js:8547",
+          "samples": 43,
+          "pct": 0.29
+        },
+        {
+          "name": "_sig @ REL:engine/medicham2-browser.js:42814",
+          "samples": 41,
+          "pct": 0.28
+        },
+        {
+          "name": "_resortTail @ REL:engine/medicham2-browser.js:28083",
+          "samples": 41,
+          "pct": 0.28
+        },
+        {
+          "name": "terrainId @ REL:engine/medicham2-browser.js:8098",
+          "samples": 40,
+          "pct": 0.27
+        },
+        {
+          "name": "(anonymous) @ REL:engine/medicham2-browser.js:45421",
+          "samples": 40,
+          "pct": 0.27
+        },
+        {
+          "name": "pick @ REL:engine/rollout_leaf.js:862",
+          "samples": 38,
+          "pct": 0.26
+        },
+        {
+          "name": "movePriority @ REL:engine/medicham2-browser.js:5681",
+          "samples": 38,
+          "pct": 0.26
+        },
+        {
+          "name": "suppressedAbility @ REL:engine/medicham2-browser.js:18769",
+          "samples": 38,
+          "pct": 0.26
+        },
+        {
+          "name": "runEntryPass @ REL:engine/medicham2-browser.js:24382",
+          "samples": 37,
+          "pct": 0.25
+        },
+        {
+          "name": "residualShadowShield @ REL:engine/medicham2-browser.js:10094",
+          "samples": 37,
+          "pct": 0.25
+        },
+        {
+          "name": "berryPinchUpdate @ REL:engine/medicham2-browser.js:11835",
+          "samples": 36,
+          "pct": 0.24
+        },
+        {
+          "name": "mk @ REL:engine/medicham2-browser.js:26963",
+          "samples": 35,
+          "pct": 0.24
+        },
+        {
+          "name": "printedAccuracy @ REL:engine/medicham2-browser.js:10982",
+          "samples": 35,
+          "pct": 0.24
+        },
+        {
+          "name": "premajorRecord @ REL:engine/medicham2-browser.js:15947",
+          "samples": 34,
+          "pct": 0.23
+        },
+        {
+          "name": "(anonymous) @ node:inspector:66",
+          "samples": 33,
+          "pct": 0.22
+        },
+        {
+          "name": "(anonymous) @ REL:engine/medicham2-browser.js:45420",
+          "samples": 33,
+          "pct": 0.22
+        },
+        {
+          "name": "effMoveType @ REL:engine/medicham2-browser.js:12604",
+          "samples": 33,
+          "pct": 0.22
+        },
+        {
+          "name": "opportunistSettle @ REL:engine/medicham2-browser.js:6950",
+          "samples": 31,
+          "pct": 0.21
+        }
+      ],
+      "inclusive_top": [
+        {
+          "name": "processTicksAndRejections @ node:internal/process/task_queues:72",
+          "samples": 14703,
+          "pct": 98.95
+        },
+        {
+          "name": "(anonymous) @ opt-plan-2026-09-11/profile_turn.js:175",
+          "samples": 14698,
+          "pct": 98.92
+        },
+        {
+          "name": "playOne @ opt-plan-2026-09-11/profile_turn.js:121",
+          "samples": 13977,
+          "pct": 94.06
+        },
+        {
+          "name": "runPlayout @ REL:engine/rollout_leaf.js:833",
+          "samples": 13846,
+          "pct": 93.18
+        },
+        {
+          "name": "battleTurn @ REL:engine/medicham2-browser.js:26786",
+          "samples": 11374,
+          "pct": 76.55
+        },
+        {
+          "name": "_walk @ REL:engine/medicham2-browser.js:42473",
+          "samples": 2637,
+          "pct": 17.75
+        },
+        {
+          "name": "param @ REL:engine/tags.js:106",
+          "samples": 2002,
+          "pct": 13.47
+        },
+        {
+          "name": "pick @ REL:engine/rollout_leaf.js:862",
+          "samples": 1432,
+          "pct": 9.64
+        },
+        {
+          "name": "tagsFor @ REL:engine/tags.js:70",
+          "samples": 1410,
+          "pct": 9.49
+        },
+        {
+          "name": "dmgRange @ REL:engine/medicham2-browser.js:14965",
+          "samples": 1396,
+          "pct": 9.39
+        },
+        {
+          "name": "effSpeed @ REL:engine/medicham2-browser.js:17918",
+          "samples": 1266,
+          "pct": 8.52
+        },
+        {
+          "name": "playerAction @ REL:engine/medicham2-browser.js:46026",
+          "samples": 1266,
+          "pct": 8.52
+        },
+        {
+          "name": "residualOrder @ REL:engine/medicham2-browser.js:9924",
+          "samples": 1206,
+          "pct": 8.12
+        },
+        {
+          "name": "playerActionPrimary @ REL:engine/medicham2-browser.js:46030",
+          "samples": 1146,
+          "pct": 7.71
+        },
+        {
+          "name": "dmgRangeOneHit @ REL:engine/medicham2-browser.js:12957",
+          "samples": 1133,
+          "pct": 7.63
+        },
+        {
+          "name": "norm @ REL:engine/tags.js:65",
+          "samples": 1121,
+          "pct": 7.54
+        },
+        {
+          "name": "_updateEvent @ REL:engine/medicham2-browser.js:27847",
+          "samples": 926,
+          "pct": 6.23
+        },
+        {
+          "name": "_updateAll @ REL:engine/medicham2-browser.js:28014",
+          "samples": 909,
+          "pct": 6.12
+        },
+        {
+          "name": "_stepDamage @ REL:engine/medicham2-browser.js:37499",
+          "samples": 891,
+          "pct": 6
+        },
+        {
+          "name": "fn @ node:internal/util:498",
+          "samples": 710,
+          "pct": 4.78
+        },
+        {
+          "name": "(anonymous) @ node:internal/util:499",
+          "samples": 708,
+          "pct": 4.76
+        },
+        {
+          "name": "post @ node:inspector:115",
+          "samples": 706,
+          "pct": 4.75
+        },
+        {
+          "name": "residualShadowRank @ REL:engine/medicham2-browser.js:10273",
+          "samples": 576,
+          "pct": 3.88
+        },
+        {
+          "name": "residualShadowBuild @ REL:engine/medicham2-browser.js:10163",
+          "samples": 473,
+          "pct": 3.18
+        },
+        {
+          "name": "hitChance @ REL:engine/medicham2-browser.js:12135",
+          "samples": 395,
+          "pct": 2.66
+        },
+        {
+          "name": "_stepApply @ REL:engine/medicham2-browser.js:38600",
+          "samples": 378,
+          "pct": 2.54
+        },
+        {
+          "name": "dispatch @ ",
+          "samples": 339,
+          "pct": 2.28
+        },
+        {
+          "name": "_price @ REL:engine/medicham2-browser.js:37626",
+          "samples": 299,
+          "pct": 2.01
+        },
+        {
+          "name": "suppressesWeather @ REL:engine/medicham2-browser.js:12746",
+          "samples": 263,
+          "pct": 1.77
+        },
+        {
+          "name": "_stepUpdate @ REL:engine/medicham2-browser.js:41418",
+          "samples": 253,
+          "pct": 1.7
+        },
+        {
+          "name": "has @ REL:engine/tags.js:116",
+          "samples": 248,
+          "pct": 1.67
+        },
+        {
+          "name": "residualExpireAt @ REL:engine/medicham2-browser.js:10303",
+          "samples": 248,
+          "pct": 1.67
+        },
+        {
+          "name": "residualShadowVolPresent @ REL:engine/medicham2-browser.js:10154",
+          "samples": 240,
+          "pct": 1.62
+        },
+        {
+          "name": "hitProb @ REL:engine/medicham2-browser.js:12525",
+          "samples": 236,
+          "pct": 1.59
+        },
+        {
+          "name": "refill @ REL:engine/medicham2-browser.js:45616",
+          "samples": 233,
+          "pct": 1.57
+        },
+        {
+          "name": "pivotFrom @ REL:engine/medicham2-browser.js:24580",
+          "samples": 224,
+          "pct": 1.51
+        },
+        {
+          "name": "(anonymous) @ REL:engine/medicham2-browser.js:33923",
+          "samples": 219,
+          "pct": 1.47
+        },
+        {
+          "name": "switchOut @ REL:engine/medicham2-browser.js:24586",
+          "samples": 214,
+          "pct": 1.44
+        },
+        {
+          "name": "accModRow @ REL:engine/medicham2-browser.js:11228",
+          "samples": 202,
+          "pct": 1.36
+        },
+        {
+          "name": "reaimToSlot @ REL:engine/medicham2-browser.js:26210",
+          "samples": 199,
+          "pct": 1.34
+        },
+        {
+          "name": "_stepEffects @ REL:engine/medicham2-browser.js:40308",
+          "samples": 194,
+          "pct": 1.31
+        },
+        {
+          "name": "_stepAccuracy @ REL:engine/medicham2-browser.js:37221",
+          "samples": 193,
+          "pct": 1.3
+        },
+        {
+          "name": "berryCureUpdate @ REL:engine/medicham2-browser.js:11683",
+          "samples": 189,
+          "pct": 1.27
+        },
+        {
+          "name": "residualUpdatePass @ REL:engine/medicham2-browser.js:12005",
+          "samples": 189,
+          "pct": 1.27
+        },
+        {
+          "name": "_resortTail @ REL:engine/medicham2-browser.js:28083",
+          "samples": 187,
+          "pct": 1.26
+        },
+        {
+          "name": "commitQueueSort @ REL:engine/medicham2-browser.js:9605",
+          "samples": 176,
+          "pct": 1.18
+        },
+        {
+          "name": "tracksTargetOf @ REL:engine/medicham2-browser.js:26063",
+          "samples": 168,
+          "pct": 1.13
+        },
+        {
+          "name": "refreshAura @ REL:engine/medicham2-browser.js:12899",
+          "samples": 156,
+          "pct": 1.05
+        },
+        {
+          "name": "typeEffAgainst @ REL:engine/medicham2-browser.js:18839",
+          "samples": 140,
+          "pct": 0.94
+        },
+        {
+          "name": "bringIn @ REL:engine/medicham2-browser.js:23926",
+          "samples": 139,
+          "pct": 0.94
+        },
+        {
+          "name": "(garbage collector) @ ",
+          "samples": 137,
+          "pct": 0.92
+        },
+        {
+          "name": "_actionNamedTgt @ REL:engine/medicham2-browser.js:28347",
+          "samples": 133,
+          "pct": 0.9
+        },
+        {
+          "name": "(anonymous) @ REL:engine/rollout_leaf.js:878",
+          "samples": 129,
+          "pct": 0.87
+        },
+        {
+          "name": "actionPriority @ REL:engine/medicham2-browser.js:18221",
+          "samples": 127,
+          "pct": 0.85
+        },
+        {
+          "name": "bodyLeft @ REL:engine/pp.js:245",
+          "samples": 124,
+          "pct": 0.83
+        },
+        {
+          "name": "bodySelectable @ REL:engine/pp.js:246",
+          "samples": 124,
+          "pct": 0.83
+        },
+        {
+          "name": "_midWriteActionAddr @ REL:engine/medicham2-browser.js:28351",
+          "samples": 119,
+          "pct": 0.8
+        },
+        {
+          "name": "berryRefusedByFoe @ REL:engine/medicham2-browser.js:11816",
+          "samples": 118,
+          "pct": 0.79
+        },
+        {
+          "name": "berryPinchUpdate @ REL:engine/medicham2-browser.js:11835",
+          "samples": 114,
+          "pct": 0.77
+        },
+        {
+          "name": "_neverMissAb @ REL:engine/medicham2-browser.js:11241",
+          "samples": 111,
+          "pct": 0.75
+        },
+        {
+          "name": "runEntryPass @ REL:engine/medicham2-browser.js:24382",
+          "samples": 109,
+          "pct": 0.73
+        },
+        {
+          "name": "left @ REL:engine/pp.js:131",
+          "samples": 106,
+          "pct": 0.71
+        },
+        {
+          "name": "noteFaint @ REL:engine/medicham2-browser.js:25178",
+          "samples": 105,
+          "pct": 0.71
+        },
+        {
+          "name": "turnOrderKey @ REL:engine/medicham2-browser.js:18420",
+          "samples": 104,
+          "pct": 0.7
+        },
+        {
+          "name": "berryRefusedByFoeNew @ REL:engine/medicham2-browser.js:11831",
+          "samples": 102,
+          "pct": 0.69
+        },
+        {
+          "name": "_drawRedirect @ REL:engine/medicham2-browser.js:35220",
+          "samples": 99,
+          "pct": 0.67
+        },
+        {
+          "name": "auraStateOf @ REL:engine/medicham2-browser.js:12879",
+          "samples": 98,
+          "pct": 0.66
+        },
+        {
+          "name": "critChance @ REL:engine/medicham2-browser.js:10914",
+          "samples": 97,
+          "pct": 0.65
+        },
+        {
+          "name": "redirectDrawnTo @ REL:engine/medicham2-browser.js:26386",
+          "samples": 97,
+          "pct": 0.65
+        },
+        {
+          "name": "mk @ REL:engine/medicham2-browser.js:26963",
+          "samples": 86,
+          "pct": 0.58
+        },
+        {
+          "name": "sortTurnOrder @ REL:engine/medicham2-browser.js:18499",
+          "samples": 83,
+          "pct": 0.56
+        },
+        {
+          "name": "mv @ REL:engine/medicham2-browser.js:4937",
+          "samples": 80,
+          "pct": 0.54
+        },
+        {
+          "name": "(anonymous) @ opt-plan-2026-09-11/profile_turn.js:122",
+          "samples": 80,
+          "pct": 0.54
+        },
+        {
+          "name": "sideWiped @ REL:engine/medicham2-browser.js:25981",
+          "samples": 79,
+          "pct": 0.53
+        },
+        {
+          "name": "suppressedAbility @ REL:engine/medicham2-browser.js:18769",
+          "samples": 77,
+          "pct": 0.52
+        },
+        {
+          "name": "tagParam @ REL:engine/pp.js:90",
+          "samples": 77,
+          "pct": 0.52
+        },
+        {
+          "name": "maxPP @ REL:engine/pp.js:114",
+          "samples": 77,
+          "pct": 0.52
+        },
+        {
+          "name": "effMoveType @ REL:engine/medicham2-browser.js:12604",
+          "samples": 77,
+          "pct": 0.52
+        },
+        {
+          "name": "buildMonFromSet @ REL:engine/medicham2-browser.js:10695",
+          "samples": 75,
+          "pct": 0.5
+        },
+        {
+          "name": "berryStatusCureNow @ REL:engine/medicham2-browser.js:11715",
+          "samples": 72,
+          "pct": 0.48
+        },
+        {
+          "name": "opportunistSnapshot @ REL:engine/medicham2-browser.js:6933",
+          "samples": 70,
+          "pct": 0.47
+        },
+        {
+          "name": "movePriority @ REL:engine/medicham2-browser.js:5681",
+          "samples": 70,
+          "pct": 0.47
+        },
+        {
+          "name": "_stepDamagingHitBody @ REL:engine/medicham2-browser.js:41969",
+          "samples": 69,
+          "pct": 0.46
+        },
+        {
+          "name": "(anonymous) @ REL:engine/medicham2-browser.js:27439",
+          "samples": 67,
+          "pct": 0.45
+        },
+        {
+          "name": "ppLeft @ REL:engine/medicham2-browser.js:6476",
+          "samples": 67,
+          "pct": 0.45
+        },
+        {
+          "name": "_stepTryHit @ REL:engine/medicham2-browser.js:37111",
+          "samples": 63,
+          "pct": 0.42
+        },
+        {
+          "name": "_stepTypeImm @ REL:engine/medicham2-browser.js:36947",
+          "samples": 62,
+          "pct": 0.42
+        },
+        {
+          "name": "push @ REL:engine/medicham2-browser.js:10310",
+          "samples": 60,
+          "pct": 0.4
+        },
+        {
+          "name": "hitPlanOf @ REL:engine/medicham2-browser.js:15152",
+          "samples": 60,
+          "pct": 0.4
+        },
+        {
+          "name": "residualFollowerRuns @ REL:engine/medicham2-browser.js:9228",
+          "samples": 60,
+          "pct": 0.4
+        }
+      ],
+      "by_file_self": [
+        {
+          "name": "REL:engine/medicham2-browser.js",
+          "samples": 10510,
+          "pct": 70.73
+        },
+        {
+          "name": "REL:engine/tags.js",
+          "samples": 2267,
+          "pct": 15.26
+        },
+        {
+          "name": "REL:engine/rollout_leaf.js",
+          "samples": 1074,
+          "pct": 7.23
+        },
+        {
+          "name": "node:inspector",
+          "samples": 367,
+          "pct": 2.47
+        },
+        {
+          "name": "dispatch",
+          "samples": 339,
+          "pct": 2.28
+        },
+        {
+          "name": "(garbage collector)",
+          "samples": 137,
+          "pct": 0.92
+        },
+        {
+          "name": "REL:engine/pp.js",
+          "samples": 85,
+          "pct": 0.57
+        },
+        {
+          "name": "opt-plan-2026-09-11/profile_turn.js",
+          "samples": 22,
+          "pct": 0.15
+        },
+        {
+          "name": "(program)",
+          "samples": 19,
+          "pct": 0.13
+        },
+        {
+          "name": "REL:data/engine-data.js",
+          "samples": 13,
+          "pct": 0.09
+        },
+        {
+          "name": "REL:engine/mc_key.js",
+          "samples": 11,
+          "pct": 0.07
+        },
+        {
+          "name": "node:internal/process/task_queues",
+          "samples": 5,
+          "pct": 0.03
+        },
+        {
+          "name": "hrtimeBigInt",
+          "samples": 5,
+          "pct": 0.03
+        },
+        {
+          "name": "node:internal/util",
+          "samples": 3,
+          "pct": 0.02
+        },
+        {
+          "name": "",
+          "samples": 1,
+          "pct": 0.01
+        },
+        {
+          "name": "node:internal/process/per_thread",
+          "samples": 1,
+          "pct": 0.01
+        }
+      ]
+    },
+    "A2": {
+      "games": 300,
+      "turns": 3308,
+      "mean_turns": 11.03,
+      "ms_contended": 7963,
+      "ms_per_turn_contended": 2.4072,
+      "samples": 13447,
+      "self_top": [
+        {
+          "name": "battleTurn @ REL:engine/medicham2-browser.js:26786",
+          "samples": 2256,
+          "pct": 16.78
+        },
+        {
+          "name": "norm @ REL:engine/tags.js:65",
+          "samples": 1013,
+          "pct": 7.53
+        },
+        {
+          "name": "runPlayout @ REL:engine/rollout_leaf.js:833",
+          "samples": 940,
+          "pct": 6.99
+        },
+        {
+          "name": "param @ REL:engine/tags.js:106",
+          "samples": 734,
+          "pct": 5.46
+        },
+        {
+          "name": "effSpeed @ REL:engine/medicham2-browser.js:17918",
+          "samples": 487,
+          "pct": 3.62
+        },
+        {
+          "name": "dmgRangeOneHit @ REL:engine/medicham2-browser.js:12957",
+          "samples": 428,
+          "pct": 3.18
+        },
+        {
+          "name": "residualOrder @ REL:engine/medicham2-browser.js:9924",
+          "samples": 345,
+          "pct": 2.57
+        },
+        {
+          "name": "dispatch @ ",
+          "samples": 340,
+          "pct": 2.53
+        },
+        {
+          "name": "post @ node:inspector:115",
+          "samples": 330,
+          "pct": 2.45
+        },
+        {
+          "name": "_updateEvent @ REL:engine/medicham2-browser.js:27847",
+          "samples": 294,
+          "pct": 2.19
+        },
+        {
+          "name": "tagsFor @ REL:engine/tags.js:70",
+          "samples": 250,
+          "pct": 1.86
+        },
+        {
+          "name": "_walk @ REL:engine/medicham2-browser.js:42473",
+          "samples": 229,
+          "pct": 1.7
+        },
+        {
+          "name": "dmgRange @ REL:engine/medicham2-browser.js:14965",
+          "samples": 180,
+          "pct": 1.34
+        },
+        {
+          "name": "(garbage collector) @ ",
+          "samples": 163,
+          "pct": 1.21
+        },
+        {
+          "name": "_updateAll @ REL:engine/medicham2-browser.js:28014",
+          "samples": 147,
+          "pct": 1.09
+        },
+        {
+          "name": "_stepDamage @ REL:engine/medicham2-browser.js:37499",
+          "samples": 139,
+          "pct": 1.03
+        },
+        {
+          "name": "accModRow @ REL:engine/medicham2-browser.js:11228",
+          "samples": 137,
+          "pct": 1.02
+        },
+        {
+          "name": "_stepApply @ REL:engine/medicham2-browser.js:38600",
+          "samples": 126,
+          "pct": 0.94
+        },
+        {
+          "name": "residualShadowBuild @ REL:engine/medicham2-browser.js:10163",
+          "samples": 119,
+          "pct": 0.88
+        },
+        {
+          "name": "_stepEffects @ REL:engine/medicham2-browser.js:40308",
+          "samples": 118,
+          "pct": 0.88
+        },
+        {
+          "name": "residualExpireAt @ REL:engine/medicham2-browser.js:10303",
+          "samples": 108,
+          "pct": 0.8
+        },
+        {
+          "name": "playerActionPrimary @ REL:engine/medicham2-browser.js:46030",
+          "samples": 107,
+          "pct": 0.8
+        },
+        {
+          "name": "switchOut @ REL:engine/medicham2-browser.js:24586",
+          "samples": 101,
+          "pct": 0.75
+        },
+        {
+          "name": "hitChance @ REL:engine/medicham2-browser.js:12135",
+          "samples": 100,
+          "pct": 0.74
+        },
+        {
+          "name": "residualShadowVolPresent @ REL:engine/medicham2-browser.js:10154",
+          "samples": 97,
+          "pct": 0.72
+        },
+        {
+          "name": "residualShadowRank @ REL:engine/medicham2-browser.js:10273",
+          "samples": 89,
+          "pct": 0.66
+        },
+        {
+          "name": "opportunistSnapshot @ REL:engine/medicham2-browser.js:6933",
+          "samples": 83,
+          "pct": 0.62
+        },
+        {
+          "name": "suppressesWeather @ REL:engine/medicham2-browser.js:12746",
+          "samples": 80,
+          "pct": 0.59
+        },
+        {
+          "name": "has @ REL:engine/tags.js:116",
+          "samples": 76,
+          "pct": 0.57
+        },
+        {
+          "name": "refreshAura @ REL:engine/medicham2-browser.js:12899",
+          "samples": 70,
+          "pct": 0.52
+        },
+        {
+          "name": "noteFaint @ REL:engine/medicham2-browser.js:25178",
+          "samples": 69,
+          "pct": 0.51
+        },
+        {
+          "name": "actionPriority @ REL:engine/medicham2-browser.js:18221",
+          "samples": 61,
+          "pct": 0.45
+        },
+        {
+          "name": "sideWiped @ REL:engine/medicham2-browser.js:25981",
+          "samples": 60,
+          "pct": 0.45
+        },
+        {
+          "name": "auraStateOf @ REL:engine/medicham2-browser.js:12879",
+          "samples": 58,
+          "pct": 0.43
+        },
+        {
+          "name": "tracksTargetOf @ REL:engine/medicham2-browser.js:26063",
+          "samples": 56,
+          "pct": 0.42
+        },
+        {
+          "name": "_sig @ REL:engine/medicham2-browser.js:42814",
+          "samples": 56,
+          "pct": 0.42
+        },
+        {
+          "name": "typeEffAgainst @ REL:engine/medicham2-browser.js:18839",
+          "samples": 56,
+          "pct": 0.42
+        },
+        {
+          "name": "ppLeft @ REL:engine/medicham2-browser.js:6476",
+          "samples": 52,
+          "pct": 0.39
+        },
+        {
+          "name": "commitQueueSort @ REL:engine/medicham2-browser.js:9605",
+          "samples": 50,
+          "pct": 0.37
+        },
+        {
+          "name": "refill @ REL:engine/medicham2-browser.js:45616",
+          "samples": 48,
+          "pct": 0.36
+        },
+        {
+          "name": "berryPinchUpdate @ REL:engine/medicham2-browser.js:11835",
+          "samples": 48,
+          "pct": 0.36
+        },
+        {
+          "name": "residualHandlerOrderApply @ REL:engine/medicham2-browser.js:9900",
+          "samples": 48,
+          "pct": 0.36
+        },
+        {
+          "name": "(anonymous) @ REL:engine/medicham2-browser.js:26918",
+          "samples": 45,
+          "pct": 0.33
+        },
+        {
+          "name": "pick @ REL:engine/rollout_leaf.js:862",
+          "samples": 44,
+          "pct": 0.33
+        },
+        {
+          "name": "opportunistSettle @ REL:engine/medicham2-browser.js:6950",
+          "samples": 41,
+          "pct": 0.3
+        },
+        {
+          "name": "playerAction @ REL:engine/medicham2-browser.js:46026",
+          "samples": 41,
+          "pct": 0.3
+        },
+        {
+          "name": "moveFx @ REL:engine/medicham2-browser.js:18573",
+          "samples": 40,
+          "pct": 0.3
+        },
+        {
+          "name": "bringIn @ REL:engine/medicham2-browser.js:23926",
+          "samples": 40,
+          "pct": 0.3
+        },
+        {
+          "name": "ppDeduct @ REL:engine/medicham2-browser.js:6486",
+          "samples": 39,
+          "pct": 0.29
+        },
+        {
+          "name": "critChance @ REL:engine/medicham2-browser.js:10914",
+          "samples": 39,
+          "pct": 0.29
+        },
+        {
+          "name": "berryRefusedByFoe @ REL:engine/medicham2-browser.js:11816",
+          "samples": 38,
+          "pct": 0.28
+        },
+        {
+          "name": "left @ REL:engine/pp.js:131",
+          "samples": 37,
+          "pct": 0.28
+        },
+        {
+          "name": "residualFollowerRuns @ REL:engine/medicham2-browser.js:9228",
+          "samples": 36,
+          "pct": 0.27
+        },
+        {
+          "name": "runEntryPass @ REL:engine/medicham2-browser.js:24382",
+          "samples": 35,
+          "pct": 0.26
+        },
+        {
+          "name": "reaimToSlot @ REL:engine/medicham2-browser.js:26210",
+          "samples": 35,
+          "pct": 0.26
+        },
+        {
+          "name": "tagParam @ REL:engine/pp.js:90",
+          "samples": 35,
+          "pct": 0.26
+        },
+        {
+          "name": "berryStatusCureNow @ REL:engine/medicham2-browser.js:11715",
+          "samples": 35,
+          "pct": 0.26
+        },
+        {
+          "name": "hitPlanOf @ REL:engine/medicham2-browser.js:15152",
+          "samples": 34,
+          "pct": 0.25
+        },
+        {
+          "name": "statWithBoost @ REL:engine/medicham2-browser.js:8547",
+          "samples": 33,
+          "pct": 0.25
+        },
+        {
+          "name": "at @ REL:engine/medicham2-browser.js:10306",
+          "samples": 33,
+          "pct": 0.25
+        },
+        {
+          "name": "movePriority @ REL:engine/medicham2-browser.js:5681",
+          "samples": 32,
+          "pct": 0.24
+        },
+        {
+          "name": "redirectDrawnTo @ REL:engine/medicham2-browser.js:26386",
+          "samples": 32,
+          "pct": 0.24
+        },
+        {
+          "name": "flushAfterMoveSpends @ REL:engine/medicham2-browser.js:6901",
+          "samples": 32,
+          "pct": 0.24
+        },
+        {
+          "name": "residualShadowShield @ REL:engine/medicham2-browser.js:10094",
+          "samples": 31,
+          "pct": 0.23
+        },
+        {
+          "name": "(anonymous) @ REL:engine/medicham2-browser.js:45421",
+          "samples": 29,
+          "pct": 0.22
+        },
+        {
+          "name": "_resortTail @ REL:engine/medicham2-browser.js:28083",
+          "samples": 29,
+          "pct": 0.22
+        },
+        {
+          "name": "buildMonFromSet @ REL:engine/medicham2-browser.js:10695",
+          "samples": 28,
+          "pct": 0.21
+        },
+        {
+          "name": "restoreStatsAll @ REL:engine/medicham2-browser.js:20297",
+          "samples": 28,
+          "pct": 0.21
+        },
+        {
+          "name": "_midWriteActionAddr @ REL:engine/medicham2-browser.js:28351",
+          "samples": 28,
+          "pct": 0.21
+        },
+        {
+          "name": "terrainId @ REL:engine/medicham2-browser.js:8098",
+          "samples": 28,
+          "pct": 0.21
+        }
+      ],
+      "inclusive_top": [
+        {
+          "name": "processTicksAndRejections @ node:internal/process/task_queues:72",
+          "samples": 13264,
+          "pct": 98.64
+        },
+        {
+          "name": "(anonymous) @ opt-plan-2026-09-11/profile_turn.js:175",
+          "samples": 13260,
+          "pct": 98.61
+        },
+        {
+          "name": "playOne @ opt-plan-2026-09-11/profile_turn.js:121",
+          "samples": 12567,
+          "pct": 93.46
+        },
+        {
+          "name": "runPlayout @ REL:engine/rollout_leaf.js:833",
+          "samples": 12448,
+          "pct": 92.57
+        },
+        {
+          "name": "battleTurn @ REL:engine/medicham2-browser.js:26786",
+          "samples": 10209,
+          "pct": 75.92
+        },
+        {
+          "name": "_walk @ REL:engine/medicham2-browser.js:42473",
+          "samples": 2295,
+          "pct": 17.07
+        },
+        {
+          "name": "param @ REL:engine/tags.js:106",
+          "samples": 1874,
+          "pct": 13.94
+        },
+        {
+          "name": "pick @ REL:engine/rollout_leaf.js:862",
+          "samples": 1278,
+          "pct": 9.5
+        },
+        {
+          "name": "tagsFor @ REL:engine/tags.js:70",
+          "samples": 1256,
+          "pct": 9.34
+        },
+        {
+          "name": "dmgRange @ REL:engine/medicham2-browser.js:14965",
+          "samples": 1225,
+          "pct": 9.11
+        },
+        {
+          "name": "effSpeed @ REL:engine/medicham2-browser.js:17918",
+          "samples": 1220,
+          "pct": 9.07
+        },
+        {
+          "name": "residualOrder @ REL:engine/medicham2-browser.js:9924",
+          "samples": 1173,
+          "pct": 8.72
+        },
+        {
+          "name": "playerAction @ REL:engine/medicham2-browser.js:46026",
+          "samples": 1097,
+          "pct": 8.16
+        },
+        {
+          "name": "playerActionPrimary @ REL:engine/medicham2-browser.js:46030",
+          "samples": 1022,
+          "pct": 7.6
+        },
+        {
+          "name": "norm @ REL:engine/tags.js:65",
+          "samples": 1013,
+          "pct": 7.53
+        },
+        {
+          "name": "dmgRangeOneHit @ REL:engine/medicham2-browser.js:12957",
+          "samples": 976,
+          "pct": 7.26
+        },
+        {
+          "name": "_updateAll @ REL:engine/medicham2-browser.js:28014",
+          "samples": 892,
+          "pct": 6.63
+        },
+        {
+          "name": "_updateEvent @ REL:engine/medicham2-browser.js:27847",
+          "samples": 864,
+          "pct": 6.43
+        },
+        {
+          "name": "_stepDamage @ REL:engine/medicham2-browser.js:37499",
+          "samples": 821,
+          "pct": 6.11
+        },
+        {
+          "name": "fn @ node:internal/util:498",
+          "samples": 688,
+          "pct": 5.12
+        },
+        {
+          "name": "(anonymous) @ node:internal/util:499",
+          "samples": 687,
+          "pct": 5.11
+        },
+        {
+          "name": "post @ node:inspector:115",
+          "samples": 684,
+          "pct": 5.09
+        },
+        {
+          "name": "residualShadowRank @ REL:engine/medicham2-browser.js:10273",
+          "samples": 550,
+          "pct": 4.09
+        },
+        {
+          "name": "residualShadowBuild @ REL:engine/medicham2-browser.js:10163",
+          "samples": 448,
+          "pct": 3.33
+        },
+        {
+          "name": "hitChance @ REL:engine/medicham2-browser.js:12135",
+          "samples": 365,
+          "pct": 2.71
+        },
+        {
+          "name": "dispatch @ ",
+          "samples": 340,
+          "pct": 2.53
+        },
+        {
+          "name": "suppressesWeather @ REL:engine/medicham2-browser.js:12746",
+          "samples": 286,
+          "pct": 2.13
+        },
+        {
+          "name": "_stepApply @ REL:engine/medicham2-browser.js:38600",
+          "samples": 276,
+          "pct": 2.05
+        },
+        {
+          "name": "_price @ REL:engine/medicham2-browser.js:37626",
+          "samples": 269,
+          "pct": 2
+        },
+        {
+          "name": "residualShadowVolPresent @ REL:engine/medicham2-browser.js:10154",
+          "samples": 242,
+          "pct": 1.8
+        },
+        {
+          "name": "hitProb @ REL:engine/medicham2-browser.js:12525",
+          "samples": 234,
+          "pct": 1.74
+        },
+        {
+          "name": "pivotFrom @ REL:engine/medicham2-browser.js:24580",
+          "samples": 213,
+          "pct": 1.58
+        },
+        {
+          "name": "_stepUpdate @ REL:engine/medicham2-browser.js:41418",
+          "samples": 212,
+          "pct": 1.58
+        },
+        {
+          "name": "residualExpireAt @ REL:engine/medicham2-browser.js:10303",
+          "samples": 207,
+          "pct": 1.54
+        },
+        {
+          "name": "(anonymous) @ REL:engine/medicham2-browser.js:33923",
+          "samples": 201,
+          "pct": 1.49
+        },
+        {
+          "name": "_stepEffects @ REL:engine/medicham2-browser.js:40308",
+          "samples": 196,
+          "pct": 1.46
+        },
+        {
+          "name": "switchOut @ REL:engine/medicham2-browser.js:24586",
+          "samples": 193,
+          "pct": 1.44
+        },
+        {
+          "name": "has @ REL:engine/tags.js:116",
+          "samples": 189,
+          "pct": 1.41
+        },
+        {
+          "name": "_resortTail @ REL:engine/medicham2-browser.js:28083",
+          "samples": 186,
+          "pct": 1.38
+        },
+        {
+          "name": "accModRow @ REL:engine/medicham2-browser.js:11228",
+          "samples": 180,
+          "pct": 1.34
+        },
+        {
+          "name": "commitQueueSort @ REL:engine/medicham2-browser.js:9605",
+          "samples": 170,
+          "pct": 1.26
+        },
+        {
+          "name": "refill @ REL:engine/medicham2-browser.js:45616",
+          "samples": 168,
+          "pct": 1.25
+        },
+        {
+          "name": "_stepAccuracy @ REL:engine/medicham2-browser.js:37221",
+          "samples": 167,
+          "pct": 1.24
+        },
+        {
+          "name": "(garbage collector) @ ",
+          "samples": 163,
+          "pct": 1.21
+        },
+        {
+          "name": "residualUpdatePass @ REL:engine/medicham2-browser.js:12005",
+          "samples": 157,
+          "pct": 1.17
+        },
+        {
+          "name": "berryCureUpdate @ REL:engine/medicham2-browser.js:11683",
+          "samples": 149,
+          "pct": 1.11
+        },
+        {
+          "name": "typeEffAgainst @ REL:engine/medicham2-browser.js:18839",
+          "samples": 148,
+          "pct": 1.1
+        },
+        {
+          "name": "reaimToSlot @ REL:engine/medicham2-browser.js:26210",
+          "samples": 143,
+          "pct": 1.06
+        },
+        {
+          "name": "(anonymous) @ REL:engine/rollout_leaf.js:878",
+          "samples": 141,
+          "pct": 1.05
+        },
+        {
+          "name": "bodyLeft @ REL:engine/pp.js:245",
+          "samples": 128,
+          "pct": 0.95
+        },
+        {
+          "name": "bodySelectable @ REL:engine/pp.js:246",
+          "samples": 128,
+          "pct": 0.95
+        },
+        {
+          "name": "actionPriority @ REL:engine/medicham2-browser.js:18221",
+          "samples": 124,
+          "pct": 0.92
+        },
+        {
+          "name": "berryPinchUpdate @ REL:engine/medicham2-browser.js:11835",
+          "samples": 124,
+          "pct": 0.92
+        },
+        {
+          "name": "refreshAura @ REL:engine/medicham2-browser.js:12899",
+          "samples": 120,
+          "pct": 0.89
+        },
+        {
+          "name": "left @ REL:engine/pp.js:131",
+          "samples": 119,
+          "pct": 0.88
+        },
+        {
+          "name": "turnOrderKey @ REL:engine/medicham2-browser.js:18420",
+          "samples": 118,
+          "pct": 0.88
+        },
+        {
+          "name": "tracksTargetOf @ REL:engine/medicham2-browser.js:26063",
+          "samples": 112,
+          "pct": 0.83
+        },
+        {
+          "name": "_neverMissAb @ REL:engine/medicham2-browser.js:11241",
+          "samples": 108,
+          "pct": 0.8
+        },
+        {
+          "name": "auraStateOf @ REL:engine/medicham2-browser.js:12879",
+          "samples": 103,
+          "pct": 0.77
+        },
+        {
+          "name": "_midWriteActionAddr @ REL:engine/medicham2-browser.js:28351",
+          "samples": 101,
+          "pct": 0.75
+        },
+        {
+          "name": "sortTurnOrder @ REL:engine/medicham2-browser.js:18499",
+          "samples": 100,
+          "pct": 0.74
+        },
+        {
+          "name": "noteFaint @ REL:engine/medicham2-browser.js:25178",
+          "samples": 95,
+          "pct": 0.71
+        },
+        {
+          "name": "berryRefusedByFoe @ REL:engine/medicham2-browser.js:11816",
+          "samples": 93,
+          "pct": 0.69
+        },
+        {
+          "name": "bringIn @ REL:engine/medicham2-browser.js:23926",
+          "samples": 92,
+          "pct": 0.68
+        },
+        {
+          "name": "critChance @ REL:engine/medicham2-browser.js:10914",
+          "samples": 89,
+          "pct": 0.66
+        },
+        {
+          "name": "opportunistSnapshot @ REL:engine/medicham2-browser.js:6933",
+          "samples": 83,
+          "pct": 0.62
+        },
+        {
+          "name": "mk @ REL:engine/medicham2-browser.js:26963",
+          "samples": 80,
+          "pct": 0.59
+        },
+        {
+          "name": "_actionNamedTgt @ REL:engine/medicham2-browser.js:28347",
+          "samples": 80,
+          "pct": 0.59
+        },
+        {
+          "name": "runEntryPass @ REL:engine/medicham2-browser.js:24382",
+          "samples": 80,
+          "pct": 0.59
+        },
+        {
+          "name": "berryRefusedByFoeNew @ REL:engine/medicham2-browser.js:11831",
+          "samples": 78,
+          "pct": 0.58
+        },
+        {
+          "name": "redirectDrawnTo @ REL:engine/medicham2-browser.js:26386",
+          "samples": 76,
+          "pct": 0.57
+        },
+        {
+          "name": "_sig @ REL:engine/medicham2-browser.js:42814",
+          "samples": 75,
+          "pct": 0.56
+        },
+        {
+          "name": "_stepDamagingHitBody @ REL:engine/medicham2-browser.js:41969",
+          "samples": 75,
+          "pct": 0.56
+        },
+        {
+          "name": "tagParam @ REL:engine/pp.js:90",
+          "samples": 75,
+          "pct": 0.56
+        },
+        {
+          "name": "maxPP @ REL:engine/pp.js:114",
+          "samples": 75,
+          "pct": 0.56
+        },
+        {
+          "name": "(anonymous) @ opt-plan-2026-09-11/profile_turn.js:122",
+          "samples": 74,
+          "pct": 0.55
+        },
+        {
+          "name": "_drawRedirect @ REL:engine/medicham2-browser.js:35220",
+          "samples": 73,
+          "pct": 0.54
+        },
+        {
+          "name": "buildMonFromSet @ REL:engine/medicham2-browser.js:10695",
+          "samples": 70,
+          "pct": 0.52
+        },
+        {
+          "name": "berryStatusCureNow @ REL:engine/medicham2-browser.js:11715",
+          "samples": 69,
+          "pct": 0.51
+        },
+        {
+          "name": "_stepTypeImm @ REL:engine/medicham2-browser.js:36947",
+          "samples": 67,
+          "pct": 0.5
+        },
+        {
+          "name": "_stepTryHit @ REL:engine/medicham2-browser.js:37111",
+          "samples": 66,
+          "pct": 0.49
+        },
+        {
+          "name": "sideWiped @ REL:engine/medicham2-browser.js:25981",
+          "samples": 65,
+          "pct": 0.48
+        },
+        {
+          "name": "effMoveType @ REL:engine/medicham2-browser.js:12604",
+          "samples": 63,
+          "pct": 0.47
+        },
+        {
+          "name": "hitPlanOf @ REL:engine/medicham2-browser.js:15152",
+          "samples": 62,
+          "pct": 0.46
+        },
+        {
+          "name": "ppLeft @ REL:engine/medicham2-browser.js:6476",
+          "samples": 61,
+          "pct": 0.45
+        },
+        {
+          "name": "berryPPUpdate @ REL:engine/medicham2-browser.js:11896",
+          "samples": 60,
+          "pct": 0.45
+        },
+        {
+          "name": "movePriority @ REL:engine/medicham2-browser.js:5681",
+          "samples": 56,
+          "pct": 0.42
+        },
+        {
+          "name": "restoreStatsAll @ REL:engine/medicham2-browser.js:20297",
+          "samples": 55,
+          "pct": 0.41
+        },
+        {
+          "name": "flattenedTotal @ REL:engine/medicham2-browser.js:18969",
+          "samples": 55,
+          "pct": 0.41
+        },
+        {
+          "name": "receiverSweep @ REL:engine/medicham2-browser.js:23644",
+          "samples": 54,
+          "pct": 0.4
+        }
+      ],
+      "by_file_self": [
+        {
+          "name": "REL:engine/medicham2-browser.js",
+          "samples": 9351,
+          "pct": 69.54
+        },
+        {
+          "name": "REL:engine/tags.js",
+          "samples": 2077,
+          "pct": 15.45
+        },
+        {
+          "name": "REL:engine/rollout_leaf.js",
+          "samples": 993,
+          "pct": 7.38
+        },
+        {
+          "name": "node:inspector",
+          "samples": 342,
+          "pct": 2.54
+        },
+        {
+          "name": "dispatch",
+          "samples": 340,
+          "pct": 2.53
+        },
+        {
+          "name": "(garbage collector)",
+          "samples": 163,
+          "pct": 1.21
+        },
+        {
+          "name": "REL:engine/pp.js",
+          "samples": 102,
+          "pct": 0.76
+        },
+        {
+          "name": "opt-plan-2026-09-11/profile_turn.js",
+          "samples": 27,
+          "pct": 0.2
+        },
+        {
+          "name": "(program)",
+          "samples": 18,
+          "pct": 0.13
+        },
+        {
+          "name": "REL:engine/mc_key.js",
+          "samples": 16,
+          "pct": 0.12
+        },
+        {
+          "name": "REL:data/engine-data.js",
+          "samples": 4,
+          "pct": 0.03
+        },
+        {
+          "name": "node:internal/util",
+          "samples": 4,
+          "pct": 0.03
+        },
+        {
+          "name": "node:internal/process/task_queues",
+          "samples": 4,
+          "pct": 0.03
+        },
+        {
+          "name": "hrtimeBigInt",
+          "samples": 3,
+          "pct": 0.02
+        },
+        {
+          "name": "",
+          "samples": 1,
+          "pct": 0.01
+        },
+        {
+          "name": "node:internal/validators",
+          "samples": 1,
+          "pct": 0.01
+        },
+        {
+          "name": "node:internal/process/per_thread",
+          "samples": 1,
+          "pct": 0.01
+        }
+      ]
+    }
+  },
+  "equivalence": {
+    "A1_eq_A2": true,
+    "A1_eq_B": true,
+    "games": 300,
+    "mismatches_A1_B": 0,
+    "mismatches_A1_A2": 0,
+    "math_random_calls_in_play": 0
+  },
+  "noise_floor_share": {
+    "self": {
+      "max_abs_pct_points": 0.28,
+      "at": "tagsFor @ REL:engine/tags.js:70"
+    },
+    "inclusive": {
+      "max_abs_pct_points": 0.42,
+      "at": "_walk @ REL:engine/medicham2-browser.js:42473"
+    }
+  },
+  "trace_cost_ratio_B_over_A": 1.091,
+  "samples_per_turn": {
+    "A1": 4.18,
+    "B": 4.49,
+    "A2": 4.06
+  },
+  "elapsed_s": 274
+}

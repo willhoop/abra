@@ -1,0 +1,2522 @@
+{
+  "release": "13257c8bc397",
+  "from": "phase-A1 + phase-A2 pooled (trace off), rollout samples only",
+  "rollout_samples": 25280,
+  "rollout_share_of_all_samples": {
+    "A1": 92.78,
+    "A2": 92.57
+  },
+  "by_file_self": [
+    {
+      "name": "engine/medicham2-browser.js",
+      "pct": 74.23,
+      "samples": 18766
+    },
+    {
+      "name": "engine/tags.js",
+      "pct": 16.94,
+      "samples": 4283
+    },
+    {
+      "name": "engine/rollout_leaf.js",
+      "pct": 7.96,
+      "samples": 2012
+    },
+    {
+      "name": "engine/pp.js",
+      "pct": 0.72,
+      "samples": 181
+    },
+    {
+      "name": "engine/mc_key.js",
+      "pct": 0.08,
+      "samples": 20
+    },
+    {
+      "name": "data/engine-data.js",
+      "pct": 0.05,
+      "samples": 12
+    },
+    {
+      "name": "(native)",
+      "pct": 0.02,
+      "samples": 6
+    }
+  ],
+  "self_top": [
+    {
+      "name": "battleTurn @ engine/medicham2-browser.js:26786",
+      "pct": 18.09,
+      "samples": 4573
+    },
+    {
+      "name": "norm @ engine/tags.js:65",
+      "pct": 8.12,
+      "samples": 2053
+    },
+    {
+      "name": "runPlayout @ engine/rollout_leaf.js:833",
+      "pct": 7.54,
+      "samples": 1907
+    },
+    {
+      "name": "param @ engine/tags.js:106",
+      "pct": 5.95,
+      "samples": 1504
+    },
+    {
+      "name": "effSpeed @ engine/medicham2-browser.js:17918",
+      "pct": 3.87,
+      "samples": 979
+    },
+    {
+      "name": "dmgRangeOneHit @ engine/medicham2-browser.js:12957",
+      "pct": 3.46,
+      "samples": 875
+    },
+    {
+      "name": "residualOrder @ engine/medicham2-browser.js:9924",
+      "pct": 2.76,
+      "samples": 697
+    },
+    {
+      "name": "_updateEvent @ engine/medicham2-browser.js:27847",
+      "pct": 2.42,
+      "samples": 613
+    },
+    {
+      "name": "tagsFor @ engine/tags.js:70",
+      "pct": 2.14,
+      "samples": 540
+    },
+    {
+      "name": "_walk @ engine/medicham2-browser.js:42473",
+      "pct": 1.91,
+      "samples": 482
+    },
+    {
+      "name": "dmgRange @ engine/medicham2-browser.js:14965",
+      "pct": 1.36,
+      "samples": 344
+    },
+    {
+      "name": "accModRow @ engine/medicham2-browser.js:11228",
+      "pct": 1.17,
+      "samples": 297
+    },
+    {
+      "name": "_stepDamage @ engine/medicham2-browser.js:37499",
+      "pct": 1.1,
+      "samples": 279
+    },
+    {
+      "name": "_updateAll @ engine/medicham2-browser.js:28014",
+      "pct": 1.1,
+      "samples": 277
+    },
+    {
+      "name": "_stepEffects @ engine/medicham2-browser.js:40308",
+      "pct": 1.04,
+      "samples": 264
+    },
+    {
+      "name": "_stepApply @ engine/medicham2-browser.js:38600",
+      "pct": 1.02,
+      "samples": 257
+    },
+    {
+      "name": "residualShadowBuild @ engine/medicham2-browser.js:10163",
+      "pct": 1.01,
+      "samples": 255
+    },
+    {
+      "name": "playerActionPrimary @ engine/medicham2-browser.js:46030",
+      "pct": 0.87,
+      "samples": 221
+    },
+    {
+      "name": "residualExpireAt @ engine/medicham2-browser.js:10303",
+      "pct": 0.87,
+      "samples": 221
+    },
+    {
+      "name": "hitChance @ engine/medicham2-browser.js:12135",
+      "pct": 0.79,
+      "samples": 200
+    },
+    {
+      "name": "residualShadowVolPresent @ engine/medicham2-browser.js:10154",
+      "pct": 0.78,
+      "samples": 196
+    },
+    {
+      "name": "switchOut @ engine/medicham2-browser.js:24586",
+      "pct": 0.76,
+      "samples": 193
+    },
+    {
+      "name": "residualShadowRank @ engine/medicham2-browser.js:10273",
+      "pct": 0.72,
+      "samples": 183
+    },
+    {
+      "name": "has @ engine/tags.js:116",
+      "pct": 0.7,
+      "samples": 176
+    },
+    {
+      "name": "opportunistSnapshot @ engine/medicham2-browser.js:6933",
+      "pct": 0.68,
+      "samples": 172
+    },
+    {
+      "name": "refreshAura @ engine/medicham2-browser.js:12899",
+      "pct": 0.64,
+      "samples": 163
+    },
+    {
+      "name": "suppressesWeather @ engine/medicham2-browser.js:12746",
+      "pct": 0.64,
+      "samples": 161
+    },
+    {
+      "name": "actionPriority @ engine/medicham2-browser.js:18221",
+      "pct": 0.5,
+      "samples": 126
+    },
+    {
+      "name": "noteFaint @ engine/medicham2-browser.js:25178",
+      "pct": 0.48,
+      "samples": 122
+    },
+    {
+      "name": "sideWiped @ engine/medicham2-browser.js:25981",
+      "pct": 0.47,
+      "samples": 119
+    },
+    {
+      "name": "tracksTargetOf @ engine/medicham2-browser.js:26063",
+      "pct": 0.47,
+      "samples": 118
+    },
+    {
+      "name": "auraStateOf @ engine/medicham2-browser.js:12879",
+      "pct": 0.45,
+      "samples": 114
+    },
+    {
+      "name": "ppLeft @ engine/medicham2-browser.js:6476",
+      "pct": 0.45,
+      "samples": 114
+    },
+    {
+      "name": "commitQueueSort @ engine/medicham2-browser.js:9605",
+      "pct": 0.45,
+      "samples": 113
+    },
+    {
+      "name": "typeEffAgainst @ engine/medicham2-browser.js:18839",
+      "pct": 0.44,
+      "samples": 110
+    },
+    {
+      "name": "_sig @ engine/medicham2-browser.js:42814",
+      "pct": 0.44,
+      "samples": 110
+    },
+    {
+      "name": "moveFx @ engine/medicham2-browser.js:18573",
+      "pct": 0.38,
+      "samples": 95
+    },
+    {
+      "name": "playerAction @ engine/medicham2-browser.js:46026",
+      "pct": 0.36,
+      "samples": 92
+    },
+    {
+      "name": "(anonymous) @ engine/medicham2-browser.js:26918",
+      "pct": 0.36,
+      "samples": 91
+    },
+    {
+      "name": "pick @ engine/rollout_leaf.js:862",
+      "pct": 0.36,
+      "samples": 90
+    },
+    {
+      "name": "refill @ engine/medicham2-browser.js:45616",
+      "pct": 0.36,
+      "samples": 90
+    },
+    {
+      "name": "critChance @ engine/medicham2-browser.js:10914",
+      "pct": 0.34,
+      "samples": 86
+    },
+    {
+      "name": "berryRefusedByFoe @ engine/medicham2-browser.js:11816",
+      "pct": 0.33,
+      "samples": 83
+    },
+    {
+      "name": "berryPinchUpdate @ engine/medicham2-browser.js:11835",
+      "pct": 0.33,
+      "samples": 83
+    },
+    {
+      "name": "residualHandlerOrderApply @ engine/medicham2-browser.js:9900",
+      "pct": 0.32,
+      "samples": 82
+    },
+    {
+      "name": "bringIn @ engine/medicham2-browser.js:23926",
+      "pct": 0.32,
+      "samples": 81
+    },
+    {
+      "name": "ppDeduct @ engine/medicham2-browser.js:6486",
+      "pct": 0.32,
+      "samples": 81
+    },
+    {
+      "name": "reaimToSlot @ engine/medicham2-browser.js:26210",
+      "pct": 0.32,
+      "samples": 80
+    },
+    {
+      "name": "residualFollowerRuns @ engine/medicham2-browser.js:9228",
+      "pct": 0.3,
+      "samples": 77
+    },
+    {
+      "name": "movePriority @ engine/medicham2-browser.js:5681",
+      "pct": 0.3,
+      "samples": 76
+    }
+  ],
+  "inclusive_top": [
+    {
+      "name": "runPlayout @ engine/rollout_leaf.js:833",
+      "pct": 100,
+      "samples": 25280
+    },
+    {
+      "name": "playOne @ profile_turn.js:121",
+      "pct": 100,
+      "samples": 25280
+    },
+    {
+      "name": "(anonymous) @ profile_turn.js:175",
+      "pct": 100,
+      "samples": 25280
+    },
+    {
+      "name": "processTicksAndRejections @ task_queues:72",
+      "pct": 100,
+      "samples": 25280
+    },
+    {
+      "name": "(root) @ ",
+      "pct": 100,
+      "samples": 25280
+    },
+    {
+      "name": "battleTurn @ engine/medicham2-browser.js:26786",
+      "pct": 81.96,
+      "samples": 20719
+    },
+    {
+      "name": "_walk @ engine/medicham2-browser.js:42473",
+      "pct": 18.64,
+      "samples": 4713
+    },
+    {
+      "name": "param @ engine/tags.js:106",
+      "pct": 15.15,
+      "samples": 3831
+    },
+    {
+      "name": "pick @ engine/rollout_leaf.js:862",
+      "pct": 10.36,
+      "samples": 2619
+    },
+    {
+      "name": "tagsFor @ engine/tags.js:70",
+      "pct": 10.21,
+      "samples": 2582
+    },
+    {
+      "name": "dmgRange @ engine/medicham2-browser.js:14965",
+      "pct": 9.83,
+      "samples": 2486
+    },
+    {
+      "name": "effSpeed @ engine/medicham2-browser.js:17918",
+      "pct": 9.67,
+      "samples": 2445
+    },
+    {
+      "name": "residualOrder @ engine/medicham2-browser.js:9924",
+      "pct": 9.33,
+      "samples": 2359
+    },
+    {
+      "name": "playerAction @ engine/medicham2-browser.js:46026",
+      "pct": 9,
+      "samples": 2274
+    },
+    {
+      "name": "playerActionPrimary @ engine/medicham2-browser.js:46030",
+      "pct": 8.35,
+      "samples": 2110
+    },
+    {
+      "name": "norm @ engine/tags.js:65",
+      "pct": 8.12,
+      "samples": 2053
+    },
+    {
+      "name": "dmgRangeOneHit @ engine/medicham2-browser.js:12957",
+      "pct": 7.91,
+      "samples": 1999
+    },
+    {
+      "name": "_updateAll @ engine/medicham2-browser.js:28014",
+      "pct": 7.08,
+      "samples": 1791
+    },
+    {
+      "name": "_updateEvent @ engine/medicham2-browser.js:27847",
+      "pct": 7.08,
+      "samples": 1791
+    },
+    {
+      "name": "_stepDamage @ engine/medicham2-browser.js:37499",
+      "pct": 6.55,
+      "samples": 1655
+    },
+    {
+      "name": "residualShadowRank @ engine/medicham2-browser.js:10273",
+      "pct": 4.35,
+      "samples": 1099
+    },
+    {
+      "name": "residualShadowBuild @ engine/medicham2-browser.js:10163",
+      "pct": 3.5,
+      "samples": 885
+    },
+    {
+      "name": "hitChance @ engine/medicham2-browser.js:12135",
+      "pct": 3.07,
+      "samples": 777
+    },
+    {
+      "name": "suppressesWeather @ engine/medicham2-browser.js:12746",
+      "pct": 2.27,
+      "samples": 573
+    },
+    {
+      "name": "_stepApply @ engine/medicham2-browser.js:38600",
+      "pct": 2.2,
+      "samples": 555
+    },
+    {
+      "name": "_price @ engine/medicham2-browser.js:37626",
+      "pct": 2.04,
+      "samples": 515
+    },
+    {
+      "name": "hitProb @ engine/medicham2-browser.js:12525",
+      "pct": 1.88,
+      "samples": 474
+    },
+    {
+      "name": "residualShadowVolPresent @ engine/medicham2-browser.js:10154",
+      "pct": 1.88,
+      "samples": 474
+    },
+    {
+      "name": "_stepUpdate @ engine/medicham2-browser.js:41418",
+      "pct": 1.77,
+      "samples": 447
+    },
+    {
+      "name": "_stepEffects @ engine/medicham2-browser.js:40308",
+      "pct": 1.73,
+      "samples": 437
+    },
+    {
+      "name": "has @ engine/tags.js:116",
+      "pct": 1.68,
+      "samples": 424
+    },
+    {
+      "name": "pivotFrom @ engine/medicham2-browser.js:24580",
+      "pct": 1.64,
+      "samples": 414
+    },
+    {
+      "name": "residualExpireAt @ engine/medicham2-browser.js:10303",
+      "pct": 1.58,
+      "samples": 399
+    },
+    {
+      "name": "accModRow @ engine/medicham2-browser.js:11228",
+      "pct": 1.55,
+      "samples": 391
+    },
+    {
+      "name": "(anonymous) @ engine/medicham2-browser.js:33923",
+      "pct": 1.55,
+      "samples": 391
+    },
+    {
+      "name": "_stepAccuracy @ engine/medicham2-browser.js:37221",
+      "pct": 1.48,
+      "samples": 375
+    },
+    {
+      "name": "switchOut @ engine/medicham2-browser.js:24586",
+      "pct": 1.48,
+      "samples": 373
+    },
+    {
+      "name": "_resortTail @ engine/medicham2-browser.js:28083",
+      "pct": 1.46,
+      "samples": 368
+    },
+    {
+      "name": "refill @ engine/medicham2-browser.js:45616",
+      "pct": 1.42,
+      "samples": 359
+    },
+    {
+      "name": "commitQueueSort @ engine/medicham2-browser.js:9605",
+      "pct": 1.34,
+      "samples": 340
+    },
+    {
+      "name": "residualUpdatePass @ engine/medicham2-browser.js:12005",
+      "pct": 1.3,
+      "samples": 329
+    },
+    {
+      "name": "berryCureUpdate @ engine/medicham2-browser.js:11683",
+      "pct": 1.24,
+      "samples": 313
+    },
+    {
+      "name": "reaimToSlot @ engine/medicham2-browser.js:26210",
+      "pct": 1.14,
+      "samples": 289
+    },
+    {
+      "name": "typeEffAgainst @ engine/medicham2-browser.js:18839",
+      "pct": 1.12,
+      "samples": 284
+    },
+    {
+      "name": "refreshAura @ engine/medicham2-browser.js:12899",
+      "pct": 1.08,
+      "samples": 273
+    },
+    {
+      "name": "actionPriority @ engine/medicham2-browser.js:18221",
+      "pct": 1.06,
+      "samples": 268
+    },
+    {
+      "name": "(anonymous) @ engine/rollout_leaf.js:878",
+      "pct": 1.06,
+      "samples": 268
+    },
+    {
+      "name": "berryPinchUpdate @ engine/medicham2-browser.js:11835",
+      "pct": 0.98,
+      "samples": 247
+    },
+    {
+      "name": "bodyLeft @ engine/pp.js:245",
+      "pct": 0.97,
+      "samples": 245
+    },
+    {
+      "name": "bodySelectable @ engine/pp.js:246",
+      "pct": 0.97,
+      "samples": 245
+    },
+    {
+      "name": "left @ engine/pp.js:131",
+      "pct": 0.89,
+      "samples": 224
+    },
+    {
+      "name": "turnOrderKey @ engine/medicham2-browser.js:18420",
+      "pct": 0.88,
+      "samples": 222
+    },
+    {
+      "name": "_neverMissAb @ engine/medicham2-browser.js:11241",
+      "pct": 0.87,
+      "samples": 221
+    },
+    {
+      "name": "tracksTargetOf @ engine/medicham2-browser.js:26063",
+      "pct": 0.87,
+      "samples": 219
+    },
+    {
+      "name": "berryRefusedByFoe @ engine/medicham2-browser.js:11816",
+      "pct": 0.8,
+      "samples": 203
+    },
+    {
+      "name": "auraStateOf @ engine/medicham2-browser.js:12879",
+      "pct": 0.78,
+      "samples": 198
+    },
+    {
+      "name": "_midWriteActionAddr @ engine/medicham2-browser.js:28351",
+      "pct": 0.77,
+      "samples": 194
+    },
+    {
+      "name": "sortTurnOrder @ engine/medicham2-browser.js:18499",
+      "pct": 0.77,
+      "samples": 194
+    },
+    {
+      "name": "bringIn @ engine/medicham2-browser.js:23926",
+      "pct": 0.76,
+      "samples": 192
+    },
+    {
+      "name": "critChance @ engine/medicham2-browser.js:10914",
+      "pct": 0.72,
+      "samples": 183
+    },
+    {
+      "name": "runEntryPass @ engine/medicham2-browser.js:24382",
+      "pct": 0.7,
+      "samples": 177
+    },
+    {
+      "name": "redirectDrawnTo @ engine/medicham2-browser.js:26386",
+      "pct": 0.69,
+      "samples": 175
+    },
+    {
+      "name": "noteFaint @ engine/medicham2-browser.js:25178",
+      "pct": 0.68,
+      "samples": 173
+    },
+    {
+      "name": "opportunistSnapshot @ engine/medicham2-browser.js:6933",
+      "pct": 0.68,
+      "samples": 172
+    },
+    {
+      "name": "_drawRedirect @ engine/medicham2-browser.js:35220",
+      "pct": 0.66,
+      "samples": 166
+    },
+    {
+      "name": "berryRefusedByFoeNew @ engine/medicham2-browser.js:11831",
+      "pct": 0.64,
+      "samples": 162
+    },
+    {
+      "name": "mk @ engine/medicham2-browser.js:26963",
+      "pct": 0.63,
+      "samples": 159
+    },
+    {
+      "name": "tagParam @ engine/pp.js:90",
+      "pct": 0.61,
+      "samples": 154
+    },
+    {
+      "name": "maxPP @ engine/pp.js:114",
+      "pct": 0.61,
+      "samples": 154
+    },
+    {
+      "name": "_actionNamedTgt @ engine/medicham2-browser.js:28347",
+      "pct": 0.61,
+      "samples": 153
+    }
+  ],
+  "tags_js_inclusive_pct": 16.94,
+  "tags_js_by_caller": [
+    {
+      "name": "effSpeed @ engine/medicham2-browser.js:17918",
+      "pct": 3.58,
+      "samples": 906
+    },
+    {
+      "name": "battleTurn @ engine/medicham2-browser.js:26786",
+      "pct": 1.72,
+      "samples": 435
+    },
+    {
+      "name": "suppressesWeather @ engine/medicham2-browser.js:12746",
+      "pct": 1.63,
+      "samples": 412
+    },
+    {
+      "name": "dmgRangeOneHit @ engine/medicham2-browser.js:12957",
+      "pct": 1.4,
+      "samples": 353
+    },
+    {
+      "name": "berryRefusedByFoe @ engine/medicham2-browser.js:11816",
+      "pct": 0.44,
+      "samples": 112
+    },
+    {
+      "name": "tracksTargetOf @ engine/medicham2-browser.js:26063",
+      "pct": 0.4,
+      "samples": 101
+    },
+    {
+      "name": "accModRow @ engine/medicham2-browser.js:11228",
+      "pct": 0.37,
+      "samples": 94
+    },
+    {
+      "name": "critChance @ engine/medicham2-browser.js:10914",
+      "pct": 0.36,
+      "samples": 90
+    },
+    {
+      "name": "playerActionPrimary @ engine/medicham2-browser.js:46030",
+      "pct": 0.34,
+      "samples": 86
+    },
+    {
+      "name": "auraStateOf @ engine/medicham2-browser.js:12879",
+      "pct": 0.33,
+      "samples": 84
+    },
+    {
+      "name": "tagParam @ engine/pp.js:90",
+      "pct": 0.31,
+      "samples": 79
+    },
+    {
+      "name": "_stepEffects @ engine/medicham2-browser.js:40308",
+      "pct": 0.3,
+      "samples": 76
+    },
+    {
+      "name": "suppressedAbility @ engine/medicham2-browser.js:18769",
+      "pct": 0.29,
+      "samples": 74
+    },
+    {
+      "name": "berryPinchUpdate @ engine/medicham2-browser.js:11835",
+      "pct": 0.28,
+      "samples": 71
+    },
+    {
+      "name": "berryStatusCureNow @ engine/medicham2-browser.js:11715",
+      "pct": 0.28,
+      "samples": 71
+    },
+    {
+      "name": "_updateEvent @ engine/medicham2-browser.js:27847",
+      "pct": 0.27,
+      "samples": 68
+    },
+    {
+      "name": "berryPPUpdate @ engine/medicham2-browser.js:11896",
+      "pct": 0.25,
+      "samples": 63
+    },
+    {
+      "name": "receiverSweep @ engine/medicham2-browser.js:23644",
+      "pct": 0.23,
+      "samples": 58
+    },
+    {
+      "name": "restoreStatsUpdate @ engine/medicham2-browser.js:20268",
+      "pct": 0.23,
+      "samples": 57
+    },
+    {
+      "name": "traceSweep @ engine/medicham2-browser.js:23602",
+      "pct": 0.21,
+      "samples": 52
+    },
+    {
+      "name": "abilityPriorityShift @ engine/medicham2-browser.js:18172",
+      "pct": 0.18,
+      "samples": 46
+    },
+    {
+      "name": "typeEffAgainst @ engine/medicham2-browser.js:18839",
+      "pct": 0.14,
+      "samples": 36
+    },
+    {
+      "name": "effMoveType @ engine/medicham2-browser.js:12604",
+      "pct": 0.13,
+      "samples": 34
+    },
+    {
+      "name": "formeMoveType @ engine/medicham2-browser.js:12948",
+      "pct": 0.13,
+      "samples": 34
+    },
+    {
+      "name": "flattenedTotal @ engine/medicham2-browser.js:18969",
+      "pct": 0.12,
+      "samples": 31
+    },
+    {
+      "name": "hitChance @ engine/medicham2-browser.js:12135",
+      "pct": 0.12,
+      "samples": 31
+    },
+    {
+      "name": "hasPower @ engine/medicham2-browser.js:12682",
+      "pct": 0.11,
+      "samples": 28
+    },
+    {
+      "name": "formeOnHitAbsorbs @ engine/medicham2-browser.js:15308",
+      "pct": 0.11,
+      "samples": 28
+    },
+    {
+      "name": "composeResiduals @ engine/medicham2-browser.js:45979",
+      "pct": 0.1,
+      "samples": 26
+    },
+    {
+      "name": "opportunistSettle @ engine/medicham2-browser.js:6950",
+      "pct": 0.1,
+      "samples": 25
+    }
+  ],
+  "lines": {
+    "battleTurn": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 4561,
+      "self_pct_of_rollout": 18.04,
+      "top_lines": [
+        {
+          "line": 26786,
+          "pct_of_rollout": 4.79,
+          "src": "function battleTurn(S,rng,actsForA,actsForB){"
+        },
+        {
+          "line": 43859,
+          "pct_of_rollout": 0.93,
+          "src": "for(const m of residualOrder(actA,actB,field,{order:RESIDUAL_GROUPS[_gi].order})){if(!m||m.fainted||m.curHP<=0)continue;"
+        },
+        {
+          "line": 44977,
+          "pct_of_rollout": 0.45,
+          "src": "for(const _cid of RESIDUAL_CLOCKS_AT[_gi]) residualClockTick(m,_cid);"
+        },
+        {
+          "line": 28467,
+          "pct_of_rollout": 0.21,
+          "src": "for(let actIdx=0;actIdx<acts.length;actIdx++){"
+        },
+        {
+          "line": 43849,
+          "pct_of_rollout": 0.2,
+          "src": "if(sideWiped(S)&&!faintQueueOwed()){MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedInResidual++;break _TURN;}"
+        },
+        {
+          "line": 42478,
+          "pct_of_rollout": 0.17,
+          "src": "if(!_smartRowMajor)_walk(_STEPS);"
+        },
+        {
+          "line": 28574,
+          "pct_of_rollout": 0.17,
+          "src": "_oppSnap=opportunistSnapshot(actA,actB);"
+        },
+        {
+          "line": 28543,
+          "pct_of_rollout": 0.17,
+          "src": "receiverSweep([...actA,...actB]);   // ROADMAP #175 -- the previous action's faint, answered"
+        },
+        {
+          "line": 26918,
+          "pct_of_rollout": 0.15,
+          "src": "[...actA,...actB].forEach(m=>{if(m){m.protect=false;m._redirect=null;m._helpingHand=false;"
+        },
+        {
+          "line": 28537,
+          "pct_of_rollout": 0.15,
+          "src": "flushAfterMoveSpends([...actA,...actB],S);"
+        },
+        {
+          "line": 29735,
+          "pct_of_rollout": 0.13,
+          "src": "if(!TAGS.param('item',m.item,'damageMultOnRepeat')){ m._metroLast=null; m._metroN=0; }"
+        },
+        {
+          "line": 28602,
+          "pct_of_rollout": 0.12,
+          "src": "unresolved.delete(m);"
+        },
+        {
+          "line": 43969,
+          "pct_of_rollout": 0.12,
+          "src": "if(_G.has('forme')){const _fc=TAGS.param('ability',m.ability,'formeCycleResidual');"
+        },
+        {
+          "line": 43870,
+          "pct_of_rollout": 0.12,
+          "src": "if(_G.has('whiteHerb')){"
+        }
+      ]
+    },
+    "runPlayout": {
+      "file": "engine/rollout_leaf.js",
+      "self_ticks": 1906,
+      "self_pct_of_rollout": 7.54,
+      "top_lines": [
+        {
+          "line": 833,
+          "pct_of_rollout": 7.31,
+          "src": "function runPlayout(S, rng, explore, foePolicy, counters, switchRate) {"
+        },
+        {
+          "line": 924,
+          "pct_of_rollout": 0.21,
+          "src": "MEDI.battleTurn(S, rng, fa, fb);"
+        },
+        {
+          "line": 838,
+          "pct_of_rollout": 0,
+          "src": "while (!MEDI.battleOver(S)) {"
+        },
+        {
+          "line": 921,
+          "pct_of_rollout": 0,
+          "src": "for (const m of S.actA) { const a = pick(m, true); if (a) (fa = fa || new Map()).set(m, a); }"
+        },
+        {
+          "line": 930,
+          "pct_of_rollout": 0,
+          "src": "for (const it of issued) {"
+        }
+      ]
+    },
+    "pick": {
+      "file": "engine/rollout_leaf.js",
+      "self_ticks": 90,
+      "self_pct_of_rollout": 0.36,
+      "top_lines": [
+        {
+          "line": 862,
+          "pct_of_rollout": 0.1,
+          "src": "const pick = (mon, mineSide) => {"
+        },
+        {
+          "line": 878,
+          "pct_of_rollout": 0.06,
+          "src": "const mvs = (mon.moves || []).filter(id => PP.bodySelectable(mon, id));"
+        },
+        {
+          "line": 879,
+          "pct_of_rollout": 0.04,
+          "src": "const foesL = (mineSide ? S.actB : S.actA).filter(x => x && !x.fainted && x.curHP > 0);"
+        },
+        {
+          "line": 912,
+          "pct_of_rollout": 0.04,
+          "src": "return MEDI.playerAction(mon, mv, tg, S.field);"
+        },
+        {
+          "line": 863,
+          "pct_of_rollout": 0.02,
+          "src": "if (!mon || mon.fainted || mon.curHP <= 0 || rng() >= explore) return null;"
+        },
+        {
+          "line": 46027,
+          "pct_of_rollout": 0.02,
+          "src": ""
+        },
+        {
+          "line": 46028,
+          "pct_of_rollout": 0.02,
+          "src": ""
+        },
+        {
+          "line": 886,
+          "pct_of_rollout": 0.01,
+          "src": "const outs = bench.filter(x => x && !x.fainted && x.curHP > 0 && !claimed.has(x));"
+        },
+        {
+          "line": 883,
+          "pct_of_rollout": 0.01,
+          "src": "if (SWP > 0) {"
+        },
+        {
+          "line": 889,
+          "pct_of_rollout": 0.01,
+          "src": "SWITCH_COUNTERS.benchAvailable++;"
+        },
+        {
+          "line": 908,
+          "pct_of_rollout": 0.01,
+          "src": "const mv = (foePolicy === 'prior' && pickByPrior(mon, rng, mvs)) ||"
+        },
+        {
+          "line": 897,
+          "pct_of_rollout": 0.01,
+          "src": "claimed.add(to);"
+        },
+        {
+          "line": 884,
+          "pct_of_rollout": 0.01,
+          "src": "SWITCH_COUNTERS.decisions++;"
+        },
+        {
+          "line": 894,
+          "pct_of_rollout": 0,
+          "src": ": (SW_UNIFORM ? outs.length / (mvs.length + outs.length) : SWP);"
+        }
+      ]
+    },
+    "effSpeed": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 980,
+      "self_pct_of_rollout": 3.88,
+      "top_lines": [
+        {
+          "line": 17992,
+          "pct_of_rollout": 1.1,
+          "src": "{const _w=(field&&field.wSup)||suppressesWeather(m)?'':(field&&field.weather);"
+        },
+        {
+          "line": 17939,
+          "pct_of_rollout": 1.1,
+          "src": "{const _sm=TAGS.param('item',m.item,'speedMult');if(_sm&&_sm.mult)_mods.push(+_sm.mult);}"
+        },
+        {
+          "line": 17986,
+          "pct_of_rollout": 0.16,
+          "src": "if(m._hadItem&&!m.item&&(ROOM_ITEM_IS_LOST||m._roomItem==null)){"
+        },
+        {
+          "line": 18041,
+          "pct_of_rollout": 0.15,
+          "src": "if(m.status==='par')s=Math.floor(s*50/100);"
+        },
+        {
+          "line": 8548,
+          "pct_of_rollout": 0.15,
+          "src": "const b=clamp((mon.boosts&&mon.boosts[k])||0,-6,6),v=mon.st[k];"
+        },
+        {
+          "line": 17988,
+          "pct_of_rollout": 0.14,
+          "src": "const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');if(_ub&&_ub.speedMult)_mods.push(+_ub.speedMult);}"
+        },
+        {
+          "line": 65,
+          "pct_of_rollout": 0.12,
+          "src": "reactorsTo(k){ return (db && db.linkage && db.linkage[k]) || {abilities:[],items:[],moves:[]}; },"
+        },
+        {
+          "line": 8549,
+          "pct_of_rollout": 0.1,
+          "src": "return b>=0?Math.floor(v*BOOST_TABLE[b]):Math.floor(v/BOOST_TABLE[-b]);"
+        },
+        {
+          "line": 17989,
+          "pct_of_rollout": 0.09,
+          "src": "if((side==='A'?field.twA:field.twB)>0)_mods.push(2);"
+        },
+        {
+          "line": 17911,
+          "pct_of_rollout": 0.09,
+          "src": "return _sdTrunc((_sdTrunc(value * modifier) + 2048 - 1) / 4096);"
+        },
+        {
+          "line": 109,
+          "pct_of_rollout": 0.09,
+          "src": "/* 2026-08-24 -- the two arms of an absorbing ability's announcement. `absorbGiftLanded` is a heal or"
+        },
+        {
+          "line": 17918,
+          "pct_of_rollout": 0.07,
+          "src": "function effSpeed(m,field,side){"
+        },
+        {
+          "line": 18000,
+          "pct_of_rollout": 0.06,
+          "src": "if(_scp&&_scp.speedMult){"
+        },
+        {
+          "line": 17901,
+          "pct_of_rollout": 0.06,
+          "src": "for(const m of mults){"
+        }
+      ]
+    },
+    "_walk": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 482,
+      "self_pct_of_rollout": 1.91,
+      "top_lines": [
+        {
+          "line": 42476,
+          "pct_of_rollout": 1.31,
+          "src": "for(const _step of steps)for(const R of _rows){if(R.out&&!_step.runsWhenOut)continue;MID_TGT=midEventSlot(R.tg);_step(R);}"
+        },
+        {
+          "line": 42473,
+          "pct_of_rollout": 0.57,
+          "src": "const _walk=(steps)=>{"
+        },
+        {
+          "line": 26698,
+          "pct_of_rollout": 0.02,
+          "src": "let i = S.actA ? S.actA.indexOf(m) : -1; if (i >= 0) return 'p1' + i;"
+        },
+        {
+          "line": 26697,
+          "pct_of_rollout": 0,
+          "src": "const S = MID_S; if (!m || !S) return '-';"
+        },
+        {
+          "line": 26699,
+          "pct_of_rollout": 0,
+          "src": "i = S.actB ? S.actB.indexOf(m) : -1;     if (i >= 0) return 'p2' + i;"
+        }
+      ]
+    },
+    "_updateEvent": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 613,
+      "self_pct_of_rollout": 2.42,
+      "top_lines": [
+        {
+          "line": 27851,
+          "pct_of_rollout": 0.59,
+          "src": "for(const e of _all)e.spe=effSpeed(e.m,field,e.s);"
+        },
+        {
+          "line": 27923,
+          "pct_of_rollout": 0.57,
+          "src": "for(const e of _all){berryCureUpdate(e.m,e.s==='A'?actB:actA);berryPinchUpdate(e.m,e.s==='A'?actB:actA);berryPPUpdate(e.m,e.s==='A'?actB:actA);"
+        },
+        {
+          "line": 27852,
+          "pct_of_rollout": 0.48,
+          "src": "_all.sort((p,q)=>q.spe-p.spe);"
+        },
+        {
+          "line": 27858,
+          "pct_of_rollout": 0.17,
+          "src": "if(e.m._flingSpend){const _fi=e.m._flingSpend;e.m._flingSpend=null;e.m.item='';"
+        },
+        {
+          "line": 27960,
+          "pct_of_rollout": 0.17,
+          "src": "const _mhc=TAGS.param('item',e.m.item,'curesVolatile');"
+        },
+        {
+          "line": 27849,
+          "pct_of_rollout": 0.06,
+          "src": "for(const x of actA)if(x&&!x.fainted&&x.curHP>0)_all.push({m:x,s:'A'});"
+        },
+        {
+          "line": 27847,
+          "pct_of_rollout": 0.06,
+          "src": "const _updateEvent=()=>{"
+        },
+        {
+          "line": 27903,
+          "pct_of_rollout": 0.06,
+          "src": "const _m=e.m; if(!_m._vol||!_m._volSrc)continue;"
+        },
+        {
+          "line": 27850,
+          "pct_of_rollout": 0.05,
+          "src": "for(const x of actB)if(x&&!x.fainted&&x.curHP>0)_all.push({m:x,s:'B'});"
+        },
+        {
+          "line": 27959,
+          "pct_of_rollout": 0.04,
+          "src": "if(!MENTAL_HERB_MOVE_ONLY&&e.m.item){"
+        },
+        {
+          "line": 27963,
+          "pct_of_rollout": 0.02,
+          "src": "const _on=(_mv==='healblock')?(e.m._healBlock>0):!!(e.m._vol&&e.m._vol[_mv]>0);"
+        },
+        {
+          "line": 27857,
+          "pct_of_rollout": 0.02,
+          "src": "for(const e of _all){"
+        },
+        {
+          "line": 11817,
+          "pct_of_rollout": 0.02,
+          "src": "if(!m||!m.item)return false;"
+        },
+        {
+          "line": 11684,
+          "pct_of_rollout": 0.02,
+          "src": "if(!m||m.fainted||m.curHP<=0)return;"
+        }
+      ]
+    },
+    "_updateAll": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 276,
+      "self_pct_of_rollout": 1.09,
+      "top_lines": [
+        {
+          "line": 28014,
+          "pct_of_rollout": 0.89,
+          "src": "const _updateAll=()=>{ _updateEvent(); restoreStatsAll(actA,actB);"
+        },
+        {
+          "line": 28016,
+          "pct_of_rollout": 0.04,
+          "src": "else recomputeWeatherSuppression(field,[...actA,...actB]);"
+        },
+        {
+          "line": 12774,
+          "pct_of_rollout": 0.03,
+          "src": "field.wSup=(bodies||[]).some(x=>x&&!x.fainted&&x.curHP>0&&suppressesWeather(x));"
+        },
+        {
+          "line": 28020,
+          "pct_of_rollout": 0.03,
+          "src": "else if(refreshAura(field,[...actA,...actB]))MEDSEEN.auraResyncedInAction++; };"
+        },
+        {
+          "line": 12902,
+          "pct_of_rollout": 0.02,
+          "src": "field.aura=auraStateOf(bodies||[]);"
+        },
+        {
+          "line": 12901,
+          "pct_of_rollout": 0.02,
+          "src": "const was=JSON.stringify(field.aura===undefined?null:field.aura);"
+        },
+        {
+          "line": 28015,
+          "pct_of_rollout": 0.02,
+          "src": "if(WSUP_STALE)MEDFAILS.wSupStaleRestored=1;"
+        },
+        {
+          "line": 75,
+          "pct_of_rollout": 0.01,
+          "src": "* run can print it. Caught by tests/test-no-silent-failure.js, which is what made these visible. */"
+        },
+        {
+          "line": 12903,
+          "pct_of_rollout": 0.01,
+          "src": "return JSON.stringify(field.aura)!==was;"
+        },
+        {
+          "line": 12746,
+          "pct_of_rollout": 0.01,
+          "src": "function suppressesWeather(m){ return !!(m&&TAGS.param('ability',m.ability,'weatherSuppression')); }"
+        },
+        {
+          "line": 76,
+          "pct_of_rollout": 0.01,
+          "src": "/* CAPABILITIES THAT FIRED, not failures. Separate object because the two are read for opposite"
+        },
+        {
+          "line": 12900,
+          "pct_of_rollout": 0,
+          "src": "if(!field)return false;"
+        }
+      ]
+    },
+    "dmgRangeOneHit": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 866,
+      "self_pct_of_rollout": 3.43,
+      "top_lines": [
+        {
+          "line": 12957,
+          "pct_of_rollout": 2.26,
+          "src": "function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,perHit,absBypass){"
+        },
+        {
+          "line": 13616,
+          "pct_of_rollout": 0.08,
+          "src": "const STAT_MULT_BY_NAME=new Set(['hugepower','purepower','guts','solarpower','orichalcumpulse',"
+        },
+        {
+          "line": 14663,
+          "pct_of_rollout": 0.07,
+          "src": "hit.rolls.length=0;"
+        },
+        {
+          "line": 13505,
+          "pct_of_rollout": 0.04,
+          "src": "const _critHere=!!isCrit||!!(mv.id&&critChance(mv.id,att,defAb,def)===1);"
+        },
+        {
+          "line": 13107,
+          "pct_of_rollout": 0.04,
+          "src": "const _vp=mv.id&&TAGS.param('move',mv.id,'variablePower');"
+        },
+        {
+          "line": 14215,
+          "pct_of_rollout": 0.04,
+          "src": "let eff=typeEffAgainst(att,def,mv,mvT);"
+        },
+        {
+          "line": 14297,
+          "pct_of_rollout": 0.04,
+          "src": "const stab=att.types.includes(mvT)?((_sbT&&+_sbT.stab)||1.5):1;"
+        },
+        {
+          "line": 13102,
+          "pct_of_rollout": 0.02,
+          "src": "{const _fo=mv.id&&TAGS.param('move',mv.id,'flingsOwnItem');"
+        },
+        {
+          "line": 13813,
+          "pct_of_rollout": 0.02,
+          "src": "if(_dCh!==CH_ONE){D=mdChain(D,_dCh);MEDSEEN.statChainSpent++;}"
+        },
+        {
+          "line": 13338,
+          "pct_of_rollout": 0.02,
+          "src": "const _nt=mv.id?TAGS.param('move',mv.id,'needsTargetToAttack'):null;"
+        },
+        {
+          "line": 13703,
+          "pct_of_rollout": 0.02,
+          "src": "const _db=TAGS.param('ability',attAb,'damageBoost');"
+        },
+        {
+          "line": 14673,
+          "pct_of_rollout": 0.02,
+          "src": "for(let i=0;i<16;i++){const v=roll(100-i);hit.rolls.push(_hits>1?Math.floor(v*_hits):v);if(_unit)_unit.push(v);}"
+        },
+        {
+          "line": 13095,
+          "pct_of_rollout": 0.02,
+          "src": "const _pf=mv.id&&TAGS.param('move',mv.id,'powerFromFallen');"
+        },
+        {
+          "line": 14676,
+          "pct_of_rollout": 0.02,
+          "src": "return {min:roll(85),max:roll(100),eff,type:mvT};"
+        }
+      ]
+    },
+    "dmgRange": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 342,
+      "self_pct_of_rollout": 1.35,
+      "top_lines": [
+        {
+          "line": 14965,
+          "pct_of_rollout": 0.72,
+          "src": "function dmgRange(att,def,mv,field,spread,isCrit,hit){"
+        },
+        {
+          "line": 15001,
+          "pct_of_rollout": 0.5,
+          "src": "const _flat=dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,1,_plan.total,null,_absMulti);"
+        },
+        {
+          "line": 14993,
+          "pct_of_rollout": 0.04,
+          "src": "if(hit&&hit.wantPackets&&!Array.isArray(hit.rollsUnit)&&Array.isArray(hit.rolls))hit.rollsUnit=[];"
+        },
+        {
+          "line": 14968,
+          "pct_of_rollout": 0.02,
+          "src": "const _plan=hitPlanOf(att,mv,hit,spread);"
+        },
+        {
+          "line": 14972,
+          "pct_of_rollout": 0.02,
+          "src": "hit.hitcountable=!!(_plan.alliesPlan||_plan.bondPlan||(mv&&mv.id&&TAGS.has('move',mv.id,'multiHit')));"
+        },
+        {
+          "line": 15002,
+          "pct_of_rollout": 0.02,
+          "src": "if(hit&&hit.wantPackets){"
+        },
+        {
+          "line": 14987,
+          "pct_of_rollout": 0.01,
+          "src": "hit.planPerHitPower=!!_plan.perHitPower;"
+        },
+        {
+          "line": 14967,
+          "pct_of_rollout": 0,
+          "src": "else stampMoveIds();"
+        },
+        {
+          "line": 15003,
+          "pct_of_rollout": 0,
+          "src": "const _n=Math.round(_plan.total);"
+        },
+        {
+          "line": 14971,
+          "pct_of_rollout": 0,
+          "src": "hit.packets=null;"
+        },
+        {
+          "line": 14966,
+          "pct_of_rollout": 0,
+          "src": "if(MOVEID_PRESTAMP_RESTORED)MEDFAILS.moveIdPrestampRestored=1;"
+        },
+        {
+          "line": 15031,
+          "pct_of_rollout": 0,
+          "src": "if(_absMulti){"
+        },
+        {
+          "line": 15094,
+          "pct_of_rollout": 0,
+          "src": "const _r=dmgRangeOneHit(att,def,mv,field,spread,isCrit,_sub,h,1,_plan.perHit||null);"
+        },
+        {
+          "line": 14969,
+          "pct_of_rollout": 0,
+          "src": "if(hit&&+hit.hits>0)MEDSEEN.multiHitRolledCount++;"
+        }
+      ]
+    },
+    "residualOrder": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 698,
+      "self_pct_of_rollout": 2.76,
+      "top_lines": [
+        {
+          "line": 9926,
+          "pct_of_rollout": 1.58,
+          "src": "for(const x of list)x._resSpe=effSpeed(x,field,actA.indexOf(x)>=0?'A':'B');"
+        },
+        {
+          "line": 9940,
+          "pct_of_rollout": 0.21,
+          "src": "const d=compareTurnOrder({spe:list[next[0]]._resSpe},{spe:list[i]._resSpe},field);"
+        },
+        {
+          "line": 9925,
+          "pct_of_rollout": 0.14,
+          "src": "const list=[...actA,...actB].filter(Boolean);"
+        },
+        {
+          "line": 9952,
+          "pct_of_rollout": 0.09,
+          "src": "grp.sort((x,y)=>tie(y)-tie(x));"
+        },
+        {
+          "line": 9941,
+          "pct_of_rollout": 0.08,
+          "src": "if(d<0)continue;"
+        },
+        {
+          "line": 9911,
+          "pct_of_rollout": 0.07,
+          "src": "if(e.ord!==order||!e.who||!inList.has(e.who)||seen.has(e.who))continue;"
+        },
+        {
+          "line": 18439,
+          "pct_of_rollout": 0.06,
+          "src": "if(field&&field.tr>0)sp=-sp;                                // Trick Room inverts the SPEED key only"
+        },
+        {
+          "line": 9910,
+          "pct_of_rollout": 0.05,
+          "src": "for(const e of _RES_SHADOW_LIST){"
+        },
+        {
+          "line": 18437,
+          "pct_of_rollout": 0.04,
+          "src": "const dq=(B.qc||0)-(A.qc||0);   if(dq)return dq;            // Quick Claw, inside the bracket"
+        },
+        {
+          "line": 9942,
+          "pct_of_rollout": 0.03,
+          "src": "if(d>0)next=[i]; else next.push(i);"
+        },
+        {
+          "line": 9901,
+          "pct_of_rollout": 0.03,
+          "src": "if(_RES_SHADOW_GEN!==_RES_TIE_GEN||!_RES_SHADOW_LIST){"
+        },
+        {
+          "line": 9951,
+          "pct_of_rollout": 0.03,
+          "src": "const grp=list.slice(sorted,sorted+next.length);"
+        },
+        {
+          "line": 9937,
+          "pct_of_rollout": 0.03,
+          "src": "while(sorted+1<list.length){"
+        },
+        {
+          "line": 18436,
+          "pct_of_rollout": 0.03,
+          "src": "const dp=(B.pri||0)-(A.pri||0); if(dp)return dp;            // priority: HIGHER first"
+        }
+      ]
+    },
+    "playerActionPrimary": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 217,
+      "self_pct_of_rollout": 0.86,
+      "top_lines": [
+        {
+          "line": 46030,
+          "pct_of_rollout": 0.21,
+          "src": "function playerActionPrimary(me,moveId,target,field){"
+        },
+        {
+          "line": 46210,
+          "pct_of_rollout": 0.07,
+          "src": "return {kind:'attack',move:{id,mv,spread,d:dmgRange(me,target,mv,field,spread),acc:hitProb(me,target,id,field)},"
+        },
+        {
+          "line": 46073,
+          "pct_of_rollout": 0.07,
+          "src": "const mv=MC.moves[id];"
+        },
+        {
+          "line": 46031,
+          "pct_of_rollout": 0.07,
+          "src": "const id=String(moveId||'').toLowerCase().replace(/[^a-z0-9]/g,'');"
+        },
+        {
+          "line": 46060,
+          "pct_of_rollout": 0.06,
+          "src": "if(TAGS.has('move',id,'shieldsUser'))return {kind:'protect',mv:id};   // mv, so WIRE 61 knows which shield blocked"
+        },
+        {
+          "line": 46061,
+          "pct_of_rollout": 0.05,
+          "src": "if(PROTECTMOVES.has(id)){MEDFAILS.shieldByNameOnly++;"
+        },
+        {
+          "line": 46070,
+          "pct_of_rollout": 0.04,
+          "src": "if(TAGS.has('move',id,'oneTurnGuard'))return {kind:'wideguard',mv:id};"
+        },
+        {
+          "line": 46207,
+          "pct_of_rollout": 0.03,
+          "src": "const spread=SPREAD.has(id)||terrainWidensToSpread(id,me,field);"
+        },
+        {
+          "line": 46158,
+          "pct_of_rollout": 0.03,
+          "src": "const _dp=TAGS.param('move',id,'dualPurpose');"
+        },
+        {
+          "line": 46105,
+          "pct_of_rollout": 0.03,
+          "src": "if(mv&&hasPower(mv)&&!target&&(SPREAD.has(id)||terrainWidensToSpread(id,me,field))){"
+        },
+        {
+          "line": 46199,
+          "pct_of_rollout": 0.02,
+          "src": "if(mv&&target&&TAGS.param('move',id,'delayedHit'))"
+        },
+        {
+          "line": 46582,
+          "pct_of_rollout": 0.02,
+          "src": "if(fx&&fx.weather&&weatherId(fx.weather))"
+        },
+        {
+          "line": 46338,
+          "pct_of_rollout": 0.02,
+          "src": "if(fx&&fx.volatile==='helpinghand')return {kind:'helpinghand',mv:id,target};"
+        },
+        {
+          "line": 46290,
+          "pct_of_rollout": 0.01,
+          "src": "if(TAGS.has('move',id,'swapsSlots')||String(id).replace(/[^a-z0-9]/g,'')==='allyswitch')"
+        }
+      ]
+    },
+    "norm": {
+      "file": "engine/tags.js",
+      "self_ticks": 2061,
+      "self_pct_of_rollout": 8.15,
+      "top_lines": [
+        {
+          "line": 65,
+          "pct_of_rollout": 8.15,
+          "src": "const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');"
+        }
+      ]
+    },
+    "param": {
+      "file": "engine/tags.js",
+      "self_ticks": 1505,
+      "self_pct_of_rollout": 5.95,
+      "top_lines": [
+        {
+          "line": 109,
+          "pct_of_rollout": 2.99,
+          "src": "if (!rec || !rec.tags || !rec.tags.includes(tag)) return null;"
+        },
+        {
+          "line": 107,
+          "pct_of_rollout": 1.12,
+          "src": "ASKED[tag] = (ASKED[tag] || 0) + 1;"
+        },
+        {
+          "line": 65,
+          "pct_of_rollout": 0.57,
+          "src": "const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');"
+        },
+        {
+          "line": 75,
+          "pct_of_rollout": 0.37,
+          "src": "if (!rec) return null;"
+        },
+        {
+          "line": 73,
+          "pct_of_rollout": 0.21,
+          "src": "if (!t) return null;"
+        },
+        {
+          "line": 111,
+          "pct_of_rollout": 0.2,
+          "src": "return (rec.params && rec.params[tag]) || {};"
+        },
+        {
+          "line": 36,
+          "pct_of_rollout": 0.15,
+          "src": "if (DB) return DB;"
+        },
+        {
+          "line": 76,
+          "pct_of_rollout": 0.09,
+          "src": "COUNT[kind] = (COUNT[kind] || 0) + 1;"
+        },
+        {
+          "line": 106,
+          "pct_of_rollout": 0.08,
+          "src": "function param(kind, id, tag) {"
+        },
+        {
+          "line": 110,
+          "pct_of_rollout": 0.06,
+          "src": "COUNT[tag] = (COUNT[tag] || 0) + 1;"
+        },
+        {
+          "line": 72,
+          "pct_of_rollout": 0.06,
+          "src": "const t = db[TABLE[kind]];"
+        },
+        {
+          "line": 74,
+          "pct_of_rollout": 0.04,
+          "src": "const rec = t[norm(id)];"
+        }
+      ]
+    },
+    "tagsFor": {
+      "file": "engine/tags.js",
+      "self_ticks": 546,
+      "self_pct_of_rollout": 2.16,
+      "top_lines": [
+        {
+          "line": 76,
+          "pct_of_rollout": 1.36,
+          "src": "COUNT[kind] = (COUNT[kind] || 0) + 1;"
+        },
+        {
+          "line": 72,
+          "pct_of_rollout": 0.61,
+          "src": "const t = db[TABLE[kind]];"
+        },
+        {
+          "line": 74,
+          "pct_of_rollout": 0.18,
+          "src": "const rec = t[norm(id)];"
+        },
+        {
+          "line": 65,
+          "pct_of_rollout": 0.01,
+          "src": "const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');"
+        },
+        {
+          "line": 36,
+          "pct_of_rollout": 0,
+          "src": "if (DB) return DB;"
+        }
+      ]
+    },
+    "_stepDamage": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 277,
+      "self_pct_of_rollout": 1.1,
+      "top_lines": [
+        {
+          "line": 37499,
+          "pct_of_rollout": 0.56,
+          "src": "const _stepDamage=(R)=>{const tg=R.tg;"
+        },
+        {
+          "line": 38336,
+          "pct_of_rollout": 0.09,
+          "src": "R._priceLines=()=>{"
+        },
+        {
+          "line": 37625,
+          "pct_of_rollout": 0.08,
+          "src": "})();"
+        },
+        {
+          "line": 37759,
+          "pct_of_rollout": 0.05,
+          "src": "{const _cc=critChance(a.move.id,m,suppressedAbility(m,tg),tg);   // WIRE 128 -- one owner; ROADMAP #222 -- its own die"
+        },
+        {
+          "line": 37687,
+          "pct_of_rollout": 0.03,
+          "src": "let _band=(_hitCtx.rolls&&_hitCtx.rolls.length===DAMAGE_ROLL_SIDES)?_hitCtx.rolls.slice():null;"
+        },
+        {
+          "line": 37786,
+          "pct_of_rollout": 0.02,
+          "src": "else if(!CRIT_ONCE_PER_CLICK_RESTORED&&_hitCtx&&+_hitCtx.hits>1){"
+        },
+        {
+          "line": 38037,
+          "pct_of_rollout": 0.02,
+          "src": "let _pkArr=null;"
+        },
+        {
+          "line": 37969,
+          "pct_of_rollout": 0.02,
+          "src": "{const _rbC=TAGS.param('item',tg.item,'resistBerry');"
+        },
+        {
+          "line": 37778,
+          "pct_of_rollout": 0.02,
+          "src": "_crits.push((_ci>=1)||(_ci>0&&_ci<1&&_cri<_ci));"
+        },
+        {
+          "line": 37681,
+          "pct_of_rollout": 0.02,
+          "src": "const _u=_subAddr(_dollRow,_R.dmg);                 // ROADMAP #222 -- its own die"
+        },
+        {
+          "line": 37933,
+          "pct_of_rollout": 0.02,
+          "src": "R.effShow=damageIsComputed(a.move.id)?d.eff:0;"
+        },
+        {
+          "line": 38323,
+          "pct_of_rollout": 0.02,
+          "src": "R.hitcount=!!(_hitCtx.hitcountable&&!_smartTarget);"
+        },
+        {
+          "line": 37633,
+          "pct_of_rollout": 0.01,
+          "src": "const _dollRow=subBlocks(m,tg,a.move.id);"
+        },
+        {
+          "line": 37875,
+          "pct_of_rollout": 0.01,
+          "src": "R.crit=_crits?_crits.some(Boolean):undefined;"
+        }
+      ]
+    },
+    "_stepApply": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 255,
+      "self_pct_of_rollout": 1.01,
+      "top_lines": [
+        {
+          "line": 38600,
+          "pct_of_rollout": 0.39,
+          "src": "const _stepApply=(R)=>{const tg=R.tg;let d=R.d,dmg=R.dmg;"
+        },
+        {
+          "line": 39465,
+          "pct_of_rollout": 0.11,
+          "src": "if(dmg>0){(tg._hitBy=tg._hitBy||new Set()).add(m);tg._hurtThisTurn=true;"
+        },
+        {
+          "line": 39463,
+          "pct_of_rollout": 0.08,
+          "src": "if(_arrivals>0){tg._timesAttacked=((tg._timesAttacked)|0)+_arrivals;MEDSEEN.timesHitCounted+=_arrivals;}"
+        },
+        {
+          "line": 39378,
+          "pct_of_rollout": 0.06,
+          "src": "tg.curHP-=dmg;"
+        },
+        {
+          "line": 40300,
+          "pct_of_rollout": 0.06,
+          "src": "if(tg.curHP<=0){tg.curHP=0;tg.fainted=true,noteFaint(tg);R.fainted=true;}"
+        },
+        {
+          "line": 39621,
+          "pct_of_rollout": 0.04,
+          "src": "})();"
+        },
+        {
+          "line": 39494,
+          "pct_of_rollout": 0.03,
+          "src": "tg._took[_cat==='phys'?'byPhys':'bySpec']=m;"
+        },
+        {
+          "line": 39495,
+          "pct_of_rollout": 0.03,
+          "src": "tg._took.by=m;}"
+        },
+        {
+          "line": 39480,
+          "pct_of_rollout": 0.02,
+          "src": "tg._took[_cat]=dmg; tg._took.any=dmg;"
+        },
+        {
+          "line": 39479,
+          "pct_of_rollout": 0.02,
+          "src": "tg._took=tg._took||{phys:0,spec:0,any:0};"
+        },
+        {
+          "line": 39505,
+          "pct_of_rollout": 0.02,
+          "src": "_koThisHit=tg.curHP<=0;"
+        },
+        {
+          "line": 38654,
+          "pct_of_rollout": 0.02,
+          "src": "const _dollPaid=(R._dollPaid|0);"
+        },
+        {
+          "line": 38963,
+          "pct_of_rollout": 0.02,
+          "src": "const _svIt=TAGS.param('item',tg.item,'survivesFromFull');"
+        },
+        {
+          "line": 38931,
+          "pct_of_rollout": 0.01,
+          "src": "{const _sv1=tg._vol&&oneTurnSurvivalVolatiles();"
+        }
+      ]
+    },
+    "_stepEffects": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 259,
+      "self_pct_of_rollout": 1.02,
+      "top_lines": [
+        {
+          "line": 40308,
+          "pct_of_rollout": 0.57,
+          "src": "const _stepEffects=(R,_fxOpt)=>{const tg=R.tg;const _react=R.react;const _secOnly=!!(_fxOpt&&_fxOpt.secOnly);"
+        },
+        {
+          "line": 40472,
+          "pct_of_rollout": 0.08,
+          "src": "const _secs=((fx&&fx.secondary)||[]).concat(_aos?[_aos]:[]);"
+        },
+        {
+          "line": 40352,
+          "pct_of_rollout": 0.04,
+          "src": "const tgAb=(suppressedAbility(m,tg,a.move&&a.move.mv&&a.move.mv.bp>0?(a.move.mv.c==='P'?'Physical':'Special'):'Status')||'').replace(/[^a-z0-9]/g,'');"
+        },
+        {
+          "line": 40474,
+          "pct_of_rollout": 0.02,
+          "src": "const _fsc=TAGS.param('move',a.move.id,'formatSecondaryCount');"
+        },
+        {
+          "line": 41301,
+          "pct_of_rollout": 0.02,
+          "src": "{const _cb=TAGS.param('ability',tg.ability,'disablesAttacker');"
+        },
+        {
+          "line": 40332,
+          "pct_of_rollout": 0.02,
+          "src": "if(!R.hit&&!R.fainted&&!_secOnly)return;"
+        },
+        {
+          "line": 40955,
+          "pct_of_rollout": 0.02,
+          "src": "{const _fi=m._flingItem;"
+        },
+        {
+          "line": 40883,
+          "pct_of_rollout": 0.02,
+          "src": "const _krOwnFlinch=!!(fx&&fx.secondary&&fx.secondary.some(s=>s&&s.volatile==='flinch'));"
+        },
+        {
+          "line": 40828,
+          "pct_of_rollout": 0.02,
+          "src": "{const _pb=TAGS.param('move',a.move.id,'punishesBoostedTarget');"
+        },
+        {
+          "line": 40562,
+          "pct_of_rollout": 0.02,
+          "src": "const _fmt=_fmtChance(s);"
+        },
+        {
+          "line": 41184,
+          "pct_of_rollout": 0.02,
+          "src": "{const _pt=TAGS.param('ability',m.ability,'poisonsOnMyContact');"
+        },
+        {
+          "line": 40583,
+          "pct_of_rollout": 0.02,
+          "src": "const _passed=_secDraw()*100<(_fmt!=null?_fmt:_generic);"
+        },
+        {
+          "line": 40339,
+          "pct_of_rollout": 0.02,
+          "src": "R.fxDone=true;"
+        },
+        {
+          "line": 40963,
+          "pct_of_rollout": 0.01,
+          "src": "{const _ff=m._flingFx;"
+        }
+      ]
+    },
+    "residualShadowBuild": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 255,
+      "self_pct_of_rollout": 1.01,
+      "top_lines": [
+        {
+          "line": 10216,
+          "pct_of_rollout": 0.23,
+          "src": "{ const ab=_shadowId(m.ability); const r=R.byKey.get('ability:'+ab); if(r)push('ability:'+ab+'@'+at,r,spe,m); }"
+        },
+        {
+          "line": 10215,
+          "pct_of_rollout": 0.13,
+          "src": "for(const r of R.volatile)if(residualShadowVolPresent(r.id,m))push('vol:'+r.id+'@'+at,r,spe,m);"
+        },
+        {
+          "line": 10217,
+          "pct_of_rollout": 0.12,
+          "src": "{ const it=_shadowId(m.item);    const r=R.byKey.get('item:'+it);    if(r)push('item:'+it+'@'+at,r,spe,m); }"
+        },
+        {
+          "line": 10163,
+          "pct_of_rollout": 0.1,
+          "src": "function residualShadowBuild(field,sfA,sfB,actA,actB){"
+        },
+        {
+          "line": 10156,
+          "pct_of_rollout": 0.08,
+          "src": "if(rd)return !!rd(m);"
+        },
+        {
+          "line": 10210,
+          "pct_of_rollout": 0.08,
+          "src": "const s0=effSpeed(m,field,S)|0;"
+        },
+        {
+          "line": 10183,
+          "pct_of_rollout": 0.03,
+          "src": "if(sf&&sf.sc)for(const id of Object.keys(sf.sc)){"
+        },
+        {
+          "line": 10213,
+          "pct_of_rollout": 0.03,
+          "src": "const st=RESIDUAL_SHADOW_STATUS[_shadowId(m.status)];"
+        },
+        {
+          "line": 10212,
+          "pct_of_rollout": 0.03,
+          "src": "const at=S+si;"
+        },
+        {
+          "line": 10185,
+          "pct_of_rollout": 0.02,
+          "src": "push('side:'+S+':'+id,R.byKey.get('side:'+id),0);"
+        },
+        {
+          "line": 10182,
+          "pct_of_rollout": 0.02,
+          "src": "for(const [S,sf,act] of [['A',sfA,actA],['B',sfB,actB]]){"
+        },
+        {
+          "line": 10168,
+          "pct_of_rollout": 0.02,
+          "src": "L.push({key,ord:row.order==null?4294967296:row.order,sub:row.sub|0,spe:spe|0,who:who||null}); };"
+        },
+        {
+          "line": 10178,
+          "pct_of_rollout": 0.02,
+          "src": "if(w)for(const r of R.weather)if(weatherId(r.id)===w)push('weather:'+r.id,r,0); }"
+        },
+        {
+          "line": 10157,
+          "pct_of_rollout": 0.02,
+          "src": "return !!(m._vol&&m._vol[id]>0);"
+        }
+      ]
+    },
+    "residualShadowRank": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 183,
+      "self_pct_of_rollout": 0.72,
+      "top_lines": [
+        {
+          "line": 10273,
+          "pct_of_rollout": 0.67,
+          "src": "function residualShadowRank(field,sfA,sfB,actA,actB,force){"
+        },
+        {
+          "line": 10281,
+          "pct_of_rollout": 0.04,
+          "src": "const list=residualShadowSort(residualShadowBuild(field,sfA,sfB,actA,actB));"
+        },
+        {
+          "line": 10283,
+          "pct_of_rollout": 0,
+          "src": "for(let i=0;i<list.length;i++)rank.set(list[i].key,i);"
+        },
+        {
+          "line": 10278,
+          "pct_of_rollout": 0,
+          "src": "if(_RES_SHADOW_GEN===_RES_TIE_GEN&&(_RES_SHADOW_LIST||!force))return _RES_SHADOW_RANK;"
+        }
+      ]
+    },
+    "residualExpireAt": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 220,
+      "self_pct_of_rollout": 0.87,
+      "top_lines": [
+        {
+          "line": 10383,
+          "pct_of_rollout": 0.19,
+          "src": "if(jobs.map(j=>j.key).join('|')!==_before.join('|'))MEDSEEN.residualShadowTieReordered++;"
+        },
+        {
+          "line": 10311,
+          "pct_of_rollout": 0.08,
+          "src": "for(const sf of [sfA,sfB]){"
+        },
+        {
+          "line": 10313,
+          "pct_of_rollout": 0.06,
+          "src": "for(const _id of Object.keys(sf.sc)){"
+        },
+        {
+          "line": 10377,
+          "pct_of_rollout": 0.06,
+          "src": "jobs.sort((a,b)=>(a.sub-b.sub)||(_r(a.key)-_r(b.key)));"
+        },
+        {
+          "line": 10310,
+          "pct_of_rollout": 0.05,
+          "src": "const push=(id,fn,key)=>{const r=at(id);if(r)jobs.push({sub:r.sub|0,fn,key:key||''});};"
+        },
+        {
+          "line": 10385,
+          "pct_of_rollout": 0.05,
+          "src": "for(const j of jobs)j.fn();"
+        },
+        {
+          "line": 10315,
+          "pct_of_rollout": 0.04,
+          "src": "const _sb=TAGS.param('move',_id,'sideBuff');"
+        },
+        {
+          "line": 10334,
+          "pct_of_rollout": 0.04,
+          "src": "const fieldClock=(id,k,name,after)=>push(id,()=>{"
+        },
+        {
+          "line": 10303,
+          "pct_of_rollout": 0.04,
+          "src": "function residualExpireAt(order,field,sfA,sfB,actA,actB){"
+        },
+        {
+          "line": 10307,
+          "pct_of_rollout": 0.04,
+          "src": "return (r&&r.order===order&&RESIDUAL_EXPIRY_SITES.has(r.site))?r:null;};"
+        },
+        {
+          "line": 10376,
+          "pct_of_rollout": 0.04,
+          "src": "const _before=jobs.map(j=>j.key);"
+        },
+        {
+          "line": 10312,
+          "pct_of_rollout": 0.03,
+          "src": "if(!sf||!sf.sc)continue;"
+        },
+        {
+          "line": 10361,
+          "pct_of_rollout": 0.02,
+          "src": "const _tid=residualTerrainKey(field.terrain);"
+        },
+        {
+          "line": 10304,
+          "pct_of_rollout": 0.02,
+          "src": "if(!RESIDUAL_EXPIRY.size)return;"
+        }
+      ]
+    },
+    "residualShadowVolPresent": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 196,
+      "self_pct_of_rollout": 0.78,
+      "top_lines": [
+        {
+          "line": 10156,
+          "pct_of_rollout": 0.41,
+          "src": "if(rd)return !!rd(m);"
+        },
+        {
+          "line": 10155,
+          "pct_of_rollout": 0.33,
+          "src": "const rd=RESIDUAL_SHADOW_VOL[id];"
+        },
+        {
+          "line": 10157,
+          "pct_of_rollout": 0.04,
+          "src": "return !!(m._vol&&m._vol[id]>0);"
+        }
+      ]
+    },
+    "accModRow": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 297,
+      "self_pct_of_rollout": 1.17,
+      "top_lines": [
+        {
+          "line": 11231,
+          "pct_of_rollout": 0.79,
+          "src": "const row=ACCMOD[kind+':'+key];"
+        },
+        {
+          "line": 11229,
+          "pct_of_rollout": 0.17,
+          "src": "const key=String(id||'').toLowerCase().replace(/[^a-z0-9]/g,'');"
+        },
+        {
+          "line": 119,
+          "pct_of_rollout": 0.06,
+          "src": "* step until this batch and both are zero under `MEDI_IMMUNE_STEP_LEGACY=1`, which is how"
+        },
+        {
+          "line": 76,
+          "pct_of_rollout": 0.03,
+          "src": "/* CAPABILITIES THAT FIRED, not failures. Separate object because the two are read for opposite"
+        },
+        {
+          "line": 117,
+          "pct_of_rollout": 0.03,
+          "src": "* `runImmunity`); `moveClassRefusedAtTryHit` is a Soundproof/Bulletproof/Overcoat refusal answered"
+        },
+        {
+          "line": 11230,
+          "pct_of_rollout": 0.02,
+          "src": "if(!key||key==='none')return null;"
+        },
+        {
+          "line": 75,
+          "pct_of_rollout": 0.02,
+          "src": "* run can print it. Caught by tests/test-no-silent-failure.js, which is what made these visible. */"
+        },
+        {
+          "line": 65,
+          "pct_of_rollout": 0.02,
+          "src": "reactorsTo(k){ return (db && db.linkage && db.linkage[k]) || {abilities:[],items:[],moves:[]}; },"
+        },
+        {
+          "line": 73,
+          "pct_of_rollout": 0.01,
+          "src": "* \"a capability was absent and everything reported success\". A zero here is the claim that the"
+        },
+        {
+          "line": 74,
+          "pct_of_rollout": 0.01,
+          "src": "* fallback never ran; a non-zero one is the receipt that it did. Exported as `fails` so a test or a"
+        },
+        {
+          "line": 120,
+          "pct_of_rollout": 0,
+          "src": "* `tests/probe_immune_step_order.js` proves the knob reached BOTH rules rather than one. */"
+        },
+        {
+          "line": 11232,
+          "pct_of_rollout": 0,
+          "src": "if(row)return row.off?null:row;"
+        }
+      ]
+    },
+    "hitChance": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 200,
+      "self_pct_of_rollout": 0.79,
+      "top_lines": [
+        {
+          "line": 12335,
+          "pct_of_rollout": 0.21,
+          "src": "const r=accModRow(kind,kind==='ability'?mon.ability:mon.item);"
+        },
+        {
+          "line": 12135,
+          "pct_of_rollout": 0.14,
+          "src": "function hitChance(att,def,id,field,ctx){"
+        },
+        {
+          "line": 12137,
+          "pct_of_rollout": 0.11,
+          "src": "const raw=printedAccuracy(id,field);"
+        },
+        {
+          "line": 12278,
+          "pct_of_rollout": 0.07,
+          "src": "const _mv=(typeof MC!=='undefined'&&MC&&MC.moves&&MC.moves[id])||null;"
+        },
+        {
+          "line": 12332,
+          "pct_of_rollout": 0.05,
+          "src": "for(const [who,mon] of [['att',att],['def',def]]){"
+        },
+        {
+          "line": 12263,
+          "pct_of_rollout": 0.03,
+          "src": "const _ab=(att&&att.boosts&&att.boosts.acc)||0;"
+        },
+        {
+          "line": 12240,
+          "pct_of_rollout": 0.02,
+          "src": "const _oh=TAGS.param('move',id,'ohko');"
+        },
+        {
+          "line": 12284,
+          "pct_of_rollout": 0.02,
+          "src": "try{const _fx=moveFx(id); _cat=(_fx&&_fx.category)||null;}"
+        },
+        {
+          "line": 12214,
+          "pct_of_rollout": 0.02,
+          "src": "if(!PUNISH_MINIMIZE_BLIND&&def&&def._vol&&def._vol.minimize>0){"
+        },
+        {
+          "line": 12334,
+          "pct_of_rollout": 0.02,
+          "src": "for(const kind of ['ability','item']){"
+        },
+        {
+          "line": 11243,
+          "pct_of_rollout": 0.02,
+          "src": "const r=accModRow('ability',mon.ability);"
+        },
+        {
+          "line": 12298,
+          "pct_of_rollout": 0.01,
+          "src": "const _accTake=(row,label)=>{"
+        },
+        {
+          "line": 11242,
+          "pct_of_rollout": 0.01,
+          "src": "if(!mon)return false;"
+        },
+        {
+          "line": 107,
+          "pct_of_rollout": 0.01,
+          "src": "* Anger Point). Zero would mean the emitter is unreachable, which is what it looked like before. */"
+        }
+      ]
+    },
+    "suppressesWeather": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 162,
+      "self_pct_of_rollout": 0.64,
+      "top_lines": [
+        {
+          "line": 109,
+          "pct_of_rollout": 0.21,
+          "src": "/* 2026-08-24 -- the two arms of an absorbing ability's announcement. `absorbGiftLanded` is a heal or"
+        },
+        {
+          "line": 65,
+          "pct_of_rollout": 0.13,
+          "src": "reactorsTo(k){ return (db && db.linkage && db.linkage[k]) || {abilities:[],items:[],moves:[]}; },"
+        },
+        {
+          "line": 75,
+          "pct_of_rollout": 0.08,
+          "src": "* run can print it. Caught by tests/test-no-silent-failure.js, which is what made these visible. */"
+        },
+        {
+          "line": 12746,
+          "pct_of_rollout": 0.07,
+          "src": "function suppressesWeather(m){ return !!(m&&TAGS.param('ability',m.ability,'weatherSuppression')); }"
+        },
+        {
+          "line": 36,
+          "pct_of_rollout": 0.06,
+          "src": "if (process.env.ABRA_TAGS_OFF_TREE && typeof __dirname === 'string') {"
+        },
+        {
+          "line": 76,
+          "pct_of_rollout": 0.04,
+          "src": "/* CAPABILITIES THAT FIRED, not failures. Separate object because the two are read for opposite"
+        },
+        {
+          "line": 107,
+          "pct_of_rollout": 0.03,
+          "src": "* Anger Point). Zero would mean the emitter is unreachable, which is what it looked like before. */"
+        },
+        {
+          "line": 73,
+          "pct_of_rollout": 0.02,
+          "src": "* \"a capability was absent and everything reported success\". A zero here is the claim that the"
+        },
+        {
+          "line": 74,
+          "pct_of_rollout": 0,
+          "src": "* fallback never ran; a non-zero one is the receipt that it did. Exported as `fails` so a test or a"
+        },
+        {
+          "line": 111,
+          "pct_of_rollout": 0,
+          "src": "* having nowhere to land (the authority writes the `-immune`). Both non-zero means the branch is"
+        }
+      ]
+    },
+    "battleOver": {
+      "file": "engine/medicham2-browser.js",
+      "self_ticks": 11,
+      "self_pct_of_rollout": 0.04,
+      "top_lines": [
+        {
+          "line": 25985,
+          "pct_of_rollout": 0.04,
+          "src": "function battleOver(S){"
+        }
+      ]
+    }
+  },
+  "categories": [
+    {
+      "category": "tag lookup (engine/tags.js)",
+      "inclusive_pct_of_rollout": 16.94,
+      "members": [
+        "param 15.15%",
+        "tagsFor 10.21%",
+        "norm 8.12%",
+        "has 1.68%",
+        "load 0.03%",
+        "withTag 0.01%",
+        " 0%"
+      ]
+    },
+    {
+      "category": "speed: effSpeed / turn-order compare / residual order",
+      "inclusive_pct_of_rollout": 13.03,
+      "members": [
+        "effSpeed 9.67%",
+        "residualOrder 9.33%",
+        "turnOrderKey 0.88%",
+        "statWithBoost 0.21%",
+        "compareTurnOrder 0.01%",
+        "sdChain 0%"
+      ]
+    },
+    {
+      "category": "residual shadow (residualShadow*/residualExpire*)",
+      "inclusive_pct_of_rollout": 5.92,
+      "members": [
+        "residualShadowRank 4.35%",
+        "residualShadowBuild 3.5%",
+        "residualShadowVolPresent 1.88%",
+        "residualExpireAt 1.58%",
+        "residualShadowShield 0.21%",
+        "residualShadowSort 0.12%"
+      ]
+    },
+    {
+      "category": "damage: dmgRange / dmgRangeOneHit",
+      "inclusive_pct_of_rollout": 9.84,
+      "members": [
+        "dmgRange 9.83%",
+        "dmgRangeOneHit 7.91%"
+      ]
+    },
+    {
+      "category": "accuracy: hitChance / hitProb / accModRow",
+      "inclusive_pct_of_rollout": 3.22,
+      "members": [
+        "hitChance 3.07%",
+        "hitProb 1.88%",
+        "accModRow 1.55%"
+      ]
+    },
+    {
+      "category": "event walk: _walk",
+      "inclusive_pct_of_rollout": 18.64,
+      "members": [
+        "_walk 18.64%"
+      ]
+    },
+    {
+      "category": "update pass: _updateEvent / _updateAll",
+      "inclusive_pct_of_rollout": 9.87,
+      "members": [
+        "_updateAll 7.08%",
+        "_updateEvent 7.08%"
+      ]
+    },
+    {
+      "category": "step pipeline: _step*",
+      "inclusive_pct_of_rollout": 16.7,
+      "members": [
+        "_stepDamage 6.55%",
+        "_stepApply 2.2%",
+        "_stepUpdate 1.77%",
+        "_stepEffects 1.73%",
+        "_stepAccuracy 1.48%",
+        "_stepDamagingHitBody 0.57%",
+        "_stepTryHit 0.53%",
+        "_stepTypeImm 0.53%",
+        "_stepDamagingHit 0.32%",
+        "_stepSelfPay 0.3%",
+        "_stepDamagingHitEarly 0.17%",
+        "_stepFaint 0.13%",
+        "_stepBuffOnHit 0.11%",
+        "_stepAfterHitField 0.1%",
+        "_stepBreakProtect 0.09%",
+        "_stepAfterHit 0.09%",
+        "_stepTryImm 0.08%",
+        "_stepHpThresholdBoost 0.07%",
+        "_stepAfterFaint 0.06%",
+        "_stepAnnounceItem 0.06%",
+        "_stepClearScreens 0.06%",
+        "_stepPriceLines 0.04%",
+        "_stepDamagingHitLate 0.03%",
+        "_stepSubAbsorb 0.03%",
+        "_stepHitCount 0.02%",
+        "_stepInvuln 0.02%",
+        "_stepThawAfterSecondary 0.02%",
+        "_stepThawDamagingHit 0.01%",
+        "_stepDrainFaints 0.01%"
+      ]
+    },
+    {
+      "category": "rollout policy: pick / playerAction*",
+      "inclusive_pct_of_rollout": 10.45,
+      "members": [
+        "pick 10.36%",
+        "playerAction 9%",
+        "playerActionPrimary 8.35%"
+      ]
+    },
+    {
+      "category": "trace emit (TRACE / trace*)",
+      "inclusive_pct_of_rollout": 0.35,
+      "members": [
+        "traceSweep 0.3%",
+        "traceCopy 0.02%",
+        "traceBind 0.02%",
+        "traceRelease 0.01%"
+      ]
+    },
+    {
+      "category": "garbage collector",
+      "inclusive_pct_of_rollout": 0,
+      "members": []
+    }
+  ],
+  "trace": {
+    "rollout_samples_per_turn_A": 3.821,
+    "rollout_samples_per_turn_B": 4.186,
+    "added_pct_of_A_turn": 9.54,
+    "top_added": [
+      {
+        "name": "battleTurn @ engine/medicham2-browser.js:26786",
+        "added_samples_per_turn": 0.038,
+        "pct_of_A_turn": 0.98
+      },
+      {
+        "name": "norm @ engine/tags.js:65",
+        "added_samples_per_turn": 0.027,
+        "pct_of_A_turn": 0.72
+      },
+      {
+        "name": "runPlayout @ engine/rollout_leaf.js:833",
+        "added_samples_per_turn": 0.023,
+        "pct_of_A_turn": 0.6
+      },
+      {
+        "name": "mv @ engine/medicham2-browser.js:4937",
+        "added_samples_per_turn": 0.019,
+        "pct_of_A_turn": 0.5
+      },
+      {
+        "name": "dmgRangeOneHit @ engine/medicham2-browser.js:12957",
+        "added_samples_per_turn": 0.015,
+        "pct_of_A_turn": 0.4
+      },
+      {
+        "name": "dmg @ engine/medicham2-browser.js:5079",
+        "added_samples_per_turn": 0.014,
+        "pct_of_A_turn": 0.37
+      },
+      {
+        "name": "_stepApply @ engine/medicham2-browser.js:38600",
+        "added_samples_per_turn": 0.013,
+        "pct_of_A_turn": 0.35
+      },
+      {
+        "name": "_walk @ engine/medicham2-browser.js:42473",
+        "added_samples_per_turn": 0.01,
+        "pct_of_A_turn": 0.27
+      },
+      {
+        "name": "push @ engine/medicham2-browser.js:4920",
+        "added_samples_per_turn": 0.009,
+        "pct_of_A_turn": 0.25
+      },
+      {
+        "name": "at @ engine/medicham2-browser.js:10306",
+        "added_samples_per_turn": 0.009,
+        "pct_of_A_turn": 0.23
+      },
+      {
+        "name": "tracksTargetOf @ engine/medicham2-browser.js:26063",
+        "added_samples_per_turn": 0.008,
+        "pct_of_A_turn": 0.22
+      },
+      {
+        "name": "playerAction @ engine/medicham2-browser.js:46026",
+        "added_samples_per_turn": 0.008,
+        "pct_of_A_turn": 0.22
+      },
+      {
+        "name": "faint @ engine/medicham2-browser.js:5097",
+        "added_samples_per_turn": 0.008,
+        "pct_of_A_turn": 0.21
+      },
+      {
+        "name": "residualShadowBuild @ engine/medicham2-browser.js:10163",
+        "added_samples_per_turn": 0.007,
+        "pct_of_A_turn": 0.19
+      },
+      {
+        "name": "dmgRange @ engine/medicham2-browser.js:14965",
+        "added_samples_per_turn": 0.007,
+        "pct_of_A_turn": 0.18
+      }
+    ]
+  }
+}
