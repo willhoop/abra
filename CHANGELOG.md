@@ -10,6 +10,14 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.15.0] — 2026-09-11
+
+### Fixed
+- **A probe's temp fixture was being credited as the writer of the gate's real input**, which withheld 23
+  instrument artifacts as if they were downstream of the simulator. Provenance now ignores writes rooted in a
+  temp directory. Two genuinely quarantined figures in the MEASURE and SEARCH ledgers are withdrawn, and three
+  more pre-commit checks judge the staged commit rather than the working tree.
+
 ## [6.14.1] — 2026-09-11
 
 ### Fixed

@@ -32,12 +32,30 @@ const path = require('path');
  * quibble — and `--check` failed HEAD's own INDEX.md in the clone while passing it here. The reader is
  * the one engine/docs_scan.js uses for the same defect (its `stripCR`), so there is one implementation
  * of "a CR is not content"; the output is written LF and git normalises it on commit as it always did. */
-const { stripCR } = require(path.join(__dirname, '..', 'engine', 'docs_scan.js'));
+const DS = require(path.join(__dirname, '..', 'engine', 'docs_scan.js'));
+const { stripCR } = DS;
 
 const ROOT = path.join(__dirname, '..');
 const ARCH = path.join(ROOT, 'docs', 'archive');
 const OUT = path.join(ARCH, 'INDEX.md');
 const CHECK = process.argv.includes('--check');
+
+/* `--check --staged` JUDGES THE COMMIT, NOT THE WORKING TREE — 2026-09-11. tests/test-docs-current.js
+ * --staged (the pre-commit hook) passes it through clause 3c. docs/archive/ — the listing, every header,
+ * each PDF's presence and INDEX.md itself — is then read as the commit will contain it, through
+ * engine/docs_scan.js's one reader (useIndex()): the index version where staged, HEAD's where not. An
+ * unstaged archive edit by another agent no longer decides somebody else's commit; a staged one still
+ * does. A CHECK mode only: writing INDEX.md from the index would put bytes on disk that match no tree. */
+const STAGED = process.argv.includes('--staged');
+if (STAGED && !CHECK) {
+  console.error('build_archive_index: --staged is a --check mode only (it judges the staged tree; it does not write)');
+  process.exit(2);
+}
+if (STAGED) DS.useIndex();
+const ARCH_REL = 'docs/archive';
+const listArchive = () => (STAGED ? DS.listFiles(ARCH_REL) : fs.readdirSync(ARCH));
+const readArchive = f => (STAGED ? DS.rawText(ARCH_REL + '/' + f) : fs.readFileSync(path.join(ARCH, f), 'utf8'));
+const inArchive = f => (STAGED ? DS.exists(ARCH_REL + '/' + f) : fs.existsSync(path.join(ARCH, f)));
 
 /* The header this reads is the one written on the way in — see docs/archive/*.md. It is a blockquote
  * of labelled bullets, so a field is `> - **Label:** value` and may wrap onto continuation lines. */
@@ -74,16 +92,25 @@ function docDate(rel, h) {
   return w || null;
 }
 
-const files = fs.readdirSync(ARCH).filter(f => f.endsWith('.md') && f !== 'INDEX.md').sort();
+/* A PDF IS BESIDE ITS DOCUMENT WHEN THE LISTING HOLDS ONE OF THE SAME NAME, COMPARED WITHOUT CASE —
+ * 2026-09-11. `fs.existsSync` answered this, and on this machine's case-insensitive disk it matched
+ * docs/archive/ABRA-Simulator-WhitePaper.pdf for ABRA-simulator-whitepaper.md, so INDEX.md records "yes".
+ * A case-sensitive tree — a Linux clone, or the index, which is what --staged reads — answered "no", and
+ * --check then failed HEAD's own INDEX.md there. That is the #554 fresh-clone defect arriving by another
+ * door. Matching against the LISTING without case gives one answer on every filesystem and in both
+ * trees, and it is the answer INDEX.md already records, so no committed byte moves. */
+const listing = listArchive();
+const pdfs = new Set(listing.filter(f => /\.pdf$/i.test(f)).map(f => f.toLowerCase()));
+const files = listing.filter(f => f.endsWith('.md') && f !== 'INDEX.md').sort();
 const rows = files.map(f => {
-  const text = stripCR(fs.readFileSync(path.join(ARCH, f), 'utf8'));
+  const text = stripCR(readArchive(f));
   const h = parseHeader(text);
   const sup = (text.split('\n').slice(0, 15).join('\n').match(SUPERSEDED_RE) || [])[1] || null;
   return {
     file: f,
     declared: !!(h.claimed || sup),
     date: docDate(f, h),
-    pdf: fs.existsSync(path.join(ARCH, f.replace(/\.md$/, '.pdf'))),
+    pdf: pdfs.has(f.replace(/\.md$/, '.pdf').toLowerCase()),
     lines: text.split('\n').length,
     ...h,
     replaced: h.replaced || (sup ? '`' + sup + '`' : null),
@@ -157,14 +184,25 @@ if (!undeclared.length) { W('None. Every archived document declares its provenan
 W('');
 
 const body = P.join('\n');
-const before = fs.existsSync(OUT) ? stripCR(fs.readFileSync(OUT, 'utf8')) : '';
+const before = inArchive('INDEX.md') ? stripCR(readArchive('INDEX.md')) : '';
 
 if (CHECK) {
+  const tree = STAGED ? ' in the staged tree' : '';
+  /* SAY WHICH TREE WAS READ, and every path the index answered because the disk differs from it. */
+  const reader = () => {
+    if (!STAGED) return;
+    const r = DS.readerReport();
+    console.log(`(--staged: docs/archive/ read from the index — ${r.verified_on_disk} verified on disk; ` +
+      `${r.from_index.length} from the index because the working tree differs` +
+      (r.from_index.length ? ': ' + r.from_index.join(', ') : '') + ')');
+  };
   if (before !== body) {
-    console.error('docs/archive/INDEX.md is STALE — run: node build/build_archive_index.js');
+    console.error(`docs/archive/INDEX.md is STALE${tree} — run: node build/build_archive_index.js`);
+    reader();
     process.exit(1);
   }
-  console.log(`docs/archive/INDEX.md is current (${rows.length} documents, ${undeclared.length} undeclared)`);
+  console.log(`docs/archive/INDEX.md is current${tree} (${rows.length} documents, ${undeclared.length} undeclared)`);
+  reader();
   process.exit(0);
 }
 

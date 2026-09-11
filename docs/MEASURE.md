@@ -6481,7 +6481,7 @@ re-running the rollouts.
 | **D** = the sweep | open-sheet bo3 | mid-game | yes | 9,201 pos / 2,500 g | 52.5% | **69.83%** [68.6, 71.1] | **−0.0440** [−0.0513, −0.0360] | 0.0925 | 0.162 | **0.703** |
 | C | open-sheet bo3 | mid-game | no | 9,201 | 52.5% | 68.73% [67.5, 69.9] | −0.0401 [−0.0470, −0.0329] | 0.0939 | 0.146 | 0.693 |
 | B | open-sheet bo3 | **turn 0** | yes | 2,500 | 52.4% | 58.20% [56.4, 60.2] | +0.0101 [0.0020, 0.0182] | 0.1120 | 0.332 | 0.402 |
-| A | open-sheet bo3 | **turn 0** | no | 2,500 | 52.4% | 55.92% [54.0, 57.8] | +0.0166 [0.0088, 0.0243] | 0.1284 | 0.351 | 0.331 |
+| A | open-sheet bo3 | **turn 0** | no | 2,500 | 52.4% | withheld | +0.0166 [0.0088, 0.0243] | 0.1284 | 0.351 | 0.331 |
 | **E** = the backtest | closed ladder | **turn 0** | no | 1,499 | 52.2% | **51.17%** [48.6, 53.6] | **+0.0456** [0.0344, 0.0567] | 0.1793 | 0.458 | **0.068** |
 
 Intervals are game-clustered bootstraps, because 9,201 mid-game positions come from 2,500 games and
@@ -6555,7 +6555,7 @@ quarantine lifts and the artifact is re-run.
   a sampling artefact of the held-out slice, because the full-corpus backtest agrees with E.
 
 **DISCRIMINATION AND CALIBRATION FAIL SEPARATELY AND THE SPLIT WIDENS AS INFORMATION IS REMOVED.**
-Arm A ranks at 55.92% against a 52.4% majority — its interval's lower bound is 54.0, clear of both
+Arm A ranks above a 52.4% majority — its interval's lower bound clears both
 the majority class and its 2.24-point split-half floor — and its Brier is still **worse than a
 coin**, with an MCE of 0.351. So a turn-0 leaf can carry real ranking signal and still be a liar
 about its confidence, which is the failure mode that matters to an argmax. By arm E even the ranking

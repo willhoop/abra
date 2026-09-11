@@ -220,7 +220,41 @@ function deriveGraph() {
    * away and rooted a scratch-tree write in data/ — inside this file, in the comment describing the
    * guard. `DATA_WINDOW` and `dataFiles` would have done it too. A path segment is a WORD: `'data'`,
    * `"data"`, `../data/x.json` all match; a camelCase identifier that happens to contain it does not. */
-  const rootedIn = (text, src) => /\bdata\b/i.test(text) || !!(dataRoots(src) && dataRoots(src).test(text));
+  /* A SCRATCH TREE IS NOT data/, EVEN WHEN IT HAS A data/ INSIDE IT — 2026-09-11.
+   *
+   * tests/probe_divergence_rank_side.js (bf2d594f) builds a temp tree with its own data/, so the real
+   * engine/divergence_report.js can run on a fixture:
+   *
+   *   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'abra-349-' + tag + '-'));
+   *   fs.writeFileSync(path.join(dir, 'data', 'game-differential.json'), JSON.stringify(fx));
+   *
+   * The word `'data'` sits in the window, so that line scored 4 and took data/game-differential.json
+   * from engine/game_differential.js. The file is the gate's own input. engine/quarantine.js derives its
+   * instruments from the generators of the gate's inputs, so game_differential.js and
+   * derive_protocol_events.js stopped being instruments, and 23 of their artifacts were withheld. This is
+   * the tests/test-miltank-release.js fault above, one directory deeper.
+   *
+   * So a join ROOTED at an identifier whose own definition is a temp directory is a scratch tree, whatever
+   * else it names. The rule is narrow on purpose: `renameSync(tmp, D('data', 'x.json'))`, the atomic write,
+   * still lands in data/, because its data/ join is not rooted at `tmp`. It is derived per source, like
+   * `dataRoots`. */
+  const scratchCache = new Map();
+  function scratchJoin(src) {
+    if (scratchCache.has(src)) return scratchCache.get(src);
+    const ids = [];
+    for (const m of src.matchAll(/^\s*(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=[^\n]*$/gm)) {
+      if (/\b(?:mkdtempSync|mkdtemp|tmpdir)\s*\(/.test(m[0])) ids.push(m[1].replace(/\$/g, '\\$'));
+    }
+    const re = ids.length
+      ? new RegExp(`(?:path\\.join|path\\.resolve)\\(\\s*(?:${ids.join('|')})\\s*,[^)]*\\bdata\\b`) : null;
+    scratchCache.set(src, re);
+    return re;
+  }
+  const rootedIn = (text, src) => {
+    const scratch = scratchJoin(src);
+    if (scratch && scratch.test(text)) return false;
+    return /\bdata\b/i.test(text) || !!(dataRoots(src) && dataRoots(src).test(text));
+  };
   /* `whole` is the file the helper definitions live in; `text` may be a single line out of it. */
   const atInData = (text, file, from, whole) => {
     for (let i = at(text, file, from); i >= 0; i = at(text, file, i + 1)) {

@@ -474,15 +474,16 @@ function archiveRule(base, next) {
  * implementation of a thing that already exists is how buildMon("Scizor") came to return null. */
 function archiveIndexRule() {
   console.log('\n== 3c. docs/archive/INDEX.md is generated and current ==');
-  /* THE ONE CLAUSE THAT DOES NOT READ THE STAGED TREE, SAID ON EVERY --staged RUN. The generator reads
-   * docs/archive/ off the disk and is not this file's to rewire; an unstaged archive edit can still move
-   * this clause. Printed so the gap is visible state rather than an assumption. */
-  if (STAGED) console.log('         (reads the WORKING TREE: build/build_archive_index.js --check reads docs/archive/ from disk)');
+  /* --staged REACHES THIS CLAUSE TOO — 2026-09-11, second pass. It was the one clause that read the
+   * working tree: the generator listed and read docs/archive/ off the disk. The generator now takes
+   * `--check --staged` and reads through the same engine/docs_scan.js reader. The generator's CODE is the
+   * working tree's, like this file's; the archive it judges is the commit's. */
+  if (STAGED) console.log('         (--staged: build/build_archive_index.js --check --staged reads docs/archive/ from the index)');
   const gen = D('build', 'build_archive_index.js');
   if (!fs.existsSync(gen)) { ok(false, 'build/build_archive_index.js exists'); return; }
   let out = '', code = 0, errIndexGen = null;
   try {
-    out = require('child_process').execFileSync(process.execPath, [gen, '--check'],
+    out = require('child_process').execFileSync(process.execPath, [gen, '--check', ...(STAGED ? ['--staged'] : [])],
       { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   /* STASHED FOR A LATER ASSERTION, which is why the failure is kept in a named variable rather than
    * only folded into `code`. A non-zero exit IS the finding — the generator reports a stale index on

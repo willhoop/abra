@@ -123,14 +123,37 @@ if (process.argv.includes('--selftest')) {
 }
 
 /* ---- THE GATE ------------------------------------------------------------------------------- */
-console.log('ROADMAP REGISTER — nothing a division ledger schedules may be missing from §5\n');
 
-const roadmap = fs.readFileSync(ROADMAP, 'utf8');
-const ledgers = LEDGERS.filter(p => fs.existsSync(p))
-  .map(p => [path.relative(ROOT, p).replace(/\\/g, '/'), fs.readFileSync(p, 'utf8')]);
+/* `--staged` JUDGES THE COMMIT, NOT THE WORKING TREE — 2026-09-11. `.githooks/pre-commit` passes it.
+ * docs/ROADMAP.md and the five ledgers are then read as the commit will contain them, through
+ * engine/docs_scan.js's one reader (useIndex()): the index version where staged, HEAD's where not.
+ * ENGINE edits docs/ROADMAP.md and docs/ENGINE.md in the working tree for hours at a time. Without this,
+ * a half-written register row on disk could block an unrelated commit, and a row staged differently from
+ * the disk was judged on the disk. A hand run with no flag reads the working tree exactly as before. The
+ * commit-message clause below reads `git log`, which is history and has no working-tree copy. */
+const STAGED = process.argv.includes('--staged');
+let DS = null;
+if (STAGED) { DS = require(path.join(ROOT, 'engine', 'docs_scan.js')); DS.useIndex(); }
+const relOf = p => path.relative(ROOT, p).replace(/\\/g, '/');
+const readTree = p => (STAGED ? DS.rawText(relOf(p)) : fs.readFileSync(p, 'utf8'));
+const inTree = p => (STAGED ? DS.exists(relOf(p)) : fs.existsSync(p));
+/* SAY WHICH TREE WAS READ, green or red: every path the index answered because the disk differs. */
+const readerLine = () => {
+  if (!STAGED) return;
+  const rr = DS.readerReport();
+  console.log(`(--staged: register and ledgers read from the index — ${rr.verified_on_disk} verified on disk; ` +
+    `${rr.from_index.length} from the index because the working tree differs` +
+    (rr.from_index.length ? ': ' + rr.from_index.join(', ') : '') + ')');
+};
+
+console.log('ROADMAP REGISTER — nothing a division ledger schedules may be missing from §5\n');
+if (STAGED) console.log('  --staged: reading the tree THIS COMMIT would contain (the index), not the working tree.\n');
+
+const roadmap = readTree(ROADMAP);
+const ledgers = LEDGERS.filter(inTree).map(p => [relOf(p), readTree(p)]);
 
 const r = run(roadmap, ledgers);
-if (r.fatal) { bad(r.fatal); console.log('\nROADMAP REGISTER: ' + pass + ' passed, ' + fail + ' failed'); process.exit(1); }
+if (r.fatal) { bad(r.fatal); readerLine(); console.log('\nROADMAP REGISTER: ' + pass + ' passed, ' + fail + ' failed'); process.exit(1); }
 
 console.log('  register §5 names        ' + r.registered.size + ' item(s)');
 console.log('  division ledgers cite    ' + r.cited.size + ' distinct item(s) across ' + ledgers.length + ' ledger(s)');
@@ -204,5 +227,6 @@ r.registered.size >= 10
   }
 })();
 
+readerLine();
 console.log('\nROADMAP REGISTER: ' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

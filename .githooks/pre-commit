@@ -136,9 +136,19 @@ fi
 # was dropped rather than replaced -- a clause that fires on every fresh clone is a clause everyone
 # learns to bypass, and a third comparison of one fact is the two-implementations failure. This gate now
 # passes on identical bytes wherever they are checked out.
+#
+# IT JUDGES THE COMMIT, NOT THE WORKING TREE -- 2026-09-11. `--staged` makes artifact_audit.js copy the
+# tree this commit would contain (engine/, build/, data/*.js and data/*.json; the index version where
+# staged, HEAD's where not, through engine/docs_scan.js's reader) to a scratch directory and run the
+# audit and every builder's --check THERE. A mid-rebuild data/abra-tags.js that exists only on disk can
+# no longer block a commit that does not contain it. A stale bundle STAGED beside a clean disk copy is
+# now caught. Before this, it was passed. The "(--staged: ...)" line names every path where the disk
+# differs from the commit.
 if command -v node >/dev/null 2>&1; then
-  echo "pre-commit: generated-bundle gate (~1.6s) -- every data/*.js against the source it declares"
-  if ! AA_OUT=$(node engine/artifact_audit.js 2>&1); then
+  echo "pre-commit: generated-bundle gate -- every data/*.js against the source it declares, in the staged tree"
+  AA_OUT=$(node engine/artifact_audit.js --staged 2>&1); AA_RC=$?
+  echo "$AA_OUT" | grep -E '^\(--staged' | sed 's/^/  /'
+  if [ "$AA_RC" -ne 0 ]; then
     echo ""
     echo "  BLOCKED: a generated file in this commit's tree is not what its builder would write."
     echo ""
@@ -331,13 +341,16 @@ done
 # the last by a white-paper figure the COMMITTED roster still supports and an uncommitted re-run on
 # disk did not. It still blocks everything it blocked before that the commit itself carries: a staged
 # document edit with a mismatched figure, and a staged artifact that breaks a committed document.
-# The other two gates here are not switched: neither reads engine/docs_scan.js's reader.
+# SECOND PASS, SAME DAY: the docs gate's clause 3c now passes --staged on to
+# build/build_archive_index.js --check, and tests/test-roadmap-register.js takes --staged too, so
+# docs/ROADMAP.md and the ledgers are read as the commit holds them. tests/test-artifact-rerunnable.js
+# is NOT switched: it still reads data/*.json and data/releases/ from disk.
 for t in tests/test-docs-current.js tests/test-roadmap-register.js tests/test-artifact-rerunnable.js; do
   [ -f "$t" ] || continue
   HEAP=$(grep -m1 -oE 'ABRA-HEAP:[[:space:]]*[0-9]+' "$t" 2>/dev/null | grep -oE '[0-9]+')
   if [ -n "$HEAP" ]; then NODEOPT="--max-old-space-size=$HEAP"; else NODEOPT=""; fi
   TARGS=""
-  [ "$t" = "tests/test-docs-current.js" ] && TARGS="--staged"
+  case "$t" in tests/test-docs-current.js|tests/test-roadmap-register.js) TARGS="--staged" ;; esac
   OUT=$(node $NODEOPT "$t" $TARGS 2>&1); RC=$?
   # SAY WHICH TREE IT READ, green or red: the line names every path where the working tree differs from
   # this commit and the gate judged the commit's bytes instead. A switch nobody can see is a switch

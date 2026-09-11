@@ -3685,7 +3685,7 @@ effect of 4.576.
 
 ### The second horizon, on the NEWER release, agrees
 
-`data/rollout-r1-explore-sweep-h60-09acd3b404ef.txt`, 4,586 positions at `MAXTURNS=60` — the horizon
+`data/rollout-r1-explore-sweep-h60-09acd3b404ef.txt`, at `MAXTURNS=60` — the horizon
 the live leaf actually runs — quoted verbatim in the artifact: explore=1.0 **69.86%**, 0.5 68.80%,
 greedy 66.16%, material 64.24%, lift **+5.63 [4.06, 7.19]**, `R1 PASSES OUTRIGHT`. Two horizons, two
 samples, two releases, same verdict and the same ordering of arms.

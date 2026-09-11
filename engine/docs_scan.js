@@ -144,10 +144,13 @@ function readDoc(rel) { return stripCR(rawText(rel)); }
  * file rewritten while the gate runs cannot be read torn: its hash stops matching and git answers.
  * In this mode `rawText` returns the BLOB's bytes, so a CRLF checkout of an LF blob reads LF.
  *
- * WHAT IT DOES NOT COVER, SAID RATHER THAN IMPLIED: clause 3c shells out to
- * build/build_archive_index.js --check, which reads docs/archive/ off the disk; the test prints that
- * on every --staged run. `readerReport()` names every path the index answered for, so a run can show
- * which working-tree differences it declined to judge. */
+ * THE HOOK'S OTHER WORKING-TREE READERS TAKE THE SAME SWITCH — 2026-09-11, second pass. Clause 3c runs
+ * build/build_archive_index.js --check --staged, which lists and reads docs/archive/ here.
+ * tests/test-roadmap-register.js --staged reads docs/ROADMAP.md and the five ledgers here.
+ * engine/artifact_audit.js --staged cannot read in-process, because it spawns builders that read by
+ * `__dirname`. It copies the staged tree out through `materialize()` and runs the audit on that copy.
+ * `readerReport()` names every path the index answered for, so a run can show which working-tree
+ * differences it declined to judge. */
 let SOURCE = 'worktree';
 let INDEX = null;                               // stage-0 regular files: path -> { mode, sha }
 const READS = { disk: new Set(), objects: new Set(), absent: new Set(), unreadable: new Set() };
@@ -197,10 +200,12 @@ function diskBytes(r) {
   catch (e) { READS.unreadable.add(r + ' (' + (e.code || e.message) + ')'); return null; }
 }
 
-/** The text of `rel` in the tree this run reads. Throws ENOENT when the path is not in that tree. */
-function rawText(rel) {
+/** The BYTES of `rel` in the tree this run reads — `rawText` without the decode, for a caller that must
+ *  copy a file exactly (`materialize` below). Same verification: the disk copy only when it hashes to the
+ *  staged blob, otherwise the object store. Throws ENOENT when the path is not in that tree. */
+function rawBytes(rel) {
   const r = normRel(rel);
-  if (SOURCE === 'worktree') return fs.readFileSync(D(r), 'utf8');
+  if (SOURCE === 'worktree') return fs.readFileSync(D(r));
   const e = indexEntries().get(r);
   if (!e) {
     READS.absent.add(r);
@@ -210,9 +215,15 @@ function rawText(rel) {
   }
   const buf = fs.existsSync(D(r)) ? diskBytes(r) : null;
   const blob = buf ? asBlob(buf, e.sha) : null;
-  if (blob) { READS.disk.add(r); return blob.toString('utf8'); }
+  if (blob) { READS.disk.add(r); return blob; }
   READS.objects.add(r);
-  return gitText(['cat-file', 'blob', e.sha]);
+  return gitText(['cat-file', 'blob', e.sha], { encoding: 'buffer' });
+}
+/** The text of `rel` in the tree this run reads. Throws ENOENT when the path is not in that tree. */
+function rawText(rel) {
+  const r = normRel(rel);
+  if (SOURCE === 'worktree') return fs.readFileSync(D(r), 'utf8');
+  return rawBytes(r).toString('utf8');
 }
 /** Is `rel` a file in the tree this run reads? */
 function exists(rel) {
@@ -251,6 +262,22 @@ function writeThrough(rel, text) {
     + 'else\'s unstaged edit — left untouched; the next green run re-derives this tightening' };
   fs.writeFileSync(D(r), text);
   return { written: true, why: 'working tree, which matched the staged copy — the hook stages it' };
+}
+/** Copy `rels`, as the tree this run reads holds them, under `destRoot` — byte-exact, through `rawBytes`.
+ *  For a check that cannot read in-process: engine/artifact_audit.js --staged spawns builders that read by
+ *  `__dirname`, so it runs them on a copy of the staged tree rather than on the working tree. The caller
+ *  owns `destRoot` and removes it. Returns { written, bytes }. */
+function materialize(rels, destRoot) {
+  let written = 0, bytes = 0;
+  for (const rel of rels) {
+    const r = normRel(rel);
+    const buf = rawBytes(r);
+    const out = path.join(destRoot, ...r.split('/'));
+    fs.mkdirSync(path.dirname(out), { recursive: true });
+    fs.writeFileSync(out, buf);
+    written++; bytes += buf.length;
+  }
+  return { written, bytes };
 }
 /** What the reader did this run: how many files were verified identical on disk, and every path the
  *  object store had to answer because the working tree differs from the commit. */
@@ -2885,7 +2912,7 @@ module.exports = {
   fieldScopeOf, isArtifactRel, NOT_AN_ARTIFACT,
   isDistinctive, sigFigs, truncateTo, restatesFigure, retractionProof, RETRACTION_CASES,
   archiveState, supersededHeader, QUALIFIED,
-  useIndex, source, rawText, exists, listFiles, writeThrough, readerReport,
+  useIndex, source, rawText, rawBytes, exists, listFiles, writeThrough, materialize, readerReport,
 };
 
 /* ---- CLI -------------------------------------------------------------------------------------- */

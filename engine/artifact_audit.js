@@ -61,14 +61,94 @@
  * diagnostic and not a gate. No fourth check is added here — the census already counts the shape,
  * and a gate on a gate is bloat.
  *
- * Findings are reported, never repaired. This file writes nothing.
+ * Findings are reported, never repaired. This file writes nothing in the repository.
  *
  *   node engine/artifact_audit.js
+ *   node engine/artifact_audit.js --staged    the tree the next commit would contain (the pre-commit hook)
  */
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
+
+/* ---- `--staged`: THE AUDIT JUDGES THE COMMIT, NOT THE WORKING TREE — 2026-09-11 -----------------
+ *
+ * The pre-commit hook runs this file as the generated-bundle gate. It read the working tree, and several
+ * agents write that tree at once. A mid-rebuild data/abra-tags.js on disk could block a commit that did
+ * not contain it, and a stale bundle staged beside a clean disk copy was passed.
+ *
+ * IT CANNOT READ THROUGH engine/docs_scan.js IN-PROCESS. Check G spawns each builder's own --check, and
+ * the builders read by `__dirname`: their own source, their data, and the sibling CHOMP/. So the staged
+ * tree is COPIED OUT through docs_scan.js's one reader (`materialize()`) and this same audit runs on the
+ * copy. It covers every top-level file in engine/ and build/, and every top-level file in data/ except
+ * the .jsonl / .gz stores and row dumps. The copy is
+ * the index version where staged and HEAD's where not, and it holds the audit, its builders and their
+ * inputs. Only this wrapper runs from the working tree.
+ *
+ * WHAT IS NOT IN THE COMMIT IS TAKEN FROM WHERE IT LIVES, AND SAID. A sibling directory this repository's
+ * code resolves by `'..', '..', '<name>'` is found by scanning the copied code, not listed here. Each one
+ * is copied from disk, without links, .git or node_modules, because it is not in this commit in either
+ * mode. The simulator is the exception: it is reached through SHOWDOWN_PATH, as every child already is.
+ * node_modules is reached through NODE_PATH. The scratch copy is created under the OS temp directory and
+ * removed by this process, which deletes only what it wrote. */
+if (process.argv.includes('--staged')) process.exit(auditStaged());
+function auditStaged() {
+  const os = require('os');
+  const { spawnSync } = require('child_process');
+  const DS = require('./docs_scan.js');
+  DS.useIndex();
+  const rels = [];
+  for (const dir of ['engine', 'build', 'data']) {
+    for (const f of DS.listFiles(dir)) {
+      /* EVERYTHING AT THE TOP OF data/ EXCEPT THE STORES AND ROW DUMPS — the .jsonl / .gz convention
+       * quarantine.js and provenance.js already use for "a store, not an artifact". An allow-list of
+       * extensions was tried first and dropped data/engine-data.template.txt, which
+       * build/build_engine_data.js --check refuses to run without, so the gate went red on bytes that
+       * pass everywhere else. That is the direction this copy must not fail in. */
+      if (dir === 'data' && /\.(?:jsonl|gz)$/.test(f)) continue;
+      rels.push(dir + '/' + f);
+    }
+  }
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'abra-staged-audit-'));
+  try {
+    const stage = path.join(tmp, path.basename(ROOT));
+    const m = DS.materialize(rels, stage);
+    const SP = require('./showdown_path.js').RESOLVED;
+    const siblings = new Set();
+    for (const rel of rels) {
+      if (!/^(?:engine|build)\/[^/]+\.js$/.test(rel)) continue;
+      const txt = fs.readFileSync(path.join(stage, ...rel.split('/')), 'utf8');
+      for (const mm of txt.matchAll(/'\.\.',\s*'\.\.',\s*'([A-Za-z0-9_.-]+)'/g)) siblings.add(mm[1]);
+    }
+    const copied = [];
+    for (const name of [...siblings].sort()) {
+      const real = path.join(ROOT, '..', name);
+      if (SP && path.resolve(real) === path.resolve(SP)) continue;   // reached through SHOWDOWN_PATH instead
+      if (!fs.existsSync(real)) continue;                               // absent in both modes alike
+      fs.cpSync(real, path.join(tmp, name), { recursive: true,
+        filter: src => !/[\\/](?:\.git|node_modules)(?:[\\/]|$)/.test(src) && !fs.lstatSync(src).isSymbolicLink() });
+      copied.push(name);
+    }
+    const env = { ...process.env };
+    if (SP) env.SHOWDOWN_PATH = SP;
+    const nm = D('node_modules');
+    if (fs.existsSync(nm)) env.NODE_PATH = nm + (env.NODE_PATH ? path.delimiter + env.NODE_PATH : '');
+    const r = spawnSync(process.execPath, [path.join(stage, 'engine', 'artifact_audit.js')], { env, stdio: 'inherit' });
+    const rr = DS.readerReport();
+    console.log(`(--staged: audited a copy of the tree this commit would contain — ${m.written} files from the index ` +
+      `(engine/, build/, data/ less its .jsonl/.gz stores; ${(m.bytes / 1048576).toFixed(1)} MB); ${rr.from_index.length} differ from the ` +
+      `working tree and were read from the index` +
+      (rr.from_index.length ? ': ' + rr.from_index.slice(0, 12).join(', ') +
+        (rr.from_index.length > 12 ? ', … +' + (rr.from_index.length - 12) : '') : '') +
+      `; copied from disk, not in the commit: ${copied.join(', ') || 'nothing'}; SHOWDOWN_PATH ${SP || 'unresolved'})`);
+    if (r.error) { console.error('artifact_audit --staged: the audit on the staged copy could not run — ' + r.error.message); return 1; }
+    if (r.status === null) { console.error('artifact_audit --staged: the audit on the staged copy died on ' + r.signal); return 1; }
+    return r.status;
+  } finally {
+    try { fs.rmSync(tmp, { recursive: true, force: true }); }
+    catch (e) { console.error('artifact_audit --staged: could not remove its scratch copy ' + tmp + ' — ' + e.message); }
+  }
+}
 
 require(D('data', 'engine-data.js'));
 

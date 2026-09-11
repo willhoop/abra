@@ -44,6 +44,14 @@ reads SemVer 2.0.0 clauses 6, 7 and 8 against an API that is the figures this pr
 Copy this shape. Four lines is a good row; a paragraph is a report and belongs in `docs/_reports/`.
 
 ```
+## [6.15.0] — 2026-09-11 — the gate's instruments are attributed correctly again, two quarantined ledger figures are withdrawn, and three more hook checks judge the commit
+
+- **What changed.** `engine/provenance.js` no longer credits a write joined onto a temp directory as a write into `data/`: `tests/probe_divergence_rank_side.js` had taken the game differential's own artifact from `engine/game_differential.js` that way, so the quarantine withheld 23 instrument artifacts. The pre-commit hook passes `--staged` to `engine/artifact_audit.js`, `tests/test-roadmap-register.js` and the archive-index check, through `engine/docs_scan.js`'s index reader. `docs/MEASURE.md` withdraws the leaf calibration's ranking figure in a table and a sentence, and `docs/SEARCH.md` a position count from the same quarantined sweep.
+- **Measured.** 1 of 304 provenance rows moves; the withheld set falls from 85 to 62; `tests/test-docs-quarantine.js` new flags fall from 46 to 0 once the two quarantined figures are withdrawn. Plants on a scratch index, in both directions, for all three checks. Detail: `docs/_reports/2026-09-11-quarantine-and-hook.md`.
+- **Supersedes.** The leaf-calibration ranking figure in `docs/MEASURE.md` and the sweep's position count in `docs/SEARCH.md`, withdrawn because the gate withholds that measurement again. The gate stays closed; nothing was narrowed.
+- **Basis.** unchanged.
+- **Owed to the next major.** None. Owed as work: the rest of that leaf-calibration table is the same quarantined measurement; `tests/test-docs-quarantine.js` belongs in `tests/run-all.js`, since nothing ran it when it went red; `tests/test-artifact-rerunnable.js` still reads the working tree.
+
 ## [6.12.3] — 2026-09-11 — the pre-commit docs gate judges the commit being made, not the working tree
 
 - **What changed.** `.githooks/pre-commit` runs `tests/test-docs-current.js --staged`: every document, artifact, the CHANGELOG and the gate's baseline are read as the commit will contain them (the index where staged, HEAD's where not) through one reader in `engine/docs_scan.js` (`useIndex()`). A disk copy is used only when its git blob hash matches the index; blame reads the staged text; the baseline tightening is written only where it cannot overwrite an unstaged edit. A hand run without the flag reads the working tree as before.
