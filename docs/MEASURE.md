@@ -40,6 +40,33 @@ _stamped 2026-09-11 08:10_
 
 <!-- /GENERATED -->
 
+## THE LEAF-CALIBRATION MEASUREMENT IS WITHDRAWN IN FULL, NOT ONLY THE FIGURES THE TEST COULD SEE, AND THE LAST HOOK GATE JUDGES THE COMMIT. 2026-09-11
+
+**A GREEN QUARANTINE TEST WAS NOT A CLEAN BILL.** `tests/test-docs-quarantine.js` charges only the figures it
+can attribute uniquely to a withheld artifact. Commit `157daae7` withdrew the two it flagged, and the rest of
+the same measurement stayed printed in this ledger: the whole arms table, the decomposition and the PORYZ
+bar in the leaf-artifact reconciliation; the leaf-calibration table and its discrimination figures; and the
+R1 recomputation and the explore-sweep playout figures. Every one is read from `data/winrate-backtest.json`,
+`data/leaf-position-contrast.json`, `data/rollout-r1.json` or `data/rollout-r1-explore-sweep.json`, and
+`engine/quarantine.js` withholds all four while the gate is closed. The test did not flag them because
+they no longer match a current artifact value uniquely, not because they were quotable. They now read
+withheld. Each sentence still says what was measured and which way it came out, without the number.
+Configuration, release ids and store-composition facts stay, because none of them is an output of the
+simulator.
+
+**STILL PRINTED HERE, OUTSIDE LEAF CALIBRATION, AND OWED THE SAME PASS:** the R4 verdict under "R4 has an
+artifact" (`data/rollout-r4.json`) and the refit movement under Stage D (`data/policy-weights.json`). Both
+artifacts are withheld.
+
+**`tests/test-artifact-rerunnable.js --staged`, AND THE HOOK PASSES IT.** It was the last gate in the
+pre-commit loop that read the working tree. It now reads the artifacts, its own baseline, the callers'
+`need` lists and the recorder's engine source as the commit holds them, through `engine/docs_scan.js`'s
+index reader. Releases are still read from disk, which is safe because `ER.open()` checks every file against
+its manifest. On a scratch index, a working-tree-only plant no longer blocks, and a staged-only plant, which
+the old hook passed, now blocks. Both hold for an artifact plant and for a `need`-list plant. On identical
+bytes a hand run prints exactly what it printed before. Full account:
+[docs/_reports/2026-09-11-leaf-withhold-and-hook.md](_reports/2026-09-11-leaf-withhold-and-hook.md).
+
 ## THE UNTRACEABLE-FIGURE CHECK IS A RATCHET: A FIGURE IS TRACED ONLY BY A TRACE BOUND TO IT. 2,258 GRANDFATHERED, NEW FIGURES MUST BIND. 2026-09-11
 
 **THE OLD TRACE WAS A DIGIT MATCH AGAINST EVERYTHING.** `engine/docs_scan.js` called a figure traced when its
@@ -5038,30 +5065,34 @@ team-preview leaf is a greedy playout at `maxTurns=60` with `seeded:true`, and i
 `rollout_leaf.rolloutWinProb` at `explore=1.0 / foePolicy=uniform / maxTurns=60`. All three are now
 scored on identical positions, so the difference between them is about the leaf.
 
-**Confidence carries no information.** The curve is close to a horizontal line:
+**Confidence carries no information.** The curve is close to a horizontal line. Every cell below is
+read from `data/winrate-backtest.json`, which `engine/quarantine.js` withholds while the MEDICHAM gate
+is closed, so the cells say withheld (withdrawn 2026-09-11). They return when the gate opens and the
+backtest is re-run:
 
 | leaf | says 0-10% | says 90-100% | discrimination | Brier vs coin (paired) |
 |---|---|---|---|---|
-| in-game, 200 rollouts, held-out n=1,378 | wins 53.8% (n=52) | wins 53.6% (n=56) | 50.99% [48.3, 53.7] | **+0.0502 [0.0371, 0.0628]** |
-| preview, 40 rollouts, full clean n=6,886 | wins 45.7% (n=831) | wins 55.3% (n=933) | 53.22% [52.0, 54.4] | **+0.0740 [0.0668, 0.0813]** |
+| in-game, 200 rollouts, held-out | withheld | withheld | withheld | withheld |
+| preview, 40 rollouts, full clean corpus | withheld | withheld | withheld | withheld |
 
 Positive is worse. Both leaves are decisively **worse than a coin** on Brier and on log-loss, and
 worse than player-Elo, paired on the games where both have an opinion. The preview leaf puts
-**25.6% of all its predictions into the two extreme buckets**, where it is wrong by ~40 points.
+**a large share of its predictions into the two extreme buckets**, where it is badly wrong.
 
 **Discrimination and calibration are separate failures needing separate answers.** The preview leaf
-does rank — 53.22% on 6,700 decisive calls, p < 1e-4 — real, but only ~1.9 points above the
-split-half noise floor. The in-game leaf does not rank at all: 50.99%, p = 0.47. Randomising the
+does rank — real by p, but only narrowly above the split-half noise floor. The in-game leaf does
+not rank at all. Randomising the
 playout bought variance and spent the signal.
 
 **What this is not.** Nothing here says the engine is broken. The legacy `winProb2` leaf reproduces
-the 2026-08-02 number closely on the current engine — held-out log-loss **1.0243** against the
-**1.0748** published, discrimination **51.94%** against **52.63%** — so the twenty-two engine commits
+the 2026-08-02 number closely on the current engine, on held-out log-loss and on discrimination
+(figures withheld with the artifact) — so the twenty-two engine commits
 in between did not move the headline. Do not spend this finding on a mechanics hunt.
 
 Also fixed here: the split was cutting on **store append order**, not date, and the store carries
 4,775 date inversions. A side-symmetry witness scores 400 boards from both sides and reports
-mean(p1+p2−1) = **−0.0099**, so no side advantage inside the engine is contaminating the result.
+mean(p1+p2−1) close to zero (the value is withheld with the artifact), so no side advantage inside
+the engine is contaminating the result.
 
 Still open, in order:
 
@@ -5108,23 +5139,25 @@ join prints its own withdrawal, but the gate read it because it owned the filena
 `data/rollout-r1-withdrawn-join.json` with `withdrawn: true`, and `status.js` refuses to print any
 artifact carrying that field.
 
-**The recomputation does not reproduce the published PASS.** `docs/ROLLOUT-design.md` claimed 68.18%
-against material's 65.26%, +2.91 [1.79, 4.04]. From `data/rollout-r1-rows.jsonl` the same formulas
-give **65.72% against 65.26%, +0.46, 95% CI [-0.72, +1.63] — UNDECIDED** on 9,201 positions.
+**The recomputation does not reproduce the published PASS.** `docs/ROLLOUT-design.md` claimed a lift
+over the material baseline with an interval clear of zero. From `data/rollout-r1-rows.jsonl` the same
+formulas give a lift whose interval straddles zero — **UNDECIDED**. Every figure behind both
+sentences is R1 leaf accuracy, which `engine/quarantine.js` withholds while the MEDICHAM gate is
+closed (`data/rollout-r1.json`), so none is restated here (withdrawn 2026-09-11).
 
 The material column matches the published figure to the digit, so it is the same sample. The rollout
 column reproduces §4.2.1's **greedy** calibration table bin-for-bin, so the surviving dump is the
-`explore=0` incumbent and the `explore=1` run that produced 68.18% left no file. That is the lesson,
-not the arithmetic: **the dump stamped no `N`, no `explore` and no build digest, so two runs four
-accuracy points apart were byte-indistinguishable.** `rollout_r1.js` now writes
+`explore=0` incumbent and the `explore=1` run that produced the published figure left no file. That
+is the lesson, not the arithmetic: **the dump stamped no `N`, no `explore` and no build digest, so two
+runs several accuracy points apart were byte-indistinguishable.** `rollout_r1.js` now writes
 `data/rollout-r1-rows.meta.json` beside every dump. R2 and R3 still have the same hole.
 
-The split-half spread of this run ranges 0.43 to 2.01 points against an effect of 0.46 — the effect is
-inside its own noise floor, which is an independent route to the same UNDECIDED.
+The effect sits inside this run's own split-half spread, which is an independent route to the same
+UNDECIDED.
 
 Open consequence, filed to SEARCH: `--rollout-explore` defaults to `1.0` and
-`engine/rollout_leaf.js:147`, `engine/mag_bot.js:145` and `docs/MILTANK.md` all cite 68.18% as the
-reason. Re-running `EXPLORE_LIST=1 DUMP=rollout-r1-rows.jsonl node engine/rollout_r1.js` and then
+`engine/rollout_leaf.js:147`, `engine/mag_bot.js:145` and `docs/MILTANK.md` all cite the published R1
+figure as the reason. Re-running `EXPLORE_LIST=1 DUMP=rollout-r1-rows.jsonl node engine/rollout_r1.js` and then
 `node engine/rollout_r1_artifact.js` settles it, and R2 says the leaf is cheap.
 
 > **SEARCH RAN IT, 2026-08-04, AND EVERY FIGURE IT PRODUCED IS QUARANTINED — withheld, not annotated.**
@@ -5155,12 +5188,13 @@ reason. Re-running `EXPLORE_LIST=1 DUMP=rollout-r1-rows.jsonl node engine/rollou
 >    `mew.js` and the A/B becomes runnable.
 >
 > One hypothesis this division filed to SEARCH is **measured and rejected**: `battleResult` scoring
-> bodies-then-HP on unfinished playouts is real but is not the mechanism. Over 1.1M playouts,
-> 99.5–99.8% end by an actual wipeout at every explore setting and at horizons 20 and 60; cap-hits
-> are 0.2–0.5%. Exploration makes playouts *longer* (4.4 → 6.1 mean turns), not truncated. Filed to
+> bodies-then-HP on unfinished playouts is real but is not the mechanism. Nearly every playout ends
+> by an actual wipeout at every explore setting and at horizons 20 and 60, and cap-hits are rare.
+> Exploration makes playouts *longer*, not truncated. Filed to
 > ENGINE as a latent hazard. The flat reliability curve in `data/winrate-backtest.json` needs another
-> explanation — and note that on human corpus positions the explore=1.0 leaf is **not** flat: its ECE
-> is 0.104 with a monotone curve running 0.166 → 0.842, against 0.196 for greedy.
+> explanation — and note that on human corpus positions the explore=1.0 leaf is **not** flat: its
+> curve is monotone and its ECE is lower than greedy's. The sweep's counts, rates and ECEs are
+> withheld with the artifact (withdrawn 2026-09-11).
 
 ### 4. R2 and R3 stamp their configuration now — and R3's published number has no control
 
@@ -6459,8 +6493,12 @@ cannot be otherwise, and inventing an agreement number for it would have been th
 
 `data/winrate-backtest.json` and `data/rollout-r1-explore-sweep.json` rank the same leaf at very
 different accuracies — **both figures are QUARANTINED here, withheld and not annotated**, because both
-artifacts are downstream of MEDICHAM and the gate is closed. The RECONCILIATION is what this section is
-for and it survives without them. The sweep flagged the conflict itself in
+artifacts are downstream of MEDICHAM and the gate is closed. So is every figure this section derives
+from them and from `data/leaf-position-contrast.json`, which `engine/quarantine.js` withholds for the
+same reason: the arms table, the decomposition, the intervals, the split-half floors, the scored-sample
+counts and the PORYZ bar all read withheld (withdrawn 2026-09-11). The configuration, the release id
+and the store-composition facts stay, because none of them is an output of the simulator. The
+RECONCILIATION is what this section is for and it survives without them. The sweep flagged the conflict itself in
 `reading_against_the_leaf_calibration` and refused to treat "explore=1.0 spent the signal" as
 established while a second measurement disagreed. **It was right to refuse, and both artifacts are
 correct.** They score the same function on positions of very different difficulty, and the gap
@@ -6478,48 +6516,48 @@ re-running the rollouts.
 
 | arm | corpus | position | sheet | n | maj. class | accuracy | Brier vs coin (paired) | ECE | MCE | curve slope |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **D** = the sweep | open-sheet bo3 | mid-game | yes | 9,201 pos / 2,500 g | 52.5% | **69.83%** [68.6, 71.1] | **−0.0440** [−0.0513, −0.0360] | 0.0925 | 0.162 | **0.703** |
-| C | open-sheet bo3 | mid-game | no | 9,201 | 52.5% | 68.73% [67.5, 69.9] | −0.0401 [−0.0470, −0.0329] | 0.0939 | 0.146 | 0.693 |
-| B | open-sheet bo3 | **turn 0** | yes | 2,500 | 52.4% | 58.20% [56.4, 60.2] | +0.0101 [0.0020, 0.0182] | 0.1120 | 0.332 | 0.402 |
-| A | open-sheet bo3 | **turn 0** | no | 2,500 | 52.4% | withheld | +0.0166 [0.0088, 0.0243] | 0.1284 | 0.351 | 0.331 |
-| **E** = the backtest | closed ladder | **turn 0** | no | 1,499 | 52.2% | **51.17%** [48.6, 53.6] | **+0.0456** [0.0344, 0.0567] | 0.1793 | 0.458 | **0.068** |
+| **D** = the sweep | open-sheet bo3 | mid-game | yes | withheld | withheld | withheld | withheld | withheld | withheld | withheld |
+| C | open-sheet bo3 | mid-game | no | withheld | withheld | withheld | withheld | withheld | withheld | withheld |
+| B | open-sheet bo3 | **turn 0** | yes | withheld | withheld | withheld | withheld | withheld | withheld | withheld |
+| A | open-sheet bo3 | **turn 0** | no | withheld | withheld | withheld | withheld | withheld | withheld | withheld |
+| **E** = the backtest | closed ladder | **turn 0** | no | withheld | withheld | withheld | withheld | withheld | withheld | withheld |
 
-Intervals are game-clustered bootstraps, because 9,201 mid-game positions come from 2,500 games and
-an unclustered interval on them is too narrow by about √3.7.
+Intervals are game-clustered bootstraps, because the mid-game positions come several to a game and an
+unclustered interval on them is too narrow.
 
-**The decomposition telescopes exactly. 69.83 − 51.17 = 18.66 points:**
+**The decomposition telescopes exactly: D − E is the sum of the three terms below.**
 
 | term | contrast | points | how measured |
 |---|---|---|---|
-| **POSITION** | A → C | **+12.81** | mid-game vs turn 0, sheet off, same 2,500 games |
-| **CORPUS** | E → A | **+4.75** | closed ladder vs open-sheet bo3, turn 0, sheet off, same config |
-| **SHEET** | C → D | **+1.10** [0.31, 1.88] | paired McNemar, same 9,201 boards from two walks |
+| **POSITION** | A → C | withheld | mid-game vs turn 0, sheet off, same games |
+| **CORPUS** | E → A | withheld | closed ladder vs open-sheet bo3, turn 0, sheet off, same config |
+| **SHEET** | C → D | withheld | paired McNemar, same boards from two walks |
 
 C and D come from two passes of `joint_rows.build` over the same games, the second with
 `Board.prototype.setSheet` disabled — so suppressing the sheet changes what the leaf KNOWS and must
-not change which boards are scored. **The original run asserted that and it PASSED**: all 9,201
-positions agree across the two walks on gid, turn, label, `aliveDiff` and the continuous HP witness,
+not change which boards are scored. **The original run asserted that and it PASSED**: every
+position agrees across the two walks on gid, turn, label, `aliveDiff` and the continuous HP witness,
 and the run aborts rather than report a pairing it did not check. The artifact on disk is a re-cut
 of that run's rows, so its `pairing_check` says the result is carried rather than re-performed — a
 process that did not do the check does not get to say PASSED.
 
-The sheet at turn 0 is worth **+2.28** [0.57, 3.99] (B − A, paired), so taking the other path
-through the square gives position +11.63 instead of +12.81. Either way position is two-thirds of it
-and the sheet is the smallest of the three.
+The sheet at turn 0 (B − A, paired) is withheld too, and taking the other path through the square
+moves the position term only slightly. Either way position is the largest term and the sheet is the
+smallest of the three.
 
 **Three independent things say the config is not the explanation.** Arm E re-runs the backtest's
-condition at the SWEEP's budget and horizon (n=40, h=20) and lands on 51.17% / Brier +0.0456 / ECE
-0.1793 against the published 51.66% / +0.0466 / 0.1827 — inside E's own split-half floor of 1.54
-points. The sweep re-ran itself at h=60 and got 69.86% against 69.84%. And §1 already recorded that
+condition at the SWEEP's budget and horizon (n=40, h=20) and lands on the published backtest's
+accuracy, Brier and ECE to within E's own split-half floor. The sweep re-ran itself at h=60 and
+reproduced its h=20 accuracy. And §1 already recorded that
 40 and 200 rollouts give the same turn-0 answer. **The horizon and the budget are settled: they move
 nothing.**
 
 **Two independent routes reach the same turn-0 number, which is why I believe the decomposition.**
 Cutting the sweep's own committed dump down to `turn ≤ 1 AND aliveDiff == 0 AND |hpDiff| < 0.02` —
-its nearest thing to a preview board, sheets on — gives **55.70%** on n=237. Arm B measures a real
-turn-0 board on the same corpus with sheets on and gives **58.20%** on n=2,500. The subset's
-split-half spread runs 0.47 to 21.47 points across ten random by-game cuts (median ≈ 4.2), so those
-two agree.
+its nearest thing to a preview board, sheets on — gives an accuracy on a small subset. Arm B
+measures a real turn-0 board on the same corpus with sheets on. The gap between the two sits inside
+the subset's split-half spread across ten random by-game cuts, so those two agree. Both accuracies,
+the subset's size and its spread are withheld.
 
 **THE HEADLINE IS THE UNDERPOWERED READ, and the better number is not better news.** Every figure
 in this finding is read from `data/winrate-backtest.json` and `data/winrate-backtest-rows.jsonl`,
@@ -6536,18 +6574,19 @@ quarantine lifts and the artifact is re-run.
 **Now the answer to the three options, plainly.**
 
 - **(a) "fine mid-game, broken at turn 0" — the largest term, and "fine" is too kind.** Mid-game the
-  leaf is genuinely not broken: it beats a coin on Brier by 0.044 [0.036, 0.051], its curve is
-  monotone with slope 0.703, and on boards where the material baseline has *collapsed to the
-  majority class* (aliveDiff 0, |hpDiff| < 0.02, n=411) it scores 62.29% against material's 51.09% —
-  **+11.19 [5.05, 17.34] over counting.** It is reading real non-material structure. But it still
-  puts **31.4%** of positions in the two extreme bins, and its top bin predicts 97% and wins 86%. A
-  slope of 0.70 is not calibration; it is a leaf that ranks well and lies about how sure it is.
+  leaf is genuinely not broken: it beats a coin on Brier with an interval clear of zero, its curve is
+  monotone, and on boards where the material baseline has *collapsed to the majority class*
+  (aliveDiff 0, |hpDiff| < 0.02) it beats material with an interval clear of zero — **real lift over
+  counting.** It is reading real non-material structure. But it still puts a large share of
+  positions in the two extreme bins, and its top bin predicts more than it wins. A slope that
+  shallow is not calibration; it is a leaf that ranks well and lies about how sure it is. Every
+  figure behind this bullet is withheld.
 - **(b) "broken everywhere, the sweep measures something easier" — right that it is easier, wrong
-  that it is only easier.** The +11.19 over a collapsed material baseline is not an artefact of easy
+  that it is only easier.** The lift over a collapsed material baseline is not an artefact of easy
   positions. The sweep is not measuring material with extra steps.
-- **(c) and there is a term nobody named: the CORPUS, +4.75 points — bigger than the sheet channel
-  at either position.** The open-sheet corpus is `fit_policy.loadCorpus()`, which on its first 2,500
-  games is **99.9% our own `gen9championsvgc2026regmbbo3` scrape**, not the OTS archive as the
+- **(c) and there is a term nobody named: the CORPUS — bigger than the sheet channel at either
+  position (its size is withheld).** The open-sheet corpus is `fit_policy.loadCorpus()`, which on
+  the games this contrast drew is **99.9% our own `gen9championsvgc2026regmbbo3` scrape**, not the OTS archive as the
   generator's own comment implies. Its pool is lower-rated (median 1,174 against the ladder held-out
   fifth's 1,266) and it plays under **forced** open sheets, so both humans had full information and
   the outcome may be more determined by the matchup. Turn counts and forfeit rates are the same in
@@ -6555,9 +6594,9 @@ quarantine lifts and the artifact is re-run.
   a sampling artefact of the held-out slice, because the full-corpus backtest agrees with E.
 
 **DISCRIMINATION AND CALIBRATION FAIL SEPARATELY AND THE SPLIT WIDENS AS INFORMATION IS REMOVED.**
-Arm A ranks above a 52.4% majority — its interval's lower bound clears both
-the majority class and its 2.24-point split-half floor — and its Brier is still **worse than a
-coin**, with an MCE of 0.351. So a turn-0 leaf can carry real ranking signal and still be a liar
+Arm A ranks above its majority class — its interval's lower bound clears both
+the majority class and its own split-half floor — and its Brier is still **worse than a
+coin**, with a large MCE. So a turn-0 leaf can carry real ranking signal and still be a liar
 about its confidence, which is the failure mode that matters to an argmax. By arm E even the ranking
 is gone and only the confidence is left.
 
@@ -6583,11 +6622,11 @@ leaf is the PREVIEW one and this spec is not aimed at it.
 
 Aimed at what PORYZ-spec's engineering section actually says — making the mid-game EV sum affordable
 — it is well aimed, and this run hands it a bar measured on the same positions rather than quoted
-from another sample: **69.83% accuracy, Brier 0.2060, ECE 0.0925, slope 0.703 on 9,201 positions at
-release 6b0e4117d964**, with the rows on disk. PORYZ's premise sentence, "the whole learned value
-function is worth 3.4 points over counting", is about PORY2. The rollout leaf is worth **+4.58
-[3.47, 5.68]** over the same graded material baseline mid-game and **+11.19 [5.05, 17.34]** where
-material has nothing to say. That is the incumbent PORYZ has to beat, and it is a harder incumbent
+from another sample: **arm D's accuracy, Brier, ECE and slope at release 6b0e4117d964**, with the
+rows on disk and the values withheld with the artifact. PORYZ's premise sentence, on what the whole
+learned value function is worth over counting, is about PORY2, which is quarantined too. The rollout
+leaf beats the same graded material baseline mid-game, and by more where material has nothing to
+say (both lifts withheld). That is the incumbent PORYZ has to beat, and it is a harder incumbent
 than the spec assumed. This is a measurement, not a build decision; the decision is SEARCH's.
 
 **Filed, not fixed.**
@@ -6601,7 +6640,8 @@ than the spec assumed. This is a measurement, not a build decision; the decision
   `loadCorpus()` reads bo3, OTS and ladder in that order, and the head of that list — the whole R1
   and sweep sample — is bo3 with a handful of smogtours. The exact counts are withheld with the
   artifact, which is downstream of MEDICHAM. Every R1 number ever published is a **bo3
-  open-sheet** number, and §15 measures that this corpus is worth 4.75 accuracy points at turn 0.
+  open-sheet** number, and §15 measures that this corpus is worth real accuracy at turn 0 (the size
+  is withheld).
   The published figures are not wrong; what they are *about* is narrower than the comment says.
 - **`data/censoring-value.json` and `data/click-censoring-census.json` trip the provenance
   ratchet** — their generator ships without recording what content it read. Another division's files,

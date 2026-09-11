@@ -10,6 +10,17 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.17.0] — 2026-09-11
+
+### Changed
+- **The last pre-commit gate judging the working tree now judges the commit.** `tests/test-artifact-rerunnable.js`
+  takes `--staged`: an unstaged change no longer blocks, and a staged change the old hook passed now blocks.
+
+### Removed
+- **The remaining leaf-calibration and R1 figures in `docs/MEASURE.md`** read from artifacts the quarantine gate
+  withholds. The quarantine test had caught only the two bound to a withheld artifact; the rest of the same
+  measurement was still printed. Withheld, not annotated.
+
 ## [6.16.0] — 2026-09-11
 
 ### Fixed

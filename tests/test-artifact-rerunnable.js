@@ -119,16 +119,47 @@
  * streams every tracked release's blobs through `git cat-file --batch` (~3s, measured, 676 files) and
  * fails BY NAME on the laptop too, which is where the fix (`git add --renormalize`) has to be made.
  *
+ * ================= --staged: JUDGE THE COMMIT, NOT THE WORKING TREE — 2026-09-11 ==================
+ *
+ * The pre-commit hook runs this file. It was the last gate in the hook's loop that still read the
+ * working tree, and several agents write that tree at once. So an unrelated commit could be blocked
+ * by an artifact another agent had rewritten on disk and that the commit did not contain, and a
+ * stranded artifact STAGED beside a clean disk copy was passed. With `--staged`, every input a commit
+ * carries is read AS THE COMMIT HOLDS IT, through engine/docs_scan.js's one reader (`useIndex()`):
+ * the index version where staged, HEAD's where not. That covers:
+ *   - the data/*.json artifacts and the release each one names;
+ *   - data/artifact-rerunnable-baseline.json, the ratchet floor;
+ *   - the callers' `REL.require(file, {need})` sites. `ER.callerNeeds(dir)` reads a directory, so the
+ *     staged top level of engine/ and tests/ is copied out byte-exact (`DS.materialize`) to an
+ *     OS-temp directory and the authority reads it there. There is no second parser. The process
+ *     removes only the directory it made;
+ *   - the live recorder check. The staged engine/medicham2-browser.js is compiled at its real path,
+ *     so the commit's export list is judged. The modules it requires still resolve from disk.
+ * `git ls-files` already honours GIT_INDEX_FILE, so "what git tracks" was always the commit's view.
+ *
+ * data/releases/ IS STILL READ FROM DISK, AND THAT IS SAFE. A release is content-addressed: ER.open()
+ * checks every file against the manifest digests before it serves a byte, so a disk copy that is not
+ * the release reads MODIFIED. It can be over-accused and never passed. Section 5b already hashes the
+ * COMMITTED blobs of every tracked release. Without the flag, a hand run reads the working tree
+ * exactly as before.
+ *
  *   node tests/test-artifact-rerunnable.js
+ *   node tests/test-artifact-rerunnable.js --staged  # what .githooks/pre-commit runs
  *   node tests/test-artifact-rerunnable.js --stamp   # accept the current count as the new ratchet
  */
 'use strict';
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
+const Module = require('module');
 const { spawnSync } = require('child_process');
 const D = (...p) => path.join(__dirname, '..', ...p);
 const ER = require(D('engine', 'engine_release.js'));
+const DS = require(D('engine', 'docs_scan.js'));
+/* ONE READER. Without --staged it is the working tree, byte-identical to the fs calls it replaced. */
+const STAGED = process.argv.includes('--staged');
+if (STAGED) DS.useIndex();
 
 /* ---- 0. WHAT GIT CARRIES, ASKED ONCE -------------------------------------------------------------
  * One `git ls-files -s` over the release store and the artifact directory: which release ids the
@@ -171,10 +202,33 @@ const oneLine = s => String(s).split('\n')[0].trim();
  * anchors the options object immediately after the require path so it cannot drift into a LATER
  * require's `need:` list, and it skips engine_release.js itself. Re-deriving any of that here would
  * be the second implementation the FACTS ARE GLOBAL rule forbids. */
+/* UNDER --staged THE CALLERS ARE READ AS THE COMMIT HOLDS THEM. `ER.callerNeeds(dir)` is the authority
+ * and it reads a directory, so the staged top level of engine/ and tests/ (exactly what it scans) is
+ * copied out through the one reader and the authority is pointed at the copy. Growing a `need` list is
+ * the change this gate exists to price, so judging the DISK's need lists would miss the staged one. */
+let CALLERS_COPIED = null;
+function callerDirs() {
+  if (!STAGED) return { engine: undefined, tests: D('tests'), copied: null, done() {} };
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'abra-rerunnable-staged-'));
+  const rels = [];
+  for (const d of ['engine', 'tests']) {
+    fs.mkdirSync(path.join(tmp, d), { recursive: true });
+    for (const f of DS.listFiles(d)) if (f.endsWith('.js')) rels.push(d + '/' + f);
+  }
+  DS.materialize(rels, tmp);
+  return { engine: path.join(tmp, 'engine'), tests: path.join(tmp, 'tests'), copied: rels.length,
+    done() {
+      try { fs.rmSync(tmp, { recursive: true, force: true }); }
+      catch (err) { console.error('  could not remove the staged caller copy ' + tmp + ': ' + err.message); }
+    } };
+}
 function requirementTable() {
   const errs = [];
   const rows = [];
-  const e = ER.callerNeeds();                       /* defaults to engine/ */
+  const dirs = callerDirs();
+  CALLERS_COPIED = dirs.copied;
+  try {
+  const e = ER.callerNeeds(dirs.engine);            /* undefined -> the live engine/ */
   if (e.error) errs.push(e.error);
   rows.push(...e.rows);
   /* tests/ is scanned too, because tests/roster.js and tests/mutation_harness.js produce ten of the
@@ -182,9 +236,10 @@ function requirementTable() {
    * is corrected here from the directory that was actually scanned — the ROWS are the authority's,
    * only the name is repaired. Fixing the prefix inside engine_release.js is the right home for it
    * and is filed rather than done while other divisions are live in that file. */
-  const t = ER.callerNeeds(D('tests'));
+  const t = ER.callerNeeds(dirs.tests);
   if (t.error) errs.push(t.error);
   rows.push(...t.rows.map(r => ({ ...r, caller: 'tests/' + path.basename(r.caller) })));
+  } finally { dirs.done(); }
 
   const byCaller = new Map();
   for (const r of rows) {
@@ -215,12 +270,12 @@ function producerOf(j) {
 const SCRATCH = /^_scratch-/;                       /* not artifacts; see the report at the bottom */
 function stampedArtifacts() {
   const out = [], prose = [], scratch = [], unreadable = [];
-  for (const f of fs.readdirSync(D('data')).filter(x => /\.json$/.test(x))) {
+  for (const f of DS.listFiles('data').filter(x => /\.json$/.test(x))) {
     /* AN UNREADABLE ARTIFACT USED TO DROP OUT OF THIS SCAN ENTIRELY, so a corrupt file that names a
        stranded release escaped the check while the run stayed green. It is bucketed and named, next
        to `prose` and `scratch`, because a scanner that could not read a file may not report that
        file clean. */
-    let j; try { j = JSON.parse(fs.readFileSync(D('data', f), 'utf8')); }
+    let j; try { j = JSON.parse(DS.rawText('data/' + f)); }
     catch (e) { unreadable.push({ file: f, why: oneLine(String((e && e.message) || e)).slice(0, 90) }); continue; }
     const cand = [j.release, j.engine_release, j.engine_release_cut && j.engine_release_cut.id];
     /* A RELEASE ID IS 12 HEX CHARACTERS. Some artifacts put PROSE in `release` explaining why they are
@@ -432,9 +487,20 @@ if (legacy.length) {
  * what has already been written can never exercise a fix — the one legacy record above is by
  * definition the OLD parser's. So the live parser is run against the live engine and compared to what
  * `require()` actually yields. If this goes red, the next release cut will record a wrong `provides`. */
+/* Under --staged the COMMIT's engine is judged: its source is compiled at the real module path, so its
+ * relative requires resolve as they would after checkout (the modules it pulls in come from disk), and
+ * the same source is what the recorder parses. Without the flag this is require() on the live file. */
+function stagedExports(abs, src) {
+  const m = new Module(abs, module);
+  m.filename = abs;
+  m.paths = Module._nodeModulePaths(path.dirname(abs));
+  m._compile(src, abs);
+  return m.exports;
+}
 {
-  const live = Object.keys(require(D(MEDI))).sort();
-  const parsed = ER.exportedNames(fs.readFileSync(D(MEDI), 'utf8'));
+  const src = DS.rawText(MEDI);
+  const live = Object.keys(STAGED ? stagedExports(D(MEDI), src) : require(D(MEDI))).sort();
+  const parsed = ER.exportedNames(src);
   const miss = live.filter(k => !parsed.includes(k));
   const extra = parsed.filter(k => !live.includes(k));
   ok(miss.length === 0 && extra.length === 0,
@@ -521,7 +587,7 @@ let base = null, baseWhy = null;
    run with --stamp", which invites the operator to re-stamp the floor straight over the record of
    what was already stranded. ENOENT is the only forgiven error; anything else is named and refuses
    the overwrite. */
-try { base = JSON.parse(fs.readFileSync(BASE, 'utf8')); }
+try { base = JSON.parse(DS.rawText('data/artifact-rerunnable-baseline.json')); }
 catch (e) {
   baseWhy = (e && e.code === 'ENOENT') ? null : String((e && e.message) || e).split('\n')[0];
 }
@@ -532,6 +598,11 @@ if (baseWhy) {
 }
 
 if (process.argv.includes('--stamp')) {
+  if (STAGED) {
+    console.error('\n  REFUSING TO --stamp under --staged. The floor is written to the working tree, and a floor '
+      + 'derived from the staged tree would describe bytes that are not on disk. Stamp with a plain run.');
+    process.exit(2);
+  }
   if (absent.length) {
     console.error('\n  REFUSING TO --stamp on a clone with ' + absent.length + ' artifact(s) whose release is ABSENT from this '
       + 'machine. Their verdict is unknown here, so a floor written now would be below the truth and the '
@@ -578,6 +649,16 @@ if (!base) {
   }
 }
 
+/* SAY WHICH TREE WAS READ, green or red; the hook echoes this line. It names every path where the working
+ * tree differs from the commit and the commit's bytes were judged instead. */
+if (STAGED) {
+  const r = DS.readerReport();
+  console.log('\n(--staged: ' + r.index_entries + ' files in the index; ' + r.verified_on_disk + ' read from disk after their hash '
+    + 'matched the staged blob; ' + r.from_index.length + ' read from the index because the working tree differs'
+    + (r.from_index.length ? ': ' + r.from_index.slice(0, 12).join(', ') + (r.from_index.length > 12 ? ', … +' + (r.from_index.length - 12) : '') : '')
+    + '; callers read from a staged copy of ' + CALLERS_COPIED + ' engine/ and tests/ file(s); data/releases/ read from disk, verified against each manifest)');
+  if (r.unreadable.length) console.log('(--staged: ' + r.unreadable.length + ' disk read(s) failed and were answered from the index: ' + r.unreadable.slice(0, 6).join(', ') + ')');
+}
 console.log('\n' + (fails
   ? 'FAILED: ' + fails + ' of ' + checks
   : 'ALL GREEN — ' + checks + ' checks. Growing a `need` list now costs a visible, named artifact.'));

@@ -343,14 +343,19 @@ done
 # document edit with a mismatched figure, and a staged artifact that breaks a committed document.
 # SECOND PASS, SAME DAY: the docs gate's clause 3c now passes --staged on to
 # build/build_archive_index.js --check, and tests/test-roadmap-register.js takes --staged too, so
-# docs/ROADMAP.md and the ledgers are read as the commit holds them. tests/test-artifact-rerunnable.js
-# is NOT switched: it still reads data/*.json and data/releases/ from disk.
+# docs/ROADMAP.md and the ledgers are read as the commit holds them.
+# THIRD PASS, SAME DAY: tests/test-artifact-rerunnable.js --staged. It was the last gate in this loop
+# still judging the working tree. It now reads the data/*.json artifacts, its ratchet baseline, the
+# callers' REL.require `need` lists (engine/*.js and tests/*.js) and the live recorder source as the
+# commit holds them. data/releases/ is still read from disk, and that is safe: every release is opened
+# through ER.open(), which checks each file against the manifest digests, so a bad disk copy reads
+# MODIFIED and is never taken as good.
 for t in tests/test-docs-current.js tests/test-roadmap-register.js tests/test-artifact-rerunnable.js; do
   [ -f "$t" ] || continue
   HEAP=$(grep -m1 -oE 'ABRA-HEAP:[[:space:]]*[0-9]+' "$t" 2>/dev/null | grep -oE '[0-9]+')
   if [ -n "$HEAP" ]; then NODEOPT="--max-old-space-size=$HEAP"; else NODEOPT=""; fi
   TARGS=""
-  case "$t" in tests/test-docs-current.js|tests/test-roadmap-register.js) TARGS="--staged" ;; esac
+  case "$t" in tests/test-docs-current.js|tests/test-roadmap-register.js|tests/test-artifact-rerunnable.js) TARGS="--staged" ;; esac
   OUT=$(node $NODEOPT "$t" $TARGS 2>&1); RC=$?
   # SAY WHICH TREE IT READ, green or red: the line names every path where the working tree differs from
   # this commit and the gate judged the commit's bytes instead. A switch nobody can see is a switch

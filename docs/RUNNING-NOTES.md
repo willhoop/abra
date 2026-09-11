@@ -44,6 +44,14 @@ reads SemVer 2.0.0 clauses 6, 7 and 8 against an API that is the figures this pr
 Copy this shape. Four lines is a good row; a paragraph is a report and belongs in `docs/_reports/`.
 
 ```
+## [6.17.0] — 2026-09-11 — the rest of the quarantined leaf-calibration measurement is withdrawn from the MEASURE ledger, and the last hook gate judges the commit
+
+- **What changed.** `docs/MEASURE.md` withdraws every remaining figure read from the leaf backtest, the R1 recomputation and explore sweep, and the leaf-position contrast — the reconciliation's arms table, decomposition and bar, the leaf-calibration table and the R1 figures — keeping the fact that each measurement exists and deleting its numbers. `tests/test-artifact-rerunnable.js` takes `--staged` through `engine/docs_scan.js`'s index reader and `.githooks/pre-commit` passes it, so no gate in the hook reads the working tree.
+- **Measured.** NO FIGURE. `node tests/test-docs-quarantine.js` passes; the plants are in `docs/_reports/2026-09-11-leaf-withhold-and-hook.md`.
+- **Supersedes.** Every leaf-calibration and R1 figure in `docs/MEASURE.md` read from an artifact the quarantine gate withholds — deleted, not captioned, while the gate withholds them.
+- **Basis.** unchanged.
+- **Owed to the next major.** None for these; they return when the gate opens and the artifacts are re-run. The R4 verdict and the Stage D refit figures in `docs/MEASURE.md`, and SEARCH's sweep paragraph, are owed the same withdrawal.
+
 ## [6.16.0] — 2026-09-11 — the five living documents stop saying the MEDICHAM gate is open, and each now says so in a dated correction
 
 - **What changed.** `docs/ABRA-whitepaper.md`, `docs/ABRA-technical-docs.md`, `docs/ABRA-deck-plain-english.md`, `docs/SUMMARY.md` and `docs/MODELS.md` carry a dated correction above the 6.0.0 headline block, and at each of eleven body sites that stated the gate open or an artifact re-runnable as a present-tense fact. The 6.0.0 text stands as dated evidence. PDFs rebuilt. No version header moved: this is the retraction, not the fold-in.
