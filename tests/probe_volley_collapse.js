@@ -159,7 +159,7 @@ function read(lines, slot) {
 
 const SKIPPED = { twoReasons: 0, noFiller: 0, buildThrew: 0, buildNull: 0, gameThrew: 0 };
 const SKIP_WHY = [];
-function playOne(tag, MV, AT, T, item, hb, tgtMoves, wantReasons) {
+function playOne(tag, MV, AT, T, item, hb, tgtMoves, wantReasons, armOverride) {
   const ab = Object.values(T.abilities)[0];
   const rs = reasons(T, item, ab, tgtMoves);
   const WANT = wantReasons == null ? 1 : wantReasons;
@@ -182,7 +182,7 @@ function playOne(tag, MV, AT, T, item, hb, tgtMoves, wantReasons) {
   if (!a || !b) { SKIPPED.buildNull++; return null; }
   G.resetScriptCounters();
   const g = G.playGame(a, b, 'directed', tag + '/' + norm(AT.name) + '/' + norm(T.name) + '/' + hb,
-    { arm: ARM, script });
+    { arm: armOverride || ARM, script });
   if (g.err) { SKIPPED.gameThrew++; if (SKIP_WHY.length < 40) SKIP_WHY.push(T.name + ' x' + hb + ': the game threw — ' + g.err); return null; }
   return { MV, AT, T, item, hb, ab, reasons: rs, sc: G.scriptCounters(),
     sd: read(G.sdStream(G.lastSdLog()), 'p2a:'), me: read(g.mediTrace || [], 'p2a:') };
@@ -350,6 +350,51 @@ let bad = 0, ctlBad = 0, declBad = 0;
   if (F) ROUTES.push({ name: 'FOCUS BAND', F });
   else console.log('      NO BOARD STAGED THIS ROUTE ON THE AUTHORITY (the 10% roll never landed on a '
     + 'lethal arrival here) — a claim about the fixture, not the engine.');
+}
+
+/* ---- ROUTE 3b: FOCUS BAND WITH THE ROLL MADE TO LAND (2026-09-11, ENGINE 6.24.0) ------------------------
+ * ROUTE 3 plays `top-tie-first`, where the band's `randomChance(1,10)` never lands, so no fixture in this
+ * repository staged what ROADMAP #511 changed for Focus Band: it now draws its chance at the FIRST LETHAL
+ * arrival of a volley and answers THAT arrival, the rest of the volley then landing on the 1 HP it left.
+ * Under `bottom-tie-first` the roll lands in both engines, so this searches for a board on which the
+ * authority's `-activate …Focus Band` comes AFTER the volley's first `-damage` line — a later arrival was the
+ * lethal one — and compares it row by row like every other route. `MEDI_HITCOUNT_DROP_ON_COLLAPSE=1`
+ * restores the pre-#511 clamp (the volley's total answered once) and must part it. */
+{
+  const ARM3B = G.ARM_BY_ID.get('bottom-tie-first');
+  console.log('\n  === ROUTE 3b: FOCUS BAND — the roll made to land, on a LATER arrival ===');
+  if (!ARM3B) console.log('      NO bottom-tie-first ARM — a claim about the driver, not the engine.');
+  else {
+    const MV = USABLE[0];
+    const NO_CLAMP_AB = s => !CLAMP.abilities.includes(norm(Object.values(s.abilities)[0]));
+    const ATTS = POOL.filter(s => LEARNS(s, MV.id) && NO_FIELD_AB(s))
+      .sort((a, b) => (MV.category === 'Physical' ? b.baseStats.atk - a.baseStats.atk
+        : b.baseStats.spa - a.baseStats.spa) || a.name.localeCompare(b.name));
+    /* FRAIL FIRST AND AT NATURAL HP: the first cut searched bulky targets at 1-3x HP and no arrival of a
+     * two-arrival volley was ever lethal (10 boards, the band never asked). */
+    const TGTS = POOL.filter(s => NO_FIELD_AB(s) && NO_CLAMP_AB(s) && HOLD_FOR(s)
+      && dex.getEffectiveness(MV.type, s) > 0 && dex.getImmunity(MV.type, s))
+      .sort((a, b) => (a.baseStats.hp + a.baseStats.def + a.baseStats.spd) - (b.baseStats.hp + b.baseStats.def + b.baseStats.spd)
+        || a.name.localeCompare(b.name));
+    let F = null; const tried = [];
+    const STRIDE = 1;
+    outer3b:
+    for (const AT of ATTS.slice(0, 2)) for (let i = 0; i < Math.min(TGTS.length, 40); i += STRIDE) for (const hb of [1]) {
+      const H = HOLD_FOR(TGTS[i]); if (!H) continue;
+      const r = playOne('band3b', MV, AT, TGTS[i], 'Focus Band', hb, [H, 'Protect'], undefined, ARM3B);
+      if (!r) continue;
+      const ev = (r.sd.events || []).map(String);
+      const di = ev.findIndex(l => /-damage/.test(l)), ai = ev.findIndex(l => /-activate/.test(l) && /Focus Band/.test(l));
+      tried.push(AT.name + ' -> ' + TGTS[i].name + ' x' + hb + '  sd dmgLines=' + r.sd.dmgLines
+        + ' act@' + ai + ' firstDamage@' + di + ' final=' + r.sd.final);
+      if (di >= 0 && ai > di && r.sd.dmgLines >= 2) { F = r; break outer3b; }
+    }
+    console.log('      candidate boards played: ' + tried.length);
+    for (const t of tried.slice(-8)) console.log('        ' + t);
+    if (F) ROUTES.push({ name: 'FOCUS BAND (roll lands on a later arrival)', F });
+    else console.log('      NO BOARD STAGED THIS ROUTE — no board had the band answer an arrival after the '
+      + 'first; a claim about the fixture, not the engine.');
+  }
 }
 
 /* ---- ROUTE 4: FOCUS SASH reachability ------------------------------------------------------------ */

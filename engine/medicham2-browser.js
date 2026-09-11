@@ -9543,7 +9543,9 @@ function residualClockTick(m, id) {
     if (m._yawn <= 0) {
       m._yawn = null; if (TR) TR.vend(m, 'move: Yawn');
       /* only if the target is still statusless — anything that landed in between takes precedence. */
-      if (!m.status) applyStatus(m, 'slp');
+      /* 2026-09-11 (6.24.0) -- and MARKED, so the post-residual Update below `|upkeep` (`battleTurn`, after
+       * `drainFaints('residualAfterUpkeep')`) offers the sleep to an `onUpdate` cure. */
+      if (!m.status && applyStatus(m, 'slp')) m._statusSetInWalk = true;
     }
   }
 }
@@ -11870,6 +11872,10 @@ function berryStatusCureNow(m){
  * `MEDI_NO_CURE_ON_SET=1` restores the engine as it stood before this existed. */
 const NO_CURE_ON_SET = (typeof process !== 'undefined' && process.env
                         && process.env.MEDI_NO_CURE_ON_SET === '1');
+/* 2026-09-11 (6.24.0) -- the post-residual Update for a status the walk set (see `battleTurn`, after
+ * `drainFaints('residualAfterUpkeep')`). Loud when set: MEDFAILS.walkStatusUncured. */
+const WALK_STATUS_UNCURED = (typeof process !== 'undefined' && process.env
+                        && process.env.MEDI_WALK_STATUS_UNCURED === '1');
 function berryCureOnSet(m){
   if(NO_CURE_ON_SET){MEDFAILS.cureOnSetSkipped=1;return false;}
   if(!m||m.fainted||m.curHP<=0||!m.status)return false;
@@ -46077,6 +46083,23 @@ function battleTurn(S,rng,actsForA,actsForB){
      * construction, so `faintDrainResidualClocks + faintDrainResidualAfterUpkeep` is the population
      * of residual clock deaths and never a double count. */
     drainFaints('residualAfterUpkeep');
+    /* 2026-09-11 (6.24.0) -- THE UPDATE THAT CLOSES THE RESIDUAL ACTION. `Battle#runAction` ends the residual
+     * case with `eachEvent('Update')` (sim/battle.ts:2856, below `add('upkeep')` at :2814 and the faint drain at
+     * :2832), so a status the residual itself set is offered to an `onUpdate` cure before the turn ends. This
+     * engine's own pass (`berryCureUpdate`, the `residualOrder` loop above the walk) runs BEFORE the walk, so a
+     * body Yawn put to sleep at the walk's end reached the next turn still holding its Chesto Berry: Showdown
+     * `status '' / last_item chestoberry`, ours `status slp / item chestoberry`. Found by the legal #318 roster
+     * fixture for item/chestoberry (Yawn is the in-scope sleep road now that Spore is out of scope). Only bodies
+     * the walk slept are asked — a wider pass would move boards this change has no measurement for.
+     * `MEDI_WALK_STATUS_UNCURED=1` skips it and restores the defect. */
+    for(const m of residualOrder(actA,actB,field)){
+      if(!m||!m._statusSetInWalk)continue;
+      m._statusSetInWalk=false;
+      if(WALK_STATUS_UNCURED){MEDFAILS.walkStatusUncured=1;continue;}
+      if(m.fainted||m.curHP<=0)continue;
+      const _itW=m.item; berryCureUpdate(m);
+      if(m.item!==_itW)MEDSEEN.walkStatusCuredAfterUpkeep=(MEDSEEN.walkStatusCuredAfterUpkeep|0)+1;
+    }
     /* ROADMAP #175 -- BEFORE the replacements walk in, and that ordering is the whole of it: `refill`
      * puts a new body in the dead one's slot, so a sweep placed one line lower would find the corpse
      * gone and every residual faint would inherit nothing. */

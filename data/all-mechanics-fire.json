@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-11T15:46:11.199Z",
- "engine_release": "b42b81899631",
- "engine_release_cut": "2026-09-11T15:07:12.280Z",
- "engine_release_cuts": 104,
+ "generated": "2026-09-11T18:50:23.440Z",
+ "engine_release": "9ec2ab9ad0ef",
+ "engine_release_cut": "2026-09-11T18:34:33.520Z",
+ "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "4e4172687f43",
+  "engine/medicham2-browser.js": "f91efdeab8d6",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -33,7 +33,7 @@
   "engine/pp.js": "30b12a4ef623",
   "data/rollout-switch-census.json": "b599f8d581b5"
  },
- "release": "b42b81899631",
+ "release": "9ec2ab9ad0ef",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -106701,7 +106701,7 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 76
    },
-   "seconds": 21.3
+   "seconds": 22.8
   },
   "abilities": {
    "exist": 316,
@@ -106718,7 +106718,7 @@
    "diverged_including_shelved": 3,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 2,
-   "seconds": 11.7,
+   "seconds": 12.1,
    "board_only": {
     "rows": 17,
     "staged": 17,
@@ -106797,7 +106797,7 @@
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 6,
    "board_state_fired": 5,
-   "seconds": 6,
+   "seconds": 6.2,
    "stones": {
     "rows": 0,
     "staged": 0,
@@ -107021,9 +107021,9 @@
  },
  "planner": {
   "meta": {
-   "generated": "2026-09-11T15:46:11.105Z",
+   "generated": "2026-09-11T18:50:23.338Z",
    "by": "engine/stage_planner.js",
-   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\b42b81899631\\data\\tags.json",
+   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\9ec2ab9ad0ef\\data\\tags.json",
    "tags_digest": "d88b5a6c36f1e231",
    "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown",
    "validator": {
@@ -107069,7 +107069,7 @@
     "stench: secondary (the handler assigns move.secondaries)",
     "kingsrock: secondary (the handler assigns move.secondaries)"
    ],
-   "ms": 12473
+   "ms": 14198
   },
   "summary": {
    "mechanics": 964,
@@ -107124,7 +107124,7 @@
    }
   },
   "played": {
-   "plan_ms": 12519,
+   "plan_ms": 14247,
    "rows": 347,
    "fixtures": 853,
    "variants": 1968,
@@ -107353,28 +107353,21 @@
   "moves": {
    "available": true,
    "file": "data/roster.moves.json",
-   "roster_fired": 479,
+   "roster_fired": 486,
    "here_fired": 497,
-   "both": 479,
+   "both": 486,
    "only_here": [
     "aurawheel",
     "axekick",
-    "belch",
-    "bugbite",
     "copycat",
     "electrify",
     "extremespeed",
     "focusenergy",
-    "healingwish",
     "iceshard",
     "jetpunch",
-    "pluck",
     "ragingbull",
-    "recycle",
-    "roost",
     "struggle",
-    "upperhand",
-    "wish"
+    "upperhand"
    ],
    "only_roster": [],
    "neither": [],
@@ -107384,11 +107377,10 @@
   "abilities": {
    "available": true,
    "file": "data/roster.abilities.json",
-   "roster_fired": 132,
+   "roster_fired": 137,
    "here_fired": 140,
-   "both": 95,
+   "both": 100,
    "only_here": [
-    "adaptability",
     "aftermath",
     "analytic",
     "berserk",
@@ -107403,7 +107395,6 @@
     "heavymetal",
     "hydration",
     "illuminate",
-    "innerfocus",
     "justified",
     "keeneye",
     "klutz",
@@ -107413,21 +107404,18 @@
     "merciless",
     "minus",
     "moxie",
-    "oblivious",
     "opportunist",
-    "overgrow",
-    "owntempo",
     "pickpocket",
     "plus",
-    "quickdraw",
     "receiver",
     "rivalry",
-    "scrappy",
+    "sandrush",
     "simple",
     "skilllink",
     "slushrush",
     "sniper",
     "stalwart",
+    "stench",
     "stickyhold",
     "superluck",
     "symbiosis",
@@ -107504,28 +107492,16 @@
   "items": {
    "available": true,
    "file": "data/roster.items.json",
-   "roster_fired": 130,
+   "roster_fired": 142,
    "here_fired": 148,
-   "both": 130,
+   "both": 142,
    "only_here": [
     "aspearberry",
-    "bigroot",
-    "blackglasses",
-    "charcoal",
-    "chopleberry",
-    "expertbelt",
     "focusband",
-    "focussash",
-    "kebiaberry",
     "kingsrock",
-    "lifeorb",
     "quickclaw",
     "rawstberry",
-    "scopelens",
-    "sharpbeak",
-    "silkscarf",
-    "tangaberry",
-    "twistedspoon"
+    "scopelens"
    ],
    "only_roster": [],
    "neither": [],

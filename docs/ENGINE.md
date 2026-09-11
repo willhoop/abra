@@ -135,6 +135,16 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 | `probe_entity_kind.js` | does the divergence annotator resolve the ENTITY the protocol line is actually about, or the first dex hit — the collision membership DERIVED from the format on every run (96 condition names something legal can set, of which 3 collide with an out-of-format move; 1 legal item and 0 abilities colliding with one; 1 illegal base species carrying a legal forme) and every member asserted against BOTH arms of a knob, with `PROBE_ENTITY_KIND_ARM=first-hit` restoring the old resolver and going red 6 ways. Negative controls in the same file: a volatile with NO legal setter must STAY impossible, a `|move|SLOT|NAME` click of a `Past` move must stay impossible, and Protect / Tailwind / Encore / Reflect / Substitute must keep their `max_uses` across the knob. Then it re-annotates a stored differential artifact and reports the label change | whether either engine plays the game right — it reads no game and writes none, and a relabelled row is a row somebody now has to LOOK at, never a fix. And a volatile applied through a COMPUTED name (`addVolatile(someVar)`): the derivation reads declared fields and string literals only, none exists in this format's legal set today, and the guard says so rather than implying coverage |
 | `probe_kingsrock_volley.js` | is the King's Rock flinch die taken once per CLICK or once per LANDED ARRIVAL — the item runs no hit-time handler at all (`onModifyMove` PUSHES `{chance: 10, volatileStatus: 'flinch'}` onto `move.secondaries`, `data/items.ts:3219`), so the authority draws for it in `BattleActions#secondaries` (`sim/battle-actions.ts:1343`), step 5 of the Champions `spreadMoveHit` (`data/mods/champions/scripts.ts:388`), called once per hit by `hitStepMoveHitLoop` (`:518`) under `if (targets.every(target => !target?.hp)) break;` (`:464`). NOTHING IS TYPED AND NOTHING IS INFERRED: `BattleActions.prototype.secondaries` is WRAPPED and the King's-Rock-shaped entry counted per living target per call, medicham2 counts at its own draw site (`MEDSEEN.kingsRockRolls`), and the landed-arrival count is read off `\|-hitcount\|` in BOTH streams so "the two engines played the same length of volley" is asserted rather than assumed. Seven arms over two engines under the differential's own `middle` pin, one turn each: three live (a FIXED two-arrival volley, a 2-5 volley whose LENGTH is a die, and a volley that KILLS on arrival 1 of 2 — where the authority takes ONE die and only `dualwingbeat#1` ever reaches the function) and four over-fire controls, every one of them a way a count fix could over-reach (a single-hit move, which must stay at exactly ONE; the same volley with the item gone; a move that ALREADY flinches, where the item's own no-stacking clause adds nothing AND the move's own secondary must still be rolled; and an aimed STATUS move, which `move.category !== "Status"` refuses outright). `MEDI_KINGSROCK_ONCE_PER_MOVE=1` must part both live arms and move no control, the knob stamp is asserted present-on-knob and absent-clean, and `MEDFAILS.kingsRockNoArrivalCount` is asserted at zero per arm so the count can never come from a silent fallback | whether a flinch that LANDS does the right thing — it counts dice, never outcomes, because at 10% an outcome counter is nine parts noise. The die the authority takes on the arrival that KILLS, which this engine skips and `MEDSEEN.kingsRockRollSkippedOnKO` counts: DECLARED, asserted non-zero on the kill arm, and unfixable from here without adding a `sec` draw to every killing hit by a holder. And the once-per-move wrap of the whole step list, which is unchanged and stays `test-resolution-order.js`'s KNOWN-OPEN arm |
 
+**2026-09-11, 6.24.0 — ROADMAP #318 CLOSED BY RULE, NOT BY ROW.** The roster's rules now ask `learnsLegally` (the
+TeamValidator judge `fixtureAudit` uses) before they pick a move for a body or a body for a move, and the shared
+derivations take only in-scope moves; `tests/probe_roster_learnset_refusals.js` reads 0 refused pairs on
+`9ec2ab9ad0ef` and 420 under its knob. The legal Chesto Berry fixture found an engine defect that the illegal Spore
+one had hidden: a sleep the residual walk set (Yawn) never reached its `onUpdate` cure before the turn ended. It is
+fixed, behind `MEDI_WALK_STATUS_UNCURED=1`. The cost is two ability rows: Sand Rush's only legal staging reads inert
+and Stench's one legal carrier finds no coin inside its PP-bounded window. Account:
+`docs/_reports/2026-09-11-gate-last-clause.md`. New open work: ROADMAP #601, residual handlers on a body perish
+has zeroed.
+
 **Its one number:** mechanics live. **It must never go down.**
 
 **May not:** claim a strength gain (that is SEARCH, gated by MEASURE), change what board.js
@@ -144,11 +154,11 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  883/883 probed mechanics live, 0 missing   (census 2026-09-11 12:49)
+  883/883 probed mechanics live, 0 missing   (census 2026-09-11 15:14)
     the census probes what somebody thought to probe: 296 of 296 in-scope tags carry a probe, 0 carry none (9 of 305
-    tags have no in-scope carrier); 21 mechanics have never fired in the staged harness (all-mechanics-fire.json, 1.4
-    h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-11 11:43)
+    tags have no in-scope carrier); 21 mechanics have never fired in the staged harness (all-mechanics-fire.json, 44
+    min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-11 14:50)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
     the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
     Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
@@ -171,7 +181,7 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-11 13:08_
+_stamped 2026-09-11 15:34_
 
 <!-- /GENERATED -->
 

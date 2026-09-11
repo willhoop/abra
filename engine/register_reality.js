@@ -1304,6 +1304,19 @@ if (has('--selftest')) {
  * renderListing() and exits. It never names measure(), buildArtifact() or publish(), and publish()
  * would refuse it if it did. Everything below the exit is the MEASUREMENT, and it writes because it
  * measured. */
+/* THE EXIT FOLLOWS THE VERDICT, AND SAYS SO IN THE SHARED GRAMMAR (2026-09-11, ENGINE 6.24.0). A run that
+ * printed "15 row(s) disagree" was reported exiting 0, and a reader that trusts only the exit code then
+ * files the register as clean. Every verdict path now ends here: the code is set on `process.exitCode`
+ * AND passed to `process.exit`, and the `ABRA-EXIT` declaration from engine/exit_codes.js is printed first,
+ * so a wrapper that loses the code (a pipe, a shell) still reads RED from the text. */
+function exitWithVerdict(red, toStderr) {
+  const code = red ? 1 : 0;
+  /* `--json` owns stdout (a JSON consumer parses it whole), so its declaration goes to stderr, which
+   * exit_codes.js reads as well */
+  (toStderr ? console.error : console.log)(EXIT.declaration(code, red ? EXIT.KIND.RED : EXIT.KIND.GREEN));
+  process.exitCode = code;
+  process.exit(code);
+}
 const ARGV = readArgv();
 if (ARGV.err) {
   console.error('register_reality: ' + ARGV.err);
@@ -1330,7 +1343,7 @@ if (ARGV.only) {
       + ' — the row is absent, closed without a marker, or its marker was rejected. `--list` shows which.');
   console.log('\n  data/register-reality.json was NOT written. A filtered run cannot produce the whole\n'
     + '  register, and the MEDICHAM gate reads that artifact row by row.\n');
-  process.exit(mo.results.some(r => BAD.has(r.verdict)) ? 1 : 0);
+  exitWithVerdict(mo.results.some(r => BAD.has(r.verdict)));
 }
 
 const m = measure(en, null);
@@ -1339,7 +1352,7 @@ publish(m, art);
 const results = m.results;
 const failing = results.filter(r => BAD.has(r.verdict));
 
-if (has('--json')) { console.log(JSON.stringify(art, null, 2)); process.exit(failing.length ? 1 : 0); }
+if (has('--json')) { console.log(JSON.stringify(art, null, 2)); exitWithVerdict(failing.length > 0, true); }
 
 const c = art.counts;
 console.log('\nREGISTER REALITY — the register checked against the instruments, not against itself\n');
@@ -1368,6 +1381,7 @@ if (failing.length) {
     console.log('REGISTER REALITY: ' + rej + ' marker(s) REJECTED — those rows name an instrument and '
       + 'this file refused to read the marker, so nothing ran. Listed above with the rule that '
       + 'refused each. This is coverage the register CLAIMS and does not have.');
-  process.exit(1);
+  exitWithVerdict(true);
 }
 console.log('REGISTER REALITY: every marked row agrees with its instrument.');
+exitWithVerdict(false);

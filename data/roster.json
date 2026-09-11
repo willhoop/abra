@@ -1,17 +1,17 @@
 {
- "generated": "2026-09-11T16:19:46.789Z",
+ "generated": "2026-09-11T18:48:47.486Z",
  "by": "tests/roster.js",
  "stage": "moves",
  "swap_leaf_correction": {
   "self_describing_dropped": 0,
   "real_ability_rewrite_kept": 0
  },
- "engine_release": "b42b81899631",
- "engine_release_cut": "2026-09-11T15:07:12.280Z",
- "engine_release_cuts": 104,
+ "engine_release": "9ec2ab9ad0ef",
+ "engine_release_cut": "2026-09-11T18:34:33.520Z",
+ "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "4e4172687f43",
+  "engine/medicham2-browser.js": "f91efdeab8d6",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -81,7 +81,7 @@
   }
  },
  "plant_anchors": {
-  "release": "b42b81899631",
+  "release": "9ec2ab9ad0ef",
   "checked": 36,
   "dead": [],
   "reds_ran": true
@@ -278,13 +278,8 @@
     "fields": [
      "party.hp",
      "party.status",
-     "species",
      "hp",
-     "maxhp",
-     "status",
-     "types",
-     "ability",
-     "pp.uturn"
+     "status"
     ]
    }
   },
@@ -1055,12 +1050,12 @@
    "name": "Acupressure",
    "rule": "move/needs-a-stat-stage-to-act-on",
    "reads": "a Status move with no `boosts` of its own whose handler reads, clears, swaps or copies them",
-   "note": "Goodra-Hisui raises {\"atk\":1,\"def\":1,\"accuracy\":1} with Coil on turn 1; the move is clicked on turn 2 and the stage leaves are what is compared. Torterra beside it never boosts and is the negative  [#318 restaged: p1[0] goodrahisui pruned never-clicked coil; UNRESOLVED p2[0] goodrahisui refuses acupressure,coil]",
+   "note": "Medicham raises {\"spe\":2} with Agility on turn 1; the move is clicked on turn 2 and the stage leaves are what is compared. Goodra-Hisui beside it never boosts and is the negative  [#318 restaged: p1[0] goodrahisui pruned never-clicked agility]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "goodrahisui",
+   "carrier": "medicham",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -1075,7 +1070,7 @@
    "sd_delta": [
     {
      "turn": 2,
-     "path": "p2.party.goodrahisui.boosts.evasion",
+     "path": "p2.party.medicham.boosts.evasion",
      "with": 2,
      "without": 0
     },
@@ -1105,7 +1100,7 @@
     },
     {
      "turn": 3,
-     "path": "p2.party.goodrahisui.boosts.evasion",
+     "path": "p2.party.medicham.boosts.evasion",
      "with": 2,
      "without": 0
     },
@@ -3621,7 +3616,7 @@
    "name": "Baneful Bunker",
    "rule": "move/protect-family",
    "reads": "stallingMove",
-   "note": "Meowscarada shields a lethal X-Scissor; Whimsicott beside it carries the same move, does NOT click it, and must die  [#318 restaged: p1[0] dragapult xscissor -> uturn; p1[1] weavile direclaw -> poisonjab; p2[0] meowscarada -> toxapex (learner/wide); UNRESOLVED p2[1] whimsicott refuses banefulbunker]",
+   "note": "Whimsicott shields a lethal Poison Jab; Beedrill beside it carries the same move, does NOT click it, and must die  [#318 restaged: p2[0] whimsicott -> toxapex (learner/wide); UNRESOLVED p2[1] beedrill refuses banefulbunker]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -3641,33 +3636,21 @@
    "sd_delta": [
     {
      "turn": 1,
-     "path": "p1.party.dragapult.hp",
-     "with": 143,
-     "without": 163
+     "path": "p1.party.conkeldurr.hp",
+     "with": 158,
+     "without": 180
     },
     {
      "turn": 1,
-     "path": "p1.party.dragapult.status",
+     "path": "p1.party.conkeldurr.status",
      "with": "psn",
      "without": ""
     },
     {
      "turn": 1,
-     "path": "p1.active[0].species",
-     "with": "dragapult",
-     "without": "corviknight"
-    },
-    {
-     "turn": 1,
      "path": "p1.active[0].hp",
-     "with": 143,
-     "without": 173
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].maxhp",
-     "with": 163,
-     "without": 173
+     "with": 158,
+     "without": 180
     },
     {
      "turn": 1,
@@ -3677,33 +3660,15 @@
     },
     {
      "turn": 1,
-     "path": "p1.active[0].types",
-     "with": "dragon/ghost",
-     "without": "flying/steel"
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].ability",
-     "with": "infiltrator",
-     "without": "pressure"
-    },
-    {
-     "turn": 1,
-     "path": "p1.pp[0].uturn",
-     "with": 1,
-     "without": null
-    },
-    {
-     "turn": 1,
      "path": "p2.party.toxapex.hp",
      "with": 125,
-     "without": 109
+     "without": 105
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
      "with": 125,
-     "without": 109
+     "without": 105
     },
     {
      "turn": 1,
@@ -4116,7 +4081,7 @@
    "name": "Belch",
    "rule": "move/needs-a-berry-already-eaten",
    "reads": "`ateBerry` / `lastItem` inside the move's own gate",
-   "note": "Goodra-Hisui holds a Oran Berry, is chipped 5x by Dragon Pulse (18 a time into 155 HP) so it crosses the half-HP line and EATS it, then clicks with `ateBerry` set  [pinned to bottom-tie-first — it is 90-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: its rule's red demonstration went NOT CAUGHT (held with the rule); UNRESOLVED p1[0] goodrahisui refuses belch; UNRESOLVED p2[0] torterra refuses dragonpulse]",
+   "note": "Goodra-Hisui holds a Oran Berry, is chipped 2x by Crunch (41 a time into 155 HP) so it crosses the half-HP line and EATS it, then clicks with `ateBerry` set  [pinned to bottom-tie-first — it is 90-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: its rule's red demonstration went NOT CAUGHT (held with the rule); UNRESOLVED p1[0] goodrahisui refuses belch]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -4135,49 +4100,49 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 6,
+     "turn": 3,
      "path": "p1.pp[0].belch",
      "with": 1,
      "without": 0
     },
     {
-     "turn": 6,
+     "turn": 3,
      "path": "p1.pp[0].focusenergy",
-     "with": 5,
-     "without": 6
+     "with": 2,
+     "without": 3
     },
     {
-     "turn": 6,
+     "turn": 3,
      "path": "p2.party.torterra.hp",
      "with": 102,
      "without": 170
     },
     {
-     "turn": 6,
+     "turn": 3,
      "path": "p2.active[0].hp",
      "with": 102,
      "without": 170
     },
     {
-     "turn": 7,
+     "turn": 4,
      "path": "p1.pp[0].belch",
      "with": 1,
      "without": 0
     },
     {
-     "turn": 7,
+     "turn": 4,
      "path": "p1.pp[0].focusenergy",
-     "with": 6,
-     "without": 7
+     "with": 3,
+     "without": 4
     },
     {
-     "turn": 7,
+     "turn": 4,
      "path": "p2.party.torterra.hp",
      "with": 102,
      "without": 170
     },
     {
-     "turn": 7,
+     "turn": 4,
      "path": "p2.active[0].hp",
      "with": 102,
      "without": 170
@@ -4191,12 +4156,12 @@
    "name": "Belly Drum",
    "rule": "move/needs-a-stat-stage-to-act-on",
    "reads": "a Status move with no `boosts` of its own whose handler reads, clears, swaps or copies them",
-   "note": "Goodra-Hisui raises {\"atk\":1,\"def\":1,\"accuracy\":1} with Coil on turn 1; the move is clicked on turn 2 and the stage leaves are what is compared. Torterra beside it never boosts and is the negative  [#318 restaged: p1[0] goodrahisui pruned never-clicked coil; UNRESOLVED p2[0] goodrahisui refuses bellydrum,coil]",
+   "note": "Charizard raises {\"atk\":1,\"spe\":1} with Dragon Dance on turn 1; the move is clicked on turn 2 and the stage leaves are what is compared. Goodra-Hisui beside it never boosts and is the negative  [#318 restaged: p1[0] goodrahisui pruned never-clicked dragondance]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "goodrahisui",
+   "carrier": "charizard",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -4211,21 +4176,21 @@
    "sd_delta": [
     {
      "turn": 2,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 620,
-     "without": 1240
+     "path": "p2.party.charizard.hp",
+     "with": 612,
+     "without": 1224
     },
     {
      "turn": 2,
-     "path": "p2.party.goodrahisui.boosts.atk",
+     "path": "p2.party.charizard.boosts.atk",
      "with": 6,
      "without": 1
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 620,
-     "without": 1240
+     "with": 612,
+     "without": 1224
     },
     {
      "turn": 2,
@@ -4253,21 +4218,21 @@
     },
     {
      "turn": 3,
-     "path": "p2.party.goodrahisui.hp",
-     "with": 620,
-     "without": 1240
+     "path": "p2.party.charizard.hp",
+     "with": 612,
+     "without": 1224
     },
     {
      "turn": 3,
-     "path": "p2.party.goodrahisui.boosts.atk",
+     "path": "p2.party.charizard.boosts.atk",
      "with": 6,
      "without": 1
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
-     "with": 620,
-     "without": 1240
+     "with": 612,
+     "without": 1224
     },
     {
      "turn": 3,
@@ -4522,7 +4487,7 @@
    "name": "Bitter Malice",
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
-   "note": "Ghost 75 BP into Goodra-Hisui, twice  [#318 restaged: UNRESOLVED p1[0] goodrahisui refuses bittermalice]",
+   "note": "Ghost 75 BP into Goodra-Hisui, twice  [#318 restaged: p1[0] goodrahisui -> zoroarkhisui (only-legal-learner/owner-closet)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -4561,7 +4526,7 @@
     {
      "turn": 1,
      "path": "p2.party.goodrahisui.hp",
-     "with": 1207,
+     "with": 1188,
      "without": 1240
     },
     {
@@ -4573,7 +4538,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1207,
+     "with": 1188,
      "without": 1240
     },
     {
@@ -4603,7 +4568,7 @@
     {
      "turn": 2,
      "path": "p2.party.goodrahisui.hp",
-     "with": 1174,
+     "with": 1136,
      "without": 1240
     },
     {
@@ -4615,7 +4580,7 @@
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 1174,
+     "with": 1136,
      "without": 1240
     },
     {
@@ -10728,12 +10693,12 @@
    "name": "Detect",
    "rule": "move/protect-family",
    "reads": "stallingMove",
-   "note": "Meowscarada shields a lethal X-Scissor; Whimsicott beside it carries the same move, does NOT click it, and must die  [#318 restaged: p1[0] dragapult xscissor -> uturn; p1[1] weavile direclaw -> poisonjab; p2[0] meowscarada -> sceptile (learner-speed-kept/own); p2[1] whimsicott -> leafeon (same-immunities+stats/wide)]",
+   "note": "Whimsicott shields a lethal Poison Jab; Beedrill beside it carries the same move, does NOT click it, and must die  [#318 restaged: p2[0] whimsicott -> leafeon (same-immunities+stats/wide); p2[1] beedrill -> machamp (learner-speed+stats/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "sceptile",
+   "carrier": "leafeon",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -10748,51 +10713,15 @@
    "sd_delta": [
     {
      "turn": 1,
-     "path": "p1.active[0].species",
-     "with": "dragapult",
-     "without": "corviknight"
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].hp",
-     "with": 163,
-     "without": 173
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].maxhp",
-     "with": 163,
-     "without": 173
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].types",
-     "with": "dragon/ghost",
-     "without": "flying/steel"
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].ability",
-     "with": "infiltrator",
-     "without": "pressure"
-    },
-    {
-     "turn": 1,
-     "path": "p1.pp[0].uturn",
-     "with": 1,
-     "without": null
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.sceptile.hp",
-     "with": 145,
-     "without": 17
+     "path": "p2.party.leafeon.hp",
+     "with": 140,
+     "without": 46
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 145,
-     "without": 17
+     "with": 140,
+     "without": 46
     },
     {
      "turn": 1,
@@ -14081,12 +14010,12 @@
    "name": "Endure",
    "rule": "move/protect-family",
    "reads": "stallingMove",
-   "note": "Meowscarada shields a lethal X-Scissor; Whimsicott beside it carries the same move, does NOT click it, and must die  [#318 restaged: p1[0] dragapult xscissor -> uturn; p1[1] weavile direclaw -> poisonjab]",
+   "note": "Whimsicott shields a lethal Poison Jab; Beedrill beside it carries the same move, does NOT click it, and must die",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "meowscarada",
+   "carrier": "whimsicott",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -14101,26 +14030,26 @@
    "sd_delta": [
     {
      "turn": 1,
-     "path": "p2.party.meowscarada.hp",
+     "path": "p2.party.whimsicott.hp",
      "with": 1,
      "without": 0
     },
     {
      "turn": 1,
-     "path": "p2.party.meowscarada.fainted",
+     "path": "p2.party.whimsicott.fainted",
      "with": false,
      "without": true
     },
     {
      "turn": 1,
-     "path": "p2.party.meowscarada.status",
+     "path": "p2.party.whimsicott.status",
      "with": "",
      "without": "fnt"
     },
     {
      "turn": 1,
      "path": "p2.active[0].species",
-     "with": "meowscarada",
+     "with": "whimsicott",
      "without": "corviknight"
     },
     {
@@ -14132,19 +14061,19 @@
     {
      "turn": 1,
      "path": "p2.active[0].maxhp",
-     "with": 151,
+     "with": 135,
      "without": 173
     },
     {
      "turn": 1,
      "path": "p2.active[0].types",
-     "with": "dark/grass",
+     "with": "fairy/grass",
      "without": "flying/steel"
     },
     {
      "turn": 1,
      "path": "p2.active[0].ability",
-     "with": "overgrow",
+     "with": "prankster",
      "without": "pressure"
     },
     {
@@ -19444,12 +19373,12 @@
    "name": "Guard Swap",
    "rule": "move/needs-a-stat-stage-to-act-on",
    "reads": "a Status move with no `boosts` of its own whose handler reads, clears, swaps or copies them",
-   "note": "Goodra-Hisui raises {\"atk\":1,\"def\":1,\"accuracy\":1} with Coil on turn 1; the move is clicked on turn 2 and the stage leaves are what is compared. Torterra beside it never boosts and is the negative  [#318 restaged: p1[0] goodrahisui -> farigiraf (learner-speed-kept/wide); p2[0] goodrahisui -> sandaconda (learner/wide)]",
+   "note": "Goodra-Hisui raises {\"def\":2} with Shelter on turn 1; the move is clicked on turn 2 and the stage leaves are what is compared. Torterra beside it never boosts and is the negative  [#318 restaged: UNRESOLVED p1[0] goodrahisui refuses guardswap]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "sandaconda",
+   "carrier": "goodrahisui",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -19464,14 +19393,14 @@
    "sd_delta": [
     {
      "turn": 2,
-     "path": "p1.party.farigiraf.boosts.def",
-     "with": 1,
+     "path": "p1.party.goodrahisui.boosts.def",
+     "with": 2,
      "without": 0
     },
     {
      "turn": 2,
      "path": "p1.active[0].boosts.def",
-     "with": 1,
+     "with": 2,
      "without": 0
     },
     {
@@ -19488,26 +19417,26 @@
     },
     {
      "turn": 2,
-     "path": "p2.party.sandaconda.boosts.def",
+     "path": "p2.party.goodrahisui.boosts.def",
      "with": 0,
-     "without": 1
+     "without": 2
     },
     {
      "turn": 2,
      "path": "p2.active[0].boosts.def",
      "with": 0,
-     "without": 1
+     "without": 2
     },
     {
      "turn": 3,
-     "path": "p1.party.farigiraf.boosts.def",
-     "with": 1,
+     "path": "p1.party.goodrahisui.boosts.def",
+     "with": 2,
      "without": 0
     },
     {
      "turn": 3,
      "path": "p1.active[0].boosts.def",
-     "with": 1,
+     "with": 2,
      "without": 0
     },
     {
@@ -19524,15 +19453,15 @@
     },
     {
      "turn": 3,
-     "path": "p2.party.sandaconda.boosts.def",
+     "path": "p2.party.goodrahisui.boosts.def",
      "with": 0,
-     "without": 1
+     "without": 2
     },
     {
      "turn": 3,
      "path": "p2.active[0].boosts.def",
      "with": 0,
-     "without": 1
+     "without": 2
     }
    ],
    "diffs": []
@@ -20416,7 +20345,7 @@
    "name": "Healing Wish",
    "rule": "move/the-user-faints-and-the-replacement-arrives-restored",
    "reads": "a slotCondition with selfdestruct, whose condition heals from onSwap/onSwitchIn",
-   "note": "Torterra is chipped 35 of 170 HP and given psn on turn 1, leaves on turn 2 for Torkoal, which clicks on turn 3 and FAINTS. Whether the damaged body is the one that comes back is the engine's own choice and is checked rather than assumed. Nothing holds an item  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the subject arm threw (a benched spare could not pass); UNRESOLVED p1[0] goodrahisui refuses direclaw; UNRESOLVED p1[1] torkoal refuses toxicthread; UNRESOLVED p2[2] torkoal refuses healingwish]",
+   "note": "Torterra is chipped 37 of 170 HP and given psn on turn 1, leaves on turn 2 for Torkoal, which clicks on turn 3 and FAINTS. Whether the damaged body is the one that comes back is the engine's own choice and is checked rather than assumed. Nothing holds an item  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the subject arm threw (a benched spare could not pass); UNRESOLVED p2[2] torkoal refuses healingwish]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -20438,7 +20367,7 @@
      "turn": 3,
      "path": "p2.party.torterra.hp",
      "with": 170,
-     "without": 114
+     "without": 112
     },
     {
      "turn": 3,
@@ -20504,7 +20433,7 @@
      "turn": 4,
      "path": "p2.party.torterra.hp",
      "with": 170,
-     "without": 114
+     "without": 112
     },
     {
      "turn": 4,
@@ -20569,7 +20498,7 @@
    "name": "Heal Pulse",
    "rule": "move/heals-a-body-that-was-damaged-first",
    "reads": "flags.heal on a Status move whose own data restores HP to a body that is NOT its user",
-   "note": "Torterra is chipped to 28% of its 170 HP by Bug Buzz and holds NO ITEM, then Torkoal — its own partner — heals it on turn 2. Nothing on either side holds anything: a Sitrus Berry's 25% and Leftovers' maxhp/16 are the size of what is being measured and would fire in the control arm too  [#318 restaged: p1[0] goodrahisui -> scizor (same-matchups/wide); p2[1] torkoal -> slowbro (learner-speed+stats/wide)]",
+   "note": "Torterra is chipped to 28% of its 170 HP by Flamethrower and holds NO ITEM, then Torkoal — its own partner — heals it on turn 2. Nothing on either side holds anything: a Sitrus Berry's 25% and Leftovers' maxhp/16 are the size of what is being measured and would fire in the control arm too  [#318 restaged: p2[1] torkoal -> slowbro (learner-speed+stats/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -20590,14 +20519,14 @@
     {
      "turn": 2,
      "path": "p2.party.torterra.hp",
-     "with": 169,
-     "without": 84
+     "with": 133,
+     "without": 48
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 169,
-     "without": 84
+     "with": 133,
+     "without": 48
     },
     {
      "turn": 2,
@@ -20614,14 +20543,14 @@
     {
      "turn": 3,
      "path": "p2.party.torterra.hp",
-     "with": 169,
-     "without": 84
+     "with": 133,
+     "without": 48
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
-     "with": 169,
-     "without": 84
+     "with": 133,
+     "without": 48
     },
     {
      "turn": 3,
@@ -23844,7 +23773,7 @@
    "name": "King's Shield",
    "rule": "move/protect-family",
    "reads": "stallingMove",
-   "note": "Meowscarada shields a lethal X-Scissor; Whimsicott beside it carries the same move, does NOT click it, and must die  [#318 restaged: p1[0] dragapult xscissor -> uturn; p1[1] weavile direclaw -> poisonjab; p2[0] meowscarada -> aegislash (learner/wide); UNRESOLVED p2[1] whimsicott refuses kingsshield]",
+   "note": "Whimsicott shields a lethal Poison Jab; Beedrill beside it carries the same move, does NOT click it, and must die  [#318 restaged: p2[0] whimsicott -> aegislash (learner/wide); UNRESOLVED p2[1] beedrill refuses kingsshield]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -23864,63 +23793,15 @@
    "sd_delta": [
     {
      "turn": 1,
-     "path": "p1.party.dragapult.boosts.atk",
+     "path": "p1.party.conkeldurr.boosts.atk",
      "with": -1,
      "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].species",
-     "with": "dragapult",
-     "without": "corviknight"
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].hp",
-     "with": 163,
-     "without": 173
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].maxhp",
-     "with": 163,
-     "without": 173
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].types",
-     "with": "dragon/ghost",
-     "without": "flying/steel"
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].ability",
-     "with": "infiltrator",
-     "without": "pressure"
     },
     {
      "turn": 1,
      "path": "p1.active[0].boosts.atk",
      "with": -1,
      "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p1.pp[0].uturn",
-     "with": 1,
-     "without": null
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.aegislash.hp",
-     "with": 135,
-     "without": 127
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].hp",
-     "with": 135,
-     "without": 127
     },
     {
      "turn": 1,
@@ -24927,7 +24808,7 @@
    "name": "Life Dew",
    "rule": "move/heals-a-body-that-was-damaged-first",
    "reads": "flags.heal on a Status move whose own data restores HP to a body that is NOT its user",
-   "note": "Torterra is chipped to 28% of its 170 HP by Bug Buzz and holds NO ITEM, then Torkoal — its own partner — heals it on turn 2. Nothing on either side holds anything: a Sitrus Berry's 25% and Leftovers' maxhp/16 are the size of what is being measured and would fire in the control arm too  [#318 restaged: p1[0] goodrahisui -> scizor (same-matchups/wide); p2[1] torkoal -> goodrahisui (learner-stats-kept/own)]",
+   "note": "Torterra is chipped to 28% of its 170 HP by Flamethrower and holds NO ITEM, then Torkoal — its own partner — heals it on turn 2. Nothing on either side holds anything: a Sitrus Berry's 25% and Leftovers' maxhp/16 are the size of what is being measured and would fire in the control arm too  [#318 restaged: p2[1] torkoal -> audino (learner-speed-kept/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -24948,14 +24829,14 @@
     {
      "turn": 2,
      "path": "p2.party.torterra.hp",
-     "with": 127,
-     "without": 84
+     "with": 91,
+     "without": 48
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 127,
-     "without": 84
+     "with": 91,
+     "without": 48
     },
     {
      "turn": 2,
@@ -24972,14 +24853,14 @@
     {
      "turn": 3,
      "path": "p2.party.torterra.hp",
-     "with": 127,
-     "without": 84
+     "with": 91,
+     "without": 48
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
-     "with": 127,
-     "without": 84
+     "with": 91,
+     "without": 48
     },
     {
      "turn": 3,
@@ -27943,7 +27824,7 @@
    "name": "Moonlight",
    "rule": "move/needs-the-sky-it-names",
    "reads": "a weather id named inside the move's own onTry / onTryMove / onModifyMove",
-   "note": "the sky it names is sunnyday/raindance/sandstorm/hail/snowscape, set by Sunny Day (and Goodra-Hisui is chipped by Fire Punch first — it is a weather-scaled heal and a full body caps it to nothing), and the move is clicked twice under it  [#318 restaged: p2[0] goodrahisui -> vileplume (learner/wide)]",
+   "note": "the sky it names is sunnyday/raindance/sandstorm/hail/snowscape, set by Sunny Day (and Goodra-Hisui is chipped by Dragon Claw first — it is a weather-scaled heal and a full body caps it to nothing), and the move is clicked twice under it  [#318 restaged: p2[0] goodrahisui -> vileplume (learner/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -27965,13 +27846,13 @@
      "turn": 3,
      "path": "p2.party.vileplume.hp",
      "with": 150,
-     "without": 72
+     "without": 87
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
      "with": 150,
-     "without": 72
+     "without": 87
     },
     {
      "turn": 3,
@@ -27989,13 +27870,13 @@
      "turn": 4,
      "path": "p2.party.vileplume.hp",
      "with": 150,
-     "without": 72
+     "without": 87
     },
     {
      "turn": 4,
      "path": "p2.active[0].hp",
      "with": 150,
-     "without": 72
+     "without": 87
     },
     {
      "turn": 4,
@@ -28018,7 +27899,7 @@
    "name": "Morning Sun",
    "rule": "move/needs-the-sky-it-names",
    "reads": "a weather id named inside the move's own onTry / onTryMove / onModifyMove",
-   "note": "the sky it names is sunnyday/raindance/sandstorm/hail/snowscape, set by Sunny Day (and Goodra-Hisui is chipped by Fire Punch first — it is a weather-scaled heal and a full body caps it to nothing), and the move is clicked twice under it  [#318 restaged: p2[0] goodrahisui -> volcarona (learner/wide)]",
+   "note": "the sky it names is sunnyday/raindance/sandstorm/hail/snowscape, set by Sunny Day (and Goodra-Hisui is chipped by Dragon Claw first — it is a weather-scaled heal and a full body caps it to nothing), and the move is clicked twice under it  [#318 restaged: p2[0] goodrahisui -> volcarona (learner/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -28040,13 +27921,13 @@
      "turn": 3,
      "path": "p2.party.volcarona.hp",
      "with": 160,
-     "without": 112
+     "without": 84
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
      "with": 160,
-     "without": 112
+     "without": 84
     },
     {
      "turn": 3,
@@ -28064,13 +27945,13 @@
      "turn": 4,
      "path": "p2.party.volcarona.hp",
      "with": 160,
-     "without": 112
+     "without": 84
     },
     {
      "turn": 4,
      "path": "p2.active[0].hp",
      "with": 160,
-     "without": 112
+     "without": 84
     },
     {
      "turn": 4,
@@ -28942,7 +28823,7 @@
    "name": "Night Daze",
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
-   "note": "Dark 90 BP into Goodra-Hisui, twice; it also carries 1 sub-100% secondary/ies which the arm decides and this staging does not test  [pinned to bottom-tie-first — it is 95-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]  [#318 restaged: UNRESOLVED p1[0] goodrahisui refuses nightdaze]",
+   "note": "Dark 90 BP into Goodra-Hisui, twice; it also carries 1 sub-100% secondary/ies which the arm decides and this staging does not test  [pinned to bottom-tie-first — it is 95-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]  [#318 restaged: p1[0] goodrahisui -> zoroark (only-legal-learner/owner-closet)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -28981,7 +28862,7 @@
     {
      "turn": 1,
      "path": "p2.party.goodrahisui.hp",
-     "with": 1207,
+     "with": 1189,
      "without": 1240
     },
     {
@@ -28993,7 +28874,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1207,
+     "with": 1189,
      "without": 1240
     },
     {
@@ -29023,7 +28904,7 @@
     {
      "turn": 2,
      "path": "p2.party.goodrahisui.hp",
-     "with": 1174,
+     "with": 1138,
      "without": 1240
     },
     {
@@ -29035,7 +28916,7 @@
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 1174,
+     "with": 1138,
      "without": 1240
     },
     {
@@ -32017,12 +31898,12 @@
    "name": "Power Swap",
    "rule": "move/needs-a-stat-stage-to-act-on",
    "reads": "a Status move with no `boosts` of its own whose handler reads, clears, swaps or copies them",
-   "note": "Goodra-Hisui raises {\"atk\":1,\"def\":1,\"accuracy\":1} with Coil on turn 1; the move is clicked on turn 2 and the stage leaves are what is compared. Torterra beside it never boosts and is the negative  [#318 restaged: p1[0] goodrahisui -> grimmsnarl (learner-speed-kept/wide); p2[0] goodrahisui -> sandaconda (learner/wide)]",
+   "note": "Torterra raises {\"atk\":1,\"spa\":1} with Growth on turn 1; the move is clicked on turn 2 and the stage leaves are what is compared. Goodra-Hisui beside it never boosts and is the negative  [#318 restaged: p1[0] goodrahisui -> grimmsnarl (learner-speed-kept/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "sandaconda",
+   "carrier": "torterra",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -32043,7 +31924,19 @@
     },
     {
      "turn": 2,
+     "path": "p1.party.grimmsnarl.boosts.spa",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
      "path": "p1.active[0].boosts.atk",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].boosts.spa",
      "with": 1,
      "without": 0
     },
@@ -32061,13 +31954,25 @@
     },
     {
      "turn": 2,
-     "path": "p2.party.sandaconda.boosts.atk",
+     "path": "p2.party.torterra.boosts.atk",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.torterra.boosts.spa",
      "with": 0,
      "without": 1
     },
     {
      "turn": 2,
      "path": "p2.active[0].boosts.atk",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].boosts.spa",
      "with": 0,
      "without": 1
     },
@@ -32079,7 +31984,19 @@
     },
     {
      "turn": 3,
+     "path": "p1.party.grimmsnarl.boosts.spa",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 3,
      "path": "p1.active[0].boosts.atk",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].boosts.spa",
      "with": 1,
      "without": 0
     },
@@ -32097,13 +32014,25 @@
     },
     {
      "turn": 3,
-     "path": "p2.party.sandaconda.boosts.atk",
+     "path": "p2.party.torterra.boosts.atk",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.torterra.boosts.spa",
      "with": 0,
      "without": 1
     },
     {
      "turn": 3,
      "path": "p2.active[0].boosts.atk",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].boosts.spa",
      "with": 0,
      "without": 1
     }
@@ -32377,12 +32306,12 @@
    "name": "Protect",
    "rule": "move/protect-family",
    "reads": "stallingMove",
-   "note": "Meowscarada shields a lethal X-Scissor; Whimsicott beside it carries the same move, does NOT click it, and must die  [#318 restaged: p1[0] dragapult xscissor -> uturn; p1[1] weavile direclaw -> poisonjab]",
+   "note": "Whimsicott shields a lethal Poison Jab; Beedrill beside it carries the same move, does NOT click it, and must die",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "meowscarada",
+   "carrier": "whimsicott",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -32397,86 +32326,50 @@
    "sd_delta": [
     {
      "turn": 1,
-     "path": "p1.active[0].species",
-     "with": "dragapult",
-     "without": "corviknight"
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].hp",
-     "with": 163,
-     "without": 173
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].maxhp",
-     "with": 163,
-     "without": 173
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].types",
-     "with": "dragon/ghost",
-     "without": "flying/steel"
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].ability",
-     "with": "infiltrator",
-     "without": "pressure"
-    },
-    {
-     "turn": 1,
-     "path": "p1.pp[0].uturn",
-     "with": 1,
-     "without": null
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.meowscarada.hp",
-     "with": 151,
+     "path": "p2.party.whimsicott.hp",
+     "with": 135,
      "without": 0
     },
     {
      "turn": 1,
-     "path": "p2.party.meowscarada.fainted",
+     "path": "p2.party.whimsicott.fainted",
      "with": false,
      "without": true
     },
     {
      "turn": 1,
-     "path": "p2.party.meowscarada.status",
+     "path": "p2.party.whimsicott.status",
      "with": "",
      "without": "fnt"
     },
     {
      "turn": 1,
      "path": "p2.active[0].species",
-     "with": "meowscarada",
+     "with": "whimsicott",
      "without": "corviknight"
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 151,
+     "with": 135,
      "without": 173
     },
     {
      "turn": 1,
      "path": "p2.active[0].maxhp",
-     "with": 151,
+     "with": 135,
      "without": 173
     },
     {
      "turn": 1,
      "path": "p2.active[0].types",
-     "with": "dark/grass",
+     "with": "fairy/grass",
      "without": "flying/steel"
     },
     {
      "turn": 1,
      "path": "p2.active[0].ability",
-     "with": "overgrow",
+     "with": "prankster",
      "without": "pressure"
     },
     {
@@ -33031,12 +32924,12 @@
    "name": "Psych Up",
    "rule": "move/needs-a-stat-stage-to-act-on",
    "reads": "a Status move with no `boosts` of its own whose handler reads, clears, swaps or copies them",
-   "note": "Goodra-Hisui raises {\"atk\":1,\"def\":1,\"accuracy\":1} with Coil on turn 1; the move is clicked on turn 2 and the stage leaves are what is compared. Torterra beside it never boosts and is the negative  [#318 restaged: p1[0] goodrahisui -> empoleon (same-matchups/wide); p2[0] goodrahisui -> sandaconda (learner/wide)]",
+   "note": "Goodra-Hisui raises {\"def\":2} with Shelter on turn 1; the move is clicked on turn 2 and the stage leaves are what is compared. Torterra beside it never boosts and is the negative  [#318 restaged: UNRESOLVED p1[0] goodrahisui refuses psychup]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "sandaconda",
+   "carrier": "goodrahisui",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -33051,39 +32944,21 @@
    "sd_delta": [
     {
      "turn": 2,
-     "path": "p1.party.empoleon.boosts.atk",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.empoleon.boosts.def",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.empoleon.boosts.accuracy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p1.active[0].boosts.atk",
-     "with": 1,
+     "path": "p1.party.goodrahisui.boosts.def",
+     "with": 2,
      "without": 0
     },
     {
      "turn": 2,
      "path": "p1.active[0].boosts.def",
-     "with": 1,
+     "with": 2,
      "without": 0
     },
     {
      "turn": 2,
-     "path": "p1.active[0].boosts.accuracy",
-     "with": 1,
-     "without": 0
+     "path": "p1.active[0].vol.focusenergy",
+     "with": 0,
+     "without": 1
     },
     {
      "turn": 2,
@@ -33099,38 +32974,14 @@
     },
     {
      "turn": 3,
-     "path": "p1.party.empoleon.boosts.atk",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 3,
-     "path": "p1.party.empoleon.boosts.def",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 3,
-     "path": "p1.party.empoleon.boosts.accuracy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 3,
-     "path": "p1.active[0].boosts.atk",
-     "with": 1,
+     "path": "p1.party.goodrahisui.boosts.def",
+     "with": 2,
      "without": 0
     },
     {
      "turn": 3,
      "path": "p1.active[0].boosts.def",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 3,
-     "path": "p1.active[0].boosts.accuracy",
-     "with": 1,
+     "with": 2,
      "without": 0
     },
     {
@@ -34368,7 +34219,7 @@
    "name": "Recover",
    "rule": "move/heal",
    "reads": "heal — a DECLARED fraction of the user's own maximum",
-   "note": "Torkoal is chipped 100 of its REAL 145 HP by Dragon Pulse — deeper than the 1/2 this restores, so the first heal cannot clamp — then heals twice; the second click IS the overshoot negative. ITS MAXIMUM DOES NOT DIVIDE BY 2 (145 x 1/2), so the authority's rounding of that quotient is under test too. Goodra-Hisui is chipped by Dragon Pulse and never heals  [#318 restaged: p1[1] weavile -> tyrantrum (learner-speed+stats/own); p2[0] torkoal -> avalugg (learner-speed+stats/wide)]",
+   "note": "Torkoal is chipped 100 of its REAL 145 HP by Dragon Pulse — deeper than the 1/2 this restores, so the first heal cannot clamp — then heals twice; the second click IS the overshoot negative. ITS MAXIMUM DOES NOT DIVIDE BY 2 (145 x 1/2), so the authority's rounding of that quotient is under test too. Goodra-Hisui is chipped by Dark Pulse and never heals  [#318 restaged: p2[0] torkoal -> avalugg (learner-speed+stats/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -34704,7 +34555,7 @@
    "name": "Rest",
    "rule": "move/full-heal-that-also-writes-a-status-onto-its-user",
    "reads": "a self-targeting flags.heal move whose own onHit BOTH heals AND calls setStatus",
-   "note": "Torterra is chipped 35 of 170 HP by Dire Claw AND given psn by Toxic Thread on turn 1, then clicks on turn 2 — so all three of its effects have somewhere to land, and two quiet boundaries follow so the sleep counter it writes has to walk. Nothing holds an item  [#318 restaged: p1[0] goodrahisui -> falinks (learner/own); p1[1] torkoal -> ariados (learner-speed-kept/wide)]",
+   "note": "Torterra is chipped 37 of 170 HP by Body Slam AND given psn by Toxic Thread on turn 1, then clicks on turn 2 — so all three of its effects have somewhere to land, and two quiet boundaries follow so the sleep counter it writes has to walk. Nothing holds an item  [#318 restaged: p1[1] torkoal -> ariados (learner-speed-kept/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -34726,7 +34577,7 @@
      "turn": 2,
      "path": "p2.party.torterra.hp",
      "with": 170,
-     "without": 84
+     "without": 91
     },
     {
      "turn": 2,
@@ -34738,7 +34589,7 @@
      "turn": 2,
      "path": "p2.active[0].hp",
      "with": 170,
-     "without": 84
+     "without": 91
     },
     {
      "turn": 2,
@@ -34762,7 +34613,7 @@
      "turn": 3,
      "path": "p2.party.torterra.hp",
      "with": 170,
-     "without": 63
+     "without": 70
     },
     {
      "turn": 3,
@@ -34780,7 +34631,7 @@
      "turn": 3,
      "path": "p2.active[0].hp",
      "with": 170,
-     "without": 63
+     "without": 70
     },
     {
      "turn": 3,
@@ -34810,7 +34661,7 @@
      "turn": 4,
      "path": "p2.party.torterra.hp",
      "with": 170,
-     "without": 42
+     "without": 49
     },
     {
      "turn": 4,
@@ -34828,7 +34679,7 @@
      "turn": 4,
      "path": "p2.active[0].hp",
      "with": 170,
-     "without": 42
+     "without": 49
     },
     {
      "turn": 4,
@@ -35760,7 +35611,7 @@
    "name": "Roost",
    "rule": "move/heal",
    "reads": "heal — a DECLARED fraction of the user's own maximum",
-   "note": "Torkoal is chipped 100 of its REAL 145 HP by Dragon Pulse — deeper than the 1/2 this restores, so the first heal cannot clamp — then heals twice; the second click IS the overshoot negative. ITS MAXIMUM DOES NOT DIVIDE BY 2 (145 x 1/2), so the authority's rounding of that quotient is under test too. Goodra-Hisui is chipped by Dragon Pulse and never heals  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the subject arm threw (a benched spare could not pass); UNRESOLVED p1[1] weavile refuses dragonpulse; UNRESOLVED p2[0] torkoal refuses roost]",
+   "note": "Torkoal is chipped 100 of its REAL 145 HP by Dragon Pulse — deeper than the 1/2 this restores, so the first heal cannot clamp — then heals twice; the second click IS the overshoot negative. ITS MAXIMUM DOES NOT DIVIDE BY 2 (145 x 1/2), so the authority's rounding of that quotient is under test too. Goodra-Hisui is chipped by Dark Pulse and never heals  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the subject arm threw (a benched spare could not pass); UNRESOLVED p2[0] torkoal refuses roost]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -38686,7 +38537,7 @@
    "name": "Slack Off",
    "rule": "move/heal",
    "reads": "heal — a DECLARED fraction of the user's own maximum",
-   "note": "Torkoal is chipped 100 of its REAL 145 HP by Dragon Pulse — deeper than the 1/2 this restores, so the first heal cannot clamp — then heals twice; the second click IS the overshoot negative. ITS MAXIMUM DOES NOT DIVIDE BY 2 (145 x 1/2), so the authority's rounding of that quotient is under test too. Goodra-Hisui is chipped by Dragon Pulse and never heals  [#318 restaged: p1[1] weavile -> tyrantrum (learner-speed+stats/own); p2[0] torkoal -> bellibolt (learner-speed+stats/wide)]",
+   "note": "Torkoal is chipped 100 of its REAL 145 HP by Dragon Pulse — deeper than the 1/2 this restores, so the first heal cannot clamp — then heals twice; the second click IS the overshoot negative. ITS MAXIMUM DOES NOT DIVIDE BY 2 (145 x 1/2), so the authority's rounding of that quotient is under test too. Goodra-Hisui is chipped by Dark Pulse and never heals  [#318 restaged: p2[0] torkoal -> bellibolt (learner-speed+stats/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -40337,7 +40188,7 @@
    "name": "Spiky Shield",
    "rule": "move/protect-family",
    "reads": "stallingMove",
-   "note": "Meowscarada shields a lethal X-Scissor; Whimsicott beside it carries the same move, does NOT click it, and must die  [#318 restaged: p1[0] dragapult xscissor -> uturn; p1[1] weavile direclaw -> poisonjab; p2[0] meowscarada -> glimmora (learner-stats-kept/own); p2[1] whimsicott -> chesnaught (learner-stats-kept/own)]",
+   "note": "Whimsicott shields a lethal Poison Jab; Beedrill beside it carries the same move, does NOT click it, and must die  [#318 restaged: p2[0] whimsicott -> glimmora (learner-speed+stats/own); p2[1] beedrill -> chesnaught (learner-speed+stats/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -40357,57 +40208,27 @@
    "sd_delta": [
     {
      "turn": 1,
-     "path": "p1.party.dragapult.hp",
-     "with": 143,
-     "without": 163
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].species",
-     "with": "dragapult",
-     "without": "corviknight"
+     "path": "p1.party.conkeldurr.hp",
+     "with": 158,
+     "without": 180
     },
     {
      "turn": 1,
      "path": "p1.active[0].hp",
-     "with": 143,
-     "without": 173
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].maxhp",
-     "with": 163,
-     "without": 173
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].types",
-     "with": "dragon/ghost",
-     "without": "flying/steel"
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].ability",
-     "with": "infiltrator",
-     "without": "pressure"
-    },
-    {
-     "turn": 1,
-     "path": "p1.pp[0].uturn",
-     "with": 1,
-     "without": null
+     "with": 158,
+     "without": 180
     },
     {
      "turn": 1,
      "path": "p2.party.glimmora.hp",
      "with": 158,
-     "without": 133
+     "without": 143
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
      "with": 158,
-     "without": 133
+     "without": 143
     },
     {
      "turn": 1,
@@ -42035,12 +41856,12 @@
    "name": "Strength Sap",
    "rule": "move/needs-a-stat-stage-to-act-on",
    "reads": "a Status move with no `boosts` of its own whose handler reads, clears, swaps or copies them",
-   "note": "Goodra-Hisui raises {\"atk\":1,\"def\":1,\"accuracy\":1} with Coil on turn 1; the move is clicked on turn 2 and the stage leaves are what is compared. Torterra beside it never boosts and is the negative  [#318 restaged: p1[0] goodrahisui -> polteageist (learner/wide); p2[0] goodrahisui -> orthworm (same-matchups/wide)]",
+   "note": "Torterra raises {\"atk\":1,\"spa\":1} with Growth on turn 1; the move is clicked on turn 2 and the stage leaves are what is compared. Goodra-Hisui beside it never boosts and is the negative  [#318 restaged: p1[0] goodrahisui -> polteageist (learner/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "orthworm",
+   "carrier": "torterra",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -42067,7 +41888,7 @@
     },
     {
      "turn": 2,
-     "path": "p2.party.orthworm.boosts.atk",
+     "path": "p2.party.torterra.boosts.atk",
      "with": 0,
      "without": 1
     },
@@ -42091,7 +41912,7 @@
     },
     {
      "turn": 3,
-     "path": "p2.party.orthworm.boosts.atk",
+     "path": "p2.party.torterra.boosts.atk",
      "with": 0,
      "without": 1
     },
@@ -44257,7 +44078,7 @@
    "name": "Synthesis",
    "rule": "move/needs-the-sky-it-names",
    "reads": "a weather id named inside the move's own onTry / onTryMove / onModifyMove",
-   "note": "the sky it names is sunnyday/raindance/sandstorm/hail/snowscape, set by Sunny Day (and Goodra-Hisui is chipped by Fire Punch first — it is a weather-scaled heal and a full body caps it to nothing), and the move is clicked twice under it  [#318 restaged: p2[0] goodrahisui -> decidueyehisui (learner-speed-kept/wide)]",
+   "note": "the sky it names is sunnyday/raindance/sandstorm/hail/snowscape, set by Sunny Day (and Goodra-Hisui is chipped by Dragon Claw first — it is a weather-scaled heal and a full body caps it to nothing), and the move is clicked twice under it  [#318 restaged: p2[0] goodrahisui -> decidueyehisui (learner-speed-kept/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -44279,13 +44100,13 @@
      "turn": 3,
      "path": "p2.party.decidueyehisui.hp",
      "with": 163,
-     "without": 81
+     "without": 97
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
      "with": 163,
-     "without": 81
+     "without": 97
     },
     {
      "turn": 3,
@@ -44303,13 +44124,13 @@
      "turn": 4,
      "path": "p2.party.decidueyehisui.hp",
      "with": 163,
-     "without": 81
+     "without": 97
     },
     {
      "turn": 4,
      "path": "p2.active[0].hp",
      "with": 163,
-     "without": 81
+     "without": 97
     },
     {
      "turn": 4,
@@ -46315,12 +46136,12 @@
    "name": "Topsy-Turvy",
    "rule": "move/needs-a-stat-stage-to-act-on",
    "reads": "a Status move with no `boosts` of its own whose handler reads, clears, swaps or copies them",
-   "note": "Goodra-Hisui raises {\"atk\":1,\"def\":1,\"accuracy\":1} with Coil on turn 1; the move is clicked on turn 2 and the stage leaves are what is compared. Torterra beside it never boosts and is the negative  [#318 restaged: p1[0] goodrahisui -> malamar (learner/wide); p2[0] goodrahisui -> orthworm (same-matchups/wide)]",
+   "note": "Goodra-Hisui raises {\"def\":2} with Shelter on turn 1; the move is clicked on turn 2 and the stage leaves are what is compared. Torterra beside it never boosts and is the negative  [#318 restaged: UNRESOLVED p1[0] goodrahisui refuses topsyturvy]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "orthworm",
+   "carrier": "goodrahisui",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -46347,39 +46168,15 @@
     },
     {
      "turn": 2,
-     "path": "p2.party.orthworm.boosts.atk",
-     "with": -1,
-     "without": 1
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.orthworm.boosts.def",
-     "with": -1,
-     "without": 1
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.orthworm.boosts.accuracy",
-     "with": -1,
-     "without": 1
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].boosts.atk",
-     "with": -1,
-     "without": 1
+     "path": "p2.party.goodrahisui.boosts.def",
+     "with": -2,
+     "without": 2
     },
     {
      "turn": 2,
      "path": "p2.active[0].boosts.def",
-     "with": -1,
-     "without": 1
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].boosts.accuracy",
-     "with": -1,
-     "without": 1
+     "with": -2,
+     "without": 2
     },
     {
      "turn": 3,
@@ -46395,39 +46192,15 @@
     },
     {
      "turn": 3,
-     "path": "p2.party.orthworm.boosts.atk",
-     "with": -1,
-     "without": 1
-    },
-    {
-     "turn": 3,
-     "path": "p2.party.orthworm.boosts.def",
-     "with": -1,
-     "without": 1
-    },
-    {
-     "turn": 3,
-     "path": "p2.party.orthworm.boosts.accuracy",
-     "with": -1,
-     "without": 1
-    },
-    {
-     "turn": 3,
-     "path": "p2.active[0].boosts.atk",
-     "with": -1,
-     "without": 1
+     "path": "p2.party.goodrahisui.boosts.def",
+     "with": -2,
+     "without": 2
     },
     {
      "turn": 3,
      "path": "p2.active[0].boosts.def",
-     "with": -1,
-     "without": 1
-    },
-    {
-     "turn": 3,
-     "path": "p2.active[0].boosts.accuracy",
-     "with": -1,
-     "without": 1
+     "with": -2,
+     "without": 2
     }
    ],
    "diffs": []
@@ -49873,7 +49646,7 @@
    "name": "Wish",
    "rule": "move/heals-the-slot-a-turn-later-across-a-switch",
    "reads": "a slotCondition whose own condition heals from its onEnd/onResidual, and whose user does NOT faint",
-   "note": "Torterra (170 HP) is chipped 122 by Bug Buzz on turn 1, leaves on turn 2 for Falinks (140 HP), which wishes on turn 3 and is swapped back out on turn 4 — the turn the wish resolves. HALF THE WISHER'S MAX HP IS 70 AND HALF THE RECIPIENT'S IS 85, so an engine reading the wrong body's maximum lands 15 HP away. Nothing holds an item  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the precondition did not land; UNRESOLVED p1[0] goodrahisui refuses bugbuzz; UNRESOLVED p2[2] falinks refuses wish]",
+   "note": "Torterra (170 HP) is chipped 122 by Flamethrower on turn 1, leaves on turn 2 for Falinks (140 HP), which wishes on turn 3 and is swapped back out on turn 4 — the turn the wish resolves. HALF THE WISHER'S MAX HP IS 70 AND HALF THE RECIPIENT'S IS 85, so an engine reading the wrong body's maximum lands 15 HP away. Nothing holds an item  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the precondition did not land; UNRESOLVED p2[2] falinks refuses wish]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",

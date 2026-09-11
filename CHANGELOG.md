@@ -25,6 +25,53 @@ silently rewritten; what changed and why is stated.
 - **Figures that shared a rewritten sentence and traced to no artifact** — withdrawn rather than bound.
 - **Two dead keys** from the `tests/test-docs-quarantine.js` census, exactly the two it printed.
 
+## [6.24.0] — 2026-09-11
+
+### Fixed
+- **The deliberate roster stages no body/move pair the format refuses (ROADMAP #318, closed).** `tests/roster.js`:
+  every rule that picks a move for a named body now picks it from that body's legal learnset, and every rule
+  that picks a body for a move picks a legal learner, through `learnsLegally`, the TeamValidator judge
+  `fixtureAudit` uses. The shared derivations take only moves `engine/legal_scope.js` puts in scope, so Spore
+  (NO-LEGAL-CARRIER) gives way to Yawn as the sleep road. `tests/probe_roster_learnset_refusals.js` reads 0
+  refused pairs on release `9ec2ab9ad0ef` (43 on `b42b81899631`) and 420 under `ROSTER_LEARNSET_UNREPAIRED=1`,
+  which now also turns off the rule-level picks. The cost is two ability rows: Sand Rush's only legal staging
+  reads inert and Stench's one legal carrier finds no coin inside its PP-bounded window, so both read
+  COULD-NOT-STAGE.
+- **A sleep the residual walk sets is offered to its `onUpdate` cure before the turn ends**
+  (`engine/medicham2-browser.js`). The authority closes the residual action with `eachEvent('Update')` below
+  `|upkeep`; this engine's berry pass ran above the walk, so a body Yawn slept kept its Chesto Berry into the
+  next turn. Found by the legal Chesto Berry roster fixture; `MEDI_WALK_STATUS_UNCURED=1` restores it.
+- **The mutation harness's planted-stub gate catches both stubs again** (`tests/mutation_harness.js`). Its state
+  projection read `_fEpoch`/`_faintSeq`, order stamps off a process-global counter, so every operator on a board
+  with a faint read LIVE, stubbed or not. Blind since release `c66976713feb`; `MUTATION_PROJECT_ORDER_STAMPS=1`
+  restores the old projection and the gate goes red.
+- `tests/probe_arrival_drift_zero.js`: CTRL-D's declared crit parting has closed (both engines draw the crit on
+  `b42b81899631`), so the arm is now a red arm and the declaration is withdrawn.
+- `tests/probe_upkeep_lines.js`: the two sides' benches no longer share species, which had made two replacements
+  tie on Speed after the measured window.
+- `engine/register_reality.js`: every verdict path declares its exit through `engine/exit_codes.js` and sets
+  `process.exitCode`, so a wrapper that loses the code still reads the verdict.
+
+### Added
+- `tests/probe_volley_collapse.js` route 3b: Focus Band with its roll made to land (`bottom-tie-first`), answering a
+  later arrival of a volley. Green on the live tree, red under `MEDI_HITCOUNT_DROP_ON_COLLAPSE=1`.
+- ROADMAP #601: a body the perish clock has zeroed still runs its later residual handlers in the authority
+  (Hunger Switch, uproar) and skips them here. Two declared arms in `tests/probe_upkeep_lines.js`.
+
+### Changed
+- `engine/quarantine.js`: the declared register now says which clause a declaration is load-bearing in. The
+  Supreme Overlord `fallenundefined` row printed MATCHED NOTHING because the whole-game pool never produces the
+  line, yet it covers `data/all-mechanics-fire.json`'s ability:supremeoverlord divergence. Withdrawn on that print,
+  it re-opened the mechanics clause on the next gate run, so it is kept and the print now shows the cause it
+  excuses. The CLASH selftest carries its own declaration.
+
+### Removed
+- The withheld exploitability run's step count on two ROADMAP lines.
+
+### Notes
+- ROADMAP #440 and #541 markers are re-pinned from `aefcb93baf14`, which declared CANNOT-ANSWER, to
+  `9ec2ab9ad0ef`, where both instruments answer GREEN.
+
 ## [6.23.0] — 2026-09-11
 
 ### Removed

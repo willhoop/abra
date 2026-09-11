@@ -1,9 +1,9 @@
 {
- "generated": "2026-09-11T16:07:13.833Z",
+ "generated": "2026-09-11T16:19:14.417Z",
  "by": "tests/roster.js",
  "stage": "abilities",
  "swap_leaf_correction": {
-  "self_describing_dropped": 5184,
+  "self_describing_dropped": 5248,
   "real_ability_rewrite_kept": 48
  },
  "engine_release": "b42b81899631",
@@ -44,13 +44,13 @@
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
   "DEFERRED-BY-OWNER": 5,
-  "FIRED-AND-BOARDS-MATCH": 134,
+  "FIRED-AND-BOARDS-MATCH": 139,
   "CONTROL-NOT-QUIET": 13,
-  "COULD-NOT-STAGE": 164
+  "COULD-NOT-STAGE": 159
  },
  "arms_played": {
-  "top-tie-first": 571,
-  "middle": 46,
+  "top-tie-first": 573,
+  "middle": 49,
   "bottom-tie-first": 28
  },
  "scope": {
@@ -62,8 +62,8 @@
    "no-legal-reader": 1
   },
   "in_scope": 200,
-  "tested": 134,
-  "matched": 134,
+  "tested": 139,
+  "matched": 139,
   "differ": 0,
   "silent": 0,
   "deferred": 5,
@@ -72,6 +72,7 @@
    "aftermath",
    "angerpoint",
    "damp",
+   "justified",
    "keeneye",
    "magmaarmor",
    "moxie",
@@ -80,11 +81,10 @@
    "slushrush",
    "stalwart",
    "stickyhold",
-   "superluck",
-   "swiftswim"
+   "superluck"
   ],
   "declared_untestable": [],
-  "could_not_stage_in_scope": 48,
+  "could_not_stage_in_scope": 43,
   "attributed_by_second_control": [
    "adaptability",
    "aftermath",
@@ -736,6 +736,22 @@
    }
   },
   {
+   "rule": "ability/jumps-its-priority-bracket-by-chance",
+   "ok": true,
+   "why": "the ability's bracket nudge is never read, so the slower carrier always moves second",
+   "moved": {
+    "member": "quickdraw",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
    "rule": "ability/switch-out",
    "ok": true,
    "why": "the switch-out heal is skipped",
@@ -878,6 +894,22 @@
    "moved": {
     "member": "telepathy",
     "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/speed-on-item-loss",
+   "ok": true,
+   "why": "the speed multiplier on item loss is dropped — the item is still consumed",
+   "moved": {
+    "member": "unburden",
+    "verdict": "CONTROL-NOT-QUIET",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -7024,11 +7056,11 @@
    "name": "Justified",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Arcanine; control = Intimidate (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic  [#318 restaged: p1[0] dragapult -> rhyperior (learner-stats-kept/own); p1[1] weavile pruned never-clicked direclaw; p2[0] arcanine -> gallade (learner/own); p2[1] venusaur pruned never-clicked direclaw,uturn]",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 2148 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "note": "ALTERNATE carrier Arcanine; control = Intimidate (NOT A QUIET ABILITY — see the caveat on any finding); staged as generic  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: CONTROL-NOT-QUIET -> COULD-NOT-STAGE: the staging went inert; UNRESOLVED p1[0] dragapult refuses direclaw; UNRESOLVED p1[1] weavile refuses direclaw; UNRESOLVED p2[0] arcanine refuses firepunch; UNRESOLVED p2[1] venusaur refuses direclaw,uturn]",
+   "verdict": "CONTROL-NOT-QUIET",
+   "why": "NOTHING SURVIVES BOTH CONTROLS, AND THAT IS NOT THE SAME AS INERT. The delta against Intimidate is 44 leaf/leaves and against Flash Fire it is 0, and they share none. Either this entity does nothing here and the leaves are the control's, OR this entity and one of the controls move the same leaves and cancel. TWO ARMS CANNOT SEPARATE THOSE and the species has no third alternative to ask with. Measured, not assumed: THE SECOND CONTROL: the identical scenario played a third time with Flash Fire in the slot instead of Intimidate. THE TWO DELTAS DIFFER on 44 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 0 p1.party.dragapult.boosts.atk with=0 without=-1; showdown turn 0 p1.party.weavile.boosts.atk with=0 without=-1; showdown turn 0 p1.active[0].boosts.atk with=0 without=-1; showdown turn 0 p1.active[1].boosts.atk with=0 without=-1, +40 more. 0 of 44 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Intimidate registers 1 handler(s), Flash Fire registers 2.)",
    "arm": "top-tie-first",
-   "control_why": null,
+   "control_why": "THE SECOND CONTROL: the identical scenario played a third time with Flash Fire in the slot instead of Intimidate. THE TWO DELTAS DIFFER on 44 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 0 p1.party.dragapult.boosts.atk with=0 without=-1; showdown turn 0 p1.party.weavile.boosts.atk with=0 without=-1; showdown turn 0 p1.active[0].boosts.atk with=0 without=-1; showdown turn 0 p1.active[1].boosts.atk with=0 without=-1, +40 more. 0 of 44 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Intimidate registers 1 handler(s), Flash Fire registers 2.)",
    "carrier": "arcanine",
    "dice": null,
    "coin": null,
@@ -7042,11 +7074,56 @@
    "second_control": {
     "control": "Flash Fire",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Flash Fire in the slot instead of Intimidate. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (0 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Intimidate registers 1 handler(s), Flash Fire registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 0,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Flash Fire in the slot instead of Intimidate. THE TWO DELTAS DIFFER on 44 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 0 p1.party.dragapult.boosts.atk with=0 without=-1; showdown turn 0 p1.party.weavile.boosts.atk with=0 without=-1; showdown turn 0 p1.active[0].boosts.atk with=0 without=-1; showdown turn 0 p1.active[1].boosts.atk with=0 without=-1, +40 more. 0 of 44 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Intimidate registers 1 handler(s), Flash Fire registers 2.)",
+    "leaves_first": 44,
     "leaves_second": 0,
     "leaves_kept": 0,
-    "dropped": []
+    "dropped": [
+     "showdown turn 0 p1.party.dragapult.boosts.atk with=0 without=-1",
+     "showdown turn 0 p1.party.weavile.boosts.atk with=0 without=-1",
+     "showdown turn 0 p1.active[0].boosts.atk with=0 without=-1",
+     "showdown turn 0 p1.active[1].boosts.atk with=0 without=-1",
+     "ours turn 0 p1.party.dragapult.boosts.atk with=0 without=-1",
+     "ours turn 0 p1.party.weavile.boosts.atk with=0 without=-1",
+     "ours turn 0 p1.active[0].boosts.atk with=0 without=-1",
+     "ours turn 0 p1.active[1].boosts.atk with=0 without=-1",
+     "showdown turn 1 p1.party.dragapult.boosts.atk with=0 without=-1",
+     "showdown turn 1 p1.party.weavile.boosts.atk with=0 without=-1",
+     "showdown turn 1 p1.active[0].boosts.atk with=0 without=-1",
+     "showdown turn 1 p1.active[1].boosts.atk with=0 without=-1",
+     "showdown turn 1 p2.party.arcanine.hp with=928 without=948",
+     "showdown turn 1 p2.active[0].hp with=928 without=948",
+     "ours turn 1 p1.party.dragapult.boosts.atk with=0 without=-1",
+     "ours turn 1 p1.party.weavile.boosts.atk with=0 without=-1",
+     "ours turn 1 p1.active[0].boosts.atk with=0 without=-1",
+     "ours turn 1 p1.active[1].boosts.atk with=0 without=-1",
+     "ours turn 1 p2.party.arcanine.hp with=928 without=948",
+     "ours turn 1 p2.active[0].hp with=928 without=948",
+     "showdown turn 2 p1.party.dragapult.boosts.atk with=0 without=-1",
+     "showdown turn 2 p1.party.weavile.boosts.atk with=0 without=-1",
+     "showdown turn 2 p1.active[0].boosts.atk with=0 without=-1",
+     "showdown turn 2 p1.active[1].boosts.atk with=0 without=-1",
+     "showdown turn 2 p2.party.arcanine.hp with=866 without=906",
+     "showdown turn 2 p2.active[0].hp with=866 without=906",
+     "ours turn 2 p1.party.dragapult.boosts.atk with=0 without=-1",
+     "ours turn 2 p1.party.weavile.boosts.atk with=0 without=-1",
+     "ours turn 2 p1.active[0].boosts.atk with=0 without=-1",
+     "ours turn 2 p1.active[1].boosts.atk with=0 without=-1",
+     "ours turn 2 p2.party.arcanine.hp with=866 without=906",
+     "ours turn 2 p2.active[0].hp with=866 without=906",
+     "showdown turn 3 p1.party.dragapult.boosts.atk with=0 without=-1",
+     "showdown turn 3 p1.party.weavile.boosts.atk with=0 without=-1",
+     "showdown turn 3 p1.active[0].boosts.atk with=0 without=-1",
+     "showdown turn 3 p1.active[1].boosts.atk with=0 without=-1",
+     "showdown turn 3 p2.party.arcanine.hp with=866 without=906",
+     "showdown turn 3 p2.active[0].hp with=866 without=906",
+     "ours turn 3 p1.party.dragapult.boosts.atk with=0 without=-1",
+     "ours turn 3 p1.party.weavile.boosts.atk with=0 without=-1",
+     "ours turn 3 p1.active[0].boosts.atk with=0 without=-1",
+     "ours turn 3 p1.active[1].boosts.atk with=0 without=-1",
+     "ours turn 3 p2.party.arcanine.hp with=866 without=906",
+     "ours turn 3 p2.active[0].hp with=866 without=906"
+    ]
    },
    "switch_probe": null,
    "sd_delta": [],
@@ -10597,9 +10674,9 @@
    "name": "Overgrow",
    "rule": "ability/pinch-offense",
    "reads": "onModifyAtk / onModifySpA whose handler tests `attacker.hp <= attacker.maxhp / N` and names a move type",
-   "note": "throws Energy Ball at FULL HP on turn 1 (the negative), is taken to 33% by Dire Claw on turn 2, and throws it again under the 1/3 gate on turn 3   [carrier Meganium, control = Leaf Guard — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]  [#318 restaged: p1[0] dragapult -> volcarona (learner-speed+stats/own)]",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 2148 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "note": "throws Energy Ball at FULL HP on turn 1 (the negative), is taken to 33% by Dire Claw on turn 2, and throws it again under the 1/3 gate on turn 3   [carrier Meganium, control = Leaf Guard — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the staging went inert; UNRESOLVED p1[0] dragapult refuses direclaw]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "meganium",
@@ -10614,7 +10691,32 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p1.party.dragapult.hp",
+     "with": 1199,
+     "without": 1220
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 1199,
+     "without": 1220
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.dragapult.hp",
+     "with": 1136,
+     "without": 1178
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 1136,
+     "without": 1178
+    }
+   ],
    "diffs": []
   },
   {
@@ -11914,23 +12016,23 @@
    "name": "Quick Draw",
    "rule": "ability/jumps-its-priority-bracket-by-chance",
    "reads": "the `fractionalPriority` tag on an ABILITY with a sub-100% chance",
-   "note": "Slowbro-Galar (Speed 82) faces Heracross (Speed 137), idles on the control click for 4 turn(s) — a STATUS click, which this ability skips, so no die is spent — and on turn 5 clicks Drill Peck while Heracross clicks Kowtow Cleave back. The ordering die `20260813|5|any|-|-|0` = 0.2615 is below the 30% this ability rolls, so the jump is CHOSEN to fire and the carrier's own HP is the leaf   [carrier Slowbro-Galar, control = Regenerator — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]  [#318 restaged: p1[0] heracross -> kingambit (learner-stats-kept/wide); UNRESOLVED p2[0] slowbrogalar refuses drillpeck]",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 3222 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "note": "Slowbro-Galar (Speed 82) faces Heracross (Speed 137), idles on the control click for 4 turn(s) — a STATUS click, which this ability skips, so no die is spent — and on turn 5 clicks Drill Peck while Heracross clicks Kowtow Cleave back. The ordering die `20260813|5|any|-|-|0` = 0.2615 is below the 30% this ability rolls, so the jump is CHOSEN to fire and the carrier's own HP is the leaf   [carrier Slowbro-Galar, control = Regenerator — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the staging went inert; UNRESOLVED p1[0] heracross refuses kowtowcleave; UNRESOLVED p2[0] slowbrogalar refuses drillpeck]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "middle",
    "control_why": null,
    "carrier": "slowbrogalar",
    "dice": {
-    "sd": 6,
-    "me": 6,
-    "shared": 6,
+    "sd": 4,
+    "me": 4,
+    "shared": 4,
     "sd_only": [],
     "me_only": [],
     "no_battle": 0,
     "window": null
    },
    "coin": "20260813|5|any|-|-|0",
-   "coin_shared": false,
+   "coin_shared": true,
    "coin_one_sided": false,
    "coin_missing": false,
    "underlying": null,
@@ -11940,14 +12042,27 @@
    "second_control": {
     "control": "Own Tempo",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Own Tempo in the slot instead of Regenerator. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (0 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Regenerator registers 1 handler(s), Own Tempo registers 4.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 0,
-    "leaves_second": 0,
-    "leaves_kept": 0,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Own Tempo in the slot instead of Regenerator. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (4 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Regenerator registers 1 handler(s), Own Tempo registers 4.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
+    "leaves_first": 4,
+    "leaves_second": 4,
+    "leaves_kept": 4,
     "dropped": []
    },
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 5,
+     "path": "p2.party.slowbrogalar.hp",
+     "with": 1020,
+     "without": 872
+    },
+    {
+     "turn": 5,
+     "path": "p2.active[0].hp",
+     "with": 1020,
+     "without": 872
+    }
+   ],
    "diffs": []
   },
   {
@@ -16225,11 +16340,11 @@
    "name": "Swift Swim",
    "rule": "ability/weather-speed",
    "reads": "onModifySpe whose handler names a weather id (`pokemon.effectiveWeather()` against \"sunnyday\", \"snowscape\", ...)",
-   "note": "Drizzle on the partner raises raindance at boundary 0; 130 -> 260 against 152, the carrier's Liquidation kills outright and the foe's click is Noble Roar — so the x2 decides whether that drop ever lands   [carrier Basculegion, control = Adaptability — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]  [#318 restaged: p1[0] charizard -> kommoo (learner-speed+stats/wide)]",
-   "verdict": "CONTROL-NOT-QUIET",
-   "why": "NOTHING SURVIVES BOTH CONTROLS, AND THAT IS NOT THE SAME AS INERT. The delta against Adaptability is 8 leaf/leaves and against Mold Breaker it is 8, and they share none. Either this entity does nothing here and the leaves are the control's, OR this entity and one of the controls move the same leaves and cancel. TWO ARMS CANNOT SEPARATE THOSE and the species has no third alternative to ask with. Measured, not assumed: THE SECOND CONTROL: the identical scenario played a third time with Mold Breaker in the slot instead of Adaptability. THE TWO DELTAS DIFFER on 16 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p1.party.kommoo.hp with=101 without=105; showdown turn 1 p1.active[0].hp with=101 without=105; ours turn 1 p1.party.kommoo.hp with=101 without=105; ours turn 1 p1.active[0].hp with=101 without=105, +12 more. 0 of 8 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Adaptability registers 1 handler(s), Mold Breaker registers 2.)",
+   "note": "Drizzle on the partner raises raindance at boundary 0; 130 -> 260 against 152, the carrier's Liquidation kills outright and the foe's click is Noble Roar — so the x2 decides whether that drop ever lands   [carrier Basculegion, control = Adaptability — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: FIRED-AND-BOARDS-MATCH -> CONTROL-NOT-QUIET; UNRESOLVED p1[0] charizard refuses nobleroar]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
-   "control_why": "THE SECOND CONTROL: the identical scenario played a third time with Mold Breaker in the slot instead of Adaptability. THE TWO DELTAS DIFFER on 16 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p1.party.kommoo.hp with=101 without=105; showdown turn 1 p1.active[0].hp with=101 without=105; ours turn 1 p1.party.kommoo.hp with=101 without=105; ours turn 1 p1.active[0].hp with=101 without=105, +12 more. 0 of 8 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Adaptability registers 1 handler(s), Mold Breaker registers 2.)",
+   "control_why": null,
    "carrier": "basculegion",
    "dice": null,
    "coin": null,
@@ -16243,31 +16358,63 @@
    "second_control": {
     "control": "Mold Breaker",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Mold Breaker in the slot instead of Adaptability. THE TWO DELTAS DIFFER on 16 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p1.party.kommoo.hp with=101 without=105; showdown turn 1 p1.active[0].hp with=101 without=105; ours turn 1 p1.party.kommoo.hp with=101 without=105; ours turn 1 p1.active[0].hp with=101 without=105, +12 more. 0 of 8 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Adaptability registers 1 handler(s), Mold Breaker registers 2.)",
-    "leaves_first": 8,
-    "leaves_second": 8,
-    "leaves_kept": 0,
-    "dropped": [
-     "showdown turn 1 p1.party.kommoo.hp with=101 without=105",
-     "showdown turn 1 p1.active[0].hp with=101 without=105",
-     "ours turn 1 p1.party.kommoo.hp with=101 without=105",
-     "ours turn 1 p1.active[0].hp with=101 without=105",
-     "showdown turn 2 p1.party.kommoo.hp with=101 without=105",
-     "showdown turn 2 p1.active[0].hp with=101 without=105",
-     "ours turn 2 p1.party.kommoo.hp with=101 without=105",
-     "ours turn 2 p1.active[0].hp with=101 without=105",
-     "showdown turn 1 p1.party.kommoo.hp with=101 without=117",
-     "showdown turn 1 p1.active[0].hp with=101 without=117",
-     "ours turn 1 p1.party.kommoo.hp with=101 without=117",
-     "ours turn 1 p1.active[0].hp with=101 without=117",
-     "showdown turn 2 p1.party.kommoo.hp with=101 without=117",
-     "showdown turn 2 p1.active[0].hp with=101 without=117",
-     "ours turn 2 p1.party.kommoo.hp with=101 without=117",
-     "ours turn 2 p1.active[0].hp with=101 without=117"
-    ]
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Mold Breaker in the slot instead of Adaptability. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (16 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Adaptability registers 1 handler(s), Mold Breaker registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
+    "leaves_first": 16,
+    "leaves_second": 16,
+    "leaves_kept": 16,
+    "dropped": []
    },
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.basculegion.boosts.atk",
+     "with": 0,
+     "without": -1
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.basculegion.boosts.spa",
+     "with": 0,
+     "without": -1
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].boosts.atk",
+     "with": 0,
+     "without": -1
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].boosts.spa",
+     "with": 0,
+     "without": -1
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.basculegion.boosts.atk",
+     "with": 0,
+     "without": -1
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.basculegion.boosts.spa",
+     "with": 0,
+     "without": -1
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].boosts.atk",
+     "with": 0,
+     "without": -1
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].boosts.spa",
+     "with": 0,
+     "without": -1
+    }
+   ],
    "diffs": []
   },
   {
@@ -16575,9 +16722,9 @@
    "name": "Torrent",
    "rule": "ability/pinch-offense",
    "reads": "onModifyAtk / onModifySpA whose handler tests `attacker.hp <= attacker.maxhp / N` and names a move type",
-   "note": "throws Liquidation at FULL HP on turn 1 (the negative), is taken to 31% by Seed Bomb on turn 2, and throws it again under the 1/3 gate on turn 3   [carrier Samurott, control = Shell Armor]  [#318 restaged: p1[0] dragapult -> floetteeternal (learner-speed+stats/own)]",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 2148 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "note": "throws Liquidation at FULL HP on turn 1 (the negative), is taken to 31% by Seed Bomb on turn 2, and throws it again under the 1/3 gate on turn 3   [carrier Samurott, control = Shell Armor]  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the staging went inert; UNRESOLVED p1[0] dragapult refuses seedbomb]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "samurott",
@@ -16592,7 +16739,32 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p1.party.dragapult.hp",
+     "with": 1214,
+     "without": 1232
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 1214,
+     "without": 1232
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.dragapult.hp",
+     "with": 1160,
+     "without": 1196
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 1160,
+     "without": 1196
+    }
+   ],
    "diffs": []
   },
   {
@@ -16814,9 +16986,9 @@
    "name": "Unburden",
    "rule": "ability/speed-on-item-loss",
    "reads": "onAfterUseItem / onTakeItem",
-   "note": "the carrier holds Sitrus Berry and is chipped to 36% by Flamethrower on turn 1, which EATS it; 124 -> 248 against 152, so on turn 2 the carrier's Power Gem should land before Noble Roar   [carrier Slurpuff, control = Sweet Veil — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]  [#318 restaged: p1[0] charizard -> kommoo (learner-speed+stats/wide); UNRESOLVED p2[0] slurpuff refuses powergem]",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 2152 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "note": "the carrier holds Sitrus Berry and is chipped to 36% by Flamethrower on turn 1, which EATS it; 124 -> 248 against 152, so on turn 2 the carrier's Power Gem should land before Noble Roar   [carrier Slurpuff, control = Sweet Veil — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the staging went inert; UNRESOLVED p1[0] charizard refuses nobleroar; UNRESOLVED p2[0] slurpuff refuses powergem]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "slurpuff",
@@ -16831,7 +17003,32 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p1.party.charizard.hp",
+     "with": 424,
+     "without": 488
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 424,
+     "without": 488
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.charizard.hp",
+     "with": 424,
+     "without": 488
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 424,
+     "without": 488
+    }
+   ],
    "diffs": []
   },
   {

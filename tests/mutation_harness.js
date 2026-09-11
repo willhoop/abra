@@ -170,7 +170,19 @@ function projVal(v) {
   if (typeof v.curHP === 'number' && v.name) return 'mon:' + v.name;      // a body reference, not its state
   return '{' + Object.keys(v).sort().map(k => k + '=' + ((v[k] && typeof v[k] === 'object') ? projVal(v[k]) : String(v[k]))).join(',') + '}';
 }
-const MON_SKIP = new Set(['_sf', 'moves', 'st', '__mask']);   // _sf is the shared side object, projected once
+/* _fEpoch AND _faintSeq ARE ORDER STAMPS OFF A PROCESS-GLOBAL COUNTER, NOT STATE (2026-09-11, ENGINE).
+ * `noteFaint()` (engine/medicham2-browser.js, first in release c66976713feb) stamps each fainting body
+ * with `++_FAINT_SEQ`, a module-level counter that only ever grows inside one engine instance. Only the
+ * ORDER of two stamps inside one battle is ever read (`lastFaintSeq`). Projected, the absolute value
+ * says how many bodies fainted EARLIER IN THIS ENGINE INSTANCE, and the reference engine has always
+ * played more games than a freshly compiled mutant — so every operator on every board with a faint
+ * read LIVE, stubbed or not. The planted-stub gate is what caught it: green on 7da11c1d4d10, red
+ * (both stubs LIVE/LIVE) on c66976713feb and every release since. `MUTATION_PROJECT_ORDER_STAMPS=1`
+ * projects them again, which is the knob that shows the gate red on demand. */
+const ORDER_STAMPS_PROJECTED = process.env.MUTATION_PROJECT_ORDER_STAMPS === '1';
+if (ORDER_STAMPS_PROJECTED) console.error('  !! mutation_harness: MUTATION_PROJECT_ORDER_STAMPS=1 — the faint order stamps are '
+  + 'projected again; the planted-stub gate is expected to go RED');
+const MON_SKIP = new Set(['_sf', 'moves', 'st', '__mask'].concat(ORDER_STAMPS_PROJECTED ? [] : ['_fEpoch', '_faintSeq']));   // _sf is the shared side object, projected once
 const MASK_ANY = Symbol('mask-any');
 /* THE MASK, AND IT IS NOT COSMETIC — WITHOUT IT THE EQUIVALENT-MUTANT DEFENCE DOES NOT WORK.
  *

@@ -1761,6 +1761,14 @@ const DECLARED_DIVERGENCE = [
    * and exact speeds ... its just when we play showdowns games we have ties"*) and it is right about
    * the game; it does not reach this artifact, and MEASURE's job is to say so rather than to spend
    * it. */
+  /* 2026-09-11 (ENGINE 6.24.0) — KEPT, AND THE CAUSE IT EXCUSES IS SHOWN. The whole-game register printed this
+   * row as MATCHED NOTHING IN THIS RUN, and it was withdrawn on that print — which re-opened the MECHANICS
+   * clause on the next gate run: `1 of 5 DIVERGING MECHANICS ARE PLAYED AND UNCLEARED … ability:supremeoverlord
+   * (112 teams/13,116 open-sheet games)`. One declared list feeds two clauses ("ONE DECLARED LIST, TWO
+   * CLAUSES", below), and this row covers `data/all-mechanics-fire.json`'s ability:supremeoverlord row, whose
+   * cause carries `fallenundefined` (release 9ec2ab9ad0ef), while the 961-game pinned pool simply never
+   * switches a Supreme Overlord out with nothing fainted. `declaredRegisterLine` now counts the mechanics
+   * clause's matches too, so the print says which clause the row is load-bearing in. */
   {
     kind: 'AUTHORITY-WRONG',
     name: "Supreme Overlord `fallenundefined`",
@@ -2105,6 +2113,31 @@ function declaredMatch(cause, ev, threw, ctx) {
  *
  * So every row is listed with the games it took THIS RUN, including zero. `hits` is the clause's own
  * per-name tally. */
+/* ONE DECLARED LIST FEEDS TWO CLAUSES, SO "MATCHED NOTHING" IS ASKED OF BOTH (2026-09-11, ENGINE 6.24.0). The
+ * tally above is the whole-game clause's; `classifyMechanics` subtracts the same declarations from
+ * data/all-mechanics-fire.json. A row with zero whole-game games was printed as a claim gone false even where
+ * the mechanics clause leaned on it — the Supreme Overlord row was withdrawn on that print and the mechanics
+ * clause re-opened on the next run. This counts the diverged mechanics rows each declaration covers. */
+let _MECH_CAUSES = null;
+function mechanicsCovered(d) {
+  if (_MECH_CAUSES === null) {
+    _MECH_CAUSES = [];
+    try {
+      const j = readJson(D('data', 'all-mechanics-fire.json'));
+      for (const k of Object.keys((j && j.rows) || {})) for (const r of (j.rows[k] || []))
+        if (r && r.diverged && r.divergence && r.divergence.cause) _MECH_CAUSES.push({ key: k + ':' + r.id, cause: String(r.divergence.cause) });
+    } catch (e) {
+      console.error('quarantine: could not read data/all-mechanics-fire.json for declaration coverage — every row reads 0 mechanics rows:', e.message);
+      _MECH_CAUSES = [];
+    }
+  }
+  const out = [];
+  for (const r of _MECH_CAUSES) {
+    try { if (d.match(r.cause)) out.push(r.key); }
+    catch (e) { console.error('quarantine: declaration "' + d.name + '" matcher threw on a mechanics cause (MATCHER_THREW counts it too):', e.message); }
+  }
+  return out;
+}
 function declaredRegisterLine(hits, ctx) {
   const NL = String.fromCharCode(10);
   const by = new Map();
@@ -2114,7 +2147,11 @@ function declaredRegisterLine(hits, ctx) {
     const fault = d.kind === 'CLOSETED' ? closetFault(d) : null;
     const stale = d.kind === 'CLOSETED' && !fault ? closetEvidenceStale(d, ctx) : null;
     let s = '    ' + String(n).padStart(4) + '  [' + String(d.kind) + '] ' + d.name;
-    if (n === 0) {
+    const mech = n === 0 ? mechanicsCovered(d) : [];
+    if (n === 0 && mech.length) {
+      s += NL + '           0 whole-game games this run, and LOAD-BEARING IN THE MECHANICS CLAUSE: it covers '
+        + mech.length + ' diverged row(s) of data/all-mechanics-fire.json (' + mech.slice(0, 6).join(', ') + ')';
+    } else if (n === 0) {
       s += NL + '           MATCHED NOTHING IN THIS RUN — a declaration that covers no cause is a '
         + 'claim that has quietly become false. Withdraw it or show the cause it excuses.';
     }
@@ -5237,8 +5274,16 @@ if (require.main === module) {
     const CLASH = { rows: { moves: [{ id: 'clash', diverged: true,
       deferred: { by: 'Will', on: '2026-08-28', why: 'the owner shelved it' },
       divergence: { cause: 'event missing from medicham2 :: |-end|p1a|fallenundefined <> |switch|p1a|x' } }] } };
-    const CLASHC = classifyMechanics(CLASH, null,
-      { U: { ...UIDX, moves: new Map([['clash', 9999]]) }, DI: decisionImpact('nothing-on-disk') });
+    /* 2026-09-11 (ENGINE 6.24.0): the live declaration this leaned on (Supreme Overlord) is WITHDRAWN, so the
+     * test pushes its own for the same cause — otherwise "the declared register does NOT claim it" would pass
+     * because nothing could claim it. Pushed and popped around this one call. */
+    DECLARED_DIVERGENCE.push({ kind: 'AUTHORITY-WRONG', name: '(selftest) a live declaration covering the shelved row',
+      match: (c) => /fallenundefined/.test(c), why: 'selftest only — never shipped' });
+    let CLASHC;
+    try {
+      CLASHC = classifyMechanics(CLASH, null,
+        { U: { ...UIDX, moves: new Map([['clash', 9999]]) }, DI: decisionImpact('nothing-on-disk') });
+    } finally { DECLARED_DIVERGENCE.pop(); }
     ok('RED — when the owner\'s shelf and a live declaration both cover a row, the SHELF takes it and '
      + 'the declared register does NOT claim the subtraction',
       CLASHC.ownerShelved.length === 1 && CLASHC.declared.length === 0 && CLASHC.rowsSeen === 0,

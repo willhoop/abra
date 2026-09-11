@@ -418,6 +418,12 @@ for (const t of Object.keys(DELIVERY)) {
          : (e.physical || e.special);
 }
 const hitOfType = t => (DELIVERY[t] || {}).best || null;
+/* ROADMAP #318 (6.24.0): the learnset judge's caches, declared HERE rather than beside `learnsLegally` far
+ * below, so the module-load derivations that now ask it (KILLABLE, KILLABLE2, HALVER) do not meet a
+ * `let` in its temporal dead zone. `_DBT` is `deliveriesOfType`'s. */
+let _DBT = null;
+let _LVAL = null;
+const _LVALC = new Map();
 
 /* A 100-ACCURACY CARRIER FOR EACH MAJOR STATUS, derived. Where there is none — a guaranteed burn and
  * a guaranteed freeze do not exist in this format at 100 accuracy — the entity that needed it is
@@ -426,6 +432,10 @@ const hitOfType = t => (DELIVERY[t] || {}).best || null;
 const STATUS_MOVE = {};
 for (const m of dex.moves.all()) {
   if (!m.exists || m.isNonstandard || !m.status) continue;
+  /* ROADMAP #318 (6.24.0): IN SCOPE OR NOT AT ALL. Spore was this table's sleep carrier and no legal body
+   * learns it (engine/legal_scope.js NO-LEGAL-CARRIER), so every fixture that slept a body did it with a
+   * move the regulation cannot put on a sheet. `sleepClick()` is the in-scope road. */
+  if (!require('../engine/legal_scope.js').derive().inScope('move', m.id)) continue;
   if (!(m.accuracy === true || m.accuracy === 100)) continue;
   if (!(m.target === 'normal' || m.target === 'any')) continue;
   const cur = STATUS_MOVE[m.status];
@@ -671,11 +681,19 @@ function maxRoll(att, mv, def) {
   return Math.floor(x * Math.pow(2, eff));
 }
 /* the delivery move that kills `def` outright when thrown by `att`, or null */
-function lethalMove(att, def, margin) {
+/* `by` (ROADMAP #318, 6.24.0): the attacker's species id — given, only moves it LEARNS are sized. */
+function lethalMove(att, def, margin, by) {
+  /* the table's two moves first, filtered to what `by` learns, so a row whose pick was already legal keeps
+   * it; only when none of those kills are the attacker's other learnable delivery moves sized */
+  if (!by) return lethalMoveFrom(att, def, margin, t => [DELIVERY[t].physical, DELIVERY[t].special]);
+  return lethalMoveFrom(att, def, margin, t => [DELIVERY[t].physical, DELIVERY[t].special].filter(m => m && learnsLegally(by, m.id)))
+    || lethalMoveFrom(att, def, margin, t => learnableOfType(by, t));
+}
+function lethalMoveFrom(att, def, margin, pick) {
   let best = null;
   const hp = flatL50(def.baseStats).hp * (margin || 1);
   for (const t of Object.keys(DELIVERY)) {
-    for (const mv of [DELIVERY[t].physical, DELIVERY[t].special]) {
+    for (const mv of pick(t)) {
       if (!mv) continue;
       const d = maxRoll(att, mv, def);
       if (d >= hp && (!best || d > best.d)) best = { mv, d };
@@ -743,11 +761,24 @@ const SWAPPER = (() => {
 const swapRefused = abId => !!((dex.abilities.get(abId) || {}).flags || {}).failskillswap;
 
 /* A BODY THE STANDARD AGGRESSOR CAN KILL FROM FULL, twice over, so an HP floor has something to do */
+/* ROADMAP #318 (6.24.0) — THE KILLER IS CHOSEN WITH ITS TWO KILLS. KILLABLE and KILLABLE2 were Dragapult's
+ * lethal hits off the delivery table, and Dragapult LEGALLY learns a 1.5x kill on exactly one species, so
+ * KILLABLE2 went null and `item/hp-floor` and all six `move/protect-family` rows lost their fixture. The
+ * aggressor is Dragapult when it legally kills two species outright, otherwise the strongest legal attacker
+ * that does (never the second CAST body, which stands beside it). `KILLABLE.by` carries it to the rules. */
+const KILL_ATT = (() => {
+  const cast = dex.species.get(CAST.ATTACKER().species), cast2 = dex.species.get(CAST.ATTACKER2().species);
+  const two = att => { let n = 0; for (const s of CANDIDATES) if (s.id !== att.id && lethalMove(att, s, 1.5, att.id) && ++n >= 2) return true; return false; };
+  if (two(cast)) return cast;
+  const offense = s => Math.max(s.baseStats.atk, s.baseStats.spa);
+  return CANDIDATES.filter(s => s.id !== cast.id && s.id !== cast2.id)
+    .sort((a, b) => offense(b) - offense(a) || (a.id < b.id ? -1 : 1)).find(two) || cast;
+})();
 const KILLABLE = (() => {
-  const att = dex.species.get(CAST.ATTACKER().species);
+  const att = KILL_ATT;
   let best = null;
   for (const s of CANDIDATES) {
-    const L = lethalMove(att, s, 1.5);       // 1.5x overkill, so no roll or rounding saves it
+    const L = lethalMove(att, s, 1.5, att.id);       // 1.5x overkill, so no roll or rounding saves it; a move it LEARNS (#318)
     if (L && (!best || L.d / flatL50(s.baseStats).hp > best.ratio))
       best = { species: s.id, ability: carrierAbility(s), move: L.mv, ratio: L.d / flatL50(s.baseStats).hp };
   }
@@ -756,12 +787,14 @@ const KILLABLE = (() => {
 
 /* A SECOND BODY THE AGGRESSOR CAN ALSO KILL FROM FULL, of a different species, so the HP-floor rule
  * can put the FULL case and the CHIPPED case side by side on one board. */
+if (KILLABLE) { KILLABLE.by = KILL_ATT.id;
+  KILLABLE.byAbility = KILL_ATT.id === dex.species.get(CAST.ATTACKER().species).id ? CAST.ATTACKER().ability : carrierAbility(KILL_ATT); }
 const KILLABLE2 = (() => {
-  const att = dex.species.get(CAST.ATTACKER().species);
+  const att = KILL_ATT;
   let best = null;
   for (const s of CANDIDATES) {
     if (KILLABLE && s.id === KILLABLE.species) continue;
-    const L = lethalMove(att, s, 1.5);
+    const L = lethalMove(att, s, 1.5, att.id);
     if (L && (!best || L.d / flatL50(s.baseStats).hp > best.ratio))
       best = { species: s.id, ability: carrierAbility(s), move: L.mv, ratio: L.d / flatL50(s.baseStats).hp,
                hp: flatL50(s.baseStats).hp };
@@ -769,11 +802,12 @@ const KILLABLE2 = (() => {
   return best;
 })();
 /* AND A CHIP THAT TAKES A BODY OFF FULL WITHOUT KILLING IT — the whole content of "at the line". */
-function chipFor(speciesId) {
-  const att = dex.species.get(CAST.ATTACKER().species), def = dex.species.get(speciesId);
+function chipFor(speciesId, byId) {
+  const att = dex.species.get(byId || CAST.ATTACKER().species), def = dex.species.get(speciesId);
   const hp = flatL50(def.baseStats).hp;
   let best = null;
-  for (const t of Object.keys(DELIVERY)) for (const mv of [DELIVERY[t].physical, DELIVERY[t].special]) {
+  /* ROADMAP #318 (6.24.0): a chip the attacker LEARNS */
+  for (const t of Object.keys(DELIVERY)) for (const mv of [DELIVERY[t].physical, DELIVERY[t].special].filter(m => m && learnsLegally(att.id, m.id))) {
     if (!mv) continue;
     const d = maxRoll(att, mv, def);
     if (d <= 0 || d >= hp) continue;                 // must not kill, must not be a no-op
@@ -832,7 +866,7 @@ const HALVER = (() => {
   for (const s of CANDIDATES) {
     const hp = flatL50(s.baseStats).hp;
     for (const t of Object.keys(DELIVERY)) for (const mv of [DELIVERY[t].physical, DELIVERY[t].special]) {
-      if (!mv) continue;
+      if (!mv || !learnsLegally(att.id, mv.id)) continue;   /* ROADMAP #318: a move the attacker LEARNS */
       const d = maxRoll(att, mv, s);
       if (d < hp * 0.55 || d > hp * 0.8) continue;
       /* THE MIDDLE OF THE BAND, NOT THE TOP OF IT (2026-08-27). This maximised the fraction, so it
@@ -2615,12 +2649,15 @@ const cannot = (why, scope) => ({ cannot: why, scope: scope || null });
 const CONTACT = {};
 for (const t of Object.keys(DELIVERY))
   if (DELIVERY[t].physical && DELIVERY[t].physical.flags.contact) CONTACT[t] = DELIVERY[t].physical;
-function neutralContactOn(speciesId) {
+/* `by` (ROADMAP #318, 6.24.0): the thrower — given, the contact hit is one `by` learns. */
+function neutralContactOn(speciesId, by) {
   const s = dex.species.get(speciesId);
-  for (const t of Object.keys(CONTACT)) {
+  for (const t of Object.keys(by ? DELIVERY : CONTACT)) {
     if (dex.getImmunity(t, s.types) === false) continue;
     if (dex.getEffectiveness(t, s.types) !== 0) continue;
-    return CONTACT[t];
+    if (!by) return CONTACT[t];
+    const mv = learnableOfType(by, t, m => m.category === 'Physical' && !!m.flags.contact)[0];
+    if (mv) return mv;
   }
   return null;
 }
@@ -2953,11 +2990,15 @@ function throwIt(m, idx) { return mclick(m, needsIndex(m) ? (idx == null ? 0 : i
  * taken off full HP before the thing being staged has anywhere to act. Excluding the entity is not
  * fussiness: `controlOf` replaces EVERY click of the move under test, so a chip that happened to be
  * the same move would vanish from the control arm and the two arms would differ in two things. */
-function neutralHit2(speciesId, notIds) {
+/* `by` (ROADMAP #318, 6.24.0): the thrower. Given, the hit is one `by` LEARNS, and a type NAME in `notIds`
+ * excludes that type (the unconverted-type negative passes one). Absent, the behaviour is unchanged. */
+function neutralHit2(speciesId, notIds, by) {
   const sp = dex.species.get(speciesId);
+  const noType = by ? new Set((notIds || []).map(x => dex.types.get(String(x))).filter(t => t && t.exists).map(t => t.name)) : null;
   for (const t of Object.keys(DELIVERY))
-    for (const mv of [DELIVERY[t].best, DELIVERY[t].physical, DELIVERY[t].special]) {
+    for (const mv of (by ? learnableOfType(by, t) : [DELIVERY[t].best, DELIVERY[t].physical, DELIVERY[t].special])) {
       if (!mv || (notIds || []).some(x => idOf(mv.id) === idOf(x))) continue;
+      if (noType && noType.has(mv.type)) continue;
       if (dex.getImmunity(mv.type, sp.types) === false) continue;
       if (dex.getEffectiveness(mv.type, sp.types) !== 0) continue;
       return mv;
@@ -3079,13 +3120,14 @@ function boostStatsNamedBy(m) {
   return [...out];
 }
 /* the smallest all-positive self-boost move that raises at least one of the stats the move reads */
-function boostSetterFor(m) {
+function boostSetterFor(m) { return boostSettersFor(m)[0] || null; }
+/* every setter that qualifies, best first — so a rule can take the best one its body LEARNS (ROADMAP #318) */
+function boostSettersFor(m) {
   const want = boostStatsNamedBy(m);
   const ok = (mv) => !want.length || Object.keys(mv.boosts).some(k => want.includes(k));
-  const list = BOOST_MOVES.filter(ok)
+  return BOOST_MOVES.filter(ok)
     .sort((a, b) => (Object.values(b.boosts).reduce((n, v) => n + v, 0))
                   - (Object.values(a.boosts).reduce((n, v) => n + v, 0)));
-  return list[0] || null;
 }
 /* DOES THE MOVE READ A BOOST IT DID NOT PUT THERE? Declared `boosts` is a move that SETS stages and
  * is already staged by `move/boosts-self` and `move/boosts-target`; what this asks is the opposite —
@@ -3632,7 +3674,9 @@ const DROP_MOVE2 = DROP_SET.moves[1] || null;
 /* A DAMAGING MOVE WITH POSITIVE PRIORITY, for the family whose whole content is refusing one. Every
  * `deliveryOf` disqualifier still applies except the priority test itself — Sucker Punch is excluded
  * by `onTry` (it fails unless the target is attacking) through that same filter. */
-const PRIORITY_HIT = dex.moves.all().filter(m => m.exists && !m.isNonstandard
+/* ROADMAP #318 (6.24.0): the WHOLE qualifying list, strongest first, so a rule can take the strongest one a
+ * legal body throws — Extreme Speed's four legal learners all hold only interfering abilities. */
+const PRIORITY_HITS = dex.moves.all().filter(m => m.exists && !m.isNonstandard
     && m.priority > 0 && m.category !== 'Status' && m.basePower > 0
     && (m.accuracy === true || m.accuracy === 100) && (m.target === 'normal' || m.target === 'any')
     && !(m.critRatio > 1) && !m.willCrit && !m.drain && !m.recoil && !m.self && !m.multihit
@@ -3640,7 +3684,8 @@ const PRIORITY_HIT = dex.moves.all().filter(m => m.exists && !m.isNonstandard
     && !(m.secondaries || []).length
     && !Object.keys(m).some(k => /^on(Try|Hit|Prepare|Modify|Effectiveness|Base|After|Use|Damage)/.test(k)
         && typeof m[k] === 'function'))
-  .sort((a, b) => b.basePower - a.basePower)[0] || null;
+  .sort((a, b) => b.basePower - a.basePower);
+const PRIORITY_HIT = PRIORITY_HITS[0] || null;
 
 /* THE CONFUSING CLICK and THE TAUNT, both derived and both compared leaves: `board_state.js` holds
  * `vol.confusion` and `vol.taunt` as numbers in both engines. */
@@ -3783,10 +3828,19 @@ function stageAbilityAnyTier(e, C, o) {
  * unstageable without it: "chip it a bit" leaves the carrier above the third and the rule measures
  * nothing, which is how `item/hp-floor` and `move/protect-family` both first came back inert. The
  * damage step is Showdown's own at the MAXIMUM roll, which is the roll the primary pin selects. */
+/* ROADMAP #318 (6.24.0) — THE BAND HIT IS ONE THE ATTACKER LEARNS. The table's two moves per type are asked
+ * first, filtered to what `attSp` learns, so any row whose pick was already legal gets the same pick; only
+ * when none of those lands in the band are the attacker's other learnable delivery moves tried. */
 function hitInBand(attSp, defSp, lo, hi) {
+  const by = attSp && attSp.id;
+  return hitInBandFrom(attSp, defSp, lo, hi,
+      t => [DELIVERY[t].physical, DELIVERY[t].special].filter(m => m && learnsLegally(by, m.id)))
+    || hitInBandFrom(attSp, defSp, lo, hi, t => learnableOfType(by, t));
+}
+function hitInBandFrom(attSp, defSp, lo, hi, pick) {
   const hp = flatL50(defSp.baseStats).hp;
   let best = null;
-  for (const t of Object.keys(DELIVERY)) for (const mv of [DELIVERY[t].physical, DELIVERY[t].special]) {
+  for (const t of Object.keys(DELIVERY)) for (const mv of pick(t)) {
     if (!mv) continue;
     const d = maxRoll(attSp, mv, defSp);
     if (d < hp * lo || d > hp * hi) continue;
@@ -3826,8 +3880,16 @@ function speedFlipFoe(holderSp, mult) {
     if (F.id === holderSp.id || !buildableSpecies(F.id) || !carrierAbility(F)) continue;
     const f = spd(F);
     if (!(mult > 1 ? (h < f && f < after) : (after < f && f < h))) continue;
-    const kHF = lethalMove(holderSp, F, 1.2);
-    if (kHF) return { foe: F, holderMove: kHF.mv, foeMove: DROP_MOVE,
+    /* ROADMAP #318 (6.24.0): the holder's KO is one it LEARNS, and the foe's drop is one the foe learns — and
+     * it lowers the stat the holder's KO is thrown off, as Noble Roar (atk AND spa) always did. A drop the
+     * holder's click never reads leaves the two arms identical wherever the KO does not land: Unburden's foe
+     * side stands at 4x HP, and a Fake Tears there read CONTROL-NOT-QUIET with a zero delta. */
+    const kHF = lethalMove(holderSp, F, 1.2, holderSp.id);
+    if (!kHF) continue;
+    const stat = kHF.mv.category === 'Special' ? 'spa' : 'atk';
+    const fDrop = DROP_SET.moves.concat(DROP_POOL).find(m => (m.boosts[stat] || 0) < 0 && learnsLegally(F.id, m.id));
+    if (!fDrop) continue;
+    return { foe: F, holderMove: kHF.mv, foeMove: fDrop,
                       ability: carrierAbility(F) || '',
                       speeds: h + ' -> ' + after + ' against ' + f };
   }
@@ -4001,9 +4063,23 @@ function abilityScenario(e, C, kind) {
   if (!base || !base.exists) return cannot('the carrier species "' + C.species + '" is not in the '
     + 'format dex');
   const atk = dex.species.get(CAST.ATTACKER().species);
-  const hitThem = neutralContactOn(C.tier === 'MEGA' ? (C.forme || C.species) : C.species);
-  const hitUs = neutralContactOn(atk.id);
-  if (!hitThem || !hitUs) return cannot('no neutral 100-accuracy physical CONTACT move exists in '
+  /* ROADMAP #318 (6.24.0): each hit is one its THROWER learns — the aggressor's off the aggressor's
+   * learnset, the carrier's off the carrier's (a mega is asked as its base, which is what it learned as). */
+  const learner = base.id;
+  /* and when the aggressor learns no neutral CONTACT hit on the carrier (Dragapult on a Steel/Ghost), a
+   * neutral hit it does learn — contact is what most of this family reads, not all of it */
+  const hitThem = neutralContactOn(C.tier === 'MEGA' ? (C.forme || C.species) : C.species, atk.id)
+    || neutralHit2(C.tier === 'MEGA' ? (C.forme || C.species) : C.species, [], atk.id);
+  /* the carrier's throw-back: a neutral contact hit it learns, else a neutral hit, else ANY hit it learns that
+   * the aggressor is not immune to — and none at all (Ditto learns only Transform) only costs the generic
+   * kind its throw-back, which is the one kind that clicks it. Refusing every kind on it cost 11 rows. */
+  /* resisted before super-effective: a MEGA carrier runs at natural HP, and Kangaskhan-Mega's Crunch, doubled
+   * by Parental Bond, killed the aggressor on turn 1 and left the script asking its replacement for a click */
+  const anyHitOn = (target, by) => { for (const pass of [x => x < 0, x => x > 0]) for (const t of Object.keys(DELIVERY)) {
+    if (dex.getImmunity(t, target.types) === false || !pass(dex.getEffectiveness(t, target.types))) continue;
+    const mv = learnableOfType(by, t)[0]; if (mv) return mv; } return null; };
+  const hitUs = neutralContactOn(atk.id, learner) || neutralHit2(atk.id, [], learner) || anyHitOn(atk, learner);
+  if (!hitThem) return cannot('no neutral 100-accuracy physical CONTACT move exists in '
     + 'both directions between the aggressor and ' + C.species + ', and contact is what most of this '
     + 'family reads');
 
@@ -4014,7 +4090,8 @@ function abilityScenario(e, C, kind) {
   const carrierHit = (() => {
     const own = (C.tier === 'MEGA' ? dex.species.get(C.forme) : base).types;
     for (const t of own) {
-      const mv = CONTACT[t] || (DELIVERY[t] && DELIVERY[t].best);
+      const mv = learnableOfType(learner, t, m => m.category === 'Physical' && !!m.flags.contact)[0]
+        || learnableOfType(learner, t)[0];
       if (mv && dex.getImmunity(mv.type, atk.types) !== false) return mv;
     }
     return hitUs;
@@ -4068,12 +4145,12 @@ function abilityScenario(e, C, kind) {
     script = [turn([click(hitThem.id, 0), click(hitThem.id, 1)], [IDLE, IDLE]),
               turn([IDLE, IDLE], [click('uturn', 0), click('uturn', 0)])];
   } else {
-    script = [turn([click(hitThem.id, 0), IDLE], [click(carrierHit.id, 0), IDLE]),
-              turn([click(hitThem.id, 0), IDLE], [click(carrierHit.id, 0), IDLE]),
+    script = [turn([click(hitThem.id, 0), IDLE], [carrierHit ? click(carrierHit.id, 0) : IDLE, IDLE]),
+              turn([click(hitThem.id, 0), IDLE], [carrierHit ? click(carrierHit.id, 0) : IDLE, IDLE]),
               turn([IDLE, IDLE], [IDLE, IDLE])];
   }
   if (kind === 'switchout') carrier.moves.push('uturn');
-  if (kind === 'generic') carrier.moves = [carrierHit.id];
+  if (kind === 'generic') carrier.moves = carrierHit ? [carrierHit.id] : [INERT];
 
   /* THE SETUP TURN, for the two tiers whose control is a CLICK rather than a swapped ability. The
    * aggressor has to be free on that turn so the control arm can spend it on Gastro Acid, and the
@@ -4575,7 +4652,19 @@ const RULES = [
      * emits TWO `-enditem` lines, `[eat]` and `[weaken]`. Anything counting berry consumption off the
      * protocol would double-count. This instrument reads live state and is unaffected. */
     const W = WEAK_TO[T] || [];
-    const four = (FOUR_X[T] || []).find(x => x.flipsAKO);
+    /* ROADMAP #318 (6.24.0) — THE TYPED HIT IS ONE ITS THROWER LEARNS, AND THE KO FLIP IS SIZED FOR THAT
+     * THROWER. Dragapult throws its own best delivery of the berry's type when it learns one; otherwise the
+     * table's hit is thrown by its fastest legal learner. FOUR_X was sized for Dragapult throwing the table
+     * move, so each row's flip is re-derived for whoever and whatever is actually thrown. */
+    const tBy = (() => {
+      const cast = CAST.ATTACKER(), own = learnableOfType(cast.species, T)[0];
+      if (own) return { body: cast, mv: own };
+      const lb = learnerBody([hitOfType(T).id]);
+      return lb ? { body: lb, mv: hitOfType(T) } : null; })();
+    if (!tBy) return cannot('no legal body outside the owner\'s closet learns a 100-accuracy ' + T + ' delivery move');
+    const tSp = dex.species.get(tBy.body.species);
+    const four = (FOUR_X[T] || []).map(x => { const d = maxRoll(tSp, tBy.mv, dex.species.get(x.species));
+      return { ...x, dmg: d, flipsAKO: d >= x.hp && d < x.hp * 2 }; }).find(x => x.flipsAKO);
     const holders = four ? [four, (W[0] && W[0].species !== four.species) ? W[0] : (W[1] || null)]
       : (W.length >= 2 ? [W[0], W[1]]
       : [{ species: CAST.BAG().species, ability: CAST.BAG().ability },
@@ -4589,6 +4678,13 @@ const RULES = [
     const off = neutralTypeOn(holders[1].species, T);
     if (!off) return cannot('no type is plainly neutral on ' + holders[1].species + ', so the inverted '
       + 'half of the test has nowhere to stand');
+    /* the off-type hit at the partner, likewise off its thrower's learnset */
+    const offBy = (() => {
+      const cast = CAST.ATTACKER2(), own = learnableOfType(cast.species, off)[0];
+      if (own && idOf(cast.species) !== idOf(tBy.body.species)) return { body: cast, mv: own };
+      const lb = learnerBody([hitOfType(off).id], { not: [tBy.body.species] });
+      return lb ? { body: lb, mv: hitOfType(off) } : null; })();
+    if (!offBy) return cannot('no second legal body learns a 100-accuracy ' + off + ' delivery move for the partner');
     return { note: (four ? '4x ARM — ' + four.species + ' (' + four.types + ') DIES to the unhalved '
           + T + ' hit (' + four.dmg + ' into ' + four.hp + ' HP) and survives it halved; the flipped '
           + 'KO is on the board as `fainted`, never as a ratio'
@@ -4598,11 +4694,11 @@ const RULES = [
         + '. The inverted half is a ' + off + ' hit on ' + holders[1].species
         + ', holding the same berry, on the same board',
       scenario: scaffold({ hpB: four ? 1 : 6,
-        a0: { ...CAST.ATTACKER(), moves: [hitOfType(T).id, hitOfType(off).id] },
-        a1: { ...CAST.ATTACKER2(), moves: [hitOfType(off).id, hitOfType(T).id] },
+        a0: { ...tBy.body, moves: [tBy.mv.id] },
+        a1: { ...offBy.body, moves: [offBy.mv.id] },
         b0: mon(holders[0].species, e.id, holders[0].ability, [INERT]),
         b1: mon(holders[1].species, e.id, holders[1].ability, [INERT]),
-        script: [turn([click(hitOfType(T).id, 0), click(hitOfType(off).id, 1)], [IDLE, IDLE])] }) };
+        script: [turn([click(tBy.mv.id, 0), click(offBy.mv.id, 1)], [IDLE, IDLE])] }) };
   } },
 
 { id: 'item/type-scoped-power', kind: 'item',
@@ -4695,18 +4791,22 @@ const RULES = [
   match(e) {
     if (!e.onModifyDamage || !/super effective/i.test(e.shortDesc || '')) return null;
     const bag = dex.species.get(CAST.BAG().species);
-    let se = null, nu = null;
-    for (const t of Object.keys(DELIVERY)) {
-      const mv = hitOfType(t); if (!mv) continue;
-      if (dex.getImmunity(t, bag.types) === false) continue;
-      if (!se && dex.getEffectiveness(t, bag.types) > 0) se = mv;
-      if (!nu && dex.getEffectiveness(t, bag.types) === 0) nu = mv;
-    }
+    /* ROADMAP #318 (6.24.0): the holder LEARNS both clicks. Fighting is the only type super effective on the
+     * bag and Dragapult learns no Fighting move, so the holder is the fastest legal body that learns a
+     * super-effective delivery AND a neutral one — the CAST aggressor whenever it does. */
+    const onBag = (by, se1) => { for (const t of Object.keys(DELIVERY)) {
+        if (dex.getImmunity(t, bag.types) === false) continue;
+        const eff = dex.getEffectiveness(t, bag.types);
+        if (se1 ? eff <= 0 : eff !== 0) continue;
+        const mv = learnableOfType(by, t)[0]; if (mv) return mv; }
+      return null; };
+    const holder = throwerFor(CAST.ATTACKER(), [], { pred: s => !!onBag(s.id, true) && !!onBag(s.id, false) });
+    const se = holder && onBag(holder.species, true), nu = holder && onBag(holder.species, false);
     if (!se || !nu) return cannot('the punching bag has no super-effective and neutral pair of '
-      + '100-accuracy delivery moves');
+      + '100-accuracy delivery moves that one legal body learns');
     return { note: se.name + ' is super effective on the bag; ' + nu.name + ' is the neutral negative',
       scenario: scaffold({ hpA: 6, subject: 'A0',
-        a0: mon(CAST.ATTACKER().species, e.id, CAST.ATTACKER().ability, [se.id, nu.id]),
+        a0: mon(holder.species, e.id, holder.ability, [se.id, nu.id]),
         b0: { ...CAST.BAG(), moves: [INERT] },
         script: [turn([click(se.id, 0), IDLE], [IDLE, IDLE]),
                  turn([click(nu.id, 0), IDLE], [IDLE, IDLE])] }) };
@@ -4754,7 +4854,7 @@ const RULES = [
     if (!e.onDamage || !/HP is full/i.test(e.shortDesc || '')) return null;
     if (!KILLABLE) return cannot('no legal body in the format can be killed from full by one derived '
       + 'delivery move with a 1.5x margin, so no staged hit is reliably lethal');
-    const chip = KILLABLE2 ? chipFor(KILLABLE2.species) : null;
+    const chip = KILLABLE2 ? chipFor(KILLABLE2.species, KILLABLE.by) : null;
     if (!KILLABLE2 || !chip) return cannot('a full-HP killable body exists but no SECOND one of a '
       + 'different species with a chip that takes it off full without killing it, so the AT-THE-LINE '
       + 'negative — full against one chip down — has nowhere to stand');
@@ -4763,14 +4863,19 @@ const RULES = [
         + ' beside it, chipped ' + chip.d + ' off ' + KILLABLE2.hp + ' by ' + chip.mv.name
         + ', takes a lethal ' + KILLABLE2.move.name + ' and must NOT',
       scenario: scaffold({
-        a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability,
-                [KILLABLE.move.id, chip.mv.id, KILLABLE2.move.id]),
-        a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability,
-                [chip.mv.id, KILLABLE2.move.id]),
+        /* ROADMAP #318 (6.24.0) — EVERY HIT IS THROWN BY THE BODY IT WAS SIZED FOR. KILLABLE, KILLABLE2 and
+         * `chipFor` are all derived from Dragapult's stats and now only from moves it LEARNS, and Weavile —
+         * which threw the chip and the second kill — learns neither Aura Sphere nor the rest. So Dragapult
+         * throws all of it, one hit per turn: the chip, the lethal hit at the FULL holder (it must hold),
+         * the lethal hit at the CHIPPED holder (it must not), then the full holder again with its sash spent. */
+        a0: mon(KILLABLE.by, '', KILLABLE.byAbility,
+                [...new Set([KILLABLE.move.id, chip.mv.id, KILLABLE2.move.id])]),
+        a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [INERT]),
         b0: mon(KILLABLE.species, e.id, KILLABLE.ability, [INERT]),
         b1: mon(KILLABLE2.species, e.id, KILLABLE2.ability, [INERT]),
-        script: [turn([IDLE, click(chip.mv.id, 1)], [IDLE, IDLE]),
-                 turn([click(KILLABLE.move.id, 0), click(KILLABLE2.move.id, 1)], [IDLE, IDLE]),
+        script: [turn([click(chip.mv.id, 1), IDLE], [IDLE, IDLE]),
+                 turn([click(KILLABLE.move.id, 0), IDLE], [IDLE, IDLE]),
+                 turn([click(KILLABLE2.move.id, 1), IDLE], [IDLE, IDLE]),
                  turn([click(KILLABLE.move.id, 0), IDLE], [IDLE, IDLE])] }) };
   } },
 
@@ -4903,7 +5008,10 @@ const RULES = [
             : /confus/i.test(e.shortDesc) ? 'confusion'
             : /non-volatile status/i.test(e.shortDesc) ? 'par' : null;
     if (!S) return null;
-    const mv = S === 'confusion' ? CONFUSE_MOVE : STATUS_MOVE[S];
+    /* ROADMAP #318 (6.24.0): sleep takes the in-scope road when the table has none (see `sleepClick`) */
+    const slc = S === 'slp' && !STATUS_MOVE.slp ? sleepClick() : null;
+    const mv = S === 'confusion' ? CONFUSE_MOVE : (STATUS_MOVE[S] || (slc && slc.move) || null);
+    const delayed = !!(slc && slc.delayed);
     if (!mv) return cannot('no 100-accuracy move in this format inflicts ' + S + ' outright, and the '
       + 'pin makes every sub-100-accuracy move miss — so the condition this berry cures cannot be '
       + 'put on a body at all. THE ITEM IS NOT ABSENT FROM THE ENGINE; IT IS UNREACHABLE FROM HERE.');
@@ -4914,14 +5022,26 @@ const RULES = [
     if (!partner || partner.species === bag.species)
       return cannot('no second body distinct from ' + bag.species + ' can take ' + mv.name
         + ', so the on-board negative has nowhere to stand');
-    return { note: S + ' delivered by ' + mv.name + ' onto ' + bag.species,
+    /* ROADMAP #318 (6.24.0) — THE THROWERS LEARN WHAT THEY THROW. The CAST aggressors when they learn it,
+     * otherwise its legal learners. Toxic Thread has ONE legal learner, so where only one exists it throws
+     * at the holder on turn 1 and at the partner on turn 2; the holder still answers on its own turn and the
+     * partner still carries the condition on every later board, which is the whole shape of this rule. */
+    const t0 = throwerFor(CAST.ATTACKER(), [mv.id], { not: [bag.species, partner.species] });
+    if (!t0) return cannot('no legal buildable body outside the owner\'s closet learns ' + mv.name
+      + ', the only 100-accuracy carrier of ' + S + ' this rule can use');
+    const t1 = throwerFor(CAST.ATTACKER2(), [mv.id], { not: [t0.species, bag.species, partner.species] });
+    const idle = turn([IDLE, IDLE], [IDLE, IDLE]);
+    const clicks = t1 ? [turn([click(mv.id, 0), click(mv.id, 1)], [IDLE, IDLE])]
+      : [turn([click(mv.id, 0), IDLE], [IDLE, IDLE]), turn([click(mv.id, 1), IDLE], [IDLE, IDLE])];
+    return { note: S + ' delivered by ' + mv.name + ' onto ' + bag.species
+        + (t1 ? '' : ' (ONE legal learner, ' + pretty(t0.species) + ': the holder on turn 1, the partner on turn 2)')
+        + (delayed ? ' — drowsy on the click and asleep at the END of the next turn, so the script waits a turn' : ''),
       scenario: scaffold({
-        a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [mv.id]),
-        a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [mv.id]),
+        a0: t0,
+        a1: t1 || mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [INERT]),
         b0: mon(bag.species, e.id, bag.ability, [INERT]),
         b1: mon(partner.species, '', partner.ability, [INERT]),
-        script: [turn([click(mv.id, 0), click(mv.id, 1)], [IDLE, IDLE]),
-                 turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+        script: clicks.concat([idle], delayed ? [idle] : []) }) };
   } },
 
 { id: 'item/drain-scaled', kind: 'item',
@@ -4944,16 +5064,19 @@ const RULES = [
     if (dex.getImmunity(DRAIN_MOVE.type, bag.types) === false)
       return cannot('the only 100-accuracy drain carrier is ' + DRAIN_MOVE.name + ', which the '
         + 'punching bag is immune to');
-    const nu = Object.keys(DELIVERY).map(hitOfType).find(mv => mv
-      && dex.getEffectiveness(mv.type, bag.types) === 0 && dex.getImmunity(mv.type, bag.types) !== false);
-    if (!nu) return cannot('no neutral 100-accuracy delivery move exists to chip the holder first');
+    /* ROADMAP #318 (6.24.0): each aggressor's chip is a neutral hit IT LEARNS — neither learns Sludge Bomb */
+    const nuBy = by => Object.keys(DELIVERY).map(t => learnableOfType(by, t).find(mv =>
+      dex.getEffectiveness(mv.type, bag.types) === 0 && dex.getImmunity(mv.type, bag.types) !== false)).find(Boolean) || null;
+    const nu0 = nuBy(CAST.ATTACKER().species), nu1 = nuBy(CAST.ATTACKER2().species);
+    const nu = nu0;
+    if (!nu0 || !nu1) return cannot('no neutral 100-accuracy delivery move the aggressors learn exists to chip the holder first');
     return { note: 'chipped, then draining with ' + DRAIN_MOVE.name,
       scenario: scaffold({ hpA: 8, hpB: 4,
-        a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [nu.id]),
-        a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [nu.id]),
+        a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [nu0.id]),
+        a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [nu1.id]),
         b0: mon(bag.id, e.id, CAST.BAG().ability, [DRAIN_MOVE.id]),
         b1: mon('snorlax', '', carrierAbility(dex.species.get('snorlax')) || '', [DRAIN_MOVE.id]),
-        script: [turn([click(nu.id, 0), click(nu.id, 1)], [IDLE, IDLE]),
+        script: [turn([click(nu0.id, 0), click(nu1.id, 1)], [IDLE, IDLE]),
                  turn([IDLE, IDLE], [click(DRAIN_MOVE.id, 0), click(DRAIN_MOVE.id, 0)]),
                  turn([IDLE, IDLE], [click(DRAIN_MOVE.id, 0), click(DRAIN_MOVE.id, 0)])] }) };
   } },
@@ -5196,15 +5319,19 @@ const RULES = [
     if (!sp || !sp.exists) return cannot('the item names user "' + e.itemUser[0] + '" and the format '
       + 'dex has no such body');
     const bag = dex.species.get(CAST.BAG().species);
-    const nu = Object.keys(DELIVERY).map(hitOfType).find(mv => mv
-      && dex.getEffectiveness(mv.type, bag.types) === 0 && dex.getImmunity(mv.type, bag.types) !== false);
-    if (!nu) return cannot('no neutral 100-accuracy delivery move exists against the punching bag');
+    /* ROADMAP #318 (6.24.0): the hit is one the item's own USER learns, and the other holder learns it too */
+    const nuOK = mv => mv && dex.getEffectiveness(mv.type, bag.types) === 0 && dex.getImmunity(mv.type, bag.types) !== false;
+    const nu = Object.keys(DELIVERY).map(t => learnableOfType(sp.id, t).find(nuOK)).find(Boolean);
+    if (!nu) return cannot('no neutral 100-accuracy delivery move that ' + sp.name + ' learns reaches the punching bag');
+    const isUser = s => (e.itemUser || []).some(u => idOf(u) === s.id || idOf(u) === idOf(s.baseSpecies));
+    const other = throwerFor(CAST.ATTACKER2(), [nu.id], { not: [sp.id], pred: s => !isUser(s) });
+    if (!other) return cannot('no legal body other than the item\'s user learns ' + nu.name + ', so the control holder has nothing to click');
     return { note: 'held by ' + sp.name + ', with a different species holding the same item beside it',
       scenario: scaffold({ hpA: 8, subject: 'B0',
         a0: { ...CAST.BAG(), moves: [INERT] },
         a1: mon('snorlax', '', 'Immunity', [INERT]),
         b0: mon(sp.id, e.id, Object.values(sp.abilities)[0], [nu.id]),
-        b1: mon(CAST.ATTACKER2().species, e.id, CAST.ATTACKER2().ability, [nu.id]),
+        b1: mon(other.species, e.id, other.ability, [nu.id]),
         script: [turn([IDLE, IDLE], [click(nu.id, 0), click(nu.id, 1)])] }) };
   } },
 
@@ -6066,9 +6193,11 @@ const RULES = [
     const spd = s => flatL50(s.baseStats).sp;
     /* THE CLICK: a delivery move with NO secondary of its own, so the added one is `nth 0`. */
     const clicks = [];
+    /* ROADMAP #318 (6.24.0): the carrier throws what it LEARNS — per type, its best two learnable delivery
+     * moves with no secondary of their own (Garbodor never learned Dragon Claw) */
     for (const t of Object.keys(DELIVERY))
-      for (const mv of [DELIVERY[t].physical, DELIVERY[t].special])
-        if (mv && !(mv.secondaries || []).length && !mv.secondary) clicks.push(mv);
+      for (const mv of learnableOfType(carSp.id, t, m => !(m.secondaries || []).length && !m.secondary))
+        clicks.push(mv);
     /* THE VICTIM: strictly slower than the carrier, not able to refuse a flinch, not immune to the
      * click, and able to hit back — its click is the whole observable. */
     const foes = CANDIDATES.filter(s => buildableSpecies(s.id) && !s.forme.endsWith('Mega')
@@ -6078,24 +6207,39 @@ const RULES = [
      * about the die: the real search space is 9 secondary-free clicks by N turns, not 49 x 9 x N. At
      * a 10% chance and three turns that is 27 dice and the lowest was 0.13; the refusal read "every
      * (victim, click, turn) triple" and was counting a dimension that does not exist. */
-    const back = neutralContactOn(carSp.id);
+    /* ROADMAP #318 (6.24.0): the victim's throw-back is one the VICTIM learns, so a foe is usable only with one */
+    /* ...and it carries NO SECONDARY OF ITS OWN. The first legal pick was Clefable's Body Slam: its paralysis
+     * moved the board before the chosen turn, which is the one thing this file says shifts the die's `nth`,
+     * and the flinch the prediction chose never landed (the Aftermath control read 0). */
+    const backFor = f => { for (const t of Object.keys(DELIVERY)) {
+        if (dex.getImmunity(t, carSp.types) === false || dex.getEffectiveness(t, carSp.types) !== 0) continue;
+        const mv = learnableOfType(f.id, t, m => m.category === 'Physical' && !!m.flags.contact
+          && !(m.secondaries || []).length && !m.secondary)[0];
+        if (mv) return mv; }
+      return null; };
+    const foesB = foes.filter(f => !!backFor(f));
+    const back = foesB.length ? backFor(foesB[0]) : null;
     let pick = null;
     const tried = [];
-    if (back && foes.length) {
-      for (let tn = 1; tn <= LIVE_RESIDUAL_TURNS && !pick; tn++) {
+    /* THE CARRIER'S CLICK IS NOW A MOVE IT LEARNS (ROADMAP #318, 6.24.0), AND THE WINDOW IS WIDER FOR IT.
+     * This block used to carry NO learnset filter, with the reason that the roster builds boards, not teams —
+     * and that exception was one of the 43 refused pairs the #318 probe counts (Garbodor never learned
+     * Dragon Claw). Its own measurement stands: Garbodor legally clicks one of the table's nine secondary-free
+     * delivery moves, ten dice, lowest 0.3853 against a 10% coin. `clicks` is now every secondary-free
+     * delivery move it learns, not the table's, and when no coin comes up inside LIVE_RESIDUAL_TURNS the
+     * search runs on to sixteen turns — the script repeats the click until the chosen turn, at 8x HP. */
+    const COIN_TURNS = Math.max(LIVE_RESIDUAL_TURNS, 16);
+    if (back && foesB.length) {
+      for (let tn = 1; tn <= COIN_TURNS && !pick; tn++) {
         for (const mv of clicks) {
-          /* NO LEARNSET FILTER ON THE CARRIER'S CLICK, on the same footing as `abilityScenario`'s
-           * `carrierHit` and for the reason the fixture audit states in full: the roster builds
-           * BOARDS, not teams — `scaffold` multiplies HP by 8 and `buildPair` constructs the body in
-           * both engines directly, so this rig is already a position no validator would pass. Asking
-           * for it here cost Stench its row: Garbodor legally clicks exactly ONE of the nine
-           * secondary-free delivery moves, which is ten dice, and the lowest was 0.3853 against a 10%
-           * coin. Both engines receive the identical body, so nothing about the comparison moves. */
-          const f = foes.find(x => dex.getImmunity(mv.type, x.types) !== false);
+          const f = foesB.find(x => dex.getImmunity(mv.type, x.types) !== false);
           if (!f) continue;
           const die = midDie(tn, 'sec', mv.id, 'p10', 0);
           tried.push({ mv, turn: tn, die });
-          if (die < chance) { pick = { foe: f, mv, back, turn: tn, die }; break; }
+          /* and inside both clicks' PP: the script repeats each once a turn up to the chosen turn, and the
+           * first wider run chose turn 16 and ran Ariados's Smart Strike dry (`...is disabled`) */
+          const bk = backFor(f);
+          if (die < chance && bk && tn <= Math.min(mv.pp || 0, bk.pp || 0)) { pick = { foe: f, mv, back: bk, turn: tn, die }; break; }
         }
       }
     }
@@ -6323,31 +6467,51 @@ const RULES = [
       + 'family is stat-scoped — one drop would retire Hyper Cutter and Big Pecks for a reason about '
       + 'this file');
     const intim = dex.abilities.get('intimidate');
-    const IB = (CARRIERS[intim.id] || []).filter(s => !s.battleOnly && !s.isNonstandard
+    const IBS = (CARRIERS[intim.id] || []).filter(s => !s.battleOnly && !s.isNonstandard
       && buildableSpecies(s.id))
       .sort((a, b) => (b.baseStats.hp + b.baseStats.def + b.baseStats.spd)
-                    - (a.baseStats.hp + a.baseStats.def + a.baseStats.spd))[0];
-    if (!IB) return cannot('no legal buildable body in this format carries Intimidate, and the four '
+                    - (a.baseStats.hp + a.baseStats.def + a.baseStats.spd));
+    if (!IBS.length) return cannot('no legal buildable body in this format carries Intimidate, and the four '
       + 'Intimidate-immunities in this family check for that effect by name');
-    const C = abilityCarrier(e, sp => idOf(sp.id) !== idOf(IB.id));
-    if (!C) return cannot(noCarrierWhy(e, 'is a body other than the Intimidate aggressor itself'));
-    const b1 = quietBody({ not: [C.species, IB.id] });
-    if (!b1) return cannot(noBodyWhy({ not: [C.species, IB.id] }));
-    const a1 = quietBody({ not: [C.species, IB.id, b1.species] });
-    /* THE FOUR CLICKS OF THE COVER, TWO PER TURN ACROSS TWO TURNS. Anything the cover does not reach
-     * is stated on the entry rather than left to be discovered as an INERT verdict. */
-    const D = DROP_SET.moves;
+    if (!abilityCarrier(e, sp => idOf(sp.id) !== idOf(IBS[0].id)))
+      return cannot(noCarrierWhy(e, 'is a body other than the Intimidate aggressor itself'));
+    /* ROADMAP #318 (6.24.0) — THE COVER IS THE SAME STATS, SPLIT BY WHAT EACH AGGRESSOR LEGALLY LEARNS.
+     * `DROP_SET` handed the Intimidate body Noble Roar and its partner Spicy Extract, and no Intimidate
+     * carrier learns the first while one species in the format learns the second. The aggressor is now the
+     * bulkiest Intimidate carrier for which SOME partner completes the cover (`dropCoverSplit`), partner
+     * drawn from the quiet move-stage bodies first. Anything the cover does not reach is still stated. */
+    let plan = null;
+    const closet = illusionCloset().species;
+    for (const IB of IBS) {
+      const C = abilityCarrier(e, sp => idOf(sp.id) !== idOf(IB.id));
+      if (!C) continue;
+      const b1 = quietBody({ not: [C.species, IB.id] });
+      if (!b1) continue;
+      const pool = moveBodies(PRIMARY_ARM_ID).map(r => ({ sp: r.sp, ability: r.ability }))
+        .concat(CANDIDATES.map(s => ({ sp: s, ability: carrierAbility(s) })));
+      for (const p of pool) {
+        if (!p.ability || closet.has(p.sp.id) || !buildableSpecies(p.sp.id)
+            || [C.species, IB.id, b1.species].some(x => idOf(x) === idOf(p.sp.id))) continue;
+        const cv = dropCoverSplit(IB.id, p.sp.id, DROP_SET.stats);
+        if (cv) { plan = { IB, C, b1, a1: mon(p.sp.id, '', p.ability, []), cv }; break; }
+      }
+      if (plan) break;
+    }
+    if (!plan) return cannot('no Intimidate carrier and partner in this format LEGALLY learn, between them, '
+      + 'single-target drops covering ' + DROP_SET.stats.join(', '));
+    const { IB, C, b1, a1, cv } = plan;
+    const D = cv.ib.concat(cv.a);
     return stageAbility(e, C, { hpA: 4, hpB: 4, moves: [INERT],
       note: 'Intimidate fires at boundary 0, then ' + D.map(m => m.name).join(' + ')
-          + ' are clicked at the carrier over turns 1 and 2 — between them they lower '
+          + ' are clicked at the carrier over turns 1 to 3 — between them they lower '
           + DROP_SET.stats.join(', ') + '; the aggressors\' own stages are the negative on the same '
-          + 'board',
-      a0: mon(IB.id, '', intim.name, D.filter((m, i) => i % 2 === 0).map(m => m.id)),
-      a1: mon((a1 || {}).species || CAST.ATTACKER2().species, '',
-        (a1 || {}).ability || CAST.ATTACKER2().ability, D.filter((m, i) => i % 2 === 1).map(m => m.id)),
+          + 'board (split by what each LEGALLY learns: ' + pretty(IB.id) + ' ' + cv.ib.map(m => m.name).join('/')
+          + ', ' + pretty(a1.species) + ' ' + (cv.a.map(m => m.name).join('/') || 'nothing') + ')',
+      a0: mon(IB.id, '', intim.name, cv.ib.length ? cv.ib.map(m => m.id) : [INERT]),
+      a1: { ...a1, moves: cv.a.length ? cv.a.map(m => m.id) : [INERT] },
       b1: { ...b1, moves: [INERT] },
-      script: [0, 1, 2].map(t => turn([D[2 * t] ? click(D[2 * t].id, 0) : IDLE,
-                                       D[2 * t + 1] ? click(D[2 * t + 1].id, 0) : IDLE],
+      script: [0, 1, 2].map(t => turn([cv.ib[t] ? click(cv.ib[t].id, 0) : IDLE,
+                                       cv.a[t] ? click(cv.a[t].id, 0) : IDLE],
                                       [IDLE, IDLE])) });
   } },
 
@@ -6413,17 +6577,21 @@ const RULES = [
     const keys = ['onTryHit', 'onAllyTryHitSide'];
     const T = typesNamed(e, keys), F = flagsNamed(e, keys);
     if (!T.length && !F.length) return null;
-    let mv = null, what = '';
-    if (T.length) { mv = hitOfType(T[0]); what = T[0] + '-type'; }
-    if (!mv && F.length) {
-      mv = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.flags && m.flags[F[0]]
+    /* ROADMAP #318 (6.24.0) — EVERY SHAPE THIS RULE WOULD THROW, IN THE ORDER IT ALWAYS PREFERRED THEM, AND
+     * THE FIRST ONE A LEGAL BODY CAN THROW WINS (below). The rule used to take the first candidate and hand
+     * it to Dragapult whether or not anybody legal learned it: Beak Blast (one learner, holding only
+     * interfering abilities), Spore (no legal learner), Toxic Thread (one). */
+    const cands = [];
+    const seen = new Set();
+    const add = (m, what, statusClick) => { if (m && !seen.has(m.id)) { seen.add(m.id); cands.push({ mv: m, what, statusClick }); } };
+    if (T.length) [hitOfType(T[0])].concat(deliveriesOfType(T[0])).forEach(m => add(m, T[0] + '-type', false));
+    if (F.length) dex.moves.all().filter(m => m.exists && !m.isNonstandard && SCOPE.inScope('move', m.id) && m.flags && m.flags[F[0]]
           && m.basePower > 0 && (m.accuracy === true || m.accuracy === 100)
           && (m.target === 'normal' || m.target === 'any') && !m.multihit && !m.drain && !m.recoil
           && !m.self && !m.status && !m.volatileStatus && !m.boosts && !(m.critRatio > 1)
           && !m.basePowerCallback)
-        .sort((a, b) => b.basePower - a.basePower)[0] || null;
-      what = 'a `' + F[0] + '`-flagged';
-    }
+        .sort((a, b) => b.basePower - a.basePower).forEach(m => add(m, 'a `' + F[0] + '`-flagged', false));
+    let mv = cands.length ? cands[0].mv : null, what = cands.length ? cands[0].what : '';
     /* THE STATUS FALLBACK, AND IT IS THE HALF THAT MAKES OVERCOAT AND MAGIC BOUNCE EXPRESSIBLE. Some
      * flags have NO damaging carrier at 100 accuracy in this format — `powder` and `reflectable` are
      * both status-only — and the first version refused both for that. `board_state.js` compares
@@ -6432,18 +6600,44 @@ const RULES = [
      * because a status carries no damage and the chip turn then does the whole job of taking the
      * carrier off full HP. */
     let statusClick = false;
-    if (!mv && F.length) {
-      mv = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.category === 'Status'
+    if (F.length) dex.moves.all().filter(m => m.exists && !m.isNonstandard && SCOPE.inScope('move', m.id) && m.category === 'Status'
           && m.flags && m.flags[F[0]] && (m.accuracy === true || m.accuracy === 100)
           && (m.target === 'normal' || m.target === 'any')
           && (m.status || m.volatileStatus === 'taunt' || (m.boosts
-              && Object.values(m.boosts).some(v => v < 0))))[0] || null;
-      if (mv) { statusClick = true; what = 'the `' + F[0] + '`-flagged status move'; }
-    }
-    if (!mv) return cannot('it refuses ' + (T[0] || F[0]) + ' moves and this format offers no '
+              && Object.values(m.boosts).some(v => v < 0)))).forEach(m => add(m, 'the `' + F[0] + '`-flagged status move', true));
+    /* ROADMAP #318 (6.24.0) — THE POWDER CLICK WAS SPORE, AND SPORE IS NOT IN THIS REGULATION (no legal
+     * learner). A TYPE change — an `onHit` that calls `setType` — puts a body's types on the board, so it
+     * is the last shape tried. */
+    if (F.length) dex.moves.all().filter(m => m.exists && !m.isNonstandard && SCOPE.inScope('move', m.id)
+          && m.category === 'Status' && m.flags && m.flags[F[0]] && (m.accuracy === true || m.accuracy === 100)
+          && (m.target === 'normal' || m.target === 'any') && /setType\(/.test(String(m.onHit || '')))
+        .forEach(m => add(m, 'the `' + F[0] + '`-flagged type-changing status move', true));
+    if (!cands.length) return cannot('it refuses ' + (T[0] || F[0]) + ' moves and this format offers no '
       + '100-accuracy single-target move of that shape whose effect is a leaf board_state.js '
       + 'compares, so the pin would make the click miss or the click would land on nothing and both '
       + 'arms would agree on nothing happening');
+    const carrierPred = m => sp => dex.getImmunity(m.type, sp.types) !== false
+      && !(m.flags && m.flags.powder && sp.types.includes('Grass'))
+      && !(m.status && dex.getImmunity(m.status === 'tox' ? 'psn' : m.status, sp.types) === false)
+      && !!neutralHit2(sp.id, [m.id]);
+    let pick = null;
+    /* every quiet thrower first; only then the wide pool (Magic Powder, Overcoat's one in-scope powder click,
+     * has no learner with a non-interfering ability) */
+    for (const wide of [false, true]) {
+      if (pick) break;
+      for (const cd of cands) {
+        const Cx = abilityCarrier(e, carrierPred(cd.mv));
+        if (!Cx) continue;
+        const t0 = throwerFor(CAST.ATTACKER(), [cd.mv.id], { not: [Cx.species], wide,
+          pred: s => !!neutralHit2(Cx.species, [cd.mv.id], s.id) });
+        if (t0) { pick = { ...cd, C: Cx, ab0: t0 }; break; }
+      }
+    }
+    /* NO LEGAL BODY CAN THROW ANY OF IT — Overcoat's powder half, whose only in-scope 100-accuracy click
+     * (Magic Powder) no quiet legal body learns. The rule then says nothing and the entity goes to the next
+     * rule that can say something about it, the move `ability/stat-drop-reaction` makes for Keen Eye. */
+    if (!pick && cands.some(cd => abilityCarrier(e, carrierPred(cd.mv)))) return null;
+    if (pick) { mv = pick.mv; what = pick.what; statusClick = pick.statusClick; }
     const type = mv.type;
     /* A BODY THAT IS ALREADY IMMUNE TO THE STAGED CLICK READS THE SAME IN BOTH ARMS, and the three
      * ways to be immune here are NOT the same table: the type chart, the POWDER rule (Grass types
@@ -6457,12 +6651,17 @@ const RULES = [
       + 'ALREADY immune to the staged click (by the type chart, by the powder rule, or by the status '
       + 'immunity table) reads the same in BOTH arms and the ability cannot be distinguished from '
       + 'the rule that was going to stop it anyway'));
-    const neutral = neutralHit2(C.species, [mv.id]);
+    /* ROADMAP #318 (6.24.0): the aggressor LEARNS the absorbed click, and its neutral chip is one it learns */
+    const ab0 = pick && idOf(pick.C.species) === idOf(C.species) ? pick.ab0
+      : throwerFor(CAST.ATTACKER(), [mv.id], { not: [C.species], pred: s => !!neutralHit2(C.species, [mv.id], s.id) });
+    if (!ab0) return cannot('no legal body outside the owner\'s closet learns ' + mv.name
+      + ' together with a neutral chip on ' + pretty(C.species));
+    const neutral = neutralHit2(C.species, [mv.id], ab0.species);
     return stageAbility(e, C, { hpA: 4, hpB: 6, moves: [INERT],
       note: 'chipped by ' + neutral.name + ' on turn 1 so a heal has somewhere to land, hit by '
           + what + ' ' + mv.name + ' on turn 2, and hit by ' + neutral.name + ' again on turn 3 as the '
           + 'on-board negative',
-      a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [mv.id, neutral.id]),
+      a0: mon(ab0.species, '', ab0.ability, [mv.id, neutral.id]),
       script: [turn([click(neutral.id, 0), IDLE], [IDLE, IDLE]),
                turn([click(mv.id, 0), IDLE], [IDLE, IDLE]),
                turn([click(neutral.id, 0), IDLE], [IDLE, IDLE])] });
@@ -6491,17 +6690,22 @@ const RULES = [
     if (!to || (!from && !fromFlag)) return cannot('its onModifyType handler does not spell out both '
       + 'the type it reads and the type it assigns in a shape this rule can read (from='
       + (from || fromFlag || 'none') + ', to=' + (to || 'none') + '), so the staging would be a guess');
-    let mv = from ? hitOfType(from) : null;
-    if (!mv && fromFlag) mv = dex.moves.all().filter(m => m.exists && !m.isNonstandard
+    /* ROADMAP #318 (6.24.0): the converted click is one the CARRIER learns, so the carrier is chosen among
+     * the carriers that learn one — Primarina never learned Bug Buzz, nor Sylveon Sludge Bomb. */
+    const convFlag = m => m.exists && !m.isNonstandard
         && m.flags && m.flags[fromFlag] && m.basePower > 0
         && (m.accuracy === true || m.accuracy === 100) && (m.target === 'normal' || m.target === 'any')
         && !m.multihit && !m.drain && !m.recoil && !m.self && !m.status && !m.volatileStatus
-        && !m.boosts && !(m.critRatio > 1) && !m.basePowerCallback)
-      .sort((a, b) => b.basePower - a.basePower)[0] || null;
-    if (!mv) return cannot('no 100-accuracy single-target delivery move it would convert ('
+        && !m.boosts && !(m.critRatio > 1) && !m.basePowerCallback;
+    const convFor = sp => (from ? (learnableOfType(sp.id, from)[0] || null)
+      : (dex.moves.all().filter(m => convFlag(m) && learnsLegally(sp.id, m.id))
+          .sort((a, b) => b.basePower - a.basePower)[0] || null));
+    const anyConv = from ? hitOfType(from) : (dex.moves.all().filter(convFlag)[0] || null);
+    if (!anyConv) return cannot('no 100-accuracy single-target delivery move it would convert ('
       + (from || 'flag ' + fromFlag) + ') exists in this format');
-    const srcType = mv.type;
-    const C = abilityCarrier(e);
+    const C = abilityCarrier(e, sp => !!convFor(sp));
+    const mv = C ? convFor(dex.species.get(C.species)) : null;
+    const srcType = mv ? mv.type : null;
     if (!C) return cannot(noCarrierWhy(e, 'is legal, buildable and has a second ability'));
     /* THE DEFENDER, RANKED BY HOW MUCH THE CONVERSION IS WORTH ON IT. An immunity flipped to a hit is
      * the largest signal the chart can produce and it lands on `hp` rather than on a rounding step. */
@@ -6514,7 +6718,7 @@ const RULES = [
       + ' differently from ' + srcType + ', so the conversion would be worth the same damage either '
       + 'way and both arms would agree on a number that means nothing');
     const def = cands[0].sp, defAb = moveBodies(PRIMARY_ARM_ID).find(r => r.sp.id === def.id).ability;
-    const other = neutralHit2(def.id, [mv.id, srcType]);
+    const other = neutralHit2(def.id, [mv.id, srcType], C.species);
     if (!other) return cannot('no second delivery move of an unconverted type exists against '
       + pretty(def.id) + ', so the rule has no on-board negative');
     return stageAbility(e, C, { hpA: 8, hpB: 4, moves: [mv.id, other.id],
@@ -6544,21 +6748,26 @@ const RULES = [
   match(e) {
     if (typeof e.onDamage !== 'function') return null;
     if (!/recoil/i.test(String(e.onDamage))) return null;
-    const rec = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.recoil
+    const recAll = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.recoil
         && m.basePower > 0 && (m.accuracy === true || m.accuracy === 100)
         && (m.target === 'normal' || m.target === 'any') && !m.multihit && !m.flags.charge
         && !m.selfdestruct && !(m.critRatio > 1) && !m.basePowerCallback)
-      .sort((a, b) => b.basePower - a.basePower)[0];
-    if (!rec) return cannot('this format offers no 100-accuracy single-target recoil move, so the '
+      .sort((a, b) => b.basePower - a.basePower);
+    if (!recAll.length) return cannot('this format offers no 100-accuracy single-target recoil move, so the '
       + 'self-damage this ability refuses cannot be created');
-    const C = abilityCarrier(e);
-    if (!C) return cannot(noCarrierWhy(e, 'is legal, buildable and has a second ability'));
+    /* ROADMAP #318 (6.24.0): the recoil click is the strongest one the CARRIER learns (Steelix never learned
+     * Brave Bird), so the carrier is chosen among those that learn one. */
+    const recFor = sp => recAll.find(m => learnsLegally(sp.id, m.id)) || null;
+    const C = abilityCarrier(e, sp => !!recFor(sp));
+    if (!C) return cannot(noCarrierWhy(e, 'is legal, buildable, has a second ability and learns a '
+      + '100-accuracy single-target recoil move'));
+    const rec = recFor(dex.species.get(C.species));
     const def = moveBodies(PRIMARY_ARM_ID).map(r => r.sp).find(sp => idOf(sp.id) !== idOf(C.species)
       && dex.getImmunity(rec.type, sp.types) !== false
       && dex.getEffectiveness(rec.type, sp.types) === 0);
     if (!def) return cannot(noBodyWhy({ neutralTo: rec.type, not: [C.species] }));
     const defAb = moveBodies(PRIMARY_ARM_ID).find(r => r.sp.id === def.id).ability;
-    const plain = dex.moves.all().find(m => deliveryOf(m) && m.category === rec.category
+    const plain = dex.moves.all().find(m => deliveryOf(m) && learnsLegally(C.species, m.id) && m.category === rec.category
       && dex.getEffectiveness(m.type, def.types) === 0 && dex.getImmunity(m.type, def.types) !== false);
     return stageAbility(e, C, { hpA: 8, hpB: 4, moves: [rec.id].concat(plain ? [plain.id] : []),
       note: 'the carrier throws ' + rec.name + ' (recoil ' + JSON.stringify(rec.recoil) + ') at '
@@ -6733,21 +6942,44 @@ const RULES = [
       && !(m.critRatio > 1) && !m.willCrit && !m.basePowerCallback && !m.ohko
       && !(m.secondaries || []).some(s => !s.chance || s.chance >= 100);
     const all = dex.moves.all().filter(usable);
-    const hit = all.filter(inScope).sort((a, b) => b.basePower - a.basePower)[0];
+    /* ROADMAP #318 (6.24.0): the in-scope click is the strongest the CARRIER learns (Rhyperior never learned
+     * Brave Bird, Barbaracle never Focus Punch), and the carrier is chosen among those that learn one */
+    const hitFor = sp => all.filter(m => inScope(m) && learnsLegally(sp.id, m.id))
+      .sort((a, b) => b.basePower - a.basePower)[0] || null;
+    let hit = all.filter(inScope).sort((a, b) => b.basePower - a.basePower)[0];
     if (!hit) return cannot('its scope is ' + (F[0] || (bp ? 'base power <= ' + bp : 'recoil moves'))
       + ' and this format offers no 100-accuracy single-target damaging move inside it, so the '
       + 'condition cannot be created');
     const scope = F[0] ? 'the `' + F[0] + '` flag' : (bp ? 'base power <= ' + bp : 'the recoil field');
-    const C = abilityCarrier(e, sp => dex.getImmunity(hit.type, sp.types) !== false);
-    if (!C) return cannot(noCarrierWhy(e, 'is a legal buildable body at all'));
+    /* ...and an on-board negative exists for it: a quiet body neutral to the click, and an OUT-of-scope click
+     * of the same category the carrier also learns. Tried strongest in-scope click first. */
+    const planFor = sp => {
+      for (const h of all.filter(m => inScope(m) && learnsLegally(sp.id, m.id)).sort((a, b) => b.basePower - a.basePower)) {
+        if (dex.getImmunity(h.type, sp.types) === false) continue;
+        const ok = moveBodies(PRIMARY_ARM_ID).map(r => r.sp).some(d => idOf(d.id) !== idOf(sp.id)
+          && dex.getEffectiveness(h.type, d.types) === 0 && dex.getImmunity(h.type, d.types) !== false
+          && all.some(m => !inScope(m) && learnsLegally(sp.id, m.id) && m.id !== h.id
+            && dex.getEffectiveness(m.type, d.types) === 0 && dex.getImmunity(m.type, d.types) !== false));
+        if (ok) return h;
+      }
+      return null;
+    };
+    const C = abilityCarrier(e, sp => !!planFor(sp));
+    if (!C) return cannot(noCarrierWhy(e, 'is a legal buildable body at all, and learns an in-scope click '
+      + 'AND an out-of-scope click of the same category for the on-board negative'));
+    hit = planFor(dex.species.get(C.species));
     /* THE DEFENDER TAKES BOTH CLICKS AND MUST BE NEUTRAL TO BOTH, or the two turns differ in the type
      * chart as well as in the scope and neither number means anything on its own. */
     const cand = moveBodies(PRIMARY_ARM_ID).map(r => r.sp).filter(sp => idOf(sp.id) !== idOf(C.species)
       && dex.getEffectiveness(hit.type, sp.types) === 0 && dex.getImmunity(hit.type, sp.types) !== false);
     let out = null, def = null;
     for (const sp of cand) {
-      out = all.find(m => !inScope(m) && m.category === hit.category && m.id !== hit.id
-        && dex.getEffectiveness(m.type, sp.types) === 0 && dex.getImmunity(m.type, sp.types) !== false);
+      /* the same category when the carrier learns one (ROADMAP #318, 6.24.0: Barbaracle learns no physical
+       * out-of-scope click at 100 accuracy), otherwise the other — the negative is "outside the scope, worth
+       * the same in both arms", and the scope is the ability's, never the category's */
+      const outOk = m => !inScope(m) && learnsLegally(C.species, m.id) && m.id !== hit.id
+        && dex.getEffectiveness(m.type, sp.types) === 0 && dex.getImmunity(m.type, sp.types) !== false;
+      out = all.find(m => outOk(m) && m.category === hit.category) || all.find(outOk);
       if (out) { def = sp; break; }
     }
     if (!def) return cannot('no quiet body is neutral to both an in-scope click and an out-of-scope '
@@ -7047,17 +7279,20 @@ const RULES = [
       if (atk.types.includes('Dark')) return cannot('the aggressor is a Dark type and this family is '
         + 'refused by Dark bodies, so the staged click would be blocked in BOTH arms');
       let kill = null;
-      const C = abilityCarrier(e, sp => spd(sp) < spd(atk) && !!(kill = lethalMove(atk, sp, 1.2)));
+      const C = abilityCarrier(e, sp => spd(sp) < spd(atk) && !!(kill = lethalMove(atk, sp, 1.2))
+        && DROP_POOL.some(m => learnsLegally(sp.id, m.id)));
+      /* ROADMAP #318 (6.24.0): the status click is a drop the CARRIER learns (Whimsicott never learned Noble Roar) */
+      const pdrop = C ? DROP_POOL.find(m => learnsLegally(C.species, m.id)) : null;
       if (!C) return cannot(noCarrierWhy(e, 'is SLOWER than the aggressor ' + atk.name + ' AND can be '
         + 'killed outright by one of its derived delivery moves — without both, the shift changes no '
         + 'leaf and the entry reads INERT'));
       kill = lethalMove(atk, C.sp, 1.2);
-      return stageAbility(e, C, { hpA: 4, hpB: 1, moves: [DROP_MOVE.id],
+      return stageAbility(e, C, { hpA: 4, hpB: 1, moves: [pdrop.id],
         note: 'the carrier is slower (' + spd(C.sp) + ' against ' + spd(atk) + ') and is killed '
             + 'outright by ' + kill.mv.name + '; it clicks ' + DROP_MOVE.name + ', which only lands '
             + 'if the shift moved it first',
         a0: mon(atk.id, '', CAST.ATTACKER().ability, [kill.mv.id]),
-        script: [turn([click(kill.mv.id, 0), IDLE], [click(DROP_MOVE.id, 0), IDLE]),
+        script: [turn([click(kill.mv.id, 0), IDLE], [click(pdrop.id, 0), IDLE]),
                  turn([IDLE, IDLE], [IDLE, IDLE])] });
     }
     if (!T.length) return cannot('its onModifyPriority names neither a move category nor a move type '
@@ -7131,23 +7366,34 @@ const RULES = [
     if (typeof e.onFoeTryMove !== 'function') return null;
     if (!PRIORITY_HIT) return cannot('this format has no 100-accuracy single-target damaging move '
       + 'with positive priority and no rider, so the class this ability refuses cannot be thrown');
-    const t = PRIORITY_HIT.type;
-    const C = abilityCarrier(e, sp => dex.getImmunity(t, sp.types) !== false);
-    if (!C) return cannot(noCarrierWhy(e, 'can be hit by ' + PRIORITY_HIT.name + ' at all — a body '
+    /* ROADMAP #318 (6.24.0) — THE PRIORITY HIT IS THE STRONGEST ONE A LEGAL BODY THROWS, together with a
+     * 0-priority click it also learns. The table's first pick, Extreme Speed, has four legal learners and
+     * every one holds only interfering abilities, so no quiet aggressor could ever hold it. */
+    let plan = null, firstC = null;
+    for (const ph of PRIORITY_HITS) {
+      const C = abilityCarrier(e, sp => dex.getImmunity(ph.type, sp.types) !== false);
+      if (!C) continue;
+      if (!firstC) firstC = { C, ph };
+      const ally = quietBody({ not: [C.species], type: ph.type });
+      if (!ally) continue;
+      const pa = throwerFor(CAST.ATTACKER(), [ph.id], { not: [C.species, ally.species],
+        pred: s => !!neutralHit2(C.species, [ph.id], s.id) });
+      if (pa) { plan = { ph, C, ally, pa, slow: neutralHit2(C.species, [ph.id], pa.species) }; break; }
+    }
+    if (!firstC) return cannot(noCarrierWhy(e, 'can be hit by ' + PRIORITY_HIT.name + ' at all — a body '
       + 'the chart already makes immune reads 0 in both arms'));
-    const ally = quietBody({ not: [C.species], type: t });
-    if (!ally) return cannot(noBodyWhy({ type: t, not: [C.species] }));
-    const slow = neutralHit2(C.species, [PRIORITY_HIT.id]);
-    if (!slow) return cannot('no 0-priority neutral delivery move exists against ' + pretty(C.species)
-      + ', so the rule has no on-board negative');
+    if (!plan) return cannot('no legal body outside the owner\'s closet learns a qualifying priority hit '
+      + 'together with a 0-priority neutral click on the carrier, so the rule has no on-board negative');
+    const { C, ally, pa, slow } = plan;
+    const PRIORITY_HIT_ = plan.ph;
     return stageAbility(e, C, { hpA: 4, hpB: 6, moves: [INERT],
-      note: PRIORITY_HIT.name + ' (priority +' + PRIORITY_HIT.priority + ') at the carrier on turn 1 '
+      note: PRIORITY_HIT_.name + ' (priority +' + PRIORITY_HIT_.priority + ') at the carrier on turn 1 '
           + 'and at its ALLY ' + pretty(ally.species) + ' on turn 2 — both must be refused; '
           + slow.name + ' at the carrier on turn 3 must land',
-      a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability, [PRIORITY_HIT.id, slow.id]),
+      a0: mon(pa.species, '', pa.ability, [PRIORITY_HIT_.id, slow.id]),
       b1: { ...ally, moves: [INERT] },
-      script: [turn([click(PRIORITY_HIT.id, 0), IDLE], [IDLE, IDLE]),
-               turn([click(PRIORITY_HIT.id, 1), IDLE], [IDLE, IDLE]),
+      script: [turn([click(PRIORITY_HIT_.id, 0), IDLE], [IDLE, IDLE]),
+               turn([click(PRIORITY_HIT_.id, 1), IDLE], [IDLE, IDLE]),
                turn([click(slow.id, 0), IDLE], [IDLE, IDLE])] });
   } },
 
@@ -7200,21 +7446,33 @@ const RULES = [
       : noBodyWhy({ not: [C.species] }));
     const hit = neutralHit2(ally.species, []);
     if (!hit) return cannot('no neutral delivery move exists against the ally ' + pretty(ally.species));
-    const sleep = STATUS_MOVE.slp;
+    const slc = sleepClick();
+    const sleep = slc && slc.move;
     const allySp = dex.species.get(ally.species);
     const canSleep = sleep && !(sleep.flags && sleep.flags.powder && allySp.types.includes('Grass'))
       && dex.getImmunity('slp', allySp.types) !== false;
+    /* ROADMAP #318 (6.24.0) — THE SECOND AGGRESSOR LEGALLY LEARNS WHAT IT THROWS. Weavile learns neither
+     * Noble Roar nor Spore, and Spore has no legal learner at all. The drop is now the first of the cover
+     * some body learns together with the in-scope sleep click, and that body throws both. */
+    const drops = DROP_SET.moves.concat(DROP_POOL.filter(m => !DROP_SET.moves.includes(m)));
+    let drop = null, a1b = null;
+    for (const d of drops) {
+      a1b = throwerFor(CAST.ATTACKER2(), [d.id].concat(canSleep ? [sleep.id] : []), { not: [C.species, ally.species] });
+      if (a1b) { drop = d; break; }
+    }
+    if (!drop) return cannot('no legal body learns a single-target stat drop' + (canSleep ? ' together with '
+      + sleep.name : '') + ', so the second aggressor has nothing it can legally throw at the ally');
     return stageAbility(e, C, { hpA: 4, hpB: 6, moves: [INERT],
       note: 'everything is aimed at the ALLY ' + pretty(ally.species)
           + (gate ? ' (a ' + gate + ' type, which is the gate this ability\'s own handler names)' : '')
-          + ': ' + hit.name + ' and ' + DROP_MOVE.name + ' on turn 1, '
-          + (canSleep ? sleep.name : 'NO sleep click — the ally is immune to it, so staging it would '
+          + ': ' + hit.name + ' and ' + drop.name + ' on turn 1, '
+          + (canSleep ? sleep.name + (slc.delayed ? ' (drowsy on the click, asleep at the END of turn 3)' : '')
+             : 'NO sleep click — the ally is immune to it, so staging it would '
              + 'be a click that lands in neither arm') + ' on turn 2, and '
           + (TAUNT_MOVE ? TAUNT_MOVE.name + ' LAST' : 'no taunt in this format'),
       a0: mon(CAST.ATTACKER().species, '', CAST.ATTACKER().ability,
         [hit.id].concat(TAUNT_MOVE ? [TAUNT_MOVE.id] : [])),
-      a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability,
-        [DROP_MOVE.id].concat(canSleep ? [sleep.id] : [])),
+      a1: a1b,
       b1: { ...ally, moves: [INERT] },
       /* THE TAUNT IS ON THE LAST TURN AND THAT IS NOT A PREFERENCE. Taunt forbids STATUS moves, and
        * this file's inert click IS a status move — so a body taunted on turn 2 has no legal choice
@@ -7222,7 +7480,7 @@ const RULES = [
        * must make a move". Measured on the first run of this rule: six of its members threw. Putting
        * the taunt last means the volatile is on the boundary that reads it and no body ever has to
        * choose underneath it. */
-      script: [turn([click(hit.id, 1), click(DROP_MOVE.id, 1)], [IDLE, IDLE]),
+      script: [turn([click(hit.id, 1), click(drop.id, 1)], [IDLE, IDLE]),
                turn([IDLE, canSleep ? click(sleep.id, 1) : IDLE], [IDLE, IDLE]),
                turn([TAUNT_MOVE ? click(TAUNT_MOVE.id, 1) : IDLE, IDLE], [IDLE, IDLE])] });
   } },
@@ -8192,11 +8450,13 @@ const RULES = [
       && /damage\(/.test(String(it.onAfterMoveSecondarySelf || '')));
     if (!ORB) return cannot('no legal item in this format damages its own holder after a click, so '
       + 'the fixture has no source of damage that is not a move');
-    const hit = neutralHit2(CAST.ATTACKER().species, []);
+    let hit = neutralHit2(CAST.ATTACKER().species, []);
     if (!hit) return cannot('no neutral 100-accuracy delivery move reaches the aggressor, so the '
       + 'carrier cannot be made to click and the item never charges');
-    const C = abilityCarrier(e, () => true);
-    if (!C) return cannot(noCarrierWhy(e, 'has a second ability to control with'));
+    const C = abilityCarrier(e, sp => !!neutralHit2(CAST.ATTACKER().species, [], sp.id));
+    if (!C) return cannot(noCarrierWhy(e, 'has a second ability to control with, and learns a neutral hit on the aggressor'));
+    /* ROADMAP #318 (6.24.0): the carrier's own click is one it LEARNS (Reuniclus never learned Iron Head) */
+    hit = neutralHit2(CAST.ATTACKER().species, [], C.species);
     return stageAbility(e, C, { hpA: 6, hpB: 4, item: ORB.name, moves: [hit.id],
       note: 'the carrier holds ' + ORB.name + ' and clicks ' + hit.name + ' on turns 1 and 2. WITHOUT '
           + 'the ability its own hp falls after each click; WITH it the carrier is untouched, and the '
@@ -8662,22 +8922,39 @@ const RULES = [
       + ' and no all-positive 100-accuracy self-boost move in this format raises one of them, so the '
       + 'precondition cannot be created');
     const arm = armFor(e);
-    const b0 = quietBody({ arm }), b1 = quietBody({ arm, not: [b0 && b0.species] });
-    if (!b0 || !b1) return cannot(noBodyWhy({ arm }));
     const byFoe = aimsAtFoe(e);
+    /* ROADMAP #318 (6.24.0) — THE BOOSTED BODY AND ITS SETTER ARE CHOSEN TOGETHER, off what it LEARNS: it
+     * clicks the setter on turn 1 and, for a move aimed at itself, the move on turn 2. Goodra-Hisui learned
+     * neither Coil nor Acupressure. Quiet move-stage bodies first, then any legal candidate. */
+    let b0 = null, set2 = null;
+    {
+      const setters = boostSettersFor(e);
+      const closet = illusionCloset().species;
+      const rows = moveBodies(arm).map(r => ({ sp: r.sp, ability: r.ability }))
+        .concat(CANDIDATES.filter(s => buildableSpecies(s.id) && !closet.has(s.id))
+          .map(s => ({ sp: s, ability: carrierAbility(s) })));
+      for (const r of rows) {
+        if (!r.ability || (!byFoe && !learnsLegally(r.sp.id, e.id))) continue;
+        const s = setters.find(m => learnsLegally(r.sp.id, m.id));
+        if (s) { b0 = mon(r.sp.id, '', r.ability, []); set2 = s; break; }
+      }
+    }
+    if (!b0) { b0 = quietBody({ arm }); set2 = set; }
+    const b1 = quietBody({ arm, not: [b0 && b0.species] });
+    if (!b0 || !b1) return cannot(noBodyWhy({ arm }));
     /* THE BOOST GOES ON WHOEVER THE MOVE READS. A swap or a copy reads the TARGET, so the target
      * boosts itself; a field-wide clear (Haze) reads everybody, so the same click serves. */
     return { arm, precondition: { turn: 1, why: 'a non-zero stat stage on the body the move reads',
         ok: b => Object.values(((((b.sd || {}).sides || {}).p2 || {}).active || [])[0] || {}).length
               && Object.values((b.sd.sides.p2.active[0] || {}).boosts || {}).some(v => v !== 0) },
-      note: pretty(b0.species) + ' raises ' + JSON.stringify(set.boosts) + ' with '
-        + set.name + ' on turn 1; the move is clicked on turn 2 and the stage leaves are what is '
+      note: pretty(b0.species) + ' raises ' + JSON.stringify(set2.boosts) + ' with '
+        + set2.name + ' on turn 1; the move is clicked on turn 2 and the stage leaves are what is '
         + 'compared. ' + pretty(b1.species) + ' beside it never boosts and is the negative' + armNote(e),
       scenario: scaffold({ hpA: 4, hpB: 8,
-        a0: { ...CLICKER(arm), moves: byFoe ? [e.id, set.id] : [set.id] },
-        b0: { ...b0, moves: byFoe ? [set.id] : [e.id, set.id] },
+        a0: { ...CLICKER(arm), moves: byFoe ? [e.id, set2.id] : [set2.id] },
+        b0: { ...b0, moves: byFoe ? [set2.id] : [e.id, set2.id] },
         b1: { ...b1, moves: [INERT] },
-        script: [turn([IDLE, IDLE], [click(set.id), IDLE]),
+        script: [turn([IDLE, IDLE], [click(set2.id), IDLE]),
                  turn(byFoe ? [throwIt(e, 0), IDLE] : [IDLE, IDLE],
                       byFoe ? [IDLE, IDLE] : [throwIt(e, 0), IDLE]),
                  turn([IDLE, IDLE], [IDLE, IDLE])] }) };
@@ -8748,7 +9025,8 @@ const RULES = [
      * at the user itself, and `aimsAtFoe` is what separates them */
     const eater = self ? b0 : { ...CLICKER(arm) };
     const chipTarget = self ? b0.species : CLICKER(arm).species;
-    const chip = neutralHit(chipTarget, e.id);
+    /* ROADMAP #318 (6.24.0): the chip is one its THROWER learns — the clicker at a self-eater, else b0 */
+    const chip = neutralHit2(chipTarget, [e.id], self ? CLICKER(arm).species : b0.species);
     if (!chip) return cannot('no neutral 100-accuracy delivery move exists to take ' + chipTarget
       + ' to half HP, and a half-HP berry that is never eaten leaves the gate shut');
     /* THE BERRY EATS AT HALF, SO THE CHIP HAS TO CROSS THE LINE, AND ONE DID NOT. The first version
@@ -9101,8 +9379,11 @@ const RULES = [
     if (!user || !filler) return cannot(noBodyWhy({ arm, not: [pick.body.sp.id] })
       + ' This probe needs THREE distinct bodies on the subject side: the one that is damaged and '
       + 'leaves, the one that clicks the move and dies, and the partner standing in the other slot.');
-    const statuser = quietBody({ arm, not: [CLICKER(arm).species, pick.body.sp.id] })
+    const statuser0 = quietBody({ arm, not: [CLICKER(arm).species, pick.body.sp.id] })
                   || { ...CAST.ATTACKER2() };
+    /* ROADMAP #318 (6.24.0): the statuser LEARNS its status click (Torkoal never learned Toxic Thread) */
+    const statuser = throwerFor(statuser0, [pick.move.id], { not: [CLICKER(arm).species, pick.body.sp.id,
+      user.species, filler.species] }) || statuser0;
     const sc = scaffold({ hpA: 1, hpB: 1,
       a0: mon(CLICKER(arm).species, '', CLICKER(arm).ability, [pick.body.chip.id]),
       a1: mon(statuser.species, '', statuser.ability, [pick.move.id]),
@@ -9359,7 +9640,7 @@ const RULES = [
      * `carrierAbility`'s filter already excludes an HP floor, a damage modifier and an immunity,
      * which is the whole list of things that could corrupt a shielded-against-unshielded reading.
      * `KILLABLE`/`KILLABLE2` are the same two derivations `item/hp-floor` uses. */
-    const arm = armFor(e), atk = dex.species.get(CAST.ATTACKER().species);
+    const arm = armFor(e), atk = dex.species.get(KILLABLE ? KILLABLE.by : CAST.ATTACKER().species);
     if (!KILLABLE || !KILLABLE2) return cannot('no two legal bodies of different species can each be '
       + 'killed outright from full by one derived delivery move, and a shield is invisible unless the '
       + 'blow it stops was fatal — a survived hit reads identically with and without it');
@@ -9367,8 +9648,13 @@ const RULES = [
         + pretty(KILLABLE2.species) + ' beside it carries the same move, does NOT click it, and must die'
         + armNote(e),
       scenario: scaffold({
-        a0: mon(atk.id, '', CAST.ATTACKER().ability, [KILLABLE.move.id]),
-        a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [KILLABLE2.move.id]),
+        /* ROADMAP #318 (6.24.0): the aggressor is the body KILLABLE was sized for, and the second kill is
+         * thrown by a legal learner of it that kills KILLABLE2 with ITS OWN stats (1.2x margin) */
+        a0: mon(atk.id, '', KILLABLE.byAbility, [KILLABLE.move.id]),
+        a1: (() => { const k2 = dex.species.get(KILLABLE2.species), hp = flatL50(k2.baseStats).hp;
+          return throwerFor(CAST.ATTACKER2(), [KILLABLE2.move.id], { not: [atk.id, KILLABLE.species, KILLABLE2.species],
+            pred: s => maxRoll(s, KILLABLE2.move, k2) >= hp * 1.2 })
+            || mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [KILLABLE2.move.id]); })(),
         b0: mon(KILLABLE.species, '', KILLABLE.ability, [e.id]),
         b1: mon(KILLABLE2.species, '', KILLABLE2.ability, [e.id]),
         script: [turn([click(KILLABLE.move.id, 0), click(KILLABLE2.move.id, 1)], [mclick(e), IDLE])] }) };
@@ -9930,12 +10216,15 @@ const RULES = [
       + 'are the same number.');
     const b1 = quietBody({ arm, not: [pick.sp.id] });
     if (!b1) return cannot(noBodyWhy({ arm, not: [pick.sp.id] }));
-    const chip2 = neutralHit(b1.species, e.id);
+    /* ROADMAP #318 (6.24.0): the second chip is one its THROWER learns (Weavile never learned Dragon Pulse) */
+    const a1r = throwerFor(CAST.ATTACKER2(), [], { not: [pick.sp.id, b1.species, CLICKER(arm).species],
+      pred: s => !!neutralHit2(b1.species, [e.id], s.id) });
+    const chip2 = a1r && neutralHit2(b1.species, [e.id], a1r.species);
     if (!chip2) return cannot('no neutral 100-accuracy delivery move exists to take the on-board '
       + 'negative off full HP, and a body at full HP proves nothing by not healing');
     const sc = scaffold({ hpA: 4, hpB: 1,
       a0: mon(CLICKER(arm).species, '', CLICKER(arm).ability, [pick.chip.id]),
-      a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [chip2.id]),
+      a1: mon(a1r.species, '', a1r.ability, [chip2.id]),
       b0: { ...pick.body, moves: [e.id] }, b1: { ...b1, moves: [INERT] },
       script: [turn([click(pick.chip.id, 0), click(chip2.id, 1)], [IDLE, IDLE]),
                turn([IDLE, IDLE], [throwIt(e), IDLE]),
@@ -10701,6 +10990,99 @@ function assignPairs() {
   return { entries: out, banned: [] };
 }
 
+/* ==== ROADMAP #318, 2026-09-11 (ENGINE 6.24.0) — A RULE ASKS WHO CAN LEARN A MOVE BEFORE IT SIZES ANYTHING ====
+ *
+ * The restaging pass below repairs a fixture AFTER its rule ran, and it cannot repair what the rule already
+ * leaned on: a band sized for one thrower's stats, a KO flip found for one body, a status delivered by a move
+ * no legal body learns. Every one of the 43 pairs it left (tests/probe_roster_learnset_refusals.js, release
+ * b42b81899631) had that shape. So a rule that picks a move FOR a named body now picks it from that body's
+ * learnset, and a rule that picks a body FOR a move picks it from the move's learners — both through
+ * `learnsLegally`, the TeamValidator judge the probe and `fixtureAudit` use. `learnsMove` (the prevo walk
+ * above) is a different judge and is not used for this. */
+function deliveriesOfType(t) {
+  if (!_DBT) {
+    _DBT = {};
+    for (const m of dex.moves.all()) if (deliveryOf(m)) (_DBT[m.type] = _DBT[m.type] || []).push(m);
+    for (const k of Object.keys(_DBT)) _DBT[k].sort((a, b) => b.basePower - a.basePower || (a.id < b.id ? -1 : 1));
+  }
+  return _DBT[t] || [];
+}
+/* the delivery moves of type `t` that `by` learns — the table's own picks first, then by power */
+function learnableOfType(by, t, pred) {
+  const tab = DELIVERY[t] || {};
+  const firsts = [tab.best, tab.physical, tab.special].filter(Boolean);
+  return [...new Set(firsts.concat(deliveriesOfType(t)))]
+    .filter(m => (!pred || pred(m)) && learnsLegally(by, m.id));
+}
+const canLearnAll = (sp, ids) => ids.every(x => !x || learnsLegally(sp, x));
+/* A LEGAL THROWER FOR A SET OF MOVES: a buildable body outside the owner's closet that learns every one,
+ * holding the roster's own non-interfering ability (`carrierAbility`). Fastest first, because every CAST
+ * body it stands in for was chosen fastest. `o.not` refuses species, `o.pred(sp)` narrows, `o.key` re-ranks. */
+function learnerBody(ids, o) {
+  o = o || {};
+  const closet = illusionCloset().species;
+  const not = new Set((o.not || []).filter(Boolean).map(x => dex.species.get(x).id));
+  const key = o.key || (s => flatL50(s.baseStats).sp);
+  const pool = CANDIDATES.filter(s => buildableSpecies(s.id) && !closet.has(s.id) && !not.has(s.id)
+      && carrierAbility(s) && canLearnAll(s.id, ids) && (!o.pred || o.pred(s)))
+    .sort((a, b) => key(b) - key(a) || (a.id < b.id ? -1 : 1));
+  if (pool.length) return mon(pool[0].id, '', carrierAbility(pool[0]), ids.slice());
+  /* `o.wide`: when NO body with a non-interfering ability learns them, any legal body holding the planner's
+   * quietest ability (`wideAbility`, the same judgement the restaging pass's wide pool uses), least noisy
+   * first. Asked for only by a rule that has already tried every quiet thrower. */
+  if (!o.wide) return null;
+  const wide = LEGAL_SPECIES.filter(s => !s.battleOnly && !s.forme.endsWith('Mega') && buildableSpecies(s.id)
+      && !closet.has(s.id) && !not.has(s.id) && canLearnAll(s.id, ids) && (!o.pred || o.pred(s)))
+    .map(s => ({ s, w: wideAbility(s) })).filter(x => x.w)
+    .sort((a, b) => (a.w.noise - b.w.noise) || key(b.s) - key(a.s) || (a.s.id < b.s.id ? -1 : 1));
+  return wide.length ? mon(wide[0].s.id, '', wide[0].w.ability, ids.slice()) : null;
+}
+/* the CAST body when it learns them all (and passes the predicate), else the fastest legal learner */
+function throwerFor(cast, ids, o) {
+  const not = new Set(((o && o.not) || []).filter(Boolean).map(x => dex.species.get(x).id));
+  const sp = dex.species.get(cast.species);
+  if (!not.has(sp.id) && canLearnAll(sp.id, ids) && (!(o && o.pred) || o.pred(sp))) return { ...cast, moves: ids.slice() };
+  return learnerBody(ids, o);
+}
+/* THE SLEEP CLICK. `STATUS_MOVE.slp` is empty in this regulation — Spore, the one 100-accuracy sleep move,
+ * has no legal learner (engine/legal_scope.js: NO-LEGAL-CARRIER) — so the in-scope road to a sleeping body
+ * is the move whose own condition sets sleep when it ENDS, derived rather than named: Yawn, `accuracy:
+ * true`, drowsy on the click and asleep at the END OF THE NEXT TURN. `delayed` tells the rule to give the
+ * sleep that turn. */
+let _SLEEP = undefined;
+function sleepClick() {
+  if (STATUS_MOVE.slp) return { move: STATUS_MOVE.slp, delayed: false };
+  if (_SLEEP !== undefined) return _SLEEP;
+  const mv = dex.moves.all().find(m => m.exists && !m.isNonstandard && SCOPE.inScope('move', m.id)
+    && m.category === 'Status' && m.accuracy === true && (m.target === 'normal' || m.target === 'any')
+    && m.condition && /trySetStatus\(\s*['"]slp['"]/.test(String(m.condition.onEnd || '')));
+  _SLEEP = mv ? { move: mv, delayed: true } : null;
+  return _SLEEP;
+}
+/* THE STAT-DROP COVER, SPLIT BY WHO CAN LEARN IT. `DROP_SET` is the greedy cover of every stat a foe's
+ * single-target drop reaches, and no Intimidate carrier learns Noble Roar or Spicy Extract, so the rule's
+ * aggressors could never legally hold it. The SAME STATS are covered here by moves each aggressor learns,
+ * at most three each (the script is three turns), `DROP_SET`'s own moves tried first. */
+function dropCoverSplit(ibId, aId, stats) {
+  const cand = DROP_SET.moves.concat(DROP_POOL.filter(m => !DROP_SET.moves.includes(m)));
+  const ib = [], a = [], have = new Set();
+  while (stats.some(s => !have.has(s))) {
+    let best = null, gain = 0;
+    for (const m of cand) {
+      if (ib.includes(m) || a.includes(m)) continue;
+      const n = Object.keys(m.boosts).filter(k => m.boosts[k] < 0 && stats.includes(k) && !have.has(k)).length;
+      if (!n || n <= gain) continue;
+      const toIB = ib.length < 3 && learnsLegally(ibId, m.id), toA = a.length < 3 && learnsLegally(aId, m.id);
+      if (!toIB && !toA) continue;
+      gain = n; best = { m, toIB: toIB && (!toA || ib.length <= a.length) };
+    }
+    if (!best) return null;
+    (best.toIB ? ib : a).push(best.m);
+    for (const k of Object.keys(best.m.boosts)) if (best.m.boosts[k] < 0) have.add(k);
+  }
+  return { ib, a };
+}
+
 /* ==== ROADMAP #318, 2026-09-11 — EVERY FIXTURE BODY LEGALLY LEARNS EVERY MOVE IT DECLARES ============
  *
  * MEASURED BEFORE THIS PASS (tests/probe_roster_learnset_refusals.js, release e368827481f5): 420 distinct
@@ -10731,9 +11113,16 @@ function assignPairs() {
 const LEARNSET_UNREPAIRED = process.env.ROSTER_LEARNSET_UNREPAIRED === '1';
 if (LEARNSET_UNREPAIRED) console.error('  !! roster: ROSTER_LEARNSET_UNREPAIRED=1 — the ROADMAP #318 restaging '
   + 'pass is OFF; fixtures are the pre-fix bodies and a learnset count from this run is a demonstration');
-let _LVAL = null;
-const _LVALC = new Map();
+/* `_LVAL` and `_LVALC` are declared beside DELIVERY near the top of this file (ROADMAP #318, 6.24.0).
+ *
+ * THE KNOB REACHES THE RULES TOO. Since 6.24.0 the rules pick their moves and bodies through this judge, so
+ * turning off only the restaging pass would leave the fixtures legal and the probe could no longer be shown
+ * red. Under `ROSTER_LEARNSET_UNREPAIRED=1` every body "learns" every move: each rule falls back to the
+ * delivery table's own picks and the CAST bodies, the pre-#318 fixtures, while `fixtureAudit` — which asks
+ * its own validator, not this function — still counts what the format refuses. Read from `process.env`
+ * directly because this runs at module load, above the `LEARNSET_UNREPAIRED` constant. */
 function learnsLegally(speciesId, moveId) {
+  if (process.env.ROSTER_LEARNSET_UNREPAIRED === '1') return true;
   const k = idOf(speciesId) + '|' + idOf(moveId);
   if (_LVALC.has(k)) return _LVALC.get(k);
   if (!_LVAL) _LVAL = new (CS.sim().TeamValidator)(CS.FORMAT);
@@ -11041,6 +11430,25 @@ function restageLegal(sc, kind, e) {
         .filter(m => m && m.exists && m.category !== 'Status').map(m => m.type)))];
       const tw = bodyTwin(sc, body, need, kind, e, types, ctx);
       const twMap = tw && (lead ? tw.map : (need.every(x => learnsLegally(tw.sp.id, x)) ? new Map(need.map(x => [x, x])) : null));
+      /* THE ENTITY'S ONLY LEGAL LEARNERS ARE IN THE OWNER'S CLOSET (ROADMAP #318, 6.24.0). Bitter Malice and
+       * Night Daze are each learned by exactly one legal species, and it is an Illusion body. Staging the move
+       * on a body that cannot learn it is a position the game cannot produce; staging it on its one legal
+       * learner hands the row to the owner's shelf (ROADMAP #160), which says so on the row. It is a swap
+       * the pool refuses everywhere else, so it is taken ONLY when no legal learner exists outside it. */
+      if ((!tw || !twMap) && entityMove && need.includes(entityMove)) {
+        const closet = illusionCloset().species;
+        const outside = LEGAL_SPECIES.some(s => !closet.has(s.id) && learnsLegally(s.id, entityMove));
+        const cl = outside ? null : [...closet].map(s => dex.species.get(s)).find(s => s.exists && canLearnAll(s.id, need));
+        if (cl) {
+          const old = idOf(dex.species.get(body.species).id);
+          sc[sk][idx] = { ...body, species: cl.id, ability: Object.values(cl.abilities || {})[0] };
+          for (const st of sc.script) for (const s of ['p1', 'p2']) for (const a of (st[s] || []))
+            if (a && a.sw && idOf(a.sw) === old) a.sw = cl.id;
+          out.swaps.push({ side: pk, slot: idx, kind: 'body', from: old, to: cl.id, ability: sc[sk][idx].ability,
+                           tier: 'only-legal-learner/owner-closet', noise: 0, moves: need, renamed: [] });
+          continue;
+        }
+      }
       if (!tw || !twMap) { out.unresolved.push({ side: pk, slot: idx, body: idOf(body.species), refused }); continue; }
       const old = idOf(dex.species.get(body.species).id);
       sc[sk][idx] = { ...body, species: tw.sp.id, ability: tw.ability, moves: body.moves.map(x => twMap.get(idOf(x)) || x) };
@@ -11066,6 +11474,12 @@ function restageLegal(sc, kind, e) {
  * tests/probe_roster_learnset_refusals.js's count (it cannot go green while one is held), and each is printed
  * every run with the measurement that put it here. Restaging each one on a legal body that STILL stages is
  * the next batch's work, row by row; this list is its worklist, and it only shrinks.
+ *
+ * 6.24.0 (2026-09-11): THE HOLD NO LONGER KEEPS A REFUSED PAIR. Each held row's rule now asks `learnsLegally`
+ * before it picks a move or a body (the block above `restageLegal`), so these fixtures reach the audit legal
+ * without ever entering the restaging pass: tests/probe_roster_learnset_refusals.js reads 0 refused pairs on
+ * release 9ec2ab9ad0ef, and every held row kept its b42b81899631 verdict. The hold still does what it did —
+ * keep the restaging pass off these rows — because a restaged fixture of theirs was measured not to stage.
  *
  * The four members of `move/needs-a-berry-already-eaten` are held TOGETHER: its red demonstration went
  * NOT CAUGHT once two of them were restaged, and holding the whole rule restores the fixture its break was
@@ -11592,8 +12006,9 @@ function main() {
     const un = rs.flatMap(e => e.restaged.unresolved.map(u => e.id + '  ' + u.side + '[' + u.slot + '] ' + u.body
       + ' refuses ' + u.refused.join(', ') + (u.held ? '   [HELD]' : '')));
     /* THE HOLD IS PRINTED BY NAME, with the measurement that put each row there (RESTAGE_HELD). */
-    console.log('\n  LEARNSET RESTAGING HOLD (ROADMAP #318): ' + held.length + ' row(s) kept on their pre-#318 bodies, '
-      + 'because their restaged fixture was measured not to stage — their refused pairs stay in the count');
+    console.log('\n  LEARNSET RESTAGING HOLD (ROADMAP #318): ' + held.length + ' row(s) kept out of the restaging pass, '
+      + 'because a restaged fixture of theirs was measured not to stage. Since 6.24.0 their RULES pick legal '
+      + 'bodies themselves, so they reach the audit legal without it (tests/probe_roster_learnset_refusals.js)');
     for (const e of held) console.log('    HELD ' + e.id + '  — ' + e.restaged.held);
     console.log('\n  LEARNSET RESTAGING (ROADMAP #318)' + (LEARNSET_UNREPAIRED ? ' — OFF, ROSTER_LEARNSET_UNREPAIRED=1' : '')
       + ': ' + sw.filter(s => s.kind === 'body').length + ' body swap(s) ' + JSON.stringify(tiers) + ', '

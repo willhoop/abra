@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-11T16:05:39.499Z",
+ "generated": "2026-09-11T16:18:41.063Z",
  "by": "tests/roster.js",
  "stage": "items",
  "swap_leaf_correction": {
@@ -44,27 +44,27 @@
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
   "DEFERRED-BY-OWNER": 0,
-  "FIRED-AND-BOARDS-MATCH": 133,
+  "FIRED-AND-BOARDS-MATCH": 142,
   "CONTROL-NOT-QUIET": 0,
-  "COULD-NOT-STAGE": 15
+  "COULD-NOT-STAGE": 6
  },
  "arms_played": {
-  "top-tie-first": 311
+  "top-tie-first": 320
  },
  "scope": {
   "total": 148,
   "out_of_scope": 0,
   "out_of_scope_by": {},
   "in_scope": 148,
-  "tested": 133,
-  "matched": 133,
+  "tested": 142,
+  "matched": 142,
   "differ": 0,
   "silent": 0,
   "deferred": 0,
   "unattributable": 0,
   "unattributable_ids": [],
   "declared_untestable": [],
-  "could_not_stage_in_scope": 15,
+  "could_not_stage_in_scope": 6,
   "attributed_by_second_control": [],
   "carrier_derivation": {
    "legal_species": 347,
@@ -107,6 +107,22 @@
    "moved": {
     "member": "babiriberry",
     "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "item/drain-scaled",
+   "ok": true,
+   "why": "the item stops scaling the drain heal — the damage and the drain both still happen",
+   "moved": {
+    "member": "bigroot",
+    "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
@@ -200,6 +216,48 @@
    }
   },
   {
+   "rule": "item/super-effective-power",
+   "ok": true,
+   "why": "the super-effective damage multiplier is dropped",
+   "moved": {
+    "member": "expertbelt",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "item/hp-floor",
+   "ok": true,
+   "why": "the HP floor stops holding the body up — the item is still held and still read",
+   "moved": {
+    "member": "focussash",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.fainted",
+     "party.status",
+     "species",
+     "hp",
+     "maxhp",
+     "last_item",
+     "types",
+     "ability",
+     "vol.focusenergy",
+     "pp.focusenergy",
+     "pp.xscissor"
+    ]
+   }
+  },
+  {
    "rule": "item/residual-heal",
    "ok": true,
    "why": "the passive heal is skipped — the item is still held and still on the board",
@@ -280,6 +338,26 @@
     "fields": [
      "party.hp",
      "hp"
+    ]
+   }
+  },
+  {
+   "rule": "item/heals-at-threshold",
+   "ok": true,
+   "why": "the threshold heal is skipped",
+   "moved": {
+    "member": "oranberry",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.item",
+     "hp",
+     "item",
+     "last_item",
+     "ate_berry"
     ]
    }
   },
@@ -1280,12 +1358,12 @@
    "name": "Big Root",
    "rule": "item/drain-scaled",
    "reads": "onTryHeal + shortDesc \"draining\"",
-   "note": "chipped, then draining with Bitter Blade  [#318 restaged: p1[0] dragapult -> metagross (learner-stats-kept/own); p1[1] weavile -> sneasler (learner-speed+stats/own); p2[0] kangaskhan -> ceruledge (learner-speed-kept/wide); UNRESOLVED p2[1] snorlax refuses bitterblade]",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 2156 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "note": "chipped, then draining with Bitter Blade  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the staging went inert; UNRESOLVED p1[0] dragapult refuses sludgebomb; UNRESOLVED p1[1] weavile refuses sludgebomb; UNRESOLVED p2[0] kangaskhan refuses bitterblade; UNRESOLVED p2[1] snorlax refuses bitterblade]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "ceruledge",
+   "carrier": "kangaskhan",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -1297,7 +1375,32 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 693,
+     "without": 688
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 693,
+     "without": 688
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 714,
+     "without": 704
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].hp",
+     "with": 714,
+     "without": 704
+    }
+   ],
    "diffs": []
   },
   {
@@ -2545,9 +2648,9 @@
    "name": "Chople Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "4x ARM — avalugghisui (Ice/Rock) DIES to the unhalved Fighting hit (296 into 170 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on goodrahisui, holding the same berry, on the same board  [#318 restaged: p1[0] dragapult -> clawitzer (learner-stats-kept/own); p1[1] weavile -> tyrantrum (learner-speed+stats/own)]",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 1029 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "note": "4x ARM — avalugghisui (Ice/Rock) DIES to the unhalved Fighting hit (296 into 170 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on goodrahisui, holding the same berry, on the same board  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the staging went inert; UNRESOLVED p1[0] dragapult refuses aurasphere; UNRESOLVED p1[1] weavile refuses dragonpulse,aurasphere]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "avalugghisui",
@@ -2562,7 +2665,80 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.avalugghisui.hp",
+     "with": 22,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.avalugghisui.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.avalugghisui.status",
+     "with": "",
+     "without": "fnt"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "avalugghisui",
+     "without": "corviknight"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 22,
+     "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].maxhp",
+     "with": 170,
+     "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "chopleberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].types",
+     "with": "ice/rock",
+     "without": "flying/steel"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ability",
+     "with": "strongjaw",
+     "without": "pressure"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    }
+   ],
    "diffs": []
   },
   {
@@ -3450,12 +3626,12 @@
    "name": "Expert Belt",
    "rule": "item/super-effective-power",
    "reads": "onModifyDamage + shortDesc \"super effective\"",
-   "note": "Aura Sphere is super effective on the bag; Sludge Bomb is the neutral negative  [#318 restaged: p1[0] dragapult -> clawitzer (learner-stats-kept/own)]",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 1517 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "note": "Aura Sphere is super effective on the bag; Sludge Bomb is the neutral negative  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the staging went inert; UNRESOLVED p1[0] dragapult refuses aurasphere,sludgebomb]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "clawitzer",
+   "carrier": "dragapult",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -3467,7 +3643,32 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 77,
+     "without": 94
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 77,
+     "without": 94
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.kangaskhan.hp",
+     "with": 29,
+     "without": 46
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 29,
+     "without": 46
+    }
+   ],
    "diffs": []
   },
   {
@@ -3802,9 +4003,9 @@
    "name": "Focus Sash",
    "rule": "item/hp-floor",
    "reads": "onDamage + shortDesc \"HP is full\"",
-   "note": "AT THE LINE: meowscarada at FULL takes a lethal X-Scissor (1.8x its HP) and must survive; whimsicott beside it, chipped 22 off 135 by Aura Sphere, takes a lethal Dire Claw and must NOT  [#318 restaged: p1[0] dragapult xscissor -> uturn; p1[1] weavile -> gallade (learner-stats-kept/own)]",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "the SUBJECT arm did not run: THREW — p1 choice rejected p1 \"pass, move 3\": Can't pass: Your Corviknight must make a move (or switch)   [the last of this engine's narration: |switch|p2b: Corviknight|corviknight, L50|173/173 |turn|3 |move|p2a: Meowscarada|focusenergy|p2a: Meowscarada |move|p1b: Gallade|focusenergy|p1b: Gallade |-start|p1b: Gallade|move: focusenergy |move|p2b: Corviknight|focusenergy|p2b: Corviknight |-start|p2b: Corviknight|move: focusenergy |upkeep]",
+   "note": "AT THE LINE: meowscarada at FULL takes a lethal X-Scissor (1.8x its HP) and must survive; whimsicott beside it, chipped 22 off 135 by Aura Sphere, takes a lethal Dire Claw and must NOT  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the subject arm threw (a benched spare could not pass); UNRESOLVED p1[0] dragapult refuses xscissor,aurasphere,direclaw; UNRESOLVED p1[1] weavile refuses aurasphere,direclaw]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "meowscarada",
@@ -3819,7 +4020,188 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p2.party.meowscarada.hp",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.meowscarada.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.meowscarada.status",
+     "with": "",
+     "without": "fnt"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "meowscarada",
+     "without": "corviknight"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 1,
+     "without": 173
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].maxhp",
+     "with": 151,
+     "without": 173
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].last_item",
+     "with": "focussash",
+     "without": ""
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].types",
+     "with": "dark/grass",
+     "without": "flying/steel"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].ability",
+     "with": "overgrow",
+     "without": "pressure"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[1].species",
+     "with": "corviknight",
+     "without": "milotic"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[1].hp",
+     "with": 173,
+     "without": 170
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[1].maxhp",
+     "with": 173,
+     "without": 170
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[1].types",
+     "with": "flying/steel",
+     "without": "water"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[1].ability",
+     "with": "pressure",
+     "without": "marvelscale"
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].focusenergy",
+     "with": 2,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[0].xscissor",
+     "with": 2,
+     "without": 3
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.corviknight.hp",
+     "with": 173,
+     "without": 161
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].species",
+     "with": "milotic",
+     "without": "corviknight"
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].hp",
+     "with": 170,
+     "without": 161
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].maxhp",
+     "with": 170,
+     "without": 173
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].types",
+     "with": "water",
+     "without": "flying/steel"
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].ability",
+     "with": "marvelscale",
+     "without": "pressure"
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].vol.focusenergy",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[1].species",
+     "with": "corviknight",
+     "without": "milotic"
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[1].hp",
+     "with": 173,
+     "without": 170
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[1].maxhp",
+     "with": 173,
+     "without": 170
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[1].types",
+     "with": "flying/steel",
+     "without": "water"
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[1].ability",
+     "with": "pressure",
+     "without": "marvelscale"
+    },
+    {
+     "turn": 3,
+     "path": "p2.pp[0].focusenergy",
+     "with": 0,
+     "without": 1
+    }
+   ],
    "diffs": []
   },
   {
@@ -6983,9 +7365,9 @@
    "name": "Oran Berry",
    "rule": "item/heals-at-threshold",
    "reads": "onUpdate + shortDesc \"when at 1/2 max HP or less\"",
-   "note": "Seed Bomb takes feraligatr to 35% in one blow, twice  [#318 restaged: p1[0] dragapult -> floetteeternal (learner-speed+stats/own)]",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE PRECONDITION DID NOT LAND, so nothing downstream of it was tested and an inert board here would mean only that the setup failed. Wanted, by boundary 1: the holder alive in its slot AND the berry eaten by the authority. Read off SHOWDOWN's own board, not ours.",
+   "note": "Seed Bomb takes feraligatr to 35% in one blow, twice  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the precondition did not land; UNRESOLVED p1[0] dragapult refuses seedbomb]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "feraligatr",
@@ -7000,7 +7382,32 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.feraligatr.hp",
+     "with": 66,
+     "without": 56
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 66,
+     "without": 56
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "oranberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    }
+   ],
    "diffs": []
   },
   {
@@ -7060,9 +7467,9 @@
    "name": "Payapa Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "4x ARM — toxicroak (Poison/Fighting) DIES to the unhalved Psychic hit (224 into 158 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on chesnaught, holding the same berry, on the same board  [#318 restaged: p1[0] dragapult -> armarouge (learner-stats-kept/wide); p1[1] weavile -> garchomp (learner-speed+stats/wide)]",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 1029 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "note": "4x ARM — toxicroak (Poison/Fighting) DIES to the unhalved Psychic hit (224 into 158 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on chesnaught, holding the same berry, on the same board  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the staging went inert; UNRESOLVED p1[0] dragapult refuses psychic; UNRESOLVED p1[1] weavile refuses dragonpulse,psychic]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "toxicroak",
@@ -7077,7 +7484,80 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.toxicroak.hp",
+     "with": 46,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.toxicroak.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.toxicroak.status",
+     "with": "",
+     "without": "fnt"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "toxicroak",
+     "without": "corviknight"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 46,
+     "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].maxhp",
+     "with": 158,
+     "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "payapaberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].types",
+     "with": "fighting/poison",
+     "without": "flying/steel"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ability",
+     "with": "poisontouch",
+     "without": "pressure"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    }
+   ],
    "diffs": []
   },
   {
@@ -8870,9 +9350,9 @@
    "name": "Sitrus Berry",
    "rule": "item/heals-at-threshold",
    "reads": "onUpdate + shortDesc \"when at 1/2 max HP or less\"",
-   "note": "Seed Bomb takes feraligatr to 35% in one blow, twice  [#318 restaged: p1[0] dragapult -> floetteeternal (learner-speed+stats/own)]",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE PRECONDITION DID NOT LAND, so nothing downstream of it was tested and an inert board here would mean only that the setup failed. Wanted, by boundary 1: the holder alive in its slot AND the berry eaten by the authority. Read off SHOWDOWN's own board, not ours.",
+   "note": "Seed Bomb takes feraligatr to 35% in one blow, twice  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the precondition did not land; UNRESOLVED p1[0] dragapult refuses seedbomb]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "feraligatr",
@@ -8887,7 +9367,32 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.feraligatr.hp",
+     "with": 96,
+     "without": 56
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 96,
+     "without": 56
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "sitrusberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    }
+   ],
    "diffs": []
   },
   {
@@ -9523,9 +10028,9 @@
    "name": "Tanga Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "4x ARM — malamar (Dark/Psychic) DIES to the unhalved Bug hit (200 into 161 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Poison hit on torterra, holding the same berry, on the same board  [#318 restaged: p1[0] dragapult -> volcarona (learner-stats-kept/own); p1[1] weavile -> sneasler (learner-speed+stats/own)]",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 1027 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "note": "4x ARM — malamar (Dark/Psychic) DIES to the unhalved Bug hit (200 into 161 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Poison hit on torterra, holding the same berry, on the same board  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the staging went inert; UNRESOLVED p1[0] dragapult refuses bugbuzz,sludgebomb; UNRESOLVED p1[1] weavile refuses sludgebomb,bugbuzz]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "malamar",
@@ -9540,7 +10045,80 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.malamar.hp",
+     "with": 61,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.malamar.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.malamar.status",
+     "with": "",
+     "without": "fnt"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "malamar",
+     "without": "corviknight"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 61,
+     "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].maxhp",
+     "with": 161,
+     "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "tangaberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].types",
+     "with": "dark/psychic",
+     "without": "flying/steel"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ability",
+     "with": "contrary",
+     "without": "pressure"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    }
+   ],
    "diffs": []
   },
   {
@@ -10083,9 +10661,9 @@
    "name": "Yache Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "4x ARM — torterra (Grass/Ground) DIES to the unhalved Ice hit (184 into 170 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on rhyperior, holding the same berry, on the same board  [#318 restaged: p1[0] dragapult -> clawitzer (learner-stats-kept/own); p1[1] weavile -> tyranitar (learner-speed+stats/wide)]",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 1031 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "note": "4x ARM — torterra (Grass/Ground) DIES to the unhalved Ice hit (184 into 170 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on rhyperior, holding the same berry, on the same board  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the staging went inert; UNRESOLVED p1[0] dragapult refuses icebeam; UNRESOLVED p1[1] weavile refuses dragonpulse]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "torterra",
@@ -10100,7 +10678,80 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.torterra.hp",
+     "with": 78,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.torterra.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.torterra.status",
+     "with": "",
+     "without": "fnt"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "torterra",
+     "without": "corviknight"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 78,
+     "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].maxhp",
+     "with": 170,
+     "without": 173
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "yacheberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].types",
+     "with": "grass/ground",
+     "without": "flying/steel"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ability",
+     "with": "shellarmor",
+     "without": "pressure"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    }
+   ],
    "diffs": []
   },
   {

@@ -142,7 +142,11 @@ const CASES = [
     what: 'The ability is the only difference from RED-2. No burn, so nothing may move.' },
 
   { name: 'CTRL-D  Icicle Spear into an INTACT DISGUISE   [must HOLD in BOTH arms, and it is the ONLY arm that reaches the absorb branch]',
-    part: false, volley: true, moves: false, absorb: true, click: 'iciclespear', idle: 'playrough',
+    /* 2026-09-11 (ENGINE 6.24.0): A RED ARM NOW, NOT A CONTROL. The one `|-crit|` the authority drew on
+     * arrival 2 and this engine did not is drawn by both engines on release b42b81899631, the clean arm
+     * lands [130,69,41,13] in BOTH, and the re-price MOVED exactly that arrival. Under --red the old
+     * route leaves the crit arrival un-repriced and the engines part, [130,69,41,13] vs [130,84,56,28]. */
+    part: true, volley: true, moves: true, absorb: true, click: 'iciclespear', idle: 'playrough',
     A: [['mamoswine', '', 'Oblivious', ['Icicle Spear', 'Protect']], CLEF],
     B: [['mimikyu', '', 'Disguise', ['Protect', 'Play Rough']], CLEF],
     what: 'THE SECOND ROOT CAUSE, AND NOTHING ELSE IN THIS FILE TOUCHES IT. The forme absorb '
@@ -354,20 +358,17 @@ for (const c of CASES) {
     const chipOf = L => { const m = L.map(String).find(l => /^\|-damage\|p2a.*\[from\] pokemon:/i.test(l));
       const g = m && /\|(\d+)\/(\d+)/.exec(m); return g ? +g[1] : null; };
     const sdC = critsOf(sdL), meC = critsOf(meL);
-    console.log('    DECLARED PARTING, and it is NOT this batch\'s: the authority draws ' + sdC
-      + ' |-crit| on this volley and this engine draws ' + meC + '. Identical under --red. '
-      + 'Per-arrival crit on an ABSORBED volley — hand list, not this fix.');
+    /* THE DECLARED PARTING IS GONE, AND THIS IS THE LOUD FAILURE THE BLOCK ABOVE PROMISED (2026-09-11).
+     * It asserted `showdown 1, medicham 0` and went red the day the crit was fixed — on release
+     * b42b81899631 both engines draw it. The declaration is withdrawn rather than re-aimed: the arm is
+     * now judged like every other red arm, by the HP series and the board below (clean must HOLD,
+     * --red must PART), plus the two facts that still have no other witness. */
     claim(chipOf(sdL) != null && chipOf(sdL) === chipOf(meL),
       c.name + ' — the disguise BUST CHIP is identical, so the absorb itself agrees',
       'showdown ' + chipOf(sdL) + ', medicham ' + chipOf(meL));
-    claim(sdC === 1 && meC === 0,
-      c.name + ' — the parting is EXACTLY the one declared above and nothing else moved',
+    claim(sdC === meC && sdC > 0,
+      c.name + ' — both engines draw the same |-crit| lines on the absorbed volley, and there is one to draw',
       'showdown |-crit| ' + sdC + ', medicham ' + meC);
-    const tail = s => s.slice(2).map((v, i) => s[i + 1] - v);
-    claim(JSON.stringify(tail(sdD)) === JSON.stringify(tail(meD)),
-      c.name + ' — every arrival AFTER the crit deals the same damage in both engines',
-      'showdown ' + JSON.stringify(tail(sdD)) + '  medicham ' + JSON.stringify(tail(meD)));
-    continue;
   }
   const same = JSON.stringify(sdD) === JSON.stringify(meD);
   claim(same === (RED ? !c.part : true),

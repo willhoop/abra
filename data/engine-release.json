@@ -1,10 +1,10 @@
 {
-  "current": "b42b81899631",
-  "cut": "2026-09-11T15:07:12.280Z",
-  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 128,
-  "latest_cut": "2026-09-11T16:59:00.030Z",
+  "current": "9ec2ab9ad0ef",
+  "cut": "2026-09-11T18:34:33.520Z",
+  "why": "6.24.0 ENGINE: the post-residual Update offers a sleep the residual walk set (Yawn) to its onUpdate cure (Chesto Berry); found by the legal #318 roster fixture",
+  "cuts": 25,
+  "latest_cut": "2026-09-11T19:24:14.979Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-11T16:59:00.044Z",
+  "pointer_written": "2026-09-11T19:24:14.998Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

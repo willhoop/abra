@@ -279,9 +279,15 @@ function armPerish() {
   /* the bare board must carry NOTHING from the follower families: no handler ability, no White Herb,
    * no screen, no terrain, no Protect (its `stall` volatile survives its first residual). */
   const handlerSet = new Set(rep.handlers);
-  const F = distinctSpeeds(3, s => Object.values(s.abilities || {}).some(a => handlerSet.has(idOf(a)))
+  /* FIVE, NOT THREE — 2026-09-11 (ENGINE 6.24.0). With three fillers both sides' BENCHES carried the
+   * same species, so when all four actives died on the kill turn the two sides' replacements tied on
+   * Speed and an entry ability (the first filler read was Arcanine, Intimidate) resolved on a die the
+   * middle arm does not share: `-unboost|p1a: Arcanine` against `-unboost|p2a: Clefable`, AFTER the
+   * window this row measures, on the bare board and on White Herb. The window agreed in both. p2's
+   * bench is now two more pairwise-distinct bodies, so no replacement can tie with the other side's. */
+  const F = distinctSpeeds(5, s => Object.values(s.abilities || {}).some(a => handlerSet.has(idOf(a)))
                                 || s.baseStats.spe === PS.baseStats.spe);
-  if (F.length < 3) { console.log('  COULD-NOT-STAGE — no three tie-free bodies free of every follower ability.'); return; }
+  if (F.length < 5) { console.log('  COULD-NOT-STAGE — no five tie-free bodies free of every follower ability.'); return; }
   console.log('  perish carrier ' + PS.name + ' spe ' + PS.baseStats.spe
     + '   clean idle bodies ' + F.map(s => s.name + '/' + s.baseStats.spe).join(' '));
   console.log('  follower families: ' + rep.handlers.length + ' handlers, ' + rep.clocks.length
@@ -294,8 +300,23 @@ function armPerish() {
    * perish3/2/1/0 at the residuals of the CAST TURN and the three after it. Script step 3 is
    * therefore the turn whose residual kills, and a follower has to be standing during THAT walk. */
   const KILL_TURN = 3;
+  /* DECLARED OPEN — ROADMAP #601, 2026-09-11 (ENGINE 6.24.0). The authority's `fieldEvent` skips a handler
+   * only when its holder is `fainted` (sim/battle.ts `fieldEvent`, `if (handler.effectHolder.fainted)`), and
+   * that flag is set by `faintMessages`, not by the damage — so a body the perish clock just zeroed still runs
+   * its LATER residual handlers until the drain: Morpeko's Hunger Switch writes its `-formechange`, a
+   * Noivern's uproar writes `-start|…|Uproar|[upkeep]`. This engine sets `fainted` at `queueFaint` and skips
+   * them, writing the `|faint|` at that index instead. The WINDOW this row measures (perish0 / faint /
+   * upkeep order) agrees in both arms; the extra line is the follower's own. So each arm must PART at exactly
+   * that line — the authority's follower line against our `|faint|` — and the day it agrees it fails, so the
+   * declaration cannot outlive the defect. */
+  const ZOMBIE_DECLARED = [
+    ['hungerswitch', /^\|-formechange\|p2a: Morpeko/],
+    ['volatile:uproar', /^\|-start\|p2a: [^|]*\|Uproar\|\[upkeep\]/],
+  ];
   function runPerish(name, lead, expect, followerClick) {
-    const p2 = [lead, fill(2), fill(0), fill(1)];
+    const decl = (ZOMBIE_DECLARED.find(([k]) => name.endsWith(' ' + k)) || [])[1] || null;
+    if (decl) expect = 'DECLARED #601';
+    const p2 = [lead, fill(2), fill(3), fill(4)];
     const script = [{ p1: [{ m: 'perishsong' }, { m: 'agility' }], p2: [{ m: 'agility' }, { m: 'agility' }] }];
     for (let t = 0; t < 5; t++)
       script.push({ p1: [{ m: 'agility' }, { m: 'agility' }], p2: [{ m: 'agility' }, { m: 'agility' }] });
@@ -314,6 +335,14 @@ function armPerish() {
     const reached = r.staged && /perish0/.test(String(r.sdLog));
     show(name, reached ? expect : 'NOT-STAGED', r,
          r.staged ? ['SD  ' + win(r.sdLog), 'US  ' + win(r.meLog)] : null);
+    if (decl && reached) {
+      const last = REPORT[REPORT.length - 1];
+      const exact = r.diverged && decl.test(String(r.sd)) && /^\|faint\|/.test(String(r.me));
+      last.got = exact ? 'DECLARED #601'
+        : (r.diverged ? 'PARTS ON AN UNDECLARED LINE: ' + String(r.sd).slice(0, 60)
+                      : 'AGREES — the declared #601 row is closed; remove the declaration');
+      console.log('        ' + (exact ? 'declared #601: parts at exactly the follower line, as declared' : '*** ' + last.got + ' ***'));
+    }
   }
 
   runPerish('A TEST     bare board, no follower at all', fill(1), 'AGREES');
