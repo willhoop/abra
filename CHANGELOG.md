@@ -10,6 +10,14 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.19.0] — 2026-09-11
+
+### Removed
+- **The R4 verdict, the refit figures and SEARCH's explore-sweep tables** from the MEASURE and SEARCH ledgers, with
+  every other figure a sweep of both found read from an artifact the quarantine gate withholds — the leaf/engine
+  contrast, R2 and R3, the joint refit, the click-censoring census and censoring value, the feature/engine contrast
+  and the bench figures. Withheld, not annotated; each returns when the gate opens and its artifact is re-run.
+
 ## [6.18.0] — 2026-09-11
 
 ### Fixed

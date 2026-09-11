@@ -14,21 +14,21 @@ mid-run silently invalidates the run, and the run still prints a result.
 SEARCH — does MILTANK choose better than MAG
   R1 leaf accuracy: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r1-explore1.json is downstream of MEDICHAM: engine/rollout_r1_artifact.js reads rollout-r1-rows.jsonl — a dump of games MEDICHAM played
-    MEDICHAM is not correct — 2 of 9 gate clauses fail (mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 1 of 9 gate clauses fail (no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r1_artifact.js
   R2 leaf cost: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-cost.json is downstream of MEDICHAM: its generator engine/rollout_r2.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 9 gate clauses fail (mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 1 of 9 gate clauses fail (no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r2.js
   R3 divergence: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r3.json is downstream of MEDICHAM: its generator engine/rollout_r3.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 2 of 9 gate clauses fail (mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 1 of 9 gate clauses fail (no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r3.js
   R4 does it win: QUARANTINED — the figure is withheld, not annotated.
     data/rollout-r4.json is downstream of MEDICHAM: engine/rollout_r4.js reads games.r4-decided.jsonl — a dump of games MEDICHAM played
-    MEDICHAM is not correct — 2 of 9 gate clauses fail (mechanics / each one staged and compared against showdown; no open, known engine defect)
+    MEDICHAM is not correct — 1 of 9 gate clauses fail (no open, known engine defect)
     it becomes quotable again when the gate opens AND this is re-run: node engine/rollout_r4.js
-  runs vs engine (newest engine source: engine/medicham2-browser.js 2026-09-11 07:03):
+  runs vs engine (newest engine source: data/abra-tags.js 2026-09-11 09:48):
     PRE-CHANGE games.r4c-shipped2.jsonl  2026-08-14 22:28
     PRE-CHANGE games.r4c-shipped.jsonl  2026-08-14 17:21
     PRE-CHANGE games.r4b-search.jsonl  2026-08-14 13:02
@@ -36,7 +36,7 @@ SEARCH — does MILTANK choose better than MAG
     PRE-CHANGE games.r4-decided.jsonl  2026-08-04 00:41
 ```
 
-_stamped 2026-09-11 08:10_
+_stamped 2026-09-11 10:46_
 
 <!-- /GENERATED -->
 
@@ -1761,9 +1761,9 @@ and never computed — but the claim as written would have to break before the a
 R1, R2, R3 and R4 no longer print a number. `engine/quarantine.js` computes whether MEDICHAM is
 correct, and while it is not, every figure downstream of the simulator is **withheld rather than
 captioned**. The caption this replaces was live on the line above: R4 printed
-`[engine moved since; transfer assumed, not measured]` beside 55.5%, and 55.5% went on being quoted.
+`[engine moved since; transfer assumed, not measured]` beside its share, and the share went on being quoted.
 
-**The 55.5% is not retracted. It is unquotable.** It was a real measurement of a real build; the build
+**R4's share is not retracted. It is unquotable.** It was a real measurement of a real build; the build
 does not exist any more, and the games it was measured on are `PRE-CHANGE` against a `medicham2` that
 has moved repeatedly since. Re-running is not optional once the gate opens — a quarantined number does
 not become true when MEDICHAM becomes correct, it becomes **re-runnable**. That is ROADMAP #57.
@@ -1819,7 +1819,7 @@ Four defects, each its own task:
 | #36 | two seats, two different opponents | `rolloutAfterActions`: *"The opponent is NOT modelled. It plays chooseAction during the stepped turn."* |
 
 **#33 is the one that makes R1 and R4 harder to read than they look.** Neither artifact states its
-opponent, so *"MILTANK beats MAG on 55.5% of 535 decisive pairs"* is a statement about an unrecorded
+opponent, so R4's verdict — withheld while the gate is closed — is a statement about an unrecorded
 configuration. That is not a retraction — the arms were paired and the comparison is internally valid
 — but the result cannot be transferred to a run whose GARY differs, and nothing currently prevents
 that transfer.
@@ -1866,7 +1866,7 @@ a worse place than this session started but a truer one.
 
 | what | when | why it is fatal |
 |---|---|---|
-| **`data/policy-weights.json` — MAG itself — was REFITTED** | `generated: 2026-08-04T22:15:24.522Z` | the search loaded the defender at **21:41** and froze it in a temp file; the held-out replay loaded it again at **22:17**, after the refit. **The two legs defended with different vectors.** New corpus stamp: 8,759 games / 229,339 decisions |
+| **`data/policy-weights.json` — MAG itself — was REFITTED** | `generated: 2026-08-04T22:15:24.522Z` | the search loaded the defender at **21:41** and froze it in a temp file; the held-out replay loaded it again at **22:17**, after the refit. **The two legs defended with different vectors.** The new corpus stamp is withheld with the weights |
 | **`engine/board.js` written** | 22:50 → mtime **21:50:36** | mid-search, around round 5. Every candidate is scored through `dmgMon`, so rounds before and after it are not comparable |
 | **`engine/medicham2-browser.js` — the simulator every score goes through** | mtime 22:26:57, then **four distinct content digests across three sampling windows**: `0e4b2394edfc` (22:29:04) → `e9a4215e13d4` (22:30:34) → `d1a4e497c0e9` (22:35:53) → moved again by 22:37:53 | sampled with `run_stamp.sourceDigests()`, content and not mtime. **It was still moving forty minutes after the run ended and while this section was being written** |
 | the ENGINE census | 157/165 when this task was briefed → **164/171** in `status.js` at 22:31 | ENGINE is mid-band, not wrapped |
@@ -2319,8 +2319,8 @@ options. Every figure traces to an artifact; the two new ones are
 **`data/exploit-step-probe-reparam.json`** (the R9 toy swept over family sizes 4–12 at the real
 budget and at twice it, written by `engine/exploit_step_probe.js --reparam` — same `runOne`, same
 `createClimber`, no games) and the fitted vector itself, **`data/policy-weights.json`**
-(`generated 2026-08-04T23:37:26.954Z`, corpus 8,856 games / 231,722 decisions, frozen in release
-`6e43710396db` as `01bc43936324`).
+(`generated 2026-08-04T23:37:26.954Z`, frozen in release `6e43710396db` as `01bc43936324`; its corpus
+is withheld with it).
 
 ### The arithmetic that frames every option (data/exploit-step-probe.json)
 
@@ -2365,12 +2365,12 @@ KILL = {koTarget, dmgFrac, tgtMayProtect, killIsRoll, killsThreat, koFirst, prot
 INIT = {movesFirst, priority, speedSwing, diesBeforeMoving} — the blocks as `board.js` FEATURES
 declares them (release digest `54e3d2ca9f85`).
 *Why these four axes, from the fit itself:* `priorLogP` is the single most-determined coordinate in
-the whole vector (w +0.1474, SE 0.0026 — the fit pins it hard **for resemblance**, and resemblance is
-exactly the objective that cannot certify it **for winning**); the kill and initiative blocks are
-where the fit is weakest — `koTarget` +0.0348 ± 0.0170, `killsThreat` **−0.0610** ± 0.0131 (killing
-the thing about to kill you fitted *negative*), `priority` −0.0053 ± 0.0159 and `movesFirst`
-+0.0075 ± 0.0126 (both indistinguishable from zero). A challenger that wants to beat MAG by wanting
-kills and initiative more than people do lives exactly here.
+the whole vector — the fit pins it hard **for resemblance**, and resemblance is exactly the objective
+that cannot certify it **for winning**; the kill and initiative blocks are where the fit is weakest —
+`koTarget` is loosely determined, `killsThreat` fitted *negative* (killing the thing about to kill
+you), and `priority` and `movesFirst` were indistinguishable from zero. The values and SEs are MAG's
+weights, withheld with `data/policy-weights.json` (withdrawn 2026-09-11). A challenger that wants to
+beat MAG by wanting kills and initiative more than people do lives exactly here.
 *Can express:* greedy⇄noisy play, prior-reliance up or down, uniform kill-hunger, uniform
 initiative-hunger, and their combinations. *Cannot:* rotate within a block (raise `koTarget` while
 lowering `dmgFrac`), touch the switch/support/dead-move axes, flip any individual sign, or form any
@@ -2824,37 +2824,40 @@ judgement call.
 
 ## The `--rollout-explore` default was re-earned, 2026-08-04
 
-MEASURE retracted R1 that morning: the published `68.18%` had no artifact, and the only committed row
+MEASURE retracted R1 that morning: the published R1 figure had no artifact, and the only committed row
 dump held the **explore=0** arm, on which R1 is UNDECIDED. `--rollout-explore` defaults to `1.0` and
 two comments cite that retracted figure as the reason.
 
-**It was re-run at explore=1 and it reproduces.** Artifacts:
+**It was re-run at explore=1.** Artifacts:
 `data/rollout-r1-explore-sweep.json` (the arm-vs-arm verdict, written by
 `engine/rollout_explore_sweep.js`) and `data/rollout-r1-explore1.json` (the gate, written by the
-existing `engine/rollout_r1_artifact.js` from `data/rollout-r1-explore1-rows.jsonl`).
+existing `engine/rollout_r1_artifact.js` from `data/rollout-r1-explore1-rows.jsonl`). **Both are
+QUARANTINED — withheld, not annotated (withdrawn 2026-09-11).** They are built from dumps of games
+MEDICHAM played, and `engine/quarantine.js` withholds them while the MEDICHAM gate is closed. So the
+table keeps what was measured and drops every figure; it becomes quotable again when the gate opens
+AND `node engine/rollout_explore_sweep.js` is re-run.
 
 | | explore=0 | explore=0.5 | explore=1.0 | material |
 |---|---|---|---|---|
-| accuracy, horizon 20 (9,201 positions) | 65.72% | 67.58% | **67.97%** | 65.27% |
-| accuracy, horizon 60 (4,487 positions) | 64.21% | 66.50% | **67.46%** | 63.78% |
-| ECE | 0.196 | — | **0.104** | 0.050 |
-| share saturated in the 0–10 / 90–100 bin | 50.7% | — | **29.4%** | — |
+| accuracy, horizon 20 | withheld | withheld | withheld | withheld |
+| accuracy, horizon 60 | withheld | withheld | withheld | withheld |
+| ECE | withheld | — | withheld | withheld |
+| share saturated in the 0–10 / 90–100 bin | withheld | — | withheld | — |
 
-Paired, on the identical sample: **+2.25 points, 95% CI [1.31, 3.19]**, monotone in explore at both
-horizons. The published `68.18%` lands at `67.97%` and the published `+2.91` over material lands at
-`+2.71 [1.60, 3.82]` — the retraction was right about the *provenance* and the claim survives it.
+Paired, on the identical sample, the comparison was monotone in explore at both horizons. Whether the
+published R1 figures reproduce is a question this ledger may not answer while the artifacts are
+withheld.
 
 Three things the re-run settled that were not the question:
 
 - **The committed greedy dump was NOT clobbered.** `DUMP=` resolves under `data/`, so the command
   MEASURE left would have overwritten the only evidence for the incumbent arm. New filename used.
-- **The "64.42% for greedy" half does not reproduce** — greedy measures 65.7% on both the committed
-  dump and a fresh run on the current engine. Same sign, gap 2.25 not 3.76. The two comments
-  overstate it and should be restated against the artifact.
+- **The published greedy figure does not reproduce** on the committed dump or on a fresh run on the
+  current engine — same sign, a smaller gap. The two comments overstate it and should be restated
+  against the artifact once it is quotable.
 - **Unfinished playouts are not the mechanism.** `battleResult` does score bodies-then-HP whether or
-  not the battle ended, but 99.5–99.8% of playouts end by an actual wipeout at every explore setting
-  and at both horizons. Cap-hits are 0.2–0.5%. Exploration makes playouts *longer* (4.4 → 6.1 mean
-  turns), not truncated.
+  not the battle ended, but nearly every playout ends by an actual wipeout at every explore setting
+  and at both horizons, and cap-hits are rare. Exploration makes playouts *longer*, not truncated.
 
 **This is a verdict on a JUDGE, not on a player.** It does not say explore=1.0 wins more games, and
 `engine/mew.js` exposes no `--miltank-explore`, so the A/B that would say is not currently runnable.
@@ -3638,7 +3641,7 @@ written against — still showed a half-finished run. **An order to a person is 
 process.** A stopped session and a stopped run are different events and this file recorded the
 first as the second.
 
-## R11 — the explore-sweep re-run is FINISHED, at a release, and it PASSES OUTRIGHT. 2026-08-05.
+## R11 — the explore-sweep re-run is FINISHED, at a release, and its verdict is withheld. 2026-08-05.
 
 **`data/rollout-r1-explore-sweep.json` is no longer UNSAFE.** `node engine/provenance.js` now reads
 it as *"pinned to engine release `3932186b59ef` — `engine/medicham2-browser.js` matches the frozen
@@ -3659,56 +3662,61 @@ Both arms out of **one process and one walk** (`DUMP0`), so the artifact's own `
 There is no between-run window for ENGINE to land in — which is the defect that killed the first
 attempt at this pairing and is why `DUMP0` exists.
 
-| judge, 9,201 positions, n=40, horizon 20 | 2026-08-04 (pre-boundary) | **R11, release `3932186b59ef`** |
+| judge, n=40, horizon 20 | 2026-08-04 (pre-boundary) | **R11, release `3932186b59ef`** |
 |---|---|---|
-| explore = 1.0 — **the shipped default** | 67.971% | **69.840%** |
-| explore = 0.5 | 67.58% | 68.91% |
-| explore = 0 (deterministic greedy) | 65.721% | 66.645% |
-| material, porygon2 form | 65.265% | 65.265% |
-| paired, 1.0 over greedy | +2.25 [1.31, 3.19] | **+3.195 [2.237, 4.153]** |
-| lift over material | +2.706 [1.596, 3.817] | **+4.576 [3.473, 5.678]** |
-| R1 gate | `PASS_ON_BASELINE` | **`PASS_OUTRIGHT`** |
+| explore = 1.0 — **the shipped default** | withheld | withheld |
+| explore = 0.5 | withheld | withheld |
+| explore = 0 (deterministic greedy) | withheld | withheld |
+| material, porygon2 form | withheld | withheld |
+| paired, 1.0 over greedy | withheld | withheld |
+| lift over material | withheld | withheld |
+| R1 gate | withheld | withheld |
 
-**The gate upgraded, and the upgrade is the news.** R1's threshold is PORYGON2's published +3.42
-lift over the same baseline. The pre-boundary interval contained it; the post-boundary **lower
-bound clears it** (3.473 > 3.42), so the rollout now carries more than the learned model adds over
-counting bodies. `data/rollout-r1-explore1.json` was regenerated from the new rows and reads
-`PASS_OUTRIGHT`; `status.js` picks the R1 line up from that file.
+**Every cell is QUARANTINED — withheld, not annotated (withdrawn 2026-09-11).** The position count,
+the accuracies, the paired interval, the lift and the gate verdict are read from
+`data/rollout-r1-explore-sweep.json` and `data/rollout-r1-explore1.json`, and `engine/quarantine.js`
+withholds both while the MEDICHAM gate is closed: `engine/rollout_explore_sweep.js` and
+`engine/rollout_r1_artifact.js` read dumps of games MEDICHAM played. They become quotable again when
+the gate opens AND `node engine/rollout_explore_sweep.js` is re-run.
 
-Read the size honestly: the material column is **unchanged to three decimals**, exactly as it must
-be — it never touches the leaf. Every point of movement is in the playout, and both playout arms
-rose. The mega-weather and terrain fixes this file predicted would *"move the point estimate and
-very unlikely move the sign"* did precisely that, in the predicted direction.
+**The gate's threshold is PORYGON2's published lift over the same baseline**, and whether this run's
+interval clears it is the R1 verdict, so neither is restated here. `data/rollout-r1-explore1.json` was
+regenerated from the new rows; `status.js` picks the R1 line up from that file and prints `QUARANTINED`
+in its place.
 
-The effect clears this run's own noise floor: split-half spread 0.941 to 1.913 points against an
-effect of 4.576.
+Read the size honestly: the material column did not move, exactly as it must not — it never touches
+the leaf. Every point of movement was in the playout, and both playout arms rose. The mega-weather and
+terrain fixes this file predicted would *"move the point estimate and very unlikely move the sign"*
+did precisely that, in the predicted direction.
+
+The effect cleared this run's own split-half noise floor; both are withheld.
 
 ### The second horizon, on the NEWER release, agrees
 
-`data/rollout-r1-explore-sweep-h60-09acd3b404ef.txt`, at `MAXTURNS=60` — the horizon
-the live leaf actually runs — quoted verbatim in the artifact: explore=1.0 **69.86%**, 0.5 68.80%,
-greedy 66.16%, material 64.24%, lift **+5.63 [4.06, 7.19]**, `R1 PASSES OUTRIGHT`. Two horizons, two
-samples, two releases, same verdict and the same ordering of arms.
+`data/rollout-r1-explore-sweep-h60-09acd3b404ef.txt`, at `MAXTURNS=60` — the horizon the live leaf
+actually runs — is quoted verbatim in the artifact, and its accuracies, its lift and its verdict are
+withheld on the same terms. Two horizons, two samples, two releases, the same verdict and the same
+ordering of arms.
 
 ### How much does the release boundary actually matter? MEASURED, at zero cost
 
-The two committed explore=1 dumps (`6e43710396db` and `3932186b59ef`) walk the identical 9,201
-positions with identical seeds and differ only in `engine/medicham2-browser.js` and `data/tags.json`
-— one ENGINE landing. Pairing them row for row (0 misaligned witnesses on all five):
+The two committed explore=1 dumps (`6e43710396db` and `3932186b59ef`) walk the identical positions
+with identical seeds and differ only in `engine/medicham2-browser.js` and `data/tags.json` — one
+ENGINE landing. Pairing them row for row (0 misaligned witnesses on all five):
 
 | what an ENGINE landing did to the leaf | |
 |---|---|
-| rows whose leaf value moved at all | **1,882 of 9,201 (20.5%)** |
-| mean \|Δ\| on the rows that moved | **5.06 pt**, max 35.0 pt |
-| rows whose ≥0.5 CALL flipped | 148 (1.61%) |
-| the headline accuracy | 69.688% → 69.840%, **+0.152 pt** |
+| rows whose leaf value moved at all | withheld |
+| mean \|Δ\| on the rows that moved | withheld |
+| rows whose ≥0.5 CALL flipped | withheld |
+| the headline accuracy | withheld |
 
 **Per position the leaf is volatile; in aggregate it is stable.** That is the quantitative case for
-the release boundary and against panic about it in the same table: one ENGINE landing moves a fifth
-of all positions by five points, so any *per-position* claim must name its release — and it moves
-the headline by a seventh of the interval's half-width, so the aggregate verdict is not being
-carried by which release it ran on. It is also the reason the paragraph below is a footnote rather
-than a retraction.
+the release boundary and against panic about it in the same table: one ENGINE landing moved a large
+share of positions by several points, so any *per-position* claim must name its release — and it moved
+the headline by a small fraction of the interval's half-width, so the aggregate verdict is not being
+carried by which release it ran on. The figures are leaf values and are withheld with the sweep. It is
+also the reason the paragraph below is a footnote rather than a retraction.
 
 ### THE BAD NEWS: the run I was told to do was killed, and the artifact is on the PREVIOUS release
 
@@ -3717,7 +3725,7 @@ I was dispatched to measure against release **`09acd3b404ef`** and the paired A/
 
 - I launched exactly the run asked for (one process, `RELEASE=09acd3b404ef`, `GAMES=2500 EVERY=2
   N_LIST=40 EXPLORE_LIST=0,0.5,1`, both dumps). It started clean — release drift `0 of 23`, leaf
-  self-check 73.3% sane — ran for **40 minutes and was killed**: exit 1, no stack, no stderr, no
+  self-check sane (its rate is withheld with the leaf) — ran for **40 minutes and was killed**: exit 1, no stack, no stderr, no
   partial dump. Free physical memory fell **4.03 GB → 1.73 GB → 0.62 GB** across the run while four
   foreign `node.exe` processes (peak 3.46 GB and 1.36 GB) held the box. That is an OOM kill by
   memory pressure from concurrent work, not a defect in the gate.
@@ -3729,9 +3737,9 @@ I was dispatched to measure against release **`09acd3b404ef`** and the paired A/
   boundary exists to prevent, and it would have looked completely fine.
 
 **What it costs, bounded by the table above:** `09acd3b404ef` differs from `3932186b59ef` in the
-simulator and `tags.json` — one landing's worth. The h60 leg *is* on `09acd3b404ef` and lands within
-0.02 pt of the h20 leg's explore=1.0 figure. So the expected cost of the misalignment is on the
-order of 0.15 points and the verdict is 4.576 with a 1.10-point half-width.
+simulator and `tags.json` — one landing's worth. The h60 leg *is* on `09acd3b404ef` and lands close to
+the h20 leg's explore=1.0 figure, so the expected cost of the misalignment is small against the
+verdict's interval. Both are withheld with the artifact.
 
 **The command, when the box is quiet.** One process. Check `FreePhysicalMemory` is above ~5 GB
 first; this needs ~2.5 GB resident for ~35 minutes and it is the only thing that should be running.
@@ -3764,11 +3772,11 @@ times it was the guard working.
 
 **Defect 1 — `rollout_r1_artifact.js` hardcoded a sentence that `status.js` prints as fact. FIXED.**
 
-`which_rollout_is_this.consequence` was a string constant reading *"The published +2.91 gate result
-cannot be recomputed from anything committed… on it R1 is UNDECIDED."* True of the 2026-08-04 greedy
-dump and of nothing since. `status.js:325-329` prints it **verbatim, directly under the gate line**,
-so regenerating the gate produced a handoff that read `PASS_OUTRIGHT … +4.576 [3.473, 5.678]` and
-then, on the very next line, `R1 is UNDECIDED`.
+`which_rollout_is_this.consequence` was a string constant saying that the published R1 gate result
+could not be recomputed from anything committed and that R1 was therefore UNDECIDED. True of the
+2026-08-04 greedy dump and of nothing since. `status.js:325-329` prints it **verbatim, directly under
+the gate line**, so regenerating the gate produced a handoff that printed the new verdict and then, on
+the very next line, `R1 is UNDECIDED`.
 
 **It had been patched by HAND into `data/rollout-r1-explore1.json` instead of in the generator.**
 That is why nobody saw it for a day: the screen was right, the generator was wrong, and the two only
@@ -3862,7 +3870,7 @@ than the greedy one and better than counting bodies. It does **not** say explore
 games: `engine/mew.js` still exposes no `--miltank-explore` (PRIORITIES #33), R4 was itself run at
 1.0 and cannot arbitrate its own setting, and R5 — whether the leaf ORDERS actions differently at
 all — is still unrun. Every decision MILTANK makes is an argmax over this leaf, and a leaf that
-judges 4.6 points better than material may still rank 63 candidate cells identically. **R5 is the
+judges better than material may still rank 63 candidate cells identically. **R5 is the
 measurement that decides whether any of this buys a click**, and it is now the top of SEARCH's
 queue.
 
