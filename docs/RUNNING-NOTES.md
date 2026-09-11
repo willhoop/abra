@@ -52,6 +52,31 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.29.0] — 2026-09-11 — the gate's own parser missed a RED marker on letter case and cut any status cell that quoted a pipe
+
+- **What changed.** `engine/quarantine.js`: the breakage token is a rule (the noun `defect`/`defects`, any case,
+  standing alone, never inside a denial; `NOT A DEFECT` still the one receipted escape hatch, denials now printed by
+  number), and the status cell is the text between the last two COLUMN DELIMITERS, skipping `\|` and any pipe inside
+  inline code — `roadmapRowIsClosed` reads through that one function instead of a second pipe regex. The #440 CLOSETED
+  declaration is withdrawn from `DECLARED_DIVERGENCE`. `engine/register_reality.js`: a CANNOT-ANSWER is no longer
+  counted as a disagreement (`failureSummary`). `engine/game_differential.js`: `--out` without `--write` refuses at
+  second zero instead of playing every game and writing nothing. Tests: 13 new arms in `quarantine --selftest`, 4 in
+  `register_reality --selftest`, PART 6 in `tests/test-game-differential.js`, and `tests/test-register-cell-parse.js`
+  re-derived. ROADMAP #602 opened and closed. Detail: `docs/_reports/2026-09-11-gate-parser.md`.
+- **Measured.** Release `534442d71183`. Over the whole register, both parsers, read TWICE because another pass was
+  writing to it (564 rows at 17:45, 566 at 18:26): **12 gate-visible verdicts move, every one open → open-and-
+  asserting-breakage**, all 12 from the case rule, none in the other direction. 7 of 13 synthetic arms are RED on the
+  pre-edit bytes and 0 on these. `engine/quarantine.js --selftest` 267 passed 0 failed; `engine/register_reality.js
+  --selftest` 88 passed 0 failed; `tests/test-game-differential.js` ALL PASSED. `data/register-reality.json`, 185
+  verdicts: #601, #440 and #602 CONFIRMED, #375 and #467 INSTRUMENT CANNOT ANSWER on CLOSED rows. Gate:
+  `GATE: OPEN — MEDICHAM passes both conditions; nothing is withheld`, nine of nine clauses PASS; the open-defect
+  clause's DEBT list **14 rows → 26**, its declared register **2 rows → 1** with `CLOSETED: 0`.
+- **Supersedes.** The 6.26.0 row's two owed items — the #440 CLOSETED declaration that "matches nothing now", and the
+  `--out` arm that "wrote no artifact and said nothing; not diagnosed". Both are closed here. No figure in a living
+  document moves; what moves is the gate's own receipt.
+- **Basis.** unchanged.
+- **Owed to the next major.** none.
+
 ## [6.28.0] — 2026-09-11 — an entity no legal body can carry is no longer counted as a staging gap: abilities COULD-NOT-STAGE 159 to 43
 
 - **What changed.** `tests/roster.js`: the verdict buckets, the `scope` block's own count and the written rows

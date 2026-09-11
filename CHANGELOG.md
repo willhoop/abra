@@ -10,6 +10,47 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.29.0] — 2026-09-11
+
+### Fixed
+- **The open-defect clause could not see a RED marker written in lower case (ROADMAP #602).** `roadmapRowSaysBroken`
+  tested `DEFECT` case-sensitively, so #601's cell `ENGINE defect` — an open row whose instrument was RED — read
+  `saysBroken: false` and the gate printed OPEN; capitalised by hand the same register read `GATE: CLOSED — 1 of 9`.
+  The token is a RULE now, not a spelling: the noun `defect`/`defects` in any case, standing alone, never inside a
+  denial. A blind `/i` was measured to be wrong first — it would have turned `the open-defect clause` (3 cells), an
+  `-instrument-defects-` filename (3) and `NOT AN ENGINE DEFECT` (4) into breakage claims. `NOT A DEFECT` remains the
+  one escape hatch and is still receipted; denials are printed by number too.
+- **A status cell could hold no pipe, not even an escaped one.** `roadmapRowStatusCell` was `/\|\s*([^|]*)\|\s*$/`,
+  and `[^|]` stops at the `|` of a `\|`, so #601 and #440 — which quote a protocol line in their own cells — read
+  STALE ROW. The cell is now the text between the last two COLUMN DELIMITERS, skipping `\|` and any pipe inside inline
+  code, with an unpaired backtick run read as literal. `roadmapRowIsClosed` no longer carries a second copy of the
+  pipe regex.
+- **`engine/game_differential.js`: `--out` without `--write` played every game, wrote no artifact and exited 0.**
+  Measured at 961 games on 2026-09-10 and again on a 1-game arm here. It refuses at second zero now, naming `--write`.
+  The guard is `require.main`-only, so the thirty-odd modules that `require` this file are untouched, and the two
+  probes that pass `--out` already pass `--write`.
+- **`engine/register_reality.js` counted an instrument that RAN AND DECLARED CANNOT-ANSWER as a row "disagreeing with
+  its own instrument".** That sentence was false for it, exactly as it was for a rejected marker. Three kinds are named
+  apart now: 7 disagree, 9 markers rejected, 8 answered nothing. The exit code is unchanged — a ruler that cannot
+  answer is still RED.
+
+### Changed
+- **The #440 CLOSETED declaration is withdrawn from `DECLARED_DIVERGENCE`.** ENGINE fixed the defect in 6.26.0 and the
+  pinned pool went 1 → 0 of 961, so the declaration matched nothing. Withdrawing it TIGHTENS the gate; it waives
+  nothing, and Will's 2026-08-28 closeting stays as the dated record in ROADMAP #440. Declared register 2 rows → 1,
+  `CLOSETED: 1 → 0`.
+- **`tests/test-register-cell-parse.js` re-derived.** Its three pipe-shaped doors are now CONTROLS asserting the reading
+  the shipping parser must give, and its lift arm is inverted. The live register reports 0 cut cells, where it reported
+  90 rows carrying 631 non-delimiter pipes.
+
+### Notes
+- Release `534442d71183`. Gate: `GATE: OPEN — MEDICHAM passes both conditions; nothing is withheld`, nine of nine
+  clauses PASS. **12 register verdicts move, every one in the gate-SHUTTING direction**, and every one is DEBT — none
+  names an instrument — so the clause still passes on a measurement rather than on twelve typed sentences. Open-defect
+  DEBT 14 rows → 26. Detail: `docs/_reports/2026-09-11-gate-parser.md`.
+- Numbered 6.29.0 rather than the 6.27.0 this pass was asked for: 6.27.0 and 6.28.0 were taken by another pass while
+  this one ran.
+
 ## [6.28.0] — 2026-09-11
 
 ### Fixed

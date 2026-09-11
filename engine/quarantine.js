@@ -1205,7 +1205,12 @@ function roadmapRowIsClosed(l) {
    * can only ever close rows, which is the direction that makes the MEDICHAM gate MORE open. Over all
    * 542 register rows EXACTLY ONE verdict moves — #565 — and it does not assert breakage, so no gate
    * clause can move with it. */
-  if (/\|\s*[*_]*\s*(closed|done|page closed)\b[^|]*\|\s*$/i.test(l)) return true;
+  /* READ THROUGH `roadmapRowStatusCell`, NOT THROUGH A SECOND PIPE REGEX — 2026-09-11, MEASURE. This
+   * line carried its own `[^|]*\|\s*$`, so ANY pipe inside a closed cell — backslash-escaped, or quoted
+   * in inline code — cut the cell short and the row read OPEN (ROADMAP #601 and #440 both hit it:
+   * docs/ENGINE.md, the 6.26.0 section). One reader for the cell, so the closed half and the open half
+   * below cannot disagree about where the cell starts. */
+  if (/^[*_]*\s*(closed|done|page closed)\b/i.test(roadmapRowStatusCell(l))) return true;
   /* AND THE CELL WINS IN THE OTHER DIRECTION TOO -- 2026-08-18. This was the CLOSED half of #148's
    * prescription done once and only once: a cell saying `closed` outranked the prose, and a cell
    * saying `open` did not. So the prose fallback below could close a row the register declares OPEN,
@@ -1298,9 +1303,46 @@ function roadmapRowIsClosed(l) {
  * IT IS AN ESCAPE HATCH AND IT IS THEREFORE COUNTED IN PUBLIC. Every use is listed by number on every
  * run of the clause, at zero as well as at seven — the `--accept <file> "reason"` shape from #258, for
  * the same reason: a door into a gate that nobody can see being used is not a door, it is a hole. */
+/* THE STATUS CELL IS THE TEXT BETWEEN THE LAST TWO COLUMN DELIMITERS — AND A PIPE THAT IS NOT A
+ * DELIMITER IS NOT ONE. 2026-09-11, MEASURE.
+ *
+ * This was `/\|\s*([^|]*)\|\s*$/`. `[^|]` stops at EVERY pipe, including the `|` of a backslash-escaped
+ * `\|` and a pipe quoted inside inline code, so a status cell that quotes a protocol line —
+ * `\|upkeep\|`, `` `|faint|p2b` `` — was cut at the quote and the detector read the tail as the whole
+ * status. A closed row read OPEN (#601 and #440 on 2026-09-11), and in the other direction an open
+ * `DEFECT` cell could be cut past its token (the #175 shape, tests/test-register-cell-parse.js).
+ *
+ * A delimiter is a `|` that is neither backslash-escaped nor inside an inline code span. A backtick run
+ * that never finds a closing run of the same length is LITERAL (CommonMark 6.1), so a stray backtick
+ * opens nothing. The line must END in a delimiter, as before, or there is no status cell ('').
+ *
+ * SELF-CONTAINED ON PURPOSE: tests/test-register-cell-parse.js LIFTS this function's source out of the
+ * shipping bytes and compiles it alone, so it may reference nothing outside its own body. */
 function roadmapRowStatusCell(l) {
-  const m = l.match(/\|\s*([^|]*)\|\s*$/);
-  return m ? m[1] : '';
+  const s = String(l).replace(/\s+$/, '');
+  const BACKSLASH = String.fromCharCode(92), TICK = String.fromCharCode(96);
+  const delims = [];
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (c === BACKSLASH) { i++; continue; }
+    if (c === TICK) {
+      let n = 1;
+      while (s[i + n] === TICK) n++;
+      let j = i + n, close = -1;
+      while (j < s.length) {
+        if (s[j] !== TICK) { j++; continue; }
+        let m = 1;
+        while (s[j + m] === TICK) m++;
+        if (m === n) { close = j; break; }
+        j += m;
+      }
+      i = close < 0 ? i + n - 1 : close + n - 1;
+      continue;
+    }
+    if (c === '|') delims.push(i);
+  }
+  if (delims.length < 2 || delims[delims.length - 1] !== s.length - 1) return '';
+  return s.slice(delims[delims.length - 2] + 1, s.length - 1).replace(/^\s+/, '');
 }
 /* Rows whose cell exercises the override, filled by `roadmapRowSaysBroken` and printed by the clause.
  * Module-level rather than returned, so a caller cannot use the detector and skip the receipt. */
@@ -1329,10 +1371,41 @@ const BREAKAGE_PROSE = /NEVER FIRED|NEVER FIRES|NOT IMPLEMENTED|DOES NOT WORK|DO
  * ESCAPE HATCH is the whole reason it is printed: a door reported as being used eight times when it
  * is used once is a door nobody can reason about, which is the same failure as a caption nobody
  * reads. It is reported here as a DISPLAY correction and not as an improvement to the gate. */
+/* ================================================================================================
+ * THE BREAKAGE TOKEN IS A RULE, NOT A SPELLING — 2026-09-11, MEASURE.
+ * ================================================================================================
+ * The token was `/\bDEFECT\b/`, case-sensitive. ROADMAP #601's cell said `ENGINE defect`, its
+ * instrument was RED, and the gate read OPEN; capitalised, the same register read `GATE: CLOSED — 1
+ * of 9` (docs/ENGINE.md, the 6.26.0 section). Letter case hiding a claim is #148's lesson again.
+ *
+ * A BLIND /i IS THE WRONG FIX, AND THE REGISTER SAYS SO. Surveyed over all 564 register rows' status
+ * cells on 2026-09-11: `defect` in lower case 61 times against `DEFECT` 150, and beside them
+ * `open-defect` (the NAME of this clause, three cells), `-instrument-defects-` (a report FILENAME) and
+ * four cells that say `NOT AN ENGINE DEFECT` in words. A case-fold alone turns every one of those into
+ * a breakage claim. So the token is, deliberately:
+ *   - the NOUN — `defect` or `defects`, in any case. The plural is the same claim; `DEFECTS` was as
+ *     invisible to the old token as `defect` was.
+ *   - STANDING ALONE. A hyphen or a word character either side makes it part of a name — `open-defect`,
+ *     `non-defect`, `x-instrument-defects-y.md` — and a name claims nothing. `defective` is an
+ *     adjective and is NOT the token (0 status cells use it): a cell that means breakage says DEFECT,
+ *     which is the register's declared vocabulary, and the prose fallback keeps its own list.
+ *   - NEVER INSIDE A DENIAL — `not a(n) [engine] defect`, `no [engine] defect(s)`. `NOT A DEFECT` is
+ *     still THE RULING and the only escape hatch (any case, unchanged, and receipted). The other denials
+ *     are NOT an excuse: they simply do not contribute a token, and the prose fallback still runs. Every
+ *     row where a denial is the only reason no token was read is printed by number (`DEFECT_DENIED`),
+ *     because a door nobody can see being used is a hole. */
+const DEFECT_TOKEN = /(?:^|[^A-Za-z0-9_-])defects?(?![A-Za-z0-9_-])/i;
+const DEFECT_DENIAL = /\b(?:not\s+an?\s+(?:engine\s+)?|no\s+(?:engine\s+)?)defects?(?![A-Za-z0-9_-])/gi;
+function cellClaimsDefect(cell) {
+  return DEFECT_TOKEN.test(String(cell).replace(DEFECT_DENIAL, ' '));
+}
+/* Rows whose cell carries the token ONLY inside a denial; filled by `roadmapRowSaysBroken`, printed by
+ * the clause beside the NOT A DEFECT receipt, at zero as well as at four. */
+const DEFECT_DENIED = [];
 function notADefectSuppresses(l, cell) {
   /* strip EVERY occurrence of the phrase, then ask whether an independent claim survives */
   const stripped = String(cell).replace(/NOT A DEFECT/ig, '');
-  return /\bDEFECT\b/.test(stripped) || BREAKAGE_PROSE.test(l.slice(0, 600));
+  return cellClaimsDefect(stripped) || BREAKAGE_PROSE.test(l.slice(0, 600));
 }
 function roadmapRowSaysBroken(l) {
   const cell = roadmapRowStatusCell(l);
@@ -1344,7 +1417,14 @@ function roadmapRowSaysBroken(l) {
     }
     return false;
   }
-  if (/\bDEFECT\b/.test(cell)) return true;
+  if (cellClaimsDefect(cell)) return true;
+  if (DEFECT_TOKEN.test(cell)) {
+    const n = (l.match(/^\|\s*#(\d+)/) || [, '?'])[1];
+    if (!DEFECT_DENIED.some(r => r.n === n)) {
+      DEFECT_DENIED.push({ n, cell: cell.trim().slice(0, 90),
+                           prose: BREAKAGE_PROSE.test(l.slice(0, 600)) });
+    }
+  }
   /* THE HEAD, NOT THE ROW — see REPAIR 1 above. The 600 is `roadmapRowIsClosed`'s number, deliberately
    * the same one: two detectors reading the same table must not disagree about where a row's claim
    * stops and its history starts. */
@@ -1840,59 +1920,28 @@ const DECLARED_DIVERGENCE = [
    * `showdown_before` at all). The class prefix is deliberately NOT pinned: this cause was filed as
    * `ordering ::` in #440 and the classifier calls it `event missing from medicham2 ::` today, and
    * pinning a classifier's label would make the exemption evaporate on a rename rather than on a fix. */
-  {
-    kind: 'CLOSETED',
-    name: 'the perish drain sits above `|upkeep|` when the authority puts it below',
-    match: (c, ev) => {
-      if (!/ :: \|upkeep <> \|faint\|p[12][ab]$/.test(String(c || ''))) return false;
-      const rows = (ev && ev.firsts) || [];
-      /* NO EVIDENCE IS A DECLINE, NEVER A MATCH — `causeEvidence`'s own contract. */
-      if (!rows.length) return false;
-      return rows.every((r) => Array.isArray(r.showdown_before)
-        && r.showdown_before.some((l) => /^\|-start\|p[12][ab][^|]*\|perish0$/.test(String(l))));
-    },
-    why: 'A REAL DEFECT, OURS, AND THE POSITION OF A LINE RATHER THAN THE STATE OF A BOARD. '
-       + "`perishsong.condition.onEnd` is `add('-start', target, 'perish0'); target.faint()`, and "
-       + '`Pokemon#faint()` only QUEUES — the line is written by a `faintMessages()`. `fieldEvent`\'s '
-       + 'duration-expiry branch `continue`s past the one at sim/battle.ts:565, so the deaths are paid '
-       + 'by the next handler that does not itself expire, and when none does they fall to the tail of '
-       + '`runAction` at :2832, EIGHTEEN LINES BELOW the `|upkeep|` written at :2814. This engine\'s '
-       + '`residualFollowerRuns` decides the same question from a derived handler list and answers '
-       + "TRUE on this one board where the authority's walk answers false. One game of 961, turn 11.",
-    closet: {
-      by: 'Will',
-      on: '2026-08-28',
-      authority: 'ROADMAP #440',
-      ruling: 'STANDING RULE, 2026-08-27, verbatim: "things in the closet shouldnt block a gate if we '
-            + 'know why they fail and choose to accept it." APPLIED TO THIS ROW 2026-08-28 — Will '
-            + 'authorised closing the last open MEDICHAM gate clause by declaring this divergence, '
-            + 'with a note saying we could not make it work. THE 2026-08-28 AUTHORISATION IS RELAYED '
-            + 'THROUGH THE COORDINATOR AND IS RECORDED AS RELAYED, NOT DRESSED AS A QUOTATION; the '
-            + 'sentence in quotation marks is the 2026-08-27 standing rule and nothing else is quoted.',
-    },
-    evidence: {
-      instrument: 'engine/game_differential.js (arm middle, pins ccb365985023, --team-store '
-                + 'data/team-pool-frozen, cap 12, 961 games), comparing boards through '
-                + 'engine/board_state.js',
-      release: '5f3f7141227c',
-      on: '2026-08-28',
-      says: '12,445 turn boundaries compared and 12,445 IDENTICAL; games_board_never_diverged 961 of '
-          + '961; protocol_diverged_games 6 and protocol_diverged_board_never_did 6; '
-          + 'first_board_divergences []. The leaf a real faint difference would move is COMPARED and '
-          + 'agreed — `fainted` with `hp`/`maxhp`/`status` on the active bodies (board_state.js:866), '
-          + 'the party (:1034) and the bench (:769, :843) — so this is a leaf that was looked at, not '
-          + "one of ROADMAP #528's 43 leaves in neither list.",
-    },
-    falsifiedBy:
-      'ANY of: (a) the pair appearing on a first-divergence row whose `showdown_before` carries no '
-    + '`perish0`, which would mean the exemption has spread to a different residual drain; (b) the '
-    + 'board claim failing — `state.games_board_never_diverged` below `state.games`, or '
-    + '`protocol_diverged_board_never_did` below `protocol_diverged_games`, or a non-empty '
-    + '`state.first_board_divergences`; (c) `MEDFAILS.residualFollowerUnmapped` becoming non-empty, '
-    + 'which would mean the predicate is BLIND to a follower rather than merely wrong about one board, '
-    + 'and makes this a bigger claim than one game; (d) the cause reaching more than the single game '
-    + 'measured here. Any one of those and this row comes out and #440 goes back on the gate.',
-  },
+  /* ~~`the perish drain sits above ``|upkeep|`` when the authority puts it below`~~ — CLOSETED BY
+   * WILL 2026-08-28 (ROADMAP #440), WITHDRAWN 2026-09-11 BY MEASURE BECAUSE THE DEFECT IT COVERED IS
+   * GONE. Left as a comment, like the withdrawn rows above, because a closet that silently loses rows
+   * teaches nobody; the row is preserved verbatim in docs/_reports/2026-09-11-gate-parser.md.
+   *
+   * WHAT IT DECLARED. One game of 961: the authority writes `|upkeep` and then the perish faint, and this
+   * engine wrote the faint first. Real, ours, the position of a line rather than the state of a board,
+   * and accepted under the 2026-08-27 standing rule that a thing in the closet does not block a gate.
+   *
+   * WHY IT COMES OUT, AND IT WAIVES NOTHING. ENGINE fixed it in 6.26.0: a body the perish clock has
+   * zeroed still runs its later residual handlers, and #440's follower was a corpse —
+   * `residualFollowerRuns` counted every body in the slots, including one KO'd earlier in the turn.
+   * On the pinned pool, same 961 games and the same coverage block, the cause went 1 -> 0, and the knob
+   * MEDI_FOLLOWER_COUNTS_CORPSES=1 puts it back. The whole-game register then printed this row as
+   * MATCHED NOTHING IN THIS RUN — what this file calls a claim that has quietly become false — which is
+   * falsifier (d) arriving from the other end. WITHDRAWING A DECLARATION THAT COVERS NOTHING TIGHTENS
+   * THE GATE: it removes a standing permission to subtract, and nothing that diverges today stops
+   * being counted.
+   *
+   * WILL'S CLOSETING IS NOT UNDONE BY THIS AND IT IS NOT REUSABLE EITHER. The dated record stays in
+   * ROADMAP #440 as written. If the pair ever returns it is a new divergence against the engine of the
+   * day, and it holds the gate shut until somebody measures it again. */
   /* ~~`Tailwind's expiry order` — THE ROW THE `CLOSETED` KIND WAS BUILT FOR, AND IT IS NOT WRITTEN,
    * BECAUSE THE DEFECT WAS FIXED BEFORE THE DOOR WAS FINISHED.~~
    *
@@ -3431,6 +3480,16 @@ function openDefectClause() {
     + (excused.length
       ? ': ' + excused.map(r => '#' + r.n + (r.suppresses ? ' SUPPRESSES' : '')
           + ' [' + r.cell + ']').join('; ') : '.');
+  /* THE SECOND DOOR, PRINTED ON THE SAME TERMS — see DEFECT_TOKEN. A denial is NOT the `NOT A DEFECT`
+   * ruling and excuses nothing; it only means the token in that cell is part of a sentence saying there
+   * is no defect. Printed at zero as well, because the reason the ruling is receipted applies here. */
+  const denied = DEFECT_DENIED.slice().sort((a, b) => +a.n - +b.n);
+  const denialLine = '  ' + denied.length + ' open row(s) carry a `defect` token ONLY inside a denial '
+    + '(`not an engine defect`, `no defect`) — not an excuse and not a claim; the prose fallback still '
+    + 'decides them'
+    + (denied.length
+      ? ': ' + denied.map(r => '#' + r.n + (r.prose ? ' STILL COUNTS (prose)' : '')
+          + ' [' + r.cell + ']').join('; ') : '.');
   return {
     name: 'no open, known engine defect', ok: withRed.length === 0 && unrunnable.length === 0,
     ...(cannotAnswer ? { cannot_answer: true } : {}),
@@ -3454,8 +3513,8 @@ function openDefectClause() {
         + withRed.map(r => '#' + r.n + (r.uses ? ' (' + r.uses.toLocaleString() + ' uses)' : '')).join(', ')
         + `. A gate cannot report the engine correct while the register says otherwise — that is `
         + `"known failure" filed one level up.`)
-      + receipt + wireLine + verdictAgeLine + rejectedLine + unrunnableLine + unverifiedLine + debtLine
-      + staleLine,
+      + receipt + denialLine + wireLine + verdictAgeLine + rejectedLine + unrunnableLine
+      + unverifiedLine + debtLine + staleLine,
   };
 }
 
@@ -5063,6 +5122,90 @@ if (require.main === module) {
     ok('the clause reports the override list on every run, at zero as well as at seven',
       / open row\(s\) declare NOT A DEFECT in their status cell/.test(openDefectClause().why),
       openDefectClause().why.slice(-160));
+    /* -- THE TOKEN AND THE CELL ARE RULES, NOT SPELLINGS — 2026-09-11 ---------------------------
+     *
+     * SEVEN OF THE THIRTEEN ARMS BELOW ARE RED ON THE PARSER THIS REPLACED, shown side by side in
+     * docs/_reports/2026-09-11-gate-parser.md against the pre-edit bytes. Both defects were live:
+     * ROADMAP #601's status cell said `ENGINE defect` while its instrument was RED, and the gate
+     * printed OPEN — capitalised, the same register read `GATE: CLOSED — 1 of 9`; and #601 and #440
+     * each quote a protocol line in their cell, where a `\|` cut the cell short and a CLOSED row read
+     * open (docs/ENGINE.md, the 6.26.0 section).
+     *
+     * THE CONTROLS MATTER AS MUCH AS THE REDS. A blind /i would have made `the open-defect clause`
+     * and `NOT AN ENGINE DEFECT` into breakage claims — 4 register cells say exactly that — so the
+     * arms that must stay FALSE are what stop this fix from becoming the over-firing gate #148 is
+     * about. The row head is padded past 600 characters on purpose: inside that window the PROSE
+     * fallback decides, and an arm decided by the fallback tests nothing about the cell. */
+    const PADDED = (n, cell) => '| #' + n + ' | **A SYNTHETIC ROW.** '
+      + ('the row narrates its measurement and repeats so that the status cell sits past the head '
+         + 'window the prose scan reads. ').repeat(6) + ' | ' + cell + ' |';
+    ok('RED — a lower-case `defect` in the status cell is a breakage claim (the #601 shape)',
+      roadmapRowSaysBroken(PADDED(9201, 'open — ENGINE defect, the probe is RED')) === true);
+    ok('RED — the PLURAL is the same claim, and was as invisible as the case was',
+      roadmapRowSaysBroken(PADDED(9202, 'open — two engine DEFECTS, both staged')) === true);
+    ok('RED — a DENIAL is not a claim, in any case: `NOT AN ENGINE DEFECT`',
+      roadmapRowSaysBroken(PADDED(9203, 'open — NOT AN ENGINE DEFECT; the instrument was wrong')) === false);
+    ok('a denial does not cancel an INDEPENDENT claim in the same cell',
+      roadmapRowSaysBroken(PADDED(9204, 'open — engine defect; the narration half is not an engine defect')) === true);
+    ok('a hyphenated NAME claims nothing — `the open-defect clause`, an `-instrument-defects-` filename',
+      roadmapRowSaysBroken(PADDED(9205, 'open — reporting only; the open-defect clause reads this cell')) === false);
+    ok('`defective` is an adjective and is not the token: the register declares the NOUN',
+      roadmapRowSaysBroken(PADDED(9206, 'open — the fixture was defective')) === false);
+    ok('`NOT A DEFECT` still excuses in lower case as in capitals, and is still receipted',
+      roadmapRowSaysBroken(PADDED(9207, 'open — not a defect, register hygiene')) === false
+      && NOT_A_DEFECT.some(r => r.n === '9207'), NOT_A_DEFECT.slice(-1));
+    ok('a denial that is the cell\'s ONLY token is recorded for the receipt, never silently applied',
+      DEFECT_DENIED.some(r => r.n === '9203'), DEFECT_DENIED.slice(-1));
+    ok('RED — a CLOSED cell that quotes an ESCAPED pipe is closed (#601 and #440 both hit this)',
+      roadmapRowIsClosed(PADDED(9208, 'closed 2026-09-11 — the pair was \\|upkeep\\| then \\|faint\\|p2b')) === true);
+    ok('RED — a CLOSED cell that quotes a pipe inside INLINE CODE is closed',
+      roadmapRowIsClosed(PADDED(9209, 'closed 2026-09-11 — the pair was `|upkeep` then `|faint|p2b`')) === true);
+    ok('RED — THE DANGEROUS DIRECTION: an open DEFECT cell whose token is cut off by an escaped pipe, '
+      + 'with a dated closure further along the cell (the #175 shape)',
+      (() => {
+        const l = PADDED(9210, 'open — engine DEFECT; the note writes a \\| b. An earlier half closed 2026-08-11');
+        return roadmapRowIsClosed(l) === false && roadmapRowSaysBroken(l) === true;
+      })());
+    ok('a backtick run that never pairs is LITERAL (CommonMark 6.1), so it opens no span and the cell '
+      + 'is still read',
+      roadmapRowIsClosed(PADDED(9211, 'closed 2026-09-11 — a ` stray backtick and no pipe at all')) === true);
+    ok('a row that does not end in a delimiter has no status cell, exactly as before',
+      roadmapRowStatusCell('| #9212 | a row with no trailing pipe') === '');
+    /* The synthetics are spliced out of BOTH receipts before either is read, for the reason the block
+     * above gives: a selftest that leaves its fixtures in inflates the number the next arm reads. */
+    for (const n of ['9201', '9202', '9203', '9204', '9205', '9206', '9207', '9208', '9209', '9210', '9211']) {
+      let i = NOT_A_DEFECT.findIndex(x => x.n === n);
+      if (i >= 0) NOT_A_DEFECT.splice(i, 1);
+      i = DEFECT_DENIED.findIndex(x => x.n === n);
+      if (i >= 0) DEFECT_DENIED.splice(i, 1);
+    }
+    ok('the clause prints the DENIAL door too, at zero as well as at four',
+      / open row\(s\) carry a `defect` token ONLY inside a denial/.test(openDefectClause().why),
+      openDefectClause().why.slice(-200));
+    /* -- A CLOSED ROW'S VERDICT REACHES NO CLAUSE, IN EITHER DIRECTION — 2026-09-11 --------------
+     *
+     * ROADMAP #375 and #467 are CLOSED rows whose instruments now read `ABRA-EXIT 2 CANNOT-ANSWER`,
+     * because the pinned pool holds no divergence left for them to attribute. That is worth PRINTING
+     * — engine/register_reality.js prints it and exits 1 on it, since a ruler that cannot answer is a
+     * hole in the ruler — and it must decide NOTHING here: this clause asks about OPEN rows, and a
+     * closed row is skipped before any verdict is read. Asserted rather than argued, because "it
+     * cannot reach the gate" is exactly the kind of claim that stops being true without a sound. */
+    {
+      const cannot = (n) => [String(n), { n, cmd: 'node tests/probe_x.js', green: null,
+                                          verdict: 'INSTRUMENT CANNOT ANSWER' }];
+      const byRow = new Map([cannot(375), cannot(467)]);
+      const none = registerEvidence([], byRow);
+      ok('a CANNOT-ANSWER verdict for a row that is NOT open reaches no bucket of this clause — it '
+        + 'can neither hold the gate shut nor open it',
+        none.withRed.length === 0 && none.unrunnable.length === 0 && none.debt.length === 0
+        && none.staleRows.length === 0 && none.rejected.length === 0 && none.unverified.length === 0,
+        none);
+      const opened = registerEvidence([{ n: 375, uses: 0, title: 't', marked: true }], byRow);
+      ok('CONTROL — the SAME verdict on an OPEN row DOES hold the clause, landing in `unrunnable`: '
+        + 'that is what makes the arm above a statement about open-versus-closed and not about the '
+        + 'verdict being ignored everywhere',
+        opened.unrunnable.length === 1 && opened.withRed.length === 0, opened);
+    }
     /* -- THE RECEIPT MUST SAY WHICH ROWS THE DOOR ACTUALLY MOVED -- 2026-08-27 -----------------
      *
      * `\bDEFECT\b` matches INSIDE the phrase `NOT A DEFECT`, so every row carrying the phrase used

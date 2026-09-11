@@ -359,6 +359,53 @@ console.log('\nPART 5 — the coverage report can be ZERO, and names what it can
     + 'the Mode A pin, and are NOT counted as covered');
 }
 
+/* ================= PART 6 — A RUN THAT PUBLISHES NOTHING MUST SAY SO ============================
+ *
+ * `--out` only chooses WHERE the artifact goes; the write itself is inside `if (WRITE)`. So a run
+ * given `--out <file>` and no `--write` played every game, printed its whole comparison, wrote no file
+ * and EXITED 0 — measured at 961 games (docs/_reports/2026-09-10-phase1-census-repin.md:220) and again
+ * on a 1-game knobbed arm on 2026-09-11. A capability absent with everything reporting success is the
+ * failure this project is organised against, and a command copied out of a report reproduces it.
+ *
+ * BOTH CHILDREN REFUSE AT SECOND ZERO, so this part plays no games and needs no release: the guard sits
+ * above the SHOWDOWN_PATH check and above the release open. The CONTROL is what makes the first arm
+ * mean something — with `--write` present the new guard must NOT fire, and the run must reach the
+ * pre-existing coverage-arm refusal instead. Without it, a guard that refused everything would pass. */
+console.log('\nPART 6 — `--out` without `--write` refuses, and the control shows the refusal is specific');
+{
+  const { spawnSync } = require('child_process');
+  const os = require('os');
+  const fs = require('fs');
+  const out = path.join(os.tmpdir(), 'abra-gd-out-arm-' + process.pid + '.json');
+  const GD = D('engine', 'game_differential.js');
+  const run = (args) => spawnSync(process.execPath, [GD].concat(args), { encoding: 'utf8' });
+
+  const a = run(['--out', out]);
+  const said = String(a.stderr || '') + String(a.stdout || '');
+  if (a.status === 0) {
+    fail('`--out <file>` with no `--write` exited 0. It writes no artifact on that path, so a run that '
+      + 'cost minutes reports as a pass and publishes nothing.');
+  } else if (!/--write/.test(said) || !/REFUS/i.test(said)) {
+    fail('`--out` with no `--write` exited ' + a.status + ' without saying why (no refusal naming '
+      + '`--write` in its output): ' + said.slice(0, 200).replace(/\s+/g, ' '));
+  } else {
+    pass('`--out` with no `--write` refuses at second zero (exit ' + a.status + ') and names `--write`');
+  }
+  if (fs.existsSync(out)) {
+    fail('the refused run created ' + out + ' — it must write nothing at all');
+    try { fs.unlinkSync(out); } catch (e) { note('could not remove ' + out + ': ' + e.message); }
+  }
+
+  const b = run(['--write']);
+  const bSaid = String(b.stderr || '') + String(b.stdout || '');
+  if (/names a file and .--write. is absent/.test(bSaid))
+    fail('CONTROL — the new guard fired on a run that HAS `--write`. It must only refuse the '
+      + '`--out`-without-`--write` combination.');
+  else
+    pass('CONTROL — with `--write` present the new guard is silent; that run is decided by the '
+      + 'coverage-arm refusal instead (exit ' + b.status + ')');
+}
+
 console.log('\n' + (failures ? failures + ' FAILURE(S) — the INSTRUMENT is wrong, which is the only thing this file fails on'
   : 'ALL PASSED — the instrument is sound. What it FOUND is in data/game-differential.json and docs/ENGINE.md.'));
 process.exit(failures ? 1 : 0);

@@ -416,6 +416,46 @@ const BAD = new Set(['STALE ROW', 'PREMATURE CLOSE', 'INSTRUMENT UNRUNNABLE',
    * never started, which is the coverage lie #521 was filed for. */
   'MARKER REJECTED']);
 
+/* ================================================================================================
+ * THE SUMMARY SENTENCE MUST BE TRUE OF EVERY ROW IT COUNTS — 2026-09-11, MEASURE.
+ * ================================================================================================
+ * The rejected-marker split was made on 2026-09-04 for this exact reason: "disagree with their own
+ * instrument" is a FALSE sentence about a row nothing was ever asked of. The same is true of a row
+ * whose instrument RAN AND DECLARED CANNOT-ANSWER, and that shape is live today — ROADMAP #375 and
+ * #467 are CLOSED rows whose probes read `ABRA-EXIT 2 CANNOT-ANSWER` because the pinned pool has no
+ * divergence left for them to attribute. Counting those as disagreements would accuse whoever closed
+ * them, off an exit code that said "I could not answer".
+ *
+ * THE EXIT IS UNCHANGED AND DELIBERATELY SO. An instrument that cannot answer is still a hole in the
+ * ruler, so it stays in BAD and this file still exits 1; what changes is that the printed count says
+ * which of the three things it is. The gate reads the ARTIFACT, never this exit code, and on the gate
+ * side the split is already made: engine/quarantine.js's `registerEvidence` walks the OPEN rows only,
+ * so a CLOSED row's cannot-answer reaches no clause in either direction (asserted in that file's
+ * selftest), while an OPEN row's holds the clause shut as `unrunnable`. */
+const ANSWERED_NOTHING = new Set(['INSTRUMENT CANNOT ANSWER', 'EXIT CODE UNDECLARED',
+  'INSTRUMENT UNRUNNABLE']);
+function failureSummary(failing) {
+  const rejected = failing.filter(r => r.verdict === 'MARKER REJECTED');
+  const silent = failing.filter(r => ANSWERED_NOTHING.has(r.verdict));
+  const disagree = failing.filter(r => r.verdict !== 'MARKER REJECTED' && !ANSWERED_NOTHING.has(r.verdict));
+  const out = [];
+  if (disagree.length)
+    out.push('REGISTER REALITY: ' + disagree.length + ' row(s) disagree with their own instrument. '
+      + 'A stale row holds a gate shut on a defect that does not exist.');
+  if (rejected.length)
+    out.push('REGISTER REALITY: ' + rejected.length + ' marker(s) REJECTED — those rows name an '
+      + 'instrument and this file refused to read the marker, so nothing ran. Listed above with the '
+      + 'rule that refused each. This is coverage the register CLAIMS and does not have.');
+  if (silent.length)
+    out.push('REGISTER REALITY: ' + silent.length + ' row(s) NAME AN INSTRUMENT THAT ANSWERED NOTHING '
+      + '— it would not start, or it ran and declared cannot-answer, or it exited outside {0,1}: '
+      + silent.map(r => '#' + r.n + ' [' + r.verdict + ']').join(', ') + '. That is neither agreement '
+      + 'nor disagreement, so it is not counted as one. On an OPEN row the MEDICHAM gate fails on it '
+      + '(a defect neither shown live nor shown gone); on a CLOSED row it is a hole in the ruler and '
+      + 'reaches no gate clause.');
+  return out;
+}
+
 /* ================= WHICH EXIT CODES ARE VERDICTS, AND WHICH ARE REFUSALS ==========================
  *
  * THE DEFECT THIS REPLACES. The catch block below read *any* non-zero exit as `green: false`, and
@@ -1294,6 +1334,24 @@ if (has('--selftest')) {
   ok('and the knob is OFF unless it is set to exactly "1"',
     (process.env.RR_CANNOT_ANSWER_AS_RED === '1') || classifyExit(2, '').green === null);
 
+  /* -- THE SUMMARY COUNTS WHAT IT SAYS IT COUNTS — 2026-09-11, MEASURE ---------------------------
+   * Driven through the SHIPPING function rather than restated: a corpus holding one of each kind, so
+   * a summary that merged any two of them fails here by name. */
+  {
+    const F = [{ n: 1, verdict: 'STALE ROW' }, { n: 2, verdict: 'MARKER REJECTED' },
+               { n: 3, verdict: 'INSTRUMENT CANNOT ANSWER' }, { n: 4, verdict: 'INSTRUMENT UNRUNNABLE' }];
+    const s = failureSummary(F).join(' ');
+    ok('RED — an instrument that RAN AND DECLARED CANNOT-ANSWER is not counted as a row disagreeing '
+      + 'with its instrument (ROADMAP #375 and #467 are exactly this, and they are CLOSED rows)',
+      /\b1 row\(s\) disagree/.test(s) && /\b2 row\(s\) NAME AN INSTRUMENT THAT ANSWERED NOTHING/.test(s), s);
+    ok('the rejected marker keeps the separate sentence it was given on 2026-09-04',
+      /\b1 marker\(s\) REJECTED/.test(s), s);
+    ok('every failing row is named in exactly one of the three sentences, so the counts sum to the '
+      + 'corpus and nothing is dropped from the report',
+      failureSummary(F).length === 3, failureSummary(F));
+    ok('a clean run prints no summary line at all', failureSummary([]).length === 0);
+  }
+
   console.log(`\nREGISTER-REALITY SELFTEST: ${ran - bad} passed, ${bad} failed`);
   process.exit(bad ? 1 : 0);
 }
@@ -1370,17 +1428,11 @@ renderRejected(en);
 renderOwedAndProse(en);
 console.log('  wrote data/register-reality.json\n');
 if (failing.length) {
-  /* THE TWO HALVES ARE NAMED SEPARATELY. "disagree with their own instrument" is a FALSE sentence
-   * about a rejected marker — nothing was asked of that instrument — and a summary line that is false
-   * for part of its own count is how a figure stops being read. */
-  const rej = failing.filter(r => r.verdict === 'MARKER REJECTED').length;
-  if (failing.length - rej)
-    console.log('REGISTER REALITY: ' + (failing.length - rej) + ' row(s) disagree with their own '
-      + 'instrument. A stale row holds a gate shut on a defect that does not exist.');
-  if (rej)
-    console.log('REGISTER REALITY: ' + rej + ' marker(s) REJECTED — those rows name an instrument and '
-      + 'this file refused to read the marker, so nothing ran. Listed above with the rule that '
-      + 'refused each. This is coverage the register CLAIMS and does not have.');
+  /* THE THREE KINDS ARE NAMED SEPARATELY — see `failureSummary`. "disagree with their own instrument"
+   * is a FALSE sentence about a rejected marker (nothing was asked) and about an instrument that ran
+   * and declared cannot-answer (it said so), and a summary line that is false for part of its own
+   * count is how a figure stops being read. */
+  for (const line of failureSummary(failing)) console.log(line);
   exitWithVerdict(true);
 }
 console.log('REGISTER REALITY: every marked row agrees with its instrument.');

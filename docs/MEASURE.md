@@ -23,9 +23,7 @@ MEASURE — can we believe a number
     older than its input engine-data.js
     (+10 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 230 unsafe, 2 void (declared), 9 possibly stale, 15 ok, 0 missing
-    RATCHET TRIPPED — the unstamped list grew; provenance.js exited non-zero: _diag41-sample.json, _diag46-cards.json, _diag46-sample.json, _diag46b-cards.json, _diag46b-sample.json, _diag77-cards.json
-    their generators ship without recording what CONTENT they read — stamp source_digests
+  provenance: 224 unsafe, 2 void (declared), 11 possibly stale, 19 ok, 0 missing
   click censoring: WITHHELD — engine/provenance.js calls data/click-censoring-census.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     COMPUTED FROM DIFFERENT CONTENT — engine/fit_policy.js was 37df17935c16 at read time, is a963537c91e8 now
@@ -33,14 +31,68 @@ MEASURE — can we believe a number
     it becomes quotable again when this is re-run: node engine/click_census.js
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-11 16:25
+    moved after the fit: engine/medicham2-browser.js  2026-09-11 17:30
     moved after the fit: data/engine-data.js  2026-08-31 00:08
     moved after the fit: data/abra-tags.js  2026-09-11 09:48
 ```
 
-_stamped 2026-09-11 17:25_
+_stamped 2026-09-11 18:31_
 
 <!-- /GENERATED -->
+
+## THE GATE'S OWN PARSER MISSED A RED MARKER ON LETTER CASE AND CUT ANY STATUS CELL THAT QUOTED A PIPE. 12 VERDICTS MOVE, ALL GATE-SHUTTING, ALL DEBT. 2026-09-11
+
+**WHY THIS MATTERED TODAY.** Will has approved releasing on the gate's verdict, so the gate's own
+correctness is the thing being defended. ENGINE found both traps while closing #601: its status cell
+said `ENGINE defect` in lower case against a RED instrument, and `roadmapRowSaysBroken` matched
+`DEFECT` case-sensitively, so the clause printed clean — capitalised by hand, the same register read
+`GATE: CLOSED — 1 of 9`. Separately, `roadmapRowStatusCell` read the text after the LAST pipe through
+a negated-pipe class, and `[^|]` stops at the `|` of an escaped `\|`, so #601 and #440 — both quoting
+a protocol line in their own cells — read STALE ROW.
+
+**BOTH ARE FIXED BY RULE, AND THE BLIND FIX WAS MEASURED TO BE WRONG BEFORE IT WAS REJECTED.** A bare
+`/i` would have made breakage claims out of `the open-defect clause` (3 cells), an
+`-instrument-defects-` report filename (3) and `NOT AN ENGINE DEFECT` (4). The token is the NOUN,
+singular or plural, any case, standing alone, never inside a denial; `defective` is not the token.
+`NOT A DEFECT` stays the one escape hatch and is still receipted by number, and the denials are now
+receipted too — a door nobody can see being used is a hole. The cell is the text between the last two
+COLUMN DELIMITERS, skipping `\|` and any pipe inside inline code, with an unpaired backtick run read
+as literal (CommonMark 6.1); `roadmapRowIsClosed` reads through that one function rather than keeping
+a second copy of the regex.
+
+**WHAT MOVES, MEASURED OVER THE WHOLE REGISTER AND TAKEN TWICE.** 564 rows at 17:45 and 566 at 18:26,
+because another pass was adding rows while this one measured: the same answer both times. **12
+gate-visible verdicts move and every one moves in the gate-SHUTTING direction** (open →
+open-and-asserting-breakage): #67, #207, #284, #285, #367, #423, #473, #495, #507, #533, #543, #550.
+All 12 come from the CASE rule. The cell rule moves no live verdict today, because ENGINE had already
+reworded the two cells that hit it — it is fixed so the next row that quotes a protocol line is not
+decided by where a pipe fell.
+
+**THE GATE DOES NOT CLOSE, AND THAT WAS CHECKED ROW BY ROW RATHER THAN INFERRED FROM THE VERDICT.**
+None of the 12 carries a `VERIFIED BY` marker, so all 12 are DEBT — printed, counted, holding nothing
+shut, which is the standard every clause here meets: a row gates on a MEASUREMENT, never on a
+sentence. DEBT goes 14 rows → 26. Had any of the 12 named a RED instrument the gate would read CLOSED
+and this section would say so. `GATE: OPEN — MEDICHAM passes both conditions; nothing is withheld`,
+nine of nine clauses PASS, on 185 published verdicts.
+
+**THE #440 CLOSETED DECLARATION IS WITHDRAWN.** ENGINE fixed the defect in 6.26.0 and the pinned pool
+went 1 → 0 of 961, so the declaration matched nothing and the register printed it as such. Withdrawing
+a declaration that covers nothing TIGHTENS the gate — it removes a standing permission to subtract —
+and it waives nothing: Will's 2026-08-28 closeting stays as the dated record in ROADMAP #440, and a
+return of the pair is a new divergence that holds the gate shut until somebody measures it. Declared
+register 2 rows → 1, `CLOSETED: 0`.
+
+**TWO INSTRUMENT DEFECTS OF THIS DIVISION'S OWN, BOTH RED-BEFORE AND GREEN-AFTER.**
+`engine/game_differential.js` wrote no artifact and exited 0 when given `--out` without `--write` —
+961 games' worth on 2026-09-10, 8 games here — and now refuses at second zero naming `--write`, with
+a control proving the refusal is specific. `engine/register_reality.js` called an instrument that RAN
+AND DECLARED CANNOT-ANSWER a row "disagreeing with its own instrument"; it names three kinds apart now
+(7 disagree, 9 markers rejected, 8 answered nothing), and its exit is unchanged because a ruler that
+cannot answer is still RED. A CLOSED row's cannot-answer (#375, #467) reaches no clause in either
+direction — `registerEvidence` walks the OPEN rows only, now asserted with a control rather than
+argued.
+
+Full account: `docs/_reports/2026-09-11-gate-parser.md`.
 
 ## THE QUARANTINE CLASSIFIER GETS THREE ROUTES RIGHT THAT IT GOT WRONG, AND THE WITHHELD SET GOES 64 → 69. 2026-09-11
 

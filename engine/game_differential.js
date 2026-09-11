@@ -322,6 +322,42 @@ if (require.main === module && WRITE && !OUT && STEER_MODE !== 'empirical') {
   console.error('    node engine/game_differential.js ... --write --out data/verification/game-differential.coverage.json');
   process.exit(2);
 }
+/* ---- `--out` WITHOUT `--write` WROTE NOTHING AND SAID NOTHING — 2026-09-11, MEASURE ---------------
+ *
+ * The artifact write lives inside `if (WRITE)`, and `--out` only chooses its PATH. So a run given
+ * `--out <file>` and no `--write` played every game, printed its whole comparison, wrote no file and
+ * EXITED 0. Measured twice: docs/_reports/2026-09-10-phase1-census-repin.md:220 ("it played all 961
+ * games, printed 506 lines and wrote no artifact, exiting 0") and again on 2026-09-11 on a 1-game
+ * knobbed arm (docs/ENGINE.md's hand list, and docs/_reports/2026-09-11-gate-parser.md).
+ *
+ * THAT IS THIS PROJECT'S SIGNATURE FAILURE: a capability absent and everything reporting success. A
+ * run that cost minutes reports as a pass and leaves the operator reading a path that was never
+ * written — and the next command in a report, copied verbatim, reproduces it.
+ *
+ * IT REFUSES RATHER THAN IMPLYING `--write`, for the reason the coverage-arm guard above gives: asking
+ * by omission is what produced that reading in the first place, and `--write` is the one flag in this
+ * file that means A FILE IS PUBLISHED. Inferring it from `--out` would make the publishing flag
+ * optional, which is the same class of quiet promotion `--turns` refuses to make.
+ *
+ * AT SECOND ZERO, AND ONLY AS AN ENTRY POINT. Thirty-odd callers `require` this module and `argv` here
+ * is the WHOLE process's argv — engine/all_mechanics_fire.js has an `--out` of its own — so the same
+ * `require.main === module` condition the guard above carries applies, for the same measured reason.
+ * The two probes that pass `--out` to this file (tests/probe_corner_arm_measures.js,
+ * tests/probe_state_void_exclusion.js) both pass `--write` in their base args and are unaffected. */
+if (require.main === module && OUT && !WRITE) {
+  console.error('REFUSING TO RUN: `--out ' + OUT + '` names a file and `--write` is absent, so this run '
+    + 'would write nothing.');
+  console.error('');
+  console.error('  The artifact write is gated on `--write`; `--out` only chooses WHERE it goes. Without '
+    + 'both, this file plays every game,');
+  console.error('  prints the comparison and exits 0 having published nothing — which is the failure '
+    + 'this repository is organised against.');
+  console.error('');
+  console.error('  Add --write:');
+  console.error('    node engine/game_differential.js ... --write --out ' + OUT);
+  console.error('  Or drop --out if the run is meant to publish data/game-differential.json.');
+  process.exit(2);
+}
 /* ---- `--nature` — THE THIRD RUN PARAMETER (2026-08-08) -------------------------------------------
  *
  * `real` (the default) carries the SHEET'S OWN nature to both engines. `serious` flattens every body,

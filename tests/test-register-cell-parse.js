@@ -2,13 +2,17 @@
 /* ==================================================================================================
  * THE REGISTER MUST NOT LIE ABOUT ITS OWN STATUS — the durable guard for the cell-parse class.
  * ==================================================================================================
- * WHAT THE CLASS IS. `roadmapRowStatusCell` in engine/quarantine.js reads a row's status as the text
- * after the LAST pipe on the line, and `roadmapRowIsClosed`'s cell clause skips leading whitespace
- * with `\s*`. Two authoring habits defeat that, and BOTH move gate verdicts:
+ * WHAT THE CLASS IS. `roadmapRowStatusCell` in engine/quarantine.js USED TO read a row's status as the
+ * text after the LAST pipe on the line, and `roadmapRowIsClosed`'s cell clause skipped leading
+ * whitespace with `\s*`. Two authoring habits defeat that, and BOTH move gate verdicts:
  *
  *   - a pipe that is not a column delimiter — inside inline code, or backslash-escaped — pushes the
- *     capture past the row's own status. ESCAPING DOES NOT FIX IT: the capture is a negated-pipe
- *     character class, so it stops at the `|` of `\|` exactly as it stops at a bare one.
+ *     capture past the row's own status. ESCAPING DID NOT FIX IT: the capture was a negated-pipe
+ *     character class, so it stopped at the `|` of `\|` exactly as it stopped at a bare one.
+ *     **REPAIRED IN THE SHIPPING READER 2026-09-11** — it now finds the last COLUMN DELIMITER,
+ *     skipping `\|` and any pipe inside an inline code span — after ROADMAP #601 and #440 both read
+ *     STALE ROW for quoting a protocol line in their own status cells. The three synthetics for this
+ *     habit are CONTROLS below rather than doors, with the reading they must produce.
  *   - decoration at the head of the cell — `**CLOSED 2026-08-13**` — is not skipped by `\s*`, so the
  *     clause never sees the closure word its author wrote.
  *
@@ -44,11 +48,11 @@
  * WHAT FAILS AND WHAT ONLY REPORTS, and the reasoning is in the report:
  *   FAIL   — the two readings give different GATE-VISIBLE verdicts. That is a verdict decided by
  *            notation, and it is what #175 and #531 each were.
- *   REPORT — a cut cell whose verdict is unchanged. 90 rows still carry 631 non-delimiter pipes;
- *            rewriting them for no verdict change is a diff nobody can review against a benefit
- *            nobody can measure, and a gate that fires on a latent hazard is the over-firing gate
- *            #148 warns about. Every one is PRINTED BY NAME every run, so it is a list and not a
- *            ratchet — there is no count anybody must keep below a number.
+ *   REPORT — a cut cell whose verdict is unchanged. This read 90 rows carrying 631 non-delimiter
+ *            pipes, and it reads 0 since the shipping reader stopped cutting on them (2026-09-11) —
+ *            the category is kept because the next defeating habit will not be a pipe, and a cut cell
+ *            is a latent hazard worth naming rather than failing on. Every one is PRINTED BY NAME
+ *            every run, so it is a list and not a ratchet — no count anybody must keep below a number.
  *   REPORT — a row whose inline-code delimiters do not pair, so the recovery is not stable (below).
  *   REPORT — a row with an empty status cell. #196 was this: a trailing empty column, so the cell
  *            parsed to "" against an authored `closed — measure`.
@@ -224,7 +228,9 @@ function scan(lines) {
  * PART 1 — RED FIRST. Seven doors, each with a REPAIRED TWIN that must go quiet.
  * ============================================================================================== */
 console.log('\n  REGISTER CELL-PARSE GUARD — the status a gate reads must be the status the row states\n');
-console.log('  PART 1 — six defeating forms, each with a knob-cleared twin (the seventh, emphasis, is read since 2026-09-10 and is a control)');
+console.log('  PART 1 — three defeating forms, each with a knob-cleared twin. The four the shipping reader now '
+  + 'handles (emphasis since 2026-09-10; a code-span pipe, a `' + BS + '|` escape and the #175 direction since '
+  + '2026-09-11) are CONTROLS below, asserted on the reading they must give');
 
 /* > 600 characters, because both detectors fall back to a prose scan over the row HEAD. A synthetic
  * short enough to fit inside that window is decided by the fallback and tests nothing. The filler
@@ -238,18 +244,15 @@ if (gateVisible(row(9000, 'in progress')) !== 'false/false')
 else pass('the synthetic filler is neutral: a padded row with a plain status reads false/false');
 
 const DOORS = [
-  { n: 9001, what: 'an unescaped pipe inside inline code (the #531 shape)',
-    red: 'closed 2026-08-29 — LANDED. The trace reads `-unboost|TARGET|atk|0` and the boards match.',
-    fixed: 'closed 2026-08-29 — LANDED. The trace reads an -unboost on the TARGET reading atk then 0 and the boards match.' },
-  { n: 9002, what: 'a BACKSLASH-ESCAPED pipe — escaping does not fix it (the #294 shape)',
-    red: 'closed 2026-08-18 — ENGINE; the probe `move' + BS + '|spreadFoes` staged all four outcomes.',
-    fixed: 'closed 2026-08-18 — ENGINE; the probe move spreadFoes staged all four outcomes.' },
-  /* #9003 — emphasis at the head of the cell (the #254 shape) — LEFT THIS LIST 2026-09-10. It was a
-   * defeating form because `roadmapRowIsClosed` anchored on the word straight after the pipe. The
-   * detector now steps over leading `*`/`_` (engine/quarantine.js), measured over all 542 register
-   * rows to move exactly ONE whole-function verdict (#565, which asserts no breakage). A door the
-   * detector reads correctly is no longer a door, so it is a CONTROL below that must read CLOSED —
-   * which is stronger than dropping it: if the widening is ever reverted, that control fails. */
+  /* #9001 (a pipe inside inline code, the #531 shape), #9002 (a BACKSLASH-ESCAPED pipe, the #294
+   * shape) and #9007 (the dangerous direction, the #175 shape) — LEFT THIS LIST 2026-09-11, for the
+   * reason #9003 left it in 2026-09-10 and on the same terms. `roadmapRowStatusCell` no longer reads
+   * the last pipe on the line: it finds the last COLUMN DELIMITER, skipping a `\|` and any pipe inside
+   * an inline code span (engine/quarantine.js). ROADMAP #601 and #440 are what made that urgent — both
+   * quote a protocol line in their status cell and both read STALE ROW because of it. A door the
+   * detector reads correctly is no longer a door, so all three are CONTROLS below with the reading they
+   * must produce, which is stronger than dropping them: if the reader is ever reverted, those controls
+   * fail by name. */
   { n: 9004, what: 'a LINK at the head of the cell — a door nobody has used yet',
     red: '[CLOSED 2026-08-13](docs/_reports/2026-08-13-x.md) — engine.',
     fixed: 'CLOSED 2026-08-13 — engine, account docs/_reports/2026-08-13-x.md.' },
@@ -259,9 +262,6 @@ const DOORS = [
   { n: 9006, what: 'an inline HTML tag at the head of the cell',
     red: '<b>CLOSED 2026-08-13</b> — engine.',
     fixed: 'CLOSED 2026-08-13 — engine.' },
-  { n: 9007, what: 'THE DANGEROUS DIRECTION — a live DEFECT claim read as CLOSED (the #175 shape)',
-    red: 'open — engine DEFECT; the tag is written a ' + BS + '| b in the note. CLOSED 2026-08-11 — seven wired, one tossed.',
-    fixed: 'open — engine DEFECT; the tag is written a / b in the note. An earlier half closed 2026-08-11 — seven wired, one tossed.' },
 ];
 
 for (const d of DOORS) {
@@ -283,8 +283,22 @@ for (const d of DOORS) {
 const CONTROLS = [
   { n: 9010, what: 'a clean closed row', cell: 'closed 2026-08-13 — engine.' },
   { n: 9011, what: 'a clean open row asserting breakage', cell: 'open — engine DEFECT; unprobed.' },
-  { n: 9012, what: 'a pipe in the cell whose verdict is the same either way (cut but harmless)',
-    cell: 'open — engine DEFECT; the trace reads `-start|confusion` and the DEFECT stands.', expectCut: true },
+  { n: 9012, what: 'a pipe in the cell whose verdict is the same either way',
+    cell: 'open — engine DEFECT; the trace reads `-start|confusion` and the DEFECT stands.',
+    expectGate: 'false/true' },
+  /* The three former doors. Asserting the READING, not only the silence: quiet alone would pass if the
+   * detector read both the authored cell and its own the same WRONG way. */
+  { n: 9001, what: 'an unescaped pipe inside inline code (the #531 shape, read since 2026-09-11)',
+    cell: 'closed 2026-08-29 — LANDED. The trace reads `-unboost|TARGET|atk|0` and the boards match.',
+    expectGate: 'true/false' },
+  { n: 9002, what: 'a BACKSLASH-ESCAPED pipe (the #294 shape, read since 2026-09-11)',
+    cell: 'closed 2026-08-18 — ENGINE; the probe `move' + BS + '|spreadFoes` staged all four outcomes.',
+    expectGate: 'true/false' },
+  { n: 9007, what: 'THE DANGEROUS DIRECTION — a live DEFECT claim that used to read as CLOSED (the '
+    + '#175 shape): the cell is read whole, so the token is seen and the later dated closure is not '
+    + 'the start of the cell',
+    cell: 'open — engine DEFECT; the tag is written a ' + BS + '| b in the note. CLOSED 2026-08-11 — seven wired, one tossed.',
+    expectGate: 'false/true' },
   /* The former door #9003. Asserting the READING, not only the silence: quiet alone would also pass
    * if the detector read the row as open in BOTH readings. */
   { n: 9013, what: 'emphasis at the head of a CLOSED cell (the #254 shape, read by the detector since 2026-09-10)',
@@ -317,18 +331,28 @@ else pass('a mixed corpus of ' + CORPUS.length + ' rows finds exactly the ' + DO
  * a clean row's status, AND must exhibit the defect this file exists for — on a row whose cell ends
  * in a pipe it returns the SUFFIX. If a future edit made the shipping reader robust, this arm says so
  * by name instead of the whole check quietly becoming a tautology. */
+/* RE-DERIVED 2026-09-11. Until then this arm asserted that the shipping reader DOES cut on a pipe
+ * inside a code span — it did, and the arm existed so that a reader made robust could not turn this
+ * whole file into a tautology without saying so. It has been made robust, so the arm is inverted: the
+ * lifted function must now read the WHOLE cell through a code span AND through a backslash escape. If
+ * the old `/\|\s*([^|]*)\|\s*$/` ever comes back, these two fail by name. */
 const liftClean = shippingCell('| #1 | title | closed 2026-01-01 |');
-const liftCut = shippingCell('| #1 | title | closed 2026-01-01, see `a|b`. |');
+const liftSpan = shippingCell('| #1 | title | closed 2026-01-01, see `a|b`. |');
+const liftEsc = shippingCell('| #1 | title | closed 2026-01-01, see a' + BS + '|b. |');
 if (liftClean !== 'closed 2026-01-01 ') {
   fail('the lifted roadmapRowStatusCell does not read a clean row\'s status — the lift is wrong '
     + '(returned ' + JSON.stringify(liftClean) + ')');
-} else if (liftCut !== 'b`. ') {
-  fail('the lifted roadmapRowStatusCell no longer cuts on a pipe inside a code span (returned '
-    + JSON.stringify(liftCut) + '). If the SHIPPING reader was made robust, this whole check is now '
-    + 'asking nothing and must be re-derived against the new reader.');
+} else if (liftSpan !== 'closed 2026-01-01, see `a|b`. ') {
+  fail('the lifted roadmapRowStatusCell CUTS at a pipe inside an inline code span (returned '
+    + JSON.stringify(liftSpan) + '). That is the defect this file exists for, back in the shipping '
+    + 'bytes: a closed row whose cell quotes a protocol line reads OPEN.');
+} else if (liftEsc !== 'closed 2026-01-01, see a' + BS + '|b. ') {
+  fail('the lifted roadmapRowStatusCell CUTS at a BACKSLASH-ESCAPED pipe (returned '
+    + JSON.stringify(liftEsc) + '). Escaping is what an author reaches for first, and it must not be '
+    + 'the thing that breaks the verdict.');
 } else {
-  pass('roadmapRowStatusCell lifted from engine/quarantine.js, compiled, and shown to cut: '
-    + JSON.stringify(LIFT.text.replace(/\s+/g, ' ')));
+  pass('roadmapRowStatusCell lifted from engine/quarantine.js, compiled, and shown to read a cell '
+    + 'whole through a code span and a `' + BS + '|` escape');
 }
 
 /* =================================================================================================
