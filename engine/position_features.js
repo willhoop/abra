@@ -241,12 +241,21 @@ function bestHit(att, def, field, refusedAbove, whatIsLeft) {
  * implementations of the same rule in one repository (clickFragility had one, the battle loop had
  * none, this had a third). medicham2 now owns it next to movePriority and effSpeed, where the rest
  * of the move-order rules already live, and everything calls that. */
+/* ROADMAP #412 (2026-09-11) -- THE DEFENDER'S ABILITY IS THE EFFECTIVE ONE, AS IN engine/board.js. This read
+ * `f.mon.ability || e.ability` raw, where board.js's own `priorityRefusedAbove` resolves `effAbility(f.mon, dex)`
+ * first -- one fact, two implementations, found by tests/test-effective-identity.js's runtime tripwire. The two
+ * now agree: effective first, the sheet's declared ability as the fallback, exactly board.js's order. Exposure
+ * is zero on any legal board today (no legal mega gains or loses a `blocksMove` ability; the tripwire's guard
+ * re-derives that every run), so this moves no number. `ABRA_PF_PRIORITY_RAW=1` restores the raw read, for
+ * tests/probe_priority_bar_effective_ability.js to show red on demand. */
+const PF_PRIORITY_RAW = typeof process !== 'undefined' && process.env && process.env.ABRA_PF_PRIORITY_RAW === '1';
 function priorityRefusedAbove(board, side, field) {
   const defenders = board.field()
     .filter(f => f.side === side && f.mon && !f.mon.fainted)
     .map(f => {
       const e = (board.sheet && board.sheet[side] && board.sheet[side][B.baseSpecies(f.mon.species)]) || {};
-      return { ability: B.norm(f.mon.ability || e.ability || ''), fainted: false };
+      if (PF_PRIORITY_RAW) return { ability: B.norm(f.mon.ability || e.ability || ''), fainted: false };
+      return { ability: B.effAbility(f.mon, dexFor()) || B.norm(e.ability || ''), fainted: false };
     });
   return M.priorityRefusedAbove(defenders, field);
 }

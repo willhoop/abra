@@ -2455,7 +2455,14 @@ const MOVE_TAGS = [
        + 'it; Trick (268) swaps it. Each one invalidates an item the board is still assuming',
     of: m => {
       const src = String(m.onHit || '') + String(m.onAfterHit || '');
-      const eats  = /eatItem|singleEvent\('Eat'/.test(src);
+      /* ROADMAP #529 (2026-09-11) -- QUOTE-AGNOSTIC. This read `singleEvent\('Eat'` -- single quotes only --
+       * against the COMPILED handler, which the dist build writes with DOUBLE quotes, so Bug Bite and Pluck
+       * (`this.singleEvent("Eat", item, ...)`) read false while Stuff Cheeks passed on `eatItem`. Measured
+       * over every legal `takesTargetItem` member before the change: exactly bugbite and pluck move.
+       * `ABRA_TAGDEX_EATS_SINGLE_QUOTE=1` restores the old pattern for a before/after regeneration. */
+      const eats  = process.env.ABRA_TAGDEX_EATS_SINGLE_QUOTE === '1'
+        ? /eatItem|singleEvent\('Eat'/.test(src)
+        : /eatItem|singleEvent\(\s*["'`]Eat["'`]/.test(src);
       const swaps = /setItem\(.*takeItem|myItem|yourItem/.test(src);
       const takes = /takeItem\(/.test(src);
       if (!eats && !swaps && !takes) return null;
@@ -5108,7 +5115,22 @@ const MOVE_TAGS = [
       const excl = [];
       for (const g of start.matchAll(/\.volatiles\[\s*["'](\w+)["']\s*\][^;{}]*\)?\s*return false/g))
         if (excl.indexOf(g[1]) < 0) excl.push(g[1]);
-      return { volatile: m.volatileStatus, exclusiveWith: excl,
+      /* ROADMAP #595 (2026-09-11) -- AND HOW MANY STAGES IT ADDS, which the row never said, so the engine
+       * applied the volatile and never read it into the crit ratio at all. Read off the handler's own
+       * `return critRatio + N`; Dragon Cheer's is `critRatio + (this.effectState.hasDragonType ? 2 : 1)`
+       * with the flag set in `onStart` from `target.hasType("Dragon")` -- the type AT START, which is why
+       * it travels as `ifTypeAtStart`. A shape neither form matches is published as `deltaUnparsed` so the
+       * consumer refuses loudly rather than guessing a stage. */
+      const mod = fnsrc(c.onModifyCritRatio).replace(/\s+/g, ' ');
+      const flat = mod.match(/critRatio\s*\+\s*(\d+)\s*;/);
+      const cond = mod.match(/critRatio\s*\+\s*\(\s*this\.effectState\.(\w+)\s*\?\s*(\d+)\s*:\s*(\d+)\s*\)/);
+      let stage = {};
+      if (flat) stage = { delta: +flat[1] };
+      else if (cond) {
+        const t = start.replace(/\s+/g, ' ').match(new RegExp('effectState\\.' + cond[1] + '\\s*=\\s*\\w+\\.hasType\\(\\s*["\'](\\w+)["\']'));
+        stage = t ? { delta: +cond[3], deltaIfType: +cond[2], ifTypeAtStart: t[1] } : { deltaUnparsed: true };
+      } else stage = { deltaUnparsed: true };
+      return { volatile: m.volatileStatus, exclusiveWith: excl, ...stage,
                from: 'DERIVED:condition.onModifyCritRatio + condition.onStart' };
     } },
   /* WIRE 152 -- THE MOVE THAT REQUIRES A VOLATILE AND SPENDS IT.
@@ -5169,8 +5191,16 @@ const MOVE_TAGS = [
       const src = String(m.onHit || '') + String(m.onAfterHit || '') + String(m.onTryHit || '');
       if (!/takeItem/.test(src)) return null;
       const classes = [...new Set([...src.matchAll(/\.is(Berry|Gem)\b/g)].map(x => 'is' + x[1]))];
-      return classes.length ? { steals: /setItem|addItem/.test(src), requiresItemClass: classes }
-                            : { steals: /setItem|addItem/.test(src) };
+      /* ROADMAP #600 (2026-09-11) -- AND WHAT THE LOSS LINE SAYS, which the two thieves disagree on.
+       * Thief's `onAfterHit` writes `-enditem … [silent] … [from] move: Thief` before its `-item`;
+       * Covet's writes ONLY the `-item` (data/moves.ts covet / thief). The engine wrote an `-enditem` for
+       * both. `shown` = an `-enditem` with no `[silent]`, `silent` = one carrying it, `none` = no
+       * `-enditem` add in the handler at all. */
+      const flat = src.replace(/\s+/g, ' ');
+      const endAdd = flat.match(/add\(\s*["']-enditem["'][^;]*\)/);
+      const lossLine = !endAdd ? 'none' : (/\[silent\]/.test(endAdd[0]) ? 'silent' : 'shown');
+      return classes.length ? { steals: /setItem|addItem/.test(src), requiresItemClass: classes, lossLine }
+                            : { steals: /setItem|addItem/.test(src), lossLine };
     } },
   /* WHICH STAT A MOVE ATTACKS WITH, AND WHICH IT ATTACKS INTO.
    *
@@ -6660,6 +6690,31 @@ const ABILITY_TAGS = [
        * that names itself, and only the handler knows which. */
       return { refuses: true, announcesWith: immuneAttrIn(a.onTryHit) };
     } },
+  /* ROADMAP #593 (2026-09-11) -- AN ABILITY THAT REFUSES NAMED MOVES AT TRYHIT. Oblivious's `onTryHit`
+   * reads `if (move.id === 'attract' || move.id === 'captivate' || move.id === 'taunt') { this.add('-immune',
+   * pokemon, '[from] ability: Oblivious'); return null; }` (data/abilities.ts; Champions overrides it
+   * nowhere). No tag carried it, so Taunt landed on an Oblivious body here and the authority refused it.
+   *
+   * THE WHOLE CONDITION MUST BE `move.id ===` CLAUSES AND THE BRANCH MUST REFUSE. Printed over every legal
+   * ability before this was wired, a bare `move.id ===` test matches TWO: Oblivious, and Wonder Guard,
+   * whose `move.id === 'struggle'` sits in a condition with other clauses and bare-returns to LET the
+   * move through. The shape rule below keeps Oblivious and drops Wonder Guard, which is the refusesStatusMoves
+   * lesson (Telepathy, Wonder Guard) arriving through a second door. */
+  { tag: 'refusesMovesById', param: 'the holder refuses the NAMED moves at TryHit, and the line it writes',
+    probe: 'refusesMovesById',
+    why: 'Oblivious refuses Taunt, Attract and Captivate with `-immune`; the engine let Taunt land '
+       + '(ROADMAP #593, board-material)',
+    of: a => {
+      const src = fnsrc(a.onTryHit).replace(/\s+/g, ' ');
+      const ids = [];
+      for (const m of src.matchAll(/if \(((?:\s*(?:\|\|)?\s*move\.id\s*===\s*["']\w+["'])+)\s*\)\s*\{([^}]*)\}/g)) {
+        if (!/return (null|false)/.test(m[2])) continue;
+        for (const g of m[1].matchAll(/["'](\w+)["']/g)) if (ids.indexOf(g[1]) < 0) ids.push(g[1]);
+      }
+      if (!ids.length) return null;
+      return { moves: ids, announcesWith: immuneAttrIn(a.onTryHit),
+               from: 'DERIVED:ability.onTryHit move.id clauses with a null/false branch' };
+    } },
   /* ROADMAP #216 -- the ABILITY side of the same relaxation. Sturdy is unchanged by it (it has the
    * full-HP clause and no chance); the two derivations are kept in step so that a future member
    * landing on an ability rather than an item is read identically. */
@@ -6885,6 +6940,16 @@ const ABILITY_TAGS = [
     of: a => {
       const src = String(a.onTryBoost || '') + String(a.onAllyTryBoost || '');
       if (!src) return null;
+      /* 2026-09-11 (ROADMAP #599 follow-up) -- WHETHER THE ALLY HALF SAYS SO. Flower Veil's `onAllyTryBoost`
+       * deletes a Grass ally's drops and then `if (showMsg && !(effect as ActiveMove).secondaries)` writes
+       * `-block|<ally>|ability: Flower Veil|[of] <holder>` (data/abilities.ts). Claiming `-block` for the
+       * status half made this line visible to the whole-game differential, where it parted a pool game on
+       * an Intimidate into a Sinistcha beside a Floette. `unlessSecondaries` = guarded by that test,
+       * `always` = unguarded, null = the handler writes no `-block`. */
+      const ally = fnsrc(a.onAllyTryBoost).replace(/\s+/g, ' ');
+      const allyBlockLine = !/add\(\s*["']-block["']/.test(ally) ? null
+        : (/!\s*\(?\s*effect(\s+as\s+\w+)?\s*\)?\s*\.secondaries/.test(ally.slice(0, ally.search(/add\(\s*["']-block["']/)))
+          ? 'unlessSecondaries' : 'always');
       /* WHICH EFFECT the refusal is scoped to, and it is the difference between a real block and an
        * invented one. Inner Focus, Oblivious, Own Tempo, Scrappy and Guard Dog all open
        * `if (effect.name === 'Intimidate' && boost.atk)` -- they refuse INTIMIDATE and nothing else,
@@ -6942,7 +7007,8 @@ const ABILITY_TAGS = [
                protectsAllies: !!a.onAllyTryBoost || null,
                reflects: refl || null,
                reflectSkipsAtFloor: refl ? /boosts\[\w+\]\s*===?\s*-6/.test(src) : null,
-               reflectNeedsLivingSource: refl ? /source\.hp/.test(src) : null };
+               reflectNeedsLivingSource: refl ? /source\.hp/.test(src) : null,
+               allyBlockLine: allyBlockLine || null };
     } },
   /* ROADMAP #92 -- AN ABILITY THAT REFUSES ONE NAMED VOLATILE, WHICH IS NOT THE SAME TAG AS ONE THAT
    * REFUSES A STAT DROP. Own Tempo carried `preventsStatDrop` alone -- the Intimidate half -- and its
@@ -6971,7 +7037,17 @@ const ABILITY_TAGS = [
       /* Shields Down refuses only in a named forme; the consumer must not apply it to a Minior that
        * is not the Meteor forme, so the condition travels with the tag rather than being dropped. */
       const forme = (src.match(/species\.id\s*!==?\s*["']([a-z]*)["']/) || [])[1] || null;
-      return { refuses, requiresForme: forme };
+      /* ROADMAP #598 (2026-09-11) -- AND WHAT IT SAYS WHEN A MOVE AIMED THE VOLATILE AT IT. Own Tempo's
+       * `onHit` writes `this.add('-immune', target, 'confusion', '[from] ability: Own Tempo')` when the
+       * MOVE's own `volatileStatus` is the refused one (data/abilities.ts owntempo); the refusal itself is
+       * silent. Read off the handler: the volatile named in the `move.volatileStatus ===` test and the
+       * two trailing fields of its `-immune` add. A secondary's volatile is not `move.volatileStatus`, so
+       * it announces nothing -- which is why the consumer asks the move row, not the refusal. */
+      const hit = fnsrc(a.onHit).replace(/\s+/g, ' ');
+      const hv = hit.match(/move\??\.volatileStatus\s*===\s*["'](\w+)["']/);
+      const ha = hit.match(/add\(\s*["']-immune["']\s*,\s*\w+\s*,\s*["']([^"']+)["']\s*,\s*["']([^"']+)["']/);
+      const announcesOnMoveHit = (hv && ha && refuses.indexOf(hv[1]) >= 0) ? { volatile: hv[1], field: ha[1], attr: ha[2] } : null;
+      return announcesOnMoveHit ? { refuses, requiresForme: forme, announcesOnMoveHit } : { refuses, requiresForme: forme };
     } },
   /* WIRE 157 -- A REACTION TO A FLINCH IS NOT A REFUSAL OF ONE, AND `refusesVolatile` DIRECTLY ABOVE
    * IS THE TAG IT KEEPS BEING MISTAKEN FOR.
@@ -7074,8 +7150,25 @@ const ABILITY_TAGS = [
         ...[...volSrc.matchAll(/\[\s*((?:["'][a-z]+["']\s*,\s*)*["'][a-z]+["'])\s*\]\s*\.includes\(\s*status\.id/g)]
           .flatMap(m => m[1].split(',').map(s => s.trim().replace(/["']/g, ''))),
       ])];
+      /* ROADMAP #599 (2026-09-11) -- WHETHER THE REFUSAL IS ANNOUNCED, WHICH THE THREE LEGAL VEILS DO
+       * DIFFERENTLY and the engine announced for none of them (`MEDFAILS.blockLineUnannounced`). Each handler
+       * writes `-block|<target>|ability: X|[of] <holder>` behind its own guard, read here per half:
+       *   `always`       no effect test around the add         Sweet Veil (both halves), Flower Veil's yawn half
+       *   `move`         `effect.effectType === 'Move'`         Aroma Veil
+       *   `primaryMove`  a Move AND `!effect.secondaries`       Flower Veil's status half (+ its named exceptions)
+       * null when the handler writes no `-block` at all. */
+      const blockCls = (h) => {
+        if (!/add\(\s*["']-block["']/.test(h)) return null;
+        const pre = h.slice(0, h.search(/add\(\s*["']-block["']/));
+        const mv = /effectType\s*===\s*["']Move["']/.test(pre), sec = /!\s*\w+\.secondaries/.test(pre);
+        return mv && sec ? 'primaryMove' : (mv ? 'move' : 'always');
+      };
+      const orNames = [...src.matchAll(/effect\.name\s*===\s*["']([^"']+)["']/g)].map(x => x[1]);
       return { statuses, except: except.length ? except : null,
                volatiles: vol.length ? vol : null,
+               statusBlockLine: src ? blockCls(src) : null,
+               volatileBlockLine: volSrc ? blockCls(volSrc) : null,
+               blockAlsoForEffects: orNames.length ? orNames : null,
                onlyGrassTypes: /hasType\("Grass"\)/.test(src) || null,
                /* THE TWO GUARDS FLOWER VEIL CARRIES AND SWEET VEIL DOES NOT, and dropping them would
                 * make the two abilities the same rule. Flower Veil opens
@@ -8183,7 +8276,20 @@ const ABILITY_TAGS = [
                /* Carries its chance for the same reason inflicts does: Cursed Body is a 30% roll,
                 * and "disable" with no number would round to "always" the moment it was consumed. */
                inflictsVolatile: (m => m ? { volatile: m[1],
-                 chance: (rc => rc ? +rc[1] / +rc[2] : 1)(src.match(/randomChance\(\s*(\d+)\s*,\s*(\d+)\s*\)/)) } : null
+                 chance: (rc => rc ? +rc[1] / +rc[2] : 1)(src.match(/randomChance\(\s*(\d+)\s*,\s*(\d+)\s*\)/)),
+                 /* ROADMAP #597 (2026-09-11) -- WHAT THE VOLATILE SAYS WHEN THIS ABILITY STARTED IT. The
+                  * attract condition's `onStart` writes `-start … Attract … [from] ability: Cute Charm … [of]
+                  * <source>` when `effect.name === 'Cute Charm'`, and a bare `-start … Attract` otherwise
+                  * (data/moves.ts attract.condition). Read off the CONDITION, keyed on this ability's own
+                  * display name, so the attribution is the authority's and not a name typed here. */
+                 announce: (() => {
+                   const cond = dex.conditions.get(m[1]);
+                   const s = fnsrc(cond && cond.onStart).replace(/\s+/g, ' ');
+                   const nm = String(a.name || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                   const hit = nm && s.match(new RegExp('effect\\.name\\s*===\\s*["\']' + nm
+                     + '["\']\\s*\\)\\s*\\{\\s*this\\.add\\(\\s*["\']-start["\'][^;]*?["\'`](\\[from\\] ability: [^"\'`]+)["\'`]([^;]*)\\)'));
+                   return hit ? { from: hit[1], of: /\[of\]/.test(hit[2]) } : null;
+                 })() } : null
                )(src.match(/addVolatile\(\s*["'](\w+)["']/)),
                boosts,
                /* 2026-08-23 -- WHETHER THE ATTACKER'S BOOST CARRIES AN `-ability` LINE OF ITS OWN.

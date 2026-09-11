@@ -15,6 +15,8 @@
 | what is withheld | `node engine/quarantine.js` | **every artifact it lists as downstream of MEDICHAM, again.** The LIFT and STAY split in the 6.0.0 block no longer applies. No published figure is withdrawn: 6.0.0 re-ran none and published none |
 | leaf calibration — MEASURE's one number | `data/winrate-backtest.json` | withheld by the gate. Quotable only when the gate opens again AND `node engine/backtest_winrate.js` is re-run |
 
+**UPDATE, 2026-09-11 (6.18.0):** `node engine/quarantine.js` now prints `GATE: CLOSED — 1 of 9 GATING clauses fail`. The mechanics clause passes again; the one clause still failing is the open-defect clause, on two named rows — #318 (roster move scenarios staged on bodies that cannot legally learn the move) and #511 (the survival clamp applied per volley rather than per hit). The 2-of-9 reading above is kept as dated evidence.
+
 Full account: `docs/_reports/2026-09-11-gate-closed-docs.md`.
 
 **6.0.0 - MEDICHAM IS CORRECT AGAINST SHOWDOWN ON THE PINNED POOL AND NOTHING ELSE GATES THIS MAJOR. BOARD-MATERIAL 0 OF 961 WITH NONE EXCLUDED; NARRATION 0 UNDECLARED OF 961; 40 ARTIFACTS BECOME RE-RUNNABLE AND NONE WAS RE-RUN; 24 STAY WITHHELD BY DECISION.**
@@ -1384,7 +1386,7 @@ The counts were a REAL measurement of a DIFFERENT POPULATION, so they are correc
 (`battleInit(A, B, {trace: []})`, off by default). The event set is derived from Showdown's own
 `add()` call sites, including this **format's** overrides, and is published in
 `data/protocol-events.json`, whose `showdownEvents`, `emittedCount`, `notEmittedCount` and
-`partialCount` read 91 / 44 / 50 / 10 — every non-emitted event carries a written reason. Two gates
+`partialCount` read 91 / 45 / 49 / 10 — every non-emitted event carries a written reason. Two gates
 fail the run: an event claimed here that Showdown never emits, and an event Showdown emits that is
 neither emitted nor explained. `tests/test-protocol-trace.js` fails if any claimed event never fires
 in a real game.

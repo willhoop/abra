@@ -1,0 +1,33 @@
+{
+  "written": "2026-09-11",
+  "by": "ENGINE, before the batch-3 measurement",
+  "batch": "3 — the register's red instruments, plus the repair of batch 2's measured regression",
+  "baseline": "batch 2 on release 48e136c97a34: GATE CLOSED, 3 of 9 — narration 1 of 961 undeclared (Flower Veil's boost-half -block, exposed when -block was claimed), mechanics 1 of 6 uncleared (ability:flowerveil), open-defect 8 rows on stale verdicts",
+  "landed_in_this_batch": {
+    "flowerveil_followup": "the boost half writes its -block (unless the effect is a move with secondaries); the status half's guard is 'the move has secondaries', not 'the status came from one'",
+    "535": "Unburden needs the volatile: an ability rewrite on an already-empty hand ends it",
+    "529": "tag_dex eats regex quote-agnostic: bugbite and pluck consumesAndGainsEffect true",
+    "412": "position_features resolves the defender's ability through effAbility",
+    "425": "all_mechanics_fire defaults to --kind all",
+    "467": "every cause carries void_n",
+    "375": "every cause carries its context, species, stripped attribution; the tie counters are published",
+    "380": "run-all reads exits through engine/exit_codes.js (already green)",
+    "348": "re-scoped to the calling convention (already green)",
+    "399": "probe re-aimed (already green)"
+  },
+  "not_landed_expected": {
+    "511": "needs the per-arrival clamp (patch A1): the probe asserts the protocol never parts, and the authority clamps inside each arrival",
+    "318": "needs the move stage's carrier derived from each move's own learnset — a restaging of every move scenario, 420 refused pairs today"
+  },
+  "predict": {
+    "narration_clause": "back to PASS: the Flower Veil boost-half line is now written; 0 undeclared narration games in the middle arm (1 declared, as before batch 2)",
+    "mechanics_clause": "flowerveil clears; PASS unless a new parting appears",
+    "open_defect_clause": "still RED, on #511 and #318 at least (and on every row whose verdict is not re-read until register_reality runs)",
+    "gate": "stays CLOSED — the open-defect clause",
+    "board_material": "unchanged 0 / 1 / 2 of 961",
+    "census": "881 live, 0 missing (no census row added in this batch)",
+    "coverage_fired": "785-790 of 845",
+    "engine_diff": "0 of 6000",
+    "roster": "0 / 0 / 0 FIRED-AND-BOARDS-DIFFER"
+  }
+}

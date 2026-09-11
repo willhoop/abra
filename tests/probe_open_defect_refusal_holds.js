@@ -85,11 +85,17 @@ console.log('\n  CELL (3) — one exit classifier (STRUCTURAL):');
 const runAll = realRead.call(fs, path.join(ROOT, 'tests', 'run-all.js'), 'utf8');
 const rr = realRead.call(fs, path.join(ROOT, 'engine', 'register_reality.js'), 'utf8');
 const rrExports = /module\.exports\s*=\s*\{[^}]*\bclassifyExit\b/.test(rr) || /exports\.classifyExit\s*=/.test(rr);
-const runAllImports = /require\([^)]*register_reality[^)]*\)/.test(runAll) && /classifyExit/.test(runAll);
+/* 2026-09-11 — WIDENED, because the classifier MOVED. MEASURE's 6.12.1 moved `classifyExit` out of
+ * engine/register_reality.js into engine/exit_codes.js (register_reality now re-exports it through a thin
+ * wrapper), so a regex that named only the old owner could never read green on the adoption it asks for.
+ * The test is now: run-all requires EITHER owner AND CALLS the classifier (a `classifyExit(` or a
+ * `runnerOutcome(` call) — a name mentioned in a comment is not a call. */
+const runAllImports = /require\([^)]*(register_reality|exit_codes)[^)]*\)/.test(runAll)
+  && /\b(classifyExit|runnerOutcome)\s*\(/.test(runAll.replace(/\/\*[\s\S]*?\*\//g, ''));
 console.log('      engine/register_reality.js exports classifyExit: ' + rrExports);
 console.log('      tests/run-all.js requires it:                   ' + runAllImports);
 ok(runAllImports, 'tests/run-all.js reads exit codes through the shared classifier',
-   'cell: tests/run-all.js carries its own exit-2-is-SKIP reading and never requires engine/register_reality.js\'s classifyExit');
+   runAllImports ? null : 'cell: tests/run-all.js carries its own exit-2-is-SKIP reading and requires neither engine/exit_codes.js nor engine/register_reality.js');
 
 console.log('\n' + (bad ? 'RED' : 'GREEN'));
 console.log('ABRA-EXIT ' + (bad ? '1 VERDICT-RED' : '0 VERDICT-GREEN'));

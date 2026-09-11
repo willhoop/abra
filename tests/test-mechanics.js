@@ -26252,6 +26252,190 @@ probe('move', 'removesPP', 'Spite takes 4 PP off the move the target just used',
                  + 'Status move — leaves ' + ctrl.pp + ' and announces "' + ctrl.act + '"' };
 });
 
+/* ---- 2026-09-11 — THE FOUR BOARD-MATERIAL PARTINGS THE STAGING PLANNER FOUND (ROADMAP #593-#596) ----
+ *
+ * Each is also staged against the authority, both engines, with a knob per mechanism, in
+ * tests/probe_reopen_partings.js. These rows are the census's own view: one real turn (or two) through
+ * `battleTurn`, and a control that differs from the test arm in the one thing the mechanic reads. */
+probe('ability', 'refusesMovesById', 'Oblivious refuses Taunt at TryHit, and the same body on Thick Fat is Taunted', () => {
+  /* data/abilities.ts oblivious.onTryHit: `move.id === 'attract' || ... || move.id === 'taunt'` ->
+   * `-immune … [from] ability: Oblivious`, return null. The control is the SAME Mamoswine on its hidden
+   * ability, so an engine that refused Taunt everywhere, or nowhere, fails one arm. */
+  const run = (ab) => {
+    const B = board('gyarados', 'incineroar', 'mamoswine', 'garchomp');
+    B.f1.ability = ab;
+    const trace = []; B.S._trace = trace;
+    M.battleTurn(B.S, rng5, new Map([[B.me, M.playerAction(B.me, 'taunt', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return [(B.f1._vol && B.f1._vol.taunt) || 0, trace.filter(l => /^\|-immune\|/.test(l)).join(' ')];
+  };
+  const control = run('thickfat'), test = run('oblivious');
+  return { works: control[0] > 0 && control[1] === '' && test[0] === 0 && /\[from\] ability: oblivious/i.test(test[1]),
+           arms: { control, test },
+           detail: '[taunt turns left, -immune line] — Thick Fat ' + JSON.stringify(control)
+                 + ' (must be Taunted, no line); Oblivious ' + JSON.stringify(test) + ' (must refuse and say so)' };
+});
+
+probe('ability', 'reflectsStatusMoves', 'Magic Bounce sends Spite back, and the 4 PP come off the CLICKER\'s last move', () => {
+  /* data/abilities.ts magicbounce.onTryHit re-uses a `reflectable` move at its source; Spite carries the
+   * flag. The victim moves first (Calm Mind) so the unbounced Spite has a last move to take from. The
+   * control is the SAME Espeon on Synchronize: Spite then lands on it and the clicker keeps its PP. */
+  const run = (ab) => {
+    const B = board('annihilape', 'farigiraf', 'espeon', 'farigiraf');
+    B.f1.ability = ab; B.f1.moves = ['calmmind'];
+    for (const b of [B.me, B.ally, B.f1, B.f2]) { b.st = Object.assign({}, b.st, { hp: b.st.hp * 60 }); b.curHP = b.st.hp; }
+    B.me.st = Object.assign({}, B.me.st, { sp: 10 });
+    B.f1.st = Object.assign({}, B.f1.st, { sp: 200 });
+    const trace = []; B.S._trace = trace;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'spite', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      new Map([[B.f1, M.playerAction(B.f1, 'calmmind', B.f1, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    return [B.me._pp ? B.me._pp.spite : null, B.f1._pp ? B.f1._pp.calmmind : null,
+            trace.filter(l => /spite/i.test(l) && /^\|(move|-activate)\|/.test(l)).join(' ')];
+  };
+  const control = run('synchronize'), test = run('magicbounce');
+  return { works: control[0] != null && control[1] != null && test[0] === control[0] - 4 && test[1] === control[1] + 4
+                  && /\[from\] ability: magic ?bounce/i.test(test[2]),
+           arms: { control, test },
+           detail: '[clicker Spite PP, victim Calm Mind PP, lines] — Synchronize ' + JSON.stringify(control)
+                 + '; Magic Bounce ' + JSON.stringify(test) + ' (the 4 must move from the victim to the clicker)' };
+});
+
+probe('move', 'critStageVolatile', 'Focus Energy ADDS its stage to Scope Lens: a certain crit, where the Lens alone is not', () => {
+  /* sim/battle-actions.ts: every ModifyCritRatio handler adds to ONE ratio, clamped to 4, and
+   * `critMult[4]` is 1. Scope Lens (+1) and Focus Energy (+2) on a ratio-1 move is 4: certain. The Lens
+   * alone is ratio 2 (1/8), which the 0.5 die here does not reach. The control spends turn 1 idle. */
+  const run = (fe) => {
+    const B = board('absol', 'incineroar', 'garchomp', 'milotic');
+    B.me.item = 'scopelens';
+    B.f1.st = Object.assign({}, B.f1.st, { hp: B.f1.st.hp * 60 }); B.f1.curHP = B.f1.st.hp;
+    M.battleTurn(B.S, rng5, new Map([[B.me, fe ? M.playerAction(B.me, 'focusenergy', B.me, B.S.field) : { kind: 'pass' }],
+      [B.ally, { kind: 'pass' }]]), PASS2(B.f1, B.f2));
+    const before = B.f1.curHP; const trace = []; B.S._trace = trace;
+    M.battleTurn(B.S, rng5, new Map([[B.me, M.playerAction(B.me, 'xscissor', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return [before - B.f1.curHP, trace.filter(l => /^\|-crit\|/.test(l)).length];
+  };
+  const control = run(false), test = run(true);
+  return { works: control[1] === 0 && test[1] === 1 && test[0] > control[0] * 1.3,
+           arms: { control, test },
+           detail: '[damage, crit lines] — Scope Lens alone ' + JSON.stringify(control)
+                 + '; Scope Lens + Focus Energy ' + JSON.stringify(test) + ' (ratio 4: must crit)' };
+});
+
+probe('move', 'critStageVolatile', 'Dragon Cheer adds TWO stages to a body that is Dragon when it starts, and ONE to anything else', () => {
+  /* data/moves.ts dragoncheer: `onStart` stores `hasDragonType`, `onModifyCritRatio` returns
+   * `critRatio + (hasDragonType ? 2 : 1)`. Both receivers hold Scope Lens: Dragon is 1+2+1 = 4 (certain),
+   * non-Dragon 1+1+1 = 3 (1/2, which the 0.5 die here does not reach). The cheerer is the same Dragonite. */
+  const run = (recv, mv) => {
+    const B = board('dragonite', recv, 'milotic', 'snorlax');
+    B.ally.item = 'scopelens';
+    B.f1.st = Object.assign({}, B.f1.st, { hp: B.f1.st.hp * 60 }); B.f1.curHP = B.f1.st.hp;
+    M.battleTurn(B.S, rng5, new Map([[B.me, M.playerAction(B.me, 'dragoncheer', B.ally, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    const trace = []; B.S._trace = trace;
+    M.battleTurn(B.S, rng5, new Map([[B.me, { kind: 'pass' }], [B.ally, M.playerAction(B.ally, mv, B.f1, B.S.field)]]),
+      PASS2(B.f1, B.f2));
+    return [(B.ally._vol && B.ally._vol.dragoncheer) ? 1 : 0, trace.filter(l => /^\|-crit\|/.test(l)).length];
+  };
+  const control = run('absol', 'xscissor'), test = run('garchomp', 'dragonclaw');
+  return { works: control[0] === 1 && test[0] === 1 && control[1] === 0 && test[1] === 1,
+           arms: { control, test },
+           detail: '[cheered, crit lines] — non-Dragon Absol ' + JSON.stringify(control)
+                 + ' (ratio 3: no crit on a 0.5 die); Dragon Garchomp ' + JSON.stringify(test) + ' (ratio 4: must crit)' };
+});
+
+/* ---- 2026-09-11 — THE FOUR NARRATION PARTINGS (ROADMAP #597-#600) ----------------------------------
+ * The boards already agreed; the LINES did not. Each row reads the stream through a real turn and its
+ * control is the same bodies with the one thing the line depends on taken away. */
+const traceTurn = (B, mine, theirs, rng) => {
+  const trace = []; B.S._trace = trace;
+  M.battleTurn(B.S, rng || rng5, mine, theirs || PASS2(B.f1, B.f2));
+  return trace;
+};
+probe('ability', 'punishesAttacker', 'a Cute Charm infatuation names the ability and its holder; the same hit on Magic Guard infatuates nobody', () => {
+  /* data/moves.ts attract.condition.onStart: `effect.name === 'Cute Charm'` -> `-start … Attract … [from]
+   * ability: Cute Charm … [of] <source>`. The 30% roll is taken on a LOW die so the effect lands. */
+  const run = (ab) => {
+    const B = board('feraligatr', 'incineroar', 'clefable', 'garchomp');
+    B.me.gender = 'F'; B.f1.gender = 'M'; B.f1.ability = ab;
+    B.f1.st = Object.assign({}, B.f1.st, { hp: B.f1.st.hp * 60 }); B.f1.curHP = B.f1.st.hp;
+    const tr = traceTurn(B, new Map([[B.me, M.playerAction(B.me, 'brutalswing', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      null, () => 0.01);
+    return tr.filter(l => /^\|-start\|.*\|Attract/i.test(l)).join(' ');
+  };
+  const control = run('magicguard'), test = run('cutecharm');
+  return { works: control === '' && /\[from\] ability: cute ?charm/i.test(test) && /\[of\]/.test(test),
+           arms: { control, test },
+           detail: 'Magic Guard "' + control + '" (must be empty); Cute Charm "' + test + '" (must carry [from] and [of])' };
+});
+
+probe('ability', 'refusesVolatile', 'Own Tempo SAYS it refused a Swagger\'s confusion; the same body on Sturdy is confused', () => {
+  /* data/abilities.ts owntempo.onHit: `move?.volatileStatus === 'confusion'` -> `-immune … confusion …
+   * [from] ability: Own Tempo`. The refusal itself is `onTryAddVolatile` and silent. */
+  const run = (ab) => {
+    const B = board('gyarados', 'incineroar', 'avalugg', 'garchomp');
+    B.f1.ability = ab;
+    const tr = traceTurn(B, new Map([[B.me, M.playerAction(B.me, 'swagger', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]));
+    return [(B.f1._vol && B.f1._vol.confusion) ? 1 : 0, tr.filter(l => /^\|-immune\|/.test(l)).join(' ')];
+  };
+  const control = run('sturdy'), test = run('owntempo');
+  return { works: control[0] === 1 && control[1] === '' && test[0] === 0 && /\|confusion\|\[from\] ability: own ?tempo/i.test(test[1]),
+           arms: { control, test },
+           detail: '[confused, -immune line] — Sturdy ' + JSON.stringify(control) + '; Own Tempo ' + JSON.stringify(test) };
+});
+
+probe('ability', 'protectsAllyFromStatus', 'Sweet Veil blocks the partner\'s sleep with `-block` and no `-fail`; Aroma Veil lets it land', () => {
+  /* data/abilities.ts sweetveil.onAllySetStatus: `-block|<target>|ability: Sweet Veil|[of] <holder>`, then
+   * `return null`, so `setStatus` writes no `-fail`. The control is the same holder on its other ability. */
+  const run = (ab) => {
+    const B = board('altaria', 'incineroar', 'absol', 'alcremie');
+    B.f2.ability = ab;
+    const tr = traceTurn(B, new Map([[B.me, M.playerAction(B.me, 'sing', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]));
+    return [B.f1.status || 'none', tr.filter(l => /^\|-(block|fail)\|/.test(l)).join(' ')];
+  };
+  const control = run('aromaveil'), test = run('sweetveil');
+  return { works: control[0] === 'slp' && test[0] === 'none' && /^\|-block\|.*ability: sweet ?veil/i.test(test[1]) && !/-fail/.test(test[1]),
+           arms: { control, test },
+           detail: '[partner status, -block/-fail lines] — Aroma Veil ' + JSON.stringify(control) + '; Sweet Veil ' + JSON.stringify(test) };
+});
+
+probe('move', 'removesItem', 'Covet moves the item with ONE line; Thief writes its own loss line first', () => {
+  /* data/moves.ts covet.onAfterHit writes only `-item|<thief>|…|[from] move: Covet|[of] <victim>`; thief's
+   * writes a `[silent]` `-enditem` before its `-item`. Both take the Muscle Band. */
+  const run = (mv) => {
+    const B = board('snorlax', 'incineroar', 'feraligatr', 'garchomp');
+    B.me.item = ''; B.f1.item = 'muscleband';
+    B.f1.st = Object.assign({}, B.f1.st, { hp: B.f1.st.hp * 60 }); B.f1.curHP = B.f1.st.hp;
+    const tr = traceTurn(B, new Map([[B.me, M.playerAction(B.me, mv, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]));
+    return [B.me.item || '', tr.filter(l => /^\|-enditem\|/.test(l)).length, tr.filter(l => /^\|-item\|/.test(l)).length];
+  };
+  const control = run('thief'), test = run('covet');
+  return { works: control[0] === 'muscleband' && control[1] === 1 && test[0] === 'muscleband' && test[1] === 0 && test[2] === 1,
+           arms: { control, test },
+           detail: '[thief item, -enditem lines, -item lines] — Thief ' + JSON.stringify(control) + '; Covet ' + JSON.stringify(test) };
+});
+
+probe('ability', 'suppressesOwnItem', 'a Klutz body still MEGA-EVOLVES — Klutz hides the stone from item events, not from the mega check', () => {
+  /* data/mods/champions/scripts.ts:183 `canMegaEvo` reads `pokemon.getItem()`, the raw slot; `ignoringItem()`
+   * is never asked. The control is the SAME Klutz Audino on the SAME turn, simply not told to evolve —
+   * so a probe that saw "audino-mega" on both arms would be an engine that megas without a choice. */
+  const run = (mega) => {
+    const me = M.buildMon('audino', {}); me.item = 'audinite'; me.ability = 'klutz'; me.baseAbility = 'klutz';
+    const ally = bare('clefable'), f1 = bare('garchomp'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+    const act = M.playerAction(me, 'protect', me, S.field); if (mega) act.mega = true;
+    M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [me.name, me.ability, me.item || ''];
+  };
+  const control = run(false), test = run(true);
+  return { works: control[0] === 'audino' && control[1] === 'klutz' && test[0] === 'audino-mega'
+                  && test[1] !== 'klutz' && test[2] === 'audinite',
+           arms: { control, test },
+           detail: '[forme, ability, visible item] — not asked ' + JSON.stringify(control)
+                 + '; asked ' + JSON.stringify(test) + ' (must evolve, lose Klutz, and show the stone again)' };
+});
+
 /* ---- ROADMAP #147 — THE GROUNDED AXIS ------------------------------------------------------------
  *
  * Seven readers consult `isGrounded()` and five of its inputs were absent, so one wrong answer was
@@ -34245,7 +34429,12 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afte
                           'stealIgnoresFullHandRestored', 'costBoostNoCapFailRestored',
                           'statRewireSurvivesSwitchRestored', 'halfHpNoFloorRestored',
                           'knockoffFlooredAloneRestored', 'volleyIgnoresUserFaintRestored',
-                          'layerRefundIgnoresNoFoeRestored', 'reflectTypeUnmodelledRestored']
+                          'layerRefundIgnoresNoFoeRestored', 'reflectTypeUnmodelledRestored',
+                          /* 2026-09-11 -- the reopen batch's eight knobs (tests/probe_reopen_partings.js) */
+                          'obliviousMoveIdBlindRestored', 'spiteIgnoresBounceRestored',
+                          'critVolatileStageUnreadRestored', 'megaRefusedUnderSuppressionRestored',
+                          'cuteCharmUnattributedRestored', 'ownTempoSilentRestored',
+                          'veilBlockUnannouncedRestored', 'covetEnditemExtraRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

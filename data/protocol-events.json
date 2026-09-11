@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-08 05:36:17",
+  "generated": "2026-09-11 13:14:08",
   "source": "engine/derive_protocol_events.js",
   "source_digests": {
-    "engine/derive_protocol_events.js": "477e53d8315b",
-    "engine/medicham2-browser.js": "5a86b1d52bd5"
+    "engine/derive_protocol_events.js": "af90f9129c92",
+    "engine/medicham2-browser.js": "9134ed066e6a"
   },
   "showdown_pinned_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "derivedFrom": {
-    "showdown": "C:\\Users\\willj\\Projects\\Pokemon\\pokemon-showdown",
+    "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown",
     "scanned": [
       "sim/battle.ts",
       "sim/battle-actions.ts",
@@ -30,10 +30,11 @@
     "note": "the champions mod OVERRIDES two of the core emits (-supereffective, -resisted); its arity wins."
   },
   "showdownEvents": 91,
-  "emittedCount": 44,
+  "emittedCount": 45,
   "emitted": [
     "-ability",
     "-activate",
+    "-block",
     "-boost",
     "-clearallboost",
     "-clearnegativeboost",
@@ -77,15 +78,11 @@
     "turn",
     "upkeep"
   ],
-  "notEmittedCount": 50,
+  "notEmittedCount": 49,
   "notEmitted": [
     {
       "event": "-anim",
       "reason": "animation only; carries no rule. WIRE 147 -- Dragon Darts writes one at its SECOND dart (`addMove('-anim', pokemon, move.name, target)`, battle-actions.ts:906); the darts really do split across two bodies here now, but the line is animation and carries no rule."
-    },
-    {
-      "event": "-block",
-      "reason": "the blockers this engine models announce themselves as `-immune` or `-activate`; nothing in it reaches Showdown's `-block` path (Aroma Veil, Dynamax, Crafty Shield)."
     },
     {
       "event": "-burst",
@@ -399,7 +396,7 @@
         "SIM-PROTOCOL.md"
       ],
       "champions": false,
-      "medicham": "declared"
+      "medicham": "emitted"
     },
     {
       "name": "-boost",

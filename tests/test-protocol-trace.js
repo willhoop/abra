@@ -415,6 +415,26 @@ const SCENARIOS = [
     [{ a: [{ m: 'bellydrum' }, { m: 'moonblast', t: 1 }], b: [{ m: 'dragonclaw', t: 1 }, { m: 'protect' }] },
      { a: null, b: null }]],
 
+  /* `-block`: A VEIL REFUSING FOR ITS PARTNER — added 2026-09-11 (ROADMAP #599) with the emitter, on the
+   * same rule the Belly Drum and Psych Up boards were added on: a claimed event nothing produces is the
+   * shape PART 1 exists to refuse.
+   *
+   * Sweet Veil's `onAllyTryAddVolatile` writes `-block|<target>|ability: Sweet Veil|[of] <holder>` for a
+   * Yawn aimed at ANY body on its side and returns null (data/abilities.ts sweetveil). YAWN AND NOT SING:
+   * Sing prints 55% accuracy, so a seeded roll could miss and the event would ride on a die; Yawn prints
+   * `accuracy: true`. `champions_sim.canLearn` says Snorlax learns Yawn and Alcremie, Absol learn the rest,
+   * asked of the format rather than recalled. The Yawn is aimed at Absol, the PARTNER, which is the half
+   * of the ability the old engine carried as a counted silence. */
+  ['Sweet Veil: the partner is refused a Yawn, and the veil says so with `-block`',
+    () => [mon('alcremie', ['protect', 'dazzlinggleam', 'calmmind', 'drainingkiss'], 'sweetveil', ''),
+           mon('absol', ['protect', 'swordsdance', 'nightslash', 'suckerpunch'], 'pressure', ''),
+           mon('milotic', ['scald', 'recover', 'protect', 'icywind'], 'marvelscale', '')],
+    () => [mon('snorlax', ['yawn', 'protect', 'bodyslam', 'curse'], 'thickfat', ''),
+           mon('garchomp', ['earthquake', 'dragonclaw', 'protect', 'rockslide'], 'roughskin', ''),
+           mon('clefable', ['moonblast', 'protect', 'followme', 'helpinghand'], 'unaware', '')],
+    [{ a: [{ m: 'protect' }, { m: 'swordsdance' }], b: [{ m: 'yawn', t: 1 }, { m: 'protect' }] },
+     { a: null, b: null }]],
+
   /* `-copyboost`: THE ONE EVENT THAT NAMES TWO POKEMON — added 2026-08-26 (ROADMAP #457) with the
    * emitter, on the same rule the Belly Drum board above was added on.
    *

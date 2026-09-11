@@ -6845,8 +6845,13 @@ const RULES = [
      * (`{if(UNBURDEN_FROM_CURRENT_ABILITY)...;_mods.push(...);}`), so the 2026-09-07 anchor matched ZERO
      * times and the abilities stage exited 1 on DEAD ANCHOR. Aimed at the guard that opens the payment,
      * which occurs once; the plant still drops the multiplier and leaves the item consumed. */
-    patch: [['if(_ub&&_ub.speedMult){if(UNBURDEN_FROM_CURRENT_ABILITY)',
-             'if(false&&_ub&&_ub.speedMult){if(UNBURDEN_FROM_CURRENT_ABILITY)']] },
+    /* RE-AIMED A THIRD TIME 2026-09-11 (ENGINE, the reopen pass). ROADMAP #535's FIX split the payment across
+     * lines -- the knob branch, then a `_ubNoVol` withholding branch, then the ordinary payment -- so the
+     * anchor above matched ZERO times and the abilities stage exited 1 on DEAD ANCHOR (release e368827481f5).
+     * Aimed at the ORDINARY payment's own text, which occurs once in the live engine and in that release;
+     * `else ;` keeps the braces balanced and drops the multiplier on the path an Unburden row takes. */
+    patch: [['else _mods.push(+_ub.speedMult);}}',
+             'else ;}}']] },
   match(e) {
     if (!hasHandler(e, 'onAfterUseItem', 'onTakeItem')) return null;
     /* AND STICKY HOLD IS NOT IN THIS FAMILY, WHICH IS THE OVER-MATCH THIS PROJECT HAS ALREADY MADE

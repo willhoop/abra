@@ -39,6 +39,13 @@ const GD_REL = gd.engine_release, DUMP_REL = dump.engine_release;
 if (!GD_REL) cannot('the differential carries no engine_release to compare against');
 
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'abra-cards-'));
+/* RE-AIMED 2026-09-11 (ENGINE). MEASURE's 6.12.1 made the renderer REFUSE a dump whose release is not the
+ * differential's, comparing against the LIVE data/game-differential.json. This probe reads HEAD's, so once
+ * the live differential moved past HEAD its own CONTROL (a dump re-stamped with HEAD's release) was refused
+ * too: exit 2, a 0-byte page, and no arm could be read. The renderer's own `--differential <path>` hands it
+ * the SAME differential this probe read, so the control compares like with like again. */
+const GD_PATH = path.join(TMP, 'differential.json');
+fs.writeFileSync(GD_PATH, JSON.stringify(gd));
 /* THE BANNER TEST IS A DIFFERENCE, NOT A WORD SEARCH. The first form of this probe grepped the page for
  * "stale"/"mismatch" and its CONTROL went red: a 438 KB page of real cards contains those words. So
  * each page is normalised — every release id in it replaced by a placeholder — and compared with the
@@ -49,7 +56,7 @@ const norm = s => RELS.reduce((a, id) => a.split(id).join('<REL>'), String(s || 
 function render(tag, d) {
   const inP = path.join(TMP, tag + '.json'), outP = path.join(TMP, tag + '.html');
   fs.writeFileSync(inP, JSON.stringify(d));
-  const r = spawnSync(process.execPath, [path.join(ROOT, 'engine', 'divergence_cards.js'), '--in', inP, '--out', outP],
+  const r = spawnSync(process.execPath, [path.join(ROOT, 'engine', 'divergence_cards.js'), '--in', inP, '--out', outP, '--differential', GD_PATH],
     { cwd: ROOT, encoding: 'utf8', timeout: 120000 });
   const html = fs.existsSync(outP) ? fs.readFileSync(outP, 'utf8') : '';
   const text = (r.stdout || '') + (r.stderr || '');

@@ -7474,12 +7474,36 @@ const INTERIOR = DIRECTED.filter(s => /knock-off|contact/.test(s.name)).map(dama
 const diverged = results.filter(r => r.div);
 const threw = results.filter(r => r.err);
 const classes = new Map();
+/* 2026-09-11 (ROADMAP #467 (b), #375) -- EVERY CAUSE CARRIES WHAT IT NEEDS TO BE SUBTRACTED AND READ.
+ * `void_n` beside `n`: how many of the cause's games the middle arm VOIDED (its two dice streams stopped
+ * being shared), so a clause subtracting declared causes by `n` and void games by the top-level count can no
+ * longer double-subtract a game that is both. And the cause's own CONTEXT, off its first diverged game: the
+ * authority's preceding lines, both engines' following lines, the body the lines name, and the `[from]`/
+ * `[of]` attribution the normaliser strips -- lossy for the comparison, lossless for triage. It used to live
+ * only in `first_divergences`, which is capped at 60 games. `ABRA_GD_NO_VOID_N=1` and
+ * `ABRA_GD_CAUSE_CONTEXT_OFF=1` restore the old artifact shape (tests/probe_differential_void_attribution.js,
+ * tests/probe_differential_cause_context.js). */
+const GD_NO_VOID_N = process.env.ABRA_GD_NO_VOID_N === '1';
+const GD_CAUSE_CONTEXT_OFF = process.env.ABRA_GD_CAUSE_CONTEXT_OFF === '1';
+function causeContext(r) {
+  if (GD_CAUSE_CONTEXT_OFF || !r || !r.div) return {};
+  const d = r.div, lines = [d.sdRaw, d.meRaw].map(x => String(x || ''));
+  let species = null;
+  for (const l of lines) { const m = l.match(/\|p[12][ab]?: ([^|]+)/); if (m) { species = m[1].trim(); break; } }
+  const attr = l => l.split('|').filter(f => /^\[(from|of)\]/.test(f));
+  return { showdown_before: d.sdBeforeRaw || [], sdAfter: d.sdAfterRaw || [], meAfter: d.meAfterRaw || [],
+           species: species || 'none named on either line',
+           attribution: { showdown: attr(lines[0]), medicham: attr(lines[1]) },
+           example: { config: r.config, seed: r.seed, turn: r.divTurn } };
+}
 for (const r of diverged) {
   const c = classify(r.div);
-  if (!classes.has(c.cls)) classes.set(c.cls, { games: 0, causes: new Map() });
+  if (!classes.has(c.cls)) classes.set(c.cls, { games: 0, causes: new Map(), voids: new Map(), ex: new Map() });
   const e = classes.get(c.cls);
   e.games++;
   e.causes.set(c.cause, (e.causes.get(c.cause) || 0) + 1);
+  if (r._mid_void) e.voids.set(c.cause, (e.voids.get(c.cause) || 0) + 1);
+  if (!e.ex.has(c.cause)) e.ex.set(c.cause, r);
   r._cls = c;
 }
 
@@ -9600,7 +9624,9 @@ if (WRITE) {
      * cause is read rather than three steps later when somebody thinks to check. */
     classes: [...classes].map(([cls, e]) => ({
       cls, games: e.games,
-      causes: [...e.causes].map(([cause, n]) => Object.assign({ cause, n }, annotateCause(cause))),
+      causes: [...e.causes].map(([cause, n]) => Object.assign({ cause, n },
+        GD_NO_VOID_N ? {} : { void_n: (e.voids && e.voids.get(cause)) || 0 },
+        causeContext(e.ex && e.ex.get(cause)), annotateCause(cause))),
     })),
     /* ROADMAP #290 — EVERY move-vs-move ordering pair, not a sample, with the discriminator attached.
      * The question it answers is one line: were the two bodies actually speed-tied? If they were not,
@@ -9784,6 +9810,8 @@ if (WRITE) {
       aim_none: AIM.none, aim_slot_empty: AIM.miss,
       undeclared_event_drops: UNDECLARED_DROPS,
       trace_body_off_field: M.fails.traceBodyOffField,
+      /* ROADMAP #375 (3) -- a declared switch-order tie is told from an ordering defect by these two. */
+      medicham_tie_counters: { entryOrderTie: M.fails.entryOrderTie | 0, replaceOrderTie: M.fails.replaceOrderTie | 0 },
       trace_body_off_field_first: M.fails.traceBodyOffFieldFirst,
       undeclared_events: [...UNDECLARED_SEEN],
       gender_neutralised: true, tags_release_matches_live: TAGS_MATCH,

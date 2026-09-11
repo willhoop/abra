@@ -6,6 +6,8 @@
 
 **GATE.** Run `node engine/quarantine.js`. At HEAD `bf2d594f`, at `2026-09-11T12:21Z`, it printed `GATE: CLOSED — 2 of 9 GATING clauses fail`. The clause "no open, known engine defect" fails. It printed `10 OPEN roadmap row(s) name an instrument that is RED`. The rows are ROADMAP #535, #529, #318, #348, #375, #380, #412, #425, #467 and #511. The clause "mechanics / each one staged and compared against showdown" fails. It printed `9 of 16 DIVERGING MECHANICS ARE PLAYED AND UNCLEARED`. All of them are among ROADMAP #593 to #600. The other seven clauses pass.
 
+**UPDATE, 2026-09-11 (6.18.0):** `node engine/quarantine.js` now prints `GATE: CLOSED — 1 of 9 GATING clauses fail`. The mechanics clause passes again; the one clause still failing is the open-defect clause, on two named rows — #318 (roster move scenarios staged on bodies that cannot legally learn the move) and #511 (the survival clamp applied per volley rather than per hit). The 2-of-9 reading above is kept as dated evidence.
+
 **CAUSE.** The instruments changed. The engine did not get worse. CHANGELOG 6.13.0 added a deciding probe to twenty register rows. Ten of the probes are RED. CHANGELOG 6.14.0 put the staging planner in the harness. Staged mechanics that fired increased from 740 to 783 of 845. Eight mechanics part from the authority on the new boards. Four change the board: Oblivious lets Taunt through; Magic Bounce does not bounce Spite; a Super Luck or Scope Lens holder misses the guaranteed critical hit after Focus Energy; a mega stone held under Klutz does not evolve. Four differ in narration only: Cute Charm, Own Tempo, Sweet Veil and Covet. **RULE.** These defects are real. They were in the engine at 6.0.0. The 6.0.0 gate did not stage them. Do not write "MEDICHAM is correct" as a current statement.
 
 **POOL.** Read `data/game-differential.json`. It was generated at `2026-09-11T11:23:47Z` on release `aefcb93baf14`. `state.games` is 961. `state.games_board_never_diverged` is 961. Board-material on the middle arm is 0 of 961. It did not change.
@@ -1885,7 +1887,7 @@ M.battleTurn(S, rng);
 
 | Export | Does |
 |---|---|
-| `M.TRACE_EVENTS` | the event names this engine claims it can emit. Read `emittedCount` in `data/protocol-events.json`. It is 44. Read the artifact, not this cell |
+| `M.TRACE_EVENTS` | the event names this engine claims it can emit. Read `emittedCount` in `data/protocol-events.json`. It is 45. Read the artifact, not this cell |
 | `M.traceCounts(lines)` | counts by event name, PARSED from the lines rather than kept beside them |
 | `M.traceCanon(line)` | the one normaliser — lowercase and strip whitespace **per field** |
 

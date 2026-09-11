@@ -1,10 +1,10 @@
 {
-  "current": "aefcb93baf14",
-  "cut": "2026-09-11T11:15:20.821Z",
-  "why": "ENGINE 2026-09-11 batch 2: the faint epoch is per battle (S._faintEpoch), so a double wipe's result survives a later battleInit; knob MEDI_FAINT_EPOCH_GLOBAL=1 restores the process-global rule",
+  "current": "e368827481f5",
+  "cut": "2026-09-11T13:55:19.159Z",
+  "why": "reopen batch 3: Unburden needs its volatile (535), Flower Veil boost-half -block and status-half guard, tags: bugbite/pluck eat (529) and allyBlockLine, position_features effAbility (412)",
   "cuts": 25,
-  "latest_cut": "2026-09-11T12:05:39.309Z",
+  "latest_cut": "2026-09-11T14:42:55.773Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-11T12:05:39.375Z",
+  "pointer_written": "2026-09-11T14:42:55.787Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

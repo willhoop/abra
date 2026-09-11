@@ -1,0 +1,18 @@
+{
+  "written": "2026-09-11",
+  "by": "ENGINE, before the batch-2 measurement",
+  "batch": "2 — the four narration partings: Cute Charm's attribution (#597), Own Tempo's refusal line (#598), Sweet Veil's -block (#599), Covet's extra -enditem (#600)",
+  "baseline": "batch 1 on release 84721693b509 — read the batch-1 section of docs/_reports/2026-09-11-reopen.md",
+  "predict": {
+    "boards": "no board leaf moves anywhere: every change is a protocol line. The four probe rows were board-clean before the fix.",
+    "mechanics_clause": "the narration partings (cutecharm, owntempo, sweetveil) clear; covet is below the reach shelf and was never in the count. Whatever remains is not one of the eight.",
+    "narration_whole_game": "pool narration counts may FALL where Sweet Veil / Aroma Veil / Flower Veil, Own Tempo, Cute Charm or Covet appear; they may also RISE at a veil whose handler class this pass derived and the engine now voices (Aroma Veil into Taunt/Encore is the likely one) — a rise there is a finding, not noise",
+    "board_material": "unchanged from batch 1",
+    "census": "batch-1 figure + 4 (four new narration rows), 0 missing",
+    "coverage_fired": "unchanged from batch 1, within 2",
+    "engine_diff": "0 of 6000 (no damage change)",
+    "roster": "0 / 0 / 0 FIRED-AND-BOARDS-DIFFER",
+    "protocol_trace": "PART 1 sees `-block` fire on the new Sweet Veil board; 'nothing was emitted that TRACE_EVENTS does not claim' holds",
+    "gate": "stays CLOSED on the open-defect clause (batch 3 not landed)"
+  }
+}

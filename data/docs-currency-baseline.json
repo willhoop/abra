@@ -1,8 +1,8 @@
 {
-  "generated": "2026-09-11T08:15:29.062Z",
+  "generated": "2026-09-11T14:50:30.074Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "6.8.0",
+  "changelog_top_at_baseline": "6.18.0",
   "version_pins": {
     "docs/ADR-002-showdown-is-the-authority.md": {
       "version": "3.50.0",
@@ -199,7 +199,6 @@
       "docs/RUNNING-NOTES.md|31|data/policy-weights.json",
       "docs/RUNNING-NOTES.md|33|data/medicham-speed.json",
       "docs/RUNNING-NOTES.md|4.7346|data/policy-eval.json",
-      "docs/RUNNING-NOTES.md|47|data/protocol-events.json",
       "docs/RUNNING-NOTES.md|61|data/policy-weights.json",
       "docs/RUNNING-NOTES.md|67,384|data/policy-weights.json",
       "docs/RUNNING-NOTES.md|76,833|data/policy-weights.json"

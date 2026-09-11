@@ -1,0 +1,24 @@
+{
+  "written": "2026-09-11",
+  "by": "ENGINE, before the batch-1 measurement",
+  "batch": "1 — the four board-material partings: Oblivious vs Taunt (#593), Magic Bounce vs Spite (#594), crit-stage volatiles (#595), a mega stone under Klutz (#596)",
+  "baseline": {
+    "release": "aefcb93baf14",
+    "gate": "CLOSED, 2 of 9 gating clauses fail (open-defect clause: 10 rows; mechanics clause: 9 of 16 diverging mechanics played and uncleared)",
+    "coverage_fired": "783 of 845",
+    "census": "872 live / 0 missing",
+    "pool_board_material": { "middle": "0 of 961", "top": "1 of 961", "bottom": "2 of 961" },
+    "engine_diff": "0 of 6000",
+    "roster_fired_and_boards_differ": { "items": 0, "abilities": 0, "moves": 0 }
+  },
+  "predict": {
+    "mechanics_clause": "the seven board rows clear (oblivious, magicbounce, superluck, scopelens, audinite, golurkite, unseenfist); the clause falls from 9 to 2-4 uncleared, the remainder being the narration partings (cutecharm, owntempo, sweetveil; covet is below the reach shelf) — it stays RED",
+    "open_defect_clause": "unchanged at 10 rows — no batch-3 row is touched in batch 1; stays RED",
+    "gate": "stays CLOSED, 2 of 9",
+    "census": "872 -> 877 live, 0 missing (five new census rows, all live)",
+    "coverage_fired": "783 of 845, range 783-787 (Klutz may begin firing through the mega)",
+    "pool_board_material": "unchanged: middle 0, top 1, bottom 2 of 961 (Oblivious is 749 teams, but the pool has not parted on it; a Taunt into Oblivious in a pool game would move the narration count, not board-material, which is already at its floor in the middle arm)",
+    "engine_diff": "0 of 6000 (single-hit damage is untouched: a crit-stage volatile needs a turn of setup the one-hit differential never stages)",
+    "roster": "0 / 0 / 0 FIRED-AND-BOARDS-DIFFER; the roster may newly FIRE Klutz and Super Luck"
+  }
+}

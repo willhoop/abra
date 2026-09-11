@@ -29,6 +29,13 @@
  */
 'use strict';
 require('../engine/showdown_path.js'); /* resolves SHOWDOWN_PATH from the sibling checkout — see that file */
+/* ONE EXIT CLASSIFIER — ROADMAP #380 (3), adopted 2026-09-11. `engine/exit_codes.js` owns `classifyExit`
+ * (moved out of engine/register_reality.js, behaviour unchanged) and `runnerOutcome`, which is that
+ * classification plus a PASS/FAIL/SKIP policy for a suite runner. This file used to decide "exit 2 is SKIP"
+ * on its own, and the register read the same code as a red verdict: two readers of one fact. Three cases
+ * change, each one where the two readers used to disagree: `exit 2` + `ABRA-EXIT 2 VERDICT-RED` is now FAIL,
+ * `exit 0` + `ABRA-EXIT 0 CANNOT-ANSWER` is now FAIL, and `exit 4` + `ABRA-EXIT 4 CANNOT-ANSWER` is now SKIP. */
+const EXIT = require('../engine/exit_codes.js');
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
@@ -888,7 +895,8 @@ for (const rel of all) {
     env: Object.assign({}, process.env, { ABRA_STRICT_SEMANTICS: '1', ABRA_SUITE_STARTED_AT: String(SUITE_STARTED_AT) }),
   });
   const secs = ((Date.now() - started) / 1000).toFixed(1);
-  if (r.status === 0) {
+  const EXO = EXIT.runnerOutcome(r.status, (r.stdout || '') + '\n' + (r.stderr || ''));
+  if (EXO.outcome === 'PASS') {
     pass.push(rel);
     console.log(WAIVERS.has(rel)
       ? `  ok (waiver no longer needed)  ${rel}  (${secs}s)  — remove its entry from data/test-waivers.json`
@@ -897,8 +905,8 @@ for (const rel of all) {
   /* EXIT 2 MEANS "I COULD NOT RUN", NOT "I FAILED". A gate whose input is gitignored must be able to
    * say that without turning every clean checkout red — and must still be listed, so the distinction
    * between "passed" and "never ran" stays visible. */
-  else if (r.status === 2) {
-    const why = ((r.stderr || '') + (r.stdout || '')).trim().split('\n')[0] || 'exit 2';
+  else if (EXO.outcome === 'SKIP') {
+    const why = ((r.stderr || '') + (r.stdout || '')).trim().split('\n')[0] || ('exit ' + r.status);
     skip.push([rel, why]);
     console.log(`  SKIP  ${rel}  — ${why}`);
   }

@@ -264,8 +264,10 @@ const NOT_EMITTED = {
   '-combine': 'no combined moves.', '-center': 'no triples.',
   '-waiting': 'no move that waits on a partner is modelled.',
   '-notarget': 'gen 5+ emits `-fail` instead (sim/battle-actions.ts:456), which this engine does emit.',
-  '-block': 'the blockers this engine models announce themselves as `-immune` or `-activate`; nothing '
-    + 'in it reaches Showdown\'s `-block` path (Aroma Veil, Dynamax, Crafty Shield).',
+  /* '-block' HAS MOVED INTO TRACE_EVENTS AND ITS REASON IS DELETED RATHER THAN EDITED, 2026-09-11
+   * (ROADMAP #599). It read "nothing in it reaches Showdown's `-block` path (Aroma Veil, Dynamax, Crafty
+   * Shield)", and Aroma Veil had been in the veil family since ROADMAP #212 while writing nothing. Every
+   * legal veil now writes its own `-block` through `TR.block`, gated on the handler's derived class. */
   '-hint': 'client hint text; carries no rule.',
   '-nothing': 'removed from the protocol in gen 5.',
   '-singlemove': 'Destiny Bond / Grudge are not modelled.',

@@ -153,6 +153,23 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-24 -- a bounced status move that wrote the authority's second `|move|` line. Zero would
    * mean the announcement never reaches a real resolution, which is what it looked like before. */
   bounceAnnounced: 0,
+  /* 2026-09-11 (ROADMAP #593-#596, tests/probe_reopen_partings.js). `spiteBounced` -- a Spite Magic Bounce
+   * sent back at its user; `critStageFromVolatile` -- a crit-stage volatile's `delta` read into the ratio;
+   * `megaThroughSuppressedItem` -- a mega whose stone Klutz or Magic Room was hiding from item events;
+   * `tryHitRefusedByMoveId` -- a move an ability refuses BY NAME at TryHit (Oblivious and Taunt). Zero on a
+   * run that staged one of these is the pre-fix engine. */
+  spiteBounced: 0, critStageFromVolatile: 0, megaThroughSuppressedItem: 0, tryHitRefusedByMoveId: 0,
+  /* 2026-09-11 (ROADMAP #597-#600, the narration half of the same pass). `attractFromAbilityAnnounced` -- an
+   * infatuation an ABILITY started, written with its `[from]`/`[of]`; `confusionRefusalAnnounced` -- Own
+   * Tempo's `-immune … confusion` after a move aimed the volatile at it; `veilBlockAnnounced` -- a veil's
+   * `-block … [of] <holder>`; `statusRefusedByVeil` -- a primary status a veil refused, which writes no
+   * `-fail`; `stealLossLineSilent` -- a thief (Covet) whose handler writes no `-enditem`. */
+  attractFromAbilityAnnounced: 0, confusionRefusalAnnounced: 0, veilBlockAnnounced: 0, statusRefusedByVeil: 0,
+  stealLossLineSilent: 0,
+  /* 2026-09-11 (ROADMAP #535). `unburdenVolatileEnded` -- an ability rewrite on a body whose hand was ALREADY
+   * empty, which the authority reads as the `unburden` volatile ending (or never being granted);
+   * `unburdenWithheldLate` -- an effSpeed read that withheld the doubling for that reason. */
+  unburdenVolatileEnded: 0, unburdenWithheldLate: 0,
   /* ROADMAP #290 -- a Speed multiplier that is NOT an exact multiple of 1/4096, so the ORDER of the
    * chain starts to matter. Zero across this format today (x1.5 is 6144, x2 is 8192), and the whole
    * point of the counter is that a future one arrives loudly instead of as a rounding drift. */
@@ -3347,6 +3364,9 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-08-24 -- a bounce whose ability the artifact carries no display name for, so the second
      `|move|` line went out with no attribution. Zero across this format. */
   bounceNoName: 0,
+  /* 2026-09-11 (ROADMAP #595) -- a crit-stage volatile whose `critStageVolatile` row carries no readable
+   * stage (`deltaUnparsed`). Refused, not guessed: the volatile adds nothing and this counts it. */
+  critStageVolatileUnparsed: 0,
   /* WIRE 160 -- both sides empty and no comparable faint order survives, so the result falls back
      to the 0.5 this wire exists to remove. LOUD on purpose: the fallback and the fix return the
      same number and only this counter tells them apart. */
@@ -5077,6 +5097,11 @@ const TRACE=(function(){
       this.out.push(s);
     },
     imm(m,from){ this.push(['-immune',ident(m),from]); },
+    /* 2026-09-11 (ROADMAP #598) -- `-immune` naming what was refused: Own Tempo's own
+     * `this.add('-immune', target, 'confusion', '[from] ability: Own Tempo')`. */
+    immFor(m,what,from){ this.push(['-immune',ident(m),what,from]); },
+    /* 2026-09-11 (ROADMAP #599) -- a veil's `-block|<target>|ability: X|[of] <holder>`. */
+    block(m,eff,of){ this.push(['-block',ident(m),eff,of?'[of] '+ident(of):'']); },
     /* ROADMAP #457, 2026-08-26 -- THE ONE TWO-BODY LINE IN THIS EMITTER. `-copyboost` names the body
      * that TOOK the vector first and the body it was taken FROM second, in the handler's own argument
      * order (`this.add("-copyboost", source, target, "[from] move: Psych Up")`), so `dst` is the
@@ -5205,7 +5230,7 @@ const TRACE=(function(){
      * partiallytrapped onEnd). Same fact as the chip line above, so it reads the same record. */
     vend(m,eff,tag){ this.push(['-end',ident(m),eff,tag]); },
     /* --- items and abilities --- */
-    item(m,it,from){ this.push(['-item',ident(m),it,from]); },
+    item(m,it,from,of){ this.push(['-item',ident(m),it,from,of?'[of] '+ident(of):'']); },
     /* `extra` is a FIFTH field, added 2026-08-28 for the item-swap family's `[silent]` line, and it
      * exists because the two decorations must be SEPARATE FIELDS rather than one concatenated string.
      * The authority writes
@@ -5476,6 +5501,11 @@ const TRACE_EVENTS=['turn','upkeep','move','cant','switch','drag','faint','detai
   '-ability','-item','-enditem','-weather','-fieldstart','-fieldend','-fieldactivate',
   '-sidestart','-sideend','-start','-end','-activate','-singleturn','-fail','-miss',
   '-crit','-supereffective','-resisted','-immune','-prepare','-mustrecharge','-hitcount','-formechange',
+  /* 2026-09-11 (ROADMAP #599) -- `-block` IS CLAIMED NOW: every veil's own line, `-block|<target>|ability:
+   * X|[of] <holder>`, written through `TR.block` when the handler's derived class says it speaks. Its
+   * declared not-emitted reason in engine/derive_protocol_events.js is deleted rather than reworded, and
+   * tests/test-protocol-trace.js carries a Sweet Veil board so PART 1 sees it fire. */
+  '-block',
   /* ROADMAP #457, 2026-08-26 -- `-copyboost` IS CLAIMED NOW, AND CLAIMING IT IS NOT FREE.
    * `data/protocol-events.json` carried it as NOT EMITTED with the reason "the STATE is right and the
    * ANNOUNCEMENT is owed"; that reason is deleted rather than reworded in
@@ -5972,6 +6002,35 @@ const PIVOT_IGNORES_BOUNCE=(typeof process!=='undefined'&&process.env&&process.e
  * where it was and moves only `bounceAddressReaimed`. tests/probe_bounce_accuracy_address.js. */
 const BOUNCE_KEEPS_SOURCE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_BOUNCE_KEEPS_SOURCE==='1');
 if(BOUNCE_KEEPS_SOURCE)MEDFAILS.bounceKeepsAddressRestored=1;
+/* 2026-09-11 -- FOUR KNOBS, ONE PER BOARD-MATERIAL PARTING THE STAGING PLANNER FOUND (ROADMAP #593-#596).
+ * Each restores exactly the pre-fix behaviour at its one site and stamps a `*Restored` receipt at load, so a
+ * knob that reached no module cannot read as a held control. tests/probe_reopen_partings.js.
+ *   MEDI_OBLIVIOUS_MOVEID_BLIND            `refusesMovesById` is not asked: Taunt lands on an Oblivious body.
+ *   MEDI_SPITE_IGNORES_BOUNCE              the Spite branch never asks `bounceOff`.
+ *   MEDI_CRIT_VOLATILE_STAGE_UNREAD        a crit-stage volatile adds nothing to the ratio.
+ *   MEDI_MEGA_REFUSED_UNDER_SUPPRESSION    `megaTargetFor` reads the VISIBLE slot, so a Klutz stone refuses. */
+const _knob=k=>(typeof process!=='undefined'&&process.env&&process.env[k]==='1');
+const OBLIVIOUS_MOVEID_BLIND=_knob('MEDI_OBLIVIOUS_MOVEID_BLIND');
+if(OBLIVIOUS_MOVEID_BLIND)MEDFAILS.obliviousMoveIdBlindRestored=1;
+const SPITE_IGNORES_BOUNCE=_knob('MEDI_SPITE_IGNORES_BOUNCE');
+if(SPITE_IGNORES_BOUNCE)MEDFAILS.spiteIgnoresBounceRestored=1;
+const CRIT_VOLATILE_STAGE_UNREAD=_knob('MEDI_CRIT_VOLATILE_STAGE_UNREAD');
+if(CRIT_VOLATILE_STAGE_UNREAD)MEDFAILS.critVolatileStageUnreadRestored=1;
+const MEGA_REFUSED_UNDER_SUPPRESSION=_knob('MEDI_MEGA_REFUSED_UNDER_SUPPRESSION');
+if(MEGA_REFUSED_UNDER_SUPPRESSION)MEDFAILS.megaRefusedUnderSuppressionRestored=1;
+/* ...and four more for the narration half (ROADMAP #597-#600), on the same rule:
+ *   MEDI_CUTECHARM_UNATTRIBUTED   an ability-started Attract is written bare, with no `[from]`/`[of]`.
+ *   MEDI_OWNTEMPO_SILENT          a refused confusion writes nothing, whatever aimed it.
+ *   MEDI_VEIL_BLOCK_UNANNOUNCED   no veil writes `-block`, and a veil-refused status writes `-fail` again.
+ *   MEDI_COVET_ENDITEM_EXTRA      every thief writes an `-enditem` on the victim, Covet included. */
+const CUTECHARM_UNATTRIBUTED=_knob('MEDI_CUTECHARM_UNATTRIBUTED');
+if(CUTECHARM_UNATTRIBUTED)MEDFAILS.cuteCharmUnattributedRestored=1;
+const OWNTEMPO_SILENT=_knob('MEDI_OWNTEMPO_SILENT');
+if(OWNTEMPO_SILENT)MEDFAILS.ownTempoSilentRestored=1;
+const VEIL_BLOCK_UNANNOUNCED=_knob('MEDI_VEIL_BLOCK_UNANNOUNCED');
+if(VEIL_BLOCK_UNANNOUNCED)MEDFAILS.veilBlockUnannouncedRestored=1;
+const COVET_ENDITEM_EXTRA=_knob('MEDI_COVET_ENDITEM_EXTRA');
+if(COVET_ENDITEM_EXTRA)MEDFAILS.covetEnditemExtraRestored=1;
 /* 2026-09-09 (BATCH W) -- MEDI_INSTRUCT_NO_PP_REFUSAL=1 restores the pre-fix instruct branch: the
  * last clause of the authority's `onHit` -- the repeated move's own slot being empty -- is not
  * asked, so the second action is queued and then refused one step later with `|cant|…|nopp|`. It
@@ -6722,7 +6781,11 @@ function copyCritStageVolatiles(from,to){
   const dv=(to._vol=to._vol||{});
   for(const v of fam.keys()) if(dv[v]!=null){delete dv[v];n++;}
   const sv=(from&&from._vol)||{};
-  for(const v of fam.keys()) if(sv[v]>0){dv[v]=sv[v];n++;}
+  for(const v of fam.keys()) if(sv[v]>0){dv[v]=sv[v];n++;
+    /* ROADMAP #595 -- the copy is an `addVolatile` on the COPIER, so its `onStart` reads the COPIER's type */
+    const _p=fam.get(v);
+    if(_p&&_p.ifTypeAtStart)(to._critVolTypeAtStart=to._critVolTypeAtStart||{})[v]=
+      (to.types||[]).some(x=>String(x).toLowerCase()===String(_p.ifTypeAtStart).toLowerCase());}
   if(n)MEDSEEN.critVolCopied++;
   return n;
 }
@@ -8696,16 +8759,23 @@ function holdsMegaStone(item){
   if(!item)return false;
   return TAGS.has('item',item,'megaStone')||/ite(x|y)?$/.test(String(item));
 }
+/* 2026-09-11 (ROADMAP #596) -- THE STONE IS READ THROUGH THE HOLD, NOT THROUGH THE VISIBLE SLOT. Champions'
+ * `canMegaEvo` returns `item.megaStone?.[species.name]` off `pokemon.getItem()` (data/mods/champions/
+ * scripts.ts:183), and `getItem()` is the raw slot (`sim/pokemon.ts:1896`) -- it never consults
+ * `ignoringItem()`. So Klutz (and Magic Room) hide a stone from every item EVENT and not from the mega
+ * check. This engine parks a suppressed item in `_roomItem` and read only `m.item`, so a Klutz Audino or
+ * Golurk holding its own stone could never evolve. `itemOn` is the one reader of "what is held". */
 function megaTargetFor(m){
-  if(!m||!m.item)return null;
+  const _held=MEGA_REFUSED_UNDER_SUPPRESSION?(m&&m.item):itemOn(m);
+  if(!m||!_held)return null;
   /* already a mega forme: nothing left to become. The suffix test is on the FORME key this engine
    * holds, which is how data/engine-data.js spells its own mega rows, not string arithmetic on a
    * species name -- nothing is constructed here, only recognised. */
   if(/-mega(-[xyz])?$/.test(String(m.name)))return null;
-  if(!holdsMegaStone(m.item))return null;
-  const k=megaKeyFor(m.name,m.item);
+  if(!holdsMegaStone(_held))return null;
+  const k=megaKeyFor(m.name,_held);
   if(!k){ MEDFAILS.megaStoneNoRow++;
-          if(!MEDFAILS.megaStoneNoRowFirst)MEDFAILS.megaStoneNoRowFirst=m.name+' @ '+m.item; }
+          if(!MEDFAILS.megaStoneNoRowFirst)MEDFAILS.megaStoneNoRowFirst=m.name+' @ '+_held; }
   return k;
 }
 /* ROADMAP #81 WIRE 7 -- THE ONE ITEM CLASS IN THIS FORMAT THAT REFUSES `takeItem`.
@@ -10951,6 +11021,23 @@ function critChance(moveId,att,defAbility,defBody,opts){
   if(att){
     const _it=TAGS.param('item',att.item,'critRatioUp');
     if(_it&&+_it.critRatio>1)stage+=(+_it.critRatio-1);
+    /* 2026-09-11 (ROADMAP #595) -- THE CRIT-STAGE VOLATILES ADD TO THE SAME RATIO, AND THIS FUNCTION NEVER
+     * ASKED THEM. Every `onModifyCritRatio` handler is one event over one relay var (sim/battle-actions.ts:
+     * `runEvent('ModifyCritRatio', source, target, move, move.critRatio || 0)`), so Focus Energy's +2 stacks
+     * on Super Luck's +1 and Scope Lens's +1 and the ratio clamps at 4, where `critMult[4]` is 1: a CERTAIN
+     * crit. This engine applied the volatile, refused a second one, copied it through Psych Up -- and priced
+     * every hit as if it were not there. The stage is the row's own `delta`; Dragon Cheer's is `deltaIfType`
+     * when the body was that type when the volatile STARTED (`effectState.hasDragonType`, set in `onStart`),
+     * recorded at application in `_critVolTypeAtStart`. */
+    if(!CRIT_VOLATILE_STAGE_UNREAD&&!CRIT_VOLATILE_BLIND&&att._vol){
+      for(const [_cv,_cp] of critStageVolatiles()){
+        if(!(att._vol[_cv]>0))continue;
+        if(_cp.deltaUnparsed||_cp.delta==null){MEDFAILS.critStageVolatileUnparsed++;continue;}
+        const _ty=_cp.ifTypeAtStart&&att._critVolTypeAtStart&&att._critVolTypeAtStart[_cv];
+        stage+=_ty?(+_cp.deltaIfType||+_cp.delta):(+_cp.delta);
+        MEDSEEN.critStageFromVolatile++;
+      }
+    }
     /* ROADMAP #213 -- THE ABILITY HALF, WHICH THIS ENGINE REFUSED FOR A GOOD REASON AND CAN NOW READ.
      *
      * The refusal recorded at MEDFAILS.critRatioAbility was correct while the artifact gave both
@@ -17947,6 +18034,13 @@ const ROOM_ITEM_IS_LOST=(typeof process!=='undefined'&&process.env&&process.env.
  * its load stamp and `MEDSEEN.unburdenFromCurrentAbilityKnobbed`. `tests/probe_unburden_acquired.js`. */
 const UNBURDEN_FROM_CURRENT_ABILITY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_UNBURDEN_FROM_CURRENT_ABILITY==='1');
 if(UNBURDEN_FROM_CURRENT_ABILITY)MEDFAILS.unburdenFromCurrentAbilityKnob=1;
+/* ROADMAP #535 -- AN ABILITY REWRITE ON A BODY WHOSE HAND IS ALREADY EMPTY. In the authority either the old
+ * ability was Unburden and its End removes the volatile, or the new one is Unburden and no `onTakeItem` /
+ * `onAfterUseItem` will fire to grant one: both leave no `unburden` volatile. Called by every mid-battle
+ * writer of `m.ability` BEFORE it writes. */
+function ubAbilityRewrite(m,ab){
+  if(m&&String(m.ability)!==String(ab)&&m._hadItem&&!m.item&&m._roomItem==null){m._ubNoVol=true;MEDSEEN.unburdenVolatileEnded++;}
+}
 function effSpeed(m,field,side){
   /* WIRE 83 -- THE SIDE MAY BE OMITTED, and then it is READ off the body rather than assumed. Gyro
      Ball and Electro Ball are base-power-from-a-speed-RATIO, computed inside dmgRange, which is
@@ -18019,7 +18113,15 @@ function effSpeed(m,field,side){
     if(m._roomItem!=null)MEDFAILS.roomItemIsLostRestored=1;
     /* #535 -- this reads the CURRENT ability, which is the defect; UNBURDEN_FROM_CURRENT_ABILITY names
        it (inert until the fix gives the unknobbed path the authority's volatile). */
-    const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');if(_ub&&_ub.speedMult){if(UNBURDEN_FROM_CURRENT_ABILITY)MEDSEEN.unburdenFromCurrentAbilityKnobbed=(MEDSEEN.unburdenFromCurrentAbilityKnobbed|0)+1;_mods.push(+_ub.speedMult);}}
+    /* #535 FIXED 2026-09-11 -- THE DOUBLING NEEDS THE VOLATILE, NOT ONLY THE ABILITY. The authority grants
+       `unburden` from the ability that holds the item WHEN IT GOES and removes it on the ability's End, so a
+       body whose ability changed after its hand was already empty -- an Unburden acquired late, or one taken
+       away and given back -- carries none. `_ubNoVol` records exactly that moment (`ubAbilityRewrite`) and is
+       cleared when the body is re-stamped on entry or handed an item again. The knob restores the old read. */
+    const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');if(_ub&&_ub.speedMult){
+      if(UNBURDEN_FROM_CURRENT_ABILITY){MEDSEEN.unburdenFromCurrentAbilityKnobbed=(MEDSEEN.unburdenFromCurrentAbilityKnobbed|0)+1;_mods.push(+_ub.speedMult);}
+      else if(m._ubNoVol)MEDSEEN.unburdenWithheldLate++;
+      else _mods.push(+_ub.speedMult);}}
 if((side==='A'?field.twA:field.twB)>0)_mods.push(2);
   /* WIRE 78 — a suppressed sky does not haste anybody. effSpeed sees ONE body, so it reads the
      field's own answer (set by battleTurn over all four actives) as well as this body's ability. */
@@ -19419,8 +19521,24 @@ function pranksterBlocked(attacker,target,moveId){
  *
  * THE FALLBACK IS LOUD. A `refusesStatusMoves` member with no `announcesWith` would be announced bare
  * and counted, because a silent default looks exactly like a working feature. */
+/* 2026-09-11 (ROADMAP #593) -- AN ABILITY THAT REFUSES A MOVE BY NAME AT TRYHIT. One reader, two callers:
+ * `tryHitRefusal` below and the affect branch's inline TryHit step, which keeps its own chain. The row is
+ * `refusesMovesById`, derived in engine/tag_dex.js off the handler's own `move.id ===` clauses; in Reg M-B it
+ * is Oblivious alone (Taunt, Attract, Captivate). Breakable like Good as Gold, and asked on the same raw
+ * `t.ability` Good as Gold is asked on at both sites. */
+function moveIdRefusal(t,mv){
+  if(OBLIVIOUS_MOVEID_BLIND||!t)return null;
+  const _rm=TAGS.param('ability',t.ability,'refusesMovesById');
+  if(!_rm||!Array.isArray(_rm.moves))return null;
+  if(_rm.moves.indexOf(String(mv||'').toLowerCase().replace(/[^a-z0-9]/g,''))<0)return null;
+  MEDSEEN.tryHitRefusedByMoveId++;
+  if(!_rm.announcesWith)MEDFAILS.tryHitRefusalUnannounced++;
+  return _rm;
+}
 function tryHitRefusal(m,t,mv){
   if(!t||t===m) return null;
+  {const _mi=moveIdRefusal(t,mv);
+   if(_mi)return {why:'ability',ab:t.ability,attr:_mi.announcesWith||undefined,__ally:!!(m&&m._sf&&t._sf===m._sf)};}
   const _rs=TAGS.param('ability',t.ability,'refusesStatusMoves');
   if(_rs&&_rs.refuses){
     if(!_rs.announcesWith)MEDFAILS.tryHitRefusalUnannounced++;
@@ -19855,9 +19973,27 @@ function allyRefusesStatDrop(target,engStat,effectName){
     if(p.onlyFrom&&String(p.onlyFrom).toLowerCase().replace(/[^a-z0-9]/g,'')!==_eid)continue;
     const blocks=String(p.blocks||'');
     if(blocks!=='all stats'&&SD_BLOCK2ENG[blocks]!==engStat)continue;
-    return {ab,label:blocks==='all stats'?'':(STAT_LABEL[engStat]||''),announce:false};
+    return {ab,label:blocks==='all stats'?'':(STAT_LABEL[engStat]||''),announce:false,
+            veil:{holder:h,line:p.allyBlockLine}};
   }
   return null;
+}
+/* 2026-09-11 (ROADMAP #599 follow-up) -- THE ALLY HALF'S OWN LINE, WRITTEN ONCE PER BOOST OBJECT. Flower
+ * Veil's `onAllyTryBoost` handles the whole boost vector in one call and writes one
+ * `-block|<ally>|ability: Flower Veil|[of] <holder>` unless the effect is a MOVE carrying secondaries
+ * (`allyBlockLine: 'unlessSecondaries'`). Called at the four places a refusal is announced, never inside the
+ * per-stat loop. `MEDI_VEIL_BLOCK_UNANNOUNCED=1` silences it with the other veil lines. */
+function veilBoostBlock(r,target,effectName){
+  if(!r||!r.veil||!target||VEIL_BLOCK_UNANNOUNCED)return false;
+  const cls=r.veil.line;
+  if(cls==null)return false;
+  const _mid=String(effectName||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const _sec=+((TAGS.param('move',_mid,'formatSecondaryCount')||{}).count||0)>0;
+  if(cls==='unlessSecondaries'&&_sec)return false;
+  const rec=TAGS.tagsFor?TAGS.tagsFor('ability',r.veil.holder.ability):null;
+  if(TR)TR.block(target,'ability: '+((rec&&rec.name)||r.veil.holder.ability),r.veil.holder);
+  MEDSEEN.veilBlockAnnounced++;
+  return true;
 }
 /* THE BODY'S OWN REFUSAL AND THE SIDE'S ARE ASKED IN THAT ORDER, and the fallback is at the OUTER
  * level rather than inside the first `if`: a Grass body carrying Big Pecks standing beside a Florges
@@ -19919,6 +20055,7 @@ function refuseStatDrop(target,engStat,effectName,isSecondary,src,amount){
   const r=statDropRefusal(target,engStat,effectName,isSecondary,src,amount);
   if(!r)return false;
   if(TR&&r.announce)TR.failUnboost(target,r.label,r.ab);
+  else if(!isSecondary)veilBoostBlock(r,target,effectName);
   return true;
 }
 /* WIRE 100 -- ONE OPPONENT-INFLICTED STAT-DROP PATH, shared by Intimidate and Sticky Web, because
@@ -20177,7 +20314,7 @@ function applyStatOp(user,target,op,mvId,rng){
      * and a resulting DROP is offered to the same refusal gate every other drop in this engine goes
      * through -- one implementation of the fact, per CLAUDE.md. */
     const d=op.amount*invSign(b);
-    if(d<0&&statDropRefusal(b,k,mvId,false,user,Math.abs(d)))return false;   // WIRE 157 -- source + size
+    if(d<0){const _rr=statDropRefusal(b,k,mvId,false,user,Math.abs(d)); if(_rr){veilBoostBlock(_rr,b,mvId);return false;}}   // WIRE 157 -- source + size
     const _b0=b.boosts[k];
     b.boosts[k]=clamp(b.boosts[k]+d,-6,6);
     if(TR)TR.bst(b,k,b.boosts[k]-_b0);
@@ -20526,6 +20663,28 @@ function allyRefusesStatus(t,st,src){
  * this engine's `applyStatus` is handed a body and not an effect, so the comparison is a no-op today
  * -- 'yawn' is never a status name. It costs nothing because the yawn is refused HERE instead, so the
  * sleep it would have caused never arrives. Written down rather than left to be rediscovered. */
+/* 2026-09-11 (ROADMAP #599) -- DOES THE VEIL SAY SO, AND ONE READER FOR BOTH HALVES. The class is derived
+ * per half in engine/tag_dex.js (`statusBlockLine` / `volatileBlockLine`): `always` (Sweet Veil, Flower Veil's
+ * yawn half), `move` (Aroma Veil: `effect.effectType === 'Move'`), `primaryMove` (Flower Veil's status half: a
+ * Move with no `secondaries`, or an effect it names -- Synchronize). Returns TRUE when the authority's answer
+ * is known (spoken, or deliberately silent), FALSE when the row carries no class at all, which the caller
+ * counts at `MEDFAILS.blockLineUnannounced` rather than guessing. */
+function veilBlockAnnounce(h,t,half,isMove,isSecondary,effId){
+  if(VEIL_BLOCK_UNANNOUNCED||!h||!t)return false;
+  const p=TAGS.param('ability',h.ability,'protectsAllyFromStatus');
+  if(!p)return false;
+  const cls=half==='status'?p.statusBlockLine:p.volatileBlockLine;
+  if(cls===undefined)return false;
+  if(cls===null)return true;
+  const _n=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const named=!!(effId&&Array.isArray(p.blockAlsoForEffects)&&p.blockAlsoForEffects.map(_n).indexOf(_n(effId))>=0);
+  const say=cls==='always'||(cls==='move'&&isMove)||(cls==='primaryMove'&&((isMove&&!isSecondary)||named));
+  if(!say)return true;
+  const rec=TAGS.tagsFor?TAGS.tagsFor('ability',h.ability):null;
+  if(TR)TR.block(t,'ability: '+((rec&&rec.name)||h.ability),h);
+  MEDSEEN.veilBlockAnnounced++;
+  return true;
+}
 function allyRefusesVolatile(t,vol){
   if(!t||!vol)return null;
   const sf=t._sf,S=sf&&sf._S;
@@ -20637,10 +20796,20 @@ function applyStatus(t,st,src,eff,why,dstream){
    * next to you never reaches your own immunity table at all. */
   {const _av=allyRefusesStatus(t,st,src);
    if(_av){MEDSEEN.allyVeilRefused++;
-     /* `-block|TARGET|ability: Sweet Veil|[of] HOLDER` -- the handler's own line. `-block` is not in
-      * TRACE_EVENTS, so nothing is emitted here and the shortfall is counted rather than papered over
-      * with a `-fail`, which would part the two streams in a new place. See clearBoostUnannounced. */
-     MEDFAILS.blockLineUnannounced++;
+     /* `-block|TARGET|ability: Sweet Veil|[of] HOLDER` -- the handler's own line, written now (ROADMAP #599)
+      * through `veilBlockAnnounce` when the veil's derived class says the handler speaks for this effect.
+      * The handler then returns NULL, so `setStatus` writes no `-fail` of its own: `why.reason = 'allyveil'`
+      * is what tells the status branch to stay silent. Under the knob the old shape comes back exactly --
+      * no block, no reason, and the caller's `-fail`. */
+     if(!VEIL_BLOCK_UNANNOUNCED&&why){why.reason='allyveil';why.ability=_av.ability;}
+     const _isMv=!!(eff&&eff.kind==='move');
+     /* THE GUARD IS "THE MOVE HAS SECONDARIES", NOT "THIS STATUS CAME FROM ONE". Flower Veil's status half
+      * writes its `-block` only when `effect.effectType === 'Move' && !effect.secondaries`, and `effect` is
+      * the MOVE: a Flare Blitz whose 10% burn a veil refuses is a move WITH secondaries, so nothing is
+      * written. This was first gated on `dstream` and voiced exactly that line in a pool game (bottom
+      * corner, release 48e136c97a34). */
+     const _mvSec=_isMv&&+((TAGS.param('move',eff.id,'formatSecondaryCount')||{}).count||0)>0;
+     if(!veilBlockAnnounce(_av,t,'status',_isMv,_mvSec||!!dstream,eff&&eff.kind==='ability'?eff.id:null))MEDFAILS.blockLineUnannounced++;
      return false;}}
   if(st==='slp'&&t&&t._sf&&t._sf._noSleep){
     MEDSEEN.uproarRefusedSleep++;
@@ -20907,12 +21076,28 @@ function itemCuresVolatile(m,vol){
  *
  * THE FOUR EXISTING CALLERS ARE BYTE-IDENTICAL ACROSS THIS CHANGE: `TR.push` filters
  * `x != null && x !== ''`, so the empty string adds no field. */
-function applyConfusion(t,src,field,viaSecondary,viaFatigue){
+/* 2026-09-11 (ROADMAP #598) -- THE MOVE'S OWN `volatileStatus`, which is what Own Tempo's `onHit` tests
+ * (`move?.volatileStatus === 'confusion'`). A STATUS move whose `statusInflict` puts a volatile on its target
+ * carries it at the top level (Swagger, Confuse Ray); a damaging move's volatile is a SECONDARY and is not
+ * `move.volatileStatus`, so it answers null and nothing is announced -- the authority's own split. */
+function moveOwnVolatile(mvId){
+  if(!mvId||!TAGS.has('move',mvId,'statusCategory'))return null;
+  const si=TAGS.param('move',mvId,'statusInflict');
+  const e=si&&Array.isArray(si.effects)?si.effects.find(x=>x&&x.volatile&&x.to==='target'):null;
+  return e?e.volatile:null;
+}
+function applyConfusion(t,src,field,viaSecondary,viaFatigue,mvId){
   if(!t||t.fainted||t.curHP<=0)return false;
   if(t._vol&&t._vol.confusion>0){MEDSEEN.confusionAlreadyOn++;return false;}
   {const _rv=TAGS.param('ability',t.ability,'refusesVolatile');
    if(_rv&&Array.isArray(_rv.refuses)&&_rv.refuses.indexOf('confusion')>=0&&!_rv.requiresForme){
      MEDSEEN.confusionRefusedByAbility++;
+     /* ROADMAP #598 -- THE REFUSAL IS SILENT; THE ABILITY'S `onHit` SPEAKS, and only for a move whose own
+      * volatile is the refused one. Written here because this is the moment the authority's order puts it:
+      * after the move's boosts (Swagger's `-boost` is already out) and before anything after the hit. */
+     const _an=_rv.announcesOnMoveHit;
+     if(!OWNTEMPO_SILENT&&!viaSecondary&&!viaFatigue&&_an&&_an.volatile==='confusion'&&moveOwnVolatile(mvId)==='confusion'&&TR){
+       TR.immFor(t,_an.field||'confusion',_an.attr);MEDSEEN.confusionRefusalAnnounced++;}
      return false;}}
   {const _sb=sideBuffRefuses(t,src,'blocksVolatile',false,'confusion');
    if(_sb){MEDSEEN.confusionRefusedBySideBuff++;
@@ -20996,14 +21181,18 @@ function attractCompatible(target,source){
 /* The one writer. Both roads reach it -- the MOVE Attract through applyMoveVolatile, and Cute Charm
  * through `punishesAttacker.inflictsVolatile` -- because the gender clause, the already-attracted
  * refusal and the source identity are one fact and must not exist twice. */
-function applyAttract(who,src){
+function applyAttract(who,src,fromAb){
   if(!who||who.fainted||who.curHP<=0)return false;
   if(who._vol&&who._vol.attract>0)return false;      /* addVolatile refuses a repeat: no onRestart */
   if(!attractCompatible(who,src))return false;
   (who._vol=who._vol||{}).attract=1;
   who._attractedBy=src||null;
   MEDSEEN.attractApplied++;
-  if(TR)TR.vstart(who,'Attract');
+  /* ROADMAP #597 -- an infatuation an ABILITY started names it and its holder: the attract condition's
+   * `onStart` writes `[from] ability: Cute Charm` + `[of] <source>` for that effect (data/moves.ts
+   * attract.condition). `fromAb` is the derived attribution off `punishesAttacker.inflictsVolatile.announce`. */
+  if(TR){ if(fromAb&&!CUTECHARM_UNATTRIBUTED){TR.vstart(who,'Attract','',fromAb,src);MEDSEEN.attractFromAbilityAnnounced++;}
+          else TR.vstart(who,'Attract'); }
   return true;
 }
 /* THE CONSUMER, and a volatile with no consumer is what this whole row was about. `onBeforeMove`:
@@ -21458,9 +21647,9 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
    * never reaches your own table at all. */
   {const _av=allyRefusesVolatile(who,vol);
    if(_av){MEDSEEN.allyVeilRefused++;
-     /* Showdown writes `-block|TARGET|ability: Aroma Veil|[of] HOLDER`, and `-block` is not in
-      * TRACE_EVENTS -- counted rather than papered over with a `-fail`, exactly as applyStatus does. */
-     MEDFAILS.blockLineUnannounced++;
+     /* Showdown writes `-block|TARGET|ability: Aroma Veil|[of] HOLDER` -- through `veilBlockAnnounce` now
+      * (ROADMAP #599); a row with no class is still counted rather than papered over with a `-fail`. */
+     if(!veilBlockAnnounce(_av,who,'volatile',mvId!=null,!!(opts&&opts.secondary),null))MEDFAILS.blockLineUnannounced++;
      /* AND THE MOVE ITSELF STAYS SILENT. `onAllyTryAddVolatile` returns **null** (data/abilities.ts
       * aromaveil), so `addVolatile` hands null back out of its `TryAddVolatile` runEvent and
       * `didAnything` is null -- battle-actions.ts:1305 never runs. This is the `null` half of the
@@ -21470,7 +21659,7 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
    * healblock are, and for the same reason: the generic write below would put a bare `_vol.attract`
    * on a body of ANY gender, which the authority refuses outright, and it would not record WHO the
    * source was -- and without the source the volatile can never be dropped again. */
-  if(vol==='attract')return applyAttract(who,src);
+  if(vol==='attract')return applyAttract(who,src,opts&&opts.announceFrom);
   /* 2026-08-25 -- DESTINY BOND REFUSES A SECOND ONE IN A ROW, and that refusal IS the move's
    * `onPrepareHit`:
    *     onPrepareHit(pokemon) { return !pokemon.removeVolatile('destinybond'); }   data/moves.ts:3493
@@ -21689,7 +21878,7 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
    * body that is already confused, a Lum Berry or the self-hit -- and what it wrote was
    * never read by anything. `applyConfusion` is the one implementation and the secondary
    * path two thousand lines below calls the same function. */
-  if(vol==='confusion'){applyConfusion(who,src,field);return true;}
+  if(vol==='confusion'){applyConfusion(who,src,field,false,false,mvId);return true;}
   /* WIRE 119 -- TAUNT LASTS THREE OF THE TARGET'S TURNS, NOT THREE TURNS. Showdown's taunt
    * condition bumps its own duration when the target has ALREADY MOVED this turn
    * (`if (target.activeTurns && !this.queue.willMove(target)) this.effectState.duration++`),
@@ -21728,6 +21917,11 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
   const _tn=_dur2!=null?_dur2:((_sm&&+_sm.turns)||1);
   if(_dur2!=null) MEDSEEN.volDurationApplied++;
   (who._vol=who._vol||{})[vol]=_tn;
+  /* ROADMAP #595 -- the TYPE the crit-stage condition's `onStart` captures, for the member whose stage depends
+   * on it (Dragon Cheer: `this.effectState.hasDragonType = target.hasType("Dragon")`). */
+  {const _csv=critStageVolatiles().get(vol);
+   if(_csv&&_csv.ifTypeAtStart)(who._critVolTypeAtStart=who._critVolTypeAtStart||{})[vol]=
+     (who.types||[]).some(x=>String(x).toLowerCase()===String(_csv.ifTypeAtStart).toLowerCase());}
   /* ROADMAP #308 -- WHO CAUSED IT, kept ONLY for the family whose residual needs it. The authority's
    * handler passes `this.effectState.source` into `this.boost(...)`, and that argument is what decides
    * whether Mirror Armor bounces the drop and who it bounces at -- a fact the residual cannot recover
@@ -22394,14 +22588,21 @@ function megaEvolveNow(S,m,auto){
   weightFollowsForme(m);
   if(megRow&&megRow.t&&megRow.t.length)m.types=megRow.t.slice();
   if(megRow&&megRow.bs&&megRow.bs.atk)m._bsAtk=megRow.bs.atk;                 // WIRE 83, Beat Up
-  if(TR){TR.detailschange(m);TR.mega(m,apparent,m.item);}
+  /* ROADMAP #596 -- the stone Klutz was hiding still names itself on the `-mega` line, off the same hold. */
+  if(!m.item&&m._roomItem!=null)MEDSEEN.megaThroughSuppressedItem++;
+  if(TR){TR.detailschange(m);TR.mega(m,apparent,itemOn(m));}
   const ab=normAb(megaRowAbility(key,megRow));
   /* ROADMAP #307 -- A MEGA IS THE ONE ABILITY WRITE THAT SURVIVES THE BENCH, and the authority says so
    * in the same file the restore is read from: `formeChange` with `isPermanent` writes
    * `this.baseAbility = toID(ability)` (`sim/pokemon.ts:1495`, Champions `scripts.ts:115`), which is
    * precisely the field `clearVolatile` restores FROM. So any snapshot taken by an earlier rewrite is
    * discarded here rather than restored over the mega on the next pivot. */
+  ubAbilityRewrite(m,ab);
   m.ability=ab; m.baseAbility=ab; m._preAb=undefined;
+  /* ROADMAP #596 -- THE MEGA'S ABILITY REPLACED KLUTZ, SO THE STONE IS NO LONGER IGNORED. `ignoringItem()` is
+   * recomputed live upstream; here the park is a sync, and this is the one moment the ability half of it
+   * changes without a switch. A body still under Magic Room stays parked (`itemSuppressed` asks the field). */
+  if(m._roomItem!=null&&!itemSuppressed(m,S.field))itemRoomShow(m);
   const own=sd==='B'?S.actB:S.actA, foes=sd==='B'?S.actA:S.actB;
   /* 2026-08-27 -- A MEGA THAT ARRIVES HOLDING TRACE COPIES *AND THEN RUNS* WHAT IT COPIED, HERE.
    *
@@ -22827,6 +23028,7 @@ function itemGive(m,id){
   const _id=String(id||''); if(!_id)return false;
   if(ROOM_ITEM_SURVIVES_LOSS?m.item:itemOn(m))return false;
   m.item=_id;
+  m._ubNoVol=false;   /* ROADMAP #535 -- a hand that fills again can be emptied again, and that loss grants the volatile */
   if(!ROOM_ITEM_SURVIVES_LOSS&&itemSuppressed(m,fieldOfBody(m)))itemRoomHide(m);
   MEDSEEN.itemGivenThroughDoor++;
   return true;
@@ -23135,6 +23337,7 @@ function transformOnto(m,t,from){
    * volatiles travel with a copy" would disagree the first time one of them was corrected. It is
    * ABOVE the `|-transform|` line because the authority puts it above its own (:1350). */
   copyCritStageVolatiles(t,m);
+  ubAbilityRewrite(m,t.ability);
   m.ability=t.ability; m.baseAbility=t.ability;
   /* THE COPIED SLOTS ARE FRESH AND CAPPED. `used: false` on every one of them is what the comparator
    * reads as "nothing spent", and the user's OWN slots are not merely full again -- they are GONE from
@@ -23416,6 +23619,7 @@ function abRewrite(m,ab){
   if(String(m.ability)!==String(ab)&&endAbsorbGiftVolatile(m,'abRewrite',m.ability))
     MEDSEEN.absorbGiftVolatileEnded++;
   if(m._preAb===undefined)m._preAb=m.ability;
+  ubAbilityRewrite(m,ab);
   m.ability=ab;
 }
 /* 2026-09-06 -- AN ABILITY THAT ARRIVES MID-BATTLE RUNS ITS OWN `Start`, AND NOTHING HERE RAN IT.
@@ -24108,7 +24312,7 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry,outgoing){
    * entry. Six separate sites grant an item and there is no funnel through which to arm it once; a
    * flag set at five of six would be the silent default this repo is built around. It is the
    * narrower error of the two -- under-firing rather than a boost that never ends. */
-  nx._hadItem=!!nx.item;
+  nx._hadItem=!!nx.item; nx._ubNoVol=false;   /* ROADMAP #535 -- the volatile ended on the way out */
   /* 2026-08-12 -- THE BADLY-POISON RAMP RESTARTS ON THE WAY BACK IN, AND IT IS THE ONLY STATUS THAT
    * DOES ANYTHING AT ALL ON A SWITCH.
    *
@@ -25891,7 +26095,7 @@ function battleInit(teamA,teamB,opts){
   /* What each body STARTED holding, so Unburden can tell 'never had one' from 'lost it'. Stamped
    * once here rather than at each of the six places an item is cleared -- a flag set in six places
    * is a flag that will be missed in a seventh. */
-  teamA.concat(teamB).forEach(m=>{if(m)m._hadItem=!!m.item;});
+  teamA.concat(teamB).forEach(m=>{if(m){m._hadItem=!!m.item;m._ubNoVol=false;}});
   /* ROADMAP #31 -- THE PROTOCOL IDENTIFIER, and it must not follow the forme. See identName(). A
    * body handed in by a probe or a harness may have been built anywhere, so anything missing one
    * gets it here rather than emitting a name that changes under a mega or a Zero to Hero. */
@@ -30984,6 +31188,9 @@ function battleTurn(S,rng,actsForA,actsForB){
            * tests category !== 'Status' and blocks an ALLY'S DAMAGE, and Wonder Guard, which tests
            * for Status and then bare-returns to ALLOW it. */
           if(TAGS.has('ability',_t.ability,'refusesStatusMoves')&&_t!==m){if(TR)TR.imm(_t,'[from] ability: '+_t.ability);R.out=true;return;}
+          /* ROADMAP #593 -- Oblivious refuses Taunt here, at the same step and with the handler's own line. */
+          {const _mi=_t!==m?moveIdRefusal(_t,a.mv):null;
+           if(_mi){if(TR)TR.imm(_t,_mi.announcesWith||undefined);R.out=true;return;}}
           /* 2026-08-25 -- AND THE ABSORBING ABILITIES ANSWER AT THIS SAME STEP. `tryHitRefusal` now
            * carries them for the twenty-one branches that call it; this branch keeps its own inline
            * chain of onTryHit gates, so it asks the shared reader directly rather than growing a
@@ -31094,6 +31301,7 @@ function battleTurn(S,rng,actsForA,actsForB){
               if(_d<0&&_t.boosts[_s2]!==_b0)retaliateWhenLowered(_t,m);
             }
             if(TR&&_ref&&_ref.announce)TR.failUnboost(_t,_ref.label,_ref.ab);
+            else if(_ref)veilBoostBlock(_ref,_t,a.mv);
           }
           /* WIRE 151 -- THE PROCEDURAL STAT OPERATION, in the same place the declared table above is
            * applied and after it, so a move that ever carried both would read the table first exactly
@@ -32353,7 +32561,28 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(a.kind==='pploss'){
         m._lastMove=a.mv;
         const _rp=TAGS.param('move',a.mv,'removesPP')||{};
-        const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        const _t0=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        /* 2026-09-11 (ROADMAP #594) -- MAGIC BOUNCE SENDS SPITE BACK, AND THE COMMENT ABOVE SAID SO WHILE THE
+         * CODE NEVER ASKED. `magicbounce.onTryHit` (data/abilities.ts; Champions overrides it nowhere) builds a
+         * fresh active move with `hasBounced` and `useMove`s it at the SOURCE, so the clicker's own last move
+         * loses the PP: `|move|<bouncer>|Spite|<clicker>|[from] ability: Magic Bounce`, then
+         * `|-activate|<clicker>|move: Spite|<its last move>|4`. The shield is asked first because Protect's
+         * `onTryHit` outranks the ability's (priority 3 against 1). A bounced move is the BOUNCER's move:
+         * `hasBounced` stops a second bounce and `pranksterBoosted=false` stops a Dark refusal, so neither the
+         * move-class door nor Prankster is asked on the way back; an ability refusal on the clicker still is. */
+        const _bI={};
+        const t=(!SPITE_IGNORES_BOUNCE&&_t0&&!shieldRefuses(_t0,a.mv))?bounceOff(m,_t0,a.mv,true,_bI):_t0;
+        const _bounced=!!(_t0&&t===m&&_t0!==m);
+        if(_bounced){
+          MEDSEEN.spiteBounced++;
+          const _bsrc=_bI.bouncedBy||_t0;
+          {const _rf=tryHitRefusal(_bsrc,t,a.mv);if(_rf&&_rf.why!=='prankster'){announceTryHitRefusal(_rf,t);continue;}}
+          const _lmB=t._lastMove;
+          const _tookB=_lmB?ppDeduct(t,_lmB,+_rp.amount||0):0;
+          if(_tookB>0){MEDSEEN.ppRemovedByMove+=_tookB;if(TR)TR.act(t,'move: '+a.mv,_lmB,String(_tookB));}
+          else if(_rp.failsIfNothingDeducted)mvFail(_bsrc);
+          continue;
+        }
         {const _rf=abilityRefusalUnderShield(m,t,a.mv);if(_rf){announceTryHitRefusal(_rf,t);continue;}}
         /* 2026-08-27 -- THE SHIELD IS PULLED OUT OF THIS CONJUNCTION BECAUSE IT IS THE ONE MEMBER OF
          * IT THAT SAYS SOMETHING. A shielded Spite printed nothing at all; the authority prints
@@ -33375,6 +33604,12 @@ function battleTurn(S,rng,actsForA,actsForB){
           else{subStatusRefuse(m,t);m._lastMove=a.mv;continue;}
         }
         const _yBlocked=!t||_vv||t.fainted||t.protect||pranksterBlocked(m,t,a.mv);
+        /* ROADMAP #599 -- THE YAWN BRANCH ASKS THE VEIL ITSELF, SO IT SPEAKS HERE TOO. Sweet Veil's and
+         * Flower Veil's `onAllyTryAddVolatile` write `-block|<target>|ability: X|[of] <holder>` and return
+         * null -- but only once the move has reached `addVolatile`, i.e. the target is standing, unshielded
+         * and not refused by Prankster. `_vv` is asked above all of those, so the line waits for them. */
+        if(_vv&&t&&!t.fainted&&!t.protect&&!pranksterBlocked(m,t,a.mv)){
+          if(!veilBlockAnnounce(_vv,t,'volatile',true,false,null))MEDFAILS.blockLineUnannounced++;}
         /* Declared here and ASSIGNED INSIDE THE CHAIN so `sideBuffRefuses` is asked only on the road
          * that can act on the answer: it bumps `MEDSEEN.allySideBuffRefused` where the refusal
          * happens, and hoisting the call above the two `-fail` branches would count refusals that
@@ -33875,6 +34110,7 @@ function battleTurn(S,rng,actsForA,actsForB){
               if(_d<0&&_pt.boosts[_s]!==_b0)retaliateWhenLowered(_pt,_bsrc);
             }
             if(TR&&_ref2&&_ref2.announce)TR.failUnboost(_pt,_ref2.label,_ref2.ab);
+            else if(_ref2)veilBoostBlock(_ref2,_pt,a.mv);
           }
         }
         const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;
@@ -35049,6 +35285,11 @@ function battleTurn(S,rng,actsForA,actsForB){
                * amends the `|move|` line already in the log rather than emitting a new event. */
               if(t.status===st){ MEDSEEN.statusFailSameStatus++; TR.fail(t,t.status); }
               else { MEDSEEN.statusFailOtherStatus++; TR.attrStill(); TR.fail(m); }
+            } else if(_why.reason==='allyveil'){
+              /* ROADMAP #599 -- THE VEIL ALREADY WROTE ITS OWN `-block` (or, by its handler's own guard, stays
+               * silent), and returns NULL, so `setStatus` writes no `-fail`. The authority's next line is the
+               * next action. This used to fall into the `else` below and staple a `-fail` onto every refusal. */
+              MEDSEEN.statusRefusedByVeil++;
             } else if(_why.reason==='terrain'){
               /* 2026-09-01 -- ELECTRIC TERRAIN ALREADY WROTE ITS OWN LINE at the refusal, and the
                * authority writes NOTHING ELSE: `onSetStatus` adds the `-activate` and returns false,
@@ -40063,7 +40304,8 @@ function battleTurn(S,rng,actsForA,actsForB){
               const _row=TAGS.tagsFor('ability',tg.ability);
               if(_row&&Array.isArray(_row.tags)&&_row.tags.length>1)MEDSEEN.inflictsVolatileDeferred++;
               else if(rng()<+(_pun.inflictsVolatile.chance==null?1:_pun.inflictsVolatile.chance))
-                applyMoveVolatile(m,_pun.inflictsVolatile.volatile,tg,null,field,{alreadyMoved:false});
+                applyMoveVolatile(m,_pun.inflictsVolatile.volatile,tg,null,field,{alreadyMoved:false,
+                  announceFrom:(_pun.inflictsVolatile.announce&&_pun.inflictsVolatile.announce.from)||undefined});
             }
           }
         }
@@ -40161,9 +40403,9 @@ function battleTurn(S,rng,actsForA,actsForB){
             };
             if(CONTACT_ABILITY_LEGACY){
               MEDFAILS.contactAbilityLegacyRestored=1;
-              if(_rw.mode==='infect'&&_rw.becomes){m.ability=String(_rw.becomes);
+              if(_rw.mode==='infect'&&_rw.becomes){ubAbilityRewrite(m,String(_rw.becomes));m.ability=String(_rw.becomes);
                 if(TR){TR.act(tg,'ability: '+tg.ability);TR.ab(m,m.ability,'[from] ability: '+tg.ability);}}
-              else if(_rw.mode==='swap'){const _t=m.ability;m.ability=tg.ability;tg.ability=_t;
+              else if(_rw.mode==='swap'){const _t=m.ability;ubAbilityRewrite(m,tg.ability);ubAbilityRewrite(tg,_t);m.ability=tg.ability;tg.ability=_t;
                 if(TR){TR.act(tg,'ability: '+_t);TR.ab(m,m.ability);TR.ab(tg,tg.ability);}}
             }
             else if(_rw.mode==='infect'&&_rw.becomes){
@@ -42176,8 +42418,13 @@ function battleTurn(S,rng,actsForA,actsForB){
               m._ateBerry=true;
               MEDSEEN.stolenBerryEaten++;
             } else {
-              if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);
-              if(_ri.steals&&itemGive(m,_taken)&&TR)TR.item(m,_taken,'[from] move: '+a.move.id);
+              /* ROADMAP #600 -- THE LOSS LINE IS THE HANDLER'S, AND COVET'S HAS NONE. `removesItem.lossLine` is
+               * read off each move's own `onAfterHit`: Thief writes a `[silent]` `-enditem` before its `-item`,
+               * Covet writes the `-item` alone (data/moves.ts covet / thief), Knock Off writes a shown one. A row
+               * with no `lossLine` (an artifact older than the field) keeps the old line. */
+              if(COVET_ENDITEM_EXTRA||_ri.lossLine!=='none'){if(TR)TR.enditem(tg,_taken,'[from] move: '+a.move.id,m);}
+              else MEDSEEN.stealLossLineSilent++;
+              if(_ri.steals&&itemGive(m,_taken)&&TR)TR.item(m,_taken,'[from] move: '+a.move.id,tg);
             }
           }
         }

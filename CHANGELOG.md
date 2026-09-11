@@ -10,6 +10,30 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.18.0] — 2026-09-11
+
+### Fixed
+- **Eight mechanics the new staging planner caught parting from the official simulator now match it.** Oblivious
+  refuses Taunt; Magic Bounce sends Spite back; Focus Energy and Dragon Cheer add their stages to the critical-hit
+  ratio; a mega stone evolves under Klutz; Cute Charm, Own Tempo, the three veils and Covet say what the official
+  simulator says. Each was shown failing first, then passing, then failing again under its own switch.
+- **Six register defects close.** Unburden doubles Speed only when its effect was granted as the item left. Bug Bite
+  and Pluck are recorded as eating the berry. The position features read a mega's real ability. The mechanics
+  harness publishes all three populations by default. Every divergence cause in the whole-game comparison carries its
+  own context and void count. The test runner reads exit codes through the shared classifier.
+- **The argument-quoting row is re-scoped to the calling convention.** Git Bash damages the bytes before the wrapper
+  runs, so the wrapper cannot repair them; calling it with an argument vector is exact on every argument tested.
+
+### Notes
+- **The second batch broke a gate clause, and the third repaired it.** Claiming the `-block` line exposed Flower
+  Veil's stat-drop half, which the engine had refused silently. Narration went from 0 to 1 game in 961 and back to 0.
+- The gate fails 1 of its 9 clauses on the third release, measured before the register pass and again after it: two
+  open rows, #318 and #511, which this pass did not land. The register confirms every row this pass touched. Census 872 to 881 live, 0 missing. Releases `84721693b509`, `48e136c97a34`,
+  `e368827481f5`. Detail: `docs/_reports/2026-09-11-reopen.md`.
+- **The documentation check is red because of this change, and the fix sits in files this pass may not touch.** The
+  engine now emits 45 protocol events (`data/protocol-events.json`, `emittedCount`), and four places in the living
+  documents still say 44. The correction is owed to the agent that holds those documents.
+
 ## [6.17.0] — 2026-09-11
 
 ### Changed

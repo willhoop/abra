@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-11T11:56:06.382Z",
+  "generated": "2026-09-11T14:33:34.174Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 872,
-  "live": 872,
+  "probed": 881,
+  "live": 881,
   "missing": 0,
-  "armed": 872,
+  "armed": 881,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -4213,7 +4213,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 25.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 27.5% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -6924,6 +6924,96 @@
       "label": "Spite takes 4 PP off the move the target just used",
       "live": true,
       "detail": "Annihilape into a Garchomp that has just clicked Earthquake (maxpp 12, one spent on its own click): SPITE leaves 7 and announces \"|-activate|p2a: garchomp|move: spite|earthquake|4\"; CONTROL TAUNT — the same body, the same target, the same turn, another legal Status move — leaves 11 and announces \"\"",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesMovesById",
+      "label": "Oblivious refuses Taunt at TryHit, and the same body on Thick Fat is Taunted",
+      "live": true,
+      "detail": "[taunt turns left, -immune line] — Thick Fat [2,\"\"] (must be Taunted, no line); Oblivious [0,\"|-immune|p2a: mamoswine|[from] ability: Oblivious\"] (must refuse and say so)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "reflectsStatusMoves",
+      "label": "Magic Bounce sends Spite back, and the 4 PP come off the CLICKER's last move",
+      "live": true,
+      "detail": "[clicker Spite PP, victim Calm Mind PP, lines] — Synchronize [11,15,\"|move|p1a: annihilape|spite|p2a: espeon |-activate|p2a: espeon|move: spite|calmmind|4\"]; Magic Bounce [7,19,\"|move|p1a: annihilape|spite|p2a: espeon |move|p2a: espeon|spite|p1a: annihilape|[from] ability: Magic Bounce |-activate|p1a: annihilape|move: spite|spite|4\"] (the 4 must move from the victim to the clicker)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "critStageVolatile",
+      "label": "Focus Energy ADDS its stage to Scope Lens: a certain crit, where the Lens alone is not",
+      "live": true,
+      "detail": "[damage, crit lines] — Scope Lens alone [58,0]; Scope Lens + Focus Energy [87,1] (ratio 4: must crit)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "critStageVolatile",
+      "label": "Dragon Cheer adds TWO stages to a body that is Dragon when it starts, and ONE to anything else",
+      "live": true,
+      "detail": "[cheered, crit lines] — non-Dragon Absol [1,0] (ratio 3: no crit on a 0.5 die); Dragon Garchomp [1,1] (ratio 4: must crit)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "a Cute Charm infatuation names the ability and its holder; the same hit on Magic Guard infatuates nobody",
+      "live": true,
+      "detail": "Magic Guard \"\" (must be empty); Cute Charm \"|-start|p1a: feraligatr|Attract|[from] ability: Cute Charm|[of] p2a: clefable\" (must carry [from] and [of])",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesVolatile",
+      "label": "Own Tempo SAYS it refused a Swagger's confusion; the same body on Sturdy is confused",
+      "live": true,
+      "detail": "[confused, -immune line] — Sturdy [1,\"\"]; Own Tempo [0,\"|-immune|p2a: avalugg|confusion|[from] ability: Own Tempo\"]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "protectsAllyFromStatus",
+      "label": "Sweet Veil blocks the partner's sleep with `-block` and no `-fail`; Aroma Veil lets it land",
+      "live": true,
+      "detail": "[partner status, -block/-fail lines] — Aroma Veil [\"slp\",\"\"]; Sweet Veil [\"none\",\"|-block|p2a: absol|ability: Sweet Veil|[of] p2b: alcremie\"]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "removesItem",
+      "label": "Covet moves the item with ONE line; Thief writes its own loss line first",
+      "live": true,
+      "detail": "[thief item, -enditem lines, -item lines] — Thief [\"muscleband\",1,1]; Covet [\"muscleband\",0,1]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "suppressesOwnItem",
+      "label": "a Klutz body still MEGA-EVOLVES — Klutz hides the stone from item events, not from the mega check",
+      "live": true,
+      "detail": "[forme, ability, visible item] — not asked [\"audino\",\"klutz\",\"\"]; asked [\"audino-mega\",\"healer\",\"audinite\"] (must evolve, lose Klutz, and show the stone again)",
       "hollow": false,
       "armed": true,
       "directCall": false

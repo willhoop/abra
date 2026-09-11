@@ -89,7 +89,12 @@ const D = (...p) => path.join(__dirname, '..', ...p);
 const argv = process.argv.slice(2);
 const flag = (n, d) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : d; };
 const has = n => argv.includes(n);
-const KIND = String(flag('--kind', 'moves')).toLowerCase();
+/* ROADMAP #425 (2026-09-11) -- THE DEFAULT IS `all`. engine/quarantine.js needs rows for moves, abilities
+ * AND items and falls back to counting every divergence UNFILTERED when any population is missing, so a bare
+ * `--write` that published `moves` alone silently disabled its own consumer's filter. A caller that wants one
+ * population says so. `ABRA_AMF_DEFAULT_MOVES=1` restores the old default (tests/probe_amf_default_populations.js
+ * goes red under it). */
+const KIND = String(flag('--kind', process.env.ABRA_AMF_DEFAULT_MOVES === '1' ? 'moves' : 'all')).toLowerCase();
 const LIMIT = +flag('--limit', 0) || 0;
 const ONLY = flag('--only', null);
 const WRITE = has('--write');

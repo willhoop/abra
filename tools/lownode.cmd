@@ -22,6 +22,14 @@ REM
 REM USAGE:  tools\lownode.cmd engine\quarantine.js
 REM         node tools/lownode.cmd is WRONG -- call the .cmd directly.
 REM
+REM CALL IT WITH AN ARGUMENT VECTOR, NOT A TYPED STRING -- ROADMAP 348, re-scoped 2026-09-11.
+REM From node, spawnSync on cmd.exe with the list  /c  tools\lownode.cmd  script  args  delivers every
+REM argument byte for byte, spaces and drive paths included (tests/probe_lownode_argv.js, ROUTE A).
+REM From Git Bash BOTH typed forms lose bytes BEFORE this file starts: one quoted string mangles an
+REM escaped quote and a drive path, and separate words lost the backslash of tools\lownode.cmd in a
+REM backgrounded subshell on 2026-09-11. Nothing in this file can restore bytes that never arrived,
+REM so from Bash call it through node, or type it in PowerShell or cmd, with forward-slash script paths.
+REM
 REM EXIT CODE: /WAIT propagates node's exit code to ERRORLEVEL, which the tests depend on --
 REM a wrapper that swallowed a red test would be far worse than no wrapper. Proven, not assumed:
 REM tests/test-lownode.js asserts a failing script still reports failure through this path.

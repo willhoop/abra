@@ -1,14 +1,14 @@
 {
- "generated": "2026-09-11T11:17:14.573Z",
- "engine_release": "aefcb93baf14",
- "engine_release_cut": "2026-09-11T11:15:20.821Z",
+ "generated": "2026-09-11T13:56:25.860Z",
+ "engine_release": "e368827481f5",
+ "engine_release_cut": "2026-09-11T13:55:19.159Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "b4dfd7582db7",
+  "engine/medicham2-browser.js": "6720437ca838",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
-  "engine/position_features.js": "622482051bf4",
+  "engine/position_features.js": "bb71676d3669",
   "engine/tags.js": "145a3cc9ce2f",
   "engine/champions_sim.js": "276b2f752247",
   "data/residual-order.json": "eff160ad1c5a",
@@ -25,15 +25,15 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "d4dade70122f",
-  "data/tags.json": "6a7da8bae6d6",
+  "data/abra-tags.js": "eb4b143f6599",
+  "data/tags.json": "d88b5a6c36f1",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
   "engine/pp.js": "30b12a4ef623",
   "data/rollout-switch-census.json": "b599f8d581b5"
  },
- "release": "aefcb93baf14",
+ "release": "e368827481f5",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -8187,21 +8187,8 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 14,
-     "cls": "extra event emitted by medicham2",
-     "detail": "-enditem",
-     "cause": "extra event emitted by medicham2 :: |-item|p1a|muscleband|[from]covet <> |-enditem|p2a|muscleband|[from]covet",
-     "showdown": "|-item|p1a: Snorlax|Muscle Band|[from] move: Covet|[of] p2a: Feraligatr",
-     "medicham": "|-enditem|p2a: Feraligatr|muscleband|[from] move: covet|[of] p1a: Snorlax",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "board": {
      "verdict": "NO-DIVERGENCE",
@@ -8249,8 +8236,8 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
       "script_miss": null,
       "control_script_miss": null,
       "why": null
@@ -8261,14 +8248,13 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
       "script_miss": null,
       "control_script_miss": null,
       "why": null
      }
-    ],
-    "diverged_from": "main/near-a"
+    ]
    },
    {
     "kind": "move",
@@ -50142,33 +50128,20 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 15,
-     "cls": "-start field 4",
-     "detail": "-start[4] [from]cutecharm vs undefined",
-     "cause": "-start field 4 :: |-start|p2a|attract|[from]cutecharm <> |-start|p2a|attract",
-     "showdown": "|-start|p2a: Feraligatr|Attract|[from] ability: Cute Charm|[of] p1a: Clefable",
-     "medicham": "|-start|p2a: Feraligatr|Attract",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [
       "volatile:attract"
      ],
-     "core_leaf_unchecked": true,
+     "core_leaf_unchecked": false,
      "boundaries": 2,
      "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -50281,9 +50254,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -50294,9 +50267,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -61419,66 +61392,28 @@
     "kind": "ability",
     "id": "magicbounce",
     "name": "Magic Bounce",
-    "carrier": "espeon",
+    "carrier": "Espeon",
     "control": "Synchronize",
     "verdict": "FIRED",
     "fired": true,
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 12,
-     "cls": "unrelated event mismatch",
-     "detail": "move vs -activate",
-     "cause": "unrelated event mismatch :: |move|p1a|spite <> |-activate|p1a|spite|sleeptalk|4",
-     "showdown": "|move|p1a: Espeon|Spite|p2a: Feraligatr|[from] ability: Magic Bounce",
-     "medicham": "|-activate|p1a: Espeon|move: spite|sleeptalk|4",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "STATE",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
-     "boundaries_agreed": 1,
+     "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
-     "state_parted_on_turn": 1,
-     "diffs": [
-      {
-       "path": "p1.pp[0].sleeptalk",
-       "side": "p1",
-       "slot": "p1a",
-       "body": "espeon",
-       "body_showdown": "espeon",
-       "field": "pp.sleeptalk",
-       "us": 5,
-       "sd": 1,
-       "bucket": "off-by-4-or-more",
-       "family": "pp[].sleeptalk"
-      },
-      {
-       "path": "p2.pp[0].spite",
-       "side": "p2",
-       "slot": "p2a",
-       "body": "feraligatr",
-       "body_showdown": "feraligatr",
-       "field": "pp.spite",
-       "us": 1,
-       "sd": 5,
-       "bucket": "off-by-4-or-more",
-       "family": "pp[].spite"
-      }
-     ],
-     "end_reason": "the first divergent BOARD",
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
+     "state_parted_on_turn": null,
+     "diffs": [],
+     "end_reason": "the script ran out",
      "receipts": {
       "leaves_compared_min": 535,
       "leaves_compared_max": 535,
@@ -61494,64 +61429,26 @@
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
-     "boundaries": 4,
-     "boundaries_agreed": 4,
-     "last_boundary_turn": 3,
+     "boundaries": 2,
+     "boundaries_agreed": 2,
+     "last_boundary_turn": 1,
      "protocol_parted_on_turn": null,
      "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
-     "end_reason": "THREW",
+     "end_reason": "the script ran out",
      "receipts": {
-      "leaves_compared_min": 545,
-      "leaves_compared_max": 545,
+      "leaves_compared_min": 535,
+      "leaves_compared_max": 535,
       "party_post_faint_skipped": 0,
-      "party_vol_on_field_skipped": 16,
-      "pp_slots_occupied": 16,
-      "pp_slots_compared": 16,
+      "party_vol_on_field_skipped": 8,
+      "pp_slots_occupied": 8,
+      "pp_slots_compared": 8,
       "screens_named_comparable": true
      }
     },
-    "rung": "safe-pool",
-    "preflight": {
-     "ok": true,
-     "why": [],
-     "note": [],
-     "clauses": [],
-     "stubbed": false
-    },
-    "verdict_refined": "FIRED",
-    "fixture_weather": null,
-    "fixture_status": null,
-    "fixture_weather_repaired": false,
-    "trigger_needs": [
-     {
-      "by": "receiver",
-      "kind": "flag",
-      "values": [
-       "reflectable"
-      ],
-      "handler": "onTryHit"
-     }
-    ],
-    "trigger_staged": {
-     "actor": [],
-     "receiver": [
-      "block"
-     ]
-    },
-    "trigger_unstaged": null,
-    "faced": [
-     "Grass Knot",
-     "Low Kick",
-     "Ice Beam",
-     "Heat Wave"
-    ],
-    "faced_why": [
-     "breakable: the residue of `breakable`-only rows, and the union is deliberate because four different mechanics share the tag: Heavy Metal and Light Metal move the holder's WEIGHT (only a weight-based move reads it), Magma Armor refuses FREEZE (only an Ice move can try), and Telepathy dodges the ALLY'S spread move (only an ally-reaching attack can be dodged). A body carrying one of them faces all four rather than the fixture guessing which — a wrong guess reads as inert, which is the failure this whole table exists to remove",
-     "handler onTryHit: the receiver must supply flag (reflectable)"
-    ],
-    "stage": "legacy-fallback",
+    "stage": "planner",
+    "rung": "planner:main/near-a",
     "planner": {
      "branch": "main",
      "arm": "bottom-tie-first",
@@ -61619,12 +61516,12 @@
       {
        "branch": "main",
        "layout": "near-a",
-       "verdict": "SHOWDOWN-ONLY",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
-       "board": "STATE",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -61632,12 +61529,12 @@
       {
        "branch": "main",
        "layout": "far-a",
-       "verdict": "SHOWDOWN-ONLY",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
-       "board": "STATE",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -61645,12 +61542,12 @@
       {
        "branch": "main",
        "layout": "near-b",
-       "verdict": "SHOWDOWN-ONLY",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
-       "board": "STATE",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -61658,12 +61555,12 @@
       {
        "branch": "main",
        "layout": "far-b",
-       "verdict": "SHOWDOWN-ONLY",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
-       "board": "STATE",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -61672,36 +61569,8 @@
      "notes": [
       "C idles with Sleep Talk (its onTry fails for a healthy body)"
      ],
-     "assumptions": [],
-     "verdict": "SHOWDOWN-ONLY",
-     "why": null,
-     "board": "STATE"
-    },
-    "board_first_variant": {
-     "verdict": "NO-DIVERGENCE",
-     "state_parted_without_a_line": false,
-     "uncomparable_leaves": [],
-     "core_leaf_unchecked": false,
-     "boundaries": 5,
-     "boundaries_agreed": 5,
-     "last_boundary_turn": 4,
-     "protocol_parted_on_turn": null,
-     "boards_after_the_parting": null,
-     "state_parted_on_turn": null,
-     "diffs": [],
-     "end_reason": "the script ran out",
-     "receipts": {
-      "leaves_compared_min": 544,
-      "leaves_compared_max": 545,
-      "party_post_faint_skipped": 0,
-      "party_vol_on_field_skipped": 20,
-      "pp_slots_occupied": 20,
-      "pp_slots_compared": 20,
-      "screens_named_comparable": true
-     }
-    },
-    "board_state_from": "planner:planner:main/near-a",
-    "diverged_from": "planner:planner:main/near-a"
+     "assumptions": []
+    }
    },
    {
     "kind": "ability",
@@ -65005,60 +64874,21 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 12,
-     "cls": "unrelated event mismatch",
-     "detail": "-immune vs -start",
-     "cause": "unrelated event mismatch :: |-immune|p1a|[from]oblivious <> |-start|p1a|taunt",
-     "showdown": "|-immune|p1a: Mamoswine|[from] ability: Oblivious",
-     "medicham": "|-start|p1a: Mamoswine|move: taunt",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "STATE",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
-     "boundaries_agreed": 1,
+     "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
-     "state_parted_on_turn": 1,
-     "diffs": [
-      {
-       "path": "p1.active[0].vol.taunt",
-       "side": "p1",
-       "slot": "p1a",
-       "body": "mamoswine",
-       "body_showdown": "mamoswine",
-       "field": "vol.taunt",
-       "us": 2,
-       "sd": 0,
-       "bucket": "off-by-2-or-3",
-       "family": "active[].vol.taunt",
-       "maxhp": 1110
-      },
-      {
-       "path": "p1.pp[0].sleeptalk",
-       "side": "p1",
-       "slot": "p1a",
-       "body": "mamoswine",
-       "body_showdown": "mamoswine",
-       "field": "pp.sleeptalk",
-       "us": 0,
-       "sd": 1,
-       "bucket": "off-by-one",
-       "family": "pp[].sleeptalk"
-      }
-     ],
-     "end_reason": "the first divergent BOARD",
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
+     "state_parted_on_turn": null,
+     "diffs": [],
+     "end_reason": "the script ran out",
      "receipts": {
       "leaves_compared_min": 535,
       "leaves_compared_max": 535,
@@ -65166,9 +64996,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "STATE",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -65179,9 +65009,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "STATE",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -65735,31 +65565,18 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 13,
-     "cls": "event missing from medicham2",
-     "detail": "-immune",
-     "cause": "event missing from medicham2 :: |-immune|p1a|confusion|[from]owntempo <> |move|p1a|sleeptalk",
-     "showdown": "|-immune|p1a: Avalugg|confusion|[from] ability: Own Tempo",
-     "medicham": "|move|p1a: Avalugg|sleeptalk||[still]",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
      "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -65870,9 +65687,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -65883,9 +65700,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -77251,67 +77068,28 @@
     "kind": "ability",
     "id": "superluck",
     "name": "Super Luck",
-    "carrier": "absol",
-    "control": "Pressure",
-    "verdict": "SHOWDOWN-ONLY",
-    "fired": false,
+    "carrier": "Absol",
+    "control": "Justified",
+    "verdict": "FIRED",
+    "fired": true,
     "showdown_moved": true,
-    "medicham_moved": false,
+    "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 22,
-     "cls": "unrelated event mismatch",
-     "detail": "-crit vs -damage",
-     "cause": "unrelated event mismatch :: |-crit|p2a <> |-damage|p2a|H/H",
-     "showdown": "|-crit|p2a: Feraligatr",
-     "medicham": "|-damage|p2a: Feraligatr|914/960",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "STATE",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 3,
-     "boundaries_agreed": 2,
+     "boundaries_agreed": 3,
      "last_boundary_turn": 2,
-     "protocol_parted_on_turn": 2,
-     "boards_after_the_parting": 1,
-     "state_parted_on_turn": 2,
-     "diffs": [
-      {
-       "path": "p2.party.feraligatr.hp",
-       "side": "p2",
-       "slot": "",
-       "body": "feraligatr",
-       "body_showdown": "feraligatr",
-       "field": "party.hp",
-       "us": 914,
-       "sd": 891,
-       "bucket": "off-by-4-or-more",
-       "family": "party.hp"
-      },
-      {
-       "path": "p2.active[0].hp",
-       "side": "p2",
-       "slot": "p2a",
-       "body": "feraligatr",
-       "body_showdown": "feraligatr",
-       "field": "hp",
-       "us": 914,
-       "sd": 891,
-       "bucket": "off-by-4-or-more",
-       "family": "active[].hp",
-       "maxhp": 960
-      }
-     ],
-     "end_reason": "the first divergent BOARD",
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
+     "state_parted_on_turn": null,
+     "diffs": [],
+     "end_reason": "the script ran out",
      "receipts": {
       "leaves_compared_min": 537,
       "leaves_compared_max": 537,
@@ -77327,51 +77105,26 @@
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
-     "boundaries": 4,
-     "boundaries_agreed": 4,
-     "last_boundary_turn": 3,
+     "boundaries": 3,
+     "boundaries_agreed": 3,
+     "last_boundary_turn": 2,
      "protocol_parted_on_turn": null,
      "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
      "receipts": {
-      "leaves_compared_min": 544,
-      "leaves_compared_max": 545,
+      "leaves_compared_min": 537,
+      "leaves_compared_max": 537,
       "party_post_faint_skipped": 0,
-      "party_vol_on_field_skipped": 16,
-      "pp_slots_occupied": 16,
-      "pp_slots_compared": 16,
+      "party_vol_on_field_skipped": 12,
+      "pp_slots_occupied": 12,
+      "pp_slots_compared": 12,
       "screens_named_comparable": true
      }
     },
-    "rung": "safe-pool",
-    "preflight": {
-     "ok": true,
-     "why": [],
-     "note": [
-      "\"Super Luck\" does nothing but move the CRIT-RATIO number, and this run's arm resolves that roll as a CONSTANT — every check has the same answer whatever the number is. The mechanic cannot change a line of either log under this arm, however correct both are"
-     ],
-     "clauses": [
-      {
-       "clause": "arm-constant-roll",
-       "blocking": false,
-       "need": {
-        "arm": "an arm that rolls this die"
-       },
-       "got": {
-        "roll": "crit-roll",
-        "handler": "onModifyCritRatio"
-       }
-      }
-     ],
-     "stubbed": false
-    },
-    "verdict_refined": "SHOWDOWN-ONLY",
-    "fixture_weather": null,
-    "fixture_status": null,
-    "fixture_weather_repaired": false,
-    "stage": "legacy-fallback",
+    "stage": "planner",
+    "rung": "planner:main/near-a",
     "planner": {
      "branch": "main",
      "arm": "top-tie-first",
@@ -77443,12 +77196,12 @@
       {
        "branch": "main",
        "layout": "near-a",
-       "verdict": "SHOWDOWN-ONLY",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
-       "board": "STATE",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -77456,12 +77209,12 @@
       {
        "branch": "main",
        "layout": "far-a",
-       "verdict": "SHOWDOWN-ONLY",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
-       "board": "STATE",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -77472,38 +77225,10 @@
       "ratio without the mechanic 1+2=3 (< 4, no crit at the top corner); with it 4 (crit)",
       "R idles with Sleep Talk (its onTry fails for a healthy body)"
      ],
-     "assumptions": [],
-     "verdict": "SHOWDOWN-ONLY",
-     "why": null,
-     "board": "STATE"
+     "assumptions": []
     },
-    "board_first_variant": {
-     "verdict": "NO-DIVERGENCE",
-     "state_parted_without_a_line": false,
-     "uncomparable_leaves": [],
-     "core_leaf_unchecked": false,
-     "boundaries": 4,
-     "boundaries_agreed": 4,
-     "last_boundary_turn": 3,
-     "protocol_parted_on_turn": null,
-     "boards_after_the_parting": null,
-     "state_parted_on_turn": null,
-     "diffs": [],
-     "end_reason": "the script ran out",
-     "receipts": {
-      "leaves_compared_min": 544,
-      "leaves_compared_max": 545,
-      "party_post_faint_skipped": 0,
-      "party_vol_on_field_skipped": 16,
-      "pp_slots_occupied": 16,
-      "pp_slots_compared": 16,
-      "screens_named_comparable": true
-     }
-    },
-    "board_state_from": "planner:planner:main/near-a",
-    "diverged_from": "planner:planner:main/near-a",
     "control_not_quiet": true,
-    "control_note": "the CONTROL ability (Pressure) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
+    "control_note": "the CONTROL ability (Justified) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -78247,32 +77972,19 @@
     "authority_receipt": [
      "|-block|p1b: Absol|ability: Sweet Veil|[of] p1a: Alcremie"
     ],
-    "diverged": true,
-    "divergence": {
-     "at": 10,
-     "cls": "ordering",
-     "detail": "-fail before move",
-     "cause": "ordering :: |move|p1b|sleeptalk <> |-fail|p1b",
-     "showdown": "|move|p1b: Absol|Sleep Talk||[still]",
-     "medicham": "|-fail|p1b: Absol",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "why": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
      "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -78355,9 +78067,9 @@
        "verdict": "FIRED-UNCONTROLLED",
        "fired": false,
        "proven": true,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": null,
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -78368,9 +78080,9 @@
        "verdict": "UNPROVEN-UNCONTROLLED",
        "fired": false,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": null,
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": "the planner has no single-leaf control for this fixture (NO-SINGLE-VARIABLE-CONTROL) and the authority's log never shows Sweet Veil acting for the subject (the receipt is read on the near-side slot-a variant only)"
@@ -78381,9 +78093,9 @@
        "verdict": "UNPROVEN-UNCONTROLLED",
        "fired": false,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": null,
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": "the planner has no single-leaf control for this fixture (NO-SINGLE-VARIABLE-CONTROL) and the authority's log never shows Sweet Veil acting for the subject (the receipt is read on the near-side slot-a variant only)"
@@ -78394,9 +78106,9 @@
        "verdict": "UNPROVEN-UNCONTROLLED",
        "fired": false,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": null,
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": "the planner has no single-leaf control for this fixture (NO-SINGLE-VARIABLE-CONTROL) and the authority's log never shows Sweet Veil acting for the subject (the receipt is read on the near-side slot-a variant only)"
@@ -78407,9 +78119,9 @@
        "verdict": "FIRED-UNCONTROLLED",
        "fired": false,
        "proven": true,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": null,
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -78420,9 +78132,9 @@
        "verdict": "UNPROVEN-UNCONTROLLED",
        "fired": false,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": null,
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": "the planner has no single-leaf control for this fixture (NO-SINGLE-VARIABLE-CONTROL) and the authority's log never shows Sweet Veil acting for the subject (the receipt is read on the near-side slot-a variant only)"
@@ -78433,9 +78145,9 @@
        "verdict": "UNPROVEN-UNCONTROLLED",
        "fired": false,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": null,
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": "the planner has no single-leaf control for this fixture (NO-SINGLE-VARIABLE-CONTROL) and the authority's log never shows Sweet Veil acting for the subject (the receipt is read on the near-side slot-a variant only)"
@@ -78446,9 +78158,9 @@
        "verdict": "UNPROVEN-UNCONTROLLED",
        "fired": false,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": null,
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": "the planner has no single-leaf control for this fixture (NO-SINGLE-VARIABLE-CONTROL) and the authority's log never shows Sweet Veil acting for the subject (the receipt is read on the near-side slot-a variant only)"
@@ -81281,21 +80993,8 @@
     "proven": false,
     "authority_receipt": [],
     "why": "no control exists, and the authority's log never shows Unseen Fist acting for the subject — the board below is a real comparison of a game nobody has shown this ability moved",
-    "diverged": true,
-    "divergence": {
-     "at": 5,
-     "cls": "event missing from medicham2",
-     "detail": "detailschange",
-     "cause": "event missing from medicham2 :: |detailschange|p1a|golurkmega,l50 <> |move|p1b|protect",
-     "showdown": "|detailschange|p1a: Golurk|Golurk-Mega, L50",
-     "medicham": "|move|p1b: Absol|protect|p1b: Absol",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "game_error": "p1 choice rejected p1 \"pass, move 1\": Can't pass: Your Charizard must make a move (or switch)",
     "stat_line": {
      "key": "golurk",
@@ -81437,9 +81136,9 @@
        "verdict": "UNPROVEN-UNCONTROLLED",
        "fired": false,
        "proven": false,
-       "board": "STATE",
+       "board": "NO-DIVERGENCE",
        "control_board": null,
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": "the planner has no single-leaf control for this fixture (NO-SINGLE-VARIABLE-CONTROL) and the authority's log never shows Unseen Fist acting for the subject"
@@ -81450,9 +81149,9 @@
        "verdict": "UNPROVEN-UNCONTROLLED",
        "fired": false,
        "proven": false,
-       "board": "STATE",
+       "board": "NO-DIVERGENCE",
        "control_board": null,
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": "the planner has no single-leaf control for this fixture (NO-SINGLE-VARIABLE-CONTROL) and the authority's log never shows Unseen Fist acting for the subject (the receipt is read on the near-side slot-a variant only)"
@@ -81465,141 +81164,8 @@
      "assumptions": [],
      "verdict": "UNPROVEN-UNCONTROLLED",
      "why": "the planner has no single-leaf control for this fixture (NO-SINGLE-VARIABLE-CONTROL) and the authority's log never shows Unseen Fist acting for the subject",
-     "board": "STATE"
-    },
-    "board": {
-     "verdict": "STATE",
-     "state_parted_without_a_line": false,
-     "uncomparable_leaves": [],
-     "core_leaf_unchecked": false,
-     "boundaries": 2,
-     "boundaries_agreed": 1,
-     "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
-     "state_parted_on_turn": 1,
-     "diffs": [
-      {
-       "path": "p1.party.golurk.species",
-       "side": "p1",
-       "slot": "",
-       "body": "golurk",
-       "body_showdown": "golurk",
-       "field": "party.species",
-       "us": "golurk",
-       "sd": "golurkmega",
-       "bucket": "different-value",
-       "family": "party.species"
-      },
-      {
-       "path": "p1.party.golurk.ability",
-       "side": "p1",
-       "slot": "",
-       "body": "golurk",
-       "body_showdown": "golurk",
-       "field": "party.ability",
-       "us": "klutz",
-       "sd": "unseenfist",
-       "bucket": "different-value",
-       "family": "party.ability"
-      },
-      {
-       "path": "p1.active[0].species",
-       "side": "p1",
-       "slot": "p1a",
-       "body": "golurk",
-       "body_showdown": "golurkmega",
-       "field": "species",
-       "us": "golurk",
-       "sd": "golurkmega",
-       "bucket": "different-value",
-       "family": "active[].species",
-       "maxhp": 164
-      },
-      {
-       "path": "p1.active[0].ability",
-       "side": "p1",
-       "slot": "p1a",
-       "body": "golurk",
-       "body_showdown": "golurkmega",
-       "field": "ability",
-       "us": "klutz",
-       "sd": "unseenfist",
-       "bucket": "different-value",
-       "family": "active[].ability",
-       "maxhp": 164
-      },
-      {
-       "path": "p2.party.feraligatr.hp",
-       "side": "p2",
-       "slot": "",
-       "body": "feraligatr",
-       "body_showdown": "feraligatr",
-       "field": "party.hp",
-       "us": 61,
-       "sd": 39,
-       "bucket": "off-by-4-or-more",
-       "family": "party.hp"
-      },
-      {
-       "path": "p2.active[0].hp",
-       "side": "p2",
-       "slot": "p2a",
-       "body": "feraligatr",
-       "body_showdown": "feraligatr",
-       "field": "hp",
-       "us": 61,
-       "sd": 39,
-       "bucket": "off-by-4-or-more",
-       "family": "active[].hp",
-       "maxhp": 160
-      },
-      {
-       "side": "p1",
-       "body": "golurk",
-       "field": "stats.atk",
-       "sd": 179,
-       "us": 144,
-       "bucket": "stat-line"
-      },
-      {
-       "side": "p1",
-       "body": "golurk",
-       "field": "stats.def",
-       "sd": 125,
-       "us": 100,
-       "bucket": "stat-line"
-      },
-      {
-       "side": "p1",
-       "body": "golurk",
-       "field": "stats.spa",
-       "sd": 90,
-       "us": 75,
-       "bucket": "stat-line"
-      },
-      {
-       "side": "p1",
-       "body": "golurk",
-       "field": "stats.spd",
-       "sd": 125,
-       "us": 100,
-       "bucket": "stat-line"
-      }
-     ],
-     "end_reason": "the first divergent BOARD",
-     "receipts": {
-      "leaves_compared_min": 535,
-      "leaves_compared_max": 535,
-      "party_post_faint_skipped": 0,
-      "party_vol_on_field_skipped": 8,
-      "pp_slots_occupied": 8,
-      "pp_slots_compared": 8,
-      "screens_named_comparable": true
-     }
-    },
-    "board_state_from": "planner:planner:main/near-a",
-    "diverged_from": "planner:planner:main/near-a"
+     "board": "NO-DIVERGENCE"
+    }
    },
    {
     "kind": "ability",
@@ -84357,166 +83923,28 @@
     "kind": "item",
     "id": "audinite",
     "name": "Audinite",
-    "carrier": "audino",
-    "control": "(no item)",
+    "carrier": "Audino",
+    "control": "C.item — the item is removed; the mega click is then REFUSED by the authority, which is expected and counted (scriptMegaRefused = 1 in this arm only)",
     "verdict": "FIRED",
     "fired": true,
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 5,
-     "cls": "event missing from medicham2",
-     "detail": "detailschange",
-     "cause": "event missing from medicham2 :: |detailschange|p1a|audinomega,l50 <> |move|p1b|protect",
-     "showdown": "|detailschange|p1a: Audino|Audino-Mega, L50",
-     "medicham": "|move|p1b: Absol|protect|p1b: Absol",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "STATE",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
-     "boundaries_agreed": 1,
+     "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
-     "state_parted_on_turn": 1,
-     "diffs": [
-      {
-       "path": "p1.party.audino.species",
-       "side": "p1",
-       "slot": "",
-       "body": "audino",
-       "body_showdown": "audino",
-       "field": "party.species",
-       "us": "audino",
-       "sd": "audinomega",
-       "bucket": "different-value",
-       "family": "party.species"
-      },
-      {
-       "path": "p1.party.audino.hp",
-       "side": "p1",
-       "slot": "",
-       "body": "audino",
-       "body_showdown": "audino",
-       "field": "party.hp",
-       "us": 90,
-       "sd": 114,
-       "bucket": "off-by-4-or-more",
-       "family": "party.hp"
-      },
-      {
-       "path": "p1.party.audino.types",
-       "side": "p1",
-       "slot": "",
-       "body": "audino",
-       "body_showdown": "audino",
-       "field": "party.types",
-       "us": "normal",
-       "sd": "fairy/normal",
-       "bucket": "different-value",
-       "family": "party.types"
-      },
-      {
-       "path": "p1.party.audino.ability",
-       "side": "p1",
-       "slot": "",
-       "body": "audino",
-       "body_showdown": "audino",
-       "field": "party.ability",
-       "us": "klutz",
-       "sd": "healer",
-       "bucket": "different-value",
-       "family": "party.ability"
-      },
-      {
-       "path": "p1.active[0].species",
-       "side": "p1",
-       "slot": "p1a",
-       "body": "audino",
-       "body_showdown": "audinomega",
-       "field": "species",
-       "us": "audino",
-       "sd": "audinomega",
-       "bucket": "different-value",
-       "family": "active[].species",
-       "maxhp": 178
-      },
-      {
-       "path": "p1.active[0].hp",
-       "side": "p1",
-       "slot": "p1a",
-       "body": "audino",
-       "body_showdown": "audinomega",
-       "field": "hp",
-       "us": 90,
-       "sd": 114,
-       "bucket": "off-by-4-or-more",
-       "family": "active[].hp",
-       "maxhp": 178
-      },
-      {
-       "path": "p1.active[0].types",
-       "side": "p1",
-       "slot": "p1a",
-       "body": "audino",
-       "body_showdown": "audinomega",
-       "field": "types",
-       "us": "normal",
-       "sd": "fairy/normal",
-       "bucket": "different-value",
-       "family": "active[].types",
-       "maxhp": 178
-      },
-      {
-       "path": "p1.active[0].ability",
-       "side": "p1",
-       "slot": "p1a",
-       "body": "audino",
-       "body_showdown": "audinomega",
-       "field": "ability",
-       "us": "klutz",
-       "sd": "healer",
-       "bucket": "different-value",
-       "family": "active[].ability",
-       "maxhp": 178
-      },
-      {
-       "side": "p1",
-       "body": "audino",
-       "field": "stats.def",
-       "sd": 146,
-       "us": 106,
-       "bucket": "stat-line"
-      },
-      {
-       "side": "p1",
-       "body": "audino",
-       "field": "stats.spa",
-       "sd": 100,
-       "us": 80,
-       "bucket": "stat-line"
-      },
-      {
-       "side": "p1",
-       "body": "audino",
-       "field": "stats.spd",
-       "sd": 146,
-       "us": 106,
-       "bucket": "stat-line"
-      }
-     ],
-     "end_reason": "the first divergent BOARD",
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
+     "state_parted_on_turn": null,
+     "diffs": [],
+     "end_reason": "the script ran out",
      "receipts": {
       "leaves_compared_min": 535,
       "leaves_compared_max": 535,
@@ -84532,68 +83960,26 @@
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
-     "boundaries": 4,
-     "boundaries_agreed": 4,
-     "last_boundary_turn": 3,
+     "boundaries": 2,
+     "boundaries_agreed": 2,
+     "last_boundary_turn": 1,
      "protocol_parted_on_turn": null,
      "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
      "receipts": {
-      "leaves_compared_min": 544,
-      "leaves_compared_max": 545,
+      "leaves_compared_min": 535,
+      "leaves_compared_max": 535,
       "party_post_faint_skipped": 0,
-      "party_vol_on_field_skipped": 16,
-      "pp_slots_occupied": 16,
-      "pp_slots_compared": 16,
+      "party_vol_on_field_skipped": 8,
+      "pp_slots_occupied": 8,
+      "pp_slots_compared": 8,
       "screens_named_comparable": true
      }
     },
-    "rung": "mega-real-pool",
-    "mega": {
-     "stone": "audinite",
-     "base": "audino",
-     "mega": "audinomega",
-     "mega_ability": "healer",
-     "receiver": "feraligatr",
-     "asked": true,
-     "seen_showdown": true,
-     "seen_medicham": true,
-     "refused": 0,
-     "other_pairs_not_staged": []
-    },
-    "stat_line": {
-     "key": "audino",
-     "compared": 4,
-     "unreadable": 0,
-     "parted": 0
-    },
-    "game_error": null,
-    "preflight": {
-     "ok": true,
-     "why": [],
-     "note": [
-      "\"Audinite\" needs an item on the holder for it to lose or eat (`onTakeItem`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
-     ],
-     "clauses": [
-      {
-       "clause": "board-state",
-       "blocking": false,
-       "need": {
-        "state": "item-consumed",
-        "values": [],
-        "handler": "onTakeItem"
-       },
-       "got": {
-        "declared": null
-       }
-      }
-     ],
-     "stubbed": false
-    },
-    "verdict_refined": "FIRED",
-    "stage": "legacy-fallback",
+    "stage": "planner",
+    "rung": "planner:main/near-a",
     "planner": {
      "branch": "main",
      "arm": "bottom-tie-first",
@@ -84663,12 +84049,12 @@
       {
        "branch": "main",
        "layout": "near-a",
-       "verdict": "SHOWDOWN-ONLY",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
-       "board": "STATE",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -84676,12 +84062,12 @@
       {
        "branch": "main",
        "layout": "far-a",
-       "verdict": "SHOWDOWN-ONLY",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
-       "board": "STATE",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -84690,36 +84076,8 @@
      "notes": [
       "real HP pool (x1): the carrier mega-evolves, and a permanent forme change makes the authority recompute max HP and drop the x6 boost"
      ],
-     "assumptions": [],
-     "verdict": "SHOWDOWN-ONLY",
-     "why": null,
-     "board": "STATE"
-    },
-    "board_first_variant": {
-     "verdict": "NO-DIVERGENCE",
-     "state_parted_without_a_line": false,
-     "uncomparable_leaves": [],
-     "core_leaf_unchecked": false,
-     "boundaries": 4,
-     "boundaries_agreed": 4,
-     "last_boundary_turn": 3,
-     "protocol_parted_on_turn": null,
-     "boards_after_the_parting": null,
-     "state_parted_on_turn": null,
-     "diffs": [],
-     "end_reason": "the script ran out",
-     "receipts": {
-      "leaves_compared_min": 544,
-      "leaves_compared_max": 545,
-      "party_post_faint_skipped": 0,
-      "party_vol_on_field_skipped": 16,
-      "pp_slots_occupied": 16,
-      "pp_slots_compared": 16,
-      "screens_named_comparable": true
-     }
-    },
-    "board_state_from": "planner:planner:main/near-a",
-    "diverged_from": "planner:planner:main/near-a"
+     "assumptions": []
+    }
    },
    {
     "kind": "item",
@@ -92864,174 +92222,28 @@
     "kind": "item",
     "id": "golurkite",
     "name": "Golurkite",
-    "carrier": "golurk",
-    "control": "(no item)",
+    "carrier": "Golurk",
+    "control": "C.item — the item is removed; the mega click is then REFUSED by the authority, which is expected and counted (scriptMegaRefused = 1 in this arm only)",
     "verdict": "FIRED",
     "fired": true,
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 5,
-     "cls": "event missing from medicham2",
-     "detail": "detailschange",
-     "cause": "event missing from medicham2 :: |detailschange|p1a|golurkmega,l50 <> |move|p1b|protect",
-     "showdown": "|detailschange|p1a: Golurk|Golurk-Mega, L50",
-     "medicham": "|move|p1b: Absol|protect|p1b: Absol",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "STATE",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
-     "boundaries_agreed": 1,
+     "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
-     "state_parted_on_turn": 1,
-     "diffs": [
-      {
-       "path": "p1.party.golurk.species",
-       "side": "p1",
-       "slot": "",
-       "body": "golurk",
-       "body_showdown": "golurk",
-       "field": "party.species",
-       "us": "golurk",
-       "sd": "golurkmega",
-       "bucket": "different-value",
-       "family": "party.species"
-      },
-      {
-       "path": "p1.party.golurk.hp",
-       "side": "p1",
-       "slot": "",
-       "body": "golurk",
-       "body_showdown": "golurk",
-       "field": "party.hp",
-       "us": 106,
-       "sd": 118,
-       "bucket": "off-by-4-or-more",
-       "family": "party.hp"
-      },
-      {
-       "path": "p1.party.golurk.ability",
-       "side": "p1",
-       "slot": "",
-       "body": "golurk",
-       "body_showdown": "golurk",
-       "field": "party.ability",
-       "us": "klutz",
-       "sd": "unseenfist",
-       "bucket": "different-value",
-       "family": "party.ability"
-      },
-      {
-       "path": "p1.active[0].species",
-       "side": "p1",
-       "slot": "p1a",
-       "body": "golurk",
-       "body_showdown": "golurkmega",
-       "field": "species",
-       "us": "golurk",
-       "sd": "golurkmega",
-       "bucket": "different-value",
-       "family": "active[].species",
-       "maxhp": 164
-      },
-      {
-       "path": "p1.active[0].hp",
-       "side": "p1",
-       "slot": "p1a",
-       "body": "golurk",
-       "body_showdown": "golurkmega",
-       "field": "hp",
-       "us": 106,
-       "sd": 118,
-       "bucket": "off-by-4-or-more",
-       "family": "active[].hp",
-       "maxhp": 164
-      },
-      {
-       "path": "p1.active[0].ability",
-       "side": "p1",
-       "slot": "p1a",
-       "body": "golurk",
-       "body_showdown": "golurkmega",
-       "field": "ability",
-       "us": "klutz",
-       "sd": "unseenfist",
-       "bucket": "different-value",
-       "family": "active[].ability",
-       "maxhp": 164
-      },
-      {
-       "path": "p2.party.feraligatr.hp",
-       "side": "p2",
-       "slot": "",
-       "body": "feraligatr",
-       "body_showdown": "feraligatr",
-       "field": "party.hp",
-       "us": 61,
-       "sd": 39,
-       "bucket": "off-by-4-or-more",
-       "family": "party.hp"
-      },
-      {
-       "path": "p2.active[0].hp",
-       "side": "p2",
-       "slot": "p2a",
-       "body": "feraligatr",
-       "body_showdown": "feraligatr",
-       "field": "hp",
-       "us": 61,
-       "sd": 39,
-       "bucket": "off-by-4-or-more",
-       "family": "active[].hp",
-       "maxhp": 160
-      },
-      {
-       "side": "p1",
-       "body": "golurk",
-       "field": "stats.atk",
-       "sd": 179,
-       "us": 144,
-       "bucket": "stat-line"
-      },
-      {
-       "side": "p1",
-       "body": "golurk",
-       "field": "stats.def",
-       "sd": 125,
-       "us": 100,
-       "bucket": "stat-line"
-      },
-      {
-       "side": "p1",
-       "body": "golurk",
-       "field": "stats.spa",
-       "sd": 90,
-       "us": 75,
-       "bucket": "stat-line"
-      },
-      {
-       "side": "p1",
-       "body": "golurk",
-       "field": "stats.spd",
-       "sd": 125,
-       "us": 100,
-       "bucket": "stat-line"
-      }
-     ],
-     "end_reason": "the first divergent BOARD",
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
+     "state_parted_on_turn": null,
+     "diffs": [],
+     "end_reason": "the script ran out",
      "receipts": {
       "leaves_compared_min": 535,
       "leaves_compared_max": 535,
@@ -93054,61 +92266,19 @@
      "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
-     "end_reason": "THREW",
+     "end_reason": "the script ran out",
      "receipts": {
-      "leaves_compared_min": 497,
-      "leaves_compared_max": 545,
-      "party_post_faint_skipped": 6,
+      "leaves_compared_min": 535,
+      "leaves_compared_max": 535,
+      "party_post_faint_skipped": 0,
       "party_vol_on_field_skipped": 8,
       "pp_slots_occupied": 8,
       "pp_slots_compared": 8,
       "screens_named_comparable": true
      }
     },
-    "rung": "mega-real-pool",
-    "mega": {
-     "stone": "golurkite",
-     "base": "golurk",
-     "mega": "golurkmega",
-     "mega_ability": "unseenfist",
-     "receiver": "feraligatr",
-     "asked": true,
-     "seen_showdown": true,
-     "seen_medicham": true,
-     "refused": 0,
-     "other_pairs_not_staged": []
-    },
-    "stat_line": {
-     "key": "golurk",
-     "compared": 2,
-     "unreadable": 0,
-     "parted": 0
-    },
-    "game_error": "p1 choice rejected p1 \"pass, move 1\": Can't pass: Your Charizard must make a move (or switch)",
-    "preflight": {
-     "ok": true,
-     "why": [],
-     "note": [
-      "\"Golurkite\" needs an item on the holder for it to lose or eat (`onTakeItem`), and this board does not declare it — a board that never reaches the state shows nothing whatever the engine does"
-     ],
-     "clauses": [
-      {
-       "clause": "board-state",
-       "blocking": false,
-       "need": {
-        "state": "item-consumed",
-        "values": [],
-        "handler": "onTakeItem"
-       },
-       "got": {
-        "declared": null
-       }
-      }
-     ],
-     "stubbed": false
-    },
-    "verdict_refined": "FIRED",
-    "stage": "legacy-fallback",
+    "stage": "planner",
+    "rung": "planner:main/near-a",
     "planner": {
      "branch": "main",
      "arm": "bottom-tie-first",
@@ -93178,12 +92348,12 @@
       {
        "branch": "main",
        "layout": "near-a",
-       "verdict": "SHOWDOWN-ONLY",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
-       "board": "STATE",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -93191,12 +92361,12 @@
       {
        "branch": "main",
        "layout": "far-a",
-       "verdict": "SHOWDOWN-ONLY",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
-       "board": "STATE",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -93205,36 +92375,8 @@
      "notes": [
       "real HP pool (x1): the carrier mega-evolves, and a permanent forme change makes the authority recompute max HP and drop the x6 boost"
      ],
-     "assumptions": [],
-     "verdict": "SHOWDOWN-ONLY",
-     "why": null,
-     "board": "STATE"
-    },
-    "board_first_variant": {
-     "verdict": "NO-DIVERGENCE",
-     "state_parted_without_a_line": false,
-     "uncomparable_leaves": [],
-     "core_leaf_unchecked": false,
-     "boundaries": 2,
-     "boundaries_agreed": 2,
-     "last_boundary_turn": 1,
-     "protocol_parted_on_turn": null,
-     "boards_after_the_parting": null,
-     "state_parted_on_turn": null,
-     "diffs": [],
-     "end_reason": "THREW",
-     "receipts": {
-      "leaves_compared_min": 497,
-      "leaves_compared_max": 545,
-      "party_post_faint_skipped": 6,
-      "party_vol_on_field_skipped": 8,
-      "pp_slots_occupied": 8,
-      "pp_slots_compared": 8,
-      "screens_named_comparable": true
-     }
-    },
-    "board_state_from": "planner:planner:main/near-a",
-    "diverged_from": "planner:planner:main/near-a"
+     "assumptions": []
+    }
    },
    {
     "kind": "item",
@@ -102515,67 +101657,28 @@
     "kind": "item",
     "id": "scopelens",
     "name": "Scope Lens",
-    "carrier": "corviknight",
-    "control": "(no item)",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
-    "why": "the gauntlet never reached its trigger — swapping it for (no item) changed neither game",
-    "diverged": true,
-    "divergence": {
-     "at": 22,
-     "cls": "unrelated event mismatch",
-     "detail": "-crit vs -damage",
-     "cause": "unrelated event mismatch :: |-crit|p2a <> |-damage|p2a|H/H",
-     "showdown": "|-crit|p2a: Feraligatr",
-     "medicham": "|-damage|p2a: Feraligatr|914/960",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "carrier": "Absol",
+    "control": "C.item — the item is removed",
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
+    "why": null,
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "STATE",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 3,
-     "boundaries_agreed": 2,
+     "boundaries_agreed": 3,
      "last_boundary_turn": 2,
-     "protocol_parted_on_turn": 2,
-     "boards_after_the_parting": 1,
-     "state_parted_on_turn": 2,
-     "diffs": [
-      {
-       "path": "p2.party.feraligatr.hp",
-       "side": "p2",
-       "slot": "",
-       "body": "feraligatr",
-       "body_showdown": "feraligatr",
-       "field": "party.hp",
-       "us": 914,
-       "sd": 891,
-       "bucket": "off-by-4-or-more",
-       "family": "party.hp"
-      },
-      {
-       "path": "p2.active[0].hp",
-       "side": "p2",
-       "slot": "p2a",
-       "body": "feraligatr",
-       "body_showdown": "feraligatr",
-       "field": "hp",
-       "us": 914,
-       "sd": 891,
-       "bucket": "off-by-4-or-more",
-       "family": "active[].hp",
-       "maxhp": 960
-      }
-     ],
-     "end_reason": "the first divergent BOARD",
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
+     "state_parted_on_turn": null,
+     "diffs": [],
+     "end_reason": "the script ran out",
      "receipts": {
       "leaves_compared_min": 537,
       "leaves_compared_max": 537,
@@ -102591,59 +101694,26 @@
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
-     "boundaries": 4,
-     "boundaries_agreed": 4,
-     "last_boundary_turn": 3,
+     "boundaries": 3,
+     "boundaries_agreed": 3,
+     "last_boundary_turn": 2,
      "protocol_parted_on_turn": null,
      "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
      "receipts": {
-      "leaves_compared_min": 544,
-      "leaves_compared_max": 545,
+      "leaves_compared_min": 537,
+      "leaves_compared_max": 537,
       "party_post_faint_skipped": 0,
-      "party_vol_on_field_skipped": 16,
-      "pp_slots_occupied": 16,
-      "pp_slots_compared": 16,
+      "party_vol_on_field_skipped": 12,
+      "pp_slots_occupied": 12,
+      "pp_slots_compared": 12,
       "screens_named_comparable": true
      }
     },
-    "rung": "safe-pool",
-    "preflight": {
-     "ok": true,
-     "why": [],
-     "note": [
-      "\"Scope Lens\" does nothing but move the CRIT-RATIO number, and this run's arm resolves that roll as a CONSTANT — every check has the same answer whatever the number is. The mechanic cannot change a line of either log under this arm, however correct both are"
-     ],
-     "clauses": [
-      {
-       "clause": "arm-constant-roll",
-       "blocking": false,
-       "need": {
-        "arm": "an arm that rolls this die"
-       },
-       "got": {
-        "roll": "crit-roll",
-        "handler": "onModifyCritRatio"
-       }
-      }
-     ],
-     "stubbed": false
-    },
-    "cannot_fire": true,
-    "cannot_fire_clause": "arm-constant-roll",
-    "cannot_fire_blocking": false,
-    "cannot_fire_why": [
-     "\"Scope Lens\" does nothing but move the CRIT-RATIO number, and this run's arm resolves that roll as a CONSTANT — every check has the same answer whatever the number is. The mechanic cannot change a line of either log under this arm, however correct both are"
-    ],
-    "cannot_fire_need": [
-     {
-      "arm": "an arm that rolls this die"
-     }
-    ],
-    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE",
-    "stage": "legacy-fallback",
+    "stage": "planner",
+    "rung": "planner:main/near-a",
     "planner": {
      "branch": "main",
      "arm": "top-tie-first",
@@ -102715,12 +101785,12 @@
       {
        "branch": "main",
        "layout": "near-a",
-       "verdict": "SHOWDOWN-ONLY",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
-       "board": "STATE",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -102728,12 +101798,12 @@
       {
        "branch": "main",
        "layout": "far-a",
-       "verdict": "SHOWDOWN-ONLY",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
-       "board": "STATE",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -102744,36 +101814,8 @@
       "ratio without the mechanic 1+2=3 (< 4, no crit at the top corner); with it 4 (crit)",
       "R idles with Sleep Talk (its onTry fails for a healthy body)"
      ],
-     "assumptions": [],
-     "verdict": "SHOWDOWN-ONLY",
-     "why": null,
-     "board": "STATE"
-    },
-    "board_first_variant": {
-     "verdict": "NO-DIVERGENCE",
-     "state_parted_without_a_line": false,
-     "uncomparable_leaves": [],
-     "core_leaf_unchecked": false,
-     "boundaries": 4,
-     "boundaries_agreed": 4,
-     "last_boundary_turn": 3,
-     "protocol_parted_on_turn": null,
-     "boards_after_the_parting": null,
-     "state_parted_on_turn": null,
-     "diffs": [],
-     "end_reason": "the script ran out",
-     "receipts": {
-      "leaves_compared_min": 544,
-      "leaves_compared_max": 545,
-      "party_post_faint_skipped": 0,
-      "party_vol_on_field_skipped": 16,
-      "pp_slots_occupied": 16,
-      "pp_slots_compared": 16,
-      "screens_named_comparable": true
-     }
-    },
-    "board_state_from": "planner:planner:main/near-a",
-    "diverged_from": "planner:planner:main/near-a"
+     "assumptions": []
+    }
    },
    {
     "kind": "item",
@@ -104624,7 +103666,7 @@
       "C": {
        "species": "Slowbro",
        "field": "Slowbro-Mega",
-       "ability": "Oblivious",
+       "ability": "Regenerator",
        "item": "Slowbronite",
        "moves": [
         "Hydro Pump"
@@ -107621,8 +106663,8 @@
    "attempted": 497,
    "tried": 500,
    "resolved": 497,
-   "diverged": 5,
-   "diverged_including_shelved": 8,
+   "diverged": 4,
+   "diverged_including_shelved": 7,
    "shelved_by_owner": 3,
    "shelved_by_owner_diverging": 3,
    "resolution_disagreements": 10,
@@ -107659,24 +106701,24 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 76
    },
-   "seconds": 26.5
+   "seconds": 27.1
   },
   "abilities": {
    "exist": 316,
    "tried": 316,
-   "fired": 139,
-   "showdown_only": 8,
+   "fired": 140,
+   "showdown_only": 7,
    "medicham_only": 0,
    "did_not_fire": 21,
    "unreachable": 116,
    "control_not_quiet": 128,
    "cannot_fire_in_this_fixture": 13,
    "did_not_fire_unexplained": 9,
-   "diverged": 8,
-   "diverged_including_shelved": 10,
+   "diverged": 1,
+   "diverged_including_shelved": 3,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 2,
-   "seconds": 111.7,
+   "seconds": 13.5,
    "board_only": {
     "rows": 17,
     "staged": 17,
@@ -107742,35 +106784,32 @@
   "items": {
    "exist": 148,
    "tried": 148,
-   "fired": 147,
+   "fired": 148,
    "showdown_only": 0,
    "medicham_only": 0,
-   "did_not_fire": 1,
+   "did_not_fire": 0,
    "out_of_scope": 0,
-   "cannot_fire_in_this_fixture": 1,
+   "cannot_fire_in_this_fixture": 0,
    "did_not_fire_unexplained": 0,
-   "diverged": 3,
-   "diverged_including_shelved": 3,
+   "diverged": 0,
+   "diverged_including_shelved": 0,
    "shelved_by_owner": 0,
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 6,
    "board_state_fired": 5,
-   "seconds": 10.7,
+   "seconds": 7.5,
    "stones": {
-    "rows": 2,
-    "staged": 2,
-    "fired": 2,
-    "mega_seen_showdown": 2,
-    "mega_seen_medicham": 2,
+    "rows": 0,
+    "staged": 0,
+    "fired": 0,
+    "mega_seen_showdown": 0,
+    "mega_seen_medicham": 0,
     "mega_refused": 0,
     "not_seen": [],
-    "stat_line_compared": 6,
+    "stat_line_compared": 0,
     "stat_line_unreadable": 0,
     "stat_line_parted": [],
-    "alt_receiver": [],
-    "game_errors": [
-     "golurkite: p1 choice rejected p1 \"pass, move 1\": Can't pass: Your Charizard must make a move (or switch)"
-    ]
+    "alt_receiver": []
    }
   },
   "board_state": {
@@ -107798,10 +106837,10 @@
    "pairs_searched": 562
   },
   "preflight": {
-   "checked": 598,
-   "rows_checked": 585,
+   "checked": 593,
+   "rows_checked": 580,
    "refused": 2,
-   "rows_labelled": 12,
+   "rows_labelled": 11,
    "over_matched": [
     {
      "id": "rivalry",
@@ -107813,14 +106852,13 @@
    ],
    "by_clause": {
     "gender (blocking)": 2,
-    "board-state": 10,
+    "board-state": 8,
     "weather": 10,
     "speed-order": 6,
     "read-elsewhere": 3,
     "trigger-move": 3,
     "status-present": 8,
-    "read-by-nobody": 1,
-    "arm-constant-roll": 2
+    "read-by-nobody": 1
    },
    "repaired_weather": 10,
    "weather_unrepairable": 0,
@@ -107838,9 +106876,9 @@
     "solarpower -> sunnyday via sunnyday",
     "swiftswim -> raindance via raindance"
    ],
-   "trigger_rows": 22,
-   "trigger_needs": 23,
-   "trigger_staged": 20,
+   "trigger_rows": 21,
+   "trigger_needs": 22,
+   "trigger_staged": 19,
    "trigger_unstaged": 3,
    "trigger_examples": [
     "aerilate type=Normal -> actor:bodyslam",
@@ -107850,7 +106888,6 @@
     "dragonize type=Normal -> actor:bodyslam",
     "firemane type=Fire -> actor:burningjealousy",
     "fluffy flag=contact -> receiver:aerialace",
-    "magicbounce flag=reflectable -> receiver:block",
     "megalauncher flag=pulse -> actor:aurasphere",
     "noguard subaccuracy -> actor:chargebeam",
     "pickpocket flag=contact -> receiver:aerialace",
@@ -107865,9 +106902,9 @@
     "kingsrock secondary -> corviknight [bodyslam | ]"
    ],
    "trigger": {
-    "rows": 22,
-    "needs": 23,
-    "staged": 20,
+    "rows": 21,
+    "needs": 22,
+    "staged": 19,
     "unstaged": 3,
     "examples": [
      "aerilate type=Normal -> actor:bodyslam",
@@ -107877,7 +106914,6 @@
      "dragonize type=Normal -> actor:bodyslam",
      "firemane type=Fire -> actor:burningjealousy",
      "fluffy flag=contact -> receiver:aerialace",
-     "magicbounce flag=reflectable -> receiver:block",
      "megalauncher flag=pulse -> actor:aurasphere",
      "noguard subaccuracy -> actor:chargebeam",
      "pickpocket flag=contact -> receiver:aerialace",
@@ -107931,25 +106967,12 @@
    },
    "abilities": {
     "tally": {
-     "NO-DIVERGENCE": 180,
-     "ANNOUNCEMENT-ONLY": 5,
-     "STATE": 4
+     "NO-DIVERGENCE": 186,
+     "ANNOUNCEMENT-ONLY": 2
     },
-    "rows": 189,
-    "core_leaf_unchecked_rows": [
-     {
-      "id": "cutecharm",
-      "leaves": [
-       "volatile:attract"
-      ]
-     }
-    ],
-    "state_rows": [
-     "magicbounce",
-     "oblivious",
-     "superluck",
-     "unseenfist"
-    ],
+    "rows": 188,
+    "core_leaf_unchecked_rows": [],
+    "state_rows": [],
     "not_asked_rows": [],
     "silent_state_rows": [],
     "rows_with_a_held_leaf": [
@@ -107968,16 +106991,11 @@
    },
    "items": {
     "tally": {
-     "NO-DIVERGENCE": 145,
-     "STATE": 3
+     "NO-DIVERGENCE": 148
     },
     "rows": 148,
     "core_leaf_unchecked_rows": [],
-    "state_rows": [
-     "audinite",
-     "golurkite",
-     "scopelens"
-    ],
+    "state_rows": [],
     "not_asked_rows": [],
     "silent_state_rows": [],
     "rows_with_a_held_leaf": [
@@ -108003,10 +107021,10 @@
  },
  "planner": {
   "meta": {
-   "generated": "2026-09-11T11:17:14.457Z",
+   "generated": "2026-09-11T13:56:25.748Z",
    "by": "engine/stage_planner.js",
-   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\aefcb93baf14\\data\\tags.json",
-   "tags_digest": "6a7da8bae6d61868",
+   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\e368827481f5\\data\\tags.json",
+   "tags_digest": "d88b5a6c36f1e231",
    "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown",
    "validator": {
     "calls": 1361,
@@ -108051,7 +107069,7 @@
     "stench: secondary (the handler assigns move.secondaries)",
     "kingsrock: secondary (the handler assigns move.secondaries)"
    ],
-   "ms": 15172
+   "ms": 46605
   },
   "summary": {
    "mechanics": 964,
@@ -108096,7 +107114,7 @@
     "staged": 2
    },
    "branches": {
-    "total": 596,
+    "total": 600,
     "uncovered": 2
    },
    "assumptions": 12,
@@ -108106,12 +107124,12 @@
    }
   },
   "played": {
-   "plan_ms": 15227,
+   "plan_ms": 46906,
    "rows": 347,
    "fixtures": 853,
    "variants": 1968,
    "games": 3836,
-   "fired": 245,
+   "fired": 250,
    "proven": 15,
    "fallback": [
     "ability:aerilate  planner UNPROVEN-UNCONTROLLED  ->  legacy UNPROVEN-UNCONTROLLED",
@@ -108146,7 +107164,6 @@
     "ability:leafguard  planner DID-NOT-FIRE  ->  legacy FIRED",
     "ability:levitate  planner UNPROVEN-UNCONTROLLED  ->  legacy FIRED-UNCONTROLLED",
     "ability:lightmetal  planner DID-NOT-FIRE  ->  legacy DID-NOT-FIRE",
-    "ability:magicbounce  planner SHOWDOWN-ONLY  ->  legacy FIRED",
     "ability:magician  planner DID-NOT-FIRE  ->  legacy DID-NOT-FIRE",
     "ability:marvelscale  planner DID-NOT-FIRE  ->  legacy DID-NOT-FIRE",
     "ability:megalauncher  planner UNPROVEN-UNCONTROLLED  ->  legacy UNPROVEN-UNCONTROLLED",
@@ -108180,7 +107197,6 @@
     "ability:stench  planner DID-NOT-FIRE  ->  legacy FIRED",
     "ability:stickyhold  planner DID-NOT-FIRE  ->  legacy FIRED",
     "ability:sturdy  planner DID-NOT-FIRE  ->  legacy FIRED",
-    "ability:superluck  planner SHOWDOWN-ONLY  ->  legacy SHOWDOWN-ONLY",
     "ability:supremeoverlord  planner DID-NOT-FIRE  ->  legacy SHOWDOWN-ONLY",
     "ability:surgesurfer  planner UNPROVEN-UNCONTROLLED  ->  legacy UNPROVEN-UNCONTROLLED",
     "ability:swiftswim  planner SHOWDOWN-ONLY  ->  legacy DID-NOT-FIRE",
@@ -108191,16 +107207,13 @@
     "ability:unseenfist  planner UNPROVEN-UNCONTROLLED  ->  legacy UNPROVEN-UNCONTROLLED",
     "ability:zerotohero  planner UNPROVEN-UNCONTROLLED  ->  legacy FIRED-UNCONTROLLED",
     "item:aspearberry  planner DID-NOT-FIRE  ->  legacy FIRED",
-    "item:audinite  planner SHOWDOWN-ONLY  ->  legacy FIRED",
     "item:bigroot  planner DID-NOT-FIRE  ->  legacy FIRED",
     "item:focusband  planner DID-NOT-FIRE  ->  legacy FIRED",
     "item:focussash  planner DID-NOT-FIRE  ->  legacy FIRED",
-    "item:golurkite  planner SHOWDOWN-ONLY  ->  legacy FIRED",
     "item:kingsrock  planner DID-NOT-FIRE  ->  legacy FIRED",
     "item:leppaberry  planner SCRIPT-MISS {\"moveNotOnRequest\":2}  ->  legacy FIRED",
     "item:mentalherb  planner DID-NOT-FIRE  ->  legacy FIRED",
-    "item:metronome  planner DID-NOT-FIRE  ->  legacy FIRED",
-    "item:scopelens  planner SHOWDOWN-ONLY  ->  legacy DID-NOT-FIRE"
+    "item:metronome  planner DID-NOT-FIRE  ->  legacy FIRED"
    ],
    "legacy_refused": {
     "PLANNER-CANNOT-CONSTRUCT": 1
@@ -108241,29 +107254,7 @@
    ],
    "board_state": [
     "move:axekick @main/near-a",
-    "move:axekick @main/far-a",
-    "ability:magicbounce @main/near-a",
-    "ability:magicbounce @main/far-a",
-    "ability:magicbounce @main/near-b",
-    "ability:magicbounce @main/far-b",
-    "ability:magicbounce @planner:planner:main/near-a",
-    "ability:oblivious @main/near-a",
-    "ability:oblivious @main/far-a",
-    "ability:superluck @main/near-a",
-    "ability:superluck @main/far-a",
-    "ability:superluck @planner:planner:main/near-a",
-    "ability:unseenfist @main/near-a",
-    "ability:unseenfist @main/far-a",
-    "ability:unseenfist @planner:planner:main/near-a",
-    "item:audinite @main/near-a",
-    "item:audinite @main/far-a",
-    "item:audinite @planner:planner:main/near-a",
-    "item:golurkite @main/near-a",
-    "item:golurkite @main/far-a",
-    "item:golurkite @planner:planner:main/near-a",
-    "item:scopelens @main/near-a",
-    "item:scopelens @main/far-a",
-    "item:scopelens @planner:planner:main/near-a"
+    "move:axekick @main/far-a"
    ],
    "diverged": [
     "move:bittermalice @main/near-a",
@@ -108274,8 +107265,6 @@
     "move:corrosivegas @main/far-a",
     "move:corrosivegas @main/near-b",
     "move:corrosivegas @main/far-b",
-    "move:covet @main/near-a",
-    "move:covet @main/far-a",
     "move:gastroacid @main/near-a",
     "move:gastroacid @main/far-a",
     "move:healbell @main/near-a",
@@ -108286,8 +107275,6 @@
     "move:reflecttype @main/far-a",
     "move:reflecttype @main/near-b",
     "move:reflecttype @main/far-b",
-    "ability:cutecharm @main/near-a",
-    "ability:cutecharm @main/far-a",
     "ability:forewarn @main/near-a",
     "ability:forewarn @main/far-a",
     "ability:forewarn @main/near-b",
@@ -108297,39 +107284,7 @@
     "ability:illusion @main/far-a",
     "ability:illusion @main/near-b",
     "ability:illusion @main/far-b",
-    "ability:illusion @planner:planner:main/near-a",
-    "ability:magicbounce @main/near-a",
-    "ability:magicbounce @main/far-a",
-    "ability:magicbounce @main/near-b",
-    "ability:magicbounce @main/far-b",
-    "ability:magicbounce @planner:planner:main/near-a",
-    "ability:oblivious @main/near-a",
-    "ability:oblivious @main/far-a",
-    "ability:owntempo @main/near-a",
-    "ability:owntempo @main/far-a",
-    "ability:superluck @main/near-a",
-    "ability:superluck @main/far-a",
-    "ability:superluck @planner:planner:main/near-a",
-    "ability:sweetveil @main/near-a",
-    "ability:sweetveil @main/far-a",
-    "ability:sweetveil @main/near-b",
-    "ability:sweetveil @main/far-b",
-    "ability:sweetveil @covers-self/near-a",
-    "ability:sweetveil @covers-self/far-a",
-    "ability:sweetveil @covers-self/near-b",
-    "ability:sweetveil @covers-self/far-b",
-    "ability:unseenfist @main/near-a",
-    "ability:unseenfist @main/far-a",
-    "ability:unseenfist @planner:planner:main/near-a",
-    "item:audinite @main/near-a",
-    "item:audinite @main/far-a",
-    "item:audinite @planner:planner:main/near-a",
-    "item:golurkite @main/near-a",
-    "item:golurkite @main/far-a",
-    "item:golurkite @planner:planner:main/near-a",
-    "item:scopelens @main/near-a",
-    "item:scopelens @main/far-a",
-    "item:scopelens @planner:planner:main/near-a"
+    "ability:illusion @planner:planner:main/near-a"
    ],
    "move_rows": 497,
    "move_resolved_by_planner": [
@@ -108387,11 +107342,11 @@
    "declaredGender": 20
   },
   "legacy_ran": {
-   "abilities": 193,
-   "items": 11
+   "abilities": 191,
+   "items": 8
   }
  },
- "games_played": 4714,
+ "games_played": 4702,
  "games_threw": 0,
  "sheets_unassembled": 0,
  "overlap": {
@@ -108423,7 +107378,7 @@
    "available": true,
    "file": "data/roster.abilities.json",
    "roster_fired": 139,
-   "here_fired": 139,
+   "here_fired": 140,
    "both": 102,
    "only_here": [
     "aftermath",
@@ -108460,6 +107415,7 @@
     "sniper",
     "stalwart",
     "stickyhold",
+    "superluck",
     "symbiosis",
     "tangledfeet",
     "unaware"
@@ -108524,7 +107480,6 @@
     "screencleaner",
     "stall",
     "steadfast",
-    "superluck",
     "supremeoverlord",
     "synchronize",
     "zerotohero"
@@ -108536,19 +107491,18 @@
    "available": true,
    "file": "data/roster.items.json",
    "roster_fired": 142,
-   "here_fired": 147,
+   "here_fired": 148,
    "both": 142,
    "only_here": [
     "aspearberry",
     "focusband",
     "kingsrock",
     "quickclaw",
-    "rawstberry"
-   ],
-   "only_roster": [],
-   "neither": [
+    "rawstberry",
     "scopelens"
    ],
+   "only_roster": [],
+   "neither": [],
    "exemption": null,
    "what_neither_means": "NEITHER the staged single-turn roster nor a real game has made this fire. This is the set nothing in the project tests."
   }

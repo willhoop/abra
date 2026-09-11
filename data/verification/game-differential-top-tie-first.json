@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-11T11:26:28.278Z",
+  "generated": "2026-09-11T14:05:20.156Z",
   "by": "engine/game_differential.js",
   "mode": "A/top-tie-first/pins:7759a509491f/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
@@ -59,11 +59,11 @@
       },
       "turn1_boards_identical": 961,
       "turn1_boards_reached": 961,
-      "rows_credited": 269,
+      "rows_credited": 270,
       "credit_events": {
-        "effect": 509565,
+        "effect": 513798,
         "negative": 1666,
-        "click": 1225326
+        "click": 1227354
       },
       "classes": [
         {
@@ -109,118 +109,118 @@
   },
   "games": 961,
   "turns_cap": 50,
-  "elapsed_s": 154,
+  "elapsed_s": 234.3,
   "credit_turn_profile": {
-    "rows_with_any_credit": 269,
+    "rows_with_any_credit": 270,
     "credits_with_no_turn_index": 0,
     "deepest_first_credit_turn": 14,
     "by_first_turn": [
       {
         "turn": 1,
-        "rows_first_here": 227,
-        "rows_first_by_here": 227,
-        "pct_of_credited": 84.39
+        "rows_first_here": 228,
+        "rows_first_by_here": 228,
+        "pct_of_credited": 84.44
       },
       {
         "turn": 2,
         "rows_first_here": 23,
-        "rows_first_by_here": 250,
-        "pct_of_credited": 92.94
+        "rows_first_by_here": 251,
+        "pct_of_credited": 92.96
       },
       {
         "turn": 3,
         "rows_first_here": 4,
-        "rows_first_by_here": 254,
-        "pct_of_credited": 94.42
+        "rows_first_by_here": 255,
+        "pct_of_credited": 94.44
       },
       {
         "turn": 4,
         "rows_first_here": 6,
-        "rows_first_by_here": 260,
-        "pct_of_credited": 96.65
+        "rows_first_by_here": 261,
+        "pct_of_credited": 96.67
       },
       {
         "turn": 5,
         "rows_first_here": 2,
-        "rows_first_by_here": 262,
-        "pct_of_credited": 97.4
+        "rows_first_by_here": 263,
+        "pct_of_credited": 97.41
       },
       {
         "turn": 6,
         "rows_first_here": 2,
-        "rows_first_by_here": 264,
-        "pct_of_credited": 98.14
+        "rows_first_by_here": 265,
+        "pct_of_credited": 98.15
       },
       {
         "turn": 8,
         "rows_first_here": 3,
-        "rows_first_by_here": 267,
+        "rows_first_by_here": 268,
         "pct_of_credited": 99.26
       },
       {
         "turn": 11,
         "rows_first_here": 1,
-        "rows_first_by_here": 268,
+        "rows_first_by_here": 269,
         "pct_of_credited": 99.63
       },
       {
         "turn": 14,
         "rows_first_here": 1,
-        "rows_first_by_here": 269,
+        "rows_first_by_here": 270,
         "pct_of_credited": 100
       }
     ],
     "credit_events_by_turn": {
-      "1": 74834,
-      "2": 73876,
-      "3": 73602,
-      "4": 72794,
-      "5": 72388,
-      "6": 66792,
-      "7": 62319,
-      "8": 56672,
-      "9": 47838,
-      "10": 41620,
-      "11": 33405,
-      "12": 28206,
-      "13": 22445,
-      "14": 18707,
-      "15": 14383,
-      "16": 12494,
-      "17": 10291,
-      "18": 8769,
-      "19": 6985,
-      "20": 5820,
-      "21": 4931,
-      "22": 3939,
-      "23": 3347,
-      "24": 2976,
-      "25": 2610,
-      "26": 2276,
-      "27": 2017,
-      "28": 2064,
-      "29": 1509,
-      "30": 970,
-      "31": 1090,
-      "32": 928,
-      "33": 830,
-      "34": 699,
-      "35": 526,
-      "36": 536,
-      "37": 574,
-      "38": 579,
-      "39": 589,
-      "40": 488,
-      "41": 504,
-      "42": 448,
-      "43": 278,
-      "44": 306,
-      "45": 323,
-      "46": 149,
-      "47": 188,
-      "48": 122,
-      "49": 124,
-      "50": 126
+      "1": 75063,
+      "2": 74112,
+      "3": 73834,
+      "4": 73027,
+      "5": 72633,
+      "6": 67022,
+      "7": 62536,
+      "8": 56852,
+      "9": 47987,
+      "10": 41758,
+      "11": 33513,
+      "12": 28292,
+      "13": 22518,
+      "14": 18767,
+      "15": 14422,
+      "16": 12535,
+      "17": 10329,
+      "18": 8801,
+      "19": 7010,
+      "20": 5840,
+      "21": 4947,
+      "22": 3951,
+      "23": 3359,
+      "24": 2986,
+      "25": 2618,
+      "26": 2281,
+      "27": 2025,
+      "28": 2073,
+      "29": 1516,
+      "30": 974,
+      "31": 1093,
+      "32": 931,
+      "33": 832,
+      "34": 701,
+      "35": 528,
+      "36": 539,
+      "37": 576,
+      "38": 582,
+      "39": 593,
+      "40": 490,
+      "41": 508,
+      "42": 452,
+      "43": 280,
+      "44": 308,
+      "45": 326,
+      "46": 150,
+      "47": 189,
+      "48": 123,
+      "49": 125,
+      "50": 127
     },
     "rows_first_credited_at_turn_13_or_later": [
       "ability:amplifiesBoosts"
@@ -872,7 +872,7 @@
       {
         "id": "source-tag",
         "why": "`[of] pXy` names the BODY behind an effect whose name is already carried by `[from]`. The two engines tag it inconsistently on -heal, -activate and -damage.",
-        "lines_collapsed": 117426,
+        "lines_collapsed": 117783,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -887,7 +887,7 @@
       {
         "id": "effect-namespace",
         "why": "Showdown writes an effect sometimes bare and sometimes namespaced — `|-sidestart|p1: A|Reflect` against this engine's `move: reflect`. The NAME is kept; only the namespace goes.",
-        "lines_collapsed": 637305,
+        "lines_collapsed": 637621,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -945,7 +945,7 @@
         ]
       }
     ],
-    "total_lines_collapsed": 2874396
+    "total_lines_collapsed": 2875069
   },
   "entity_annotation": {
     "by": "engine/effect_kind.js",
@@ -3462,6 +3462,49 @@
         {
           "cause": "-fail: a different body :: |-fail|p2a <> |-fail|p1a",
           "n": 1,
+          "void_n": 0,
+          "showdown_before": [
+            "|switch|p1a: Sableye|Sableye, L50|125/125",
+            "|turn|5",
+            "|move|p2b: Whimsicott|Tailwind|p2b: Whimsicott",
+            "|-sidestart|p2: B|move: Tailwind",
+            "|move|p1a: Sableye|Encore|p2a: Absol",
+            "|move|p2a: Absol|Encore||[from] ability: Magic Bounce|[still]"
+          ],
+          "sdAfter": [
+            "|-fail|p2a: Absol",
+            "|move|p2a: Absol|Knock Off|p1a: Sableye",
+            "|-damage|p1a: Sableye|0 fnt",
+            "|-enditem|p1a: Sableye|Sitrus Berry|[from] move: Knock Off|[of] p2a: Absol",
+            "|faint|p1a: Sableye",
+            "|move|p1b: Garchomp|Dragon Claw|p2a: Absol",
+            "|-damage|p2a: Absol|0 fnt",
+            "|faint|p2a: Absol",
+            "|-damage|p1b: Garchomp|147/183|[from] item: Life Orb",
+            "|upkeep"
+          ],
+          "meAfter": [
+            "|-fail|p1a: Sableye",
+            "|move|p2a: Absol|knockoff|p1a: Sableye",
+            "|-damage|p1a: Sableye|0 fnt",
+            "|-enditem|p1a: Sableye|sitrusberry|[from] move: knockoff|[of] p2a: Absol",
+            "|faint|p1a: Sableye",
+            "|move|p1b: Garchomp|dragonclaw|p2a: Absol",
+            "|-damage|p2a: Absol|0 fnt",
+            "|faint|p2a: Absol",
+            "|-damage|p1b: Garchomp|147/183|[from] item: Life Orb",
+            "|upkeep"
+          ],
+          "species": "Absol",
+          "attribution": {
+            "showdown": [],
+            "medicham": []
+          },
+          "example": {
+            "config": "baseline",
+            "seed": "gen9championsvgc2026regmbbo3-2635208589 vs gen9championsvgc2026regmbbo3-2635603270",
+            "turn": 5
+          },
           "mentions": []
         }
       ]
@@ -3473,6 +3516,34 @@
         {
           "cause": "-fail field 3 :: |-fail|p2b|burnup <> |-fail|p2b",
           "n": 1,
+          "void_n": 0,
+          "showdown_before": [
+            "|turn|18",
+            "|move|p2a: Sinistcha|Rage Powder|p2a: Sinistcha",
+            "|-singleturn|p2a: Sinistcha|move: Rage Powder",
+            "|move|p1b: Whimsicott|Tailwind||[still]",
+            "|-fail|p1b: Whimsicott",
+            "|move|p2b: Arcanine|Burn Up||[still]"
+          ],
+          "sdAfter": [
+            "|-fail|p2b: Arcanine|move: Burn Up",
+            "|upkeep",
+            "|turn|19"
+          ],
+          "meAfter": [
+            "|-fail|p2b: Arcanine",
+            "|upkeep"
+          ],
+          "species": "Arcanine",
+          "attribution": {
+            "showdown": [],
+            "medicham": []
+          },
+          "example": {
+            "config": "omit-protect",
+            "seed": "gen9championsvgc2026regmbbo3-2654054830 vs gen9championsvgc2026regmbbo3-2654316929",
+            "turn": 18
+          },
           "mentions": [
             {
               "kind": "moves",
@@ -3496,6 +3567,44 @@
         {
           "cause": "ordering :: |-activate|p2b|skillswap|clearbody|flashfire <> |-end|p2b|flashfire",
           "n": 1,
+          "void_n": 0,
+          "showdown_before": [
+            "|move|p2b: Malamar|Trick Room|p2b: Malamar",
+            "|-fieldend|move: Trick Room",
+            "|-damage|p2b: Malamar|41/161|[from] Curse",
+            "|upkeep",
+            "|turn|18",
+            "|move|p2b: Malamar|Skill Swap|p1b: Metagross"
+          ],
+          "sdAfter": [
+            "|-activate|p2b: Malamar|Skill Swap|Clear Body|Flash Fire|[of] p1b: Metagross",
+            "|-end|p2b: Malamar|ability: Flash Fire|[silent]",
+            "|move|p1b: Metagross|Meteor Mash|p2b: Malamar|[miss]",
+            "|-miss|p1b: Metagross|p2b: Malamar",
+            "|-damage|p2b: Malamar|1/161|[from] Curse",
+            "|upkeep",
+            "|turn|19"
+          ],
+          "meAfter": [
+            "|-end|p2b: Malamar|ability: Flash Fire|[silent]",
+            "|-activate|p2b: Malamar|Skill Swap|clearbody|flashfire|[of] p1b: Metagross",
+            "|move|p1b: Metagross|meteormash|p2b: Malamar",
+            "|-miss|p1b: Metagross|p2b: Malamar",
+            "|-damage|p2b: Malamar|1/161|[from] Curse",
+            "|upkeep"
+          ],
+          "species": "Malamar",
+          "attribution": {
+            "showdown": [
+              "[of] p1b: Metagross"
+            ],
+            "medicham": []
+          },
+          "example": {
+            "config": "omit-protect",
+            "seed": "gen9championsvgc2026regmbbo3-2656624602 vs gen9championsvgc2026regmbbo3-2657402800",
+            "turn": 18
+          },
           "mentions": [
             {
               "kind": "moves",
@@ -3531,6 +3640,44 @@
         {
           "cause": "ordering :: |-immune|p2b|[from]goodasgold <> |-heal|p2a|H/H",
           "n": 1,
+          "void_n": 0,
+          "showdown_before": [
+            "|turn|9",
+            "|move|p1a: Palafin|Close Combat|p2a: Sinistcha",
+            "|-immune|p2a: Sinistcha",
+            "|move|p2b: Gholdengo|Nasty Plot|p2b: Gholdengo",
+            "|-boost|p2b: Gholdengo|spa|2",
+            "|move|p2a: Sinistcha|Life Dew|p2a: Sinistcha|[spread] p2a"
+          ],
+          "sdAfter": [
+            "|-immune|p2b: Gholdengo|[from] ability: Good as Gold",
+            "|-heal|p2a: Sinistcha|144/146",
+            "|move|p1b: Sinistcha|Poltergeist|p2a: Sinistcha|[miss]",
+            "|-miss|p1b: Sinistcha|p2a: Sinistcha",
+            "|-heal|p2a: Sinistcha|146/146|[from] item: Leftovers",
+            "|upkeep",
+            "|turn|10"
+          ],
+          "meAfter": [
+            "|-heal|p2a: Sinistcha|144/146",
+            "|-immune|p2b: Gholdengo|[from] ability: Good as Gold",
+            "|move|p1b: Sinistcha|poltergeist|p2a: Sinistcha",
+            "|-miss|p1b: Sinistcha|p2a: Sinistcha",
+            "|-heal|p2a: Sinistcha|146/146|[from] item: leftovers",
+            "|upkeep"
+          ],
+          "species": "Gholdengo",
+          "attribution": {
+            "showdown": [
+              "[from] ability: Good as Gold"
+            ],
+            "medicham": []
+          },
+          "example": {
+            "config": "omit-protect",
+            "seed": "gen9championsvgc2026regmbbo3-2660452545 vs gen9championsvgc2026regmbbo3-2660715942",
+            "turn": 9
+          },
           "mentions": [
             {
               "kind": "abilities",
@@ -3554,6 +3701,34 @@
         {
           "cause": "-miss: a different body :: |-miss|p2:|p1a <> |-miss|p2a|p1a",
           "n": 1,
+          "void_n": 0,
+          "showdown_before": [
+            "|-miss|p1b: Excadrill|p2b: Blaziken",
+            "|move|p1a: Talonflame|Tailwind||[still]",
+            "|-fail|p1a: Talonflame",
+            "|move|p2b: Blaziken|Blaze Kick|p1a: Talonflame|[miss]|[miss]",
+            "|-miss|p2b: Blaziken|p1a: Talonflame",
+            "|-end|p1a: Talonflame|move: Future Sight"
+          ],
+          "sdAfter": [
+            "|-miss|p2: Reuniclus|p1a: Talonflame",
+            "|upkeep",
+            "|turn|18"
+          ],
+          "meAfter": [
+            "|-miss|p2a: Reuniclus|p1a: Talonflame",
+            "|upkeep"
+          ],
+          "species": "Reuniclus",
+          "attribution": {
+            "showdown": [],
+            "medicham": []
+          },
+          "example": {
+            "config": "omit-protect",
+            "seed": "gen9championsvgc2026regmbbo3-2657333637 vs gen9championsvgc2026regmbbo3-2657252654",
+            "turn": 17
+          },
           "mentions": []
         }
       ]
@@ -3565,16 +3740,108 @@
         {
           "cause": "event missing from medicham2 :: |-fail|p1b <> |-boost|p1b|spe|1",
           "n": 1,
+          "void_n": 0,
+          "showdown_before": [
+            "|-supereffective|p1a: Gyarados|1",
+            "|-damage|p1a: Gyarados|0 fnt",
+            "|-unboost|p2a: Scrafty|def|1",
+            "|-unboost|p2a: Scrafty|spd|1",
+            "|faint|p1a: Gyarados",
+            "|move|p1b: Blaziken|Coaching|p1: Gyarados|[notarget]"
+          ],
+          "sdAfter": [
+            "|-fail|p1b: Blaziken",
+            "|-boost|p1b: Blaziken|spe|1",
+            "|upkeep",
+            "|switch|p1a: Sinistcha|Sinistcha, L50|146/146",
+            "|turn|7"
+          ],
+          "meAfter": [
+            "|-boost|p1b: Blaziken|spe|1|[from] ability: speedboost",
+            "|upkeep",
+            "|switch|p1a: Sinistcha|sinistcha, L50|146/146"
+          ],
+          "species": "Blaziken",
+          "attribution": {
+            "showdown": [],
+            "medicham": [
+              "[from] ability: speedboost"
+            ]
+          },
+          "example": {
+            "config": "omit-weather",
+            "seed": "gen9championsvgc2026regmbbo3-2655635795 vs gen9championsvgc2026regmbbo3-2655715069",
+            "turn": 6
+          },
           "mentions": []
         },
         {
           "cause": "event missing from medicham2 :: |upkeep <> |faint|p1a",
           "n": 1,
+          "void_n": 0,
+          "showdown_before": [
+            "|faint|p2a: Archaludon",
+            "|move|p2b: Politoed|Weather Ball|p1a: Raichu",
+            "|-damage|p1a: Raichu|10/135",
+            "|-start|p1a: Raichu|perish0",
+            "|-start|p1b: Archaludon|perish0",
+            "|-start|p2b: Politoed|perish0"
+          ],
+          "sdAfter": [
+            "|upkeep",
+            "|faint|p1a: Raichu",
+            "|faint|p1b: Archaludon",
+            "|faint|p2b: Politoed"
+          ],
+          "meAfter": [
+            "|faint|p1a: Raichu",
+            "|faint|p1b: Archaludon",
+            "|faint|p2b: Politoed"
+          ],
+          "species": "Raichu",
+          "attribution": {
+            "showdown": [],
+            "medicham": []
+          },
+          "example": {
+            "config": "omit-spread",
+            "seed": "gen9championsvgc2026regmbbo3-2656930062 vs gen9championsvgc2026regmbbo3-2656925075",
+            "turn": 12
+          },
           "mentions": []
         },
         {
           "cause": "event missing from medicham2 :: |-fail|p1b <> |-weather|snowscape|[upkeep]",
           "n": 1,
+          "void_n": 0,
+          "showdown_before": [
+            "|move|p2b: Garchomp|Protect||[still]",
+            "|-fail|p2b: Garchomp",
+            "|move|p2a: Tyranitar|Rock Slide|p1b: Slowking|[miss]",
+            "|-miss|p2a: Tyranitar|p1b: Slowking",
+            "|-prepare|p1b: Slowking|Chilly Reception|[premajor]",
+            "|move|p1b: Slowking|Chilly Reception||[still]"
+          ],
+          "sdAfter": [
+            "|-fail|p1b: Slowking",
+            "|-weather|Snowscape|[upkeep]",
+            "|upkeep",
+            "|turn|18"
+          ],
+          "meAfter": [
+            "|-weather|snowscape|[upkeep]",
+            "|upkeep"
+          ],
+          "species": "Slowking",
+          "attribution": {
+            "showdown": [],
+            "medicham": []
+          },
+          "example": {
+            "config": "pair-protect-bust",
+            "seed": "gen9championsvgc2026regmbbo3-2656674263 vs gen9championsvgc2026regmbbo3-2656669258",
+            "turn": 17
+          },
           "mentions": [
             {
               "kind": "conditions",
@@ -3601,6 +3868,37 @@
         {
           "cause": "event missing from medicham2 :: |-fail|p1a <> |-heal|p1a|H/H|[from]ingrain",
           "n": 1,
+          "void_n": 0,
+          "showdown_before": [
+            "|move|p2a: Pelipper|Tailwind||[still]",
+            "|-fail|p2a: Pelipper",
+            "|move|p1b: Sinistcha|Matcha Gotcha|p2b: Mr. Rime|[spread] ",
+            "|-activate|p2b: Mr. Rime|move: Protect",
+            "|-miss|p1b: Sinistcha|p2a: Pelipper",
+            "|move|p1a: Meganium|Ingrain||[still]"
+          ],
+          "sdAfter": [
+            "|-fail|p1a: Meganium",
+            "|-heal|p1a: Meganium|72/155|[from] Ingrain",
+            "|upkeep",
+            "|turn|7"
+          ],
+          "meAfter": [
+            "|-heal|p1a: Meganium|72/155|[from] move: ingrain",
+            "|upkeep"
+          ],
+          "species": "Meganium",
+          "attribution": {
+            "showdown": [],
+            "medicham": [
+              "[from] move: ingrain"
+            ]
+          },
+          "example": {
+            "config": "pair-protect-bust",
+            "seed": "gen9championsvgc2026regmbbo3-2660789599 vs gen9championsvgc2026regmbbo3-2660873574",
+            "turn": 6
+          },
           "mentions": [
             {
               "kind": "conditions",
@@ -3627,11 +3925,78 @@
         {
           "cause": "event missing from medicham2 :: |-damage|p1b|H/H <> |-damage|p1b|0fnt",
           "n": 1,
+          "void_n": 0,
+          "showdown_before": [
+            "|turn|11",
+            "|move|p1b: Sneasler|Dire Claw|p2a: Dragapult",
+            "|-resisted|p2a: Dragapult|1",
+            "|-damage|p2a: Dragapult|130/163",
+            "|move|p2a: Dragapult|Dragon Darts|p1b: Sneasler",
+            "|-enditem|p1b: Sneasler|Focus Sash"
+          ],
+          "sdAfter": [
+            "|-damage|p1b: Sneasler|1/155",
+            "|-damage|p1b: Sneasler|0 fnt",
+            "|faint|p1b: Sneasler"
+          ],
+          "meAfter": [
+            "|-damage|p1b: Sneasler|0 fnt",
+            "|faint|p1b: Sneasler"
+          ],
+          "species": "Sneasler",
+          "attribution": {
+            "showdown": [],
+            "medicham": []
+          },
+          "example": {
+            "config": "pair-protect-bust",
+            "seed": "gen9championsvgc2026regmbbo3-2661752322 vs gen9championsvgc2026regmbbo3-2661877182",
+            "turn": 11
+          },
           "mentions": []
         },
         {
           "cause": "event missing from medicham2 :: |-fail|p2a <> |move|p1a|hurricane",
           "n": 1,
+          "void_n": 0,
+          "showdown_before": [
+            "|-miss|p1b: Sinistcha|p2b: Raichu",
+            "|upkeep",
+            "|turn|2",
+            "|move|p1b: Sinistcha|Rage Powder|p1b: Sinistcha",
+            "|-singleturn|p1b: Sinistcha|move: Rage Powder",
+            "|move|p2a: Banette|Destiny Bond||[still]"
+          ],
+          "sdAfter": [
+            "|-fail|p2a: Banette",
+            "|move|p1a: Vivillon|Hurricane|p2a: Banette|[miss]",
+            "|-miss|p1a: Vivillon|p2a: Banette",
+            "|move|p2b: Raichu|Volt Switch|p1b: Sinistcha",
+            "|-resisted|p1b: Sinistcha|1",
+            "|-damage|p1b: Sinistcha|120/146",
+            "|switch|p2b: Talonflame|Talonflame, L50|153/153|[from] Volt Switch",
+            "|upkeep",
+            "|turn|3"
+          ],
+          "meAfter": [
+            "|move|p1a: Vivillon|hurricane|p2a: Banette",
+            "|-miss|p1a: Vivillon|p2a: Banette",
+            "|move|p2b: Raichu|voltswitch|p1b: Sinistcha",
+            "|-resisted|p1b: Sinistcha|1",
+            "|-damage|p1b: Sinistcha|120/146",
+            "|switch|p2b: Talonflame|talonflame, L50|153/153|[from] voltswitch",
+            "|upkeep"
+          ],
+          "species": "Banette",
+          "attribution": {
+            "showdown": [],
+            "medicham": []
+          },
+          "example": {
+            "config": "pair-protect-bust",
+            "seed": "gen9championsvgc2026regmbbo3-2662192837 vs gen9championsvgc2026regmbbo3-2662150525",
+            "turn": 2
+          },
           "mentions": [
             {
               "kind": "moves",
@@ -3649,6 +4014,41 @@
         {
           "cause": "event missing from medicham2 :: |-end|p1a|fallenundefined <> |move|p1b|shadowball",
           "n": 1,
+          "void_n": 0,
+          "showdown_before": [
+            "|move|p2a: Aegislash|King's Shield||[still]",
+            "|-fail|p2a: Aegislash",
+            "|move|p2b: Scizor|Bullet Punch|p1a: Kingambit",
+            "|-resisted|p1a: Kingambit|1",
+            "|-damage|p1a: Kingambit|0 fnt",
+            "|faint|p1a: Kingambit"
+          ],
+          "sdAfter": [
+            "|-end|p1a: Kingambit|fallenundefined|[silent]",
+            "|move|p1b: Gengar|Shadow Ball|p2a: Aegislash",
+            "|-supereffective|p2a: Aegislash|1",
+            "|-damage|p2a: Aegislash|25/135",
+            "|upkeep",
+            "|switch|p1a: Farigiraf|Farigiraf, L50|195/195",
+            "|turn|10"
+          ],
+          "meAfter": [
+            "|move|p1b: Gengar|shadowball|p2a: Aegislash",
+            "|-supereffective|p2a: Aegislash|1",
+            "|-damage|p2a: Aegislash|25/135",
+            "|upkeep",
+            "|switch|p1a: Farigiraf|farigiraf, L50|195/195"
+          ],
+          "species": "Kingambit",
+          "attribution": {
+            "showdown": [],
+            "medicham": []
+          },
+          "example": {
+            "config": "pair-speedctrl",
+            "seed": "gen9championsvgc2026regmbbo3-2654954484 vs gen9championsvgc2026regmbbo3-2654894121",
+            "turn": 9
+          },
           "mentions": [
             {
               "kind": "moves",
@@ -3666,6 +4066,49 @@
         {
           "cause": "event missing from medicham2 :: |-start|p1a|typechange|fighting/poison <> |turn|11",
           "n": 1,
+          "void_n": 0,
+          "showdown_before": [
+            "|-unboost|p2a: Sneasler|spd|1",
+            "|move|p2b: Volcarona|Quiver Dance|p2b: Volcarona",
+            "|-boost|p2b: Volcarona|spa|1",
+            "|-boost|p2b: Volcarona|spd|1",
+            "|-boost|p2b: Volcarona|spe|1",
+            "|upkeep"
+          ],
+          "sdAfter": [
+            "|-start|p1a: Gengar|typechange|Fighting/Poison|[silent]",
+            "|turn|11",
+            "|move|p1b: Grimmsnarl|Fake Out|p2a: Sneasler",
+            "|-damage|p2a: Sneasler|66/155",
+            "|move|p2b: Volcarona|Quiver Dance|p2b: Volcarona",
+            "|-boost|p2b: Volcarona|spa|1",
+            "|-boost|p2b: Volcarona|spd|1",
+            "|-boost|p2b: Volcarona|spe|1",
+            "|move|p1a: Gengar|Dazzling Gleam|p2b: Volcarona|[spread] p2a,p2b",
+            "|-resisted|p2b: Volcarona|1"
+          ],
+          "meAfter": [
+            "|turn|11",
+            "|move|p1b: Grimmsnarl|fakeout|p2a: Sneasler",
+            "|-damage|p2a: Sneasler|66/155",
+            "|move|p2b: Volcarona|quiverdance|p2b: Volcarona",
+            "|-boost|p2b: Volcarona|spa|1",
+            "|-boost|p2b: Volcarona|spd|1",
+            "|-boost|p2b: Volcarona|spe|1",
+            "|move|p1a: Gengar|dazzlinggleam|p2b: Volcarona",
+            "|-resisted|p2b: Volcarona|1",
+            "|-damage|p2a: Sneasler|13/155"
+          ],
+          "species": "Gengar",
+          "attribution": {
+            "showdown": [],
+            "medicham": []
+          },
+          "example": {
+            "config": "pair-speedctrl",
+            "seed": "gen9championsvgc2026regmbbo3-2659556207 vs gen9championsvgc2026regmbbo3-2659587194",
+            "turn": 11
+          },
           "mentions": []
         }
       ]
@@ -3932,10 +4375,10 @@
     "policy": "observed-effect/v1",
     "rule": "a census row is exercised when a board leaf in a family THE TAG'S OWN PARAMS NAME changed across the turn, in either engine, inside the scope of an entity that was in play; or when a blocking tag's declared negative case was reached and correctly did not fire. A click alone counts for NOTHING but an attempt.",
     "why": "Primarina clicked Haze on turn 1 into a board with zero boosts on it. Haze is a no-op there, the census marked it exercised, and because the census STEERS the sample a falsely credited row then steered every later run AWAY from testing it.",
-    "rows_with_an_observed_effect": 346,
-    "rows_that_can_be_witnessed_on_a_board": 374,
-    "rows_that_name_no_board_leaf": 431,
-    "rows_credited_by_a_connected_click_only": 408,
+    "rows_with_an_observed_effect": 349,
+    "rows_that_can_be_witnessed_on_a_board": 378,
+    "rows_that_name_no_board_leaf": 436,
+    "rows_credited_by_a_connected_click_only": 413,
     "rows_clicked_or_present_that_did_nothing": 12,
     "rows_clicked_or_present_that_did_nothing_list": [
       "ability:clearsScreensOnEntry",
@@ -4440,9 +4883,9 @@
         "from": [
           "param key `statuses`"
         ],
-        "credit": 510,
+        "credit": 680,
         "of_which": {
-          "effect": 1605,
+          "effect": 2140,
           "negative": 0,
           "click": 0
         },
@@ -4878,13 +5321,13 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 1030,
+        "credit": 1236,
         "of_which": {
-          "effect": 2095,
+          "effect": 2514,
           "negative": 0,
           "click": 0
         },
-        "attempts": 25
+        "attempts": 30
       },
       {
         "key": "item:flingable",
@@ -8483,13 +8926,13 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 1030,
+        "credit": 1236,
         "of_which": {
-          "effect": 2095,
+          "effect": 2514,
           "negative": 0,
           "click": 0
         },
-        "attempts": 25
+        "attempts": 30
       },
       {
         "key": "move:takesTargetItem",
@@ -8532,13 +8975,13 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 1030,
+        "credit": 1236,
         "of_which": {
-          "effect": 2095,
+          "effect": 2514,
           "negative": 0,
           "click": 0
         },
-        "attempts": 25
+        "attempts": 30
       },
       {
         "key": "item:extendsDuration",
@@ -8640,11 +9083,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2,
+        "credit": 6,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 3
+          "click": 9
         },
         "attempts": 0
       },
@@ -9355,11 +9798,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 562,
+        "credit": 1124,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1298
+          "click": 2596
         },
         "attempts": 0
       },
@@ -9512,24 +9955,24 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 20985,
+        "credit": 22384,
         "of_which": {
-          "effect": 49380,
+          "effect": 52672,
           "negative": 0,
           "click": 0
         },
-        "attempts": 150
+        "attempts": 160
       },
       {
         "key": "ability:reflectsStatusMoves",
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 685,
+        "credit": 822,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1025
+          "click": 1230
         },
         "attempts": 0
       },
@@ -9538,11 +9981,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 685,
+        "credit": 822,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1025
+          "click": 1230
         },
         "attempts": 0
       },
@@ -9551,11 +9994,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 685,
+        "credit": 822,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1025
+          "click": 1230
         },
         "attempts": 0
       },
@@ -9564,11 +10007,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 685,
+        "credit": 822,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1025
+          "click": 1230
         },
         "attempts": 0
       },
@@ -9848,13 +10291,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 20985,
+        "credit": 22384,
         "of_which": {
-          "effect": 49380,
+          "effect": 52672,
           "negative": 0,
           "click": 0
         },
-        "attempts": 150
+        "attempts": 160
       },
       {
         "key": "ability:addsOwnSecondary",
@@ -10920,13 +11363,13 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 1030,
+        "credit": 1236,
         "of_which": {
-          "effect": 2095,
+          "effect": 2514,
           "negative": 0,
           "click": 0
         },
-        "attempts": 25
+        "attempts": 30
       },
       {
         "key": "move:takesTargetItem",
@@ -11290,13 +11733,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 20985,
+        "credit": 22384,
         "of_which": {
-          "effect": 49380,
+          "effect": 52672,
           "negative": 0,
           "click": 0
         },
-        "attempts": 150
+        "attempts": 160
       },
       {
         "key": "move:swapsSlots",
@@ -11464,13 +11907,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 20985,
+        "credit": 22384,
         "of_which": {
-          "effect": 49380,
+          "effect": 52672,
           "negative": 0,
           "click": 0
         },
-        "attempts": 150
+        "attempts": 160
       },
       {
         "key": "ability:punishesAttacker",
@@ -11486,13 +11929,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 20985,
+        "credit": 22384,
         "of_which": {
-          "effect": 49380,
+          "effect": 52672,
           "negative": 0,
           "click": 0
         },
-        "attempts": 150
+        "attempts": 160
       },
       {
         "key": "ability:punishesAttacker",
@@ -11508,13 +11951,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 20985,
+        "credit": 22384,
         "of_which": {
-          "effect": 49380,
+          "effect": 52672,
           "negative": 0,
           "click": 0
         },
-        "attempts": 150
+        "attempts": 160
       },
       {
         "key": "ability:punishesAttacker",
@@ -11530,13 +11973,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 20985,
+        "credit": 22384,
         "of_which": {
-          "effect": 49380,
+          "effect": 52672,
           "negative": 0,
           "click": 0
         },
-        "attempts": 150
+        "attempts": 160
       },
       {
         "key": "ability:punishesAttacker",
@@ -11552,13 +11995,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 20985,
+        "credit": 22384,
         "of_which": {
-          "effect": 49380,
+          "effect": 52672,
           "negative": 0,
           "click": 0
         },
-        "attempts": 150
+        "attempts": 160
       },
       {
         "key": "ability:punishesAttacker",
@@ -11574,13 +12017,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 20985,
+        "credit": 22384,
         "of_which": {
-          "effect": 49380,
+          "effect": 52672,
           "negative": 0,
           "click": 0
         },
-        "attempts": 150
+        "attempts": 160
       },
       {
         "key": "ability:punishesAttacker",
@@ -11596,13 +12039,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 20985,
+        "credit": 22384,
         "of_which": {
-          "effect": 49380,
+          "effect": 52672,
           "negative": 0,
           "click": 0
         },
-        "attempts": 150
+        "attempts": 160
       },
       {
         "key": "ability:punishesAttacker",
@@ -11618,13 +12061,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 20985,
+        "credit": 22384,
         "of_which": {
-          "effect": 49380,
+          "effect": 52672,
           "negative": 0,
           "click": 0
         },
-        "attempts": 150
+        "attempts": 160
       },
       {
         "key": "move:alwaysCrit",
@@ -13775,6 +14218,144 @@
         "attempts": 0
       },
       {
+        "key": "ability:refusesMovesById",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 270,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 519
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:reflectsStatusMoves",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 822,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 1230
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:critStageVolatile",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 6,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 9
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:critStageVolatile",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 6,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 9
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:punishesAttacker",
+        "kind": "effect",
+        "families": [
+          "status",
+          "boosts",
+          "hazards"
+        ],
+        "from": [
+          "param key `inflicts`",
+          "param key `status`",
+          "param key `boosts`",
+          "param key `hazard`"
+        ],
+        "credit": 22384,
+        "of_which": {
+          "effect": 52672,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 160
+      },
+      {
+        "key": "ability:refusesVolatile",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 1124,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 2596
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:protectsAllyFromStatus",
+        "kind": "effect",
+        "families": [
+          "status"
+        ],
+        "from": [
+          "param key `statuses`"
+        ],
+        "credit": 680,
+        "of_which": {
+          "effect": 2140,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:removesItem",
+        "kind": "effect",
+        "families": [
+          "item"
+        ],
+        "from": [
+          "the tag name matches item|berry|megastone|unburde"
+        ],
+        "credit": 1236,
+        "of_which": {
+          "effect": 2514,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 30
+      },
+      {
+        "key": "ability:suppressesOwnItem",
+        "kind": "negative-or-effect",
+        "families": [
+          "item"
+        ],
+        "from": [
+          "the tag name matches item|berry|megastone|unburde"
+        ],
+        "credit": 0,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
         "key": "move:groundsField",
         "kind": "effect",
         "families": [
@@ -14695,9 +15276,9 @@
         "from": [
           "param key `statuses`"
         ],
-        "credit": 510,
+        "credit": 680,
         "of_which": {
-          "effect": 1605,
+          "effect": 2140,
           "negative": 0,
           "click": 0
         },
@@ -14742,9 +15323,9 @@
         "from": [
           "param key `statuses`"
         ],
-        "credit": 510,
+        "credit": 680,
         "of_which": {
-          "effect": 1605,
+          "effect": 2140,
           "negative": 0,
           "click": 0
         },
@@ -15252,13 +15833,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 20985,
+        "credit": 22384,
         "of_which": {
-          "effect": 49380,
+          "effect": 52672,
           "negative": 0,
           "click": 0
         },
-        "attempts": 150
+        "attempts": 160
       },
       {
         "key": "ability:poisonsOnMyContact",
@@ -15794,11 +16375,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 685,
+        "credit": 822,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1025
+          "click": 1230
         },
         "attempts": 0
       },
@@ -16182,13 +16763,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 20985,
+        "credit": 22384,
         "of_which": {
-          "effect": 49380,
+          "effect": 52672,
           "negative": 0,
           "click": 0
         },
-        "attempts": 150
+        "attempts": 160
       },
       {
         "key": "ability:punishesAttacker",
@@ -16204,13 +16785,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 20985,
+        "credit": 22384,
         "of_which": {
-          "effect": 49380,
+          "effect": 52672,
           "negative": 0,
           "click": 0
         },
-        "attempts": 150
+        "attempts": 160
       },
       {
         "key": "move:chargeSkippedByWeather",
@@ -16454,13 +17035,13 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 1030,
+        "credit": 1236,
         "of_which": {
-          "effect": 2095,
+          "effect": 2514,
           "negative": 0,
           "click": 0
         },
-        "attempts": 25
+        "attempts": 30
       },
       {
         "key": "move:statChangeInCode",
@@ -16520,13 +17101,13 @@
           "param key `boosts`",
           "param key `hazard`"
         ],
-        "credit": 20985,
+        "credit": 22384,
         "of_which": {
-          "effect": 49380,
+          "effect": 52672,
           "negative": 0,
           "click": 0
         },
-        "attempts": 150
+        "attempts": 160
       },
       {
         "key": "move:layeredVolatile",
@@ -16557,13 +17138,13 @@
     ]
   },
   "coverage": {
-    "measurable": 805,
-    "exercised": 771,
+    "measurable": 814,
+    "exercised": 779,
     "exercised_note": "THE OLD NUMBER — an entity of this row connected or stood on the field. It is kept so the drop to credit.rows_with_an_observed_effect is readable, and it is NOT the coverage claim any more.",
-    "exercised_by_a_connected_move": 464,
-    "move_targets": 480,
-    "present_on_the_field_only": 307,
-    "ability_or_item_targets": 325,
+    "exercised_by_a_connected_move": 467,
+    "move_targets": 483,
+    "present_on_the_field_only": 312,
+    "ability_or_item_targets": 331,
     "median_completed_turns_before_divergence": 11,
     "unmeasurable_by_this_instrument": [
       {
@@ -16860,6 +17441,7 @@
       "move:flingsOwnItem",
       "move:setsRoom",
       "move:trapsTarget",
+      "ability:suppressesOwnItem",
       "ability:announcesBerryEat",
       "ability:doublesBerryEffect",
       "ability:picksUpUsedItem",
@@ -17367,6 +17949,10 @@
     "aim_slot_empty": 0,
     "undeclared_event_drops": 0,
     "trace_body_off_field": 0,
+    "medicham_tie_counters": {
+      "entryOrderTie": 323,
+      "replaceOrderTie": 0
+    },
     "trace_body_off_field_first": "",
     "undeclared_events": [],
     "gender_neutralised": true,
@@ -17379,7 +17965,7 @@
     "driver_inputs": [
       {
         "file": "data/move-priors.json",
-        "read_from": "release aefcb93baf14",
+        "read_from": "release e368827481f5",
         "digest": "e667fe8ab457",
         "generated": "2026-08-22",
         "rows": 345,
@@ -17399,13 +17985,13 @@
       {
         "file": "data/protocol-events.json",
         "read_from": "data/protocol-events.json",
-        "digest": "7c9de3868d6f",
-        "raw_digest": "2638eb253525",
-        "generated": "2026-09-08 05:36:17",
-        "rows": 50,
+        "digest": "d90aa554e7f4",
+        "raw_digest": "d90aa554e7f4",
+        "generated": "2026-09-11 13:14:08",
+        "rows": 49,
         "what": "the DECLARED SKIP LIST — every event medicham2 says it does not emit is removed from the Showdown side before alignment, so this decides what can count as a divergence",
-        "derived_from_medicham2": "5a86b1d52bd5",
-        "medicham2_played": "b4dfd7582db7"
+        "derived_from_medicham2": "9134ed066e6a",
+        "medicham2_played": "6720437ca838"
       }
     ],
     "driver_code": {
@@ -17426,7 +18012,7 @@
         "engine/empirical_driver.js": "e6ad4a3a7b43",
         "engine/end_state_severity.js": "6cd7666b4a02",
         "engine/engine_release.js": "d197eeb627bf",
-        "engine/game_differential.js": "c7eaabe02250",
+        "engine/game_differential.js": "8a361d226857",
         "engine/names.js": "3a1f5d1b473d",
         "engine/run_stamp.js": "9b44ac36f0d1",
         "engine/steering.js": "c61ad94ed8f0"
@@ -17439,14 +18025,14 @@
         "engine/empirical_driver.js": "4f2f2e1e6df6",
         "engine/end_state_severity.js": "6cd7666b4a02",
         "engine/engine_release.js": "d197eeb627bf",
-        "engine/game_differential.js": "c7eaabe02250",
+        "engine/game_differential.js": "8a361d226857",
         "engine/names.js": "14de493906d5",
         "engine/run_stamp.js": "9b44ac36f0d1",
         "engine/steering.js": "7c85e3d88fb2"
       },
       "digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content) — a line ending is not part of the instrument. `files_raw`/`raw_digest` carry the byte answer.",
-      "raw_digest": "4fe609737fd0",
-      "digest": "1d47fc8baffd",
+      "raw_digest": "4bf917bbce0b",
+      "digest": "e51a8f1c30af",
       "unresolved": [
         "engine/game_differential.js -> ./engine/\n * game_differential.js (does not resolve on disk)",
         "engine/engine_release.js -> ./x.js (does not resolve on disk)",
@@ -17458,15 +18044,15 @@
     },
     "input": "data/mechanics-census.json",
     "input_read_from": "data/mechanics-census.json",
-    "input_digest": "f4e72249278b",
-    "input_raw_digest": "f4e72249278b",
+    "input_digest": "42900cf443b9",
+    "input_raw_digest": "42900cf443b9",
     "input_digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content)",
-    "input_rows": 872,
-    "input_generated": "2026-09-11T11:15:02.157Z",
-    "input_live_digest": "f4e72249278b",
+    "input_rows": 881,
+    "input_generated": "2026-09-11T13:51:59.605Z",
+    "input_live_digest": "42900cf443b9",
     "pinned": true,
     "matches_live": true,
-    "selects_from": 805,
+    "selects_from": 814,
     "unmeasurable": 67,
     "credit": "observed-effect/v1 — a row is exercised when a board leaf in a family the tag's own params name changed across the turn, or when a declared negative case was reached and did not fire. A click alone counts for nothing. ROADMAP #91.",
     "team_pool_digest": "0d103fb9fa87",
@@ -17475,15 +18061,15 @@
     "team_store_pinned_to": "data/team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "aefcb93baf14",
-  "engine_release_cut": "2026-09-11T11:15:20.821Z",
+  "engine_release": "e368827481f5",
+  "engine_release_cut": "2026-09-11T13:55:19.159Z",
   "engine_release_cuts": 1,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "b4dfd7582db7",
+    "engine/medicham2-browser.js": "6720437ca838",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "d00e77a7ac26",
-    "engine/position_features.js": "622482051bf4",
+    "engine/position_features.js": "bb71676d3669",
     "engine/tags.js": "145a3cc9ce2f",
     "engine/champions_sim.js": "276b2f752247",
     "data/residual-order.json": "eff160ad1c5a",
@@ -17500,8 +18086,8 @@
     "data/regulations.json": "6c1995e9a9fb",
     "data/quality-filter.json": "771c3bd3e544",
     "data/engine-data.js": "bbc417dfae0e",
-    "data/abra-tags.js": "d4dade70122f",
-    "data/tags.json": "6a7da8bae6d6",
+    "data/abra-tags.js": "eb4b143f6599",
+    "data/tags.json": "d88b5a6c36f1",
     "data/policy-weights.json": "626c1d240782",
     "data/policy-weights-joint.json": "e2aca467ff04",
     "data/move-priors.json": "e667fe8ab457",

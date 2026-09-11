@@ -57,7 +57,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_premajor_above_refusals.js`,
 `tests/probe_misty_terrain_status.js`, `tests/probe_charge_release_chosen_slot.js`,
 `tests/probe_corner_mechanisms.js`, `tests/probe_simple_beam.js`, `tests/probe_magnetrise_clock.js`,
-`tests/probe_rampage_length.js`, `tests/probe_bond_secondary_order.js`, `tests/probe_ability_flag_refusal.js`
+`tests/probe_rampage_length.js`, `tests/probe_bond_secondary_order.js`, `tests/probe_ability_flag_refusal.js`,
+`tests/probe_reopen_partings.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -77,6 +78,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
 |---|---|---|
+| `probe_reopen_partings.js` | do the eight partings the staging planner found on 2026-09-11 resolve the authority's way — Oblivious refusing Taunt, Magic Bounce sending Spite back, the crit-stage volatiles adding to the ratio, a mega stone under Klutz (board-material, compared at every boundary AND on the mechanism's own lines), and Cute Charm's attribution, Own Tempo's refusal line, every veil's `-block` (Sweet Veil for its partner and itself, Flower Veil against an Intimidate) and Covet's single `-item` (narration, compared as a multiset of the mechanism's lines over the WHOLE stream, folded the way the differential folds them). Each mechanism has red arms, controls on the same bodies, a fixture read off the authority's RAW log, a counter the fix increments, and its own `MEDI_*` knob; the parent plays clean, then one child per mechanism must part every red and hold every control and must load an engine that stamped the knob's receipt. With no `--release` the live tree is frozen into the scratch store | Oblivious against Attract and Captivate (no staged pair learns Attract) and its `onUpdate` half; Magic Bounce on any move but Spite; a crit-stage volatile copied by Psych Up or Transform; a mega under Magic Room; Flower Veil's status-half `-block` for a primary status move (gated, not staged); anything a four-body board cannot reach |
 | `probe_corner_mechanisms.js` | do the fifteen mechanisms the speed-tie corner arms exposed resolve the authority's way — each staged ALONE under the corner pin its pool game was played under, with a control on the SAME bodies that must hold in both knob positions. Showdown is the expectation; each mechanism also asserts a FIXTURE read off the authority's own log (the body really fainted, the flinch really fired, the mega really happened) so an arm that staged nothing fails by name, and a COUNTER its fix increments, non-zero on the reds and zero on the controls. The parent plays clean, then one child per mechanism under its own `MEDI_*` knob must part every red and hold every control. With no `--release` it freezes the live tree into the scratch store; `--release 5973a4e3c768` is the pre-fix engine it was shown RED on. `--only <mech>`, `--dump <mech>/<arm>` | the three end-of-battle clock cards (DECLARED, ROADMAP #584) — no arm stages them; a Mental Herb holder under Encore; a Magic Room thief; a Parental Bond packet under Unseen Fist; a volley into two targets; Guard Split and Power Split, which ride the same undo and are not staged; a body both transformed and rewired |
 | `probe_misty_terrain_status.js` | does Misty Terrain's `onSetStatus` (`data/moves.ts:12173-12179`, no Champions override) refuse EVERY status on a grounded body — a primary AND a secondary — and announce `-activate|…|move: Misty Terrain` only for a move carrying a top-level `status` or for Yawn. Six arms over two engines under `bottom-tie-first`, two turns each (both leads switch to two fresh entrants; Thunder Wave at slot 0, a burn secondary at slot 1, so no body is asked to `pass` and no body needs two statuses): CONTROL / TERRAIN with a DERIVED non-Ground burn carrier, SANDS-CONTROL / SANDS with the pool game's own Scorching Sands, AIR-CONTROL / AIRBORNE on Flying entrants. Every cast is fixed by its control on the AUTHORITY's log (both statuses must land with no terrain) and the terrain arm replays exactly that cast. `MEDI_MISTY_STATUS_UNREFUSED=1` must part TERRAIN and SANDS and move no control; `--medi <file>` compiles other bytes under the release for a pre-fix demonstration (RED, 8 cells, on HEAD of 2026-09-09). Counters asserted at exact per-arm equality; `terrainStatusFieldUnknown` asserted at zero | Rest's heal being withheld when the terrain refuses its sleep (the authority sets the status before it heals) — no arm stages Rest; the terrain's `onTryAddVolatile` (confusion), still a declared gap; a semi-invulnerable body under the terrain (`isSemiInvulnerable`), which the predicate models and no arm reaches |
 | `probe_charge_release_chosen_slot.js` | does a two-turn move release at the slot AS CHOSEN — `runMove`'s own `targetLoc` (`sim/battle-actions.ts:291` -> `sim/pokemon.ts:919`), copied onto the charge volatile by `twoturnmove.onStart` (`data/conditions.ts:298,308`) and read back by `sim/side.ts:675-684` — rather than at the body the charge turn was re-aimed onto when the chosen foe had already fainted. The carrier is DERIVED as the one legal single-target charge move that breaks protection (Phantom Force, of seven), so the release turn can be read with Protect in slot a whoever the driver sent in. Three arms: RED (a killer faster than both KOs slot a before `-prepare`; the bench refills it; the release must strike the NEW occupant), FOE-ALIVE (same cast, the killer boosts instead; both release at the chosen body) and SLOT-B (aim slot b while slot a empties — what stops the fix reading as 'always slot a'). The fixture is proven off the authority's turn 1 by name (fainted before `-prepare`, never moved, slot refilled). `MEDI_CHARGE_REMEMBERS_REAIMED=1` must part RED and move no control; `--medi <file>` shows HEAD of 2026-09-09 RED in 4 cells. `chargeSlotChosenDiffersFromReaimed` asserted at exactly 1 on RED and 0 on both controls | a chosen slot that is EMPTY at release (no bench body to refill it) — the authority falls to `getRandomTarget`, this engine to `live(foes)[0]`, counted as `chargeReleaseSlotVacated`; a charge called by another move (Metronome, `effect.sourceEffect`), which the authority re-targets at random; Stalwart / Propeller Tail on the charger |
@@ -142,12 +144,12 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  872/872 probed mechanics live, 0 missing   (census 2026-09-11 07:56)
-    the census probes what somebody thought to probe: 295 of 295 in-scope tags carry a probe, 0 carry none (9 of 304
-    tags have no in-scope carrier); 22 mechanics have never fired in the staged harness (all-mechanics-fire.json, 53
+  881/881 probed mechanics live, 0 missing   (census 2026-09-11 10:33)
+    the census probes what somebody thought to probe: 296 of 296 in-scope tags carry a probe, 0 carry none (9 of 305
+    tags have no in-scope carrier); 21 mechanics have never fired in the staged harness (all-mechanics-fire.json, 50
     min old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/aefcb93baf14/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "aefcb93baf14".
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/e368827481f5/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "e368827481f5".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -159,14 +161,47 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0394e3673b5b now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 295/295 in-scope probed, 0 unprobed;  293/295 have an engine consumer on every in-scope row, 2 do not;  9 of 304 tags have no in-scope carrier
+  tag coverage: 296/296 in-scope probed, 0 unprobed;  294/296 have an engine consumer on every in-scope row, 2 do not;  9 of 305 tags have no in-scope carrier
     consumedBy comes from engine/tag_dex.js grepping board.js and medicham2-browser.js for a hint
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-11 08:10_
+_stamped 2026-09-11 10:46_
 
 <!-- /GENERATED -->
+
+## THE EIGHT PLANNER PARTINGS MATCH THE AUTHORITY, SIX REGISTER DEFECTS CLOSE, AND THE GATE FAILS **1 OF 9** — THE OPEN-DEFECT CLAUSE, ON **#318 AND #511**, NOT LANDED. CENSUS **872 → 881 LIVE**. BATCH 2 BROKE THE NARRATION CLAUSE (**0 → 1 OF 961**) AND BATCH 3 REPAIRED IT. POOL UNMOVED: **0 / 1 / 2 OF 961**. RELEASES `84721693b509`, `48e136c97a34`, `e368827481f5`. 2026-09-11, CHANGELOG 6.18.0
+
+Full account, every pin, every red: [docs/_reports/2026-09-11-reopen.md](_reports/2026-09-11-reopen.md).
+
+- **Batch 1, board-material (#593–#596).** Oblivious refuses Taunt (a derived `refusesMovesById`, Oblivious alone);
+  a bounced Spite is the bouncer's move; `critChance` reads the crit-stage volatiles, which had never been read into
+  the ratio at all (`critStageVolatile.delta`, Dragon Cheer's type recorded at start); a Klutz stone mega-evolves,
+  because Champions' `canMegaEvo` reads the raw slot. Mechanics clause 9 of 16 → 3 of 9.
+- **Batch 2, narration (#597–#600).** Cute Charm's attribution, Own Tempo's refusal line, every veil's `-block`
+  (claimed now), Covet's single `-item`, each derived off its handler. It broke the narration clause: claiming
+  `-block` exposed Flower Veil's stat-drop half, refused silently here, and the status half was gated on the wrong
+  question (a status from a secondary, where the handler asks whether the MOVE has secondaries).
+- **Batch 3.** The Flower Veil repair (`preventsStatDrop.allyBlockLine`, once per boost object); Unburden needs its
+  volatile (#535); bugbite and pluck eat (#529); `position_features` reads `effAbility` (#412); amf defaults to
+  `--kind all` (#425); every differential cause carries `void_n` and its context (#467, #375); `run-all` reads exits
+  through `engine/exit_codes.js` (#380); #399's probe re-aimed; #348 re-scoped to the calling convention.
+- **Not landed:** #511 needs the per-arrival clamp (patch A1); #318 needs every move carrier restaged.
+- **Instrument faults of my own, each caught before a result was trusted:** a probe with two bodies a side
+  (`buildPair` returns null below four); a line comparison that started at `|turn|1` and could not see entry
+  narration; a roster plant left dead by my own #535 edit; and a mid-run edit to `derive_protocol_events.js` that
+  made the bottom arm refuse at load, re-run with HEAD's bytes served by a preload.
+
+### The hand list
+
+**Leaving it:** nothing carried from the list below was turned into a probe; the eight partings were register rows
+(#593–#600) and are probed now by `tests/probe_reopen_partings.js`.
+
+**Joining it:** Unburden's `_hadItem`, stamped only at entry, so a body handed an item mid-battle and then losing it
+gets no doubling; Oblivious's `onUpdate` half; a mega under Magic Room (covered by construction, not staged);
+Flower Veil's status-half `-block` for a primary status move (gated on the derived class, not staged).
+
+**Still on it:** unchanged from the section below.
 
 ## THE STAGED HARNESS PLAYS THE PLANNER'S FIXTURES — FIRED **740 → 783 OF 845**, BOARD-COMPARED THE SAME. GENDER REACHES A REAL GAME. SCOPE IS DECIDED IN ONE PLACE. EIGHT NEW PARTINGS REGISTERED, NOT FIXED (#593–#600). THE FAINT EPOCH IS PER BATTLE. POOL UNMOVED: MIDDLE **0**, TOP **1**, BOTTOM **2 OF 961**. GATE **CLOSED, 1 OF 9** ON THE MECHANICS CLAUSE. RELEASES `cfab4786683a`, `aefcb93baf14`. 2026-09-11, CHANGELOG 6.14.0–6.14.1
 
