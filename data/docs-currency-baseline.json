@@ -1,8 +1,8 @@
 {
-  "generated": "2026-09-11T04:25:24.614Z",
+  "generated": "2026-09-11T06:37:52.123Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "6.6.1",
+  "changelog_top_at_baseline": "6.7.0",
   "version_pins": {
     "docs/ADR-002-showdown-is-the-authority.md": {
       "version": "3.50.0",
@@ -601,7 +601,6 @@
         "3bcde1d84f|−5.054",
         "42508e1108|5,808",
         "42e6320a8a|0.8992",
-        "451c61b952|112",
         "45c4708a37|2.86",
         "45c4708a37|4.56",
         "47da1bfffc|1,934",
@@ -747,7 +746,6 @@
         "a0b1af2ca9|231,722",
         "a0b1af2ca9|99.67%",
         "a12be65463|915",
-        "a1858747e6|181",
         "a1b67415e1|200",
         "a2781076d8|16",
         "a5fb01cb3b|55",

@@ -2689,6 +2689,29 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * have run. A zero after real games with an Encore in them is the finding -- it means the only turn
    * the override can fire on is being missed, which is the state this counter was added to end. */
   encoreOverrodeAtExecution: 0,
+  /* 2026-09-11 -- THE SPEED-TIE CORNER BATCH. One counter per fix, each asserted non-zero on its red
+   * arms and zero on its controls by tests/probe_corner_mechanisms.js, so a green there is shown to
+   * have come THROUGH the new line rather than around it. Each name is the event the fix exists for:
+   *   encoreRewroteGuardedAction   Champions' changeAction rewrote a queued PIVOT or STRUGGLE
+   *   entryHandlersSkippedDead     an entrant the hazard killed ran none of its own handlers
+   *   acquiredStartAtZeroHP        an ability acquired by a body this hit KO'd ran its Start anyway
+   *   damageFlooredToOne           a connected packet that computed to 0 was raised to 1
+   *   breakProtectByShieldVolatile Feint broke a shield whose volatile is not its move id (Detect)
+   *   thawDeferredToUse / thawDeferredRefused   a defrost move thawed at USE / a BeforeMove refusal kept the freeze
+   *   pivotNoTargetFailed          a pivot with nothing left to aim at failed and did not switch
+   *   stealRefusedFullHand         Thief/Covet took nothing because the thief was holding an item
+   *   costBoostFailedAtCap         Belly Drum failed at +6 without paying
+   *   statRewireUndoneOnSwitch     a Speed/Guard/Power swap was undone by leaving the field
+   *   halfHpFlooredToOne           half-current-HP damage on a 1 HP body was raised to 1
+   *   itemMultInBpChain            Knock Off's x1.5 joined the base-power chain instead of flooring alone
+   *   volleyStoppedUserFainted     a volley stopped because its USER fainted between arrivals */
+  encoreRewroteGuardedAction: 0, entryHandlersSkippedDead: 0, acquiredStartAtZeroHP: 0, damageFlooredToOne: 0,
+  breakProtectByShieldVolatile: 0, thawDeferredToUse: 0, thawDeferredRefused: 0, pivotNoTargetFailed: 0,
+  stealRefusedFullHand: 0, costBoostFailedAtCap: 0, statRewireUndoneOnSwitch: 0, halfHpFlooredToOne: 0,
+  itemMultInBpChain: 0, volleyStoppedUserFainted: 0,
+  /*   layerRefundRefusedNoFoe      a Stockpile refund refused because the holder's foe side is empty
+   *   typeCopiedToUser             Reflect Type copied the target's typing onto the user */
+  layerRefundRefusedNoFoe: 0, typeCopiedToUser: 0,
   /* 2026-08-29 -- AN ENCORE THAT LANDED MID-TURN AND MOVED THE TARGET'S QUEUED ACTION INTO THE
    * ENCORED MOVE'S PRIORITY BRACKET. This is CHAMPIONS' OWN clause and mainline has nothing like it:
    * `data/mods/champions/moves.ts:302-318` calls `this.queue.changeAction(target, {...moveid...})` and
@@ -4051,6 +4074,13 @@ const MEDFAILS = { encoreAction: 0,
    * never silently open a shield the authority keeps closed -- and it names the offender. Expected 0:
    * every `shieldsUser` member in this format is in `hitStepBreakProtect`'s seven. */
   breakProtectUnlistedShield: 0, breakProtectUnlistedShieldFirst: '',
+  /* 2026-09-11 -- the corner batch's thirteen knobs, each stamping its own run (see the MEDI_* block
+   * beside VOL_RESTART_BLIND). A restored engine cannot be mistaken for a fixed one. */
+  encoreRewriteKeepsGuardsRestored: 0, entryDeadStillStartsRestored: 0, acquiredStartNeedsHpRestored: 0,
+  damageNoMinOneRestored: 0, feintReadsMoveIdRestored: 0, thawAboveFlinchRestored: 0,
+  pivotNoTargetSwitchesRestored: 0, stealIgnoresFullHandRestored: 0, costBoostNoCapFailRestored: 0,
+  statRewireSurvivesSwitchRestored: 0, halfHpNoFloorRestored: 0, knockoffFlooredAloneRestored: 0,
+  volleyIgnoresUserFaintRestored: 0, layerRefundIgnoresNoFoeRestored: 0, reflectTypeUnmodelledRestored: 0,
   /* ROADMAP #128 -- Cud Chew spent its counter on a berry whose `onEat` this engine cannot express
    * (Leppa's PP restore is the live example: the slot CHOICE lives in berryPPUpdate and is not routed
    * through berryForceEat). The helping is announced and delivers nothing, which is precisely the
@@ -5828,6 +5858,37 @@ function volRestartTable(){
   return _volNoRestart;
 }
 const VOL_RESTART_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_VOL_RESTART_BLIND==='1');
+/* 2026-09-11 -- THE SPEED-TIE CORNER BATCH. Each knob restores ONE pre-fix behaviour verbatim, is played
+ * in its own child by tests/probe_corner_mechanisms.js (its red arms must PART, its controls must HOLD),
+ * and stamps a `MEDFAILS.<name>Restored`. The pool game each one closes is named at its site. */
+const _MK=k=>(typeof process!=='undefined'&&process.env&&process.env[k]==='1');
+const ENCORE_REWRITE_KEEPS_GUARDS=_MK('MEDI_ENCORE_REWRITE_KEEPS_GUARDS');
+const ENTRY_DEAD_STILL_STARTS=_MK('MEDI_ENTRY_DEAD_STILL_STARTS');
+const ACQUIRED_START_NEEDS_HP=_MK('MEDI_ACQUIRED_START_NEEDS_HP');
+const DAMAGE_NO_MIN_ONE=_MK('MEDI_DAMAGE_NO_MIN_ONE');
+const FEINT_READS_MOVE_ID=_MK('MEDI_FEINT_READS_MOVE_ID');
+const THAW_ABOVE_FLINCH=_MK('MEDI_THAW_ABOVE_FLINCH');
+const PIVOT_NO_TARGET_SWITCHES=_MK('MEDI_PIVOT_NO_TARGET_SWITCHES');
+const STEAL_IGNORES_FULL_HAND=_MK('MEDI_STEAL_IGNORES_FULL_HAND');
+const COST_BOOST_NO_CAP_FAIL=_MK('MEDI_COST_BOOST_NO_CAP_FAIL');
+const STAT_REWIRE_SURVIVES_SWITCH=_MK('MEDI_STAT_REWIRE_SURVIVES_SWITCH');
+const HALF_HP_NO_FLOOR=_MK('MEDI_HALF_HP_NO_FLOOR');
+const KNOCKOFF_FLOORED_ALONE=_MK('MEDI_KNOCKOFF_FLOORED_ALONE');
+const VOLLEY_IGNORES_USER_FAINT=_MK('MEDI_VOLLEY_IGNORES_USER_FAINT');
+/* batch 2 + 3 of the same pass */
+const LAYER_REFUND_IGNORES_NO_FOE=_MK('MEDI_LAYER_REFUND_IGNORES_NO_FOE');
+const REFLECT_TYPE_UNMODELLED=_MK('MEDI_REFLECT_TYPE_UNMODELLED');
+/* The target classes that name a BODY. A pivot aimed at one of these with nobody left to aim at has
+ * `[notarget]` written and fails; a field- or self-aimed pivot (Chilly Reception) never has a body. */
+const PIVOT_AIMS_AT_BODY=new Set(['normal','any','adjacentFoe','randomNormal']);
+/* WHICH VOLATILE A SHIELD MOVE RAISES. Detect raises `protect`; every other legal shield raises its own
+ * id (membership printed 2026-09-11: detect->protect is the only one). `breaksProtect.volatiles` is a
+ * list of VOLATILES, so it has to be asked in that currency. */
+function shieldVolatileOf(mv){
+  if(!mv)return null;
+  const su=TAGS.param('move',mv,'shieldsUser');
+  return (su&&su.volatile)||mv;
+}
 /* 2026-08-26 -- MEDI_GRAVITY_GROUNDS_EVERY_CHARGE=1 restores the pre-fix predicate in the `gravity`
  * branch: every `semiInvulnerable` charge comes down, no queued move is cancelled and no Magnet Rise
  * is stripped. That is the whole of the defect and nothing else, so a knob run turns exactly the two
@@ -6783,12 +6844,28 @@ function applyLayeredVolatile(who,vol,p){
  * The refund is the BOOK, never the layer count, for the reason applyLayeredVolatile's header gives;
  * `refundsOnEnd` is read rather than assumed, so a layered volatile that grants a permanent boost
  * would keep it instead of silently inheriting Stockpile's rule. */
-function releaseLayeredVolatile(who,vol){
+function releaseLayeredVolatile(who,vol,S){
   if(!who||!who._vol||!(who._vol[vol]>0)) return false;
   const p=layeredVolatiles().get(vol)||null;
   delete who._vol[vol];
   const book=who._volGave&&who._volGave[vol];
+  /* 2026-09-11 -- THE REFUND IS A `boost`, AND `boost` REFUSES WITH NO FOE LEFT. Stockpile's `onEnd`
+   * hands the stages back through `this.boost(...)`, whose third guard is
+   *     if (this.gen > 5 && !target.side.foePokemonLeft()) return false;       sim/battle.ts:2028
+   * so a Spit Up that knocks out the LAST foe ends the stack and refunds NOTHING -- the authority writes
+   * `-end ... Stockpile` and the stages stay. `foeSideEmptyFor` is this engine's one reader of that
+   * clause. Measured on the pool, bottom corner, release 09b2b98feb98, game …2635658823: Camerupt's
+   * Spit Up takes Whimsicott, the last p2 body, and the authority leaves Camerupt at +3/+3 where this
+   * engine stripped it to 0. A caller with no battle state in hand cannot ask, and is counted. */
+  let _noFoe=false;
   if(book&&(!p||p.refundsOnEnd)){
+    if(!S)MEDFAILS.layerRefundNoState=(MEDFAILS.layerRefundNoState||0)+1;
+    else if(foeSideEmptyFor(S,who)){
+      if(LAYER_REFUND_IGNORES_NO_FOE)MEDFAILS.layerRefundIgnoresNoFoeRestored=1;
+      else{_noFoe=true;MEDSEEN.layerRefundRefusedNoFoe++;}
+    }
+  }
+  if(book&&(!p||p.refundsOnEnd)&&!_noFoe){
     for(const s in book){
       const d=+book[s];
       if(!d||!who.boosts||who.boosts[s]==null) continue;
@@ -6816,11 +6893,11 @@ function releaseLayeredVolatile(who,vol){
  * the debt when the move is USED and pay it at the top of the next iteration plus once below the loop,
  * which is "after action k-1, before action k" and is precisely where AfterMove sits. Paid BEFORE
  * `_updateAll`, because AfterMove is inside `useMove` and the Update event is fired after the action. */
-function flushAfterMoveSpends(bodies){
+function flushAfterMoveSpends(bodies,S){
   for(const m of bodies){
     if(!m||!m._spendAfter) continue;
     const vol=m._spendAfter; m._spendAfter=null;
-    releaseLayeredVolatile(m,vol);
+    releaseLayeredVolatile(m,vol,S);
   }
 }
 /* ---- ROADMAP #212 -- OPPORTUNIST, AND WHY IT IS A SNAPSHOT RATHER THAN A HOOK ------------------
@@ -12971,6 +13048,7 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    * (a hurt Eruption is a weak Eruption), doubled-vs-status (Hex), doubled-itemless (Acrobatics),
    * and Knock Off's x1.5 when the target actually holds something -- sheet-known on open sheets. */
   const _vp=mv.id&&TAGS.param('move',mv.id,'variablePower');
+  let _itemBpMult=0;   // Knock Off's x1.5, spent inside the base-power chain below (2026-09-11)
   /* ROADMAP #84 -- THE GATE WAS `_vp.kind`, WHICH LOCKED OUT EVERY MEMBER THE DERIVATION COULD NOT
    * NAME. Twelve moves carry `variablePower {computed:true}` with no `kind` at all -- the artifact
    * says `idiom not yet derivable` -- so the whole block was skipped for them and, because the
@@ -13047,7 +13125,17 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
      * Hold carries no row in `data/tags.json` at all (0 uses, and it is not reachable from this
      * format's species pool), so there is no shape to match on and naming it would be the hand-typed
      * list this project bans. Reported rather than wired. */
-    else if(_vp.kind==='targetHasItem'&&def.item&&!itemRefusesTake(def))mvBP=Math.floor(mvBP*_vp.mult);
+    /* 2026-09-11 -- AND THE x1.5 IS A MEMBER OF THE BASE-POWER CHAIN, NOT A FLOOR OF ITS OWN. Knock Off's
+     * `onBasePower` returns `this.chainModify(1.5)`, into the SAME relay as Helping Hand's `chainModify
+     * ([6144, 4096])` and every other `onBasePower`, truncated ONCE (see the `_bpChain` block below).
+     * Alone the two readings agree (65 -> 97 either way, which is why the paragraph above is right about
+     * the single-member case); beside Helping Hand the authority reads 146 and a floor-first reading
+     * reads 145. Measured on the pool, top corner, release 5973a4e3c768, game …2655635795: Scrafty's
+     * Helping-Handed Knock Off into a Sitrus Kommo-o left 102 in the authority and 103 here. */
+    else if(_vp.kind==='targetHasItem'&&def.item&&!itemRefusesTake(def)){
+      if(KNOCKOFF_FLOORED_ALONE){MEDFAILS.knockoffFlooredAloneRestored=1;mvBP=Math.floor(mvBP*_vp.mult);}
+      else _itemBpMult=+_vp.mult;
+    }
     /* ---- WIRE 83 -----------------------------------------------------------------------------
      * GYRO BALL: floor(25 x THEIR speed / MY speed) + 1, capped at 150. Every multiplier that makes
      * a speed real belongs in it -- a Choice Scarf on the target is most of the move -- so it goes
@@ -13701,6 +13789,7 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
   {
     let _bpChain=CH_ONE,_bpMembers=0;
     const BPCH=m=>{_bpChain=ch4096(_bpChain,m);_bpMembers++;};
+    if(_itemBpMult){BPCH(_itemBpMult);MEDSEEN.itemMultInBpChain++;}
     const _au=(att!==def)?auraFor(field,att,def):null;
     const _ae=_au&&_au.types&&_au.types[mvT];
     if(_ae){
@@ -14100,7 +14189,17 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
       const _mine=(att.curHP!=null?att.curHP:(att.st?att.st.hp:0));
       let _flat=null;
       if(_fd.damage==='level')_flat=50;                       // Champions is Level 50 throughout
-      else if(_fd.source==='halfTargetCurrentHP')_flat=Math.floor(_hp/2);
+      /* 2026-09-11 -- AND NEVER LESS THAN 1. Super Fang's `damageCallback` is
+       *     return this.clampIntRange(target.getUndynamaxedHP() / 2, 1);
+       * and every Super Fang click comes down THIS road: `hasPower` admits a `fixedDamage` move, so
+       * `playerAction` returns `{kind:'attack'}` at its attack line and the `kind:'fixeddmg'` branch
+       * (which does floor at 1) is never reached from a real click. Measured on the pool, bottom corner,
+       * release 5973a4e3c768, game …2662677462: Maushold's Super Fang into a 1 HP Glimmora -- the
+       * authority's faints it and this engine's dealt 0. */
+      else if(_fd.source==='halfTargetCurrentHP'){
+        _flat=Math.floor(_hp/2);
+        if(_flat<1&&_hp>0){ if(HALF_HP_NO_FLOOR)MEDFAILS.halfHpNoFloorRestored=1; else{_flat=1;MEDSEEN.halfHpFlooredToOne++;} }
+      }
       else if(_fd.source==='myRemainingHP')_flat=_mine;
       else if(_fd.source==='targetDownToMine')_flat=Math.max(0,_hp-_mine);
       else if(_fd.source==='ohko')_flat=_hp;
@@ -14408,7 +14507,19 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
     d=Math.floor(d*eff);
     if(burn<1)d=md4096(d,burn);
     const _ch=lo>1?ch4096(mod,lo):mod;
-    return mdChain(d,_ch);
+    const _v=mdChain(d,_ch);
+    /* 2026-09-11 -- A CONNECTED PACKET DEALS AT LEAST 1. `modifyDamage` ends
+     *     if (this.battle.gen !== 5 && !baseDamage) return 1;
+     * (data/mods/champions/scripts.ts:309, mainline sim/battle-actions.ts:1838), AFTER every modifier
+     * above -- so a Parental Bond second packet at x0.25 into a resist, which truncates to 0 here,
+     * is 1 there. Measured on the pool, top corner, release 5973a4e3c768, game …2663746491: a Charmed
+     * Kangaskhan-Mega's Low Kick left Whimsicott on 131 in the authority and 132 here. `eff > 0` because
+     * an immune target never reaches `modifyDamage`. */
+    if(_v===0&&eff>0){
+      if(DAMAGE_NO_MIN_ONE){MEDFAILS.damageNoMinOneRestored=1;return 0;}
+      MEDSEEN.damageFlooredToOne++;return 1;
+    }
+    return _v;
   };
   /* WIRE 20 -- multiHit. Rock Blast was ONE 25-BP hit and Population Bomb ONE 20-BP hit, so the
    * engine priced them at a third and a seventh of what they do. 4,655 corpus clicks, led by Dual
@@ -18187,15 +18298,39 @@ function actionPriority(it, field){
  * skip here looks exactly like the defect this closes. */
 let ENCORE_Q=null;
 function encoreRelocateQueued(who, mvId){
-  if(ENCORE_KEEPS_SELECTED_BRACKET)return false;
   if(!who||!mvId||!MC.moves[mvId])return false;
   const Q=ENCORE_Q;
-  if(!Q||!Q.acts){MEDFAILS.encoreRelocateNoQueue++;return false;}
+  if(!Q||!Q.acts){if(!ENCORE_KEEPS_SELECTED_BRACKET)MEDFAILS.encoreRelocateNoQueue++;return false;}
   for(let k=Q.at+1;k<Q.acts.length;k++){
     const it=Q.acts[k];
     if(!it||it.mon!==who)continue;
     if(sdChoiceOf(it.a)!=='move')return false;     // willMove() answers for a move action only
     if(actionMoveId(it.a)===mvId)return false;     // action.moveid !== move.id
+    /* 2026-09-11 -- AND `changeAction` REWRITES THE ACTION ITSELF, WHATEVER MOVE IT WAS.
+     *
+     * The bracket above is half of what Champions' onStart does. The other half is the MOVE:
+     * `this.queue.changeAction(target, { choice: 'move', moveid: move.id, order })` (data/mods/champions/
+     * moves.ts:309-315) replaces the queued action outright, with no Struggle clause and no pivot
+     * clause. The execution-time override (WIRE 143) models MAINLINE's `onOverrideAction`, whose
+     * caller does exclude Struggle (`baseMove.id !== 'struggle'`, sim/battle-actions.ts:226) -- and
+     * which never sees a Parting Shot, because this engine's pivot is `{kind:'switch',mv}` and the
+     * override skipped every `kind === 'switch'`. So a queued Parting Shot or a queued Struggle was
+     * never rewritten here and always was over there. Two pool games, measured on release
+     * 5973a4e3c768 with engine/replay_one.js:
+     *   top …2661290217     Raichu's Encore lands on an Incineroar that clicked Parting Shot; the
+     *                       authority plays Flare Blitz (`|move|p2a: Incineroar|Flare Blitz|p1b: Raichu`)
+     *                       and this engine pivoted
+     *   bottom …2635374300  Sableye's Encore lands on a Choice-locked Basculegion whose locked move is
+     *                       Disabled and which therefore queued Struggle; the authority rewrites it back
+     *                       to Last Respects and writes `|cant|...|Disable`, this engine Struggled
+     * The mark is read by the override at execution, where the action is rebuilt with the one
+     * implementation of that rebuild. A bare `{kind:'pass'}` carries no move and `willMove()` would not
+     * have returned it, so it is not marked. */
+    if(it.a&&(it.a.kind!=='pass'||it.a.mv)){
+      if(ENCORE_REWRITE_KEEPS_GUARDS)MEDFAILS.encoreRewriteKeepsGuardsRestored=1;
+      else it._encoreRewrite=mvId;
+    }
+    if(ENCORE_KEEPS_SELECTED_BRACKET)return false;
     it._selMv=mvId;
     MEDSEEN.encoreRelocatedQueuedAction++;
     return true;
@@ -22045,6 +22180,9 @@ function megaEvolveNow(S,m,auto){
     }
     const dHP=st.hp-m.st.hp;
     m.st=st; m.curHP=Math.max(1,Math.min(st.hp,m.curHP+dHP));
+    /* the mega's own `setSpecies` recomputes from the set, so a rewire standing before it is gone and
+       its baseline is not the line a later switch-out should restore (ROADMAP #571) */
+    m._stRewireBase=null;
   }else{
     MEDFAILS.megaNoBaseStats++;
     if(!MEDFAILS.megaNoBaseStatsFirst)MEDFAILS.megaNoBaseStatsFirst=String(key);
@@ -24114,6 +24252,23 @@ function runEntryPass(nx,foes,act,i,field,sf,announce){
    * side condition laid earlier sorts ahead of an abilityState that `switchIn` re-inits on arrival
    * (sim/battle.ts:994-999), and there is exactly one ability per body so nothing sorts against it
    * here. `announce` is undefined for every caller that did not defer, so those are unchanged. */
+  /* 2026-09-11 -- AN ENTRANT THE HAZARD ALREADY KILLED RUNS NONE OF ITS OWN HANDLERS.
+   *
+   * `fieldEvent('SwitchIn')` calls `this.faintMessages()` after EVERY handler (sim/battle.ts:565), so a
+   * Stealth Rock that takes the entrant to 0 has already set `fainted` by the time the entrant's own
+   * ability comes up -- and the loop's first test is `if (handler.effectHolder.fainted) { if (!slot
+   * condition) continue; }` (:511-513). The body's Intimidate, its weather, its Trace, its Imposter and
+   * its announcement are ALL its own handlers and all skipped. This engine ran them. Measured on the
+   * pool, bottom corner, release 5973a4e3c768, game …2662004374: a refilled Incineroar at 33/170 drops
+   * to 0 on Stealth Rock and this engine then lowered both foes' Attack.
+   * The field re-reads below this block are NOT the entrant's handlers -- they are walks over whoever
+   * is standing -- and run either way. */
+  const _deadOnArrival=!!(nx&&(nx.fainted||nx.curHP<=0));
+  if(_deadOnArrival){
+    if(ENTRY_DEAD_STILL_STARTS)MEDFAILS.entryDeadStillStartsRestored=1;
+    else MEDSEEN.entryHandlersSkippedDead++;
+  }
+  if(!_deadOnArrival||ENTRY_DEAD_STILL_STARTS){
   if(announce)announce();
   /* WIRE 141 -- BEFORE the entry-effect pass, because the transform REPLACES the ability and the
    * replacement's own Start handler is what that pass runs. Doing it afterwards would fire Imposter's
@@ -24125,6 +24280,7 @@ function runEntryPass(nx,foes,act,i,field,sf,announce){
   traceCopy(nx,_live(foes));
   applyEntryEffects(nx,field,act[1-i]);
   applyEntryDrops(nx,_live(foes));   // WIRE 100a -- membership from `onSwitchInDrop`, not a name
+  }
   /* 2026-08-23 -- AND THE FIELD-DRIVEN FORMES, BECAUSE ARRIVING IS ONE OF THE MOMENTS THEY FOLLOW.
    *
    * `forecast` is `onSwitchInPriority: -2` with `onStart(pokemon) { this.singleEvent('WeatherChange',
@@ -24506,6 +24662,20 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * facts about HAVING LEFT, and the roadmap's line ("a transform never reverts on switch-out") is
    * closed here. It is above the `_lock` reset for no reason other than reading order; nothing below
    * depends on the species. */
+  /* 2026-09-11, ROADMAP #571 -- AND A SPEED / GUARD / POWER SWAP IS UNDONE WITH IT. `clearVolatile`
+   * ends in `setSpecies(this.baseSpecies)` (data/mods/champions/scripts.ts:176), which recomputes the
+   * stored stats from the set. This engine wrote the swap into `st` and nothing ever rebuilt it.
+   * Measured on the pool, top corner, release 5973a4e3c768, game …2656451791: Alakazam Speed Swaps
+   * Sylveon at turn 5, Sylveon leaves and returns, and at turn 8 the authority reads its Speed as 91
+   * and this engine as 166. ABOVE `imposterRevert`, whose pre-transform line is the older truth when a
+   * body was both transformed and rewired. HP is never rewired and is left alone. */
+  if(out._stRewireBase){
+    if(STAT_REWIRE_SURVIVES_SWITCH)MEDFAILS.statRewireSurvivesSwitchRestored=1;
+    else{const _b=out._stRewireBase;
+      for(const _k of ['at','df','sa','sd','sp'])if(_b[_k]!=null&&out.st)out.st[_k]=_b[_k];
+      MEDSEEN.statRewireUndoneOnSwitch++;}
+    out._stRewireBase=null;
+  }
   if(out._transformed)imposterRevert(out);
   out._wasOut=true;
   out._lock=null; out._lockT=0; out._lockHadMove=false; out._flinch=false;
@@ -28216,7 +28386,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `(a, b) => b.speed - a.speed`, so the field's inversion does not apply to it. */
       /* WIRE 152 -- the AfterMove debt from the PREVIOUS action, settled before the Update event
          exactly as the authority orders them. See flushAfterMoveSpends. */
-      flushAfterMoveSpends([...actA,...actB]);
+      flushAfterMoveSpends([...actA,...actB],S);
       /* ROADMAP #212 -- OPPORTUNIST PAYS OUT AT `onAnyAfterMove`, SO IT SETTLES HERE, beside the
        * other previous-action debt and for the identical reason: the loop body carries ~30
        * `continue`s and a call at the bottom would be skipped by every one of them. The snapshot it
@@ -28393,9 +28563,15 @@ function battleTurn(S,rng,actsForA,actsForB){
        * OverrideAction by MOVE ID; this engine's real Struggle action carries `kind:'attack'`, so the
        * kind test matched nothing the mechanic ever produces and the encored move was forced back over
        * a Struggle that `mustStruggle` had correctly reached. See `isStruggleAction`. */
+      /* 2026-09-11 -- AN ACTION CHAMPIONS' `changeAction` ALREADY REWROTE IS REBUILT WHATEVER IT WAS.
+       * `_encoreRewrite` is written by `encoreRelocateQueued` at the instant the Encore landed on a body
+       * that had not yet acted; the three exclusions below are mainline `onOverrideAction`'s and apply
+       * only to the OTHER road (an Encore standing from an earlier turn). See encoreRelocateQueued. */
+      const _encRw=!!(it.a&&it._encoreRewrite&&it._encoreRewrite===m._encoreMove);
       if(it.a&&m._vol&&m._vol.encore>0&&m._encoreMove&&MC.moves[m._encoreMove]
-         &&it.a.kind!=='switch'&&it.a.kind!=='pass'
-         &&actionMoveId(it.a)!==m._encoreMove&&!_declineStruggle(it.a,'Exec')){
+         &&actionMoveId(it.a)!==m._encoreMove
+         &&(_encRw||(it.a.kind!=='switch'&&it.a.kind!=='pass'&&!_declineStruggle(it.a,'Exec')))){
+        if(_encRw&&(it.a.kind==='switch'||it.a.kind==='pass'||isStruggleAction(it.a)))MEDSEEN.encoreRewroteGuardedAction++;
         const _efoes=it.side==='A'?actB:actA, _elive=live(_efoes);
         if(_elive.length){
           /* ROADMAP #478 -- ADDRESSED AS `getRandomTarget`, WITH THE ENCORED MOVE'S ID. The authority's
@@ -28905,12 +29081,25 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _fmid=actionMoveId(it.a);
         const _tu=_fmid?TAGS.param('move',_fmid,'thawsUser'):null;
         const _needT=_tu&&_tu.requiresUserType;
+        m._thawAtUse=null;
         if(_tu&&!(_needT&&!(m.types||[]).includes(_needT))){
-          MEDSEEN.thawedByOwnMove++;
-          m.status='';
+          /* 2026-09-11 -- THE THAW IS `onModifyMove`, NOT `onBeforeMove`, SO IT WAITS FOR THE MOVE TO BE USED.
+           * `frz.onBeforeMove` only RETURNS for a defrost move (data/mods/champions/conditions.ts, the
+           * `move.flags['defrost']` line) -- the cure is mainline `frz.onModifyMove`, which runs inside
+           * `useMoveInner`, below EVERY BeforeMove refusal. A frozen body clicking Scald that is then
+           * flinched (priority 8) is refused and STAYS FROZEN. This engine cured it here, above the
+           * flinch. Measured on the pool, bottom corner, release 5973a4e3c768, game …2634612764: Milotic
+           * frozen, Scald clicked, flinched by Rock Slide -- the authority writes `|cant|...|flinch` and
+           * keeps `frz`; this engine wrote `-curestatus` and then the `cant`. The cure is now paid at the
+           * `|move|` line, which is where `useMoveInner` stands. */
+          if(THAW_ABOVE_FLINCH){
+            MEDFAILS.thawAboveFlinchRestored=1;
+            MEDSEEN.thawedByOwnMove++;
+            m.status='';
+            if(TR)TR.cure(m,'frz',ATTR.from(ATTR.move(_fmid)));
+          } else m._thawAtUse=_fmid;
           /* `[from] move: <id>`, the handler's own attribution. Ids rather than display names is this
            * file's convention everywhere ATTR.move is used -- see the typechange emit for Burn Up. */
-          if(TR)TR.cure(m,'frz',ATTR.from(ATTR.move(_fmid)));
         }else{
           /* A defrost move that reached HERE was refused the free move by the type clause, and that is
            * the only way to get here with `_tu` set. Counted, because a zero on a board where a
@@ -28998,6 +29187,8 @@ function battleTurn(S,rng,actsForA,actsForB){
        * MEMBERSHIP, printed over the format dex before this was written: onFlinch matches exactly ONE
        * ability, Steadfast. Carriers in Reg M-B: Machamp, Lucario, Gallade, Lycanroc. */
       if(m._flinch){
+        /* 2026-09-11 -- a defrost thaw that was waiting for the move to be USED is refused with it. */
+        if(m._thawAtUse){m._thawAtUse=null;MEDSEEN.thawDeferredRefused++;}
         m._flinch=false;m._mvRes=false;if(TR)TR.cant(m,'flinch');
         {const _bf=TAGS.param('ability',m.ability,'boostsOnFlinch');
          if(_bf&&_bf.boosts&&m.boosts&&!m.fainted){
@@ -29485,6 +29676,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        * that. OUTSIDE the `if(TR)` block below on purpose: the state must not depend on whether a
        * trace sink is attached, for the reason ROADMAP #262 gives one screen down. */
       TTM_INFLIGHT=null;
+      /* 2026-09-11 -- THE DEFROST THAW, PAID WHERE `useMoveInner` RUNS `ModifyMove`: below every
+       * BeforeMove refusal (each of which `continue`d above this line, so the mark is only still set on
+       * a move that is actually being used) and above the `|move|` line, which is where the authority's
+       * `-curestatus ... [from] move:` falls. See the `frz` block. A stale mark on a body that is no
+       * longer frozen is dropped without a line. */
+      if(m._thawAtUse){const _fm=m._thawAtUse;m._thawAtUse=null;
+        if(m.status==='frz'){MEDSEEN.thawedByOwnMove++;MEDSEEN.thawDeferredToUse++;m.status='';
+          if(TR)TR.cure(m,'frz',ATTR.from(ATTR.move(_fm)));}}
       /* ROADMAP #68 -- `|move|USER|MOVE|TARGET`, AND ITS POSITION IS THE MECHANIC.
        *
        * Showdown emits the move line inside `useMoveInner` (sim/battle-actions.ts:453) AFTER the
@@ -31556,6 +31755,23 @@ function battleTurn(S,rng,actsForA,actsForB){
          }}
         const _cost=_sc4.costFraction?Math.floor(m.st.hp*+_sc4.costFraction):0;
         if(_cost&&m.curHP<=_cost){m._lastMove=a.mv;mvFail(m);continue;}          // it cannot pay: the move fails
+        /* 2026-09-11 -- AND IT FAILS AT THE CAP, BEFORE IT PAYS. Belly Drum's `onHit` is
+         *     if (target.hp <= target.maxhp / 2 || target.boosts.atk >= 6 || target.maxhp === 1) return false;
+         * (data/moves.ts:1225-1227) -- the HP cost and the +6 cap are one clause. This engine asked only
+         * the first. The test is the raw stage against the DECLARED direction (not `invSign`): the
+         * handler reads `boosts.atk >= 6` whatever the body's ability. Shape, not name: the member set
+         * of `statChangeInCode` with a `costFraction` is exactly Belly Drum (printed 2026-09-11).
+         * Measured on the pool, top corner, release 5973a4e3c768, game …2654931424: Azumarill's second
+         * Belly Drum -- the authority writes `Belly Drum||[still]` and `-fail`, this engine paid 87 HP. */
+        if(_cost&&_sc4.boosts){
+          const _bk=Object.keys(_sc4.boosts);
+          const _atCap=_bk.length>0&&_bk.every(k=>{const _s=SD2ENG[k],_d=+_sc4.boosts[k];
+            return !!_s&&m.boosts[_s]!=null&&(_d>0?m.boosts[_s]>=6:(_d<0?m.boosts[_s]<=-6:false));});
+          if(_atCap){
+            if(COST_BOOST_NO_CAP_FAIL)MEDFAILS.costBoostNoCapFailRestored=1;
+            else{MEDSEEN.costBoostFailedAtCap++;m._lastMove=a.mv;if(TR)TR.attrStill();mvFail(m);continue;}
+          }
+        }
         if(_cost){m.curHP-=_cost;if(TR)TR.dmg(m);}
         const _sg=invSign(m);          // WIRE 100b
         /* ROADMAP #308 -- DID ANY STAGE ACTUALLY MOVE. Read for Stuff Cheeks' `if (!this.boost(...))`
@@ -32112,6 +32328,39 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* WIRE 108 -- the type writers. The written type is the MOVE'S OWN (true of all four members);
          `adds` appends it, `replaces` overwrites the whole list. Same status gates; Magic Powder is
          a powder move and powderBlocked already owns that refusal. */
+      /* 2026-09-11 -- REFLECT TYPE: THE TARGET'S TYPING, WRITTEN ONTO THE USER.
+       *
+       *     onHit(target, source) {
+       *       if (source.species && (source.species.num === 493 || source.species.num === 773)) return false;
+       *       if (source.terastallized) return false;
+       *       let newBaseTypes = target.getTypes(true).filter(type => type !== '???');
+       *       if (!newBaseTypes.length) { if (target.addedType) newBaseTypes = ['Normal']; else return false; }
+       *       this.add('-start', source, 'typechange', '[from] move: Reflect Type', `[of] ${target}`);
+       *       source.setType(newBaseTypes); ...
+       *     }                                      data/moves.ts:14887-14903, no Champions override
+       *
+       * Arceus and Silvally are not in this format and nothing terastallizes, so the two first guards
+       * cannot fire and are not modelled; `addedType` (Forest's Curse / Trick-or-Treat) is folded into
+       * this engine's `types` list, so the empty-list refusal is the only one left. The flags are
+       * `protect` and `bypasssub` and NOT `reflectable`: a shield refuses it, a doll does not, and a
+       * Magic Bounce body does not bounce it. The rebuild on leaving the field is `switchOut`'s
+       * `typesRestoredOnSwitchOut`, the same line that undoes a Soak. Measured on the pool, top corner,
+       * release 09b2b98feb98, game …2659556207: Gengar copies Sneasler (Fighting/Poison) and Sneasler's
+       * Close Combat then LANDS in the authority; this engine kept Gengar a Ghost and read `-immune`. */
+      if(a.kind==='typecopy'){
+        m._lastMove=a.mv;
+        const t=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
+        if(!t){mvFail(m);continue;}
+        {const _rf=abilityRefusalUnderShield(m,t,a.mv);if(_rf){announceTryHitRefusal(_rf,t);continue;}}
+        if(shieldRefuses(t,a.mv)){ if(!SHIELD_REFUSAL_UNANNOUNCED)shieldRefusalAnnounce(t); else mvFail(m); continue; }
+        if(moveClassBlocked(t,a.mv,m)||pranksterBlocked(m,t,a.mv)){mvFail(m);continue;}
+        const _nt=(t.types||[]).filter(x=>x&&x!=='???');
+        if(!_nt.length){mvFail(m);continue;}
+        m.types=_nt.slice();
+        MEDSEEN.typeCopiedToUser++;
+        if(TR)TR.vstart(m,'typechange',undefined,ATTR.from(ATTR.move(a.mv)),t);
+        continue;
+      }
       if(a.kind==='typechange'){
         m._lastMove=a.mv;
         const _ct=TAGS.param('move',a.mv,'changesTargetType')||{};
@@ -32642,6 +32891,13 @@ function battleTurn(S,rng,actsForA,actsForB){
          * so there is nothing between the shield above and the doll, and the split below never runs
          * against a substituted body. */
         if(subRefusesStatus(m,t,a.mv))continue;
+        /* 2026-09-11 -- THE SET'S OWN LINE, KEPT SO LEAVING THE FIELD CAN PUT IT BACK. Champions'
+         * `clearVolatile` ends in `this.setSpecies(this.baseSpecies)` (data/mods/champions/scripts.ts:
+         * 124-176), which recomputes the stored stats from the set -- so the swap is undone the moment
+         * either body leaves. Taken at the FIRST rewrite only, because that is the line `setSpecies`
+         * would produce. See `switchOut`. ROADMAP #571. */
+        if(!m._stRewireBase)m._stRewireBase=Object.assign({},m.st);
+        if(!t._stRewireBase)t._stRewireBase=Object.assign({},t.st);
         for(const k of a.stats){
           const _k=SD2ENG[k]||k;
           if(m.st[_k]==null||t.st[_k]==null)continue;
@@ -33206,6 +33462,22 @@ function battleTurn(S,rng,actsForA,actsForB){
          * retaliation -- must ask about the body the authority made the source, or a bounced Parting
          * Shot reads as SELF-INFLICTED (`_pt === m`) and Defiant never fires. */
         const _bsrc=_bi.bouncedBy||m;
+        /* 2026-09-11 -- NOTHING LEFT TO AIM AT IS A FAILURE, AND A FAILED PIVOT DOES NOT SWITCH.
+         * `useMoveInner` writes `attrLastMove('[notarget]')` and `add('-fail', pokemon)` and returns
+         * (sim/battle-actions.ts:508-513) before any hit step, so `selfSwitch` is never read. This engine
+         * wrote the `[notarget]` and then pivoted anyway. Measured on the pool, bottom corner, release
+         * 5973a4e3c768, game …2655672115: Delphox's Heat Wave KOs both foes and Incineroar's Parting Shot
+         * then reads `[notarget]` and `-fail` in the authority, while this engine sent Aerodactyl in.
+         * Only a pivot whose target class names a BODY can be targetless; Chilly Reception aims at the
+         * field. The class comes out of `targetClass`, the reader the attack road's own no-target
+         * branch uses. */
+        if(a.mv&&(!_pt||_pt.fainted)){
+          const _ptc=TAGS.param('move',a.mv,'targetClass');
+          if(_ptc&&PIVOT_AIMS_AT_BODY.has(_ptc.target)){
+            if(PIVOT_NO_TARGET_SWITCHES)MEDFAILS.pivotNoTargetSwitchesRestored=1;
+            else{ m._mvRes=false; m._lastMove=a.mv; MEDSEEN.pivotNoTargetFailed++; if(TR)TR.fail(m); continue; }
+          }
+        }
         /* WIRE 241 -- the refusal was right and the line was ATTRIBUTION-LESS: this branch printed a
          * bare `|-immune|` for Good as Gold where the authority names the ability. It is split out
          * above the shield/move-class gate because those two announce differently and folding all
@@ -34004,7 +34276,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * members genuinely spend at two different moments -- folding them into "afterwards" would
          * let a blocked Spit Up keep its layers. */
         {const _spv=TAGS.param('move',a.mv,'spendsVolatile');
-         if(_spv&&_spv.volatile&&_spv.when==='onHit')releaseLayeredVolatile(m,_spv.volatile);}
+         if(_spv&&_spv.volatile&&_spv.when==='onHit')releaseLayeredVolatile(m,_spv.volatile,S);}
         /* ROADMAP #147 -- ROOST DELETES A TYPE FOR THE TURN, AND THIS ENGINE HAD NO WAY TO SAY THAT.
          *
          * Will: *"ROOST ALSO CAUSES THE MON TO LOSE FLYING TYPE FOR THE TURN."* Nothing anywhere
@@ -36910,8 +37182,15 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* THE SHIELD. `protect` is the boolean and `_protectMove` names which move raised it, so the
          * membership test is the authority's own list rather than "is anything up". A shield whose id
          * is NOT in that list would be left standing, loudly, instead of being swept by a truthy test. */
+        /* 2026-09-11 -- THE LIST IS OF VOLATILES AND `_protectMove` IS A MOVE. Detect raises the
+         * `protect` volatile (its `shieldsUser.volatile`), so comparing the move id missed exactly Detect
+         * and left the shield up for the partner. Measured on the pool, bottom corner, release
+         * 5973a4e3c768, game …2659466378: Maushold's Feint into Sceptile's Detect -- the authority writes
+         * `|-activate|p1a: Sceptile|move: Feint` and Basculegion's Aqua Jet lands; this engine refused it. */
+        const _pvol=FEINT_READS_MOVE_ID?(MEDFAILS.feintReadsMoveIdRestored=1,tg._protectMove):shieldVolatileOf(tg._protectMove);
         if(tg.protect){
-          if(tg._protectMove&&_vols.indexOf(tg._protectMove)>=0){
+          if(_pvol&&_vols.indexOf(_pvol)>=0){
+            if(_pvol!==tg._protectMove)MEDSEEN.breakProtectByShieldVolatile++;
             tg.protect=false;tg._protectMove=null;_broke=true;
           }else{
             MEDFAILS.breakProtectUnlistedShield++;
@@ -38854,6 +39133,20 @@ function battleTurn(S,rng,actsForA,actsForB){
               }
               if(MULTIHIT_UPDATE_ONCE)MEDFAILS.multiHitUpdateOnceRestored=1;
               else{_updateEvent();MEDSEEN.multiHitUpdateBetweenHits++;}
+              /* 2026-09-11 -- AND THE VOLLEY STOPS WHEN ITS USER IS DOWN. The authority's hit loop ends
+               *     this.battle.eachEvent('Update');
+               *     if (!pokemon.hp && targets.length === 1) { hit++; break; }
+               * (data/mods/champions/scripts.ts, the loop's last statement). A Rough Skin or Iron Barbs
+               * toll paid by the arrival above can take the user to 0, and the remaining arrivals never
+               * land. This engine had no such test. Measured on the pool, bottom corner, release
+               * 5973a4e3c768, game …2659828909: Talonflame's Dual Wingbeat into a Rough Skin Garchomp --
+               * Talonflame falls on hit 1, the authority writes `-hitcount 1` and Garchomp lives to
+               * Dragon Claw Staraptor down to 59; this engine landed hit 2, knocked Garchomp out and the
+               * Dragon Claw never happened. `_landed` already counts the arrival that did land. */
+              if(m.curHP<=0&&targets.length===1){
+                if(VOLLEY_IGNORES_USER_FAINT)MEDFAILS.volleyIgnoresUserFaintRestored=1;
+                else{MEDSEEN.volleyStoppedUserFainted++;break;}
+              }
             }
           }
           /* 2026-08-22 -- COUNTED HERE, ANNOUNCED IN `_stepHitCount`. Only this loop knows how many
@@ -39604,7 +39897,21 @@ function battleTurn(S,rng,actsForA,actsForB){
              * run against the side the body is actually standing on. LOUD when the side cannot be
              * resolved -- a skipped Start is indistinguishable from an ability that does nothing. */
             const _abStart=(who)=>{
-              if(!who||who.fainted||who.curHP<=0)return;
+              /* 2026-09-11 -- `Battle#skillSwap` REFUSES ON `fainted`, AND `fainted` IS NOT SET YET.
+               * It is written by `faintMessages()` after the move (sim/battle.ts:2532), so a holder this
+               * very hit took to 0 is still `fainted: false` when `wanderingspirit.onDamagingHit` swaps
+               * and raises Start -- and an acquired Intimidate then drops the attacker's side. This engine
+               * refused on `curHP <= 0`. Measured on the pool, bottom corner, release 5973a4e3c768, game
+               * …2661305652: Scrafty's Knock Off KOs Runerigus, the swap is announced, and the authority
+               * lowers both p2 bodies' Attack while this engine did nothing.
+               * `_faintOut === false` is this engine's record of exactly that window -- queued, line not
+               * yet written (see `noteFaint`); a body whose faint was already narrated fainted in an
+               * EARLIER action, which is the authority's `fainted`, and is still refused. */
+              if(!who)return;
+              if(ACQUIRED_START_NEEDS_HP){
+                if(who.fainted||who.curHP<=0){ if(who._faintOut===false)MEDFAILS.acquiredStartNeedsHpRestored=1; return; }
+              } else if(who.fainted&&who._faintOut!==false)return;
+              if(who.curHP<=0)MEDSEEN.acquiredStartAtZeroHP++;
               const _own=(actA.indexOf(who)>=0)?actA:((actB.indexOf(who)>=0)?actB:null);
               const _foe=(_own===actA)?actB:((_own===actB)?actA:null);
               if(!_own||!_foe){MEDFAILS.acquiredAbilityStartNoSide++;return;}
@@ -41588,7 +41895,17 @@ function battleTurn(S,rng,actsForA,actsForB){
                               &&_ri.requiresItemClass[0]==='isBerry'&&!_ri.steals);
         if(_eatsByClass&&!_eatsDeclared)MEDFAILS.stealEatViaClassGuard++;
         const _stealEat=!STEALEAT_STRIP_ONLY&&(_eatsDeclared||_eatsByClass);
-        if(_ri&&itemOn(tg)&&!itemRefusesTake(tg)&&!abilityRefusesItemLoss(tg,m)){
+        /* 2026-09-11 -- A THIEF WITH A FULL HAND TAKES NOTHING. Thief's and Covet's `onAfterHit` open
+         * `if (source.item || source.volatiles['gem']) return;` (data/moves.ts:19305-19307) -- the RAW
+         * slot, which is what `itemOn` reads. `removesItem.steals` is the shape: printed over the format
+         * on 2026-09-11, exactly Thief and Covet among damaging moves carry it. This engine took the item
+         * and, with nowhere to put it, lost it. Measured on the pool, top corner, release 5973a4e3c768,
+         * game …2657567717: a Thief into a Choice Scarf Meowscarada stripped the Scarf here and nothing
+         * in the authority. */
+        const _fullHand=!!(_ri&&_ri.steals&&itemOn(m));
+        if(_fullHand&&STEAL_IGNORES_FULL_HAND)MEDFAILS.stealIgnoresFullHandRestored=1;
+        if(_fullHand&&!STEAL_IGNORES_FULL_HAND)MEDSEEN.stealRefusedFullHand++;
+        else if(_ri&&itemOn(tg)&&!itemRefusesTake(tg)&&!abilityRefusesItemLoss(tg,m)){
           const _taken=itemLose(tg);
           if(_taken){
             const _thiefAlive=!!(m&&!m.fainted&&m.curHP>0);
@@ -43052,7 +43369,7 @@ function battleTurn(S,rng,actsForA,actsForB){
      * runs with `battle.activeMove === null` in the authority. See midClearActiveMove. */
     midAbortTwoTurn();   // 2026-09-05 -- and the LAST action's aborted charge, which the loop top cannot reach
     midClearActiveMove();
-    flushAfterMoveSpends([...actA,...actB]);   // WIRE 152 -- the LAST action's debt, same reason
+    flushAfterMoveSpends([...actA,...actB],S);   // WIRE 152 -- the LAST action's debt, same reason
     opportunistSettle(actA,actB,_oppSnap); _oppSnap=null;   // ROADMAP #212 -- and the LAST action's copy
     receiverSweep([...actA,...actB]);          // ROADMAP #175 -- and the LAST action's faint
     traceSweep([...actA,...actB]);             // ROADMAP #310 -- and the LAST action's arrivals
@@ -45875,7 +46192,12 @@ function playerActionPrimary(me,moveId,target,field){
      * Feraligatr left the Feraligatr `["Normal"]`). `writesToSelf` now separates the shapes, the wrong
      * write is gone, and the move is an honest unmodelled pass that SAYS SO -- a counter rather than a
      * silence, because "not implemented" and "implemented backwards" must not read alike. */
+    /* 2026-09-11 -- THE COPY IS MODELLED NOW, as its own action kind (`typecopy`), because it writes
+     * the USER and reads the TARGET, which is the opposite of the branch above. The honest-pass is
+     * kept on a knob so the counter can still be shown. See the `typecopy` branch in the turn loop. */
     if(_ct&&_ct.writesToSelf){
+      if(!REFLECT_TYPE_UNMODELLED)return {kind:'typecopy',mv:id,target};
+      MEDFAILS.reflectTypeUnmodelledRestored=1;
       MEDFAILS.typeWriterCopyUnmodelled++;
       if(!MEDFAILS.typeWriterCopyUnmodelledFirst)MEDFAILS.typeWriterCopyUnmodelledFirst=String(id);
     }

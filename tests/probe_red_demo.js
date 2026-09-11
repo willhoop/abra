@@ -2886,9 +2886,13 @@ demoSource('ROADMAP #81 WIRE 4  a spread move takes x0.75 rounded half up on 409
     return sameBand(single, AUTH_FLAMETHROWER) && sameBand(spread, AUTH_HEATWAVE);
   });
 
+/* RE-AIMED 2026-09-11: the roll's last line is `const _v=mdChain(d,_ch);` now, because the minimum-1
+ * floor (`modifyDamage`'s `if (!baseDamage) return 1`) is spent below it. The reversal still restores
+ * exactly the pre-WIRE-4 arithmetic on these two lines and leaves the floor alone, so it demonstrates
+ * the Life Orb claim and nothing else. */
 demoSource('ROADMAP #81 WIRE 4  Life Orb is chainModify([5324,4096]), not Math.floor(d * 1.3)',
-  [['    const _ch=lo>1?ch4096(mod,lo):mod;\n    return mdChain(d,_ch);',
-    '    if(mod!==CH_ONE)d=Math.floor(d*mod/4096);\n    if(lo>1)d=Math.floor(d*lo);\n    return d;']],
+  [['    const _ch=lo>1?ch4096(mod,lo):mod;\n    const _v=mdChain(d,_ch);',
+    '    if(mod!==CH_ONE)d=Math.floor(d*mod/4096);\n    if(lo>1)d=Math.floor(d*lo);\n    const _v=d;']],
   (E) => {
     const bare = dmgBand16(E, stageOrb4(''), 'closecombat');     /* the case that must NOT move */
     const orb = dmgBand16(E, stageOrb4('lifeorb'), 'closecombat');
@@ -4805,16 +4809,48 @@ demoSource('ROADMAP #112  Blaze — the engine half: the consumer refuses any co
    * `mv` and a target, and it is REFLECT TYPE (4 corpus clicks). The branch is down to a single legal
    * member in this format — worth saying, because the day that member is modelled too this
    * demonstration goes hollow again and there is nothing left to aim it at. */
-  demoSource('ROADMAP #256  an unmodelled click keeps its target, and is still refused at onTryHit',
-    [["  const _tc=id?TAGS.param('move',id,'targetClass'):null;\n  if(_tc&&_tc.chooseable&&target){MEDSEEN.unmodelledClickKeptTarget++;return {kind:'pass',mv:id,target};}\n  return {kind:'pass',mv:id};",
-      "  return {kind:'pass',mv:id};"]],
-    (E) => {
-      const run = (ab) => canon(E, traceOf(E, ['meowstic', 'clefable', 'gholdengo', 'milotic'],
-        b => { b.f1.ability = ab; }, 'reflecttype').trace, /^\|(move|-immune)\|/);
-      return JSON.stringify(run('none')) === JSON.stringify(['|move|p1a:meowstic|reflecttype|p2a:gholdengo'])
-          && JSON.stringify(run('goodasgold')) === JSON.stringify(['|move|p1a:meowstic|reflecttype|p2a:gholdengo',
-                                                                   '|-immune|p2a:gholdengo|[from]ability:goodasgold']);
-    });
+  /* 2026-09-11 -- AND THE DAY ARRIVED. Reflect Type is MODELLED now (`kind:'typecopy'`, the speed-tie
+   * corner batch), so the branch this demonstration reverts is reached by NO legal move in the format:
+   * the walk below, run over all 500 legal moves on this board, returned ZERO members on the day of the
+   * change. The member is DERIVED ON EVERY RUN rather than typed, exactly as the re-aim above derived
+   * Reflect Type: the day a legal move reaches the branch again, the demonstration runs on it with no
+   * edit here. While none does it prints N/A and is NOT a failure — the same state as a demonstration
+   * of an ability no legal body carries, and for the same reason: there is nothing in this regulation for
+   * the branch to be wrong about. */
+  {
+    let walkThrew = 0;
+    const member = (() => {
+      require(D('engine', 'showdown_path.js'));
+      const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
+      const DX = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
+      const legalMv = x => x.exists && !x.isNonstandard && x.tier !== 'Illegal';
+      const me = bare('meowstic'), al = bare('clefable'), f1 = bare('gholdengo'), f2 = bare('milotic');
+      const S0 = M.battleInit([me, al], [f1, f2], { seeded: true });
+      for (const mv of DX.moves.all()) {
+        if (!legalMv(mv)) continue;
+        let a = null;
+        try { a = M.playerAction(me, mv.id, f1, S0.field); } catch (e) { walkThrew++; continue; }
+        if (a && a.kind === 'pass' && a.mv && a.target) return mv.id;
+      }
+      return null;
+    })();
+    if (!member) {
+      notInFormat++;
+      console.log('  N/A   ROADMAP #256  an unmodelled click keeps its target, and is still refused at onTryHit   '
+        + 'NO LEGAL MOVE REACHES THE BRANCH — every legal move was walked through playerAction on this board and none '
+        + 'came back `kind:\'pass\'` with a target (' + walkThrew + ' threw). The last member, Reflect Type, is modelled '
+        + 'since 2026-09-11; this demonstration re-aims itself the day one returns.');
+    } else demoSource('ROADMAP #256  an unmodelled click keeps its target, and is still refused at onTryHit (member: ' + member + ')',
+      [["  const _tc=id?TAGS.param('move',id,'targetClass'):null;\n  if(_tc&&_tc.chooseable&&target){MEDSEEN.unmodelledClickKeptTarget++;return {kind:'pass',mv:id,target};}\n  return {kind:'pass',mv:id};",
+        "  return {kind:'pass',mv:id};"]],
+      (E) => {
+        const run = (ab) => canon(E, traceOf(E, ['meowstic', 'clefable', 'gholdengo', 'milotic'],
+          b => { b.f1.ability = ab; }, member).trace, /^\|(move|-immune)\|/);
+        return JSON.stringify(run('none')) === JSON.stringify(['|move|p1a:meowstic|' + member + '|p2a:gholdengo'])
+            && JSON.stringify(run('goodasgold')) === JSON.stringify(['|move|p1a:meowstic|' + member + '|p2a:gholdengo',
+                                                                     '|-immune|p2a:gholdengo|[from]ability:goodasgold']);
+      });
+  }
 
   /* ROADMAP #256 — THE ARTIFACT ARM. This one is not a source reversal, because the fix was a field
    * `tag_dex.js` did not derive: `immuneToMoveClass.announcesWith`, read off the handler by the same

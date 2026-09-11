@@ -10,6 +10,36 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.7.0] — 2026-09-11
+
+### Fixed
+- **The speed-tie corner cards: thirteen engine mechanisms, each probed red first and each behind its own knob.**
+  Encore's same-turn `changeAction` (Champions `data/mods/champions/moves.ts:286-322`) now rewrites a queued
+  pivot or Struggle; an entrant a hazard already knocked out runs none of its own handlers
+  (`sim/battle.ts:511-513`); an ability acquired by a body the hit knocked out still runs its Start; a connected
+  packet deals at least 1 (`modifyDamage`); Feint compares Detect's `protect` volatile; a defrost move thaws when
+  it is used, below the flinch refusal; a Parting Shot with nothing to aim at fails and stays; Thief and Covet
+  take nothing when the thief holds an item; Belly Drum fails at +6 before paying; a Speed/Guard/Power swap is
+  undone on switch-out (ROADMAP #571); Super Fang floors at 1 on the damage-range road every click takes; Stockpile's
+  refund is refused when no foe is left (`sim/battle.ts:2028`); Reflect Type is modelled.
+- **Two cards the pre-diagnosis left unattributed were attributed and fixed.** Kommo-o: Knock Off's x1.5 is a
+  member of the same base-power chain as Helping Hand. Staraptor: a volley stops when its user faints between
+  arrivals (Rough Skin) — it was never the perish drain.
+- Readings on release `2b5a6585d8cf`: `data/verification/game-differential-top-tie-first.json` state.games 961,
+  state.games_board_never_diverged 960; `data/verification/game-differential-bottom-tie-first.json` state.games
+  961, state.games_board_never_diverged 959; `data/game-differential.json` 961 of 961 never board-diverged;
+  `data/engine-diff.json` disagreed 0 of 6000; `data/mechanics-census.json` live 856, missing 0. Gate OPEN.
+
+### Added
+- `tests/probe_corner_mechanisms.js` — fifteen mechanisms against the authority, a same-body control and one knob
+  child each. Sixteen census rows. `tests/probe_red_demo.js`'s #256 unmodelled-click arm derives its member on
+  every run and prints N/A while none exists (Reflect Type was the last).
+
+### Notes
+- **Declared, not fixed (ROADMAP #584):** a battle that ends in the residual spends exactly ONE more handler in the
+  authority — traced on all three remaining games — and every remaining one here. Last board of a finished battle
+  only. Releases `09b2b98feb98` and `2b5a6585d8cf`. Full account: `docs/_reports/2026-09-11-corner-mechanisms.md`.
+
 ## [6.6.2] — 2026-09-11
 
 ### Changed

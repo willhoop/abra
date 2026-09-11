@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-11T03:52:31.709Z",
+  "generated": "2026-09-11T07:06:07.090Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 840,
-  "live": 840,
+  "probed": 856,
+  "live": 856,
   "missing": 0,
-  "armed": 840,
+  "armed": 856,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -4073,7 +4073,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.1% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 21.4% (format 20, generic 30), control Rock Slide 26.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4933,7 +4933,7 @@
       "tag": "statusCategory",
       "label": "every action kind the engine can resolve announces its |move| line",
       "live": true,
-      "detail": "49/49 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
+      "detail": "50/50 action kinds emitted exactly one |move| line naming the move clicked; 0 click(s) threw and were NOT swept [none]; silent: [none]; a passed turn narrated 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -8414,6 +8414,166 @@
       "label": "a priority-refusing gate compares the ABILITY-MODIFIED priority, not the printed one",
       "live": true,
       "detail": "one board, one cell changed. A full-HP Talonflame's Brave Bird into an Armor Tail Farigiraf was refused true / landed false; the SAME body carrying its own Flame Body instead was refused false / landed true; and the Gale Wings body ONE HP below full was refused false / landed true. Brave Bird is printed priority 0, so a gate reading the constant answers \"landed\" on all three — which is what this engine did until the gates were put on one shared reader with actionPriority",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "sealsMoves",
+      "label": "an Encore that lands before its target moves rewrites a queued PIVOT",
+      "live": true,
+      "detail": "Incineroar Swords Dances, then queues Parting Shot — with no Encore it left atk 0 (must LEAVE); Encored before it moves it stayed atk 4 (Champions' changeAction rewrites the pivot: must STAY and Swords Dance again to +4)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "sealsMoves",
+      "label": "an Encore that lands before its target moves rewrites a queued STRUGGLE into the sealed move",
+      "live": true,
+      "detail": "a Clefable whose one move is Disabled must Struggle — its recoil with no Encore 43 (must be > 0); Encored before it moves 0 (the Struggle is rewritten into the Disabled Moonblast and refused: must be 0)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "onSwitchInDrop",
+      "label": "an entrant that Stealth Rock knocks out runs no Intimidate",
+      "live": true,
+      "detail": "foe Attack after an Intimidate body walks into Stealth Rock — at full HP {\"atk\":\"-1,-1\",\"weather\":\"none\",\"fainted\":false} (must drop both); on 5 HP {\"atk\":\"0,0\",\"weather\":\"none\",\"fainted\":true} (fainted before its own handler: must drop none)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "weatherSetter",
+      "label": "an entrant that Stealth Rock knocks out sets no weather",
+      "live": true,
+      "detail": "the sky after a Drizzle body walks into Stealth Rock — at full HP {\"atk\":\"0,0\",\"weather\":\"rain\",\"fainted\":false} (must be set); on 5 HP {\"atk\":\"0,0\",\"weather\":\"none\",\"fainted\":true} (must stay clear)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "rewritesAbilityOnContact",
+      "label": "a holder the contact hit KNOCKS OUT still starts the ability it acquired",
+      "live": true,
+      "detail": "the attacker side's Attack after a contact KO on a Wandering Spirit holder — the attacker carrying Shed Skin {\"ko\":true,\"atk\":\"0,0\"} (nothing to start); carrying Intimidate {\"ko\":true,\"atk\":\"-1,-1\"} (the 0-HP holder takes it and its Start drops both)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "hitsTwice",
+      "label": "a Parental Bond packet that computes to 0 still deals 1",
+      "live": true,
+      "detail": "a -6 Kangaskhan's Low Kick into a 6.6 kg resist — one packet 2; with Parental Bond 3 (the x0.25 packet truncates to 0 and `modifyDamage` returns 1: must be more)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "breaksProtect",
+      "label": "Feint breaks DETECT for the partner, not only Protect",
+      "live": true,
+      "detail": "the partner's Dragon Claw into a Detecting Lucario — with no Feint it lost 0 (blocked); after Feint 68 (Detect raises the `protect` volatile, so Feint breaks it: must equal the Protect reading, 68)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "thawsUser",
+      "label": "a flinch refuses a frozen body's defrost move BEFORE it thaws",
+      "live": true,
+      "detail": "a frozen Milotic clicks Scald under a faster Gengar — hit by Shadow Ball it is none (thawed at use); flinched by Dark Pulse it is frz (the thaw is `onModifyMove`, below the flinch: must stay frz)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "pivotStatus",
+      "label": "a Parting Shot with nobody left to aim at fails and does NOT switch",
+      "live": true,
+      "detail": "Heat Wave, then Incineroar's Parting Shot — with the foes standing it left (must pivot); with both foes knocked out first it stayed (`[notarget]` and `-fail`: must stay)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "removesItem",
+      "label": "a Thief whose user is already holding an item takes nothing",
+      "live": true,
+      "detail": "user item / target item after Thief — empty-handed leftovers/none (must steal); holding a Focus Sash focussash/leftovers (the handler returns: nothing moves)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statChangeInCode",
+      "label": "Belly Drum at +6 fails WITHOUT paying its half",
+      "live": true,
+      "detail": "HP paid and Attack stage after Belly Drum — from +4 {\"paid\":87,\"atk\":6} (pays, reaches +6); from +6 {\"paid\":0,\"atk\":6} (fails: pays nothing)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "rewritesStoredStats",
+      "label": "a Speed Swap is undone when the body leaves the field",
+      "live": true,
+      "detail": "Sylveon's stored Speed (own / after the swap / a turn later) — staying {\"own\":105,\"swapped\":181,\"after\":181} (keeps the swap); switched out {\"own\":105,\"swapped\":181,\"after\":105} (`setSpecies` recomputes it: must be its own again)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "fixedDamage",
+      "label": "Super Fang into a 1 HP body deals the 1",
+      "live": true,
+      "detail": "the target's HP after Super Fang — from 2 it is 1 (half); from 1 it is 0 (`clampIntRange(hp / 2, 1)`: must be 0)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "a volley STOPS when Rough Skin knocks its user out between hits",
+      "live": true,
+      "detail": "Dual Wingbeat into Rough Skin — a full-HP user deals {\"dealt\":68,\"down\":false}; a 1 HP user {\"dealt\":34,\"down\":true} (falls on hit 1 and the loop breaks: must deal less)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "layeredVolatile",
+      "label": "a Stockpile refund is refused when the Spit Up takes the LAST foe",
+      "live": true,
+      "detail": "Camerupt's Def/SpD after Stockpile then Spit Up — with a foe left standing 0/0 (the stages granted are refunded); taking the LAST foe 1/1 (the refund is a `boost`, refused with no foe left: the stages stay)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "changesTargetType",
+      "label": "Reflect Type copies the TARGET's typing onto the USER",
+      "live": true,
+      "detail": "Gengar then takes Sneasler's Close Combat — without the copy {\"types\":\"Ghost/Poison\",\"dealt\":0} (a Ghost: immune); after Reflect Type {\"types\":\"Fighting/Poison\",\"dealt\":102} (Sneasler's typing: it lands)",
       "hollow": false,
       "armed": true,
       "directCall": false

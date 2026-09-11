@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-11T03:54:42.508Z",
+  "generated": "2026-09-11T07:09:50.596Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
-    "register_rows": 545,
+    "register_rows": 547,
     "open": 235,
-    "closed": 310,
+    "closed": 312,
     "open_asserting_breakage": 50,
     "measured_disagreements": 0,
     "unregistered": 0
@@ -2057,15 +2057,6 @@
       "full": "the browser board bundle is a month stale, and regenerating it orphans a published figure in `docs/models.md`. `data/board-data.js` carries `generated 2026-08-03`; rebuilding it from the current `data/smogon-priors.json` moves spread percentages (kingambit adamant `14.726` is the first of six that shift) and `tests/test-docs-current.js` then reads models.md at 30 untraceable figures, was 29 — one published number is traceable only to a month-old bundle. reproduce: regenerate the bundle, run `node tests/test-docs-current.js`, revert. not fixed 2026-09-10: the bundle was reverted so that nothing published changed at session close, and the orphaned figure was not identified. the work is to identify it, retract or re-derive it, and land the fresh bundle in the same pass. the candidate is named 2026-09-10 by measure, without regenerating anything: `9,759` at `docs/models.md:2202` is the only figure in that document whose sole trace under `data/` is `data/board-data.js` — derived by rebuilding `allartifactnumbers()`'s union with that one file excluded and re-running the census's own predicate. the other figure in the same class, `14.233`, is exempt through `changelog.md` and cannot orphan. and #568 is not what failed the gate on 2026-09-10 — that was `7,381`, orphaned by the hourly ingest rewriting `data/meta-usage.json` at commit `dd09c24b`, re-derived from commit `44e0fb0` and recorded in `changelog.md` 5.279.0; `docs/_reports/2026-09-10-models-orphan.md`. confirm the candidate by regenerating the bundle and re-running the gate. | measure"
     },
     {
-      "n": 571,
-      "section": "Measurement integrity",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 0,
-      "title": "A SPEED SWAP SURVIVES A SWITCH DIFFERENTLY IN THE TWO ENGINES — ONE BOARD-MATERIAL GAME IN THE TOP CORNER, AND IT IS NOT",
-      "full": "a speed swap survives a switch differently in the two engines — one board-material game in the top corner, and it is not a tie. defect, engine. filed 2026-09-10 by engine, not fixed. release `8ac9c4d888f1`, census `257acf955593`, pool `data/team-pool-frozen`, `--arm top-tie-first --games 1200 --turns 50 --steering empirical --end-state` (961 games played). the one game whose first protocol divergence is class `turn order` is also board-material: config `pair-redirect-priority`, seed `gen9championsvgc2026regmbbo3-2656451791 vs gen9championsvgc2026regmbbo3-2656439218`, turn 8 — the authority moves pelipper (weather ball), this engine moves sylveon (hyper voice), and the board then parts on two fainted bodies. measured at that boundary, not inferred: showdown's `getstat('spe')` for `p1a sylveon` reads 91 and this engine's `effspeed` reads 166, `same_when_floored: false` — a real gap, so it is a speed value disagreement and not a tie resolution. the game contains `speed swap` from p2a alakazam onto p1a sylveon at turn 5, after which sylveon switched out (turn 6) and back in (turn 7); the two engines record no disagreeing speed reading at any earlier boundary. root cause not established here and deliberately not guessed: showdown's `clearvolatile` (sim/pokemon.ts:1514) does not reset `storedstats`, and this engine's `statrewire` writes `m.st`/`t.st` (`engine/medicham2-browser.js:32280`) — which of the two rewrites, restores or rebuilds on the switch is the thing to read. verified by: the same corner-arm command reading `state.games` less `state.games_board_never_diverged` at 15 rather than 16 with no `turn order` row, and the speed reading for that body agreeing."
-    },
-    {
       "n": 572,
       "section": "Measurement integrity",
       "closed": false,
@@ -2111,6 +2102,15 @@
       "full": "nine register markers name a path instead of a command, so nine rows are audited by nothing. defect, register hygiene. found 2026-09-10 by measure. `markers_rejected` went 0 — 9 on the refresh: `#553` (`data/next-regulation.json`), `#555` (`engine/status.js`), `#558` (`engine/sanity_check.py`), `#563` (`tests/probe_residual_trio_lower_order_handler.js`), `#566` (`--dump-out <absolute path>` — unexpanded template text), `#569` and `#570` (`tests/probe_corner_arm_measures.js`), `#574` (`data/engine-diff.json`), `#576` (`tests/test-engine-diff.js --case ...`). `classifymarker()` refuses a marker that does not begin with `node`, and it is right to — the alternative is guessing, which is #148. none of the nine asserts breakage, so the gate is not held shut by them; they are simply prose. owed: rewrite each marker as a runnable command (`node <path>`), or drop the verified by line so the row counts as owed rather than rejected. verified by: `node engine/register_reality.js` — `counts.markers_rejected` must be 0."
     },
     {
+      "n": 584,
+      "section": "Measurement integrity",
+      "closed": false,
+      "saysBroken": false,
+      "uses": 0,
+      "title": "A BATTLE THAT ENDS IN THE RESIDUAL SPENDS EXACTLY ONE MORE HANDLER IN THE AUTHORITY AND EVERY REMAINING ONE HERE — THE L",
+      "full": "a battle that ends in the residual spends exactly one more handler in the authority and every remaining one here — the last board's side clocks and stall counters part. declared 2026-09-11 by engine, not fixed. defect, engine; last board of a finished battle only, so it cannot change a click. the authority, traced rather than argued (a `node -r` preload wrapping `fieldevent`/`singleevent`/`faintmessages` on `engine/replay_one.js`, every residual's handler sequence and every side/stall duration before and after): a perish-song expiry takes `fieldevent`'s duration-expiry branch, which `continue`s past `faintmessages()` (sim/battle.ts:519-523), so the walk runs one more handler — ticking it if it carries a duration — and that handler's `faintmessages()` (:565) ends the battle. three pool games on release `09b2b98feb98`, the only board-material corner games left after the speed-tie corner batch 1: top `…2654571284` t12 (reflect sub 1 ticks 2→1, light screen sub 2 stays 6; this engine read 5), bottom `…2634155984` t10 (tailwind ticks, raichu's stall stays; this engine lapsed the stall), bottom `…2662099996` t11 (a callback handler runs next and nothing ticks; swampert keeps `stall 1/c9`, this engine read 0). this engine keeps walking every remaining residual group and the foot-of-walk stall lapse, because `faintqueueowed()` holds both the group-top stop (`sidewiped(s)&&!faintqueueowed()`) and the stall hold open while the expiry's faint is still queued. a faithful fix is \"exactly one more handler across group boundaries\", which the group-major walk can only answer from `_res_shadow_list`; not attempted in this pass because it cannot change play and touches the narration-ordering machinery (`residualfollowerruns`, roadmap #440's closeted row). full account: `docs/_reports/2026-09-11-corner-mechanisms.md` §3. verified by: the speed-tie corner arms (`engine/game_differential.js --arm top-tie-first` and `--arm bottom-tie-first` with `--out data/verification/game-differential-<arm>.json --census data/mechanics-census.json --team-store data/team-pool-frozen --games 1200 --turns 50 --steering empirical --end-state`) reading these three seeds out of `state.first_board_divergences`."
+    },
+    {
       "n": 52,
       "section": "Deferred by decision — not dropped",
       "closed": false,
@@ -2134,7 +2134,7 @@
     {
       "artifact": "data/interaction-matrix.json",
       "generated": "2026-08-11T22:00:06.336Z",
-      "age_days": 30.2
+      "age_days": 30.4
     }
   ]
 }

@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-11T03:18:26.444Z",
- "engine_release": "5973a4e3c768",
- "engine_release_cut": "2026-09-11T02:46:54.813Z",
+ "generated": "2026-09-11T06:19:39.627Z",
+ "engine_release": "2b5a6585d8cf",
+ "engine_release_cut": "2026-09-11T06:06:45.568Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "38b78c98148e",
+  "engine/medicham2-browser.js": "31855b504052",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "622482051bf4",
@@ -17,13 +17,13 @@
   "engine/lookup.js": "17f49e5aed43",
   "engine/set_priors.js": "f8a81445ee3a",
   "engine/smogon_priors.js": "5c039f9ebdbc",
-  "engine/quality.js": "e8a3b0a14884",
+  "engine/quality.js": "c6de8fb66ea3",
   "engine/showdown_path.js": "0efe29f4245d",
   "data/move-effects.js": "f35ecd91ba86",
   "data/ability-blocks.json": "86741fd35452",
   "data/smogon-priors.json": "f2dc78cea6c5",
   "data/regulations.json": "6c1995e9a9fb",
-  "data/quality-filter.json": "36812acec7f8",
+  "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
   "data/abra-tags.js": "27bd584a5c91",
   "data/tags.json": "f1d5cf3bd94d",
@@ -33,7 +33,7 @@
   "engine/pp.js": "30b12a4ef623",
   "data/rollout-switch-census.json": "b599f8d581b5"
  },
- "release": "5973a4e3c768",
+ "release": "2b5a6585d8cf",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -20858,16 +20858,16 @@
     "resolved": true,
     "why": null,
     "medicham_attempted": true,
-    "medicham_resolved": false,
-    "medicham_why": "the move executed and produced no consequence line at all",
+    "medicham_resolved": true,
+    "medicham_why": null,
     "diverged": true,
     "divergence": {
-     "at": 10,
-     "cls": "event missing from medicham2",
-     "detail": "-start",
-     "cause": "event missing from medicham2 :: |-start|p1a|typechange|[from]reflecttype <> |move|p2a|agility",
-     "showdown": "|-start|p1a: Gengar|typechange|[from] move: Reflect Type|[of] p2a: Feraligatr",
-     "medicham": "|move|p2a: Feraligatr|agility|p2a: Feraligatr",
+     "at": 14,
+     "cls": "medicham2 stopped emitting while showdown continued",
+     "detail": "first unmatched: -start   lengths sd=15 medi=14",
+     "cause": "medicham2 stopped emitting while showdown continued :: |-start|p1a|typechange|water",
+     "showdown": "|-start|p1a: Gengar|typechange|Water|[silent]",
+     "medicham": "(medicham2 emitted nothing further)",
      "subject_slot": "p1a",
      "segment_owner": null,
      "segment_move": null,
@@ -20877,44 +20877,18 @@
     },
     "err": null,
     "board": {
-     "verdict": "STATE",
+     "verdict": "ANNOUNCEMENT-ONLY",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
-     "boundaries_agreed": 1,
+     "boundaries_agreed": 2,
      "last_boundary_turn": 1,
      "protocol_parted_on_turn": 1,
      "boards_after_the_parting": 1,
-     "state_parted_on_turn": 1,
-     "diffs": [
-      {
-       "path": "p1.party.gengar.types",
-       "side": "p1",
-       "slot": "",
-       "body": "gengar",
-       "body_showdown": "gengar",
-       "field": "party.types",
-       "us": "ghost/poison",
-       "sd": "water",
-       "bucket": "different-value",
-       "family": "party.types"
-      },
-      {
-       "path": "p1.active[0].types",
-       "side": "p1",
-       "slot": "p1a",
-       "body": "gengar",
-       "body_showdown": "gengar",
-       "field": "types",
-       "us": "ghost/poison",
-       "sd": "water",
-       "bucket": "different-value",
-       "family": "active[].types",
-       "maxhp": 810
-      }
-     ],
-     "end_reason": "the first divergent BOARD",
+     "state_parted_on_turn": null,
+     "diffs": [],
+     "end_reason": "the script ran out",
      "receipts": {
       "leaves_compared_min": 545,
       "leaves_compared_max": 545,
@@ -55381,7 +55355,7 @@
    "diverged_including_shelved": 6,
    "shelved_by_owner": 3,
    "shelved_by_owner_diverging": 2,
-   "resolution_disagreements": 11,
+   "resolution_disagreements": 10,
    "cannot_fire_in_this_fixture": 1,
    "announcement_only": 4,
    "leaf_effect": {
@@ -55415,7 +55389,7 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 76
    },
-   "seconds": 5.2
+   "seconds": 11.1
   },
   "abilities": {
    "exist": 316,
@@ -55432,7 +55406,7 @@
    "diverged_including_shelved": 2,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 9.6
+   "seconds": 22.3
   },
   "then_what": {
    "rows": 64,
@@ -55458,7 +55432,7 @@
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 15,
    "board_state_fired": 14,
-   "seconds": 4.7
+   "seconds": 25.9
   },
   "board_state": {
    "rows": 15,
@@ -55685,16 +55659,15 @@
    "moves": {
     "tally": {
      "NO-DIVERGENCE": 488,
-     "STATE": 4,
-     "ANNOUNCEMENT-ONLY": 4
+     "STATE": 3,
+     "ANNOUNCEMENT-ONLY": 5
     },
     "rows": 496,
     "core_leaf_unchecked_rows": [],
     "state_rows": [
      "axekick",
      "clearsmog",
-     "healbell",
-     "reflecttype"
+     "healbell"
     ],
     "not_asked_rows": [],
     "silent_state_rows": [
@@ -56031,8 +56004,8 @@
    "exemption": {
     "excused": 75,
     "covered_by": "data/roster.items.json",
-    "roster_release": "5973a4e3c768",
-    "roster_generated": "2026-09-11T03:14:27.880Z",
+    "roster_release": "2b5a6585d8cf",
+    "roster_generated": "2026-09-11T06:13:27.591Z",
     "reconciled": 75,
     "unreconciled": [],
     "note": "the deferral names the mega counters and the mega counters CANNOT answer it — they are aggregate. The per-entity answer is the deliberate roster, and it is checked here."

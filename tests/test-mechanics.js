@@ -534,8 +534,14 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * with and without the target's mega stone — and it has to: the mechanic is a field the MEGA PHASE
  * rewrites part-way through the turn, so a probe that priced the move before the turn started would
  * read the un-evolved body every time, which is exactly what the engine was doing.
+ *
+ * `deadEntry(` added 2026-09-11 with the speed-tie corner batch, declared HERE and with its reason. It
+ * stages a real board through `battleInit` and spends TWO real turns through `battleTurn` — one laying
+ * Stealth Rock, one switching the entrant in — and it has to: the mechanic is which of an ENTRANT's own
+ * handlers still run after the hazard it walked into has knocked it out, and only a real switch-in
+ * reaches `runEntryPass` in that order.
  */
-const REALTURN = /battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(/;
+const REALTURN = /\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -33375,6 +33381,307 @@ probe('ability', 'priorityMod', 'a priority-refusing gate compares the ABILITY-M
                  + 'actionPriority' };
 });
 
+/* ==== 2026-09-11 -- THE SPEED-TIE CORNER BATCH ======================================================
+ *
+ * One row per mechanism the corner arms of release 5973a4e3c768 exposed. The TWO-ENGINE staging, with
+ * Showdown as the expectation, is tests/probe_corner_mechanisms.js; these rows are the census's own
+ * single-engine reading of the same outcomes, each on a real turn against a control on the SAME bodies
+ * with one input moved. Every row was shown MISSING under its own MEDI_* knob before it was trusted,
+ * and the knobs are in DELIBERATE_BREAK below so a red demonstration cannot write the census.
+ * Knock Off's shared base-power chain has no row here on purpose: the right number is a product of two
+ * chained multipliers, and a single-engine row would have to TYPE it — the two-engine probe asks the
+ * authority instead. */
+const rngLow = () => 0.01;   // every secondary chance fires; nothing here reads an accuracy under it
+probe('move', 'sealsMoves', 'an Encore that lands before its target moves rewrites a queued PIVOT', () => {
+  const run = (enc) => {
+    const me = bare('raichu'), ally = bare('corviknight');
+    const f1 = bare('incineroar'), f2 = bare('garchomp'), fb = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2, fb], { seeded: true });
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'swordsdance', null, S.field)], [f2, { kind: 'pass' }]]));
+    M.battleTurn(S, rng5,
+      new Map([[me, enc ? M.playerAction(me, 'encore', f1, S.field) : M.playerAction(me, 'nastyplot', null, S.field)],
+               [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'partingshot', ally, S.field)], [f2, { kind: 'pass' }]]));
+    return (S.actB.indexOf(f1) >= 0 ? 'stayed' : 'left') + ' atk ' + f1.boosts.at;
+  };
+  const control = run(false), test = run(true);
+  return { works: /^left/.test(control) && test === 'stayed atk 4', arms: { control, test },
+           detail: 'Incineroar Swords Dances, then queues Parting Shot — with no Encore it ' + control
+                 + ' (must LEAVE); Encored before it moves it ' + test + ' (Champions\' changeAction '
+                 + 'rewrites the pivot: must STAY and Swords Dance again to +4)' };
+});
+probe('move', 'sealsMoves', 'an Encore that lands before its target moves rewrites a queued STRUGGLE into the sealed move', () => {
+  const run = (enc) => {
+    const me = bare('sableye'), ally = bare('corviknight');
+    const f1 = bare('clefable'), f2 = bare('garchomp');
+    me.ability = 'prankster'; f1.moves = ['moonblast'];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(ally);
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'moonblast', ally, S.field)], [f2, { kind: 'pass' }]]));
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'disable', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'moonblast', ally, S.field)], [f2, { kind: 'pass' }]]));
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, enc ? M.playerAction(me, 'encore', f1, S.field) : M.playerAction(me, 'calmmind', null, S.field)],
+               [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'struggle', ally, S.field)], [f2, { kind: 'pass' }]]));
+    return before - f1.curHP;       // Struggle's recoil is the witness that it was used
+  };
+  const control = run(false), test = run(true);
+  return { works: control > 0 && test === 0, arms: { control: [control], test: [test] },
+           detail: 'a Clefable whose one move is Disabled must Struggle — its recoil with no Encore ' + control
+                 + ' (must be > 0); Encored before it moves ' + test + ' (the Struggle is rewritten into '
+                 + 'the Disabled Moonblast and refused: must be 0)' };
+});
+const deadEntry = (sp, ab, hp) => {
+  const me = bare('corviknight'), ally = bare('milotic'), inc = bare(sp);
+  const f1 = bare('garchomp'), f2 = bare('garchomp');
+  inc.ability = ab;
+  const S = M.battleInit([me, ally, inc], [f1, f2], { seeded: true });
+  M.battleTurn(S, rng5, PASS2(me, ally),
+    new Map([[f1, M.playerAction(f1, 'stealthrock', null, S.field)], [f2, { kind: 'pass' }]]));
+  if (hp != null) inc.curHP = hp;
+  M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: inc }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+  return { atk: [f1.boosts.at, f2.boosts.at].join(','), weather: S.field.weather || 'none', fainted: !!inc.fainted };
+};
+probe('ability', 'onSwitchInDrop', 'an entrant that Stealth Rock knocks out runs no Intimidate', () => {
+  const control = deadEntry('incineroar', 'intimidate', null), test = deadEntry('incineroar', 'intimidate', 5);
+  return { works: !control.fainted && control.atk === '-1,-1' && test.fainted && test.atk === '0,0',
+           arms: { control: control.atk, test: test.atk },
+           detail: 'foe Attack after an Intimidate body walks into Stealth Rock — at full HP ' + JSON.stringify(control)
+                 + ' (must drop both); on 5 HP ' + JSON.stringify(test) + ' (fainted before its own handler: must drop none)' };
+});
+probe('ability', 'weatherSetter', 'an entrant that Stealth Rock knocks out sets no weather', () => {
+  const control = deadEntry('pelipper', 'drizzle', null), test = deadEntry('pelipper', 'drizzle', 5);
+  return { works: !control.fainted && control.weather !== 'none' && test.fainted && test.weather === 'none',
+           arms: { control: control.weather, test: test.weather },
+           detail: 'the sky after a Drizzle body walks into Stealth Rock — at full HP ' + JSON.stringify(control)
+                 + ' (must be set); on 5 HP ' + JSON.stringify(test) + ' (must stay clear)' };
+});
+probe('ability', 'rewritesAbilityOnContact', 'a holder the contact hit KNOCKS OUT still starts the ability it acquired', () => {
+  const run = (atkAb) => {
+    const me = bare('scrafty'), ally = bare('corviknight');
+    const f1 = bare('runerigus'), f2 = bare('milotic');
+    me.ability = atkAb; f1.ability = 'wanderingspirit';
+    const S = M.battleInit([me, ally], [f1, f2, bare('garchomp')], { seeded: true });
+    f1.curHP = 1;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'knockoff', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { ko: !!f1.fainted, atk: me.boosts.at + ',' + ally.boosts.at };
+  };
+  const control = run('shedskin'), test = run('intimidate');
+  return { works: control.ko && test.ko && control.atk === '0,0' && test.atk === '-1,-1',
+           arms: { control: control.atk, test: test.atk },
+           detail: 'the attacker side\'s Attack after a contact KO on a Wandering Spirit holder — the attacker '
+                 + 'carrying Shed Skin ' + JSON.stringify(control) + ' (nothing to start); carrying Intimidate '
+                 + JSON.stringify(test) + ' (the 0-HP holder takes it and its Start drops both)' };
+});
+probe('ability', 'hitsTwice', 'a Parental Bond packet that computes to 0 still deals 1', () => {
+  const run = (ab) => {
+    const me = bare('kangaskhan'), ally = bare('corviknight');
+    const f1 = bare('whimsicott'), f2 = bare('milotic');
+    me.ability = ab;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    me.boosts.at = -6;
+    const before = f1.curHP;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'lowkick', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return before - f1.curHP;
+  };
+  const control = run('none'), test = run('parentalbond');
+  return { works: control > 0 && test > control, arms: { control: [control], test: [test] },
+           detail: 'a -6 Kangaskhan\'s Low Kick into a 6.6 kg resist — one packet ' + control + '; with Parental '
+                 + 'Bond ' + test + ' (the x0.25 packet truncates to 0 and `modifyDamage` returns 1: must be more)' };
+});
+probe('move', 'breaksProtect', 'Feint breaks DETECT for the partner, not only Protect', () => {
+  /* THE VARIED INPUT IS THE FEINT, on a Detect body, so the two arms MUST differ; the Protect reading is
+   * the reference the Detect reading has to equal, asserted beside the arms rather than as one of them
+   * (two equal arms read as an unwired knob, which is the census's own hollow rule). */
+  const run = (shield, feint) => {
+    const me = bare('weavile'), ally = bare('garchomp');
+    const f1 = bare('lucario'), f2 = bare('milotic');
+    unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, feint ? M.playerAction(me, 'feint', f1, S.field) : M.playerAction(me, 'swordsdance', null, S.field)],
+               [ally, M.playerAction(ally, 'dragonclaw', f1, S.field)]]),
+      new Map([[f1, M.playerAction(f1, shield, null, S.field)], [f2, { kind: 'pass' }]]));
+    return before - f1.curHP;
+  };
+  const control = run('detect', false), test = run('detect', true), ref = run('protect', true);
+  return { works: control === 0 && test > 0 && test === ref, arms: { control: [control], test: [test] },
+           detail: 'the partner\'s Dragon Claw into a Detecting Lucario — with no Feint it lost ' + control
+                 + ' (blocked); after Feint ' + test + ' (Detect raises the `protect` volatile, so Feint breaks it: '
+                 + 'must equal the Protect reading, ' + ref + ')' };
+});
+probe('move', 'thawsUser', 'a flinch refuses a frozen body\'s defrost move BEFORE it thaws', () => {
+  const run = (foeMv) => {
+    const me = bare('milotic'), ally = bare('corviknight');
+    const f1 = bare('gengar'), f2 = bare('garchomp');
+    unfaintable(me); unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    me.status = 'frz'; me.frzTurns = 0;
+    M.battleTurn(S, rngLow,
+      new Map([[me, M.playerAction(me, 'scald', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, foeMv, me, S.field)], [f2, { kind: 'pass' }]]));
+    return me.status || 'none';
+  };
+  const control = run('shadowball'), test = run('darkpulse');
+  return { works: control === 'none' && test === 'frz', arms: { control, test },
+           detail: 'a frozen Milotic clicks Scald under a faster Gengar — hit by Shadow Ball it is ' + control
+                 + ' (thawed at use); flinched by Dark Pulse it is ' + test + ' (the thaw is `onModifyMove`, '
+                 + 'below the flinch: must stay frz)' };
+});
+probe('move', 'pivotStatus', 'a Parting Shot with nobody left to aim at fails and does NOT switch', () => {
+  const run = (hp) => {
+    const me = bare('charizard'), ally = bare('incineroar'), bench = bare('milotic');
+    const f1 = bare('garchomp'), f2 = bare('corviknight'), fb = bare('toxapex'), fb2 = bare('clefable');
+    const S = M.battleInit([me, ally, bench], [f1, f2, fb, fb2], { seeded: true });
+    if (hp != null) { f1.curHP = hp; f2.curHP = hp; }
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'heatwave', f1, S.field)], [ally, M.playerAction(ally, 'partingshot', f1, S.field)]]),
+      PASS2(f1, f2));
+    return S.actA.indexOf(ally) >= 0 ? 'stayed' : 'left';
+  };
+  const control = run(null), test = run(1);
+  return { works: control === 'left' && test === 'stayed', arms: { control, test },
+           detail: 'Heat Wave, then Incineroar\'s Parting Shot — with the foes standing it ' + control
+                 + ' (must pivot); with both foes knocked out first it ' + test + ' (`[notarget]` and '
+                 + '`-fail`: must stay)' };
+});
+probe('move', 'removesItem', 'a Thief whose user is already holding an item takes nothing', () => {
+  const run = (own) => {
+    const me = bare('sneasler'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    me.item = own; f1.item = 'leftovers';
+    unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'thief', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return (me.item || 'none') + '/' + (f1.item || 'none');
+  };
+  const control = run(''), test = run('focussash');
+  return { works: control === 'leftovers/none' && test === 'focussash/leftovers', arms: { control, test },
+           detail: 'user item / target item after Thief — empty-handed ' + control + ' (must steal); '
+                 + 'holding a Focus Sash ' + test + ' (the handler returns: nothing moves)' };
+});
+probe('move', 'statChangeInCode', 'Belly Drum at +6 fails WITHOUT paying its half', () => {
+  const run = (stage) => {
+    const me = bare('azumarill'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    me.boosts.at = stage;
+    const before = me.curHP;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'bellydrum', null, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { paid: before - me.curHP, atk: me.boosts.at };
+  };
+  const control = run(4), test = run(6);
+  return { works: control.paid > 0 && control.atk === 6 && test.paid === 0 && test.atk === 6,
+           arms: { control: control.paid, test: test.paid },
+           detail: 'HP paid and Attack stage after Belly Drum — from +4 ' + JSON.stringify(control)
+                 + ' (pays, reaches +6); from +6 ' + JSON.stringify(test) + ' (fails: pays nothing)' };
+});
+probe('move', 'rewritesStoredStats', 'a Speed Swap is undone when the body leaves the field', () => {
+  const run = (leave) => {
+    const me = bare('alakazam'), ally = bare('corviknight');
+    const f1 = bare('sylveon'), f2 = bare('milotic'), fb = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2, fb], { seeded: true });
+    const own = f1.st.sp;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'speedswap', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const swapped = f1.st.sp;
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, leave ? { kind: 'switch', to: fb } : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { own, swapped, after: f1.st.sp };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.swapped !== control.own && control.after === control.swapped && test.after === test.own,
+           arms: { control: control.after, test: test.after },
+           detail: 'Sylveon\'s stored Speed (own / after the swap / a turn later) — staying ' + JSON.stringify(control)
+                 + ' (keeps the swap); switched out ' + JSON.stringify(test) + ' (`setSpecies` recomputes it: '
+                 + 'must be its own again)' };
+});
+probe('move', 'fixedDamage', 'Super Fang into a 1 HP body deals the 1', () => {
+  const run = (hp) => {
+    const me = bare('scrafty'), ally = bare('corviknight');
+    const f1 = bare('alakazam'), f2 = bare('milotic'), fb = bare('garchomp');
+    const S = M.battleInit([me, ally], [f1, f2, fb], { seeded: true });
+    f1.curHP = hp;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'superfang', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return f1.curHP;
+  };
+  const control = run(2), test = run(1);
+  return { works: control === 1 && test === 0, arms: { control: [control], test: [test] },
+           detail: 'the target\'s HP after Super Fang — from 2 it is ' + control + ' (half); from 1 it is ' + test
+                 + ' (`clampIntRange(hp / 2, 1)`: must be 0)' };
+});
+probe('ability', 'punishesAttacker', 'a volley STOPS when Rough Skin knocks its user out between hits', () => {
+  const run = (hp) => {
+    const me = bare('talonflame'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    f1.ability = 'roughskin'; unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    if (hp != null) me.curHP = hp;
+    const before = f1.curHP;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'dualwingbeat', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { dealt: before - f1.curHP, down: !!me.fainted };
+  };
+  const control = run(null), test = run(1);
+  return { works: !control.down && test.down && test.dealt > 0 && test.dealt < control.dealt,
+           arms: { control: control.dealt, test: test.dealt },
+           detail: 'Dual Wingbeat into Rough Skin — a full-HP user deals ' + JSON.stringify(control)
+                 + '; a 1 HP user ' + JSON.stringify(test) + ' (falls on hit 1 and the loop breaks: must deal less)' };
+});
+/* batch 2 + 3 of the same pass */
+probe('move', 'layeredVolatile', 'a Stockpile refund is refused when the Spit Up takes the LAST foe', () => {
+  const run = (last) => {
+    const me = bare('camerupt'), ally = bare('charizard');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'stockpile', null, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    f1.curHP = 1; f2.curHP = 1;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'spitup', f1, S.field)],
+               [ally, last ? M.playerAction(ally, 'flamethrower', f2, S.field) : { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return me.boosts.df + '/' + me.boosts.sd;
+  };
+  const control = run(false), test = run(true);
+  return { works: control === '0/0' && test === '1/1', arms: { control, test },
+           detail: 'Camerupt\'s Def/SpD after Stockpile then Spit Up — with a foe left standing ' + control
+                 + ' (the stages granted are refunded); taking the LAST foe ' + test + ' (the refund is a '
+                 + '`boost`, refused with no foe left: the stages stay)' };
+});
+probe('move', 'changesTargetType', 'Reflect Type copies the TARGET\'s typing onto the USER', () => {
+  const run = (copy) => {
+    const me = bare('gengar'), ally = bare('corviknight');
+    const f1 = bare('sneasler'), f2 = bare('milotic');
+    unfaintable(me);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, copy ? M.playerAction(me, 'reflecttype', f1, S.field) : M.playerAction(me, 'nastyplot', null, S.field)],
+               [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const types = (me.types || []).join('/');
+    const before = me.curHP;
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'closecombat', me, S.field)], [f2, { kind: 'pass' }]]));
+    return { types, dealt: before - me.curHP };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.dealt === 0 && test.dealt > 0 && test.types !== control.types,
+           arms: { control: control.dealt, test: test.dealt },
+           detail: 'Gengar then takes Sneasler\'s Close Combat — without the copy ' + JSON.stringify(control)
+                 + ' (a Ghost: immune); after Reflect Type ' + JSON.stringify(test) + ' (Sneasler\'s typing: it lands)' };
+});
+
 
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
@@ -33593,7 +33900,15 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afte
                           'kingsRockOncePerMoveRestored', 'accEvaSeparateRestored',
                           'punishHazardOnAttackerSideRestored', 'punishWeatherIfClearRestored',
                           'terrainTargetSingleRestored', 'terrainScaledUngatedRestored',
-                          'eTerrainSleepAllowedRestored', 'encoreNoPPEndRestored']
+                          'eTerrainSleepAllowedRestored', 'encoreNoPPEndRestored',
+                          /* 2026-09-11 -- the speed-tie corner batch's thirteen knobs */
+                          'encoreRewriteKeepsGuardsRestored', 'entryDeadStillStartsRestored',
+                          'acquiredStartNeedsHpRestored', 'damageNoMinOneRestored', 'feintReadsMoveIdRestored',
+                          'thawAboveFlinchRestored', 'pivotNoTargetSwitchesRestored',
+                          'stealIgnoresFullHandRestored', 'costBoostNoCapFailRestored',
+                          'statRewireSurvivesSwitchRestored', 'halfHpNoFloorRestored',
+                          'knockoffFlooredAloneRestored', 'volleyIgnoresUserFaintRestored',
+                          'layerRefundIgnoresNoFoeRestored', 'reflectTypeUnmodelledRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

@@ -12,14 +12,17 @@ game rather than a re-run.
 
 ```
 OPS — the live bot and the store
-  store: 92594 games, 32193 usable (34.8%), 27634 teams   (live.js 2026-09-10)
+  store: WITHHELD — engine/provenance.js calls data/live.js UNSAFE.
+    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
+    older than its input games.ladder.jsonl
+    it becomes quotable again when this is re-run: node engine/refresh-site-data.NOARCH.py
   live-games/: 34 battles recorded
   data/games.ladder.jsonl      last written 2026-09-10 22:14
   data/games.bo3.jsonl         last written 2026-09-10 22:14  <- the Force-OTS format, collected hourly
   data/games.ots.jsonl         last written 2026-09-10 22:14  <- FROZEN external import, complete; date is an import, not a heartbeat
 ```
 
-_stamped 2026-09-10 23:54_
+_stamped 2026-09-11 03:11_
 
 <!-- /GENERATED -->
 

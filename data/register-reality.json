@@ -1,15 +1,16 @@
 {
-  "generated": "2026-09-11T03:51:11.772Z",
+  "generated": "2026-09-11T07:09:29.419Z",
   "by": "engine/register_reality.js",
   "tree_state": {
-    "head": "1b009d5477b3e642d8e2178fa3e4624d02cf359b",
+    "head": "ea4379350cf6f655b3868de3f392226275398e01",
     "dirty_at_start": [
-      "M data/abra-tags.js",
+      "M CHANGELOG.md",
       "M data/all-mechanics-fire.json",
-      "M data/conformance.json",
       "M data/engine-diff.json",
       "M data/engine-release.json",
       "M data/game-differential.json",
+      "M data/mechanics-census.json",
+      "M data/provenance-stamp.json",
       "M data/published-samples.json",
       "M data/roster.abilities.json",
       "M data/roster.abilities.prev.json",
@@ -18,33 +19,22 @@
       "M data/roster.json",
       "M data/roster.moves.json",
       "M data/roster.moves.prev.json",
-      "M data/tags.json",
       "M data/verification/game-differential-bottom-tie-first.json",
       "M data/verification/game-differential-top-tie-first.json",
-      "M engine/all_mechanics_fire.js",
-      "M engine/argmax_paired.js",
-      "M engine/divergence_shape.js",
-      "M engine/empirical_driver.js",
-      "M engine/faces.js",
-      "M engine/immunity_sweep.js",
+      "M docs/ENGINE.md",
+      "M docs/OPS.md",
+      "M docs/ROADMAP.md",
+      "M docs/RUNNING-NOTES.md",
+      "M docs/SEARCH.md",
+      "M docs/WEB.md",
       "M engine/medicham2-browser.js",
-      "M engine/million_run.js",
-      "M engine/million_targets.js",
-      "M engine/orient.js",
-      "M engine/quarantine.js",
-      "M engine/replay_differential.js",
-      "M engine/rollout_switch_probe.js",
-      "M engine/tag_dex.js",
-      "M tests/probe_accuracy_roads.js",
-      "M tests/probe_disguise_crit.js",
-      "M tests/probe_encore_pp_end.js",
-      "M tests/test-mechanics.js",
-      "M tests/test-stadium-roster.js"
+      "M tests/probe_red_demo.js",
+      "M tests/test-mechanics.js"
     ],
     "dirty_at_end": [
-      "M data/abra-tags.js",
+      "M CHANGELOG.md",
       "M data/all-mechanics-fire.json",
-      "M data/conformance.json",
+      "M data/docs-currency-baseline.json",
       "M data/engine-diff.json",
       "M data/engine-release.json",
       "M data/forme-assert.json",
@@ -59,28 +49,18 @@
       "M data/roster.json",
       "M data/roster.moves.json",
       "M data/roster.moves.prev.json",
-      "M data/tags.json",
+      "M data/unmodelled-clicks.json",
       "M data/verification/game-differential-bottom-tie-first.json",
       "M data/verification/game-differential-top-tie-first.json",
-      "M engine/all_mechanics_fire.js",
-      "M engine/argmax_paired.js",
-      "M engine/divergence_shape.js",
-      "M engine/empirical_driver.js",
-      "M engine/faces.js",
-      "M engine/immunity_sweep.js",
+      "M docs/ENGINE.md",
+      "M docs/OPS.md",
+      "M docs/ROADMAP.md",
+      "M docs/RUNNING-NOTES.md",
+      "M docs/SEARCH.md",
+      "M docs/WEB.md",
       "M engine/medicham2-browser.js",
-      "M engine/million_run.js",
-      "M engine/million_targets.js",
-      "M engine/orient.js",
-      "M engine/quarantine.js",
-      "M engine/replay_differential.js",
-      "M engine/rollout_switch_probe.js",
-      "M engine/tag_dex.js",
-      "M tests/probe_accuracy_roads.js",
-      "M tests/probe_disguise_crit.js",
-      "M tests/probe_encore_pp_end.js",
-      "M tests/test-mechanics.js",
-      "M tests/test-stadium-roster.js"
+      "M tests/probe_red_demo.js",
+      "M tests/test-mechanics.js"
     ],
     "moved_during_the_run": true,
     "settled": false,
@@ -90,12 +70,12 @@
   "why": "docs/ROADMAP.md is read by engine/quarantine.js as a GATE INPUT and nothing checked it against reality. On 2026-08-14 four rows were stale rather than live and two of them were put in front of a human as the place to start. A row nobody re-verifies is prose.",
   "weaker_than_it_looks": "A green instrument means THAT instrument sees nothing. It is not a derivation of the row's claim. It is strictly more than the register had, which was nothing.",
   "counts": {
-    "register_rows": 499,
-    "id_rows": 545,
+    "register_rows": 501,
+    "id_rows": 547,
     "open_asserting_breakage": 50,
-    "marked": 142,
+    "marked": 144,
     "open_asserting_breakage_and_marked": 6,
-    "stale_rows": 10,
+    "stale_rows": 9,
     "premature_closes": 1,
     "unrunnable": 2,
     "cannot_answer": 1,
@@ -104,7 +84,7 @@
     "open_asserting_breakage_and_owed": 22,
     "markers_rejected": 9,
     "markers_rejected_and_open_asserting_breakage": 0,
-    "distinct_commands_run": 86
+    "distinct_commands_run": 88
   },
   "markers_rejected": [
     {
@@ -420,7 +400,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1000,
+      "ms": 1072,
       "verdict": "CONFIRMED"
     },
     {
@@ -434,7 +414,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2079,
+      "ms": 2145,
       "verdict": "CONFIRMED"
     },
     {
@@ -448,7 +428,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1367,
+      "ms": 1421,
       "verdict": "CONFIRMED"
     },
     {
@@ -462,7 +442,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1154,
+      "ms": 1214,
       "verdict": "CONFIRMED"
     },
     {
@@ -476,7 +456,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 65,
+      "ms": 66,
       "verdict": "STALE ROW"
     },
     {
@@ -490,7 +470,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 938,
+      "ms": 964,
       "verdict": "CONFIRMED"
     },
     {
@@ -504,7 +484,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 58,
+      "ms": 56,
       "verdict": "CONFIRMED"
     },
     {
@@ -518,7 +498,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 53,
+      "ms": 54,
       "verdict": "CONFIRMED"
     },
     {
@@ -532,7 +512,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 541,
+      "ms": 558,
       "verdict": "CONFIRMED"
     },
     {
@@ -546,7 +526,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 203,
+      "ms": 209,
       "verdict": "CONFIRMED"
     },
     {
@@ -560,7 +540,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 203,
+      "ms": 209,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -575,7 +555,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 203,
+      "ms": 209,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -590,7 +570,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 596,
+      "ms": 630,
       "verdict": "CONFIRMED"
     },
     {
@@ -604,7 +584,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 596,
+      "ms": 630,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -619,7 +599,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 596,
+      "ms": 630,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -634,7 +614,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 845,
+      "ms": 879,
       "verdict": "CONFIRMED"
     },
     {
@@ -648,7 +628,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 667,
+      "ms": 722,
       "verdict": "CONFIRMED"
     },
     {
@@ -662,7 +642,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 667,
+      "ms": 722,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -677,7 +657,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 667,
+      "ms": 722,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -692,7 +672,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 667,
+      "ms": 722,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -707,7 +687,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 562,
+      "ms": 589,
       "verdict": "CONFIRMED"
     },
     {
@@ -721,7 +701,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 8997,
+      "ms": 11229,
       "verdict": "CONFIRMED"
     },
     {
@@ -735,7 +715,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1072,
+      "ms": 1137,
       "verdict": "CONFIRMED"
     },
     {
@@ -749,7 +729,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 52,
+      "ms": 50,
       "verdict": "CONFIRMED"
     },
     {
@@ -763,7 +743,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1072,
+      "ms": 1137,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -778,7 +758,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 910,
+      "ms": 940,
       "verdict": "CONFIRMED"
     },
     {
@@ -792,7 +772,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 749,
+      "ms": 766,
       "verdict": "CONFIRMED"
     },
     {
@@ -806,7 +786,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 87,
+      "ms": 67,
       "verdict": "CONFIRMED"
     },
     {
@@ -820,7 +800,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 889,
+      "ms": 999,
       "verdict": "CONFIRMED"
     },
     {
@@ -834,7 +814,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 492,
+      "ms": 496,
       "verdict": "CONFIRMED"
     },
     {
@@ -848,7 +828,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 492,
+      "ms": 496,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -863,7 +843,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1902,
+      "ms": 1942,
       "verdict": "CONFIRMED"
     },
     {
@@ -877,7 +857,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 14432,
+      "ms": 16280,
       "verdict": "STALE ROW"
     },
     {
@@ -891,7 +871,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1313,
+      "ms": 1044,
       "verdict": "CONFIRMED"
     },
     {
@@ -905,7 +885,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 151459,
+      "ms": 156877,
       "verdict": "CONFIRMED"
     },
     {
@@ -919,7 +899,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3695,
+      "ms": 2597,
       "verdict": "CONFIRMED"
     },
     {
@@ -933,7 +913,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 79417,
+      "ms": 69810,
       "verdict": "CONFIRMED"
     },
     {
@@ -947,7 +927,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1431,
+      "ms": 1350,
       "verdict": "CONFIRMED"
     },
     {
@@ -961,7 +941,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "verdict": "CONFIRMED"
     },
     {
@@ -975,7 +955,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -990,7 +970,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 959,
+      "ms": 921,
       "verdict": "CONFIRMED"
     },
     {
@@ -1004,7 +984,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 87,
+      "ms": 67,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1019,7 +999,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 889,
+      "ms": 999,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1034,7 +1014,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1240,
+      "ms": 1176,
       "verdict": "CONFIRMED"
     },
     {
@@ -1048,7 +1028,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3991,
+      "ms": 3920,
       "verdict": "CONFIRMED"
     },
     {
@@ -1062,7 +1042,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1367,
+      "ms": 1421,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1077,7 +1057,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 996,
+      "ms": 925,
       "verdict": "STALE ROW"
     },
     {
@@ -1091,7 +1071,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1106,7 +1086,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1121,7 +1101,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1027,
+      "ms": 966,
       "verdict": "CONFIRMED"
     },
     {
@@ -1135,7 +1115,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 845,
+      "ms": 879,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1150,7 +1130,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 996,
+      "ms": 925,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1165,7 +1145,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1367,
+      "ms": 1421,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1180,7 +1160,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1367,
+      "ms": 1421,
       "cached": true,
       "verdict": "STALE ROW"
     },
@@ -1195,7 +1175,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1210,7 +1190,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 669,
+      "ms": 642,
       "verdict": "CONFIRMED"
     },
     {
@@ -1224,7 +1204,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 717,
+      "ms": 677,
       "verdict": "CONFIRMED"
     },
     {
@@ -1238,7 +1218,7 @@
       "kind": "CANNOT-ANSWER",
       "declared": "CANNOT-ANSWER",
       "why": "exit 4 — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to report about this row, and a refusal is not evidence in either direction",
-      "ms": 876,
+      "ms": 849,
       "verdict": "INSTRUMENT CANNOT ANSWER"
     },
     {
@@ -1252,7 +1232,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1267,7 +1247,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1282,7 +1262,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1297,7 +1277,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1312,7 +1292,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1327,7 +1307,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1342,7 +1322,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1357,7 +1337,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1372,7 +1352,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1387,7 +1367,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1402,7 +1382,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1417,7 +1397,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1432,7 +1412,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 11302,
+      "ms": 11635,
       "verdict": "STALE ROW"
     },
     {
@@ -1446,7 +1426,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 17734,
+      "ms": 18552,
       "verdict": "STALE ROW"
     },
     {
@@ -1460,7 +1440,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 17734,
+      "ms": 18552,
       "cached": true,
       "verdict": "STALE ROW"
     },
@@ -1475,7 +1455,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "STALE ROW"
     },
@@ -1490,7 +1470,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1505,7 +1485,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1085,
+      "ms": 1040,
       "verdict": "CONFIRMED"
     },
     {
@@ -1519,7 +1499,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3403,
+      "ms": 3346,
       "verdict": "CONFIRMED"
     },
     {
@@ -1533,7 +1513,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 8997,
+      "ms": 11229,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1548,7 +1528,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1871,
+      "ms": 1813,
       "verdict": "CONFIRMED"
     },
     {
@@ -1562,7 +1542,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1577,7 +1557,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1592,7 +1572,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1607,7 +1587,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1622,7 +1602,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1637,7 +1617,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1652,7 +1632,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1667,7 +1647,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1682,7 +1662,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1697,7 +1677,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -1712,7 +1692,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3105,
+      "ms": 2294,
       "verdict": "CONFIRMED"
     },
     {
@@ -1726,7 +1706,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 6443,
+      "ms": 2073,
       "verdict": "CONFIRMED"
     },
     {
@@ -1740,7 +1720,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 8783,
+      "ms": 2123,
       "verdict": "CONFIRMED"
     },
     {
@@ -1754,7 +1734,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 481,
+      "ms": 144,
       "verdict": "CONFIRMED"
     },
     {
@@ -1768,7 +1748,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 74894,
+      "ms": 28775,
       "verdict": "CONFIRMED"
     },
     {
@@ -1782,7 +1762,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3077,
+      "ms": 632,
       "verdict": "CONFIRMED"
     },
     {
@@ -1796,7 +1776,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 6745,
+      "ms": 2234,
       "verdict": "CONFIRMED"
     },
     {
@@ -1810,7 +1790,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 5053,
+      "ms": 12534,
       "verdict": "CONFIRMED"
     },
     {
@@ -1824,7 +1804,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 5182,
+      "ms": 20985,
       "verdict": "CONFIRMED"
     },
     {
@@ -1838,7 +1818,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 6436,
+      "ms": 32018,
       "verdict": "CONFIRMED"
     },
     {
@@ -1852,7 +1832,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 6508,
+      "ms": 22491,
       "verdict": "CONFIRMED"
     },
     {
@@ -1866,7 +1846,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 8135,
+      "ms": 27047,
       "verdict": "CONFIRMED"
     },
     {
@@ -1880,7 +1860,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 5011,
+      "ms": 5030,
       "verdict": "CONFIRMED"
     },
     {
@@ -1894,7 +1874,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 2678,
+      "ms": 2647,
       "verdict": "CONFIRMED"
     },
     {
@@ -1908,7 +1888,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 8696,
+      "ms": 17354,
       "verdict": "CONFIRMED"
     },
     {
@@ -1922,7 +1902,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 5287,
+      "ms": 17401,
       "verdict": "CONFIRMED"
     },
     {
@@ -1936,7 +1916,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3094,
+      "ms": 8781,
       "verdict": "CONFIRMED"
     },
     {
@@ -1950,7 +1930,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 223409,
+      "ms": 337695,
       "verdict": "CONFIRMED"
     },
     {
@@ -1964,7 +1944,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 5592,
+      "ms": 2186,
       "verdict": "CONFIRMED"
     },
     {
@@ -1978,7 +1958,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 5977,
+      "ms": 2422,
       "verdict": "CONFIRMED"
     },
     {
@@ -1992,7 +1972,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 5279,
+      "ms": 2147,
       "verdict": "CONFIRMED"
     },
     {
@@ -2006,7 +1986,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 50902,
+      "ms": 56887,
       "verdict": "CONFIRMED"
     },
     {
@@ -2020,7 +2000,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1942,
+      "ms": 2433,
       "verdict": "CONFIRMED"
     },
     {
@@ -2034,7 +2014,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 603,
+      "ms": 722,
       "verdict": "CONFIRMED"
     },
     {
@@ -2048,7 +2028,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 492,
+      "ms": 496,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2063,7 +2043,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 889,
+      "ms": 999,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2078,7 +2058,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 5977,
+      "ms": 2422,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2093,7 +2073,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 253332,
+      "ms": 298083,
       "verdict": "CONFIRMED"
     },
     {
@@ -2107,7 +2087,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 8696,
+      "ms": 17354,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2122,7 +2102,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3176,
+      "ms": 4051,
       "verdict": "CONFIRMED"
     },
     {
@@ -2136,7 +2116,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 484,
+      "ms": 600,
       "verdict": "STALE ROW"
     },
     {
@@ -2150,7 +2130,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 5437,
+      "ms": 7600,
       "verdict": "CONFIRMED"
     },
     {
@@ -2164,7 +2144,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 5882,
+      "ms": 40341,
       "verdict": "CONFIRMED"
     },
     {
@@ -2178,7 +2158,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 1055,
+      "ms": 11601,
       "verdict": "CONFIRMED"
     },
     {
@@ -2231,7 +2211,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 53,
+      "ms": 54,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2246,7 +2226,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2261,7 +2241,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 23595,
+      "ms": 25349,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2319,6 +2299,20 @@
       "verdict": "MARKER REJECTED"
     },
     {
+      "n": 571,
+      "title": "A SPEED SWAP SURVIVES A SWITCH DIFFERENTLY IN THE TWO ENGINES — ONE BOARD-MATERIAL GAME IN",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/probe_corner_mechanisms.js --only rewire-switch",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 27984,
+      "verdict": "CONFIRMED"
+    },
+    {
       "n": 574,
       "title": "DRAGON DARTS CANNOT BE STAGED THROUGH A 1v1 DAMAGE HARNESS — THE AUTHORITY'S OWN HIT LOOP ",
       "closed": false,
@@ -2342,7 +2336,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 151459,
+      "ms": 156877,
       "cached": true,
       "verdict": "CONFIRMED"
     },
@@ -2370,7 +2364,7 @@
       "kind": "VERDICT-RED",
       "declared": null,
       "why": "exit 1",
-      "ms": 48226,
+      "ms": 138442,
       "verdict": "PREMATURE CLOSE"
     },
     {
@@ -2383,7 +2377,7 @@
       "green": null,
       "kind": "NOT-STARTED",
       "why": "the instrument could not be run: spawnSync C:\\Program Files\\nodejs\\node.exe ETIMEDOUT",
-      "ms": 600028,
+      "ms": 600026,
       "verdict": "INSTRUMENT UNRUNNABLE"
     },
     {
@@ -2396,14 +2390,14 @@
       "green": null,
       "kind": "NOT-STARTED",
       "why": "the instrument could not be run: spawnSync C:\\Program Files\\nodejs\\node.exe ETIMEDOUT",
-      "ms": 600028,
+      "ms": 600026,
       "cached": true,
       "verdict": "INSTRUMENT UNRUNNABLE"
     },
     {
       "n": 580,
       "title": "ENCORE DOES NOT END WHEN THE ENCORED MOVE REACHES 0 PP, SO THE BODY STAYS LOCKED FOR THE R",
-      "closed": false,
+      "closed": true,
       "saysBroken": false,
       "cmd": "node tests/probe_encore_pp_end.js --assert",
       "owed": null,
@@ -2411,8 +2405,8 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 3033,
-      "verdict": "STALE ROW"
+      "ms": 3521,
+      "verdict": "CONFIRMED"
     },
     {
       "n": 581,
@@ -2425,7 +2419,7 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 7969,
+      "ms": 9900,
       "verdict": "CONFIRMED"
     },
     {
@@ -2439,7 +2433,21 @@
       "kind": "VERDICT-GREEN",
       "declared": null,
       "why": "exit 0",
-      "ms": 6726,
+      "ms": 6065,
+      "verdict": "CONFIRMED"
+    },
+    {
+      "n": 583,
+      "title": "THE SPEED-TIE CORNER CARDS — FIFTEEN MECHANISMS, THIRTEEN FIXED AS BRIEFED, TWO ATTRIBUTED",
+      "closed": true,
+      "saysBroken": false,
+      "cmd": "node tests/probe_corner_mechanisms.js",
+      "owed": null,
+      "green": true,
+      "kind": "VERDICT-GREEN",
+      "declared": null,
+      "why": "exit 0",
+      "ms": 95437,
       "verdict": "CONFIRMED"
     }
   ],

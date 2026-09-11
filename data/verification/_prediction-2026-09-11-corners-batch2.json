@@ -1,0 +1,30 @@
+{
+  "written": "2026-09-11T06:05:00Z",
+  "by": "ENGINE, speed-tie corner batches 2+3 (released together) — written BEFORE the release was cut and before any arm ran",
+  "why_together": "batch 2 carries ONE code fix (Stockpile's refund with no foe left); its three clock cards are DECLARED with a traced reason and carry no code. Each remaining pool game maps to one mechanism, so attribution survives a joint release.",
+  "baseline": {
+    "release": "09b2b98feb98",
+    "top_tie_first_board_material": 2,
+    "bottom_tie_first_board_material": 3,
+    "middle_board_material": 0,
+    "source": "data/verification/game-differential-{top,bottom}-tie-first.json and data/game-differential.json on 09b2b98feb98, state.games less state.games_board_never_diverged"
+  },
+  "pins": "--census data/mechanics-census.json --team-store data/team-pool-frozen --games 1200 --turns 50 --steering empirical --end-state",
+  "mechanism_by_game": {
+    "top": {
+      "gen9championsvgc2026regmbbo3-2659556207": "reflect-type (batch 3: Gengar copies Fighting/Poison)",
+      "gen9championsvgc2026regmbbo3-2654571284": "DECLARED — end-of-battle Light Screen clock (batch 2)"
+    },
+    "bottom": {
+      "gen9championsvgc2026regmbbo3-2635658823": "stockpile-no-foe (batch 2: the refund boost is refused with no foe left)",
+      "gen9championsvgc2026regmbbo3-2662099996": "DECLARED — end-of-battle stall counter (batch 2)",
+      "gen9championsvgc2026regmbbo3-2634155984": "DECLARED — end-of-battle stall counter (batch 2)"
+    }
+  },
+  "prediction": {
+    "top_tie_first": { "point": 1, "interval": [1, 2], "leave": ["…2659556207"], "stay": ["…2654571284"] },
+    "bottom_tie_first": { "point": 2, "interval": [2, 3], "leave": ["…2635658823"], "stay": ["…2662099996", "…2634155984"] },
+    "middle": { "point": 0, "interval": [0, 1] },
+    "new_games_expected": "none; Reflect Type is a click the driver rarely makes and the refund gate reads only on a wiped foe side"
+  }
+}

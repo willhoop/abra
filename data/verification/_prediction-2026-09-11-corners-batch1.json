@@ -1,0 +1,44 @@
+{
+  "written": "2026-09-11T05:40:00Z",
+  "by": "ENGINE, speed-tie corner batch 1 — written BEFORE the release was cut and before any arm ran",
+  "baseline": {
+    "release": "5973a4e3c768",
+    "top_tie_first_board_material": 8,
+    "bottom_tie_first_board_material": 11,
+    "middle_board_material": 0,
+    "source": "data/verification/game-differential-{top,bottom}-tie-first.json and data/game-differential.json, state.games less state.games_board_never_diverged"
+  },
+  "pins": "--census data/mechanics-census.json --team-store data/team-pool-frozen --games 1200 --turns 50 --steering empirical --end-state",
+  "mechanism_by_game": {
+    "top": {
+      "gen9championsvgc2026regmbbo3-2661290217": "encore-rewrite (a queued Parting Shot)",
+      "gen9championsvgc2026regmbbo3-2663746491": "min-one (Parental Bond packet into a resist)",
+      "gen9championsvgc2026regmbbo3-2657567717": "steal-full-hand (Thief)",
+      "gen9championsvgc2026regmbbo3-2654931424": "cost-cap (Belly Drum at +6)",
+      "gen9championsvgc2026regmbbo3-2656451791": "rewire-switch (Speed Swap, ROADMAP #571)",
+      "gen9championsvgc2026regmbbo3-2655635795": "knockoff-chain (Knock Off x Helping Hand in one base-power chain)",
+      "gen9championsvgc2026regmbbo3-2654571284": "NOT IN BATCH 1 — end-of-battle Light Screen clock (batch 2)",
+      "gen9championsvgc2026regmbbo3-2659556207": "NOT IN BATCH 1 — Reflect Type unmodelled (batch 3)"
+    },
+    "bottom": {
+      "gen9championsvgc2026regmb-2635374300": "encore-rewrite (a queued Struggle)",
+      "gen9championsvgc2026regmbbo3-2662004374": "entry-dead (Stealth Rock KO, Intimidate)",
+      "gen9championsvgc2026regmbbo3-2661305652": "acquired-start (Wandering Spirit onto a KO'd holder)",
+      "gen9championsvgc2026regmbbo3-2659466378": "feint-detect",
+      "gen9championsvgc2026regmbbo3-2634612764": "thaw-flinch",
+      "gen9championsvgc2026regmbbo3-2655672115": "pivot-no-target",
+      "gen9championsvgc2026regmbbo3-2662677462": "half-hp-floor (Super Fang)",
+      "gen9championsvgc2026regmbbo3-2659828909": "volley-user-faint (Rough Skin KO mid-volley; NOT the perish drain)",
+      "gen9championsvgc2026regmbbo3-2662099996": "NOT IN BATCH 1 — end-of-battle stall counter (batch 2)",
+      "gen9championsvgc2026regmbbo3-2634155984": "NOT IN BATCH 1 — end-of-battle stall counter (batch 2)",
+      "gen9championsvgc2026regmbbo3-2635658823": "NOT IN BATCH 1 — Stockpile refund with no foe left (batch 2)"
+    }
+  },
+  "prediction": {
+    "top_tie_first": { "point": 2, "interval": [2, 3], "leave": 6, "stay": ["…2654571284", "…2659556207"] },
+    "bottom_tie_first": { "point": 3, "interval": [3, 4], "leave": 8, "stay": ["…2662099996", "…2634155984", "…2635658823"] },
+    "middle": { "point": 0, "interval": [0, 1] },
+    "new_games_expected": "none by name; the interval's upper end allows ONE, because min-one touches every damage computation that truncates to 0 and entry-dead every refill into hazards",
+    "evidence_before_the_run": "engine/replay_one.js on the live tree (scratch release 09b2b98feb98): every batch-1 card replayed so far no longer splits, or splits only on a narration line"
+  }
+}

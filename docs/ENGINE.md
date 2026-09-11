@@ -55,7 +55,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_midturn_herb_resort.js`,
 `tests/probe_ohko_type_immunity.js`, `tests/probe_redirect_volatile_already_up.js`,
 `tests/probe_premajor_above_refusals.js`,
-`tests/probe_misty_terrain_status.js`, `tests/probe_charge_release_chosen_slot.js`
+`tests/probe_misty_terrain_status.js`, `tests/probe_charge_release_chosen_slot.js`,
+`tests/probe_corner_mechanisms.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -75,6 +76,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
 |---|---|---|
+| `probe_corner_mechanisms.js` | do the fifteen mechanisms the speed-tie corner arms exposed resolve the authority's way — each staged ALONE under the corner pin its pool game was played under, with a control on the SAME bodies that must hold in both knob positions. Showdown is the expectation; each mechanism also asserts a FIXTURE read off the authority's own log (the body really fainted, the flinch really fired, the mega really happened) so an arm that staged nothing fails by name, and a COUNTER its fix increments, non-zero on the reds and zero on the controls. The parent plays clean, then one child per mechanism under its own `MEDI_*` knob must part every red and hold every control. With no `--release` it freezes the live tree into the scratch store; `--release 5973a4e3c768` is the pre-fix engine it was shown RED on. `--only <mech>`, `--dump <mech>/<arm>` | the three end-of-battle clock cards (DECLARED, ROADMAP #584) — no arm stages them; a Mental Herb holder under Encore; a Magic Room thief; a Parental Bond packet under Unseen Fist; a volley into two targets; Guard Split and Power Split, which ride the same undo and are not staged; a body both transformed and rewired |
 | `probe_misty_terrain_status.js` | does Misty Terrain's `onSetStatus` (`data/moves.ts:12173-12179`, no Champions override) refuse EVERY status on a grounded body — a primary AND a secondary — and announce `-activate|…|move: Misty Terrain` only for a move carrying a top-level `status` or for Yawn. Six arms over two engines under `bottom-tie-first`, two turns each (both leads switch to two fresh entrants; Thunder Wave at slot 0, a burn secondary at slot 1, so no body is asked to `pass` and no body needs two statuses): CONTROL / TERRAIN with a DERIVED non-Ground burn carrier, SANDS-CONTROL / SANDS with the pool game's own Scorching Sands, AIR-CONTROL / AIRBORNE on Flying entrants. Every cast is fixed by its control on the AUTHORITY's log (both statuses must land with no terrain) and the terrain arm replays exactly that cast. `MEDI_MISTY_STATUS_UNREFUSED=1` must part TERRAIN and SANDS and move no control; `--medi <file>` compiles other bytes under the release for a pre-fix demonstration (RED, 8 cells, on HEAD of 2026-09-09). Counters asserted at exact per-arm equality; `terrainStatusFieldUnknown` asserted at zero | Rest's heal being withheld when the terrain refuses its sleep (the authority sets the status before it heals) — no arm stages Rest; the terrain's `onTryAddVolatile` (confusion), still a declared gap; a semi-invulnerable body under the terrain (`isSemiInvulnerable`), which the predicate models and no arm reaches |
 | `probe_charge_release_chosen_slot.js` | does a two-turn move release at the slot AS CHOSEN — `runMove`'s own `targetLoc` (`sim/battle-actions.ts:291` -> `sim/pokemon.ts:919`), copied onto the charge volatile by `twoturnmove.onStart` (`data/conditions.ts:298,308`) and read back by `sim/side.ts:675-684` — rather than at the body the charge turn was re-aimed onto when the chosen foe had already fainted. The carrier is DERIVED as the one legal single-target charge move that breaks protection (Phantom Force, of seven), so the release turn can be read with Protect in slot a whoever the driver sent in. Three arms: RED (a killer faster than both KOs slot a before `-prepare`; the bench refills it; the release must strike the NEW occupant), FOE-ALIVE (same cast, the killer boosts instead; both release at the chosen body) and SLOT-B (aim slot b while slot a empties — what stops the fix reading as 'always slot a'). The fixture is proven off the authority's turn 1 by name (fainted before `-prepare`, never moved, slot refilled). `MEDI_CHARGE_REMEMBERS_REAIMED=1` must part RED and move no control; `--medi <file>` shows HEAD of 2026-09-09 RED in 4 cells. `chargeSlotChosenDiffersFromReaimed` asserted at exactly 1 on RED and 0 on both controls | a chosen slot that is EMPTY at release (no bench body to refill it) — the authority falls to `getRandomTarget`, this engine to `live(foes)[0]`, counted as `chargeReleaseSlotVacated`; a charge called by another move (Metronome, `effect.sourceEffect`), which the authority re-targets at random; Stalwart / Propeller Tail on the charger |
 | `probe_midturn_herb_resort.js` | is the post-action re-sort the LAST thing in the action, the way `Battle#runAction` puts it (`sim/battle.ts:2915-2922`, below `eachEvent('Update')` at `:2856`) — so an `onUpdate` item spent by the pass that CLOSES a pivot switch reaches the sort that follows it. The cast is derived from `data/tags.json` on every run (`speedOnItemLoss`, `restoresStats`) and from the format (the one self-switch Status move aimed at a foe), never named; 37 candidate boards are enumerated and each is accepted only when the AUTHORITY's own `getActionSpeed()` readings satisfy all three inequalities the probe rests on — holder slower than its ally, twice the holder faster than the ally, the pivot faster than both — with a refusal printed BY NAME per clause, because a COULD-NOT-STAGE is a claim about the fixture. Three arms: REAL (the speed ability), SILENT (a non-speed ability on the SAME body, which must go the other way in BOTH engines), and `MEDI_RESORT_BEFORE_UPDATE=1` in a child, which must part the real arm and move the silent one not at all. It also reads the differential's boundary-by-boundary speed comparison and asserts ZERO disagreeing readings in both knob positions, which is what localises the defect to WHEN the queue was sorted rather than to the number sorted on | the herb's OTHER doors — `onAnyAfterMove` and the entry spend are `probe_refill_entry_herb.js`'s and `probe_unburden_herb_paths.js`'s, and only the `onAnySwitchIn` door is staged here. Whether the re-sort's BRACKET re-derivation is right, which is `test-bracket-regain.js`'s. And any second `onUpdate` item racing the herb in the same pass, which no arm stages |
@@ -139,11 +141,11 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  840/840 probed mechanics live, 0 missing   (census 2026-09-10 23:52)
+  856/856 probed mechanics live, 0 missing   (census 2026-09-11 03:06)
     the census probes what somebody thought to probe: 287 of 303 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 36 min old). node engine/coverage.js
+    never fired in the staged harness (all-mechanics-fire.json, 51 min old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/5973a4e3c768/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "5973a4e3c768".
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/2b5a6585d8cf/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "2b5a6585d8cf".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -155,14 +157,49 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0394e3673b5b now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 287/303 probed, 16 unprobed;  281/303 have an engine consumer, 22 have none
-    a tag with no consumer is derived and read by nothing — engine/tag_dex.js greps board.js and
-    medicham2-browser.js for the probe, so this is measured rather than declared.
+  tag coverage: WITHHELD — engine/provenance.js calls data/tags.json UNSAFE.
+    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
+    it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-09-10 23:54_
+_stamped 2026-09-11 03:11_
 
 <!-- /GENERATED -->
+
+## THE SPEED-TIE CORNER CARDS — THIRTEEN MECHANISMS FIXED, TWO UNATTRIBUTED CARDS ATTRIBUTED AND FIXED, THREE END-OF-BATTLE CLOCK CARDS DECLARED. **TOP 8 → 2 → 1, BOTTOM 11 → 3 → 2 OF 961**, EVERY STEP THE PREDICTED POINT AND NO NEW GAME. CENSUS **840 → 856 LIVE**. GATE **OPEN, 9 OF 9**. RELEASES `09b2b98feb98`, `2b5a6585d8cf`. 2026-09-11, CHANGELOG 6.7.0
+
+Full account, every pin and every seed: [docs/_reports/2026-09-11-corner-mechanisms.md](_reports/2026-09-11-corner-mechanisms.md).
+ROADMAP #571 and #583 closed; #584 open (declared).
+
+**EVERY CARD WAS REPLAYED BEFORE ANYTHING WAS CHANGED, AND TWO CARDS WERE NOT WHAT THEY LOOKED LIKE.** Kommo-o's one
+HP is Knock Off's x1.5 floored before Helping Hand instead of chained with it (145 against the authority's 146).
+Staraptor's 125 against 59 is a Rough Skin KO that stops the authority's volley on hit 1 — nothing to do with the
+perish drain, whose narration split is the closeted row.
+
+**THE PROBE IS TWO ENGINES AND FIFTEEN KNOBS.** `tests/probe_corner_mechanisms.js` stages each mechanism alone under
+the corner its pool game was played under, asserts a fixture off the authority's own log and a counter off the fix,
+and plays one knob child per mechanism. It was wrong six times before the engine was (all loud, all listed in the
+report); a Kangaskhan with Scrappy cannot show an Intimidate drop, and a fainted body cannot show a one-point gap.
+
+**THE CLOCK CARDS ARE A RESIDUAL RULE, TRACED.** A perish expiry `continue`s past `faintMessages()`, so the authority
+spends exactly one more handler — Reflect ticks, Light Screen does not; Tailwind ticks, a stall does not — and then
+ends. This walk spends every remaining one. Last board of a finished battle only; ROADMAP #584.
+
+**TWO RED-DEMO PLANTS WERE ON TEXT THIS PASS REWROTE, RE-POINTED IN THE SAME PASS.** WIRE 4 (Life Orb) followed the
+roll's new last line. #256's unmodelled-click arm lost its last legal member when Reflect Type was modelled; it now
+derives its member every run and prints N/A while there is none.
+
+### The hand list
+
+**Leaving it:** the fifth Encore-grouped corner game (`…2661290217`) — now `encore-rewrite` in
+`tests/probe_corner_mechanisms.js` and census row `move/sealsMoves` (pivot and Struggle).
+
+**Joining it:** the end-of-battle residual clocks (ROADMAP #584, declared, no probe of its own — the corner arms
+carry its three seeds).
+
+**Still on it:** a volley that breaks the doll on arrival 1 and meets the disguise on arrival 2; step 0 on Future
+Sight's payout road (a semi-invulnerable collector); a Mental Herb holder under a same-turn Encore rewrite; Guard
+Split and Power Split, which ride the same switch-out undo as Speed Swap and are not staged.
 
 ## ENCORE ENDS WHEN THE ENCORED MOVE RUNS OUT OF PP — **TOP CORNER 12 → 8 OF 961**, EXACTLY THE FOUR PREDICTED GAMES GONE AND NONE NEW; BOTTOM 11 AND MIDDLE 0 UNMOVED. THE END FIRES AT THE AUTHORITY'S RESIDUAL ORDER, SHOWN AGAINST A PERISH SONG BRACKET. CONFORMANCE **21 → 5**. GATE **OPEN, 9 OF 9**; CENSUS **840 LIVE**. RELEASE `5973a4e3c768`. 2026-09-10, CHANGELOG 6.6.0
 

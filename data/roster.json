@@ -1,17 +1,17 @@
 {
- "generated": "2026-09-11T03:17:49.990Z",
+ "generated": "2026-09-11T06:19:37.383Z",
  "by": "tests/roster.js",
  "stage": "moves",
  "swap_leaf_correction": {
   "self_describing_dropped": 0,
   "real_ability_rewrite_kept": 0
  },
- "engine_release": "5973a4e3c768",
- "engine_release_cut": "2026-09-11T02:46:54.813Z",
+ "engine_release": "2b5a6585d8cf",
+ "engine_release_cut": "2026-09-11T06:06:45.568Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "38b78c98148e",
+  "engine/medicham2-browser.js": "31855b504052",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "622482051bf4",
@@ -23,13 +23,13 @@
   "engine/lookup.js": "17f49e5aed43",
   "engine/set_priors.js": "f8a81445ee3a",
   "engine/smogon_priors.js": "5c039f9ebdbc",
-  "engine/quality.js": "e8a3b0a14884",
+  "engine/quality.js": "c6de8fb66ea3",
   "engine/showdown_path.js": "0efe29f4245d",
   "data/move-effects.js": "f35ecd91ba86",
   "data/ability-blocks.json": "86741fd35452",
   "data/smogon-priors.json": "f2dc78cea6c5",
   "data/regulations.json": "6c1995e9a9fb",
-  "data/quality-filter.json": "36812acec7f8",
+  "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
   "data/abra-tags.js": "27bd584a5c91",
   "data/tags.json": "f1d5cf3bd94d",
@@ -81,7 +81,7 @@
   }
  },
  "plant_anchors": {
-  "release": "5973a4e3c768",
+  "release": "2b5a6585d8cf",
   "checked": 36,
   "dead": [],
   "reds_ran": true
