@@ -79,16 +79,21 @@ const ok = (pass, name, detail) => {
  * when the classifier started seeing them. No document gained a figure in that pass. This is the
  * 2026-09-06 re-seed's shape ("PLUS 40 THAT NOTHING COULD SEE UNTIL TODAY"), not a republication
  * waved through. The documents belong to passes that brief did not own, so the figures are OWED OUT
- * of them; delete each key the day its figure goes. */
+ * of them; delete each key the day its figure goes.
+ *
+ * 2026-09-11, SHRUNK BY 7 MORE, DERIVED BY RUNNING THIS FILE. The four keys above went the day their
+ * figures went: the pre-censoring corpus counts were withdrawn from the white paper, the technical docs
+ * and the engine coverage plan. Three more fell with them, because they shared the rewritten
+ * sentences or the artifact: the white paper's MAG decision count, and the step probe's cheapest-split
+ * budget in SEARCH R9 and in the coverage-plan review. This file printed exactly those 7 under "DELETE
+ * these lines" (docs/_reports/2026-09-11-withdrawals-2.md). */
 const BASELINE = new Set([
   "docs/ABRA-technical-docs.md|14.757%|data/policy-weights.json",
   "docs/ABRA-technical-docs.md|44,982|data/sheet-channel-value.json",
   "docs/ABRA-technical-docs.md|49.3%|data/policy-weights.json",
   "docs/ABRA-whitepaper.md|14.757%|data/policy-weights.json",
-  "docs/ABRA-whitepaper.md|232,815|data/policy-weights.json",
   "docs/ABRA-whitepaper.md|44,982|data/sheet-channel-value.json",
   "docs/ABRA-whitepaper.md|49.3%|data/policy-weights.json",
-  "docs/COVERAGE-PLAN-REVIEW.md|960,000|data/exploit-step-probe.json",
   "docs/ENGINE.md|1,136,845|data/feature-engine-contrast.json",
   "docs/ENGINE.md|48,274|data/censoring-value.json",
   "docs/ENGINE.md|5,878|data/leaf-position-contrast.json",
@@ -113,12 +118,6 @@ const BASELINE = new Set([
   "docs/ROADMAP.md|6779|data/leaf-position-contrast.json",
   "docs/ROADMAP.md|81,515|data/redirect-audit.json",
   "docs/SEARCH.md|1,600|data/exploitability.json",
-  "docs/SEARCH.md|960,000|data/exploit-step-probe.json",
-  /* the four made visible on 2026-09-11 — see the note above; owed out of these documents */
-  "docs/ABRA-technical-docs.md|231,722|data/policy-weights-pre-censoring.json",
-  "docs/ABRA-whitepaper.md|231,722|data/policy-weights-pre-censoring.json",
-  "docs/ABRA-whitepaper.md|46,162|data/policy-weights-pre-censoring.json",
-  "docs/ENGINE-COVERAGE-PLAN.md|231,722|data/policy-weights-pre-censoring.json",
 ]);
 
 console.log('\n  QUARANTINED FIGURES IN LIVING DOCUMENTS — the citation was faithful and that is the bug\n');

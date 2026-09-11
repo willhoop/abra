@@ -44,8 +44,9 @@ was demanded before trusting the green.
   27 tag-only / 166 fx-only facts could not be compared — that blind mass is Layer 1's real target.
 - `data/tag-consumption.json` (ratcheted): 67 LIVE, 18 STAGED, 30 UNREACHED, **61 DEAD** (the 26
   ability/item orphans + 35 move tags duplicated by the second rulebook).
-- MEASURE's MAG four-channel refit is FINISHED and verified (`fitEnvironment` stamped, 231,722
-  decisions probed, 99.67% channel reach); the JOINT refit is the pending half. SEARCH's step-rule
+- MEASURE's MAG four-channel refit is FINISHED and verified (`fitEnvironment` stamped, and a
+  point-of-use counter probed the channel reach; the decision count and the reach share are withheld
+  with the MAG fit); the JOINT refit is the pending half. SEARCH's step-rule
   fix is proven on a planted optimum — and the proof cancels the 58-dim re-run (see the endgame).
   `data/exploitability.json` is void and must stay void until the reparameterized search runs.
 

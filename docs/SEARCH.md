@@ -2036,8 +2036,9 @@ observed in this run:
 
 > **Superseded in part by R9 below.** The five defects listed above are now fixed in `engine/exploit.js`
 > and defect 0 is closed. The preconditions and the command below are still the right ones. **But the
-> probe says a 24 x 220 search over 58 weights closes 0.0% ± 0.1 of the distance to a known planted
-> optimum, so running it would buy another uninformative null for another 7,100 games.** Run it only
+> probe (R9) says a 24 x 220 search over 58 weights does not measurably close the distance to a known
+> planted optimum — its figures are withheld with the probe — so running it would buy another
+> uninformative null at the full R8 budget.** Run it only
 > as a deliberately-labelled *negative control* on the new tooling, or reduce the challenger family to
 > 4–8 numbers first. Read R9 before spending anything.
 
@@ -2085,7 +2086,7 @@ node --max-old-space-size=2048 engine/exploit.js \
   `pool_announcements` (must hold exactly one line).
 - The headline is `headline.kind: "held-out confirmation"`. **`searchBest` is not the result** — see
   the selection floor in R9, where a search of this shape returns a winning-looking share from pure
-  noise; the floor itself is withheld with the void artifact it was measured beside.
+  noise; the floor itself is withheld with the probe artifact that computed it.
 
 Then re-verify: `node engine/engine_release.js list` must still read `0 of 12 files have moved`, and
 `node engine/provenance.js` must show `exploitability-wobbuffet-e2.json` verified by CONTENT rather
@@ -2107,23 +2108,32 @@ Artifact: **`data/exploit-step-probe.json`**, written by `engine/exploit_step_pr
 another 7,100 games"*. The step rule is fixed. **The probe then says the step rule was never the
 binding constraint, and the re-run as specified in R8 should NOT be run.**
 
+**EVERY FIGURE THE PROBE MEASURED IS WITHHELD (withdrawn 2026-09-11).** `engine/quarantine.js` holds
+`data/exploit-step-probe.json` and `data/exploit-step-probe-reparam.json` on two routes: the probe
+drives `engine/exploit.js`, which reaches `board.js`, and it reads MAG's vector for its coordinate
+scales. It plays no games, and that does not clear it. So this section and R10 keep what was measured,
+the configuration and the reasoning, and not the values — the step's worth, the resolutions, the
+acceptance rates, the distance closed, the target, budget and dimension sweeps, the selection floor
+and the family table all return only when the gate opens and `node engine/exploit_step_probe.js` (and
+`--reparam`) is re-run.
+
 ### The verdict in one line
 
-**At 58 features and 24 x 220 games the search closes 0.0% ± 0.1 of the distance to a KNOWN planted
-optimum. It is not a search. No step rule changes that, because the thing that is broken is the ratio
-between what one step is worth and what 220 games can see.**
+**At 58 features and 24 x 220 games the probe measured how much of the distance to a KNOWN planted
+optimum the search closes. The reading was that it is not a search, and that no step rule changes
+that, because the thing that is broken is the ratio between what one step is worth and what 220 games
+can see.**
 
-### The number that ends the argument
+### The ratio that ends the argument
 
-On the planted objective with a noiseless oracle, **one accepted step at d=58 moves the true win rate
-by 0.21 points.** Against that:
+On the planted objective with a noiseless oracle, the probe measured how far **one accepted step at
+d=58 moves the true win rate**, and set it against what an evaluation of 220 games can resolve under
+two noise models: independent seeds per round (**what the void run actually did**) and perfect common
+random numbers (the best CRN can ever buy). The step was smaller than both resolutions; the three
+values are withheld.
 
-| what the evaluation can resolve | at 220 games |
-|---|---|
-| independent seeds per round — **what the void run actually did** | **4.77 pt** — 23x larger than the step |
-| perfect common random numbers (the best CRN can ever buy) | **0.45 pt** — 2x larger than the step |
-
-A hill climb cannot accept a step it cannot measure. Everything else below follows from this row.
+A hill climb cannot accept a step it cannot measure. Everything else below follows from this
+comparison.
 
 ### What the fix is, and what it bought — acceptance rate before and after
 
@@ -2141,76 +2151,55 @@ function**, not a re-typed copy. Four changes:
    grows. Against a *measured* objective that is false at the small end — once a step's true gain
    drops below the measurement's resolution it becomes invisible and acceptance collapses **as the
    step shrinks**. Acceptance is non-monotone, near zero at both ends, and a shrink-on-failure rule
-   parks on the wrong one. Measured before the restart was added: 1% acceptance and 0.1% of the
-   distance closed, **worse than the rule it replaced**.
+   parks on the wrong one. Measured before the restart was added, the adaptive rule alone did
+   **worse than the rule it replaced** (both rates withheld).
 4. **The acceptance target is 0.05, not the textbook 0.2–0.4**, and that is measured. The classical
-   band is derived for an exact oracle. Swept at d=58, 200 x 1200, perfect CRN:
-
-   | target acceptance | 0.02 | 0.05 | 0.10 | 0.25 | 0.40 |
-   |---|---|---|---|---|---|
-   | distance closed | 19.4% | **19.9%** | 15.9% | 6.7% | 3.6% |
-
-   The textbook band is the worst end of the sweep. Steps must be big enough to be **seen**, not
+   band is derived for an exact oracle. The probe swept targets 0.02, 0.05, 0.10, 0.25 and 0.40 at
+   d=58 with perfect CRN and a budget far above the affordable one; the distance closed at each is
+   withheld. The textbook band is the worst end of the sweep. Steps must be big enough to be **seen**, not
    merely big enough to be good.
 
-**Acceptance rate, d=58, 24 rounds, 40 independent runs per arm:**
+**Acceptance rate and distance closed, d=58, 24 rounds, 40 independent runs per arm**, were measured
+for both rules under three noise models: a noiseless oracle, independent seeds (**as the void run
+ran**) and perfect CRN, each pair with a z-score for the difference. Every cell is withheld.
 
-| noise model | rule | accepted | distance closed |
-|---|---|---|---|
-| noiseless oracle | legacy | 8.7/24 (36%) | 6.3% ± 0.5 |
-| noiseless oracle | fixed | 7.4/24 (31%) | 6.1% ± 0.4  (z = −0.4, **no difference**) |
-| independent seeds — **as the void run ran** | legacy | 2.4/24 (10%) | **−1.5% ± 0.5** |
-| independent seeds | fixed | 2.5/24 (10%) | **0.0% ± 0.1**  (z = 3.1, fixed better) |
-| perfect CRN | legacy | 0.8/24 (4%) | 1.4% ± 0.3 |
-| perfect CRN | fixed | 0.5/24 (2%) | 0.2% ± 0.1  (z = −3.7, **legacy better**) |
+The readings taken from that table, with the values out; the third is the uncomfortable one:
 
-Read honestly, three things, and the third is the uncomfortable one:
-
-- **The 1-of-24 acceptance in the real run is reproduced** — the toy gets 2.4/24 at the same
-  dimension, same games, same noise model, without being tuned to.
+- **The void run's acceptance rate is reproduced** — the toy matched it at the same dimension, same
+  games, same noise model, without being tuned to. (The void run's own count is withheld with the
+  void artifact, R8.)
 - **The fix's only measured win is that it stops the search moving BACKWARDS.** Under the noise the
-  run actually had, the legacy rule closed **−1.5%**: it accepted upward noise flukes and ratcheted
-  away from the optimum. That is what "1 of 24" was doing.
+  run actually had, the legacy rule closed a negative fraction of the distance: it accepted upward
+  noise flukes and ratcheted away from the optimum. That is what the void run's few accepted steps
+  were doing.
 - **Under CRN the legacy rule is BETTER at this budget**, and the reason is instructive rather than
   embarrassing: its un-normalised step is √58 = 7.6x larger in norm, which is the right direction when
-  the measurement is coarse. That is what moved the acceptance target to 0.05. At 5,280 games both
-  numbers are ~0 against a 25-point edge (0.05 vs 0.35 win-rate points), so this is a comparison of
-  two zeroes and neither rule is worth running at that budget.
+  the measurement is coarse. That is what moved the acceptance target to 0.05. At the affordable
+  24 x 220 budget both rules gain almost nothing against the planted 25-point edge, so this is a
+  comparison of two zeroes and neither rule is worth running at that budget.
 
 ### The two walls, and neither is the step rule
 
 **Wall 1 — evaluations.** A (1+1) climb makes progress at ~1/d per evaluation. 24 evaluations in 58
-dimensions is 0.4 of one such unit, and the probe confirms it: **with a NOISELESS oracle the ceiling
-at 24 rounds is 6.1% of the distance.** At d=17 the same 24 rounds close 19.9%. The 2026-07-26 run
+dimensions is 0.4 of one such unit, and the probe measured the noiseless ceiling at 24 rounds, at
+d=58 and at d=17, to confirm it; both values are withheld. The 2026-07-26 run
 was not luckier, it was in a smaller space.
 
-**Wall 2 — resolution.** The table at the top. Below it, no number of rounds helps: the
-`independent`-noise column of the budget sweep is flat at 0.0% from 5,280 games to **960,000**.
-
-| rounds x games | total | independent | perfect CRN |
-|---|---|---|---|
-| 24 x 220 | 5,280 | 0.0% ± 0.1 | 0.2% ± 0.1 |
-| 100 x 220 | 22,000 | −0.0% ± 0.1 | 1.0% ± 0.5 |
-| 200 x 220 | 44,000 | −0.0% ± 0.1 | 1.2% ± 0.7 |
-| 200 x 1200 | 240,000 | −0.0% ± 0.3 | 19.9% ± 2.1 |
-| 400 x 1200 | 480,000 | −0.0% ± 0.3 | 29.2% ± 2.8 |
-| 800 x 1200 | 960,000 | −0.0% ± 0.3 | **36.8% ± 3.4** |
-
-**Cheapest split that closes a material (>25%) fraction of the distance: 960,000 games, and only if
-common random numbers couple perfectly.** That is not a run this project should schedule, and it is
-the honest reason to stop rather than a reason to argue for a bigger machine.
+**Wall 2 — resolution.** The comparison at the top. The probe swept the budget from the affordable
+24 x 220 up to budgets of several hundred thousand games, under independent seeds and under perfect
+CRN, and computed the cheapest split that closes a quarter or more of the distance. The sweep and that
+split are withheld. The reading was that more rounds do not move the independent-seed column, and that
+the cheapest material split needs perfectly coupled random numbers at a budget this project should not
+schedule — the honest reason to stop rather than a reason to argue for a bigger machine.
 
 ### The lever that IS affordable: search fewer numbers
 
-The other end of the same trade. At the affordable 24 x 220 = 5,280 games, with CRN, with the optimum
-planted **inside** the searched space:
+The other end of the same trade. At the affordable 24 x 220 budget, with CRN, with the optimum
+planted **inside** the searched space, the probe swept the number of dimensions searched over 4, 8,
+17, 30 and 58; the distance closed at each is withheld.
 
-| dimensions searched | 4 | 8 | 17 | 30 | 58 |
-|---|---|---|---|---|---|
-| distance closed | 49.7% ± 2.2 | 30.7% ± 3.0 | 5.9% ± 1.3 | 1.2% ± 0.2 | 0.2% ± 0.1 |
-
-**A 5,280-game search buys a real answer about a family of roughly 4 to 8 numbers and nothing at all
-about a family of 58.** So the re-run's design question is no longer "how do we step" — it is **what
+**The reading: a search at the affordable budget buys a real answer about a family of roughly 4 to 8
+numbers and nothing at all about a family of 58.** So the re-run's design question is no longer "how do we step" — it is **what
 low-dimensional reparameterisation of MAG's policy is worth attacking**: feature groups, a handful of
 scalars, a temperature. That is a SEARCH design item and it is now the blocker on R8, ahead of the
 engine.
@@ -2223,20 +2212,16 @@ one for a sparse mask.
 
 ### The selection floor — what the OLD headline reported when nothing was found
 
-Pure arithmetic on the binomial, and nobody has ever printed it beside the headline. Under the null
-that every candidate is exactly as good as MAG, the **maximum over R+1 evaluations** is still:
+Pure arithmetic on the binomial, and nobody had printed it beside the headline. Under the null that
+every candidate is exactly as good as MAG, the **maximum over R+1 evaluations** still sits well above a
+coin. The probe computed its mean, 95th and 99th percentile for the 2026-07-26 run's shape (19 x 220),
+the void run's (25 x 220) and two larger shapes. The values are withheld with the probe artifact that
+holds them. They are model-free, but they are not restated here from a withheld file.
 
-| evaluations x games | mean reported "best" | 95th pct | 99th pct |
-|---|---|---|---|
-| 19 x 220 (the 2026-07-26 run) | 56.2% | 59.5% | 60.9% |
-| 25 x 220 (the void run) | **56.6%** | 59.5% | 61.4% |
-| 25 x 800 | 53.5% | 55.1% | 56.0% |
-| 201 x 1200 | 54.0% | 54.9% | 55.6% |
-
-**The void run's search-best of 55.8% is BELOW the floor its own procedure produces from pure noise.**
-It was never a finding. The retracted 63.2% sits above the 99th percentile of its floor, so *that* one
-is not explained by selection alone — which changes nothing about its retraction, since the objection
-to it was provenance and a 17-feature vector on a 25-wire-fix-old engine, not selection.
+**The void run's search-best sat BELOW the floor its own procedure produces from pure noise.** It was
+never a finding. The retracted headline sat above the 99th percentile of its floor, so *that* one is
+not explained by selection alone — which changes nothing about its retraction, since the objection to
+it was provenance and a 17-feature vector on a 25-wire-fix-old engine, not selection.
 
 This is why the artifact's headline is now the held-out `--confirm` leg and why `searchBest` carries
 the literal label `SELECTION-BIASED, not the headline`.
@@ -2337,35 +2322,33 @@ options. Every figure traces to an artifact; the two new ones are
 budget and at twice it, written by `engine/exploit_step_probe.js --reparam` — same `runOne`, same
 `createClimber`, no games) and the fitted vector itself, **`data/policy-weights.json`**
 (`generated 2026-08-04T23:37:26.954Z`, frozen in release `6e43710396db` as `01bc43936324`; its corpus
-is withheld with it).
+is withheld with it). Both probe artifacts are withheld as well (R9), so every measured figure below
+was withdrawn on 2026-09-11; the configuration and the readings stay.
 
 ### The arithmetic that frames every option (data/exploit-step-probe.json)
 
-- One accepted step at d=58 moves true win rate by **0.202 pt**; 220 games resolve **4.77 pt**
-  (independent seeds) / **0.45 pt** (perfect CRN). The step is invisible, so the search cannot climb.
-- Largest family the affordable 24 x 220 = 5,280-game budget can actually search: **about 4** numbers
-  (`largest_searchable_family_at_5280_games`).
+- One accepted step at d=58 moves true win rate by far less than 220 games can resolve, under
+  independent seeds and under perfect CRN (R9; the three values are withheld). The step is invisible,
+  so the search cannot climb.
+- The probe also computed the largest family the affordable 24 x 220 budget can actually search
+  (`largest_searchable_family_at_5280_games`); the value is withheld, and it is why the families below
+  are small.
 - The toy plants a 25-pt edge (`pMax` 0.75), so "distance closed" reads as "fraction of the family's
   available edge captured". The confirm leg (`--confirm 800`) certifies nothing smaller than
   ~**3.5 pt** (1.96·50/√800), whatever the search finds.
 
 **Family sizes at the real budget and at 2x, measured, not extrapolated**
 (`data/exploit-step-probe-reparam.json`; fixed rule; distance closed ± SE over 40 runs; the truth
-about CRN coupling in real games is UNMEASURED, so both brackets are printed):
+about CRN coupling in real games is UNMEASURED, so both brackets were measured): family sizes 4, 6, 8
+and 12, each at 24 x 220 and 48 x 220 in both brackets and at 24 x 440 with CRN. Every cell is
+withheld.
 
-| family size | 24 x 220 crn | 24 x 220 indep | 48 x 220 crn | 48 x 220 indep | 24 x 440 crn |
-|---|---|---|---|---|---|
-| **4** | **49.9 ± 2.2%** | **37.0 ± 3.9%** | **63.9 ± 2.4%** | **49.3 ± 3.7%** | 51.6 ± 2.7% |
-| 6 | 42.3 ± 2.8% | 18.6 ± 3.3% | 52.6 ± 2.6% | 26.9 ± 3.8% | 45.6 ± 2.2% |
-| 8 | 30.2 ± 2.9% | 11.3 ± 2.5% | 42.8 ± 3.5% | 15.8 ± 3.2% | 36.5 ± 2.5% |
-| 12 | 21.1 ± 2.4% | 1.1 ± 0.6% | 31.7 ± 3.1% | 4.8 ± 1.6% | 26.5 ± 2.3% |
-
-Three design facts fall out before any family is chosen: **doubling ROUNDS beats doubling
-games-per-round in every crn row** (the climb is rounds-starved, exactly as R9's O(d)-evaluations
-argument says); **d=4 is the only size that stays searchable in the independent bracket**, i.e. the
-only one whose verdict does not depend on how well CRN couples in real battles; and a doubled budget
-(48 x 220 + 2 x 800 confirm ≈ 12,160 games, ~75 min by R8's timing) buys d=4 nearly two-thirds of
-its family edge.
+Three design readings were taken from that table before any family was chosen: **doubling ROUNDS beat
+doubling games-per-round in every crn row** (the climb is rounds-starved, exactly as R9's
+O(d)-evaluations argument says); **d=4 was the only size that stayed searchable in the independent
+bracket**, i.e. the only one whose verdict does not depend on how well CRN couples in real battles;
+and the doubled budget (48 x 220 + 2 x 800 confirm, ~75 min by R8's timing) is the spend the
+recommendation below prices.
 
 ### One structural note before the families
 
@@ -2392,8 +2375,8 @@ beat MAG by wanting kills and initiative more than people do lives exactly here.
 initiative-hunger, and their combinations. *Cannot:* rotate within a block (raise `koTarget` while
 lowering `dmgFrac`), touch the switch/support/dead-move axes, flip any individual sign, or form any
 interaction the 58 features do not already carry.
-*Resolution:* 49.9 ± 2.2% of the family edge at 5,280 games (crn) and **37.0 ± 3.9% even at the
-independent bracket**; 63.9 ± 2.4% at the doubled budget.
+*Resolution:* the d=4 row of the family table — at the real budget in both brackets and at the
+doubled budget; withheld.
 *A WOBBUFFET null here proves:* no re-mix of sharpness/prior/kill/initiative beats shipped MAG by
 more than the ~3.5-pt confirm floor. It says **nothing** about within-block, switch-axis, or
 novel-interaction exploits, and MAG's general exploitability stays unmeasured. *A positive* hands
@@ -2404,8 +2387,8 @@ groups them: targeting/move-quality (13), dead-moves (9), order (4), kill (10),
 disruption/stages (9), switch (8), support/value (4), prior (1) — 58 accounted for.
 *Can express:* everything F1 can, plus the switch, support, dead-move-discipline and disruption
 axes. *Cannot:* within-block rotation or sign flips, same as F1.
-*Resolution:* 30.2 ± 2.9% at budget (crn) but **11.3 ± 2.5% at the independent bracket** — its
-verdict leans on CRN coupling nobody has measured; 42.8 ± 3.5% at 2x.
+*Resolution:* the d=8 row, withheld. The reading was that its verdict leans on CRN coupling nobody
+has measured, because the independent bracket resolves it far less well than the CRN one.
 *A null proves:* no block-level retuning of MAG's vocabulary beats it at the floor. Broader
 statement than F1's, bought with a real risk that the search under-resolves and the null is about
 the noise, not the family.
@@ -2415,7 +2398,7 @@ the noise, not the family.
 publishes only the diagonal of H⁻¹. The 4–8 bottom eigenvectors of H (preconditioned) are the
 directions the resemblance likelihood constrains LEAST — the largest moves a challenger can make
 per unit of "still plays like the corpus". Dense directions, not an axis mask, so the probe's
-planted-inside-the-family table applies (d=6: 42.3 ± 2.8% at budget crn, 52.6 ± 2.6% at 2x).
+planted-inside-the-family table applies (its d=6 row, withheld).
 *Cannot:* move in stiff directions — which is precisely where a deliberately non-human exploit would
 live, so this family is biased toward subtle exploits and blind to flagrant ones. Also unstable
 across refits (eigenvectors rotate with the corpus), so the H snapshot must be pinned in the

@@ -10,6 +10,19 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.21.0] — 2026-09-11
+
+### Removed
+- **The 3.40.0 fit-corpus counts** (decisions, held-out split and games) from `docs/ABRA-whitepaper.md` (two places),
+  `docs/ABRA-technical-docs.md` and `docs/ENGINE-COVERAGE-PLAN.md`, together with the MAG decision counts and
+  channel-reach share in the same sentences. The quarantine gate withholds the pre-censoring vector and the MAG
+  weights; the figures return when the gate opens and the fit is re-run.
+- **Every measured figure of the step-rule probe and its reparameterisation sweep** from `docs/SEARCH.md` R9 and R10,
+  from the white paper's coverage-plan paragraph and from `docs/COVERAGE-PLAN-REVIEW.md` section 6. The probe reads
+  MAG's weights and drives `engine/exploit.js`, so it stays withheld. What was measured, the configuration and the
+  recommendation stay.
+- **Seven keys from `tests/test-docs-quarantine.js`'s baseline**, the exact set the test printed as no longer firing.
+
 ## [6.20.0] — 2026-09-11
 
 ### Fixed

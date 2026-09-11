@@ -102,14 +102,17 @@ nobody can see is the old failure mode wearing the new fix.
 "Done" item 6 — the exploitability re-run at 58 dimensions, the number owed since the retraction —
 **should not be launched as written.** The step-rule probe (`data/exploit-step-probe.json`, stamped
 to release `d3d04b669e18`) proved the fixed rule correct on a planted optimum and simultaneously
-proved the search cannot move at any affordable budget:
+proved the search cannot move at any affordable budget. Its figures are withheld (withdrawn
+2026-09-11): the probe reads MAG's weights, so `engine/quarantine.js` holds it until the gate opens
+and `node engine/exploit_step_probe.js` is re-run. What it measured:
 
-- one accepted step at d=58 is worth **0.202 win-rate points**, against a measurement resolution of
-  **4.77 points** at 220 games (independent seeds, as the void run ran);
-- at the void run's budget (24×220 games) the fixed rule closes **0.0% ± 0.1** of the distance —
-  and the legacy rule climbed *backwards* (−1.5%);
-- the cheapest split that closes even 25% of the distance costs **~960,000 games**;
-- the largest family searchable at the old 5,280-game budget is **4 parameters**.
+- what one accepted step is worth in the full feature space, against the resolution of one
+  evaluation the size the void run used (independent seeds, as the void run ran) — the step is far
+  below the resolution;
+- how much of the distance the fixed rule closes at the void run's budget — and that the legacy rule
+  climbed *backwards*;
+- the cheapest split that closes a quarter of the distance — a budget nobody will spend;
+- the largest family searchable at the old budget — the reason the endgame below is a small family.
 
 Re-running would burn a week of compute to produce a number statistically indistinguishable from
 "no search happened," and we would be tempted to quote it. **The amended endgame: reparameterize

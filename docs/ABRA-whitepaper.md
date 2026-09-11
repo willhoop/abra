@@ -2282,11 +2282,10 @@ moment that file was regenerated. A figure that traces by coincidence does not t
 **The fitting gap below is now half closed.** The sheet-channel section that follows reported that
 the fit discarded the ability and moves the live player sees; the decision it asked for was made
 (open team sheets always, closed sheets deferred), and the single-move layer (MAG) is refitted on
-all four channels: 232,815 usable decisions of 241,927 seen at 3.42.0 (231,722 at the 3.40.0 fit,
-before the click-censoring pass removed 1,336 actions that were not clicks), with a point-of-use
-counter showing the declared channels
-reached the board on 99.67% of scored decisions — an environment match stated by measurement, not
-by diff-reading. The pre-refit weights are preserved and the two-channel incumbent is frozen as a
+all four channels, with a point-of-use counter showing the share of scored decisions on which the
+declared channels reached the board — an environment match stated by measurement, not by
+diff-reading. The fit's decision counts (at the 3.40.0 fit, and after the 3.42.0 click-censoring
+pass) and the counter's share are withheld with the MAG weights (withdrawn 2026-09-11). The pre-refit weights are preserved and the two-channel incumbent is frozen as a
 release (`d3d04b669e18`) for the pending paired held-out comparison against the 0.192-point noise
 floor. The joint (pair) layer is **not yet refitted**; until it is, the pair layer still prices
 against the two-channel board, and no improvement claim is made for either layer.
@@ -2296,8 +2295,9 @@ re-examination found it wrong — mutation testing now precedes the handler regi
 stub defense routed stubs into the one bucket the consumption ratchet deliberately never guards),
 mutation operators gained per-param perturbation and a derived-set rebuild hook, and the planned
 58-dimension exploitability re-run is cancelled by measurement: a step-rule probe against a planted
-optimum showed one accepted step is worth 0.202 win-rate points against a 4.77-point resolution at
-the affordable budget, so the search moves to a 4–8-parameter reparameterization first. The full
+optimum showed one accepted step is worth far less than the resolution of the comparison at the
+affordable budget (both values are withheld with the probe, which reads MAG's weights; withdrawn
+2026-09-11), so the search moves to a 4–8-parameter reparameterization first. The full
 argument is `docs/COVERAGE-PLAN-REVIEW.md`. ABRA continues to have **no exploitability number**;
 `data/exploitability.json` remains void.
 
@@ -2612,8 +2612,8 @@ vectors and decisions — consistent with the sand/snow share of the corpus. *(E
 are among the three whose MEANING changed under the mega work — `switchSurvives1`, `switchKOSlow`,
 `switchDiesFirst`. They come back with the refit, measured, not restated from here.)*
 
-Paired per decision on the same 46,162 held-out decisions across 1,772 games, bootstrapped over 10,000
-game resamples:
+Paired per decision on the same held-out split of the 3.40.0 fit corpus (its decision and game counts
+are withheld with the pre-refit weights, withdrawn 2026-09-11), bootstrapped over game resamples:
 
 | paired difference | logL / decision | top-1 points |
 |---|---|---|

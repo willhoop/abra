@@ -1561,8 +1561,8 @@ count fell from 61 to 38.
 **Change record for 3.40.0.** The simulator covers 181 of 186 probed mechanics. Five are missing.
 Each has a written reason. The two rulebook files were compared. 151 facts were comparable. Two
 facts did not agree. The engine now reads the format's own secondary-effect chance. The MAG fit
-now uses all four team-sheet channels. A counter proves the channels reached the board (99.67% of
-231,722 decisions). The pair-layer fit does not use them yet. The coverage plan changed: mutation
+now uses all four team-sheet channels. A counter proves the channels reached the board. Its share
+and the decision count are withheld with the MAG fit. The pair-layer fit does not use them yet. The coverage plan changed: mutation
 tests come before the handler registry. See `COVERAGE-PLAN-REVIEW.md` for the reasons. ABRA has no
 exploitability number.
 
