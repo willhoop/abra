@@ -172,6 +172,8 @@ if (RECORD) {
     process.exit(1);
   }
   const rec = {
+    /* First, so engine/conformance.js S13 can see this file is generated (it reads the first 400 bytes). */
+    generated_by: 'tests/bench-medicham.js',
     recorded: new Date().toISOString(),
     ms_per_turn: +cur.perTurn.toFixed(4),
     turns: cur.turns,

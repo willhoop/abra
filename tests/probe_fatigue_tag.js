@@ -110,7 +110,7 @@ const BENCH_P2 = [['corviknight', '', 'Iron Defense'], ['pinsir', '', 'Swords Da
  * `[fatigue]` tag it cannot attribute. */
 {
   const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-  const DX = Dex.forFormat('gen9championsvgc2026regmb');
+  const DX = Dex.forFormat(CS.FORMAT);
   const CAST_MOVES = [LOCK, PLAIN, FILLER_IDLE, FOE_IDLE, ...BENCH_P1.map(x => x[2]), ...BENCH_P2.map(x => x[2])];
   const CAST_ABIL = [SUBJ_ABILITY, 'Magic Guard', FOE_ABILITY, 'Synchronize'];
   const confusers = [];

@@ -38,7 +38,7 @@ const { buildPair, playGame, ARM_BY_ID } = GD;
 const TAGS = require('../data/tags.json');
 const CS = require('../engine/champions_sim.js');
 const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-const DEX = Dex.forFormat('gen9championsvgc2026regmb');
+const DEX = Dex.forFormat(CS.FORMAT);
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
 const idOf = s => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
 const MID = ARM_BY_ID.get('middle');

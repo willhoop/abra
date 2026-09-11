@@ -47,7 +47,7 @@ if (!process.env.SHOWDOWN_PATH) {
   process.exit(2);
 }
 const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-const dex = Dex.forFormat('gen9championsvgc2026regmb');
+const dex = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 
 /* tags.json gives `uses`; the differential reads the RELEASE's copy and this probe reads the live one
  * on purpose — it is asserting a RESOLUTION rule, not a usage figure, and a usage figure that moved

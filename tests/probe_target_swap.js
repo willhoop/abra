@@ -92,7 +92,7 @@ console.log('1. THE FIXTURE — derived per cell, and refused when it is under-d
 let Dex = null;
 try {
   const SD = process.env.SHOWDOWN_PATH;
-  if (SD) Dex = require(SD + '/dist/sim').Dex.forFormat('gen9championsvgc2026regmb');
+  if (SD) Dex = require(SD + '/dist/sim').Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 } catch (e) { console.error('  DEX LOAD FAILED (the target-type clause cannot run):', e.message); Dex = null; }
 if (!Dex) console.log('  (SHOWDOWN_PATH unset or unloadable — the target-type clause will be skipped, LOUDLY)');
 

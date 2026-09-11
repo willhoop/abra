@@ -77,7 +77,7 @@ console.log('  MEDI_DEFOG_FOE_SIDE_LEGACY=' + (KNOB ? '1  (PRE-FIX ENGINE)' : '0
 
 /* ---- 0. THE AUTHORITY AND THE MEMBERSHIP, DERIVED ON EVERY RUN --------------------------------- */
 const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-const D = Dex.forFormat('gen9championsvgc2026regmb');
+const D = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 const MODDIR = process.env.SHOWDOWN_PATH + '/data/mods/champions/';
 const SIMDIR = process.env.SHOWDOWN_PATH + '/';
 

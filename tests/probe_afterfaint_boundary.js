@@ -152,7 +152,7 @@ const SINGLE_FOES = [mon('raichualola', 'Surge Surfer', NP), mon('rotomheat', 'L
 }
 {
   const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-  const Dx = Dex.forFormat('gen9championsvgc2026regmb');
+  const Dx = Dex.forFormat(CS.FORMAT);
   const k = Dx.species.get('krookodile');
   console.log('  Dex: krookodile ' + k.types.join('/') + '  abilities ' + Object.values(k.abilities).join(', ')
     + '   (both arms name one of THESE and differ in nothing else)');

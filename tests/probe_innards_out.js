@@ -95,14 +95,14 @@ const ok = (cond, what, detail) => {
  * An ability with no legal carrier cannot occur and must not be implemented (Neutralizing Gas reads
  * legal in this format and has none). This prints the count before anything is staged. */
 const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-const DEX = Dex.forFormat('gen9championsvgc2026regmb');
+const DEX = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 const legal = x => x.exists && !x.isNonstandard && x.tier !== 'Illegal';
 const CARRIERS = DEX.species.all().filter(s => legal(s)
   && Object.values(s.abilities || {}).some(a => DEX.toID(a) === 'innardsout'));
 
 console.log('\n  INNARDS OUT — the holder\'s death toll, against the authority'
   + (BROKEN ? '   [--broken: MEDI_NO_DAMAGE_TAKEN_TOLL=1]' : ''));
-console.log('\n  LEGAL CARRIERS in gen9championsvgc2026regmb: ' + CARRIERS.length
+console.log('\n  LEGAL CARRIERS in ' + require('../engine/champions_sim.js').FORMAT + ': ' + CARRIERS.length
   + '   ' + CARRIERS.map(s => s.name + ' (' + s.requiredItem + ')').join(', '));
 
 const TAGS = require(D('data', 'tags.json'));

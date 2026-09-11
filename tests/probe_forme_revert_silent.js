@@ -133,7 +133,7 @@ ok(!/^\tstancechange:/m.test(CH_AB),
  * 1. THE CAST — derived from the format, not named
  * ============================================================================================== */
 const { Dex } = require(SP + '/dist/sim');
-const D = Dex.forFormat('gen9championsvgc2026regmb');
+const D = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
 const CARRIERS = D.species.all().filter(s => legal(s) && !s.isMega
   && Object.values(s.abilities || {}).some(a => D.abilities.get(a).id === 'stancechange'));

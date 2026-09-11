@@ -80,7 +80,7 @@ console.log('  MEDI_SUCKER_AIMS_PRE_REDIRECT=' + (KNOB ? '1  (PRE-FIX ENGINE)' :
 
 /* ---- 0. THE MEMBERSHIP AND THE AUTHORITY, BOTH DERIVED ON EVERY RUN ---------------------------- */
 const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-const D = Dex.forFormat('gen9championsvgc2026regmb');
+const D = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 const legal = x => x.exists && !x.isNonstandard;
 
 console.log('\n0. WHAT THIS REGULATION ACTUALLY CONTAINS');

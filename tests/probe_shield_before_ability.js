@@ -109,7 +109,7 @@ ok(iVol >= 0 && iAb >= 0 && iVol < iAb,
  * 1. THE CAST AND THE MOVE SET — derived, never listed by hand
  * ============================================================================================== */
 const { Dex } = require(SP + '/dist/sim');
-const D = Dex.forFormat('gen9championsvgc2026regmb');
+const D = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 const legalX = x => x.exists && !x.isNonstandard && x.tier !== 'Illegal';
 const learns = (sp, mv) => !!(((D.species.getLearnsetData(D.species.get(sp).id) || {}).learnset) || {})[mv];
 

@@ -177,7 +177,7 @@ const willWrite = (!fails || ACCEPT) && (moved || ACCEPT);
 if (willWrite) {
   fs.writeFileSync(OUT, JSON.stringify({
     generated: new Date().toISOString(), by: 'tests/test-unmodelled-clicks.js',
-    what: 'Every move in gen9championsvgc2026regmb whose click resolves to {kind:"pass"} — a whole '
+    what: 'Every move in ' + require(D('engine', 'champions_sim.js')).FORMAT + ' whose click resolves to {kind:"pass"} — a whole '
         + 'no-op turn. RATCHETED: the set may shrink and may never grow.',
     write_policy: 'Written ONLY by a run that PASSED (or by an explicit --accept). A failing run '
         + 'leaves the previous baseline untouched, so a regression can never be laundered into the '

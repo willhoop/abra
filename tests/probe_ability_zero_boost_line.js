@@ -131,7 +131,7 @@ for (const [name, c, want] of [['defiant', DEFC, 'null, false, true'], ['competi
  * 1. THE CAST — derived, and the MEMBERSHIP of each tag PRINTED before it is trusted
  * ============================================================================================== */
 const { Dex } = require(SP + '/dist/sim');
-const D = Dex.forFormat('gen9championsvgc2026regmb');
+const D = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
 const SPEC = D.species.all().filter(s => legal(s) && !s.isMega);
 const carriersOf = id => SPEC.filter(s => Object.values(s.abilities || {}).some(a => D.abilities.get(a).id === id));

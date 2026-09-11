@@ -26,7 +26,7 @@ const MEDI = require(D('engine', 'medicham2-browser.js'));
 process.env.SHOWDOWN_PATH = process.env.SHOWDOWN_PATH
   || 'C:/Users/willj/Projects/Pokemon/pokemon-showdown';
 const { Dex } = require(path.join(process.env.SHOWDOWN_PATH, 'dist', 'sim'));
-const DEX = Dex.forFormat('gen9championsvgc2026regmb');
+const DEX = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 
 let fails = 0, checks = 0;
 const ok = (cond, label, got, want) => {
@@ -53,7 +53,7 @@ console.log('base accuracy read from the dex: ' + BASE
  * unless it is filtered. So the two bodies this probe needs — one carrying the gate type, one not —
  * are SEARCHED FOR in the legal species list rather than named from memory. A fixture named after a
  * body this format does not contain would make the whole result unusable. */
-const legalSpecies = t => Dex.forFormat('gen9championsvgc2026regmb').species.all()
+const legalSpecies = t => Dex.forFormat(require('../engine/champions_sim.js').FORMAT).species.all()
   .filter(s => s.exists && !s.isNonstandard && s.tier !== 'Illegal')
   .filter(s => t ? s.types.includes(t) : true);
 

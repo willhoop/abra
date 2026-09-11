@@ -123,6 +123,24 @@ const CONFIG_VALUES = (() => {
  * it. Everything else must go through those. */
 const CONFIG_READERS = /regulations\.json|quality-filter\.json/;
 
+/* A REPLAY ID IS A STORE KEY, NOT A CONFIG REFERENCE — 2026-09-10.
+ *
+ * `gen9championsvgc2026regmbbo3-2661122292` names ONE HISTORICAL GAME in the store. Eight probes pin
+ * games that way, each beside a `Dex.forFormat(CS.FORMAT)` that is already derived, and this check read
+ * the format id inside the game id as a hardcode. Rewriting them through FORMAT would be this
+ * standard's own defect run backwards: once the regulation rotates, `FORMAT + 'bo3-2661122292'` names a
+ * game that never happened, while the literal goes on naming the game that did.
+ *
+ * So a token of Showdown's battle-id shape — a configured format id, an optional suffix such as `bo3`,
+ * a `-`, then six or more digits — is removed before the search. It is NOT a narrowing of what counts
+ * as a hardcode: `Dex.forFormat('<id>')`, `const FORMAT = '<id>'` and a bare id inside a string all
+ * still match, because none of them is followed by a battle number. */
+const REPLAY_ID = (() => {
+  const ids = CONFIG_VALUES.filter(c => /Format$/.test(c.key))
+    .map(c => c.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return ids.length ? new RegExp('(?:' + ids.join('|') + ')[a-z0-9]*-\\d{6,}', 'g') : null;
+})();
+
 /* Comments are PROSE, and prose may name a thing in order to explain it. build/triggers.js discusses
  * why two subsystems label the same format differently — that is documentation doing its job, not a
  * hardcode. Only code is checked, so the report stays about things that would actually go stale. */
@@ -151,8 +169,9 @@ function checkHardcodes(f, srcRaw) {
    * otherwise this becomes a gate that fails on correct code, which gets waived and then
    * ignored. PRIORITIES #46b. */
   if (/regulations\.json/.test(srcRaw)) return;        // it reads the config; naming a fallback is fine
+  const code = REPLAY_ID ? src.replace(REPLAY_ID, ' ') : src;   // a game id is not a format reference
   for (const c of CONFIG_VALUES) {
-    if (src.includes(c.value)) {
+    if (code.includes(c.value)) {
       flag('S12', f.rel, `hardcodes "${c.value}"`, `lives in ${c.home} (${c.key}) — reference it`);
       break;                                           // one finding per file is enough to act on
     }
@@ -257,6 +276,49 @@ function writerIndex() {
     return { ok: false, why: String((e && e.message) || e).split('\n')[0] };
   }
 }
+/* DECLARED SOURCES — a data file that is an INPUT a person maintains, not an artifact that anything
+ * generates. 2026-09-10.
+ *
+ * This used to be a hardcoded `quality-filter|regulations` pattern, twice below: a second list hiding
+ * inside a regex. Every other hand-authored file then read "no generator writes it", and nine of them
+ * landed as regressions against a ratchet that is never rewritten while one exists. Each entry below
+ * carries its reason, read on 2026-09-10 from the file's own header or from the line that reads it —
+ * not recalled. engine/provenance.js --graph --json reported every one of them `unknown` that day.
+ *
+ * A DECLARATION IS CHECKED, NOT TRUSTED (checkGeneratedFiles): if the graph ever finds a writer for a
+ * declared source, or the file is gone, the declaration itself becomes the finding. An exemption that
+ * has stopped being true looks exactly as authoritative as one that still is — tests/run-all.js's
+ * stale-exemption clause, the same rule.
+ *
+ * NOT DECLARED HERE, BECAUSE CALLING THEM SOURCES WOULD BE FALSE: three GENERATED files whose writer
+ * the graph cannot see — data/divergence-middle.json (engine/game_differential.js, its DUMP_OUT write,
+ * a path taken from a flag), data/all-mechanics-fire.boardstate.json (engine/all_mechanics_fire.js
+ * --out) and data/smogon-priors.observed.json (a `cp` in .github/workflows/smogon-stats.yml, outside
+ * the directories the graph scans). They stay flagged. The fix is the artifact declaring its own `by`,
+ * which provenance.js already resolves — owed by their writers, not by this list. */
+const DECLARED_SOURCES = {
+  'quality-filter.json': 'CONFIG. One of the two files S12 points everything else at; hand-maintained on purpose and carrying its own version and purpose fields. Flagging it was the checker misreading the direction of the dependency.',
+  'regulations.json': 'CONFIG. Names the active regulation and its formats; engine/champions_sim.js derives FORMAT from it and S12 sends every hardcode here.',
+  'test-waivers.json': 'Will\'s waivers, in his words and dated, read by tests/run-all.js. A generator here would be a machine waiving a red, which CLAUDE.md forbids.',
+  'scenarios-from-will.json': 'Staging scenarios Will gave by hand, written down so they are never asked for again (its own `what`); read by tests/roster.js, tests/test-mechanics.js and engine/million_run.js.',
+  'side-selection-declarations.json': 'Declares itself HAND-WRITTEN in its `_what`: one row per side-selecting site, citing the authority line. engine/side_selection_census.js joins it against a live scan and writes its own output to a different file.',
+  'mc-declared-rows.json': 'A SOURCE of build/build_engine_data.js: species rows the model does not carry, moved out of the artifact on 2026-08-26 so the build stopped reading them back out of its own previous output (its `_what`).',
+  'mc-priors.json': 'A SOURCE of build/build_engine_data.js. Its own `_provenance` opens "HAND-AUTHORED. There is no generator for these rows and there never has been", relocated 2026-08-26.',
+  'fixture-learnset-baseline.json': 'A declared list of body/move pairs staged fixtures carry that the TeamValidator refuses; tests/staged_board.js fails only on a pair NOT listed. It carries `stamped` and no `by`: nothing in the tree writes it, and that is declared rather than guessed at.',
+  'fixture-legality-baseline.json': 'Declared validator verdicts, each added "with kind DELIBERATE and a reason" (tests/test-fixture-legality.js). A person decides each row; nothing in the tree writes it.',
+  'effective-identity-baseline.json': 'RETIRED 2026-08-23 by its own `note`, kept unmodified as a record. A frozen record has no generator by construction.',
+  'artifact-accessors.json': 'A REGISTRY read by tests/test-artifact-keys.js: every name-keyed table whose keys are not flat-lowercase, each naming the one function allowed to read it. Each entry is a design decision.',
+};
+
+/* The scratch skip below needs to know whether any CODE names a file. Built once, from the same
+ * sources the rest of this scan reads, comments stripped — a sentence about a file is not a reader. */
+const scratchSkipped = [];
+let codeCorpus = null;
+function codeNames(file) {
+  if (codeCorpus === null) codeCorpus = srcs.map(s => stripComments(read(s.full))).join('\n');
+  return codeCorpus.includes(file);
+}
+
 function checkGeneratedFiles() {
   const idx = writerIndex();
   if (!idx.ok) {
@@ -269,11 +331,32 @@ function checkGeneratedFiles() {
     if (!/\.(json|js)$/.test(file)) continue;
     judgedData.push(file);
     if (/^games\./.test(file)) continue;                       // stores, not artifacts
-    /* CONFIG IS NOT AN ARTIFACT. data/quality-filter.json and data/regulations.json are the SOURCES
-     * S12 points everything else at — hand-maintained on purpose, and each already carries its own
-     * version and purpose fields. Flagging them as "generated but does not say so" was the checker
-     * misreading the direction of the dependency. */
-    if (/^(quality-filter|regulations)\.json$/.test(file)) continue;
+    /* A DECLARED SOURCE IS AN INPUT, NOT AN ARTIFACT — see DECLARED_SOURCES above. The declaration is
+     * CHECKED here, not trusted: the day engine/provenance.js finds a writer for one, the declaration
+     * itself is the finding, because an exemption that has stopped being true looks exactly like one
+     * that still is. */
+    if (Object.prototype.hasOwnProperty.call(DECLARED_SOURCES, file)) {
+      const srow = idx.rows.get(file);
+      if (srow && srow.by && !srow.unknown) {
+        flag('S13', 'data/' + file, 'declared a source but a generator writes it',
+             'remove it from DECLARED_SOURCES in engine/conformance.js, or stop the writer', [srow.by]);
+      }
+      continue;
+    }
+    /* SCRATCH IS DECLARED BY ITS NAME, AND ONLY WHILE NO CODE READS IT — 2026-09-10.
+     *
+     * A `_`-prefixed data file is a one-off dump taken during a diagnosis (`_diag*`, `_fire-*`,
+     * `_r220-*`, `_scratch-*`; .gitignore already declares `data/_scratch-*`). It is not state: nothing
+     * reads it back, so there is nothing for it to lie TO, which is what S13 guards. Twenty-three of
+     * them landed as "no generator writes it" regressions against a ratchet that cannot be rewritten
+     * while one exists, so every one of them kept the gate red on a question it was never about.
+     *
+     * THE SKIP LAPSES THE MOMENT CODE NAMES THE FILE. If any scanned source names it outside a comment,
+     * it has become an input and is judged like any other file — the prefix is a declaration of
+     * intent, and the intent is checked. Nothing is deleted: docs/ENGINE.md cites several of these as
+     * the evidence behind a published figure, and a docs citation is a reader of RECORD, not of state.
+     * The skipped set is printed on every run, so the skip is visible rather than silent. */
+    if (/^_/.test(file) && !codeNames(file)) { scratchSkipped.push(file); continue; }
     const row = idx.rows.get(file);
     const generated = !!(row && row.by && !row.unknown);
     const body = read(D('data', file)).slice(0, 400);
@@ -287,7 +370,7 @@ function checkGeneratedFiles() {
      * loud, and not a finding. It cannot hide a real violation: the next run reads the bytes. */
     if (!body.trim()) { unreadable.push(file); continue; }
     const saysGenerated = /GENERATED|generated|do not hand-edit|provenance/i.test(body);
-    if (!generated && !/quality-filter|regulations/.test(file)) {
+    if (!generated) {
       /* THE REASON TRAVELS AS `detail`, NEVER IN `what`. provenance.js states why it found no
        * writer and that is worth printing — but `what` is the finding's IDENTITY for the ratchet
        * (see fingerprint()), and `detail` is the variable part that is deliberately excluded.
@@ -299,6 +382,12 @@ function checkGeneratedFiles() {
            [row && row.why ? row.why : 'engine/provenance.js has no row for it at all']);
     } else if (generated && !saysGenerated) {
       flag('S13', 'data/' + file, 'generated but does not say so', 'generated files carry a GENERATED header');
+    }
+  }
+  /* A declaration naming a file that no longer exists is stale, and says so by name. */
+  for (const f of Object.keys(DECLARED_SOURCES)) {
+    if (!files.includes(f)) {
+      flag('S13', 'data/' + f, 'declared a source but the file is gone', 'remove it from DECLARED_SOURCES in engine/conformance.js');
     }
   }
 }
@@ -391,6 +480,11 @@ if (unreadable.length) {
   console.log(`\n  NOT JUDGED — ${unreadable.length} file(s) in data/ returned no bytes at scan time`);
   console.log(`  (empty, or being written by another process). They are neither passed nor failed:`);
   for (const f of unreadable) console.log(`      data/${f}`);
+}
+/* The scratch skip is printed, so it is visible state and never a silent exemption. */
+if (scratchSkipped.length) {
+  console.log(`\n  S13 SKIPPED ${scratchSkipped.length} scratch dump(s) — \`_\`-prefixed and named by no code (checkGeneratedFiles):`);
+  console.log(`      ${scratchSkipped.join(', ')}`);
 }
 console.log('\n  Each check is a mechanical proxy for a standard, not the standard itself. S8 can find a');
 console.log('  bare constant; it cannot tell whether the number was estimated or invented. Read the');

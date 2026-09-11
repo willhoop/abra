@@ -81,7 +81,7 @@ const SCREENS = FAMILY.filter(legal).map(m => m.id).sort();
 console.log('\n  THE SCREENS HALF OF ignoresScreensAndSubs — both engines, identical fixtures, pinned dice\n');
 console.log('  DERIVED — side conditions whose handler reads `infiltrates` (' + FAMILY.length + '): '
   + FAMILY.map(m => m.id + (legal(m) ? '' : ' [' + m.isNonstandard + ' — NOT IN THIS FORMAT]')).join(', '));
-console.log('  DERIVED — legal in gen9championsvgc2026regmb (' + SCREENS.length + '): ' + SCREENS.join(', '));
+console.log('  DERIVED — legal in ' + CS.FORMAT + ' (' + SCREENS.length + '): ' + SCREENS.join(', '));
 ok(SCREENS.length === 4 && dex.moves.get('mist').isNonstandard === 'Past',
    'the regulation has FOUR screens, not five — Mist is Past', 'mist.isNonstandard = ' + dex.moves.get('mist').isNonstandard);
 {

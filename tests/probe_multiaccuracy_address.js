@@ -60,7 +60,7 @@ console.log('  release ' + GD.REL.id + '   MEDI_MULTIACC_RAW_ACC=' + (RAW ? '1  
 
 /* ---- 0. THE MEMBER SET IS DERIVED --------------------------------------------------------------- */
 const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-const D = Dex.forFormat('gen9championsvgc2026regmb');
+const D = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 const legal = x => x.exists && !x.isNonstandard;
 const MULTIACC = D.moves.all().filter(m => legal(m) && m.multiaccuracy)
   .map(m => ({ id: m.id, hits: m.multihit, acc: m.accuracy }));

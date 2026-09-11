@@ -104,7 +104,7 @@ ok(flat(BATTLE).indexOf('directDamage(damage: number, target?: Pokemon') >= 0
  * 1. THE CAST — derived from the format
  * ============================================================================================== */
 const { Dex } = require(SP + '/dist/sim');
-const D = Dex.forFormat('gen9championsvgc2026regmb');
+const D = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 const legalX = x => x.exists && !x.isNonstandard && x.tier !== 'Illegal';
 const abilitiesOf = s => Object.values(s.abilities || {}).map(a => String(a).toLowerCase().replace(/[^a-z]/g, ''));
 const learns = (sp, mv) => !!(((D.species.getLearnsetData(D.species.get(sp).id) || {}).learnset) || {})[mv];

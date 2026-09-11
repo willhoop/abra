@@ -68,7 +68,7 @@ if (!process.env.SHOWDOWN_PATH) {
 /* THE UNTRACEABLE SET IS DERIVED ON EVERY RUN, never listed. It is printed before a fixture uses it,
  * because a derived membership that is not printed is a membership nobody has checked (CLAUDE.md). */
 const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-const DEX = Dex.forFormat('gen9championsvgc2026regmb');
+const DEX = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const CARRIED = (() => {
   const m = new Map();

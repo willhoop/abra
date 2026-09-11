@@ -31,7 +31,7 @@ const path = require('path');
 const D = (...p) => path.join(__dirname, '..', ...p);
 const SHOWDOWN = process.env.SHOWDOWN_PATH || 'C:/Users/willj/Projects/Pokemon/pokemon-showdown';
 const { Battle, Teams, Dex } = require(path.join(SHOWDOWN, 'dist', 'sim'));
-const FORMAT = 'gen9championsvgc2026regmb';
+const { FORMAT } = require(D('engine', 'champions_sim.js'));   /* derived from data/regulations.json (S12) */
 const DEX = Dex.forFormat(FORMAT);
 const VERBOSE = process.argv.includes('--verbose');
 

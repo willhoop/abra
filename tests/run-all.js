@@ -580,8 +580,63 @@ const scanDir = dir => fs.readdirSync(D(dir))
   });
 const discovered = [...scanDir('tests'), ...scanDir('engine')].sort();
 
+/* PENDING-WIRE, DERIVED — 2026-09-10. THE RULE IS COMPUTED AT RUN TIME; NOTHING BELOW IS A LIST.
+ *
+ * Nineteen of the hand-written PENDING_WIRE entries above carry one blocker, "it plays a game", and
+ * 169 more probes were sitting unaccounted for with exactly that blocker. Typing 150 more entries
+ * would be the hand-maintained test list this file was written to replace, so the shared condition
+ * is DERIVED instead:
+ *
+ *   a tests/probe_*.js that LOADS a game-playing module — a `require(` naming champions_sim,
+ *   game_differential, staged_board, medicham2-browser, _live_release, engine_release or probe_pair —
+ *   AND is named inside backticks in docs/ENGINE.md (the ledger row that says what it measures)
+ *
+ * is PENDING-WIRE with the blocker "plays a game". Both halves are required. A probe that plays a
+ * game with no ledger row is a check nobody has described, and stays UNACCOUNTED FOR; a probe with a
+ * row that plays no game has no reason not to be wired, and stays UNACCOUNTED FOR. A hand entry in
+ * NOT_A_CHECK or PENDING_WIRE wins, because it carries a reason specific to that file.
+ *
+ * THIS MUST NOT TURN THE CHECK GREEN BY HIDING WHAT IT CLASSIFIES. A derived entry is a check that is
+ * NOT RUN, exactly like a hand one, so reportCoverage() prints on every run how many carry a
+ * `VERIFIED BY:` marker in docs/ROADMAP.md (executed by engine/register_reality.js — which is itself
+ * unwired here) and how many have NO RUNNER ANYWHERE, and names every one of the latter.
+ *
+ * AN UNREADABLE LEDGER DERIVES NOTHING, AND SAYS SO. If docs/ENGINE.md cannot be read, no probe is
+ * classified by this rule and every one of them is reported unaccounted for — the failure is loud in
+ * the direction that fails the suite, never quiet in the direction that passes it. */
+const GAME_LOADER = /require\([^)]*(champions_sim|game_differential|staged_board|medicham2-browser|_live_release|engine_release|probe_pair)/;
+const derivedWhy = [];
+const ledgerNames = new Set();
+try {
+  let fence = false;
+  for (const line of fs.readFileSync(D('docs', 'ENGINE.md'), 'utf8').replace(/\r/g, '').split('\n')) {
+    if (/^\s*```/.test(line)) { fence = !fence; continue; }
+    if (fence) continue;
+    for (const span of line.matchAll(/`([^`]+)`/g)) {
+      for (const m of span[1].matchAll(/probe_[A-Za-z0-9_]+\.js/g)) ledgerNames.add(m[0]);
+    }
+  }
+} catch (e) {
+  derivedWhy.push('docs/ENGINE.md could not be read (' + e.message + ') — NOTHING was derived PENDING-WIRE this run');
+}
+let verifiedByLines = '';
+try {
+  verifiedByLines = fs.readFileSync(D('docs', 'ROADMAP.md'), 'utf8').split(/\r?\n/)
+    .filter(l => /VERIFIED BY/.test(l)).join('\n');
+} catch (e) {
+  derivedWhy.push('docs/ROADMAP.md could not be read (' + e.message + ') — every derived entry is counted as having NO RUNNER');
+}
+const derivedPending = discovered.filter(rel => !NOT_A_CHECK[rel] && !PENDING_WIRE[rel]
+  && /^tests\/probe_[^/]+\.js$/.test(rel)
+  && ledgerNames.has(rel.slice('tests/'.length))
+  && GAME_LOADER.test(fs.readFileSync(D(rel), 'utf8')));
+const derivedSet = new Set(derivedPending);
+const hasVerifiedBy = rel => new RegExp('(^|[^A-Za-z0-9_])'
+  + rel.slice('tests/'.length).replace(/\./g, '\\.') + '(?![A-Za-z0-9_])').test(verifiedByLines);
+const derivedNoRunner = derivedPending.filter(rel => !hasVerifiedBy(rel));
+
 /* A check that is neither run nor named. THIS IS THE FATAL ONE. */
-const unrun = discovered.filter(rel => !NOT_A_CHECK[rel] && !PENDING_WIRE[rel]);
+const unrun = discovered.filter(rel => !NOT_A_CHECK[rel] && !PENDING_WIRE[rel] && !derivedSet.has(rel));
 const pending = discovered.filter(rel => PENDING_WIRE[rel]);
 
 /* AND THE LISTS MUST AUDIT THEMSELVES, or they become the hand-maintained ban list of four. An
@@ -625,10 +680,26 @@ const ONLY = ONLY_AT > 0 ? (process.argv[ONLY_AT + 1] || '').split(',').filter(B
 function reportCoverage() {
   console.log(`\n  COVERAGE — ${discovered.length} file(s) outside the run list report their own verdict.`);
   console.log(`    ${Object.keys(NOT_A_CHECK).length} named NOT A CHECK, ${pending.length} named ` +
-              `PENDING-WIRE, ${unrun.length} unaccounted for.`);
+              `PENDING-WIRE, ${derivedPending.length} derived PENDING-WIRE, ${unrun.length} unaccounted for.`);
   if (pending.length) {
     console.log(`\n  PENDING-WIRE — a real check, not wired in, blocker named. Not a "known failure":`);
     for (const rel of pending) console.log(`    ${rel}\n        ${PENDING_WIRE[rel]}`);
+  }
+  for (const w of derivedWhy) console.log(`\n  DERIVED PENDING-WIRE — ${w}`);
+  if (derivedPending.length) {
+    /* Names, not a count alone: a classified check nobody runs must stay visible by name. */
+    const wrap = names => {
+      const out = []; let line = '     ';
+      for (const n of names) { if (line.length + n.length > 104) { out.push(line); line = '     '; } line += ' ' + n; }
+      if (line.trim()) out.push(line);
+      return out.join('\n');
+    };
+    console.log(`\n  PENDING-WIRE, DERIVED — ${derivedPending.length} tests/probe_*.js load a game-playing module AND are`);
+    console.log(`  named in backticks in docs/ENGINE.md. Blocker: plays a game. NONE of them is run by this suite.`);
+    console.log(`    ${derivedPending.length - derivedNoRunner.length} carry a \`VERIFIED BY:\` marker in docs/ROADMAP.md ` +
+                `(executed by engine/register_reality.js, which is itself unwired here)`);
+    console.log(`    ${derivedNoRunner.length} have NO RUNNER ANYWHERE:`);
+    console.log(wrap(derivedNoRunner.map(rel => rel.slice('tests/'.length))));
   }
   if (unrun.length) {
     console.log(`\n  FAIL — UNACCOUNTED-FOR CHECK. ${unrun.length} file(s) report a pass/fail verdict but`);

@@ -149,7 +149,7 @@ console.log('\n4. THE KEY — derived from the format, not assumed');
 {
   const SP = require('../engine/showdown_path.js');
   const { Dex } = require(path.join(SP.RESOLVED, 'dist', 'sim'));
-  const Dx = Dex.forFormat('gen9championsvgc2026regmb');
+  const Dx = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
   const legal = x => x.exists && !x.isNonstandard && x.tier !== 'Illegal';
   const all = Dx.species.all().filter(legal);
   const hit = all.filter(s => P.byKey.has(EMP.norm(s.id)));

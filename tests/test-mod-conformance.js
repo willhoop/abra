@@ -44,7 +44,7 @@ require(path.join(ROOT, 'data', 'move-effects.js'));
 const OURS = global.MOVE_EFFECTS || {};
 
 const { Dex } = require(SD + '/dist/sim');
-const CH = Dex.forFormat('gen9championsvgc2026regmb');
+const CH = Dex.forFormat(require(path.join(ROOT, 'engine', 'champions_sim.js')).FORMAT);   /* S12: derived, not typed */
 const MAIN = Dex.forGen(9);
 const legal = (x) => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
 

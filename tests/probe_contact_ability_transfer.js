@@ -101,7 +101,7 @@ console.log('  MEDI_CONTACT_ABILITY_LEGACY=' + (KNOB ? '1  (PRE-FIX ENGINE)' : '
 
 /* ---- 0. THE MEMBERSHIP AND THE AUTHORITY, DERIVED ON EVERY RUN --------------------------------- */
 const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-const D = Dex.forFormat('gen9championsvgc2026regmb');
+const D = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 const legalSp = s => s.exists && !s.isNonstandard && s.tier !== 'Illegal';
 const legal = x => x.exists && !x.isNonstandard;
 const MODDIR = process.env.SHOWDOWN_PATH + '/data/mods/champions/';

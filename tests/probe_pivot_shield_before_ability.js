@@ -107,7 +107,7 @@ ok(!!GAG && /onTryHit\(target, source, move\)/.test(GAG[1]),
  * 1. THE CAST — derived, membership printed
  * ============================================================================================== */
 const { Dex } = require(SP + '/dist/sim');
-const D = Dex.forFormat('gen9championsvgc2026regmb');
+const D = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
 const SPEC = D.species.all().filter(s => legal(s) && !s.isMega);
 const learnsetOf = sp => ((D.species.getLearnsetData(D.species.get(sp).id) || {}).learnset) || {};

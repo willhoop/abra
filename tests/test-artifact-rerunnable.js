@@ -544,6 +544,8 @@ if (process.argv.includes('--stamp')) {
     process.exit(2);
   }
   fs.writeFileSync(BASE, JSON.stringify({
+    /* First, so engine/conformance.js S13 can see this file is generated (it reads the first 400 bytes). */
+    generated_by: 'tests/test-artifact-rerunnable.js --stamp',
     stamped: new Date().toISOString(),
     by: 'tests/test-artifact-rerunnable.js --stamp',
     stranded: bad.length,

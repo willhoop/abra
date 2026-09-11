@@ -109,7 +109,7 @@ function harness(knobOn) {
 
 /* ---- LEGALITY AND MEMBERSHIP, DERIVED AT RUN TIME AND PRINTED --------------------------------- */
 const {Dex} = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-const DEX = Dex.forFormat('gen9championsvgc2026regmb');
+const DEX = Dex.forFormat(CS.FORMAT);
 const legalM = m => m.exists && !m.isNonstandard;
 
 /* every legal move carrying selfSwitch, and whether its own handler can take it away again */

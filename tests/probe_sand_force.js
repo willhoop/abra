@@ -143,7 +143,7 @@ if (!process.env.SHOWDOWN_PATH) {
   process.exit(2);
 }
 const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-const DEX = Dex.forFormat('gen9championsvgc2026regmb');
+const DEX = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 const eff = (moveId, target) => {
   const mv = DEX.moves.get(moveId);
   const tgt = DEX.species.get(target);

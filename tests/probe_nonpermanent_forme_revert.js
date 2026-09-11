@@ -63,7 +63,7 @@ console.log('  MEDI_NO_TEMP_FORME_REVERT=' + (KNOB ? '1  (PRE-FIX ENGINE: Hunger
  * 0. WHICH ABILITIES CHANGE A FORME, AND WHICH OF THEM PASS `isPermanent` — PARSED, NOT TYPED
  * ================================================================================================== */
 const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-const D = Dex.forFormat('gen9championsvgc2026regmb');
+const D = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 const legal = x => x.exists && !x.isNonstandard;
 const LEGAL_AB = new Set();
 for (const s of D.species.all()) {

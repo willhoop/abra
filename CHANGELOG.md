@@ -10,6 +10,34 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.4.1] — 2026-09-10
+
+### Fixed
+- **Conformance regressions 107 -> 21, and unaccounted checks 172 -> 25, both by derived rules rather than
+  hand tables.** 46 probes and tests typed the format id `gen9championsvgc2026regmb` instead of reading it
+  from `data/regulations.json`; on rotation they would have kept testing Reg M-B with nothing reporting it.
+  They now derive `FORMAT`. 8 of the 57 literals the diagnosis counted were REPLAY IDS of real stored
+  games, and rewriting those would have pointed at games that never happened — so the checker learned the
+  difference instead. The unaccounted-probes rule classifies a game-playing probe named in
+  `docs/ENGINE.md` as PENDING-WIRE, prints the 114 that have no runner anywhere by name so the check cannot
+  go green by hiding them, and was shown red on a planted probe first.
+
+### Notes
+- Still red: 12 Pokemon names typed into engine code, 4 format literals in probes the engine agent is
+  editing tonight, and 5 data-file findings whose writers must stamp a `by` field (three of those writers
+  are in frame of a live measurement). **A bare `exit 2` is SKIP in `tests/run-all.js:812`, and 44 suite
+  tests have an exit-2 path with no `ABRA-EXIT` line** — so a test that cannot stage its fixture can pass as
+  a skip. ROADMAP #380, live for tests and not only probes.
+- **The TAG-COVERAGE figure 10,524 was traceable only by coincidence, and this entry is its trace — the
+  fourth such figure found tonight.** `docs/TAG-COVERAGE.md:12` records `boostsWhenLowered` at 10,524
+  uses, "measured 2026-08-09 against `data/tags.json`". That is true: commit `6c18b6a9` (2026-08-09
+  18:01) carries `boostsWhenLowered` with uses 10,524 in `data/tags.json`. But the only thing keeping it
+  green was an unrelated coverage counter, `"effect": 10524`, in `data/game-differential.json`; the engine
+  re-run changed that counter and the figure fell out. Same mechanism as 7,381 (Raichu's usage), 7,471
+  (Light Screen's usage) and a fourth tonight: the untraceable-figure check accepts a figure whose digits
+  appear in ANY artifact, so a historical number stays green only while some unrelated count happens to
+  equal it.
+
 ## [6.4.0] — 2026-09-10
 
 ### Fixed

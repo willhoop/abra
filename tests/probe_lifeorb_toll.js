@@ -94,7 +94,7 @@ const CAST = [['garchomp', 'dragonclaw'], ['garchomp', 'protect'], ['whimsicott'
 /* THE TYPE FACTS ARE THE AUTHORITY'S OWN, printed so the arm cannot rest on a remembered chart. */
 {
   const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-  const Dx = Dex.forFormat('gen9championsvgc2026regmb');
+  const Dx = Dex.forFormat(CS.FORMAT);
   for (const sp of ['whimsicott', 'gholdengo']) {
     const t = Dx.species.get(sp).types;
     console.log(`  Dex: Dragon into ${sp} (${t.join('/')}) -> `

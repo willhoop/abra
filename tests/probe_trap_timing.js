@@ -102,7 +102,7 @@ const PROTECT = ['Protect', 'Agility'];
  * removes Gengar-Mega the probe says COULD-NOT-STAGE instead of quietly testing nothing. */
 const TAGS = require('../data/tags.json');
 const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-const DEX = Dex.forFormat('gen9championsvgc2026regmb');
+const DEX = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 const legal = x => x.exists && !x.isNonstandard && x.tier !== 'Illegal';
 const idOf = s => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
 const trapAbilities = Object.keys(TAGS.abilities || {})

@@ -88,7 +88,11 @@ function saveRatchet(r, ratchetFile = RATCHET) {
          + 'A publish below the recorded sample is refused unless the run passes ' + OVERRIDE_FLAG + '. '
          + 'tests/test-publish-guard.js fails by name when an artifact on disk sits below its record.';
   r.updated = new Date().toISOString();
-  fs.writeFileSync(ratchetFile, JSON.stringify(r, null, 2) + '\n');
+  /* THE HEADER GOES FIRST, 2026-09-10. engine/conformance.js S13 reads the first 400 bytes for a
+   * GENERATED declaration, and `by`/`what` were appended AFTER `artifacts` — so a file that does
+   * declare its writer still read as "generated but does not say so". Same keys, `artifacts` last. */
+  const { artifacts, ...head } = r;
+  fs.writeFileSync(ratchetFile, JSON.stringify({ generated_by: 'engine/publish_guard.js', ...head, artifacts }, null, 2) + '\n');
 }
 
 /* THE SAMPLE FIELD IS DECLARED BY THE CALLER, NEVER GUESSED. A guard that scans an artifact for a

@@ -84,7 +84,7 @@ console.log('  MEDI_MID_ADDR_PRE_OVERRIDE=' + (KNOB ? '1  (PRE-FIX ENGINE)' : '0
 
 /* ---- 0. THE AUTHORITY AND THE MEMBERSHIP, DERIVED ON EVERY RUN --------------------------------- */
 const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-const D = Dex.forFormat('gen9championsvgc2026regmb');
+const D = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 const legal = x => x.exists && !x.isNonstandard;
 const MODDIR = process.env.SHOWDOWN_PATH + '/data/mods/champions/';
 

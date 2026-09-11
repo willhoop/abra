@@ -85,7 +85,7 @@ const RED_CHILD = process.argv.includes('--red');
 const KNOB_ON = process.env.MEDI_MID_RANGE_DRAWS === '1';
 
 const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-const DEX = Dex.forFormat('gen9championsvgc2026regmb');
+const DEX = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
 const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
 

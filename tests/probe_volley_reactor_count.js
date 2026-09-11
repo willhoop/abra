@@ -79,7 +79,7 @@ const CAST = [['talonflame', 'dualwingbeat'], ['talonflame', 'protect'], ['sharp
  * refuse. Both arms name a real Sharpedo ability and they differ in nothing else. */
 {
   const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
-  const Dx = Dex.forFormat('gen9championsvgc2026regmb');
+  const Dx = Dex.forFormat(CS.FORMAT);
   const s = Dx.species.get('sharpedo');
   console.log('  Dex: sharpedo ' + s.types.join('/') + ' abilities ' + Object.values(s.abilities).join(', ')
     + '  — Flying x' + Math.pow(2, Dx.getEffectiveness('Flying', s.types)));
