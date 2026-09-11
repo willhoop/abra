@@ -114,7 +114,8 @@ const trappers = DEX.species.all().filter(legal)
 if (!trappers.length) {
   console.log('COULD-NOT-STAGE — no legal `preventsSwitch` carrier in this regulation. That is a');
   console.log('claim about the FORMAT, and it is stated rather than passed over.');
-  process.exit(0);
+  console.log('ABRA-EXIT 2 CANNOT-ANSWER');   /* ROADMAP #524 — a refusal is not a pass; exit 0 reads as VERDICT-GREEN */
+  process.exit(2);
 }
 const TRAPPER = trappers[0];
 const TRAP_ABILITY = Object.values(TRAPPER.abilities).find(ab => trapAbilities.includes(ab));
@@ -148,7 +149,8 @@ const spe = n => DEX.species.get(n).baseStats.spe;
 if (!(spe(OUTGOING) > spe(VICTIM) && spe(OUTGOING) > spe(GHOST))) {
   console.log('COULD-NOT-STAGE — the switch order this fixture depends on does not hold: '
     + OUTGOING + ' ' + spe(OUTGOING) + ' vs ' + VICTIM + ' ' + spe(VICTIM) + ' / ' + GHOST + ' ' + spe(GHOST));
-  process.exit(0);
+  console.log('ABRA-EXIT 2 CANNOT-ANSWER');   /* ROADMAP #524 — a refusal is not a pass */
+  process.exit(2);
 }
 
 const NONTRAPPER = 'gengar';                   // Cursed Body — same body, no trap

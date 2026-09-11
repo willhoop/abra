@@ -106,7 +106,8 @@ console.log('  allAdjacent damaging moves    : ' + spreadMoves.length);
 if (!chargeMoves.length || !spreadMoves.length) {
   console.log('  COULD-NOT-STAGE — this regulation has no charge move or no spread move. A claim about'
     + ' the FORMAT, stated rather than passed over.');
-  process.exit(0);
+  console.log('ABRA-EXIT 2 CANNOT-ANSWER');   /* ROADMAP #524 — a refusal is not a pass; exit 0 reads as VERDICT-GREEN */
+  process.exit(2);
 }
 
 /* ONE TURN, AND THE CHARGER IS THE FASTER BODY. The fixture went through two wrong shapes before this

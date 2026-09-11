@@ -79,6 +79,41 @@ for (const c of art.classes || []) {
   }
 }
 
+/* ---- WHICH LINE NAMED THE RANKING KEY — ROADMAP #349, 2026-09-11 ---------------------------------
+ *
+ * `max_uses` is a max over the entities named by BOTH lines of the pair. So a cause whose authority
+ * line names a rare ability and whose medicham line names Protect is ranked on Protect's count, while
+ * the line that DIFFERS is the authority's: the head of this list once read "126,170 clicks, Protect"
+ * over a Protean typechange. The rank is left exactly as the differential published it — this file
+ * recomputes nothing — and what is added is WHERE the key came from. That is read off the cause string,
+ * which the differential writes as `<class> :: <showdown line> <> <medicham line>`
+ * (engine/game_differential.js: `cause: cls + ' :: ' + ga + ' <> ' + gb`), so the side is a fact about
+ * two strings and not a judgement. A key only OUR line names prints `[ours]` and is counted, because that
+ * row's place in the list may have been bought by what we emitted rather than by what differs. */
+const idOf = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+function lineIds(line) {
+  const out = new Set();
+  for (let f of String(line || '').split('|')) {
+    f = f.trim().replace(/^\[from\]\s*/i, '').replace(/^(p[12][a-d]?|ability|item|move)\s*:\s*/i, '');
+    const id = idOf(f);
+    if (id) out.add(id);
+  }
+  return out;
+}
+function keySide(cause, mentions) {
+  const c = String(cause || '');
+  const body = c.slice(c.indexOf(' :: ') + 4).replace(/\s+\[values differ:[\s\S]*$/, '');
+  const at = body.indexOf(' <> ');
+  const sd = lineIds(at < 0 ? body : body.slice(0, at));
+  const me = lineIds(at < 0 ? '' : body.slice(at + 4));
+  const key = mentions.slice().sort((a, b) => b.uses - a.uses)[0] || null;
+  if (!key) return { key: null, side: null };
+  const a = sd.has(key.id), o = me.has(key.id);
+  return { key: { kind: key.kind, id: key.id, uses: key.uses },
+           side: a && o ? 'both' : a ? 'showdown' : o ? 'ours' : 'unplaced' };
+}
+for (const r of rows) { const ks = keySide(r.cause, r.mentions); r.key = ks.key; r.keySide = ks.side; }
+
 const live = rows.filter(r => !r.impossible);
 const dead = rows.filter(r => r.impossible);
 live.sort((a, b) => (b.uses - a.uses) || (b.games - a.games));
@@ -166,12 +201,18 @@ for (const c of (art.classes || []).slice().sort((a, b) => b.games - a.games)) {
 }
 
 console.log('\n  THE WORKLIST — every cause, most-played entity first');
-console.log('    ' + pad('uses', 8) + pad('games', 6) + pad('class', 30) + 'the two lines');
+console.log('    key = the entity whose usage ranks the row; [side] = the line that named it: [showdown],');
+console.log('    [ours] (only MEDICHAM\'s line names it, so the rank may be bought by what we emitted rather');
+console.log('    than by the line that differs), [both], or [unplaced] when neither line spells it out.');
+console.log('    ' + pad('uses', 8) + pad('games', 6) + pad('key [side]', 34) + pad('class', 30) + 'the two lines');
 const head = ALL ? live : live.slice(0, 40);
 for (const r of head) {
-  console.log('    ' + pad(r.uses.toLocaleString(), 8) + num(r.games, 4) + '  '
+  const k = r.key ? (String(r.key.kind).replace(/s$/, '') + ' ' + r.key.id + ' [' + r.keySide + ']') : '(no entity)';
+  console.log('    ' + pad(r.uses.toLocaleString(), 8) + num(r.games, 4) + '  ' + pad(k, 34)
               + pad(r.cls, 30) + r.cause.replace(/^[^:]*:: /, ''));
 }
+console.log('    ' + live.filter(r => r.keySide === 'ours').length + ' of ' + live.length
+            + ' causes are ranked by an entity that only OUR line names.');
 if (!ALL && live.length > head.length) {
   console.log('    … ' + (live.length - head.length) + ' more causes; --all to print them, '
               + '--write for the artifact');

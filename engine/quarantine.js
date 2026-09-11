@@ -3123,6 +3123,12 @@ const REGISTER_REALITY = {
    * SHIPPING BYTES instead — a derived value is not a fact until something checks it against its
    * source. A rename on either side is RED. */
   rejectedVerdict: 'MARKER REJECTED',
+  /* THE MARKER ITSELF — 2026-09-11, ROADMAP #350. `openDefectClause` must tell a row that NAMES an
+   * instrument the verdict artifact has not caught up with from a row that names none, and that needs
+   * the marker's spelling. It lives here, on the reader's side of the one-way dependency, and the
+   * writer reads it back (`engine/register_reality.js`: `const MARKER = Q.REGISTER_REALITY.marker`)
+   * so the two cannot come to recognise different rows. */
+  marker: /VERIFIED BY:\s*`([^`]+)`/,
 };
 
 /* Returns the row array, or NULL when the artifact parsed and carries no recognised array. NULL and
@@ -3151,10 +3157,15 @@ function registerRealityRows(rr) {
  * change is repairing is a count and a sentence describing different things.
  * ============================================================================================== */
 function registerEvidence(open, byRow) {
-  const withRed = [], debt = [], staleRows = [], rejected = [], unrunnable = [];
+  const withRed = [], debt = [], staleRows = [], rejected = [], unrunnable = [], unverified = [];
   for (const r of open) {
     const v = byRow.get(String(r.n));
-    if (!v || !v.cmd) { debt.push(r); continue; }
+    /* A ROW THAT NAMES AN INSTRUMENT IS NOT A ROW THAT NAMES NONE — ROADMAP #350, 2026-09-11. Both
+     * have no verdict, and `debt`'s sentence says "NO instrument decides them", which is false for a
+     * row carrying a `VERIFIED BY:` marker that data/register-reality.json simply has not run yet.
+     * `r.marked` is read off the ROADMAP line with the contract's own marker regex. Neither bucket holds
+     * the clause; they are split so that the sentence printed over each one is true of every row in it. */
+    if (!v || !v.cmd) { (r.marked ? unverified : debt).push(r); continue; }
     /* `green` IS TRI-STATE AND `null` IS NOT GREEN. An instrument that would not start says nothing
      * about the row; calling that agreement is the "a capability was absent and everything reported
      * success" shape. It is named on its own line rather than folded into either column. */
@@ -3181,7 +3192,14 @@ function registerEvidence(open, byRow) {
       + unrunnable.map(function (r) { return '#' + r.n + (r.verdict ? ' [' + r.verdict + ']' : ''); })
           .join(', ') + '.'
     : '';
-  return { withRed, debt, staleRows, rejected, unrunnable, rejectedLine, unrunnableLine };
+  const unverifiedLine = unverified.length
+    ? '  ' + unverified.length + ' open row(s) NAME an instrument that data/register-reality.json holds no '
+      + 'verdict for — the marker is newer than the last register pass. Not evidence and not debt: '
+      + 'they are decided the next time `node engine/register_reality.js` runs: '
+      + unverified.map(function (r) { return '#' + r.n; }).join(', ') + '.'
+    : '';
+  return { withRed, debt, staleRows, rejected, unrunnable, unverified,
+    rejectedLine, unrunnableLine, unverifiedLine };
 }
 
 function openDefectClause() {
@@ -3245,7 +3263,8 @@ function openDefectClause() {
      * somebody states plainly whether the thing is broken, which is the correct direction. */
     if (!roadmapRowSaysBroken(l)) continue;   /* extracted above and shared with open_work.js */
     const uses = +((l.match(/([\d,]{3,})\s*(uses|clicks)/) || [, '0'])[1].replace(/,/g, '')) || 0;
-    open.push({ n: +m[1], uses, title: m[2].replace(/\s+/g, ' ').slice(0, 84) });
+    open.push({ n: +m[1], uses, title: m[2].replace(/\s+/g, ' ').slice(0, 84),
+                marked: REGISTER_REALITY.marker.test(l) });   /* ROADMAP #350 — see registerEvidence */
   }
   open.sort((a, b) => b.uses - a.uses);
   const weight = open.reduce((s, r) => s + r.uses, 0);
@@ -3321,10 +3340,37 @@ function openDefectClause() {
   for (const r of RR.rows) _byRow.set(String(r.n), r);
   const EV = registerEvidence(open, _byRow);
   const withRed = EV.withRed, debt = EV.debt, staleRows = EV.staleRows;
-  const rejected = EV.rejected, unrunnable = EV.unrunnable;
+  const rejected = EV.rejected, unrunnable = EV.unrunnable, unverified = EV.unverified;
   const wireLine = RR.why ? '  ' + RR.why : '';
   const rejectedLine = EV.rejectedLine;
   const unrunnableLine = EV.unrunnableLine;
+  const unverifiedLine = EV.unverifiedLine;
+  /* THE VERDICTS ARE DATED AGAINST THE REGISTER THEY JUDGE — ROADMAP #350 (2), 2026-09-11. The clause
+   * already stamps `verdicts_generated` and said nothing about it: a register-reality artifact older
+   * than docs/ROADMAP.md judges today's rows on a pass that predates some of them, and every bucket
+   * above is then partly a statement about an older register. Said, not failed — an edit to the
+   * register is routine and a clause that fails on every edit is one people learn to ignore (#148). */
+  let registerMtime = null, registerStatErr = null;
+  try { registerMtime = fs.statSync(D('docs', 'ROADMAP.md')).mtime; }
+  catch (e) { registerStatErr = String((e && e.message) || e).split(String.fromCharCode(10))[0]; }
+  const verdictsStale = !!(RR.generated && registerMtime && Date.parse(RR.generated) < registerMtime.getTime());
+  const verdictAgeLine = registerStatErr
+    ? '  CANNOT DATE THE VERDICTS — docs/ROADMAP.md could not be stat\'d (' + registerStatErr + '), so whether '
+      + 'data/register-reality.json predates the register it judges is UNKNOWN, not fine.'
+    : verdictsStale
+    ? '  STALE VERDICTS — data/register-reality.json was generated ' + RR.generated + ', OLDER THAN '
+      + 'docs/ROADMAP.md (last changed ' + registerMtime.toISOString() + '). A row added, closed or '
+      + 're-marked since then is judged on a verdict that predates it, or on none. Re-run: '
+      + 'node engine/register_reality.js'
+    : '';
+  /* AN INSTRUMENT THAT WAS ASKED AND ANSWERED NOTHING HOLDS THE CLAUSE — ROADMAP #380 (2), 2026-09-11.
+   * A row whose instrument ran and declared CANNOT-ANSWER, or would not start, or exited outside {0,1}
+   * undeclared, is a defect asserted and neither shown live nor shown gone. It used to fall into
+   * `unrunnable` and stop holding the clause at all, so the clause passed on silence. The rule
+   * `orderProbeClause` in this file already follows applies: a clause that cannot be computed FAILS,
+   * and it fails as CANNOT-ANSWER so the reason is distinguishable from a measured red. A rejected
+   * marker (never asked) and a row with no marker are NOT this — nothing was run for them. */
+  const cannotAnswer = withRed.length === 0 && unrunnable.length > 0;
   const debtLine = debt.length
     ? "  " + debt.length + " open row(s) assert breakage with NO instrument that decides them — DEBT, "
       + "not evidence, and they do not hold this clause shut: "
@@ -3349,21 +3395,30 @@ function openDefectClause() {
       ? ': ' + excused.map(r => '#' + r.n + (r.suppresses ? ' SUPPRESSES' : '')
           + ' [' + r.cell + ']').join('; ') : '.');
   return {
-    name: 'no open, known engine defect', ok: withRed.length === 0, open, excused, withRed, debt,
+    name: 'no open, known engine defect', ok: withRed.length === 0 && unrunnable.length === 0,
+    ...(cannotAnswer ? { cannot_answer: true } : {}),
+    open, excused, withRed, debt,
     pins: PIN.noArtifact('this clause reads docs/ROADMAP.md and data/register-reality.json live on every '
       + 'run and records no measurement of its own; it stamps the AGE of what it read rather than '
       + 'carrying a result that could go stale'),
     /* `rejected` IS ITS OWN KEY AND IS NOT SUMMED INTO `unrunnable`. A reader of the artifact gets
      * the same split the sentence gives; one number for both is what this change removed. */
-    staleRows, rejected, unrunnable, verdicts_read: RR.rows.length, verdicts_generated: RR.generated || null,
+    staleRows, rejected, unrunnable, unverified, verdicts_read: RR.rows.length,
+    verdicts_generated: RR.generated || null, verdicts_stale: verdictsStale,
     why: (withRed.length === 0
-      ? 'clean: no open row names an instrument that is RED — no open defect is backed by a failing '
-        + 'measurement (' + RR.rows.length + ' verdict(s) read)'
+      ? (cannotAnswer
+        ? 'CANNOT ANSWER — no open row names an instrument that is RED, and ' + unrunnable.length
+          + ' open row(s) name an instrument that was asked and answered nothing usable ('
+          + unrunnable.map(r => '#' + r.n).join(', ') + '). Those defects are neither shown live nor '
+          + 'shown gone, and a clause that cannot be computed FAILS.'
+        : 'clean: no open row names an instrument that is RED — no open defect is backed by a failing '
+          + 'measurement (' + RR.rows.length + ' verdict(s) read)')
       : `${withRed.length} OPEN roadmap row(s) name an instrument that is RED: `
         + withRed.map(r => '#' + r.n + (r.uses ? ' (' + r.uses.toLocaleString() + ' uses)' : '')).join(', ')
         + `. A gate cannot report the engine correct while the register says otherwise — that is `
         + `"known failure" filed one level up.`)
-      + receipt + wireLine + rejectedLine + unrunnableLine + debtLine + staleLine,
+      + receipt + wireLine + verdictAgeLine + rejectedLine + unrunnableLine + unverifiedLine + debtLine
+      + staleLine,
   };
 }
 
@@ -4892,11 +4947,18 @@ if (require.main === module) {
       && /WAS ASKED AND ANSWERED/.test(EVSPLIT.unrunnableLine) && /#4/.test(EVSPLIT.unrunnableLine)
       && !/#3\b/.test(EVSPLIT.unrunnableLine),
       [EVSPLIT.rejectedLine, EVSPLIT.unrunnableLine]);
-    ok('the five buckets are DISJOINT and TOTAL — every open row lands in exactly one, so a split '
+    ok('the six buckets are DISJOINT and TOTAL — every open row lands in exactly one, so a split '
       + 'cannot lose a row the way a widened bucket hid nine markers',
-      ['withRed', 'staleRows', 'rejected', 'unrunnable', 'debt']
+      ['withRed', 'staleRows', 'rejected', 'unrunnable', 'unverified', 'debt']
         .reduce((s, k) => s.concat(EVSPLIT[k].map(r => r.n)), []).sort().join(',') === '1,2,3,4,5,6',
       EVSPLIT);
+    /* ROADMAP #350 — a row that NAMES an instrument with no verdict yet is not a row that names none.
+     * RED on the pre-fix split, which filed both under "NO instrument that decides them". */
+    ok('RED — a MARKED row with no verdict lands in `unverified` and an unmarked one in `debt`, each '
+      + 'under a sentence that is true of it',
+      (() => { const s = registerEvidence([{ n: 8, marked: true }, { n: 9 }], EVIDX([]));
+               return s.unverified.map(r => r.n).join() === '8' && s.debt.map(r => r.n).join() === '9'
+                 && /NAME an instrument/.test(s.unverifiedLine) && !/#9\b/.test(s.unverifiedLine); })());
     ok('RED — a null verdict with NO verdict string is NOT read as a rejection: the split turns on '
       + 'what the writer published, never on the absence of it',
       registerEvidence([{ n: 7 }], EVIDX([{ n: 7, cmd: 'node tests/f.js', green: null, verdict: null }]))

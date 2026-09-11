@@ -139,7 +139,9 @@ function readArgv(argv) {
  * repository: this file executes what it finds, and a register anybody can edit is not a place to
  * accept an arbitrary shell string. Refused loudly rather than skipped — a marker that silently does
  * nothing is worse than no marker, because it reads as coverage. */
-const MARKER = /VERIFIED BY:\s*`([^`]+)`/;
+/* READ FROM THE CONTRACT, NOT RESPELLED — engine/quarantine.js's `openDefectClause` recognises a marked
+ * row with the same regex (ROADMAP #350), so a marker this file reads is a marker that clause sees. */
+const MARKER = Q.REGISTER_REALITY.marker;
 /* THE SECOND MARKER, AND IT IS THE HONEST ANSWER FOR MOST OF THIS REGISTER.
  *
  * `VERIFIED BY` needs a gate whose EXIT CODE tracks the row's claim, and for a great many rows no
@@ -473,67 +475,23 @@ const BAD = new Set(['STALE ROW', 'PREMATURE CLOSE', 'INSTRUMENT UNRUNNABLE',
  * detect; the one contradiction that IS detectable — a declaration attached to exit 0 that does not
  * say VERDICT-GREEN — is refused rather than guessed at.
  *
- * THE SAME FACT IS DECIDED IN A SECOND PLACE AND THAT IS FILED, NOT FIXED HERE. `tests/run-all.js`
- * (its runner loop, at `r.status === 2`) already treats exit 2 as *"I COULD NOT RUN, NOT I FAILED"*
- * for every script it runs, and says so in those words. Two files deciding one fact will disagree
- * eventually — they DID disagree, and this file was the one that was wrong — so the durable fix is
- * one implementation both call. That refactor is not made here: this pass was forbidden to touch
- * tests/, and doing it blind is how a runner starts skipping real failures. See the register row.
+ * THE SAME FACT WAS DECIDED IN A SECOND PLACE, AND SINCE 2026-09-11 IT LIVES IN ONE (ROADMAP #380).
+ * `tests/run-all.js` (its runner loop, at `r.status === 2`) carried its own reading of exit 2 as
+ * *"I COULD NOT RUN, NOT I FAILED"*, and the two disagreed: a declared `ABRA-EXIT 2 VERDICT-RED` was
+ * a RED verdict here and a SKIP there. The classifier below now lives in `engine/exit_codes.js`,
+ * moved without a change in behaviour, and this file keeps only the wrapper that carries its knob.
+ * `engine/wire_ladder.js` reads its children through the same module; run-all's adoption
+ * (`runnerOutcome`, the same classification with a PASS/FAIL/SKIP policy for the null case) is owed
+ * by the division that holds tests/run-all.js.
  *
  * THE KNOB RESTORES THE DEFECT ON DEMAND. `RR_CANNOT_ANSWER_AS_RED=1` puts every non-zero exit back
  * to `green: false`, so the selftest can show the old behaviour red instead of describing it. */
-const KIND = {
-  GREEN: 'VERDICT-GREEN',
-  RED: 'VERDICT-RED',
-  REFUSED: 'CANNOT-ANSWER',
-  UNDECLARED: 'UNDECLARED',
-  CONTRADICTION: 'DECLARATION-CONTRADICTS-EXIT',
-  NOT_STARTED: 'NOT-STARTED',
-  /* THE RULER REFUSED TO READ THE MARKER — a defect in THIS FILE or in the ROW, never in the
-   * instrument. Split out of NOT_STARTED on 2026-09-04 because the two shared one label and one
-   * bucket of 27, and nine markers lived in it. */
-  REJECTED: 'MARKER-REJECTED',
-  LEGACY: 'LEGACY-ANY-NONZERO-IS-RED',
-};
-const DECLARATION = /^ABRA-EXIT[ \t]+(\d+)[ \t]+(VERDICT-GREEN|VERDICT-RED|CANNOT-ANSWER)\b/;
-
-/* The declaration for THIS exit code, or null. Last one wins. Reads whatever the caller captured —
- * stdout and stderr both, because a gate that refuses may say so on either. */
-function declaredKind(status, text) {
-  let found = null;
-  for (const line of String(text == null ? '' : text).split(/\r?\n/)) {
-    const m = line.match(DECLARATION);
-    if (m && Number(m[1]) === status) found = m[2];
-  }
-  return found;
-}
+const EXIT = require('./exit_codes.js');
+const { KIND, DECLARATION, declaredKind } = EXIT;
+void DECLARATION; void declaredKind;   /* re-bound so any reader of this file finds the names it used to */
 
 function classifyExit(status, text) {
-  if (process.env.RR_CANNOT_ANSWER_AS_RED === '1')
-    return status === 0
-      ? { green: true, kind: KIND.LEGACY, why: 'exit 0' }
-      : { green: false, kind: KIND.LEGACY, why: 'exit ' + status + ' (RR_CANNOT_ANSWER_AS_RED=1: the '
-          + 'pre-fix behaviour — every non-zero exit is published as a RED verdict)' };
-  const declared = declaredKind(status, text);
-  if (status === 0) {
-    if (declared && declared !== KIND.GREEN)
-      return { green: null, kind: KIND.CONTRADICTION, declared,
-        why: 'exit 0 with a declaration of ' + declared + ' — the instrument contradicts itself, and a '
-           + 'contradiction is not a verdict' };
-    return { green: true, kind: KIND.GREEN, declared: declared || null, why: 'exit 0' };
-  }
-  if (declared === KIND.REFUSED)
-    return { green: null, kind: KIND.REFUSED, declared,
-      why: 'exit ' + status + ' — the instrument DECLARED CANNOT-ANSWER. It ran; it had no finding to '
-         + 'report about this row, and a refusal is not evidence in either direction' };
-  if (declared === KIND.RED)
-    return { green: false, kind: KIND.RED, declared, why: 'exit ' + status + ' (declared VERDICT-RED)' };
-  if (declared === KIND.GREEN)
-    return { green: true, kind: KIND.GREEN, declared, why: 'exit ' + status + ' (declared VERDICT-GREEN)' };
-  if (status === 1) return { green: false, kind: KIND.RED, declared: null, why: 'exit 1' };
-  return { green: null, kind: KIND.UNDECLARED, declared: null,
-    why: 'exit ' + status + ' — a code outside {0,1} that the instrument never declared, so it is NOT '
-       + 'read as a verdict. Declare it with a line `ABRA-EXIT ' + status + ' <VERDICT-RED|CANNOT-ANSWER>`' };
+  return EXIT.classifyExit(status, text, { legacy: process.env.RR_CANNOT_ANSWER_AS_RED === '1' });
 }
 
 /* ONE RUN PER DISTINCT COMMAND. Four rows closed on tests/test-seed-clock.js is the normal shape —

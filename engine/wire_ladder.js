@@ -93,8 +93,11 @@ const OUT = flag('--out', STATE ? 'data/state-ladder.json' : 'data/wire-ladder.j
  * ladder is not written and there is no figure in either direction — so 2 and 4 are CANNOT-ANSWER and
  * the register row stays UNMEASURED rather than being closed or accused. `process.exitCode = 1` at the
  * end is a real red verdict about a ladder that DID run, and is left alone. */
-const declareExit = (code) => console.error('ABRA-EXIT ' + code + ' '
-  + (code === 0 ? 'VERDICT-GREEN' : (code === 2 || code === 4) ? 'CANNOT-ANSWER' : 'VERDICT-RED'));
+/* ONE WRITER AND ONE READER FOR THE DECLARATION — engine/exit_codes.js, ROADMAP #380. The line this
+ * prints is the line register_reality.js parses; both now come from the same module. */
+const EXIT = require('./exit_codes.js');
+const declareExit = (code) => console.error(EXIT.declaration(code,
+  code === 0 ? EXIT.KIND.GREEN : (code === 2 || code === 4) ? EXIT.KIND.REFUSED : EXIT.KIND.RED));
 
 if (!process.env.SHOWDOWN_PATH) {
   console.error('NOT RUN — the official simulator is absent. Set SHOWDOWN_PATH. This is not a pass.');
@@ -307,8 +310,16 @@ function runArm(arm) {
   try {
     stdout = execFileSync(process.execPath, args, { cwd: D(), encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
   } catch (e) {
+    /* THE CHILD'S EXIT IS READ THROUGH THE SHARED CLASSIFIER (engine/exit_codes.js, ROADMAP #380), so
+     * the refusal says WHICH non-green it was — a declared CANNOT-ANSWER, a VERDICT-RED, an undeclared
+     * code, or a child that never produced an exit code at all. The accept rule is unchanged: only a
+     * green child yields a rung. game_differential.js exits 1 on a VOID run (its instrument moved while
+     * it played) with the artifact already written, so a red child's artifact is never a rung. */
+    const st = (e && typeof e.status === 'number') ? e.status : null;
+    const c = EXIT.classifyExit(st, String((e && e.stdout) || '') + '\n' + String((e && e.stderr) || ''));
     console.error('ARM ' + arm.id + ' (release ' + arm.release + ') DID NOT COMPLETE — the ladder is '
-      + 'incomplete and is not written.\n' + String((e && e.stderr) || (e && e.message) || e).slice(0, 4000));
+      + 'incomplete and is not written. The child read as ' + c.kind + ': ' + c.why + '\n'
+      + String((e && e.stderr) || (e && e.message) || e).slice(0, 4000));
     declareExit(4); process.exit(4);
   }
   fs.writeFileSync(logPath, stdout);

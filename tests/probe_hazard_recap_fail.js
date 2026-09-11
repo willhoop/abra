@@ -107,7 +107,8 @@ const CAPN = hazards.filter(h => +h.p.maxLayers > 1).sort((a, b) => a.p.maxLayer
 if (!CAP1.length || !CAPN.length) {
   console.log('  COULD-NOT-STAGE — this regulation has no cap-1 hazard or no multi-layer hazard.');
   console.log('  A claim about the FORMAT, stated rather than passed over.');
-  process.exit(0);
+  console.log('ABRA-EXIT 2 CANNOT-ANSWER');   /* ROADMAP #524 — a refusal is not a pass; exit 0 reads as VERDICT-GREEN */
+  process.exit(2);
 }
 /* The layer's own screen counterpart for arm E, derived off the tag the screens branch reads. */
 const screens = Object.keys(TAGS.moves || {}).filter(m => (TAGS.moves[m].tags || []).includes('halvesDamage')

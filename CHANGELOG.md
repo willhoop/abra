@@ -10,6 +10,13 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.12.1] — 2026-09-11
+
+### Fixed
+- **Seven instrument defects confirmed by tonight's new probes**, most importantly seven checks that exited 0
+  — read as agreement — after failing to stage their board. Each fix was shown red to green to red on revert.
+  The three readers of exit codes now share one classifier.
+
 ## [6.10.2] — 2026-09-11
 
 ### Added

@@ -49,6 +49,36 @@ const arg = (f, dflt) => { const i = process.argv.indexOf(f); return i > 0 ? pro
 const IN = arg('--in', path.join(__dirname, '..', 'data', 'divergence-turns.json'));
 const OUT = arg('--out', path.join(__dirname, '..', 'divergences.html'));
 const d = JSON.parse(fs.readFileSync(IN, 'utf8'));
+/* A DUMP FROM ANOTHER RELEASE IS REFUSED, NOT RENDERED — ROADMAP #399, 2026-09-11.
+ *
+ * The dump is only rewritten by a differential run given `--dump-games N --write`, so an ordinary run
+ * leaves the old one on disk, and this page printed that old release in its header and nothing else.
+ * Will reviews this page as the current state of the engine. Cards from an engine the differential no
+ * longer measures are a figure that has stopped being true, and a caption is not a quarantine: the
+ * default is to REFUSE with a declared CANNOT-ANSWER. `--allow-stale` renders anyway under a banner
+ * that names both releases, for the case where somebody wants the old cards knowingly.
+ * `--differential <path>` names the artifact to compare against (default data/game-differential.json). */
+const ALLOW_STALE = process.argv.includes('--allow-stale');
+const GD_PATH = arg('--differential', path.join(__dirname, '..', 'data', 'game-differential.json'));
+let GD_REL = null, GD_ERR = null;
+try { GD_REL = JSON.parse(fs.readFileSync(GD_PATH, 'utf8')).engine_release || null; }
+catch (e) { GD_ERR = String((e && e.message) || e).split('\n')[0]; }
+const STALE_WHY = !d.engine_release ? 'the dump names no engine release, so it cannot be matched to any differential'
+  : GD_ERR ? 'the differential ' + GD_PATH + ' could not be read (' + GD_ERR + ')'
+  : !GD_REL ? 'the differential ' + GD_PATH + ' names no engine release'
+  : d.engine_release !== GD_REL ? 'the dump was taken on release ' + d.engine_release
+      + ' and the differential is on release ' + GD_REL
+  : null;
+if (STALE_WHY && !ALLOW_STALE) {
+  console.log('CANNOT ANSWER — ' + STALE_WHY + '. These cards would describe an engine the current '
+    + 'differential does not measure, and this page is read as current.');
+  console.log('  Re-dump:  node engine/game_differential.js --release <id> --games <n> '
+    + '--team-store data/team-pool-frozen --dump-games 60 --dump-out data/divergence-turns.json --write');
+  console.log('  Or render the old cards knowingly, under a STALE banner:  node engine/divergence_cards.js --allow-stale');
+  console.log('ABRA-EXIT 2 CANNOT-ANSWER');
+  process.exit(2);
+}
+if (STALE_WHY) console.log('STALE — rendering anyway because --allow-stale was given: ' + STALE_WHY);
 const all = (d.divergences || []);
 const esc = s => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -327,6 +357,8 @@ h1{font-size:clamp(24px,3.4vw,34px);margin:0 0 6px;letter-spacing:-.02em;text-wr
 .hp .tail{font-size:11.5px;color:var(--me);font-weight:600;text-transform:uppercase}
 footer.foot{margin-top:44px;padding-top:18px;border-top:1px solid var(--rule);color:var(--muted);
  font-size:12.5px;max-width:70ch}
+.stale{margin:14px 0;padding:10px 14px;border:2px solid var(--me);border-radius:8px;color:var(--me);
+ font-weight:600;max-width:90ch}
 </style>
 <div class="wrap">
   <h1>Where MEDICHAM and Showdown part</h1>
@@ -334,6 +366,7 @@ footer.foot{margin-top:44px;padding-top:18px;border-top:1px solid var(--rule);co
   of these is a <strong>rule the two engines disagree about</strong>. The turn so far is shown greyed;
   the two coloured panels are the moment they split.</p>
   <p class="meta">${esc(d.generated || '')} &nbsp;·&nbsp; ${esc(d.engine_release || '')} &nbsp;·&nbsp; ${RATE_LINE} &nbsp;·&nbsp; frozen team pool</p>
+  ${STALE_WHY ? '<p class="stale">STALE — ' + esc(STALE_WHY) + '. These cards describe an engine the differential no longer measures; rendered only because --allow-stale was given.</p>' : ''}
   <div class="key">
     <span><b class="mon p1" style="color:var(--yours)">green</b> = p1's side</span>
     <span><b class="mon p2" style="color:var(--theirs)">purple</b> = p2's side</span>

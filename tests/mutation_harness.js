@@ -5,6 +5,9 @@
  *   node tests/mutation_harness.js --tags=a,b   sweep a chosen tag list
  *   node tests/mutation_harness.js --no-write   do not touch the artifact
  *   node tests/mutation_harness.js --release=<id>   measure a named frozen release
+ *   node tests/mutation_harness.js --regrade --release=<the artifact's id>
+ *                                              re-run the TRIAGE over the written artifact; plays no
+ *                                              game and moves no verdict (see regrade(), ROADMAP #323/#325)
  *
  * WHY THIS EXISTS, in the words of the thing it catches.
  * ------------------------------------------------------
@@ -404,14 +407,39 @@ function opRemoveTag(kind, id, tag) {
   };
 }
 const SENTINEL_STR = 'ZZ-MUTANT-ZZ';
+/* A CITATION IS NOT A FACT AND MUTATING IT IS NOT A MUTATION — ROADMAP #325, 2026-09-11.
+ *
+ * data/tags.json carries provenance beside its facts because the no-typing-from-memory rule requires
+ * it: `from: "DERIVED:..."`, `note: "condition not derivable here ..."`, `cite`, `via`, `what`. Nothing
+ * in the simulator should ever read one, so mutating it and seeing no change carries no information —
+ * and it was being scored READ-AND-IGNORED, inflating the count this file exists to make trustworthy
+ * (17 of 998 on release 6fb9ebd3b704). They are skipped and COUNTED, the way null and nested params are.
+ *
+ * THE NAME IS NOT ENOUGH, AND THAT IS WHERE THIS RULE WOULD OVER-MATCH (LESSONS §4). `what` is a game
+ * fact on `blocksMove` and `from`/`via` carry facts too (`from: "Palafin"`, `via: "secondary"`). So a
+ * param is provenance only when its name is below, its VALUE is citation-shaped (note/cite always are),
+ * AND the simulator dereferences it nowhere — a param the engine reads is a fact whatever it looks like.
+ * `MUT_PROVENANCE_SCORED=1` restores the pre-fix scoring so this can be shown red on demand. */
+const PROVENANCE_PARAM_NAMES = new Set(['from', 'note', 'cite', 'via', 'what']);
+const citationShaped = v => typeof v === 'string'
+  && (/^(DERIVED|READ|HAND)\b/.test(v) || /[\w/.-]+\.(ts|js|json):\d+/.test(v) || v.trim().split(/\s+/).length >= 4);
+function isProvenanceParam(cf, tag, name, value) {
+  if (process.env.MUT_PROVENANCE_SCORED === '1') return false;
+  if (!PROVENANCE_PARAM_NAMES.has(name) || typeof value !== 'string') return false;
+  if (cf.paramReadSites(tag, name).length) return false;
+  return name === 'note' || name === 'cite' || citationShaped(value);
+}
+let _shippedCF = null;
+const shippedCF = () => (_shippedCF = _shippedCF || defectClassifier(SHIPPED_SRC, SHIPPED_DB));
 function paramOps(kind, id, tag, params) {
   const ops = [];
-  let nested = 0, nulls = 0;
+  let nested = 0, nulls = 0, provenance = 0;
   for (const k of Object.keys(params || {})) {
     const v = params[k];
     let values = null, shape = null;
     if (typeof v === 'boolean') { values = [!v]; shape = 'boolean'; }
     else if (typeof v === 'number') { values = [v * 3 + 7, v === 0 ? 1 : 0]; shape = 'number'; }
+    else if (typeof v === 'string' && isProvenanceParam(shippedCF(), tag, k, v)) { provenance++; continue; }
     else if (typeof v === 'string') { values = [SENTINEL_STR]; shape = 'string'; }
     /* A NULL PARAM IS NOT A FACT AND MUTATING IT IS NOT A MUTATION. `roughskin.setsWeather: null`
      * says Rough Skin does not set weather; writing a sentinel there asks the consumer to honour a
@@ -434,7 +462,7 @@ function paramOps(kind, id, tag, params) {
       });
     }
   }
-  return { ops, nested, nulls };
+  return { ops, nested, nulls, provenance };
 }
 
 /* ---- carriers ---------------------------------------------------------------------------------- */
@@ -523,9 +551,10 @@ function sweepTag(src, tag, opt) {
       continue;
     }
     ops.push({ op: opRemoveTag(c.kind, c.id, tag), carrier: c });
-    const { ops: pops, nested, nulls } = paramOps(c.kind, c.id, tag, c.params);
+    const { ops: pops, nested, nulls, provenance } = paramOps(c.kind, c.id, tag, c.params);
     row.nestedParamsSkipped += nested;
     row.nullParamsSkipped += nulls;
+    row.provenanceParamsSkipped = (row.provenanceParamsSkipped || 0) + provenance;   /* ROADMAP #325 */
     for (const p of pops) ops.push({ op: p, carrier: c });
   }
 
@@ -795,6 +824,24 @@ function defectClassifier(src, db) {
   const CODE = stripComments(src);
   const byTag = new Map();
   for (const s of sites) { if (!byTag.has(s.tag)) byTag.set(s.tag, []); byTag.get(s.tag).push(s); }
+  /* THE CARRIER'S OTHER TAGS, SPLIT BY WHETHER THE SIMULATOR READS THEM — ROADMAP #323. A sibling
+   * carried by more than SIBLING_GENERIC_FRAC of its kind (every move has `pp` and `targetClass`) is
+   * bookkeeping rather than a route to a particular fact, so it is excluded and returned as such; the
+   * exclusion is derived from this artifact, never typed. See the class-A branch of classify(). */
+  const SIBLING_GENERIC_FRAC = 0.25;
+  const genericOf = {};
+  for (const k of ['moves', 'items', 'abilities']) {
+    const ents = Object.values(db[k] || {}), n = {};
+    for (const e of ents) for (const t of (e.tags || [])) n[t] = (n[t] || 0) + 1;
+    genericOf[k] = new Set(Object.keys(n).filter(t => n[t] / Math.max(1, ents.length) > SIBLING_GENERIC_FRAC));
+  }
+  function readSiblings(kind, id, tag) {
+    const K = TABLE[kind];
+    const others = (((db[K] || {})[id] || {}).tags || []).filter(t => t !== tag);
+    const specific = others.filter(t => !genericOf[K].has(t));
+    return { read: specific.filter(t => byTag.has(t)), unread: specific.filter(t => !byTag.has(t)),
+             generic: others.filter(t => genericOf[K].has(t)) };
+  }
   const carrierCount = tag => ['moves', 'items', 'abilities']
     .reduce((n, k) => n + Object.keys(db[k]).filter(id => (db[k][id].tags || []).includes(tag)).length, 0);
   const esc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -898,9 +945,28 @@ function defectClassifier(src, db) {
           + '" drives a branch by NAME instead (a name set or an id comparison). The mechanic can work; the tag is a second, unread copy of the fact',
           evidence: { ...nameEv, tagReadAt: ss.map(s => s.line + ' ' + s.kind) } };
       }
+      /* A THIRD ROUTE, EXAMINED BEFORE "NOTHING" IS SAID — ROADMAP #323, 2026-09-11. The class is
+       * decided by two routes only (a TAGS lookup of this tag, a NAME branch on this carrier), and the
+       * sentence used to claim all three. A fact can also arrive through a SIBLING tag the carrier
+       * carries: `move:leechseed / immunityGate`'s Grass immunity rides on `perTurnHP`'s `immuneType`.
+       * This rule cannot decide whether a read sibling implements the fact — only reading the branch
+       * can — so when one exists the row says UNDECIDED and names it, and "nothing implements this"
+       * is kept only for a carrier with no read sibling. The CLASS is unchanged (the tag is still never
+       * read); only the claim is narrowed to what was checked. Siblings carried by more than
+       * SIBLING_GENERIC_FRAC of the kind (pp, contact, targetClass...) are bookkeeping, not a route to
+       * a particular fact, and are excluded and listed. `MUT_SIBLINGS_UNEXAMINED=1` restores the pre-fix
+       * sentence so this can be shown red on demand. */
+      const sib = readSiblings(op.kind, op.id, op.tag);
+      const examined = process.env.MUT_SIBLINGS_UNEXAMINED !== '1';
+      const tail = (examined && sib.read.length)
+        ? ' A THIRD ROUTE IS OPEN AND THIS RULE DID NOT EXAMINE IT: ' + sib.read.length + ' sibling tag(s) on this '
+          + 'carrier ARE read by the simulator (' + sib.read.join(', ') + '), so whether one of them carries this '
+          + 'fact is UNDECIDED here — read that branch before calling the mechanic absent.'
+        : ' Nothing in the simulator implements this fact.';
       return { cls: 'A', why: 'TAG NEVER READ — ' + scope + ', and "' + op.id
-        + '" drives no id comparison and sits in no name set that looks like an implementation of this tag. Nothing in the simulator implements this fact.',
-        evidence: { ...nameEv, tagReadAt: ss.map(s => s.line + ' ' + s.kind) } };
+        + '" drives no id comparison and sits in no name set that looks like an implementation of this tag.' + tail,
+        evidence: { ...nameEv, tagReadAt: ss.map(s => s.line + ' ' + s.kind),
+          siblingTagsRead: sib.read, siblingTagsNotRead: sib.unread, siblingTagsGenericExcluded: sib.generic } };
     }
     if (op.param) {
       const pr = paramReadSites(op.tag, op.param);
@@ -1419,6 +1485,7 @@ function main() {
     streamShiftSuspect: allOps.filter(o => o.note).length,
     nestedParamsSkipped: rows.reduce((s, r) => s + (r.nestedParamsSkipped || 0), 0),
     nullParamsSkipped: rows.reduce((s, r) => s + (r.nullParamsSkipped || 0), 0),
+    provenanceParamsSkipped: rows.reduce((s, r) => s + (r.provenanceParamsSkipped || 0), 0),   /* ROADMAP #325 */
     threwUnderMutation: allOps.filter(o => o.threw).length,
     inertCases: rows.reduce((s, r) => s + (r.cases || []).filter(c => c.inert).length, 0),
     liveCases: rows.reduce((s, r) => s + (r.cases || []).filter(c => !c.inert).length, 0),
@@ -1673,6 +1740,155 @@ function main() {
   if (regressions.length || ceilingBroken) process.exit(1);
 }
 
-if (require.main === module) main();
+/* ---- THE COUNTS THAT ARE FUNCTIONS OF THE OPERATOR LIST ALONE -----------------------------------
+ * Every one of these reads only fields the artifact serialises per operator, so a regrade can recompute
+ * them from a written artifact. main()'s summary is the definition; `regrade()` PROVES it agrees with
+ * that definition by recomputing these over the artifact's own operators BEFORE changing anything and
+ * refusing on any mismatch — a derived count is not a fact until something compares it to its source. */
+function operatorCounts(ops) {
+  const n = f => ops.filter(f).length;
+  return {
+    operators: ops.length,
+    live: n(o => o.verdict === 'LIVE'),
+    readAndIgnored: n(o => o.verdict === 'READ-AND-IGNORED'),
+    defectCandidates: n(o => o.class === 'DEFECT-CANDIDATE'),
+    noConsumerInSource: n(o => o.class === 'NO-CONSUMER-IN-SOURCE'),
+    tagNotConsumed: n(o => o.class === 'TAG-NOT-CONSUMED'),
+    unreachedByThisBattery: n(o => o.class === 'UNREACHED-BY-THIS-BATTERY'),
+    presenceOnly: n(o => o.class === 'PRESENCE-ONLY'),
+    restatesTheTag: n(o => o.class === 'RESTATES-THE-TAG'),
+    bannedByFormat: n(o => o.class === 'BANNED-BY-FORMAT'),
+    noLegalCarrier: n(o => o.class === 'NO-LEGAL-CARRIER'),
+    zeroUseInCorpus: n(o => o.class === 'ZERO-USE-IN-CORPUS'),
+    streamShiftSuspect: n(o => o.note),
+    classA_tagNeverRead: n(o => o.defectClass === 'A'),
+    classB_paramOverridden: n(o => o.defectClass === 'B'),
+    classC_hardcodedByName: n(o => o.defectClass === 'C'),
+    classD_batteryGap: n(o => o.defectClass === 'D'),
+    classD_provenLiveElsewhere: n(o => o.defectClass === 'D' && o.provenLiveElsewhere),
+    classAofDefectCandidates: n(o => o.class === 'DEFECT-CANDIDATE' && o.defectClass === 'A'),
+  };
+}
+
+/* ---- REGRADE — THE TRIAGE RE-RUN OVER A SWEEP THAT ALREADY HAPPENED. ROADMAP #323 / #325, 2026-09-11.
+ *
+ *   node tests/mutation_harness.js --regrade --release=<the artifact's release>
+ *        [--regrade-in=<path>] [--regrade-out=<path>] [--no-write]
+ *
+ * PLAYS NO GAME AND MOVES NO VERDICT. The sweep is the expensive half (828 s on 6fb9ebd3b704) and its
+ * output — which operator moved the engine — does not depend on how it is triaged afterwards. A change
+ * to the TRIAGE therefore does not need a new sweep, and #323 (a sentence) and #325 (which params count)
+ * are triage changes. This reads the artifact, opens the SAME release it measured (and refuses any
+ * other), and re-applies exactly two things with today's code:
+ *   - provenance params (isProvenanceParam) come out of the operator list and are COUNTED, which is
+ *     what the next sweep will do by never emitting them;
+ *   - every operator the sweep graded A/B/C/D is re-graded, which rewrites `defectWhy`/`defectEvidence`.
+ * It REFUSES rather than guesses when: the release differs; the triage calibration fails; its own
+ * recount of the artifact's operators disagrees with the artifact's summary (the definitions have
+ * drifted); or any CLASS moves — a moved class cannot be re-ranked without the census, and a regrade
+ * must not pretend it re-ranked. The ratchet is left exactly as the sweep wrote it and says why. */
+function regrade() {
+  const argv = process.argv.slice(2);
+  const opt = k => { const a = argv.find(x => x.startsWith(k + '=')); return a ? a.slice(k.length + 1) : null; };
+  const IN = opt('--regrade-in') || OUT, OUTP = opt('--regrade-out') || OUT;
+  const refuse = why => { console.log('CANNOT ANSWER — ' + why); console.log('ABRA-EXIT 2 CANNOT-ANSWER'); process.exit(2); };
+  let prev;
+  try { prev = JSON.parse(fs.readFileSync(IN, 'utf8')); }
+  catch (e) { refuse(IN + ' is unreadable: ' + String((e && e.message) || e).split('\n')[0]); }
+  if (prev.engine_release !== REL.id)
+    refuse('the artifact measured release ' + prev.engine_release + ' and this process opened ' + REL.id
+      + '. A regrade must read the bytes the sweep measured: pass --release=' + prev.engine_release);
+  if (!Array.isArray(prev.operators) || !Array.isArray(prev.tags) || !prev.summary)
+    refuse('the artifact carries no operators / tags / summary to regrade');
+  const S = prev.summary;
+  const recount = operatorCounts(prev.operators);
+  const drift = Object.keys(recount).filter(k => S[k] !== undefined && S[k] !== recount[k]);
+  if (drift.length)
+    refuse('recounting the artifact\'s own operators disagrees with its summary on ' + drift.map(k => k + ' '
+      + S[k] + ' vs ' + recount[k]).join(', ') + ' — the count definitions drifted, so nothing recomputed here could be trusted');
+
+  const cf = defectClassifier(SHIPPED_SRC, SHIPPED_DB);
+  const cal = runTriageCalibration(cf);
+  if (cal.failures) {
+    for (const r of cal.rows.filter(x => !x.ok)) console.log('  WRONG  ' + r.tag + ' / ' + r.id + ' expected ' + r.mustBe + ', got ' + r.got);
+    console.log('THE TRIAGE CALIBRATION FAILED on release ' + REL.id + '. Nothing is regraded and nothing is written.');
+    process.exit(1);
+  }
+
+  const KEY = /^(move|ability|item):([^:]+):([A-Za-z0-9]+)\.([A-Za-z0-9_]+):=/;
+  const paramOf = o => { const m = o.family === 'param' ? KEY.exec(o.key || '') : null; return m ? m[4] : null; };
+  const skipped = new Set();
+  for (const o of prev.operators) {
+    const m = o.family === 'param' ? KEY.exec(o.key || '') : null;
+    if (!m) continue;
+    const v = ((((SHIPPED_DB[TABLE[m[1]]] || {})[m[2]] || {}).params || {})[m[3]] || {})[m[4]];
+    if (isProvenanceParam(cf, m[3], m[4], v)) skipped.add(o.key);
+  }
+  for (const r of prev.tags) {
+    const before = (r.operators || []).length;
+    r.operators = (r.operators || []).filter(o => !skipped.has(o.key));
+    r.provenanceParamsSkipped = (r.provenanceParamsSkipped || 0) + (before - r.operators.length);
+  }
+  const ops = prev.operators.filter(o => !skipped.has(o.key));
+
+  let regraded = 0, rewritten = 0;
+  const moved = [];
+  for (const o of ops) {
+    if (!o.defectClass) continue;
+    const g = cf.classify({ kind: o.kind, id: o.id, tag: o.tag, param: paramOf(o) });
+    regraded++;
+    if (g.cls !== o.defectClass) moved.push(o.key + ' ' + o.defectClass + '->' + g.cls);
+    if (g.why !== o.defectWhy) rewritten++;
+    o.defectClass = g.cls; o.defectWhy = g.why; o.defectEvidence = g.evidence;
+  }
+  if (moved.length)
+    refuse(moved.length + ' operator(s) change CLASS under today\'s classifier (first: ' + moved.slice(0, 3).join('; ')
+      + '). A regrade cannot re-rank a moved class without the census; run the full sweep instead');
+
+  const keptA = ops.filter(o => o.defectClass === 'A');
+  const ranked = prev.ranked || { rows: [] };
+  for (const r of ranked.rows || []) {
+    const mine = keptA.filter(o => o.kind + ':' + o.id === r.carrier && o.tag === r.tag);
+    r.ops = mine.length;
+    r.params = (r.params || []).filter(p => p == null || mine.some(o => paramOf(o) === p));
+  }
+  ranked.rows = (ranked.rows || []).filter(r => r.ops > 0);
+  prev.ranked = ranked;
+
+  Object.assign(S, operatorCounts(ops), {
+    provenanceParamsSkipped: prev.tags.reduce((s, r) => s + (r.provenanceParamsSkipped || 0), 0),
+    classArows: ranked.rows.length,
+    classArowsCensusCannotProve: ranked.rows.filter(r => r.censusProbe !== 'ARMED-LIVE').length,
+  });
+  S.defectRows = ranked.rows.length;
+  prev.operators = ops;
+  prev.triage = prev.triage || {};
+  prev.triage.defectClass = Object.assign({}, prev.triage.defectClass, {
+    calibration: cal.rows.map(r => ({ tag: r.tag, carrier: r.kind + ':' + r.id, param: r.param, mustBe: r.mustBe, got: r.got, ok: r.ok, decidedAgainst: r.decidedAgainst, decidedByHand: r.decidedByHand, ruleSaid: r.why })),
+  });
+  prev.regraded = {
+    at: new Date().toISOString(),
+    by: 'tests/mutation_harness.js --regrade',
+    harness_sha12: require('crypto').createHash('sha256').update(fs.readFileSync(__filename)).digest('hex').slice(0, 12),
+    sweep_generated: prev.generated,
+    what: 'the A/B/C/D triage re-run, with today\'s code, over the operator verdicts this sweep measured on the release it '
+      + 'measured. No game was played and no LIVE / READ-AND-IGNORED verdict moved.',
+    provenance_params_skipped: skipped.size,
+    operators_regraded: regraded,
+    defect_why_rewritten: rewritten,
+    untouched: ['every operator verdict', 'every case', 'the gate', 'the battery', 'the census grades on ranked rows', 'the ratchet'],
+    ratchet_note: 'the class-A ceiling scope hashes the classifier source, which this change edited, so the next full '
+      + 'sweep records a NEW SCOPE. A regrade does not move the ratchet.',
+  };
+  console.log('\n  REGRADE of ' + path.relative(D('.'), IN) + ' (sweep ' + prev.generated + ', release ' + REL.id + ') — no game played');
+  console.log('    provenance params skipped and counted: ' + skipped.size);
+  console.log('    operators re-graded: ' + regraded + ', defectWhy rewritten: ' + rewritten + ', class moved: 0');
+  console.log('    now: ' + S.operators + ' operators, ' + S.readAndIgnored + ' READ-AND-IGNORED, ' + S.classA_tagNeverRead
+    + ' class A over ' + S.classArows + ' rows');
+  if (!argv.includes('--no-write')) { fs.writeFileSync(OUTP, JSON.stringify(prev, null, 2)); console.log('    wrote ' + OUTP); }
+}
+
+if (require.main === module) (process.argv.includes('--regrade') ? regrade : main)();
 module.exports = { sweepTag, loadEngine, runGate, allTags, SHIPPED_DB, SHIPPED_SRC, REL,
-  tagLookupSites, defectClassifier, runTriageCalibration, TRIAGE_CALIBRATION };
+  tagLookupSites, defectClassifier, runTriageCalibration, TRIAGE_CALIBRATION,
+  isProvenanceParam, operatorCounts, regrade };

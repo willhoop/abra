@@ -44,6 +44,14 @@ reads SemVer 2.0.0 clauses 6, 7 and 8 against an API that is the figures this pr
 Copy this shape. Four lines is a good row; a paragraph is a report and belongs in `docs/_reports/`.
 
 ```
+## [6.12.1] — 2026-09-11 — seven instrument defects confirmed by tonight's new probes are fixed, including seven checks that exited zero after failing to stage
+
+- **What changed.** `engine/exit_codes.js` (new): one exit-code classifier, adopted by `engine/register_reality.js` and `engine/wire_ladder.js`. The mutation harness examines class-A siblings and counts mutated citations as skipped rather than scored, each behind a knob; `engine/quarantine.js`, `engine/divergence_report.js` and `engine/divergence_cards.js` fix the open-defect and card defects; seven COULD-NOT-STAGE paths across four probe files now report that they cannot answer instead of exiting 0. `data/mutation-coverage.json` is regraded by a new mode that plays no games.
+- **Measured.** Each fix took its probe from red to green on the current tree and back to red on revert: #323, #325, #349, #350, #399, #380 (second part) and #524. Regrade: operators 1,563 to 1,546, read-and-ignored 998 to 981, class A 148 to 146 — published by no living document. Detail: `docs/_reports/2026-09-11-instrument-probe-fixes.md`.
+- **Supersedes.** Nothing.
+- **Basis.** unchanged.
+- **Owed to the next major.** None. Owed as work: `tests/run-all.js` adopting the shared classifier and the #380 probe's regex widened (engine agent); #348 re-scoped, since Git Bash damages the arguments before the wrapper sees them; the ROADMAP cells for these rows, applied once the engine agent's registration lands.
+
 ## [5.267.0] — 2026-09-06 — one line naming what moved
 - **What changed.** The mechanic, the instrument, or the document. Name the file.
 - **Measured.** <figure> — `data/<artifact>.json`, n=<sample>, against <baseline>.  Or: NO FIGURE.

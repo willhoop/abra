@@ -105,7 +105,8 @@ for (const m of soundLockMoves) console.log('    ' + m + '.volatileRestart = ' +
 if (!soundLockMoves.length) {
   console.log('  COULD-NOT-STAGE — no legal move in this regulation carries `blocksSoundMoves`.');
   console.log('  That is a claim about the FORMAT and is stated rather than passed over.');
-  process.exit(0);
+  console.log('ABRA-EXIT 2 CANNOT-ANSWER');   /* ROADMAP #524 — a refusal is not a pass; exit 0 reads as VERDICT-GREEN */
+  process.exit(2);
 }
 const CHOP = soundLockMoves[0];
 
@@ -185,7 +186,8 @@ console.log('  victim        : ' + (VICTIM ? VICTIM.id + ' (spe ' + VICTIM.spe +
 console.log('  trap move (E) : ' + (TRAPMOVE ? TRAPMOVE + '  by ' + TRAPPER.id + ' (spe ' + TRAPPER.spe + ')' : 'NONE'));
 if (!CHOPPER || !VICTIM) {
   console.log('  COULD-NOT-STAGE — no legal chopper/victim pair. A claim about the FORMAT.');
-  process.exit(0);
+  console.log('ABRA-EXIT 2 CANNOT-ANSWER');   /* ROADMAP #524 — a refusal is not a pass */
+  process.exit(2);
 }
 
 const mon = (species, item, ability, moves) => ({ species, item, ability, moves });
@@ -194,7 +196,8 @@ const mon = (species, item, ability, moves) => ({ species, item, ability, moves 
 const FILLERS = ['clefable', 'milotic', 'garchomp', 'corviknight', 'toxapex'];
 for (const f of FILLERS) if (!buildable(DEX.species.get(f))) {
   console.log('  COULD-NOT-STAGE — filler ' + f + ' is not a legal buildable body in this regulation.');
-  process.exit(0);
+  console.log('ABRA-EXIT 2 CANNOT-ANSWER');   /* ROADMAP #524 — a refusal is not a pass */
+  process.exit(2);
 }
 
 const COUNTERS = ['soundLockApplied', 'soundLockRestartRefused', 'soundBlocked'];
