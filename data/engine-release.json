@@ -1,10 +1,10 @@
 {
-  "current": "e368827481f5",
-  "cut": "2026-09-11T13:55:19.159Z",
-  "why": "reopen batch 3: Unburden needs its volatile (535), Flower Veil boost-half -block and status-half guard, tags: bugbite/pluck eat (529) and allyBlockLine, position_features effAbility (412)",
-  "cuts": 25,
-  "latest_cut": "2026-09-11T14:42:55.773Z",
+  "current": "b42b81899631",
+  "cut": "2026-09-11T15:07:12.280Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 128,
+  "latest_cut": "2026-09-11T16:59:00.030Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-11T14:42:55.787Z",
+  "pointer_written": "2026-09-11T16:59:00.044Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

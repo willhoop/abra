@@ -144,13 +144,18 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  881/881 probed mechanics live, 0 missing   (census 2026-09-11 10:33)
+  883/883 probed mechanics live, 0 missing   (census 2026-09-11 12:49)
     the census probes what somebody thought to probe: 296 of 296 in-scope tags carry a probe, 0 carry none (9 of 305
-    tags have no in-scope carrier); 21 mechanics have never fired in the staged harness (all-mechanics-fire.json, 50
-    min old). node engine/coverage.js
-  differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/e368827481f5/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "e368827481f5".
-    it becomes quotable again when this is re-run: node tests/test-engine-diff.js
+    tags have no in-scope carrier); 21 mechanics have never fired in the staged harness (all-mechanics-fire.json, 1.4
+    h old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-11 11:43)
+    seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
+    the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
+    Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
+    multiHit tag were drawn; 3 were never drawn at all (bonerush, doublehit, tailslap) — never drawn is a SAMPLING
+    gap, not an exclusion.
+    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
+    a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     older than its input engine-data.js
@@ -166,9 +171,44 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-11 10:46_
+_stamped 2026-09-11 13:08_
 
 <!-- /GENERATED -->
+
+## A SURVIVAL CLAMP ANSWERS EACH HIT OF A VOLLEY — #511 FIXED. THE ROSTER'S FIXTURE BODIES LEARN THEIR MOVES — **420 → 43** REFUSED PAIRS, #318 PARTIAL, **22 ROWS HELD BY MEASUREMENT** SO THE ROSTER COMPARES EXACTLY WHAT IT DID. CENSUS **881 → 883 LIVE**. POOL UNMOVED: **0 / 1 / 2 OF 961**. RELEASE `b42b81899631`. 2026-09-11, CHANGELOG 6.22.0
+
+Predictions, written first: `data/verification/_prediction-2026-09-11-last-two-511.json`, `…-318.json`.
+
+- **#511.** Both survival clamps are `onDamage` handlers, which the authority runs per hit inside `spreadDamage`
+  (`data/mods/champions/scripts.ts:428-570`, `sim/battle.ts:2088`). Here they asked once, above the packet loop, and
+  rewrote the row total, so the volley collapsed: one `-damage`, no effectiveness line, the Endure activation before any
+  arrival, no `-hitcount`, `timesAttacked` +1. `_endureClamp` and `_fromFullClamp` are now one function each of the
+  amount that arrives; on the volley road they run per arrival (Endure first, as its priority says), the deficit rides
+  `_pkAdj`. `tests/probe_volley_collapse_clamp.js`: RED on `e368827481f5`, GREEN on `b42b81899631`, RED under
+  `MEDI_HITCOUNT_DROP_ON_COLLAPSE=1`. Two census rows, MISSING under the knob. Pool: bottom-corner protocol divergences
+  17 → 15, both a Sneasler's Focus Sash spent mid-volley; top 13 → 12; board-material unchanged.
+- **#318.** `tests/roster.js` `restageLegal`, after each rule: prune a never-clicked refused move where nothing reads a
+  move list; twin a refused delivery move on the same body (the flags a board reads are derived per board); otherwise a
+  legal learner from the body's own pool, then any legal body with the planner's quietest ability — never a closet
+  species, keeping an ability that acts by itself, preferring the same types, matchups, speed order, bulk and attack.
+  The first full run lost 27 compared rows and the second 20; `RESTAGE_HELD` holds exactly those rows (and Belch's
+  rule, whose red demonstration it broke) on their old bodies, printed every run. With it all three stages equal HEAD's
+  verdicts and every red demonstration is caught. No restaged row exposed an engine defect.
+- **Instrument faults of my own, each caught before a figure was trusted:** the first measurement chain wrote all three
+  whole-game arms to `data/game-differential.json`, so one `quarantine.js` reading saw the bottom corner as the middle
+  arm (void, re-run with `--out`); an ability-keeping rule that over-matched the CAST's inert Infiltrator and Pressure
+  (25 → 51 pairs, then the derived acts-by-itself set); six rows shelved onto Zoroark-Hisui; a twin test that refused
+  every shared move and every `slicing` mismatch.
+
+### The hand list
+
+**Leaving it:** nothing; #511 and #318 were register rows with instruments.
+
+**Joining it:** Focus Band's chance is now taken at the first LETHAL arrival of a volley, not only when arrival 1 is
+lethal — the authority draws it on every damage event, and no fixture stages it. A volley total rewritten by anything
+other than a survival clamp still collapses and is counted at `MEDFAILS.hitCountDroppedOnCollapse`.
+
+**Still on it:** unchanged from the section below.
 
 ## THE EIGHT PLANNER PARTINGS MATCH THE AUTHORITY, SIX REGISTER DEFECTS CLOSE, AND THE GATE FAILS **1 OF 9** — THE OPEN-DEFECT CLAUSE, ON **#318 AND #511**, NOT LANDED. CENSUS **872 → 881 LIVE**. BATCH 2 BROKE THE NARRATION CLAUSE (**0 → 1 OF 961**) AND BATCH 3 REPAIRED IT. POOL UNMOVED: **0 / 1 / 2 OF 961**. RELEASES `84721693b509`, `48e136c97a34`, `e368827481f5`. 2026-09-11, CHANGELOG 6.18.0
 

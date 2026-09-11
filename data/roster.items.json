@@ -1,17 +1,17 @@
 {
- "generated": "2026-09-11T13:58:42.790Z",
+ "generated": "2026-09-11T16:18:41.063Z",
  "by": "tests/roster.js",
  "stage": "items",
  "swap_leaf_correction": {
   "self_describing_dropped": 0,
   "real_ability_rewrite_kept": 0
  },
- "engine_release": "e368827481f5",
- "engine_release_cut": "2026-09-11T13:55:19.159Z",
- "engine_release_cuts": 1,
+ "engine_release": "b42b81899631",
+ "engine_release_cut": "2026-09-11T15:07:12.280Z",
+ "engine_release_cuts": 104,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "6720437ca838",
+  "engine/medicham2-browser.js": "4e4172687f43",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -78,7 +78,7 @@
   }
  },
  "plant_anchors": {
-  "release": "e368827481f5",
+  "release": "b42b81899631",
   "checked": 18,
   "dead": [],
   "reds_ran": true
@@ -190,24 +190,13 @@
    "why": "the item speed multiplier is dropped from the speed used to order the turn",
    "moved": {
     "member": "choicescarf",
-    "verdict": "DID-NOT-FIRE",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
     "fields": [
      "party.hp",
-     "party.fainted",
-     "party.status",
-     "hp",
-     "fainted",
-     "status",
-     "species",
-     "maxhp",
-     "item",
-     "types",
-     "ability",
-     "vol.choicelock",
-     "pp.flamethrower"
+     "hp"
     ]
    }
   },
@@ -1093,7 +1082,7 @@
    "name": "Babiri Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "2x arm — halves Steel on rhyperior; a 4x body exists but none flips a KO, so the ratio arm is what runs. The inverted half is a Fairy hit on florges, holding the same berry, on the same board",
+   "note": "2x arm — halves Steel on rhyperior; a 4x body exists but none flips a KO, so the ratio arm is what runs. The inverted half is a Fairy hit on florges, holding the same berry, on the same board  [#318 restaged: p1[0] dragapult -> avalugghisui (learner-stats-kept/own); p1[1] weavile -> floetteeternal (learner-speed+stats/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -1114,14 +1103,14 @@
     {
      "turn": 1,
      "path": "p2.party.rhyperior.hp",
-     "with": 1098,
-     "without": 1056
+     "with": 1096,
+     "without": 1052
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1098,
-     "without": 1056
+     "with": 1096,
+     "without": 1052
     },
     {
      "turn": 1,
@@ -1369,7 +1358,7 @@
    "name": "Big Root",
    "rule": "item/drain-scaled",
    "reads": "onTryHeal + shortDesc \"draining\"",
-   "note": "chipped, then draining with Bitter Blade",
+   "note": "chipped, then draining with Bitter Blade  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the staging went inert; UNRESOLVED p1[0] dragapult refuses sludgebomb; UNRESOLVED p1[1] weavile refuses sludgebomb; UNRESOLVED p2[0] kangaskhan refuses bitterblade; UNRESOLVED p2[1] snorlax refuses bitterblade]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -1420,12 +1409,12 @@
    "name": "Black Belt",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Fighting x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "note": "Fighting x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> clawitzer (learner-stats-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "clawitzer",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -1441,26 +1430,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 978,
-     "without": 994
+     "with": 864,
+     "without": 898
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 978,
-     "without": 994
+     "with": 864,
+     "without": 898
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 930,
-     "without": 946
+     "with": 796,
+     "without": 830
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 930,
-     "without": 946
+     "with": 796,
+     "without": 830
     }
    ],
    "diffs": []
@@ -1471,12 +1460,12 @@
    "name": "Black Glasses",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Dark x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "note": "Dark x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> scolipede (learner-speed-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "scolipede",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -1492,26 +1481,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1001,
-     "without": 1014
+     "with": 1030,
+     "without": 1038
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1001,
-     "without": 1014
+     "with": 1030,
+     "without": 1038
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 953,
-     "without": 966
+     "with": 984,
+     "without": 992
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 953,
-     "without": 966
+     "with": 984,
+     "without": 992
     }
    ],
    "diffs": []
@@ -1696,7 +1685,7 @@
    "name": "Bright Powder",
    "rule": "item/accuracy-scaled",
    "reads": "onModifyAccuracy / onSourceModifyAccuracy",
-   "note": "a 100-accuracy Sludge Bomb dragged under 100 by x0.9 must MISS",
+   "note": "a 100-accuracy Sludge Bomb dragged under 100 by x0.9 must MISS  [#318 restaged: p1[0] dragapult -> sneasler (learner-speed-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -1718,25 +1707,25 @@
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
      "with": 1080,
-     "without": 1032
+     "without": 1043
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
      "with": 1080,
-     "without": 1032
+     "without": 1043
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
      "with": 1080,
-     "without": 984
+     "without": 1006
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
      "with": 1080,
-     "without": 984
+     "without": 1006
     }
    ],
    "diffs": []
@@ -1897,12 +1886,12 @@
    "name": "Charcoal",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Fire x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "note": "Fire x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> houndoom (learner-speed-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "houndoom",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -1918,26 +1907,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1023,
-     "without": 1032
+     "with": 965,
+     "without": 984
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1023,
-     "without": 1032
+     "with": 965,
+     "without": 984
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 975,
-     "without": 984
+     "with": 901,
+     "without": 920
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 975,
-     "without": 984
+     "with": 901,
+     "without": 920
     }
    ],
    "diffs": []
@@ -2146,7 +2135,7 @@
    "name": "Charti Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "4x ARM — vivillon (Bug/Flying) DIES to the unhalved Rock hit (240 into 155 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on avalugghisui, holding the same berry, on the same board",
+   "note": "4x ARM — vivillon (Bug/Flying) DIES to the unhalved Rock hit (240 into 155 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on avalugghisui, holding the same berry, on the same board  [#318 restaged: p1[0] dragapult -> tyrantrum (learner-stats-kept/own); p1[1] weavile -> garchomp (learner-speed+stats/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -2167,7 +2156,7 @@
     {
      "turn": 1,
      "path": "p2.party.vivillon.hp",
-     "with": 35,
+     "with": 53,
      "without": 0
     },
     {
@@ -2191,7 +2180,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 35,
+     "with": 53,
      "without": 173
     },
     {
@@ -2245,7 +2234,7 @@
    "name": "Cheri Berry",
    "rule": "item/status-cure",
    "reads": "onUpdate + shortDesc \"cured if it is <status>\" / \"wakes up\" / \"confused\" / \"cures itself\"",
-   "note": "par delivered by Glare onto kangaskhan",
+   "note": "par delivered by Glare onto kangaskhan  [#318 restaged: p1[0] dragapult -> serperior (learner/own); p1[1] weavile -> drampa (learner-stats-kept/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -2395,7 +2384,7 @@
    "name": "Chesto Berry",
    "rule": "item/status-cure",
    "reads": "onUpdate + shortDesc \"cured if it is <status>\" / \"wakes up\" / \"confused\" / \"cures itself\"",
-   "note": "slp delivered by Spore onto kangaskhan",
+   "note": "slp delivered by Spore onto kangaskhan  [#318 restaged: UNRESOLVED p1[0] dragapult refuses spore; UNRESOLVED p1[1] weavile refuses spore]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -2488,7 +2477,7 @@
    "name": "Chilan Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "2x arm — halves Normal on kangaskhan; NO legal 4x carrier for Normal exists in this format. The inverted half is a Poison hit on snorlax, holding the same berry, on the same board",
+   "note": "2x arm — halves Normal on kangaskhan; NO legal 4x carrier for Normal exists in this format. The inverted half is a Poison hit on snorlax, holding the same berry, on the same board  [#318 restaged: p1[0] dragapult pruned never-clicked sludgebomb; p1[1] weavile -> sneasler (learner-speed+stats/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -2614,7 +2603,7 @@
    "name": "Choice Scarf",
    "rule": "item/speed-scaled",
    "reads": "onModifySpe",
-   "note": "x1.5 on charizard (152 -> 228 against 172) against sceptile; each kills the other, so the ORDER decides who is standing",
+   "note": "x1.5 on charizard (152 -> 228 against 172) against sceptile; each kills the other, so the ORDER decides who is standing  [#318 restaged: p1[0] sceptile -> garchomp (learner-speed+stats/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -2634,117 +2623,21 @@
    "sd_delta": [
     {
      "turn": 1,
-     "path": "p1.party.sceptile.hp",
-     "with": 0,
-     "without": 145
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.sceptile.fainted",
-     "with": true,
-     "without": false
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.sceptile.status",
-     "with": "fnt",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].species",
-     "with": "milotic",
-     "without": "sceptile"
+     "path": "p1.party.garchomp.hp",
+     "with": 138,
+     "without": 115
     },
     {
      "turn": 1,
      "path": "p1.active[0].hp",
-     "with": 170,
-     "without": 145
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].maxhp",
-     "with": 170,
-     "without": 145
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].types",
-     "with": "water",
-     "without": "grass"
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].ability",
-     "with": "marvelscale",
-     "without": "overgrow"
-    },
-    {
-     "turn": 1,
-     "path": "p1.pp[0].powergem",
-     "with": null,
-     "without": 1
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.charizard.hp",
-     "with": 153,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.charizard.fainted",
-     "with": false,
-     "without": true
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.charizard.status",
-     "with": "",
-     "without": "fnt"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].species",
-     "with": "charizard",
-     "without": "milotic"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].hp",
-     "with": 153,
-     "without": 170
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].maxhp",
-     "with": 153,
-     "without": 170
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].types",
-     "with": "fire/flying",
-     "without": "water"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].ability",
-     "with": "blaze",
-     "without": "marvelscale"
+     "with": 138,
+     "without": 115
     },
     {
      "turn": 1,
      "path": "p2.active[0].vol.choicelock",
      "with": "flamethrower",
      "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p2.pp[0].flamethrower",
-     "with": 1,
-     "without": null
     }
    ],
    "diffs": []
@@ -2755,7 +2648,7 @@
    "name": "Chople Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "4x ARM — avalugghisui (Ice/Rock) DIES to the unhalved Fighting hit (296 into 170 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on goodrahisui, holding the same berry, on the same board",
+   "note": "4x ARM — avalugghisui (Ice/Rock) DIES to the unhalved Fighting hit (296 into 170 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on goodrahisui, holding the same berry, on the same board  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the staging went inert; UNRESOLVED p1[0] dragapult refuses aurasphere; UNRESOLVED p1[1] weavile refuses dragonpulse,aurasphere]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -2953,7 +2846,7 @@
    "name": "Coba Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "4x ARM — chesnaught (Grass/Fighting) DIES to the unhalved Flying hit (176 into 163 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Poison hit on torterra, holding the same berry, on the same board",
+   "note": "4x ARM — chesnaught (Grass/Fighting) DIES to the unhalved Flying hit (176 into 163 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Poison hit on torterra, holding the same berry, on the same board  [#318 restaged: p1[0] dragapult -> talonflame (learner-speed-kept/own); p1[1] weavile -> metagross (learner-speed+stats/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -2974,38 +2867,14 @@
     {
      "turn": 1,
      "path": "p2.party.chesnaught.hp",
-     "with": 75,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.chesnaught.fainted",
-     "with": false,
-     "without": true
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.chesnaught.status",
-     "with": "",
-     "without": "fnt"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].species",
-     "with": "chesnaught",
-     "without": "corviknight"
+     "with": 85,
+     "without": 7
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 75,
-     "without": 173
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].maxhp",
-     "with": 163,
-     "without": 173
+     "with": 85,
+     "without": 7
     },
     {
      "turn": 1,
@@ -3018,30 +2887,6 @@
      "path": "p2.active[0].ate_berry",
      "with": 1,
      "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].types",
-     "with": "fighting/grass",
-     "without": "flying/steel"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].ability",
-     "with": "overgrow",
-     "without": "pressure"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.pp[0].focusenergy",
-     "with": 1,
-     "without": 0
     }
    ],
    "diffs": []
@@ -3052,7 +2897,7 @@
    "name": "Colbur Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "2x arm — halves Dark on metagross; NO legal 4x carrier for Dark exists in this format. The inverted half is a Dragon hit on skeledirge, holding the same berry, on the same board",
+   "note": "2x arm — halves Dark on metagross; NO legal 4x carrier for Dark exists in this format. The inverted half is a Dragon hit on skeledirge, holding the same berry, on the same board  [#318 restaged: p1[0] dragapult kowtowcleave -> bite; p1[1] weavile -> tyrantrum (learner-speed+stats/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -3073,14 +2918,14 @@
     {
      "turn": 1,
      "path": "p2.party.metagross.hp",
-     "with": 886,
-     "without": 842
+     "with": 898,
+     "without": 866
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 886,
-     "without": 842
+     "with": 898,
+     "without": 866
     },
     {
      "turn": 1,
@@ -3379,12 +3224,12 @@
    "name": "Dragon Fang",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Dragon x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "note": "Dragon x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> salazzle (learner-speed-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "salazzle",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -3400,26 +3245,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 999,
-     "without": 1011
+     "with": 1007,
+     "without": 1019
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 999,
-     "without": 1011
+     "with": 1007,
+     "without": 1019
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 951,
-     "without": 963
+     "with": 910,
+     "without": 922
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 951,
-     "without": 963
+     "with": 910,
+     "without": 922
     }
    ],
    "diffs": []
@@ -3781,7 +3626,7 @@
    "name": "Expert Belt",
    "rule": "item/super-effective-power",
    "reads": "onModifyDamage + shortDesc \"super effective\"",
-   "note": "Aura Sphere is super effective on the bag; Sludge Bomb is the neutral negative",
+   "note": "Aura Sphere is super effective on the bag; Sludge Bomb is the neutral negative  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the staging went inert; UNRESOLVED p1[0] dragapult refuses aurasphere,sludgebomb]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -3832,12 +3677,12 @@
    "name": "Fairy Feather",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Fairy x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "note": "Fairy x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> gourgeistsmall (learner-speed-kept/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "gourgeistsmall",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -3853,26 +3698,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1019,
-     "without": 1029
+     "with": 1040,
+     "without": 1047
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1019,
-     "without": 1029
+     "with": 1040,
+     "without": 1047
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 971,
-     "without": 981
+     "with": 1008,
+     "without": 1015
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 971,
-     "without": 981
+     "with": 1008,
+     "without": 1015
     }
    ],
    "diffs": []
@@ -4158,7 +4003,7 @@
    "name": "Focus Sash",
    "rule": "item/hp-floor",
    "reads": "onDamage + shortDesc \"HP is full\"",
-   "note": "AT THE LINE: meowscarada at FULL takes a lethal X-Scissor (1.8x its HP) and must survive; whimsicott beside it, chipped 22 off 135 by Aura Sphere, takes a lethal Dire Claw and must NOT",
+   "note": "AT THE LINE: meowscarada at FULL takes a lethal X-Scissor (1.8x its HP) and must survive; whimsicott beside it, chipped 22 off 135 by Aura Sphere, takes a lethal Dire Claw and must NOT  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the subject arm threw (a benched spare could not pass); UNRESOLVED p1[0] dragapult refuses xscissor,aurasphere,direclaw; UNRESOLVED p1[1] weavile refuses aurasphere,direclaw]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -5187,7 +5032,7 @@
    "name": "Haban Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "2x arm — halves Dragon on dragalge; NO legal 4x carrier for Dragon exists in this format. The inverted half is a Rock hit on tyrantrum, holding the same berry, on the same board",
+   "note": "2x arm — halves Dragon on dragalge; NO legal 4x carrier for Dragon exists in this format. The inverted half is a Rock hit on tyrantrum, holding the same berry, on the same board  [#318 restaged: p1[0] dragapult pruned never-clicked powergem; p1[1] weavile -> glimmora (learner-speed+stats/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -5238,12 +5083,12 @@
    "name": "Hard Stone",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Rock x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "note": "Rock x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> glimmora (learner-stats-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "glimmora",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -5259,26 +5104,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1029,
-     "without": 1037
+     "with": 965,
+     "without": 984
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1029,
-     "without": 1037
+     "with": 965,
+     "without": 984
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 981,
-     "without": 989
+     "with": 857,
+     "without": 876
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 981,
-     "without": 989
+     "with": 857,
+     "without": 876
     }
    ],
    "diffs": []
@@ -5565,12 +5410,12 @@
    "name": "Icy Rock",
    "rule": "item/extends-a-duration",
    "reads": "shortDesc \"Holder's use of <MOVE> lasts <n> turns instead of <m>\"",
-   "note": "Snowscape -> 8 turns instead of 5",
+   "note": "Snowscape -> 8 turns instead of 5  [#318 restaged: p2[0] kangaskhan -> dragonite (learner-speed+stats/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "kangaskhan",
+   "carrier": "dragonite",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -5616,12 +5461,12 @@
    "name": "Iron Ball",
    "rule": "item/speed-scaled",
    "reads": "onModifySpe",
-   "note": "x0.5 on charizard (152 -> 76 against 112) against swampert; each kills the other, so the ORDER decides who is standing",
+   "note": "x0.5 on charizard (152 -> 76 against 112) against swampert; each kills the other, so the ORDER decides who is standing  [#318 restaged: p2[0] charizard -> florges (learner-speed+stats/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "charizard",
+   "carrier": "florges",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -5636,111 +5481,15 @@
    "sd_delta": [
     {
      "turn": 1,
-     "path": "p1.party.swampert.hp",
-     "with": 175,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.swampert.fainted",
-     "with": false,
-     "without": true
-    },
-    {
-     "turn": 1,
-     "path": "p1.party.swampert.status",
-     "with": "",
-     "without": "fnt"
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].species",
-     "with": "swampert",
-     "without": "milotic"
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].hp",
-     "with": 175,
-     "without": 170
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].maxhp",
-     "with": 175,
-     "without": 170
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].types",
-     "with": "ground/water",
-     "without": "water"
-    },
-    {
-     "turn": 1,
-     "path": "p1.active[0].ability",
-     "with": "torrent",
-     "without": "marvelscale"
-    },
-    {
-     "turn": 1,
-     "path": "p1.pp[0].liquidation",
-     "with": 1,
-     "without": null
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.charizard.hp",
-     "with": 0,
+     "path": "p2.party.florges.hp",
+     "with": 48,
      "without": 153
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.charizard.fainted",
-     "with": true,
-     "without": false
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.charizard.status",
-     "with": "fnt",
-     "without": ""
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].species",
-     "with": "milotic",
-     "without": "charizard"
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 170,
+     "with": 48,
      "without": 153
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].maxhp",
-     "with": 170,
-     "without": 153
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].types",
-     "with": "water",
-     "without": "fire/flying"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].ability",
-     "with": "marvelscale",
-     "without": "blaze"
-    },
-    {
-     "turn": 1,
-     "path": "p2.pp[0].energyball",
-     "with": null,
-     "without": 1
     }
    ],
    "diffs": []
@@ -5826,7 +5575,7 @@
    "name": "Kasib Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "2x arm — halves Ghost on metagross; NO legal 4x carrier for Ghost exists in this format. The inverted half is a Dragon hit on skeledirge, holding the same berry, on the same board",
+   "note": "2x arm — halves Ghost on metagross; NO legal 4x carrier for Ghost exists in this format. The inverted half is a Dragon hit on skeledirge, holding the same berry, on the same board  [#318 restaged: p1[1] weavile -> armarouge (learner-speed+stats/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -5877,7 +5626,7 @@
    "name": "Kebia Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "4x ARM — whimsicott (Grass/Fairy) DIES to the unhalved Poison hit (200 into 135 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Fairy hit on florges, holding the same berry, on the same board",
+   "note": "4x ARM — whimsicott (Grass/Fairy) DIES to the unhalved Poison hit (200 into 135 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Fairy hit on florges, holding the same berry, on the same board  [#318 restaged: p1[0] dragapult -> metagross (learner-stats-kept/own); p1[1] weavile -> primarina (learner-stats-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -5898,7 +5647,7 @@
     {
      "turn": 1,
      "path": "p2.party.whimsicott.hp",
-     "with": 35,
+     "with": 39,
      "without": 0
     },
     {
@@ -5922,7 +5671,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 35,
+     "with": 39,
      "without": 173
     },
     {
@@ -6002,7 +5751,7 @@
    "name": "Leftovers",
    "rule": "item/residual-heal",
    "reads": "onResidual + shortDesc \"end of every turn\"",
-   "note": "both slots chipped once, then three quiet boundaries; only the left one holds it",
+   "note": "both slots chipped once, then three quiet boundaries; only the left one holds it  [#318 restaged: p1[0] dragapult -> metagross (learner-stats-kept/own); p1[1] weavile -> sneasler (learner-speed+stats/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -6023,38 +5772,38 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 717,
-     "without": 672
+     "with": 719,
+     "without": 674
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 717,
-     "without": 672
+     "with": 719,
+     "without": 674
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
      "with": 720,
-     "without": 672
+     "without": 674
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
      "with": 720,
-     "without": 672
+     "without": 674
     },
     {
      "turn": 3,
      "path": "p2.party.kangaskhan.hp",
      "with": 720,
-     "without": 672
+     "without": 674
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
      "with": 720,
-     "without": 672
+     "without": 674
     }
    ],
    "diffs": []
@@ -6110,12 +5859,12 @@
    "name": "Life Orb",
    "rule": "item/all-damage-and-cost",
    "reads": "onModifyDamage + onAfterMoveSecondarySelf",
-   "note": "multiplier and self-cost together, over two turns",
+   "note": "multiplier and self-cost together, over two turns  [#318 restaged: p1[0] dragapult -> sneasler (learner-speed-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "sneasler",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -6130,51 +5879,51 @@
    "sd_delta": [
     {
      "turn": 1,
-     "path": "p1.party.dragapult.hp",
-     "with": 881,
-     "without": 978
+     "path": "p1.party.sneasler.hp",
+     "with": 837,
+     "without": 930
     },
     {
      "turn": 1,
      "path": "p1.active[0].hp",
-     "with": 881,
-     "without": 978
+     "with": 837,
+     "without": 930
     },
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1018,
-     "without": 1032
+     "with": 1032,
+     "without": 1043
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1018,
-     "without": 1032
+     "with": 1032,
+     "without": 1043
     },
     {
      "turn": 2,
-     "path": "p1.party.dragapult.hp",
-     "with": 784,
-     "without": 978
+     "path": "p1.party.sneasler.hp",
+     "with": 744,
+     "without": 930
     },
     {
      "turn": 2,
      "path": "p1.active[0].hp",
-     "with": 784,
-     "without": 978
+     "with": 744,
+     "without": 930
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 956,
-     "without": 984
+     "with": 984,
+     "without": 1006
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 956,
-     "without": 984
+     "with": 984,
+     "without": 1006
     }
    ],
    "diffs": []
@@ -6185,7 +5934,7 @@
    "name": "Light Ball",
    "rule": "item/species-locked-stat",
    "reads": "itemUser + onModifyAtk / onModifySpA",
-   "note": "held by Pikachu, with a different species holding the same item beside it",
+   "note": "held by Pikachu, with a different species holding the same item beside it  [#318 restaged: p2[1] weavile -> sneasler (learner-speed+stats/own); UNRESOLVED p2[0] pikachu refuses sludgebomb]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -6224,12 +5973,12 @@
    "name": "Light Clay",
    "rule": "item/extends-a-duration",
    "reads": "shortDesc \"Holder's use of <MOVE> lasts <n> turns instead of <m>\"",
-   "note": "Light Screen -> 8 turns instead of 5",
+   "note": "Light Screen -> 8 turns instead of 5  [#318 restaged: p2[0] kangaskhan -> florges (same-matchups+stats/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "kangaskhan",
+   "carrier": "florges",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -6473,7 +6222,7 @@
    "name": "Lum Berry",
    "rule": "item/status-cure",
    "reads": "onUpdate + shortDesc \"cured if it is <status>\" / \"wakes up\" / \"confused\" / \"cures itself\"",
-   "note": "confusion delivered by Confuse Ray onto goodrahisui",
+   "note": "confusion delivered by Confuse Ray onto goodrahisui  [#318 restaged: p1[1] weavile -> glimmora (learner-speed+stats/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -6530,12 +6279,12 @@
    "name": "Magnet",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Electric x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "note": "Electric x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> goodrahisui (learner/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "goodrahisui",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -6551,26 +6300,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1023,
-     "without": 1032
+     "with": 1003,
+     "without": 1016
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1023,
-     "without": 1032
+     "with": 1003,
+     "without": 1016
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 975,
-     "without": 984
+     "with": 939,
+     "without": 952
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 975,
-     "without": 984
+     "with": 939,
+     "without": 952
     }
    ],
    "diffs": []
@@ -6980,12 +6729,12 @@
    "name": "Mental Herb",
    "rule": "item/cures-a-volatile",
    "reads": "onUpdate + shortDesc naming Taunt / Encore / Disable / Attract / Torment / Heal Block",
-   "note": "Taunt, which is the cured volatile the board carries a counter for",
+   "note": "Taunt, which is the cured volatile the board carries a counter for  [#318 restaged: p1[0] dragapult -> talonflame (learner-speed-kept/own); p2[0] kangaskhan -> goodra (same-matchups+stats/wide); p2[1] snorlax -> clawitzer (same-matchups/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "kangaskhan",
+   "carrier": "goodra",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -7205,12 +6954,12 @@
    "name": "Metal Coat",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Steel x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "note": "Steel x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> scolipede (learner-speed-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "scolipede",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -7226,26 +6975,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1006,
-     "without": 1018
+     "with": 1022,
+     "without": 1032
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1006,
-     "without": 1018
+     "with": 1022,
+     "without": 1032
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 958,
-     "without": 970
+     "with": 976,
+     "without": 986
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 958,
-     "without": 970
+     "with": 976,
+     "without": 986
     }
    ],
    "diffs": []
@@ -7256,12 +7005,12 @@
    "name": "Metronome",
    "rule": "item/held-and-nothing-more",
    "reads": "nothing matched above — this is the residue",
-   "note": "generic: held, attacking, attacked, over three turns",
+   "note": "generic: held, attacking, attacked, over three turns  [#318 restaged: p1[0] dragapult -> sneasler (learner-speed-kept/own); p2[0] kangaskhan -> goodra (same-matchups+stats/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "kangaskhan",
+   "carrier": "goodra",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -7276,15 +7025,15 @@
    "sd_delta": [
     {
      "turn": 2,
-     "path": "p1.party.dragapult.hp",
-     "with": 949,
-     "without": 952
+     "path": "p1.party.sneasler.hp",
+     "with": 860,
+     "without": 866
     },
     {
      "turn": 2,
      "path": "p1.active[0].hp",
-     "with": 949,
-     "without": 952
+     "with": 860,
+     "without": 866
     },
     {
      "turn": 2,
@@ -7294,15 +7043,15 @@
     },
     {
      "turn": 3,
-     "path": "p1.party.dragapult.hp",
-     "with": 949,
-     "without": 952
+     "path": "p1.party.sneasler.hp",
+     "with": 860,
+     "without": 866
     },
     {
      "turn": 3,
      "path": "p1.active[0].hp",
-     "with": 949,
-     "without": 952
+     "with": 860,
+     "without": 866
     }
    ],
    "diffs": []
@@ -7313,12 +7062,12 @@
    "name": "Miracle Seed",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Grass x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "note": "Grass x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> glimmora (learner-stats-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "glimmora",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -7334,26 +7083,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1023,
-     "without": 1032
+     "with": 994,
+     "without": 1008
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1023,
-     "without": 1032
+     "with": 994,
+     "without": 1008
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 975,
-     "without": 984
+     "with": 886,
+     "without": 900
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 975,
-     "without": 984
+     "with": 886,
+     "without": 900
     }
    ],
    "diffs": []
@@ -7364,12 +7113,12 @@
    "name": "Muscle Band",
    "rule": "item/category-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's physical|special attacks have <n>x power\"",
-   "note": "physical x1.1; the negative is a special click on turn 2",
+   "note": "physical x1.1; the negative is a special click on turn 2  [#318 restaged: p1[0] dragapult -> sneasler (learner-speed-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "sneasler",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -7385,26 +7134,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 112,
-     "without": 118
+     "with": 72,
+     "without": 81
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 112,
-     "without": 118
+     "with": 72,
+     "without": 81
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 64,
-     "without": 70
+     "with": 35,
+     "without": 44
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 64,
-     "without": 70
+     "with": 35,
+     "without": 44
     }
    ],
    "diffs": []
@@ -7415,12 +7164,12 @@
    "name": "Mystic Water",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Water x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "note": "Water x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> clawitzer (learner-stats-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "clawitzer",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -7436,26 +7185,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1001,
-     "without": 1014
+     "with": 1016,
+     "without": 1026
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1001,
-     "without": 1014
+     "with": 1016,
+     "without": 1026
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 953,
-     "without": 966
+     "with": 948,
+     "without": 958
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 953,
-     "without": 966
+     "with": 948,
+     "without": 958
     }
    ],
    "diffs": []
@@ -7466,12 +7215,12 @@
    "name": "Never-Melt Ice",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Ice x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "note": "Ice x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> clawitzer (learner-stats-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "clawitzer",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -7487,26 +7236,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1023,
-     "without": 1032
+     "with": 998,
+     "without": 1012
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1023,
-     "without": 1032
+     "with": 998,
+     "without": 1012
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 975,
-     "without": 984
+     "with": 930,
+     "without": 944
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 975,
-     "without": 984
+     "with": 930,
+     "without": 944
     }
    ],
    "diffs": []
@@ -7517,7 +7266,7 @@
    "name": "Occa Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "4x ARM — scizor (Bug/Steel) DIES to the unhalved Fire hit (192 into 145 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Fighting hit on metagross, holding the same berry, on the same board",
+   "note": "4x ARM — scizor (Bug/Steel) DIES to the unhalved Fire hit (192 into 145 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Fighting hit on metagross, holding the same berry, on the same board  [#318 restaged: p1[0] dragapult pruned never-clicked aurasphere; p1[1] weavile -> gallade (learner-speed+stats/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -7616,7 +7365,7 @@
    "name": "Oran Berry",
    "rule": "item/heals-at-threshold",
    "reads": "onUpdate + shortDesc \"when at 1/2 max HP or less\"",
-   "note": "Seed Bomb takes feraligatr to 35% in one blow, twice",
+   "note": "Seed Bomb takes feraligatr to 35% in one blow, twice  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the precondition did not land; UNRESOLVED p1[0] dragapult refuses seedbomb]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -7667,7 +7416,7 @@
    "name": "Passho Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "2x arm — halves Water on avalugghisui; a 4x body exists but none flips a KO, so the ratio arm is what runs. The inverted half is a Steel hit on aggron, holding the same berry, on the same board",
+   "note": "2x arm — halves Water on avalugghisui; a 4x body exists but none flips a KO, so the ratio arm is what runs. The inverted half is a Steel hit on aggron, holding the same berry, on the same board  [#318 restaged: p1[0] dragapult -> primarina (learner-stats-kept/own); p1[1] weavile -> metagross (learner-speed+stats/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -7688,14 +7437,14 @@
     {
      "turn": 1,
      "path": "p2.party.avalugghisui.hp",
-     "with": 987,
-     "without": 954
+     "with": 992,
+     "without": 964
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 987,
-     "without": 954
+     "with": 992,
+     "without": 964
     },
     {
      "turn": 1,
@@ -7718,7 +7467,7 @@
    "name": "Payapa Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "4x ARM — toxicroak (Poison/Fighting) DIES to the unhalved Psychic hit (224 into 158 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on chesnaught, holding the same berry, on the same board",
+   "note": "4x ARM — toxicroak (Poison/Fighting) DIES to the unhalved Psychic hit (224 into 158 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on chesnaught, holding the same berry, on the same board  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the staging went inert; UNRESOLVED p1[0] dragapult refuses psychic; UNRESOLVED p1[1] weavile refuses dragonpulse,psychic]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -7817,7 +7566,7 @@
    "name": "Pecha Berry",
    "rule": "item/status-cure",
    "reads": "onUpdate + shortDesc \"cured if it is <status>\" / \"wakes up\" / \"confused\" / \"cures itself\"",
-   "note": "psn delivered by Toxic Thread onto kangaskhan",
+   "note": "psn delivered by Toxic Thread onto kangaskhan  [#318 restaged: p1[0] dragapult -> ariados (learner/own); UNRESOLVED p1[1] weavile refuses toxicthread]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -7916,7 +7665,7 @@
    "name": "Persim Berry",
    "rule": "item/status-cure",
    "reads": "onUpdate + shortDesc \"cured if it is <status>\" / \"wakes up\" / \"confused\" / \"cures itself\"",
-   "note": "confusion delivered by Confuse Ray onto goodrahisui",
+   "note": "confusion delivered by Confuse Ray onto goodrahisui  [#318 restaged: p1[1] weavile -> glimmora (learner-speed+stats/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -8147,12 +7896,12 @@
    "name": "Poison Barb",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Poison x1.2 into kangaskhan; the negative is a Dragon click on turn 2",
+   "note": "Poison x1.2 into kangaskhan; the negative is a Dragon click on turn 2  [#318 restaged: p1[0] dragapult -> salazzle (learner-speed-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "salazzle",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -8168,26 +7917,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1023,
-     "without": 1032
+     "with": 965,
+     "without": 983
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1023,
-     "without": 1032
+     "with": 965,
+     "without": 983
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 954,
-     "without": 963
+     "with": 904,
+     "without": 922
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 954,
-     "without": 963
+     "with": 904,
+     "without": 922
     }
    ],
    "diffs": []
@@ -8499,7 +8248,7 @@
    "name": "Rindo Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "4x ARM — rhyperior (Ground/Rock) DIES to the unhalved Grass hit (252 into 190 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on avalugghisui, holding the same berry, on the same board",
+   "note": "4x ARM — rhyperior (Ground/Rock) DIES to the unhalved Grass hit (252 into 190 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on avalugghisui, holding the same berry, on the same board  [#318 restaged: p1[0] dragapult -> serperior (learner/own); p1[1] weavile -> dragapult (learner-speed+stats/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -8520,7 +8269,7 @@
     {
      "turn": 1,
      "path": "p2.party.rhyperior.hp",
-     "with": 64,
+     "with": 40,
      "without": 0
     },
     {
@@ -8544,7 +8293,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 64,
+     "with": 40,
      "without": 173
     },
     {
@@ -8598,7 +8347,7 @@
    "name": "Roseli Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "4x ARM — pangoro (Fighting/Dark) DIES to the unhalved Fairy hit (220 into 170 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on chesnaught, holding the same berry, on the same board",
+   "note": "4x ARM — pangoro (Fighting/Dark) DIES to the unhalved Fairy hit (220 into 170 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on chesnaught, holding the same berry, on the same board  [#318 restaged: p1[0] dragapult -> altaria (learner/wide); p1[1] weavile -> garchomp (learner-speed+stats/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -8619,38 +8368,14 @@
     {
      "turn": 1,
      "path": "p2.party.pangoro.hp",
-     "with": 60,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.pangoro.fainted",
-     "with": false,
-     "without": true
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.pangoro.status",
-     "with": "",
-     "without": "fnt"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].species",
-     "with": "pangoro",
-     "without": "corviknight"
+     "with": 86,
+     "without": 2
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 60,
-     "without": 173
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].maxhp",
-     "with": 170,
-     "without": 173
+     "with": 86,
+     "without": 2
     },
     {
      "turn": 1,
@@ -8661,30 +8386,6 @@
     {
      "turn": 1,
      "path": "p2.active[0].ate_berry",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].types",
-     "with": "dark/fighting",
-     "without": "flying/steel"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].ability",
-     "with": "ironfist",
-     "without": "pressure"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.pp[0].focusenergy",
      "with": 1,
      "without": 0
     }
@@ -9245,12 +8946,12 @@
    "name": "Sharp Beak",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Flying x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "note": "Flying x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> sneasler (learner-speed-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "sneasler",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -9266,26 +8967,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1006,
-     "without": 1018
+     "with": 1021,
+     "without": 1030
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1006,
-     "without": 1018
+     "with": 1021,
+     "without": 1030
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 958,
-     "without": 970
+     "with": 984,
+     "without": 993
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 958,
-     "without": 970
+     "with": 984,
+     "without": 993
     }
    ],
    "diffs": []
@@ -9371,7 +9072,7 @@
    "name": "Shed Shell",
    "rule": "item/trapping-escape",
    "reads": "onTrapPokemon / onMaybeTrapPokemon",
-   "note": "Venusaur lays Block on Charizard on turn 1; on turn 2 the holder asks to leave for Beedrill. WITH Shed Shell it must go, and the CONTROL — the same game with the item stripped — must be REFUSED by the authority and refused by us. Charizard is not a Ghost type (Ghosts ignore trapping outright, which would make both arms leave).",
+   "note": "Venusaur lays Block on Charizard on turn 1; on turn 2 the holder asks to leave for Beedrill. WITH Shed Shell it must go, and the CONTROL — the same game with the item stripped — must be REFUSED by the authority and refused by us. Charizard is not a Ghost type (Ghosts ignore trapping outright, which would make both arms leave).  [#318 restaged: p1[0] venusaur -> feraligatr (learner-stats-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": "THE HOLDER LEFT IN BOTH ENGINES AND THE SAME ASK WITHOUT THE ITEM WAS REFUSED IN BOTH. Beedrill stands in the slot on both sides; the authority rejected the control choice (p2 choice rejected p2 \"switch 3, move 1\": Can't switch: The active Pokémon is trapped   [the last of) and medicham2 kept the body there.",
    "arm": "top-tie-first",
@@ -9397,12 +9098,12 @@
    "name": "Shell Bell",
    "rule": "item/heal-on-attack",
    "reads": "onAfterMoveSecondarySelf without a damage modifier",
-   "note": "chipped on turn 1, attacking on turns 2 and 3",
+   "note": "chipped on turn 1, attacking on turns 2 and 3  [#318 restaged: p1[0] dragapult -> sneasler (learner-speed-kept/own); p2[0] kangaskhan -> goodra (same-matchups+stats/wide); p2[1] snorlax pruned never-clicked sludgebomb]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "kangaskhan",
+   "carrier": "goodra",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -9417,27 +9118,27 @@
    "sd_delta": [
     {
      "turn": 2,
-     "path": "p2.party.kangaskhan.hp",
-     "with": 1033,
-     "without": 1032
+     "path": "p2.party.goodra.hp",
+     "with": 972,
+     "without": 968
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 1033,
-     "without": 1032
+     "with": 972,
+     "without": 968
     },
     {
      "turn": 3,
-     "path": "p2.party.kangaskhan.hp",
-     "with": 1034,
-     "without": 1032
+     "path": "p2.party.goodra.hp",
+     "with": 976,
+     "without": 968
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
-     "with": 1034,
-     "without": 1032
+     "with": 976,
+     "without": 968
     }
    ],
    "diffs": []
@@ -9448,7 +9149,7 @@
    "name": "Shuca Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "4x ARM — glimmora (Rock/Poison) DIES to the unhalved Ground hit (192 into 158 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on goodrahisui, holding the same berry, on the same board",
+   "note": "4x ARM — glimmora (Rock/Poison) DIES to the unhalved Ground hit (192 into 158 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on goodrahisui, holding the same berry, on the same board  [#318 restaged: p1[0] dragapult -> rhyperior (learner-stats-kept/own); p1[1] weavile -> garchomp (learner-speed+stats/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -9469,7 +9170,7 @@
     {
      "turn": 1,
      "path": "p2.party.glimmora.hp",
-     "with": 62,
+     "with": 68,
      "without": 0
     },
     {
@@ -9493,7 +9194,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 62,
+     "with": 68,
      "without": 173
     },
     {
@@ -9547,12 +9248,12 @@
    "name": "Silk Scarf",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Normal x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "note": "Normal x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> houndoom (learner-speed-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "houndoom",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -9568,26 +9269,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1001,
-     "without": 1014
+     "with": 1029,
+     "without": 1037
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1001,
-     "without": 1014
+     "with": 1029,
+     "without": 1037
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 953,
-     "without": 966
+     "with": 965,
+     "without": 973
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 953,
-     "without": 966
+     "with": 965,
+     "without": 973
     }
    ],
    "diffs": []
@@ -9598,12 +9299,12 @@
    "name": "Silver Powder",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Bug x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "note": "Bug x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> ariados (learner/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "ariados",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -9619,26 +9320,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1023,
-     "without": 1032
+     "with": 1022,
+     "without": 1031
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1023,
-     "without": 1032
+     "with": 1022,
+     "without": 1031
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 975,
-     "without": 984
+     "with": 973,
+     "without": 982
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 975,
-     "without": 984
+     "with": 973,
+     "without": 982
     }
    ],
    "diffs": []
@@ -9649,7 +9350,7 @@
    "name": "Sitrus Berry",
    "rule": "item/heals-at-threshold",
    "reads": "onUpdate + shortDesc \"when at 1/2 max HP or less\"",
-   "note": "Seed Bomb takes feraligatr to 35% in one blow, twice",
+   "note": "Seed Bomb takes feraligatr to 35% in one blow, twice  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the precondition did not land; UNRESOLVED p1[0] dragapult refuses seedbomb]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -9901,12 +9602,12 @@
    "name": "Soft Sand",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Ground x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "note": "Ground x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> glimmora (learner-stats-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "glimmora",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -9922,26 +9623,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1023,
-     "without": 1032
+     "with": 994,
+     "without": 1008
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1023,
-     "without": 1032
+     "with": 994,
+     "without": 1008
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 975,
-     "without": 984
+     "with": 886,
+     "without": 900
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 975,
-     "without": 984
+     "with": 886,
+     "without": 900
     }
    ],
    "diffs": []
@@ -10327,7 +10028,7 @@
    "name": "Tanga Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "4x ARM — malamar (Dark/Psychic) DIES to the unhalved Bug hit (200 into 161 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Poison hit on torterra, holding the same berry, on the same board",
+   "note": "4x ARM — malamar (Dark/Psychic) DIES to the unhalved Bug hit (200 into 161 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Poison hit on torterra, holding the same berry, on the same board  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the staging went inert; UNRESOLVED p1[0] dragapult refuses bugbuzz,sludgebomb; UNRESOLVED p1[1] weavile refuses sludgebomb,bugbuzz]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -10426,12 +10127,12 @@
    "name": "Twisted Spoon",
    "rule": "item/type-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's <TYPE>-type attacks have <n>x power\"",
-   "note": "Psychic x1.2 into kangaskhan; the negative is a Poison click on turn 2",
+   "note": "Psychic x1.2 into kangaskhan; the negative is a Poison click on turn 2  [#318 restaged: p1[0] dragapult -> metagross (learner-stats-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "metagross",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -10447,26 +10148,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 1023,
-     "without": 1032
+     "with": 998,
+     "without": 1011
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1023,
-     "without": 1032
+     "with": 998,
+     "without": 1011
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 975,
-     "without": 984
+     "with": 952,
+     "without": 965
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 975,
-     "without": 984
+     "with": 952,
+     "without": 965
     }
    ],
    "diffs": []
@@ -10678,7 +10379,7 @@
    "name": "Wacan Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "2x arm — halves Electric on blastoise; NO legal 4x carrier for Electric exists in this format. The inverted half is a Dark hit on empoleon, holding the same berry, on the same board",
+   "note": "2x arm — halves Electric on blastoise; NO legal 4x carrier for Electric exists in this format. The inverted half is a Dark hit on empoleon, holding the same berry, on the same board  [#318 restaged: p1[0] dragapult pruned never-clicked kowtowcleave; p1[1] weavile kowtowcleave -> bite]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -10729,7 +10430,7 @@
    "name": "White Herb",
    "rule": "item/restores-lowered-stats",
    "reads": "onUpdate/onStart + shortDesc \"lowered stat stages\"",
-   "note": "dropped by Baby-Doll Eyes, twice",
+   "note": "dropped by Baby-Doll Eyes, twice  [#318 restaged: p1[0] dragapult -> primarina (learner-stats-kept/own); p1[1] weavile -> espeon (learner-speed+stats/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -10792,12 +10493,12 @@
    "name": "Wide Lens",
    "rule": "item/accuracy-scaled",
    "reads": "onModifyAccuracy / onSourceModifyAccuracy",
-   "note": "a 95-accuracy Supercell Slam lifted to 105 by x1.1 must HIT, where the pin would otherwise have made it miss",
+   "note": "a 95-accuracy Supercell Slam lifted to 105 by x1.1 must HIT, where the pin would otherwise have made it miss  [#318 restaged: p1[0] dragapult -> sneasler (learner-speed-kept/own); p2[0] kangaskhan -> luxray (learner-speed-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "kangaskhan",
+   "carrier": "luxray",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -10812,86 +10513,86 @@
    "sd_delta": [
     {
      "turn": 1,
-     "path": "p1.party.dragapult.hp",
-     "with": 943,
-     "without": 978
+     "path": "p1.party.sneasler.hp",
+     "with": 786,
+     "without": 930
     },
     {
      "turn": 1,
      "path": "p1.active[0].hp",
-     "with": 943,
-     "without": 978
+     "with": 786,
+     "without": 930
     },
     {
      "turn": 1,
-     "path": "p2.party.kangaskhan.hp",
-     "with": 1032,
-     "without": 492
+     "path": "p2.party.luxray.hp",
+     "with": 893,
+     "without": 428
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1032,
-     "without": 492
+     "with": 893,
+     "without": 428
     },
     {
      "turn": 2,
-     "path": "p1.party.dragapult.hp",
-     "with": 908,
-     "without": 978
+     "path": "p1.party.sneasler.hp",
+     "with": 642,
+     "without": 930
     },
     {
      "turn": 2,
      "path": "p1.active[0].hp",
-     "with": 908,
-     "without": 978
+     "with": 642,
+     "without": 930
     },
     {
      "turn": 2,
-     "path": "p2.party.kangaskhan.hp",
-     "with": 984,
+     "path": "p2.party.luxray.hp",
+     "with": 856,
      "without": 0
     },
     {
      "turn": 2,
-     "path": "p2.party.kangaskhan.fainted",
+     "path": "p2.party.luxray.fainted",
      "with": false,
      "without": true
     },
     {
      "turn": 2,
-     "path": "p2.party.kangaskhan.status",
+     "path": "p2.party.luxray.status",
      "with": "",
      "without": "fnt"
     },
     {
      "turn": 2,
      "path": "p2.active[0].species",
-     "with": "kangaskhan",
+     "with": "luxray",
      "without": "milotic"
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 984,
+     "with": 856,
      "without": 1020
     },
     {
      "turn": 2,
      "path": "p2.active[0].maxhp",
-     "with": 1080,
+     "with": 930,
      "without": 1020
     },
     {
      "turn": 2,
      "path": "p2.active[0].types",
-     "with": "normal",
+     "with": "electric",
      "without": "water"
     },
     {
      "turn": 2,
      "path": "p2.active[0].ability",
-     "with": "earlybird",
+     "with": "rivalry",
      "without": "marvelscale"
     },
     {
@@ -10909,12 +10610,12 @@
    "name": "Wise Glasses",
    "rule": "item/category-scoped-power",
    "reads": "onBasePower + shortDesc \"Holder's physical|special attacks have <n>x power\"",
-   "note": "special x1.1; the negative is a physical click on turn 2",
+   "note": "special x1.1; the negative is a physical click on turn 2  [#318 restaged: p1[0] dragapult -> sneasler (learner-speed-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "dragapult",
+   "carrier": "sneasler",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -10930,26 +10631,26 @@
     {
      "turn": 1,
      "path": "p2.party.kangaskhan.hp",
-     "with": 127,
-     "without": 132
+     "with": 140,
+     "without": 143
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 127,
-     "without": 132
+     "with": 140,
+     "without": 143
     },
     {
      "turn": 2,
      "path": "p2.party.kangaskhan.hp",
-     "with": 65,
-     "without": 70
+     "with": 41,
+     "without": 44
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 65,
-     "without": 70
+     "with": 41,
+     "without": 44
     }
    ],
    "diffs": []
@@ -10960,7 +10661,7 @@
    "name": "Yache Berry",
    "rule": "item/resist-berry",
    "reads": "isBerry + onSourceModifyDamage; the resisted type is the berry's own naturalGift.type",
-   "note": "4x ARM — torterra (Grass/Ground) DIES to the unhalved Ice hit (184 into 170 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on rhyperior, holding the same berry, on the same board",
+   "note": "4x ARM — torterra (Grass/Ground) DIES to the unhalved Ice hit (184 into 170 HP) and survives it halved; the flipped KO is on the board as `fainted`, never as a ratio. The inverted half is a Dragon hit on rhyperior, holding the same berry, on the same board  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: COULD-NOT-STAGE: the staging went inert; UNRESOLVED p1[0] dragapult refuses icebeam; UNRESOLVED p1[1] weavile refuses dragonpulse]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -11059,12 +10760,12 @@
    "name": "Zoom Lens",
    "rule": "item/accuracy-scaled",
    "reads": "onModifyAccuracy / onSourceModifyAccuracy",
-   "note": "a 95-accuracy Supercell Slam lifted to 114 by x1.2 must HIT, where the pin would otherwise have made it miss",
+   "note": "a 95-accuracy Supercell Slam lifted to 114 by x1.2 must HIT, where the pin would otherwise have made it miss  [#318 restaged: p1[0] dragapult -> sneasler (learner-speed-kept/own); p2[0] kangaskhan -> luxray (learner-speed-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": "kangaskhan",
+   "carrier": "luxray",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -11079,86 +10780,86 @@
    "sd_delta": [
     {
      "turn": 1,
-     "path": "p1.party.dragapult.hp",
-     "with": 943,
-     "without": 978
+     "path": "p1.party.sneasler.hp",
+     "with": 786,
+     "without": 930
     },
     {
      "turn": 1,
      "path": "p1.active[0].hp",
-     "with": 943,
-     "without": 978
+     "with": 786,
+     "without": 930
     },
     {
      "turn": 1,
-     "path": "p2.party.kangaskhan.hp",
-     "with": 1032,
-     "without": 492
+     "path": "p2.party.luxray.hp",
+     "with": 893,
+     "without": 428
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1032,
-     "without": 492
+     "with": 893,
+     "without": 428
     },
     {
      "turn": 2,
-     "path": "p1.party.dragapult.hp",
-     "with": 908,
-     "without": 978
+     "path": "p1.party.sneasler.hp",
+     "with": 642,
+     "without": 930
     },
     {
      "turn": 2,
      "path": "p1.active[0].hp",
-     "with": 908,
-     "without": 978
+     "with": 642,
+     "without": 930
     },
     {
      "turn": 2,
-     "path": "p2.party.kangaskhan.hp",
-     "with": 984,
+     "path": "p2.party.luxray.hp",
+     "with": 856,
      "without": 0
     },
     {
      "turn": 2,
-     "path": "p2.party.kangaskhan.fainted",
+     "path": "p2.party.luxray.fainted",
      "with": false,
      "without": true
     },
     {
      "turn": 2,
-     "path": "p2.party.kangaskhan.status",
+     "path": "p2.party.luxray.status",
      "with": "",
      "without": "fnt"
     },
     {
      "turn": 2,
      "path": "p2.active[0].species",
-     "with": "kangaskhan",
+     "with": "luxray",
      "without": "milotic"
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 984,
+     "with": 856,
      "without": 1020
     },
     {
      "turn": 2,
      "path": "p2.active[0].maxhp",
-     "with": 1080,
+     "with": 930,
      "without": 1020
     },
     {
      "turn": 2,
      "path": "p2.active[0].types",
-     "with": "normal",
+     "with": "electric",
      "without": "water"
     },
     {
      "turn": 2,
      "path": "p2.active[0].ability",
-     "with": "earlybird",
+     "with": "rivalry",
      "without": "marvelscale"
     },
     {

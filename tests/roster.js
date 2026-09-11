@@ -10701,6 +10701,411 @@ function assignPairs() {
   return { entries: out, banned: [] };
 }
 
+/* ==== ROADMAP #318, 2026-09-11 — EVERY FIXTURE BODY LEGALLY LEARNS EVERY MOVE IT DECLARES ============
+ *
+ * MEASURED BEFORE THIS PASS (tests/probe_roster_learnset_refusals.js, release e368827481f5): 420 distinct
+ * body/move pairs the format's TeamValidator refuses — Goodra-Hisui 325 (the move stage's CLICKER and
+ * quietBody, handed every move in the format), Dragapult 26 and Weavile 15 (CAST throwers holding a delivery
+ * move they cannot learn), and a tail of ability carriers. A board the validator would refuse is a position
+ * the game cannot produce, and an illegal body can HIDE a defect: the mechanic was only ever exercised on a
+ * body that could never carry it.
+ *
+ * ONE PASS, AFTER THE RULE, SO NO RULE HAS TO KNOW. Each body is asked, through the SAME judge
+ * `staged_board.js fixtureAudit` uses (`TeamValidator#checkCanLearn` under CS.FORMAT), whether it learns
+ * every move it declares; the control click is exempt, exactly as the audit exempts it (ROADMAP #316).
+ *   - A refused move that is NOT the entity under test and IS a boring delivery vehicle (`deliveryOf`) is
+ *     swapped for its nearest TWIN the same body learns: same type, category, target, priority, the same
+ *     secondaries and the same flags any handler reads. The body — and so every matchup — is untouched.
+ *   - The ENTITY under test, or a move with no twin, swaps the BODY for a legal learner of EVERY move it
+ *     declares, drawn from the pool the body came from (moveBodies for a quiet move-stage body, CANDIDATES
+ *     with carrierAbility otherwise, the entity's own carriers for an ability-stage carrier), ordered by the
+ *     key that pool was ordered by (attacking stat for CLICKER, bulk otherwise). Tiers, first match wins:
+ *     same types; same matchups against every attacking type in play plus the same status, powder,
+ *     prankster and trapping immunities; the same immunities; any learner that keeps the turn order; any
+ *     learner. The first three and the fourth keep the speed order against every other lead.
+ * Nothing is silent: every swap is written onto the row (`restaged`, and the note), a row that cannot be
+ * legalised is UNRESOLVED and printed by name, and `ROSTER_LEARNSET_UNREPAIRED=1` turns the pass off so the
+ * probe can be shown red on demand. The learner set is the format's own — the same population
+ * engine/stage_planner.js reads through `getMovePool` and engine/legal_scope.js scopes by — judged here by the
+ * validator rather than re-derived. */
+const LEARNSET_UNREPAIRED = process.env.ROSTER_LEARNSET_UNREPAIRED === '1';
+if (LEARNSET_UNREPAIRED) console.error('  !! roster: ROSTER_LEARNSET_UNREPAIRED=1 — the ROADMAP #318 restaging '
+  + 'pass is OFF; fixtures are the pre-fix bodies and a learnset count from this run is a demonstration');
+let _LVAL = null;
+const _LVALC = new Map();
+function learnsLegally(speciesId, moveId) {
+  const k = idOf(speciesId) + '|' + idOf(moveId);
+  if (_LVALC.has(k)) return _LVALC.get(k);
+  if (!_LVAL) _LVAL = new (CS.sim().TeamValidator)(CS.FORMAT);
+  const sp = _LVAL.dex.species.get(speciesId), mv = _LVAL.dex.moves.get(moveId);
+  let ok = true;
+  if (sp && sp.exists && mv && mv.exists) {
+    let why = null;
+    try { why = _LVAL.checkCanLearn(mv, sp); } catch (e) { why = 'THREW: ' + e.message; }
+    ok = !why;
+  }
+  _LVALC.set(k, ok);
+  return ok;
+}
+const _secSig = m => JSON.stringify((m.secondaries || []).map(s => [s.chance || 0, s.status || null,
+  s.volatileStatus || null, s.boosts || null, s.self ? JSON.stringify(s.self) : null]));
+const TWIN_FLAGS = ['contact', 'punch', 'bite', 'slicing', 'sound', 'pulse', 'bullet', 'wind', 'powder',
+                    'dance', 'defrost', 'heal', 'bypasssub', 'protect'];
+/* THE TWINS OF A MOVE, the move itself first, then the boring delivery moves the rig cannot tell apart from
+ * it, nearest base power first. Only a `deliveryOf` vehicle has twins; anything with its own handler IS the
+ * experiment and keeps its id. THE SECONDARIES ARE COMPARED ONLY OFF THE PRIMARY ARM: under the primary arm
+ * a sub-100% secondary never fires in either engine (and `deliveryOf` already refuses a 100% one), so two
+ * vehicles that differ only there are the same vehicle; under `bottom-tie-first` every secondary fires. */
+/* ---- WHICH FLAGS A BOARD READS, DERIVED — 2026-09-11 ------------------------------------------------
+ * The first twin test demanded EVERY flag in TWIN_FLAGS match, and it refused Poison Jab for Dire Claw on a
+ * board where nothing reads `slicing` (in this format Dire Claw carries `slicing`; Poison Jab does not) —
+ * the same wall stood between Kowtow Cleave and every Dark vehicle Dragapult learns. A flag is only part
+ * of the vehicle where something on the board can see it. So a flag is LOAD-BEARING on a board when the
+ * source of the entity, or of any ability, item or declared move there, names it (`flags.x`, `'x'`,
+ * `"x"`); `protect`, `bypasssub`, `heal` and `defrost` are held strict everywhere regardless. */
+const ALWAYS_STRICT_FLAGS = ['protect', 'bypasssub', 'heal', 'defrost'];
+function flagsReadBy(objs) {
+  const out = new Set(ALWAYS_STRICT_FLAGS);
+  for (const o of objs) {
+    if (!o) continue;
+    const txt = typeNamesInText(o) + ' ' + (o.condition ? typeNamesInText(o.condition) : '')
+      + ' ' + (o.secondaries ? o.secondaries.map(s => typeNamesInText(s)).join(' ') : '');
+    for (const f of TWIN_FLAGS) if (new RegExp('flags\\.' + f + '\\b|flags\\[[\'"]' + f + '[\'"]\\]|[\'"]' + f + '[\'"]').test(txt)) out.add(f);
+  }
+  return out;
+}
+const _TWC = new Map();
+function twinsOf(mid, arm, entityMove, readFlags) {
+  const m = dex.moves.get(mid);
+  const strict = (arm || PRIMARY_ARM_ID) !== PRIMARY_ARM_ID;
+  const flags = readFlags ? TWIN_FLAGS.filter(f => readFlags.has(f)) : TWIN_FLAGS;
+  const k = m.id + '|' + strict + '|' + (entityMove || '') + '|' + flags.join(',');
+  if (_TWC.has(k)) return _TWC.get(k);
+  let out = [m.id];
+  if (m.id !== entityMove && deliveryOf(m)) {
+    const xs = dex.moves.all().filter(x => x.id !== m.id && x.id !== entityMove && deliveryOf(x)
+      && x.type === m.type && x.category === m.category && x.target === m.target && x.priority === m.priority
+      && (!strict || _secSig(x) === _secSig(m))
+      && !flags.some(f => !!(x.flags || {})[f] !== !!(m.flags || {})[f]));
+    xs.sort((a, b) => Math.abs(a.basePower - m.basePower) - Math.abs(b.basePower - m.basePower)
+      || b.basePower - a.basePower || (a.id < b.id ? -1 : 1));
+    out = out.concat(xs.map(x => x.id));
+  }
+  _TWC.set(k, out);
+  return out;
+}
+/* ---- THE CROSS-TYPE TWIN, AND WHY IT IS FENCED ON EVERY SIDE ---------------------------------------
+ * Several rules pick a delivery move's TYPE for neutrality and nothing else — `ability/generic` "throws one
+ * back", the Light Ball rule's special hit — and the only body that may carry the entity cannot learn it.
+ * A vehicle of ANOTHER type is the same vehicle there, and only there. It is allowed when ALL of these hold:
+ * the same category, target, priority and flag profile (and secondaries off the primary arm); the same
+ * effectiveness AND immunity against every body on the opposing side; the same STAB relation to its user;
+ * and neither type is named anywhere the type could be the mechanic — the entity's own source, any ability
+ * or item on the board, or a weather or terrain condition (derived from the format, below). */
+const _TYPE_NAMES = dex.types.all().filter(t => t.exists !== false && !t.isNonstandard).map(t => t.name);
+function typeNamesIn(objs) {
+  const out = new Set();
+  for (const o of objs) {
+    if (!o) continue;
+    const txt = Object.keys(o).map(k => (typeof o[k] === 'function' ? String(o[k]) : '')).join(' ')
+      + JSON.stringify(o, (k, v) => (typeof v === 'function' ? undefined : v)) + ' ' + (o.condition ? typeNamesInText(o.condition) : '');
+    for (const t of _TYPE_NAMES) if (new RegExp('[\'"]' + t + '[\'"]').test(txt)) out.add(t);
+  }
+  return out;
+}
+function typeNamesInText(o) { return Object.keys(o).map(k => (typeof o[k] === 'function' ? String(o[k]) : '')).join(' '); }
+/* every weather and terrain the format can raise, read off the moves that raise them */
+const WEATHER_TERRAIN_TYPES = typeNamesIn(dex.moves.all().filter(m => m.exists && !m.isNonstandard && (m.weather || m.terrain))
+  .flatMap(m => [m, m.weather ? dex.conditions.get(m.weather) : null]));
+/* THE MOVESET READERS, derived: a move, ability or item whose handler source touches a body's move list.
+ * Pruning a declared-but-never-clicked move is refused on any board that carries one. */
+const _readsMoveset = o => !!o && Object.keys(o).some(k => typeof o[k] === 'function'
+  && /moveSlots|\.moves\b|getMoves|baseMoveSlots/.test(String(o[k])));
+const MOVESET_READERS = new Set([].concat(
+  dex.moves.all().filter(m => m.exists && !m.isNonstandard && (_readsMoveset(m) || _readsMoveset(m.condition))).map(m => 'move:' + m.id),
+  dex.abilities.all().filter(a => a.exists && !a.isNonstandard && _readsMoveset(a)).map(a => 'ability:' + a.id),
+  dex.items.all().filter(i => i.exists && !i.isNonstandard && _readsMoveset(i)).map(i => 'item:' + i.id)));
+function boardReadsMovesets(sc) {
+  return sc.A.concat(sc.B).some(b => (b.moves || []).some(x => MOVESET_READERS.has('move:' + idOf(x)))
+    || MOVESET_READERS.has('ability:' + idOf(b.ability)) || MOVESET_READERS.has('item:' + idOf(b.item)));
+}
+function crossTwin(mid, arm, entityMove, ctx, userSp) {
+  const m = dex.moves.get(mid);
+  if (!ctx || m.id === entityMove || !deliveryOf(m) || ctx.forbid.has(m.type)) return null;
+  const strict = (arm || PRIMARY_ARM_ID) !== PRIMARY_ARM_ID;
+  const stab0 = ctx.origTypes.includes(m.type);
+  const same = y => ctx.foes.every(f => dex.getImmunity(y.type, f.types) === dex.getImmunity(m.type, f.types)
+    && dex.getEffectiveness(y.type, f.types) === dex.getEffectiveness(m.type, f.types));
+  const xs = dex.moves.all().filter(y => y.id !== m.id && y.id !== entityMove && y.type !== m.type && deliveryOf(y)
+    && !ctx.forbid.has(y.type) && y.category === m.category && y.target === m.target && y.priority === m.priority
+    && (!strict || _secSig(y) === _secSig(m))
+    && !(ctx.readFlags ? TWIN_FLAGS.filter(f => ctx.readFlags.has(f)) : TWIN_FLAGS).some(f => !!(y.flags || {})[f] !== !!(m.flags || {})[f])
+    && userSp.types.includes(y.type) === stab0 && same(y) && learnsLegally(userSp.id, y.id));
+  xs.sort((a, b) => Math.abs(a.basePower - m.basePower) - Math.abs(b.basePower - m.basePower)
+    || b.basePower - a.basePower || (a.id < b.id ? -1 : 1));
+  return xs.length ? xs[0].id : null;
+}
+/* orig -> chosen, one legal move per declared move, or null when some declared move has no legal twin.
+ * Same-type twins first; a cross-type twin only through `crossTwin`'s fences. */
+function learnMap(speciesId, need, arm, entityMove, ctx) {
+  const map = new Map();
+  const userSp = dex.species.get(speciesId);
+  for (const x of need) {
+    const t = twinsOf(x, arm, entityMove, ctx && ctx.readFlags).find(y => learnsLegally(speciesId, y))
+      || crossTwin(x, arm, entityMove, ctx, userSp);
+    if (!t) return null;
+    map.set(x, t);
+  }
+  return map;
+}
+/* THE WIDE POOL'S ABILITY, asked of engine/stage_planner.js (`quietAbility` ranks a species' abilities by
+ * `abilityNoise` — the tags a MEDICHAM consumer reads plus the entry/residual handlers that write state), so
+ * the roster and the planner cannot come to disagree about what "quiet" means. A zero-handler ability in the
+ * roster's own QUIET set is preferred outright; QUIET_EXCLUDE and MOVE_FIELD_ACTORS are never handed out. */
+let _SPQ = null;
+function wideAbility(sp) {
+  const avoid = Object.keys(QUIET_EXCLUDE).concat(Object.keys(MOVE_FIELD_ACTORS));
+  const q = Object.values(sp.abilities || {}).find(a => QUIET_SET.has(idOf(a)) && !avoid.includes(idOf(a)));
+  if (q) return { ability: q, noise: 0 };
+  if (!_SPQ) { _SPQ = require(D('engine', 'stage_planner.js')); _SPQ.universe(); }
+  const a = _SPQ.quietAbility(sp.name, avoid);
+  return a ? { ability: a, noise: _SPQ.abilityNoise(a) } : null;
+}
+const _bulkOf = sp => sp.baseStats.hp + sp.baseStats.def + sp.baseStats.spd;
+const _speOf = sp => flatL50(sp.baseStats).sp;
+const RESTAGE_IMMUNE = ['psn', 'tox', 'brn', 'par', 'frz', 'sandstorm', 'hail', 'powder', 'prankster', 'trapped'];
+/* THE ABILITIES THAT ACT ON THEIR OWN AND WRITE STATE, derived: an entry, switch, residual or update
+ * handler whose source calls a state-writing method. A body carrying one was given it BY THE RULE (an
+ * Intimidate thrower), so a restaging swap must keep it. The first form of this test asked "is it the
+ * pool's quiet ability" and over-matched the CAST's deliberately inert abilities — Dragapult's
+ * Infiltrator, Weavile's Pressure — refusing to move the very throwers the pass exists for (25 -> 51
+ * refused pairs, measured, and LESSONS §4 is the rule it broke: print the match before wiring). Printed
+ * 2026-09-11: 57 legal abilities, Intimidate in; Infiltrator, Pressure, Early Bird, Marvel Scale, Clear
+ * Body, Unaware, Thick Fat out. The self-curing Update abilities (Immunity, Insomnia, Limber, Shed Skin)
+ * are in, which errs toward leaving a body unswapped — a refused pair, never a blind row. */
+const _ACTS_SELF = /^on(Start|SwitchIn|AnySwitchIn|Residual|Update|FoeSwitchIn|AllySwitchIn|SwitchOut|End)$/;
+const _WRITES = /\.(boost|setStatus|trySetStatus|addVolatile|setWeather|setTerrain|heal|damage|setAbility|formeChange|clearBoosts|useItem|takeItem|setItem|cureStatus|addSideCondition|addPseudoWeather|clearWeather|clearTerrain)\(|field\.(add|set|clear)/;
+const ACTS_BY_ITSELF = new Set(dex.abilities.all().filter(a => a.exists && !a.isNonstandard
+  && Object.keys(a).some(k => _ACTS_SELF.test(k) && typeof a[k] === 'function' && _WRITES.test(String(a[k])))).map(a => a.id));
+/* THE POOL A BODY CAME FROM, so a swap stays inside the same judgement that picked it. `wide` is every
+ * legal buildable sheet body with the planner's quietest ability; it is searched only after the own
+ * pool's preserving tiers are exhausted (see `bodyTwin`). An ability-stage carrier of the entity can only
+ * become another carrier of it, so it has no wide pool. */
+function restagePool(body, arm, kind, e) {
+  const sid = idOf(dex.species.get(body.species).id);
+  /* THE OWNER'S CLOSET IS NEVER A DESTINATION. A row staged on an Illusion carrier is shelved as
+   * DEFERRED-BY-OWNER (ROADMAP #160), so a swap onto one silently removes the row from the compared
+   * set: the first restaging run moved six items there (Black Glasses, Charcoal, Life Orb, Sharp Beak,
+   * Silk Scarf, Twisted Spoon, all onto Zoroark-Hisui). The membership is `illusionCloset()`'s, the
+   * one the shelf itself reads. */
+  const closet = illusionCloset().species;
+  const open = s => !closet.has(s.id);
+  if (kind === 'ability' && idOf(body.ability) === e.id) {
+    const own = LEGAL_SPECIES.filter(s => open(s) && !s.battleOnly && !s.forme.endsWith('Mega') && buildableSpecies(s.id)
+      && Object.values(s.abilities || {}).some(a => idOf(a) === e.id)).map(s => ({ sp: s, ability: body.ability, noise: 0 }));
+    return { own, wide: [] };
+  }
+  const mb = moveBodies(arm);
+  const own = (mb.some(r => r.sp.id === sid) ? mb.map(r => ({ sp: r.sp, ability: r.ability, noise: 0 }))
+    : CANDIDATES.filter(s => buildableSpecies(s.id)).map(s => ({ sp: s, ability: carrierAbility(s), noise: 0 })))
+    .filter(r => open(r.sp));
+  const ownIds = new Set(own.map(r => r.sp.id));
+  const wide = LEGAL_SPECIES.filter(s => open(s) && !ownIds.has(s.id) && !s.battleOnly && !s.forme.endsWith('Mega') && buildableSpecies(s.id))
+    .map(s => { const w = wideAbility(s); return w ? { sp: s, ability: w.ability, noise: w.noise } : null; }).filter(Boolean);
+  return { own, wide };
+}
+function bodyTwin(sc, body, need, kind, e, types, ctx) {
+  const B = dex.species.get(body.species);
+  const arm = sc.arm || PRIMARY_ARM_ID;
+  const entityMove = kind === 'move' ? e.id : null;
+  const it = body.item ? dex.items.get(body.item) : null;
+  if (it && it.megaStone) return null;     /* a stone names its base species: there is nothing to swap to */
+  /* A SPECIES-LOCKED ITEM KEEPS ITS SIDE OF THE LOCK. A Light Ball on a Pikachu is the mechanic; a Light
+   * Ball on anything else is the rule's deliberate control. The swap preserves which of the two it was. */
+  const isUser = sp => !!(it && it.itemUser && it.itemUser.some(u => idOf(u) === sp.id || idOf(u) === idOf(sp.baseSpecies)));
+  const userKept = S => !it || !it.itemUser || isUser(S) === isUser(B);
+  const P = restagePool(body, arm, kind, e);
+  const taken = new Set(sc.A.concat(sc.B).filter(b => b !== body)
+    .flatMap(b => { const s = dex.species.get(b.species); return [s.id, idOf(s.baseSpecies)]; }));
+  const others = [sc.A[0], sc.A[1], sc.B[0], sc.B[1]].filter(b => b && b !== body).map(b => dex.species.get(b.species));
+  const sgn = v => (v > 0) - (v < 0);
+  const speedKept = S => others.every(X => sgn(_speOf(S) - _speOf(X)) === sgn(_speOf(B) - _speOf(X)));
+  const sameImm = (S, list) => list.every(t => dex.getImmunity(t, S.types) === dex.getImmunity(t, B.types));
+  const sameEff = (S, list) => list.every(t => dex.getEffectiveness(t, S.types) === dex.getEffectiveness(t, B.types));
+  const sameMember = S => ['Ghost', 'Flying'].every(t => S.types.includes(t) === B.types.includes(t));
+  const sameTypes = S => S.types.length === B.types.length && S.types.every(t => B.types.includes(t));
+  const isClicker = idOf(B.id) === idOf(CLICKER(arm).species);
+  const key = isClicker ? (r => Math.max(r.sp.baseStats.atk, r.sp.baseStats.spa)) : (r => _bulkOf(r.sp));
+  /* A RULE-CHOSEN ABILITY TRAVELS WITH THE ROLE. When the body's ability is not the quiet one its pool
+   * would have handed out, the rule put it there on purpose — the stat-drop rule's Intimidate thrower is
+   * the case that taught this: the first run swapped Scrafty for Kommo-o, gave it a quiet ability, and
+   * four rows (Inner Focus, Oblivious, Own Tempo, Scrappy) went INERT because nothing intimidated them.
+   * Such a body may only become another carrier of that same ability. */
+  /* load-bearing = it acts on its own and writes state (ACTS_BY_ITSELF, derived and printed above) */
+  const quietHere = !body.ability || !ACTS_BY_ITSELF.has(idOf(body.ability));
+  const carries = rows => (quietHere ? rows : rows
+    .filter(r => Object.values(r.sp.abilities || {}).some(a => idOf(a) === idOf(body.ability)))
+    .map(r => ({ ...r, ability: body.ability, noise: 0 })));
+  const usable = rows => carries(rows).filter(r => r.ability && r.sp.id !== B.id && !taken.has(r.sp.id)
+      && !taken.has(idOf(r.sp.baseSpecies)) && userKept(r.sp))
+    .map(r => ({ ...r, map: learnMap(r.sp.id, need, arm, entityMove, ctx) })).filter(r => r.map)
+    .sort((a, b) => (a.noise - b.noise) || (key(b) - key(a)) || (a.sp.id < b.sp.id ? -1 : 1));
+  const own = usable(P.own), wide = usable(P.wide);
+  /* AND ITS NUMBERS, WHERE THEY CAN BE KEPT. The other inert and thrown rows of the first run were swaps
+   * onto a body that hit softer or fell sooner, so a berry threshold, a pinch range or a lead's survival
+   * the rule leaned on never happened. A body at least as bulky and at least as strong on its best
+   * attacking stat is tried before one that is not. */
+  const offOf = S => Math.max(S.baseStats.atk, S.baseStats.spa);
+  const statsKept = S => _bulkOf(S) >= _bulkOf(B) && offOf(S) >= offOf(B);
+  const keep = [
+    ['same-types', r => sameTypes(r.sp) && speedKept(r.sp)],
+    ['same-matchups', r => sameImm(r.sp, RESTAGE_IMMUNE.concat(types)) && sameEff(r.sp, types) && sameMember(r.sp) && speedKept(r.sp)],
+    ['same-immunities', r => sameImm(r.sp, RESTAGE_IMMUNE.concat(types)) && sameMember(r.sp) && speedKept(r.sp)]];
+  const keepStats = keep.map(([t, f]) => [t + '+stats', r => f(r) && statsKept(r.sp)]);
+  const loose = [['learner-speed-kept', r => speedKept(r.sp)], ['learner-stats-kept', r => statsKept(r.sp)], ['learner', () => true]];
+  const order = [].concat(keepStats.map(t => [t, own, 'own']), keepStats.map(t => [t, wide, 'wide']),
+                          [['learner-speed+stats', r => speedKept(r.sp) && statsKept(r.sp)]].map(t => [t, own, 'own']),
+                          [['learner-speed+stats', r => speedKept(r.sp) && statsKept(r.sp)]].map(t => [t, wide, 'wide']),
+                          keep.map(t => [t, own, 'own']), keep.map(t => [t, wide, 'wide']),
+                          loose.map(t => [t, own, 'own']), loose.map(t => [t, wide, 'wide']));
+  for (const [[tier, f], rows, pool] of order) {
+    const r = rows.find(f);
+    if (r) return { sp: r.sp, ability: r.ability, tier: tier + '/' + pool, noise: r.noise, map: r.map };
+  }
+  return null;
+}
+/* RENAME A LEAD'S CLICKS, SLOT BY SLOT, UNTIL SOMEBODY ELSE TAKES THE SLOT. The rules hand both leads of a
+ * side the SAME moves (the resist-berry rule gives Dragapult and Weavile one each of two types), so a rename
+ * keyed on the side would rewrite the partner's click with a move the partner never learnt. A `sw` in the
+ * slot ends the lead's tenure there. */
+function renameLeadClicks(sc, pk, slot, map) {
+  for (const st of sc.script) {
+    const a = (st[pk] || [])[slot];
+    if (a && a.sw) break;
+    if (a && a.m && map.has(idOf(a.m))) a.m = map.get(idOf(a.m));
+  }
+}
+function restageLegal(sc, kind, e) {
+  if (LEARNSET_UNREPAIRED) return null;
+  const out = { swaps: [], unresolved: [] };
+  const inert = idOf(INERT);
+  const arm = sc.arm || PRIMARY_ARM_ID;
+  const entityMove = kind === 'move' ? e.id : null;
+  /* the clicks are COPIED before anything is renamed: IDLE and some rule-local clicks are shared objects */
+  sc.script = sc.script.map(st => ({ ...st, p1: (st.p1 || []).map(x => (x ? { ...x } : x)),
+                                            p2: (st.p2 || []).map(x => (x ? { ...x } : x)) }));
+  for (const [sk, pk] of [['A', 'p1'], ['B', 'p2']]) {
+    for (let idx = 0; idx < sc[sk].length; idx++) {
+      let body = sc[sk][idx];
+      let need = (body.moves || []).map(idOf).filter(x => x !== inert);
+      let refused = need.filter(x => !learnsLegally(body.species, x));
+      if (!refused.length) continue;
+      /* A BENCH BODY KEEPS ITS MOVE IDS: its clicks cannot be told apart from the lead's it replaced, so it
+       * may only change species, never moves. */
+      const lead = idx < 2;
+      const moved = m => [...m].filter(([a, b]) => a !== b);
+      /* 0. A REFUSED MOVE THIS BODY NEVER CLICKS IS PRUNED, and only where nothing on the board reads a move
+       * list (MOVESET_READERS, derived). The rules hand both CAST leads the same two moves and each clicks
+       * one; the other is a moveset entry the game never consults on this board. A lead's clicks are its
+       * slot's until a `sw` ends its tenure; a bench body is credited with every click on its side. */
+      const clicked = new Set();
+      if (lead) { for (const st of sc.script) { const a = (st[pk] || [])[idx]; if (a && a.sw) break; if (a && a.m) clicked.add(idOf(a.m)); } }
+      else for (const st of sc.script) for (const a of (st[pk] || [])) if (a && a.m) clicked.add(idOf(a.m));
+      const pruned = boardReadsMovesets(sc) ? [] : refused.filter(x => !clicked.has(x) && x !== entityMove);
+      if (pruned.length) {
+        body = { ...body, moves: body.moves.filter(x => !pruned.includes(idOf(x))) };
+        sc[sk][idx] = body;
+        need = need.filter(x => !pruned.includes(x));
+        refused = refused.filter(x => !pruned.includes(x));
+        if (!refused.length) { out.swaps.push({ side: pk, slot: idx, kind: 'prune', body: idOf(body.species), pruned }); continue; }
+      }
+      /* the fences `crossTwin` needs, fixed by the ORIGINAL body and the board it stands on */
+      const forbid = new Set([...WEATHER_TERRAIN_TYPES, ...typeNamesIn([e].concat(sc.A.concat(sc.B)
+        .flatMap(b => [b.ability ? dex.abilities.get(b.ability) : null, b.item ? dex.items.get(b.item) : null])))]);
+      const onBoard = sc.A.concat(sc.B);
+      const readFlags = flagsReadBy([e].concat(onBoard.flatMap(b => [b.ability ? dex.abilities.get(b.ability) : null,
+        b.item ? dex.items.get(b.item) : null].concat((b.moves || []).map(x => dex.moves.get(x))))));
+      const ctx = { foes: (sk === 'A' ? sc.B : sc.A).map(b => dex.species.get(b.species)),
+                    origTypes: dex.species.get(body.species).types, forbid, readFlags };
+      /* 1. the same body, its refused delivery moves twinned */
+      const keepMap = lead ? learnMap(body.species, need, arm, entityMove, ctx) : null;
+      if (keepMap) {
+        sc[sk][idx] = { ...body, moves: body.moves.map(x => keepMap.get(idOf(x)) || x) };
+        renameLeadClicks(sc, pk, idx, keepMap);
+        out.swaps.push({ side: pk, slot: idx, kind: 'move', body: idOf(body.species),
+                         from: moved(keepMap).map(p => p[0]), to: moved(keepMap).map(p => p[1]) });
+        continue;
+      }
+      /* 2. another body that learns every declared move, or a twin of each */
+      const types = [...new Set(sc.A.concat(sc.B).flatMap(b => (b.moves || []).map(x => dex.moves.get(x))
+        .filter(m => m && m.exists && m.category !== 'Status').map(m => m.type)))];
+      const tw = bodyTwin(sc, body, need, kind, e, types, ctx);
+      const twMap = tw && (lead ? tw.map : (need.every(x => learnsLegally(tw.sp.id, x)) ? new Map(need.map(x => [x, x])) : null));
+      if (!tw || !twMap) { out.unresolved.push({ side: pk, slot: idx, body: idOf(body.species), refused }); continue; }
+      const old = idOf(dex.species.get(body.species).id);
+      sc[sk][idx] = { ...body, species: tw.sp.id, ability: tw.ability, moves: body.moves.map(x => twMap.get(idOf(x)) || x) };
+      if (lead) renameLeadClicks(sc, pk, idx, twMap);
+      for (const st of sc.script) for (const s of ['p1', 'p2']) for (const a of (st[s] || []))
+        if (a && a.sw && idOf(a.sw) === old) a.sw = tw.sp.id;
+      out.swaps.push({ side: pk, slot: idx, kind: 'body', from: old, to: tw.sp.id, ability: tw.ability, tier: tw.tier,
+                       noise: tw.noise, moves: need, renamed: moved(twMap) });
+    }
+  }
+  return out;
+}
+
+/* ==== ROADMAP #318 — ROWS HELD ON THEIR PRE-#318 BODIES, BY MEASUREMENT, 2026-09-11 =================
+ *
+ * THE RESTAGING MAY NOT NARROW WHAT THE ROSTER COMPARES. On release b42b81899631 (roster runs
+ * 2026-09-11T16:05–16:08Z) the restaged fixture of each row below was MEASURED not to stage — the verdict
+ * went from FIRED-AND-BOARDS-MATCH (or CONTROL-NOT-QUIET) to COULD-NOT-STAGE, or its rule's red
+ * demonstration stopped being caught — where the pre-#318 fixture, on a body the TeamValidator refuses, had
+ * staged and compared. A body that cannot learn a move is a defect in the fixture; a row that no longer
+ * compares anything is a hole in the lab, and trading the second for the first is how a clean gate gets
+ * bought. So these rows keep their old bodies, their refused pairs stay in
+ * tests/probe_roster_learnset_refusals.js's count (it cannot go green while one is held), and each is printed
+ * every run with the measurement that put it here. Restaging each one on a legal body that STILL stages is
+ * the next batch's work, row by row; this list is its worklist, and it only shrinks.
+ *
+ * The four members of `move/needs-a-berry-already-eaten` are held TOGETHER: its red demonstration went
+ * NOT CAUGHT once two of them were restaged, and holding the whole rule restores the fixture its break was
+ * written against, whichever member the demonstration aims at. */
+const RESTAGE_HELD = new Map([
+  ['item/bigroot', 'COULD-NOT-STAGE: the staging went inert'],
+  ['item/chopleberry', 'COULD-NOT-STAGE: the staging went inert'],
+  ['item/expertbelt', 'COULD-NOT-STAGE: the staging went inert'],
+  ['item/focussash', 'COULD-NOT-STAGE: the subject arm threw (a benched spare could not pass)'],
+  ['item/oranberry', 'COULD-NOT-STAGE: the precondition did not land'],
+  ['item/payapaberry', 'COULD-NOT-STAGE: the staging went inert'],
+  ['item/sitrusberry', 'COULD-NOT-STAGE: the precondition did not land'],
+  ['item/tangaberry', 'COULD-NOT-STAGE: the staging went inert'],
+  ['item/yacheberry', 'COULD-NOT-STAGE: the staging went inert'],
+  ['ability/justified', 'CONTROL-NOT-QUIET -> COULD-NOT-STAGE: the staging went inert'],
+  ['ability/overgrow', 'COULD-NOT-STAGE: the staging went inert'],
+  ['ability/quickdraw', 'COULD-NOT-STAGE: the staging went inert'],
+  ['ability/swiftswim', 'FIRED-AND-BOARDS-MATCH -> CONTROL-NOT-QUIET'],
+  ['ability/torrent', 'COULD-NOT-STAGE: the staging went inert'],
+  ['ability/unburden', 'COULD-NOT-STAGE: the staging went inert'],
+  ['move/healingwish', 'COULD-NOT-STAGE: the subject arm threw (a benched spare could not pass)'],
+  ['move/roost', 'COULD-NOT-STAGE: the subject arm threw (a benched spare could not pass)'],
+  ['move/wish', 'COULD-NOT-STAGE: the precondition did not land'],
+  ['move/belch', 'its rule\'s red demonstration went NOT CAUGHT (held with the rule)'],
+  ['move/bugbite', 'COULD-NOT-STAGE: the subject arm threw; and its rule\'s red demonstration went NOT CAUGHT'],
+  ['move/pluck', 'COULD-NOT-STAGE: the subject arm threw; and its rule\'s red demonstration went NOT CAUGHT'],
+  ['move/recycle', 'its rule\'s red demonstration went NOT CAUGHT (held with the rule)'],
+]);
+function restageOrHold(sc, kind, e) {
+  const why = RESTAGE_HELD.get(kind + '/' + e.id);
+  if (!why || LEARNSET_UNREPAIRED) return restageLegal(sc, kind, e);
+  const inert = idOf(INERT);
+  const unresolved = [];
+  for (const [sk, pk] of [['A', 'p1'], ['B', 'p2']]) sc[sk].forEach((b, idx) => {
+    const refused = (b.moves || []).map(idOf).filter(x => x !== inert && !learnsLegally(b.species, x));
+    if (refused.length) unresolved.push({ side: pk, slot: idx, body: idOf(dex.species.get(b.species).id), refused, held: true });
+  });
+  return { swaps: [], unresolved, held: 'HELD on its pre-#318 bodies — measured on b42b81899631: ' + why };
+}
+
 function assign(kind) {
   if (kind === 'pair') return assignPairs();
   const { legal, banned } = population(kind);
@@ -10747,6 +11152,8 @@ function assign(kind) {
     sc.id = kind + '/' + e.id;
     sc.kind = kind; sc.entityId = e.id;
     sc.arm = hit.m.arm || PRIMARY_ARM_ID;
+    /* ROADMAP #318 — the learnset restaging pass, or the measured hold; see both headers above `assign`. */
+    const rs = restageOrHold(sc, kind, e);
     const row = { kind, id: e.id, name: e.name, rule: hit.rule.id, ruleObj: hit.rule,
                   reads: hit.rule.reads, note: hit.m.note || '', tier: hit.m.tier || null,
                   controlQuiet: hit.m.controlQuiet !== false, scenario: sc,
@@ -10761,6 +11168,15 @@ function assign(kind) {
                   trapExceptions: hit.m.trapExceptions || null,
                   /* the receipt a precondition rule owes — see the check in `runEntry` */
                   precondition: hit.m.precondition || null };
+    if (rs && (rs.swaps.length || rs.unresolved.length || rs.held)) {
+      row.restaged = rs;
+      row.note = (row.note ? row.note + '  ' : '') + (rs.held ? '[#318 ' + rs.held + '; ' : '[#318 restaged: ')
+        + rs.swaps.map(s => s.kind === 'body' ? s.side + '[' + s.slot + '] ' + s.from + ' -> ' + s.to + ' (' + s.tier + ')'
+                          : s.kind === 'prune' ? s.side + '[' + s.slot + '] ' + s.body + ' pruned never-clicked ' + s.pruned.join(',')
+                                              : s.side + '[' + s.slot + '] ' + s.body + ' ' + s.from.join(',') + ' -> ' + s.to.join(','))
+            .concat(rs.unresolved.map(u => 'UNRESOLVED ' + u.side + '[' + u.slot + '] ' + u.body + ' refuses ' + u.refused.join(',')))
+            .join('; ') + ']';
+    }
     const nq = controlQuietAudit(row);
     if (nq) row.controlNotQuiet = nq;
     out.push(row);
@@ -11165,6 +11581,27 @@ function main() {
    * AND IT IS NOT A LIST. `fixtureAudit` takes ONE move id, demands a written reason, and prints the
    * exempted pairs on every run. A set would be a place a genuine illegal carrier could hide, which
    * is what data/fixture-learnset-baseline.json exists to make visible rather than to license. */
+  /* ROADMAP #318 — THE RESTAGING PASS, PRINTED BEFORE THE AUDIT JUDGES WHAT IT PRODUCED. Loud at zero too:
+   * a pass that swapped nothing must say so, or "no refusals" could mean "the pass never ran". */
+  {
+    const rs = staged.filter(e => e.restaged);
+    const sw = rs.flatMap(e => e.restaged.swaps);
+    const tiers = {};
+    for (const s of sw) if (s.kind === 'body') tiers[s.tier] = (tiers[s.tier] || 0) + 1;
+    const held = rs.filter(e => e.restaged.held);
+    const un = rs.flatMap(e => e.restaged.unresolved.map(u => e.id + '  ' + u.side + '[' + u.slot + '] ' + u.body
+      + ' refuses ' + u.refused.join(', ') + (u.held ? '   [HELD]' : '')));
+    /* THE HOLD IS PRINTED BY NAME, with the measurement that put each row there (RESTAGE_HELD). */
+    console.log('\n  LEARNSET RESTAGING HOLD (ROADMAP #318): ' + held.length + ' row(s) kept on their pre-#318 bodies, '
+      + 'because their restaged fixture was measured not to stage — their refused pairs stay in the count');
+    for (const e of held) console.log('    HELD ' + e.id + '  — ' + e.restaged.held);
+    console.log('\n  LEARNSET RESTAGING (ROADMAP #318)' + (LEARNSET_UNREPAIRED ? ' — OFF, ROSTER_LEARNSET_UNREPAIRED=1' : '')
+      + ': ' + sw.filter(s => s.kind === 'body').length + ' body swap(s) ' + JSON.stringify(tiers) + ', '
+      + sw.filter(s => s.kind === 'move').length + ' move swap(s), ' + sw.filter(s => s.kind === 'prune').length
+      + ' never-clicked move prune(s), over ' + rs.length + ' of ' + staged.length
+      + ' staged row(s); ' + un.length + ' UNRESOLVED');
+    for (const u of un) console.log('    UNRESOLVED ' + u);
+  }
   const fx = SB.fixtureAudit(shells, { learnsetExempt: INERT,
     learnsetExemptWhy: 'It is the roster\'s CONTROL CLICK (ROADMAP #316): the arm that must move no '
       + 'board, handed to every derived body so it has something to do when it must do nothing. Only '

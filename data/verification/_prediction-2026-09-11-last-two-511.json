@@ -1,0 +1,27 @@
+{
+  "written": "2026-09-11",
+  "by": "ENGINE, before any engine byte moved for #511",
+  "item": "#511 — the survival clamp applied per arrival of a volley (patch A1 of docs/_reports/2026-08-28-volley-collapse.md)",
+  "baseline": "release e368827481f5 (HEAD b8f7d999): tests/probe_volley_collapse_clamp.js RED — ENDURE route authority -hitcount 4, medicham none; FOCUS SASH route authority -hitcount 2, medicham none; both boards agree at every boundary; MEDFAILS.hitCountDroppedOnCollapse +1 per route. tests/probe_volley_collapse.js green with 3 DECLARED-open rows on its ENDURE route (-damage 5/1, effectiveness 5/0, -hitcount 5/none). Gate CLOSED 1 of 9 on the open-defect clause (#318, #511).",
+  "authority_read": {
+    "loop": "data/mods/champions/scripts.ts:428-570 hitStepMoveHitLoop — spreadMoveHit once per hit, eachEvent('Update') inside the loop, -hitcount hit-1 below it, timesAttacked += hit-1",
+    "damage_event": "sim/battle.ts:2088 spreadDamage — runEvent('Damage') per target per hit; a 0 return still writes -damage at unchanged HP",
+    "endure": "data/moves.ts endure.condition.onDamage, onDamagePriority -10: effectType Move && damage >= target.hp -> -activate, return hp-1",
+    "sturdy": "data/mods/champions/abilities.ts sturdy.onDamage, priority -30: hp === maxhp && damage >= hp -> -ability, return hp-1",
+    "focus_sash": "data/mods/champions/items.ts focussash.onDamage, priority -40: hp === maxhp && damage >= hp && useItem() -> return hp-1",
+    "observed_on_the_probe_board": "ENDURE: every arrival writes -supereffective and -damage; the lethal arrival writes -activate Endure before its -damage (1/183); arrivals after it re-activate Endure and write -damage 1/183 again; -hitcount 4. SASH: arrival 1 writes -supereffective, -enditem Focus Sash, -damage 1/183; arrival 2 -supereffective, -crit, -damage 0 fnt; faint; -hitcount 2."
+  },
+  "the_change": "On the volley road (R.pk.length > 1, total not rewritten upstream) the Endure clamp and the survivesFromFull clamp no longer rewrite the row total above the packet loop; they run inside the loop against each arrival and tg.curHP at that moment, in the authority's priority order (Endure, then the from-full family). The deficit is folded into the existing _pkAdj correction, so dealt / _dealtEach / recoil read the clamped total through _reDealt exactly as before. MEDI_HITCOUNT_DROP_ON_COLLAPSE=1 restores the collapse road verbatim.",
+  "predict": {
+    "probe_volley_collapse_clamp": "RED on e368827481f5 (confirmed before the change); GREEN on the new release (both routes: -hitcount agrees, protocol never parts, boards agree); RED again under MEDI_HITCOUNT_DROP_ON_COLLAPSE=1 on the new release",
+    "probe_volley_collapse": "its three DECLARED Endure rows turn GREEN, which that file fails by design ('A DECLARED-OPEN ROW IS NOW GREEN'); the declaration is removed in the same pass and the file must then read green with 0 declared",
+    "dice": "one draw can move: Focus Band's chance is now taken at the first LETHAL arrival rather than only when arrival 1 is lethal. Focus Band is on 18 sheets and the pool pairs it with a multi-hit move in 7 games (docs/_reports/2026-08-28-volley-collapse.md); expect no measurable movement in any pinned figure",
+    "engine_diff": "0 of 6000, unmoved and structurally so — the harness skips every multi-hit move",
+    "roster": "0 / 0 / 0 FIRED-AND-BOARDS-DIFFER, unmoved — no roster row stages a clamp against a volley",
+    "board_material": "0 / 1 / 2 of 961, unmoved — both clamp roads were HP-neutral; the only board leaf that can move is timesAttacked (Rage Fist), which now counts every arrival on a clamped volley",
+    "narration_and_protocol": "whole-game protocol divergences 1 / 13 / 17 unmoved or lower; a pool game where a from-full clamp meets a multi-arrival volley must now align where it parted before",
+    "census": "881 live, 0 missing, unmoved unless a census row is added for the per-arrival clamp",
+    "coverage_fired": "785 of 845, unmoved",
+    "gate": "the open-defect clause loses #511 once the register re-reads it GREEN; it stays CLOSED on #318 until that lands"
+  }
+}

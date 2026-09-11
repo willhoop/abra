@@ -1,5 +1,11 @@
 /* PROBE — DOES A ROSTER RED DEMONSTRATION'S PLANT MOVE OUR OWN BOARD AT ALL?  (ROADMAP #513)
  *
+ * ABRA-HEAP: 6144 — declared 2026-09-11. This probe loads tests/roster.js as a LIBRARY, which declares
+ * 6144 in its own header, and then plays that stage's members; `tools/lownode.cmd` honours only the
+ * running script's header, so this file ran on node's default old space and aborted with "Ineffective
+ * mark-compacts near heap limit" after 23 rules of the moves stage — identically with the ROADMAP #318
+ * restaging on and off (ROSTER_LEARNSET_UNREPAIRED=1), so the budget was missing, not the pass.
+ *
  * `tests/roster.js --reds` asks whether planting a deliberate break FLIPS A VERDICT, which is a
  * question about the two-engine comparison. Thirty rules do not flip, and a non-flip has three
  * possible causes that the reds loop cannot tell apart:

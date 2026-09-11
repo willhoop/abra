@@ -1,8 +1,8 @@
 {
-  "generated": "2026-09-11T16:09:48.711Z",
+  "generated": "2026-09-11T17:15:20.545Z",
   "by": "tests/test-docs-current.js",
   "rule": "A RATCHET. Every list here is a baseline of what existed when it was written, and it may only shrink. A new entry fails the build; a retired entry is dropped automatically, because removing one can only make the check stricter. Adding an entry is a hand edit with a reason.",
-  "changelog_top_at_baseline": "6.21.0",
+  "changelog_top_at_baseline": "6.22.0",
   "version_pins": {
     "docs/ADR-002-showdown-is-the-authority.md": {
       "version": "3.50.0",
@@ -206,7 +206,7 @@
       "docs/ABRA-whitepaper.md": 5,
       "docs/ARCHITECTURE.md": 1,
       "docs/MODELS.md": 3,
-      "docs/TAG-COVERAGE.md": 13
+      "docs/TAG-COVERAGE.md": 8
     },
     "untraceable_figures": [
       "docs/ABRA-whitepaper.md|1.0021",
@@ -218,14 +218,12 @@
       "docs/MODELS.md|−3.2447",
       "docs/MODELS.md|−3.3318",
       "docs/MODELS.md|−3.3425",
-      "docs/TAG-COVERAGE.md|10,064",
       "docs/TAG-COVERAGE.md|10,415",
       "docs/TAG-COVERAGE.md|12,085",
       "docs/TAG-COVERAGE.md|13,508",
       "docs/TAG-COVERAGE.md|29,790",
       "docs/TAG-COVERAGE.md|3,564",
       "docs/TAG-COVERAGE.md|30,107",
-      "docs/TAG-COVERAGE.md|6,829",
       "docs/TAG-COVERAGE.md|7,958",
       "docs/TAG-COVERAGE.md|7,965"
     ],
@@ -2397,8 +2395,6 @@
         "5dd613f760|277",
         "64af04a926|606",
         "66ec03de80|8,539",
-        "85c9c4f04b|10,524",
-        "85c9c4f04b|187",
         "9b11c91c4d|61",
         "ab0d69f5ac|35",
         "b815747aae|393",

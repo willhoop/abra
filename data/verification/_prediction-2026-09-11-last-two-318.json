@@ -1,0 +1,17 @@
+{
+  "written": "2026-09-11",
+  "by": "ENGINE, before tests/roster.js moved for #318 (after #511 landed on the live tree)",
+  "item": "#318 — every roster fixture body legally learns every move it declares",
+  "baseline": "tests/probe_roster_learnset_refusals.js on the roster at HEAD b8f7d999, release e368827481f5: RED, 420 distinct refused body/move pairs (item stage 40 over 7 bodies, ability stage 54 over 34, move stage 340 over 10; goodrahisui 325). Re-derived independently by a scratch walk of assign() through the format's TeamValidator: 637 rows, 420 distinct pairs — the same number. 331 of the 424 move-stage rows are the ENTITY UNDER TEST on a body that cannot learn it (the move stage's CLICKER / quietBody); the rest are delivery or aux moves on a thrower that cannot learn them (Dragapult, Weavile, Kangaskhan, Torterra, Torkoal and ability carriers).",
+  "the_change": "One pass in assign(), after a rule returns its scenario: every body is asked, through the same TeamValidator judge fixtureAudit uses, whether it learns every move it declares (the control click exempt, as the audit exempts it). A refused move that is NOT the entity is swapped for the nearest legal move the SAME body learns that is the same type, category, target, priority and flag profile, drawn from the roster's own boring-delivery definition (deliveryOf). A refused ENTITY, or a move with no such equivalent, swaps the BODY for the bulkiest legal learner of all its declared moves out of the same pool the body came from (moveBodies for the move stage, CANDIDATES/carrierAbility otherwise), preserving its types exactly where possible, its status immunities and its speed order against every other lead. Every swap is written onto the row's note. ROSTER_LEARNSET_UNREPAIRED=1 skips the pass.",
+  "predict": {
+    "probe_roster_learnset_refusals": "RED 420 before (confirmed); GREEN 0 after, or a residue printed by name if some body cannot be legalised under the preservation rules; RED 420 again under ROSTER_LEARNSET_UNREPAIRED=1",
+    "roster_moves_stage": "the stage re-earns its matching verdicts on new bodies; FIRED-AND-BOARDS-DIFFER 0 before. Restaging CAN expose an engine defect the illegal body hid: expect 0 to 5 newly non-matching rows (DIFFER or DID-NOT-FIRE), each examined for fixture vs engine before it is called a defect",
+    "roster_items_and_abilities": "delivery-move swaps only; verdicts expected unchanged (0 / 0 FIRED-AND-BOARDS-DIFFER)",
+    "engine_diff": "0 of 6000 — tests/roster.js is not the engine",
+    "board_material": "0 / 1 / 2 of 961, unmoved",
+    "census": "883 live (after #511's two rows), unmoved by this item",
+    "coverage_fired": "785 of 845, unmoved",
+    "gate": "the open-defect clause empties if #318 and #511 both read GREEN in the register; the gate then depends on its other eight clauses as printed"
+  }
+}

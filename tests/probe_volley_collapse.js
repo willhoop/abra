@@ -11,13 +11,14 @@
  *                           Every row of this route gates. `MEDI_FORMEONHIT_CLICK_WIDE=1` puts the
  *                           defect back and reproduces the ORIGINAL red exactly: 6 comparisons,
  *                           `-damage` 6 vs 2, `-hitcount` 5 vs 1, HP 58 vs 114.
- *   ENDURE   (mechanism 1)  OPEN, and DECLARED below rather than left to make this file red. It is
- *                           HP-NEUTRAL (1/198 on both sides) and costs narration plus two state
- *                           reads; it is patch A in docs/_reports/2026-08-28-volley-collapse.md and
- *                           a DIFFERENT ROOT -- the survive-at-1 clamp rewrites the total, which
- *                           nulls the packet vector. Exactly three rows may part on it and the
- *                           other four still gate; a declared row that goes GREEN also fails, so
- *                           the declaration cannot outlive the defect it describes.
+ *   ENDURE   (mechanism 1)  FIXED 2026-09-11 (ROADMAP #511) -- the survival clamps answer each
+ *                           arrival inside the packet loop, so the total is never rewritten above
+ *                           the gate and the vector survives. The three rows that were DECLARED open
+ *                           here (`-damage` 5 vs 1, effectiveness 5 vs 0, `-hitcount` 5 vs none) read
+ *                           CLOSED on the first run after the fix, which this file fails by design,
+ *                           so the declaration was removed and every row of this route now gates.
+ *                           `MEDI_HITCOUNT_DROP_ON_COLLAPSE=1` restores the pre-fix clamp.
+ *                           tests/probe_volley_collapse_clamp.js carries the Sash route as well.
  *
  * WHERE IT COMES FROM. The row said only *"a multi-hit into a Focus Sash, Endure or Disguise drops
  * the `-hitcount` line"*. The line is the smallest part of it. `engine/medicham2-browser.js:29121`:
@@ -386,12 +387,9 @@ let bad = 0, ctlBad = 0, declBad = 0;
  * blanket "ENDURE is open" would swallow the HP row, and the HP row is the whole reason mechanism 1
  * is cheap and mechanism 2 was not. A declared row that turns GREEN fails too -- a stale declaration
  * is prose outliving what it described, which is the failure this repository keeps paying for. */
-const DECLARED = new Map([['ENDURE', {
-  rows: new Set(['`-damage` lines in the volley', 'effectiveness lines', '`-hitcount` value']),
-  why: 'MECHANISM 1, patch A -- the survive-at-1 clamp rewrites the volley TOTAL, so `dmg !== R.dmg`'
-     + ' at the packet gate and the vector is discarded. HP-neutral on both sides. A DIFFERENT ROOT'
-     + ' from the absorb, and deliberately not bundled with it.',
-}]]);
+/* EMPTY SINCE 2026-09-11. The ENDURE declaration (three rows, mechanism 1) was removed when ROADMAP #511
+ * landed and all three read CLOSED. The machinery stays so a future open row is declared, not skipped. */
+const DECLARED = new Map();
 const SKIP_N = Object.values(SKIPPED).reduce((a, b) => a + b, 0);
 console.log('\n  candidate boards SKIPPED: ' + SKIP_N + '   ' + JSON.stringify(SKIPPED));
 for (const w of SKIP_WHY.slice(0, 8)) console.log('      ' + w);

@@ -2148,6 +2148,9 @@ function summarise(all, branches) {
 
 module.exports = { plan, planMechanic, universe, render, validateTeam, diffLeaves, holds, renderedMasks, masksFor, speedOf,
                    triggersOf, observeOf, halvesOf, slotSensitive, BREAKS, FORMAT, FILTER, TOP, BOTTOM, MIDDLE,
+                   /* 2026-09-11 (ROADMAP #318): tests/roster.js restages its illegal fixture bodies on this module's
+                    * judgement of the quietest legal ability rather than inventing a second one. */
+                   abilityNoise, quietAbility,
                    _state: () => ({ BRK }) };
 
 if (require.main === module) {

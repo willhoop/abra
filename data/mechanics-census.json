@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-11T14:33:34.174Z",
+  "generated": "2026-09-11T16:49:50.373Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 881,
-  "live": 881,
+  "probed": 883,
+  "live": 883,
   "missing": 0,
-  "armed": 881,
+  "armed": 883,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -4213,7 +4213,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 27.5% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.6% (format 20, generic 30), control Rock Slide 27.3% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -6464,6 +6464,26 @@
       "label": "a Focus Sash answers the packet that arrives, so two half-lethal hits still kill",
       "live": true,
       "detail": "[HP left, item left] — a Feraligatr on 66 HP (the volley deals 88, so each of the two packets falls short and the pair does not) holding a FOCUS SASH ends on [0,\"focussash\"]; CONTROL, the same body with no item, [0,\"\"]. The Sash may not fire: hit one takes it off full HP and hit two meets onlyFromFullHP false",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "survivesAnyHit",
+      "label": "an ENDURED volley floors EACH arrival at 1 and still lands every hit, a line and a count apiece",
+      "live": true,
+      "detail": "Bullet Seed into an Endure: CONTROL (cannot fall) hitcount 3, 3 damage lines, 0 activations; TEST on 30 HP — hitcount 3, 3 damage lines, 2 activation(s), the first after arrival 1's line: true, ends on 1 HP, timesAttacked 3. Before #511 the test arm read ONE damage line, no hitcount and the activation first.",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "survivesFromFull",
+      "label": "a Focus Sash spent on arrival 1 of a volley: arrival 2 kills, a line and a count apiece",
+      "live": true,
+      "detail": "Bullet Seed into a full-HP Garchomp on 16 HP (one arrival is ~20): TEST holding a Focus Sash hitcount 2, 2 damage lines, the -enditem ahead of arrival 1's line: true, ends on 0 HP, timesAttacked 2; CONTROL with no item hitcount 1, 1 line(s), 0 HP. Before #511 the test arm read ONE damage line, the -enditem first and NO hitcount.",
       "hollow": false,
       "armed": true,
       "directCall": false

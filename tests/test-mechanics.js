@@ -541,7 +541,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * handlers still run after the hazard it walked into has knocked it out, and only a real switch-in
  * reaches `runEntryPass` in that order.
  */
-const REALTURN = /\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(/;
+const REALTURN = /\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(|\bvolleyInto\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -24141,6 +24141,86 @@ probe('item', 'survivesFromFull', 'a Focus Sash answers the packet that arrives,
                  + `not fire: hit one takes it off full HP and hit two meets onlyFromFullHP false` };
 });
 
+/* ---- ROADMAP #511, 2026-09-11 — THE SURVIVAL CLAMP ANSWERS EACH ARRIVAL OF A VOLLEY ------------------
+ *
+ * Endure and the from-full family are `onDamage` handlers, and the authority runs `onDamage` inside
+ * `spreadDamage` once PER HIT (data/mods/champions/scripts.ts:428-570 calls `spreadMoveHit` per hit;
+ * sim/battle.ts:2088). This engine asked them once, above its packet loop, rewrote the row total, and
+ * the volley collapsed to one subtraction: one `-damage` line, no `-hitcount`, the Endure activation
+ * before any arrival, and `timesAttacked` +1. Staged against the authority in
+ * tests/probe_volley_collapse_clamp.js (Endure -hitcount 4, Sash -hitcount 2). These two rows are the
+ * census's view. Each control rolls the SAME volley on the same draws, so the hit count is read off the
+ * control rather than typed, and `MEDI_HITCOUNT_DROP_ON_COLLAPSE=1` (the pre-fix clamp) must turn both
+ * MISSING. */
+const volleyInto = (opt) => {
+  const me = bare('heracross'), ally = bare('snorlax');
+  const f1 = bare('garchomp'), f2 = bare('milotic');
+  me.ability = 'none'; f1.ability = 'none';
+  me.moves = ['bulletseed', 'protect'];
+  f1.moves = ['endure', 'protect']; f1.item = opt.item || '';
+  if (opt.hp == null) unfaintable(f1);
+  else { f1.st = Object.assign({}, f1.st, { hp: opt.hp }); f1.curHP = opt.hp; }
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true, autoMega: false });
+  const trace = []; S._trace = trace;
+  const before = f1.curHP;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'bulletseed', f1, S.field)], [ally, { kind: 'pass' }]]),
+    new Map([[f1, opt.endure ? M.playerAction(f1, 'endure', f1, S.field) : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+  const L = trace.filter(l => /^\|(-activate|-damage|-enditem|-hitcount|faint)\|p2a?:? ?/.test(l) && /garchomp/i.test(l));
+  const hc = trace.find(l => /^\|-hitcount\|p2a?: /.test(l));
+  const firstDmg = L.findIndex(l => /^\|-damage\|/.test(l));
+  return { lines: L.join(' '), hits: hc ? +hc.split('|')[3] : null,
+           dmgLines: L.filter(l => /^\|-damage\|/.test(l)).length,
+           activates: L.filter(l => /^\|-activate\|.*endure/i.test(l)).length,
+           firstActivate: L.findIndex(l => /^\|-activate\|.*endure/i.test(l)),
+           enditem: L.findIndex(l => /^\|-enditem\|.*focus ?sash/i.test(l)), firstDmg,
+           lost: before - Math.max(0, f1.curHP), hp: Math.max(0, f1.curHP), item: f1.item,
+           times: f1._timesAttacked | 0 };
+};
+probe('move', 'survivesAnyHit', 'an ENDURED volley floors EACH arrival at 1 and still lands every hit, a line and a count apiece', () => {
+  /* The control is the same Endure click on a body that cannot fall, so it draws the same volley and
+   * Endure never has a lethal arrival to answer. Its per-arrival damage sets the test body's HP: one
+   * and a half arrivals, so arrival 1 lands whole and a later arrival is the lethal one. */
+  const control = volleyInto({ endure: true });
+  const per = control.hits > 1 ? Math.floor(control.lost / control.hits) : 0;
+  const test = per > 0 ? volleyInto({ endure: true, hp: Math.floor(per * 1.5) }) : null;
+  const sameVolley = !!test && test.hits === control.hits && control.hits > 1;
+  return { works: sameVolley && control.activates === 0 && control.dmgLines === control.hits
+                  && test.hp === 1 && test.dmgLines === test.hits && test.times === test.hits
+                  && test.activates >= 1 && test.firstActivate > test.firstDmg,
+           arms: { control: [control.hits, control.dmgLines, control.activates],
+                   test: test ? [test.hits, test.dmgLines, test.activates, test.hp, test.times] : null },
+           detail: 'Bullet Seed into an Endure: CONTROL (cannot fall) hitcount ' + control.hits + ', '
+                 + control.dmgLines + ' damage lines, ' + control.activates + ' activations; TEST on '
+                 + Math.floor(per * 1.5) + ' HP — ' + (test ? 'hitcount ' + test.hits + ', ' + test.dmgLines
+                 + ' damage lines, ' + test.activates + ' activation(s), the first after arrival 1\'s line: '
+                 + (test.firstActivate > test.firstDmg) + ', ends on ' + test.hp + ' HP, timesAttacked '
+                 + test.times : 'not staged (the control volley had one arrival)')
+                 + '. Before #511 the test arm read ONE damage line, no hitcount and the activation first.' };
+});
+probe('item', 'survivesFromFull', 'a Focus Sash spent on arrival 1 of a volley: arrival 2 kills, a line and a count apiece', () => {
+  /* Full HP set BELOW one arrival, so arrival 1 alone is lethal from full: the Sash is spent on it and
+   * arrival 2 meets a body on 1. The control is the same body with no item, which falls to arrival 1
+   * and announces a count of one. */
+  const probeArm = volleyInto({});
+  const per = probeArm.hits > 1 ? Math.floor(probeArm.lost / probeArm.hits) : 0;
+  const hp = Math.max(1, Math.floor(per * 0.8));
+  const test = per > 0 ? volleyInto({ item: 'focussash', hp }) : null;
+  const control = per > 0 ? volleyInto({ hp }) : null;
+  return { works: !!test && !!control && control.hits === 1 && control.dmgLines === 1 && control.hp === 0
+                  && test.hits === 2 && test.dmgLines === 2 && test.hp === 0 && test.item === ''
+                  && test.enditem >= 0 && test.enditem < test.firstDmg && test.times === 2,
+           arms: { control: control ? [control.hits, control.dmgLines, control.hp] : null,
+                   test: test ? [test.hits, test.dmgLines, test.hp, test.item, test.times] : null },
+           detail: 'Bullet Seed into a full-HP Garchomp on ' + hp + ' HP (one arrival is ~' + per + '): TEST holding '
+                 + 'a Focus Sash ' + (test ? 'hitcount ' + test.hits + ', ' + test.dmgLines + ' damage lines, '
+                 + 'the -enditem ahead of arrival 1\'s line: ' + (test.enditem >= 0 && test.enditem < test.firstDmg)
+                 + ', ends on ' + test.hp + ' HP, timesAttacked ' + test.times : 'not staged')
+                 + '; CONTROL with no item ' + (control ? 'hitcount ' + control.hits + ', ' + control.dmgLines
+                 + ' line(s), ' + control.hp + ' HP' : 'not staged')
+                 + '. Before #511 the test arm read ONE damage line, the -enditem first and NO hitcount.' };
+});
+
 /* ROADMAP #151 — STANCE CHANGE, AND THE STATUS CLICK IS THE ARM THAT SEPARATES IT FROM A GUESS.
  *
  * `stancechange` appeared ZERO times in medicham2-browser.js and `data/tags.json` said `untagged` on
@@ -34434,7 +34514,9 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afte
                           'obliviousMoveIdBlindRestored', 'spiteIgnoresBounceRestored',
                           'critVolatileStageUnreadRestored', 'megaRefusedUnderSuppressionRestored',
                           'cuteCharmUnattributedRestored', 'ownTempoSilentRestored',
-                          'veilBlockUnannouncedRestored', 'covetEnditemExtraRestored']
+                          'veilBlockUnannouncedRestored', 'covetEnditemExtraRestored',
+                          /* 2026-09-11 -- ROADMAP #511: the pre-fix survival clamp (load stamp and use stamp) */
+                          'hitCountDropOnCollapseKnob', 'survivalClampOnTotalRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

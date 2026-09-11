@@ -10,6 +10,32 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.22.0] — 2026-09-11
+
+### Fixed
+- **A survival clamp answers each hit of a multi-hit move, as the official simulator does.** Endure, Focus Sash,
+  Sturdy and Focus Band used to answer the volley's total once, so a volley into any of them collapsed into a single
+  hit: one damage line, no effectiveness line, no hit count, and Rage Fist's counter moved by one. They now answer each
+  hit in turn. Shown failing on the previous release, passing on this one, and failing again under its own switch
+  (ROADMAP #511).
+
+### Changed
+- **The deliberate roster's fixture bodies learn the moves they use.** Every staged body is checked against the
+  format's team validator after its rule has built it, and a body that cannot learn a move gets a legal equivalent move
+  or a legal body instead. Refused pairs fell from 420 to 43. Twenty-two rows keep their old bodies on purpose, each
+  printed with the measurement that put it there, because the legal fixture was measured not to stage and replacing it
+  would have narrowed what the roster compares. With them held, all three roster stages give exactly the verdicts they
+  gave before (ROADMAP #318, still open).
+- **The red-demonstration reach probe declares the memory its roster library needs.** It ran out of memory after 23
+  rules with the restaging on and off alike, and runs to completion now.
+
+### Notes
+- Census 881 to 883 live, 0 missing: two rows for the per-hit clamp. Board-material 0, 1 and 2 of 961 games, unchanged;
+  protocol divergences 1, 12 and 15, down from 1, 13 and 17. Damage differential 0 of 6000. Release `b42b81899631`.
+- The gate: CLOSED, 1 of 9, before the register pass (the open-defect clause, on #318 and #511) and after it (on #318
+  alone; the register confirms #511 closed).
+- No restaged roster row exposed an engine defect.
+
 ## [6.21.0] — 2026-09-11
 
 ### Removed

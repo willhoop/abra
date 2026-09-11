@@ -4,14 +4,14 @@
 
 > **THIS IS A DATED SNAPSHOT, NOT A LIVING LEDGER.** Every figure below was measured on 2026-08-04 and
 > is kept as written, because a point-in-time analysis that gets quietly re-typed stops being evidence
-> of anything. What has moved since, measured 2026-08-09 against `data/tags.json`:
+> of anything. What has moved since, measured 2026-08-09 against `data/tags.json` (`6c31c94e:data/tags.json`):
 >
 > | the document says | today |
 > |---|---|
 > | 174 distinct tags | **187** |
 > | `boostsWhenLowered` 7,965 | **10,524** |
 > | `priorityMod` 7,958 | **10,064** |
-> | `contactPunish` 6,829 (dead) | **0 — the tag is gone**, merged into `punishesAttacker` exactly as §179 argued it should be |
+> | `contactPunish` 6,829 (dead; `06caab5b:data/tags.json`) | **0 — the tag is gone**, merged into `punishesAttacker` exactly as §179 argued it should be |
 >
 > The usage counts rise because the store grows hourly; the tag count rises because `tag_dex` keeps
 > deriving new ones. **The ARGUMENT of this document is unaffected** — it is about whether the engine

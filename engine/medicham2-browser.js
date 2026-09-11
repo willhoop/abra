@@ -9094,10 +9094,13 @@ if (ENDTURN_CLOCKS_AT_FOOT) MEDFAILS.endturnClocksAtFoot = 1;
 /* MEDI_HITCOUNT_DROP_ON_COLLAPSE=1 -- ROADMAP #511's defect path, NAMED BEFORE ITS FIX (2026-09-11).
  * A volley priced as 2+ packets whose total is rewritten before application (Focus Sash, Endure)
  * collapses to one packet and announces no `|-hitcount|`, counted at MEDFAILS.hitCountDroppedOnCollapse.
- * The knob selects that drop at the two collapse sites (the doll road and the body road). The fix
- * will give the UNKNOBBED path the authority's count and leave the drop here; until it lands both
- * positions drop, so this knob changes no output today and says so through its load stamp and the
- * per-site `MEDSEEN.hitCountDropOnCollapseKnobbed` count. `tests/probe_volley_collapse_clamp.js`. */
+ * The knob selects that drop at the two collapse sites (the doll road and the body road).
+ * 2026-09-11 -- THE FIX LANDED AND THE KNOB IS NOW THE PRE-FIX ENGINE. Unknobbed, a volley meets the
+ * survival clamps once per arrival inside the packet loop (see `_clampPerArrival` in `_stepApply`), so
+ * the total is never rewritten above the gate and the count is the authority's. Knobbed, the clamp
+ * answers the total above the loop exactly as before, the volley collapses and no count is written;
+ * `MEDFAILS.survivalClampOnTotalRestored` stamps a run that took that road.
+ * `tests/probe_volley_collapse_clamp.js` must read GREEN clean and RED under the knob. */
 const HITCOUNT_DROP_ON_COLLAPSE = (typeof process !== 'undefined' && process.env
   && process.env.MEDI_HITCOUNT_DROP_ON_COLLAPSE === '1');
 if (HITCOUNT_DROP_ON_COLLAPSE) MEDFAILS.hitCountDropOnCollapseKnob = 1;
@@ -38891,7 +38894,9 @@ function battleTurn(S,rng,actsForA,actsForB){
            * `1` there would be an invented number rather than a missing one. */
           if(R.hitcount){
             if(_dollVolley)R.hitLanded=_ate;
-            /* #511 -- the collapse drop; HITCOUNT_DROP_ON_COLLAPSE names it (inert until the fix). */
+            /* #511 -- the collapse drop. No survival clamp reaches this road (the doll took every
+             * arrival, and Endure / the from-full family guard the BODY); it is the click whose packets
+             * could not be addressed at all, and the knob's per-site count is kept for symmetry. */
             else if(R.pk&&R.pk.length>1){if(HITCOUNT_DROP_ON_COLLAPSE)MEDSEEN.hitCountDropOnCollapseKnobbed=(MEDSEEN.hitCountDropOnCollapseKnobbed|0)+1;MEDFAILS.hitCountDroppedOnCollapse=(MEDFAILS.hitCountDroppedOnCollapse|0)+1;}
             else R.hitLanded=1;
           }
@@ -39242,12 +39247,45 @@ function battleTurn(S,rng,actsForA,actsForB){
          * an Endure; this branch is inside the MOVE damage step and nowhere else, which is that gate
          * expressed by position. Nothing is defaulted -- a member declaring some other source would
          * not match here and would be visibly unwired rather than quietly granted immunity. */
-        {const _sv1=tg._vol&&oneTurnSurvivalVolatiles();
-         if(_sv1)for(const [_v,_p] of _sv1){
-           if(!tg._vol[_v]||_p.onlyFrom!=='move')continue;
-           if(dmg>=tg.curHP){dmg=tg.curHP-(+_p.leavesHP||1);MEDSEEN.enduredLethalHit++;if(TR)TR.act(tg,'move: '+_v);
-             _reDealt(dmg);}   /* 2026-08-27 -- what the authority's `damage[i]` now holds. See `_reDealt`. */
-         }}
+        /* ==== ROADMAP #511, 2026-09-11 -- ON A VOLLEY THE CLAMP ANSWERS EACH ARRIVAL, NOT THE TOTAL ====
+         *
+         * Both survival clamps are `onDamage` handlers, and `onDamage` runs inside `spreadDamage`
+         * (sim/battle.ts:2088), which `spreadMoveHit` calls ONCE PER HIT from the Champions hit loop
+         * (data/mods/champions/scripts.ts:428-570). So the authority asks each arrival against the HP
+         * that arrival meets:
+         *     endure.condition.onDamage     priority -10   damage >= target.hp -> -activate, hp - 1
+         *     sturdy.onDamage (champions)   priority -30   hp === maxhp && damage >= hp -> hp - 1
+         *     focussash.onDamage (champions) priority -40  hp === maxhp && damage >= hp -> useItem, hp - 1
+         * This engine asked ONCE, above the packet loop -- Endure against the volley TOTAL, the from-full
+         * family against arrival 1 -- and rewrote `dmg`, so `dmg !== R.dmg` at the packet gate, the vector
+         * was discarded and the volley landed as ONE subtraction: no per-arrival `-damage` or
+         * effectiveness lines, the activation before any arrival, and NO `-hitcount`
+         * (`MEDFAILS.hitCountDroppedOnCollapse`). Measured on tests/probe_volley_collapse_clamp.js,
+         * release e368827481f5: Endure, the authority writes four arrivals and `-hitcount 4`, the lethal
+         * one and every one after it re-activating Endure at 1 HP; Focus Sash, `-enditem` under arrival
+         * 1's effectiveness line and `-hitcount 2`. Boards agreed on both, so it was narration plus
+         * `timesAttacked`, which is Rage Fist's whole power.
+         *
+         * THE TWO CLAMPS ARE NOW ONE IMPLEMENTATION WITH TWO CALLERS. On the volley road they run inside
+         * the loop, per arrival, in the authority's priority order (Endure first, so a floored arrival
+         * cannot also spend a Sash); everywhere else they run here exactly as before. The deficit on the
+         * volley road goes into `_pkAdj`, the loop's existing correction, so `dealt`, `_dealtEach` and the
+         * recoil read the clamped total through `_reDealt` as they did.
+         *
+         * `MEDI_HITCOUNT_DROP_ON_COLLAPSE=1` restores the pre-#511 road verbatim: the clamp answers here,
+         * the total is rewritten and the volley collapses. */
+        const _clampPerArrival=!HITCOUNT_DROP_ON_COLLAPSE&&Array.isArray(R.pk)&&R.pk.length>1&&dmg===R.dmg;
+        if(HITCOUNT_DROP_ON_COLLAPSE&&Array.isArray(R.pk)&&R.pk.length>1)MEDFAILS.survivalClampOnTotalRestored=1;
+        const _endureClamp=(x)=>{
+          const _sv1=tg._vol&&oneTurnSurvivalVolatiles();
+          if(_sv1)for(const [_v,_p] of _sv1){
+            if(!tg._vol[_v]||_p.onlyFrom!=='move')continue;
+            if(x>=tg.curHP){x=tg.curHP-(+_p.leavesHP||1);MEDSEEN.enduredLethalHit++;if(TR)TR.act(tg,'move: '+_v);}
+          }
+          return x;
+        };
+        /* 2026-08-27 -- what the authority's `damage[i]` now holds. See `_reDealt`. */
+        if(!_clampPerArrival){const _e=_endureClamp(dmg);if(_e!==dmg){dmg=_e;_reDealt(dmg);}}
         const _arrive=(R.first!=null?R.first:dmg);
         /* ROADMAP #216 -- THE FULL-HP TEST WAS THE OUTER GATE, WHICH IS WHY FOCUS BAND COULD NEVER FIRE.
          *
@@ -39267,7 +39305,13 @@ function battleTurn(S,rng,actsForA,actsForB){
          * to a Focus Band holder including non-lethal ones. This engine does not reproduce Showdown's
          * RNG stream — it takes an injected `rng()` — so aligning the draw would buy nothing and would
          * perturb every unrelated board that shares the callback. Stated rather than silently equated. */
-        if(_arrive>=tg.curHP){
+        /* ROADMAP #511 -- THE FROM-FULL CLAMP, AS ONE FUNCTION OF THE AMOUNT THAT ARRIVES. It returns
+         * what `onDamage` hands back (`hp - leavesHP` when it saves, the amount unchanged when it does
+         * not) and does everything the save does -- the counters, the item spent, the line announced.
+         * The caller decides what the amount IS: arrival 1 plus the rest of the click here, one arrival
+         * at a time inside the packet loop. */
+        const _fromFullClamp=(x)=>{
+          if(!(x>=tg.curHP))return x;
           /* WHICH CARRIER HELD THE TAG IS PART OF THE FACT, and collapsing the two with a `||` cost
              the announcement below its subject: the line named `tg.ability` whatever had actually
              saved the body, so a FOCUS BAND survivor announced the holder's unrelated ability
@@ -39279,13 +39323,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _svId=_svIt?tg.item:tg.ability;
           if(_sv&&(!_sv.onlyFromFullHP||tg.curHP===tg.st.hp)
              &&(_sv.chance==null||rng()<+_sv.chance)){
-            /* The survivor is left on `leavesHP` BY THE FIRST PACKET, and whatever the rest of the
-             * click was still owed is added back on top -- which is what kills it. */
-            const _rest=Math.max(0,dmg-_arrive);
-            dmg=tg.curHP-(_sv.leavesHP||1)+_rest;
-            /* 2026-08-27 -- what the authority's `damage[i]` now holds, and therefore what the recoil,
-             * the drain and `_dealtEach` are a share OF. See `_reDealt`. */
-            _reDealt(dmg);
+            x=tg.curHP-(_sv.leavesHP||1);
             MEDSEEN.sashAnsweredOnePacket++;
             if(_sv.chance!=null)MEDSEEN.chanceSurvivalFired++;
             /* Showdown emits the `|-enditem|` BEFORE the `|-damage|` that the Sash survived -- read
@@ -39301,6 +39339,15 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(_sv.consumesItem){if(TR)TR.enditem(tg,tg.item);recordItemUsed(tg,tg.item);tg.item='';passItemFromAlly(tg);}
             else if(TR)TR.announced(tg,_sv.announce,_svId);
           }
+          return x;
+        };
+        if(!_clampPerArrival&&_arrive>=tg.curHP){
+          /* The survivor is left on `leavesHP` BY THE FIRST PACKET, and whatever the rest of the click
+           * was still owed is added back on top -- which is what kills it. 2026-08-27 -- what the
+           * authority's `damage[i]` now holds, and therefore what the recoil, the drain and
+           * `_dealtEach` are a share OF. See `_reDealt`. */
+          const _a2=_fromFullClamp(_arrive);
+          if(_a2!==_arrive){dmg=_a2+Math.max(0,dmg-_arrive);_reDealt(dmg);}
         }
         /* WIRE 17 -- thaw on hit: a damaging Fire-type move thaws a frozen target (the game's own
          * rule since Gen VI), and the artifact's thawsTarget carries the non-Fire exceptions the
@@ -39464,6 +39511,16 @@ function battleTurn(S,rng,actsForA,actsForB){
                   MEDSEEN.arrivalRepriceMoved++;
                 }
               }
+            }
+            /* ROADMAP #511 -- THIS ARRIVAL MEETS THE SURVIVAL CLAMPS, BELOW ITS PRICE AND ABOVE ITS
+             * `-damage`, which is where `spreadDamage` runs `onDamage` for it. Endure first (priority
+             * -10), then the from-full family (-30 / -40), as the authority orders them. A body already
+             * on 1 behind an Endure is clamped to 0 and still writes its `-damage` at unchanged HP --
+             * `spreadDamage` writes the line for a 0 return. See the header above `_clampPerArrival`. */
+            if(_clampPerArrival){
+              const _was=_packets[i];
+              const _x=_fromFullClamp(_endureClamp(_was));
+              if(_x!==_was){_pkAdj+=_x-_was;_packets[i]=_x;MEDSEEN.survivalClampPerArrival=(MEDSEEN.survivalClampPerArrival|0)+1;}
             }
             const _hpBeforeArrival=tg.curHP;
             tg.curHP-=_packets[i];_landed++;MEDSEEN.multiHitPacketsDealt++;
@@ -39715,7 +39772,9 @@ function battleTurn(S,rng,actsForA,actsForB){
            * `1` would be an invented number. That road is a second, still-open producer of the same
            * missing line and it is COUNTED rather than papered over. */
           if(R.hitcount){
-            /* #511 -- the collapse drop; HITCOUNT_DROP_ON_COLLAPSE names it (inert until the fix). */
+            /* #511 -- the collapse drop. Since 2026-09-11 a survival clamp no longer reaches this road
+             * (it answers per arrival inside the loop); what still can is any OTHER upstream rewrite of
+             * the total, and MEDI_HITCOUNT_DROP_ON_COLLAPSE=1, which restores the pre-fix clamp. */
             if(R.pk&&R.pk.length>1){if(HITCOUNT_DROP_ON_COLLAPSE)MEDSEEN.hitCountDropOnCollapseKnobbed=(MEDSEEN.hitCountDropOnCollapseKnobbed|0)+1;MEDFAILS.hitCountDroppedOnCollapse=(MEDFAILS.hitCountDroppedOnCollapse|0)+1;}
             else R.hitLanded=1;
           } }
