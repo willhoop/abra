@@ -10,6 +10,13 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.12.3] — 2026-09-11
+
+### Changed
+- **The pre-commit docs gate reads the staged tree**, so another agent's uncommitted regeneration can no
+  longer block an unrelated commit — and a bad figure that is staged but not also on disk, which the
+  working-tree gate never saw, now blocks.
+
 ## [6.12.2] — 2026-09-11
 
 ### Added

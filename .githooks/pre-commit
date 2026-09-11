@@ -321,11 +321,29 @@ done
 # line and died before printing "no artifact became unre-runnable since the baseline". A gate that
 # cannot finish is not a stricter gate; its answer is whatever it managed to say before it died.
 # The declaration is read here rather than hard-coded so a NEW gate added to this loop inherits it.
+#
+# THE DOCS GATE JUDGES THE COMMIT, NOT THE WORKING TREE -- 2026-09-11. `--staged` makes
+# tests/test-docs-current.js read every document, artifact, the CHANGELOG and its own baseline as they
+# will exist in THIS commit: the index version where staged, HEAD's where not (engine/docs_scan.js,
+# useIndex()). It honours GIT_INDEX_FILE, so `git commit -a` and `git commit <paths>` are judged on the
+# tree git is actually about to write. Before this, several agents writing the working tree at once
+# meant an unrelated commit could be blocked by bytes it did not contain -- three times on 2026-09-11,
+# the last by a white-paper figure the COMMITTED roster still supports and an uncommitted re-run on
+# disk did not. It still blocks everything it blocked before that the commit itself carries: a staged
+# document edit with a mismatched figure, and a staged artifact that breaks a committed document.
+# The other two gates here are not switched: neither reads engine/docs_scan.js's reader.
 for t in tests/test-docs-current.js tests/test-roadmap-register.js tests/test-artifact-rerunnable.js; do
   [ -f "$t" ] || continue
   HEAP=$(grep -m1 -oE 'ABRA-HEAP:[[:space:]]*[0-9]+' "$t" 2>/dev/null | grep -oE '[0-9]+')
   if [ -n "$HEAP" ]; then NODEOPT="--max-old-space-size=$HEAP"; else NODEOPT=""; fi
-  if ! OUT=$(node $NODEOPT "$t" 2>&1); then
+  TARGS=""
+  [ "$t" = "tests/test-docs-current.js" ] && TARGS="--staged"
+  OUT=$(node $NODEOPT "$t" $TARGS 2>&1); RC=$?
+  # SAY WHICH TREE IT READ, green or red: the line names every path where the working tree differs from
+  # this commit and the gate judged the commit's bytes instead. A switch nobody can see is a switch
+  # nobody can tell apart from one that did not happen.
+  [ -n "$TARGS" ] && echo "$OUT" | grep -E '^\(--staged' | sed 's/^/  /'
+  if [ "$RC" -ne 0 ]; then
     echo ""
     echo "  BLOCKED by $t"
     echo "$OUT" | grep -iE 'FAIL|undeclared|stale|untraceable' | head -12 | sed 's/^/    /'

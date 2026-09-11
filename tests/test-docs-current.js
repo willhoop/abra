@@ -69,6 +69,19 @@ const S = require('../engine/docs_scan.js');
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
 
+/* `--staged` JUDGES THE COMMIT BEING MADE, NOT THE WORKING TREE — 2026-09-11. `.githooks/pre-commit`
+ * passes it. Every document, artifact, the CHANGELOG and the baseline below are then read as they will
+ * exist in the commit — the index version where staged, HEAD's where not — through engine/docs_scan.js's
+ * one reader (useIndex()). Without it a commit was blocked by bytes another agent had regenerated on
+ * disk and not committed: three times on 2026-09-11, the last by docs/ABRA-whitepaper.md:1696's `487`,
+ * which the committed data/roster.moves.json supports and a re-run roster on disk did not. A hand run
+ * with no flag reads the working tree exactly as before. */
+const STAGED = process.argv.includes('--staged');
+if (STAGED) {
+  S.useIndex();
+  console.log('  --staged: reading the tree THIS COMMIT would contain (the index), not the working tree.');
+}
+
 let P = 0, F = 0;
 const ok = (c, m) => { if (c) { P++; console.log('  ok   ' + m); } else { F++; console.log('  FAIL ' + m); } };
 
@@ -258,9 +271,9 @@ function scanDocs() {
  * needs editing for that to happen, which is the difference between a guard and a number. */
 function nonTransitivityIsSupported() {
   console.log('\n== 1b. the non-transitivity claim tracks the SLOWKING artifact ==');
-  const FILE = D('data', 'slowking-playstyle-eval.json');
-  if (!fs.existsSync(FILE)) { ok(false, 'data/slowking-playstyle-eval.json exists to check claims against'); return; }
-  const d = JSON.parse(fs.readFileSync(FILE, 'utf8'));
+  const FILE = 'data/slowking-playstyle-eval.json';
+  if (!S.exists(FILE)) { ok(false, 'data/slowking-playstyle-eval.json exists to check claims against'); return; }
+  const d = JSON.parse(S.rawText(FILE));
   const cyc = d.top_nontransitive_cycle || {};
   const ex = d.exploitability || {};
   const gapCI = ex.greedy_minus_nash_ci95 || [];
@@ -461,6 +474,10 @@ function archiveRule(base, next) {
  * implementation of a thing that already exists is how buildMon("Scizor") came to return null. */
 function archiveIndexRule() {
   console.log('\n== 3c. docs/archive/INDEX.md is generated and current ==');
+  /* THE ONE CLAUSE THAT DOES NOT READ THE STAGED TREE, SAID ON EVERY --staged RUN. The generator reads
+   * docs/archive/ off the disk and is not this file's to rewire; an unstaged archive edit can still move
+   * this clause. Printed so the gap is visible state rather than an assumption. */
+  if (STAGED) console.log('         (reads the WORKING TREE: build/build_archive_index.js --check reads docs/archive/ from disk)');
   const gen = D('build', 'build_archive_index.js');
   if (!fs.existsSync(gen)) { ok(false, 'build/build_archive_index.js exists'); return; }
   let out = '', code = 0, errIndexGen = null;
@@ -512,7 +529,7 @@ function figureRules(base, next) {
    * was exempted from the same clause on 2026-08-15. The rigour is not lost: rule 1, rule 1b, 3b(a)
    * and 3b(b) all scan it, and 3b(b) is the STRONGEST of the three ("the document told you where to
    * check and the file says something else"). What is given up is the weakest, a pressure gauge. */
-  const livingPlusNotes = [...living, S.NOTES_LOG].filter(d => fs.existsSync(D(d)));
+  const livingPlusNotes = [...living, S.NOTES_LOG].filter(d => S.exists(d));
 
   console.log('\n== 3b(a). a figure another document retracts is not restated as fact ==');
   /* THE MATCHING RULE CARRIES ITS OWN RED DEMONSTRATION — ROADMAP #370. This clause decides that two
@@ -790,7 +807,7 @@ function figureRules(base, next) {
 function notesRule() {
   console.log('\n== 5. the running notes page moved with the code, and the backlog is bounded ==');
   const NOTES = S.NOTES_LOG;
-  const exists = fs.existsSync(D(NOTES));
+  const exists = S.exists(NOTES);
   ok(exists, `${NOTES} exists — every change records a row here in the same pass`);
   if (!exists) {
     console.log('         The full living-document set moves on a MAJOR release and this page carries');
@@ -875,7 +892,7 @@ function notesRule() {
   if (crlf.leaked.length) console.log('         CARRIAGE RETURNS REACHED A PARSER FROM: ' + crlf.leaked.slice(0, 8).join(', '));
   ok(crlf.holds, `the notes page is read the same on a CRLF checkout as on an LF one `
     + `(${crlf.cases.length}/${crlf.cases.length} demonstration cases; ${crlf.crlf_docs} of the live `
-    + `documents are CRLF on disk, ${crlf.leaked.length} leaked a CR to a parser)`);
+    + `documents are CRLF ${STAGED ? 'in the staged tree (blobs, not the checkout)' : 'on disk'}, ${crlf.leaked.length} leaked a CR to a parser)`);
 
   const proof = S.majorPolicyProof();
   for (const c of proof) if (!c.holds) console.log(`         ${c.id}: expected ${JSON.stringify(c.expected)}, `
@@ -946,7 +963,8 @@ const PROVENANCE = {
 const RATCHET_KEYS = ['by', 'rule', 'version_pins', 'unversioned_exempt', 'archive_grandfathered', 'known'];
 
 /* ---- run -------------------------------------------------------------------------------------- */
-const base = fs.existsSync(BASELINE) ? JSON.parse(fs.readFileSync(BASELINE, 'utf8')) : {};
+const BASELINE_REL = 'data/docs-currency-baseline.json';
+const base = S.exists(BASELINE_REL) ? JSON.parse(S.rawText(BASELINE_REL)) : {};
 const next = {
   generated: new Date().toISOString(),
   by: 'tests/test-docs-current.js',
@@ -999,14 +1017,31 @@ if (F === 0) {
   const content = o => JSON.stringify(Object.fromEntries(
     Object.entries(o).filter(([k]) => !(k in PROVENANCE)).sort(([a], [b]) => (a < b ? -1 : 1))));
   if (content(base) !== content(merged)) {
-    fs.writeFileSync(BASELINE, JSON.stringify(merged, null, 2) + '\n');
-    console.log(`\n(baseline tightened: ${path.relative(ROOT, BASELINE)} — the RATCHET moved, so this is a`);
-    console.log(' finding and belongs in the same commit. The pre-commit hook stages it for you.)');
+    /* Under --staged the base was the STAGED baseline, so the tightening is relative to the commit. It is
+     * written only where it cannot overwrite somebody else's unstaged edit — see writeThrough(). */
+    const w = S.writeThrough(BASELINE_REL, JSON.stringify(merged, null, 2) + '\n');
+    if (w.written) {
+      console.log(`\n(baseline tightened: ${path.relative(ROOT, BASELINE)} — the RATCHET moved, so this is a`);
+      console.log(' finding and belongs in the same commit. The pre-commit hook stages it for you.)');
+    } else {
+      console.log(`\n(the ratchet moved but ${BASELINE_REL} was NOT written: ${w.why})`);
+    }
   } else {
     console.log(`\n(no ratchet movement — ${path.relative(ROOT, BASELINE)} left untouched. It stamps`);
     console.log(` ${base.generated || 'never'} / CHANGELOG ${base.changelog_top_at_baseline || '?'},`);
     console.log(' which is when the CONTENT last moved, not when this last ran.)');
   }
+}
+
+/* SAY WHAT WAS READ. Every path the object store answered is a place the working tree differs from the
+ * commit, and this run declined to judge the working-tree bytes there. Printed so plant and fix are
+ * both visible: a gate that silently switched trees would be indistinguishable from one that did not. */
+if (STAGED) {
+  const r = S.readerReport();
+  console.log(`\n(--staged: ${r.index_entries} files in the index; ${r.verified_on_disk} read from disk after their hash ` +
+    `matched the staged blob; ${r.from_index.length} read from the index because the working tree differs` +
+    (r.from_index.length ? ': ' + r.from_index.slice(0, 12).join(', ') + (r.from_index.length > 12 ? `, … +${r.from_index.length - 12}` : '') : '') + ')');
+  if (r.unreadable.length) console.log(`(--staged: ${r.unreadable.length} disk read(s) failed and were answered from the index: ${r.unreadable.slice(0, 6).join(', ')})`);
 }
 
 console.log(`\nDOC CURRENCY TESTS: ${P} passed, ${F} failed`);

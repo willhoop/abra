@@ -44,6 +44,14 @@ reads SemVer 2.0.0 clauses 6, 7 and 8 against an API that is the figures this pr
 Copy this shape. Four lines is a good row; a paragraph is a report and belongs in `docs/_reports/`.
 
 ```
+## [6.12.3] — 2026-09-11 — the pre-commit docs gate judges the commit being made, not the working tree
+
+- **What changed.** `.githooks/pre-commit` runs `tests/test-docs-current.js --staged`: every document, artifact, the CHANGELOG and the gate's baseline are read as the commit will contain them (the index where staged, HEAD's where not) through one reader in `engine/docs_scan.js` (`useIndex()`). A disk copy is used only when its git blob hash matches the index; blame reads the staged text; the baseline tightening is written only where it cannot overwrite an unstaged edit. A hand run without the flag reads the working tree as before.
+- **Measured.** NO FIGURE. Shown on scratch indexes: a working-tree-only artifact change blocked before and passes after; a staged mismatched document figure and a staged artifact breaking a committed figure block before and after; index-only staging of either was missed before and blocks after. Old and new code in working-tree mode print identical output. Detail: `docs/_reports/2026-09-11-hook-reads-index.md`.
+- **Supersedes.** Nothing.
+- **Basis.** unchanged.
+- **Owed to the next major.** None. Owed as work: the archive-index check, `engine/artifact_audit.js` and `tests/test-roadmap-register.js` still read the working tree.
+
 ## [6.12.2] — 2026-09-11 — the optimization pass is planned from a profile, and skipping narration in rollouts would save nothing
 
 - **What changed.** Added a profiling script and summaries under `data/verification/opt-plan-2026-09-11/` and the plan for ROADMAP #130. No engine code changed.
