@@ -1,20 +1,20 @@
 {
  "generated": "2026-09-11",
- "n_sides": 64530,
- "n_species": 281,
+ "n_sides": 64542,
+ "n_species": 292,
  "shrink": 10,
  "mean_bring": 0.6667,
  "mean_lead": 0.5,
  "mega": {
-  "n_sides": 56066,
+  "n_sides": 56078,
   "p_side_megas": 0.8811,
-  "p_mega_is_lead": 0.5267
+  "p_mega_is_lead": 0.5266
  },
  "caveat": "p_bring is measured from REVEALED species and is biased down; treat it as a ranking. p_lead is measured from turn-1 leads and is unbiased.",
  "species": {
   "abomasnow": {
-   "n_team": 541,
-   "p_bring": 0.6165,
+   "n_team": 543,
+   "p_bring": 0.6142,
    "p_lead": 0.3032
   },
   "absol": {
@@ -23,14 +23,14 @@
    "p_lead": 0.4422
   },
   "aegislash": {
-   "n_team": 1147,
-   "p_bring": 0.6186,
+   "n_team": 1148,
+   "p_bring": 0.618,
    "p_lead": 0.3004
   },
   "aerodactyl": {
-   "n_team": 5378,
-   "p_bring": 0.5959,
-   "p_lead": 0.7374
+   "n_team": 5381,
+   "p_bring": 0.5957,
+   "p_lead": 0.7375
   },
   "aggron": {
    "n_team": 544,
@@ -129,13 +129,13 @@
   },
   "arcaninehisui": {
    "n_team": 2551,
-   "p_bring": 0.6777,
-   "p_lead": 0.4715
+   "p_bring": 0.6781,
+   "p_lead": 0.4718
   },
   "archaludon": {
    "n_team": 6554,
-   "p_bring": 0.749,
-   "p_lead": 0.3319
+   "p_bring": 0.7489,
+   "p_lead": 0.3318
   },
   "ariados": {
    "n_team": 493,
@@ -163,9 +163,9 @@
    "p_lead": 0.4261
   },
   "avalugg": {
-   "n_team": 74,
-   "p_bring": 0.6865,
-   "p_lead": 0.5246
+   "n_team": 76,
+   "p_bring": 0.6938,
+   "p_lead": 0.5397
   },
   "avalugghisui": {
    "n_team": 160,
@@ -190,12 +190,12 @@
   "basculegion": {
    "n_team": 12661,
    "p_bring": 0.7305,
-   "p_lead": 0.269
+   "p_lead": 0.2691
   },
   "basculegionf": {
-   "n_team": 506,
-   "p_bring": 0.7067,
-   "p_lead": 0.3832
+   "n_team": 505,
+   "p_bring": 0.7061,
+   "p_lead": 0.3842
   },
   "bastiodon": {
    "n_team": 124,
@@ -217,10 +217,15 @@
    "p_bring": 0.7187,
    "p_lead": 0.4256
   },
+  "bisharp": {
+   "n_team": 1,
+   "p_bring": 0.6061,
+   "p_lead": 0.5
+  },
   "blastoise": {
-   "n_team": 3775,
+   "n_team": 3778,
    "p_bring": 0.6512,
-   "p_lead": 0.6811
+   "p_lead": 0.681
   },
   "blaziken": {
    "n_team": 2240,
@@ -248,14 +253,19 @@
    "p_lead": 0.5097
   },
   "charizard": {
-   "n_team": 9642,
-   "p_bring": 0.6792,
+   "n_team": 9644,
+   "p_bring": 0.6793,
    "p_lead": 0.5426
   },
   "chesnaught": {
    "n_team": 586,
    "p_bring": 0.58,
    "p_lead": 0.4183
+  },
+  "chienpao": {
+   "n_team": 1,
+   "p_bring": 0.697,
+   "p_lead": 0.5455
   },
   "chimecho": {
    "n_team": 313,
@@ -313,19 +323,19 @@
    "p_lead": 0.5891
   },
   "diggersby": {
-   "n_team": 272,
-   "p_bring": 0.7187,
+   "n_team": 274,
+   "p_bring": 0.7136,
    "p_lead": 0.4709
   },
   "ditto": {
-   "n_team": 710,
-   "p_bring": 0.6676,
-   "p_lead": 0.1467
+   "n_team": 712,
+   "p_bring": 0.6685,
+   "p_lead": 0.1481
   },
   "dragalge": {
-   "n_team": 667,
-   "p_bring": 0.6288,
-   "p_lead": 0.4336
+   "n_team": 668,
+   "p_bring": 0.6293,
+   "p_lead": 0.4349
   },
   "dragapult": {
    "n_team": 1314,
@@ -333,9 +343,9 @@
    "p_lead": 0.522
   },
   "dragonite": {
-   "n_team": 4448,
-   "p_bring": 0.5897,
-   "p_lead": 0.5133
+   "n_team": 4451,
+   "p_bring": 0.5899,
+   "p_lead": 0.5127
   },
   "drampa": {
    "n_team": 856,
@@ -483,19 +493,24 @@
    "p_lead": 0.3333
   },
   "garchomp": {
-   "n_team": 15098,
+   "n_team": 15100,
    "p_bring": 0.7222,
-   "p_lead": 0.3922
+   "p_lead": 0.3921
   },
   "gardevoir": {
-   "n_team": 2135,
-   "p_bring": 0.6716,
-   "p_lead": 0.4889
+   "n_team": 2134,
+   "p_bring": 0.6715,
+   "p_lead": 0.4886
   },
   "garganacl": {
    "n_team": 341,
    "p_bring": 0.5774,
    "p_lead": 0.4272
+  },
+  "gastrodon": {
+   "n_team": 1,
+   "p_bring": 0.697,
+   "p_lead": 0.4545
   },
   "gengar": {
    "n_team": 4031,
@@ -503,14 +518,14 @@
    "p_lead": 0.7319
   },
   "gholdengo": {
-   "n_team": 5668,
+   "n_team": 5670,
    "p_bring": 0.6183,
-   "p_lead": 0.4843
+   "p_lead": 0.4845
   },
   "glaceon": {
-   "n_team": 356,
-   "p_bring": 0.5619,
-   "p_lead": 0.4354
+   "n_team": 357,
+   "p_bring": 0.5631,
+   "p_lead": 0.4381
   },
   "glalie": {
    "n_team": 163,
@@ -528,14 +543,14 @@
    "p_lead": 0.5159
   },
   "golurk": {
-   "n_team": 705,
-   "p_bring": 0.6723,
-   "p_lead": 0.2603
+   "n_team": 706,
+   "p_bring": 0.6727,
+   "p_lead": 0.2598
   },
   "goodra": {
-   "n_team": 152,
-   "p_bring": 0.6152,
-   "p_lead": 0.3592
+   "n_team": 154,
+   "p_bring": 0.6138,
+   "p_lead": 0.3558
   },
   "goodrahisui": {
    "n_team": 642,
@@ -578,9 +593,9 @@
    "p_lead": 0.4355
   },
   "hatterene": {
-   "n_team": 1030,
-   "p_bring": 0.6064,
-   "p_lead": 0.5931
+   "n_team": 1031,
+   "p_bring": 0.6068,
+   "p_lead": 0.5937
   },
   "hawlucha": {
    "n_team": 539,
@@ -623,9 +638,14 @@
    "p_lead": 0.4611
   },
   "incineroar": {
-   "n_team": 14054,
+   "n_team": 14057,
    "p_bring": 0.6853,
-   "p_lead": 0.5577
+   "p_lead": 0.5578
+  },
+  "indeedeef": {
+   "n_team": 1,
+   "p_bring": 0.697,
+   "p_lead": 0.5455
   },
   "infernape": {
    "n_team": 439,
@@ -633,9 +653,14 @@
    "p_lead": 0.6406
   },
   "ironhands": {
-   "n_team": 2,
-   "p_bring": 0.7222,
+   "n_team": 3,
+   "p_bring": 0.6667,
    "p_lead": 0.5
+  },
+  "ironvaliant": {
+   "n_team": 1,
+   "p_bring": 0.697,
+   "p_lead": 0.5455
   },
   "jirachi": {
    "n_team": 2,
@@ -653,7 +678,7 @@
    "p_lead": 0.7487
   },
   "kingambit": {
-   "n_team": 16492,
+   "n_team": 16493,
    "p_bring": 0.6326,
    "p_lead": 0.3465
   },
@@ -693,9 +718,14 @@
    "p_lead": 0.5
   },
   "liepard": {
-   "n_team": 708,
-   "p_bring": 0.7224,
-   "p_lead": 0.8027
+   "n_team": 710,
+   "p_bring": 0.7231,
+   "p_lead": 0.8034
+  },
+  "lilligant": {
+   "n_team": 1,
+   "p_bring": 0.6061,
+   "p_lead": 0.5
   },
   "lopunny": {
    "n_team": 897,
@@ -758,8 +788,8 @@
    "p_lead": 0.5883
   },
   "mawile": {
-   "n_team": 2653,
-   "p_bring": 0.6075,
+   "n_team": 2654,
+   "p_bring": 0.6072,
    "p_lead": 0.261
   },
   "medicham": {
@@ -768,14 +798,14 @@
    "p_lead": 0.6689
   },
   "meganium": {
-   "n_team": 1194,
-   "p_bring": 0.5712,
+   "n_team": 1193,
+   "p_bring": 0.5716,
    "p_lead": 0.3632
   },
   "meowscarada": {
-   "n_team": 1414,
-   "p_bring": 0.6683,
-   "p_lead": 0.4764
+   "n_team": 1413,
+   "p_bring": 0.6681,
+   "p_lead": 0.4769
   },
   "meowstic": {
    "n_team": 1408,
@@ -789,8 +819,8 @@
   },
   "metagross": {
    "n_team": 3762,
-   "p_bring": 0.563,
-   "p_lead": 0.4767
+   "p_bring": 0.5633,
+   "p_lead": 0.4765
   },
   "milotic": {
    "n_team": 5071,
@@ -828,9 +858,9 @@
    "p_lead": 0.3675
   },
   "ninetalesalola": {
-   "n_team": 3770,
-   "p_bring": 0.6459,
-   "p_lead": 0.3824
+   "n_team": 3771,
+   "p_bring": 0.646,
+   "p_lead": 0.3823
   },
   "noivern": {
    "n_team": 691,
@@ -838,6 +868,11 @@
    "p_lead": 0.6814
   },
   "ogerponhearthflame": {
+   "n_team": 1,
+   "p_bring": 0.697,
+   "p_lead": 0.4545
+  },
+  "ogerponwellspring": {
    "n_team": 1,
    "p_bring": 0.697,
    "p_lead": 0.4545
@@ -873,9 +908,14 @@
    "p_lead": 0.5596
   },
   "pelipper": {
-   "n_team": 7036,
+   "n_team": 7038,
    "p_bring": 0.7942,
-   "p_lead": 0.3452
+   "p_lead": 0.3453
+  },
+  "perrserker": {
+   "n_team": 1,
+   "p_bring": 0.6061,
+   "p_lead": 0.5
   },
   "pidgeot": {
    "n_team": 222,
@@ -952,6 +992,11 @@
    "p_bring": 0.5974,
    "p_lead": 0.2943
   },
+  "rillaboom": {
+   "n_team": 1,
+   "p_bring": 0.697,
+   "p_lead": 0.4545
+  },
   "roaringmoon": {
    "n_team": 2,
    "p_bring": 0.7222,
@@ -988,8 +1033,8 @@
    "p_lead": 0.4679
   },
   "rotomwash": {
-   "n_team": 3293,
-   "p_bring": 0.7032,
+   "n_team": 3295,
+   "p_bring": 0.7034,
    "p_lead": 0.5275
   },
   "runerigus": {
@@ -1013,9 +1058,9 @@
    "p_lead": 0.3611
   },
   "samurotthisui": {
-   "n_team": 928,
-   "p_bring": 0.7246,
-   "p_lead": 0.4671
+   "n_team": 930,
+   "p_bring": 0.7241,
+   "p_lead": 0.4664
   },
   "sandaconda": {
    "n_team": 147,
@@ -1038,9 +1083,9 @@
    "p_lead": 0.6226
   },
   "scovillain": {
-   "n_team": 2971,
-   "p_bring": 0.591,
-   "p_lead": 0.6912
+   "n_team": 2973,
+   "p_bring": 0.5909,
+   "p_lead": 0.6914
   },
   "scrafty": {
    "n_team": 1824,
@@ -1073,7 +1118,7 @@
    "p_lead": 0.6934
   },
   "sinistcha": {
-   "n_team": 11084,
+   "n_team": 11085,
    "p_bring": 0.6034,
    "p_lead": 0.1965
   },
@@ -1083,9 +1128,9 @@
    "p_lead": 0.2091
   },
   "skarmory": {
-   "n_team": 733,
-   "p_bring": 0.6066,
-   "p_lead": 0.5793
+   "n_team": 735,
+   "p_bring": 0.6063,
+   "p_lead": 0.578
   },
   "skeledirge": {
    "n_team": 389,
@@ -1108,8 +1153,8 @@
    "p_lead": 0.6405
   },
   "slowkinggalar": {
-   "n_team": 832,
-   "p_bring": 0.6778,
+   "n_team": 834,
+   "p_bring": 0.6761,
    "p_lead": 0.6969
   },
   "slurpuff": {
@@ -1119,8 +1164,8 @@
   },
   "sneasler": {
    "n_team": 12170,
-   "p_bring": 0.7444,
-   "p_lead": 0.6448
+   "p_bring": 0.7443,
+   "p_lead": 0.6447
   },
   "snorlax": {
    "n_team": 660,
@@ -1158,9 +1203,9 @@
    "p_lead": 0.3667
   },
   "swampert": {
-   "n_team": 5157,
+   "n_team": 5156,
    "p_bring": 0.6556,
-   "p_lead": 0.5134
+   "p_lead": 0.5136
   },
   "sylveon": {
    "n_team": 6906,
@@ -1168,9 +1213,14 @@
    "p_lead": 0.3523
   },
   "talonflame": {
-   "n_team": 3323,
-   "p_bring": 0.6891,
-   "p_lead": 0.7583
+   "n_team": 3325,
+   "p_bring": 0.6893,
+   "p_lead": 0.7576
+  },
+  "tapukoko": {
+   "n_team": 1,
+   "p_bring": 0.697,
+   "p_lead": 0.4545
   },
   "tauros": {
    "n_team": 129,
@@ -1198,9 +1248,9 @@
    "p_lead": 0.6659
   },
   "torkoal": {
-   "n_team": 3393,
-   "p_bring": 0.7122,
-   "p_lead": 0.2303
+   "n_team": 3394,
+   "p_bring": 0.7123,
+   "p_lead": 0.2302
   },
   "torterra": {
    "n_team": 275,
@@ -1218,9 +1268,9 @@
    "p_lead": 0.4353
   },
   "toxicroak": {
-   "n_team": 555,
-   "p_bring": 0.6525,
-   "p_lead": 0.6183
+   "n_team": 559,
+   "p_bring": 0.6532,
+   "p_lead": 0.616
   },
   "trevenant": {
    "n_team": 242,
@@ -1228,9 +1278,9 @@
    "p_lead": 0.5519
   },
   "tsareena": {
-   "n_team": 2472,
-   "p_bring": 0.6538,
-   "p_lead": 0.4041
+   "n_team": 2473,
+   "p_bring": 0.6539,
+   "p_lead": 0.4044
   },
   "typhlosion": {
    "n_team": 176,
@@ -1243,9 +1293,9 @@
    "p_lead": 0.5374
   },
   "tyranitar": {
-   "n_team": 6540,
-   "p_bring": 0.7784,
-   "p_lead": 0.3871
+   "n_team": 6542,
+   "p_bring": 0.7783,
+   "p_lead": 0.3872
   },
   "tyrantrum": {
    "n_team": 184,
@@ -1257,10 +1307,15 @@
    "p_bring": 0.6881,
    "p_lead": 0.5655
   },
+  "urshifurapidstrike": {
+   "n_team": 1,
+   "p_bring": 0.697,
+   "p_lead": 0.5455
+  },
   "vanilluxe": {
-   "n_team": 870,
-   "p_bring": 0.7121,
-   "p_lead": 0.2937
+   "n_team": 872,
+   "p_bring": 0.7116,
+   "p_lead": 0.2932
   },
   "vaporeon": {
    "n_team": 401,
@@ -1268,9 +1323,9 @@
    "p_lead": 0.4542
   },
   "venusaur": {
-   "n_team": 5394,
-   "p_bring": 0.5836,
-   "p_lead": 0.485
+   "n_team": 5396,
+   "p_bring": 0.5835,
+   "p_lead": 0.4851
   },
   "victreebel": {
    "n_team": 356,
