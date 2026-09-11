@@ -95,6 +95,7 @@ const PARTIALTRAP = movesWith(p => p.partialTrap);
 
 /* ---- the shared plumbing ------------------------------------------------------------------------ */
 const REPORT = [];
+const ZOMBIE_RAN = [];   /* `--only zombie` — the #601 marker's arms; see armPerish */
 function play(name, p1, p2, script, opts) {
   opts = opts || {};
   GD.resetScriptCounters();
@@ -300,28 +301,62 @@ function armPerish() {
    * perish3/2/1/0 at the residuals of the CAST TURN and the three after it. Script step 3 is
    * therefore the turn whose residual kills, and a follower has to be standing during THAT walk. */
   const KILL_TURN = 3;
-  /* DECLARED OPEN — ROADMAP #601, 2026-09-11 (ENGINE 6.24.0). The authority's `fieldEvent` skips a handler
-   * only when its holder is `fainted` (sim/battle.ts `fieldEvent`, `if (handler.effectHolder.fainted)`), and
-   * that flag is set by `faintMessages`, not by the damage — so a body the perish clock just zeroed still runs
-   * its LATER residual handlers until the drain: Morpeko's Hunger Switch writes its `-formechange`, a
-   * Noivern's uproar writes `-start|…|Uproar|[upkeep]`. This engine sets `fainted` at `queueFaint` and skips
-   * them, writing the `|faint|` at that index instead. The WINDOW this row measures (perish0 / faint /
-   * upkeep order) agrees in both arms; the extra line is the follower's own. So each arm must PART at exactly
-   * that line — the authority's follower line against our `|faint|` — and the day it agrees it fails, so the
-   * declaration cannot outlive the defect. */
-  const ZOMBIE_DECLARED = [
+  /* THE TWO #601 ARMS — CLOSED 2026-09-11 (ENGINE 6.26.0). The authority's `fieldEvent` skips a handler only
+   * when its holder is `fainted` (sim/battle.ts:512), and that flag is set by `faintMessages` (:2561), not by
+   * the damage — so a body the perish clock just zeroed still runs its LATER residual handlers until the
+   * drain: Morpeko's Hunger Switch writes its `-formechange`, a Noivern's Uproar writes
+   * `-start|…|Uproar|[upkeep]`. From 6.24.0 these two arms were DECLARED against #601 and asserted the
+   * parting at exactly that line; `residualZombie` in engine/medicham2-browser.js now runs them, so they
+   * are ordinary AGREES arms. The regexes stay because `--only zombie` asserts the follower line is PRESENT
+   * in the authority stream — an agreement in which neither engine ran the handler is not a pass. */
+  const ZOMBIE_ARMS = [
     ['hungerswitch', /^\|-formechange\|p2a: Morpeko/],
     ['volatile:uproar', /^\|-start\|p2a: [^|]*\|Uproar\|\[upkeep\]/],
   ];
-  function runPerish(name, lead, expect, followerClick) {
-    const decl = (ZOMBIE_DECLARED.find(([k]) => name.endsWith(' ' + k)) || [])[1] || null;
-    if (decl) expect = 'DECLARED #601';
+  /* `--only zombie` — THE #601 MARKER, 2026-09-11 (ENGINE 6.26.0). The two arms above, and nothing else,
+   * held to the AUTHORITY: each must AGREE and the authority's stream must carry the zombie's own follower
+   * line. RED (exit 1) on a parting — RED on `9ec2ab9ad0ef`, and RED under `MEDI_ZOMBIE_SKIPS_RESIDUAL=1`;
+   * an arm that cannot be staged is CANNOT-ANSWER (exit 2), never a verdict. The #601 row's VERIFIED BY
+   * runs this. */
+  const ZOMBIE_ONLY = ONLY === 'zombie';
+  function playPerish(name, lead, followerClick) {
     const p2 = [lead, fill(2), fill(3), fill(4)];
     const script = [{ p1: [{ m: 'perishsong' }, { m: 'agility' }], p2: [{ m: 'agility' }, { m: 'agility' }] }];
     for (let t = 0; t < 5; t++)
       script.push({ p1: [{ m: 'agility' }, { m: 'agility' }], p2: [{ m: 'agility' }, { m: 'agility' }] });
     if (followerClick) script[KILL_TURN].p2[0] = followerClick;
-    const r = play('perish-' + name.slice(0, 14), p1, p2, script, { hpA: 1, hpB: 1 });
+    return play('perish-' + name.slice(0, 14), p1, p2, script, { hpA: 1, hpB: 1 });
+  }
+  /* ONE #601 ARM. GREEN needs three things at once: the fixture reached the clock (a perish0 in the
+   * authority), the authority wrote the zombie's own follower line AFTER that perish0 (so the mechanism
+   * was actually exercised), and the two streams agree. */
+  function runZombie(name, lead, followerClick, lineRe) {
+    const r = playPerish(name, lead, followerClick);
+    const out = { name, staged: false, green: false, why: '' };
+    if (!r.staged) { out.why = 'COULD-NOT-STAGE'; return out; }
+    if (r.err) { out.why = 'THREW: ' + String(r.err).slice(0, 110); return out; }
+    if (r.notOnRequest) { out.why = 'SCRIPT DID NOT RUN — ' + r.firstMissing; return out; }
+    const L = (r.sdLog || []).map(String);
+    const p0 = L.findIndex(l => /^\|-start\|.*\|perish0/.test(l));
+    if (p0 < 0) { out.why = 'NOT-STAGED — no perish0 in the authority stream'; return out; }
+    out.staged = true;
+    const zombieLine = L.slice(p0).find(l => lineRe.test(l)) || null;
+    const meL = (r.meLog || []).map(String);
+    const meLine = meL.slice(Math.max(0, meL.findIndex(l => /^\|-start\|.*\|perish0/.test(l)))).find(l => lineRe.test(l)) || null;
+    out.sdLine = zombieLine; out.meLine = meLine;
+    if (!zombieLine) { out.staged = false; out.why = 'NOT-STAGED — the authority wrote no follower line after perish0'; return out; }
+    out.green = !r.diverged;
+    out.why = r.diverged ? 'PARTS — SD ' + r.sd + '  /  US ' + r.me : 'AGREES';
+    return out;
+  }
+  function runPerish(name, lead, expect, followerClick) {
+    const zombieRe = (ZOMBIE_ARMS.find(([k]) => name.endsWith(' ' + k)) || [])[1] || null;
+    if (ZOMBIE_ONLY) {
+      if (!zombieRe) return;
+      ZOMBIE_RAN.push(runZombie(name, lead, followerClick, zombieRe));
+      return;
+    }
+    const r = playPerish(name, lead, followerClick);
     /* THE WINDOW IS THE THING BEING MEASURED, printed for BOTH streams whether or not they parted —
      * an AGREES with no perish0 in it is a fixture that never reached the mechanic. */
     const win = log => {
@@ -335,14 +370,6 @@ function armPerish() {
     const reached = r.staged && /perish0/.test(String(r.sdLog));
     show(name, reached ? expect : 'NOT-STAGED', r,
          r.staged ? ['SD  ' + win(r.sdLog), 'US  ' + win(r.meLog)] : null);
-    if (decl && reached) {
-      const last = REPORT[REPORT.length - 1];
-      const exact = r.diverged && decl.test(String(r.sd)) && /^\|faint\|/.test(String(r.me));
-      last.got = exact ? 'DECLARED #601'
-        : (r.diverged ? 'PARTS ON AN UNDECLARED LINE: ' + String(r.sd).slice(0, 60)
-                      : 'AGREES — the declared #601 row is closed; remove the declaration');
-      console.log('        ' + (exact ? 'declared #601: parts at exactly the follower line, as declared' : '*** ' + last.got + ' ***'));
-    }
   }
 
   runPerish('A TEST     bare board, no follower at all', fill(1), 'AGREES');
@@ -414,7 +441,28 @@ function armPerish() {
 
 if (!ONLY || ONLY === 'hitcount') armHitcount();
 if (!ONLY || ONLY === 'trap') armTrap();
-if (!ONLY || ONLY === 'perish') armPerish();
+if (!ONLY || ONLY === 'perish' || ONLY === 'zombie') armPerish();
+
+if (ONLY === 'zombie') {
+  /* THE #601 VERDICT. Two arms or it cannot answer: an arm that did not reach the mechanism is not
+   * evidence in either direction, and a marker that read it as green would close the row on silence. */
+  console.log('');
+  console.log('#601 — a perish-zeroed body runs its later residual handlers until the faint drains');
+  for (const z of ZOMBIE_RAN) {
+    console.log('  ' + z.name.padEnd(40) + ' ' + (z.staged ? (z.green ? 'GREEN' : 'RED') : 'NOT STAGED') + ' — ' + z.why);
+    if (z.staged) console.log('        authority follower line: ' + z.sdLine + '   ours: ' + (z.meLine || '(none)'));
+  }
+  const staged = ZOMBIE_RAN.filter(z => z.staged);
+  if (ZOMBIE_RAN.length < 2 || staged.length < ZOMBIE_RAN.length) {
+    console.log('  CANNOT ANSWER — ' + staged.length + ' of ' + ZOMBIE_RAN.length + ' #601 arms staged (2 expected).');
+    console.log('ABRA-EXIT 2 CANNOT-ANSWER');
+    process.exit(2);
+  }
+  const red = staged.filter(z => !z.green);
+  console.log('  ' + (red.length ? 'RED — ' + red.length + ' of ' + staged.length + ' arms part: #601 is live'
+                                 : 'GREEN — ' + staged.length + ' of ' + staged.length + ' arms agree with the follower line present'));
+  process.exit(red.length ? 1 : 0);
+}
 
 console.log('');
 /* the summary compares the CANONICAL verdict, not the printed one — `*** PARTS *** at index 29` and

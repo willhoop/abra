@@ -3872,12 +3872,49 @@ function hitInBandFrom(attSp, defSp, lo, hi, pick) {
  * A MIRROR IS THE WRONG FIXTURE for the same reason it is in `speedFlipPair`: the driver's primary
  * arm is the one in which the two engines disagree about every speed tie, so the pair is strictly
  * ordered both before and after the multiplier. */
+/* A FOE WHOSE ABILITY LIFTS ITS OWN STATUS CLICK'S PRIORITY CANNOT BE OUT-SPED — 2026-09-11 (ENGINE 6.26.0).
+ * Every foe these two helpers pick clicks a STATUS drop, and a priority bracket is decided before Speed
+ * is read at all. `carrierAbility` scores against `INTERFERES`, which does not list `onModifyPriority`,
+ * so Liepard — the only legal body in Sand Rush's Excadrill window that learns Charm — was handed
+ * Prankster: its Charm moved first under either ability, Showdown's own board was identical in both arms
+ * over 1611 leaves, and the row read INERT. Read off the handler rather than off a name, so any ability
+ * whose `onModifyPriority` names the Status category is refused the same way. */
+function priorityLiftsStatus(sp) {
+  const ab = dex.abilities.get(idOf(carrierAbility(sp) || ''));
+  return !!(ab && typeof ab.onModifyPriority === 'function' && /Status/.test(String(ab.onModifyPriority)));
+}
+/* THE ORDER READ WITHOUT A KO — 2026-09-11 (ENGINE 6.26.0). `speedFlipFoe` needs the holder to kill the
+ * foe outright, which is what hides a speed multiplier on a carrier that learns no such hit. The order is
+ * just as visible without a death: the foe clicks a drop of the stat the holder's hit is thrown off, the
+ * holder hits the foe back, and the multiplier decides whether that hit lands BEFORE the drop (full power)
+ * or AFTER it. The foe stands at 4x HP in both arms, so its HP after turn 1 is the leaf — and on this
+ * file's crit-free corner a -2 hit cannot come out equal to a +0 one. */
+function speedOrderFoe(holderSp, mult) {
+  if (!DROP_MOVE) return null;
+  const spd = s => flatL50(s.baseStats).sp;
+  const h = spd(holderSp), after = Math.floor(h * mult);
+  for (const F of CANDIDATES) {
+    if (F.id === holderSp.id || !buildableSpecies(F.id) || !carrierAbility(F) || priorityLiftsStatus(F)) continue;
+    const f = spd(F);
+    if (!(mult > 1 ? (h < f && f < after) : (after < f && f < h))) continue;
+    const hit = neutralHit2(F.id, [], holderSp.id);
+    if (!hit || hit.category === 'Status') continue;
+    /* it must not kill the 4x-HP foe even at full power, or the leaf would be a faint in one arm only */
+    if (maxRoll(holderSp, hit, F) >= flatL50(F.baseStats).hp * 4 * 0.9) continue;
+    const stat = hit.category === 'Special' ? 'spa' : 'atk';
+    const fDrop = DROP_SET.moves.concat(DROP_POOL).find(m => (m.boosts[stat] || 0) < 0 && learnsLegally(F.id, m.id));
+    if (!fDrop) continue;
+    return { foe: F, holderMove: hit, foeMove: fDrop, ability: carrierAbility(F) || '',
+             speeds: h + ' -> ' + after + ' against ' + f };
+  }
+  return null;
+}
 function speedFlipFoe(holderSp, mult) {
   if (!DROP_MOVE) return null;
   const spd = s => flatL50(s.baseStats).sp;
   const h = spd(holderSp), after = Math.floor(h * mult);
   for (const F of CANDIDATES) {
-    if (F.id === holderSp.id || !buildableSpecies(F.id) || !carrierAbility(F)) continue;
+    if (F.id === holderSp.id || !buildableSpecies(F.id) || !carrierAbility(F) || priorityLiftsStatus(F)) continue;
     const f = spd(F);
     if (!(mult > 1 ? (h < f && f < after) : (after < f && f < h))) continue;
     /* ROADMAP #318 (6.24.0): the holder's KO is one it LEARNS, and the foe's drop is one the foe learns — and
@@ -6183,7 +6220,6 @@ const RULES = [
     if (!a) return null;
     const chance = +(a.chance == null ? 1 : a.chance);
     if (!(chance > 0) || chance >= 1) return null;
-    if (!MIDE.ok) return cannot('the live-die lane cannot run: ' + MIDE.why);
     if (a.volatile !== 'flinch') return cannot('the secondary it adds is `'
       + (a.volatile || a.status || 'nothing named') + '`, and this staging can only read a flinch — '
       + 'which it reads through the victim\'s missing click rather than as a volatile');
@@ -6219,28 +6255,29 @@ const RULES = [
       return null; };
     const foesB = foes.filter(f => !!backFor(f));
     const back = foesB.length ? backFor(foesB[0]) : null;
+    /* THE DIE IS PINNED, NOT SEARCHED — 2026-09-11 (ENGINE 6.26.0).
+     *
+     * The rule used to predict the `middle` arm's addressed `sec` die and search (click, turn) pairs for
+     * one under the ability's chance. On Garbodor — the only legal carrier — no secondary-free click it
+     * learns came up under 10% inside both clicks' PP (lowest 0.0632, on turn 16, past the PP of the pair
+     * that reached it), so the row read COULD-NOT-STAGE and this rule lost its one red demonstration.
+     * A COULD-NOT-STAGE IS A CLAIM ABOUT THE FIXTURE. `bottom-tie-first` is the driver's corner on which
+     * "every secondary fires" (engine/game_differential.js, the arm's own `what`), in BOTH engines off one
+     * pinned die, so the flinch this ability adds lands on turn 1 by construction and there is no coin to
+     * look for — which is also the arm engine/stage_planner.js assigns this entity.
+     *
+     * WHAT THE CORNER COSTS, SAID RATHER THAN HIDDEN: a secondary that always fires cannot tell 10% from
+     * 30%. The question this row asks is whether the secondary is ADDED at all, and the break below (drop
+     * the tag) is exactly that question. The victim is still strictly slower and throws a secondary-free
+     * contact click back, so a flinch that landed is an HP leaf on the carrier. */
+    const PIN_ARM = 'bottom-tie-first';
     let pick = null;
-    const tried = [];
-    /* THE CARRIER'S CLICK IS NOW A MOVE IT LEARNS (ROADMAP #318, 6.24.0), AND THE WINDOW IS WIDER FOR IT.
-     * This block used to carry NO learnset filter, with the reason that the roster builds boards, not teams —
-     * and that exception was one of the 43 refused pairs the #318 probe counts (Garbodor never learned
-     * Dragon Claw). Its own measurement stands: Garbodor legally clicks one of the table's nine secondary-free
-     * delivery moves, ten dice, lowest 0.3853 against a 10% coin. `clicks` is now every secondary-free
-     * delivery move it learns, not the table's, and when no coin comes up inside LIVE_RESIDUAL_TURNS the
-     * search runs on to sixteen turns — the script repeats the click until the chosen turn, at 8x HP. */
-    const COIN_TURNS = Math.max(LIVE_RESIDUAL_TURNS, 16);
     if (back && foesB.length) {
-      for (let tn = 1; tn <= COIN_TURNS && !pick; tn++) {
-        for (const mv of clicks) {
-          const f = foesB.find(x => dex.getImmunity(mv.type, x.types) !== false);
-          if (!f) continue;
-          const die = midDie(tn, 'sec', mv.id, 'p10', 0);
-          tried.push({ mv, turn: tn, die });
-          /* and inside both clicks' PP: the script repeats each once a turn up to the chosen turn, and the
-           * first wider run chose turn 16 and ran Ariados's Smart Strike dry (`...is disabled`) */
-          const bk = backFor(f);
-          if (die < chance && bk && tn <= Math.min(mv.pp || 0, bk.pp || 0)) { pick = { foe: f, mv, back: bk, turn: tn, die }; break; }
-        }
+      for (const mv of clicks) {
+        const f = foesB.find(x => dex.getImmunity(mv.type, x.types) !== false);
+        if (!f) continue;
+        const bk = backFor(f);
+        if (bk && (mv.pp || 0) >= 1 && (bk.pp || 0) >= 1) { pick = { foe: f, mv, back: bk }; break; }
       }
     }
     if (!back) return cannot('no neutral 100-accuracy physical CONTACT click exists for the victim to '
@@ -6248,18 +6285,16 @@ const RULES = [
     if (!foes.length) return cannot('no legal buildable body is BOTH strictly slower than ' + carSp.name
       + ' (Speed ' + spd(carSp) + ') AND unable to refuse a flinch, so a flinch that landed would '
       + 'either be refused or would cost the victim a click it had already taken');
-    if (!pick) return cannot(noCoinWhy(tried, chance, pretty(e.id)));
-    return stageAbility(e, C, { hpA: 8, hpB: 8, moves: [pick.mv.id], arm: LIVE_ARM,
-      coin: [MIDE.seed, pick.turn, 'sec', pick.mv.id, 'p10', 0].join('|'),
-      note: 'the CARRIER clicks ' + pick.mv.name + ' at ' + pick.foe.name + ' on turn(s) 1..' + pick.turn
-          + ' and ' + pick.foe.name + ' (Speed ' + spd(pick.foe) + ' against ' + spd(carSp)
-          + ', so it always moves second) clicks ' + pick.back.name + ' back; the added-secondary die `'
-          + [MIDE.seed, pick.turn, 'sec', pick.mv.id, 'p10', 0].join('|') + '` = ' + pick.die.toFixed(4)
-          + ' is below the ' + (chance * 100).toFixed(0) + '% this ability adds, so the flinch is '
-          + 'CHOSEN to land and the victim\'s click is the leaf',
+    if (!pick) return cannot('no secondary-free delivery click ' + carSp.name + ' learns reaches a slower '
+      + 'victim that can throw a contact click back at it');
+    return stageAbility(e, C, { hpA: 8, hpB: 8, moves: [pick.mv.id], arm: PIN_ARM,
+      note: 'the CARRIER clicks ' + pick.mv.name + ' at ' + pick.foe.name + ' on turn 1 and ' + pick.foe.name
+          + ' (Speed ' + spd(pick.foe) + ' against ' + spd(carSp) + ', so it always moves second) clicks '
+          + pick.back.name + ' back; the `' + PIN_ARM + '` corner fires every secondary in both engines, so '
+          + 'the ' + (chance * 100).toFixed(0) + '% flinch this ability adds is PINNED to land and the '
+          + 'victim\'s missing click is the leaf',
       a0: mon(pick.foe.id, '', carrierAbility(pick.foe) || '', [pick.back.id]),
-      script: Array.from({ length: pick.turn },
-                         () => turn([click(pick.back.id, 0), IDLE], [click(pick.mv.id, 0), IDLE])) });
+      script: [turn([click(pick.back.id, 0), IDLE], [click(pick.mv.id, 0), IDLE])] });
   } },
 
 /* ---- 8. AN ABILITY THAT JUMPS ITS OWN PRIORITY BRACKET BY CHANCE --------------------------------
@@ -7159,12 +7194,28 @@ const RULES = [
     let flip = null;
     const C = abilityCarrier(e, sp => idOf(sp.id) !== idOf(set.species)
       && !!(flip = speedFlipFoe(sp, mult)));
-    if (!C) return cannot(noCarrierWhy(e, 'has a foe in this format whose Speed sits strictly between '
-      + 'its own and its x' + mult + ' Speed AND whom it can kill outright — without that pair the '
-      + 'multiplier changes no leaf of the board and the entry would read INERT'));
+    if (!C) {
+      /* NO KO IN THE WINDOW — READ THE ORDER WITHOUT ONE (6.26.0; see `speedOrderFoe`). */
+      const C2 = abilityCarrier(e, sp => idOf(sp.id) !== idOf(set.species) && !!speedOrderFoe(sp, mult));
+      if (!C2) return cannot(noCarrierWhy(e, 'has a foe in this format whose Speed sits strictly between '
+        + 'its own and its x' + mult + ' Speed AND that either dies to one of its hits or throws back a drop '
+        + 'of the stat its hit uses — without one of those the multiplier changes no leaf of the board'));
+      const ord = speedOrderFoe(C2.sp, mult);
+      return stageAbility(e, C2, { hpA: 4, hpB: 1, moves: [ord.holderMove.id],
+        note: set.ability + ' on the partner raises ' + W[0] + ' at boundary 0; ' + ord.speeds + '. No body '
+            + 'the carrier can kill sits in that window, so the order is read without a KO: ' + ord.foe.name
+            + ' (' + ord.ability + ', 4x HP) clicks ' + ord.foeMove.name + ' at the carrier and the carrier '
+            + 'clicks ' + ord.holderMove.name + ' back — the x' + mult + ' decides whether that hit lands '
+            + 'before the drop or after it, and the foe\'s HP is the leaf',
+        a0: mon(ord.foe.id, '', ord.ability, [ord.foeMove.id]),
+        b1: mon(set.species, '', set.ability, [INERT]),
+        script: [turn([click(ord.foeMove.id, 0), IDLE], [click(ord.holderMove.id, 0), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] });
+    }
     flip = speedFlipFoe(C.sp, mult);
     return stageAbility(e, C, { hpA: 1, hpB: 1, moves: [flip.holderMove.id],
       note: set.ability + ' on the partner raises ' + W[0] + ' at boundary 0; ' + flip.speeds
+          + ' (' + flip.foe.name + ', ' + flip.ability + ')'
           + ', the carrier\'s ' + flip.holderMove.name + ' kills outright and the foe\'s click is '
           + flip.foeMove.name + ' — so the x' + mult + ' decides whether that drop ever lands',
       a0: mon(flip.foe.id, '', flip.ability, [flip.foeMove.id]),

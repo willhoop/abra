@@ -9262,18 +9262,21 @@ const residualClockPlacement = () => {
  * cannot be seen is a drain that silently moves below `|upkeep|` -- the exact shape of a working
  * feature. It is empty on this build and `residualFollowerReport()` prints the whole split. */
 const RESIDUAL_AFTER_PERISH = (() => {
-  const out = { clocks: [], handlerAbility: new Set(), handlerItem: new Set(), alwaysExpires: [] };
+  const out = { clocks: [], handlerAbility: new Set(), handlerItem: new Set(), alwaysExpires: [],
+                handlerOrder: new Map(), perishOrder: Infinity };
   let rows = null;
   try { rows = require('../data/residual-order.json').rows; }
   catch (e) { rows = null; MEDFAILS.residualFollowerTableMissingWhy = String((e && e.message) || e); }
   const perish = (rows || []).find(r => r.id === 'perishsong' && r.site === 'volatile');
   if (!perish) { MEDFAILS.residualFollowerTableMissing = 1; return out; }
+  out.perishOrder = perish.order;
   for (const r of rows) {
     const after = r.order === null || (perish.order !== null && r.order !== null && r.order > perish.order)
       || (r.order === perish.order && r.subOrder > perish.subOrder);
     if (!after || r === perish) continue;
     if (r.route === 'duration' && r.duration === 1) { out.alwaysExpires.push(r.id); continue; }
-    if (r.route === 'handler') { (r.ns === 'item' ? out.handlerItem : out.handlerAbility).add(r.id); continue; }
+    if (r.route === 'handler') { (r.ns === 'item' ? out.handlerItem : out.handlerAbility).add(r.id);
+      out.handlerOrder.set(r.ns + ':' + r.id, r.order); continue; }
     out.clocks.push({ id: r.id, site: r.site });
   }
   return out;
@@ -9311,6 +9314,142 @@ const residualFollowerReport = () => ({
   alwaysExpires: RESIDUAL_AFTER_PERISH.alwaysExpires.slice().sort(),
   unmapped: MEDFAILS.residualFollowerUnmapped || '',
 });
+/* WIRE 141 / WIRE 142 -- THE HUNGER SWITCH FLIP, EXTRACTED 2026-09-11 (6.26.0, ROADMAP #601) so the
+ * zombie road (`residualZombieStep`) runs the same flip rather than a copy. The derivation is the
+ * comment block at the walk's call site, unchanged. */
+function formeCycleResidualStep(m){
+  const _fc=TAGS.param('ability',m.ability,'formeCycleResidual');
+       if(_fc&&Array.isArray(_fc.alternates)&&_fc.alternates.length===2){
+         const _keys=_fc.alternates.map(x=>pasteKey(x)||String(x).toLowerCase().replace(/[^a-z0-9]/g,'-'));
+         const _at=_keys.indexOf(m.name);
+         /* NOT ONE OF THE PAIR: a body carrying the ability through a Skill Swap or a Trace, which the
+          * handler's own `baseSpecies !== 'Morpeko'` guard refuses. Silent by design -- there is
+          * nothing to flip and nothing went wrong. */
+         if(_at>=0){
+           const _to=_keys[1-_at], _toName=_fc.alternates[1-_at];
+           /* WIRE 142 -- THE BODY RECORDS WHAT IT WAS BEFORE THE FIRST FLIP, AND THAT IS THE WHOLE
+            * OF THE REVERT. `Pokemon#formeChange` takes an `isPermanent` flag; Hunger Switch passes
+            * NOTHING (data/abilities.ts:1891 `pokemon.formeChange(targetForme)`), so `baseSpecies` is
+            * untouched and `clearVolatile`'s closing `this.setSpecies(this.baseSpecies)`
+            * (sim/pokemon.ts:1564) puts Morpeko-Hangry back to Morpeko the moment it leaves the
+            * field. This engine kept the flipped name on the bench, and the cost was not cosmetic:
+            * a benched body named `morpeko-hangry` is a body NOTHING CAN ASK FOR BY ITS SPECIES,
+            * which is why nine of the game differential's `event missing from medicham2` causes are
+            * one missing `|switch|` line each. See tests/test-switch-back-renamed.js, arm
+            * `hungerswitch`.
+            *
+            * STAMPED ONCE, WITH THE NAME AS IT STANDS BEFORE THE FIRST FLIP -- `_keys[_at]` IS
+            * `m.name`. Stamping on every flip would record `morpeko-hangry` as the base on the
+            * return leg and revert the body to the wrong half of the pair from turn 2 onward, which
+            * is exactly the mistake WIRE 141's own header warns about for the flip itself.
+            *
+            * THE METHOD IS RECORDED WITH IT rather than re-derived at the exit. The revert has to
+            * undo whichever branch below actually ran, and by then the ability may have been Skill
+            * Swapped away -- reading `TAGS.param` again at switch-out would silently decline to
+            * revert a body that was genuinely flipped. */
+           /* M3, 2026-09-04 -- THROUGH `stampTempForme` NOW, WHICH IS THE SAME FOUR LINES THIS BLOCK
+            * used to hold inline. The Stance Change door needed them too and did not have them, so
+            * the rule lived in exactly one of its two call sites. `_keys[_at]` IS `m.name` here (it
+            * is the entry the lookup matched), which is what the helper stamps. */
+           stampTempForme(m,(_fc.sameStats&&_fc.sameTypes)?'rename':'swap',_fc.alternates[_at]);
+           /* THE RENAME IS TRIED FIRST, AND THAT ORDER IS THE CARE IN THIS BLOCK RATHER THAN AN
+            * OVERSIGHT. `formeSwap` REBUILDS the body from the mon table, which replaces whatever stat
+            * line this body is carrying with the dataset's own -- correct for Palafin (two different
+            * formes, two different stat lines) and CORRUPTING here, because a Morpeko flips every turn
+            * and one row exists while the other does not. A body handed a flat level-50 line by a
+            * harness would be silently re-spread on the flip back and every damage roll after it would
+            * be wrong. When the artifact states the two formes are identical in everything modelled,
+            * the flip IS a rename and rebuilding is the wrong operation even where a row exists. */
+           if(_fc.sameStats&&_fc.sameTypes){
+             m.name=_to;
+             weightFollowsForme(m);
+             MEDSEEN.formeRenamedNoRow++;
+             MEDSEEN.formeCycled++;
+             /* the RENAME branch of the same temporary flip -- see formeSwap's note. */
+             if(TR)TR.formechange(m,_to);
+           } else if(monRow(_to)){
+             formeSwap(m,_toName,'formeCycleResidual');
+             MEDSEEN.formeCycled++;
+           } else {
+             MEDFAILS.formeCycleNoRow++;
+             if(!MEDFAILS.formeCycleNoRowFirst)MEDFAILS.formeCycleNoRowFirst=m.ability+' -> '+_toName;
+           }
+         }
+       }
+}
+/* ==== ROADMAP #601, 2026-09-11 (6.26.0) -- A BODY THE PERISH CLOCK ZEROED IS NOT `fainted` UNTIL THE DRAIN ====
+ *
+ * `Battle#fieldEvent` skips a handler only when its holder is `fainted` (sim/battle.ts:512), and that flag
+ * is written INSIDE `faintMessages` (sim/battle.ts:2561), not by the damage. The perish expiry `continue`s
+ * past the drain at :565 (:515-524), so the body it zeroed keeps every LATER residual handler until the
+ * next handler that does not expire reaches :565 -- its own, if it holds one. This engine sets `fainted`
+ * at `queueFaint`, so the walk skipped them and wrote the `|faint|` where the authority writes the
+ * follower's line. `residualZombie` is the reader for that window: a body still in the faint queue.
+ *
+ * WHICH OF THOSE HANDLERS ACT ON A ZERO-HP BODY, READ OFF EACH HANDLER (the legal members of
+ * RESIDUAL_AFTER_PERISH; no Champions override of any of them):
+ *   Hunger Switch   `formeChange`, no hp guard (data/abilities.ts:1888-1892)          -> runs, in the walk
+ *   Uproar          `-start ... [upkeep]`, no hp guard (data/moves.ts:20230-20239)     -> runs, at the foot
+ *   Speed Boost, Moody, Opportunist   reach `boost`, which returns on `!target?.hp` (sim/battle.ts:2026)
+ *   Cud Chew, Harvest                 guard `pokemon.hp` themselves (Harvest throws its coin first; the
+ *                                     dice are addressed, so an unmatched draw moves no other die)
+ *   White Herb                        `useItem` refuses `!this.hp` (sim/pokemon.ts:1817)
+ *   Pickup                            NO hp guard -- and this engine models no Pickup at all, live or
+ *                                     dead, so there is nothing to run. A declared gap, not a skip.
+ * EVERY ONE OF THEM STILL COUNTS FOR THE DRAIN: the handler runs and :565 follows it, whether it did
+ * anything or not. That is `residualFollowerDrainAt`, and it serves live bodies too -- the drain lands
+ * after the FIRST follower in the walk, not at the foot, so a zombie behind a live follower is already
+ * `fainted` by the time its own handler comes up, exactly as upstream.
+ *
+ * `MEDI_ZOMBIE_SKIPS_RESIDUAL=1` restores the engine that skipped them (and counted every corpse as a
+ * follower); `MEDI_FOLLOWER_COUNTS_CORPSES=1` restores the corpse count alone, for attribution.
+ * tests/probe_upkeep_lines.js --only zombie is the instrument. */
+const ZOMBIE_SKIPS_RESIDUAL = (typeof process !== 'undefined' && process.env
+  && process.env.MEDI_ZOMBIE_SKIPS_RESIDUAL === '1');
+if (ZOMBIE_SKIPS_RESIDUAL) MEDFAILS.zombieSkipsResidualRestored = 1;
+const FOLLOWER_COUNTS_CORPSES = (typeof process !== 'undefined' && process.env
+  && process.env.MEDI_FOLLOWER_COUNTS_CORPSES === '1');
+if (FOLLOWER_COUNTS_CORPSES) MEDFAILS.followerCountsCorpsesRestored = 1;
+function residualZombie(m) {
+  return !ZOMBIE_SKIPS_RESIDUAL && !!m && !!m.fainted && _FAINTQ.indexOf(m) >= 0;
+}
+/* does this body hold a handler-route follower (ability or item) at exactly this residual order? */
+function holdsFollowerHandlerAt(m, order) {
+  if (!m) return false;
+  const ab = String(m.ability || '').replace(/[^a-z0-9]/g, '');
+  if (RESIDUAL_AFTER_PERISH.handlerAbility.has(ab) && RESIDUAL_AFTER_PERISH.handlerOrder.get('ability:' + ab) === order) return true;
+  const it = String(m.item || '').replace(/[^a-z0-9]/g, '');
+  if (RESIDUAL_AFTER_PERISH.handlerItem.has(it) && RESIDUAL_AFTER_PERISH.handlerOrder.get('item:' + it) === order) return true;
+  return false;
+}
+/* `fieldEvent`'s :565 after a handler that did not expire. True when it paid the queue. */
+function residualFollowerDrainAt(m, order) {
+  if (ZOMBIE_SKIPS_RESIDUAL || !faintQueueOwed() || !holdsFollowerHandlerAt(m, order)) return false;
+  drainFaints('residualFollower');
+  return true;
+}
+/* THE ZOMBIE'S OWN WALK HANDLERS. Only the forme cycle acts on a zero-HP body (see the table above).
+ * The handler reads the forme the body DIED in, because `clearVolatile` has not run upstream yet; this
+ * engine's `noteFaint` already put the base back at the HP transition, so the name is restored for the
+ * handler and the silent revert is paid again after it -- which is the drain's own
+ * `clearVolatile(false)` -> `setSpecies(this.baseSpecies)` (sim/pokemon.ts `clearVolatile`, last line). */
+function residualZombieStep(m, G) {
+  MEDSEEN.residualZombieVisited = (MEDSEEN.residualZombieVisited | 0) + 1;
+  if (!G.has('forme')) return;
+  const fc = TAGS.param('ability', m.ability, 'formeCycleResidual');
+  if (!fc) return;
+  if (!(fc.sameStats && fc.sameTypes)) {
+    /* a stat-changing cycle on a corpse would need the swap road and a rebuild; none is legal today */
+    MEDFAILS.residualZombieFormeUnmodelled = (MEDFAILS.residualZombieFormeUnmodelled | 0) + 1;
+    return;
+  }
+  const was = m._nameAtQueue;
+  if (was && was !== m.name) { m.name = was; weightFollowsForme(m); }
+  const n0 = MEDSEEN.formeCycled | 0;
+  formeCycleResidualStep(m);
+  if ((MEDSEEN.formeCycled | 0) > n0) MEDSEEN.residualZombieFormeCycled = (MEDSEEN.residualZombieFormeCycled | 0) + 1;
+  revertTempFormeOnLeave(m, 'faintZombieFormeRevert');
+}
 /* DOES ANYTHING RUN AFTER THE LAST PERISH EXPIRY? Asked at the foot of the clock walk, which is where
  * the authority's walk has just finished; a `true` means the queue is paid there and a `false` means
  * it is owed to the tail of `runAction`, below `|upkeep|`.
@@ -9321,7 +9460,14 @@ const residualFollowerReport = () => ({
  * Pickup, Protect counter or wind-up is still in the list. This engine sets `fainted` at the state
  * transition (see `queueFaint`), so filtering on it here would be a divergence rather than a match. */
 function residualFollowerRuns(field, sfA, sfB, actA, actB) {
-  const bodies = [...(actA || []), ...(actB || [])].filter(Boolean);
+  /* ROADMAP #601 (6.26.0) -- CORRECTED, AND THE PARAGRAPH ABOVE IS HALF RIGHT. A body the perish
+   * zeroed THIS walk still counts, because it is not `fainted` upstream yet. A CORPSE WHOSE LINE IS
+   * ALREADY WRITTEN -- knocked out earlier in the turn, or by an inline residual chip -- IS `fainted`
+   * upstream (sim/battle.ts:2561 ran for it), and `fieldEvent` skips every handler it holds
+   * (sim/battle.ts:512). Counting it read a follower the authority's walk does not have, and moved the
+   * perish drain above `|upkeep|`. The zombie is the queue's member; the corpse is not. */
+  const _old = FOLLOWER_COUNTS_CORPSES || ZOMBIE_SKIPS_RESIDUAL;
+  const bodies = [...(actA || []), ...(actB || [])].filter(m => m && (_old || !m.fainted || _FAINTQ.indexOf(m) >= 0));
   for (const m of bodies) {
     const ab = String(m.ability || '').replace(/[^a-z0-9]/g, '');
     if (RESIDUAL_AFTER_PERISH.handlerAbility.has(ab)) return true;
@@ -10397,7 +10543,7 @@ const residualShadowProbe=()=>({ list:_RES_SHADOW_LIST?_RES_SHADOW_LIST.map(e=>(
                                  always:!!RESIDUAL_SHADOW_ALWAYS,
                                  off:!!RESIDUAL_SHADOW_OFF, unread:RESIDUAL_SHADOW_VOL_UNREAD.slice() });
 residualShadowProbe.reset=()=>{ _RES_SHADOW_LOG.length=0; };
-function residualExpireAt(order,field,sfA,sfB,actA,actB){
+function residualExpireAt(order,field,sfA,sfB,actA,actB,wiped){
   if(!RESIDUAL_EXPIRY.size)return;
   const jobs=[];
   const at=(id)=>{const r=RESIDUAL_EXPIRY.get(id);
@@ -10412,10 +10558,11 @@ function residualExpireAt(order,field,sfA,sfB,actA,actB){
       const _sb=TAGS.param('move',_id,'sideBuff');
       if(!screenCat(_id)&&!_sb)continue;
       push(_id,()=>{
-        if(!(sf.sc[_id]>0))return;
+        if(!(sf.sc[_id]>0))return false;
         MEDSEEN.residualExpiryTicked++;
         if(--sf.sc[_id]<=0){delete sf.sc[_id];MEDSEEN.residualExpiryEnded++;
-          if(TR)TR.sendSide(sf.side==='A'?'p1':'p2',(_sb&&_sb.startsAs)||_id);}
+          if(TR)TR.sendSide(sf.side==='A'?'p1':'p2',(_sb&&_sb.startsAs)||_id);return false;}
+        return true;
       },'side:'+sf.side+':'+_id);
     }
   }
@@ -10423,15 +10570,17 @@ function residualExpireAt(order,field,sfA,sfB,actA,actB){
    * jobs at one published subOrder rather than a member of the bag above. The representation is
    * ROADMAP #81 WIRE 8's and is left alone; what moves is WHEN it is spent. */
   const tw=(k,who,S)=>push('tailwind',()=>{
-    if(!(field[k]>0))return;
+    if(!(field[k]>0))return false;
     MEDSEEN.residualExpiryTicked++;
-    if(--field[k]<=0){MEDSEEN.residualExpiryEnded++;if(TR)TR.sendSide(who,'Tailwind');}
+    if(--field[k]<=0){MEDSEEN.residualExpiryEnded++;if(TR)TR.sendSide(who,'Tailwind');return false;}
+    return true;
   },'side:'+S+':tailwind');
   tw('twA','p1','A'); tw('twB','p2','B');
   const fieldClock=(id,k,name,after)=>push(id,()=>{
-    if(!(field[k]>0))return;
+    if(!(field[k]>0))return false;
     MEDSEEN.residualExpiryTicked++;
-    if(--field[k]<=0){MEDSEEN.residualExpiryEnded++;if(TR)TR.fend(name);if(after)after();}
+    if(--field[k]<=0){MEDSEEN.residualExpiryEnded++;if(TR)TR.fend(name);if(after)after();return false;}
+    return true;
   },'pw:'+id);
   fieldClock('trickroom','tr','Trick Room',null);
   fieldClock('gravity','gravity','Gravity',null);
@@ -10457,11 +10606,12 @@ function residualExpireAt(order,field,sfA,sfB,actA,actB){
    * artifact cannot place stamps a failure instead of doing nothing. */
   const _tid=residualTerrainKey(field.terrain);
   if(_tid)push(_tid,()=>{
-    if(!(field.terrainT>0))return;
+    if(!(field.terrainT>0))return false;
     const _t0=field.terrain;
     MEDSEEN.residualExpiryTicked++;
     if(--field.terrainT<=0){field.terrain='';MEDSEEN.residualExpiryEnded++;
-      if(TR)TR.terrainEnd(_t0);syncFieldTypes(field,[...actA,...actB]);}
+      if(TR)TR.terrainEnd(_t0);syncFieldTypes(field,[...actA,...actB]);return false;}
+    return true;
   },'terrain:'+_tid);
   if(!jobs.length)return;
   /* SUBORDER FIRST, ALWAYS. The published position decides the stage and the shadow rank only ever
@@ -10479,7 +10629,18 @@ function residualExpireAt(order,field,sfA,sfB,actA,actB){
     }
     if(jobs.map(j=>j.key).join('|')!==_before.join('|'))MEDSEEN.residualShadowTieReordered++;
   } else jobs.sort((a,b)=>a.sub-b.sub);
-  for(const j of jobs)j.fn();
+  /* ROADMAP #601 (6.26.0) -- A SIDE OR FIELD CLOCK THAT SURVIVES ITS DECREMENT FALLS THROUGH TO
+   * `fieldEvent`'s :565 and pays the faint queue there; one that expires `continue`s past it
+   * (sim/battle.ts:515-524). The first survivor drains, and a side wiped by that drain ends the walk
+   * on the spot (`if (this.ended) return`, :566) -- the caller breaks the turn on 'ended'. */
+  for(const j of jobs){
+    const _surv=j.fn();
+    if(_surv===true&&!ZOMBIE_SKIPS_RESIDUAL&&faintQueueOwed()){
+      drainFaints('residualFollower');
+      MEDSEEN.residualFollowerDrainClock=(MEDSEEN.residualFollowerDrainClock|0)+1;
+      if(wiped&&wiped())return 'ended';
+    }
+  }
 }
 function effWeight(m){
   if(!m||!m.wt)return m&&m.wt;
@@ -26018,6 +26179,7 @@ function faintLineOut(m){ if(m)m._faintOut=true; if(TR)TR.faint(m); }
  * shared and nothing more. */
 function queueFaint(m,site){
   if(!m)return false;
+  if(_FAINTQ.indexOf(m)<0)m._nameAtQueue=m.name;   /* ROADMAP #601 -- see residualZombieStep */
   m.curHP=0; m.fainted=true; noteFaint(m);
   /* 2026-08-26 -- THE TWO-TURN CLOCK DIES WITH THE BODY. `faintMessages()` calls
    * `pokemon.clearVolatile(false)` (sim/battle.ts), so a corpse holds no `twoturnmove` in the
@@ -26053,6 +26215,10 @@ function drainFaints(where){
      this one never does. */
   else if(where==='residualBodyStep')
     MEDSEEN.faintDrainResidualBodyStep=(MEDSEEN.faintDrainResidualBodyStep|0)+1;
+  /* ROADMAP #601 (6.26.0) -- the drain the FIRST follower after a perish expiry performs, at its own
+     order in the walk, at a surviving side/field clock, or at a surviving Uproar. */
+  else if(where==='residualFollower')
+    MEDSEEN.faintDrainResidualFollower=(MEDSEEN.faintDrainResidualFollower|0)+1;
   return n;
 }
 function lastFaintSeq(arr,ep){ let n=-1;
@@ -44242,7 +44408,19 @@ function battleTurn(S,rng,actsForA,actsForB){
     /* ROADMAP #563 -- the group's ORDER is named, so the bodies holding a handler at it come out in
      * the authority's handler-list order (see `residualOrder`'s header). The per-group re-ask above
      * still governs every body the list does not place. */
-    for(const m of residualOrder(actA,actB,field,{order:RESIDUAL_GROUPS[_gi].order})){if(!m||m.fainted||m.curHP<=0)continue;
+    for(const m of residualOrder(actA,actB,field,{order:RESIDUAL_GROUPS[_gi].order})){
+      /* ROADMAP #601 (6.26.0) -- a body the perish expiry zeroed is still in the authority's handler
+       * list until the drain, so it is visited in the groups AFTER the expiry -- see `residualZombie`. */
+      const _zb=RESIDUAL_GROUPS[_gi].order>RESIDUAL_AFTER_PERISH.perishOrder&&residualZombie(m);
+      if(!m||((m.fainted||m.curHP<=0)&&!_zb))continue;
+      if(_zb){
+        residualZombieStep(m,_G);
+        if(residualFollowerDrainAt(m,RESIDUAL_GROUPS[_gi].order)&&sideWiped(S)){
+          MEDSEEN.turnEndedSideWipedMidGroup++;MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedInResidual++;
+          break _TURN;
+        }
+        continue;
+      }
       MEDSEEN.residualStepsRun+=_Gn;
       /* 2026-09-07 -- DID THIS BODY'S HANDLER TAKE THE DURATION-EXPIRY BRANCH? `fieldEvent`'s expiry
        * branch `continue`s PAST `faintMessages()` (sim/battle.ts:516-524), so a side wiped by an
@@ -44352,64 +44530,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * flipping for a TERASTALLIZED body (`stopsWhenTerastallized` is in the tag). This engine models
        * no Terastallization at all, so there is no field to test; that is a declared gap, not a
        * check that was forgotten. */
-      if(_G.has('forme')){const _fc=TAGS.param('ability',m.ability,'formeCycleResidual');
-       if(_fc&&Array.isArray(_fc.alternates)&&_fc.alternates.length===2){
-         const _keys=_fc.alternates.map(x=>pasteKey(x)||String(x).toLowerCase().replace(/[^a-z0-9]/g,'-'));
-         const _at=_keys.indexOf(m.name);
-         /* NOT ONE OF THE PAIR: a body carrying the ability through a Skill Swap or a Trace, which the
-          * handler's own `baseSpecies !== 'Morpeko'` guard refuses. Silent by design -- there is
-          * nothing to flip and nothing went wrong. */
-         if(_at>=0){
-           const _to=_keys[1-_at], _toName=_fc.alternates[1-_at];
-           /* WIRE 142 -- THE BODY RECORDS WHAT IT WAS BEFORE THE FIRST FLIP, AND THAT IS THE WHOLE
-            * OF THE REVERT. `Pokemon#formeChange` takes an `isPermanent` flag; Hunger Switch passes
-            * NOTHING (data/abilities.ts:1891 `pokemon.formeChange(targetForme)`), so `baseSpecies` is
-            * untouched and `clearVolatile`'s closing `this.setSpecies(this.baseSpecies)`
-            * (sim/pokemon.ts:1564) puts Morpeko-Hangry back to Morpeko the moment it leaves the
-            * field. This engine kept the flipped name on the bench, and the cost was not cosmetic:
-            * a benched body named `morpeko-hangry` is a body NOTHING CAN ASK FOR BY ITS SPECIES,
-            * which is why nine of the game differential's `event missing from medicham2` causes are
-            * one missing `|switch|` line each. See tests/test-switch-back-renamed.js, arm
-            * `hungerswitch`.
-            *
-            * STAMPED ONCE, WITH THE NAME AS IT STANDS BEFORE THE FIRST FLIP -- `_keys[_at]` IS
-            * `m.name`. Stamping on every flip would record `morpeko-hangry` as the base on the
-            * return leg and revert the body to the wrong half of the pair from turn 2 onward, which
-            * is exactly the mistake WIRE 141's own header warns about for the flip itself.
-            *
-            * THE METHOD IS RECORDED WITH IT rather than re-derived at the exit. The revert has to
-            * undo whichever branch below actually ran, and by then the ability may have been Skill
-            * Swapped away -- reading `TAGS.param` again at switch-out would silently decline to
-            * revert a body that was genuinely flipped. */
-           /* M3, 2026-09-04 -- THROUGH `stampTempForme` NOW, WHICH IS THE SAME FOUR LINES THIS BLOCK
-            * used to hold inline. The Stance Change door needed them too and did not have them, so
-            * the rule lived in exactly one of its two call sites. `_keys[_at]` IS `m.name` here (it
-            * is the entry the lookup matched), which is what the helper stamps. */
-           stampTempForme(m,(_fc.sameStats&&_fc.sameTypes)?'rename':'swap',_fc.alternates[_at]);
-           /* THE RENAME IS TRIED FIRST, AND THAT ORDER IS THE CARE IN THIS BLOCK RATHER THAN AN
-            * OVERSIGHT. `formeSwap` REBUILDS the body from the mon table, which replaces whatever stat
-            * line this body is carrying with the dataset's own -- correct for Palafin (two different
-            * formes, two different stat lines) and CORRUPTING here, because a Morpeko flips every turn
-            * and one row exists while the other does not. A body handed a flat level-50 line by a
-            * harness would be silently re-spread on the flip back and every damage roll after it would
-            * be wrong. When the artifact states the two formes are identical in everything modelled,
-            * the flip IS a rename and rebuilding is the wrong operation even where a row exists. */
-           if(_fc.sameStats&&_fc.sameTypes){
-             m.name=_to;
-             weightFollowsForme(m);
-             MEDSEEN.formeRenamedNoRow++;
-             MEDSEEN.formeCycled++;
-             /* the RENAME branch of the same temporary flip -- see formeSwap's note. */
-             if(TR)TR.formechange(m,_to);
-           } else if(monRow(_to)){
-             formeSwap(m,_toName,'formeCycleResidual');
-             MEDSEEN.formeCycled++;
-           } else {
-             MEDFAILS.formeCycleNoRow++;
-             if(!MEDFAILS.formeCycleNoRowFirst)MEDFAILS.formeCycleNoRowFirst=m.ability+' -> '+_toName;
-           }
-         }
-       }}
+      if(_G.has('forme'))formeCycleResidualStep(m);
       /* WIRE 31 -- THE SANDSTORM RESIDUAL, WHICH THIS ENGINE DID NOT HAVE AT ALL.
        *
        * FOUND BY CONVERTING A HOLLOW CENSUS PROBE. `weatherChipImmune` read LIVE because the string
@@ -45503,6 +45624,14 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(RESIDUAL_FAINT_AT_GROUP_END)MEDFAILS.residualFaintAtGroupEndRestored=1;
         else drainFaints('residualBodyStep');
       }
+      /* ROADMAP #601 (6.26.0) -- AND A LIVE BODY HOLDING A FOLLOWER HANDLER AT THIS ORDER PAYS THE QUEUE
+       * HERE, which is its own :565, rather than at the foot. Without this a zombie standing behind a
+       * live follower would still run its handler; upstream it is `fainted` by then. */
+      if(RESIDUAL_GROUPS[_gi].order>RESIDUAL_AFTER_PERISH.perishOrder
+         &&residualFollowerDrainAt(m,RESIDUAL_GROUPS[_gi].order)&&sideWiped(S)){
+        MEDSEEN.turnEndedSideWipedMidGroup++;MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedInResidual++;
+        break _TURN;
+      }
     }
     /* 2026-08-22 -- `eachEvent('Update')` HAS EXACTLY TWO POSITIONS IN THE AUTHORITY'S TURN END, AND
      * "AFTER EVERY GROUP" IS NEITHER OF THEM. See `residualUpdatePass` for the derivation; this is
@@ -45530,7 +45659,10 @@ function battleTurn(S,rng,actsForA,actsForB){
      * puts every one of them below every body at the same order. It is called for EVERY group, not
      * only the two that currently hold an expiry, because which orders hold one is the artifact's
      * answer and not this loop's. */
-    residualExpireAt(RESIDUAL_GROUPS[_gi].order,field,sfA,sfB,actA,actB);
+    if(residualExpireAt(RESIDUAL_GROUPS[_gi].order,field,sfA,sfB,actA,actB,()=>sideWiped(S))==='ended'){
+      MEDSEEN.turnEndedSideWiped++;MEDSEEN.turnEndedInResidual++;
+      break _TURN;
+    }
     }
     /* 2026-09-06 -- `stall`'S DURATION IS SPENT HERE, AT THE FOOT OF THE WALK, BECAUSE THAT IS WHERE
      * THE AUTHORITY'S HANDLER SORTS.
@@ -45629,7 +45761,13 @@ function battleTurn(S,rng,actsForA,actsForB){
      * let the other pass drift. */
     const _res=residualOrder(actA,actB,field);
     for(const x of _res){
-      if(!x||x.fainted)continue;
+      /* ROADMAP #601 (6.26.0) -- a zombie's only foot handler that acts on a zero-HP body is Uproar's
+       * `[upkeep]` (data/moves.ts:20230-20239, no hp guard); see `residualZombie`. */
+      const _zx=!!x&&residualZombie(x);
+      if(!x||(x.fainted&&!_zx))continue;
+      if(_zx&&!(x._mtLock&&x._mtLock.vol==='uproar'))continue;
+      /* the decrement survives when more than one turn is left -- upstream that reaches :565 */
+      const _upSurv=!ZOMBIE_SKIPS_RESIDUAL&&!!(x._mtLock&&x._mtLock.vol==='uproar'&&x._mtLock.dur==null&&x._mtLock.left>1);
       /* ROADMAP #81 WIRE 12 -- the tick is unchanged and the number it ticks FROM is not (see the
          `kind==='perish'` branch). The KO at zero is the whole move and nothing in this repo had ever
          asserted that it happens, so it is counted separately from the tick: `perishTicked` at zero
@@ -45670,19 +45808,19 @@ function battleTurn(S,rng,actsForA,actsForB){
          would make every red arm part for the wrong reason. The whole comment above it is the
          derivation of the DEFERRED DRAIN and is unchanged by the move: the tick is in a different
          place, the `queueFaint` and everything below it are not. */
-      if(PERISH_AT_FOOT&&x._perish!=null){x._perish--;MEDSEEN.perishTicked++;if(TR)TR.vstart(x,'perish'+x._perish);
+      if(PERISH_AT_FOOT&&!_zx&&x._perish!=null){x._perish--;MEDSEEN.perishTicked++;if(TR)TR.vstart(x,'perish'+x._perish);
         if(x._perish<=0){MEDSEEN.perishKO++;queueFaint(x,'perish');}}
       /* 2026-08-27 -- YAWN, HEAL BLOCK AND THE THROAT CHOP SILENCE ARE STEPS OF THE WALK NOW
          (`residualClockTick`, at orders 23, 20 and 22). These three lines are what they were and
          run ONLY under `MEDI_ENDTURN_CLOCKS_AT_FOOT=1`, which is the position knob the probe
          beside them attributes with -- a knob that DELETED the mechanic instead of moving it
          would make every red arm part for the wrong reason. */
-      if(ENDTURN_CLOCKS_AT_FOOT&&x._yawn!=null){x._yawn--;if(x._yawn<=0){x._yawn=null;if(TR)TR.vend(x,'move: Yawn');if(!x.status)applyStatus(x,'slp');}}
+      if(ENDTURN_CLOCKS_AT_FOOT&&!_zx&&x._yawn!=null){x._yawn--;if(x._yawn<=0){x._yawn=null;if(TR)TR.vend(x,'move: Yawn');if(!x.status)applyStatus(x,'slp');}}
       /* Heal Block ticks with the other clocks, and 2026-09-04 it ANNOUNCES its lapse here too. The
        * announcement is copied rather than left to the walk on purpose: `MEDI_ENDTURN_CLOCKS_AT_FOOT=1`
        * is a POSITION knob, and a knob that also deleted the `-end` would red the probe beside it for
        * the wrong reason. The `turns + 1` this comment used to describe is gone — see applyHealBlock. */
-      if(ENDTURN_CLOCKS_AT_FOOT&&x._healBlock>0&&--x._healBlock<=0){
+      if(ENDTURN_CLOCKS_AT_FOOT&&!_zx&&x._healBlock>0&&--x._healBlock<=0){
         MEDSEEN.healBlockExpired++;
         if(HEALBLOCK_CLOCK_LONG)MEDFAILS.healBlockClockLongRestored++;
         else if(TR)TR.vend(x,'move: Heal Block');
@@ -45701,14 +45839,14 @@ function battleTurn(S,rng,actsForA,actsForB){
          THE POSITION IS STILL THE DECLARED ONE. `residualExpiryDeferred()` already names
          `throatchop@22` -- this clock ticks in the foot-of-turn block rather than at residual order
          22 -- and that gap is unchanged here. What was missing was the line, not its neighbourhood. */
-      if(ENDTURN_CLOCKS_AT_FOOT&&x._noSound>0&&--x._noSound<=0){MEDSEEN.soundLockEnded++;if(TR)TR.vend(x,'Throat Chop','[silent]');}
+      if(ENDTURN_CLOCKS_AT_FOOT&&!_zx&&x._noSound>0&&--x._noSound<=0){MEDSEEN.soundLockEnded++;if(TR)TR.vend(x,'Throat Chop','[silent]');}
       /* 2026-09-11 -- and the `expiryClock` members (Magnet Rise), for the same reason: the knob moves a
        * POSITION and must not delete the clock it moves. */
-      if(ENDTURN_CLOCKS_AT_FOOT&&x._vol)for(const _ec in RESIDUAL_CLOCK_READER){
+      if(ENDTURN_CLOCKS_AT_FOOT&&!_zx&&x._vol)for(const _ec in RESIDUAL_CLOCK_READER){
         if(RESIDUAL_CLOCK_READER[_ec]!=='expiryClock')continue;
         if(x._vol[_ec]>0&&--x._vol[_ec]<=0)expiryClockEnd(x,_ec);
       }
-      if(CANTUSETWICE_EXEC_REFUSE&&x._noRepeatT>0&&--x._noRepeatT<=0)x._noRepeat=null;
+      if(CANTUSETWICE_EXEC_REFUSE&&!_zx&&x._noRepeatT>0&&--x._noRepeatT<=0)x._noRepeat=null;
       /* WIRE 144 -- THE LOCK-IN CLOCK, AND THE THREE LINES BELOW ARE SHOWDOWN'S RESIDUAL IN ITS OWN
        * ORDER. `Battle#residualEvent` decrements the effect's duration FIRST and calls `end` if it
        * reaches zero, `continue`-ing past `onResidual` when it does:
@@ -45769,6 +45907,10 @@ function battleTurn(S,rng,actsForA,actsForB){
            * The board already agreed; this was the whole of the row's remaining divergence. */
           TR.vstart(x,'Uproar|[upkeep]'); MEDSEEN.uproarUpkeepAnnounced++;
         }
+      }
+      if(_upSurv&&faintQueueOwed()){
+        drainFaints('residualFollower');
+        MEDSEEN.residualFollowerDrainUproar=(MEDSEEN.residualFollowerDrainUproar|0)+1;
       }
     }
     /* 2026-08-24 -- THE CLOCK WALK'S OWN `faintMessages()`. Every death this walk produced is still

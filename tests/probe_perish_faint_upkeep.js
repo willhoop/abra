@@ -19,6 +19,9 @@
  *               The over-fire control: expected to agree.
  *   POOL SHAPE  three bodies perish; the fourth was KO'd earlier in the same turn, so its slot is empty.
  *   POOL + RAIN the pool game's own shape: Drizzle rain up, three perish0, the p2 slot emptied that turn.
+ *   CORPSE      (2026-09-11, ENGINE 6.26.0, ROADMAP #601) the POOL SHAPE with the KO'd body holding a
+ *               residual follower item. The authority skips a `fainted` holder, so nothing follows and
+ *               the faints land below `|upkeep|`. `MEDI_FOLLOWER_COUNTS_CORPSES=1` must turn it RED.
  * The last two are selected ON THE AUTHORITY (a mid-turn faint, then three perish0 in the residual).
  * KNOBS (exist): `MEDI_RESIDUAL_DRAIN_ABOVE_UPKEEP=1` / `MEDI_PERISH_AT_FOOT=1` restore an unconditional
  * drain — BARE must go red under either, which is the green-then-red demonstration for this file.
@@ -101,6 +104,29 @@ ARMS.push({ name: 'POOL + RAIN (the pool game\'s shape)', pool: true, g: play('p
   T([{ m: 'nastyplot' }, { m: 'irondefense' }], [{ m: 'weatherball', t: 1 }, { m: 'swordsdance' }]),
   T([{ m: 'nastyplot' }, { m: 'irondefense' }], [{ m: 'helpinghand' }, { m: 'swordsdance' }]),
   T([{ m: 'thunderbolt', t: 1 }, { m: 'irondefense' }], [{ m: 'helpinghand' }, { m: 'swordsdance' }])]) });
+/* THE CORPSE ARM — 2026-09-11 (ENGINE 6.26.0, ROADMAP #601). The POOL SHAPE again, with the body KO'd
+ * mid-turn HOLDING a residual follower. Its `|faint|` was written at the KO, so the authority has it
+ * `fainted` (sim/battle.ts:2561) and `fieldEvent` skips everything it holds (:512): nothing follows the
+ * perish group and the queue drains BELOW `|upkeep|`. `residualFollowerRuns` counted every body in the
+ * slots, corpse included, and drained above it. The item is DERIVED — a `route: 'handler'` item row that
+ * sorts after `condition:perishsong` in data/residual-order.json and is legal here — never named.
+ * `MEDI_FOLLOWER_COUNTS_CORPSES=1` restores the corpse count and must turn this arm RED. */
+const CORPSE_ITEM = (() => {
+  const rows = require(path.join(ROOT, 'data', 'residual-order.json')).rows;
+  const ps = rows.find(r => r.id === 'perishsong' && r.site === 'volatile');
+  if (!ps) return null;
+  const r = rows.find(x => x.route === 'handler' && x.ns === 'item' && x.order !== null && x.order > ps.order
+    && DX.items.get(x.id).exists && !DX.items.get(x.id).isNonstandard);
+  return r ? DX.items.get(r.id).name : null;
+})();
+if (CORPSE_ITEM) {
+  const B1c = () => { const t = B1(); t[1] = { ...t[1], item: CORPSE_ITEM }; return t; };
+  const badC = [].concat(...B1c().map(problems));
+  if (badC.length) console.log('  corpse arm fixture NOT LEGAL: ' + badC.join('; '));
+  else ARMS.push({ name: 'POOL SHAPE, THE CORPSE HOLDS ' + CORPSE_ITEM + ' (a follower it can no longer run)', pool: true,
+    expectRed: process.env.MEDI_FOLLOWER_COUNTS_CORPSES === '1' || process.env.MEDI_ZOMBIE_SKIPS_RESIDUAL === '1',
+    g: play('pool-corpse', A1(), B1c(), [T([{ m: 'perishsong' }, P], [P, P]), T(boostA(), boostB()), T(boostA(), boostB()), T([{ m: 'nastyplot' }, { m: 'thunderbolt', t: 1 }], boostB())]) });
+} else console.log('  corpse arm NOT STAGED — no legal handler-route item sorts after perishsong in data/residual-order.json');
 
 let bad = 0;
 const ok = (cond, what, detail) => {

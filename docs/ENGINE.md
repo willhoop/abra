@@ -154,18 +154,13 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  883/883 probed mechanics live, 0 missing   (census 2026-09-11 15:14)
+  883/883 probed mechanics live, 0 missing   (census 2026-09-11 17:07)
     the census probes what somebody thought to probe: 296 of 296 in-scope tags carry a probe, 0 carry none (9 of 305
-    tags have no in-scope carrier); 21 mechanics have never fired in the staged harness (all-mechanics-fire.json, 44
+    tags have no in-scope carrier); 21 mechanics have never fired in the staged harness (all-mechanics-fire.json, 52
     min old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-11 14:50)
-    seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
-    the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
-    Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
-    multiHit tag were drawn; 3 were never drawn at all (bonerush, doublehit, tailslap) — never drawn is a SAMPLING
-    gap, not an exclusion.
-    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
-    a differential hit is NOT in the census count above — the census probes what someone thought to probe
+  differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/534442d71183/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "534442d71183".
+    it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     older than its input engine-data.js
@@ -181,9 +176,65 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-11 15:34_
+_stamped 2026-09-11 17:25_
 
 <!-- /GENERATED -->
+
+## #601 FIXED: A PERISH-ZEROED BODY RUNS ITS LATER RESIDUAL HANDLERS. #440'S FOLLOWER WAS A CORPSE, POOL **1 → 0 OF 961**. SAND RUSH AND STENCH STAGED, ABILITIES **137 → 139**, REDS **44 OF 44**
+
+Release `534442d71183`. Gate: `GATE: OPEN — MEDICHAM passes both conditions; nothing is withheld`.
+
+- **#601, made visible first.** `tests/probe_upkeep_lines.js --only zombie` holds the two #601 arms to the authority:
+  each must agree AND the authority's stream must carry the zombie's follower line. RED on `9ec2ab9ad0ef`. The first
+  register publish still left the gate OPEN, because the row's cell read `ENGINE defect` and `roadmapRowSaysBroken`
+  matches `DEFECT` case-sensitively (`saysBroken: false`). Capitalised, it read `GATE: CLOSED — 1 of 9`. No other open
+  row in that register had an uncounted RED.
+- **#601, fixed.** `fieldEvent` skips a holder only when it is `fainted` (`sim/battle.ts:512`), and `faintMessages` sets
+  that flag (`:2561`). So the zeroed body keeps its later handlers until the next non-expiring handler reaches `:565`.
+  `residualZombie` is a body still in `_FAINTQ`. The walk visits it after the perish order: Hunger Switch flips from the
+  forme it died in (`formeCycleResidualStep`, now one function for both roads), and Uproar writes `[upkeep]` at the foot.
+  Only those two act on a zero-HP body, read off each handler: `boost` returns on `!target?.hp` (`sim/battle.ts:2026`)
+  and `useItem` refuses `!this.hp` (`sim/pokemon.ts:1817`). The first follower after the expiry drains, whether a live
+  or zombie handler at its order, a side or field clock that survives, or an Uproar that survives. GREEN on
+  `534442d71183`, RED under `MEDI_ZOMBIE_SKIPS_RESIDUAL=1`. The file's declared arms are gone: 49 arms, 0 not as
+  expected.
+- **#440, named.** `residualFollowerRuns` counted every body in the slots, and a body KO'd earlier in the turn (its line
+  already written) is `fainted` upstream. It now counts a live body or a queued one. Pool, middle arm, 961 games, same
+  coverage block: `9ec2ab9ad0ef` diverged 1 (`|upkeep <> |faint|p1a`), `534442d71183` diverged 0,
+  `MEDI_FOLLOWER_COUNTS_CORPSES=1` diverged 1 on the same cause. `tests/probe_perish_faint_upkeep.js` gained the owed
+  arm: the pool shape with the corpse holding a follower item derived from `data/residual-order.json`. GREEN 5 of 5,
+  RED on that arm under the knob.
+- **Sand Rush.** The foe moved first in BOTH arms. Liepard is the only legal Charm learner in Excadrill's window, and
+  `carrierAbility` handed it Prankster, since `INTERFERES` lists no `onModifyPriority`. `speedFlipFoe` now refuses a foe
+  whose `onModifyPriority` names Status. Floette-Eternal is found, Iron Head KOs, and the row is FIRED-AND-BOARDS-MATCH.
+  `speedOrderFoe` (no KO, the foe's HP is the leaf) exists for a carrier with no KO in its window and is not reached
+  here.
+- **Stench.** Pinned, not searched. `bottom-tie-first` fires every secondary in both engines, so the flinch lands on
+  turn 1: Garbodor's Seed Bomb against Ariados, Smart Strike back. FIRED-AND-BOARDS-MATCH. A secondary that always fires
+  cannot tell 10% from 30%; the row asks whether it is added at all.
+- **Roster on `534442d71183`, `--reds --write`:** items 142, abilities 139, moves 486 FIRED-AND-BOARDS-MATCH, 0 DIFFER,
+  0 DID-NOT-FIRE, reds 18 / 44 / 36 of 18 / 44 / 36. `tests/probe_roster_learnset_refusals.js` 0 refused pairs. Census
+  883 live, 0 missing.
+
+### The hand list
+
+**Leaving it:** THE PERISH `|upkeep|` DRAIN (an older list's first item). Its pool row is gone, and the corpse arm of
+`tests/probe_perish_faint_upkeep.js` carries it.
+
+- **THE #440 CLOSETED DECLARATION MATCHES NOTHING.** `engine/quarantine.js` `DECLARED_DIVERGENCE`. Withdrawal is owed,
+  and it is Will's closet.
+- **`roadmapRowSaysBroken` IS CASE-SENSITIVE ON `DEFECT`.** A lower-case status cell hides a RED marker from the gate.
+  That is `engine/quarantine.js`, not an ENGINE file; it is filed rather than fixed.
+- **A STATUS CELL MAY HOLD NO PIPE, NOT EVEN AN ESCAPED ONE.** `roadmapRowStatusCell` is
+  `/\|\s*([^|]*)\|\s*$/`, and `[^|]` excludes `\|` too, so a `\|faint\|` quoted in the status cell
+  cuts the cell there and a closed row reads open (STALE ROW). #601 and #440 hit it on this pass; their cells
+  now say the protocol lines in words. Same file, same disposition as the item above.
+- **UPROAR STILL TICKS AT THE FOOT, NOT AT ORDER 28.** A live Uproar that is faster than a zombie Morpeko drains before
+  the flip upstream and after it here. This is the declared position gap, and nothing in the pool shows it.
+- **PICKUP ACTS ON A ZERO-HP BODY UPSTREAM** (no hp guard, and `isAdjacent` reads `fainted`). This engine models no
+  Pickup at all.
+- **A `game_differential.js` knob arm with `--out`** (an absolute scratch path) printed its comparison and wrote no
+  artifact, silently.
 
 ## A SURVIVAL CLAMP ANSWERS EACH HIT OF A VOLLEY — #511 FIXED. THE ROSTER'S FIXTURE BODIES LEARN THEIR MOVES — **420 → 43** REFUSED PAIRS, #318 PARTIAL, **22 ROWS HELD BY MEASUREMENT** SO THE ROSTER COMPARES EXACTLY WHAT IT DID. CENSUS **881 → 883 LIVE**. POOL UNMOVED: **0 / 1 / 2 OF 961**. RELEASE `b42b81899631`. 2026-09-11, CHANGELOG 6.22.0
 

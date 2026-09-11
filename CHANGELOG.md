@@ -10,6 +10,31 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.26.0] — 2026-09-11
+
+### Fixed
+- **A body the perish clock has zeroed now runs its later residual handlers until the faint drains (ROADMAP #601).**
+  Upstream, `fieldEvent` skips a handler only when its holder is `fainted`, and `faintMessages` sets that flag, not the
+  damage (`sim/battle.ts:512`, `:2561`). This engine set it at `queueFaint` and skipped them, so Morpeko's Hunger Switch
+  flip and a Noivern's Uproar `[upkeep]` line were missing above the faint. The first follower after the expiry now pays
+  the queue where upstream does. `MEDI_ZOMBIE_SKIPS_RESIDUAL=1` restores the old engine.
+- **A corpse is no longer counted as a residual follower (ROADMAP #440).** `residualFollowerRuns` counted a body whose
+  `|faint|` was already written and moved the perish faints above `|upkeep|`. That was the pinned pool's one remaining
+  protocol divergence: 1 of 961 games is now 0 of 961 on the same sample. `MEDI_FOLLOWER_COUNTS_CORPSES=1` restores it.
+- **ROADMAP #601 was invisible to the gate.** Its status cell said `defect` in lower case, and the open-defect clause
+  matches `DEFECT` case-sensitively, so a RED marker did not count.
+
+### Changed
+- **`tests/roster.js`: Sand Rush and Stench are staged again.** Sand Rush's foe may not carry an ability that lifts its
+  Status click's priority; Prankster had made the staging inert. Stench pins its flinch on the `bottom-tie-first` corner
+  instead of searching for a coin under 10%. Abilities stage 137 → 139 FIRED-AND-BOARDS-MATCH, red demonstrations 43 of
+  43 → 44 of 44.
+- **`tests/probe_upkeep_lines.js --only zombie` is the #601 marker**, and the file's two declared arms are removed.
+  `tests/probe_perish_faint_upkeep.js` gains a corpse arm.
+
+### Notes
+- Release `534442d71183`. Gate: `GATE: OPEN — MEDICHAM passes both conditions; nothing is withheld`.
+
 ## [6.25.0] — 2026-09-11
 
 ### Removed

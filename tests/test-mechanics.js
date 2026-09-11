@@ -34493,7 +34493,7 @@ process.exitCode = red.length ? 1 : 0;
  * nobody made. The engine stamps `MEDFAILS.residualCollapsed` for exactly this — a break that cannot
  * be mistaken for a clean run. Any future switch of the same kind belongs here. A RATCHET REGRESSION
  * IS NOT ONE OF THEM: it is a finding about the probes, and the floor above is what protects it. */
-const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afterFaintPerTargetRestored',
+const DELIBERATE_BREAK = ['residualCollapsed', 'zombieSkipsResidualRestored', 'followerCountsCorpsesRestored', 'volleyReactDrawnRestored', 'afterFaintPerTargetRestored',
                           'statusOneStepRestored', 'perishAtFootRestored',
                           'reactBatchedRestored', 'berryAtApplyRestored',
                           'formeBustInlineRestored', 'eatReactBeforeBerryRestored',
