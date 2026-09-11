@@ -447,7 +447,8 @@ function engine() {
         .reduce((n, k) => n + (+((F.summary[k] || {}).did_not_fire) || 0), 0) : null;
       const age = COVERAGE.artifactAge('all-mechanics-fire.json');
       for (const s of COVERAGE.wrap('the census probes what somebody thought to probe: '
-        + (tc && tc.probed != null ? `${tc.probed} of ${tc.unique} tags carry a probe, ${tc.unprobed.length} carry none`
+        + (tc && tc.probed != null ? `${tc.probed} of ${tc.inScope} in-scope tags carry a probe, ${tc.unprobed.length} carry none`
+                                     + ` (${tc.outOfScope.length} of ${tc.unique} tags have no in-scope carrier)`
                                    : 'tag coverage NOT DERIVED')
         + (nf == null ? '' : `; ${nf} mechanics have never fired in the staged harness`
             + (age ? ` (all-mechanics-fire.json, ${COVERAGE.humanAge(age.ageMs)})` : ''))
@@ -639,10 +640,11 @@ function engine() {
     const tc = COVERAGE.tagCoverage();
     if (!tc || tc.probed == null) say('  tag coverage: NOT DERIVED (engine/coverage.js could not read the tags or the census)');
     else {
-      say(`  tag coverage: ${tc.probed}/${tc.unique} probed, ${tc.unprobed.length} unprobed`
-        + `;  ${tc.withConsumer}/${tc.unique} have an engine consumer, ${tc.unique - tc.withConsumer} have none`);
-      say('    a tag with no consumer is derived and read by nothing — engine/tag_dex.js greps board.js and');
-      say('    medicham2-browser.js for the probe, so this is measured rather than declared.');
+      say(`  tag coverage: ${tc.probed}/${tc.inScope} in-scope probed, ${tc.unprobed.length} unprobed`
+        + `;  ${tc.withConsumer}/${tc.inScope} have an engine consumer on every in-scope row, ${tc.inScope - tc.withConsumer} do not`
+        + `;  ${tc.outOfScope.length} of ${tc.unique} tags have no in-scope carrier`);
+      say('    consumedBy comes from engine/tag_dex.js grepping board.js and medicham2-browser.js for a hint');
+      say('    string, which misses tags looked up by name — so "no consumer" over-states the gap.');
     }
   }
 }

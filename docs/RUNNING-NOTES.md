@@ -69,6 +69,14 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [6.9.0] — 2026-09-11 — the coverage counters count only boards on mechanics that fired, over one derived scope
+
+- **What changed.** `engine/coverage.js`: the boards line counts a board only where the mechanic fired, over the in-scope denominator, with the out-of-scope count printed beside it; a tag is scored on every in-scope row, not its first; both staged lines take their scope from the new `engine/legal_scope.js` (a legal carrier the TeamValidator accepts, mega formes included, sim-injected moves in). `tests/mutation_harness.js` uses the new `engine/tag_lookups.js`, which scans each lookup to its balanced close. `engine/status.js` prints the in-scope tag denominator.
+- **Measured.** Each counter was shown wrong on the previous code first. The boards line had counted 76 boards on mechanics that never fired and divided by 119 mechanics with no legal carrier; the regex missed 7 tags; the consumer check scored first rows only. Exactly one ability outside legal carriers is reachable in play: Simple via Simple Beam, declared in 37 and clicked in 19 of 17,381 pinned games. Detail: `docs/_reports/2026-09-11-coverage-counters.md`.
+- **Supersedes.** The previous boards-compared, fired, tag-consumer and tag-probe lines in `docs/ENGINE.md`, already restamped by the harness batch's run and committed in f7ad7718 — this commit supplies the code that produced them.
+- **Basis.** unchanged.
+- **Owed to the next major.** None. Owed as work: one scope implementation, not two — `engine/legal_scope.js` and `engine/stage_planner.js` must share it.
+
 ## [6.8.2] — 2026-09-11 — eleven register rows closed on evidence already on disk, and seven re-worded so the open-defect clause reads what they say
 
 - **What changed.** `docs/ROADMAP.md` only, eighteen rows. Closed #218 #289 #300 #301 #314 #315 #319 #413 #438 #439 #542, each on a line cited at HEAD, a green verdict already in the register artifact or a read of the committed whole-game differential, each keeping its earlier cell as history. #446 #500 #549 declare NOT A DEFECT in an open cell and none suppresses a live claim; #364 drops the breakage token its own negation carried and asserts nothing; #370 is fixed in code but stays open because its decider, the docs gate, must first run green on its row. The markers on #412 and #440 are demoted to FORMERLY NAMED: one test is green only through its own allowlist, the other instrument exits 0 on any divergence. Detail: `docs/_reports/2026-09-11-register-closures.md`.

@@ -10,6 +10,14 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.9.0] — 2026-09-11
+
+### Changed
+- **The coverage counters stop overstating MEDICHAM's coverage.** Boards are counted only on mechanics
+  that fired and only over mechanics that can occur in the regulation; tags are scored on every
+  in-scope row; scope is decided in one module, `engine/legal_scope.js`, instead of three files that
+  disagreed. Simple, conferred by Simple Beam, is the one ability a carrier-based scope wrongly excluded.
+
 ## [6.8.2] — 2026-09-11
 
 ### Changed

@@ -324,20 +324,64 @@ function clauseScope(clause, cache) {
  * itself on 24 of 292 rows in both directions, so status.js now calls THIS and holds no arithmetic
  * of its own. The gating — whether tags.json is safe to read at all — stays in status.js, because
  * that is a provenance question and not a coverage one. */
+/* EVERY ROW OF A TAG IS SCORED, AND ONLY ROWS AN IN-SCOPE ENTITY CARRIES — MEASURE, 2026-09-11.
+ * This deduplicated by the tag's FIRST row and read `consumedBy` off that row alone. A tag with an item
+ * row and an ability row was therefore judged by whichever came first, and it was wrong both ways at
+ * once: `preventsStatDrop` read UNCONSUMED because its first row is an item no legal body may hold
+ * (n=0) while its 12-member ability row is read, and `survivesFromFull` read CONSUMED because its item
+ * row hid an ability row (Sturdy) with `consumedBy: null`. Now a row is in scope when at least one
+ * entity carrying it is in scope (engine/legal_scope.js), a tag is in scope when any row is, and a tag
+ * is consumed only when EVERY in-scope row has a reader. A tag with no in-scope carrier leaves the
+ * denominator and is listed, rather than sitting in it as either a gap or a success.
+ *
+ * `consumedBy` itself is written by engine/tag_dex.js, which greps for a hint string and misses tags
+ * the engine looks up by NAME. That is a different defect in a different file and is not fixed here. */
+const TAG_BLOCK = { move: 'moves', item: 'items', ability: 'abilities' };
+function tagCoverageOf(T, C, S, scopeWhy) {
+  if (!T || !Array.isArray(T.tags)) return null;
+  const byTag = new Map();
+  for (const r of T.tags) { const n = r.tag || r.name || r.id; if (!byTag.has(n)) byTag.set(n, []); byTag.get(n).push(r); }
+  let unknownKind = 0;
+  const rowIn = (tag, r) => {
+    const blk = T[TAG_BLOCK[r.kind]];
+    if (!blk) { unknownKind++; return true; }
+    const mem = Object.keys(blk).filter(i => (blk[i].tags || []).includes(tag));
+    return S ? mem.some(i => S.inScope(r.kind, i)) : mem.length > 0;
+  };
+  const inScope = [], outOfScope = [], noConsumer = [], rowsNoConsumer = [];
+  for (const [tag, rows] of byTag) {
+    const live = rows.filter(r => rowIn(tag, r));
+    if (!live.length) { outOfScope.push(tag); continue; }
+    inScope.push(tag);
+    const bare = live.filter(r => !(r.consumedBy && String(r.consumedBy).trim()));
+    if (bare.length) { noConsumer.push(tag); for (const r of bare) rowsNoConsumer.push(tag + ' (' + r.kind + ')'); }
+  }
+  const out = { unique: byTag.size, inScope: inScope.length, outOfScope, withConsumer: inScope.length - noConsumer.length,
+                noConsumer, rowsNoConsumer, unknownKind,
+                scopeBasis: S ? 'engine/legal_scope.js' : 'data/tags.json membership only — ' + (scopeWhy || 'the legal scope did not derive'),
+                probed: null, unprobed: null };
+  if (C && Array.isArray(C.results)) {
+    const probedSet = new Set(C.results.map(r => r.tag));
+    out.unprobed = inScope.filter(k => !probedSet.has(k));
+    out.probed = inScope.length - out.unprobed.length;
+  }
+  return out;
+}
 function tagCoverage() {
   const T = readJson(D('data', 'tags.json'));
   if (!T || !Array.isArray(T.tags)) return null;
-  const uniq = new Map();
-  for (const r of T.tags) { const n = r.tag || r.name || r.id; if (!uniq.has(n)) uniq.set(n, r); }
-  const withConsumer = [...uniq.values()].filter(r => r.consumedBy && String(r.consumedBy).trim()).length;
-  const C = readJson(D('data', 'mechanics-census.json'));
-  if (!C || !Array.isArray(C.results))
-    return { unique: uniq.size, withConsumer, probed: null, unprobed: null, noConsumer:
-             [...uniq.values()].filter(r => !r.consumedBy).map(r => r.tag) };
-  const probedSet = new Set(C.results.map(r => r.tag));
-  const unprobed = [...uniq.keys()].filter(k => !probedSet.has(k));
-  return { unique: uniq.size, withConsumer, probed: uniq.size - unprobed.length, unprobed,
-           noConsumer: [...uniq.values()].filter(r => !r.consumedBy).map(r => r.tag) };
+  const sc = legalScope();
+  return tagCoverageOf(T, readJson(D('data', 'mechanics-census.json')), sc.S, sc.why);
+}
+
+/* THE LEGAL SCOPE, ONE PRODUCER (engine/legal_scope.js). A failure to derive is RETURNED with its
+ * reason and printed by every caller, never swallowed into a silent fallback to somebody's flags. */
+let SCOPE_MEMO = null;
+function legalScope() {
+  if (SCOPE_MEMO) return SCOPE_MEMO;
+  try { SCOPE_MEMO = { S: require('./legal_scope.js').derive(), why: null }; }
+  catch (e) { SCOPE_MEMO = { S: null, why: String((e && e.message) || e).split('\n')[0] }; }
+  return SCOPE_MEMO;
 }
 
 /* ---- THE SPREAD THE WHOLE-GAME DIFFERENTIAL PLAYS, READ OFF THE DRIVER -------------------------
@@ -477,6 +521,82 @@ function differentialArms() {
   return { rule, arms: out };
 }
 
+/* ---- THE STAGED-MECHANICS LINES: ONE SCOPE, COUNTED PER ROW — MEASURE, 2026-09-11 -------------
+ * The boards line read `summary.boards.<kind>.rows` against `summary.<kind>.exist` — 739 of 964 on
+ * release 5973a4e3c768 — and was wrong twice. Its NUMERATOR counted a board on every row that played
+ * a game, including 68 where the mechanic never acted (58 abilities DID-NOT-FIRE, 9 items, 1 move):
+ * a board compared on a mechanic that did nothing checks nothing about its effect. Its DENOMINATOR
+ * carried every legal entity, including the ones no legal body can put on a board. The fired line
+ * above it did scope, but took the scope from the harness's own `unreachable` / `out_of_scope` flags,
+ * and engine/all_mechanics_fire.js builds those from a species list that drops every mega forme — so
+ * the 14 abilities only a mega carries and all 75 stones sat out of scope while being played.
+ *
+ * Both lines now use engine/legal_scope.js for the denominator, count rows rather than summaries, and
+ * print where the harness's scope disagrees with it. The per-row fired count is checked against the
+ * summary's, so the two producers cannot drift apart unseen. */
+const FIRED_ROW = { moves: r => r.resolved === true, abilities: r => r.verdict === 'FIRED', items: r => r.verdict === 'FIRED' };
+const FIRED_SUMMARY = { moves: 'resolved', abilities: 'fired', items: 'fired' };
+const KIND_OF = { moves: 'move', abilities: 'ability', items: 'item' };
+function boardRows(F, S) {
+  const cap = (a, n = 8) => a.slice(0, n).join(', ') + (a.length > n ? `, +${a.length - n} more` : '');
+  const tally = xs => Object.entries(xs.reduce((o, x) => (o[x] = (o[x] || 0) + 1, o), {}))
+    .sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ');
+  const per = {}, flaggedIn = [], stagedOut = [], notLegal = [], missing = [], drift = [], nfBoard = [];
+  for (const k of ['moves', 'abilities', 'items']) {
+    const kind = KIND_OF[k], R = F.rows[k] || [], fired = FIRED_ROW[k];
+    const ids = new Set(R.map(r => r.id));
+    const inS = R.filter(r => S.inScope(kind, r.id));
+    const f = inS.filter(fired), fb = f.filter(r => r.board);
+    const nb = R.filter(r => r.board && !fired(r));
+    for (const r of nb) nfBoard.push(`${k} ${k === 'moves' ? (r.verdict_refined || 'not resolved') : (r.verdict || 'no verdict')}`);
+    for (const r of R) {
+      if (!S.isLegal(kind, r.id)) notLegal.push(k + ':' + r.id);
+      else if ((r.unreachable || r.out_of_scope) && S.inScope(kind, r.id)) flaggedIn.push(r.id);
+      else if (!(r.unreachable || r.out_of_scope) && !S.inScope(kind, r.id)) stagedOut.push(r.id);
+    }
+    for (const i of S.inScopeIds(kind)) if (!ids.has(i)) missing.push(k + ':' + i);
+    const sum = F.summary && F.summary[k] && F.summary[k][FIRED_SUMMARY[k]];
+    if (sum != null && +sum !== R.filter(fired).length)
+      drift.push(`${k}: summary ${FIRED_SUMMARY[k]} ${sum}, rows ${R.filter(fired).length}`);
+    per[k] = { scope: S.inScopeCount[kind], fired: f.length, boarded: fb.length,
+               firedNoBoard: f.length - fb.length, out: S.outOfScope(kind) };
+  }
+  const K = ['moves', 'abilities', 'items'];
+  const sum = key => K.reduce((n, k) => n + per[k][key], 0);
+  const outN = K.reduce((n, k) => n + per[k].out.length, 0);
+  const outTxt = K.filter(k => per[k].out.length).map(k => `${k} ${per[k].out.length}`
+    + (per[k].out.length <= 12 ? ' (' + per[k].out.map(o => o.id).join(', ') + ')' : '')).join(', ');
+  const trail = (drift.length ? ` PER-ROW AND SUMMARY FIRED COUNTS DISAGREE: ${drift.join('; ')}.` : '')
+    + (notLegal.length ? ` ${notLegal.length} artifact row(s) are not legal in the dex this read (${cap(notLegal)}) — the artifact and the checkout disagree.` : '')
+    + (missing.length ? ` ${missing.length} in-scope mechanic(s) have no row at all (${cap(missing)}).` : '')
+    + (S.failures.length ? ` SCOPE DERIVATION FAILURES: ${S.failures.join(' | ')}.` : '');
+  const byKind = key => K.map(k => `${k} ${per[k][key]}/${per[k].scope}`).join(', ');
+  const rows = [];
+  rows.push({ label: 'staged mechanics that fired', have: sum('fired'), of: sum('scope'),
+    note: `${byKind('fired')}. ${outN} out of scope and not in the denominator — ${outTxt}.`
+      + (flaggedIn.length ? ` The harness marks ${flaggedIn.length} of these in-scope rows unreachable or out of`
+         + ` scope and never stages them (${cap(flaggedIn, 6)}): engine/all_mechanics_fire.js builds its`
+         + ' carriers from a species list that drops mega formes, excuses every mega stone, and scopes a'
+         + ' move by its learners alone.' : '')
+      + (stagedOut.length ? ` It stages ${stagedOut.length} this scope rules out (${cap(stagedOut)}).` : '')
+      + trail,
+    why: 'data/all-mechanics-fire.json rows[] — a move fired when resolved, an ability or item when its A/B'
+      + ' verdict is FIRED — over the in-scope set of engine/legal_scope.js' });
+  rows.push({ label: 'fired mechanics with a board compared', have: sum('boarded'), of: sum('scope'),
+    note: `${byKind('boarded')}. ${nfBoard.length} more rows carry a board on a mechanic that did not fire`
+      + ` and are NOT counted (${tally(nfBoard)}) — a board on a mechanic that never acted compares`
+      + ' nothing about its effect.'
+      + (sum('firedNoBoard') ? ` ${sum('firedNoBoard')} fired with no board.` : '')
+      + (S.conferred.length ? ' OUT OF SCOPE IS NOT "CANNOT OCCUR": ' + S.conferred.map(c => `${c.name} is carried by`
+         + ` no legal species but ${c.via.map(v => v.id + (v.holders != null ? ' (' + v.holders + ' legal learners)' : '')).join(', ')}`
+         + ' writes it onto a body').join('; ') + ' — reachable in play and counted in no denominator.' : '')
+      + trail,
+    why: 'data/all-mechanics-fire.json rows[].board on rows that fired, over engine/legal_scope.js. Was'
+      + ' summary.boards.<kind>.rows vs summary.<kind>.exist, which counted boards on mechanics that never'
+      + ' fired and scoped nothing' });
+  return rows;
+}
+
 /* ---- THE FINISH LINE, AS A SET OF COUNTS ------------------------------------------------------
  * "Is MEDICHAM done" as one command instead of a judgement. Every row is `have / of` plus what the
  * denominator excludes. A row that cannot be derived says NOT DERIVED and never estimates. */
@@ -606,41 +726,33 @@ function finishLine() {
        String((e && e.message) || e).split('\n')[0]);
   }
 
-  /* staged entities that fired */
+  /* staged entities that fired, and the boards on them — ONE SCOPE FOR BOTH LINES */
   const F = readJson(D('data', 'all-mechanics-fire.json'));
-  if (F && F.summary) {
-    const s = F.summary;
-    const mv = s.moves || {}, ab = s.abilities || {}, it = s.items || {};
-    const inScope = (o, ...drop) => (+o.exist || 0) - drop.reduce((n, k) => n + (+o[k] || 0), 0);
-    const fired = (+mv.resolved || 0) + (+ab.fired || 0) + (+it.fired || 0);
-    const scope = inScope(mv) + inScope(ab, 'unreachable') + inScope(it, 'out_of_scope');
-    add('staged mechanics that fired', fired, scope,
-        `moves ${mv.resolved}/${inScope(mv)}, abilities ${ab.fired}/${inScope(ab, 'unreachable')}`
-        + ` (${ab.unreachable} no legal carrier), items ${it.fired}/${inScope(it, 'out_of_scope')}`
-        + ` (${it.out_of_scope} out of scope); ${(+ab.did_not_fire || 0) + (+it.did_not_fire || 0)}`
-        + ' staged and never fired',
-        'data/all-mechanics-fire.json summary.*.{exist,fired,resolved,unreachable,out_of_scope}');
-    const b = s.boards || {};
-    const rowsOf = k => (b[k] && b[k].rows) || 0;
-    add('mechanics with a board compared', rowsOf('moves') + rowsOf('abilities') + rowsOf('items'),
-        (+mv.exist || 0) + (+ab.exist || 0) + (+it.exist || 0),
-        `moves ${rowsOf('moves')}/${mv.exist}, abilities ${rowsOf('abilities')}/${ab.exist},`
-        + ` items ${rowsOf('items')}/${it.exist} — a row with no board is a mechanic whose EFFECT`
-        + ' nothing compared, however clean its protocol line was',
-        'data/all-mechanics-fire.json summary.boards.<kind>.rows vs summary.<kind>.exist');
-  } else nd('staged mechanics that fired', 'data/all-mechanics-fire.json absent or has no summary');
+  const SC = legalScope();
+  if (!(F && F.rows)) nd('staged mechanics that fired', 'data/all-mechanics-fire.json absent or has no rows');
+  else if (!SC.S) nd('staged mechanics that fired', 'the legal scope did not derive (engine/legal_scope.js): ' + SC.why);
+  else for (const r of boardRows(F, SC.S)) rows.push(r);
 
-  /* tags: a consumer, and a probe */
+  /* tags: a consumer, and a probe — in scope only, every row scored */
   const TC = tagCoverage();
   if (TC) {
-    add('tags with an engine consumer', TC.withConsumer, TC.unique,
-        `${TC.unique - TC.withConsumer} tags no line of engine/board.js or engine/medicham2-browser.js`
-        + ' reads — derived, not declared: tag_dex.js greps both engines for the tag probe',
-        'data/tags.json tags[].consumedBy');
+    const cap = (a, n = 8) => a.slice(0, n).join(', ') + (a.length > n ? `, +${a.length - n} more` : '');
+    add('tags with an engine consumer', TC.withConsumer, TC.inScope,
+        `${TC.inScope - TC.withConsumer} in-scope tags have a carried row that no engine line reads`
+        + (TC.rowsNoConsumer.length ? ` (${cap(TC.rowsNoConsumer)})` : '')
+        + ' — a tag counts only when EVERY row with an in-scope carrier has a reader, so an item row can'
+        + ` no longer hide an ability row. ${TC.outOfScope.length} of ${TC.unique} tags have no in-scope`
+        + ` carrier and are out of the denominator (${cap(TC.outOfScope, 12)}).`
+        + (TC.unknownKind ? ` ${TC.unknownKind} row(s) of an unknown kind were counted in scope.` : '')
+        + ' consumedBy is engine/tag_dex.js\'s hint-string grep, which misses tags looked up by name'
+        + ' (engine/tag_lookups.js finds those)',
+        'data/tags.json tags[].consumedBy, every row, scoped by ' + TC.scopeBasis);
     if (TC.probed == null) nd('tags with a census probe', 'data/mechanics-census.json absent');
-    else add('tags with a census probe', TC.probed, TC.unique,
-        `${TC.unprobed.length} tags nothing probes at all`,
-        'data/tags.json x data/mechanics-census.json results[].tag');
+    else add('tags with a census probe', TC.probed, TC.inScope,
+        `${TC.unprobed.length} in-scope tags nothing probes at all`
+        + (TC.unprobed.length ? ` (${cap(TC.unprobed, 12)})` : '')
+        + `; the ${TC.outOfScope.length} out-of-scope tags are not counted either way`,
+        'data/tags.json x data/mechanics-census.json results[].tag, scoped by ' + TC.scopeBasis);
   } else nd('tags with an engine consumer', 'data/tags.json absent');
 
   /* THE DAMAGE DIFFERENTIAL'S EXCLUDED MOVES — WHICH IS NOW A MEASURED SET, NOT THE WHOLE FAMILY.
@@ -915,7 +1027,7 @@ function clauseLines(clause, cache, indent) {
 
 module.exports = { EXCLUSION_RX, BOUND_RX, scopeFields, residual, rangeStaged, gateArtifacts,
                    clauseArtifact, clauseScope, clauseLines, finishLine, lines, tagCoverage,
-                   artifactAge, humanAge, wrap };
+                   tagCoverageOf, boardRows, legalScope, artifactAge, humanAge, wrap };
 
 if (require.main !== module) return;
 

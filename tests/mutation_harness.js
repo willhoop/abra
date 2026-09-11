@@ -675,20 +675,15 @@ function buildFormatOracle() {
  * "the SIMULATOR does not read this tag", never "nothing in ABRA does".
  *
  * The three KIND arguments ('move', 'item', 'ability') are excluded because they sit in the same
- * argument list and are not tags. The membership is PRINTED on every run rather than trusted. */
-function sourceConsumers(src) {
-  const KINDS = new Set(['move', 'item', 'ability']);
-  const set = new Set();
-  const re = /TAGS\.(?:param|has|withTag|reactorsTo)\(([^;]{0,220}?)\)/g;
-  let m;
-  while ((m = re.exec(src))) {
-    for (const s of (m[1].match(/['"`][A-Za-z][A-Za-z0-9_]*['"`]/g) || [])) {
-      const v = s.slice(1, -1);
-      if (!KINDS.has(v)) set.add(v);
-    }
-  }
-  return set;
-}
+ * argument list and are not tags. The membership is PRINTED on every run rather than trusted.
+ *
+ * THE DETECTOR NOW LIVES IN engine/tag_lookups.js (MEASURE, 2026-09-11). It was a regex here,
+ * `/TAGS\.(?:param|has|withTag|reactorsTo)\(([^;]{0,220}?)\)/g`, whose lazy `?` stopped at the FIRST
+ * `)` — so `TAGS.param('ability',(m.ability||'').replace(/[^a-z0-9]/g,''),'modifiesWeight')` was cut
+ * before its tag and `modifiesWeight` read NO-CONSUMER-IN-SOURCE while its census row was LIVE. The
+ * module scans each argument list to its balanced close and takes only the literals at the call's own
+ * level. One implementation, so engine/tag_dex.js can call the same one instead of its hint grep. */
+const { sourceConsumers } = require('../engine/tag_lookups.js');
 
 /* ---- THE DEFECT CLASSIFIER — A/B/C/D, DERIVED FROM THE SOURCE, NEVER FROM A COMMENT -------------
  *
