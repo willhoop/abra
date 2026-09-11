@@ -1,0 +1,1517 @@
+{
+  "generated": "2026-09-11T11:16:24.282Z",
+  "by": "data/verification/interleave-2026-09-11/bench_interleave.js (SEARCH)",
+  "question": "Do two live MEDICHAM battles stay independent when stepped alternately, turn by turn?",
+  "not_an_accuracy_claim": "MEDICHAM is quarantined for correctness. Independence only.",
+  "engine": {
+    "kind": "frozen release",
+    "engine_release": "aefcb93baf14",
+    "engine_release_cut": "2026-09-11T11:15:20.821Z",
+    "engine_release_cuts": 1,
+    "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+    "source_digests": {
+      "engine/medicham2-browser.js": "b4dfd7582db7",
+      "engine/board.js": "c85a3b756c98",
+      "engine/rollout_leaf.js": "d00e77a7ac26",
+      "engine/position_features.js": "622482051bf4",
+      "engine/tags.js": "145a3cc9ce2f",
+      "engine/champions_sim.js": "276b2f752247",
+      "data/residual-order.json": "eff160ad1c5a",
+      "data/switchin-order.json": "24a007a66b7d",
+      "engine/mc_key.js": "f57c27a6bf38",
+      "engine/lookup.js": "17f49e5aed43",
+      "engine/set_priors.js": "f8a81445ee3a",
+      "engine/smogon_priors.js": "5c039f9ebdbc",
+      "engine/quality.js": "c6de8fb66ea3",
+      "engine/showdown_path.js": "0efe29f4245d",
+      "data/move-effects.js": "f35ecd91ba86",
+      "data/ability-blocks.json": "86741fd35452",
+      "data/smogon-priors.json": "f2dc78cea6c5",
+      "data/regulations.json": "6c1995e9a9fb",
+      "data/quality-filter.json": "771c3bd3e544",
+      "data/engine-data.js": "bbc417dfae0e",
+      "data/abra-tags.js": "d4dade70122f",
+      "data/tags.json": "6a7da8bae6d6",
+      "data/policy-weights.json": "626c1d240782",
+      "data/policy-weights-joint.json": "e2aca467ff04",
+      "data/move-priors.json": "e667fe8ab457",
+      "engine/pp.js": "30b12a4ef623",
+      "data/rollout-switch-census.json": "b599f8d581b5"
+    }
+  },
+  "showdown_commit_checkout": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "format": "gen9championsvgc2026regmb",
+  "team_store_pinned_to": "data/team-pool-frozen",
+  "team_store_bo3_sha12": "5e10d7ba991f",
+  "census": {
+    "switchRate": 0.0998,
+    "digest": "b599f8d581b5"
+  },
+  "explore": 1,
+  "foe_policy": "uniform",
+  "flags": {
+    "release": "aefcb93baf14",
+    "team_store": "data/team-pool-frozen",
+    "games": 16,
+    "stride": 800,
+    "depths": [
+      2,
+      5,
+      8,
+      12
+    ],
+    "steps": 3,
+    "seeds": 2,
+    "full_seeds": 2,
+    "full_cap": 20,
+    "red": null,
+    "no_red": true,
+    "smoke": false,
+    "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown",
+    "argv": [
+      "--release",
+      "aefcb93baf14",
+      "--games",
+      "16",
+      "--seeds",
+      "2",
+      "--full-seeds",
+      "2",
+      "--dw-seeds",
+      "6",
+      "--no-red",
+      "--out",
+      "data/verification/interleave-2026-09-11/interleave-aefcb93baf14-knob-global.json"
+    ],
+    "dw_seeds": 6,
+    "dw_staged_seeds": 6
+  },
+  "node": "v24.15.0",
+  "counters": {
+    "pair_skipped": 0,
+    "sd_rejected_choice": 0,
+    "sd_fell_back_to_default": 0,
+    "sd_threw": 0,
+    "sd_stuck": 0,
+    "build_null": 0,
+    "build_threw": 0,
+    "build_first_error": null,
+    "step_threw": 0,
+    "step_first_error": null,
+    "event_step_threw": 0,
+    "event_first_error": null
+  },
+  "pool_games": [
+    {
+      "id": "gen9championsvgc2026regmbbo3-2653923955",
+      "line": 0
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2654041758",
+      "line": 800
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2654871097",
+      "line": 1600
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2655564007",
+      "line": 2400
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656215226",
+      "line": 3200
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2656757633",
+      "line": 4000
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657333637",
+      "line": 4800
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2657885399",
+      "line": 5600
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2658541856",
+      "line": 6400
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2659193490",
+      "line": 7200
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2659804913",
+      "line": 8000
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660319505",
+      "line": 8800
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2660954203",
+      "line": 9600
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2661415911",
+      "line": 10400
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2662101759",
+      "line": 11200
+    },
+    {
+      "id": "gen9championsvgc2026regmbbo3-2662719936",
+      "line": 12000
+    }
+  ],
+  "positions": [
+    {
+      "game": "gen9championsvgc2026regmbbo3-2653923955",
+      "turn": 2
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2653923955",
+      "turn": 5
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2654041758",
+      "turn": 2
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2654041758",
+      "turn": 5
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2654041758",
+      "turn": 8
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2654041758",
+      "turn": 12
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2654871097",
+      "turn": 2
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2654871097",
+      "turn": 5
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2655564007",
+      "turn": 2
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2655564007",
+      "turn": 5
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2656215226",
+      "turn": 2
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2656215226",
+      "turn": 5
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2656215226",
+      "turn": 8
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2656757633",
+      "turn": 2
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2656757633",
+      "turn": 5
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2656757633",
+      "turn": 8
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2657333637",
+      "turn": 2
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2657333637",
+      "turn": 5
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2657333637",
+      "turn": 8
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2657333637",
+      "turn": 12
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2657885399",
+      "turn": 2
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2657885399",
+      "turn": 5
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2657885399",
+      "turn": 8
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2657885399",
+      "turn": 12
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2658541856",
+      "turn": 2
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2658541856",
+      "turn": 5
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2658541856",
+      "turn": 8
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2658541856",
+      "turn": 12
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2659193490",
+      "turn": 2
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2659193490",
+      "turn": 5
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2659804913",
+      "turn": 2
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2659804913",
+      "turn": 5
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2659804913",
+      "turn": 8
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2659804913",
+      "turn": 12
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2660319505",
+      "turn": 2
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2660319505",
+      "turn": 5
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2660954203",
+      "turn": 2
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2660954203",
+      "turn": 5
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2660954203",
+      "turn": 8
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2661415911",
+      "turn": 2
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2661415911",
+      "turn": 5
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2661415911",
+      "turn": 8
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2661415911",
+      "turn": 12
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2662101759",
+      "turn": 2
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2662719936",
+      "turn": 2
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2662719936",
+      "turn": 5
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2662719936",
+      "turn": 8
+    },
+    {
+      "game": "gen9championsvgc2026regmbbo3-2662719936",
+      "turn": 12
+    }
+  ],
+  "double_wipes": {
+    "natural": {
+      "playouts": 288,
+      "finished": 288,
+      "double_wipes": 1,
+      "result_at_finish": {
+        "1": 1
+      },
+      "reread_no_build_differs": 0,
+      "late_read_differs": 1,
+      "late_read_values": {
+        "0.5": 1
+      },
+      "tree_at_finish_differs": 0,
+      "tree_state_eblind_differs": 1,
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmbbo3-2662101759",
+          "turn": 2,
+          "seed": 14633,
+          "at_finish": 1,
+          "reread_no_build": 1,
+          "after_one_build": 0.5,
+          "turns_played": 12
+        }
+      ]
+    },
+    "counters": {
+      "MEDSEEN.doubleWipeDecidedByLastFaint": 5,
+      "MEDFAILS.doubleWipeNoFaintOrder": 1
+    },
+    "struggle_fixture": {
+      "fixtures": 48,
+      "double_wipes": 43,
+      "not_a_double_wipe": 5,
+      "unbuildable": 0,
+      "action_threw": 0,
+      "first_error": null,
+      "r0": {
+        "0": 19,
+        "1": 24
+      },
+      "reread_no_build_differs": 0,
+      "after_one_build": {
+        "0.5": 43
+      },
+      "after_one_build_differs": 43,
+      "after_two_builds_differs": 43,
+      "alive_build_before_turn_differs": 0,
+      "counters_on_late_read": {
+        "MEDFAILS.doubleWipeNoFaintOrder": 43
+      },
+      "examples": [
+        {
+          "game": "gen9championsvgc2026regmbbo3-2653923955",
+          "turn": 2,
+          "lone_A": "primarina",
+          "lone_B": "archaludon",
+          "read_immediately": 0,
+          "reread_no_build": 0,
+          "after_one_unrelated_build": 0.5,
+          "after_two": 0.5,
+          "alive_build_before_turn": 0
+        },
+        {
+          "game": "gen9championsvgc2026regmbbo3-2653923955",
+          "turn": 5,
+          "lone_A": "kingambit",
+          "lone_B": "maushold",
+          "read_immediately": 0,
+          "reread_no_build": 0,
+          "after_one_unrelated_build": 0.5,
+          "after_two": 0.5,
+          "alive_build_before_turn": 0
+        },
+        {
+          "game": "gen9championsvgc2026regmbbo3-2654041758",
+          "turn": 2,
+          "lone_A": "umbreon",
+          "lone_B": "tyranitar-mega",
+          "read_immediately": 0,
+          "reread_no_build": 0,
+          "after_one_unrelated_build": 0.5,
+          "after_two": 0.5,
+          "alive_build_before_turn": 0
+        },
+        {
+          "game": "gen9championsvgc2026regmbbo3-2654041758",
+          "turn": 5,
+          "lone_A": "garganacl",
+          "lone_B": "klefki",
+          "read_immediately": 0,
+          "reread_no_build": 0,
+          "after_one_unrelated_build": 0.5,
+          "after_two": 0.5,
+          "alive_build_before_turn": 0
+        },
+        {
+          "game": "gen9championsvgc2026regmbbo3-2654041758",
+          "turn": 8,
+          "lone_A": "garganacl",
+          "lone_B": "klefki",
+          "read_immediately": 0,
+          "reread_no_build": 0,
+          "after_one_unrelated_build": 0.5,
+          "after_two": 0.5,
+          "alive_build_before_turn": 0
+        },
+        {
+          "game": "gen9championsvgc2026regmbbo3-2654041758",
+          "turn": 12,
+          "lone_A": "garganacl",
+          "lone_B": "tyranitar-mega",
+          "read_immediately": 0,
+          "reread_no_build": 0,
+          "after_one_unrelated_build": 0.5,
+          "after_two": 0.5,
+          "alive_build_before_turn": 0
+        }
+      ]
+    }
+  },
+  "leak_counters_whole_run": {
+    "MEDSEEN.typesRestoredOnFaint": 4,
+    "MEDSEEN.doubleWipeDecidedByLastFaint": 134,
+    "MEDSEEN.statsRestoredByItem": 4,
+    "MEDSEEN.encoreRelocatedQueuedAction": 176,
+    "MEDSEEN.roostTypeRestored": 620,
+    "MEDSEEN.chargeWrapApplied": 586,
+    "MEDSEEN.chargeWrapOutlivedRelease": 330,
+    "MEDSEEN.chargeWrapTicked": 725,
+    "MEDSEEN.chargeWrapExpired": 241,
+    "MEDSEEN.chargeWrapAbortedAtGate": 43,
+    "MEDSEEN.roostTypeRestoredOnFaint": 3,
+    "MEDFAILS.doubleWipeNoFaintOrder": 87
+  },
+  "checks": {
+    "interleave_3": {
+      "state_norm": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_faintEpoch": 192
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 h3 P",
+          "diff": [
+            "$._faintEpoch: 8  vs  5"
+          ]
+        }
+      },
+      "state_raw": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_fEpoch": 266,
+          "_faintSeq": 264,
+          "_faintEpoch": 84,
+          "_rtieGen": 32
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 h3 P",
+          "diff": [
+            "$.field._lastMoveBy._sf.team[2]._fEpoch: 9  vs  6",
+            "$.field._lastMoveBy._sf.team[2]._faintSeq: 7  vs  4",
+            "$._faintEpoch: 8  vs  5"
+          ]
+        }
+      },
+      "state_eblind": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_faintEpoch": 192
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 h3 P",
+          "diff": [
+            "$._faintEpoch: 8  vs  5"
+          ]
+        }
+      },
+      "protocol": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "result_at_finish": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "result_end": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "counters": {
+        "n": 96,
+        "pass": 96,
+        "fail": 0
+      }
+    },
+    "interleave_full": {
+      "state_norm": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_faintEpoch": 192
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 hfull P",
+          "diff": [
+            "$._faintEpoch: 32  vs  29"
+          ]
+        }
+      },
+      "state_raw": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_fEpoch": 345,
+          "_faintSeq": 339,
+          "_faintEpoch": 28,
+          "_rtieGen": 28
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 hfull P",
+          "diff": [
+            "$.field._pendingLastBy._sf.team[1]._fEpoch: 33  vs  30",
+            "$.field._pendingLastBy._sf.team[1]._faintSeq: 41  vs  33",
+            "$.field._pendingLastBy._sf.team[2]._hitBy.<Set>[0]._sf.team[1]._fEpoch: 33  vs  30",
+            "$.field._pendingLastBy._sf.team[2]._hitBy.<Set>[0]._sf.team[1]._faintSeq: 40  vs  32"
+          ]
+        }
+      },
+      "state_eblind": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_faintEpoch": 192
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 hfull P",
+          "diff": [
+            "$._faintEpoch: 32  vs  29"
+          ]
+        }
+      },
+      "protocol": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "result_at_finish": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "result_end": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "counters": {
+        "n": 96,
+        "pass": 96,
+        "fail": 0
+      }
+    },
+    "self_interleave_3": {
+      "state_norm": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_faintEpoch": 192
+        },
+        "first": {
+          "at": "g0t2~self s0 h3 P",
+          "diff": [
+            "$._faintEpoch: 56  vs  53"
+          ]
+        }
+      },
+      "state_raw": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_fEpoch": 268,
+          "_faintSeq": 264,
+          "_faintEpoch": 80,
+          "_rtieGen": 36
+        },
+        "first": {
+          "at": "g0t2~self s0 h3 P",
+          "diff": [
+            "$.field._lastMoveBy._sf.team[2]._fEpoch: 57  vs  54",
+            "$.field._lastMoveBy._sf.team[2]._faintSeq: 82  vs  80",
+            "$._faintEpoch: 56  vs  53"
+          ]
+        }
+      },
+      "state_eblind": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_faintEpoch": 192
+        },
+        "first": {
+          "at": "g0t2~self s0 h3 P",
+          "diff": [
+            "$._faintEpoch: 56  vs  53"
+          ]
+        }
+      },
+      "protocol": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "result_at_finish": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "result_end": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "counters": {
+        "n": 96,
+        "pass": 96,
+        "fail": 0
+      }
+    },
+    "self_interleave_full": {
+      "state_norm": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_faintEpoch": 192
+        },
+        "first": {
+          "at": "g0t2~self s0 hfull P",
+          "diff": [
+            "$._faintEpoch: 80  vs  77"
+          ]
+        }
+      },
+      "state_raw": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_fEpoch": 348,
+          "_faintSeq": 344,
+          "_faintEpoch": 26,
+          "_rtieGen": 24
+        },
+        "first": {
+          "at": "g0t2~self s0 hfull P",
+          "diff": [
+            "$.field._pendingLastBy._sf.team[1]._fEpoch: 81  vs  78",
+            "$.field._pendingLastBy._sf.team[1]._faintSeq: 133  vs  118",
+            "$.field._pendingLastBy._sf.team[2]._hitBy.<Set>[0]._sf.team[1]._fEpoch: 81  vs  78",
+            "$.field._pendingLastBy._sf.team[2]._hitBy.<Set>[0]._sf.team[1]._faintSeq: 132  vs  117"
+          ]
+        }
+      },
+      "state_eblind": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_faintEpoch": 192
+        },
+        "first": {
+          "at": "g0t2~self s0 hfull P",
+          "diff": [
+            "$._faintEpoch: 80  vs  77"
+          ]
+        }
+      },
+      "protocol": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "result_at_finish": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "result_end": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "counters": {
+        "n": 96,
+        "pass": 96,
+        "fail": 0
+      }
+    },
+    "self_twins_in_A2_eblind": {
+      "n": 192,
+      "pass": 0,
+      "fail": 192,
+      "fields": {
+        "_faintEpoch": 192
+      },
+      "first": {
+        "at": "g0t2~self s0 h3",
+        "diff": [
+          "$._faintEpoch: 56  vs  57"
+        ]
+      }
+    },
+    "self_twins_in_A2_protocol": {
+      "n": 192,
+      "pass": 192,
+      "fail": 0
+    },
+    "self_twins_in_A2_result": {
+      "n": 192,
+      "pass": 192,
+      "fail": 0
+    },
+    "alive_vs_isolated_3": {
+      "state_norm": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_fEpoch": 165,
+          "_faintEpoch": 184
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 h3 P",
+          "diff": [
+            "$.field._lastMoveBy._sf.team[2]._fEpoch: \"<ep+1>\"  vs  \"<ep+0>\"",
+            "$._faintEpoch: 5  vs  2"
+          ]
+        }
+      },
+      "state_raw": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_fEpoch": 266,
+          "_faintSeq": 264,
+          "_faintEpoch": 84,
+          "_rtieGen": 32
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 h3 P",
+          "diff": [
+            "$.field._lastMoveBy._sf.team[2]._fEpoch: 6  vs  2",
+            "$.field._lastMoveBy._sf.team[2]._faintSeq: 4  vs  2",
+            "$._faintEpoch: 5  vs  2"
+          ]
+        }
+      },
+      "state_eblind": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_faintEpoch": 192
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 h3 P",
+          "diff": [
+            "$._faintEpoch: 5  vs  2"
+          ]
+        }
+      },
+      "protocol": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "result_at_finish": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "result_end": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "counters": {
+        "n": 96,
+        "pass": 93,
+        "fail": 3,
+        "fields": {
+          "MEDSEEN.residualShadowLargest": 2,
+          "MEDSEEN.entryTieLargestGroup": 1,
+          "MEDSEEN.residualTieLargestGroup": 1
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 h3",
+          "keys": [
+            [
+              "MEDSEEN.residualShadowLargest",
+              0,
+              2
+            ]
+          ]
+        }
+      }
+    },
+    "alive_vs_isolated_full": {
+      "state_norm": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_fEpoch": 305,
+          "_faintEpoch": 132
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 hfull P",
+          "diff": [
+            "$.field._pendingLastBy._sf.team[1]._fEpoch: \"<ep+1>\"  vs  \"<ep+0>\"",
+            "$.field._pendingLastBy._sf.team[2]._hitBy.<Set>[0]._sf.team[1]._fEpoch: \"<ep+1>\"  vs  \"<ep+0>\"",
+            "$.field._pendingLastBy._sf.team[2]._hitBy.<Set>[0]._sf.team[2]._fEpoch: \"<ep+1>\"  vs  \"<ep+0>\"",
+            "$.field._pendingLastBy._sf.team[2]._hitBy.<Set>[0]._sf.team[3]._fEpoch: \"<ep+1>\"  vs  \"<ep+0>\""
+          ]
+        }
+      },
+      "state_raw": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_fEpoch": 345,
+          "_faintSeq": 339,
+          "_faintEpoch": 28,
+          "_rtieGen": 28
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 hfull P",
+          "diff": [
+            "$.field._pendingLastBy._sf.team[1]._fEpoch: 30  vs  26",
+            "$.field._pendingLastBy._sf.team[1]._faintSeq: 33  vs  26",
+            "$.field._pendingLastBy._sf.team[2]._hitBy.<Set>[0]._sf.team[1]._fEpoch: 30  vs  26",
+            "$.field._pendingLastBy._sf.team[2]._hitBy.<Set>[0]._sf.team[1]._faintSeq: 32  vs  25"
+          ]
+        }
+      },
+      "state_eblind": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_faintEpoch": 192
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 hfull P",
+          "diff": [
+            "$._faintEpoch: 29  vs  26"
+          ]
+        }
+      },
+      "protocol": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "result_at_finish": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "result_end": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "counters": {
+        "n": 96,
+        "pass": 93,
+        "fail": 3,
+        "fields": {
+          "MEDSEEN.residualShadowLargest": 2,
+          "MEDSEEN.speedTieLargestGroup": 1
+        },
+        "first": {
+          "at": "g3t5~g4t2 s1 hfull",
+          "keys": [
+            [
+              "MEDSEEN.residualShadowLargest",
+              0,
+              1
+            ]
+          ]
+        }
+      }
+    },
+    "tree_vs_isolated_3": {
+      "state_norm": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_fEpoch": 119,
+          "_faintEpoch": 188
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 h3 P",
+          "diff": [
+            "$.field._lastMoveBy._sf.team[2]._fEpoch: \"<ep+1>\"  vs  \"<ep+0>\"",
+            "$._faintEpoch: 11  vs  2"
+          ]
+        }
+      },
+      "state_raw": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_fEpoch": 266,
+          "_faintSeq": 264,
+          "_faintEpoch": 84,
+          "_rtieGen": 32
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 h3 P",
+          "diff": [
+            "$.field._lastMoveBy._sf.team[2]._fEpoch: 12  vs  2",
+            "$.field._lastMoveBy._sf.team[2]._faintSeq: 9  vs  2",
+            "$._faintEpoch: 11  vs  2"
+          ]
+        }
+      },
+      "state_eblind": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_faintEpoch": 192
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 h3 P",
+          "diff": [
+            "$._faintEpoch: 11  vs  2"
+          ]
+        }
+      },
+      "protocol": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "result_at_finish": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "result_end": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "counters": {
+        "n": 96,
+        "pass": 93,
+        "fail": 3,
+        "fields": {
+          "MEDSEEN.residualShadowLargest": 2,
+          "MEDSEEN.entryTieLargestGroup": 1,
+          "MEDSEEN.residualTieLargestGroup": 1
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 h3",
+          "keys": [
+            [
+              "MEDSEEN.residualShadowLargest",
+              0,
+              2
+            ]
+          ]
+        }
+      }
+    },
+    "tree_vs_isolated_full": {
+      "state_norm": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_fEpoch": 283,
+          "_faintEpoch": 139
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 hfull P",
+          "diff": [
+            "$.field._pendingLastBy._sf.team[1]._fEpoch: \"<ep+1>\"  vs  \"<ep+0>\"",
+            "$.field._pendingLastBy._sf.team[2]._hitBy.<Set>[0]._sf.team[1]._fEpoch: \"<ep+1>\"  vs  \"<ep+0>\"",
+            "$.field._pendingLastBy._sf.team[2]._hitBy.<Set>[0]._sf.team[2]._fEpoch: \"<ep+1>\"  vs  \"<ep+0>\"",
+            "$.field._pendingLastBy._sf.team[2]._hitBy.<Set>[0]._sf.team[3]._fEpoch: \"<ep+1>\"  vs  \"<ep+0>\""
+          ]
+        }
+      },
+      "state_raw": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_fEpoch": 345,
+          "_faintSeq": 339,
+          "_faintEpoch": 28,
+          "_rtieGen": 28
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 hfull P",
+          "diff": [
+            "$.field._pendingLastBy._sf.team[1]._fEpoch: 36  vs  26",
+            "$.field._pendingLastBy._sf.team[1]._faintSeq: 48  vs  26",
+            "$.field._pendingLastBy._sf.team[2]._hitBy.<Set>[0]._sf.team[1]._fEpoch: 36  vs  26",
+            "$.field._pendingLastBy._sf.team[2]._hitBy.<Set>[0]._sf.team[1]._faintSeq: 47  vs  25"
+          ]
+        }
+      },
+      "state_eblind": {
+        "n": 192,
+        "pass": 0,
+        "fail": 192,
+        "fields": {
+          "_faintEpoch": 192
+        },
+        "first": {
+          "at": "g0t2~g0t5 s0 hfull P",
+          "diff": [
+            "$._faintEpoch: 35  vs  26"
+          ]
+        }
+      },
+      "protocol": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "result_at_finish": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "result_end": {
+        "n": 192,
+        "pass": 192,
+        "fail": 0
+      },
+      "counters": {
+        "n": 96,
+        "pass": 93,
+        "fail": 3,
+        "fields": {
+          "MEDSEEN.residualShadowLargest": 2,
+          "MEDSEEN.speedTieLargestGroup": 1
+        },
+        "first": {
+          "at": "g3t5~g4t2 s1 hfull",
+          "keys": [
+            [
+              "MEDSEEN.residualShadowLargest",
+              0,
+              1
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "event_dice": {
+    "note": "midEventDice, MEDICHAM's own chooser on both sides; the differential's instrument, not the rollout path",
+    "seed": 20260911,
+    "same_seed_self": {
+      "state_norm": {
+        "n": 0,
+        "pass": 0,
+        "fail": 0
+      },
+      "state_raw": {
+        "n": 0,
+        "pass": 0,
+        "fail": 0
+      },
+      "state_eblind": {
+        "n": 96,
+        "pass": 0,
+        "fail": 96,
+        "fields": {
+          "_faintEpoch": 48,
+          "_pendingLastMove": 29,
+          "name": 30,
+          "types": 39,
+          "weatherT": 11,
+          "twA": 5,
+          "weather": 3,
+          "twB": 10,
+          "dualwingbeat": 1,
+          "tailwind": 1,
+          "_resSpe": 1,
+          "curHP": 15,
+          "team": 4,
+          "$.field._pendingLastBy._sf.team[2]._hitBy.<Set>[0]": 1,
+          "_turnsOut": 7,
+          "_mvActs": 8,
+          "wideguard": 1,
+          "item": 2,
+          "fainted": 7,
+          "protect": 5,
+          "tookProtectTurns": 2,
+          "shadowball": 1,
+          "at": 1,
+          "aura": 2,
+          "spec": 2,
+          "any": 1,
+          "hp": 1,
+          "df": 1,
+          "sa": 1
+        },
+        "first": {
+          "at": "g0t2~self P",
+          "diff": [
+            "$._faintEpoch: 4620  vs  4618"
+          ]
+        }
+      },
+      "protocol": {
+        "n": 96,
+        "pass": 48,
+        "fail": 48,
+        "first": {
+          "at": "g0t2~self Q",
+          "diff": {
+            "line": 3,
+            "a": "\"|move|p1b: froslass|protect|p1b: froslass\"",
+            "b": "\"|move|p1b: froslass|blizzard|p2b: annihilape\"",
+            "len": [
+              44,
+              52
+            ]
+          }
+        }
+      },
+      "result_at_finish": {
+        "n": 0,
+        "pass": 0,
+        "fail": 0
+      },
+      "result_end": {
+        "n": 0,
+        "pass": 0,
+        "fail": 0
+      },
+      "counters": {
+        "n": 0,
+        "pass": 0,
+        "fail": 0
+      }
+    },
+    "same_seed_cross": {
+      "state_norm": {
+        "n": 0,
+        "pass": 0,
+        "fail": 0
+      },
+      "state_raw": {
+        "n": 0,
+        "pass": 0,
+        "fail": 0
+      },
+      "state_eblind": {
+        "n": 96,
+        "pass": 0,
+        "fail": 96,
+        "fields": {
+          "_faintEpoch": 52,
+          "closecombat": 1,
+          "fakeout": 3,
+          "kowtowcleave": 1,
+          "twA": 8,
+          "curHP": 15,
+          "fainted": 9,
+          "name": 25,
+          "_pendingLastMove": 25,
+          "types": 30,
+          "weather": 2,
+          "weatherT": 11,
+          "twB": 10,
+          "item": 5,
+          "_turnsOut": 7,
+          "protect": 2,
+          "tookProtectTurns": 1,
+          "shadowball": 2,
+          "sa": 2,
+          "makeitrain": 1,
+          "_mvActs": 5,
+          "at": 1,
+          "heatwave": 2,
+          "psychic": 1,
+          "aura": 1,
+          "throatchop": 1,
+          "spec": 1,
+          "any": 2,
+          "move": 1,
+          "tailwind": 1,
+          "moonblast": 1,
+          "hp": 1,
+          "lastrespects": 1,
+          "wavecrash": 1,
+          "flipturn": 1,
+          "phys": 1
+        },
+        "first": {
+          "at": "g0t2~g0t5 P",
+          "diff": [
+            "$._faintEpoch: 4612  vs  4610"
+          ]
+        }
+      },
+      "protocol": {
+        "n": 96,
+        "pass": 52,
+        "fail": 44,
+        "first": {
+          "at": "g0t2~g0t5 Q",
+          "diff": {
+            "line": 3,
+            "a": "\"|move|p1b: sneasler|fakeout|p2a: maushold\"",
+            "b": "\"|move|p1b: sneasler|closecombat|p2a: maushold\"",
+            "len": [
+              31,
+              31
+            ]
+          }
+        }
+      },
+      "result_at_finish": {
+        "n": 0,
+        "pass": 0,
+        "fail": 0
+      },
+      "result_end": {
+        "n": 0,
+        "pass": 0,
+        "fail": 0
+      },
+      "counters": {
+        "n": 0,
+        "pass": 0,
+        "fail": 0
+      }
+    },
+    "distinct_seed_cross": {
+      "state_norm": {
+        "n": 0,
+        "pass": 0,
+        "fail": 0
+      },
+      "state_raw": {
+        "n": 0,
+        "pass": 0,
+        "fail": 0
+      },
+      "state_eblind": {
+        "n": 96,
+        "pass": 0,
+        "fail": 96,
+        "fields": {
+          "_faintEpoch": 96
+        },
+        "first": {
+          "at": "g0t2~g0t5 P",
+          "diff": [
+            "$._faintEpoch: 4616  vs  4614"
+          ]
+        }
+      },
+      "protocol": {
+        "n": 96,
+        "pass": 96,
+        "fail": 0
+      },
+      "result_at_finish": {
+        "n": 0,
+        "pass": 0,
+        "fail": 0
+      },
+      "result_end": {
+        "n": 0,
+        "pass": 0,
+        "fail": 0
+      },
+      "counters": {
+        "n": 0,
+        "pass": 0,
+        "fail": 0
+      }
+    }
+  },
+  "epoch_inference": {
+    "isolated_battles_with_faints": 266,
+    "stamps_checked": 506,
+    "stamps_equal_own_build": 506
+  },
+  "restamps_by_arm": {
+    "A0": 0,
+    "A1": 0,
+    "A2": 0,
+    "A3": 0
+  },
+  "late_read": {
+    "battles": 3072,
+    "finished": 1924,
+    "double_wipes": 0,
+    "flips_vs_isolated_at_finish": 0,
+    "by_arm": {
+      "A0/h3": {
+        "battles": 384,
+        "double_wipes": 0,
+        "late_differs_from_end": 0,
+        "late_differs_from_isolated": 0
+      },
+      "A1/h3": {
+        "battles": 384,
+        "double_wipes": 0,
+        "late_differs_from_end": 0,
+        "late_differs_from_isolated": 0
+      },
+      "A2/h3": {
+        "battles": 384,
+        "double_wipes": 0,
+        "late_differs_from_end": 0,
+        "late_differs_from_isolated": 0
+      },
+      "A3/h3": {
+        "battles": 384,
+        "double_wipes": 0,
+        "late_differs_from_end": 0,
+        "late_differs_from_isolated": 0
+      },
+      "A0/hfull": {
+        "battles": 384,
+        "double_wipes": 0,
+        "late_differs_from_end": 0,
+        "late_differs_from_isolated": 0
+      },
+      "A1/hfull": {
+        "battles": 384,
+        "double_wipes": 0,
+        "late_differs_from_end": 0,
+        "late_differs_from_isolated": 0
+      },
+      "A2/hfull": {
+        "battles": 384,
+        "double_wipes": 0,
+        "late_differs_from_end": 0,
+        "late_differs_from_isolated": 0
+      },
+      "A3/hfull": {
+        "battles": 384,
+        "double_wipes": 0,
+        "late_differs_from_end": 0,
+        "late_differs_from_isolated": 0
+      }
+    },
+    "examples": [],
+    "late_counter_totals": {
+      "MEDSEEN.megaCapableBuilt": 5056
+    }
+  },
+  "result_vs_isolated": {
+    "by_arm": {
+      "A1/h3": {
+        "finished": 97,
+        "at_finish_differs": 0,
+        "late_differs": 0,
+        "late_differs_double_wipes": 0
+      },
+      "A2/h3": {
+        "finished": 97,
+        "at_finish_differs": 0,
+        "late_differs": 0,
+        "late_differs_double_wipes": 0
+      },
+      "A3/h3": {
+        "finished": 97,
+        "at_finish_differs": 0,
+        "late_differs": 0,
+        "late_differs_double_wipes": 0
+      },
+      "A1/hfull": {
+        "finished": 384,
+        "at_finish_differs": 0,
+        "late_differs": 0,
+        "late_differs_double_wipes": 0
+      },
+      "A2/hfull": {
+        "finished": 384,
+        "at_finish_differs": 0,
+        "late_differs": 0,
+        "late_differs_double_wipes": 0
+      },
+      "A3/hfull": {
+        "finished": 384,
+        "at_finish_differs": 0,
+        "late_differs": 0,
+        "late_differs_double_wipes": 0
+      }
+    }
+  },
+  "double_wipe_rate_full": {
+    "battles": 1536,
+    "double_wipes": 0,
+    "pct": 0
+  },
+  "math_random_calls_in_arms": 0,
+  "MC_table": {
+    "before_primer": "cf76ac629a00",
+    "after_primer": "49b36e59f49e",
+    "after_everything": "49b36e59f49e",
+    "unchanged_after_primer": true
+  },
+  "battle_inits_total": 5696,
+  "red_demo": {
+    "ran": false,
+    "all_caught": null,
+    "variants": {}
+  },
+  "elapsed_s": 28,
+  "phase_ms": {
+    "arms_ms": 22239,
+    "event_dice_ms": 2903,
+    "double_wipe_natural_ms": 1825,
+    "struggle_fixture_ms": 189
+  }
+}

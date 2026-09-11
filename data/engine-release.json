@@ -1,10 +1,10 @@
 {
-  "current": "13257c8bc397",
-  "cut": "2026-09-11T09:25:57.830Z",
-  "why": "ENGINE batch B 2026-09-11: tag_dex consumedBy reads TAGS lookups (tag_lookups.js); refusedByAbilityFlag tag + abilityFlagRefusal at Simple Beam/Worry Seed/Entrainment, Skill Swap and Gastro Acid",
+  "current": "aefcb93baf14",
+  "cut": "2026-09-11T11:15:20.821Z",
+  "why": "ENGINE 2026-09-11 batch 2: the faint epoch is per battle (S._faintEpoch), so a double wipe's result survives a later battleInit; knob MEDI_FAINT_EPOCH_GLOBAL=1 restores the process-global rule",
   "cuts": 25,
-  "latest_cut": "2026-09-11T10:09:23.343Z",
+  "latest_cut": "2026-09-11T12:05:39.309Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-11T10:09:23.362Z",
+  "pointer_written": "2026-09-11T12:05:39.375Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

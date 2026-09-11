@@ -10,6 +10,57 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.14.1] — 2026-09-11
+
+### Fixed
+- **A double wipe's result no longer changes when another battle is built.** The engine kept one faint
+  counter for the whole process, so the winner of a battle where both sides fainted together read as a draw
+  the moment any other battle was set up. Each battle now keeps its own. Shown on the interleave bench: a draw
+  on 43 of 43 constructed double wipes before, 0 of 43 after, and 43 of 43 again with the old rule switched
+  back on (`MEDI_FAINT_EPOCH_GLOBAL=1`). No caller today was affected; a search that keeps positions alive
+  would have been. Nothing else moved.
+
+## [6.14.0] — 2026-09-11
+
+### Changed
+- **The staged harness builds each game from the mechanic's own requirements.** Abilities and items now play
+  the staging planner's fixture first, with a control that differs in one thing, on both sides of the board and
+  in the slot the mechanic reads; the old hand-picked bodies run only as a named fallback. Moves keep their old
+  check and also play the planner's fixture. Staged mechanics that fired went from 740 to 783 of 845, and the
+  same number now carry a compared board.
+- **Which mechanics exist in the regulation is decided in one place for every instrument.** The harness, the
+  deliberate roster and the tag builder all ask `engine/legal_scope.js`. The tag file drops Battle Bond, whose
+  only carrier the team validator refuses; the roster stops counting Soft-Boiled, which it had staged on a body
+  that cannot learn it.
+
+### Added
+- **Gender reaches a real game.** Both engines can now be handed a declared gender, and this engine writes it
+  into the switch line exactly as the official simulator does. Attract, Cute Charm and Rivalry are exercised
+  for the first time: Attract and Rivalry agree, and Cute Charm's announcement does not.
+
+### Fixed
+- The fixture preflight could not read an optional-chaining guard, so Prankster, Gale Wings, Pickpocket and
+  Triage never got the click they need.
+
+### Notes
+- **Eight mechanics part from the official simulator on the new boards, and each is registered, not fixed**:
+  Oblivious lets Taunt through, Magic Bounce does not bounce Spite, a Super Luck or Scope Lens holder misses a
+  guaranteed critical hit after Focus Energy, and a mega stone held under Klutz does not evolve — all four
+  change the board — and four narration differences (Cute Charm, Own Tempo, Sweet Veil, Covet). The gate closes
+  on them, 1 clause of 9, which is the direction this batch was expected to push it.
+
+## [6.13.0] — 2026-09-11
+
+### Added
+- **Twenty owed instruments are registered.** Each open register row that asserted a defect with nothing
+  checking it now names the probe that decides it, pinned to the current engine release. Three rows' claims
+  were refuted by their probes and say so.
+- Two switches that name a known defective path before its fix, so the fix can later be shown switching back:
+  `MEDI_HITCOUNT_DROP_ON_COLLAPSE` and `MEDI_UNBURDEN_FROM_CURRENT_ABILITY`. Both change nothing yet, by design.
+
+### Fixed
+- Three of the new probes swallowed an error silently; each now reports it.
+
 ## [6.12.3] — 2026-09-11
 
 ### Changed

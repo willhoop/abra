@@ -165,7 +165,8 @@ function universe(opt) {
         scope: LS.derive(),
         crit: critTable(), arms: armIds(),
         hitCheck: cite('sim/battle-actions.ts', /randomChance\(\s*accuracy\s*,\s*100\s*\)/),
-        genderPin: cite('engine/game_differential.js', /gender:\s*'N',\s*level:\s*50/),
+        genderPin: cite('engine/game_differential.js', /gender:\s*'N',\s*level:\s*50/) || cite('engine/game_differential.js', /\?\s*p\.gender\s*:\s*'N'/),
+        genderSeam: cite('engine/game_differential.js', /opts\.declaredGender\s*&&/),
         knobs: knobMap() };
   return U;
 }
@@ -1861,6 +1862,43 @@ function carriersFor(kind, e, trig) {
   const inert = id(CS.INERT_MOVE);
   return L.sort((a, b) => (learns(b, inert) - learns(a, inert)) || (a < b ? -1 : 1)).slice(0, 25).map(s => ({ sheet: D.species.get(s).name, field: D.species.get(s).name, via: 'learner' }));
 }
+/* GENDER, DECLARED WHERE A HANDLER READS IT — 2026-09-11 (ROADMAP #592).
+ *
+ * THE CLAIM THIS REPLACES WAS MEASURED FALSE. This module's report said the three gender rows "get fixtures
+ * with declared genders, held back until the driver seam exists". Once the seam existed and the fixtures were
+ * played, every body they emitted carried gender '' — `setBody` defaults it and nothing ever set it — so
+ * Attract, Cute Charm and Rivalry would have been staged genderless through a working seam and read as
+ * "did not fire" for the planner's reason, not the engine's.
+ *
+ * WHICH RELATION IS DERIVED, NOT NAMED: a `damageByGender` tag whose `sameMult` exceeds 1 wants the SAME
+ * gender (that is where its multiplier moves the hit); any other gender reader (Attract's infatuation gate,
+ * Cute Charm through it) wants the OPPOSITE. WHICH GENDERS A SPECIES MAY CARRY is read off the dex — a fixed
+ * `gender`, else the non-zero halves of `genderRatio` — and the validator judges the result like every other
+ * leaf. No legal pair is a refusal, never a genderless fixture. */
+function declareGenders(rc, kind, e, trig) {
+  if (!trig.some(t => t.kind === 'capability' && t.capability === 'gender')) return;
+  const C = rc.bodies.C, R = rc.bodies.R;
+  if (!C || !R) refuse('PLANNER-CANNOT-CONSTRUCT', 'a gender-reading mechanic needs a carrier and a receiver whose genders relate');
+  const dbg = (tagsOf(kind, e.id).params || {}).damageByGender;
+  const want = dbg && +dbg.sameMult > 1 ? 'same' : 'opposite';
+  const can = (name) => {
+    const s = D.species.get(name);
+    if (s.gender) return s.gender === 'N' ? [] : [s.gender];
+    const r = s.genderRatio || {};
+    return ['M', 'F'].filter(g => (+r[g] || 0) > 0);
+  };
+  const cg = can(C.species), rg = can(R.species);
+  for (const g of cg) {
+    const need = want === 'same' ? g : (g === 'M' ? 'F' : 'M');
+    if (rg.includes(need)) {
+      C.gender = g; R.gender = need;
+      rc.notes.push('genders declared for the ' + want + '-gender case the handler reads: C ' + C.species + ' ' + g + ', R ' + R.species + ' ' + need);
+      return;
+    }
+  }
+  refuse('PLANNER-CANNOT-CONSTRUCT', 'no legal gender pair gives the ' + want + '-gender case (C ' + C.species + ' may be '
+    + JSON.stringify(cg) + ', R ' + R.species + ' may be ' + JSON.stringify(rg) + ')');
+}
 function buildOne(kind, e, trig, bearer, branch, stager) {
   const rc = stager ? stager() : kind === 'moves' ? stageMove(e, bearer.sheet) : stageEntity(kind, e, trig, bearer, branch);
   if (bearer && bearer.via === 'mega' || (kind === 'items' && e.megaStone)) rc.megaRole = rc.megaRole || 'C';
@@ -1872,7 +1910,25 @@ function buildOne(kind, e, trig, bearer, branch, stager) {
     rc.conditions.push({ kind: 'mega', role: 'C', turn: 1 });
     if (rc.readAfter == null) rc.readAfter = 1;
   }
+  /* A PERMANENT FORME CHANGE PLAYS THE REAL POOL — 2026-09-11, measured, and the harness already knew.
+   * `Pokemon#setSpecies` recomputes max HP from the set when a forme is permanent (a mega evolution, Disguise
+   * busting, Zero to Hero), so the authority DROPS the driver's x6 boost at the change and medicham2 keeps it.
+   * The first integrated run parted 73 stones and 13 mega-carrier abilities on `party.hp` at about six times
+   * (Abomasite 134 vs 959) and Disguise at 114 vs 683 — one instrument artifact, not 87 defects.
+   * engine/all_mechanics_fire.js has played every such row x1 since HB-1 for exactly this reason
+   * (`MEGA_AB_RUNGS`, the forme-tagged board-only rungs); the planner now does too. The forme test is the
+   * harness's own: the carrier's ability carries a `forme*` or `switchInForme` tag. */
+  {
+    const cAb = rc.bodies.C && rc.bodies.C.ability;
+    const formeAb = !!cAb && ((tagsOf('abilities', cAb).tags) || []).some(t => /^forme/.test(t) || t === 'switchInForme');
+    if ((rc.megaRole || formeAb) && rc.hpPool !== 'x1') {
+      rc.hpPool = 'x1';
+      rc.notes.push('real HP pool (x1): ' + (rc.megaRole ? 'the carrier mega-evolves' : 'the carrier\'s ability changes its forme')
+        + ', and a permanent forme change makes the authority recompute max HP and drop the x6 boost');
+    }
+  }
   finish(rc);
+  declareGenders(rc, kind, e, trig);
   if (BRK === 'protect-ally') for (const t of rc.turns) if (t.CA && !t.CA.sw && learns(rc.bodies.CA.species, 'protect')) t.CA = { m: addMove(rc, 'CA', 'protect') };
   if (BRK === 'illegal-team') rc.bodies.C.evs.spe = 40;
   const obs = rc.observe && rc.observe.leaves ? rc.observe : Object.assign({}, observeOf(kind, e), rc.observe || {});
@@ -1988,7 +2044,13 @@ function planMechanic(kind, e) {
   }
   /* ---- a capability the driver lacks: the fixture exists and cannot be played ---- */
   const cap = trig.find(t => t.kind === 'capability');
-  if (cap && out.fixtures.length) {
+  /* 2026-09-11 — THE DRIVER HAS THE GENDER SEAM NOW (`declaredGender`, engine/game_differential.js
+   * buildPair), so a gender fixture is PLAYABLE and is no longer refused. Detected off the driver's own
+   * source rather than assumed, so a driver without it still refuses by the old code. */
+  if (cap && cap.capability === 'gender' && U.genderSeam && out.fixtures.length) {
+    for (const f of out.fixtures) f.notes.push('plays through the driver\'s declared-gender seam (' + U.genderSeam.at + '): the caller must pass declaredGender');
+    out.needsSeam = { declaredGender: true, at: U.genderSeam.at };
+  } else if (cap && out.fixtures.length) {
     out.refusal = { code: 'NEEDS-ENGINE-CAPABILITY', capability: cap.capability,
       reason: 'the handler reads .' + cap.capability + '; medicham2 has a reader (genderOf) but the DRIVER writes gender N on every body'
         + (U.genderPin ? ' (' + U.genderPin.at + ')' : '') + ', so no staged game can show it. The fixture below is legal and waits on that seam.',
@@ -2058,7 +2120,7 @@ function plan(opt) {
   const S = summarise(all, branches);
   return { meta: { generated: new Date().toISOString(), by: 'engine/stage_planner.js', format: FORMAT, filter: FILTER,
                    tags: U.tags.source, tags_digest: U.tags.digest, showdown: SDP, break: BRK, ms: Date.now() - t0,
-                   crit: U.crit, hitCheck: U.hitCheck, arms: U.arms, genderPin: U.genderPin, knobs: U.knobs.count,
+                   crit: U.crit, hitCheck: U.hitCheck, arms: U.arms, genderPin: U.genderPin, genderSeam: U.genderSeam || null, knobs: U.knobs.count,
                    validator: Object.assign({}, VSTATS), poolFails: U.POOL_FAILS.length,
                    /* PRINTED, NOT TRUSTED (LESSONS §4): what this module added to PRE's derivation and what it removed */
                    normalised: uniq(NORMALISED), overmatchDropped: uniq(OVERMATCH) },

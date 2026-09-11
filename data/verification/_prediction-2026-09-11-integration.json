@@ -1,0 +1,43 @@
+{
+  "written": "2026-09-11",
+  "by": "ENGINE, integration pass (batch 1) — written BEFORE any planner fixture was played in the harness",
+  "what": "engine/all_mechanics_fire.js plays engine/stage_planner.js fixtures (fixture + one-leaf control, every rendered side/slot variant, the fixture's own arm and HP pool, the sheet's declared spread and gender) instead of its hand-picked bodies",
+  "design_that_the_numbers_depend_on": [
+    "abilities and items: the planner fixture is the FIRST stage; the verdict is the existing A/B (abRow) over the fixture game and its one-leaf control, so a FIRED means what it meant before",
+    "a planned row that does not fire, or cannot be staged, falls back LOUDLY to the legacy ladder (stage: legacy-fallback, the planner verdict kept beside it); a row the planner refuses runs legacy with the refusal code. So fired cannot fall below the baseline on a deterministic engine, and every fallback is a planner gap named in the artifact",
+    "moves: the legacy consequence ladder stays the primary verdict (it carries leaf_effect and announcement_only, which coverage.js reads), and every move row ALSO plays its planner fixture on every variant; a move the legacy arm cannot resolve takes the planner's resolution",
+    "every variant (near, far, slot b where rendered) is played; a board that parts on ANY variant marks the row's board STATE",
+    "gender (Attract, Cute Charm, Rivalry) plays through a new opt-in declared-gender seam in engine/game_differential.js buildPair, with medicham2 appending ', M' / ', F' to its switch and detailschange details exactly as sim/pokemon.ts getUpdatedDetails does",
+    "every planned row plays its sheet's declared spread (0 SP, Hardy) through a new opt-in declared-spread seam, because the planner judged its speed windows on that sheet"
+  ],
+  "baseline": {
+    "source": "node engine/coverage.js over data/all-mechanics-fire.json (generated 2026-09-11T09:34:59.048Z, release 13257c8bc397, 1522 games, 0 threw)",
+    "fired": 740, "board_compared": 740, "in_scope": 845,
+    "by_kind": { "moves": "496/497", "abilities": "105/200", "items": "139/148" }
+  },
+  "predicted": {
+    "fired": { "point": 795, "range": [778, 812] },
+    "board_compared": { "point": 795, "range": [778, 812], "why": "board_compared tracks fired: every staged fired row carries a board" },
+    "by_kind": {
+      "moves": { "point": "497/497", "why": "Attract is the only unresolved in-scope move and it needed a gendered body" },
+      "abilities": { "point": "~150/200", "range": [135, 165], "why": "94 of the 95 unfired in-scope abilities have a fixture; 28 of those (15 FIRED-UNCONTROLLED, 13 UNPROVEN-UNCONTROLLED) have no control today and the planner leaves most of them board-only, which is not FIRED; of the ~66 with a one-leaf control I expect roughly two-thirds to fire" },
+      "items": { "point": "147/148", "range": [144, 148], "why": "the 9 unfired items are the five duration rocks/Light Clay (the holder now clicks its own setter) and the four accuracy/crit items (now staged at top-tie-first where the threshold decides)" }
+    },
+    "fallbacks": "tens, not hundreds: the planner's fixtures were built from the handlers, so a planned row that does not fire where the legacy row did is a planner gap and each is named"
+  },
+  "expected_to_PART": {
+    "note": "Every newly parting mechanic is an engine defect found. It is REGISTERED and left for the next batch, so this batch's result stays attributable to the harness.",
+    "most_likely": [
+      { "who": "move:attract, ability:cutecharm, ability:rivalry", "why": "first time any harness plays a gendered body in a real game: the details suffix, Attract's immunity gate, Cute Charm's contact infatuation and Rivalry's multiplier are all new ground in BOTH engines' streams" },
+      { "who": "items: damprock, heatrock, icyrock, smoothrock, lightclay", "why": "the game now runs past the short clock with the setter clicked by the holder; a clock-length or end-position disagreement would show here first" }
+    ],
+    "possible": [
+      { "who": "ability:prankster, hospitality, lightningrod, voltabsorb, unburden", "why": "newly staged common rows the planner report named; each is exercised on a board it never had" },
+      { "who": "the 8 top-tie-first rows (widelens, zoomlens, compoundeyes, brightpowder, tangledfeet, scopelens, superluck, merciless)", "why": "threshold rows at the corner where the modified threshold decides; the top corner is already 1 of 961 in the pool, so a part here would be narrow" }
+    ],
+    "not_expected": [
+      { "who": "the 8 legacy SHOWDOWN-ONLY abilities (forewarn, moldbreaker, naturalcure, pressure, rockhead, superluck, supremeoverlord, unnerve)", "why": "most are announcement-only differences that the differential's ability-announcement equivalence collapses; forewarn is closeted by Will" }
+    ]
+  },
+  "scoreboard": "the LAB (all-mechanics-fire, coverage.js) should move; the pinned pool (game_differential 961) should sit still except where the new driver seams are exercised — they are opt-in and no pool caller passes them, so the pool arms must read byte-identical to the batch-B figures (middle 0, top 1, bottom 2 of 961)"
+}

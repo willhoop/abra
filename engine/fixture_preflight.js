@@ -160,7 +160,7 @@ function immuneToStatus(sp, status, abilityId) {
   if (status === 'frz' && t.includes('Ice')) return 'is Ice — freeze cannot land';
   const ab = D.abilities.get(abilityId || '');
   if (ab && ab.exists) {
-    const src = String(ab.onSetStatus || '') + String(ab.onTrySetStatus || '') + String(ab.onImmunity || '');
+    const src = SRC(ab.onSetStatus || '') + SRC(ab.onTrySetStatus || '') + SRC(ab.onImmunity || '');
     if (src.includes("'" + status + "'") || src.includes('"' + status + '"'))
       return 'its own ability ' + ab.name + ' refuses ' + status;
   }
@@ -198,10 +198,19 @@ function immuneToStatus(sp, status, abilityId) {
  * kind of thing that carries it — Toxic Orb reads status, Snow Cloak's item-shaped siblings read
  * weather. Nothing about the derivation was ability-specific; the SOURCE it was pointed at was. So the
  * handler text is gathered from whatever the scenario declares and the clauses are unchanged. */
+/* `?.` IS READ AS `.` — 2026-09-11 (docs/_reports/2026-09-11-stage-planner.md §3, finding 1).
+ * Every clause in this file is a regex over the COMPILED handler text, and the text says
+ * `move?.category === "Status"` where a clause asks for `move\.category`. So Prankster never got its
+ * status-click requirement, and Gale Wings, Pickpocket and Triage lost theirs the same way; the planner
+ * had been papering over it by normalising before it called in here. The normalisation belongs at the
+ * one door every handler read goes through, so it is THIS function, hoisted, and every `String(fn)` of
+ * a handler in the file calls it. Only `?.` followed by an identifier is rewritten — `?.[` and `?.(`
+ * are left alone, because no clause here reads a computed member or an optional call. */
+function SRC(v) { return String(v).replace(/\?\.(?=[A-Za-z_$])/g, '.'); }
 function handlerSrc(e) {
   return e && e.exists
     ? Object.entries(e).filter(([k, v]) => /^on/.test(k) && typeof v === 'function')
-        .map(([, v]) => String(v)).join(' ')
+        .map(([, v]) => SRC(v)).join(' ')
     : '';
 }
 /* WHICH STATUS A HANDLER READS, read off the handler rather than named here. `pokemon.status === "par"`
@@ -222,7 +231,7 @@ function statusesFromSrc(src) {
 function statusesRead(entity) {
   if (!entity || !entity.exists) return [];
   const src = handlerSrc(entity)
-    + ' ' + (typeof entity.onEat === 'function' ? String(entity.onEat) : '');
+    + ' ' + (typeof entity.onEat === 'function' ? SRC(entity.onEat) : '');
   return statusesFromSrc(src);
 }
 void STATUS_IDS;
@@ -236,7 +245,7 @@ function triggerClauses(sc, sp, why, note, cl) {
     /* A BERRY'S WHOLE MECHANISM IS ITS `onEat`, WHICH IS NOT AN `on`-PREFIXED FUNCTION ON THE ITEM in
      * the compiled dex the way the others are — it is, but its condition text lives beside it. Both are
      * gathered so a status-curing berry reads as status-gated. */
-    + ' ' + (itemE && itemE.exists && typeof itemE.onEat === 'function' ? String(itemE.onEat) : '');
+    + ' ' + (itemE && itemE.exists && typeof itemE.onEat === 'function' ? SRC(itemE.onEat) : '');
 
   /* 1. A SWITCH NEEDS A BENCH, and the engine's own slicing is the trap. */
   if (sc.switchesOut || /onSwitchOut/.test(src)) {
@@ -812,7 +821,7 @@ function moveNeeds(entity) {
     if (!h) continue;
     const role = EVENT_ROLE[h.base];
     const by = whoClicks(h.prefix, role);
-    const c = cuesOf(h.base, String(v));
+    const c = cuesOf(h.base, SRC(v));
     const damaging = DAMAGE_PATH.has(h.base);
     for (const u of c.undet) undetermined.push({ handler: k, cue: u });
     for (const n of c.needs) {
@@ -913,7 +922,7 @@ function boardNeeds(entity) {
   const add = (kind, values, handler, extra) =>
     out.push(Object.assign({ kind, values: values || [], handler }, extra || {}));
   const handlers = Object.entries(entity).filter(([k, v]) => /^on/.test(k) && typeof v === 'function');
-  const allSrc = handlers.map(([, v]) => String(v)).join(' ');
+  const allSrc = handlers.map(([, v]) => SRC(v)).join(' ');
   /* A VOLATILE THE MECHANIC APPLIES ITSELF IS NOT A PRECONDITION, AND THE FIRST PRINT OF THIS
    * DERIVATION GOT THAT WRONG ON EIGHT ROWS. `flashfire.onEnd` removes `flashfire`, `truant.onStart`
    * reads `truant`, Choice Scarf's `onStart` reads `choicelock` — every one of them is the mechanic
@@ -922,7 +931,7 @@ function boardNeeds(entity) {
    * entity `addVolatile`s anywhere in its own handlers is its own. */
   const selfVol = new Set([...allSrc.matchAll(/addVolatile\(\s*["']([a-z]+)["']/g)].map(m => m[1]));
   for (const [k, v] of handlers) {
-    const src = String(v);
+    const src = SRC(v);
     const h = splitHandler(k);
     const base = h ? h.base : '';
     const prefix = h ? h.prefix : '';

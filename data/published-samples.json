@@ -1,13 +1,13 @@
 {
   "generated_by": "engine/publish_guard.js",
   "what": "HIGH-WATER SAMPLE PER PUBLISHED ARTIFACT — ROADMAP #257. Written by engine/publish_guard.js. A publish below the recorded sample is refused unless the run passes --republish-smaller. tests/test-publish-guard.js fails by name when an artifact on disk sits below its record.",
-  "updated": "2026-09-11T09:31:59.858Z",
+  "updated": "2026-09-11T11:20:13.696Z",
   "by": "engine/publish_guard.js",
   "artifacts": {
     "data/engine-diff.json": {
       "sample": 6000,
       "key": "compared",
-      "at": "2026-09-11T09:31:59.858Z",
+      "at": "2026-09-11T11:20:13.696Z",
       "by": "tests/test-engine-diff.js"
     },
     "data/engine-diff-PLANTED-band.json": {

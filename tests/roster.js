@@ -911,9 +911,23 @@ for (const it of dex.items.all()) {
   if (!it.exists || it.isNonstandard || !it.megaStone) continue;
   for (const b of Object.keys(it.megaStone)) MEGA_OF[idOf(it.megaStone[b])] = { item: it.id, base: idOf(b) };
 }
+/* SCOPE IS ASKED OF engine/legal_scope.js, THE ONE IMPLEMENTATION — 2026-09-11
+ * (docs/_reports/2026-09-11-scope-unified.md). This file decided it itself: `CARRIERS` below walked
+ * `dex.species.all()` with `exists && !isNonstandard` and NO tier check, admitting the ten tier-`Illegal`
+ * species (CLAUDE.md: filter every walk), and every refusal said "no legal species in this format
+ * carries it" whether the truth was no carrier, a carrier the TeamValidator refuses, or an ability whose
+ * only readers are out of the regulation. `CARRIERS` still answers WHICH BODY to stage on, which is this
+ * file's question; WHETHER the mechanic exists is the verdict's, and a refusal now carries its code. */
+const SCOPE = require('../engine/legal_scope.js').derive();
+function scopeCannot(e) {
+  const v = SCOPE.verdict('ability', e && e.id);
+  return v.inScope
+    ? 'IN SCOPE (' + v.code + ') and this roster found no carrier body to stage it on — a staging gap, not a claim about the format'
+    : v.code + ': ' + v.why;
+}
 const CARRIERS = {};
 for (const s of dex.species.all()) {
-  if (!s.exists || s.isNonstandard) continue;
+  if (!s.exists || s.isNonstandard || s.tier === 'Illegal') continue;
   for (const n of Object.values(s.abilities || {})) (CARRIERS[idOf(n)] = CARRIERS[idOf(n)] || []).push(s);
 }
 /* THE CONTROL ABILITIES FOR A SPECIES, RANKED — quiet first, then fewest handlers.
@@ -3761,7 +3775,7 @@ function stageAbilitySwap(e, C, o) {
 }
 /* one door for a rule that does not care which tier its carrier landed in */
 function stageAbilityAnyTier(e, C, o) {
-  if (!C) return cannot('no legal species in this format carries it');
+  if (!C) return cannot(scopeCannot(e));
   return C.tier === 'ALTERNATE' ? stageAbility(e, C, o) : stageAbilitySwap(e, C, o);
 }
 
@@ -3982,7 +3996,7 @@ function abilitySwitchWorks() {
 }
 
 function abilityScenario(e, C, kind) {
-  if (!C) return cannot('no legal species in this format carries it');
+  if (!C) return cannot(scopeCannot(e));
   const base = dex.species.get(C.species);
   if (!base || !base.exists) return cannot('the carrier species "' + C.species + '" is not in the '
     + 'format dex');
@@ -6827,8 +6841,12 @@ const RULES = [
      * unconditional anchor audit below, not by `--reds`: every member of this rule is COULD-NOT-STAGE
      * in this format, so the reds loop never reached it. Aimed at the PAYMENT now, which is one line
      * and does not carry the room-item guard that moved. Still UNEXERCISED. */
-    patch: [['if(_ub&&_ub.speedMult)_mods.push(+_ub.speedMult);}',
-             'if(false&&_ub&&_ub.speedMult)_mods.push(+_ub.speedMult);}']] },
+    /* RE-AIMED AGAIN 2026-09-11 (ENGINE). The payment line gained ROADMAP #535's knob counter
+     * (`{if(UNBURDEN_FROM_CURRENT_ABILITY)...;_mods.push(...);}`), so the 2026-09-07 anchor matched ZERO
+     * times and the abilities stage exited 1 on DEAD ANCHOR. Aimed at the guard that opens the payment,
+     * which occurs once; the plant still drops the multiplier and leaves the item consumed. */
+    patch: [['if(_ub&&_ub.speedMult){if(UNBURDEN_FROM_CURRENT_ABILITY)',
+             'if(false&&_ub&&_ub.speedMult){if(UNBURDEN_FROM_CURRENT_ABILITY)']] },
   match(e) {
     if (!hasHandler(e, 'onAfterUseItem', 'onTakeItem')) return null;
     /* AND STICKY HOLD IS NOT IN THIS FAMILY, WHICH IS THE OVER-MATCH THIS PROJECT HAS ALREADY MADE
@@ -7346,7 +7364,7 @@ const RULES = [
     if (!GRAVITY_MOVE) return cannot('this format has no move that puts up Gravity, so arm B cannot be '
       + 'staged');
     const C = carrierFor(e);
-    if (!C) return cannot('no legal species in this format carries it');
+    if (!C) return cannot(scopeCannot(e));
     /* A FLYING CARRIER WOULD MAKE THE WHOLE BOARD INERT — `isGrounded` returns false on the Flying
      * clause BEFORE it ever reaches the ability, so the control arm would be immune too and the delta
      * would collapse. Rotom-Fan is exactly that body and is skipped for that reason. */
@@ -7436,7 +7454,7 @@ const RULES = [
       .matchAll(/hasAbility\("(\w+)"\)/g)].map(m => idOf(m[1]));
     if (!named.includes(e.id)) return null;
     const C = carrierFor(e);
-    if (!C) return cannot('no legal species in this format carries it');
+    if (!C) return cannot(scopeCannot(e));
     const base = dex.species.get(C.tier === 'MEGA' ? (C.base || C.species) : C.species);
     /* the click whose TYPE is decided by the sky, read off its own onModifyType */
     const ball = dex.moves.all().find(m => m.exists && !m.isNonstandard && m.category !== 'Status'
@@ -7514,7 +7532,7 @@ const RULES = [
   match(e) {
     if (typeof e.onHitProtect !== 'function') return null;
     const C = carrierFor(e);
-    if (!C) return cannot('no legal species in this format carries it');
+    if (!C) return cannot(scopeCannot(e));
     const baseId = C.tier === 'MEGA' ? C.base || C.species : C.species;
     const base = dex.species.get(baseId);
     /* THE SHIELD. Derived off the move's own `stallingMove` flag rather than by name, so Detect and
@@ -10687,9 +10705,25 @@ function assign(kind) {
     /* THE CARRIER QUESTION IS ASKED FIRST AND ONCE, so no rule's own refusal can decide the scope by
      * matching earlier — see `legalCarriers`. A row with no legal carrier is OUT OF SCOPE and never
      * staged: it is not in this game. */
+    /* 2026-09-11 — WHETHER IT IS IN THE REGULATION IS engine/legal_scope.js's VERDICT, asked first. The
+     * carrier walk below decided it until today and disagreed with the verdict on three abilities: it
+     * counted Battle Bond in (its one carrier is refused by the TeamValidator) and Gluttony in (its only
+     * readers are out of the regulation), and Simple out (a legal move, Simple Beam, confers it). An
+     * out-of-scope row keeps the verdict's CODE in `out_of_scope` and is dropped from the written rows like
+     * every out-of-scope row before it; the count stays. */
+    const sv = SCOPE.verdict(kind, e.id);
+    if (!sv.inScope) {
+      out.push({ kind, id: e.id, name: e.name, rule: 'scope/' + String(sv.code).toLowerCase(),
+        verdict: 'COULD-NOT-STAGE', why: sv.code + ' (engine/legal_scope.js): ' + sv.why,
+        out_of_scope: String(sv.code).toLowerCase(), scope_verdict: sv.code });
+      continue;
+    }
     if (!legalCarriers(kind, e).length) {
-      out.push({ kind, id: e.id, name: e.name, rule: 'scope/no-legal-carrier',
-        verdict: 'COULD-NOT-STAGE', why: noLegalCarrierWhy(kind, e), out_of_scope: 'no-legal-carrier' });
+      /* IN SCOPE WITH NO SHEET BODY — a CONFERRED ability (Simple). This roster has no conferral rule, so it
+       * is a staging gap of this instrument: counted in scope and not stageable, never out of scope. */
+      out.push({ kind, id: e.id, name: e.name, rule: 'scope/in-scope-no-sheet-body',
+        verdict: 'COULD-NOT-STAGE', why: 'IN SCOPE (' + sv.code + ' — engine/legal_scope.js) and no legal species carries it '
+          + 'as a sheet body; this roster has no rule that stages a conferred ability — a staging gap, not a claim about the format' });
       continue;
     }
     let hit = null;
@@ -11653,7 +11687,7 @@ function main() {
     + 'of ' + scope.in_scope + ' IN SCOPE, of ' + scope.total + ' total');
   console.log('    ' + scope.out_of_scope + ' OUT OF SCOPE — a fact about the regulation, not a gap: '
     + (Object.entries(oosBy).map(([k, v]) => v + ' ' + k).join(', ') || 'none')
-    + '   [derived by CARRIER over ' + CARRIER_DERIVATION.legal_species + ' legal species ('
+    + '   [scope decided by engine/legal_scope.js; bodies drawn from ' + CARRIER_DERIVATION.legal_species + ' legal species ('
     + CARRIER_DERIVATION.legal_species_predicate + '), ' + CARRIER_DERIVATION.mega_formes_included
     + ' mega formes and ' + CARRIER_DERIVATION.battle_only_formes_included + ' battle-only formes among them]');
   console.log('    ' + scope.could_not_stage_in_scope + ' in scope and NOT STAGEABLE by this instrument '
@@ -11738,7 +11772,8 @@ function main() {
        * THIS IS THE REGULATION'S ANSWER, NOT THIS FILE'S. The rows are tagged at the refusal by
        * `cannot(why, 'no-legal-carrier')`, which is reached only when the legal-species walk returns
        * empty, so nothing here decides what is in the format. */
-      results: results.filter(r => r.out_of_scope !== 'no-legal-carrier')
+      /* 2026-09-11 — and every row the scope VERDICT put out (`scope_verdict`), whatever its code. */
+      results: results.filter(r => !r.scope_verdict && r.out_of_scope !== 'no-legal-carrier')
         .map(r => ({ kind: r.kind, id: r.id, name: r.name, rule: r.rule, reads: r.reads || null,
         note: r.note || null, verdict: r.verdict, why: r.why || null,
         arm: (r.scenario && r.scenario.arm) || PRIMARY_ARM_ID, control_why: r.control_why || null,

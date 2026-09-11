@@ -197,6 +197,14 @@ const TAGS = JSON.parse(GD.REL.read('data/tags.json') || fs.readFileSync(D('data
  * meaning for whatever already reads them; `verdict_refined`, `cannot_fire`, `cannot_fire_clause` and
  * `preflight` are added beside them. */
 const PRE = require('./fixture_preflight.js');
+/* SCOPE IS ASKED OF engine/legal_scope.js, THE ONE IMPLEMENTATION — 2026-09-11
+ * (docs/_reports/2026-09-11-scope-unified.md). This file decided it itself in five places — a move with
+ * no learner in `CARRIERS`, an ability with no carrier in `AB_CARRIERS`, a stone with no legal pair, the
+ * z-crystal / Poke Ball excuse, and a relabel keyed on the validator's "does not exist in Gen 9" — and
+ * it disagreed with the verdict on two rows: it marked Simple (CONFERRED through Simple Beam) unreachable
+ * and it staged Gluttony (NO-LEGAL-READER). `LEGAL_SPECIES` below stays: it is the list of sheet BODIES to
+ * stage on, which is this file's question. Whether a mechanic EXISTS is the verdict's. */
+const SCOPE = require('./legal_scope.js').derive();
 /* THE RED SWITCH. `--break-preflight` replaces the preflight with a stub that clears everything,
  * exactly as an unwired preflight would, so the demonstration that the wiring is load-bearing can be
  * run rather than asserted. It is announced on every run that uses it. */
@@ -546,6 +554,18 @@ function validate(sheet) {
   if (VAL_CACHE.has(key)) return VAL_CACHE.get(key);
   let errs = null;
   try { errs = VALIDATOR.validateTeam(sets); }
+  catch (e) { errs = ['validator threw: ' + e.message]; }
+  const r = { ok: !errs, errors: errs || [] };
+  VAL_CACHE.set(key, r);
+  return r;
+}
+/* A PLANNED SHEET, VALIDATED AS WRITTEN — its own gender, spread and nature (2026-09-11). A deep copy is
+ * handed over because `validateTeam` normalises the sets it is given. */
+function validateAsWritten(team) {
+  const key = 'as-written:' + JSON.stringify(team);
+  if (VAL_CACHE.has(key)) return VAL_CACHE.get(key);
+  let errs = null;
+  try { errs = VALIDATOR.validateTeam(JSON.parse(JSON.stringify(team))); }
   catch (e) { errs = ['validator threw: ' + e.message]; }
   const r = { ok: !errs, errors: errs || [] };
   VAL_CACHE.set(key, r);
@@ -1292,10 +1312,15 @@ function stageBodies(actor, receiver, allyOverride) {
 }
 
 function playScenario(spec) {
-  const aSheet = sheetOf([spec.actor, spec.ally]);
-  const bSheet = sheetOf([spec.receiver, spec.foeAlly]);
+  /* A PLANNED FIXTURE BRINGS ITS OWN TWO SHEETS (2026-09-11), six bodies each, already validated by the
+   * planner — and they are validated AGAIN here, AS WRITTEN (their own gender, spread and nature),
+   * because `validate()` below rebuilds every set with gender 'N' and a zero spread and would judge a
+   * different team from the one the game plays. */
+  const aSheet = spec.teams ? spec.teams.p1 : sheetOf([spec.actor, spec.ally]);
+  const bSheet = spec.teams ? spec.teams.p2 : sheetOf([spec.receiver, spec.foeAlly]);
   if (!aSheet || !bSheet) return { staged: false, why: 'a sheet could not be assembled' };
-  const vA = validate(aSheet), vB = validate(bSheet);
+  const vA = spec.teams ? validateAsWritten(aSheet) : validate(aSheet);
+  const vB = spec.teams ? validateAsWritten(bSheet) : validate(bSheet);
   if (!vA.ok || !vB.ok) return { staged: false, why: 'TeamValidator refused the team',
                                  validator: vA.errors.concat(vB.errors) };
   /* THE POOL IS A SCENARIO PARAMETER. x6 keeps everything alive so no forced switch can manufacture a
@@ -1303,8 +1328,12 @@ function playScenario(spec) {
    * at a half, Focus Sash from full, Blaze at a third, Berserk at a half — can actually be crossed.
    * Both are used, in that order, and the row records which one it took. */
   const hpx = spec.hpBoost || HP_BOOST;
-  const a6 = GD.buildPair(aSheet, { hpBoost: hpx, max: 6 });
-  const b6 = GD.buildPair(bSheet, { hpBoost: hpx, max: 6 });
+  /* `declared` — a PLANNED sheet is played as the validator approved it: its own spread (the planner
+   * judged its speed windows on it) and its own genders. Both seams are opt-in in the driver, so every
+   * hand-built scenario above is byte-identical to before. */
+  const seam = { hpBoost: hpx, max: 6, declaredSpread: !!spec.declared, declaredGender: !!spec.declared };
+  const a6 = GD.buildPair(aSheet, seam);
+  const b6 = GD.buildPair(bSheet, seam);
   if (!a6 || !b6) return { staged: false, why: 'buildPair could not build the validated sheet' };
   const a = a6.slice(0, 4), b = b6.slice(0, 4);
   let g;
@@ -1380,7 +1409,7 @@ function playScenario(spec) {
                   diffs: (snap.identical ? [] : snap.diffs.map(d => BS.locate(d, snap))).concat(sl) });
   };
   try { g = GD.playGame(a, b, 'all-mechanics-fire', spec.tag,
-                        { script: spec.script, arm: ARM, onBoundary,
+                        { script: spec.script, arm: spec.arm || ARM, onBoundary,
                           /* undefined on every real run; the board red demonstration is its only caller */
                           statePlant: spec.statePlant }); }
   catch (e) { THREW++; return { staged: false, why: 'the game threw: ' + String(e.message || e).slice(0, 120) }; }
@@ -1713,10 +1742,17 @@ function runMoves(list) {
      * The authority hard-codes it: `Pokemon#getMoves` returns `{move: 'Struggle', id: 'struggle'}` when
      * no slot is usable (sim/pokemon.ts). So "nothing learns it" is not "no legal carrier" — see
      * `runStruggle`. */
-    if (!carriers.length && mv === STRUGGLE_ID) { rows.push(runStruggle(dm)); continue; }
-    if (!carriers.length) {
+    const sv = SCOPE.verdict('move', mv);
+    if (!sv.inScope) {
       rows.push({ kind: 'move', id: mv, name: dm.name, resolved: false, attempted: false,
-                  why: 'NO LEGAL CARRIER — no species this format admits can learn it', unreachable: true });
+                  why: sv.code + ' — ' + sv.why, scope_code: sv.code, unreachable: true });
+      continue;
+    }
+    if (sv.code === 'INJECTED') { rows.push(runStruggle(dm)); continue; }
+    if (!carriers.length) {
+      /* IN SCOPE AND NO BODY HERE: a staging gap of this file's species list, never a scope claim. */
+      rows.push({ kind: 'move', id: mv, name: dm.name, resolved: false, attempted: false, staging_gap: true,
+                  why: 'IN SCOPE (' + sv.code + ') and this harness\'s species list offers no carrier — a staging gap, not a claim about the format' });
       continue;
     }
     /* THE CARRIER IS THE FIRST LEGAL ONE THAT CAN ALSO CARRY THE SETUP. Deterministic, so a re-run
@@ -2459,9 +2495,17 @@ function runAbilities(list) {
      * whose carrier is perfectly legal — `LEGAL_SPECIES` drops mega formes because a sheet cannot name
      * one, and `AB_CARRIERS` inherited that. */
     const megaE = carriers.length ? null : ((MEGA_AB_CARRIERS.get(ab) || [])[0] || null);
-    if (!carriers.length && !megaE) {
+    const sv = SCOPE.verdict('ability', ab);
+    if (!sv.inScope) {
       rows.push({ kind: 'ability', id: ab, name: da.name, fired: false, unreachable: true,
-                  why: 'NO LEGAL CARRIER — no species this format admits has it, as a base forme or a mega' });
+                  scope_code: sv.code, why: sv.code + ' — ' + sv.why });
+      continue;
+    }
+    if (!carriers.length && !megaE) {
+      /* IN SCOPE (a CONFERRED ability — Simple through Simple Beam) with no body in this ladder: the
+       * staging planner's conferral fixture stages it; this ladder has no rung for it. Not unreachable. */
+      rows.push({ kind: 'ability', id: ab, name: da.name, fired: false, staging_gap: true,
+                  why: 'IN SCOPE (' + sv.code + ') and the legacy ladder has no carrier body for it — a staging gap, not a claim about the format' });
       continue;
     }
     /* HB-3 (2026-09-11) — THE CARRIER IS THE FIRST ONE THAT HAS A CONTROL AND BUILDS WITHOUT THE
@@ -2761,16 +2805,9 @@ function runAbilities(list) {
                  () => mkActorI(da.name, twItem), () => mkActorI(ctrl, twItem), receiver, facesUsed, tw);
     /* THE PREFLIGHT'S VERDICT IS ATTACHED AFTER THE GAME, AND FALSIFIED BY IT. `fired` is the only
      * thing that can prove a refusal wrong, so it is passed in rather than assumed. */
-    /* HB-5 (2026-09-11) — A CARRIER THE VALIDATOR SAYS DOES NOT EXIST IS NO CARRIER. Measured on Battle
-     * Bond: Greninja's slot resolves to Greninja-Bond, and the validator answers "Greninja (Greninja-Bond)
-     * does not exist in Gen 9." That is the authority declaring the forme out of the regulation, so the
-     * row is UNREACHABLE with the validator's own words as the evidence — keyed on the message, not on a
-     * name, so any future carrier refused the same way is relabelled the same way. */
-    if (row && !row.verdict && /does not exist in Gen 9/.test(JSON.stringify(row.validator || []))) {
-      row.unreachable = true;
-      row.why = 'NO LEGAL CARRIER IN BATTLE — the validator: '
-        + (row.validator || []).filter(v => /does not exist in Gen 9/.test(String(v))).slice(0, 1).join('');
-    }
+    /* HB-5's validator relabel ("does not exist in Gen 9" -> unreachable) was REMOVED 2026-09-11: scope is
+     * asked of engine/legal_scope.js above the staging, which puts every legal carrier to the
+     * TeamValidator, so a row like Battle Bond (VALIDATOR-REFUSED) is out before a game is built. */
     /* A board-only row has no A/B, so "fired" is the authority's receipt (`proven`), never its verdict
      * string — `UNPROVEN-UNCONTROLLED` is not DID-NOT-FIRE and must not read as a firing either. */
     labelRow(row, pre, boardOnly ? !!(row && row.proven) : !!(row && row.verdict && row.verdict !== 'DID-NOT-FIRE'));
@@ -3466,8 +3503,11 @@ function stoneGame(e, item, tag, plant) {
 }
 function runStone(di) {
   const e = STONE_OF.get(di.id);
-  if (!e) return { kind: 'item', id: di.id, name: di.name, fired: false, unreachable: true,
-                   why: 'NO LEGAL CARRIER — the stone has no legal base forme whose mega forme is legal' };
+  const sv = SCOPE.verdict('item', di.id);
+  if (!sv.inScope) return { kind: 'item', id: di.id, name: di.name, fired: false, unreachable: true,
+                            scope_code: sv.code, why: sv.code + ' — ' + sv.why };
+  if (!e) return { kind: 'item', id: di.id, name: di.name, fired: false, staging_gap: true,
+                   why: 'IN SCOPE (' + sv.code + ') and this harness paired no legal base with its mega — a staging gap, not a claim about the format' };
   STONE_SUMMARY.rows++;
   const recvSp = stoneReceiverFor(e.base);
   if (recvSp && id(recvSp) !== id(RECEIVER.species)) STONE_SUMMARY.alt_receiver.push(di.id + '->' + recvSp);
@@ -3541,11 +3581,14 @@ function runItems(list) {
      * game had never been compared. Z-crystals and Poke Balls stay excused: not held items this format
      * uses in battle. */
     if (di.megaStone) { rows.push(runStone(di)); continue; }
-    if (di.zMove || di.isPokeball) {
-      rows.push({ kind: 'item', id: it, name: di.name, fired: false, out_of_scope: true,
-                  why: 'not a held item this format uses in battle' });
-      continue;
-    }
+    /* THE Z-CRYSTAL / POKE BALL EXCUSE WAS A SCOPE DECISION WITH 0 LEGAL ROWS (2026-09-11); the verdict
+     * answers it now, for any item. */
+    { const sv = SCOPE.verdict('item', it);
+      if (!sv.inScope) {
+        rows.push({ kind: 'item', id: it, name: di.name, fired: false, out_of_scope: true, unreachable: true,
+                    scope_code: sv.code, why: sv.code + ' — ' + sv.why });
+        continue;
+      } }
     /* AN ITEM'S CARRIER IS FREE — any legal body may hold any legal item. It is chosen FROM THE ITEM'S
      * OWN NEED (see `holderFor`), default first, and it is the same body in both arms — which is the
      * property the A/B actually depends on. */
@@ -4110,6 +4153,42 @@ function red() {
                       && v.state_parted_on_turn === AT && onTarget });
     }
   }
+  /* ---- THE PLANNED PATH'S OWN PLANTS (2026-09-11). The integration is a new way of building a game, so
+   * it is shown catching something before any planned green counts: for one planned fixture per kind
+   * (the first with a one-leaf control and an `hp` state plant — derived, not named),
+   *   (a) its control played against ITSELF must read DID-NOT-FIRE — a verdict that fires on two identical
+   *       games is the comparison broken, not the mechanic live;
+   *   (b) the fixture played CLEAN must be board-clean, and the same fixture with the planner's own
+   *       statePlant (C loses 7 HP silently after its read turn) must read STATE. */
+  if (!NO_PLAN) {
+    const plan = planOnce();
+    for (const K of ['ability', 'item', 'move']) {
+      const m = plan && plan.P.mechanics.find(x => x.kind === K && plannable(x) && x.fixtures[0].control
+        && x.fixtures[0].variants[0] && x.fixtures[0].variants[0].control
+        && (x.fixtures[0].plants || []).some(p => p.kind === 'statePlant' && p.leaf === 'hp'));
+      if (!m) { out.push({ plant: 'PLANNER ' + K + ' — no fixture carries a one-leaf control and an hp state plant', caught: false }); continue; }
+      const f = m.fixtures[0], v = f.variants[0];
+      const sp = f.plants.find(p => p.kind === 'statePlant' && p.leaf === 'hp');
+      const c1 = playPlanned(K, m.id, f, v, 'ctl', 'red/plan-ctl-a/' + m.id), c2 = playPlanned(K, m.id, f, v, 'ctl', 'red/plan-ctl-b/' + m.id);
+      const ab = abRow(K, m.id, m.name, f.bodies.C.species, 'itself', c1, c2);
+      out.push({ plant: 'PLANNER ' + K + ' ' + m.id + ' — its one-leaf control against ITSELF must read DID-NOT-FIRE',
+                 staged: !!(c1.staged && c2.staged), verdict: ab.verdict || null, why: ab.verdict ? null : ab.why,
+                 caught: !!(c1.staged && c2.staged) && ab.verdict === 'DID-NOT-FIRE' });
+      const clean = playPlanned(K, m.id, f, v, 'fx', 'red/plan-clean/' + m.id);
+      const cv = boardVerdict(clean, K, m.id);
+      let applied = false;
+      const planted = playPlanned(K, m.id, f, v, 'fx', 'red/plan-state/' + m.id, (S, battle, turnIdx) => {
+        if (turnIdx !== sp.afterTurn) return;
+        const mm = (S.actA || [])[0]; if (!mm) return;
+        mm.curHP = Math.max(1, mm.curHP - 7); applied = true; });
+      const pv = boardVerdict(planted, K, m.id);
+      out.push({ plant: 'PLANNER ' + K + ' ' + m.id + ' — C loses 7 HP with no line after turn ' + sp.afterTurn
+                   + '; the clean fixture must be board-clean and the planted one must read STATE',
+                 applied, staged: !!(clean.staged && planted.staged), verdict: cv.verdict + ' -> ' + pv.verdict,
+                 why: !applied ? 'THE PLANT NEVER LANDED — the game ended before turn ' + sp.afterTurn : null,
+                 caught: !!(clean.staged && planted.staged) && applied && cv.verdict !== 'STATE' && pv.verdict === 'STATE' });
+    }
+  }
   return out;
 }
 
@@ -4238,6 +4317,302 @@ function reportCannotFire(rows) {
     + 'and neither game moved: ' + dn.map(r => r.id).slice(0, 20).join(' ') + (dn.length > 20 ? ' …' : ''));
 }
 
+/* ================= THE STAGING PLANNER'S FIXTURES — INTEGRATED 2026-09-11 =========================
+ *
+ * docs/_reports/2026-09-11-stage-planner.md §5 is the plan; docs/_reports/2026-09-11-integration.md is the
+ * account. The order is inverted from the hand-built ladders above: engine/stage_planner.js reads what a
+ * mechanic REQUIRES and builds a board that supplies exactly that — the fixture, a CONTROL that differs in
+ * one leaf and is inert for one reason, every side and slot variant the handlers read, the arm where the
+ * threshold decides, the HP pool — and every team it emits is validated.
+ *
+ * WHAT A PLANNED ROW IS, AND WHAT IT IS NOT:
+ *   - ABILITIES AND ITEMS: the fixture game and its control are A/B'd by `abRow`, the SAME verdict the
+ *     ladders use, so FIRED means exactly what it meant before this pass. A fixture with no single-leaf
+ *     control is played board-only and credited only on the authority's own receipt, as HB-1.
+ *   - MOVES: the consequence ladder stays the primary verdict (it owns leaf_effect and announcement_only,
+ *     which engine/coverage.js reads); every move row ALSO plays its planner fixture on every variant, and
+ *     a move the ladder could not resolve takes the planner's resolution.
+ *   - EVERY VARIANT IS PLAYED. The verdict is the first variant's (near side, slot a); a board that parts on
+ *     ANY variant marks the row STATE, because a parting anywhere is a parting.
+ *   - A FALLBACK IS LOUD. A planned ability/item row that does not fire, cannot be staged, or whose script
+ *     did not play as written runs the legacy ladder and keeps the planner's verdict beside the legacy one
+ *     (`stage: 'legacy-fallback'`); a row the planner refuses runs the ladder with the refusal code
+ *     (`stage: 'legacy'`). Both are counted and named in `planner.played`.
+ *   - THE SHEET PLAYED IS THE SHEET THE VALIDATOR APPROVED: the planner's declared spread and genders,
+ *     through the driver's two opt-in seams (`declaredSpread`, `declaredGender`).
+ *   - A SCRIPT THAT DID NOT PLAY AS WRITTEN IS NOT A RESULT. The driver's own counters are read around
+ *     every planned game; a click that was not on the request, an ally aim the authority refused, or a
+ *     mega the authority refused in a FIXTURE game marks the variant `script_miss`. A stone row's control
+ *     removes the stone, so its refused mega is the control working and is not a miss.
+ *
+ * `--no-plan` plays the pre-integration harness exactly. */
+const NO_PLAN = has('--no-plan');
+const PLANNED = { plan_ms: 0, rows: 0, fixtures: 0, variants: 0, games: 0, fired: 0, proven: 0,
+                  fallback: [], legacy_refused: {}, script_miss: [], variant_split: [], control_parted: [],
+                  board_state: [], diverged: [], move_rows: 0, move_resolved_by_planner: [],
+                  move_planned_unresolved: [], move_control_resolved: [] };
+const LEGACY_RAN = { abilities: 0, items: 0 };
+let PLAN = null;
+/* A ZERO-CHECK ON A LEGACY RECEIPT (the consequence table, the derived trigger) proves that table is read
+ * only on a run where the legacy ladder played the WHOLE population. Under the planner it plays the
+ * fallback rows alone, and a zero there is a fact about which rows fell back, not an unwired table. */
+const FULL_LEGACY = () => NO_PLAN || !PLAN;
+function planOnce() {
+  if (PLAN || NO_PLAN) return PLAN;
+  const SP = require('./stage_planner.js');
+  /* THE PLANNER READS THE RELEASE'S OWN TAGS, so the fixtures are built on the facts the frozen engine
+   * plays. A release that does not freeze them is named, and the planner reads git HEAD instead. */
+  let tagsPath = null;
+  try { tagsPath = GD.REL.path('data/tags.json'); }
+  catch (e) { console.log('  PLANNER: release ' + GD.REL.id + ' does not freeze data/tags.json ('
+    + String(e.message).split('\n')[0] + ') — the planner reads git HEAD instead, and the artifact records it'); }
+  const t0 = Date.now();
+  const P = SP.plan(tagsPath ? { tagsPath } : {});
+  PLANNED.plan_ms = Date.now() - t0;
+  PLAN = { P, byKey: new Map(P.mechanics.map(m => [m.key, m])) };
+  const S = P.summary;
+  console.log('  PLANNER (engine/stage_planner.js) — ' + S.withFixture + ' mechanics carry a fixture of ' + S.inScope
+    + ' in scope, ' + S.variants + ' rendered variants; tags ' + P.meta.tags + '; gender seam '
+    + (P.meta.genderSeam ? P.meta.genderSeam.at : 'ABSENT') + ' (' + PLANNED.plan_ms + ' ms)');
+  return PLAN;
+}
+const plannable = (m) => !!(m && m.fixtures && m.fixtures.length && !m.refusal);
+/* WHO THE SUBJECT IS AT A TURN, read off the planner's own role map — the side and slot the role stands
+ * in, and the identifier the authority prints for it (the base species, as Showdown names a set). */
+function subjectOf(v, turn) {
+  const t = Math.max(1, turn || 1);
+  const at = (((v && v.roleAt) || [])[t - 1] || ((v && v.roleAt) || [])[0] || {}).C;
+  const r = ((v && v.roles) || {}).C;
+  if (!at || !r) return null;
+  const sp = dex.species.get(r.species);
+  return { side: at.side, slot: at.slot, ident: at.side + 'ab'[at.slot] + ': ' + (sp.baseSpecies || sp.name), species: r.species };
+}
+const SCRIPT_KEYS = ['moveNotOnRequest', 'megaRefused', 'allyAimRefused', 'lockedNoTarget'];
+function scriptDelta(a, b) { const d = {}; for (const k of SCRIPT_KEYS) { const x = (b[k] | 0) - (a[k] | 0); if (x) d[k] = x; } return d; }
+/* WHICH DELTAS MEAN "THIS GAME DID NOT PLAY AS WRITTEN". `lockedNoTarget` is the authority ignoring the aim
+ * of a locked move, which `scripted()` ignores exactly as the authority does — it is kept, not judged. */
+function scriptMissOf(d, isControl, controlIsItem) {
+  const bad = {};
+  if (d.moveNotOnRequest) bad.moveNotOnRequest = d.moveNotOnRequest;
+  if (d.allyAimRefused) bad.allyAimRefused = d.allyAimRefused;
+  if (d.megaRefused && !(isControl && controlIsItem)) bad.megaRefused = d.megaRefused;
+  return Object.keys(bad).length ? bad : null;
+}
+function playPlanned(kind, key, f, v, which, tag, plant) {
+  const src = which === 'ctl' ? v.control : v;
+  if (!src) return null;
+  const arm = GD.ARM_BY_ID.get(f.arm);
+  if (!arm) return { staged: false, why: 'the planner named arm ' + f.arm + ', which the driver does not define' };
+  const subj = subjectOf(src, 1);
+  /* THE STAT LINE rides on a row whose mechanism is a new forme (a stone, a mega carrier), exactly as the
+   * ladders ask for it — and only where the subject is on p1, the side the stat reader looks at. */
+  const formeRow = (f.bearer && f.bearer.via === 'mega') || (kind === 'item' && (dex.items.get(key) || {}).megaStone);
+  const statLine = subj && subj.side === 'p1' && formeRow ? id(src.roles.C.species) : undefined;
+  const c0 = GD.scriptCounters();
+  const r = playScenario({ teams: src.teams, script: src.script, arm, declared: true, statLine,
+                           hpBoost: f.hpPool === 'x1' ? 1 : HP_BOOST, tag, statePlant: plant });
+  r.scriptDelta = scriptDelta(c0, GD.scriptCounters());
+  r.scriptMiss = r.staged ? scriptMissOf(r.scriptDelta, which === 'ctl', !!(f.control && /^C\.item/.test(f.control.variable))) : null;
+  PLANNED.games++;
+  /* `--dumplog` REACHES THE PLANNED GAMES TOO — a flag that runs and prints nothing looks like a clean log. */
+  if (DUMPLOG && r.staged) {
+    console.log('  ---- ' + tag + ' [' + which + '] arm ' + f.arm + ' pool ' + f.hpPool + ' script ' + JSON.stringify(src.script)
+      + (r.scriptMiss ? '  SCRIPT-MISS ' + JSON.stringify(r.scriptMiss) : ''));
+    for (const l of r.sdLog) console.log('    SD  ' + l);
+    for (const l of (r.mediTrace || [])) console.log('    ME  ' + (typeof l === 'string' ? l : JSON.stringify(l)));
+    for (const b of (r.boards || []).filter(x => !x.identical)) console.log('    BOARD t' + b.turn + ' ' + JSON.stringify(b.diffs.slice(0, 4)));
+  }
+  return r;
+}
+/* A PARTING ANYWHERE IS A PARTING. Promotes the first STATE board and the first protocol divergence found
+ * on any variant (or any fixture branch) onto the row, keeping what the first variant said beside it. */
+function promoteParting(row, list, key) {
+  for (const { where, row: z } of list) {
+    if (!z) continue;
+    const b = z.board || z.board_unproven;
+    if (b && b.verdict === 'STATE') {
+      PLANNED.board_state.push(key + ' @' + where);
+      if (!(row.board && row.board.verdict === 'STATE')) {
+        if (row.board) row.board_first_variant = row.board;
+        row.board = b; row.board_state_from = where;
+      }
+    }
+    if (z.diverged) {
+      PLANNED.diverged.push(key + ' @' + where);
+      if (!row.diverged) { row.diverged = true; row.divergence = row.divergence || z.divergence || null; row.diverged_from = where; }
+    }
+    const cb = z.board_control_arm;
+    if (cb && cb.verdict === 'STATE') PLANNED.control_parted.push(key + ' control @' + where);
+  }
+}
+function plannedRow(kind, key, name, m) {
+  PLANNED.rows++;
+  const results = [];
+  for (const f of m.fixtures) {
+    PLANNED.fixtures++;
+    const megaE = f.bearer && f.bearer.via === 'mega' && f.bearer.stone ? (STONE_OF.get(id(f.bearer.stone)) || null) : null;
+    const vres = [];
+    for (const v of f.variants) {
+      PLANNED.variants++;
+      const tag = kind + '/' + key + '/plan/' + f.branch + '/' + v.layout;
+      const on = playPlanned(kind, key, f, v, 'fx', tag + '/on');
+      const off = v.control ? playPlanned(kind, key, f, v, 'ctl', tag + '/off') : null;
+      const subj = subjectOf(v, 1);
+      const who = subj ? subj.ident : 'p1a';
+      let row;
+      if (!on.staged) {
+        row = { kind, id: key, name, fired: false, why: 'could not stage the planner fixture: ' + on.why, validator: on.validator };
+      } else if (off) {
+        /* The control is labelled with the ability it actually carries where the variable is the ability,
+         * so the derived CONTROL-NOT-QUIET test below can ask whether that ability is itself live. */
+        const ctlAb = f.control.variable === 'C.ability' && v.control.roles && v.control.roles.C ? v.control.roles.C.ability : null;
+        row = abRow(kind, key, name, f.bodies.C.species, ctlAb || (f.control.variable + ' — ' + f.control.why), on, off);
+        if (on.div) row.divergence = divOf(on.div, who, on.sdLog, null);
+      } else {
+        const nearA = subj && subj.side === 'p1' && subj.slot === 0;
+        const receipt = kind === 'ability' && nearA ? abilityActedOn(on.sdLog, name, key, megaE) : [];
+        const sdMega = megaE ? megaSeen(on.sdLog) : null;
+        const proven = receipt.length > 0 && (!megaE || !!sdMega);
+        const bv = boardVerdict(on, kind, key);
+        row = { kind, id: key, name, carrier: f.bodies.C.species, control: null, board_only: true,
+                verdict: proven ? 'FIRED-UNCONTROLLED' : 'UNPROVEN-UNCONTROLLED', fired: false, proven,
+                authority_receipt: receipt.slice(0, 4), diverged: !!on.div, divergence: divOf(on.div, who, on.sdLog, null),
+                why: proven ? null : 'the planner has no single-leaf control for this fixture ('
+                  + ((f.controlRefusal || {}).code || '?') + ') and the authority\'s log never shows ' + name + ' acting for the subject'
+                  + (nearA ? '' : ' (the receipt is read on the near-side slot-a variant only)') };
+        if (proven) row.board = bv; else row.board_unproven = bv;
+      }
+      vres.push({ layout: v.layout, row, miss: on.staged ? on.scriptMiss : null, cmiss: off && off.staged ? off.scriptMiss : null });
+    }
+    results.push({ f, vres });
+  }
+  const clean = x => x.vres[0] && !x.vres[0].miss && !x.vres[0].cmiss;
+  const pick = results.find(x => clean(x) && x.vres[0].row.verdict === 'FIRED')
+            || results.find(x => clean(x) && x.vres[0].row.proven)
+            || results[0];
+  if (!pick || !pick.vres.length) return null;
+  const f = pick.f, P0 = pick.vres[0];
+  const row = Object.assign({}, P0.row);
+  row.stage = 'planner';
+  row.rung = 'planner:' + f.branch + '/' + P0.layout;
+  row.carrier = f.bodies.C.species;
+  row.planner = { branch: f.branch, arm: f.arm, hpPool: f.hpPool, readAfter: f.readAfter, observe: f.observe,
+                  control: f.control, control_refusal: f.controlRefusal ? f.controlRefusal.code : null,
+                  fixtures: results.length, bodies: f.bodies,
+                  variants: results.flatMap(x => x.vres.map(z => ({ branch: x.f.branch, layout: z.layout,
+                    verdict: z.row.verdict || null, fired: !!z.row.fired, proven: !!z.row.proven,
+                    board: (z.row.board || z.row.board_unproven || {}).verdict || null,
+                    control_board: (z.row.board_control_arm || {}).verdict || null,
+                    diverged: !!z.row.diverged, script_miss: z.miss, control_script_miss: z.cmiss, why: z.row.why || null }))),
+                  notes: f.notes, assumptions: f.assumptions };
+  if (P0.miss || P0.cmiss) {
+    row.planner.script_miss = P0.miss || P0.cmiss; row.fired = false;
+    PLANNED.script_miss.push(kind + ':' + key + ' ' + JSON.stringify(row.planner.script_miss));
+  }
+  const vs = [...new Set(pick.vres.filter(z => z.row.verdict).map(z => z.row.verdict))];
+  if (vs.length > 1) {
+    row.planner.variant_split = pick.vres.map(z => z.layout + '=' + z.row.verdict);
+    PLANNED.variant_split.push(kind + ':' + key + ' ' + row.planner.variant_split.join(' '));
+  }
+  promoteParting(row, results.flatMap(x => x.vres.map(z => ({ where: x.f.branch + '/' + z.layout, row: z.row }))), kind + ':' + key);
+  return row;
+}
+function runPlanned(kind, list, legacy) {
+  const K = kind === 'ability' ? 'abilities' : 'items';
+  const plan = planOnce();
+  if (!plan) { LEGACY_RAN[K] += list.length; return legacy(list); }
+  const rows = [];
+  for (const x of list) {
+    const m = plan.byKey.get(kind + ':' + x);
+    const sv = SCOPE.verdict(kind, x);
+    const nm = (kind === 'ability' ? dex.abilities : dex.items).get(x).name;
+    const pr = sv.inScope && plannable(m) ? plannedRow(kind, x, nm, m) : null;
+    const ok = pr && !(pr.planner && pr.planner.script_miss) && (pr.verdict === 'FIRED' || pr.proven);
+    if (ok) { if (pr.verdict === 'FIRED') PLANNED.fired++; else PLANNED.proven++; rows.push(pr); continue; }
+    LEGACY_RAN[K]++;
+    const leg = legacy([x])[0];
+    if (!leg) continue;
+    if (pr) {
+      leg.stage = 'legacy-fallback';
+      leg.planner = Object.assign({}, pr.planner, { verdict: pr.verdict || null, why: pr.why || null,
+                                                    board: (pr.board || pr.board_unproven || {}).verdict || null });
+      PLANNED.fallback.push(kind + ':' + x + '  planner ' + (pr.planner && pr.planner.script_miss
+          ? 'SCRIPT-MISS ' + JSON.stringify(pr.planner.script_miss) : (pr.verdict || 'not staged: ' + String(pr.why || '').slice(0, 80)))
+        + '  ->  legacy ' + (leg.verdict || (leg.unreachable ? 'unreachable' : String(leg.why || '?').slice(0, 60))));
+      promoteParting(leg, [{ where: 'planner:' + pr.rung, row: pr }], kind + ':' + x);
+    } else {
+      leg.stage = sv.inScope ? 'legacy' : 'out-of-scope';
+      if (m && m.refusal) {
+        leg.planner = { refusal: m.refusal.code, reason: m.refusal.reason };
+        if (sv.inScope) PLANNED.legacy_refused[m.refusal.code] = (PLANNED.legacy_refused[m.refusal.code] || 0) + 1;
+      }
+    }
+    rows.push(leg);
+  }
+  /* CONTROL-NOT-QUIET, RE-DERIVED OVER THE WHOLE POPULATION. The ladder derives it over the rows of ONE
+   * call, and the fallback calls it one row at a time — so the same rule is applied here over every row,
+   * planned and legacy alike: a control ability whose own row moved a game cannot say which moved it. */
+  if (kind === 'ability') {
+    const live = new Set(rows.filter(r => r.showdown_moved || r.medicham_moved).map(r => r.id));
+    for (const r of rows) {
+      if (!r.control || r.control_not_quiet || !live.has(id(r.control))) continue;
+      r.control_not_quiet = true;
+      r.control_note = 'the CONTROL ability (' + r.control + ') is itself live in this run, so the pair '
+                     + 'cannot say which of the two moved the game. A third arm would settle it; this pass did not run one.';
+    }
+  }
+  return rows;
+}
+function plannedMoveStage(rows) {
+  const plan = planOnce();
+  if (!plan) return;
+  for (const row of rows) {
+    const m = plan.byKey.get('move:' + row.id);
+    if (!plannable(m)) { if (m && m.refusal) row.planner = { refusal: m.refusal.code, reason: m.refusal.reason }; continue; }
+    PLANNED.move_rows++;
+    const list = [];
+    for (const f of m.fixtures) {
+      PLANNED.fixtures++;
+      const click = (f.triggerClicks || []).find(c => c.role === 'C' && id(c.move) === row.id);
+      for (const v of f.variants) {
+        PLANNED.variants++;
+        const tag = 'move/' + row.id + '/plan/' + f.branch + '/' + v.layout;
+        const on = playPlanned('move', row.id, f, v, 'fx', tag + '/on');
+        const off = v.control ? playPlanned('move', row.id, f, v, 'ctl', tag + '/off') : null;
+        const subj = subjectOf(v, click ? click.turn : 1);
+        const who = subj ? subj.ident : null;
+        const where = f.branch + '/' + v.layout;
+        if (!on.staged) { list.push({ where, staged: false, row: { why: 'could not stage: ' + on.why } }); continue; }
+        const sd = verdictFor(on.sdLog, who, row.id), me = verdictFor(on.mediTrace, who, row.id);
+        const cs = off && off.staged ? verdictFor(off.sdLog, who, row.id) : null;
+        list.push({ where, staged: true, miss: on.scriptMiss, cmiss: off && off.staged ? off.scriptMiss : null,
+                    row: { resolved: sd.resolved, attempted: sd.attempted, why: sd.why,
+                           medicham_resolved: me.resolved, medicham_attempted: me.attempted, medicham_why: me.why,
+                           control_resolved: cs ? cs.resolved : null, diverged: !!on.div,
+                           divergence: divOf(on.div, who, on.sdLog, row.id), board: boardVerdict(on, 'move', row.id),
+                           board_control_arm: off && off.staged ? boardVerdict(off, 'move', row.id) : null } });
+      }
+    }
+    row.planned = list.map(x => ({ where: x.where, staged: x.staged, resolved: !!x.row.resolved,
+                                   medicham_resolved: !!x.row.medicham_resolved,
+                                   control_resolved: x.row.control_resolved == null ? null : !!x.row.control_resolved,
+                                   board: (x.row.board || {}).verdict || null, diverged: !!x.row.diverged,
+                                   script_miss: x.miss || null, control_script_miss: x.cmiss || null, why: x.row.why || null }));
+    const P0 = list[0];
+    if (P0 && P0.staged && !row.resolved && P0.row.resolved && !P0.miss) {
+      Object.assign(row, { resolved: true, attempted: true, why: null, medicham_attempted: P0.row.medicham_attempted,
+                           medicham_resolved: P0.row.medicham_resolved, medicham_why: P0.row.medicham_why,
+                           stage: 'planner', rung: 'planner:' + P0.where, board_legacy: row.board || null, board: P0.row.board });
+      PLANNED.move_resolved_by_planner.push(row.id);
+    }
+    if (P0 && P0.staged && !P0.row.resolved && row.resolved)
+      PLANNED.move_planned_unresolved.push(row.id + ' (' + String(P0.row.why || '').slice(0, 70) + ')');
+    if (P0 && P0.row.control_resolved) PLANNED.move_control_resolved.push(row.id);
+    if (P0 && P0.miss) PLANNED.script_miss.push('move:' + row.id + ' ' + JSON.stringify(P0.miss));
+    promoteParting(row, list.filter(x => x.staged).map(x => ({ where: x.where, row: x.row })), 'move:' + row.id);
+  }
+}
+
 /* ================= MAIN =========================================================================== */
 function pick(all) {
   let list = all;
@@ -4357,6 +4732,7 @@ if (KIND === 'moves' || KIND === 'all') {
   console.log('\n  MOVES — ' + list.length + ' of ' + LEGAL_MOVES.length + ' attempted');
   const t0 = Date.now();
   const rows = runMoves(list);
+  plannedMoveStage(rows);
   report.rows.moves = rows;
   const resolved = rows.filter(r => r.resolved);
   const attempted = rows.filter(r => r.attempted);
@@ -4442,7 +4818,7 @@ if (KIND === 'abilities' || KIND === 'all') {
   const list = pick(LEGAL_ABILITIES);
   console.log('\n  ABILITIES — ' + list.length + ' of ' + LEGAL_ABILITIES.length + ' attempted');
   const t0 = Date.now();
-  const rows = runAbilities(list);
+  const rows = runPlanned('ability', list, runAbilities);
   report.rows.abilities = rows;
   const fired = rows.filter(r => r.verdict === 'FIRED');
   const _shelvedAb = applyCloset('ability', rows);
@@ -4498,7 +4874,9 @@ if (KIND === 'abilities' || KIND === 'all') {
   report.summary.then_what_rows_with_a_consequence = rows.filter(r => r.then_what).length;
   console.log('    THEN-WHAT (ROADMAP #158): ' + JSON.stringify(report.summary.then_what)
             + '   rows carrying a consequence: ' + report.summary.then_what_rows_with_a_consequence);
-  if (!THEN_WHAT_SEEN.rows || !THEN_WHAT_SEEN.turnsAdded) {
+  if (!FULL_LEGACY()) console.log('    (the consequence ladder played ' + LEGACY_RAN.abilities + ' fallback row(s), not the whole '
+    + 'population, so the zero-check below applies only to a --no-plan run)');
+  if (FULL_LEGACY() && (!THEN_WHAT_SEEN.rows || !THEN_WHAT_SEEN.turnsAdded)) {
     console.log('    THE CONSEQUENCE LAYER ADDED NOTHING. Either no entity in this population carries a '
               + '`thenWhat` key, or the table is not being read. A zero here is not a pass.');
     process.exitCode = 1;
@@ -4519,7 +4897,7 @@ if (KIND === 'items' || KIND === 'all') {
   const list = pick(LEGAL_ITEMS);
   console.log('\n  ITEMS — ' + list.length + ' of ' + LEGAL_ITEMS.length + ' attempted');
   const t0 = Date.now();
-  const rows = runItems(list);
+  const rows = runPlanned('item', list, runItems);
   report.rows.items = rows;
   const _shelvedIt = applyCloset('item', rows);
   report.summary.items = { exist: LEGAL_ITEMS.length, tried: rows.length,
@@ -4586,6 +4964,42 @@ if (KIND === 'items' || KIND === 'all') {
   }
 }
 
+/* ---- THE PLANNED PATH'S OWN RECEIPT (2026-09-11). A capability that cannot prove it ran is assumed
+ * broken: the planner's fixtures must have played games, both driver seams must have been used, and every
+ * fallback, script miss, variant split and parting is named rather than totalled. */
+if (PLAN) {
+  const P = PLAN.P, seam = GD.seamCounters();
+  report.planner = { meta: { generated: P.meta.generated, by: P.meta.by, tags: P.meta.tags, tags_digest: P.meta.tags_digest,
+                             showdown: P.meta.showdown, validator: P.meta.validator, crit: P.meta.crit, arms: P.meta.arms,
+                             genderPin: P.meta.genderPin, genderSeam: P.meta.genderSeam, normalised: P.meta.normalised,
+                             overmatchDropped: P.meta.overmatchDropped, ms: P.meta.ms },
+                     summary: P.summary, played: PLANNED, seam, legacy_ran: LEGACY_RAN };
+  console.log('\n  PLANNED PATH — ' + PLANNED.rows + ' ability/item row(s) and ' + PLANNED.move_rows + ' move row(s) played their planner '
+    + 'fixtures: ' + PLANNED.fixtures + ' fixture(s), ' + PLANNED.variants + ' variant(s), ' + PLANNED.games + ' game(s)');
+  console.log('    FIRED on the planner ' + PLANNED.fired + ', proven board-only ' + PLANNED.proven + ', legacy FALLBACK '
+    + PLANNED.fallback.length + ', planner refusals run by the ladder ' + JSON.stringify(PLANNED.legacy_refused));
+  console.log('    seams: declaredSpread ' + seam.declaredSpread + ' bodies, declaredGender ' + seam.declaredGender + ' of '
+    + seam.declaredGenderBodies + ' bodies carried M/F');
+  for (const x of PLANNED.fallback) console.log('      FALLBACK  ' + x);
+  for (const x of PLANNED.script_miss) console.log('      SCRIPT-MISS  ' + x);
+  for (const x of PLANNED.variant_split) console.log('      VARIANT-SPLIT  ' + x);
+  for (const x of PLANNED.board_state) console.log('      BOARD STATE  ' + x);
+  for (const x of [...new Set(PLANNED.diverged)]) console.log('      DIVERGED  ' + x);
+  for (const x of PLANNED.control_parted) console.log('      CONTROL-ARM BOARD PARTED  ' + x);
+  if (PLANNED.move_resolved_by_planner.length) console.log('    moves resolved by the planner where the ladder did not: ' + PLANNED.move_resolved_by_planner.join(' '));
+  if (PLANNED.move_planned_unresolved.length) console.log('    moves the ladder resolves and the planner fixture does not (planner gaps): '
+    + PLANNED.move_planned_unresolved.length + ' — ' + PLANNED.move_planned_unresolved.slice(0, 12).join('; '));
+  if (PLANNED.move_control_resolved.length) console.log('    move controls that resolved the subject move anyway: ' + PLANNED.move_control_resolved.join(' '));
+  if ((PLANNED.rows + PLANNED.move_rows) && !PLANNED.games) {
+    console.log('    PLANNED ROWS PLAYED NO GAME. A capability that cannot prove it ran is assumed broken. Not a pass.');
+    process.exitCode = 1;
+  }
+  if (PLANNED.games && !seam.declaredSpread) {
+    console.log('    THE DECLARED-SPREAD SEAM WAS NEVER USED — every planned game was played on the index ladder. Not a pass.');
+    process.exitCode = 1;
+  }
+}
+
 /* ---- THE PREFLIGHT'S OWN RECEIPT. A CAPABILITY THAT CANNOT PROVE IT RAN IS ASSUMED BROKEN, and this
  * one is silent by construction: a preflight that is never called produces exactly the artifact a
  * preflight that finds nothing produces. `rows_checked` is the counter that separates them, and a ZERO
@@ -4615,7 +5029,7 @@ if (KIND === 'abilities' || KIND === 'all') {
     + ' UNSTAGED (the fixed bodies cannot supply it — each such row carries the `trigger-move` clause)');
   if (PREFLIGHT.trigger_examples.length)
     console.log('      e.g. ' + PREFLIGHT.trigger_examples.slice(0, 10).join('; '));
-  if (!PREFLIGHT.trigger_rows && !BREAK_PREFLIGHT) {
+  if (!PREFLIGHT.trigger_rows && !BREAK_PREFLIGHT && FULL_LEGACY()) {
     console.log('      ZERO. The derivation reached no row at all — that is an unwired capability, not '
       + 'a population with no gated abilities. Not a pass.');
     process.exitCode = 1;
@@ -4646,7 +5060,8 @@ if (PREFLIGHT.over_matched.length) {
   report.summary.preflight.over_matched_explained = explained.map(o => o.id);
   report.summary.preflight.over_matched_unexplained = unexplained.map(o => o.id);
 }
-if (!PREFLIGHT.rows_checked && !BREAK_PREFLIGHT) {
+if (!PREFLIGHT.rows_checked && !BREAK_PREFLIGHT
+    && !(PLAN && KIND !== 'moves' && LEGACY_RAN.abilities + LEGACY_RAN.items === 0)) {
   console.log('    THE PREFLIGHT NEVER RAN ON A SINGLE ROW. Every DID-NOT-FIRE below is unsplit — an '
             + 'engine gap and a fixture gap in one bucket. A zero here is not a pass.');
   process.exitCode = 1;

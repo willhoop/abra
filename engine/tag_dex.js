@@ -9801,11 +9801,21 @@ function collect(kind, all, tags, usageMap) {
  * roster ("0 have NO LEGAL CARRIER in this format") — a move nobody learns and an item nobody may
  * hold are different questions with different answers, and applying an ability's rule to them would
  * be an assumption rather than a measurement. */
+/* ---- 2026-09-11 -- SCOPE IS ASKED OF engine/legal_scope.js, AND THIS FILE NO LONGER DECIDES IT ----
+ * (docs/_reports/2026-09-11-scope-unified.md). `LEGAL_CARRIED` walked the species itself with no
+ * validator, so Battle Bond — whose one carrier the TeamValidator refuses ("Greninja (Greninja-Bond)
+ * does not exist in Gen 9") — counted as carried, and `CONFERRED` re-applied an admission rule of its
+ * own. Both now read the ONE verdict. WHAT data/tags.json DESCRIBES IS "WHAT CAN BE ON A BODY":
+ * `CARRIED` and `CONFERRED`, plus `NO-LEGAL-READER` (Gluttony — a sheet can declare it; it only writes a
+ * flag no legal entity reads). That drops Battle Bond and nothing else. A throw from the scope module
+ * STOPS the build: carrying on would write an artifact with no ability rows at all. */
+const SCOPE_V = require('./legal_scope.js').derive();
 const LEGAL_CARRIED = (() => {
   const set = new Set();
-  for (const s of dex.species.all()) {
-    if (!s || !s.exists || s.isNonstandard || s.tier === 'Illegal') continue;
-    for (const a of Object.values(s.abilities || {})) set.add(norm(a));
+  for (const a of dex.abilities.all()) {
+    if (!a || !a.exists || a.isNonstandard) continue;
+    const v = SCOPE_V.verdict('ability', a.id);
+    if (v.code === 'CARRIED' || v.code === 'NO-LEGAL-READER') set.add(norm(a.id || a.name));
   }
   return set;
 })();
@@ -9826,14 +9836,12 @@ const LEGAL_CARRIED = (() => {
  * broken scope module cannot silently widen the artifact. */
 const CONFERRED = (() => {
   const out = new Map();
-  try {
-    for (const c of require('./legal_scope.js').derive().conferred || []) {
-      const via = (c.via || []).filter(v => v.kind === 'move' && (v.holders | 0) > 0);
-      if (c.legalInDex && via.length) out.set(norm(c.ability), via.map(v => v.id + ' (' + v.holders + ' legal learners)'));
-    }
-  } catch (e) {
-    console.log('  CONFERRED: engine/legal_scope.js THREW (' + String((e && e.message) || e).split('\n')[0]
-      + ') -- NO conferred ability is admitted this run, and that is printed rather than assumed.');
+  /* THE VERDICT ADMITS, NOT A SECOND RULE HERE: an ability is conferred when legal_scope says CONFERRED
+   * (the validator accepted a learner holding the writing move). The via list is only for the print. */
+  for (const c of SCOPE_V.conferred || []) {
+    if (SCOPE_V.verdict('ability', c.ability).code !== 'CONFERRED') continue;
+    const via = (c.via || []).filter(v => v.kind === 'move');
+    out.set(norm(c.ability), via.map(v => v.id + (v.holders != null ? ' (' + v.holders + ' legal learners)' : '')));
   }
   return out;
 })();

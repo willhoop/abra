@@ -142,12 +142,12 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  872/872 probed mechanics live, 0 missing   (census 2026-09-11 06:01)
+  872/872 probed mechanics live, 0 missing   (census 2026-09-11 07:56)
     the census probes what somebody thought to probe: 295 of 295 in-scope tags carry a probe, 0 carry none (9 of 304
-    tags have no in-scope carrier); 68 mechanics have never fired in the staged harness (all-mechanics-fire.json, 38
+    tags have no in-scope carrier); 22 mechanics have never fired in the staged harness (all-mechanics-fire.json, 53
     min old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/13257c8bc397/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "13257c8bc397".
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/aefcb93baf14/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "aefcb93baf14".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -164,9 +164,92 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-11 06:12_
+_stamped 2026-09-11 08:10_
 
 <!-- /GENERATED -->
+
+## THE STAGED HARNESS PLAYS THE PLANNER'S FIXTURES — FIRED **740 → 783 OF 845**, BOARD-COMPARED THE SAME. GENDER REACHES A REAL GAME. SCOPE IS DECIDED IN ONE PLACE. EIGHT NEW PARTINGS REGISTERED, NOT FIXED (#593–#600). THE FAINT EPOCH IS PER BATTLE. POOL UNMOVED: MIDDLE **0**, TOP **1**, BOTTOM **2 OF 961**. GATE **CLOSED, 1 OF 9** ON THE MECHANICS CLAUSE. RELEASES `cfab4786683a`, `aefcb93baf14`. 2026-09-11, CHANGELOG 6.14.0–6.14.1
+
+Full account, the prediction and every figure: [docs/_reports/2026-09-11-integration.md](_reports/2026-09-11-integration.md).
+
+- **What the harness plays now.** `engine/all_mechanics_fire.js` asks `engine/stage_planner.js` for each mechanic's
+  fixture and plays it, with its one-leaf control, on every rendered variant, under the fixture's own arm and HP
+  pool and the sheet's declared spread and genders. Abilities and items take the planner's A/B verdict first
+  (`abRow`, unchanged, so FIRED means what it meant); the legacy ladder runs only as a named fallback
+  (`stage: 'legacy-fallback'`, the planner's verdict kept beside it). Moves keep the legacy consequence ladder as
+  the verdict and also play the planner fixture. A board that parts on ANY variant marks the row STATE. A game
+  whose script did not play as written is a `script_miss`, never a result. `--no-plan` plays the old harness
+  exactly; `--dumplog` now prints planned games too. The planned path is shown catching a plant first: for one
+  fixture per kind, the control against itself reads DID-NOT-FIRE and a silent 7-HP plant reads STATE.
+- **Two instrument artifacts found and fixed before any result was trusted.** The planner handed mega and forme
+  fixtures the x6 HP pool, and a permanent forme change drops it in the authority: 73 stones and 13 mega
+  abilities parted on HP at about six times. They now play x1, as the legacy ladder always did. And the
+  planner's report said its gender rows declared genders; every body it emitted carried `''`.
+- **The driver seams.** `buildPair({declaredSpread, declaredGender})`, opt-in and counted
+  (`GD.seamCounters()`); medicham2's `detailsGender` writes `, M` / `, F` exactly as `getUpdatedDetails` does.
+  Attract resolves in both engines on both sides; Rivalry's boards agree; Cute Charm parts on narration (#597).
+- **One scope.** The harness, `tests/roster.js` and `engine/tag_dex.js` ask `engine/legal_scope.js`;
+  `champions_sim.unreachable()` is gone. The roster's abilities denominator is 200, as the verdict says; its old
+  row for Soft-Boiled had been staged on a Torkoal that cannot learn it (#318's defect).
+- **The eight partings, each a row with the authority's own lines:** Oblivious and Taunt (#593, 749 teams in
+  13,116 open-sheet games), Magic Bounce and Spite (#594), the crit after Focus Energy with Super Luck or Scope
+  Lens (#595), a mega stone under Klutz (#596) — board-material — and Cute Charm, Own Tempo, Sweet Veil and
+  Covet (#597–#600), narration. Left for the next batch, so this one's result stays the harness's.
+- **Batch 2 — the faint epoch.** `S._faintEpoch`, the active epoch rebound in `battleTurn`, and `battleResult`
+  comparing against the state's own. Knob `MEDI_FAINT_EPOCH_GLOBAL=1`. The interleave bench's double wipes read
+  a draw after one unrelated build on 43 of 43 before, 0 of 43 after, 43 of 43 under the knob.
+
+## TWENTY OWED INSTRUMENTS REGISTERED — ON RELEASE `aefcb93baf14` **TEN READ RED**, **FIVE READ GREEN AFTER MEASURE'S FIXES**, **THREE ARE REFUTED**, #442 **REPRODUCES**, AND #399 **CANNOT ANSWER**. TWO KNOBS NAMED BEFORE THEIR FIXES. 2026-09-11, CHANGELOG 6.13.0
+
+The probes are one per register row that asserted a live defect with nothing deciding it; how each was built and
+the reds it saw on `2b5a6585d8cf`: [docs/_reports/2026-09-11-owed-instruments.md](_reports/2026-09-11-owed-instruments.md).
+That report said sixteen red; re-run on this pass's release the split is different, and the difference is not
+the engine: MEASURE's `cc1dabf5` (CHANGELOG 6.12.1) fixed #323, #325, #349, #350 and #524 in between, and each of
+those probes reads GREEN. RED: #318, #348, #375, #380, #412, #425, #467, #511, #529, #535. Refuted: #310's rollout
+half, #440 on every staged shape, #541's fainting-holder half. #442 — whose first run could not extract its temp
+tree (Git Bash's tar reads `C:` as a host; fixed) — reproduces the committed census and goes RED under `--plant`.
+#399 exits 2: MEASURE's renderer now refuses a stale dump and the probe's own control fails under that contract,
+so the probe is owed a re-aim. Account: [docs/_reports/2026-09-11-integration.md](_reports/2026-09-11-integration.md).
+
+- **Three silent catches were fixed at the source, not accepted.** `probe_amf_default_populations.js`,
+  `probe_census_reproduces.js` and `probe_divergence_rank_side.js` each swallowed a read or cleanup error; each now
+  carries the error's message onto the line it prints, and `tests/test-no-silent-failure.js --in` reads 0 on all 20.
+- **Two knobs precede their fixes, and they are INERT today by design.** `MEDI_HITCOUNT_DROP_ON_COLLAPSE` (#511) and
+  `MEDI_UNBURDEN_FROM_CURRENT_ABILITY` (#535) select the defective path at the sites the rows name (the two collapse
+  roads; effSpeed's current-ability read). Until each fix gives the unknobbed path the authority's behaviour, both
+  positions play identically — that is the declared state, not an unwired knob. Each stamps `MEDFAILS.*Knob` on load
+  (shown 0 clean, 1 under its own switch, 0 under the other's) and counts `MEDSEEN.*Knobbed` at its site.
+- **Refuted, recorded in the rows' cells:** #310 (a rollout's seeded `battleInit` skips the lead pass and Trace
+  resolves on the retry sweep, which has a stream), #440 (four staged perish shapes agree; closeted by Will, and
+  the probe sees the defect under `MEDI_RESIDUAL_DRAIN_ABOVE_UPKEEP=1`), and #541's fainting-holder half (green,
+  red under `MEDI_ACQUIRED_START_NEEDS_HP=1`).
+- **Classification in `tests/run-all.js`:** the eleven that load a game module are derived PENDING-WIRE by the rows
+  below; the nine that load none carry a hand `PENDING_WIRE` entry each. All twenty are red by design until their
+  rows' fixes land, so none is wired as a gate; their runner is `engine/register_reality.js`, through the
+  `VERIFIED BY` markers, and every engine-facing marker names `--release` so it never keeps testing an old engine.
+
+| # | what the authority does / what the instrument checks | probe | knob |
+|---|---|---|---|
+| #310 | a Trace resolution inside a rollout draws its target from a stream | `tests/probe_rollout_trace_stream.js` | plant: unseeded battleInit, no rng |
+| #318 | the deliberate roster stages no body/move pair the TeamValidator refuses | `tests/probe_roster_learnset_refusals.js` | — |
+| #323 | no class-A mutation row says "nothing implements this fact" beside a read sibling tag | `tests/probe_mutation_classA_sibling.js` | `--artifact` |
+| #325 | the mutation battery skips, and counts, provenance params | `tests/probe_mutation_provenance_params.js` | `--artifact` |
+| #348 | tools/lownode.cmd delivers spaced and drive-letter arguments byte for byte | `tests/probe_lownode_argv.js` | — |
+| #349 | the divergence worklist ranks by the line that differs, or names the key's side | `tests/probe_divergence_rank_side.js` | — |
+| #350 | the open-defect clause separates "names a marker, no verdict" from "names nothing", and says STALE | `tests/probe_open_defect_marker_debt.js` | — |
+| #375 | every divergence cause carries context, species/attribution and the tie counters | `tests/probe_differential_cause_context.js` | `--artifact` |
+| #380 | an open row whose instrument refused holds the clause as CANNOT-ANSWER; one exit classifier | `tests/probe_open_defect_refusal_holds.js` | — |
+| #399 | the card renderer refuses or marks a dump from another release | `tests/probe_divergence_cards_stale.js` | — |
+| #412 | the priority bar's defender list resolves the effective ability (tripwire with no allowlist entry) | `tests/probe_priority_bar_effective_ability.js` | — |
+| #425 | a default all_mechanics_fire run publishes moves, abilities and items | `tests/probe_amf_default_populations.js` | — |
+| #440 | a perish death's `\|faint\|` lands on the authority's side of `\|upkeep\|` (bare, follower, pool, pool+rain) | `tests/probe_perish_faint_upkeep.js` | `MEDI_RESIDUAL_DRAIN_ABOVE_UPKEEP=1` |
+| #442 | the committed tree reproduces the committed census | `tests/probe_census_reproduces.js` | `--plant` |
+| #467 | every divergence cause carries `void_n` | `tests/probe_differential_void_attribution.js` | `--artifact` |
+| #511 | a clamped multi-hit volley (Endure, Focus Sash) still announces the authority's `\|-hitcount\|` | `tests/probe_volley_collapse_clamp.js` | `MEDI_HITCOUNT_DROP_ON_COLLAPSE=1` (inert until the fix) |
+| #524 | no probe prints a staging refusal and exits 0 | `tests/probe_couldnotstage_exit_zero.js` | `--plant` |
+| #529 | takesTargetItem.consumesAndGainsEffect agrees with the format's handler; Bug Bite eats on both engines | `tests/probe_stealeat_derivation.js` | `MEDI_STEALEAT_STRIP_ONLY=1` |
+| #535 | an Unburden acquired with an empty hand does not double Speed (no volatile) | `tests/probe_unburden_acquired.js` | `MEDI_UNBURDEN_FROM_CURRENT_ABILITY=1` (inert until the fix) |
+| #541 | a contact KO of a Wandering Spirit holder still swaps and Starts the acquired ability | `tests/probe_contact_transfer_fainting_holder.js` | `MEDI_ACQUIRED_START_NEEDS_HP=1` |
 
 ## FIVE ENGINE DEFECTS FIXED, THEN FIVE MOVES THAT IGNORED AN ABILITY FLAG — EVERY ONE PROBED RED AGAINST THE AUTHORITY FIRST. EVERY IN-SCOPE TAG PROBED, **295 OF 295**. CENSUS **856 → 872 LIVE**. BOARDS UNMOVED: MIDDLE **0**, TOP **1**, BOTTOM **2 OF 961**. GATE **OPEN, 9 OF 9** ON BOTH RELEASES, `d44869164a40` AND `13257c8bc397`. 2026-09-11, CHANGELOG 6.11.0–6.12.0
 
@@ -44364,8 +44447,12 @@ itself does not depend on it, and the census probe carries the mechanic today.
 
 ## Hand list — found by differential testing, not yet probed
 
-**EMPTY except for Rivalry, and Rivalry has never been probeable.** Everything else that was on this
-list has become a probe and the census now carries it. That is the list doing its job.
+**EMPTY — 2026-09-11.** Rivalry, the last entry, left it: the census carries it (`ability damageByGender`
+"Rivalry boosts into the SAME gender, weakens into the opposite, and does nothing genderless", live, beside
+`punishesAttacker` for Cute Charm and `immunityGate` for Attract between two males), and since CHANGELOG 6.14.0 it is
+also played inside a real game on gendered bodies through the driver's `declaredGender` seam, where both engines'
+boards agree (ROADMAP #592, closed). The entry below is kept as the dated record of why it sat here; it is no
+longer open work. Everything else that was on this list became a probe earlier. That is the list doing its job.
 
 **AND A THIRD LIST EMPTIED ITSELF INTO THE CENSUS ON 2026-08-07 (ROADMAP #92).** The damage-stage
 audit's open items were never on THIS list — they were on the register, because a stage error is not

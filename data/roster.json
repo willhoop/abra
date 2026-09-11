@@ -1,22 +1,22 @@
 {
- "generated": "2026-09-11T09:34:39.349Z",
+ "generated": "2026-09-11T11:22:45.150Z",
  "by": "tests/roster.js",
  "stage": "moves",
  "swap_leaf_correction": {
   "self_describing_dropped": 0,
   "real_ability_rewrite_kept": 0
  },
- "engine_release": "13257c8bc397",
- "engine_release_cut": "2026-09-11T09:25:57.830Z",
+ "engine_release": "aefcb93baf14",
+ "engine_release_cut": "2026-09-11T11:15:20.821Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "4da5525e6d7c",
+  "engine/medicham2-browser.js": "b4dfd7582db7",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "622482051bf4",
   "engine/tags.js": "145a3cc9ce2f",
-  "engine/champions_sim.js": "5e5d21bf1fb1",
+  "engine/champions_sim.js": "276b2f752247",
   "data/residual-order.json": "eff160ad1c5a",
   "data/switchin-order.json": "24a007a66b7d",
   "engine/mc_key.js": "f57c27a6bf38",
@@ -31,8 +31,8 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "aee4c5d28405",
-  "data/tags.json": "2e0f2c702e0f",
+  "data/abra-tags.js": "d4dade70122f",
+  "data/tags.json": "6a7da8bae6d6",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
@@ -44,23 +44,23 @@
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
   "DEFERRED-BY-OWNER": 3,
-  "FIRED-AND-BOARDS-MATCH": 487,
+  "FIRED-AND-BOARDS-MATCH": 486,
   "CONTROL-NOT-QUIET": 0,
-  "COULD-NOT-STAGE": 10
+  "COULD-NOT-STAGE": 11
  },
  "arms_played": {
-  "top-tie-first": 826,
+  "top-tie-first": 824,
   "bottom-tie-first": 266
  },
  "scope": {
   "total": 500,
-  "out_of_scope": 2,
+  "out_of_scope": 3,
   "out_of_scope_by": {
-   "no-legal-carrier": 2
+   "no-legal-carrier": 3
   },
-  "in_scope": 498,
-  "tested": 487,
-  "matched": 487,
+  "in_scope": 497,
+  "tested": 486,
+  "matched": 486,
   "differ": 0,
   "silent": 0,
   "deferred": 3,
@@ -81,7 +81,7 @@
   }
  },
  "plant_anchors": {
-  "release": "13257c8bc397",
+  "release": "aefcb93baf14",
   "checked": 36,
   "dead": [],
   "reds_ran": true
@@ -39622,81 +39622,6 @@
      "path": "p2.active[0].types",
      "with": "water",
      "without": "dragon/steel"
-    }
-   ],
-   "diffs": []
-  },
-  {
-   "kind": "move",
-   "id": "softboiled",
-   "name": "Soft-Boiled",
-   "rule": "move/heal",
-   "reads": "heal — a DECLARED fraction of the user's own maximum",
-   "note": "Torkoal is chipped 100 of its REAL 145 HP by Dragon Pulse — deeper than the 1/2 this restores, so the first heal cannot clamp — then heals twice; the second click IS the overshoot negative. ITS MAXIMUM DOES NOT DIVIDE BY 2 (145 x 1/2), so the authority's rounding of that quotient is under test too. Goodra-Hisui is chipped by Dragon Pulse and never heals",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
-   "arm": "top-tie-first",
-   "control_why": null,
-   "carrier": "torkoal",
-   "dice": null,
-   "coin": null,
-   "coin_shared": false,
-   "coin_one_sided": false,
-   "coin_missing": false,
-   "underlying": null,
-   "deferred": null,
-   "out_of_scope": null,
-   "declared_untestable": false,
-   "second_control": null,
-   "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 2,
-     "path": "p2.party.torkoal.hp",
-     "with": 118,
-     "without": 45
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].hp",
-     "with": 118,
-     "without": 45
-    },
-    {
-     "turn": 2,
-     "path": "p2.pp[0].softboiled",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p2.pp[0].focusenergy",
-     "with": 1,
-     "without": 2
-    },
-    {
-     "turn": 3,
-     "path": "p2.party.torkoal.hp",
-     "with": 145,
-     "without": 45
-    },
-    {
-     "turn": 3,
-     "path": "p2.active[0].hp",
-     "with": 145,
-     "without": 45
-    },
-    {
-     "turn": 3,
-     "path": "p2.pp[0].softboiled",
-     "with": 2,
-     "without": 0
-    },
-    {
-     "turn": 3,
-     "path": "p2.pp[0].focusenergy",
-     "with": 1,
-     "without": 3
     }
    ],
    "diffs": []

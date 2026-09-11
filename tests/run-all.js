@@ -560,6 +560,23 @@ const PENDING_WIRE = {
    * NOT RUN IN THIS PASS: an ENGINE agent was live in engine/medicham2-browser.js, which quarantine
    * and coverage both read. */
   'engine/sweep.js': 'A FINDINGS REPORTER ABOUT THE INSTRUMENTS, landed 2026-09-04. It exits 1 on any finding (line 754) and §1\'s findings are this runner\'s own unaccounted list, so it is red by construction while that list is non-empty; and it spawns tests/run-all.js --coverage (line 124), so wiring it puts this runner inside itself and gives one verdict two homes. Not run in this pass — it loads quarantine.js and coverage.js, and an ENGINE agent was live in the simulator they read.',
+  /* REGISTERED 2026-09-11 BY ENGINE — nine of the twenty owed instruments
+   * (docs/_reports/2026-09-11-owed-instruments.md). The other eleven load a game module and are derived
+   * PENDING-WIRE by their docs/ENGINE.md rows; these nine load none, so the derived rule cannot see them
+   * and each needs its reason written here. ONE CONDITION IS SHARED AND IT IS NOT A JUDGEMENT ABOUT THEM:
+   * each is a VERDICT probe asserting a live register defect, RED BY DESIGN until that row's fix lands,
+   * so wiring it as a gate would ship a red check (CLAUDE.md: never ship a red test). Each has a runner:
+   * engine/register_reality.js executes the row's `VERIFIED BY:` marker on every pass, which is the
+   * probe_red_demo.js arrangement. What is specific to each file is the second sentence. */
+  'tests/probe_lownode_argv.js': 'REGISTERED 2026-09-11 — the owed instrument for ROADMAP #348, red by design until that row is fixed; runner: engine/register_reality.js via the row\'s VERIFIED BY marker. It spawns cmd.exe through tools/lownode.cmd and Git Bash, so it is Windows-only by construction.',
+  'tests/probe_open_defect_marker_debt.js': 'REGISTERED 2026-09-11 — the owed instrument for ROADMAP #350, red by design until that row is fixed; runner: engine/register_reality.js via the row\'s VERIFIED BY marker. It runs the real engine/quarantine.js openDefectClause() with two file reads intercepted.',
+  'tests/probe_differential_cause_context.js': 'REGISTERED 2026-09-11 — the owed instrument for ROADMAP #375, red by design until that row is fixed; runner: engine/register_reality.js via the row\'s VERIFIED BY marker. It reads data/game-differential.json (or --artifact), so its verdict moves with that artifact.',
+  'tests/probe_open_defect_refusal_holds.js': 'REGISTERED 2026-09-11 — the owed instrument for ROADMAP #380, red by design until that row is fixed; runner: engine/register_reality.js via the row\'s VERIFIED BY marker. Half of it is STRUCTURAL (run-all.js and register_reality.js share no exit classifier), so it has no outcome to stage.',
+  'tests/probe_divergence_cards_stale.js': 'REGISTERED 2026-09-11 — the owed instrument for ROADMAP #399, red by design until that row is fixed; runner: engine/register_reality.js via the row\'s VERIFIED BY marker. It renders engine/divergence_cards.js against a matched control dump in a scratch tree.',
+  'tests/probe_amf_default_populations.js': 'REGISTERED 2026-09-11 — the owed instrument for ROADMAP #425, red by design until that row is fixed; runner: engine/register_reality.js via the row\'s VERIFIED BY marker. It PLAYS GAMES, but through two engine/all_mechanics_fire.js CHILD processes (--limit 1, --out to a temp dir), so it requires no game module and the derived rule cannot classify it.',
+  'tests/probe_census_reproduces.js': 'REGISTERED 2026-09-11 — the owed instrument for ROADMAP #442, red by design until that row is fixed; runner: engine/register_reality.js via the row\'s VERIFIED BY marker. HEAVY: it regenerates the whole census inside a git-archive of HEAD in a temp tree (writes nothing in the repository); --dry checks preconditions only.',
+  'tests/probe_differential_void_attribution.js': 'REGISTERED 2026-09-11 — the owed instrument for ROADMAP #467, red by design until that row is fixed; runner: engine/register_reality.js via the row\'s VERIFIED BY marker. It reads data/game-differential.json (or --artifact), so its verdict moves with that artifact.',
+  'tests/probe_couldnotstage_exit_zero.js': 'REGISTERED 2026-09-11 — the owed instrument for ROADMAP #524, red by design until that row is fixed; runner: engine/register_reality.js via the row\'s VERIFIED BY marker. A static scan of tests/probe_*.js; --plant adds a site and must go red.',
 };
 
 /* ---- the coverage scan, over BOTH directories ------------------------------------------------ */

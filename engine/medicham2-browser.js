@@ -3290,6 +3290,13 @@ const MEDFAILS = { encoreAction: 0,
      NOT write a `1` here, because that would be an invented count. A non-zero reading is that defect
      happening, not an error; it has no fixture yet. See docs/_reports/2026-08-27-narration-three.md. */
   hitCountDroppedOnCollapse: 0,
+  /* 2026-09-11 -- LOAD STAMPS FOR TWO KNOBS THAT PRECEDE THEIR FIXES (ROADMAP #511, #535). Each is 1
+     only on a load under its `MEDI_*` switch, so a run under it can never be mistaken for a clean one.
+     BOTH KNOBS ARE INERT TODAY BY DESIGN: they name the defective path, and until the fix lands the
+     unknobbed path IS that path, so knob-on and knob-off play identically. `tests/probe_volley_collapse_clamp.js`
+     and `tests/probe_unburden_acquired.js` stay RED in both positions until then; identical output
+     across the knob is the declared state, not a wiring fault. */
+  hitCountDropOnCollapseKnob: 0, unburdenFromCurrentAbilityKnob: 0,
   /* 2026-08-26 -- the three ways `immunityGateRefuses` can be handed a row it cannot evaluate, kept
      apart because they mean different things. `PassUnknown` is a NEW condition shape in the artifact
      and is the one that matters: the gate returns "not refused", i.e. exactly the behaviour this
@@ -3344,6 +3351,11 @@ const MEDFAILS = { encoreAction: 0,
      to the 0.5 this wire exists to remove. LOUD on purpose: the fallback and the fix return the
      same number and only this counter tells them apart. */
   doubleWipeNoFaintOrder: 0,
+  /* 2026-09-11 -- THE FAINT EPOCH IS PER BATTLE (see `_FAINT_EPOCH_ACTIVE`). `faintEpochGlobalRestored` is
+     1 on a load under MEDI_FAINT_EPOCH_GLOBAL=1; `faintEpochUnstamped` counts a state handed to
+     battleTurn/battleResult that battleInit never stamped (a hand-built S), which falls back to the
+     global epoch LOUDLY rather than silently. */
+  faintEpochGlobalRestored: 0, faintEpochUnstamped: 0,
   /* 2026-08-23 -- THE FAINT QUEUE'S TWO FAILURE MODES, and neither may be silent.
        faintInlineRestored  set for the whole run when `MEDI_FAINT_INLINE=1` puts every converted
                             site back to announcing on the spot. A run carrying this is the
@@ -5305,7 +5317,7 @@ const TRACE=(function(){
      * faint replacement carry none and stay bare -- `_swFrom` is null on both, which is why it is a
      * mode flag on the sink rather than a parameter every caller has to remember to pass. */
     _swFrom:null,
-    swin(m,drag){ this.push([drag?'drag':'switch',ident(m),m.name+', L50',health(m),
+    swin(m,drag){ this.push([drag?'drag':'switch',ident(m),m.name+', L50'+detailsGender(m),health(m),
                              this._swFrom?'[from] '+this._swFrom:undefined]); },
     /* --- MEGA EVOLUTION, ROADMAP #31. Two lines, in Showdown's own order and shapes, read off a
      * real Champions battle.log rather than off SIM-PROTOCOL.md:
@@ -5317,7 +5329,7 @@ const TRACE=(function(){
      * which is the order Showdown produces them in.
      *
      * DETAILS FOLLOW THE FORME and the IDENTIFIER DOES NOT -- see identName() above. */
-    detailschange(m){ this.push(['detailschange',ident(m),m.name+', L50']); },
+    detailschange(m){ this.push(['detailschange',ident(m),m.name+', L50'+detailsGender(m)]); },
     mega(m,apparent,stone){ this.push(['-mega',ident(m),apparent,stone]); },
   };
   return T;
@@ -9009,6 +9021,16 @@ const residualExpiryDeferred = () => [...RESIDUAL_EXPIRY.entries()]
 const ENDTURN_CLOCKS_AT_FOOT = (typeof process !== 'undefined' && process.env
   && process.env.MEDI_ENDTURN_CLOCKS_AT_FOOT === '1');
 if (ENDTURN_CLOCKS_AT_FOOT) MEDFAILS.endturnClocksAtFoot = 1;
+/* MEDI_HITCOUNT_DROP_ON_COLLAPSE=1 -- ROADMAP #511's defect path, NAMED BEFORE ITS FIX (2026-09-11).
+ * A volley priced as 2+ packets whose total is rewritten before application (Focus Sash, Endure)
+ * collapses to one packet and announces no `|-hitcount|`, counted at MEDFAILS.hitCountDroppedOnCollapse.
+ * The knob selects that drop at the two collapse sites (the doll road and the body road). The fix
+ * will give the UNKNOBBED path the authority's count and leave the drop here; until it lands both
+ * positions drop, so this knob changes no output today and says so through its load stamp and the
+ * per-site `MEDSEEN.hitCountDropOnCollapseKnobbed` count. `tests/probe_volley_collapse_clamp.js`. */
+const HITCOUNT_DROP_ON_COLLAPSE = (typeof process !== 'undefined' && process.env
+  && process.env.MEDI_HITCOUNT_DROP_ON_COLLAPSE === '1');
+if (HITCOUNT_DROP_ON_COLLAPSE) MEDFAILS.hitCountDropOnCollapseKnob = 1;
 /* ---- 2026-08-29 -- THE TWO RESIDUAL-ORDER KNOBS THIS PASS ADDED, AND THEY ARE BEFORE-ARMS ---------
  *
  * `MEDI_STATUS_ONE_STEP=1` merges the burn chip back into the psn/tox step, which is what the MAP
@@ -17915,6 +17937,16 @@ function sdModify(value, mod){
  * here rather than beside the other knobs because it is read by exactly one line, in the function
  * below. */
 const ROOM_ITEM_IS_LOST=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ROOM_ITEM_IS_LOST==='1');
+/* MEDI_UNBURDEN_FROM_CURRENT_ABILITY=1 -- ROADMAP #535's defect path, NAMED BEFORE ITS FIX (2026-09-11).
+ * effSpeed doubles off the body's CURRENT ability whenever its hand is empty; the authority doubles
+ * only while the `unburden` VOLATILE stands, and that volatile is granted by the ability that held
+ * the item WHEN IT WENT (`onAfterUseItem` / `onTakeItem`). So an Unburden acquired after the hand is
+ * already empty (Skill Swap, Role Play) doubles here and not there. The knob selects the current-
+ * ability read; the fix will give the UNKNOBBED path the volatile and keep this read here. Until it
+ * lands both positions take the same read, so the knob changes no output today and says so through
+ * its load stamp and `MEDSEEN.unburdenFromCurrentAbilityKnobbed`. `tests/probe_unburden_acquired.js`. */
+const UNBURDEN_FROM_CURRENT_ABILITY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_UNBURDEN_FROM_CURRENT_ABILITY==='1');
+if(UNBURDEN_FROM_CURRENT_ABILITY)MEDFAILS.unburdenFromCurrentAbilityKnob=1;
 function effSpeed(m,field,side){
   /* WIRE 83 -- THE SIDE MAY BE OMITTED, and then it is READ off the body rather than assumed. Gyro
      Ball and Electro Ball are base-power-from-a-speed-RATIO, computed inside dmgRange, which is
@@ -17985,7 +18017,9 @@ function effSpeed(m,field,side){
    * Knob: MEDI_ROOM_ITEM_IS_LOST=1 restores the pre-fix read. */
   if(m._hadItem&&!m.item&&(ROOM_ITEM_IS_LOST||m._roomItem==null)){
     if(m._roomItem!=null)MEDFAILS.roomItemIsLostRestored=1;
-    const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');if(_ub&&_ub.speedMult)_mods.push(+_ub.speedMult);}
+    /* #535 -- this reads the CURRENT ability, which is the defect; UNBURDEN_FROM_CURRENT_ABILITY names
+       it (inert until the fix gives the unknobbed path the authority's volatile). */
+    const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');if(_ub&&_ub.speedMult){if(UNBURDEN_FROM_CURRENT_ABILITY)MEDSEEN.unburdenFromCurrentAbilityKnobbed=(MEDSEEN.unburdenFromCurrentAbilityKnobbed|0)+1;_mods.push(+_ub.speedMult);}}
 if((side==='A'?field.twA:field.twB)>0)_mods.push(2);
   /* WIRE 78 — a suppressed sky does not haste anybody. effSpeed sees ONE body, so it reads the
      field's own answer (set by battleTurn over all four actives) as well as this body's ability. */
@@ -20943,6 +20977,16 @@ function applyConfusion(t,src,field,viaSecondary,viaFatigue){
  * rolling a gender at build time would be inventing a fact the sheet does not carry. Declared here
  * rather than defaulted quietly, and the refusal is COUNTED. */
 const genderOf=m=>{const g=String((m&&m.gender)||'N').toUpperCase();return (g==='M'||g==='F')?g:'N';};
+/* THE DETAILS FIELD CARRIES THE GENDER, EXACTLY AS THE AUTHORITY WRITES IT — 2026-09-11 (ROADMAP #592).
+ * `Pokemon#getUpdatedDetails` (sim/pokemon.ts:536-541) appends `, ${gender}` unless the gender is '',
+ * and the constructor (sim/pokemon.ts:340-341) turns a declared 'N' into ''. So a genderless body
+ * writes `Garchomp, L50` and a gendered one `Garchomp, L50, F`, on `|switch|`, `|drag|` and
+ * `|detailschange|` alike. This engine wrote the first shape for every body, which was right only
+ * because no harness ever built a gendered one — the driver forced 'N' so the streams would not part
+ * on line one. The suffix reads `genderOf`, the one reader Attract, Cute Charm and Rivalry already
+ * ask, so a body with no declared gender is byte-identical to before. Hoisted: the trace sink's
+ * emitters call it. */
+function detailsGender(m){const g=genderOf(m);return g==='N'?'':', '+g;}
 function attractCompatible(target,source){
   const t=genderOf(target),s=genderOf(source);
   if((t==='M'&&s==='F')||(t==='F'&&s==='M'))return true;
@@ -25168,14 +25212,40 @@ function oneMegaPerSide(team){
  * THE ONE FALLBACK IS LOUD. Two emptied sides with no comparable order left is
  * `MEDFAILS.doubleWipeNoFaintOrder` and still returns 0.5 -- a silent 0.5 here is
  * indistinguishable from the bug this wire removed. */
-let _FAINT_SEQ=0, _FAINT_EPOCH=0;
+let _FAINT_SEQ=0, _FAINT_EPOCH=0, _FAINT_EPOCH_ACTIVE=0;
+/* 2026-09-11 -- THE EPOCH BELONGS TO THE BATTLE, NOT TO THE PROCESS (docs/_reports/2026-09-11-interleave.md).
+ *
+ * `_FAINT_EPOCH` is bumped by EVERY `battleInit`, and both halves of the double-wipe rule read it raw: a
+ * faint was stamped with the process's latest epoch and `battleResult` counted only faints stamped with it.
+ * So a double wipe's result was right until ANY other battle was built, then read 0.5 -- measured on 43 of
+ * 43 constructed double wipes and the 1 natural one in 1,824 random playouts. No caller today builds
+ * between a finish and its read; a tree search that re-reads a finished node after expanding another would.
+ *
+ * NOW: `battleInit` records the epoch it opened on `S._faintEpoch`; `battleTurn` makes that the ACTIVE
+ * epoch on entry, so a faint is stamped with the epoch of the battle actually being stepped (building Q
+ * while P is alive and then stepping P stamps P's corpses with P's epoch, not Q's); `battleResult` compares
+ * against the state's own epoch. A state battleInit never stamped falls back to the global rule and is
+ * counted at `MEDFAILS.faintEpochUnstamped`.
+ *
+ * KNOB: MEDI_FAINT_EPOCH_GLOBAL=1 restores the process-global stamp and comparison exactly, and stamps
+ * `MEDFAILS.faintEpochGlobalRestored`. data/verification/interleave-2026-09-11/bench_interleave.js's
+ * double-wipe case is the demonstration: after one unrelated build, 0.5 under the knob, the winner without. */
+const FAINT_EPOCH_GLOBAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FAINT_EPOCH_GLOBAL==='1');
+if(FAINT_EPOCH_GLOBAL)MEDFAILS.faintEpochGlobalRestored=1;
+function _faintEpochOf(S){
+  if(FAINT_EPOCH_GLOBAL)return _FAINT_EPOCH;
+  if(S&&S._faintEpoch!=null)return S._faintEpoch;
+  MEDFAILS.faintEpochUnstamped=(MEDFAILS.faintEpochUnstamped|0)+1;
+  return _FAINT_EPOCH;
+}
 /* 2026-08-27 -- AND IT IS THE ONE DOOR EVERY FAINT ALREADY GOES THROUGH, WHICH `queueFaint` IS NOT.
  * `queueFaint` owns the LINE for the handful of sites that were converted to it; the other twenty-odd
  * still flip `fainted` inline. What all of them share, without exception, is this call -- so a piece of
  * housekeeping the authority does on EVERY corpse belongs here and nowhere else. Placing it in
  * `queueFaint` was tried first and the probe stayed red: Memento's self-KO (line ~21876) is one of the
  * inline sites and never reaches that road. */
-function noteFaint(m){ if(!m)return; if(m._fEpoch!==_FAINT_EPOCH){m._fEpoch=_FAINT_EPOCH;m._faintSeq=++_FAINT_SEQ;}
+function noteFaint(m){ if(!m)return; const _ep=FAINT_EPOCH_GLOBAL?_FAINT_EPOCH:_FAINT_EPOCH_ACTIVE;
+  if(m._fEpoch!==_ep){m._fEpoch=_ep;m._faintSeq=++_FAINT_SEQ;}
   /* NARRATION BATCH T -- THE WINDOW OPENS HERE AND `faintLineOut` CLOSES IT. The HP has reached
      zero and the authority has NOT run `faintMessages` yet, so `isActive` is still true over there.
      Every inline faint site writes the line in the same statement, so the window is empty for those;
@@ -25772,11 +25842,11 @@ function drainFaints(where){
     MEDSEEN.faintDrainResidualBodyStep=(MEDSEEN.faintDrainResidualBodyStep|0)+1;
   return n;
 }
-function lastFaintSeq(arr){ let n=-1;
-  for(const m of arr) if(m&&m.fainted&&m._fEpoch===_FAINT_EPOCH&&m._faintSeq>n)n=m._faintSeq;
+function lastFaintSeq(arr,ep){ let n=-1;
+  for(const m of arr) if(m&&m.fainted&&m._fEpoch===ep&&m._faintSeq>n)n=m._faintSeq;
   return n; }
 function battleInit(teamA,teamB,opts){
-  _FAINT_EPOCH++;
+  _FAINT_EPOCH++; _FAINT_EPOCH_ACTIVE=_FAINT_EPOCH;
   /* A LINE STILL OWED WHEN A NEW BATTLE OPENS IS A DRAIN THAT NEVER RAN. Cleared, and LOUD -- a
    * silently-carried queue would emit a corpse's `|faint|` into somebody else's game. */
   if(_FAINTQ.length){ MEDFAILS.faintQueueLeaked=(MEDFAILS.faintQueueLeaked||0)+_FAINTQ.length; _FAINTQ.length=0; }
@@ -25862,6 +25932,7 @@ function battleInit(teamA,teamB,opts){
   /* and the tie stream with it, for the lead's entry sort. `rngStreams` fills a missing `tie` from
    * `any`, so a caller handing a bare function still gets a die rather than nothing. */
   MED_TIE_RNG=_initR?(_initR.tie||_initR.any):null;
+  S._faintEpoch=_FAINT_EPOCH;   /* 2026-09-11 -- this battle's own faint epoch; see _FAINT_EPOCH_ACTIVE */
   MID_S=S; MID_TURN=0; MID_MOVE='-'; MID_TGT='-'; MID_ATT='-';
   /* ROADMAP #68 -- THE TRACE IS ARMED HERE AND NOWHERE ELSE IS IT DEFAULTED ON. `opts.trace` is any
    * pushable sink (an Array is what callers pass). Absent, `S._trace` is undefined, traceBind() sets
@@ -26788,6 +26859,7 @@ function battleTurn(S,rng,actsForA,actsForB){
    * about to play and `S.turn` is incremented at the BOTTOM of this function, so the turn now running
    * is `S.turn + 1` -- the same arithmetic the trace on the next few lines already uses. */
   MID_S=S; MID_TURN=(S&&S.turn!=null?S.turn:0)+1; MID_MOVE='-'; MID_TGT='-'; MID_ATT='-';
+  _FAINT_EPOCH_ACTIVE=_faintEpochOf(S);   /* 2026-09-11 -- a faint this turn is stamped with THIS battle's epoch */
   /* ROADMAP #222 -- the five named dice. `rng` below remains the GENERIC stream, so every call
    * site not named in RNG_STREAMS is untouched and a plain-function caller sees no change at all. */
   const _R=rngStreams(rng); rng=_R.any;
@@ -38578,7 +38650,8 @@ function battleTurn(S,rng,actsForA,actsForB){
            * `1` there would be an invented number rather than a missing one. */
           if(R.hitcount){
             if(_dollVolley)R.hitLanded=_ate;
-            else if(R.pk&&R.pk.length>1)MEDFAILS.hitCountDroppedOnCollapse=(MEDFAILS.hitCountDroppedOnCollapse|0)+1;
+            /* #511 -- the collapse drop; HITCOUNT_DROP_ON_COLLAPSE names it (inert until the fix). */
+            else if(R.pk&&R.pk.length>1){if(HITCOUNT_DROP_ON_COLLAPSE)MEDSEEN.hitCountDropOnCollapseKnobbed=(MEDSEEN.hitCountDropOnCollapseKnobbed|0)+1;MEDFAILS.hitCountDroppedOnCollapse=(MEDFAILS.hitCountDroppedOnCollapse|0)+1;}
             else R.hitLanded=1;
           }
           dealt+=_dollDealt;
@@ -39401,7 +39474,8 @@ function battleTurn(S,rng,actsForA,actsForB){
            * `1` would be an invented number. That road is a second, still-open producer of the same
            * missing line and it is COUNTED rather than papered over. */
           if(R.hitcount){
-            if(R.pk&&R.pk.length>1)MEDFAILS.hitCountDroppedOnCollapse=(MEDFAILS.hitCountDroppedOnCollapse|0)+1;
+            /* #511 -- the collapse drop; HITCOUNT_DROP_ON_COLLAPSE names it (inert until the fix). */
+            if(R.pk&&R.pk.length>1){if(HITCOUNT_DROP_ON_COLLAPSE)MEDSEEN.hitCountDropOnCollapseKnobbed=(MEDSEEN.hitCountDropOnCollapseKnobbed|0)+1;MEDFAILS.hitCountDroppedOnCollapse=(MEDFAILS.hitCountDroppedOnCollapse|0)+1;}
             else R.hitLanded=1;
           } }
         /* 2026-08-24 -- THE DRAIN HEAL, IMMEDIATELY BELOW THIS TARGET'S `-damage` LINE, which is
@@ -45879,7 +45953,8 @@ function battleResult(S){
      battleInit. The HP fraction below is the HORIZON rule and is deliberately untouched: it answers
      a TRUNCATED rollout in which both sides still have bodies, which is a different question. */
   if(aA===0&&bA===0){
-    const la=lastFaintSeq([...S.actA,...S.benchA]),lb=lastFaintSeq([...S.actB,...S.benchB]);
+    const _ep=_faintEpochOf(S);
+    const la=lastFaintSeq([...S.actA,...S.benchA],_ep),lb=lastFaintSeq([...S.actB,...S.benchB],_ep);
     if(la!==lb){MEDSEEN.doubleWipeDecidedByLastFaint++;return la>lb?1:0;}
     MEDFAILS.doubleWipeNoFaintOrder++;return 0.5;
   }

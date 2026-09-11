@@ -3318,6 +3318,18 @@ if (typeof M.spreadL50 !== 'function') {
  * sitting past this index is on the sheet and never enters the battle, and a reader cannot judge the
  * exclusion without knowing where the battle stops. One constant, two readers. */
 const PAIR_BODIES = 4;
+/* THE TWO OPT-IN SEAMS' OWN RECEIPT (2026-09-11). A seam nobody can prove was used reads exactly like one
+ * that was: `declaredSpread` counts every body built from its sheet's own evs, `declaredGenderBodies` every
+ * body built under the gender flag and `declaredGender` those that actually carried 'M' or 'F'. */
+const SEAM = { declaredSpread: 0, declaredGenderBodies: 0, declaredGender: 0 };
+function declaredEvs(p) {
+  const e = p && p.evs;
+  if (!e || typeof e !== 'object')
+    throw new Error('buildPair({declaredSpread}) was handed a sheet body with no evs: ' + JSON.stringify((p && p.species) || p));
+  SEAM.declaredSpread++;
+  const n = k => { const v = +e[k]; return Number.isFinite(v) && v > 0 ? v : 0; };
+  return { hp: n('hp'), atk: n('atk'), def: n('def'), spa: n('spa'), spd: n('spd'), spe: n('spe') };
+}
 function buildPair(sheet, opts) {
   const hpx = (opts && opts.hpBoost) || 1;
   const strip = !!(opts && opts.stripStones);
@@ -3403,8 +3415,22 @@ function buildPair(sheet, opts) {
      * on the medicham spec are the SAME OBJECT'S numbers, mapped once here — the key-name translation
      * lives at this one site because a translation table in two files is the same breach one level
      * down. */
-    const evs = spreadFor(picked.length, sp);
+    /* THE DECLARED SPREAD — OPT-IN, 2026-09-11. A caller that AUTHORED the sheet (engine/stage_planner.js
+     * through engine/all_mechanics_fire.js) judged its speed windows on the spread it wrote, and the
+     * index ladder below would override it: the planner's Prankster carrier is slower than its
+     * receiver at 0 SP, and `SPE_LADDER` hands slot 0 32 Speed SP. `declaredSpread` honours the sheet's
+     * own `evs` instead. No other caller passes it, so every other game is byte-identical. A sheet with
+     * no `evs` under the flag is a caller error and THROWS by name — a silent fall back to the ladder
+     * would play a different board under the planner's name. */
+    const evs = (opts && opts.declaredSpread) ? declaredEvs(p) : spreadFor(picked.length, sp);
     const spTeam = { at: evs.atk, df: evs.def, sa: evs.spa, sd: evs.spd, sp: evs.spe };
+    /* THE DECLARED GENDER — OPT-IN, 2026-09-11 (ROADMAP #592). Only 'M' or 'F' crosses: anything else is
+     * the 'N' every body has always had, which the authority turns into '' (sim/pokemon.ts:340-341) and
+     * which therefore can never reach `this.battle.sample(['M','F'])`, the die an absent gender would
+     * roll. The SAME value goes to both engines — the Showdown set below and the medicham spec, which
+     * freshBodies stamps onto the body `genderOf` reads. */
+    const gender = (opts && opts.declaredGender && (p.gender === 'M' || p.gender === 'F')) ? p.gender : 'N';
+    if (opts && opts.declaredGender) { SEAM.declaredGenderBodies++; if (gender !== 'N') SEAM.declaredGender++; }
     picked.push({ medi: b, spec: { key, moves: b.moves.slice(), item, ability, hpx, bs: sp.baseStats,
                                    nature, sp: spTeam, ident: sp.baseSpecies || sp.name,
                                    /* 2026-08-25, MEASURE — CARRIED ON THE SPEC, BECAUSE THE BODY IT WAS
@@ -3417,13 +3443,14 @@ function buildPair(sheet, opts) {
                                     * Named in CLAUDE.md as the cause of Morpeko's divergences and
                                     * still live tonight, measured: `freshBodies(...).map(b=>b._switchKey)`
                                     * reads `[undefined x4]`. One source, two readers. */
-                                   switchKey: id(sp.id || sp.name) }, sd: {
+                                   switchKey: id(sp.id || sp.name), gender }, sd: {
       name: sp.name, species: sp.name,
-      /* GENDER IS 'N' ON BOTH SIDES. Showdown writes the gender into the `|switch|` details field
-       * (`Incineroar, L50, F`) and medicham2 has no gender at all, so a declared gender would part
-       * the streams on line one of every game. It is a CONTROL, and its cost is that Attract,
-       * Rivalry and Cute Charm are not exercised — stated, not hidden. */
-      gender: 'N', level: 50, item: item ? dex.items.get(item).name : '',
+      /* GENDER IS 'N' ON BOTH SIDES UNLESS THE CALLER DECLARES IT. Showdown writes the gender into the
+       * `|switch|` details field (`Incineroar, L50, F`); medicham2 writes it too since 2026-09-11
+       * (`detailsGender`), so a declared gender no longer parts the streams on line one. The default
+       * stays 'N' — a CONTROL whose cost is that Attract, Rivalry and Cute Charm are exercised only by a
+       * caller that passes `declaredGender`, which today is the staging harness alone. */
+      gender, level: 50, item: item ? dex.items.get(item).name : '',
       ability: ability ? dex.abilities.get(ability).name : '',
       moves: moves.map(m2 => m2.name), nature,
       evs,
@@ -3601,6 +3628,9 @@ function freshBodies(pair) {
     if (x.spec.ident) b._ident = x.spec.ident;
     /* 2026-08-25 — AND THE SWITCH KEY, which buildPair stamps and this used to drop. See the spec. */
     if (x.spec.switchKey) b._switchKey = x.spec.switchKey;
+    /* 2026-09-11 — THE DECLARED GENDER, the same value buildPair handed the Showdown set. 'N' is not
+     * stamped, so a body built without the flag is byte-identical to before. */
+    if (x.spec.gender === 'M' || x.spec.gender === 'F') b.gender = x.spec.gender;
     /* HP BOOST — opt-in, staged measurements only, and it exists for one reason: A DAMAGE RATIO
      * CANNOT BE READ OFF A BODY THAT DIED. Showdown clamps the recorded HP loss at the target's max,
      * so the first run of the Knock Off arms read 135 / 135 / 135 — three different multipliers all
@@ -6889,7 +6919,7 @@ function endStateVerdict(r) {
   return r.finalBoard.identical ? 'SAME-END-STATE' : 'DIFFERENT-END-STATE';
 }
 
-module.exports = { playGame, buildPair, freshBodies, classify, pinRandom, PIN_CHANCE, sdStream, chooseAction,
+module.exports = { playGame, buildPair, seamCounters: () => Object.assign({}, SEAM), freshBodies, classify, pinRandom, PIN_CHANCE, sdStream, chooseAction,
                    /* 2026-08-25 — THE ONE DOOR onto "which body of the roster is this", exported so a
                     * probe drives THE resolver rather than a second copy of it. `rosterKeyFallbacks`
                     * is the loud half: any read that had to fall back on display state is counted

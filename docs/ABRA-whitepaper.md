@@ -74,12 +74,15 @@ derives its population over the **347** legal species of this regulation before 
 (`data/roster.items.json` `scope.carrier_derivation`, predicate `exists && !isNonstandard && tier !==
 "Illegal"`, including 72 mega and 83 battle-only formes). `data/roster.items.json` `scope`: 148 in
 scope, **142 tested**, `differ` 0, DID-NOT-FIRE 0, 6 fixture gaps. `data/roster.abilities.json`
-`scope`: 316 total of which **115 have no legal carrier in this regulation** and are therefore not
-rows, 201 in scope, **139 tested**, `differ` 0, DID-NOT-FIRE 0, 43 fixture gaps, 14 CONTROL-NOT-QUIET
-and 5 deferred by the owner. `data/roster.moves.json` `scope`: 500 total, 2 with no legal carrier, 498
-in scope, **487 tested**, `differ` 0, DID-NOT-FIRE 0, 8 fixture gaps and 3 deferred. Each stage carries red demonstrations that ran:
+`scope`: 316 total of which **116 are out of scope** by `engine/legal_scope.js`'s verdict (114 with no
+legal carrier, 1 whose only carrier the validator refuses, 1 whose only readers are out of the regulation) and
+are therefore not rows, 200 in scope, **139 tested**, `differ` 0, DID-NOT-FIRE 0, 43 fixture gaps, 13
+CONTROL-NOT-QUIET and 5 deferred by the owner. `data/roster.moves.json` `scope`: 500 total, 3 with no legal
+carrier, 497 in scope, **486 tested**, `differ` 0, DID-NOT-FIRE 0, 8 fixture gaps and 3 deferred (CHANGELOG
+6.14.0: scope is now decided in one place, and the move stage had staged Soft-Boiled on a body that cannot learn
+it). Each stage carries red demonstrations that ran:
 `plant_anchors` in `data/roster.items.json`, `data/roster.abilities.json` and `data/roster.moves.json`
-reads `checked` 18, 44 and 36 with `dead` empty and `reds_ran` true, so the greens are not vacuous. **The fixture gaps and the fourteen are the deprioritised lab
+reads `checked` 18, 44 and 36 with `dead` empty and `reds_ran` true, so the greens are not vacuous. **The fixture gaps and the thirteen are the deprioritised lab
 tail** (Will, 2026-08-23), carried and named rather than removed, and never described as
 "unaccounted".
 
@@ -1693,8 +1696,8 @@ release: the whole-game differential (`data/game-differential.json` — board-ma
 narration **0 undeclared of 961**, 10,705 of 10,705 turn boundaries identical, none excluded, none cut
 off), the damage differential (`data/engine-diff.json` — 6,000 compared, 0 disagreed, at 17 roll
 indices), and the deliberate roster — `data/roster.items.json` **142 tested**,
-`data/roster.abilities.json` **139 tested**, `data/roster.moves.json` **487 tested**, every stage with
-`differ` 0 and DID-NOT-FIRE 0 and its scope decided by legal carrier.
+`data/roster.abilities.json` **139 tested**, `data/roster.moves.json` **486 tested**, every stage with
+`differ` 0 and DID-NOT-FIRE 0 and its scope decided by `engine/legal_scope.js` (CHANGELOG 6.14.0).
 The bound on the word "correct" is stated in the 6.0.0 block at the head of this paper
 and is not repeated here. The older, narrower Smogon-calculator check below is retained because it is
 still true of its own artifact.
