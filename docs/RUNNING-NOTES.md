@@ -69,6 +69,14 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [6.10.2] — 2026-09-11 — two live MEDICHAM positions played alternately stay independent, and one module variable leaks between builds
+
+- **What changed.** Added an interleave bench under `data/verification/interleave-2026-09-11/`, run on frozen release 2b5a6585d8cf over 48 pinned-pool positions at depths 2, 5, 8 and 12.
+- **Measured.** Interleaved and sequential stepping end identical in state, protocol, result and counters: 0 differences in 768 battle comparisons, compared by rank for three process-wide stamps; shown red first on a dice-stream leak and a trace-sink leak. One module variable leaks between builds: after any later battleInit, a double wipe's battleResult reads 0.5, on 43 of 43 constructed double wipes and the one natural double wipe in 1,824 random playouts. Nothing today is affected, because every caller reads a battle's result before building the next. Detail: `docs/_reports/2026-09-11-interleave.md`.
+- **Supersedes.** Nothing.
+- **Basis.** unchanged.
+- **Owed to the next major.** None. Owed as work: make the faint epoch per battle before any tree search keeps nodes alive.
+
 ## [6.10.1] — 2026-09-11 — a notes row committed before a same-day regeneration is reported, not judged: the dated-block check orders a tie by the clock
 
 - **What changed.** `engine/docs_scan.js`: `citationMismatches` and `untraceableCensus` decided "the cited artifact was regenerated after the block" by DATE, so a row and a regeneration on the same day tied and the row was judged against bytes written after it. A tie is now ordered by the committer instant `git blame` records for the figure's line against the artifact's `generated` instant (`regeneratedAfter`); an uncommitted line, or a stamp with no time or no zone, is still judged, and the instant never overrides a date. Eight demonstration cases were added.

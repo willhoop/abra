@@ -10,6 +10,13 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.10.2] — 2026-09-11
+
+### Added
+- **The first check that a search tree can keep several MEDICHAM positions alive at once.** Turn-by-turn
+  interleaving is independent; one shared variable makes a double wipe read as a draw after any later
+  battle is built, which no current caller hits and which a tree search must avoid until it is fixed.
+
 ## [6.10.1] — 2026-09-11
 
 ### Fixed
