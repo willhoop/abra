@@ -52,6 +52,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.30.0] — 2026-09-11 — opening the gate switched off the check that stops a stale figure being published, and it said so in its own output
+
+- **What changed.** The hour the gate first read OPEN, the documents' quarantine clause began passing while checking nothing: the withholder returns null for every artifact once the gate is ok, so the rule that stops a living document republishing a figure from a superseded engine went quiet and printed its own reason for seeing nothing. CLAUDE.md's closing rule already says a quarantined number becomes RE-RUNNABLE rather than true, so an open gate narrows the question instead of ending it. `engine/engine_release.js` gains `releaseOf`, `currentId` and `measuredOnCurrentEngine` plus the release-field vocabulary that `engine/provenance.js` held as a module-local const in a file that exports nothing — one fact, one home, failing closed on an unreadable artifact. `engine/docs_scan.js` keeps charging a downstream artifact that does not name the current release, with membership still derived from the gate's own rows. `artifactHas` gains a same-scale mode used only on that path, because the shared index holds each value at three scales and the first live run charged two figures no artifact contained. Accusing is strict where clearing stays loose. Detail: `docs/_reports/2026-09-11-gate-parser.md` covers the sibling parser work; this row's account is in the commit message.
+- **Measured.** NO FIGURE moved. Six demonstration arms pass, four existing and two new: a figure a downstream artifact really holds stays charged with the gate open, and the same paragraph built on a hundred-fold rescaling is charged by the loose bar and cleared by the strict one. One runtime defect of this pass was caught before the commit, an out-of-scope identifier inside the unique-owner finder.
+- **Supersedes.** Nothing.
+- **Basis.** unchanged.
+- **Owed to the next major.** The clause is RED on the live tree by design, naming figures in eight documents measured on engine bytes since replaced and never re-run. They are owed a withdrawal, not a waiver; the documents that hold them are the five a 7.0.0 release would rewrite, and that release is ON HOLD while in-scope mechanics remain unstaged.
+
 ## [6.29.0] — 2026-09-11 — the gate's own parser missed a RED marker on letter case and cut any status cell that quoted a pipe
 
 - **What changed.** `engine/quarantine.js`: the breakage token is a rule (the noun `defect`/`defects`, any case,

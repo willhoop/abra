@@ -1606,8 +1606,55 @@ function open(id, opts) {
  * loader wherever the bodies still exist, and this only where they do not. */
 /* `sha12Content` is exported for the same reason and with the opposite warning: it is the digest for
  * the questions that are NOT identity (see its header). Do not reach for it to name a release. */
+/* WHICH RELEASE PRODUCED AN ARTIFACT, AND IS IT THE ENGINE WE ARE ON TODAY.
+ *
+ * THIS LIVES HERE BECAUSE IT IS ONE FACT AND MUST HAVE ONE IMPLEMENTATION. `engine/provenance.js`
+ * carried the field vocabulary as a module-local const and exports nothing at all (it is a script),
+ * so every other caller that wanted the answer would have had to re-type the list — the ban list of
+ * four in a new costume. Releases are this file's subject, so the question comes here.
+ *
+ * IT FAILS CLOSED. An unreadable artifact returns `read: false`, never a quiet `null` that a caller
+ * would read as "no stamp, carry on"; the difference between "this artifact says it was measured on
+ * nothing" and "I could not look" is exactly the silence this repository keeps paying for. Callers
+ * treat both as NOT current, and the reason they print says which one it was. */
+const RELEASE_FIELDS = new Set(['engine_release', 'release', 'release_id', 'roster_release', 'source_release']);
+function releaseOf(file) {
+  const p = path.isAbsolute(String(file)) ? String(file) : D(...String(file).split(/[\\/]/));
+  /* A GENERATED .js BUNDLE (data/mag.js, data/mew.js, data/scoreboard.js) IS NOT AN UNREADABLE FILE.
+   * Parsing it as JSON and reporting the SyntaxError printed three alarming lines on every run for a
+   * case that is simply "this shape carries no stamp field" — and a check that cries wolf is how a
+   * real read failure stops being looked at. It is still NOT current: no stamp, no clearance. */
+  if (!/\.json$/i.test(String(file))) return { id: null, field: null, read: true, error: null, stampable: false };
+  let j;
+  try { j = JSON.parse(fs.readFileSync(p, 'utf8')); }
+  catch (e) {
+    console.error('  releaseOf: cannot read ' + file + ' (' + e.message + ') — treated as NOT stamped');
+    return { id: null, field: null, read: false, error: e.message };
+  }
+  for (const k of RELEASE_FIELDS) {
+    const v = j && j[k];
+    if (typeof v === 'string' && /^[0-9a-f]{12}$/.test(v)) return { id: v, field: k, read: true, error: null };
+  }
+  return { id: null, field: null, read: true, error: null };
+}
+function currentId(opts) {
+  const S = store(opts);
+  try { return JSON.parse(fs.readFileSync(S.pointer, 'utf8')).current || null; }
+  catch (e) {
+    console.error('  currentId: cannot read the release pointer ' + S.pointer + ' (' + e.message + ')');
+    return null;
+  }
+}
+/** True only when the artifact NAMES the current release. No stamp, a stale stamp and an unreadable
+ *  file all answer false — a figure is current because something says so, never by default. */
+function measuredOnCurrentEngine(file, opts) {
+  const cur = currentId(opts);
+  if (!cur) return false;
+  return releaseOf(file).id === cur;
+}
+
 module.exports = { cut, list, verify, drift, open, rerender, surface, compat, sha12, sha12OrNull, authorityDrift,
-                   sha12Content,
+                   sha12Content, RELEASE_FIELDS, releaseOf, currentId, measuredOnCurrentEngine,
                    requireClosure, census, callerNeeds, exportedNames, PROVIDES_BY,
                    CUT_COUNTERS, SOURCES, POINTER, RELEASES,
                    /* the pin vocabulary and the live-tree stamp — see STAMP_SHAPE and liveStamp */

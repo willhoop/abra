@@ -10,6 +10,24 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.30.0] — 2026-09-11
+
+### Fixed
+- **The documents' quarantine clause no longer goes silent the moment the MEDICHAM gate opens.** The
+  withholder returns null for everything once the gate passes, so the check that stops a living document
+  republishing a figure from a superseded engine passed vacuously — the third blind check found in one night,
+  after a lowercase status token the open-defect clause could not match and the unstaged mechanics no clause
+  counts. An open gate now narrows the question from "is this artifact withheld" to "was it re-measured on the
+  current release".
+
+### Added
+- **`releaseOf`, `currentId` and `measuredOnCurrentEngine` in `engine/engine_release.js`**, with the
+  release-field vocabulary that `engine/provenance.js` carried as a module-local const in a file that exports
+  nothing. They fail closed: an unreadable artifact is reported, never silently treated as unstamped.
+- **A same-scale matching mode for `artifactHas`**, used only by the open-gate accusation. The shared index
+  holds every artifact value at three scales, and on the first live run that rescaling charged two figures
+  whose artifacts contain neither the digits nor the claim. Both halves are shown red and controlled.
+
 ## [6.29.0] — 2026-09-11
 
 ### Fixed

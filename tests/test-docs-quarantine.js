@@ -146,16 +146,31 @@ ok(!r.unreadable || r.unreadable.length === 0,
   'every live document could be read, so the census covers the set it claims to',
   (r.unreadable || []).map(u => u.doc + ' — ' + u.error).join('; '));
 
-if (r.gate_open) {
-  /* THE DAY THE GATE OPENS THIS CLAUSE CORRECTLY ACCUSES NOBODY, and it says WHY rather than
-   * printing a green zero that looks like the documents were cleaned up. */
-  ok(true, 'THE GATE IS OPEN — nothing is withheld, so no document can be republishing a withheld '
-    + 'figure. This clause is quiet for a reason about the GATE, not about the documents.', r.why);
-} else {
-  const keys = r.hits.map(DS.quarantineKey);
-  const fresh = r.hits.filter(h => !BASELINE.has(DS.quarantineKey(h)));
-  const gone = [...BASELINE].filter(k => !keys.includes(k));
+const keys = r.hits.map(DS.quarantineKey);
+const fresh = r.hits.filter(h => !BASELINE.has(DS.quarantineKey(h)));
+const gone = [...BASELINE].filter(k => !keys.includes(k));
 
+if (r.gate_open) {
+  /* THIS BRANCH USED TO PASS UNCONDITIONALLY, AND THAT IS A VACUOUS GREEN — 2026-09-11. The reasoning
+   * was that an open gate withholds nothing, so no document can republish a withheld figure. True,
+   * and beside the point: CLAUDE.md's own closing rule is that a quarantined number becomes
+   * RE-RUNNABLE, not true. The hour the gate opened, docs/MODELS.md was still printing MAG's fitted
+   * weight table out of an artifact that carries no engine release id at all, and this clause passed
+   * while printing its own reason for seeing nothing. A check that switches itself off at the moment
+   * its subject changes is the "known failure" pattern one level up.
+   *
+   * engine/docs_scan.js now keeps charging a DOWNSTREAM artifact that does not NAME the current
+   * release, so the question narrows from "is it withheld" to "was it re-measured", which is the
+   * question an open gate actually leaves open. */
+  ok(fresh.length === 0,
+    'THE GATE IS OPEN, AND NO NEW FIGURE HAS ENTERED A LIVING DOCUMENT FROM AN ARTIFACT THAT WAS NOT '
+    + 'RE-MEASURED ON THE CURRENT ENGINE — re-runnable is not true',
+    fresh.length
+      ? fresh.map(h => h.doc + ':' + h.line + '  ' + h.figure + '  <- ' + h.cite).join('\n         ')
+      : r.why);
+  if (r.hits.length) console.log('         ' + r.hits.length + ' standing figure(s) of this kind; '
+    + gone.length + ' retired since the baseline. They are owed a re-run or a withdrawal.');
+} else {
   ok(fresh.length === 0,
     'NO NEW figure sourced from a quarantined artifact has entered a living document',
     fresh.length
@@ -200,6 +215,45 @@ if (r.gate_open) {
     'CONTROL — the identical paragraph is CLEAN when the artifact is not withheld, so the clause '
     + 'keys on the gate and not on the citation',
     JSON.stringify(green.hits.map(h => h.figure)));
+
+  /* ---- THE OPEN-GATE PATH, SHOWN RED AND CONTROLLED — 2026-09-11 ------------------------------
+   *
+   * The clause above drives the CLOSED gate. The open-gate path is a different rule — "downstream and
+   * not re-measured on the current release" — and it needs its own pair, because the day it went in,
+   * the real run charged two figures that no artifact contained: `docs/TAGS-MASTER.md`'s Solar Beam
+   * usage `4,003` and `docs/MODELS.md`'s sample-size `~4,900`. Both were x100 rescaling: the index
+   * holds a, a*100 and a/100, so a stored `40.03` answers for `4,003` and a stored `49` for `4,900`.
+   *
+   * BOTH ARMS USE REAL ARTIFACTS, so neither can drift away from what the shipping code reads.
+   * `data/leaf-engine-contrast.json` literally holds 8883 — that one must stay charged. The control
+   * is the half that matters: the SAME paragraph must be charged under the loose bar and cleared
+   * under the open gate's same-scale bar, or the fix is indistinguishable from switching the rule
+   * off. */
+  {
+    const heldLEC = (f) => (String(f) === 'data/leaf-engine-contrast.json'
+      ? { file: f, because: 'synthetic — open-gate arm', clause: 'synthetic' } : null);
+    const TRUE_PARA = 'The tight null sits at n=8,883, cited to `data/leaf-engine-contrast.json`.';
+    const redOpen = DS.quarantinedFigures(['synthetic.md'],
+      { withhold: { withhold: heldLEC, exactScale: true, open: true }, read: () => TRUE_PARA });
+    ok(redOpen.hits.length === 1 && redOpen.hits[0].figure === '8,883',
+      'RED (OPEN GATE) — a figure the downstream artifact actually holds is still charged when the '
+      + 'gate is open: re-runnable is not true',
+      JSON.stringify(redOpen.hits.map(h => h.figure)));
+
+    const heldOR = (f) => (String(f) === 'data/opponent-recall.json'
+      ? { file: f, because: 'synthetic — open-gate control', clause: 'synthetic' } : null);
+    const SCALE_PARA = 'Solar Beam is clicked 4,003 times, cited to `data/opponent-recall.json`.';
+    const loose = DS.quarantinedFigures(['synthetic.md'],
+      { withhold: { withhold: heldOR, exactScale: false, open: true }, read: () => SCALE_PARA });
+    const strict = DS.quarantinedFigures(['synthetic.md'],
+      { withhold: { withhold: heldOR, exactScale: true, open: true }, read: () => SCALE_PARA });
+    ok(loose.hits.length === 1 && strict.hits.length === 0,
+      'CONTROL — a figure that matches only after x100 rescaling (stored 40.03, published 4,003) is '
+      + 'charged by the loose bar and NOT by the open gate\'s same-scale bar, so the strict path is '
+      + 'narrower by exactly that coincidence and not by being switched off',
+      'loose ' + JSON.stringify(loose.hits.map(h => h.figure))
+      + ' / strict ' + JSON.stringify(strict.hits.map(h => h.figure)));
+  }
 
   /* THE QUOTABLE-SOURCE CLEARANCE MUST NOT CLEAR ON A CITATION ALONE (engine/docs_scan.js, 2026-09-10).
    * A figure is cleared only when a NON-withheld artifact in the same paragraph actually CARRIES it.

@@ -763,10 +763,42 @@ function indexFor(nums) {
   };
 }
 
-/** Does the artifact contain this figure, allowing for how a writer would round and scale it? */
-function artifactHas(nums, f) {
+/* THE SAME INDEX WITHOUT THE x100 / ÷100 RESCALING, AND WHY A SECOND ONE EXISTS.
+ *
+ * The rescaling above is right for the question it was built for: a document writing "97%" for a
+ * stored 0.97 is the same claim, so a proportion and a percentage must match. It is WRONG for the
+ * question the open gate asks. Measured 2026-09-11, the hour this clause started running against the
+ * 69 downstream artifacts: `docs/TAGS-MASTER.md` was charged with Solar Beam's store usage count
+ * `4,003` because `data/opponent-recall.json` holds `40.03`, and `docs/MODELS.md` with a sample-size
+ * calculation `~4,900` because `data/mew.js` holds `49`. Neither number came from either artifact,
+ * and neither artifact contains those digits at all.
+ *
+ * "Was this figure re-measured on the current engine" is a question about the PUBLISHED number, so a
+ * value that only matches after being multiplied by a hundred is not evidence that the document took
+ * it from there. A parameter, not a flag: the caller that wants the loose bar asks for it, the way
+ * `withhold` is passed rather than read from a command line. */
+function indexExactFor(nums) {
+  let byDp = exactIndexCache.get(nums);
+  if (!byDp) { byDp = new Map(); exactIndexCache.set(nums, byDp); }
+  return (dp) => {
+    let s = byDp.get(dp);
+    if (!s) {
+      s = new Set();
+      for (const a of nums) s.add(a.toFixed(dp));
+      byDp.set(dp, s);
+    }
+    return s;
+  };
+}
+const exactIndexCache = new WeakMap();
+
+/** Does the artifact contain this figure, allowing for how a writer would round and scale it?
+ *  `exact` drops the x100 / ÷100 rescaling — see indexExactFor. Default loose: every existing caller
+ *  is asking the question the rescaling was built for, and only the open-gate accusation is not. */
+function artifactHas(nums, f, exact) {
   if (!nums || !nums.size) return false;
-  return indexFor(nums)(f.dp).has(f.value.toFixed(f.dp));
+  const idx = exact ? indexExactFor(nums) : indexFor(nums);
+  return idx(f.dp).has(f.value.toFixed(f.dp));
 }
 
 /* ---- paragraphs and citations ---------------------------------------------------------------- */
@@ -2338,17 +2370,64 @@ function archiveState() {
  * passed — the same reasoning `engine/quarantine.js` gives for `withholder(gate, rows)`. It also
  * lets the gate be driven RED on a synthetic set without touching the real one. */
 function quarantinedState(inject) {
-  if (inject) return { withhold: inject, open: false, why: 'injected by the caller' };
+  if (inject) {
+    /* THE INJECTION POINT TAKES AN OBJECT AS WELL AS A FUNCTION, so the OPEN-gate path can be shown
+     * red on synthetic input. A bare function drives the closed path exactly as before. Without this
+     * the open-gate clause could only ever be demonstrated on the day the gate happened to be open,
+     * which is a claim about a day rather than about the check — the thing this file's own
+     * demonstration block says is not good enough. */
+    const fn = typeof inject === 'function' ? inject : inject.withhold;
+    const exactScale = typeof inject === 'function' ? false : !!inject.exactScale;
+    const open = typeof inject === 'function' ? false : !!inject.open;
+    return { withhold: fn, open, exactScale,
+      why: 'injected by the caller' + (exactScale ? ' (same-scale matching, as the open gate uses)' : '') };
+  }
   let Q; try { Q = require('./quarantine.js'); }
   catch (e) { return { withhold: null, open: null,
     why: 'engine/quarantine.js could not be loaded (' + String((e && e.message) || e).split('\n')[0]
        + '), so NOTHING is checked against the withheld set — this is not a clean bill' }; }
   try {
     const s = Q.state();
-    return { withhold: s.withhold, open: s.ok,
-      why: s.ok ? 'THE GATE IS OPEN — nothing is quarantined today, so this clause can accuse '
-                + 'nothing. That is a fact about the gate, not about the documents.'
-                : s.set.size + ' artifact(s) are withheld by engine/quarantine.js' };
+    if (!s.ok) return { withhold: s.withhold, open: false,
+      why: s.set.size + ' artifact(s) are withheld by engine/quarantine.js' };
+    /* THE DAY THE GATE OPENS, THIS CLAUSE USED TO GO SILENT — AND THAT IS WHEN IT IS NEEDED MOST.
+     * `withholder` returns null for everything once `gate.ok`, so on 2026-09-11 the gate opened and
+     * every document silently lost the check that stops a figure measured on SUPERSEDED engine bytes
+     * being printed as current. It was found by hand: docs/MODELS.md was still printing MAG's fitted
+     * weight table from an artifact carrying no engine release id at all, and the clause passed green
+     * while saying so in its own output. Same shape as the lowercase `defect` the open-defect clause
+     * could not see, and as "one of the two known failures".
+     *
+     * CLAUDE.md already states the rule this restores: a quarantined number does not become true when
+     * MEDICHAM becomes correct, it becomes RE-RUNNABLE. So an open gate narrows the question rather
+     * than ending it — a downstream artifact is quotable only if it NAMES the current release. The
+     * membership is still derived from quarantine.js's own rows, never typed here, and `releaseOf`
+     * lives in engine/engine_release.js so the stamp is read in one place. */
+    const ER = require('./engine_release.js');
+    const cur = ER.currentId();
+    const stale = function withholdStale(file) {
+      const f = String(file).replace(/^data\//, '');
+      const r = s.rows && s.rows.get(f);
+      if (!r || !r.quarantined) return null;
+      const st = ER.releaseOf('data/' + f);
+      if (cur && st.id === cur) return null;
+      return {
+        file: 'data/' + f,
+        because: 'the gate is OPEN, but this artifact is downstream of ' + (r.reason || 'the simulator')
+          + ' and ' + (!st.read ? 'could not be read for a release stamp'
+            : st.id ? 'names release ' + st.id + ', not the current ' + (cur || '(pointer unreadable)')
+                    : 'carries no engine release stamp at all')
+          + ' — RE-RUNNABLE IS NOT TRUE',
+        rerun: r.by ? 'node ' + r.by : (r.rerun || null),
+        clause: 'gate open; artifact not re-measured on the current engine',
+      };
+    };
+    stale.set = new Set([...(s.rows || new Map()).values()].filter(r => r.quarantined).map(r => r.file));
+    return { withhold: stale, open: true, exactScale: true,
+      why: 'THE GATE IS OPEN, so nothing is withheld — but ' + stale.set.size + ' artifact(s) are '
+         + 'downstream of the simulator, and a figure from one of them is still unquotable until that '
+         + 'artifact is re-measured on the current release ' + (cur || '(pointer unreadable)')
+         + '. An open gate makes them re-runnable, not true.' };
   } catch (e) {
     return { withhold: null, open: null,
       why: 'engine/quarantine.js could not compute the gate (' + String((e && e.message) || e).split('\n')[0]
@@ -2402,7 +2481,11 @@ function quarantinedFigures(docs, { withhold, read = readDoc } = {}) {
         if (quotable(f)) continue;
         for (const c of cites) {
           const nums = artifactNumbers(c);
-          if (!nums || !artifactHas(nums, f)) continue;
+          /* ACCUSING IS STRICT WHERE CLEARING IS LOOSE, and the asymmetry is the point: `quotable`
+           * above still clears on a rescaled match, because a plausible source is enough to say a
+           * document did not take the number from the held artifact. Charging needs the artifact to
+           * hold the published figure itself. */
+          if (!nums || !artifactHas(nums, f, st.exactScale)) continue;
           push({ doc: rel, line: b.start, figure: f.raw, cite: c, cites, via: 'citation',
                  held: st.withhold(c), text: b.lines[0].trim().slice(0, 100) });
           break;
@@ -2443,7 +2526,7 @@ function quarantinedFigures(docs, { withhold, read = readDoc } = {}) {
    * censoring census, `1,136,845` out of the feature contrast, `960,000` out of the exploitability
    * step probe. THE DECK ITSELF COMES BACK CLEAN, which is a result rather than a silence: it is now
    * a document this rule can see and does not accuse. */
-  const owners = uniqueOwners();
+  const owners = uniqueOwners(st.exactScale);
   for (const [rel, text] of texts) {
     for (const b of paragraphs(text)) {
       for (const f of figuresInText(b.lines.join('\n'))) {
@@ -2461,7 +2544,7 @@ function quarantinedFigures(docs, { withhold, read = readDoc } = {}) {
 
 /** The artifact that is the ONLY one in data/ containing a figure, or null when zero or many do.
  *  Artifacts are listed once and their number sets are cached by `artifactNumbers`. */
-function uniqueOwners() {
+function uniqueOwners(exactScale) {
   /* NOT WRAPPED IN A TRY. An unlistable `data/` gives an EMPTY denominator, which makes every figure
    * unowned and this whole route accuse nobody — a silent default in the permissive direction, and
    * the exact shape `quarantinedState` refuses one function up by returning `cannot_answer` rather
@@ -2479,7 +2562,7 @@ function uniqueOwners() {
     let found = null;
     for (const a of list) {
       const nums = artifactNumbers(a);
-      if (!nums || !artifactHas(nums, f)) continue;
+      if (!nums || !artifactHas(nums, f, exactScale)) continue;
       if (found) return null;            // two owners is a coincidence with a witness, not a source
       found = a;
     }
