@@ -1243,7 +1243,7 @@ Each model is a "house" you can visit on the site:
 
 ---
 
-## Slide 5 — The win: the practice opponent can finally see
+## Slide 5 — The practice opponent can finally see
 
 Everything ABRA claims about "this build beats that build" comes from playing the game out against a
 practice opponent. That opponent used to pick its move purely by **how popular the move is** — it had
@@ -1251,20 +1251,19 @@ no idea what was standing in front of it. So it fired attacks at Pokémon that w
 used moves that couldn't possibly work, and when there were two enemies to aim at, it picked one by
 flipping a coin.
 
-We fixed it by **watching what people actually do**. We took about 48,000 real decisions from games
-where both players' full teams were public — so we could see not just what someone clicked, but
-everything they *could* have clicked — and learned how much a real player's choice depends on what's
-in front of them. Nobody wrote the rules; they were measured.
+We fixed it by **watching what people actually do**. We took real decisions from games where both
+players' full teams were public — so we could see not just what someone clicked, but everything they
+*could* have clicked — and learned how much a real player's choice depends on what's in front of
+them. Nobody wrote the rules; they were measured.
 
-The result, checked on games the learning never saw:
+The result was checked on games the learning never saw: how often it hits the enemy's weakness, how
+many moves it wastes on things that cannot work, and how often it fires at something immune, each
+against the old opponent and against real players. **Those results are withheld, not printed with a
+warning label.** They describe the model's fitted weights, which stay locked away until the simulator
+gate opens and the model is re-fitted.
 
-- it now hits the enemy's weakness **half again as often** as before,
-- it wastes **a third fewer** moves on things that simply cannot work,
-- and it almost never fires at something immune any more.
-
-It is still short of a human on all three, and one thing it still does badly is decide **when to
-switch** — that's the next job. But the practice opponent is no longer playing blind, which means the
-numbers it produces are worth more than they were.
+Deciding **when to switch** is the next job. But the practice opponent is no longer playing blind:
+it now reads the board in front of it.
 
 **PORY** also beats a coin flip mid-game, using how many Pokémon each side has left and their health,
 and it's *calibrated* — when it says 70% it's really about 70%. It's live on the site as a per-turn

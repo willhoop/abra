@@ -1979,8 +1979,9 @@ Measured on a real mid-game board: **9 × 8 = 72** joint actions per side, of wh
 non-zero interaction term — the other 44 score exactly as the sum of two singles already computed.
 
 **And the fix is not "add the interaction term", it is "fit it for the right thing."** DODUO's pair
-block exists and is fitted; it loses at 42.0% because it was fitted to *resemble human pairs* rather
-than to *win*. Expressiveness was necessary and not sufficient.
+block exists and is fitted to *resemble human pairs* rather than to *win*. Its head-to-head against a
+zeroed control was played through the simulator and no artifact records it, so the result is
+withdrawn (2026-09-11). Whether expressiveness was sufficient is not settled here.
 
 **Practical rule.** Before adding a feature, ask whether the thing you want to say is a conjunction.
 If it is, no weight on an individual term will ever say it — and if the model already has the

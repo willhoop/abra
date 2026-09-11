@@ -1296,23 +1296,24 @@ negatives are reported as negatives.
 
 ## The finding that shapes what gets built next (2026-07-30)
 
-**Four experiments added knowledge to the model. All four measured a null. Two experiments changed
-what the model is optimising for. Both were large wins.**
+**Four experiments added knowledge to the model and two changed what it optimises for. All six were
+head-to-heads played through the simulator. No artifact records any of them, so every result is
+withdrawn (2026-09-11).**
 
 | change | kind | result |
 |---|---|---|
-| take the best move instead of sampling it | objective | **+12 points, 79.7% of decisive pairs** |
-| self-play policy improvement over the clone | objective | **55.9%** |
-| four separate feature additions | knowledge | four nulls |
+| take the best move instead of sampling it | objective | withdrawn |
+| self-play policy improvement over the clone | objective | withdrawn |
+| four separate feature additions | knowledge | withdrawn |
 
-> **RECONCILED 2026-07-31.** That 55.9% was measured on the **53-feature vector with switching OFF**. Repeating the experiment on the **56-feature vector with switching ON** gives **48.1%** [46.5, 49.8] over 9,728 paired games — a interval entirely below 50, i.e. self-play training made the policy *worse*. Both numbers stand as measurements of different configurations; neither generalises to 'self-play helps'. The difference is not explained, and three candidate causes are untested: switching exploration being harmful (which used to be supported by the older 10-point switching loss — **that figure is RETRACTED 2026-08-06 as unattributable and confounded**: medicham2 playouts predating WIRES 123-128, no `engine_release` stamp, and `bringIn()` selects `live(bench)[0]`, so it measured switching to an ARBITRARY body rather than to a chosen one. The candidate cause stands; its supporting evidence does not. See #63), 36.5% drift over 18 iterations, or self-play eroding imitation-fitted features that were already good.
+> **RECONCILED 2026-07-31; BOTH READINGS WITHDRAWN 2026-09-11.** The self-play result was measured on an **earlier, smaller feature vector with switching OFF**, and the experiment was repeated on a **later, larger vector with switching ON**. Both are head-to-heads played through the simulator, no artifact records either, and both are withdrawn with every such head-to-head: no size, interval or direction is carried here. Three candidate causes for the difference between them were named and never tested: switching exploration being harmful, weight drift over the self-play iterations, or self-play eroding imitation-fitted features that were already good. The switching figure once offered for the first cause was retracted on 2026-08-06 as unattributable and confounded (See #63).
 
-The nulls survived the obvious check: an overdispersion test across teams reads ~1.00, against 1.169
-for a known real effect, so they are genuine rather than a real effect hidden by team variety.
+An overdispersion test across teams was run on the nulls for the obvious confound; its values are
+withdrawn with them.
 
-**The constraint is the objective, not the knowledge.** This is why the next item is retraining a
-model that already exists (DODUO, the pair-scoring layer, which lost at 42.0% fitted to *resemble
-humans* and has never been fitted to *win*), rather than adding more features to MAG.
+**Whether the constraint is the objective or the knowledge is open again.** Retraining a model that
+already exists (DODUO, the pair-scoring layer, fitted to *resemble humans* and never fitted to *win*)
+remains the proposed next item, rather than adding more features to MAG.
 
 **A second, blunter lesson from the same day.** Every integrity bug found had one shape: a fact
 reached one consumer and not the next. Priority blocking was in the artifact but not the simulator,
@@ -1358,7 +1359,7 @@ carry one reconstructed from the commit that contained them, labelled inferred r
 | **CHOMP** | Bring-4 / lead-2 team-preview engine | ✅ Ships (standalone) | Exact-damage picker; **CHOMP-EV proof: brings tie a coin (honest null)** |
 | **SLOWKING** | Team-preview Nash (mixed strategy) — **and, since ADR-003 (3.62.2), the shape of the whole agent rather than the preview solver**: equilibrium mixing plus continual re-solving is the answer poker reached for exactly this class of game | ✅ Built | Equilibrium ≪ exploitable than uniform; playstyle cycle is **suggestive on small samples** |
 | **KADABRA** | Replay coach | ✅ Works offline | Per-turn "you're at X%" from PORY |
-| **DITTO** | Team optimiser | ⚠️ Pivoting | Objective de-biased to validated damage (was optimising a backwards signal) |
+| **DITTO** | Team optimiser | ⚠️ Pivoting | Objective moved to validated damage (the leaf reading that prompted the move is withdrawn with leaf calibration) |
 | **ALAKAZAM** | In-battle decision engine (capstone) | 🔜 In development | Belief + search + learned value; built last on the inputs above |
 | **MEW** | Self-play data engine | ✅ **Built** | Runs the OFFICIAL Champions engine against itself on real observed teams. 1,000 games, 13/13 validation checks, mirror 51.0% CI [45.4, 56.6] |
 | **MAGNEMITE** (MAG) | The in-battle policy that reads the board | **Built, and improving by self-play (3.28.0)** | Conditional logit over the fitted feature set, fitted to real human clicks from clean open-sheet games (`data/policy-weights.json`). **Every figure this row carried is still absent — withheld, not annotated — and at 6.0.0 that is a DECISION rather than a gate** (**CORRECTED 2026-09-11: the gate is closed again, so it is both a gate and a decision**): the corpus sizes, the held-out top-1, the behaviour-clone comparison and the censored-label counts all come out of `data/policy-weights.json`, which `node engine/major_readiness.js` keeps on its STAY list because Will sequenced the MAG refit after this major. They return when he asks for the refit: `node engine/fit_policy.js`. What stands without a number: recorded actions that were not clicks at all have been removed from the labels, redirected ones are fitted over a candidate set, and it now DOES decide switches and DOES run a real damage calculation — both were listed here as missing and both became false. Still one ply, still no model of the opponent's move |

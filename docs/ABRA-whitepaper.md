@@ -1641,8 +1641,8 @@ that `docs/STUDY-DESIGN-skill-vs-luck.md` §6 specifies — `engine/skill_varian
 `data/skill-variance.json` — does not exist. Both figures are deleted rather than captioned, and return
 when that artifact does. The qualitative claim of this section — that preview-level prediction sits at a
 coin — is carried by the artifact-backed nulls in §4 and the appendix (`data/roles-eval.json`,
-`data/war.json`, `data/chomp-ev.json`). A cloned-policy rollout engine
-(MEDICHAM) does *worse* than a coin as a raw win-predictor.
+`data/war.json`, `data/chomp-ev.json`). How a cloned-policy rollout engine
+(MEDICHAM) does as a raw win-predictor is leaf calibration, and it is withheld below.
 
 **Re-measured 2026-08-04**, against the leaves MILTANK actually calls rather than the `winProb2`
 entry point the earlier readings scored. The in-game rollout leaf and the team-preview leaf were each
@@ -1651,9 +1651,10 @@ curve, a decisive-call rate and a split-half noise floor measured beside them. *
 re-measurement produced is withheld, its sample sizes included, and so is its verdict** (withdrawn
 2026-09-11): it comes out of the artifact the next paragraph names, which the gate withholds.
 
-*This supersedes, and partly corrects, the earlier reading.* The 2026-07-23 figure ("log-loss ≈ 1.2;
-picks the winner on ~44% of decisive calls, i.e. systematically **inverted**") is retained here because
-a prior conclusion is never silently rewritten. **WHAT THE LARGER RE-MEASUREMENT SAID IS STILL
+*This supersedes, and partly corrects, the earlier reading.* The 2026-07-23 reading scored the same
+harness on a smaller sample. Its figures and its verdict are leaf calibration, so they are withdrawn
+with the rest (2026-09-11); the reading is named here because a prior conclusion is never silently
+rewritten. **WHAT THE LARGER RE-MEASUREMENT SAID IS STILL
 WITHHELD AT 6.0.0, AND THE REASON HAS CHANGED.** `data/winrate-backtest.json` is downstream of
 MEDICHAM: its generator `engine/backtest_winrate.js` is in the play layer, reaching
 `engine/medicham2-browser.js` through `require`, and the artifact was measured against a build of that
@@ -1954,15 +1955,16 @@ behaviour clone's `P(move | species)` — the conditional logit model (McFadden 
 
 `P(pick j) = exp(w·x_j) / Σ_k exp(w·x_k)`,
 
-with `w` estimated by maximising `Σ_i [ w·x_{i,chosen} − ln Σ_k exp(w·x_{i,k}) ]` over **146,910** real
-human decisions from **6,091** clean open-sheet games (117,824 train / 29,086 held out), with a
-feature vector that has grown from 12 to **53**. The weights are **estimated, never written
+with `w` estimated by maximising `Σ_i [ w·x_{i,chosen} − ln Σ_k exp(w·x_{i,k}) ]` over real human
+decisions from clean open-sheet games, split by game into train and held out. The corpus counts and
+the feature count are MAG's and are withheld with `data/policy-weights.json` (withdrawn 2026-09-11).
+The weights are **estimated, never written
 down**, and the realism report is never consulted during fitting — it is held back as the
 out-of-sample check, because a diagnostic stops being evidence once it becomes the objective.
 
 Held out **by game** (decisions within a game are correlated — the same clustering argument as the
-CIs below): logL/decision **−1.6006** and top-1 **33.6%**, against the behaviour clone alone at
-−1.9302 / 27.1% and uniform at −1.7627 / 24.1%. Open-sheet games are used because they are the only
+CIs below): the held-out log-likelihood and top-1, and the same against the behaviour clone alone and
+against uniform, are withheld with the vector (withdrawn 2026-09-11). Open-sheet games are used because they are the only
 corpus in which the **choice set** is known rather than guessed: a normal replay reveals only the
 moves that were *used*, so alternatives reconstructed from revelation are biased by revelation.
 
@@ -1995,23 +1997,24 @@ cores beat which" and for quantifying how cyclic the meta really is.
 2. **Revealed sets are partial** (a mon that never attacked reveals no moves); belief is a lower bound.
 3. **Small samples in the meta layer.** Playstyle and core matchups are thin; those results are
    suggestive until the store grows.
-4. **Policy is the residual GIGO — and in 3.28.0 the binding constraint is the OBJECTIVE, not the
-   knowledge.** The damage is validated. The policy now runs a real damage calculation and does
+4. **Policy is the residual GIGO — and whether, in 3.28.0, the binding constraint is the OBJECTIVE or
+   the knowledge rests on head-to-heads that are withdrawn.** The damage is validated. The policy now runs a real damage calculation and does
    decide switches — both were listed here as missing and both became false, and they are corrected
    rather than quietly dropped. What remains: **one ply**, no model of the opponent's move, no search.
 
-   The sharper limitation is measured. Over 2026-07-30, **four separate feature additions produced
-   four nulls**, while **two changes to the objective produced two large wins** — greedy action
-   selection at +12 points (79.7% of decisive pairs) and self-play policy improvement at 55.9%. An
-   overdispersion check across teams (~1.00, against 1.169 for a known real effect) rules out the
-   obvious confound, so the nulls are genuine. Adding knowledge to an imitation-fitted policy has
-   stopped paying.
+   The sharper limitation was measured head to head. Over 2026-07-30, **four separate feature
+   additions** and **two changes to the objective** — greedy action selection and self-play policy
+   improvement — were each played against the policy they changed, with an overdispersion check across
+   teams for the obvious confound. Every one of those head-to-heads was played through the simulator
+   and no artifact records it, so the results, the check and the verdict drawn from them are withdrawn
+   (2026-09-11). Whether adding knowledge to an imitation-fitted policy has stopped paying is open.
 
-> **RECONCILED 2026-07-31.** That 55.9% was measured on the **53-feature vector with switching OFF**. Repeating the experiment on the **56-feature vector with switching ON** gives **48.1%** [46.5, 49.8] over 9,728 paired games — a interval entirely below 50, i.e. self-play training made the policy *worse*. Both numbers stand as measurements of different configurations; neither generalises to 'self-play helps'. The difference is not explained, and three candidate causes are untested: switching exploration being harmful (consistent with the older 10-point switching loss), 36.5% drift over 18 iterations, or self-play eroding imitation-fitted features that were already good.
+> **RECONCILED 2026-07-31; BOTH READINGS WITHDRAWN 2026-09-11.** The self-play result was measured on an **earlier, smaller feature vector with switching OFF**, and the experiment was repeated on a **later, larger vector with switching ON**. Both are head-to-heads played through the simulator, no artifact records either, and both are withdrawn with every such head-to-head: no size, interval or direction is carried here. Three candidate causes for the difference between them were named and never tested: switching exploration being harmful, weight drift over the self-play iterations, or self-play eroding imitation-fitted features that were already good.
 
-   The cleanest demonstration is the pair-scoring layer (DODUO), which is **built, wired, controlled
-   and measured, and loses at 42.0%** [39.9, 44.3] over 1,934 seed-paired games against its own
-   zeroed control. Its fit prices "use a spread move beside my own ally that does not hurt it" strongly
+   The cleanest demonstration was meant to be the pair-scoring layer (DODUO), which is **built, wired,
+   controlled and measured** against its own zeroed control over seed-paired games. That head-to-head
+   was played through the simulator and no artifact records it, so its result is withdrawn
+   (2026-09-11). Its fit prices "use a spread move beside my own ally that does not hurt it" strongly
    negative (`spreadFreeBesideAlly` in the joint fit of 2026-07-28, commit `c1566ee1`, re-derived
    2026-09-10; the value is withheld with the joint weights, withdrawn 2026-09-11) — a statement that humans rarely click it, not that it is bad. Refitting those weights
    for *winning* rather than *resemblance* is untested and is the project's top open question.
@@ -2026,9 +2029,9 @@ cores beat which" and for quantifying how cyclic the meta really is.
    > the play the feature describes. Refitted, the weight changes
    > sign, and the corrected vector was played against the shipped one on two disjoint seed blocks; the
    > refitted value is withheld with the joint weights, and the two decisive-pair shares are withdrawn
-   > with it, because no artifact records them (2026-09-11). DODUO's 42.0% was measured on the contaminated vector and does
-   > not describe the current one. The imitation-versus-winning argument stands on its other evidence —
-   > greedy action selection is worth about 12 points — but not on this example.
+   > with it, because no artifact records them (2026-09-11). DODUO's head-to-head was measured on the contaminated vector and does
+   > not describe the current one. The imitation-versus-winning argument does not stand on this
+   > example, and its other evidence — the greedy-selection head-to-head — is withdrawn above.
 
    A separate class of defect, worth naming because it is not a modelling disagreement: a fact
    reaching one consumer and not the next. Priority blocking lived in the tag artifact and never

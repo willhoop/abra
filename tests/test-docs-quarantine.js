@@ -95,7 +95,13 @@ const ok = (pass, name, detail) => {
  * that stand in those three documents match a MAG weight by digits only: `14.757%` is a store-derived
  * human click rate and `49.3%` is a game-differential share (474 of 961). In docs/MODELS.md the 49.3%
  * key also covers a DODUO harness rate that traces to no artifact at all. They stay because they still
- * fire, and a key is deleted only when this file says so. */
+ * fire, and a key is deleted only when this file says so.
+ *
+ * 2026-09-11, SHRUNK BY 2 MORE, DERIVED BY RUNNING THIS FILE. The fourth withdrawals pass took the leaf
+ * backtest's usable-game count out of docs/EXTERNAL-EVIDENCE.md and docs/PRIORITIES.md, and this file
+ * printed exactly those 2 under "DELETE these lines" (docs/_reports/2026-09-11-withdrawals-4.md). The
+ * DODUO harness rate the MODELS.md `49.3%` key used to cover is withdrawn too; the key still fires on
+ * the game-differential share, so it stays. */
 const BASELINE = new Set([
   "docs/ABRA-technical-docs.md|14.757%|data/policy-weights.json",
   "docs/ABRA-technical-docs.md|49.3%|data/policy-weights.json",
@@ -107,7 +113,6 @@ const BASELINE = new Set([
   "docs/ENGINE.md|6,055|data/feature-engine-contrast.json",
   "docs/ENGINE.md|6,167|data/leaf-position-contrast.json",
   "docs/ENGINE.md|6,371|data/leaf-position-contrast.json",
-  "docs/EXTERNAL-EVIDENCE.md|6,890|data/winrate-backtest.json",
   "docs/GAME-DIFFERENTIAL-DESIGN.md|8,855|data/leaf-engine-contrast.json",
   "docs/MEASURE.md|14.757%|data/policy-weights.json",
   "docs/MEASURE.md|8,855|data/leaf-engine-contrast.json",
@@ -115,7 +120,6 @@ const BASELINE = new Set([
   "docs/MODELS.md|49.3%|data/policy-weights.json",
   "docs/OPS.md|1.744%|data/collinearity-joint.json",
   "docs/PRIOR-ART.md|186,494|data/policy-weights.json",
-  "docs/PRIORITIES.md|6,890|data/winrate-backtest.json",
   "docs/ROADMAP.md|0.687%|data/feature-shift.json",
   "docs/ROADMAP.md|0.889%|data/feature-shift.json",
   "docs/ROADMAP.md|28.33%|data/feature-shift.json",

@@ -53,14 +53,14 @@ corroboration of R4*. ABRA's own R4 measurement of MILTANK over MAG greedy is **
 are withheld, not annotated** (`data/rollout-r4.json` is built from a dump of games MEDICHAM played,
 and MEDICHAM is not correct; `node engine/status.js` names the failing clauses). The external result
 below stands on its own evidence, and the corroboration it would provide is owed rather than claimed.
-It becomes quotable again when the gate opens AND this is re-run: `node engine/rollout_r4.js`. Two very different environments, two very different methods, same
-direction. It also matches this project's own internal pattern: four feature additions to MAG
-produced four measured nulls, while two changes to how the policy is **used** were worth +12 points
-raw and 79.7% of decisive pairs.
+It becomes quotable again when the gate opens AND this is re-run: `node engine/rollout_r4.js`.
+This project's own internal pattern would be a further line: four feature additions to MAG and two
+changes to how the policy is **used** were each measured head to head. Those head-to-heads were
+played through the simulator and no artifact records them, so their results are withdrawn
+(2026-09-11) and they corroborate nothing today.
 
-Read together, these say the same thing three times: **the return on search is currently larger than
-the return on knowledge.** That is a priority argument, not a proof, and it is the strongest one we
-have.
+Today only the external result is quotable, and it says **the return on search is larger than the
+return on knowledge.** That is a priority argument, not a proof.
 
 **2. Their imitation target was a heuristic bot, not humans.** They cloned
 `SimpleHeuristicsPlayer` purely to get legal, sane behaviour, then let PPO do the real work. ABRA
@@ -91,8 +91,8 @@ So:
 > treated as settled.
 
 That gap is now on the roadmap rather than assumed away. It does not outrank search — the external
-result and R4 both say search first — but it is a real open question and it had been closed by
-accident.
+result says search first, and R4, which would test that here, is withheld — but it is a real open
+question and it had been closed by accident.
 
 ### THE ABLATION HAS NOW BEEN RUN — and representation beats architecture 4.5 to 1
 
@@ -176,7 +176,7 @@ Scale, for calibration against ours:
 
 | | PokéAgent | ABRA |
 |---|---|---|
-| Human battle trajectories | 4M+ | 6,890 usable of 38,186 stored |
+| Human battle trajectories | 4M+ | 38,186 stored; the usable count is withheld with the leaf backtest |
 | Self-play trajectories | 18M synthetic | 1,000 gated (MEW) |
 | Teams | 200K+ extracted | 6,965 |
 
@@ -190,32 +190,32 @@ demonstrations **and** self-play.
 > used RL or MCTS rather than LLM reasoning."** The cross-track pattern was *"LLMs as priors, RL as
 > refinement."*
 
-This is now the **third independent line** pointing the same way, from three unrelated sources:
+This is the **second quotable line** pointing the same way; a third, measured here, is withheld:
 
-1. R4, measured here: MILTANK (search) over MAG greedy, **55.5% of 535 decisive pairs**.
+1. R4, measured here: MILTANK (search) over MAG greedy. **Withheld** with the R4 artifact, which is
+   downstream of MEDICHAM; its share and pair count are not restated (withdrawn 2026-09-11).
 2. PokeTransformer, above: search-free ceiling ~1900 ELO against 2300+ for engine-assisted search.
 3. This competition: every top battling submission used search or RL, not a single-pass reasoner.
 
-Three environments, three methods, one direction. That is about as strong as a prior gets without
-being a measurement, and it says **search is where the return is**.
+Two quotable environments, two methods, one direction. That is a prior, not a measurement, and it
+says **search is where the return is**.
 
 ### The sharper point — PokéChamp's shape is MILTANK's shape, and our version is broken
 
 PokéChamp is *depth-limited search plus a learned position evaluator*. That is structurally what
 MILTANK is: a search whose quality is bounded by the leaf it calls.
 
-Tonight's calibration measured our leaf, properly, at n=6,886:
-
-- reliability curve is a **flat line at ~0.52** — predicted spans 0.06→0.94, observed never leaves
-  0.46→0.57, ECE 0.181;
-- the **in-game leaf, which makes every move, discriminates at 50.99%, p=0.47** — indistinguishable
-  from a coin.
+Tonight's calibration measured our leaf against a coin and against player-Elo, with a reliability
+curve and a discrimination test on the in-game leaf, which makes every move. **Every figure it
+produced, its sample size and its verdict are withheld** (withdrawn 2026-09-11):
+`data/winrate-backtest.json` is downstream of MEDICHAM and the gate withholds it. It becomes
+quotable again when the gate opens AND `node engine/backtest_winrate.js` is re-run.
 
 So the external evidence says *the leaf is the component that decides how good a search agent is*,
-and ours is the component we have just measured as uninformative. **This raises the leaf above more
-search work in priority.** A better search over a coin-flip evaluator is a better-organised coin
-flip. `docs/SEARCH.md` reads "a search is worth exactly what its model is worth"; this is that
-sentence with an outside number attached.
+and whether ours is informative is exactly the withheld figure. **This raises the leaf above more
+search work in priority** either way: a better search is worth no more than the evaluator it calls.
+`docs/SEARCH.md` reads "a search is worth exactly what its model is worth"; this is that sentence
+from an outside source.
 
 ### The concretely useful thing nobody should miss
 
@@ -288,7 +288,8 @@ the part that matters — *"edit the trajectory as if you knew this information 
 names the cost out loud: *"this does lead to errors… would they really have picked this move if
 they had the team that we said they did?"*
 
-**ABRA fits MAG on 146,910 decisions taken from public replays**, and this question has never been
+**ABRA fits MAG on real decisions taken from public replays** (the count is MAG's and is withheld
+with its vector, withdrawn 2026-09-11), and this question has never been
 asked here in these words: does `engine/board.js` reconstruct the state **as the player knew it that
 turn**, or does it leak information revealed later in the same game? Fitting a policy on decisions
 made with information the player did not have corrupts every weight, systematically and silently.
@@ -306,8 +307,9 @@ imitation → offline RL on the human set → self-play, and the improvement arr
 Gen 1's best policy reaches **~83% GXE**, Gen 9's **~66%**, and today's best beats the paper's best
 **80%** of the time.
 
-**ABRA's ratio is inverted** — 1,000 gated MEW games against 6,890 usable human games, about
-**0.15 : 1** where the working pipeline runs at **10 : 1**. MEW is built, gated and validated
+**ABRA's ratio is inverted** — 1,000 gated MEW games against a larger human corpus (its usable
+count is withheld with the leaf backtest, withdrawn 2026-09-11), where the working pipeline runs at
+**10 : 1**. MEW is built, gated and validated
 (mirror symmetry 51.0%, CI [45.4, 56.6]). It is simply not being run at the volume the external
 evidence says is the operative ingredient.
 
@@ -331,17 +333,18 @@ a pure win-objective hill-climb, half-run and stale on a 17-feature vector again
 them, it reuses the fit that already exists, and it is far smaller than re-running MACHAMP.
 
 One caution, in his words: offline RL *"tends to overestimate the value of decisions where you never
-actually see the outcome."* It needs a critic worth trusting, and ABRA's leaf is currently flat at
-**50.99%, p=0.47**. So it sits **behind** the leaf fix. That ordering is the point.
+actually see the outcome."* It needs a critic worth trusting, and ABRA's leaf calibration is withheld
+(the backtest is downstream of MEDICHAM), so no critic here is yet shown to be one. So it sits
+**behind** the leaf fix. That ordering is the point.
 
 #### 4. Two of our design choices, arrived at independently by people with 4M trajectories
 
 - **Seed-matched paired evaluation.** Karten, on grading PokéChamp: the same teams for both players
   the same number of times, mirrors excluded, *"so that for every game that they have an advantage,
-  they also have a game where they have the same disadvantage."* That is R4's design — 1,312 seed
+  they also have a game where they have the same disadvantage."* That is R4's design — seed
   pairs, both sides.
 - **Discarding non-decisive games.** Grigsby: *"Pokémon is certainly random enough that the best
-  player is often not the winner."* That is why R4 scores 535 **decisive** pairs and throws away the
+  player is often not the winner."* That is why R4 scores only **decisive** pairs and throws away the
   777 splits instead of counting them.
 
 Not to be re-litigated.
@@ -367,8 +370,8 @@ Not to be re-litigated.
 
 Trailer, on actual VGC play: **45 seconds maximum per decision**, on a 7-minute chess clock, in
 **doubles**. That is MILTANK's real-time budget in a live game and it appears nowhere in
-`docs/SEARCH.md`. R2 measured leaf cost at 477 boards over 200 games; nobody has checked that
-against a 45-second wall. **Filed to SEARCH.**
+`docs/SEARCH.md`. R2 measured leaf cost, and its figures are withheld with the R2 artifact
+(withdrawn 2026-09-11); nobody has checked that cost against a 45-second wall. **Filed to SEARCH.**
 
 He also gives the reason SLOWKING is worth having and the reason it is hard, in one breath:
 *"calculating optimal moves is often impossible… opponent modeling is a huge part of human play as a
@@ -422,14 +425,13 @@ computer that can fight itself on Pokémon Showdown a million times a minute, pe
 possible."* That is MEW — self-play inside the **official** pinned Showdown engine, on real
 six-Pokémon teams sampled from the clean store, with logs passing through the same `extract()` as a
 downloaded replay. It runs at 1,000 gated games. See item 2 above: the working external ratio is
-10:1 self-play to human and ours is 0.15:1.
+10:1 self-play to human, and ours runs the other way.
 
 Their late-game point stands and is **not** answered by volume. Their example — *"stalling a
 tailwind because your scarf Urshifu in the back can clean up once it has speed advantage"* — is a
 plan that pays off many turns later, and it is precisely what MILTANK's rollout should price and
-what a one-ply policy structurally cannot. It is also what tonight's leaf calibration says we cannot
-currently value: a flat reliability curve means the leaf does not distinguish a winning endgame from
-a losing one.
+what a one-ply policy structurally cannot. It is also what a leaf has to be able to value, and whether ours can
+is the leaf calibration withheld above.
 
 ### Their challenge 3 — RNG and human variance blunt RL, and determinism gets you exploited
 
@@ -438,10 +440,10 @@ This is the sharpest of the three and it lands on a real, open, unmeasured risk 
 > *"The same turn 1 play will win one match and lose you the other, even against the same player
 > with the same team and the same leads."*
 
-**Quantified.** R4 ran 1,312 seed pairs — the identical matchup from both sides — and **777 of them,
-59.2%, came back 1-1 splits.** That is their claim as a measurement: in a clear majority of
-identical matchups the outcome flipped on variance alone. It is exactly why only the **535 decisive
-pairs** are scored, and why an SPRT is used rather than a fixed-n win rate.
+**Quantified here, and withheld.** R4 counted how many of its seed pairs — the identical matchup
+from both sides — came back 1-1 splits, which is their claim as a measurement. The count and its
+share are withheld with R4 (withdrawn 2026-09-11). The design consequence does not depend on the
+value: only **decisive pairs** are scored, and an SPRT is used rather than a fixed-n win rate.
 
 > *"It needs to have an element of unpredictability… otherwise you end up with the Nuzlocke Bot
 > issue of it being exploitable."*
@@ -456,14 +458,15 @@ more — and its search stalled (the step count is withheld with the void run, w
 `docs/SEARCH.md` §R8. **Their prediction may well be correct; we currently have no measurement either
 way, and saying we do would be worse than the gap.**
 
-**And here is the live tension nobody has resolved.** ABRA separately measured that taking the
-**best** move instead of sampling from the fitted distribution is worth **+12 points raw and 79.7%
-of decisive pairs**. That is a large, real gain — and it makes the policy *more deterministic*,
-which is precisely the direction this commenter warns leads to exploitability. `MODELS.md` already
+**And here is the live tension nobody has resolved.** ABRA separately measured, head to head, what
+taking the **best** move instead of sampling from the fitted distribution is worth. That head-to-head
+was played through the simulator, no artifact records it, and its size is withdrawn (2026-09-11).
+Whatever the size, the change makes the policy *more deterministic*, which is precisely the
+direction this commenter warns leads to exploitability. `MODELS.md` already
 states the principle: *"a policy can improve on average and stay exactly as exploitable; those are
 different numbers and only one of them has been moving."*
 
-So we shipped a change that improves average strength and plausibly worsens readability, and the
+So we shipped a change whose average-strength gain is withdrawn and which plausibly worsens readability, and the
 readability number is ~~three feature generations stale (17 features then, 53 now)~~ **gone**. We do
 not know the current exploitability of the build we are running. **This raises WOBBUFFET from a
 backlog item to the open question this comment has correctly identified.** `engine/exploit.js
@@ -493,9 +496,10 @@ choose**; and *"perhaps another AI can try to trim things down to a more managea
 | another AI trims it down | top-K pruning, already implemented in `engine/fit_joint.js` |
 
 Worth saying plainly: the architecture is not the open problem. **Both of its stated challenges are
-where we actually are.** They name compute as the constraint — R2 measured leaf cost at 477 boards
-over 200 games, against Trailer's hard 45-second live budget. And they name the state-scorer as the
-component everything rests on, which is the one we measured tonight as **flat: 50.99%, p=0.47**.
+where we actually are.** They name compute as the constraint — R2 measured leaf cost, and its figures
+are withheld with the R2 artifact (withdrawn 2026-09-11), against Trailer's hard 45-second live
+budget. And they name the state-scorer as the component everything rests on, which is the one whose
+calibration is withheld with the leaf backtest.
 
 ### The one idea here that ABRA does not implement
 
@@ -526,9 +530,9 @@ machinery, and it comes from a domain expert describing how good players actuall
 | Item | Division | Status |
 |---|---|---|
 | **Audit whether `board.js` reconstructs the player's information state at decision time, or leaks later-revealed info into the fit** | MEASURE | filed 2026-08-04 |
-| **Re-measure exploitability on the CURRENT 53-feature greedy build** — average strength went up, readability is unmeasured since 17 features | MEASURE | filed 2026-08-04 |
+| **Re-measure exploitability on the CURRENT 53-feature greedy build** — the greedy change's average-strength gain is withdrawn, and readability is unmeasured since 17 features | MEASURE | filed 2026-08-04 |
 | Advantage-reweighted BC as the rung between MAG and MACHAMP — **behind** the leaf fix, which needs a trustworthy critic | MEASURE | filed 2026-08-04 |
-| Self-play volume — the working ratio is 10:1 self-play to human; ABRA runs 0.15:1 | MEASURE | filed 2026-08-04 |
+| Self-play volume — the working ratio is 10:1 self-play to human; ABRA's runs the other way | MEASURE | filed 2026-08-04 |
 | Opponent prediction is the external binding constraint — raises XATU beyond the move slot | ENGINE | filed 2026-08-04 |
 | MILTANK has a hard **45-second** per-decision budget in real VGC; unstated in SEARCH.md, unchecked against R2's leaf cost | SEARCH | filed 2026-08-04 |
 | Multi-turn plans (their Tailwind-stall / Scarf-Urshifu example) are what a flat leaf cannot value — a concrete test case for the leaf fix | SEARCH | filed 2026-08-04 |

@@ -889,9 +889,9 @@ Serious / 0 EVs / 31 IVs so the two engines compute the same stat line before *a
 The single source of truth for what each model **is**, **how it works**, its **honest current status**, and **where the code lives**.
 
 > **How this file went wrong, recorded because it caused real damage.** Between 2026-07-28 and
-> 2026-07-30 it was not updated while ~40 commits landed, and a session then mischaracterised the
+> 2026-07-30 it was not updated while commits kept landing, and a session then mischaracterised the
 > whole model family from it: **DODUO** described as unbuilt when it had been built, wired,
-> controlled and measured at 42.0%; **MEDICHAM** audited in its superseded v2 file, with that file's
+> controlled and measured head to head; **MEDICHAM** audited in its superseded v2 file, with that file's
 > limitations reported as ABRA's; top-K pruning "proposed" that `engine/fit_joint.js` already
 > implemented. Two rules came out of it — read the *implementation* and check which file a consumer
 > actually `require`s, and never report a red test as a "known failure" (`CLAUDE.md`).
@@ -1072,9 +1072,9 @@ reaches the players through `--joint-weights`, because magnemite otherwise re-re
 terms)` as its own block, so a dead coordination layer reads as one cause rather than 18.
 
 *Status: wired and gated, **not yet measured for winning**. Do not quote a win rate for trained
-DODUO — none exists.* First evidence it moves at all: two iterations at 40 games each put
-`bothSameTarget` **+0.164** (third-largest change in the whole vector), `overkill` **+0.120**,
-`focusFireKills` **+0.094** — self-play wants focus fire more than the human fit did.
+DODUO — none exists.* First evidence it moves at all: two short self-play iterations moved
+`bothSameTarget`, `overkill` and `focusFireKills` most. Those are joint weights, so the values and
+their ranking are withheld with the joint weights (withdrawn 2026-09-11).
 
 **Refitted 2026-08-02 on `engine/click_match.js`**, on clean games, split into train and held-out.
 **Its corpus counts are withheld** (withdrawn 2026-09-11). They were re-derived on 2026-09-10 from the
@@ -1107,28 +1107,22 @@ raw request rather than the reshaped list `chooseMove` receives, so every partne
 unusable. A head-to-head run at that point would have returned ~50% and I would have reported that
 coordination does not help. It was caught only because the fallback is COUNTED and printed. Fixed:
 100% of eligible turns now decided as a pair.
-**MEASURED 2026-07-28, AND IT LOSES.** Coordination ON against coordination ZEROED — the entire
-pair path either way, same single weights, same top-K cap, same softmax over pairs, so the only
-difference is the 18 coordination weights. 2,000 seed-paired games, harness fair at 49.3%:
+**MEASURED 2026-07-28; THE RESULT IS WITHDRAWN 2026-09-11.** Coordination ON against coordination
+ZEROED — the entire pair path either way, same single weights, same top-K cap, same softmax over
+pairs, so the only difference is the coordination weights. The games were seed-paired, with a
+harness-fairness check beside them, and were played through the simulator. No artifact records the
+run, and CLAUDE.md quarantines every model report that reads a rollout, so the win rate, the
+decisive-pair share, the fairness check, the cuts by game length and first blood, and the KO and
+Protect rates are all absent rather than annotated.
 
-| | result |
-|---|---|
-| unpaired win rate, coordination ON | **42.0%** [39.9, 44.3] over 1,934 games |
-| decisive pairs, coordination ON wins both | **28.4%** [23.9, 33.3] of 356 |
-
-Not close, well powered, and consistent across every cut. It loses hardest in short games
-(22.0% under 8 turns) and when it does not draw first blood (14.1%), which is a bot giving away
-tempo. It KOs less (22.3% against 25.1%) and Protects nearly twice as often (1.74% against
-0.93%).
-
-**Why, and it is the same lesson MACHAMP taught.** These are IMITATION weights. The fit prices
+**The explanation offered, and it is the same lesson MACHAMP taught.** These are IMITATION weights. The fit prices
 `spreadFreeBesideAlly`, `terrainSetupHelpsPartner` and `screenWhileThreatened` strongly negative, at
 lambda = 0 (re-derived 2026-09-10: the three `jointFeatures` weights in the fit of 2026-07-28, commit
 `c1566ee1`; the values are withheld with the joint weights, withdrawn 2026-09-11). Those are statements
 that humans rarely click those pairs, not that the pairs are bad — and a bot told to avoid a free spread
 move beside its own ally that strongly will decline its best plays. Predicting a human pair (the fit's
-held-out top-1 is withheld with the joint weights) and winning are different objectives, and this is the cleanest separation of the two the project
-has measured.
+held-out top-1 is withheld with the joint weights) and winning are different objectives, and this was offered as the cleanest separation of the two;
+the head-to-head it rested on is withdrawn above.
 
 > **WITHDRAWN 2026-08-01. All three of those numbers were a fitter defect, not a preference.**
 > `fit_joint.js` required the candidate's target to match the human's recorded target, and a spread
@@ -1142,15 +1136,17 @@ has measured.
 > (2026-08-01), both versions of the joint weights file, which the gate withholds; the before and after
 > values and the refit's turn count are withheld with it (withdrawn 2026-09-11).
 >
-> The corrected vector then **beat the shipped one at 66.7% and 65.9% of decisive pairs** on two
-> disjoint seed blocks. So the paragraph above has it backwards for these three: the imitation fit was
-> not expressing a human preference against good play, it was never shown the plays.
+> The corrected vector was then played against the shipped one on two disjoint seed blocks. That
+> head-to-head went through the simulator and no artifact records it, so both decisive-pair shares
+> are withdrawn (2026-09-11), and so is any direction. What stands without it: the imitation fit was
+> not expressing a human preference against these three plays, it was never shown them.
 >
-> **The broader claim is untouched and still stands on its own evidence.** Imitation and winning ARE
-> different objectives — greedy action selection is worth about 12 points, and the resemble-vs-win
-> table further down shows real sign flips in `overkill`, `focusFireKills` and `partnerCoversMe`.
-> What is retired is *these three features as the illustration of it*, and DODUO's 42.0%, which was
-> measured on the contaminated vector and does not describe the current one.
+> **The broader claim is not settled here either.** That imitation and winning are different
+> objectives was argued from the greedy-selection head-to-head and from sign flips between the
+> resemble and win fits in `overkill`, `focusFireKills` and `partnerCoversMe`. The head-to-head is
+> withdrawn and the fits are withheld with the joint weights. What is retired is *these three features
+> as the illustration of it*, and DODUO's head-to-head, which was measured on the contaminated vector
+> and does not describe the current one.
 
 **What this does NOT settle.** Will's argument was about EXPLOITABILITY — that a bot choosing
 each slot independently can be set positions it fails every time. That is a claim about the
@@ -1163,9 +1159,10 @@ runs, the coordination question is open, not closed.
 the 18 pair weights for WINNING rather than for resemblance (MACHAMP over the joint vector) is
 the untested version of this idea.
 
-**UPDATED 2026-07-30 — this is now roadmap item 1, and the gap is exact.** The evidence for it got
-much stronger: four knowledge additions produced four nulls that day while two objective changes
-produced two large wins (see MAGNEMITE). DODUO has only ever been fitted to the losing objective.
+**UPDATED 2026-07-30 — this is now roadmap item 1, and the gap is exact.** The evidence offered for it
+was four knowledge additions and two objective changes measured head to head that day (see
+MAGNEMITE); those results are withdrawn (2026-09-11). DODUO has only ever been fitted to the
+resemblance objective.
 The remaining work is wiring, not a new model:
 
 - `engine/train_policy.js` has **no joint support** at all.
@@ -1182,7 +1179,8 @@ inherit that error today.
 
 **A trap already paid for once:** `fit_joint` fits its single block and its pair block TOGETHER, and
 23 of 48 features carry opposite signs between that fit and the shipped one. Mixing the two vectors
-lost **31.2%** on decisive pairs and would have been reported as "coordination does not help."
+was played head to head (its decisive-pair share is withdrawn, 2026-09-11) and would have been
+reported as "coordination does not help."
 
 **Already implemented, do not rebuild it:** top-K capping by single-move score, keeping the human's
 chosen pair regardless of rank so the fit cannot manufacture agreement, and reporting how often the
@@ -1201,7 +1199,7 @@ contribute is the reason independent scoring fails, since a monotonic factorisat
 ## MACHAMP — Match-Arbitrated CHAMpion Promotion (named 2026-07-28)
 **Job:** make MAG stronger by WINNING, not by resembling people.
 **Method:** champion/challenger hill-climb over MAG's policy weights. Candidates are perturbations of the current champion; each plays the champion over hundreds of seed-matched games and is promoted only when a Wilson interval clears 50%. The opponent is the CURRENT champion, so the bar rises every generation — hill-climbing against a frozen target produces a policy that beats that target and nothing else, which this project already fell for once.
-**Why it matters more than anything else on the list:** every other model here is fitted to PREDICT A HUMAN CLICK. That is a ceiling, and it is measured: re-optimising the same features for winning moved the kill proxy from +0.34 to +2.75, an eightfold change on exactly the signal the imitation fit throws away. MACHAMP is the only component whose objective is the thing actually wanted.
+**Why it matters more than anything else on the list:** every other model here is fitted to PREDICT A HUMAN CLICK. That is a ceiling, and it was measured: re-optimising the same features for winning moved the kill proxy's weight, on exactly the signal the imitation fit throws away. The before and after values came from a win-objective hill-climb played through the simulator, no artifact records them, and they are withdrawn (2026-09-11). MACHAMP is the only component whose objective is the thing actually wanted.
 **Honest status:** **half-run and stale.** The 2026-07-26 run completed **2 of 6 generations on a 17-FEATURE vector and recorded no verdict**. The vector is now 48. Re-running it is the single largest untested lever in the project.
 **Guards worth keeping:** every promoted champion is played against EVERY previous generation, not just the one it displaced, so that "gen 5 beats gen 4" is never mistaken for progress on its own. The guard stays — it is cheap, and it is the only thing that would *detect* a cycle. Its old justification did not: it read "this metagame is cyclic", and that is **withdrawn 2026-08-02**. `data/slowking-playstyle-eval.json` rates its own strongest cycle `supported: false` (the best of 336 candidate triples, with legs resting on as few as 5 games), and greedy-minus-Nash is 0.026 with a CI of [-0.0001, 0.1498]. Non-transitivity here is *unestablished*, which is not the same as *absent* — the guard is insurance against it, not evidence for it. `tests/test-docs-current.js` re-reads that artifact on every run and will license the claim again by itself if the metagame ever supplies it.
 
@@ -1222,12 +1220,12 @@ removed, because a champion vector that no longer matches the feature set cannot
 keeping it invited someone to try; `git show 5264585^:data/policy-weights-machamp.json` recovers it.
 The **method is alive and has a successor**: `engine/train_policy.js`
 implements the same win-objective idea by policy gradient over self-play, and is the thing that
-measured 55.9%. Re-running MACHAMP on the current vector is roadmap item 4. Keep the guard that made
+ran the self-play head-to-head (withdrawn; see the reconciliation below). Re-running MACHAMP on the current vector is roadmap item 4. Keep the guard that made
 it honest: every promoted champion plays EVERY previous generation, so that "gen 5 beats gen 4" is
 not read as progress by itself. (Kept as insurance, not as evidence — see the withdrawal above.)
 **Code:** `engine/ladder.js` → `data/ladder.json`. Companion: `engine/brood.js` (how many candidates a generation can actually tell apart).
 
-> **RECONCILED 2026-07-31.** That 55.9% was measured on the **53-feature vector with switching OFF**. Repeating the experiment on the **56-feature vector with switching ON** gives **48.1%** [46.5, 49.8] over 9,728 paired games — a interval entirely below 50, i.e. self-play training made the policy *worse*. Both numbers stand as measurements of different configurations; neither generalises to 'self-play helps'. The difference is not explained, and three candidate causes are untested: switching exploration being harmful (which used to be supported by the older 10-point switching loss — **that figure is RETRACTED 2026-08-06 as unattributable and confounded**: medicham2 playouts predating WIRES 123-128, no `engine_release` stamp, and `bringIn()` selects `live(bench)[0]`, so it measured switching to an ARBITRARY body rather than to a chosen one. The candidate cause stands; its supporting evidence does not. See #63), 36.5% drift over 18 iterations, or self-play eroding imitation-fitted features that were already good.
+> **RECONCILED 2026-07-31; BOTH READINGS WITHDRAWN 2026-09-11.** The self-play result was measured on an **earlier, smaller feature vector with switching OFF**, and the experiment was repeated on a **later, larger vector with switching ON**. Both are head-to-heads played through the simulator, no artifact records either, and both are withdrawn with every such head-to-head: no size, interval or direction is carried here. Three candidate causes for the difference between them were named and never tested: switching exploration being harmful, weight drift over the self-play iterations, or self-play eroding imitation-fitted features that were already good. The switching figure once offered for the first cause was retracted on 2026-08-06 as unattributable and confounded: it measured switching to an ARBITRARY body rather than to a chosen one (See #63).
 
 ## WOBBUFFET — the counter that finds MAG's leak (named 2026-07-28)
 **PROMOTED TO PRIMARY INSTRUMENT, 2026-08-06 (ADR-003).** This model used to be a side-check on MAG. It is now the instrument that produces **the project's headline metric**, and win rate is demoted beside it. The reason is a measurement somebody else made: VGC-Bench (AAMAS 2026, [arXiv 2506.10326](https://arxiv.org/abs/2506.10326)) trained BC on 700,000+ logs plus PPO under self-play, fictitious play and double oracle, **beat a World Championships competitor in a single-team mirror**, and measured **all of their agents at approximately 100% exploitable** — with their expert tester reporting that *"after enough successive games, strong human players can adapt and beat the agent."* That is the predicted behaviour of a compiled policy in an imperfect-information game, and it is the evidence `docs/POKER-TO-POKEMON.md` was arguing without. **The published comparator for this model is now VGC-Bench's ~100%.**
@@ -1266,7 +1264,7 @@ feature-generations stale (17 → 53), and it is roadmap item 3 because it is th
 that is not bots grading bots on average — it grades *readability*. A policy can improve on average
 and stay exactly as exploitable; those are different numbers and only one of them has been moving.
 `engine/exploit.js --target <weights.json>` can now be pointed at DODUO, which is the only way to
-test the exploitability argument the 42.0% result explicitly does **not** settle. *(That pointing has
+test the exploitability argument DODUO's head-to-head explicitly does **not** settle. *(That pointing has
 still not happened — the 2026-08-04 re-run measured the shipped vector only, and pointing a
 one-step search at DODUO would produce a second uninformative null.)*
 **Code:** `engine/exploit.js` → `data/exploitability.json`; the held-out confirmation is
@@ -1424,7 +1422,7 @@ measurements. Harness: `engine/backtest_winrate.js`; report `data/winrate-backte
 the sha256 of every engine source it was measured against) plus per-game rows in
 `data/winrate-backtest-rows.jsonl`. Run `node engine/status.js` for the current withheld set.
 
-**The 2026-07-23 reading, superseded, kept:** on 600+ held-out real games, MEDICHAM's raw P(win) **does not beat a coin** (log-loss 1.2 vs 0.69) and picks the actual winner only **~44% of decisive calls — below chance**. Below-chance is not "no signal": it means the win% is **systematically inverted** (the policy backs the fast/offensive team; that team loses more — the Staraptor bias, quantified). Held-out Platt recalibration comes out with a **negative slope** and just edges the coin (0.6897 vs 0.6931) — real but *tiny*, because even **player-Elo ≈ coin (0.687)** here: Champions is near-unpredictable at the game level from sheets alone. **Consequences:** (1) the win% is a matchup heuristic, not a game predictor; (2) **DITTO was optimising a backwards signal** — building teams the biased engine loves (confirmed) — so its objective must be de-biased/flipped before "best team" means anything; (3) the durable value is the **validated damage** (exact against the Smogon damage calculator → CHOMP/ORB), which is genuinely not a coin. Harness: `engine/backtest_winrate.js`, report `data/winrate-backtest.json`.
+**The 2026-07-23 reading, superseded and withdrawn:** it scored the same harness on held-out real games — log-loss against a coin, the decisive-call rate and a held-out Platt recalibration, beside player-Elo. Its figures and its verdict are leaf calibration, or trace to no artifact, and are withdrawn (2026-09-11), so no direction is carried here. **What survives it:** the durable value is the **validated damage** (exact against the Smogon damage calculator → CHOMP/ORB), which rests on `data/damage-validation.json` and not on this reading. Harness: `engine/backtest_winrate.js`, report `data/winrate-backtest.json`.
 **Policy validation (2026-07-23):** the behaviour-clone (the policy's backbone) predicts held-out human moves at ~~top-1 35.9% (CI 35.2–36.5), top-3 71.6%, cross-entropy 2.27 nats, baselines 4.54 / 2.91~~ — **withdrawn 2026-09-09: those figures are in no artifact.** `data/policy-eval.json` (`engine/eval_policy.py`, **re-run 2026-09-09**, `generated_at` 2026-09-09T21:04:26Z; reads `data/games.ladder.raw-logs.jsonl`, `source.sha256` 4a332aeee377…, gated by `engine/quality.py` at `quality_filter_version` 1.3.0 with `quality_inputs` receipts for the store, the filter and `data/store-validation.json`; plays no game) reads `n_games` 24,114 (`train_games` 19,291 / `test_games` 4,823, `test_clicks_scored` 118,274, `split_rule` temporal 80/20, `seed` 42), `species_only_clone.top1_accuracy` 0.293 (`top1_ci95` [0.2904, 0.2956]), `top3_accuracy` 0.6459 (`top3_ci95` [0.6432, 0.6486]), `cross_entropy_nats` 2.3365 (`ce_ci95` [2.3288, 2.3441]) against `baselines.global_move_freq_ce` 4.7124 and `baselines.uniform_moveset_ce` 3.6978 — the clone beats both, so the priors carry signal, but human move choice has genuine entropy (the clone is a *modest* predictor); `phase_conditioned_clone` lifts top-1 to 0.3068 but worsens cross-entropy to 2.5087 and is not shipped. The 2026-07-31 run on a pre-1.3.0 clean set an order of magnitude smaller is superseded. A phase-conditioning improvement was tried and did **not** beat the proper score, so it wasn't shipped. This is a conservative lower bound on the full policy (the KO-take/Protect overrides only raise agreement on those turns). Harness: `engine/eval_policy.py`, report `data/policy-eval.json`. **So MEDICHAM's win rate is `P(win | realistic cloned play)`, now with the clone's fidelity measured — not `P(win)` ground-truthed.**
 **Honest status:** big improvement over the old 1v1 chain (which gave 0%/100%). Mirror 0.50, healthy spread, 400 rollouts in ~30ms, results carry a 95% CI on the site. **The damage math is now VALIDATED** against the Smogon damage calculator (MIT ground truth). Read from `data/damage-validation.json`: **36 scenarios compared, within 5% on 100% of them, worst 0%**. See `engine/validate_damage.js`. The remaining caveat is the *policy* (behaviour-cloned; over-credits speed control), not the damage numbers.
 
@@ -1949,14 +1947,13 @@ or verdict is carried here, and no direction may be inferred from the absence. T
 again when the gate opens AND these are re-run: `node engine/censoring_value.js` and
 `node engine/em_validation.js`.
 
-**Two changes to how the policy is USED beat every change to what it knows.** Measured 2026-07-30:
-taking the best move instead of sampling is worth **+12 points raw / 79.7% of decisive pairs**, and
-self-play policy improvement (`engine/train_policy.js`, REINFORCE with a trust region) wins **55.9%**.
-Over the same period **four separate feature additions produced four measured nulls**, and an
-overdispersion check across teams (~1.00, against 1.169 for a known real effect) says those nulls are
-genuine rather than a real effect hidden by team heterogeneity. **The objective is the binding
-constraint, not the knowledge** — which is why DODUO's next test is a retrain rather than more
-features.
+**Two changes to how the policy is USED, and four to what it knows, were measured head to head on
+2026-07-30** — taking the best move instead of sampling, self-play policy improvement
+(`engine/train_policy.js`, REINFORCE with a trust region), and four separate feature additions, with
+an overdispersion check across teams beside them. Every one was played through the simulator and no
+artifact records any of them, so the results, the check and the verdict drawn from them (that the
+objective, not the knowledge, is the binding constraint) are withdrawn (2026-09-11). DODUO's next
+test is still proposed as a retrain rather than more features.
 
 **Facts that reached one consumer and not the next (all fixed 2026-07-30).** Every integrity bug found
 that day had one shape. Priority blocking sat in the tag artifact read by `clickFragility` alone, so
@@ -1972,11 +1969,11 @@ Defiant and Competitive retaliate. All derived by calling the dex's own handlers
 stub — no ability or weather is named in `board.js`.
 **Nothing in it is asserted.** Every "this move cannot work now" test reads a dex **data field** — `move.status`, `move.sideCondition`, `move.pseudoWeather`, `move.weather`, `move.stallingMove` — against tracked state. No move is named anywhere in `board.js`, so a new regulation needs no edit (S13). The weights are estimated, never typed, and the realism report is never consulted during fitting — it is held back as the out-of-sample check, because it stops being evidence the moment it becomes the objective.
 **Why open team sheets:** a choice model needs the **choice set**. A normal replay reveals only moves that were *used*, so alternatives reconstructed from revelation are biased by revelation itself. Open sheets publish all four moves of all six up front.
-**Fit, held out by GAME** (decisions inside a game are correlated, so splitting by decision leaks): logL/decision **−1.6006**, top-1 **33.6%** — against the behaviour clone alone at −1.9302 / 27.1% and uniform at −1.7627 / 24.1%. In-sample −1.5997, so it is not memorising; weights identical at 200/300/500 iterations.
-**Measured out of sample, 600 seed-matched battles per policy:** super-effective **9.71% → 14.91%** (real 21.37%), failed moves **9.68% → 6.34%** (real 2.47%), immune **4.30% → 2.92%** (real 1.91%), Protect-type **21.62% → 16.71%** (real 13.87%). Both target gaps roughly halved, and 427 of 591 games survive the quality filter against the old policy's 382.
-**Most of the win was aiming.** `RandomPlayerAI` chooses which foe to hit with `prng.random(2)` *before* `chooseMove` is called, so the target was a coin flip however good the move choice was — and in doubles aiming is most of what "super effective" means.
+**Fit, held out by GAME** (decisions inside a game are correlated, so splitting by decision leaks): the held-out log-likelihood and top-1, the same against the behaviour clone alone and against uniform, and the in-sample comparison that checks it is not memorising are MAG fit figures, withheld with `data/policy-weights.json` (withdrawn 2026-09-11). The weights were identical across three iteration budgets.
+**Measured out of sample, in seed-matched battles against the previous policy:** the super-effective, failed-move, immune and Protect-type rates were each compared with the old policy and with real players, along with how many games survive the quality filter. They are a MAG model report on a withheld weight vector, no artifact records them, and they are withdrawn (2026-09-11).
+**Aiming was named as most of it.** `RandomPlayerAI` chooses which foe to hit with `prng.random(2)` *before* `chooseMove` is called, so the target was a coin flip however good the move choice was — and in doubles aiming is most of what "super effective" means.
 **It samples, it does not take the best move** — a greedy bot sails past 23.4% super-effective and is *less* human. Same argument as DEFENSE §2.
-**Two findings worth keeping.** The behaviour clone alone is a *worse* probabilistic model of human choice than choosing uniformly at random, and the fit weights it at only +0.25 — it is far too confident about the popular move. And the largest learned effects are not damage terms at all, they are the "this move is already dead" terms at −2.3. Reading the board is mostly about **not clicking moves that cannot work**.
+**Two findings, both withheld with the vector.** How the behaviour clone alone compares with choosing uniformly at random as a model of human choice, how heavily the fit weights it, and which learned effects are largest all come from the withheld fit (withdrawn 2026-09-11).
 **58 FEATURES as of `data/policy-weights.json` 2026-08-04 (this heading read 56 and was stale; the
 three below are the large ones added at 3.29.0).** `data/tags.json` derives 96 move tags
 with their parameters and `engine/tags.js` exists to load them; board.js read NONE of them, and 72 of
@@ -2015,7 +2012,7 @@ a real damage calculation (`board.js` calls the damage engine throughout — `ko
 `diesBeforeMoving` and the switch-survival features all read it). What remains true: it has **no
 model of the opponent's move**, so it cannot read a Protect or bait a switch; and it is **one ply, no
 search**. The weights are fitted on open-sheet games, which hedge less than closed ladder play, and a slice of clicks could not be matched to a candidate and was dropped — `data/policy-weights.json` records it under `matching.unmatched`, and **that rate is QUARANTINED: withheld, not annotated**, because the artifact is downstream of MEDICHAM (`engine/fit_policy.js` reaches `engine/medicham2-browser.js` through `require`). It becomes quotable again when the gate opens AND this is re-run: `node engine/fit_policy.js`. This line used to read "~11% … mostly redirection (Follow Me, Rage Powder)". **Both halves were wrong**: redirection is a small minority of the unmatched rather than most of it, measured 2026-08-02 by `engine/redirect_audit.js`, and the rate fell sharply — the shares are withheld with the artifact, and `data/redirect-audit.json` is withheld on the same grounds. The real causes were a foe **switching in on the same turn** (44.4%), an **in-battle forme change** with no sheet entry (19.7%), and a **mirror collapsing the two team sheets** (16.4%) — all fixed in `engine/click_match.js`, which took the slot-level match rate from 87.2% to 97.2%. Redirection's true cost is a *mislabelled* target, and at 3.42.0 it stopped being unrecoverable and started being HONEST: the click is not recovered — the protocol still records only a move's resolved target — but the turn now enters the fit as a PARTIAL LABEL over the two live foes rather than as a certainty on the redirector (Cour, Sapp & Taskar 2011; `docs/CLICK-CENSORING-FIX.md`). The size of that class is withheld with the rest of the fit corpus. Logit also assumes independence of irrelevant alternatives, which close-substitute moves violate; see DEFENSE §6.
-**Corpus (as of 3.21.0):** three open-sheet sources, deduplicated by replay id, all through quality.js — **`data/games.bo3.jsonl`** (our own hourly scrape of `gen9championsvgc2026regmbbo3`, whose ruleset carries **Force Open Team Sheets**, so every game publishes all six sets), the ~1% of the closed ladder store where both players agreed to sheets, and the external VGC-Bench archive. **220,613 usable decisions kept of 228,084 seen**, from **8,414 games** (`data/policy-weights.json`, 2026-08-04; the line read 198,157 from 7,507 games at 2026-08-02, and 176,981 before `engine/click_match.js`). The 7,471 dropped are 6,669 unmatched, 776 trivial and 26 ambiguous, all recorded under `matching`.
+**Corpus (as of 3.21.0):** three open-sheet sources, deduplicated by replay id, all through quality.js — **`data/games.bo3.jsonl`** (our own hourly scrape of `gen9championsvgc2026regmbbo3`, whose ruleset carries **Force Open Team Sheets**, so every game publishes all six sets), the ~1% of the closed ladder store where both players agreed to sheets, and the external VGC-Bench archive. The corpus counts — decisions kept and seen, games, and the dropped clicks by reason (unmatched, trivial, ambiguous), recorded under `matching` — are MAG's and are withheld with `data/policy-weights.json` (withdrawn 2026-09-11). The unmatched count would otherwise restate the rate withheld one line up.
 **Damage table, restated 2026-09-03:** the table holds **322** rows today. The paragraph immediately
 below is the 2026-08-02 record and is left exactly as written rather than rewritten in place. What
 has happened since is settled at 5.241.0 above: every row that moved is a mega or an in-battle forme,

@@ -10,6 +10,21 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.25.0] — 2026-09-11
+
+### Removed
+- **The leaf backtest's figures** and their verdicts from `docs/EXTERNAL-EVIDENCE.md` and `docs/PRIORITIES.md`, and the
+  2026-07-23 leaf reading from the white paper and `docs/MODELS.md`. Leaf calibration is downstream of MEDICHAM and the
+  gate withholds it.
+- **Every model head-to-head that no artifact records**, from all seven documents: DODUO against its zeroed control,
+  the corrected joint vector, self-play policy improvement, greedy selection, the overdispersion check, the mixing
+  trap, MACHAMP's kill proxy, MAG's out-of-sample battles and the site's twin test. CLAUDE.md quarantines every model
+  report that reads a rollout, so these are deleted rather than captioned.
+- **From the derived sweep:** R4's share and pair counts, R2's leaf cost, R3's switch-menu count, MAG's corpus counts,
+  held-out fit and refit weight movements, the DODUO self-play weight deltas and MILTANK's hand-off share.
+- **Figures that shared a rewritten sentence and traced to no artifact** — withdrawn rather than bound.
+- **Two dead keys** from the `tests/test-docs-quarantine.js` census, exactly the two it printed.
+
 ## [6.23.0] — 2026-09-11
 
 ### Removed
