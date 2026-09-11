@@ -40,20 +40,33 @@
  * actually missing.
  *
  *   node engine/rollout_switch_census.js            -> data/rollout-switch-census.json
+ *
+ * BOT GAMES ARE OUT — 2026-09-10. The header says HUMAN replays, and until this date the census
+ * counted every finished Champions game in the raw log, bots included. engine/selftest.js named it
+ * for reading the store with no filter and no RAW-STORE-OK. The filter is engine/quality_bots.js:
+ * quality.js's `bot`, `behavioural_bot` and `illegal_team` reasons ONLY. loadGames() would also drop
+ * `short` and `forfeit_no_action` games, and that cuts the short end off the length distribution
+ * this file derives the playout cap from. Excluded and unjudged games are counted in each store's
+ * `excluded` block. NOT RE-RUN when this landed: data/rollout-switch-census.json is read live by the
+ * empirical driver, and an ENGINE measurement was in flight.
+ *
+ * ABRA-HEAP: 4096
+ * (the bot filter reads the parsed store whole; data/games.bo3.jsonl is ~300 MB.)
  */
 'use strict';
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 const crypto = require('crypto');
+const QB = require('./quality_bots.js');
 
 const D = (...p) => path.join(__dirname, '..', ...p);
 
 /* Both human stores, named rather than picked. MEMORY: reading only games.ladder.jsonl cost a whole
  * session — the bo3 store IS the open-sheet ladder and is the population MILTANK actually plays. */
 const STORES = [
-  { key: 'ladder', raw: D('data', 'games.ladder.raw-logs.jsonl'), note: 'bo1 ladder' },
-  { key: 'bo3', raw: D('data', 'games.bo3.raw-logs.jsonl'), note: 'bo3 ladder — the open-sheet population' },
+  { key: 'ladder', raw: D('data', 'games.ladder.raw-logs.jsonl'), parsed: D('data', 'games.ladder.jsonl'), note: 'bo1 ladder' },
+  { key: 'bo3', raw: D('data', 'games.bo3.raw-logs.jsonl'), parsed: D('data', 'games.bo3.jsonl'), note: 'bo3 ladder — the open-sheet population' },
 ];
 
 const PCTS = [50, 75, 90, 95, 99, 99.9];
@@ -185,10 +198,22 @@ async function censusOne(store) {
   let decisions = 0, voluntary = 0, midturn = 0, replacement = 0, drag = 0, turnsTot = 0, turnsWithVol = 0;
   let decisionsWithBench = 0, voluntaryWithBench = 0;
   let forfeits = 0;
+  /* Bot games out, by quality.js's reasons — see the header. No judged ids means the filter could
+     not run, and that is an error rather than a census of everyone. */
+  const J = QB.botGameIds(store.parsed);
+  if (!J.judged.size) {
+    rl.close(); rs.destroy();
+    return { key: store.key, error: 'engine/quality_bots.js judged no games in '
+      + path.basename(store.parsed) + ' — the bot filter cannot run, so this store is not counted' };
+  }
+  const excluded = { rule: 'engine/quality_bots.js: ' + QB.BOT_REASONS.join(', '), bot: 0, unjudged: 0,
+                     parsed_store_games: J.games };
 
   for await (const line of rl) {
     if (!line) continue;
     let o; try { o = JSON.parse(line); } catch (e) { skipped++; continue; }
+    if (!o || !J.judged.has(o.id)) { excluded.unjudged++; continue; }
+    if (J.bot.has(o.id)) { excluded.bot++; continue; }
     const r = walk(o.log);
     if (!r) { skipped++; continue; }
     games++;
@@ -232,7 +257,7 @@ async function censusOne(store) {
     remaining_turns_occurrence_weighted: summarise(remAll),
     cap_coverage: coverage,
     key: store.key, note: store.note, file: path.basename(store.raw), digest: digestOf(store.raw),
-    games, skipped, forfeits,
+    games, skipped, forfeits, excluded,
     length_all: summarise(lens),
     length_no_forfeit: summarise(lensNoForfeit),
     switches: {

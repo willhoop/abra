@@ -48,11 +48,22 @@
  *
  *   node engine/mega_sets_from_sheets.js            print what the store declares
  *   node engine/mega_sets_from_sheets.js --json     the same, as the artifact
+ *
+ * BOT SHEETS ARE OUT — 2026-09-10. "Declared by the player" read every sheet in the store, a bot's
+ * included, and a modal set backed by two sheets can be one bot's team. engine/selftest.js named
+ * this file for reading the store with no filter and no RAW-STORE-OK. The filter is
+ * engine/quality_bots.js: quality.js's `bot`, `behavioural_bot` and `illegal_team` reasons ONLY. A
+ * forfeit or a short game still DECLARED its sheet, so loadGames() would have thrown real
+ * declarations away. The excluded count is printed per store.
+ *
+ * ABRA-HEAP: 4096
+ * (the bot filter reads each parsed store whole; data/games.bo3.jsonl is ~300 MB.)
  */
 'use strict';
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
+const QB = require('./quality_bots.js');
 const D = (...p) => path.join(__dirname, '..', ...p);
 
 const nrm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -92,7 +103,12 @@ async function collect(opts) {
   for (const f of STORES) {
     const p = D('data', f);
     if (!fs.existsSync(p)) { stats.files.push(f + ' ABSENT'); continue; }
-    let n = 0, sh = 0;
+    let n = 0, sh = 0, botOut = 0;
+    /* quality.js decides which games a bot played. A store with no judged ids means the filter
+       could not run, and counting every sheet as a player's would be the silent default. */
+    const J = QB.botGameIds(p);
+    if (!J.judged.size) throw new Error('engine/quality_bots.js judged no games in ' + f
+      + ', so the bot filter cannot run. Refusing rather than counting bot sheets as players\'.');
     const rl = readline.createInterface({ input: fs.createReadStream(p), crlfDelay: Infinity });
     for await (const line of rl) {
       if (!line) continue;
@@ -103,6 +119,7 @@ async function collect(opts) {
         if (!stats.unparsedFirst) stats.unparsedFirst = f + ': ' + String((e && e.message) || e).split('\n')[0];
         continue;
       }
+      if (g && g.id && J.bot.has(g.id)) { botOut++; continue; }
       n++;
       const S = g.sheets;
       if (!S || (!S.p1 && !S.p2)) continue;
@@ -133,7 +150,9 @@ async function collect(opts) {
         }
       }
     }
-    stats.files.push(f + ' ' + n + ' games, ' + sh + ' with a sheet');
+    stats.files.push(f + ' ' + n + ' games, ' + sh + ' with a sheet, ' + botOut
+      + ' bot game(s) excluded (engine/quality_bots.js: ' + QB.BOT_REASONS.join(', ') + ')');
+    stats.botExcluded = (stats.botExcluded || 0) + botOut;
     stats.games += n; stats.sheetGames += sh;
   }
 

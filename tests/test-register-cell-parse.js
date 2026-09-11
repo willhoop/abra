@@ -224,7 +224,7 @@ function scan(lines) {
  * PART 1 — RED FIRST. Seven doors, each with a REPAIRED TWIN that must go quiet.
  * ============================================================================================== */
 console.log('\n  REGISTER CELL-PARSE GUARD — the status a gate reads must be the status the row states\n');
-console.log('  PART 1 — seven defeating forms, each with a knob-cleared twin');
+console.log('  PART 1 — six defeating forms, each with a knob-cleared twin (the seventh, emphasis, is read since 2026-09-10 and is a control)');
 
 /* > 600 characters, because both detectors fall back to a prose scan over the row HEAD. A synthetic
  * short enough to fit inside that window is decided by the fallback and tests nothing. The filler
@@ -244,9 +244,12 @@ const DOORS = [
   { n: 9002, what: 'a BACKSLASH-ESCAPED pipe — escaping does not fix it (the #294 shape)',
     red: 'closed 2026-08-18 — ENGINE; the probe `move' + BS + '|spreadFoes` staged all four outcomes.',
     fixed: 'closed 2026-08-18 — ENGINE; the probe move spreadFoes staged all four outcomes.' },
-  { n: 9003, what: 'emphasis at the head of the cell (the #254 shape)',
-    red: '**CLOSED 2026-08-13** — engine.',
-    fixed: 'CLOSED 2026-08-13 — engine.' },
+  /* #9003 — emphasis at the head of the cell (the #254 shape) — LEFT THIS LIST 2026-09-10. It was a
+   * defeating form because `roadmapRowIsClosed` anchored on the word straight after the pipe. The
+   * detector now steps over leading `*`/`_` (engine/quarantine.js), measured over all 542 register
+   * rows to move exactly ONE whole-function verdict (#565, which asserts no breakage). A door the
+   * detector reads correctly is no longer a door, so it is a CONTROL below that must read CLOSED —
+   * which is stronger than dropping it: if the widening is ever reverted, that control fails. */
   { n: 9004, what: 'a LINK at the head of the cell — a door nobody has used yet',
     red: '[CLOSED 2026-08-13](docs/_reports/2026-08-13-x.md) — engine.',
     fixed: 'CLOSED 2026-08-13 — engine, account docs/_reports/2026-08-13-x.md.' },
@@ -282,11 +285,17 @@ const CONTROLS = [
   { n: 9011, what: 'a clean open row asserting breakage', cell: 'open — engine DEFECT; unprobed.' },
   { n: 9012, what: 'a pipe in the cell whose verdict is the same either way (cut but harmless)',
     cell: 'open — engine DEFECT; the trace reads `-start|confusion` and the DEFECT stands.', expectCut: true },
+  /* The former door #9003. Asserting the READING, not only the silence: quiet alone would also pass
+   * if the detector read the row as open in BOTH readings. */
+  { n: 9013, what: 'emphasis at the head of a CLOSED cell (the #254 shape, read by the detector since 2026-09-10)',
+    cell: '**CLOSED 2026-08-13** — engine.', expectGate: 'true/false' },
 ];
 for (const c of CONTROLS) {
   const r = scan([row(c.n, c.cell)]);
   if (r.moved.length) fail('FALSE ALARM on ' + c.what + ' — #' + c.n + ' reported as a verdict move');
   else if (c.expectCut && r.cut.length !== 1) fail(c.what + ' should have been REPORTED as a cut cell and was not');
+  else if (c.expectGate && gateVisible(row(c.n, c.cell)) !== c.expectGate)
+    fail(c.what + ' — the gate reads ' + gateVisible(row(c.n, c.cell)) + ', the row states ' + c.expectGate);
   else pass('quiet on ' + c.what + (c.expectCut ? ' (reported as cut, not failed)' : ''));
 }
 

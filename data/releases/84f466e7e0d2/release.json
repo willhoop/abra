@@ -1,0 +1,40 @@
+{
+  "id": "84f466e7e0d2",
+  "cut": "2026-08-11T22:09:08.196Z",
+  "why": "the rate run — engine settled after the nine residue rows",
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "cuts": [
+    {
+      "at": "2026-08-11T22:09:08.196Z",
+      "why": "the rate run — engine settled after the nine residue rows",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    }
+  ],
+  "files": {
+    "engine/medicham2-browser.js": "c86d64123aa3",
+    "engine/board.js": "a55f8271e101",
+    "engine/rollout_leaf.js": "fa318c1022ff",
+    "engine/position_features.js": "7927ccb7f5af",
+    "engine/tags.js": "145a3cc9ce2f",
+    "engine/champions_sim.js": "6c48ce1952af",
+    "engine/mc_key.js": "da0d2b55cf3a",
+    "engine/lookup.js": "03caca7859cd",
+    "engine/set_priors.js": "f8a81445ee3a",
+    "engine/smogon_priors.js": "5c039f9ebdbc",
+    "engine/quality.js": "e397e99ef257",
+    "engine/showdown_path.js": "0efe29f4245d",
+    "data/move-effects.js": "638ce5aabbe4",
+    "data/ability-blocks.json": "86741fd35452",
+    "data/smogon-priors.json": "7cff8927a784",
+    "data/regulations.json": "6c1995e9a9fb",
+    "data/quality-filter.json": "e675d10477c8",
+    "data/engine-data.js": "c6bdc5c54d70",
+    "data/abra-tags.js": "e44ac0b07c7e",
+    "data/tags.json": "4cf855c10537",
+    "data/policy-weights.json": "626c1d240782",
+    "data/policy-weights-joint.json": "e2aca467ff04",
+    "data/move-priors.json": "a64314db056b",
+    "engine/pp.js": "30b12a4ef623"
+  },
+  "note": "IMMUTABLE. A measurement reads these bytes, not the live tree, so other divisions may keep working while it runs. Re-cutting an identical tree returns this same id and APPENDS to cuts[]; `cut` and `why` are the FIRST freeze of these bytes and are never overwritten. The event log is cuts.jsonl beside this file and is the source of truth for cuts[]."
+}

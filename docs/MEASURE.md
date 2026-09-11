@@ -6538,13 +6538,14 @@ coin**, with an MCE of 0.351. So a turn-0 leaf can carry real ranking signal and
 about its confidence, which is the failure mode that matters to an argmax. By arm E even the ranking
 is gone and only the confidence is left.
 
-**A SIGN FLIP WORTH A RE-RUN, EXPLICITLY NOT ESTABLISHED.** Exploration helps mid-game and may hurt
-at turn 0. Paired on the backtest's own 6,886 turn-0 ladder games at horizon 60, the **greedy**
-playout ranks at 53.09% against explore=1.0's 51.66% — **+1.44 [0.10, 2.77]** — while paired on the
-sweep's 9,201 mid-game boards explore=1.0 wins by **+3.20 [2.24, 4.15]**. The turn-0 lower bound is
-0.10 against a median split-half floor of 0.75, so it is **inside its own noise floor and is not a
-result**; and greedy's Brier there is *worse* (0.3240 against 0.2966), so the two playouts differ in
-which failure they have rather than in quality. The two arms are also not the same code path
+**A SIGN FLIP WORTH A RE-RUN, EXPLICITLY NOT ESTABLISHED — ITS FIGURES ARE WITHHELD.** Exploration
+may help mid-game and hurt at turn 0. On the backtest's turn-0 ladder games the **greedy** playout
+ranked above explore=1.0, and on the sweep's mid-game boards explore=1.0 won. Every number behind
+that sentence comes out of the leaf backtest and the explore sweep, which `engine/quarantine.js`
+withholds, so none is restated here. They were withdrawn on 2026-09-10 when
+`tests/test-docs-quarantine.js` caught one of them. The turn-0 difference sat **inside its own
+split-half noise floor and was never a result**, and greedy's Brier there was the worse of the two,
+so the playouts differed in which failure they had rather than in quality. The two arms are also not the same code path
 (`battleInit`+`chooseAction` against `rolloutWinProb`). It needs `mew.js --miltank-explore`, which
 §3 already filed to SEARCH, and it needs the position held fixed.
 

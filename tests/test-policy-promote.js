@@ -217,7 +217,18 @@ const OBS = write('obs.json', obs);
     if (!fnm) bad('cannot find the add_artifacts staging list in the workflow');
     else {
       const dedent = fnm[0].split(/\r?\n/).map(l => l.replace(new RegExp('^' + fnm[1]), '')).join('\n');
-      const paths = (dedent.match(/(?:data|docs|web|build)\/[\w.\-/]+/g) || []);
+      /* THE PATHS ARE READ OFF CODE LINES ONLY, AND A GLOB IS KEPT WHOLE. Since 2026-09-06 the stores
+         are staged by three globs (`data/parsed/<store>/*.jsonl.gz`, `data/raw/<store>/*.jsonl.gz`,
+         `data/games.gen9champions*.jsonl.gz`), and the old pattern cut each one at the `*`. It also
+         read the comments. So it collected `data/games.` three times from a comment saying the
+         monoliths are gone. It then wrote files at those cut names, which no glob matches, and
+         reported "staged 7 of 12" against a block that is correct. */
+      const code = dedent.split('\n').filter(l => !/^\s*#/.test(l)).join('\n');
+      const paths = (code.match(/(?:data|docs|web|build)\/[\w.\-/*]+/g) || []);
+      /* A glob gets ONE concrete file that it matches, so the throwaway repo holds exactly what a real
+         run would put in front of it. `x` matches `*` in every glob in the block. */
+      const materialise = (rel) => rel.replace(/\*/g, 'x');
+      const files = paths.map(materialise);
       const calls = (wf.match(/^\s*add_artifacts\s*$/gm) || []).length;
       if (!paths.includes('data/move-priors.observed.json')) bad('the observed table is not in the staging list');
       else if (paths.length < 9) bad('the staging list has only ' + paths.length + ' artifacts; it had nine');
@@ -239,7 +250,7 @@ const OBS = write('obs.json', obs);
            second. */
         const stage = (omit, track) => {
           const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'abra-ingest-'));
-          for (const rel of paths) {
+          for (const rel of files) {
             if (rel === omit && !track) continue;
             fs.mkdirSync(path.join(repo, path.dirname(rel)), { recursive: true });
             fs.writeFileSync(path.join(repo, rel), 'x');
@@ -256,8 +267,8 @@ const OBS = write('obs.json', obs);
         const a = stage(null, false);
         if (a.code !== 0) bad('the staging block itself failed: ' + a.err.slice(0, 300));
         else if (!a.staged.includes(NEW)) bad('the observed table was NOT staged by the real block');
-        else if (a.staged.length !== paths.length) bad('staged ' + a.staged.length + ' of ' + paths.length + ' artifacts');
-        else ok('the workflow\'s own staging block stages all ' + paths.length + ' artifacts, observed table included');
+        else if (a.staged.length !== files.length) bad('staged ' + a.staged.length + ' of ' + files.length + ' artifacts: ' + a.staged.join(' '));
+        else ok('the workflow\'s own staging block stages all ' + files.length + ' artifacts, observed table included');
 
         /* CASE 1 — THE 24-DAY FAILURE, EXACTLY: a path in the list that is not on disk and not in
            the index. `git add` exits 1, the step runs under `bash -e`, and NOTHING is committed —
@@ -265,7 +276,10 @@ const OBS = write('obs.json', obs);
         const b = stage(NEW, false);
         if (b.code !== 0) bad('AN UNPRODUCED ARTIFACT ABORTS THE COMMIT STEP — this is the 24-day failure again: ' + b.err.slice(0, 200));
         else if (!/::warning::/.test(b.out)) bad('an unproduced artifact was skipped SILENTLY; it must warn');
-        else if (!b.staged.some(f => /games\.ladder\.jsonl\.gz/.test(f)))
+        /* THE STORE IS THE PARSED SHARDS since 2026-09-06, not the old single-file compressed ladder
+           store. That monolith is untracked and no longer in the block, so asserting it here asserted
+           a file the workflow correctly never stages. */
+        else if (!b.staged.some(f => /^data\/parsed\/.+\.jsonl\.gz$/.test(f)))
           bad('an unproduced artifact stopped the store being staged — the run would ship nothing');
         else ok('an unproduced artifact warns, the other ' + b.staged.length + ' still stage — the ingest cannot die on this');
 

@@ -140,6 +140,14 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
   MEASURE's files, so this pass FILED it (ROADMAP #575) rather than fixing it — but `--write` stamps
   that sentence into `docs/ENGINE.md`'s GENERATED block, so it is published and false.
 
+## [6.4.0] — 2026-09-10 — the non-engine reds from tonight's full suite are fixed, and the #568 orphan prediction is refuted
+
+- **What changed.** MEASURE, non-engine reds from the 2026-09-10 suite. (1) `data/board-data.js` rebuilt: node and browser board agree on 58/58 features (`tests/test-board-browser.js` 14/0). The #568 orphan prediction is REFUTED: `9,759` traces through `CHANGELOG.md`, and `tests/test-docs-current.js` stays 35/0. (2) `engine/docs_scan.js` route 1 no longer charges a figure that a non-withheld artifact in the same paragraph carries; the two RUNNING-NOTES `6,000` hits were `data/engine-diff.json`'s `compared`. A new RED arm pins that a citation alone clears nothing. (3) `docs/MEASURE.md`'s turn-0 sign-flip paragraph is withheld: its figures come from the leaf backtest and explore sweep, which the gate withholds. (4) `tests/test-policy-promote.js`'s staging simulation was stale since the 2026-09-06 sharding; the refusals were never broken. (5) `engine/joint_click_census.js`, `engine/rollout_switch_census.js` and `engine/mega_sets_from_sheets.js` exclude bot games through the new `engine/quality_bots.js` (quality.js's bot, behavioural_bot and illegal_team reasons only). The ladder store is 45,297 bot games of 92,431 by this filter. Code only; the artifacts are not re-run. (6) The killed agent's diff was reviewed and all of it kept; `tests/probe_item_disposition.js` at HEAD had a syntax error, fixed by that diff. Full account: `docs/_reports/2026-09-10-instrument-reds.md`.
+- **Measured.** The full suite before this pass: 13 unwaived FAIL, 7 WAIVED, 2 CANNOT-ANSWER (`run-all.js`, 620 lines). Fixed and re-run individually here: test-board-browser 14/0, test-docs-quarantine 7/7, test-register-cell-parse, test-policy-promote 17/0, selftest 3 of 4 raw readers.
+- **Supersedes.** ROADMAP #568's claim that rebuilding the bundle orphans `9,759`. The MEASURE.md sign-flip figures are withdrawn, not superseded.
+- **Basis.** unchanged
+- **Owed to the next major.** docs/MODELS.md: `2.92%` (MAG self-play realism, line ~1976) is no longer attributable once the bundle is rebuilt, and still stands. Withhold it in the MODELS pass.
+
 ## [6.3.0] — 2026-09-10 — CLAUDE.md described the store's 100 MB deadline in the present tense after sharding removed it
 
 - **What changed.** Two passages in `CLAUDE.md` corrected. The file stated

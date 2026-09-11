@@ -10,6 +10,27 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.4.0] — 2026-09-10
+
+### Fixed
+- **Five of tonight's thirteen unwaived reds are fixed, none of them an engine mechanic.** The browser
+  board scores identically to node again (58/58 features) after `data/board-data.js` was rebuilt from
+  a 2026-08-03 bundle; `tests/test-docs-quarantine.js` is green after the MEASURE.md turn-0 sign-flip
+  figures were withheld; `tests/test-policy-promote.js`'s staging simulation is brought up to the
+  sharded stores (the refusals themselves were never broken); `tests/test-register-cell-parse.js`
+  passes; three of the four raw ladder-store readers now drop bot games through `engine/quality_bots.js`.
+- **The #568 prediction that rebuilding the board bundle orphans `9,759` is refuted** — the figure
+  traces through this file, and the docs-currency gate stays green after the rebuild.
+
+### Notes
+- Still red and NOT fixed here, each named: `engine/conformance.js` (107 regressions — the suite printed
+  only its last 14 lines), the UNACCOUNTED-FOR check (171 unclassified probes), `engine/em_validation.js`
+  (a gate demanding a result the data did not produce), `engine/sanity_check.py` (two U+FFFD `|win|`
+  rows, #558), the store-shard clause in `tests/test-workflow-paths.js` (its message is wrong: no row is
+  missing from the shards; the LOCAL stores trail them by 163 ladder and 47 bo3), the two
+  CANNOT-ANSWER gates (they read artifacts on older releases and refuse correctly), and
+  `tests/test-mutation-coverage.js` (its re-sweep plays the engine).
+
 ## [6.3.0] — 2026-09-10
 
 ### Fixed

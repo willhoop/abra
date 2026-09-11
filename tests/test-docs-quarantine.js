@@ -92,7 +92,6 @@ const BASELINE = new Set([
   "docs/MEASURE.md|396,288|data/policy-weights-joint.json",
   "docs/MEASURE.md|44,982|data/sheet-channel-value.json",
   "docs/MEASURE.md|48,274|data/censoring-value.json",
-  "docs/MEASURE.md|55.92%|data/leaf-position-contrast.json",
   "docs/MEASURE.md|6,890|data/winrate-backtest.json",
   "docs/MEASURE.md|7,994|data/leaf-engine-contrast.json",
   "docs/MEASURE.md|8,855|data/leaf-engine-contrast.json",
@@ -191,6 +190,19 @@ if (r.gate_open) {
     'CONTROL — the identical paragraph is CLEAN when the artifact is not withheld, so the clause '
     + 'keys on the gate and not on the citation',
     JSON.stringify(green.hits.map(h => h.figure)));
+
+  /* THE QUOTABLE-SOURCE CLEARANCE MUST NOT CLEAR ON A CITATION ALONE (engine/docs_scan.js, 2026-09-10).
+   * A figure is cleared only when a NON-withheld artifact in the same paragraph actually CARRIES it.
+   * data/regulations.json is config, never withheld, and carries no 51.0. Citing it beside the
+   * withheld artifact must leave the figure charged, or citing any harmless file would launder a
+   * withheld number. */
+  const beside = DS.quarantinedFigures(['synthetic.md'], { withhold: held,
+    read: () => PARA.replace('`data/winrate-backtest.json`.',
+      '`data/winrate-backtest.json` beside `data/regulations.json`.') });
+  ok(beside.hits.length === 1 && beside.hits[0].figure === '51.0%',
+    'RED — citing a quotable artifact that does NOT carry the figure clears nothing; the clearance '
+    + 'needs the figure to be in that artifact',
+    JSON.stringify(beside.hits.map(h => h.figure)));
 
   /* AND THE CAPTION, WHICH IS THE ONE THAT MUST NOT WORK. The retraction rule deliberately skips a
    * paragraph matching QUALIFIED ("previously", "stale", "was measured") because such a paragraph is

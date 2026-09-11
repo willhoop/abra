@@ -85,8 +85,20 @@ const KEEP = flag('--keep-arms', null);
 const STATE = argv.includes('--state');
 const OUT = flag('--out', STATE ? 'data/state-ladder.json' : 'data/wire-ladder.json');
 
+/* THE EXIT CODES, DECLARED IN THE FORM `engine/register_reality.js` READS — ROADMAP #578.
+ *
+ * Every non-zero exit BEFORE the ladder is written is a REFUSAL, not a finding: no simulator, a store
+ * that would not freeze, an arm that did not complete, a verbose stream and an artifact that disagree
+ * on the game count, no non-baseline arm, or the wrong number of baseline arms. In each case the
+ * ladder is not written and there is no figure in either direction — so 2 and 4 are CANNOT-ANSWER and
+ * the register row stays UNMEASURED rather than being closed or accused. `process.exitCode = 1` at the
+ * end is a real red verdict about a ladder that DID run, and is left alone. */
+const declareExit = (code) => console.error('ABRA-EXIT ' + code + ' '
+  + (code === 0 ? 'VERDICT-GREEN' : (code === 2 || code === 4) ? 'CANNOT-ANSWER' : 'VERDICT-RED'));
+
 if (!process.env.SHOWDOWN_PATH) {
   console.error('NOT RUN — the official simulator is absent. Set SHOWDOWN_PATH. This is not a pass.');
+  declareExit(2);
   process.exit(2);
 }
 
@@ -266,7 +278,7 @@ if (PIN_STORE) {
       console.error('the team store could not be frozen (' + f + '): ' + String((e && e.message) || e)
         + '\nREFUSING — an unpinned store is how the last ladder was lost. Pass --no-pin-store to run '
         + 'the old way on purpose.');
-      process.exit(4);
+      declareExit(4); process.exit(4);
     }
   }
   console.log('\n  THE TEAM STORE IS FROZEN for this ladder: ' + STORE_DIR);
@@ -297,7 +309,7 @@ function runArm(arm) {
   } catch (e) {
     console.error('ARM ' + arm.id + ' (release ' + arm.release + ') DID NOT COMPLETE — the ladder is '
       + 'incomplete and is not written.\n' + String((e && e.stderr) || (e && e.message) || e).slice(0, 4000));
-    process.exit(4);
+    declareExit(4); process.exit(4);
   }
   fs.writeFileSync(logPath, stdout);
   const j = JSON.parse(fs.readFileSync(out, 'utf8'));
@@ -322,7 +334,7 @@ function parseDepth(stdout, arm, j) {
   if (depth.length !== j.games) {
     console.error('ARM ' + arm.id + ': the verbose stream carries ' + depth.length + ' games and the '
       + 'artifact says ' + j.games + '. They are the same run, so they must agree — refusing.');
-    process.exit(4);
+    declareExit(4); process.exit(4);
   }
   return depth;
 }
@@ -377,7 +389,7 @@ const BASE = ARMS[0];
  * repeated baseline, and the arm it came from is written into the artifact so a stale read cannot
  * happen silently again. */
 const TOP = [...ARMS].reverse().find(a => a.release !== BASE.release);
-if (!TOP) { console.error('no non-baseline arm — refusing'); process.exit(4); }
+if (!TOP) { console.error('no non-baseline arm — refusing'); declareExit(4); process.exit(4); }
 const comparability = ARMS.slice(1).map(arm => {
   const r = CMP.compare(RUNS[BASE.id].artifact, RUNS[arm.id].artifact);
   return { arm: arm.id, release: arm.release, ok: r.ok, reasons: r.reasons,
@@ -404,7 +416,7 @@ const BASE_ARMS = ARMS.filter(a => a.release === BASE.release);
 if (BASE_ARMS.length !== 2) {
   console.error('the drift check needs EXACTLY two arms on the baseline release, found ' + BASE_ARMS.length
     + ' — refusing rather than comparing an arbitrary pair');
-  process.exit(4);
+  declareExit(4); process.exit(4);
 }
 const [BASE_FIRST, BASE_LAST] = BASE_ARMS;
 const baselineReproduces = stripVolatile(RUNS[BASE_FIRST.id].artifact)

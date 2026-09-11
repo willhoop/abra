@@ -1191,7 +1191,17 @@ function coverageClause() {
 function roadmapRowIsClosed(l) {
   /* the row's STATUS CELL first — see #148's prescription below — then the prose scan, kept because
    * a row that says it is done in its title and forgets the cell should still drop out. */
-  if (/\|\s*(closed|done|page closed)\b[^|]*\|\s*$/i.test(l)) return true;
+  /* THE CELL MAY BE BOLD. `**CLOSED 2026-09-10** — …` is the house spelling for a row that closes with
+   * an account attached, and this clause anchored on the word immediately after the pipe, so the two
+   * asterisks hid it. It only surfaced when the row's title did NOT also say CLOSED inside the first
+   * 600 characters that the prose fallback reads — #565, 2026-09-10, which `tests/test-register-cell-parse.js`
+   * reported as `the gate reads false/false and the row states true/false`.
+   *
+   * MEASURED BEFORE CHANGING IT, as the two clauses below were, and for the same reason: this widening
+   * can only ever close rows, which is the direction that makes the MEDICHAM gate MORE open. Over all
+   * 542 register rows EXACTLY ONE verdict moves — #565 — and it does not assert breakage, so no gate
+   * clause can move with it. */
+  if (/\|\s*[*_]*\s*(closed|done|page closed)\b[^|]*\|\s*$/i.test(l)) return true;
   /* AND THE CELL WINS IN THE OTHER DIRECTION TOO -- 2026-08-18. This was the CLOSED half of #148's
    * prescription done once and only once: a cell saying `closed` outranked the prose, and a cell
    * saying `open` did not. So the prose fallback below could close a row the register declares OPEN,
@@ -4143,6 +4153,25 @@ function clauseExit(r) {
   return (r.cannot_answer || r.withheld) ? 2 : 1;
 }
 
+/* THE EXIT CODE, DECLARED IN THE ONE FORM `engine/register_reality.js` READS — ROADMAP #578.
+ *
+ * The prose beside `--whole-game` and `--order-probe` has always said what 2 means, and prose is not
+ * a thing the register can read: `classifyExit` refuses any code outside {0,1} that the instrument did
+ * not DECLARE, so three rows (#218, #290, #376) came back UNMEASURED rather than red or green. That
+ * refusal is correct — guessing is #148 — and the missing half was here.
+ *
+ * 2 IS `CANNOT-ANSWER`, NOT `VERDICT-RED`, AND THAT IS THE HONEST READING. `clauseExit` returns 2 for
+ * `cannot_answer || withheld` — an artifact measured against other bytes, with every count in it
+ * withheld. The clause has no finding about the row in either direction, and `CANNOT-ANSWER` leaves
+ * the register row UNMEASURED, so it cannot close a live defect — the hazard the `--order-probe`
+ * header names. Exit 1 stays VERDICT-RED and exit 0 VERDICT-GREEN; nothing about the codes moved.
+ *
+ * On stderr, so a stdout consumer parsing this command's report never sees it. */
+function declareClauseExit(code) {
+  console.error('ABRA-EXIT ' + code + ' '
+    + (code === 0 ? 'VERDICT-GREEN' : code === 2 ? 'CANNOT-ANSWER' : 'VERDICT-RED'));
+}
+
 /* ================================================================================================
  * 3. CLI — report, derivation, gate, selftest
  * ============================================================================================== */
@@ -4214,6 +4243,7 @@ if (require.main === module) {
      *   1  the defect is PRESENT — a pair not speed-tied at identical priority.
      *   2  the clause CANNOT ANSWER — no artifact, no probe, or a probe cut against other bytes.
      * The mapping itself is `clauseExit`, one implementation for every command here. */
+    declareClauseExit(clauseExit(r));
     process.exit(clauseExit(r));
   }
 
@@ -4245,6 +4275,7 @@ if (require.main === module) {
               + ' which is Will\'s 2026-08-22 bar. For the protocol number use --narration. Any'
               + ' figure quoted from this command before 2026-09-04 is the other quantity.');
     console.log('');
+    declareClauseExit(clauseExit(r));
     process.exit(clauseExit(r));
   }
 
@@ -4272,6 +4303,7 @@ if (require.main === module) {
               + ' union would be 30% a second copy of it. Any figure quoted from this command before'
               + ' 2026-09-06 is the wider quantity.');
     console.log('');
+    declareClauseExit(clauseExit(r));
     process.exit(clauseExit(r));
   }
 

@@ -1198,7 +1198,86 @@ const PUBLISHED_BY = (() => {
 })();
 /* Named in full at the bottom of the run: artifact, release id, and the document that publishes it. */
 const UNTRACKED_RELEASE_CITES = [];
-const FILTER_MT = (() => { for (const f of ['quality-filter.json']) { const m = mtime(f); if (m) return m; } return null; })();
+/* RULE 1'S CUTOFF IS THE LAST TIME THE *RULES* MOVED, NOT THE LAST TIME THE FILE WAS TOUCHED.
+ *
+ * The note this clause prints is "computed under different rules about what counts", and it was keyed
+ * on the mtime of the whole of data/quality-filter.json. That file also carries a `provenance` block —
+ * a recorded funnel with a measured_on date — which goes stale as the store grows and is restamped
+ * (tests/test-quality.js allows 3 points of drift on the recorded clean share and was RED on 6.7).
+ * Restamping it changes NO rule and moved 174 UNSAFE artifacts to 244 in one edit, every one of the
+ * 70 a false alarm. "A gate that cries wolf gets ignored, which is precisely how the unwired-check
+ * problem this file exists to solve came about" — that sentence is further down this file and it
+ * applies to this clause too.
+ *
+ * SO THE CUTOFF IS DERIVED FROM THE `rules` OBJECT AND FROM GIT, NEVER FROM A DATE SOMEBODY TYPED.
+ * Walk the commits that touched the file, digest `rules` at each, and take the commit date of the
+ * newest one whose digest differs from its predecessor's. An UNCOMMITTED rule change is caught first:
+ * if the working tree's rules differ from HEAD's, the cutoff is the file mtime — the old behaviour and
+ * the conservative one.
+ *
+ * IF GIT CANNOT ANSWER IT FALLS BACK TO THE MTIME AND RECORDS THAT IT DID. A checker that becomes more
+ * permissive the less it can see is the failure mode this file already carries a paragraph about. */
+const FILTER_CUTOFF = (() => {
+  const mt = mtime('quality-filter.json');
+  const rel = 'data/quality-filter.json';
+  const digestOf = (buf) => {
+    try {
+      const j = JSON.parse(String(buf));
+      if (!j || !j.rules) return null;
+      return crypto.createHash('sha256').update(JSON.stringify(j.rules)).digest('hex').slice(0, 12);
+    } catch (e) {
+      /* REPORTED, NOT SWALLOWED. A copy that does not parse has no rules digest; the walk below treats
+       * null as "unknown" and can only fall back toward the mtime, which is the conservative side. */
+      failedToRead('a copy of ' + rel + ' did not parse, so its rules object could not be digested', e);
+      return null;
+    }
+  };
+  let live = null;
+  try { live = digestOf(fs.readFileSync(D(rel))); }
+  catch (e) { failedToRead('data/quality-filter.json could not be read to digest its rules', e); }
+  if (!live) return { at: mt, why: 'the file mtime — its rules object could not be read, so nothing weaker is assumed' };
+  let commits = [];
+  try {
+    commits = execFileSync('git', ['-C', ROOT, 'log', '--format=%H %cI', '--', rel], { encoding: 'utf8' })
+      .split('\n').map((l) => l.trim()).filter(Boolean).map((l) => l.split(' '));
+  } catch (e) {
+    failedToRead('git could not list the history of ' + rel + ', so the quality-filter cutoff falls '
+      + 'back to the file mtime and every artifact older than the last STAMP reads as older than the '
+      + 'last RULE CHANGE', e);
+    return { at: mt, why: 'the file mtime — git could not answer, and the conservative reading is kept' };
+  }
+  const memo = new Map();
+  const at = (i) => {
+    if (memo.has(i)) return memo.get(i);
+    let d = null;
+    try { d = digestOf(execFileSync('git', ['-C', ROOT, 'show', commits[i][0] + ':' + rel],
+      { encoding: 'buffer', maxBuffer: 1 << 26 })); }
+    catch (e) {
+      /* REPORTED, NOT SWALLOWED. An unreadable historical copy reads as "digest unknown", and an
+       * unknown digest never matches its neighbour, so the walk stops EARLIER (a later cutoff) —
+       * never later. The failure is named at the bottom of the run with every other read failure. */
+      failedToRead('git could not show ' + rel + ' at ' + commits[i][0].slice(0, 8)
+        + ', so that commit\'s rules digest is unknown', e);
+    }
+    memo.set(i, d);
+    return d;
+  };
+  const head = commits.length ? at(0) : null;
+  if (head && head !== live)
+    return { at: mt, why: 'the file mtime — the working tree rules differ from HEAD, so a rule really has moved here' };
+  for (let i = 0; i < commits.length; i++) {
+    const d = at(i);
+    const prev = i + 1 < commits.length ? at(i + 1) : null;
+    if (d && d !== prev) {
+      const t = Date.parse(commits[i][1]);
+      return { at: isFinite(t) ? t : mt, rules_digest: d, commit: commits[i][0].slice(0, 8),
+        why: 'the commit that last changed the rules object (' + commits[i][0].slice(0, 8) + ', rules '
+           + d + '). A provenance restamp on the same file moves no artifact.' };
+    }
+  }
+  return { at: mt, why: 'the file mtime — no commit in its history changed the rules object' };
+})();
+const FILTER_MT = FILTER_CUTOFF.at;
 
 let cleanCount = null, openCleanCount = null, torn = 0;
 try { cleanCount = require('./quality.js').loadGames().length; }
@@ -1697,6 +1776,11 @@ const stale = rows.filter(r => r.status === 'stale?');
 console.log('');
 console.log(`  ${unsafe.length} UNSAFE, ${voided.length} VOID (declared), ${stale.length} possibly stale, ` +
             `${rows.filter(r => r.status === 'ok').length} ok, ${rows.filter(r => r.status === 'missing').length} missing`);
+/* THE CUTOFF RULE 1 USED IS PRINTED, because it decides the status of every store-derived artifact
+ * in the table above and it is now DERIVED rather than being the file mtime. A reader who sees a
+ * hundred artifacts change status between two runs is owed the reason on the same page. */
+console.log('  quality-filter cutoff: ' + new Date(FILTER_MT).toISOString().slice(0, 10)
+          + '   ' + FILTER_CUTOFF.why);
 if (voided.length) {
   console.log('');
   console.log('  DECLARED VOID — the generator invalidated its own run and said so. These are recorded');

@@ -61,12 +61,24 @@
  * There is no bucket for "something else happened".
  *
  *   node engine/joint_click_census.js [--limit N] [--write]
+ *
+ * BOT GAMES ARE OUT — 2026-09-10. A census of HUMAN clicks counted every finished Champions game in
+ * the raw log, and the first line of games.ladder.raw-logs.jsonl is a `pcrlbot…` account.
+ * engine/selftest.js named this file for reading the store with no filter and no RAW-STORE-OK. The
+ * filter is engine/quality_bots.js: quality.js's `bot`, `behavioural_bot` and `illegal_team`
+ * reasons, and nothing else. `short` and `partial_bring` say nothing about a click. A raw log the
+ * parsed store cannot judge is excluded and counted as `unjudged`. Every store's `excluded` block
+ * prints both counts.
+ *
+ * ABRA-HEAP: 4096
+ * (the bot filter reads the parsed store whole; data/games.bo3.jsonl is ~300 MB.)
  */
 'use strict';
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 const crypto = require('crypto');
+const QB = require('./quality_bots.js');
 
 require('./showdown_path.js');
 const D = (...p) => path.join(__dirname, '..', ...p);
@@ -126,8 +138,8 @@ const REDIRECT = (() => {
 })();
 
 const STORES = [
-  { key: 'ladder', raw: D('data', 'games.ladder.raw-logs.jsonl'), note: 'bo1 ladder' },
-  { key: 'bo3', raw: D('data', 'games.bo3.raw-logs.jsonl'), note: 'bo3 ladder — the open-sheet population' },
+  { key: 'ladder', raw: D('data', 'games.ladder.raw-logs.jsonl'), parsed: D('data', 'games.ladder.jsonl'), note: 'bo1 ladder' },
+  { key: 'bo3', raw: D('data', 'games.bo3.raw-logs.jsonl'), parsed: D('data', 'games.bo3.jsonl'), note: 'bo3 ladder — the open-sheet population' },
 ];
 
 const argv = process.argv.slice(2);
@@ -465,6 +477,13 @@ function digestOf(f) {
 
 async function censusOne(store) {
   if (!fs.existsSync(store.raw)) return { key: store.key, error: 'missing: ' + store.raw };
+  /* Bot games out, by quality.js's reasons — see the header. No judged ids means the filter could
+     not run, and that is an error rather than a census of everyone. */
+  const J = QB.botGameIds(store.parsed);
+  if (!J.judged.size) return { key: store.key, error: 'engine/quality_bots.js judged no games in '
+    + path.basename(store.parsed) + ' — the bot filter cannot run, so this store is not counted' };
+  const excluded = { rule: 'engine/quality_bots.js: ' + QB.BOT_REASONS.join(', '), bot: 0, unjudged: 0,
+                     parsed_store_games: J.games };
   const acc = emptyAcc();
   const rl = readline.createInterface({ input: fs.createReadStream(store.raw), crlfDelay: Infinity });
   for await (const line of rl) {
@@ -472,13 +491,15 @@ async function censusOne(store) {
     let o;
     try { o = JSON.parse(line); }
     catch (e) { acc.skipped++; continue; }
+    if (!o || !J.judged.has(o.id)) { excluded.unjudged++; continue; }
+    if (J.bot.has(o.id)) { excluded.bot++; continue; }
     const r = walk(o.log, acc);
     if (!r) { acc.skipped++; continue; }
     acc.games++;
     if (r.forfeit) acc.forfeits++;
     if (LIMIT && acc.games >= LIMIT) break;
   }
-  return finish(store, acc);
+  return Object.assign(finish(store, acc), { excluded });
 }
 
 function finish(store, a) {

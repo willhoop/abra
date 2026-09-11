@@ -330,7 +330,29 @@ function classifyMarker(cmd) {
    * are input to code that is already inside this repository, and the questions above are both already
    * answered for them. This is the region the old regex was policing, and policing it was never a
    * safety act — see the equals-sign measurement at the head of this block. */
-  return { ok: true, argv: pre.concat([entry], t.slice(i + 1)) };
+  /* THE CHILD'S OWN `ABRA-HEAP` IS HONOURED, THE WAY tests/run-all.js, tools/lownode.cmd AND
+   * engine/status.js ALREADY DO IT — ROADMAP #578.
+   *
+   * `tests/test-quality.js` declares `ABRA-HEAP: 4096` and exited **134** here: an OOM abort, which is
+   * a code outside {0,1}, so `classifyExit` refused to read it and row #471 came back UNMEASURED. It
+   * is not a refusal and it is not a red — the instrument never reached a verdict. Given its declared
+   * heap the same file exits 1 with a NAMED failing clause.
+   *
+   * IT IS READ OFF THE ENTRY FILE, NEVER OFF THE MARKER. A row may not carry a node option — that is
+   * the UNKNOWN NODE OPTION rule above and it does not move — so the declaration lives where the
+   * requirement is, in the file that needs the heap. A marker naming a file that does not exist, or a
+   * file with no declaration, gets exactly the argv it got before. */
+  let heap = null;
+  try { heap = (fs.readFileSync(entry, 'utf8').match(/ABRA-HEAP:\s*(\d+)/) || [])[1] || null; }
+  /* NOT A BARE CATCH. The reason is printed, because "the entry point could not be read" is exactly
+   * how a marker naming a moved file would otherwise reach the child at the default heap and come back
+   * as a resource death wearing a verdict. */
+  catch (e) {
+    console.error('COULD NOT READ ' + entry + ' TO LOOK FOR AN ABRA-HEAP DECLARATION: '
+      + String((e && e.message) || e).split('\n')[0] + ' — running it at the default heap');
+  }
+  const heapOpt = heap ? ['--max-old-space-size=' + heap] : [];
+  return { ok: true, argv: heapOpt.concat(pre, [entry], t.slice(i + 1)), heap: heap ? +heap : null };
 }
 
 /* TWO OF MY OWN TOOLS PRINTED `register rows` AND DISAGREED — 206 HERE, 251 IN open_work.js.
@@ -911,6 +933,19 @@ if (has('--selftest')) {
   runUncached('node -r ./tests/_live_release.js tests/probe_x.js --verify-inert', recExec);
   ok('flags still survive alongside a preload, and land AFTER the script',
     seenArgs.length === 1 && seenArgs[0][3] === '--verify-inert', seenArgs[0]);
+  /* ROADMAP #578. Driven through the SHIPPING runUncached with a recording exec, so it asserts what
+   * the child would actually be given rather than restating the reader. tests/test-quality.js really
+   * declares ABRA-HEAP: 4096 — without the flag it aborts at 134 and the row reads UNMEASURED. */
+  seenArgs.length = 0;
+  runUncached('node tests/test-quality.js', recExec);
+  ok('RED — the ABRA-HEAP declaration in the entry file reaches the child as --max-old-space-size, '
+    + 'in front of the entry point. tests/test-quality.js died at exit 134 without it',
+    seenArgs.length === 1 && seenArgs[0][0] === '--max-old-space-size=4096'
+    && seenArgs[0][1] === path.join(ROOT, 'tests', 'test-quality.js'), seenArgs[0]);
+  seenArgs.length = 0;
+  runUncached('node tests/probe_x.js', recExec);
+  ok('a file with no ABRA-HEAP gets exactly the argv it got before — no flag is invented',
+    seenArgs.length === 1 && seenArgs[0].length === 1, seenArgs[0]);
   const rej = (c, code) => { const r = runUncached(c, recExec); return r.kind === KIND.REJECTED && (!code || r.reject === code); };
   ok('RED — a preload OUTSIDE the repository is refused. The marker names a path inside this repo, '
     + 'and `-r` executes it in this process tree exactly as the script is executed',

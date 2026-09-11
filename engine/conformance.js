@@ -82,10 +82,24 @@ const read = f => { try { return readText(f); } catch (e) { return ''; } };
  * ------------------------------------------------------------------------------------------- */
 function checkHeader(f, src) {
   const head = src.slice(0, 600);
-  const hasBlock = /^\s*(\/\*|#|<!--|'''|""")/.test(src) || /^#!/.test(src);
+  /* THE LEADING `//` DECLARATION LINES ARE SKIPPED BEFORE THE TEST, because a second convention in
+   * this repository puts one THERE. engine/selftest.js's clean-data rule requires a raw reader of the
+   * store to carry `// RAW-STORE-OK:` or `// RAW-STORE-NOT-READ:` as the first line, and this test
+   * anchored on the FIRST character — so four files carrying BOTH a declaration and a full block
+   * header were flagged `no opening comment` (engine/durable-ingest.js, engine/next_regulation_ingest.js,
+   * tests/test-next-regulation.js, tests/test-workflow-paths.js, 2026-09-10). Two conventions, one of
+   * them accusing the other of an absence that is not there.
+   *
+   * THE STANDARD IS NOT RELAXED. A file whose whole header is `//` lines still fails: the block, the
+   * hash, the shebang or the XML comment must be there once the declarations are stepped over. */
+  const src2 = src.replace(/^(?:\s*\/\/[^\n]*\n)+/, '');
+  const hasBlock = /^\s*(\/\*|#|<!--|'''|""")/.test(src2) || /^#!/.test(src);
   if (!hasBlock) { flag('convention', f.rel, 'no opening comment', 'every file states why it exists'); return; }
   /* A one-line header is a label, not an explanation. The convention is a paragraph. */
-  const firstBlock = (src.match(/^\s*\/\*[\s\S]*?\*\//) || src.match(/^(#[^\n]*\n)+/) || [''])[0];
+  /* `src2`, not `src`: read off the raw source, a file opening with a `//` declaration matched neither
+   * pattern, `firstBlock` came back empty, and a ONE-LINE block header behind the declaration walked
+   * past the check below. Stepping over the declarations must not also step over this clause. */
+  const firstBlock = (src2.match(/^\s*\/\*[\s\S]*?\*\//) || src2.match(/^(#[^\n]*\n)+/) || [''])[0];
   if (firstBlock && firstBlock.split('\n').length < 3 && !/^#!/.test(src)) {
     flag('convention', f.rel, 'header is one line', 'headers explain the failure the file prevents');
   }

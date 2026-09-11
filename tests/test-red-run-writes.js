@@ -119,19 +119,11 @@ const ok = (c, m, why) => {
  * Most of these were NOT read line by line and are NOT claimed to be safe. They are claimed to be
  * KNOWN, on 2026-08-23, so that the eighth one is the thing that fails this gate. Where a row WAS
  * read end to end its reason says so; where it was not, it says that too. */
+/* `tests/test-mechanics.js` LEFT THIS FLOOR ON 2026-09-10 (ROADMAP #389). It was the one LAUNDERS row:
+ * a self-baselining ratchet on data/mechanics-census.json. The census floor was fixed separately to
+ * FALL-only, and this gate's own `FIXED since the floor was written` clause named it as no longer a
+ * candidate on the 2026-09-10 run. Removed by the rule stated above — the floor may lose members. */
 const ACCEPTED = {
-  'tests/test-mechanics.js': { owner: 'ENGINE', tier: 'LAUNDERS', why:
-    'THE WORST ROW HERE AND IT IS NOT MEASURE\'S TO FIX. It reads `unarmed` out of '
-    + 'data/mechanics-census.json into `armBase`, sets process.exitCode=1 when THIS run\'s `unarmed` '
-    + 'is LARGER, and then writes this run\'s `unarmed` into that same file. So the second run '
-    + 'compares against the number the failing run just recorded, and passes. `directCall`/`dcBase` '
-    + 'has the identical shape. (Named by SYMBOL, not by line: the line numbers moved under this row '
-    + 'within the hour it was written.) This is the tests/test-unmodelled-clicks.js defect on '
-    + 'the artifact that steers engine/all_mechanics_fire.js and holds a MEDICHAM gate clause. '
-    + 'ENGINE owned and was actively editing this file on 2026-08-23; MEASURE may not touch it. '
-    + 'The file already refuses to write under the `residualCollapsed` deliberate break and its own '
-    + 'comment says "any future switch of the same kind belongs here" — the right instinct, scoped to '
-    + 'deliberate breaks rather than to failure generally. OWED to ENGINE.' },
   'engine/em_validation.js': { owner: 'MEASURE', tier: 'self-read, does NOT launder', why:
     'READ END TO END on 2026-08-23. It reads data/partial-label-em.json in `--check` mode, but that '
     + 'mode RE-DERIVES every verdict from the artifact\'s own content (bias_exceeds_noise_floor, '

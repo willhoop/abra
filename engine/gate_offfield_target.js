@@ -160,7 +160,15 @@ const out = {
   verdict: v.tag, exit: v.code, why: v.why,
 };
 
-if (has('--json')) { console.log(JSON.stringify(out, null, 2)); process.exit(v.code); }
+/* THE EXIT CODE, DECLARED IN THE FORM `engine/register_reality.js` READS — ROADMAP #578. The
+ * comment above `verdict()` already says exit 2 is red-not-green to a consumer; `classifyExit` reads
+ * a PRINTED line and nothing else, so without this the row came back UNMEASURED. 2 is CANNOT-ANSWER:
+ * the two artifacts ran on other bytes and none of their counts describes the tree, which is not a
+ * finding in either direction. On stderr so it stays out of the `--json` document. */
+const declareExit = (code) => console.error('ABRA-EXIT ' + code + ' '
+  + (code === 0 ? 'VERDICT-GREEN' : code === 2 ? 'CANNOT-ANSWER' : 'VERDICT-RED'));
+
+if (has('--json')) { console.log(JSON.stringify(out, null, 2)); declareExit(v.code); process.exit(v.code); }
 
 console.log('');
 console.log('ROADMAP #224 — a moved effect naming a body that is not on the field');
@@ -177,4 +185,5 @@ console.log('  ' + v.tag + '   ' + v.why);
 console.log('');
 console.log('  exit ' + v.code + '   [0 clean, 1 the placeholder is back, 2 cannot answer]');
 console.log('');
+declareExit(v.code);
 process.exit(v.code);

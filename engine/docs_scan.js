@@ -1586,10 +1586,21 @@ function quarantinedFigures(docs, { withhold, read = readDoc } = {}) {
       for (const c of all) published.add(c);
       const cites = all.filter(c => st.withhold(c));
       if (!cites.length) continue;
+      /* A FIGURE THAT A QUOTABLE ARTIFACT IN THE SAME PARAGRAPH ALSO CARRIES IS NOT A REPUBLICATION.
+       * 2026-09-10: two docs/RUNNING-NOTES.md rows were charged with `6,000` out of
+       * data/winrate-backtest.json and data/search-decision-profile.json. Both rows ALSO cite
+       * data/engine-diff.json, whose `compared` is 6,000 and which the gate does not withhold. That's
+       * where the figure came from. Route 2 below already says two owners is a coincidence with a
+       * witness; this applies the same rule inside one paragraph. The figure has to be IN the
+       * non-withheld artifact. Citing a quotable file that doesn't carry it clears nothing, and
+       * tests/test-docs-quarantine.js shows that case red. */
+      const free = all.filter(c => !st.withhold(c));
+      const quotable = (f) => free.some(c => { const n = artifactNumbers(c); return !!(n && artifactHas(n, f)); });
       const body = b.lines.join('\n');
       for (const f of figuresInText(body)) {
         if (isUniversal(f)) continue;
         if (!isDistinctive(f)) continue;
+        if (quotable(f)) continue;
         for (const c of cites) {
           const nums = artifactNumbers(c);
           if (!nums || !artifactHas(nums, f)) continue;

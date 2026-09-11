@@ -1,0 +1,2 @@
+{"at":"2026-09-08T05:03:55.248Z","why":"batch P fix 1: fieldEvent('Residual') pays the faint queue after a SURVIVING perish handler, so a |faint| queued by an expiry above it no longer waits for |upkeep|","showdown_commit":"20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"}
+{"at":"2026-09-08T05:16:14.612Z","why":"game differential mode A — the comparison driver, ROADMAP #68 step two","showdown_commit":"20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"}

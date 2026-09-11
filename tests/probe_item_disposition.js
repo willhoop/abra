@@ -34,6 +34,11 @@
  *   eat-then-switch the BENCH. Neither engine clears either field on a switch-out, so the leaf is
  *                   compared on a benched body too and the seven arms above could not see it.
  *
+ * WRITE-POLICY: findings — a PARTS cell IS the measurement. A REMOVAL arm that parts is the row's
+ * wrong_if and exits non-zero, and the artifact still publishes because the parting cells ARE what a
+ * reader came for; it carries `run_ok:false` and the named cells so no consumer can mistake a refused
+ * run for a survived one. Nothing here is re-read by this file, so the write cannot baseline itself.
+ *
  * VERDICTS. `MATCH` is both engines holding the same pair. `PARTS` is a real state disagreement and
  * is the finding, not a failure of this probe — what it means for the LEAF depends on which arm it
  * lands in: a PARTS on a removal arm is the row's wrong_if and refuses the wire; a PARTS on a
@@ -110,7 +115,7 @@ const ARMS = [
        + 'board leaf, and 192 of 961 pinned-pool games parted on exactly this. `recordItemUsed` is '
        + 'the door it now goes through.',
     expect: 'BOTH engines write focussash / -- . `ateBerry` stays FALSE: nothing was eaten, which is '
-          + 'the authority's own split between `useItem` and `eatItem` and not a narrowing here.',
+          + "the authority's own split between `useItem` and `eatItem` and not a narrowing here.",
     A: ['pangoro', '', 'Iron Fist', ['Crunch', 'Protect']],
     B: ['gengar', 'Focus Sash', 'Cursed Body', ['Sucker Punch', 'Protect']],
     p1: 'crunch', p2: 'suckerpunch' },
@@ -147,6 +152,7 @@ console.log('  ' + 'arm'.padEnd(14) + 'kind'.padEnd(13) + 'body'.padEnd(10)
   + 'medicham2'.padEnd(22) + 'showdown'.padEnd(22) + 'verdict');
 
 const rows = [];
+const partedCells = [];
 let parted = 0, removalParted = 0;
 for (const arm of ARMS) {
   const A = one(...arm.A).concat(BENCH('clefable', 'milotic', 'weavile'));
@@ -188,7 +194,11 @@ for (const arm of ARMS) {
     if (!last) continue;
     const same = last.medi.lastItem === last.sd.lastItem && last.medi.ateBerry === last.sd.ateBerry;
     row.bodies[side] = { medi: last.medi, sd: last.sd, match: same, boundaries: seen[side] };
-    if (!same) { parted++; if (arm.kind === 'REMOVAL') removalParted++; }
+    if (!same) {
+      parted++; if (arm.kind === 'REMOVAL') removalParted++;
+      partedCells.push({ arm: arm.id, kind: arm.kind, side, medi: fmt(last.medi), sd: fmt(last.sd),
+        body: side === 'p1' ? arm.A[0] : arm.B[0] });
+    }
     console.log('  ' + arm.id.padEnd(14) + arm.kind.padEnd(13) + side.padEnd(10)
       + fmt(last.medi).padEnd(22) + fmt(last.sd).padEnd(22) + (same ? 'MATCH' : 'PARTS'));
   }
@@ -203,6 +213,11 @@ console.log('\n  THE FALSIFICATION');
 if (removalParted) {
   console.log('    REFUSED — ' + removalParted + ' body/bodies PART on a REMOVAL arm. A removal path in one');
   console.log('    engine writes a field the other does not, so the leaf would manufacture divergences.');
+  /* NAME THE CELL. A non-zero exit with only a count is read as this probe's headline defect rather
+   * than as the one arm that moved, which is how a red gets attributed to the wrong mechanic. */
+  for (const c of partedCells.filter(x => x.kind === 'REMOVAL'))
+    console.log('      FAILING CELL  arm=' + c.arm.padEnd(16) + 'side=' + c.side + '  body=' + String(c.body).padEnd(10)
+      + 'medicham2=' + c.medi.padEnd(20) + 'showdown=' + c.sd);
 } else {
   console.log('    SURVIVED — every REMOVAL arm reads identically on both engines. No removal path in');
   console.log('    either engine writes `lastItem` or `ateBerry`.');
@@ -211,11 +226,18 @@ const consParted = parted - removalParted;
 console.log('    CONSUMPTION arms parting: ' + consParted + (consParted
   ? '   <- an ENGINE state disagreement the leaf would reveal, not a reason to refuse it'
   : ''));
+for (const c of partedCells.filter(x => x.kind !== 'REMOVAL'))
+  console.log('      PARTING CELL  arm=' + c.arm.padEnd(16) + 'side=' + c.side + '  body=' + String(c.body).padEnd(10)
+    + 'medicham2=' + c.medi.padEnd(20) + 'showdown=' + c.sd);
 
 const fs = require('fs');
 fs.writeFileSync(D('data', 'verification', 'probe-item-disposition.json'), JSON.stringify({
   generated: new Date().toISOString(),
   what: 'the wrong_if falsification for the item-disposition leaf — raw `lastItem`/`ateBerry` from both engines',
+  write_policy: 'FINDINGS. A parting REMOVAL cell is the measurement and is published with run_ok:false, '
+    + 'so a consumer reading this file by name can tell a REFUSED run from a SURVIVED one.',
+  run_ok: removalParted === 0,
+  parted_cells: partedCells,
   removal_arms_parting: removalParted,
   consumption_arms_parting: consParted,
   verdict: removalParted ? 'REFUSED — a removal path writes the field' : 'SURVIVED — no removal path writes the field',
