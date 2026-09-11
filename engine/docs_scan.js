@@ -23,6 +23,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const ROOT = path.join(__dirname, '..');
 const D = (...p) => path.join(ROOT, ...p);
@@ -926,6 +927,21 @@ function fieldCitationsIn(text) {
   return out;
 }
 
+/** Every number under `field` in a parsed artifact, plus each container's size, or null when the
+ *  field does not resolve. One implementation for the citation rule and the census's binding. */
+function fieldScopeOf(j, field) {
+  const nodes = resolveField(j, field);
+  if (!nodes) return null;
+  const s = new Set();
+  for (const n of nodes) {
+    walkNumbers(n, s);
+    /* "`data/pokemon-roles.json:roles`, 52 keys" — the SIZE of a container is a claim about the field. */
+    if (Array.isArray(n)) s.add(n.length);
+    else if (n && typeof n === 'object') s.add(Object.keys(n).length);
+  }
+  return s;
+}
+
 /** The node(s) a key path names inside a parsed artifact, or null when the path does not resolve —
  *  which is distinct from resolving to a null VALUE, and the distinction is what makes a wrong field
  *  name a finding rather than a silence. */
@@ -1072,7 +1088,9 @@ function sentencesOf(line) {
   SENTENCE_END.lastIndex = 0;
   while ((m = SENTENCE_END.exec(struck)) !== null) { cuts.push([at, m.index]); at = m.index + m[0].length; }
   cuts.push([at, plain.length]);
-  return cuts.map(([a, b]) => ({ raw: struck.slice(a, b), plain: plain.slice(a, b) })).filter(s => s.plain.trim());
+  /* `at` is the sentence's offset in the line, so a caller can say WHICH sentence a figure sat in —
+   * the untraced-figure grandfather key is built from it (traceUnits). */
+  return cuts.map(([a, b]) => ({ raw: struck.slice(a, b), plain: plain.slice(a, b), at: a })).filter(s => s.plain.trim());
 }
 
 /* "`state.games` 961" — a backticked key path that RESOLVES to a numeric leaf in a cited artifact,
@@ -1120,16 +1138,7 @@ function citationMismatches(docs, { read = readDoc, artifact = artifactObject, v
   const scopeOf = (rel, field) => {
     const j = artifact(rel);
     if (j === undefined || j === null) return undefined;
-    const nodes = resolveField(j, field);
-    if (!nodes) return null;
-    const s = new Set();
-    for (const n of nodes) {
-      walkNumbers(n, s);
-      /* "`data/pokemon-roles.json:roles`, 52 keys" — the SIZE of a container is a claim about the field. */
-      if (Array.isArray(n)) s.add(n.length);
-      else if (n && typeof n === 'object') s.add(Object.keys(n).length);
-    }
-    return s;
+    return fieldScopeOf(j, field);
   };
   const hits = [];
   /* A PINNED DOCUMENT IS DATED BY ITS PIN. `data/docs-currency-baseline.json` `version_pins` is a
@@ -1154,7 +1163,10 @@ function citationMismatches(docs, { read = readDoc, artifact = artifactObject, v
     for (const b of paragraphs(text)) {
       const cites = citationsIn(b.lines);
       if (!cites.length) continue;
-      const sets = cites.map(c => ({ c, nums: numsOf(c) })).filter(x => x.nums);
+      /* A FILE THAT IS A COPY OF A DOCUMENT CANNOT VOUCH FOR ONE, here exactly as in the census:
+       * citing `data/open-work.json` beside a figure must not make the register's copy of the prose
+       * that figure's source. See NOT_AN_ARTIFACT. Such a sentence falls to the census instead. */
+      const sets = cites.filter(isArtifactRel).map(c => ({ c, nums: numsOf(c) })).filter(x => x.nums);
       if (!sets.length) continue;
       const judged = sets.map(x => x.c);
       const stamps = new Map(judged.map(c => [c, artifactDate(artifact(c))]));
@@ -1367,6 +1379,12 @@ function citationProof() {
  * file whose content is a copy of a DOCUMENT — the register, this gate's own findings — is not one,
  * and a document cannot be its own source. */
 const NOT_AN_ARTIFACT = new Set(['docs-currency-baseline.json', 'open-work.json']);
+/* ONE PREDICATE FOR EVERY RULE THAT ASKS "IS THIS A SOURCE". The union below, the citation rule, the
+ * census's binding and the quarantine clause's uniqueness all consult it, so a file that is a copy of a
+ * document can never vouch for a figure in one rule while being refused in another. It matters more
+ * since 2026-09-11: the untraced-figure grandfather list lives in docs-currency-baseline.json and holds
+ * thousands of figures as written. */
+const isArtifactRel = rel => !NOT_AN_ARTIFACT.has(path.basename(String(rel)));
 let allNumsCache = null;
 function allArtifactNumbers() {
   if (allNumsCache) return allNumsCache;
@@ -1393,6 +1411,13 @@ function allArtifactNumbers() {
  *
  * A gate that fires no matter what anyone does is a gate that gets reported as a known failure --
  * engine/provenance.js was fixed for exactly this shape earlier in the same session.
+ *
+ * SUPERSEDED 2026-09-11 BY THE BOUND-TRACE RULE BELOW (untraceableCensus). A hit anywhere in
+ * CHANGELOG.md is no longer a trace; only the entry the block NAMES is. The last sentence of this
+ * paragraph turned out to be false — writing an orphaned figure into an entry DID launder it, three
+ * times on 2026-09-10 — and the treadmill it describes is answered by naming the entry instead. This
+ * function now only separates a figure with some match (UNBOUND) from one with none (UNTRACEABLE).
+ * The reasoning is kept as the record.
  *
  * So: a figure recorded in CHANGELOG.md is TRACEABLE. It is not a weaker trace than an artifact, it
  * is a different one -- the artifact says what is true now, the changelog says what was true and
@@ -1430,39 +1455,381 @@ function changelogHas(f) {
 /* `read` IS INJECTABLE for the same reason retractionRegistry's is: a claim about what this census
  * DOES catch has to be demonstrable on a document whose content is known, without writing a file into
  * docs/ to find out. Nothing in the repository passes it; the default is readDoc. */
-function untraceableCensus(docs, { read = readDoc } = {}) {
-  const all = allArtifactNumbers();
-  const per = {}, where = {};
+/* ================================================================================================
+ * A TRACE IS BOUND TO ITS CLAIM, OR IT IS NOT A TRACE — WILL'S RATCHET, 2026-09-11.
+ * ================================================================================================
+ * `allArtifactNumbers()` and `changelogHas()` used to BE the trace: a figure was "traceable" if its
+ * value, after `indexFor`'s rounding and x100 / /100 scaling, occurred ANYWHERE in the union of data/
+ * or ANYWHERE in CHANGELOG.md. Measured 2026-09-11, that union holds every three-digit integer and most
+ * four-digit ones, so for most figures the check could not fail whatever the digits were; the counts
+ * are in docs/_reports/2026-09-11-traceability-ratchet.md. Four orphans were caught on 2026-09-10 only
+ * because the unrelated number each had matched — a usage share, a coverage counter — happened to move.
+ *
+ * Two perverse consequences, both live:
+ *   - writing an orphaned figure into CHANGELOG.md as its "trace" turned the complaint about the
+ *     figure into its source — the loop NOT_AN_ARTIFACT closes for the register, one file over;
+ *   - CITING COST YOU. A sentence naming `data/x.json` is judged strictly (the figure must be IN x),
+ *     while the same figure with the citation deleted passed on a digit match anywhere at all.
+ *
+ * THE RULE. A figure the citation rule does not judge is TRACED only when the trace is bound to it:
+ *   PARAGRAPH  its paragraph names `data/x.json` — an artifact, not a copy of a document — and x holds
+ *              it at the document's own precision: under the named field if the paragraph cites x only
+ *              as `data/x.json:field`, and as that exact leaf if the sentence writes "`key.path` N";
+ *   ENTRY      the block names a CHANGELOG version — in its own text, in a heading above it, or as the
+ *              version opening the ledger paragraph it continues — and THAT entry carries it.
+ * A bare hit anywhere in data/ or anywhere in CHANGELOG.md is not a trace. It now does one job: it
+ * separates a figure with a coincidental match (UNBOUND) from a figure in an uncited sentence with no
+ * match at all (UNTRACEABLE — the census's old meaning, counted and ratcheted exactly as before).
+ *
+ * THE INVERSION IS GONE BECAUSE BOTH SIDES NOW NEED THE SAME THING. Cite, and the citation rule judges
+ * the figure against x; do not cite, and it still has to be bound to x or to a named entry. A
+ * QUALIFIED sentence ("the prior 42 ... is superseded") is exempt from the citation rule's ACCUSATION,
+ * because the disk cannot judge a record of the past — it is NOT exempt from needing a trace, and until
+ * this it was judged by nothing. Nor is a sentence whose only citation is absent, unparsable or not an
+ * artifact: citing a file that is not there used to take a figure out of both rules at once.
+ *
+ * GRANDFATHERING, NOT AMNESTY. Every figure green under the old rule and unbound under this one is in
+ * `known.untraced_grandfathered` of data/docs-currency-baseline.json, written ONCE by
+ * `node tests/test-docs-current.js --bootstrap-grandfather` and only ever SHRUNK after that. The key is
+ * `doc | sha1(the sentence) | the figure as written`, over the LOGICAL sentence — the paragraph's lines
+ * joined — so re-wrapping prose keeps the key and editing the sentence or the value loses it. A
+ * grandfathered figure does not fail; it is counted per document on every run. A new one fails by name.
+ *
+ * WHAT A BOUND TRACE STILL ADMITS, STATED. A paragraph citing a large artifact binds whatever that
+ * artifact happens to hold, and the x100 scaling reaches many integers through a file of floats. The
+ * citation rule has carried exactly this weakness since it was written; this rule inherits it rather
+ * than inventing a second tolerance, and the per-artifact exposure is measured in the report above. A
+ * field citation is the fix open to any author who wants the binding to mean more.
+ *
+ * AND A DATED BLOCK IS EXCUSED HERE EXACTLY WHEN THE CITATION RULE EXCUSES IT. A figure in a block
+ * stamped before every artifact its paragraph cites was regenerated cannot be judged by the disk,
+ * bound or not; citationMismatches reports such figures as `.predates` and so does this. Without it,
+ * one block's cited sentence was excused and its uncited neighbour accused — the inversion again, in
+ * the other direction. It is checked AFTER grandfathering, so it never thins the list. */
+
+/** Every X.Y.Z written in a span — a heading, a paragraph, a `(3.21.0)` aside, a `v2.7.0`. */
+function versionsIn(text) {
+  return [...String(text).matchAll(/(?<![\d.])(\d+\.\d+\.\d+)(?!\.?\d)/g)].map(m => m[1]);
+}
+
+/** For every line, the versions a block there is filed under: each heading in the chain above it (a
+ *  heading closes every deeper one) plus the version OPENING the nearest version-opened paragraph,
+ *  carried to the next heading or stamp — the carry `headingDates` gives dates. A `# comment` inside a
+ *  fence is code, not a heading. */
+function headingVersions(lines) {
+  const out = new Array(lines.length);
+  const chain = [];
+  let carry = [], fenced = false;
+  for (let i = 0; i < lines.length; i++) {
+    const L = lines[i];
+    if (fenceOpen(L)) fenced = !fenced;
+    else if (!fenced) {
+      const h = L.match(/^(#{1,6})\s/);
+      if (h) {
+        while (chain.length && chain[chain.length - 1].level >= h[1].length) chain.pop();
+        chain.push({ level: h[1].length, versions: versionsIn(L) });
+        carry = [];
+      } else if ((i === 0 || lines[i - 1].trim() === '') && /^\W{0,4}\d+\.\d+\.\d+\b/.test(L)) {
+        carry = versionsIn(L).slice(0, 1);
+      }
+    }
+    out[i] = [...chain.flatMap(c => c.versions), ...carry];
+  }
+  return out;
+}
+
+/** version -> the figure values its CHANGELOG entry states: the body from `## [X.Y.Z]` to the next
+ *  `## [` heading. The first entry for a version wins, as in changelogDates(). */
+function changelogEntries(text) {
+  const map = new Map();
+  let cur = null, body = [];
+  const flush = () => {
+    if (cur && !map.has(cur)) map.set(cur, new Set(figuresInText(body.join('\n')).map(g => g.value)));
+    cur = null; body = [];
+  };
+  for (const L of stripCR(text).split('\n')) {
+    if (/^##\s*\[/.test(L)) { flush(); const m = L.match(/^##\s*\[(\d+\.\d+\.\d+)\]/); cur = m ? m[1] : null; continue; }
+    if (cur) body.push(L);
+  }
+  flush();
+  return map;
+}
+/* AN ENTRY IS MATCHED AT THE DOCUMENT'S ROUNDING AND NOTHING ELSE. `artifactHas` bridges x100 and
+ * /100 because an artifact stores 0.123 where a document writes 12.3%. A CHANGELOG entry is prose in
+ * the documents' own units, so that bridge has no job there except manufacturing collisions — measured
+ * 2026-09-11, 20 of 3,836 entry bindings relied on it. */
+const entryIndex = new WeakMap();
+function entryHas(set, f) {
+  if (!set || !set.size) return false;
+  let byDp = entryIndex.get(set);
+  if (!byDp) { byDp = new Map(); entryIndex.set(set, byDp); }
+  let s = byDp.get(f.dp);
+  if (!s) { s = new Set([...set].map(v => v.toFixed(f.dp))); byDp.set(f.dp, s); }
+  return s.has(f.value.toFixed(f.dp));
+}
+let entriesCache = null;
+function changelogEntryIndex() {
+  if (entriesCache) return entriesCache;
+  try { entriesCache = changelogEntries(fs.readFileSync(D('CHANGELOG.md'), 'utf8')); }
+  catch (e) {
+    /* FAIL-CLOSED AND SAID OUT LOUD: with no CHANGELOG nothing binds to an entry, so every figure that
+     * would have is reported unbound — which must read as a missing file, not as the documents rotting. */
+    console.error('  docs_scan: CANNOT READ CHANGELOG.md (' + e.message + ') — no figure can bind to a '
+      + 'CHANGELOG entry this run, so those figures read UNBOUND. A missing file, not a regression.');
+    entriesCache = new Map();
+  }
+  return entriesCache;
+}
+
+/** For one paragraph: a lookup from (block line, column) to the LOGICAL sentence at that position.
+ *  The lines are joined with leading blockquote markers dropped, and a list item starts a new unit, so
+ *  a sentence is the same sentence however the prose happens to be wrapped. */
+function traceUnits(bLines) {
+  const at = new Map();
+  let cur = null, fenced = false;
+  bLines.forEach((L, i) => {
+    if (fenceOpen(L)) { fenced = !fenced; cur = null; return; }
+    if (fenced) return;
+    const strip = (L.match(/^\s*(?:>\s?)*/) || [''])[0].length;
+    const body = L.slice(strip);
+    if (!cur || /^(?:[-*+]|\d+[.)])\s/.test(body)) cur = { text: '', sents: null };
+    else cur.text += ' ';
+    at.set(i, { u: cur, off: cur.text.length - strip, strip });
+    cur.text += body;
+  });
+  return (i, col) => {
+    const w = at.get(i);
+    if (!w) return null;
+    if (!w.u.sents) w.u.sents = sentencesOf(w.u.text);
+    const pos = w.off + Math.max(col, w.strip);
+    let hit = w.u.sents[0] || null;
+    for (const s of w.u.sents) if (s.at <= pos) hit = s;
+    return hit ? hit.raw.replace(/\s+/g, ' ').trim() : null;
+  };
+}
+const traceHash = (sentence) => crypto.createHash('sha1').update(sentence).digest('hex').slice(0, 10);
+
+/** The grandfather list as flat `doc|hash|figure` keys, or null when the baseline carries none. */
+function grandfatheredTraces() {
+  const f = D('data', 'docs-currency-baseline.json');
+  if (!fs.existsSync(f)) return null;
+  const g = (JSON.parse(fs.readFileSync(f, 'utf8')).known || {}).untraced_grandfathered;
+  if (!g) return null;
+  return new Set(Object.entries(g).flatMap(([doc, ks]) => ks.map(k => doc + '|' + k)));
+}
+
+/* THE SENTENCE IS THE UNIT HERE TOO — 2026-09-09. A block was skipped whole for one citation anywhere
+ * in it. A sentence the citation rule judges is its; every other sentence is traced here. The two
+ * share one predicate — an unqualified sentence naming a judgeable artifact — so they cannot disagree
+ * about who owns a figure, and no figure falls between them.
+ *
+ * `read`, `artifact`, `all`, `changelog` and `grandfathered` are injectable so the rule is shown red
+ * on a synthetic document without writing one into docs/ (traceProof). Returns the UNTRACEABLE class as
+ * `total / per / where` — unchanged in meaning, so major_readiness.js and the ratchet read it as
+ * before — plus `bound`, `grandfathered_keys`, `grandfathered_by_doc` and `unbound`. */
+function untraceableCensus(docs, { read = readDoc, artifact = artifactObject, all = null, changelog = null,
+                                   grandfathered, observe = null } = {}) {
+  /* `observe`, when given, is told the class of every figure and what could have bound it, so a
+   * measurement of HOW MUCH a binding means is taken through this function rather than a copy of it. */
+  const see = observe || (() => {});
+  const universe = all || allArtifactNumbers();
+  const entries = changelog === null ? changelogEntryIndex() : changelogEntries(changelog);
+  let anywhereInChangelog = changelogHas;
+  if (changelog !== null) {
+    const s = new Set(figuresInText(changelog).map(g => Number(g.value).toFixed(6)));
+    anywhereInChangelog = f => s.has(Number(f.value).toFixed(6));
+  }
+  const gf = grandfathered === undefined ? grandfatheredTraces() : grandfathered;
+  const local = new Map();
+  const numsOf = artifact === artifactObject ? artifactNumbers : (rel) => {
+    if (local.has(rel)) return local.get(rel);
+    const j = artifact(rel);
+    let s = null;
+    if (j !== undefined && j !== null) { s = new Set(); walkNumbers(j, s); }
+    local.set(rel, s);
+    return s;
+  };
+  const judgeable = c => isArtifactRel(c) && !!numsOf(c);
+  /* Dating, exactly as citationMismatches dates a block — the same stamp, heading and pin rules — so a
+   * dated block is excused or accused identically by both rules. */
+  let versionDate = changelogDate;
+  if (changelog !== null) {
+    const m = new Map();
+    for (const x of stripCR(changelog).matchAll(/^##\s*\[(\d+\.\d+\.\d+)\][^\n]*?(\d{4}-\d{2}-\d{2})/gm)) if (!m.has(x[1])) m.set(x[1], x[2]);
+    versionDate = v => m.get(v) || null;
+  }
+  const pins = versionPins();
+  const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  const per = {}, where = {}, unbound = new Map(), seenGf = new Set(), predates = [];
+  const bound = { paragraph: 0, entry: 0, by_artifact: {} };
   let total = 0;
   for (const rel of docs) {
+    const text = read(rel);
+    const docLines = text.split('\n');
+    const hv = headingVersions(docLines);
+    const above = headingDates(docLines, versionDate);
+    const pinned = pins[rel] && pins[rel].version ? versionDate(pins[rel].version) : null;
     let n = 0;
-    for (const b of paragraphs(read(rel))) {
-      /* THE SENTENCE IS THE UNIT HERE TOO — 2026-09-09. A block was skipped whole for one citation
-       * anywhere in it, so every other figure in a `**5.244.0 -` ledger paragraph was neither this
-       * clause's nor rule 3d's. A sentence that cites an artifact is judged by citationMismatches;
-       * a sentence that cites none is traced here. Same split, same sentencesOf(). */
-      const uncited = [];
+    for (const b of paragraphs(text)) {
+      const joined = b.lines.join('\n');
+      const pc = citationsIn(b.lines).filter(judgeable);
+      /* What each cited artifact can bind: the whole file where the paragraph cites it bare, only the
+       * named fields where every mention of it names one. */
+      const fieldsOf = new Map();
+      for (const fc of fieldCitationsIn(joined)) {
+        if (!pc.includes(fc.c)) continue;
+        if (!fieldsOf.has(fc.c)) fieldsOf.set(fc.c, []);
+        fieldsOf.get(fc.c).push(fc.field);
+      }
+      const scopes = [];
+      for (const c of pc) {
+        const bare = new RegExp(esc(c) + '(?![\\w\\-]|\\.\\w|:[A-Za-z_$])').test(joined);
+        if (bare || !fieldsOf.has(c)) { scopes.push({ c, nums: numsOf(c) }); continue; }
+        for (const fld of fieldsOf.get(c)) { const s = fieldScopeOf(artifact(c), fld); if (s) scopes.push({ c, nums: s }); }
+      }
+      const vers = [...new Set([...versionsIn(joined), ...(hv[b.start - 1] || [])])].filter(v => entries.has(v));
+      const when = stampedDate(b.lines.slice(0, 3).join(' '), versionDate) || above[Math.max(0, b.start - 1)] || pinned || null;
+      const stamps = pc.map(c => artifactDate(artifact(c)));
+      const predating = !!when && stamps.length > 0 && stamps.every(d => d && d > when);
+      const unitOf = traceUnits(b.lines);
       let fenced = false;
-      for (const L of b.lines) {
+      for (let i = 0; i < b.lines.length; i++) {
+        const L = b.lines[i];
         if (fenceOpen(L)) { fenced = !fenced; continue; }
         if (fenced) continue;
-        for (const s of sentencesOf(L)) if (!citationsIn([s.raw]).length) uncited.push(s.raw);
-      }
-      for (const f of figuresInText(uncited.join('\n'))) {
-        if (isUniversal(f)) continue;
-        if (f.value < 10 && Number.isInteger(f.value)) continue;
-        if (artifactHas(all, f)) continue;
-        if (changelogHas(f)) continue;             // recorded history — see changelogHas()
-        n++;
-        (where[rel] = where[rel] || []).push({
-          line: b.start || 0, value: f.raw !== undefined ? f.raw : f.value,
-          text: b.lines[0].trim().slice(0, 90),
-        });
+        for (const s of sentencesOf(L)) {
+          const cites = citationsIn([s.raw]);
+          if (cites.some(judgeable) && !QUALIFIED.test(s.plain)) continue;   // the citation rule's
+          const claims = fieldClaims(s.raw, pc, artifact);
+          let sentence = null;
+          for (const f of figuresIn(s.raw)) {
+            if (isUniversal(f)) continue;
+            if (f.value < 10 && Number.isInteger(f.value)) continue;
+            /* A named leaf is the whole of the claim: bound iff it holds the value, never rescued by
+             * the rest of the file. */
+            const leaf = claims.find(k => k.figure.raw === f.raw);
+            const holder = leaf ? (artifactHas(new Set([leaf.expected]), f) ? { c: leaf.cite } : null)
+              : scopes.find(sc => artifactHas(sc.nums, f));
+            const line = b.start + i;
+            const ctx = { doc: rel, line, figure: f, cited: cites.length > 0, leaf: leaf || null,
+                          scopes: leaf ? [] : scopes.map(sc => sc.nums), entrySets: vers.map(v => entries.get(v)) };
+            if (holder) {
+              bound.paragraph++; bound.by_artifact[holder.c] = (bound.by_artifact[holder.c] || 0) + 1;
+              see({ ...ctx, cls: 'paragraph', by: holder.c }); continue;
+            }
+            if (vers.some(v => entryHas(entries.get(v), f))) { bound.entry++; see({ ...ctx, cls: 'entry' }); continue; }
+            if (sentence === null) sentence = unitOf(i, s.at) || s.raw.replace(/\s+/g, ' ').trim();
+            const key = rel + '|' + traceHash(sentence) + '|' + f.raw;
+            if (gf && gf.has(key)) { seenGf.add(key); see({ ...ctx, cls: 'grandfathered', key }); continue; }
+            if (!cites.length && !artifactHas(universe, f) && !anywhereInChangelog(f)) {
+              n++;
+              (where[rel] = where[rel] || []).push({ line, value: f.raw, text: b.lines[0].trim().slice(0, 90) });
+              see({ ...ctx, cls: 'untraceable', key });
+              continue;
+            }
+            /* A DATED block whose every cited artifact was regenerated after it: the disk no longer holds
+             * the instance the block read, so the binding cannot be judged either way. Reported, never
+             * failed — the citation rule's `.predates`, applied to the same block's other sentences.
+             * AFTER the untraceable class, not before: measured 2026-09-11, the other order moved 9 of the
+             * 22 untraceable figures into this bucket and the ratchet lowered its floor to 13 — a figure with
+             * no match anywhere is untraceable whatever its block's date, which is the census's old meaning. */
+            if (predating) { predates.push({ key, doc: rel, line, value: f.raw, when, cites: pc }); see({ ...ctx, cls: 'predates', key }); continue; }
+            see({ ...ctx, cls: 'unbound', key });
+            if (!unbound.has(key)) unbound.set(key, { key, doc: rel, line, value: f.raw,
+              why: cites.length
+                ? 'its sentence cites only what cannot bind it' + (QUALIFIED.test(s.plain) ? ' (a qualified sentence)' : '')
+                : 'its only trace is a digit match that is not bound to the claim',
+              text: sentence.slice(0, 110) });
+          }
+        }
       }
     }
     if (n) { per[rel] = n; total += n; }
   }
-  return { total, per, where };
+  const grandfathered_by_doc = {};
+  for (const k of seenGf) { const d = k.slice(0, k.indexOf('|')); grandfathered_by_doc[d] = (grandfathered_by_doc[d] || 0) + 1; }
+  return { total, per, where, bound, grandfathered_keys: [...seenGf].sort(), grandfathered_by_doc,
+           grandfather_list_present: !!gf, unbound: [...unbound.values()], predates };
+}
+
+/* ---- THE RED DEMONSTRATION FOR THE BOUND TRACE, one case per binding and one against each --------
+ * Synthetic documents through the SHIPPING census, with the artifact, the data/ union, the CHANGELOG
+ * and the grandfather list injected. The grandfather cases seed their list by running the census on
+ * the original sentence — the bootstrap path, not a hand-typed key. Each case has one figure, so the
+ * class it lands in is the verdict. */
+const PROOF_TRACE_ARTIFACT = 'data/_proof-trace.json';
+const PROOF_TRACE_JSON = { generated: '2026-09-11T00:00:00Z', state: { games: 961, sweeps: 4321 } };
+const PROOF_TRACE_CHANGELOG = '## [9.2.0] — 2026-09-11\n- The sweep scored 4,321 games.\n\n## [9.1.0] — 2026-09-10\n- Nothing measured.\n';
+const TRACE_CASES = [
+  { id: 'a-bare-digit-match-is-not-a-trace', expect: 'unbound',
+    why: 'THE DEFECT. 4,321 is in data/ and in the CHANGELOG, bound to nothing this sentence says.',
+    text: 'The sweep scored 4,321 games.' },
+  { id: 'a-paragraph-citation-binds-what-its-artifact-holds', expect: 'bound',
+    why: 'The inversion, closed from the citing side: naming the source binds the next sentence too.',
+    text: 'The source is `data/_proof-trace.json`. The sweep scored 4,321 games.' },
+  { id: 'a-citation-binds-nothing-its-artifact-lacks', expect: 'unbound', all: [4322],
+    why: 'The control. A citation is a promise about ONE file; the digits being elsewhere in data/ do not help.',
+    text: 'The source is `data/_proof-trace.json`. The sweep scored 4,322 games.' },
+  { id: 'a-field-citation-binds-only-its-field', expect: 'unbound',
+    why: 'state.games is 961. 4,321 is elsewhere in the same file, and the paragraph did not point there.',
+    text: 'The source is `data/_proof-trace.json:state.games`. The sweep scored 4,321 games.' },
+  { id: 'a-field-citation-binds-its-own-value', expect: 'bound',
+    why: 'The control for the field case.',
+    text: 'The source is `data/_proof-trace.json:state.sweeps`. The sweep scored 4,321 games.' },
+  { id: 'the-changelog-entry-the-block-names-binds', expect: 'bound',
+    why: 'A record of the past is traced by the entry that recorded it, named by the block.',
+    text: '## The sweep (9.2.0)\n\nThe sweep scored 4,321 games.' },
+  { id: 'a-changelog-line-in-an-entry-the-block-does-not-name-is-not-a-trace', expect: 'unbound',
+    why: 'THE LAUNDERING ROUTE. 4,321 is in 9.2.0 and the block names 9.1.0. Writing a figure into some '
+       + 'entry does not make that entry this block\'s source.',
+    text: '## The sweep (9.1.0)\n\nThe sweep scored 4,321 games.' },
+  { id: 'a-copy-of-a-document-binds-nothing', expect: 'unbound',
+    why: 'NOT_AN_ARTIFACT, applied to binding: the register holds 4,321 only because a row quoted it.',
+    text: 'The register reads 4,321 in `data/open-work.json`.' },
+  { id: 'a-qualified-sentence-still-needs-a-trace', expect: 'unbound', all: [4322],
+    why: 'The citation rule skips a sentence about a superseded figure. Until 2026-09-11 that left the '
+       + 'figure judged by nothing at all.',
+    text: 'The prior 4,322 that `data/_proof-trace.json` held is superseded.' },
+  { id: 'a-dated-block-whose-artifact-was-regenerated-after-it-is-reported-not-accused', expect: 'predates', all: [4322],
+    why: 'The citation rule\'s .predates, applied to the same block. 9.1.0 is 2026-09-10 and the artifact '
+       + 'was regenerated 2026-09-11, so the disk cannot say what the block read.',
+    text: '**9.1.0 - THE RECORD.** The source is `data/_proof-trace.json`. The sweep scored 4,322 games.' },
+  { id: 'the-same-block-dated-no-earlier-than-its-artifact-is-accused', expect: 'unbound', all: [4322],
+    why: 'The control: stamped 9.2.0 (2026-09-11) the block could have read this very instance, and it '
+       + 'does not hold 4,322.',
+    text: '**9.2.0 - THE RECORD.** The source is `data/_proof-trace.json`. The sweep scored 4,322 games.' },
+  { id: 'no-citation-and-no-match-is-untraceable-as-before', expect: 'untraceable',
+    why: 'The old census class, unchanged, so its per-document ratchet keeps its meaning.',
+    text: 'The sweep scored 4,323 games.' },
+  { id: 'a-grandfathered-figure-passes', expect: 'grandfathered',
+    why: 'The list, seeded from this very sentence by the bootstrap path.',
+    gf: 'The sweep scored 4,321 games on the frozen pool.', text: 'The sweep scored 4,321 games on the frozen pool.' },
+  { id: 'rewrapping-keeps-the-grandfather-key', expect: 'grandfathered',
+    why: 'The key is the logical sentence, so moving a line break is not an edit.',
+    gf: 'The sweep scored 4,321 games on the frozen pool.', text: 'The sweep scored 4,321\ngames on the frozen pool.' },
+  { id: 'editing-the-value-loses-grandfathering', expect: 'unbound', all: [4320],
+    why: 'A new value is a new claim.',
+    gf: 'The sweep scored 4,321 games on the frozen pool.', text: 'The sweep scored 4,320 games on the frozen pool.' },
+  { id: 'editing-the-sentence-loses-grandfathering', expect: 'unbound',
+    why: 'New words around the same digits are a new claim too.',
+    gf: 'The sweep scored 4,321 games on the frozen pool.', text: 'The sweep scored 4,321 games on the live pool.' },
+];
+
+/** Runs every case through the real census. `holds` false means the rule changed meaning. */
+function traceProof() {
+  const artifact = rel => (rel === PROOF_TRACE_ARTIFACT ? PROOF_TRACE_JSON
+    : rel === 'data/open-work.json' ? { rows: [{ quoted: 4321 }] } : undefined);
+  const run = (text, all, grandfathered) => untraceableCensus([PROOF_DOC], {
+    read: () => '# proof\n\n' + text + '\n', artifact, all: new Set(all), changelog: PROOF_TRACE_CHANGELOG, grandfathered });
+  return TRACE_CASES.map(c => {
+    const gf = c.gf ? new Set(run(c.gf, [4321], new Set()).unbound.map(u => u.key)) : new Set();
+    const r = run(c.text, c.all || [4321], gf);
+    const got = r.unbound.length ? 'unbound' : r.total ? 'untraceable' : r.predates.length ? 'predates'
+      : r.grandfathered_keys.length ? 'grandfathered'
+      : (r.bound.paragraph + r.bound.entry) ? 'bound' : 'nothing';
+    return { id: c.id, why: c.why, text: c.text, expected: c.expect, got, holds: got === c.expect };
+  });
 }
 
 /* ---- the archive is not a laundry -------------------------------------------------------------
@@ -1594,7 +1961,7 @@ function quarantinedFigures(docs, { withhold, read = readDoc } = {}) {
        * witness; this applies the same rule inside one paragraph. The figure has to be IN the
        * non-withheld artifact. Citing a quotable file that doesn't carry it clears nothing, and
        * tests/test-docs-quarantine.js shows that case red. */
-      const free = all.filter(c => !st.withhold(c));
+      const free = all.filter(c => !st.withhold(c) && isArtifactRel(c));
       const quotable = (f) => free.some(c => { const n = artifactNumbers(c); return !!(n && artifactHas(n, f)); });
       const body = b.lines.join('\n');
       for (const f of figuresInText(body)) {
@@ -1674,7 +2041,7 @@ function uniqueOwners() {
    * 'owner' of PORY's held-out figures, so a withheld number acquired a witness that was a copy of
    * itself. A bundle is the measurement republished for the browser, not a second source of it. */
   const list = fs.readdirSync(D('data'))
-    .filter(f => /\.json$/.test(f) && !/^games\./.test(f) && !/\.meta\.json$/.test(f))
+    .filter(f => /\.json$/.test(f) && !/^games\./.test(f) && !/\.meta\.json$/.test(f) && !NOT_AN_ARTIFACT.has(f))
     .map(f => 'data/' + f);
   return (f) => {
     let found = null;
@@ -2108,6 +2475,8 @@ module.exports = {
   changelogDates, stampedDate, headingDates, artifactDate,
   artifactHas, paragraphs, citationsIn,
   retractionRegistry, retractionViolations, citationMismatches, untraceableCensus,
+  traceProof, TRACE_CASES, grandfatheredTraces, changelogEntries, entryHas, headingVersions, versionsIn, traceUnits,
+  fieldScopeOf, isArtifactRel, NOT_AN_ARTIFACT,
   isDistinctive, sigFigs, truncateTo, restatesFigure, retractionProof, RETRACTION_CASES,
   archiveState, supersededHeader, QUALIFIED,
 };
@@ -2199,4 +2568,15 @@ figure lexer proof: ${report.lexing_proof.length - lex.length}/${report.lexing_p
   console.log(`\nuntraceable figures: ${census.total} across ${Object.keys(census.per).length} documents`);
   const top = Object.entries(census.per).sort((a, b) => b[1] - a[1]).slice(0, 15);
   for (const [d, n] of top) console.log(`  ${String(n).padStart(4)}  ${d}`);
+  const tp = traceProof().filter(p => !p.holds);
+  console.log(`\nbound-trace proof: ${TRACE_CASES.length - tp.length}/${TRACE_CASES.length} hold` + (tp.length ? '  *** ' + tp.map(p => p.id).join(', ') + ' ***' : ''));
+  console.log(`bound traces: ${census.bound.paragraph} by an artifact the paragraph cites, ${census.bound.entry} by a CHANGELOG entry the block names`);
+  const gfBy = Object.entries(census.grandfathered_by_doc).sort((a, b) => b[1] - a[1]);
+  console.log(`grandfathered (green under the old digit-match rule, bound to nothing): ${census.grandfathered_keys.length} across ${gfBy.length} documents`
+    + (census.grandfather_list_present ? '' : '   [NO LIST YET — node tests/test-docs-current.js --bootstrap-grandfather]'));
+  for (const [d, n] of gfBy) console.log(`  ${String(n).padStart(5)}  ${d}`);
+  console.log(`in dated blocks whose cited artifact was regenerated after the block (reported, not judged): ${census.predates.length}`);
+  console.log(`unbound and not grandfathered: ${census.unbound.length}`);
+  for (const u of census.unbound.slice(0, 20)) console.log(`  ${u.doc}:${u.line}  ${u.value}  — ${u.why}\n      ${u.text}`);
+  if (census.unbound.length > 20) console.log(`  (+${census.unbound.length - 20} more — --json for the list)`);
 }

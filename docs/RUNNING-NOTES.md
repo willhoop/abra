@@ -69,6 +69,14 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [6.6.2] — 2026-09-11 — the untraceable-figure check is a ratchet: a figure is traced only by a trace bound to it, 2,258 grandfathered
+
+- **What changed.** `engine/docs_scan.js` `untraceableCensus`: a figure is traced only by an artifact its own paragraph cites that holds it (narrowed to the named field when the citation names one) or by the CHANGELOG entry its block names; a hit anywhere in the data directory or anywhere in the CHANGELOG is no longer a trace. QUALIFIED sentences and sentences citing only a missing file now need a trace too, and a citation of the open-work or baseline artifact counts for nothing, so citing no longer costs a figure. `tests/test-docs-current.js` ratchets a generated grandfather list, written once by `node tests/test-docs-current.js --bootstrap-grandfather`; it may only shrink, and a grandfathered figure whose value or sentence changes loses its place.
+- **Measured.** 2,258 figures grandfathered across 24 living documents; 1,325 bound through a cited artifact and 3,816 through a named entry; the untraceable census unchanged at 22 across 4 — `data/docs-currency-baseline.json`. Gate 37 of 37. Plants: a new unbound figure RED, a field-bound figure green and RED one digit off, a grandfathered figure edited RED, a CHANGELOG-only figure under the wrong version RED — the first re-run independently. Detail: `docs/_reports/2026-09-11-traceability-ratchet.md`.
+- **Supersedes.** Nothing.
+- **Basis.** unchanged.
+- **Owed to the next major.** None — no published figure moved. Binding the 2,258 grandfathered figures is separate burn-down work, and binding through a cited artifact is still weak: about 726 of its 1,325 binds would happen by chance, 560 of them through the whole-game differential artifact, so a field-scoped bind is the next tightening.
+
 ## [6.6.1] — 2026-09-11 — the two corrupted-winner ladder rows are excluded by declaration, as Will decided
 
 - **What changed.** `data/quality-filter.json` 1.3.0 -> 1.4.0 adds the rule `exclude_corrupt_winner` (reason code `corrupt_winner`) naming the two #558 ids — `gen9championsvgc2026regmb-2662690089` and `gen9championsvgc2026regmb-2672145722` — with their defect, players and re-fetch receipts. `engine/quality.js` and `engine/quality.py` apply it as the last funnel stage. It is a DECLARATION, not a filter: nothing tests whether a winner is a player, and `engine/sanity_check.py`'s winner clause still counts every bad winner and fails on an UNDECLARED one or on a declared id whose winner has since been corrected, so the declaration cannot outlive its defect (shown red three ways on a scratch copy first). No store byte written.

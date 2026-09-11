@@ -10,6 +10,21 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.6.2] — 2026-09-11
+
+### Changed
+- **The untraceable-figure check is ratcheted, as Will decided on 2026-09-11.** A figure is now traced
+  only by a trace bound to it — an artifact its own paragraph cites that holds it, or the CHANGELOG entry
+  its block names. The old rule accepted a match ANYWHERE in `data/` or the CHANGELOG, and every
+  three-digit integer and 81% of four-digit ones already occur in `data/`, so it could not fail for most
+  figures. Existing unbound figures — 2,258 across 24 living documents — are grandfathered by a generated
+  list that may only shrink; new and changed figures must be bound. Gate 37 of 37.
+
+### Notes
+- Writing an orphaned figure into this file as its "trace", done three times on 2026-09-10, no longer
+  counts unless the paragraph names the entry — which is what stops a complaint about a figure becoming
+  that figure's source.
+
 ## [6.6.1] — 2026-09-11
 
 ### Fixed

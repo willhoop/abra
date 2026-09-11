@@ -59,6 +59,8 @@
  *
  *   node tests/test-docs-current.js
  *   node tests/test-docs-current.js --update    rebuild the baseline (REMOVALS ONLY — see ratchet())
+ *   node tests/test-docs-current.js --bootstrap-grandfather
+ *        write the untraced-figure grandfather list ONCE (clause 3b(d)); refused if it already exists
  */
 'use strict';
 const fs = require('fs');
@@ -88,6 +90,12 @@ const BASELINE = D('data', 'docs-currency-baseline.json');
  * Deliberately kept as the same flag name: a future reader running `--update` on a red gate now gets
  * a refusal that says why, which is more use than a flag that quietly did the wrong thing. */
 const UPDATE = process.argv.includes('--update');
+/* THE ONE WRITE THAT MAY ADD TO THE GRANDFATHER LIST, AND IT IS A FIRST WRITE ONLY. Every other list in
+ * this file bootstraps by adopting when its baseline is EMPTY. This one may not: it holds thousands of
+ * figures, and an empty-adopts rule would re-grandfather everything written since the day somebody
+ * burned the list to zero or deleted the key. So an absent list is RED, the bootstrap is a named flag,
+ * and the flag is REFUSED once the list exists. See clause 3b(d). */
+const BOOTSTRAP_GF = process.argv.includes('--bootstrap-grandfather');
 if (UPDATE) console.log('  --update is MONOTONE: it retires what was fixed and lowers counts. It '
   + 'cannot adopt a new entry, raise a count, or turn a failing clause green.');
 
@@ -601,7 +609,11 @@ function figureRules(base, next) {
     (lexBroken.length ? '\n         BROKEN:\n         ' + lexBroken.map(p =>
       `${p.id}: must ${p.expected ? 'READ' : 'SKIP'} the figure and did ${p.found ? 'read' : 'not'}\n           ${p.why}`).join('\n         ') : ''));
 
-  const census = S.untraceableCensus(living);
+  /* The grandfather list is read from THIS run's baseline, not from disk inside docs_scan, so the
+   * census and the ratchet below judge against the same list. Absent = null = nothing grandfathered. */
+  const gfBase = known.untraced_grandfathered;
+  const GF = gfBase ? new Set(Object.entries(gfBase).flatMap(([d, ks]) => ks.map(k => d + '|' + k))) : null;
+  const census = S.untraceableCensus(living, { grandfathered: GF });
   const baseCensus = known.untraceable_by_doc || {};
   const worse = [];
   for (const [d, n] of Object.entries(census.per)) {
@@ -627,6 +639,73 @@ function figureRules(base, next) {
   console.log('         Report only. A figure here is generated, cites an artifact, or is deleted —');
   console.log('         this check says which ones are none of the three. It removes nothing.');
 
+  /* ---- 3b(d). A TRACE IS BOUND TO ITS CLAIM — WILL'S RATCHET, 2026-09-11 -------------------------
+   *
+   * 3b(c) above used to call a figure traced when its value occurred ANYWHERE in data/ or ANYWHERE in
+   * CHANGELOG.md, and that union holds every three-digit integer and most four-digit ones, so for most
+   * figures it could not fail. The rule is in engine/docs_scan.js beside untraceableCensus: a figure is
+   * traced only by an artifact its paragraph cites or by the CHANGELOG entry its block names.
+   *
+   * Every figure that was green under the old rule and is unbound under the new one is GRANDFATHERED,
+   * by a list this file writes once (`--bootstrap-grandfather`) and then only shrinks. Will chose this
+   * over "strict now", which would have turned thousands of figures red on arrival. The key carries
+   * the sentence's hash and the figure as written, so an edited sentence or value loses its
+   * grandfathering and has to be bound. A grandfathered figure never fails; the count per document is
+   * printed on every run and can only go down, because the list can only shrink. */
+  console.log('\n== 3b(d). a figure\'s trace is BOUND to its claim, or it is grandfathered — and that list only shrinks ==');
+  const tproof = S.traceProof();
+  const tBroken = tproof.filter(p => !p.holds);
+  ok(tBroken.length === 0,
+    `the bound-trace rule reads a citation, a field, a named entry and a grandfather key as it must (${tproof.length - tBroken.length}/${tproof.length} demonstration cases hold)` +
+    (tBroken.length ? '\n         BROKEN:\n         ' + tBroken.map(p =>
+      `${p.id}: expected ${p.expected}, got ${p.got}\n           ${p.why}`).join('\n         ') : ''));
+  const unboundByKey = new Map(census.unbound.map(u => [u.key, u]));
+  const seenGf = new Set(census.grandfathered_keys);
+  let gfNext = null;
+  if (!GF) {
+    if (BOOTSTRAP_GF) {
+      gfNext = [...unboundByKey.keys()];
+      ok(true, `BOOTSTRAP — ${gfNext.length} figure(s) that were green under the old digit-match rule and are bound ` +
+        'to nothing are grandfathered. This is the only write that may add to the list, and it runs once.');
+    } else {
+      ok(false, 'the untraced-figure grandfather list exists (known.untraced_grandfathered in ' +
+        'data/docs-currency-baseline.json) — without it every unbound figure is unaccounted for. Write it ONCE ' +
+        'with: node tests/test-docs-current.js --bootstrap-grandfather');
+    }
+  } else if (BOOTSTRAP_GF) {
+    ok(false, '--bootstrap-grandfather REFUSED: the grandfather list already exists and may only shrink. A ' +
+      'second bootstrap would grandfather every figure written since the first.');
+  } else {
+    ratchet('figures bound to no trace (grandfathered)', [...seenGf, ...unboundByKey.keys()], [...GF],
+      k => { const u = unboundByKey.get(k); return `${u.doc}:${u.line}  ${u.value} — ${u.why}\n           ${u.text}`; });
+    gfNext = [...GF].filter(k => seenGf.has(k));          // NEVER adopts — not even into an empty list
+    if (unboundByKey.size) {
+      console.log('         BIND IT: name the artifact that holds it in the same paragraph (`data/x.json`, or');
+      console.log('         `data/x.json:field` to point at the value), or name the CHANGELOG version whose entry');
+      console.log('         records it. A digit match elsewhere in data/ or in the CHANGELOG is not a trace.');
+    }
+  }
+  if (census.predates.length) console.log(`         ${census.predates.length} unbound figure(s) sit in dated blocks whose cited artifact ` +
+    'was regenerated after the block — reported, not judged, as in 3b(b).');
+  const perDoc = keys => { const o = {}; for (const k of keys) { const d = k.slice(0, k.indexOf('|')); o[d] = (o[d] || 0) + 1; } return o; };
+  const gfBy = perDoc(gfNext || []), wasBy = GF ? perDoc(GF) : {};
+  console.log(`         grandfathered: ${(gfNext || []).length} figure(s) across ${Object.keys(gfBy).length} document(s)` +
+    `; bound: ${census.bound.paragraph} by an artifact the paragraph cites, ${census.bound.entry} by a CHANGELOG entry the block names`);
+  for (const [d, n] of Object.entries(gfBy).sort((a, b) => b[1] - a[1]))
+    console.log(`         ${String(n).padStart(5)}  ${d}${wasBy[d] !== undefined && n < wasBy[d] ? `   (was ${wasBy[d]})` : ''}`);
+  const gfWrite = gfNext ? (() => {
+    const o = {};
+    for (const k of [...gfNext].sort()) { const i = k.indexOf('|'); (o[k.slice(0, i)] = o[k.slice(0, i)] || []).push(k.slice(i + 1)); }
+    return o;
+  })() : known.untraced_grandfathered;
+  const gfStamp = (!GF && BOOTSTRAP_GF)
+    ? { at: new Date().toISOString(), changelog_top: S.changelogTop(), count: gfNext.length,
+        by: 'node tests/test-docs-current.js --bootstrap-grandfather',
+        rule: 'Written once. Each entry is `hash|figure` under its document: the sha1 prefix of the logical ' +
+              'sentence and the figure as written. It may only shrink; editing the sentence or the value drops the ' +
+              'entry, and the figure must then be bound. See untraceableCensus in engine/docs_scan.js.' }
+    : known.untraced_grandfathered_bootstrap;
+
   /* MONOTONE, --update included: a count may fall and may never rise. A document not yet in the
    * baseline is a first write and adopts; every other one takes the minimum. */
   const nextCensus = {};
@@ -650,6 +729,8 @@ function figureRules(base, next) {
     citation_mismatches: rm.next.sort(),
     untraceable_by_doc: Object.fromEntries(Object.entries(nextCensus).sort()),
     untraceable_figures: [...new Set(figs)].sort(),
+    ...(gfWrite ? { untraced_grandfathered: gfWrite } : {}),
+    ...(gfStamp ? { untraced_grandfathered_bootstrap: gfStamp } : {}),
   };
   const knownFigs = new Set(known.untraceable_figures || []);
   if (knownFigs.size) {

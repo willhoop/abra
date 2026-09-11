@@ -23,9 +23,7 @@ MEASURE — can we believe a number
     older than its input engine-data.js
     (+10 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 179 unsafe, 2 void (declared), 44 possibly stale, 31 ok, 0 missing
-    RATCHET TRIPPED — the unstamped list grew; provenance.js exited non-zero: _diag41-sample.json, _diag46-cards.json, _diag46-sample.json, _diag46b-cards.json, _diag46b-sample.json, _diag77-cards.json
-    their generators ship without recording what CONTENT they read — stamp source_digests
+  provenance: 251 unsafe, 2 void (declared), 1 possibly stale, 2 ok, 0 missing
   click censoring: WITHHELD — engine/provenance.js calls data/click-censoring-census.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     COMPUTED FROM DIFFERENT CONTENT — engine/fit_policy.js was 37df17935c16 at read time, is a963537c91e8 now
@@ -38,9 +36,32 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-09-10 22:46
 ```
 
-_stamped 2026-09-10 23:54_
+_stamped 2026-09-11 00:41_
 
 <!-- /GENERATED -->
+
+## THE UNTRACEABLE-FIGURE CHECK IS A RATCHET: A FIGURE IS TRACED ONLY BY A TRACE BOUND TO IT. 2,258 GRANDFATHERED, NEW FIGURES MUST BIND. 2026-09-11
+
+**THE OLD TRACE WAS A DIGIT MATCH AGAINST EVERYTHING.** `engine/docs_scan.js` called a figure traced when its
+value occurred anywhere in the 305 artifacts under `data/` or anywhere in `CHANGELOG.md`. That union holds
+900 of 900 three-digit integers and 7,273 of 9,000 four-digit ones. Of the 7,409 figures in uncited
+sentences of the living documents, 7,387 passed, and about 6,750 of those passes are what random digits of
+the same shape would have scored.
+
+**THE RULE (WILL CHOSE THE RATCHET).** A figure the citation rule does not judge is traced only by an
+artifact its paragraph cites that holds it at the document's precision (field-scoped when cited as
+`data/x.json:field`), or by the CHANGELOG entry its block names. A hit anywhere else is not a trace.
+Sentences the citation rule skips as QUALIFIED, and sentences whose only citation is missing or is a copy of
+a document, now need a trace too: 84 figures had been judged by nothing. The grandfather list is
+`known.untraced_grandfathered` in `data/docs-currency-baseline.json`, written once by
+`node tests/test-docs-current.js --bootstrap-grandfather`, keyed on the sentence and the figure, and it only
+shrinks.
+
+**WHERE IT STANDS, AND WHAT IT STILL ADMITS.** 1,325 figures bound through a cited artifact, 3,816 through a
+named entry, 2,258 grandfathered across 24 documents, and the 22 untraceable unchanged. The gate reads 37 of
+37, and four plants behaved. Paragraph binding inherits the citation rule's weakness: about 726 of its 1,325
+binds are expected by chance, and 560 go through `data/game-differential.json`. Full account, with the plant
+outputs: [docs/_reports/2026-09-11-traceability-ratchet.md](_reports/2026-09-11-traceability-ratchet.md).
 
 ## A PUBLISHED FIGURE MAY NO LONGER CITE A RELEASE THAT IS NOT IN THE REPOSITORY — THE ENFORCING CLAUSE, WRITTEN AFTER THE THIRD HAND-FIX. **4 HARD-ARM ARTIFACTS, 21 SOFT.** PLUS THE REGISTER REFRESHED (TWO GREENS WENT RED) AND TWO INSTRUMENTS THAT WERE PRINTING A FALSE SENTENCE. 2026-09-10, CHANGELOG 6.2.0
 
