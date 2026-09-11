@@ -4205,8 +4205,52 @@ function abilityScenario(e, C, kind) {
    * Both are PROVEN against a known-live ability before either is used, and the ability under test is
    * asked of the format whether Showdown would refuse to swap it at all. */
   const suppress = C.tier === 'SUPPRESS' || C.tier === 'MEGA';
+  /* ---- A QUIET CONTROL FOR AN ALTERNATE CARRIER THAT HAS NONE — 2026-09-12, ROADMAP #138 ---------
+   *
+   * THIRTEEN ABILITY ROWS READ `CONTROL-NOT-QUIET`, WHICH IS NOT A FINDING AND NOT A PASS: the
+   * control arm swaps in the carrier's OTHER ability, that ability is itself LIVE, and
+   * (subject MINUS a live control) cannot say which of the two moved the board. The second control
+   * exists for exactly this and it rescues nothing here — for all thirteen the two controls' deltas
+   * DISAGREE, so every leaf is dropped as possibly the control's.
+   *
+   * DERIVED BEFORE IT WAS WIRED, because the obvious cheaper fix is to pick a different carrier and
+   * `carrierFor` already ranks a quiet-control carrier first: this format holds only EIGHT quiet
+   * abilities, and for all thirteen of these NO legal carrier has a quiet alternate at all. So there
+   * is no better body to move to — the control has to come from somewhere other than the sheet.
+   *
+   * SKILL SWAP LENDS ONE IN PLAY. It is the same SHAPE as the ordinary control (the carrier ends the
+   * setup turn holding a NAMED QUIET ability), which is why an accusing verdict is allowed off it,
+   * and it is PROVEN against a known-live ability by `swapControlWorks()` before it is used. Asked of
+   * the format per entity: none of the thirteen carries `failskillswap`, so Showdown performs the
+   * exchange for every one of them.
+   *
+   * IT IS NARROW ON PURPOSE. Only an ALTERNATE carrier whose own control is NOT in the quiet set
+   * reaches this, so every row that already had a quiet control keeps its exact fixture; and if the
+   * swap proof fails, an ALTERNATE row falls through to its ordinary control rather than being
+   * refused, because losing a staged row to gain a tidier control is the wrong trade. */
+  /* ---- AND IT IS REFUSED TO THE TWO KINDS WHOSE STAGING IS A TIMELINE — MEASURED, 2026-09-12 ------
+   *
+   * THE SETUP TURN IS NOT FREE. `entry` reads BOUNDARY 0 as the carrier's first entry, and `residual`
+   * starts the carrier ON THE BENCH and switches it in mid-turn so that boundary 1 is its entry turn
+   * (`activeTurns === 0`, the gate that family exists to test). Prepending a turn moves both of those
+   * boundaries, and the breaks are aimed at where they used to be.
+   *
+   * CAUGHT BY THE RED DEMONSTRATION, WHICH IS THE ONLY THING THAT COULD HAVE CAUGHT IT. The verdict
+   * counts got BETTER while the instrument got weaker: at release 534442d71183 the pre-change artifact
+   * has all 44 rules `ok: true`, and with the swap control applied to every kind, `ability/entry` and
+   * `ability/residual` both read NOT CAUGHT — their plants moved no board, so every green underneath
+   * them was vacuous. `ability/residual`'s own break text says it "can only be caught by a staging
+   * that has a mid-turn entrant in it", which is exactly what the prepended turn had displaced.
+   *
+   * So these two kinds keep their ORIGINAL script, byte for byte, and pay for it in the one place the
+   * cost is visible: a row of theirs whose only control is live stays CONTROL-NOT-QUIET. A row that
+   * cannot attribute its delta is a declared gap; a green whose rule cannot express its own mechanic
+   * is a lie, and the second is much worse. */
+  const swapForQuiet = !!(kind !== 'entry' && kind !== 'residual'
+                          && C.tier === 'ALTERNATE' && C.control && !QUIET_SET.has(idOf(C.control))
+                          && !swapRefused(e.id) && swapControlWorks().ok);
   let controlKind = 'ability', controlAbility = C.control, controlQuiet = null, controlNote = '';
-  if (suppress) {
+  if (suppress || swapForQuiet) {
     const S = swapControlWorks();
     const refused = swapRefused(e.id);
     if (S.ok && !refused) {
@@ -4214,8 +4258,10 @@ function abilityScenario(e, C, kind) {
       controlAbility = SWAPPER.ability;
       controlQuiet = true;
       controlNote = 'Skill Swap lends ' + SWAPPER.ability + ' off ' + SWAPPER.name
-        + ' (' + S.why + ')';
-    } else {
+        + ' (' + S.why + ')'
+        + (swapForQuiet && !suppress ? ' — taken because ' + pretty(C.control) + ', the only control '
+            + 'this carrier\'s own sheet offers, is itself a live ability' : '');
+    } else if (suppress) {
       const G = gastroWorks();
       if (!G.ok) return cannot('its carrier is ' + C.tier + '-tier — the ability cannot be swapped out '
         + 'on the SHEET, because ' + (C.tier === 'MEGA' ? 'the forme change WRITES it'
@@ -4228,8 +4274,12 @@ function abilityScenario(e, C, kind) {
         + '  Gastro Acid suppression: ' + G.why);
       controlKind = 'suppress';
     }
-    script = [turn([IDLE, IDLE], [C.tier === 'MEGA' ? { m: INERT, mega: true } : IDLE, IDLE])]
-      .concat(script);
+    /* THE SETUP TURN BELONGS TO THE IN-PLAY CONTROL, NOT TO THE TIER. Guarded on what was actually
+     * chosen, so an ALTERNATE row that fell through to its ordinary control keeps its original
+     * script exactly — a prepended turn it never uses would change what every such row stages. */
+    if (controlKind !== 'ability')
+      script = [turn([IDLE, IDLE], [C.tier === 'MEGA' ? { m: INERT, mega: true } : IDLE, IDLE])]
+        .concat(script);
   }
   /* WHERE THE CARRIER STANDS depends on the arm. The residual arm needs it on the BENCH so it can
    * walk in mid-turn; every other arm leads with it. `subject` follows, because the control arm swaps
@@ -4258,7 +4308,10 @@ function abilityScenario(e, C, kind) {
                                          : (!controlAbility || QUIET_SET.has(idOf(controlAbility)));
   /* the second control, for the same reason as in `stageAbility` — and never for the two in-play
    * control kinds, which have exactly one form each */
-  sc.controlAbility2 = suppress ? null : (C.control2 || altAbility2(base, e.id) || null);
+  /* AN IN-PLAY EXCHANGE HAS EXACTLY ONE FORM, so there is no second control to vary it against —
+   * keyed on what was CHOSEN rather than on the tier, for the same reason the setup turn is. */
+  sc.controlAbility2 = (controlKind !== 'ability') ? null
+                                                  : (C.control2 || altAbility2(base, e.id) || null);
   sc.controlKind = controlKind;
   sc.abilityId = e.id;
   sc.carrierSpecies = base.id;
@@ -4549,9 +4602,313 @@ const TRAP_ESCAPE = (() => {
 const TRAP_ESCAPE_WHY = 'the fixture cannot be built: ' + (TRAP_ESCAPE_WHY_PARTS[0] || 'unknown')
   + '. This is a claim about THIS FILE and not about the item.';
 
+/* ---- THE CHANCE ITEMS' FIXTURES, DERIVED (2026-09-12) -------------------------------------------
+ *
+ * FIVE OF THE SIX COULD-NOT-STAGE ITEM ROWS WERE ONE MECHANISM, AND IT WAS THIS FILE'S PIN RATHER
+ * THAN THE ENGINE. `PRIMARY_ARM_ID` is the corner on which every sub-100% roll FAILS, so a 10%
+ * survival, a 10% flinch and a 20% priority jump could not fire in EITHER engine and a green would
+ * have been vacuous — which is exactly what those rows said. The rules below take the SHIPPED inverse
+ * corner, `bottom-tie-first`, where every sub-100 roll LANDS in both engines. That is the same escape
+ * `ability/refuses-one-status` and Stench already use and it is not a loosened pin: it is a different
+ * corner of the same die, both engines are pinned to it identically, and `critRatioAudit` excludes it
+ * for that stated reason.
+ *
+ * WHAT THESE ROWS DO NOT CLAIM IS THE RATE. Pinned to the bottom a 10% effect and a 90% one are the
+ * same effect; what is measured is that the mechanic is WIRED, reads its own tag, and reaches the
+ * board in both engines. The RATE is the live-die lane's question and nothing here answers it.
+ *
+ * EVERY FIXTURE IS MEMOISED AND NOT COMPUTED AT MODULE LOAD, because this file is loaded by the moves
+ * and abilities stages too and a mutual-kill search over CANDIDATES is not free. */
+const SPD = s => flatL50(s.baseStats).sp;
+/* A PAIR WHOSE ORDER DECIDES WHO IS STANDING, with the holder on the named side of the speed line.
+ * `item/speed-scaled` already rests on this shape — "the multiplier reaches the board as a FAINT
+ * rather than as a number" — and a priority jump is that same reading with the speeds left alone. */
+function mutualKillPair(holderIs) {
+  for (const H of CANDIDATES) {
+    if (!buildableSpecies(H.id)) continue;
+    const h = SPD(H);
+    for (const F of CANDIDATES) {
+      if (F.id === H.id || !buildableSpecies(F.id)) continue;
+      const f = SPD(F);
+      if (holderIs === 'slower' ? !(h < f) : !(h > f)) continue;
+      const kHF = lethalMove(H, F, 1.2, H.id), kFH = lethalMove(F, H, 1.2, F.id);
+      if (kHF && kFH) return { holder: H, foe: F, holderMove: kHF.mv, foeMove: kFH.mv,
+                               speeds: h + ' against ' + f };
+    }
+  }
+  return null;
+}
+let _CLAW = undefined;
+const clawPair = () => (_CLAW === undefined ? (_CLAW = mutualKillPair('slower')) : _CLAW);
+
+/* THE FLINCH FIXTURE IS THE OPPOSITE SHAPE, AND THE ENGINE'S OWN CODE SAYS WHY: a flinch on a body
+ * that is already dead is refused by BOTH engines — medicham2 counts it at `kingsRockRollSkippedOnKO`
+ * and the authority's `addVolatile` bails on `!this.hp` — so the holder's click must NOT kill. The foe
+ * has to SURVIVE and then be robbed of its own click, and THAT is what reaches the board: its damage
+ * is never dealt and its PP is never spent, both of which `board_state.js` compares.
+ *
+ * THE HOLDER'S CLICK MUST ALSO CARRY NO FLINCH OF ITS OWN. King's Rock declines to stack (the item's
+ * `onModifyMove` returns early when a secondary already flinches, which medicham2 mirrors at
+ * `_krOwnFlinch`), so a vehicle like Iron Head would stage the MOVE's flinch and credit the item. */
+let _FLINCH = undefined;
+function flinchFixture() {
+  if (_FLINCH !== undefined) return _FLINCH;
+  const noOwnFlinch = mv => !((mv.secondaries || []).concat(mv.secondary ? [mv.secondary] : [])
+    .some(s => s && s.volatileStatus === 'flinch'));
+  _FLINCH = null;
+  outer:
+  for (const H of CANDIDATES) {
+    if (!buildableSpecies(H.id)) continue;
+    const h = SPD(H);
+    for (const F of CANDIDATES) {
+      if (F.id === H.id || !buildableSpecies(F.id)) continue;
+      if (!(h > SPD(F))) continue;                  // the holder must land its click FIRST
+      const fHP = flatL50(F.baseStats).hp * 6;      // `hpA: 6` below inflates the foe's HP sixfold
+      let hit = null;
+      for (const t of Object.keys(DELIVERY)) {
+        for (const mv of [DELIVERY[t].physical, DELIVERY[t].special]) {
+          if (!mv || !noOwnFlinch(mv) || !learnsLegally(H.id, mv.id)) continue;
+          if (dex.getImmunity(mv.type, F.types) === false) continue;
+          const d = maxRoll(H, mv, F);
+          if (d > 0 && d < fHP * 0.4) { hit = mv; break; }     // a reading, never a KO
+        }
+        if (hit) break;
+      }
+      if (!hit) continue;
+      /* the foe's own click has to MOVE THE HOLDER'S HP, or a flinch removes nothing visible.
+       * `lethalMove` with a fractional margin is "a hit worth at least this share of its target". */
+      const back = lethalMove(F, H, 0.2, F.id);
+      if (!back) continue;
+      _FLINCH = { holder: H, foe: F, holderMove: hit, foeMove: back.mv,
+                  speeds: h + ' against ' + SPD(F) };
+      break outer;
+    }
+  }
+  return _FLINCH;
+}
+
+/* THE LETHAL HIT A CHANCE-SURVIVAL NEEDS, AND IT MAY CARRY NO SECONDARY AT ALL.
+ *
+ * MEASURED, 2026-09-12, and it is the reason this fixture is not just `KILLABLE`. The first cut of
+ * `item/survives-by-chance` reused `KILLABLE`, whose move comes off the `DELIVERY` table — and that
+ * table admits a SUB-100% secondary (it only refuses one at 100%). The derived hit was Conkeldurr's
+ * POISON JAB into Whimsicott, and on `bottom-tie-first` every secondary fires, so the authority's own
+ * log read:
+ *
+ *     |-activate|p2a: Whimsicott|item: Focus Band     the band DID fire
+ *     |-damage|p2a: Whimsicott|1/135                  and left it on 1 HP
+ *     |-status|p2a: Whimsicott|psn
+ *     |-damage|p2a: Whimsicott|0 fnt|[from] psn       and the poison killed it at the residual
+ *
+ * so BOTH authority boards ended the turn with the holder fainted, the inert gate fired, and the row
+ * read COULD-NOT-STAGE. The mechanic was wired the whole time; the fixture was killing its own
+ * survivor. So the hit is derived to carry NO secondary, NO status and NO volatile — the survivor has
+ * to still be standing at the boundary or there is nothing for the board to compare.
+ *
+ * THE CRIT IS NOT A PROBLEM AND IS DELIBERATELY NOT EXCLUDED: this corner lands every crit in BOTH
+ * arms, which only makes the hit more lethal, and `deliveryOf` already refuses `critRatio > 1`. */
+let _CSURV = undefined;
+function chanceSurvivalFixture() {
+  if (_CSURV !== undefined) return _CSURV;
+  /* WHAT MAY NOT BE ON THE HIT, AS A SHAPE RATHER THAN A LIST OF STATUS NAMES. Anything that writes a
+   * STATUS or a VOLATILE onto the survivor can take its last point of HP off at the residual — which
+   * is exactly what Poison Jab did — while a secondary that only moves a STAT STAGE cannot. Stated
+   * structurally, so a status this file has never heard of is refused too; the alternative is a typed
+   * list of status names, which is the thing this repository bans outright. */
+  const harmless = s => s && !s.status && !s.volatileStatus;
+  const clean = mv => !mv.status && !mv.volatileStatus
+    && (mv.secondaries || []).concat(mv.secondary ? [mv.secondary] : []).every(harmless);
+  /* AND THE SEARCH IS OVER EVERY DELIVERY MOVE THE ATTACKER LEARNS, not the `DELIVERY` table's single
+   * top-base-power pick per type — measured 2026-09-12: with only that pick, NOTHING in the format
+   * cleared the bar, because the hardest move of almost every type carries a secondary. */
+  const tryAtt = (att) => {
+    for (const V of CANDIDATES) {
+      if (idOf(V.id) === idOf(att.id) || !buildableSpecies(V.id)) continue;
+      const L = lethalMoveFrom(att, V, 1.5, t => learnableOfType(att.id, t, clean));
+      if (L) return { att, victim: V, move: L.mv, ratio: L.d / flatL50(V.baseStats).hp };
+    }
+    return null;
+  };
+  /* THE PROVEN KILLER FIRST AND ALONE — `KILL_ATT` is already derived as a body that kills two species
+   * outright. Only if it cannot is the attacker widened, and then by OFFENCE and bounded, because this
+   * is a learnset-validated search and an unbounded one over every pair is not free. */
+  _CSURV = tryAtt(KILL_ATT);
+  if (!_CSURV) {
+    const byOffense = CANDIDATES
+      .filter(s => buildableSpecies(s.id) && idOf(s.id) !== idOf(KILL_ATT.id))
+      .sort((a, b) => Math.max(b.baseStats.atk, b.baseStats.spa)
+                    - Math.max(a.baseStats.atk, a.baseStats.spa))
+      .slice(0, 25);
+    for (const A of byOffense) { _CSURV = tryAtt(A); if (_CSURV) break; }
+  }
+  return _CSURV;
+}
+
+/* THE CRIT FIXTURE, AND IT NEEDS NO LIVE DIE AT ALL — READ OFF THE FORMAT'S OWN TABLE.
+ *
+ * `critMult` is [0, 24, 8, 2, 1] with the ratio clamped to 4 (sim/battle-actions.ts), a plain delivery
+ * move carries `critRatio: 1` (`deliveryOf` already refuses anything higher), the control click Focus
+ * Energy answers `onModifyCritRatio(1) -> 3` and Scope Lens answers `-> 2`. So a holder that has
+ * clicked Focus Energy sits at stage 3 — `randomChance(1, 2)`, which the PRIMARY pin FAILS — and the
+ * same body holding the lens sits at 4, where `randomChance(1, 1)` CRITS EVERY TIME AND NO PIN CAN
+ * STOP IT. The item is the whole difference between a crit and no crit, with no die on either side.
+ *
+ * SO THIS ONE STAYS ON THE PRIMARY ARM, unlike the four above it. On `bottom-tie-first` every crit
+ * lands with or without the lens and the staging would be INERT — which is what the old row meant by
+ * "the pin never lets a crit land"; it was true of BOTH corners and the way out was the ratio, not
+ * the arm. Every number here is read (`INERT_RAISES_CRIT_STAGES`, the item's own handler), not typed.
+ *
+ * `critRatioAudit` is satisfied by construction: it refuses a primary-arm script carrying a move with
+ * `critRatio > 1` or `willCrit`, and the vehicle is a `deliveryOf` move, which can be neither. */
+let _CRITF = undefined;
+function critFixture() {
+  if (_CRITF !== undefined) return _CRITF;
+  const att = dex.species.get(CAST.ATTACKER().species);
+  _CRITF = null;
+  for (const F of CANDIDATES) {
+    if (!buildableSpecies(F.id) || idOf(F.id) === idOf(att.id)) continue;
+    for (const t of Object.keys(DELIVERY)) {
+      for (const mv of [DELIVERY[t].physical, DELIVERY[t].special]) {
+        if (!mv || !learnsLegally(att.id, mv.id)) continue;
+        if (dex.getImmunity(mv.type, F.types) === false) continue;
+        /* a RESISTED crit and an unresisted plain hit are near enough the same number that rounding
+         * can close the gap — the same condition `ability/refuses-a-crit` states for its own pairing */
+        if (dex.getEffectiveness(mv.type, F.types) < 0) continue;
+        const d = maxRoll(att, mv, F);
+        if (d > 0 && d < flatL50(F.baseStats).hp * 6 * 0.4) {
+          _CRITF = { holder: att, foe: F, move: mv };
+          return _CRITF;
+        }
+      }
+    }
+  }
+  return _CRITF;
+}
+
+/* THE 100-ACCURACY OUTRIGHT CARRIER IS NOT THE ONLY ROAD TO A STATUS, AND FOR TWO OF THEM IT IS THE
+ * ONLY ROAD THIS FILE KNEW. Derived rather than remembered: in this regulation NOTHING inflicts frz
+ * outright at any accuracy, and the only outright brn is Will-O-Wisp at 85 — so `STATUS_MOVE` is
+ * empty for both and Aspear and Rawst were refused with "the condition this berry cures cannot be put
+ * on a body at all". It can: a SECONDARY writes it. A secondary is drawn inside
+ * `BattleActions#secondaries`, which `bottom-tie-first` pins to FIRE in both engines, so the status
+ * lands there exactly as an outright status move lands on the primary corner. */
+function secondaryStatusMove(status) {
+  let best = null;
+  for (const m of dex.moves.all()) {
+    if (!m.exists || m.isNonstandard) continue;
+    if (!SCOPE.inScope('move', m.id)) continue;          // IN SCOPE OR NOT AT ALL (ROADMAP #318)
+    if (!(m.target === 'normal' || m.target === 'any')) continue;
+    const sec = (m.secondaries || []).concat(m.secondary ? [m.secondary] : []);
+    if (!sec.some(s => s && s.status === status)) continue;
+    const acc = m.accuracy === true ? 100 : m.accuracy;
+    /* the most accurate carrier first, so the click needs no `mayMiss` exemption where one exists at
+     * 100 — the arm lands it either way, but a guaranteed hit keeps the fixture audit's clause strict */
+    if (!best || acc > best.acc) best = { m, acc };
+  }
+  return best ? best.m : null;
+}
+/* A TYPING THAT REFUSES THE STATUS OUTRIGHT, asked of the authority's own `damageTaken` table rather
+ * than recalled — Ice cannot be frozen and Fire cannot be burned, and a fixture that put the cure on
+ * one of those bodies would read INERT for a reason about the body. */
+const refusesStatusByType = (types, status) => (types || []).some(t =>
+  ((dex.types.get(t) || {}).damageTaken || {})[status] === 3);
+
 const RULES = [
 
 /* ---------------------------------------------------------------------------- items -------------- */
+/* THESE THREE SIT ABOVE `item/chance-gated` DELIBERATELY. That rule matches any shortDesc carrying a
+ * sub-100 percentage and would take all three back; the first rule whose `match` returns owns the
+ * entity, so a narrow rule under a broad one is not a rule. */
+{ id: 'item/survives-by-chance', kind: 'item',
+  reads: 'onDamage + shortDesc "% chance to survive"',
+  why: 'A LETHAL HIT INTO THE HOLDER MUST LEAVE IT ON 1 HP, and the same hit into the same body '
+     + 'holding nothing must kill it. The survival is a 10% roll, so the scenario is pinned to '
+     + '`bottom-tie-first`, where that roll LANDS in both engines; on the primary corner it fails in '
+     + 'both and the row read COULD-NOT-STAGE for exactly that reason. The KILL is derived rather '
+     + 'than hoped for: `KILLABLE` is sized at 1.5x the target\'s HP on the MAXIMUM roll, and this '
+     + 'arm takes the MINIMUM, so the hit is still lethal with room to spare.',
+  break: { why: 'the CHANCE half of the survival is dropped. An item whose survival is unconditional '
+              + '(Focus Sash, `chance == null`) still holds, so a flip here is this item\'s own and '
+              + 'not the shared floor `item/hp-floor` already demonstrates',
+    patch: [['&&(_sv.chance==null||rng()<+_sv.chance)',
+             '&&(_sv.chance==null||false&&rng()<+_sv.chance)']] },
+  match(e) {
+    if (!e.onDamage || !/% chance to survive/i.test(e.shortDesc || '')) return null;
+    const K = chanceSurvivalFixture();
+    if (!K) return cannot('no legal buildable body can be killed from full, with a 1.5x margin, by a '
+      + 'delivery move that writes NO status and NO volatile — searched over every such move '
+      + pretty(KILL_ATT.id) + ' learns and then over the 25 highest-offence legal bodies. A hit that '
+      + 'writes one is no use here: on this corner every secondary fires, so the residual takes the '
+      + 'last point of HP off the survivor and BOTH authority boards end the turn with the holder '
+      + 'dead — measured, on Poison Jab into Whimsicott, which is how this rule learned the rule');
+    const attAb = idOf(KILL_ATT.id) === idOf(CAST.ATTACKER().species)
+      ? CAST.ATTACKER().ability : carrierAbility(KILL_ATT);
+    return { arm: BOTTOM_ARM,
+      note: pretty(K.att.id) + ' throws a lethal ' + K.move.name + ' (' + K.ratio.toFixed(1)
+          + 'x its HP, and NO secondary) at ' + pretty(K.victim.id) + '. WITH the item the holder '
+          + 'must be left on 1 HP and still be standing at the boundary; WITHOUT it the same hit must '
+          + 'kill. Pinned to ' + BOTTOM_ARM + ', where the '
+          + (/(\d+)%/.exec(e.shortDesc) || [])[1] + '% roll lands in both engines.',
+      scenario: scaffold({
+        a0: mon(K.att.id, '', attAb, [K.move.id]),
+        b0: mon(K.victim.id, e.id, carrierAbility(K.victim), [INERT]),
+        script: [turn([mclick(K.move, 0), IDLE], [IDLE, IDLE])] }) };
+  } },
+
+{ id: 'item/adds-flinch-by-chance', kind: 'item',
+  reads: 'shortDesc — "gain a N% chance to flinch"',
+  why: 'THE HOLDER HITS FIRST AND THE FOE LOSES ITS TURN. The flinch reaches the board as damage the '
+     + 'foe never dealt and PP it never spent, both of which `board_state.js` compares. The holder\'s '
+     + 'click is derived NOT to kill — a flinch on a corpse is refused by both engines — and to carry '
+     + 'no flinch of its own, because King\'s Rock declines to stack onto a move that already has one.',
+  break: { why: 'the bolted-on flinch is skipped — the item is still held, still read, and its own '
+              + 'no-stacking clause is left standing',
+    patch: [['if(_kr&&_kr.pFlinch&&!suppressed&&!_krOwnFlinch){',
+             'if(false&&_kr&&_kr.pFlinch&&!suppressed&&!_krOwnFlinch){']] },
+  match(e) {
+    if (!/chance to flinch/i.test(e.shortDesc || '')) return null;
+    const F = flinchFixture();
+    if (!F) return cannot('no pairing exists of a faster buildable holder that learns a non-lethal '
+      + 'delivery move carrying no flinch of its own, with a slower buildable foe whose own click '
+      + 'would move the holder\'s HP — so either the holder kills the foe (and both engines refuse a '
+      + 'flinch on a fainted body) or the stolen turn removes nothing a board can see');
+    return { arm: BOTTOM_ARM,
+      note: pretty(F.holder.id) + ' (' + F.speeds + ' Speed) hits ' + pretty(F.foe.id) + ' with '
+          + F.holderMove.name + ' first; the foe\'s ' + F.foeMove.name + ' must never land. Pinned to '
+          + BOTTOM_ARM + ', where the ' + (/(\d+)%/.exec(e.shortDesc) || [])[1] + '% flinch fires in '
+          + 'both engines. The foe survives by construction, so the flinch has a body to sit on.',
+      scenario: scaffold({ hpA: 6,
+        a0: mon(F.foe.id, '', carrierAbility(F.foe), [F.foeMove.id]),
+        b0: mon(F.holder.id, e.id, carrierAbility(F.holder), [F.holderMove.id]),
+        script: [turn([mclick(F.foeMove, 0), IDLE], [mclick(F.holderMove, 0), IDLE]),
+                 turn([mclick(F.foeMove, 0), IDLE], [mclick(F.holderMove, 0), IDLE])] }) };
+  } },
+
+{ id: 'item/priority-by-chance', kind: 'item',
+  reads: 'onFractionalPriority',
+  why: 'A PRIORITY JUMP IS INVISIBLE UNTIL IT CHANGES WHO IS ALIVE — the same reading '
+     + '`item/speed-scaled` takes, with the speeds left alone and the BRACKET moved instead. The '
+     + 'holder is the SLOWER of two bodies that can each kill the other outright, so without the item '
+     + 'it dies before it acts and with the item it acts first and the foe is the one standing.',
+  break: { why: 'the item half of the fractional-priority loop is dropped, so the holder never jumps '
+              + 'its bracket; the ABILITY half (Quick Draw) is left standing',
+    patch: [["const _fp=TAGS.param('item',it.mon.item,'fractionalPriority');",
+             "const _fp=null&&TAGS.param('item',it.mon.item,'fractionalPriority');"]] },
+  match(e) {
+    if (!e.onFractionalPriority) return null;
+    const P = clawPair();
+    if (!P) return cannot('no pair of legal buildable bodies exists where the HOLDER is the slower '
+      + 'and each can kill the other outright, so a jumped bracket has no way onto the board');
+    return { arm: BOTTOM_ARM,
+      note: pretty(P.holder.id) + ' holds it and is the SLOWER (' + P.speeds + '); each kills the '
+          + 'other, so the ORDER decides who is standing. Pinned to ' + BOTTOM_ARM + ', where the '
+          + (/(\d+)%/.exec(e.shortDesc) || [])[1] + '% jump fires in both engines.',
+      scenario: scaffold({
+        a0: mon(P.foe.id, '', carrierAbility(P.foe), [P.foeMove.id]),
+        b0: mon(P.holder.id, e.id, carrierAbility(P.holder), [P.holderMove.id]),
+        script: [turn([mclick(P.foeMove, 0), IDLE], [mclick(P.holderMove, 0), IDLE])] }) };
+  } },
+
 { id: 'item/chance-gated', kind: 'item',
   reads: 'shortDesc — a percentage that is not 100',
   why: 'THE PIN FIXES EVERY DIE TO ONE CORNER, so no chance below 100% ever fires in either engine. '
@@ -4577,11 +4934,50 @@ const RULES = [
 
 { id: 'item/crit-ratio', kind: 'item',
   reads: 'onModifyCritRatio',
-  why: 'same argument as the chance gate one level down — the pin lands on the corner where NO CRIT '
-     + 'EVER HAPPENS, so raising the ratio cannot change a board.',
-  match(e) { if (!e.onModifyCritRatio) return null;
-    return cannot('it raises the critical-hit RATIO, and the pin never lets a crit land in either '
-      + 'engine, so the ratio has nothing to act on'); } },
+  why: 'THE RATIO IS CARRIED OVER THE LINE BY THE CONTROL CLICK, SO NO DIE IS ROLLED ON EITHER SIDE. '
+     + 'This row read COULD-NOT-STAGE — "the pin never lets a crit land, so the ratio has nothing to '
+     + 'act on" — and that was true of BOTH corners and therefore not a fact about the arm at all: on '
+     + '`bottom-tie-first` every crit lands with or without the item, which is just as inert. The way '
+     + 'out is the RATIO. Read off the format: `critMult` is [0, 24, 8, 2, 1] clamped at 4, a delivery '
+     + 'move carries `critRatio: 1`, Focus Energy answers `onModifyCritRatio(1) -> 3` and this item '
+     + 'answers `-> 2`. The holder clicks Focus Energy and then attacks: WITHOUT the item it stands at '
+     + 'stage 3, `randomChance(1, 2)`, which the primary pin FAILS; WITH it, stage 4, where '
+     + '`randomChance(1, 1)` crits every time and no pin can stop it. The item is the entire '
+     + 'difference between a crit and no crit, and the damage figure is the reading.',
+  break: { why: 'the ITEM\'s crit-stage contribution is dropped, so the holder never reaches the '
+              + 'certain tier; the move, ability and volatile contributions are left standing',
+    patch: [["const _it=TAGS.param('item',att.item,'critRatioUp');",
+             "const _it=null&&TAGS.param('item',att.item,'critRatioUp');"]] },
+  match(e) {
+    if (!e.onModifyCritRatio) return null;
+    /* THE ITEM'S OWN DELTA, ASKED OF THE FORMAT. A lens that added something other than one stage
+     * would not land on 4 from 3 and the fixture would be staging a different claim than its note. */
+    let delta = null;
+    try { delta = Number(e.onModifyCritRatio.call({}, 1)) - 1; } catch (err) { delta = NaN; }
+    if (!Number.isFinite(delta)) return cannot('its crit-ratio handler could not be read off the '
+      + 'format (onModifyCritRatio threw or returned a non-number), so the stage this fixture would '
+      + 'have to reach cannot be derived. Refusing to guess.');
+    if (INERT_RAISES_CRIT_STAGES + delta + 1 < 4)
+      return cannot('the control click ' + pretty(INERT) + ' adds ' + INERT_RAISES_CRIT_STAGES
+        + ' stage(s) and this item adds ' + delta + ', which reaches stage '
+        + (INERT_RAISES_CRIT_STAGES + delta + 1) + ' — short of the 4 at which `critMult` is 1 and a '
+        + 'crit is CERTAIN. Below that tier the crit is still a die the primary pin fails in both '
+        + 'engines, so the staging would be inert and the green vacuous.');
+    const C = critFixture();
+    if (!C) return cannot('no pairing of ' + pretty(CAST.ATTACKER().species) + ' with a buildable '
+      + 'body exists where a derived delivery move lands UNRESISTED and leaves the target standing — '
+      + 'a resisted crit and an unresisted plain hit are near enough the same number that rounding '
+      + 'can close the gap, and a KO would replace the damage reading with a faint');
+    return { note: pretty(C.holder.id) + ' clicks ' + pretty(INERT) + ' (+'
+          + INERT_RAISES_CRIT_STAGES + ' stages, in BOTH arms) and then ' + C.move.name + ' at '
+          + pretty(C.foe.id) + '. WITH the item the ratio is 4 and the hit ALWAYS crits; WITHOUT it '
+          + 'the ratio is 3 and the pin refuses the roll. No die is thrown on either side.',
+      scenario: scaffold({ hpA: 6,
+        a0: mon(C.foe.id, '', carrierAbility(C.foe), [INERT]),
+        b0: mon(C.holder.id, e.id, CAST.ATTACKER().ability, [C.move.id]),
+        script: [turn([IDLE, IDLE], [click(INERT), IDLE]),
+                 turn([IDLE, IDLE], [mclick(C.move, 0), IDLE])] }) };
+  } },
 
 { id: 'item/trapping-escape', kind: 'item',
   reads: 'onTrapPokemon / onMaybeTrapPokemon',
@@ -5047,11 +5443,21 @@ const RULES = [
     if (!S) return null;
     /* ROADMAP #318 (6.24.0): sleep takes the in-scope road when the table has none (see `sleepClick`) */
     const slc = S === 'slp' && !STATUS_MOVE.slp ? sleepClick() : null;
-    const mv = S === 'confusion' ? CONFUSE_MOVE : (STATUS_MOVE[S] || (slc && slc.move) || null);
+    let mv = S === 'confusion' ? CONFUSE_MOVE : (STATUS_MOVE[S] || (slc && slc.move) || null);
     const delayed = !!(slc && slc.delayed);
-    if (!mv) return cannot('no 100-accuracy move in this format inflicts ' + S + ' outright, and the '
-      + 'pin makes every sub-100-accuracy move miss — so the condition this berry cures cannot be '
-      + 'put on a body at all. THE ITEM IS NOT ABSENT FROM THE ENGINE; IT IS UNREACHABLE FROM HERE.');
+    /* THE SECONDARY ROAD, AND IT IS TAKEN ONLY WHERE THE OUTRIGHT ONE DOES NOT EXIST. Every member
+     * that already had a 100-accuracy carrier keeps it and keeps the primary arm, so no green moves
+     * corner; frz and brn have no such carrier in this regulation and take `bottom-tie-first`, where
+     * the secondary that writes them FIRES in both engines. */
+    let arm = null;
+    if (!mv) {
+      mv = secondaryStatusMove(S);
+      if (mv) arm = BOTTOM_ARM;
+    }
+    if (!mv) return cannot('no move in this format inflicts ' + S + ' at all on a single target — '
+      + 'neither outright at 100 accuracy (which the primary pin needs) nor as a SECONDARY (which '
+      + '`' + BOTTOM_ARM + '` would fire) — so the condition this berry cures cannot be put on a body. '
+      + 'THE ITEM IS NOT ABSENT FROM THE ENGINE; IT IS UNREACHABLE FROM HERE.');
     const bag = bodyNotImmuneTo(mv.type);
     if (!bag) return cannot('the only 100-accuracy carrier of ' + S + ' is ' + mv.name + ', and no '
       + 'legal body with a non-interfering ability takes that type neutrally');
@@ -5059,6 +5465,14 @@ const RULES = [
     if (!partner || partner.species === bag.species)
       return cannot('no second body distinct from ' + bag.species + ' can take ' + mv.name
         + ', so the on-board negative has nowhere to stand');
+    /* AND NEITHER BODY MAY REFUSE THE STATUS BY TYPE. Checked rather than assumed: the holder and the
+     * on-board negative both have to CARRY the condition for the cure and its absence to be readable,
+     * and an Ice body that cannot be frozen would read INERT as a fact about the body. */
+    for (const [who, b] of [['holder', bag], ['on-board negative', partner]])
+      if (refusesStatusByType(dex.species.get(b.species).types, S))
+        return cannot('the derived ' + who + ' ' + pretty(b.species) + ' REFUSES ' + S + ' by typing '
+          + '(the authority\'s own `damageTaken` table), so the condition could never sit on it and '
+          + 'the staging would be inert for a reason about the body rather than about the berry');
     /* ROADMAP #318 (6.24.0) — THE THROWERS LEARN WHAT THEY THROW. The CAST aggressors when they learn it,
      * otherwise its legal learners. Toxic Thread has ONE legal learner, so where only one exists it throws
      * at the holder on turn 1 and at the partner on turn 2; the holder still answers on its own turn and the
@@ -5070,7 +5484,10 @@ const RULES = [
     const idle = turn([IDLE, IDLE], [IDLE, IDLE]);
     const clicks = t1 ? [turn([click(mv.id, 0), click(mv.id, 1)], [IDLE, IDLE])]
       : [turn([click(mv.id, 0), IDLE], [IDLE, IDLE]), turn([click(mv.id, 1), IDLE], [IDLE, IDLE])];
-    return { note: S + ' delivered by ' + mv.name + ' onto ' + bag.species
+    return { arm, note: S + ' delivered by ' + mv.name + ' onto ' + bag.species
+        + (arm ? ' [SECONDARY road, pinned to ' + arm + ': this regulation has no outright carrier '
+                 + 'for ' + S + ', and on this corner the secondary that writes it FIRES in both '
+                 + 'engines]' : '')
         + (t1 ? '' : ' (ONE legal learner, ' + pretty(t0.species) + ': the holder on turn 1, the partner on turn 2)')
         + (delayed ? ' — drowsy on the click and asleep at the END of the next turn, so the script waits a turn' : ''),
       scenario: scaffold({

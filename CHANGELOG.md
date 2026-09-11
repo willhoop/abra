@@ -10,6 +10,53 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.31.0] — 2026-09-12
+
+### Added
+- **Three new item rules, staged on the corner where a chance can actually fire.** All six
+  COULD-NOT-STAGE item rows were one mechanism — `PRIMARY_ARM_ID = "top-tie-first"`, the corner on which
+  every sub-100% roll FAILS in both engines. `item/survives-by-chance` (Focus Band),
+  `item/adds-flinch-by-chance` (King's Rock) and `item/priority-by-chance` (Quick Claw) declare
+  `bottom-tie-first`, the shipped inverse corner where every such roll LANDS in both engines — a different
+  corner of the same die, not a loosened pin. Items **142 → 148 FIRED-AND-BOARDS-MATCH, 6 → 0
+  COULD-NOT-STAGE**, 0 DIFFER.
+- **`item/status-cure` gains the SECONDARY road.** Derived, not recalled: this regulation inflicts frz
+  outright at no accuracy at all and brn only by Will-O-Wisp at 85, so the table this rule read was empty
+  for both and Aspear and Rawst were refused. A secondary writes them and secondaries fire on the bottom
+  corner. Members that already had a 100-accuracy outright carrier keep it and keep the primary arm.
+
+### Fixed
+- **`item/crit-ratio` (Scope Lens) was refused for a reason that was true of BOTH corners.** "The pin never
+  lets a crit land" is not a fact about the arm — on `bottom-tie-first` every crit lands with or without the
+  lens, which is just as inert. The way out is the RATIO, read off the format: `critMult` is `[0,24,8,2,1]`
+  clamped at 4, a delivery move carries `critRatio: 1`, Focus Energy answers `onModifyCritRatio(1) -> 3` and
+  the lens `-> 2`. The holder clicks Focus Energy then attacks — without the item, stage 3 is
+  `randomChance(1,2)` and the top pin refuses it; with it, stage 4 is `randomChance(1,1)`, which no pin can
+  stop. No die is thrown on either side.
+- **The Focus Band fixture was killing its own survivor.** The row stayed inert after the arm move, and a
+  probe against the authority settled it: the band fired and left the holder on 1 HP, then the derived hit's
+  30% POISON secondary — which fires on this corner — killed it at the residual, so both authority boards
+  ended the turn with the holder fainted. The hit is now derived to write no status and no volatile, stated
+  structurally rather than as a list of status names, and searched over every delivery move the attacker
+  learns rather than the one top-base-power pick per type.
+- **A quiet control for an ability carrier whose sheet offers none (ROADMAP #138).** Thirteen rows read
+  CONTROL-NOT-QUIET because the control arm swapped in a live ability and the second control disagreed, so
+  every leaf was dropped. Measured first: the format holds only **8 quiet abilities**, **none** of the 13 has
+  a carrier with a quiet alternate, Gastro Acid suppression is dead in this simulator, and **0 of 13** are
+  `failskillswap`. `abilityScenario` now takes the Skill Swap control when an ALTERNATE carrier's own control
+  is not quiet. Abilities **139 → 173 MATCH, 43 → 19 COULD-NOT-STAGE, 13 → 3 CONTROL-NOT-QUIET**, 0 DIFFER.
+
+### Notes
+- **The red demonstration caught a regression inside this change, and the counts had improved while it was
+  present.** Applying the swap control to every staging kind gave 181 MATCH / 12 COULD-NOT-STAGE / 2
+  CONTROL-NOT-QUIET — and `ability/entry` and `ability/residual` went NOT CAUGHT, against `ok: true` for all
+  44 rules in the pre-change artifact. The swap control prepends a setup turn, which displaces the boundaries
+  those two families' breaks are aimed at: `entry` reads boundary 0 as the first entry, and `residual`
+  switches its carrier in mid-turn. Both kinds now keep their original script; the run is **44/44 CAUGHT**
+  and the withdrawn figure is recorded rather than quietly replaced.
+- **Moves are the control and did not move:** 486 / 8 / 3, re-run because this pass touched shared helpers.
+- **No engine byte changed and no release was cut** — `tests/roster.js` is not among the 27 frozen `SOURCES`.
+
 ## [6.30.0] — 2026-09-11
 
 ### Fixed

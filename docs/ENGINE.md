@@ -157,7 +157,7 @@ ENGINE — does the simulator do what Pokémon does
   883/883 probed mechanics live, 0 missing   (census 2026-09-11 18:13)
     the census probes what somebody thought to probe: 296 of 296 in-scope tags carry a probe, 0 carry none (9 of 305
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 8 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 22 min old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-11 16:35)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
     the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
@@ -181,9 +181,62 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-11 18:16_
+_stamped 2026-09-11 18:31_
 
 <!-- /GENERATED -->
+
+## EVERY IN-SCOPE ITEM IS STAGED — ITEMS **6 → 0 COULD-NOT-STAGE**, ABILITIES **139 → 173 MATCH / 43 → 19 / 13 → 3**, MOVES **UNMOVED AT 486 / 8 / 3**. CENSUS **883 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `534442d71183`. 2026-09-12, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-12-staging-the-untested.md`.
+
+- **All six refused ITEM rows were ONE mechanism, and it was this file's pin.** `PRIMARY_ARM_ID =
+  "top-tie-first"` is the corner on which every sub-100% roll FAILS in both engines, so a 10% survival, a
+  10% flinch and a 20% priority jump could not fire and a green would have been vacuous. Three new rules
+  declare `bottom-tie-first`, the shipped inverse corner — a different corner of the same die, both engines
+  pinned identically, which is why `critRatioAudit` already excludes it by name.
+- **Scope Lens needed the RATIO, not the arm.** Its old reason was true of BOTH corners (on the bottom one
+  every crit lands with or without the lens), so it was never a fact about the pin. Focus Energy carries the
+  holder to stage 3 and the lens to stage 4, where `critMult[4] = 1` and the crit is CERTAIN — so the item is
+  the whole difference between a crit and no crit on the PRIMARY arm, with no die on either side. Every
+  number read off the format, none typed.
+- **Aspear and Rawst are reachable by SECONDARY.** Derived: nothing in this regulation inflicts frz outright
+  at any accuracy and only Will-O-Wisp (85) burns outright, so the rule's 100-accuracy table is empty for
+  both. Secondaries fire on the bottom corner. Members with an outright carrier keep it and keep the primary
+  arm.
+- **THE FOCUS BAND FIXTURE WAS KILLING ITS OWN SURVIVOR, AND A PROBE SAID SO.** Three guesses about the arm
+  were wrong. The authority's own log: the band fired, left the holder on 1 HP, and the derived hit's 30%
+  poison secondary — which fires on this corner — killed it at the residual, so both authority boards ended
+  the turn with the holder fainted and the inert gate fired. The hit is now derived to write no status and no
+  volatile, as a SHAPE and not as a list of status names.
+- **A quiet control for the 13 carriers that had none.** Measured before wiring: only **8 quiet abilities**
+  exist in this format, **none** of the 13 has a legal carrier with a quiet alternate, Gastro Acid
+  suppression is dead here, and **0 of 13** are `failskillswap` — so Skill Swap is the only route and it is
+  open for every one. `abilityScenario` takes it when an ALTERNATE carrier's own control is not quiet.
+- **THE RED DEMONSTRATION CAUGHT A REGRESSION WHILE THE COUNTS WERE IMPROVING.** Applied to every staging
+  kind, the swap control read 181 MATCH / 12 / 2 — and `ability/entry` and `ability/residual` went **NOT
+  CAUGHT** against `ok: true` for all 44 rules beforehand. The prepended setup turn displaces the boundaries
+  their breaks aim at: `entry` reads boundary 0 as the first entry, `residual` switches its carrier in
+  mid-turn. Both kinds keep their original script now; **44/44 CAUGHT**, and the better-looking figure is
+  withdrawn rather than kept.
+- **Moves are the control arm of this pass and did not move**, re-run because shared helpers changed.
+
+### The hand list
+
+- **`magmaarmor` and `slushrush` are the last two CONTROL-NOT-QUIET that have a route.** Both call
+  `stageAbility` directly rather than `abilityScenario`. A guarded delegation to `stageAbilitySwap` is
+  viable and checked — neither passes `a1` nor `onBench`, which is what that builder overwrites and ignores
+  — and five other call sites DO pass `a1`, so the delegation must be guarded, not blanket. `opportunist` is
+  residual and is excluded on purpose.
+- **`cutecharm` is REPORTED, NOT FIXED.** It needs gendered bodies in `game_differential.js#buildPair`,
+  which is owned by another division this pass and was not edited.
+- **`compoundeyes` and `lightmetal` are real instrument defects** — the SUBJECT arm THREW with
+  `Can't pass: Your <body> must make a move`.
+- **`extremespeed` / `iceshard` / `jetpunch`: the obvious fix is REFUTED, measured.** `wideAbility` would
+  lend Dragonite **Multiscale**, Mamoswine **Thick Fat**, Ninetales-Alola **Snow Warning** and Glalie **Ice
+  Body** — two damage modifiers, a weather setter and a residual heal, every one of which breaks the
+  fixture's own premise that the foe kills the user outright. It needs a narrower filter than `wideAbility`.
+- **`focusenergy` is permanently unstageable here** — it IS the control arm's inert click, so subject and
+  control are the same script by construction.
 
 ## AN ENTITY NO LEGAL BODY CAN CARRY IS NOT A COUNT — ABILITIES **COULD-NOT-STAGE 159 → 43**, THE STAGED HARNESS'S ABILITY ROWS **316 → 200**. CENSUS **883 LIVE**, COVERAGE **UNMOVED AT 785 OF 845**. RELEASE `534442d71183`. 2026-09-11, CHANGELOG 7.0.0-pending
 

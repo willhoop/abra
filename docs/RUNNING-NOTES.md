@@ -52,6 +52,28 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.31.0] — 2026-09-12 — the untested in-scope mechanics are staged: every item, and a quiet control for the carriers that had none
+
+- **What changed.** `tests/roster.js` only — no engine byte, so **no release was cut** (it is not one of
+  the 27 frozen `SOURCES`). Items: three new rules (`item/survives-by-chance`, `item/adds-flinch-by-chance`,
+  `item/priority-by-chance`) staged on the shipped `bottom-tie-first` corner where a sub-100% roll lands in
+  BOTH engines; `item/crit-ratio` rewritten to carry the ratio over the certain-crit tier with Focus Energy,
+  so it needs no die at all; `item/status-cure` given the SECONDARY road for the two statuses this regulation
+  cannot inflict outright. Abilities: `abilityScenario` takes the Skill Swap control when an ALTERNATE
+  carrier's own control is not quiet — derived first, because only 8 quiet abilities exist here and none of
+  the 13 affected rows has any carrier with a quiet alternate.
+- **Measured.** Items **142 → 148 FIRED-AND-BOARDS-MATCH, 6 → 0 COULD-NOT-STAGE** on the deliberate roster's item stage.
+  Abilities **139 → 173 MATCH, 43 → 19 COULD-NOT-STAGE, 13 → 3 CONTROL-NOT-QUIET** on its ability stage. Moves **486 / 8 / 3, UNMOVED** on its move stage, the control arm
+  for this pass. All three stages 0 DIFFER and 0 DID-NOT-FIRE; anchors 22/22, 44/44, 36/36 live; reds all
+  CAUGHT. Release `534442d71183`, census unmoved at 883 rows.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing. The intermediate abilities figure of **181 MATCH / 12 COULD-NOT-STAGE / 2
+  CONTROL-NOT-QUIET is WITHDRAWN and was never published**: it was measured with `ability/entry` and
+  `ability/residual` reading NOT CAUGHT, so the greens under those two rules were vacuous. The swap
+  control's prepended setup turn had displaced the boundaries their breaks are aimed at; both kinds now keep
+  their original script and the run is 44/44 CAUGHT.
+- **Owed to the next major.** None of the five living documents carries a roster count.
+
 ## [6.30.0] — 2026-09-11 — opening the gate switched off the check that stops a stale figure being published, and it said so in its own output
 
 - **What changed.** The hour the gate first read OPEN, the documents' quarantine clause began passing while checking nothing: the withholder returns null for every artifact once the gate is ok, so the rule that stops a living document republishing a figure from a superseded engine went quiet and printed its own reason for seeing nothing. CLAUDE.md's closing rule already says a quarantined number becomes RE-RUNNABLE rather than true, so an open gate narrows the question instead of ending it. `engine/engine_release.js` gains `releaseOf`, `currentId` and `measuredOnCurrentEngine` plus the release-field vocabulary that `engine/provenance.js` held as a module-local const in a file that exports nothing — one fact, one home, failing closed on an unreadable artifact. `engine/docs_scan.js` keeps charging a downstream artifact that does not name the current release, with membership still derived from the gate's own rows. `artifactHas` gains a same-scale mode used only on that path, because the shared index holds each value at three scales and the first live run charged two figures no artifact contained. Accusing is strict where clearing stays loose. Detail: `docs/_reports/2026-09-11-gate-parser.md` covers the sibling parser work; this row's account is in the commit message.

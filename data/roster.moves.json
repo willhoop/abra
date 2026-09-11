@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-11T22:08:19.986Z",
+ "generated": "2026-09-11T23:03:04.314Z",
  "by": "tests/roster.js",
  "stage": "moves",
  "swap_leaf_correction": {
@@ -8,7 +8,7 @@
  },
  "engine_release": "534442d71183",
  "engine_release_cut": "2026-09-11T20:25:57.786Z",
- "engine_release_cuts": 43,
+ "engine_release_cuts": 58,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
   "engine/medicham2-browser.js": "4b2bc0128dea",
