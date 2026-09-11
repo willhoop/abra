@@ -1,8 +1,8 @@
 {
- "generated": "2026-09-11T16:44:30.884Z",
+ "generated": "2026-09-11T19:34:25.234Z",
  "mode": "scheduled",
  "detection": {
-  "generated": "2026-09-11T16:44:30.883Z",
+  "generated": "2026-09-11T19:34:25.233Z",
   "authorities": {
    "live": {
     "url": "https://play.pokemonshowdown.com/data/formats.js",
@@ -123,7 +123,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 5,
+    "recent_replays": 6,
     "simulatable": false,
     "collectable": true
    },
@@ -174,7 +174,7 @@
     "known": false,
     "later_than_active": true,
     "classification": "candidate",
-    "recent_replays": 5,
+    "recent_replays": 6,
     "simulatable": false,
     "collectable": true
    },
@@ -218,42 +218,42 @@
   "replay_only": 0,
   "problems": 1,
   "formats_collected": 2,
-  "games_appended": 64,
+  "games_appended": 701,
   "stores_written": 2
  },
  "collected": [
   {
    "format": "gen9championsvgc2026regmc",
    "store": "games.gen9championsvgc2026regmc.jsonl",
-   "before": 7826,
-   "after": 7866,
-   "appended": 40,
-   "ingest_said": "coverage: gen9championsvgc2026regmc pages=25 offered=1275 unique=1251 new=40 held=1211 oldest_offered=2026-09-11T07:53:40Z newest_offered=2026-09-11T16:44:20Z newest_stored=2026-09-11T16:29:00Z"
+   "before": 7866,
+   "after": 8308,
+   "appended": 442,
+   "ingest_said": "coverage: gen9championsvgc2026regmc pages=25 offered=1275 unique=1251 new=442 held=809 oldest_offered=2026-09-11T11:42:57Z newest_offered=2026-09-11T19:33:50Z newest_stored=2026-09-11T16:44:00Z"
   },
   {
    "format": "gen9championsvgc2026regmcbo3",
    "store": "games.gen9championsvgc2026regmcbo3.jsonl",
-   "before": 4032,
-   "after": 4056,
-   "appended": 24,
-   "ingest_said": "coverage: gen9championsvgc2026regmcbo3 pages=25 offered=1275 unique=1251 new=24 held=1227 oldest_offered=2026-09-10T23:57:39Z newest_offered=2026-09-11T16:43:51Z newest_stored=2026-09-11T16:29:00Z"
+   "before": 4056,
+   "after": 4315,
+   "appended": 259,
+   "ingest_said": "coverage: gen9championsvgc2026regmcbo3 pages=25 offered=1275 unique=1251 new=259 held=992 oldest_offered=2026-09-11T02:29:00Z newest_offered=2026-09-11T19:34:25Z newest_stored=2026-09-11T16:43:00Z"
   }
  ],
  "reconciled": [
   {
    "store": "games.gen9championsvgc2026regmc.jsonl",
-   "rows": 7866,
-   "before": 7866,
-   "from_gz": 7826,
-   "from_plain": 40,
+   "rows": 8308,
+   "before": 8308,
+   "from_gz": 7866,
+   "from_plain": 442,
    "wrote": true
   },
   {
    "store": "games.gen9championsvgc2026regmcbo3.jsonl",
-   "rows": 4056,
-   "before": 4056,
-   "from_gz": 4032,
-   "from_plain": 24,
+   "rows": 4315,
+   "before": 4315,
+   "from_gz": 4056,
+   "from_plain": 259,
    "wrote": true
   }
  ],
