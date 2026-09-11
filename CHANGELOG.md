@@ -10,6 +10,15 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.8.2] — 2026-09-11
+
+### Changed
+- **Eleven register rows close on evidence already on disk** (#218 #289 #300 #301 #314 #315 #319 #413
+  #438 #439 #542), and seven are re-worded so the open-defect clause reads what the prose means — two had
+  been counted broken only because their own negated sentences contained the word DEFECT. Two tests that
+  could never fail (#412 green through its own allowlist, #440 exiting 0 on any divergence) stop
+  counting as evidence.
+
 ## [6.8.1] — 2026-09-11
 
 ### Fixed

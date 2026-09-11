@@ -69,6 +69,14 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [6.8.2] — 2026-09-11 — eleven register rows closed on evidence already on disk, and seven re-worded so the open-defect clause reads what they say
+
+- **What changed.** `docs/ROADMAP.md` only, eighteen rows. Closed #218 #289 #300 #301 #314 #315 #319 #413 #438 #439 #542, each on a line cited at HEAD, a green verdict already in the register artifact or a read of the committed whole-game differential, each keeping its earlier cell as history. #446 #500 #549 declare NOT A DEFECT in an open cell and none suppresses a live claim; #364 drops the breakage token its own negation carried and asserts nothing; #370 is fixed in code but stays open because its decider, the docs gate, must first run green on its row. The markers on #412 and #440 are demoted to FORMERLY NAMED: one test is green only through its own allowlist, the other instrument exits 0 on any divergence. Detail: `docs/_reports/2026-09-11-register-closures.md`.
+- **Measured.** Open-defect clause, read through `engine/quarantine.js`: 50 to 34 open rows asserting breakage; evidence-free 44 to 32, and 34 once the next register pass re-reads the two demoted markers; 0 with a red instrument before and after. Register 235 to 224 open, 0 unregistered.
+- **Supersedes.** Nothing. No published figure moved.
+- **Basis.** unchanged.
+- **Owed to the next major.** None.
+
 ## [6.8.1] — 2026-09-11 — a grandfathered figure leaves the list only when a document binds it, and MODELS.md's 925 is bound to the commit that wrote it
 
 - **What changed.** `engine/docs_scan.js`: a grandfathered figure that some file on disk happens to contain now stays on the list as dormant; it retires only when its sentence or value is edited, or when a binding a document wrote holds it — the CHANGELOG entry its block names, or a commit-pinned blob. A commit-pinned citation (a commit hash, a colon, then a data path and an optional field) is read from git as a bound trace, not as a citation of today's file. `docs/MODELS.md:1493` binds its held-out figure to the commit that produced it. `tests/test-docs-current.js` writes the list through `retainGrandfathered`, and its bound-trace demonstration grows from 16 to 23 cases.
