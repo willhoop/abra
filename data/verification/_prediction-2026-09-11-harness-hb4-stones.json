@@ -1,0 +1,33 @@
+{
+  "batch": "HB-4 — the 75 mega stones staged as a mega evolution (engine/all_mechanics_fire.js runStone)",
+  "written_before_any_run": "2026-09-11T07:40Z",
+  "release": "2b5a6585d8cf",
+  "baseline_artifact": "data/all-mechanics-fire.json generated 2026-09-11T06:19:39.627Z on 2b5a6585d8cf",
+  "before": {
+    "boards_rows": { "moves": 496, "abilities": 170, "items": 73, "total": 739, "of": 964 },
+    "fired": { "moves_resolved": 495, "abilities": 104, "items": 64 },
+    "items_out_of_scope": 75
+  },
+  "predicted_after": {
+    "boards_rows": { "items": 148, "total": 814 },
+    "fired": { "items": 139 },
+    "items_out_of_scope": 0,
+    "stone_rows_with_authority_mega_line": 75,
+    "mega_asks_refused": 0,
+    "stat_line_parted_rows": 0
+  },
+  "expect_to_part": [],
+  "reasoning": [
+    "data/roster.items.json rates all 75 stones FIRED-AND-BOARDS-MATCH on a single staged turn, and tests/probe_mega_spread_stat.js sweeps every stone's stat line; the harness bodies are Hardy (neutral) at 0 SP, where probe_mega_spread_stat.js's own header says the additive delta is exact, so no stat-line part is expected.",
+    "A protocol divergence (narration) on some stone rows is possible and is NOT predicted to be zero: entry abilities that activate on the evolution (Trace, Intimidate, weather/terrain setters, Fairy Aura) are the likeliest lines to part. Predicted items.diverged: 0 to 5, low confidence.",
+    "Meowsticite has two bases (meowstic, meowsticf); only meowstic is staged. Feraligite's base is the receiver, so that row takes an ALT_RECEIVERS body."
+  ],
+  "possible_board_part_candidates": ["charizarditey (Drought on evolution)", "tyranitarite / abomasite / froslassite (weather on evolution)", "raichunitex (Electric Surge)", "alakazite / meowsticite (Trace on evolution)", "feraligite (alternate receiver, first staging)"],
+  "red_demonstrations_planned": [
+    "7a control: one derived stone evolves in both engines, board and stat line clean",
+    "7b plant medicham2's evolved body back to its base name at boundary 1 -> STATE on species",
+    "7c plant medicham2's evolved Attack +1 at boundary 1 -> STATE on stats.atk (only the new leaf can see it)",
+    "7d a foreign stone on the same body -> the authority refuses the ask (counted), DID-NOT-FIRE",
+    "--break-mega: every stone row loses its |-mega| receipt and its board, the run exits non-zero"
+  ]
+}

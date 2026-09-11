@@ -1,0 +1,18 @@
+{
+  "batch": "HB-5 — Struggle staged out of PP (a body holding ONE 5-PP move, clicked dry, then Struggle); Battle Bond relabelled",
+  "written_before_any_run": "2026-09-11T08:40Z",
+  "release": "2b5a6585d8cf",
+  "before": { "struggle": "NO LEGAL CARRIER (nothing learns it; every body can use it). 1,008 clean-store uses per data/regulation-usage.json per the plan", "boards_rows_moves": 496, "moves_resolved": 495 },
+  "predicted_after": {
+    "struggle": "RESOLVED, the authority's log shows |move|p1a: <carrier>|Struggle, board NO-DIVERGENCE",
+    "boards_rows_moves": 497,
+    "moves_resolved": 496,
+    "battlebond": "stays unreachable; relabelled with the validator's own words, does not move any count"
+  },
+  "expect_to_part": [],
+  "possible_part_candidates": ["struggle (recoil is 1/4 of max HP in the authority; the x6 pool scales max HP in both engines identically, so a recoil difference would be an engine defect)", "the PP leaf at 0 on the dry slot"],
+  "red_demonstrations_planned": [
+    "the fixture must be read off the authority: a board with no |move|p1a|Struggle line is refused by the search",
+    "an HP plant on the struggler at the Struggle boundary must read STATE"
+  ]
+}

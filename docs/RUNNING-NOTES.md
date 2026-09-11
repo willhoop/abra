@@ -69,6 +69,27 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [6.8.0] — 2026-09-11 — the harness compares the act of evolving: boards compared 739 → 832 of 964, no new board parts
+- **What changed.** `engine/all_mechanics_fire.js` only.
+  - The 75 mega stones are staged as a mega evolution, where they used to be excused.
+  - A board-only arm covers the 28 abilities with no A/B control. It is credited only off the authority's
+    log.
+  - Imposter, Limber and Struggle are staged; Battle Bond is relabelled unreachable.
+  - A stat-line leaf rides on every forme row.
+- **Measured.** From `data/all-mechanics-fire.json`, release `2b5a6585d8cf`, generated
+  2026-09-11T07:55:10.750Z, 1,522 games:
+  - boards compared 832 of 964 (moves 497, abilities 187, items 148);
+  - items fired 139; stones 75 of 75 `|-mega|` in both engines, 0 refused;
+  - board-only proven 15;
+  - 0 new STATE rows;
+  - one new protocol divergence, `abilities:parentalbond` (ordering, board-clean).
+  - `engine/coverage.js` reads 740 of 845. `data/mechanics-census.json` reads 856 live, 0 missing.
+    Gate OPEN, 9 of 9.
+- **Basis.** unchanged.
+- **Supersedes.** ~~739 of 964 mechanics with a board compared~~ retracted — now 832 (`data/all-mechanics-fire.json`).
+- **Owed to the next major.** `docs/ABRA-technical-docs.md` (the harness now stages stones and a board-only arm);
+  `docs/ABRA-whitepaper.md` coverage figures.
+
 ## [6.7.0] — 2026-09-11 — the speed-tie corner cards: thirteen mechanisms fixed, three end-of-battle clock cards declared, corners top 8 → 1 and bottom 11 → 2 of 961
 
 - **What changed.** `engine/medicham2-browser.js`, fifteen fixes each behind its own `MEDI_*` knob: Encore's same-turn `changeAction` rewrites a queued pivot or Struggle; an entrant a hazard KO'd runs none of its handlers; an ability acquired by a body this hit KO'd still Starts; a connected packet deals at least 1; Feint reads Detect's `protect` volatile; a defrost thaw waits for the move to be used; a targetless pivot fails and stays; a full-handed Thief takes nothing; Belly Drum fails at +6; a Speed Swap is undone on switch-out (ROADMAP #571); Super Fang floors at 1 on the road every click takes; Knock Off's x1.5 joins the base-power chain; a volley stops when its user faints; Stockpile's refund is refused with no foe left; Reflect Type is modelled. New `tests/probe_corner_mechanisms.js` (15 mechanisms, two engines, one knob child each); sixteen census rows in `tests/test-mechanics.js`; `tests/probe_red_demo.js` WIRE 4 re-aimed and the #256 unmodelled-click arm made self-deriving (no legal member left). Releases `09b2b98feb98` (batch 1), `2b5a6585d8cf` (batches 2+3).

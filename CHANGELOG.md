@@ -10,6 +10,40 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.8.0] — 2026-09-11
+
+### Added
+- **The harness stages a mega evolution for every one of the 75 mega stones.** `engine/all_mechanics_fire.js`
+  excused every stone as "the mechanism is the MEGA", pointing at the deliberate roster's single staged turn;
+  nothing had compared the act of evolving inside a real game. Each stone is now a row (the base forme holding
+  it asks to mega on turn 1, against the same body holding nothing). All 75 fired, the authority's `|-mega|` in
+  both engines, 0 asks refused. A stat-line leaf — `st` against `storedStats`, read through the driver's
+  boundary hook — rides on every forme row, because `board_state.js` compares no Attack; read at 254
+  boundaries, 0 parted.
+- **A board-only arm for abilities with no A/B control** — the 14 single-ability carriers and the 14 abilities
+  whose only legal carrier is a mega forme (`LEGAL_SPECIES` drops mega formes, so they read "NO LEGAL
+  CARRIER"). Credited only when the authority's own log names the ability acting for the subject: 15 proven,
+  13 carry `board_unproven` and add nothing to the count.
+- Imposter and Limber (a build-aware carrier pick; an own-pool fallback in `bodyOf`, printed: Ditto alone) and
+  Struggle (a one-move body clicked dry, the max PP read off the authority, then Struggle). Battle Bond is
+  relabelled unreachable with the validator's own words.
+- Red plants 7a–7d, 8 and 9, and `--break-mega`. All caught on the final run.
+
+### Changed
+- `data/all-mechanics-fire.json` on release `2b5a6585d8cf`, generated 2026-09-11T07:55:10.750Z: boards compared
+  739 → 832 of 964 (moves 497, abilities 187, items 148); items fired 64 → 139; `summary.items.out_of_scope`
+  75 → 0; `summary.abilities.unreachable` 129 → 116. No new STATE row.
+- `--dumplog` now prints the A/B ladder's games. It printed nothing for the rows the never-fired plan asked about.
+
+### Notes
+- **Engine defect found, not fixed (this pass edits no engine byte):** Parental Bond's secondary against its
+  second hit — authority `|-status|…|par` against medicham2 `|-crit|…`. Board-clean, below the mechanics
+  clause's reach shelf; the per-hit step-list wrap already KNOWN-OPEN in `tests/test-resolution-order.js`.
+- **The first stone run said 5 of 5 part, and it was the fixture:** the ×6 HP pool does not survive a permanent
+  forme change in the authority. Forme rows play ×1.
+- Gate OPEN, 9 of 9. Census 856 live / 0 missing, unchanged. `engine/coverage.js` 740 of 845. Full account:
+  `docs/_reports/2026-09-11-harness-batches.md`.
+
 ## [6.7.0] — 2026-09-11
 
 ### Fixed

@@ -1,0 +1,22 @@
+{
+  "batch": "HB-2 — the 14 abilities whose only legal carrier is a mega forme, staged as base-holds-stone + mega on turn 1, board-only arm",
+  "written_before_any_run": "2026-09-11T08:05Z",
+  "release": "2b5a6585d8cf",
+  "rows": ["aerilate", "dragonize", "eelevate", "electricsurge", "fairyaura", "filter", "firemane", "innardsout", "megasol", "parentalbond", "piercingdrill", "shadowtag", "spicyspray", "unseenfist"],
+  "before": { "these_14": "NO LEGAL CARRIER (misfiled: LEGAL_SPECIES drops mega formes)", "boards_rows_abilities": 170 },
+  "predicted_after": {
+    "all_14_staged": true,
+    "authority_mega_line_on_every_row": true,
+    "mega_asks_refused": 0,
+    "boards_rows_abilities_delta": "+3 to +8 (the plan's +11..+14 assumed every row proves itself; aerilate, dragonize, filter, parentalbond, shadowtag, unseenfist are silent in the log)",
+    "likely_proven": ["fairyaura (-ability on entry/evolution)", "electricsurge (terrain start [from] ability)", "spicyspray", "megasol", "eelevate", "firemane", "piercingdrill (receiver protects)", "innardsout (only if the carrier faints)"],
+    "likely_unproven": ["aerilate", "dragonize", "filter", "parentalbond", "shadowtag", "unseenfist"]
+  },
+  "expect_to_part": [],
+  "possible_part_candidates": ["aerilate, dragonize, filter — never staged by ANY instrument before (plan §2)", "electricsurge / megasol (field set on evolution)", "dragonize (Feraligatr base = receiver -> alternate receiver)"],
+  "red_demonstrations_planned": [
+    "--break-mega over the 14: every row loses |-mega| and its board, exit non-zero",
+    "scriptMegaRefused asserted 0 on the clean run",
+    "print the widened carrier map before wiring: exactly these 14"
+  ]
+}

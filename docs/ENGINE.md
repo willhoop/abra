@@ -141,12 +141,18 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  856/856 probed mechanics live, 0 missing   (census 2026-09-11 03:06)
-    the census probes what somebody thought to probe: 287 of 303 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 51 min old). node engine/coverage.js
-  differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/2b5a6585d8cf/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "2b5a6585d8cf".
-    it becomes quotable again when this is re-run: node tests/test-engine-diff.js
+  856/856 probed mechanics live, 0 missing   (census 2026-09-11 03:56)
+    the census probes what somebody thought to probe: 287 of 294 in-scope tags carry a probe, 7 carry none (9 of 303
+    tags have no in-scope carrier); 68 mechanics have never fired in the staged harness (all-mechanics-fire.json, 10
+    min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-11 02:13)
+    seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
+    the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
+    Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
+    multiHit tag were drawn; 3 were never drawn at all (bonerush, doublehit, tailslap) — never drawn is a SAMPLING
+    gap, not an exclusion.
+    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
+    a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     older than its input engine-data.js
@@ -162,9 +168,45 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node engine/tag_dex.js
 ```
 
-_stamped 2026-09-11 03:11_
+_stamped 2026-09-11 04:05_
 
 <!-- /GENERATED -->
+
+## THE HARNESS COMPARES THE ACT OF EVOLVING. **BOARDS COMPARED 739 → 832 OF 964**: ALL 75 MEGA STONES, 15 NO-CONTROL ABILITIES PROVEN OFF THE AUTHORITY'S LOG, IMPOSTER, LIMBER, STRUGGLE. **NO NEW BOARD PARTS.** ONE NEW PROTOCOL DIVERGENCE, PARENTAL BOND, BOARD-CLEAN. GATE **OPEN, 9 OF 9**; CENSUS **856 LIVE**, UNCHANGED. RELEASE `2b5a6585d8cf`. 2026-09-11, CHANGELOG 6.8.0
+
+Full account, every pin, every red: [docs/_reports/2026-09-11-harness-batches.md](_reports/2026-09-11-harness-batches.md).
+Harness only — `engine/medicham2-browser.js` was not touched, so every result is attributable to the harness.
+
+**THE STONES WERE EXCUSED, AND NOTHING HAD EVER COMPARED A MEGA EVOLUTION INSIDE A GAME.** `runItems` pointed the 75
+stones at the roster's single staged turn. Each is now a row: the base forme holding the stone asks to mega on turn 1,
+against the same body holding nothing. 75 of 75 FIRED, `|-mega|` in both engines, 0 asks refused. A new STAT-LINE
+leaf (the harness reads `st` against `storedStats` through the driver's own boundary hook; `board_state.js` compares
+no Attack) was read at 254 boundaries and never parted.
+
+**THE FIRST SMOKE SAID 5 OF 5 STONES PART, AND IT WAS THE FIXTURE.** medicham2 held exactly six times the authority's
+max HP. The ×6 pool is written into both engines at build, and a PERMANENT forme change makes the authority recompute
+the line from the set. Disguise and Zero to Hero did the same. Every forme row now plays ×1; all went clean.
+
+**NO CONTROL IS NO LONGER NO ROW.** The 14 single-ability carriers and the 14 abilities only a mega carries play the ON
+game and are credited only when the authority's log names the ability acting for `p1a`. 15 are proven; 13 stay
+`board_unproven` and add nothing to the count. Levitate and Good as Gold needed a trigger read off their TAG params
+(`typeImmunity.type`, `refusesStatusMoves`), because neither has a handler the need derivation can read.
+
+**THE ONE NEW DIVERGENCE IS PARENTAL BOND** — a Body Slam's paralysis after hit 1 in the authority, the second hit's crit
+first here. Board-clean, below the reach shelf, and the per-hit step-list wrap `test-resolution-order.js` already
+carries as KNOWN-OPEN. Found, not fixed: this pass edits no engine byte.
+
+### The hand list
+
+**Leaving it:** nothing carried from the list below was turned into a probe this pass.
+
+**Joining it:** Parental Bond's secondary against its second hit (ordering, board-clean; ROADMAP #500's family); a KO on
+the ×1 pool ends a harness game `THREW` (44 stone games, 16 board-only games — boards before the KO are compared);
+13 board-only rows the authority never names acting (aerilate, dragonize, filter, firemane, furcoat, illusion,
+megalauncher, megasol, mimicry, piercingdrill, shadowtag, surgesurfer, unseenfist); Meowstic-F, the second base of
+Meowsticite, not staged.
+
+**Still on it:** unchanged from the section below.
 
 ## THE SPEED-TIE CORNER CARDS — THIRTEEN MECHANISMS FIXED, TWO UNATTRIBUTED CARDS ATTRIBUTED AND FIXED, THREE END-OF-BATTLE CLOCK CARDS DECLARED. **TOP 8 → 2 → 1, BOTTOM 11 → 3 → 2 OF 961**, EVERY STEP THE PREDICTED POINT AND NO NEW GAME. CENSUS **840 → 856 LIVE**. GATE **OPEN, 9 OF 9**. RELEASES `09b2b98feb98`, `2b5a6585d8cf`. 2026-09-11, CHANGELOG 6.7.0
 

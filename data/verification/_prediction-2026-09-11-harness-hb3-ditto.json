@@ -1,0 +1,20 @@
+{
+  "batch": "HB-3 — Imposter and Limber: a build-aware carrier pick and an own-pool fallback in bodyOf",
+  "written_before_any_run": "2026-09-11T08:05Z",
+  "release": "2b5a6585d8cf",
+  "before": { "imposter": "the carrier body could not be built (Ditto)", "limber": "the carrier body could not be built (Ditto picked first)" },
+  "predicted_after": {
+    "body_fallback_species": ["ditto"],
+    "carrier_pick_moved": ["limber: ditto -> the next legal carrier with a control"],
+    "imposter": "A/B on Ditto (Imposter vs Limber) — FIRED (the transform on entry moves both games)",
+    "limber": "A/B on a non-Ditto carrier — DID-NOT-FIRE likely (nothing on the gauntlet paralyses it); still a board",
+    "boards_rows_abilities_delta": "+2",
+    "fired_abilities_delta": "+1 (imposter)"
+  },
+  "expect_to_part": [],
+  "possible_part_candidates": ["imposter (transform copies stats/types/ability; the party is keyed by identity so the copy should not collide)"],
+  "red_demonstrations_planned": [
+    "the fallback set printed on every run must be ditto alone",
+    "the carrier-pick-moved list printed on every run must be limber alone"
+  ]
+}

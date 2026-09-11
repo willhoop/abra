@@ -207,6 +207,13 @@ const BREAK_TRIGGERS = has('--break-triggers');
 if (BREAK_TRIGGERS) console.log('  --break-triggers IS ON. The handler-derived move needs are suppressed and '
   + 'every ability falls back to the shared four-move gauntlet — the state this file was in before '
   + '2026-08-12. THIS IS THE RED DEMONSTRATION, NOT A RUN.');
+/* THE MEGA RED SWITCH (2026-09-11, harness batches HB-2 and HB-4). `--break-mega` stops every staged
+ * script ASKING to mega evolve. Every stone row and every mega-carrier ability row must then lose its
+ * `|-mega|` receipt, lose its board, and the run must exit non-zero — which is the proof that a stone
+ * row's board is a board taken AFTER an evolution rather than a board of a body holding a rock. */
+const BREAK_MEGA = has('--break-mega');
+if (BREAK_MEGA) console.log('  --break-mega IS ON. No staged script asks to mega evolve. Every stone row and every '
+  + 'mega-carrier ability row must lose its |-mega| receipt and its board. THIS IS THE RED DEMONSTRATION, NOT A RUN.');
 const PREFLIGHT = {
   checked: 0,          /* every call, including the red plants */
   rows_checked: 0,     /* calls made ON A POPULATION ROW — a zero here means the wiring is a no-op */
@@ -361,6 +368,60 @@ for (const s of LEGAL_SPECIES) for (const a of Object.values(s.abilities || {}))
 }
 for (const v of AB_CARRIERS.values()) v.sort();
 
+/* ================= THE MEGA STONES, AND THE ABILITIES ONLY A MEGA CARRIES (2026-09-11) =============
+ *
+ * `LEGAL_SPECIES` drops `isMega` — correctly, because a mega forme cannot be written on a sheet — and
+ * everything built from it inherited the omission. Two populations fell through it:
+ *
+ *   THE 75 STONES  `runItems` excused every one of them as "the mechanism is the MEGA", pointing at
+ *                  the deliberate roster (a single staged turn). No instrument had ever compared the
+ *                  ACT of evolving inside a real game: the forme, its stat line, its typing and its
+ *                  ability, in both engines, at every boundary after it.
+ *   14 ABILITIES   whose only legal carrier is a mega forme — Fairy Aura, Shadow Tag, Aerilate,
+ *                  Dragonize, Filter … — were reported "NO LEGAL CARRIER" because `AB_CARRIERS` is
+ *                  walked over the same list.
+ *
+ * THE MAP IS DERIVED FROM THE AUTHORITY'S OWN `megaStone` FIELD, never from a name list: item -> {base
+ * forme -> mega forme}. A pair is kept only when BOTH formes are legal by the regulation filter
+ * (CLAUDE.md: `exists && !isNonstandard && tier !== 'Illegal'`) and the base forme has a move pool —
+ * the sheet names the BASE, and the validator judges it. A stone with two bases (one item, two formes)
+ * keeps every pair; the row stages the first and records the rest as not staged, by name. */
+const LEGAL_FORME = (s) => !!(s && s.exists && !s.isNonstandard && s.tier !== 'Illegal');
+const STONE_OF = new Map();
+const STONE_DROPPED = [];
+for (const it of dex.items.all()) {
+  if (!it || !it.exists || it.isNonstandard || !it.megaStone) continue;
+  const pairs = typeof it.megaStone === 'string' ? [[it.megaEvolves, it.megaStone]] : Object.entries(it.megaStone);
+  const ok = [];
+  for (const [b, m] of pairs) {
+    const bs = dex.species.get(b), ms = dex.species.get(m);
+    if (!LEGAL_FORME(bs) || !LEGAL_FORME(ms) || !POOL.has(bs.id)) { STONE_DROPPED.push(it.id + ':' + b + '->' + m); continue; }
+    ok.push({ base: bs.id, mega: ms.id, megaName: ms.name, megaAbilities: Object.values(ms.abilities || {}).map(id) });
+  }
+  if (!ok.length) continue;
+  STONE_OF.set(it.id, { stone: it.id, stoneName: it.name, base: ok[0].base, mega: ok[0].mega,
+                        megaName: ok[0].megaName, megaAbility: ok[0].megaAbilities[0] || null,
+                        megaAbilityCount: ok[0].megaAbilities.length,
+                        otherPairs: ok.slice(1).map(p => p.base + '->' + p.mega) });
+}
+/* ability id -> the mega carriers that hold it, for an ability NO ordinary legal body carries. Keyed
+ * only where `AB_CARRIERS` is empty: an ability a base forme also carries keeps its ordinary A/B row
+ * and is not re-staged here (Levitate's Chimecho-Mega, Intimidate's Manectric-Mega, …). */
+const MEGA_AB_CARRIERS = new Map();
+for (const e of STONE_OF.values()) {
+  if (!e.megaAbility || (AB_CARRIERS.get(e.megaAbility) || []).length) continue;
+  if (!MEGA_AB_CARRIERS.has(e.megaAbility)) MEGA_AB_CARRIERS.set(e.megaAbility, []);
+  MEGA_AB_CARRIERS.get(e.megaAbility).push(e);
+}
+/* PRINTED BEFORE IT IS WIRED (docs/LESSONS.md §4 — every derivation over-matches on the first try). */
+console.log('  MEGA STONES: ' + STONE_OF.size + ' legal stone(s) with a legal base and mega forme'
+  + (STONE_DROPPED.length ? '; ' + STONE_DROPPED.length + ' pair(s) dropped as not legal: ' + STONE_DROPPED.join(' ') : '')
+  + '; two-base stones: ' + ([...STONE_OF.values()].filter(e => e.otherPairs.length)
+    .map(e => e.stone + ' [' + e.base + ' staged; ' + e.otherPairs.join(',') + ' NOT staged]').join(' ') || 'none')
+  + '; mega formes with more than one ability: ' + [...STONE_OF.values()].filter(e => e.megaAbilityCount > 1).length);
+console.log('  MEGA-ONLY ABILITIES (no ordinary legal carrier): ' + MEGA_AB_CARRIERS.size + ' — '
+  + [...MEGA_AB_CARRIERS.entries()].map(([a, es]) => a + '<-' + es.map(e => e.mega).join('/')).join(' '));
+
 /* ================= THE FIXTURES ==================================================================
  *
  * THE RECEIVER IS IMMUNE TO NOTHING, AND THAT IS COMPUTED RATHER THAN CHOSEN. A move that hits a type
@@ -419,6 +480,7 @@ const mvName = m => { const x = dex.moves.get(m); return x && x.exists ? x.name 
  * set is empty. A set that survives with zero moves is DROPPED and counted — never given a guessed
  * move, which is how a scenario comes to test something nobody asked for. */
 const FILLERS = GAME_RULES.FILLERS;
+const BODY_FALLBACK = new Set();
 function bodyOf(species, ability, item, wantMoves) {
   const sp = dex.species.get(species);
   if (!sp || !sp.exists) return null;
@@ -433,6 +495,15 @@ function bodyOf(species, ability, item, wantMoves) {
     if (moves.length >= 4) break;
   }
   if (!moves.length) for (const f of FILLERS) { if (pool.has(f) && !dex.moves.get(f).isNonstandard) { moves.push(f); break; } }
+  /* HB-3 (2026-09-11) — THE BODY'S OWN POOL, LAST. A species whose whole legal pool holds no wanted
+   * move and no filler was returned as null, which is why Imposter and Limber read "the carrier body
+   * could not be built": Ditto's pool is one move. The fallback takes the first legal move the body
+   * CAN learn, and every species it fires for is recorded in `BODY_FALLBACK` and printed, because a
+   * fallback that fires silently looks exactly like a working body. */
+  if (!moves.length) {
+    const own = [...pool].filter(k => { const dm = dex.moves.get(k); return dm && dm.exists && !dm.isNonstandard; }).sort();
+    if (own.length) { moves.push(own[0]); BODY_FALLBACK.add(sp.id); }
+  }
   if (!moves.length) return null;
   const legalAb = Object.values(sp.abilities || {});
   let ab = legalAb.find(a => id(a) === id(ability)) || legalAb[0] || '';
@@ -1260,8 +1331,43 @@ function playScenario(spec) {
    * THE DIFFS ARE KEPT ONLY WHERE A BOARD PARTED, which is bounded: the driver stops the game at the
    * FIRST divergent board, so at most one boundary in a state-mode game carries any. */
   const boards = [];
-  const onBoundary = (snap, turnIdx) => {
-    boards.push({ turn: turnIdx, identical: snap.identical, leaves_compared: snap.leaves_compared,
+  /* ---- THE STAT LINE, FOR A ROW THAT CHANGES ONE (2026-09-11) --------------------------------------
+   *
+   * `board_state.js` compares species, typing, ability and max HP, and NOT the five other stats — so a
+   * mega evolution that landed on the wrong Attack is invisible to every board this file takes until a
+   * damage roll happens to show it. A row whose MECHANISM is a new stat line (a mega stone, a mega
+   * carrier) asks for it by naming the subject's stable key in `spec.statLine`; every other row is
+   * untouched, so no existing verdict can move because this was added.
+   *
+   * READ OFF THE LIVE ENGINES THROUGH THE DRIVER'S OWN HOOK — `onBoundary(snap, turnIdx, S, battle)` —
+   * and matched by `BS.stableKey`, the one door onto "which body is this" (a mega renames the body, so
+   * the display name cannot be the key). medicham2 holds `st.{at,df,sa,sd,sp}`; the authority
+   * `storedStats.{atk,def,spa,spd,spe}`, which `setSpecies` rewrites on a forme change
+   * (sim/pokemon.ts:1393,1404). A body either side cannot find is COUNTED, never compared as equal. */
+  const STAT_PAIRS = [['at', 'atk'], ['df', 'def'], ['sa', 'spa'], ['sd', 'spd'], ['sp', 'spe']];
+  const statLine = spec.statLine ? { key: spec.statLine, compared: 0, unreadable: 0, parted: 0 } : null;
+  const statDiffs = (S, battle) => {
+    if (!statLine) return [];
+    const k = statLine.key;
+    const me = ((S && S.sfA && S.sfA.team) || []).find(m => m && BS.stableKey(m, id) === k);
+    const sd = ((battle && battle.sides && battle.sides[0] && battle.sides[0].pokemon) || [])
+      .find(p => p && BS.stableKey(p, id) === k);
+    if (!me || !me.st || !sd || !sd.storedStats) { statLine.unreadable++; return []; }
+    statLine.compared++;
+    const out = [];
+    for (const [mk, sk] of STAT_PAIRS) {
+      if (me.st[mk] !== sd.storedStats[sk])
+        out.push({ side: 'p1', body: k, field: 'stats.' + sk, sd: sd.storedStats[sk], us: me.st[mk], bucket: 'stat-line' });
+    }
+    if (out.length) statLine.parted++;
+    return out;
+  };
+  const onBoundary = (snap, turnIdx, S, battle) => {
+    /* A READ-ONLY LOOK AT BOTH LIVE ENGINES FOR A ROW THAT MUST MEASURE ITS OWN FIXTURE (the Struggle
+     * row reads the dry slot's max PP off the authority rather than typing the PP-boost rule). */
+    if (spec.onBattle) spec.onBattle(S, battle, turnIdx);
+    const sl = statDiffs(S, battle);
+    boards.push({ turn: turnIdx, identical: snap.identical && !sl.length, leaves_compared: snap.leaves_compared,
                   party_post_faint_skipped: snap.party_post_faint_skipped,
                   /* 2026-08-25 — the BENCH VOLATILE receipt. A benched body's volatiles became a
                    * compared leaf this pass, and a party row answers `null` while its body is
@@ -1271,7 +1377,7 @@ function playScenario(spec) {
                   party_vol_on_field_skipped: snap.party_vol_on_field_skipped,
                   pp_comparable: snap.pp_comparable,
                   screens_named_comparable: snap.screens_named_comparable,
-                  diffs: snap.identical ? [] : snap.diffs.map(d => BS.locate(d, snap)) });
+                  diffs: (snap.identical ? [] : snap.diffs.map(d => BS.locate(d, snap))).concat(sl) });
   };
   try { g = GD.playGame(a, b, 'all-mechanics-fire', spec.tag,
                         { script: spec.script, arm: ARM, onBoundary,
@@ -1280,7 +1386,7 @@ function playScenario(spec) {
   catch (e) { THREW++; return { staged: false, why: 'the game threw: ' + String(e.message || e).slice(0, 120) }; }
   const sdLog = GD.lastSdLog();
   return { staged: true, sdLog, mediTrace: g.mediTrace, div: g.div, turns: g.turns, err: g.err,
-           validator_ok: true,
+           validator_ok: true, statLine,
            boards, boundaries: g.boundaries, boundariesAgreed: g.boundariesAgreed,
            stateDiv: g.stateDiv, divTurn: g.divTurn, endReason: g.endReason };
 }
@@ -1603,6 +1709,11 @@ function runMoves(list) {
   for (const mv of list) {
     const dm = dex.moves.get(mv);
     const carriers = CARRIERS.get(mv) || [];
+    /* HB-5 (2026-09-11) — THE OUT-OF-PP FALLBACK IS NOT LEARNED, IT IS WHAT EVERY BODY IS LEFT WITH.
+     * The authority hard-codes it: `Pokemon#getMoves` returns `{move: 'Struggle', id: 'struggle'}` when
+     * no slot is usable (sim/pokemon.ts). So "nothing learns it" is not "no legal carrier" — see
+     * `runStruggle`. */
+    if (!carriers.length && mv === STRUGGLE_ID) { rows.push(runStruggle(dm)); continue; }
     if (!carriers.length) {
       rows.push({ kind: 'move', id: mv, name: dm.name, resolved: false, attempted: false,
                   why: 'NO LEGAL CARRIER — no species this format admits can learn it', unreachable: true });
@@ -2178,17 +2289,33 @@ const AB_RUNGS = [
  * bodies AND its own script, because a board-state rung may need a different holder and a different
  * body opposite it (an OHKO thrower, a Spite thrower) than the two standard rungs do. */
 function abLadder(kind, key, name, carrier, control, mkOn, mkOff, receiver, faces, thenWhat, extra, onRung) {
+  return abLadderOver(AB_RUNGS.concat(extra || []), kind, key, name, carrier, control, mkOn, mkOff,
+                      receiver, faces, thenWhat, onRung);
+}
+/* THE SAME LADDER OVER A CALLER'S OWN RUNGS (2026-09-11). `abLadder` above is exactly this over
+ * `AB_RUNGS` plus the extras, byte-for-byte the loop it always ran; a stone row supplies rungs whose
+ * script asks for the mega, because the two standard rungs never ask and a stone that is never
+ * evolved is a rock. `rung.statLine` names the body whose stat line the board must also compare. */
+function abLadderOver(rungList, kind, key, name, carrier, control, mkOn, mkOff, receiver, faces, thenWhat, onRung) {
   let best = null;
-  for (const rung of AB_RUNGS.concat(extra || [])) {
+  for (const rung of rungList) {
     const rOn = rung.mkOn || mkOn, rOff = rung.mkOff || mkOff, rRecv = rung.receiver || receiver;
     const bOn = rOn(), bOff = rOff();
     if (!bOn || !bOff || !rRecv) continue;
     const onB = stageBodies(bOn, rRecv), offB = stageBodies(bOff, rRecv);
     const mk = (b) => rung.script ? rung.script(b) : gauntletScript(b, rung.beats, faces, thenWhat);
-    const on = playScenario(Object.assign({ script: mk(onB), hpBoost: rung.hpBoost,
+    const on = playScenario(Object.assign({ script: mk(onB), hpBoost: rung.hpBoost, statLine: rung.statLine,
                                             tag: kind + '/' + key + '/on/' + rung.id }, onB));
-    const off = playScenario(Object.assign({ script: mk(offB), hpBoost: rung.hpBoost,
+    const off = playScenario(Object.assign({ script: mk(offB), hpBoost: rung.hpBoost, statLine: rung.statLine,
                                              tag: kind + '/' + key + '/off/' + rung.id }, offB));
+    /* `--dumplog` REACHES THE A/B LADDER (2026-09-11). It printed only the item board-state rung, so the
+     * never-fired plan's three `--dumplog` confirmations (Slush Rush, Magma Armor, Light Clay) printed
+     * nothing for the games they asked about — a flag that runs and shows nothing looks like a clean log. */
+    if (DUMPLOG && on.staged && off.staged) {
+      console.log('  ---- ' + kind + ' ' + key + ' [' + rung.id + '] ON script ' + JSON.stringify(mk(onB)));
+      for (const l of on.sdLog) console.log('    ON  ' + l);
+      for (const l of off.sdLog) console.log('    OFF ' + l);
+    }
     const row = abRow(kind, key, name, carrier, control, on, off);
     row.rung = rung.id;
     if (rung.carrier) row.carrier = rung.carrier;
@@ -2199,24 +2326,160 @@ function abLadder(kind, key, name, carrier, control, mkOn, mkOff, receiver, face
   return best;
 }
 
+/* ================= THE BOARD-ONLY ARM (harness batches HB-1 and HB-2, 2026-09-11) =================
+ *
+ * An ability with NO CONTROL — its every legal carrier has it as the only ability, and every mega forme
+ * has exactly one — cannot be A/B'd, and until today such a row was not played at all. Twenty-eight
+ * mechanics, among them Levitate, Good as Gold and Fairy Aura, had no board anywhere in this file.
+ *
+ * WHAT THIS ARM CAN AND CANNOT CLAIM. It plays the ON game only. The BOARD is still a real comparison
+ * of both engines, boundary by boundary; what it has lost is the A/B's proof that the ability is what
+ * moved the game. So the proof comes from the AUTHORITY'S OWN LOG instead: the row is credited
+ * (`FIRED-UNCONTROLLED`, `proven: true`, a `board` key) only when Showdown writes a line naming the
+ * ability acting for the subject — `ability: <Name>` on a line that names `p1a` (`-ability`,
+ * `-activate`, `-immune|…|[from] ability: …`, a field start `[of] p1a`) — or, for an ability tagged as a
+ * forme changer, a `-formechange`/`detailschange` for the subject that is not the mega's own. Anything
+ * else is `UNPROVEN-UNCONTROLLED` with its board kept under `board_unproven`, so the board count cannot
+ * rise on a silent row. A mega carrier additionally needs the authority's `|-mega|`.
+ *
+ * `fired` STAYS FALSE ON EVERY ROW HERE. `summary.abilities.fired` is the A/B's number and an
+ * uncontrolled credit is a weaker claim; it is counted beside it (`board_only_proven`), never inside. */
+const CARRIER_PICK_MOVED = [];
+const BOARD_ONLY = { rows: 0, staged: 0, proven: 0, unproven: [], state_unproven: [], mega_refused: 0,
+                     mega_not_seen: [], alt_receiver: [], item_conflict: [], game_errors: [], receipts: {},
+                     tag_triggers: [] };
+const MEGA_AB_RUNGS = [
+  /* x1 ONLY, for the reason `runStone` measured: the authority's forme change drops the fixture's x6. */
+  { id: 'mega-real-pool', hpBoost: 1, beats: 1 },
+  { id: 'mega-real-pool-3', hpBoost: 1, beats: 3 },
+];
+const reEsc = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const FORME_AB = (ab) => AB_TAGS(ab).some(t => /^forme/.test(t) || t === 'switchInForme');
+function abilityActedOn(log, name, ab, megaE) {
+  const nameRe = new RegExp('ability: ' + reEsc(name) + '(\\||$)');
+  /* EVERY FORME TAG, NOT TWO OF THEM. Printed before it was wired (2026-09-11): `^forme|switchInForme`
+   * over data/tags.json matches exactly seven — disguise forecast hungerswitch illusion imposter
+   * stancechange zerotohero — where the first draft's two names missed Stance Change
+   * (`formeOnMoveCategory`), Hunger Switch (`formeCycleResidual`) and Forecast (`formeFollowsWeather`). */
+  const formeTagged = FORME_AB(ab);
+  const hitsTwice = AB_TAGS(ab).includes('hitsTwice');
+  const out = [];
+  let lastMover = null, lastMove = null;
+  for (const l0 of (log || [])) {
+    const l = String(l0);
+    const mv = /^\|move\|(p[12][ab]): [^|]*\|([^|]*)/.exec(l);
+    if (mv) { lastMover = mv[1]; lastMove = id(mv[2]); }
+    /* A SKILL-SWAP-SHAPED ACTIVATION names the ability as a bare FIELD, not as `ability: <Name>` —
+     * measured: `|-activate|p2a: Feraligatr|Skill Swap|Wandering Spirit|Torrent|[of] p1a: Runerigus`.
+     * Only `-activate` lines, and only a WHOLE field, so a name inside a longer string cannot match. */
+    if (/^\|-activate\|/.test(l) && /(\||\[of\] )p1a: /.test(l) && l.split('|').includes(name)) { out.push(l); continue; }
+    /* `hitsTwice` (Parental Bond, the only member — printed 2026-09-11) is SILENT except for the hit
+     * count: a `-hitcount` on a foe right after a p1a move that is not itself multi-hit in the dex. */
+    if (hitsTwice && /^\|-hitcount\|p2[ab]: /.test(l) && lastMover === 'p1a' && lastMove
+        && !(dex.moves.get(lastMove) || {}).multihit) { out.push(l + '   [after p1a ' + lastMove + ']'); continue; }
+    /* `[of] p1a:` as well as `|p1a:` — a field start names its source only in the `[of]` slot
+     * (`|-fieldstart|move: Electric Terrain|[from] ability: Electric Surge|[of] p1a: Raichu`), and the
+     * first HB-2 run left Electric Surge unproven for exactly that. */
+    if (/(\||\[of\] )p1a: /.test(l) && nameRe.test(l)) { out.push(l); continue; }
+    if (/^\|-ability\|p1a: [^|]*\|/.test(l) && l.split('|')[3] === name) { out.push(l); continue; }
+    if (formeTagged && /^\|(-formechange|detailschange)\|p1a: /.test(l)
+        && !(megaE && l.indexOf(megaE.megaName) >= 0)) out.push(l);
+  }
+  return out;
+}
+function boardOnlyLadder(ab, name, carrier, mkOn, receiver, faces, thenWhat, megaE) {
+  BOARD_ONLY.rows++;
+  let best = null;
+  /* A FORME-CHANGE ROW PLAYS x1, FOR THE REASON THE STONES DO. Measured on the first HB-1 run: Disguise
+   * and Zero to Hero read STATE with medicham2 at exactly six times the authority's max HP (780/130,
+   * 1050/175) — a PERMANENT forme change makes the authority recompute the line and drop the fixture's
+   * boost. Forecast, a non-permanent change, did not part. Every forme-tagged row takes the x1 rungs. */
+  const formeAb = FORME_AB(ab);
+  for (const rung of ((megaE || formeAb) ? MEGA_AB_RUNGS : AB_RUNGS)) {
+    const bOn = mkOn();
+    if (!bOn || !receiver) continue;
+    const b = stageBodies(bOn, receiver);
+    const script = megaE ? megaScript(b, rung.beats, faces, thenWhat) : gauntletScript(b, rung.beats, faces, thenWhat);
+    const r0 = GD.scriptCounters().megaRefused;
+    /* THE STAT LINE rides on every row whose mechanism is a new forme — a mega carrier, or an ability
+     * tagged as a forme changer (Stance Change's Blade forme is a different Attack and Defence). */
+    const formeRow = megaE || FORME_AB(ab);
+    const on = playScenario(Object.assign({ script, hpBoost: rung.hpBoost,
+                                            statLine: megaE ? megaE.base : (formeRow ? id(carrier) : undefined),
+                                            tag: 'ability/' + ab + '/on/' + rung.id }, b));
+    const refused = GD.scriptCounters().megaRefused - r0;
+    BOARD_ONLY.mega_refused += refused;
+    if (DUMPLOG && on.staged) {
+      console.log('  ---- ' + ab + ' [board-only ' + rung.id + '] script ' + JSON.stringify(script));
+      for (const l of on.sdLog) console.log('    ' + l);
+    }
+    let row;
+    if (!on.staged) {
+      row = { kind: 'ability', id: ab, name, carrier, control: null, board_only: true, fired: false,
+              why: 'could not stage: ' + on.why, validator: on.validator };
+    } else {
+      const receipt = abilityActedOn(on.sdLog, name, ab, megaE);
+      const sdMega = megaE ? megaSeen(on.sdLog) : null;
+      const proven = receipt.length > 0 && (!megaE || sdMega);
+      const bv = boardVerdict(on, 'ability', ab);
+      row = { kind: 'ability', id: ab, name, carrier, control: null, board_only: true,
+              verdict: proven ? 'FIRED-UNCONTROLLED' : 'UNPROVEN-UNCONTROLLED', fired: false, proven,
+              authority_receipt: receipt.slice(0, 4),
+              why: proven ? null : 'no control exists, and the authority\'s log never shows ' + name
+                 + ' acting for the subject' + (megaE && !sdMega ? ' (and the authority never evolved it)' : '')
+                 + ' — the board below is a real comparison of a game nobody has shown this ability moved',
+              diverged: !!on.div, divergence: divOf(on.div, 'p1a', on.sdLog, null),
+              game_error: on.err || null, stat_line: on.statLine ? Object.assign({}, on.statLine) : null };
+      if (megaE) row.mega = { stone: megaE.stone, base: megaE.base, mega: megaE.mega, asked: !BREAK_MEGA,
+                              seen_showdown: sdMega, seen_medicham: megaSeen(on.mediTrace), refused };
+      if (proven) row.board = bv; else row.board_unproven = bv;
+    }
+    row.rung = rung.id;
+    best = best || row;
+    if (row.proven) { best = row; break; }
+  }
+  if (best) {
+    if (best.verdict) BOARD_ONLY.staged++;
+    if (best.proven) { BOARD_ONLY.proven++; BOARD_ONLY.receipts[ab] = best.authority_receipt[0]; }
+    else BOARD_ONLY.unproven.push(ab);
+    if (best.board_unproven && best.board_unproven.verdict === 'STATE') BOARD_ONLY.state_unproven.push(ab);
+    if (best.mega && !best.mega.seen_showdown) BOARD_ONLY.mega_not_seen.push(ab);
+    if (best.game_error) BOARD_ONLY.game_errors.push(ab + ': ' + best.game_error);
+  }
+  return best;
+}
+
 function runAbilities(list) {
   const rows = [];
   for (const ab of list) {
     const da = dex.abilities.get(ab);
     const carriers = (AB_CARRIERS.get(ab) || []);
-    if (!carriers.length) {
+    /* HB-2 (2026-09-11) — A MEGA-ONLY ABILITY IS CARRIED BY THE BASE FORME HOLDING THE STONE, and the
+     * row asks for the mega on turn 1. Before this it read "NO LEGAL CARRIER" for fourteen abilities
+     * whose carrier is perfectly legal — `LEGAL_SPECIES` drops mega formes because a sheet cannot name
+     * one, and `AB_CARRIERS` inherited that. */
+    const megaE = carriers.length ? null : ((MEGA_AB_CARRIERS.get(ab) || [])[0] || null);
+    if (!carriers.length && !megaE) {
       rows.push({ kind: 'ability', id: ab, name: da.name, fired: false, unreachable: true,
-                  why: 'NO LEGAL CARRIER — no species this format admits has it' });
+                  why: 'NO LEGAL CARRIER — no species this format admits has it, as a base forme or a mega' });
       continue;
     }
-    const c = carriers.find(s => abControlFor(s, ab)) || carriers[0];
-    const ctrl = abControlFor(c, ab);
-    if (!ctrl) {
-      rows.push({ kind: 'ability', id: ab, name: da.name, carrier: c, fired: false,
-                  why: 'NO CONTROL — every legal carrier has this as its only ability, so the A/B arm '
-                     + 'has nothing to swap it for. The row is not measurable by this instrument.' });
-      continue;
-    }
+    /* HB-3 (2026-09-11) — THE CARRIER IS THE FIRST ONE THAT HAS A CONTROL AND BUILDS WITHOUT THE
+     * OWN-POOL FALLBACK. The old pick (`find(control) || carriers[0]`) took Ditto for Limber because
+     * Ditto sorts first and has a control (Imposter) — and Ditto could not be built, so a mechanic with
+     * five other legal carriers read "could not be built". A carrier that needs the fallback is only
+     * taken when nothing else can carry the row (Imposter). Which rows this pick MOVED is printed. */
+    const buildsPlain = (s) => { const p = POOL.get(s); return !!p && (GAUNTLET_ACTOR_MOVES.some(m => p.has(id(m))) || FILLERS.some(f => p.has(f))); };
+    const c = megaE ? megaE.base
+      : (carriers.find(s => abControlFor(s, ab) && buildsPlain(s)) || carriers.find(s => abControlFor(s, ab))
+         || carriers.find(buildsPlain) || carriers[0]);
+    if (!megaE) { const old = carriers.find(s => abControlFor(s, ab)) || carriers[0];
+                  if (old !== c) CARRIER_PICK_MOVED.push(ab + ': ' + old + ' -> ' + c); }
+    const ctrl = megaE ? null : abControlFor(c, ab);
+    /* HB-1 (2026-09-11) — NO CONTROL IS NO LONGER NO ROW. A carrier whose only ability is this one (and
+     * every mega forme, which has one) cannot be A/B'd, so the row plays the ON game only and is
+     * credited only where the AUTHORITY'S OWN LOG shows the ability acting — see `boardOnlyLadder`. */
+    const boardOnly = !ctrl;
     /* THE RECEIVER IS BUILT TO CARRY WHAT THIS ABILITY MUST FACE (engine/faces.js). Feraligatr
      * remains the body — it has no immunity and so blocks nothing by accident — but its MOVES are
      * chosen for the tag under test. A fixed four-move set is why 63 abilities produced a board
@@ -2279,7 +2542,8 @@ function runAbilities(list) {
     const derivedActor = [], derivedRecv = [], unmetNeeds = [];
     if (NEEDS.needs.length) {
       PREFLIGHT.trigger_rows++;
-      const aTypes = (dex.species.get(c).types) || [];
+      /* a mega carrier's need is derived against the forme that HOLDS the ability, not its base */
+      const aTypes = (dex.species.get(megaE ? megaE.mega : c).types) || [];
       const rTypes = (dex.species.get(RECEIVER.species).types) || [];
       const recvPoolN = POOL.get(id(RECEIVER.species)) || new Set();
       for (const n of NEEDS.needs) {
@@ -2335,6 +2599,39 @@ function runAbilities(list) {
               + n.kind + (n.values.length ? ' (' + n.values.join(' or ') + ')' : ''))),
         });
     }
+    /* ---- HB-1 (2026-09-11): A BOARD-ONLY ROW'S TRIGGER, READ OFF ITS TAG'S PARAMS ------------------
+     * Measured on the first board-only run: Levitate's receiver threw Low Kick (the `faces` list puts
+     * Earthquake fifth and `pickHit` takes the first reachable), and Good as Gold was never aimed at —
+     * Feraligatr learns none of the three status moves `faces` names. Neither ability has a handler the
+     * need derivation can read (`typeImmunity.via: "not derivable -- no handler"`), so the trigger is read
+     * off the TAG instead: `typeImmunity.type` -> a damaging move of that type aimed at a foe;
+     * `refusesStatusMoves` -> a status move aimed at a foe. Chosen from the receiver's OWN legal pool,
+     * sorted, first — never named. BOARD-ONLY ROWS ONLY: an A/B row's fixture does not move in this pass.
+     * Membership printed before wiring: typeImmunity with a type over the board-only rows is levitate and
+     * eelevate; refusesStatusMoves is goodasgold alone. */
+    /* `--break-triggers` suppresses this exactly as it suppresses the handler-derived needs — measured:
+     * without the guard the switch left Levitate and Good as Gold proven, so it could not show the
+     * trigger was load-bearing for either. */
+    if (boardOnly && !BREAK_TRIGGERS) {
+      const P = (TAGS.abilities[ab] || {}).params || {};
+      const rPool = [...(POOL.get(id(RECEIVER.species)) || new Set())].sort().map(k => dex.moves.get(k))
+        .filter(mv => mv && mv.exists && !mv.isNonstandard && FOE_TARGETS.has(mv.target));
+      let trig = null, tag = null;
+      if (P.typeImmunity && P.typeImmunity.type) {
+        trig = rPool.find(mv => mv.type === P.typeImmunity.type && mv.category !== 'Status'); tag = 'typeImmunity=' + P.typeImmunity.type;
+      } else if (P.refusesStatusMoves) {
+        trig = rPool.find(mv => mv.category === 'Status' && !mv.stallingMove && !mv.forceSwitch); tag = 'refusesStatusMoves';
+      }
+      if (tag) BOARD_ONLY.tag_triggers.push(ab + ' ' + tag + ' -> ' + (trig ? trig.id : 'NONE IN THE RECEIVER\'S POOL'));
+      if (trig) {
+        recvWants = [trig.name].concat(recvWants);
+        receiver = bodyOf(RECEIVER.species, RECEIVER.ability, twItem || RECEIVER.item, recvWants);
+        facesUsed = Object.assign({ recv: [], why: [] }, facesUsed || {}, {
+          actorDerived: (facesUsed && facesUsed.actorDerived) || [],
+          recvDerived: [trig.name].concat((facesUsed && facesUsed.recvDerived) || []),
+          why: ((facesUsed && facesUsed.why) || []).concat('tag ' + tag + ': the receiver must throw ' + trig.name) });
+      }
+    }
     if (facesUsed && facesUsed.setsWeather) {
       const wm = id(facesUsed.setsWeather);
       if (actorPool.has(wm)) { actorWants = [mvName(wm)].concat(actorWants); weatherStaged = WEATHER_OF_MOVE.get(wm) || null; }
@@ -2356,7 +2653,10 @@ function runAbilities(list) {
     })();
     if (facesUsed && facesUsed.statusFirst && !statusStaged) PREFLIGHT.faces_status_noop++;
     const scOf = (wx, st) => {
-      const sc = { species: dex.species.get(c).name, ability: ab, target: dex.species.get(RECEIVER.species).name,
+      /* A MEGA CARRIER IS JUDGED AS THE MEGA FORME. Measured on the first HB-2 run: naming the base
+       * here made the preflight's `ability-on-species` clause BLOCK Fairy Aura (Floette-Eternal does not
+       * carry it) on a board where the authority then announced it — the fixture misdescribing itself. */
+      const sc = { species: dex.species.get(megaE ? megaE.mega : c).name, ability: ab, target: dex.species.get(RECEIVER.species).name,
                    /* the sheet is six long and the BATTLE brings four — two active, two on the bench —
                     * so the switch the gauntlet's last turn asks for has somewhere to go */
                    teamSize: 4, switchesOut: true,
@@ -2424,10 +2724,14 @@ function runAbilities(list) {
       pre = preflight(scOf(weatherStaged, statusStaged));   /* the row records the REPAIRED board */
       break;
     }
-    const mkActor = (which) => bodyOf(c, which, '', actorWants);
+    /* A MEGA CARRIER HOLDS ITS STONE, ALWAYS. If the consequence table also wanted an item on the
+     * body, the stone wins and the conflict is recorded on the row — a mega carrier without its stone
+     * is a base forme that does not have the ability at all. */
+    const stoneItem = megaE ? dex.items.get(megaE.stone).name : '';
+    const mkActor = (which) => bodyOf(c, which, stoneItem, actorWants);
     /* ROADMAP #158 -- the same body WITH the consequence's required item. The item is IDENTICAL in
      * both arms, so the A/B still differs in the ability and in nothing else. */
-    const mkActorI = (which, item) => bodyOf(c, which, item || '', actorWants);
+    const mkActorI = (which, item) => bodyOf(c, which, stoneItem || item || '', actorWants);
     const a1 = mkActor(da.name), a2 = mkActor(ctrl);
     if (!a1 || !a2 || !receiver) {
       rows.push({ kind: 'ability', id: ab, name: da.name, carrier: c, fired: false,
@@ -2437,17 +2741,39 @@ function runAbilities(list) {
     /* THE CARRIER MUST NOT BE THE RECEIVER. Feraligatr holds Torrent and Sheer Force, so those two
      * rows put the same species on both sides — the sheets then collide, `stageBodies` is handed a
      * null, and the whole run died at ability 250 of 316. */
+    /* A MEGA CARRIER WHOSE BASE IS THE RECEIVER (Feraligite -> Dragonize) takes the stone arm's
+     * alternate receiver, the same derived `ALT_RECEIVERS` body `stoneReceiverFor` picks. */
+    if (megaE && id(a1.species) === id(receiver.species)) {
+      const alt = stoneReceiverFor(c);
+      const altB = alt && bodyOf(alt, '', twItem || RECEIVER.item, recvWants);
+      if (altB) { receiver = altB; BOARD_ONLY.alt_receiver.push(ab + '->' + alt); }
+    }
     if (id(a1.species) === id(receiver.species)) {
       rows.push({ kind: 'ability', id: ab, name: da.name, carrier: c, fired: false,
                   why: 'the only legal carrier IS the receiver fixture — this instrument cannot put '
                      + 'the same species on both sides of the field' });
       continue;
     }
-    const row = abLadder('ability', ab, da.name, c, ctrl,
-                         () => mkActorI(da.name, twItem), () => mkActorI(ctrl, twItem), receiver, facesUsed, tw);
+    if (megaE && twItem) BOARD_ONLY.item_conflict.push(ab + ': the consequence wanted ' + twItem + ', the stone was kept');
+    const row = boardOnly
+      ? boardOnlyLadder(ab, da.name, c, () => mkActorI(da.name, twItem), receiver, facesUsed, tw, megaE)
+      : abLadder('ability', ab, da.name, c, ctrl,
+                 () => mkActorI(da.name, twItem), () => mkActorI(ctrl, twItem), receiver, facesUsed, tw);
     /* THE PREFLIGHT'S VERDICT IS ATTACHED AFTER THE GAME, AND FALSIFIED BY IT. `fired` is the only
      * thing that can prove a refusal wrong, so it is passed in rather than assumed. */
-    labelRow(row, pre, !!(row && row.verdict && row.verdict !== 'DID-NOT-FIRE'));
+    /* HB-5 (2026-09-11) — A CARRIER THE VALIDATOR SAYS DOES NOT EXIST IS NO CARRIER. Measured on Battle
+     * Bond: Greninja's slot resolves to Greninja-Bond, and the validator answers "Greninja (Greninja-Bond)
+     * does not exist in Gen 9." That is the authority declaring the forme out of the regulation, so the
+     * row is UNREACHABLE with the validator's own words as the evidence — keyed on the message, not on a
+     * name, so any future carrier refused the same way is relabelled the same way. */
+    if (row && !row.verdict && /does not exist in Gen 9/.test(JSON.stringify(row.validator || []))) {
+      row.unreachable = true;
+      row.why = 'NO LEGAL CARRIER IN BATTLE — the validator: '
+        + (row.validator || []).filter(v => /does not exist in Gen 9/.test(String(v))).slice(0, 1).join('');
+    }
+    /* A board-only row has no A/B, so "fired" is the authority's receipt (`proven`), never its verdict
+     * string — `UNPROVEN-UNCONTROLLED` is not DID-NOT-FIRE and must not read as a firing either. */
+    labelRow(row, pre, boardOnly ? !!(row && row.proven) : !!(row && row.verdict && row.verdict !== 'DID-NOT-FIRE'));
     /* ---- TWO EXPLANATIONS THAT ALREADY EXISTED AS PROSE AND NOT AS A FIELD (2026-08-19) ------------
      *
      * `engine/faces.js` has said, in a `why` sentence, WHY several of these rows are inert since the
@@ -2996,21 +3322,228 @@ function stateReceipts(plan, on, off, who) {
   return out;
 }
 
+/* ================= THE STRUGGLE ROW (harness batch HB-5, 2026-09-11) ==============================
+ *
+ * The carrier is DERIVED: the first legal species (sorted) other than the receiver, with a clean
+ * ability, whose pool holds a 5-PP damaging single-target move with no secondary, no charge, no
+ * recharge, no self-KO and no hit count — so the dry slot's own clicks change nothing but HP and PP.
+ * The body holds THAT MOVE ALONE, so when its slot runs dry Struggle is all the request offers.
+ *
+ * THE NUMBER OF DRY CLICKS IS READ OFF THE AUTHORITY, NOT TYPED: a one-turn measuring game reads
+ * `moveSlots[0].maxpp` on Showdown's body and `pp`/`maxpp` on medicham2's through the read-only
+ * `onBattle` hook, and the two must agree before the row is played. The fixture is then proven off the
+ * authority's own log (`|move|p1a: …|Struggle`), never assumed from the arithmetic. */
+const STRUGGLE_ID = 'struggle';
+const STRUGGLE_SUMMARY = { carrier: null, dry_move: null, maxpp_showdown: null, maxpp_medicham: null, why: null };
+/* ONE FIXTURE, TWO CALLERS: the row below and red plant 9. Memoised so the measuring game is played
+ * once per process. Returns null with a reason on `STRUGGLE_SUMMARY.why` when nothing can be staged. */
+let _struggleFx;
+function struggleFixture() {
+  if (_struggleFx !== undefined) return _struggleFx;
+  const clean = (m) => m && m.exists && !m.isNonstandard && m.pp === 5 && m.category !== 'Status'
+    && m.target === 'normal' && !m.flags.charge && !m.flags.recharge && !m.selfdestruct && !m.ohko
+    && !m.multihit && !m.self && !m.secondary && !(m.secondaries && m.secondaries.length) && !m.noPPBoosts;
+  let carrier = null, dry = null;
+  for (const s of LEGAL_SPECIES.map(x => x.id).sort()) {
+    if (s === id(RECEIVER.species)) continue;
+    if (!Object.values(dex.species.get(s).abilities || {}).some(a => !DISRUPTIVE_ABILITY(id(a)))) continue;
+    const m = [...(POOL.get(s) || [])].sort().map(k => dex.moves.get(k)).find(clean);
+    if (m) { carrier = s; dry = m; break; }
+  }
+  const fail = (why) => { STRUGGLE_SUMMARY.why = why; _struggleFx = null; return null; };
+  if (!carrier) return fail('no legal body holds a clean 5-PP move to run dry');
+  const ab = Object.values(dex.species.get(carrier).abilities).find(a => !DISRUPTIVE_ABILITY(id(a)));
+  const actor = bodyOf(carrier, ab, '', [dry.name]);
+  const receiver = bodyOf(RECEIVER.species, RECEIVER.ability, RECEIVER.item, RECEIVER_MOVES);
+  if (!actor || !receiver || actor.moves.length !== 1) return fail('the one-move body could not be built');
+  Object.assign(STRUGGLE_SUMMARY, { carrier, dry_move: dry.id });
+  const who = 'p1a: ' + (dex.species.get(carrier).baseSpecies || dex.species.get(carrier).name);
+  /* THE PADS CYCLE THEIR THREE MOVES. Measured on the first HB-5 run: a pad clicking Protect on every
+   * one of ten turns ran it dry and the authority refused the turn ("Venusaur's Protect is disabled"),
+   * so the game threw before Struggle was reached. Cycling spreads the PP across the pad's own set. */
+  const script = (n) => { const b = stageBodies(actor, receiver);
+    const padAt = (body, k) => ({ m: clickOf(body, [PAD_MOVES[k % PAD_MOVES.length]].concat(PAD_MOVES)) });
+    const inert = clickOf(receiver, ['Agility', 'Endure']);
+    const t = [];
+    for (let k = 0; k < n + (n ? 2 : 0); k++)
+      t.push({ p1: [{ m: k < n ? dry.id : STRUGGLE_ID, t: 0 }, padAt(b.ally, k)], p2: [{ m: inert }, padAt(b.foeAlly, k)] });
+    return { b, t }; };
+  /* THE MEASURING GAME — one click, both engines' max PP read at boundary 0. */
+  { const { b } = script(0);
+    const one = { p1: [{ m: dry.id, t: 0 }, { m: clickOf(b.ally, ['Protect', 'Endure']) }],
+                  p2: [{ m: clickOf(receiver, ['Agility', 'Endure']) }, { m: clickOf(b.foeAlly, ['Protect', 'Endure']) }] };
+    playScenario(Object.assign({ script: [one], tag: 'move/struggle/measure', onBattle: (S, battle, t) => {
+      if (t !== 0) return;
+      const sdb = battle.sides[0].active[0], meb = (S.actA || [])[0];
+      const slot = sdb && (sdb.moveSlots || []).find(x => id(x.id) === dry.id);
+      STRUGGLE_SUMMARY.maxpp_showdown = slot ? slot.maxpp : null;
+      /* medicham2's `_pp` is LAZY (board_state.js:351) — an unclicked slot is absent — so its side of
+       * the PP question is answered where it is already asked: `board_state.js` compares SPENT PP per
+       * slot at every boundary (`pp_comparable`), and the row's board carries that receipt. */
+      STRUGGLE_SUMMARY.maxpp_medicham = meb ? 'compared as spent PP by board_state.js at every boundary' : null;
+    } }, b)); }
+  const n = STRUGGLE_SUMMARY.maxpp_showdown;
+  if (!n) return fail('the authority\'s max PP for ' + dry.id + ' could not be read');
+  _struggleFx = { carrier, dry, who, n, receiver, script,
+                  play: (tag, plant) => { const { b, t } = script(n);
+                    return { t, r: playScenario(Object.assign({ script: t, tag, statePlant: plant }, b)) }; } };
+  return _struggleFx;
+}
+function runStruggle(dm) {
+  const fx = struggleFixture();
+  if (!fx) return { kind: 'move', id: dm.id, name: dm.name, resolved: false, attempted: false,
+                    carrier: STRUGGLE_SUMMARY.carrier, why: STRUGGLE_SUMMARY.why };
+  const { carrier, dry, who, n, receiver } = fx;
+  const { t, r } = fx.play('move/struggle/dry-' + n);
+  if (!r.staged) return { kind: 'move', id: dm.id, name: dm.name, resolved: false, attempted: false, carrier,
+                          why: 'could not stage: ' + r.why };
+  const sd = verdictFor(r.sdLog, who, STRUGGLE_ID), me = verdictFor(r.mediTrace, who, STRUGGLE_ID);
+  const receipt = (r.sdLog || []).find(l => new RegExp('^\\|move\\|' + reEsc(who) + '\\|Struggle').test(String(l))) || null;
+  const row = { kind: 'move', id: dm.id, name: dm.name, carrier, rung: 'out-of-pp', setup: [dry.id + ' x' + n],
+                turns: t.length, attempted: sd.attempted, resolved: sd.resolved, why: sd.why,
+                medicham_attempted: me.attempted, medicham_resolved: me.resolved, medicham_why: me.why,
+                diverged: !!r.div, divergence: divOf(r.div, who, r.sdLog, STRUGGLE_ID), err: r.err,
+                fixture: { dry_move: dry.id, dry_clicks: n, maxpp_showdown: n,
+                           maxpp_medicham: STRUGGLE_SUMMARY.maxpp_medicham, authority_receipt: receipt } };
+  /* NO RECEIPT, NO BOARD — the same rule the stone and board-only arms keep. */
+  if (receipt) row.board = boardVerdict(r, 'move', STRUGGLE_ID);
+  else { row.board_unproven = boardVerdict(r, 'move', STRUGGLE_ID);
+         row.why = (row.why ? row.why + ' — ' : '') + 'the authority never struggled; the dry-slot fixture did not land'; }
+  /* THE SAME PREFLIGHT EVERY MOVE ROW GETS — measured: without it a one-row run tripped "THE PREFLIGHT
+   * NEVER RAN ON A SINGLE ROW", and the row was the only move row without `preflight`. The MOVE is not
+   * declared to it, and that was measured too: declared, the `move-on-species` clause BLOCKED the row
+   * (no species learns Struggle, which is the point) and then saw it resolve — "THE CLAUSE IS WRONG".
+   * Learnability is the one question that does not apply to the fallback every body is left with. */
+  labelRow(row, preflight({ species: dex.species.get(carrier).name,
+                            target: dex.species.get(id(receiver.species)).name }), !!row.resolved);
+  return row;
+}
+
+/* ================= THE MEGA STONE ROW (harness batch HB-4, 2026-09-11) ============================
+ *
+ * UNTIL TODAY EVERY STONE WAS EXCUSED HERE, and the excuse pointed at the deliberate roster — a SINGLE
+ * staged turn. Nothing in this repository had compared the ACT OF EVOLVING inside a real game: the
+ * damage differential compares mega FORMES (a body built already evolved), `probe_mega_spread_stat.js`
+ * compares a stat line inside medicham2 against the authority's formula, and neither plays the turn
+ * the stone is used and then the turns after it. 58,785 pinned-pool sheets carry a stone.
+ *
+ * THE ROW. ON = the stone's base forme HOLDING the stone, asking to mega on turn 1 (`megaScript`).
+ * OFF = the same body holding nothing — the item arm's own A/B, "swapping it for (no item)". The board
+ * is read off ON and carries the STAT LINE as well (see `playScenario`), because a mega is a new stat
+ * line and `board_state.js` does not compare one.
+ *
+ * THE FIXTURE IS READ OFF THE AUTHORITY, NEVER ASSUMED. A row counts only if Showdown's own log shows
+ * `|-mega|p1a: …` in the ON game. A refused ask is counted off the driver (`scriptMegaRefused`), and a
+ * row whose authority never evolved loses its board: a board of a body holding a rock is not a board
+ * of a mega evolution, and it must not add to the count. */
+const STONE_SUMMARY = { rows: 0, staged: 0, fired: 0, mega_seen_showdown: 0, mega_seen_medicham: 0,
+                        mega_refused: 0, not_seen: [], stat_line_compared: 0, stat_line_unreadable: 0,
+                        stat_line_parted: [], alt_receiver: [] };
+const megaSeen = (log) => (log || []).some(l => /^\|-mega\|p1a: /.test(String(l)));
+/* THE GAUNTLET, WITH THE ASK. Turn 1's actor click carries `mega: true` whenever the actor HOLDS an
+ * item, so the OFF arm (no item) never asks and cannot inflate `scriptMegaRefused`. */
+function megaScript(b, beats, faces, thenWhat) {
+  const t = gauntletScript(b, beats, faces, thenWhat);
+  if (b.actor && b.actor.item && !BREAK_MEGA && t[0] && t[0].p1 && t[0].p1[0] && t[0].p1[0].m)
+    t[0].p1[0] = Object.assign({}, t[0].p1[0], { mega: true });
+  return t;
+}
+/* THE RECEIVER, UNLESS THE STONE'S OWN BASE IS THE RECEIVER. Feraligite evolves Feraligatr, and a sheet
+ * cannot carry one species on both sides — the fallback is the item arm's derived `ALT_RECEIVERS`
+ * (legal, immune to nothing by the authority's chart, no immunity-conferring ability). */
+function stoneReceiverFor(base) {
+  if (id(base) !== id(RECEIVER.species)) return RECEIVER.species;
+  return ALT_RECEIVERS.find(x => x !== id(base)) || null;
+}
+function stoneGame(e, item, tag, plant) {
+  const recvSp = stoneReceiverFor(e.base);
+  const rb = recvSp && bodyOf(recvSp, id(recvSp) === id(RECEIVER.species) ? RECEIVER.ability : '', RECEIVER.item, RECEIVER_MOVES);
+  const ab = bodyOf(e.base, '', item, GAUNTLET_ACTOR_MOVES);
+  if (!rb || !ab) return { staged: false, why: 'a stone body could not be built' };
+  const b = stageBodies(ab, rb);
+  /* x1 pool — see `runStone`: the authority's forme change drops the fixture's x6 HP boost. */
+  return playScenario(Object.assign({ script: megaScript(b, 1), tag, hpBoost: 1, statLine: e.base, statePlant: plant }, b));
+}
+function runStone(di) {
+  const e = STONE_OF.get(di.id);
+  if (!e) return { kind: 'item', id: di.id, name: di.name, fired: false, unreachable: true,
+                   why: 'NO LEGAL CARRIER — the stone has no legal base forme whose mega forme is legal' };
+  STONE_SUMMARY.rows++;
+  const recvSp = stoneReceiverFor(e.base);
+  if (recvSp && id(recvSp) !== id(RECEIVER.species)) STONE_SUMMARY.alt_receiver.push(di.id + '->' + recvSp);
+  const receiver = recvSp && bodyOf(recvSp, id(recvSp) === id(RECEIVER.species) ? RECEIVER.ability : '',
+                                    RECEIVER.item, RECEIVER_MOVES);
+  const mkOn = () => bodyOf(e.base, '', di.name, GAUNTLET_ACTOR_MOVES);
+  const mkOff = () => bodyOf(e.base, '', '', GAUNTLET_ACTOR_MOVES);
+  const r0 = GD.scriptCounters().megaRefused;
+  const onBy = {};
+  /* BOTH RUNGS ARE THE REAL POOL, AND THE x6 POOL WAS MEASURED WRONG FOR THIS ROW, NOT ASSUMED.
+   * The first smoke run (5 stones, 2026-09-11) put every row at STATE on turn 1 with medicham2 holding
+   * exactly six times the authority's max HP (990 against 165 on Abomasnow). `HP_BOOST` is a FIXTURE
+   * device the driver writes into both engines at build time; the authority's forme change recomputes
+   * the whole line from the set (`setSpecies`, sim/pokemon.ts:1393-1404) and so drops the boost, while
+   * medicham2 carries the boosted body across. No real game has a boost, so the comparison would be
+   * of the harness against itself. The stone rows therefore play the x1 pool, one beat, then three. */
+  const rungs = [
+    { id: 'mega-real-pool', hpBoost: 1, beats: 1, statLine: e.base, script: (b) => megaScript(b, 1) },
+    { id: 'mega-real-pool-3', hpBoost: 1, beats: 3, statLine: e.base, script: (b) => megaScript(b, 3) },
+  ];
+  const row = receiver ? abLadderOver(rungs, 'item', di.id, di.name, e.base, '(no item)', mkOn, mkOff,
+                                      receiver, null, null, (rung, on) => { onBy[rung.id] = on; }) : null;
+  const refused = GD.scriptCounters().megaRefused - r0;
+  STONE_SUMMARY.mega_refused += refused;
+  if (!row) return { kind: 'item', id: di.id, name: di.name, carrier: e.base, fired: false,
+                     why: 'could not stage: ' + (receiver ? 'the stone body could not be built' : 'no receiver') };
+  const on = onBy[row.rung];
+  const sdMega = !!(on && on.staged && megaSeen(on.sdLog));
+  const meMega = !!(on && on.staged && megaSeen(on.mediTrace));
+  if (on && on.staged) STONE_SUMMARY.staged++;
+  if (sdMega) STONE_SUMMARY.mega_seen_showdown++;
+  if (meMega) STONE_SUMMARY.mega_seen_medicham++;
+  if (row.verdict === 'FIRED') STONE_SUMMARY.fired++;
+  row.mega = { stone: di.id, base: e.base, mega: e.mega, mega_ability: e.megaAbility, receiver: recvSp,
+               asked: !BREAK_MEGA, seen_showdown: sdMega, seen_medicham: meMega, refused,
+               other_pairs_not_staged: e.otherPairs };
+  row.stat_line = on && on.statLine ? Object.assign({}, on.statLine) : null;
+  /* THE GAME'S OWN ERROR, KEPT. The first full stone run ended 44 of 75 ON games as `THREW` at turn 3
+   * after a turn-2 faint on the x1 pool, and the row carried no trace of why. A game the harness could
+   * not finish is a receipt, not a footnote. */
+  row.game_error = (on && on.err) || null;
+  if (row.game_error) (STONE_SUMMARY.game_errors = STONE_SUMMARY.game_errors || []).push(di.id + ': ' + row.game_error);
+  if (row.stat_line) {
+    STONE_SUMMARY.stat_line_compared += row.stat_line.compared;
+    STONE_SUMMARY.stat_line_unreadable += row.stat_line.unreadable;
+    if (row.stat_line.parted) STONE_SUMMARY.stat_line_parted.push(di.id);
+  }
+  if (!sdMega) {
+    /* NO EVOLUTION IN THE AUTHORITY, NO BOARD. Kept under another key so the reader can still see it. */
+    STONE_SUMMARY.not_seen.push(di.id);
+    row.board_unproven = row.board; delete row.board; delete row.board_control_arm;
+    row.why = (row.why ? row.why + ' — ' : '') + 'the authority never evolved this body (no |-mega| line), '
+            + 'so the row is NOT a comparison of a mega evolution and carries no board';
+  }
+  const sc = { species: dex.species.get(e.base).name, item: di.name,
+               target: dex.species.get(recvSp || RECEIVER.species).name,
+               teamSize: 4, switchesOut: true, gender: 'N', targetGender: 'N',
+               stagedMoves: { actor: ((mkOn() || {}).moves || []).map(id), receiver: ((receiver || {}).moves || []).map(id) },
+               armForcesAccuracy: ARM_FORCES.accuracy, armForcesCrit: ARM_FORCES.crit,
+               armTieFirst: ARM.tieToSecondBody === false, boardState: {} };
+  labelRow(row, preflight(sc), row.verdict === 'FIRED');
+  return row;
+}
+
 function runItems(list) {
   const rows = [];
   for (const it of list) {
     const di = dex.items.get(it);
-    /* A MEGA STONE IS NOT AN ITEM TEST — it is the mega mechanism, which `game_differential`'s own
-     * mega counters already measure, and a stone on a body that cannot use it is inert by definition.
-     * Declared, not silently skipped. */
-    if (di.megaStone || di.zMove || di.isPokeball) {
+    /* A MEGA STONE IS STAGED AS A MEGA EVOLUTION SINCE 2026-09-11 — see `runStone` above. The excuse
+     * it replaced pointed at the deliberate roster's single staged turn; the act of evolving inside a
+     * game had never been compared. Z-crystals and Poke Balls stay excused: not held items this format
+     * uses in battle. */
+    if (di.megaStone) { rows.push(runStone(di)); continue; }
+    if (di.zMove || di.isPokeball) {
       rows.push({ kind: 'item', id: it, name: di.name, fired: false, out_of_scope: true,
-                  why: (di.megaStone
-                        ? 'a mega stone — the mechanism is the MEGA, and the per-stone answer is in '
-                          + 'data/roster.items.json, which this run reconciles against (see '
-                          + '`overlap.items.exemption`). It is NOT the differential\'s mega counters: '
-                          + 'those are aggregate and cannot name a stone.'
-                        : 'not a held item this format uses in battle') });
+                  why: 'not a held item this format uses in battle' });
       continue;
     }
     /* AN ITEM'S CARRIER IS FREE — any legal body may hold any legal item. It is chosen FROM THE ITEM'S
@@ -3431,6 +3964,124 @@ function red() {
       { what: 'a BENCHED body took its stall counter to the bench with it', want: 'party.stall',
         f: (S) => { const m = benched(S); if (!m) return false; m.tookProtectTurns = 1; return true; } },
     ];
+    /* 7. THE MEGA STONE ARM MUST BE ABLE TO FAIL (2026-09-11, harness batch HB-4). Four plants on ONE
+     *    derived stone — the first whose base is not the receiver and whose mega ability is not
+     *    DISRUPTIVE (a weather or terrain setter would change the field under the plant):
+     *      7a CONTROL   the evolution happens in BOTH engines and the board, stat line included, is clean
+     *      7b SPECIES   medicham2's body is put back to its base forme after the mega; the board must
+     *                   part on `species` at that boundary
+     *      7c STAT LINE medicham2's evolved Attack is moved by one point; only the stat-line leaf can see
+     *                   it (board_state.js does not compare Attack), so this is the proof that leaf is live
+     *      7d FOREIGN   the same body holding a stone that is NOT its own asks to evolve; the authority
+     *                   must refuse (a counted refusal, no |-mega| line) and the A/B must read DID-NOT-FIRE
+     *    The plant is applied at boundary 1, the board after the turn the mega happened on. */
+    {
+      const SP = [...STONE_OF.values()].find(e => id(e.base) !== id(RECEIVER.species)
+        && e.megaAbility && !DISRUPTIVE_ABILITY(e.megaAbility));
+      const FOREIGN = SP && [...STONE_OF.values()].find(e => e.stone !== SP.stone && id(e.base) !== id(SP.base));
+      if (!SP || !FOREIGN) {
+        out.push({ plant: 'THE MEGA STONE ARM — no stone could be derived for the plants', caught: false,
+                   why: 'no non-disruptive stone (or no foreign stone) in the format' });
+      } else {
+        const who = (S) => ((S.sfA && S.sfA.team) || []).find(m => m && BS.stableKey(m, id) === SP.base);
+        const ctl = stoneGame(SP, SP.stoneName, 'red/stone-control');
+        const cv = boardVerdict(ctl);
+        const ctlOk = !!ctl.staged && megaSeen(ctl.sdLog) && megaSeen(ctl.mediTrace) && cv.verdict !== 'STATE'
+          && !!ctl.statLine && ctl.statLine.compared > 0 && ctl.statLine.parted === 0 && ctl.statLine.unreadable === 0;
+        out.push({ plant: 'MEGA STONE CONTROL (' + SP.stoneName + ' on ' + SP.base + ') — both engines evolve and '
+                        + 'the board, stat line included, is clean', staged: !!ctl.staged, verdict: cv.verdict,
+                   stat_line: ctl.statLine || null,
+                   why: !ctl.staged ? ctl.why : (!megaSeen(ctl.sdLog) ? 'the authority never evolved' : null),
+                   caught: ctlOk });
+        const planted = (what, want, f) => {
+          let applied = false;
+          const r = stoneGame(SP, SP.stoneName, 'red/stone-' + want,
+                              (S, battle, t) => { if (t === 1) { const m = who(S); if (m) { f(m); applied = true; } } });
+          const v = boardVerdict(r);
+          const hit = (v.diffs || []).map(d => String(d.field));
+          out.push({ plant: 'A MEGA STONE BOARD MUST PART — ' + what, applied, staged: !!r.staged,
+                     verdict: v.verdict, leaves: hit.slice(0, 4),
+                     no_new_line: r.divTurn == null || r.divTurn > 1,
+                     why: !applied ? 'THE PLANT NEVER LANDED — the evolved body was not found' : null,
+                     caught: ctlOk && applied && !!r.staged && v.state_parted_on_turn === 1
+                          && hit.some(f => f.indexOf(want) >= 0) });
+        };
+        planted('medicham2\'s evolved body is put back to its BASE forme name', 'species',
+                (m) => { m.name = dex.species.get(SP.base).name; });
+        planted('medicham2\'s evolved Attack is one point off — only the stat-line leaf can see this', 'stats.atk',
+                (m) => { m.st.at += 1; });
+        const r0 = GD.scriptCounters().megaRefused;
+        const fOn = stoneGame(SP, FOREIGN.stoneName, 'red/stone-foreign-on');
+        const refusedN = GD.scriptCounters().megaRefused - r0;
+        const fOff = stoneGame(SP, '', 'red/stone-foreign-off');
+        const fr = abRow('item', 'foreign-stone', FOREIGN.stoneName, SP.base, '(no item)', fOn, fOff);
+        out.push({ plant: 'A FOREIGN STONE (' + FOREIGN.stoneName + ' on ' + SP.base + ') must be REFUSED by the '
+                        + 'authority and read DID-NOT-FIRE — a mega arm that evolves anything is not a detector',
+                   staged: !!fOn.staged, verdict: fr.verdict, refused: refusedN,
+                   why: fOn.staged && megaSeen(fOn.sdLog) ? 'THE AUTHORITY EVOLVED ON A FOREIGN STONE' : null,
+                   caught: !!fOn.staged && refusedN >= 1 && !megaSeen(fOn.sdLog) && !megaSeen(fOn.mediTrace)
+                        && fr.verdict === 'DID-NOT-FIRE' });
+      }
+    }
+    /* 8. A BOARD-ONLY GAME'S BOARD MUST BE ABLE TO PART (HB-1, 2026-09-11). The board-only arm has no
+     *    A/B, so everything it claims rests on the board comparison of ONE game — and that comparison
+     *    must be shown catching a planted state difference on exactly such a game, with its control.
+     *    The subject is DERIVED: the first ability whose every carrier has no control and whose carrier
+     *    builds. The plant is a Destiny Bond on the subject at boundary 1, which no line announces. */
+    {
+      /* `CLOSET` is declared after `red()` runs, so the shelf is read here directly (a TDZ otherwise),
+       * and the Illusion shelf through the driver's own derived species set. */
+      const _closet = require('../tests/roster.js').DEFERRED;
+      const nc = [...AB_CARRIERS.entries()].find(([a, cs]) => !_closet[a]
+        && !(GD.CLOSET_SPECIES && cs.some(s => GD.CLOSET_SPECIES.has(s)))
+        && cs.every(s => !abControlFor(s, a)) && bodyOf(cs[0], a, '', GAUNTLET_ACTOR_MOVES));
+      if (!nc) {
+        out.push({ plant: 'A BOARD-ONLY GAME — no single-ability carrier could be derived', caught: false });
+      } else {
+        const [a, cs] = nc;
+        const recv = bodyOf(RECEIVER.species, RECEIVER.ability, RECEIVER.item, RECEIVER_MOVES);
+        const game = (plant) => { const b = stageBodies(bodyOf(cs[0], a, '', GAUNTLET_ACTOR_MOVES), recv);
+          return playScenario(Object.assign({ script: gauntletScript(b, 1), tag: 'red/board-only', statePlant: plant }, b)); };
+        const ctl = game(undefined), cv = boardVerdict(ctl);
+        const ctlOk = !!ctl.staged && cv.verdict !== 'STATE';
+        let applied = false;
+        const r = game((S, battle, t) => { if (t === 1) { const m = (S.actA || [])[0];
+          if (m) { (m._vol = m._vol || {}).destinybond = 1; applied = true; } } });
+        const v = boardVerdict(r);
+        const hit = (v.diffs || []).map(d => String(d.field));
+        out.push({ plant: 'A BOARD-ONLY GAME (' + a + ' on ' + cs[0] + ') — its control is board-clean and a silent '
+                        + 'Destiny Bond on the subject must part the board', applied, staged: !!r.staged,
+                   verdict: v.verdict, control_verdict: cv.verdict, leaves: hit.slice(0, 4),
+                   why: !ctlOk ? 'THE CONTROL IS NOT BOARD-CLEAN (' + cv.verdict + ')' : (!applied ? 'THE PLANT NEVER LANDED' : null),
+                   caught: ctlOk && applied && !!r.staged && v.state_parted_on_turn === 1
+                        && hit.some(f => f.indexOf('vol.destinybond') >= 0) });
+      }
+    }
+    /* 9. THE STRUGGLE ROW'S BOARD MUST BE ABLE TO PART (HB-5, 2026-09-11). The control is the row's own
+     *    fixture, unplanted: the authority must struggle and the board must be clean. The plant takes 7
+     *    HP off the struggler in medicham2 at boundary n+1 — the board after the first Struggle turn —
+     *    and the board must part on `hp` at exactly that boundary. */
+    {
+      const fx = struggleFixture();
+      if (!fx) out.push({ plant: 'THE STRUGGLE ROW — no fixture: ' + STRUGGLE_SUMMARY.why, caught: false });
+      else {
+        const AT = fx.n + 1;
+        const { r: ctl } = fx.play('red/struggle-control');
+        const cv = boardVerdict(ctl);
+        const struggled = (ctl.sdLog || []).some(l => /^\|move\|p1a: [^|]*\|Struggle/.test(String(l)));
+        let applied = false;
+        const { r } = fx.play('red/struggle-hp', (S, battle, t) => { if (t === AT) { const m = (S.actA || [])[0];
+          if (m) { m.curHP = Math.max(1, m.curHP - 7); applied = true; } } });
+        const v = boardVerdict(r);
+        const hit = (v.diffs || []).map(d => String(d.field));
+        out.push({ plant: 'THE STRUGGLE ROW (' + fx.carrier + ', ' + fx.dry.id + ' x' + fx.n + ') — the control struggles '
+                        + 'board-clean, and 7 silent HP off the struggler after its first Struggle must part the board',
+                   applied, staged: !!r.staged, verdict: v.verdict, control_verdict: cv.verdict, leaves: hit.slice(0, 4),
+                   why: !struggled ? 'THE CONTROL NEVER STRUGGLED' : (!applied ? 'THE PLANT NEVER LANDED' : null),
+                   caught: struggled && cv.verdict !== 'STATE' && applied && !!r.staged
+                        && v.state_parted_on_turn === AT && hit.some(f => f === 'hp' || /(^|\.)hp$/.test(f)) });
+      }
+    }
     const control = stage(undefined);
     const cv = boardVerdict(control);
     const controlClean = control.staged && !control.div
@@ -3818,6 +4469,31 @@ if (KIND === 'abilities' || KIND === 'all') {
    * ZERO on either means the table is unread. `verbsUnknown` is the loud half of the fallback.
    * `unstageable` is the DECLARED gap — `announcesOnEntry` sets `stage: null` because a message
    * cannot be made visible to a board comparator by any number of turns. */
+  /* ---- THE BOARD-ONLY ARM'S RECEIPT (HB-1, HB-2) AND THE TWO HB-3 PRINTS -------------------------- */
+  report.summary.abilities.board_only = Object.assign({}, BOARD_ONLY);
+  report.summary.abilities.board_only_proven = BOARD_ONLY.proven;
+  report.summary.abilities.carrier_pick_moved = CARRIER_PICK_MOVED.slice();
+  report.summary.abilities.body_fallback = [...BODY_FALLBACK].sort();
+  console.log('    BOARD-ONLY ARM — ' + BOARD_ONLY.rows + ' row(s) with no control, ' + BOARD_ONLY.staged + ' staged, '
+    + BOARD_ONLY.proven + ' PROVEN off the authority\'s log (these carry a board); unproven: '
+    + (BOARD_ONLY.unproven.join(' ') || 'none') + '; mega asks refused ' + BOARD_ONLY.mega_refused
+    + (BOARD_ONLY.alt_receiver.length ? '; alternate receiver ' + BOARD_ONLY.alt_receiver.join(' ') : ''));
+  for (const [a, l] of Object.entries(BOARD_ONLY.receipts)) console.log('      ' + a.padEnd(16) + ' ' + l);
+  if (BOARD_ONLY.tag_triggers.length) console.log('      tag-keyed triggers staged: ' + BOARD_ONLY.tag_triggers.join('; '));
+  if (BOARD_ONLY.game_errors.length) console.log('      ' + BOARD_ONLY.game_errors.length + ' board-only game(s) ended on a harness '
+    + 'error (boards before it were compared): ' + BOARD_ONLY.game_errors.slice(0, 4).map(s => s.slice(0, 90)).join(' | '));
+  if (BOARD_ONLY.state_unproven.length) console.log('      AN UNPROVEN ROW\'S BOARD PARTED: ' + BOARD_ONLY.state_unproven.join(' ')
+    + ' — the game diverged on the board whether or not this ability moved it. A candidate ENGINE defect.');
+  if (BOARD_ONLY.mega_not_seen.length || BOARD_ONLY.mega_refused) {
+    console.log('      A MEGA CARRIER NEVER EVOLVED IN THE AUTHORITY: ' + (BOARD_ONLY.mega_not_seen.join(' ') || '(none)')
+      + ', refused asks ' + BOARD_ONLY.mega_refused + '. Not a pass.');
+    process.exitCode = 1;
+  }
+  if (BOARD_ONLY.item_conflict.length) console.log('      stone kept over a consequence item: ' + BOARD_ONLY.item_conflict.join('; '));
+  console.log('    HB-3 CARRIER PICK — rows whose carrier the build-aware pick MOVED: '
+    + (CARRIER_PICK_MOVED.join('; ') || 'none'));
+  console.log('    HB-3 OWN-POOL FALLBACK — species built from their own pool: '
+    + ([...BODY_FALLBACK].sort().join(' ') || 'none'));
   report.summary.then_what = Object.assign({}, THEN_WHAT_SEEN);
   report.summary.then_what_rows_with_a_consequence = rows.filter(r => r.then_what).length;
   console.log('    THEN-WHAT (ROADMAP #158): ' + JSON.stringify(report.summary.then_what)
@@ -3882,6 +4558,32 @@ if (KIND === 'items' || KIND === 'all') {
     + 'authority\'s log, so the state is NOT declared: '
     + bsUnmet.map(r => r.id + ' [' + r.board_state_plan.receipts_unmet.join(',') + ']').join(' '));
   if (STATE_PLAN.examples.length) console.log('      e.g. ' + STATE_PLAN.examples.slice(0, 12).join('; '));
+  /* ---- THE STONE ARM'S OWN RECEIPT (harness batch HB-4). A capability that cannot prove it ran is
+   * assumed broken: every stone row that ran must show the authority's `|-mega|`, no ask may have been
+   * refused, and the stat line must have been READ on every row — an unread leaf reads as agreement. */
+  report.summary.items.stones = Object.assign({}, STONE_SUMMARY);
+  if (STONE_SUMMARY.rows) {
+    console.log('    MEGA STONES — ' + STONE_SUMMARY.rows + ' row(s), ' + STONE_SUMMARY.staged + ' staged, '
+      + STONE_SUMMARY.fired + ' FIRED; |-mega| in the authority ' + STONE_SUMMARY.mega_seen_showdown
+      + ', in medicham2 ' + STONE_SUMMARY.mega_seen_medicham + '; asks refused ' + STONE_SUMMARY.mega_refused
+      + '; stat line compared at ' + STONE_SUMMARY.stat_line_compared + ' boundaries, unreadable at '
+      + STONE_SUMMARY.stat_line_unreadable + ', PARTED on ' + (STONE_SUMMARY.stat_line_parted.join(' ') || 'none')
+      + (STONE_SUMMARY.alt_receiver.length ? '; alternate receiver: ' + STONE_SUMMARY.alt_receiver.join(' ') : ''));
+    if (STONE_SUMMARY.not_seen.length) {
+      console.log('      THE AUTHORITY NEVER EVOLVED ON ' + STONE_SUMMARY.not_seen.length + ' stone row(s): '
+        + STONE_SUMMARY.not_seen.join(' ') + ' — those rows carry NO board. Not a pass.');
+      process.exitCode = 1;
+    }
+    if (STONE_SUMMARY.mega_refused) {
+      console.log('      ' + STONE_SUMMARY.mega_refused + ' mega ask(s) REFUSED by the authority\'s request. Not a pass.');
+      process.exitCode = 1;
+    }
+    if (STONE_SUMMARY.staged && (!STONE_SUMMARY.stat_line_compared || STONE_SUMMARY.stat_line_unreadable)) {
+      console.log('      THE STAT LINE WAS ' + (STONE_SUMMARY.stat_line_compared ? 'UNREADABLE at '
+        + STONE_SUMMARY.stat_line_unreadable + ' boundaries' : 'NEVER READ') + '. An unread leaf reads as agreement. Not a pass.');
+      process.exitCode = 1;
+    }
+  }
 }
 
 /* ---- THE PREFLIGHT'S OWN RECEIPT. A CAPABILITY THAT CANNOT PROVE IT RAN IS ASSUMED BROKEN, and this

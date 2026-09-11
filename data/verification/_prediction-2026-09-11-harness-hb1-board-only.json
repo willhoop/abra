@@ -1,0 +1,19 @@
+{
+  "batch": "HB-1 — the 14 single-ability carriers (no A/B control) get a board-only arm, credited only off the authority's own log",
+  "written_before_any_run": "2026-09-11T08:05Z",
+  "release": "2b5a6585d8cf",
+  "rows": ["disguise", "forecast", "furcoat", "goodasgold", "hungerswitch", "illusion", "levitate", "megalauncher", "mimicry", "mummy", "stancechange", "surgesurfer", "wanderingspirit", "zerotohero"],
+  "before": { "boards_rows_abilities": 170, "fired_abilities": 104, "these_14": "NO CONTROL, no board" },
+  "predicted_after": {
+    "boards_rows_abilities_delta": "+5 to +8 (lower than the plan's +10..+14: a board is attached only when the authority names the ability acting, and several of these are silent)",
+    "fired_abilities_delta": 0,
+    "likely_proven": ["disguise", "stancechange", "mummy", "wanderingspirit", "hungerswitch", "levitate (if the receiver clicks a Ground move)", "goodasgold (if the receiver clicks a status move at it)"],
+    "likely_unproven": ["furcoat (silent damage modifier)", "megalauncher (silent BP modifier)", "surgesurfer (needs Electric Terrain, silent)", "mimicry (needs terrain)", "forecast (needs weather)", "zerotohero (forme on RE-entry; the gauntlet never re-enters)", "illusion (closeted; announces as -end Illusion, not 'ability:')"]
+  },
+  "expect_to_part": [],
+  "possible_part_candidates": ["stancechange (Blade forme stat line is now compared)", "disguise (the bust)", "illusion (closeted — switch shows a different body)"],
+  "red_demonstrations_planned": [
+    "plant 8: a board-only game's control is board-clean and a silent Destiny Bond on the subject at boundary 1 parts the board on vol.destinybond",
+    "--break-triggers over the 14: report which rows drop to unproven (the plan's claim that ALL drop is not assumed — faces.js adversaries survive the switch)"
+  ]
+}
