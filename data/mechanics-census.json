@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-11T01:32:04.540Z",
+  "generated": "2026-09-11T03:52:31.709Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 839,
-  "live": 839,
+  "probed": 840,
+  "live": 840,
   "missing": 0,
-  "armed": 839,
+  "armed": 840,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -2640,6 +2640,16 @@
     },
     {
       "kind": "move",
+      "tag": "endsWhenMoveOutOfPP",
+      "label": "Encore ends in the residual once the encored move has no PP left",
+      "live": true,
+      "detail": "Encore landed 2/2; after the forced uses — 1 PP left: vol.encore 1 (must stand), 0 PP left: vol.encore 0 (must be 0; slot at 0)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "clearsBoosts",
       "label": "Haze wipes the boosts off both sides",
       "live": true,
@@ -4063,7 +4073,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.3% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.1% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false

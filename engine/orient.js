@@ -317,7 +317,7 @@ head(6, 'WHAT A MEASUREMENT MUST PIN  [source: SOURCES in engine/engine_release.
     console.log('  A release freezes ' + n + ' SOURCE files. IT DOES NOT FREEZE:');
     console.log('    the STORE     — ingest appends hourly, and the team pool is drawn from it LIVE');
     console.log('    the CENSUS    — it steers WHICH scenarios play, so two runs are not a before/after');
-    console.log('    the ARTIFACTS — any run rewrites them; a release does not protect them');
+    console.log('    the ARTIFACTS — any run rewrites them; a release does not freeze them');
     console.log('  So a measurement pins THREE things: --release <id>, a census pin, and');
     console.log('  --team-store data/team-pool-frozen. Then PROVE the samples are identical.');
   }

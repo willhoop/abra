@@ -139,11 +139,11 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  839/839 probed mechanics live, 0 missing   (census 2026-09-10 21:32)
-    the census probes what somebody thought to probe: 286 of 302 tags carry a probe, 16 carry none; 67 mechanics have
-    never fired in the staged harness (all-mechanics-fire.json, 1.1 h old). node engine/coverage.js
+  840/840 probed mechanics live, 0 missing   (census 2026-09-10 23:52)
+    the census probes what somebody thought to probe: 287 of 303 tags carry a probe, 16 carry none; 67 mechanics have
+    never fired in the staged harness (all-mechanics-fire.json, 36 min old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/cee38e7e9891/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "cee38e7e9891".
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/5973a4e3c768/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "5973a4e3c768".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -152,17 +152,57 @@ ENGINE — does the simulator do what Pokémon does
     it becomes quotable again when this is re-run: node tests/test-interaction-matrix.js
   release ladder: WITHHELD — engine/provenance.js calls data/wire-ladder.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 79cef9b5cfda now
+    COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0394e3673b5b now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 286/302 probed, 16 unprobed;  280/302 have an engine consumer, 22 have none
+  tag coverage: 287/303 probed, 16 unprobed;  281/303 have an engine consumer, 22 have none
     a tag with no consumer is derived and read by nothing — engine/tag_dex.js greps board.js and
     medicham2-browser.js for the probe, so this is measured rather than declared.
 ```
 
-_stamped 2026-09-10 21:59_
+_stamped 2026-09-10 23:54_
 
 <!-- /GENERATED -->
+
+## ENCORE ENDS WHEN THE ENCORED MOVE RUNS OUT OF PP — **TOP CORNER 12 → 8 OF 961**, EXACTLY THE FOUR PREDICTED GAMES GONE AND NONE NEW; BOTTOM 11 AND MIDDLE 0 UNMOVED. THE END FIRES AT THE AUTHORITY'S RESIDUAL ORDER, SHOWN AGAINST A PERISH SONG BRACKET. CONFORMANCE **21 → 5**. GATE **OPEN, 9 OF 9**; CENSUS **840 LIVE**. RELEASE `5973a4e3c768`. 2026-09-10, CHANGELOG 6.6.0
+
+Full account, every pin and every seed: [docs/_reports/2026-09-10-encore-and-conformance.md](_reports/2026-09-10-encore-and-conformance.md).
+ROADMAP #580 closed.
+
+**THE TAG, NOT THE NAME.** `endsWhenMoveOutOfPP` is derived from `encore.condition.onResidual`'s own source
+(`data/moves.ts:4758-4765`; the Champions override at `data/mods/champions/moves.ts:286-322` replaces `onStart`
+only). Membership over the 500 legal moves: Encore alone, printed before wiring. `volEndsOnEmptySlot` is asked
+right after a clock decrement that left the volatile standing, which is the slot `fieldEvent('Residual')` uses
+(`sim/battle.ts:515-523`). A tagged volatile with no held-move reader, an unknown PP and a standing lock with no
+held move are each counted, never guessed.
+
+**RIGHT TURN IS NOT ENOUGH, SO THE PROBE BRACKETS THE ORDER.** `tests/probe_encore_pp_end.js` gained an ORDER arm:
+a derived bracket move (Perish Song@24, the only legal per-turn residual line above Encore's 16) makes the
+run-out turn print `weather-upkeep > encore-end > perish` in the authority. Pre-fix medicham2 printed
+`weather-upkeep > perish`; fixed, it prints the authority's sequence; under `MEDI_ENDTURN_CLOCKS_AT_FOOT=1` the
+end fires on the right turn and the ORDER arm still goes red (`perish > encore-end`).
+
+**THE SAMPLES HELD STILL, AND THE PROOF IS THE ARTIFACTS.** Each arm's first divergences, errors and order probe
+match HEAD's except the four Encore seeds, and every all-mechanics-fire row is identical. The regenerated
+`data/tags.json` also refreshed `uses`, which the engine reads in one place (`sideGuardClickRate`); it moved no game.
+
+**BATCH 2 TYPED NOTHING.** Twelve S12 name findings cleared with `GAME_RULES` blocks whose values a script moved
+out of each file verbatim (`engine/quarantine.js --selftest` 239 passed, `engine/divergence_shape.js --selftest`
+8 of 8), four format literals derived from `engine/champions_sim.js`, and the `RAW-STORE-NOT-READ:` line
+`engine/selftest.js` asks for. The five S13 regressions left belong to MEASURE's writers.
+
+**ONE OF MY INSTRUMENTS WAS WRONG AGAIN.** The scratch scanner I used to list the S12 hits skipped CR
+normalisation and reported comment text as code on CRLF files. Conformance reads through `engine/read_text.js`
+and was right.
+
+### The hand list
+
+**Leaving it:** Encore's early end at 0 PP — now census row `move/endsWhenMoveOutOfPP` and
+`tests/probe_encore_pp_end.js --assert`, green on `5973a4e3c768`.
+
+**Still on it:** the fifth Encore-grouped corner game (`…2661290217`), never staged and not this mechanism; a
+volley that breaks the doll on arrival 1 and meets the disguise on arrival 2; step 0 on Future Sight's payout
+road (a semi-invulnerable collector).
 
 ## THE SPEED-TIE CORNER ARMS' ENGINE DEFECTS ARE FIXED BUT ONE — **TOP 16 → 12 OF 961, BOTTOM 15 → 11 OF 961**, EXACTLY THE EIGHT IDENTIFIED GAMES GONE AND NONE NEW. DISGUISE'S CRIT REFUSAL WAS THE ABILITY'S AND IS NOW THE HANDLER'S; PARTING SHOT, FUTURE SIGHT'S PAYOUT AND A FLASH FIRE ABSORB TAKE STEP 4 THE AUTHORITY'S WAY. ENCORE AT 0 PP IS PROBED AND REGISTERED, NOT FIXED. GATE **OPEN, 9 OF 9**; CENSUS **839 LIVE**. RELEASES `ca2be14649f0`, `cee38e7e9891`. 2026-09-10, CHANGELOG 6.5.0
 

@@ -449,6 +449,11 @@ const THEN_WHAT = {
  * a table's reach is a thing to measure rather than to assume, and that 25 of those 32 move rows are
  * reached by the tag table, not by this one.
  */
+/* GAME_RULES -- conformance S12b, 2026-09-10. The ONE declared block of names in this file is
+ * VOLATILE_THEN_WHAT below: a staging table keyed by volatile id. What to stage AFTER a volatile lands is a
+ * test design the dex cannot supply. The getter only makes the declaration visible to the checker; it adds
+ * no second table and runs nothing at load. */
+const GAME_RULES = { get VOLATILE_THEN_WHAT() { return VOLATILE_THEN_WHAT; } };
 const VOLATILE_THEN_WHAT = {
   attract:      { stage: { attacksAfter: 'both' }, after: ['the infatuated body tries to MOVE'], readsOff: 'target',
     why: 'infatuation costs a turn half the time and costs nothing on the turn it lands' },

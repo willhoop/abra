@@ -1,10 +1,10 @@
 {
-  "current": "cee38e7e9891",
-  "cut": "2026-09-11T00:43:56.465Z",
-  "why": "ENGINE corner fixes batch 2: step 4 on three roads -- Parting Shot's pivot rolls accuracy, Future Sight's payout rolls accuracy (and names an off-field booker side-only), and a Flash Fire absorb makes the rest of the click sure (tests/probe_accuracy_roads.js)",
-  "cuts": 1,
-  "latest_cut": "2026-09-11T00:43:56.465Z",
-  "latest_why": "ENGINE corner fixes batch 2: step 4 on three roads -- Parting Shot's pivot rolls accuracy, Future Sight's payout rolls accuracy (and names an off-field booker side-only), and a Flash Fire absorb makes the rest of the click sure (tests/probe_accuracy_roads.js)",
-  "pointer_written": "2026-09-11T00:43:56.559Z",
+  "current": "5973a4e3c768",
+  "cut": "2026-09-11T02:46:54.813Z",
+  "why": "ENGINE 2026-09-10: ROADMAP #580 Encore ends in the residual at 0 PP (tag endsWhenMoveOutOfPP), abra-tags.js regenerated beside tags.json, plus the RAW-STORE-NOT-READ comment",
+  "cuts": 27,
+  "latest_cut": "2026-09-11T03:51:10.165Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-09-11T03:51:10.210Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

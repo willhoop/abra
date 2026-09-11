@@ -47,6 +47,11 @@
  */
 'use strict';
 
+/* GAME_RULES -- conformance S12b, 2026-09-10. PINNED pins a divergence class whose cause
+ * text names the shield family (its protocol lines say `protect`); the self-test fixtures are real protocol
+ * lines, so they name a real move and a real side condition. Neither is a rule the dex can supply.
+ * Every value is byte-identical to the literal it replaced; nothing here changes behaviour. */
+const GAME_RULES = Object.freeze({ PINNED: /accuracy|acc\b|crit|secondar|damage|protect|stall|miss|-fail/i, FIXTURE_MOVE: 'protect', FIXTURE_SIDE: 'tailwind' });
 const LINE = (s) => {
   const t = String(s || '').trim();
   if (!t.startsWith('|')) return null;
@@ -54,7 +59,7 @@ const LINE = (s) => {
   return { event: parts[0] || '', slot: (parts[1] || '').split(':')[0], rest: parts.slice(2).join('|') };
 };
 
-const PINNED = /accuracy|acc\b|crit|secondar|damage|protect|stall|miss|-fail/i;
+const PINNED = GAME_RULES.PINNED;
 
 /* THE SEPARATOR `classify()` WRITES, ONE PLACE. A second spelling of it here and in the differential
  * would agree on the day it was written and part the first time either moved. */
@@ -92,14 +97,14 @@ function shapeOf(cause) {
  *   node engine/divergence_shape.js --selftest
  */
 const PROOF = [
-  ['a class with no colon still strips', 'ordering :: |move|p1a|protect <> |move|p2b|protect', 'ORDERING', 'move'],
+  ['a class with no colon still strips', `ordering :: |move|p1a|${GAME_RULES.FIXTURE_MOVE} <> |move|p2b|${GAME_RULES.FIXTURE_MOVE}`, 'ORDERING', 'move'],
   ['A CLASS NAME CONTAINING A COLON — the defect', 'drag: a different body :: |drag|p1a|talonflame,l50|H/H <> |drag|p1a|sableye,l50|H/H', 'FIELD', 'drag'],
   ['the same, one event over', '-damage: a different body :: |-damage|p2a|H/H <> |-damage|p2b|H/H', 'ORDERING', '-damage'],
   ['a TRUNCATION carries one line and stays UNPARSED', 'showdown stopped emitting while medicham2 continued :: |switch|p1b|klefki,l50|H/H', 'UNPARSED', null],
-  ['one side has a line the other does not', 'x :: |-damage|p1a|H/H <> |-sideend|p2|tailwind', 'EMISSION', null],
+  ['one side has a line the other does not', `x :: |-damage|p1a|H/H <> |-sideend|p2|${GAME_RULES.FIXTURE_SIDE}`, 'EMISSION', null],
   ['same slot, different event', 'x :: |-activate|p1a|x <> |-damage|p1a|H/H', 'RULE', null],
   ['a string that is not a cause at all', 'nothing parseable here', 'UNPARSED', null],
-  ['the legacy `<class>:: ` spelling, no leading space', 'ordering:: |move|p1a|protect <> |move|p2b|protect', 'ORDERING', 'move'],
+  ['the legacy `<class>:: ` spelling, no leading space', `ordering:: |move|p1a|${GAME_RULES.FIXTURE_MOVE} <> |move|p2b|${GAME_RULES.FIXTURE_MOVE}`, 'ORDERING', 'move'],
 ];
 function selfProof() {
   return PROOF.map(([what, cause, want, wantKey]) => {

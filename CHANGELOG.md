@@ -10,6 +10,29 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.6.0] — 2026-09-10
+
+### Fixed
+- **Encore never ended when the encored move ran out of PP.** `encore.condition.onResidual` (mainline
+  `data/moves.ts:4758-4765`; the Champions override replaces `onStart` only) removes the lock once the encored
+  slot is empty or gone, in the same residual slot as the clock (order 16). medicham2 held the lock to its clock.
+  New derived tag `endsWhenMoveOutOfPP` (membership Encore only), read by `volEndsOnEmptySlot`; knob
+  `MEDI_ENCORE_NO_PP_END=1`. Top speed-tie corner **12 → 8 of 961**, exactly the four predicted Encore games;
+  bottom 11 and middle 0 unchanged. ROADMAP #580 closed. Census 839 → 840 live.
+
+### Changed
+- **Conformance: 16 of the 21 ratchet regressions cleared, none by typing a value.** `GAME_RULES` blocks in
+  eleven engine instruments (values moved out of each file verbatim, self-tests green), one prose rewording in
+  `engine/orient.js`, and four format literals now derived from `engine/champions_sim.js`.
+  `engine/medicham2-browser.js` carries the `RAW-STORE-NOT-READ:` declaration `engine/selftest.js` asks for.
+  21 → 5; the five left are S13 writer findings owed by MEASURE.
+- `tests/probe_encore_pp_end.js` checks the residual ORDER as well as the turn, against a derived Perish Song
+  bracket. `tests/test-mechanics.js` refuses to write the census under the new knob.
+
+### Notes
+- Releases `3ac8810a59af` (superseded before measurement: its `data/abra-tags.js` was stale) and `5973a4e3c768`
+  (measured). Gate OPEN, 9 of 9. Full account: `docs/_reports/2026-09-10-encore-and-conformance.md`.
+
 ## [6.5.0] — 2026-09-10
 
 ### Fixed

@@ -1624,6 +1624,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * (Flash Fire) absorbed the SAME click at TryHit. A zero on a run with a spread Fire move into a
    * Flash Fire body and a partner means the flag is unwired. */
   accTrueByTryHit: 0,
+  /* 2026-09-10 -- ROADMAP #580, `endsWhenMoveOutOfPP` (see `volEndsOnEmptySlot`). A volatile that SURVIVED
+   * its own clock and was then ended by the residual because the move it holds is empty (`...EndedNoPP`)
+   * or gone from the body (`...EndedNoSlot`). `...Asked` counts every survivor the residual put the
+   * question to. A zero `...EndedNoPP` on a run where an Encored move ran dry means the end is unwired. */
+  volEmptySlotAsked: 0, volEmptySlotEndedNoPP: 0, volEmptySlotEndedNoSlot: 0,
   /* 2026-09-10 -- an intact `formeOnHit` body whose hit landed on its DOLL, so the disguise was not asked
    * (see `formeOnHitAbsorbs`). Counts decisions, valuation included. */
   formeOnHitDollTookIt: 0,
@@ -3035,6 +3040,17 @@ const MEDFAILS = { encoreAction: 0,
   preventsCritNoSpecies: 0, preventsCritNoSpeciesFirst: '', preventsCritAbilityOnlyRestored: 0,
   /* 2026-09-10 -- MEDI_PIVOT_NO_ACCURACY=1's and MEDI_DELAYED_HIT_NO_ACCURACY=1's stamps, set at load. */
   pivotNoAccuracyRestored: 0, delayedHitNoAccuracyRestored: 0,
+  /* 2026-09-10 -- ROADMAP #580's LOUD DOORS (see `volEndsOnEmptySlot`):
+       volEmptySlotNoReader     a volatile the artifact tags `endsWhenMoveOutOfPP` that this engine keeps no
+                                held-move field for, so the question cannot be asked -- the volatile then
+                                ends on its clock alone, which is the pre-#580 behaviour, counted
+       volEmptySlotPPUnknown    the held move has no PP number (`ppLeft` null), so the end is not taken
+       volEmptySlotNoHeldMove   the volatile stands with no held move at all -- a staged or corrupted body
+       volEmptySlotTableFailed  the tag walk threw; volEmptySlotTagAbsent = the artifact carries no member
+     `encoreNoPPEndRestored` is MEDI_ENCORE_NO_PP_END=1's stamp, set at load. */
+  volEmptySlotNoReader: 0, volEmptySlotNoReaderFirst: '', volEmptySlotPPUnknown: 0, volEmptySlotPPUnknownFirst: '',
+  volEmptySlotNoHeldMove: 0, volEmptySlotTableFailed: 0, volEmptySlotTableFailedFirst: '', volEmptySlotTagAbsent: 0,
+  encoreNoPPEndRestored: 0,
   /* 2026-09-10 -- MEDI_ABSORB_ACC_LOCAL=1's stamp, set at load. */
   absorbAccLocalRestored: 0,
   /* 2026-09-10 -- MEDI_FORMEONHIT_THROUGH_DOLL=1's stamp, set at load. */
@@ -6255,6 +6271,78 @@ function endDurationVolatile(m,vol){
   if(vol==='encore'){ m._encoreMove=null; if(m._lockT!==Infinity){ m._lock=null; m._lockT=0; } }
   if(TR) TR.vend(m,'move: '+vol);
 }
+/* ---- 2026-09-10 -- ROADMAP #580: A SEAL THAT OUTLIVES THE MOVE IT HOLDS -------------------------------
+ *
+ *     encore.condition.onResidualOrder: 16,
+ *     encore.condition.onResidual(target) {
+ *       const moveSlot = target.getMoveData(this.effectState.move);
+ *       if (!moveSlot || moveSlot.pp <= 0) target.removeVolatile('encore');      data/moves.ts:4758-4765
+ *     }
+ *
+ * Champions' override (data/mods/champions/moves.ts:286-322) is `condition: { inherit: true, onStart }`, so
+ * this residual is the format's. THIS ENGINE HAD NO SUCH END: an Encored body whose encored move ran dry
+ * kept `vol.encore` to its clock. Four top-corner board-material games on the pinned pool read `vol.encore`
+ * 2 or 1 here against 0 there, card `|-end|<mon>|Encore <> |upkeep` (tests/probe_encore_pp_end.js).
+ *
+ * THE POSITION IS THE CLOCK'S, AND THAT IS THE AUTHORITY'S. `fieldEvent('Residual')` (sim/battle.ts:515-523)
+ * spends a handler's `duration` and, only if the volatile survives it, calls that same handler -- one slot,
+ * order 16. So this is asked at the two places the clock is spent (`residualClockTick`, and the foot loop
+ * under `MEDI_ENDTURN_CLOCKS_AT_FOOT=1`), right after a decrement that did not end it, and nowhere else.
+ *
+ * THE SET IS THE TAG'S, NOT A NAME. `endsWhenMoveOutOfPP` is derived in engine/tag_dex.js from the
+ * handler's own source; Encore is its only legal member. What is NOT derivable is where THIS engine keeps
+ * the move a volatile holds -- `_encoreMove` is our field -- so `VOL_HELD_MOVE` maps volatile to reader, and
+ * a tagged volatile with no reader is COUNTED (`MEDFAILS.volEmptySlotNoReader`) rather than skipped quietly.
+ *
+ * "NO SLOT" IS `encoreOnStartRefusal`'s question, asked through the same `moveSlotOnBody`: the move list or
+ * a `_pp` key (Mimic and Transform can put a slot on a body `moves` does not list). "NO PP" is `ppLeft`,
+ * whose `null` means "this engine has no number" and is deliberately NOT zero -- counted, never ended.
+ *
+ * `MEDI_ENCORE_NO_PP_END=1` restores the old behaviour (no residual end) and stamps
+ * `MEDFAILS.encoreNoPPEndRestored`, so a run under it cannot be read as a clean one. */
+const ENCORE_NO_PP_END=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ENCORE_NO_PP_END==='1');
+if(ENCORE_NO_PP_END)MEDFAILS.encoreNoPPEndRestored=1;
+const VOL_HELD_MOVE={ encore: m=>m._encoreMove };
+let _volEmptySlot=null;
+function emptySlotEndVolatiles(){
+  if(_volEmptySlot) return _volEmptySlot;
+  _volEmptySlot=new Map();
+  try{
+    for(const id of (TAGS.withTag?TAGS.withTag('move','endsWhenMoveOutOfPP'):[])){
+      const p=TAGS.param('move',id,'endsWhenMoveOutOfPP');
+      if(p&&p.volatile) _volEmptySlot.set(p.volatile,{ orNoSlot: !!p.orNoSlot, from: id });
+    }
+  }catch(e){
+    MEDFAILS.volEmptySlotTableFailed++;
+    if(!MEDFAILS.volEmptySlotTableFailedFirst) MEDFAILS.volEmptySlotTableFailedFirst=String((e&&e.message)||e);
+  }
+  /* AN EMPTY TABLE IS THE PRE-#580 ENGINE, SO IT SPEAKS -- an artifact older than the tag reaches here. */
+  if(!_volEmptySlot.size) MEDFAILS.volEmptySlotTagAbsent=1;
+  return _volEmptySlot;
+}
+function moveSlotOnBody(m,id){
+  const k=String(id).toLowerCase().replace(/[^a-z0-9]/g,'');
+  return ((m.moves||[]).some(x=>String(x).toLowerCase().replace(/[^a-z0-9]/g,'')===k))
+       ||!!(m._pp&&(k in m._pp));
+}
+/* Called right after a clock decrement that LEFT the volatile standing. Returns true when it ended it. */
+function volEndsOnEmptySlot(m,vol){
+  if(ENCORE_NO_PP_END||!m||!m._vol||!(m._vol[vol]>0)) return false;
+  const p=emptySlotEndVolatiles().get(vol);
+  if(!p) return false;
+  const held=VOL_HELD_MOVE[vol];
+  if(!held){ MEDFAILS.volEmptySlotNoReader++; if(!MEDFAILS.volEmptySlotNoReaderFirst)MEDFAILS.volEmptySlotNoReaderFirst=vol; return false; }
+  const mv=held(m);
+  /* A standing volatile with no held move is a state this engine's own writer cannot produce (the Encore
+   * branch refuses without a `_lastMove`), so it is a staged or corrupted body: counted, not ended. */
+  if(!mv){ MEDFAILS.volEmptySlotNoHeldMove++; return false; }
+  MEDSEEN.volEmptySlotAsked++;
+  if(p.orNoSlot&&!moveSlotOnBody(m,mv)){ MEDSEEN.volEmptySlotEndedNoSlot++; endDurationVolatile(m,vol); return true; }
+  const left=ppLeft(m,mv);
+  if(left==null){ MEDFAILS.volEmptySlotPPUnknown++; if(!MEDFAILS.volEmptySlotPPUnknownFirst)MEDFAILS.volEmptySlotPPUnknownFirst=String(mv); return false; }
+  if(left<=0){ MEDSEEN.volEmptySlotEndedNoPP++; endDurationVolatile(m,vol); return true; }
+  return false;
+}
 /* ---- ROADMAP #144: PP, AND IT DID NOT EXIST -------------------------------------------------------
  *
  * Zero mentions of PP in this file before 2026-08-11 and no `pp` field on any body a builder
@@ -7629,6 +7717,8 @@ function aimTravelsByLoc(mvId){
  *                            usage-weighted foe PAIR holding one: 99.3% unfiltered, 50.5% filtered.
  *   ignoresProtect           already inside `guardRefusalOf`, so Feint does not make Quick Guard look
  *                            worth clicking when it would go straight through it.
+ *
+ * RAW-STORE-NOT-READ: the path names a one-off 2026-08-10 corpus scan quoted in this comment; the simulator never opens the store.
  *
  * WHAT VALIDATES THE TRIGGER IS THE CORPUS, NOT MY REASONING. Scanned `data/games.ladder.jsonl`,
  * 51,445 games / 102,890 sides, 2026-08-10: of the 482 sides that clicked Quick Guard, the OPPOSING
@@ -9190,7 +9280,9 @@ function residualClockTick(m, id) {
   if (how === 'volDuration') {
     if (!(m._vol && m._vol[id] > 0)) return;
     MEDSEEN.residualClockInWalk++; MEDSEEN.volDurationTicked++;
-    if (--m._vol[id] <= 0) { MEDSEEN.volDurationExpired++; endDurationVolatile(m, id); }
+    if (--m._vol[id] <= 0) { MEDSEEN.volDurationExpired++; endDurationVolatile(m, id); return; }
+    /* ROADMAP #580 -- the survivor is then asked the handler's own question, in the same slot. */
+    volEndsOnEmptySlot(m, id);
     return;
   }
   if (how === 'healBlock') {
@@ -21038,10 +21130,8 @@ function encoreOnStartRefusal(target){
    * called by another move, or one a transform has since taken away -- has no slot and Encore fails.
    * `_pp` is consulted as well as `moves` because Mimic and Transform can put a slot on a body that
    * `moves` does not list, which is the same reason `ppSpentMap` walks both. */
-  const _k=String(_lm).toLowerCase().replace(/[^a-z0-9]/g,'');
-  const _onBody=((target.moves||[]).some(x=>String(x).toLowerCase().replace(/[^a-z0-9]/g,'')===_k))
-              ||!!(target._pp&&(_k in target._pp));
-  if(!_onBody)return 'noslot';
+  /* the same question the residual end asks (`moveSlotOnBody`, ROADMAP #580) -- one implementation */
+  if(!moveSlotOnBody(target,_lm))return 'noslot';
   const _pp=ppLeft(target,_lm);
   if(_pp===0)return 'nopp';
   return null;
@@ -44786,6 +44876,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(!(m._vol[_dv]>0))continue;
         MEDSEEN.volDurationTicked++;
         if(--m._vol[_dv]<=0){MEDSEEN.volDurationExpired++;endDurationVolatile(m,_dv);}
+        else volEndsOnEmptySlot(m,_dv);          /* ROADMAP #580 -- same question, same slot as the clock */
       }
       /* ROADMAP #175 -- AND THE NEXT-MOVE GUARANTEE TICKS HERE, beside the sealing family and for the
        * identical reason: a clock that only moves when the ENGINE happens to be choosing is a clock

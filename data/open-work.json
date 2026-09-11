@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-11T02:01:06.849Z",
+  "generated": "2026-09-11T03:54:42.508Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
   "not_a_claim_about_code": "A row is OPEN here if nobody marked it closed. That is a statement about the REGISTER. A fixed mechanic whose row was never updated still prints, which is the correct direction to err. UNREGISTERED is the stronger signal — measured, not filed.",
   "counts": {
     "register_rows": 545,
-    "open": 237,
-    "closed": 308,
+    "open": 235,
+    "closed": 310,
     "open_asserting_breakage": 50,
     "measured_disagreements": 0,
     "unregistered": 0
@@ -2093,15 +2093,6 @@
       "full": "dragon darts cannot be staged through a 1v1 damage harness — the authority's own hit loop throws. defect, upstream — not a medicham defect and not patched here. filed 2026-09-10 by engine while wiring the multi-hit volley into `tests/test-engine-diff.js`. `move.smarttarget` is `true` in the dex for dragon darts and the three sites that clear it (`sim/battle-actions.ts:607`, `:634`, `:740`) all fire on a failure, so a click that succeeds keeps it. with one target the champions loop pushes a second entry into `movedamage` (`data/mods/champions/scripts.ts:521`) and writes `damage[1]`, and the emergencyexit sweep below it reads `targets[1].hp` on a one-element `targets` — `typeerror: cannot read properties of undefined (reading 'hp')`, reproduced on `dragapult dragondarts -> dragapult` and on `-> garchomp`. not patched: forcing `move.smarttarget = false` in the harness would be a differential editing the authority to get an answer out of it. it is counted and named instead — `data/engine-diff.json` `volley.unstageable`, 1 row of 6,000 — which is a smaller and honester skip than the 134 it replaces. owed: exercise the mechanic where a second body exists, i.e. confirm it is reached by `engine/game_differential.js` rather than assumed; a two-target damage reference is a different harness and is not proposed. verified by: `data/engine-diff.json` `volley.unstageable.dragondarts` — non-zero means still unstageable, absent means it became stageable."
     },
     {
-      "n": 577,
-      "section": "Measurement integrity",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 0,
-      "title": "A PUBLISHED FIGURE MAY NOW NOT CITE A RELEASE WHOSE BYTES ARE NOT IN THE REPOSITORY — THE ENFORCING CLAUSE THE ARCHITECT",
-      "full": "a published figure may now not cite a release whose bytes are not in the repository — the enforcing clause the architecture review asked for, written 2026-09-10 by measure. the defect occurred three times and was hand-fixed three times (`b730e44f3314` on 2026-09-09, `cbd510bc2b13` and `3c2b2f9ac845` on 2026-09-10), because the clause was never written. `engine/provenance.js` rule 5 now derives the published set — `docs_scan.livingdocs()` for the declared public api, `.claude/agents/*.md` for the division ledgers — reads each cited artifact's release-family fields, and asks the release manifest (not the directory) whether every file it names is tracked. a living-document citation is unsafe, so `status.js` withholds the figure; a ledger citation warns. shown red first, twice, on a deliberate break: with `3c2b2f9ac845` removed from a scratch `git_index_file` it names the six instance-3 artifacts by name; with one manifest file removed it reads *partial — 1 of 27 manifest file(s) untracked*. measured on the clean tree: 4 artifacts on the hard arm — `million-run.json` and `million-run-150k.json` (`84f466e7e0d2`), `mutation-coverage.json` (`6fb9ebd3b704`), `search-decision-profile.json` (`cf8567c4db78`) — and 21 on the ledger arm. two verdicts moved: `search-decision-profile.json` ok — unsafe, `replay-differential-freezes.json` ok — stale?. owed: each hard-arm figure is re-run on a tracked release, or stops being cited, or its release is force-added; tracking all 26 would cost ~177 mb against a 724 mb pack and is not the fix. not caught, stated in the clause header: a release id typed into prose with no artifact under it (40 distinct ids sit in living-document history rows, and a bare 12-hex token cannot be told from a commit hash). verified by: `node engine/provenance.js` — exits 1 while any living-document artifact cites an untracked release. 2026-09-10, red sweep: the three releases are force-added, not re-run. all three directories were on disk, and `node engine/engine_release.js verify <id>` reads *intact* for each. `git add -f` put 26, 28 and 28 files into the index (each manifest plus `release.json` and `cuts.jsonl`), about 16 mb. `node engine/provenance.js --strict` then prints no living-document arm (4 — 0); the 21 ledger-arm citations are unchanged and still reported, not enforced. the index is not origin: a fresh clone carries these bytes only once the commit holding them is pushed."
-    },
-    {
       "n": 578,
       "section": "Measurement integrity",
       "closed": false,
@@ -2118,15 +2109,6 @@
       "uses": 0,
       "title": "NINE REGISTER MARKERS NAME A PATH INSTEAD OF A COMMAND, SO NINE ROWS ARE AUDITED BY NOTHING. DEFECT, register hygiene. F",
       "full": "nine register markers name a path instead of a command, so nine rows are audited by nothing. defect, register hygiene. found 2026-09-10 by measure. `markers_rejected` went 0 — 9 on the refresh: `#553` (`data/next-regulation.json`), `#555` (`engine/status.js`), `#558` (`engine/sanity_check.py`), `#563` (`tests/probe_residual_trio_lower_order_handler.js`), `#566` (`--dump-out <absolute path>` — unexpanded template text), `#569` and `#570` (`tests/probe_corner_arm_measures.js`), `#574` (`data/engine-diff.json`), `#576` (`tests/test-engine-diff.js --case ...`). `classifymarker()` refuses a marker that does not begin with `node`, and it is right to — the alternative is guessing, which is #148. none of the nine asserts breakage, so the gate is not held shut by them; they are simply prose. owed: rewrite each marker as a runnable command (`node <path>`), or drop the verified by line so the row counts as owed rather than rejected. verified by: `node engine/register_reality.js` — `counts.markers_rejected` must be 0."
-    },
-    {
-      "n": 580,
-      "section": "Measurement integrity",
-      "closed": false,
-      "saysBroken": false,
-      "uses": 0,
-      "title": "ENCORE DOES NOT END WHEN THE ENCORED MOVE REACHES 0 PP, SO THE BODY STAYS LOCKED FOR THE REST OF ITS CLOCK. OPEN — REGIS",
-      "full": "encore does not end when the encored move reaches 0 pp, so the body stays locked for the rest of its clock. open — registered 2026-09-10 by engine, not fixed in this batch. defect, engine. `encore.condition.onresidual` (data/moves.ts, `onresidualorder: 16`, inherited by the champions override) removes the volatile when `target.getmovedata(effectstate.move).pp <= 0`; medicham2's encore clock has no pp clause. staged by `tests/probe_encore_pp_end.js` on release `cee38e7e9891`, top corner: run-out — rain dance's slot (maxpp 8, `pp * 8/5`) spent to 0 on turn 8 — the authority writes `|-end|p2a: jolteon|encore` at t8 and medicham2 writes nothing, board `vol.encore` 2/0, comparator card `|-end|p2a: jolteon|encore <>"
     },
     {
       "n": 52,

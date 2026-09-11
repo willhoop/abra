@@ -62,6 +62,11 @@
  * one population that WANTS the die (Toxic from a Poison type) turns the override off and says so.
  */
 'use strict';
+/* GAME_RULES -- conformance S12b, 2026-09-10. SIM_BY_NAME: abilities the simulator
+ * implements BY NAME outside their own handlers (so "no handler" does not mean inert). PRANKSTER: the type
+ * chart own `prankster` immunity key. DRAW_LABEL: the prefix of two published cell ids.
+ * Every value is byte-identical to the literal it replaced; nothing here changes behaviour. */
+const GAME_RULES = Object.freeze({ SIM_BY_NAME: ['levitate', 'corrosion', 'runaway', 'terashell', 'multitype', 'rkssystem', 'dancer', 'earlybird'], PRANKSTER: 'prankster', DRAW_LABEL: 'ragepowder' });
 const path = require('path');
 const fs = require('fs');
 const D = (...p) => path.join(__dirname, '..', ...p);
@@ -296,8 +301,7 @@ for (const t of TYPES) {
 
 /* An ability that does nothing at all, so no fixture carries a silent extra reason. Derived: legal,
  * no `on*` handler, and not one of the abilities the simulator implements BY NAME elsewhere. */
-const SIM_BY_NAME = new Set(['levitate', 'corrosion', 'runaway', 'terashell', 'multitype',
-  'rkssystem', 'dancer', 'earlybird']);
+const SIM_BY_NAME = new Set(GAME_RULES.SIM_BY_NAME);
 const INERT_ABILITY = (() => {
   const a = dex.abilities.all().find(x => legal(x) &&
     !Object.keys(x).some(k => /^on[A-Z]/.test(k)) && !SIM_BY_NAME.has(x.id));
@@ -308,7 +312,7 @@ const INERT_ABILITY_ID = norm(INERT_ABILITY);
 const INERT_MOVE = CS.INERT_MOVE;
 /* Prankster needs a carrier only for its ABILITY string; the body is the ordinary attacker so the
  * user's own type cannot be the reason. */
-const PRANKSTER = dex.abilities.get('prankster');
+const PRANKSTER = dex.abilities.get(GAME_RULES.PRANKSTER);
 
 /* ================= 5. THE TWO HARNESSES ======================================================= */
 function mkSet(species, moves, o) {
@@ -444,7 +448,7 @@ function reasonsFor(o) {
   if (chartApplies && types.some(t => !dex.getImmunity(mv.type, t))) why.push('type-chart:' + mv.type);
   if (o.weatherClass && types.some(t => !dex.getImmunity(o.weatherClass, t))) why.push('weather:' + o.weatherClass);
   if (o.trapClass && types.some(t => !dex.getImmunity('trapped', t))) why.push('trapped-type');
-  if (attAb === 'prankster' && mv.category === 'Status' && types.some(t => !dex.getImmunity('prankster', t)))
+  if (attAb === GAME_RULES.PRANKSTER && mv.category === 'Status' && types.some(t => !dex.getImmunity(GAME_RULES.PRANKSTER, t)))
     why.push('prankster-type');
   if (defAb && defAb !== INERT_ABILITY_ID) why.push('ability:' + defAb);
   return why;
@@ -562,7 +566,7 @@ function popF() {
   for (const attType of ['Grass', ATT_TYPE]) {
     const att = BODY[attType];
     if (!att) continue;
-    cell({ pop: 'F', sep: 'ragepowder-attacker-type',
+    cell({ pop: 'F', sep: GAME_RULES.DRAW_LABEL + '-attacker-type',
            why: `${drawMv} against a ${attType} ATTACKER — a Grass attacker ignores the draw`,
            att, move: atk, def: NEUTRAL, aimSlot: 2,
            defMove: dex.moves.get(drawMv).name, defMoveM: drawMv,
@@ -571,7 +575,7 @@ function popF() {
   const powderAb = TAG_MOVECLASS.filter(id =>
     /powder/.test(JSON.stringify(tagParam(id, 'immuneToMoveClass') || {})) && (CARRIERS[id] || []).length);
   for (const ab of powderAb.concat([null])) {
-    cell({ pop: 'F', sep: 'ragepowder-attacker-ability',
+    cell({ pop: 'F', sep: GAME_RULES.DRAW_LABEL + '-attacker-ability',
            why: `${drawMv} against an attacker carrying ${ab || 'nothing'} — the ability refuses the draw`,
            att: ATTACKER, move: atk, def: NEUTRAL, aimSlot: 2,
            attOpts: ab ? { ability: dex.abilities.get(ab).name } : undefined,

@@ -38,6 +38,11 @@
  *   GAMES=120 EVERY=3 N=60 node --max-old-space-size=4096 engine/rollout_switch_probe.js
  */
 'use strict';
+/* GAME_RULES -- conformance S12b, 2026-09-10. The two speed-control conditions the leaf
+ * `field` shape reads (`tr`, `twA`, `twB`). board.js keys conditions by Showdown id and the leaf field
+ * carries these two and no others, so the ids are the interface, not a derivable fact.
+ * Every value is byte-identical to the literal it replaced; nothing here changes behaviour. */
+const GAME_RULES = Object.freeze({ REVERSES_SPEED_FIELD: 'trickroom', DOUBLES_SPEED_SIDE: 'tailwind' });
 const path = require('path');
 const fs = require('fs');
 const D = (...p) => path.join(__dirname, '..', ...p);
@@ -119,9 +124,9 @@ JR.build(games, dex, {
     const field = {
       weather: board.weather || '',
       terrain: RL.terrainOnBoard(board),
-      tr: board.hasField('trickroom') ? 5 : 0,
-      twA: board.hasSide('p1', 'tailwind') ? 4 : 0,
-      twB: board.hasSide('p2', 'tailwind') ? 4 : 0,
+      tr: board.hasField(GAME_RULES.REVERSES_SPEED_FIELD) ? 5 : 0,
+      twA: board.hasSide('p1', GAME_RULES.DOUBLES_SPEED_SIDE) ? 4 : 0,
+      twB: board.hasSide('p2', GAME_RULES.DOUBLES_SPEED_SIDE) ? 4 : 0,
     };
     /* ONE SEED FOR THE BOARD, shared across every arm. Common random numbers: without them the
      * difference between two arms sits underneath the dice, which is the identical fix the post-KO

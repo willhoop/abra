@@ -63,6 +63,15 @@
       "date": "2026-09-09",
       "quote": "yes web paused and mag paused all i care about is medicham working",
       "lifts_when": "the MAG refit lands after 6.0.0 and data/policy-weights.json loads under ABRA_STRICT_SEMANTICS=1 (feature_fixture.verify of its featureHashes; note feature_fixture --check alone exits 0 today and is not the gate)"
+    },
+    {
+      "path": "engine/em_validation.js",
+      "group": "MAG",
+      "reason": "The gate requires the partial-label EM to recover planted weights where the naive fit visibly fails, and in the AMPLIFIED regime the naive fit's censoring bias does not exceed its own noise floor - so there is nothing for EM to be seen correcting and the check cannot pass. A negative scientific result, not a defect. EM is a MAG-family model and MAG is paused. Recorded as Will's answer to a structured question put to him on 2026-09-11 (options: waive with MAG / rewrite to record the null / leave red); the quote below is the option he selected, not free text.",
+      "waived_by": "Will",
+      "date": "2026-09-11",
+      "quote": "Waive with MAG",
+      "lifts_when": "MAG work resumes (the MAG refit sequenced after 6.0.0); then rewrite the gate to record a null honestly or re-measure"
     }
   ]
 }

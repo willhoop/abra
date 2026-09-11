@@ -41,6 +41,10 @@
  *
  * Reads the FORMAT and our own tags. Writes exactly one artifact. Runs no games. */
 'use strict';
+/* GAME_RULES -- conformance S12b, 2026-09-10. STALL_CHAIN_MOVE: the move whose click count
+ * prices the `protect-chain` row. The row subject id and its prose stay as published.
+ * Every value is byte-identical to the literal it replaced; nothing here changes behaviour. */
+const GAME_RULES = Object.freeze({ STALL_CHAIN_MOVE: 'protect' });
 const fs = require('fs');
 const path = require('path');
 
@@ -582,7 +586,7 @@ add({ family: 'chance', subject: 'attract', kind: 'volatile', expect: 50, unit: 
  * rate. */
 add({ family: 'chance', subject: 'protect-chain', kind: 'move',
       expect: '1/3 then 1/9 then 1/27', unit: 'success rate by consecutive use',
-      what: 'consecutive protect succeeds', clicks: CLICKS ? (CLICKS.protect || 0) : null,
+      what: 'consecutive protect succeeds', clicks: CLICKS ? (CLICKS[GAME_RULES.STALL_CHAIN_MOVE] || 0) : null,
       from: 'READ:data/conditions.ts:439-462 stall — counter starts 3, *=3 per restart, counterMax 729, randomChance(1, counter). Not overridden by the mod, checked.',
       denominator: 'CONSECUTIVE uses only — the counter resets the moment any other action succeeds, '
                  + 'and Baneful Bunker / Spiky Shield / Silk Trap share one counter with Protect.' });

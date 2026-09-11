@@ -122,6 +122,11 @@
  * in-battle cosmetic formes (castformsunny, castformrainy) and pattern formes (vivillon*, alcremie*),
  * which is why `baseId` below exists as a SECOND, SEPARATELY COUNTED lookup rather than as a silent
  * widening of the first. */
+/* GAME_RULES -- conformance S12b, 2026-09-10. `SHIELD_KIND` is the click-row KIND label the
+ * store-derived census gives the `shieldsUser` family. A label, not a move id; read only by the protect
+ * counters (`protect_draws` and siblings, whose key names stay as published).
+ * Every value is byte-identical to the literal it replaced; nothing here changes behaviour. */
+const GAME_RULES = Object.freeze({ SHIELD_KIND: 'protect' });
 const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
 /* ---- THE TABLE ---------------------------------------------------------------------------------
@@ -154,7 +159,7 @@ function loadPriors(bytes, where) {
   const family = new Set();
   for (const v of Object.values(sp)) {
     for (const m of ((v && v.moves) || []).concat((v && v.lead) || [])) {
-      if (m && m.mv && m.kind === 'protect') family.add(String(m.mv));
+      if (m && m.mv && m.kind === GAME_RULES.SHIELD_KIND) family.add(String(m.mv));
     }
   }
   let famActs = 0;

@@ -1,9 +1,9 @@
 {
- "generated": "2026-09-11T00:55:42.574Z",
+ "generated": "2026-09-11T01:18:28.890Z",
  "by": "tests/roster.js",
  "stage": "abilities",
  "swap_leaf_correction": {
-  "self_describing_dropped": 5328,
+  "self_describing_dropped": 5344,
   "real_ability_rewrite_kept": 48
  },
  "engine_release": "cee38e7e9891",
@@ -51,7 +51,7 @@
  "arms_played": {
   "top-tie-first": 579,
   "middle": 49,
-  "bottom-tie-first": 22
+  "bottom-tie-first": 24
  },
  "scope": {
   "total": 316,
@@ -206,25 +206,10 @@
  "plant_anchors": {
   "release": "cee38e7e9891",
   "checked": 44,
-  "dead": [
-   {
-    "rule": "ability/refuses-a-crit",
-    "kind": "ability",
-    "matched": 0,
-    "anchor": "if(defAbility&&TAGS.param('ability',defAbility,'preventsCrit'))return 0;",
-    "rows": 2,
-    "staged": 2
-   }
-  ],
+  "dead": [],
   "reds_ran": true
  },
  "reds": [
-  {
-   "rule": "ability/refuses-a-crit",
-   "ok": false,
-   "anchor_dead": true,
-   "why": "THE PLANT DID NOT APPLY — the anchor matched 0 time(s), not exactly once. An unapplied plant reads exactly like a comparator that found nothing, so every row this rule produced is asserting nothing until it is re-aimed. Anchor: if(defAbility&&TAGS.param('ability',defAbility,'preventsCrit'))return 0;"
-  },
   {
    "rule": "ability/entry",
    "ok": true,
@@ -264,6 +249,22 @@
    "moved": {
     "member": "friendguard",
     "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/refuses-a-crit",
+   "ok": true,
+   "why": "the crit refusal is skipped, so the armoured body takes the crit like anything else",
+   "moved": {
+    "member": "battlearmor",
+    "verdict": "CONTROL-NOT-QUIET",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,

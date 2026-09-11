@@ -102,6 +102,12 @@
  *                         declaration the cross-check rejected. Shown red 2026-08-11: 10 rows.
  */
 'use strict';
+/* GAME_RULES -- conformance S12b, 2026-09-10. SHIELD_ACTIVATE: a shield `-activate` line
+ * in the store, so a protected target is excluded from the accuracy tally. STAGED_BERRY: the berry the proc
+ * row stages. `--detect` and `detect_points` are the power statement effect size (an English word, not the
+ * move); `diag.protect`, `r.protect` and the QUIET_EXCLUDE keys stay as published artifact and table keys.
+ * Every value is byte-identical to the literal it replaced; nothing here changes behaviour. */
+const GAME_RULES = Object.freeze({ SHIELD_ACTIVATE: /protect|bunker|spikyshield|spiky shield/i, STAGED_BERRY: 'sitrusberry' });
 const fs = require('fs');
 const path = require('path');
 
@@ -675,7 +681,7 @@ function resolveBlock(b) {
     else if (ev === '-status' || ev === '-start' || ev === '-boost' || ev === '-unboost') {
       if (!/\[from\]/.test(f[3] || '')) get(f[1]).touched = true;
     }
-    else if (ev === '-activate' && /protect|bunker|spikyshield|spiky shield/i.test(f[2] || '')) { get(f[1]).protect = true; }
+    else if (ev === '-activate' && GAME_RULES.SHIELD_ACTIVATE.test(f[2] || '')) { get(f[1]).protect = true; }
   }
   return per;
 }
@@ -2370,7 +2376,7 @@ function stagedFixtures(SD) {
     const cars = SD.carriers(subject);
     if (!cars.length) return cannot('proc:' + subject, 'proc', subject, 'ability', 'no legal carrier with a row in the engine own dex');
     const car = cars[0];
-    const berry = D.items.get('sitrusberry');
+    const berry = D.items.get(GAME_RULES.STAGED_BERRY);
     if (!SD.legalX(berry)) return cannot('proc:' + subject, 'proc', subject, 'ability', 'the derived berry is not legal in this format');
     /* CONTACT IS FINE FOR THIS ONE and insisting on a non-contact chipper retired the row: the
      * carrier is Ghost, so every derived non-contact boring move is Normal and does nothing to it.
@@ -2406,7 +2412,7 @@ function stagedFixtures(SD) {
          * refused — over the 2% construction tolerance, which correctly dropped the row from the
          * scored set. Doubling the pool keeps the chip comfortably across the half-HP line and puts a
          * critical hit comfortably short of lethal. */
-        const B = [stagedMon(SD.rowKey(car), subject, 'sitrusberry', [SD.weakestOwn(car)],
+        const B = [stagedMon(SD.rowKey(car), subject, GAME_RULES.STAGED_BERRY, [SD.weakestOwn(car)],
                      mode === 'control' ? { hpx: 8, spe: 1 } : { hpx: 2, hpFrac: 0.52, spe: 1 }),
                    stagedMon(SD.rowKey(f2), quietOf(f2), '', [SD.weakestOwn(f2)], { hpx: 8, spe: 200 })];
         if (A.some(x => !x) || B.some(x => !x)) return null;
@@ -2416,7 +2422,7 @@ function stagedFixtures(SD) {
       },
       read(S, trace, board) {
         const B0 = S.actB[0];
-        const fired = idOf(B0.item) === 'sitrusberry' && !!B0._ateBerry;
+        const fired = idOf(B0.item) === GAME_RULES.STAGED_BERRY && !!B0._ateBerry;
         if (!B0._ateBerry) return { reached: false, why: 'the berry was never eaten this turn, so the residual had nothing to restore', fired: false };
         if (B0.fainted) return { reached: false, why: 'the carrier did not survive to the residual', fired };
         return { reached: true, fired };

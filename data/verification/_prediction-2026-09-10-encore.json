@@ -1,0 +1,42 @@
+{
+  "generated": "2026-09-11T02:45:00Z",
+  "by": "ENGINE, written before any game was played on the Encore release (ROADMAP #580)",
+  "what": "Which board-material games should leave the three whole-game differential arms once Encore ends in the residual when the encored move reaches 0 PP (encore.condition.onResidual, data/moves.ts:4758-4765).",
+  "release_before": "cee38e7e9891",
+  "board_material_rule": "state.games less state.games_board_never_diverged",
+  "pins": "--census <HEAD data/mechanics-census.json> --team-store data/team-pool-frozen --games 1200 --turns 50 --steering empirical --end-state",
+  "arms": {
+    "top-tie-first": {
+      "before": 12,
+      "predicted": 8,
+      "interval": [8, 9],
+      "should_leave": [
+        "gen9championsvgc2026regmbbo3-2635949496 vs gen9championsvgc2026regmbbo3-2634741388 (omit-weather, t13, p2.active[1].vol.encore 2/0)",
+        "gen9championsvgc2026regmbbo3-2662294385 vs gen9championsvgc2026regmbbo3-2662196291 (omit-intimidate, t10, p1.active[0].vol.encore 2/0)",
+        "gen9championsvgc2026regmbbo3-2635107764 vs gen9championsvgc2026regmbbo3-2634903978 (omit-intimidate, t27, p1.active[1].vol.encore 1/0)",
+        "gen9championsvgc2026regmbbo3-2635366005 vs gen9championsvgc2026regmbbo3-2635798902 (pair-speedctrl, t20, p2.active[1].vol.encore 1/0)"
+      ],
+      "should_stay": [
+        "gen9championsvgc2026regmbbo3-2661290217 vs gen9championsvgc2026regmbbo3-2661324628 (omit-weather, t17) — the fifth game the pre-diagnosis grouped with Encore: an Encored Incineroar the authority makes repeat Flare Blitz while medicham2 clicks Parting Shot. Never staged; the fix only ENDS Encore earlier, and here medicham2 already has no lock where the authority keeps one, so this fix cannot move it."
+      ],
+      "why_the_upper_bound": "a game whose FIRST board divergence was the Encore lock may play on and part later on something else; one such is allowed for."
+    },
+    "bottom-tie-first": {
+      "before": 11,
+      "predicted": 11,
+      "interval": [11, 11],
+      "why": "none of the 11 parts on vol.encore"
+    },
+    "middle": {
+      "before": 0,
+      "predicted": 0,
+      "interval": [0, 0]
+    }
+  },
+  "confounds_declared_before_the_run": [
+    "the bo3 store was restored from its shards (32,810 -> 32,857) and engine/set_priors.js reads it live during a pinned run",
+    "data/tags.json was regenerated for the new tag and its `uses` counts moved on 304 rows with the restored stores; the engine reads `uses` in one place, sideGuardClickRate, where Quick Guard's rate moves 0.13831 -> 0.13827 (Wide Guard stays the top at 0.35)",
+    "engine/medicham2-browser.js also carries batch 2's one comment line (RAW-STORE-NOT-READ), which has no behaviour"
+  ],
+  "attribution_if_anything_else_moves": "re-run the moving arm on the SAME release under MEDI_ENCORE_NO_PP_END=1; what still moves is the store/uses shift, not the fix"
+}

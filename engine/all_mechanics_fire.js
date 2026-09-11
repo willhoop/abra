@@ -74,6 +74,14 @@
  */
 'use strict';
 require('./showdown_path.js');
+/* GAME_RULES -- conformance S12b, 2026-09-10. The names this instrument carries are
+ * FIXTURE CHOICES, not facts about the game: PAD_MOVE (every staged pad clicks it, and it is the fallback
+ * click), FILLERS (learnable fillers so no staged set is empty), GUARD_LINE (a shield `-activate`, so a
+ * blocked click is not credited, ROADMAP #91; its alternation is unchanged), RED_DEMO_ITEM / RED_DEMO_SIDE
+ * (the red demonstration item row and its unannounced side-clock plant).
+ * Every value is byte-identical to the literal it replaced; nothing here changes behaviour. */
+const GAME_RULES = Object.freeze({ PAD_MOVE: 'protect', FILLERS: ['protect', 'rest', 'facade', 'round', 'tackle', 'takedown', 'sleeptalk', 'swagger'], GUARD_LINE: /move:\s*(protect|detect|spiky ?shield|baneful ?bunker|wide ?guard|quick ?guard|crafty ?shield|mat ?block|max ?guard|obstruct|silk ?trap|burning ?bulwark|king'?s ?shield)/i,
+  RED_DEMO_ITEM: 'sitrusberry', RED_DEMO_SIDE: 'tailwind' });
 const fs = require('fs');
 const path = require('path');
 const D = (...p) => path.join(__dirname, '..', ...p);
@@ -390,7 +398,7 @@ const RECEIVER_MOVES = ['Agility', 'Facade', 'Aqua Tail', 'Hydro Pump'];
  * for a reason that had nothing to do with the mechanic under test. The pool is every legal species
  * that can click Protect, in the authority's own order, and a scenario takes the first ones it has
  * not already used. It cannot run out and it cannot collide. */
-const PAD_POOL = LEGAL_SPECIES.filter(s => (POOL.get(s.id) || new Set()).has('protect')).map(s => s.id);
+const PAD_POOL = LEGAL_SPECIES.filter(s => (POOL.get(s.id) || new Set()).has(GAME_RULES.PAD_MOVE)).map(s => s.id);
 const PAD_MOVES = ['Protect', 'Endure', 'Rest'];
 /* THE HP POOL, x6 ON BOTH SIDES. Nothing may faint: a faint forces a switch, and medicham2 refills a
  * dead slot from its own bench while Showdown is told to mirror it — a legitimate mechanism that
@@ -410,7 +418,7 @@ const mvName = m => { const x = dex.moves.get(m); return x && x.exists ? x.name 
 /* A body's four moves, filtered to what it can actually learn, with a learnable filler appended so no
  * set is empty. A set that survives with zero moves is DROPPED and counted — never given a guessed
  * move, which is how a scenario comes to test something nobody asked for. */
-const FILLERS = ['protect', 'rest', 'facade', 'round', 'tackle', 'takedown', 'sleeptalk', 'swagger'];
+const FILLERS = GAME_RULES.FILLERS;
 function bodyOf(species, ability, item, wantMoves) {
   const sp = dex.species.get(species);
   if (!sp || !sp.exists) return null;
@@ -484,7 +492,7 @@ function validate(sheet) {
  * Wide Guard, Quick Guard, Crafty Shield, Mat Block, Max Guard. A move blocked by a shield was clicked
  * and did nothing, which is exactly the case ROADMAP #91 exists to stop crediting. */
 const REFUSAL = new Set(['-fail', '-miss', '-immune', '-notarget', '-block', 'cant']);
-const GUARDS = /move:\s*(protect|detect|spiky ?shield|baneful ?bunker|wide ?guard|quick ?guard|crafty ?shield|mat ?block|max ?guard|obstruct|silk ?trap|burning ?bulwark|king'?s ?shield)/i;
+const GUARDS = GAME_RULES.GUARD_LINE;
 /* LINES THAT ARE NEITHER A CONSEQUENCE NOR A REFUSAL. `-anim` is the client's animation hint and is
  * emitted for a move that then fails; `-hitcount` and `-waiting` are bookkeeping. Counting any of them
  * as a consequence would credit a move for having been drawn on a screen. */
@@ -861,7 +869,7 @@ function leafEffectSeen(log, spec, subjectSlot) {
 function clickOf(body, prefs) {
   const have = (body.moves || []).map(id);
   for (const p of (prefs || [])) if (have.includes(id(p))) return id(p);
-  return have[0] || 'protect';
+  return have[0] || GAME_RULES.PAD_MOVE;
 }
 
 /* ================= THE SCENARIO ===================================================================
@@ -1633,7 +1641,7 @@ function runMoves(list) {
     /* WHAT ELSE THE ACTOR CARRIES: the move under test, whatever the tag-derived setup needs, and then
      * the two fixture clicks the ladder's richer rungs use — an ordinary attack and Rest. Four slots,
      * so the setup always wins the ties. */
-    const wants = [mv].concat(su.extra, ['facade', 'rest', 'protect']);
+    const wants = [mv].concat(su.extra, ['facade', 'rest', GAME_RULES.PAD_MOVE]);
     const actor = bodyOf(chosen, useAbility, '', wants);
     if (!actor || !actor.moves.some(x => id(x) === mv)) {
       rows.push({ kind: 'move', id: mv, name: dm.name, resolved: false, attempted: false,
@@ -2955,7 +2963,7 @@ function statePlanScript(bodies, plan) {
     const have = ((actor || {}).moves || []).map(id);
     const ok = (k) => { const m = dex.moves.get(k); return m && m.exists && !m.stallingMove; };
     for (const p of ['Facade', 'Body Slam', 'Round', 'Rest']) if (have.includes(id(p)) && ok(id(p))) return id(p);
-    return have.find(ok) || have[0] || 'protect';
+    return have.find(ok) || have[0] || GAME_RULES.PAD_MOVE;
   })();
   const rIdle = clickOf(receiver, ['Agility', 'Endure', 'Protect']);
   const turns = [];
@@ -3314,7 +3322,7 @@ function red() {
       const on = playScenario(Object.assign({ script: gauntletScript(b), tag: 'red/det-on' }, b));
       const b2 = stageBodies(bodyOf(ITEM_HOLDER, '', '', GAUNTLET_ACTOR_MOVES), receiver);
       const off = playScenario(Object.assign({ script: gauntletScript(b2), tag: 'red/det-off' }, b2));
-      return abRow('item', 'sitrusberry', 'Sitrus Berry', ITEM_HOLDER, '(no item)', on, off); };
+      return abRow('item', GAME_RULES.RED_DEMO_ITEM, 'Sitrus Berry', ITEM_HOLDER, '(no item)', on, off); };
     const a = play(), b = play();
     out.push({ plant: 'THE SAME A/B ASKED TWICE MUST GIVE THE SAME VERDICT — the instrument failed this once',
                verdict: a.verdict + ' then ' + b.verdict,
@@ -3368,7 +3376,7 @@ function red() {
         f: (S) => { const m = (S.actA || [])[0]; if (!m) return false; m.curHP = Math.max(1, m.curHP - 7); return true; } },
       { what: 'an ACTIVE body gains a +1 Attack stage with no line to say so', want: 'boosts.atk',
         f: (S) => { const m = (S.actA || [])[0]; if (!m || !m.boosts) return false; m.boosts.at += 1; return true; } },
-      { what: 'a SIDE CLOCK is set — 3 turns of Tailwind nobody announced', want: 'tailwind',
+      { what: 'a SIDE CLOCK is set — 3 turns of Tailwind nobody announced', want: GAME_RULES.RED_DEMO_SIDE,
         f: (S) => { if (!S.field) return false; S.field.twA = 3; return true; } },
       { what: 'a BENCHED body loses 5 HP — the half a stream can never see', want: 'party.hp',
         f: (S) => { const m = benched(S); if (!m) return false; m.curHP = Math.max(1, m.curHP - 5); return true; } },

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-11T00:55:04.890Z",
+  "generated": "2026-09-11T03:09:01.975Z",
   "by": "engine/game_differential.js",
   "mode": "A/bottom-tie-first/pins:844515f6a72a/credit:observed-effect/v1/nature:real",
   "baseline_reset": "ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and how a die falls. NO NUMBER IN THIS ARTIFACT MAY BE COMPARED WITH ANY RUN TAKEN BEFORE 2026-08-07 — not the 75.5% turn-1 figure, not data/state-ladder.json, not the class counts. `mode` carries the pin digest and the credit-rule version so engine/arms_comparable.js refuses the pair rather than leaving it to a reader to notice.",
@@ -60,11 +60,11 @@
       },
       "turn1_boards_identical": 961,
       "turn1_boards_reached": 961,
-      "rows_credited": 260,
+      "rows_credited": 261,
       "credit_events": {
-        "effect": 402471,
+        "effect": 402445,
         "negative": 996,
-        "click": 913022
+        "click": 914745
       },
       "classes": [
         {
@@ -110,84 +110,84 @@
   },
   "games": 961,
   "turns_cap": 50,
-  "elapsed_s": 216.5,
+  "elapsed_s": 279.2,
   "credit_turn_profile": {
-    "rows_with_any_credit": 260,
+    "rows_with_any_credit": 261,
     "credits_with_no_turn_index": 0,
     "deepest_first_credit_turn": 9,
     "by_first_turn": [
       {
         "turn": 1,
-        "rows_first_here": 228,
-        "rows_first_by_here": 228,
-        "pct_of_credited": 87.69
+        "rows_first_here": 229,
+        "rows_first_by_here": 229,
+        "pct_of_credited": 87.74
       },
       {
         "turn": 2,
         "rows_first_here": 15,
-        "rows_first_by_here": 243,
-        "pct_of_credited": 93.46
+        "rows_first_by_here": 244,
+        "pct_of_credited": 93.49
       },
       {
         "turn": 3,
         "rows_first_here": 7,
-        "rows_first_by_here": 250,
-        "pct_of_credited": 96.15
+        "rows_first_by_here": 251,
+        "pct_of_credited": 96.17
       },
       {
         "turn": 4,
         "rows_first_here": 6,
-        "rows_first_by_here": 256,
-        "pct_of_credited": 98.46
+        "rows_first_by_here": 257,
+        "pct_of_credited": 98.47
       },
       {
         "turn": 6,
         "rows_first_here": 1,
-        "rows_first_by_here": 257,
+        "rows_first_by_here": 258,
         "pct_of_credited": 98.85
       },
       {
         "turn": 8,
         "rows_first_here": 1,
-        "rows_first_by_here": 258,
+        "rows_first_by_here": 259,
         "pct_of_credited": 99.23
       },
       {
         "turn": 9,
         "rows_first_here": 2,
-        "rows_first_by_here": 260,
+        "rows_first_by_here": 261,
         "pct_of_credited": 100
       }
     ],
     "credit_events_by_turn": {
-      "1": 79467,
-      "2": 78395,
-      "3": 78914,
-      "4": 74834,
-      "5": 71381,
-      "6": 59460,
-      "7": 47372,
-      "8": 35916,
-      "9": 26921,
-      "10": 20999,
-      "11": 14583,
-      "12": 10486,
-      "13": 7148,
-      "14": 5143,
-      "15": 3555,
-      "16": 1989,
-      "17": 1570,
-      "18": 1004,
-      "19": 631,
-      "20": 353,
-      "21": 347,
-      "22": 385,
-      "23": 390,
-      "24": 402,
-      "25": 334,
-      "26": 283,
-      "27": 140,
-      "28": 115
+      "1": 79525,
+      "2": 78510,
+      "3": 79008,
+      "4": 74923,
+      "5": 71482,
+      "6": 59531,
+      "7": 47444,
+      "8": 35962,
+      "9": 26959,
+      "10": 21025,
+      "11": 14601,
+      "12": 10501,
+      "13": 7159,
+      "14": 5154,
+      "15": 3561,
+      "16": 1996,
+      "17": 1575,
+      "18": 1009,
+      "19": 635,
+      "20": 354,
+      "21": 349,
+      "22": 387,
+      "23": 392,
+      "24": 404,
+      "25": 336,
+      "26": 284,
+      "27": 141,
+      "28": 116
     },
     "rows_first_credited_at_turn_13_or_later": [],
     "rows_first_credited_at_turn_9_or_later": [
@@ -765,7 +765,7 @@
       },
       "control_same_pairs_no_stones": {
         "games": 955,
-        "diverged": 33
+        "diverged": 32
       },
       "pairs_with_no_stone_at_all": {
         "games": 6,
@@ -773,7 +773,7 @@
       },
       "whole_control_arm": {
         "games": 961,
-        "diverged": 33,
+        "diverged": 32,
         "note": "every stone stripped — this is what the 2026-08-06 run measured"
       }
     },
@@ -781,8 +781,8 @@
     "cost_of_the_megas": {
       "stone_carrying_pairs": 955,
       "mega_arm_parted_earlier": 18,
-      "mega_arm_parted_later": 29,
-      "parted_at_the_same_line": 908,
+      "mega_arm_parted_later": 28,
+      "parted_at_the_same_line": 909,
       "first_divergence_is_a_mega_line": 0,
       "first_divergence_is_a_detailschange_line": 0,
       "on_a_mega_line": [],
@@ -807,7 +807,7 @@
       {
         "id": "ability-announcement",
         "why": "Showdown's `|-ability|` is a COSMETIC announcement that an ability activated (SIM-PROTOCOL). Every consequence of it is a separate line and is kept, so dropping the announcement cannot hide an ability that did not fire — its effect would still be missing.",
-        "lines_collapsed": 55657,
+        "lines_collapsed": 55663,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -837,7 +837,7 @@
       {
         "id": "source-tag",
         "why": "`[of] pXy` names the BODY behind an effect whose name is already carried by `[from]`. The two engines tag it inconsistently on -heal, -activate and -damage.",
-        "lines_collapsed": 73548,
+        "lines_collapsed": 73550,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -852,7 +852,7 @@
       {
         "id": "effect-namespace",
         "why": "Showdown writes an effect sometimes bare and sometimes namespaced — `|-sidestart|p1: A|Reflect` against this engine's `move: reflect`. The NAME is kept; only the namespace goes.",
-        "lines_collapsed": 368193,
+        "lines_collapsed": 368228,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -867,7 +867,7 @@
       {
         "id": "display-flags",
         "why": "`[silent]`, `[still]`, `[miss]` and `[spread]` are rendering hints. The state each one decorates is a separate event — `-miss` for a miss, `-prepare` for a charge, one `-damage` per body actually hit for a spread — and all of those are kept.",
-        "lines_collapsed": 78062,
+        "lines_collapsed": 78067,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -882,7 +882,7 @@
       {
         "id": "move-target-field",
         "why": "THE BIGGEST ONE, AND THE ONE THAT NEEDS THE ARGUMENT. A `|move|` line means \"this body used this move\". Showdown additionally names ONE nominal target plus `[spread]`; this engine names its own user on a spread move. WHO WAS ACTUALLY HIT is not in this field on either side — it is in the `-damage` / `-status` / `-unboost` / `-enditem` lines that follow, which are kept and compared body by body. A redirection bug is therefore caught one line later rather than not at all, and the `distinct` pair below is exactly that case.",
-        "lines_collapsed": 779246,
+        "lines_collapsed": 779345,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -910,7 +910,7 @@
         ]
       }
     ],
-    "total_lines_collapsed": 1372865
+    "total_lines_collapsed": 1373012
   },
   "entity_annotation": {
     "by": "engine/effect_kind.js",
@@ -1327,7 +1327,7 @@
       }
     ],
     "showdown_shapes_with_more_than_one_value": [],
-    "medicham_draws": 133268,
+    "medicham_draws": 133273,
     "medicham_streams_drawn": 8,
     "medicham_streams": [
       {
@@ -1339,28 +1339,28 @@
       },
       {
         "key": "dmg",
-        "draws": 24534,
+        "draws": 24536,
         "values": [
           0
         ]
       },
       {
         "key": "crit",
-        "draws": 24337,
+        "draws": 24339,
         "values": [
           0
         ]
       },
       {
         "key": "acc",
-        "draws": 23168,
+        "draws": 23170,
         "values": [
           0
         ]
       },
       {
         "key": "sec",
-        "draws": 12063,
+        "draws": 12064,
         "values": [
           0
         ]
@@ -1381,7 +1381,7 @@
       },
       {
         "key": "any",
-        "draws": 3215,
+        "draws": 3213,
         "values": [
           0
         ]
@@ -4661,11 +4661,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 3285
+              "uses": 3288
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 3285
+          "max_uses": 3288
         },
         {
           "cause": "extra event emitted by medicham2 :: |move|p1b|heatwave <> |-activate|p2a|safeguard",
@@ -4678,7 +4678,7 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 24149
+              "uses": 24173
             },
             {
               "kind": "conditions",
@@ -4700,7 +4700,7 @@
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 24149
+          "max_uses": 24173
         },
         {
           "cause": "extra event emitted by medicham2 :: |-damage|p2a|0fnt <> |-damage|p2a|H/H",
@@ -4718,7 +4718,7 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 214336
+              "uses": 214548
             },
             {
               "kind": "items",
@@ -4731,7 +4731,7 @@
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 214336
+          "max_uses": 214548
         },
         {
           "cause": "extra event emitted by medicham2 :: |-supereffective|p1a|1 <> |-fail|p1b",
@@ -4808,7 +4808,7 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 17434
+              "uses": 17440
             },
             {
               "kind": "abilities",
@@ -4821,7 +4821,7 @@
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 17434
+          "max_uses": 17440
         },
         {
           "cause": "ordering :: |-enditem|p1b|sitrusberry|[eat] <> |-unboost|p1a|atk|1",
@@ -4834,11 +4834,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 34951
+              "uses": 34983
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 34951
+          "max_uses": 34983
         }
       ]
     },
@@ -4857,11 +4857,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 22059
+              "uses": 22072
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 22059
+          "max_uses": 22072
         },
         {
           "cause": "event missing from medicham2 :: |-activate|p1a|feint <> |-crit|p1a",
@@ -4874,11 +4874,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 1923
+              "uses": 1924
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 1923
+          "max_uses": 1924
         },
         {
           "cause": "event missing from medicham2 :: |-fail|p1b <> |move|p2b|rockslide",
@@ -4891,11 +4891,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 34629
+              "uses": 34647
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 34629
+          "max_uses": 34647
         },
         {
           "cause": "event missing from medicham2 :: |-crit|p1b <> |-enditem|p1b|focussash",
@@ -4908,11 +4908,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 40656
+              "uses": 40700
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 40656
+          "max_uses": 40700
         },
         {
           "cause": "event missing from medicham2 :: |-supereffective|p1a|1 <> |-enditem|p1a|focussash",
@@ -4925,11 +4925,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 40656
+              "uses": 40700
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 40656
+          "max_uses": 40700
         },
         {
           "cause": "event missing from medicham2 :: |-fail|p1a <> |-weather|raindance|[upkeep]",
@@ -4951,11 +4951,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 1895
+              "uses": 1897
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 1895
+          "max_uses": 1897
         },
         {
           "cause": "event missing from medicham2 :: |-end|p1a|fallenundefined <> |upkeep",
@@ -5030,7 +5030,7 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 34951
+              "uses": 34983
             },
             {
               "kind": "moves",
@@ -5039,11 +5039,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 7789
+              "uses": 7792
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 34951
+          "max_uses": 34983
         },
         {
           "cause": "event missing from medicham2 :: |-fail|p1b <> |upkeep",
@@ -5076,7 +5076,7 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 1610
+              "uses": 1611
             },
             {
               "kind": "moves",
@@ -5085,7 +5085,7 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 15230
+              "uses": 15240
             },
             {
               "kind": "moves",
@@ -5098,7 +5098,7 @@
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 15230
+          "max_uses": 15240
         },
         {
           "cause": "unrelated event mismatch :: |-fail|p1b <> |switch|p1b|aerodactyl,l50|H/H",
@@ -5143,7 +5143,7 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 3556
+              "uses": 3562
             },
             {
               "kind": "conditions",
@@ -5161,11 +5161,11 @@
               "carriers": null,
               "reachable": true,
               "nonstandard": null,
-              "uses": 5679
+              "uses": 5690
             }
           ],
           "cannot_occur_in_format": false,
-          "max_uses": 5679
+          "max_uses": 5690
         }
       ]
     }
@@ -5723,8 +5723,8 @@
     "why": "Primarina clicked Haze on turn 1 into a board with zero boosts on it. Haze is a no-op there, the census marked it exercised, and because the census STEERS the sample a falsely credited row then steered every later run AWAY from testing it.",
     "rows_with_an_observed_effect": 338,
     "rows_that_can_be_witnessed_on_a_board": 360,
-    "rows_that_name_no_board_leaf": 404,
-    "rows_credited_by_a_connected_click_only": 372,
+    "rows_that_name_no_board_leaf": 408,
+    "rows_credited_by_a_connected_click_only": 376,
     "rows_clicked_or_present_that_did_nothing": 9,
     "rows_clicked_or_present_that_did_nothing_list": [
       "ability:clearsScreensOnEntry",
@@ -6150,7 +6150,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 6492
+          "click": 6494
         },
         "attempts": 0
       },
@@ -6163,7 +6163,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 6492
+          "click": 6494
         },
         "attempts": 0
       },
@@ -6355,7 +6355,7 @@
         ],
         "credit": 270,
         "of_which": {
-          "effect": 500,
+          "effect": 498,
           "negative": 0,
           "click": 0
         },
@@ -7694,7 +7694,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 9995
+          "click": 9997
         },
         "attempts": 7
       },
@@ -7962,7 +7962,7 @@
         ],
         "credit": 4192,
         "of_which": {
-          "effect": 8948,
+          "effect": 8944,
           "negative": 0,
           "click": 0
         },
@@ -7979,7 +7979,7 @@
         ],
         "credit": 4192,
         "of_which": {
-          "effect": 8948,
+          "effect": 8944,
           "negative": 0,
           "click": 0
         },
@@ -7996,7 +7996,7 @@
         ],
         "credit": 4192,
         "of_which": {
-          "effect": 8948,
+          "effect": 8944,
           "negative": 0,
           "click": 0
         },
@@ -8014,7 +8014,7 @@
         ],
         "credit": 1644,
         "of_which": {
-          "effect": 3048,
+          "effect": 3036,
           "negative": 0,
           "click": 0
         },
@@ -8032,7 +8032,7 @@
         ],
         "credit": 1644,
         "of_which": {
-          "effect": 3048,
+          "effect": 3036,
           "negative": 0,
           "click": 0
         },
@@ -8050,7 +8050,7 @@
         ],
         "credit": 1644,
         "of_which": {
-          "effect": 3048,
+          "effect": 3036,
           "negative": 0,
           "click": 0
         },
@@ -8068,7 +8068,7 @@
         ],
         "credit": 1644,
         "of_which": {
-          "effect": 3048,
+          "effect": 3036,
           "negative": 0,
           "click": 0
         },
@@ -8267,7 +8267,7 @@
         ],
         "credit": 10120,
         "of_which": {
-          "effect": 18910,
+          "effect": 18905,
           "negative": 0,
           "click": 0
         },
@@ -8285,7 +8285,7 @@
         ],
         "credit": 10120,
         "of_which": {
-          "effect": 18910,
+          "effect": 18905,
           "negative": 0,
           "click": 0
         },
@@ -8303,7 +8303,7 @@
         ],
         "credit": 10120,
         "of_which": {
-          "effect": 18910,
+          "effect": 18905,
           "negative": 0,
           "click": 0
         },
@@ -8314,11 +8314,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2996,
+        "credit": 3424,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 6482
+          "click": 7408
         },
         "attempts": 0
       },
@@ -8327,11 +8327,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2996,
+        "credit": 3424,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 6482
+          "click": 7408
         },
         "attempts": 0
       },
@@ -8340,11 +8340,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2996,
+        "credit": 3424,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 6482
+          "click": 7408
         },
         "attempts": 0
       },
@@ -8353,11 +8353,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2996,
+        "credit": 3424,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 6482
+          "click": 7408
         },
         "attempts": 0
       },
@@ -8366,11 +8366,24 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2996,
+        "credit": 3424,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 6482
+          "click": 7408
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:pivotStatus",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 3424,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 7408
         },
         "attempts": 0
       },
@@ -9256,7 +9269,7 @@
         ],
         "credit": 45,
         "of_which": {
-          "effect": 102,
+          "effect": 99,
           "negative": 0,
           "click": 0
         },
@@ -9273,7 +9286,7 @@
         ],
         "credit": 45,
         "of_which": {
-          "effect": 102,
+          "effect": 99,
           "negative": 0,
           "click": 0
         },
@@ -9512,11 +9525,39 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 101,
+        "credit": 202,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 177
+          "click": 354
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:preventsCrit",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [
+          "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
+        ],
+        "credit": 202,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 354
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:absorbMakesClickSure",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 275,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 605
         },
         "attempts": 0
       },
@@ -11096,7 +11137,7 @@
         ],
         "credit": 1644,
         "of_which": {
-          "effect": 3048,
+          "effect": 3036,
           "negative": 0,
           "click": 0
         },
@@ -12631,7 +12672,7 @@
         ],
         "credit": 10120,
         "of_which": {
-          "effect": 18910,
+          "effect": 18905,
           "negative": 0,
           "click": 0
         },
@@ -12649,7 +12690,7 @@
         ],
         "credit": 10120,
         "of_which": {
-          "effect": 18910,
+          "effect": 18905,
           "negative": 0,
           "click": 0
         },
@@ -13675,7 +13716,7 @@
         ],
         "credit": 1644,
         "of_which": {
-          "effect": 3048,
+          "effect": 3036,
           "negative": 0,
           "click": 0
         },
@@ -13693,7 +13734,7 @@
         ],
         "credit": 1644,
         "of_which": {
-          "effect": 3048,
+          "effect": 3036,
           "negative": 0,
           "click": 0
         },
@@ -13711,7 +13752,7 @@
         ],
         "credit": 1644,
         "of_which": {
-          "effect": 3048,
+          "effect": 3036,
           "negative": 0,
           "click": 0
         },
@@ -13859,7 +13900,7 @@
         ],
         "credit": 1644,
         "of_which": {
-          "effect": 3048,
+          "effect": 3036,
           "negative": 0,
           "click": 0
         },
@@ -13890,7 +13931,7 @@
         ],
         "credit": 270,
         "of_which": {
-          "effect": 500,
+          "effect": 498,
           "negative": 0,
           "click": 0
         },
@@ -13908,7 +13949,7 @@
         ],
         "credit": 1644,
         "of_which": {
-          "effect": 3048,
+          "effect": 3036,
           "negative": 0,
           "click": 0
         },
@@ -15584,7 +15625,7 @@
         ],
         "credit": 1644,
         "of_which": {
-          "effect": 3048,
+          "effect": 3036,
           "negative": 0,
           "click": 0
         },
@@ -16037,11 +16078,24 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 6,
+        "credit": 8,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 9
+          "click": 12
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:delayedHit",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 8,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 12
         },
         "attempts": 0
       },
@@ -16475,7 +16529,7 @@
         ],
         "credit": 4192,
         "of_which": {
-          "effect": 8948,
+          "effect": 8944,
           "negative": 0,
           "click": 0
         },
@@ -16798,11 +16852,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2996,
+        "credit": 3424,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 6482
+          "click": 7408
         },
         "attempts": 0
       },
@@ -16878,7 +16932,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 35667
+          "click": 35670
         },
         "attempts": 30
       },
@@ -16891,7 +16945,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 35667
+          "click": 35670
         },
         "attempts": 30
       },
@@ -17029,11 +17083,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 6,
+        "credit": 8,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 9
+          "click": 12
         },
         "attempts": 0
       },
@@ -17042,11 +17096,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 6,
+        "credit": 8,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 9
+          "click": 12
         },
         "attempts": 0
       },
@@ -17305,7 +17359,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 35667
+          "click": 35670
         },
         "attempts": 30
       },
@@ -17314,11 +17368,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 2996,
+        "credit": 3424,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 6482
+          "click": 7408
         },
         "attempts": 0
       },
@@ -17478,7 +17532,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 66050
+          "click": 66055
         },
         "attempts": 50
       },
@@ -17491,7 +17545,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 66050
+          "click": 66055
         },
         "attempts": 50
       },
@@ -17504,7 +17558,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 66050
+          "click": 66055
         },
         "attempts": 50
       },
@@ -17517,7 +17571,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 66050
+          "click": 66055
         },
         "attempts": 50
       },
@@ -17530,7 +17584,7 @@
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 66050
+          "click": 66055
         },
         "attempts": 50
       },
@@ -17545,7 +17599,7 @@
         ],
         "credit": 45,
         "of_which": {
-          "effect": 102,
+          "effect": 99,
           "negative": 0,
           "click": 0
         },
@@ -17671,7 +17725,7 @@
         ],
         "credit": 1644,
         "of_which": {
-          "effect": 3048,
+          "effect": 3036,
           "negative": 0,
           "click": 0
         },
@@ -17733,13 +17787,13 @@
     ]
   },
   "coverage": {
-    "measurable": 764,
-    "exercised": 730,
+    "measurable": 768,
+    "exercised": 734,
     "exercised_note": "THE OLD NUMBER — an entity of this row connected or stood on the field. It is kept so the drop to credit.rows_with_an_observed_effect is readable, and it is NOT the coverage claim any more.",
-    "exercised_by_a_connected_move": 445,
-    "move_targets": 462,
-    "present_on_the_field_only": 285,
-    "ability_or_item_targets": 302,
+    "exercised_by_a_connected_move": 447,
+    "move_targets": 464,
+    "present_on_the_field_only": 287,
+    "ability_or_item_targets": 304,
     "median_completed_turns_before_divergence": 8,
     "unmeasurable_by_this_instrument": [
       {
@@ -18295,7 +18349,7 @@
     "driver_inputs": [
       {
         "file": "data/move-priors.json",
-        "read_from": "release cee38e7e9891",
+        "read_from": "release 5973a4e3c768",
         "digest": "e667fe8ab457",
         "generated": "2026-08-22",
         "rows": 345,
@@ -18321,7 +18375,7 @@
         "rows": 50,
         "what": "the DECLARED SKIP LIST — every event medicham2 says it does not emit is removed from the Showdown side before alignment, so this decides what can count as a divergence",
         "derived_from_medicham2": "5a86b1d52bd5",
-        "medicham2_played": "f3e809de5d63"
+        "medicham2_played": "38b78c98148e"
       }
     ],
     "driver_code": {
@@ -18337,9 +18391,9 @@
       "files": {
         "engine/board_state.js": "3ea249f0829c",
         "engine/diff_swarm.js": "1c50526141d6",
-        "engine/divergence_shape.js": "15d05340c883",
+        "engine/divergence_shape.js": "94b5c6548142",
         "engine/effect_kind.js": "10a7c982994f",
-        "engine/empirical_driver.js": "3090b11b5d4e",
+        "engine/empirical_driver.js": "e6ad4a3a7b43",
         "engine/end_state_severity.js": "6cd7666b4a02",
         "engine/engine_release.js": "d197eeb627bf",
         "engine/game_differential.js": "9fe47ca7faad",
@@ -18350,9 +18404,9 @@
       "files_raw": {
         "engine/board_state.js": "3ea249f0829c",
         "engine/diff_swarm.js": "1c50526141d6",
-        "engine/divergence_shape.js": "15d05340c883",
+        "engine/divergence_shape.js": "94b5c6548142",
         "engine/effect_kind.js": "ad0ae817aac2",
-        "engine/empirical_driver.js": "6853914324fe",
+        "engine/empirical_driver.js": "4f2f2e1e6df6",
         "engine/end_state_severity.js": "6cd7666b4a02",
         "engine/engine_release.js": "d197eeb627bf",
         "engine/game_differential.js": "9fe47ca7faad",
@@ -18361,8 +18415,8 @@
         "engine/steering.js": "7c85e3d88fb2"
       },
       "digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content) — a line ending is not part of the instrument. `files_raw`/`raw_digest` carry the byte answer.",
-      "raw_digest": "12bcd6616f29",
-      "digest": "cb00ae8425b6",
+      "raw_digest": "83e2a321216a",
+      "digest": "1de903e87f48",
       "unresolved": [
         "engine/game_differential.js -> ./engine/\n * game_differential.js (does not resolve on disk)",
         "engine/engine_release.js -> ./x.js (does not resolve on disk)",
@@ -18374,15 +18428,15 @@
     },
     "input": "data/mechanics-census.json",
     "input_read_from": "data/mechanics-census.json",
-    "input_digest": "43f8a7037621",
-    "input_raw_digest": "43f8a7037621",
+    "input_digest": "061db6abc2fd",
+    "input_raw_digest": "061db6abc2fd",
     "input_digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content)",
-    "input_rows": 835,
-    "input_generated": "2026-09-11T00:05:18.063Z",
-    "input_live_digest": "43f8a7037621",
+    "input_rows": 839,
+    "input_generated": "2026-09-11T01:32:04.540Z",
+    "input_live_digest": "061db6abc2fd",
     "pinned": true,
     "matches_live": true,
-    "selects_from": 764,
+    "selects_from": 768,
     "unmeasurable": 71,
     "credit": "observed-effect/v1 — a row is exercised when a board leaf in a family the tag's own params name changed across the turn, or when a declared negative case was reached and did not fire. A click alone counts for nothing. ROADMAP #91.",
     "team_pool_digest": "0d103fb9fa87",
@@ -18391,12 +18445,12 @@
     "team_store_pinned_to": "data/team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "cee38e7e9891",
-  "engine_release_cut": "2026-09-11T00:43:56.465Z",
+  "engine_release": "5973a4e3c768",
+  "engine_release_cut": "2026-09-11T02:46:54.813Z",
   "engine_release_cuts": 1,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "f3e809de5d63",
+    "engine/medicham2-browser.js": "38b78c98148e",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "d00e77a7ac26",
     "engine/position_features.js": "622482051bf4",
@@ -18416,8 +18470,8 @@
     "data/regulations.json": "6c1995e9a9fb",
     "data/quality-filter.json": "36812acec7f8",
     "data/engine-data.js": "bbc417dfae0e",
-    "data/abra-tags.js": "641f0dae1799",
-    "data/tags.json": "6477f8e2c3c0",
+    "data/abra-tags.js": "27bd584a5c91",
+    "data/tags.json": "f1d5cf3bd94d",
     "data/policy-weights.json": "626c1d240782",
     "data/policy-weights-joint.json": "e2aca467ff04",
     "data/move-priors.json": "e667fe8ab457",

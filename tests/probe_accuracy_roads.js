@@ -92,7 +92,7 @@ if (MEDI_SRC_PATH) console.log('  engine bytes: ' + MEDI_SRC_PATH + ' (compiled 
  * ============================================================================================== */
 const SP = process.env.SHOWDOWN_PATH;
 const { Dex } = require(SP + '/dist/sim');
-const D = Dex.forFormat('gen9championsvgc2026regmb');
+const D = Dex.forFormat(require(path.join(ROOT, 'engine', 'champions_sim.js')).FORMAT);
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
 const read = f => fs.readFileSync(SP + f, 'utf8').replace(/\r/g, '');
 console.log(NL + '0. THE AUTHORITY');

@@ -1,35 +1,13 @@
 {
- "generated": "2026-09-11T01:14:45.708Z",
+ "generated": "2026-09-11T03:02:10.921Z",
  "by": "engine/conformance.js",
  "files": 698,
  "findings": [
-  {
-   "std": "S12",
-   "file": "engine/all_mechanics_fire.js",
-   "what": "names 4 Pokemon thing(s) in code: move:protect, move:detect, move:tailwind, item:sitrusberry",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "item:sitrusberry",
-    "move:detect",
-    "move:protect",
-    "move:tailwind"
-   ]
-  },
   {
    "std": "convention",
    "file": "engine/analyze.js",
    "what": "header is one line",
    "why": "headers explain the failure the file prevents"
-  },
-  {
-   "std": "S12",
-   "file": "engine/argmax_paired.js",
-   "what": "names 2 Pokemon thing(s) in code: move:trickroom, move:tailwind",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "move:tailwind",
-    "move:trickroom"
-   ]
   },
   {
    "std": "S12",
@@ -47,16 +25,6 @@
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
    "detail": [
     "move:protect"
-   ]
-  },
-  {
-   "std": "S12",
-   "file": "engine/divergence_shape.js",
-   "what": "names 2 Pokemon thing(s) in code: move:protect, move:tailwind",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "move:protect",
-    "move:tailwind"
    ]
   },
   {
@@ -83,24 +51,6 @@
     "move:ragepowder",
     "move:tailwind",
     "move:trickroom"
-   ]
-  },
-  {
-   "std": "S12",
-   "file": "engine/empirical_driver.js",
-   "what": "names 1 Pokemon thing(s) in code: move:protect",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "move:protect"
-   ]
-  },
-  {
-   "std": "S12",
-   "file": "engine/faces.js",
-   "what": "names 1 Pokemon thing(s) in code: move:helpinghand",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "move:helpinghand"
    ]
   },
   {
@@ -161,17 +111,6 @@
     "move:detect",
     "move:endure",
     "move:protect"
-   ]
-  },
-  {
-   "std": "S12",
-   "file": "engine/immunity_sweep.js",
-   "what": "names 3 Pokemon thing(s) in code: move:ragepowder, ability:levitate, ability:prankster",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "ability:levitate",
-    "ability:prankster",
-    "move:ragepowder"
    ]
   },
   {
@@ -246,27 +185,6 @@
   },
   {
    "std": "S12",
-   "file": "engine/million_run.js",
-   "what": "names 4 Pokemon thing(s) in code: move:detect, move:protect, ability:levitate, item:sitrusberry",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "ability:levitate",
-    "item:sitrusberry",
-    "move:detect",
-    "move:protect"
-   ]
-  },
-  {
-   "std": "S12",
-   "file": "engine/million_targets.js",
-   "what": "names 1 Pokemon thing(s) in code: move:protect",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "move:protect"
-   ]
-  },
-  {
-   "std": "S12",
    "file": "engine/moves-meta.js",
    "what": "names 7 Pokemon thing(s) in code: move:tailwind, move:trickroom, move:protect, move:detect, move:followme, ...",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
@@ -278,15 +196,6 @@
     "move:tailwind",
     "move:trickroom",
     "move:uturn"
-   ]
-  },
-  {
-   "std": "S12",
-   "file": "engine/orient.js",
-   "what": "names 1 Pokemon thing(s) in code: move:protect",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "move:protect"
    ]
   },
   {
@@ -332,27 +241,6 @@
   },
   {
    "std": "S12",
-   "file": "engine/quarantine.js",
-   "what": "names 2 Pokemon thing(s) in code: move:tailwind, move:protect",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "move:protect",
-    "move:tailwind"
-   ]
-  },
-  {
-   "std": "S12",
-   "file": "engine/replay_differential.js",
-   "what": "names 3 Pokemon thing(s) in code: move:tailwind, move:protect, move:detect",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "move:detect",
-    "move:protect",
-    "move:tailwind"
-   ]
-  },
-  {
-   "std": "S12",
    "file": "engine/rollout_r1.js",
    "what": "names 2 Pokemon thing(s) in code: move:trickroom, move:tailwind",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
@@ -374,16 +262,6 @@
   {
    "std": "S12",
    "file": "engine/rollout_r3.js",
-   "what": "names 2 Pokemon thing(s) in code: move:trickroom, move:tailwind",
-   "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
-   "detail": [
-    "move:tailwind",
-    "move:trickroom"
-   ]
-  },
-  {
-   "std": "S12",
-   "file": "engine/rollout_switch_probe.js",
    "what": "names 2 Pokemon thing(s) in code: move:trickroom, move:tailwind",
    "why": "derive it from the dex, or collect the irreducible ones in a declared GAME_RULES block",
    "detail": [
@@ -494,24 +372,6 @@
    ]
   },
   {
-   "std": "S12",
-   "file": "tests/probe_accuracy_roads.js",
-   "what": "hardcodes \"gen9championsvgc2026regmb\"",
-   "why": "lives in data/regulations.json (showdownFormat) — reference it"
-  },
-  {
-   "std": "S12",
-   "file": "tests/probe_disguise_crit.js",
-   "what": "hardcodes \"gen9championsvgc2026regmb\"",
-   "why": "lives in data/regulations.json (showdownFormat) — reference it"
-  },
-  {
-   "std": "S12",
-   "file": "tests/probe_encore_pp_end.js",
-   "what": "hardcodes \"gen9championsvgc2026regmb\"",
-   "why": "lives in data/regulations.json (showdownFormat) — reference it"
-  },
-  {
    "std": "convention",
    "file": "tests/test-dynamics.js",
    "what": "header is one line",
@@ -525,12 +385,6 @@
    "detail": [
     "27.877"
    ]
-  },
-  {
-   "std": "S12",
-   "file": "tests/test-stadium-roster.js",
-   "what": "hardcodes \"gen9championsvgc2026regmb\"",
-   "why": "lives in data/regulations.json (showdownFormat) — reference it"
   },
   {
    "std": "S12",
@@ -651,12 +505,6 @@
    "detail": [
     "named ONLY in a comment, by engine/conformance.js — the write path is supplied at runtime (a flag or an environment variable), so no literal reaches a write call."
    ]
-  },
-  {
-   "std": "S13",
-   "file": "data/engine-release.json",
-   "what": "generated but does not say so",
-   "why": "generated files carry a GENERATED header"
   },
   {
    "std": "S13",

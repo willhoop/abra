@@ -145,6 +145,11 @@
  * another division. It opens the CURRENT release and stamps it.
  */
 'use strict';
+/* GAME_RULES -- conformance S12b, 2026-09-10. GUARD: the shield family, matched on the
+ * store move id (this file has no TAGS handle; see the comment at its old site). SPEED_DOUBLE_MOVE: the
+ * store has no `-sidestart`, so the side clock is read off the MOVE by name.
+ * Every value is byte-identical to the literal it replaced; nothing here changes behaviour. */
+const GAME_RULES = Object.freeze({ GUARD: /^(protect|detect|spikyshield|banefulbunker|kingsshield|maxguard|wideguard|quickguard|craftyshield)$/, SPEED_DOUBLE_MOVE: 'tailwind' });
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
@@ -524,7 +529,7 @@ function stepEvent(b, e, amb) {
     else b.terrain = e.field;
   }
   else if (e.t === 'm') {
-    if (id(e.mv) === 'tailwind' && !e.fail && !e.miss) {
+    if (id(e.mv) === GAME_RULES.SPEED_DOUBLE_MOVE && !e.fail && !e.miss) {
       b.tw[e.s.slice(0, 2)] = 4;
       if (!b.derived.includes('tailwind (the store has no -sidestart; read off the MOVE)')) {
         b.derived.push('tailwind (the store has no -sidestart; read off the MOVE)');
@@ -674,7 +679,7 @@ const FIXED_HINT = /(seismictoss|nightshade|dragonrage|sonicboom|superfang|natur
  * own tag reader and this file has no TAGS handle; it is the one name list in this file and it is
  * flagged as such. Silk Trap, Obstruct and Burning Bulwark are BANNED in Champions and are absent on
  * purpose — the ban is read from the format, not from memory (CLAUDE.md). */
-const GUARD = /^(protect|detect|spikyshield|banefulbunker|kingsshield|maxguard|wideguard|quickguard|craftyshield)$/;
+const GUARD = GAME_RULES.GUARD;
 
 function rollsFor(att, def, mv, field, spread, crit) {
   const hit = { rolls: [] };

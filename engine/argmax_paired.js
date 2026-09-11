@@ -46,6 +46,11 @@
  * rows above contribute exactly none of it.
  */
 'use strict';
+/* GAME_RULES -- conformance S12b, 2026-09-10. The two speed-control conditions the leaf
+ * `field` shape reads (`tr`, `twA`, `twB`). board.js keys conditions by Showdown id and the leaf field
+ * carries these two and no others, so the ids are the interface, not a derivable fact.
+ * Every value is byte-identical to the literal it replaced; nothing here changes behaviour. */
+const GAME_RULES = Object.freeze({ REVERSES_SPEED_FIELD: 'trickroom', DOUBLES_SPEED_SIDE: 'tailwind' });
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -303,9 +308,9 @@ function runArm(arm, games, w1, salt) {
       if (!slots[0] || !slots[1]) { counters.skippedNoSlots++; return; }
 
       const field = { weather: board.weather || '', terrain: '',
-                      tr: board.hasField('trickroom') ? 5 : 0,
-                      twA: board.hasSide('p1', 'tailwind') ? 4 : 0,
-                      twB: board.hasSide('p2', 'tailwind') ? 4 : 0 };
+                      tr: board.hasField(GAME_RULES.REVERSES_SPEED_FIELD) ? 5 : 0,
+                      twA: board.hasSide('p1', GAME_RULES.DOUBLES_SPEED_SIDE) ? 4 : 0,
+                      twB: board.hasSide('p2', GAME_RULES.DOUBLES_SPEED_SIDE) ? 4 : 0 };
       const key = gi + ':' + turnIdx;
       const cells = {};
       let best = null, bestVal = -Infinity;

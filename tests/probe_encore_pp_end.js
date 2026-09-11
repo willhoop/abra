@@ -1,9 +1,10 @@
-/* probe_encore_pp_end.js — DOES ENCORE END EARLY WHEN THE ENCORED MOVE RUNS OUT OF PP?
+/* probe_encore_pp_end.js — DOES ENCORE END EARLY WHEN THE ENCORED MOVE RUNS OUT OF PP, AND AT THE RIGHT ORDER?
  *
- *   SHOWDOWN_PATH=... node tests/probe_encore_pp_end.js [--release <id>]
+ *   SHOWDOWN_PATH=... node tests/probe_encore_pp_end.js [--release <id>] [--assert]
  *
- * READ, NOT GATED ON. It stages the case, prints both engines' answer and exits 0 whatever it finds;
- * it exits 1 only when it could not stage. The finding is registered, not fixed, in this batch.
+ * Without `--assert` it READS: it stages the case, prints both engines' answer and exits 0 whatever it finds;
+ * it exits 1 only when it could not stage. With `--assert` it is ROADMAP #580's VERIFIED-BY instrument: exit 1
+ * while the two engines part (on RUN-OUT or on ORDER) or the control fails, 0 once they agree.
  *
  * ================= THE QUESTION ==================================================================
  *
@@ -17,6 +18,8 @@
  *           const moveSlot = target.getMoveData(this.effectState.move);
  *           if (!moveSlot || moveSlot.pp <= 0) target.removeVolatile('encore');
  *       and this engine has no such end.
+ * (a) was refuted on cee38e7e9891 (NATURAL below: both end on the clock and the comparator agrees); (b) is
+ * the defect, fixed 2026-09-10 behind `MEDI_ENCORE_NO_PP_END=1`.
  *
  * ================= THE ARMS — under `top-tie-first` =============================================
  *
@@ -26,7 +29,12 @@
  *             and the next turn's forced use spends the last PP. The move is a WEATHER move, derived: it
  *             fails harmlessly on a repeat and still spends its PP, and it carries no stall die (a Protect
  *             run cannot be used: the seventh alternating Protect always succeeds and blocks the Encore)
- *   FULL-PP   the same turns on a self-boost move with PP to spare — the knob cleared on one field
+ *   ORDER     RUN-OUT with the encorer's partner clicking a BRACKET move on the Encore turn: a legal Status
+ *             move whose condition writes a line every residual at an order ABOVE Encore's (derived; Perish
+ *             Song at 24 is the only one). The run-out turn's residual then carries three kinds of line —
+ *             the weather upkeep (order 1), the Encore end (16), the perish count (24) — and both engines
+ *             must print them in the same sequence. Right turn is not enough; this is the ORDER check.
+ *   FULL-PP   the same turns as RUN-OUT on a self-boost move with PP to spare — the knob cleared on one field
  *   NATURAL   FULL-PP played on until Encore expires by its clock, so both engines' `-end` lines are
  *             printed side by side and the comparator's own verdict on them is read (reading (a))
  *
@@ -45,9 +53,9 @@ if (!process.env.SHOWDOWN_PATH) {
 const SB = require(path.join(ROOT, 'tests', 'staged_board.js'));
 const SP = process.env.SHOWDOWN_PATH;
 const { Dex } = require(SP + '/dist/sim');
-const D = Dex.forFormat('gen9championsvgc2026regmb');
-const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
 const CS = require(path.join(ROOT, 'engine', 'champions_sim.js'));
+const D = Dex.forFormat(CS.FORMAT);
+const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
 const learns = (sp, mv) => !!CS.canLearn(sp, mv);
 const fnKeys = o => Object.keys(o).filter(k => /^on[A-Z]/.test(k) && typeof o[k] === 'function');
 const HARMLESS = /^on(ModifySpe|SetStatus|TryAddVolatile|Immunity|DragOut|TrapPokemon|MaybeTrapPokemon|FoeTrapPokemon|FoeMaybeTrapPokemon|Update|CheckShow)$/;
@@ -62,7 +70,8 @@ const selfMoves = sp => Object.keys(rawLearnset(sp)).map(id => D.moves.get(id)).
   .filter(m => learns(sp, m.id)).sort((a, b) => a.name.localeCompare(b.name)).slice(0, 2);
 const maxpp = m => (m.noPPBoosts ? m.pp : Math.floor(m.pp * 8 / 5));
 
-console.log(NL + 'tests/probe_encore_pp_end.js — does Encore end when the encored move reaches 0 PP?');
+console.log(NL + 'tests/probe_encore_pp_end.js — does Encore end when the encored move reaches 0 PP, and at order '
+  + ((D.moves.get('encore').condition || {}).onResidualOrder) + '?');
 console.log('  encore.condition.onResidual: ' + String((D.moves.get('encore').condition || {}).onResidual || '').replace(/\s+/g, ' ').slice(0, 200));
 
 /* THE RUN-OUT MOVE, DERIVED: a legal Status weather move at the format's lowest PP, no stall die. */
@@ -87,25 +96,54 @@ const ENCORER = TARGET && withTwo.filter(s => learns(s.name, 'encore') && s.base
 if (!TARGET || !ENCORER) { console.log('  NOT STAGED — no legal target or encorer'); process.exit(1); }
 const FILL = withTwo.filter(s => s.id !== TARGET.id && s.id !== ENCORER.id).slice(0, 6);
 if (FILL.length < 6) { console.log('  NOT STAGED — fewer than six fillers'); process.exit(1); }
-const body = (s, lead) => { const m = selfMoves(s.name); return { species: s.name, ability: quietAb(s).name, s1: m[0].id, s2: m[1].id,
+/* THE ORDER BRACKET, DERIVED: a legal Status move whose condition has a duration and writes a line in its own
+ * `onResidual` at an order above Encore's. Printed, because a derivation over-matches on the first try. */
+const ENC_ORDER = (D.moves.get('encore').condition || {}).onResidualOrder;
+const LATER = D.moves.all().filter(m => legal(m) && m.category === 'Status' && m.condition && m.condition.duration
+  && m.condition.onResidualOrder > ENC_ORDER && /this\.add\(/.test(String(m.condition.onResidual || '')))
+  .sort((a, b) => a.name.localeCompare(b.name));
+console.log('  order-bracket candidates (a per-turn residual line above order ' + ENC_ORDER + '): '
+  + (LATER.map(m => m.name + '@' + m.condition.onResidualOrder).join(', ') || 'NONE'));
+const BR = LATER[0] || null;
+/* THE BRACKET BODY CANNOT BE HELD TO `quietAb`: measured 2026-09-10, no legal Perish Song learner has an
+ * ability without a handler (Gengar, Azumarill, Politoed, Altaria, Absol, Primarina). Every click in this
+ * probe is a Status move, so nothing here deals damage, and an ability whose only handlers are damage-side
+ * hooks cannot act. That rule applies to THIS ONE BODY only; the pick is printed. It excludes what would
+ * matter: Cloud Nine (kills the weather line the bracket reads), Pressure (spends foes' PP), Water Absorb. */
+const DMG_ONLY = /^on(ModifyAtk|ModifySpA|ModifyCritRatio|DamagingHit|BasePower|ModifyDamage|SourceModifyDamage)$/;
+const damageOnlyAb = s => Object.values(s.abilities || {}).map(a => D.abilities.get(a))
+  .find(a => a.exists && fnKeys(a).every(k => HARMLESS.test(k) || DMG_ONLY.test(k))) || null;
+const BRB = BR && D.species.all().filter(s => legal(s) && !s.isMega && !s.battleOnly && damageOnlyAb(s)
+  && s.id !== TARGET.id && s.id !== ENCORER.id && !FILL.some(f => f.id === s.id)
+  && learns(s.name, BR.id) && selfMoves(s.name).length >= 2).sort((a, b) => a.name.localeCompare(b.name))[0];
+const body = (s, lead, ab) => { const m = selfMoves(s.name); return { species: s.name, ability: (ab || quietAb(s)).name, s1: m[0].id, s2: m[1].id,
   moves: lead.concat([m[0].name, m[1].name]) }; };
 const T = body(TARGET, [X.name]), E = body(ENCORER, ['Encore']), Fb = FILL.map(s => body(s, []));
+const PB = BRB ? body(BRB, [BR.name], damageOnlyAb(BRB)) : null;
 const N = maxpp(X);
 console.log('  run-out move ' + X.name + ' (pp ' + X.pp + ', slot maxpp ' + N + ')');
 console.log('  target  ' + T.species + ' (' + T.ability + ', spe ' + TARGET.baseStats.spe + ')  ' + T.moves.join(', '));
 console.log('  encorer ' + E.species + ' (' + E.ability + ', spe ' + ENCORER.baseStats.spe + ')  ' + E.moves.join(', '));
+console.log('  bracket ' + (PB ? PB.species + ' (' + PB.ability + ')  ' + PB.moves.join(', ') : 'NONE — the ORDER arm cannot be staged'));
 const set = b => ({ species: b.species, item: '', ability: b.ability, moves: b.moves });
 const A = [set(E), set(Fb[0]), set(Fb[1]), set(Fb[2])], B = [set(T), set(Fb[3]), set(Fb[4]), set(Fb[5])];
+const A_ORDER = PB ? [set(E), set(PB), set(Fb[1]), set(Fb[2])] : null;
 const c = id => ({ m: id });
 /* turn i (0-based): the Encore lands on turn N-1 (1-based), right after the use that leaves 1 PP */
-const turn = (tMove, encoreOn, i) => ({ p1: [i === encoreOn ? { m: 'encore', t: 0 } : c(i % 2 ? E.s1 : E.s2), c(i % 2 ? Fb[0].s1 : Fb[0].s2)],
-                                       p2: [c(tMove), c(i % 2 ? Fb[3].s1 : Fb[3].s2)] });
-const SCRIPT = (mv, n) => Array.from({ length: n }, (_, i) => turn(mv, N - 2, i));
+const turn = (tMove, encoreOn, i, partner) => ({
+  p1: [i === encoreOn ? { m: 'encore', t: 0 } : c(i % 2 ? E.s1 : E.s2),
+       partner && i === encoreOn ? c(partner.bracket) : c(i % 2 ? (partner || Fb[0]).s1 : (partner || Fb[0]).s2)],
+  p2: [c(tMove), c(i % 2 ? Fb[3].s1 : Fb[3].s2)] });
+const SCRIPT = (mv, n, partner) => Array.from({ length: n }, (_, i) => turn(mv, N - 2, i, partner));
 
 const G = SB.harness();
 const ARM = G.ARM_BY_ID.get('top-tie-first');
-function play(tag, script) {
-  const a = G.buildPair(A), b = G.buildPair(B);
+const END = /^\|-end\|p2a[^|]*\|(move: )?encore$/i, START = /^\|-start\|p2a[^|]*\|(move: )?encore$/i;
+/* the residual kinds the ORDER arm reads, in the sequence each engine printed them on one turn */
+const KIND = [[/^\|-weather\|[^|]*\|\[upkeep\]/i, 'weather-upkeep'], [/^\|-end\|[^|]*\|(move: )?encore$/i, 'encore-end'],
+              [/^\|-start\|[^|]*\|perish\d/i, 'perish']];
+function play(tag, script, team) {
+  const a = G.buildPair(team || A), b = G.buildPair(B);
   if (!a || !b) return { staged: false, why: 'buildPair dropped a body' };
   if (G.resetScriptCounters) G.resetScriptCounters();
   const boards = [];
@@ -118,11 +156,17 @@ function play(tag, script) {
   const sd = G.sdStream(G.lastSdLog()).map(String), me = (r.mediTrace || []).map(String);
   const at = (xs, re) => { const out = []; let t = 0; for (const l of xs) { const m = /^\|turn\|(\d+)/.exec(l); if (m) t = +m[1];
     if (re.test(l)) out.push('t' + t + ' ' + l); } return out; };
-  const END = /^\|-end\|p2a[^|]*\|(move: )?encore$/i, START = /^\|-start\|p2a[^|]*\|(move: )?encore$/i;
-  return { staged: true, turns: r.turns, sdEnd: at(sd, END), meEnd: at(me, END), sdStart: at(sd, START), meStart: at(me, START), boards,
+  const seqOn = (xs, want) => { const out = []; let t = 0; for (const l of xs) { const m = /^\|turn\|(\d+)/.exec(l); if (m) t = +m[1];
+    if (t !== want) continue; const k = KIND.find(([re]) => re.test(l)); if (k && out[out.length - 1] !== k[1]) out.push(k[1]); } return out; };
+  const sdEnd = at(sd, END), meEnd = at(me, END);
+  const endTurn = sdEnd.length ? +/^t(\d+)/.exec(sdEnd[0])[1] : null;
+  return { staged: true, turns: r.turns, sdEnd, meEnd, sdStart: at(sd, START), meStart: at(me, START), boards,
+           sdSeq: endTurn == null ? [] : seqOn(sd, endTurn), meSeq: endTurn == null ? [] : seqOn(me, endTurn), endTurn,
            div: r.div ? { sd: r.div.sdRaw, me: r.div.meRaw } : null };
 }
-const R = { 'RUN-OUT': play('run-out', SCRIPT(X.id, N)), 'FULL-PP': play('full-pp', SCRIPT(T.s1, N)),
+const R = { 'RUN-OUT': play('run-out', SCRIPT(X.id, N)),
+            ORDER: PB ? play('order', SCRIPT(X.id, N, Object.assign({ bracket: BR.id }, PB)), A_ORDER) : { staged: false, why: 'no bracket body' },
+            'FULL-PP': play('full-pp', SCRIPT(T.s1, N)),
             NATURAL: play('natural', SCRIPT(T.s1, N + 4)) };
 for (const [tag, x] of Object.entries(R)) {
   console.log(NL + '  === ' + tag + ' ===');
@@ -130,27 +174,36 @@ for (const [tag, x] of Object.entries(R)) {
   console.log('    turns played ' + x.turns);
   console.log('    encore lands  showdown ' + (x.sdStart.join('  ') || 'NEVER') + '   medicham2 ' + (x.meStart.join('  ') || 'NEVER'));
   console.log('    encore ends   showdown ' + (x.sdEnd.join('  ') || 'none') + '   medicham2 ' + (x.meEnd.join('  ') || 'none'));
+  if (x.endTurn != null) console.log('    residual sequence on t' + x.endTurn + '   showdown [' + x.sdSeq.join(' > ') + ']   medicham2 [' + x.meSeq.join(' > ') + ']');
   for (const b of x.boards.filter(b => b.diffs.length)) console.log('    board t' + b.turn + ': ' + b.diffs.slice(0, 5).join(', '));
   if (!x.boards.some(b => b.diffs.length)) console.log('    boards: identical at every boundary');
   console.log('    comparator\'s first protocol divergence: ' + (x.div ? JSON.stringify(x.div) : 'none — the streams agree after normalisation'));
 }
-const ro = R['RUN-OUT'], fp = R['FULL-PP'], nat = R.NATURAL;
+const ro = R['RUN-OUT'], or = R.ORDER, fp = R['FULL-PP'], nat = R.NATURAL;
 const staged = ro.sdStart.length > 0;
 console.log(NL + '  VERDICT');
 if (!staged) { console.log('    RUN-OUT did not stage: the authority never landed the Encore. Nothing below is evidence.'); process.exit(1); }
+const norm = xs => xs.join().replace(/move: encore/gi, 'Encore');
+const partsOf = x => x.boards.some(b => b.diffs.length) || norm(x.sdEnd) !== norm(x.meEnd);
+/* the bracket is only evidence when the authority's own sequence carries all three kinds */
+const orObservable = ['weather-upkeep', 'encore-end', 'perish'].every(k => or.sdSeq.indexOf(k) >= 0);
+const orParts = partsOf(or) || or.sdSeq.join('>') !== or.meSeq.join('>');
 console.log('    (b) MECHANIC  — on the run-out turn the authority ends Encore: ' + (ro.sdEnd.length ? 'YES (' + ro.sdEnd[0] + ')' : 'no')
   + '; this engine: ' + (ro.meEnd.length ? 'YES (' + ro.meEnd[0] + ')' : 'NO') + '; boards ' + (ro.boards.some(b => b.diffs.length) ? 'PART' : 'agree'));
+console.log('    ORDER         — ' + (orObservable ? 'bracketed; showdown [' + or.sdSeq.join(' > ') + '] / medicham2 [' + or.meSeq.join(' > ') + ']: '
+  + (orParts ? 'PART' : 'agree') : 'NOT OBSERVABLE — the authority\'s run-out turn does not carry all three kinds: [' + or.sdSeq.join(' > ') + ']'));
 console.log('    control       — with PP to spare the authority keeps Encore through turn ' + N + ': ' + (fp.sdEnd.length ? 'NO, it ended ' + fp.sdEnd[0] : 'yes')
   + '; boards ' + (fp.boards.some(b => b.diffs.length) ? 'PART' : 'agree'));
 console.log('    (a) FORMAT    — natural expiry: showdown ' + (nat.sdEnd[0] || 'none') + ' / medicham2 ' + (nat.meEnd[0] || 'none')
   + '; comparator ' + (nat.div ? 'PARTS: ' + JSON.stringify(nat.div) : 'agrees'));
-/* `--assert` IS THE REGISTER'S VERIFIED-BY FORM: it exits 1 while the two engines part on RUN-OUT (the
- * defect stands) and 0 once they agree, so the row's instrument answers with its exit code. Without the
- * flag this file only reads. The control must hold in both modes, or nothing here is about PP. */
+/* `--assert` IS THE REGISTER'S VERIFIED-BY FORM: it exits 1 while the two engines part on RUN-OUT or on ORDER
+ * (the defect stands, or the end fires at the wrong place in the residual), or while the bracket is not
+ * observable, and 0 once they agree. The control must hold in both modes, or nothing here is about PP. */
 if (process.argv.includes('--assert')) {
-  const parts = ro.boards.some(b => b.diffs.length) || ro.sdEnd.join() !== ro.meEnd.join().replace(/move: encore/gi, 'Encore');
+  const parts = partsOf(ro);
   const ctlHolds = !fp.boards.some(b => b.diffs.length) && !fp.sdEnd.length;
-  console.log('  --assert: RUN-OUT ' + (parts ? 'PARTS (defect stands)' : 'agrees') + ', FULL-PP control ' + (ctlHolds ? 'holds' : 'DOES NOT HOLD'));
-  process.exit(!ctlHolds || parts ? 1 : 0);
+  console.log('  --assert: RUN-OUT ' + (parts ? 'PARTS (defect stands)' : 'agrees') + ', ORDER '
+    + (!orObservable ? 'NOT OBSERVABLE' : orParts ? 'PARTS' : 'agrees') + ', FULL-PP control ' + (ctlHolds ? 'holds' : 'DOES NOT HOLD'));
+  process.exit(!ctlHolds || parts || !orObservable || orParts ? 1 : 0);
 }
 process.exit(0);

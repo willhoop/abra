@@ -2368,6 +2368,36 @@ const MOVE_TAGS = [
                scope: c.onFoeDisableMove ? 'both foes' : 'one target',
                fromUsersOwnMoves: !!c.onFoeDisableMove };
     } },
+  /* 2026-09-10 -- ROADMAP #580. A SEAL THAT ENDS EARLY WHEN THE MOVE IT HOLDS HAS NOTHING LEFT.
+   *
+   *     onResidualOrder: 16,
+   *     onResidual(target) {
+   *       const moveSlot = target.getMoveData(this.effectState.move);
+   *       if (!moveSlot || moveSlot.pp <= 0) target.removeVolatile('encore');     data/moves.ts:4758-4765
+   *     }
+   *
+   * Champions' `encore` override (data/mods/champions/moves.ts:286-322) is `condition: { inherit: true,
+   * onStart }` -- it replaces `onStart` only, so this residual is what the format runs. The duration
+   * decrement and this handler share ONE slot in `fieldEvent('Residual')` (sim/battle.ts:515-523): the
+   * clock is spent first and, if the volatile survives it, the handler then asks the slot.
+   *
+   * MEMBERSHIP PRINTED BEFORE IT WAS WIRED, over the 500 legal moves: `encore` and nothing else. A wider
+   * net -- any handler on any legal move, ability or item that reads `effectState.move` and `pp` -- adds
+   * only `encore.onStart` and `disable.onStart`, which are REFUSALS at application (a different clause,
+   * already implemented as `encoreOnStartRefusal` / `disableOnStartRefusal`), not an end in the residual.
+   * `orNoSlot` is read off the same line: the slot being absent ends it as well as the slot being empty. */
+  { tag: 'endsWhenMoveOutOfPP', param: 'the volatile this move sets ends in the residual once the move it holds has no PP, or no slot',
+    probe: 'endsWhenMoveOutOfPP',
+    why: 'Encore (14,475 uses). Four top-corner board-material games on the pinned pool read `vol.encore` '
+       + '2 or 1 here against 0 in the authority, because the encored move ran dry and the lock stood on',
+    of: m => {
+      const c = m.condition || {};
+      const src = String(c.onResidual || '');
+      if (!/getMoveData\(\s*this\.effectState\.move\s*\)/.test(src)) return null;
+      if (!/\.pp\s*<=\s*0|!\s*moveSlot\.pp/.test(src) || !/removeVolatile\(/.test(src)) return null;
+      return { volatile: m.volatileStatus || null, orNoSlot: /!moveSlot\s*\|\|/.test(src),
+               order: c.onResidualOrder == null ? null : c.onResidualOrder };
+    } },
   /* Will: "bug bite eats berry... and immediately gains that effect." Exactly right, and it was
    * tagged `contact` and nothing else at 105 uses.
    *

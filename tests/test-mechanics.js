@@ -10580,6 +10580,31 @@ probe('ability', 'absorbMakesClickSure', 'a Flash Fire absorb makes the rest of 
                  + control + ', beside a Flash Fire Arcanine ' + test + ' (must be 0, then more than 0)' };
 });
 
+/* 2026-09-10 -- ROADMAP #580, `endsWhenMoveOutOfPP`. `encore.condition.onResidual` (data/moves.ts:4758-4765,
+ * inherited by the Champions override) ends Encore in the residual once the encored move's slot is at 0 PP;
+ * this engine let it run to its clock. A REAL Encore, clicked by a Prankster Whimsicott so it lands before
+ * the foe moves: turn 1 commits Swords Dance, the slot is then set to `left`, turn 2 Encore lands and the
+ * forced use spends one, turn 3 spends another. THE ONE VARIED INPUT IS `left`: at 2 the slot is empty after
+ * turn 3 and the lock must be GONE; at 3 one PP remains and the lock must STAND (a clock of 3, spent twice).
+ * tests/probe_encore_pp_end.js is the two-engine version, with the residual ORDER bracketed by Perish Song. */
+probe('move', 'endsWhenMoveOutOfPP', 'Encore ends in the residual once the encored move has no PP left', () => {
+  const run = (left) => {
+    const { me, ally, f1, f2, S } = board('whimsicott', 'incineroar', 'garchomp', 'garchomp');
+    const foe = () => new Map([[f1, M.playerAction(f1, 'swordsdance', null, S.field)], [f2, { kind: 'pass' }]]);
+    M.battleTurn(S, rng5, PASS2(me, ally), foe());
+    (f1._pp || (f1._pp = {})).swordsdance = left;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'encore', f1, S.field)], [ally, { kind: 'pass' }]]), foe());
+    const landed = (f1._vol && f1._vol.encore) || 0;
+    M.battleTurn(S, rng5, PASS2(me, ally), foe());
+    return { landed, after: (f1._vol && f1._vol.encore) || 0, pp: f1._pp.swordsdance };
+  };
+  const control = run(3), test = run(2);
+  return { works: control.landed > 0 && test.landed > 0 && test.pp === 0 && test.after === 0 && control.after > 0,
+           arms: { control: [control.after, control.pp], test: [test.after, test.pp] },
+           detail: 'Encore landed ' + control.landed + '/' + test.landed + '; after the forced uses — 1 PP left: vol.encore '
+                 + control.after + ' (must stand), 0 PP left: vol.encore ' + test.after + ' (must be 0; slot at ' + test.pp + ')' };
+});
+
 /* ARMED, 2026-08-04. `0 / 0` on its own is also what a probe reads off two bodies whose stages were
  * never set, so the control is the SAME staged stages with no Haze -- they must survive the turn. */
 probe('move', 'clearsBoosts', 'Haze wipes the boosts off both sides', () => {
@@ -33568,7 +33593,7 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'volleyReactDrawnRestored', 'afte
                           'kingsRockOncePerMoveRestored', 'accEvaSeparateRestored',
                           'punishHazardOnAttackerSideRestored', 'punishWeatherIfClearRestored',
                           'terrainTargetSingleRestored', 'terrainScaledUngatedRestored',
-                          'eTerrainSleepAllowedRestored']
+                          'eTerrainSleepAllowedRestored', 'encoreNoPPEndRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

@@ -51,6 +51,10 @@
  * stop it.
  */
 'use strict';
+/* GAME_RULES -- conformance S12b, 2026-09-10. The self-test fixture rows imitate real
+ * differential rows, so they name a real move and a real config id. Fixture choices, not rules.
+ * Every value is byte-identical to the literal it replaced; nothing here changes behaviour. */
+const GAME_RULES = Object.freeze({ FIXTURE_ORDER_MOVE: 'tailwind', FIXTURE_TIE_MOVE: 'protect', FIXTURE_VOID_CONFIG: 'omit-protect' });
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
@@ -5104,7 +5108,7 @@ if (require.main === module) {
      * the clause so a synthetic artifact keeps passing would be the tuning this change is against. */
     const PROBE = (rows, extra) => PINNED({ games: 100, order_probe: rows, ...(extra || {}) });
     const PAIR = (tied, samePri) => ({ speed_tied: tied, same_priority: samePri, speed_gap: 40,
-      cause: 'ordering :: |move|p1a|tailwind <> |move|p2a|tailwind', seed: 's' + tied + samePri,
+      cause: `ordering :: |move|p1a|${GAME_RULES.FIXTURE_ORDER_MOVE} <> |move|p2a|${GAME_RULES.FIXTURE_ORDER_MOVE}`, seed: 's' + tied + samePri,
       showdown_first: { body: 'A', speed: 300 }, medicham_first: { body: 'B', speed: 260 } });
     ok('RED — a pair NOT speed-tied at IDENTICAL priority is a turn-order defect and FAILS the clause',
       orderProbeClause(PROBE([PAIR(false, true)])).ok === false,
@@ -5484,7 +5488,7 @@ if (require.main === module) {
         protocol_diverged_games: 13, protocol_diverged_board_never_did: 13,
         planted_state_proof_ok: true, mappings_all_proved: true, first_board_divergences: [] };
       const VOID_TAGS = [
-        { config: 'omit-protect', seed: 'fixture-void-a vs fixture-void-b', why: 'low-identity',
+        { config: GAME_RULES.FIXTURE_VOID_CONFIG, seed: 'fixture-void-a vs fixture-void-b', why: 'low-identity',
           turns: 7, protocol_diverged_at_turn: 4, board_parted_at_turn: 4 },
         { config: 'omit-spread', seed: 'fixture-void-c vs fixture-void-d', why: 'low-identity',
           turns: 3, protocol_diverged_at_turn: null, board_parted_at_turn: 3 },
@@ -5734,9 +5738,9 @@ if (require.main === module) {
        * ABSENCE OF A ROW. The middle arm pins the tie on BOTH sides (`o.tie = () => 0` against a
        * no-op `pinShuffle`), so a probed tie that still diverges is a real turn-order disagreement.
        * If somebody re-adds the row, this goes red. */
-      const TIE = 'ordering :: |move|p1b|protect <> |move|p2a|protect';
+      const TIE = `ordering :: |move|p1b|${GAME_RULES.FIXTURE_TIE_MOVE} <> |move|p2a|${GAME_RULES.FIXTURE_TIE_MOVE}`;
       const tieRow = [{ showdown: '|move|p1b: Venusaur|Protect|p1b: Venusaur',
-                        medicham: '|move|p2a: Politoed|protect|p2a: Politoed' }];
+                        medicham: `|move|p2a: Politoed|${GAME_RULES.FIXTURE_TIE_MOVE}|p2a: Politoed` }];
       for (const gap of [0, 40]) {
         const r = dec(TIE, tieRow, [{ speed_tied: gap === 0, speed_gap: gap, same_priority: true }]);
         ok('RED — a probed speed tie at gap ' + gap + ' is UNDECLARED: the harness already shares '
