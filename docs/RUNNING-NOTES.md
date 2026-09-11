@@ -69,6 +69,14 @@ Three rules about the figures in a row, all of them already enforced elsewhere:
 
 ---
 
+## [6.10.1] — 2026-09-11 — a notes row committed before a same-day regeneration is reported, not judged: the dated-block check orders a tie by the clock
+
+- **What changed.** `engine/docs_scan.js`: `citationMismatches` and `untraceableCensus` decided "the cited artifact was regenerated after the block" by DATE, so a row and a regeneration on the same day tied and the row was judged against bytes written after it. A tie is now ordered by the committer instant `git blame` records for the figure's line against the artifact's `generated` instant (`regeneratedAfter`); an uncommitted line, or a stamp with no time or no zone, is still judged, and the instant never overrides a date. Eight demonstration cases were added.
+- **Measured.** Old rule against new on the same bytes: exactly two figures moved from judged to reported, rows 134 and 144 of this page; none moved the other way; the census is unchanged. The proofs were red on the old rule and are green after, with a same-day control committed after the regeneration still judged. Gate 37 of 37, baseline unmoved. Detail: `docs/_reports/2026-09-11-dated-block-granularity.md`.
+- **Supersedes.** Nothing.
+- **Basis.** unchanged.
+- **Owed to the next major.** None. Still open: the gate reads working-tree artifacts, not the commit being made.
+
 ## [6.10.0] — 2026-09-11 — which mechanics exist in the regulation is decided in one place, and the planner's in-scope count was wrong on three rows in two directions
 
 - **What changed.** `engine/legal_scope.js` is the one implementation of scope: `verdict(kind, id)` returns in or out of scope with a code (CARRIED, LEARNED, INJECTED, CONFERRED, HELD; or NO-LEGAL-CARRIER, VALIDATOR-REFUSED, NO-LEGAL-READER). `engine/stage_planner.js` imports it and deletes its own carrier-list scope and conferral scan; `engine/coverage.js` lists out-of-scope rows by code; `tests/test-stage-planner.js` clause `oneScope` fails when the planner or the coverage counter returns a different in-scope set.

@@ -10,6 +10,14 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.10.1] — 2026-09-11
+
+### Fixed
+- **The docs-currency gate stops blocking commits on correct notes rows after a same-day regeneration.**
+  "Regenerated after the block" compared whole days, so a tie was judged; a tie is now ordered by the
+  line's commit instant against the artifact's `generated` instant, and a row written after the
+  regeneration is still judged.
+
 ## [6.10.0] — 2026-09-11
 
 ### Changed

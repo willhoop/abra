@@ -1034,7 +1034,8 @@ function resolveField(obj, field) {
  * instrument reading the disk can say whether that record was right. The count is printed, not
  * gated; the debt it represents is already counted by the notes-page clause. This is not a word
  * anyone can add to a paragraph: to move a block into the predating set you would have to stamp it
- * with an OLD version, which is a falsified record and a different offence.
+ * with an OLD version, which is a falsified record and a different offence. When the block's date and
+ * the artifact's date are the SAME day, the order is taken from the clock — see regeneratedAfter below.
  *
  * WHAT IT COSTS, STATED. The #552 mutation itself — `27 of 961` → `41 of 961` at docs/MODELS.md:7,
  * in a block stamped 5.266.0 that names the artifact instance it read (`generated 2026-09-06T17:42`)
@@ -1105,6 +1106,77 @@ function artifactDate(j) {
   return m ? m[1] : null;
 }
 
+/* ---- A SAME-DAY TIE IS ORDERED BY THE CLOCK, NOT BY THE CALENDAR — 2026-09-11 ------------------
+ *
+ * The dating above is by DAY, and this project regenerates artifacts and writes notes rows many times a
+ * day. Measured: the 6.7.0 row (docs/RUNNING-NOTES.md:144, stamped 2026-09-11) recorded census 856 and
+ * was committed at 2026-09-11T07:16:32Z; data/mechanics-census.json was regenerated at 08:55:31Z. The
+ * dates tie, `2026-09-11 <= 2026-09-11` read "could have read this instance", and the row was judged
+ * against bytes written an hour and a half after it — a red on every commit, for nothing anyone did.
+ *
+ * So a tie, and ONLY a tie, is broken by two instants, both DERIVED:
+ *   the line      the committer time git records for the figure's own line (`git blame`), which is an
+ *                 upper bound on when the text was written — so ordering by it can never excuse a line
+ *                 written after the regeneration;
+ *   the artifact  its `generated` stamp, when it carries a time AND a zone. A bare date, or the
+ *                 zone-less `YYYY-MM-DD hh:mm:ss` shape, cannot be put on the same clock and stays judged.
+ * A line not yet committed has no instant: it is judged against the disk as it is, which is exactly what
+ * the pre-commit hook does when it records it. So every row is judged at least once, at the commit that
+ * publishes it, and is excused only by a regeneration git can show came after that commit.
+ *
+ * It never OVERRIDES a date. A block stamped for an earlier day stays predating even when a later commit
+ * touched its line — a reflow is not a re-statement, and re-dating by blame would re-judge every old
+ * paragraph a line-wrap ever touched. */
+const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})$/;
+/** The instant of an artifact's `generated` stamp in ms, or null when it cannot be put on a clock. */
+function artifactInstant(j) {
+  const g = j && typeof j === 'object' && !Array.isArray(j) ? j.generated : null;
+  if (typeof g !== 'string' || !ISO_INSTANT.test(g)) return null;
+  const t = Date.parse(g);
+  return Number.isFinite(t) ? t : null;
+}
+
+const blameCache = new Map();
+/** The committer instant (ms) of the commit that last wrote line `line` (1-based) of `rel` as it stands
+ *  in the working tree, or null — not committed yet, or git could not say. Blamed lazily, once per
+ *  document, and only when a same-day tie needs it. */
+function lineCommitInstant(rel, line) {
+  if (!blameCache.has(rel)) {
+    let times = null;
+    try {
+      const out = execFileSync('git', ['blame', '--porcelain', '--', rel],
+        { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 28, stdio: ['ignore', 'pipe', 'pipe'] });
+      const shaAt = [], at = new Map();
+      let sha = null;
+      for (const L of out.split('\n')) {
+        const h = L.match(/^([0-9a-f]{40}) \d+ (\d+)(?: \d+)?$/);
+        if (h) { sha = h[1]; shaAt[Number(h[2])] = sha; continue; }
+        const ct = L.match(/^committer-time (\d+)$/);
+        if (ct && sha && !at.has(sha)) at.set(sha, Number(ct[1]) * 1000);
+      }
+      /* The all-zero sha is git's "Not Committed Yet", and its committer-time is NOW — never an instant. */
+      times = shaAt.map(s => (s && !/^0+$/.test(s) && at.has(s) ? at.get(s) : null));
+    } catch (e) {
+      console.error('  docs_scan: git blame failed for ' + rel + ' — its same-day ties are judged, not excused');
+    }
+    blameCache.set(rel, times);
+  }
+  const t = blameCache.get(rel);
+  return t && t[line] != null ? t[line] : null;
+}
+
+/** Was artifact `j` regenerated after a line that a block dated `when` holds? By day; a same-day tie by
+ *  instant, where `lineInstant()` is asked only then. False whenever the evidence is missing. */
+function regeneratedAfter(when, j, lineInstant) {
+  const d = artifactDate(j);
+  if (!when || !d || d < when) return false;
+  if (d > when) return true;
+  const a = artifactInstant(j);
+  if (a === null) return false;
+  const t = lineInstant();
+  return t !== null && t !== undefined && a > t;
+}
+
 /* ---- A SENTENCE IS THE UNIT OF A CLAIM ---------------------------------------------------------
  *
  * The split happens on a copy with inline code and struck spans blanked to SPACES, so offsets line up
@@ -1166,7 +1238,8 @@ function fieldClaims(raw, cites, artifact = artifactObject) {
  *  injectable so the rule can be shown red on a synthetic document without writing one into docs/.
  *  Returns the accusations; the figures in dated blocks that only a regenerated artifact could not
  *  hold are on the returned array's `.predates` (reported, not gated — see above). */
-function citationMismatches(docs, { read = readDoc, artifact = artifactObject, versionDate = changelogDate } = {}) {
+function citationMismatches(docs, { read = readDoc, artifact = artifactObject, versionDate = changelogDate,
+                                    instant = lineCommitInstant } = {}) {
   const predates = [];
   const local = new Map();
   const numsOf = artifact === artifactObject ? artifactNumbers : (rel) => {
@@ -1195,7 +1268,7 @@ function citationMismatches(docs, { read = readDoc, artifact = artifactObject, v
    * been the instance the block read (undated block, undated artifact, or artifact not newer than the
    * block), and recorded as PREDATING when every one of them was regenerated after the block. */
   const file = (h, when, stamps) => {
-    const judgeable = h.cites.some(c => !when || !stamps.get(c) || stamps.get(c) <= when);
+    const judgeable = h.cites.some(c => !regeneratedAfter(when, artifact(c), () => instant(h.doc, h.line)));
     const r = { ...h, when, regenerated: h.cites.map(c => stamps.get(c) || null) };
     if (judgeable) hits.push(r); else predates.push(r);
   };
@@ -1295,7 +1368,15 @@ const PROOF_JSON = {
   agreement_by_turn: [{ turn: 41, reached: 961 }, { turn: 27, reached: 940 }],
   rate: 0.12345,
 };
-const PROOF_VERSION_DATE = (v) => ({ '1.0.0': '2026-09-01', '9.9.9': '2026-09-20' }[v] || null);
+const PROOF_VERSION_DATE = (v) => ({ '1.0.0': '2026-09-01', '2.0.0': '2026-09-09', '9.9.9': '2026-09-20' }[v] || null);
+/* Two artifacts regenerated the SAME DAY as a 2.0.0 block, whose stamps cannot be put on a clock: a bare
+ * date, and the zone-less `YYYY-MM-DD hh:mm:ss` shape data/protocol-events.json actually writes. */
+const PROOF_DATE_ONLY = 'data/_proof-dateonly.json';
+const PROOF_NO_ZONE = 'data/_proof-nozone.json';
+const PROOF_EXTRA = {
+  [PROOF_DATE_ONLY]: { generated: '2026-09-09', state: { games: 961 } },
+  [PROOF_NO_ZONE]: { generated: '2026-09-09 11:48:00', state: { games: 961 } },
+};
 const CITATION_CASES = [
   { id: 'a-block-stamped-before-the-artifact-was-regenerated-is-reported-not-accused',
     why: 'THE TREADMILL. A record written at 1.0.0 (2026-09-01) cites an artifact regenerated on '
@@ -1316,6 +1397,42 @@ const CITATION_CASES = [
     why: 'A version with no CHANGELOG entry resolves to no date, so the block is judged, not excused. '
        + 'Fail-closed: the exemption needs evidence to exist.',
     text: '**7.7.7 - UNKNOWN.** `data/_proof-differential.json` reads 42 of 961.', figure: '42', caught: true },
+  /* SAME DAY — 2026-09-11. `committed` is the instant git records for the figure's line (null = not
+   * committed). The artifact was regenerated at 2026-09-09T11:48:00.710Z and the block is stamped 2.0.0,
+   * which is 2026-09-09 too, so the DATE cannot order them. */
+  { id: 'a-same-day-block-committed-before-the-artifact-was-regenerated-is-reported-not-accused',
+    why: 'THE DEFECT, 2026-09-11. The 6.7.0 notes row recorded census 856 at 07:16Z, and the census was '
+       + 'regenerated at 08:55Z the same day. At day granularity 2026-09-11 <= 2026-09-11, so the row was '
+       + 'judged against bytes written after it, and every same-day regeneration blocked every commit.',
+    text: '**2.0.0 - THE RECORD.** `data/_proof-differential.json` read 42 of 961 that morning.',
+    committed: '2026-09-09T09:00:00Z', figure: '42', caught: false, predates: true },
+  { id: 'a-same-day-block-committed-after-the-artifact-was-regenerated-is-accused',
+    why: 'THE CONTROL, so the fix is not a blanket same-day exemption: committed at 13:00Z, after the '
+       + '11:48Z regeneration, the line could only have read the instance on disk, and it does not hold 42.',
+    text: '**2.0.0 - THE RECORD.** `data/_proof-differential.json` read 42 of 961 that morning.',
+    committed: '2026-09-09T13:00:00Z', figure: '42', caught: true, predates: false },
+  { id: 'an-uncommitted-same-day-line-is-judged',
+    why: 'A line in the working tree or the index has no instant in git. It is being written against the '
+       + 'disk as it is, and the commit that records it is judged by the hook against that disk. '
+       + 'Fail-closed: the exemption needs evidence to exist.',
+    text: '**2.0.0 - THE RECORD.** `data/_proof-differential.json` read 42 of 961 that morning.',
+    committed: null, figure: '42', caught: true, predates: false },
+  { id: 'a-same-day-artifact-stamped-with-a-bare-date-cannot-be-ordered-and-is-judged',
+    why: 'No time in the stamp, so nothing says which came first. Judged, as before.',
+    text: '**2.0.0 - THE RECORD.** `data/_proof-dateonly.json` read 42 of 961 that morning.',
+    committed: '2026-09-09T09:00:00Z', figure: '42', caught: true, predates: false },
+  { id: 'a-same-day-artifact-stamped-without-a-zone-cannot-be-ordered-and-is-judged',
+    why: '`2026-09-09 11:48:00` is local time in some zone nobody wrote down (data/protocol-events.json '
+       + 'writes this shape). Guessing the zone is guessing the verdict, so it is judged.',
+    text: '**2.0.0 - THE RECORD.** `data/_proof-nozone.json` read 42 of 961 that morning.',
+    committed: '2026-09-09T09:00:00Z', figure: '42', caught: true, predates: false },
+  { id: 'the-commit-instant-breaks-a-tie-and-never-overrides-a-date',
+    why: 'THE SCOPE. A 1.0.0 block (2026-09-01) whose line was last committed on 2026-09-10, after the '
+       + 'regeneration, stays predating: the block\'s stamp says what it records, and letting a reflow '
+       + 'commit re-date it would re-judge every old paragraph a line-wrap touched. Only a same-day tie, '
+       + 'which the date cannot order, is ordered by the clock.',
+    text: '**1.0.0 - THE RECORD.** `data/_proof-differential.json` read 42 of 961 that night.',
+    committed: '2026-09-10T00:00:00Z', figure: '42', caught: false, predates: true },
   { id: 'a-qualifier-in-the-next-sentence-does-not-shield-a-headline',
     why: 'THE #552 DEFECT. "superseded" in the first sentence exempted the whole block, so the wrong '
        + 'headline in the second sentence was never scored.',
@@ -1381,10 +1498,11 @@ const CITATION_CASES = [
 
 /** Runs every case through the real rule. `holds` false means the rule changed meaning. */
 function citationProof() {
-  const artifact = rel => (rel === PROOF_ARTIFACT ? PROOF_JSON : undefined);
+  const artifact = rel => (rel === PROOF_ARTIFACT ? PROOF_JSON : PROOF_EXTRA[rel]);
   return CITATION_CASES.map(c => {
+    const instant = () => (c.committed ? Date.parse(c.committed) : null);
     const hits = citationMismatches([PROOF_DOC], { read: () => '# proof\n\n' + c.text + '\n', artifact,
-                                                  versionDate: PROOF_VERSION_DATE });
+                                                  versionDate: PROOF_VERSION_DATE, instant });
     const caught = hits.some(h => h.figure === c.figure);
     const predated = hits.predates.some(h => h.figure === c.figure);
     const holds = caught === c.caught && (c.predates === undefined || predated === c.predates);
@@ -1672,7 +1790,8 @@ function grandfatheredTraces() {
  * `total / per / where` — unchanged in meaning, so major_readiness.js and the ratchet read it as
  * before — plus `bound`, `grandfathered_keys`, `grandfathered_by_doc` and `unbound`. */
 function untraceableCensus(docs, { read = readDoc, artifact = artifactObject, all = null, changelog = null,
-                                   grandfathered, observe = null, blob = blobObject } = {}) {
+                                   grandfathered, observe = null, blob = blobObject,
+                                   instant = lineCommitInstant } = {}) {
   /* `observe`, when given, is told the class of every figure and what could have bound it, so a
    * measurement of HOW MUCH a binding means is taken through this function rather than a copy of it. */
   const see = observe || (() => {});
@@ -1746,8 +1865,10 @@ function untraceableCensus(docs, { read = readDoc, artifact = artifactObject, al
       }
       const vers = [...new Set([...versionsIn(joined), ...(hv[b.start - 1] || [])])].filter(v => entries.has(v));
       const when = stampedDate(b.lines.slice(0, 3).join(' '), versionDate) || above[Math.max(0, b.start - 1)] || pinned || null;
-      const stamps = pc.map(c => artifactDate(artifact(c)));
-      const predating = !!when && stamps.length > 0 && stamps.every(d => d && d > when);
+      /* Per LINE, not per block: a same-day tie is ordered by the instant git records for the figure's
+       * own line (regeneratedAfter), exactly as the citation rule orders it. */
+      const predating = line => !!when && pc.length > 0 &&
+        pc.every(c => regeneratedAfter(when, artifact(c), () => instant(rel, line)));
       const unitOf = traceUnits(b.lines);
       let fenced = false;
       for (let i = 0; i < b.lines.length; i++) {
@@ -1807,7 +1928,7 @@ function untraceableCensus(docs, { read = readDoc, artifact = artifactObject, al
              * AFTER the untraceable class, not before: measured 2026-09-11, the other order moved 9 of the
              * 22 untraceable figures into this bucket and the ratchet lowered its floor to 13 — a figure with
              * no match anywhere is untraceable whatever its block's date, which is the census's old meaning. */
-            if (predating) { predates.push({ key, doc: rel, line, value: f.raw, when, cites: pc }); see({ ...ctx, cls: 'predates', key }); continue; }
+            if (predating(line)) { predates.push({ key, doc: rel, line, value: f.raw, when, cites: pc }); see({ ...ctx, cls: 'predates', key }); continue; }
             see({ ...ctx, cls: 'unbound', key });
             if (!unbound.has(key)) unbound.set(key, { key, doc: rel, line, value: f.raw,
               why: cites.length
@@ -1842,7 +1963,7 @@ function retainGrandfathered(list, census) {
  * the original sentence — the bootstrap path, not a hand-typed key. Each case has one figure, so the
  * class it lands in is the verdict. */
 const PROOF_TRACE_ARTIFACT = 'data/_proof-trace.json';
-const PROOF_TRACE_JSON = { generated: '2026-09-11T00:00:00Z', state: { games: 961, sweeps: 4321 } };
+const PROOF_TRACE_JSON = { generated: '2026-09-11T12:00:00Z', state: { games: 961, sweeps: 4321 } };
 const PROOF_TRACE_CHANGELOG = '## [9.2.0] — 2026-09-11\n- The sweep scored 4,321 games.\n\n## [9.1.0] — 2026-09-10\n- Nothing measured.\n';
 const TRACE_CASES = [
   { id: 'a-bare-digit-match-is-not-a-trace', expect: 'unbound',
@@ -1881,6 +2002,17 @@ const TRACE_CASES = [
   { id: 'the-same-block-dated-no-earlier-than-its-artifact-is-accused', expect: 'unbound', all: [4322],
     why: 'The control: stamped 9.2.0 (2026-09-11) the block could have read this very instance, and it '
        + 'does not hold 4,322.',
+    text: '**9.2.0 - THE RECORD.** The source is `data/_proof-trace.json`. The sweep scored 4,322 games.' },
+  /* SAME DAY, ordered by the clock exactly as the citation rule orders it: 9.2.0 and the artifact are both
+   * 2026-09-11, and the artifact was regenerated at 12:00Z. `committed` is the line's git instant. */
+  { id: 'a-same-day-block-committed-before-its-artifact-was-regenerated-is-reported', expect: 'predates', all: [4322],
+    committed: '2026-09-11T09:00:00Z',
+    why: 'THE DEFECT, on the census side. Committed at 09:00Z, three hours before the regeneration: the '
+       + 'disk cannot say what the block read. At day granularity it was judged.',
+    text: '**9.2.0 - THE RECORD.** The source is `data/_proof-trace.json`. The sweep scored 4,322 games.' },
+  { id: 'a-same-day-block-committed-after-its-artifact-was-regenerated-is-accused', expect: 'unbound', all: [4322],
+    committed: '2026-09-11T15:00:00Z',
+    why: 'The control: committed after the regeneration, the block could have read this instance.',
     text: '**9.2.0 - THE RECORD.** The source is `data/_proof-trace.json`. The sweep scored 4,322 games.' },
   { id: 'no-citation-and-no-match-is-untraceable-as-before', expect: 'untraceable',
     why: 'The old census class, unchanged, so its per-document ratchet keeps its meaning.',
@@ -1944,14 +2076,14 @@ function traceProof({ retain = retainGrandfathered } = {}) {
   const artifactFor = json => rel => (rel === PROOF_TRACE_ARTIFACT ? json
     : rel === 'data/open-work.json' ? { rows: [{ quoted: 4321 }] } : undefined);
   const blob = (rev, rel) => (rev === PROOF_TRACE_PIN && rel === PROOF_TRACE_ARTIFACT ? PROOF_TRACE_BLOB : undefined);
-  const run = (text, all, grandfathered, json = PROOF_TRACE_JSON) => untraceableCensus([PROOF_DOC], {
+  const run = (text, all, grandfathered, json = PROOF_TRACE_JSON, committed = null) => untraceableCensus([PROOF_DOC], {
     read: () => '# proof\n\n' + text + '\n', artifact: artifactFor(json), blob, all: new Set(all),
-    changelog: PROOF_TRACE_CHANGELOG, grandfathered });
+    changelog: PROOF_TRACE_CHANGELOG, grandfathered, instant: () => (committed ? Date.parse(committed) : null) });
   return TRACE_CASES.map(c => {
     const all = c.all || [4321];
     let gf = c.gf ? new Set(run(c.gf, [...new Set([4321, ...all])], new Set()).unbound.map(u => u.key)) : new Set();
     for (const st of c.steps || []) gf = new Set(retain(gf, run(st.text, all, gf, st.json)));
-    const r = run(c.text, all, gf);
+    const r = run(c.text, all, gf, PROOF_TRACE_JSON, c.committed || null);
     const got = r.unbound.length ? 'unbound' : r.total ? 'untraceable' : r.predates.length ? 'predates'
       : r.grandfathered_keys.length ? 'grandfathered'
       : (r.bound.paragraph + r.bound.entry) ? 'bound' : 'nothing';
@@ -2599,7 +2731,7 @@ module.exports = {
   figuresIn, figuresInText, fenceOpen, lexingProof, LEXING_CASES,
   isUniversal, artifactNumbers, artifactObject, bundleJson, bundleProof, BUNDLE_CASES,
   walkNumbers, resolveField, fieldCitationsIn, sentencesOf, fieldClaims, citationProof, CITATION_CASES,
-  changelogDates, stampedDate, headingDates, artifactDate,
+  changelogDates, stampedDate, headingDates, artifactDate, artifactInstant, lineCommitInstant, regeneratedAfter,
   artifactHas, paragraphs, citationsIn,
   retractionRegistry, retractionViolations, citationMismatches, untraceableCensus,
   traceProof, TRACE_CASES, grandfatheredTraces, changelogEntries, entryHas, headingVersions, versionsIn, traceUnits,
