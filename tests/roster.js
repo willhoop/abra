@@ -213,8 +213,14 @@ const VERBOSE = HAS('--verbose');
  * ================================================================================================= */
 
 const idOf = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
-const mon = (species, item, ability, moves) => ({ species, item: item || '', ability: ability || '',
-                                                  moves: moves.slice() });
+/* `gender` IS OPTIONAL AND IS OMITTED WHEN ABSENT, not written as an empty string — a body with no
+ * declared gender must be BYTE-IDENTICAL to the one this helper built before the seam existed, and
+ * `buildPair` only crosses a value that is exactly 'M' or 'F'. See the cute-charm rule. */
+const mon = (species, item, ability, moves, gender) => {
+  const m = { species, item: item || '', ability: ability || '', moves: moves.slice() };
+  if (gender === 'M' || gender === 'F') m.gender = gender;
+  return m;
+};
 
 /* THE INERT CLICK, AND THE FIRST ONE WAS WRONG.
  *
@@ -368,6 +374,11 @@ const QUIET = dex.abilities.all()
   .map(a => a.id);
 const QUIET_SET = new Set(QUIET);
 
+/* THE KNOB THAT RESTORES THE SELF-SWITCH DEFECT, on the same rule as `ROSTER_ARM_FALLS_THROUGH`: the
+ * defect stays reachable at runtime for a paired measurement without swapping a file. Identical
+ * verdicts across it would mean the clause below is unwired. */
+let ALLOW_SELFSWITCH_DELIVERY = (typeof process !== 'undefined' && process.env
+                                 && process.env.ROSTER_ALLOW_SELFSWITCH_DELIVERY === '1');
 /* THE DELIVERY MOVES, one per type per category, chosen for being BORING. Every disqualifier below
  * is a way a delivery vehicle stops being a delivery vehicle and starts being the experiment. */
 function deliveryOf(m, opt) {
@@ -383,6 +394,29 @@ function deliveryOf(m, opt) {
   if (m.priority !== 0) return false;                                  // turn order is not the test
   if (m.flags.charge || m.flags.recharge || m.multihit || m.ohko) return false;
   if (m.selfdestruct || m.forceSwitch || m.breaksProtect || m.isZ || m.isMax) return false;
+  /* ---- AND THE OTHER HALF OF THAT CLAUSE, WHICH WAS NEVER WRITTEN — 2026-09-12 -------------------
+   *
+   * `forceSwitch` (the TARGET leaves) is refused on the line above and `selfSwitch` (the USER leaves)
+   * was not, so U-turn — Bug, physical, contact, 100 accuracy, no secondary — sat in the Bug slot of
+   * this table and was handed out as an ordinary delivery move. It is the SAME failure the
+   * `cantusetwice` clause below is written against, in the same words: a derived script that clicks a
+   * delivery move on two turns hands Showdown a choice it rejects, "which is this file's fixture
+   * being wrong rather than a finding".
+   *
+   * MEASURED, NOT REASONED. Two ability rows threw on it and the eight-line narration showed only the
+   * symptom; at sixty lines the cause is one turn:
+   *   lightmetal    `|move|p1a: Dragapult|uturn|p2a: Metagross` then `|switch|p1a: Corviknight|[from] uturn`
+   *                 — Bug is 0.5x2 = NEUTRAL on Steel/Psychic, so the aggressor's neutral contact hit
+   *                 WAS U-turn, and turn 3 asked the replacement for a move it does not have.
+   *   compoundeyes  the same move on the other side of the field: Vivillon's own STAB contact click.
+   * Both reported `Can't pass: Your <body> must make a move (or switch)`, which names the choice
+   * string and not the reason — the fixture removed its own clicker.
+   *
+   * `move/self-switch` STAGES THE FAMILY AND IS UNAFFECTED: it reads `e.selfSwitch` off the entity and
+   * writes its own two-turn script, and `ability/switchout` names 'uturn' as a literal. Neither draws
+   * a pivot out of this table. That rule's own `why` already names this hazard — "it scripts a second
+   * click for a body that has already left, which Showdown rejects as an illegal pass and throws". */
+  if (m.selfSwitch && !ALLOW_SELFSWITCH_DELIVERY) return false;
   /* `mindBlownRecoil` IS A FLAG AND NOT A HANDLER, so a handler-shaped filter waves Steel Beam
    * through — 140 base power, 95 accuracy, and it takes half the user's own max HP. Measured: the
    * accuracy rule picked it, Kangaskhan killed itself, a replacement walked in, and seven leaves
@@ -418,6 +452,22 @@ for (const t of Object.keys(DELIVERY)) {
          : (e.physical || e.special);
 }
 const hitOfType = t => (DELIVERY[t] || {}).best || null;
+/* WHAT THAT CLAUSE ACTUALLY MATCHED, PRINTED RATHER THAN ASSERTED. A new filter over-matching is this
+ * division's standing hazard, so the set is derived through the ONE predicate — the knob is flipped
+ * and `deliveryOf` asked again, never a second copy of the test — and named on demand. */
+const SELFSWITCH_EXCLUDED = (() => {
+  const was = ALLOW_SELFSWITCH_DELIVERY;
+  ALLOW_SELFSWITCH_DELIVERY = true;
+  const out = dex.moves.all()
+    .filter(m => m.selfSwitch && deliveryOf(m))
+    .map(m => m.name + ' [' + m.type + ' ' + m.category + ' ' + m.basePower
+              + ' selfSwitch=' + JSON.stringify(m.selfSwitch) + ']');
+  ALLOW_SELFSWITCH_DELIVERY = was;
+  return out;
+})();
+if (process.env.ROSTER_PRINT_DELIVERY_EXCLUDED === '1')
+  console.log('DELIVERY excludes ' + SELFSWITCH_EXCLUDED.length + ' self-switch move(s): '
+    + (SELFSWITCH_EXCLUDED.join(', ') || 'NONE'));
 /* ROADMAP #318 (6.24.0): the learnset judge's caches, declared HERE rather than beside `learnsLegally` far
  * below, so the module-load derivations that now ask it (KILLABLE, KILLABLE2, HALVER) do not meet a
  * `let` in its temporal dead zone. `_DBT` is `deliveriesOfType`'s. */
@@ -1113,10 +1163,19 @@ function play(sc, src, armId) {
     const seen = ARM ? ARM.id : ('DRIVER-DEFAULT:' + (G.PRIMARY_ARM ? G.PRIMARY_ARM.id : '?'));
     ARM_PLAYED.set(seen, (ARM_PLAYED.get(seen) || 0) + 1);
   }
+  /* ---- THE DECLARED-GENDER SEAM, OPT-IN PER SCENARIO — 2026-09-12 --------------------------------
+   *
+   * `buildPair` writes `gender: 'N'` on every body unless the caller asks otherwise, deliberately:
+   * Showdown carries the gender in the `|switch|` details field, so a declared one would part the two
+   * streams on line one for every game ever played here. medicham2 writes the same suffix since
+   * 2026-09-11 (`detailsGender`), so the seam is safe to open — but it is opened ONLY for a scenario
+   * that actually declares a gender, so every other fixture in this file plays the identical game it
+   * played before. Asked of the SCENARIO, never of the stage or the rule: the flag follows the bodies. */
+  const gendered = sc.A.concat(sc.B).some(m => m && (m.gender === 'M' || m.gender === 'F'));
   let a, b;
   try {
-    a = G.buildPair(sc.A, { hpBoost: sc.hpA || 1 });
-    b = G.buildPair(sc.B, { hpBoost: sc.hpB || 1 });
+    a = G.buildPair(sc.A, { hpBoost: sc.hpA || 1, declaredGender: gendered });
+    b = G.buildPair(sc.B, { hpBoost: sc.hpB || 1, declaredGender: gendered });
   } catch (e) { return { bad: 'THREW-IN-BUILD', why: e.message }; }
   if (!a || !b) return { bad: 'NOT-STAGED',
     why: 'buildPair returned null for ' + (!a ? 'side A' : 'side B') + ' — fewer than four bodies '
@@ -1202,8 +1261,14 @@ function play(sc, src, armId) {
    * whether somebody fainted, whether a charge is in the air, or whether a trap refused — three
    * completely different fixture faults that produce the identical message. Cheap, and it is the
    * difference between a row somebody can fix and a row somebody re-reads. */
+  /* AND HOW MANY LINES OF IT, BECAUSE EIGHT WAS NOT ENOUGH TWICE — 2026-09-12. `compoundeyes` and
+   * `lightmetal` both threw with a replacement body already on the field, and the eight lines end
+   * AFTER the faint that put it there: the trace shows the symptom and never the cause. The knob is
+   * an env var rather than a bigger default because the artifact carries this string on every
+   * refused row and a forty-line narration in 900 rows is noise in the file that has to be read. */
   if (r.err) return { bad: 'THREW', why: r.err
-      + '   [the last of this engine\'s narration: ' + (r.mediTrace || []).slice(-8).join(' ') + ']',
+      + '   [the last of this engine\'s narration: '
+      + (r.mediTrace || []).slice(-(+process.env.ROSTER_TRACE_LINES || 8)).join(' ') + ']',
     boards, medi_active: actives(), dice };
   if (r.turns !== sc.script.length) return { bad: 'SHORT', boards,
     why: 'the script declares ' + sc.script.length + ' turn(s) and ' + r.turns + ' were played' };
@@ -3743,7 +3808,8 @@ function noCarrierWhy(ab, what) {
  * side B slot 0, matching `abilityScenario`, because the ignored-leaf bookkeeping is keyed on it. */
 function stageAbility(e, C, o) {
   const sp = dex.species.get(C.species);
-  const carrier = mon(sp.id, o.item || '', dex.abilities.get(e.id).name, (o.moves || []).slice());
+  const carrier = mon(sp.id, o.item || '', dex.abilities.get(e.id).name, (o.moves || []).slice(),
+                      o.gender);
   /* THE CARRIER CAN START ON THE BENCH, which is the only way to ask an ENTRY question about a board
    * that already has something on it. `subject` stays 'B0' exactly as `abilityScenario`'s residual arm
    * leaves it: for an ability the control arm swaps the ability on EVERY body of the subject's side,
@@ -6349,19 +6415,47 @@ const RULES = [
      * `attract.condition.onStart` (`data/moves.ts`: `if (!(pokemon.gender === 'M' && source.gender
      * === 'F') && !(...)) return false;`), so the coin can come up and no board will move. */
     const vol = dex.moves.get(iv.volatile);
-    const gendered = vol && vol.exists && vol.condition && vol.condition.onStart
+    const genderGated = vol && vol.exists && vol.condition && vol.condition.onStart
       && /gender/.test(String(vol.condition.onStart));
-    if (gendered) return cannot('ITS VOLATILE IS GENDER-GATED AND THIS DRIVER BUILDS EVERY BODY '
-      + 'GENDERLESS. `' + vol.name + '`\'s own condition refuses unless the two bodies are opposite '
-      + 'sexes, and `game_differential.js#buildPair` writes `gender: \'N\'` on both sides by design — '
-      + 'Showdown carries gender in the `|switch|` details field and medicham2 has no gender at all, '
-      + 'so a declared one would part every switch line. The driver states this itself: "gender is N '
-      + 'on both sides, so Attract / Rivalry / Cute Charm are not exercised". THE COIN CAN COME UP '
-      + 'AND NO BOARD WILL MOVE, so this is a limit of the RIG and not of the pin and not of the '
-      + 'mechanic. It is owed a fixture that can declare a gender.');
     const C = abilityCarrier(e);
     if (!C) return cannot(noCarrierWhy(e, 'is buildable with a second ability to control with'));
     const atkSp = dex.species.get(CAST.ATTACKER().species);
+    /* ---- THE GENDER-GATED LANE, AND THE SEAM THAT OPENED IT — 2026-09-12 -------------------------
+     *
+     * THIS WAS THE ONE REFUSAL IN THIS LANE THAT WAS ABOUT THE DRIVER AND NOT ABOUT THE PIN, and it
+     * is now about neither. The volatile's condition gates on GENDER — read off the move that owns
+     * it, never remembered — and `buildPair` wrote `gender: 'N'` on every body on both sides, so the
+     * coin could come up and NO BOARD WOULD MOVE. That refusal was correct, and it named exactly what
+     * it was owed: "a fixture that can declare a gender".
+     *
+     * IT HAS ONE NOW. The driver grew a `declaredGender` seam on 2026-09-11 and medicham2 writes the
+     * matching `|switch|` details suffix (`detailsGender`), so a declared gender no longer parts the
+     * two streams on line one. `play()` opens the seam only for a scenario that actually declares a
+     * gender, so every other fixture in this file plays the identical game it played before.
+     *
+     * BOTH BODIES MUST BE FREE TO CARRY ONE, ASKED OF THE FORMAT PER SPECIES. Showdown's constructor
+     * is `genders[set.gender] || this.species.gender || sample(['M','F'])`, so a declared gender WOULD
+     * be honoured even on a species the regulation fixes — which is precisely why this is checked:
+     * declaring 'F' on a fixed-'N' body would stage a Pokemon that cannot exist. A free species reads
+     * `species.gender === ''`. If either body is fixed the row is refused WITH BOTH VALUES PRINTED,
+     * which is a measurement about this format's bodies rather than "no fixture found". */
+    let carrierGender = '', attackerGender = '', genderNote = '';
+    if (genderGated) {
+      const carrierSp = dex.species.get(C.species);
+      if (carrierSp.gender !== '' || atkSp.gender !== '')
+        return cannot('ITS VOLATILE IS GENDER-GATED — `' + vol.name + '` refuses unless the two bodies '
+          + 'are opposite sexes — AND ONE OF THE TWO BODIES THIS FIXTURE NEEDS HAS A FIXED GENDER IN '
+          + 'THIS FORMAT: ' + carrierSp.name + ' reads ' + JSON.stringify(carrierSp.gender) + ' and '
+          + atkSp.name + ' reads ' + JSON.stringify(atkSp.gender) + ', where a body free to be either '
+          + 'reads "". Showdown would HONOUR a declared gender on either of them — its constructor '
+          + 'prefers `set.gender` to the species — so staging one would be asserting a body the '
+          + 'regulation does not have, which is a worse failure than a refused row.');
+      /* The volatile lands on the ATTACKER and the gate is satisfied in either direction, so what
+       * matters is that the pair is opposite, not which way round it is. */
+      carrierGender = 'F'; attackerGender = 'M';
+      genderNote = ', and the carrier is declared F against a male ' + atkSp.name + ' — which is what `'
+        + vol.name + '`\'s own condition requires, both species being gender-free in this format';
+    }
     const clicks = contactClicksAt(C.species, atkSp);
     if (!clicks.length) return cannot('no 100-accuracy physical CONTACT click exists that the '
       + 'aggressor can legally throw at ' + pretty(C.species) + ' without being immune to it');
@@ -6371,8 +6465,10 @@ const RULES = [
       coin: [MIDE.seed, pick.turn, 'any', pick.mv.id, REACT_SLOT, 0].join('|'),
       note: atkSp.name + ' clicks ' + pick.mv.name + ' at the carrier on turn(s) 1..' + pick.turn
           + '; the coin `' + [MIDE.seed, pick.turn, 'any', pick.mv.id, REACT_SLOT, 0].join('|') + '` = '
-          + pick.die.toFixed(4) + ' is below the ' + (chance * 100).toFixed(0) + '% this ability rolls',
-      a0: mon(atkSp.id, '', CAST.ATTACKER().ability, [pick.mv.id]),
+          + pick.die.toFixed(4) + ' is below the ' + (chance * 100).toFixed(0) + '% this ability rolls'
+          + genderNote,
+      gender: carrierGender,
+      a0: mon(atkSp.id, '', CAST.ATTACKER().ability, [pick.mv.id], attackerGender),
       script: Array.from({ length: pick.turn },
                          () => turn([click(pick.mv.id, 0), IDLE], [IDLE, IDLE])) });
   } },

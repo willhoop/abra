@@ -42,7 +42,15 @@ const CANDIDATES = [
   { vol: 'focusenergy', move: 'focusenergy', target: 'self' },
   { vol: 'torment', move: 'torment', target: 'foe' },
   { vol: 'imprison', move: 'imprison', target: 'self' },
-  { vol: 'attract', move: 'attract', target: 'foe' },
+  /* ATTRACT NEEDS OPPOSITE SEXES AND THIS FIXTURE HAD NONE — 2026-09-12. The row came back
+   * `NEITHER`, and `board_state.js` reads that correctly as a claim about the FIXTURE: "Attract needs
+   * opposite genders that the staged pair did not have". `buildPair` wrote `gender: 'N'` on every body
+   * and the condition's own `onStart` refuses two genderless bodies outright. The driver grew a
+   * `declaredGender` seam on 2026-09-11, so the pair can now be declared — which is the `next` step
+   * that NOT_COMPARED row names. The volatile lands on the TARGET, so the target takes 'F' against a
+   * male user; `genderFree` keeps the derived carrier to a species this format leaves free to be
+   * either, because Showdown would honour a declared gender even on a fixed one. */
+  { vol: 'attract', move: 'attract', target: 'foe', genderFree: true, userGender: 'M', foeGender: 'F' },
   /* CURSE IS TYPE-CONDITIONAL AND THE FIRST CARRIER FOUND WAS NOT A GHOST. `data/moves.ts` curse
    * `onModifyMove` gives the Ghost branch (the volatile + the half-HP cost) only to a user that HAS
    * the Ghost type; every other user gets three stat stages and no volatile at all. So a probe that
@@ -73,9 +81,14 @@ const CANDIDATES = [
  * staged — a scenario built on an illegal set measures nothing. */
 const legal = x => x.exists && !x.isNonstandard && x.tier !== 'Illegal';
 const SPECIES = dex.species.all().filter(legal).filter(s => !s.forme || !/mega/i.test(s.forme));
-function carrierOf(moveId, wantType) {
+function carrierOf(moveId, wantType, genderFree) {
   for (const s of SPECIES) {
     if (wantType && !(s.types || []).includes(wantType)) continue;
+    /* `species.gender` is '' when the format leaves a body free to be either sex, and 'M'/'F'/'N'
+     * when it fixes one. A declared gender on a fixed body WOULD be honoured by Showdown (its
+     * constructor prefers `set.gender`), so staging one would assert a Pokemon the regulation does
+     * not have — the filter is here rather than in the caller for that reason. */
+    if (genderFree && s.gender !== '') continue;
     let ls;
     try { ls = dex.species.getLearnsetData(s.id); } catch (e) { continue; }
     if (ls && ls.learnset && ls.learnset[moveId]) return s;
@@ -102,17 +115,33 @@ const rows = [];
 for (const c of CANDIDATES) {
   const mv = dex.moves.get(c.move);
   if (!mv || !mv.exists || mv.isNonstandard) { rows.push({ ...c, verdict: 'MOVE NOT IN FORMAT' }); continue; }
-  const sp = carrierOf(c.move, c.userType);
+  const sp = carrierOf(c.move, c.userType, c.genderFree);
   if (!sp) { rows.push({ ...c, verdict: 'NO LEGAL CARRIER — the fixture, not the mechanic' }); continue; }
-  const A = [{ species: N.id(sp.id), item: '', ability: '', moves: [mv.name, 'Protect'] }].concat(bench(...FILLER));
+  const A = [{ species: N.id(sp.id), item: '', ability: '', moves: [mv.name, 'Protect'],
+               ...(c.userGender ? { gender: c.userGender } : {}) }].concat(bench(...FILLER));
   /* THE FOE CLICKS RECYCLE, NOT AGILITY — 2026-08-14. Snorlax cannot learn Agility in this
    * regulation (TeamValidator: "Snorlax can't learn Agility."), so this probe declared a body the
    * game would refuse. RECYCLE is this repo's derived no-op (champions_sim.INERT_MOVE, with the
    * reasoning at its definition): Snorlax can learn it, it is in MC.moves, and it FAILS outright when
    * the user has consumed no item — so it cannot damage, boost, heal, switch or touch the field.
    * It is strictly quieter than Agility, which was moving the foe's Speed by two stages every turn. */
-  const B = [{ species: 'snorlax', item: '', ability: '', moves: ['Recycle', 'Protect'] }].concat(bench(...FILLER));
-  const a = G.buildPair(A), b = G.buildPair(B);
+  const FOE = 'snorlax';
+  const foeSp = dex.species.get(FOE);
+  /* THE FOE'S FREEDOM IS ASKED OF THE FORMAT, NOT ASSUMED, and a refusal is reported as the fixture's
+   * rather than silently dropped — a row that needs a gender and cannot have one must not read as a
+   * claim about the engines. */
+  if (c.foeGender && foeSp.gender !== '') {
+    rows.push({ ...c, carrier: sp.name,
+      verdict: 'THE FOE HAS A FIXED GENDER (' + foeSp.name + ' reads ' + JSON.stringify(foeSp.gender)
+             + ') — the fixture, not the mechanic' });
+    continue;
+  }
+  const B = [{ species: FOE, item: '', ability: '', moves: ['Recycle', 'Protect'],
+               ...(c.foeGender ? { gender: c.foeGender } : {}) }].concat(bench(...FILLER));
+  /* THE SEAM IS OPENED ONLY FOR A ROW THAT DECLARES A GENDER, so every other candidate here builds
+   * the byte-identical pair it built before this existed. */
+  const gOpts = (c.userGender || c.foeGender) ? { declaredGender: true } : undefined;
+  const a = G.buildPair(A, gOpts), b = G.buildPair(B, gOpts);
   if (!a || !b) { rows.push({ ...c, carrier: sp.name, verdict: 'COULD NOT BUILD THE PAIR' }); continue; }
   let medi = '', sd = '';
   const seenMedi = [], seenSd = [];
@@ -142,8 +171,21 @@ for (const c of CANDIDATES) {
          * for this one (`if (vol === 'healblock') return applyHealBlock(who, mvId)`) because the field
          * every consumer asks about is `_healBlock`. The probe was looking in the one place the engine
          * deliberately does not write. A leaf list that is not derived from the engine will do this. */
-        for (const k of ['_yawn', '_charging', '_invuln', '_seededBy', '_sub', '_perish', '_healBlock'])
-          if (m[k]) keys.add(k + '=' + JSON.stringify(m[k]).slice(0, 12));
+        /* `_mtLock` AND `_ptDmg` ADDED 2026-09-12, AND THEIR ABSENCE WAS THIS PROBE REPORTING TWO
+         * DEFECTS THAT DO NOT EXIST — the identical trap `_healBlock` is in this list for. The rows
+         * read `uproar SHOWDOWN ONLY` and `curse SHOWDOWN ONLY`, which reads as "our engine drops
+         * the Uproar lock" and "our engine writes no Curse". Neither is true: medicham2 holds the
+         * uproar lock in `_mtLock` (`{move,left,dur,vol}`), which `board_state.js` ALREADY compares
+         * as a clock, and Curse's Ghost-branch chip in `_ptDmg` (ROADMAP #175 — it is a Condition
+         * here, not a `_vol` entry). The probe was looking in the one place each engine deliberately
+         * does not write. A leaf list that is not derived from the engine will keep doing this.
+         *
+         * THE SLICE IS 40 AND NOT 12 BECAUSE THE DISCRIMINATOR IS INSIDE THE VALUE: `_mtLock` is the
+         * rampage lock shared with Outrage and Petal Dance, so `vol:"uproar"` is what tells an Uproar
+         * from an Outrage, and it does not survive twelve characters. */
+        for (const k of ['_yawn', '_charging', '_invuln', '_seededBy', '_sub', '_perish', '_healBlock',
+                         '_mtLock', '_ptDmg'])
+          if (m[k]) keys.add(k + '=' + JSON.stringify(m[k]).slice(0, 40));
       }
       const sk = new Set();
       for (const side of battle.sides) for (const p of side.active) {
@@ -162,7 +204,11 @@ for (const c of CANDIDATES) {
     } });
   const wantMedi = new RegExp(c.vol.split('/')[0].replace(/[^a-z0-9]/g, ''), 'i');
   /* the engine's name for the fact, where it is not the authority's name for it */
-  const MEDI_FIELD = { healblock: /_healBlock/ };
+  /* THE ENGINE'S NAME FOR THE FACT, wherever it is not the authority's name for it. Each entry is a
+   * field medicham2 deliberately writes instead of a `_vol` key, so a bare `_vol` read reports the
+   * mechanic missing. `uproar` is gated on the lock's OWN `vol` so an Outrage is not counted as one —
+   * the same discriminator `board_state.js` applies to `_mtLock`. */
+  const MEDI_FIELD = { healblock: /_healBlock/, uproar: /_mtLock=[^ ]*uproar/, curse: /_ptDmg/ };
   const inMedi = wantMedi.test(medi.replace(/[^a-zA-Z0-9=]/g, '')) || (c.vol === 'twoturnmove/charge' && /_charging/.test(medi))
     || (MEDI_FIELD[c.vol] ? MEDI_FIELD[c.vol].test(medi) : false);
   const inSd = wantMedi.test(sd) || (c.vol === 'twoturnmove/charge' && /twoturnmove/.test(sd));

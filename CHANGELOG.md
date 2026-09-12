@@ -10,6 +10,43 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.33.0] — 2026-09-12
+
+### Fixed
+- **The roster's delivery table handed out a move that removes its own user.** `deliveryOf` in
+  `tests/roster.js` refuses `m.forceSwitch` — the TARGET leaving — and never refused `m.selfSwitch`, the
+  USER leaving, so U-turn (Bug, physical, contact, 100 accuracy, no secondary) sat in the Bug slot and was
+  issued as an ordinary hit. Bug is 0.5 x 2 = neutral on Steel/Psychic, so `ability/generic`'s derived
+  neutral contact hit on Metagross WAS U-turn: the aggressor switched itself out and the next turn asked
+  its replacement for a move it does not have, which the authority rejected as an illegal pass.
+  `compoundeyes` was the same move as Vivillon's own STAB click. Both had been carried as "real instrument
+  defects"; they were one fixture defect and the driver was innocent. The filter is PRINTED before it is
+  trusted and matches exactly three moves — Flip Turn, U-turn, Volt Switch. Abilities **173 → 175**, items
+  and moves 0 rows moved. RED again under `ROSTER_ALLOW_SELFSWITCH_DELIVERY=1`. ROADMAP #604.
+- **A probe's hand-written field list accused the engine of dropping two mechanics it holds.**
+  `tests/probe_volatile_leaves.js` reported `uproar SHOWDOWN ONLY` and `curse SHOWDOWN ONLY`; medicham2
+  holds the rampage lock in `_mtLock` (which `board_state.js` already compares as a clock) and Curse's
+  Ghost branch in `_ptDmg`. Both fields are now read and both rows read BOTH. Recorded rather than dropped
+  quietly — a wrong accusation retracted in silence is how the next one gets believed. ROADMAP #606.
+
+### Added
+- **Cute Charm is staged and compared, which took two gaps closed together.** The fixture now declares a
+  gender through the driver's `declaredGender` seam — opened PER SCENARIO, so every other fixture builds
+  the byte-identical pair, and refused unless both species read `species.gender === ''`, because
+  Showdown's constructor prefers `set.gender` and would honour a declared gender on a body the regulation
+  fixes. And `volatile:attract` is wired into `engine/board_state.js`, which had held it in NOT_COMPARED
+  with an honest reason — the two shapes had never been SEEN — and a `next` line asking for exactly this
+  fixture. Wired only after the probe read BOTH. `cutecharm` COULD-NOT-STAGE → FIRED-AND-BOARDS-MATCH with
+  `leaves_kept: 2`: the attract leaf survives both controls while Marvel Scale's four HP leaves are dropped
+  as the control's. Abilities **175 → 176**, exactly one row changed. ROADMAP #605.
+
+### Notes
+- Reds **22/22 items, 45/45 abilities, 36/36 moves CAUGHT**, none NOT CAUGHT. The ability rule count moved
+  44 → 45 because Cute Charm's rule previously staged no member and so had nothing to break.
+- `board_state.js`'s NOT_COMPARED row for yawn / curse / heal block is restated: all three are comparable
+  TODAY and are unwired for BLAST RADIUS alone — unlike attract they land in ordinary play, so wiring them
+  changes what every pooled game compares. Owed its own batch.
+
 ## [6.32.0] — 2026-09-11
 
 ### Fixed

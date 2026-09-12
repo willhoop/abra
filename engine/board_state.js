@@ -117,17 +117,32 @@ const NOT_COMPARED = [
    * torment, imprison, saltcure, syrupbomb and the two-turn charge lock). These are the candidates
    * from the same sweep that were NOT wired, each with the reason it was not, because "we looked and
    * did not add it" and "we never looked" are different sentences and only one of them is honest. */
-  { field: 'yawn, attract, curse (the Ghost form) and heal block',
-    why: 'NOT A JUDGEMENT ABOUT THE ENGINES — a claim about the FIXTURE, which is a different thing '
-       + '(Will has taught this twice). tests/probe_volatile_leaves.js staged each with a legal carrier '
-       + 'and NEITHER engine produced the volatile: Yawn and Psychic Noise were aimed at a body whose '
-       + 'ability or status refused them, Attract needs opposite genders that the staged pair did not '
-       + 'have, and Curse writes no volatile at all on a non-Ghost user. medicham2 demonstrably HOLDS '
-       + 'yawn (`_yawn`, `_vol.yawn`), attract (`_vol.attract`) and healblock (`_vol.healblock`), so '
-       + 'the leaf is almost certainly comparable — it is left out because wiring a leaf whose two '
-       + 'shapes have never been SEEN is how a comparator starts manufacturing divergences.',
-    next: 'give probe_volatile_leaves.js a fixture that actually lands each one, then wire it',
-    leaves: ['volatile:yawn', 'volatile:attract', 'volatile:curse', 'volatile:healblock'] },
+  /* ---- ATTRACT LEFT THIS ROW ON 2026-09-12 AND THE ROW'S MEASUREMENT IS RESTATED, NOT KEPT --------
+   * This entry read that the probe staged all four and NEITHER engine produced any of them. That was
+   * true when written and is now true of ONE of the four. The probe was given the fixture this row
+   * asked for (a declared male/female pair), and it reports: attract BOTH, yawn BOTH, healblock BOTH,
+   * curse SHOWDOWN ONLY. Attract is wired — see `mediBody`. The other three are below, with what the
+   * probe actually measures today rather than what it measured in August; a declaration kept past the
+   * thing it described is the failure this whole block exists to prevent. */
+  { field: 'yawn, curse (the Ghost form) and heal block',
+    why: 'NOT A JUDGEMENT ABOUT THE ENGINES — a claim about BLAST RADIUS, which is a different thing. '
+       + 'MEASURED 2026-09-12 by tests/probe_volatile_leaves.js: ALL THREE READ **BOTH**. Yawn '
+       + '(`_yawn=1` against `yawn(d1)`) and heal block (`_healBlock=1` against `healblock(d1)`) came '
+       + 'back once the probe read EVERY boundary rather than the last — Yawn\'s condition is '
+       + '`duration: 2`, so it is correctly GONE by the final board. CURSE read SHOWDOWN ONLY until '
+       + 'the same pass, and THAT WAS THE PROBE AND NOT THE ENGINE: medicham2 holds the Ghost '
+       + 'branch\'s chip in `_ptDmg` (ROADMAP #175 — it is a Condition here, not a `_vol` entry) and '
+       + 'the probe\'s reader did not look there. The identical trap is why `_healBlock` is named in '
+       + 'that reader, and it cost a suspected engine defect that does not exist — WRITTEN DOWN '
+       + 'because a wrong accusation retracted quietly is how the next one gets believed.\n'
+       + '     SO THE REASON THEY ARE STILL NOT WIRED IS BLAST RADIUS AND NOTHING ELSE. Attract was '
+       + 'wired in the same pass because it cannot exist without a DECLARED gender, and '
+       + '`declaredGender` is opt-in to the staging harness — so no game in the frozen pool can grow '
+       + 'that leaf. These three land in ORDINARY PLAY, so wiring them changes what every pooled game '
+       + 'compares. That is its own measured batch with its own before/after, not a rider on this one.',
+    next: 'wire all three as a batch of their own, with the pooled before/after measured on the '
+        + 'frozen team store — they are comparable today, the only open question is what they move.',
+    leaves: ['volatile:yawn', 'volatile:curse', 'volatile:healblock'] },
   /* ROADMAP #308 -- THE SOURCE HALF OF A MOVE TRAP, and it is an omission rather than an oversight.
    * Showdown puts `trapped` on the victim AND `trapper` on whoever laid it; medicham2 keeps the
    * trapper INSIDE the victim's own `_trapHard` record and writes nothing on the source at all. The
@@ -1061,6 +1076,25 @@ function mediBody(m, id, ctx) {
       trapped: m._trapHard ? 1 : 0,
       uproar: (m._mtLock && m._mtLock.vol === 'uproar') ? num(m._mtLock.left) : 0,
       charge: num(vol.charge) ? 1 : 0,
+      /* ---- ATTRACT. 2026-09-12, AND IT IS THE `next` LINE OF ITS OWN NOT_COMPARED ROW ------------
+       *
+       * That row said the leaf was left out because the two shapes had "never been SEEN", and named
+       * the reason honestly: the probe's pair was genderless, so the volatile could not land and the
+       * verdict was a claim about the FIXTURE. `tests/probe_volatile_leaves.js` now DECLARES a pair —
+       * a male user against a female target, both species free to be either in this format — and the
+       * row reads BOTH: `attract=1` here against `attract` there.
+       *
+       * PRESENCE, NOT A CLOCK, AND NEITHER SIDE HAS ONE. `data/moves.ts` attract.condition carries no
+       * duration and neither does `_vol.attract`, so nothing is being collapsed — unlike magnetrise
+       * and syrupbomb above, where the narrowing IS a narrowing and is declared as one.
+       *
+       * THE BLAST RADIUS IS ONE FIXTURE AND THAT IS WHY THIS LEAF AND NOT THE OTHER THREE. Attract
+       * can only exist on a board where a gender was DECLARED, and `declaredGender` is opt-in: the
+       * staging harness passes it and nothing else does, so no game in the pinned pool can grow this
+       * leaf. Yawn and heal block now read BOTH on the same probe run and are NOT wired here, because
+       * they land in ordinary play and would change what every pooled game compares — that is its own
+       * measured batch, not a rider on this one. */
+      attract: vol.attract ? 1 : 0,
       /* ---- DESTINY BOND. 2026-08-25. The row this replaces in NOT_COMPARED said it was ONE-SIDED
        * and therefore a SUSPECT rather than a leaf, and it was right at the time and for the right
        * reason: this engine held `_vol.destinybond` for ever, so wiring it would have parted every
@@ -1384,6 +1418,9 @@ function sdBody(p, id, ctx) {
       trapped: v.trapped ? 1 : 0,
       uproar: dur(v.uproar),
       charge: v.charge ? 1 : 0,
+      /* THE AUTHORITY'S SIDE OF ATTRACT — presence, for the reason on the medicham side: the
+       * condition carries no duration here either, so the pair is a like-for-like read. */
+      attract: v.attract ? 1 : 0,
       /* THE AUTHORITY'S SIDE OF DESTINY BOND. `data/moves.ts` destinybond.condition carries no
        * duration, so presence is the whole of it and nothing is being collapsed. */
       destinybond: v.destinybond ? 1 : 0,

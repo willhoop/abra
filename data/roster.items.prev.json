@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-11T22:07:59.382Z",
+ "generated": "2026-09-11T22:52:59.282Z",
  "by": "tests/roster.js",
  "stage": "items",
  "swap_leaf_correction": {
@@ -8,7 +8,7 @@
  },
  "engine_release": "534442d71183",
  "engine_release_cut": "2026-09-11T20:25:57.786Z",
- "engine_release_cuts": 43,
+ "engine_release_cuts": 58,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
   "engine/medicham2-browser.js": "4b2bc0128dea",
@@ -44,29 +44,30 @@
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
   "DEFERRED-BY-OWNER": 0,
-  "FIRED-AND-BOARDS-MATCH": 142,
+  "FIRED-AND-BOARDS-MATCH": 148,
   "CONTROL-NOT-QUIET": 0,
-  "COULD-NOT-STAGE": 6
+  "COULD-NOT-STAGE": 0
  },
  "counts_in_scope": 148,
  "counts_basis": "engine/legal_scope.js in-scope set; out-of-scope entities are excluded from every bucket rather than counted as COULD-NOT-STAGE",
  "arms_played": {
-  "top-tie-first": 320
+  "top-tie-first": 322,
+  "bottom-tie-first": 18
  },
  "scope": {
   "total": 148,
   "out_of_scope": 0,
   "out_of_scope_by": {},
   "in_scope": 148,
-  "tested": 142,
-  "matched": 142,
+  "tested": 148,
+  "matched": 148,
   "differ": 0,
   "silent": 0,
   "deferred": 0,
   "unattributable": 0,
   "unattributable_ids": [],
   "declared_untestable": [],
-  "could_not_stage_in_scope": 6,
+  "could_not_stage_in_scope": 0,
   "attributed_by_second_control": [],
   "carrier_derivation": {
    "legal_species": 347,
@@ -81,7 +82,7 @@
  },
  "plant_anchors": {
   "release": "534442d71183",
-  "checked": 18,
+  "checked": 22,
   "dead": [],
   "reds_ran": true
  },
@@ -99,6 +100,24 @@
     "fields": [
      "party.species",
      "species"
+    ]
+   }
+  },
+  {
+   "rule": "item/status-cure",
+   "ok": true,
+   "why": "the status cure is skipped — the berry is still held",
+   "moved": {
+    "member": "aspearberry",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.item",
+     "item",
+     "last_item",
+     "ate_berry"
     ]
    }
   },
@@ -167,26 +186,6 @@
    }
   },
   {
-   "rule": "item/status-cure",
-   "ok": true,
-   "why": "the status cure is skipped — the berry is still held",
-   "moved": {
-    "member": "cheriberry",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.status",
-     "party.item",
-     "status",
-     "item",
-     "last_item",
-     "ate_berry"
-    ]
-   }
-  },
-  {
    "rule": "item/speed-scaled",
    "ok": true,
    "why": "the item speed multiplier is dropped from the speed used to order the turn",
@@ -234,6 +233,32 @@
    }
   },
   {
+   "rule": "item/survives-by-chance",
+   "ok": true,
+   "why": "the CHANCE half of the survival is dropped. An item whose survival is unconditional (Focus Sash, `chance == null`) still holds, so a flip here is this item's own and not the shared floor `item/hp-floor` already demonstrates",
+   "moved": {
+    "member": "focusband",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.fainted",
+     "party.status",
+     "species",
+     "hp",
+     "maxhp",
+     "item",
+     "types",
+     "ability",
+     "boosts.spd",
+     "vol.focusenergy",
+     "pp.focusenergy"
+    ]
+   }
+  },
+  {
    "rule": "item/hp-floor",
    "ok": true,
    "why": "the HP floor stops holding the body up — the item is still held and still read",
@@ -256,6 +281,32 @@
      "vol.focusenergy",
      "pp.focusenergy",
      "pp.poisonjab"
+    ]
+   }
+  },
+  {
+   "rule": "item/adds-flinch-by-chance",
+   "ok": true,
+   "why": "the bolted-on flinch is skipped — the item is still held, still read, and its own no-stacking clause is left standing",
+   "moved": {
+    "member": "kingsrock",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "pp.icebeam",
+     "party.hp",
+     "party.status",
+     "hp",
+     "status",
+     "party.fainted",
+     "species",
+     "maxhp",
+     "item",
+     "types",
+     "ability",
+     "pp.sludgebomb"
     ]
    }
   },
@@ -360,6 +411,47 @@
      "item",
      "last_item",
      "ate_berry"
+    ]
+   }
+  },
+  {
+   "rule": "item/priority-by-chance",
+   "ok": true,
+   "why": "the item half of the fractional-priority loop is dropped, so the holder never jumps its bracket; the ABILITY half (Quick Draw) is left standing",
+   "moved": {
+    "member": "quickclaw",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.fainted",
+     "party.status",
+     "hp",
+     "fainted",
+     "status",
+     "species",
+     "item",
+     "types",
+     "ability",
+     "pp.flamethrower"
+    ]
+   }
+  },
+  {
+   "rule": "item/crit-ratio",
+   "ok": true,
+   "why": "the ITEM's crit-stage contribution is dropped, so the holder never reaches the certain tier; the move, ability and volatile contributions are left standing",
+   "moved": {
+    "member": "scopelens",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
     ]
    }
   },
@@ -982,13 +1074,13 @@
    "id": "aspearberry",
    "name": "Aspear Berry",
    "rule": "item/status-cure",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "no 100-accuracy move in this format inflicts frz outright, and the pin makes every sub-100-accuracy move miss — so the condition this berry cures cannot be put on a body at all. THE ITEM IS NOT ABSENT FROM THE ENGINE; IT IS UNREACHABLE FROM HERE.",
-   "arm": "top-tie-first",
+   "reads": "onUpdate + shortDesc \"cured if it is <status>\" / \"wakes up\" / \"confused\" / \"cures itself\"",
+   "note": "frz delivered by Ice Beam onto kangaskhan [SECONDARY road, pinned to bottom-tie-first: this regulation has no outright carrier for frz, and on this corner the secondary that writes it FIRES in both engines]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "arm": "bottom-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "kangaskhan",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -1000,7 +1092,32 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "aspearberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].last_item",
+     "with": "aspearberry",
+     "without": ""
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    }
+   ],
    "diffs": []
   },
   {
@@ -4049,14 +4166,14 @@
    "kind": "item",
    "id": "focusband",
    "name": "Focus Band",
-   "rule": "item/chance-gated",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "its effect is a 10% chance, and this file pins `PRIMARY_ARM_ID = \"top-tie-first\"` (tests/roster.js), the corner on which every sub-100% roll fails in both engines. Nothing staged on that corner could distinguish a wired mechanic from an absent one. THE ROUTE THAT WOULD REACH IT EXISTS AND THIS ROW IS NOT ON IT YET: the live-die lane (`arm: \"middle\"` with a coin receipt) was added 2026-09-07 and eight ability rules declare it; no item rule does.",
-   "arm": "top-tie-first",
+   "rule": "item/survives-by-chance",
+   "reads": "onDamage + shortDesc \"% chance to survive\"",
+   "note": "Rhyperior throws a lethal Earth Power (1.6x its HP, and NO secondary) at Aggron. WITH the item the holder must be left on 1 HP and still be standing at the boundary; WITHOUT it the same hit must kill. Pinned to bottom-tie-first, where the 10% roll lands in both engines.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "arm": "bottom-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "aggron",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -4068,7 +4185,74 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.aggron.hp",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.aggron.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.aggron.status",
+     "with": "",
+     "without": "fnt"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "aggron",
+     "without": "milotic"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1,
+     "without": 170
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].maxhp",
+     "with": 145,
+     "without": 170
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].types",
+     "with": "rock/steel",
+     "without": "water"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ability",
+     "with": "heavymetal",
+     "without": "marvelscale"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].boosts.spd",
+     "with": -1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    }
+   ],
    "diffs": []
   },
   {
@@ -5851,14 +6035,14 @@
    "kind": "item",
    "id": "kingsrock",
    "name": "King's Rock",
-   "rule": "item/chance-gated",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "its effect is a 10% chance, and this file pins `PRIMARY_ARM_ID = \"top-tie-first\"` (tests/roster.js), the corner on which every sub-100% roll fails in both engines. Nothing staged on that corner could distinguish a wired mechanic from an absent one. THE ROUTE THAT WOULD REACH IT EXISTS AND THIS ROW IS NOT ON IT YET: the live-die lane (`arm: \"middle\"` with a coin receipt) was added 2026-09-07 and eight ability rules declare it; no item rule does.",
-   "arm": "top-tie-first",
+   "rule": "item/adds-flinch-by-chance",
+   "reads": "shortDesc — \"gain a N% chance to flinch\"",
+   "note": "Venusaur (132 against 130 Speed) hits Blastoise with Sludge Bomb first; the foe's Ice Beam must never land. Pinned to bottom-tie-first, where the 10% flinch fires in both engines. The foe survives by construction, so the flinch has a body to sit on.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "arm": "bottom-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "venusaur",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -5870,7 +6054,98 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.pp[0].icebeam",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.venusaur.hp",
+     "with": 155,
+     "without": 39
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.venusaur.status",
+     "with": "",
+     "without": "frz"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 155,
+     "without": 39
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "frz"
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].icebeam",
+     "with": 0,
+     "without": 2
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.venusaur.hp",
+     "with": 155,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.venusaur.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.venusaur.status",
+     "with": "",
+     "without": "fnt"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].species",
+     "with": "venusaur",
+     "without": "milotic"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 155,
+     "without": 170
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].maxhp",
+     "with": 155,
+     "without": 170
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].types",
+     "with": "grass/poison",
+     "without": "water"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].ability",
+     "with": "overgrow",
+     "without": "marvelscale"
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].sludgebomb",
+     "with": 2,
+     "without": null
+    }
+   ],
    "diffs": []
   },
   {
@@ -8184,14 +8459,14 @@
    "kind": "item",
    "id": "quickclaw",
    "name": "Quick Claw",
-   "rule": "item/chance-gated",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "its effect is a 20% chance, and this file pins `PRIMARY_ARM_ID = \"top-tie-first\"` (tests/roster.js), the corner on which every sub-100% roll fails in both engines. Nothing staged on that corner could distinguish a wired mechanic from an absent one. THE ROUTE THAT WOULD REACH IT EXISTS AND THIS ROW IS NOT ON IT YET: the live-die lane (`arm: \"middle\"` with a coin receipt) was added 2026-09-07 and eight ability rules declare it; no item rule does.",
-   "arm": "top-tie-first",
+   "rule": "item/priority-by-chance",
+   "reads": "onFractionalPriority",
+   "note": "Clefable holds it and is the SLOWER (112 against 117); each kills the other, so the ORDER decides who is standing. Pinned to bottom-tie-first, where the 20% jump fires in both engines.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "arm": "bottom-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "clefable",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -8203,7 +8478,104 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.party.scizor.hp",
+     "with": 0,
+     "without": 145
+    },
+    {
+     "turn": 1,
+     "path": "p1.party.scizor.fainted",
+     "with": true,
+     "without": false
+    },
+    {
+     "turn": 1,
+     "path": "p1.party.scizor.status",
+     "with": "fnt",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].species",
+     "with": "milotic",
+     "without": "scizor"
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].hp",
+     "with": 170,
+     "without": 145
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].maxhp",
+     "with": 170,
+     "without": 145
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].types",
+     "with": "water",
+     "without": "bug/steel"
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].ability",
+     "with": "marvelscale",
+     "without": "technician"
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[0].ironhead",
+     "with": null,
+     "without": 1
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.clefable.hp",
+     "with": 170,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.clefable.fainted",
+     "with": false,
+     "without": true
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.clefable.status",
+     "with": "",
+     "without": "fnt"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].species",
+     "with": "clefable",
+     "without": "milotic"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].types",
+     "with": "fairy",
+     "without": "water"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ability",
+     "with": "unaware",
+     "without": "marvelscale"
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].flamethrower",
+     "with": 1,
+     "without": null
+    }
+   ],
    "diffs": []
   },
   {
@@ -8385,13 +8757,13 @@
    "id": "rawstberry",
    "name": "Rawst Berry",
    "rule": "item/status-cure",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "no 100-accuracy move in this format inflicts brn outright, and the pin makes every sub-100-accuracy move miss — so the condition this berry cures cannot be put on a body at all. THE ITEM IS NOT ABSENT FROM THE ENGINE; IT IS UNREACHABLE FROM HERE.",
-   "arm": "top-tie-first",
+   "reads": "onUpdate + shortDesc \"cured if it is <status>\" / \"wakes up\" / \"confused\" / \"cures itself\"",
+   "note": "brn delivered by Infernal Parade onto goodrahisui [SECONDARY road, pinned to bottom-tie-first: this regulation has no outright carrier for brn, and on this corner the secondary that writes it FIRES in both engines] (ONE legal learner, Typhlosion-Hisui: the holder on turn 1, the partner on turn 2)",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "arm": "bottom-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "goodrahisui",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -8403,7 +8775,116 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.goodrahisui.hp",
+     "with": 118,
+     "without": 109
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.goodrahisui.status",
+     "with": "",
+     "without": "brn"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 118,
+     "without": 109
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "brn"
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].last_item",
+     "with": "rawstberry",
+     "without": ""
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.goodrahisui.hp",
+     "with": 118,
+     "without": 100
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.goodrahisui.status",
+     "with": "",
+     "without": "brn"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 118,
+     "without": 100
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "brn"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].last_item",
+     "with": "rawstberry",
+     "without": ""
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.goodrahisui.hp",
+     "with": 118,
+     "without": 91
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.goodrahisui.status",
+     "with": "",
+     "without": "brn"
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].hp",
+     "with": 118,
+     "without": 91
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "brn"
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].last_item",
+     "with": "rawstberry",
+     "without": ""
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].ate_berry",
+     "with": 1,
+     "without": 0
+    }
+   ],
    "diffs": []
   },
   {
@@ -8885,13 +9366,13 @@
    "id": "scopelens",
    "name": "Scope Lens",
    "rule": "item/crit-ratio",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "it raises the critical-hit RATIO, and the pin never lets a crit land in either engine, so the ratio has nothing to act on",
+   "reads": "onModifyCritRatio",
+   "note": "Dragapult clicks Focus Energy (+2 stages, in BOTH arms) and then Dragon Claw at Venusaur. WITH the item the ratio is 4 and the hit ALWAYS crits; WITHOUT it the ratio is 3 and the pin refuses the roll. No die is thrown on either side.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "dragapult",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -8903,7 +9384,20 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p1.party.venusaur.hp",
+     "with": 795,
+     "without": 840
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 795,
+     "without": 840
+    }
+   ],
    "diffs": []
   },
   {

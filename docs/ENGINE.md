@@ -154,10 +154,10 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  883/883 probed mechanics live, 0 missing   (census 2026-09-11 18:13)
+  883/883 probed mechanics live, 0 missing   (census 2026-09-11 19:54)
     the census probes what somebody thought to probe: 296 of 296 in-scope tags carry a probe, 0 carry none (9 of 305
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 22 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 2.0 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-11 16:35)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
     the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
@@ -181,9 +181,64 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-11 18:31_
+_stamped 2026-09-11 20:07_
 
 <!-- /GENERATED -->
+
+## THE LAST THREE STAGEABLE ABILITY ROWS CLOSE — ABILITIES **173 → 176 MATCH / 19 → 16 COULD-NOT-STAGE**. ITEMS **148** AND MOVES **486 / 8 / 3** UNMOVED AS CONTROLS. CENSUS **883 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `534442d71183`. 2026-09-12, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-12-last-unstaged.md`. Gate after this pass:
+`GATE: OPEN — MEDICHAM passes both conditions; nothing is withheld`, abilities clause **176 of 200**.
+
+- **`compoundeyes` and `lightmetal` were ONE FIXTURE DEFECT, not two instrument defects.** Both were
+  carried as the SUBJECT arm THREW with `Can't pass: Your <body> must make a move (or switch)`.
+  `deliveryOf` refuses `m.forceSwitch` — the TARGET leaving — and **never refused `m.selfSwitch`**, the
+  USER leaving, so U-turn sat in the Bug slot of the delivery table. Bug is 0.5 x 2 = **neutral** on
+  Steel/Psychic, so the derived neutral contact hit on Metagross WAS U-turn: the aggressor hit,
+  switched ITSELF out, and the next turn asked its replacement for a move it does not have. The refusal
+  quotes eight lines of narration and the faint that installs the replacement is further back than
+  that, so the trace showed the symptom and never the cause; `ROSTER_TRACE_LINES=60` made it one line.
+  The filter was **PRINTED before it was trusted** and matches exactly three moves — Flip Turn, U-turn,
+  Volt Switch. RED again under `ROSTER_ALLOW_SELFSWITCH_DELIVERY=1`. ROADMAP #604.
+- **Cute Charm needed TWO gaps closed, and either alone proves nothing.** The fixture could not declare
+  a gender, so Attract's condition refused and the coin came up against a board that could not move;
+  and `volatile:attract` was in `board_state.js`'s NOT_COMPARED, so even once it landed there was no
+  leaf to read. The seam is opened PER SCENARIO, and both bodies are checked free (`species.gender ===
+  ''`) because Showdown's constructor prefers `set.gender` and would honour a declared gender on a body
+  the regulation fixes. The leaf was wired only after `probe_volatile_leaves.js` read **BOTH** on the
+  new fixture. Result: `leaves_kept: 2` — the attract leaf survives BOTH controls while Marvel Scale's
+  four HP leaves are dropped as the control's, so the green is the entity's. ROADMAP #605.
+- **A WRONG ACCUSATION CAUGHT BEFORE IT WAS FILED.** The same probe read `uproar SHOWDOWN ONLY` and
+  `curse SHOWDOWN ONLY`. **Both were the probe**, which reads `_vol` plus a hand-written field list
+  that omitted `_mtLock` (the rampage lock, carrying `vol: 'uproar'`, which `board_state.js` has
+  compared as a clock all along) and `_ptDmg` (Curse's Ghost branch, ROADMAP #175). The identical trap
+  `_healBlock` is already named in that reader for. Both now read BOTH. ROADMAP #606.
+- **Every count moved by exactly what it should.** Batch 1: abilities 173 → 175, items and moves 0 rows
+  moved. Batch 2: abilities 175 → 176 with **exactly one row changed**, items and moves 0 rows moved.
+  Reds **22/22, 45/45, 36/36 CAUGHT**, none NOT CAUGHT. The ability rule count moved 44 → 45 because
+  Cute Charm's rule previously staged no member and so had nothing to break.
+
+### The hand list
+
+- **`magmaarmor` and `slushrush` remain the only CONTROL-NOT-QUIET rows with a route, and this pass
+  checked it one step further than the last.** Both call `stageAbility` directly; the route is a
+  guarded delegation to `stageAbilitySwap`. Neither passes `a1` nor `onBench` (what that builder
+  overwrites), **and both run on CORNER arms, where every die is a constant** — so the prepended setup
+  turn shifts no coin, which is the objection that would otherwise kill it. NOT DONE: `stageAbility` is
+  the builder for every rule in that block, so the guard has to be measured against a full `--reds`
+  ability run to prove no red demonstration goes NOT CAUGHT. That is a batch, not a rider.
+- **`aurawheel` is the one refused MOVE with a route.** Hunger Switch flips Morpeko's forme at the end
+  of every turn, so two consecutive clicks by one body are the two branches on one board — the same
+  shape as `move/type-changing`'s weather arm. Morpeko is legal (`isNonstandard: null`) and buildable
+  (`mcKey` resolves). It needs a new arm in that rule; a half-written rule is worse than a declared gap.
+- **`yawn`, `curse` and `healblock` are COMPARABLE TODAY and deliberately unwired.** All three read BOTH
+  once the probe's reader was fixed. They are held for BLAST RADIUS alone: unlike attract, which cannot
+  exist without a declared gender, these land in ordinary play, so wiring them changes what every game
+  in the frozen pool compares. Owed its own batch with a pooled before/after.
+- **The other refusals stand and were re-read, not assumed** — `focusenergy` IS the control click,
+  `struggle` is disabled while any move is usable, `extremespeed`/`iceshard`/`jetpunch` have no legal
+  learner whose abilities the fixture may hold (`wideAbility` measured and REFUTED), `upperhand` reads a
+  target's priority intent, `ragingbull` is forme-keyed across separate species.
 
 ## EVERY IN-SCOPE ITEM IS STAGED — ITEMS **6 → 0 COULD-NOT-STAGE**, ABILITIES **139 → 173 MATCH / 43 → 19 / 13 → 3**, MOVES **UNMOVED AT 486 / 8 / 3**. CENSUS **883 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `534442d71183`. 2026-09-12, CHANGELOG `<<VER>>`
 
@@ -227,10 +282,10 @@ Full account: `docs/_reports/2026-09-12-staging-the-untested.md`.
   viable and checked — neither passes `a1` nor `onBench`, which is what that builder overwrites and ignores
   — and five other call sites DO pass `a1`, so the delegation must be guarded, not blanket. `opportunist` is
   residual and is excluded on purpose.
-- **`cutecharm` is REPORTED, NOT FIXED.** It needs gendered bodies in `game_differential.js#buildPair`,
-  which is owned by another division this pass and was not edited.
-- **`compoundeyes` and `lightmetal` are real instrument defects** — the SUBJECT arm THREW with
-  `Can't pass: Your <body> must make a move`.
+- ~~**`cutecharm` is REPORTED, NOT FIXED.**~~ **CLOSED 2026-09-12** — the gender seam and the attract
+  leaf, ROADMAP #605. It leaves this list.
+- ~~**`compoundeyes` and `lightmetal` are real instrument defects.**~~ **CLOSED 2026-09-12** — they were
+  ONE fixture defect, not two instrument defects: the delivery table issued U-turn. ROADMAP #604.
 - **`extremespeed` / `iceshard` / `jetpunch`: the obvious fix is REFUTED, measured.** `wideAbility` would
   lend Dragonite **Multiscale**, Mamoswine **Thick Fat**, Ninetales-Alola **Snow Warning** and Glalie **Ice
   Body** — two damage modifiers, a weather setter and a residual heal, every one of which breaks the
