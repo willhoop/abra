@@ -9414,6 +9414,17 @@ console.log('');
 if (WRITE) {
   const artifact = Object.assign({
     generated: new Date().toISOString(), by: 'engine/game_differential.js', mode: MODE,
+    /* `--games` IS PART OF THE SAMPLE DEFINITION AND THE ARTIFACT NEVER RECORDED IT — 2026-09-12, MEASURE.
+     *
+     * `games` below is the number PLAYED (961); the flag that chose WHICH teams play is `--games`
+     * (1200), because `diff_swarm.buildSwarm` strides the team list at a step computed from
+     * `swarm_size_requested`. On one release and one set of pins `--games 1200` read 0 board-material
+     * games and `--games 1350` read 10 (docs/_reports/2026-09-12-wide-sample.md). So the flag is
+     * stamped, and `engine/quarantine.js`'s lattice clause refuses a sample whose `games_requested`
+     * is not the one its slot names. */
+    games_requested: GAMES,
+    swarm_size_requested: Math.max((UNTIL_COVERED ? MAX_GAMES : GAMES) * 2, 18),
+    until_covered: UNTIL_COVERED,
     /* THE HEADLINE WARNING, AT THE TOP OF THE FILE AND NOT IN A FOOTNOTE. */
     baseline_reset: 'ROADMAP #88 (four pinned arms where there was one) and ROADMAP #91 (coverage '
       + 'credit moved from the CLICK to the OBSERVED EFFECT) both changed WHICH GAMES GET PLAYED and '

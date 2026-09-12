@@ -186,7 +186,7 @@
     "exploitability.json",
     "medicham-bench.json"
   ],
-  "verified": 10,
+  "verified": 13,
   "graph_files": [
     "_bench-belownormal.json",
     "_bench-headline.json",
@@ -278,6 +278,8 @@
     "game-differential-endstate-turn40.json",
     "game-differential-endstate-v2.json",
     "game-differential-endstate.json",
+    "game-differential.g1350.json",
+    "game-differential.g1950.json",
     "game-differential.json",
     "gate-census.pin.json",
     "guru-matchups.json",
@@ -1101,5 +1103,5 @@
       ]
     }
   ],
-  "generated": "2026-09-12T14:17:44.455Z"
+  "generated": "2026-09-12T21:09:29.753Z"
 }

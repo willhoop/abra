@@ -10,6 +10,34 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.46.0] — 2026-09-12
+
+### Changed
+- **The whole-game gate reads three team lattices, not one.** `diff_swarm.buildSwarm(--games * 2)`
+  picks teams by a deterministic stride whose step comes from `--games`, so `--games` decides which
+  teams and matchups play, and the gate's `0 of 961` was one lattice that held no divergence
+  (ROADMAP #619, `docs/_reports/2026-09-12-wide-sample.md`). Both whole-game clauses in
+  `engine/quarantine.js` now read `LATTICE_SAMPLES` — `--games` 1200, 1350 and 1950, each at its own
+  path — and open only on zero on all three. A missing, stale, mislabelled, unpinned or
+  duplicate-lattice sample is CANNOT-ANSWER (exit 2); any non-zero sample closes the clause (exit 1).
+  1950 was derived, not typed: 72.1% of its picks fall outside both other lattices, where 2400 would
+  re-pick 1,631 of the 1,968 teams 1200 plays. The set was fixed before any sample was run.
+- **`engine/game_differential.js` stamps `games_requested`, `swarm_size_requested` and
+  `until_covered`.** `--games` is part of the sample definition and the artifact never recorded it.
+  No die, click or pick changes; the `--games 1200` re-run reproduces the artifact it replaced
+  (961 games, 10,705 of 10,705 boundaries, pool `0d103fb9fa87`).
+
+### Notes
+- **The gate closes.** Release `bc8d7cf849dd`, census `632a699468ca`, pool `data/team-pool-frozen`,
+  arm `middle`, cap 50, `--end-state`: board-material 0 of 961 at `--games 1200`, 9 of 1069 at
+  1350, 21 of 1497 at 1950. `node engine/quarantine.js` prints `GATE: CLOSED — 1 of 8 GATING
+  clauses fail`. The control: `wholeGameClause()` still reads zero on the same 1200 artifact.
+- Selftest 279 passed, 0 failed. Twelve new lattice arms were red first (267 / 12) against the old
+  single-sample reading.
+- Cost: about 12 minutes for the three samples against 4.4 for one. Reading the gate is unchanged.
+- Owed: six closed register rows name `--whole-game` as VERIFIED BY (#218, #301, #314, #315, #439,
+  #542) and will read PREMATURE CLOSE on the next register sweep.
+
 ## [6.45.0] — 2026-09-12
 
 ### Fixed

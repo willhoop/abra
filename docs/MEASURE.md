@@ -13,32 +13,68 @@ it does not compete on them.
 
 ```
 MEASURE — can we believe a number
-  leaf calibration: WITHHELD — engine/provenance.js calls data/winrate-backtest.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    older than its input engine-data.js
-    (+2 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/backtest_winrate.js
-  engine correctness -> leaf: WITHHELD — engine/provenance.js calls data/leaf-engine-contrast.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    older than its input engine-data.js
-    (+10 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 224 unsafe, 2 void (declared), 11 possibly stale, 19 ok, 0 missing
-  click censoring: WITHHELD — engine/provenance.js calls data/click-censoring-census.json UNSAFE.
-    OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
-    COMPUTED FROM DIFFERENT CONTENT — engine/fit_policy.js was 37df17935c16 at read time, is a963537c91e8 now
-    (+5 more — node engine/provenance.js)
-    it becomes quotable again when this is re-run: node engine/click_census.js
+  leaf calibration: QUARANTINED — the figure is withheld, not annotated.
+    data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 1 of 8 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part, on EVERY team lattice); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect, on EVERY team lattice)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
+  engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
+    data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 1 of 8 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part, on EVERY team lattice); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect, on EVERY team lattice)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
+  provenance: 222 unsafe, 2 void (declared), 16 possibly stale, 18 ok, 0 missing
+  click censoring: QUARANTINED — the figure is withheld, not annotated.
+    data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
+    MEDICHAM is not correct — 1 of 8 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part, on EVERY team lattice); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect, on EVERY team lattice)
+    it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
+  the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-11 17:30
+    moved after the fit: engine/medicham2-browser.js  2026-09-12 10:24
     moved after the fit: data/engine-data.js  2026-08-31 00:08
     moved after the fit: data/abra-tags.js  2026-09-11 09:48
 ```
 
-_stamped 2026-09-11 18:31_
+_stamped 2026-09-12 17:09_
 
 <!-- /GENERATED -->
+
+## THE WHOLE-GAME GATE READ ONE TEAM LATTICE. IT NOW READS THREE, AND IT CLOSES: **0 OF 961, 9 OF 1069, 21 OF 1497**. 2026-09-12, ROADMAP #619
+
+**THE DECISION.** Will delegated it. The choice was to raise `--games` to 12000 (about 20 to 25 minutes a
+release) or to keep the cost and break the lattice. MEASURE chose the second. `diff_swarm.buildSwarm`
+picks teams by a fixed stride whose step comes from `--games`, so a second and third `--games` value
+is a different set of teams and matchups, not a larger copy of the first. Both whole-game clauses in
+`engine/quarantine.js` now read `LATTICE_SAMPLES` and open only on zero on every sample.
+
+**THE SET IS DERIVED AND WAS FIXED BEFORE ANY SAMPLE RAN.** 1200 is the published sample. 1350 is the
+value that exposed the defect. 1950 came from walking the shipping `buildSwarm` over the frozen pool:
+72.1% of its picks are in neither other lattice. The obvious 2400 is exactly twice the stride size and
+re-picks 1,631 of the 1,968 teams that 1200 plays. After the runs, no board-material game sat in a
+matchup that two lattices share. That is what determinism predicts, and it is the evidence that the
+lattice decides what the gate sees.
+
+**THE READING.** Release `bc8d7cf849dd`, census `632a699468ca`, `--team-store data/team-pool-frozen`, arm
+`middle`, cap 50, `--end-state`. Board-material is 0 of 961 at `--games 1200` (`data/game-differential.json`),
+9 of 1069 at `--games 1350` (`data/game-differential.g1350.json`) and 21 of 1497 at `--games 1950`
+(`data/game-differential.g1950.json`). The gate prints `GATE: CLOSED — 1 of 8 GATING clauses fail`.
+**The control:** `wholeGameClause()`, the single-sample clause the gate called until today, still reads
+zero on the same `--games 1200` artifact.
+
+**WHAT REFUSES.** A sample is CANNOT-ANSWER, never a pass, when it is missing, when its `games_requested`
+is absent or is not its slot, when the existing door withholds it (stale release, digests, population,
+planted proofs), when the samples disagree on any pin, when the pool is unpinned, or when two slots
+share a `team_pool_digest`. Any non-zero sample closes the clause, even beside a missing one.
+`engine/game_differential.js` now stamps `games_requested`, so `--games` is recorded and not inferred.
+The selftest carries twelve lattice arms. They read red first (267 passed, 12 failed) against the old
+single-sample reading, and green after (279 passed, 0 failed).
+
+**COST.** About 12 minutes for the three samples, against 4.4 for one. Reading the gate is unchanged.
+
+**OWED, NOT DONE.** Six closed rows name `node engine/quarantine.js --whole-game` as VERIFIED BY: #218,
+#301, #314, #315, #439 and #542. That command exits 1 now, so the next register sweep reads them
+PREMATURE CLOSE. `data/register-reality.json` was not regenerated in this pass. The held 7.0.0
+documents still describe the gate as one sample. Full account:
+[docs/_reports/2026-09-12-lattice-gate.md](_reports/2026-09-12-lattice-gate.md).
 
 ## THE GATE'S OWN PARSER MISSED A RED MARKER ON LETTER CASE AND CUT ANY STATUS CELL THAT QUOTED A PIPE. 12 VERDICTS MOVE, ALL GATE-SHUTTING, ALL DEBT. 2026-09-11
 

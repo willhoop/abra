@@ -4746,6 +4746,55 @@ const MOVE_TAGS = [
       if (m.selfdestruct) out.userFaints = m.selfdestruct;
       return out;
     } },
+  /* 2026-09-12 -- HEAL BELL, AND IT IS NOT A HEAL. `healDescriptor` one block up is gated on
+   * `flags.heal`, which Heal Bell does not carry, so nothing in this file had ever looked at the one
+   * move in the format that clears a status off the BENCH. It reached medicham2's terminal
+   * `{kind:'pass'}` and cost a whole turn -- the single board-material MOVE row in
+   * data/all-mechanics-fire.json (`p1 venusaur party.status  showdown ""  we "slp"`).
+   *
+   * READ OFF THE HANDLER, FOUR FACTS, because each one is a separate way to get the move wrong:
+   *   - it walks a SIDE'S PARTY (`target.side.pokemon`), not the two actives;
+   *   - the USER is exempt from the ability gate (`ally !== source`), so a Soundproof singer cures
+   *     itself while a Soundproof ALLY does not get cured;
+   *   - a refused ally emits its own `-immune` line, and the attribution string is the handler's;
+   *   - `return success` -- a Heal Bell that cures nobody FAILS, which is most of the roster row's
+   *     earlier rungs.
+   *
+   * MEMBERSHIP PRINTED OVER THE WHOLE FORMAT BEFORE THIS WAS WIRED, per LESSONS §4: exactly ONE
+   * legal move matches. The near miss is `worryseed`, whose handler also calls `cureStatus` and is
+   * correctly refused -- it cures a single target after rewriting an ability and walks no party.
+   * tests/probe_heal_bell_party.js re-prints the membership on every run. */
+  { tag: 'curesPartyStatus',
+    param: 'clears a major status off EVERY body in the party, benched included; WHAT it announces, '
+         + 'WHICH abilities refuse it and whether it fails having cured nobody',
+    probe: 'curesPartyStatus',
+    why: 'Heal Bell reached the unmodelled-click terminal and did nothing at all -- the one move row '
+       + 'in data/all-mechanics-fire.json whose boards part rather than only its commentary',
+    of: m => {
+      const src = fnsrc(m.onHit);
+      if (!src) return null;
+      /* THE PARTY WALK IS THE SHAPE. A handler that cures one body it was handed is a different
+       * move (worryseed), and it must not land here. */
+      if (!/\.side\.pokemon\b/.test(src)) return null;
+      const loop = /for\s*\(\s*const\s+(\w+)\s+of\s+(\w+)\s*\)/.exec(src);
+      if (!loop) return null;
+      const it = loop[1];
+      if (!new RegExp('\\b' + it + '\\.cureStatus\\(').test(src)) return null;
+      const out = { scope: 'party' };
+      /* the ally side of a multi-battle rides the same walk; this format never has one, so the flag
+       * is recorded rather than acted on. */
+      out.reachesAllySide = /allySide\?\.pokemon/.test(src);
+      const ann = /this\.add\(\s*"(-\w+)"\s*,\s*(\w+)\s*,\s*"([^"]*)"\s*\)/.exec(src);
+      if (ann) out.announce = { event: ann[1], on: ann[2] === 'source' ? 'user' : ann[2], desc: ann[3] };
+      const blocked = [];
+      const re = new RegExp('if\\s*\\(\\s*(' + it + ')\\.hasAbility\\(\\s*"(\\w+)"\\s*\\)\\s*\\)\\s*\\{\\s*'
+                          + 'this\\.add\\(\\s*"(-\\w+)"\\s*,\\s*\\1\\s*,\\s*"([^"]*)"\\s*\\)', 'g');
+      let g; while ((g = re.exec(src))) blocked.push({ ability: norm(g[2]), event: g[3], desc: g[4] });
+      if (blocked.length) out.refusedByAbility = blocked;
+      out.exemptsUserFromRefusal = new RegExp('\\b' + it + '\\s*!==\\s*source').test(src);
+      out.failsIfNothingCured = /return\s+success/.test(src);
+      return out;
+    } },
   /* Will: "the charge turns need a weather sub tag or something that says if rain then no charge on
    * electroshot". Exactly right, and the dex declares it -- Showdown stores the skip condition on
    * the move's own condition handler, so it is derivable rather than a list. Electro Shot skips its

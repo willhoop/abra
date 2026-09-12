@@ -3614,6 +3614,208 @@ function orderProbeClause(inject) {
   };
 }
 
+/* ================================================================================================
+ * THE WHOLE-GAME CLAUSES READ SEVERAL TEAM LATTICES, NOT ONE — ROADMAP #619, 2026-09-12, MEASURE.
+ * ================================================================================================
+ * MEASURED, ONE RELEASE, ONE CENSUS PIN, ONE FROZEN POOL, ONE STEERING, ONE ARM, CAP 50, `--end-state`,
+ * ONLY `--games` MOVING (docs/_reports/2026-09-12-wide-sample.md, commit 60cf8506):
+ *
+ *     --games 1200  ->   961 games ->  0 board-material      (the sample this gate read)
+ *     --games 1350  -> 1,069 games -> 10 board-material
+ *     --games 12000 -> 7,178 games -> 84 board-material
+ *
+ * `diff_swarm.buildSwarm(--games * 2)` picks teams by a DETERMINISTIC STRIDE whose step is computed from
+ * `--games`, and `pairsFor` pairs ADJACENT picks, so `--games` decides WHICH teams and WHICH matchups
+ * play. The gate's `0 of 961` was a correct measurement of one lattice that happens to contain no
+ * divergence. A clause that reads one lattice can be satisfied by that lattice's luck; a clause that
+ * must read zero on several lattices cannot be satisfied by the same luck. That is the whole change.
+ *
+ * WHY THESE THREE VALUES — DERIVED, NOT TYPED FOR THE LOOK OF THEM. `buildSwarm` was walked on the
+ * frozen pool for every `--games` from 1250 to 3000 in steps of 50 (docs/_reports/2026-09-12-lattice-
+ * gate.md §1). 1200 stays because it is the published sample. 1350 is the value that exposed the
+ * defect, and shares 773 of its 2,206 (config, team) picks with 1200. 2400 was the obvious "larger
+ * draw" and is a BAD one: 2x the stride-size means it re-picks 1,631 of 1200's 1,968 teams. 1950
+ * shares 669 with 1200 and 713 with 1350 — 2,212 of its 3,069 picks (72.1%) are in neither — for
+ * ~1.6x the games of 1200. The set was fixed BEFORE any of the three was run on release
+ * `bc8d7cf849dd`, so it was not tuned toward the verdict it produced.
+ *
+ * WHAT EACH SAMPLE MUST PROVE BEFORE IT MAY ANSWER, OR IT IS CANNOT-ANSWER (EXIT 2), NEVER A PASS:
+ *   - it exists at its slot's path;
+ *   - it records `games_requested` EQUAL to its slot. An unstamped artifact, or a `--games 45` default
+ *     run written over the published path, is a different sample and is refused — the CLAUDE.md trap
+ *     "`--games` IS PART OF THE SAMPLE DEFINITION" made structural;
+ *   - the per-sample clause answers it (release pin, digests, population, planted proofs — the door
+ *     `wholeGameDoor` already asks once, so a stale sample is refused by the same guard as before);
+ *   - every answering sample agrees on release, policy, census digest, pinned pool, mode, cap, end-state
+ *     mode and stop rule — N samples must be ONE question asked of N lattices — and the pool is PINNED;
+ *   - no two samples drew the same lattice (`steering.team_pool_digest` pairwise distinct). Three copies
+ *     of one lattice would restore exactly the single-sample gate under a plural name.
+ *
+ * A NON-ZERO SAMPLE CLOSES THE CLAUSE EVEN WHEN ANOTHER IS MISSING. A board that parts on the current
+ * release under pinned dice is a rule the two engines disagree about whatever else is absent; the
+ * missing sample is still named. Exit 1 there, exit 2 only when nothing non-zero was read.
+ * ============================================================================================== */
+const LATTICE_SAMPLES = Object.freeze([
+  Object.freeze({ games: 1200, file: 'data/game-differential.json' }),
+  Object.freeze({ games: 1350, file: 'data/game-differential.g1350.json' }),
+  Object.freeze({ games: 1950, file: 'data/game-differential.g1950.json' }),
+]);
+
+const latticeRerun = (s) => 'node engine/game_differential.js --steering empirical --release <current> '
+  + '--arm middle --end-state --census data/mechanics-census.json --team-store data/team-pool-frozen '
+  + '--games ' + s.games + ' --write --out ' + s.file;
+
+/* What makes N artifacts ONE question asked of N lattices. Every field is read, none is inferred. */
+const LATTICE_SAME = Object.freeze([
+  ['engine release', (j) => PIN.releasePin(j).id || null],
+  ['steering.policy', (j) => (j.steering && j.steering.policy) || null],
+  ['census digest (steering.input_digest)', (j) => (j.steering && j.steering.input_digest) || null],
+  ['pinned pool (steering.team_store_pinned_to)', (j) => (j.steering && j.steering.team_store_pinned_to) || null],
+  ['mode (arm + dice pins)', (j) => j.mode || null],
+  ['turns_cap', (j) => (j.turns_cap === undefined ? null : j.turns_cap)],
+  ['end_state_mode', (j) => (j.end_state_mode === undefined ? null : j.end_state_mode)],
+  ['until_covered', (j) => (j.until_covered === undefined ? null : j.until_covered)],
+]);
+
+/* `inject` IS THE SELFTEST'S DOOR, same reasoning as `wholeGameClause`'s `artifact`: an object keyed by
+ * `--games` value, a missing key meaning a missing artifact. Undefined in every shipping caller. */
+function latticeReads(inject) {
+  return LATTICE_SAMPLES.map((slot) => ({
+    slot,
+    j: inject === undefined ? readJson(D(slot.file))
+      : (Object.prototype.hasOwnProperty.call(inject, String(slot.games)) ? inject[String(slot.games)] : null),
+  }));
+}
+
+function latticeVerdict(kind, reads, perSample) {
+  const NL = String.fromCharCode(10);
+  const NAME = kind === 'board'
+    ? 'whole-game differential / BOARD-MATERIAL — games whose boards part, on EVERY team lattice'
+    : 'whole-game differential / NARRATION — protocol divergence with no board effect, on EVERY team lattice';
+  const rows = reads.map(({ slot, j }, i) => {
+    const base = { games_requested: slot.games, file: slot.file };
+    if (!j) {
+      return Object.assign(base, { state: 'CANNOT-ANSWER', result: null,
+        why: 'MISSING — no artifact at ' + slot.file + '. Run: ' + latticeRerun(slot) });
+    }
+    if (j.games_requested !== slot.games) {
+      return Object.assign(base, { state: 'CANNOT-ANSWER', result: null, generated: j.generated || null,
+        why: 'WRONG SAMPLE IN THIS SLOT — ' + slot.file + ' records `games_requested` '
+          + JSON.stringify(j.games_requested === undefined ? null : j.games_requested) + ' and this slot is '
+          + '`--games ' + slot.games + '`. `--games` chooses WHICH teams play, so this is a different lattice, '
+          + 'not a smaller or larger copy of this one. Run: ' + latticeRerun(slot) });
+    }
+    const r = perSample(j, i);
+    const count = !r ? null : (kind === 'board' ? r.board_material : r.undeclared);
+    const state = r && r.ok === true ? 'ZERO'
+      : (r && !r.cannot_answer && !r.withheld && typeof count === 'number' && count > 0 ? 'NON-ZERO'
+        : 'CANNOT-ANSWER');
+    return Object.assign(base, { state, result: r, count: typeof count === 'number' ? count : null,
+      games_played: r ? (kind === 'board' ? (r.games_played !== undefined ? r.games_played : r.games) : r.games)
+        : null,
+      team_pool_digest: (j.steering && j.steering.team_pool_digest) || null,
+      release: PIN.releasePin(j).id || null, generated: j.generated || null,
+      why: r ? String(r.why || '') : 'the per-sample clause returned nothing' });
+  });
+
+  /* COHERENCE — over the samples that answered. A sample that could not answer is already named. */
+  const answered = rows.filter((r) => r.state !== 'CANNOT-ANSWER');
+  const splits = [];
+  for (const [label, get] of LATTICE_SAME) {
+    const vals = new Set(answered.map((r) => JSON.stringify(get(reads.find((x) => x.slot.file === r.file).j))));
+    if (vals.size > 1) {
+      splits.push(label + ' differs: ' + answered.map((r) => '--games ' + r.games_requested + '='
+        + JSON.stringify(get(reads.find((x) => x.slot.file === r.file).j))).join(', '));
+    }
+  }
+  const unpinned = answered.filter((r) => {
+    const j = reads.find((x) => x.slot.file === r.file).j;
+    return !(j.steering && j.steering.team_store_pinned_to);
+  });
+  const byDigest = new Map();
+  for (const r of answered) {
+    const k = r.team_pool_digest || '(none)';
+    if (!byDigest.has(k)) byDigest.set(k, []);
+    byDigest.get(k).push(r.games_requested);
+  }
+  const sameLattice = [...byDigest.entries()].filter(([k, v]) => v.length > 1 || k === '(none)');
+  const incoherent = [];
+  if (splits.length) incoherent.push('THE SAMPLES ARE NOT ONE QUESTION — ' + splits.join('; '));
+  if (unpinned.length) {
+    incoherent.push('UNPINNED POOL — ' + unpinned.map((r) => '--games ' + r.games_requested).join(', ')
+      + ' read the live store, which OPS appends to hourly, so the lattice cannot be reproduced');
+  }
+  if (sameLattice.length) {
+    incoherent.push('THE SAME LATTICE TWICE — ' + sameLattice.map(([k, v]) => 'team_pool_digest ' + k
+      + ' on --games ' + v.join(' and ')).join('; ') + '. Copies of one lattice are the single-sample '
+      + 'gate under a plural name');
+  }
+
+  const nonzero = rows.filter((r) => r.state === 'NON-ZERO');
+  const cannot = rows.filter((r) => r.state === 'CANNOT-ANSWER');
+  const ok = !nonzero.length && !cannot.length && !incoherent.length;
+  const cannotAnswer = !nonzero.length && !ok;
+  const unit = kind === 'board' ? 'board-material' : 'undeclared narration-only';
+  const tally = rows.map((r) => '--games ' + r.games_requested + ': '
+    + (r.state === 'CANNOT-ANSWER' ? 'CANNOT-ANSWER'
+      : r.count === null ? '0' : String(r.count)) + (r.state === 'CANNOT-ANSWER' ? '' : ' of ' + r.games_played)
+    + ' [pool ' + (r.team_pool_digest || '?') + ']').join(';  ');
+  const head = ok
+    ? (kind === 'board' ? 'BOARD-MATERIAL' : 'NARRATION-ONLY') + ': ZERO ON EVERY LATTICE — ' + tally
+    : nonzero.length
+      ? (kind === 'board' ? 'BOARD-MATERIAL' : 'NARRATION-ONLY') + ': NON-ZERO ON ' + nonzero.length + ' OF '
+        + rows.length + ' LATTICES — ' + tally + '. A single sample reading zero does not open this clause; '
+        + 'every lattice must.'
+      : 'CANNOT ANSWER — ' + tally + '. A missing, stale, mislabelled or incoherent sample is never a pass.';
+  const detail = rows.map((r) => NL + '  [--games ' + r.games_requested + ' | ' + r.file + ' | ' + r.state + ']'
+    + (r.state === 'ZERO' ? ' ' + String(r.why).split(NL)[0].split(/\s+THIS CLAUSE /)[0].slice(0, 240)
+      : NL + '    ' + String(r.why).split(NL).join(NL + '    '))).join('');
+  const inco = incoherent.length ? NL + '  INCOHERENT: ' + incoherent.join(NL + '  INCOHERENT: ') : '';
+  const releases = [...new Set(rows.map((r) => r.release).filter(Boolean))];
+  return {
+    name: NAME, ok, gates: kind === 'board' ? true : undefined,
+    cannot_answer: cannotAnswer || undefined,
+    quantity: kind === 'board' ? 'board_material_games_on_every_lattice' : 'narration_only_undeclared_games_on_every_lattice',
+    pins: PIN.receipt({ file: LATTICE_SAMPLES.map((s) => s.file).join(' + '),
+      checked: ['games_requested', 'release', 'digests', 'population', 'lattice coherence',
+                'distinct team_pool_digest'],
+      release: releases.length === 1 ? releases[0] : (releases.length ? releases.join(',') : null) }),
+    generated: rows.map((r) => r.generated || null),
+    samples: rows.map((r) => ({ games_requested: r.games_requested, file: r.file, state: r.state,
+      count: r.count, games_played: r.games_played === undefined ? null : r.games_played,
+      team_pool_digest: r.team_pool_digest || null, release: r.release || null,
+      generated: r.generated || null })),
+    sample_results: rows.map((r) => r.result),
+    nonzero_samples: nonzero.map((r) => r.games_requested),
+    cannot_answer_samples: cannot.map((r) => r.games_requested),
+    incoherent,
+    why: head + inco + detail,
+  };
+}
+
+function wholeGameLatticeClause(inject) {
+  return latticeVerdict('board', latticeReads(inject), (j) => wholeGameClause(j));
+}
+
+/* `gates` is the BOARD LATTICE's verdict, for the reason `narrationClause` gives: narration starts
+ * holding the gate shut the instant boards read zero — now, zero on EVERY lattice. Each sample's
+ * narration verdict is handed the LATTICE board clause, not its own sample's: a per-sample sentence
+ * saying "this clause now holds the gate shut" beside a lattice that does not would be two readers of
+ * one verdict disagreeing, and the board verdict is still computed once. */
+function narrationLatticeClause(inject, wgDecisionImpact, boardLattice) {
+  const board = boardLattice === undefined ? wholeGameLatticeClause(inject) : boardLattice;
+  const reads = latticeReads(inject);
+  const r = latticeVerdict('narration', reads, (j) => narrationClause(j, wgDecisionImpact, board));
+  const gates = !!(board && board.ok === true && board.pins);
+  return Object.assign(r, {
+    gates,
+    gates_because: gates
+      ? 'the BOARD-MATERIAL clause reads zero on every lattice, so narration now gates (Will, 2026-08-22).'
+      : 'the BOARD-MATERIAL clause does not read zero on every lattice, so narration reports only (Will, '
+        + '2026-08-22). This flips by itself when it does.',
+  });
+}
+
 /* ---- EVERY CLAUSE SAYS WHAT IT WAS MEASURED UNDER, OR IT IS WITHHELD — 2026-09-04 ---------------
  *
  * `PIN.audit` is applied to the LIST and not to three named clauses, and that is the whole point.
@@ -3630,11 +3832,14 @@ function medichamIsCorrect() {
   /* ONE BOARD CLAUSE, COMPUTED ONCE AND HANDED TO BOTH READERS. `narrationClause` now derives its
    * `gates` flag from this verdict (see its header), and calling `wholeGameClause()` twice would
    * parse a 600 KB artifact twice AND create a second place for one verdict to be decided. */
-  const board = wholeGameClause();
+  /* ROADMAP #619, 2026-09-12 — BOTH WHOLE-GAME CLAUSES READ EVERY LATTICE IN `LATTICE_SAMPLES`. The
+   * single-sample `wholeGameClause` / `narrationClause` stay exported and unchanged as the per-sample
+   * verdicts the lattice clauses call; nothing in the gate reads one lattice any more. */
+  const board = wholeGameLatticeClause();
   const clauses = PIN.audit([differentialClause(), ...ROSTER_STAGES.map(s => {
     const r = rosterStage(s);
     return { ...r, name: `deliberate roster / ${s}` };
-  }), coverageClause(), board, narrationClause(undefined, undefined, board), mechanicsClause(),
+  }), coverageClause(), board, narrationLatticeClause(undefined, undefined, board), mechanicsClause(),
      openDefectClause()]);
   /* ==============================================================================================
    * A CLAUSE MAY REPORT WITHOUT GATING, AND IT MUST SAY SO IN ITS OWN RETURN — 2026-09-04.
@@ -4441,7 +4646,9 @@ module.exports = { medichamIsCorrect, classify, state, withholder, playLayer, so
                     * A CONSUMER THAT WANTS THE PROTOCOL COMPOSITION NOW WANTS `narrationClause`:
                     * `data/game-differential.json`'s `classes[].causes[]` are protocol causes, so the
                     * shape composition ROADMAP #292 pinned belongs to that clause and moved with it. */
-                   narrationClause, gateVerdict, clauseExit };
+                   narrationClause, gateVerdict, clauseExit,
+                  /* ROADMAP #619 — the gating whole-game clauses, over every team lattice. */
+                  wholeGameLatticeClause, narrationLatticeClause, LATTICE_SAMPLES };
 
 /* THE ONE PLACE A CLAUSE BECOMES AN EXIT CODE — `--order-probe`, `--whole-game` and anything added
  * after them. It was two copies of one expression the moment the second command existed, and this
@@ -4571,13 +4778,17 @@ if (require.main === module) {
    * figure, so this cannot answer — and a `VERIFIED BY` that exited 0 there would report the row STALE
    * and close a live defect on the strength of a run nobody could read. */
   if (has('--whole-game')) {
-    const r = wholeGameClause();
+    const r = wholeGameLatticeClause();
     console.log('');
     console.log((r.ok ? 'PASS  ' : 'FAIL  ') + r.name);
     console.log('  ' + r.why);
     console.log('');
     console.log('  exit ' + clauseExit(r)
-              + '   [0 no board parts in any game, 1 at least one does, 2 cannot answer]');
+              + '   [0 no board parts in any game on ANY lattice, 1 at least one does on at least one'
+              + ' lattice, 2 cannot answer — a missing, stale or mislabelled sample]');
+    console.log('  THE SAMPLE CHANGED ON 2026-09-12 (ROADMAP #619). This read ONE team lattice,'
+              + ' `--games 1200`, until then; it now reads every `--games` value in LATTICE_SAMPLES ('
+              + LATTICE_SAMPLES.map((s) => s.games).join(', ') + ') and opens only on zero on all of them.');
     console.log('  THE QUANTITY CHANGED ON 2026-09-04 AND THE COMMAND DID NOT. This printed the'
               + ' PROTOCOL first-divergence count until then; it now prints BOARD-MATERIAL games,'
               + ' which is Will\'s 2026-08-22 bar. For the protocol number use --narration. Any'
@@ -4594,7 +4805,7 @@ if (require.main === module) {
    * can be ratcheted against, which is how ROADMAP #218 came to have no instrument for six days.
    * This exits 1 while narration is red — it simply is not what `medichamIsCorrect()` asks. */
   if (has('--narration')) {
-    const r = narrationClause();
+    const r = narrationLatticeClause();
     console.log('');
     console.log((r.ok ? 'PASS  ' : 'RED   ') + r.name);
     console.log('  ' + r.why);
@@ -5010,6 +5221,76 @@ if (require.main === module) {
       ok('PIN GUARD / GREEN — and it ANSWERS the good one, so the arm above is not just refusing '
         + 'everything handed to it',
         narrationClause(wgBase(STEER_OK()), decisionImpact('NOPE')).withheld !== true);
+
+      /* ---- 4b. ROADMAP #619 — THE GATE READS EVERY TEAM LATTICE, NOT ONE ---------------------
+       *
+       * Driven through the SHIPPING `wholeGameLatticeClause` / `narrationLatticeClause` on injected
+       * samples keyed by `--games`. The control in the first RED arm is the point: the single-sample
+       * clause the gate used to read reads ZERO on the `--games 1200` fixture, and the lattice clause
+       * reads the same three artifacts as CLOSED — so the verdict moved because of the lattice and
+       * nothing else. Shown red before the change: with `wholeGameLatticeClause` reduced to
+       * `wholeGameClause(inject['1200'])`, the RED and CANNOT-ANSWER arms below fail. */
+      const LAT = (g, material, digest, extra, steerExtra) => {
+        const st = Object.assign({}, WG_STATE, { games: 961, games_board_never_diverged: 961 - material,
+          protocol_diverged_games: material, protocol_diverged_board_never_did: 0 });
+        return Object.assign(wgBase(STEER_OK(Object.assign({ team_pool_digest: digest,
+          input_digest: 'fixturecensus', team_store_pinned_to: 'data/team-pool-frozen' }, steerExtra || {}))),
+        { state: st, games_requested: g, turns_cap: 50, end_state_mode: true, until_covered: false },
+        extra || {});
+      };
+      const LSET = (m1350, over) => Object.assign({ 1200: LAT(1200, 0, 'lat1200'),
+        1350: LAT(1350, m1350, 'lat1350'), 1950: LAT(1950, 0, 'lat1950') }, over || {});
+      const lZero = wholeGameLatticeClause(LSET(0));
+      ok('LATTICE / GREEN — zero board-material on EVERY lattice opens the clause, exit 0, and names all '
+        + 'three samples', lZero.ok === true && clauseExit(lZero) === 0 && lZero.samples.length === 3
+        && /--games 1200: 0 of 961/.test(lZero.why) && /--games 1950: 0 of 961/.test(lZero.why), lZero.why);
+      const lOne = wholeGameLatticeClause(LSET(9));
+      const lCtl = wholeGameClause(LSET(9)['1200']);
+      ok('LATTICE / RED — ONE lattice non-zero CLOSES the clause (exit 1, not 2) and names the sample and '
+        + 'its count, WHILE the single-sample clause the gate used to read says zero on the same set',
+        lCtl.ok === true && lOne.ok === false && !lOne.cannot_answer && clauseExit(lOne) === 1
+        && lOne.nonzero_samples.join() === '1350' && /--games 1350: 9 of 961/.test(lOne.why),
+        { control: lCtl.ok, lattice: lOne.ok, why: lOne.why && lOne.why.slice(0, 300) });
+      ok('LATTICE / RED — and the assembled gate turns on it: gateVerdict over the lattice clause is shut',
+        gateVerdict([lOne]).ok === false && gateVerdict([lZero]).ok === true);
+      const lMiss = wholeGameLatticeClause((() => { const o = LSET(0); delete o[1950]; return o; })());
+      ok('LATTICE / CANNOT-ANSWER — a MISSING sample is never a pass: exit 2, and the slot is named',
+        lMiss.ok === false && lMiss.cannot_answer === true && clauseExit(lMiss) === 2
+        && lMiss.cannot_answer_samples.join() === '1950' && /MISSING/.test(lMiss.why), lMiss.why);
+      const lWrong = wholeGameLatticeClause(LSET(0, { 1350: LAT(1200, 0, 'lat1350') }));
+      ok('LATTICE / CANNOT-ANSWER — a sample whose `games_requested` is not its slot (a --games 1200 run '
+        + 'written over the 1350 path) is a different lattice and is refused',
+        lWrong.cannot_answer === true && clauseExit(lWrong) === 2 && /WRONG SAMPLE/.test(lWrong.why), lWrong.why);
+      const lUnstamped = wholeGameLatticeClause(LSET(0, { 1200: Object.assign(LAT(1200, 0, 'lat1200'),
+        { games_requested: undefined }) }));
+      ok('LATTICE / CANNOT-ANSWER — an artifact that never recorded `--games` cannot answer for any slot',
+        lUnstamped.cannot_answer === true && clauseExit(lUnstamped) === 2, lUnstamped.why);
+      const lStale = wholeGameLatticeClause(LSET(0, { 1950: LAT(1950, 0, 'lat1950',
+        { [PIN.K.id]: '__not-this-tree__' }) }));
+      ok('LATTICE / CANNOT-ANSWER — a STALE sample (another release) is withheld by the per-sample door '
+        + 'and holds the lattice at exit 2', lStale.cannot_answer === true && clauseExit(lStale) === 2
+        && lStale.cannot_answer_samples.join() === '1950', lStale.why);
+      const lTwice = wholeGameLatticeClause(LSET(0, { 1950: LAT(1950, 0, 'lat1200') }));
+      ok('LATTICE / CANNOT-ANSWER — two slots that drew the SAME lattice (one team_pool_digest) are the '
+        + 'single-sample gate under a plural name, and are refused',
+        lTwice.cannot_answer === true && /SAME LATTICE TWICE/.test(lTwice.why), lTwice.why);
+      const lSplit = wholeGameLatticeClause(LSET(0, { 1950: LAT(1950, 0, 'lat1950', null,
+        { input_digest: 'othercensus' }) }));
+      ok('LATTICE / CANNOT-ANSWER — samples under different census pins are not one question',
+        lSplit.cannot_answer === true && /census digest/.test(lSplit.why), lSplit.why);
+      const lLive = wholeGameLatticeClause(LSET(0, { 1350: LAT(1350, 0, 'lat1350', null,
+        { team_store_pinned_to: null }) }));
+      ok('LATTICE / CANNOT-ANSWER — a sample drawn from the LIVE store cannot be reproduced and is refused',
+        lLive.cannot_answer === true && /UNPINNED POOL/.test(lLive.why), lLive.why);
+      const lBoth = wholeGameLatticeClause((() => { const o = LSET(9); delete o[1950]; return o; })());
+      ok('LATTICE / RED — a non-zero sample beside a missing one still exits 1: a parted board is a finding '
+        + 'whatever else is absent, and the missing slot is still named',
+        clauseExit(lBoth) === 1 && lBoth.cannot_answer_samples.join() === '1950', lBoth.why);
+      const nOne = narrationLatticeClause(LSET(9), decisionImpact('NOPE'));
+      const nZero = narrationLatticeClause(LSET(0), decisionImpact('NOPE'));
+      ok('LATTICE — narration gates only when boards read zero on EVERY lattice, and reports every sample',
+        nOne.gates === false && nZero.gates === true && nZero.samples.length === 3,
+        { one: nOne.gates, zero: nZero.gates, why: nZero.why && nZero.why.slice(0, 300) });
 
       /* ---- 5. THE DOOR THAT CATCHES THE FOURTH CLAUSE ---------------------------------------- */
       const audited = PIN.audit([{ name: 'a clause added tomorrow', ok: true, why: 'looks clean' }]);

@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-11T13:48:41.587Z",
+ "generated": "2026-09-12T12:09:44.440Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -2037,6 +2037,19 @@
    ]
   },
   {
+   "tag": "curesPartyStatus",
+   "kind": "move",
+   "param": "clears a major status off EVERY body in the party, benched included; WHAT it announces, WHICH abilities refuse it and whether it fails having cured nobody",
+   "why": "Heal Bell reached the unmodelled-click terminal and did nothing at all -- the one move row in data/all-mechanics-fire.json whose boards part rather than only its commentary",
+   "consumedBy": null,
+   "used": false,
+   "n": 1,
+   "uses": 6,
+   "examples": [
+    "Heal Bell"
+   ]
+  },
+  {
    "tag": "chargeTurn",
    "kind": "move",
    "param": "costs a turn before it lands",
@@ -3077,7 +3090,7 @@
    "kind": "ability",
    "param": "a lethal MOVE leaves 1 HP -- from full only, or on a chance",
    "why": "Sturdy. Identical to Focus Sash minus the consumption -- and was a name check, same as the sash: both now read the onDamage idiom itself",
-   "consumedBy": "TAGS lookup: survivesFromFull",
+   "consumedBy": "sturdy",
    "used": true,
    "n": 1,
    "uses": 775,
@@ -21159,6 +21172,7 @@
     "neverMisses",
     "noProtectFlag",
     "statusCategory",
+    "curesPartyStatus",
     "formatSecondaryCount"
    ],
    "uses": 6,
@@ -21188,6 +21202,29 @@
     },
     "statusCategory": {
      "status": true
+    },
+    "curesPartyStatus": {
+     "scope": "party",
+     "reachesAllySide": true,
+     "announce": {
+      "event": "-activate",
+      "on": "user",
+      "desc": "move: Heal Bell"
+     },
+     "refusedByAbility": [
+      {
+       "ability": "soundproof",
+       "event": "-immune",
+       "desc": "[from] ability: Soundproof"
+      },
+      {
+       "ability": "goodasgold",
+       "event": "-immune",
+       "desc": "[from] ability: Good as Gold"
+      }
+     ],
+     "exemptsUserFromRefusal": true,
+     "failsIfNothingCured": true
     },
     "formatSecondaryCount": {
      "count": 0

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-06T13:55:56.362Z",
+  "generated": "2026-09-12T12:59:51.700Z",
   "by": "tests/walk_tags.js",
   "design": "The tag list says WHAT to exercise; Showdown says what should happen. No hand-written expectations, because seven control failures were written by hand in one session.",
   "checked": 40,
@@ -13,7 +13,7 @@
     {
       "tag": "pp",
       "id": "protect",
-      "uses": 171315,
+      "uses": 214548,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -22,7 +22,7 @@
     {
       "tag": "targetClass",
       "id": "protect",
-      "uses": 171315,
+      "uses": 214548,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -31,7 +31,7 @@
     {
       "tag": "formatSecondaryCount",
       "id": "protect",
-      "uses": 171315,
+      "uses": 214548,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -40,7 +40,7 @@
     {
       "tag": "priority",
       "id": "protect",
-      "uses": 171315,
+      "uses": 214548,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -49,7 +49,7 @@
     {
       "tag": "neverMisses",
       "id": "protect",
-      "uses": 171315,
+      "uses": 214548,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -58,7 +58,7 @@
     {
       "tag": "noProtectFlag",
       "id": "protect",
-      "uses": 171315,
+      "uses": 214548,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -67,7 +67,7 @@
     {
       "tag": "stalling",
       "id": "protect",
-      "uses": 171315,
+      "uses": 214548,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -76,7 +76,7 @@
     {
       "tag": "stallCounterChecks",
       "id": "protect",
-      "uses": 171315,
+      "uses": 214548,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -85,7 +85,7 @@
     {
       "tag": "shieldsUser",
       "id": "protect",
-      "uses": 171315,
+      "uses": 214548,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -94,7 +94,7 @@
     {
       "tag": "failsIfMovesLast",
       "id": "protect",
-      "uses": 171315,
+      "uses": 214548,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -103,7 +103,7 @@
     {
       "tag": "statusCategory",
       "id": "protect",
-      "uses": 171315,
+      "uses": 214548,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -112,7 +112,7 @@
     {
       "tag": "statusInflict",
       "id": "protect",
-      "uses": 171315,
+      "uses": 214548,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -121,7 +121,7 @@
     {
       "tag": "callRefusalFlags",
       "id": "protect",
-      "uses": 171315,
+      "uses": 214548,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -130,7 +130,7 @@
     {
       "tag": "volatileAnnounce",
       "id": "protect",
-      "uses": 171315,
+      "uses": 214548,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -139,34 +139,16 @@
     {
       "tag": "volatileRestart",
       "id": "protect",
-      "uses": 171315,
+      "uses": 214548,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
       "detail": "could not build the scenario"
     },
     {
-      "tag": "flingable",
-      "id": "focussash",
-      "uses": 32108,
-      "sec": "items",
-      "kind": "item",
-      "verdict": "DIVERGE",
-      "detail": "showdown dmg 31% st=par bo=00000 w=-  |  medicham dmg 53% st=par bo=00000 w=-"
-    },
-    {
-      "tag": "survivesFromFull",
-      "id": "focussash",
-      "uses": 32108,
-      "sec": "items",
-      "kind": "item",
-      "verdict": "DIVERGE",
-      "detail": "showdown dmg 31% st=par bo=00000 w=-  |  medicham dmg 53% st=par bo=00000 w=-"
-    },
-    {
       "tag": "contact",
       "id": "fakeout",
-      "uses": 32087,
+      "uses": 41672,
       "sec": "moves",
       "kind": "move",
       "verdict": "AGREE",
@@ -175,7 +157,7 @@
     {
       "tag": "firstTurnOnly",
       "id": "fakeout",
-      "uses": 32087,
+      "uses": 41672,
       "sec": "moves",
       "kind": "move",
       "verdict": "AGREE",
@@ -184,25 +166,34 @@
     {
       "tag": "flinches",
       "id": "fakeout",
-      "uses": 32087,
+      "uses": 41672,
       "sec": "moves",
       "kind": "move",
       "verdict": "AGREE",
       "detail": "dmg 15%"
     },
     {
-      "tag": "spreadFoes",
-      "id": "rockslide",
-      "uses": 28135,
-      "sec": "moves",
-      "kind": "move",
-      "verdict": "NOT COVERED",
-      "detail": "chance-based; use test-mechanics"
+      "tag": "flingable",
+      "id": "focussash",
+      "uses": 40700,
+      "sec": "items",
+      "kind": "item",
+      "verdict": "DIVERGE",
+      "detail": "showdown dmg 31% st=par bo=00000 w=-  |  medicham dmg 53% st=par bo=00000 w=-"
+    },
+    {
+      "tag": "survivesFromFull",
+      "id": "focussash",
+      "uses": 40700,
+      "sec": "items",
+      "kind": "item",
+      "verdict": "DIVERGE",
+      "detail": "showdown dmg 31% st=par bo=00000 w=-  |  medicham dmg 53% st=par bo=00000 w=-"
     },
     {
       "tag": "isBerry",
       "id": "sitrusberry",
-      "uses": 27800,
+      "uses": 34983,
       "sec": "items",
       "kind": "item",
       "verdict": "AGREE",
@@ -211,16 +202,25 @@
     {
       "tag": "healsAtThreshold",
       "id": "sitrusberry",
-      "uses": 27800,
+      "uses": 34983,
       "sec": "items",
       "kind": "item",
       "verdict": "AGREE",
       "detail": "dmg 31%"
     },
     {
+      "tag": "spreadFoes",
+      "id": "rockslide",
+      "uses": 34647,
+      "sec": "moves",
+      "kind": "move",
+      "verdict": "NOT COVERED",
+      "detail": "chance-based; use test-mechanics"
+    },
+    {
       "tag": "damageMultAll",
       "id": "lifeorb",
-      "uses": 27079,
+      "uses": 33644,
       "sec": "items",
       "kind": "item",
       "verdict": "DIVERGE",
@@ -229,7 +229,7 @@
     {
       "tag": "moveClass",
       "id": "tailwind",
-      "uses": 26383,
+      "uses": 32352,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -238,7 +238,7 @@
     {
       "tag": "doublesSideSpeed",
       "id": "tailwind",
-      "uses": 26383,
+      "uses": 32352,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
@@ -247,7 +247,7 @@
     {
       "tag": "statChange",
       "id": "closecombat",
-      "uses": 23918,
+      "uses": 30568,
       "sec": "moves",
       "kind": "move",
       "verdict": "DIVERGE",
@@ -256,7 +256,7 @@
     {
       "tag": "lowersUser",
       "id": "closecombat",
-      "uses": 23918,
+      "uses": 30568,
       "sec": "moves",
       "kind": "move",
       "verdict": "DIVERGE",
@@ -265,7 +265,7 @@
     {
       "tag": "onSwitchInDrop",
       "id": "intimidate",
-      "uses": 23235,
+      "uses": 28726,
       "sec": "abilities",
       "kind": "ability",
       "verdict": "DIVERGE",
@@ -274,7 +274,7 @@
     {
       "tag": "inflictsBurn",
       "id": "heatwave",
-      "uses": 18499,
+      "uses": 24173,
       "sec": "moves",
       "kind": "move",
       "verdict": "NOT COVERED",
@@ -283,7 +283,7 @@
     {
       "tag": "needsTargetToAttack",
       "id": "suckerpunch",
-      "uses": 18404,
+      "uses": 23509,
       "sec": "moves",
       "kind": "move",
       "verdict": "DIVERGE",
@@ -292,7 +292,7 @@
     {
       "tag": "failsIfTargetNotAttacking",
       "id": "suckerpunch",
-      "uses": 18404,
+      "uses": 23509,
       "sec": "moves",
       "kind": "move",
       "verdict": "DIVERGE",
@@ -301,34 +301,34 @@
     {
       "tag": "secondaryStatEffect",
       "id": "moonblast",
-      "uses": 17469,
+      "uses": 22277,
       "sec": "moves",
       "kind": "move",
       "verdict": "NOT COVERED",
       "detail": "chance-based; use test-mechanics"
     },
     {
-      "tag": "boostsWhenLowered",
-      "id": "defiant",
-      "uses": 17379,
-      "sec": "abilities",
-      "kind": "ability",
-      "verdict": "DIVERGE",
-      "detail": "showdown dmg 31% st=par bo=00000 w=-  |  medicham dmg 53% st=par bo=00000 w=-"
-    },
-    {
       "tag": "reversesSpeed",
       "id": "trickroom",
-      "uses": 17241,
+      "uses": 22072,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
       "detail": "could not build the scenario"
     },
     {
+      "tag": "boostsWhenLowered",
+      "id": "defiant",
+      "uses": 22061,
+      "sec": "abilities",
+      "kind": "ability",
+      "verdict": "DIVERGE",
+      "detail": "showdown dmg 31% st=par bo=00000 w=-  |  medicham dmg 53% st=par bo=00000 w=-"
+    },
+    {
       "tag": "weatherScaled",
       "id": "weatherball",
-      "uses": 16844,
+      "uses": 20930,
       "sec": "moves",
       "kind": "move",
       "verdict": "AGREE",
@@ -337,7 +337,7 @@
     {
       "tag": "thawsUser",
       "id": "flareblitz",
-      "uses": 16260,
+      "uses": 20559,
       "sec": "moves",
       "kind": "move",
       "verdict": "NOT COVERED",
@@ -346,7 +346,7 @@
     {
       "tag": "recoil",
       "id": "flareblitz",
-      "uses": 16260,
+      "uses": 20559,
       "sec": "moves",
       "kind": "move",
       "verdict": "NOT COVERED",
@@ -355,16 +355,16 @@
     {
       "tag": "neverMissesAttack",
       "id": "kowtowcleave",
-      "uses": 15872,
+      "uses": 20360,
       "sec": "moves",
       "kind": "move",
       "verdict": "DIVERGE",
       "detail": "showdown dmg 46% st=- bo=00000 w=-  |  medicham dmg 79% st=- bo=00000 w=-"
     },
     {
-      "tag": "spreadAll",
-      "id": "earthquake",
-      "uses": 15847,
+      "tag": "sound",
+      "id": "partingshot",
+      "uses": 19792,
       "sec": "moves",
       "kind": "move",
       "verdict": "SKIP",
