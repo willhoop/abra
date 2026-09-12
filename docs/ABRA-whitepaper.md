@@ -712,7 +712,7 @@ and two Fire Punches read `-start` then `-immune` in that order.
 | census | **784 probed, 784 live, 0 missing** (782 → 784; both new rows shown RED first under `MEDI_ABSORB_GIFT_VOLATILE_BLIND=1`) |
 | board leaves compared | **34 of 80** (33 → 34; `volatile:choicelock`, 9,488 pool games, the largest comparable leaf in the hole) |
 | whole-game differential | **961 paired games, 6 raw, 6 declared, 0 undeclared**; 12,445 turn boundaries compared and 12,445 identical |
-| deliberate roster (`data/roster.items.json`, `data/roster.abilities.json`, `data/roster.moves.json`) | **148 / 154 / 487 tested**, 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on all three |
+| deliberate roster (`data/roster.items.json`, `data/roster.abilities.json`, `data/roster.moves.json`) | **148 / 164 / 487 tested**, 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on all three |
 | damage differential | **0 of 6000** at each of the sixteen band indices |
 | gate | **8 of 8 PASS, OPEN** |
 
@@ -743,7 +743,7 @@ and `--team-store data/team-pool-frozen`:
 
 | clause | reading |
 |---|---|
-| deliberate roster — items / abilities / moves (`data/roster.items.json`, `data/roster.abilities.json`, `data/roster.moves.json`) | **148 / 154 / 487 tested** (of 148, 200 and 497 in scope), 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on all three; red demonstrations **18 / 29 / 35**, all caught |
+| deliberate roster — items / abilities / moves (`data/roster.items.json`, `data/roster.abilities.json`, `data/roster.moves.json`) | **148 / 164 / 487 tested** (of 148, 200 and 497 in scope), 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on all three; red demonstrations **18 / 29 / 35**, all caught |
 | what moved in that triple | the items stage alone: `item:metronome` went `DEFERRED-BY-OWNER` → `FIRED-AND-BOARDS-MATCH`, so the tested count rose by one and the deferred column fell to **0** |
 | whole-game differential | **961 paired games, 6 raw divergences, 6 declared, 0 undeclared**; 12,445 turn boundaries compared and 12,445 identical |
 | staged mechanics | items `shelved_by_owner` 1 → **0**, the owner closet 7 → 6 ids; **1,289 games played, 0 threw** |
@@ -816,7 +816,7 @@ paired games), `--team-store data/team-pool-frozen`, `--state --end-state`:
 
 | clause | reading |
 |---|---|
-| deliberate roster — items / abilities / moves (`data/roster.items.json`, `data/roster.abilities.json`, `data/roster.moves.json`) | **148 / 154 / 487 tested**, 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on all three; red demonstrations **18 / 29 / 35** |
+| deliberate roster — items / abilities / moves (`data/roster.items.json`, `data/roster.abilities.json`, `data/roster.moves.json`) | **148 / 164 / 487 tested**, 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE on all three; red demonstrations **18 / 29 / 35** |
 | whole-game differential | **1 of 961** (6 raw, less 5 declared); **board-material 0 of 961** |
 | staged mechanics | 5 diverge, 1 declared, 4 below the reach shelf — **0 counted** |
 | damage differential (unaffected, restated for context) | **0 of 6000 at each of the sixteen band indices** |
@@ -1710,7 +1710,7 @@ release: the whole-game differential (`data/game-differential.json` — board-ma
 narration **0 undeclared of 961**, 10,705 of 10,705 turn boundaries identical, none excluded, none cut
 off), the damage differential (`data/engine-diff.json` — 6,000 compared, 0 disagreed, at 17 roll
 indices), and the deliberate roster — `data/roster.items.json` **148 tested**,
-`data/roster.abilities.json` **154 tested**, `data/roster.moves.json` **487 tested**, every stage with
+`data/roster.abilities.json` **164 tested**, `data/roster.moves.json` **487 tested**, every stage with
 `differ` 0 and DID-NOT-FIRE 0 and its scope decided by `engine/legal_scope.js` (CHANGELOG 6.14.0).
 The bound on the word "correct" is stated in the 6.0.0 block at the head of this paper
 and is not repeated here. The older, narrower Smogon-calculator check below is retained because it is

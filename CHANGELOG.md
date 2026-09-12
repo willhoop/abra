@@ -10,6 +10,90 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.40.0] — 2026-09-12
+
+### Added
+- **Four ability shape rules, each creating the EVENT or CONDITION the handler names — ten of the 33
+  `THE STAGING IS INERT` rows close and two become measured refusals.** The ability stage reads
+  **164 FIRED-AND-BOARDS-MATCH / 29 COULD-NOT-STAGE / 2 CONTROL-NOT-QUIET / 5 DEFERRED-BY-OWNER**,
+  against 154 / 39 / 2 / 5 before. Items (**148 / 0**) and moves (**487 / 7 / 3**) are the controls
+  and neither moved a row. No engine byte changed, so no release was cut; still `534442d71183`.
+  - **`ability/reacts-to-an-event-a-plain-hit-never-creates`** — `aftermath`, `berserk`, `justified`,
+    `moxie`, `steadfast`, and `innardsout`, which keeps its green on a fixture that GUARANTEES the KO
+    rather than relying on the generic hit happening to be lethal. The generic staging throws one
+    neutral contact hit each way and creates no crit, no flinch, no faint, no half-HP crossing and no
+    Dark click. **The trigger is derived from the handler and the derivation was printed over the
+    whole dex before a line was wired** (`ROSTER_PRINT_REACT_TRIGGERS=1`): 18 abilities carry one of
+    the six shapes, 8 are in scope, `eelevate` is owned by a rule above, and the rest is exactly this
+    set. **The order of the tests is the specification** — Anger Point and Berserk both carry a
+    `!target.hp` GUARD that is not their trigger, so `crit` and `threshold` are asked above
+    `ownfaint`. `killPlan` allows a KO in TWO clicks because this format's bulk refuses a one-shot:
+    the largest CONTACT click any legal body lands on Garbodor is 99 of its 155 hp.
+  - **`ability/ignores-stat-stages`** — `unaware`. The stage has to exist before it can be ignored,
+    and the setter is chosen off `move.boosts` for moving ONE stat: a Dragon Dance or a Shell Smash
+    would put turn order inside a fixture whose whole reading is a damage number.
+  - **`ability/prices-a-critical-hit`** — `merciless` closes; `sniper` becomes a measured refusal. **A
+    guaranteed crit escapes the arm's pin and a rolled one does not**, and that is the authority's own
+    arithmetic rather than a constant typed here: gen 9 clamps the ratio to 0..4 and `critMult[4]` is
+    1, so a returned literal of 4 or more is rolled as `randomChance(1, 1)`, true under either
+    corner's scalar (`sim/battle-actions.ts:1629-1642`).
+  - **`ability/base-power-under-a-board-condition`** — `analytic`, `rivalry`, `sandforce`.
+    `ability/base-power-scoped` stages every member whose gate is a property of the CLICK; these three
+    are gated on the BOARD. Turn order is bought with a derived Speed-only drop, the sky with a
+    partner's entry ability, and the genders are DECLARED — which is what medicham2's own source
+    already said was missing (*"that is why the row read INERT: the ability was correctly doing
+    nothing"*).
+
+### Fixed
+- **A rule could put the SWAPPER's own species on side A twice, and three of these four did.**
+  `stageAbilitySwap` writes side A slot 1 and a rule never sees it; `moveBodies` is sorted by bulk and
+  its first row is **Goodra-Hisui**, which is exactly the body `SWAPPER` derives to. `board_state.js`
+  keys a party row BY SPECIES, so the two collapsed into one row and it counted a silent
+  `duplicate_species_in_party` while the fixture still returned FIRED-AND-BOARDS-MATCH. Caught by
+  reading the note the run printed, not by any check. `isSwapper()` now refuses that species on side A
+  in every one of these rules.
+- **`stageAbilitySwap` carries a declared gender.** `stageAbilityQuiet` refused the swap delegation to
+  any rule that declared one, on the ground that this builder did not carry it — true, and a two-word
+  gap rather than a property of anything. `play()` already turns `declaredGender` on for a scenario in
+  which any body carries an M or an F. **Blast radius measured before the change: exactly one standing
+  rule passes `gender` (Cute Charm) and it calls `stageAbility` DIRECTLY**, so no existing row could
+  reach that line.
+
+### Notes
+- **The #612 question was asked before anything was built.** An `INERT` row is suspect evidence since
+  a dead control was found manufacturing one, so every one of the 33 inert rows was read for its
+  control first: **26 are controlled by an in-play Skill Swap lending Shell Armor off Goodra-Hisui and
+  7 by a named live sheet ability, and not one has a null control.** They are inert about the FIXTURE.
+- **`angerpoint` — its trigger is a CRIT ON ITS OWN HOLDER and no control in this format stays out of
+  the way.** Derived on the run: 8 quiet abilities, 4 with a legal carrier; `shellarmor` and
+  `battlearmor` REFUSE EVERY CRIT, so the control arm takes no crit and the two arms part on DAMAGE;
+  `corrosion` and `earlybird` are LIVE through a field the engine reads directly. Of its 7 legal
+  carriers, **0 has a quiet ability on its own sheet**. A `willCrit` click does not help — the armour
+  refuses the crit however it was obtained — and a FIXED-DAMAGE click cannot either, because Showdown
+  returns `source.level` from `getDamage` BEFORE it computes `moveHit.crit`
+  (`sim/battle-actions.ts:1608` against `:1638`), so such a move never sets the flag the handler reads.
+- **`sniper` — it only PRICES a crit somebody else obtained, and all three roads are shut.** This
+  format holds 2 always-hitting single-target `willCrit` moves — Storm Throw (Machamp, Pinsir, Emboar,
+  Pangoro, Annihilape) and Flower Trick (Meowscarada) — and **none of Sniper's carriers learns
+  either**; an ordinary crit lands only on `bottom-tie-first`, where the only lendable quiet ability
+  is the crit armour itself and Beedrill, Ariados and Barbaracle have no quiet sheet alternate; and
+  the Focus Energy road is shut by this file's own `critRatioAudit`.
+- **Every one of the eleven greens rests on `hp` or `boosts.*` leaves only** — no `.ability`, `.pp` or
+  `.vol` path in any delta, which is the test ROADMAP #609 exists for. Red demonstrations
+  **22 / 56 / 36 with 0 `ok: false` and 0 WEAK** in all three stages; plant anchors **22 / 56 / 36
+  apply exactly once, none dead**. Census **883 probed / 883 live / 0 missing, unmoved**. Gate
+  **OPEN**, `engine/quarantine.js` exit 0.
+- **`supremeoverlord` was left rather than given a weak refusal.** It is owned by `ability/entry`, not
+  by the new rule; its counter is taken at switch-in, so the carrier has to ARRIVE after an ally has
+  fainted, and the swap-control builder does not express a bench start.
+
+### Changed
+- **`docs/ABRA-whitepaper.md` roster ability count 154 → 164, in the same pass.** A superseded figure
+  in a live document is a RETRACTION and does not wait for the held 7.0.0 documentation pass.
+  `tests/test-docs-current.js` clause 3b(b) went RED on the stale figure and GREEN on the correction;
+  36 of 37 clauses now pass, and the one that does not (3b(d)) has every NEW entry in
+  `docs/ABRA-technical-docs.md`, which this pass did not touch.
+
 ## [6.39.0] — 2026-09-12
 
 ### Added

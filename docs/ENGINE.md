@@ -185,6 +185,98 @@ _stamped 2026-09-11 23:01_
 
 <!-- /GENERATED -->
 
+## THREE INERT FAMILIES GET FIXTURES — ABILITIES **154 → 164 MATCH / 39 → 29 COULD-NOT-STAGE**, CNQ **2** AND DEFERRED **5** UNCHANGED. ITEMS **148 / 0** AND MOVES **487 / 7 / 3** UNMOVED AS CONTROLS. ALL TEN REST ON **HP OR BOOST LEAVES ONLY**. REDS **22 / 56 / 36, ZERO `ok: false`, NONE WEAK**. CENSUS **883 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `534442d71183`. 2026-09-12, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-12-inert-families.md`.
+
+**THE #612 QUESTION WAS ASKED FIRST AND THE ANSWER IS NO.** An `INERT` row is suspect evidence since a
+dead control was found manufacturing one, so before any fixture was built every one of the 33 inert
+rows was read for its control: **26 are controlled by an in-play Skill Swap lending Shell Armor off
+Goodra-Hisui and 7 by a named live sheet ability** (`cloudnine`/Natural Cure, `cudchew`/Armor Tail,
+`frisk`/Pickup, `hydration`/Gooey, `klutz`/Healer, `screencleaner`/Tangled Feet,
+`supremeoverlord`/Defiant). **Not one of the 33 has a null control**, so none of them is a #612. They are inert about
+the FIXTURE, which is what the rest of this section is.
+
+Four rules, three families, ten rows closed and two turned into measured refusals:
+
+- **`ability/reacts-to-an-event-a-plain-hit-never-creates`** — `aftermath`, `berserk`, `justified`,
+  `moxie`, `steadfast`, and `innardsout`, which keeps its green on a stronger fixture. The generic
+  staging throws one neutral contact hit each way and creates no crit, no flinch, no faint, no
+  half-HP crossing and no Dark click; every handler is armed and none is ever asked. **The trigger is
+  derived from the handler and the derivation was PRINTED OVER THE WHOLE DEX before a line was wired**
+  (`ROSTER_PRINT_REACT_TRIGGERS=1`): 18 abilities in the dex carry one of the six shapes, 8 are in
+  scope, `eelevate` is owned by a rule above, and what is left is exactly these six. **The ORDER of
+  the tests is the specification** — Anger Point and Berserk both carry a `!target.hp` GUARD that is
+  not their trigger, so `crit` and `threshold` are asked above `ownfaint`.
+- **`ability/ignores-stat-stages`** — `unaware`. The stage has to exist before it can be ignored. The
+  setter is derived off `move.boosts` for moving ONE stat: a Dragon Dance or a Shell Smash would put
+  turn order inside a fixture whose whole reading is a damage number.
+- **`ability/prices-a-critical-hit`** — `merciless` closes and `sniper` becomes a measured refusal.
+  **A guaranteed crit escapes the arm's pin and a rolled one does not**, and that is the authority's
+  own arithmetic rather than a constant typed here: gen 9 clamps the ratio to 0..4 and `critMult[4]`
+  is 1, so a returned literal of 4 or more is rolled as `randomChance(1, 1)`, which is TRUE under
+  either corner's scalar (`sim/battle-actions.ts:1629-1642`).
+- **`ability/base-power-under-a-board-condition`** — `analytic`, `rivalry`, `sandforce`.
+  `ability/base-power-scoped` stages every member whose gate is a property of the CLICK; these three
+  are gated on the BOARD. Turn order is bought with a derived Speed-only drop; the sky with a
+  partner's entry ability; and the genders are DECLARED, which is what medicham2's own source already
+  said was missing (*"that is why the row read INERT: the ability was correctly doing nothing"*).
+
+### A THIRD INSTRUMENT DEFECT, FOUND BY THE FIRST RUN OF THREE OF THESE RULES
+
+**THE SWAPPER OWNS SIDE A SLOT 1 AND THREE RULES PUT ITS SPECIES THERE TWICE.** `stageAbilitySwap`
+writes that slot and a rule never sees it; `moveBodies` is sorted by bulk and its first row is
+**Goodra-Hisui**, which is exactly the body `SWAPPER` derives to. `board_state.js` keys a party row BY
+SPECIES, so the two bodies collapsed into one row and it counted a silent `duplicate_species_in_party`
+— the fixture still returned FIRED-AND-BOARDS-MATCH. Caught by reading the note the run printed
+(*"Goodra-Hisui clicks Scary Face … and the swapper Goodra-Hisui"*), not by any check. `isSwapper()`
+now refuses that species on side A in every one of these rules; the notes after the fix name Torterra,
+Torkoal, Kangaskhan and Charizard instead, and the counts are the ones above.
+
+### Two measured refusals, in the shape of the Quick Feet one
+
+- **`angerpoint` — its trigger is a CRIT ON ITS OWN HOLDER and no control in this format stays out of
+  the way.** Derived on the run: the format holds 8 quiet abilities and only 4 have a legal carrier —
+  `shellarmor` (Torkoal, Torterra, Samurott, Goodra-Hisui) and `battlearmor` (Falinks) REFUSE EVERY
+  CRIT, so the control arm takes no crit, the two arms part on DAMAGE and the row measures the
+  control; `corrosion` (Salazzle, Glimmora) and `earlybird` (Kangaskhan, Houndoom) are LIVE through a
+  field the engine reads directly. Of its 7 legal carriers, **0 has a quiet ability on its own sheet**.
+  A `willCrit` click does not help — the armour refuses the crit however it was obtained — and a
+  FIXED-DAMAGE click cannot help either, because Showdown returns `source.level` from `getDamage`
+  BEFORE it computes `moveHit.crit` (`sim/battle-actions.ts:1608` against `:1638`), so such a move
+  never sets the flag the handler reads. This is the same withdrawal `stageAbilityQuiet` already
+  records for `magmaarmor`, arriving from the other direction.
+- **`sniper` — it only PRICES a crit somebody else obtained, and all three roads are shut.** The
+  ALWAYS-CRIT road: this format holds 2 always-hitting single-target `willCrit` moves, Storm Throw
+  (Machamp, Pinsir, Emboar, Pangoro, Annihilape) and Flower Trick (Meowscarada), and **none of
+  Sniper's carriers learns either**. The ROLLED road: an ordinary crit lands only on
+  `bottom-tie-first`, where the only lendable quiet ability is the crit armour itself, and Beedrill,
+  Ariados and Barbaracle have no quiet sheet alternate. The FOCUS ENERGY road is shut by this file's
+  own `critRatioAudit` — the control click adds 2 crit stages, so a high-ratio click beside it reaches
+  the guaranteed tier in BOTH arms and the audit refuses the whole fixture.
+
+### The hand list, after this pass
+
+- **21 ROWS STILL READ `THE STAGING IS INERT`**: `cheekpouch, cloudnine, corrosion, cudchew, damp,
+  earlybird, frisk, goodasgold, hydration, klutz, leafguard, magician, pickpocket, receiver,
+  screencleaner, skilllink, stalwart, stickyhold, supremeoverlord, symbiosis, synchronize` — the four
+  families this pass did not take, **item motion** (7), **status refused or reflected** (5), **move
+  rewriting** (2) and **field / entry effects** (6), plus `supremeoverlord`, whose reason is the line
+  below. Their derived anchors are tabled in
+  `docs/_reports/2026-09-12-inert-fixtures.md`; `frisk` should be expected to stay refused for the
+  same reason Anticipation and Forewarn are shelved — its whole effect is a MESSAGE.
+- **`supremeoverlord` is owned by `ability/entry`, not by the new rule, and that is why it is
+  untouched.** Its counter is taken at switch-in, so the carrier has to ARRIVE after an ally has
+  fainted, and the swap-control builder does not express a bench start. It was left rather than given
+  a weak refusal.
+- **A DECLARED GENDER NOW SURVIVES THE SWAP CONTROL.** `stageAbilityQuiet` refused the delegation to
+  any rule that declared one because `stageAbilitySwap` did not carry it — a two-word gap rather than
+  a property. **Blast radius measured before the change: exactly one standing rule passes `gender`
+  (Cute Charm) and it calls `stageAbility` DIRECTLY**, so no existing row could reach that line.
+- **`angerpoint` and `sniper` leave the inert list carrying their measurements**, above.
+- **Carried forward unchanged**: `aerilate`, `galewings`, `zerotohero`, `simple`, `ripen`,
+  `magmaarmor`, `opportunist`, `quickfeet`, #608 and the #612 durable repair.
+
 ## SEVEN INERT ROWS GET A FIXTURE BUILT AROUND WHAT THE ABILITY READS — ABILITIES **147 → 154 MATCH / 46 → 39 COULD-NOT-STAGE**, CNQ **2** AND DEFERRED **5** UNCHANGED. ITEMS **148 / 0** AND MOVES **487 / 7 / 3** UNMOVED AS CONTROLS. ALL SEVEN REST ON **HP LEAVES ONLY**. REDS **52 / 22 / 36, ZERO `ok: false`**. CENSUS **883 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `534442d71183`. 2026-09-12, CHANGELOG `<<VER>>`
 
 Full account: `docs/_reports/2026-09-12-inert-fixtures.md`. Register rows #611 and #612 (closed), #613 (open).
