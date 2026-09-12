@@ -713,6 +713,17 @@ stamped digests taken from the LIVE paths during a pinned run, and `engine/prove
 itself and described a store the run never read. ROADMAP #547. **A receipt is written from the path
 the run actually opened, never from the canonical path for that kind of file.**
 
+**THE WHOLE-GAME CLAUSE READS EVERY TEAM LATTICE, NOT ONE — DECIDED 2026-09-12, WILL DELEGATED IT
+("u tell me").** `buildSwarm` picks teams by a stride whose step is computed from `--games`, so a larger
+run plays DIFFERENT teams, not the same teams plus more. On one release, one census pin and one team
+store, 961 games parted 0 boards, 1,069 parted 10 and 7,178 parted 84 — the published "0 of 961" was a
+true reading of a lattice that happened to contain no divergence, and the gate had been certifying the
+engine off it. So `engine/quarantine.js` now requires zero at `--games` 1200, 1350 and 1950, chosen by
+walking the swarm builder so the samples share few teams; 2400 was measured and rejected because it
+re-picks most of 1200's. A missing, stale or duplicate lattice is CANNOT-ANSWER, never a pass. **A zero
+that holds at one sample size is a fact about that sample.** Full account:
+`docs/_reports/2026-09-12-lattice-gate.md`.
+
 ## THE REPOSITORY HAS A HARD WALL, AND HISTORY IS PERMANENT
 
 *(Measured 2026-09-06. Full account and every command: `docs/_reports/2026-09-06-repo-cleanup.md`.)*

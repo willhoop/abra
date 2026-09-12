@@ -52,6 +52,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.46.1] — 2026-09-12 — session close: the night's failure shapes go into the start routine, the lattice rule into CLAUDE.md, and what is owed into a report the next session reads
+
+- **What changed.** `.claude/skills/start/SKILL.md` gains nine failure shapes paid for tonight — a sample whose team selection is computed from its size, a control that manufactures verdicts in both directions, a green that passes for an unrelated reason, a torn read written into documents, a shell check that reported clean by being broken, a printed mismatch that did not stop a chain, a figure fix that staged a held rewrite, an inserter that matched a template inside a code fence, and a checkout that destroyed an agent's uncommitted row — plus five sources that were not obvious, and a receipt on the existing line about rebuilding the tags bundle, which the session had read past. `CLAUDE.md` records the decision that the whole-game clause reads every team lattice. `docs/_reports/2026-09-12-session-close.md` carries the OWED work as commands. Generated ledger stamps and regenerated verification artifacts are committed alongside.
+- **Measured.** NO FIGURE.
+- **Supersedes.** Nothing.
+- **Basis.** unchanged.
+- **Owed to the next major.** Nothing for this row; the session's owed work is in the report.
+
 ## [6.46.0] — 2026-09-12 — the whole-game gate reads three team lattices, not one, and it closes
 
 - **What changed.** `engine/quarantine.js`: both whole-game clauses now read every sample in `LATTICE_SAMPLES` — `--games` 1200, 1350 and 1950 — and open only on zero on all three (ROADMAP #619, decided by MEASURE on Will's delegation). A missing, stale, mislabelled, unpinned or duplicate-lattice sample is CANNOT-ANSWER; any non-zero sample closes the clause. `engine/game_differential.js` now stamps `games_requested` into the artifact, so `--games` is recorded rather than inferred. 1950 was derived by walking the shipping `buildSwarm` over the frozen pool: 72.1% of its picks are in neither other lattice, where the obvious 2400 re-picks 1,631 of the 1,968 teams 1200 plays. Selftest 279 passed, 0 failed; red first at 267 / 12 with the old single-sample reading.

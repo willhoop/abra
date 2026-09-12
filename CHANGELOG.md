@@ -10,6 +10,15 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.46.1] — 2026-09-12
+
+### Notes
+- **Session close.** Nine failure shapes and five non-obvious sources are added to the start routine, with
+  a receipt on the tags-bundle line the session read past; `CLAUDE.md` records that the whole-game clause
+  reads every team lattice; and `docs/_reports/2026-09-12-session-close.md` carries the owed work as exact
+  commands — cut a release (the live tree differs from the last one on the tags bundle), re-measure the
+  three lattices, diagnose the parted games, and refresh the register. No figure moves.
+
 ## [6.46.0] — 2026-09-12
 
 ### Changed

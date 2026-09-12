@@ -687,6 +687,30 @@ that is the difference between coverage and the appearance of it.
 - **The dump window can fake an absence.** A ten-line `--dump-games` window pushed the authority’s line
   to eleven, so it read as missing. That faked a board difference, reached a published rate, and had
   to be retracted a batch later.
+- **A sample whose TEAM SELECTION is computed from its SIZE certifies one lattice, not the engine.**
+  `buildSwarm` strides by a step derived from `--games`, so more games are different games: on one
+  release 961 read 0 board-material, 1,069 read 10, 7,178 read 84 (2026-09-12). A zero that holds at
+  one sample size is a fact about that sample.
+- **A control that cannot fail manufactures verdicts in BOTH directions.** One counted its own
+  bookkeeping and produced 39 ability greens (#609); its mirror handed a carrier a null control, so the
+  control arm was the subject arm and produced INERT rows that accuse nobody (#612). Ask every control
+  whether it could have read differently.
+- **A green can pass for a reason that has nothing to do with the mechanic.** An Aqua Ring fixture
+  staged, came back green, and was inert only because every body stood at full health.
+- **Reading an artifact an agent is still writing gives a plausible fictional number.** The ability
+  stage read 145 mid-batch and settled at 147; it was written into four documents before the mtime
+  was checked. Check the mtime against the clock, every time.
+- **A shell check can report clean by being broken.** A `grep -c` sum hit a bash arithmetic error and
+  was read as "0 placeholders" three times; the real count was 7.
+- **A comparison that PRINTS a mismatch does not STOP an `&&` chain.** A bundle check printed `DIFFER`
+  and the next command committed and pushed. Make the check exit non-zero, or read it before acting.
+- **Staging a document to fix one figure stages everything else uncommitted in it.** A HELD 7.0.0
+  white paper went out stamped 7.0.0 with six literal `<<GATE>>` placeholders. Build the blob from
+  HEAD instead (see §8).
+- **An inserter anchored on the topmost `## [x.y.z]` heading matched a TEMPLATE inside a code fence.**
+  Every notes row written that night landed inside the "How to write a row" example and rendered as code.
+- **`git checkout HEAD -- <file>` on a file an agent wrote destroys its uncommitted work silently.**
+  A whole notes row was rebuilt from the CHANGELOG and the agent's report after one.
 
 ---
 
@@ -934,6 +958,8 @@ returning zero is not evidence the mechanic is missing** — check `data/tags.js
 - **`engine/tags.js:56` requires `data/tags.json` under node; `data/abra-tags.js` is the BROWSER path
   only.** Both are frozen SOURCES, so they can part silently — a release then freezes a mismatched
   pair. Rebuild with `node build/build_tags_js.js` in the same pass as any tag change.
+  **Missed 2026-09-12 despite this line**: the Heal Bell tag shipped in `tags.json` and not the bundle,
+  and the release was cut with the stale bundle; the generated-bundle gate caught it a commit later.
 - **`tests/roster.js` takes `--stage`, NOT `--kind`, and writing needs `--write`.** A wrong flag runs
   the SPINE stage silently; a missing `--write` changes nothing at all and looks like a clean run.
 - **A probe that loads `engine/game_differential.js` WITHOUT `--release` CUTS A RELEASE as a side
@@ -946,6 +972,19 @@ returning zero is not evidence the mechanic is missing** — check `data/tags.js
 - **`node engine/docs_scan.js --quarantine --json`** — `quarantined_figures.hits`,
   `citation_mismatches` and `untraceable.where` carry PER-FIGURE detail (doc, line, value, text) that
   the text mode only counts.
+- **Which release produced this artifact, and is it current?** `engine/engine_release.js`
+  `releaseOf(file)`, `currentId()`, `measuredOnCurrentEngine(file)` — fail closed on an unreadable file.
+- **What sample did this differential actually play?** `games_requested` in every
+  `game_differential.js` artifact; the extra team lattices the gate reads sit beside the main artifact
+  as `data/game-differential.g<N>.json`.
+- **How do I give a heavy script more memory?** An `ABRA-HEAP: <MB>` marker inside its header comment,
+  read by `tools/lownode.cmd`. Put it on a comment continuation line — a second `/*` inside an open
+  block comment breaks the file.
+- **How do I commit a fix to a file whose working tree also holds unrelated uncommitted work?**
+  `git show HEAD:<file>` → edit that copy → `git hash-object -w --stdin` →
+  `git update-index --cacheinfo 100644,<sha>,<file>`. The working tree is never touched.
+- **Where does a docs-currency hit actually sit?** Its reported line is the PARAGRAPH START, not the
+  figure's own line; locate it by content, not by number.
 
 ---
 
