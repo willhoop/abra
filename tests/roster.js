@@ -1425,6 +1425,19 @@ function controlOf(sc, rank) {
      * THE ONE THING IT DOES NOT DO is remove the ability from the FIELD — see the SWAPPER header. */
     c.script[0].p1[1] = { m: SWAP_MOVE, t: +sc.subject[1] };
     c.A[1] = { ...c.A[1], moves: c.A[1].moves.concat([SWAP_MOVE]) };
+    /* AND THE CORRECTION IS ARMED FOR THIS BRANCH, WHICH IT WAS NOT (ROADMAP #609). Both halves of
+     * the exchange move a board leaf by construction: the CARRIER ends the setup turn holding the
+     * lent ability in this arm and the ability under test in the subject arm, and the SWAPPER holds
+     * the mirror image. Neither is evidence about the entity. See `swapLeaf` / `swapArmLeaf`. */
+    /* THE KNOB RESTORES THE WHOLE PRE-#609 STATE, not half of it. Arming only `swapArmLeaf` behind it
+     * would leave the carrier's own swap leaves dropped, so the "restored" run would still refuse a
+     * vacuous row and the red demonstration would be measuring a third thing. */
+    if (!SWAP_ARM_LEAVES_COUNT) {
+      swap.species.push(idOf(body.species));
+      swap.controls.add(idOf(sc.controlAbility));
+      swap.arm = { side: 'p1', slot: 1, species: idOf(c.A[1].species),
+                   lent: idOf(c.A[1].ability), subject: idOf(sc.abilityId || '') };
+    }
   } else if (sc.kind === 'ability') {
     /* THE ABILITY IS REMOVED FROM THE WHOLE SIDE, not from one slot. A residual scenario may put a
      * SECOND carrier of the same ability on the bench to test the entry gate, and if the control arm
@@ -1481,6 +1494,53 @@ function swapLeaf(swap, path, subjVal, ctrlVal) {
   return String(subjVal) === swap.subject ? 2 : 1;
 }
 
+/* ---- THE IN-PLAY SWAP CONTROL'S OWN ARM (ROADMAP #609) ------------------------------------------
+ *
+ * THE CORRECTION ABOVE WAS STRUCTURALLY DEAD FOR EVERY ROW CONTROLLED BY A SKILL SWAP, and that is a
+ * bigger hole than the one it was written for. `controlOf` populated `swap.species` / `swap.controls`
+ * ONLY in the sheet-swap branch, so `swapLeaf` returned 0 on its first line for an `abilityswap` row
+ * and the run printed `0 leaves DROPPED` — the silent-default failure the counter exists to expose.
+ *
+ * MEASURED ON RELEASE 534442d71183, and this is why it is a fix rather than a tidy-up. Leaf Guard is
+ * the row `tests/probe_control_self_name.js` clause A was built around:
+ *
+ *     --no-swap-control   COULD-NOT-STAGE   16 leaves dropped   delta 0     <- correctly refused
+ *     default (swap)      FIRED-AND-BOARDS-MATCH   0 dropped    delta 26    <- a vacuous green
+ *
+ * and not one of those 26 leaves is Leaf Guard acting. They are the swapper's own `.ability` and party
+ * row, `pp[1].skillswap`, `pp[1].focusenergy`, `vol.focusenergy`, and the carrier's own swap leaves.
+ * Across the whole ability stage 69 rows are swap-controlled and 39 of them held a green whose delta
+ * is ENTIRELY this bookkeeping. The probe has been RED since the swap control was widened and is not
+ * registered in `tests/run-all.js`, which is why nothing said so.
+ *
+ * TWO SHAPES, AND BOTH ARE CONDITIONED ON THE VALUES RATHER THAN THE PATH, for the same reason the
+ * function above is: a blanket ignore would delete a real ability rewrite (Trace) for ever.
+ *
+ *   THE SWAPPER'S OWN ABILITY   it HANDED the quiet one over, so in the subject arm its slot reads
+ *                               what it lent and in the control arm it reads the ability under test.
+ *                               That exact pair, on its slot and its party row, and nothing else.
+ *   THE CLICK IT SPENDS         the control arm spends the swapper's turn on Skill Swap; the subject
+ *                               arm idles it on the inert click. Both are PP, and the inert click's
+ *                               own volatile goes with it. Bounded to the SWAPPER'S OWN SLOT.
+ *
+ * THE COST IS STATED: an entity that drained the swapper's PP, or put the inert click's volatile on
+ * it, would be masked on those leaves alone. Nothing in this file stages either, and the alternative —
+ * counting the control arm's own click as the entity's evidence — is what produced the 39. */
+const SWAP_ARM_LEAVES_COUNT = (typeof process !== 'undefined' && process.env
+                               && process.env.ROSTER_SWAP_ARM_LEAVES_COUNT === '1');
+function swapArmLeaf(swap, path, subjVal, ctrlVal) {
+  const A = swap && swap.arm;
+  if (!A || SWAP_ARM_LEAVES_COUNT) return 0;
+  if (new RegExp('^' + A.side + '\\.(active\\[' + A.slot + '\\]|party\\.' + A.species
+                 + ')\\.ability$').test(path))
+    return (String(subjVal) === A.lent && String(ctrlVal) === A.subject) ? 1 : 0;
+  if (new RegExp('^' + A.side + '\\.pp\\[' + A.slot + '\\]\\.(' + SWAP_MOVE + '|' + INERT + ')$')
+      .test(path)) return 1;
+  if (new RegExp('^' + A.side + '\\.active\\[' + A.slot + '\\]\\.vol\\.' + INERT + '$').test(path))
+    return 1;
+  return 0;
+}
+
 /* WHAT THE ENTITY DID TO ONE ENGINE'S OWN BOARD. `BS.compare` is the shared comparator and is used
  * here rather than a second walk, so this file cannot come to disagree with the differential about
  * what a board leaf is. Both sides of this call are boards of the SAME engine — with and without. */
@@ -1506,6 +1566,9 @@ function armDelta(subject, control, ignore, swap) {
         const sl = swapLeaf(swap, d.path, d.medicham, d.showdown);
         if (sl === 2) { SWAP_SELF_DROPPED++; continue; }
         if (sl === 1) SWAP_REWRITE_KEPT++;
+        /* THE OTHER HALF OF THE SAME EXCHANGE — the swapper's own slot and the click it spends.
+         * Counted separately from the subject's side so a zero on either can be seen. */
+        if (swapArmLeaf(swap, d.path, d.medicham, d.showdown)) { SWAP_ARM_DROPPED++; continue; }
         out.push({ engine: who, turn: subject.boards[i].turn, path: d.path,
                    with: d.medicham, without: d.showdown, ctrl_value_is_the_control: sl === 1 });
       }
@@ -1856,7 +1919,7 @@ const DKEY = d => d.engine + '|' + d.turn + '|' + d.path + '|' + String(d.with) 
   + (d.ctrl_value_is_the_control ? '«CONTROL-ABILITY»' : String(d.without));
 /* Counters, printed by the run. Zero on an ability stage would mean this whole correction never
  * reached a leaf — the silent-default failure it exists to remove. */
-let SWAP_SELF_DROPPED = 0, SWAP_REWRITE_KEPT = 0;
+let SWAP_SELF_DROPPED = 0, SWAP_REWRITE_KEPT = 0, SWAP_ARM_DROPPED = 0;
 
 /* Returns null when the format offers no second control at all — the DECLARE case. Otherwise it plays
  * the third arm and hands back the SPLIT: what survives both controls, and what does not. */
@@ -13356,12 +13419,21 @@ function main() {
     console.log('    ' + String(SWAP_REWRITE_KEPT).padStart(5) + '  leaves KEPT — the carrier\'s own '
               + 'ability field moved to something that is NOT the ability under test, so the entity '
               + 'rewrote it (Trace, Receiver, a forme). A blanket path ignore would delete these.');
+    /* ROADMAP #609. Zero here while rows are swap-controlled means the OTHER half of the exchange is
+     * being counted as the entity's evidence, which is how 39 rows held a green whose whole delta was
+     * the control arm describing itself. */
+    console.log('    ' + String(SWAP_ARM_DROPPED).padStart(5) + '  leaves DROPPED on the SWAPPER\'S '
+              + 'OWN SLOT — the ability it handed over, and the Skill Swap click the control arm '
+              + 'spends where the subject arm idles (PP and the inert click\'s volatile)'
+              + (SWAP_ARM_DROPPED ? '' : '   <-- ZERO. If any row below is controlled by a Skill '
+                 + 'Swap, its delta still carries the control arm describing itself.'));
   }
 
   if (JSONOUT || HAS('--write')) {
     const art = { generated: new Date().toISOString(), by: 'tests/roster.js', stage: STAGE,
       swap_leaf_correction: { self_describing_dropped: SWAP_SELF_DROPPED,
-                              real_ability_rewrite_kept: SWAP_REWRITE_KEPT },
+                              real_ability_rewrite_kept: SWAP_REWRITE_KEPT,
+                              control_arm_bookkeeping_dropped: SWAP_ARM_DROPPED },
       /* THE WHOLE STAMP, NOT THE ID — 2026-09-04. `engine_release: REL.id` alone is a CLAIM about
        * which bytes this run read; `source_digests` is the receipt, and it is the only thing
        * `engine/provenance.js` can verify BY CONTENT ("newer than its source is no evidence at all",

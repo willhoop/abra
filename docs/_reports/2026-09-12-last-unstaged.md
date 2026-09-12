@@ -183,15 +183,56 @@ on their pre-#318 bodies. A count without its lines would have been reported as 
 The abilities clause reads **176 of 200** against 173 before this pass, and the three rows in neither
 column are exactly the three CONTROL-NOT-QUIET rows named above.
 
-### One caveat I introduced, stated rather than left to be found
+### Two caveats I introduced, and the register caught the second one
 
-The gate's `no open, known engine defect` clause prints **STALE VERDICTS** —
-`data/register-reality.json` was generated at 22:23 and `docs/ROADMAP.md` last changed at 23:46, which
-is my own three-row edit. The clause still PASSES, and the three new rows are all **closed**, so none
-of them can add a breakage claim to it; the note is that the verdict set predates them rather than
-contradicts them. `node engine/register_reality.js` was started to refresh it and was **still running
-at the end of this pass** — it is a long job, and it is hygiene for a caveat inside a passing clause,
-not a blocker on anything measured here.
+**The first is closed.** The gate's `no open, known engine defect` clause printed **STALE VERDICTS**,
+because `data/register-reality.json` predated my own three-row ROADMAP edit. Refreshed and the gate
+re-run: the note is **gone** (0 occurrences) and the gate still reads OPEN with 9 of 9 clauses PASS.
+
+**The second is the interesting one, because the register found it and I did not.** All three rows I
+added were counted among its **13 REJECTED markers**:
+
+```
+MARKER REJECTED  #604  (PLACEHOLDER): the marker carries unexpanded template text (`<...>` or `...`),
+                       so it is an instruction to a human and cannot be run as written.
+                       marker: `SHOWDOWN_PATH=... node tests/roster.js --stage abilities --only lightmetal ...`
+```
+
+I had copied the `SHOWDOWN_PATH=...` prefix from a neighbouring row, and the literal `...` makes the
+marker unrunnable. `register_reality.js` is explicit about what that costs: *"those rows name an
+instrument and this file refused to read the marker, so nothing ran. This is coverage the register
+CLAIMS and does not have."* Three rows asserting a verification nobody can execute is the exact failure
+this repository is built around, arriving in the paperwork rather than the code.
+
+Fixed: every marker now begins with `node` and carries no placeholder — `engine/showdown_path.js`
+resolves the simulator path itself, which is why the rows that work carry no prefix. Re-run and
+**confirmed**: all three read `CONFIRMED  exit 0`, and the rejected-marker count falls **13 → 10** —
+exactly my three and nothing else.
+
+**The exit code is NOT claimed as a measurement, and the reason is a second writer.** Between the two
+register runs `tests/roster.js` was modified by ANOTHER AGENT — 00:44:57, then again 01:28:51 — while
+`data/register-reality.json` was written at 01:50:34. Two of my three markers are roster `--only`
+runs, so they executed against that agent's in-progress bytes. What survives that is the PARSING fact
+(the markers are now readable and runnable, which is what was broken); what does not is the verdict
+derived by running them. CLAUDE.md's rule is the one that applies — a measuring process may not run
+beside a writing one — so the exit 0 is recorded as reassurance and nothing more.
+
+**Nothing in the counts above is affected.** The three stage artifacts were written 23:45:59, 23:48:49
+and 23:49:43, and the first foreign edit to `tests/roster.js` landed at 00:44:57 — fifty-five minutes
+after the last stage finished. Every figure in this report, and the gate quoted below, was produced
+from the bytes this pass wrote. The concurrent work is the `magmaarmor` / `slushrush` / `opportunist`
+delegation named in the hand list as NOT DONE HERE; it is untouched by me.
+
+**The gate verdict is unaffected either way, by the tool's own rule:** on a CLOSED row a rejected
+marker *"is a hole in the ruler and reaches no gate clause"*. All three of my rows are closed.
+`register_reality.js` exits 1 (`VERDICT-RED`) on its own bar — 7 rows disagreeing with their
+instrument, 13 rejected markers, 8 instruments answering nothing — and that bar was red before this
+pass and is not the MEDICHAM gate.
+
+Unrelated and NOT from this pass: `engine/status.js` prints `FEATURE SEMANTICS CHECK FAILED` for
+`data/policy-weights.json`. That file is dated 2026-08-28 and `data/engine-data.js` 2026-08-31, both
+two weeks older than this session, and neither is modified in the working tree. It is a pre-existing
+refit signal and belongs to MEASURE.
 
 Unrelated and NOT from this pass: `engine/status.js` prints `FEATURE SEMANTICS CHECK FAILED` for
 `data/policy-weights.json`. That file is dated 2026-08-28 and `data/engine-data.js` 2026-08-31, both

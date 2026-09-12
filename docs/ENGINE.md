@@ -154,10 +154,10 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  883/883 probed mechanics live, 0 missing   (census 2026-09-11 19:54)
+  883/883 probed mechanics live, 0 missing   (census 2026-09-11 21:41)
     the census probes what somebody thought to probe: 296 of 296 in-scope tags carry a probe, 0 carry none (9 of 305
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 2.0 h old). node engine/coverage.js
+    (all-mechanics-fire.json, 4.9 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-11 16:35)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
     the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
@@ -181,9 +181,75 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-11 20:07_
+_stamped 2026-09-11 23:01_
 
 <!-- /GENERATED -->
+
+## THE SKILL SWAP CONTROL WAS COUNTING ITSELF — **39 ABILITY GREENS WERE VACUOUS AND ARE NOW REFUSED.** ABILITIES **177 → 138 MATCH / 16 → 55 COULD-NOT-STAGE**, CNQ **2, UNCHANGED**. ITEMS **148** AND MOVES **487 / 7 / 3** UNMOVED AS CONTROLS. REDS **22 / 45 / 36 CAUGHT, ZERO NOT CAUGHT**. CENSUS **883 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `534442d71183`. 2026-09-12, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-12-control-and-megas.md`. Register rows #609 (closed), #608 (refined, open).
+
+**THE COUNT WENT DOWN AND THAT IS THE RESULT.** `controlOf` populated the swap record **only in the
+sheet-swap branch**, so for any row controlled by an in-play Skill Swap `swapLeaf` returned 0 on its
+first line and the swap-leaf correction was **structurally dead** — on the subject's side as well as
+the swapper's. The stage printed `0 leaves DROPPED` and nothing read it.
+
+```
+leafguard, release 534442d71183
+  --no-swap-control   COULD-NOT-STAGE          16 dropped    delta  0 leaves   <- correctly refused
+  default (swap)      FIRED-AND-BOARDS-MATCH    0 dropped    delta 26 leaves   <- a vacuous green
+```
+
+Not one of those 26 leaves is Leaf Guard acting: they are the swapper's own `.ability` and party row,
+`pp[1].skillswap`, `pp[1].focusenergy`, `vol.focusenergy`, and the carrier's own swap leaves. **This is
+the Focus Sash defect on the ability axis, a third time** — the control arm describing itself and being
+counted as the entity's evidence. It arrived inside the previous pass's own fix: `swapForQuiet` moved
+rows onto the swap control, and every row it moved had the correction switched off by that move.
+
+- **Both halves are now armed**, conditioned on the VALUES and never on the path (a blanket `.ability`
+  ignore would delete Trace's real copy for ever): the carrier's side through the existing `swapLeaf`,
+  and the swapper's own slot through `swapArmLeaf` — the ability it handed over, plus the click the
+  control arm spends where the subject arm idles. Counted separately and printed every run:
+  `control_arm_bookkeeping_dropped` reads **2,808** on abilities and **0** on items and moves.
+- **Exactly 39 rows fell, and they are exactly the 39 predicted from the artifact BEFORE the code was
+  touched** — none added, none missed, zero rows rose. The prediction was validated against an
+  independent oracle (`--no-swap-control`) **7 of 7** before it was believed.
+- **`tests/probe_control_self_name.js` was RED 3 of 7 when this pass began**, and it is **not
+  registered in `tests/run-all.js`** — which is why a red probe guarding exactly this defect was
+  invisible. Now **GREEN 7 of 7**, clauses B and C intact. Red again under
+  `ROSTER_SWAP_ARM_LEAVES_COUNT=1`, which restores the whole pre-#609 state rather than half of it.
+- **THE 39 ARE STAGING ROWS, NOT LOST MECHANICS.** The census is unmoved at **883 live / 0 missing**;
+  nine of the 39 are independently named in it, and Damp's own proof (`selfKOAlwaysAboveTheHit`, at
+  exact zero with a knob-cleared control) is untouched. What fell is a fixture that demonstrated
+  nothing, not a mechanic.
+
+### The hand list
+
+- **#608 IS REFINED AND DELIBERATELY UNFIXED: it is ONE FACT WITH TWO IMPLEMENTATIONS.** The move stage
+  already owns the honest derivation (`moveQuietAbilities(arm)` — arm-aware, no `on*` key of ANY type,
+  minus `QUIET_EXCLUDE` and `MOVE_FIELD_ACTORS`), and an independent scan of the authority's source
+  confirms that table exactly: `hasAbility("dancer")` at `battle-actions.js:283`, `hasAbility("corrosion")`
+  inside `setStatus` at `pokemon.js:1257`, `hasAbility("earlybird")` at `conditions.js:88`. The ability
+  stage's `QUIET` is a second implementation using the function-only predicate. **And the second half is
+  subtler:** `critsLand().armourShared` answers *"do both engines implement the armour identically"* —
+  right for the move stage where both arms carry it, WRONG for a control that only the control arm
+  carries. Fix is `quietAsControl(ability, arm)`; measured low-risk, since all five Shell/Battle-Armor
+  controlled rows sit on `top-tie-first` where no crit lands.
+- **`magmaarmor` CANNOT BE CLOSED, and the format is the reason.** Its only legal carrier is Camerupt,
+  whose alternates are Solid Rock (`onSourceModifyDamage`) and Anger Point (`onHit`, +6 on a crit) —
+  both live on `bottom-tie-first`, the only corner that can write FREEZE here. No green was manufactured.
+- **THE MEGA-ONLY SIX STILL WAIT, with a stronger reason than budget.** The control they would use was
+  measured this pass to be manufacturing vacuous greens for 39 rows; six more would have been six more.
+  The route is open now. Note for whoever takes them: `furcoat` (Furfrou) and `megalauncher` (Clawitzer)
+  are **not** mega-only — they are SUPPRESS-tier single-ability species — and `galewings` is refused by
+  the DELIVERY TABLE, not by its control.
+- **`opportunist` is owed a fixture in which the copy demonstrably lands**, not a better control.
+- **The 39 fallen rows are winnable fixture work**, one rule at a time.
+- **`zerotohero`, `simple`, `ripen` and the inert-staging rows** carry forward unchanged.
+- **The move refusals stand, re-read not assumed** — `focusenergy` IS the control click, `struggle` is
+  disabled while any move is usable, `extremespeed`/`iceshard`/`jetpunch` keep the MEASURED `wideAbility`
+  refutation, `upperhand` reads a target's priority intent, `ragingbull` is refused by measurement.
+- **Carried forward unchanged** from the hand lists below.
 
 ## SLUSH RUSH AND AURA WHEEL CLOSE — ABILITIES **176 → 177 MATCH / 3 → 2 CONTROL-NOT-QUIET**, MOVES **486 → 487 MATCH / 8 → 7 COULD-NOT-STAGE**, ITEMS **148** UNMOVED AS THE CONTROL. TWO THINGS WERE BUILT, MEASURED AND **WITHDRAWN**: A CONTROL THAT MEASURED THE CONTROL, AND A GREEN WITH NO BOOST IN IT. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `534442d71183`. 2026-09-12, CHANGELOG `<<VER>>`
 

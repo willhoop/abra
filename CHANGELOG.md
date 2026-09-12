@@ -10,6 +10,54 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.36.0] — 2026-09-12
+
+### Fixed
+- **The Skill Swap control arm was counted as the entity's own evidence, and 39 ability greens were
+  vacuous (ROADMAP #609, closed).** `controlOf` populated `swap.species` / `swap.controls` **only in
+  the sheet-swap branch**, so for any row whose control is an in-play Skill Swap `swapLeaf` returned 0
+  on its first line and the swap-leaf correction was **structurally dead — on the subject's side as
+  well as the swapper's**. The ability stage printed `0 leaves DROPPED` every run and nothing read it.
+  MEASURED on release `534442d71183`: `leafguard` reads COULD-NOT-STAGE with **0** delta leaves under
+  `--no-swap-control`, and FIRED-AND-BOARDS-MATCH on **26** leaves with **0 dropped** under the swap
+  control — and not one of those 26 is the ability acting. They are the swapper's own `.ability` and
+  party row, `pp[1].skillswap`, `pp[1].focusenergy`, `vol.focusenergy`, and the carrier's own swap
+  leaves. This is the Focus Sash defect on the ability axis for the third time, and it arrived inside
+  the previous pass's own fix: `swapForQuiet` moved rows onto the swap control and switched the
+  correction off for every one of them. Both halves are now armed and **conditioned on the VALUES,
+  never on the path** — a blanket `.ability` ignore would delete Trace's real copy for ever — with the
+  swapper's own slot handled by a new `swapArmLeaf` and counted separately as
+  `control_arm_bookkeeping_dropped` (**2,808** on abilities, **0** on items and moves).
+- **`tests/probe_control_self_name.js` was RED 3 of 7 clauses before this pass and is not registered
+  in `tests/run-all.js`** — which is why a probe guarding exactly this defect was red unnoticed. It is
+  now GREEN 7 of 7 with clauses B and C intact, and red again under `ROSTER_SWAP_ARM_LEAVES_COUNT=1`,
+  which restores the whole pre-#609 state rather than half of it. Registering it is owed; that file is
+  not ENGINE's.
+
+### Changed
+- **ROADMAP #608 refined and deliberately left open.** The root cause is one fact with two
+  implementations: the move stage already owns an arm-aware strict predicate
+  (`moveQuietAbilities(arm)`, no `on*` key of ANY type, minus `QUIET_EXCLUDE` and `MOVE_FIELD_ACTORS`),
+  whose three field-actors are confirmed independently in the authority's own source
+  (`hasAbility("dancer")`, `hasAbility("corrosion")` inside `setStatus`, `hasAbility("earlybird")`),
+  while the ability stage's `QUIET` uses the function-only predicate. A second half the row never
+  named: `critsLand().armourShared` asks whether both ENGINES implement the armour alike — right for
+  the move stage, wrong for a control only one arm carries. Not fixed in the same pass as #609, so
+  that a 39-row move stays attributable to one cause.
+
+### Notes
+- **The 39 are STAGING ROWS, not lost mechanics.** The census is unmoved at **883 probed / 883 live /
+  0 missing**; nine of the 39 are independently named in it, and Damp's proof at exact zero
+  (`selfKOAlwaysAboveTheHit`, knob-cleared control) is untouched. A roster row falling to
+  COULD-NOT-STAGE says its fixture was inert, not that the mechanic regressed.
+- Deliberate roster, release `534442d71183`: abilities **177 → 138 MATCH / 16 → 55 COULD-NOT-STAGE /
+  2 CONTROL-NOT-QUIET unchanged**; items **148** and moves **487 / 7 / 3** unmoved as controls; reds
+  **22 / 45 / 36 CAUGHT, zero NOT CAUGHT**. Gate **OPEN**, `engine/quarantine.js` exit 0. No engine
+  byte changed, so no release was cut.
+- `magmaarmor` cannot be closed: asked of the format, its only legal carrier is Camerupt and both
+  alternates are live on `bottom-tie-first`, the one corner that can write FREEZE in this regulation.
+  No green was manufactured for it.
+
 ## [6.34.0] — 2026-09-12
 
 ### Added

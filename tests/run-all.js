@@ -309,7 +309,18 @@ const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_a
    * probe_delayed_crit.js and probe_sub_clamp.js above, so there is no SHOWDOWN_PATH to skip on and
    * no baseline pin for this runner to choose. It costs ~25 s. Measured 2026-09-08 after the fifteen
    * re-aims: 200 demonstrations, 0 HOLLOW, 0 COULD NOT BE APPLIED, 2 not in this format, exit 0. */
-  'tests/probe_red_demo.js'];
+  'tests/probe_red_demo.js',
+  /* tests/probe_control_self_name.js — ROADMAP #609, registered 2026-09-12 AFTER it proved its own
+   * worth while nothing was running it. The roster's Skill Swap control armed its leaf correction
+   * only in the sheet-swap branch, so `swapLeaf` returned 0 on the first line and the correction was
+   * structurally dead on BOTH sides: 39 of 177 ability greens rested on that bookkeeping and could
+   * not have failed. This probe reads RED 3 of 7 on those bytes and GREEN 7 of 7 once the control
+   * measures the SUBJECT, and red again under ROSTER_SWAP_ARM_LEAVES_COUNT=1.
+   *
+   * IT SAT RED AND UNNOTICED BECAUSE NOTHING RAN IT, which is this file's own coverage assertion
+   * turned on the file itself — a check nothing runs reads as coverage in a review and is worse
+   * than no check. It plays no game against the authority and needs no release pin. */
+  'tests/probe_control_self_name.js'];
 
 /* COVERAGE ASSERTION. Any file in tests/ or engine/ that reports its own pass/fail verdict is a
  * check, and a check that nothing runs is worse than no check — it reads as coverage in a review. If
