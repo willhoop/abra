@@ -52,6 +52,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.35.0] — 2026-09-12 — the held 7.0.0 white paper was published by accident and is withdrawn, keeping only the figure corrections it legitimately owed
+
+- **What changed.** Commit `0b0aef50` staged `docs/ABRA-whitepaper.md` to correct one roster figure and carried the entire HELD 7.0.0 fold-in with it: the document went out stamped as a version that has not been released, with six literal `<<GATE>>` placeholders standing where the gate verdict belongs. Will put that release on hold on 2026-09-11 while in-scope mechanics remain unstaged, so publishing it was mine to undo, not to defer. The document is restored to its pre-fold-in text, the version header returns to the released one, every placeholder is gone, and only the figure corrections that were genuinely owed are re-applied — a superseded figure is a retraction and does not wait. The fold-in itself is unharmed and waits in the working tree for the day 7.0.0 actually ships. The other four living documents never leaked and are untouched.
+- **Measured.** NO NEW MEASUREMENT. The roster figures are read from the item, ability and move stage artifacts of release `534442d71183`, the same run the preceding rows report; placeholder count in the published document 6 → 0.
+- **Supersedes.** The white paper as commit `0b0aef50` published it.
+- **Basis.** unchanged.
+- **Owed to the next major.** The fold-in, when Will releases it.
+
 ## [6.34.0] — 2026-09-12 — Slush Rush and Aura Wheel close, and two things that made the counts look better were withdrawn
 
 - **What changed.** `tests/roster.js` only. `stageAbilityQuiet` gives a hand-written ability rule the in-play Skill Swap control that `abilityScenario` already takes, opt-in per rule so every other fixture is byte-identical, printing what it matched every run; `formeFlipStaging` derives the forme knob that `move/type-changing`'s refusal used to name by hand — the flip ability off any `onResidual` that calls `formeChange`, the user off the legal buildable learners, the defender immune to the printed type and not to the converted one. **Two things were withdrawn in the same pass.** The delegation was measuring the SWAPPER: `QUIET`'s predicate tests `typeof === 'function'` and so cannot see `onCriticalHit = false`, which `shellarmor` and `battlearmor` carry, so the swapper lends a crit blocker into `bottom-tie-first` where every crit lands — `magmaarmor` went green on a delta that was entirely HP with no `status` leaf, against a freeze it is supposed to refuse. And a new rule for `opportunist` produced a green whose 20 delta leaves contained no boost at all, with its own red demonstration NOT CAUGHT. Both are out; both are filed with their measurements. ROADMAP #607 closed, #608 and #609 open. Detail: `docs/_reports/2026-09-12-staging-batch-3.md`.
