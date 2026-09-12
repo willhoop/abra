@@ -10,6 +10,85 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.41.0] — 2026-09-12
+
+### Added
+- **Five ability shape rules take the LAST four `THE STAGING IS INERT` families and the one row left
+  over — nineteen rows close and the inert list is EMPTY.** The ability stage reads
+  **183 FIRED-AND-BOARDS-MATCH / 10 COULD-NOT-STAGE / 2 CONTROL-NOT-QUIET / 5 DEFERRED-BY-OWNER**
+  against 164 / 29 / 2 / 5 before. Items (**148 / 0**) and moves (**487 / 7 / 3**) are the controls
+  and neither moved a row. Release **`48ac1c228e02`** cut for the engine fix below.
+  - **`ability/an-item-is-eaten-taken-or-handed-on`** — `cheekpouch`, `cudchew`, `klutz`, `magician`,
+    `pickpocket`, `stickyhold`, `symbiosis`. `item` IS a compared leaf and the generic staging never
+    moves one, so no control could have reached these. Both props are derived: the berry is the legal
+    berry whose `onUpdate` spends it at an HP fraction and whose `onEat` heals a FRACTION (a flat heal
+    is refused — it does not scale with a body), and the carried item is the legal item with exactly
+    ONE function-valued handler, a residual heal, so its motion is visible on the `item` leaf AND on
+    the hp the heal pays. The remover is the click the handler itself names (Sticky Hold's own source
+    tests `this.activeMove.id === "knockoff"`). **It sits above `ability/entry` and `ability/residual`
+    deliberately**: Klutz's `onStart` does nothing but END the holder's own item and Cud Chew's
+    `onResidual` is the DELAYED HALF of eating a berry, so a rule that read the registration surface
+    staged the wrong experiment for both.
+  - **`ability/a-status-is-refused-cured-or-reflected`** — `corrosion`, `earlybird`, `hydration`,
+    `leafguard`, `synchronize`. **Two of the five register NO handler at all** and that is what they
+    are: Corrosion and Early Bird are implemented BY NAME inside the authority, so they are matched
+    off the SHAPE of the `nameImplementedBySim` param (an `ignoresStatusImmunityFor` list, an
+    `extraStatusTicks` map) and never off a name. **The receipt problem decides the click on two
+    branches**: a precondition is read off the SUBJECT arm and both weather branches end every
+    boundary with no status, so those two demand a status click that also writes a stat stage — the
+    stage lands in both arms, cancels out of the delta, and is the only honest proof the click landed.
+  - **`ability/it-rewrites-its-own-click`** — `skilllink`, `stalwart`. Skill Link is provably inert on
+    the primary corner, whose scalar already returns the TOP of every `sample`, so it runs on the
+    other published corner where the pin returns the bottom. Stalwart needed a redirector and **ZERO
+    legal abilities in this regulation register `onFoeRedirectTarget`**, so the redirect is a
+    positive-priority CLICK derived off the move's own condition.
+  - **`ability/an-arrival-a-field-or-a-refusal`** — `cloudnine`, `damp`, `receiver`, `screencleaner`
+    close; `frisk` and `goodasgold` become MEASURED refusals.
+  - **`ability/it-counts-the-fallen-when-it-arrives`** — `supremeoverlord`, left open by the previous
+    pass rather than given a weak refusal. The carrier starts benched, a derived killer takes its ally
+    down in one click, and **the arrival IS the forced switch** — the first version scripted a switch
+    as well and Showdown rejected the game outright, naming the body that had already refilled the
+    slot (`|-start|p2b: Kingambit|fallen1|[silent]` before `|turn|2`).
+
+### Fixed
+- **The sleep counter was TURNS ELAPSED where the authority publishes TICKS SPENT, so Early Bird
+  parted on a compared leaf while agreeing on the wake turn (ROADMAP #614).** The first fixture that
+  ever slept an Early Bird body read `SHOWDOWN status_counter 2 / OURS 1` on the active slot and the
+  party row, and nothing else parted. `data/conditions.ts:68-70` spends TWO ticks off
+  `statusState.time` for this ability and `board_state.js` publishes `startTime - time`; medicham2
+  counted turns and paid for the accelerator at the wake THRESHOLD instead. Fixed at the counter —
+  `slpTurns += 1 + extra`, ceilings back to the raw `slpTime` / 3 / 2 — which is arithmetically
+  identical on the wake turn for every value this format can produce. Red before, green after, **red
+  again under `MEDI_SLEEP_TICKS_AS_TURNS=1`**, which stamps `MEDFAILS.sleepTicksAsTurnsRestored`.
+- **Three more dead controls, every one manufacturing an INERT row (ROADMAP #615).** (1) **Good as
+  Gold refuses the control itself** — Skill Swap is a Status move at the carrier and the ability
+  returns `null` for exactly that, so both arms read `ab=goodasgold` at every boundary. `swapRefused`
+  now asks the handler as well as the flag, narrowed to a `return null` because Wonder Guard tests the
+  same category and does the OPPOSITE with it. (2) **The swap control cannot control a FIELD-WIDE
+  ability** — it exchanges rather than deletes, so `[CTRL] p1[1]=goodrahisui ab=damp` left Damp on
+  the field one slot to the left. Read off `suppressWeather` and the `onAny*` prefix, such a carrier
+  is routed to a SHEET control and required to have a third ability for the second-control
+  attribution. (3) **An inherited ability that lands on the control's own value is invisible** —
+  Receiver's ally carried the very ability the swap lends.
+- **Two smaller fixture faults, recorded rather than quietly corrected.** Screen Cleaner's setter was
+  Aurora Veil, whose own `onTry` needs snow; the first narrowing looked for a literal `return false`
+  and MISSED it, so the clause is now the PRESENCE of any `onTry*` handler. Stalwart's precondition
+  read the `followme` volatile, which is not one of the nine `board_state.js` publishes; the receipt
+  is Showdown's own spent-PP meter.
+
+### Changed
+- `docs/ABRA-whitepaper.md` — the roster ability count in three tables, **164 → 183**. A superseded
+  figure is a retraction and does not wait for the held 7.0.0 documentation pass.
+- The two-arm debug dump (`ROSTER_DUMP_BOARDS`) prints BOTH slots, the item, the status, the sky and
+  the spent-PP map. Half of these fixtures put the thing being read in the SECOND slot, and a dump
+  that printed only slot 0 said "nothing happened" about a board where something did.
+
+### Notes
+- Full account: `docs/_reports/2026-09-12-last-four-families.md`. ROADMAP #613 CLOSED (all 41 rows off
+  the inert list: 36 green, 5 measured refusals), #614 and #615 closed.
+- **The new release is gitignored and must be added by name**: `git add -f data/releases/48ac1c228e02`.
+  `.gitignore:174` ignores `data/releases/`, and every count in this entry is stamped with that id.
+
 ## [6.40.0] — 2026-09-12
 
 ### Added

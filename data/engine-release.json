@@ -1,10 +1,10 @@
 {
-  "current": "534442d71183",
-  "cut": "2026-09-11T20:25:57.786Z",
-  "why": "ENGINE 6.26.0: #601 -- a perish-zeroed body runs its later residual handlers until the faint drains (Hunger Switch, Uproar), the first follower after the expiry pays the queue, a corpse whose line is written is not a follower; roster Sand Rush / Stench fixtures",
-  "cuts": 58,
-  "latest_cut": "2026-09-11T22:22:42.173Z",
+  "current": "48ac1c228e02",
+  "cut": "2026-09-12T08:20:37.941Z",
+  "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "cuts": 103,
+  "latest_cut": "2026-09-12T08:32:21.507Z",
   "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-11T22:22:42.187Z",
+  "pointer_written": "2026-09-12T08:32:21.565Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

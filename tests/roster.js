@@ -808,7 +808,38 @@ const SWAPPER = (() => {
  * read rather than listed; medicham2 states in its own source that the class is NOT modelled, so a
  * member staged this way would part the two engines IN THE CONTROL ARM and the row would accuse the
  * entity for the control's divergence. Asked of the format, per entity, every run. */
-const swapRefused = abId => !!((dex.abilities.get(abId) || {}).flags || {}).failskillswap;
+/* ---- AND A SECOND DOOR THE FLAG DOES NOT COVER — 2026-09-12, MEASURED ON GOOD AS GOLD -----------
+ *
+ * `flags.failskillswap` is one way an ability refuses the exchange. THE OTHER IS THAT THE CLICK ITSELF
+ * NEVER LANDS: Skill Swap is a Status move aimed at the carrier, and an ability whose `onTryHit`
+ * returns `null` for a Status move from another body refuses it like any other. Good as Gold carries
+ * no flag, so this function said the swap was fine and `stageAbilitySwap` built it — and the control
+ * arm was the subject arm.
+ *
+ * DUMPED, BOTH ARMS, FIVE BOUNDARIES, on release 534442d71183 (`ROSTER_DUMP_BOARDS=goodasgold`):
+ *
+ *     [DUMP SUBJ] t0..t4  p2[0]=gholdengo hp972 ab=goodasgold
+ *     [DUMP CTRL] t0..t4  p2[0]=gholdengo hp972 ab=goodasgold
+ *
+ * identical in every field with the ability under test still on the carrier IN THE CONTROL ARM, and
+ * the row reported `THE STAGING IS INERT` over 2,730 leaves. That is ROADMAP #612 arriving through a
+ * new door — a dead control manufacturing a false coverage limit, which accuses nobody — and this
+ * time the cause is the ENTITY refusing the control rather than the builder forgetting to write one.
+ *
+ * ASKED OF THE HANDLER, NOT OF A NAME. Narrowed to a handler that RETURNS NULL, because Wonder Guard's
+ * `onTryHit` also tests the Status category and does the OPPOSITE with it — it lets status through and
+ * refuses everything else — and a predicate that read the category test alone would have refused a
+ * swap that works. (Wonder Guard has no legal carrier in this regulation, so nothing moves either way
+ * today; the narrowing is there because the over-match is the failure this file keeps paying for.)
+ *
+ * MEMBERSHIP OVER THE WHOLE DEX, printed by `ROSTER_PRINT_FIELD_FAMILY=1`: one legal ability. */
+const swapRefused = (abId) => {
+  const a = dex.abilities.get(abId) || {};
+  if (((a.flags || {}).failskillswap)) return true;
+  return typeof a.onTryHit === 'function'
+    && /category\s*===\s*["']Status["']/.test(String(a.onTryHit))
+    && /return\s+null/.test(String(a.onTryHit));
+};
 
 /* A BODY THE STANDARD AGGRESSOR CAN KILL FROM FULL, twice over, so an HP floor has something to do */
 /* ROADMAP #318 (6.24.0) — THE KILLER IS CHOSEN WITH ITS TWO KILLS. KILLABLE and KILLABLE2 were Dragapult's
@@ -2543,13 +2574,19 @@ function runEntryRaw(e) {
   if (process.env.ROSTER_DUMP_BOARDS && idOf(process.env.ROSTER_DUMP_BOARDS) === idOf(e.id || '')) {
     for (const arm of [['SUBJ', subject], ['CTRL', control]])
       for (const b of arm[1].boards) {
-        const A0 = sdActive(b, 'p1', 0), B0 = sdActive(b, 'p2', 0);
-        console.log('  [DUMP ' + arm[0] + '] t' + b.turn
-          + '  p1[0]=' + (A0 && A0.species) + ' hp' + (A0 && A0.hp) + ' ab=' + (A0 && A0.ability)
-          + ' boosts=' + JSON.stringify(A0 && A0.boosts)
-          + ' | p2[0]=' + (B0 && B0.species) + ' hp' + (B0 && B0.hp) + ' ab=' + (B0 && B0.ability)
-          + ' boosts=' + JSON.stringify(B0 && B0.boosts)
-          + ' | terrain=' + ((b.sd && b.sd.field && b.sd.field.terrain) || '-'));
+        /* BOTH SLOTS, NOT ONE. Half of these fixtures put the thing being read in the SECOND slot —
+         * an ally that has to faint, the swapper a tracked click is aimed at, a weather setter — and a
+         * dump that prints only slot 0 says "nothing happened" about a board where something did. */
+        const cell = (s, i) => { const a = sdActive(b, s, i);
+          return !a ? s + '[' + i + ']=-' : s + '[' + i + ']=' + a.species + ' hp' + a.hp
+            + (a.fainted ? '(FNT)' : '') + ' ab=' + a.ability + (a.item ? ' it=' + a.item : '')
+            + (a.status ? ' st=' + a.status : '')
+            + (Object.values(a.boosts || {}).some(v => v) ? ' b=' + JSON.stringify(a.boosts) : ''); };
+        console.log('  [DUMP ' + arm[0] + '] t' + b.turn + '  ' + cell('p1', 0) + ' | ' + cell('p1', 1)
+          + ' | ' + cell('p2', 0) + ' | ' + cell('p2', 1)
+          + ' | sky=' + ((b.sd && b.sd.field && b.sd.field.weather) || '-')
+          + ' terrain=' + ((b.sd && b.sd.field && b.sd.field.terrain) || '-')
+          + ' pp1_0=' + JSON.stringify(((((b.sd || {}).sides || {}).p1 || {}).pp || [])[0] || null));
       }
   }
   let delta = armDelta(subject, control, ignore, swap);
@@ -5415,6 +5452,225 @@ if (process.env.ROSTER_PRINT_REACT_TRIGGERS === '1') {
   const rows = dex.abilities.all().filter(a => a.exists && !a.isNonstandard && reactTrigger(a));
   console.log('  REACT TRIGGERS: ' + rows.length + ' in the dex — '
     + rows.map(a => a.id + ' ' + JSON.stringify(reactTrigger(a))).join('; '));
+}
+
+/* ---- THE PROPS AN ITEM-MOTION FIXTURE NEEDS, EVERY ONE READ OFF THE FORMAT — 2026-09-12 ---------
+ *
+ * Seven abilities read `THE STAGING IS INERT` for ONE reason, and it is NOT the control: `item` IS a
+ * compared leaf — `board_state.js` writes it on the active slot AND on the party row — and the
+ * generic staging never makes an item be eaten, taken, refused or handed on. A better control cannot
+ * reach any of them; only a fixture in which an item actually moves can.
+ *
+ * BOTH PROPS ARE DERIVED AND PRINTED (`ROSTER_PRINT_ITEM_MOTION=1`), never named. */
+const itemHandlerKeys = it => Object.keys(it).filter(k => /^on/.test(k) && typeof it[k] === 'function');
+/* A BERRY THE HOLDER SPENDS BY CROSSING AN HP LINE, with the LINE and the HEAL both read out of the
+ * item's own source. A FLAT heal is refused rather than ranked below a fractional one: it does not
+ * scale with the body, so the same fixture would be a different experiment on every carrier. */
+const BERRY_SPENT = (() => {
+  let best = null;
+  for (const it of dex.items.all()) {
+    if (!it.exists || it.isNonstandard || !it.isBerry) continue;
+    if (typeof it.onUpdate !== 'function' || typeof it.onEat !== 'function') continue;
+    const up = String(it.onUpdate);
+    const th = /\.maxhp\s*\/\s*(\d+)/.exec(up);
+    if (!th || !/eatItem\(/.test(up)) continue;
+    const hl = /heal\(\s*\w+\.(?:baseMaxhp|maxhp)\s*\/\s*(\d+)/.exec(String(it.onEat));
+    if (!hl) continue;
+    const row = { item: it, threshold: 1 / +th[1], healFrac: 1 / +hl[1] };
+    if (!best || row.healFrac > best.healFrac) best = row;
+  }
+  return best;
+})();
+/* AN ITEM WHOSE WHOLE CONTENT IS A RESIDUAL HEAL — EXACTLY ONE function-valued handler, asked of the
+ * item rather than assumed. Its motion between two bodies is then visible TWICE: the `item` leaf that
+ * moves, and the hp the heal pays on whichever body ends up holding it. */
+const ITEM_CARRIED = dex.items.all().filter(it => it.exists && !it.isNonstandard && !it.isBerry
+  && !it.megaStone && itemHandlerKeys(it).length === 1 && typeof it.onResidual === 'function'
+  && /this\.heal\(/.test(String(it.onResidual)))[0] || null;
+/* EVERY 100-ACCURACY SINGLE-TARGET CLICK THAT TAKES AN ITEM OFF THE BODY IT HITS — off the move's own
+ * handlers calling `takeItem(`, never off a name. */
+const ITEM_REMOVERS = dex.moves.all().filter(m => m.exists && !m.isNonstandard
+  && SCOPE.inScope('move', m.id) && alwaysHits(m) && (m.target === 'normal' || m.target === 'any')
+  && /\.takeItem\(/.test(handlerSrc(m)));
+
+/* WHICH HANDLER MAKES AN ABILITY AN ITEM-MOTION ABILITY, AND THE ORDER IS THE SPECIFICATION.
+ * `onEatItem` is asked FIRST because Cud Chew registers `onResidual` as well — its residual is the
+ * DELAYED HALF of eating a berry rather than a per-turn effect — and a rule that read the residual
+ * would stage three quiet turns for an ability whose trigger is a berry. */
+function itemMotionBranch(e) {
+  const S = k => (typeof e[k] === 'function' ? String(e[k]) : '');
+  if (typeof e.onEatItem === 'function') return { kind: 'eats' };
+  if (typeof e.onTakeItem === 'function' && /return\s+false/.test(S('onTakeItem')))
+    return { kind: 'refuses',
+             names: [...S('onTakeItem').matchAll(/["']([a-z0-9]+)["']/g)].map(x => x[1]) };
+  if (typeof e.onAfterMoveSecondarySelf === 'function' && /\.takeItem\(/.test(S('onAfterMoveSecondarySelf')))
+    return { kind: 'steals-on-hitting' };
+  if (typeof e.onAfterMoveSecondary === 'function' && /\.takeItem\(/.test(S('onAfterMoveSecondary')))
+    return { kind: 'steals-on-being-hit',
+             contact: /flags\[\s*["']contact["']\s*\]/.test(S('onAfterMoveSecondary')) };
+  if (typeof e.onAllyAfterUseItem === 'function') return { kind: 'passes-to-ally' };
+  if (typeof e.onStart === 'function'
+      && /singleEvent\(\s*["']End["']\s*,\s*\w+\.getItem\(\)/.test(S('onStart')))
+    return { kind: 'suppresses-own-item' };
+  return null;
+}
+/* A BODY THAT TAKES ANOTHER PAST A NAMED HP LINE IN ONE CLICK AND LEAVES IT STANDING. `hitInBand`
+ * fixes the click once the attacker is chosen; this walks the quiet pool for an attacker that has
+ * one. The swapper's own species is refused on side A — see `isSwapper`. */
+function bandThrower(defSp, lo, hi, not) {
+  for (const row of moveBodies(PRIMARY_ARM_ID)) {
+    const a = row.sp;
+    if (isSwapper(a.id) || (not || []).some(x => x && idOf(x) === idOf(a.id))) continue;
+    const H = hitInBand(a, defSp, lo, hi);
+    if (H) return { sp: a, ability: row.ability, mv: H.mv, d: H.d, hp: H.hp };
+  }
+  return null;
+}
+/* ---- WHICH ABILITY IS A STATUS ABILITY, AND WHICH HALF OF THE EVENT IT SITS ON — 2026-09-12 ------
+ *
+ * Three of the five register a handler and are read off it. TWO REGISTER NOTHING AT ALL — Corrosion
+ * and Early Bird are implemented BY NAME inside the authority — so they are read off the SHAPE of the
+ * `nameImplementedBySim` param that records exactly that, never off the name itself. */
+function statusFamilyBranch(e) {
+  const S = k => (typeof e[k] === 'function' ? String(e[k]) : '');
+  if (typeof e.onSetStatus === 'function' && /return\s+false/.test(S('onSetStatus'))
+      && weatherNamed(e, ['onSetStatus']).length)
+    return { kind: 'weather-refuses', weathers: weatherNamed(e, ['onSetStatus']) };
+  if (typeof e.onResidual === 'function' && /cureStatus\(/.test(S('onResidual'))
+      && weatherNamed(e, ['onResidual']).length)
+    return { kind: 'weather-cures', weathers: weatherNamed(e, ['onResidual']) };
+  if (typeof e.onAfterSetStatus === 'function' && /trySetStatus\(/.test(S('onAfterSetStatus')))
+    return { kind: 'reflects',
+             /* the statuses the handler itself returns early on, read off its own equality tests */
+             excludes: [...S('onAfterSetStatus').matchAll(/status\.id\s*===\s*["'](\w+)["']/g)]
+               .map(x => x[1]) };
+  const P = (((TAGS.abilities || {})[e.id] || {}).params || {}).nameImplementedBySim;
+  if (P && !Object.keys(e).some(k => /^on/.test(k) && typeof e[k] === 'function')) {
+    if (Array.isArray(P.ignoresStatusImmunityFor) && P.ignoresStatusImmunityFor.length)
+      return { kind: 'ignores-type-immunity', statuses: P.ignoresStatusImmunityFor };
+    if (P.extraStatusTicks && Object.keys(P.extraStatusTicks).length)
+      return { kind: 'extra-status-tick', ticks: P.extraStatusTicks };
+  }
+  return null;
+}
+/* THE 100-ACCURACY SINGLE-TARGET STATUS CLICKS THIS FORMAT HAS, ordered by whether the caller needs
+ * the click to carry its own receipt. `receipt: true` keeps ONLY the ones that also lower a stat —
+ * the branches where the subject arm's status field is empty by design have nothing else to read. */
+function statusClickRows(o) {
+  const drops = m => !!(m.boosts && Object.keys(m.boosts).some(k => +m.boosts[k] < 0));
+  const rows = Object.keys(STATUS_MOVE).map(st => ({ st, mv: STATUS_MOVE[st] }));
+  if (o && o.receipt) return rows.filter(r => drops(r.mv));
+  return rows.sort((a, b) => (drops(a.mv) ? 1 : 0) - (drops(b.mv) ? 1 : 0));
+}
+/* ---- AN ARRIVAL, A FIELD OR A REFUSAL, READ OFF THE HANDLER — 2026-09-12 ------------------------
+ *
+ * TWO OF THESE SIX PREDICATES WERE LOOSE AND THE PRINT SAID SO BEFORE ANYTHING WAS WIRED. Over the
+ * whole dex the first draft matched NINETEEN abilities, not six: ten announce themselves on entry and
+ * then do their work in another handler (Mold Breaker, Pressure, Curious Medicine, the auras), and
+ * WONDER GUARD tests `move.category === "Status"` in its `onTryHit` and does the OPPOSITE with it —
+ * it lets status through and refuses everything else. So `announces-only` demands that the onStart be
+ * the ability's ONLY function-valued handler, and `refuses-status-moves` demands a `return null`. */
+function fieldFamilyBranch(e) {
+  const S = k => (typeof e[k] === 'function' ? String(e[k]) : '');
+  const fns = Object.keys(e).filter(k => /^on/.test(k) && typeof e[k] === 'function');
+  if (typeof e.onAnyTryMove === 'function' && /return\s+false/.test(S('onAnyTryMove'))) {
+    /* the move ids the handler itself lists */
+    const names = [...S('onAnyTryMove').matchAll(/["']([a-z0-9]+)["']/g)].map(x => x[1])
+      .filter(n => { const m = dex.moves.get(n); return !!(m && m.exists); });
+    if (names.length) return { kind: 'refuses-a-move-outright', names };
+  }
+  if (typeof e.onStart === 'function' && /eachEvent\(\s*["']WeatherChange/.test(S('onStart')))
+    return { kind: 'suppresses-the-sky' };
+  if (typeof e.onStart === 'function' && /removeSideCondition\(/.test(S('onStart')))
+    return { kind: 'clears-side-conditions',
+             names: [...S('onStart').matchAll(/["']([a-z]+)["']/g)].map(x => x[1]) };
+  if (typeof e.onAllyFaint === 'function' && /setAbility\(/.test(S('onAllyFaint')))
+    return { kind: 'inherits-from-a-fallen-ally' };
+  if (typeof e.onTryHit === 'function' && /category\s*===\s*["']Status["']/.test(S('onTryHit'))
+      && /return\s+null/.test(S('onTryHit')))
+    return { kind: 'refuses-status-moves' };
+  if (fns.length === 1 && fns[0] === 'onStart' && /this\.add\(/.test(S('onStart'))) {
+    /* EVERY CALL IN THE BODY MUST BE A READER. `this.add` is the emission; anything else has to be on
+     * the printed reader list or the ability is NOT matched — which is the safe direction, because a
+     * handler this cannot read is refused rather than declared inert. The first draft only banned
+     * `this.<x>(` and let CURIOUS MEDICINE through on `ally.clearBoosts()`; the membership print is
+     * what showed it, which is why the print exists. */
+    const body = S('onStart').replace(/^onStart[^{]*/, '').replace(/this\.add\([\s\S]*?\);/g, '');
+    const calls = [...body.matchAll(/\.(\w+)\s*\(/g)].map(x => x[1]);
+    if (calls.every(c => ANNOUNCE_READERS.has(c)) && !/[^=!<>]=[^=]/.test(body))
+      return { kind: 'announces-only', calls: [...new Set(calls)] };
+  }
+  return null;
+}
+/* THE PURE READERS AN ANNOUNCE-ONLY HANDLER MAY CALL. Anything outside this refuses the match, so the
+ * list can only ever make this rule NARROWER — a mutating call it has not heard of is a non-match. */
+const ANNOUNCE_READERS = new Set(['foes', 'allies', 'adjacentFoes', 'adjacentAllies', 'getItem',
+                                  'getAbility', 'hasType', 'hasAbility', 'hasItem', 'includes',
+                                  'toString', 'getMoves', 'join', 'map', 'filter']);
+/* ---- AN ABILITY THE SKILL SWAP CONTROL CANNOT REMOVE — 2026-09-12, MEASURED ---------------------
+ *
+ * `stageAbilitySwap` EXCHANGES the ability; it does not delete it. Its own header says so ("the one
+ * thing it does not do is remove the ability from the FIELD"), and for a holder-scoped ability that
+ * costs nothing because the swapper never does the thing being measured. FOR A FIELD-WIDE ABILITY IT
+ * IS FATAL: the control arm still has it, one slot to the left.
+ *
+ * MEASURED, both rows, on release 534442d71183 (`ROSTER_DUMP_BOARDS=`):
+ *
+ *   damp       [CTRL] t1  p1[1]=goodrahisui ab=damp        | p2[0]=bellibolt ab=shellarmor
+ *   cloudnine  [CTRL] t1  p1[1]=goodrahisui ab=cloudnine   | p2[0]=altaria   ab=shellarmor
+ *
+ * Damp on ANY active refuses the explosion and Cloud Nine on ANY active suppresses the sky, so both
+ * arms were the same experiment and both rows read INERT over ~2,700 leaves. That is the ROADMAP #612
+ * failure again — a dead control manufacturing a false coverage limit — through a THIRD door.
+ *
+ * READ OFF THE DATA, NOT OFF A NAME: `suppressWeather` is Showdown's own field on the ability, and an
+ * `onAny*` handler is Showdown's own prefix for "this fires wherever it happens on the field". Such a
+ * carrier needs a SHEET control, which really does remove the ability — and a THIRD ability to
+ * attribute against, because every sheet control this format offers these two is itself live. */
+function fieldWide(e) {
+  if (e.suppressWeather === true) return 'suppressWeather';
+  const k = Object.keys(e).find(x => /^onAny/.test(x) && typeof e[x] === 'function');
+  return k || null;
+}
+/* AN ABILITY THAT REWRITES THE CLICK BEFORE IT IS THROWN — the field it rewrites, off its own source. */
+function clickRewriteBranch(e) {
+  if (typeof e.onModifyMove !== 'function') return null;
+  const src = String(e.onModifyMove);
+  const ix = /multihit\s*=\s*move\.multihit\[\s*(\d+)\s*\]/.exec(src);
+  if (ix) return { kind: 'multihit-index', index: +ix[1] };
+  if (/tracksTarget/.test(src)) return { kind: 'tracks-its-target' };
+  return null;
+}
+if (process.env.ROSTER_PRINT_FIELD_FAMILY === '1') {
+  const rows = dex.abilities.all().filter(a => a.exists && !a.isNonstandard && fieldFamilyBranch(a));
+  console.log('  FIELD/ARRIVAL FAMILY: ' + rows.length + ' in the dex — '
+    + rows.map(a => a.id + ' {' + fieldFamilyBranch(a).kind + '}').join('; '));
+  const sr = dex.abilities.all().filter(a => a.exists && !a.isNonstandard && swapRefused(a.id));
+  console.log('  SKILL SWAP REFUSED BY: ' + (sr.map(a => a.id + (((a.flags || {}).failskillswap)
+    ? ' [flag]' : ' [refuses Status moves at itself]')).join('; ') || 'NONE'));
+}
+if (process.env.ROSTER_PRINT_CLICK_REWRITE === '1') {
+  const rows = dex.abilities.all().filter(a => a.exists && !a.isNonstandard && clickRewriteBranch(a));
+  console.log('  CLICK REWRITE: ' + rows.length + ' in the dex — '
+    + rows.map(a => a.id + ' {' + JSON.stringify(clickRewriteBranch(a)) + '}').join('; '));
+}
+if (process.env.ROSTER_PRINT_STATUS_FAMILY === '1') {
+  const rows = dex.abilities.all().filter(a => a.exists && !a.isNonstandard && statusFamilyBranch(a));
+  const show = b => b.kind + ' ' + JSON.stringify(b.weathers || b.statuses || b.ticks || b.excludes || '');
+  console.log('  STATUS FAMILY: ' + rows.length + ' in the dex — '
+    + rows.map(a => a.id + ' {' + show(statusFamilyBranch(a)) + '}').join('; '));
+  console.log('  STATUS CLICKS: ' + statusClickRows({}).map(r => r.st + '=' + r.mv.name).join(', ')
+    + ';  with their own receipt: '
+    + (statusClickRows({ receipt: true }).map(r => r.mv.name).join(', ') || 'NONE'));
+}
+if (process.env.ROSTER_PRINT_ITEM_MOTION === '1') {
+  const rows = dex.abilities.all().filter(a => a.exists && !a.isNonstandard && itemMotionBranch(a));
+  console.log('  ITEM MOTION: ' + rows.length + ' in the dex — '
+    + rows.map(a => a.id + ' {' + itemMotionBranch(a).kind + '}').join('; '));
+  console.log('  PROPS: berry = ' + (BERRY_SPENT ? BERRY_SPENT.item.name + ' (spent at 1/'
+      + Math.round(1 / BERRY_SPENT.threshold) + ' max hp, heals 1/' + Math.round(1 / BERRY_SPENT.healFrac)
+      + ')' : 'NONE') + ';  carried item = ' + (ITEM_CARRIED ? ITEM_CARRIED.name : 'NONE')
+    + ';  take-item clicks = ' + (ITEM_REMOVERS.map(m => m.name).join(', ') || 'NONE'));
 }
 
 const RULES = [
@@ -9651,6 +9907,1176 @@ const RULES = [
       script: [turn([IDLE, IDLE], [IDLE, IDLE]),
                turn([click(psn.id, 0), IDLE], [IDLE, IDLE]),
                turn([IDLE, IDLE], [IDLE, IDLE])] });
+  } },
+
+/* ---- AN ITEM IS EATEN, TAKEN, REFUSED, HANDED ON OR SWITCHED OFF — 2026-09-12 -------------------
+ *
+ * Eight abilities read `THE STAGING IS INERT` and every one of them for the SAME reason, which is not
+ * the control and cannot be reached by improving it: `item` IS a compared leaf and the generic staging
+ * never moves one. The fixture has to.
+ *
+ * IT SITS ABOVE `ability/entry` AND `ability/residual` DELIBERATELY, and the order is the
+ * specification. Klutz registers `onStart` and Cud Chew registers `onResidual`, so both were owned by
+ * a rule that stages the MOMENT — three quiet turns, or a board taken as the leads stand. Neither
+ * moment is the mechanic: Klutz's `onStart` does nothing but END the holder's own item, and Cud Chew's
+ * residual is the DELAYED HALF of eating a berry. A rule that read the registration surface alone
+ * staged the wrong experiment for both.
+ *
+ * MEMBERSHIP WAS PRINTED OVER THE WHOLE DEX BEFORE A LINE WAS WIRED (`ROSTER_PRINT_ITEM_MOTION=1`):
+ *
+ *   ITEM MOTION: 8 in the dex — cheekpouch {eats}; cudchew {eats}; klutz {suppresses-own-item};
+ *   magician {steals-on-hitting}; pickpocket {steals-on-being-hit}; ripen {eats}; stickyhold
+ *   {refuses}; symbiosis {passes-to-ally}
+ *
+ * Exactly the seven inert item-motion rows plus `ripen`, whose refusal was about a boost hook a foe
+ * cannot reach — its OTHER half doubles a berry HEAL, which is the same fixture as Cheek Pouch's and
+ * is why it comes along rather than being excluded by hand. No over-match. */
+{ id: 'ability/an-item-is-eaten-taken-or-handed-on', kind: 'ability',
+  reads: 'onEatItem / onTakeItem returning false / onAfterMoveSecondary(Self) calling takeItem / '
+       + 'onAllyAfterUseItem / an onStart whose whole body ENDS the holder\'s own item — five handlers '
+       + 'that cannot fire unless an item is actually spent or changes hands',
+  why: 'THE GENERIC STAGING NEVER MOVES AN ITEM, so every one of these handlers is armed and none is '
+     + 'asked, and the row reads INERT about the FIXTURE. Each branch creates the exact event its own '
+     + 'handler opens on: a berry crossed past the line its own source names, a derived take-item '
+     + 'click, a contact hit from a body that is holding something, the carrier hitting one, an ALLY '
+     + 'spending a berry beside it, or a residual heal the holder should not be getting.\n'
+     + '     THE TWO PROPS ARE DERIVED. The berry is the legal berry whose `onUpdate` spends it at an '
+     + 'HP fraction and whose `onEat` heals a FRACTION (a flat heal does not scale with a body, so it '
+     + 'would be a different experiment on every carrier); the carried item is the legal item with '
+     + 'EXACTLY ONE function-valued handler, a residual heal — so its motion is visible twice, on the '
+     + '`item` leaf and on the hp the heal pays.\n'
+     + '     THE AUTHORITY IS ASKED WHETHER THE EVENT HAPPENED, because a theft that never fired and '
+     + 'a berry that was never eaten both read INERT and mean nothing.',
+  break: { why: 'the five item-motion tags stop being read, so a berry is eaten with no reaction and '
+              + 'no second helping and no doubling, a strip is never refused, neither theft happens, '
+              + 'nothing is handed to an ally, and a suppressed item keeps working',
+    patch: [["  {const _cp=TAGS.param('ability',m.ability,'healsOnBerryEaten');",
+             "  {const _cp=null&&TAGS.param('ability',m.ability,'healsOnBerryEaten');"],
+            ["  {const _cc=TAGS.param('ability',m.ability,'reEatsBerry');",
+             "  {const _cc=null&&TAGS.param('ability',m.ability,'reEatsBerry');"],
+            ["  const _r=TAGS.param('ability',m&&m.ability,'doublesBerryEffect');",
+             "  const _r=null&&TAGS.param('ability',m&&m.ability,'doublesBerryEffect');"],
+            ["  const _ril=TAGS.param('ability',(m.ability||'').replace(/[^a-z0-9]/g,''),'refusesItemLoss');",
+             "  const _ril=null&&TAGS.param('ability',(m.ability||'').replace(/[^a-z0-9]/g,''),'refusesItemLoss');"],
+            ["          const _st=TAGS.param('ability',tg.ability,'stealsItem');",
+             "          const _st=null&&TAGS.param('ability',tg.ability,'stealsItem');"],
+            ["        const _mg=TAGS.param('ability',m.ability,'stealsItem');",
+             "        const _mg=null&&TAGS.param('ability',m.ability,'stealsItem');"],
+            ["  const p=TAGS.param('ability',giver.ability,'passesItemToAlly');",
+             "  const p=null&&TAGS.param('ability',giver.ability,'passesItemToAlly');"],
+            ["  const _k=m&&TAGS.param('ability',m.ability,'suppressesOwnItem');",
+             "  const _k=null&&TAGS.param('ability',m.ability,'suppressesOwnItem');"]] },
+  match(e) {
+    const B = itemMotionBranch(e);
+    if (!B) return null;
+    if (!ITEM_CARRIED) return cannot('every branch of this rule needs an item whose whole content is '
+      + 'one residual heal, so that its motion is visible on the `item` leaf AND on the hp it pays, '
+      + 'and this format holds none: asked of the item table, no legal non-berry item has exactly one '
+      + 'function-valued handler that heals at the residual');
+    const hpOf = sp => flatL50(sp.baseStats).hp;
+    /* THE STAGED HP INFLATION IS OFF ON THE CARRIER'S SIDE IN EVERY BRANCH BELOW, because every one
+     * of them is priced against a NATURAL maximum: a berry's threshold, a residual sixteenth, a hit
+     * that must not kill. `hpB: 1` is the whole of that and it is stated once here. */
+
+    /* ---- A BERRY THE HOLDER SPENDS ---------------------------------------------------------------- */
+    if (B.kind === 'eats') {
+      if (!BERRY_SPENT) return cannot('its trigger is the holder EATING a berry, and this format holds '
+        + 'no berry whose own `onUpdate` spends it at an HP fraction and whose `onEat` heals a '
+        + 'fraction of the body — so there is no way to make a berry go off on a schedule this pin '
+        + 'can put on a board');
+      const T = BERRY_SPENT;
+      let plan = null;
+      const planFor = (sp) => {
+        plan = null;
+        /* the chip has to cross the line AND leave enough room below the maximum for the heal (and,
+         * for a delayed second helping, for the one after it) to be visible rather than capped */
+        const th = bandThrower(sp, 1 - T.threshold + 0.10, 0.85, [sp.id]);
+        if (!th) return false;
+        plan = { th };
+        return true;
+      };
+      const C = abilityCarrierAnyTier(e, planFor);
+      if (!C) return cannot(noCarrierWhy(e, 'can be taken past ' + T.item.name + '\'s own line (1/'
+        + Math.round(1 / T.threshold) + ' of maximum hp) by ONE derived click and left standing with '
+        + 'room under its maximum for the heal to show'));
+      if (C.tier === 'MEGA') return cannot('its only carrier is a MEGA-tier body, whose held item is '
+        + 'the stone that writes the ability — so the carrier cannot also hold the berry this fixture '
+        + 'has to make it eat');
+      planFor(C.sp || dex.species.get(C.species));
+      const P = plan;
+      /* THE DELAY IS THE HANDLER'S OWN COUNTER where it sets one (Cud Chew's second helping), so the
+       * script is long enough for the thing being measured to happen. */
+      const dly = +((/counter\s*=\s*(\d+)/.exec(String(e.onEatItem)) || [])[1] || 0);
+      return stageAbilityQuiet(e, C, { hpA: 4, hpB: 1, moves: [INERT], item: T.item.id,
+        note: 'the carrier holds ' + T.item.name + ' and ' + pretty(P.th.sp.id) + ' clicks '
+            + P.th.mv.name + ' at it on turn 1 for ' + P.th.d + ' of its ' + P.th.hp + ' hp — past the '
+            + '1/' + Math.round(1 / T.threshold) + ' line the berry\'s own `onUpdate` names, and with '
+            + 'room left under the maximum so the heal is not capped. The berry is spent in BOTH arms, '
+            + 'so the `item` leaf is identical and the reading is the carrier\'s hp'
+            + (dly ? ', across ' + dly + ' further quiet turns — the handler sets its own counter to '
+                   + dly + ', so the second helping lands later and a three-turn script would miss it'
+                   : ''),
+        a0: mon(P.th.sp.id, '', P.th.ability, [P.th.mv.id]),
+        script: [turn([click(P.th.mv.id, 0), IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])],
+        precondition: { turn: 1, why: 'the carrier is STILL STANDING and SHOWDOWN has taken the berry '
+            + 'off it — a berry that was never eaten leaves every one of these handlers unasked, and '
+            + 'a carrier that fainted would make the two arms different games',
+          ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p2', 0);
+            return !!(A && !A.fainted && +A.hp > 0 && !A.item); }) } });
+    }
+
+    /* ---- A STRIP THE HOLDER REFUSES --------------------------------------------------------------- */
+    if (B.kind === 'refuses') {
+      /* THE CLICK IS THE ONE THE HANDLER ITSELF NAMES where it names one — Sticky Hold's own source
+       * tests `this.activeMove.id === "knockoff"` — and otherwise the least entangled derived
+       * take-item click: one that does not gate on a berry and is not a Status swap. */
+      const rank = m => (/isBerry/.test(handlerSrc(m)) ? 2 : 0) + (m.category === 'Status' ? 1 : 0);
+      const pool = ITEM_REMOVERS.slice().sort((a, b) => rank(a) - rank(b));
+      const named = B.names.map(n => pool.find(m => m.id === idOf(n))).filter(Boolean);
+      const rm = named[0] || pool[0];
+      if (!rm) return cannot('it refuses an item being taken and this format holds no 100-accuracy '
+        + 'single-target click whose own handler calls `takeItem` — so nothing can try');
+      if (B.names.includes(idOf(ITEM_CARRIED.id))) return cannot('the handler EXEMPTS the only item '
+        + 'this rule can hand a carrier (' + ITEM_CARRIED.name + '), so the refusal it stages would '
+        + 'be the exemption rather than the ability');
+      let plan = null;
+      const planFor = (sp) => {
+        plan = null;
+        const hp = hpOf(sp);
+        const th = learnerBody([rm.id], { not: [sp.id, SWAPPER && SWAPPER.species],
+          pred: d => maxRoll(d, rm, sp) < hp * 0.7 });
+        if (!th) return false;
+        plan = { th };
+        return true;
+      };
+      const C = abilityCarrierAnyTier(e, planFor);
+      if (!C) return cannot(noCarrierWhy(e, 'survives ' + rm.name + ' from a legal thrower with room '
+        + 'to spare, which it must, or the two arms end on a corpse instead of on an item'));
+      if (C.tier === 'MEGA') return cannot('its only carrier is a MEGA-tier body, whose held item is '
+        + 'the stone that writes the ability — so it cannot hold the item this fixture asks a foe to '
+        + 'take off it');
+      planFor(C.sp || dex.species.get(C.species));
+      const P = plan;
+      return stageAbilityQuiet(e, C, { hpA: 4, hpB: 1, moves: [INERT], item: ITEM_CARRIED.id,
+        note: 'the carrier holds ' + ITEM_CARRIED.name + ' and ' + pretty(P.th.species) + ' clicks '
+            + rm.name + ' at it on turn 1'
+            + (named.length ? ' — the click the handler itself names (`' + named[0].id + '`)'
+                            : ' — the least entangled derived take-item click')
+            + '. With the ability the item is still there afterwards and without it it is gone, so the '
+            + 'reading is the carrier\'s `item` leaf and the hp the residual heal keeps paying',
+        a0: { ...P.th, moves: [rm.id] },
+        script: [turn([click(rm.id, 0), IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])],
+        precondition: { turn: 1, why: 'SHOWDOWN\'s own board shows the carrier alive and HIT — a click '
+            + 'that missed or killed takes nothing off anybody and the row would read INERT about the '
+            + 'thrower',
+          ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p2', 0);
+            return !!(A && !A.fainted && +A.hp > 0 && +A.hp < +A.maxhp); }) } });
+    }
+
+    /* ---- THE CARRIER TAKES AN ITEM OFF SOMEBODY, OR SOMEBODY TAKES ONE OFF IT ---------------------
+     *
+     * ONE FIXTURE IN TWO POLARITIES, and the polarity is the handler's own: `onAfterMoveSecondarySelf`
+     * fires on the body that THREW the click and `onAfterMoveSecondary` on the body that TOOK it. Both
+     * handlers refuse a carrier that is already holding something, so the carrier holds nothing and the
+     * other body holds the derived item. */
+    if (B.kind === 'steals-on-hitting' || B.kind === 'steals-on-being-hit') {
+      const byHit = B.kind === 'steals-on-being-hit';
+      let plan = null;
+      const planFor = (sp) => {
+        plan = null;
+        for (const row of moveBodies(PRIMARY_ARM_ID)) {
+          const d = row.sp;
+          if (idOf(d.id) === idOf(sp.id) || isSwapper(d.id)) continue;
+          /* CONTACT IS ASKED FOR ONLY WHERE THE HANDLER ASKS FOR IT — Pickpocket reads
+           * `move.flags['contact']` and Magician does not. */
+          const mv = byHit ? (B.contact ? neutralContactOn(sp.id, d.id) : neutralHit2(sp.id, [], d.id))
+                           : neutralHit2(d.id, [], sp.id);
+          if (!mv || mv.category === 'Status') continue;
+          const att = byHit ? d : sp, def = byHit ? sp : d;
+          if (maxRoll(att, mv, def) * 3 >= hpOf(def)) continue;      // it must survive the script
+          plan = { d, dAb: row.ability, mv };
+          return true;
+        }
+        return false;
+      };
+      const C = abilityCarrierAnyTier(e, planFor);
+      if (!C) return cannot(noCarrierWhy(e, 'has a quiet body it can be paired with such that the '
+        + (byHit ? 'body lands a neutral ' + (B.contact ? 'CONTACT ' : '') + 'click on the carrier'
+                 : 'carrier lands a neutral damaging click on the body')
+        + ' three times without killing it — a theft read off a corpse is a different experiment'));
+      if (C.tier === 'MEGA') return cannot('its only carrier is a MEGA-tier body, and this fixture '
+        + 'needs the carrier\'s hands EMPTY (the handler refuses outright when `source.item` is set) '
+        + 'while a mega carrier must hold its stone');
+      planFor(C.sp || dex.species.get(C.species));
+      const P = plan;
+      const thrower = byHit
+        ? mon(P.d.id, ITEM_CARRIED.id, P.dAb, [P.mv.id])
+        : mon(P.d.id, ITEM_CARRIED.id, P.dAb, [INERT]);
+      return stageAbilityQuiet(e, C, { hpA: 1, hpB: 1, moves: byHit ? [INERT] : [P.mv.id],
+        note: P.d.name + ' holds ' + ITEM_CARRIED.name + ' and the carrier holds nothing, which is what '
+            + 'the handler requires (it returns early when the thief already has an item). '
+            + (byHit ? P.d.name + ' throws ' + P.mv.name
+                       + (B.contact ? ' — a CONTACT click, because the handler reads '
+                                      + '`move.flags["contact"]` and nothing else does' : '')
+                       + ' at the carrier on turns 1 and 2'
+                     : 'the carrier throws ' + P.mv.name + ' at ' + P.d.name + ' on turns 1 and 2')
+            + '. The reading is the `item` leaf on BOTH bodies and the residual heal that follows the '
+            + 'item to whichever one ends up holding it',
+        a0: thrower,
+        script: byHit
+          ? [turn([click(P.mv.id, 0), IDLE], [IDLE, IDLE]),
+             turn([click(P.mv.id, 0), IDLE], [IDLE, IDLE]),
+             turn([IDLE, IDLE], [IDLE, IDLE])]
+          : [turn([IDLE, IDLE], [click(P.mv.id, 0), IDLE]),
+             turn([IDLE, IDLE], [click(P.mv.id, 0), IDLE]),
+             turn([IDLE, IDLE], [IDLE, IDLE])],
+        precondition: { turn: 1, why: 'SHOWDOWN\'s own board shows the click LANDED — the body that '
+            + 'takes it is below its maximum and still standing. A click that did not land steals '
+            + 'nothing and the row would read INERT about the delivery',
+          ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, byHit ? 'p2' : 'p1', 0);
+            return !!(A && !A.fainted && +A.hp > 0 && +A.hp < +A.maxhp); }) } });
+    }
+
+    /* ---- THE ALLY SPENDS ITS ITEM AND THE CARRIER HANDS OVER ITS OWN ------------------------------ */
+    if (B.kind === 'passes-to-ally') {
+      if (!BERRY_SPENT) return cannot('its trigger is an ALLY finishing with an item, and this format '
+        + 'holds no berry whose own `onUpdate` spends it at an HP fraction — so no ally can be made to '
+        + 'finish with one on a schedule this pin can put on a board');
+      const T = BERRY_SPENT;
+      let plan = null;
+      const planFor = (sp) => {
+        plan = null;
+        for (const row of moveBodies(PRIMARY_ARM_ID)) {
+          const ally = row.sp;
+          if (idOf(ally.id) === idOf(sp.id) || isSwapper(ally.id)) continue;
+          const th = bandThrower(ally, 1 - T.threshold + 0.10, 0.85, [sp.id, ally.id]);
+          if (!th) continue;
+          plan = { ally, allyAb: row.ability, th };
+          return true;
+        }
+        return false;
+      };
+      const C = abilityCarrierAnyTier(e, planFor);
+      if (!C) return cannot(noCarrierWhy(e, 'can stand beside a quiet body that ONE derived click '
+        + 'takes past ' + T.item.name + '\'s own line without killing — the ally has to actually '
+        + 'finish with an item before the handler is called at all'));
+      if (C.tier === 'MEGA') return cannot('its only carrier is a MEGA-tier body, whose held item is '
+        + 'the stone that writes the ability — so it has nothing of its own to hand to the ally');
+      planFor(C.sp || dex.species.get(C.species));
+      const P = plan;
+      return stageAbilityQuiet(e, C, { hpA: 4, hpB: 1, moves: [INERT], item: ITEM_CARRIED.id,
+        note: 'the carrier holds ' + ITEM_CARRIED.name + ' and its ALLY ' + P.ally.name + ' holds '
+            + T.item.name + '; ' + pretty(P.th.sp.id) + ' clicks ' + P.th.mv.name + ' at the ALLY on '
+            + 'turn 1 for ' + P.th.d + ' of its ' + P.th.hp + ' hp, past the 1/'
+            + Math.round(1 / T.threshold) + ' line the berry names. The ally then has empty hands and '
+            + 'the handler hands it the carrier\'s item, so the reading is the `item` leaf on BOTH '
+            + 'bodies of the carrier\'s side',
+        a0: mon(P.th.sp.id, '', P.th.ability, [P.th.mv.id]),
+        b1: mon(P.ally.id, T.item.id, P.allyAb, [INERT]),
+        script: [turn([click(P.th.mv.id, 1), IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])],
+        precondition: { turn: 1, why: 'SHOWDOWN\'s own board shows the ALLY still standing and no '
+            + 'longer holding the berry — an ally that never spent it never raises the event this '
+            + 'handler listens for, and the row would read INERT about the chip',
+          ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p2', 1);
+            return !!(A && !A.fainted && +A.hp > 0 && idOf(A.item || '') !== idOf(T.item.id)); }) } });
+    }
+
+    /* ---- THE HOLDER'S OWN ITEM IS SWITCHED OFF ---------------------------------------------------- */
+    {
+      let plan = null;
+      const planFor = (sp) => {
+        plan = null;
+        /* the carrier has to be BELOW its maximum or a residual heal has nowhere to go, and it has to
+         * stay there for the rest of the script */
+        const th = bandThrower(sp, 0.30, 0.70, [sp.id]);
+        if (!th) return false;
+        plan = { th };
+        return true;
+      };
+      const C = abilityCarrierAnyTier(e, planFor);
+      if (!C) return cannot(noCarrierWhy(e, 'can be taken to between 30% and 70% of its hp by ONE '
+        + 'derived click — a holder at full health is paid nothing by a residual heal, so an item '
+        + 'that is switched off and an item that is working look identical'));
+      if (C.tier === 'MEGA') return cannot('its only carrier is a MEGA-tier body, whose held item is '
+        + 'the stone that writes the ability — so there is no other item for it to be denied');
+      planFor(C.sp || dex.species.get(C.species));
+      const P = plan;
+      return stageAbilityQuiet(e, C, { hpA: 4, hpB: 1, moves: [INERT], item: ITEM_CARRIED.id,
+        note: 'the carrier holds ' + ITEM_CARRIED.name + ', whose whole content is a residual heal, '
+            + 'and ' + pretty(P.th.sp.id) + ' clicks ' + P.th.mv.name + ' at it on turn 1 for '
+            + P.th.d + ' of its ' + P.th.hp + ' hp — so the heal has somewhere to go. WITH the ability '
+            + 'the item is switched off and nothing is paid; without it the carrier gains a sixteenth '
+            + 'at every residual. The `item` leaf is identical in both arms — the item is still held, '
+            + 'it is only ignored — so the reading is hp',
+        a0: mon(P.th.sp.id, '', P.th.ability, [P.th.mv.id]),
+        script: [turn([click(P.th.mv.id, 0), IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])],
+        precondition: { turn: 1, why: 'SHOWDOWN\'s own board shows the carrier alive and BELOW its '
+            + 'maximum, because a residual heal on a full body pays nothing and the two arms would be '
+            + 'identical for a reason about the chip',
+          ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p2', 0);
+            return !!(A && !A.fainted && +A.hp > 0 && +A.hp < +A.maxhp); }) } });
+    }
+  } },
+
+/* ---- A STATUS IS REFUSED, CURED, REFLECTED, FORCED THROUGH A TYPE, OR SPENT FASTER — 2026-09-12 --
+ *
+ * Five abilities read `THE STAGING IS INERT` and all five for the same reason: the generic staging
+ * inflicts NO STATUS on anybody, so a refusal has nothing to refuse, a cure nothing to cure, a
+ * reflection nothing to reflect, a type-immunity bypass nothing to walk through, and a sleep counter
+ * no sleep to spend. `status` and `status_counter` are both compared leaves, so all five reach a board
+ * once one is actually written.
+ *
+ * TWO OF THE FIVE REGISTER NO HANDLER AT ALL and that is not a gap in this rule, it is what they are:
+ * Corrosion and Early Bird are implemented BY NAME inside the authority (`sim/pokemon.ts` `setStatus`
+ * consults the attacker's ability; `data/conditions.ts:68-70` spends a second sleep tick for it), and
+ * `data/tags.json` records exactly that as `nameImplementedBySim`. They are matched off the SHAPE of
+ * that param — an `ignoresStatusImmunityFor` list, an `extraStatusTicks` map — and never off a name,
+ * so an ability added later with the same shape is picked up without editing this rule.
+ *
+ * MEMBERSHIP PRINTED OVER THE WHOLE DEX BEFORE A LINE WAS WIRED (`ROSTER_PRINT_STATUS_FAMILY=1`):
+ *
+ *   STATUS FAMILY: 5 in the dex — corrosion {ignores-type-immunity ["tox","psn"]}; earlybird
+ *   {extra-status-tick {"slp":1}}; hydration {weather-cures ["raindance","primordialsea"]};
+ *   leafguard {weather-refuses ["sunnyday","desolateland"]}; synchronize {reflects}
+ *
+ * Exactly the five inert status rows. No over-match — and in particular `ability/refuses-one-status`
+ * sits ABOVE this rule and keeps every member it already had.
+ *
+ * THE RECEIPT PROBLEM IS THE HARD PART OF TWO OF THESE BRANCHES AND IT DECIDES THE CLICK. A
+ * precondition is read off the SUBJECT arm, and on both weather branches the subject arm ends every
+ * boundary with NO STATUS — Leaf Guard refuses it, Hydration wipes it before the turn ends. "The
+ * carrier is poisoned" is therefore unreadable there, and a rule with no receipt is a rule whose
+ * fixture can silently fail (the Apple Acid sun setter, `runEntry`). So those two branches DEMAND a
+ * status click that ALSO writes a stat stage, and the stage — which lands in both arms and cancels out
+ * of the delta exactly — is what proves the click landed. The other branches prefer the cleanest
+ * click, for the opposite and equally deliberate reason. */
+{ id: 'ability/a-status-is-refused-cured-or-reflected', kind: 'ability',
+  reads: 'onSetStatus returning false under a named weather / onResidual calling cureStatus under a '
+       + 'named weather / onAfterSetStatus handing the status back to the source / a '
+       + '`nameImplementedBySim` param naming the statuses that walk through the type chart or the '
+       + 'extra tick a status counter spends',
+  why: 'THE GENERIC STAGING NEVER STATUSES ANYBODY, so all five handlers are armed and none is asked. '
+     + 'Each branch writes the status the handler is waiting for: a 100-accuracy single-target click '
+     + 'from a derived thrower, under a sky raised by a partner\'s ENTRY ability where the handler '
+     + 'names one, at a body chosen for NOT being immune where the handler needs it statused and FOR '
+     + 'being immune where the handler exists to walk through the immunity.\n'
+     + '     THE CLICK IS CHOSEN BY WHETHER THE BRANCH CAN SEE ITS OWN RECEIPT. Where the subject arm '
+     + 'ends with no status — a refusal, a cure — the click must also write a stat stage, and that '
+     + 'stage is the proof it landed; the stage is in BOTH arms and cancels out of the delta.\n'
+     + '     THE AUTHORITY IS ASKED, on its own board, every time.',
+  break: { why: 'the five status tags stop being read, so a sun-guarded body takes the status, a '
+              + 'rained-on body keeps it, nothing is handed back to the attacker, a Steel body refuses '
+              + 'the poison the ability exists to force through, and sleep spends one tick a turn',
+    patch: [["  {const _si=TAGS.param('ability',ab,'statusImmune');",
+             "  {const _si=null&&TAGS.param('ability',ab,'statusImmune');"],
+            ["      if(_G.has('cures')){const _cr=TAGS.param('ability',m.ability,'curesStatusResidual');",
+             "      if(_G.has('cures')){const _cr=null&&TAGS.param('ability',m.ability,'curesStatusResidual');"],
+            ["  {const _sy=TAGS.param('ability',t.ability,'reflectsStatusToSource');",
+             "  {const _sy=null&&TAGS.param('ability',t.ability,'reflectsStatusToSource');"],
+            ["  {const _nis=src?TAGS.param('ability',src.ability,'nameImplementedBySim'):null;",
+             "  {const _nis=src?null&&TAGS.param('ability',src.ability,'nameImplementedBySim'):null;"],
+            ["        const _est=TAGS.param('ability',m.ability,'nameImplementedBySim');",
+             "        const _est=null&&TAGS.param('ability',m.ability,'nameImplementedBySim');"]] },
+  match(e) {
+    const B = statusFamilyBranch(e);
+    if (!B) return null;
+    const skyUp = (w) => ({ turn: 1, why: 'the ' + w + ' the partner\'s entry ability raises is '
+        + 'actually on SHOWDOWN\'s own field — a weather-gated handler whose sky never went up is '
+        + 'correctly doing nothing and the row would read INERT about the setter',
+      ok: (b, all) => (all || [b]).some(x => { const f = idOf(String((x.sd && x.sd.field
+          && x.sd.field.weather) || '')); return !!f && idOf(w).indexOf(f) === 0; }) });
+    /* the click landed, read off a stage the handler under test does not touch */
+    const dropLanded = (side, slot, stat) => ({ turn: 1, why: 'SHOWDOWN\'s own board carries the '
+        + stat + ' stage the status click also writes — which is the ONLY receipt available on this '
+        + 'branch, because the subject arm ends every boundary with no status on it (that is the '
+        + 'whole effect). A click that missed or was refused would leave the stage at 0 and the row '
+        + 'would read INERT about the delivery rather than about the ability',
+      ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, side, slot);
+        return !!(A && A.boosts && +A.boosts[stat] < 0); }) });
+
+    /* ---- A SKY THAT REFUSES THE STATUS, AND A SKY THAT WIPES IT ---------------------------------- */
+    if (B.kind === 'weather-refuses' || B.kind === 'weather-cures') {
+      const w = B.weathers[0];
+      const S = setterFor(w);
+      if (!S) return cannot('its gate is ' + w + ' and no legal body in this format carries an ability '
+        + 'that raises that sky on entry — so the condition cannot be put on the field in BOTH arms '
+        + 'without a click that would itself be in the delta');
+      /* THE CLICK MUST CARRY ITS OWN RECEIPT ON THIS BRANCH — see the header. */
+      const rows = statusClickRows({ receipt: true });
+      if (!rows.length) return cannot('this branch ends every boundary of the subject arm with NO '
+        + 'status on the carrier, so the only honest receipt that the click landed is a second leaf '
+        + 'the click writes — and this format holds no 100-accuracy single-target status click that '
+        + 'also lowers a stat. Staging it without one would let a missed click read as the ability '
+        + 'working, which is the fault `runEntry`\'s precondition layer exists for');
+      let plan = null;
+      const planFor = (sp) => {
+        plan = null;
+        if (idOf(sp.id) === idOf(S.species)) return false;
+        for (const r of rows) {
+          if (refusesStatusByType(sp.types, r.st)) continue;
+          const th = learnerBody([r.mv.id], { not: [sp.id, S.species, SWAPPER && SWAPPER.species] });
+          if (!th) continue;
+          plan = { r, th, stat: Object.keys(r.mv.boosts).find(k => +r.mv.boosts[k] < 0) };
+          return true;
+        }
+        return false;
+      };
+      const C = abilityCarrierAnyTier(e, planFor);
+      if (!C) return cannot(noCarrierWhy(e, 'can actually TAKE one of this format\'s 100-accuracy '
+        + 'single-target status clicks that also lowers a stat (' + rows.map(r => r.mv.name).join(', ')
+        + ') — a body the type chart already refuses the status on would read INERT for a reason about '
+        + 'the body — while standing beside the ' + S.ability + ' body that raises the ' + w));
+      planFor(C.sp || dex.species.get(C.species));
+      const P = plan;
+      const cures = B.kind === 'weather-cures';
+      return stageAbilityQuiet(e, C, { hpA: 4, hpB: 4, moves: [INERT],
+        note: pretty(S.species) + ' stands beside the carrier holding ' + S.ability + ', which raises '
+            + w + ' on entry in BOTH arms; ' + pretty(P.th.species) + ' then clicks ' + P.r.mv.name
+            + ' at the carrier on turn 1, writing `' + P.r.st + '`. '
+            + (cures ? 'The status lands in both arms and the handler WIPES it at the residual, so the '
+                     : 'The handler REFUSES it outright, so the ')
+            + 'reading is the carrier\'s `status` leaf across three boundaries. The click also lowers '
+            + P.stat + ', which lands in both arms and cancels out of the delta — it is there as the '
+            + 'RECEIPT that the click landed, which is the one thing this branch cannot read off a '
+            + 'status field that is empty by design',
+        a0: { ...P.th, moves: [P.r.mv.id] },
+        b1: mon(S.species, '', S.ability, [INERT]),
+        script: [turn([click(P.r.mv.id, 0), IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])],
+        precondition: [skyUp(w), dropLanded('p2', 0, P.stat)] });
+    }
+
+    /* ---- THE STATUS IS HANDED BACK TO WHOEVER WROTE IT -------------------------------------------- */
+    if (B.kind === 'reflects') {
+      const rows = statusClickRows({}).filter(r => !B.excludes.includes(r.st));
+      if (!rows.length) return cannot('it hands a status back to its source and its own handler '
+        + 'excludes ' + (B.excludes.join('/') || 'nothing') + ', which leaves this format with no '
+        + '100-accuracy single-target status click it would ever be asked about');
+      let plan = null;
+      const planFor = (sp) => {
+        plan = null;
+        for (const r of rows) {
+          if (refusesStatusByType(sp.types, r.st)) continue;
+          /* THE SOURCE HAS TO BE ABLE TO TAKE IT BACK. A thrower the type chart already refuses the
+           * status on would make the handler correctly do nothing, and the row would be INERT about
+           * the thrower rather than about the ability. */
+          const th = learnerBody([r.mv.id], { not: [sp.id, SWAPPER && SWAPPER.species],
+            pred: d => !refusesStatusByType(d.types, r.st) });
+          if (!th) continue;
+          plan = { r, th };
+          return true;
+        }
+        return false;
+      };
+      const C = abilityCarrierAnyTier(e, planFor);
+      if (!C) return cannot(noCarrierWhy(e, 'can be given one of this format\'s 100-accuracy '
+        + 'single-target status clicks by a thrower that is not itself immune to it — both halves are '
+        + 'needed, because the handler writes the status onto the SOURCE'));
+      planFor(C.sp || dex.species.get(C.species));
+      const P = plan;
+      return stageAbilityQuiet(e, C, { hpA: 4, hpB: 4, moves: [INERT],
+        note: pretty(P.th.species) + ' clicks ' + P.r.mv.name + ' at the carrier on turn 1, writing `'
+            + P.r.st + '`. With the ability the SAME status is written straight back onto '
+            + pretty(P.th.species) + ' — which the type chart does not refuse it, checked — and '
+            + 'without it only the carrier carries it. The reading is the THROWER\'s `status` leaf, on '
+            + 'the far side of the field from the swap',
+        a0: { ...P.th, moves: [P.r.mv.id] },
+        script: [turn([click(P.r.mv.id, 0), IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])],
+        precondition: { turn: 1, why: 'SHOWDOWN\'s own board shows the CARRIER carrying `' + P.r.st
+            + '` — the handler fires off the status being set on the holder, so a click that missed '
+            + 'or was refused leaves nothing to hand back and the row would read INERT about the click',
+          ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p2', 0);
+            return !!(A && idOf(String(A.status || '')) === idOf(P.r.st)); }) } });
+    }
+
+    /* ---- A STATUS FORCED THROUGH A TYPE THAT REFUSES IT ------------------------------------------- */
+    if (B.kind === 'ignores-type-immunity') {
+      /* THE CLICK MUST WRITE THE STATUS WITH CERTAINTY UNDER THIS PIN: a Status move whose own
+       * `status` the param names, or a damaging move carrying a 100%-CHANCE secondary of one.
+       * Anything below 100% is a die this arm refuses and would stage nothing. */
+      const certain = dex.moves.all().filter(m => m.exists && !m.isNonstandard
+        && SCOPE.inScope('move', m.id) && alwaysHits(m)
+        && (B.statuses.includes(m.status)
+            || (m.secondaries || []).concat(m.secondary ? [m.secondary] : [])
+                 .some(s => s && B.statuses.includes(s.status) && +s.chance >= 100)));
+      if (!certain.length) return cannot('it exists to write ' + B.statuses.join('/') + ' onto a body '
+        + 'the type chart refuses, and this format holds no 100-accuracy click that writes either with '
+        + 'certainty — every carrier is a die this arm pins to "no secondary below 100%"');
+      let plan = null;
+      const planFor = (sp) => {
+        plan = null;
+        for (const mv of certain) {
+          if (!learnsLegally(sp.id, mv.id)) continue;
+          const st = mv.status || (mv.secondaries || []).concat(mv.secondary ? [mv.secondary] : [])
+            .map(s => s && s.status).find(s => B.statuses.includes(s));
+          /* THE DEFENDER COMES OUT OF `CANDIDATES` AND NOT OUT OF `moveBodies`, and the difference is
+           * the whole branch: the quiet pool is ranked for a DAMAGE reading and holds no body whose
+           * TYPE refuses poison, which is the one property this fixture cannot do without. Its own
+           * ability is `carrierAbility`'s, exactly as `ability/prices-a-critical-hit` picks its. */
+          for (const d of CANDIDATES) {
+            if (idOf(d.id) === idOf(sp.id) || isSwapper(d.id)) continue;
+            if (!buildableSpecies(d.id) || !carrierAbility(d)) continue;
+            if (!refusesStatusByType(d.types, st)) continue;      // it has to be REFUSING it
+            if (mv.category !== 'Status'
+                && maxRoll(sp, mv, d) * 3 >= flatL50(d.baseStats).hp * 4) continue;
+            plan = { mv, st, d, dAb: carrierAbility(d),
+                     spread: mv.target !== 'normal' && mv.target !== 'any' };
+            return true;
+          }
+        }
+        return false;
+      };
+      const C = abilityCarrierAnyTier(e, planFor);
+      if (!C) return cannot(noCarrierWhy(e, 'legally learns a click that writes ' + B.statuses.join('/')
+        + ' with certainty under this pin AND has a legal body opposite it whose TYPE refuses that '
+        + 'status — without both, the immunity this ability walks through is never in the way'));
+      planFor(C.sp || dex.species.get(C.species));
+      const P = plan;
+      return stageAbilityQuiet(e, C, { hpA: 4, hpB: 4, moves: [P.mv.id],
+        note: 'the carrier throws ' + P.mv.name + ' at ' + P.d.name + ' on turn 1. ' + P.d.name
+            + '\'s typing (' + P.d.types.join('/') + ') REFUSES `' + P.st + '` on the authority\'s own '
+            + 'type chart, so without the ability nothing lands and with it the status does — the '
+            + 'reading is ' + P.d.name + '\'s `status` leaf. The click is chosen for writing the '
+            + 'status with CERTAINTY under this pin ('
+            + (P.mv.category === 'Status' ? 'its own `status` field'
+                                          : 'a 100%-chance secondary, the only kind this arm fires')
+            + ')' + (P.spread ? '; it is a ' + P.mv.target + ' click, so the opposing second slot takes '
+                                + 'it too — that is the same ability acting on a second body, not a '
+                                + 'second experiment' : ''),
+        a0: mon(P.d.id, '', P.dAb, [INERT]),
+        script: [turn([IDLE, IDLE], [throwIt(P.mv, 0), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])],
+        precondition: { turn: 1, why: 'SHOWDOWN\'s own board shows ' + P.d.name + ' still standing and '
+            + 'below its maximum, so the click reached it. A click that missed or killed writes no '
+            + 'status either way and the row would read INERT about the delivery',
+          ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p1', 0);
+            return !!(A && !A.fainted && +A.hp > 0
+                      && (P.mv.category === 'Status' || +A.hp < +A.maxhp)); }) } });
+    }
+
+    /* ---- A STATUS COUNTER THAT SPENDS AN EXTRA TICK EVERY TURN ------------------------------------ */
+    {
+      const st = Object.keys(B.ticks)[0];
+      if (st !== 'slp') return cannot('the only accelerated counter this rule can stage is sleep, and '
+        + 'this ability accelerates `' + st + '` — for which this file has no derived writer that the '
+        + 'pin lands');
+      const SLP = sleepClick();
+      if (!SLP) return cannot('its whole content is spending a SLEEP counter faster, and this '
+        + 'regulation has no in-scope way to put a body to sleep: `STATUS_MOVE.slp` is empty (Spore '
+        + 'has no legal carrier) and no move whose condition writes sleep on ending is available '
+        + 'either');
+      let plan = null;
+      const planFor = (sp) => {
+        plan = null;
+        if (refusesStatusByType(sp.types, 'slp')) return false;
+        const th = learnerBody([SLP.move.id], { not: [sp.id, SWAPPER && SWAPPER.species] });
+        if (!th) return false;
+        plan = { th };
+        return true;
+      };
+      const C = abilityCarrierAnyTier(e, planFor);
+      if (!C) return cannot(noCarrierWhy(e, 'can be put to sleep by ' + SLP.move.name + ' from a legal '
+        + 'thrower — a body the type chart refuses sleep on has no counter to spend'));
+      planFor(C.sp || dex.species.get(C.species));
+      const P = plan;
+      return stageAbilityQuiet(e, C, { hpA: 4, hpB: 4, moves: [INERT],
+        note: pretty(P.th.species) + ' clicks ' + SLP.move.name + ' at the carrier on turn 1'
+            + (SLP.delayed ? ', which writes drowsiness and puts it to sleep at the END of the next '
+                             + 'turn — this regulation\'s only in-scope road to a sleeping body' : '')
+            + '; the carrier then idles for the rest of the script, so it spends a sleep tick on every '
+            + 'one of them. With the ability the counter takes TWO ticks a turn and the body wakes a '
+            + 'turn early, so the reading is the carrier\'s `status` and `status_counter` leaves — '
+            + 'both of which `board_state.js` compares, and the counter is normalised to TURNS ALREADY '
+            + 'SLEPT so the two engines\' opposite directions are not the finding',
+        a0: { ...P.th, moves: [SLP.move.id] },
+        script: [turn([click(SLP.move.id, 0), IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])],
+        precondition: { turn: 2, why: 'SHOWDOWN\'s own board shows the carrier ASLEEP on at least one '
+            + 'boundary — a counter that was never started cannot be spent faster, and the row would '
+            + 'read INERT about the sleep click rather than about the ability',
+          ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p2', 0);
+            return !!(A && idOf(String(A.status || '')) === 'slp'); }) } });
+    }
+  } },
+
+/* ---- AN ABILITY THAT REWRITES ITS OWN CLICK BEFORE IT IS THROWN — 2026-09-12 --------------------
+ *
+ * Both members register `onModifyMove` and both read INERT, for two DIFFERENT reasons the generic
+ * staging cannot fix:
+ *
+ *   skilllink  it rewrites `multihit` to the TOP of the range — and the primary arm's own corner
+ *              scalar already selects the top of every `sample`, so on `top-tie-first` the ability
+ *              writes the number the pin was going to produce anyway. It is only expressible on the
+ *              OTHER published corner, where the pin selects the bottom.
+ *   stalwart   it writes `tracksTarget`, which is read by exactly one thing — Showdown's redirection
+ *              step (`sim/battle.ts:2437-2441`) — and the generic staging puts no redirector on the
+ *              field, so the flag decides nothing.
+ *
+ * MEMBERSHIP PRINTED OVER THE WHOLE DEX FIRST (`ROSTER_PRINT_CLICK_REWRITE=1`). */
+{ id: 'ability/it-rewrites-its-own-click', kind: 'ability',
+  reads: 'onModifyMove that assigns `move.multihit` from an INDEX of its own range, or assigns '
+       + '`move.tracksTarget` — the index and the field both read off the handler',
+  why: 'A REWRITE OF THE CLICK IS ONLY VISIBLE WHERE SOMETHING WOULD OTHERWISE HAVE DECIDED IT '
+     + 'DIFFERENTLY. The multi-hit branch runs on the OTHER published corner, because this file\'s '
+     + 'primary arm already picks the top of every range and an ability that also picks the top is '
+     + 'provably inert against it; the redirection branch puts a real redirector on the field, so the '
+     + 'flag has something to override.\n'
+     + '     THE AUTHORITY IS ASKED WHETHER THE CONDITION LANDED — the redirect volatile is on '
+     + 'Showdown\'s own board before the click is thrown.',
+  break: { why: 'the multi-hit override and the redirection override stop being read, so a [2,5] click '
+              + 'rolls the pin\'s own count and a tracked click is pulled to the redirector',
+    patch: [["  const _sl=att?TAGS.param('ability',att.ability,'multihitAlwaysMax'):null;",
+             "  const _sl=att?null&&TAGS.param('ability',att.ability,'multihitAlwaysMax'):null;"],
+            ["    const _ir=TAGS.param('ability',ab,'ignoresRedirection');",
+             "    const _ir=null&&TAGS.param('ability',ab,'ignoresRedirection');"]] },
+  match(e) {
+    if (typeof e.onModifyMove !== 'function') return null;
+    const src = String(e.onModifyMove);
+
+    /* ---- THE MULTI-HIT COUNT ---------------------------------------------------------------------- */
+    const ix = /multihit\s*=\s*move\.multihit\[\s*(\d+)\s*\]/.exec(src);
+    if (ix) {
+      const idx = +ix[1];
+      const pool = dex.moves.all().filter(m => m.exists && !m.isNonstandard
+        && SCOPE.inScope('move', m.id) && Array.isArray(m.multihit) && m.multihit.length > idx
+        && +m.multihit[idx] > +m.multihit[0] && alwaysHits(m)
+        && (m.target === 'normal' || m.target === 'any') && !(m.critRatio > 1));
+      if (!pool.length) return cannot('it rewrites a multi-hit count to index ' + idx + ' of the '
+        + 'move\'s own range, and this format holds no 100-accuracy single-target multi-hit click '
+        + 'whose top is above its bottom — so there is no range for it to collapse');
+      let plan = null;
+      const planFor = (sp) => {
+        plan = null;
+        for (const mv of pool) {
+          if (!learnsLegally(sp.id, mv.id)) continue;
+          for (const row of moveBodies(BOTTOM_ARM)) {
+            const d = row.sp;
+            if (idOf(d.id) === idOf(sp.id) || isSwapper(d.id)) continue;
+            const per = maxRoll(sp, mv, d);
+            if (!(per > 0)) continue;
+            /* it has to survive the FULL count on both of the two throwing turns */
+            if (per * (+mv.multihit[idx]) * 2 >= flatL50(d.baseStats).hp * 8) continue;
+            plan = { mv, d, dAb: row.ability, per };
+            return true;
+          }
+        }
+        return false;
+      };
+      const C = abilityCarrierAnyTier(e, planFor);
+      if (!C) return cannot(noCarrierWhy(e, 'legally learns one of this format\'s 100-accuracy '
+        + 'single-target multi-hit clicks (' + pool.map(m => m.name).join(', ') + ') and has a body '
+        + 'opposite it that survives the full count twice over'));
+      planFor(C.sp || dex.species.get(C.species));
+      const P = plan;
+      return stageAbilityQuiet(e, C, { hpA: 8, hpB: 4, moves: [P.mv.id], arm: BOTTOM_ARM,
+        note: 'the carrier throws ' + P.mv.name + ' (' + JSON.stringify(P.mv.multihit) + ') at '
+            + P.d.name + ' on turns 1 and 2, ON ' + BOTTOM_ARM + '. THE ARM IS THE WHOLE FIXTURE: '
+            + 'this file\'s primary corner selects the TOP of every `sample`, which is exactly the '
+            + 'number this ability writes, so the row is provably inert there and only there. On this '
+            + 'corner the pin selects the BOTTOM, so with the ability the click lands '
+            + P.mv.multihit[idx] + ' times and without it ' + P.mv.multihit[0] + '. The reading is '
+            + P.d.name + '\'s hp, about ' + P.per + ' per hit',
+        a0: mon(P.d.id, '', P.dAb, [INERT]),
+        script: [turn([IDLE, IDLE], [click(P.mv.id, 0), IDLE]),
+                 turn([IDLE, IDLE], [click(P.mv.id, 0), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])],
+        precondition: { turn: 1, why: 'SHOWDOWN\'s own board shows ' + P.d.name + ' alive and below '
+            + 'its maximum — a click that missed or killed collapses no range and the row would read '
+            + 'INERT about the delivery',
+          ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p1', 0);
+            return !!(A && !A.fainted && +A.hp > 0 && +A.hp < +A.maxhp); }) } });
+    }
+
+    /* ---- THE TARGET THE CLICK KEEPS -------------------------------------------------------------- */
+    if (!/tracksTarget/.test(src)) return null;
+    /* THE REDIRECTOR IS DERIVED FROM WHAT READS THE FLAG. Asked of the format on the run: NO legal
+     * ability in this regulation registers `onFoeRedirectTarget`, so the redirect has to be a CLICK —
+     * a Status move whose own condition registers one, at positive priority so it is already up when
+     * the tracked click is thrown. */
+    const RD = dex.moves.all().filter(m => m.exists && !m.isNonstandard && SCOPE.inScope('move', m.id)
+      && m.condition && m.priority > 0 && alwaysHits(m)
+      && (typeof m.condition.onFoeRedirectTarget === 'function'
+          || typeof m.condition.onAnyRedirectTarget === 'function'))
+      /* a redirector that some TYPE or item can ignore would make the row about the victim's typing;
+       * the plainest one first, ranked on how much its own condition tests */
+      .sort((a, b) => String(a.condition.onFoeRedirectTarget || a.condition.onAnyRedirectTarget).length
+                    - String(b.condition.onFoeRedirectTarget || b.condition.onAnyRedirectTarget).length);
+    if (!RD.length) return cannot('the flag it writes is read by exactly one thing — Showdown\'s '
+      + 'redirection step — and this format offers nothing to redirect with: no legal ability '
+      + 'registers `onFoeRedirectTarget` and no in-scope positive-priority click installs one either');
+    const rd = RD[0];
+    const swapSp = SWAPPER && dex.species.get(SWAPPER.species);
+    if (!swapSp) return cannot('this fixture aims the tracked click at the opposing SECOND slot, which '
+      + 'the swap control fills with the swapper, and no swapper is derived on this run');
+    let plan = null;
+    const planFor = (sp) => {
+      plan = null;
+      /* the VICTIM is the swapper: side A slot 1 is written by the control builder and this rule
+       * cannot choose it, so the click is aimed there and the REDIRECTOR takes slot 0 */
+      const hit = neutralHit2(swapSp.id, [], sp.id);
+      if (!hit || hit.category === 'Status') return false;
+      if (maxRoll(sp, hit, swapSp) * 2 >= flatL50(swapSp.baseStats).hp * 4) return false;
+      const th = learnerBody([rd.id], { not: [sp.id, swapSp.id] });
+      if (!th) return false;
+      plan = { hit, th };
+      return true;
+    };
+    const C = abilityCarrierAnyTier(e, planFor);
+    if (!C) return cannot(noCarrierWhy(e, 'lands a neutral damaging click on ' + swapSp.name
+      + ' — the body the control builder puts in the opposing second slot, which is the only slot '
+      + 'this fixture can aim at — without killing it, while a legal body opposite learns ' + rd.name));
+    planFor(C.sp || dex.species.get(C.species));
+    const P = plan;
+    return stageAbilityQuiet(e, C, { hpA: 4, hpB: 4, moves: [P.hit.id],
+      note: pretty(P.th.species) + ' clicks ' + rd.name + ' (priority ' + rd.priority + ', so it is up '
+          + 'before anything is thrown) in the opposing FIRST slot, and the carrier throws '
+          + P.hit.name + ' at the opposing SECOND slot on turns 1 and 2. WITH the ability the click '
+          + 'keeps the target it was aimed at; without it the redirector takes it. The reading is hp '
+          + 'on both opposing bodies. The click is aimed at the second slot because the control '
+          + 'builder writes that slot itself and this rule cannot choose it',
+      a0: { ...P.th, moves: [rd.id] },
+      script: [turn([click(rd.id), IDLE], [click(P.hit.id, 1), IDLE]),
+               turn([click(rd.id), IDLE], [click(P.hit.id, 1), IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])],
+      /* THE RECEIPT IS THE SPENT-PP METER AND NOT THE VOLATILE, and that is a fact about the
+       * COMPARATOR rather than about the fixture: `board_state.js` publishes nine named per-body
+       * volatiles and `followme` is not one of them, so a rule that read it would fail on a board
+       * where the redirector was standing there with the volatile up. Measured — the first version of
+       * this clause read `A.volatiles[...]` and the row came back THE PRECONDITION DID NOT LAND on a
+       * fixture that was working. Showdown's own spent-PP meter is compared, is per move id, and says
+       * the click was really thrown. */
+      precondition: { turn: 1, why: 'SHOWDOWN\'s own spent-PP meter shows ' + rd.name + ' was actually '
+          + 'thrown by ' + pretty(P.th.species) + ' — a redirector that never clicked leaves the flag '
+          + 'deciding nothing and the row would read INERT about the setup. The `' + rd.volatileStatus
+          + '` volatile itself is NOT one of the nine `board_state.js` publishes, so it cannot be the '
+          + 'receipt however much it looks like the right one',
+        ok: (b, all) => (all || [b]).some(x => (sdSpent(x, 'p1', 0, rd.id) || 0) > 0) } });
+  } },
+
+/* ---- AN ARRIVAL, A FIELD, OR A REFUSAL THE PLAIN FIXTURE NEVER CREATES — 2026-09-12 --------------
+ *
+ * Six abilities read `THE STAGING IS INERT` and each is waiting for a different thing the generic
+ * fixture has no way to produce: a sky, a screen, an ally's corpse, a self-destruct, a status move
+ * aimed at the holder — or, for one of them, nothing a board comparator can ever see.
+ *
+ * TWO OF THE SIX COME OUT AS MEASURED REFUSALS AND BOTH REFUSALS ARE FINDINGS. Frisk's whole effect
+ * is a protocol line. Good as Gold refuses every Status move aimed at it, WHICH INCLUDES BOTH OF THIS
+ * INSTRUMENT'S IN-PLAY CONTROLS — dumped, both arms, five boundaries, with the ability still on the
+ * carrier in the control arm. See `swapRefused`, which now covers that door.
+ *
+ * MEMBERSHIP PRINTED OVER THE WHOLE DEX FIRST (`ROSTER_PRINT_FIELD_FAMILY=1`), and the two loose
+ * predicates were narrowed on what it showed: `announces-only` demands the onStart be the ability's
+ * ONLY handler (ten abilities announce themselves and then do something else in another one), and
+ * `refuses-status-moves` demands a `return null` (Wonder Guard tests the same category and does the
+ * OPPOSITE with it). */
+{ id: 'ability/an-arrival-a-field-or-a-refusal', kind: 'ability',
+  reads: 'onAnyTryMove refusing named move ids / an onStart that re-runs WeatherChange or removes '
+       + 'named side conditions or does nothing but emit / onAllyFaint calling setAbility / onTryHit '
+       + 'returning null for a Status move',
+  why: 'EACH OF THESE IS WAITING FOR SOMETHING THE PLAIN FIXTURE NEVER PUTS ON THE BOARD. The rule '
+     + 'puts it there: a sky from a partner\'s entry ability with a body under it that the type chart '
+     + 'does NOT excuse from the chip, a screen set by the foe before the carrier walks in off the '
+     + 'bench, an ally killed by a derived click, a self-destruct thrown by a legal learner.\n'
+     + '     TWO MEMBERS ARE REFUSED WITH A MEASUREMENT rather than staged, and the measurement is in '
+     + 'the row.',
+  break: { why: 'the field, arrival and refusal tags stop being read, so a suppressed sky chips '
+              + 'again, a screen survives the arrival, a self-destruct goes off, and a fallen ally '
+              + 'leaves nothing behind',
+    patch: [["function suppressesWeather(m){ return !!(m&&TAGS.param('ability',m.ability,'weatherSuppression')); }",
+             "function suppressesWeather(m){ return false&&!!(m&&TAGS.param('ability',m.ability,'weatherSuppression')); }"],
+            ["  {const _cs=TAGS.param('ability',m.ability,'clearsScreensOnEntry');",
+             "  {const _cs=null&&TAGS.param('ability',m.ability,'clearsScreensOnEntry');"],
+            ["    const p=TAGS.param('ability',m.ability,'inheritsAllyAbility');",
+             "    const p=null&&TAGS.param('ability',m.ability,'inheritsAllyAbility');"],
+            ["           &&[...actA,...actB].some(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksExplosion'))){",
+             "           &&false&&[...actA,...actB].some(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksExplosion'))){"]] },
+  match(e) {
+    const B = fieldFamilyBranch(e);
+    if (!B) return null;
+    /* A FIELD-WIDE ABILITY CANNOT TAKE THE IN-PLAY SWAP — the exchange leaves it on the field, one
+     * slot to the left, and both arms become the same experiment. See `fieldWide`. Such a carrier
+     * needs a SHEET control (which really removes it) AND a third ability to attribute against,
+     * because every sheet control this format offers these two is itself live. */
+    const FW = fieldWide(e);
+    const fwCarrier = (pred) => abilityCarrier(e, sp => !!altAbility2(sp, e.id) && pred(sp));
+    const fwWhy = 'is a body with THREE abilities. This ability is FIELD-WIDE (' + FW + '), so the '
+      + 'in-play Skill Swap control cannot be used at all — it MOVES the ability rather than deleting '
+      + 'it, and MEASURED on release ' + REL.id + ' the control arm read `p1[1]=<swapper> ab=' + e.id
+      + '` with both arms behaving identically over ~2,700 leaves. The control therefore has to come '
+      + 'off the SHEET; every sheet control this format offers is itself live, so a THIRD ability is '
+      + 'needed for the second-control attribution';
+
+    /* ---- A MOVE REFUSED OUTRIGHT ----------------------------------------------------------------- */
+    if (B.kind === 'refuses-a-move-outright') {
+      const named = B.names.map(n => dex.moves.get(n))
+        .filter(m => m && m.exists && !m.isNonstandard && SCOPE.inScope('move', m.id) && alwaysHits(m));
+      if (!named.length) return cannot('its handler refuses the moves ' + (B.names.join('/') || 'it '
+        + 'names') + ' and not one of them is legal and in scope in this regulation, so there is '
+        + 'nothing for it to refuse');
+      let plan = null;
+      const planFor = (sp) => {
+        plan = null;
+        for (const mv of named.sort((a, b) => b.basePower - a.basePower)) {
+          const th = learnerBody([mv.id], { not: [sp.id, SWAPPER && SWAPPER.species] });
+          if (!th) continue;
+          plan = { mv, th };
+          return true;
+        }
+        return false;
+      };
+      const C = FW ? fwCarrier(planFor) : abilityCarrierAnyTier(e, planFor);
+      if (!C) return cannot(noCarrierWhy(e, 'has a legal body opposite it that learns one of the '
+        + 'moves its own handler names (' + named.map(m => m.name).join(', ') + ')'
+        + (FW ? ', AND ' + fwWhy : '')));
+      planFor(C.sp || dex.species.get(C.species));
+      const P = plan;
+      return stageAbility(e, C, { hpA: 8, hpB: 8, moves: [INERT],
+        note: pretty(P.th.species) + ' clicks ' + P.mv.name + ' on turn 1 — one of the '
+            + B.names.length + ' move ids this handler names in its own source. WITH the ability the '
+            + 'move never happens and the thrower is still standing; without it the thrower kills '
+            + 'itself and everything adjacent takes ' + P.mv.basePower + ' base power. The reading is '
+            + 'hp and `fainted` across the field',
+        a0: { ...P.th, moves: [P.mv.id] },
+        script: [turn([throwIt(P.mv, 0), IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])],
+        /* THE RECEIPT IS SHOWDOWN'S OWN SPENT-PP METER, and it has to be: in the subject arm the move
+         * is refused, so NOTHING it would have done is on any board. Showdown deducts the PP in
+         * `runMove` BEFORE the `TryMove` event that this handler answers, so a click that was thrown
+         * and refused is distinguishable from a click that was never thrown. */
+        precondition: { turn: 1, why: 'SHOWDOWN\'s own spent-PP meter shows ' + P.mv.name + ' was '
+            + 'actually thrown. It is the only receipt this branch has — the whole effect of the '
+            + 'ability is that nothing else happens — and it works because the authority deducts PP '
+            + 'in `runMove` before the `TryMove` event the handler answers',
+          ok: (b, all) => (all || [b]).some(x => (sdSpent(x, 'p1', 0, P.mv.id) || 0) > 0) } });
+    }
+
+    /* ---- A SKY WHOSE EFFECTS STOP HAPPENING ------------------------------------------------------- */
+    if (B.kind === 'suppresses-the-sky') {
+      /* THE SKY IS CHOSEN FOR HAVING A RESIDUAL THIS BOARD CAN SEE, read off the weather condition's
+       * own `onWeather` rather than from a list of four names, and the bodies it does not reach are
+       * the type chart's (`damageTaken[<the weather>] === 3`), which is the same door
+       * `refusesStatusByType` already opens for a status. */
+      const sky = Object.keys(WEATHER_SETTER).map(w => ({ w, c: dex.conditions.get(w) }))
+        .filter(x => x.c && typeof x.c.onWeather === 'function'
+                  && /this\.damage\(/.test(String(x.c.onWeather)))
+        .map(x => ({ w: x.w, S: setterFor(x.w) })).filter(x => x.S)[0];
+      if (!sky) return cannot('it suppresses the weather, and a suppression is only visible where the '
+        + 'weather does something: this format offers no sky that both has a residual its own '
+        + 'condition writes with `this.damage` AND has a legal body carrying an ability that raises '
+        + 'it on entry');
+      let plan = null;
+      const planFor = (sp) => {
+        plan = null;
+        if (idOf(sp.id) === idOf(sky.S.species)) return false;
+        /* the CARRIER itself must be a body the chip reaches, or the suppression pays nothing where
+         * the reading is */
+        if (refusesStatusByType(sp.types, sky.w)) return false;
+        for (const row of moveBodies(PRIMARY_ARM_ID)) {
+          const d = row.sp;
+          if (idOf(d.id) === idOf(sp.id) || isSwapper(d.id)
+              || idOf(d.id) === idOf(sky.S.species)) continue;
+          if (refusesStatusByType(d.types, sky.w)) continue;
+          plan = { d, dAb: row.ability };
+          return true;
+        }
+        return false;
+      };
+      const C = FW ? fwCarrier(planFor) : abilityCarrierAnyTier(e, planFor);
+      if (!C) return cannot(noCarrierWhy(e, 'is a body the ' + sky.w + ' chip actually reaches — the '
+        + 'type chart excuses Rock, Ground and Steel from it, and a carrier it excuses would make the '
+        + 'suppression pay nothing where the reading is' + (FW ? ' — AND ' + fwWhy : '')));
+      planFor(C.sp || dex.species.get(C.species));
+      const P = plan;
+      return stageAbility(e, C, { hpA: 4, hpB: 4, moves: [INERT],
+        note: pretty(sky.S.species) + ' stands beside the carrier holding ' + sky.S.ability + ', which '
+            + 'raises ' + sky.w + ' on entry in BOTH arms — the weather is UP in both, and `weather` '
+            + 'is a compared field leaf that stays identical, because this ability suppresses what a '
+            + 'sky DOES and not that it is there. Everything then idles for three turns. WITHOUT the '
+            + 'ability the residual chips the carrier and ' + P.d.name + ' at every boundary; with it '
+            + 'nothing is paid. The reading is hp, on bodies the type chart does NOT excuse from the '
+            + 'chip — asked of `damageTaken.' + sky.w + '`',
+        a0: mon(P.d.id, '', P.dAb, [INERT]),
+        b1: mon(sky.S.species, '', sky.S.ability, [INERT]),
+        script: [turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])],
+        precondition: { turn: 1, why: 'the ' + sky.w + ' is actually on SHOWDOWN\'s own field — a '
+            + 'suppression with no sky to suppress is correctly doing nothing and the row would read '
+            + 'INERT about the setter',
+          ok: (b, all) => (all || [b]).some(x => { const f = idOf(String((x.sd && x.sd.field
+              && x.sd.field.weather) || '')); return !!f && idOf(sky.w).indexOf(f) === 0; }) } });
+    }
+
+    /* ---- A SCREEN THAT DOES NOT SURVIVE THE ARRIVAL ----------------------------------------------- */
+    if (B.kind === 'clears-side-conditions') {
+      /* THE SCREEN IS DERIVED FROM THE NAMES THE HANDLER ITSELF WALKS, matched to the in-scope moves
+       * that set them. It goes up on the FOE'S OWN SIDE, which leaves the carrier's slots free. */
+      /* AND THE SETTER MUST NOT BE ONE THE FIELD CAN REFUSE — ANY `onTry*` AT ALL DISQUALIFIES IT.
+       * Measured on the first run: the pick was AURORA VEIL, whose own `onTry` is
+       * `return this.field.isWeather(['hail','snowscape'])`, so on a clear field the screen never went
+       * up and the row read THE PRECONDITION DID NOT LAND — a fixture failure wearing a coverage
+       * limit. The first narrowing looked for a literal `return false` and MISSED it, which is why
+       * this is the presence of the handler and not a guess at what it returns: a gate this rule
+       * cannot read is a gate it must not stage under. */
+      const setters = dex.moves.all().filter(m => m.exists && !m.isNonstandard
+        && SCOPE.inScope('move', m.id) && m.sideCondition && B.names.includes(idOf(m.sideCondition))
+        && alwaysHits(m) && m.target === 'allySide'
+        && !Object.keys(m).some(k => /^onTry/.test(k) && typeof m[k] === 'function'));
+      if (!setters.length) return cannot('it removes ' + B.names.join('/') + ' on arrival and this '
+        + 'format holds no in-scope always-hitting click that puts any of them up, so there is '
+        + 'nothing on the field for it to remove');
+      const sc0 = setters[0];
+      let plan = null;
+      const planFor = (sp) => {
+        plan = null;
+        const th = learnerBody([sc0.id], { not: [sp.id, SWAPPER && SWAPPER.species] });
+        if (!th) return false;
+        const lead = CANDIDATES.find(x => idOf(x.id) !== idOf(sp.id) && idOf(x.id) !== idOf(th.species)
+          && buildableSpecies(x.id) && carrierAbility(x));
+        const ally = CANDIDATES.find(x => idOf(x.id) !== idOf(sp.id) && idOf(x.id) !== idOf(th.species)
+          && idOf(x.id) !== idOf(lead && lead.id) && buildableSpecies(x.id) && carrierAbility(x));
+        if (!lead || !ally) return false;
+        plan = { th, lead, ally };
+        return true;
+      };
+      const C = abilityCarrierAnyTier(e, planFor);
+      if (!C) return cannot(noCarrierWhy(e, 'can be held on the bench behind two other buildable '
+        + 'bodies while a legal thrower puts ' + sc0.name + ' up — the whole mechanic is an ARRIVAL, '
+        + 'so the carrier cannot start on the field'));
+      if (C.tier !== 'ALTERNATE') return cannot('its mechanic is an ARRIVAL, so the carrier has to '
+        + 'start on the BENCH — which the in-play Skill Swap control cannot express (it lands on a '
+        + 'body that is on the field) — and this carrier is ' + C.tier + '-tier, with no sheet '
+        + 'ability to control with either');
+      planFor(C.sp || dex.species.get(C.species));
+      const P = plan;
+      return stageAbilityQuiet(e, C, { hpA: 4, hpB: 4, moves: [INERT], onBench: true,
+        note: pretty(P.th.species) + ' clicks ' + sc0.name + ' on its OWN side on turn 1 — which '
+            + 'leaves the carrier\'s side free — and the carrier walks in off the BENCH on turn 2, '
+            + 'replacing ' + pretty(P.lead.id) + '. WITH the ability the screen is gone from that '
+            + 'boundary on; without it it stands for its full duration. The reading is the `screens` '
+            + 'leaf on the THROWER\'s side. The carrier starts benched because the whole mechanic is '
+            + 'an arrival, and a lead has already arrived before anything can be set up',
+        benchLead: mon(P.lead.id, '', carrierAbility(P.lead) || '', [INERT]),
+        benchAlly: mon(P.ally.id, '', carrierAbility(P.ally) || '', [INERT]),
+        a0: { ...P.th, moves: [sc0.id] },
+        script: [turn([click(sc0.id), IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [{ sw: idOf(C.species) }, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])],
+        precondition: [
+          { turn: 1, why: 'SHOWDOWN\'s own board carries the ' + sc0.name + ' on the thrower\'s side '
+              + 'BEFORE the carrier arrives — a screen that never went up cannot be removed and the '
+              + 'row would read INERT about the setter',
+            ok: (b) => { const S = ((((b.sd || {}).sides || {}).p1) || {}).screens || {};
+              return !!((S.named && S.named[idOf(sc0.sideCondition)]) || S.physical || S.special); } },
+          { turn: 2, why: 'the carrier really took the slot on SHOWDOWN\'s own board — an arrival that '
+              + 'never happened is a fixture failure and not a fact about the ability',
+            ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p2', 0);
+              return !!(A && idOf(A.species) === idOf(C.species)); }) }] });
+    }
+
+    /* ---- AN ABILITY INHERITED FROM A FALLEN ALLY -------------------------------------------------- */
+    if (B.kind === 'inherits-from-a-fallen-ally') {
+      let plan = null;
+      const planFor = (sp) => {
+        plan = null;
+        for (const row of moveBodies(PRIMARY_ARM_ID)) {
+          const ally = row.sp;
+          if (idOf(ally.id) === idOf(sp.id) || isSwapper(ally.id)) continue;
+          /* the handler refuses an ability the FORMAT flags `noreceiver`, so the donation has to be
+           * one it will actually take — asked of the ability the ally will really hold */
+          const ab = dex.abilities.get(idOf(row.ability) || '');
+          if (!ab || !ab.exists || ((ab.flags || {}).noreceiver)) continue;
+          /* AND THE DONATION MUST NOT BE THE CONTROL'S OWN ABILITY. Measured on the first run: the
+           * bulkiest quiet ally carries SHELL ARMOR, which is exactly what the swap control lends the
+           * carrier — so the carrier ended both arms holding Shell Armor, the inheritance happened in
+           * the authority (`ab=receiver -> ab=shellarmor` at boundary 3 of the SUBJECT arm) and the
+           * `.ability` leaf came out identical anyway. An inheritance that lands on the control value
+           * is invisible by construction. */
+          if (idOf(row.ability) === idOf(SWAPPER && SWAPPER.ability)) continue;
+          for (const r2 of moveBodies(PRIMARY_ARM_ID)) {
+            const k = r2.sp;
+            if (idOf(k.id) === idOf(sp.id) || idOf(k.id) === idOf(ally.id) || isSwapper(k.id)) continue;
+            const K = killPlan(k, ally, false);
+            if (!K) continue;
+            plan = { ally, allyAb: row.ability, k, kAb: r2.ability, K };
+            return true;
+          }
+        }
+        return false;
+      };
+      const C = abilityCarrierAnyTier(e, planFor);
+      if (!C) return cannot(noCarrierWhy(e, 'can stand beside a quiet body whose own ability the '
+        + 'format does NOT flag `noreceiver` and which a third legal body can kill inside a '
+        + 'three-turn script — the trigger is an ally\'s CORPSE and nothing shorter produces one'));
+      planFor(C.sp || dex.species.get(C.species));
+      const P = plan;
+      const hits = P.K.hits;
+      return stageAbilityQuiet(e, C, { hpA: 4, hpB: 1, moves: [INERT],
+        note: pretty(P.k.id) + ' kills the carrier\'s ALLY ' + P.ally.name + ' with ' + P.K.mv.name
+            + ' in ' + hits + ' click(s) — ' + P.K.d + ' against ' + P.K.hp + ' hp. WITH the ability '
+            + 'the carrier\'s own `ability` leaf becomes ' + pretty(P.allyAb) + ', which the format '
+            + 'does not flag `noreceiver`; without it the carrier keeps what the control lent it. The '
+            + 'reading is an `.ability` leaf that is the ENTITY rewriting it rather than the control '
+            + 'describing itself — the swap-leaf correction keeps exactly this shape (it drops a leaf '
+            + 'only where the subject value IS the ability under test)',
+        a0: mon(P.k.id, '', P.kAb, [P.K.mv.id]),
+        b1: mon(P.ally.id, '', P.allyAb, [INERT]),
+        script: [turn([click(P.K.mv.id, 1), IDLE], [IDLE, IDLE]),
+                 turn([hits > 1 ? click(P.K.mv.id, 1) : IDLE, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])],
+        precondition: { turn: hits, why: P.ally.name + ' is actually DEAD on SHOWDOWN\'s own board — '
+            + 'the handler fires on an ally fainting and nothing else, so a body that survived leaves '
+            + 'the row INERT about the killer rather than about the ability',
+          ok: (b, all) => (all || [b]).some(x => { const R = sdParty(x, 'p2', P.ally.id);
+            return !!(R && (R.fainted || +R.hp === 0)); }) } });
+    }
+
+    /* ---- THE TWO MEASURED REFUSALS --------------------------------------------------------------- */
+    if (B.kind === 'refuses-status-moves') {
+      const carriers = (CARRIERS[idOf(e.id)] || []).filter(s => !s.battleOnly && !s.isNonstandard);
+      return cannot('it refuses EVERY Status move another body aims at it, and BOTH of this '
+        + 'instrument\'s in-play controls are exactly that: Skill Swap and Gastro Acid are Status '
+        + 'moves at the carrier, so neither ever lands and the control arm IS the subject arm. '
+        + 'MEASURED rather than argued, on release ' + REL.id + ' with `ROSTER_DUMP_BOARDS='
+        + idOf(e.id) + '`: both arms read `ab=' + idOf(e.id) + '` on the carrier at every one of five '
+        + 'boundaries, and the row reported THE STAGING IS INERT — a false coverage limit of exactly '
+        + 'the ROADMAP #612 shape, arriving through the entity instead of through the builder. '
+        + '`swapRefused` covers that door now, so the refusal is stated instead of a dead arm being '
+        + 'played. And the sheet road is shut too: its carrier(s) — '
+        + (carriers.map(s => s.name).join(', ') || 'none') + ' — hold it in ability slot 0 with '
+        + 'nothing beside it. What WOULD open this is a swapper carrying an ability that pierces '
+        + '`breakable` (this ability is flagged breakable), which is a change to the derived SWAPPER '
+        + 'and its own batch.');
+    }
+    return cannot('its ONLY handler is an `onStart` whose entire body is `this.add(...)` — it emits a '
+      + 'protocol line and writes no state anywhere. `board_state.js` compares species, hp, status, '
+      + 'status_counter, item, last_item, ate_berry, types, ability, boosts, nine per-body volatiles, '
+      + 'PP, screens, hazards, tailwind and the field, and NOTHING in that set is written by '
+      + '`Battle#add`. The foes\' `item` leaves are identical in both arms by construction, because '
+      + 'this ability reveals an item and moves none. This is the same refusal Anticipation and '
+      + 'Forewarn already carry, reached by derivation rather than by name.');
+  } },
+
+/* ---- IT COUNTS THE FALLEN AT THE MOMENT IT ARRIVES — 2026-09-12 ---------------------------------
+ *
+ * The previous pass LEFT this row open rather than refuse it, and said why: its counter is taken at
+ * switch-in (`onStart` reads `side.totalFainted`), so the carrier has to ARRIVE AFTER an ally has
+ * died, and `stageAbilityQuiet` cannot take the in-play swap control for a bench start. Writing a
+ * refusal about the BUILDER would have been a claim about the instrument dressed as a claim about the
+ * format, so the fixture is built instead.
+ *
+ * IT IS EXPRESSED, AND WHAT MAKES IT EXPRESSIBLE IS THE SHEET CONTROL. `stageAbility`'s bench branch
+ * has existed since the entry family needed it; what was missing was a rule that used it here. The
+ * carrier starts on the bench, a derived killer takes its ALLY off the field, the carrier walks in
+ * with the counter already standing at one, and then it hits.
+ *
+ * AND THE ATTRIBUTION IS THE SECOND CONTROL, NOT A QUIET ONE. Both of this carrier's other abilities
+ * are live, so the row is re-measured against the third and only what survives both is charged. That
+ * is the machinery ROADMAP #121 built and it is exactly the case it was built for: the two live
+ * controls are inert ON THIS BOARD (nothing lowers a stat, and nothing is aimed at the carrier) and
+ * the arithmetic says so rather than this comment. */
+{ id: 'ability/it-counts-the-fallen-when-it-arrives', kind: 'ability',
+  reads: 'an onStart that reads `side.totalFainted` together with an onBasePower gated on what it '
+       + 'stored — the counter, the cap and the multiplier all off the handler',
+  why: 'THE COUNTER IS TAKEN AT SWITCH-IN AND THE GENERIC STAGING HAS THE CARRIER LEADING, so '
+     + '`side.totalFainted` is 0 when the only read ever happens and the multiplier is correctly 1 '
+     + 'for the whole game. The carrier therefore starts on the BENCH: a derived killer takes its '
+     + 'ALLY down first, the carrier walks in with the count already standing, and then it throws the '
+     + 'same click twice.\n'
+     + '     THE AUTHORITY IS ASKED FOR BOTH HALVES — that the ally is really dead, and that the '
+     + 'carrier really took a slot afterwards. Either one failing leaves the multiplier at 1 and the '
+     + 'row would read INERT about the script.',
+  break: { why: 'the fallen count stops being priced, so a carrier arriving over a corpse hits for '
+              + 'plain base power',
+    patch: [["      const _bf=TAGS.param('ability',attAb,'boostsFromFallen');",
+             "      const _bf=null&&TAGS.param('ability',attAb,'boostsFromFallen');"]] },
+  match(e) {
+    if (typeof e.onStart !== 'function' || typeof e.onBasePower !== 'function') return null;
+    if (!/totalFainted/.test(String(e.onStart))) return null;
+    let plan = null;
+    const planFor = (sp) => {
+      plan = null;
+      for (const row of moveBodies(PRIMARY_ARM_ID)) {
+        const ally = row.sp;
+        if (idOf(ally.id) === idOf(sp.id)) continue;
+        for (const r2 of moveBodies(PRIMARY_ARM_ID)) {
+          const k = r2.sp;
+          if (idOf(k.id) === idOf(sp.id) || idOf(k.id) === idOf(ally.id)) continue;
+          const K = killPlan(k, ally, false);
+          if (!K || K.hits !== 1) continue;      // ONE turn to die, so the arrival has a turn of its own
+          const hit = neutralHit2(k.id, [], sp.id);
+          if (!hit || hit.category === 'Status') continue;
+          /* the killer must survive two boosted clicks, or the reading ends in a faint on one arm */
+          if (maxRoll(sp, hit, k) * 2 * 1.2 >= flatL50(k.baseStats).hp * 6) continue;
+          const lead = moveBodies(PRIMARY_ARM_ID).map(r => r.sp).find(x => idOf(x.id) !== idOf(sp.id)
+            && idOf(x.id) !== idOf(ally.id) && idOf(x.id) !== idOf(k.id));
+          if (!lead) continue;
+          plan = { ally, allyAb: row.ability, k, kAb: r2.ability, K, hit,
+                   lead, leadAb: moveBodies(PRIMARY_ARM_ID).find(r => r.sp === lead).ability };
+          return true;
+        }
+      }
+      return false;
+    };
+    /* THE CARRIER NEEDS A THIRD ABILITY. Both sheet controls this format offers are live, and the
+     * bench start rules out the in-play swap — so the row can only be attributed by re-measuring
+     * against a second, different control, which needs a third ability to be that control. */
+    const C = abilityCarrier(e, sp => !!altAbility2(sp, e.id) && planFor(sp));
+    if (!C) return cannot(noCarrierWhy(e, 'is a body with THREE abilities that can stand on the bench '
+      + 'behind an ally a derived click kills in ONE turn. The bench start is forced by the mechanic '
+      + '(the count is read at switch-in and nowhere else) and it rules out the in-play Skill Swap '
+      + 'control, which lands on a body that is already on the field; every sheet control this format '
+      + 'offers is itself live, so a THIRD ability is needed to attribute the delta against'));
+    planFor(C.sp || dex.species.get(C.species));
+    const P = plan;
+    return stageAbility(e, C, { hpA: 6, hpB: 1, moves: [P.hit.id], onBench: true,
+      note: pretty(P.k.id) + ' kills the carrier\'s ALLY ' + P.ally.name + ' with ' + P.K.mv.name
+          + ' on turn 1 (' + P.K.d + ' against ' + P.K.hp + ' hp, one click), the carrier walks in off '
+          + 'the BENCH into the slot the corpse leaves — so `side.totalFainted` is already 1 when its '
+          + '`onStart` reads it, which is the only moment it ever does — and it throws ' + P.hit.name
+          + ' at ' + pretty(P.k.id) + ' on turns 2 and 3. The reading is ' + pretty(P.k.id) + '\'s hp. '
+          + 'A LEADING carrier reads the counter at 0 and the multiplier is correctly 1 for the whole '
+          + 'game, which is why the plain staging had this ability doing nothing',
+      a0: mon(P.k.id, '', P.kAb, [P.K.mv.id]),
+      benchLead: mon(P.lead.id, '', P.leadAb, [INERT]),
+      benchAlly: mon(P.ally.id, '', P.allyAb, [INERT]),
+      /* THE ARRIVAL IS THE FORCED SWITCH ITSELF AND NOT A SCRIPTED ONE, which the first version of
+       * this fixture got wrong: it killed the ally AND asked for a switch on the next turn, and
+       * Showdown rejected the whole game — *"Can't pass: Your Torkoal must make a move"* — because the
+       * corpse's slot had already been refilled at the end of turn 1. The authority's own narration
+       * says who by: `|-start|p2b: Kingambit|fallen1|[silent]` before `|turn|2`. The replacement is
+       * medicham2's pick and `mirrorForcedSwitch` gives Showdown the same one, so it is deterministic;
+       * the precondition below is what makes that a receipt rather than an assumption. */
+      script: [turn([click(P.K.mv.id, 1), IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [IDLE, click(P.hit.id, 0)]),
+               turn([IDLE, IDLE], [IDLE, click(P.hit.id, 0)])],
+      precondition: [
+        { turn: 1, why: P.ally.name + ' is really DEAD on SHOWDOWN\'s own board before the carrier '
+            + 'arrives — the whole mechanic is a count of corpses taken at switch-in, and a survivor '
+            + 'leaves the count at 0',
+          ok: (b, all) => (all || [b]).some(x => { const R = sdParty(x, 'p2', P.ally.id);
+            return !!(R && (R.fainted || +R.hp === 0)); }) },
+        { turn: 2, why: 'the carrier really took an active slot on SHOWDOWN\'s own board AFTER that — '
+            + 'an arrival that never happened means the counter was never read at all',
+          ok: (b, all) => (all || [b]).some(x => [0, 1].some(i => { const A = sdActive(x, 'p2', i);
+            return !!(A && idOf(A.species) === idOf(C.species)); })) }] });
   } },
 
 { id: 'ability/entry', kind: 'ability',

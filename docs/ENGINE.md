@@ -185,6 +185,80 @@ _stamped 2026-09-11 23:01_
 
 <!-- /GENERATED -->
 
+## THE LAST FOUR INERT FAMILIES CLOSE AND THE LIST IS EMPTY — ABILITIES **164 → 183 MATCH / 29 → 10 COULD-NOT-STAGE**, CNQ **2** AND DEFERRED **5** UNCHANGED. ITEMS **148 / 0** AND MOVES **487 / 7 / 3** UNMOVED AS CONTROLS. THE LEAVES CARRY `.item`, `.status`, `.status_counter`, `.ability`, `.screens`, `.fainted`, `.species` AND `.pp` — NOT hp AND boosts ALONE. REDS **22 / 61 / 36, ZERO `ok: false`, NONE WEAK**. CENSUS **883 LIVE**, UNMOVED. **ONE ENGINE BYTE CHANGED — RELEASE `48ac1c228e02` CUT**, AND THE FOUR ARTIFACTS IT INVALIDATED WERE RE-RUN RATHER THAN CAPTIONED. 2026-09-12, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-12-last-four-families.md`. Register rows #613 (CLOSED), #614 and
+#615 (both closed).
+
+**`THE STAGING IS INERT` NO LONGER APPEARS ANYWHERE IN THE ABILITIES STAGE.** All 41 rows that ever
+carried it are off the list — 36 green and 5 measured refusals (`quickfeet`, `angerpoint`, `sniper`,
+`frisk`, `goodasgold`) — and each of the ten rows still COULD-NOT-STAGE carries a measured reason of
+its own instead.
+
+| rule | what it reads, derived from the format | rows |
+|---|---|---|
+| `ability/an-item-is-eaten-taken-or-handed-on` | `onEatItem` / `onTakeItem` returning false / `onAfterMoveSecondary(Self)` calling `takeItem` / `onAllyAfterUseItem` / an `onStart` whose whole body ENDS the holder's own item | `cheekpouch`, `cudchew`, `klutz`, `magician`, `pickpocket`, `stickyhold`, `symbiosis` |
+| `ability/a-status-is-refused-cured-or-reflected` | `onSetStatus` returning false under a named weather / `onResidual` calling `cureStatus` under one / `onAfterSetStatus` handing the status back / the SHAPE of a `nameImplementedBySim` param | `corrosion`, `earlybird`, `hydration`, `leafguard`, `synchronize` |
+| `ability/it-rewrites-its-own-click` | `onModifyMove` assigning `multihit` from an INDEX of its own range, or assigning `tracksTarget` | `skilllink`, `stalwart` |
+| `ability/an-arrival-a-field-or-a-refusal` | `onAnyTryMove` refusing named move ids / an `onStart` that re-runs `WeatherChange` or removes named side conditions or does nothing but emit / `onAllyFaint` calling `setAbility` / `onTryHit` returning null for a Status move | `cloudnine`, `damp`, `receiver`, `screencleaner` (+ `frisk`, `goodasgold` refused) |
+| `ability/it-counts-the-fallen-when-it-arrives` | an `onStart` reading `side.totalFainted` together with an `onBasePower` gated on what it stored | `supremeoverlord` |
+
+Every membership was **printed over the whole dex before a line was wired**, and two of the six
+field-family predicates were narrowed on what the print showed: the first draft matched NINETEEN
+abilities, because ten announce themselves on entry and then work in another handler, and **Wonder
+Guard tests `move.category === "Status"` in its `onTryHit` and does the OPPOSITE with it.**
+
+### AN ENGINE DEFECT, FOUND BY THE FIRST FIXTURE THAT EVER SLEPT AN EARLY BIRD BODY
+
+```
+SHOWDOWN  Kangaskhan is on status counter 2
+OURS      Kangaskhan is on status counter 1        [p2a status_counter / off-by-one]
+```
+
+**The two engines agreed on WHEN the body wakes and disagreed on WHAT THE COUNTER SAYS**, which is the
+shape a behavioural test cannot see and a board comparison can. `data/conditions.ts:68-70` spends TWO
+ticks off `statusState.time` for this ability and `board_state.js` publishes `startTime - time`, so the
+authority's own compared number is TICKS SPENT; medicham2 counted TURNS ELAPSED and paid for the
+accelerator by subtracting it from the wake THRESHOLD. **Fixed at the counter, not at the comparator** —
+`slpTurns += 1 + extra`, ceilings back to the raw `slpTime` / 3 / 2, which is arithmetically identical
+on the wake turn for every value this format can produce. Red before, green after, **red again under
+`MEDI_SLEEP_TICKS_AS_TURNS=1`**.
+
+### THREE MORE DEAD CONTROLS, ALL OF THEM ROADMAP #612's SHAPE THROUGH A NEW DOOR
+
+1. **GOOD AS GOLD REFUSES THE CONTROL ITSELF.** Skill Swap is a Status move aimed at the carrier and
+   the ability returns `null` for exactly that; `swapRefused` read only `flags.failskillswap`, which it
+   does not carry. Dumped, both arms, five boundaries: `[SUBJ]` and `[CTRL]` both
+   `p2[0]=gholdengo ab=goodasgold`. `swapRefused` now asks the handler too, narrowed to a `return null`.
+2. **THE SWAP CONTROL CANNOT CONTROL A FIELD-WIDE ABILITY.** It EXCHANGES the ability rather than
+   deleting it, so `[CTRL] p1[1]=goodrahisui ab=damp` and `ab=cloudnine` left it on the field one slot
+   to the left and both arms were the same experiment over ~2,700 leaves. Read off `suppressWeather`
+   and the `onAny*` prefix; such a carrier now takes a SHEET control and must have a THIRD ability for
+   the second-control attribution.
+3. **AN INHERITED ABILITY THAT LANDS ON THE CONTROL'S OWN VALUE IS INVISIBLE.** Receiver's ally carried
+   SHELL ARMOR, which is what the swap lends. The inheritance HAPPENED in the authority
+   (`ab=receiver -> ab=shellarmor` at boundary 3 of the SUBJECT arm) and the leaf came out identical.
+
+Two smaller fixture faults are in the report: an AURORA VEIL screen setter whose `onTry` needs snow
+(the first narrowing looked for a literal `return false` and MISSED it), and a `followme` precondition
+read off a volatile `board_state.js` does not publish.
+
+### The hand list, after this pass
+
+- **THE INERT LIST IS EMPTY.** Nothing carried forward from it.
+- **10 rows remain COULD-NOT-STAGE, every one with a measured reason**: `frisk` (the effect is a
+  protocol line), `goodasgold` (the ability refuses both in-play controls, dumped), `aerilate`,
+  `angerpoint`, `sniper`, `quickfeet`, `galewings`, `ripen`, `simple`, `zerotohero`.
+- **`ripen` is the one worth re-reading.** Its `onEatItem` half doubles a berry HEAL and is exactly the
+  Cheek Pouch fixture; it did not move because `ability/damage-taken-scoped` owns it several rules
+  above and the new rule never sees it. That is a RE-ORDERING question, not a fixture one, and it is
+  left for a pass that can attribute it.
+- **Carried forward unchanged**: `magmaarmor`, `opportunist` (both still CONTROL-NOT-QUIET; #608's fix
+  is a change to the quiet set and cannot share a pass with a nineteen-row move), #608, and the #612
+  durable repair (`stageAbility` itself refusing a null control ability).
+- **THE NEW RELEASE IS GITIGNORED AND MUST BE ADDED BY NAME** — `git add -f data/releases/48ac1c228e02`.
+  Every count in this section is stamped with it.
+
 ## THREE INERT FAMILIES GET FIXTURES — ABILITIES **154 → 164 MATCH / 39 → 29 COULD-NOT-STAGE**, CNQ **2** AND DEFERRED **5** UNCHANGED. ITEMS **148 / 0** AND MOVES **487 / 7 / 3** UNMOVED AS CONTROLS. ALL TEN REST ON **HP OR BOOST LEAVES ONLY**. REDS **22 / 56 / 36, ZERO `ok: false`, NONE WEAK**. CENSUS **883 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `534442d71183`. 2026-09-12, CHANGELOG `<<VER>>`
 
 Full account: `docs/_reports/2026-09-12-inert-families.md`.

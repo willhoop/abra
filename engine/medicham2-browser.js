@@ -3934,6 +3934,12 @@ const MEDFAILS = { encoreAction: 0,
    * back on purpose, so a deliberate restore arm and a broken engine can never be read as the same
    * thing. Same shape as damageSpanDrawRestored and multiHitOneIndexRestored. */
   sleepWakeCoinRestored: 0,
+  /* 2026-09-12 -- set to 1 for the whole run when MEDI_SLEEP_TICKS_AS_TURNS=1 puts the pre-fix sleep
+     counter back: `slpTurns` counting TURNS ELAPSED with the accelerator subtracted from the wake
+     THRESHOLD instead of counting TICKS SPENT the way the authority's `startTime - time` does. The
+     two agree on the wake turn and disagree on the compared `status_counter` leaf, which is what the
+     deliberate roster measured on Early Bird. Same shape as sleepWakeCoinRestored. */
+  sleepTicksAsTurnsRestored: 0,
   /* 2026-09-06 -- MEDI_SLEEP_START_ANY_ADDR=1 forces every sleep timer back onto the generic `any`
      stream, which is where the secondary-sourced ones were drawn until today. */
   sleepStartAnyAddrRestored: 0,
@@ -15709,6 +15715,30 @@ const SLEEP_START_TIMES=[2,3,3];
  * switch that silently makes the engine wrong is the silent default this repo keeps paying for. Same
  * shape as MEDI_DAMAGE_SPAN_DRAW, MEDI_MULTIHIT_ONE_INDEX and MEDI_RESIDUAL_COLLAPSE. */
 const SLEEP_WAKE_COIN_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SLEEP_WAKE_COIN==='1');
+/* ---- THE SLEEP COUNTER IS TICKS SPENT, NOT TURNS ELAPSED — 2026-09-12 --------------------------
+ *
+ * MEASURED BY THE DELIBERATE ROSTER, on the first fixture that ever put an EARLY BIRD body to sleep:
+ * Showdown read `status_counter 2` on the boundary after one sleeping turn and this engine read `1`,
+ * on the active slot AND on the party row. Nothing else parted, and the two engines woke the body on
+ * the SAME turn.
+ *
+ * BOTH HALVES OF THAT ARE THE POINT. The authority spends TWO ticks off `statusState.time` for this
+ * ability (`data/conditions.ts:68-70`, the ability's decrement sitting immediately above the ordinary
+ * one), and `board_state.js` publishes `startTime - time` — so the authority's own compared number is
+ * TICKS SPENT. This engine counted TURNS ELAPSED and paid for the accelerator by subtracting it from
+ * the wake THRESHOLD (`slpTurns >= slpTime - extra`). Those two arithmetics agree on WHEN the body
+ * wakes and disagree on WHAT THE COUNTER SAYS, which is exactly the shape of a defect that a
+ * behavioural test cannot see and a board comparison can.
+ *
+ * SO THE COUNTER MOVES AND THE THRESHOLD GOES BACK TO THE AUTHORITY'S. `slpTurns += 1 + extra` and
+ * the ceilings return to the raw `slpTime` / 3 / 2. The wake turn is UNCHANGED for every value the
+ * format can produce, and that is arithmetic rather than a hope: with extra = 1 the counter is 2t, so
+ * `2t >= 2` and `2t >= 3` first hold at t = 1 and t = 2, which is what `t >= 2-1` and `t >= 3-1` gave.
+ * With extra = 0 nothing in the expression changes at all.
+ *
+ * `MEDI_SLEEP_TICKS_AS_TURNS=1` puts the old counter back for a paired measurement and stamps
+ * `MEDFAILS.sleepTicksAsTurnsRestored`, so a run carrying the defect says so out loud. */
+const SLEEP_TICKS_AS_TURNS_RESTORED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SLEEP_TICKS_AS_TURNS==='1');
 /* 2026-09-06 -- MEDI_SLEEP_START_ANY_ADDR=1 PUTS EVERY SLEEP TIMER BACK ON THE GENERIC `any`
  * STREAM. The timer draw is `slp.onStart`'s `sample([2,3,3])`, and the middle arm addresses a draw by
  * the SCOPE it was made in -- so a sleep applied from inside `BattleActions#secondaries` is a `sec`
@@ -29718,10 +29748,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        * ceilings, so the extra tick is a subtraction from the two thresholds -- which is why they are
        * written as `3 - extra` and `2 - extra` rather than halved. `extraStatusTicks` is keyed by
        * status, so the shape covers a future ability that accelerates a different one. */
-      if(m.status==='slp'){m.slpTurns=(m.slpTurns||0)+1;
+      if(m.status==='slp'){
         const _est=TAGS.param('ability',m.ability,'nameImplementedBySim');
         const _tick=(_est&&_est.extraStatusTicks&&+_est.extraStatusTicks.slp)||0;
         if(_tick)MEDSEEN.sleepTickAccelerated++;
+        /* TICKS SPENT, which is the quantity the authority publishes -- see SLEEP_TICKS_AS_TURNS_RESTORED. */
+        if(SLEEP_TICKS_AS_TURNS_RESTORED&&_tick)MEDFAILS.sleepTicksAsTurnsRestored=1;
+        const _thr=SLEEP_TICKS_AS_TURNS_RESTORED?_tick:0;
+        m.slpTurns=(m.slpTurns||0)+1+(SLEEP_TICKS_AS_TURNS_RESTORED?0:_tick);
         /* ROADMAP #323 -- THE DURATION WAS DECIDED WHEN THE SLEEP LANDED. See SLEEP_START_TIMES.
          * `slpTime` is the authority's `statusState.startTime`, and Rest overwrites it to 3.
          *
@@ -29731,8 +29765,8 @@ function battleTurn(S,rng,actsForA,actsForB){
          * running" and "this body's sleep began off-camera" can never be read as the same thing. */
         if(!SLEEP_WAKE_COIN_RESTORED&&!(+m.slpTime>0)){m.slpTime=sleepDurationDraw();MEDSEEN.sleepDurationDrawnLate++;}
         const _wake=SLEEP_WAKE_COIN_RESTORED
-          ? (m.slpTurns>=3-_tick||(m.slpTurns===2-_tick&&rng()<1/3))   // the restore arm's coin
-          : (m.slpTurns>=(+m.slpTime)-_tick);
+          ? (m.slpTurns>=3-_thr||(m.slpTurns===2-_thr&&rng()<1/3))   // the restore arm's coin
+          : (m.slpTurns>=(+m.slpTime)-_thr);
         if(_wake){m.status='';if(TR)TR.cure(m,'slp',ATTR.cured(false).from);}
         else {
           if(TR)TR.cant(m,'slp');
