@@ -339,8 +339,8 @@ const INERT_SELF = (() => {
   return out;
 })();
 const inertSelfLeaf = (p) => INERT_SELF.some(x => x.re.test(String(p)));
-function inertShapeComplaint() {
-  const m = INERT_MOVE;
+function inertShapeComplaint(mv) {
+  const m = mv || INERT_MOVE;
   const seen = [];
   if (m.category !== 'Status') seen.push('category ' + m.category);
   if (!(m.accuracy === true)) seen.push('accuracy ' + m.accuracy + ' (it can miss, so the control arm '
@@ -356,6 +356,72 @@ function inertShapeComplaint() {
     + 'a control\'s OWN PP row and its OWN declared volatile; anything else is a board leaf the '
     + 'exemption would not cover and the inertness assertion would be asking about the wrong thing.';
 }
+
+/* ---- THE SECOND CONTROL CLICK, AND THE ONE ROW IT EXISTS FOR (2026-09-12) -----------------------
+ *
+ * `move/is-the-control-click` refused Focus Energy for a reason that was true and structural: the
+ * control arm replaces every click of the move under test with the INERT click, and when the move
+ * under test IS the inert click, subject and control are the same script.
+ *
+ * A SECOND INERT CLICK REMOVES THE CIRCULARITY AND NOTHING ELSE. It is used for exactly one row —
+ * `controlOf` reaches for it only when `sc.entityId` is the inert click — so no other move's control
+ * arm changes by a byte. The candidate passes the SAME shape cap as the primary (`inertShapeComplaint`
+ * takes a move now), registers no handler of its own beyond an `onTry`, and is PROVEN by the same
+ * selftest clause the primary is: three turns, no board leaf moved in either engine beyond its own PP
+ * row and its own declared volatile. A control that cannot pass that is not a control.
+ *
+ * IT IS DERIVED AND THE WHOLE CANDIDATE LIST IS PRINTED BY `--rules`, because "pick another harmless
+ * move" is exactly the judgement this file refuses to let anybody make from memory. */
+/* THE SHAPE CAP IS NOT ENOUGH AND THE FIRST DERIVATION PROVED IT, WHICH IS WHY THIS LIST EXISTS.
+ * Ranking the cap's survivors by handler count picked AQUA RING — whose move declares nothing and
+ * whose VOLATILE'S CONDITION heals a sixteenth every turn. It read inert on the first fixture only
+ * because every body on it was at full HP, i.e. the heal was capped to nothing. That is a silent
+ * default wearing a working control, and one damaged body anywhere would have turned it into a
+ * finding about Aqua Ring. So the CONDITION's handler names are capped too, to the set that provably
+ * cannot reach a leaf `board_state.js` compares: an announcement, and the crit ratio (which the
+ * primary itself carries and which BOTH published corners neutralise — the top lands no crit, the
+ * bottom lands every crit whatever the ratio). Anything else — a residual, an immunity, a redirect, a
+ * stat modifier, a trap — is REFUSED BY NAME and printed with the row that it shut. */
+const CONTROL_COND_OK = ['onStart', 'onEnd', 'onRestart', 'onModifyCritRatio'];
+let INERT_ALT_CANDS = [];
+const INERT_ALT = (() => {
+  const rows = [], ok = [];
+  for (const m of dex.moves.all()) {
+    if (!m.exists || m.isNonstandard || idOf(m.id) === idOf(INERT)) continue;
+    const shape = inertShapeComplaint(m);
+    if (shape) continue;                            // it never passed the primary's own cap
+    const own = Object.keys(m).filter(k => /^on/.test(k) && typeof m[k] === 'function');
+    const c = (m.volatileStatus && dex.conditions.get(m.volatileStatus)) || null;
+    const cond = c ? Object.keys(c).filter(k => /^on/.test(k) && typeof c[k] === 'function') : [];
+    const badOwn = own.filter(k => k !== 'onTry');
+    const badCond = cond.filter(k => !CONTROL_COND_OK.includes(k));
+    /* an announcement handler must actually only announce — the abilities stage's `announces-only`
+     * clause, applied here for the same reason: a name is not a guarantee */
+    const loud = cond.filter(k => /^on(Start|End|Restart)$/.test(k)
+      && !/^[^{]*\{\s*(?:this\.add\([^;]*\);\s*)*\}\s*$/s.test(String(c[k]).replace(/\/\*[\s\S]*?\*\//g, '')));
+    const why = badOwn.length ? 'the MOVE registers ' + badOwn.join('+')
+      : badCond.length ? 'its volatile\'s condition registers ' + badCond.join('+')
+      : loud.length ? 'its volatile\'s ' + loud.join('+') + ' does more than announce'
+      : null;
+    rows.push(m.name + (why ? '  REFUSED — ' + why : '  USABLE'));
+    if (!why) ok.push(m);
+  }
+  ok.sort((a, b) => (a.id < b.id ? -1 : 1));        // deterministic, never dex iteration order
+  INERT_ALT_CANDS = rows;
+  return ok.length ? ok[0].id : null;
+})();
+const INERT_ALT_MOVE = INERT_ALT ? dex.moves.get(INERT_ALT) : null;
+/* the alternate's own two bookkeeping leaves, in the same anchored shapes as `INERT_SELF` */
+const INERT_ALT_SELF = (() => {
+  if (!INERT_ALT) return [];
+  const out = [{ field: 'pp.' + INERT_ALT, re: new RegExp('^p[12]\\.pp\\[\\d+\\]\\.' + INERT_ALT + '$') }];
+  if (INERT_ALT_MOVE.volatileStatus) {
+    const v = idOf(INERT_ALT_MOVE.volatileStatus);
+    out.push({ field: 'vol.' + v, re: new RegExp('^p[12]\\.active\\[\\d+\\]\\.vol\\.' + v + '$') });
+  }
+  out.names = out.map(x => x.field);
+  return out;
+})();
 
 /* THE QUIET ABILITIES — every legal ability in the format that registers NO handler at all, minus
  * the four that do something anyway through a field the engine reads directly. Derived, then the
@@ -1542,8 +1608,20 @@ function controlOf(sc, rank) {
     if (alt) body.ability = alt;
     ignore.push((sideKey === 'A' ? 'p1' : 'p2') + '.active[' + idx + '].item');
   } else if (sc.kind === 'move') {
+    /* THE SECOND INERT CLICK, FOR THE ONE MOVE THAT IS THE FIRST ONE. Substituting the inert click
+     * for itself gives two identical scripts, which is why `move/is-the-control-click` refused Focus
+     * Energy outright. `INERT_ALT` is derived off the same shape cap and proven by the same selftest
+     * clause; it is reached ONLY here, so no other move row's control arm moves. */
+    const sub = (INERT_ALT && idOf(sc.entityId) === idOf(INERT)) ? INERT_ALT : INERT;
     for (const st of c.script) for (const side of ['p1', 'p2']) for (const a of side ? st[side] : []) {
-      if (a && idOf(a.m) === idOf(sc.entityId)) { a.m = INERT; delete a.t; }
+      if (a && idOf(a.m) === idOf(sc.entityId)) { a.m = sub; delete a.t; }
+    }
+    if (sub !== INERT) {
+      for (const b of c.A.concat(c.B)) if (!b.moves.includes(sub)) b.moves.push(sub);
+      /* the alternate's OWN bookkeeping is the control describing itself and is never evidence —
+       * exactly what `INERT_SELF` is for the primary. The entity's own `pp`/`vol` rows are NOT in
+       * here, which is the whole point: they are what the row is read on. */
+      for (const x of INERT_ALT_SELF) ignore.push(x.re);
     }
   }
   return { sc: c, ignore, swap };
@@ -1630,7 +1708,11 @@ function armDelta(subject, control, ignore, swap) {
          * not findings and never could be — they are the control doing exactly what it was asked to.
          * The prefix is written by `controlOf`, printed on the entry, and deliberately narrow: the
          * SUBJECT'S OWN SLOT AND PARTY ROW, never a whole side. */
-        if (ignore.some(p => (p.endsWith('*') ? d.path.startsWith(p.slice(0, -1)) : d.path === p))) continue;
+        /* A REGEXP ENTRY IS ALLOWED (2026-09-12) and is used by exactly one control: the SECOND inert
+         * click, whose own PP row and volatile land on any side and any slot and cannot be written as
+         * a fixed path. Everything else still passes a string. */
+        if (ignore.some(p => (p instanceof RegExp ? p.test(d.path)
+          : p.endsWith('*') ? d.path.startsWith(p.slice(0, -1)) : d.path === p))) continue;
         /* THE SWAP ITSELF IS NOT EVIDENCE. See the block in `controlOf`. Counted rather than
          * silently skipped: a capability that cannot prove it ran is assumed broken, and the run
          * prints both numbers — how many leaves were the control describing itself, and how many
@@ -2564,6 +2646,11 @@ function runEntryRaw(e) {
   if (control.bad) return { ...e, verdict: 'COULD-NOT-STAGE',
     why: 'the CONTROL arm did not run: ' + control.bad + ' — ' + control.why };
 
+  /* THE DUMP IS ASKED FOR BEFORE THE PRECONDITION IS JUDGED — moved here 2026-09-12. A failed
+   * precondition is EXACTLY the moment the boards are wanted ("the entity never connected" says
+   * nothing about why), and with the dump below the check a refused row printed nothing at all. */
+  dumpArms(e, subject, control);
+
   /* ---- DID THE PRECONDITION ACTUALLY LAND? ------------------------------------------------------
    *
    * A CAPABILITY THAT CANNOT PROVE IT RAN IS ASSUMED BROKEN (CLAUDE.md), and the precondition layer
@@ -2611,25 +2698,10 @@ function runEntryRaw(e) {
    * anybody, which is why the second one survived: `stageAbilityQuiet` handed a SUPPRESS carrier to
    * `stageAbility`, no control ability was written, `buildPair` restored ability slot 0, and the two
    * arms came back byte-identical. Four lines of this dump said so at a glance — both arms reading
-   * `ab=surgesurfer` at every boundary — after a long argument had failed to. Off unless asked for. */
-  if (process.env.ROSTER_DUMP_BOARDS && idOf(process.env.ROSTER_DUMP_BOARDS) === idOf(e.id || '')) {
-    for (const arm of [['SUBJ', subject], ['CTRL', control]])
-      for (const b of arm[1].boards) {
-        /* BOTH SLOTS, NOT ONE. Half of these fixtures put the thing being read in the SECOND slot —
-         * an ally that has to faint, the swapper a tracked click is aimed at, a weather setter — and a
-         * dump that prints only slot 0 says "nothing happened" about a board where something did. */
-        const cell = (s, i) => { const a = sdActive(b, s, i);
-          return !a ? s + '[' + i + ']=-' : s + '[' + i + ']=' + a.species + ' hp' + a.hp
-            + (a.fainted ? '(FNT)' : '') + ' ab=' + a.ability + (a.item ? ' it=' + a.item : '')
-            + (a.status ? ' st=' + a.status : '')
-            + (Object.values(a.boosts || {}).some(v => v) ? ' b=' + JSON.stringify(a.boosts) : ''); };
-        console.log('  [DUMP ' + arm[0] + '] t' + b.turn + '  ' + cell('p1', 0) + ' | ' + cell('p1', 1)
-          + ' | ' + cell('p2', 0) + ' | ' + cell('p2', 1)
-          + ' | sky=' + ((b.sd && b.sd.field && b.sd.field.weather) || '-')
-          + ' terrain=' + ((b.sd && b.sd.field && b.sd.field.terrain) || '-')
-          + ' pp1_0=' + JSON.stringify(((((b.sd || {}).sides || {}).p1 || {}).pp || [])[0] || null));
-      }
-  }
+   * `ab=surgesurfer` at every boundary — after a long argument had failed to. Off unless asked for.
+   * HOISTED INTO `dumpArms` 2026-09-12 so it can also be called ABOVE the precondition check — a
+   * refused precondition is exactly when the boards are wanted and this printed nothing there. */
+  dumpArms(e, subject, control);
   let delta = armDelta(subject, control, ignore, swap);
   const subjDiffs = splitDeclared(subject.boards.flatMap(b => b.diffs.map(d => ({ ...d, turn: b.turn }))),
                                   subject.boards).kept;
@@ -3230,6 +3302,85 @@ function formeFlipStaging(e, formes, arm) {
     + 'forme other than the keyed one, with a body in the format immune to the printed type '
     + e.type + ' and not immune to what it converts into' };
 }
+
+/* ---- THE FORME THAT CANNOT BE FLIPPED IS STILL CATEGORICAL, AND THE OLD REFUSAL SAID OTHERWISE ---
+ * (2026-09-12, `ragingbull`.)
+ *
+ * The standing refusal ended *"staging one forme would read as a damage number that proves only that
+ * the move deals damage"*. THAT IS TRUE OF A NEUTRAL DEFENDER AND OF NOTHING ELSE, and this rule's
+ * own weather arm already says so in its header: a GHOST defender turns Weather Ball's reading from
+ * a damage number into 0-against-a-number, because the move's PRINTED type cannot touch it and what
+ * it converts into can. A forme-keyed conversion is the same shape with the knob welded shut — the
+ * knob is what a flip would give, and it is NOT what makes the reading categorical.
+ *
+ * So one forme is staged, and only where the arithmetic is genuinely categorical: a defender IMMUNE
+ * to the printed type and NOT immune to the assigned one. An engine that ignored `onModifyType`
+ * writes 0 on both turns; one that applies it writes damage on both. Every forme the derivation
+ * cannot use is REFUSED BY NAME with the clause that shut it, because "no fixture found" is the
+ * verdict this file exists to replace — Combat converts to FIGHTING and every body immune to Normal
+ * is a Ghost, which is immune to Fighting as well, so that forme really is shut by the type chart.
+ *
+ * THE USER'S ABILITY IS THE ONE THING THIS NEEDED AND `carrierAbility` COULD NOT GIVE. All three
+ * Tauros-Paldea sheets are Intimidate / Anger Point / Cud Chew and every one of them is on the
+ * INTERFERES list, which is the ITEM stage's filter and is deliberately blunt — it also bars
+ * "anything that moves the board by itself", and such a thing is in BOTH arms and cancels out of the
+ * delta exactly (that argument is `carrierAbility`'s own header). What a CATEGORICAL reading cannot
+ * survive is narrower and is derived here rather than assumed: an ability that could turn a ZERO into
+ * a NUMBER, i.e. one that rewrites what type is thrown or whether it is thrown at all. Nothing else
+ * can, because no Attack modifier makes an immune hit connect. The predicate is printed with the row. */
+const TYPE_OR_CLICK_REWRITE = ['onModifyType', 'onModifyMove', 'onPrepareHit', 'onBeforeMove',
+                               'onDisableMove', 'onTryMove', 'onOverrideAction'];
+function inertUserAbility(sp) {
+  const scored = Object.values(sp.abilities || {}).map(n => {
+    const a = dex.abilities.get(idOf(n));
+    const hs = Object.keys(a).filter(k => /^on/.test(k) && typeof a[k] === 'function');
+    return { name: n, bad: hs.some(h => TYPE_OR_CLICK_REWRITE.includes(h)), n: hs.length };
+  }).filter(x => !x.bad).sort((x, y) => x.n - y.n);
+  return scored.length ? scored[0] : null;
+}
+function formeCategoricalStaging(e, formes, arm) {
+  const pairs = formes.map(s => { const i = s.indexOf(' -> ');
+    return { forme: s.slice(0, i).trim(), type: s.slice(i + 4).trim() }; });
+  const legal = s => s.exists && !s.isNonstandard && s.tier !== 'Illegal';
+  const shut = [];
+  for (const p of pairs) {
+    const sp = dex.species.all().find(s => legal(s) && idOf(s.name) === idOf(p.forme));
+    if (!sp) { shut.push(p.forme + ': not a legal species in this format'); continue; }
+    if (sp.battleOnly) { shut.push(p.forme + ': battle-only, so it cannot be built directly'); continue; }
+    if (!buildableSpecies(sp.id)) { shut.push(p.forme + ': the damage table has no row for it'); continue; }
+    if (!learnsLegally(sp.id, e.id)) { shut.push(p.forme + ': the format\'s own validator refuses it '
+      + 'this move'); continue; }
+    const ab = inertUserAbility(sp);
+    if (!ab) { shut.push(p.forme + ': every ability on its sheet rewrites what type is thrown or '
+      + 'whether it is thrown (' + Object.values(sp.abilities).join('/') + ')'); continue; }
+    const def = carrierBody({ immuneTo: e.type, notImmuneTo: p.type });
+    if (!def) { shut.push(p.forme + ': no legal body with a usable ability is immune to ' + e.type
+      + ' (the printed type) and NOT immune to ' + p.type + ', so the reading would be a damage '
+      + 'number rather than 0-against-a-number'); continue; }
+    const b1 = quietBody({ arm, not: [def.species] });
+    console.log('  [FORME CATEGORICAL] ' + e.id + ' — ' + sp.name + ' throws ' + e.name + ' as '
+      + p.type + ' (printed ' + e.type + ') at ' + pretty(def.species) + ', which is immune to '
+      + e.type + '; user ability ' + ab.name + ' (' + ab.n + ' handler(s), none of them a type or '
+      + 'click rewrite). Formes this derivation could not use: '
+      + (shut.length ? shut.join(' | ') : 'none'));
+    return { scenario: scaffold({ hpA: 4, hpB: 8,
+        a0: mon(sp.id, '', ab.name, [e.id]),
+        b0: { ...def, moves: [INERT] },
+        b1: b1 ? { ...b1, moves: [INERT] } : null,
+        script: [turn([throwIt(e, 0), IDLE], [IDLE, IDLE]),
+                 turn([throwIt(e, 0), IDLE], [IDLE, IDLE])] }),
+      note: 'THE FORME IS WELDED, AND THE READING IS STILL CATEGORICAL: ' + sp.name + ' throws '
+          + e.name + ' — printed type ' + e.type + ', converted to ' + p.type + ' by its own '
+          + 'onModifyType — at ' + pretty(def.species) + ', which is IMMUNE to ' + e.type + ' and not '
+          + 'to ' + p.type + '. An engine that ignored the conversion deals literally NOTHING on both '
+          + 'turns; one that applies it deals damage on both, so this is 0-against-a-number and not a '
+          + 'damage number. The user holds ' + ab.name + ', which registers no handler that can '
+          + 'rewrite what type is thrown or whether it is thrown, and is in BOTH arms either way. '
+          + 'FORMES THIS COULD NOT USE, with the clause that shut each: '
+          + (shut.length ? shut.join(' | ') : 'none') };
+  }
+  return { why: 'no forme in its own table can be staged categorically — ' + shut.join(' | ') };
+}
 /* THE MOVE STAGE'S AGGRESSOR IS NOT `CAST.ATTACKER`, AND THE REASON IS ON THE BOARD. Dragapult carries
  * INFILTRATOR, which the cast header defends as harmless because "a screen or a Substitute" is
  * "neither of which any derived scenario raises". THE MOVE STAGE RAISES BOTH — Reflect, Light Screen
@@ -3585,11 +3736,59 @@ function canRefuseAFlinch(sp) {
 /* THE ORDER-SENSITIVE PAIRING. Returns the slow legal user, the faster body that kills it, and the
  * kill, or a written reason. Every body is checked with `CS.checkLegal` before it is staged — the
  * owner's own example was Muk, which is `isNonstandard: 'Past'` here. */
-function orderPair(e) {
+/* ---- THE WIDENED USER POOL, AND WHY IT IS NOT A LOOSENING (2026-09-12) --------------------------
+ *
+ * Three members of this family — Extreme Speed, Ice Shard, Jet Punch — were refused because EVERY
+ * legal body that learns them carries only abilities on `INTERFERES`. That refusal was measured and
+ * it is true; what it is not is a fact about the mechanic, and the previous pass said so: *"the
+ * obvious fix would lend the carrier a wide ability and break the fixture's own premise"*.
+ *
+ * `INTERFERES` IS THE ITEM STAGE'S FILTER AND IS DELIBERATELY BLUNT. Its own header says the wide
+ * half of it — "anything that MOVES THE BOARD by itself" — is excluded not because it corrupts a
+ * reading (it is in BOTH arms and cancels out of the delta exactly) but because it is untidy to have
+ * there. What this ONE fixture cannot survive is narrower and is enumerated below: something that
+ * could stop the kill, or change which click is thrown.
+ *
+ * AND THE WIDENING IS NOT ARGUED, IT IS RECEIPTED. A widened row carries two preconditions read off
+ * SHOWDOWN'S OWN BOARD — the entity really connected, and the kill really landed — so an ability
+ * that quietly floated the user or blunted the killer produces COULD-NOT-STAGE with that as its
+ * reason instead of a green. The narrow pool is tried FIRST and every standing row keeps the exact
+ * user, ability, foe and kill it had; the wide pass runs only where the narrow one came back empty. */
+/* TIER 2 — WHAT THE RECEIPTS CANNOT SEE, and it is a much shorter list than tier 1. The two clauses
+ * read off Showdown's board answer "did the entity connect" and "did the kill land", so an ability
+ * that BLUNTS the killer or floats the user is caught by measurement and does not need banning. What
+ * they cannot see is an ability that changed WHICH CLICK was thrown (the entity connects either way)
+ * or WHICH BODY WAS FASTER (both clauses pass while the bracket did no work at all). Those two, and
+ * only those two, must be excluded by construction. */
+const UNRECEIPTED_BLOCKERS = [
+  'onModifyType', 'onModifyMove', 'onPrepareHit', 'onBeforeMove', 'onDisableMove', 'onTryMove',
+  'onOverrideAction', 'onModifySpe', 'onFractionalPriority', 'onModifyPriority',
+];
+/* TIER 1 — the conservative pool, tried first: nothing that could stop the kill, blunt the killer on
+ * entry, or change the click. Intimidate is exactly why `onStart` is here. */
+const KILL_OR_CLICK_BLOCKERS = UNRECEIPTED_BLOCKERS.concat([
+  'onSourceModifyDamage', 'onModifyDamage', 'onAnyModifyDamage', 'onDamage', 'onEffectiveness',
+  'onTryHit', 'onImmunity', 'onModifyDef', 'onModifySpD', 'onSourceModifyAtk', 'onSourceModifySpA',
+  'onSourceModifyAccuracy', 'onModifyAccuracy', 'onTryHeal', 'onFoeTryMove',
+  'onStart', 'onSwitchIn', 'onAnySwitchIn',
+]);
+function widePriorityAbilities(sp, tier) {
+  const ban = tier === 2 ? UNRECEIPTED_BLOCKERS : KILL_OR_CLICK_BLOCKERS;
+  return Object.values(sp.abilities || {}).map(n => {
+    const a = dex.abilities.get(idOf(n));
+    const hs = Object.keys(a).filter(k => /^on/.test(k) && typeof a[k] === 'function');
+    return { name: n, bad: !!QUIET_EXCLUDE[a.id] || hs.some(h => ban.includes(h)), n: hs.length };
+  }).filter(x => !x.bad).sort((x, y) => x.n - y.n);
+}
+function orderPair(e, opt) {
+  const wide = (opt && opt.wide) || 0;
   const spd = s => flatL50(s.baseStats).sp;
   const flinch = (e.secondaries || []).some(s => s.chance === 100 && s.volatileStatus === 'flinch');
+  const abilitiesOf = s => wide ? widePriorityAbilities(s, wide).map(x => x.name)
+                                : [carrierAbility(s)].filter(Boolean);
   const users = dex.species.all().filter(s => s.exists && !s.isNonstandard && !s.battleOnly
-      && !s.forme.endsWith('Mega') && buildableSpecies(s.id) && carrierAbility(s) && learnsMove(s, e.id))
+      && !s.forme.endsWith('Mega') && buildableSpecies(s.id) && abilitiesOf(s).length
+      && learnsMove(s, e.id) && (!wide || learnsLegally(s.id, e.id)))
     .sort((a, b) => spd(a) - spd(b));
   if (!users.length) {
     /* SAY WHICH OF THE THREE FILTERS EMPTIED THE POOL. "No body learns it" and "every body that
@@ -3619,10 +3818,16 @@ function orderPair(e) {
       if (spd(f) <= spd(u)) continue;                       // strictly faster: never a speed tie
       if (dex.getImmunity(e.type, f.types) === false) continue;   // the click must connect
       if (!flinch && maxRoll(dex.species.get(u.id), e, f) <= 0) continue;
-      const kill = lethalMove(f, u, 1.2);                   // the foe must kill outright, no roll
+      /* THE WIDE PASS SIZES THE KILL OFF WHAT THE FOE LEGALLY LEARNS, and that is not tidiness. The
+       * restaging pass (#318) rewrites a body that cannot learn what it throws, and it rewrote the
+       * wide Extreme Speed pairing from Charizard/Ice Beam to GYARADOS/Ice Beam — which does not kill
+       * Dragonite (108 of 166). The precondition caught it and said the fixture had not staged, which
+       * is the instrument working; sizing the kill legally is the repair. The narrow pass keeps its
+       * unfiltered call so no standing row's kill changes. */
+      const kill = lethalMove(f, u, 1.2, wide ? f.id : undefined);
       if (!kill) continue;
-      return { user: u, userAbility: carrierAbility(u), foe: f, foeAbility: carrierAbility(f),
-               kill: kill.mv, flinch, gap: spd(f) - spd(u), speeds: spd(u) + ' against ' + spd(f) };
+      return { user: u, userAbility: abilitiesOf(u)[0], foe: f, foeAbility: carrierAbility(f),
+               kill: kill.mv, flinch, wide, gap: spd(f) - spd(u), speeds: spd(u) + ' against ' + spd(f) };
     }
   }
   return { why: 'its slowest legal user is ' + pretty(users[0].id) + ' at ' + spd(users[0])
@@ -3630,6 +3835,131 @@ function orderPair(e) {
     + 'outright with a derived delivery move. Without a kill the turn ends in the same state '
     + 'whichever order it resolved in, and the bracket has no way onto the board' };
 }
+
+/* ---- THE `willMove` GATE, READ BY EXECUTING THE HANDLER RATHER THAN BY MATCHING ITS TEXT --------
+ * (2026-09-12. This is what `upperhand` read THE STAGING IS INERT over 1,537 leaves for.)
+ *
+ * A handful of moves in this format refuse themselves on the basis of what the TARGET is about to
+ * do: they call `this.queue.willMove(target)` and read the queued action. `orderPair` derives a foe
+ * that KILLS the user with a derived delivery move, and every such kill it can find is at priority
+ * 0 — so Upper Hand's own gate said no, the move never resolved in either arm, and the row came back
+ * inert. THE FIXTURE WAS REFUSED BY THE ENTITY UNDER TEST, which reads as a coverage limit and is
+ * not one.
+ *
+ * THE REQUIREMENT IS DERIVED BY CALLING THE HANDLER, never by pattern-matching its source. A stub
+ * `queue.willMove` hands back a fabricated action and a `false` return is the move refusing itself;
+ * three probes (no queued action, a 0-priority damaging click, a positive-priority damaging click)
+ * are enough to separate the two shapes this format actually has. A probe that THROWS is counted and
+ * printed and makes the gate UNREADABLE, which refuses the row by name rather than waving it through
+ * — a silent default here would put the fixture straight back where it was.
+ *
+ * Membership is printed by `--rules`. Restricted to `onTry`, whose signature is `(source, target)`:
+ * the `onTryHit` members of the same family (Electrify, Helping Hand) take the target FIRST and are
+ * Status moves, so `move/priority` cannot match them and this rule must not guess at their shape. */
+let QUEUE_GATE_THREW = 0; const QUEUE_GATE_THREW_WHO = [];
+const _QG = new Map();
+function queueGate(e) {
+  if (_QG.has(e.id)) return _QG.get(e.id);
+  let out = null;
+  const h = typeof e.onTry === 'function' ? e.onTry : null;
+  if (h && /willMove\s*\(/.test(String(h))) {
+    const ask = (mv) => {
+      const ctx = { queue: { willMove: () => (mv ? { choice: 'move', move: mv } : null) } };
+      const target = { volatiles: {}, activeTurns: 1, newlySwitched: false };
+      try { return h.call(ctx, null, target, null, null) !== false; }
+      catch (err) {
+        /* LOUD ON EVERY RUN, not only under `--rules`: a counter nobody reads is the silent default
+         * this file exists to refuse, and an unreadable gate RETIRES a row. */
+        QUEUE_GATE_THREW++;
+        const line = e.id + ' asked with ' + (mv ? mv.id : '(no action)') + ': ' + err.message;
+        if (QUEUE_GATE_THREW_WHO.length < 12) QUEUE_GATE_THREW_WHO.push(line);
+        console.error('  !! QUEUE-GATE PROBE THREW  ' + line + ' — the gate is UNREADABLE and every '
+          + 'row that depends on it is refused rather than staged blind.');
+        return null;
+      }
+    };
+    /* THE THREE STIMULI ARE DERIVED OFF THE FORMAT, NOT NAMED. A probe move typed from memory is a
+     * Pokemon fact typed from memory even when it is only a stub. */
+    const anyLegal = p => dex.moves.all().find(m => m.exists && !m.isNonstandard && p(m));
+    const zero = anyLegal(m => m.category !== 'Status' && m.basePower > 0 && m.priority === 0),
+          pos  = anyLegal(m => m.category !== 'Status' && m.basePower > 0 && m.priority > 0.1),
+          stat = anyLegal(m => m.category === 'Status' && m.priority === 0);
+    const probes = { none: ask(null), zero: ask(zero), pos: ask(pos), status: ask(stat) };
+    out = Object.values(probes).some(v => v === null)
+      ? { unreadable: true, probes }
+      : { probes, refusesIdleTarget: !probes.none, refusesStatusTarget: !probes.status,
+          refusesZeroPriorityTarget: !probes.zero, acceptsPriorityTarget: !!probes.pos,
+          /* the one shape this rule can stage around: it wants the target throwing a PRIORITY move */
+          needsPriorityTarget: !probes.zero && !!probes.pos };
+  }
+  _QG.set(e.id, out);
+  return out;
+}
+/* the whole membership, computed once so `--rules` can print it before anything is believed */
+const QUEUE_GATED = dex.moves.all().filter(m => m.exists && !m.isNonstandard && queueGate(m))
+  .map(m => ({ id: m.id, name: m.name, priority: m.priority, bp: m.basePower,
+               gate: queueGate(m) }));
+
+/* THE INTERCEPT PAIRING — the mirror of `orderPair`, for a priority move whose own gate refuses a
+ * target that is not itself throwing a priority move.
+ *
+ * The foe is FASTER and clicks a POSITIVE-PRIORITY damaging move at the user, and the entity's
+ * HIGHER bracket is the only thing that gets in front of it. With the bracket correct the entity
+ * lands, its 100% flinch fires and the foe never acts, so the USER ends the turn untouched and the
+ * FOE is damaged. With the bracket ignored the foe moves first, its click lands on the user, and the
+ * entity's own gate then finds no queued action and REFUSES ITSELF — so the foe is untouched and the
+ * user is not. Both bodies' hp part, in opposite directions, from one click.
+ *
+ * A 100% FLINCH IS REQUIRED AND THE REASON IS ARITHMETIC, not preference: without it both clicks
+ * resolve whichever way the turn is sorted and the final board is the same, which is the same
+ * "the order has no way onto the board" refusal `orderPair` already writes. */
+function interceptPair(e) {
+  const spd = s => flatL50(s.baseStats).sp;
+  const flinch = (e.secondaries || []).some(s => s.chance === 100 && s.volatileStatus === 'flinch');
+  if (!flinch) return { why: 'its gate demands a target that is itself throwing a priority move, so '
+    + 'the foe cannot be the body that kills the user — every kill this file can derive is at '
+    + 'priority 0 and the gate refuses it. The remaining board is one where BOTH clicks resolve, and '
+    + 'this move carries no 100% flinch to stop the second one, so the turn ends in the same state '
+    + 'whichever order it was sorted in' };
+  const users = dex.species.all().filter(s => s.exists && !s.isNonstandard && !s.battleOnly
+      && !s.forme.endsWith('Mega') && buildableSpecies(s.id) && carrierAbility(s) && learnsMove(s, e.id))
+    .sort((a, b) => spd(a) - spd(b));
+  if (!users.length) return { why: 'no legal buildable body with an ability this fixture may hold '
+    + 'learns it' };
+  /* THE INTERCEPT CLICK IS DERIVED FROM THE FORMAT AND FENCED ON EVERY SIDE. It must land on the
+   * primary arm (`alwaysHits`), must not manufacture a crit beside the control click, must carry no
+   * secondary of its own, must not be gated on the queue in its turn, and must sit STRICTLY between
+   * 0 and the entity's own bracket so the entity wins the order on the bracket alone and never on a
+   * Speed tie. */
+  const INTERCEPTS = dex.moves.all().filter(m => m.exists && !m.isNonstandard
+      && m.category !== 'Status' && m.basePower > 0 && needsIndex(m)
+      && m.priority > 0.1 && m.priority < e.priority
+      && alwaysHits(m) && !(m.critRatio > 1) && !m.willCrit
+      && !(m.secondaries || []).length && !m.secondary && !m.multihit
+      && !m.flags.charge && !m.selfSwitch && !queueGate(m))
+    .sort((a, b) => b.basePower - a.basePower);
+  if (!INTERCEPTS.length) return { why: 'this format offers no always-hitting, secondary-free '
+    + 'damaging click at a bracket strictly between 0 and +' + e.priority + ', so no foe can be given '
+    + 'the queued priority move this move\'s own gate demands to see' };
+  const foes = CANDIDATES.filter(s => buildableSpecies(s.id) && !s.forme.endsWith('Mega')
+    && !canRefuseAFlinch(s));
+  for (const u of users.slice(0, 20)) {
+    for (const f of foes) {
+      if (f.id === u.id) continue;
+      if (spd(f) <= spd(u)) continue;                            // strictly faster: never a speed tie
+      if (maxRoll(u, e, f) <= 0) continue;                       // the entity must connect
+      const im = INTERCEPTS.find(m => learnsLegally(f.id, m.id) && maxRoll(f, m, u) > 0);
+      if (!im) continue;
+      return { user: u, userAbility: carrierAbility(u), foe: f, foeAbility: carrierAbility(f),
+               intercept: im, flinch, speeds: spd(u) + ' against ' + spd(f) };
+    }
+  }
+  return { why: 'its slowest legal user is ' + pretty(users[0].id) + ' at ' + spd(users[0])
+    + ' Speed, and no legal buildable body is BOTH strictly faster than it, unable to refuse a '
+    + 'flinch, hittable by this move AND a legal learner of an always-hitting damaging click in the '
+    + 'bracket its own gate demands to see' };
+}
+
 /* ASK THE FORMAT, NOT THE LEARNSET WALK. `learnsMove` is a candidate generator; the authority on
  * whether a body may carry a move here is `champions_sim.checkLegal`, which drives the official
  * TeamValidator. The owner's own worked example for this rule was "Muk Shadow Punch" and MUK IS
@@ -3646,7 +3976,13 @@ function legalPair(speciesId, ability, moveId) {
     const r = CS.checkLegal({ species: speciesId, ability, moves: [moveId] });
     if (r.unavailable) out = null;                       // cannot check is not a verdict either way
     else if ((r.banned || []).length) out = r.banned.join('; ');
-  } catch (err) { out = null; }
+  } catch (err) {
+    /* Cannot-ask is not a verdict, and it is also not nothing: a validator that starts throwing would
+     * silently turn every pair legal and the fixtures would stage bodies the format refuses. */
+    console.error('  roster: legality check threw for ' + speciesId + '/' + moveId + ' (' + err.message
+      + ') — treated as no verdict, not as legal');
+    out = null;
+  }
   _LP.set(k, out);
   return out;
 }
@@ -3683,7 +4019,13 @@ function canClick(sp, moveId) {
     /* `unavailable` means the validator could not be asked at all. That is not a verdict either way,
      * so the candidate is allowed through rather than a fixture being retired on a hiccup. */
     if (!r.unavailable && r.legal === false) ok = false;
-  } catch (err) { ok = true; }
+  } catch (err) {
+    /* The candidate is allowed through on a hiccup rather than retiring a fixture — but a throw that
+     * says nothing would let a broken validator quietly admit every candidate. */
+    console.error('  roster: candidate legality threw for ' + sp.id + '/' + moveId + ' (' + err.message
+      + ') — candidate allowed through, not verified');
+    ok = true;
+  }
   _CC.set(k, ok);
   return ok;
 }
@@ -3853,6 +4195,45 @@ function noChipWhy(arm, opt) {
  * is identical in both arms and cancels out of the delta exactly. */
 const CURABLE_STATUS = ['psn', 'brn', 'tox']
   .map(s => (STATUS_MOVE[s] ? { status: s, move: STATUS_MOVE[s] } : null)).filter(Boolean);
+
+/* ---- THE TWO ARMS, SIDE BY SIDE, FOR ONE NAMED ROW — `ROSTER_DUMP_BOARDS=<id>` ------------------
+ *
+ * A row that reads INERT is indistinguishable, from the outside, between "the entity did nothing"
+ * and "THE CONTROL ARM IS THE SUBJECT ARM". Both print the same sentence and neither accuses
+ * anybody, which is why the second one survived: `stageAbilityQuiet` handed a SUPPRESS carrier to
+ * `stageAbility`, no control ability was written, `buildPair` restored ability slot 0, and the two
+ * arms came back byte-identical. Four lines of this dump said so at a glance — both arms reading
+ * `ab=surgesurfer` at every boundary — after a long argument had failed to. Off unless asked for.
+ *
+ * CALLED TWICE, IDEMPOTENTLY, and the second call site is the point: it is ABOVE the precondition
+ * check, which returns COULD-NOT-STAGE and used to suppress the dump entirely. A failed precondition
+ * ("the entity never connected") is exactly the verdict whose boards are wanted. */
+const _DUMPED = new Set();
+function dumpArms(e, subject, control) {
+  const want = process.env.ROSTER_DUMP_BOARDS;
+  if (!want || idOf(want) !== idOf(e.id || '') || _DUMPED.has(idOf(e.id || ''))) return;
+  _DUMPED.add(idOf(e.id || ''));
+  for (const arm of [['SUBJ', subject], ['CTRL', control]])
+    for (const b of arm[1].boards) {
+      /* BOTH SLOTS, NOT ONE. Half of these fixtures put the thing being read in the SECOND slot —
+       * an ally that has to faint, the swapper a tracked click is aimed at, a weather setter — and a
+       * dump that prints only slot 0 says "nothing happened" about a board where something did. */
+      const cell = (s, i) => { const a = sdActive(b, s, i);
+        return !a ? s + '[' + i + ']=-' : s + '[' + i + ']=' + a.species + ' hp' + a.hp
+          + (a.fainted ? '(FNT)' : '') + ' ab=' + a.ability + (a.item ? ' it=' + a.item : '')
+          + (a.status ? ' st=' + a.status : '')
+          + (Object.values(a.boosts || {}).some(v => v) ? ' b=' + JSON.stringify(a.boosts) : ''); };
+      console.log('  [DUMP ' + arm[0] + '] t' + b.turn + '  ' + cell('p1', 0) + ' | ' + cell('p1', 1)
+        + ' | ' + cell('p2', 0) + ' | ' + cell('p2', 1)
+        + ' | sky=' + ((b.sd && b.sd.field && b.sd.field.weather) || '-')
+        + ' terrain=' + ((b.sd && b.sd.field && b.sd.field.terrain) || '-')
+        + ' pp1_0=' + JSON.stringify(((((b.sd || {}).sides || {}).p1 || {}).pp || [])[0] || null)
+        + ' party_p1=' + JSON.stringify(Object.fromEntries(Object.entries(
+            (((b.sd || {}).sides || {}).p1 || {}).party || {}).map(([k, v]) => [k, v.hp + (v.fainted ? 'F' : '')])))
+        + ' party_p2=' + JSON.stringify(Object.fromEntries(Object.entries(
+            (((b.sd || {}).sides || {}).p2 || {}).party || {}).map(([k, v]) => [k, v.hp + (v.fainted ? 'F' : '')]))));
+    }
+}
 
 /* READING THE AUTHORITY'S OWN BOARD BY NAME rather than by index arithmetic at eleven call sites.
  * Every heal precondition below is read off `sd` — Showdown — and never off `medi`, because a
@@ -13486,11 +13867,39 @@ const RULES = [
      * removed rather than rewritten to agree with today: what refuses this row is the FIRST clause,
      * on its own, and it is structural — no leaf could rescue a script that is identical in both
      * arms. Moving the row would mean moving the INERT click, which every other move row rests on. */
-    return cannot('this move IS the control arm\'s inert click (' + pretty(INERT) + '), so subject '
-      + 'and control would be the same script and the delta would be empty by construction. That is '
-      + 'the whole refusal: `board_state.js` HAS compared `vol.focusenergy` since 2026-08-12, so the '
-      + 'effect is expressible — there is simply no arm to express it against while this move is the '
-      + 'control.'); } },
+    /* ---- AND THE ARM NOW EXISTS — 2026-09-12 ----------------------------------------------------
+     * The refusal above was right that the delta is empty when the control substitutes the entity for
+     * itself. It was wrong to conclude that no arm could exist: a SECOND inert click, derived off the
+     * same shape cap and proven by the same selftest clause, removes the circularity and touches no
+     * other row (`controlOf` reaches for it only when the entity IS the inert click).
+     *
+     * WHAT IS READ IS THE VOLATILE AND NOT THE RATIO, and that is said rather than implied: the two
+     * crit stages are invisible in BOTH pin arms — the primary lands no crit at all and the bottom
+     * corner lands every crit whatever the ratio is — which is exactly why this move was chosen as
+     * the control in the first place. `board_state.js` has compared `vol.focusenergy` since
+     * 2026-08-12 and that leaf is the move's entire declared effect. */
+    if (!INERT_ALT) return cannot('this move IS the control arm\'s inert click (' + pretty(INERT)
+      + '), so subject and control are the same script and the delta is empty by construction. THE '
+      + 'ARM WAS BUILT AND THE FORMAT REFUSED IT, which is a measurement and not a shrug: `controlOf` '
+      + 'will substitute a SECOND inert click for this one row, and asked of the whole regulation, '
+      + INERT_ALT_CANDS.length + ' moves pass the primary control click\'s own shape cap and EVERY '
+      + 'ONE of them is refused — ' + INERT_ALT_CANDS.join('; ') + '. THE NEAR MISS IS THE FINDING: '
+      + 'ranking those survivors by handler count picked AQUA RING, whose move declares nothing and '
+      + 'whose volatile heals a sixteenth every turn; it staged, it came back GREEN, and it read inert '
+      + 'only because every body on that fixture was at full HP. `board_state.js` HAS compared '
+      + '`vol.focusenergy` since 2026-08-12, so the effect is still expressible — what is missing is a '
+      + 'second click this format does not have.');
+    /* AND IF THE REGULATION EVER SUPPLIES ONE, THIS ROW MAY NOT QUIETLY GO GREEN. `controlOf` would
+     * substitute it and this rule would stage a two-turn self-click whose leaf is `vol.focusenergy`
+     * — but the rule carries NO `break`, and the red-demonstration loop SKIPS a rule with no break
+     * (`if (!rule.break) continue;`), so the green would rest on a plant nobody had written. That is
+     * the "a green test can be asking nothing" failure with a two-line cause, so it is refused here
+     * BY NAME instead of being left to be noticed. */
+    return cannot('a SECOND control click became available (' + pretty(INERT_ALT) + ') and this rule '
+      + 'has no red demonstration to stage it behind. The fixture is a two-turn self-click read on '
+      + '`vol.focusenergy`; what is owed is a `break` aimed at the crit-stage volatile write in '
+      + 'medicham2, because the red-demonstration loop skips a rule with no `break` and the row would '
+      + 'go green on a plant nobody wrote.'); } },
 
 /* ---- THE PRECONDITION RULES --------------------------------------------------------------------
  *
@@ -15043,15 +15452,33 @@ const RULES = [
      * have EVERY slot empty — `scaffold` appends the inert click to every body it builds, so the
      * shortest such script is the sum of two maxima with the second one unreachable while the first
      * still has PP. Named as owed work in this file rather than as a fact about the simulator. */
-    if (e.struggleRecoil) return cannot('Showdown DISABLES Struggle for any body that still has a '
-      + 'usable move, and every body this file stages carries at least the inert click — so the '
-      + 'scripted choice is rejected ("Struggle is disabled") and the game throws. Reaching it needs '
-      + 'a body whose WHOLE moveset is spent. That is now expressible — medicham2 tracks PP through '
-      + '`ppSpentMap`, `board_state.js` compares it as `pp-is-what-has-been-spent`, and this file\'s '
-      + '`item/pp-restore` empties a slot by clicking it — but it is not built: `scaffold` appends '
-      + 'the inert click to every body, so a Struggle fixture must empty EVERY slot, and the inert '
-      + 'click cannot be chosen once the tested slot is dry without ending the run early. OWED WORK '
-      + 'IN THIS FILE, not a limit of the engine.');
+    /* ---- AND IT IS A CONTRADICTION, NOT A BACKLOG — MEASURED 2026-09-12 --------------------------
+     * The clause below called it "OWED WORK IN THIS FILE", which reads as something a long enough
+     * script would buy. It is not: the two requirements cannot both hold on one body.
+     *
+     *   Showdown refuses Struggle while ANY slot has PP, so the user's every slot must be empty.
+     *   `controlOf` builds the control arm by replacing the Struggle click with the INERT click —
+     *   and a body whose every slot is empty cannot choose the inert click either. Showdown rejects
+     *   that choice and the control arm THROWS.
+     *
+     * The escape would be a SECOND control click to substitute, which is the identical hole
+     * `move/is-the-control-click` is refused on: asked of the whole regulation on this run, 23 moves
+     * pass the control-click shape cap and every one is refused (printed by `--rules`). So the two
+     * remaining COULD-NOT-STAGE moves in this stage are ONE missing thing, not two. */
+    if (e.struggleRecoil) return cannot('THE TWO REQUIREMENTS CANNOT BOTH HOLD, so this is a '
+      + 'contradiction rather than a long script nobody has written. Showdown DISABLES Struggle for '
+      + 'any body that still has a usable move, so the user\'s EVERY slot must be empty — and '
+      + '`controlOf` builds the control arm by replacing the Struggle click with the inert click '
+      + '(' + pretty(INERT) + ', ' + (INERT_MOVE.pp * 8 / 5) + ' PP at full), which a body with every '
+      + 'slot empty cannot choose either; Showdown rejects it and the control arm throws. The escape '
+      + 'is a SECOND control click to substitute, and that is the SAME missing thing '
+      + '`move/is-the-control-click` is refused on — ' + INERT_ALT_CANDS.length + ' moves in this '
+      + 'regulation pass the control-click shape cap and every one of them is refused (printed by '
+      + '`--rules`). The tracking half is not what is missing: medicham2 has `ppSpentMap`, '
+      + '`board_state.js` compares it as `pp-is-what-has-been-spent`, and this file\'s '
+      + '`item/pp-restore` already empties a slot by clicking it. It is not a limit of the engine and '
+      + 'it is not a script length either — it is the control arm and the move asking for opposite '
+      + 'boards.');
     const arm = armFor(e);
     const b0 = quietBody({ arm, type: e.type }), b1 = quietBody({ arm, type: e.type, not: [b0 && b0.species] });
     if (!b0 || !b1) return cannot(noBodyWhy({ arm, type: e.type }));
@@ -15140,10 +15567,17 @@ const RULES = [
    * the BASE POWER half of the same line is deliberately left alone so a break that moves only the
    * EFFECTIVENESS is the localisation. TWO READERS OF ONE FACT IS THE DEFECT ITSELF (CLAUDE.md: facts
    * are global) and it is filed rather than fixed — the simulator is not this file's to edit. */
-  break: { why: 'the weather-driven TYPE conversion is dropped from the damage path; the base-power '
-              + 'doubling on the same line is left alone',
+  break: { why: 'the weather-driven TYPE conversion is dropped from the damage path (the base-power '
+              + 'doubling on the same line is left alone), AND the FORME-keyed conversion is dropped '
+              + 'at its single reader',
+    /* THE SECOND ELEMENT WAS ADDED 2026-09-12 WITH THE FORME ARM, AND WITHOUT IT THAT ARM'S GREEN
+     * WOULD HAVE RESTED ON A PLANT THAT CANNOT TOUCH IT. Measured before it was added: `--reds --only
+     * ragingbull` read NOT CAUGHT, because the weather anchor is in `dmgRangeOneHit`'s weather block
+     * and a forme-keyed move never enters it. `formeMoveType` is medicham2's ONE reader of the forme
+     * table (its own header says so), so nulling its param drops the conversion everywhere at once. */
     patch: [['if(w){if(w.type)mvT=w.type;if(w.bpMult)mvBP=Math.floor(mvBP*w.bpMult);}',
-             'if(w){if(w.bpMult)mvBP=Math.floor(mvBP*w.bpMult);}']] },
+             'if(w){if(w.bpMult)mvBP=Math.floor(mvBP*w.bpMult);}'],
+            ["const ft=moveId&&TAGS.param('move',moveId,'formeTypedMove');", 'const ft=null;']] },
   match(e) {
     if (!e.onModifyType) return null;
     const arm = armFor(e);
@@ -15186,6 +15620,11 @@ const RULES = [
       if (formes.length) {
         const F = formeFlipStaging(e, formes, arm);
         if (F.scenario) return { arm, note: F.note + armNote(e), scenario: F.scenario };
+        /* THE FLIP IS THE STRONGER READING AND IT IS NOT THE ONLY ONE. A welded forme still gives
+         * 0-against-a-number wherever the type chart separates the printed type from the converted
+         * one — see `formeCategoricalStaging`. Tried second so no standing row's fixture moves. */
+        const G = formeCategoricalStaging(e, formes, arm);
+        if (G.scenario) return { arm, note: G.note + armNote(e), scenario: G.scenario };
         return cannot('ITS TYPE IS KEYED ON THE USER\'S FORME, and the table is '
           + 'derived from its own onModifyType rather than missing: ' + formes.join(', ')
           + ' (printed type ' + e.type + '). A forme is not a knob that can be varied on one board — '
@@ -15193,7 +15632,10 @@ const RULES = [
           + 'two users and a cross-comparison this rule\'s scaffold does not express, and staging one '
           + 'forme would read as a damage number that proves only that the move deals damage. THE '
           + 'RESIDUAL-FLIP ROUTE — one body, two clicks, the forme turned under it by an ability — WAS '
-          + 'TRIED AND IS SHUT HERE: ' + F.why);
+          + 'TRIED AND IS SHUT HERE: ' + F.why
+          + '.  AND THE CATEGORICAL ROUTE — one forme, a defender immune to the PRINTED type and not '
+          + 'to the converted one, which is 0-against-a-number rather than a damage number — WAS '
+          + 'TRIED AND IS SHUT TOO: ' + G.why);
       }
       return cannot('the condition that changes its type is not named in its own '
         + 'description, so no staging can be derived from the move\'s data: ' + (e.shortDesc || '(none)'));
@@ -15299,16 +15741,63 @@ const RULES = [
           script: [turn([IDLE, IDLE], [throwIt(e, 0), IDLE]),
                    turn([IDLE, IDLE], [throwIt(e, 0), IDLE])] }) };
     }
+    /* ---- THE QUEUE-GATED BRANCH, AND IT IS A SEPARATE PAIRING FOR A MEASURED REASON -------------
+     * (2026-09-12. `upperhand` read THE STAGING IS INERT over 1,537 leaves and the refusal was the
+     * entity refusing the fixture, not the format refusing the entity.)
+     *
+     * `orderPair` gives the foe a KILL, and every kill it can derive is at priority 0. A move whose
+     * own `onTry` demands that the target be throwing a POSITIVE-PRIORITY move therefore refuses
+     * itself on that board and the delta is empty in both arms. The gate is read by CALLING the
+     * handler (`queueGate`), so a move added later with the same shape is picked up without editing
+     * this rule, and a handler this file cannot read REFUSES the row rather than being staged blind. */
+    const gate = queueGate(e);
+    if (gate && gate.unreadable) return cannot('its own `onTry` consults the action queue and this '
+      + 'file could not read what it demands: a stubbed probe of the handler THREW, so the fixture '
+      + 'would be staged against a gate nobody has measured. Refused rather than guessed.');
+    if (gate && gate.needsPriorityTarget) {
+      const Q = interceptPair(e);
+      if (Q.why) return cannot('a bracket is only observable if the ORDER decides the final board, '
+        + 'and this move\'s OWN GATE refuses a target that is not itself throwing a priority move '
+        + '(measured by calling its handler: a 0-priority target is refused, a +1 target is not) — '
+        + Q.why);
+      const legalityQ = legalPair(Q.user.id, Q.userAbility, e.id);
+      if (legalityQ) return cannot('its slowest legal user by learnset is ' + pretty(Q.user.id)
+        + ' and the format\'s own validator refuses that pairing: ' + legalityQ);
+      return { arm, note: 'priority +' + e.priority + ' — ITS OWN GATE DEMANDS A PRIORITY TARGET, '
+          + 'measured by calling the handler, so the foe throws one instead of a kill. '
+          + pretty(Q.user.id) + ' is the SLOWEST legal user of this move in the format (' + Q.speeds
+          + ' Speed) and ' + pretty(Q.foe.id) + ' answers with ' + Q.intercept.name + ' at priority +'
+          + Q.intercept.priority + '. With the bracket correct this move lands first, its 100% FLINCH '
+          + 'fires and the foe never acts, so the FOE is damaged and the USER is untouched; with it '
+          + 'ignored the faster foe moves first, its click lands on the user and this move\'s gate '
+          + 'then finds no queued action and REFUSES ITSELF, so the foe is untouched instead. Both '
+          + 'bodies\' hp are the leaves, and they part in opposite directions.' + armNote(e),
+        scenario: scaffold({
+          a0: mon(Q.foe.id, '', Q.foeAbility, [Q.intercept.id]),
+          a1: mon(CAST.ATTACKER2().species, '', CAST.ATTACKER2().ability, [INERT]),
+          b0: mon(Q.user.id, '', Q.userAbility, [e.id]),
+          script: [turn([click(Q.intercept.id, 0), IDLE], [throwIt(e, 0), IDLE]),
+                   turn([IDLE, IDLE], [IDLE, IDLE])] }) };
+    }
     /* THE PAIRING IS DERIVED FROM THE MOVE'S OWN LEARNSET, OUTWARD — see `orderPair`. The previous
      * version reasoned from the five-species move pool inward and refused all fifteen members of this
      * family with "no pair of bodies in the move pool is both SLOWER than the two derived aggressors
      * and killable outright by them", which is a fact about the FORMAT'S ABILITY LIST wearing a fact
      * about priority. Will, 2026-08-10: *"test all the prio moves by finding the slowest user of the
      * moves and have them use it against the faster user of a normal prio move"*. */
-    const P = orderPair(e);
+    /* THE NARROW POOL FIRST, ALWAYS, so no standing row's user, ability, foe or kill can move; the
+     * WIDE pool (see `KILL_OR_CLICK_BLOCKERS`) is tried only where the narrow one came back empty,
+     * and a wide row is receipted on Showdown's own board rather than argued for. */
+    let P = orderPair(e);
+    const narrowWhy = P.why;
+    if (P.why) { const W = orderPair(e, { wide: 1 }); if (!W.why) P = W; }
+    if (P.why) { const W = orderPair(e, { wide: 2 }); if (!W.why) P = W; }
+    if (P.wide) console.log('  [WIDE PRIORITY PAIR] ' + e.id + ' tier ' + P.wide + ' — '
+      + pretty(P.user.id) + ' holding ' + P.userAbility + ' (' + P.speeds + ' Speed) against '
+      + pretty(P.foe.id) + ' holding ' + P.foeAbility + ', killed by ' + P.kill.name);
     if (P.why) return cannot('a bracket is only observable if the ORDER decides the final board, and '
       + P.why + '. Derived from the move outward — its own users, slowest first — rather than from a '
-      + 'fixed body pool inward.');
+      + 'fixed body pool inward. The WIDENED user pool was tried too and is shut for the same reason.');
     const legality = legalPair(P.user.id, P.userAbility, e.id);
     if (legality) return cannot('its slowest legal user by learnset is ' + pretty(P.user.id)
       + ' and the format\'s own validator refuses that pairing: ' + legality);
@@ -15321,9 +15810,44 @@ const RULES = [
                                           dex.species.get(b1.species), 1.2))
       ? { body: b1, back, kill: lethalMove(dex.species.get(CAST.ATTACKER2().species),
                                            dex.species.get(b1.species), 1.2).mv } : null;
-    return { arm, note: 'priority +' + e.priority + ' — ' + pretty(P.user.id) + ' is the SLOWEST legal '
+    /* ---- THE RECEIPTS A WIDENED ROW CARRIES, AND THEY ARE READ OFF SHOWDOWN -----------------------
+     * The narrow pool guarantees by CONSTRUCTION that the user's ability cannot float it or blunt the
+     * killer. The wide pool guarantees it by MEASUREMENT instead: the authority's own board must show
+     * the entity connecting and the kill landing. An ability that interfered produces COULD-NOT-STAGE
+     * with the clause that failed, never a green. */
+    /* THE CLAUSES READ THE SLOT, NOT A SPECIES NAME. `P.foe.id` is what the RULE asked for and the
+     * restaging pass may have written somebody else into that slot — the first version of these read
+     * `sdParty(b, 'p1', P.foe.id)`, which was `null` after the swap and refused a row whose board was
+     * perfectly good. Whoever is standing at boundary 0 is the body these clauses are about. */
+    const whoAt = (all, side) => { const a0 = atTurn(all, 0), a = a0 && sdActive(a0, side, 0);
+                                   return a ? idOf(a.species) : null; };
+    const foeHurt = { turn: 1,
+      why: 'the FOE damaged by this move on Showdown\'s own board — the widened user pool is only '
+         + 'safe if the entity actually CONNECTED, and a green with no damage would be the ability '
+         + 'rather than the bracket',
+      ok: (b, all) => { const who = whoAt(all, 'p1'); if (!who) return false;
+                        const F0 = sdParty(atTurn(all, 0), 'p1', who), F1 = sdParty(b, 'p1', who);
+                        return !!(F0 && F1 && F1.hp < F0.hp); } };
+    const pre = !P.wide ? null : [foeHurt, (P.flinch
+      ? { turn: 1, why: 'and the USER still ALIVE — this move flinches on 100%, so a correct bracket '
+             + 'means the killer never swung. A fainted user here means the flinch did not stop it '
+             + 'and the reading is not the one the note claims',
+          ok: (b, all) => { const who = whoAt(all, 'p2'); const U = who && sdParty(b, 'p2', who);
+                            return !!U && !U.fainted; } }
+      : { turn: 1, why: 'and the USER FAINTED on Showdown\'s own board — the kill is the other half '
+             + 'of this fixture, and an ability that floated the user (an HP floor, a resistance, an '
+             + 'Intimidate on the killer) would leave it standing and the bracket unread',
+          ok: (b, all) => { const who = whoAt(all, 'p2'); const U = who && sdParty(b, 'p2', who);
+                            return !!U && U.fainted; } })];
+    return { arm, precondition: pre, note: 'priority +' + e.priority + ' — ' + pretty(P.user.id)
+        + ' is the SLOWEST legal '
         + 'user of this move in the format (' + P.speeds + ' Speed) and dies outright to '
         + pretty(P.foe.id) + '\'s ' + P.kill.name + '. '
+        + (P.wide ? 'THE WIDENED USER POOL WAS NEEDED AND IS RECEIPTED, NOT ARGUED: the narrow pool '
+            + 'came back empty (' + narrowWhy + '), so the user holds ' + P.userAbility + ', which '
+            + 'registers no handler that could stop the kill or change which click is thrown, and '
+            + 'BOTH halves of the board are asserted against Showdown\'s own boundary. '
+          : '')
         + (P.flinch ? 'It carries a 100% FLINCH, which fires in both pin arms, so with the bracket '
             + 'correct the foe never acts and the user is UNTOUCHED at the boundary; with it ignored '
             + 'the user is dead before it clicks.'
@@ -16598,6 +17122,25 @@ function printRules() {
     console.log('    quiet AS A CONTROL on ' + a.padEnd(18) + ok.join(', ')
       + '   -> swapper ' + (sw ? sw.name + ' lending ' + sw.ability : 'NONE'));
   }
+  /* THE SECOND CONTROL CLICK — printed with the clause that shut every candidate, because the first
+   * derivation of it picked a move that HEALS and read inert only because the fixture was at full HP. */
+  console.log('  the SECOND control click (used by `move/is-the-control-click` and nowhere else): '
+    + (INERT_ALT ? pretty(INERT_ALT) : 'NONE — that row stays refused'));
+  for (const r of INERT_ALT_CANDS) console.log('    ' + r);
+  /* THE `willMove` GATE — printed before it is believed, because it decides which fixture a priority
+   * move gets and a derived predicate over the whole dex is exactly what over-matches here. */
+  console.log('  queue-gated moves (' + QUEUE_GATED.length + ') — an `onTry` that asks '
+    + '`this.queue.willMove(target)`; the answers below are the HANDLER\'S OWN, obtained by CALLING it '
+    + 'with a stubbed queue:');
+  for (const q of QUEUE_GATED) console.log('    ' + q.name.padEnd(14) + 'pri ' + String(q.priority).padEnd(3)
+    + 'bp ' + String(q.bp).padEnd(4)
+    + (q.gate.unreadable ? 'UNREADABLE — a probe threw; this rule refuses the row rather than guessing'
+      : 'refuses an idle target ' + q.gate.refusesIdleTarget + ', a Status target '
+        + q.gate.refusesStatusTarget + ', a 0-priority target ' + q.gate.refusesZeroPriorityTarget
+        + ', accepts a priority target ' + q.gate.acceptsPriorityTarget
+        + '  -> needs a priority target: ' + q.gate.needsPriorityTarget));
+  if (QUEUE_GATE_THREW) console.log('    !! ' + QUEUE_GATE_THREW + ' gate probe(s) THREW: '
+    + QUEUE_GATE_THREW_WHO.join(' | '));
   console.log('  delivery moves, one per type (100 accuracy, single target, no priority, no rider):');
   for (const t of Object.keys(DELIVERY).sort()) {
     const e = DELIVERY[t];

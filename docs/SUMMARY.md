@@ -31,7 +31,7 @@ Full account: `docs/_reports/2026-09-11-gate-closed-docs.md`.
 | the damage differential | `data/engine-diff.json` | **6,000 compared, 0 disagreed** at the midpoint and every arm in `arms`, `seed` 20260804; skips `skipped_multihit` **134** and `skipped_ability_multihit` **17** by construction; `pool.dropped` 9 prior rows undrawable |
 | the deliberate roster, scope by legal carrier | `data/roster.items.json` | **142 tested** of 148 in scope, `differ` 0, DID-NOT-FIRE 0, 6 fixture gaps; `scope.carrier_derivation` derives over **347** legal species |
 | the deliberate roster, abilities | `data/roster.abilities.json` | **139 tested** of 201 in scope (**115** of 316 have no legal carrier and are not rows), `differ` 0, DID-NOT-FIRE 0, 43 fixture gaps, 14 CONTROL-NOT-QUIET, 5 deferred |
-| the deliberate roster, moves | `data/roster.moves.json` | **487 tested** of 498 in scope (2 have no legal carrier), `differ` 0, DID-NOT-FIRE 0, 8 fixture gaps, 3 deferred |
+| the deliberate roster, moves | `data/roster.moves.json` | **492 tested** of 498 in scope (2 have no legal carrier), `differ` 0, DID-NOT-FIRE 0, 8 fixture gaps, 3 deferred |
 | mechanics live in the census | `data/mechanics-census.json` | **835 live of 835 probed**, 0 missing, 0 unarmed, 0 hollow, 0 threw, `run_ok` true |
 | staged mechanics | `data/all-mechanics-fire.json` | **1,313** games, `games_threw` 0, `sheets_unassembled` 0 |
 | the two speed-tie corner arms — the honest edge | `data/verification/gd-top-tie-first-2026-09-10.json` and `data/verification/gd-bottom-tie-first-2026-09-10.json` | **16 of 961** and **15 of 961**, on the same release, recorded in `CHANGELOG.md` 5.282.0. Both engines draw from the same constant at a corner, so this is not dice noise; ties themselves are clean |

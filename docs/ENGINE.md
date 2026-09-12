@@ -185,6 +185,87 @@ _stamped 2026-09-11 23:01_
 
 <!-- /GENERATED -->
 
+## FIVE OF THE LAST SEVEN UNSTAGED MOVES CLOSE — MOVES **487 → 492 MATCH / 7 → 2 COULD-NOT-STAGE**, DEFERRED **3** UNCHANGED. ITEMS **148 / 0** AND ABILITIES **190 / 5 / 0 CNQ / 5 DEF** UNMOVED AS CONTROLS. THREE OF THE FIVE WERE STANDING **MEASURED REFUSALS THAT NO LONGER HELD**. REDS **22 / 62 / 36, ALL CAUGHT, ZERO WEAK**, AND EACH OF THE FIVE WAS SHOWN RED WITH THE PLANT AIMED AT IT BY NAME. CENSUS **883 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `48ac1c228e02`. 2026-09-12, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-12-last-moves.md`. Register row #616.
+
+Five rows close — `upperhand`, `ragingbull`, `extremespeed`, `iceshard`, `jetpunch`. Two keep a
+refusal and both reasons are **new**, not re-read: `focusenergy` and `struggle` are now measured to be
+**the same missing thing**, a second control click, and the regulation is asked for one and refuses
+all 23 candidates by name.
+
+**THE UPPER HAND ROW WAS THE ENTITY REFUSING ITS OWN FIXTURE.** It read `THE STAGING IS INERT over
+1537 compared leaves`, and the cause is its own `onTry`: it fails unless the TARGET is queued with a
+positive-priority damaging move. `orderPair` gives the foe a KILL and every kill it can derive is at
+priority 0, so the move never resolved in either arm. The gate is now read by **calling the handler**
+with a stubbed queue rather than by matching its source, and the membership is printed:
+
+```
+Sucker Punch  pri 1  refuses an idle target true, a Status target true, a 0-priority target FALSE
+Upper Hand    pri 3  refuses an idle target true, a Status target true, a 0-priority target TRUE
+                     -> needs a priority target: true
+```
+
+Two members, one match. `interceptPair` then gives the foe a +1 click instead of a kill; the +3
+lands first, the 100% flinch fires, and the boards part in opposite directions — SUBJ Blastoise
+154 → 87 with Aqua Jet unspent, CTRL Crabominable 172 → 142 with Aqua Jet spent.
+
+**THE RAGING BULL REFUSAL DEMANDED A KNOB IT DID NOT NEED.** It said a welded forme "would read as a
+damage number that proves only that the move deals damage" — true of a NEUTRAL defender and of nothing
+else, which this rule's own weather arm already says in its header. Tauros-Paldea-Blaze throws it as
+**Fire** at **Skeledirge**, which is immune to the printed **Normal**: 1432 → 1391 → 1350 with the
+conversion, literally nothing without it. Combat is refused BY NAME and correctly — it converts to
+Fighting and every body immune to Normal is a Ghost, which is immune to Fighting too.
+
+**AND THAT GREEN WOULD HAVE RESTED ON A PLANT THAT COULD NOT TOUCH IT.** `--reds --only ragingbull`
+read **NOT CAUGHT** first: the rule's break aims at the WEATHER conversion inside `dmgRangeOneHit` and
+a forme-keyed move never enters that block. A second patch element now nulls `formeMoveType`'s param —
+medicham2's single reader of the forme table — and the row reads `CAUGHT ... FIRED-AND-BOARDS-DIFFER`.
+
+**THE THREE PRIORITY ROWS WERE REFUSED BY THE ITEM STAGE'S FILTER, WEARING A FACT ABOUT THE FORMAT.**
+`INTERFERES` is deliberately blunt and its own header says the wide half of it — "anything that MOVES
+THE BOARD by itself" — is excluded for tidiness, not because it corrupts a reading. What this one
+fixture cannot survive is narrower, and the widened pool is **receipted rather than argued**: two
+clauses read off SHOWDOWN'S board (the entity really connected; the kill really landed) refuse any
+pairing where the ability interfered. The narrow pool is tried FIRST, so all fourteen standing rows
+keep their exact user, ability, foe and kill.
+
+```
+extremespeed tier 1 — Dragonite / Inner Focus (132 v 167) against Starmie, killed by Ice Beam
+iceshard     tier 1 — Vanilluxe / Weak Armor (131 v 147) against Typhlosion-Hisui, killed by Flamethrower
+jetpunch     tier 2 — Palafin  / Zero to Hero (152 v 172) against Sceptile, killed by Energy Ball
+```
+
+**THE RECEIPTS FIRED, WHICH IS THE POINT OF THEM.** Extreme Speed's first widened pairing came back
+COULD-NOT-STAGE: the #318 restaging pass had rewritten Charizard/Ice Beam to GYARADOS/Ice Beam, which
+does **not** kill Dragonite (108 of 166), and the clause said the fixture had not staged. Two repairs,
+both in the instrument: the wide pass sizes its kill off what the foe **legally learns** so no
+restaging is needed, and the clauses read the **slot** rather than a species name that the restaging
+may have replaced.
+
+**AND ONE MORE INSTRUMENT DEFECT, FOUND THE SAME WAY.** `ROSTER_DUMP_BOARDS` sat BELOW the precondition
+check, so a row refused on a precondition — exactly the verdict whose boards are wanted — printed
+nothing at all. Hoisted into `dumpArms` and called from both places, idempotently.
+
+### The two that stay, and they are ONE missing thing
+
+- **`focusenergy`** — it IS the control click, so `controlOf` substitutes it for itself and the two
+  scripts are identical. **The arm was built and the format refused it.** A SECOND inert click is
+  derived off the primary's own shape cap; asked of the whole regulation, **23 moves pass the cap and
+  every one is refused** (printed by `--rules`, each with its clause). **THE NEAR MISS IS THE
+  FINDING:** ranking the survivors by handler count picked **AQUA RING**, whose move declares nothing
+  and whose volatile heals a sixteenth every turn. It staged, it came back **GREEN**, and it read
+  inert only because every body on that fixture was at full HP. One damaged body anywhere and that
+  green would have been a finding about Aqua Ring.
+- **`struggle`** — no longer "OWED WORK IN THIS FILE". It is a **contradiction**: Showdown disables
+  Struggle while any slot has PP, so every slot must be empty — and `controlOf` builds the control arm
+  by substituting the inert click, which a body with every slot empty cannot choose either. The escape
+  is the same second control click that does not exist.
+
+`axekick` and `electrify` remain DEFERRED-BY-OWNER on **usage** (`below the usage shelf of 25`) and
+both already carry a working fixture in their notes; `copycat` remains deferred on Will's own words
+and its underlying verdict is unchanged. None was overturned.
+
 ## SEVEN OF THE LAST TEN CLOSE AND **`CONTROL-NOT-QUIET` REACHES ZERO FOR THE FIRST TIME** — ABILITIES **183 → 190 MATCH / 10 → 5 COULD-NOT-STAGE / 2 → 0 CNQ**, DEFERRED **5** UNCHANGED. ITEMS **148 / 0** AND MOVES **487 / 7 / 3** UNMOVED AS CONTROLS. THE SEVEN REST ON `hp`, `boosts.atk`, `boosts.def` AND `status` — NOT ONE `.ability`, `.pp` OR `.vol` LEAF. REDS **22 / 62 / 36, ALL `ok: true`, ZERO WEAK, ZERO NOT CAUGHT**. CENSUS **883 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `48ac1c228e02`. 2026-09-12, CHANGELOG `<<VER>>`
 
 Full account: `docs/_reports/2026-09-12-last-ten.md`. Register rows #608 (CLOSED) and #616.

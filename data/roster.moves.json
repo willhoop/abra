@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-12T09:40:46.977Z",
+ "generated": "2026-09-12T11:43:20.673Z",
  "by": "tests/roster.js",
  "stage": "moves",
  "swap_leaf_correction": {
@@ -9,7 +9,7 @@
  },
  "engine_release": "48ac1c228e02",
  "engine_release_cut": "2026-09-12T08:20:37.941Z",
- "engine_release_cuts": 103,
+ "engine_release_cuts": 153,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
   "engine/medicham2-browser.js": "6c4321c849fb",
@@ -45,14 +45,14 @@
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
   "DEFERRED-BY-OWNER": 3,
-  "FIRED-AND-BOARDS-MATCH": 487,
+  "FIRED-AND-BOARDS-MATCH": 492,
   "CONTROL-NOT-QUIET": 0,
-  "COULD-NOT-STAGE": 7
+  "COULD-NOT-STAGE": 2
  },
  "counts_in_scope": 497,
  "counts_basis": "engine/legal_scope.js in-scope set; out-of-scope entities are excluded from every bucket rather than counted as COULD-NOT-STAGE",
  "arms_played": {
-  "top-tie-first": 828,
+  "top-tie-first": 834,
   "bottom-tie-first": 266
  },
  "scope": {
@@ -62,15 +62,15 @@
    "no-legal-carrier": 3
   },
   "in_scope": 497,
-  "tested": 487,
-  "matched": 487,
+  "tested": 492,
+  "matched": 492,
   "differ": 0,
   "silent": 0,
   "deferred": 3,
   "unattributable": 0,
   "unattributable_ids": [],
   "declared_untestable": [],
-  "could_not_stage_in_scope": 7,
+  "could_not_stage_in_scope": 2,
   "attributed_by_second_control": [],
   "carrier_derivation": {
    "legal_species": 347,
@@ -238,14 +238,16 @@
   {
    "rule": "move/type-changing",
    "ok": true,
-   "why": "the weather-driven TYPE conversion is dropped from the damage path; the base-power doubling on the same line is left alone",
+   "why": "the weather-driven TYPE conversion is dropped from the damage path (the base-power doubling on the same line is left alone), AND the FORME-keyed conversion is dropped at its single reader",
    "moved": {
-    "member": "weatherball",
+    "member": "aurawheel",
     "verdict": "FIRED-AND-BOARDS-DIFFER",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
     "fields": [
+     "party.boosts.spe",
+     "boosts.spe",
      "party.hp",
      "hp"
     ]
@@ -14760,13 +14762,13 @@
    "id": "extremespeed",
    "name": "Extreme Speed",
    "rule": "move/priority",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "a bracket is only observable if the ORDER decides the final board, and the 4 legal buildable species that learn it (Arcanine [Intimidate/Flash Fire/Justified], Arcanine-Hisui [Intimidate/Flash Fire/Rock Head], Dragonite [Inner Focus/Multiscale], Lucario [Steadfast/Inner Focus/Justified]) ALL carry only abilities this fixture may not hold — a second damage modifier, an immunity, an HP floor or something that moves the board by itself. That is a fact about the FORMAT'S ABILITY LIST, not about priority — asked of the format's own learnsets (the prevo chain, the way champions_sim walks it), not of a list. Derived from the move outward — its own users, slowest first — rather than from a fixed body pool inward.",
+   "reads": "priority !== 0 on a damaging move",
+   "note": "priority +2 — Dragonite is the SLOWEST legal user of this move in the format (132 against 167 Speed) and dies outright to Starmie's Ice Beam. THE WIDENED USER POOL WAS NEEDED AND IS RECEIPTED, NOT ARGUED: the narrow pool came back empty (the 4 legal buildable species that learn it (Arcanine [Intimidate/Flash Fire/Justified], Arcanine-Hisui [Intimidate/Flash Fire/Rock Head], Dragonite [Inner Focus/Multiscale], Lucario [Steadfast/Inner Focus/Justified]) ALL carry only abilities this fixture may not hold — a second damage modifier, an immunity, an HP floor or something that moves the board by itself. That is a fact about the FORMAT'S ABILITY LIST, not about priority — asked of the format's own learnsets (the prevo chain, the way champions_sim walks it), not of a list), so the user holds Inner Focus, which registers no handler that could stop the kill or change which click is thrown, and BOTH halves of the board are asserted against Showdown's own boundary. With the bracket correct the click lands and the foe is DAMAGED; with it ignored the user dies first and the foe is UNTOUCHED. The foe's HP is the leaf.  NO ON-BOARD NEGATIVE: no second doomed body with an ordinary click could be derived, so the ignored-bracket board is supplied by the CONTROL ARM alone.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "dragonite",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -14778,7 +14780,32 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.party.starmie.hp",
+     "with": 71,
+     "without": 135
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].hp",
+     "with": 71,
+     "without": 135
+    },
+    {
+     "turn": 2,
+     "path": "p1.party.starmie.hp",
+     "with": 71,
+     "without": 135
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 71,
+     "without": 135
+    }
+   ],
    "diffs": []
   },
   {
@@ -17715,7 +17742,7 @@
    "reads": null,
    "note": null,
    "verdict": "COULD-NOT-STAGE",
-   "why": "this move IS the control arm's inert click (Focus Energy), so subject and control would be the same script and the delta would be empty by construction. That is the whole refusal: `board_state.js` HAS compared `vol.focusenergy` since 2026-08-12, so the effect is expressible — there is simply no arm to express it against while this move is the control.",
+   "why": "this move IS the control arm's inert click (Focus Energy), so subject and control are the same script and the delta is empty by construction. THE ARM WAS BUILT AND THE FORMAT REFUSED IT, which is a measurement and not a shrug: `controlOf` will substitute a SECOND inert click for this one row, and asked of the whole regulation, 23 moves pass the primary control click's own shape cap and EVERY ONE of them is refused — Power Shift  REFUSED — its volatile's condition registers onCopy; Stuff Cheeks  REFUSED — the MOVE registers onHit; Ally Switch  REFUSED — the MOVE registers onPrepareHit+onHit; Aqua Ring  REFUSED — its volatile's condition registers onResidual; Belly Drum  REFUSED — the MOVE registers onHit; Copycat  REFUSED — the MOVE registers onHit; Destiny Bond  REFUSED — the MOVE registers onPrepareHit; Follow Me  REFUSED — its volatile's condition registers onFoeRedirectTarget; Imprison  REFUSED — its volatile's condition registers onFoeDisableMove+onFoeBeforeMove; Ingrain  REFUSED — its volatile's condition registers onResidual+onTrapPokemon+onDragOut; Magnet Rise  REFUSED — its volatile's condition registers onImmunity; Moonlight  REFUSED — the MOVE registers onHit; Morning Sun  REFUSED — the MOVE registers onHit; Power Trick  REFUSED — its volatile's condition registers onCopy; Rage Powder  REFUSED — its volatile's condition registers onFoeRedirectTarget; Recycle  REFUSED — the MOVE registers onHit; Rest  REFUSED — the MOVE registers onHit; Sleep Talk  REFUSED — the MOVE registers onHit; Stockpile  REFUSED — its volatile's onStart+onRestart+onEnd does more than announce; Substitute  REFUSED — the MOVE registers onTryHit+onHit; Swallow  REFUSED — the MOVE registers onHit; Synthesis  REFUSED — the MOVE registers onHit; Tidy Up  REFUSED — the MOVE registers onHit. THE NEAR MISS IS THE FINDING: ranking those survivors by handler count picked AQUA RING, whose move declares nothing and whose volatile heals a sixteenth every turn; it staged, it came back GREEN, and it read inert only because every body on that fixture was at full HP. `board_state.js` HAS compared `vol.focusenergy` since 2026-08-12, so the effect is still expressible — what is missing is a second click this format does not have.",
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": null,
@@ -22544,13 +22571,13 @@
    "id": "iceshard",
    "name": "Ice Shard",
    "rule": "move/priority",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "a bracket is only observable if the ORDER decides the final board, and the 9 legal buildable species that learn it (Ninetales-Alola [Snow Cloak/Snow Warning], Glalie [Inner Focus/Ice Body/Moody], Abomasnow [Snow Warning/Soundproof], Weavile [Pressure/Pickpocket], Glaceon [Snow Cloak/Ice Body]) ALL carry only abilities this fixture may not hold — a second damage modifier, an immunity, an HP floor or something that moves the board by itself. That is a fact about the FORMAT'S ABILITY LIST, not about priority — asked of the format's own learnsets (the prevo chain, the way champions_sim walks it), not of a list. Derived from the move outward — its own users, slowest first — rather than from a fixed body pool inward.",
+   "reads": "priority !== 0 on a damaging move",
+   "note": "priority +1 — Vanilluxe is the SLOWEST legal user of this move in the format (131 against 147 Speed) and dies outright to Typhlosion-Hisui's Flamethrower. THE WIDENED USER POOL WAS NEEDED AND IS RECEIPTED, NOT ARGUED: the narrow pool came back empty (the 9 legal buildable species that learn it (Ninetales-Alola [Snow Cloak/Snow Warning], Glalie [Inner Focus/Ice Body/Moody], Abomasnow [Snow Warning/Soundproof], Weavile [Pressure/Pickpocket], Glaceon [Snow Cloak/Ice Body]) ALL carry only abilities this fixture may not hold — a second damage modifier, an immunity, an HP floor or something that moves the board by itself. That is a fact about the FORMAT'S ABILITY LIST, not about priority — asked of the format's own learnsets (the prevo chain, the way champions_sim walks it), not of a list), so the user holds Weak Armor, which registers no handler that could stop the kill or change which click is thrown, and BOTH halves of the board are asserted against Showdown's own boundary. With the bracket correct the click lands and the foe is DAMAGED; with it ignored the user dies first and the foe is UNTOUCHED. The foe's HP is the leaf.  NO ON-BOARD NEGATIVE: no second doomed body with an ordinary click could be derived, so the ignored-bracket board is supplied by the CONTROL ARM alone.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "vanilluxe",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -22562,7 +22589,32 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.party.typhlosionhisui.hp",
+     "with": 132,
+     "without": 148
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].hp",
+     "with": 132,
+     "without": 148
+    },
+    {
+     "turn": 2,
+     "path": "p1.party.typhlosionhisui.hp",
+     "with": 132,
+     "without": 148
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 132,
+     "without": 148
+    }
+   ],
    "diffs": []
   },
   {
@@ -23810,13 +23862,13 @@
    "id": "jetpunch",
    "name": "Jet Punch",
    "rule": "move/priority",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "a bracket is only observable if the ORDER decides the final board, and the 1 legal buildable species that learn it (Palafin [Zero to Hero]) ALL carry only abilities this fixture may not hold — a second damage modifier, an immunity, an HP floor or something that moves the board by itself. That is a fact about the FORMAT'S ABILITY LIST, not about priority — asked of the format's own learnsets (the prevo chain, the way champions_sim walks it), not of a list. Derived from the move outward — its own users, slowest first — rather than from a fixed body pool inward.",
+   "reads": "priority !== 0 on a damaging move",
+   "note": "priority +1 — Palafin is the SLOWEST legal user of this move in the format (152 against 172 Speed) and dies outright to Sceptile's Energy Ball. THE WIDENED USER POOL WAS NEEDED AND IS RECEIPTED, NOT ARGUED: the narrow pool came back empty (the 1 legal buildable species that learn it (Palafin [Zero to Hero]) ALL carry only abilities this fixture may not hold — a second damage modifier, an immunity, an HP floor or something that moves the board by itself. That is a fact about the FORMAT'S ABILITY LIST, not about priority — asked of the format's own learnsets (the prevo chain, the way champions_sim walks it), not of a list), so the user holds Zero to Hero, which registers no handler that could stop the kill or change which click is thrown, and BOTH halves of the board are asserted against Showdown's own boundary. With the bracket correct the click lands and the foe is DAMAGED; with it ignored the user dies first and the foe is UNTOUCHED. The foe's HP is the leaf.  NO ON-BOARD NEGATIVE: no second doomed body with an ordinary click could be derived, so the ignored-bracket board is supplied by the CONTROL ARM alone.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "palafin",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -23828,7 +23880,32 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.party.sceptile.hp",
+     "with": 116,
+     "without": 145
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].hp",
+     "with": 116,
+     "without": 145
+    },
+    {
+     "turn": 2,
+     "path": "p1.party.sceptile.hp",
+     "with": 116,
+     "without": 145
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 116,
+     "without": 145
+    }
+   ],
    "diffs": []
   },
   {
@@ -33806,13 +33883,13 @@
    "id": "ragingbull",
    "name": "Raging Bull",
    "rule": "move/type-changing",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "ITS TYPE IS KEYED ON THE USER'S FORME, and the table is derived from its own onModifyType rather than missing: Tauros-Paldea-Combat -> Fighting, Tauros-Paldea-Blaze -> Fire, Tauros-Paldea-Aqua -> Water (printed type Normal). A forme is not a knob that can be varied on one board — the formes are different SPECIES with different stats — so isolating the conversion needs two users and a cross-comparison this rule's scaffold does not express, and staging one forme would read as a damage number that proves only that the move deals damage. THE RESIDUAL-FLIP ROUTE — one body, two clicks, the forme turned under it by an ability — WAS TRIED AND IS SHUT HERE: no legal ability in this format flips any of the formes its table names (Tauros-Paldea-Combat, Tauros-Paldea-Blaze, Tauros-Paldea-Aqua) from its own onResidual, so nothing varies the forme on one board without a second body",
+   "reads": "onModifyType, and the condition named in the move's own shortDesc",
+   "note": "THE FORME IS WELDED, AND THE READING IS STILL CATEGORICAL: Tauros-Paldea-Blaze throws Raging Bull — printed type Normal, converted to Fire by its own onModifyType — at Skeledirge, which is IMMUNE to Normal and not to Fire. An engine that ignored the conversion deals literally NOTHING on both turns; one that applies it deals damage on both, so this is 0-against-a-number and not a damage number. The user holds Intimidate, which registers no handler that can rewrite what type is thrown or whether it is thrown, and is in BOTH arms either way. FORMES THIS COULD NOT USE, with the clause that shut each: Tauros-Paldea-Combat: no legal body with a usable ability is immune to Normal (the printed type) and NOT immune to Fighting, so the reading would be a damage number rather than 0-against-a-number",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "skeledirge",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -33824,7 +33901,68 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.active[0].vol.focusenergy",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[0].ragingbull",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[0].focusenergy",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.skeledirge.hp",
+     "with": 1391,
+     "without": 1432
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 1391,
+     "without": 1432
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].vol.focusenergy",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].ragingbull",
+     "with": 2,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].focusenergy",
+     "with": 0,
+     "without": 2
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.skeledirge.hp",
+     "with": 1350,
+     "without": 1432
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 1350,
+     "without": 1432
+    }
+   ],
    "diffs": []
   },
   {
@@ -42144,7 +42282,7 @@
    "reads": null,
    "note": null,
    "verdict": "COULD-NOT-STAGE",
-   "why": "Showdown DISABLES Struggle for any body that still has a usable move, and every body this file stages carries at least the inert click — so the scripted choice is rejected (\"Struggle is disabled\") and the game throws. Reaching it needs a body whose WHOLE moveset is spent. That is now expressible — medicham2 tracks PP through `ppSpentMap`, `board_state.js` compares it as `pp-is-what-has-been-spent`, and this file's `item/pp-restore` empties a slot by clicking it — but it is not built: `scaffold` appends the inert click to every body, so a Struggle fixture must empty EVERY slot, and the inert click cannot be chosen once the tested slot is dry without ending the run early. OWED WORK IN THIS FILE, not a limit of the engine.",
+   "why": "THE TWO REQUIREMENTS CANNOT BOTH HOLD, so this is a contradiction rather than a long script nobody has written. Showdown DISABLES Struggle for any body that still has a usable move, so the user's EVERY slot must be empty — and `controlOf` builds the control arm by replacing the Struggle click with the inert click (Focus Energy, 32 PP at full), which a body with every slot empty cannot choose either; Showdown rejects it and the control arm throws. The escape is a SECOND control click to substitute, and that is the SAME missing thing `move/is-the-control-click` is refused on — 23 moves in this regulation pass the control-click shape cap and every one of them is refused (printed by `--rules`). The tracking half is not what is missing: medicham2 has `ppSpentMap`, `board_state.js` compares it as `pp-is-what-has-been-spent`, and this file's `item/pp-restore` already empties a slot by clicking it. It is not a limit of the engine and it is not a script length either — it is the control arm and the move asking for opposite boards.",
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": null,
@@ -47910,9 +48048,9 @@
    "name": "Upper Hand",
    "rule": "move/priority",
    "reads": "priority !== 0 on a damaging move",
-   "note": "priority +3 — Crabominable is the SLOWEST legal user of this move in the format (95 against 152 Speed) and dies outright to Charizard's Flamethrower. It carries a 100% FLINCH, which fires in both pin arms, so with the bracket correct the foe never acts and the user is UNTOUCHED at the boundary; with it ignored the user is dead before it clicks.  NO ON-BOARD NEGATIVE: no second doomed body with an ordinary click could be derived, so the ignored-bracket board is supplied by the CONTROL ARM alone.",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 1537 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "note": "priority +3 — ITS OWN GATE DEMANDS A PRIORITY TARGET, measured by calling the handler, so the foe throws one instead of a kill. Crabominable is the SLOWEST legal user of this move in the format (95 against 130 Speed) and Blastoise answers with Aqua Jet at priority +1. With the bracket correct this move lands first, its 100% FLINCH fires and the foe never acts, so the FOE is damaged and the USER is untouched; with it ignored the faster foe moves first, its click lands on the user and this move's gate then finds no queued action and REFUSES ITSELF, so the foe is untouched instead. Both bodies' hp are the leaves, and they part in opposite directions.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "crabominable",
@@ -47927,7 +48065,98 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.party.blastoise.hp",
+     "with": 87,
+     "without": 154
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[0].hp",
+     "with": 87,
+     "without": 154
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[0].aquajet",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 1,
+     "path": "p2.party.crabominable.hp",
+     "with": 172,
+     "without": 142
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].hp",
+     "with": 172,
+     "without": 142
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].vol.focusenergy",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].upperhand",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p1.party.blastoise.hp",
+     "with": 87,
+     "without": 154
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 87,
+     "without": 154
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].aquajet",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.crabominable.hp",
+     "with": 172,
+     "without": 142
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 172,
+     "without": 142
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].upperhand",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 2
+    }
+   ],
    "diffs": []
   },
   {

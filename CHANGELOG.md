@@ -10,6 +10,74 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.43.0] — 2026-09-12
+
+### Added
+- **Five of the last seven unstaged move rows close, and three of them were standing MEASURED
+  refusals that no longer held.** The move stage reads **492 FIRED-AND-BOARDS-MATCH /
+  2 COULD-NOT-STAGE / 3 DEFERRED-BY-OWNER** against 487 / 7 / 3 before. Items (**148 / 0**) and
+  abilities (**190 / 5 / 0 CNQ / 5 DEF**) are the controls and neither moved a row. **No engine byte
+  changed and no release was cut** — still `48ac1c228e02`.
+  - **`upperhand`** — THE ENTITY WAS REFUSING ITS OWN FIXTURE. Its `onTry` fails unless the TARGET is
+    queued with a positive-priority damaging move; `orderPair` gives the foe a KILL and every kill it
+    can derive is at priority 0, so the move never resolved in either arm and the row read `THE
+    STAGING IS INERT over 1537 compared leaves` — a coverage limit that was really the move saying no.
+    The requirement is now DERIVED BY CALLING THE HANDLER with a stubbed queue rather than by matching
+    its source: two legal moves ask `this.queue.willMove(target)` inside an `onTry` and only Upper
+    Hand refuses a 0-priority target, printed by `--rules` with the handler's own answers. A new
+    `interceptPair` gives the foe a +1 damaging click instead of a kill, so the +3 lands first and the
+    100% flinch stops the foe acting: SUBJ Blastoise 154 -> 87 with Aqua Jet unspent, CTRL
+    Crabominable 172 -> 142 with it spent.
+  - **`ragingbull`** — the refusal said a welded forme "would read as a damage number that proves only
+    that the move deals damage". That is true of a NEUTRAL defender and of nothing else, which this
+    rule's own weather arm already says in its header. Tauros-Paldea-Blaze throws it as **Fire** at
+    **Skeledirge**, which is immune to the printed **Normal**: 1432 -> 1391 -> 1350 with the
+    conversion and literally nothing without it. Tauros-Paldea-Combat is refused BY NAME and
+    correctly — it converts to Fighting and every body immune to Normal is a Ghost, immune to
+    Fighting too.
+  - **`extremespeed` / `iceshard` / `jetpunch`** — refused because every legal learner carries only
+    abilities on `INTERFERES`. That is the ITEM stage's filter and is deliberately blunt: its own
+    header says the wide half of it — "anything that MOVES THE BOARD by itself" — is excluded for
+    tidiness, because such an ability is in BOTH arms and cancels out of the delta exactly. The
+    widened pool is **RECEIPTED, NOT ARGUED**: two preconditions read off SHOWDOWN'S own board (the
+    entity really connected; the kill really landed) refuse any pairing where the ability interfered.
+    The narrow pool is tried FIRST, so all fourteen standing rows keep their exact user, ability, foe
+    and kill. Dragonite/Inner Focus, Vanilluxe/Weak Armor, Palafin/Zero to Hero.
+
+### Fixed
+- **A green that rested on a plant which could not reach it.** `--reds --only ragingbull` read
+  **NOT CAUGHT** on the first attempt: `move/type-changing`'s break aims at the WEATHER conversion
+  inside `dmgRangeOneHit` and a forme-keyed move never enters that block. A second patch element nulls
+  `formeMoveType`'s param — medicham2's single reader of the forme table, and its own header says so —
+  and the row reads `CAUGHT ... FIRED-AND-BOARDS-DIFFER`. Every one of the five closed rows was then
+  shown red with the plant aimed at it by name.
+- **The widened priority pairing was rewritten under itself by the #318 restaging pass**, from
+  Charizard/Ice Beam to GYARADOS/Ice Beam — which does **not** kill Dragonite (108 of 166). The
+  precondition caught it and reported COULD-NOT-STAGE, which is the instrument working. Two repairs:
+  the wide pass sizes its kill off what the foe LEGALLY LEARNS so no restaging is needed, and the
+  receipt clauses read the SLOT rather than a species name the restaging may have replaced.
+- **`ROSTER_DUMP_BOARDS` printed nothing for the one verdict whose boards are wanted.** It sat BELOW
+  the precondition check, which returns COULD-NOT-STAGE and skips it. Hoisted into `dumpArms` and
+  called from both sites, idempotently, and the dump now carries both sides' party rows.
+
+### Notes
+- **The two remaining COULD-NOT-STAGE moves are ONE missing thing, and the near miss is recorded.**
+  `focusenergy` IS the control click, so `controlOf` substitutes it for itself and the two scripts are
+  identical. The arm was BUILT — a SECOND inert click, derived off the primary's own shape cap and
+  used by that one row and nowhere else — and the format refuses it: **23 moves pass the cap and every
+  one is refused**, printed by `--rules` with its clause. **THE NEAR MISS IS THE FINDING:** ranking the
+  survivors by handler count picked **AQUA RING**, whose move declares nothing and whose volatile heals
+  a sixteenth every turn. It staged, it came back GREEN, and it read inert only because every body on
+  that fixture was at full HP. `struggle` is no longer "owed work in this file" but a CONTRADICTION —
+  Showdown disables it while any slot has PP, and the control arm substitutes an inert click that a
+  body with every slot empty cannot choose either.
+- **The three DEFERRED rows were read and none was overturned.** `axekick` and `electrify` are Will's
+  deferrals on USAGE (`below the usage shelf of 25`) and both already carry a working fixture in their
+  notes; `copycat` stands on Will's own words and its underlying verdict is unchanged.
+- Gate **OPEN**, `engine/quarantine.js` exit 0, all nine clauses PASS. Board-material **0 of 961**,
+  narration **zero undeclared across 961**, damage differential **0 of 6000** at every index — none
+  re-run and none needing it, because no engine byte moved.
+
 ## [6.42.0] — 2026-09-12
 
 ### Added
