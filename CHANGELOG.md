@@ -10,6 +10,124 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.42.0] — 2026-09-12
+
+### Added
+- **Seven of the last ten unstaged ability rows close, and `CONTROL-NOT-QUIET` reaches ZERO for the
+  first time.** The ability stage reads **190 FIRED-AND-BOARDS-MATCH / 5 COULD-NOT-STAGE /
+  0 CONTROL-NOT-QUIET / 5 DEFERRED-BY-OWNER** against 183 / 10 / 2 / 5 before. Items (**148 / 0**) and
+  moves (**487 / 7 / 3**) are the controls and neither moved a row. **No engine byte changed and no
+  release was cut** — still `48ac1c228e02`.
+  - **`ripen`** — `ability/stat-drop-reaction` returned a written refusal for any boost hook naming a
+    berry. That is TRUE about Ripen's `onChangeBoost` and silent about its `onTryHeal`, which DOUBLES
+    a berry heal straight onto the `hp` leaf; a rule owns the entity the moment it returns anything,
+    so the refusal retired a mechanic on evidence about a different one. Same mistake that rule
+    already records for Keen Eye, same repair — return null. **Blast radius measured before the
+    change:** exactly ONE legal ability in the dex registers a boost hook naming a berry.
+  - **`galewings`** — the standing reason blamed the DELIVERY TABLE and ended *"OWED WORK IN THIS
+    FILE: a learnset-aware delivery move"*. A learnset-aware pick does not open it: measured,
+    Talonflame at flat Speed 178 is the fastest legal body in this format carrying a usable ability,
+    and against the one that IS faster its best Flying click of any kind reaches 132 of 163 hp. So
+    the rule grew a SECOND ROAD, which is the same reading turned round — a SLOWER foe throws a
+    positive-priority click that kills the carrier outright, so without the shift the carrier never
+    acts and with it both are in the +1 bracket and the carrier wins on Speed. The shift amount is
+    read off the handler; of eleven priority clicks exactly one works
+    (`Accelerock +1 -> Lycanroc-Dusk kills for 204 of 153`).
+  - **`aerilate`** — two corrections to `ability/type-conversion`'s negative, both found by printing
+    the pool. It demanded EXACT NEUTRALITY on the defender, which is a property of the type chart and
+    has nothing to do with whether the ability leaves the click alone; and it banned the SOURCE type
+    but NOT the ASSIGNED one, so Dragonize's negative was DRAGON PULSE against an ability that
+    rewrites Normal INTO Dragon — a clause that could not fail. All five members re-run individually
+    and all five green.
+  - **`opportunist`** — new rule `ability/copies-a-foes-boost`. The withdrawal recorded earlier the
+    same day said the row was owed a FIXTURE, not a better control, and it was: `ability/residual`
+    owned the entity for its `onResidual`, which is only the PAYMENT half, and the payment has
+    nothing to pay while the collection half is never asked. `onFoeAfterBoost` matches exactly ONE
+    ability in this regulation (printed before anything was wired). The click is a derived pure
+    single-stat SELF-boost moving neither Speed nor accuracy nor evasion — Cotton Guard {def:+3} off
+    Whimsicott — on a body that is a FOE of the carrier and an ALLY of the swapper, so the control
+    arm's lent-away ability correctly copies nothing. The precondition reads BOTH halves off
+    Showdown's own board.
+
+### Fixed
+- **ROADMAP #608 — the quiet set is fixed AT THE PREDICATE, and it was the blocker on three rows at
+  once.** `QUIET`'s test is `typeof a[k] === 'function'`, so it cannot see a BOOLEAN; asked of
+  Champions, `shellarmor` and `battlearmor` carry `onCriticalHit = false` and both therefore sat in
+  the quiet set, which is how the swapper came to lend a CRIT BLOCKER onto `bottom-tie-first` — the
+  one corner where every crit lands. The guard that shipped earlier the same day refused the whole
+  CORNER for that one ability, which is a bigger refusal than the fact supports.
+  `quietAsControl(id, arm)` disqualifies the armour on that arm and nowhere else, derived off
+  `onCriticalHit === false` rather than off a name and printed by `--rules`; `swapperFor(arm, avoid)`
+  re-derives the swapper against it (**Glimmora lending Corrosion**) and `swapControlWorks(arm)`
+  re-plays the Rough Skin proof per arm, because one cached proof would certify one lent ability and
+  be quoted for another. **Blast radius measured before the change:** on `top-tie-first` the
+  derivation is byte-identical, and on `bottom-tie-first` NO standing row used the swap control at
+  all — read off `git show HEAD:data/roster.abilities.json`, all nine bottom-arm rows carried a SHEET
+  control. Strictly additive. Four standing greens (`immunity`, `insomnia`, `limber`, `vitalspirit`)
+  traded a LIVE sheet control for a quiet lent one; verdicts unchanged, evidence stronger.
+- **`magmaarmor` closes on the `status` LEAF, which is what #608 said the earlier delegation was
+  missing.** With the control fixed the row first read `THE STAGING IS INERT over 2720 compared
+  leaves`: `frz`'s own `onBeforeMove` is
+  `if (time <= 0 || this.randomChance(1, 4)) { cureStatus(); return; }` and this corner pins every
+  sub-100 roll TRUE — the SAME pin that fires Ice Beam's 10% freeze secondary — so the freeze both
+  LANDS and THAWS and a carrier that moves after the click sheds it inside the same turn. The thrower
+  is SLOWER on purpose now (Avalugg-Hisui 90 against the carrier's 92). Derived, not named:
+  `cureStatus(` AND `randomChance(` inside the condition's own `onBeforeMove` matches exactly one of
+  slp/par/brn/psn/tox/frz, so the four standing rows of that rule keep the thrower they had.
+- **`angerpoint` and `sniper` close on the same corner** — the crit is ordinary and the arm's own pin
+  lands it in both engines.
+- **A click carrying a chance-gated secondary is not a delivery click on the bottom corner.**
+  `deliveryOf` admits one because the PRIMARY arm never fires a secondary; `bottom-tie-first` fires
+  every one. **The first `sniper` green was measuring the control because of it**: the derived click
+  was Sludge Bomb (30% poison), the target was a POISON-type Venusaur, and the control arm lends
+  CORROSION — precisely the ability that lets a holder poison a Poison type. `neutralHit2` now
+  returns a click with no secondaries when the caller names that arm; Sniper's becomes Dragon Claw
+  and Anger Point's Seed Bomb.
+- **The per-arm Skill Swap proof must hold its PROVISIONAL in the cache before the proof plays.** The
+  single-variable version it replaced was assigned at the top of the function as a RE-ENTRANCY GUARD
+  — the proof builds a real scenario through `abilityScenario`, which can ask the function again —
+  and moving the assignment to the end recursed until the stack ran out: every row of
+  `ability/refuses-one-status` read *"the shape rule threw: Maximum call stack size exceeded"* on the
+  first run after the change. Caught in one run and recorded rather than quietly corrected.
+- **`ability/conditional-speed`'s status arm asked only `speedFlipFoe`** where the terrain arm asks
+  `speedFlipFoe(...) || speedOrderFoe(...)`, which is what the rule's own header claims. It did not
+  change a verdict — the window is empty either way — and it is recorded because it was a real gap
+  between the prose and the code.
+
+### Changed
+- **`quickfeet`'s refusal is a different fact now.** Its status gate is OPEN: `bottom-tie-first`
+  lands a sub-100 click, and Poison Powder and Toxic survive three clauses each derived off the
+  STATUS CONDITION or off the AUTHORITY — the condition must not register `onModifySpe` (paralysis is
+  itself a Speed modifier), must not register `onBeforeMove` (sleep, freeze and paralysis can take
+  the click away), and must not be named in `BattleActions#modifyDamage`/`#getDamage` (which is what
+  refuses burn). An unreadable damage path REFUSES the road rather than being counted as a clean
+  scan. What refuses the row is the SPEED WINDOW: Jolteon at 182, x1.5 to 273, and the one legal body
+  strictly inside it is **Dragapult, which has no non-interfering ability**. That is the same wall
+  `ability/priority-mod` hit on Talonflame in this pass, from the other side.
+- **`docs/ABRA-whitepaper.md`** — the roster ability stage read **183 tested** in four places and now
+  reads **190**; its red-demonstration counts read **18 / 29 / 35** and now read **22 / 62 / 36**,
+  which is what the three artifacts hold. The retraction was made in this pass, not deferred.
+
+### Notes
+- Five rows remain COULD-NOT-STAGE, each with a measured reason: `frisk` (the effect is a protocol
+  line and nothing `board_state.js` compares is written by `Battle#add` — re-read against all three
+  control fixes and unaffected by any), `goodasgold` (it returns `null` for every Status move aimed
+  at it and both in-play controls are exactly that; #608 changes WHICH ability is lent, not whether
+  Skill Swap lands), `zerotohero` (`failskillswap` AND `cantsuppress` AND slot 0 — shut by the
+  regulation), `quickfeet` and `simple`.
+- **The one durable finding this batch leaves behind**: this regulation's Speed ceiling is occupied
+  by three bodies the roster cannot use as fixture bodies — Dragapult (194), Jolteon (182) and
+  Aerodactyl (182) all return null from `carrierAbility` because every ability on their sheets is on
+  the `INTERFERES` list. `quickfeet` and `galewings` hit that wall from opposite sides. Widening the
+  predicate moves every rule that draws a body, so it is its own batch with its own control run.
+- **`simple` is a CONFERRAL gap and Simple Beam is legal in this format** (`isNonstandard: null`,
+  100 accuracy, single target), so the mechanic is reachable in a real game and what is missing is a
+  control arm that confers a QUIET ability at the same body — a new control kind, and its own batch.
+- Gate **OPEN**, `engine/quarantine.js` exit 0, all nine clauses PASS. Census **883 probed / 883 live
+  / 0 missing / 883 armed**, re-derived and unmoved. Plant anchors **22 / 62 / 36 apply exactly
+  once**; red demonstrations **22 / 62 / 36, all `ok: true`, zero weak, zero NOT CAUGHT**.
+- Full account: `docs/_reports/2026-09-12-last-ten.md`.
+
 ## [6.41.0] — 2026-09-12
 
 ### Added

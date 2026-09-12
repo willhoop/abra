@@ -1,15 +1,15 @@
 {
- "generated": "2026-09-12T08:28:30.230Z",
+ "generated": "2026-09-12T10:22:06.947Z",
  "by": "tests/roster.js",
  "stage": "abilities",
  "swap_leaf_correction": {
-  "self_describing_dropped": 5458,
+  "self_describing_dropped": 5434,
   "real_ability_rewrite_kept": 68,
-  "control_arm_bookkeeping_dropped": 3484
+  "control_arm_bookkeeping_dropped": 4052
  },
  "engine_release": "48ac1c228e02",
  "engine_release_cut": "2026-09-12T08:20:37.941Z",
- "engine_release_cuts": 102,
+ "engine_release_cuts": 128,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
   "engine/medicham2-browser.js": "6c4321c849fb",
@@ -45,16 +45,16 @@
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
   "DEFERRED-BY-OWNER": 5,
-  "FIRED-AND-BOARDS-MATCH": 183,
-  "CONTROL-NOT-QUIET": 2,
-  "COULD-NOT-STAGE": 10
+  "FIRED-AND-BOARDS-MATCH": 190,
+  "CONTROL-NOT-QUIET": 0,
+  "COULD-NOT-STAGE": 5
  },
  "counts_in_scope": 200,
  "counts_basis": "engine/legal_scope.js in-scope set; out-of-scope entities are excluded from every bucket rather than counted as COULD-NOT-STAGE",
  "arms_played": {
-  "top-tie-first": 573,
+  "top-tie-first": 581,
   "middle": 49,
-  "bottom-tie-first": 40
+  "bottom-tie-first": 37
  },
  "scope": {
   "total": 316,
@@ -65,18 +65,15 @@
    "no-legal-reader": 1
   },
   "in_scope": 200,
-  "tested": 183,
-  "matched": 183,
+  "tested": 190,
+  "matched": 190,
   "differ": 0,
   "silent": 0,
   "deferred": 5,
-  "unattributable": 2,
-  "unattributable_ids": [
-   "magmaarmor",
-   "opportunist"
-  ],
+  "unattributable": 0,
+  "unattributable_ids": [],
   "declared_untestable": [],
-  "could_not_stage_in_scope": 10,
+  "could_not_stage_in_scope": 5,
   "attributed_by_second_control": [
    "anticipation",
    "armortail",
@@ -99,19 +96,15 @@
    "hustle",
    "hypercutter",
    "icebody",
-   "immunity",
-   "insomnia",
    "intimidate",
    "ironfist",
    "lightningrod",
    "magicbounce",
    "magicguard",
-   "magmaarmor",
    "marvelscale",
    "mirrorarmor",
    "moldbreaker",
    "moody",
-   "opportunist",
    "overcoat",
    "owntempo",
    "pickup",
@@ -131,7 +124,6 @@
    "shedskin",
    "shellarmor",
    "shielddust",
-   "skilllink",
    "solidrock",
    "static",
    "stench",
@@ -146,8 +138,7 @@
    "thickfat",
    "toughclaws",
    "trace",
-   "unburden",
-   "vitalspirit"
+   "unburden"
   ],
   "carrier_derivation": {
    "legal_species": 347,
@@ -162,11 +153,27 @@
  },
  "plant_anchors": {
   "release": "48ac1c228e02",
-  "checked": 61,
+  "checked": 62,
   "dead": [],
   "reds_ran": true
  },
  "reds": [
+  {
+   "rule": "ability/type-conversion",
+   "ok": true,
+   "why": "the type rewrite is skipped, so the move keeps its printed type",
+   "moved": {
+    "member": "aerilate",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
   {
    "rule": "ability/reacts-to-an-event-a-plain-hit-never-creates",
    "ok": true,
@@ -437,21 +444,6 @@
    }
   },
   {
-   "rule": "ability/type-conversion",
-   "ok": true,
-   "why": "the type rewrite is skipped, so the move keeps its printed type",
-   "moved": {
-    "member": "dragonize",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "hp"
-    ]
-   }
-  },
-  {
    "rule": "ability/ground-immunity",
    "ok": true,
    "why": "the airborne-ability set is emptied, so the carrier is grounded and arm A lands",
@@ -538,6 +530,22 @@
    }
   },
   {
+   "rule": "ability/priority-mod",
+   "ok": true,
+   "why": "the priority shift is dropped, so the carrier moves in plain speed order",
+   "moved": {
+    "member": "galewings",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "hp"
+    ]
+   }
+  },
+  {
    "rule": "ability/restores-a-spent-berry-by-chance",
    "ok": true,
    "why": "the restore never rolls through, so the spent berry stays spent",
@@ -580,6 +588,7 @@
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
     "fields": [
+     "party.hp",
      "hp"
     ]
    }
@@ -792,6 +801,7 @@
     "was": "FIRED-AND-BOARDS-MATCH",
     "unplayable": null,
     "fields": [
+     "party.hp",
      "hp"
     ]
    }
@@ -826,6 +836,22 @@
     "unplayable": null,
     "fields": [
      "party.hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/copies-a-foes-boost",
+   "ok": true,
+   "why": "the copy is dropped, so the foe boosts and the holder does not",
+   "moved": {
+    "member": "opportunist",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.boosts.def",
+     "boosts.def"
     ]
    }
   },
@@ -876,22 +902,6 @@
      "party.status",
      "hp",
      "status"
-    ]
-   }
-  },
-  {
-   "rule": "ability/priority-mod",
-   "ok": true,
-   "why": "the priority shift is dropped, so the carrier moves in plain speed order",
-   "moved": {
-    "member": "prankster",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.boosts.atk",
-     "boosts.atk"
     ]
    }
   },
@@ -1165,24 +1175,8 @@
   }
  ],
  "mirror": {
-  "pairs": 13,
+  "pairs": 11,
   "same_numbers_swapped": [
-   {
-    "a": "imposter",
-    "b": "limber",
-    "verdicts": [
-     "FIRED-AND-BOARDS-MATCH",
-     "FIRED-AND-BOARDS-MATCH"
-    ],
-    "leaves": [
-     "p2.party.ditto.ability  Imposter with=pressure/without=limber   Limber with=limber/without=pressure",
-     "p2.active[0].ability  Imposter with=pressure/without=limber   Limber with=limber/without=pressure",
-     "p2.party.ditto.ability  Imposter with=pressure/without=limber   Limber with=limber/without=pressure",
-     "p2.active[0].ability  Imposter with=pressure/without=limber   Limber with=limber/without=pressure",
-     "p2.party.ditto.ability  Imposter with=pressure/without=limber   Limber with=limber/without=pressure",
-     "p2.active[0].ability  Imposter with=pressure/without=limber   Limber with=limber/without=pressure"
-    ]
-   },
    {
     "a": "refrigerate",
     "b": "snowwarning",
@@ -1272,13 +1266,13 @@
    "id": "aerilate",
    "name": "Aerilate",
    "rule": "ability/type-conversion",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "no second delivery move of an unconverted type exists against ANY of the 2 body/bodies the conversion is worth something on (Torterra, Falinks), so the rule has no on-board negative",
+   "reads": "onModifyType — the SOURCE type or flag it tests and the type it ASSIGNS, both from the handler",
+   "note": "Body Slam (Normal) is thrown at Torterra (Grass/Ground) on turn 1 — the chart puts Normal at 1x there and Flying at 2x; X-Scissor (Bug, x2 there) on turn 2 is the negative — a type this ability neither reads nor writes   [MEGA carrier Pinsir -> Pinsir-Mega via Pinsirite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "pinsir",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -1290,7 +1284,44 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p1.party.torterra.hp",
+     "with": 1132,
+     "without": 1297
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 1132,
+     "without": 1297
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.torterra.hp",
+     "with": 952,
+     "without": 1117
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 952,
+     "without": 1117
+    },
+    {
+     "turn": 4,
+     "path": "p1.party.torterra.hp",
+     "with": 952,
+     "without": 1117
+    },
+    {
+     "turn": 4,
+     "path": "p1.active[0].hp",
+     "with": 952,
+     "without": 1117
+    }
+   ],
    "diffs": []
   },
   {
@@ -1400,13 +1431,13 @@
    "id": "angerpoint",
    "name": "Anger Point",
    "rule": "ability/reacts-to-an-event-a-plain-hit-never-creates",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "its trigger is a CRITICAL HIT ON ITS OWN HOLDER, and this regulation cannot open that gate against a control that stays out of the way. Measured on this run — this format holds 8 quiet abilities and only 4 of them has a legal carrier to lend from: battlearmor (Falinks) REFUSES EVERY CRIT — `onCriticalHit: false`, so the control arm takes no crit, the two arms part on DAMAGE and the row measures the control; corrosion (Salazzle, Glimmora) is LIVE through a field the engine reads directly (lets its holder poison Steel and Poison types, which is exactly the immunity the status rule leans on), so it is not a quiet control at all; earlybird (Kangaskhan, Houndoom) is LIVE through a field the engine reads directly (halves the SLEEP COUNTER, which is a leaf board_state.js compares directly — putting Spore on it would measure the ability), so it is not a quiet control at all; shellarmor (Torkoal, Torterra, Samurott, Goodra-Hisui) REFUSES EVERY CRIT — `onCriticalHit: false`, so the control arm takes no crit, the two arms part on DAMAGE and the row measures the control. And the carrier road is shut too: of this ability's 7 legal carrier(s) (Tauros, Tauros-Paldea-Combat, Tauros-Paldea-Blaze, Tauros-Paldea-Aqua, Camerupt, Krookodile, Crabominable), 0 has a QUIET ability on its own sheet to control with. A `willCrit` click does not help — the armour refuses the crit however it was obtained — and a FIXED-DAMAGE click cannot help either, because Showdown returns `source.level` from `getDamage` BEFORE it computes `moveHit.crit` at all (sim/battle-actions.ts:1608 against :1638), so such a move never sets the flag this handler reads. This is the FORMAT meeting the control, not a fixture nobody thought of",
-   "arm": "top-tie-first",
+   "reads": "onFlinch / onSourceAfterFaint / onDamagingHit / onHit / onAfterMoveSecondary carrying a TRIGGER the handler itself names — a crit, a flinch, a KO, the holder's own faint, an HP fraction, or a move type — none of which the generic staging ever creates",
+   "note": "Torterra clicks Seed Bomb at the carrier on turns 1 and 2, ON bottom-tie-first — the corner whose pin lands every crit in BOTH engines, which is the only way `getMoveHitData(move).crit` is ever true without a die. The identical crit lands in both arms, so the reading is the carrier's own `boosts`. The control is the in-play Skill Swap, which on THIS arm may not lend a crit armour (ROADMAP #608) — if it lent one the control arm would take no crit and the row would measure the control   [ALTERNATE carrier Tauros-Paldea-Combat, control = Skill Swap lends Corrosion off Glimmora (usable: 38 leaves in Showdown and 38 here, lending Corrosion off Glimmora on bottom-tie-first)]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "arm": "bottom-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "taurospaldeacombat",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -1418,7 +1449,44 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p2.party.taurospaldeacombat.boosts.atk",
+     "with": 6,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].boosts.atk",
+     "with": 6,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.taurospaldeacombat.boosts.atk",
+     "with": 6,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].boosts.atk",
+     "with": 6,
+     "without": 0
+    },
+    {
+     "turn": 4,
+     "path": "p2.party.taurospaldeacombat.boosts.atk",
+     "with": 6,
+     "without": 0
+    },
+    {
+     "turn": 4,
+     "path": "p2.active[0].boosts.atk",
+     "with": 6,
+     "without": 0
+    }
+   ],
    "diffs": []
   },
   {
@@ -3623,7 +3691,7 @@
    "name": "Dragonize",
    "rule": "ability/type-conversion",
    "reads": "onModifyType — the SOURCE type or flag it tests and the type it ASSIGNS, both from the handler",
-   "note": "Body Slam (Normal) is thrown at Goodra-Hisui (Steel/Dragon) on turn 1 — the chart puts Normal at 0.5x there and Dragon at 1x; Dragon Pulse on turn 2 is the unconverted negative   [MEGA carrier Feraligatr -> Feraligatr-Mega via Feraligite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Body Slam (Normal) is thrown at Goodra-Hisui (Steel/Dragon) on turn 1 — the chart puts Normal at 0.5x there and Dragon at 1x; Crunch (Dark, x1 there) on turn 2 is the negative — a type this ability neither reads nor writes   [MEGA carrier Feraligatr -> Feraligatr-Mega via Feraligite, control = Skill Swap lends Shell Armor off Torterra (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -3643,21 +3711,39 @@
    "sd_delta": [
     {
      "turn": 2,
+     "path": "p1.party.goodrahisui.hp",
+     "with": 1119,
+     "without": 1206
+    },
+    {
+     "turn": 2,
      "path": "p1.active[0].hp",
      "with": 1119,
      "without": 1206
     },
     {
      "turn": 3,
+     "path": "p1.party.goodrahisui.hp",
+     "with": 1055,
+     "without": 1142
+    },
+    {
+     "turn": 3,
      "path": "p1.active[0].hp",
-     "with": 1082,
-     "without": 1169
+     "with": 1055,
+     "without": 1142
+    },
+    {
+     "turn": 4,
+     "path": "p1.party.goodrahisui.hp",
+     "with": 1055,
+     "without": 1142
     },
     {
      "turn": 4,
      "path": "p1.active[0].hp",
-     "with": 1082,
-     "without": 1169
+     "with": 1055,
+     "without": 1142
     }
    ],
    "diffs": []
@@ -4978,7 +5064,7 @@
    "name": "Forecast",
    "rule": "ability/forme-follows-the-sky",
    "reads": "the `formeFollowsWeather` tag and the format's own weather-setting moves",
-   "note": "Goodra-Hisui clicks Snowscape on turn 2 — AFTER the control turn, so the sky goes up with the ability already swapped away in the control arm — and the carrier must become Castform-Snowy in the subject arm and stay put in the control   [SUPPRESS carrier Castform, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]  [#318 restaged: p1[0] goodrahisui -> empoleon (same-matchups/wide)]",
+   "note": "Goodra-Hisui clicks Snowscape on turn 2 — AFTER the control turn, so the sky goes up with the ability already swapped away in the control arm — and the carrier must become Castform-Snowy in the subject arm and stay put in the control   [SUPPRESS carrier Castform, control = Skill Swap lends Shell Armor off Torterra (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]  [#318 restaged: p1[0] goodrahisui -> empoleon (same-matchups/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -5238,13 +5324,13 @@
    "id": "galewings",
    "name": "Gale Wings",
    "rule": "ability/priority-mod",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "no carrier this rule can use exists. Every species with it: talonflame. Of those, talonflame are legal, buildable and have a second ability to control with — and none of them has a FASTER foe in this format that the DELIVERY TABLE's Flying click (Drill Peck, 80 BP — the highest-power move of that type passing `deliveryOf`, chosen over the WHOLE DEX and NOT off any carrier's learnset) kills outright — the shift is invisible unless it takes an action away from somebody. AND WHETHER A CARRIER CAN CLICK IT IS NOT ASKED BY THIS RULE: of the 1 carrier(s) of this ability, 0 learn Drill Peck. A HIGHER-POWER Flying MOVE A CARRIER DOES LEARN EXISTS AND IS REFUSED BY `deliveryOf`: Brave Bird (120 BP), Fly (90 BP), Hurricane (110 BP), Sky Attack (140 BP) — so this refusal is about the delivery pick and not about the format. OWED WORK IN THIS FILE: a learnset-aware delivery move for this rule.",
+   "reads": "onModifyPriority — whether it names `move.category === \"Status\"` or a move TYPE, and any HP condition, all from the handler",
+   "note": "Lycanroc-Dusk is SLOWER (162 against 178) and clicks Accelerock (priority +1) for 204 of the carrier's 153 hp — a KILL. The carrier clicks its own Aerial Ace for 32 of 150. WITHOUT the shift the carrier is dead before it acts and the foe is untouched; WITH it the carrier is in the same +1 bracket and wins it on Speed, so the foe takes the hit and THEN kills. The carrier is dead in BOTH arms, so the reading is the FOE's hp and nothing else can move. The ability's own HP gate is satisfied by construction — the carrier is at full hp on the only turn it is asked   [ALTERNATE carrier Talonflame, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "talonflame",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -5256,7 +5342,32 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p1.party.lycanrocdusk.hp",
+     "with": 118,
+     "without": 150
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 118,
+     "without": 150
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.lycanrocdusk.hp",
+     "with": 118,
+     "without": 150
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 118,
+     "without": 150
+    }
+   ],
    "diffs": []
   },
   {
@@ -5586,7 +5697,7 @@
    "name": "Heavy Metal",
    "rule": "ability/weight-decides-the-power",
    "reads": "onModifyWeight — the multiplier is the handler's own return, and the click is a move whose basePowerCallback is measured to read a getWeight()",
-   "note": "Heavy Metal takes 3600 hg to 7200 hg, which moves Heavy Slam's base power 40 -> 60 (the callback was ASKED, both times) against Goodra-Hisui (3341 hg). That move reads the ATTACKER's weight as a ratio, so the carrier throws it on turn 1 and the unpriced Dragon Pulse on turn 2 as the negative. The reading is Goodra-Hisui's hp   [ALTERNATE carrier Aggron, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Heavy Metal takes 3600 hg to 7200 hg, which moves Heavy Slam's base power 40 -> 60 (the callback was ASKED, both times) against Goodra-Hisui (3341 hg). That move reads the ATTACKER's weight as a ratio, so the carrier throws it on turn 1 and the unpriced Dragon Pulse on turn 2 as the negative. The reading is Goodra-Hisui's hp   [ALTERNATE carrier Aggron, control = Skill Swap lends Shell Armor off Torterra (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -5606,13 +5717,31 @@
    "sd_delta": [
     {
      "turn": 2,
+     "path": "p1.party.goodrahisui.hp",
+     "with": 1213,
+     "without": 1222
+    },
+    {
+     "turn": 2,
      "path": "p1.active[0].hp",
      "with": 1213,
      "without": 1222
     },
     {
      "turn": 3,
+     "path": "p1.party.goodrahisui.hp",
+     "with": 1194,
+     "without": 1203
+    },
+    {
+     "turn": 3,
      "path": "p1.active[0].hp",
+     "with": 1194,
+     "without": 1203
+    },
+    {
+     "turn": 4,
+     "path": "p1.party.goodrahisui.hp",
      "with": 1194,
      "without": 1203
     },
@@ -6324,7 +6453,7 @@
    "name": "Immunity",
    "rule": "ability/refuses-one-status",
    "reads": "a status id quoted inside onSetStatus / onTrySetStatus / onImmunity / onUpdate",
-   "note": "Ariados clicks Toxic Thread at Snorlax twice. WITHOUT the ability the carrier must end up \"psn\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Snorlax's typing nor Toxic Thread's can refuse it, which is a condition of the pairing.   [carrier Snorlax, control = Thick Fat — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
+   "note": "Ariados clicks Toxic Thread at Snorlax twice. WITHOUT the ability the carrier must end up \"psn\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Snorlax's typing nor Toxic Thread's can refuse it, which is a condition of the pairing.   [ALTERNATE carrier Snorlax, control = Skill Swap lends Corrosion off Glimmora (usable: 38 leaves in Showdown and 38 here, lending Corrosion off Glimmora on bottom-tie-first)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -6339,46 +6468,14 @@
    "deferred": null,
    "out_of_scope": null,
    "declared_untestable": false,
-   "second_control": {
-    "control": "Gluttony",
-    "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Gluttony in the slot instead of Thick Fat. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (24 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Thick Fat registers 2 handler(s), Gluttony registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 24,
-    "leaves_second": 24,
-    "leaves_kept": 24,
-    "dropped": []
-   },
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 1,
-     "path": "p2.party.snorlax.hp",
-     "with": 940,
-     "without": 823
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.snorlax.status",
-     "with": "",
-     "without": "psn"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].hp",
-     "with": 940,
-     "without": 823
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].status",
-     "with": "",
-     "without": "psn"
-    },
-    {
      "turn": 2,
      "path": "p2.party.snorlax.hp",
      "with": 940,
-     "without": 706
+     "without": 823
     },
     {
      "turn": 2,
@@ -6390,7 +6487,7 @@
      "turn": 2,
      "path": "p2.active[0].hp",
      "with": 940,
-     "without": 706
+     "without": 823
     },
     {
      "turn": 2,
@@ -6402,7 +6499,7 @@
      "turn": 3,
      "path": "p2.party.snorlax.hp",
      "with": 940,
-     "without": 589
+     "without": 706
     },
     {
      "turn": 3,
@@ -6414,10 +6511,34 @@
      "turn": 3,
      "path": "p2.active[0].hp",
      "with": 940,
-     "without": 589
+     "without": 706
     },
     {
      "turn": 3,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "psn"
+    },
+    {
+     "turn": 4,
+     "path": "p2.party.snorlax.hp",
+     "with": 940,
+     "without": 589
+    },
+    {
+     "turn": 4,
+     "path": "p2.party.snorlax.status",
+     "with": "",
+     "without": "psn"
+    },
+    {
+     "turn": 4,
+     "path": "p2.active[0].hp",
+     "with": 940,
+     "without": 589
+    },
+    {
+     "turn": 4,
      "path": "p2.active[0].status",
      "with": "",
      "without": "psn"
@@ -6761,7 +6882,7 @@
    "name": "Insomnia",
    "rule": "ability/refuses-one-status",
    "reads": "a status id quoted inside onSetStatus / onTrySetStatus / onImmunity / onUpdate",
-   "note": "Venusaur clicks Sleep Powder at Ariados twice. WITHOUT the ability the carrier must end up \"slp\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Ariados's typing nor Sleep Powder's can refuse it, which is a condition of the pairing.   [carrier Ariados, control = Sniper — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
+   "note": "Venusaur clicks Sleep Powder at Ariados twice. WITHOUT the ability the carrier must end up \"slp\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Ariados's typing nor Sleep Powder's can refuse it, which is a condition of the pairing.   [ALTERNATE carrier Ariados, control = Skill Swap lends Corrosion off Glimmora (usable: 38 leaves in Showdown and 38 here, lending Corrosion off Glimmora on bottom-tie-first)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -6776,52 +6897,32 @@
    "deferred": null,
    "out_of_scope": null,
    "declared_untestable": false,
-   "second_control": {
-    "control": "Swarm",
-    "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Swarm in the slot instead of Sniper. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (16 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Sniper registers 1 handler(s), Swarm registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 16,
-    "leaves_second": 16,
-    "leaves_kept": 16,
-    "dropped": []
-   },
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 1,
+     "turn": 2,
      "path": "p2.party.ariados.status",
      "with": "",
      "without": "slp"
     },
     {
-     "turn": 1,
+     "turn": 2,
      "path": "p2.party.ariados.status_counter",
      "with": 0,
      "without": 1
     },
     {
-     "turn": 1,
+     "turn": 2,
      "path": "p2.active[0].status",
      "with": "",
      "without": "slp"
     },
     {
-     "turn": 1,
+     "turn": 2,
      "path": "p2.active[0].status_counter",
      "with": 0,
      "without": 1
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.pp[0].focusenergy",
-     "with": 1,
-     "without": 0
     },
     {
      "turn": 2,
@@ -6834,6 +6935,12 @@
      "path": "p2.pp[0].focusenergy",
      "with": 3,
      "without": 2
+    },
+    {
+     "turn": 4,
+     "path": "p2.pp[0].focusenergy",
+     "with": 4,
+     "without": 3
     }
    ],
    "diffs": []
@@ -7794,7 +7901,7 @@
    "name": "Limber",
    "rule": "ability/refuses-one-status",
    "reads": "a status id quoted inside onSetStatus / onTrySetStatus / onImmunity / onUpdate",
-   "note": "Serperior clicks Glare at Ditto twice. WITHOUT the ability the carrier must end up \"par\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Ditto's typing nor Glare's can refuse it, which is a condition of the pairing.   [carrier Ditto, control = Imposter — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
+   "note": "Serperior clicks Glare at Ditto twice. WITHOUT the ability the carrier must end up \"par\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Ditto's typing nor Glare's can refuse it, which is a condition of the pairing.   [ALTERNATE carrier Ditto, control = Skill Swap lends Corrosion off Glimmora (usable: 38 leaves in Showdown and 38 here, lending Corrosion off Glimmora on bottom-tie-first)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -7813,120 +7920,6 @@
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 0,
-     "path": "p2.party.ditto.species",
-     "with": "ditto",
-     "without": "corviknight"
-    },
-    {
-     "turn": 0,
-     "path": "p2.party.ditto.types",
-     "with": "normal",
-     "without": "flying/steel"
-    },
-    {
-     "turn": 0,
-     "path": "p2.party.ditto.ability",
-     "with": "limber",
-     "without": "pressure"
-    },
-    {
-     "turn": 0,
-     "path": "p2.active[0].species",
-     "with": "ditto",
-     "without": "corviknight"
-    },
-    {
-     "turn": 0,
-     "path": "p2.active[0].types",
-     "with": "normal",
-     "without": "flying/steel"
-    },
-    {
-     "turn": 0,
-     "path": "p2.active[0].ability",
-     "with": "limber",
-     "without": "pressure"
-    },
-    {
-     "turn": 1,
-     "path": "p1.pp[0].glare",
-     "with": 1,
-     "without": 2
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.ditto.species",
-     "with": "ditto",
-     "without": "corviknight"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.ditto.status",
-     "with": "",
-     "without": "par"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.ditto.types",
-     "with": "normal",
-     "without": "flying/steel"
-    },
-    {
-     "turn": 1,
-     "path": "p2.party.ditto.ability",
-     "with": "limber",
-     "without": "pressure"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].species",
-     "with": "ditto",
-     "without": "corviknight"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].status",
-     "with": "",
-     "without": "par"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].types",
-     "with": "normal",
-     "without": "flying/steel"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].ability",
-     "with": "limber",
-     "without": "pressure"
-    },
-    {
-     "turn": 1,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.pp[0].focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p1.pp[0].glare",
-     "with": 2,
-     "without": 4
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.ditto.species",
-     "with": "ditto",
-     "without": "corviknight"
-    },
-    {
      "turn": 2,
      "path": "p2.party.ditto.status",
      "with": "",
@@ -7934,63 +7927,15 @@
     },
     {
      "turn": 2,
-     "path": "p2.party.ditto.types",
-     "with": "normal",
-     "without": "flying/steel"
-    },
-    {
-     "turn": 2,
-     "path": "p2.party.ditto.ability",
-     "with": "limber",
-     "without": "pressure"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].species",
-     "with": "ditto",
-     "without": "corviknight"
-    },
-    {
-     "turn": 2,
      "path": "p2.active[0].status",
      "with": "",
      "without": "par"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].types",
-     "with": "normal",
-     "without": "flying/steel"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].ability",
-     "with": "limber",
-     "without": "pressure"
-    },
-    {
-     "turn": 2,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
     },
     {
      "turn": 2,
      "path": "p2.pp[0].focusenergy",
      "with": 2,
-     "without": 0
-    },
-    {
-     "turn": 3,
-     "path": "p1.pp[0].glare",
-     "with": 2,
-     "without": 4
-    },
-    {
-     "turn": 3,
-     "path": "p2.party.ditto.species",
-     "with": "ditto",
-     "without": "corviknight"
+     "without": 1
     },
     {
      "turn": 3,
@@ -8000,51 +7945,33 @@
     },
     {
      "turn": 3,
-     "path": "p2.party.ditto.types",
-     "with": "normal",
-     "without": "flying/steel"
-    },
-    {
-     "turn": 3,
-     "path": "p2.party.ditto.ability",
-     "with": "limber",
-     "without": "pressure"
-    },
-    {
-     "turn": 3,
-     "path": "p2.active[0].species",
-     "with": "ditto",
-     "without": "corviknight"
-    },
-    {
-     "turn": 3,
      "path": "p2.active[0].status",
      "with": "",
      "without": "par"
-    },
-    {
-     "turn": 3,
-     "path": "p2.active[0].types",
-     "with": "normal",
-     "without": "flying/steel"
-    },
-    {
-     "turn": 3,
-     "path": "p2.active[0].ability",
-     "with": "limber",
-     "without": "pressure"
-    },
-    {
-     "turn": 3,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
     },
     {
      "turn": 3,
      "path": "p2.pp[0].focusenergy",
      "with": 3,
-     "without": 0
+     "without": 1
+    },
+    {
+     "turn": 4,
+     "path": "p2.party.ditto.status",
+     "with": "",
+     "without": "par"
+    },
+    {
+     "turn": 4,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "par"
+    },
+    {
+     "turn": 4,
+     "path": "p2.pp[0].focusenergy",
+     "with": 4,
+     "without": 1
     }
    ],
    "diffs": []
@@ -8055,7 +7982,7 @@
    "name": "Liquid Voice",
    "rule": "ability/type-conversion",
    "reads": "onModifyType — the SOURCE type or flag it tests and the type it ASSIGNS, both from the handler",
-   "note": "Alluring Voice (Fairy) is thrown at Torkoal (Fire) on turn 1 — the chart puts Fairy at 0.5x there and Water at 2x; Body Slam on turn 2 is the unconverted negative   [carrier Primarina, control = Torrent — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
+   "note": "Alluring Voice (Fairy) is thrown at Torkoal (Fire) on turn 1 — the chart puts Fairy at 0.5x there and Water at 2x; Body Slam (Normal, x1 there) on turn 2 is the negative — a type this ability neither reads nor writes   [carrier Primarina, control = Torrent — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -8518,11 +8445,11 @@
    "name": "Magma Armor",
    "rule": "ability/refuses-one-status",
    "reads": "a status id quoted inside onSetStatus / onTrySetStatus / onImmunity / onUpdate",
-   "note": "Blastoise clicks Ice Beam at Camerupt twice. WITHOUT the ability the carrier must end up \"frz\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Camerupt's typing nor Ice Beam's can refuse it, which is a condition of the pairing.   [carrier Camerupt, control = Solid Rock — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
-   "verdict": "CONTROL-NOT-QUIET",
-   "why": "NOTHING SURVIVES BOTH CONTROLS, AND THAT IS NOT THE SAME AS INERT. The delta against Solid Rock is 0 leaf/leaves and against Anger Point it is 12, and they share none. Either this entity does nothing here and the leaves are the control's, OR this entity and one of the controls move the same leaves and cancel. TWO ARMS CANNOT SEPARATE THOSE and the species has no third alternative to ask with. Measured, not assumed: THE SECOND CONTROL: the identical scenario played a third time with Anger Point in the slot instead of Solid Rock. THE TWO DELTAS DIFFER on 12 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p2.party.camerupt.boosts.atk with=0 without=6; showdown turn 1 p2.active[0].boosts.atk with=0 without=6; ours turn 1 p2.party.camerupt.boosts.atk with=0 without=6; ours turn 1 p2.active[0].boosts.atk with=0 without=6, +8 more. 0 of 0 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Solid Rock registers 1 handler(s), Anger Point registers 1.)",
+   "note": "Avalugg-Hisui clicks Ice Beam at Camerupt twice. WITHOUT the ability the carrier must end up \"frz\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Camerupt's typing nor Ice Beam's can refuse it, which is a condition of the pairing. THE THROWER IS SLOWER ON PURPOSE (Speed 90 against the carrier's 92): this status sheds itself inside the holder's own `onBeforeMove` under a roll this corner pins TRUE, so a faster thrower would write it and the carrier would thaw it again before the boundary — measured, 0 leaves.   [ALTERNATE carrier Camerupt, control = Skill Swap lends Corrosion off Glimmora (usable: 38 leaves in Showdown and 38 here, lending Corrosion off Glimmora on bottom-tie-first)]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "bottom-tie-first",
-   "control_why": "THE SECOND CONTROL: the identical scenario played a third time with Anger Point in the slot instead of Solid Rock. THE TWO DELTAS DIFFER on 12 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p2.party.camerupt.boosts.atk with=0 without=6; showdown turn 1 p2.active[0].boosts.atk with=0 without=6; ours turn 1 p2.party.camerupt.boosts.atk with=0 without=6; ours turn 1 p2.active[0].boosts.atk with=0 without=6, +8 more. 0 of 0 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Solid Rock registers 1 handler(s), Anger Point registers 1.)",
+   "control_why": null,
    "carrier": "camerupt",
    "dice": null,
    "coin": null,
@@ -8533,30 +8460,34 @@
    "deferred": null,
    "out_of_scope": null,
    "declared_untestable": false,
-   "second_control": {
-    "control": "Anger Point",
-    "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Anger Point in the slot instead of Solid Rock. THE TWO DELTAS DIFFER on 12 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 1 p2.party.camerupt.boosts.atk with=0 without=6; showdown turn 1 p2.active[0].boosts.atk with=0 without=6; ours turn 1 p2.party.camerupt.boosts.atk with=0 without=6; ours turn 1 p2.active[0].boosts.atk with=0 without=6, +8 more. 0 of 0 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Solid Rock registers 1 handler(s), Anger Point registers 1.)",
-    "leaves_first": 0,
-    "leaves_second": 12,
-    "leaves_kept": 0,
-    "dropped": [
-     "showdown turn 1 p2.party.camerupt.boosts.atk with=0 without=6",
-     "showdown turn 1 p2.active[0].boosts.atk with=0 without=6",
-     "ours turn 1 p2.party.camerupt.boosts.atk with=0 without=6",
-     "ours turn 1 p2.active[0].boosts.atk with=0 without=6",
-     "showdown turn 2 p2.party.camerupt.boosts.atk with=0 without=6",
-     "showdown turn 2 p2.active[0].boosts.atk with=0 without=6",
-     "ours turn 2 p2.party.camerupt.boosts.atk with=0 without=6",
-     "ours turn 2 p2.active[0].boosts.atk with=0 without=6",
-     "showdown turn 3 p2.party.camerupt.boosts.atk with=0 without=6",
-     "showdown turn 3 p2.active[0].boosts.atk with=0 without=6",
-     "ours turn 3 p2.party.camerupt.boosts.atk with=0 without=6",
-     "ours turn 3 p2.active[0].boosts.atk with=0 without=6"
-    ]
-   },
+   "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p2.party.camerupt.status",
+     "with": "",
+     "without": "frz"
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "frz"
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.camerupt.status",
+     "with": "",
+     "without": "frz"
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].status",
+     "with": "",
+     "without": "frz"
+    }
+   ],
    "diffs": []
   },
   {
@@ -8624,7 +8555,7 @@
    "name": "Mega Launcher",
    "rule": "ability/base-power-scoped",
    "reads": "onBasePower — the move FLAG, the base-power threshold or the `move.recoil` test inside the handler",
-   "note": "Dragon Pulse (INSIDE the `pulse` flag) at Goodra-Hisui on turn 1 and Ice Beam (outside it, same category, also neutral) on turn 2 — the second must be worth the same in both arms   [SUPPRESS carrier Clawitzer, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Dragon Pulse (INSIDE the `pulse` flag) at Goodra-Hisui on turn 1 and Ice Beam (outside it, same category, also neutral) on turn 2 — the second must be worth the same in both arms   [SUPPRESS carrier Clawitzer, control = Skill Swap lends Shell Armor off Torterra (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -8644,13 +8575,31 @@
    "sd_delta": [
     {
      "turn": 2,
+     "path": "p1.party.goodrahisui.hp",
+     "with": 1183,
+     "without": 1201
+    },
+    {
+     "turn": 2,
      "path": "p1.active[0].hp",
      "with": 1183,
      "without": 1201
     },
     {
      "turn": 3,
+     "path": "p1.party.goodrahisui.hp",
+     "with": 1142,
+     "without": 1160
+    },
+    {
+     "turn": 3,
      "path": "p1.active[0].hp",
+     "with": 1142,
+     "without": 1160
+    },
+    {
+     "turn": 4,
+     "path": "p1.party.goodrahisui.hp",
      "with": 1142,
      "without": 1160
     },
@@ -8777,7 +8726,7 @@
    "name": "Mimicry",
    "rule": "ability/type-follows-the-terrain",
    "reads": "the `typeFollowsTerrain` tag and the format's own terrain moves",
-   "note": "Goodra-Hisui clicks Electric Terrain on turn 2 — AFTER the control turn — and the carrier must become Electric-type in the subject arm and keep its own typing in the control   [SUPPRESS carrier Stunfisk-Galar, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]  [#318 restaged: p1[0] goodrahisui -> luxray (learner/wide)]",
+   "note": "Goodra-Hisui clicks Electric Terrain on turn 2 — AFTER the control turn — and the carrier must become Electric-type in the subject arm and keep its own typing in the control   [SUPPRESS carrier Stunfisk-Galar, control = Skill Swap lends Shell Armor off Torterra (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]  [#318 restaged: p1[0] goodrahisui -> luxray (learner/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -8797,14 +8746,14 @@
    "sd_delta": [
     {
      "turn": 2,
-     "path": "p1.party.goodrahisui.types",
-     "with": "dragon/steel",
+     "path": "p1.party.torterra.types",
+     "with": "grass/ground",
      "without": "electric"
     },
     {
      "turn": 2,
      "path": "p1.active[1].types",
-     "with": "dragon/steel",
+     "with": "grass/ground",
      "without": "electric"
     },
     {
@@ -8821,14 +8770,14 @@
     },
     {
      "turn": 3,
-     "path": "p1.party.goodrahisui.types",
-     "with": "dragon/steel",
+     "path": "p1.party.torterra.types",
+     "with": "grass/ground",
      "without": "electric"
     },
     {
      "turn": 3,
      "path": "p1.active[1].types",
-     "with": "dragon/steel",
+     "with": "grass/ground",
      "without": "electric"
     },
     {
@@ -8852,7 +8801,7 @@
    "name": "Minus",
    "rule": "ability/ally-gated-stat",
    "reads": "onModifyAtk / onModifySpA whose handler walks `allies()` and names an ability list in a `hasAbility([...])` — the list, the multiplier and the category all come off the handler",
-   "note": "Ampharos stands beside the carrier holding Plus, which is one of the abilities this handler NAMES (minus, plus) and is not the one under test — so the control arm strips the subject and leaves the gate's own body alone. The carrier then throws Flamethrower (Special, which is what onModifySpA multiplies by x1.5) at Goodra-Hisui, and Crunch (Physical, the negative, which the multiplier must not touch) at the same body on the next turn   [ALTERNATE carrier Manectric, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Ampharos stands beside the carrier holding Plus, which is one of the abilities this handler NAMES (minus, plus) and is not the one under test — so the control arm strips the subject and leaves the gate's own body alone. The carrier then throws Flamethrower (Special, which is what onModifySpA multiplies by x1.5) at Goodra-Hisui, and Crunch (Physical, the negative, which the multiplier must not touch) at the same body on the next turn   [ALTERNATE carrier Manectric, control = Skill Swap lends Shell Armor off Torterra (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -8872,13 +8821,31 @@
    "sd_delta": [
     {
      "turn": 2,
+     "path": "p1.party.goodrahisui.hp",
+     "with": 1184,
+     "without": 1202
+    },
+    {
+     "turn": 2,
      "path": "p1.active[0].hp",
      "with": 1184,
      "without": 1202
     },
     {
      "turn": 3,
+     "path": "p1.party.goodrahisui.hp",
+     "with": 1155,
+     "without": 1173
+    },
+    {
+     "turn": 3,
      "path": "p1.active[0].hp",
+     "with": 1155,
+     "without": 1173
+    },
+    {
+     "turn": 4,
+     "path": "p1.party.goodrahisui.hp",
      "with": 1155,
      "without": 1173
     },
@@ -9976,13 +9943,13 @@
    "kind": "ability",
    "id": "opportunist",
    "name": "Opportunist",
-   "rule": "ability/residual",
-   "reads": "onResidual",
-   "note": "ALTERNATE carrier Espathra; control = Frisk (NOT A QUIET ABILITY — see the caveat on any finding); staged as residual  [#318 restaged: p1[1] weavile pruned never-clicked dragonclaw; p2[1] venusaur pruned never-clicked dragonclaw,uturn; p2[2] espathra pruned never-clicked dragonclaw]",
-   "verdict": "CONTROL-NOT-QUIET",
-   "why": "NOTHING SURVIVES BOTH CONTROLS, AND THAT IS NOT THE SAME AS INERT. The delta against Frisk is 0 leaf/leaves and against Speed Boost it is 8, and they share none. Either this entity does nothing here and the leaves are the control's, OR this entity and one of the controls move the same leaves and cancel. TWO ARMS CANNOT SEPARATE THOSE and the species has no third alternative to ask with. Measured, not assumed: THE SECOND CONTROL: the identical scenario played a third time with Speed Boost in the slot instead of Frisk. THE TWO DELTAS DIFFER on 8 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 2 p2.party.espathra.boosts.spe with=0 without=1; showdown turn 2 p2.active[0].boosts.spe with=0 without=1; ours turn 2 p2.party.espathra.boosts.spe with=0 without=1; ours turn 2 p2.active[0].boosts.spe with=0 without=1, +4 more. 0 of 0 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Frisk registers 1 handler(s), Speed Boost registers 1.)",
+   "rule": "ability/copies-a-foes-boost",
+   "reads": "onFoeAfterBoost — the handler collects a FOE's positive stages and a later hook pays them onto the holder",
+   "note": "Whimsicott clicks Cotton Guard on ITSELF on turn 1 (def +3) while the carrier idles. With the ability the carrier ends the turn at def +3 as well; without it, at 0 — the reading is the CARRIER's own boosts. The booster is on the carrier's FOE side and on the swapper's OWN side, so in the control arm the lent-away ability is looking at an ally and copies nothing   [ALTERNATE carrier Espathra, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
-   "control_why": "THE SECOND CONTROL: the identical scenario played a third time with Speed Boost in the slot instead of Frisk. THE TWO DELTAS DIFFER on 8 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 2 p2.party.espathra.boosts.spe with=0 without=1; showdown turn 2 p2.active[0].boosts.spe with=0 without=1; ours turn 2 p2.party.espathra.boosts.spe with=0 without=1; ours turn 2 p2.active[0].boosts.spe with=0 without=1, +4 more. 0 of 0 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Frisk registers 1 handler(s), Speed Boost registers 1.)",
+   "control_why": null,
    "carrier": "espathra",
    "dice": null,
    "coin": null,
@@ -9993,26 +9960,46 @@
    "deferred": null,
    "out_of_scope": null,
    "declared_untestable": false,
-   "second_control": {
-    "control": "Speed Boost",
-    "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Speed Boost in the slot instead of Frisk. THE TWO DELTAS DIFFER on 8 leaf/leaves, which means at least one control is LIVE on this fixture — so those leaves are the CONTROL'S and are dropped, not charged to the entity: showdown turn 2 p2.party.espathra.boosts.spe with=0 without=1; showdown turn 2 p2.active[0].boosts.spe with=0 without=1; ours turn 2 p2.party.espathra.boosts.spe with=0 without=1; ours turn 2 p2.active[0].boosts.spe with=0 without=1, +4 more. 0 of 0 leaf/leaves survive BOTH controls and the verdict is computed on those alone. (Frisk registers 1 handler(s), Speed Boost registers 1.)",
-    "leaves_first": 0,
-    "leaves_second": 8,
-    "leaves_kept": 0,
-    "dropped": [
-     "showdown turn 2 p2.party.espathra.boosts.spe with=0 without=1",
-     "showdown turn 2 p2.active[0].boosts.spe with=0 without=1",
-     "ours turn 2 p2.party.espathra.boosts.spe with=0 without=1",
-     "ours turn 2 p2.active[0].boosts.spe with=0 without=1",
-     "showdown turn 3 p2.party.espathra.boosts.spe with=0 without=2",
-     "showdown turn 3 p2.active[0].boosts.spe with=0 without=2",
-     "ours turn 3 p2.party.espathra.boosts.spe with=0 without=2",
-     "ours turn 3 p2.active[0].boosts.spe with=0 without=2"
-    ]
-   },
+   "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p2.party.espathra.boosts.def",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].boosts.def",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.espathra.boosts.def",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].boosts.def",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 4,
+     "path": "p2.party.espathra.boosts.def",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 4,
+     "path": "p2.active[0].boosts.def",
+     "with": 3,
+     "without": 0
+    }
+   ],
    "diffs": []
   },
   {
@@ -10530,7 +10517,7 @@
    "name": "Pixilate",
    "rule": "ability/type-conversion",
    "reads": "onModifyType — the SOURCE type or flag it tests and the type it ASSIGNS, both from the handler",
-   "note": "Body Slam (Normal) is thrown at Falinks (Fighting) on turn 1 — the chart puts Normal at 1x there and Fairy at 2x; Shadow Ball on turn 2 is the unconverted negative   [carrier Sylveon, control = Cute Charm — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
+   "note": "Body Slam (Normal) is thrown at Falinks (Fighting) on turn 1 — the chart puts Normal at 1x there and Fairy at 2x; Shadow Ball (Ghost, x1 there) on turn 2 is the negative — a type this ability neither reads nor writes   [carrier Sylveon, control = Cute Charm — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -10593,7 +10580,7 @@
    "name": "Plus",
    "rule": "ability/ally-gated-stat",
    "reads": "onModifyAtk / onModifySpA whose handler walks `allies()` and names an ability list in a `hasAbility([...])` — the list, the multiplier and the category all come off the handler",
-   "note": "Manectric stands beside the carrier holding Minus, which is one of the abilities this handler NAMES (minus, plus) and is not the one under test — so the control arm strips the subject and leaves the gate's own body alone. The carrier then throws Dragon Pulse (Special, which is what onModifySpA multiplies by x1.5) at Goodra-Hisui, and Fire Punch (Physical, the negative, which the multiplier must not touch) at the same body on the next turn   [ALTERNATE carrier Ampharos, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Manectric stands beside the carrier holding Minus, which is one of the abilities this handler NAMES (minus, plus) and is not the one under test — so the control arm strips the subject and leaves the gate's own body alone. The carrier then throws Dragon Pulse (Special, which is what onModifySpA multiplies by x1.5) at Goodra-Hisui, and Fire Punch (Physical, the negative, which the multiplier must not touch) at the same body on the next turn   [ALTERNATE carrier Ampharos, control = Skill Swap lends Shell Armor off Torterra (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -10613,13 +10600,31 @@
    "sd_delta": [
     {
      "turn": 2,
+     "path": "p1.party.goodrahisui.hp",
+     "with": 1184,
+     "without": 1202
+    },
+    {
+     "turn": 2,
      "path": "p1.active[0].hp",
      "with": 1184,
      "without": 1202
     },
     {
      "turn": 3,
+     "path": "p1.party.goodrahisui.hp",
+     "with": 1156,
+     "without": 1174
+    },
+    {
+     "turn": 3,
      "path": "p1.active[0].hp",
+     "with": 1156,
+     "without": 1174
+    },
+    {
+     "turn": 4,
+     "path": "p1.party.goodrahisui.hp",
      "with": 1156,
      "without": 1174
     },
@@ -11280,7 +11285,7 @@
    "reads": null,
    "note": null,
    "verdict": "COULD-NOT-STAGE",
-   "why": "its Speed multiplier is gated on the holder being STATUSED and this regulation cannot open that gate on its carrier without putting a SECOND Speed modifier on the same body. Measured on this run — carrier Jolteon (Electric); the in-scope 100-accuracy single-target status clicks are Toxic Thread (psn) REFUSED — it carries boosts {\"spe\":-2}, a SECOND Speed modifier inside a fixture whose whole reading is Speed; Glare (par) REFUSED — the dex says Jolteon (Electric) is immune to it; legal items that status their own holder at the residual: ZERO, scanned across the whole format; and the sleep road (`sleepClick`) puts the carrier ASLEEP, so it cannot throw the click the order is read off. This is the FORMAT's status list meeting this ability's single carrier, not a fixture nobody thought of",
+   "why": "its Speed multiplier is gated on the holder being STATUSED, and that gate is OPEN — Poison Powder writes `psn` on Jolteon and this rule stages it on bottom-tie-first. What refuses the row is the SPEED WINDOW. Measured on this run: the carrier is Jolteon at Speed 182, x1.5 takes it to 273, and the foe has to sit STRICTLY between them or the multiplier decides no turn order at all. The 1 legal body/bodies in that window are all refused: Dragapult (Speed 194) has NO non-interfering ability — every one of its Clear Body / Infiltrator / Cursed Body is on the INTERFERES list. This is the FORMAT's Speed table meeting this ability's single carrier, and the same wall `ability/priority-mod` measured on Talonflame the same day.",
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": null,
@@ -11525,7 +11530,7 @@
    "name": "Refrigerate",
    "rule": "ability/type-conversion",
    "reads": "onModifyType — the SOURCE type or flag it tests and the type it ASSIGNS, both from the handler",
-   "note": "Body Slam (Normal) is thrown at Torterra (Grass/Ground) on turn 1 — the chart puts Normal at 1x there and Ice at 4x; Iron Head on turn 2 is the unconverted negative   [carrier Aurorus, control = Snow Warning — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
+   "note": "Body Slam (Normal) is thrown at Torterra (Grass/Ground) on turn 1 — the chart puts Normal at 1x there and Ice at 4x; Iron Head (Steel, x1 there) on turn 2 is the negative — a type this ability neither reads nor writes   [carrier Aurorus, control = Snow Warning — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -11667,14 +11672,14 @@
    "kind": "ability",
    "id": "ripen",
    "name": "Ripen",
-   "rule": "ability/stat-drop-reaction",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "its boost hook fires only for a BERRY's own boost (its handler names one), so nothing a foe clicks can reach it and this rule would stage a condition the ability never sees",
+   "rule": "ability/an-item-is-eaten-taken-or-handed-on",
+   "reads": "onEatItem / onTakeItem returning false / onAfterMoveSecondary(Self) calling takeItem / onAllyAfterUseItem / an onStart whose whole body ENDS the holder's own item — five handlers that cannot fire unless an item is actually spent or changes hands",
+   "note": "the carrier holds Sitrus Berry and Torkoal clicks Sludge Bomb at it on turn 1 for 104 of its 145 hp — past the 1/2 line the berry's own `onUpdate` names, and with room left under the maximum so the heal is not capped. The berry is spent in BOTH arms, so the `item` leaf is identical and the reading is the carrier's hp   [ALTERNATE carrier Flapple, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "flapple",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -11686,7 +11691,56 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p2.party.flapple.hp",
+     "with": 113,
+     "without": 77
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].hp",
+     "with": 113,
+     "without": 77
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.flapple.hp",
+     "with": 113,
+     "without": 77
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].hp",
+     "with": 113,
+     "without": 77
+    },
+    {
+     "turn": 4,
+     "path": "p2.party.flapple.hp",
+     "with": 113,
+     "without": 77
+    },
+    {
+     "turn": 4,
+     "path": "p2.active[0].hp",
+     "with": 113,
+     "without": 77
+    },
+    {
+     "turn": 5,
+     "path": "p2.party.flapple.hp",
+     "with": 113,
+     "without": 77
+    },
+    {
+     "turn": 5,
+     "path": "p2.active[0].hp",
+     "with": 113,
+     "without": 77
+    }
+   ],
    "diffs": []
   },
   {
@@ -13350,7 +13404,7 @@
    "name": "Skill Link",
    "rule": "ability/it-rewrites-its-own-click",
    "reads": "onModifyMove that assigns `move.multihit` from an INDEX of its own range, or assigns `move.tracksTarget` — the index and the field both read off the handler",
-   "note": "the carrier throws Bullet Seed ([2,5]) at Torterra on turns 1 and 2, ON bottom-tie-first. THE ARM IS THE WHOLE FIXTURE: this file's primary corner selects the TOP of every `sample`, which is exactly the number this ability writes, so the row is provably inert there and only there. On this corner the pin selects the BOTTOM, so with the ability the click lands 5 times and without it 2. The reading is Torterra's hp, about 17 per hit   [carrier Toucannon, control = Keen Eye — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
+   "note": "the carrier throws Bullet Seed ([2,5]) at Torterra on turns 1 and 2, ON bottom-tie-first. THE ARM IS THE WHOLE FIXTURE: this file's primary corner selects the TOP of every `sample`, which is exactly the number this ability writes, so the row is provably inert there and only there. On this corner the pin selects the BOTTOM, so with the ability the click lands 5 times and without it 2. The reading is Torterra's hp, about 17 per hit   [ALTERNATE carrier Toucannon, control = Skill Swap lends Corrosion off Glimmora (usable: 38 leaves in Showdown and 38 here, lending Corrosion off Glimmora on bottom-tie-first)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -13365,40 +13419,20 @@
    "deferred": null,
    "out_of_scope": null,
    "declared_untestable": false,
-   "second_control": {
-    "control": "Sheer Force",
-    "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Sheer Force in the slot instead of Keen Eye. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (12 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Keen Eye registers 2 handler(s), Sheer Force registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 12,
-    "leaves_second": 12,
-    "leaves_kept": 12,
-    "dropped": []
-   },
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 1,
+     "turn": 2,
      "path": "p1.party.torterra.hp",
      "with": 1290,
      "without": 1332
     },
     {
-     "turn": 1,
+     "turn": 2,
      "path": "p1.active[0].hp",
      "with": 1290,
      "without": 1332
-    },
-    {
-     "turn": 2,
-     "path": "p1.party.torterra.hp",
-     "with": 1220,
-     "without": 1304
-    },
-    {
-     "turn": 2,
-     "path": "p1.active[0].hp",
-     "with": 1220,
-     "without": 1304
     },
     {
      "turn": 3,
@@ -13408,6 +13442,18 @@
     },
     {
      "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 1220,
+     "without": 1304
+    },
+    {
+     "turn": 4,
+     "path": "p1.party.torterra.hp",
+     "with": 1220,
+     "without": 1304
+    },
+    {
+     "turn": 4,
      "path": "p1.active[0].hp",
      "with": 1220,
      "without": 1304
@@ -13597,13 +13643,13 @@
    "id": "sniper",
    "name": "Sniper",
    "rule": "ability/prices-a-critical-hit",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "it only PRICES a crit somebody else obtained, and no road to one is open on this ability's own carriers. Measured on this run — the ALWAYS-CRIT road: this format holds 2 always-hitting single-target `willCrit` move(s), Storm Throw — learned here by NONE of them; Flower Trick — learned here by NONE of them, so no carrier of this ability can throw one. The ROLLED road: an ordinary crit lands only on bottom-tie-first (the primary arm's own pin is \"no crit\"), and on that arm the only quiet ability this format can lend as a control is a CRIT ARMOUR — `stageAbilityQuiet` withdraws the swap delegation there for exactly that reason, measured on magmaarmor — while this ability's carriers (Beedrill, Ariados, Barbaracle) have no quiet ability on their own sheets. And the FOCUS ENERGY road is shut by this file's own `critRatioAudit`: the control click adds 2 crit stages, so a high-ratio click beside it reaches the guaranteed tier in BOTH arms and the audit refuses the whole fixture. Three roads, each closed by something measured rather than by a fixture nobody thought of",
-   "arm": "top-tie-first",
+   "reads": "onModifyCritRatio returning a literal Showdown clamps to a GUARANTEED tier, or onModifyDamage gated on `getMoveHitData(move).crit` — the ratio, the gate and the statuses all come off the handler",
+   "note": "the carrier throws Dragon Claw at Venusaur on turns 1 and 2, ON bottom-tie-first — the corner whose pin lands every crit in BOTH engines, so the crit this ability prices is ORDINARY and no die decides it. Venusaur holds Overgrow, which refuses no crit, and survives both hits at the pinned maximum roll. The reading is Venusaur's hp. The control is the in-play Skill Swap, which on THIS arm may not lend a crit armour (ROADMAP #608)   [ALTERNATE carrier Barbaracle, control = Skill Swap lends Corrosion off Glimmora (usable: 38 leaves in Showdown and 38 here, lending Corrosion off Glimmora on bottom-tie-first)]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "arm": "bottom-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "barbaracle",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -13615,7 +13661,44 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p1.party.venusaur.hp",
+     "with": 517,
+     "without": 551
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 517,
+     "without": 551
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.venusaur.hp",
+     "with": 414,
+     "without": 482
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 414,
+     "without": 482
+    },
+    {
+     "turn": 4,
+     "path": "p1.party.venusaur.hp",
+     "with": 414,
+     "without": 482
+    },
+    {
+     "turn": 4,
+     "path": "p1.active[0].hp",
+     "with": 414,
+     "without": 482
+    }
+   ],
    "diffs": []
   },
   {
@@ -16520,7 +16603,7 @@
    "name": "Vital Spirit",
    "rule": "ability/refuses-one-status",
    "reads": "a status id quoted inside onSetStatus / onTrySetStatus / onImmunity / onUpdate",
-   "note": "Venusaur clicks Sleep Powder at Lycanroc-Midnight twice. WITHOUT the ability the carrier must end up \"slp\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Lycanroc-Midnight's typing nor Sleep Powder's can refuse it, which is a condition of the pairing.   [carrier Lycanroc-Midnight, control = Keen Eye — NOT A QUIET ABILITY, so any accusing verdict is downgraded to CONTROL-NOT-QUIET]",
+   "note": "Venusaur clicks Sleep Powder at Lycanroc-Midnight twice. WITHOUT the ability the carrier must end up \"slp\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Lycanroc-Midnight's typing nor Sleep Powder's can refuse it, which is a condition of the pairing.   [ALTERNATE carrier Lycanroc-Midnight, control = Skill Swap lends Corrosion off Glimmora (usable: 38 leaves in Showdown and 38 here, lending Corrosion off Glimmora on bottom-tie-first)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -16535,57 +16618,43 @@
    "deferred": null,
    "out_of_scope": null,
    "declared_untestable": false,
-   "second_control": {
-    "control": "No Guard",
-    "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with No Guard in the slot instead of Keen Eye. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (16 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Keen Eye registers 2 handler(s), No Guard registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 16,
-    "leaves_second": 16,
-    "leaves_kept": 16,
-    "dropped": []
-   },
+   "second_control": null,
    "switch_probe": null,
    "sd_delta": [
     {
-     "turn": 1,
+     "turn": 2,
      "path": "p2.party.lycanrocmidnight.status",
      "with": "",
      "without": "slp"
     },
     {
-     "turn": 1,
+     "turn": 2,
      "path": "p2.active[0].status",
      "with": "",
      "without": "slp"
     },
     {
-     "turn": 2,
+     "turn": 3,
      "path": "p2.party.lycanrocmidnight.status",
      "with": "",
      "without": "slp"
     },
     {
-     "turn": 2,
+     "turn": 3,
      "path": "p2.party.lycanrocmidnight.status_counter",
      "with": 0,
      "without": 1
     },
     {
-     "turn": 2,
+     "turn": 3,
      "path": "p2.active[0].status",
      "with": "",
      "without": "slp"
     },
     {
-     "turn": 2,
+     "turn": 3,
      "path": "p2.active[0].status_counter",
      "with": 0,
-     "without": 1
-    },
-    {
-     "turn": 2,
-     "path": "p2.pp[0].focusenergy",
-     "with": 2,
      "without": 1
     },
     {
@@ -16593,6 +16662,12 @@
      "path": "p2.pp[0].focusenergy",
      "with": 3,
      "without": 2
+    },
+    {
+     "turn": 4,
+     "path": "p2.pp[0].focusenergy",
+     "with": 4,
+     "without": 3
     }
    ],
    "diffs": []

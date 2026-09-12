@@ -185,6 +185,119 @@ _stamped 2026-09-11 23:01_
 
 <!-- /GENERATED -->
 
+## SEVEN OF THE LAST TEN CLOSE AND **`CONTROL-NOT-QUIET` REACHES ZERO FOR THE FIRST TIME** — ABILITIES **183 → 190 MATCH / 10 → 5 COULD-NOT-STAGE / 2 → 0 CNQ**, DEFERRED **5** UNCHANGED. ITEMS **148 / 0** AND MOVES **487 / 7 / 3** UNMOVED AS CONTROLS. THE SEVEN REST ON `hp`, `boosts.atk`, `boosts.def` AND `status` — NOT ONE `.ability`, `.pp` OR `.vol` LEAF. REDS **22 / 62 / 36, ALL `ok: true`, ZERO WEAK, ZERO NOT CAUGHT**. CENSUS **883 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `48ac1c228e02`. 2026-09-12, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-12-last-ten.md`. Register rows #608 (CLOSED) and #616.
+
+Seven rows close — `ripen`, `galewings`, `aerilate`, `magmaarmor`, `opportunist`, `angerpoint`,
+`sniper` — and the gate's abilities line loses the `2 row(s) count in NEITHER column` clause it has
+carried since the roster grew a CONTROL-NOT-QUIET bucket.
+
+**ROADMAP #608 IS FIXED AT THE PREDICATE, AND IT WAS THE BLOCKER ON THREE ROWS AT ONCE.** `QUIET`
+tests `typeof a[k] === 'function'` and so cannot see a BOOLEAN; `shellarmor` and `battlearmor` carry
+`onCriticalHit = false`, so the swapper lent a CRIT BLOCKER onto the one corner where every crit
+lands. The guard that shipped this morning refused the whole CORNER for that one ability, which is a
+bigger refusal than the fact supports. `quietAsControl(id, arm)` disqualifies the armour on
+`bottom-tie-first` and nowhere else, and the format is then asked what is left:
+
+```
+crit armour (2) — quiet only because `onCriticalHit` is the BOOLEAN false: battlearmor, shellarmor
+  quiet AS A CONTROL on top-tie-first     ... shellarmor  -> swapper Goodra-Hisui lending Shell Armor
+  quiet AS A CONTROL on bottom-tie-first  ... (no armour) -> swapper Glimmora  lending Corrosion
+```
+
+**Blast radius measured before the change, not argued**: on the top arm the derivation is
+byte-identical, and on the bottom arm NO standing row used the swap control at all — read off
+`git show HEAD:data/roster.abilities.json`, all nine bottom-arm rows carried a SHEET control. Strictly
+additive. `swapControlWorks(arm)` is per-arm now (a cached proof would certify one lent ability and be
+quoted for another) and `swapperFor(arm, avoid)` keeps the swapper off a species the rule already put
+on side A, because `isSwapper()` only knows the top-arm one and the bottom-arm swapper is a different
+species.
+
+- **`magmaarmor` closes on the `status` LEAF, which is the whole point of #608.** With the control
+  fixed the row first read `THE STAGING IS INERT over 2720 compared leaves`, and the dump says why:
+  `frz`'s own `onBeforeMove` is `if (time <= 0 || this.randomChance(1, 4)) { cureStatus(); return; }`
+  and this corner pins every sub-100 roll TRUE — the SAME pin that fires Ice Beam's 10% secondary. The
+  freeze both LANDS and THAWS, so a carrier that moves after the click sheds it inside the same turn.
+  The thrower is SLOWER on purpose now (Avalugg-Hisui 90 against the carrier's 92). **Derived, not
+  named**: `cureStatus(` AND `randomChance(` in the condition's own `onBeforeMove` matches exactly ONE
+  of slp/par/brn/psn/tox/frz, so the four standing rows of that rule keep the thrower they had.
+- **`angerpoint` and `sniper` close on the same corner**, with the crit ordinary and pinned in both
+  engines.
+- **AND THE FIRST SNIPER GREEN WAS MEASURING THE CONTROL.** Its derived click was Sludge Bomb — a 30%
+  POISON secondary, which this corner always fires — aimed at a POISON-type Venusaur, while the
+  control arm lends CORROSION, the one ability that lets a holder poison a Poison type. Fixed at the
+  click and generally: on that corner `neutralHit2` returns a move with NO secondaries, because there
+  a secondary is not a rider, it is a second experiment. Sniper's click becomes Dragon Claw and Anger
+  Point's becomes Seed Bomb.
+- **Four standing greens got a BETTER control as a side effect.** `immunity`, `insomnia`, `limber` and
+  `vitalspirit` were controlled by their carriers' LIVE sheet abilities and are now controlled by a
+  quiet lent Corrosion. Verdicts unchanged; evidence stronger.
+
+**`ripen` was a rule refusing an entity on evidence about the wrong handler.**
+`ability/stat-drop-reaction` returned a written refusal for any boost hook naming a berry — true about
+Ripen's `onChangeBoost`, silent about its `onTryHeal`, which DOUBLES a berry heal onto the `hp` leaf.
+Same mistake that rule already records for Keen Eye, same repair (return null). Blast radius measured:
+exactly one legal ability in the dex has a berry-naming boost hook.
+
+**`galewings`'s refusal blamed the delivery table and the delivery table was innocent.** A
+learnset-aware pick does not open it: measured, Talonflame at flat Speed 178 is the fastest legal body
+with a usable ability — Dragapult 194, Jolteon 182 and Aerodactyl 182 all return null from
+`carrierAbility` — and against the one that IS faster its best Flying click of any kind reaches 132 of
+163 hp. So the rule grew a SECOND ROAD: a slower foe throws a positive-priority click that kills the
+carrier outright, and the shift decides whether the carrier's own typed click lands first. Derived, of
+eleven priority clicks exactly one works — `Accelerock +1 -> Lycanroc-Dusk kills for 204 of 153`.
+
+**`aerilate`'s negative demanded a property of the CHART and let through one that asserted nothing.**
+`neutralHit2` required exact neutrality, which is about the type chart and not about whether the
+ability leaves the click alone; and the exclusion banned the SOURCE type but not the ASSIGNED one, so
+Dragonize's negative was DRAGON PULSE against an ability that rewrites Normal INTO Dragon — a clause
+that could not fail. Both fixed; all five members re-run individually and all five green.
+
+**`opportunist` was owed a fixture, exactly as its withdrawal said.** New rule
+`ability/copies-a-foes-boost` (`onFoeAfterBoost` matches exactly one ability in this regulation): a
+derived pure single-stat self-boost — Cotton Guard {def:+3} off Whimsicott — on a body that is a FOE of
+the carrier and an ALLY of the swapper, with a precondition that reads BOTH halves off Showdown's own
+board.
+
+- **5 rows remain COULD-NOT-STAGE**: `frisk` (the effect is a protocol line and no compared leaf can
+  carry it — re-read against all three control fixes and unaffected by any), `goodasgold` (it refuses
+  both in-play controls; #608 changes WHICH ability is lent, not whether Skill Swap lands),
+  `zerotohero` (`failskillswap` + `cantsuppress` + slot 0, shut by the regulation), `quickfeet` and
+  `simple`.
+- **`quickfeet`'s REASON CHANGED and the new one is the durable finding.** Its status gate is now
+  OPEN — `bottom-tie-first` lands a sub-100 click, and Poison Powder and Toxic survive three derived
+  clauses (the condition must not register `onModifySpe`, must not register `onBeforeMove`, and must
+  not be named in the AUTHORITY's own `modifyDamage`/`getDamage`, which is what refuses burn). What
+  refuses the row is the SPEED WINDOW: Jolteon at 182, x1.5 to 273, and the one legal body strictly
+  inside it is **Dragapult, which has no non-interfering ability**. That is the same wall
+  `ability/priority-mod` hit on Talonflame in this pass, from the other side: **this regulation's Speed
+  ceiling is occupied by three bodies the roster cannot use as fixture bodies**, and widening
+  `carrierAbility` is its own batch because it moves every rule that draws a body.
+- **`simple` is a CONFERRAL gap and Simple Beam is legal here** (`isNonstandard: null`, 100 accuracy,
+  single target) — so the mechanic is reachable in a real game and what is missing is a control arm
+  that confers a QUIET ability at the same body. A new control kind, and its own batch.
+
+### The hand list, after this pass
+
+- **`CONTROL-NOT-QUIET` IS ZERO.** Nothing carried forward from it, and #608 is CLOSED.
+- **5 rows remain COULD-NOT-STAGE, every one with a measured reason** — `frisk`, `goodasgold`,
+  `zerotohero`, `quickfeet`, `simple`. The first three are shut by the COMPARATOR or by the
+  REGULATION and no instrument change reaches them.
+- **THE SPEED CEILING IS THE ONE THING TWO ROWS NOW POINT AT.** `quickfeet` and `galewings` hit the
+  same wall from opposite sides: Dragapult (194), Jolteon (182) and Aerodactyl (182) are the only
+  legal bodies above Talonflame/Jolteon at the flat spread, and `carrierAbility` returns null for all
+  three because every ability on their sheets is on the `INTERFERES` list. Widening that predicate —
+  or admitting the CAST aggressors as fixture foes — is the repair, and it moves every rule that draws
+  a body, so it is its own batch with its own control run.
+- **A CONFERRAL CONTROL is what `simple` needs** — a subject arm clicking Simple Beam against a control
+  arm clicking something that confers a QUIET ability at the same body. The swap-leaf correction is
+  written for the opposite polarity (the CONTROL arm spends the click), so that too is its own batch.
+- **The #612 durable repair is still owed**: `stageAbility` itself should refuse a null control ability
+  rather than let `buildPair` restore slot 0.
+- **NO RELEASE TO ADD.** No engine byte changed; every count in this section is stamped
+  `48ac1c228e02`, which is already tracked.
+
 ## THE LAST FOUR INERT FAMILIES CLOSE AND THE LIST IS EMPTY — ABILITIES **164 → 183 MATCH / 29 → 10 COULD-NOT-STAGE**, CNQ **2** AND DEFERRED **5** UNCHANGED. ITEMS **148 / 0** AND MOVES **487 / 7 / 3** UNMOVED AS CONTROLS. THE LEAVES CARRY `.item`, `.status`, `.status_counter`, `.ability`, `.screens`, `.fainted`, `.species` AND `.pp` — NOT hp AND boosts ALONE. REDS **22 / 61 / 36, ZERO `ok: false`, NONE WEAK**. CENSUS **883 LIVE**, UNMOVED. **ONE ENGINE BYTE CHANGED — RELEASE `48ac1c228e02` CUT**, AND THE FOUR ARTIFACTS IT INVALIDATED WERE RE-RUN RATHER THAN CAPTIONED. 2026-09-12, CHANGELOG `<<VER>>`
 
 Full account: `docs/_reports/2026-09-12-last-four-families.md`. Register rows #613 (CLOSED), #614 and
