@@ -185,6 +185,68 @@ _stamped 2026-09-11 20:07_
 
 <!-- /GENERATED -->
 
+## SLUSH RUSH AND AURA WHEEL CLOSE — ABILITIES **176 → 177 MATCH / 3 → 2 CONTROL-NOT-QUIET**, MOVES **486 → 487 MATCH / 8 → 7 COULD-NOT-STAGE**, ITEMS **148** UNMOVED AS THE CONTROL. TWO THINGS WERE BUILT, MEASURED AND **WITHDRAWN**: A CONTROL THAT MEASURED THE CONTROL, AND A GREEN WITH NO BOOST IN IT. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `534442d71183`. 2026-09-12, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-12-staging-batch-3.md`. Register rows #607 (closed), #608 and #609 (open).
+
+Three stages, `--reds --write`, release `534442d71183`: **0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE
+everywhere**, anchors **22/22, 45/45, 36/36 apply exactly once**, reds **22 / 45 / 36 CAUGHT with zero
+NOT CAUGHT**. The census was **NOT regenerated** and is not claimed to have moved: no engine byte
+changed, so nothing it probes could. `tests/roster.js` is the only code file touched, and it is **not**
+one of the 27 frozen `SOURCES` — checked this pass by reading `ER.SOURCES`, not inherited from the
+previous report.
+
+- **`slushrush` CLOSED by a guarded delegation.** `stageAbilityQuiet` gives a hand-written rule the same
+  in-play Skill Swap control `abilityScenario` already takes, under the same guard plus the three things
+  `stageAbilitySwap` cannot carry (`a1`, `onBench`, `gender`). **Opt-in per rule**, so every other rule in
+  that block builds a byte-identical fixture — which is what makes "nothing else moved" a measurement.
+  What it matched is PRINTED every run, firing and refusing alike.
+- **`aurawheel` CLOSED, and the forme knob is now DERIVED instead of named.** The old refusal named
+  Morpeko by hand. `formeFlipStaging` reads the table off the move's `onModifyType`, the flip off any
+  ability whose `onResidual` calls `formeChange` and names one of those formes, the user off the legal
+  buildable learners, and the defender as immune to the PRINTED type and **not** immune to what it
+  converts into (`carrierBody` gained `notImmuneTo`; both halves, or the reading is 0 on both turns).
+  Turn 1 must deal NOTHING and turn 2 damage — categorical, not a damage number. **Raging Bull is the
+  control and still refuses**, now with a measured reason instead of a typed one.
+- **WITHDRAWN 1 — the delegation was measuring the SWAPPER on the bottom corner.** `magmaarmor` went
+  green and its ENTIRE delta was `hp 508/532` then `436/484` with **no `status` leaf on any turn**, while
+  the four rows of its rule that keep their sheet control all show theirs. Magma Armor refuses FREEZE.
+  Cause, derived: `QUIET`'s predicate is `typeof a[k] === 'function'`, so it **cannot see a boolean**, and
+  `shellarmor`/`battlearmor` carry `onCriticalHit = false` — a data field. The swapper lends Shell Armor,
+  and `ability/refuses-one-status` runs on `bottom-tie-first` **where every crit lands**. The delegation
+  now refuses the bottom corner with that measurement as its printed reason; `magmaarmor` is a declared
+  gap again, which is worth more than a green measuring the control. `slushrush` is on the top corner,
+  where no crit lands in either arm, and its 18 leaves are the KO and the Charm drop.
+- **WITHDRAWN 2 — a rule for `opportunist` produced a green with no boost in it.** `onFoeAfterBoost`
+  matches exactly one entity here, and a rule staging the condition it actually reads came back
+  FIRED-AND-BOARDS-MATCH with its own rule **NOT CAUGHT**. The leaves: 20 in `sd_delta`, **not one a
+  boost** — the swapper's `.ability`, the carrier's `.ability`, `pp.skillswap`, `pp.focusenergy`,
+  `vol.focusenergy` — with `us_delta` and `subject_diffs` both **0**. Neither engine copied anything, so
+  breaking the copy could not move what was never there. The rule is gone; Opportunist stays
+  CONTROL-NOT-QUIET. **It is owed a fixture in which the copy happens, not a better control.**
+- **AND THE 20 LEAVES ARE BIGGER THAN THAT ROW (#609, open).** A Skill Swap control arm moves the
+  swapper's own `.ability`, PP and volatile **by construction**, on the side the swap-leaf correction does
+  not cover — that stage prints `0 leaves DROPPED`. So the INERT gate cannot fire for any swap-controlled
+  row: the Focus Sash defect on the ability axis. This pass checked its own swap-controlled greens by
+  hand; **the 13 rows landed by the previous pass have not been re-checked.**
+
+### The hand list
+
+- **THE MEGA-ONLY SIX (`aerilate`, `dragonize`, `filter`, `furcoat`, `megalauncher`, `galewings`) ARE
+  NOT ATTEMPTED, AND THE ORDERING IS THE REASON.** The suggested route is the Skill Swap control — which
+  this pass has just shown can manufacture a green out of its own bookkeeping. Taking it before #609 is
+  closed would build on the defect. Not budget: order.
+- **`magmaarmor` needs a control that is quiet ON THE BOTTOM CORNER**, or a quiet set that reads a
+  boolean `on*` field. #608.
+- **`opportunist` needs a fixture where the copy DEMONSTRABLY lands** — a foe gaining a stage and the
+  holder's `boosts` moving with it, in at least the authority. #609.
+- **`zerotohero`, `simple`, `ripen` and the seven inert-staging rows** carry forward unchanged.
+- **The move refusals stand, re-read not assumed** — `focusenergy` IS the control click, `struggle` is
+  disabled while any move is usable, `extremespeed`/`iceshard`/`jetpunch` keep the MEASURED `wideAbility`
+  refutation, `upperhand` reads a target's priority intent, and `ragingbull` is now refused by
+  measurement: no legal ability flips any forme its table names.
+- **Carried forward unchanged** from the hand lists below.
+
 ## THE LAST THREE STAGEABLE ABILITY ROWS CLOSE — ABILITIES **173 → 176 MATCH / 19 → 16 COULD-NOT-STAGE**. ITEMS **148** AND MOVES **486 / 8 / 3** UNMOVED AS CONTROLS. CENSUS **883 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `534442d71183`. 2026-09-12, CHANGELOG `<<VER>>`
 
 Full account: `docs/_reports/2026-09-12-last-unstaged.md`. Gate after this pass:
@@ -220,17 +282,14 @@ Full account: `docs/_reports/2026-09-12-last-unstaged.md`. Gate after this pass:
 
 ### The hand list
 
-- **`magmaarmor` and `slushrush` remain the only CONTROL-NOT-QUIET rows with a route, and this pass
-  checked it one step further than the last.** Both call `stageAbility` directly; the route is a
-  guarded delegation to `stageAbilitySwap`. Neither passes `a1` nor `onBench` (what that builder
-  overwrites), **and both run on CORNER arms, where every die is a constant** — so the prepended setup
-  turn shifts no coin, which is the objection that would otherwise kill it. NOT DONE: `stageAbility` is
-  the builder for every rule in that block, so the guard has to be measured against a full `--reds`
-  ability run to prove no red demonstration goes NOT CAUGHT. That is a batch, not a rider.
-- **`aurawheel` is the one refused MOVE with a route.** Hunger Switch flips Morpeko's forme at the end
-  of every turn, so two consecutive clicks by one body are the two branches on one board — the same
-  shape as `move/type-changing`'s weather arm. Morpeko is legal (`isNonstandard: null`) and buildable
-  (`mcKey` resolves). It needs a new arm in that rule; a half-written rule is worse than a declared gap.
+- ~~**`magmaarmor` and `slushrush` remain the only CONTROL-NOT-QUIET rows with a route.**~~ **SPLIT
+  2026-09-12.** The guarded delegation was built and measured. **`slushrush` CLOSED** (top corner, 18
+  real leaves). **`magmaarmor` WITHDRAWN and still open (#608)**: the prose above was right that a
+  corner arm shifts no coin and missed that the LENT ABILITY is live on one of those corners — the
+  quiet set cannot see `onCriticalHit = false` because it tests `typeof === 'function'`, so the swapper
+  lends Shell Armor into `bottom-tie-first` where every crit lands.
+- ~~**`aurawheel` is the one refused MOVE with a route.**~~ **CLOSED 2026-09-12** — `formeFlipStaging`,
+  with every part derived from the format rather than Morpeko named by hand. #607.
 - **`yawn`, `curse` and `healblock` are COMPARABLE TODAY and deliberately unwired.** All three read BOTH
   once the probe's reader was fixed. They are held for BLAST RADIUS alone: unlike attract, which cannot
   exist without a declared gender, these land in ordinary play, so wiring them changes what every game

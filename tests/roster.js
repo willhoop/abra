@@ -2982,6 +2982,11 @@ function carrierBody(o) {
     if ((o.not || []).some(x => x && idOf(x) === idOf(sp.id))) continue;
     if (o.type && dex.getImmunity(o.type, sp.types) === false) continue;
     if (o.immuneTo && dex.getImmunity(o.immuneTo, sp.types) !== false) continue;
+    /* THE OTHER HALF OF `immuneTo`, and a rule that converts a type needs BOTH: a defender immune to
+     * the move's printed type proves turn 1 deals nothing, and a defender NOT immune to what it
+     * converts INTO is what makes turn 2 a number. One without the other reads 0 on both turns and the
+     * conversion is invisible. */
+    if (o.notImmuneTo && dex.getImmunity(o.notImmuneTo, sp.types) === false) continue;
     if (o.hasType && !sp.types.some(t => t === o.hasType)) continue;
     return mon(sp.id, '', carrierAbility(sp), []);
   }
@@ -2994,6 +2999,75 @@ function noBodyWhy(o) {
     + 'legal, buildable body carrying an ability with no `on*` key at all, plus the two crit armours), '
     + 'and none of them satisfies ' + JSON.stringify(o || {}) + '. This is a limit of the FORMAT\'s '
     + 'ability list, not of the engine: printed by --rules.';
+}
+
+/* ---- THE FORME KNOB, DERIVED FROM THE FORMAT AND NEVER FROM THE MOVE'S NAME — 2026-09-12 ---------
+ *
+ * `move/type-changing`'s forme branch is right that a FORME is not a knob: two formes are two SPECIES,
+ * so staging one of them and reading a damage number proves only that the move deals damage. IT IS
+ * WRONG WHENEVER THE FORMAT ITSELF FLIPS THE FORME UNDER ONE BODY, because then the two branches are
+ * the same body on the same board a turn apart — exactly the shape that rule's weather arm uses.
+ *
+ * EVERY PART OF THIS IS READ OFF THE FORMAT, because the alternative is typing a Pokemon fact:
+ *   the TABLE     the move's own `onModifyType`, already parsed by the caller into `<forme> -> <type>`
+ *   the FLIP      an ability whose own `onResidual` calls `formeChange` AND whose source names one of
+ *                 those formes. Not a name and not a list — an ability added later is picked up.
+ *   the USER      a legal, buildable species carrying that ability which legally learns this move and
+ *                 whose OWN name is not the keyed forme, so it starts on the `otherwise` branch and
+ *                 flips INTO the keyed one at the end of turn 1.
+ *   the DEFENDER  immune to the move's PRINTED type and NOT immune to what it converts into. Both
+ *                 halves, or the reading is 0 on both turns and the conversion is invisible.
+ *
+ * THE COMPARISON IS CATEGORICAL RATHER THAN A DAMAGE NUMBER: turn 1 must deal NOTHING and turn 2 must
+ * deal damage, from one body clicking one move twice. An engine that never flips the forme reads 0 on
+ * both turns and parts from the authority; one that flips it but prices the old type does the same.
+ *
+ * IT PRINTS WHAT IT MATCHED before anything is believed, and it returns `{ why }` rather than null on
+ * every refusal, so the row's COULD-NOT-STAGE text carries the measured reason this route was shut. */
+function formeFlipStaging(e, formes, arm) {
+  const pairs = formes.map(s => { const i = s.indexOf(' -> ');
+    return { forme: s.slice(0, i).trim(), type: s.slice(i + 4).trim() }; });
+  if (!repeatable(e)) return { why: 'the move disables itself after one click, so the two consecutive '
+    + 'clicks the flip needs cannot be scripted at all' };
+  const flips = dex.abilities.all().filter(a => a.exists && !a.isNonstandard
+    && typeof a.onResidual === 'function' && /formeChange\(/.test(String(a.onResidual))
+    && pairs.some(p => String(a.onResidual).includes(p.forme)));
+  if (!flips.length) return { why: 'no legal ability in this format flips any of the formes its table '
+    + 'names (' + pairs.map(p => p.forme).join(', ') + ') from its own onResidual, so nothing varies '
+    + 'the forme on one board without a second body' };
+  const legal = s => s.exists && !s.isNonstandard && s.tier !== 'Illegal';
+  for (const ab of flips) {
+    for (const p of pairs) {
+      const users = dex.species.all().filter(s => legal(s) && !s.battleOnly && !s.forme.endsWith('Mega')
+        && idOf(s.name) !== idOf(p.forme)
+        && Object.values(s.abilities || {}).some(n => idOf(n) === ab.id)
+        && learnsLegally(s.id, e.id) && buildableSpecies(s.id));
+      if (!users.length) continue;
+      const user = users[0];
+      const def = carrierBody({ immuneTo: e.type, notImmuneTo: p.type });
+      if (!def) continue;
+      console.log('  [FORME FLIP] ' + e.id + ' — ' + ab.name + ' flips ' + user.name + ' into '
+        + p.forme + ' at the end of every turn, so click 1 is ' + e.type + ' and click 2 is ' + p.type
+        + '; defender ' + pretty(def.species) + ' is immune to ' + e.type + ' and not to ' + p.type);
+      const b1 = quietBody({ arm, not: [def.species] });
+      return { scenario: scaffold({ hpA: 4, hpB: 8,
+          a0: mon(user.id, '', ab.name, [e.id]),
+          b0: { ...def, moves: [INERT] },
+          b1: b1 ? { ...b1, moves: [INERT] } : null,
+          script: [turn([throwIt(e, 0), IDLE], [IDLE, IDLE]),
+                   turn([throwIt(e, 0), IDLE], [IDLE, IDLE])] }),
+        note: 'THE FORME IS THE KNOB AND ' + ab.name + ' TURNS IT: ' + user.name + ' clicks '
+            + e.name + ' at ' + pretty(def.species) + ' twice, and ' + ab.name + ' flips it into '
+            + p.forme + ' at the end of turn 1. The defender is immune to ' + e.type
+            + ' — the printed type — and not to ' + p.type + ', so turn 1 must deal NOTHING and turn 2 '
+            + 'must deal damage. IDENTICAL BOARDS ON THE TWO TURNS MEAN THE TYPE NEVER CHANGED, which '
+            + 'is a categorical reading rather than a damage number.' };
+    }
+  }
+  return { why: 'a flip ability exists (' + flips.map(a => a.name).join(', ') + ') and the fixture '
+    + 'does not: no legal, buildable species carries it, legally learns this move and starts on a '
+    + 'forme other than the keyed one, with a body in the format immune to the printed type '
+    + e.type + ' and not immune to what it converts into' };
 }
 /* THE MOVE STAGE'S AGGRESSOR IS NOT `CAST.ATTACKER`, AND THE REASON IS ON THE BOARD. Dragapult carries
  * INFILTRATOR, which the cast header defends as harmless because "a screen or a Substitute" is
@@ -3888,6 +3962,79 @@ function stageAbilitySwap(e, C, o) {
 function stageAbilityAnyTier(e, C, o) {
   if (!C) return cannot(scopeCannot(e));
   return C.tier === 'ALTERNATE' ? stageAbility(e, C, o) : stageAbilitySwap(e, C, o);
+}
+
+/* ---- A QUIET CONTROL FOR A HAND-WRITTEN RULE'S OWN CARRIER — 2026-09-12 --------------------------
+ *
+ * `abilityScenario` already prefers the in-play SKILL SWAP control whenever an ALTERNATE carrier's own
+ * sheet offers nothing quiet (`swapForQuiet`), and that is what moved thirteen rows out of
+ * CONTROL-NOT-QUIET. A HAND-WRITTEN RULE THAT BUILDS ITS OWN SCENARIO NEVER REACHED IT: `stageAbility`
+ * is the builder for that whole block and it takes the carrier's other SHEET ability, live or not. So
+ * `magmaarmor` (Camerupt, controlled by Solid Rock) and `slushrush` (Beartic, controlled by Swift Swim)
+ * stayed unattributable for a reason about which BUILDER their rule happened to call — not about the
+ * ability, the carrier or the format.
+ *
+ * THE GUARD IS THAT SAME CONDITION PLUS WHAT THIS BUILDER CANNOT CARRY. `stageAbilitySwap` writes side
+ * A slot 1 itself (the swapper), prepends a setup turn, and knows nothing about a bench carrier or a
+ * declared gender — so a rule that passes any of those keeps `stageAbility`, and the refusal is
+ * PRINTED rather than taken silently: a fallback nobody can see is indistinguishable from a working
+ * feature (CLAUDE.md, and this file's own INERT-staging history).
+ *
+ * IT IS OPT-IN PER RULE, WHICH IS THE WHOLE POINT. Only the two rules named above call this door; every
+ * other rule in the block still calls `stageAbility` directly and its fixture is byte-identical. That
+ * is what makes "nothing else moved" a MEASUREMENT on a full `--reds` run rather than an argument.
+ *
+ * WHY THE PREPENDED SETUP TURN IS SAFE HERE WHEN IT IS NOT SAFE FOR `entry`/`residual`: both rules run
+ * on a CORNER arm (`top-tie-first`, `bottom-tie-first`) where every die is a constant, so a turn's
+ * worth of rolls shifts no coin; and neither reads a boundary INDEX as its gate — the sky is up from
+ * boundary 0 in both arms, and the refusal rule reads the carrier's `status` field on every turn. */
+const SWAP_DELEGATED = [], SWAP_DELEGATION_REFUSED = [];
+function stageAbilityQuiet(e, C, o) {
+  if (!C) return cannot(scopeCannot(e));
+  /* the carrier's own sheet already offers a quiet control — keep the rule's exact fixture */
+  if (!(C.tier === 'ALTERNATE' && C.control && !QUIET_SET.has(idOf(C.control))))
+    return stageAbility(e, C, o);
+  /* ---- AND IT IS REFUSED ON THE BOTTOM CORNER — MEASURED AND WITHDRAWN, 2026-09-12 ---------------
+   *
+   * THE LENT ABILITY IS NOT AS QUIET AS THE QUIET SET THINKS. `QUIET` (line ~370) excludes an ability
+   * that registers a handler, and its predicate is `typeof a[k] === 'function'` — so it CANNOT SEE a
+   * boolean. Asked of the format: `shellarmor` and `battlearmor` carry `onCriticalHit = false`, a data
+   * field and not a function, so both sit in the quiet set and `SWAPPER` lends Shell Armor.
+   *
+   * ON `top-tie-first` THAT IS HARMLESS — no crit lands in either arm. ON `bottom-tie-first` EVERY
+   * CRIT LANDS, so the control arm's holder takes no crit and the subject arm's does, and the row
+   * measures the SWAPPER'S crit block instead of the entity.
+   *
+   * MEASURED, on release 534442d71183, and this is why the guard exists rather than an argument:
+   * `magmaarmor` went CONTROL-NOT-QUIET -> FIRED-AND-BOARDS-MATCH under the delegation, and its ENTIRE
+   * delta was `p2.active[0].hp 508/532` then `436/484` with NO `status` leaf on any turn — while the
+   * four rows of that rule which keep their sheet control all show theirs (`/psn`, `/slp`, `/par`).
+   * Magma Armor refuses FREEZE; a row that never writes a status leaf is not reading the refusal.
+   *
+   * So the delegation is withdrawn from every rule that asks for the bottom corner. The row goes back
+   * to being a DECLARED GAP, which is worth more than a green measuring the control. */
+  const why = [o.a1 ? 'the rule writes its own side-A slot 1, which the swap builder overwrites' : null,
+               o.onBench ? 'the carrier starts on the bench, which the swap builder does not express' : null,
+               o.gender ? 'the rule declares a gender, which the swap builder does not carry' : null,
+               o.arm === BOTTOM_ARM ? 'this rule runs on ' + BOTTOM_ARM + ', where every crit lands, '
+                 + 'and the swapper lends an ability the quiet set only calls quiet because its whole '
+                 + 'content is the BOOLEAN `onCriticalHit: false` — so the control would block a crit '
+                 + 'the subject arm takes and the row would measure the control (MEASURED: magmaarmor, '
+                 + 'whose entire delta was HP with no status leaf)' : null,
+               swapRefused(e.id) ? 'the format flags this ability `failskillswap`' : null,
+               swapControlWorks().ok ? null : 'the Skill Swap proof is red: ' + swapControlWorks().why]
+    .filter(Boolean);
+  if (why.length) {
+    SWAP_DELEGATION_REFUSED.push(e.id + ': ' + why.join('; '));
+    console.log('  [SWAP CONTROL NOT TAKEN] ' + e.id + ' keeps its LIVE sheet control '
+      + pretty(C.control) + ' — ' + why.join('; '));
+    return stageAbility(e, C, o);
+  }
+  SWAP_DELEGATED.push(e.id + ' (was ' + pretty(C.control) + ')');
+  console.log('  [SWAP CONTROL] ' + e.id + ' — its only sheet control ' + pretty(C.control)
+    + ' is a LIVE ability, so the control is an in-play Skill Swap lending '
+    + (SWAPPER ? SWAPPER.ability + ' off ' + SWAPPER.name : '?'));
+  return stageAbilitySwap(e, C, o);
 }
 
 /* A DERIVED HIT THAT LANDS A BODY IN A NAMED HP BAND, thrown by a named attacker. The pinch family is
@@ -7714,7 +7861,7 @@ const RULES = [
         + 'its own and its x' + mult + ' Speed AND that either dies to one of its hits or throws back a drop '
         + 'of the stat its hit uses — without one of those the multiplier changes no leaf of the board'));
       const ord = speedOrderFoe(C2.sp, mult);
-      return stageAbility(e, C2, { hpA: 4, hpB: 1, moves: [ord.holderMove.id],
+      return stageAbilityQuiet(e, C2, { hpA: 4, hpB: 1, moves: [ord.holderMove.id],
         note: set.ability + ' on the partner raises ' + W[0] + ' at boundary 0; ' + ord.speeds + '. No body '
             + 'the carrier can kill sits in that window, so the order is read without a KO: ' + ord.foe.name
             + ' (' + ord.ability + ', 4x HP) clicks ' + ord.foeMove.name + ' at the carrier and the carrier '
@@ -7726,7 +7873,7 @@ const RULES = [
                  turn([IDLE, IDLE], [IDLE, IDLE])] });
     }
     flip = speedFlipFoe(C.sp, mult);
-    return stageAbility(e, C, { hpA: 1, hpB: 1, moves: [flip.holderMove.id],
+    return stageAbilityQuiet(e, C, { hpA: 1, hpB: 1, moves: [flip.holderMove.id],
       note: set.ability + ' on the partner raises ' + W[0] + ' at boundary 0; ' + flip.speeds
           + ' (' + flip.foe.name + ', ' + flip.ability + ')'
           + ', the carrier\'s ' + flip.holderMove.name + ' kills outright and the foe\'s click is '
@@ -8494,7 +8641,10 @@ const RULES = [
                 control2: altAbility2(pick.sp, e.id) };
     const shot = { m: pick.mv.id, t: 0, mayMiss: 'the bottom pin lands every sub-100 click and fires '
       + 'every secondary, which is the only corner in which this status can be written at all' };
-    return stageAbility(e, C, { hpA: 4, hpB: 4, moves: [INERT], arm: BOTTOM_ARM,
+    /* THE SWAP CONTROL IS NOT AVAILABLE TO THIS RULE and the refusal is measured rather than assumed —
+     * see the bottom-corner guard in `stageAbilityQuiet`. Called through that door anyway, so the
+     * refusal PRINTS on every run instead of this call site quietly knowing better than the guard. */
+    return stageAbilityQuiet(e, C, { hpA: 4, hpB: 4, moves: [INERT], arm: BOTTOM_ARM,
       note: pretty(pick.thrower.id) + ' clicks ' + pick.mv.name + ' at ' + pick.sp.name + ' twice. '
           + 'WITHOUT the ability the carrier must end up "' + pick.st + '"; with it, the status field '
           + 'must stay empty — the REFUSAL is the reading. Neither ' + pick.sp.name + '\'s typing nor '
@@ -9243,6 +9393,33 @@ const RULES = [
     return abilityScenario(e, C, 'entry');
   } },
 
+/* ---- A RULE FOR OPPORTUNIST WAS WRITTEN, MEASURED AND WITHDRAWN — 2026-09-12 ---------------------
+ *
+ * `onFoeAfterBoost` matches exactly one entity in this regulation (printed before it was wired;
+ * Mirror Herb carries the same mechanic as an ITEM and the format marks it `isNonstandard: 'Past'`).
+ * A rule was added here that staged the condition the ability actually reads — a foe clicking a pure
+ * self-boost — and controlled it with an in-play Skill Swap, because Espathra's own sheet offers only
+ * Frisk and Speed Boost and both are live. IT PRODUCED A GREEN AND THE GREEN WAS VACUOUS, and the only
+ * thing that caught it was the red demonstration, which read NOT CAUGHT.
+ *
+ * WHAT WAS MEASURED, on release 534442d71183: the row's ENTIRE `sd_delta` is twenty leaves and NOT ONE
+ * of them is a boost — `p1.active[1].ability shellarmor/opportunist` and its party row (the SWAPPER
+ * describing itself, on side A, which the swap-leaf correction does not reach: that stage printed
+ * `0 leaves DROPPED`), `p2.active[0].ability`, `pp.skillswap`, `pp.focusenergy` and
+ * `vol.focusenergy` — the control arm spending a click the subject arm idles. `us_delta` is 0 and
+ * `subject_diffs` is 0. NEITHER ENGINE COPIED ANYTHING, so the two agreed about a board on which the
+ * ability never acted, and breaking the copy could not move what was never there.
+ *
+ * SO THE ROW IS NOT OWED A BETTER CONTROL, IT IS OWED A FIXTURE IN WHICH THE COPY HAPPENS. Until
+ * something MEASURES a board where `boosts` moves on the holder, Opportunist stays with
+ * `ability/residual` and stays CONTROL-NOT-QUIET, which is a declared gap rather than a green.
+ *
+ * AND THE TWENTY LEAVES ARE A FINDING ABOUT THE INSTRUMENT, recorded because it is larger than this
+ * row: a Skill Swap control arm moves the swapper's own `.ability`, its PP and its volatile BY
+ * CONSTRUCTION, on the side the swap-leaf correction does not cover — so the INERT gate cannot fire
+ * for any swap-controlled row. That is the Focus Sash defect (the control arm describing itself) on
+ * the ability axis. Every swap-controlled green needs to rest on a leaf that is not one of those, and
+ * this pass checked its own. */
 { id: 'ability/residual', kind: 'ability',
   reads: 'onResidual',
   why: 'AGAIN THE MOMENT, and this family is where this engine has already been wrong twice. The '
@@ -11001,16 +11178,21 @@ const RULES = [
       if (/switch\s*\(\s*\w+\.species\.(?:name|id)\s*\)/.test(src))
         for (const x of src.matchAll(/case\s*['"]([\w-]+)['"]\s*:[\s\S]{0,60}?type\s*=\s*['"]([A-Z][a-z]+)['"]/g))
           formes.push(x[1] + ' -> ' + x[2]);
-      if (formes.length) return cannot('ITS TYPE IS KEYED ON THE USER\'S FORME, and the table is '
-        + 'derived from its own onModifyType rather than missing: ' + formes.join(', ')
-        + ' (printed type ' + e.type + '). A forme is not a knob that can be varied on one board — '
-        + 'the formes are different SPECIES with different stats — so isolating the conversion needs '
-        + 'two users and a cross-comparison this rule\'s scaffold does not express, and staging one '
-        + 'forme would read as a damage number that proves only that the move deals damage. '
-        + (/morpeko/i.test(src) ? 'THIS ONE HAS A KNOB: Hunger Switch flips Morpeko\'s forme at the '
-            + 'end of every turn, so two consecutive clicks by one body are the two branches on one '
-            + 'board — the same shape as the weather arm. Owed, not impossible.'
-          : 'Its users are separate species and it has no such knob.'));
+      /* AND WHERE THE FORMAT FLIPS THE FORME ITSELF, THE KNOB IS TAKEN — 2026-09-12. The paragraph
+       * above named Morpeko by hand as the one with a knob; `formeFlipStaging` DERIVES that from the
+       * ability list instead, so the refusal below is now a measured one rather than a typed one. */
+      if (formes.length) {
+        const F = formeFlipStaging(e, formes, arm);
+        if (F.scenario) return { arm, note: F.note + armNote(e), scenario: F.scenario };
+        return cannot('ITS TYPE IS KEYED ON THE USER\'S FORME, and the table is '
+          + 'derived from its own onModifyType rather than missing: ' + formes.join(', ')
+          + ' (printed type ' + e.type + '). A forme is not a knob that can be varied on one board — '
+          + 'the formes are different SPECIES with different stats — so isolating the conversion needs '
+          + 'two users and a cross-comparison this rule\'s scaffold does not express, and staging one '
+          + 'forme would read as a damage number that proves only that the move deals damage. THE '
+          + 'RESIDUAL-FLIP ROUTE — one body, two clicks, the forme turned under it by an ability — WAS '
+          + 'TRIED AND IS SHUT HERE: ' + F.why);
+      }
       return cannot('the condition that changes its type is not named in its own '
         + 'description, so no staging can be derived from the move\'s data: ' + (e.shortDesc || '(none)'));
     }

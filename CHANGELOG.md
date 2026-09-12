@@ -10,6 +10,63 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.34.0] — 2026-09-12
+
+### Added
+- **A hand-written ability rule can now take the quiet control, and Slush Rush closes.** `stageAbility`
+  is the builder for every rule in that block and it takes the carrier's other SHEET ability, live or
+  not, so `ability/weather-speed` never reached the in-play Skill Swap control that `abilityScenario`
+  already takes. `stageAbilityQuiet` is that door, under the same guard plus the three things
+  `stageAbilitySwap` cannot carry (`a1`, `onBench`, `gender`). **Opt-in per rule**, so every other rule
+  builds a byte-identical fixture — which is what makes "nothing else moved" a measurement rather than
+  an argument — and it PRINTS what it matched on every run, firing and refusing alike. `slushrush`
+  CONTROL-NOT-QUIET → FIRED-AND-BOARDS-MATCH on 18 real non-bookkeeping leaves. ROADMAP #607.
+- **Aura Wheel is staged, and the forme knob is DERIVED instead of named.** The old refusal named
+  Morpeko by hand as "the one with a knob". `formeFlipStaging` reads the table off the move's own
+  `onModifyType`, the flip off any ability whose `onResidual` calls `formeChange` and names one of those
+  formes, the user off the legal buildable learners whose own name is not the keyed forme, and the
+  defender as immune to the PRINTED type and NOT immune to what it converts into (`carrierBody` gained
+  `notImmuneTo` — both halves, or the reading is 0 on both turns). Turn 1 must deal NOTHING and turn 2
+  damage: categorical, not a damage number. `aurawheel` COULD-NOT-STAGE → FIRED-AND-BOARDS-MATCH.
+  **Raging Bull is the control and still refuses**, now by measurement — no legal ability in this format
+  flips any of the three formes its table names. ROADMAP #607.
+
+### Fixed
+- **The delegation was measuring the SWAPPER on the bottom corner, and it was withdrawn there.**
+  `QUIET`'s predicate is `typeof a[k] === 'function'`, so it **cannot see a boolean**, and `shellarmor`
+  and `battlearmor` carry `onCriticalHit = false`. The swapper therefore lends Shell Armor, and
+  `ability/refuses-one-status` runs on `bottom-tie-first` **where every crit lands**. MEASURED:
+  `magmaarmor` read green with an entire delta of `hp 508/532` then `436/484` and **no `status` leaf on
+  any turn**, against a FREEZE it exists to refuse — while the four rows of that rule which keep their
+  sheet control all show theirs. `stageAbilityQuiet` now refuses the bottom corner with that measurement
+  as its printed reason; `magmaarmor` returns to CONTROL-NOT-QUIET, a declared gap being worth more than
+  a green measuring the control. The guard is not the fix: ROADMAP #608 is open.
+
+### Removed
+- **A rule for Opportunist was written, measured and withdrawn entire.** `onFoeAfterBoost` matches
+  exactly one entity in this regulation (Mirror Herb is `isNonstandard: 'Past'`), and a rule staging the
+  condition it actually reads — a foe clicking a pure self-boost — came back FIRED-AND-BOARDS-MATCH with
+  its own rule **NOT CAUGHT**. The leaves say why: 20 in `sd_delta` and **not one a boost** (the
+  swapper's `.ability`, the carrier's `.ability`, `pp.skillswap`, `pp.focusenergy`, `vol.focusenergy`),
+  with `us_delta` and `subject_diffs` both **0**. Neither engine copied anything, so breaking the copy
+  could not move what was never there. Opportunist stays CONTROL-NOT-QUIET and is owed a fixture in
+  which the copy demonstrably lands, not a better control. ROADMAP #609.
+
+### Notes
+- **Counts, release `534442d71183`, three stages `--reds --write`:** abilities **176 → 177 MATCH,
+  3 → 2 CONTROL-NOT-QUIET**, moves **486 → 487 MATCH, 8 → 7 COULD-NOT-STAGE**, items **148 UNMOVED as
+  the control**. All three stages 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE; anchors **22/22, 45/45,
+  36/36** apply exactly once; reds **22 / 45 / 36 CAUGHT, zero NOT CAUGHT**. Gate OPEN,
+  `engine/quarantine.js` exit 0.
+- **No engine byte changed, so no release was cut** and the census was not regenerated (nothing it
+  probes could have moved). `tests/roster.js` is not one of the 27 frozen `SOURCES` — checked by reading
+  `ER.SOURCES` this pass rather than inherited.
+- **A finding larger than the row that exposed it (#609, open):** a Skill Swap control arm moves the
+  swapper's own `.ability`, PP and volatile **by construction**, on the side the swap-leaf correction
+  does not cover — that stage prints `0 leaves DROPPED`. So the INERT gate cannot fire for any
+  swap-controlled row. This pass checked its own swap-controlled greens leaf by leaf; the 13 landed by
+  the previous pass have **not** been re-checked.
+
 ## [6.33.0] — 2026-09-12
 
 ### Fixed
