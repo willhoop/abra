@@ -1,10 +1,10 @@
 {
-  "current": "48ac1c228e02",
-  "cut": "2026-09-12T08:20:37.941Z",
+  "current": "8ad1ab5e1f86",
+  "cut": "2026-09-12T12:30:21.662Z",
   "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "cuts": 103,
-  "latest_cut": "2026-09-12T08:32:21.507Z",
-  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
-  "pointer_written": "2026-09-12T08:32:21.565Z",
+  "cuts": 8,
+  "latest_cut": "2026-09-12T12:43:54.021Z",
+  "latest_why": "Heal Bell cures the party, a spread item click says its refusals first, and the turn-boundary real-type broadcast exists",
+  "pointer_written": "2026-09-12T12:43:54.036Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

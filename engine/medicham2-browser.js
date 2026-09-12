@@ -2566,6 +2566,26 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * construction: only a damaging-hit punisher fits in that gap. */
   recoilRefusedOnCorpse: 0,
   forcedBerryEaten: 0, forcedBerryEffectUnexpressed: 0, teatimeFieldPass: 0, stuffCheeksNoBerry: 0,
+  /* 2026-09-12 -- HEAL BELL. Three counters and not one, because the three answers mean different
+     things: a body CURED, an ACTIVE ally the handler's own ability gate turned away, and a click that
+     cured nobody and therefore failed. A single total could not tell a working party cure from one
+     that only ever reaches the user. `partyCureBenchCured` is split out because the BENCH is the half
+     a two-slot board cannot see and is the whole reason this row was board-material. */
+  partyStatusCured: 0, partyCureBenchCured: 0, partyCureRefusedByAbility: 0, partyCureFailed: 0,
+  /* the companion to MEDFAILS.traceBodyOffField -- a body the identifier resolved through the PARTY
+     rather than through the two active slots. Non-zero only while a benched body is being named. */
+  traceBodyOnBench: 0,
+  /* THE ITEM BRANCH'S TWO PASSES, COUNTED SEPARATELY, because the ORDER fix is only observable when
+     both are non-zero on the same click: a target the gauntlet turned away, and a target that
+     survived to lose an item. A pair like `refused 2 / effects 1` is the Corrosive Gas row exactly.
+     Counting "more than one survivor" instead was the first version of this and it read ZERO on the
+     very fixture the fix was written for -- a counter that cannot fire is not a counter. */
+  spreadItemGauntletRefused: 0, spreadItemEffects: 0,
+  /* THE TWO HALVES OF THE BOTTOM-SCREEN TYPE BROADCAST, kept apart because only one of them is the
+     line: `HeldBack` is a handler declining to update the apparent typing (Reflect Type at a foe),
+     and `Broadcast` is the turn boundary leaking it. A HeldBack with no Broadcast means the body left
+     or died before the boundary; a Broadcast with no HeldBack is impossible and would be a bug. */
+  apparentTypeHeldBack: 0, apparentTypeBroadcast: 0,
   /* 2026-08-23 -- a berry REFUSED because an Unnerve body was standing opposite. It counts the
      REFUSAL and not the walk, so it cannot rise merely because the reader was called; a zero on a
      corpus with an Unnerve carrier and a berry holder in it means the gate is unreachable. It rises
@@ -4935,6 +4955,20 @@ const TRACE=(function(){
     if(S){
       let i=S.actA?S.actA.indexOf(m):-1; if(i>=0)return 'p1'+(SLOTCH[i]||'?')+': '+identName(m);
       i=S.actB?S.actB.indexOf(m):-1;     if(i>=0)return 'p2'+(SLOTCH[i]||'?')+': '+identName(m);
+      /* 2026-09-12 -- A BENCHED BODY HAS AN IDENTIFIER AND IT IS NOT `??`. `Pokemon#toString`
+       * (sim/pokemon.ts) is `this.isActive ? fullname[0..2] + getSlot()[2..] + fullname[2..] :
+       * fullname`, and `fullname` is `p1: Name` -- so the SLOT LETTER is what an active body adds,
+       * and a benched one prints the bare side. Staged rather than read: Heal Bell over a party
+       * whose third and fourth members are statused writes
+       * `|-curestatus|p1: Bastiodon|par|[msg]` and `|-curestatus|p1: Blastoise|psn|[msg]`.
+       *
+       * IT WAS UNREACHABLE UNTIL NOW and that is why the `??` fallback stood: no line this engine
+       * emitted had ever named a body off the field. Heal Bell is the first. The fallback below
+       * still counts the case this cannot resolve -- a body in NEITHER the actives nor the party --
+       * which is a real fault and must not be laundered into a plausible identifier. */
+      const _pt=(S.sfA&&Array.isArray(S.sfA.team)&&S.sfA.team.indexOf(m)>=0)?'p1'
+               :((S.sfB&&Array.isArray(S.sfB.team)&&S.sfB.team.indexOf(m)>=0)?'p2':null);
+      if(_pt){MEDSEEN.traceBodyOnBench++;return _pt+': '+identName(m);}
     }
     MEDFAILS.traceBodyOffField++;
     if(!MEDFAILS.traceBodyOffFieldFirst)MEDFAILS.traceBodyOffFieldFirst=String((m&&m.name)||'');
@@ -5931,6 +5965,17 @@ const VOLLEY_IGNORES_USER_FAINT=_MK('MEDI_VOLLEY_IGNORES_USER_FAINT');
 /* batch 2 + 3 of the same pass */
 const LAYER_REFUND_IGNORES_NO_FOE=_MK('MEDI_LAYER_REFUND_IGNORES_NO_FOE');
 const REFLECT_TYPE_UNMODELLED=_MK('MEDI_REFLECT_TYPE_UNMODELLED');
+/* 2026-09-12 -- puts Heal Bell back on the terminal `{kind:'pass'}` it reached for the whole life of
+ * this engine, so the board-material roster row can be shown RED rather than asserted.
+ * tests/probe_heal_bell_party.js is the arm. */
+const PARTY_CURE_UNMODELLED=_MK('MEDI_PARTY_CURE_UNMODELLED');
+/* 2026-09-12 -- puts the item branch's single interleaved pass back, so `ordering :: -enditem before
+ * -activate` on the Corrosive Gas row can be shown RED. tests/probe_spread_item_order.js is the arm. */
+const SPREAD_ITEM_INTERLEAVED=_MK('MEDI_SPREAD_ITEM_INTERLEAVED');
+/* 2026-09-12 -- silences the turn-boundary real-type broadcast, so the Reflect Type row's
+ * `medicham2 stopped emitting while showdown continued` can be shown RED.
+ * tests/probe_apparent_type_broadcast.js is the arm. */
+const APPARENT_TYPE_BLIND=_MK('MEDI_APPARENT_TYPE_BLIND');
 /* The target classes that name a BODY. A pivot aimed at one of these with nobody left to aim at has
  * `[notarget]` written and fails; a field- or self-aimed pivot (Chilly Reception) never has a body. */
 const PIVOT_AIMS_AT_BODY=new Set(['normal','any','adjacentFoe','randomNormal']);
@@ -25238,6 +25283,12 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * hygiene rather than a second guard -- but leaving a stale slot on a body that has been to the
    * bench is the same half-cleared shape the comment above is about. */
   out._lastAim=null;
+  /* 2026-09-12 -- AND THE HELD-BACK APPARENT TYPE GOES WITH THE BODY. `clearVolatile` ends in
+   * `setSpecies(this.baseSpecies)` (data/mods/champions/scripts.ts:176), and `setSpecies` writes
+   * `apparentType = rawSpecies.types.join('/')` (sim/pokemon.ts:1399) beside the type reset -- so a
+   * body that pivots out and back has the two IN STEP and owes no broadcast. Leaving the string on
+   * the body would fire a `[silent]` typechange for a Reflect Type the body no longer carries. */
+  out._apparentTypes=null;
   /* _disguiseBusted IS DELIBERATELY NOT CLEARED HERE. A Mimikyu that leaves and comes back does not
    * get a second disguise -- the forme change lasts the battle. It sits beside these two because the
    * natural instinct on reading this line is to reset every underscore flag alongside them, and that
@@ -27286,6 +27337,52 @@ function battleTurn(S,rng,actsForA,actsForB){
   const live=_live;
   /* Showdown prints `|turn|N` at the TOP of the turn it is about to play; S.turn is incremented at
    * the bottom of this function, so the turn about to run is S.turn + 1. */
+  /* ==== 2026-09-12 -- THE BOTTOM-SCREEN TYPE BROADCAST, AND IT IS A HIDDEN-INFORMATION LINE. =====
+   *
+   * `data/all-mechanics-fire.json`'s `moves.reflecttype` row, release 48ac1c228e02:
+   *     medicham2 stopped emitting while showdown continued :: |-start|p1a|typechange|water
+   *     showdown  |-start|p1a: Gengar|typechange|Water|[silent]      (after |upkeep, before |turn|2)
+   *     medicham  (emitted nothing further)
+   * -- the two streams agree line for line through the whole turn and then the authority writes one
+   * more line that this engine has never had.
+   *
+   * `Battle#nextTurn`, sim/battle.ts:1709-1721, read whole:
+   *     if (this.gen >= 7 && !pokemon.terastallized) {
+   *       // In Gen 7, the real type of every Pokemon is visible to all players via the bottom screen
+   *       const seenPokemon = pokemon.illusion || pokemon;
+   *       const realTypeString = seenPokemon.getTypes(true).join('/');
+   *       if (realTypeString !== seenPokemon.apparentType) {
+   *         this.add('-start', pokemon, 'typechange', realTypeString, '[silent]');
+   *         seenPokemon.apparentType = realTypeString;
+   *         if (pokemon.addedType) this.add('-start', pokemon, 'typeadd', pokemon.addedType, '[silent]');
+   *       }
+   *     }
+   *
+   * WHY IT ALMOST NEVER FIRES, AND WHY THAT IS THE WHOLE MECHANIC. `Pokemon#setType` ends in
+   * `this.apparentType = this.types.join('/')` (sim/pokemon.ts:2131), so an ordinary type write --
+   * Soak, Conversion, Camouflage, Protean, a forme change -- leaves the two IN STEP and this line
+   * cannot fire. Exactly one legal handler pulls them apart on purpose:
+   *
+   *     reflecttype.onHit:  const oldApparentType = source.apparentType;   ... source.setType(...)
+   *                         source.knownType = target.isAlly(source) && target.knownType;
+   *                         if (!source.knownType) source.apparentType = oldApparentType;
+   *
+   * A Reflect Type aimed at a FOE deliberately does NOT tell the room what the user turned into, and
+   * the broadcast then leaks it on the owner's own screen at the next turn boundary. Aimed at an
+   * ALLY, `knownType` stays true, the restore never happens, and NO line follows -- so the ally arm
+   * is a control this fix must not break.
+   *
+   * SO THE HOLD-BACK IS MODELLED AND THE SWEEP IS GENERAL. `_apparentTypes` is null on a body whose
+   * apparent typing is in step (which is every body, almost always) and is a STRING only while a
+   * handler is holding one back. That is why nineteen `.types=` write sites did not have to be
+   * threaded: a site that does not hold anything back cannot make this fire, which is the authority's
+   * own arrangement rather than a shortcut.
+   *
+   * `addedType` HAS NO MEMBER IN THIS ENGINE and the second line is therefore not emitted; this
+   * engine models an added type by pushing it onto `types` (the `changesTargetType.adds` branch), so
+   * there is no field to read. Named rather than silently skipped.
+   *
+   * `MEDI_APPARENT_TYPE_BLIND=1` restores the silence. tests/probe_apparent_type_broadcast.js. */
   if(TR)TR.turn(S.turn+1);
   /* ROADMAP #231 -- `_TURN:` IS THE LABEL THE WIN CONDITION BREAKS OUT OF, AND IT IS A LABEL RATHER
    * THAN AN `if` BECAUSE THE ALTERNATIVE IS RE-INDENTING SEVEN THOUSAND LINES.
@@ -32856,6 +32953,100 @@ function battleTurn(S,rng,actsForA,actsForB){
         for(const _b of _all)eatHeldBerry(_b);
         continue;
       }
+      /* ==== 2026-09-12 -- HEAL BELL. THE PARTY, NOT THE TWO ACTIVES. =============================
+       *
+       * The ONE move row in data/all-mechanics-fire.json (release 48ac1c228e02) whose BOARDS part and
+       * not only its commentary: `p1 venusaur party.status  showdown ""  we "slp"`, plus the sleep
+       * counter beside it. The click reached the terminal `{kind:'pass'}` and did nothing at all.
+       *
+       * THE AUTHORITY, `data/moves.ts healbell.onHit`, read whole (Champions overrides `moves.ts` and
+       * carries no `healbell`, so mainline's handler IS this format's -- grepped, not assumed):
+       *
+       *     this.add('-activate', source, 'move: Heal Bell');
+       *     let success = false;
+       *     const allies = [...target.side.pokemon, ...target.side.allySide?.pokemon || []];
+       *     for (const ally of allies) {
+       *       if (ally !== source && !this.suppressingAbility(ally)) {
+       *         if (ally.hasAbility('soundproof')) { add('-immune', ally, '[from] ability: Soundproof'); continue; }
+       *         if (ally.hasAbility('goodasgold')) { add('-immune', ally, '[from] ability: Good as Gold'); continue; }
+       *       }
+       *       if (ally.cureStatus()) success = true;
+       *     }
+       *     return success;
+       *
+       * FOUR THINGS FALL OUT AND EVERY ONE WAS STAGED IN THE OFFICIAL SIMULATOR BEFORE THIS WAS
+       * WRITTEN, because three of them are not what reading the handler alone suggests:
+       *
+       *   1. THE ANNOUNCEMENT COMES FIRST AND SURVIVES FAILURE. `|move|p1a: Chimecho|Heal Bell||[still]`
+       *      / `|-activate|p1a: Chimecho|move: Heal Bell` / `|-fail|p1a: Chimecho` -- the activate is
+       *      inside onHit, above `success`, so a Heal Bell that cures nobody still says it rang.
+       *   2. A BENCHED BODY IS NAMED `p1: Blastoise`, NOT `p1a:`. `Pokemon#toString` adds the slot
+       *      letter only for an active body. `ident()` gained the bench arm in the same pass.
+       *   3. A BENCHED SOUNDPROOF ALLY IS CURED. `hasAbility` ends in `!this.ignoringAbility()` and
+       *      `ignoringAbility` opens `if (gen >= 5 && !this.isActive) return true` (sim/pokemon.ts:865,
+       *      1957-1963) -- so the gate is an ACTIVE-body gate. Staged: a benched Bastiodon-Soundproof
+       *      takes `|-curestatus|p1: Bastiodon|par|[msg]`; the same body ACTIVE keeps its paralysis.
+       *      Reading the handler alone would have refused both, which is a strictly worse move.
+       *   4. A FAINTED BODY IS NOT CURED and does not raise `success` -- `cureStatus`'s own opening
+       *      `if (!this.hp || !this.status) return false;`.
+       *
+       * WHAT IS NOT MODELLED HERE, NAMED RATHER THAN SILENT: Soundproof's `onAllyTryHitSide` emits a
+       * SECOND, EARLIER `-immune` for any sound move aimed at its own side -- staged, it fires even
+       * for the USER's own Soundproof and even though the move then resolves normally. That is an
+       * ABILITY-side narration line for every sound move, not a Heal Bell fact, so it is left for the
+       * pass that owns sound moves; nothing in this branch fakes it. `this.suppressingAbility` is
+       * likewise unmodelled here because ability SUPPRESSION is unmodelled engine-wide (see
+       * data/protocol-events.json's `-endability` declaration).
+       *
+       * `MEDI_PARTY_CURE_UNMODELLED=1` puts the click back on the terminal pass.
+       * tests/probe_heal_bell_party.js is the arm and was RED on sixteen of its checks first. */
+      if(a.kind==='partycure'){
+        m._lastMove=a.mv;
+        const _pc=TAGS.param('move',a.mv,'curesPartyStatus')||{};
+        /* THE ANNOUNCEMENT IS THE HANDLER'S FIRST LINE and is emitted before anything is decided. */
+        if(TR&&_pc.announce&&_pc.announce.event==='-activate')TR.act(m,_pc.announce.desc);
+        /* THE WALK ORDER IS `side.pokemon`, AND `sf.team` IS THIS ENGINE'S PERMUTED COPY OF IT --
+           ROADMAP #544 keeps the two in step on every switch-in, which is why this reads the party
+           rather than `[...act, ...bench]`. A side with no party recorded is a caller fault and is
+           counted rather than silently treated as an empty party. */
+        const _sf=m._sf;
+        const _party=(_sf&&Array.isArray(_sf.team)&&_sf.team.length)?_sf.team:null;
+        if(!_party){
+          MEDFAILS.partyCureNoParty=(MEDFAILS.partyCureNoParty||0)+1;
+          if(!MEDFAILS.partyCureNoPartyFirst)MEDFAILS.partyCureNoPartyFirst=String(a.mv);
+          if(TR){TR.attrStill();TR.fail(m);}
+          mvFail(m);continue;
+        }
+        const _onField=(x)=>actA.indexOf(x)>=0||actB.indexOf(x)>=0;
+        let _cured=0;
+        for(const x of _party){
+          if(!x||x.fainted||x.curHP<=0)continue;
+          /* THE ABILITY GATE, AND IT IS AN ACTIVE-BODY GATE (fact 3 above). The user is exempt by
+             IDENTITY (`ally !== source`), never by ability, so the check is ordered exactly as the
+             handler orders it. The list and its lines are the TAG's, read out of the handler, so an
+             ability added to it later needs no edit here. */
+          if(x!==m&&_onField(x)&&Array.isArray(_pc.refusedByAbility)){
+            const _ab=String(x.ability||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+            const _hit=_pc.refusedByAbility.find(r=>r&&r.ability===_ab);
+            if(_hit){
+              MEDSEEN.partyCureRefusedByAbility++;
+              if(TR&&_hit.event==='-immune')TR.imm(x,_hit.desc);
+              continue;
+            }
+          }
+          if(!x.status)continue;
+          const _s0=x.status;
+          x.status='';x.slpTurns=0;x.slpTime=0;x.frzTurns=0;x.toxTurns=0;
+          if(TR)TR.cure(x,_s0,ATTR.cured(false).from);
+          _cured++;MEDSEEN.partyStatusCured++;
+          if(!_onField(x))MEDSEEN.partyCureBenchCured++;
+        }
+        /* `return success` -- and the `-fail` is `useMoveInner`'s generic one on the SOURCE, under an
+           already-blanked `|move|` line, so it goes through mvFail rather than the announced-by-caller
+           road: the `-activate` above is a different line, not this one. */
+        if(!_cured){MEDSEEN.partyCureFailed++;if(TR)TR.attrStill();mvFail(m);}
+        continue;
+      }
       /* ROADMAP #308 -- THIS BRANCH WAS SINGLE-TARGET AND ONE OF ITS THREE MEMBERS IS NOT.
        *
        * Trick and Switcheroo are `normal`; CORROSIVE GAS is `allAdjacent` (`data/moves.ts:2932`), so
@@ -32878,18 +33069,32 @@ function battleTurn(S,rng,actsForA,actsForB){
         m._lastMove=a.mv;
         const _ti=TAGS.param('move',a.mv,'takesTargetItem')||{};
         const _tl=statusMoveTargets(m,a.mv,a.target,it,actA,actB,true);
-        for(const t of _tl){
-          if(!t||t.fainted||t.curHP<=0)continue;
-          /* WIRE 241 -- a Trick into a Good as Gold kept both items and said nothing at all. */
-          {const _rf=abilityRefusalUnderShield(m,t,a.mv);if(_rf){announceTryHitRefusal(_rf,t);continue;}}
-          if(shieldRefuses(t,a.mv)){if(TR)TR.act(t,'move: Protect');continue;}
-          /* 2026-08-26 -- THE MOVE'S OWN onTryImmunity, and it is Trick's and Switcheroo's door.
-           * `abilityRefusesItemLoss` in the chain below was already refusing a Sticky Hold body, so the
-           * BOARD was right and the stream was a line short; that refusal is Sticky Hold's own
-           * `onTakeItem` and stays where it is, because it also answers for Knock Off, Thief and Covet,
-           * none of which carry an `immunityGate` row. This one answers for the move. */
-          if(immunityGateRefuses(m,t,a.mv)){immunityGateAnnounce(t,a.mv);continue;}
-          if(t===m||moveClassBlocked(t,a.mv,m)||pranksterBlocked(m,t,a.mv))continue;
+        /* ==== 2026-09-12 -- THE GAUNTLET RUNS OVER EVERY TARGET BEFORE ANY EFFECT RESOLVES ========
+         *
+         * `data/all-mechanics-fire.json`'s `moves.corrosivegas` row, release 48ac1c228e02:
+         *     showdown  |-activate|p2b: Charizard|move: Protect
+         *     medicham  |-enditem|p2a: Feraligatr|sitrusberry|[from] move: corrosivegas|...
+         * -- `ordering :: -enditem before -activate`. Both engines strip the same item off the same
+         * body and shield the same two Protects; the two streams say it in a different ORDER.
+         *
+         * THE AUTHORITY'S STRUCTURE IS THE REASON. `BattleActions#trySpreadMoveHit`
+         * (sim/battle-actions.ts:550-610) is `for (const step of moveSteps) { step(targets, ...) }` --
+         * each STEP is its own loop over EVERY target, and `targets` is filtered between steps. The
+         * refusals live in steps 1-6 and every effect lives in step 7 (`hitStepMoveHitLoop`), so the
+         * authority CANNOT interleave them. This loop was one pass per target and therefore did.
+         *
+         * A STATED GAP RATHER THAN A SILENT ONE: the authority runs each gauntlet STAGE over all
+         * targets before the next stage begins (TryHit, then type immunity, then the move's own
+         * `onTryImmunity`, ...), and this runs the whole gauntlet per target inside pass one. The two
+         * differ only when two targets are refused by DIFFERENT stages -- one Protect and one move
+         * immunity on the same click -- which no fixture in this repository stages today. Splitting
+         * the gauntlet further would mean assigning each of these four readers to a step by argument
+         * rather than by measurement, which is the kind of guess this file is not allowed to make.
+         *
+         * `MEDI_SPREAD_ITEM_INTERLEAVED=1` restores the single interleaved pass exactly.
+         * tests/probe_spread_item_order.js is the arm. */
+        const _survivors=[];
+        const _effect=(t)=>{
           /* ==== NARRATION BATCH Y, 2026-09-09 -- A REFUSED SWAP IS A `-fail`, AND THE STONE RULE IS THE
            * BODY'S, NOT THE ITEM CLASS'S. =======================================================
            *
@@ -32916,7 +33121,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * `MEDI_TRICK_REFUSAL_SILENT=1` restores the coarse silent guard exactly. */
           if(TRICK_REFUSAL_SILENT){
             if(TAGS.has('item',itemOn(m),'megaStone')||TAGS.has('item',itemOn(t),'megaStone')
-               ||abilityRefusesItemLoss(t,m))continue;
+               ||abilityRefusesItemLoss(t,m))return;
           } else if(_ti.swaps){
             const _mine=itemOn(m),_theirs=itemOn(t);
             const _refused=itemRefusesTake(t)||itemRefusesTake(m)          // takeItem false: the holder's own stone
@@ -32926,9 +33131,9 @@ function battleTurn(S,rng,actsForA,actsForB){
             if(_refused){
               MEDSEEN.swapRefusedAnnounced++;
               if(TR){TR.attrStill();TR.fail(m);}
-              continue;
+              return;
             }
-          } else if(abilityRefusesItemLoss(t,m))continue;
+          } else if(abilityRefusesItemLoss(t,m))return;
           /* ROADMAP #462 -- BOTH HALVES OF THE SWAP GO THROUGH THE DOORS. The authority's Trick is
            * `target.takeItem(source)` then `source.takeItem()`, neither of which consults
            * `ignoringItem()`, so a Trick inside a Magic Room really does swap two parked items -- and
@@ -32986,7 +33191,29 @@ function battleTurn(S,rng,actsForA,actsForB){
              * for the `removes` shape because that is the only member whose handler carries it -- Trick
              * fails through `useMoveInner` and names the MOVER, which is a different line. */
             else if(TR)TR.fail(t,'move: '+a.mv);}
+        };
+        /* PASS ONE -- the gauntlet, over every target. Nothing here touches an item. */
+        for(const t of _tl){
+          if(!t||t.fainted||t.curHP<=0)continue;
+          /* WIRE 241 -- a Trick into a Good as Gold kept both items and said nothing at all. */
+          {const _rf=abilityRefusalUnderShield(m,t,a.mv);
+           if(_rf){announceTryHitRefusal(_rf,t);MEDSEEN.spreadItemGauntletRefused++;continue;}}
+          if(shieldRefuses(t,a.mv)){if(TR)TR.act(t,'move: Protect');MEDSEEN.spreadItemGauntletRefused++;continue;}
+          /* 2026-08-26 -- THE MOVE'S OWN onTryImmunity, and it is Trick's and Switcheroo's door.
+           * `abilityRefusesItemLoss` in the chain below was already refusing a Sticky Hold body, so the
+           * BOARD was right and the stream was a line short; that refusal is Sticky Hold's own
+           * `onTakeItem` and stays where it is, because it also answers for Knock Off, Thief and Covet,
+           * none of which carry an `immunityGate` row. This one answers for the move. */
+          if(immunityGateRefuses(m,t,a.mv)){immunityGateAnnounce(t,a.mv);MEDSEEN.spreadItemGauntletRefused++;continue;}
+          if(t===m||moveClassBlocked(t,a.mv,m)||pranksterBlocked(m,t,a.mv)){
+            if(t!==m)MEDSEEN.spreadItemGauntletRefused++;continue;}
+          MEDSEEN.spreadItemEffects++;
+          if(SPREAD_ITEM_INTERLEAVED){MEDFAILS.spreadItemInterleavedRestored=1;_effect(t);}
+          else _survivors.push(t);
         }
+        /* PASS TWO -- `hitStepMoveHitLoop`. A single-target Trick has one survivor and is unmoved by
+           the split; only a spread member (Corrosive Gas) can tell the two apart. */
+        for(const t of _survivors)_effect(t);
         continue;
       }
       /* WIRE 108 -- the type writers. The written type is the MOVE'S OWN (true of all four members);
@@ -33020,7 +33247,18 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(moveClassBlocked(t,a.mv,m)||pranksterBlocked(m,t,a.mv)){mvFail(m);continue;}
         const _nt=(t.types||[]).filter(x=>x&&x!=='???');
         if(!_nt.length){mvFail(m);continue;}
+        /* 2026-09-12 -- THE APPARENT TYPE IS HELD BACK WHEN THE TARGET IS NOT AN ALLY, and that
+           hold-back is the ONLY thing in this format that makes the turn-boundary broadcast fire at
+           all (see the sweep at the top of battleTurn). The authority:
+               source.knownType = target.isAlly(source) && target.knownType;
+               if (!source.knownType) source.apparentType = oldApparentType;
+           `_sf` is this engine's side object and identity on it IS `isAlly`; `knownType` is otherwise
+           true on every body here (no Illusion, and Zoroark is closeted), so the ally arm reduces to
+           "same side" exactly. Recorded BEFORE the write, because it is the OLD string. */
+        const _oldApparent=(m.types||[]).join('/');
         m.types=_nt.slice();
+        m._apparentTypes=(t._sf&&m._sf&&t._sf===m._sf)?null:_oldApparent;
+        if(m._apparentTypes!=null)MEDSEEN.apparentTypeHeldBack++;
         MEDSEEN.typeCopiedToUser++;
         if(TR)TR.vstart(m,'typechange',undefined,ATTR.from(ATTR.move(a.mv)),t);
         continue;
@@ -46444,6 +46682,73 @@ function battleTurn(S,rng,actsForA,actsForB){
     if(m&&m.tookProtectTurns>0&&!m._stallFresh)MEDSEEN.stallSurvivedSkippedResidual++;
   });
   [...actA,...actB].forEach(m=>{if(m)m._stallFresh=false;});
+  /* ==== 2026-09-12 -- THE BOTTOM-SCREEN TYPE BROADCAST, AND IT IS A HIDDEN-INFORMATION LINE. =====
+   *
+   * `data/all-mechanics-fire.json`'s `moves.reflecttype` row, release 48ac1c228e02:
+   *     medicham2 stopped emitting while showdown continued :: |-start|p1a|typechange|water
+   *     showdown  |-start|p1a: Gengar|typechange|Water|[silent]     (after |upkeep, before |turn|2)
+   *     medicham  (emitted nothing further)
+   * The two streams agree line for line for the whole turn, and then the authority writes one more
+   * line that this engine has never had.
+   *
+   * `Battle#nextTurn`, sim/battle.ts:1709-1721, read whole:
+   *     if (this.gen >= 7 && !pokemon.terastallized) {
+   *       const seenPokemon = pokemon.illusion || pokemon;
+   *       const realTypeString = seenPokemon.getTypes(true).join('/');
+   *       if (realTypeString !== seenPokemon.apparentType) {
+   *         this.add('-start', pokemon, 'typechange', realTypeString, '[silent]');
+   *         seenPokemon.apparentType = realTypeString;
+   *         if (pokemon.addedType) this.add('-start', pokemon, 'typeadd', pokemon.addedType, '[silent]');
+   *       }
+   *     }
+   *
+   * WHY IT ALMOST NEVER FIRES, AND WHY THAT IS THE WHOLE MECHANIC. `Pokemon#setType` ends in
+   * `this.apparentType = this.types.join('/')` (sim/pokemon.ts:2131), so an ordinary type write --
+   * Soak, Conversion, Camouflage, Protean, a forme change -- leaves the two IN STEP and this line
+   * cannot fire. Exactly one legal handler pulls them apart on purpose:
+   *
+   *     reflecttype.onHit (data/moves.ts:14887-14904):
+   *       const oldApparentType = source.apparentType;   ...   source.setType(newBaseTypes);
+   *       source.knownType = target.isAlly(source) && target.knownType;
+   *       if (!source.knownType) source.apparentType = oldApparentType;
+   *
+   * A Reflect Type aimed at a FOE deliberately does not tell the room what the user turned into, and
+   * this broadcast leaks it on the owner's own screen at the next boundary. Aimed at an ALLY nothing
+   * is held back and NO line follows -- so the ally arm is a control the fix must not break.
+   *
+   * SO THE HOLD-BACK IS MODELLED AND THE SWEEP IS GENERAL. `_apparentTypes` is null on a body whose
+   * apparent typing is in step -- which is every body, almost always -- and is a STRING only while a
+   * handler is holding one back. That is why nineteen `.types=` write sites did not have to be
+   * threaded: a site that holds nothing back cannot make this fire, which is the authority's own
+   * arrangement rather than a shortcut.
+   *
+   * IT IS AT THE FOOT OF THE TURN AND NOT AT THE HEAD OF THE NEXT ONE, and that is not cosmetic. The
+   * first placement was above `TR.turn(S.turn+1)` -- which reads identically inside a long game and
+   * emits NOTHING on the last turn of a script, because there is no next call. The authority always
+   * advances: the roster's Reflect Type fixture is a ONE-TURN script and Showdown still writes the
+   * line. Measured that way round: the placement above left the row diverging with the fix in.
+   *
+   * NOT REACHED ON A DECIDED BATTLE, which is the authority's own guard: `turnLoop` returns on
+   * `this.ended` and `nextTurn` is never called, so a body that has just won owes no broadcast.
+   *
+   * `addedType` HAS NO MEMBER IN THIS ENGINE and the second line is therefore not emitted -- an added
+   * type is pushed onto `types` here (the `changesTargetType.adds` branch), so there is no separate
+   * field to read. Named rather than silently skipped.
+   *
+   * `MEDI_APPARENT_TYPE_BLIND=1` restores the silence. tests/probe_apparent_type_broadcast.js. */
+  if(APPARENT_TYPE_BLIND)MEDFAILS.apparentTypeBlindRestored=1;
+  else if(TR&&!battleOver(S)){
+    for(const _b of [...actA,...actB]){
+      if(!_b||_b.fainted||_b.curHP<=0)continue;
+      if(_b._apparentTypes==null)continue;
+      const _real=(_b.types||[]).join('/');
+      if(_real!==_b._apparentTypes){
+        TR.vstart(_b,'typechange',_real+'|[silent]');
+        MEDSEEN.apparentTypeBroadcast++;
+      }
+      _b._apparentTypes=null;
+    }
+  }
   S.turn++;
   traceRelease(_trPrev);
   return S;
@@ -47017,6 +47322,17 @@ function playerActionPrimary(me,moveId,target,field){
   {
     const _fb=TAGS.param('move',id,'forcesBerryEat');
     if(_fb&&_fb.scope==='allActive')return {kind:'teatime',mv:id};
+  }
+  /* 2026-09-12 -- HEAL BELL, and it reached the terminal `{kind:'pass'}` below until this line.
+   * Beside Teatime because both are PARTY/FIELD moves that name no body a player can aim, and the
+   * reason it was missed is the same one Teatime's comment gives: `healDescriptor` one branch away is
+   * gated on `flags.heal`, which Heal Bell does not carry, so no reader had ever looked at it.
+   * `curesPartyStatus` has exactly one legal carrier (printed by engine/tag_dex.js and re-printed by
+   * tests/probe_heal_bell_party.js on every run) and `worryseed`, the near miss, is refused by the
+   * deriver because it cures one body it was handed and walks no party. */
+  if(TAGS.param('move',id,'curesPartyStatus')){
+    if(!PARTY_CURE_UNMODELLED)return {kind:'partycure',mv:id};
+    MEDFAILS.partyCureUnmodelledRestored=1;
   }
   /* ROADMAP #308 -- SPITE, and it is a STATUS click so it has to be routed here rather than ridden in
    * on a hit. It sits BELOW the `{kind:'attack'}` return by construction: Eerie Spell carries the

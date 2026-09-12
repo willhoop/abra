@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-12T11:42:44.569Z",
+ "generated": "2026-09-12T12:45:09.502Z",
  "by": "tests/roster.js",
  "stage": "abilities",
  "swap_leaf_correction": {
@@ -7,12 +7,12 @@
   "real_ability_rewrite_kept": 68,
   "control_arm_bookkeeping_dropped": 4052
  },
- "engine_release": "48ac1c228e02",
- "engine_release_cut": "2026-09-12T08:20:37.941Z",
- "engine_release_cuts": 153,
+ "engine_release": "8ad1ab5e1f86",
+ "engine_release_cut": "2026-09-12T12:30:21.662Z",
+ "engine_release_cuts": 8,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "6c4321c849fb",
+  "engine/medicham2-browser.js": "d156eee50506",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -33,7 +33,7 @@
   "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
   "data/abra-tags.js": "eb4b143f6599",
-  "data/tags.json": "d88b5a6c36f1",
+  "data/tags.json": "113bb8703480",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
@@ -152,7 +152,7 @@
   }
  },
  "plant_anchors": {
-  "release": "48ac1c228e02",
+  "release": "8ad1ab5e1f86",
   "checked": 62,
   "dead": [],
   "reds_ran": true
@@ -5378,7 +5378,7 @@
    "reads": null,
    "note": null,
    "verdict": "COULD-NOT-STAGE",
-   "why": "it refuses EVERY Status move another body aims at it, and BOTH of this instrument's in-play controls are exactly that: Skill Swap and Gastro Acid are Status moves at the carrier, so neither ever lands and the control arm IS the subject arm. MEASURED rather than argued, on release 48ac1c228e02 with `ROSTER_DUMP_BOARDS=goodasgold`: both arms read `ab=goodasgold` on the carrier at every one of five boundaries, and the row reported THE STAGING IS INERT — a false coverage limit of exactly the ROADMAP #612 shape, arriving through the entity instead of through the builder. `swapRefused` covers that door now, so the refusal is stated instead of a dead arm being played. And the sheet road is shut too: its carrier(s) — Gholdengo — hold it in ability slot 0 with nothing beside it. What WOULD open this is a swapper carrying an ability that pierces `breakable` (this ability is flagged breakable), which is a change to the derived SWAPPER and its own batch.",
+   "why": "it refuses EVERY Status move another body aims at it, and BOTH of this instrument's in-play controls are exactly that: Skill Swap and Gastro Acid are Status moves at the carrier, so neither ever lands and the control arm IS the subject arm. MEASURED rather than argued, on release 8ad1ab5e1f86 with `ROSTER_DUMP_BOARDS=goodasgold`: both arms read `ab=goodasgold` on the carrier at every one of five boundaries, and the row reported THE STAGING IS INERT — a false coverage limit of exactly the ROADMAP #612 shape, arriving through the entity instead of through the builder. `swapRefused` covers that door now, so the refusal is stated instead of a dead arm being played. And the sheet road is shut too: its carrier(s) — Gholdengo — hold it in ability slot 0 with nothing beside it. What WOULD open this is a swapper carrying an ability that pierces `breakable` (this ability is flagged breakable), which is a change to the derived SWAPPER and its own batch.",
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": null,

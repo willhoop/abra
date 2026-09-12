@@ -1,4 +1,5 @@
 /* game_differential.js — THE COMPARISON DRIVER. ROADMAP #68 step two, docs/GAME-DIFFERENTIAL-DESIGN.md.
+ * ABRA-HEAP: 8192 — measured 2026-09-12: a 12,000-game run died with `FATAL ERROR: Ineffective mark-compacts near heap limit` on node's default old space, after completing its planted-fault selftests. The state this holds scales with --games, so the budget is declared here rather than left to whoever remembers. tools/lownode.cmd reads this marker.
  *
  *   SHOWDOWN_PATH=... node engine/game_differential.js                    a small run, printed
  *   SHOWDOWN_PATH=... node engine/game_differential.js --games 90         that many games

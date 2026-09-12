@@ -34282,6 +34282,77 @@ probe('move', 'changesTargetType', 'Reflect Type copies the TARGET\'s typing ont
            detail: 'Gengar then takes Sneasler\'s Close Combat — without the copy ' + JSON.stringify(control)
                  + ' (a Ghost: immune); after Reflect Type ' + JSON.stringify(test) + ' (Sneasler\'s typing: it lands)' };
 });
+/* 2026-09-12 -- HEAL BELL REACHES THE BENCH, WHICH IS THE HALF NO BOARD OF TWO SLOTS CAN SEE.
+ * The row is staged on the BENCHED body deliberately: `all_mechanics_fire`'s healbell divergence was
+ * `p1 venusaur party.status  showdown "" / we "slp"`, and a probe that cured only the active ally
+ * would go green on an engine that never walked the party at all. */
+probe('move', 'curesPartyStatus', 'Heal Bell clears a status off a BENCHED party member', () => {
+  const run = (ring) => {
+    const me = bare('chimecho'), ally = bare('corviknight');
+    const benchA = bare('milotic'), benchB = bare('garchomp');
+    const f1 = bare('gengar'), f2 = bare('sneasler');
+    benchA.status = 'par'; ally.status = 'brn';
+    const S = M.battleInit([me, ally, benchA, benchB], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, ring ? 'healbell' : 'protect', me, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return (benchA.status || '-') + '/' + (ally.status || '-');
+  };
+  const control = run(false), test = run(true);
+  return { works: control === 'par/brn' && test === '-/-', arms: { control, test },
+           detail: 'the BENCHED Milotic\'s paralysis and the ACTIVE ally\'s burn — Chimecho clicking '
+                 + 'Protect ' + control + ' (both stand); clicking Heal Bell ' + test
+                 + ' (the walk is `[...target.side.pokemon]`, so the bench is cured too)' };
+});
+/* 2026-09-12 -- THE BOTTOM-SCREEN TYPE LINE. `Battle#nextTurn` (sim/battle.ts:1709-1721) leaks the
+ * user's real typing at the turn boundary when a handler held the APPARENT typing back, and Reflect
+ * Type at a FOE is the only legal handler in this format that does (`if (!source.knownType)
+ * source.apparentType = oldApparentType`). The control is the SAME move at the ALLY, where
+ * `knownType` stays true and no line follows -- so a sweep that fired on every type change reds it. */
+probe('move', 'changesTargetType', 'Reflect Type at a FOE leaks the real typing at the turn boundary, at an ALLY it does not', () => {
+  const run = (atAlly) => {
+    const me = bare('gengar'), ally = bare('milotic');
+    const f1 = bare('sneasler'), f2 = bare('garchomp');
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'reflecttype', atAlly ? ally : f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return trace.filter(l => /typechange/.test(String(l)) && /\[silent\]/.test(String(l))).join(' ') || '-';
+  };
+  const control = run(true), test = run(false);
+  return { works: control === '-' && /typechange/.test(test) && /\[silent\]/.test(test),
+           arms: { control, test },
+           detail: 'the `[silent]` typechange after the turn — aimed at the ALLY ' + control
+                 + ' (nothing was withheld, so nothing leaks); aimed at the FOE ' + test };
+});
+/* 2026-09-12 -- A SPREAD ITEM CLICK SAYS EVERY REFUSAL BEFORE IT SAYS ANY EFFECT.
+ * `BattleActions#trySpreadMoveHit` runs one loop PER STEP over every target (sim/battle-actions.ts:
+ * 553-610), so the refusals (step 1) structurally cannot interleave with the effects (step 7). The
+ * control is the same click with nobody shielding, which must still strip both items in target
+ * order — a fix that reordered the TARGET list would pass the order arm and be wrong. */
+probe('move', 'takesTargetItem', 'a spread item removal writes both Protect refusals before the `-enditem`', () => {
+  const run = (shield) => {
+    const me = bare('garbodor'), ally = bare('corviknight');
+    const f1 = bare('milotic'), f2 = bare('garchomp');
+    for (const b of [ally, f1, f2]) b.item = 'sitrusberry';
+    const trace = [];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'corrosivegas', f1, S.field)],
+               [ally, shield ? M.playerAction(ally, 'protect', ally, S.field) : { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }],
+               [f2, shield ? M.playerAction(f2, 'protect', f2, S.field) : { kind: 'pass' }]]));
+    return trace.filter(l => /^\|-(activate|enditem)\|/.test(String(l)))
+                .map(l => String(l).split('|')[1]).join(',') || '-';
+  };
+  const control = run(false), test = run(true);
+  return { works: control === '-enditem,-enditem,-enditem' && test === '-activate,-activate,-enditem',
+           arms: { control, test },
+           detail: 'the refusal/effect line order on one Corrosive Gas — nobody shielding ' + control
+                 + ' (three items stripped, no refusals); the ally and the far foe both Protecting '
+                 + test + ' (every refusal first, then the one effect)' };
+});
 
 
 const works = results.filter(r => r.works);

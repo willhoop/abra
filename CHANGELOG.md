@@ -10,6 +10,91 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.44.0] — 2026-09-12
+
+### Fixed
+- **Heal Bell cures the party.** It reached `moveAction`'s terminal `{kind:'pass'}` and did nothing at
+  all — the ONLY move row in `data/all-mechanics-fire.json` whose BOARDS parted rather than only its
+  commentary (`p1 venusaur party.status  showdown "" / we "slp"`, plus the sleep counter beside it).
+  It is now a `partycure` action keyed on a new derived tag, `curesPartyStatus`, read out of the
+  authority's handler text: the party walk, the `-activate` string verbatim, the two refusing
+  abilities with their `-immune` lines, the `ally !== source` exemption and `return success`.
+  **Membership was printed over the whole legal move list before it was wired and matched exactly ONE
+  move**; `worryseed`, which also calls `cureStatus`, is correctly refused because it cures one body
+  it was handed and walks no party. Three of the four facts are NOT what reading the handler alone
+  suggests, and all three were staged in the official simulator first: the `-activate` survives
+  failure and sits above `success`; a benched body is named `p1: Blastoise` with no slot letter
+  (`Pokemon#toString`), so `ident()` gained a bench arm in the same pass; and **a BENCHED Soundproof
+  ally IS cured**, because `hasAbility` ends in `!this.ignoringAbility()` and `ignoringAbility` opens
+  `if (gen >= 5 && !this.isActive) return true` (sim/pokemon.ts:865, 1957-1963) — the gate is an
+  ACTIVE-body gate, and an engine that refused both would run a strictly better Soundproof than the
+  real one. Probe `tests/probe_heal_bell_party.js`, 16 arms, all 16 red first, 14 red under
+  `MEDI_PARTY_CURE_UNMODELLED=1`.
+- **A spread item click says every refusal before it says any effect.** Corrosive Gas wrote
+  `-activate|Protect`, then its `-enditem`, then the second `-activate`; the authority writes both
+  refusals first. `BattleActions#trySpreadMoveHit` (sim/battle-actions.ts:553-610) is
+  `for (const step of moveSteps) step(targets, ...)` — each STEP is its own loop over EVERY target,
+  refusals are step 1 and every effect is step 7, so the authority structurally cannot interleave
+  them. The item branch is now a gauntlet pass followed by an effect pass. The BOARD was identical on
+  both arms before and after, which is the point. A finer gap is STATED rather than faked: the
+  authority runs each STAGE across all targets, this runs the whole gauntlet per target, and the two
+  differ only when two targets are refused by different stages. Probe
+  `tests/probe_spread_item_order.js`, 8 arms, 2 red under `MEDI_SPREAD_ITEM_INTERLEAVED=1`.
+- **The turn-boundary real-type broadcast exists.** `Battle#nextTurn` (sim/battle.ts:1709-1721) writes
+  `|-start|BODY|typechange|<real types>|[silent]` after the upkeep when a body's real typing has come
+  apart from its apparent one. `Pokemon#setType` ends in `apparentType = types.join('/')`, so Soak,
+  Conversion, Camouflage, Protean and every forme change leave the two in step and CANNOT fire it;
+  exactly one legal handler pulls them apart on purpose (`reflecttype.onHit`:
+  `if (!source.knownType) source.apparentType = oldApparentType`), which makes it a
+  hidden-information line — Reflect Type at a FOE leaks the typing at the next boundary, at an ALLY it
+  does not. Modelled as a hold-back plus a general sweep, so **nineteen `.types=` write sites did not
+  have to be threaded**. Probe `tests/probe_apparent_type_broadcast.js`, 12 arms, 4 red under
+  `MEDI_APPARENT_TYPE_BLIND=1`; its negative arms are the ALLY aim and Soak at a Dragon/Ground body.
+
+### Changed
+- `engine/tag_dex.js` derives `curesPartyStatus`; `data/tags.json` regenerated with **exactly one
+  tag-list change** across all moves, abilities and items.
+- `ident()` in `engine/medicham2-browser.js` resolves a body through the PARTY when it is not in the
+  two active slots, and returns `p1: <name>` as `Pokemon#toString` does. Heal Bell is the first line
+  this engine has ever emitted naming a body off the field. `MEDFAILS.traceBodyOffField` keeps its
+  meaning and still counts what the party lookup cannot resolve.
+- Three census rows added to `tests/test-mechanics.js`, one per fix. Measured under a deliberate break
+  so the artifact could not be written: **886 probed / 886 live / 0 missing**, from 883. Each row goes
+  MISSING under its own knob and only its own.
+
+### Notes
+- **Release `8ad1ab5e1f86` cut, and every gate clause the engine edit withheld was re-run rather than
+  captioned.** GATE **OPEN, nine of nine**, `engine/quarantine.js` exit 0. The mechanics clause reads
+  **`2 diverge, 1 are declared, 1 are below the reach shelf and 0 were cleared on decision impact,
+  leaving 0`**, from `5 diverge, 1 declared, 4 below the shelf`. Whole-game **board-material 0 of
+  961** and narration **zero undeclared across 961**; deliberate roster **148 / 190 / 492** with zero
+  FIRED-AND-BOARDS-DIFFER and zero DID-NOT-FIRE; damage differential **0 of 6000** at the midpoint, at
+  both corners and at all fourteen interior indices.
+- **THE ORDER OF THE RUNS WAS SET BY ANOTHER PROCESS AND IS RECORDED.** A 12,000-game whole-game
+  differential was live when this pass started; the brief forbade rewriting
+  `data/game-differential.json`, `data/mechanics-census.json`, `data/all-mechanics-fire.json` or the
+  team pool while it runs, and **none of the four was written until it had finished**. For part of the
+  pass two clauses were WITHHELD on the pin rather than captioned. The census move 883 → 886 does not
+  make the whole-game arm incomparable: that arm's own `steering.census_role` reads *"CREDITED ONLY —
+  it measures coverage and does not select"*.
+- **`tests/test-docs-current.js` is RED on two ratchet clauses and it was red before this pass.** The
+  four new entries are the figure `487` in `docs/ABRA-deck-plain-english.md`,
+  `docs/ABRA-technical-docs.md`, `docs/MODELS.md` and `docs/SUMMARY.md` — the roster move stage, which
+  moved 487 → 492 in 6.43.0. Receipts: the baseline is stamped `2026-09-12T10:25:28Z` with
+  `changelog_top_at_baseline: 6.42.0`, and `data/roster.moves.prev.json` already read 492 before this
+  pass re-ran anything. Those four documents are HELD by an unreleased 7.0.0, so this is named rather
+  than filed; the fix is a document pass.
+- **The fourth diverging row, GASTRO ACID, is registered and deliberately not attempted** (ROADMAP
+  #618). Its `-endability` line may not be emitted because nothing suppresses the ability — the
+  `data/protocol-events.json` declaration was re-read and still holds — and the obvious shortcut was
+  measured before it was rejected: clearing `m.ability` would part a COMPARED board leaf, where the
+  authority keeps `pokemon.ability` set and only makes `ignoringAbility()` answer true. The correct
+  shape is a gate on **164 tag-lookup sites plus 14 direct comparisons**.
+- **The declared row was re-read and still covers a live cause.** Supreme Overlord's `onEnd` is
+  unguarded where its `onStart` is (`data/abilities.ts:4722-4746`, no Champions override), so the
+  authority emits the literal `fallenundefined`; medicham2 guards on `_fn > 0` and is deliberately the
+  more correct engine. Not withdrawn.
+
 ## [6.43.0] — 2026-09-12
 
 ### Added

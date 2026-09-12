@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-12T08:30:55.190Z",
+  "generated": "2026-09-12T13:02:39.179Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 883,
-  "live": 883,
+  "probed": 886,
+  "live": 886,
   "missing": 0,
-  "armed": 883,
+  "armed": 886,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -4213,7 +4213,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 28.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 28.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -8103,7 +8103,7 @@
       "tag": "pivotStatus",
       "label": "a frozen body clicking a PIVOT move is refused like any other move — the pivot is a move, not a switch",
       "live": true,
-      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 55 to 57",
+      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 39 to 41",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -8844,6 +8844,36 @@
       "label": "Reflect Type copies the TARGET's typing onto the USER",
       "live": true,
       "detail": "Gengar then takes Sneasler's Close Combat — without the copy {\"types\":\"Ghost/Poison\",\"dealt\":0} (a Ghost: immune); after Reflect Type {\"types\":\"Fighting/Poison\",\"dealt\":102} (Sneasler's typing: it lands)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "curesPartyStatus",
+      "label": "Heal Bell clears a status off a BENCHED party member",
+      "live": true,
+      "detail": "the BENCHED Milotic's paralysis and the ACTIVE ally's burn — Chimecho clicking Protect par/brn (both stand); clicking Heal Bell -/- (the walk is `[...target.side.pokemon]`, so the bench is cured too)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "changesTargetType",
+      "label": "Reflect Type at a FOE leaks the real typing at the turn boundary, at an ALLY it does not",
+      "live": true,
+      "detail": "the `[silent]` typechange after the turn — aimed at the ALLY - (nothing was withheld, so nothing leaks); aimed at the FOE |-start|p1a: gengar|typechange|Fighting/Poison|[silent]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "takesTargetItem",
+      "label": "a spread item removal writes both Protect refusals before the `-enditem`",
+      "live": true,
+      "detail": "the refusal/effect line order on one Corrosive Gas — nobody shielding -enditem,-enditem,-enditem (three items stripped, no refusals); the ally and the far foe both Protecting -activate,-activate,-enditem (every refusal first, then the one effect)",
       "hollow": false,
       "armed": true,
       "directCall": false

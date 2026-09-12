@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-12T08:33:25.747Z",
- "engine_release": "48ac1c228e02",
- "engine_release_cut": "2026-09-12T08:20:37.941Z",
- "engine_release_cuts": 103,
+ "generated": "2026-09-12T13:01:17.667Z",
+ "engine_release": "8ad1ab5e1f86",
+ "engine_release_cut": "2026-09-12T12:30:21.662Z",
+ "engine_release_cuts": 8,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "6c4321c849fb",
+  "engine/medicham2-browser.js": "d156eee50506",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -26,14 +26,14 @@
   "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
   "data/abra-tags.js": "eb4b143f6599",
-  "data/tags.json": "d88b5a6c36f1",
+  "data/tags.json": "113bb8703480",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
   "engine/pp.js": "30b12a4ef623",
   "data/rollout-switch-census.json": "b599f8d581b5"
  },
- "release": "48ac1c228e02",
+ "release": "8ad1ab5e1f86",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -7670,32 +7670,19 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 13,
-     "cls": "ordering",
-     "detail": "-enditem before -activate",
-     "cause": "ordering :: |-activate|p2b|protect <> |-enditem|p2a|sitrusberry|[from]corrosivegas",
-     "showdown": "|-activate|p2b: Charizard|move: Protect",
-     "medicham": "|-enditem|p2a: Feraligatr|sitrusberry|[from] move: corrosivegas|[of] p1a: Garbodor",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
      "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -7738,8 +7725,8 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
       "script_miss": null,
       "control_script_miss": null,
       "why": null
@@ -7750,8 +7737,8 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
       "script_miss": null,
       "control_script_miss": null,
       "why": null
@@ -7762,8 +7749,8 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
       "script_miss": null,
       "control_script_miss": null,
       "why": null
@@ -7774,8 +7761,8 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
       "script_miss": null,
       "control_script_miss": null,
       "why": null
@@ -18225,88 +18212,24 @@
     "resolved": true,
     "why": null,
     "medicham_attempted": true,
-    "medicham_resolved": false,
-    "medicham_why": "the move executed and produced no consequence line at all",
-    "diverged": true,
-    "divergence": {
-     "at": 46,
-     "cls": "event missing from medicham2",
-     "detail": "-activate",
-     "cause": "event missing from medicham2 :: |-activate|p1a|healbell <> |upkeep",
-     "showdown": "|-activate|p1a: Chimecho|move: Heal Bell",
-     "medicham": "|upkeep",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "medicham_resolved": true,
+    "medicham_why": null,
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "board": {
-     "verdict": "STATE",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 5,
-     "boundaries_agreed": 4,
+     "boundaries_agreed": 5,
      "last_boundary_turn": 4,
-     "protocol_parted_on_turn": 4,
-     "boards_after_the_parting": 1,
-     "state_parted_on_turn": 4,
-     "diffs": [
-      {
-       "path": "p1.party.venusaur.status",
-       "side": "p1",
-       "slot": "",
-       "body": "venusaur",
-       "body_showdown": "venusaur",
-       "field": "party.status",
-       "us": "slp",
-       "sd": "",
-       "bucket": "present-in-one-engine-only",
-       "family": "party.status"
-      },
-      {
-       "path": "p1.party.venusaur.status_counter",
-       "side": "p1",
-       "slot": "",
-       "body": "venusaur",
-       "body_showdown": "venusaur",
-       "field": "party.status_counter",
-       "us": 2,
-       "sd": 0,
-       "bucket": "off-by-2-or-3",
-       "family": "party.status_counter"
-      },
-      {
-       "path": "p1.active[1].status",
-       "side": "p1",
-       "slot": "p1b",
-       "body": "venusaur",
-       "body_showdown": "venusaur",
-       "field": "status",
-       "us": "slp",
-       "sd": "",
-       "bucket": "present-in-one-engine-only",
-       "family": "active[].status",
-       "maxhp": 930
-      },
-      {
-       "path": "p1.active[1].status_counter",
-       "side": "p1",
-       "slot": "p1b",
-       "body": "venusaur",
-       "body_showdown": "venusaur",
-       "field": "status_counter",
-       "us": 2,
-       "sd": 0,
-       "bucket": "off-by-2-or-3",
-       "family": "active[].status_counter",
-       "maxhp": 930
-      }
-     ],
-     "end_reason": "the first divergent BOARD",
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
+     "state_parted_on_turn": null,
+     "diffs": [],
+     "end_reason": "the script ran out",
      "receipts": {
       "leaves_compared_min": 553,
       "leaves_compared_max": 553,
@@ -18382,8 +18305,8 @@
       "resolved": false,
       "medicham_resolved": false,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
       "script_miss": null,
       "control_script_miss": null,
       "why": "-fail"
@@ -18394,8 +18317,8 @@
       "resolved": false,
       "medicham_resolved": false,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
       "script_miss": null,
       "control_script_miss": null,
       "why": "-fail"
@@ -31325,32 +31248,19 @@
     "medicham_attempted": true,
     "medicham_resolved": true,
     "medicham_why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 14,
-     "cls": "medicham2 stopped emitting while showdown continued",
-     "detail": "first unmatched: -start   lengths sd=15 medi=14",
-     "cause": "medicham2 stopped emitting while showdown continued :: |-start|p1a|typechange|water",
-     "showdown": "|-start|p1a: Gengar|typechange|Water|[silent]",
-     "medicham": "(medicham2 emitted nothing further)",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
      "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -31387,8 +31297,8 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
       "script_miss": null,
       "control_script_miss": null,
       "why": null
@@ -31399,8 +31309,8 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
       "script_miss": null,
       "control_script_miss": null,
       "why": null
@@ -31411,8 +31321,8 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
       "script_miss": null,
       "control_script_miss": null,
       "why": null
@@ -31423,8 +31333,8 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
       "script_miss": null,
       "control_script_miss": null,
       "why": null
@@ -49970,7 +49880,7 @@
      "notes": [
       "C idles with Sleep Talk (its onTry fails for a healthy body)",
       "genders declared for the opposite-gender case the handler reads: C Clefable M, R Feraligatr F",
-      "plays through the driver's declared-gender seam (engine/game_differential.js:3468): the caller must pass declaredGender"
+      "plays through the driver's declared-gender seam (engine/game_differential.js:3469): the caller must pass declaredGender"
      ],
      "assumptions": []
     },
@@ -69151,7 +69061,7 @@
      ],
      "notes": [
       "genders declared for the same-gender case the handler reads: C Luxray M, R Feraligatr M",
-      "plays through the driver's declared-gender seam (engine/game_differential.js:3468): the caller must pass declaredGender"
+      "plays through the driver's declared-gender seam (engine/game_differential.js:3469): the caller must pass declaredGender"
      ],
      "assumptions": [],
      "verdict": "UNPROVEN-UNCONTROLLED",
@@ -105144,11 +105054,11 @@
    "attempted": 497,
    "tried": 497,
    "resolved": 497,
-   "diverged": 4,
-   "diverged_including_shelved": 7,
+   "diverged": 1,
+   "diverged_including_shelved": 4,
    "shelved_by_owner": 3,
    "shelved_by_owner_diverging": 3,
-   "resolution_disagreements": 10,
+   "resolution_disagreements": 9,
    "cannot_fire_in_this_fixture": 1,
    "announcement_only": 4,
    "leaf_effect": {
@@ -105182,7 +105092,7 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 76
    },
-   "seconds": 45.1
+   "seconds": 23.6
   },
   "abilities": {
    "exist": 316,
@@ -105420,16 +105330,15 @@
   "boards": {
    "moves": {
     "tally": {
-     "NO-DIVERGENCE": 489,
-     "STATE": 3,
-     "ANNOUNCEMENT-ONLY": 5
+     "NO-DIVERGENCE": 492,
+     "STATE": 2,
+     "ANNOUNCEMENT-ONLY": 3
     },
     "rows": 497,
     "core_leaf_unchecked_rows": [],
     "state_rows": [
      "axekick",
-     "clearsmog",
-     "healbell"
+     "clearsmog"
     ],
     "not_asked_rows": [],
     "silent_state_rows": [
@@ -105505,10 +105414,10 @@
  },
  "planner": {
   "meta": {
-   "generated": "2026-09-12T08:33:25.342Z",
+   "generated": "2026-09-12T13:01:17.555Z",
    "by": "engine/stage_planner.js",
-   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\48ac1c228e02\\data\\tags.json",
-   "tags_digest": "d88b5a6c36f1e231",
+   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\8ad1ab5e1f86\\data\\tags.json",
+   "tags_digest": "113bb87034802779",
    "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown",
    "validator": {
     "calls": 1361,
@@ -105535,11 +105444,11 @@
     "bottom-tie-first"
    ],
    "genderPin": {
-    "at": "engine/game_differential.js:3468",
+    "at": "engine/game_differential.js:3469",
     "text": "const gender = (opts && opts.declaredGender && (p.gender === 'M' || p.gender === 'F')) ? p.gender : 'N';"
    },
    "genderSeam": {
-    "at": "engine/game_differential.js:3468",
+    "at": "engine/game_differential.js:3469",
     "text": "const gender = (opts && opts.declaredGender && (p.gender === 'M' || p.gender === 'F')) ? p.gender : 'N';"
    },
    "normalised": [],
@@ -105553,7 +105462,7 @@
     "stench: secondary (the handler assigns move.secondaries)",
     "kingsrock: secondary (the handler assigns move.secondaries)"
    ],
-   "ms": 58020
+   "ms": 12918
   },
   "summary": {
    "mechanics": 964,
@@ -105598,7 +105507,7 @@
     "staged": 2
    },
    "branches": {
-    "total": 600,
+    "total": 601,
     "uncovered": 2
    },
    "assumptions": 12,
@@ -105608,7 +105517,7 @@
    }
   },
   "played": {
-   "plan_ms": 58160,
+   "plan_ms": 12965,
    "rows": 347,
    "fixtures": 853,
    "variants": 1968,
@@ -105745,20 +105654,10 @@
     "move:bittermalice @main/far-a",
     "move:copycat @main/near-a",
     "move:copycat @main/far-a",
-    "move:corrosivegas @main/near-a",
-    "move:corrosivegas @main/far-a",
-    "move:corrosivegas @main/near-b",
-    "move:corrosivegas @main/far-b",
     "move:gastroacid @main/near-a",
     "move:gastroacid @main/far-a",
-    "move:healbell @main/near-a",
-    "move:healbell @main/far-a",
     "move:nightdaze @main/near-a",
     "move:nightdaze @main/far-a",
-    "move:reflecttype @main/near-a",
-    "move:reflecttype @main/far-a",
-    "move:reflecttype @main/near-b",
-    "move:reflecttype @main/far-b",
     "ability:forewarn @main/near-a",
     "ability:forewarn @main/far-a",
     "ability:forewarn @main/near-b",
@@ -105837,20 +105736,15 @@
   "moves": {
    "available": true,
    "file": "data/roster.moves.json",
-   "roster_fired": 487,
+   "roster_fired": 492,
    "here_fired": 497,
-   "both": 487,
+   "both": 492,
    "only_here": [
     "axekick",
     "copycat",
     "electrify",
-    "extremespeed",
     "focusenergy",
-    "iceshard",
-    "jetpunch",
-    "ragingbull",
-    "struggle",
-    "upperhand"
+    "struggle"
    ],
    "only_roster": [],
    "neither": [],
@@ -105860,18 +105754,16 @@
   "abilities": {
    "available": true,
    "file": "data/roster.abilities.json",
-   "roster_fired": 183,
+   "roster_fired": 190,
    "here_fired": 140,
-   "both": 134,
+   "both": 138,
    "only_here": [
     "frisk",
-    "galewings",
-    "magmaarmor",
-    "opportunist",
-    "simple",
-    "sniper"
+    "simple"
    ],
    "only_roster": [
+    "aerilate",
+    "angerpoint",
     "aromaveil",
     "cudchew",
     "curiousmedicine",
@@ -105903,6 +105795,7 @@
     "piercingdrill",
     "poisonheal",
     "pressure",
+    "ripen",
     "rockhead",
     "sandspit",
     "sandstream",
@@ -105923,15 +105816,12 @@
     "weakarmor"
    ],
    "neither": [
-    "aerilate",
-    "angerpoint",
     "anticipation",
     "forewarn",
     "goodasgold",
     "illusion",
     "pickup",
     "quickfeet",
-    "ripen",
     "stall",
     "zerotohero"
    ],

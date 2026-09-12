@@ -154,18 +154,13 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  883/883 probed mechanics live, 0 missing   (census 2026-09-11 21:41)
-    the census probes what somebody thought to probe: 296 of 296 in-scope tags carry a probe, 0 carry none (9 of 305
+  886/886 probed mechanics live, 0 missing   (census 2026-09-12 09:02)
+    the census probes what somebody thought to probe: 297 of 297 in-scope tags carry a probe, 0 carry none (9 of 306
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 4.9 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-11 16:35)
-    seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
-    the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
-    Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
-    multiHit tag were drawn; 3 were never drawn at all (bonerush, doublehit, tailslap) — never drawn is a SAMPLING
-    gap, not an exclusion.
-    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
-    a differential hit is NOT in the census count above — the census probes what someone thought to probe
+    (all-mechanics-fire.json, 9 min old). node engine/coverage.js
+  differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/8ad1ab5e1f86/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "8ad1ab5e1f86".
+    it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     older than its input engine-data.js
@@ -176,14 +171,99 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0394e3673b5b now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 296/296 in-scope probed, 0 unprobed;  294/296 have an engine consumer on every in-scope row, 2 do not;  9 of 305 tags have no in-scope carrier
+  tag coverage: 297/297 in-scope probed, 0 unprobed;  294/297 have an engine consumer on every in-scope row, 3 do not;  9 of 306 tags have no in-scope carrier
     consumedBy comes from engine/tag_dex.js grepping board.js and medicham2-browser.js for a hint
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-11 23:01_
+_stamped 2026-09-12 09:10_
 
 <!-- /GENERATED -->
+
+## THREE OF THE FOUR UNDECLARED DIVERGING MECHANICS CLOSE — THE MECHANICS CLAUSE READS **2 DIVERGE, 1 DECLARED, 1 BELOW THE REACH SHELF**, FROM **5 / 1 / 4**. MOVES DIVERGED **4 → 1**, ABILITIES **1**, ITEMS **0**, AND `moves STATE` **3 → 2**: HEAL BELL WAS THE ONLY MOVE ROW IN THE ARTIFACT WHOSE **BOARDS** PARTED AND IT WAS AN UNMODELLED CLICK. CENSUS **883 → 886 LIVE / 0 MISSING** (THREE NEW ROWS, EACH RED UNDER ITS OWN KNOB). **GATE OPEN, NINE OF NINE** — WHOLE-GAME **BOARD-MATERIAL 0 OF 961**, NARRATION **ZERO UNDECLARED OF 961**, ROSTER **148 / 190 / 492 WITH ZERO DIFFER AND ZERO DID-NOT-FIRE**, `test-engine-diff` **0 OF 6000 AT EVERY INDEX** — ALL FOUR ARTIFACTS RE-RUN ON THE NEW RELEASE RATHER THAN CAPTIONED. **FOUR ENGINE BYTES CHANGED — RELEASE `8ad1ab5e1f86` CUT.** THE FOURTH ROW, GASTRO ACID, IS **OPEN WITH A MEASURED REASON**. 2026-09-12, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-12-five-diverging.md`.
+
+The mechanics clause read *"5 diverge, 1 are declared, 4 are below the reach shelf"*. **None of the
+five was the instrument** — that was asked first of each, and every one reproduces as a difference in
+what the two engines do or say on a board they agree about.
+
+| row | reach | verdict |
+|---|---|---|
+| `move:healbell` | 0 clicks / 64,846 | **FIXED** — the click reached the terminal `{kind:'pass'}` and did nothing at all |
+| `move:corrosivegas` | 1 click / 64,846 | **FIXED** — a spread click said one refusal, then its effect, then the other refusal |
+| `move:reflecttype` | 11 clicks / 64,846 | **FIXED** — the turn-boundary real-type broadcast did not exist here |
+| `move:gastroacid` | 11 clicks / 64,846 | **OPEN** — `-endability` needs ability SUPPRESSION, which is 164 reader sites |
+| `ability:supremeoverlord` | — | **DECLARED, re-read, still live and load-bearing** |
+
+**HEAL BELL: THREE OF THE FOUR FACTS ARE NOT WHAT READING THE HANDLER SUGGESTS**, and all three were
+staged in the official simulator before a line was written. The `-activate` survives failure and sits
+above `success`. A benched body is named `p1: Blastoise`, no slot letter — `Pokemon#toString` adds one
+only for an active body, so `ident()` gained a bench arm in the same pass. And **a BENCHED Soundproof
+ally IS cured**: `hasAbility` ends in `!this.ignoringAbility()` and `ignoringAbility` opens
+`if (gen >= 5 && !this.isActive) return true` (sim/pokemon.ts:865, 1957-1963), so the gate is an
+ACTIVE-body gate. Staged both ways — benched Bastiodon takes `|-curestatus|p1: Bastiodon|par|[msg]`,
+the same body active keeps its paralysis. An engine that refused both would be running a strictly
+better Soundproof than the real one.
+
+The tag `curesPartyStatus` is derived from the handler's own text and **membership was printed over
+the whole legal move list first: exactly ONE match.** The near miss, `worryseed`, also calls
+`cureStatus` and is correctly refused — it cures one body it was handed and walks no party.
+`data/tags.json` regenerated with **exactly one tag-list change** across all three kinds.
+
+**CORROSIVE GAS IS THE AUTHORITY'S LOOP STRUCTURE, NOT AN ORDERING PREFERENCE.**
+`BattleActions#trySpreadMoveHit` is `for (const step of moveSteps) step(targets, ...)` — each STEP is
+its own loop over EVERY target (sim/battle-actions.ts:553-610). Refusals are step 1, every effect is
+step 7, so the authority cannot interleave them. This branch ran one pass per target and therefore
+did. A stated gap remains: the authority runs each STAGE across all targets, this runs the whole
+gauntlet per target, and the two differ only when two targets are refused by different stages — which
+nothing here stages.
+
+**REFLECT TYPE IS A HIDDEN-INFORMATION LINE AND THAT IS WHY IT ALMOST NEVER FIRES.** `setType` ends in
+`apparentType = types.join('/')` (sim/pokemon.ts:2131), so Soak, Conversion, Camouflage, Protean and
+every forme change leave the two in step and CANNOT produce the boundary line. One legal handler pulls
+them apart on purpose — `if (!source.knownType) source.apparentType = oldApparentType` — so a Reflect
+Type at a FOE leaks the real typing at the next boundary and at an ALLY does not. **Nineteen `.types=`
+write sites therefore did not have to be threaded**, which is the authority's arrangement rather than
+a shortcut.
+
+**TWO OF THIS SESSION'S OWN INSTRUMENTS WERE WRONG FIRST, BOTH CAUGHT BY MEASUREMENT.** The
+apparent-type sweep was placed above `TR.turn(S.turn+1)` — indistinguishable inside a long game, and
+it emits NOTHING on the last turn of a script, so the roster's ONE-TURN Reflect Type fixture went on
+diverging with the fix in. And the spread-order counter first counted "more than one survivor" and
+read **zero on the very fixture the fix was written for**, because that board has two refusals and one
+survivor.
+
+### Gastro Acid stays open, and the reason is measured
+
+`data/protocol-events.json` declares `-endability` not emitted because *"ability SUPPRESSION (Gastro
+Acid, Neutralizing Gas) is not modelled"*, and **that reason still holds** — nothing reads
+`_vol.gastroacid`. Emitting the line alone would make the narration agree while the state does not.
+The obvious shortcut is worse: `engine/board_state.js` compares `ability` on active bodies, and the
+authority keeps `pokemon.ability` set while making `ignoringAbility()` answer true — so clearing the
+slot **would create a board-material divergence where there is none today.** The correct shape is an
+`ignoringAbility()` gate on every read: **164 `TAGS.param('ability'…)` / `TAGS.has('ability'…)` sites
+plus 14 direct comparisons.** Its own batch.
+
+### The order of the runs, and one red test that is not this division's to fix
+
+A 12,000-game whole-game differential was live when this pass started, and the brief forbade rewriting
+`data/game-differential.json`, `data/mechanics-census.json`, `data/all-mechanics-fire.json` or the team
+pool **while it runs**. None was written until it had finished (08:36, 7,178 games, not void, release
+`48ac1c228e02` — untouched and not interpreted here). For part of the pass two clauses were WITHHELD on
+the pin rather than captioned; all four artifacts were then regenerated and **the gate is OPEN, nine of
+nine**. The census move 883 → 886 does not make the whole-game arm incomparable — that arm's own
+`steering.census_role` reads *"CREDITED ONLY — it measures coverage and does not select"*.
+
+The pin guard compares each artifact against the LIVE TREE's digest, so the gate closed the moment the
+first engine byte moved, cut or no cut.
+
+**`tests/test-docs-current.js` is RED on two ratchet clauses, and it was red before this pass.** The
+four new entries are the figure `487` in the deck, the technical docs, `MODELS.md` and `SUMMARY.md` —
+the roster move stage, which moved 487 → 492 in the PREVIOUS pass. Receipts: the baseline is stamped
+`2026-09-12T10:25:28Z` with `changelog_top_at_baseline: 6.42.0`, and `data/roster.moves.prev.json`
+already read 492 before anything here re-ran. Those four documents are HELD by an unreleased 7.0.0, so
+it is named rather than filed — the fix is a document pass, and it is not ENGINE's to make.
 
 ## FIVE OF THE LAST SEVEN UNSTAGED MOVES CLOSE — MOVES **487 → 492 MATCH / 7 → 2 COULD-NOT-STAGE**, DEFERRED **3** UNCHANGED. ITEMS **148 / 0** AND ABILITIES **190 / 5 / 0 CNQ / 5 DEF** UNMOVED AS CONTROLS. THREE OF THE FIVE WERE STANDING **MEASURED REFUSALS THAT NO LONGER HELD**. REDS **22 / 62 / 36, ALL CAUGHT, ZERO WEAK**, AND EACH OF THE FIVE WAS SHOWN RED WITH THE PLANT AIMED AT IT BY NAME. CENSUS **883 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `48ac1c228e02`. 2026-09-12, CHANGELOG `<<VER>>`
 
