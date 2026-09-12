@@ -1,0 +1,854 @@
+{
+  "generated": "2026-08-11T01:29:29.102Z",
+  "node": "v24.15.0",
+  "what": "switch rate and game length, read from the RAW human replay logs of both stores",
+  "quarantined": false,
+  "why_not_quarantined": "the store is upstream of MEDICHAM; nothing here reads the simulator, board.js, the weights or any leaf",
+  "method": "voluntary = a |switch| ahead of the first |move| of its turn block; midturn = after a |move| (pivot move, Eject Button, Emergency Exit); replacement = after |upkeep|; |drag| counted apart; |replace| is an Illusion reveal and is not a switch",
+  "stores": [
+    {
+      "remaining_turns_occurrence_weighted": {
+        "n": 307016,
+        "mean": 3.49,
+        "min": 0,
+        "max": 71,
+        "p50": 3,
+        "p75": 5,
+        "p90": 7,
+        "p95": 9,
+        "p99": 14,
+        "p99_9": 33
+      },
+      "cap_coverage": {
+        "cap_6": {
+          "pct_positions_that_reach_a_real_terminal": 86.494,
+          "pct_truncated": 13.506
+        },
+        "cap_8": {
+          "pct_positions_that_reach_a_real_terminal": 94.199,
+          "pct_truncated": 5.801
+        },
+        "cap_10": {
+          "pct_positions_that_reach_a_real_terminal": 97.312,
+          "pct_truncated": 2.688
+        },
+        "cap_12": {
+          "pct_positions_that_reach_a_real_terminal": 98.625,
+          "pct_truncated": 1.375
+        },
+        "cap_14": {
+          "pct_positions_that_reach_a_real_terminal": 99.213,
+          "pct_truncated": 0.787
+        },
+        "cap_16": {
+          "pct_positions_that_reach_a_real_terminal": 99.495,
+          "pct_truncated": 0.505
+        },
+        "cap_20": {
+          "pct_positions_that_reach_a_real_terminal": 99.738,
+          "pct_truncated": 0.262
+        },
+        "cap_24": {
+          "pct_positions_that_reach_a_real_terminal": 99.83,
+          "pct_truncated": 0.17
+        },
+        "cap_30": {
+          "pct_positions_that_reach_a_real_terminal": 99.887,
+          "pct_truncated": 0.113
+        },
+        "cap_60": {
+          "pct_positions_that_reach_a_real_terminal": 99.995,
+          "pct_truncated": 0.005
+        }
+      },
+      "key": "ladder",
+      "note": "bo1 ladder",
+      "file": "games.ladder.raw-logs.jsonl",
+      "digest": "a85d7b2d73644caf",
+      "games": 46576,
+      "skipped": 475,
+      "forfeits": 11493,
+      "length_all": {
+        "n": 46576,
+        "mean": 6.617,
+        "min": 1,
+        "max": 72,
+        "p50": 6,
+        "p75": 8,
+        "p90": 10,
+        "p95": 12,
+        "p99": 16,
+        "p99_9": 27
+      },
+      "length_no_forfeit": {
+        "n": 35083,
+        "mean": 7.107,
+        "min": 1,
+        "max": 72,
+        "p50": 7,
+        "p75": 8,
+        "p90": 10,
+        "p95": 12,
+        "p99": 16,
+        "p99_9": 29
+      },
+      "switches": {
+        "voluntary": 69989,
+        "midturn": 12388,
+        "replacement": 146330,
+        "drag": 563,
+        "per_game": {
+          "voluntary": {
+            "n": 46576,
+            "mean": 1.503,
+            "min": 0,
+            "max": 51,
+            "p50": 1,
+            "p75": 2,
+            "p90": 4,
+            "p95": 5,
+            "p99": 7,
+            "p99_9": 12
+          },
+          "midturn": {
+            "n": 46576,
+            "mean": 0.266,
+            "min": 0,
+            "max": 27,
+            "p50": 0,
+            "p75": 0,
+            "p90": 1,
+            "p95": 1,
+            "p99": 3,
+            "p99_9": 5
+          },
+          "replacement": {
+            "n": 46576,
+            "mean": 3.142,
+            "min": 0,
+            "max": 4,
+            "p50": 4,
+            "p75": 4,
+            "p90": 4,
+            "p95": 4,
+            "p99": 4,
+            "p99_9": 4
+          }
+        },
+        "games_with_a_voluntary_switch": 31756,
+        "pct_games_with_a_voluntary_switch": 68.18,
+        "pct_games_with_voluntary_or_midturn": 72.49,
+        "turns_total": 308185,
+        "turns_with_a_voluntary_switch": 63963,
+        "pct_turns_with_a_voluntary_switch": 20.75,
+        "decisions_counted": 1005465,
+        "pct_decisions_that_are_a_voluntary_switch": 6.961,
+        "decisions_with_a_live_bench": 763975,
+        "pct_decisions_with_a_bench_that_are_a_voluntary_switch": 9.161
+      },
+      "voluntary_switch_turn_histogram": {
+        "1": 11494,
+        "2": 16082,
+        "3": 14039,
+        "4": 10406,
+        "5": 6863,
+        "6": 4470,
+        "7": 2730,
+        "8": 1615,
+        "9": 894,
+        "10": 514,
+        "11": 344,
+        "12": 164,
+        "13": 117,
+        "14": 75,
+        "15": 37,
+        "16": 29,
+        "17": 23,
+        "18": 9,
+        "19": 13,
+        "20": 7,
+        "21": 3,
+        "22": 3,
+        "23": 4,
+        "24": 5,
+        "25": 4,
+        "26": 2,
+        "27": 2,
+        "28": 2,
+        "29": 1,
+        "30": 2
+      },
+      "remaining_turns_conditional": {
+        "from_turn_1": {
+          "n": 46576,
+          "mean": 5.617,
+          "min": 0,
+          "max": 71,
+          "p50": 5,
+          "p75": 7,
+          "p90": 9,
+          "p95": 11,
+          "p99": 15,
+          "p99_9": 26
+        },
+        "from_turn_2": {
+          "n": 45501,
+          "mean": 4.75,
+          "min": 0,
+          "max": 70,
+          "p50": 4,
+          "p75": 6,
+          "p90": 8,
+          "p95": 10,
+          "p99": 14,
+          "p99_9": 25
+        },
+        "from_turn_3": {
+          "n": 43936,
+          "mean": 3.919,
+          "min": 0,
+          "max": 69,
+          "p50": 3,
+          "p75": 5,
+          "p90": 7,
+          "p95": 9,
+          "p99": 13,
+          "p99_9": 25
+        },
+        "from_turn_4": {
+          "n": 41818,
+          "mean": 3.117,
+          "min": 0,
+          "max": 68,
+          "p50": 3,
+          "p75": 4,
+          "p90": 6,
+          "p95": 8,
+          "p99": 12,
+          "p99_9": 24
+        },
+        "from_turn_5": {
+          "n": 37147,
+          "mean": 2.509,
+          "min": 0,
+          "max": 67,
+          "p50": 2,
+          "p75": 3,
+          "p90": 6,
+          "p95": 7,
+          "p99": 12,
+          "p99_9": 24
+        },
+        "from_turn_6": {
+          "n": 29680,
+          "mean": 2.14,
+          "min": 0,
+          "max": 66,
+          "p50": 1,
+          "p75": 3,
+          "p90": 5,
+          "p95": 7,
+          "p99": 11,
+          "p99_9": 24
+        },
+        "from_turn_7": {
+          "n": 21472,
+          "mean": 1.959,
+          "min": 0,
+          "max": 65,
+          "p50": 1,
+          "p75": 3,
+          "p90": 5,
+          "p95": 7,
+          "p99": 12,
+          "p99_9": 28
+        },
+        "from_turn_8": {
+          "n": 14475,
+          "mean": 1.905,
+          "min": 0,
+          "max": 64,
+          "p50": 1,
+          "p75": 3,
+          "p90": 5,
+          "p95": 7,
+          "p99": 12,
+          "p99_9": 37
+        },
+        "from_turn_9": {
+          "n": 9266,
+          "mean": 1.976,
+          "min": 0,
+          "max": 63,
+          "p50": 1,
+          "p75": 3,
+          "p90": 5,
+          "p95": 7,
+          "p99": 13,
+          "p99_9": 47
+        },
+        "from_turn_10": {
+          "n": 5850,
+          "mean": 2.131,
+          "min": 0,
+          "max": 62,
+          "p50": 1,
+          "p75": 3,
+          "p90": 5,
+          "p95": 7,
+          "p99": 15,
+          "p99_9": 48
+        },
+        "from_turn_11": {
+          "n": 3771,
+          "mean": 2.305,
+          "min": 0,
+          "max": 61,
+          "p50": 1,
+          "p75": 3,
+          "p90": 6,
+          "p95": 8,
+          "p99": 18,
+          "p99_9": 51
+        },
+        "from_turn_12": {
+          "n": 2456,
+          "mean": 2.539,
+          "min": 0,
+          "max": 60,
+          "p50": 1,
+          "p75": 3,
+          "p90": 6,
+          "p95": 9,
+          "p99": 21,
+          "p99_9": 50
+        },
+        "from_turn_13": {
+          "n": 1625,
+          "mean": 2.838,
+          "min": 0,
+          "max": 59,
+          "p50": 1,
+          "p75": 3,
+          "p90": 7,
+          "p95": 10,
+          "p99": 28,
+          "p99_9": 51
+        },
+        "from_turn_14": {
+          "n": 1087,
+          "mean": 3.243,
+          "min": 0,
+          "max": 58,
+          "p50": 1,
+          "p75": 4,
+          "p90": 8,
+          "p95": 11,
+          "p99": 39,
+          "p99_9": 50
+        },
+        "from_turn_15": {
+          "n": 766,
+          "mean": 3.602,
+          "min": 0,
+          "max": 57,
+          "p50": 2,
+          "p75": 4,
+          "p90": 8,
+          "p95": 14,
+          "p99": 42,
+          "p99_9": 57
+        },
+        "from_turn_16": {
+          "n": 519,
+          "mean": 4.316,
+          "min": 0,
+          "max": 56,
+          "p50": 2,
+          "p75": 5,
+          "p90": 10,
+          "p95": 17,
+          "p99": 42,
+          "p99_9": 56
+        },
+        "from_turn_17": {
+          "n": 386,
+          "mean": 4.803,
+          "min": 0,
+          "max": 55,
+          "p50": 2,
+          "p75": 5,
+          "p90": 12,
+          "p95": 21,
+          "p99": 45,
+          "p99_9": 55
+        },
+        "from_turn_18": {
+          "n": 292,
+          "mean": 5.349,
+          "min": 0,
+          "max": 54,
+          "p50": 2,
+          "p75": 6,
+          "p90": 12,
+          "p95": 27,
+          "p99": 44,
+          "p99_9": 54
+        },
+        "from_turn_19": {
+          "n": 223,
+          "mean": 6.004,
+          "min": 0,
+          "max": 53,
+          "p50": 3,
+          "p75": 6,
+          "p90": 15,
+          "p95": 30,
+          "p99": 43,
+          "p99_9": 53
+        },
+        "from_turn_20": {
+          "n": 170,
+          "mean": 6.876,
+          "min": 0,
+          "max": 52,
+          "p50": 3,
+          "p75": 8,
+          "p90": 20,
+          "p95": 36,
+          "p99": 44,
+          "p99_9": 52
+        }
+      }
+    },
+    {
+      "remaining_turns_occurrence_weighted": {
+        "n": 85566,
+        "mean": 3.638,
+        "min": 0,
+        "max": 49,
+        "p50": 3,
+        "p75": 5,
+        "p90": 8,
+        "p95": 9,
+        "p99": 13,
+        "p99_9": 20
+      },
+      "cap_coverage": {
+        "cap_6": {
+          "pct_positions_that_reach_a_real_terminal": 84.251,
+          "pct_truncated": 15.749
+        },
+        "cap_8": {
+          "pct_positions_that_reach_a_real_terminal": 93.705,
+          "pct_truncated": 6.295
+        },
+        "cap_10": {
+          "pct_positions_that_reach_a_real_terminal": 97.513,
+          "pct_truncated": 2.487
+        },
+        "cap_12": {
+          "pct_positions_that_reach_a_real_terminal": 98.933,
+          "pct_truncated": 1.067
+        },
+        "cap_14": {
+          "pct_positions_that_reach_a_real_terminal": 99.479,
+          "pct_truncated": 0.521
+        },
+        "cap_16": {
+          "pct_positions_that_reach_a_real_terminal": 99.73,
+          "pct_truncated": 0.27
+        },
+        "cap_20": {
+          "pct_positions_that_reach_a_real_terminal": 99.908,
+          "pct_truncated": 0.092
+        },
+        "cap_24": {
+          "pct_positions_that_reach_a_real_terminal": 99.961,
+          "pct_truncated": 0.039
+        },
+        "cap_30": {
+          "pct_positions_that_reach_a_real_terminal": 99.975,
+          "pct_truncated": 0.025
+        },
+        "cap_60": {
+          "pct_positions_that_reach_a_real_terminal": 100,
+          "pct_truncated": 0
+        }
+      },
+      "key": "bo3",
+      "note": "bo3 ladder — the open-sheet population",
+      "file": "games.bo3.raw-logs.jsonl",
+      "digest": "7a5bd6ac28ad4681",
+      "games": 12063,
+      "skipped": 119,
+      "forfeits": 4328,
+      "length_all": {
+        "n": 12063,
+        "mean": 7.103,
+        "min": 1,
+        "max": 50,
+        "p50": 7,
+        "p75": 9,
+        "p90": 11,
+        "p95": 12,
+        "p99": 16,
+        "p99_9": 22
+      },
+      "length_no_forfeit": {
+        "n": 7735,
+        "mean": 7.739,
+        "min": 1,
+        "max": 50,
+        "p50": 7,
+        "p75": 9,
+        "p90": 11,
+        "p95": 12,
+        "p99": 16,
+        "p99_9": 24
+      },
+      "switches": {
+        "voluntary": 29497,
+        "midturn": 4670,
+        "replacement": 36631,
+        "drag": 115,
+        "per_game": {
+          "voluntary": {
+            "n": 12063,
+            "mean": 2.445,
+            "min": 0,
+            "max": 21,
+            "p50": 2,
+            "p75": 4,
+            "p90": 5,
+            "p95": 7,
+            "p99": 10,
+            "p99_9": 14
+          },
+          "midturn": {
+            "n": 12063,
+            "mean": 0.387,
+            "min": 0,
+            "max": 15,
+            "p50": 0,
+            "p75": 1,
+            "p90": 1,
+            "p95": 2,
+            "p99": 3,
+            "p99_9": 6
+          },
+          "replacement": {
+            "n": 12063,
+            "mean": 3.037,
+            "min": 0,
+            "max": 4,
+            "p50": 3,
+            "p75": 4,
+            "p90": 4,
+            "p95": 4,
+            "p99": 4,
+            "p99_9": 4
+          }
+        },
+        "games_with_a_voluntary_switch": 10009,
+        "pct_games_with_a_voluntary_switch": 82.97,
+        "pct_games_with_voluntary_or_midturn": 85.39,
+        "turns_total": 85680,
+        "turns_with_a_voluntary_switch": 26176,
+        "pct_turns_with_a_voluntary_switch": 30.55,
+        "decisions_counted": 288549,
+        "pct_decisions_that_are_a_voluntary_switch": 10.223,
+        "decisions_with_a_live_bench": 232906,
+        "pct_decisions_with_a_bench_that_are_a_voluntary_switch": 12.665
+      },
+      "voluntary_switch_turn_histogram": {
+        "1": 4246,
+        "2": 6146,
+        "3": 5585,
+        "4": 4577,
+        "5": 3297,
+        "6": 2249,
+        "7": 1395,
+        "8": 855,
+        "9": 495,
+        "10": 249,
+        "11": 174,
+        "12": 104,
+        "13": 51,
+        "14": 25,
+        "15": 17,
+        "16": 12,
+        "17": 10,
+        "18": 4,
+        "19": 4,
+        "20": 1,
+        "21": 1
+      },
+      "remaining_turns_conditional": {
+        "from_turn_1": {
+          "n": 12063,
+          "mean": 6.103,
+          "min": 0,
+          "max": 49,
+          "p50": 6,
+          "p75": 8,
+          "p90": 10,
+          "p95": 11,
+          "p99": 15,
+          "p99_9": 21
+        },
+        "from_turn_2": {
+          "n": 11906,
+          "mean": 5.183,
+          "min": 0,
+          "max": 48,
+          "p50": 5,
+          "p75": 7,
+          "p90": 9,
+          "p95": 10,
+          "p99": 14,
+          "p99_9": 21
+        },
+        "from_turn_3": {
+          "n": 11585,
+          "mean": 4.327,
+          "min": 0,
+          "max": 47,
+          "p50": 4,
+          "p75": 6,
+          "p90": 8,
+          "p95": 9,
+          "p99": 13,
+          "p99_9": 20
+        },
+        "from_turn_4": {
+          "n": 11069,
+          "mean": 3.529,
+          "min": 0,
+          "max": 46,
+          "p50": 3,
+          "p75": 5,
+          "p90": 7,
+          "p95": 8,
+          "p99": 12,
+          "p99_9": 19
+        },
+        "from_turn_5": {
+          "n": 10120,
+          "mean": 2.859,
+          "min": 0,
+          "max": 45,
+          "p50": 2,
+          "p75": 4,
+          "p90": 6,
+          "p95": 7,
+          "p99": 11,
+          "p99_9": 19
+        },
+        "from_turn_6": {
+          "n": 8669,
+          "mean": 2.338,
+          "min": 0,
+          "max": 44,
+          "p50": 2,
+          "p75": 3,
+          "p90": 5,
+          "p95": 7,
+          "p99": 11,
+          "p99_9": 18
+        },
+        "from_turn_7": {
+          "n": 6763,
+          "mean": 1.997,
+          "min": 0,
+          "max": 43,
+          "p50": 1,
+          "p75": 3,
+          "p90": 5,
+          "p95": 6,
+          "p99": 10,
+          "p99_9": 18
+        },
+        "from_turn_8": {
+          "n": 4825,
+          "mean": 1.799,
+          "min": 0,
+          "max": 42,
+          "p50": 1,
+          "p75": 3,
+          "p90": 4,
+          "p95": 6,
+          "p99": 10,
+          "p99_9": 18
+        },
+        "from_turn_9": {
+          "n": 3269,
+          "mean": 1.655,
+          "min": 0,
+          "max": 41,
+          "p50": 1,
+          "p75": 2,
+          "p90": 4,
+          "p95": 6,
+          "p99": 10,
+          "p99_9": 17
+        },
+        "from_turn_10": {
+          "n": 2027,
+          "mean": 1.669,
+          "min": 0,
+          "max": 40,
+          "p50": 1,
+          "p75": 2,
+          "p90": 4,
+          "p95": 6,
+          "p99": 11,
+          "p99_9": 17
+        },
+        "from_turn_11": {
+          "n": 1235,
+          "mean": 1.74,
+          "min": 0,
+          "max": 39,
+          "p50": 1,
+          "p75": 2,
+          "p90": 5,
+          "p95": 6,
+          "p99": 11,
+          "p99_9": 22
+        },
+        "from_turn_12": {
+          "n": 769,
+          "mean": 1.795,
+          "min": 0,
+          "max": 38,
+          "p50": 1,
+          "p75": 2,
+          "p90": 5,
+          "p95": 7,
+          "p99": 12,
+          "p99_9": 38
+        },
+        "from_turn_13": {
+          "n": 450,
+          "mean": 2.067,
+          "min": 0,
+          "max": 37,
+          "p50": 1,
+          "p75": 3,
+          "p90": 5,
+          "p95": 8,
+          "p99": 13,
+          "p99_9": 37
+        },
+        "from_turn_14": {
+          "n": 279,
+          "mean": 2.333,
+          "min": 0,
+          "max": 36,
+          "p50": 1,
+          "p75": 3,
+          "p90": 6,
+          "p95": 8,
+          "p99": 13,
+          "p99_9": 36
+        },
+        "from_turn_15": {
+          "n": 190,
+          "mean": 2.426,
+          "min": 0,
+          "max": 35,
+          "p50": 1,
+          "p75": 3,
+          "p90": 7,
+          "p95": 9,
+          "p99": 18,
+          "p99_9": 35
+        },
+        "from_turn_16": {
+          "n": 127,
+          "mean": 2.63,
+          "min": 0,
+          "max": 34,
+          "p50": 1,
+          "p75": 3,
+          "p90": 6,
+          "p95": 9,
+          "p99": 17,
+          "p99_9": 34
+        },
+        "from_turn_17": {
+          "n": 90,
+          "mean": 2.711,
+          "min": 0,
+          "max": 33,
+          "p50": 1,
+          "p75": 4,
+          "p90": 7,
+          "p95": 9,
+          "p99": 33,
+          "p99_9": 33
+        },
+        "from_turn_18": {
+          "n": 59,
+          "mean": 3.136,
+          "min": 0,
+          "max": 32,
+          "p50": 2,
+          "p75": 4,
+          "p90": 8,
+          "p95": 9,
+          "p99": 32,
+          "p99_9": 32
+        },
+        "from_turn_19": {
+          "n": 40,
+          "mean": 3.625,
+          "min": 0,
+          "max": 31,
+          "p50": 2,
+          "p75": 5,
+          "p90": 7,
+          "p95": 8,
+          "p99": 31,
+          "p99_9": 31
+        },
+        "from_turn_20": {
+          "n": 31,
+          "mean": 3.677,
+          "min": 0,
+          "max": 30,
+          "p50": 2,
+          "p75": 4,
+          "p90": 6,
+          "p95": 13,
+          "p99": 30,
+          "p99_9": 30
+        }
+      }
+    }
+  ],
+  "pooled": {
+    "games": 58639,
+    "voluntary": 99486,
+    "midturn": 17058,
+    "replacement": 182961,
+    "decisions": 1294014,
+    "decisions_with_a_live_bench": 996881,
+    "turns_total": 393865,
+    "pct_decisions_that_are_a_voluntary_switch": 7.688,
+    "pct_decisions_with_a_bench_that_are_a_voluntary_switch": 9.98,
+    "pct_games_with_a_voluntary_switch": 71.22
+  },
+  "derived_cap": {
+    "rule": "smallest integer K with >=99% of occurrence-weighted (game,t) positions having <=K turns remaining, maxed over both stores",
+    "per_store": {
+      "ladder": 14,
+      "bo3": 13
+    },
+    "max_turns": 14,
+    "was": 60,
+    "was_derived_from": "nothing — a round number; MEDICHAM default is 20",
+    "note": "this is derived from REAL games. A uniformly-random playout is less lethal than a person, so the rate at which this cap actually BINDS inside the simulator is a different number and is measured separately by engine/rollout_switch_probe.js"
+  }
+}

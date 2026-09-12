@@ -154,12 +154,12 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  886/886 probed mechanics live, 0 missing   (census 2026-09-12 09:02)
+  886/886 probed mechanics live, 0 missing   (census 2026-09-12 09:57)
     the census probes what somebody thought to probe: 297 of 297 in-scope tags carry a probe, 0 carry none (9 of 306
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 9 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 12 min old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/8ad1ab5e1f86/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "8ad1ab5e1f86".
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/bc8d7cf849dd/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "bc8d7cf849dd".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -176,9 +176,83 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-12 09:10_
+_stamped 2026-09-12 10:17_
 
 <!-- /GENERATED -->
+
+## THE GATE'S `0 OF 961` IS A PROPERTY OF ONE TEAM LATTICE — THE SAME RELEASE READS **10 OF 1,069** AT `--games 1350` AND **84 OF 7,178** AT `--games 12000`, AND THE THREE FIXES IN `302b48a5` ACCOUNT FOR **ZERO** OF THE 84. TWO ENGINE DEFECTS FOUND IN THAT WIDE DRAW AND CLOSED: THE ELECTRIC BANK SURVIVES AN ABORTED CLICK **AND A STATUS CLICK** (16 OF 84 BETWEEN THEM). CENSUS **886 LIVE / 0 MISSING**, UNMOVED. **TWO ENGINE BYTES CHANGED — RELEASE `bc8d7cf849dd` CUT**, ALL FOUR INVALIDATED ARTIFACTS RE-RUN. GATE **OPEN, NINE OF NINE** — AND §4 OF THE REPORT IS WHY THAT LINE MUST NOT BE READ AS "MEDICHAM IS CORRECT". 2026-09-12, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-12-wide-sample.md`.
+
+**THE FINDING IS ABOUT THE SAMPLE AND IT IS REPRODUCIBLE TO THE DIGEST.** On release `8ad1ab5e1f86`,
+with the same pinned census `e04072b49220`, the same `data/team-pool-frozen`, the same
+`empirical-click/v1` steering, the same `middle` arm, the same 50-turn cap and the same `--end-state`
+stop rule, only `--games` moving:
+
+| `--games` | games | teams picked | pool digest | board-material | protocol |
+|---|---|---|---|---|---|
+| 1200 | 961 | 1968 | `0d103fb9fa87` | **0** | **0** |
+| 1350 | 1069 | 2206 | `7e7a37ded7fc` | **10** (0.94%) | 23 |
+| 12000 | 7178 | 14746 | `e398641bda45` | **84** (1.17%) | 221 |
+
+`buildSwarm` is called with `GAMES * 2` and picks teams by a **deterministic STRIDE whose step is
+computed from that size** (`engine/diff_swarm.js:416-431`), and `pairsFor` pairs ADJACENT entries — so
+`--games` changes WHICH teams and WHICH matchups, not only how many. The 961-game run is 984 team
+pairs drawn on one lattice, every run, forever. `data/verification/2026-09-12-wide-sample-repro-n1200.json`
+reproduces the published gate artifact to the digest, so the zero is a correct measurement of a sample
+with no divergence in it.
+
+**AND THE THREE FIXES IN `302b48a5` MOVED THE WIDE NUMBER BY NOTHING.** Same 12,000-game request, same
+pins, pre-fix `48ac1c228e02` against post-fix `8ad1ab5e1f86`: **84 and 84**, 79,267 of 79,588 boundaries
+both times, `families` identical to the row. Protocol 222 → 221.
+
+**TWO ENGINE DEFECTS CLOSED, BOTH FROM THE WIDE DRAW.**
+
+- **THE ELECTRIC BANK, 14 of 84 and the largest self-identifying bucket in the population.**
+  `charge.condition` carries `onMoveAborted` and `onAfterMove` with the identical body. WIRE 157
+  implemented one of them and said so at its own call site — *"Showdown's `onMoveAborted` is a separate
+  handler this engine reaches by having already `continue`d"*. **The probe then found a SECOND road
+  nothing had pointed at and it was bigger:** the status call site reads
+  `spendChargeOnMove(m, a.mv, a.move && a.move.mv, field)` and a `{kind:'status'}` action **has no
+  `a.move`**, so `effMoveType` — which opens `let t = mv ? mv.t : ''` and only ever REWRITES — answered
+  the empty string, which is not `'Electric'`. The one branch that call site exists for was the one
+  branch it could never serve, so an unobstructed Thunder Wave left the bank standing. Fixed at the
+  row lookup (through `MC.moves`, with the miss COUNTED, never defaulted) and with
+  `midAbortElectricCharge()` on `midAbortTwoTurn`'s idiom — armed at the gate head, **disarmed at the
+  `|move|` line**, swept at both sites. `tests/probe_electric_charge_abort.js`, four arms; three were
+  red before the fix and the `abort-nonelectric` over-match guard was green throughout.
+- **A MEGA RUNS THE OUTGOING ABILITY'S `End`, 2 of 84.** `setAbility` fires
+  `singleEvent('End', oldAbility, ...)` on every rewrite and `flashfire.onEnd` removes the gift.
+  `abRewrite` has done this since 2026-08-29; `megaEvolveNow` does not go through it and writes
+  `m.ability` raw — correctly, because a mega's ability survives the bench — so **the one ability
+  rewrite that happens in every game of this format was the one that skipped the End.**
+  `tests/probe_mega_ends_absorb_gift.js`, three arms. **The tag walk was printed before the fix was
+  written and matches EXACTLY ONE ability** (`flashfire`, 1,777 uses); the probe repeats the walk at
+  run time and refuses if that ever changes.
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST, because the census and two probes now carry them:** the Electric charge bank
+  (both roads) and the mega ability End.
+- **THE GATE'S SAMPLE IS A RECOMMENDATION FOR WILL AND WAS NOT CHANGED HERE.** Either raise the gate to
+  `--games 12000` (~20–25 min single-arm against today's 4.4) or keep the cost and **break the
+  lattice** — two runs at 1200 and 1350 cost ten minutes together and would have caught ten
+  divergences the current gate cannot see. Measured costs are in §4 of the report.
+- **UNDIAGNOSED AND NAMED, from the wide draw — each is a lead with a citation, none is claimed
+  diagnosed:** damage numbers differing inside a whole game while `test-engine-diff` reads 0 of 6000 at
+  every index (Torkoal `16/145` against `39/145` on one Grav Apple); sleep waking on one engine and not
+  the other; **Defiant not firing off a Gooey Speed drop** (`boosts.atk 0|2` on Kingambit, twice, in two
+  independent lattices); Rough Skin's magnitude and order taking a Kangaskhan to `0 fnt` where the
+  authority leaves it at `9/180`; Cursed Body's Disable landing BETWEEN multi-hit arrivals; residual
+  order within a side; a `spd -2` landing on the WRONG BODY; Helping Hand succeeding at a protecting
+  partner; Forewarn and Roost's `-singleturn`.
+- **THE OTHER EIGHTEEN `onEnd` ABILITIES ARE A REAL REMAINING MECHANISM AND ARE NOT TOUCHED** —
+  Unburden, Protosynthesis, Quark Drive, Slow Start, Zen Mode, Supreme Overlord and the rest. Supreme
+  Overlord's is already the DECLARED `fallenundefined` row, which is the same mechanism through the
+  faint door.
+- **RELEASE TO ADD: `bc8d7cf849dd`.** Two engine bytes changed; `data/engine-diff.json`,
+  `data/roster.{items,abilities,moves}.json`, `data/all-mechanics-fire.json` and
+  `data/game-differential.json` were all re-run on it rather than captioned.
 
 ## THREE OF THE FOUR UNDECLARED DIVERGING MECHANICS CLOSE — THE MECHANICS CLAUSE READS **2 DIVERGE, 1 DECLARED, 1 BELOW THE REACH SHELF**, FROM **5 / 1 / 4**. MOVES DIVERGED **4 → 1**, ABILITIES **1**, ITEMS **0**, AND `moves STATE` **3 → 2**: HEAL BELL WAS THE ONLY MOVE ROW IN THE ARTIFACT WHOSE **BOARDS** PARTED AND IT WAS AN UNMODELLED CLICK. CENSUS **883 → 886 LIVE / 0 MISSING** (THREE NEW ROWS, EACH RED UNDER ITS OWN KNOB). **GATE OPEN, NINE OF NINE** — WHOLE-GAME **BOARD-MATERIAL 0 OF 961**, NARRATION **ZERO UNDECLARED OF 961**, ROSTER **148 / 190 / 492 WITH ZERO DIFFER AND ZERO DID-NOT-FIRE**, `test-engine-diff` **0 OF 6000 AT EVERY INDEX** — ALL FOUR ARTIFACTS RE-RUN ON THE NEW RELEASE RATHER THAN CAPTIONED. **FOUR ENGINE BYTES CHANGED — RELEASE `8ad1ab5e1f86` CUT.** THE FOURTH ROW, GASTRO ACID, IS **OPEN WITH A MEASURED REASON**. 2026-09-12, CHANGELOG `<<VER>>`
 

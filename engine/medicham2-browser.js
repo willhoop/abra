@@ -1114,6 +1114,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      at both moments and this engine wrote it only at the first: a re-bank that is silent and a
      re-bank that never happened read identically on the board, since the charge does not stack. */
   chargeReBanked: 0,
+  /* 2026-09-12 -- THE FOURTH MOMENT, and the one WIRE 157's own comment said this engine reached "by
+   * having already `continue`d". `charge.condition.onMoveAborted` is the identical body as
+   * `onAfterMove`, so an Electric click refused at the BeforeMove gate -- a flinch, sleep, freeze,
+   * full paralysis, a confusion self-hit, Disable, Taunt, Attract -- spends the bank in the real
+   * game. Zero on a sample containing a flinched Electric click means the sweep never fired. */
+  electricChargeAbortedAtGate: 0,
   /* WIRE 157 -- the two directions of `onWeather`, counted apart. A zero in the second one on a board
    * full of sun is Dry Skin and Solar Power being paid without being charged. */
   weatherHealed: 0, weatherAbilityChip: 0,
@@ -4731,6 +4737,10 @@ const MEDFAILS = { encoreAction: 0,
      a capitalised TYPE ("Normal moves"), a lowercase FLAG ("sound moves") or "its moves"; anything
      else would silently mean "the ability does not apply", which is how Liquid Voice was inert. */
   convertsUnparsed: 0, convertsUnparsedFirst: '',
+  /* 2026-09-12 -- a Charge spend asked about a move id with NO row in `MC.moves`. `effMoveType` would
+     then answer '' -- indistinguishable from "this move is not Electric" -- so the bank would survive
+     a click that should have spent it, for a reason that is not about the move. Named, not defaulted. */
+  chargeSpendNoMoveRow: 0, chargeSpendNoMoveRowFirst: '',
   /* WIRE 83. A `variablePower` or `conditionalPower` rule the artifact NOW states and this engine
      still cannot evaluate: Lash Out needs "was I stat-dropped this turn", Rage Fist needs a per-mon
      times-hit counter, Last Respects' own counter is handled by powerFromFallen. Counted with the
@@ -6029,6 +6039,22 @@ const CHARGE_REAIMS_FIRST_LIVE_FOE=(typeof process!=='undefined'&&process.env&&p
  * untouched, so a knob run turns exactly the `abort-flinch` arm red and leaves the `no-flinch`
  * control green. */
 const CHARGE_WRAP_SURVIVES_ABORT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CHARGE_WRAP_SURVIVES_ABORT==='1');
+/* 2026-09-12 -- MEDI_ELECTRIC_CHARGE_SURVIVES_ABORT=1 restores the pre-fix engine for the OTHER
+ * charge: the Electric bank that Electromorphosis, Wind Power and the move Charge write into
+ * `_vol.charge`. The gate marker is never armed, so an Electric click refused at the BeforeMove door
+ * keeps a bank the authority has already spent. It restores that and NOTHING else -- the damaging
+ * spend, the status spend and the switch-out clear are untouched, so a knob run turns exactly the
+ * `abort-flinch` arm of tests/probe_electric_charge_abort.js red and leaves its three controls green.
+ * It is a SEPARATE knob from CHARGE_WRAP_SURVIVES_ABORT above because they are separate mechanics
+ * that happen to share a word: that one is the two-turn move clock, this one is the Electric bank. */
+const ELECTRIC_CHARGE_SURVIVES_ABORT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ELECTRIC_CHARGE_SURVIVES_ABORT==='1');
+/* 2026-09-12 -- MEDI_MEGA_KEEPS_ABSORB_GIFT=1 restores the pre-fix engine: `megaEvolveNow` overwrites
+ * the ability without running the OUTGOING ability's End, so a Flash Fire bank taken before the
+ * evolution survives an ability that no longer exists on the body. It restores that and NOTHING else
+ * -- `abRewrite` (Skill Swap, Worry Seed, Entrainment) and the switch-out road are untouched, so a
+ * knob run turns exactly the `mega-drops-gift` arm of tests/probe_mega_ends_absorb_gift.js red and
+ * leaves its `no-mega` and `mega-no-gift` controls green. */
+const MEGA_KEEPS_ABSORB_GIFT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_MEGA_KEEPS_ABSORB_GIFT==='1');
 /* 2026-08-26 -- MEDI_SUPPRESSED_ITEM_IS_LOST=1 puts `lockMenuMove` back on the raw SLOT, so an item
  * parked by Magic Room or Klutz destroys the Choice lock instead of suspending it. That is the whole
  * of the defect: a knob run turns exactly the `suppresses` census row red and leaves the Knock Off row
@@ -12925,7 +12951,24 @@ function convertsMoveTypeTo(mv,moveId,att,curT){
 function spendChargeOnMove(m,mvId,mv,field){
   if(!m||!m._vol||!(m._vol.charge>0)||!mvId)return false;
   if(String(mvId)==='charge')return false;
-  if(effMoveType(mv||null,mvId,field,m)!=='Electric')return false;
+  /* 2026-09-12 -- THE ROW IS LOOKED UP WHEN THE CALLER HAS NONE, AND THAT OMISSION KILLED THE WHOLE
+   * STATUS ROAD. `effMoveType` opens `let t = mv ? mv.t : ''` and every branch under it is a
+   * conditional REWRITE, so a null row falls out as the empty string -- which is not 'Electric', so
+   * this function returned false for every non-attacking click. The status call site is
+   * `spendChargeOnMove(m, a.mv, a.move && a.move.mv, field)` and a `{kind:'status'}` action HAS NO
+   * `a.move`: the one branch the call site was written for was the one branch it could never serve.
+   * Staged, it read `medicham 1  showdown 0` on `vol.charge` after an unobstructed Thunder Wave —
+   * `tests/probe_electric_charge_abort.js :: electric-runs`, which is why that control arm exists.
+   *
+   * `MC.moves` is the same table `statusCategory`'s type-immunity gate resolves through (the
+   * `_smv = MC.moves[a.mv]` line), so this is the engine's existing reader and not a second one.
+   * A miss is COUNTED rather than defaulted: an id with no row cannot be typed, and this function
+   * would then answer "not Electric" for a reason that has nothing to do with the move. */
+  let _row=mv||null;
+  if(!_row&&MC&&MC.moves)_row=MC.moves[String(mvId)]||null;
+  if(!_row){MEDFAILS.chargeSpendNoMoveRow++;
+            if(!MEDFAILS.chargeSpendNoMoveRowFirst)MEDFAILS.chargeSpendNoMoveRowFirst=String(mvId);}
+  if(effMoveType(_row,mvId,field,m)!=='Electric')return false;
   delete m._vol.charge;
   MEDSEEN.chargeCleared++;
   if(TR)TR.vend(m,'Charge');
@@ -22843,6 +22886,35 @@ function megaEvolveNow(S,m,auto){
    * precisely the field `clearVolatile` restores FROM. So any snapshot taken by an earlier rewrite is
    * discarded here rather than restored over the mega on the next pivot. */
   ubAbilityRewrite(m,ab);
+  /* 2026-09-12 -- AND THE OUTGOING ABILITY'S `End` RUNS HERE, WHICH IS THE ONE ABILITY REWRITE IN
+   * THIS FORMAT THAT HAPPENS IN EVERY GAME AND WAS THE ONE THAT SKIPPED IT.
+   *
+   *     Pokemon#setAbility: this.battle.singleEvent('End', oldAbility, this.abilityState, this, source);
+   *                                                                          sim/pokemon.ts:1928
+   *     flashfire.onEnd(pokemon) { pokemon.removeVolatile("flashfire"); }     data/abilities.ts
+   *
+   * `abRewrite` has carried this since 2026-08-29 and this line does not go through it: the two
+   * fields below are written raw because a mega's ability SURVIVES THE BENCH (see the ROADMAP #307
+   * note directly above), which `abRewrite`'s `_preAb` snapshot would undo on the next pivot. So the
+   * one thing `abRewrite` does that a mega also owes is called here rather than by routing through
+   * it -- the alternative is a second `_preAb` rule, which is how the mega ability leaked back last
+   * time.
+   *
+   * ONE ABILITY MATCHES, AND IT WAS PRINTED BEFORE THIS WAS WRITTEN: walked over `data/tags.json`,
+   * `typeImmunity.gain.volatileBoost.endsWithAbility` is carried by `flashfire` and by nothing else
+   * in this format (1,777 uses). The eighteen other legal abilities with an `onEnd` -- Unburden,
+   * Protosynthesis, Quark Drive, Slow Start, Zen Mode, Supreme Overlord and the rest -- are NOT
+   * touched here and are named so the residue is known rather than discovered. `ubAbilityRewrite`
+   * in particular is deliberately not called: Unburden's End is a real second mechanism with its own
+   * road (`_ubNoVol`) and folding it in unmeasured is the batch-of-two this file's own history warns
+   * about.
+   *
+   * MEASURED: 2 of the 84 board-material games on release 48ac1c228e02 are exactly this, both a
+   * Flash Fire body megaing (Houndoom-Mega, Chandelure-Mega). Staged in
+   * tests/probe_mega_ends_absorb_gift.js. */
+  if(MEGA_KEEPS_ABSORB_GIFT)MEDFAILS.megaKeepsAbsorbGiftRestored=1;
+  else if(String(m.ability)!==String(ab)&&endAbsorbGiftVolatile(m,'mega',m.ability))
+    MEDSEEN.absorbGiftVolatileEnded++;
   m.ability=ab; m.baseAbility=ab; m._preAb=undefined;
   /* ROADMAP #596 -- THE MEGA'S ABILITY REPLACED KLUTZ, SO THE STONE IS NO LONGER IGNORED. `ignoringItem()` is
    * recomputed live upstream; here the park is a sync, and this is the one moment the ability half of it
@@ -27218,6 +27290,34 @@ function midAbortTwoTurn(){
   m._charging=null;m._invuln=false;m._ttmWrap=null;m._ttmTgtSlot=null;
   MEDSEEN.chargeWrapAbortedAtGate++;
 }
+/* 2026-09-12 -- `charge.condition.onMoveAborted`, ON THE IDENTICAL IDIOM AND FOR THE IDENTICAL
+ * REASON as `midAbortTwoTurn` directly above. It is a different mechanic that shares a word: that one
+ * is the two-turn move's clock (`twoturnmove`), this one is the ELECTRIC BANK (`_vol.charge`) that
+ * Electromorphosis, Wind Power and the move Charge write.
+ *
+ *     onMoveAborted(pokemon, target, move) {
+ *       if (move.type === "Electric" && move.id !== "charge") pokemon.removeVolatile("charge");
+ *     }
+ *
+ * ONE MARKER AND NOT TEN EDITS: the gate loop body carries ~30 `continue`s and a rule repeated at
+ * each of them arrives incomplete. Armed at the HEAD of the gate, disarmed at the `|move|` line —
+ * the boundary this file's own comment there names — and swept at the two sites `midAbortTwoTurn` is
+ * swept at, which between them cover every action including the last one of the turn.
+ *
+ * THE DISARM IS LOAD-BEARING AND NOT TIDINESS. Without it a marker armed by a click that RAN would
+ * survive into the next action, and a bank re-banked in between (Electromorphosis fires off any
+ * damaging hit) would be destroyed by a sweep belonging to a move that already spent it.
+ *
+ * THE WHOLE CONTEXT IS CARRIED, not just the body, because the removal is type-gated: the sweep has
+ * to answer "was the refused move Electric" after the action object has gone out of scope. It routes
+ * through `spendChargeOnMove`, so the type resolution, the `charge`-itself exemption and the trace
+ * line are the ONE implementation the other two roads use. */
+let ELEC_CHG_INFLIGHT=null;
+function midAbortElectricCharge(){
+  const c=ELEC_CHG_INFLIGHT; ELEC_CHG_INFLIGHT=null;
+  if(!c)return;
+  if(spendChargeOnMove(c.m,c.mvId,c.mv,c.field))MEDSEEN.electricChargeAbortedAtGate++;
+}
 function midClearActiveMove() {
   if (ACTIVE_MOVE_STICKY) { MEDFAILS.activeMoveStickyRestored = 1; return; }
   MID_MOVE = '-'; MID_TGT = '-'; MID_ATT = '-';
@@ -29048,6 +29148,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * here: this loop body carries ~30 `continue`s and a line at the bottom is skipped by all of
        * them. Before action 0 it is a no-op. See midClearActiveMove for what it costs to omit. */
       midAbortTwoTurn();   // 2026-09-05 -- the PREVIOUS action's aborted charge, same idiom, same reason
+      midAbortElectricCharge();   // 2026-09-12 -- and the PREVIOUS action's aborted Electric bank
       midClearActiveMove();
       /* 2026-08-29 -- THE LIVE QUEUE AND ITS CURSOR, published for the ONE reader that needs to place
        * an action the authority moved: `encoreRelocateQueued`. Assigned at the loop top, above the
@@ -29716,6 +29817,16 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(m._ttmWrap||m._charging){
         if(CHARGE_WRAP_SURVIVES_ABORT)MEDFAILS.chargeWrapSurvivesAbortRestored=1;
         else TTM_INFLIGHT=m;
+      }
+      /* 2026-09-12 -- AND THE ELECTRIC BANK'S MARKER, armed on the same line and for the same reason.
+       * Armed only for a body that is actually holding one, so an ordinary action costs one
+       * truthiness test. The move row is resolved by `spendChargeOnMove` itself when the action
+       * carries none — a `{kind:'status'}` action has no `a.move`, which is the omission that made
+       * the status road dead. */
+      if(m._vol&&m._vol.charge>0){
+        if(ELECTRIC_CHARGE_SURVIVES_ABORT)MEDFAILS.electricChargeSurvivesAbortRestored=1;
+        else{const _ecId=actionMoveId(it.a);
+             ELEC_CHG_INFLIGHT=_ecId?{m,mvId:_ecId,mv:(it.a&&it.a.move&&it.a.move.mv)||null,field}:null;}
       }
       {const _dbId=actionMoveId(it.a);
        m._dbHeldAtGate=false;
@@ -30406,6 +30517,12 @@ function battleTurn(S,rng,actsForA,actsForB){
        * that. OUTSIDE the `if(TR)` block below on purpose: the state must not depend on whether a
        * trace sink is attached, for the reason ROADMAP #262 gives one screen down. */
       TTM_INFLIGHT=null;
+      /* 2026-09-12 -- AND THE ELECTRIC BANK'S MARKER, DISARMED ON THE SAME BOUNDARY. Everything above
+       * this line is a BeforeMove refusal, which the authority pays with `onMoveAborted`; everything
+       * below is a TryMove or onTry failure, which it pays with `onAfterMove` and this engine pays at
+       * its own two spend sites. A marker left armed past here would let a sweep belonging to a move
+       * that already ran destroy a bank re-banked after it. */
+      ELEC_CHG_INFLIGHT=null;
       /* 2026-09-11 -- THE DEFROST THAW, PAID WHERE `useMoveInner` RUNS `ModifyMove`: below every
        * BeforeMove refusal (each of which `continue`d above this line, so the mark is only still set on
        * a move that is actually being used) and above the `|move|` line, which is where the authority's
@@ -44444,6 +44561,7 @@ function battleTurn(S,rng,actsForA,actsForB){
      * Everything below this line — the settles, the final `_updateAll`, the whole residual walk —
      * runs with `battle.activeMove === null` in the authority. See midClearActiveMove. */
     midAbortTwoTurn();   // 2026-09-05 -- and the LAST action's aborted charge, which the loop top cannot reach
+    midAbortElectricCharge();   // 2026-09-12 -- and the LAST action's aborted Electric bank
     midClearActiveMove();
     flushAfterMoveSpends([...actA,...actB],S);   // WIRE 152 -- the LAST action's debt, same reason
     opportunistSettle(actA,actB,_oppSnap); _oppSnap=null;   // ROADMAP #212 -- and the LAST action's copy

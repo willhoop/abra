@@ -10,6 +10,87 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.45.0] — 2026-09-12
+
+### Fixed
+- **The Electric bank is spent by a click the gate refused, and by a status click.** `_vol.charge` —
+  what Electromorphosis, Wind Power and the move Charge write — was **14 of the 84 board-material
+  games** on the wide draw, the largest self-identifying bucket in `state.families`, always
+  `medicham 1 / showdown 0`, with 13 matching `|-end|pXa|charge` protocol causes.
+  `charge.condition` carries `onMoveAborted` and `onAfterMove` with the IDENTICAL body —
+  `if (move.type === "Electric" && move.id !== "charge") pokemon.removeVolatile("charge")` — and
+  `runMove` raises MoveAborted on exactly one condition, `runEvent('BeforeMove')` returning false
+  (sim/battle-actions.ts:254-262). WIRE 157 implemented `onAfterMove` and named the omission at its
+  own call site: *"Showdown's `onMoveAborted` is a separate handler this engine reaches by having
+  already `continue`d."* **THE PROBE THEN FOUND A SECOND ROAD NOTHING HAD POINTED AT AND IT WAS
+  WIDER:** the status call site reads `spendChargeOnMove(m, a.mv, a.move && a.move.mv, field)` and a
+  `{kind:'status'}` action HAS NO `a.move`, so the move row arrived `undefined`; `effMoveType` opens
+  `let t = mv ? mv.t : ''` and every branch under it is a conditional REWRITE, so a null row falls
+  out as the empty string, which is not `'Electric'`. The one branch that call site exists for was
+  the one branch it could never serve, and an unobstructed Thunder Wave left the bank standing.
+  Fixed at the row lookup — resolved through `MC.moves`, the same table the `statusCategory`
+  immunity gate reads, with a miss COUNTED (`MEDFAILS.chargeSpendNoMoveRow`) rather than defaulted —
+  and with `midAbortElectricCharge()` on `midAbortTwoTurn`'s idiom: armed at the head of the
+  BeforeMove gate, **disarmed at the `|move|` line**, swept at both sites. The disarm is
+  load-bearing: without it a bank re-banked by Electromorphosis after a click that already spent one
+  would be destroyed by a stale marker. Probe `tests/probe_electric_charge_abort.js`, four arms —
+  three red before, all four green after, red again under
+  `MEDI_ELECTRIC_CHARGE_SURVIVES_ABORT=1` on exactly `abort-flinch` and on
+  `p1.active[0].vol.charge`. The `abort-nonelectric` over-match guard — the same flinch refusing a
+  GROUND move, where the authority's type test means the bank SURVIVES — is green throughout.
+- **A mega evolution runs the outgoing ability's `End`, so Flash Fire's gift goes with it.**
+  **2 of the 84**, both a Flash Fire body megaing (Houndoom-Mega, Chandelure-Mega), with the
+  authority writing `|-end|pXa|ability: Flash Fire|[silent]` immediately after the `|-mega|` line.
+  `Pokemon#setAbility` runs `singleEvent('End', oldAbility, this.abilityState, this, source)` on
+  every rewrite (sim/pokemon.ts:1928) and `flashfire.onEnd` removes the volatile. medicham2 already
+  knows the rule — `abRewrite` has called `endAbsorbGiftVolatile` since 2026-08-29 — but
+  `megaEvolveNow` does not go through `abRewrite`: it writes `m.ability=ab; m.baseAbility=ab;` raw,
+  and correctly so, because a mega's ability survives the bench and `abRewrite`'s `_preAb` snapshot
+  would undo it on the next pivot. **So the one ability rewrite that happens in every game of this
+  format was the one that skipped the End.** The tag walk was PRINTED BEFORE THE FIX WAS WRITTEN:
+  `typeImmunity.gain.volatileBoost.endsWithAbility` matches exactly one ability in this format
+  (`flashfire`, 1,777 uses), and the probe repeats the walk at run time and refuses if that changes.
+  Probe `tests/probe_mega_ends_absorb_gift.js`, three arms — red before, green after, red again
+  under `MEDI_MEGA_KEEPS_ABSORB_GIFT=1` on `vol.flashfire`. Eighteen other legal abilities carry an
+  `onEnd` and NONE is touched; that is stated in ROADMAP #621 rather than folded in.
+
+### Measured
+- **The whole-game gate's `0 of 961` is a property of ONE TEAM LATTICE, not of the engine.**
+  `engine/game_differential.js:6833` calls `SWARM.buildSwarm(GAMES * 2, …)` and
+  `engine/diff_swarm.js:416-431` picks teams by a **deterministic STRIDE whose step is computed from
+  that size**; `pairsFor` then pairs ADJACENT entries. So `--games` decides WHICH teams and WHICH
+  matchups, not only how many. On ONE release `8ad1ab5e1f86`, one pinned census `e04072b49220`, one
+  pinned store `data/team-pool-frozen`, one steering `empirical-click/v1`, one arm `middle`, one cap
+  of 50 and one `--end-state` stop rule, with only `--games` moving: **1200 → 961 games, 1968 teams,
+  BOARD-MATERIAL 0, protocol 0**; **1350 → 1069 games, 2206 teams, BOARD-MATERIAL 10 (0.94%),
+  protocol 23**; **12000 → 7178 games, 14746 teams, BOARD-MATERIAL 84 (1.17%), protocol 221**.
+  `data/verification/2026-09-12-wide-sample-repro-n1200.json` reproduces the published gate artifact
+  to the digest (10,705 of 10,705 boundaries), so the zero is a correct measurement of a sample with
+  no divergence in it. The 961-game run is 984 team PAIRS on one lattice drawn identically every
+  time; divergence here is entity-linked, so its effective sample size for any one mechanism is the
+  number of pairs carrying it. ROADMAP #619.
+- **The three fixes released in `302b48a5` account for ZERO of the 84.** Same 12,000-game request,
+  same pins, pre-fix `48ac1c228e02` against post-fix `8ad1ab5e1f86`: **84 and 84**, 79,267 of 79,588
+  identical turn boundaries both times, `families` identical to the row, protocol 222 → 221 —
+  `data/verification/game-differential-10k-middle.json`,
+  `data/verification/game-differential-12k-postfix.json`.
+- **Nine further mechanisms the wide draw shows and nothing has diagnosed**, each with a worked
+  example, none with a probe, none quotable as a diagnosis. ROADMAP #622.
+
+### Notes
+- Release **`bc8d7cf849dd`** cut. All four artifacts the engine edit invalidated were re-run on it
+  rather than captioned: `data/engine-diff.json` (**0 of 6000** at the midpoint, both corners and all
+  fourteen interior indices), `data/roster.{items,abilities,moves}.json` (**148 / 190 / 492**, 0
+  FIRED-AND-BOARDS-DIFFER, 0 DID-NOT-FIRE), `data/all-mechanics-fire.json` (**2 diverge, 1 declared,
+  1 below the reach shelf, leaving 0**; 4,702 games, 0 threw) and `data/game-differential.json`.
+  Census re-derived at **886 probed / 886 live / 0 missing**, unmoved — neither fix adds a tag row.
+  `engine/quarantine.js` exit 0: `GATE: OPEN — MEDICHAM passes both conditions; nothing is withheld`.
+- **THE GATE READING OPEN IS NOT THE SAME CLAIM IT WAS THIS MORNING.** Nothing is retracted, and the
+  honest sentence for the whole-game clause today is *"zero on the lattice `--games 1200` selects,
+  and 84 of 7,178 on a wider draw from the same store."* Raising the gate's sample is a decision for
+  Will and was deliberately not taken here — ROADMAP #619 states both options with their measured
+  cost.
+
 ## [6.44.0] — 2026-09-12
 
 ### Fixed
