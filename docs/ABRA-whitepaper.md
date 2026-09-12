@@ -83,7 +83,7 @@ missing and none extra.
 derives its population over the **347** legal species of this regulation before any other filter runs
 (`data/roster.items.json` `scope.carrier_derivation`, predicate `exists && !isNonstandard && tier !==
 "Illegal"`, including 72 mega and 83 battle-only formes). `data/roster.items.json` `scope`: 148 in
-scope, **148 tested**, `differ` 0, DID-NOT-FIRE 0, 6 fixture gaps. `data/roster.abilities.json`
+scope, **148 tested**, `differ` 0, DID-NOT-FIRE 0, 0 fixture gaps. `data/roster.abilities.json`
 `scope`: 316 total of which **116 are out of scope** by `engine/legal_scope.js`'s verdict (114 with no
 legal carrier, 1 whose only carrier the validator refuses, 1 whose only readers are out of the regulation) and
 are therefore not rows, 200 in scope, **139 tested**, `differ` 0, DID-NOT-FIRE 0, 43 fixture gaps, 13

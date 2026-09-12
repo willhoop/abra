@@ -52,6 +52,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.37.0] — 2026-09-12 — the white paper's item stage still claimed six fixture gaps after the last one was closed
+
+- **What changed.** `docs/ABRA-whitepaper.md` stated the item stage as 148 tested with six fixture gaps. Every one of those gaps was closed when the chance-based items were staged on the corner where secondary effects fire, and the artifact has read zero since. The figure is read from the item stage artifact rather than typed, and the PDF is rebuilt. A superseded figure in a live document is a retraction and does not wait for the held 7.0.0 documentation pass.
+- **Measured.** NO NEW MEASUREMENT. The value is read from the item stage artifact of release `534442d71183`.
+- **Supersedes.** The six fixture gaps as that sentence stated them.
+- **Basis.** unchanged.
+- **Owed to the next major.** Nothing for this.
+
 ## [6.36.0] — 2026-09-12 — the Skill Swap control was counting itself, and 39 ability greens were vacuous
 
 - **What changed.** `tests/roster.js` only. ROADMAP #609 is closed and it was bigger than the row said: `controlOf` populated the swap record **only in the sheet-swap branch**, so for any row controlled by an in-play Skill Swap `swapLeaf` returned 0 on its first line and the swap-leaf correction was **structurally dead on both sides**. The stage printed `0 leaves DROPPED` and nothing read it. Both halves are now armed and conditioned on the VALUES rather than the path — the carrier's side through `swapLeaf`, the swapper's own slot through the new `swapArmLeaf` (the ability it handed over, plus the click the control arm spends where the subject arm idles) — counted separately as `control_arm_bookkeeping_dropped`. The defect arrived inside the PREVIOUS pass's own fix: `swapForQuiet` moved rows onto the swap control, and every row it moved had the correction switched off by that move. ROADMAP #608 is **refined and deliberately left open** — it is one fact with two implementations (`moveQuietAbilities(arm)` already owns the arm-aware strict predicate), plus a second half the row never named: `critsLand().armourShared` answers *"do both engines implement the armour identically"*, which is right for the move stage and wrong for a control only one arm carries. Detail: `docs/_reports/2026-09-12-control-and-megas.md`.
