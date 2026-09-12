@@ -2532,6 +2532,26 @@ function runEntryRaw(e) {
     }
   }
 
+  /* ---- THE TWO ARMS, SIDE BY SIDE, FOR ONE NAMED ROW — `ROSTER_DUMP_BOARDS=<id>` -----------------
+   *
+   * A row that reads INERT is indistinguishable, from the outside, between "the entity did nothing"
+   * and "THE CONTROL ARM IS THE SUBJECT ARM". Both print the same sentence and neither accuses
+   * anybody, which is why the second one survived: `stageAbilityQuiet` handed a SUPPRESS carrier to
+   * `stageAbility`, no control ability was written, `buildPair` restored ability slot 0, and the two
+   * arms came back byte-identical. Four lines of this dump said so at a glance — both arms reading
+   * `ab=surgesurfer` at every boundary — after a long argument had failed to. Off unless asked for. */
+  if (process.env.ROSTER_DUMP_BOARDS && idOf(process.env.ROSTER_DUMP_BOARDS) === idOf(e.id || '')) {
+    for (const arm of [['SUBJ', subject], ['CTRL', control]])
+      for (const b of arm[1].boards) {
+        const A0 = sdActive(b, 'p1', 0), B0 = sdActive(b, 'p2', 0);
+        console.log('  [DUMP ' + arm[0] + '] t' + b.turn
+          + '  p1[0]=' + (A0 && A0.species) + ' hp' + (A0 && A0.hp) + ' ab=' + (A0 && A0.ability)
+          + ' boosts=' + JSON.stringify(A0 && A0.boosts)
+          + ' | p2[0]=' + (B0 && B0.species) + ' hp' + (B0 && B0.hp) + ' ab=' + (B0 && B0.ability)
+          + ' boosts=' + JSON.stringify(B0 && B0.boosts)
+          + ' | terrain=' + ((b.sd && b.sd.field && b.sd.field.terrain) || '-'));
+      }
+  }
   let delta = armDelta(subject, control, ignore, swap);
   const subjDiffs = splitDeclared(subject.boards.flatMap(b => b.diffs.map(d => ({ ...d, turn: b.turn }))),
                                   subject.boards).kept;
@@ -3873,6 +3893,61 @@ const DROP_SET = (() => {
 const DROP_MOVE = DROP_SET.moves[0] || null;
 const DROP_MOVE2 = DROP_SET.moves[1] || null;
 
+/* ---- THE MOVES THAT PRICE OFF A BODY'S WEIGHT, AND WHICH END OF THE CLICK EACH ONE READS --------
+ * (2026-09-12, ENGINE.)
+ *
+ * WEIGHT IS NOT A LEAF `board_state.js` COMPARES, and it is not going to become one: nothing in
+ * either engine writes a weight onto a board, so Heavy Metal and Light Metal have no leaf to appear
+ * on and both read `THE STAGING IS INERT` under `ability/generic`. That is a true statement about the
+ * generic fixture and a false one about the mechanic — the format prices FOUR moves off a weight, so
+ * the ability reaches the board as damage or it reaches it nowhere.
+ *
+ * WHICH END EACH MOVE READS IS MEASURED, NOT NAMED. The callback is CALLED with two stubs whose only
+ * method is `getWeight`, once with the attacker's weight varied and once with the target's, and the
+ * answer decides which side of the field the carrier has to stand on. Low Kick and Grass Knot read
+ * the TARGET only; Heavy Slam and Heat Crash read BOTH, as a ratio. A rule that assumed one shape
+ * would refuse whichever of Heavy Metal and Light Metal did not happen to fit it — measured: Aggron
+ * is the ONLY legal Heavy Metal carrier and at 3600 hg it is already past Low Kick's top threshold,
+ * so doubling it changes nothing and only the ATTACKER shape can express it.
+ *
+ * EVERY `deliveryOf` DISQUALIFIER STILL APPLIES EXCEPT `basePowerCallback`, which is waived because
+ * it IS the mechanism this reads. A weight move that also charged, recoiled or carried a secondary
+ * would be the experiment rather than the vehicle, exactly as that filter's header says.
+ *
+ * A CALLBACK THAT THROWS IS COUNTED AND NAMED, never swallowed: a silently-dropped move would shrink
+ * this table without anybody seeing it, which is the fallback-looks-like-a-feature failure. */
+const WEIGHT_BP_THREW = [];
+const WEIGHT_MOVES = (() => {
+  const out = [];
+  for (const m of dex.moves.all()) {
+    if (!m.exists || m.isNonstandard || typeof m.basePowerCallback !== 'function') continue;
+    if (!/getWeight\s*\(/.test(String(m.basePowerCallback))) continue;
+    if (m.category === 'Status' || m.priority !== 0) continue;
+    if (!(m.accuracy === true || m.accuracy === 100)) continue;
+    if (!(m.target === 'normal' || m.target === 'any')) continue;
+    if (m.flags.charge || m.flags.recharge || m.multihit || m.ohko) continue;
+    if (m.selfdestruct || m.forceSwitch || m.selfSwitch || m.breaksProtect) continue;
+    if (m.drain || m.recoil || m.self || m.willCrit || m.critRatio > 1) continue;
+    if (m.status || m.volatileStatus || m.boosts || m.condition) continue;
+    if (m.ignoreImmunity || m.ignoreAbility || m.ignoreDefensive) continue;
+    if ((m.secondaries || []).length) continue;
+    const bp = (aW, tW) => { try {
+      return m.basePowerCallback.call({ debug() {} }, { getWeight: () => aW }, { getWeight: () => tW });
+    } catch (err) { WEIGHT_BP_THREW.push(m.id + ': ' + err.message); return null; } };
+    const base = bp(1000, 1000);
+    if (!(base > 0)) continue;
+    out.push({ m, bp, readsTarget: bp(1000, 8000) !== base, readsAttacker: bp(8000, 1000) !== base });
+  }
+  return out;
+})();
+/* WHAT IT MATCHED, PRINTED RATHER THAN ASSERTED — the standing rule this file opens with. */
+if (process.env.ROSTER_PRINT_WEIGHT_MOVES === '1')
+  console.log('WEIGHT-PRICED MOVES: ' + (WEIGHT_MOVES.length || 'NONE') + ' — '
+    + WEIGHT_MOVES.map(r => r.m.name + ' [' + r.m.type + ' ' + r.m.category
+        + ' reads ' + [r.readsAttacker ? 'ATTACKER' : null, r.readsTarget ? 'TARGET' : null]
+            .filter(Boolean).join('+') + ']').join(', ')
+    + (WEIGHT_BP_THREW.length ? '   THREW: ' + WEIGHT_BP_THREW.join('; ') : '   0 threw'));
+
 /* A DAMAGING MOVE WITH POSITIVE PRIORITY, for the family whose whole content is refusing one. Every
  * `deliveryOf` disqualifier still applies except the priority test itself — Sucker Punch is excluded
  * by `onTry` (it fails unless the target is attacking) through that same filter. */
@@ -4148,8 +4223,32 @@ function stageAbilityAnyTier(e, C, o) {
 const SWAP_DELEGATED = [], SWAP_DELEGATION_REFUSED = [];
 function stageAbilityQuiet(e, C, o) {
   if (!C) return cannot(scopeCannot(e));
+  /* ---- A NON-ALTERNATE CARRIER HANDED TO `stageAbility` GETS NO CONTROL AT ALL — 2026-09-12 -------
+   *
+   * MEASURED, NOT ARGUED. `surgesurfer`'s only carrier is Raichu-Alola, whose ONLY ability is the one
+   * under test, so `abilityCarrierAnyTier` answers SUPPRESS. This function's guard read
+   * `C.tier === 'ALTERNATE' && ...` and sent every other tier to `stageAbility`, which writes
+   * `sc.controlAbility = C.control` — NULL for a SUPPRESS body. `controlOf`'s sheet branch then finds
+   * no alternate to write, falls through to `body.ability = null`, and `buildPair` silently restores
+   * slot 0: THE CONTROL ARM IS THE SUBJECT ARM. Dumped, both arms, four boundaries:
+   *
+   *     [SUBJ] t2  p2[0]=raichualola hp135 ab=surgesurfer  terrain=electric
+   *     [CTRL] t2  p2[0]=raichualola hp135 ab=surgesurfer  terrain=electric
+   *
+   * identical in every field, and the row reported `THE STAGING IS INERT ... over 2184 compared
+   * leaves`. That is this file's own warning arriving from a new direction — "a control that does not
+   * work does not fail loudly" — and it fails toward a FALSE COVERAGE LIMIT rather than a false green,
+   * which is why nothing caught it: an inert row accuses nobody.
+   *
+   * THE IN-PLAY SWAP IS THE ONLY CONTROL THOSE TIERS HAVE, exactly as `stageAbilityAnyTier` already
+   * knows, and if the rule cannot take it the honest answer is a REFUSAL rather than a dead arm.
+   *
+   * BLAST RADIUS MEASURED BEFORE THE CHANGE: every pre-existing caller of this function supplies a
+   * carrier from `abilityCarrier`, which returns ALTERNATE and nothing else, or builds one with
+   * `tier: 'ALTERNATE'` literally. No standing row can reach this branch. */
+  const inPlayOnly = C.tier !== 'ALTERNATE';
   /* the carrier's own sheet already offers a quiet control — keep the rule's exact fixture */
-  if (!(C.tier === 'ALTERNATE' && C.control && !QUIET_SET.has(idOf(C.control))))
+  if (!inPlayOnly && !(C.control && !QUIET_SET.has(idOf(C.control))))
     return stageAbility(e, C, o);
   /* ---- AND IT IS REFUSED ON THE BOTTOM CORNER — MEASURED AND WITHDRAWN, 2026-09-12 ---------------
    *
@@ -4183,15 +4282,32 @@ function stageAbilityQuiet(e, C, o) {
     .filter(Boolean);
   if (why.length) {
     SWAP_DELEGATION_REFUSED.push(e.id + ': ' + why.join('; '));
-    console.log('  [SWAP CONTROL NOT TAKEN] ' + e.id + ' keeps its LIVE sheet control '
-      + pretty(C.control) + ' — ' + why.join('; '));
+    console.log('  [SWAP CONTROL NOT TAKEN] ' + e.id + (inPlayOnly
+      ? ' has NO sheet control at all (' + C.tier + '-tier) and cannot take the in-play one either'
+      : ' keeps its LIVE sheet control ' + pretty(C.control)) + ' — ' + why.join('; '));
+    /* A SHEET FALLBACK EXISTS ONLY FOR AN ALTERNATE BODY. For any other tier `stageAbility` writes a
+     * NULL control ability and `buildPair` restores slot 0, so the control arm would be the subject
+     * arm and the row would read INERT — a false coverage limit. Refuse instead, out loud. */
+    if (inPlayOnly) return cannot('its carrier is ' + C.tier + '-tier, so the ability cannot be taken '
+      + 'off the SHEET (' + (C.tier === 'MEGA' ? 'the forme change writes it'
+                                               : 'it is the only ability its species has') + ') and '
+      + 'the control has to be applied IN PLAY — which this rule cannot take: ' + why.join('; ')
+      + '. The alternative is not a weaker control but NO control: `stageAbility` would write a null '
+      + 'control ability, `buildPair` would restore ability slot 0, and the control arm would be the '
+      + 'subject arm — which reads as an INERT board and would be a false coverage limit rather than '
+      + 'a declared gap.');
     return stageAbility(e, C, o);
   }
-  SWAP_DELEGATED.push(e.id + ' (was ' + pretty(C.control) + ')');
-  console.log('  [SWAP CONTROL] ' + e.id + ' — its only sheet control ' + pretty(C.control)
-    + ' is a LIVE ability, so the control is an in-play Skill Swap lending '
+  SWAP_DELEGATED.push(e.id + ' (was ' + (inPlayOnly ? C.tier + '-tier, no sheet control'
+                                                    : pretty(C.control)) + ')');
+  console.log('  [SWAP CONTROL] ' + e.id + ' — ' + (inPlayOnly
+      ? 'its carrier is ' + C.tier + '-tier and has no sheet control at all'
+      : 'its only sheet control ' + pretty(C.control) + ' is a LIVE ability')
+    + ', so the control is an in-play Skill Swap lending '
     + (SWAPPER ? SWAPPER.ability + ' off ' + SWAPPER.name : '?'));
-  return stageAbilitySwap(e, C, o);
+  /* the staged HP inflation and a forme change cannot both be on the carrier — the same clamp, and
+   * the same measured reason, as `stageAbilityAnyTier`'s */
+  return stageAbilitySwap(e, C, C.tier === 'MEGA' ? { ...o, hpB: 1 } : o);
 }
 
 /* A DERIVED HIT THAT LANDS A BODY IN A NAMED HP BAND, thrown by a named attacker. The pinch family is
@@ -4249,9 +4365,44 @@ function hitInBandFrom(attSp, defSp, lo, hi, pick) {
  * Prankster: its Charm moved first under either ability, Showdown's own board was identical in both arms
  * over 1611 leaves, and the row read INERT. Read off the handler rather than off a name, so any ability
  * whose `onModifyPriority` names the Status category is refused the same way. */
-function priorityLiftsStatus(sp) {
+/* ---- AND THE NAME-SHAPED VERSION OF THAT TEST MISSED GALE WINGS — 2026-09-12 (ENGINE) -----------
+ *
+ * The predicate above read `/Status/.test(handler)`, which is a test for how the handler HAPPENS TO
+ * BE WRITTEN. Prankster gates on `move.category === "Status"` and matches it; GALE WINGS gates on
+ * `move.type === "Flying"` and does not — so Talonflame passed the guard, `speedFlipFoe` handed it
+ * FEATHER DANCE (Flying, Status), and its +1 landed before the carrier under either Speed.
+ *
+ * MEASURED, on the row that found it: `surgesurfer` staged with the terrain up and its precondition
+ * satisfied, and Showdown's own board came back IDENTICAL over 2,184 leaves — the multiplier decided
+ * nothing because a priority bracket is read before Speed is. That is the same defect this helper was
+ * written for, arriving through the one door the wording left open.
+ *
+ * SO THE HANDLER IS CALLED RATHER THAN READ. It is asked about THE MOVE THE FOE WILL ACTUALLY CLICK,
+ * with a full-HP body, and a non-zero answer refuses the pairing. That is strictly narrower AND
+ * strictly wider than the old test in the right directions: a Gale Wings body throwing a NON-Flying
+ * drop is now admitted (it really is not lifted), and one throwing a Flying drop is refused.
+ *
+ * PRINTED BEFORE IT WAS WIRED, per the standing rule. Exactly THREE legal abilities in this format
+ * register `onModifyPriority`: `prankster` (six carriers; lifts every Status move, so every body it
+ * refused before is refused now), `galewings` (one carrier, Talonflame — the change), and `triage`
+ * (ZERO legal carriers). And the blast radius was measured, not argued: **no row in any of the three
+ * artifacts at HEAD names Talonflame in its note**, so nothing standing can move.
+ *
+ * A HANDLER THAT THROWS IS COUNTED AND REFUSES THE BODY. An unreadable priority handler is not
+ * evidence that the bracket is clear, and a silent `false` there is the fallback-looks-like-a-feature
+ * failure. */
+const PRIORITY_PROBE_THREW = [];
+function priorityLifts(sp, mv) {
   const ab = dex.abilities.get(idOf(carrierAbility(sp) || ''));
-  return !!(ab && typeof ab.onModifyPriority === 'function' && /Status/.test(String(ab.onModifyPriority)));
+  if (!ab || typeof ab.onModifyPriority !== 'function') return false;
+  const body = { hp: 100, maxhp: 100 };
+  try {
+    const v = ab.onModifyPriority.call({}, 0, body, body, mv);
+    return Number.isFinite(v) && v !== 0;
+  } catch (err) {
+    PRIORITY_PROBE_THREW.push(ab.id + ' on ' + (mv && mv.id) + ': ' + err.message);
+    return true;
+  }
 }
 /* THE ORDER READ WITHOUT A KO — 2026-09-11 (ENGINE 6.26.0). `speedFlipFoe` needs the holder to kill the
  * foe outright, which is what hides a speed multiplier on a carrier that learns no such hit. The order is
@@ -4264,7 +4415,7 @@ function speedOrderFoe(holderSp, mult) {
   const spd = s => flatL50(s.baseStats).sp;
   const h = spd(holderSp), after = Math.floor(h * mult);
   for (const F of CANDIDATES) {
-    if (F.id === holderSp.id || !buildableSpecies(F.id) || !carrierAbility(F) || priorityLiftsStatus(F)) continue;
+    if (F.id === holderSp.id || !buildableSpecies(F.id) || !carrierAbility(F)) continue;
     const f = spd(F);
     if (!(mult > 1 ? (h < f && f < after) : (after < f && f < h))) continue;
     const hit = neutralHit2(F.id, [], holderSp.id);
@@ -4272,7 +4423,10 @@ function speedOrderFoe(holderSp, mult) {
     /* it must not kill the 4x-HP foe even at full power, or the leaf would be a faint in one arm only */
     if (maxRoll(holderSp, hit, F) >= flatL50(F.baseStats).hp * 4 * 0.9) continue;
     const stat = hit.category === 'Special' ? 'spa' : 'atk';
-    const fDrop = DROP_SET.moves.concat(DROP_POOL).find(m => (m.boosts[stat] || 0) < 0 && learnsLegally(F.id, m.id));
+    /* THE DROP MUST NOT BE ONE THE FOE'S OWN ABILITY LIFTS OUT OF THE SPEED BRACKET — asked of the
+     * handler with THIS move, not of the way the handler is spelled. See `priorityLifts`. */
+    const fDrop = DROP_SET.moves.concat(DROP_POOL).find(m => (m.boosts[stat] || 0) < 0
+      && learnsLegally(F.id, m.id) && !priorityLifts(F, m));
     if (!fDrop) continue;
     return { foe: F, holderMove: hit, foeMove: fDrop, ability: carrierAbility(F) || '',
              speeds: h + ' -> ' + after + ' against ' + f };
@@ -4284,7 +4438,7 @@ function speedFlipFoe(holderSp, mult) {
   const spd = s => flatL50(s.baseStats).sp;
   const h = spd(holderSp), after = Math.floor(h * mult);
   for (const F of CANDIDATES) {
-    if (F.id === holderSp.id || !buildableSpecies(F.id) || !carrierAbility(F) || priorityLiftsStatus(F)) continue;
+    if (F.id === holderSp.id || !buildableSpecies(F.id) || !carrierAbility(F)) continue;
     const f = spd(F);
     if (!(mult > 1 ? (h < f && f < after) : (after < f && f < h))) continue;
     /* ROADMAP #318 (6.24.0): the holder's KO is one it LEARNS, and the foe's drop is one the foe learns — and
@@ -4294,7 +4448,9 @@ function speedFlipFoe(holderSp, mult) {
     const kHF = lethalMove(holderSp, F, 1.2, holderSp.id);
     if (!kHF) continue;
     const stat = kHF.mv.category === 'Special' ? 'spa' : 'atk';
-    const fDrop = DROP_SET.moves.concat(DROP_POOL).find(m => (m.boosts[stat] || 0) < 0 && learnsLegally(F.id, m.id));
+    /* ...and not one the foe's own ability lifts out of the Speed bracket — `priorityLifts`. */
+    const fDrop = DROP_SET.moves.concat(DROP_POOL).find(m => (m.boosts[stat] || 0) < 0
+      && learnsLegally(F.id, m.id) && !priorityLifts(F, m));
     if (!fDrop) continue;
     return { foe: F, holderMove: kHF.mv, foeMove: fDrop,
                       ability: carrierAbility(F) || '',
@@ -9880,6 +10036,629 @@ const RULES = [
         ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p1', 0);
           const bo = (A && A.boosts) || {};
           return (+bo.evasion || +bo.eva || 0) > 0; }) } });
+  } },
+
+/* ---- A SCREEN THE GENERIC STAGING NEVER RAISES — 2026-09-12 ------------------------------------
+ *
+ * Infiltrator's whole content is `move.infiltrates = true`, and `infiltrates` is read by exactly two
+ * things: a SUBSTITUTE and a SCREEN. The generic staging raises neither, so the field is written on
+ * every click and consumed by nothing, and the row read `THE STAGING IS INERT`.
+ *
+ * THE SCREEN IS DERIVED AND SO IS THE CATEGORY IT HALVES. Every legal `allySide` move is asked for
+ * its OWN condition's `onAnyModifyDamage`, and the category is the one that source tests: Light
+ * Screen names `Special`, Reflect names `Physical`, and AURORA VEIL NAMES NEITHER — it defers to
+ * whichever of the other two is up and needs snow to be clicked at all — so it is excluded by the
+ * derivation rather than by a hand-written exception.
+ *
+ * THE NEGATIVE IS THE OTHER CATEGORY, thrown at the same body on the next turn. The screen that is up
+ * does not touch it, so it must be worth the same in both arms — which is what separates "the ability
+ * ignores this screen" from "the ability scales damage". */
+{ id: 'ability/ignores-screens', kind: 'ability',
+  reads: 'onModifyMove writing `move.infiltrates` — the FIELD the handler sets, never the ability name '
+       + '— against the format\'s own allySide screens and the category each of their conditions names',
+  why: 'A SCREEN HAS TO BE UP AND THE GENERIC STAGING NEVER RAISES ONE. The foe clicks a screen on its '
+     + 'OWN side at boundary 1 (its own side, so the carrier\'s slots are untouched and the swap '
+     + 'control keeps the slot it needs), then the carrier throws a click of the category that '
+     + 'screen\'s own condition names: halved without the ability, full with it, on the foe\'s hp.\n'
+     + '     THE NEGATIVE IS TURN 2, a click of the OTHER category, which that screen does not touch '
+     + 'and which must therefore be worth the same in both arms.\n'
+     + '     THE AUTHORITY IS ASKED WHETHER THE SCREEN WENT UP, because a modifier whose condition was '
+     + 'never created reads INERT and means nothing.',
+  break: { why: 'the screen halving stops consulting the ability at all, so an infiltrating click is '
+              + 'halved exactly like everybody else\'s',
+    patch: [["  if(_sf&&!_critHere&&!TAGS.has('ability',attAb,'ignoresScreensAndSubs')){",
+             "  if(_sf&&!_critHere&&!(false&&TAGS.has('ability',attAb,'ignoresScreensAndSubs'))){"]] },
+  match(e) {
+    if (typeof e.onModifyMove !== 'function') return null;
+    if (!/\bmove\.infiltrates\s*=\s*true/.test(String(e.onModifyMove))) return null;
+    /* the screens, and the category each one's OWN condition tests */
+    const screens = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.sideCondition
+        && m.target === 'allySide' && m.category === 'Status' && alwaysHits(m))
+      .map(m => { const src = String((m.condition || {}).onAnyModifyDamage || '');
+        return { m, cat: /getCategory\(move\)\s*===?\s*['"]Special['"]|category\s*===?\s*['"]Special['"]/.test(src) ? 'Special'
+                      : /getCategory\(move\)\s*===?\s*['"]Physical['"]|category\s*===?\s*['"]Physical['"]/.test(src) ? 'Physical'
+                      : null }; })
+      .filter(x => x.cat);
+    if (!screens.length) return cannot('this format offers no 100-accuracy allySide screen whose own '
+      + 'condition names the damage category it halves, so there is nothing for an infiltrating click '
+      + 'to walk through — asked of every allySide move\'s `condition.onAnyModifyDamage`, not of a list');
+    const pickFor = (sp, cat, d) => {
+      for (const t of Object.keys(DELIVERY)) {
+        if (dex.getEffectiveness(t, d.types) !== 0 || dex.getImmunity(t, d.types) === false) continue;
+        const mv = learnableOfType(sp.id, t, m => m.category === cat)[0];
+        if (mv) return mv;
+      }
+      return null;
+    };
+    let plan = null;
+    const planFor = (sp) => {
+      for (const S of screens) {
+        const otherCat = S.cat === 'Special' ? 'Physical' : 'Special';
+        const foe = learnerBody([S.m.id], { not: [sp.id],
+          pred: d => !!pickFor(sp, S.cat, d) && !!pickFor(sp, otherCat, d) });
+        if (!foe) continue;
+        const fs = dex.species.get(foe.species);
+        plan = { S, foe, A: pickFor(sp, S.cat, fs), B2: pickFor(sp, otherCat, fs) };
+        return true;
+      }
+      plan = null;
+      return false;
+    };
+    const C = abilityCarrierAnyTier(e, sp => planFor(sp));
+    if (!C) return cannot(noCarrierWhy(e, 'learns BOTH a click of the category one of this format\'s '
+      + 'screens halves AND one of the other category, against some legal body that learns the screen '
+      + 'itself — without both the rule has no on-board negative'));
+    /* RE-DERIVED AFTER THE RANKING, never captured inside the predicate. */
+    planFor(C.sp || dex.species.get(C.species));
+    const P = plan;
+    return stageAbilityQuiet(e, C, { hpA: 6, hpB: 4, moves: [P.A.id, P.B2.id],
+      note: pretty(P.foe.species) + ' clicks ' + P.S.m.name + ' on ITS OWN side at boundary 1 — the '
+          + 'screen\'s own condition names ' + P.S.cat + ', read off `condition.onAnyModifyDamage` and '
+          + 'not off a list — then the carrier throws ' + P.A.name + ' (' + P.S.cat + ', halved by the '
+          + 'screen unless the ability walks through it) and ' + P.B2.name + ' (' + (P.S.cat === 'Special'
+              ? 'Physical' : 'Special') + ', the negative, which this screen does not touch). The '
+          + 'reading is ' + pretty(P.foe.species) + '\'s hp',
+      a0: { ...P.foe, moves: [P.S.m.id] },
+      script: [turn([click(P.S.m.id), IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [click(P.A.id, 0), IDLE]),
+               turn([IDLE, IDLE], [click(P.B2.id, 0), IDLE])],
+      precondition: { turn: 1, why: 'the ' + P.S.m.name + ' the foe clicked is actually on SHOWDOWN\'s '
+          + 'own side of the board — a screen that never went up leaves nothing to infiltrate and the '
+          + 'row would read INERT for a reason about the setup',
+        ok: (b, all) => (all || [b]).some(x => { const sc = (sdSide(x, 'p1') || {}).screens || {};
+          return +(sc[P.S.cat === 'Special' ? 'special' : 'physical'] || 0) > 0; }) } });
+  } },
+
+/* ---- AN ABILITY THAT DELETES A FLAG OFF ITS OWN CLICKS NEEDS SOMETHING THAT READS THE FLAG --------
+ *
+ * Long Reach's whole content is `delete move.flags["contact"]`, and a deleted flag is not a board
+ * leaf. It reaches a board only through a body that REACTS to the flag, and the generic staging puts
+ * no such body on the field — so the row read `THE STAGING IS INERT`.
+ *
+ * WHO READS THE FLAG IS ASKED OF THE AUTHORITY, NOT OF A LIST. Showdown does not test
+ * `move.flags['contact']` inside Rough Skin; it calls `Battle#checkMoveMakesContact`. So the reader is
+ * derived in two steps: first every method on `Battle.prototype` whose OWN source tests the flag this
+ * ability deletes, then every legal ability whose `onDamagingHit` either names the flag directly or
+ * calls one of those methods. That generalises to any flag a future ability deletes, and it prints
+ * what it matched.
+ *
+ * THE REACTOR MUST DEAL DAMAGE UNCONDITIONALLY. A chance-gated one (Static, Flame Body, Poison Point
+ * at 30%) never fires under this pin, and Aftermath's own source requires `!target.hp` — the reactor
+ * has to have FAINTED — so both are excluded by reading the handler rather than by naming them. What
+ * survives in this format is Rough Skin (and Iron Barbs, which has no legal carrier). */
+{ id: 'ability/removes-its-own-move-flag', kind: 'ability',
+  reads: 'onModifyMove deleting a `move.flags[...]` — the flag name off the handler, the bodies that '
+       + 'read that flag off the authority\'s own source',
+  why: 'A DELETED FLAG IS NOT A BOARD LEAF, so it reaches a board only through a body that reacts to '
+     + 'the flag. The foe is a derived REACTOR — an ability whose `onDamagingHit` reads this very flag '
+     + 'and deals damage for it with no chance gate and no faint requirement — and it is present '
+     + 'identically in both arms, so it cancels out of everything except the flag.\n'
+     + '     The carrier throws a click CARRYING the flag on turn 1 (it takes the reaction without the '
+     + 'ability and none with it) and a click WITHOUT the flag on turn 2 as the negative, which must '
+     + 'be worth the same in both arms. The reading is the CARRIER\'s own hp.',
+  break: { why: 'the removed-flag table is never consulted, so the holder\'s contact click still counts '
+              + 'as contact and still pays the reaction',
+    patch: [["  const _rf=TAGS.param('ability',att.ability,'removesOwnMoveFlag');",
+             "  const _rf=null&&TAGS.param('ability',att.ability,'removesOwnMoveFlag');"]] },
+  match(e) {
+    if (typeof e.onModifyMove !== 'function') return null;
+    const flag = (/delete\s+move\.flags\[\s*['"](\w+)['"]\s*\]/.exec(String(e.onModifyMove)) || [])[1];
+    if (!flag) return null;
+    /* THE AUTHORITY'S OWN READERS OF THIS FLAG, derived off `Battle.prototype` rather than named. */
+    const B = require(require(D('engine', 'showdown_path.js')).resolve() + '/dist/sim/battle.js').Battle;
+    const re = new RegExp('flags\\[\\s*[\'"]' + flag + '[\'"]\\s*\\]');
+    const helpers = Object.getOwnPropertyNames(B.prototype)
+      .filter(n => { try { return typeof B.prototype[n] === 'function' && re.test(String(B.prototype[n])); }
+                     catch (err) {
+                       /* A prototype member that cannot be read is NOT a member that fails to read the flag:
+                        * it is a hole in this scan, and a silent `false` would shrink the helper list without
+                        * saying so — the derived reader set would then look complete while missing a reader. */
+                       console.error('  roster: Battle.prototype.' + n + ' could not be read while deriving the '
+                         + 'readers of flag ' + flag + ' (' + err.message + ') — not counted as a reader');
+                       return false;
+                     } });
+    const reactors = dex.abilities.all().filter(a => {
+      if (!a.exists || a.isNonstandard || typeof a.onDamagingHit !== 'function') return false;
+      const s = String(a.onDamagingHit);
+      if (!(re.test(s) || helpers.some(h => s.includes(h + '(')))) return false;
+      /* unconditional damage only — see the header */
+      return /this\.damage\(/.test(s) && !/randomChance\(/.test(s) && !/!target\.hp/.test(s);
+    });
+    const bodyFor = (a) => (CARRIERS[a.id] || []).filter(s => !s.battleOnly && !s.isNonstandard
+        && !s.forme.endsWith('Mega') && buildableSpecies(s.id))
+      .sort((x, y) => (y.baseStats.hp + y.baseStats.def + y.baseStats.spd)
+                    - (x.baseStats.hp + x.baseStats.def + x.baseStats.spd))[0] || null;
+    const live = reactors.map(a => ({ a, sp: bodyFor(a) })).filter(r => r.sp);
+    if (!live.length) return cannot('it deletes the `' + flag + '` flag off its own clicks, and a '
+      + 'deleted flag is not a board leaf — so it needs a body that REACTS to that flag. Derived on '
+      + 'this run: the authority reads the flag in ' + (helpers.join(', ') || 'no Battle method at '
+      + 'all') + ', ' + reactors.length + ' legal ability/abilities react to it with unconditional '
+      + 'damage (' + (reactors.map(a => a.name).join(', ') || 'none') + '), and NONE of them has a '
+      + 'legal buildable carrier in this regulation. That is a fact about the format\'s ability list');
+    let plan = null;
+    const planFor = (sp) => {
+      for (const R of live) {
+        if (idOf(R.sp.id) === idOf(sp.id)) continue;
+        let withFlag = null, without = null;
+        for (const t of Object.keys(DELIVERY)) {
+          if (dex.getImmunity(t, R.sp.types) === false) continue;
+          if (!withFlag) withFlag = learnableOfType(sp.id, t, m => !!(m.flags && m.flags[flag]))[0] || null;
+          if (!without) without = learnableOfType(sp.id, t, m => !(m.flags && m.flags[flag]))[0] || null;
+        }
+        if (withFlag && without) { plan = { R, withFlag, without }; return true; }
+      }
+      plan = null;
+      return false;
+    };
+    const C = abilityCarrierAnyTier(e, sp => planFor(sp));
+    if (!C) return cannot(noCarrierWhy(e, 'learns BOTH a delivery click carrying the `' + flag + '` '
+      + 'flag AND one without it, against a body carrying one of the ' + live.length + ' derived '
+      + 'reactor ability/abilities (' + live.map(r => r.a.name + ' on ' + r.sp.name).join(', ')
+      + ') — without both clicks the rule has no on-board negative'));
+    /* RE-DERIVED AFTER THE RANKING, never captured inside the predicate. */
+    planFor(C.sp || dex.species.get(C.species));
+    const P = plan;
+    const rAb = Object.values(P.R.sp.abilities || {}).find(n => idOf(n) === P.R.a.id);
+    return stageAbilityQuiet(e, C, { hpA: 4, hpB: 6, moves: [P.withFlag.id, P.without.id],
+      note: P.R.sp.name + ' holds ' + P.R.a.name + ', derived as a reactor to the `' + flag + '` flag '
+          + 'off the authority\'s own source (' + (helpers.join('/') || 'the flag named directly')
+          + ') and kept only because it damages with no chance gate and no faint requirement. The '
+          + 'carrier throws ' + P.withFlag.name + ' (carries `' + flag + '`) at it on turn 1 and '
+          + P.without.name + ' (does not) on turn 2 as the negative. The reading is the CARRIER\'s own '
+          + 'hp: it pays the reaction without the ability and not with it',
+      a0: mon(P.R.sp.id, '', rAb, [INERT]),
+      script: [turn([IDLE, IDLE], [click(P.withFlag.id, 0), IDLE]),
+               turn([IDLE, IDLE], [click(P.without.id, 0), IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])],
+      precondition: { turn: 1, why: 'the derived reactor is actually standing in the foe\'s lead slot '
+          + 'on SHOWDOWN\'s own board holding ' + P.R.a.name + ' — a reaction nobody can perform '
+          + 'leaves the deleted flag with nothing to change',
+        ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p1', 0);
+          return !!(A && idOf(A.ability || '') === P.R.a.id); }) } });
+  } },
+
+/* ---- A SPEED MULTIPLIER WHOSE CONDITION IS NOT THE SKY — 2026-09-12 ----------------------------
+ *
+ * `ability/weather-speed` requires `weatherNamed()` to be non-empty and is right to: it raises the
+ * sky with a partner's entry ability, and there is no ability in this format that raises a TERRAIN or
+ * inflicts a STATUS on entry. So Surge Surfer (a terrain) and Quick Feet (a status) matched nothing
+ * above it, fell to `ability/generic`, and read `THE STAGING IS INERT` — the generic staging raises
+ * no terrain, inflicts no status, and never puts two bodies in an order a multiplier can flip.
+ *
+ * THE CONDITION IS CREATED BY A CLICK RATHER THAN BY AN ENTRY, which is the one structural difference
+ * from the weather rule, and the ORDER is then read exactly as that rule reads it — `speedFlipFoe` /
+ * `speedOrderFoe`, one implementation, so the fact "which foe sits inside the window" is not
+ * reimplemented here.
+ *
+ * QUICK FEET IS REFUSED AND THE REFUSAL CARRIES ITS MEASUREMENT. Every clause below is asked of the
+ * format on the run, never remembered: its only legal carrier is Jolteon; `getImmunity('par', ...)`
+ * says an ELECTRIC body cannot be paralysed at all, and paralysis is the only status this format
+ * inflicts at 100 accuracy without touching Speed as well; Toxic Thread, the only other in-scope
+ * 100-accuracy single-target status move, carries `boosts {spe:-2}` — A SECOND SPEED MODIFIER INSIDE
+ * A FIXTURE WHOSE WHOLE READING IS SPEED; NO legal item in this regulation statuses its own holder at
+ * the residual (scanned, zero); and the sleep road puts the carrier to sleep, so it cannot throw the
+ * click the order is read off. That is a fact about the REGULATION's status list meeting this
+ * ability's single carrier, and it is stated with the numbers rather than as "no fixture found". */
+{ id: 'ability/conditional-speed', kind: 'ability',
+  reads: 'onModifySpe with NO weather named — the TERRAIN the handler names, or its `pokemon.status` '
+       + 'test, and the multiplier off its own chainModify',
+  why: 'THE CONDITION HAS TO BE ON THE FIELD AND A SPEED HAS TO DECIDE SOMETHING, and the generic '
+     + 'staging creates neither. The weather rule raises its sky with a partner\'s ENTRY ability; no '
+     + 'ability in this format raises a terrain or inflicts a status on entry, so the condition is '
+     + 'created by a CLICK on a turn before the reading and is present identically in both arms.\n'
+     + '     THE ORDER IS READ BY THE SAME TWO HELPERS THE WEATHER RULE USES, never a second copy: '
+     + 'the foe\'s Speed sits STRICTLY between the carrier\'s and its multiplied Speed, and either the '
+     + 'carrier kills it outright while its click is a stat drop, or the drop and the hit are read '
+     + 'against each other. That lands on `boosts`, `fainted` and `hp`, never on a damage subtlety.\n'
+     + '     THE AUTHORITY IS ASKED WHETHER THE CONDITION WENT UP, because a multiplier whose gate '
+     + 'never opened reads INERT and means nothing.',
+  break: { why: 'the conditional Speed multiplier is dropped, so the carrier never outruns anybody — '
+              + 'the same payment the weather members read, on the terrain and status clauses',
+    patch: [["   const _scp=TAGS.param('ability',m.ability,'speedCond');",
+             "   const _scp=null&&TAGS.param('ability',m.ability,'speedCond');"]] },
+  match(e) {
+    if (typeof e.onModifySpe !== 'function') return null;
+    const src = handlerSrc(e, ['onModifySpe']);
+    if (weatherNamed(e, ['onModifySpe']).length) return null;      // the weather rule owns those
+    const terr = (/isTerrain\(\s*['"](\w+)['"]\s*\)/.exec(src) || [])[1] || null;
+    const needStatus = /\.status\b/.test(src);
+    if (!terr && !needStatus) return null;
+    const mult = parseFloat((/chainModify\(\s*([\d.]+)\s*\)/.exec(src) || [])[1]);
+    if (!(mult > 0) || mult === 1) return cannot('its onModifySpe handler does not call `chainModify` '
+      + 'with a literal this rule can read, so the multiplier cannot be derived: '
+      + src.replace(/\s+/g, ' ').slice(0, 200));
+
+    /* ---- THE STATUS ARM, AND IN THIS REGULATION IT IS SHUT. Every clause is asked of the format. */
+    if (needStatus) {
+      const C0 = carrierFor(e);
+      const body = C0 && dex.species.get(C0.forme || C0.species);
+      /* the in-scope 100-accuracy single-target status clicks, and what each of them costs here */
+      const pool = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.status
+        && SCOPE.inScope('move', m.id) && (m.accuracy === true || m.accuracy === 100)
+        && (m.target === 'normal' || m.target === 'any'));
+      const say = pool.map(m => m.name + ' (' + m.status + ') '
+        + (body && dex.getImmunity(m.status === 'tox' ? 'psn' : m.status, body.types) === false
+            ? 'REFUSED — the dex says ' + body.name + ' (' + body.types.join('/') + ') is immune to it'
+          : m.boosts ? 'REFUSED — it carries boosts ' + JSON.stringify(m.boosts) + ', a SECOND Speed '
+              + 'modifier inside a fixture whose whole reading is Speed'
+          : m.volatileStatus ? 'REFUSED — it rides a `' + m.volatileStatus + '` volatile in with the '
+              + 'status' : 'USABLE'));
+      const ok = pool.filter(m => body
+        && dex.getImmunity(m.status === 'tox' ? 'psn' : m.status, body.types) !== false
+        && !m.boosts && !m.volatileStatus);
+      /* AND THE ITEM ROAD, SCANNED RATHER THAN ASSUMED — a held orb would open the gate with no
+       * accuracy roll and no stat stage, and this format does not have one. */
+      const orbs = dex.items.all().filter(i => i.exists && !i.isNonstandard
+        && /setStatus\(|trySetStatus\(/.test(String(i.onResidual || '') + String(i.onUpdate || '')));
+      if (!ok.length) return cannot('its Speed multiplier is gated on the holder being STATUSED and '
+        + 'this regulation cannot open that gate on its carrier without putting a SECOND Speed '
+        + 'modifier on the same body. Measured on this run — carrier ' + (body ? body.name + ' ('
+        + body.types.join('/') + ')' : 'NONE') + '; the in-scope 100-accuracy single-target status '
+        + 'clicks are ' + (say.join('; ') || 'NONE') + '; legal items that status their own holder at '
+        + 'the residual: ' + (orbs.map(i => i.name).join(', ') || 'ZERO, scanned across the whole '
+        + 'format') + '; and the sleep road (`sleepClick`) puts the carrier ASLEEP, so it cannot throw '
+        + 'the click the order is read off. This is the FORMAT\'s status list meeting this ability\'s '
+        + 'single carrier, not a fixture nobody thought of');
+      /* a usable status click exists — stage it exactly as the terrain arm below stages its setter */
+      const st = ok[0];
+      const flip0 = C0 && speedFlipFoe(body, mult);
+      if (!flip0) return cannot(noCarrierWhy(e, 'has a foe whose Speed sits strictly between its own '
+        + 'and its x' + mult + ' Speed once ' + st.name + ' has opened the gate'));
+      const thrower = learnerBody([st.id], { not: [body.id, flip0.foe.id] });
+      if (!thrower) return cannot('no legal buildable body outside this fixture learns ' + st.name
+        + ', so the status that opens the gate cannot be put on the carrier by a click');
+      return stageAbilityQuiet(e, C0, { hpA: 1, hpB: 1, moves: [flip0.holderMove.id],
+        note: pretty(thrower.species) + ' clicks ' + st.name + ' at the carrier on turn 1, which opens '
+            + 'the `pokemon.status` gate the handler reads; ' + flip0.speeds + ', the carrier\'s '
+            + flip0.holderMove.name + ' kills outright and the foe\'s click is ' + flip0.foeMove.name
+            + ' — so the x' + mult + ' decides whether that drop ever lands',
+        a0: mon(flip0.foe.id, '', flip0.ability, [flip0.foeMove.id]),
+        b1: { ...thrower, moves: [st.id] },
+        script: [turn([IDLE, IDLE], [IDLE, click(st.id, 0)]),
+                 turn([click(flip0.foeMove.id, 0), IDLE], [click(flip0.holderMove.id, 0), IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])],
+        precondition: { turn: 1, why: 'the carrier is actually STATUSED on SHOWDOWN\'s own board '
+            + 'before the order is read — a gate that never opened reads INERT and says nothing',
+          ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p2', 0);
+            return !!(A && A.status && A.status !== '-'); }) } });
+    }
+
+    /* ---- THE TERRAIN ARM. No ability in this format sets a terrain on a legal body, so the setter
+     * is a MOVE — derived from the move's own `terrain` field, exactly as
+     * `ability/type-follows-the-terrain` derives its own. */
+    const setMv = dex.moves.all().find(m => m.exists && !m.isNonstandard
+      && idOf(String(m.terrain || '')) === idOf(terr) && alwaysHits(m));
+    if (!setMv) return cannot('it hastens its holder on ' + terr + ' and this format holds no '
+      + '100-accuracy move that raises that terrain, so the condition cannot be created at all — and '
+      + 'no legal body carries a terrain-setting ability either (asked of the format: every '
+      + '`setTerrain` ability in the dex has ZERO legal carriers here)');
+    let flip = null, setter = null;
+    const planFor = (sp) => {
+      flip = speedFlipFoe(sp, mult) || speedOrderFoe(sp, mult);
+      if (!flip) return false;
+      setter = learnerBody([setMv.id], { not: [sp.id, flip.foe.id] });
+      return !!setter;
+    };
+    const C = abilityCarrierAnyTier(e, sp => planFor(sp));
+    if (!C) return cannot(noCarrierWhy(e, 'has a foe in this format whose Speed sits strictly between '
+      + 'its own and its x' + mult + ' Speed AND either dies to one of its hits or throws back a drop '
+      + 'of the stat its hit uses, while some OTHER legal body learns ' + setMv.name + ' to raise the '
+      + terr + ' — without all of those the multiplier changes no leaf of the board'));
+    /* RE-DERIVED AFTER THE RANKING, never captured inside the predicate. */
+    const body = C.sp || dex.species.get(C.species);
+    planFor(body);
+    const kills = !!(flip.holderMove && speedFlipFoe(body, mult));
+    /* WHAT THE WINDOW ACTUALLY CAME OUT AS, printed on demand. A speed fixture that stages nothing
+     * looks identical to one whose window is wrong, and the only way to tell them apart is to see the
+     * three numbers the helper chose. */
+    if (process.env.ROSTER_PRINT_SPEED_PLAN === '1')
+      console.log('  [SPEED PLAN] ' + e.id + '  carrier ' + body.name + '  ' + flip.speeds
+        + '  foe ' + flip.foe.name + ' (' + flip.ability + ')  holder clicks ' + flip.holderMove.name
+        + '  foe clicks ' + flip.foeMove.name + '  KO-shaped=' + kills
+        + '  setter ' + pretty(setter.species) + ' clicks ' + setMv.name);
+    return stageAbilityQuiet(e, C, { hpA: kills ? 1 : 4, hpB: 1, moves: [flip.holderMove.id],
+      note: pretty(setter.species) + ' clicks ' + setMv.name + ' on turn 1, raising ' + terr
+          + ' for both arms; ' + flip.speeds + ' (' + flip.foe.name + ', ' + flip.ability + '), the '
+          + 'carrier clicks ' + flip.holderMove.name + ' and the foe clicks ' + flip.foeMove.name
+          + ' — so the x' + mult + ' decides which of the two lands first, and the reading is '
+          + (kills ? 'whether the foe\'s drop ever reaches the board' : 'the foe\'s hp'),
+      a0: mon(flip.foe.id, '', flip.ability, [flip.foeMove.id]),
+      b1: { ...setter, moves: [setMv.id] },
+      script: [turn([IDLE, IDLE], [IDLE, click(setMv.id)]),
+               turn([click(flip.foeMove.id, 0), IDLE], [click(flip.holderMove.id, 0), IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])],
+      /* THE BOARD'S TERRAIN NAME IS THE ENGINE'S SHORT ONE AND THE HANDLER'S IS SHOWDOWN'S LONG ONE
+       * (`board_state.js` writes `xl('terrain', ...)`, so `electricterrain` arrives as `electric`).
+       * They are matched by PREFIX, which is this repository's established seam for exactly this pair
+       * — `ability/forme-follows-the-sky` says so about `sunnyday` / `sun` — and an EMPTY board value
+       * is refused first, because `''` is a prefix of everything and would make this clause pass on a
+       * field with no terrain at all. MEASURED: the first version compared the two names directly and
+       * the row read THE PRECONDITION DID NOT LAND on a fixture whose terrain was up. */
+      precondition: { turn: 1, why: 'the ' + terr + ' that ' + setMv.name + ' raises is actually on '
+          + 'SHOWDOWN\'s own field before the order is read — a multiplier whose condition was never '
+          + 'created reads INERT and means nothing',
+        ok: (b, all) => (all || [b]).some(x => { const t = idOf(String((x.sd && x.sd.field
+            && x.sd.field.terrain) || '')); return !!t && idOf(terr).indexOf(t) === 0; }) } });
+  } },
+
+/* ---- A MULTIPLIER GATED ON A PARTNER NEEDS THE PARTNER PUT THERE — 2026-09-12 ------------------
+ *
+ * `ability/unconditional-stat-multiplier` EXCLUDES this shape by name and says why: its own name is
+ * "NO type and NO HP gate", and Plus satisfies both of those while being thoroughly gated — on the
+ * ALLY. Its exclusion clause ends *"They are covered by the census probe `ability/damageBoost`, which
+ * stages the partner this rule structurally cannot"*, and that is true of the CENSUS and leaves the
+ * roster with nothing: both rows fell to `ability/generic`, whose staging places no qualifying
+ * partner, so the ability correctly did nothing and both read `THE STAGING IS INERT`.
+ *
+ * THE FIXTURE IS ONE BODY WIDE. Put a partner carrying one of the abilities the handler NAMES beside
+ * the carrier and the gate is open; the carrier's click is then worth the multiplier, and the turn-2
+ * click of the OTHER category is worth the same in both arms because `onModifySpA` cannot touch a
+ * physical hit. That negative is the half worth running — a stat-stage-shaped bug fails it.
+ *
+ * THE LIST IS READ OFF THE HANDLER, NEVER TYPED. `hasAbility(["minus","plus"])` is SYMMETRIC, so Plus
+ * beside Plus satisfies it and an engine hardcoding "Plus needs Minus" would be wrong about the
+ * commonest pairing — medicham2's own `allyHasAbility` reader says exactly that at line 8387. The
+ * partner is nonetheless drawn from a name that is NOT the ability under test, and that is a fixture
+ * decision with a reason: `controlOf` strips the ability under test from EVERY body on the subject's
+ * side, so a partner carrying the same one would lose it in the control arm too and the row would be
+ * measuring two removals at once.
+ *
+ * MEMBERSHIP OVER THE WHOLE FORMAT is whatever registers an attacking-stat handler that reads
+ * `allies()`; the exclusion clause quoted above measured that at exactly three, of which Friend Guard
+ * has its own rule and its own tag. This rule prints the partner it chose on every entry. */
+{ id: 'ability/ally-gated-stat', kind: 'ability',
+  reads: 'onModifyAtk / onModifySpA whose handler walks `allies()` and names an ability list in a '
+       + '`hasAbility([...])` — the list, the multiplier and the category all come off the handler',
+  why: 'THE GATE IS A PARTNER AND THE GENERIC STAGING NEVER PLACES ONE, so the ability correctly does '
+     + 'nothing and the row reads INERT — a claim about the fixture and not about the mechanic. A '
+     + 'body carrying one of the abilities the handler NAMES stands in the second slot, present '
+     + 'identically in both arms, and the carrier throws a click of the category the handler '
+     + 'multiplies at a derived neutral body.\n'
+     + '     THE NEGATIVE IS TURN 2, a click of the OTHER category at the same body, which the '
+     + 'multiplier must not touch. THE AUTHORITY IS ASKED WHETHER THE PARTNER IS THERE, because a '
+     + 'gate that never opened reads INERT and means nothing.',
+  break: { why: 'the ally clause of the conditional damage boost never matches, so a partner-gated '
+              + 'multiplier is never spent and the carrier hits at its plain stat',
+    patch: [["  if(w.cond==='allyHasAbility'){", "  if(false&&w.cond==='allyHasAbility'){"]] },
+  match(e) {
+    const KEYS = ['onModifyAtk', 'onModifySpA', 'onModifyDef', 'onModifySpD'];
+    const keys = KEYS.filter(k => typeof e[k] === 'function');
+    if (!keys.length) return null;
+    const src = handlerSrc(e, keys);
+    if (!/allies\(\)|adjacentAllies\(/.test(src)) return null;
+    const names = ((/hasAbility\(\s*\[([^\]]*)\]\s*\)/.exec(src) || [])[1] || '')
+      .split(',').map(s => idOf(s)).filter(Boolean);
+    if (!names.length) return cannot('its handler is gated on an ALLY but names no ability list this '
+      + 'rule can read, so the partner that opens the gate cannot be derived from the format: '
+      + src.replace(/\s+/g, ' ').slice(0, 200));
+    const mult = parseFloat((/chainModify\(\s*([\d.]+)\s*\)/.exec(src) || [])[1]);
+    if (!(mult > 0) || mult === 1) return cannot('its ally-gated handler does not call `chainModify` '
+      + 'with a literal this rule can read, so the multiplier — and therefore whether any click could '
+      + 'show it — cannot be derived: ' + src.replace(/\s+/g, ' ').slice(0, 200));
+    const off = keys.includes('onModifyAtk') ? 'Physical'
+              : (keys.includes('onModifySpA') ? 'Special' : null);
+    if (!off) return cannot('it gates a DEFENSIVE stat on an ally. This rule stages the carrier as the '
+      + 'ATTACKER, so the reading would have to be a hit taken rather than a hit thrown — a different '
+      + 'fixture, and no member of this format needs it');
+    const other = off === 'Physical' ? 'Special' : 'Physical';
+    /* THE PARTNER: a legal buildable body carrying one of the NAMED abilities, and never the one under
+     * test — see the header. */
+    const partnerOf = (carrierId) => {
+      for (const n of names) {
+        if (n === idOf(e.id)) continue;
+        for (const s of (CARRIERS[n] || [])) {
+          if (s.battleOnly || s.isNonstandard || s.forme.endsWith('Mega')) continue;
+          if (!buildableSpecies(s.id) || idOf(s.id) === idOf(carrierId)) continue;
+          const ab = Object.values(s.abilities || {}).find(x => idOf(x) === n);
+          if (ab) return { sp: s, ability: ab };
+        }
+      }
+      return null;
+    };
+    const pickFor = (sp, cat, d) => {
+      for (const t of Object.keys(DELIVERY)) {
+        if (dex.getEffectiveness(t, d.types) !== 0 || dex.getImmunity(t, d.types) === false) continue;
+        const mv = learnableOfType(sp.id, t, m => m.category === cat)[0];
+        if (mv) return mv;
+      }
+      return null;
+    };
+    const planFor = (sp) => {
+      const P = partnerOf(sp.id);
+      if (!P) return null;
+      for (const row of moveBodies(PRIMARY_ARM_ID)) {
+        const d = row.sp;
+        if (idOf(d.id) === idOf(sp.id) || idOf(d.id) === idOf(P.sp.id)) continue;
+        const A = pickFor(sp, off, d), B2 = pickFor(sp, other, d);
+        if (A && B2) return { partner: P, def: d, defAb: row.ability, A, B2 };
+      }
+      return null;
+    };
+    const C = abilityCarrierAnyTier(e, sp => !!planFor(sp));
+    if (!C) return cannot(noCarrierWhy(e, 'has a legal buildable PARTNER carrying one of the abilities '
+      + 'its own handler names (' + names.join(', ') + ', excluding itself) AND learns both a ' + off
+      + ' click and a ' + other + ' one that some quiet body is neutral to — without both categories '
+      + 'the rule has no on-board negative and a green would say only that something changed'));
+    /* RE-DERIVED AFTER THE RANKING, never captured inside the predicate. */
+    const P = planFor(C.sp || dex.species.get(C.species));
+    return stageAbilityQuiet(e, C, { hpA: 8, hpB: 4, moves: [P.A.id, P.B2.id],
+      note: pretty(P.partner.sp.id) + ' stands beside the carrier holding ' + P.partner.ability
+          + ', which is one of the abilities this handler NAMES (' + names.join(', ') + ') and is not '
+          + 'the one under test — so the control arm strips the subject and leaves the gate\'s own '
+          + 'body alone. The carrier then throws ' + P.A.name + ' (' + off + ', which is what ' + keys[0]
+          + ' multiplies by x' + mult + ') at ' + P.def.name + ', and ' + P.B2.name + ' (' + other
+          + ', the negative, which the multiplier must not touch) at the same body on the next turn',
+      a0: mon(P.def.id, '', P.defAb, [INERT]),
+      b1: mon(P.partner.sp.id, '', P.partner.ability, [INERT]),
+      script: [turn([IDLE, IDLE], [click(P.A.id, 0), IDLE]),
+               turn([IDLE, IDLE], [click(P.B2.id, 0), IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])],
+      precondition: { turn: 1, why: 'the partner that opens the gate is actually standing in the '
+          + 'carrier\'s second slot on SHOWDOWN\'s own board, holding one of the abilities the handler '
+          + 'names — a gate that never opened reads INERT and says nothing about the multiplier',
+        ok: (b) => { const A = sdActive(b, 'p2', 1);
+          return !!(A && names.includes(idOf(A.ability || ''))); } } });
+  } },
+
+/* ---- A WEIGHT IS ONLY ON THE BOARD WHEN A MOVE PRICES OFF IT — 2026-09-12 ----------------------
+ *
+ * Heavy Metal and Light Metal both read `THE STAGING IS INERT` under `ability/generic`, and that
+ * verdict is CORRECT about that fixture: neither engine writes a weight onto a board, so the generic
+ * staging — one neutral contact hit each way — cannot express a doubled or halved one however many
+ * turns it runs for. The mechanic is not missing; the LEAF is.
+ *
+ * SO THE CLICK IS ONE OF THE FOUR MOVES THIS FORMAT PRICES OFF A WEIGHT, and every part of the
+ * fixture is derived from the format rather than named:
+ *   the MULTIPLIER   the handler's OWN return. `e.onModifyWeight.call({trunc:Math.trunc}, w)` is the
+ *                    authority answering for its own truncation — Light Metal truncates and Heavy
+ *                    Metal does not, and a rule that typed `x2` and `x0.5` would be typing a Pokemon
+ *                    fact and would round the wrong way on an odd weight.
+ *   the SIDE         `WEIGHT_MOVES` measures which end each callback reads. Low Kick and Grass Knot
+ *                    read the TARGET, so the carrier stands still and a derived thrower clicks it;
+ *                    Heavy Slam and Heat Crash read the ATTACKER's weight as a RATIO, so the carrier
+ *                    throws. Both shapes are tried, and which one a row takes is printed.
+ *   the CROSSING     the callback is CALLED at the natural weight and at the modified one, and the
+ *                    pair is refused unless the base power actually differs. This is the half that
+ *                    makes the carrier choice a measurement: Aggron is the ONLY legal Heavy Metal
+ *                    body and at 3600 hg it is already past Low Kick's top threshold, so the target
+ *                    shape reads 120 either way; Metagross at 5500 hg is past it too, which is why
+ *                    Light Metal's carrier comes out as SCIZOR (1180 -> 590, base power 100 -> 80)
+ *                    and not as the bulkier body the ranking would otherwise prefer.
+ *
+ * THE NEGATIVE IS TURN 2 AND IT IS WHAT MAKES THIS WORTH RUNNING: the same body throws an ordinary
+ * delivery move that prices off NOTHING, at the same target, which must be worth exactly the same in
+ * both arms. An engine that scaled damage off the ability rather than off the weight parts there. */
+{ id: 'ability/weight-decides-the-power', kind: 'ability',
+  reads: 'onModifyWeight — the multiplier is the handler\'s own return, and the click is a move whose '
+       + 'basePowerCallback is measured to read a getWeight()',
+  why: 'WEIGHT IS NOT A COMPARED LEAF, so the only way an ability that changes one reaches a board is '
+     + 'through a move that prices off it. The multiplier is the handler\'s own answer (so the '
+     + 'truncation is the format\'s, not this file\'s), the SIDE of the field the carrier stands on is '
+     + 'measured off the callback, and the carrier is chosen for CROSSING A THRESHOLD — a body already '
+     + 'past the top of the table reads the same base power doubled and would stage nothing.\n'
+     + '     THE NEGATIVE IS TURN 2: an ordinary delivery click that prices off nothing, thrown by the '
+     + 'same body at the same target, which must be worth the same in both arms.',
+  break: { why: 'the weight modifier is never read, so every body is priced at its dex weight and the '
+              + 'weight-priced click is worth the same with the ability and without it',
+    patch: [["  const p=TAGS.param('ability',(m.ability||'').replace(/[^a-z0-9]/g,''),'modifiesWeight');",
+             "  const p=null&&TAGS.param('ability',(m.ability||'').replace(/[^a-z0-9]/g,''),'modifiesWeight');"]] },
+  match(e) {
+    if (typeof e.onModifyWeight !== 'function') return null;
+    /* THE MULTIPLIER IS THE HANDLER'S OWN RETURN, and a handler this cannot read is a hard refusal
+     * rather than a guessed 2 — a silent default here would stage a crossing that is not there. */
+    let modThrew = null;
+    const modW = (w) => { try {
+      const v = e.onModifyWeight.call({ trunc: Math.trunc }, w);
+      return Number.isFinite(v) && v > 0 ? v : null;
+    } catch (err) {
+      /* The refusal below already covers a handler this cannot read, but it could not say WHICH way it
+       * failed. Keep the reason and put it in the refusal, so a threw and a returned-unchanged are
+       * distinguishable in the artifact rather than collapsing into one sentence. */
+      modThrew = err.message;
+      return null;
+    } };
+    const probe = modW(1000);
+    if (probe == null || probe === 1000) return cannot('its onModifyWeight handler '
+      + (modThrew ? 'THREW when asked for its own answer (' + modThrew + ')' : 'returned the weight unchanged')
+      + ', so there is no multiplier to '
+      + 'derive and nothing this rule could stage a threshold crossing with: '
+      + String(e.onModifyWeight).replace(/\s+/g, ' ').slice(0, 160));
+    if (!WEIGHT_MOVES.length) return cannot('this format holds no 100-accuracy single-target move '
+      + 'whose base power is priced off a body\'s weight, so a weight modifier has no leaf to appear '
+      + 'on at all — `board_state.js` compares no weight'
+      + (WEIGHT_BP_THREW.length ? ' (and ' + WEIGHT_BP_THREW.length + ' callback(s) threw while being '
+          + 'asked: ' + WEIGHT_BP_THREW.join('; ') + ')' : ''));
+
+    /* THE CARRIER IS THE TARGET: a move that reads the TARGET's weight and NOT the attacker's, so the
+     * thrower's own weight cannot move the reading and only the ability can. */
+    const asTarget = (sp) => {
+      const w = sp.weighthg, w2 = modW(w);
+      if (!(w > 0) || w2 == null || w2 === w) return null;
+      for (const R of WEIGHT_MOVES) {
+        if (!R.readsTarget || R.readsAttacker) continue;
+        if (dex.getImmunity(R.m.type, sp.types) === false) continue;
+        if (R.bp(1000, w) === R.bp(1000, w2)) continue;
+        const foe = learnerBody([R.m.id], { not: [sp.id] });
+        if (!foe) continue;
+        const neg = neutralHit2(sp.id, [R.m.id], foe.species);
+        if (!neg) continue;
+        return { shape: 'TARGET', mv: R.m, neg, foe, bp1: R.bp(1000, w), bp2: R.bp(1000, w2), w, w2 };
+      }
+      return null;
+    };
+    /* THE CARRIER IS THE ATTACKER: a move that reads the ATTACKER's weight. The defender is drawn
+     * from the move stage's quiet pool and is chosen for the CROSSING as well as for the chart. */
+    const asAttacker = (sp) => {
+      const w = sp.weighthg, w2 = modW(w);
+      if (!(w > 0) || w2 == null || w2 === w) return null;
+      for (const R of WEIGHT_MOVES) {
+        if (!R.readsAttacker || !learnsLegally(sp.id, R.m.id)) continue;
+        for (const row of moveBodies(PRIMARY_ARM_ID)) {
+          const d = row.sp;
+          if (idOf(d.id) === idOf(sp.id) || !(d.weighthg > 0)) continue;
+          if (dex.getImmunity(R.m.type, d.types) === false) continue;
+          if (R.bp(w, d.weighthg) === R.bp(w2, d.weighthg)) continue;
+          const neg = neutralHit2(d.id, [R.m.id], sp.id);
+          if (!neg) continue;
+          return { shape: 'ATTACKER', mv: R.m, neg, def: d, defAb: row.ability,
+                   bp1: R.bp(w, d.weighthg), bp2: R.bp(w2, d.weighthg), w, w2 };
+        }
+      }
+      return null;
+    };
+    /* the predicate is handed the body the ability actually LIVES on — `abilityCarrierAnyTier` asks
+     * the FORME for a mega, and `weighthg` is the forme's own */
+    const planFor = (sp) => asTarget(sp) || asAttacker(sp);
+    const C = abilityCarrierAnyTier(e, sp => !!planFor(sp));
+    if (!C) return cannot(noCarrierWhy(e, 'is a body whose weight, once this ability has changed it, '
+      + 'crosses a threshold in one of this format\'s ' + WEIGHT_MOVES.length + ' weight-priced '
+      + 'move(s) (' + WEIGHT_MOVES.map(r => r.m.name).join(', ') + ') while a legal thrower and an '
+      + 'unpriced negative click exist for it — a body already past the top of that table reads the '
+      + 'same base power modified and would stage nothing'));
+    /* RE-DERIVED AFTER THE RANKING and off the body the ability actually WEARS (the forme for a mega,
+     * whose `weighthg` is its own), never captured inside the predicate — the same note as on
+     * `ability/accuracy-decides-the-hit` and `ability/weather-speed`. */
+    const P = planFor(C.sp || dex.species.get(C.species));
+    const head = pretty(e.id) + ' takes ' + P.w + ' hg to ' + P.w2 + ' hg, which moves ' + P.mv.name
+      + '\'s base power ' + P.bp1 + ' -> ' + P.bp2 + ' (the callback was ASKED, both times)';
+    if (P.shape === 'TARGET')
+      return stageAbilityQuiet(e, C, { hpA: 4, hpB: 8, moves: [INERT],
+        note: head + '. The carrier stands still and ' + pretty(P.foe.species) + ' throws ' + P.mv.name
+            + ' at it on turn 1 — that move reads the TARGET\'s weight and not the thrower\'s, measured '
+            + '— then ' + P.neg.name + ' on turn 2, which prices off nothing and must be worth the same '
+            + 'in both arms. The reading is the carrier\'s hp',
+        a0: { ...P.foe, moves: [P.mv.id, P.neg.id] },
+        script: [turn([click(P.mv.id, 0), IDLE], [IDLE, IDLE]),
+                 turn([click(P.neg.id, 0), IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] });
+    return stageAbilityQuiet(e, C, { hpA: 8, hpB: 4, moves: [P.mv.id, P.neg.id],
+      note: head + ' against ' + P.def.name + ' (' + P.def.weighthg + ' hg). That move reads the '
+          + 'ATTACKER\'s weight as a ratio, so the carrier throws it on turn 1 and the unpriced '
+          + P.neg.name + ' on turn 2 as the negative. The reading is ' + P.def.name + '\'s hp',
+      a0: mon(P.def.id, '', P.defAb, [INERT]),
+      script: [turn([IDLE, IDLE], [click(P.mv.id, 0), IDLE]),
+               turn([IDLE, IDLE], [click(P.neg.id, 0), IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
   } },
 
 { id: 'ability/generic', kind: 'ability',

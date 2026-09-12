@@ -10,6 +10,81 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.39.0] — 2026-09-12
+
+### Added
+- **Five ability shape rules, each staging the condition the ability actually READS — seven of the 41
+  `THE STAGING IS INERT` rows close (ROADMAP #613).** An inert row is a true statement about the
+  generic fixture and a false one about the mechanic: the authority's own board is identical with and
+  without the entity, so a green would be vacuous. Every part of each fixture is derived from the
+  format.
+  - **`ability/weight-decides-the-power`** — weight is not a leaf `board_state.js` compares, so Heavy
+    Metal and Light Metal reach a board only through the four moves this format prices off a weight.
+    The multiplier is the handler's OWN return (`onModifyWeight.call(...)`, so Light Metal's
+    truncation is the format's and not this file's); which END of the click each callback reads is
+    MEASURED by calling it with the attacker's weight varied and then the target's; and the carrier is
+    chosen for CROSSING a base-power threshold, which is why Light Metal lands on **Scizor**
+    (1180 → 590 hg, base power 100 → 80) and not on the bulkier Metagross, already past the top of the
+    table at 5500 hg. Membership printed: exactly four weight-priced moves, 0 callbacks threw.
+  - **`ability/ally-gated-stat`** — Plus and Minus are excluded by name from
+    `ability/unconditional-stat-multiplier` ("NO type and NO HP gate", which they satisfy while being
+    gated on the ALLY), so both fell to the generic staging, which places no qualifying partner. The
+    partner is drawn from the handler's own `hasAbility([...])` list and never from the ability under
+    test, because `controlOf` strips that one from every body on the subject's side.
+  - **`ability/conditional-speed`** — `ability/weather-speed` requires a weather to be named and is
+    right to; no ability in this format raises a TERRAIN or inflicts a STATUS on entry, so the
+    condition is created by a CLICK a turn before the reading. The order is read by the SAME two
+    helpers the weather rule uses, never a second copy.
+  - **`ability/ignores-screens`** — the screen and the damage category it halves are both read off the
+    move's own `condition.onAnyModifyDamage`; Aurora Veil names neither category and is excluded by
+    the derivation rather than by a hand-written exception.
+  - **`ability/removes-its-own-move-flag`** — a deleted flag is not a board leaf, so it needs a body
+    that reads the flag. WHO reads it is asked of the authority: every `Battle.prototype` method whose
+    own source tests `flags['<flag>']`, then every legal ability whose `onDamagingHit` calls one of
+    them and deals damage with no chance gate and no faint requirement. That excludes the 30%
+    reactors and Aftermath, and leaves Rough Skin.
+
+### Fixed
+- **A shared guard tested how a priority handler is SPELLED, so it missed Gale Wings (ROADMAP #611).**
+  `priorityLiftsStatus` read `/Status/.test(String(ab.onModifyPriority))`. Prankster gates on
+  `move.category === "Status"` and matched; Gale Wings gates on `move.type === "Flying"` and did not,
+  so `speedFlipFoe` handed Talonflame FEATHER DANCE and its +1 landed before the carrier under either
+  Speed. Measured: `surgesurfer` staged with the terrain up and its precondition satisfied, and
+  Showdown's own board was identical over **2,184 compared leaves**. `priorityLifts(sp, mv)` now CALLS
+  the handler with the move the foe will actually click; a handler that throws is counted and refuses
+  the body. Exactly three legal abilities register `onModifyPriority` (`prankster`, `galewings`,
+  `triage` — the last with zero legal carriers), and **no row in any roster artifact at HEAD named
+  Talonflame**, so the blast radius was measured at zero before the change.
+- **A non-ALTERNATE carrier handed to `stageAbility` got no control at all, and the failure mode is a
+  FALSE COVERAGE LIMIT (ROADMAP #612).** `stageAbilityQuiet` sent every non-ALTERNATE tier to
+  `stageAbility`, which writes a NULL control ability for a SUPPRESS body; `controlOf` finds no
+  alternate, sets `body.ability = null`, and `buildPair` silently restores ability slot 0 — the
+  control arm IS the subject arm. Dumped side by side for `surgesurfer`: both arms `ab=surgesurfer` at
+  every boundary, and the row reported `THE STAGING IS INERT`. This is the mirror of ROADMAP #609 — a
+  dead control that fails toward an inert row accuses nobody and is therefore invisible. Non-ALTERNATE
+  carriers now route to the in-play Skill Swap, and a rule that cannot take that control is REFUSED
+  out loud rather than handed a dead arm.
+
+### Changed
+- **`quickfeet` is a MEASURED refusal instead of an inert row.** Derived on the run: its only legal
+  carrier is Jolteon; the dex says an Electric body cannot be paralysed; the only other in-scope
+  100-accuracy single-target status click carries `boosts {spe:-2}`, a second Speed modifier inside a
+  fixture whose whole reading is Speed; ZERO legal items status their own holder at the residual; and
+  the sleep road leaves the carrier unable to click.
+
+### Notes
+- Deliberate roster, release `534442d71183`, all three stages `--reds --write`: abilities
+  **147 → 154** FIRED-AND-BOARDS-MATCH and **46 → 39** COULD-NOT-STAGE, with CONTROL-NOT-QUIET **2**
+  and DEFERRED-BY-OWNER **5** unchanged; items **148 / 0** and moves **487 / 7 / 3** are the controls
+  and neither moved a row. 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE in all three. Anchors
+  **52 / 22 / 36 apply exactly once**; reds **52 / 22 / 36 CAUGHT, 0 `ok: false`**. Every one of the
+  seven new greens rests on `hp` leaves ONLY, with no `.ability`, `.pp` or `.vol` path in any delta.
+- Census **883 probed / 883 live / 0 missing, unmoved**. Gate **OPEN**, `engine/quarantine.js` exit 0,
+  board-material **0 of 961**, narration zero undeclared across 961. **No engine byte changed, so no
+  release was cut**; `engine/board.js`, `engine/magnemite.js` and `data/engine-data.js` were not
+  touched.
+- Full account: `docs/_reports/2026-09-12-inert-fixtures.md`.
+
 ## [6.38.0] — 2026-09-12
 
 ### Added

@@ -185,6 +185,76 @@ _stamped 2026-09-11 23:01_
 
 <!-- /GENERATED -->
 
+## SEVEN INERT ROWS GET A FIXTURE BUILT AROUND WHAT THE ABILITY READS — ABILITIES **147 → 154 MATCH / 46 → 39 COULD-NOT-STAGE**, CNQ **2** AND DEFERRED **5** UNCHANGED. ITEMS **148 / 0** AND MOVES **487 / 7 / 3** UNMOVED AS CONTROLS. ALL SEVEN REST ON **HP LEAVES ONLY**. REDS **52 / 22 / 36, ZERO `ok: false`**. CENSUS **883 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `534442d71183`. 2026-09-12, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-12-inert-fixtures.md`. Register rows #611 and #612 (closed), #613 (open).
+
+An INERT row is a true statement about the GENERIC fixture and a false one about the mechanic: the
+authority's own board is identical with and without the entity, so the fixture tests nothing and a
+green would be vacuous. Five rules now stage the condition each ability actually READS.
+
+| rule | what it reads, derived from the format | rows |
+|---|---|---|
+| `ability/weight-decides-the-power` | `onModifyWeight`; the multiplier is the handler's own return, the SIDE of the field is measured off each weight-priced callback, and the carrier is chosen for CROSSING a base-power threshold | `heavymetal`, `lightmetal` |
+| `ability/ally-gated-stat` | an attacking-stat handler that walks `allies()`; the partner comes from its own `hasAbility([...])` list | `plus`, `minus` |
+| `ability/conditional-speed` | `onModifySpe` with no weather — the TERRAIN the handler names or its `pokemon.status` test | `surgesurfer` (`quickfeet` refused, measured) |
+| `ability/ignores-screens` | `onModifyMove` writing `move.infiltrates`, against the category each screen's own condition names | `infiltrator` |
+| `ability/removes-its-own-move-flag` | `onModifyMove` deleting a `move.flags[...]`; WHO reads the flag is derived off `Battle.prototype`'s own source | `longreach` |
+
+**THE CARRIER CHOICE IS A MEASUREMENT, NOT A RANKING.** Light Metal's carrier comes out as SCIZOR
+(1180 → 590 hg, Grass Knot 100 → 80) rather than the bulkier Metagross, because Metagross at 5500 hg
+is already past the top of that table and reads 120 halved as well as whole. Heavy Metal's only legal
+body, Aggron at 3600 hg, is past it too — so only the ATTACKER shape can express it, and Heavy Slam's
+ratio is what carries it (40 → 60 against Goodra-Hisui). A rule that assumed one shape would have
+refused whichever of the two did not happen to fit.
+
+**AURORA VEIL AND THE 30% REACTORS ARE EXCLUDED BY DERIVATION, NOT BY A HAND-WRITTEN EXCEPTION.** The
+screen rule reads each `allySide` move's own `condition.onAnyModifyDamage` for the category it names;
+Aurora Veil names neither and defers to whichever of the other two is up. The flag rule keeps only a
+reactor that deals damage with no `randomChance` and no `!target.hp`, which drops Static, Flame Body,
+Poison Point and Aftermath and leaves Rough Skin.
+
+### TWO SILENT INSTRUMENT DEFECTS FELL OUT OF THE FIXTURES, AND ONE OF THEM FAILS TOWARD AN INERT ROW
+
+**#611 — the priority guard tested how the handler is SPELLED.** `priorityLiftsStatus` read
+`/Status/.test(String(ab.onModifyPriority))`. Prankster gates on `move.category === "Status"` and
+matched; GALE WINGS gates on `move.type === "Flying"` and did not, so `speedFlipFoe` handed Talonflame
+FEATHER DANCE and its +1 landed before the carrier under either Speed — Showdown's own board identical
+over **2,184 leaves**. `priorityLifts(sp, mv)` now CALLS the handler with the move the foe will
+actually click. Exactly three legal abilities register `onModifyPriority` (`prankster`, `galewings`,
+`triage` with zero legal carriers), and **no row in any roster artifact at HEAD named Talonflame**.
+
+**#612 — a non-ALTERNATE carrier got no control at all.** `stageAbilityQuiet` sent every other tier to
+`stageAbility`, which writes a NULL control ability for a SUPPRESS body; `controlOf` finds no
+alternate, and `buildPair` silently restores ability slot 0. **The control arm was the subject arm.**
+Dumped side by side, four boundaries each, both reading `ab=surgesurfer`. This is the mirror image of
+#609: a dead correction there manufactured GREENS, and a dead control here manufactures an INERT row —
+which accuses nobody and is therefore the harder of the two to see. Non-ALTERNATE carriers now route
+to the in-play Skill Swap, and a rule that cannot take it is REFUSED out loud rather than handed a
+dead arm.
+
+### The hand list
+
+- **`quickfeet` LEAVES THE INERT LIST AND BECOMES A MEASURED REFUSAL.** Derived on the run, not typed:
+  its only legal carrier is Jolteon; the dex says an ELECTRIC body cannot be paralysed, and paralysis
+  is the only status this format inflicts at 100 accuracy without touching Speed; Toxic Thread, the
+  only other in-scope 100-accuracy single-target status click, carries `boosts {spe:-2}` — a SECOND
+  Speed modifier inside a fixture whose whole reading is Speed; ZERO legal items status their own
+  holder at the residual; and the sleep road leaves the carrier unable to throw the click the order is
+  read off. That is the format's status list meeting this ability's single carrier.
+- **33 ROWS STILL READ `THE STAGING IS INERT`**, and they group into families rather than needing 33
+  rules: `aftermath, analytic, angerpoint, berserk, cheekpouch, cloudnine, corrosion, cudchew, damp,
+  earlybird, frisk, goodasgold, hydration, justified, klutz, leafguard, magician, merciless, moxie,
+  pickpocket, receiver, rivalry, sandforce, screencleaner, skilllink, sniper, stalwart, steadfast,
+  stickyhold, supremeoverlord, symbiosis, synchronize, unaware` — plus `quickfeet`, which now carries
+  its measurement above. The report names the family and the derived anchor for each.
+- **OWED, AND NAMED SO IT IS NOT RE-DISCOVERED**: the #612 shape is reachable by any FUTURE rule that
+  calls `stageAbility` directly with a non-ALTERNATE carrier. The durable repair is for `stageAbility`
+  itself to refuse a null control ability instead of letting `buildPair` restore slot 0.
+- **`aerilate`, `galewings`, `zerotohero`, `simple`, `ripen`, `magmaarmor`, `opportunist` and #608**
+  are unchanged and carry forward with the reasons in the section below.
+- **Carried forward unchanged** from the hand lists below.
+
 ## NINE ROWS RE-STAGED NOW THAT THE CONTROL IS HONEST — ABILITIES **138 → 147 MATCH / 55 → 46 COULD-NOT-STAGE**, CNQ **2** AND DEFERRED **5** UNCHANGED. ITEMS **148 / 0** AND MOVES **487 / 7 / 3** UNMOVED AS CONTROLS. EVERY ONE OF THE NINE RESTS ON **HP LEAVES ONLY**. REDS **22 / 47 / 36, ZERO `ok: false`**. CENSUS **883 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `534442d71183`. 2026-09-12, CHANGELOG `<<VER>>`
 
 Full account: `docs/_reports/2026-09-12-restage-after-control.md`. Register row #610 (closed); #608 unchanged.
