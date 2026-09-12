@@ -10,6 +10,62 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.38.0] — 2026-09-12
+
+### Added
+- **A hand-written ability rule can now ask for a carrier that is not ALTERNATE-tier, and five rows
+  that read as facts about the regulation were facts about which builder the rule called
+  (ROADMAP #610).** `abilityCarrier` demands a legal, non-mega, buildable species that ALSO has a
+  second sheet ability to control with. Five abilities have no such body — `aerilate` (Pinsir-Mega
+  only), `dragonize` (Feraligatr-Mega only), `filter` (Aggron-Mega only), `furcoat` (Furfrou) and
+  `megalauncher` (Clawitzer) — and were refused by `noCarrierWhy`, whose sentence names the format.
+  `carrierFor` has answered SUPPRESS and MEGA since ROADMAP #138 and `stageAbilitySwap` stages both;
+  three rules already reached that door and these never did. `abilityCarrierAnyTier` tries the
+  ALTERNATE tier FIRST and unchanged, so no row that already had a carrier can move, and asks the
+  predicate of the body the ability actually lives on — the FORME for a mega, because Aggron-Mega is
+  Steel where Aggron is Steel/Rock. What it matched is PRINTED on every run: exactly the five, no
+  over-match. **Four closed**; `aerilate` stays open with a sharper measured reason.
+- **`ability/accuracy-decides-the-hit`** — the pin lands every 100-accuracy move and misses everything
+  below it, so an accuracy modifier is an HP leaf. The multiplier is the literal argument of the
+  handler's own `chainModify` (or `Infinity` where it returns `true`) and the DIRECTION is the handler
+  prefix, which is what decides who clicks; `data/abra-tags.js` has that direction backwards on every
+  carrier and medicham2 says so at its own `ACCMOD` table, so it is read off the handler. The second
+  click is the direction test: the foe throws a sub-100 click back, which `onAnyAccuracy` must also
+  land and `onSourceModifyAccuracy` must still miss. Closes `noguard`, `compoundeyes` and
+  `tangledfeet`.
+- **`ability/ignores-evasion`** — matched on the FIELD the handler writes (`move.ignoreEvasion`), not
+  on a name. The foe raises its own evasion with a derived self-targeting 100-accuracy move that
+  writes **no volatile** (Minimize is excluded because its volatile carries the never-miss rule six
+  moves in this format obey, which would decide the reading instead of the ability), and the carrier's
+  100-accuracy click must land where a 3/4 would have sunk it. No carrier is used whose own alternate
+  writes the same field — Watchog holds Keen Eye AND Illuminate, one mechanic under two names, and a
+  control drawn from the other would cancel the subject exactly. Closes `keeneye` and `illuminate`.
+
+### Fixed
+- **`ability/type-conversion` refused a row when its TOP-RANKED defender had no negative, with no
+  fallback.** The rule ranks defenders by how much the conversion is worth and then requires an
+  unconverted negative against that one body. It now walks the ranked list; where the first candidate
+  has a negative it stops on exactly the body it stopped on before, so only a refusal can change.
+
+### Changed
+- **Nine ability rows close: FIRED-AND-BOARDS-MATCH 138 → 147, COULD-NOT-STAGE 55 → 46**, with
+  CONTROL-NOT-QUIET unchanged at 2 and DEFERRED-BY-OWNER unchanged at 5. Every one of the nine rests
+  on **hp leaves only** — checked per row against `sd_delta`, which is the test ROADMAP #609 existed
+  for. Items **148 / 0** and moves **487 / 7 / 3** are the controls and neither moved a single row.
+
+### Notes
+- Release `534442d71183` throughout. **No engine byte changed and no release was cut** — the only code
+  file touched is `tests/roster.js`, which is not one of the frozen `SOURCES`. Census **883 probed /
+  883 live / 0 missing, unmoved**; it was not regenerated, and no engine byte changed, so nothing it
+  probes could move. Gate **OPEN**, `engine/quarantine.js` exit 0.
+- **A regression was introduced and caught by the run inside the same pass.** The new line in
+  `noCarrierWhy` read `e.id`, the name every RULE uses for its entity, while that function's parameter
+  is `ab` — so it threw `e is not defined` for every caller that reached it. Blast radius was exactly
+  one row (`galewings`, which read *"the shape rule threw"*), fixed, and the artifact reads **0 threw**
+  against **0 threw** at HEAD.
+- `engine/status.js` prints `FEATURE SEMANTICS CHECK FAILED` for `data/policy-weights.json`. That is
+  pre-existing, belongs to MEASURE, and is not from this pass.
+
 ## [6.36.0] — 2026-09-12
 
 ### Fixed

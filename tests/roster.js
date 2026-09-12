@@ -3936,7 +3936,87 @@ function noCarrierWhy(ab, what) {
   return 'no carrier this rule can use exists. Every species with it: ' + (all.join(', ') || 'none')
     + '. Of those, ' + (usable.join(', ') || 'NONE') + ' are legal, buildable and have a second '
     + 'ability to control with — and ' + (usable.length ? 'none of them ' + what
-        : 'the shortfall is already there, before this rule\'s own condition (' + what + ')') + '.';
+        : 'the shortfall is already there, before this rule\'s own condition (' + what + ')') + '.'
+    /* AND WHAT HAPPENED WHEN THE OTHER TWO TIERS WERE ASKED. A refusal that names only the ALTERNATE
+     * tier reads as a fact about the FORMAT when it is a fact about which BUILDER the rule called —
+     * which is exactly what `aerilate`, `dragonize`, `filter`, `furcoat` and `megalauncher` carried. */
+    /* `ab`, NOT `e`. The first version of this line read `e.id` — the name every RULE uses for the
+     * entity — and this function's parameter is `ab`. It threw `e is not defined` for every caller
+     * that reached it, which the run caught on `galewings` as *"the shape rule threw"*. */
+    + (ANY_TIER_WHY[ab.id] ? '  THE OTHER TWO TIERS WERE ASKED AND ALSO REFUSED: ' + ANY_TIER_WHY[ab.id]
+       : '');
+}
+
+/* ---- A CARRIER THAT IS NOT ALTERNATE-TIER, FOR A RULE THAT ONLY KNEW HOW TO ASK FOR ONE -----------
+ *
+ * `abilityCarrier` is the hand-written block's carrier finder and it asks for ONE tier: a legal,
+ * non-mega, buildable species that ALSO has a second sheet ability to control with. Five rows in this
+ * format have no such body and were refused with `noCarrierWhy`, whose sentence names the regulation:
+ *
+ *   aerilate      Pinsir-Mega only          dragonize     Feraligatr-Mega only
+ *   filter        Aggron-Mega only          furcoat       Furfrou, whose ONLY ability it is
+ *   megalauncher  Blastoise-Mega / Clawitzer, whose only ability it is
+ *
+ * NONE OF THOSE IS A FACT ABOUT THE FORMAT. `carrierFor` has answered SUPPRESS and MEGA since ROADMAP
+ * #138 and `stageAbilitySwap` stages both — the carrier's ability is exchanged IN PLAY by a Skill
+ * Swap, proven live by `swapControlWorks()` before it is used, and a MEGA carrier holds its stone and
+ * asks to evolve on the prepended setup turn. Three rules already reach that door through
+ * `stageAbilityAnyTier`. These five never did, for no reason anybody chose.
+ *
+ * THE ALTERNATE TIER IS TRIED FIRST AND UNCHANGED, which is what makes "nothing else moved" a
+ * measurement rather than an argument: a rule whose entity has an ALTERNATE body gets the identical
+ * carrier, the identical fixture and the identical bytes it got before this function existed.
+ *
+ * THE PREDICATE IS ASKED OF THE BODY THE ABILITY ACTUALLY LIVES ON. For MEGA that is the FORME, not
+ * the base — the chart row a defensive scope reads is Aggron-Mega's (Steel) and not Aggron's
+ * (Steel/Rock), and getting that wrong would size a hit off a typing the ability never wears. The
+ * BASE is what gets BUILT and what holds the stone, so both are carried: `sp` is the forme, `species`
+ * is the base. Learnsets agree across the pair by construction — `checkCanLearn` walks `baseSpecies`
+ * — and that was verified against the authority rather than assumed.
+ *
+ * WHAT IT MATCHED IS PRINTED ON EVERY RUN, both when it fires and when it refuses. A new carrier
+ * source that over-matches is this division's standing hazard (`refusesStatusMoves` caught Telepathy;
+ * `speedOnItemLoss` caught Sticky Hold) and the only defence that has ever worked is showing the
+ * membership before believing the count. */
+const ANY_TIER_TAKEN = [], ANY_TIER_REFUSED = [], ANY_TIER_WHY = {};
+function abilityCarrierAnyTier(e, pred) {
+  const alt = abilityCarrier(e, pred);
+  if (alt) return alt;
+  const why = [];
+  if (swapRefused(e.id)) why.push('the format flags this ability `failskillswap`, so Showdown refuses '
+    + 'the exchange and the two engines would part IN THE CONTROL ARM');
+  const S = swapControlWorks();
+  if (!S.ok) why.push('the Skill Swap control is not available: ' + S.why);
+  const legal = (CARRIERS[e.id] || []).filter(s => !s.isNonstandard && buildableSpecies(s.id));
+  /* SUPPRESS — a legal, non-mega body whose ONLY ability is the one under test. */
+  const sup = legal.filter(s => !s.battleOnly && !s.forme.endsWith('Mega') && !altAbility(s, e.id));
+  /* MEGA — the ability arrives with the forme change; the BASE holds the stone and is what is built. */
+  const mg = legal.filter(s => MEGA_OF[s.id] && buildableSpecies(MEGA_OF[s.id].base));
+  const bulk = s => s.baseStats.hp + s.baseStats.def + s.baseStats.spd;
+  const supOk = sup.filter(s => !pred || pred(s)).sort((a, b) => bulk(b) - bulk(a));
+  const mgOk = mg.filter(s => !pred || pred(s)).sort((a, b) => bulk(b) - bulk(a));
+  if (!supOk.length && !mgOk.length) why.push('no SUPPRESS-tier or MEGA-tier body satisfies this '
+    + 'rule\'s own condition either (' + sup.length + ' suppress-tier and ' + mg.length + ' mega-tier '
+    + 'legal buildable carrier(s) were asked)');
+  if (why.length) {
+    ANY_TIER_WHY[e.id] = why.join('; ');
+    ANY_TIER_REFUSED.push(e.id + ': ' + why.join('; '));
+    return null;
+  }
+  if (supOk.length) {
+    const sp = supOk[0];
+    ANY_TIER_TAKEN.push(e.id + '  -> SUPPRESS ' + sp.name + ' (its ONLY ability is the one under test, '
+      + 'so there is nothing on the sheet to control with; control = Skill Swap lending '
+      + SWAPPER.ability + ' off ' + SWAPPER.name + ')');
+    return { tier: 'SUPPRESS', species: sp.id, sp, control: null, control2: null, quiet: true,
+             pool: sup.length };
+  }
+  const f = mgOk[0], base = dex.species.get(MEGA_OF[f.id].base);
+  ANY_TIER_TAKEN.push(e.id + '  -> MEGA ' + base.name + ' -> ' + f.name + ' via '
+    + pretty(MEGA_OF[f.id].item) + ' (the forme change WRITES the ability; types ' + base.types.join('/')
+    + ' -> ' + f.types.join('/') + ', and the predicate was asked of the FORME; control = Skill Swap)');
+  return { tier: 'MEGA', species: base.id, forme: f.id, stone: MEGA_OF[f.id].item, sp: f,
+           control: null, control2: null, quiet: true, pool: mg.length };
 }
 
 /* ONE BUILDER FOR EVERY RULE IN THIS BLOCK. It owns the bookkeeping `controlOf` and `controlIsQuiet`
@@ -4024,7 +4104,21 @@ function stageAbilitySwap(e, C, o) {
 /* one door for a rule that does not care which tier its carrier landed in */
 function stageAbilityAnyTier(e, C, o) {
   if (!C) return cannot(scopeCannot(e));
-  return C.tier === 'ALTERNATE' ? stageAbility(e, C, o) : stageAbilitySwap(e, C, o);
+  if (C.tier === 'ALTERNATE') return stageAbility(e, C, o);
+  /* ---- THE STAGED HP INFLATION AND A MEGA EVOLUTION CANNOT BOTH BE ON THE SAME BODY --------------
+   *
+   * MEASURED IN `abilityScenario` AND QUOTED THERE: Aerilate reported `Pinsir-Mega has 140 maximum HP`
+   * against `840` on every board. `alignStats` writes the inflated pool onto the Showdown body BEFORE
+   * the battle starts and Showdown RECOMPUTES maxhp from the mega forme's base stats when the forme
+   * changes — dropping the inflation — while medicham2's `megaEvolveNow` carries the delta across.
+   * Neither engine is wrong; the harness asked a question with two answers.
+   *
+   * IT IS THE CARRIER'S SIDE AND ONLY THE CARRIER'S SIDE. The body that changes forme is side B slot
+   * 0, so `hpB` is the one that has to be natural; side A never megas and keeps whatever inflation the
+   * rule asked for, which is what stops a defender fainting mid-script and handing Showdown a click
+   * its replacement does not have. `abilityScenario` clamps both because its MEGA arm reads the
+   * carrier's own consequence; these rules read the OTHER side. */
+  return stageAbilitySwap(e, C, C.tier === 'MEGA' ? { ...o, hpB: 1 } : o);
 }
 
 /* ---- A QUIET CONTROL FOR A HAND-WRITTEN RULE'S OWN CARRIER — 2026-09-12 --------------------------
@@ -7461,7 +7555,7 @@ const RULES = [
     const anyConv = from ? hitOfType(from) : (dex.moves.all().filter(convFlag)[0] || null);
     if (!anyConv) return cannot('no 100-accuracy single-target delivery move it would convert ('
       + (from || 'flag ' + fromFlag) + ') exists in this format');
-    const C = abilityCarrier(e, sp => !!convFor(sp));
+    const C = abilityCarrierAnyTier(e, sp => !!convFor(sp));
     const mv = C ? convFor(dex.species.get(C.species)) : null;
     const srcType = mv ? mv.type : null;
     if (!C) return cannot(noCarrierWhy(e, 'is legal, buildable and has a second ability'));
@@ -7475,11 +7569,25 @@ const RULES = [
     if (!cands.length) return cannot('no quiet body in the move stage\'s pool takes ' + to
       + ' differently from ' + srcType + ', so the conversion would be worth the same damage either '
       + 'way and both arms would agree on a number that means nothing');
-    const def = cands[0].sp, defAb = moveBodies(PRIMARY_ARM_ID).find(r => r.sp.id === def.id).ability;
-    const other = neutralHit2(def.id, [mv.id, srcType], C.species);
-    if (!other) return cannot('no second delivery move of an unconverted type exists against '
-      + pretty(def.id) + ', so the rule has no on-board negative');
-    return stageAbility(e, C, { hpA: 8, hpB: 4, moves: [mv.id, other.id],
+    /* THE DEFENDER MUST SATISFY BOTH HALVES, AND THE FIRST VERSION ONLY ASKED FOR ONE. `cands` is
+     * ranked by how much the conversion is worth, and the top-ranked body was then required to also
+     * have an UNCONVERTED negative available — with no fallback, so a rule that had a perfectly good
+     * second candidate refused the row instead. Measured: Aerilate ranked Torterra first and read *"no
+     * second delivery move of an unconverted type exists against Torterra"*.
+     * IT CANNOT MOVE A ROW THAT ALREADY WORKS: where `cands[0]` has a negative the loop stops on
+     * exactly the body it stopped on before, so only a refusal can change. */
+    let def = null, defAb = null, other = null;
+    for (const c of cands) {
+      const o = neutralHit2(c.sp.id, [mv.id, srcType], C.species);
+      if (!o) continue;
+      def = c.sp; other = o;
+      defAb = moveBodies(PRIMARY_ARM_ID).find(r => r.sp.id === def.id).ability;
+      break;
+    }
+    if (!def) return cannot('no second delivery move of an unconverted type exists against ANY of the '
+      + cands.length + ' body/bodies the conversion is worth something on ('
+      + cands.map(c => c.sp.name).slice(0, 8).join(', ') + '), so the rule has no on-board negative');
+    return stageAbilityAnyTier(e, C, { hpA: 8, hpB: 4, moves: [mv.id, other.id],
       note: mv.name + ' (' + srcType + ') is thrown at ' + def.name + ' (' + def.types.join('/')
           + ') on turn 1 — the chart puts ' + srcType + ' at '
           + (dex.getImmunity(srcType, def.types) === false ? 'IMMUNE' : Math.pow(2, dex.getEffectiveness(srcType, def.types)) + 'x')
@@ -7632,12 +7740,12 @@ const RULES = [
       if (!target) return cannot(noBodyWhy({}) + ' (it must be neutral to BOTH a physical and a '
         + 'special click, or the two turns differ in the type chart as well as in the category)');
       const tgAb = moveBodies(PRIMARY_ARM_ID).find(r => r.sp.id === target.id).ability;
-      const C = abilityCarrier(e, sp => idOf(sp.id) !== idOf(target.id)
+      const C = abilityCarrierAnyTier(e, sp => idOf(sp.id) !== idOf(target.id)
         && (!needStatus || dex.getImmunity(st.status === 'tox' ? 'psn' : st.status, sp.types) !== false));
       if (!C) return cannot(noCarrierWhy(e, needStatus ? 'can carry the ' + st.status + ' this rule '
         + 'inflicts to open the gate' : 'is a body other than the derived target'));
       const A = pick(cat, target.types), B2 = pick(other, target.types);
-      return stageAbility(e, C, { hpA: 8, hpB: 4, moves: [A.id, B2.id],
+      return stageAbilityAnyTier(e, C, { hpA: 8, hpB: 4, moves: [A.id, B2.id],
         note: (needStatus ? st.name + ' opens the gate on turn 1, then ' : '') + A.name + ' ('
             + cat + ', which is what ' + keys[0] + ' multiplies) and ' + B2.name + ' (' + other
             + ', the negative) are thrown at ' + target.name,
@@ -7647,11 +7755,11 @@ const RULES = [
                  turn([IDLE, IDLE], [click(B2.id, 0), IDLE])] });
     }
     const atk = dex.species.get(CAST.ATTACKER().species);
-    const C = abilityCarrier(e, sp => !!pick(cat, sp.types) && !!pick(other, sp.types)
+    const C = abilityCarrierAnyTier(e, sp => !!pick(cat, sp.types) && !!pick(other, sp.types)
       && (!needStatus || dex.getImmunity(st.status === 'tox' ? 'psn' : st.status, sp.types) !== false));
     if (!C) return cannot(noCarrierWhy(e, 'is neutral to both a physical and a special derived click'));
     const A = pick(cat, C.sp.types), B2 = pick(other, C.sp.types);
-    return stageAbility(e, C, { hpA: 4, hpB: 6, moves: [INERT],
+    return stageAbilityAnyTier(e, C, { hpA: 4, hpB: 6, moves: [INERT],
       note: (needStatus ? st.name + ' opens the gate on turn 1, then ' : '') + A.name + ' (' + cat
           + ', which is what ' + keys[0] + ' multiplies against) and ' + B2.name + ' (' + other
           + ', the negative) are thrown AT the carrier',
@@ -7722,10 +7830,12 @@ const RULES = [
       }
       return null;
     };
-    const C = abilityCarrier(e, sp => !!planFor(sp));
+    const C = abilityCarrierAnyTier(e, sp => !!planFor(sp));
     if (!C) return cannot(noCarrierWhy(e, 'is a legal buildable body at all, and learns an in-scope click '
       + 'AND an out-of-scope click of the same category for the on-board negative'));
-    hit = planFor(dex.species.get(C.species));
+    /* THE FORME WHERE THERE IS ONE — `planFor` reads the body's own chart row as well as its learnset,
+     * and for a MEGA carrier the ability only exists on the forme. */
+    hit = planFor(C.sp || dex.species.get(C.species));
     /* THE DEFENDER TAKES BOTH CLICKS AND MUST BE NEUTRAL TO BOTH, or the two turns differ in the type
      * chart as well as in the scope and neither number means anything on its own. */
     const cand = moveBodies(PRIMARY_ARM_ID).map(r => r.sp).filter(sp => idOf(sp.id) !== idOf(C.species)
@@ -7744,7 +7854,7 @@ const RULES = [
       + 'one of the same category, so the rule has no on-board negative and a green would only say '
       + 'that SOMETHING changed');
     const defAb = moveBodies(PRIMARY_ARM_ID).find(r => r.sp.id === def.id).ability;
-    return stageAbility(e, C, { hpA: 8, hpB: 4, moves: [hit.id, out.id],
+    return stageAbilityAnyTier(e, C, { hpA: 8, hpB: 4, moves: [hit.id, out.id],
       note: hit.name + ' (INSIDE ' + scope + ') at ' + def.name + ' on turn 1 and ' + out.name
           + ' (outside it, same category, also neutral) on turn 2 — the second must be worth the '
           + 'same in both arms',
@@ -7782,13 +7892,13 @@ const RULES = [
       hitType = T.find(t => hitOfType(t));
       if (!hitType) return cannot('it scopes ' + T.join(' / ') + ' and no 100-accuracy single-target '
         + 'delivery move of those types exists in this format');
-      C = abilityCarrier(e, sp => dex.getImmunity(hitType, sp.types) !== false
+      C = abilityCarrierAnyTier(e, sp => dex.getImmunity(hitType, sp.types) !== false
         && !!neutralHit2(sp.id, [hitOfType(hitType).id]));
     } else {
       /* THE SUPER-EFFECTIVE ARM: the type is a property of the CARRIER's own chart row, so it is
        * derived per candidate rather than once. */
       let found = null;
-      C = abilityCarrier(e, sp => {
+      C = abilityCarrierAnyTier(e, sp => {
         found = Object.keys(DELIVERY).find(t => hitOfType(t)
           && dex.getEffectiveness(t, sp.types) > 0 && dex.getImmunity(t, sp.types) !== false);
         return !!found && !!neutralHit2(sp.id, []);
@@ -7799,10 +7909,14 @@ const RULES = [
     if (!C) return cannot(noCarrierWhy(e, 'can be hit by the type this ability scopes AND by a '
       + 'neutral type beside it — without both there is no negative and a green says only that '
       + 'something changed'));
-    const hit = hitOfType(hitType), other = neutralHit2(C.species, [hit.id]);
+    /* THE CHART ROW IS THE ONE THE ABILITY WEARS. For a MEGA carrier the scope acts on the FORME
+     * (Aggron-Mega is Steel where Aggron is Steel/Rock), so the unscoped negative has to be neutral on
+     * the forme or the two turns differ in the type chart as well as in the scope. */
+    const chartId = C.forme || C.species;
+    const hit = hitOfType(hitType), other = neutralHit2(chartId, [hit.id]);
     if (!other) return cannot('no neutral delivery move of a type outside this ability\'s scope '
-      + 'exists against ' + pretty(C.species));
-    return stageAbility(e, C, { hpA: 4, hpB: 6, moves: [INERT],
+      + 'exists against ' + pretty(chartId));
+    return stageAbilityAnyTier(e, C, { hpA: 4, hpB: 6, moves: [INERT],
       note: hit.name + ' (' + hitType + ', which the chart puts at '
           + Math.pow(2, dex.getEffectiveness(hitType, C.sp.types)) + 'x on ' + C.sp.name
           + ') on turn 1, and the unscoped neutral ' + other.name + ' on turn 2 as the negative',
@@ -9513,6 +9627,260 @@ const RULES = [
              "{const _hs=null&&TAGS.param('ability',out.ability,'healsOnSwitchOut');"]] },
   match(e) { if (!e.onSwitchOut) return null;
     return abilityScenario(e, carrierFor(e), 'switchout'); } },
+
+/* ---- THE PIN IS WHAT MAKES AN ACCURACY MODIFIER A BOARD LEAF — 2026-09-12 -----------------------
+ *
+ * The primary arm lands every 100-accuracy move and misses everything below it, IN BOTH ENGINES. That
+ * is the same argument `item/accuracy-scaled` and `ability/weather-evasion` already rest on, and three
+ * abilities were sitting in `ability/generic` reading INERT for want of it: No Guard (which cannot
+ * miss and cannot be missed), Compound Eyes (x1.3 on its own clicks) and Tangled Feet (x0.5 on clicks
+ * aimed at it while it is confused). The generic staging throws ONE 100-accuracy move, which no
+ * accuracy modifier in this format can move across the line in either direction.
+ *
+ * NOTHING IS NAMED. The MULTIPLIER is the literal argument of the handler's own `chainModify`, or
+ * `Infinity` where the handler returns `true`; the DIRECTION is the handler PREFIX, which is the one
+ * thing that decides who has to click — `onSourceModifyAccuracy` and `onAnyAccuracy` fire on the
+ * ATTACKER, `onModifyAccuracy` on the body being aimed AT (`sim/battle-actions.ts` hitStepAccuracy).
+ * data/abra-tags.js has that direction BACKWARDS on every carrier and medicham2 says so at its own
+ * ACCMOD table, so it is read off the handler here rather than off the artifact.
+ *
+ * THE SECOND CLICK IS THE DIRECTION TEST AND IT IS THE HALF WORTH RUNNING. An upward modifier is
+ * staged as the carrier's own sub-100 click, which must LAND; then the foe throws a sub-100 click
+ * BACK at the carrier. For `onAnyAccuracy` that one must land too (No Guard does not care which end of
+ * the move it is on); for `onSourceModifyAccuracy` it must still MISS. An engine that applied the
+ * multiplier to the wrong end agrees on the first turn and parts on the second.
+ *
+ * A GATE THE HANDLER NAMES IS STAGED FIRST. Tangled Feet reads `target.volatiles['confusion']`, so the
+ * volatile is put up by a derived 100-accuracy setter and the authority's OWN board is asked whether
+ * it landed — a modifier whose gate never opened would read INERT and mean nothing. */
+{ id: 'ability/accuracy-decides-the-hit', kind: 'ability',
+  reads: 'onAnyAccuracy / onSourceModifyAccuracy / onModifyAccuracy with NO weather named — the '
+       + 'multiplier off the handler\'s own chainModify, the direction off the handler prefix, and '
+       + 'any volatile the handler gates on',
+  why: 'THE PIN MAKES A GUARANTEED MISS AND A GUARANTEED HIT, so an accuracy modifier reaches the '
+     + 'board as damage that was or was not dealt. An UPWARD modifier is given a click whose printed '
+     + 'accuracy is below 100 and at or above 100/mult, so it misses without the ability and lands '
+     + 'with it; a DOWNWARD one is given a 100-accuracy click aimed at the carrier, which lands '
+     + 'without the ability and misses with it. THE SECOND CLICK IS THE DIRECTION TEST: the foe throws '
+     + 'back, and whether that one may be helped is decided by the handler prefix rather than by this '
+     + 'file. Where the handler gates on a volatile, that volatile is put up by a derived setter and '
+     + 'the AUTHORITY\'s own board is asked whether it is there.',
+  break: { why: 'the accuracy modifier table is not consulted at all, so no ability writes or scales '
+              + 'an accuracy and every click is judged on its printed number — which is exactly the '
+              + 'state WIRE 129 found this engine in',
+    patch: [['function accModRow(kind,id){', 'function accModRow(kind,id){ if(1)return null;']] },
+  match(e) {
+    const KEYS = ['onAnyAccuracy', 'onSourceModifyAccuracy', 'onModifyAccuracy'];
+    const keys = KEYS.filter(k => typeof e[k] === 'function');
+    if (!keys.length) return null;
+    /* the weather-gated members have their own rule ABOVE this one; asked again here so the
+     * membership does not depend on rule order alone */
+    if (weatherNamed(e, keys).length) return null;
+    const src = handlerSrc(e, keys);
+    const cm = /chainModify\(\s*\[\s*(\d+)\s*,\s*(\d+)\s*\]\s*\)/.exec(src);
+    const cs = /chainModify\(\s*([0-9.]+)\s*\)/.exec(src);
+    const never = /return\s+true/.test(src);
+    const mult = never ? Infinity : cm ? (+cm[1] / +cm[2]) : cs ? +cs[1] : null;
+    if (mult == null) return cannot('its accuracy handler neither returns `true` nor calls '
+      + '`chainModify` in a shape this rule can read, so the multiplier — and therefore the move whose '
+      + 'roll it flips — cannot be derived: ' + src.replace(/\s+/g, ' ').slice(0, 200));
+    /* the gate the handler names on the body it fires for, if any */
+    const vol = (/volatiles\s*\[\s*['"](\w+)['"]\s*\]/.exec(src) || [])[1] || null;
+    const scalesOwn = keys.includes('onSourceModifyAccuracy') || keys.includes('onAnyAccuracy');
+    const bothEnds = keys.includes('onAnyAccuracy');
+    /* an aggressor whose OWN ability touches accuracy would be a second live modifier in both arms */
+    const clean = s => { const a = dex.abilities.get(idOf(carrierAbility(s) || '')) || {};
+      return !KEYS.some(k => typeof a[k] === 'function'); };
+
+    if (mult > 1) {
+      if (!scalesOwn) return cannot('it multiplies UPWARD the accuracy of moves aimed AT its holder, '
+        + 'so the only thing it can do under this pin is help the FOE land a click that would '
+        + 'otherwise miss — the holder gains nothing and there is no reading in which the ability is '
+        + 'the difference in its own favour');
+      const floor = mult === Infinity ? 0 : 100 / mult;
+      const pool = dex.moves.all().filter(m => deliveryOf(m, { allowInaccurate: true })
+          && typeof m.accuracy === 'number' && m.accuracy < 100 && m.accuracy >= floor)
+        .sort((a, b) => b.accuracy - a.accuracy || b.basePower - a.basePower);
+      if (!pool.length) return cannot('no boring delivery move in this format prints an accuracy '
+        + 'between ' + Math.ceil(floor) + ' and 99, so a x' + mult + ' has no roll to flip: every '
+        + 'click it could be given either already lands or stays under 100 with the ability on');
+      /* THE PLAN IS RE-DERIVED AFTER THE CARRIER IS CHOSEN. `abilityCarrier` runs the predicate over
+       * every candidate and then RANKS them, so a plan captured inside the predicate belongs to the
+       * last body asked and not to the one picked — the mistake `ability/weather-speed` already
+       * guards against by re-calling `speedFlipFoe`. */
+      const planFor = (sp) => {
+        for (const mv of pool) {
+          if (!learnsLegally(sp.id, mv.id)) continue;
+          for (const r of moveBodies(PRIMARY_ARM_ID)) {
+            if (idOf(r.sp.id) === idOf(sp.id) || !clean(r.sp)) continue;
+            if (dex.getEffectiveness(mv.type, r.sp.types) !== 0
+                || dex.getImmunity(mv.type, r.sp.types) === false) continue;
+            const back = pool.find(x => learnsLegally(r.sp.id, x.id)
+              && dex.getImmunity(x.type, sp.types) !== false);
+            if (!back) continue;
+            return { mv, foe: r.sp, foeAb: r.ability, back };
+          }
+        }
+        return null;
+      };
+      const C = abilityCarrier(e, sp => !!planFor(sp));
+      if (!C) return cannot(noCarrierWhy(e, 'learns a boring delivery move printing between '
+        + Math.ceil(floor) + ' and 99 accuracy AND has a quiet body to throw it at that is neutral to '
+        + 'it and can throw a sub-100 click back — without the throw-back there is no direction test'));
+      const P = planFor(C.sp);
+      const why = 'THE ACCURACY ROLL IS THE MECHANIC — this click is chosen BECAUSE the primary pin '
+        + 'makes it miss without the ability and land with it';
+      return stageAbilityQuiet(e, C, { hpA: 6, hpB: 6, moves: [P.mv.id],
+        note: 'the carrier throws ' + P.mv.name + ' (' + P.mv.accuracy + ' accuracy, x'
+            + (mult === Infinity ? 'never-miss' : mult.toFixed(4)) + ' = '
+            + (mult === Infinity ? 'cannot miss' : Math.floor(P.mv.accuracy * mult))
+            + ') at ' + P.foe.name + ' on turn 1 and it must LAND where the pin would have missed. '
+            + 'THE DIRECTION TEST IS TURN 2: ' + P.foe.name + ' throws ' + P.back.name + ' ('
+            + P.back.accuracy + ' accuracy) BACK at the carrier, which this handler prefix says must '
+            + (bothEnds ? 'ALSO LAND — `onAnyAccuracy` does not care which end of the move its holder '
+                + 'is on' : 'STILL MISS — `onSourceModifyAccuracy` fires on the ATTACKER only'),
+        a0: mon(P.foe.id, '', P.foeAb, [P.back.id]),
+        script: [turn([IDLE, IDLE], [{ m: P.mv.id, t: 0, mayMiss: why }, IDLE]),
+                 turn([{ m: P.back.id, t: 0, mayMiss: why }, IDLE], [IDLE, IDLE]),
+                 turn([IDLE, IDLE], [IDLE, IDLE])] });
+    }
+
+    if (scalesOwn) return cannot('it multiplies DOWNWARD the accuracy of its holder\'s own clicks, so '
+      + 'the holder\'s 100-accuracy move becomes a guaranteed miss — which is expressible, but every '
+      + 'legal carrier of this shape in the format also carries an offensive multiplier that a '
+      + 'damage-based rule above this one owns, and splitting one ability over two rules would credit '
+      + 'each with the other\'s work');
+    /* DOWNWARD, ON THE BODY BEING AIMED AT: a 100-accuracy click must MISS. */
+    const setter = vol ? dex.moves.all().find(m => m.exists && !m.isNonstandard
+        && m.category === 'Status' && m.volatileStatus === vol && !m.boosts && !m.status
+        && (m.accuracy === true || m.accuracy === 100)
+        && (m.target === 'normal' || m.target === 'any')) : null;
+    if (vol && !setter) return cannot('its modifier is gated on the holder carrying the `' + vol
+      + '` volatile and this format has no 100-accuracy single-target Status move that writes one, so '
+      + 'the gate cannot be opened and the row would read INERT for a reason about the fixture');
+    const planFor = (sp) => {
+      for (const t of Object.keys(DELIVERY)) {
+        const mv = hitOfType(t);
+        if (!mv) continue;
+        if (dex.getEffectiveness(mv.type, sp.types) !== 0
+            || dex.getImmunity(mv.type, sp.types) === false) continue;
+        const a = learnerBody(setter ? [setter.id, mv.id] : [mv.id], { not: [sp.id], pred: clean });
+        if (a) return { mv, a };
+      }
+      return null;
+    };
+    const C = abilityCarrier(e, sp => !!planFor(sp));
+    if (!C) return cannot(noCarrierWhy(e, 'is neutral to some 100-accuracy delivery move that a legal '
+      + 'body carrying no accuracy handler of its own can throw'
+      + (setter ? ' together with ' + setter.name + ', which opens this ability\'s own gate' : '')));
+    const P = planFor(C.sp);
+    return stageAbilityQuiet(e, C, { hpA: 4, hpB: 8, moves: [INERT],
+      note: pretty(P.a.species) + (setter ? ' clicks ' + setter.name + ' at the carrier on turn 1 to '
+          + 'open this ability\'s own gate (`' + vol + '`), then ' : ' clicks ')
+          + P.mv.name + ' (' + P.mv.accuracy + ' accuracy, neutral on ' + C.sp.name + ') at it twice. '
+          + 'x' + mult + ' drags a 100 under the line, so WITH the ability both clicks must MISS and '
+          + 'without it both must land — the reading is the carrier\'s hp',
+      a0: { ...P.a, moves: setter ? [setter.id, P.mv.id] : [P.mv.id] },
+      script: (setter ? [turn([click(setter.id, 0), IDLE], [IDLE, IDLE])] : []).concat([
+        turn([click(P.mv.id, 0), IDLE], [IDLE, IDLE]),
+        turn([click(P.mv.id, 0), IDLE], [IDLE, IDLE]),
+        turn([IDLE, IDLE], [IDLE, IDLE])]),
+      /* THE GATE HAS TO HAVE OPENED ON THE AUTHORITY'S OWN BOARD. A modifier whose condition never
+       * landed reads INERT and says nothing, which is the failure `precondition` exists for. */
+      precondition: vol ? { turn: 2, why: 'the `' + vol + '` volatile ' + (setter ? setter.name : 'the '
+          + 'setter') + ' writes is actually on the carrier on Showdown\'s own board, so the modifier '
+          + 'this rule is reading is switched on at all',
+        ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p2', 0);
+          return !!(A && A.vol && A.vol[vol] > 0); }) } : null });
+  } },
+
+/* ---- AN EVASION STAGE THE HOLDER DOES NOT SEE — 2026-09-12 --------------------------------------
+ *
+ * Keen Eye and Illuminate are ONE MECHANIC UNDER TWO NAMES and both sat in `ability/generic` reading
+ * INERT. Their `onTryBoost` half is genuinely uncreatable in this regulation — `ability/stat-drop-
+ * reaction` measured it and RETURNS NULL rather than refusing them, precisely so that the other half
+ * could still be reached: every single-target accuracy drop in this format is `isNonstandard: 'Past'`.
+ * The other half is `onModifyMove(move) { move.ignoreEvasion = true; }`, and it is stageable.
+ *
+ * THE PIN DOES THE WORK AGAIN. A +1 evasion stage multiplies an incoming accuracy by 3/4, so a
+ * 100-accuracy click at a body that has raised evasion is a guaranteed MISS in both engines — and the
+ * ability turns it back into a guaranteed hit. The reading is the evasive body's hp.
+ *
+ * THE RAISER MUST NOT CARRY A VOLATILE, and that exclusion is a rule rather than a coincidence. This
+ * format offers two self-targeting evasion raisers and the bigger one, Minimize, installs a `minimize`
+ * volatile that six moves in this format CANNOT MISS (`punishesMinimize`, ROADMAP #466, wired in
+ * `hitChance` above the stage arithmetic). A fixture built on it would be decided by whichever click
+ * the delivery table happened to pick, not by the ability. */
+{ id: 'ability/ignores-evasion', kind: 'ability',
+  reads: 'onModifyMove writing `ignoreEvasion` — the FIELD the handler sets, never the ability name',
+  why: 'A RAISED EVASION STAGE AND A 100-ACCURACY CLICK, WHICH THE GENERIC STAGING CREATES NEITHER OF. '
+     + 'The foe raises its own evasion by a derived self-targeting 100-accuracy move that writes no '
+     + 'volatile (Minimize is excluded BECAUSE its volatile carries the never-miss rule six moves in '
+     + 'this format obey, which would decide the reading instead of the ability); then the carrier '
+     + 'throws a 100-accuracy delivery move that is NEUTRAL on that body, twice. Without the ability '
+     + 'the 3/4 drags it under the line and both clicks MISS; with it the stage is ignored and both '
+     + 'LAND. The reading is the foe\'s hp, never a damage subtlety.\n'
+     + '     THE AUTHORITY IS ASKED WHETHER THE STAGE WENT UP, because a modifier whose condition was '
+     + 'never created reads INERT and means nothing. AND NO CARRIER IS USED WHOSE OWN ALTERNATE WRITES '
+     + 'THE SAME FIELD: Watchog holds Keen Eye AND Illuminate, so a sheet control drawn from the other '
+     + 'would cancel the subject exactly and the row would read INERT for a reason about the pairing.',
+  break: { why: 'the ignore-evasion clause is dropped, so a raised evasion stage cuts the holder\'s '
+              + 'accuracy exactly as it cuts everybody else\'s and the click misses again',
+    patch: [['if(_ie&&_ie.ignoresEvasion){_eb=0;MEDSEEN.evasionIgnored++;}}',
+             'if(false&&_ie&&_ie.ignoresEvasion){_eb=0;MEDSEEN.evasionIgnored++;}}']] },
+  match(e) {
+    const WRITES = a => typeof a.onModifyMove === 'function'
+      && /\bignoreEvasion\s*=\s*true/.test(String(a.onModifyMove));
+    if (!WRITES(e)) return null;
+    const up = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.target === 'self'
+        && m.category === 'Status' && m.boosts && m.boosts.evasion > 0
+        && (m.accuracy === true || m.accuracy === 100) && !m.status && !m.volatileStatus)
+      .sort((a, b) => a.boosts.evasion - b.boosts.evasion)[0] || null;
+    if (!up) return cannot('this format offers no 100-accuracy self-targeting move that RAISES evasion '
+      + 'without also writing a volatile, so the stage this ability ignores cannot be put on the board '
+      + 'in a shape where the ability is what decides the roll');
+    /* a body whose own ability touches accuracy would be a second live modifier in both arms */
+    const clean = s => { const a = dex.abilities.get(idOf(carrierAbility(s) || '')) || {};
+      return !['onAnyAccuracy', 'onSourceModifyAccuracy', 'onModifyAccuracy']
+        .some(k => typeof a[k] === 'function'); };
+    const planFor = (sp) => {
+      for (const t of Object.keys(DELIVERY)) {
+        const mv = hitOfType(t);
+        if (!mv || !learnsLegally(sp.id, mv.id)) continue;
+        const foe = learnerBody([up.id], { not: [sp.id],
+          pred: s => dex.getEffectiveness(mv.type, s.types) === 0
+            && dex.getImmunity(mv.type, s.types) !== false && clean(s) });
+        if (foe) return { mv, foe };
+      }
+      return null;
+    };
+    const C = abilityCarrier(e, sp => !altAbilities(sp, e.id).some(n => WRITES(dex.abilities.get(idOf(n))))
+      && !!planFor(sp));
+    if (!C) return cannot(noCarrierWhy(e, 'learns a 100-accuracy delivery move that some legal body '
+      + 'learning ' + up.name + ' is NEUTRAL to, while carrying no second ability that writes the very '
+      + 'same `ignoreEvasion` field (which would cancel the subject exactly)'));
+    /* RE-DERIVED AFTER THE RANKING, never captured inside the predicate — see the same note on
+     * `ability/accuracy-decides-the-hit` and on `ability/weather-speed`. */
+    const P = planFor(C.sp);
+    return stageAbilityQuiet(e, C, { hpA: 6, hpB: 1, moves: [P.mv.id],
+      note: pretty(P.foe.species) + ' clicks ' + up.name + ' on itself at boundary 0 (+'
+          + up.boosts.evasion + ' evasion, which multiplies an incoming accuracy by 3/'
+          + (3 + up.boosts.evasion) + '), then the carrier throws ' + P.mv.name + ' ('
+          + P.mv.type + ', neutral on it) at it twice. Under this pin a 100 dragged to '
+          + Math.floor(100 * 3 / (3 + up.boosts.evasion)) + ' is a guaranteed MISS, so WITHOUT the '
+          + 'ability neither click lands and WITH it both do — the reading is '
+          + pretty(P.foe.species) + '\'s hp',
+      a0: { ...P.foe, moves: [up.id] },
+      script: [turn([click(up.id), IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [click(P.mv.id, 0), IDLE]),
+               turn([IDLE, IDLE], [click(P.mv.id, 0), IDLE])],
+      precondition: { turn: 2, why: 'the evasion stage ' + up.name + ' raises is actually on the foe on '
+          + 'SHOWDOWN\'s own board — without it the click would land in both arms and the ability '
+          + 'would have nothing to ignore',
+        ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p1', 0);
+          const bo = (A && A.boosts) || {};
+          return (+bo.evasion || +bo.eva || 0) > 0; }) } });
+  } },
 
 { id: 'ability/generic', kind: 'ability',
   reads: 'nothing matched above — this is the residue',
@@ -13402,6 +13770,20 @@ function main() {
   for (const [k, n] of [...ARM_PLAYED.entries()].sort((a, b) => b[1] - a[1]))
     console.log('    ' + String(n).padStart(5) + '  ' + k
       + (k.startsWith('DRIVER-DEFAULT:') ? '   <-- NOT PINNED BY NAME. This run is not the arm it says it is.' : ''));
+
+  /* WHAT THE ANY-TIER CARRIER DOOR MATCHED, PRINTED BEFORE THE COUNTS ARE BELIEVED. A new carrier
+   * source that over-matches is this division's standing hazard; the ALTERNATE tier is tried first and
+   * unchanged, so every line here is a row that had NO carrier at all before. Loud at zero too: an
+   * empty list means the door never fired, which is indistinguishable from a broken one otherwise. */
+  if (STAGE === 'abilities') {
+    console.log('');
+    console.log('  THE ANY-TIER CARRIER DOOR (a rule that could only ask for an ALTERNATE body now asks '
+      + 'for a SUPPRESS or MEGA one too — the ALTERNATE tier is tried first and is unchanged):');
+    console.log(ANY_TIER_TAKEN.length
+      ? ANY_TIER_TAKEN.map(x => '    TAKEN     ' + x).join('\n')
+      : '    none — the door fired for no row in this stage');
+    for (const x of ANY_TIER_REFUSED) console.log('    REFUSED   ' + x);
+  }
 
   /* THE ABILITY-SWAP CORRECTION, PROVED TO HAVE RUN. A silent default looks exactly like a working
    * feature, so both halves are printed: what the control arm was saying about itself, and what the

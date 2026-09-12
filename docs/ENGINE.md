@@ -185,6 +185,74 @@ _stamped 2026-09-11 23:01_
 
 <!-- /GENERATED -->
 
+## NINE ROWS RE-STAGED NOW THAT THE CONTROL IS HONEST — ABILITIES **138 → 147 MATCH / 55 → 46 COULD-NOT-STAGE**, CNQ **2** AND DEFERRED **5** UNCHANGED. ITEMS **148 / 0** AND MOVES **487 / 7 / 3** UNMOVED AS CONTROLS. EVERY ONE OF THE NINE RESTS ON **HP LEAVES ONLY**. REDS **22 / 47 / 36, ZERO `ok: false`**. CENSUS **883 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `534442d71183`. 2026-09-12, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-12-restage-after-control.md`. Register row #610 (closed); #608 unchanged.
+
+**THE 39 THAT FELL WERE NOT OWED A BETTER CONTROL — THEY WERE OWED A FIXTURE.** The brief expected the
+route to be a control whose leaves are the ability acting. It was measured first instead, and the
+control is already honest: on `noguard`, `ROSTER_SWAP_ARM_LEAVES_COUNT=1` (the pre-#609 state) reads
+**FIRED-AND-BOARDS-MATCH with `0 / 0 / 0` leaves dropped**, and the shipped bytes read
+**COULD-NOT-STAGE with 16 + 36 leaves dropped and `sd_delta` empty**. The correction only ever removes
+`.ability`, `pp[slot]` and `vol` leaves on the two bodies of the exchange, so no hp, status or boost
+leaf can reach it. **The authority's own board really does not move on those fixtures** — which is a
+statement about the staging, and the way out is one rule at a time.
+
+- **THE CARRIER DOOR WAS THE WHOLE OF THE "MEGA-ONLY SIX" (#610, closed).** `abilityCarrier` demands a
+  legal, non-mega, buildable species that ALSO has a second sheet ability; five abilities have none,
+  and `noCarrierWhy`'s sentence names the REGULATION for what was a fact about which builder the rule
+  called. `carrierFor` has answered SUPPRESS and MEGA since #138 and `stageAbilitySwap` stages both.
+  `abilityCarrierAnyTier` tries ALTERNATE **first and unchanged** — so no row that already had a
+  carrier can move — and asks the predicate of the body the ability lives on, the FORME for a mega,
+  because **Aggron-Mega is Steel where Aggron is Steel/Rock**. Membership PRINTED: exactly the five.
+  **`dragonize`, `filter`, `furcoat`, `megalauncher` close.**
+- **THE PIN MAKES AN ACCURACY MODIFIER AN HP LEAF** (`ability/accuracy-decides-the-hit`). Multiplier
+  read off the handler's own `chainModify`, direction off the handler PREFIX — `data/abra-tags.js` has
+  that direction backwards on every carrier and medicham2's own `ACCMOD` table says so, so nothing
+  here reads the artifact. **The foe's throw-back is the direction test:** `onAnyAccuracy` must land it
+  too, `onSourceModifyAccuracy` must still miss it. **`noguard`, `compoundeyes`, `tangledfeet` close.**
+- **`ability/ignores-evasion` matches the FIELD, not the name.** Minimize is excluded as the evasion
+  raiser BECAUSE its volatile carries the never-miss rule six moves in this format obey (#466), which
+  would decide the reading instead of the ability; Double Team is what is left. No carrier is used
+  whose own alternate writes the same field — **Watchog holds Keen Eye AND Illuminate**, one mechanic
+  under two names, and a control drawn from the other cancels the subject exactly.
+  **`keeneye`, `illuminate` close.**
+- **THE LEAVES WERE READ BEFORE THE COUNT WAS BELIEVED.** All nine deltas are hp and party-hp and
+  nothing else. The correction is live beside them: **5,264 self-describing dropped, 3,140 control-arm
+  bookkeeping dropped, and 60 REAL rewrites KEPT** — so Trace still has its copy, which clause C of
+  `tests/probe_control_self_name.js` (GREEN 7 of 7) is what refuses to let go.
+- **A REGRESSION WAS SHIPPED AND THE RUN CAUGHT IT INSIDE THE PASS.** The new line in `noCarrierWhy`
+  read `e.id` — the name every RULE uses — where that function's parameter is `ab`, so it threw for
+  every caller that reached it. Blast radius **exactly one row** (`galewings`, reading *"the shape rule
+  threw"*); fixed, and the artifact reads **0 threw** against 0 at HEAD.
+
+### The hand list
+
+- **`aerilate` IS THE ONE OF THE FIVE THAT DID NOT CLOSE**, and its reason is now sharp instead of
+  absent: with a MEGA carrier available, `ability/type-conversion` gets as far as the DEFENDER and
+  finds no unconverted-type negative against either body the Normal→Flying conversion is worth
+  anything on (Torterra, Falinks). The rule already walks the ranked list; the format is what runs out.
+- **`galewings` IS NOT A CONTROL PROBLEM AND NEVER WAS** — Talonflame is ALTERNATE-tier with a second
+  ability. `ability/priority-mod` needs a faster foe its Flying click kills outright, the DELIVERY
+  TABLE hands it Drill Peck (which Talonflame does not learn), and Brave Bird — which it does — is
+  refused by `deliveryOf` on `m.recoil`. Owed: a learnset-aware delivery pick for that rule.
+- **`zerotohero` IS CLOSED BY THE REGULATION AND ITS ROW CARRIES THE MEASUREMENT**, derived at run time
+  rather than typed: `flags.failskillswap` and `flags.cantsuppress` are BOTH set, cited to
+  `Battle#skillSwap` (`sim/battle.ts:1316`) and Gastro Acid's `onTryHit` (`data/moves.ts:6437`), and
+  its only carriers (Palafin, Palafin-Hero) hold it in slot 0 with nothing beside it. All three control
+  shapes are shut. Not a fixture waiting to be built.
+- **`magmaarmor` AND #608 ARE UNCHANGED AND DELIBERATELY SO** — see the section below; touching the
+  quiet set in the same pass as a nine-row move would have made both unattributable.
+- **41 ROWS STILL READ `THE STAGING IS INERT`** and each is winnable fixture work, one rule at a time:
+  `aftermath, analytic, angerpoint, berserk, cheekpouch, cloudnine, corrosion, cudchew, damp,
+  earlybird, frisk, goodasgold, heavymetal, hydration, infiltrator, justified, klutz, leafguard,
+  lightmetal, longreach, magician, merciless, minus, moxie, pickpocket, plus, quickfeet, receiver,
+  rivalry, sandforce, screencleaner, skilllink, sniper, stalwart, steadfast, stickyhold,
+  supremeoverlord, surgesurfer, symbiosis, synchronize, unaware`.
+- **`simple` and `ripen`** carry forward unchanged, and `opportunist` is still owed a fixture in which
+  the copy demonstrably lands.
+- **Carried forward unchanged** from the hand lists below.
+
 ## THE SKILL SWAP CONTROL WAS COUNTING ITSELF — **39 ABILITY GREENS WERE VACUOUS AND ARE NOW REFUSED.** ABILITIES **177 → 138 MATCH / 16 → 55 COULD-NOT-STAGE**, CNQ **2, UNCHANGED**. ITEMS **148** AND MOVES **487 / 7 / 3** UNMOVED AS CONTROLS. REDS **22 / 45 / 36 CAUGHT, ZERO NOT CAUGHT**. CENSUS **883 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — NO RELEASE CUT**, STILL `534442d71183`. 2026-09-12, CHANGELOG `<<VER>>`
 
 Full account: `docs/_reports/2026-09-12-control-and-megas.md`. Register rows #609 (closed), #608 (refined, open).
