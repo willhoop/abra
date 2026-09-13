@@ -55,18 +55,18 @@ games were in that state. Two guards now exist:
 `tests/test-quality.js` asserts both select an identical set of ids.
 
 <!-- BEGIN:FUNNEL -->
-Of **93,074** games collected, **25,182** are usable — **27.1%**.
+Of **93,110** games collected, **25,209** are usable — **27.1%**.
 
 Games are dropped for five reasons, in this order:
 
 | Stage | Games remaining |
 |---|---|
-| collected | 93,074 |
-| after removing named bots | 53,970 |
-| after removing accounts that behave like bots | 47,929 |
-| after removing forfeits | 31,672 |
-| after removing games under 3 turns | 31,437 |
-| after requiring all four brought to be revealed | **25,182** |
+| collected | 93,110 |
+| after removing named bots | 54,006 |
+| after removing accounts that behave like bots | 47,965 |
+| after removing forfeits | 31,708 |
+| after removing games under 3 turns | 31,473 |
+| after requiring all four brought to be revealed | **25,209** |
 <!-- END:FUNNEL -->
 
 1. **Named bots** — accounts whose usernames announce them.
