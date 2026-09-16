@@ -55,18 +55,18 @@ games were in that state. Two guards now exist:
 `tests/test-quality.js` asserts both select an identical set of ids.
 
 <!-- BEGIN:FUNNEL -->
-Of **93,644** games collected, **25,601** are usable — **27.3%**.
+Of **93,699** games collected, **25,642** are usable — **27.4%**.
 
 Games are dropped for five reasons, in this order:
 
 | Stage | Games remaining |
 |---|---|
-| collected | 93,644 |
-| after removing named bots | 54,540 |
-| after removing accounts that behave like bots | 48,499 |
-| after removing forfeits | 32,223 |
-| after removing games under 3 turns | 31,988 |
-| after requiring all four brought to be revealed | **25,601** |
+| collected | 93,699 |
+| after removing named bots | 54,595 |
+| after removing accounts that behave like bots | 48,554 |
+| after removing forfeits | 32,278 |
+| after removing games under 3 turns | 32,043 |
+| after requiring all four brought to be revealed | **25,642** |
 <!-- END:FUNNEL -->
 
 1. **Named bots** — accounts whose usernames announce them.
@@ -99,7 +99,7 @@ metagame. That is the concrete reason this filter exists and why every engine mu
 
 `engine/argmax_paired.js`, `engine/bench_speed_consolidate.js`, `engine/calibrate.py`, `engine/click_census.js`, `engine/coach.js`, `engine/derive_sets.js`, `engine/feature_engine_contrast.js`, `engine/forced_switch_audit.js`, `engine/medicham2-browser.js`, `engine/mew_farm.js`, `engine/next_regulation_ingest.js`, `engine/rollout_r1_join.py`, `engine/stamp.js`, `engine/validate_store.js`, `tests/test-medicham-coverage.js`, `tests/test-next-regulation.js`, `tests/test-parse.js`, `tests/test-side-guard-chooser.js`, `tests/test-workflow-paths.js`
 
-Anything they publish is computed over a store that is 72.7% unusable.
+Anything they publish is computed over a store that is 72.6% unusable.
 <!-- END:RAWREADERS -->
 
 
