@@ -1,12 +1,12 @@
 {
  "generated": "2026-09-16",
- "n_sides": 66106,
+ "n_sides": 66108,
  "n_species": 320,
  "shrink": 10,
  "mean_bring": 0.6667,
  "mean_lead": 0.5,
  "mega": {
-  "n_sides": 57642,
+  "n_sides": 57644,
   "p_side_megas": 0.8799,
   "p_mega_is_lead": 0.5254
  },
@@ -33,9 +33,9 @@
    "p_lead": 0.7381
   },
   "aggron": {
-   "n_team": 551,
-   "p_bring": 0.6589,
-   "p_lead": 0.4799
+   "n_team": 552,
+   "p_bring": 0.6595,
+   "p_lead": 0.4813
   },
   "alakazam": {
    "n_team": 582,
@@ -103,9 +103,9 @@
    "p_lead": 0.3036
   },
   "annihilape": {
-   "n_team": 2132,
-   "p_bring": 0.6983,
-   "p_lead": 0.5417
+   "n_team": 2133,
+   "p_bring": 0.6984,
+   "p_lead": 0.542
   },
   "appletun": {
    "n_team": 101,
@@ -258,9 +258,9 @@
    "p_lead": 0.5
   },
   "ceruledge": {
-   "n_team": 1895,
-   "p_bring": 0.6565,
-   "p_lead": 0.3142
+   "n_team": 1896,
+   "p_bring": 0.6567,
+   "p_lead": 0.3147
   },
   "chandelure": {
    "n_team": 1169,
@@ -433,8 +433,8 @@
    "p_lead": 0.4
   },
   "floetteeternal": {
-   "n_team": 6602,
-   "p_bring": 0.5453,
+   "n_team": 6603,
+   "p_bring": 0.5452,
    "p_lead": 0.5145
   },
   "florges": {
@@ -573,13 +573,13 @@
    "p_lead": 0.5882
   },
   "glimmora": {
-   "n_team": 3073,
-   "p_bring": 0.6823,
-   "p_lead": 0.6032
+   "n_team": 3074,
+   "p_bring": 0.6824,
+   "p_lead": 0.6029
   },
   "gliscor": {
-   "n_team": 776,
-   "p_bring": 0.6383,
+   "n_team": 777,
+   "p_bring": 0.6374,
    "p_lead": 0.5109
   },
   "golurk": {
@@ -693,9 +693,9 @@
    "p_lead": 0.4651
   },
   "incineroar": {
-   "n_team": 14189,
+   "n_team": 14190,
    "p_bring": 0.686,
-   "p_lead": 0.5583
+   "p_lead": 0.5582
   },
   "indeedeef": {
    "n_team": 2,
@@ -868,9 +868,9 @@
    "p_lead": 0.6034
   },
   "mausholdfour": {
-   "n_team": 1908,
-   "p_bring": 0.6552,
-   "p_lead": 0.5889
+   "n_team": 1909,
+   "p_bring": 0.6554,
+   "p_lead": 0.5884
   },
   "mawile": {
    "n_team": 2719,
@@ -903,9 +903,9 @@
    "p_lead": 0.7255
   },
   "metagross": {
-   "n_team": 3876,
-   "p_bring": 0.5679,
-   "p_lead": 0.4796
+   "n_team": 3877,
+   "p_bring": 0.568,
+   "p_lead": 0.4794
   },
   "mienshao": {
    "n_team": 1,
@@ -1193,8 +1193,8 @@
    "p_lead": 0.6915
   },
   "scrafty": {
-   "n_team": 1934,
-   "p_bring": 0.704,
+   "n_team": 1935,
+   "p_bring": 0.7037,
    "p_lead": 0.5583
   },
   "screamtail": {
@@ -1313,8 +1313,8 @@
    "p_lead": 0.3871
   },
   "swampert": {
-   "n_team": 5271,
-   "p_bring": 0.6574,
+   "n_team": 5272,
+   "p_bring": 0.6573,
    "p_lead": 0.5119
   },
   "sylveon": {
@@ -1588,8 +1588,8 @@
    "p_lead": 0.689
   },
   "whimsicott": {
-   "n_team": 12288,
-   "p_bring": 0.7138,
+   "n_team": 12289,
+   "p_bring": 0.7139,
    "p_lead": 0.7437
   },
   "wyrdeer": {
