@@ -1625,6 +1625,8 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      handler's own guard demands (Bug Bite / Pluck, berries only). */
   itemStripRefusedByClass: 0,
   confusionAlreadyOn: 0, confusionRefusedByAbility: 0, confusionRefusedBySideBuff: 0,
+  /* frisk-axekick (2026-09-19): a confusion sized by its move's own floor above the generic one (Axe Kick) */
+  confusionMinFromMove: 0,
   volatileCuredByItem: 0,
   /* ROADMAP #92 -- THE DAMAGE-STAGE CLASS, one counter per family that MOVED STAGE, because moving a
    * multiplier is invisible in a head-to-head (both arms apply it, one arm applies it late) and the
@@ -4501,6 +4503,9 @@ const MEDFAILS = { encoreAction: 0,
    * written while misty terrain is up, so the size of the gap is a number in the run rather than a
    * sentence in a comment that nobody re-checks. */
   confusionMistyUnmodelled: 0,
+  /* frisk-axekick (2026-09-19): a move confused with no `inflictsConfusion.minTurns` on its tag -- sized at the
+   * generic floor, out loud */
+  confusionMinUnsized: 0, confusionMinUnsizedFirst: '',
   /* WIRE 133 -- the three ways the switch-out class can be WRONG rather than absent, each named:
    *   switchOutTriggerUnhandled  an ability declares `onSwitchOut` and the derivation could not say
    *                              what it DOES. A silent default here would look exactly like a
@@ -22944,7 +22949,17 @@ function applyStatus(t,st,src,eff,why,dstream){
  * `this.effectState.time = this.random(min, 6)`, and it is the value the differential's pinned range
  * form observed in EVERY arm -- measured, see the paragraph above. */
 const CONFUSION_TURNS_MIN = 2;
-const CONFUSION_SELF_HIT_BP = 40;                 // data/conditions.ts:191 -- getConfusionDamage(pokemon, 40)
+/* frisk-axekick (2026-09-19) -- THE FLOOR IS NOT ONE NUMBER. data/conditions.ts:173 (no Champions override) reads
+ * `const min = sourceEffect?.id === 'axekick' ? 3 : 2;` before `this.random(min, 6)`, so under the differential's
+ * pinned range form an Axe Kick confusion starts at 3 and this engine gave it 2 -- the staged-game battery read
+ * `p2a feraligatr vol.confusion` 2 on the authority and 1 here after one decrement. The per-move floor is now read
+ * off the tag (`inflictsConfusion.minTurns`, derived by tag_dex from that line); CONFUSION_TURNS_MIN stays the floor
+ * for every confusion no move started (fatigue, an ability). `MEDI_CONFUSION_MIN_FLAT=1` restores the flat 2 for
+ * every move; stamped at LOAD in MEDFAILS.confusionMinFlatRestored. Probe: tests/test-mechanics.js
+ * `confusionMinBySource`. */
+const CONFUSION_MIN_FLAT=_MK('MEDI_CONFUSION_MIN_FLAT');
+if(CONFUSION_MIN_FLAT)MEDFAILS.confusionMinFlatRestored=1;
+const CONFUSION_SELF_HIT_BP = 40;                // data/conditions.ts:191 -- getConfusionDamage(pokemon, 40)
 /* data/conditions.ts:187 -- `if (!this.randomChance(33, 100)) return;`, and `randomChance(n, d)` is
  * `this.random(d) < n`. See confusionBeforeMove for what the 1/3 this replaced cost. */
 const CONFUSION_SELF_HIT_NUM = 33, CONFUSION_SELF_HIT_DEN = 100;
@@ -23103,7 +23118,15 @@ function applyConfusion(t,src,field,viaSecondary,viaFatigue,mvId,cureAtUpdate){
      if(TR&&!viaSecondary)TR.act(t,'move: '+(_sb.startsAs||_sb.sideCondition));
      return false;}}
   if(field&&field.terrain==='misty'){MEDFAILS.confusionMistyUnmodelled++;}
-  (t._vol=t._vol||{}).confusion=CONFUSION_TURNS_MIN;
+  /* frisk-axekick (2026-09-19): the floor this MOVE selects (see CONFUSION_MIN_FLAT). A move that confuses with no
+   * `minTurns` on its tag is counted, never sized by guess -- it takes the generic floor and says so. */
+  let _cmin=CONFUSION_TURNS_MIN;
+  if(mvId&&!viaFatigue){
+    const _ic=TAGS.param('move',mvId,'inflictsConfusion');
+    if(_ic&&_ic.minTurns>0){ if(!CONFUSION_MIN_FLAT)_cmin=_ic.minTurns; if(_ic.minTurns!==CONFUSION_TURNS_MIN)MEDSEEN.confusionMinFromMove++; }
+    else { MEDFAILS.confusionMinUnsized++; if(!MEDFAILS.confusionMinUnsizedFirst)MEDFAILS.confusionMinUnsizedFirst=String(mvId); }
+  }
+  (t._vol=t._vol||{}).confusion=_cmin;
   MEDSEEN.confusionSet++;MEDSEEN.confusionMinDuration++;
   if(TR)TR.vstart(t,'confusion',viaFatigue?'[fatigue]':'');
   /* THE BERRY IS AN `onUpdate` AND FIRES BEFORE THE BODY EVER ACTS, which is why it is here and not
@@ -24434,7 +24457,9 @@ function applyEntryEffects(m,field,ally){
           * announced an empty slot would part the streams on every board it ever entered. */
          if(!_f.item)continue;
          MEDSEEN.entryAnnounced++;
-         if(TR)TR.item(_f,_f.item,'[from] ability: '+m.ability);
+         /* frisk-axekick (2026-09-19): the line names its HOLDER as `[of]` -- data/abilities.ts:1539
+          * `this.add('-item', target, target.getItem().name, '[from] ability: Frisk', `[of] ${pokemon}`)`. */
+         if(TR)TR.item(_f,_f.item,'[from] ability: '+m.ability,m);
        }
      }else if(_em&&_em.event==='-ability'&&_em.on==='self'&&_ao.shudders&&!ANTICIPATION_SILENT){
        /* 2026-09-19 -- FORCE-FIRE: the `-ability`-on-SELF shape, which is Anticipation. The rule is the tag's
@@ -44460,7 +44485,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                * Axe Kick all fell through `status`, `targetBoosts`, `selfBoosts` and `flinch` and out
                * of the loop. THE SAME FUNCTION the direct status path uses, so a refusal cannot be
                * honoured on one road and not the other. */
-              else if(s.volatile==='confusion'){ applyConfusion(tg,m,field,true); }
+              else if(s.volatile==='confusion'){ applyConfusion(tg,m,field,true,false,a.move.id); }
               else if(s.volatile==='flinch'){
                 /* Flinch needs BOTH conditions: the target must not have moved yet this turn, and
                  * Inner Focus blocks it outright. WIRE 118: "not yet moved" is the target still

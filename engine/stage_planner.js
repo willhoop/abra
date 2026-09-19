@@ -504,6 +504,13 @@ function derivedAbilityTriggers(e, preNeeds) {
    *                  holds a removable item and a foe clicks a move that removes or takes it. */
   if (handlersOf(e).some(h => h.name === 'onTakeItem' && /return\s+false/.test(h.src)))
     out.push({ kind: 'foe-takes-item', source: 'handler:onTakeItem returns false' });
+  /*   A FOE'S ITEM IS THE TRIGGER  (frisk-axekick, 2026-09-19) an unprefixed `onStart` that walks `.foes()` and gates each on
+   *                  `if (<foe>.item)` (abilities: frisk -- data/abilities.ts:1538; the Champions mod does not override it). With
+   *                  item-less foes the handler runs and says nothing, so the row read DID-NOT-FIRE against a quiet control. The
+   *                  receiver holds the quietest removable item; the receiver's partner stays empty-handed, so the one game shows
+   *                  BOTH arms of the per-foe gate. Printed over every legal ability and item before wiring: frisk only. */
+  if (handlersOf(e).some(h => h.name === 'onStart' && /\.foes\(\)/.test(h.src) && /if\s*\(\s*\w+\.item\s*\)/.test(h.src)))
+    out.push({ kind: 'foes-hold-item', source: 'handler:onStart walks foes() and gates each on its .item' });
   /* A FORME THAT FOLLOWS THE WEATHER needs one of the weathers it names on the field */
   const fw = p.formeFollowsWeather;
   if (fw && fw.byWeather && Object.keys(fw.byWeather).length)
@@ -1663,6 +1670,16 @@ function stageEntity(kind, e, trig, bearer, branch) {
     rc.observe = { role: 'C', leaf: 'item', channel: 'board', leaves: ['item'] };
     rc.notes.push('R holds ' + it.name + ' (the quietest removable item); its contact hit on the empty-handed holder is what the handler takes it on');
   }
+  /* frisk-axekick (2026-09-19): the holder's entry handler reads each FOE's item (foes-hold-item), so the receiver holds
+   * one and its partner does not -- one announcement expected, not two */
+  if (T('foes-hold-item').length) {
+    if (!rc.bodies.R.item) {
+      const it = quietItem(rc, 'p2', { removable: true });
+      if (!it) refuse('PLANNER-CANNOT-CONSTRUCT', 'no quiet removable item for the receiver to hold');
+      setItem(rc, 'R', it.name);
+    }
+    rc.notes.push('R holds ' + rc.bodies.R.item + ' for the holder\'s entry handler to read; RA holds nothing, so the per-foe gate is exercised both ways');
+  }
   const rMoves = {};
   for (const { q, m } of rPick.moves) rMoves[q.key] = addMove(rc, 'R', m);
 
@@ -2126,7 +2143,9 @@ function composeEntity(rc, x) {
     'weight', 'target-holds-item', 'holder-ate-berry', 'nearby-item-used', 'foe-carries-se-move', 'carrier-faster', 'switch-out',
     'target-protects', 'carrier-switches-out', 'foe-trapped', 'foe-redirects',
     /* earned-fire (2026-09-19) — each staged above: */
-    'hitter-holds-item', 'foe-takes-item', 'status-past-immunity'].includes(t.kind)) {
+    'hitter-holds-item', 'foe-takes-item', 'status-past-immunity',
+    /* frisk-axekick (2026-09-19) — staged above: */
+    'foes-hold-item'].includes(t.kind)) {
     if (t.kind === 'board' && ['volatile-present', 'own-stat-dropped', 'trapped', 'item-consumed', 'accuracy-roll', 'crit-roll', 'speed-order', 'ally-only', 'heal-effect', 'pp-exhausted', 'ko-hit', 'hp-threshold'].includes(t.state)) continue;
     if (t.kind === 'board' && t.state === 'species-gated') continue;
     rc.unconsumed = (rc.unconsumed || []).concat(t.kind + (t.state ? ':' + t.state : ''));

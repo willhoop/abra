@@ -169,10 +169,10 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  969/969 probed mechanics live, 0 missing   (census 2026-09-19 15:54)
+  970/970 probed mechanics live, 0 missing   (census 2026-09-19 16:41)
     the census probes what somebody thought to probe: 301 of 301 in-scope tags carry a probe, 0 carry none (9 of 310
     tags have no in-scope carrier); 1 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 27 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 2.3 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-19 15:53)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
     the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
@@ -196,9 +196,39 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 16:04_
+_stamped 2026-09-19 17:53_
 
 <!-- /GENERATED -->
+
+## FRISK EARNS ITS FIRED AGAINST THE QUIET CONTROL, AND ITS LINE NOW NAMES ITS HOLDER. AXE KICK'S CONFUSION STARTS AT 3, NOT 2, SO ITS STAGED ROW GOES FROM BOARD **STATE** TO **NO-DIVERGENCE**. CENSUS **969 → 970 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `7285347f274f`; LIGHT MODE, NAMED ROWS ONLY.** 2026-09-19, version assigned at merge
+
+Full account: `docs/_reports/2026-09-19-frisk-axekick.md`.
+
+- **Frisk (planner).** A new trigger, `foes-hold-item`, is read off the handler: an `onStart` that walks
+  `.foes()` and gates each foe on `if (<foe>.item)` (`data/abilities.ts:1538`). Printed over every legal ability
+  and item before it was wired: Frisk only. The receiver holds the quietest removable item, and its partner holds
+  nothing, so one game shows both arms of the per-foe gate. The row reads FIRED on both engines, by line, against
+  Insomnia (the watch measured it quiet), with the subject's own receipt. Both boards read NO-DIVERGENCE.
+- **Frisk (engine).** Our `-item` line had no `[of]`. The authority writes `[of] <holder>`
+  (`data/abilities.ts:1539`). The differential's `source-tag` equivalence strips `[of]`, so only the census could
+  see it. The `announcesOnEntry` probe now requires it (red on the old engine, shown).
+- **Axe Kick.** `data/conditions.ts:173` reads `const min = sourceEffect?.id === 'axekick' ? 3 : 2`. The
+  differential pins the range draw to its floor, and our engine used 2 for every move. `engine/tag_dex.js` now
+  derives `inflictsConfusion.minTurns` from that line: 3 for Axe Kick, 2 for the other eight legal confusers.
+  `applyConfusion` reads it, and the secondary site now passes the move id.
+  - Knob: `MEDI_CONFUSION_MIN_FLAT=1` (stamped at load, in `DELIBERATE_BREAK`; a knob run refuses to write the
+    census, shown). Under the knob the staged row reproduces `vol.confusion` us 1 / sd 2 exactly.
+  - Probe: `inflictsConfusion` "an Axe Kick confusion starts one attempt longer than any other move's". The
+    control is Medicham's Dynamic Punch through the same secondary road.
+  - Counters: `MEDSEEN.confusionMinFromMove`; loud fallback `MEDFAILS.confusionMinUnsized`.
+- **Class, on the battery:** Axe Kick, Dynamic Punch, Hurricane, Water Pulse, Confuse Ray, Flatter, Swagger,
+  Sweet Kiss, Teeter Dance, Alluring Voice and the four fatigue moves all read NO-DIVERGENCE on `7285347f274f`.
+
+### The hand list, after this pass
+
+- **Frisk and Axe Kick leave the hand list.** The census and the staged battery now carry both.
+- **Carried forward** from 6.68.0: King's Rock and Purifying Salt are not wired; Blaze's click-swap control;
+  the click-swap controls.
 
 ## 6.68.0 RE-MEASURES AT BOARD **0 / 0 / 0**, NARRATION **0 / 0 / 0**, THREW **0 / 0 / 0**. EVERY IN-SCOPE STAGED ROW IS PROVEN OR OWNER-EXCUSED, NO ROW IS UNEARNED AND NO CONTROL ARM PARTS A BOARD. `engine/quarantine.js` PRINTS **GATE: OPEN, 10 OF 10**. **NO ENGINE BYTE CHANGED; RELEASE `6180c4712761`; DRIVER `faf70ecbca71`, SO NO EARLIER LATTICE IS COMPARABLE.** 2026-09-19, CHANGELOG 6.69.0
 

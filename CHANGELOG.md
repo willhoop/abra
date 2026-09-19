@@ -10,6 +10,17 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.70.0] — 2026-09-19
+
+### Fixed
+- **Axe Kick's** confusion clock starts at 3, the authority's move-specific minimum (`data/conditions.ts:173`),
+  derived into its tag; every other confuser stays at 2. Knob `MEDI_CONFUSION_MIN_FLAT=1`.
+- **Frisk** writes the authority's `[of] <holder>` tag, and the staged battery now gives a foe an item so
+  Frisk fires against a quiet control.
+
+### Notes
+- Census 969 -> 970 live. Report: `docs/_reports/2026-09-19-frisk-axekick.md`.
+
 ## [6.69.0] — 2026-09-19
 
 ### Notes

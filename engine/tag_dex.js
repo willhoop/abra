@@ -908,6 +908,29 @@ function statusOdds(m, st) {
  * Fail loudly rather than fall back. A silent default here is how a wrong constant lives for months —
  * if the condition stops parsing, the tag must go absent so `condHolds`-style consumers refuse, which
  * is #92's rule and the reason the pinch family's refusal was correct for as long as it lasted. */
+/* frisk-axekick (2026-09-19) -- THE CONFUSION CLOCK'S FLOOR DEPENDS ON WHICH MOVE STARTED IT.
+ * data/conditions.ts:173-174 (no Champions override; data/mods/champions/conditions.ts has no `confusion` row):
+ *     const min = sourceEffect?.id === 'axekick' ? 3 : 2;
+ *     this.effectState.time = this.random(min, 6);
+ * so an Axe Kick confusion starts at 3 attempts and every other one at 2. Read off the handler, never named:
+ * `minTurns` is the branch this move's id selects, `maxExclusive` the exclusive upper bound of the range draw.
+ * If the line stops parsing the fields go ABSENT and the engine counts the confusion it could not size
+ * (MEDFAILS.confusionMinUnsized) rather than guessing. */
+let _confStart;
+function confusionMinTurns(moveId) {
+  if (_confStart === undefined) {
+    _confStart = null;
+    let c; try { c = dex.conditions.get('confusion'); } catch (e) { console.error('  tag_dex: confusion condition unreadable: ' + e.message); c = null; }
+    const src = String((c && c.onStart) || '');
+    const br = src.match(/const\s+(\w+)\s*=\s*sourceEffect\?\.id\s*===\s*["'](\w+)["']\s*\?\s*(\d+)\s*:\s*(\d+)/);
+    const rg = br && src.match(new RegExp('this\\.random\\(\\s*' + br[1] + '\\s*,\\s*(\\d+)\\s*\\)'));
+    if (br && rg) _confStart = { id: br[2], hit: +br[3], other: +br[4], max: +rg[1] };
+    else console.error('  tag_dex: confusion.onStart no longer parses as `min = sourceEffect?.id === X ? A : B; random(min, N)` -- minTurns left absent');
+  }
+  if (!_confStart) return {};
+  return { minTurns: moveId === _confStart.id ? _confStart.hit : _confStart.other, maxExclusive: _confStart.max,
+           minFrom: 'DERIVED:dex.conditions.get(confusion).onStart' };
+}
 let _ptShape;
 function partialTrapShape() {
   if (_ptShape !== undefined) return _ptShape;
@@ -3947,8 +3970,8 @@ const MOVE_TAGS = [
        + 'click while it lasts',
     of: m => {
       const secs = [...(m.secondaries || []), ...(m.secondary ? [m.secondary] : [])];
-      for (const sec of secs) if (sec && sec.volatileStatus === 'confusion') return { p: (sec.chance || 100) / 100 };
-      return m.volatileStatus === 'confusion' ? { p: 1 } : null;
+      for (const sec of secs) if (sec && sec.volatileStatus === 'confusion') return Object.assign({ p: (sec.chance || 100) / 100 }, confusionMinTurns(m.id));
+      return m.volatileStatus === 'confusion' ? Object.assign({ p: 1 }, confusionMinTurns(m.id)) : null;
     } },
   { tag: 'failsWithoutWeather', param: 'the move does NOTHING unless a weather is up', probe: 'failsWithoutWeather',
     why: 'Aurora Veil needs snow. Clicking it on a clear field is a wasted turn, and no feature can '

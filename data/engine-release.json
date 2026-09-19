@@ -1,10 +1,10 @@
 {
-  "current": "6180c4712761",
-  "cut": "2026-09-19T19:26:51.339Z",
-  "why": "6.68.0: earned fixtures for eleven abilities, Sticky Hold line and faint exception",
+  "current": "18773c22878f",
+  "cut": "2026-09-19T21:50:22.269Z",
+  "why": "6.70.0: Frisk fires with its [of] tag; Axe Kick's confusion minimum derived from the authority",
   "cuts": 1,
-  "latest_cut": "2026-09-19T19:26:51.339Z",
-  "latest_why": "6.68.0: earned fixtures for eleven abilities, Sticky Hold line and faint exception",
-  "pointer_written": "2026-09-19T19:26:51.426Z",
+  "latest_cut": "2026-09-19T21:50:22.269Z",
+  "latest_why": "6.70.0: Frisk fires with its [of] tag; Axe Kick's confusion minimum derived from the authority",
+  "pointer_written": "2026-09-19T21:50:22.348Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

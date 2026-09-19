@@ -52,6 +52,34 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.70.0] — 2026-09-19 — Frisk fires and writes its [of] tag; Axe Kick's confusion clock starts at the authority's minimum
+
+## [<version>] — 2026-09-19 — Frisk earns its FIRED against a quiet control and names its holder; Axe Kick's confusion starts at 3
+
+**What changed.** `engine/stage_planner.js` derives a `foes-hold-item` trigger off the handler text: an `onStart` that
+walks `.foes()` and gates each foe on `if (<foe>.item)` (data/abilities.ts:1538; membership printed over every legal
+ability and item before wiring: Frisk only). The receiver holds the quietest removable item and its partner holds none.
+Engine: Frisk's `-item` line now carries `[of] <holder>` (data/abilities.ts:1539); the differential's `source-tag`
+equivalence strips `[of]`, so only the census could see it. Engine: the confusion clock's floor is per move —
+data/conditions.ts:173 `const min = sourceEffect?.id === 'axekick' ? 3 : 2` (no Champions override). `engine/tag_dex.js`
+derives `inflictsConfusion.minTurns` from that line (3 for Axe Kick, 2 for the other eight legal confusers; data/tags.json
+changes in exactly those 9 params); `applyConfusion` reads it and the secondary site now passes the move id (knob
+MEDI_CONFUSION_MIN_FLAT=1, stamped at load, in DELIBERATE_BREAK).
+**Figures.** Worktree release 7285347f274f, light mode, named rows only, 0 games threw, red_ok true. Frisk: DID-NOT-FIRE
+(CANNOT-FIRE-IN-THIS-FIXTURE, announces-only) on 6180c4712761 → FIRED on the planner against Insomnia (watch-quiet, 4 games
+/ 60 calls), subject receipt read, board and control arm NO-DIVERGENCE. Axe Kick staged row: board STATE
+(`p2.active[0].vol.confusion` us 1 / sd 2) on 6180c4712761 → NO-DIVERGENCE; the knob reproduces the STATE exactly. Class on
+the battery (Axe Kick, Dynamic Punch, Hurricane, Water Pulse, Confuse Ray, Flatter, Swagger, Sweet Kiss, Teeter Dance,
+Alluring Voice, Outrage, Petal Dance, Thrash, Raging Fury): 14 of 14 NO-DIVERGENCE. Roster moves `--only axekick --reds`:
+MATCH, red CAUGHT. Census 969 → 970 live / 0 missing (new row: inflictsConfusion "an Axe Kick confusion starts one attempt
+longer than any other move's"; the Frisk announcesOnEntry row now also requires `[of]` and was shown MISSING on the old
+engine); a knob run is MISSING and refuses to write the census. tests/test-stage-planner.js GREEN.
+**Supersedes.** 6.69.0's "Frisk: DID-NOT-FIRE" and "Axe Kick: board STATE on the subject arm" (staged-battery readings on
+6180c4712761, not published figures; the full battery and the lattices have not been re-run).
+**Basis.** unchanged
+**Owes.** docs/ABRA-technical-docs.md (the foes-hold-item trigger shape and the per-move confusion floor) at the next major.
+- **Coordinator, at merge.** Verified on release `18773c22878f`: census 970 live / 0 missing clean, 969 / 1 missing and REFUSED under `MEDI_CONFUSION_MIN_FLAT=1`; `data/tags.json` regenerated on the full store; planner test GREEN.
+
 ## [6.69.0] — 2026-09-19 — 6.68.0 re-measured on `6180c4712761`: board 0 / 0 / 0, narration 0 / 0 / 0, threw 0 / 0 / 0; every in-scope staged row proven or owner-excused; the gate reads OPEN, 10 of 10
 
 - **What changed.** No code changed. Re-measured on release `6180c4712761` (HEAD `666d0ddb`, 6.68.0; `engine_release.js list`: 0 of 27 frozen files moved): the full staged-game battery (`--kind all --team-store data/team-pool-frozen --write`), the three lattices, the three roster stages with `--reds --write`, `tests/test-engine-diff.js --n 6000`, `tests/test-mechanics.js`, then `engine/quarantine.js` and `engine/coverage.js`.

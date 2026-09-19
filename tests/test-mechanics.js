@@ -14482,6 +14482,35 @@ probe('move', 'inflictsConfusion', 'Confuse Ray sets a clock that COUNTS DOWN an
                  + 'never ticks it reads the same non-zero in both cells' };
 });
 
+/* frisk-axekick (2026-09-19) — THE CLOCK'S FLOOR DEPENDS ON THE MOVE THAT STARTED IT.
+ *
+ * data/conditions.ts:173-174 (no row in data/mods/champions/conditions.ts): `const min = sourceEffect?.id ===
+ * 'axekick' ? 3 : 2; this.effectState.time = this.random(min, 6);`. The engine takes the floor of that draw
+ * (see CONFUSION_TURNS_MIN) and took 2 for EVERY move, so the staged-game battery read the Axe Kick target's
+ * `vol.confusion` at 2 on the authority and 1 here after one decrement.
+ *
+ * THE CONTROL IS THE SAME USER, THE SAME ROAD AND THE SAME TARGET: Medicham's Dynamic Punch is a 100% confusion
+ * SECONDARY exactly as Axe Kick's 30% is, so only the move id differs. Both are legal on Medicham in Reg M-B. The
+ * die is forced low so the to-hit and the 30% land; the target passes, so the clock is read before any tick.
+ * `MEDI_CONFUSION_MIN_FLAT=1` restores the flat floor and turns the test arm into the control's 2. */
+probe('move', 'inflictsConfusion', 'an Axe Kick confusion starts one attempt longer than any other move\'s', () => {
+  const run = (click) => {
+    /* Clefable resists Fighting, and 0.05 lands the to-hit and the 30% without a crit (0.01 crits and KOs a
+     * Snorlax, which would leave no clock to read) */
+    const { me, ally, f1, f2, S } = board('medicham', 'corviknight', 'clefable', 'garchomp');
+    M.battleTurn(S, () => 0.05,
+      new Map([[me, M.playerAction(me, click, f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return [(f1._vol && f1._vol.confusion) || 0, f1.curHP > 0 ? 1 : 0];
+  };
+  const control = run('dynamicpunch'), test = run('axekick');
+  return { works: control[0] === 2 && test[0] === 3 && control[1] === 1 && test[1] === 1,
+           arms: { control: control[0], test: test[0] },
+           detail: '[the target\'s confusion clock before it acts, target alive] — Dynamic Punch ' + control
+                 + ' (must be 2), Axe Kick ' + test + ' (must be 3: data/conditions.ts:173 raises the floor '
+                 + 'for this move id alone)' };
+});
+
 probe('move', 'statusInflict', 'a confused body sometimes hits ITSELF instead of moving', () => {
   /* THE CONSEQUENCE, WHICH THE CLOCK NEVER PROVES. Two arms on the same board, separated only by the
    * roll: `rng` at 0.1 is inside the authority's 33% and `rng` at 0.9 is outside it. The confused
@@ -18458,14 +18487,20 @@ probe('ability', 'announcesOnEntry', 'Frisk names each foe\'s item as it walks i
     return trace.filter(l => /^\|-item\|/.test(l));
   };
   const off = run('none', ''), one = run('frisk', ''), two = run('frisk', 'sitrusberry');
+  /* frisk-axekick (2026-09-19): THE LINE NAMES ITS HOLDER. data/abilities.ts:1539 writes
+   * `this.add('-item', target, target.getItem().name, '[from] ability: Frisk', `[of] ${pokemon}`)` -- the
+   * Frisk body is the `[of]`. The differential's `source-tag` equivalence strips `[of]`, so only this arm can
+   * see an engine that drops it; the staged-game battery showed ours did. */
+  const ofHolder = l => /\[of\] p1[ab]: noivern/i.test(l || '');
   return { works: off.length === 0 && one.length === 1 && two.length === 2
                   && /leftovers/i.test(one[0] || '') && /ability: frisk/i.test(one[0] || '')
-                  && two.some(l => /sitrusberry/i.test(l)),
+                  && two.some(l => /sitrusberry/i.test(l)) && one.every(ofHolder) && two.every(ofHolder),
            arms: { control: off.length, test: [one.length, two.length] },
            detail: `|-item| lines emitted as the body walks in — NO ability ${off.length} (must be 0); `
                  + `Frisk with ONE foe holding something ${one.length} [${one[0] || 'NONE'}]; Frisk with `
                  + `BOTH foes holding something ${two.length} (must be 2 — the handler loops the foes, `
-                 + `it does not announce once)` };
+                 + `it does not announce once); every line names the Frisk body as [of]: `
+                 + `${one.concat(two).every(ofHolder)} [${two.join(' ; ') || 'NONE'}]` };
 });
 
 /* ROADMAP #175 — MAGNETIC FLUX. THE ABILITY IS THE ELIGIBILITY TEST, WHICH IS A SHAPE NO OTHER MOVE
@@ -36650,7 +36685,9 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'zombieSkipsResidualRestored', 'f
                           'startAnnounceSilentRestored',
                           /* 2026-09-19 -- Anger Point paid below the secondary again
                            * (tests/probe_hit_event_buff_order.js), stamped at LOAD */
-                          'hitBuffAtDamagingHitRestored']
+                          'hitBuffAtDamagingHitRestored',
+                          /* 2026-09-19 -- frisk-axekick: the flat confusion floor for every move, stamped at LOAD */
+                          'confusionMinFlatRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '
