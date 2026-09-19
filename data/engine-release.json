@@ -1,10 +1,10 @@
 {
-  "current": "8a4140de3eaa",
-  "cut": "2026-09-19T07:46:28.563Z",
-  "why": "merged: Protean Try, Clear Smog, Contrary under Mold Breaker, Cud Chew bench, Copycat, multi-hit per-arrival reactions",
+  "current": "1a6550ea5ec6",
+  "cut": "2026-09-19T11:11:47.720Z",
+  "why": "merged 6.57.0: Sucker Punch queued move, Sash/Sturdy on delayed and self hits, narration A and B, tie order (volatile add order, weather corpse sort, saved Speed for berries, Electro Shot zero boost)",
   "cuts": 1,
-  "latest_cut": "2026-09-19T07:46:28.563Z",
-  "latest_why": "merged: Protean Try, Clear Smog, Contrary under Mold Breaker, Cud Chew bench, Copycat, multi-hit per-arrival reactions",
-  "pointer_written": "2026-09-19T07:46:28.644Z",
+  "latest_cut": "2026-09-19T11:11:47.720Z",
+  "latest_why": "merged 6.57.0: Sucker Punch queued move, Sash/Sturdy on delayed and self hits, narration A and B, tie order (volatile add order, weather corpse sort, saved Speed for berries, Electro Shot zero boost)",
+  "pointer_written": "2026-09-19T11:11:47.816Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }
