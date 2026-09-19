@@ -856,6 +856,21 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * the format reaches it (Dragon Darts), so a zero on a board where it was clicked into a Protect
    * means the silence is not happening and the stream carries a line the authority does not. */
   smartTargetShieldSilent: 0,
+  /* NARRATION BATCH B, 2026-09-19 -- the eight line-order roads, each counted where it is TAKEN so a zero
+   * after a game that staged it says the road stopped being taken. See the knob block beside
+   * REPLACE_ORDER_STABLE for the probes.
+   *   alliesHealRefusedFirst       a Life Dew partner refusal announced in the TryHit pass, above every heal
+   *   megaPhaseBeforeBracketSix    the mega phase ran above an action whose bracket is 6 or more (a move)
+   *   corpseSpeedRewireUndone      a Speed-Swapped corpse queued its replacement on its own stored Speed
+   *   breakClearedStallFresh       a shield break took the `stall` volatile's freshness with it
+   *   lockExpiredAtAfterMoveUnresolved  a locked move that resolved nothing still ended its lock at AfterMove
+   *   pivotHerbBeforeEntry         Champions' queued White Herb spent between a pivot's `|switch|` and its SwitchIn
+   *   smartTargetInvulnSilent      a split Dragon Darts met a semi-invulnerable body and wrote no `-miss` */
+  alliesHealRefusedFirst: 0, megaPhaseBeforeBracketSix: 0, corpseSpeedRewireUndone: 0,
+  breakClearedStallFresh: 0, lockExpiredAtAfterMoveUnresolved: 0, pivotHerbBeforeEntry: 0,
+  smartTargetInvulnSilent: 0,
+  /*   hpThresholdBoostAtEvent   a Berserk / Anger Shell boost paid at `AfterMoveSecondary`, below the recoil */
+  hpThresholdBoostAtEvent: 0,
   /* NARRATION BATCH Q, 2026-09-08 -- AND THE REFUSALS THAT DID WRITE THE LINE BECAUSE THE SILENCE WAS
    * ALREADY SPENT. `move.smartTarget = false` is a ONE-SHOT on the active move (data/moves.ts:1010,
    * each shield condition's `onTryHit`), and `runEvent('TryHit', targets, ...)` visits every target in
@@ -1568,6 +1583,8 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                             expected unless one is brought and says only that;
    *   volatileCuredByItem       a Lum or a Persim spent on a volatile rather than on a status. */
   confusionSet: 0, confusionMinDuration: 0, confusionSelfHit: 0, confusionExpired: 0,
+  /* 2026-09-19 -- a lethal confusion self-hit that met a full-HP Focus Sash / Sturdy and left the body on 1. */
+  confusionSelfHitSurvived: 0,
   /* 2026-09-04 -- the self-hit DAMAGE draw was re-addressed onto the confused body, matching the
      authority's `this.activeTarget = pokemon` one line above `getConfusionDamage`. Counted only when
      the stamp actually MOVES, so a self-targeting click (where the two slots already agree) does not
@@ -2403,6 +2420,8 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * corpse. A booked count with a zero landed count, in a game that ran three more turns, means the
    * residual payout is unreachable and the move has become a wasted turn instead of a delayed one. */
   delayedHitBooked: 0, delayedHitLanded: 0, delayedHitWasted: 0, delayedHitNoSlot: 0,
+  /* 2026-09-19 -- a payout that met a full-HP Focus Sash / Sturdy and left the collector on 1. */
+  delayedHitSurvived: 0,
   /* ROADMAP #304, 2026-08-23 -- the payout that SELECTED out of the sixteen-roll band rather than
    * interpolating the span. Expected to equal `delayedHitLanded`; a gap means dmgRange took a path
    * that does not fill the out-parameter and `MEDFAILS.delayedHitBandMissing` names the move. */
@@ -2852,6 +2871,23 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                           rather than the drop alone.
    *   groundedByVolatile      Ingrain or Smack Down put a body on the floor that was not on it. */
   gravitySet: 0, gravityGroundedCharge: 0, roostTypeDropped: 0, roostTypeRestored: 0,
+  /* 2026-09-19 -- `roostAnnouncedNoFlying`: a Roost that landed on a body with NO Flying type to delete
+   * still wrote its `|-singleturn|X|move: Roost`. The authority's `roost` condition `onStart` announces
+   * unconditionally (data/moves.ts:15439-15447); zero here with a non-Flying Roost in the game means
+   * the announcement is gated on the type drop again. */
+  roostAnnouncedNoFlying: 0,
+  /* 2026-09-19 -- `spreadAllyOnlyTarget`: an `allAdjacent` move found no foe standing and the partner
+   * alone as its target, so no `[notarget]` / `-fail` was written (sim/battle-actions.ts:509-513). */
+  spreadAllyOnlyTarget: 0,
+  /* 2026-09-19 -- `syncRefusalAnnounced`: a Synchronize reflection the source refused wrote its line
+   * (`-immune` or `-fail`), as `Pokemon#setStatus` does for an effect carrying `.status`. */
+  syncRefusalAnnounced: 0,
+  /* 2026-09-19 -- `allyBoostNoTargetFail`: Coaching / Aromatic Mist found no partner standing and failed
+   * with `[notarget]` + `-fail` (sim/battle-actions.ts:509-513). */
+  allyBoostNoTargetFail: 0,
+  /* 2026-09-19 -- `itemMoveNoTargetFail`: a Trick / Switcheroo / Corrosive Gas click found nobody to aim at
+   * and failed with `[notarget]` + `-fail`. */
+  itemMoveNoTargetFail: 0,
   /* 2026-08-26 -- THE `twoturnmove` WRAPPER, WHOSE LIFETIME IS NOT THE SUB-VOLATILE'S. Five counters
    * because the wrapper has five fates and four of them are ways for the fix to be silently wrong.
    *   chargeWrapApplied         a charge committed and the clock started. Zero means the split never
@@ -3161,12 +3197,23 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* ROADMAP #241 -- a Ghost was aimed at by Block or Mean Look and the trap was refused SILENTLY, the
    * move failing on the mover. Separate from `tryHitRefused` because the authority answers it at a
    * different step and with a different LINE, which is the whole finding. */
-  ghostRefusedTrap: 0 };
+  ghostRefusedTrap: 0,
+  /* 2026-09-19 -- the tie-order batch (tests/probe_tie_order.js). Receipts, so a fix that stops firing reads 0. */
+  chargeBoostZeroAnnounced: 0, weatherSortCorpseDropped: 0,
+  updateEventSorted: 0, updateSpeedCacheStamped: 0, updateSortCachedDiffersLive: 0, updateTieResolved: 0,
+  volSeqStamped: 0, volStepShadowOrdered: 0 };
 const MEDFAILS = { encoreAction: 0,
+  /* 2026-09-19 -- a body reached the Update sort with no cached `pokemon.speed` stamp (it fell back to live
+   * speed), and a tied Update group resolved with no die in scope. Both should stay 0. */
+  updateSpeedUncached: 0, updateOrderTieNoDie: 0,
   /* 2026-09-19 -- a `failsIfTargetAlreadyMoved` clause `targetAlreadyMovedRefuses` cannot read, and the
      stamp of MEDI_HELPINGHAND_MOVED_ALLY=1. */
   alreadyMovedClauseUnread: 0, alreadyMovedClauseUnreadFirst: '', helpingHandMovedAllyRestored: 0, roundUnpromotedRestored: 0,
   bounceKindBlindRestored: 0,
+  /* 2026-09-19 -- the two Sucker Punch queued-move knobs' stamps, and a queued move id the move table
+     does not carry (answered by the action kind, so it is counted). See `queuedMoveIdOf`. */
+  delayedHitNoSurvivalRestored: 0, selfHitNoSurvivalRestored: 0,
+  suckerReadsPreEncoreRestored: 0, suckerReadsActionKindRestored: 0, queuedMoveUnreadable: 0, queuedMoveUnreadableFirst: '',
   /* 2026-09-10 -- `critRefusedBy`'s LOUD DOORS. Each is a refusal decided WITHOUT the information the
      authority's handler asks for, so it falls back on the old ability-only answer and is counted:
        preventsCritShapeUnknown  the tag row carries no `conditional` key (an artifact older than the
@@ -4238,6 +4285,11 @@ const MEDFAILS = { encoreAction: 0,
    * numbers were unreadable and each looked like the other's proof. MEDSEEN counts what HAPPENED;
    * MEDFAILS counts what WENT WRONG, and "the gate had nothing to read" is the second thing. */
   roostRiderNoPrimary: 0,
+  /* 2026-09-19 -- a Synchronize reflection refused for a reason neither the status-move branch nor the
+   * reflect routes. Non-zero means a refusal line may be owed and nothing wrote it. */
+  syncRefusalUnrouted: 0,
+  coachingNoAllySilentRestored: 0,
+  itemMoveNoTargetSilentRestored: 0,
   /* ROADMAP #123 -- a body flagged `_invuln` with no `_charging` to explain it. The pierce list is a
    * property of the MOVE that took it off the field, so a body in that state has no list and every
    * move would be refused -- which is the pre-fix behaviour arriving back through the fallback. Must
@@ -4946,6 +4998,11 @@ const MEDFAILS = { encoreAction: 0,
      by a STABLE sort with no tie die, so two corpses on equal raw Speed refill in side order. MUST READ 0
      on any shipping run. See `_refills`. */
   replaceOrderStableRestored: 0,
+  /* NARRATION BATCH B, 2026-09-19 -- the eight knobs of the line-order batch. Each MUST READ 0 on any
+   * shipping run; see the knob block beside REPLACE_ORDER_STABLE. */
+  alliesHealInterleavedRestored: 0, megaGateOnPriorityRestored: 0, corpseSpeedKeepsRewireRestored: 0,
+  breakKeepsStallFreshRestored: 0, lockEndNeedsHitRestored: 0, pivotHerbAfterEntryRestored: 0,
+  smartInvulnMissLineRestored: 0, hpThresholdBoostAboveRecoilRestored: 0,
   /* A record `entryOrder` was asked to place that was not in the ALL-ACTIVE list it ranked. That is a
      caller bug, not a game event, and it falls back to the old speed comparison for that pair. Must
      read 0. */
@@ -6139,6 +6196,29 @@ const SPREAD_ITEM_INTERLEAVED=_MK('MEDI_SPREAD_ITEM_INTERLEAVED');
  * `medicham2 stopped emitting while showdown continued` can be shown RED.
  * tests/probe_apparent_type_broadcast.js is the arm. */
 const APPARENT_TYPE_BLIND=_MK('MEDI_APPARENT_TYPE_BLIND');
+/* 2026-09-19 -- NARRATION, the second MEDICHAM gate. Each knob restores ONE pre-fix emission verbatim
+ * and changes no board leaf; tests/probe_narration_a.js plays each in a child and requires its own arms
+ * to PART on protocol while every board still agrees.
+ *   MEDI_ROOST_ANNOUNCE_FLYING_ONLY   Roost's `-singleturn` only when a Flying type was deleted
+ *   MEDI_SPREAD_NOFOE_FAILS           a spread move with no foe left fails even when an ally is in reach
+ *   MEDI_SYNC_IMMUNE_SILENT           Synchronize passing a status to an immune source prints nothing
+ *   MEDI_COACHING_NOALLY_SILENT       Coaching with no ally to boost prints nothing
+ *   MEDI_ITEMMOVE_NOTARGET_SILENT     a Corrosive Gas / Trick with nobody to aim at prints nothing */
+const ROOST_ANNOUNCE_FLYING_ONLY=_MK('MEDI_ROOST_ANNOUNCE_FLYING_ONLY');
+const SPREAD_NOFOE_FAILS=_MK('MEDI_SPREAD_NOFOE_FAILS');
+const SYNC_IMMUNE_SILENT=_MK('MEDI_SYNC_IMMUNE_SILENT');
+const COACHING_NOALLY_SILENT=_MK('MEDI_COACHING_NOALLY_SILENT');
+const ITEMMOVE_NOTARGET_SILENT=_MK('MEDI_ITEMMOVE_NOTARGET_SILENT');
+/* STAMPED AT LOAD, so a knob run is known to be one before any path reaches the knob's branch: the census
+ * refuses to write under any of these (tests/test-mechanics.js DELIBERATE_BREAK). */
+if(ROOST_ANNOUNCE_FLYING_ONLY)MEDFAILS.roostAnnounceFlyingOnlyRestored=1;
+if(SPREAD_NOFOE_FAILS)MEDFAILS.spreadNoFoeFailsRestored=1;
+if(SYNC_IMMUNE_SILENT)MEDFAILS.syncImmuneSilentRestored=1;
+if(COACHING_NOALLY_SILENT)MEDFAILS.coachingNoAllySilentRestored=1;
+if(ITEMMOVE_NOTARGET_SILENT)MEDFAILS.itemMoveNoTargetSilentRestored=1;
+/* Synchronize's sourceEffect as the authority builds it: `{ status, id: 'synchronize' }`, no name, no
+ * effectType (data/abilities.ts:4857). `applyStatus` reads `kind`; ATTR.status gives it the bare line. */
+const SYNC_EFF=Object.freeze({kind:'sync',id:'synchronize'});
 /* The target classes that name a BODY. A pivot aimed at one of these with nobody left to aim at has
  * `[notarget]` written and fails; a field- or self-aimed pivot (Chilly Reception) never has a body. */
 const PIVOT_AIMS_AT_BODY=new Set(['normal','any','adjacentFoe','randomNormal']);
@@ -7326,6 +7406,42 @@ function flushAfterMoveSpends(bodies,S){
     const vol=m._spendAfter; m._spendAfter=null;
     releaseLayeredVolatile(m,vol,S);
   }
+  for(const m of bodies){
+    if(!m||!m._lockAfterMove) continue;
+    const id=m._lockAfterMove; m._lockAfterMove=null;
+    lockEndAtAfterMove(m,id,S);
+  }
+}
+/* ==== NARRATION BATCH B, 2026-09-19 -- `lockedmove.onAfterMove` FOR A LOCKED MOVE THAT RESOLVED NOTHING ====
+ *
+ *     onAfterMove(pokemon) { if (this.effectState.duration === 1) pokemon.removeVolatile('lockedmove'); }
+ *     onEnd(target)        { if (this.effectState.trueDuration > 1) return; target.addVolatile('confusion'); }
+ *                                                           data/conditions.ts:253-286, no Champions override
+ *
+ * `useMove` raises AfterMove whatever `useMoveInner` returned (sim/battle-actions.ts:311), so an Outrage that
+ * a Protect stopped on the last locked turn still ends the lock and fatigues THERE -- directly under the
+ * shield's `-activate`. This engine's expiry block sits below the attack branch's full-shield `continue`, so
+ * the shielded use fell through to WIRE 144's residual road and fatigued after the Leftovers. The block's own
+ * header declared the remainder ("a missed last-turn Outrage therefore still fatigues at the residual here").
+ * Pinned pool, --games 1950, `omit-weather ...bo3-2659688578` t11:
+ *     showdown  |-activate|p1a: Vivillon|move: Protect   |-start|p2b: Goodra|confusion|[fatigue]   |-heal ... Leftovers
+ *     medicham  |-activate|p1a: Vivillon|move: Protect   |-heal ... leftovers   |-start|p2b: Goodra|confusion|[fatigue]
+ * THE CONDITION IS THE RESOLVED ROAD'S, BYTE FOR BYTE, so the two roads cannot disagree about when a lock ends
+ * or whether it fatigues: `dur === 1` for the drawn family (`left` for the rest), confusion only when
+ * `trueDuration` has run out. Settled with the other AfterMove debt, above the Update pass that closes the
+ * action -- the authority's order. MEDI_LOCK_END_NEEDS_HIT=1 never marks the debt. tests/probe_narration_b_line_order.js --only lock. */
+function lockEndAtAfterMove(m,id,S){
+  if(!m||!m._mtLock||m._mtLock.move!==id)return;
+  const _lk=TAGS.param('move',id,'locksIntoMove');
+  if(!(_lk&&_lk.expiresAtMove))return;
+  const _lc=m._mtLock;
+  if(!(_lc.dur!=null?_lc.dur===1:_lc.left<=1))return;
+  m._mtLock=null; MEDSEEN.lockExpired++; MEDSEEN.lockExpiredAtMove++; MEDSEEN.lockExpiredAtAfterMoveUnresolved++;
+  if(S)refreshSleepBlock(S.actA,S.actB,S.sfA,S.sfB);
+  else MEDFAILS.lockEndNoState=(MEDFAILS.lockEndNoState||0)+1;
+  if(_lc.confuse&&(_lc.dur==null||_lc.left<=1)){ MEDSEEN.lockExpiredConfused++;
+    applyConfusion(m,null,S?S.field:fieldOfBody(m),false,true,null,true); }
+  else if(_lc.confuse)MEDSEEN.lockEndedUnfatigued++;
 }
 /* ---- ROADMAP #212 -- OPPORTUNIST, AND WHY IT IS A SNAPSHOT RATHER THAN A HOOK ------------------
  *
@@ -10583,6 +10699,23 @@ if(RESIDUAL_SORTS_BODIES)MEDFAILS.residualSortsBodiesRestored=1;
 /* ROADMAP #563 -- the replacement itself. `list` is the body sort's output for this group; `order` is
  * the group's published order. The shadow list was built and sorted at the phase open
  * (`residualShadowRank(...,true)`), so this reads it and draws nothing. */
+/* 2026-09-19 -- on ONE body, does a damaging per-turn volatile (Salt Cure) sit ahead of `partiallytrapped` in the
+ * authority's sorted handler list? Read off the list built at the phase open; a missing list or a missing entry
+ * answers false (the code order) and is counted, never guessed. See the order-13 note in the group walk. */
+function shadowChipBeforeTrap(m){
+  if(_RES_SHADOW_GEN!==_RES_TIE_GEN||!_RES_SHADOW_LIST){ if(!RESIDUAL_SHADOW_OFF)MEDFAILS.residualHandlerListAbsent++; return false; }
+  let iTrap=-1, iChip=-1;
+  for(let i=0;i<_RES_SHADOW_LIST.length;i++){
+    const e=_RES_SHADOW_LIST[i];
+    if(e.who!==m||!e.key||e.key.slice(0,4)!=='vol:')continue;
+    const id=e.key.slice(4,e.key.indexOf('@'));
+    if(id==='partiallytrapped'){ if(iTrap<0)iTrap=i; continue; }
+    if(iChip<0){
+      for(const [_v,_r] of perTurnHPVolatiles())if(_v===id&&_r.pt.effect==='damage'){iChip=i;break;}
+    }
+  }
+  return iChip>=0&&iTrap>=0&&iChip<iTrap;
+}
 function residualHandlerOrderApply(list,order){
   if(_RES_SHADOW_GEN!==_RES_TIE_GEN||!_RES_SHADOW_LIST){
     /* A GROUP WALKED WITH NO LIST TO READ IS LOUD. It means a caller named an order outside the phase
@@ -10607,8 +10740,95 @@ function residualHandlerOrderApply(list,order){
   if(moved)MEDSEEN.residualHandlerOrderApplied++;
   return list;
 }
+/* 2026-09-19 -- `Battle#getAllActive()` (sim/battle.ts:1362-1372): every side's `active` in slot order, p1 then
+ * p2, SKIPPING a body whose `fainted` flag is set. The authority sets that flag inside `faintMessages`
+ * (sim/battle.ts:2561), so a body this engine has already zeroed but whose faint line is still OWED (`_FAINTQ`)
+ * is still in the authority's list -- the same reading `residualZombie` and `residualFollowerRuns` make. It is
+ * the membership of every `eachEvent` sort: Weather and Update both. `fieldEvent('Residual')` is NOT this list --
+ * it collects handlers off `side.active` with only `if (!active) continue` (:494-496), fainted bodies included,
+ * which is why `residualOrder` keeps corpses by default. */
+function sdUpstreamActive(m){ return !!m && (!m.fainted || _FAINTQ.indexOf(m)>=0); }
+/* ---- 2026-09-19 -- THE CACHED `pokemon.speed`, AND THE ONE SORT EVERY `eachEvent` USES --------------------------
+ *
+ * `eachEvent` (sim/battle.ts:465-468) is `speedSort(getAllActive(), (a, b) => b.speed - a.speed)`, and `b.speed`
+ * is a FIELD, not a computation: `Pokemon#updateSpeed()` (sim/pokemon.ts:556-558) writes `getActionSpeed()` into
+ * it, and nothing else refreshes it except `setSpecies` (sim/pokemon.ts:1424, the RAW stored stat). The refresh
+ * sites (grep `updateSpeed()` over sim/): `commitChoices` (battle.ts:2996), the tail of `runAction` when the next
+ * queued action is a move (:2918), the head of the residual (:2811), and `insertChoice` for the inserted
+ * choice's own body (battle-queue.ts:374 -- which is how a switch-in's `runSwitch` stamps the entrant).
+ *
+ * So an `onUpdate` pass INSIDE a move reads the speed the bodies had when that move began. The pinned pool's
+ * 1350 omit-intimidate `...regmb-2635337217 vs ...regmb-2634992509` t4 is the case: Discharge paralyses p2a
+ * Basculegion (live 109 -> 54), and the in-move Update eats both Sitrus Berries on the CACHED 109 = 109 -- a
+ * tie the selection sort's swap resolves p2a first, where a live-speed sort had p1a first.
+ *
+ * `getActionSpeed` in Champions (data/mods/champions/scripts.ts:46-54) is `-speed` under Trick Room, untruncated;
+ * that is the transform `residualShadowBuild` already applies. A body with NO stamp is sorted on its live value
+ * and COUNTED in `MEDFAILS.updateSpeedUncached` -- a silent fallback would read as a working cache.
+ *
+ * DECLARED, NOT MODELLED: a body DRAGGED in (Roar, Whirlwind, Dragon Tail, Red Card, Eject Button's partner) runs
+ * `runSwitch` immediately and is not re-stamped upstream until the next refresh; it is stamped at entry here like
+ * any entrant. A forme change other than mega evolution (`setSpecies` -> raw stored Speed) is not re-stamped. */
+function sdActionSpeed(m,field,side){ const s=effSpeed(m,field,side)|0; return (field&&field.tr>0)?-s:s; }
+function sdStampSpeed(m,field,side){ if(!m)return; m._sdSpe=sdActionSpeed(m,field,side); MEDSEEN.updateSpeedCacheStamped++; }
+function sdUpdateSpeed(actA,actB,field){
+  for(const x of (actA||[]))if(x&&!x.fainted)sdStampSpeed(x,field,'A');
+  for(const x of (actB||[]))if(x&&!x.fainted)sdStampSpeed(x,field,'B');
+}
+/* `Battle#speedSort` (sim/battle.ts:429-460) over `getAllActive()`, keyed on the cached speed. Returns
+ * `[{m, s, spe}]` in the authority's order, INCLUDING a zero-HP body whose faint line is still owed -- it is in
+ * the authority's list and its placement swap moves the others. The caller decides who runs a handler.
+ * A tied group is resolved by one lazily drawn key per member off the SAME `tie` stream `residualOrder` uses:
+ * the identity under a constant pinned die, a uniform permutation under real dice, which is what
+ * `prng.shuffle(list, sorted, sorted + n)` is. */
+function sdEachEventOrder(actA,actB,field){
+  const L=[];
+  for(const x of (actA||[]))if(sdUpstreamActive(x))L.push({m:x,s:'A'});
+  for(const x of (actB||[]))if(sdUpstreamActive(x))L.push({m:x,s:'B'});
+  for(const e of L){
+    const live=sdActionSpeed(e.m,field,e.s);
+    if(e.m._sdSpe==null){ MEDFAILS.updateSpeedUncached++; e.spe=live; }
+    else { e.spe=e.m._sdSpe; if(e.spe!==live)MEDSEEN.updateSortCachedDiffersLive++; }
+  }
+  const _r=medTieRng();
+  const tie=e=>{ if(e._t===undefined)e._t=_r?_r():0; return e._t; };
+  let sorted=0;
+  while(sorted+1<L.length){
+    let next=[sorted];
+    for(let i=sorted+1;i<L.length;i++){
+      const d=L[i].spe-L[next[0]].spe;   /* comparator(a,b) = b.speed - a.speed, a = the current pick */
+      if(d<0)continue;
+      if(d>0)next=[i]; else next.push(i);
+    }
+    for(let i=0;i<next.length;i++){
+      const idx=next[i];
+      if(idx!==sorted+i){const t=L[sorted+i];L[sorted+i]=L[idx];L[idx]=t;}
+    }
+    if(next.length>1){
+      const grp=L.slice(sorted,sorted+next.length);
+      grp.sort((x,y)=>tie(y)-tie(x));
+      for(let i=0;i<grp.length;i++)L[sorted+i]=grp[i];
+      MEDSEEN.updateTieResolved++;
+      if(!_r)MEDFAILS.updateOrderTieNoDie++;
+    }
+    sorted+=next.length;
+  }
+  MEDSEEN.updateEventSorted++;
+  return L;
+}
 function residualOrder(actA,actB,field,opts){
-  const list=[...actA,...actB].filter(Boolean);
+  /* 2026-09-19 -- THE WEATHER GROUP IS AN `eachEvent`, NOT A `fieldEvent`. Sandstorm's `onFieldResidual` calls
+   * `this.eachEvent('Weather')` (sim/battle.ts:465-470), whose list is `getAllActive()` -- no corpse. Keeping the
+   * corpse in the sort let its placement SWAP carry one member of a tied pair past the other: pinned pool
+   * 1350 baseline `...bo3-2660691219 vs ...bo3-2660790447` t1, Simipour (fainted, 157) thrown ahead of
+   * Incineroar 112 = Sinistcha 112, and the sand chip landed Sinistcha-first where the authority's list
+   * [Incineroar, Sinistcha, Hippowdon] keeps Incineroar first. `MEDI_WEATHER_SORT_KEEPS_CORPSES=1` restores. */
+  const _act=!!(opts&&opts.activeOnly)&&!WEATHER_SORT_KEEPS_CORPSES;
+  const list=[...actA,...actB].filter(x=>{
+    if(!x)return false;
+    if(_act&&!sdUpstreamActive(x)){MEDSEEN.weatherSortCorpseDropped++;return false;}
+    return true;
+  });
   for(const x of list)x._resSpe=effSpeed(x,field,actA.indexOf(x)>=0?'A':'B');
   /* `compareTurnOrder` reads the field, so Trick Room comes free — the same call the mega step and
    * the switch-in step already make. */
@@ -10740,6 +10960,8 @@ function residualTerrainKey(t){
  * TWO APPROXIMATIONS, DECLARED. (1) The authority walks `pokemon.volatiles` in INSERTION order and
  * this engine keeps most of its volatiles in named fields, so the shadow emits them in the artifact's
  * row order. Within a body that only matters when two of its volatiles straddle a rank boundary.
+ * **(1) IS REMOVED 2026-09-19** -- and "only matters when they straddle a rank boundary" was wrong: the input
+ * order moves every later swap, so it decided three tied pool games. See `volSeqSync`.
  * (2) Tailwind is a field counter here and a side condition there, so it is emitted after the
  * `sf.sc` keys rather than at its own insertion point. Both are measured by
  * `tests/probe_residual_shadow.js`, which dumps the authority's real list beside this one.
@@ -10842,6 +11064,56 @@ function residualShadowVolPresent(id,m){
   if(rd)return !!rd(m);
   return !!(m._vol&&m._vol[id]>0);
 }
+/* ---- 2026-09-19 -- DECLARED APPROXIMATION (1) ABOVE, REMOVED: THE VOLATILES' INSERTION ORDER ---------------------
+ *
+ * `findPokemonEventHandlers` walks `for (const id in pokemon.volatiles)` (sim/battle.ts), and a JS object's string
+ * keys iterate in INSERTION order. `speedSort`'s swaps are a function of that input order, so on a tied pair it
+ * decides the answer. Three pinned-pool games, the authority's collection order printed beside ours:
+ *   1950 baseline `...bo3-2634548064 vs ...bo3-2635534454` t3 -- Metagross holds [stall, protect, perishsong]
+ *     (Protect clicked on turn 2 and again on turn 3, then Perish Song), Sneasler 178 = Metagross 178. The
+ *     artifact's row order emits Metagross's perishsong FIRST, Gengar's swap then throws it behind Sneasler's.
+ *   1950 baseline `...bo3-2635249755 vs ...bo3-2635094514` t8 -- Raichu [protect, stall, perishsong], same shape.
+ *   1950 pair-redirect-priority `...bo3-2654068794 vs ...bo3-2654052770` t18 -- Sinistcha [saltcure, stall,
+ *     ragepowder, partiallytrapped], both order 13: Salt Cure chips first (see the group walk's order-13 note).
+ *
+ * THE CLOCK IS OBSERVED, NOT HOOKED. This engine keeps ~28 of these volatiles in named fields with dozens of
+ * writers, so a stamp at every writer would be a second copy of every writer. Instead `volSeqSync` reads the SAME
+ * presence readers the shadow list reads, at every Update pass (the top of each action, every in-move Update,
+ * after the last action) and at the residual head, and gives a volatile a sequence number the first time it is
+ * seen present and drops it the first time it is seen absent. Two volatiles first seen at the same sync take the
+ * artifact's row order between them -- which is the authority's order for the one pair that commonly arrives
+ * together (`protect` by the move's `volatileStatus`, then `stall` by its `onHit`; sim/battle-actions.ts
+ * runMoveEffects applies `volatileStatus` above the `Hit` callback).
+ *
+ * DECLARED: a volatile removed AND re-added between two syncs keeps its old sequence (the authority moves it to the
+ * end); a pair added in one action in the opposite order to the artifact's rows is read in the artifact's order.
+ * `MEDI_VOL_ARTIFACT_ORDER=1` emits the artifact's row order, which is the pre-fix list exactly. */
+let _VOL_SEQ_N=0;
+function volSeqSync(m){
+  if(!m||VOL_ARTIFACT_ORDER)return;
+  let seq=m._volSeq; if(!seq)seq=m._volSeq={};
+  for(const r of RESIDUAL_SHADOW_ROWS.volatile){
+    const on=residualShadowVolPresent(r.id,m);
+    if(on){ if(seq[r.id]==null){ seq[r.id]=++_VOL_SEQ_N; MEDSEEN.volSeqStamped++; } }
+    else if(seq[r.id]!=null) delete seq[r.id];
+  }
+}
+function volSeqSyncAll(actA,actB){
+  for(const x of (actA||[]))if(x&&!x.fainted)volSeqSync(x);
+  for(const x of (actB||[]))if(x&&!x.fainted)volSeqSync(x);
+}
+/* A body's present volatile rows in the authority's collection order: by first-seen sequence, the artifact's row
+ * index breaking a same-sync tie (and ordering any row the clock has not seen, which is counted). */
+function volShadowRowsInOrder(m){
+  const rows=[];
+  const R=RESIDUAL_SHADOW_ROWS.volatile;
+  for(let i=0;i<R.length;i++)if(residualShadowVolPresent(R[i].id,m))rows.push({r:R[i],i});
+  if(VOL_ARTIFACT_ORDER||rows.length<2)return rows.map(x=>x.r);
+  const seq=m._volSeq||{};
+  const key=x=>{ const s=seq[x.r.id]; if(s==null){ MEDSEEN.volSeqUnseenAtBuild=(MEDSEEN.volSeqUnseenAtBuild|0)+1; return Infinity; } return s; };
+  rows.sort((a,b)=>(key(a)-key(b))||(a.i-b.i));
+  return rows.map(x=>x.r);
+}
 /* THE LIST, IN THE AUTHORITY'S COLLECTION ORDER (sim/battle.ts:490-505). Each entry carries only what
  * `comparePriority` reads: the order (`null` becomes the authority's own 4294967296 substitution),
  * the subOrder, and the holder's speed -- 0 for a Side or the Field, which is what leaves every clock
@@ -10898,7 +11170,7 @@ function residualShadowBuild(field,sfA,sfB,actA,actB){
       const at=S+si;
       const st=RESIDUAL_SHADOW_STATUS[_shadowId(m.status)];
       if(st)push('status:'+st+'@'+at,R.byKey.get('status:'+st),spe,m);
-      for(const r of R.volatile)if(residualShadowVolPresent(r.id,m))push('vol:'+r.id+'@'+at,r,spe,m);
+      for(const r of volShadowRowsInOrder(m))push('vol:'+r.id+'@'+at,r,spe,m);
       { const ab=_shadowId(m.ability); const r=R.byKey.get('ability:'+ab); if(r)push('ability:'+ab+'@'+at,r,spe,m); }
       { const it=_shadowId(m.item);    const r=R.byKey.get('item:'+it);    if(r)push('item:'+it+'@'+at,r,spe,m); }
       { const d=sf&&sf.slot&&sf.slot[si];
@@ -12787,7 +13059,11 @@ function residualUpdatePass(actA,actB,field,gi){
     MEDSEEN.residualUpdatePasses++;
     if(gi<0)MEDSEEN.residualUpdateAfterUpkeep++;
   }
-  for(const m of residualOrder(actA,actB,field)){
+  /* 2026-09-19 -- THROUGH THE ONE `eachEvent` SORT (`sdEachEventOrder`): `getAllActive()`, no corpse, keyed on the
+   * cached speed. `residualOrder` kept a fainted body in the sort, whose swap could reorder a tied pair.
+   * `MEDI_UPDATE_LIVE_SPEED=1` restores the residualOrder walk. */
+  const _upd=UPDATE_LIVE_SPEED?residualOrder(actA,actB,field):sdEachEventOrder(actA,actB,field).map(e=>e.m);
+  for(const m of _upd){
     if(!m||m.fainted||m.curHP<=0)continue;
     const _foes=(actA.indexOf(m)>=0?actB:actA), _it0=m.item;
     /* WIRE 14 -- healsAtThreshold, from the artifact instead of a Sitrus name check. The tag
@@ -15749,6 +16025,15 @@ const DELAYED_HIT_NO_CRIT=(typeof process!=='undefined'&&process.env&&process.en
  * and never touched the doll. It restores the ONE decision the fix turns on and stamps
  * `MEDFAILS.delayedHitThroughDollRestored`. */
 const DELAYED_HIT_THROUGH_DOLL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DELAYED_HIT_THROUGH_DOLL==='1');
+/* 2026-09-19 -- `MEDI_DELAYED_HIT_NO_SURVIVAL=1` takes the from-full survival clamp back OUT of the
+ * Future Sight payout: a lethal payout into a full-HP Focus Sash or Sturdy body kills it, as this engine did
+ * until today. The authority's payout is `trySpreadMoveHit` (data/conditions.ts:415), whose damage runs the
+ * `Damage` event that `focussash.onDamage` (data/items.ts:2272-2277) and `sturdy.onDamage`
+ * (data/abilities.ts:4673-4677) answer on `effect.effectType === 'Move'` -- which the booked moveData
+ * carries. Whole-game card …2657391947 (g1950, turn 6): a full-HP Sash Kleavor left at 1/145 there, fainted
+ * here. Stamped at LOAD in `MEDFAILS.delayedHitNoSurvivalRestored`. Probe: tests/probe_delayed_hit_survival.js. */
+const DELAYED_HIT_NO_SURVIVAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DELAYED_HIT_NO_SURVIVAL==='1');
+if(DELAYED_HIT_NO_SURVIVAL)MEDFAILS.delayedHitNoSurvivalRestored=1;
 /* NARRATION BATCH Y, 2026-09-09 -- THE SAME SWITCH FOR THE IMMUNE COLLECTOR. `MEDI_DELAYED_HIT_SILENT_IMMUNE=1`
  * puts back the road where `condition:futuremove`'s payout priced a type-immune body, spent the crit and
  * dmg dice on it, and -- because the band was zero -- wrote neither `-end` nor `-immune`. Any run carrying it
@@ -15787,6 +16072,60 @@ if(SUB_ABSORB_AT_APPLY)MEDFAILS.subAbsorbAtApplyRestored=1;
  * also carries a non-zero `MEDFAILS.replaceOrderStableRestored`. Probe: tests/probe_replacement_tie.js. */
 const REPLACE_ORDER_STABLE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REPLACE_ORDER_STABLE==='1');
 if(REPLACE_ORDER_STABLE)MEDFAILS.replaceOrderStableRestored=1;
+/* ==== NARRATION BATCH B, 2026-09-19 -- EIGHT LINE-ORDER KNOBS, EACH THE ONE EXPRESSION ITS FIX TURNS ON ====
+ * Every one is stamped at LOAD, so a run under it can never be read as clean, and every one is listed in
+ * tests/test-mechanics.js DELIBERATE_BREAK so a red demonstration cannot write the census.
+ *   MEDI_ALLIES_HEAL_INTERLEAVED=1     Life Dew walks refusal-then-heal per BODY again (the partner's
+ *                                      `-immune` below the user's `-heal`).  tests/probe_narration_b_line_order.js --only lifedew
+ *   MEDI_MEGA_GATE_ON_PRIORITY=1       the mega phase is gated on `_pri < 6` again, so a +6 Prankster
+ *                                      Helping Hand runs above the megaEvo action.  tests/probe_narration_b_line_order.js --only megahh
+ *   MEDI_CORPSE_SPEED_KEEPS_REWIRE=1   a Speed-Swapped corpse queues its replacement on the swapped Speed.
+ *                                      tests/probe_narration_b_line_order.js --only corpse
+ *   MEDI_BREAK_KEEPS_STALL_FRESH=1     a broken shield leaves `_stallFresh` standing, so the perish drain
+ *                                      reads a `stall` follower the authority deleted.  tests/probe_narration_b_line_order.js --only perish
+ *   MEDI_LOCK_END_NEEDS_HIT=1          a locked move that did not resolve (Protect, a miss, an immunity)
+ *                                      fatigues at the residual instead of at AfterMove.  tests/probe_narration_b_line_order.js --only lock
+ *   MEDI_PIVOT_HERB_AFTER_ENTRY=1      Champions' queued White Herb (`onAnyAfterMove` -> order 99) waits for
+ *                                      the pivot entrant's SwitchIn event.  tests/probe_narration_b_line_order.js --only herb
+ *   MEDI_SMART_INVULN_MISS_LINE=1      a split Dragon Darts writes `-miss` at a semi-invulnerable body.
+ *                                      tests/probe_narration_b_line_order.js --only darts */
+const _NB=(k)=>(typeof process!=='undefined'&&process.env&&process.env[k]==='1');
+const ALLIES_HEAL_INTERLEAVED=_NB('MEDI_ALLIES_HEAL_INTERLEAVED');
+if(ALLIES_HEAL_INTERLEAVED)MEDFAILS.alliesHealInterleavedRestored=1;
+const MEGA_GATE_ON_PRIORITY=_NB('MEDI_MEGA_GATE_ON_PRIORITY');
+if(MEGA_GATE_ON_PRIORITY)MEDFAILS.megaGateOnPriorityRestored=1;
+const CORPSE_SPEED_KEEPS_REWIRE=_NB('MEDI_CORPSE_SPEED_KEEPS_REWIRE');
+if(CORPSE_SPEED_KEEPS_REWIRE)MEDFAILS.corpseSpeedKeepsRewireRestored=1;
+const BREAK_KEEPS_STALL_FRESH=_NB('MEDI_BREAK_KEEPS_STALL_FRESH');
+if(BREAK_KEEPS_STALL_FRESH)MEDFAILS.breakKeepsStallFreshRestored=1;
+const LOCK_END_NEEDS_HIT=_NB('MEDI_LOCK_END_NEEDS_HIT');
+if(LOCK_END_NEEDS_HIT)MEDFAILS.lockEndNeedsHitRestored=1;
+const PIVOT_HERB_AFTER_ENTRY=_NB('MEDI_PIVOT_HERB_AFTER_ENTRY');
+if(PIVOT_HERB_AFTER_ENTRY)MEDFAILS.pivotHerbAfterEntryRestored=1;
+const SMART_INVULN_MISS_LINE=_NB('MEDI_SMART_INVULN_MISS_LINE');
+if(SMART_INVULN_MISS_LINE)MEDFAILS.smartInvulnMissLineRestored=1;
+/*   MEDI_HP_THRESHOLD_BOOST_ABOVE_RECOIL=1   Berserk / Anger Shell paid at step 20 again, above the attacker's
+ *                                      recoil.  tests/probe_narration_b_line_order.js --only berserk */
+const HP_THRESHOLD_BOOST_ABOVE_RECOIL=_NB('MEDI_HP_THRESHOLD_BOOST_ABOVE_RECOIL');
+if(HP_THRESHOLD_BOOST_ABOVE_RECOIL)MEDFAILS.hpThresholdBoostAboveRecoilRestored=1;
+/* 2026-09-19 -- THE TIE-ORDER BATCH. Four knobs, each restoring one pre-fix behaviour exactly and each stamped at
+ * load so a run under it cannot be read as clean (and cannot write the census: tests/test-mechanics.js
+ * DELIBERATE_BREAK). Probe: tests/probe_tie_order.js.
+ *   MEDI_CHARGE_BOOST_ZERO_SILENT=1   a charge-turn boost at the cap writes nothing (was: suppressed zero)
+ *   MEDI_WEATHER_SORT_KEEPS_CORPSES=1 the weather group's body sort keeps a fainted body (was: residualOrder as-is)
+ *   MEDI_UPDATE_LIVE_SPEED=1          eachEvent('Update') sorts the living bodies on LIVE speed with a stable sort
+ *   MEDI_VOL_ARTIFACT_ORDER=1         the residual shadow list emits a body's volatiles in the artifact's row order,
+ *                                     and a group holding two same-order volatile steps on one body runs them in
+ *                                     code order */
+const _envK=(k)=>(typeof process!=='undefined'&&process.env&&process.env[k]==='1');
+const CHARGE_BOOST_ZERO_SILENT=_envK('MEDI_CHARGE_BOOST_ZERO_SILENT');
+if(CHARGE_BOOST_ZERO_SILENT)MEDFAILS.chargeBoostZeroSilentRestored=1;
+const WEATHER_SORT_KEEPS_CORPSES=_envK('MEDI_WEATHER_SORT_KEEPS_CORPSES');
+if(WEATHER_SORT_KEEPS_CORPSES)MEDFAILS.weatherSortKeepsCorpsesRestored=1;
+const UPDATE_LIVE_SPEED=_envK('MEDI_UPDATE_LIVE_SPEED');
+if(UPDATE_LIVE_SPEED)MEDFAILS.updateLiveSpeedRestored=1;
+const VOL_ARTIFACT_ORDER=_envK('MEDI_VOL_ARTIFACT_ORDER');
+if(VOL_ARTIFACT_ORDER)MEDFAILS.volArtifactOrderRestored=1;
 function damageRollIndex(u){
   const i=DAMAGE_ROLL_SIDES-1-Math.floor(u*DAMAGE_ROLL_SIDES);
   return i<0?0:(i>DAMAGE_ROLL_SIDES-1?DAMAGE_ROLL_SIDES-1:i);
@@ -16507,6 +16846,54 @@ const SUCKER_QUEUE_BLIND=(typeof process!=='undefined'&&process.env&&process.env
  * queue is asked at all -- and one knob could not say which half a red arm is accusing. Any run carrying
  * it also carries a non-zero `MEDFAILS.suckerAimsPreRedirectRestored`. */
 const SUCKER_AIMS_PRE_REDIRECT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SUCKER_AIMS_PRE_REDIRECT==='1');
+/* 2026-09-19 -- THE TWO HALVES OF "WHAT IS THE TARGET'S QUEUED MOVE", ONE KNOB EACH.
+ *
+ * Sucker Punch's `onTry` (data/moves.ts:18399-18405, no Champions override) reads
+ * `this.queue.willMove(target).move` and refuses on `move.category === 'Status'`. Two things here
+ * disagreed with that, and each knob puts one of them back:
+ *
+ * MEDI_SUCKER_READS_PRE_ENCORE=1 -- the refusal reads the action AS THE PLAYER CLICKED IT, ignoring
+ * Champions' Encore rewrite (`queue.changeAction`, data/mods/champions/moves.ts:307-318). Whole-game
+ * card …2636045527 (g1350, turn 15): a Prankster Encore turns Scolipede's attack into Swords Dance and
+ * the authority fails Kingambit's Sucker Punch; this engine hit it for 50. Also governs Upper Hand's
+ * priority read and Round's promotion scan, which read the same queued move through the same reader
+ * (`queuedMoveIdOf`). Stamped `MEDFAILS.suckerReadsPreEncoreRestored`.
+ *
+ * MEDI_SUCKER_READS_ACTION_KIND=1 -- "attacking" is this engine's action SHAPE (`kind === 'attack'`)
+ * rather than the queued move's CATEGORY, so a damaging move queued under another kind -- `futurehit`
+ * (Future Sight), `allyheal` (Pollen Puff at a partner), the Struggle sentinel -- read as not attacking
+ * and Sucker Punch failed where the authority lands it. Stamped `MEDFAILS.suckerReadsActionKindRestored`.
+ *
+ * Probe: tests/probe_sucker_reads_queued_move.js. */
+const SUCKER_READS_PRE_ENCORE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SUCKER_READS_PRE_ENCORE==='1');
+if(SUCKER_READS_PRE_ENCORE)MEDFAILS.suckerReadsPreEncoreRestored=1;
+const SUCKER_READS_ACTION_KIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SUCKER_READS_ACTION_KIND==='1');
+if(SUCKER_READS_ACTION_KIND)MEDFAILS.suckerReadsActionKindRestored=1;
+/* `BattleQueue.willMove(pokemon).move.id` for one queued entry: the move Champions' Encore rewrote the
+ * action into when it did (`_queuedMv`, written by `encoreRelocateQueued` at the instant of the
+ * `changeAction`), otherwise the move the action carries. The Struggle sentinel carries no id and IS
+ * Struggle. One reader for every handler that reads a queued action's MOVE (Sucker Punch, Upper Hand,
+ * Round's `queue.list` scan). */
+function queuedMoveIdOf(e){
+  if(!e||!e.a)return null;
+  if(!SUCKER_READS_PRE_ENCORE&&e._queuedMv)return e._queuedMv;
+  if(isStruggleAction(e.a))return 'struggle';
+  return actionMoveId(e.a);
+}
+/* The authority's `move.category !== 'Status'` for a queued move id, through `hasPower` -- the one
+ * reader this engine uses to tell a damaging move from a status one (`MC.moves[id].c` reads 'S' for both
+ * Special and Status). An id the move table does not carry is COUNTED and answered by the action kind,
+ * the pre-fix reading, so the fallback cannot pass for the mechanic. */
+function queuedMoveDamages(e){
+  const id=queuedMoveIdOf(e);
+  const mv=id&&MC.moves[id];
+  if(!mv){
+    MEDFAILS.queuedMoveUnreadable++;
+    if(!MEDFAILS.queuedMoveUnreadableFirst)MEDFAILS.queuedMoveUnreadableFirst=String(id||(e&&e.a&&e.a.kind)||'?');
+    return !!(e&&e.a&&e.a.kind==='attack');
+  }
+  return hasPower(mv);
+}
 /* 2026-09-19 -- MEDI_HELPINGHAND_MOVED_ALLY=1 PUTS BACK THE HELPING HAND THAT LANDS ON A PARTNER WHICH HAS
  * ALREADY MOVED: `targetAlreadyMovedRefuses` answers "no refusal" for every `failsIfTargetAlreadyMoved`
  * member, which is what this engine did until today. Stamped at LOAD in
@@ -16552,7 +16939,7 @@ function promoteQueuedSameMove(mvId,acts,from,unresolved){
   for(let k=from;k<acts.length;k++){
     const x=acts[k];
     if(!x||!x.a||!x.mon||!unresolved.has(x.mon))continue;
-    if(sdChoiceOf(x.a)!=='move'||actionMoveId(x.a)!==p.moveId)continue;
+    if(sdChoiceOf(x.a)!=='move'||queuedMoveIdOf(x)!==p.moveId)continue;   // `action.move.id`, after any Encore rewrite
     x._order=TURN_ORDER.next;
     /* the doubling belongs to the PROMOTER named in the power callback (`move.sourceEffect === 'round'`) */
     x._promotedBy={by:mvId,moveId:p.moveId,mult:(p.promotedBy===mvId&&+p.mult)||1};
@@ -19433,6 +19820,13 @@ function encoreRelocateQueued(who, mvId){
     if(!it||it.mon!==who)continue;
     if(sdChoiceOf(it.a)!=='move')return false;     // willMove() answers for a move action only
     if(actionMoveId(it.a)===mvId)return false;     // action.moveid !== move.id
+    /* 2026-09-19 -- FROM HERE THE AUTHORITY'S `willMove(target).move` IS THE ENCORED MOVE. `changeAction`
+     * rebuilds the queued action from `moveid` (sim/battle-queue.ts `insertChoice` -> `resolveAction`),
+     * so every handler that reads the queued action's MOVE -- Sucker Punch's category, Upper Hand's
+     * priority, Round's `queue.list` scan -- reads this id, not the click. Written before either
+     * restore knob below, because it is the authority's state and not part of either restored defect;
+     * `queuedMoveIdOf` is its only reader. */
+    it._queuedMv=mvId;
     /* 2026-09-11 -- AND `changeAction` REWRITES THE ACTION ITSELF, WHATEVER MOVE IT WAS.
      *
      * The bracket above is half of what Champions' onStart does. The other half is the MOVE:
@@ -21938,7 +22332,9 @@ function applyStatus(t,st,src,eff,why,dstream){
    * (data/moves.ts:14978 calls `setStatus` from `onHit`), so it is refused silently here too. */
   if(mTerrainRefusesStatusOn(t)){
     MEDSEEN.mistyRefusedStatus++;
-    let _say=!!(eff&&String(eff.id||'')==='yawn');
+    /* 2026-09-19 -- Synchronize's sourceEffect carries `.status`, and Misty Terrain's `onSetStatus`
+     * announces for `(effect as Move).status || effect.id === 'yawn'` (data/moves.ts:12173-12178). */
+    let _say=!!(eff&&(String(eff.id||'')==='yawn'||(eff.kind==='sync'&&!SYNC_IMMUNE_SILENT)));
     if(!_say&&eff&&eff.kind==='move'){
       const _pt={par:'inflictsParalysis',brn:'inflictsBurn',psn:'inflictsPoison',tox:'inflictsToxic',slp:'inflictsSleep',frz:'inflictsFreeze'}[st];
       const _pp=_pt?TAGS.param('move',eff.id,_pt):null;
@@ -22001,7 +22397,36 @@ function applyStatus(t,st,src,eff,why,dstream){
         * COUNTER is only bumped when the status actually lands, so a non-zero counter means a body
         * really got a status it would not otherwise have had. */
        if(TR)TR.act(t,'ability: '+t.ability);
-       if(applyStatus(src,st,t))MEDSEEN.statusReflected++;
+       /* 2026-09-19 -- AND A REFUSED REFLECTION IS ANNOUNCED LIKE A REFUSED STATUS MOVE. The handler
+        * passes `{ status: status.id, id: 'synchronize' }` as the sourceEffect -- "Hack to make
+        * status-prevention abilities think Synchronize is a status move" (data/abilities.ts:4855-4857)
+        * -- and every refusal line in `Pokemon#setStatus` is gated on `(sourceEffect as Move)?.status`
+        * (sim/pokemon.ts:1704-1722): `-fail` for a source that already holds a status, the bare
+        * `-immune` for a type immunity, and each ability's own `-immune ... [from] ability: X` from its
+        * `onSetStatus` (Immunity, Limber, Water Bubble, Purifying Salt, Leaf Guard all test
+        * `effect?.status`). This call passed no effect and announced nothing, so a Poison Touch into a
+        * Synchronize body beside a Poison-type Sneasler lost the `|-immune|` line: narration bucket
+        * "Synchronize's -immune missing", 3 games on a1c7dcd5696b. `kind:'sync'` gives the bare
+        * `-status` line on a landing (the effect carries no effectType, so no `[from]`), keeps Flower
+        * Veil silent (its handler tests `effect.name === 'Synchronize'`, which this object has no
+        * name to satisfy), and lets Misty Terrain speak, whose `onSetStatus` tests `effect.status`.
+        * The routing mirrors the status-move branch's (`_why.reason`), so the two cannot drift on a
+        * reason; a reason neither routes stays silent and is counted. */
+       const _syWhy={};
+       if(applyStatus(src,st,t,SYNC_EFF,_syWhy))MEDSEEN.statusReflected++;
+       else if(TR&&!SYNC_IMMUNE_SILENT){
+         if(_syWhy.reason==='type'||_syWhy.reason==='ability'||_syWhy.reason==='weather'){
+           const _si=_syWhy.ability?TAGS.param('ability',_syWhy.ability,'statusImmune'):null;
+           MEDSEEN.syncRefusalAnnounced++;
+           TR.imm(src,(_si&&_si.announcesWith)||undefined);
+         } else if(_syWhy.reason==='hasstatus'){
+           MEDSEEN.syncRefusalAnnounced++;
+           if(src.status===st)TR.fail(src,src.status);
+           else{TR.attrStill();TR.fail(t);}
+         } else if(_syWhy.reason&&_syWhy.reason!=='fainted'&&_syWhy.reason!=='terrain'&&_syWhy.reason!=='allyveil'){
+           MEDFAILS.syncRefusalUnrouted++;
+         }
+       }
      }
    }}
   /* 2026-09-07 -- THE OTHER `onAfterSetStatus` HANDLER IN THIS FORMAT, AND IT IS AN ITEM. It sits
@@ -22047,6 +22472,17 @@ const CONFUSION_SELF_HIT_BP = 40;                 // data/conditions.ts:191 -- g
 const CONFUSION_SELF_HIT_NUM = 33, CONFUSION_SELF_HIT_DEN = 100;
 const CONFUSION_THIRD = (typeof process !== 'undefined' && process.env
                          && process.env.MEDI_CONFUSION_THIRD === '1');
+/* 2026-09-19 -- `MEDI_SELFHIT_NO_SURVIVAL=1` takes the from-full survival clamp back OUT of the confusion
+ * self-hit: a lethal self-hit into a full-HP Focus Sash or Sturdy body kills it, as this engine did until
+ * today. The authority deals it as `this.damage(damage, pokemon, pokemon, activeMove)` with
+ * `activeMove = { id: 'confused', effectType: 'Move', type: '???' }` (data/conditions.ts:193-194, no
+ * Champions override), so `spreadDamage`'s `Damage` event reaches `focussash.onDamage` and
+ * `sturdy.onDamage`, whose gate is `effect.effectType === 'Move'`. Measured on the authority: a confused
+ * full-HP Sash Weavile at +6 prints `|-enditem|p1a: Weavile|Focus Sash` then `|-damage|p1a: Weavile|1/145|
+ * [from] confusion`. Stamped at LOAD in `MEDFAILS.selfHitNoSurvivalRestored`. Probe:
+ * tests/probe_delayed_hit_survival.js, arm `confusion-selfhit-sash`. */
+const SELFHIT_NO_SURVIVAL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SELFHIT_NO_SURVIVAL==='1');
+if(SELFHIT_NO_SURVIVAL)MEDFAILS.selfHitNoSurvivalRestored=1;
 /* 2026-09-07 -- see the close of the residual body loop. Restores the GROUP-only stop granularity. */
 const RESIDUAL_STOP_GROUP_ONLY = (typeof process !== 'undefined' && process.env
                                   && process.env.MEDI_RESIDUAL_STOP_GROUP_ONLY === '1');
@@ -23349,7 +23785,12 @@ function confusionBeforeMove(m,rng,_R){
    * takes. `MEDI_CONFUSION_THIRD=1` restores the one-in-three. */
   if(CONFUSION_THIRD)MEDFAILS.confusionThirdRestored=1;
   if(!(rng()<(CONFUSION_THIRD?1/3:CONFUSION_SELF_HIT_NUM/CONFUSION_SELF_HIT_DEN)))return false;
-  const d=confusionSelfDamage(m,rng,_R);
+  let d=confusionSelfDamage(m,rng,_R);
+  /* 2026-09-19 -- THE SELF-HIT IS A `Move`-TYPED DAMAGE EVENT, so the from-full clamp answers it, and it
+   * answers BEFORE the `-damage` line (the Sash's `-enditem` precedes it on the authority). See
+   * SELFHIT_NO_SURVIVAL for the citation. `fromFullSurvival` is the attack step's own clamp. */
+  if(!SELFHIT_NO_SURVIVAL){const _sx=fromFullSurvival(m,d,rng);
+    if(_sx!==d){d=_sx;MEDSEEN.confusionSelfHitSurvived++;}}
   m.curHP-=d;MEDSEEN.confusionSelfHit++;
   if(TR)TR.dmg(m,'[from] confusion');
   if(m.curHP<=0){m.curHP=0;m.fainted=true,noteFaint(m);faintLineOut(m);}
@@ -23667,6 +24108,10 @@ function megaEvolveNow(S,m,auto){
     /* the mega's own `setSpecies` recomputes from the set, so a rewire standing before it is gone and
        its baseline is not the line a later switch-out should restore (ROADMAP #571) */
     m._stRewireBase=null;
+    /* 2026-09-19 -- `setSpecies` ends `this.speed = this.storedStats.spe` (sim/pokemon.ts:1424): the RAW stored
+     * stat -- no stage, no item, no Trick Room sign -- until the next `updateSpeed()`. An Update pass at the tail
+     * of the megaEvo action sorts on it. See `sdEachEventOrder`. */
+    if(!UPDATE_LIVE_SPEED)m._sdSpe=st.sp|0;
   }else{
     MEDFAILS.megaNoBaseStats++;
     if(!MEDFAILS.megaNoBaseStatsFirst)MEDFAILS.megaNoBaseStatsFirst=String(key);
@@ -25527,6 +25972,9 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry,outgoing){
      away on every such entry.
      `carry` is built by switchOut BEFORE it clears the outgoing body, because everything switchOut
      does below that point deliberately erases exactly what this move exists to carry. */
+  /* 2026-09-19 -- an entrant's `pokemon.volatiles` starts empty upstream (`clearVolatile` on the way out), so its
+   * insertion clock starts empty too; anything passed below is stamped at the next `volSeqSync`. */
+  nx._volSeq=null;
   if(carry)applyPassedState(nx,carry);
   /* 2026-09-19 -- AND "RAISED A STAT THIS TURN" STARTS FRESH ON ARRIVAL. `statsRoseThisTurn` compares
    * against `_boostSnap`, which the turn top takes for the ACTIVE bodies only -- so a body returning
@@ -25543,6 +25991,14 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry,outgoing){
    * have to look the body up on the bench and would print `??`. `drag` is a caller flag: Showdown
    * distinguishes a chosen switch from a Roar/Dragon Tail one and the differ needs the same split. */
   if(TR)TR.swin(nx,TR.drag);
+  /* 2026-09-19 -- `switchIn` queues `{choice: 'runSwitch', pokemon}` through `insertChoice`, whose first act is
+   * `choice.pokemon.updateSpeed()` (sim/battle-queue.ts:374): the entrant's cached speed is taken here, above its
+   * own entry pass. See `sdEachEventOrder` for the drag case this does not separate. */
+  sdStampSpeed(nx,field,(sf&&sf.side)||undefined);
+  /* NARRATION BATCH B -- a pivot's queued White Herb (order 99) lands here: after the `|switch|` line and
+   * above everything the entrant's SwitchIn event (order 101) says or does. A deferring caller (`refill`)
+   * is never a pivot. See `pivotHerbSweep`. */
+  if(!deferEntry)pivotHerbSweep(sf);
   /* BATCH O, 2026-09-07 -- AN ARRIVING ABILITY'S ANNOUNCEMENT IS DEFERRED WITH THE REST OF ITS ENTRY
    * PASS, BECAUSE THE AUTHORITY HAS IT INSIDE THE SAME EVENT.
    *
@@ -25996,11 +26452,47 @@ function releaseTrapsBy(src,bodies){
  * and a faint replacement reach the same funnel and must stay bare. Wrapping the call is the same
  * shape `TR.drag` already uses for the drag/switch split, and it means a fourth pivot door added
  * later cannot forget the field by forgetting a parameter. */
+/* NARRATION BATCH B, 2026-09-19 -- `PIVOT_DEPTH` says "this entry is a pivot's", WITH OR WITHOUT A TRACE.
+ * The `[from]` above is a narration fact and may ride on `TR`; the White Herb timing below is a STATE fact
+ * (which drop the herb answers), so a rollout with no trace must take the same road. See `pivotHerbSweep`. */
+let PIVOT_DEPTH=0;
 function pivotFrom(mvId,fn){
-  if(SWITCH_CAUSE_BLIND){MEDFAILS.switchCauseBlindRestored=1;return fn();}
-  if(!TR||!mvId)return fn();
-  const _p=TR._swFrom; TR._swFrom=mvId; MEDSEEN.switchNamedItsCause++;
-  try{ return fn(); } finally { TR._swFrom=_p; }
+  PIVOT_DEPTH++;
+  try{
+    if(SWITCH_CAUSE_BLIND){MEDFAILS.switchCauseBlindRestored=1;return fn();}
+    if(!TR||!mvId)return fn();
+    const _p=TR._swFrom; TR._swFrom=mvId; MEDSEEN.switchNamedItsCause++;
+    try{ return fn(); } finally { TR._swFrom=_p; }
+  } finally { PIVOT_DEPTH--; }
+}
+/* ==== NARRATION BATCH B, 2026-09-19 -- CHAMPIONS QUEUES THE AFTER-MOVE WHITE HERB AS AN ACTION OF ITS OWN ====
+ *
+ *     whiteherb: { inherit: true,
+ *       onAnyAfterMove() {
+ *         // Desync: proceed from Parting Shot's point of view
+ *         this.queue.insertChoice({ choice: 'event', event: 'WhiteHerb', order: 99, // before switches
+ *                                   pokemon: this.effectState.target }); },
+ *       onWhiteHerb(pokemon) { ...onStart... } }                  data/mods/champions/items.ts:1023-1037
+ *
+ * Mainline spends the herb inside AfterMove. Champions defers it to a queue entry at order 99, and a pivot's
+ * replacement is `switchIn` (the `|switch|` line, written at once) plus a queued `runSwitch` at order 101 --
+ * so the herb is spent BETWEEN the entrant's `|switch|` and its SwitchIn event (Hospitality, Intimidate, the
+ * hazards). This engine spent it at the next between-action pass, below the whole entry. Pinned pool,
+ * --games 1950, `pair-protect-bust ...bo3-2654135529` t8 (Parting Shot into a White Herb Incineroar, Sinistcha in):
+ *     showdown  |switch|p2a: Sinistcha   |-enditem|p1a: Incineroar|White Herb   |-heal ... Hospitality
+ *     medicham  |switch|p2a: Sinistcha   |-heal ... hospitality   |-enditem|p1a: Incineroar|whiteherb
+ * IT IS NOT ONLY A LINE: an entrant carrying Intimidate would find the herb already spent on the Parting
+ * Shot drop and leave its own -1 standing, where the old order let the herb clear both.
+ * WHAT IS NOT MODELLED, SAID: two holders both owed a clear are spent in slot order here, where the
+ * authority's two queue entries sort by Speed; and a non-pivot switch-out (Eject Button, Emergency Exit)
+ * takes the old road. MEDI_PIVOT_HERB_AFTER_ENTRY=1 restores the old position. tests/probe_narration_b_line_order.js --only herb. */
+function pivotHerbSweep(sf){
+  if(PIVOT_DEPTH<=0)return;
+  if(PIVOT_HERB_AFTER_ENTRY){MEDFAILS.pivotHerbAfterEntryRestored=1;return;}
+  const S=sf&&sf._S;
+  if(!S){MEDFAILS.pivotHerbNoState=(MEDFAILS.pivotHerbNoState||0)+1;return;}
+  const n=restoreStatsAll(S.actA,S.actB);
+  if(n)MEDSEEN.pivotHerbBeforeEntry+=n;
 }
 function switchOut(act,i,bench,foes,sf,field,wanted,pass){
   const out=act[i]; if(!out||out.fainted) return null;
@@ -28331,6 +28823,42 @@ function midEventDice(opt) {
   return d;
 }
 const midEventLog = () => MID_LOG.slice();
+/* ROADMAP #511 / 2026-09-19 -- THE FROM-FULL SURVIVAL CLAMP, ONE IMPLEMENTATION, TWO ROADS. Lifted out of the
+ * attack step verbatim so the Future Sight payout (`condition:futuremove`) calls the same code the direct
+ * hit does: `focussash.onDamage` / `sturdy.onDamage` are `Damage`-event handlers and the payout's
+ * `trySpreadMoveHit` runs that event exactly as a click does (data/conditions.ts:415). `x` is the amount
+ * arriving; the return is what `onDamage` hands back. `rng` is the caller's stream (Focus Band's chance). */
+function fromFullSurvival(tg,x,rng){
+  if(!(x>=tg.curHP))return x;
+  /* WHICH CARRIER HELD THE TAG IS PART OF THE FACT, and collapsing the two with a `||` cost
+     the announcement below its subject: the line named `tg.ability` whatever had actually
+     saved the body, so a FOCUS BAND survivor announced the holder's unrelated ability
+     (measured against the authority: ours `|-activate|p1a: Corviknight|ability: pressure`,
+     theirs `|-activate|p1a: Corviknight|item: Focus Band`). The read is still one expression
+     with the item first, exactly as before; it just remembers what it found. */
+  const _svIt=TAGS.param('item',tg.item,'survivesFromFull');
+  const _sv=_svIt||TAGS.param('ability',tg.ability,'survivesFromFull');
+  const _svId=_svIt?tg.item:tg.ability;
+  if(_sv&&(!_sv.onlyFromFullHP||tg.curHP===tg.st.hp)
+     &&(_sv.chance==null||rng()<+_sv.chance)){
+    x=tg.curHP-(_sv.leavesHP||1);
+    MEDSEEN.sashAnsweredOnePacket++;
+    if(_sv.chance!=null)MEDSEEN.chanceSurvivalFired++;
+    /* Showdown emits the `|-enditem|` BEFORE the `|-damage|` that the Sash survived -- read
+     * off a real battle.log, where `-enditem Focus Sash` precedes `-damage 1/135`. */
+    /* ROADMAP #175 -- a spent Focus Sash is an `AfterUseItem` too, and it is the one non-berry
+     * spend with real corpus weight, so Symbiosis answers it here as well as in consumeBerry. */
+    /* AND THE ONE THAT KEEPS WHAT SAVED IT ANNOUNCES OFF THE ARTIFACT. The three carriers say
+       three different things -- Focus Band `-activate|TARGET|item: Focus Band`, Sturdy
+       `-ability|TARGET|Sturdy`, the Sash nothing at all because `useItem()` writes the
+       `-enditem` above instead. `announce` carries the event and the prefix, read in tag_dex
+       from each handler's own `this.add`; a hardcoded `'ability: '` here was right for one of
+       the three and wrong for the other two. */
+    if(_sv.consumesItem){if(TR)TR.enditem(tg,tg.item);recordItemUsed(tg,tg.item);tg.item='';passItemFromAlly(tg);}
+    else if(TR)TR.announced(tg,_sv.announce,_svId);
+  }
+  return x;
+}
 /* 2026-09-19 -- THE LIFE ORB TOLL, ONE IMPLEMENTATION FOR ITS TWO ROADS.
  *
  * Lifted verbatim out of the attack branch (the ROADMAP #175 / #338 block, which still carries the
@@ -29124,6 +29652,9 @@ function battleTurn(S,rng,actsForA,actsForB){
     }
     /* `_megaOrder` null means the knob is on and the mega phase re-derives it where it used to. */
     let _megaOrder=null;
+    /* 2026-09-19 -- `commitChoices` opens with `this.updateSpeed()` (sim/battle.ts:2996): the cached
+     * `pokemon.speed` every `eachEvent` sorts on this turn, until the next refresh. See `sdEachEventOrder`. */
+    sdUpdateSpeed(S.actA,S.actB,field);
     if(COMMIT_QUEUE_BLIND){
       MEDFAILS.commitQueueBlindRestored=1;
       sortTurnOrder(acts,field,_tieRng);
@@ -29482,11 +30013,23 @@ function battleTurn(S,rng,actsForA,actsForB){
      * Herb mid-move, which is a new wrong answer bought with a right one. Only `_updateEvent` is
      * called from `_stepUpdate`; see that step for the position and the gate. */
     const _updateEvent=()=>{
-      const _all=[];
-      for(const x of actA)if(x&&!x.fainted&&x.curHP>0)_all.push({m:x,s:'A'});
-      for(const x of actB)if(x&&!x.fainted&&x.curHP>0)_all.push({m:x,s:'B'});
-      for(const e of _all)e.spe=effSpeed(e.m,field,e.s);
-      _all.sort((p,q)=>q.spe-p.spe);
+      /* 2026-09-19 -- the insertion clock for the residual shadow list: every Update pass is a moment the
+       * authority's `pokemon.volatiles` may have gained or lost a key. See `volSeqSync`. */
+      volSeqSyncAll(actA,actB);
+      let _all;
+      if(UPDATE_LIVE_SPEED){
+        /* THE PRE-2026-09-19 ORDER, EXACTLY: living bodies only, live speed, stable sort. */
+        _all=[];
+        for(const x of actA)if(x&&!x.fainted&&x.curHP>0)_all.push({m:x,s:'A'});
+        for(const x of actB)if(x&&!x.fainted&&x.curHP>0)_all.push({m:x,s:'B'});
+        for(const e of _all)e.spe=effSpeed(e.m,field,e.s);
+        _all.sort((p,q)=>q.spe-p.spe);
+      }else{
+        /* `eachEvent('Update')`: the authority's list and sort (see `sdEachEventOrder`), then only the bodies
+         * that can run a handler. A zero-HP body still owed its faint line stays in the SORT -- its swap moves
+         * the others -- and runs nothing here, exactly as before. */
+        _all=sdEachEventOrder(actA,actB,field).filter(e=>!e.m.fainted&&e.m.curHP>0);
+      }
       /* ROADMAP #308 -- FLING'S OWN `onUpdate` RUNS IN THIS PASS, and it is FIRST on the body because
        * the authority's is a VOLATILE's handler while the three below are ITEM handlers: a berry that
        * has just been thrown is not on the thrower to be eaten. See the fling block in the attack
@@ -29624,6 +30167,11 @@ function battleTurn(S,rng,actsForA,actsForB){
        * the STALE order and this engine runs it in the fresh one. It can only reorder berry and herb
        * activations between two bodies whose relative Speed moved mid-turn with no move queued next;
        * no probe fails on it today, and folding it in would make #240's differential unattributable.
+       * **FIXED 2026-09-19 (the tie-order batch), and the declaration above was narrower than the defect:**
+       * the stale order also governs every IN-MOVE Update pass (`_stepUpdate`), because the authority's
+       * cache is refreshed in FRONT of a move, not during it. A pool game proved it (a Discharge paralysis
+       * mid-move; see `sdEachEventOrder`). `_updateEvent` now sorts the cached `_sdSpe`, stamped where the
+       * authority stamps it; `MEDI_UPDATE_LIVE_SPEED=1` restores the live-speed stable sort.
        *
        * NOT INSIDE THE SORTED LOOP ABOVE on purpose: that loop is `eachEvent('Update')`, a different
        * Showdown event with its own ordering, and the herb is not one of its handlers. Same schedule,
@@ -29718,6 +30266,9 @@ function battleTurn(S,rng,actsForA,actsForB){
      * `runDynamax`, the trigger's other passing choice, cannot occur in gen 9 -- stated at sdChoiceOf.
      */
     const _resortTail=(from)=>{
+      /* 2026-09-19 -- `this.updateSpeed()` is the FIRST statement under the same guard (sim/battle.ts:2918), and
+       * it runs even when one action is left, so it is taken above the one-element early return below. */
+      if(from>=0&&from<acts.length&&acts[from]&&sdChoiceOf(acts[from].a)==='move')sdUpdateSpeed(actA,actB,field);
       if(from<0||from>=acts.length-1)return;          // a one-element tail sorts to itself
       if(sdChoiceOf(acts[from].a)!=='move'){
         MEDSEEN.queueResortHeldNotAMove++;
@@ -30140,7 +30691,20 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * IT IS NOW BELOW THE `sideWiped` BREAK TOO, which is correct rather than incidental: the
        * authority's `if (this.ended) return true` at :2833 is above the mega action as well. */
-      const _phasesDue=(!(_megaPhaseDone&&_chargePhaseDone))&&acts[actIdx]&&(acts[actIdx]._pri||0)<6;
+      /* NARRATION BATCH B, 2026-09-19 -- "THE BARE SWITCHES ARE DONE" IS A QUESTION ABOUT THE ACTION'S
+       * CHOICE, NOT ITS BRACKET. `_pri < 6` was a proxy that held only while no MOVE could reach 6, and
+       * one can: Helping Hand is +5 and Prankster adds 1. The megaEvo action is queue order 104 and every
+       * move is 200 (`comparePriority` reads order before priority), so the authority evolves ABOVE a +6
+       * move -- and this engine ran the Helping Hand first because the gate took it for a switch. Pinned
+       * pool, --games 1350, `pair-redirect-priority ...bo3-2660691219` t7:
+       *     showdown  |detailschange|p1a: Floette|Floette-Mega   |-mega   |move|p2a: Whimsicott|Helping Hand
+       *     medicham  |move|p2a: Whimsicott|helpinghand   |-immune   |detailschange|p1a: Floette ...
+       * `sdChoiceOf` is the one mapping of what Showdown calls an action (it already decides the re-sort
+       * trigger and `willAct`). MEDI_MEGA_GATE_ON_PRIORITY=1 restores the bracket proxy.
+       * tests/probe_narration_b_line_order.js --only megahh. */
+      const _phasesDue=(!(_megaPhaseDone&&_chargePhaseDone))&&acts[actIdx]
+        &&(MEGA_GATE_ON_PRIORITY?(acts[actIdx]._pri||0)<6:sdChoiceOf(acts[actIdx].a)!=='switch');
+      if(_phasesDue&&!MEGA_GATE_ON_PRIORITY&&(acts[actIdx]._pri||0)>=6)MEDSEEN.megaPhaseBeforeBracketSix++;
       if(MEGA_BEFORE_UPDATE&&_phasesDue){MEDFAILS.megaBeforeUpdateRestored=1;_megaPhase(actIdx);_chargePhase(actIdx);}
       /* ROADMAP #240 -- the post-action re-sort, gated on the head of the live queue. `actIdx > 0`
        * because nothing has happened yet before the first action: the top-of-turn sort IS the
@@ -32170,6 +32734,12 @@ function battleTurn(S,rng,actsForA,actsForB){
            * flushAfterMoveSpends for why it cannot be paid at the bottom of a branch. `onHit` spenders
            * are NOT marked: Swallow's removal is inside its own handler and is paid there. */
           if(_spv&&_spv.volatile&&_spv.when==='afterMove')m._spendAfter=_spv.volatile;
+          /* NARRATION BATCH B, 2026-09-19 -- `lockedmove.onAfterMove` IS OWED FROM HERE TOO, for the reason
+           * the Spit Up debt one line up is: AfterMove is raised in `useMove`, above every refusal. The lock's
+           * own expiry block below the step list still pays it for a move that RESOLVED (and clears this
+           * mark); a move that a shield, a miss or an immunity stopped never reaches that block, and this
+           * mark is what `flushAfterMoveSpends` pays instead. See `lockEndAtAfterMove`. */
+          if(!LOCK_END_NEEDS_HIT&&m._mtLock&&m._mtLock.move===_lmv)m._lockAfterMove=_lmv;
         }
       }
       /* 2026-08-23 -- AND THE `onPrepareHit` REFUSAL IS SPENT HERE, ONE STEP BELOW `onTry`.
@@ -33929,6 +34499,23 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _tgt=a.target&&!a.target.fainted&&a.target.curHP>0?a.target:null;
         const _isFoe=_tgt&&m._sf&&_tgt._sf!==m._sf;
         const who=_isFoe?_tgt:(_tgt&&_tgt!==m?_tgt:(it.side==='A'?actA:actB).find(x=>x&&x!==m&&!x.fainted&&x.curHP>0));
+        /* 2026-09-19 -- AN ALLY-ONLY BOOST WITH NO ALLY STANDING FAILS OUT LOUD. Coaching and Aromatic
+         * Mist are `adjacentAlly`; with the partner fainted, `getMoveTargets`' default branch returns an
+         * empty list for a fainted ally (sim/pokemon.ts:844-846 -- no retarget, the fainted-ally clause
+         * only retargets a FOE), and `useMoveInner` then writes `attrLastMove('[notarget]')` and
+         * `add('-fail', pokemon)` (sim/battle-actions.ts:509-513). This branch fell to `_lift=[]` and
+         * printed nothing: narration bucket "Coaching's -fail missing", 2 games on a1c7dcd5696b. The
+         * class is read off `targetClass`, never a name; Helping Hand (the third `adjacentAlly` member)
+         * has its own branch and already fails through `mvFail`. MEDI_COACHING_NOALLY_SILENT restores
+         * the silence. */
+        if(!who){
+          const _btc=TAGS.param('move',a.mv,'targetClass');
+          if(_btc&&_btc.target==='adjacentAlly'){
+            if(COACHING_NOALLY_SILENT)MEDFAILS.coachingNoAllySilentRestored=1;
+            else{MEDSEEN.allyBoostNoTargetFail++;if(TR)TR.attr('[notarget]');mvFail(m);}
+            m._lastMove=a.mv;continue;
+          }
+        }
         /* WIRE 241 -- the refusal was right and SILENT: a Decorate at a Gholdengo gave no boost and
          * printed nothing, where the authority prints the ability's own `|-immune|` line.
          * ROADMAP #255 -- AND THE GATE WAS `_isFoe`, WHICH IS NOT THE AUTHORITY'S CLAUSE. Good as
@@ -34245,6 +34832,22 @@ function battleTurn(S,rng,actsForA,actsForB){
         m._lastMove=a.mv;
         const _ti=TAGS.param('move',a.mv,'takesTargetItem')||{};
         const _tl=statusMoveTargets(m,a.mv,a.target,it,actA,actB,true);
+        /* 2026-09-19 -- NOBODY TO AIM AT IS `[notarget]` + `-fail`, AS IN `affect`. With both foes and the
+         * partner gone, a Corrosive Gas has an empty `allAdjacent` list and `useMoveInner` writes
+         * `attrLastMove('[notarget]')` and `add('-fail', pokemon)` (sim/battle-actions.ts:509-513). The
+         * `affect` branch already fails an empty list through `mvFail`; this branch ran its loop over
+         * nothing and printed nothing. Staged by tests/probe_narration_a.js (`spread-corrosivegas-
+         * partnergone`). MEDI_ITEMMOVE_NOTARGET_SILENT restores the silence. */
+        /* ASKED OF THE FIELD, NOT OF `_tl`: `statusMoveTargets` also drops a body Magic Bounce sent the move
+         * back from, and a bounced click is not a targetless one. So: no foe standing, and for an
+         * `allAdjacent` member no partner standing either. */
+        const _liveB=x=>x&&x!==m&&!x.fainted&&x.curHP>0;
+        if(!_tl.length&&!(it.side==='A'?actB:actA).some(_liveB)
+           &&!(TAGS.param('move',a.mv,'spreadAll')&&(it.side==='A'?actA:actB).some(_liveB))){
+          if(ITEMMOVE_NOTARGET_SILENT)MEDFAILS.itemMoveNoTargetSilentRestored=1;
+          else{MEDSEEN.itemMoveNoTargetFail++;if(TR)TR.attr('[notarget]');mvFail(m);}
+          continue;
+        }
         /* ==== 2026-09-12 -- THE GAUNTLET RUNS OVER EVERY TARGET BEFORE ANY EFFECT RESOLVES ========
          *
          * `data/all-mechanics-fire.json`'s `moves.corrosivegas` row, release 48ac1c228e02:
@@ -36363,12 +36966,33 @@ function battleTurn(S,rng,actsForA,actsForB){
            * TryHit on each and a Gholdengo partner refuses its share while everyone else is healed.
            * Per body, like Howl's arm in `boostally`; the user itself is `t===m` and exempt, which
            * `tryHitRefusal` carries. */
-          if(_hp.allies){for(const x of (it.side==='A'?actA:actB)){
+          /* 2026-09-19 -- EVERY REFUSAL IS ANNOUNCED BEFORE ANY BODY IS HEALED, because they are two
+           * different STEPS of `trySpreadMoveHit` and the authority runs step-major over the targets:
+           * `hitStepTryHitEvent` (Good as Gold, Water Absorb -- the `-immune`) for every target, and only
+           * then `hitStepMoveHitLoop`, where the heal and its `-fail heal` are written
+           * (sim/battle-actions.ts, the `moveSteps` list). This walked TARGET-major, so the user's heal
+           * came out above its partner's refusal. Two pinned-pool games at --games 1950, both
+           * narration-only (the heal amounts and the refusal are unchanged, only their order):
+           *     omit-weather ...bo3-2634231341 t3   |-immune|p2b: Gholdengo <> |-heal|p2a: Sinistcha
+           *     pair-redirect-priority ...bo3-2635082691 t10   |-immune|p2b: Vaporeon <> |-fail|p2a: Goodra|heal
+           * `MEDI_ALLIES_HEAL_INTERLEAVED=1` restores the per-body walk. tests/probe_narration_b_line_order.js --only lifedew. */
+          if(_hp.allies&&ALLIES_HEAL_INTERLEAVED){MEDFAILS.alliesHealInterleavedRestored=1;
+           for(const x of (it.side==='A'?actA:actB)){
             if(!x||x.fainted||x.curHP<=0)continue;
             const _rf=tryHitRefusal(m,x,a.mv);
             if(_rf){announceTryHitRefusal(_rf,x);continue;}
             amt(x);
           }}
+          else if(_hp.allies){
+            const _pass=[];
+            for(const x of (it.side==='A'?actA:actB)){
+              if(!x||x.fainted||x.curHP<=0)continue;
+              const _rf=tryHitRefusal(m,x,a.mv);
+              if(_rf){announceTryHitRefusal(_rf,x);MEDSEEN.alliesHealRefusedFirst++;continue;}
+              _pass.push(x);
+            }
+            for(const x of _pass)amt(x);
+          }
           else amt(m);
         }
         /* WIRE 152 -- AND SWALLOW SPENDS THE STACK, `onHit`, WHETHER OR NOT THE HEAL DID ANYTHING.
@@ -36450,13 +37074,35 @@ function battleTurn(S,rng,actsForA,actsForB){
           * rather than guessed. */
          if(_trt&&_healLanded===null)MEDFAILS.roostRiderNoPrimary++;
          if(_trt&&_healLanded!==true)MEDSEEN.selfRiderSkippedOnFailedPrimary++;
-         if(_healLanded===true&&_trt&&Array.isArray(_trt.removes)&&_trt.removes.length&&m.types&&!m._typeWas){
-           const _left=m.types.filter(t=>_trt.removes.indexOf(t)<0);
-           if(_left.length!==m.types.length){
-             m._typeWas=m.types.slice();
-             m.types=_left.length?_left:['Normal'];
-             MEDSEEN.roostTypeDropped++;
-             if(TR)TR.st1(m,'move: '+a.mv);
+         /* 2026-09-19 -- THE ANNOUNCEMENT IS THE VOLATILE'S, NOT THE TYPE DROP'S. The `roost` condition's
+          * `onStart` (data/moves.ts:15439-15447; the Champions mod does not override Roost) writes
+          * `this.add('-singleturn', target, 'move: Roost')` for EVERY body the volatile lands on -- the
+          * only thing it checks is Terastallization -- and `onType` deleting Flying is a separate
+          * handler. The line sat inside the drop, so a Decidueye-Hisui (Grass/Fighting) that healed
+          * printed no `-singleturn` and every Roost by a non-Flying body parted the stream there:
+          * narration bucket "Roost's -singleturn missing", 4 games on a1c7dcd5696b. The DROP is
+          * unchanged -- still gated on `!m._typeWas` exactly as before -- so no board leaf moves.
+          * A second Roost the same turn (Instruct) finds the volatile already present and the
+          * authority's `addVolatile` returns false without `onStart`: `_roostTurn` is that memory for
+          * a body with no Flying type, which never sets `_typeWas`. It gates the LINE only, never the
+          * drop, so a stale stamp can cost a narration line and cannot cost a type. */
+         if(_healLanded===true&&_trt&&Array.isArray(_trt.removes)&&_trt.removes.length&&m.types){
+           const _had=!!m._typeWas;
+           let _dropped=false;
+           if(!_had){
+             const _left=m.types.filter(t=>_trt.removes.indexOf(t)<0);
+             if(_left.length!==m.types.length){
+               m._typeWas=m.types.slice();
+               m.types=_left.length?_left:['Normal'];
+               MEDSEEN.roostTypeDropped++;
+               _dropped=true;
+             }
+           }
+           const _fresh=_dropped||(!_had&&m._roostTurn!==MID_TURN);
+           if(_fresh)m._roostTurn=MID_TURN;
+           if(TR&&(_dropped||(_fresh&&!ROOST_ANNOUNCE_FLYING_ONLY))){
+             TR.st1(m,'move: '+a.mv);
+             if(!_dropped)MEDSEEN.roostAnnouncedNoFlying++;
            }
          }}
         continue;
@@ -37269,12 +37915,23 @@ function battleTurn(S,rng,actsForA,actsForB){
            * from the chargeTurn param, derived from the move's own onTryMove handler, so a new
            * one arrives with a regenerated artifact and no edit here. It is taken WHETHER OR NOT
            * the charge turn is spent, because the handler boosts above the weather test. */
+          /* 2026-09-19 -- AND AT THE CAP IT STILL ANNOUNCES, WITH A ZERO. The handler's call is
+           * `this.boost({spa: 1}, attacker, attacker, move)` (data/moves.ts:4645 electroshot, same shape on
+           * meteorbeam): effect is the MOVE, isSecondary and isSelf both false. `Battle#boost` caps the
+           * request to 0 (`getCappedBoost`, sim/battle.ts:2030), `boostBy` is falsy, and the
+           * `else if (!isSecondary && !isSelf)` branch at :2076-2077 writes `-boost|<body>|spa|0`. This
+           * site passed no `zero` flag, so the line was suppressed (and counted in
+           * MEDFAILS.boostZeroSuppressed). Pool game `...bo3-2635082691` (1950 pair-redirect-priority)
+           * parted on exactly this line once its Life Dew split was fixed. No board leaf moves: the stage
+           * is at +6 on both sides either way. `MEDI_CHARGE_BOOST_ZERO_SILENT=1` restores the suppression. */
           const _cp=TAGS.param('move',a.move.id,'chargeTurn'), _b=_cp&&_cp.boosts;
           if(_b)for(const _k of Object.keys(_b)){
             const _kk={spa:'sa',spd:'sd',atk:'at',def:'df',spe:'sp'}[_k]||_k;
             if(m.boosts&&_kk in m.boosts){const _b0=m.boosts[_kk];
               m.boosts[_kk]=Math.max(-6,Math.min(6,m.boosts[_kk]+_b[_k]));
-              if(TR)TR.bst(m,_kk,m.boosts[_kk]-_b0);}
+              const _zeroOk=!CHARGE_BOOST_ZERO_SILENT;
+              if(_zeroOk&&m.boosts[_kk]===_b0)MEDSEEN.chargeBoostZeroAnnounced++;
+              if(TR)TR.bst(m,_kk,m.boosts[_kk]-_b0,undefined,_zeroOk);}
           }
           /* ROADMAP #186 -- AND IT ASKS `effWeatherOf`, NOT `field.weather`. This line read the PUBLIC
            * sky and spelled the suppression clause out by hand, which is the third time Mega Sol's
@@ -37636,7 +38293,14 @@ function battleTurn(S,rng,actsForA,actsForB){
          * and what `acts.find` could not express. See `queueWillMove` above the loop for the citation
          * and for why it is one reader shared by every clause below. */
         const _their=queueWillMove(_tgt);
-        const _attacking=!!(_their&&_their.a&&_their.a.kind==='attack');
+        /* 2026-09-19 -- THE QUEUED MOVE'S CATEGORY, NOT THE ACTION'S SHAPE, AND THE MOVE ENCORE REWROTE IT
+         * INTO. `move.category === 'Status'` (data/moves.ts:18402) is asked of `willMove(target).move`,
+         * which after a Champions Encore is the encored move. See `queuedMoveIdOf` / the two knobs. The
+         * kind test survives only under MEDI_SUCKER_READS_ACTION_KIND=1 and only where no rewrite stands. */
+        const _attacking=!!(_their&&_their.a&&(
+          (SUCKER_READS_ACTION_KIND&&!(!SUCKER_READS_PRE_ENCORE&&_their._queuedMv))
+            ?_their.a.kind==='attack'
+            :queuedMoveDamages(_their)));
         if(!_attacking){
           /* NAMED, NOT POOLED: a refusal because the target already went is the clause this engine
            * did not have, and it must be separable from the two it did (an idle target, a Status
@@ -37666,7 +38330,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            _noteRedirected();{if(TR)TR.attrStill();mvFail(m);}continue;}}
         const _np=TAGS.param('move',a.move.id,'failsIfTargetMoveNotPriority');
         if(_np){
-          const _theirId=_their.a.mv||(_their.a.move&&_their.a.move.id)||null;
+          const _theirId=queuedMoveIdOf(_their);   // the queued MOVE, after any Encore rewrite
           if(!_theirId){
             /* An attack with no move id would make this condition unanswerable, and answering it
              * either way would be a silent default. It is counted and the move is allowed through --
@@ -37835,7 +38499,22 @@ function battleTurn(S,rng,actsForA,actsForB){
          run (`add('-fail'); return false` at sim/battle-actions.ts:511) and never reaches MoveFail,
          while a move whose targets were all shielded or immune reaches it and pays the crash. Read
          BEFORE the Wide Guard line below, because Wide Guard emptying the list is the second case. */
-      const _hadTargets=targets.length>0;
+      /* 2026-09-19 -- AN `allAdjacent` MOVE WITH NO FOE LEFT STILL HAS A TARGET WHEN THE PARTNER STANDS.
+       * `getMoveTargets` (sim/pokemon.ts:808-817) pushes `adjacentAllies()` into an `allAdjacent` list
+       * before the foes, and `useMoveInner` only writes `[notarget]` + `-fail` when that list is EMPTY
+       * (sim/battle-actions.ts:509-513). `targets` here holds the FOES alone -- the partner is prepended
+       * far below as `_allyHit` -- so an Earthquake or a Discharge thrown after both foes fell printed
+       * `|-fail|USER` and then hit the partner anyway: narration bucket "an extra -fail on a spread move
+       * with no foe left", 3 games on a1c7dcd5696b. The partner's presence is asked with the same
+       * predicate `_allyHit` uses, so the two cannot disagree. MEDI_SPREAD_NOFOE_FAILS restores it. */
+      /* The move line's target field is the last entry of that list (`retargetLastMove(targets[targets.length
+       * - 1])`, sim/pokemon.ts:815), which is the partner; the differ truncates `|move|` to four fields,
+       * so the retarget is fidelity and moves no counter. */
+      const _allyOnlyBody=(!targets.length&&!SPREAD_NOFOE_FAILS&&!!a.move.spread&&HITS_ALLY.has(a.move.id))
+        ?((it.side==='A'?actA:actB).find(x=>x&&x!==m&&!x.fainted&&x.curHP>0)||null):null;
+      const _allyOnlyTarget=!!_allyOnlyBody;
+      if(_allyOnlyTarget){MEDSEEN.spreadAllyOnlyTarget++;if(TR)TR.retarget(_allyOnlyBody);}
+      const _hadTargets=targets.length>0||_allyOnlyTarget;
       /* 2026-09-19 -- ROUND'S onTry, at the authority's `Try` position: inside `trySpreadMoveHit`, so only
        * with a target, and above PrepareHit and every hit step. See `promoteQueuedSameMove`. */
       if(_hadTargets)promoteQueuedSameMove(a.move.id,acts,actIdx+1,unresolved);
@@ -38467,7 +39146,22 @@ function battleTurn(S,rng,actsForA,actsForB){
       };
       if(!INVULN_BELOW_SHIELD){
         for(const tg of targets) if(_invulnDecide(tg)){
-          _invulnOut.add(tg); _explicitFail=true; if(TR)TR.miss(m,tg);
+          _invulnOut.add(tg); _explicitFail=true;
+          /* NARRATION BATCH B, 2026-09-19 -- A SPLIT SMART-TARGET MOVE SPENDS ITS FLAG HERE, IN SILENCE.
+           * `hitStepInvulnerabilityEvent` (sim/battle-actions.ts):
+           *     if (hitResults[i] === false) {
+           *       if (move.smartTarget) { move.smartTarget = false; }
+           *       else { if (!move.spreadHit) this.battle.attrLastMove('[miss]'); this.battle.add('-miss', pokemon, target); }
+           *     }
+           * -- the same one-shot the shield loop below spends (`_smartSpent`), one step earlier. Both darts
+           * then land on the partner, which this engine already did; only the `-miss` was invented. Pinned
+           * pool, --games 1950, `pair-protect-bust ...bo3-2662428145` t4 (Dragon Darts at a Dragapult mid
+           * Phantom Force, Gholdengo beside it):
+           *     showdown  |move|...|Dragon Darts|p1b: Gholdengo   |-resisted|p1b: Gholdengo   |-damage ...
+           *     medicham  |move|...|dragondarts|p1a: Dragapult    |-miss|p2a: Dragapult|p1a: Dragapult   |-resisted ...
+           * MEDI_SMART_INVULN_MISS_LINE=1 writes the line again. tests/probe_narration_b_line_order.js --only darts. */
+          if(_smartSplit&&!_smartSpent&&!SMART_INVULN_MISS_LINE){_smartSpent=true;MEDSEEN.smartTargetInvulnSilent++;}
+          else if(TR)TR.miss(m,tg);
           MEDSEEN.invulnDecidedAboveShield++;
         }
       }
@@ -39335,6 +40029,21 @@ function battleTurn(S,rng,actsForA,actsForB){
         MEDSEEN.protectBroken++;
         /* THE STALL COUNTER, and it is the reason this is a mechanic rather than a line. */
         if(_bp.clearsStallCounter)tg.tookProtectTurns=0;
+        /* NARRATION BATCH B, 2026-09-19 -- AND THE VOLATILE GOES, NOT ONLY ITS COUNTER. The authority's line
+         * is `delete target.volatiles['stall']` (sim/battle-actions.ts:775), so the body carries no `stall`
+         * handler into this turn's residual. `_stallFresh` is how this engine answers "is a `stall` still
+         * standing after the residual" for the perish drain (`RESIDUAL_FOLLOWER_VOL.stall`), and it stayed
+         * true -- so a perish expiry on a turn whose shield was broken read a follower the authority's list
+         * does not hold and drained ABOVE `|upkeep|`. Pinned pool, --games 1950,
+         * `pair-protect-bust ...bo3-2634665687` t6 (Phantom Force breaks Falinks's Protect):
+         *     showdown  |-start|p1b: Kleavor|perish0   |upkeep   |faint|p1b: Kleavor
+         *     medicham  |-start|p1b: Kleavor|perish0   |faint|p1b: Kleavor   |upkeep
+         * The counter was already right, so the next Protect's odds do not move. MEDI_BREAK_KEEPS_STALL_FRESH=1
+         * leaves the flag standing. tests/probe_narration_b_line_order.js --only perish. */
+        if(_bp.clearsStallCounter&&tg._stallFresh){
+          if(BREAK_KEEPS_STALL_FRESH)MEDFAILS.breakKeepsStallFreshRestored=1;
+          else{tg._stallFresh=false;MEDSEEN.breakClearedStallFresh++;}
+        }
         if(TR){
           if(_bp.announceAs==='bare')TR.act(tg,'move: '+moveDisplayName(a.move.id));
           else TR.act(tg,'move: '+moveDisplayName(a.move.id),'[broken]');
@@ -39471,6 +40180,9 @@ function battleTurn(S,rng,actsForA,actsForB){
        * arrival made contact); the site below the recoil PAYS them, because that is where the
        * authority raises the event. See the payment block for the derivation. */
       let _ppPending=null;
+      /* NARRATION BATCH B, 2026-09-19 -- AND THE HP-THRESHOLD BOOSTS (Berserk, Anger Shell) THIS MOVE OWES
+       * TO THE SAME EVENT. `_stepHpThresholdBoost` collects them; the Pickpocket site pays them first. */
+      let _hptAtEvent=null;
       /* WIRE 147 -- HOW MANY BODIES THE DARTS ARE SPLIT ACROSS, read once at the damage step because
        * `_stepDamage` never sets `R.out` and the surviving set is therefore stable across it. */
       let _smartRows=0;
@@ -40998,37 +41710,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * not) and does everything the save does -- the counters, the item spent, the line announced.
          * The caller decides what the amount IS: arrival 1 plus the rest of the click here, one arrival
          * at a time inside the packet loop. */
-        const _fromFullClamp=(x)=>{
-          if(!(x>=tg.curHP))return x;
-          /* WHICH CARRIER HELD THE TAG IS PART OF THE FACT, and collapsing the two with a `||` cost
-             the announcement below its subject: the line named `tg.ability` whatever had actually
-             saved the body, so a FOCUS BAND survivor announced the holder's unrelated ability
-             (measured against the authority: ours `|-activate|p1a: Corviknight|ability: pressure`,
-             theirs `|-activate|p1a: Corviknight|item: Focus Band`). The read is still one expression
-             with the item first, exactly as before; it just remembers what it found. */
-          const _svIt=TAGS.param('item',tg.item,'survivesFromFull');
-          const _sv=_svIt||TAGS.param('ability',tg.ability,'survivesFromFull');
-          const _svId=_svIt?tg.item:tg.ability;
-          if(_sv&&(!_sv.onlyFromFullHP||tg.curHP===tg.st.hp)
-             &&(_sv.chance==null||rng()<+_sv.chance)){
-            x=tg.curHP-(_sv.leavesHP||1);
-            MEDSEEN.sashAnsweredOnePacket++;
-            if(_sv.chance!=null)MEDSEEN.chanceSurvivalFired++;
-            /* Showdown emits the `|-enditem|` BEFORE the `|-damage|` that the Sash survived -- read
-             * off a real battle.log, where `-enditem Focus Sash` precedes `-damage 1/135`. */
-            /* ROADMAP #175 -- a spent Focus Sash is an `AfterUseItem` too, and it is the one non-berry
-             * spend with real corpus weight, so Symbiosis answers it here as well as in consumeBerry. */
-            /* AND THE ONE THAT KEEPS WHAT SAVED IT ANNOUNCES OFF THE ARTIFACT. The three carriers say
-               three different things -- Focus Band `-activate|TARGET|item: Focus Band`, Sturdy
-               `-ability|TARGET|Sturdy`, the Sash nothing at all because `useItem()` writes the
-               `-enditem` above instead. `announce` carries the event and the prefix, read in tag_dex
-               from each handler's own `this.add`; a hardcoded `'ability: '` here was right for one of
-               the three and wrong for the other two. */
-            if(_sv.consumesItem){if(TR)TR.enditem(tg,tg.item);recordItemUsed(tg,tg.item);tg.item='';passItemFromAlly(tg);}
-            else if(TR)TR.announced(tg,_sv.announce,_svId);
-          }
-          return x;
-        };
+        const _fromFullClamp=(x)=>fromFullSurvival(tg,x,rng);
         if(!_clampPerArrival&&_arrive>=tg.curHP){
           /* The survivor is left on `leavesHP` BY THE FIRST PACKET, and whatever the rest of the click
            * was still owed is added back on top -- which is what kills it. 2026-08-27 -- what the
@@ -44018,7 +44700,13 @@ function battleTurn(S,rng,actsForA,actsForB){
        * `-hitcount` emit at :550. The closure is built inside `_damagingHit` because only there are
        * `tg` and the move's total `dmg` in hand; only its EXECUTION moved, exactly as `_stepHitCount`
        * took over the count's announcement while `_stepApply` kept counting it. */
-      const _stepHpThresholdBoost=(R)=>{ if(!R._hpt)return; const _f=R._hpt; R._hpt=null; _f(); };
+      /* NARRATION BATCH B, 2026-09-19 -- THE STEP NOW COLLECTS AND DOES NOT PAY. `boostsAtHPThreshold` is
+       * `onAfterMoveSecondary`, raised at scripts.ts:577 -- BELOW `applyRecoilDamage` and the second in-move
+       * Update (:554-575), not merely below `-hitcount`. It is paid at `AfterMoveSecondary`'s site beside
+       * Pickpocket's theft. See `_hptAtEvent` there. MEDI_HP_THRESHOLD_BOOST_ABOVE_RECOIL=1 pays it here. */
+      const _stepHpThresholdBoost=(R)=>{ if(!R._hpt)return; const _f=R._hpt; R._hpt=null;
+        if(HP_THRESHOLD_BOOST_ABOVE_RECOIL){MEDFAILS.hpThresholdBoostAboveRecoilRestored=1;_f();return;}
+        (_hptAtEvent||(_hptAtEvent=[])).push(_f); };
       /* STEP 7e, THE SECOND HALF -- `buffsHolderOnHit` (Stamina, Weak Armor, Justified, Anger
        * Point, Electromorphosis) IS AN `onDamagingHit` HANDLER AND IT RAN TWO STEPS EARLY. 2026-08-22.
        *
@@ -45185,6 +45873,22 @@ function battleTurn(S,rng,actsForA,actsForB){
        *
        * MEDI_PICKPOCKET_IN_HIT_LOOP=1 pays it at the old site instead. Staged by
        * tests/probe_pickpocket_event_position.js. */
+      /* NARRATION BATCH B, 2026-09-19 -- AND BERSERK / ANGER SHELL ARE PAID HERE NOW, the paragraph above's
+       * "WHAT IS NOT CLAIMED" closed for the ORDER. Pinned pool, --games 1950, `omit-intimidate
+       * ...bo3-2656439218` t3 (Corviknight's Brave Bird into a Berserk Drampa):
+       *     showdown  |-damage|p1a: Drampa|25/153   |-damage|p2a: Corviknight|118/173|[from] Recoil   |-boost|p1a: Drampa|spa|1
+       *     medicham  |-damage|p1a: Drampa|25/153   |-boost|p1a: Drampa|spa|1   |-damage|p2a: Corviknight ... Recoil
+       * WHY THIS MOVES NO BOARD, READ RATHER THAN ASSUMED: the boost reads the TARGET's HP and the move's
+       * damage to it; the recoil is the attacker's, and the second in-move Update above can only settle what
+       * `_stepUpdate` already settled for the target (every handler clears its own trigger -- the header of
+       * that block measures it). So the crossing test sees the same numbers at both sites. The pinch-berry
+       * deferral (`defersHealingBerry`) is STILL NOT BRANCHED ON, and it was not before either -- that gap is
+       * independent of this position and stays on the hand list. MEDI_HP_THRESHOLD_BOOST_ABOVE_RECOIL=1
+       * restores the step-20 payment. tests/probe_narration_b_line_order.js --only berserk. */
+      if(_hptAtEvent){
+        const _l=_hptAtEvent; _hptAtEvent=null;
+        for(const _f of _l){ _f(); MEDSEEN.hpThresholdBoostAtEvent++; }
+      }
       if(_ppPending){
         for(const _e of _ppPending){
           const _tg=_e.tg,_st=_e.st;
@@ -45754,6 +46458,9 @@ function battleTurn(S,rng,actsForA,actsForB){
        * THE NUMBER COMES FROM THE TAG AND IS NEVER INVENTED HERE. An absent or non-positive `turns`
        * leaves the body FREE and says so, because a made-up count of forced turns is worse than no
        * lock: it would take a turn away from a player for a reason nothing can check. */
+      /* NARRATION BATCH B -- this block IS the resolved move's AfterMove for the lock, so the debt marked
+       * at the onTry site is settled here rather than a second time by `flushAfterMoveSpends`. */
+      if(m._lockAfterMove===a.move.id)m._lockAfterMove=null;
       if(!m.fainted&&TAGS.has('move',a.move.id,'locksIntoMove')){
         const _lk=TAGS.param('move',a.move.id,'locksIntoMove'), _lt=_lk&&+_lk.turns;
         if(!(_lt>0)){ MEDFAILS.lockShapeMissing++;
@@ -45950,6 +46657,11 @@ function battleTurn(S,rng,actsForA,actsForB){
      * engine re-asks `residualOrder` per order-group because speeds move during the walk. Bumping the
      * generation here is what makes those calls agree with each other about a tied pair -- see the
      * header of `residualOrder`. */
+    /* 2026-09-19 -- `case 'residual'` refreshes the speed cache before `fieldEvent('Residual')` (sim/battle.ts:2811),
+     * and the insertion clock is read once more so the shadow list below sees every volatile added since the
+     * last Update pass. */
+    sdUpdateSpeed(actA,actB,field);
+    volSeqSyncAll(actA,actB);
     _RES_TIE_GEN++;
     /* 2026-08-27 -- AND THE AUTHORITY'S HANDLER LIST IS REBUILT HERE, for the same reason and at the
      * same moment: `fieldEvent` collects and sorts ONCE at the top of the residual (sim/battle.ts:490)
@@ -46158,7 +46870,7 @@ function battleTurn(S,rng,actsForA,actsForB){
     /* ROADMAP #563 -- the group's ORDER is named, so the bodies holding a handler at it come out in
      * the authority's handler-list order (see `residualOrder`'s header). The per-group re-ask above
      * still governs every body the list does not place. */
-    for(const m of residualOrder(actA,actB,field,{order:RESIDUAL_GROUPS[_gi].order})){
+    for(const m of residualOrder(actA,actB,field,{order:RESIDUAL_GROUPS[_gi].order,activeOnly:_G.has('weather')})){
       /* 2026-09-19 -- AND THE SAME STOP BETWEEN TWO BODIES OF ONE GROUP, because that is where the
        * authority's is. `fieldEvent` runs `this.faintMessages(); if (this.ended) return;` after EVERY
        * handler (sim/battle.ts:565-566), so a burn that takes a side's last body cancels every burn
@@ -46625,7 +47337,18 @@ function battleTurn(S,rng,actsForA,actsForB){
                if(TR&&_fcrit)TR.crit(m);
                if(TR){ if(m._sub<=0)TR.vend(m,'Substitute'); else TR.act(m,'move: Substitute','[damage]'); }
              } else {
-             m.curHP=Math.max(0,m.curHP-_dm);
+             /* 2026-09-19 -- THE FROM-FULL CLAMP, AFTER THE EFFECTIVENESS AND CRIT LINES AND BEFORE THE
+              * `-damage`, which is where `spreadDamage` runs the `Damage` event on the authority:
+              *     |-end|p1a: Kleavor|move: Future Sight   |-enditem|p1a: Kleavor|Focus Sash   |-damage|p1a: Kleavor|1/145
+              * The full-HP test reads the collector's HP NOW, at payout. `fromFullSurvival` is the attack
+              * step's own clamp. Endure is deliberately NOT asked: `futuremove.onEnd` strips it first
+              * (data/conditions.ts:405). `MEDI_DELAYED_HIT_NO_SURVIVAL=1` restores the unclamped road. */
+             let _dmS=_dm;
+             if(TR&&damageIsComputed(_rF.mv))TR.eff(m,_d.eff);
+             if(TR&&_fcrit)TR.crit(m);
+             if(!DELAYED_HIT_NO_SURVIVAL){const _sx=fromFullSurvival(m,_dmS,rng);
+               if(_sx!==_dmS){_dmS=_sx;MEDSEEN.delayedHitSurvived++;}}
+             m.curHP=Math.max(0,m.curHP-_dmS);
              MEDSEEN.delayedHitLanded++;
              /* 2026-08-23 -- AND THE EFFECTIVENESS LINE, ABOVE THE DAMAGE, because the payout goes
               * through `trySpreadMoveHit` like every other hit and `modifyDamage` is where
@@ -46650,8 +47373,6 @@ function battleTurn(S,rng,actsForA,actsForB){
               * This comment used to read *"NO CRIT LINE, AND THAT IS STATED RATHER THAN MISSED: this
               * payout takes no crit draw at all, so emitting `-crit` would require inventing one."*
               * The draw is above now, so the line is no longer an invention. */
-             if(TR&&damageIsComputed(_rF.mv))TR.eff(m,_d.eff);
-             if(TR&&_fcrit)TR.crit(m);
              if(TR)TR.dmg(m);
              if(m.curHP<=0){m.fainted=true,noteFaint(m);faintLineOut(m);}
              }   /* end of the body road (2026-09-18, the doll branch above) */
@@ -47013,6 +47734,27 @@ function battleTurn(S,rng,actsForA,actsForB){
         MEDSEEN.perTurnVolatileHeal++;
         if(TR&&m.curHP>_h0)TR.heal(m,'[from] move: '+_r.mv);
       }
+      /* 2026-09-19 -- ORDER 13 HOLDS TWO VOLATILE STEPS, AND ON ONE BODY THEY TIE ON EVERY KEY. `partiallytrapped`
+       * and `saltcure` both publish order 13 / subOrder 2 (data/residual-order.json), and on one body the speed is
+       * equal too, so `speedSort` leaves them in the order its swaps leave the handler list -- which starts in the
+       * volatiles' INSERTION order (see `volSeqSync`). This walk ran the trap block first by code position. The
+       * group now reads the body's two entries off the sorted shadow list and runs the chip first when the
+       * authority's list does. Pinned pool 1950 pair-redirect-priority `...bo3-2654068794 vs ...bo3-2654052770`
+       * t18: Sinistcha [saltcure, ..., partiallytrapped] -- the authority's Salt Cure takes the last HP and the
+       * Infestation handler is skipped (`fieldEvent` skips a `fainted` holder after `faintMessages`).
+       * `MEDI_VOL_ARTIFACT_ORDER=1` restores code order. The step body is unchanged; only its position moves. */
+      const _volChipRun=()=>{
+        if(!(m.curHP>0&&m._vol&&!refusesIndirect(m)))return;
+        for(const [_v,_r] of perTurnHPVolatiles()){
+          if(!(m._vol[_v]>0)||_r.pt.effect!=='damage')continue;
+          m.curHP-=Math.max(1,Math.trunc(m.st.hp/perTurnHPDenominator(_r.pt,m)));
+          MEDSEEN.perTurnVolatileChip++;
+          if(TR)TR.dmg(m,'[from] '+_r.mv);
+          if(m.curHP<=0)break;
+        }
+      };
+      const _chipFirst=!VOL_ARTIFACT_ORDER&&_G.has('trap')&&_G.has('volChip')&&!!m._trap&&shadowChipBeforeTrap(m);
+      if(_chipFirst){MEDSEEN.volStepShadowOrdered++;_volChipRun();}
       if(_G.has('trap')&&m._trap&&m.curHP>0){
         /* WIRE 105 -- the trap DIES WITH ITS TRAPPER. A source that fainted or left the field ends
          * the trap before this tick chips, which is Showdown's own onUpdate rule. A trap whose
@@ -47225,13 +47967,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * ROADMAP #221 -- and it is the `volChip` step, order 13, NOT the `volHeal` step at order 6 that
        * the sibling loop above carries. One map, two residual positions, because the authority puts
        * Aqua Ring at 6 and Salt Cure at 13 with Leech Seed, both status chips and Curse in between. */
-      if(_G.has('volChip')&&m.curHP>0&&m._vol&&!refusesIndirect(m))for(const [_v,_r] of perTurnHPVolatiles()){
-        if(!(m._vol[_v]>0)||_r.pt.effect!=='damage')continue;
-        m.curHP-=Math.max(1,Math.trunc(m.st.hp/perTurnHPDenominator(_r.pt,m)));
-        MEDSEEN.perTurnVolatileChip++;
-        if(TR)TR.dmg(m,'[from] '+_r.mv);
-        if(m.curHP<=0)break;
-      }
+      if(_G.has('volChip')&&!_chipFirst)_volChipRun();
       /* ROADMAP #308 -- SYRUP BOMB'S RESIDUAL, AND THE CLOCK IS SPENT *BEFORE* THE HANDLER RUNS.
        *
        * `Battle#residualEvent` (sim/battle.ts) is explicit and the ORDER of its two halves is the
@@ -47968,7 +48704,25 @@ function battleTurn(S,rng,actsForA,actsForB){
     const _refills=[];
     /* NO BOOSTS AND NO MODIFIERS -- `st.sp` is the built stat, which is `storedStats.spe`. Reading
      * `statWithBoost` here would reintroduce half the bug on a corpse this engine has not cleared. */
-    const _corpseSpe=(m,side)=>REPLACE_SPEED_MODIFIED?effSpeed(m,field,side):(m&&m.st?m.st.sp:0);
+    /* NARRATION BATCH B, 2026-09-19 -- AND `storedStats.spe` IS RECOMPUTED FROM THE SET BY THE SAME CLEAR.
+     * `clearVolatile` ends in `this.setSpecies(this.baseSpecies)` (data/mods/champions/scripts.ts:176),
+     * which undoes a Speed Swap / Power Split / Guard Split on the corpse exactly as it does on a body that
+     * switches out -- `switchOut` already restores `_stRewireBase` for that road (ROADMAP #571), and a body
+     * that DIED never goes through `switchOut`. So a Heracross-Mega that had been Speed-Swapped by an
+     * Alakazam queued its replacement on the Alakazam's 181 here and on its own Speed there. Pinned pool,
+     * --games 1950, `pair-speedctrl ...bo3-2663429418` t4:
+     *     showdown  |switch|p2b: Farigiraf ...   |switch|p2a: Basculegion ...
+     *     medicham  |switch|p2a: Basculegion ... |switch|p2b: Farigiraf ...
+     * MEDI_CORPSE_SPEED_KEEPS_REWIRE=1 reads the swapped `st.sp` again. tests/probe_narration_b_line_order.js --only corpse. */
+    const _corpseSpe=(m,side)=>{
+      if(REPLACE_SPEED_MODIFIED)return effSpeed(m,field,side);
+      if(!(m&&m.st))return 0;
+      if(!CORPSE_SPEED_KEEPS_REWIRE&&m._stRewireBase&&m._stRewireBase.sp!=null){
+        if(m._stRewireBase.sp!==m.st.sp)MEDSEEN.corpseSpeedRewireUndone++;
+        return m._stRewireBase.sp;
+      }
+      return m.st.sp;
+    };
     if(REPLACE_SPEED_MODIFIED)MEDFAILS.replaceSpeedModifiedRestored=1;
     for(const _r of [{act:actA,bench:benchA,foes:actB,sf:sfA,side:'A'},
                      {act:actB,bench:benchB,foes:actA,sf:sfB,side:'B'}])
@@ -48094,7 +48848,7 @@ function battleTurn(S,rng,actsForA,actsForB){
      * fixture for item/chestoberry (Yawn is the in-scope sleep road now that Spore is out of scope). Only bodies
      * the walk slept are asked — a wider pass would move boards this change has no measurement for.
      * `MEDI_WALK_STATUS_UNCURED=1` skips it and restores the defect. */
-    for(const m of residualOrder(actA,actB,field)){
+    for(const m of (UPDATE_LIVE_SPEED?residualOrder(actA,actB,field):sdEachEventOrder(actA,actB,field).map(e=>e.m))){
       if(!m||!m._statusSetInWalk)continue;
       m._statusSetInWalk=false;
       if(WALK_STATUS_UNCURED){MEDFAILS.walkStatusUncured=1;continue;}
@@ -48102,6 +48856,8 @@ function battleTurn(S,rng,actsForA,actsForB){
       const _itW=m.item; berryCureUpdate(m);
       if(m.item!==_itW)MEDSEEN.walkStatusCuredAfterUpkeep=(MEDSEEN.walkStatusCuredAfterUpkeep|0)+1;
     }
+    /* the `eachEvent` list skips a corpse; its flag is cleared here as the residualOrder walk used to. */
+    for(const m of [...actA,...actB])if(m&&m._statusSetInWalk)m._statusSetInWalk=false;
     /* ROADMAP #175 -- BEFORE the replacements walk in, and that ordering is the whole of it: `refill`
      * puts a new body in the dead one's slot, so a sweep placed one line lower would find the corpse
      * gone and every residual faint would inherit nothing. */
@@ -48269,7 +49025,10 @@ function battleTurn(S,rng,actsForA,actsForB){
   else [...actA,...actB].forEach(m=>{
     if(m&&m.tookProtectTurns>0&&!m._stallFresh)MEDSEEN.stallSurvivedSkippedResidual++;
   });
-  [...actA,...actB].forEach(m=>{if(m)m._stallFresh=false;});
+  /* NARRATION BATCH B -- and an AfterMove lock debt never outlives its turn: a turn that broke out of the
+   * action loop early (a side wiped) never reached the flush, and paying it next turn would end the lock
+   * at a moment the authority never raised AfterMove. */
+  [...actA,...actB].forEach(m=>{if(m){m._stallFresh=false;m._lockAfterMove=null;}});
   /* ==== 2026-09-12 -- THE BOTTOM-SCREEN TYPE BROADCAST, AND IT IS A HIDDEN-INFORMATION LINE. =====
    *
    * `data/all-mechanics-fire.json`'s `moves.reflecttype` row, release 48ac1c228e02:

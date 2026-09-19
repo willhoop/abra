@@ -555,8 +555,14 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * through `battleTurn`, handing in the attacker's click, and counts the dice the TURN threw (and how
  * many were thrown after the target first lost HP) plus the `-hitcount` the turn wrote. It has to: the
  * defects it watches live in WHERE inside the hit loop a die is drawn, which no direct call reaches.
+ *
+ * `narRun(` added 2026-09-19 with narration batch A, declared HERE and with its reason. It stages a real
+ * doubles board through `battleInit` (the foes carry a bench so a double Memento does not end the battle)
+ * and spends a real turn through `battleTurn`, returning the canonised event stream. It has to: every row
+ * that uses it asserts a LINE the turn loop writes -- a `-singleturn`, a `[notarget]` `-fail`, a
+ * reflected `-immune` -- and a line exists only in the stream of a turn that was actually played.
  */
-const REALTURN = /\bdiceOf\(|\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(|\bsgVolArms\(|\bvolleyInto\(/;
+const REALTURN = /\bnarRun\(|\bdiceOf\(|\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(|\bsgVolArms\(|\bvolleyInto\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -8749,6 +8755,59 @@ probe('move', 'failsIfTargetNotAttacking',
                  + 'Speed, so it has already moved when Sucker Punch resolves): ' + already
                  + ' (must be 0, the authority prints |-fail|); foe at +0 (Dragon Claw, still in the '
                  + 'queue): ' + notYet + ' — equal arms would mean the queue is not being read' };
+});
+
+/* 2026-09-19 -- SUCKER PUNCH READS `willMove(target).move`, AND AFTER A CHAMPIONS ENCORE THAT IS THE ENCORED
+ * MOVE. `data/mods/champions/moves.ts:307-318` rewrites the queued action with `queue.changeAction` when the
+ * Encore lands on a body that has not yet acted, so the `move.category === 'Status'` refusal
+ * (data/moves.ts:18402) is asked of the move Encore forced. Whole-game card …2636045527 (g1350, turn 15):
+ * a Prankster Encore turns an attack into Swords Dance and the authority fails the Sucker Punch; this
+ * engine hit for 50. BOTH ARMS play the same two turns and the target clicks the same Dragon Claw on turn
+ * 2; the only varied thing is whether the Prankster partner's Encore lands on it first.
+ * Knob: MEDI_SUCKER_READS_PRE_ENCORE=1. Staged probe: tests/probe_sucker_reads_queued_move.js. */
+probe('move', 'failsIfTargetNotAttacking',
+      'Sucker Punch reads the move a mid-turn Encore rewrote the target into (Champions changeAction)', () => {
+  const run = (encore) => {
+    const { me, ally, f1, f2, S } = board('kingambit', 'whimsicott', 'garchomp', 'garchomp');
+    ally.ability = 'prankster';
+    unfaintable(me); unfaintable(f1);
+    /* turn 1: the target's last move becomes a Status move */
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'swordsdance', null, S.field)], [f2, { kind: 'pass' }]]));
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'suckerpunch', f1, S.field)],
+               [ally, encore ? M.playerAction(ally, 'encore', f1, S.field) : { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'dragonclaw', me, S.field)], [f2, { kind: 'pass' }]]));
+    return { dealt: before - f1.curHP, enc: !!(f1._vol && f1._vol.encore > 0) };
+  };
+  const t = run(true), c = run(false);
+  return { works: t.enc && t.dealt === 0 && !c.enc && c.dealt > 0, arms: { control: c.dealt, test: t.dealt },
+           detail: 'target clicked Dragon Claw both times; Encored into Swords Dance first (' + t.enc + '): Sucker '
+                 + 'Punch dealt ' + t.dealt + ' (must be 0); no Encore: ' + c.dealt + ' (must land)' };
+});
+
+/* 2026-09-19 -- AND IT READS THE MOVE'S CATEGORY, NOT THIS ENGINE'S ACTION SHAPE. The refusal asked
+ * `kind === 'attack'`; Future Sight is queued here as `futurehit` (and Pollen Puff at a partner as
+ * `allyheal`), both Special, so Sucker Punch failed where the authority lands it. Same board, same user;
+ * only the target's click varies, and the control click is a Status move that must still refuse.
+ * Knob: MEDI_SUCKER_READS_ACTION_KIND=1. */
+probe('move', 'failsIfTargetNotAttacking',
+      'Sucker Punch reads the queued move\'s CATEGORY: it lands on a Future Sight click', () => {
+  const run = (foeMove) => {
+    const { me, ally, f1, f2, S } = board('kingambit', 'corviknight', 'clefable', 'garchomp');
+    f1.moves = ['futuresight', 'calmmind'];
+    unfaintable(me); unfaintable(f1);
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'suckerpunch', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, foeMove, me, S.field)], [f2, { kind: 'pass' }]]));
+    return before - f1.curHP;
+  };
+  const fs = run('futuresight'), cm = run('calmmind');
+  return { works: fs > 0 && cm === 0, arms: { control: cm, test: fs },
+           detail: 'Sucker Punch into a Future Sight click (Special): ' + fs + ' (must land); into Calm Mind '
+                 + '(Status): ' + cm + ' (must be 0)' };
 });
 
 /* =================================================================================================
@@ -27915,6 +27974,220 @@ probe('move', 'callsAnotherMove', 'Copycat fails on a failcopycat last move (Pro
                  + test + ' (must be hit: the copy is refused). Knob MEDI_COPYCAT_IGNORES_FAILCOPYCAT' };
 });
 
+/* ================= 2026-09-19 -- EIGHT ROWS FROM tests/probe_narration_b_line_order.js ================
+ * Narration batch B. Each mechanism was a pinned-pool line-order divergence on release a1c7dcd5696b; each
+ * two-engine arm is red on 8a4140de3eaa and parted by its knob on the fix release. These rows hold the
+ * engine-side rule in the census. The species are the ones the two-engine probe DERIVED from the format
+ * (legal in Reg M-B, printed by that probe); every arm here is a real turn through battleInit/battleTurn,
+ * read off the engine's own protocol trace or its board. */
+
+/* LIFE DEW -- `hitStepTryHitEvent` for every target before `hitStepMoveHitLoop` heals any. CONTROL: a partner
+ * with no refusal, so there is no `-immune` to order. Knob MEDI_ALLIES_HEAL_INTERLEAVED. */
+probe('move', 'healsAlly', "Life Dew announces a partner's refusal before it heals anybody", () => {
+  const run = (allySp, allyAb) => {
+    const trace = [];
+    const me = bare('blastoise'), ally = bare(allySp), f1 = bare('snorlax'), f2 = bare('garchomp');
+    ally.ability = allyAb;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    me.curHP = Math.floor(me.st.hp / 2);
+    trace.length = 0;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'lifedew', me, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const L = trace.map(M.traceCanon);
+    return { imm: L.findIndex(l => /^\|-immune\|p1b/.test(l)), heal: L.findIndex(l => /^\|-heal\|p1a/.test(l)) };
+  };
+  const control = run('aggron', 'none'), test = run('gholdengo', 'goodasgold');
+  return { works: control.imm < 0 && control.heal > 0 && test.imm > 0 && test.heal > test.imm,
+           arms: { control: [control.imm, control.heal], test: [test.imm, test.heal] },
+           detail: '[index of the partner -immune, index of the user -heal] — plain partner ' + JSON.stringify(control)
+                 + ' (no refusal, the heal lands); Good as Gold partner ' + JSON.stringify(test)
+                 + ' (the -immune must come FIRST). Knob MEDI_ALLIES_HEAL_INTERLEAVED' };
+});
+
+/* THE MEGAEVO ACTION IS ORDER 104 AND EVERY MOVE IS 200, so a +6 Prankster Helping Hand still waits for it.
+ * CONTROL: the same Helping Hand at +5 (no Prankster). Knob MEDI_MEGA_GATE_ON_PRIORITY. */
+probe('ability', 'priorityMod', 'a +6 Prankster Helping Hand still waits for the partner to mega evolve', () => {
+  const run = (ab, mega) => {
+    const trace = [];
+    const me = bare('meowstic'), ally = bare('abomasnow'), f1 = bare('snorlax'), f2 = bare('garchomp');
+    me.ability = ab; ally.item = 'abomasite';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace, autoMega: false });
+    trace.length = 0;
+    const a2 = M.playerAction(ally, 'protect', ally, S.field); if (mega) a2.mega = true;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'helpinghand', ally, S.field)], [ally, a2]]), PASS2(f1, f2));
+    const L = trace.map(M.traceCanon);
+    return { mega: L.findIndex(l => /^\|detailschange\|p1b/.test(l)), hh: L.findIndex(l => /^\|move\|p1a[^|]*\|helpinghand/.test(l)) };
+  };
+  /* CONTROL: the same +6 Helping Hand with no mega asked -- the Helping Hand is the first line. The +5 arm is
+   * the bracket the old gate already handled, kept so a fix that broke it cannot pass. */
+  const control = run('prankster', false), five = run('none', true), test = run('prankster', true);
+  return { works: control.mega < 0 && control.hh >= 0 && five.mega >= 0 && five.hh > five.mega && test.mega >= 0 && test.hh > test.mega,
+           arms: { control: [control.mega, control.hh], test: [test.mega, test.hh] },
+           detail: '[index of the mega line, index of the Helping Hand line] — Prankster, no mega asked ' + JSON.stringify(control)
+                 + '; +5 with the mega ' + JSON.stringify(five) + '; Prankster +6 with the mega ' + JSON.stringify(test)
+                 + ' (the mega must come first whenever it is asked). Knob MEDI_MEGA_GATE_ON_PRIORITY' };
+});
+
+/* A SPEED-SWAPPED CORPSE QUEUES ITS REPLACEMENT ON ITS OWN STORED SPEED: `clearVolatile` -> `setSpecies`
+ * recomputes it. Clefable (Healing Wish) and Gallade (Memento) both faint on turn 1; Alakazam's Speed Swap on
+ * Clefable is the one varied thing. CONTROL: Alakazam Protects instead. Knob MEDI_CORPSE_SPEED_KEEPS_REWIRE. */
+probe('move', 'rewritesStoredStats', "a Speed-Swapped corpse is refilled on its own Speed, not the swapped one", () => {
+  const run = (swap) => {
+    const trace = [];
+    const me = bare('alakazam'), ally = bare('aggron'), f1 = bare('clefable'), f2 = bare('gallade');
+    const S = M.battleInit([me, ally, bare('arbok'), bare('arcanine')], [f1, f2, bare('ampharos'), bare('annihilape')],
+      { seeded: true, trace });
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      new Map([[me, swap ? M.playerAction(me, 'speedswap', f1, S.field) : M.playerAction(me, 'protect', me, S.field)],
+               [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'healingwish', f1, S.field)], [f2, M.playerAction(f2, 'memento', ally, S.field)]]));
+    const L = trace.map(M.traceCanon), up = L.indexOf('|upkeep');
+    return { swapped: L.some(l => /speedswap/.test(l) && /^\|-activate/.test(l)),
+             refill: L.slice(up).filter(l => /^\|switch\|p2/.test(l)).map(l => l.split('|')[2].slice(0, 3)).join(',') };
+  };
+  const control = run(false), test = run(true);
+  return { works: !control.swapped && control.refill === 'p2b,p2a' && test.swapped && test.refill === 'p2b,p2a',
+           arms: { control: control.refill, test: [test.swapped, test.refill] },
+           detail: 'the p2 refill order — no swap ' + JSON.stringify(control) + ', Clefable Speed-Swapped by Alakazam '
+                 + JSON.stringify(test) + ' (both must be p2b,p2a: the corpse sorts on its own Speed). '
+                 + 'Knob MEDI_CORPSE_SPEED_KEEPS_REWIRE' };
+});
+
+/* A BROKEN SHIELD DELETES `stall` (sim/battle-actions.ts:775), so it is no follower of a perish expiry and the
+ * faints land below `|upkeep|`. The clock is planted at 1, as `perishClock`'s placement row does. CONTROL: the
+ * same Protect left standing, whose `stall` survives the residual and pays the drain above. Knob
+ * MEDI_BREAK_KEEPS_STALL_FRESH. */
+probe('move', 'breaksProtect', 'a perish drain waits for |upkeep| when the only stall on the field was broken', () => {
+  const run = (feint) => {
+    const trace = [];
+    const me = bare('azumarill'), ally = bare('aggron'), f1 = bare('blaziken'), f2 = bare('alcremie');
+    const S = M.battleInit([me, ally, bare('arbok'), bare('arcanine')], [f1, f2, bare('ampharos'), bare('annihilape')],
+      { seeded: true, trace });
+    for (const x of [me, ally, f1, f2]) x._perish = 1;
+    trace.length = 0;
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, M.playerAction(ally, 'protect', ally, S.field)]]),
+      new Map([[f1, feint ? M.playerAction(f1, 'feint', ally, S.field) : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const L = trace.map(M.traceCanon), lines = L.filter(l => /^\|(faint|upkeep)/.test(l));
+    return { first: lines[0] || '(none)', faints: lines.filter(l => l.startsWith('|faint')).length,
+             broke: L.some(l => /^\|-activate\|p1b/.test(l) && /feint/.test(l)) };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.faints === 4 && test.faints === 4 && control.first.startsWith('|faint')
+                  && test.broke && test.first === '|upkeep',
+           arms: { control: control.first, test: [test.broke, test.first] },
+           detail: 'first of the |faint|/|upkeep| lines — shield standing ' + JSON.stringify(control)
+                 + ' (a |faint|: the stall pays), shield broken by Feint ' + JSON.stringify(test)
+                 + ' (must be |upkeep). Knob MEDI_BREAK_KEEPS_STALL_FRESH' };
+});
+
+/* `lockedmove.onAfterMove` RUNS FOR A LOCKED USE THAT A SHIELD STOPPED (AfterMove is raised in `useMove`, above
+ * every refusal), so the last locked turn's fatigue lands under the Protect line, above the slower partner's
+ * move. The lock is played to its last turn rather than assumed (its length is a draw). CONTROL: the foes do not
+ * shield, so the resolved road fatigues. Knob MEDI_LOCK_END_NEEDS_HIT. */
+probe('move', 'locksIntoMove', 'a shielded last rampage turn fatigues at AfterMove, above the next mover', () => {
+  const run = (shield) => {
+    const trace = [];
+    const me = bare('sceptile'), ally = bare('aromatisse'), f1 = bare('snorlax'), f2 = bare('rhyperior');
+    unfaintable(f1); unfaintable(f2);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    const turn = (shieldNow) => M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'outrage', f1, S.field)], [ally, M.playerAction(ally, 'charm', f1, S.field)]]),
+      shieldNow ? new Map([[f1, M.playerAction(f1, 'protect', f1, S.field)], [f2, M.playerAction(f2, 'protect', f2, S.field)]])
+                : PASS2(f1, f2));
+    turn(false);
+    let guard = 0;
+    /* THE LAST LOCKED TURN IS `trueDuration` 1 (`left` here), not merely `duration` 1: a lock that reaches
+     * AfterMove with trueDuration 2 ends WITHOUT fatigue, which is a different arm of `onEnd`. */
+    while (me._mtLock && me._mtLock.left > 1 && guard++ < 4) turn(false);
+    if (!me._mtLock) return { c: -9, p: -9, why: 'the lock never armed or ended early' };
+    trace.length = 0;
+    turn(shield);
+    const L = trace.map(M.traceCanon);
+    return { c: L.findIndex(l => /^\|-start\|p1a/.test(l) && /confusion/.test(l) && /fatigue/.test(l)),
+             p: L.findIndex(l => /^\|move\|p1b/.test(l)), shielded: L.some(l => /^\|-activate\|p2/.test(l) && /protect/.test(l)) };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.c >= 0 && control.p > control.c && test.shielded && test.c >= 0 && test.p > test.c,
+           arms: { control: [control.c, control.p], test: [test.c, test.p] },
+           detail: '[index of the fatigue line, index of the partner move] on the last locked turn — resolved '
+                 + JSON.stringify(control) + ', both foes Protect ' + JSON.stringify(test)
+                 + ' (the fatigue must come first in both). Knob MEDI_LOCK_END_NEEDS_HIT' };
+});
+
+/* CHAMPIONS QUEUES THE AFTER-MOVE WHITE HERB AT ORDER 99, between a pivot's `|switch|` and its entrant's
+ * SwitchIn (runSwitch, 101) -- data/mods/champions/items.ts:1023. So after Parting Shot (-1 Atk, -1 SpA) into a
+ * White Herb holder and an Intimidate entrant, the herb has already cleared the Parting Shot drop and the
+ * Intimidate -1 STANDS. A BOARD fact, not a line. CONTROL: no herb, both drops stand (-2/-1). Knob
+ * MEDI_PIVOT_HERB_AFTER_ENTRY (under it the herb clears all three: 0/0). */
+probe('item', 'restoresStats', "a pivot's queued White Herb is spent before the entrant's Intimidate lands", () => {
+  const run = (herb) => {
+    const me = bare('incineroar'), ally = bare('aggron'), in1 = bare('arbok'), in2 = bare('arcanine');
+    in1.ability = 'intimidate'; in2.ability = 'intimidate';
+    const f1 = bare('snorlax'), f2 = bare('garchomp');
+    if (herb) f1.item = 'whiteherb';
+    const S = M.battleInit([me, ally, in1, in2], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'partingshot', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { at: f1.boosts.at, sa: f1.boosts.sa, item: f1.item || '' };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.at === -2 && control.sa === -1 && test.at === -1 && test.sa === 0 && test.item === '',
+           arms: { control: [control.at, control.sa], test: [test.at, test.sa] },
+           detail: "Snorlax's Atk/SpA after Parting Shot and an Intimidate entrant — no herb " + JSON.stringify(control)
+                 + ' (must be -2/-1), White Herb ' + JSON.stringify(test) + ' (must be -1/0 with the herb spent). '
+                 + 'Knob MEDI_PIVOT_HERB_AFTER_ENTRY' };
+});
+
+/* A SPLIT DRAGON DARTS SPENDS `smartTarget` SILENTLY AT A SEMI-INVULNERABLE BODY (`hitStepInvulnerabilityEvent`):
+ * no `-miss`, both darts on the partner. CONTROL: no charge, the darts split. Knob MEDI_SMART_INVULN_MISS_LINE. */
+probe('move', 'smartTarget', 'a split Dragon Darts at a body mid-Dig writes no -miss and lands both darts on its partner', () => {
+  const run = (charge) => {
+    const trace = [];
+    const me = bare('dragapult'), ally = bare('aggron'), f1 = bare('snorlax'), f2 = bare('rhyperior');
+    unfaintable(f1); unfaintable(f2);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    if (charge) M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'dig', me, S.field)], [f2, { kind: 'pass' }]]));
+    if (charge && !f1._invuln) return { miss: -9, f1: -9, f2: -9, why: 'Dig did not charge' };
+    trace.length = 0;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'dragondarts', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, charge ? M.playerAction(f1, 'dig', me, S.field) : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const L = trace.map(M.traceCanon);
+    const cut = L.findIndex((l, k) => k > 0 && /^\|move\|p2a/.test(l));
+    const W = cut > 0 ? L.slice(0, cut) : L;
+    return { miss: W.filter(l => /^\|-miss\|/.test(l)).length,
+             f1: W.filter(l => /^\|-damage\|p2a/.test(l) && !/\[from\]/.test(l)).length,
+             f2: W.filter(l => /^\|-damage\|p2b/.test(l) && !/\[from\]/.test(l)).length };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.miss === 0 && control.f1 === 1 && control.f2 === 1 && test.miss === 0 && test.f1 === 0 && test.f2 === 2,
+           arms: { control: [control.miss, control.f1, control.f2], test: [test.miss, test.f1, test.f2] },
+           detail: '[-miss lines, darts on p2a, darts on p2b] — no charge ' + JSON.stringify(control) + ' (must be 0,1,1), p2a mid-Dig '
+                 + JSON.stringify(test) + ' (must be 0,0,2). Knob MEDI_SMART_INVULN_MISS_LINE' };
+});
+
+/* BERSERK IS `onAfterMoveSecondary` (scripts.ts:577), BELOW `applyRecoilDamage` -- the attacker's recoil line
+ * comes first. The holder's max HP is scaled so one hit crosses half without a KO. CONTROL: the same crossing
+ * from a move with no recoil, where Berserk must still fire. Knob MEDI_HP_THRESHOLD_BOOST_ABOVE_RECOIL. */
+probe('ability', 'boostsAtHPThreshold', "Berserk's boost follows the attacker's recoil line", () => {
+  const run = (mv) => {
+    const trace = [];
+    const me = bare('drampa'), ally = bare('alcremie'), f1 = bare('aggron'), f2 = bare('annihilape');
+    me.ability = 'berserk';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true, trace });
+    unfaintable(me); me.curHP = Math.floor(me.st.hp / 2) + 2;
+    trace.length = 0;
+    M.battleTurn(S, rng5, PASS2(me, ally), new Map([[f1, M.playerAction(f1, mv, me, S.field)], [f2, { kind: 'pass' }]]));
+    const L = trace.map(M.traceCanon);
+    return { r: L.findIndex(l => /^\|-damage\|p2a/.test(l) && /recoil/i.test(l)), b: L.findIndex(l => /^\|-boost\|p1a/.test(l) && /spa/.test(l)) };
+  };
+  const control = run('megakick'), test = run('doubleedge');
+  return { works: control.r < 0 && control.b >= 0 && test.r >= 0 && test.b > test.r,
+           arms: { control: [control.r, control.b], test: [test.r, test.b] },
+           detail: '[index of the recoil line, index of the Berserk boost] — Mega Kick ' + JSON.stringify(control)
+                 + ' (no recoil, the boost fires), Double-Edge ' + JSON.stringify(test)
+                 + ' (the boost must follow the recoil). Knob MEDI_HP_THRESHOLD_BOOST_ABOVE_RECOIL' };
+});
+
 probe('ability', 'restoresBerryAtResidual', 'Harvest gives the berry back — always in sun, half the time otherwise', () => {
   /* THREE ARMS, because two would not separate the mechanic from the weather. The rng is the knob on
    * the first two and the SKY is the knob on the second and third, so neither "it always fires" nor
@@ -29478,6 +29751,69 @@ probe('move', 'delayedHit', 'a Substitute absorbs a Future Sight payout, and an 
                  + ctrl.sub0 + ' -> ' + ctrl.sub1 + ']; behind a doll [' + doll.body + ', ' + doll.sub0 + ' -> '
                  + doll.sub1 + ']; Infiltrator booker behind the same doll [' + inf.body + ', ' + inf.sub0 + ' -> '
                  + inf.sub1 + ']' };
+});
+
+/* 2026-09-19 -- THE PAYOUT MEETS A FULL-HP FOCUS SASH AND STURDY. `futuremove.onEnd` pays through
+ * `trySpreadMoveHit` (data/conditions.ts:415); the hit's `Damage` event is answered by `focussash.onDamage`
+ * (data/items.ts:2272-2277) and `sturdy.onDamage` (data/abilities.ts:4673-4677), both on
+ * `effect.effectType === 'Move'`, which Future Sight's booked moveData carries, and both only when the
+ * collector is at FULL HP at payout. Whole-game card …2657391947 (g1950, turn 6): a full-HP Sash Kleavor
+ * left at 1/145 there, fainted here. The no-carrier arm proves the payout is lethal; the chipped arm
+ * proves the full-HP gate. Knob: MEDI_DELAYED_HIT_NO_SURVIVAL=1. Staged probe:
+ * tests/probe_delayed_hit_survival.js. */
+probe('move', 'delayedHit', 'a lethal Future Sight payout into a full-HP Focus Sash or Sturdy body leaves 1 HP, and not from below full', () => {
+  const run = (item, ab, chip) => {
+    const B = board('alakazam', 'incineroar', 'avalugg', 'milotic');
+    B.me.moves = ['futuresight']; B.me.boosts.sa = 6;
+    B.f1.item = item; if (ab) B.f1.ability = ab;
+    for (let i = 0; i < 3; i++) {
+      if (i === 1 && chip) B.f1.curHP -= 1;
+      M.battleTurn(B.S, rng5,
+        new Map([[B.me, i === 0 ? M.playerAction(B.me, 'futuresight', B.f1, B.S.field) : { kind: 'pass' }],
+                 [B.ally, { kind: 'pass' }]]),
+        PASS2(B.f1, B.f2));
+    }
+    return { hp: B.f1.curHP, fainted: !!B.f1.fainted, item: B.f1.item };
+  };
+  const bare0 = run('', null, false), sash = run('focussash', null, false), sturdy = run('', 'sturdy', false),
+        chipped = run('focussash', null, true);
+  return { works: bare0.fainted && !sash.fainted && sash.hp === 1 && sash.item === ''
+                  && !sturdy.fainted && sturdy.hp === 1 && chipped.fainted,
+           arms: { control: bare0.hp, test: [sash.hp, sturdy.hp] },
+           detail: '[HP after the payout] no carrier ' + bare0.hp + ' (must faint); full-HP Sash ' + sash.hp
+                 + ' item "' + sash.item + '" (must be 1, spent); full-HP Sturdy ' + sturdy.hp + ' (must be 1); '
+                 + 'Sash chipped by 1 before the payout: fainted=' + chipped.fainted + ' (must faint)' };
+});
+
+/* 2026-09-19 -- AND THE OTHER MOVE-TYPED INDIRECT HIT: THE CONFUSION SELF-HIT. `confusion.onBeforeMove`
+ * deals it as `this.damage(damage, pokemon, pokemon, { id: 'confused', effectType: 'Move', type: '???' })`
+ * (data/conditions.ts:193-194, no Champions override), so `focussash.onDamage` answers it exactly as it
+ * answers a hit. Measured on the authority: a confused full-HP Sash Weavile at +6 prints
+ * `|-enditem|p1a: Weavile|Focus Sash` then `|-damage|p1a: Weavile|1/145|[from] confusion`. The self-hit
+ * is forced with a low roll on turn 2 (33 in 100 is the authority's gate); the no-item arm proves it is
+ * lethal, the chipped arm proves the full-HP gate. Knob: MEDI_SELFHIT_NO_SURVIVAL=1. Staged probe:
+ * tests/probe_delayed_hit_survival.js, arm `confusion-selfhit-sash`. */
+probe('item', 'survivesFromFull', 'a lethal confusion self-hit from full HP spends the Focus Sash and leaves 1 HP (the self-hit is Move-typed)', () => {
+  const rngLow = () => 0.1;
+  const run = (item, chip) => {
+    const { me, ally, f1, f2, S } = board('weavile', 'corviknight', 'umbreon', 'garchomp');
+    me.item = item;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'swordsdance', null, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'confuseray', me, S.field)], [f2, { kind: 'pass' }]]));
+    const confused = !!(me._vol && me._vol.confusion > 0);
+    me.boosts.at = 6; me.boosts.df = -6;
+    if (chip) me.curHP -= 1;
+    M.battleTurn(S, rngLow, new Map([[me, M.playerAction(me, 'swordsdance', null, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { confused, hp: me.curHP, fainted: !!me.fainted, item: me.item };
+  };
+  const bare0 = run('', false), sash = run('focussash', false), chipped = run('focussash', true);
+  return { works: bare0.confused && bare0.fainted && sash.confused && !sash.fainted && sash.hp === 1 && sash.item === ''
+                  && chipped.fainted,
+           arms: { control: bare0.hp, test: sash.hp },
+           detail: '[HP after the self-hit] no item ' + bare0.hp + ' (confused ' + bare0.confused + ', must faint); '
+                 + 'full-HP Sash ' + sash.hp + ' item "' + sash.item + '" (must be 1, spent); Sash chipped by 1: '
+                 + 'fainted=' + chipped.fainted + ' (must faint)' };
 });
 
 /* 2026-09-10 -- THE PAYOUT ROLLS STEP 4. `futuremove.onEnd` pays out through `trySpreadMoveHit`, so
@@ -31977,6 +32313,85 @@ probe('ability', 'punishesAttacker', 'Effect Spore throws no die at a powder-imm
   return { works: control[0] === 1 && test[0] === 0, arms: { control, test },
            detail: `[dice Effect Spore added to one Fake Out] Weavile ${JSON.stringify(control)}, Grass Scovillain `
                  + `${JSON.stringify(test)} — \`source.runStatusImmunity("powder")\` sits above \`this.random(100)\`` };
+});
+
+/* ================= 2026-09-19 — NARRATION BATCH A: FOUR LINES THE AUTHORITY WRITES AND THIS ENGINE DID NOT =====
+ *
+ * The single-engine half of tests/probe_narration_a.js, which stages each class in BOTH engines (8 Roost,
+ * 35 spread, 27 Synchronize and 8 ally-aimed games) and was red on 38 of them before the fix with every
+ * BOARD agreeing. Every line asserted below is the one the authority printed in that probe, read off its
+ * stream, never typed from recall. Each row is red under its knob:
+ * MEDI_ROOST_ANNOUNCE_FLYING_ONLY, MEDI_SPREAD_NOFOE_FAILS, MEDI_ITEMMOVE_NOTARGET_SILENT,
+ * MEDI_SYNC_IMMUNE_SILENT, MEDI_COACHING_NOALLY_SILENT. */
+const narRun = (sps, stage, mine, allyMv, foeMv) => {
+  const me = bare(sps[0]), ally = bare(sps[1]), f1 = bare(sps[2]), f2 = bare(sps[3]);
+  const bench = bare('clefable');
+  if (stage) stage({ me, ally, f1, f2 });
+  /* THE FOES CARRY A BENCH: with none, a side whose two actives both faint ends the battle mid-turn and
+   * the user's click never resolves -- measured, the whole turn went silent. */
+  const S = M.battleInit([me, ally, bench], [f1, f2, bare('snorlax'), bare('milotic')], { seeded: true });
+  const trace = []; S._trace = trace;
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, mine.mv, mine.ally ? ally : f1, S.field)],
+             [ally, allyMv ? M.playerAction(ally, allyMv, ally, S.field) : { kind: 'pass' }]]),
+    new Map([[f1, foeMv ? M.playerAction(f1, foeMv, me, S.field) : { kind: 'pass' }],
+             [f2, foeMv ? M.playerAction(f2, foeMv, ally, S.field) : { kind: 'pass' }]]));
+  return { trace: trace.map(M.traceCanon), me, ally };
+};
+const narHas = (r, re) => r.trace.some(l => re.test(l));
+probe('move', 'typeRemovedForTurn', 'Roost announces `-singleturn` on a body with no Flying type too, and not at full HP', () => {
+  const hurt = b => { b.me.curHP = Math.floor(b.me.st.hp / 2); };
+  const grass = narRun(['decidueyehisui', 'appletun', 'snorlax', 'milotic'], hurt, { mv: 'roost' });
+  const full = narRun(['decidueyehisui', 'appletun', 'snorlax', 'milotic'], null, { mv: 'roost' });
+  const st = r => r.trace.filter(l => /^\|-singleturn\|p1a:/.test(l)).length;
+  const control = [st(full), narHas(full, /^\|-fail\|p1a:[^|]*\|heal$/) ? 1 : 0], test = [st(grass)];
+  return { works: control[0] === 0 && control[1] === 1 && test[0] === 1, arms: { control, test },
+           detail: `[-singleturn lines, -fail|heal] Decidueye-Hisui (Grass/Fighting) at full HP ${JSON.stringify(control)}, `
+                 + `at half HP ${JSON.stringify(test)} — the roost condition's onStart announces for every body `
+                 + `(data/moves.ts:15439-15447); only the Flying deletion is conditional` };
+});
+probe('move', 'spreadAll', 'an allAdjacent move with no foe left hits the partner alone and writes no -fail', () => {
+  const memento = ['torkoal', 'appletun', 'whimsicott', 'gallade'];
+  const eq = narRun(memento, null, { mv: 'earthquake' }, null, 'memento');
+  const hw = narRun(memento, null, { mv: 'heatwave' }, null, 'memento');
+  const fails = r => r.trace.filter(l => /^\|-fail\|p1a:/.test(l)).length;
+  const control = [fails(hw)], test = [fails(eq), eq.ally.curHP < eq.ally.st.hp ? 1 : 0];
+  return { works: control[0] === 1 && test[0] === 0 && test[1] === 1, arms: { control, test },
+           detail: `[-fail lines] allAdjacentFoes Heat Wave with both foes gone ${JSON.stringify(control)}; [-fail lines, partner hit] `
+                 + `allAdjacent Earthquake ${JSON.stringify(test)} — getMoveTargets pushes adjacentAllies() first `
+                 + `(sim/pokemon.ts:808-817) and [notarget]/-fail needs an EMPTY list (sim/battle-actions.ts:509-513)` };
+});
+probe('move', 'takesTargetItem', 'Corrosive Gas with nobody left to aim at fails with [notarget] and -fail', () => {
+  const gone = narRun(['vileplume', 'ninetales', 'whimsicott', 'gallade'], null, { mv: 'corrosivegas' }, 'healingwish', 'memento');
+  const kept = narRun(['vileplume', 'appletun', 'whimsicott', 'gallade'], null, { mv: 'corrosivegas' }, null, 'memento');
+  const fails = r => r.trace.filter(l => /^\|-fail\|p1a:/.test(l)).length;
+  const control = [fails(kept)], test = [fails(gone)];
+  return { works: control[0] === 0 && test[0] === 1, arms: { control, test },
+           detail: `[-fail lines] partner standing ${JSON.stringify(control)}, partner Healing-Wished away ${JSON.stringify(test)} `
+                 + `— an empty allAdjacent list is useMoveInner's [notarget] + -fail (sim/battle-actions.ts:509-513)` };
+});
+probe('ability', 'reflectsStatusToSource', 'a Synchronize reflection the source refuses writes the refusal line', () => {
+  const sync = b => { b.f1.ability = 'synchronize'; };
+  const poison = narRun(['ariados', 'appletun', 'umbreon', 'milotic'], sync, { mv: 'toxic' });
+  const plain = narRun(['goodra', 'appletun', 'umbreon', 'milotic'], sync, { mv: 'toxic' });
+  const imm = r => r.trace.filter(l => /^\|-immune\|p1a:[^|]*$/.test(l)).length;
+  const sta = r => r.trace.filter(l => /^\|-status\|p1a:[^|]*\|tox$/.test(l)).length;
+  const control = [imm(plain), sta(plain)], test = [imm(poison), sta(poison)];
+  return { works: control[0] === 0 && control[1] === 1 && test[0] === 1 && test[1] === 0, arms: { control, test },
+           detail: `[bare -immune, -status tox] on the Toxic user after Umbreon's Synchronize: Goodra ${JSON.stringify(control)}, `
+                 + `Poison-type Ariados ${JSON.stringify(test)} — the reflection's sourceEffect carries .status `
+                 + `(data/abilities.ts:4857), so setStatus writes -immune (sim/pokemon.ts:1718-1723)` };
+});
+probe('move', 'boostsTarget', 'Coaching with no partner standing fails with [notarget] and -fail', () => {
+  const faint = b => { b.ally.curHP = 0; b.ally.fainted = true; };
+  const alone = narRun(['crabominable', 'appletun', 'snorlax', 'milotic'], faint, { mv: 'coaching', ally: true });
+  const paired = narRun(['crabominable', 'appletun', 'snorlax', 'milotic'], null, { mv: 'coaching', ally: true });
+  const fails = r => r.trace.filter(l => /^\|-fail\|p1a:[^|]*$/.test(l)).length;
+  const boosts = r => r.trace.filter(l => /^\|-boost\|p1b:/.test(l)).length;
+  const control = [fails(paired), boosts(paired)], test = [fails(alone), boosts(alone)];
+  return { works: control[0] === 0 && control[1] === 2 && test[0] === 1 && test[1] === 0, arms: { control, test },
+           detail: `[-fail, -boost lines] partner standing ${JSON.stringify(control)}, partner fainted ${JSON.stringify(test)} `
+                 + `— adjacentAlly at a fainted partner is an empty target list (sim/pokemon.ts:844-846)` };
 });
 
 /* ================= THE ANNOUNCEMENT-NAMING FAMILY — ROADMAP #241, #256, #259 =====================
@@ -35275,6 +35690,107 @@ probe('move', 'takesTargetItem', 'a spread item removal writes both Protect refu
                  + test + ' (every refusal first, then the one effect)' };
 });
 
+/* ================= 2026-09-19 -- THE TIE-ORDER BATCH (tests/probe_tie_order.js) =======================
+ * Five rows, each red under its MEDI_* knob and green without it. The two-engine proof (authority log, red and
+ * control, knob parts the red only) is the probe; these hold the engine-side rule so it cannot slide back. */
+const tieTrace = (S) => { const trace = []; S._trace = trace; return trace; };
+const bodyOrder = (trace, re) => trace.map(String).filter(l => re.test(l)).map(l => l.split('|')[2].slice(0, 3)).join(',') || '-';
+
+/* A CHARGE-TURN BOOST AT THE CAP ANNOUNCES A ZERO: `this.boost({spa: 1}, ...)` with the move as effect,
+ * neither secondary nor self -> sim/battle.ts:2076-2077 `-boost|<it>|spa|0`. CONTROL: at +4 it is a real +1. */
+probe('move', 'chargeTurn', 'a charge-turn boost at the +6 cap still writes its line, with a zero', () => {
+  const run = (stage) => {
+    const { me, ally, f1, f2, S } = board('barbaracle', 'corviknight', 'milotic', 'garchomp');
+    me.boosts.sa = stage; const trace = tieTrace(S);
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'meteorbeam', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return trace.map(String).filter(l => /^\|-boost\|p1a: /.test(l)).map(l => l.split('|').slice(3, 5).join(':')).join(',') || '-';
+  };
+  const control = run(4), test = run(6);
+  return { works: control === 'spa:1' && test === 'spa:0', arms: { control, test },
+           detail: 'Barbaracle winding up Meteor Beam — at +4 the line reads ' + control + ', at +6 ' + test
+                 + ' (must be spa:0, not silence). Knob MEDI_CHARGE_BOOST_ZERO_SILENT' };
+});
+
+/* THE SAND CHIP'S BODY ORDER IS `getAllActive()`, WHICH HAS NO CORPSE (sim/battle.ts:1362-1372). Audino at
+ * p1a and p2a tie; a fainted Whimsicott (the fastest) stands at p2b. CONTROL: the Whimsicott alive -- it IS in the
+ * list, so its placement swap puts p2a first; fainted it is not, and p1a stays first. */
+probe('ability', 'weatherSetter', 'the sand chip order of a tied pair ignores a fainted body still in its slot', () => {
+  const run = (dead) => {
+    const { me, ally, f1, f2, S } = board('audino', 'hippowdon', 'audino', 'whimsicott');
+    S.field.weather = 'sand'; S.field.weatherT = 5;
+    if (dead) { f2.curHP = 0; f2.fainted = true; }
+    const trace = tieTrace(S);
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    return bodyOrder(trace, /^\|-damage\|p[12]a: [^|]*\|[^|]*\|\[from\] [Ss]andstorm/);
+  };
+  const control = run(false), test = run(true);
+  return { works: control === 'p2a,p1a' && test === 'p1a,p2a', arms: { control, test },
+           detail: 'sand chips on the tied Audino pair — Whimsicott alive ' + control + ' (it IS in the list and its swap puts p2a first), '
+                 + 'Whimsicott fainted in its slot ' + test + ' (must read p1a,p2a: a corpse is not in eachEvent\'s list). Knob MEDI_WEATHER_SORT_KEEPS_CORPSES' };
+});
+
+/* AN IN-MOVE UPDATE SORTS THE CACHED SPEED (sim/pokemon.ts:556-558) WITH THE SELECTION SORT'S SWAPS. Garbodor at
+ * p1a (Weak Armor) and p2a (Stench), both Sitrus, tie; Scolipede's Earthquake from p2b (the fastest) takes both
+ * under half and doubles p1a's LIVE Speed. The authority eats p2a first. CONTROL: the attacker at p1b. */
+probe('item', 'healsAtThreshold', 'two tied Sitrus holders eat in the cached-speed order inside one hit', () => {
+  const run = (attackerOnP1) => {
+    const B = attackerOnP1 ? board('garbodor', 'scolipede', 'garbodor', 'torkoal') : board('garbodor', 'torkoal', 'garbodor', 'scolipede');
+    const { me, ally, f1, f2, S } = B;
+    me.ability = 'weakarmor'; f1.ability = 'stench'; me.item = 'sitrusberry'; f1.item = 'sitrusberry';
+    const trace = tieTrace(S);
+    const quake = attackerOnP1 ? ally : f2;
+    const mine = new Map([[me, { kind: 'pass' }], [ally, attackerOnP1 ? M.playerAction(ally, 'earthquake', f1, S.field) : { kind: 'pass' }]]);
+    const theirs = new Map([[f1, { kind: 'pass' }], [f2, attackerOnP1 ? { kind: 'pass' } : M.playerAction(f2, 'earthquake', me, S.field)]]);
+    M.battleTurn(S, rng5, mine, theirs);
+    return { order: bodyOrder(trace, /^\|-enditem\|p[12]a: [^|]*\|[^|]*\|\[eat\]/), alive: !me.fainted && !f1.fainted, q: quake.name };
+  };
+  const control = run(true), test = run(false);
+  return { works: control.order === 'p1a,p2a' && test.order === 'p2a,p1a' && control.alive && test.alive,
+           arms: { control: control.order, test: test.order },
+           detail: 'Sitrus eat order after one Earthquake — attacker at p1b ' + control.order + ', attacker at p2b ' + test.order
+                 + ' (must be p2a,p1a: the cached tie plus the p2b swap, not p1a\'s doubled live Speed). Knob MEDI_UPDATE_LIVE_SPEED' };
+});
+
+/* A TIED PAIR'S PERISH COUNTERS FOLLOW THE VOLATILES' INSERTION ORDER. Tyranitar at p1a and p2a tie; Azumarill
+ * sings from p1b; Dragapult (the fastest) at p2b. p1a Protecting first makes its list [protect, stall,
+ * perishsong] and the authority ticks p1a first. CONTROL: nobody Protects, and the authority ticks p2a first. */
+probe('move', 'perishClock', 'a tied pair\'s perish counters follow the order their volatiles were added', () => {
+  const run = (guard) => {
+    const { me, ally, f1, f2, S } = board('tyranitar', 'azumarill', 'tyranitar', 'dragapult');
+    const trace = tieTrace(S);
+    M.battleTurn(S, rng5,
+      new Map([[me, guard ? M.playerAction(me, 'protect', me, S.field) : { kind: 'pass' }], [ally, M.playerAction(ally, 'perishsong', ally, S.field)]]),
+      PASS2(f1, f2));
+    /* the residual's lines only: the application writes a `[silent]` start per body above `-fieldactivate` */
+    const at = trace.map(String).findIndex(l => /^\|-fieldactivate\|/.test(l));
+    return bodyOrder(trace.slice(at + 1), /^\|-start\|p[12]a: [^|]*\|perish3/);
+  };
+  const control = run(false), test = run(true);
+  return { works: control === 'p2a,p1a' && test === 'p1a,p2a', arms: { control, test },
+           detail: 'perish3 order of the tied Tyranitar pair — no Protect ' + control + ' (Dragapult\'s swap), p1a Protected first '
+                 + test + ' (its perishsong entry sits behind protect and stall). Knob MEDI_VOL_ARTIFACT_ORDER' };
+});
+
+/* SALT CURE AND A PARTIAL TRAP ON ONE BODY TIE ON EVERY KEY (order 13, subOrder 2, one speed): insertion order
+ * decides. Salt Cure first -> it chips first. CONTROL: the trap first -> the trap chips first. */
+probe('move', 'perTurnHP', 'Salt Cure and a partial trap on one body chip in the order they were added', () => {
+  const run = (cureFirst) => {
+    const { me, ally, f1, f2, S } = board('garganacl', 'ariados', 'bastiodon', 'corviknight');
+    unfaintable(f1);
+    const cure = () => M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'saltcure', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const trap = () => M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, M.playerAction(ally, 'infestation', f1, S.field)]]), PASS2(f1, f2));
+    if (cureFirst) cure(); else trap();
+    const trace = tieTrace(S);
+    if (cureFirst) trap(); else cure();
+    return trace.map(String).filter(l => /^\|-damage\|p2a: /.test(l) && /\[from\] /.test(l))
+      .map(l => /salt ?cure/i.test(l) ? 'salt' : (/partiallytrapped/.test(l) ? 'trap' : 'other')).filter(x => x !== 'other').join(',') || '-';
+  };
+  const control = run(false), test = run(true);
+  return { works: control === 'trap,salt' && test === 'salt,trap', arms: { control, test },
+           detail: 'the second turn\'s two chips on Bastiodon — trap then Salt Cure ' + control + ', Salt Cure then trap ' + test
+                 + ' (each must follow insertion order). Knob MEDI_VOL_ARTIFACT_ORDER' };
+});
+
 
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
@@ -35527,11 +36043,27 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'zombieSkipsResidualRestored', 'f
                            * red demonstration of its own census row would have WRITTEN the census. */
                           'reactLateOnceRestored', 'multiAccUpfrontRestored', 'volleyIgnoresSleepRestored',
                           'sporeDieUngatedRestored',
+                          /* 2026-09-19 -- narration batch A (tests/probe_narration_a.js), stamped at LOAD */
+                          'roostAnnounceFlyingOnlyRestored', 'spreadNoFoeFailsRestored', 'syncImmuneSilentRestored',
+                          'coachingNoAllySilentRestored', 'itemMoveNoTargetSilentRestored',
                           'residualStopGroupOnlyRestored', 'orbTollSkipsPayoutRestored', 'fatigueBerryInlineRestored',
                           'ppPressurePreRedirectRestored', 'cureRollUngatedRestored', 'reactionDieAlwaysRestored',
                           'alliesAddrAtUserRestored', 'moveEvasionCountedRestored',
+                          /* 2026-09-19 -- narration batch B's eight line-order knobs (see the knob block
+                           * beside REPLACE_ORDER_STABLE in engine/medicham2-browser.js for the probes) */
+                          'alliesHealInterleavedRestored', 'megaGateOnPriorityRestored',
+                          'corpseSpeedKeepsRewireRestored', 'breakKeepsStallFreshRestored',
+                          'lockEndNeedsHitRestored', 'pivotHerbAfterEntryRestored', 'smartInvulnMissLineRestored',
+                          'hpThresholdBoostAboveRecoilRestored',
+                          /* 2026-09-19 -- the tie-order batch's four knobs (tests/probe_tie_order.js) */
+                          'chargeBoostZeroSilentRestored', 'weatherSortKeepsCorpsesRestored',
+                          'updateLiveSpeedRestored', 'volArtifactOrderRestored',
                           /* 2026-09-11 -- ROADMAP #511: the pre-fix survival clamp (load stamp and use stamp) */
-                          'hitCountDropOnCollapseKnob', 'survivalClampOnTotalRestored']
+                          'hitCountDropOnCollapseKnob', 'survivalClampOnTotalRestored',
+                          /* 2026-09-19 -- the Sucker Punch queued-move and payout-survival knobs. A knob run
+                           * WROTE the census (927 of 928) before these were listed. */
+                          'suckerReadsPreEncoreRestored', 'suckerReadsActionKindRestored',
+                          'delayedHitNoSurvivalRestored', 'selfHitNoSurvivalRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

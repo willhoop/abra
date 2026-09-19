@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-19T07:46:20.755Z",
+  "generated": "2026-09-19T11:11:34.061Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 925,
-  "live": 925,
+  "probed": 947,
+  "live": 947,
   "missing": 0,
-  "armed": 925,
+  "armed": 947,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -323,7 +323,7 @@
       "tag": "flinches",
       "label": "a secondary flinch fires at ITS OWN probability, not only at p=1",
       "live": true,
-      "detail": "over 4000 seeded turns each, the foe's own Knock Off is the receipt — Knock Off at the user 0.0% (no flinch on the move, must be 0), Fake Out 100.0% (must be 100), Rock Slide 27.4% (0.3 x 90% acc = 27), Iron Head 20.3% (this format's 0.2 x 100% = 20); and Rock Slide with the ATTACKER MOVING SECOND 0.0% (must be 0 — a flinch cannot reach a body that has already acted)",
+      "detail": "over 4000 seeded turns each, the foe's own Knock Off is the receipt — Knock Off at the user 0.0% (no flinch on the move, must be 0), Fake Out 100.0% (must be 100), Rock Slide 26.9% (0.3 x 90% acc = 27), Iron Head 20.5% (this format's 0.2 x 100% = 20); and Rock Slide with the ATTACKER MOVING SECOND 0.0% (must be 0 — a flinch cannot reach a body that has already acted)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -343,7 +343,7 @@
       "tag": "boostsOnFlinch",
       "label": "Steadfast is PAID +1 Speed by every flinch that lands, and by nothing else",
       "live": true,
-      "detail": "Iron Head (this format's 0.2 flinch) at a Machamp over 2000 seeded turns each, the foe's own Knock Off the receipt for the flinch — no ability: flinched 397, Speed raised 0 (must be 0); STEADFAST: flinched 397 (19.9%, declared 20), Speed raised 397 — EQUAL is the claim, so the boost is bound to the event and not to the click; Inner Focus: flinched 0 (must be 0 — it refuses), Speed raised 0 (must be 0 — a refusal is paid nothing); STEADFAST ON A SLEEPING BODY: Speed raised 0 (must be 0 — sleep runs at beforeMove priority 10 against the flinch's 8, so the flinch handler never runs); MEDSEEN.flinchTooLate over the control and test arms 0/0 (must be 0/0 — the attacker holds the turn, so no flinch arrived at a body that had already acted)",
+      "detail": "Iron Head (this format's 0.2 flinch) at a Machamp over 2000 seeded turns each, the foe's own Knock Off the receipt for the flinch — no ability: flinched 415, Speed raised 0 (must be 0); STEADFAST: flinched 415 (20.8%, declared 20), Speed raised 415 — EQUAL is the claim, so the boost is bound to the event and not to the click; Inner Focus: flinched 0 (must be 0 — it refuses), Speed raised 0 (must be 0 — a refusal is paid nothing); STEADFAST ON A SLEEPING BODY: Speed raised 0 (must be 0 — sleep runs at beforeMove priority 10 against the flinch's 8, so the flinch handler never runs); MEDSEEN.flinchTooLate over the control and test arms 0/0 (must be 0/0 — the attacker holds the turn, so no flinch arrived at a body that had already acted)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2134,6 +2134,26 @@
       "label": "Sucker Punch ALSO fails into a target that has ALREADY MOVED this turn (the queue clause)",
       "live": true,
       "detail": "the target attacks in BOTH arms; only its priority differs. Foe at +2 (Extreme Speed, so it has already moved when Sucker Punch resolves): 0 (must be 0, the authority prints |-fail|); foe at +0 (Dragon Claw, still in the queue): 85 — equal arms would mean the queue is not being read",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "failsIfTargetNotAttacking",
+      "label": "Sucker Punch reads the move a mid-turn Encore rewrote the target into (Champions changeAction)",
+      "live": true,
+      "detail": "target clicked Dragon Claw both times; Encored into Swords Dance first (true): Sucker Punch dealt 0 (must be 0); no Encore: 85 (must land)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "failsIfTargetNotAttacking",
+      "label": "Sucker Punch reads the queued move's CATEGORY: it lands on a Future Sight click",
+      "live": true,
+      "detail": "Sucker Punch into a Future Sight click (Special): 38 (must land); into Calm Mind (Status): 0 (must be 0)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4303,7 +4323,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.5% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.5% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -6973,7 +6993,7 @@
       "tag": "statChange",
       "label": "a secondary STAT DROP fires at the FORMAT's chance, not gen 9's",
       "live": true,
-      "detail": "Moonblast drops Special Attack on 9.4% of 4,000 real turns — the format's 10, against the 30 data/move-effects.js states. CONTROLS, both 100% in both rulebooks: Snarl 95.5%, Icy Wind 95.5% (95-accurate moves, so a miss applies nothing). engine/format_audit.js sweeps all 500 moves and reports every remaining row with whether the engine reads it",
+      "detail": "Moonblast drops Special Attack on 10.4% of 4,000 real turns — the format's 10, against the 30 data/move-effects.js states. CONTROLS, both 100% in both rulebooks: Snarl 93.8%, Icy Wind 93.8% (95-accurate moves, so a miss applies nothing). engine/format_audit.js sweeps all 500 moves and reports every remaining row with whether the engine reads it",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -6983,7 +7003,7 @@
       "tag": "formatSecondaryCount",
       "label": "a secondary THIS FORMAT REMOVED never rolls",
       "live": true,
-      "detail": "Freeze-Dry froze on 0% of 600 real turns (Champions deletes its secondary outright -- data/mods/champions/moves.ts:396 `secondary: undefined`; must be 0). CONTROL, same body, same seeds, same Ice special attack: Ice Beam 10.2% (the format keeps its 10% freeze). Before the wire both arms read 11.2%. THE ENGINE-SIDE REFUSAL fired 0 times, and it must fire exactly when there is something to refuse: derived this run, 0 of the 380 moves whose format secondary count is 0 still carry a secondary in data/move-effects.js -- the artifact now agrees with the format, so the branch has no population and 0 is the correct reading",
+      "detail": "Freeze-Dry froze on 0% of 600 real turns (Champions deletes its secondary outright -- data/mods/champions/moves.ts:396 `secondary: undefined`; must be 0). CONTROL, same body, same seeds, same Ice special attack: Ice Beam 11.3% (the format keeps its 10% freeze). Before the wire both arms read 11.2%. THE ENGINE-SIDE REFUSAL fired 0 times, and it must fire exactly when there is something to refuse: derived this run, 0 of the 380 moves whose format secondary count is 0 still carry a secondary in data/move-effects.js -- the artifact now agrees with the format, so the branch has no population and 0 is the correct reading",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -6993,7 +7013,7 @@
       "tag": "statChange",
       "label": "a secondary boost on the USER is priced by the FORMAT, not by gen 9",
       "live": true,
-      "detail": "Fiery Dance raises the USER's Special Attack on 49.8% of 600 real turns at the artifact's own 50% (100 accuracy, so no miss is hiding in this). Driven to 0 in data/tags.json it reads 0%, driven to 100 it reads 100% — so the number the engine rolls is the FORMAT's and not data/move-effects.js's. The rulebook says 50 in all three arms, which is why an outcome comparison could not have told them apart; with the branch disabled the three arms read 50 / 50 / 50",
+      "detail": "Fiery Dance raises the USER's Special Attack on 50.3% of 600 real turns at the artifact's own 50% (100 accuracy, so no miss is hiding in this). Driven to 0 in data/tags.json it reads 0%, driven to 100 it reads 100% — so the number the engine rolls is the FORMAT's and not data/move-effects.js's. The rulebook says 50 in all three arms, which is why an outcome comparison could not have told them apart; with the branch disabled the three arms read 50 / 50 / 50",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7449,6 +7469,86 @@
       "directCall": false
     },
     {
+      "kind": "move",
+      "tag": "healsAlly",
+      "label": "Life Dew announces a partner's refusal before it heals anybody",
+      "live": true,
+      "detail": "[index of the partner -immune, index of the user -heal] — plain partner {\"imm\":-1,\"heal\":2} (no refusal, the heal lands); Good as Gold partner {\"imm\":2,\"heal\":3} (the -immune must come FIRST). Knob MEDI_ALLIES_HEAL_INTERLEAVED",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "priorityMod",
+      "label": "a +6 Prankster Helping Hand still waits for the partner to mega evolve",
+      "live": true,
+      "detail": "[index of the mega line, index of the Helping Hand line] — Prankster, no mega asked {\"mega\":-1,\"hh\":1}; +5 with the mega {\"mega\":1,\"hh\":4}; Prankster +6 with the mega {\"mega\":1,\"hh\":4} (the mega must come first whenever it is asked). Knob MEDI_MEGA_GATE_ON_PRIORITY",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "rewritesStoredStats",
+      "label": "a Speed-Swapped corpse is refilled on its own Speed, not the swapped one",
+      "live": true,
+      "detail": "the p2 refill order — no swap {\"swapped\":false,\"refill\":\"p2b,p2a\"}, Clefable Speed-Swapped by Alakazam {\"swapped\":true,\"refill\":\"p2b,p2a\"} (both must be p2b,p2a: the corpse sorts on its own Speed). Knob MEDI_CORPSE_SPEED_KEEPS_REWIRE",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "breaksProtect",
+      "label": "a perish drain waits for |upkeep| when the only stall on the field was broken",
+      "live": true,
+      "detail": "first of the |faint|/|upkeep| lines — shield standing {\"first\":\"|faint|p2a:blaziken\",\"faints\":4,\"broke\":false} (a |faint|: the stall pays), shield broken by Feint {\"first\":\"|upkeep\",\"faints\":4,\"broke\":true} (must be |upkeep). Knob MEDI_BREAK_KEEPS_STALL_FRESH",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "locksIntoMove",
+      "label": "a shielded last rampage turn fatigues at AfterMove, above the next mover",
+      "live": true,
+      "detail": "[index of the fatigue line, index of the partner move] on the last locked turn — resolved {\"c\":3,\"p\":4,\"shielded\":false}, both foes Protect {\"c\":7,\"p\":8,\"shielded\":true} (the fatigue must come first in both). Knob MEDI_LOCK_END_NEEDS_HIT",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "restoresStats",
+      "label": "a pivot's queued White Herb is spent before the entrant's Intimidate lands",
+      "live": true,
+      "detail": "Snorlax's Atk/SpA after Parting Shot and an Intimidate entrant — no herb {\"at\":-2,\"sa\":-1,\"item\":\"\"} (must be -2/-1), White Herb {\"at\":-1,\"sa\":0,\"item\":\"\"} (must be -1/0 with the herb spent). Knob MEDI_PIVOT_HERB_AFTER_ENTRY",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "smartTarget",
+      "label": "a split Dragon Darts at a body mid-Dig writes no -miss and lands both darts on its partner",
+      "live": true,
+      "detail": "[-miss lines, darts on p2a, darts on p2b] — no charge {\"miss\":0,\"f1\":1,\"f2\":1} (must be 0,1,1), p2a mid-Dig {\"miss\":0,\"f1\":0,\"f2\":2} (must be 0,0,2). Knob MEDI_SMART_INVULN_MISS_LINE",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "boostsAtHPThreshold",
+      "label": "Berserk's boost follows the attacker's recoil line",
+      "live": true,
+      "detail": "[index of the recoil line, index of the Berserk boost] — Mega Kick {\"r\":-1,\"b\":4} (no recoil, the boost fires), Double-Edge {\"r\":3,\"b\":5} (the boost must follow the recoil). Knob MEDI_HP_THRESHOLD_BOOST_ABOVE_RECOIL",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "ability",
       "tag": "restoresBerryAtResidual",
       "label": "Harvest gives the berry back — always in sun, half the time otherwise",
@@ -7824,6 +7924,26 @@
       "label": "a Substitute absorbs a Future Sight payout, and an Infiltrator booker's payout reaches the body",
       "live": true,
       "detail": "[body HP lost to the payout, doll before -> after] -- after Swords Dance [108, 0 -> 0]; behind a doll [0, 366 -> 258]; Infiltrator booker behind the same doll [108, 366 -> 366]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "delayedHit",
+      "label": "a lethal Future Sight payout into a full-HP Focus Sash or Sturdy body leaves 1 HP, and not from below full",
+      "live": true,
+      "detail": "[HP after the payout] no carrier 0 (must faint); full-HP Sash 1 item \"\" (must be 1, spent); full-HP Sturdy 1 (must be 1); Sash chipped by 1 before the payout: fainted=true (must faint)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "survivesFromFull",
+      "label": "a lethal confusion self-hit from full HP spends the Focus Sash and leaves 1 HP (the self-hit is Move-typed)",
+      "live": true,
+      "detail": "[HP after the self-hit] no item 0 (confused true, must faint); full-HP Sash 1 item \"\" (must be 1, spent); Sash chipped by 1: fainted=true (must faint)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -8490,10 +8610,60 @@
     },
     {
       "kind": "move",
+      "tag": "typeRemovedForTurn",
+      "label": "Roost announces `-singleturn` on a body with no Flying type too, and not at full HP",
+      "live": true,
+      "detail": "[-singleturn lines, -fail|heal] Decidueye-Hisui (Grass/Fighting) at full HP [0,1], at half HP [1] — the roost condition's onStart announces for every body (data/moves.ts:15439-15447); only the Flying deletion is conditional",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "spreadAll",
+      "label": "an allAdjacent move with no foe left hits the partner alone and writes no -fail",
+      "live": true,
+      "detail": "[-fail lines] allAdjacentFoes Heat Wave with both foes gone [1]; [-fail lines, partner hit] allAdjacent Earthquake [0,1] — getMoveTargets pushes adjacentAllies() first (sim/pokemon.ts:808-817) and [notarget]/-fail needs an EMPTY list (sim/battle-actions.ts:509-513)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "takesTargetItem",
+      "label": "Corrosive Gas with nobody left to aim at fails with [notarget] and -fail",
+      "live": true,
+      "detail": "[-fail lines] partner standing [0], partner Healing-Wished away [1] — an empty allAdjacent list is useMoveInner's [notarget] + -fail (sim/battle-actions.ts:509-513)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "reflectsStatusToSource",
+      "label": "a Synchronize reflection the source refuses writes the refusal line",
+      "live": true,
+      "detail": "[bare -immune, -status tox] on the Toxic user after Umbreon's Synchronize: Goodra [0,1], Poison-type Ariados [1,0] — the reflection's sourceEffect carries .status (data/abilities.ts:4857), so setStatus writes -immune (sim/pokemon.ts:1718-1723)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "boostsTarget",
+      "label": "Coaching with no partner standing fails with [notarget] and -fail",
+      "live": true,
+      "detail": "[-fail, -boost lines] partner standing [0,2], partner fainted [1,0] — adjacentAlly at a fainted partner is an empty target list (sim/pokemon.ts:844-846)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "pivotStatus",
       "label": "a frozen body clicking a PIVOT move is refused like any other move — the pivot is a move, not a switch",
       "live": true,
-      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 36 to 38",
+      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 38 to 40",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -9264,6 +9434,56 @@
       "label": "a spread item removal writes both Protect refusals before the `-enditem`",
       "live": true,
       "detail": "the refusal/effect line order on one Corrosive Gas — nobody shielding -enditem,-enditem,-enditem (three items stripped, no refusals); the ally and the far foe both Protecting -activate,-activate,-enditem (every refusal first, then the one effect)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "chargeTurn",
+      "label": "a charge-turn boost at the +6 cap still writes its line, with a zero",
+      "live": true,
+      "detail": "Barbaracle winding up Meteor Beam — at +4 the line reads spa:1, at +6 spa:0 (must be spa:0, not silence). Knob MEDI_CHARGE_BOOST_ZERO_SILENT",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "weatherSetter",
+      "label": "the sand chip order of a tied pair ignores a fainted body still in its slot",
+      "live": true,
+      "detail": "sand chips on the tied Audino pair — Whimsicott alive p2a,p1a (it IS in the list and its swap puts p2a first), Whimsicott fainted in its slot p1a,p2a (must read p1a,p2a: a corpse is not in eachEvent's list). Knob MEDI_WEATHER_SORT_KEEPS_CORPSES",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "healsAtThreshold",
+      "label": "two tied Sitrus holders eat in the cached-speed order inside one hit",
+      "live": true,
+      "detail": "Sitrus eat order after one Earthquake — attacker at p1b p1a,p2a, attacker at p2b p2a,p1a (must be p2a,p1a: the cached tie plus the p2b swap, not p1a's doubled live Speed). Knob MEDI_UPDATE_LIVE_SPEED",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "perishClock",
+      "label": "a tied pair's perish counters follow the order their volatiles were added",
+      "live": true,
+      "detail": "perish3 order of the tied Tyranitar pair — no Protect p2a,p1a (Dragapult's swap), p1a Protected first p1a,p2a (its perishsong entry sits behind protect and stall). Knob MEDI_VOL_ARTIFACT_ORDER",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "perTurnHP",
+      "label": "Salt Cure and a partial trap on one body chip in the order they were added",
+      "live": true,
+      "detail": "the second turn's two chips on Bastiodon — trap then Salt Cure trap,salt, Salt Cure then trap salt,trap (each must follow insertion order). Knob MEDI_VOL_ARTIFACT_ORDER",
       "hollow": false,
       "armed": true,
       "directCall": false

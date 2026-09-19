@@ -65,7 +65,11 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_rampage_length.js`, `tests/probe_bond_secondary_order.js`, `tests/probe_ability_flag_refusal.js`,
 `tests/probe_reopen_partings.js`, `tests/probe_moldbreaker_refusals.js`,
 `tests/probe_transform_copied_start.js`, `tests/probe_bond_reactor_ko.js`,
-`tests/probe_move_effect_leads.js`, `tests/probe_protean_contrary.js`
+`tests/probe_move_effect_leads.js`, `tests/probe_protean_contrary.js`, `tests/probe_narration_a.js`
+`tests/probe_move_effect_leads.js`, `tests/probe_protean_contrary.js`,
+`tests/probe_narration_b_line_order.js`
+`tests/probe_move_effect_leads.js`, `tests/probe_protean_contrary.js`,
+`tests/probe_tie_order.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -161,10 +165,10 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  925/925 probed mechanics live, 0 missing   (census 2026-09-19 03:46)
+  947/947 probed mechanics live, 0 missing   (census 2026-09-19 07:11)
     the census probes what somebody thought to probe: 299 of 299 in-scope tags carry a probe, 0 carry none (9 of 308
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 2.1 h old). node engine/coverage.js
+    (all-mechanics-fire.json, 2.5 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-19 04:46)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
     the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
@@ -188,9 +192,61 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 06:55_
+_stamped 2026-09-19 07:17_
 
 <!-- /GENERATED -->
+
+## THE FIVE "EXACT SPEED TIE" GAMES WERE FOUR SORT-INPUT DEFECTS. THE ELECTRO SHOT `-boost|spa|0` IS NOW WRITTEN. CENSUS **925 → 930 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `b3d9f0954198`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-19-tie-order.md`. Two-engine probe: `tests/probe_tie_order.js` (5 arms: a red
+board and a control each). Every red arm parts on `8a4140de3eaa`. Every arm agrees on protocol and board on
+`b3d9f0954198`. Each knob parts only its own red, never a control.
+
+Under the differential's pin, `PRNG.shuffle` is the identity and our `tie` stream is constant. So a tied group's
+order comes from what `speedSort` was handed and from the swaps it makes. It is not a coin. Each "tie" game was a
+wrong INPUT to the sort:
+
+- **`eachEvent('Weather')` HAS NO CORPSE.** `getAllActive()` (`sim/battle.ts:1362-1372`) skips a `fainted` body.
+  `residualOrder` kept the corpse, and its swap reordered a tied pair (1350 baseline `…2660691219`, t1). The weather
+  group now sorts `sdUpstreamActive` bodies only: not fainted, or fainted with the faint line still owed. Knob
+  `MEDI_WEATHER_SORT_KEEPS_CORPSES=1`.
+- **`eachEvent('Update')` SORTS THE CACHED `pokemon.speed`.** `updateSpeed()` refreshes it at `commitChoices`, in
+  front of a move, at the residual head and for an inserted choice's body (the entrant). `setSpecies` sets it to
+  the raw stored stat (mega). The sort is a selection sort with swaps, over `getAllActive()`. `sdEachEventOrder` is
+  now the one sort for `_updateEvent`, `residualUpdatePass` and the walk-status cure. The cache is stamped at those
+  five sites. 1350 omit-intimidate `…2635337217` t4: Discharge paralysed p2a mid-move, the live speeds were 109
+  and 54, the cached speeds 109 and 109, and the swap puts p2a first. Knob `MEDI_UPDATE_LIVE_SPEED=1`. This
+  retires the declared stale-order paragraph in `_updateAll`.
+- **VOLATILES IN INSERTION ORDER.** `findPokemonEventHandlers` walks `pokemon.volatiles` in key-insertion order.
+  `volSeqSync` observes presence at every Update pass and at the residual head, through the shadow's own readers.
+  It numbers each volatile the first time it is seen. The shadow list now emits a body's volatiles by that number.
+  Two games had `[protect, stall, perishsong]` against the artifact's perishsong-first: 1950 baseline
+  `…2634548064` t3 and `…2635249755` t8.
+- **TWO ORDER-13 STEPS ON ONE BODY.** Salt Cure and a partial trap tie on every key, so insertion order decides.
+  The walk ran the trap block first by code position. It now reads the body's two entries off the sorted shadow
+  list (`shadowChipBeforeTrap`). Game: 1950 pair-redirect-priority `…2654068794` t18. Both of these are under the
+  knob `MEDI_VOL_ARTIFACT_ORDER=1`.
+- **ELECTRO SHOT / METEOR BEAM AT +6.** `this.boost({spa:1}, …, move)` is neither secondary nor self. The
+  authority therefore writes `-boost|<it>|spa|0` (`sim/battle.ts:2076-2077`). The charge site now opts into the
+  zero line. Knob `MEDI_CHARGE_BOOST_ZERO_SILENT=1`. `…2635082691` has no divergence to its end on a scratch
+  release with the narration-b diff applied (`943969ee7e8d`). Under this knob it splits at 225 on the Archaludon
+  line. On this tree alone the game still splits at 133, the Life Dew line that the narration-b worktree fixes.
+- **Replays on `b3d9f0954198`** (single game, no warm-up, empirical steering, pinned pool): four of the five tie
+  games have no protocol divergence and every board held. `…2634548064` moves 47 → 76, to a new mechanism: Coaching
+  with its only ally fainted. The authority writes `-fail|p1b` after `[notarget]` (`sim/battle-actions.ts:461-464`).
+  We do not. Sentinel: 969 games (pairs 0–39 of every config at 1200, 1350 and 1950), before and after. The only
+  change is the targeted Salt Cure game going to no divergence. Nothing joined. 0 boards parted.
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST:** the three volatile-insertion-order games, the fainted body in the sand sort, the same-speed
+  Sitrus pair (`_updateEvent`'s declared stale cached-speed order), Electro Shot's zero boost at the cap. The census
+  and `tests/probe_tie_order.js` now carry them.
+- **NEW, NOT FIXED:** Coaching (`adjacentAlly`) with no live ally does not write the `-fail` (`…2634548064`, t5).
+- **DECLARED, NOT MODELLED:** a dragged-in body's cached speed (the authority leaves the stored stat until the next
+  refresh; we stamp it at entry). A non-mega forme change's raw `setSpecies` speed. A volatile removed and re-added
+  between two syncs keeps its old number. A same-sync pair in the opposite order to the artifact rows.
+- **CARRIED FORWARD UNCHANGED:** everything in the 6.54.0 list below.
 
 ## 6.54.0 RE-MEASURES AT **0 / 1 / 1** — THE PREDICTED GAME LEFT, NONE JOINED. THE THREE STRANDED PLANTS ARE RE-AIMED AND CAUGHT. **NO ENGINE BYTE CHANGED — RELEASE `8a4140de3eaa`.** GATE **CLOSED, 1 OF 8** (BOARD-MATERIAL ONLY). 2026-09-19, CHANGELOG 6.54.1–6.55.0
 
@@ -206,6 +262,129 @@ Report: `docs/_reports/2026-09-19-8a41-remeasure.md`. Census pin `9f251986d34e` 
   no-op in its place, so a new parameter cannot blind it). A string count of all 124 plants in
   `tests/roster.js` against the release finds every anchor matching once. Every roster stage now reads
   clean: items 148 of 148 (Greninjite MATCH after 6.54.0), 22 / 63 / 37 anchors live, every red CAUGHT.
+
+## SUCKER PUNCH READS THE MOVE ENCORE REWROTE THE TARGET INTO, AND READS ITS CATEGORY; A FUTURE SIGHT PAYOUT AND A CONFUSION SELF-HIT NOW MEET A FULL-HP FOCUS SASH OR STURDY. BOTH LATTICE LEADS WERE REAL AND BOTH WERE A CLASS. CENSUS **925 → 929 LIVE / 0 MISSING**. BOTH GAMES REPLAY TO THE END WITH NO SPLIT. **ENGINE BYTES CHANGED — WORKTREE RELEASE `edddcbcfb0c7`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-19-sucker-sash.md`. Two-engine probes: `tests/probe_sucker_reads_queued_move.js`
+(8 arms) and `tests/probe_delayed_hit_survival.js` (6 arms). Every red arm was red on `8a4140de3eaa`, every red arm is
+parted again by its own knob on `edddcbcfb0c7`, and no control moved.
+
+- **SUCKER PUNCH × ENCORE (g1350 `…2636045527`, turn 15).** `suckerpunch.onTry` asks `willMove(target).move`
+  (`data/moves.ts:18399-18405`). Champions' Encore rewrites that action with `queue.changeAction`
+  (`data/mods/champions/moves.ts:303-318`). `encoreRelocateQueued` now writes `_queuedMv`, and `queuedMoveIdOf` is the
+  one reader for Sucker Punch, Upper Hand's priority and Round's queue scan. Knob `MEDI_SUCKER_READS_PRE_ENCORE=1`.
+  The Round arm (an Encore rewrites a queued action into Round, and the partner's Round then promotes it) was red
+  too. Upper Hand cannot see a rewrite: its +3 always resolves before an Encore.
+- **SUCKER PUNCH READS THE CATEGORY, NOT THE ACTION KIND (new).** The refusal asked `kind === 'attack'`. Future
+  Sight (`futurehit`), Pollen Puff at a partner (`allyheal`) and the Struggle sentinel are damaging moves with
+  another kind, so Sucker Punch failed into them. It now asks `hasPower` of the queued move. Knob
+  `MEDI_SUCKER_READS_ACTION_KIND=1`.
+- **FUTURE SIGHT PAYOUT × FOCUS SASH / STURDY (g1950 `…2657391947`, turn 6).** `futuremove.onEnd` pays through
+  `trySpreadMoveHit` (`data/conditions.ts:415`). Its `Damage` event is answered by `focussash.onDamage` and
+  `sturdy.onDamage` on `effectType === 'Move'`, and the booked moveData carries that. The attack step's
+  from-full clamp is now a top-level `fromFullSurvival`, and the payout calls it (Endure is not asked, because
+  `onEnd` strips it). Knob `MEDI_DELAYED_HIT_NO_SURVIVAL=1`. Multiscale at payout was already right.
+- **CONFUSION SELF-HIT × FOCUS SASH (new, same class).** `confusion.onBeforeMove` deals the self-hit with
+  `effectType: 'Move'` (`data/conditions.ts:193-194`), so the same clamp answers it. Measured on the
+  authority first: `|-enditem|p1a: Weavile|Focus Sash` then `|-damage|p1a: Weavile|1/145|[from] confusion`.
+  Knob `MEDI_SELFHIT_NO_SURVIVAL=1`.
+- **`data/mechanics-census.json` REGENERATED** in the worktree: 925 → 929 live, 0 missing, 0 threw, 0 hollow. Each
+  new row was shown MISSING under its own knob. The deliberate-break list in `tests/test-mechanics.js` now
+  holds the four knobs. `MEDI_SUCKER_READS_PRE_ENCORE` WROTE the census once (927 of 928) before it was listed,
+  and a clean run wrote it back.
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST:** Sucker Punch into an Encored status click; Focus Sash against a Future Sight payout.
+- **NEW, NOT CHECKED:** Colour Change and Trick-or-Treat re-aim a queued Curse (`action.targetLoc = -1`, they read
+  `willMove(target).move.id`), and this engine models neither. A Mold Breaker Future Sight booker against Sturdy at
+  payout: the payout runs no `ModifyMove`, so Sturdy should still apply. It is not staged.
+- **CARRIED FORWARD UNCHANGED:** Cursed Body per hit; Triple Axel accuracy timing; the three stranded roster red
+  plants; the rest of #622.
+
+## NARRATION BATCH A: FOUR BUCKETS CLOSED, NO BOARD MOVED. ROOST ANNOUNCES ON EVERY BODY, AN `allAdjacent` MOVE WITH NO FOE HITS THE PARTNER WITHOUT A `-fail`, A REFUSED SYNCHRONIZE REFLECTION WRITES THE AUTHORITY'S LINE, AND AN ALLY-ONLY BOOST WITH NO PARTNER FAILS OUT LOUD. A FIFTH LINE WAS FOUND WHILE STAGING THE CLASS: CORROSIVE GAS WITH NOBODY LEFT. CENSUS **925 → 930 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED. WORKTREE RELEASE `f557bf93ba48`. NO LATTICE RE-RUN (LIGHT MODE), SO THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+
+Report: `docs/_reports/2026-09-19-narration-a.md`. Two-engine probe: `tests/probe_narration_a.js`. The buckets come from
+`docs/_reports/2026-09-19-a1c7-remeasure.md` §3. Forewarn is deferred by Will and was not touched.
+
+- **The probe stages each class in both engines.** 8 Roost games, 35 spread, 27 Synchronize and 8 ally-aimed. Every
+  fixture is learnset-legal, and the fixture check reads 0 illegal. The baseline `8a4140de3eaa` parted **38 games**:
+  3 Roost, 15 spread, 18 Synchronize and 2 ally-aimed. **Every board agreed.** On `f557bf93ba48` it parted **0 of 78**.
+  Each of the five knobs parts only its own class on protocol, and moves no board leaf.
+- **ROOST.** The `roost` condition's `onStart` announces for every body (`data/moves.ts:15439-15447`). The engine wrote
+  the `-singleturn` line only inside the Flying deletion. The type drop has not changed. `_roostTurn` gates the line
+  only, so a second Roost in the same turn stays silent. Knob `MEDI_ROOST_ANNOUNCE_FLYING_ONLY=1`.
+- **SPREAD, NO FOE.** `getMoveTargets` puts the partner first in an `allAdjacent` list (`sim/pokemon.ts:808-817`). The
+  engine read the foes alone, so `_hadTargets` was false. It then wrote `[notarget]` + `-fail` and hit the partner
+  anyway. The class has 16 legal moves. The rule also reaches Protean, `_mvRes` and the crash, and all three now follow
+  the authority. Knob `MEDI_SPREAD_NOFOE_FAILS=1`.
+- **CORROSIVE GAS, NOBODY LEFT (FOUND).** The `trickitem` branch ran its loop over an empty list and printed nothing.
+  The fix asks the field, not `_tl`, because a click Magic Bounce sends back is not a targetless click. Knob
+  `MEDI_ITEMMOVE_NOTARGET_SILENT=1`.
+- **SYNCHRONIZE.** The reflection's sourceEffect carries `.status` (`data/abilities.ts:4857`). Every refusal line in
+  `setStatus` is gated on that field. The reflect call now passes `SYNC_EFF`, and the refusal is routed the same way as
+  the status-move branch: type, ability and weather give `-immune`, and a held status gives `-fail`. Misty Terrain now
+  speaks for it (wired, not staged). Flower Veil stays silent, because it tests `effect.name`. Staged arms: Poison, Fire and Electric
+  types; Limber; Leaf Guard in sun; Safeguard; already-tox; already-brn; and a control. Knob `MEDI_SYNC_IMMUNE_SILENT=1`.
+- **ALLY-AIMED, NO PARTNER.** Coaching and Aromatic Mist with a fainted partner now write `[notarget]` + `-fail`.
+  Helping Hand and Dragon Cheer were already right. Knob `MEDI_COACHING_NOALLY_SILENT=1`.
+- **REPLAYS on `f557bf93ba48`** (`replay_one --no-warmup --steering empirical`): Roost `…2658575001` (g1350), spread
+  `…2656658836` (g1350), Synchronize `…2654088012` (g1350) and Coaching `…2635841176` (g1950). Each reproduced the
+  artifact's split index on the baseline, and each now plays to the end of the battle with no divergence.
+- **Census** 925 → 930 live. Each new row is MISSING under its own knob, and the census refuses to write under all five.
+  The knobs are stamped at LOAD.
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST, because the census and a probe now carry them:** Roost's `-singleturn`; the extra `-fail` on a
+  spread move with no foe left; Synchronize's `-immune`; Coaching's `-fail`.
+- **NEW, NOT CHECKED:** Synchronize onto a statused source protected by Safeguard. The engine asks Safeguard before
+  the held status and the authority asks it after. A Decorate aimed at a fainted ally falls back to the partner.
+  `reaimToSlot` for a single-target item move whose foe fainted.
+- **CARRIED FORWARD UNCHANGED:** Forewarn (deferred by Will); the rest of the §3 narration buckets (line order,
+  Chilly Reception, Sleep Powder under Misty Terrain, Mortal Spin, Magician, Dragon Darts); Cursed Body per hit;
+  Triple Axel accuracy timing.
+## NARRATION, LINE ORDER: THE FOURTEEN "DIFFERENT ORDER" GAMES ARE ELEVEN MECHANISMS — SEVEN FIXED HERE (EIGHT GAMES), ONE ALREADY FIXED BY 6.54.0, THREE ARE EXACT SPEED TIES (FIVE GAMES, RECORDED, NOT TOUCHED). THE PER-HIT PAIR: CURSED BODY FIXED BY 6.54.0, DRAGON DARTS FIXED HERE. CENSUS **925 → 933 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `e17925e5e8c9`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-19-narration-b.md`. Two-engine probe: `tests/probe_narration_b_line_order.js`
+(16 arms; PASS on `e17925e5e8c9`, all eight red arms RED on the pre-fix `8a4140de3eaa`, no control moved by
+any knob). Each mechanism replayed on its own pinned-pool game with `--no-warmup --steering empirical`.
+
+- **LIFE DEW** (2 games) — every partner's TryHit refusal is announced before any heal (step-major, as
+  `trySpreadMoveHit` is). Knob `MEDI_ALLIES_HEAL_INTERLEAVED=1`.
+- **MEGA ABOVE A +6 HELPING HAND** — the mega phase's gate read `_pri < 6` as "the switches are done";
+  a Prankster Helping Hand is +6. Now `sdChoiceOf(...) !== 'switch'`. Knob `MEDI_MEGA_GATE_ON_PRIORITY=1`.
+- **SPEED-SWAPPED CORPSE** — the refill queue reads the corpse's `_stRewireBase.sp` (`clearVolatile` ->
+  `setSpecies` undoes the swap). Knob `MEDI_CORPSE_SPEED_KEEPS_REWIRE=1`.
+- **BROKEN SHIELD CLEARS `_stallFresh`** — `delete target.volatiles['stall']` on a break, so the perish
+  drain finds no follower and lands below `|upkeep|`. Knob `MEDI_BREAK_KEEPS_STALL_FRESH=1`.
+- **LOCK END AT AFTERMOVE** — a shielded / missed last locked turn now ends the lock (and fatigues) at
+  AfterMove through the AfterMove debt, closing the declared remainder in the expiry block. Knob
+  `MEDI_LOCK_END_NEEDS_HIT=1`.
+- **PIVOT WHITE HERB (Champions)** — the herb's `onAnyAfterMove` queues an order-99 event, so it is spent
+  between a pivot's `|switch|` and the entrant's SwitchIn. **Board-material in the Intimidate shape** (the
+  old order let the herb clear the entrant's Intimidate too). Knob `MEDI_PIVOT_HERB_AFTER_ENTRY=1`.
+- **DRAGON DARTS INTO A SEMI-INVULNERABLE BODY** — `smartTarget` is spent silently at the invulnerability
+  step; no `-miss`. Knob `MEDI_SMART_INVULN_MISS_LINE=1`.
+- **BERSERK BELOW THE RECOIL** — paid at `AfterMoveSecondary` (the Pickpocket site), not step 20. Knob
+  `MEDI_HP_THRESHOLD_BOOST_ABOVE_RECOIL=1`.
+- **`data/mechanics-census.json` REGENERATED** in the worktree: 925 → 933 live, 0 missing, 0 hollow. With all
+  eight knobs set the run reads 925 live / 8 missing (exactly the new rows) and refuses to write.
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST:** "a missed last-turn Outrage fatigues at the residual" (the lock expiry block's
+  declared remainder); Berserk above the recoil (the Pickpocket block's "WHAT IS NOT CLAIMED", for ORDER only).
+- **RECORDED, NOT TOUCHED — EXACT SPEED TIES (Will's call):** volatile INSERTION order in the residual
+  shadow list (Perish ×2, Salt Cure vs Infestation ×1); a fainted body inside the weather `eachEvent` sort
+  (sand chip ×1); the Update order of two same-Speed Sitrus holders (×1).
+- **NEW, NOT FIXED:** a boost at +6 from a move's own `boost()` call writes `-boost|spa|0` on the authority
+  and nothing here (Electro Shot; `pair-redirect-priority …bo3-2635082691` t16, the Life Dew game's next split).
+- **NEW, NOT CHECKED:** two White Herb holders owed a clear after one pivot are spent in slot order (the
+  authority sorts its two queue entries by Speed); Eject Button / Emergency Exit switch-outs take the old herb
+  road; a body Speed-Swapped and then mega-evolved keeps a pre-mega `_stRewireBase`.
+- **CARRIED FORWARD UNCHANGED:** `defersHealingBerry` (Berserk's `onTryEatItem`) is still not branched on;
+  Triple Axel accuracy timing; the rest of the lists below.
 
 ## 6.52.0 RE-MEASURES AT **0 / 1 / 2** — 14 OF 15 TARGETED GAMES GONE, NONE JOINED. THE ONE THAT STAYED WAS NEVER A HELPING HAND GAME. THREE ROSTER RED PLANTS WERE STRANDED BY THE MERGE. **NO ENGINE BYTE CHANGED — RELEASE `a1c7dcd5696b`.** GATE **CLOSED, 4 OF 8**. 2026-09-19, CHANGELOG 6.53.0
 

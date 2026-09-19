@@ -10,6 +10,19 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.57.0] — 2026-09-19
+
+### Fixed
+- **Sucker Punch** reads the queued move (after Encore) and its category; Round reads the same.
+- **Focus Sash and Sturdy** apply to Future Sight payouts and confusion self-hits.
+- **Narration:** Roost, spread moves with no foe, Corrosive Gas, Synchronize, Coaching and Aromatic Mist
+  lines; eight line-order mechanisms; Dragon Darts into a semi-invulnerable body.
+- **Order:** volatiles in add order, the weather sort without corpses, berry passes on saved Speed,
+  Electro Shot's zero-size boost line.
+
+### Notes
+- Census 925 -> 947 live. Every fix has a probe and a MEDI_* restore knob; see the 6.57.0 notes row.
+
 ## [6.56.0] — 2026-09-19
 
 ### Changed
