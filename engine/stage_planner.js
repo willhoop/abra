@@ -675,6 +675,23 @@ function triggersOf(kind, e, Uv) {
     if (has('needsTargetToAttack') || has('failsIfTargetNotAttacking')) add({ kind: 'target-attacks', source: 'tag:needsTargetToAttack' });
     if (has('failsIfTargetMoveNotPriority')) add({ kind: 'target-attacks', priority: true, source: 'tag:failsIfTargetMoveNotPriority' });
     if (has('punishesBoostedTarget')) add({ kind: 'target-boosted', source: 'tag:punishesBoostedTarget' });
+    /* 2026-09-19 (close-two-clauses) — A MOVE THAT REWRITES THE TARGET'S STAGES OUT OF THE TARGET'S STAGES has
+     * nothing to act on against an unboosted receiver: Topsy-Turvy returns false, and Guard Swap / Power Swap
+     * exchange two empty pairs and move no board leaf in either engine. Derived from the handler, never the
+     * name: it READS `target.boosts` AND WRITES stages (`setBoost(` or a `boosts[..] =` assignment), on a move
+     * that lands on a foe. The stats are the handler's own array literal when it has one (`["def", "spd"]`).
+     * Membership printed before wiring, over the legal moves: guardswap [def,spd], powerswap [atk,spa],
+     * psychup [any], topsyturvy [any]. */
+    {
+      const S = handlersOf(e).map(h => h.src).join('\n');
+      const FOE_T = ['normal', 'any', 'adjacentFoe', 'randomNormal', 'allAdjacentFoes', 'allAdjacent'];
+      if (!has('punishesBoostedTarget') && FOE_T.includes(e.target) && /target\.boosts\b/.test(S)
+          && /setBoost\(|\.boosts\[\w+\]\s*=(?!=)/.test(S)) {
+        const stats = uniq([...S.matchAll(/\[\s*((?:["'](?:atk|def|spa|spd|spe|accuracy|evasion)["']\s*,?\s*)+)\]/g)]
+          .flatMap(x => x[1].match(/atk|def|spa|spd|spe|accuracy|evasion/g)));
+        add({ kind: 'target-boosted', stats: stats.length ? stats : null, source: 'handler reads target.boosts and writes stages' });
+      }
+    }
     if (has('thawsTarget')) add({ kind: 'target-statused', status: 'frz', source: 'tag:thawsTarget' });
     if (has('hazard')) add({ kind: 'foe-switches-after', source: 'tag:hazard' });
     const w = (tg.params.weatherScaled || tg.params.failsWithoutWeather || tg.params.chargeSkippedByWeather || {});
@@ -1800,8 +1817,18 @@ function composeEntity(rc, x) {
     rc.notes.push(lp.sp.name + ' clicks ' + D.moves.get(lp.m).name + ' (userFaints always) and the carrier replaces it: one fallen before entry');
   } else if (T('switch-out').length) {
     /* the statused holder LEAVES on the trigger turn; its status on the bench is the leaf */
-    acts.push({ role: 'C', click: { sw: 'CB' }, phase: 1 });
-    rc.conditions.push({ kind: 'click', role: 'C', sw: 'CB', phase: 1 });
+    /* 2026-09-19 — THE MERGE STAGED THIS SWITCH TWICE. Two batches taught the planner the same exit
+     * independently: the `carrier-switches-out` block above (tag `switchOutTrigger`, which names Natural Cure,
+     * Regenerator and Zero to Hero) and this branch (handler `onSwitchOut` reading `.status`, which names
+     * Natural Cure alone). Merged, Natural Cure got both, `layTurns` refused "C is asked for two trigger clicks
+     * on one turn", and the row fell back to a legacy fixture that never switched — DID-NOT-FIRE on
+     * `d92bdfb50d88`. One exit is the trigger; the second click is dropped, and the STATUS leaf this branch
+     * names is kept, because the carrier-switches-out block's `species` leaf is Zero to Hero's, not Natural
+     * Cure's. */
+    if (!acts.some(a => a.role === 'C' && a.phase === 1 && a.click && a.click.sw === 'CB')) {
+      acts.push({ role: 'C', click: { sw: 'CB' }, phase: 1 });
+      rc.conditions.push({ kind: 'click', role: 'C', sw: 'CB', phase: 1 });
+    }
     rc.observe = { role: 'C', leaf: 'status', channel: 'board', leaves: ['status'] };
     rc.notes.push('the statused carrier switches out on the trigger turn (onSwitchOut reads its status)');
   }
@@ -1943,7 +1970,13 @@ function stageMove(mv, carrier) {
         .find(k => !masksFor(k, body, rc.bodies.C, { arm: rc.arm }).length);
       if (!m) continue; moves.attack = m;
     }
-    if (need.boosted) { const m = pool.find(d => d.category === 'Status' && d.target === 'self' && d.boosts); if (!m) continue; moves.boost = m.id; }
+    if (need.boosted) {
+      /* a stat-pair exchange needs a stage on ONE OF ITS OWN stats; the rest take any self boost */
+      const want = need.boosted.stats;
+      const m = pool.find(d => d.category === 'Status' && d.target === 'self' && d.boosts
+                            && (!want || want.some(s => (d.boosts[s] || 0) > 0)));
+      if (!m) continue; moves.boost = m.id;
+    }
     pick = { body, moves };
     break;
   }
@@ -2233,12 +2266,91 @@ function reactsTo(alt, rc, e) {
   for (const n of PRE.boardNeeds(normEntity(a))) if (['hp-threshold', 'item-consumed', 'volatile-present', 'own-stat-dropped', 'trapped', 'ko-hit'].includes(n.kind) && (rc.hpPool === 'x1' || staged.size > 2)) { why.push('the board stages its ' + n.kind); break; }
   return why;
 }
+/* ==== 2026-09-19 -- A QUIET CONTROL IS PREFERRED, AND "QUIET" IS JUDGED ON THIS BOARD ============================
+ *
+ * An ability swap is one-variable evidence only if the CONTROL ability does nothing on the board: otherwise the two
+ * arms differ because the control acted, and the pair cannot say which of the two moved the game. `reactsTo` reads
+ * three things -- a shared tag, an entry/residual write, a click that meets one of the alternative's MOVE NEEDS -- and
+ * so it cannot see a handler that fires on EVERY hit the carrier takes and therefore has no need to meet. Measured on
+ * release d92bdfb50d88: Hyper Cutter's control was ANGER POINT (`PRE.moveNeeds(angerpoint)` is empty; its gate is
+ * the crit, and the `bottom-tie-first` arm lands every crit), so the control arm maxed Attack on the receiver's crit
+ * Chilling Water -- and that control game is where a real engine divergence surfaced. Crabominable's third ability,
+ * Iron Fist, needs a punching click and there is none.
+ *
+ * `loudOnBoard` asks, for every handler that WRITES (the `reactsToOnBoard` test: a leaf rule, a `chainModify`, a
+ * returned number) and runs when the carrier is STRUCK or STRIKES: does that event happen on this board (a damaging
+ * click lands on C / C clicks a damaging move), and if so, is the handler gated off? Gated off means it has a move
+ * need no click on the board meets, or a crit gate on an arm that is not the bottom corner. A handler with no gate, or
+ * a met one, is LOUD, and the reason is named.
+ *
+ * IT IS A PREFERENCE AND NEVER A GATE. Among the alternatives the existing chain already ACCEPTS, a quiet one is
+ * taken; where none is quiet the old first choice stands and the fixture says `quiet: false` with the reasons. So no
+ * row can lose its control to this change -- measured over the whole plan, see the report. `quiet` / `loud` /
+ * `first_passing` are stamped on `fixture.control` so the artifact can carry them.
+ * `STAGE_PLANNER_FIRST_PASSING_CONTROL=1` restores the first-passing choice (the stamp is still written). */
+const FIRST_PASSING_CONTROL = process.env.STAGE_PLANNER_FIRST_PASSING_CONTROL === '1';
+const STRUCK_EVENT = s => (!s.prefix && /^(hit|damaginghit|aftermovesecondary|damage|modifydef|modifyspd|tryhit|sourcemodifydamage)$/.test(s.base))
+  || (s.prefix === 'Source' && /^(modifydamage|modifyatk|modifyspa|basepower)$/.test(s.base));
+const STRIKE_EVENT = s => !s.prefix && /^(basepower|modifyatk|modifyspa|modifydamage|modifymove|modifytype|modifycritratio|sourcehit)$/.test(s.base);
+function loudOnBoard(alt, rc) {
+  const a = D.abilities.get(alt);
+  if (!a || !a.exists) return ['unknown ability ' + alt];
+  const clicks = boardClicks(rc);
+  const struck = clicks.filter(c => c.role !== 'C' && c.lands.includes('C') && c.d.category !== 'Status');
+  const strikes = clicks.filter(c => c.role === 'C' && c.d.category !== 'Status');
+  const needs = PRE.moveNeeds(normEntity(a)).needs;
+  const wx = uniq(clicks.filter(c => c.d.weather).map(c => id(c.d.weather)));
+  const tx = uniq(clicks.filter(c => c.d.terrain).map(c => id(c.d.terrain)));
+  const why = [];
+  for (const h of handlersOf(a)) {
+    /* A `condition.` handler runs only once its own volatile is up, and the handler that raises it is judged on
+     * its own line (Flash Fire's boost needs its absorb first). */
+    if (/^condition\./.test(h.name)) continue;
+    const s = splitHandler(h.name); if (!s) continue;
+    const writes = LEAF_RULES.some(([re]) => re.test(h.src)) || /chainModify|return\s+\d/.test(h.src);
+    if (!writes) continue;
+    const onStruck = STRUCK_EVENT(s), onStrike = STRIKE_EVENT(s);
+    if (!onStruck && !onStrike) continue;
+    /* THE GATES THE HANDLER WRITES IN ITS OWN TEXT, each narrowing the clicks that can run it -- the stat an Atk/SpA
+     * modifier reads (Physical/Special, from the event's own name), a typed gate (`move.type === "Fire"`), a contact
+     * gate, a weather or terrain the board's clicks never set, and a faint gate on a pool no single hit can empty. */
+    const types = [...h.src.matchAll(/move\.type\s*===\s*["'](\w+)["']/g)].map(m => m[1]);
+    const cat = /spa$/.test(s.base) ? 'Special' : /atk$/.test(s.base) ? 'Physical' : null;
+    const contact = /checkMoveMakesContact|flags\.contact|flags\[["']contact["']\]/.test(h.src);
+    const pool = (onStruck ? struck : strikes).filter(c => (!cat || c.d.category === cat)
+      && (!types.length || types.includes(c.d.type)) && (!contact || !!(c.d.flags && c.d.flags.contact)));
+    if (!pool.length) continue;
+    const w = [...h.src.matchAll(/isWeather\(\s*\[?([^)\]]*)\]?\s*\)/g)].flatMap(m => [...m[1].matchAll(/["']([a-z]+)["']/g)].map(x => x[1]));
+    if (w.length && !w.some(x => wx.includes(x))) continue;
+    const t = [...h.src.matchAll(/isTerrain\(\s*\[?([^)\]]*)\]?\s*\)/g)].flatMap(m => [...m[1].matchAll(/["']([a-z]+)["']/g)].map(x => x[1]));
+    if (t.length && !t.some(x => tx.includes(x))) continue;
+    /* `!target.hp && …` REQUIRES the faint (Aftermath); `if (!target.hp) return;` is the opposite, an early exit
+     * for a body already down (Anger Point) -- matched first time as a gate, and it hid Anger Point. */
+    if (/!\s*target\.hp\s*&&/.test(h.src) && rc.hpPool !== 'x1') continue;
+    const hn = needs.filter(n => n.handler === h.name);
+    const ctx = c => ({ userTypes: typesOf(rc.bodies[c.role]), targetTypes: typesOf(onStruck ? rc.bodies.C : (rc.bodies[c.lands[0]] || rc.bodies.C)) });
+    if (hn.length && !pool.some(c => hn.some(n => needMet(c.d.id, n, ctx(c))))) continue;
+    if (/\.crit\b/.test(h.src) && rc.arm !== BOTTOM) continue;
+    why.push(h.name + ' runs on ' + (onStruck ? 'a hit C takes' : 'a hit C lands') + ' (' + pool[0].role + ':' + pool[0].d.name + ')'
+      + (/\.crit\b/.test(h.src) ? ', and the ' + rc.arm + ' arm lands every crit' : '') + (hn.length ? ', its need met' : ', with no need to meet'));
+  }
+  return why;
+}
+function preferQuiet(passing, rc) {
+  const judged = passing.map(p => Object.assign({}, p, { loud: loudOnBoard(p.alt, rc) }));
+  const first = judged[0];
+  const pick = FIRST_PASSING_CONTROL ? first : (judged.find(p => !p.loud.length) || first);
+  return { alt: pick.alt, k: pick.k,
+           stamp: { quiet: !pick.loud.length, loud: pick.loud.length ? pick.loud : null,
+                    first_passing: first.alt, first_passing_quiet: !first.loud.length,
+                    passing: judged.map(p => p.alt + (p.loud.length ? ' [loud]' : ' [quiet]')) } };
+}
 function buildControl(rc, kind, e, bearer, trig) {
   if (BRK === 'control-two-vars' || BRK === 'control-two-reasons') void 0;
-  const done = (k, variable, why) => {
+  const done = (k, variable, why, stamp) => {
     if (BRK === 'control-two-vars') k.bodies.C.nature = D.natures.get('adamant').name;
     if (BRK === 'control-two-reasons') { const c = rc.conditions.find(x => x.kind === 'click' && x.move); if (c) { const t = k.turns[c.turn - 1]; if (t && t[c.role]) t[c.role] = { m: 'protect' }; } }
-    return { rc: k, variable, why };
+    return Object.assign({ rc: k, variable, why }, stamp || {});
   };
   if (kind === 'items') {
     const k = cloneRc(rc); k.bodies.C.item = '';
@@ -2254,13 +2366,20 @@ function buildControl(rc, kind, e, bearer, trig) {
     const alts = uniq(Object.values(spOf(bearer.sheet).abilities)).filter(a => id(a) !== e.id)
       .sort((x, y) => abilityNoise(x) - abilityNoise(y) || (x < y ? -1 : 1));
     const tried = [];
+    /* 2026-09-19 -- EVERY PASSING ALTERNATIVE IS COLLECTED, AND A QUIET ONE IS PREFERRED. This loop used to return
+     * the FIRST alternative `reactsTo` and the judge accepted; see `loudOnBoard` for what `reactsTo` cannot see. */
+    const passing = [];
     for (const alt of alts) {
       const r = reactsTo(alt, rc, e);
       if (r.length) { tried.push(alt + ': ' + r.join('; ')); continue; }
       const k = cloneRc(rc); k.bodies.C.ability = alt;
       const j = judge(rc, k, {});
-      if (j.diff.length === 1 && j.inert.length === 1) return done(k, 'C.ability', 'the same body carries ' + alt + ' instead');
+      if (j.diff.length === 1 && j.inert.length === 1) { passing.push({ alt, k }); continue; }
       tried.push(alt + ': ' + j.inert.length + ' inert reasons, ' + j.diff.length + ' leaves');
+    }
+    if (passing.length) {
+      const q = preferQuiet(passing, rc, e);
+      return done(q.k, 'C.ability', 'the same body carries ' + q.alt + ' instead', q.stamp);
     }
     rc.controlTried = tried;
   }
@@ -2414,13 +2533,18 @@ function secondChainControl(rc, kind, e, bearer, trig, done) {
   if (bearer && bearer.via === 'slot') {
     const alts = uniq(Object.values(spOf(bearer.sheet).abilities)).filter(a => id(a) !== e.id && abilityAccepted(bearer.sheet, a))
       .sort((x, y) => abilityNoise(x) - abilityNoise(y) || (x < y ? -1 : 1));
+    const passing = [];
     for (const alt of alts) {
       const r = reactsToOnBoard(alt, rc, e);
       if (r.length) { tried.push('ability ' + alt + ': ' + r.join('; ')); continue; }
       const k = cloneRc(rc); k.bodies.C.ability = alt;
       const j = judge(rc, k, {});
-      if (j.diff.length === 1 && j.inert.length === 1) return done(k, 'C.ability', 'the same body carries ' + alt + ' instead (second chain: each click read against its real user and target)');
+      if (j.diff.length === 1 && j.inert.length === 1) { passing.push({ alt, k }); continue; }
       tried.push('ability ' + alt + ': ' + j.inert.length + ' inert reasons, ' + j.diff.length + ' leaves');
+    }
+    if (passing.length) {
+      const q = preferQuiet(passing, rc, e);
+      return done(q.k, 'C.ability', 'the same body carries ' + q.alt + ' instead (second chain: each click read against its real user and target)', q.stamp);
     }
   }
   /* (c) the trigger click swapped on the body that makes it */
@@ -2764,7 +2888,9 @@ function buildOne(kind, e, trig, bearer, branch, stager) {
     bodies: Object.fromEntries(['C', 'CA', 'R', 'RA', 'LP'].filter(r => rc.bodies[r]).map(r => [r, { species: rc.bodies[r].species, field: rc.bodies[r].field, ability: rc.bodies[r].ability, item: rc.bodies[r].item, moves: rc.bodies[r].moves, speed: speedOf(rc.bodies[r]), gender: rc.bodies[r].gender || '' }])),
     turns: rc.turns, conditions: rc.conditions, triggerClicks: rc.triggerClicks, live: [...rc.live],
     observe: { channel: obs.channel || (rc.observe || {}).channel, leaves: obs.leaves || [], role: (rc.observe || {}).role || null, leaf: (rc.observe || {}).leaf || null },
-    control: control.rc ? { variable: control.variable, why: control.why } : null,
+    control: control.rc ? Object.assign({ variable: control.variable, why: control.why },
+      'quiet' in control ? { quiet: control.quiet, loud: control.loud, first_passing: control.first_passing,
+                             first_passing_quiet: control.first_passing_quiet, passing: control.passing } : {}) : null,
     controlRefusal: control.refusal || null,
     variants, plants: plantsFor(rc, kind, e, control, obs),
     notes: rc.notes, assumptions: rc.assumptions, half: rc.half || null,

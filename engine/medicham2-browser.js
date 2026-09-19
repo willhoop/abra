@@ -792,6 +792,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * EARLY pass, ahead of every undeclared-order handler on every target. Zero over a run with a Rough Skin
    * body being touched means the pass is not firing. */
   dhOrder1Early: 0,
+  /* 2026-09-19 -- a `buffsHolderOnHit` member whose handler is `onHit` (Anger Point -- read off the tag's
+   * `event`, never a name) PAID at `runMoveEffects`' own position, above the self drops and the secondaries.
+   * One per (row, move) plus one per interior volley arrival. Zero over a run where an Anger Point body took a
+   * crit means the step is not firing. */
+  buffOnHitAtHitEvent: 0,
   /* 2026-09-06 -- AND THE SUBSTITUTE'S OWN ROLL, an INSTRUMENT counter for the same reason.
    *   subRollAddrFromLastAccTarget   PRICED DOLL ROWS whose damage and crit draws were addressed to
    *                                  the last body `hitStepAccuracy` reached rather than to the body
@@ -3958,6 +3963,12 @@ const MEDFAILS = { encoreAction: 0,
   /* NARRATION BATCH Y -- MEDI_DH_STEPS_SPLIT=1 is armed: the four step-major `DamagingHit` steps are back, so
      a spread hit pays every target's punish before any target's buff. MUST READ 0 on any shipping run. */
   dhStepsSplitRestored: 0,
+  /* 2026-09-19 -- MEDI_HIT_BUFF_AT_DAMAGING_HIT=1 is armed: an `onHit` stat ability (Anger Point) is paid with the
+     `DamagingHit` family again, BELOW the same hit's secondary. MUST READ 0 on any shipping run. */
+  hitBuffAtDamagingHitRestored: 0,
+  /* 2026-09-19 -- a `buffsHolderOnHit` whose tag carries no `event` (a tags.json cut before the field was
+     derived). The buff falls back to the `DamagingHit` position and is COUNTED here, never assumed. */
+  buffOnHitEventUnknown: 0, buffOnHitEventUnknownFirst: '',
   /* NARRATION BATCH Z -- MEDI_SUB_ABSORB_AT_APPLY=1 is armed: the doll is absorbed at the head of `_stepApply`
      again and `_stepDamage` writes its lines inline, so a body row's `-resisted` and `-damage` land above the doll
      row's `-end`. MUST READ 0 on any shipping run. */
@@ -4461,7 +4472,12 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-08-25 -- MEDI_NO_DESTINY_BOND=1 is on, so Destiny Bond is the 5-PP no-op it was before this
    * pass. A run carrying this may not be quoted as an engine measurement. */
   destinyBondSuppressed: 0,
-  /* WIRE 158 -- `piercesProtect.onlyMoveFlag` named a flag no move in the artifact carries, so the
+  /* 2026-09-19 -- the two RED-DEMONSTRATION knobs for the staged-game move reader (close-two-clauses):
+   * MEDI_WISH_NO_PAYOUT=1 (the booked Wish is spent and heals nobody, with no line) and
+   * MEDI_STAT_INVERT_NOOP=1 (Topsy-Turvy's handler reports success and inverts nothing). A run
+   * carrying either may not be quoted as an engine measurement. */
+  wishPayoutSuppressed: 0, statInvertNoop: 0,
+  /* WIRE 158 --`piercesProtect.onlyMoveFlag` named a flag no move in the artifact carries, so the
    * pierce silently applied to NOTHING. Zero today: both entries say `contact` and 245 moves carry
    * that tag. A fallback that quietly disables a mechanic is exactly the shape CLAUDE.md opens with,
    * so it is loud rather than assumed. */
@@ -16218,6 +16234,12 @@ if(ABSORB_ACC_LOCAL)MEDFAILS.absorbAccLocalRestored=1;
  * `MEDFAILS.dhStepsSplitRestored`. Probe: tests/probe_damaginghit_walk.js. */
 const DH_STEPS_SPLIT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DH_STEPS_SPLIT==='1');
 if(DH_STEPS_SPLIT)MEDFAILS.dhStepsSplitRestored=1;
+/* 2026-09-19 -- MEDI_HIT_BUFF_AT_DAMAGING_HIT=1 PAYS AN `onHit` STAT ABILITY (Anger Point) WITH THE `DamagingHit`
+ * FAMILY AGAIN, below the same hit's secondary -- the pre-fix engine: a crit Chilling Water leaves +6 where the
+ * authority leaves +5. Stamped at LOAD. Probes: tests/probe_hit_event_buff_order.js and the census row "Anger
+ * Point maxes Attack BEFORE the same hit's secondary drop". See `_stepHitEvent`. */
+const HIT_BUFF_AT_DAMAGING_HIT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HIT_BUFF_AT_DAMAGING_HIT==='1');
+if(HIT_BUFF_AT_DAMAGING_HIT)MEDFAILS.hitBuffAtDamagingHitRestored=1;
 /* NARRATION BATCH Z, 2026-09-10 -- MEDI_SUB_ABSORB_AT_APPLY=1 PUTS THE SUBSTITUTE ABSORB BACK INSIDE `_stepApply`
  * (step 2 of `spreadMoveHit`) and the step-1 lines back inline in `_stepDamage`, which on a spread hit writes a body
  * row's `-resisted` / `-damage` above the doll row's `-activate` / `-end` -- the pinned pool's four substitute cards.
@@ -22143,6 +22165,9 @@ function applyStatOp(user,target,op,mvId,rng){
     for(const k of ks){
       if(b.boosts[k]==null)continue;
       if(op.nonzeroOnly&&b.boosts[k]===0)continue;      // `if (target.boosts[i] === 0) continue;`
+      /* MEDI_STAT_INVERT_NOOP=1 -- the red demonstration: the handler still reports success and the
+       * stage is left where it was, i.e. a move that "resolves" and does nothing. */
+      if(STAT_INVERT_NOOP){MEDFAILS.statInvertNoop=1;moved=true;continue;}
       b.boosts[k]=-b.boosts[k];moved=true;
     }
     /* AN EMPTY VECTOR IS A LEGITIMATE FAIL, and it is the handler's own `if (!success) return false`.
@@ -23471,6 +23496,13 @@ function stallBoardCounter(n){ return (n|0)>0?stallCounter(n|0):0; }
  * strip and the refusal are the SAME `removeVolatile` seen from two handlers. Any run carrying it also
  * carries a non-zero `MEDFAILS.destinyBondSuppressed`. Same shape as MEDI_SELFBOOST_IN_LOOP. */
 const NO_DESTINY_BOND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_NO_DESTINY_BOND==='1');
+/* 2026-09-19 -- RED-DEMONSTRATION KNOBS for engine/all_mechanics_fire.js's move reader, both default off.
+ * MEDI_WISH_NO_PAYOUT=1: a Wish comes due and heals nobody (the record is still spent, no `-heal` line) --
+ * the protocol half of the reader must then read Wish as NOT resolved on MEDICHAM.
+ * MEDI_STAT_INVERT_NOOP=1: Topsy-Turvy's invert op reports success and moves no stage -- the state half
+ * (`stateCredit`) must then find our two arms identical and read it NOT resolved. Loud in MEDFAILS. */
+const WISH_NO_PAYOUT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_WISH_NO_PAYOUT==='1');
+const STAT_INVERT_NOOP=(typeof process!=='undefined'&&process.env&&process.env.MEDI_STAT_INVERT_NOOP==='1');
 const DESTINY_BOND_VOL='destinybond';
 /* WHICH MOVE SETS IT, DERIVED. Keyed on the VOLATILE the tag already records
  * (`statusInflict.effects[].volatile`), never on a move name -- engine/faces.js makes exactly this
@@ -42724,6 +42756,12 @@ function battleTurn(S,rng,actsForA,actsForB){
              * needs `_landed`. */
             /* 2026-09-11 -- a Parental Bond arrival that is not the last pays its own `self:` drop and
              * secondaries HERE, above its DamagingHit pass. See `_bondArrivalEffects`. */
+            /* 2026-09-19 -- AN `onHit` STAT ABILITY IS STEP 3 OF THIS ARRIVAL'S OWN `spreadMoveHit`, so it is paid
+             * ABOVE the arrival's self drop and secondaries (`_bondArrivalEffects`), not beside its DamagingHit
+             * pass below them. See `_stepHitEvent`. `_hitEvArr` is decided once per arrival and the DamagingHit
+             * block below skips its own `_stepBuffOnHit(R,1)` when it is set, so the arrival is paid exactly once. */
+            const _hitEvArr=!HIT_BUFF_AT_DAMAGING_HIT&&!REACT_BATCHED&&i<_packets.length-1&&tg.curHP>0&&_buffEventOf(tg)==='Hit';
+            if(_hitEvArr){MEDSEEN.buffOnHitAtHitEvent++;_stepBuffOnHit(R,1);}
             if(i<_packets.length-1&&tg.curHP>0&&R.hitcountBondPlan)_bondArrivalEffects(R);
             if(i<_packets.length-1&&tg.curHP>0){
               if(REACT_BATCHED)MEDFAILS.reactBatchedRestored=1;
@@ -42734,7 +42772,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                  * `getSpreadDamage` over the same target list -- so it leaves `activeTarget` on the
                  * same last body this move's damage step did. See `_reactAddr`. */
                 _reactAddr(()=>_damagingHit(1));
-                _stepBuffOnHit(R,1);
+                if(!_hitEvArr)_stepBuffOnHit(R,1);
                 /* 2026-09-19 -- AND THE LATE PAIR OF THE SAME EVENT, for this arrival: the target's
                  * Cursed Body, then the attacker's Poison Touch. See `_lateReactorsOf`. */
                 if(REACT_LATE_ONCE)MEDFAILS.reactLateOnceRestored=1;
@@ -44059,7 +44097,9 @@ function battleTurn(S,rng,actsForA,actsForB){
          * authority's own `HIT_SUBSTITUTE` dropping the row before `runMoveEffects`; the probe's `check-sub`
          * arm stages it. `clearBoosts` writes the vector directly (sim/pokemon.ts), so no Contrary, no
          * refusal and no `-boost` line -- and `-clearboost` is not a compared protocol event here. */
-        if(!tg.fainted&&tg.boosts&&TAGS.has('move',a.move.id,'clearsBoosts')){
+        /* `!R._clearDone` -- 2026-09-19: a row carrying a Hit-event buff (Anger Point) had its clear paid first, at
+         * step 3, by `_stepHitEvent`, which is the move's own `onHit` running before the ability's. */
+        if(!R._clearDone&&!tg.fainted&&tg.boosts&&TAGS.has('move',a.move.id,'clearsBoosts')){
           if(CLEAR_SMOG_KEEPS_BOOSTS){ if(Object.values(tg.boosts).some(v=>v))MEDFAILS.clearSmogKeepsBoostsRestored=1; }
           else { for(const _k in tg.boosts)tg.boosts[_k]=0; MEDSEEN.clearsBoostsOnHit++; }
         }
@@ -45497,6 +45537,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * packet loop calls it with a literal 1 for each interior arrival, so a Stamina body gets its
        * Defence between two Twin Beam arrivals rather than twice below both. */
       const _stepBuffOnHit=(R,_n)=>{const tg=R.tg;
+        if(_n==null&&R._buffAtHit)return;   // 2026-09-19 -- already paid at step 3 by `_stepHitEvent`
         const _react=(_n==null?Math.max(0,(R.react|0)-(R._buffPaid|0)):_n);
         if(_n!=null)R._buffPaid=(R._buffPaid|0)+_n;
         /* THE GATE IS ASKED ON THE DEFERRED CALL ONLY, AND THAT IS NOT A LOOSENING. `R.hit` /
@@ -45679,6 +45720,53 @@ function battleTurn(S,rng,actsForA,actsForB){
         _stepDamagingHit(R);                              // the ability, undeclared order (null if paid early)
         if(!R._buffDone){R._buffDone=true;_stepBuffOnHit(R);}   // the ability, undeclared order (a body has one)
         _stepDamagingHitLate(R);                          // `_dhAbil`, then the source's `onSource…` handler
+      };
+      /* ==== 2026-09-19 -- STEP 3, `runMoveEffects`: AN `onHit` STAT ABILITY IS PAID ABOVE THE SELF DROPS AND THE
+       * SECONDARIES, NOT WITH THE `DamagingHit` FAMILY ================================================
+       *
+       * The Champions `spreadMoveHit` (data/mods/champions/scripts.ts:315-425) numbers its own steps: 2
+       * `spreadDamage` (:369), "3. onHit event happens here" `runMoveEffects` (:375), 4 `selfDrops` (:385), 5
+       * `secondaries` (:388), and only then `runEvent('DamagingHit')` (:410). `runMoveEffects` raises the move's
+       * own `singleEvent('Hit')` and then `runEvent('Hit', target, source, move)` (sim/battle-actions.ts:1279,
+       * :1283). ANGER POINT IS `onHit` (data/abilities.ts:131-137; the mod does not override it), so it maxes
+       * Attack at step 3 and a crit Chilling Water's own -1 lands on the maxed stage: +5. `buffsHolderOnHit`
+       * derived it from `onDamagingHit || onHit` and this engine paid every member at the `DamagingHit` event,
+       * below step 5: the -1 hit a neutral stage and the +12 clamped it back to +6. Found as the Hyper Cutter
+       * row's CONTROL arm in data/all-mechanics-fire.json on release d92bdfb50d88 (ours +6, authority +5).
+       *
+       * THE EVENT IS READ OFF THE TAG (`buffsHolderOnHit.event`, derived in tag_dex.js from which handler carries
+       * the boost), never off a name. A tag with no `event` falls back to the old position and is COUNTED
+       * (`MEDFAILS.buffOnHitEventUnknown`), because a guessed position is the silent default.
+       *
+       * THE MOVE'S OWN `onHit` GOES FIRST, and the one damaging member this engine models is `clearsBoosts`
+       * (Clear Smog), paid at the head of `_stepEffects`. With the buff moved above it a crit Clear Smog into an
+       * Anger Point body would max Attack and then clear it, where the authority clears and then maxes. So on a
+       * row that pays a Hit-event buff the clear is paid HERE, first, and `R._clearDone` tells `_stepEffects` it
+       * is done. A row with no Hit-event buff is untouched. MEDI_HIT_BUFF_AT_DAMAGING_HIT=1 restores both. */
+      const _buffEventOf=(tg)=>{
+        const _b=tg&&tg.ability?TAGS.param('ability',tg.ability,'buffsHolderOnHit'):null;
+        if(!_b)return null;
+        if(_b.event==null){MEDFAILS.buffOnHitEventUnknown++;
+          if(!MEDFAILS.buffOnHitEventUnknownFirst)MEDFAILS.buffOnHitEventUnknownFirst=String(tg.ability);
+          return 'DamagingHit';}
+        return String(_b.event);
+      };
+      const _hitEventClear=(R)=>{const tg=R.tg;
+        if(R._clearDone||tg.fainted||!tg.boosts||!TAGS.has('move',a.move.id,'clearsBoosts'))return;
+        R._clearDone=true;
+        if(CLEAR_SMOG_KEEPS_BOOSTS){ if(Object.values(tg.boosts).some(v=>v))MEDFAILS.clearSmogKeepsBoostsRestored=1; }
+        else { for(const _k in tg.boosts)tg.boosts[_k]=0; MEDSEEN.clearsBoostsOnHit++; }
+      };
+      const _stepHitEvent=(R)=>{
+        if(HIT_BUFF_AT_DAMAGING_HIT||R._buffDone)return;
+        if(!R.hit&&!R.fainted)return;
+        if(_buffEventOf(R.tg)!=='Hit')return;
+        _hitEventClear(R);
+        R._buffDone=true; MEDSEEN.buffOnHitAtHitEvent++;
+        _stepBuffOnHit(R);
+        /* SET AFTER THE CALL, and read by `_stepBuffOnHit`'s deferred path: the `MEDI_DH_STEPS_SPLIT=1` layout
+         * lists `_stepBuffOnHit` bare and does not ask `_buffDone`, so without this it would pay Anger Point twice. */
+        R._buffAtHit=true;
       };
       /* `AfterHit` -- `if (moveData.onAfterHit && pokemon.hp)` at battle-actions.ts:953. The item
        * strip, moved out of `_stepApply` unchanged. Its own header there records WHAT it takes and the
@@ -46087,7 +46175,9 @@ function battleTurn(S,rng,actsForA,actsForB){
                      * step 1's lines (every live row's effectiveness / crit / berry / pierce line), BETWEEN the price
                      * and the apply. The knob takes both out and `_stepApply` absorbs the doll at its head again. */
                     ...(SUB_ABSORB_AT_APPLY?[]:[_stepSubAbsorb,_stepPriceLines]),
-                    _stepApply,_stepSelfPay,_stepEffects,
+                    _stepApply,
+                    _stepHitEvent,                     // 2026-09-19 -- step 3, `runMoveEffects`: an `onHit` stat ability
+                    _stepSelfPay,_stepEffects,
                     /* NARRATION BATCH Y, 2026-09-09 -- ONE `DamagingHit`, in the authority's sort order: every
                      * order-1 handler index-major, then every undeclared-order handler index-major. See
                      * `_stepDamagingHitEarly`. The knob restores the 2026-08-22 / BATCH Q2 four-step layout. */
@@ -48147,7 +48237,8 @@ function battleTurn(S,rng,actsForA,actsForB){
        const _sc2=_sf2&&_sf2.slot, _r2=_sc2&&_si2>=0?_sc2[_si2]:null;
        if(_r2&&_r2.due&&_r2.when==='endOfNextTurn'&&!healBlocked(m)){
          const _h0=m.curHP;
-         m.curHP=_r2.full?m.st.hp:Math.min(m.st.hp,m.curHP+(_r2.hp||0));
+         if(WISH_NO_PAYOUT)MEDFAILS.wishPayoutSuppressed=1;
+         else m.curHP=_r2.full?m.st.hp:Math.min(m.st.hp,m.curHP+(_r2.hp||0));
          delete _sc2[_si2];
          MEDSEEN.healDescriptorSlot++;
          /* ROADMAP #234 -- THE WISHER. Wish is the one heal in the game whose line carries a SECOND

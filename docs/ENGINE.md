@@ -71,7 +71,9 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_narration_b_line_order.js`
 `tests/probe_move_effect_leads.js`, `tests/probe_protean_contrary.js`,
 `tests/probe_tie_order.js`, `tests/probe_narration_c.js`
-`tests/probe_tie_order.js`, `tests/probe_narration_d.js`
+`tests/probe_tie_order.js`, `tests/probe_narration_d.js`,
+`tests/probe_state_credit_red.js`
+`tests/probe_hit_event_buff_order.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -167,10 +169,10 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  967/967 probed mechanics live, 0 missing   (census 2026-09-19 12:03)
+  968/968 probed mechanics live, 0 missing   (census 2026-09-19 13:50)
     the census probes what somebody thought to probe: 301 of 301 in-scope tags carry a probe, 0 carry none (9 of 310
     tags have no in-scope carrier); 1 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 26 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 1.4 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-19 12:39)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
     the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
@@ -194,9 +196,91 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 12:57_
+_stamped 2026-09-19 13:57_
 
 <!-- /GENERATED -->
+
+## BOTH FAILING CLAUSES ON `d92bdfb50d88` ARE CLOSED ON THEIR NAMED ROWS: THE RESIST-BERRY PLANT IS CAUGHT AGAIN, NATURAL CURE FIRES, AND THE EIGHT MOVES RESOLVE ON BOTH ENGINES. ALL THREE WERE INSTRUMENT FAULTS; NO MOVE FAILED TO ACT IN OUR ENGINE. **WORKTREE RELEASE `9a031254d967` (TWO RED-DEMO KNOBS, DEFAULT OFF). LIGHT MODE: NAMED ROWS ONLY; THE FULL BATTERY AND THE GATE ARE OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-19-close-two-clauses.md`. Probe: `tests/probe_state_credit_red.js` (GREEN on
+`9a031254d967`, 12 of 12 checks, both red arms CAUGHT).
+
+- **`item/resist-berry` — re-aimed at the binding, not its condition.** The anchor now names `const _rbEats=!!(`.
+  The tag read `const _rb=TAGS.param('item',def.item,'resistBerry');` was the first choice, but it matches twice
+  because `ripenWeakenPriced` carries the same statement. A single-rule `--reds` run reads CAUGHT (via Babiri Berry,
+  FIRED-AND-BOARDS-DIFFER on `hp`) on `d92bdfb50d88` and on `9a031254d967`.
+- **Natural Cure — a merge regression in `engine/stage_planner.js`.** Two batches taught the planner the same exit:
+  the `carrier-switches-out` block (tag `switchOutTrigger`) and the `switch-out` branch (an `onSwitchOut` that reads
+  `.status`). Merged, Natural Cure got two trigger switches and `layTurns` refused it. The second click is now
+  dropped and the status leaf is kept. It reads FIRED on the planner (near-a and far-a) against a quiet Cloud Nine
+  control, and both engines move `party.altaria.status` identically. A whole-population plan diffed against the
+  published fixtures changes 1 of 348 (Natural Cure) and has 0 "two trigger clicks" refusals.
+- **The eight moves — the reader, three ways plus one.** Our raw trace never writes `[spread]` (Life Dew's `-fail`
+  on a full ally read as HARD), never writes a called move's `[from]` (Sleep Talk's call opened its own segment),
+  and writes `[from] move: wish` with the id where the reader matched the name `Wish`. Those three are read our way
+  for our trace only (`MEDI_READ` in `engine/all_mechanics_fire.js`). Ally Switch, Guard Swap, Power Swap,
+  Topsy-Turvy and Destiny Bond print no line at all in our engine: `swap`, `-swapboost`, `-invertboost` and
+  `-singlemove` are declared un-emitted in `data/protocol-events.json`. These are now read off OUR board against the
+  planner's control arm (`stateCredit`). The credit is given only when our board moves on exactly the leaves the
+  authority's does. Guard Swap, Power Swap and Topsy-Turvy also had nothing to act on (an unboosted receiver). A new
+  planner derivation (the handler reads `target.boosts` and writes stages; printed members: guardswap, powerswap,
+  psychup, topsyturvy) now has the receiver boost first.
+- **Red demonstrations:** `MEDI_WISH_NO_PAYOUT=1` makes Wish read NOT resolved on MEDICHAM (the protocol half).
+  `MEDI_STAT_INVERT_NOOP=1` makes Topsy-Turvy read NOT resolved on MEDICHAM (the state half), and the board parts
+  (STATE).
+
+### The hand list, after this pass
+
+- **Still open: Anger Point against a same-hit secondary stat drop** (Crabominable, crit Chilling Water; authority
+  Attack +5, ours +6). No probe yet. The first step is a probe that fails.
+- **Owed, not engine:** the announcements `swap`, `-swapboost`, `-invertboost` and `-singlemove` are still not
+  written by our engine. This is narration debt, and it is already declared in `data/protocol-events.json`.
+## ANGER POINT IS PAID AT THE `Hit` EVENT, ABOVE THE SAME HIT'S SECONDARY. A CONTROL ARM THAT PARTS IS NOW A FINDING ON THE ROW. THE PLANNER PREFERS A CONTROL THAT IS QUIET ON ITS OWN BOARD. CENSUS **967 → 968 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `ccabb2b6e953`; LIGHT MODE, NAMED ROWS ONLY, THE BATTERY AND LATTICE RE-RUN ARE OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-19-anger-point-controls.md`.
+
+- **The engine defect.** The Champions `spreadMoveHit` (`data/mods/champions/scripts.ts:315-425`) runs
+  `runMoveEffects` at `:375`, which raises `runEvent('Hit')` (`sim/battle-actions.ts:1283`). It runs `selfDrops` at
+  `:385`, `secondaries` at `:388` and `runEvent('DamagingHit')` at `:410`. Anger Point is `onHit`
+  (`data/abilities.ts:131-137`; the mod does not override it). We paid it with the `DamagingHit` family, below the
+  secondary. On a crit Chilling Water we read Attack +6; the authority reads +5. The fix is a new step,
+  `_stepHitEvent`, between `_stepApply` and `_stepSelfPay`. It also covers each interior volley arrival. The event is
+  read from a new tag field, `buffsHolderOnHit.event`, which `engine/tag_dex.js` derives from the handler that
+  carries the payload. It matched Anger Point = `Hit` and the other four members = `DamagingHit`. A tag with no
+  `event` is counted (`MEDFAILS.buffOnHitEventUnknown`). A crit Clear Smog now clears before Anger Point maxes, in
+  the authority's order. Knob: `MEDI_HIT_BUFF_AT_DAMAGING_HIT=1`.
+- **The class, derived:** Anger Point (`onHit`); Stamina, Justified, Weak Armor and Gooey (`onDamagingHit`); and
+  Berserk (`onAfterMoveSecondary`), against 40 legal damaging moves with a stat-changing secondary.
+  `tests/probe_hit_event_buff_order.js` plays 221 pairs on two engines. It PASSES: 37 Anger Point pairs are red
+  under the knob (5 of them part a board), and 71 exercised pairs outside the `Hit` event hold under the knob.
+  Berserk is never exercised at the ×6 pool. Its position is held by the existing `boostsAtHPThreshold` rows.
+- **The census row** "Anger Point maxes Attack BEFORE the same hit's secondary drop" is LIVE: 5, with the controls
+  at 6 (crit only) and -1 (drop only). Under the knob it is MISSING (967/968) and the census refuses to write.
+- **The instrument.** `engine/all_mechanics_fire.js` now records `row.control_arm_parted` (with `board_material`,
+  `verdicts`, `where` and `first_state_diffs`) and counts `summary.control_arm_partings`. The gate field for MEASURE is
+  `summary.control_arm_partings.board_material`. On `d92bdfb50d88` with the old chooser it reads Hyper Cutter
+  BOARD-MATERIAL and Magma Armor announcement-only. On `ccabb2b6e953` it reads 0 of 8, with either chooser.
+- **The chooser.** `engine/stage_planner.js` `loudOnBoard` asks what `reactsTo` could not see: a handler that fires on
+  any hit the carrier takes has no move need to meet. Among the alternatives the chain already accepts, a quiet one
+  is now preferred. It is a preference, never a gate. Knob: `STAGE_PLANNER_FIRST_PASSING_CONTROL=1`, which
+  reproduces all 137 published planner controls. Ability-swap controls quiet on their own board went from
+  **139 → 145 of 156**. Six rows changed and no row lost its control (196 before and after).
+
+### The hand list, after this pass
+
+- **OFF THE LIST: Anger Point against a same-hit secondary stat drop.** It is now a census row and a two-engine
+  class probe.
+- **NEW: two FIRED verdicts were earned by the control, not the carrier.** With a quiet control, Frisk reads
+  DID-NOT-FIRE: the fixture holds no item for it to reveal, and the old control, Cursed Body, disabled on the
+  hit. Frisk is owner-deferred. Stalwart's planner fixture reads DID-NOT-FIRE against Sturdy. It falls back to the
+  ladder, which reads FIRED against **Stamina**, and Stamina is itself live. Neither row is in the gate's count
+  until the battery is re-run.
+- **NEW: Magma Armor's control is still Anger Point.** Camerupt has no quiet alternative, and its control game
+  shows `-setboost ... [from] ability: Anger Point`. The boards now agree.
+- **NEW, INSTRUMENT: move control arms are not in the published artifact.** `row.planned[]` now carries
+  `control_board`. Only a battery re-run can say whether any move's control arm parts.
+- **Carried forward unchanged:** Natural Cure's lost fixture; the eight moves read "not resolved on MEDICHAM";
+  re-aim `item/resist-berry`.
 
 ## 6.63.0 RE-MEASURES AT BOARD **0 / 0 / 0**, NARRATION **0 / 0 / 0**, THREW **0 / 0 / 0**. ABILITIES FIRE **198 OF 200** IN THE STAGED-GAME BATTERY. THE GATE IS **CLOSED, 2 OF 10**: A DEAD ROSTER ANCHOR, AND 9 UNPROVEN STAGED ROWS. **NO ENGINE BYTE CHANGED; RELEASE `d92bdfb50d88`; DRIVER `d0ef2b6bf52e`, SO NO EARLIER LATTICE IS COMPARABLE.** 2026-09-19, CHANGELOG 6.65.0
 

@@ -10,6 +10,19 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.66.0] — 2026-09-19
+
+### Fixed
+- **Anger Point** applies before the hit's own secondary stat change.
+- **Natural Cure's** staged fixture; the **Resist Berry** red plant re-aimed.
+
+### Changed
+- Staged rows record a board that parts in their control arm; the planner prefers a quiet control.
+- Eight moves that print no line here are credited when our board moves exactly as the authority's.
+
+### Notes
+- Census 967 -> 968 live.
+
 ## [6.65.1] — 2026-09-19
 
 ### Fixed

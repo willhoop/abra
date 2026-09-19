@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-19T16:03:57.832Z",
+  "generated": "2026-09-19T17:50:30.336Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 967,
-  "live": 967,
+  "probed": 968,
+  "live": 968,
   "missing": 0,
-  "armed": 967,
+  "armed": 968,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -4363,7 +4363,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 18.7% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.7% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -8104,6 +8104,16 @@
       "label": "Anger Point takes a guaranteed crit to +6 Attack",
       "live": true,
       "detail": "Attack stage on the Tauros after ONE Flower Trick (willCrit, so the crit is not a roll) -- no ability 0, ANGER POINT 6 (the handler asks for 12 and the cap is 6). No other stage moved: 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "buffsHolderOnHit",
+      "label": "Anger Point maxes Attack BEFORE the same hit's secondary drop (a crit Chilling Water leaves +5)",
+      "live": true,
+      "detail": "Attack stage on the Anger Point Crabominable -- crit Chilling Water 5 (must be +5: maxed, then the secondary -1); crit Dragon Claw 6 (no secondary, +6); no ability under the same Chilling Water -1 (the secondary fired, -1)",
       "hollow": false,
       "armed": true,
       "directCall": false

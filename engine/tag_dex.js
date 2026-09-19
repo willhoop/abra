@@ -8499,8 +8499,16 @@ const ABILITY_TAGS = [
        * therefore runs before EVERY undeclared member on EVERY target, and the engine's step list cannot
        * place it without the number. Read off the handler's own field; `null` is "undeclared", which is
        * the authority's default and not a placeholder. Electromorphosis and Wind Power carry 1 here. */
+      /* 2026-09-19 -- AND WHICH EVENT CARRIES IT, because the two sit on opposite sides of the secondary. The
+       * Champions `spreadMoveHit` (data/mods/champions/scripts.ts:315-425) runs `runMoveEffects` -- which raises
+       * `runEvent('Hit')` -- at :375, the secondaries at :388 and `runEvent('DamagingHit')` at :410. Anger Point
+       * is `onHit`; every other member is `onDamagingHit`. Read off WHICH handler writes the payload; a member
+       * whose payload is in both is `null` (the engine counts it and keeps the DamagingHit position). */
+      const pays = f => /this\.boost\(|addVolatile\(/.test(String(f || ''));
+      const onHitPays = pays(a.onHit), onDhPays = pays(a.onDamagingHit);
+      const event = onHitPays && !onDhPays ? 'Hit' : onDhPays && !onHitPays ? 'DamagingHit' : null;
       return { compounds: true, boosts: Object.keys(boosts).length ? boosts : null, gainsVolatile: vol,
-               when: hitCondIn(src), order: a.onDamagingHitOrder != null ? +a.onDamagingHitOrder : null };
+               when: hitCondIn(src), order: a.onDamagingHitOrder != null ? +a.onDamagingHitOrder : null, event };
     } },
   { tag: 'punishesAttacker', param: 'the ATTACKER pays a flat toll, which does NOT compound', probe: 'punishesAttacker',
     why: 'Rough Skin (3,762) chips, Static/Flame Body/Poison Point status, Cursed Body disables. '

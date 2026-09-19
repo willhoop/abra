@@ -6632,8 +6632,17 @@ const RULES = [
     /* RE-AIMED 2026-08-27. The anchor was written before `berryRefusedByFoeNew(def)` was added to
      * this condition, so it matched ZERO times and the plant was never applied — the rule read NOT
      * CAUGHT for a reason that was about this file. */
-    patch: [['if(_rb&&_rb.onType===mvT&&(!_rb.requiresSuperEffective||eff>1)&&!berryRefusedByFoeNew(def))MODMUL((_rb.mult||0.5));',
-             'if(false&&_rb&&_rb.onType===mvT&&(!_rb.requiresSuperEffective||eff>1)&&!berryRefusedByFoeNew(def))MODMUL((_rb.mult||0.5));']] },
+    /* RE-AIMED AGAIN 2026-09-19, AND AT THE DECISION RATHER THAN AT ITS CONDITION. 6.63.0's Ripen fix
+     * split the one-line `if(<condition>)MODMUL(...)` into `const _rbEats=!!(<condition>)` plus
+     * `if(_rbEats)MODMUL(...)`, so the anchor above it matched ZERO times on `d92bdfb50d88` and the items
+     * stage exited 1 on a DEAD ANCHOR. That is the SECOND time this anchor died by someone editing the
+     * condition (the first was `berryRefusedByFoeNew`). So it now names only the HEAD of the binding —
+     * `const _rbEats=!!(` — which survives any future clause added to or removed from the condition.
+     * The tag read itself (`const _rb=TAGS.param('item',def.item,'resistBerry');`) was the first choice
+     * and cannot be used: `ripenWeakenPriced` carries the identical statement, so it matches twice.
+     * What it breaks: dmgRangeOneHit never halves (and Ripen's fresh-eat second halve goes with it); the
+     * berry is still held, still read by the battle loop's consumption at the hit, still eaten. */
+    patch: [['const _rbEats=!!(', 'const _rbEats=false&&!!(']] },
   match(e) {
     if (!(e.isBerry && e.onSourceModifyDamage)) return null;
     const T = e.naturalGift && e.naturalGift.type;

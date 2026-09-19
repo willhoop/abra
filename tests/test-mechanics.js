@@ -30251,6 +30251,39 @@ probe('ability', 'buffsHolderOnHit', 'Anger Point takes a guaranteed crit to +6 
                  + '12 and the cap is 6). No other stage moved: ' + on.other };
 });
 
+/* 2026-09-19 -- ANGER POINT IS AN `onHit` HANDLER AND IT RUNS ABOVE THE MOVE'S OWN SECONDARY.
+ *
+ * The authority's `spreadMoveHit` (data/mods/champions/scripts.ts:315-425, which overrides mainline)
+ * numbers its own steps: `runMoveEffects` at :375 ("3. onHit event happens here" -- it raises
+ * `runEvent('Hit')`, sim/battle-actions.ts:1283, and Anger Point is `onHit`, data/abilities.ts:131-137,
+ * not overridden by the mod), then `selfDrops` at :385, then `secondaries` at :388, then
+ * `runEvent('DamagingHit')` at :410. So a CRIT Chilling Water maxes Attack first and then takes its
+ * own -1: +5. This engine paid Anger Point with the `DamagingHit` family, below the secondary, so the
+ * -1 landed on a neutral stage and the +12 clamped it back to +6. Found as the Hyper Cutter row's
+ * CONTROL arm in data/all-mechanics-fire.json on release d92bdfb50d88 (ours +6, authority +5).
+ *
+ * `() => 0` takes the crit AND fires the 100% secondary (the crit lever is documented on the probe at
+ * the top of this tag). THE TWO CONTROLS CLEAR THE TWO LEVERS: Dragon Claw carries no secondary, so an
+ * Anger Point body reads +6 on it (the crit happened); no ability under the same Chilling Water reads
+ * -1 (the secondary happened). Put to the authority by tests/probe_hit_event_buff_order.js.
+ * MEDI_HIT_BUFF_AT_DAMAGING_HIT=1 restores the old position and turns this row MISSING. */
+probe('ability', 'buffsHolderOnHit', 'Anger Point maxes Attack BEFORE the same hit\'s secondary drop (a crit Chilling Water leaves +5)', () => {
+  const run = (ab, mv) => {
+    const { me, ally, f1, f2, S } = board('feraligatr', 'corviknight', 'crabominable', 'milotic');
+    f1.ability = ab; unfaintable(f1);
+    M.battleTurn(S, () => 0,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return f1.boosts.at;
+  };
+  const test = run('angerpoint', 'chillingwater');
+  const critOnly = run('angerpoint', 'dragonclaw'), dropOnly = run('none', 'chillingwater');
+  return { works: test === 5 && critOnly === 6 && dropOnly === -1,
+           arms: { control: [critOnly, dropOnly], test: [test, test] },
+           detail: 'Attack stage on the Anger Point Crabominable -- crit Chilling Water ' + test + ' (must be +5: '
+                 + 'maxed, then the secondary -1); crit Dragon Claw ' + critOnly + ' (no secondary, +6); no ability '
+                 + 'under the same Chilling Water ' + dropOnly + ' (the secondary fired, -1)' };
+});
+
 /* KEEN EYE — Will: "have someone use mud slap to test keen eye", then "its gonna have to be on a non
  * flying type tho". He is right and it is the same trap that killed the Shield Dust board this
  * morning: MUD-SLAP IS GROUND, and four of the ten Keen Eye carriers are Flying and immune —
@@ -36571,7 +36604,10 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'zombieSkipsResidualRestored', 'f
                           /* 2026-09-19 -- announcesOnStart (tests/probe_start_announce.js), stamped at
                            * LOAD. A knob run WROTE the census (955 of 956, 1 missing) before this was
                            * listed — the same hole as the Sucker Punch knobs above. */
-                          'startAnnounceSilentRestored']
+                          'startAnnounceSilentRestored',
+                          /* 2026-09-19 -- Anger Point paid below the secondary again
+                           * (tests/probe_hit_event_buff_order.js), stamped at LOAD */
+                          'hitBuffAtDamagingHitRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

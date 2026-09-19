@@ -630,7 +630,25 @@ const NOT_A_CONSEQUENCE = new Set(['-anim', '-hitcount', '-waiting', '-center', 
  * They still CLOSE the segment (everything after is that new event's business), but they are counted
  * on the way out. */
 const NONDASH_CONSEQUENCE = new Set(['faint', 'drag', 'switch', 'swap', 'detailschange', 'formechange', 'replace']);
-function segments(log) {
+/* ---- OUR ENGINE'S TRACE IS NOT THE AUTHORITY'S LOG, AND THREE MARKERS THIS READER KEYED ON ARE NEVER IN IT ----
+ * (2026-09-19, close-two-clauses.) Eight moves read `medicham_resolved: false` on `d92bdfb50d88` with the
+ * boards agreeing. Printed side by side (`--dumplog`), MEDICHAM's raw trace differs from the authority's in
+ * exactly these ways, and each was costing a row:
+ *   1. the `|move|` line carries NO `[spread]` marker, ever — so Life Dew's per-target `-fail` on a full ally
+ *      read as a HARD failure of the whole click;
+ *   2. a called move carries NO `[from]` — so Sleep Talk's `|move|…|facade|` opened a segment of its own and
+ *      left the caller's segment empty;
+ *   3. `[from] move: wish` is written with the move's ID, and the reader matched the dex NAME `Wish`.
+ * Each substitution below is used ONLY for our trace (`opts.engine === 'medicham'`), so the authority's
+ * verdict is read exactly as before. None of them can credit a click that did nothing: each still needs a
+ * consequence line that our engine writes only when the effect happened. The effects our engine announces
+ * with NO line at all (Ally Switch's `swap`, Guard/Power Swap's `-swapboost`, Topsy-Turvy's `-invertboost`,
+ * Destiny Bond's `-singlemove` — declared un-emitted in data/protocol-events.json) cannot be read here at
+ * all; see `stateCredit` in `plannedMoveStage`, which reads them off the boards instead. */
+const SPREAD_TARGETS = new Set(['allies', 'allAdjacent', 'allAdjacentFoes']);
+const MEDI_READ = { engine: 'medicham' };
+function segments(log, opts) {
+  const medi = !!(opts && opts.engine === 'medicham');
   const segs = [];
   let cur = null;
   for (const raw of log) {
@@ -639,14 +657,21 @@ function segments(log) {
     if (ev === 'move') {
       /* A NESTED CALL — `|move|p1a: X|Thunderbolt|p2a: Y|[from]Copycat` — is the CALLER'S consequence
        * and then a segment of its own. Both, in that order. */
-      if (cur && /\[from\]/.test(raw)) cur.lines.push(raw);
+      /* OURS (2 above): the SAME actor moving again with nothing in between, straight after a move whose
+       * own dex entry says `callsMove`, is that call. Only our trace, and only with both conditions. */
+      const nestedOurs = medi && cur && !cur.cant && cur.who === p[2] && !cur.lines.length
+                      && !!(dex.moves.get(cur.move) || {}).callsMove;
+      if (cur && (/\[from\]/.test(raw) || nestedOurs)) cur.lines.push(raw);
       if (cur) segs.push(cur);
       cur = { who: p[2], move: id(p[3]), still: raw.indexOf('[still]') >= 0,
               /* THE AUTHORITY'S OWN MARKER THAT THE CLICK REACHED MORE THAN ONE BODY —
                * `|move|p1a: Audino|Life Dew||[still]|[spread] p1a,p1b`. Read here rather than
                * re-derived from `move.target`, because it is the log that says what actually
-               * happened; see the `-fail` split in `verdictFor`. */
-              spread: raw.indexOf('[spread]') >= 0, lines: [] };
+               * happened; see the `-fail` split in `verdictFor`. OURS (1 above) never writes it, so
+               * there, and only there, the move's own target class stands in for it. */
+              spread: raw.indexOf('[spread]') >= 0
+                   || (medi && SPREAD_TARGETS.has((dex.moves.get(id(p[3])) || {}).target)),
+              lines: [] };
       continue;
     }
     if (ev === 'cant') { if (cur) { segs.push(cur); cur = null; } segs.push({ who: p[2], move: id(p[4] || ''), cant: p[3], lines: [] }); continue; }
@@ -747,8 +772,8 @@ function divOf(div, who, sdLog, moveId) {
   });
 }
 
-function verdictFor(log, who, moveId) {
-  const segs = segments(log).filter(s => s.move === moveId && (!who || s.who === who));
+function verdictFor(log, who, moveId, opts) {
+  const segs = segments(log, opts).filter(s => s.move === moveId && (!who || s.who === who));
   if (!segs.length) return { attempted: false, resolved: false, why: 'the move was never issued — Showdown emitted no |move| line for it' };
   /* A DELAYED EFFECT LANDS OUTSIDE ITS OWN SEGMENT, and the authority says so itself. Wish heals at the
    * end of the FOLLOWING turn and emits nothing at all on the turn it is used, so a segment read alone
@@ -756,11 +781,16 @@ function verdictFor(log, who, moveId) {
    * rule, no list of delayed moves, and it is checked only when the segment itself was empty so it can
    * never launder a move that plainly failed. */
   const NAME = (dex.moves.get(moveId) || {}).name || moveId;
-  const attributedLater = log.some(l => String(l).indexOf('[from] move: ' + NAME) >= 0
-                                     || String(l).indexOf('[from]move: ' + NAME) >= 0);
+  /* COMPARED BY ID, NOT BY SPELLING (3 at `segments`): the authority writes `[from] move: Wish` and our
+   * engine `[from] move: wish`, and matching the dex NAME read our Wish as inert on every run. The field
+   * is cut at the next `|`, so `[wisher] …` after it is never part of the name. */
+  const attributedLater = log.some(l => {
+    const m = /\[from\]\s?move: ([^|]+)/.exec(String(l));
+    return !!m && id(m[1]) === moveId;
+  });
   let best = null;
   for (const s of segs) {
-    if (s.cant) { best = best || { attempted: true, resolved: false, why: 'cant: ' + s.cant }; continue; }
+    if (s.cant) { best = best || { attempted: true, resolved: false, hard: true, why: 'cant: ' + s.cant }; continue; }
     /* HARD vs PER-TARGET, and the distinction cost three false negatives before it was written down.
      *   HARD      `-fail` and `|cant|` NAME THE USER. The click itself did nothing, whatever else is
      *             in the segment.
@@ -802,7 +832,7 @@ function verdictFor(log, who, moveId) {
                    + 'line to it with [from] move: ' + NAME };
     }
     if (!hard && consequence) return { attempted: true, resolved: true, why: null, consequences: consequence };
-    best = best || { attempted: true, resolved: false,
+    best = best || { attempted: true, resolved: false, hard: !!hard,
                      why: hard || soft || 'the move executed and produced no consequence line at all' };
   }
   return best;
@@ -1944,11 +1974,11 @@ function runMoves(list) {
        * would report "the move was never issued" on the one rung built to make it issue. */
       const who2 = 'p1a: ' + (dex.species.get(carrier).baseSpecies || dex.species.get(carrier).name);
       const sd = verdictFor(r.sdLog, who2, mv);
-      const me = verdictFor(r.mediTrace, who2, mv);
+      const me = verdictFor(r.mediTrace, who2, mv, MEDI_READ);
       const row = { kind: 'move', id: mv, name: dm.name, carrier, rung: rung.id,
                     setup: s.pre.map(p => p.actor), turns: script.length,
                     attempted: sd.attempted, resolved: sd.resolved, why: sd.why,
-                    medicham_attempted: me.attempted, medicham_resolved: me.resolved, medicham_why: me.why,
+                    medicham_attempted: me.attempted, medicham_resolved: me.resolved, medicham_why: me.why, medicham_hard: !!me.hard,
                     diverged: !!r.div, divergence: divOf(r.div, who2, r.sdLog, mv),
                     err: r.err,
                     /* THE BOARD ANSWER, BESIDE THE PROTOCOL ONE AND NEVER INSTEAD OF IT. Whether the
@@ -3472,7 +3502,7 @@ function runStruggle(dm) {
   const { t, r } = fx.play('move/struggle/dry-' + n);
   if (!r.staged) return { kind: 'move', id: dm.id, name: dm.name, resolved: false, attempted: false, carrier,
                           why: 'could not stage: ' + r.why };
-  const sd = verdictFor(r.sdLog, who, STRUGGLE_ID), me = verdictFor(r.mediTrace, who, STRUGGLE_ID);
+  const sd = verdictFor(r.sdLog, who, STRUGGLE_ID), me = verdictFor(r.mediTrace, who, STRUGGLE_ID, MEDI_READ);
   const receipt = (r.sdLog || []).find(l => new RegExp('^\\|move\\|' + reEsc(who) + '\\|Struggle').test(String(l))) || null;
   const row = { kind: 'move', id: dm.id, name: dm.name, carrier, rung: 'out-of-pp', setup: [dry.id + ' x' + n],
                 turns: t.length, attempted: sd.attempted, resolved: sd.resolved, why: sd.why,
@@ -4514,7 +4544,7 @@ function reportCannotFire(rows) {
 const NO_PLAN = has('--no-plan');
 const PLANNED = { plan_ms: 0, rows: 0, fixtures: 0, variants: 0, games: 0, fired: 0, proven: 0,
                   fallback: [], legacy_refused: {}, script_miss: [], variant_split: [], control_parted: [],
-                  board_state: [], diverged: [], move_rows: 0, move_resolved_by_planner: [],
+                  board_state: [], diverged: [], move_rows: 0, move_resolved_by_planner: [], move_state_credited: [],
                   move_planned_unresolved: [], move_control_resolved: [] };
 const LEGACY_RAN = { abilities: 0, items: 0 };
 let PLAN = null;
@@ -4609,6 +4639,34 @@ function promoteParting(row, list, key) {
     }
     const cb = z.board_control_arm;
     if (cb && cb.verdict === 'STATE') PLANNED.control_parted.push(key + ' control @' + where);
+    noteControlParting(row, cb, where, z.control || row.control || null);
+  }
+}
+/* ==== 2026-09-19 -- A CONTROL ARM THAT PARTS IS A FINDING, NOT A FOOTNOTE ==========================================
+ *
+ * A control arm is a REAL TWO-ENGINE GAME: the same fixture with one variable changed, played on both engines and
+ * boarded at every boundary exactly like the subject arm. Its boards have always been compared (`board_control_arm`)
+ * and nothing read them: the gate reads the subject arm's `board`, and `PLANNED.control_parted` only reached the
+ * console. On release d92bdfb50d88 that hid a real engine divergence -- the Hyper Cutter row's control (Anger Point,
+ * hit by a crit Chilling Water) read Attack +6 here and +5 in the authority, and no clause could see it.
+ *
+ * SO IT IS RECORDED ON THE ROW, `row.control_arm_parted`, AND COUNTED IN `summary.control_arm_partings`. Any control
+ * verdict other than NO-DIVERGENCE / NOT-STAGED is a parting; `board_material` is true when ANY control arm of the row
+ * reads STATE (a board parted), which is the bar the subject arm is held to. ANNOUNCEMENT-ONLY (the protocol parted,
+ * every board agreed) and NOT-ASKED (the protocol parted and no board was taken after it -- unanswered, never a pass)
+ * are kept apart so a reader can hold them to the narration bar and the CANNOT-ANSWER bar respectively. Every
+ * variant that parted is listed in `where`, so a parting on the far-side layout alone is not lost behind the first. */
+const CTL_QUIET = new Set(['NO-DIVERGENCE', 'NOT-STAGED']);
+function noteControlParting(row, cb, where, control) {
+  if (!row || !cb || !cb.verdict || CTL_QUIET.has(cb.verdict)) return;
+  const c = row.control_arm_parted || (row.control_arm_parted = { board_material: false, verdicts: [], where: [], control: control || null,
+                                                                    first_state_diffs: null });
+  c.where.push(where + '=' + cb.verdict);
+  if (!c.verdicts.includes(cb.verdict)) c.verdicts.push(cb.verdict);
+  if (cb.verdict === 'STATE') {
+    c.board_material = true;
+    if (!c.first_state_diffs) c.first_state_diffs = (cb.diffs || []).slice(0, 2)
+      .map(d => ({ path: d.path, us: d.us, sd: d.sd, bucket: d.bucket || null }));
   }
 }
 function plannedRow(kind, key, name, m) {
@@ -4635,6 +4693,15 @@ function plannedRow(kind, key, name, m) {
         row = abRow(kind, key, name, f.bodies.C.species, ctlAb || (f.control.variable + ' — ' + f.control.why), on, off,
                     { abilitySwap: kind === 'ability' && f.control.variable === 'C.ability' });
         if (on.div) row.divergence = divOf(on.div, who, on.sdLog, null);
+        /* 2026-09-19 -- DID THE CONTROL ABILITY ACT IN ITS OWN GAME? The authority's log of the control arm, read by
+         * the same receipt reader the board-only rows use. Near-side slot a only (the reader reads p1a). */
+        const nearA0 = subj && subj.side === 'p1' && subj.slot === 0;
+        if (kind === 'ability' && ctlAb && nearA0 && off.staged) {
+          const ca = dex.abilities.get(ctlAb);
+          /* a BARE entry announcement is set aside, exactly as `abRow`'s `ctlAnn` sets it aside from the verdict */
+          if (ca && ca.exists) row.control_acted = abilityActedOn(off.sdLog, ca.name, ca.id, null)
+            .filter(l => !/^\|-ability\|p1a: [^|]*\|[^|]*$/.test(String(l))).slice(0, 3);
+        }
       } else {
         const nearA = subj && subj.side === 'p1' && subj.slot === 0;
         const receipt = kind === 'ability' && nearA ? abilityActedOn(on.sdLog, name, key, megaE) : [];
@@ -4730,6 +4797,52 @@ function runPlanned(kind, list, legacy) {
   }
   return rows;
 }
+/* ---- A MOVE OUR ENGINE PERFORMS WITHOUT ANNOUNCING IT IS READ OFF OUR BOARD, AGAINST A CONTROL ----------
+ * (2026-09-19, close-two-clauses.) Ally Switch (`swap`), Guard Swap and Power Swap (`-swapboost`), Topsy-Turvy
+ * (`-invertboost`) and Destiny Bond (`-singlemove`) are carried out by our engine with NO line at all — each
+ * event is declared un-emitted in data/protocol-events.json ("the STATE is right and the ANNOUNCEMENT is
+ * owed"). A protocol reader therefore cannot see our engine act on them, however correct the state is, and
+ * printed `medicham_resolved: false` beside boards that agreed.
+ *
+ * So the second reading is the one the ability rows already use (`abBoardFinal`): each engine AGAINST ITSELF,
+ * the planner's fixture arm against its control arm, where the control swaps only the subject's click for a
+ * click the selftest proves moves no board leaf. It credits OUR engine only when, on one variant:
+ *   - the authority resolved the click there, and neither arm's script missed;
+ *   - our own segment carried no HARD refusal (`-fail` naming the user, or `cant`);
+ *   - the authority's board moved between the arms (so the fixture exercised something a board holds), and
+ *   - OUR board moved on EXACTLY the same leaves (`same_leaves`).
+ * A move our engine skips leaves our two arms identical, so it can never be credited — `MEDI_NO_*` knobs in
+ * the engine demonstrate it (see tests/probe_state_credit_red.js). A fixture that exercises nothing a board
+ * holds (Guard Swap exchanging two empty stat pairs) credits nothing either, and the row stays unresolved
+ * with the reason written down rather than passed on an announcement. Whether the VALUES agree is the board
+ * verdict's question, answered beside this on the same variant; this reads only whether our engine acted. */
+function stateCredit(row, list) {
+  if (!row.resolved || row.medicham_resolved || row.medicham_hard) return;
+  const hit = list.find(x => x.staged && !x.miss && !x.cmiss && x.row.resolved && !x.row.medicham_hard
+    && x.row.ab_board && x.row.ab_board.compared && x.row.ab_board.authority_moved
+    && x.row.ab_board.medicham_moved && x.row.ab_board.same_leaves);
+  if (!hit) {
+    const cmp = list.filter(x => x.staged && x.row.resolved && x.row.ab_board && x.row.ab_board.compared);
+    const why = cmp.some(x => x.row.ab_board.authority_moved)
+      ? 'the authority\'s board moved between the fixture and control arms and OURS did not move on the same '
+        + 'leaves (' + cmp.filter(x => x.row.ab_board.authority_moved).map(x => x.where + ': authority '
+        + x.row.ab_board.leaves_total + ', ours ' + (x.row.ab_board.medicham_moved ? 'moved elsewhere' : 'unmoved')).join('; ')
+        + ') — our engine did not do what the authority did'
+      : cmp.length
+      ? 'no planner variant moved a board in the AUTHORITY between the fixture and control arms, so there is no '
+        + 'state our engine could be shown to match; the protocol reader saw no line of ours either'
+      : null;
+    if (why) row.medicham_state_credit = { credited: false, why };
+    return;
+  }
+  const ab = hit.row.ab_board;
+  row.medicham_state_credit = { credited: true, where: 'planner:' + hit.where, leaves: ab.leaves,
+                                leaves_total: ab.leaves_total, board: (hit.row.board || {}).verdict || null };
+  row.medicham_why_protocol = row.medicham_why;
+  Object.assign(row, { medicham_resolved: true, medicham_attempted: true, medicham_why: null,
+                       medicham_resolved_by: 'state' });
+  PLANNED.move_state_credited.push(row.id);
+}
 function plannedMoveStage(rows) {
   const plan = planOnce();
   if (!plan) return;
@@ -4750,28 +4863,33 @@ function plannedMoveStage(rows) {
         const who = subj ? subj.ident : null;
         const where = f.branch + '/' + v.layout;
         if (!on.staged) { list.push({ where, staged: false, row: { why: 'could not stage: ' + on.why } }); continue; }
-        const sd = verdictFor(on.sdLog, who, row.id), me = verdictFor(on.mediTrace, who, row.id);
+        const sd = verdictFor(on.sdLog, who, row.id), me = verdictFor(on.mediTrace, who, row.id, MEDI_READ);
         const cs = off && off.staged ? verdictFor(off.sdLog, who, row.id) : null;
         list.push({ where, staged: true, miss: on.scriptMiss, cmiss: off && off.staged ? off.scriptMiss : null,
                     row: { resolved: sd.resolved, attempted: sd.attempted, why: sd.why,
-                           medicham_resolved: me.resolved, medicham_attempted: me.attempted, medicham_why: me.why,
+                           medicham_resolved: me.resolved, medicham_attempted: me.attempted, medicham_why: me.why, medicham_hard: !!me.hard,
                            control_resolved: cs ? cs.resolved : null, diverged: !!on.div,
                            divergence: divOf(on.div, who, on.sdLog, row.id), board: boardVerdict(on, 'move', row.id),
-                           board_control_arm: off && off.staged ? boardVerdict(off, 'move', row.id) : null } });
+                           board_control_arm: off && off.staged ? boardVerdict(off, 'move', row.id) : null,
+                           ab_board: off && off.staged ? abBoardFinal(on, off) : null } });
       }
     }
     row.planned = list.map(x => ({ where: x.where, staged: x.staged, resolved: !!x.row.resolved,
                                    medicham_resolved: !!x.row.medicham_resolved,
                                    control_resolved: x.row.control_resolved == null ? null : !!x.row.control_resolved,
                                    board: (x.row.board || {}).verdict || null, diverged: !!x.row.diverged,
-                                   script_miss: x.miss || null, control_script_miss: x.cmiss || null, why: x.row.why || null }));
+                                   control_board: (x.row.board_control_arm || {}).verdict || null,
+                                   script_miss: x.miss || null, control_script_miss: x.cmiss || null, why: x.row.why || null,
+                                   ab_board: x.row.ab_board || null }));
     const P0 = list[0];
     if (P0 && P0.staged && !row.resolved && P0.row.resolved && !P0.miss) {
       Object.assign(row, { resolved: true, attempted: true, why: null, medicham_attempted: P0.row.medicham_attempted,
                            medicham_resolved: P0.row.medicham_resolved, medicham_why: P0.row.medicham_why,
+                           medicham_hard: P0.row.medicham_hard,
                            stage: 'planner', rung: 'planner:' + P0.where, board_legacy: row.board || null, board: P0.row.board });
       PLANNED.move_resolved_by_planner.push(row.id);
     }
+    stateCredit(row, list);
     if (P0 && P0.staged && !P0.row.resolved && row.resolved)
       PLANNED.move_planned_unresolved.push(row.id + ' (' + String(P0.row.why || '').slice(0, 70) + ')');
     if (P0 && P0.row.control_resolved) PLANNED.move_control_resolved.push(row.id);
@@ -5045,6 +5163,18 @@ if (KIND === 'abilities' || KIND === 'all') {
      * DISAGREEMENT between this harness and engine/legal_scope.js and is printed as one below. */
     unreachable: rows.filter(r => r.unreachable).length,
     control_not_quiet: rows.filter(r => r.control_not_quiet).length,
+    /* 2026-09-19 -- `control_not_quiet` IS A POPULATION TEST ("the control ability's OWN row moved a game
+     * somewhere"), so it flags Iron Fist as not quiet on a board with no punching move. These two are per-row and
+     * judged on THIS board: `quiet` is the planner's static judgement (engine/stage_planner.js `loudOnBoard`,
+     * stamped on `planner.control.quiet`), `acted` is the AUTHORITY'S OWN LOG of the control game showing the
+     * control ability acting (`abilityActedOn`, near-side slot-a variant only, the same receipt reader the
+     * board-only rows use). A control that is quiet AND never acted is one-variable evidence; a live one is not. */
+    control_quiet_on_board: {
+      ability_swap_rows: rows.filter(r => r.planner && r.planner.control && r.planner.control.variable === 'C.ability').length,
+      quiet: rows.filter(r => r.planner && r.planner.control && r.planner.control.quiet === true).length,
+      loud: rows.filter(r => r.planner && r.planner.control && r.planner.control.quiet === false).length,
+      acted_in_control_game: rows.filter(r => Array.isArray(r.control_acted) && r.control_acted.length).length,
+      receipt_read: rows.filter(r => Array.isArray(r.control_acted)).length },
     /* THE SPLIT OF `did_not_fire`, ADDED BESIDE IT AND NOT INSTEAD OF IT. `did_not_fire` keeps its old
      * meaning for whatever already reads this artifact; these two partition it. */
     cannot_fire_in_this_fixture: rows.filter(r => r.cannot_fire).length,
@@ -5205,6 +5335,8 @@ if (PLAN) {
   for (const x of [...new Set(PLANNED.diverged)]) console.log('      DIVERGED  ' + x);
   for (const x of PLANNED.control_parted) console.log('      CONTROL-ARM BOARD PARTED  ' + x);
   if (PLANNED.move_resolved_by_planner.length) console.log('    moves resolved by the planner where the ladder did not: ' + PLANNED.move_resolved_by_planner.join(' '));
+  console.log('    moves resolved on MEDICHAM off its OWN BOARD against the control arm (no announcement of ours to read): '
+    + PLANNED.move_state_credited.length + (PLANNED.move_state_credited.length ? ' ' + PLANNED.move_state_credited.join(' ') : ''));
   if (PLANNED.move_planned_unresolved.length) console.log('    moves the ladder resolves and the planner fixture does not (planner gaps): '
     + PLANNED.move_planned_unresolved.length + ' — ' + PLANNED.move_planned_unresolved.slice(0, 12).join('; '));
   if (PLANNED.move_control_resolved.length) console.log('    move controls that resolved the subject move anyway: ' + PLANNED.move_control_resolved.join(' '));
@@ -5216,6 +5348,44 @@ if (PLAN) {
     console.log('    THE DECLARED-SPREAD SEAM WAS NEVER USED — every planned game was played on the index ladder. Not a pass.');
     process.exitCode = 1;
   }
+}
+
+/* ---- CONTROL-ARM PARTINGS, OVER EVERY ROW OF EVERY KIND (2026-09-19). See `noteControlParting`. The planner rows
+ * were noted variant by variant in `promoteParting`; a row whose OWN control game came off the ladder (stage
+ * `legacy`, or the ladder half of a `legacy-fallback`) carries that game's verdict in `board_control_arm` and is
+ * noted here, once. `rows_with_control_arm` is the denominator, so "0 parted" is never read off an empty set.
+ *
+ * THE FIELD MEASURE WIRES: `summary.control_arm_partings.board_material` (a count; the gate bar is zero) and, per
+ * row, `rows[kind][i].control_arm_parted.board_material === true`. */
+{
+  const CA = { rows_with_control_arm: 0, parted: 0, board_material: 0, announcement_only: 0, not_asked: 0,
+               by_kind: {}, rows: [] };
+  for (const kind of ['moves', 'abilities', 'items']) {
+    const list = report.rows[kind] || [];
+    const K = CA.by_kind[kind] = { rows_with_control_arm: 0, parted: 0, board_material: 0 };
+    for (const r of list) {
+      if (!r) continue;
+      const own = r.board_control_arm;
+      if (own && r.stage !== 'planner') noteControlParting(r, own, r.stage === 'legacy-fallback' ? 'ladder' : (r.stage || 'ladder'), r.control || null);
+      const hasCtl = !!(own || (r.planner && (r.planner.variants || []).some(v => v.control_board))
+                        || (r.planned || []).some(x => x.control_board));
+      if (hasCtl) { CA.rows_with_control_arm++; K.rows_with_control_arm++; }
+      const c = r.control_arm_parted;
+      if (!c) continue;
+      CA.parted++; K.parted++;
+      if (c.board_material) { CA.board_material++; K.board_material++; }
+      else if (c.verdicts.includes('NOT-ASKED')) CA.not_asked++;
+      else CA.announcement_only++;
+      CA.rows.push(kind + ':' + r.id + '  control ' + (c.control || '?') + '  ' + c.where.join(' ')
+        + (c.board_material ? '  BOARD ' + JSON.stringify((c.first_state_diffs || []).map(d => [d.path, 'us ' + d.us, 'sd ' + d.sd])) : '')
+        + (r.deferred ? '  [row shelved by owner]' : ''));
+    }
+  }
+  report.summary.control_arm_partings = CA;
+  console.log('\n  CONTROL-ARM PARTINGS — ' + CA.parted + ' of ' + CA.rows_with_control_arm + ' rows with a control arm: '
+    + CA.board_material + ' BOARD-MATERIAL, ' + CA.announcement_only + ' announcement-only, ' + CA.not_asked + ' not asked'
+    + '   (summary.control_arm_partings; per row control_arm_parted)');
+  for (const x of CA.rows) console.log('    ' + x);
 }
 
 /* ---- THE PREFLIGHT'S OWN RECEIPT. A CAPABILITY THAT CANNOT PROVE IT RAN IS ASSUMED BROKEN, and this
