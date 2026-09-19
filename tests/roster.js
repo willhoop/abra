@@ -384,6 +384,7 @@ function inertShapeComplaint(mv) {
  * stat modifier, a trap — is REFUSED BY NAME and printed with the row that it shut. */
 const CONTROL_COND_OK = ['onStart', 'onEnd', 'onRestart', 'onModifyCritRatio'];
 let INERT_ALT_CANDS = [];
+const INERT_ALT_IMMUNE = {};      // move id -> the ONE type its volatile makes the body immune to
 const INERT_ALT = (() => {
   const rows = [], ok = [];
   for (const m of dex.moves.all()) {
@@ -394,7 +395,20 @@ const INERT_ALT = (() => {
     const c = (m.volatileStatus && dex.conditions.get(m.volatileStatus)) || null;
     const cond = c ? Object.keys(c).filter(k => /^on/.test(k) && typeof c[k] === 'function') : [];
     const badOwn = own.filter(k => k !== 'onTry');
-    const badCond = cond.filter(k => !CONTROL_COND_OK.includes(k));
+    /* 2026-09-18 -- AN IMMUNITY TO ONE NAMED TYPE IS ADMITTED, AND ONLY THAT SHAPE. A condition whose
+     * `onImmunity` body is exactly `if (type === '<T>') return false;` can reach a board leaf through ONE
+     * door — a move of type T aimed at the body (or a T-typed hazard/terrain reading groundedness) — and
+     * that door is a property of the FIXTURE, which the one row using this control asserts shut by
+     * derivation (`move/is-the-control-click`, `INERT_ALT_IMMUNE_TO`). Any other `onImmunity` body, and
+     * every other handler, is still refused by name. The Aqua Ring lesson above is why this is a shape
+     * match on the source and not a name: a residual that happens to do nothing on one board is not
+     * admitted, an immunity whose input the row can prove absent is. */
+    const immT = (c && typeof c.onImmunity === 'function')
+      ? (/^[^{]*\{\s*if\s*\(\s*type\s*===\s*['"](\w+)['"]\s*\)\s*return\s+false;?\s*\}\s*$/s
+          .exec(String(c.onImmunity).replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, '')) || [])[1] || null
+      : null;
+    const badCond = cond.filter(k => !CONTROL_COND_OK.includes(k) && !(k === 'onImmunity' && immT));
+    if (immT && !badOwn.length && !badCond.length) INERT_ALT_IMMUNE[m.id] = immT;
     /* an announcement handler must actually only announce — the abilities stage's `announces-only`
      * clause, applied here for the same reason: a name is not a guarantee */
     const loud = cond.filter(k => /^on(Start|End|Restart)$/.test(k)
@@ -403,7 +417,10 @@ const INERT_ALT = (() => {
       : badCond.length ? 'its volatile\'s condition registers ' + badCond.join('+')
       : loud.length ? 'its volatile\'s ' + loud.join('+') + ' does more than announce'
       : null;
-    rows.push(m.name + (why ? '  REFUSED — ' + why : '  USABLE'));
+    rows.push(m.name + (why ? '  REFUSED — ' + why : '  USABLE' + (INERT_ALT_IMMUNE[m.id]
+      ? ' — its volatile\'s ONLY non-announcing handler is an immunity to ' + INERT_ALT_IMMUNE[m.id]
+        + ', admitted on condition the row using it proves no ' + INERT_ALT_IMMUNE[m.id] + ' input exists'
+      : '')));
     if (!why) ok.push(m);
   }
   ok.sort((a, b) => (a.id < b.id ? -1 : 1));        // deterministic, never dex iteration order
@@ -411,6 +428,8 @@ const INERT_ALT = (() => {
   return ok.length ? ok[0].id : null;
 })();
 const INERT_ALT_MOVE = INERT_ALT ? dex.moves.get(INERT_ALT) : null;
+/* the ONE type the alternate's volatile makes a body immune to, or null — the door the row must prove shut */
+const INERT_ALT_IMMUNE_TO = INERT_ALT ? (INERT_ALT_IMMUNE[INERT_ALT] || null) : null;
 /* the alternate's own two bookkeeping leaves, in the same anchored shapes as `INERT_SELF` */
 const INERT_ALT_SELF = (() => {
   if (!INERT_ALT) return [];
@@ -1525,6 +1544,38 @@ function controlOf(sc, rank) {
      * controlled this way would read DID-NOT-FIRE and the whole tier would be a fabrication. */
     c.script[0].p1[0] = { m: 'gastroacid', t: +sc.subject[1] };
     c.A[0] = { ...c.A[0], moves: c.A[0].moves.concat(['gastroacid']) };
+  } else if (sc.kind === 'ability' && sc.controlKind === 'piercer') {
+    /* THE CARRIER IS NOT TOUCHED; THE THROWER'S ABILITY BECOMES A PIERCER (2026-09-18, Good as Gold).
+     * For an ability whose whole content is a refusal, and which no in-play control can reach because
+     * it refuses the control too, the only arm that removes its effect and nothing else is one in
+     * which the refusal is not allowed to answer. The thrower's two `.ability` leaves (active slot and
+     * party row) are this control describing itself and are ignored by path — side A, the thrower's
+     * own slot and species, nothing wider. */
+    const P = sc.piercer;
+    const tb = c.A[P.slot];
+    c.A[P.slot] = { ...tb, ability: P.ability };
+    ignore.push('p1.active[' + P.slot + '].ability');
+    ignore.push('p1.party.' + idOf(P.species) + '.ability');
+  } else if (sc.kind === 'ability' && sc.controlKind === 'trigger') {
+    /* THE TRIGGER COMES OUT, BECAUSE THE ABILITY CANNOT (2026-09-18, Zero to Hero). The carrier's
+     * scripted switches on the named turns become the inert click, so it never leaves the field. The
+     * READING is narrowed to the leaves the rule declared (`ignore.only`, honoured by `armDelta`),
+     * because removing a switch also removes everything the switch itself moves. */
+    const T = sc.trigger;
+    for (const ti of T.turns) c.script[ti].p2[T.slot] = { m: INERT };
+    ignore.only = T.only.slice();
+  } else if (sc.kind === 'ability' && sc.controlKind === 'conferred') {
+    /* THE CONFERRING CLICK COMES OUT AND NOTHING ELSE CHANGES (2026-09-18, `CONFERRED_RULE`). The beamer's
+     * own bookkeeping — the spent PP of the conferring move and of the inert click, and the inert click's
+     * volatile — is the control describing itself; the target's `.ability` reading `<conferred>` against
+     * `<its own>` is the conferral itself and is dropped by the value-conditioned `swapLeaf`. */
+    const K = sc.conferred;
+    for (const st of c.script) for (const a of st.p1) if (a && idOf(a.m) === idOf(K.move)) { a.m = INERT; delete a.t; }
+    ignore.push(new RegExp('^p1\\.pp\\[\\d+\\]\\.(' + idOf(K.move) + '|' + idOf(INERT) + ')$'));
+    if (INERT_MOVE.volatileStatus)
+      ignore.push(new RegExp('^p1\\.active\\[\\d+\\]\\.vol\\.' + idOf(INERT_MOVE.volatileStatus) + '$'));
+    swap.side = 'p2'; swap.subject = K.ability;
+    swap.species.push(K.targetSpecies); swap.controls.add(K.targetAbility);
   } else if (sc.kind === 'ability' && sc.controlKind === 'stone') {
     /* THE MEGA STONE COMES OFF, SO THE FORME CHANGE NEVER HAPPENS AND THE ABILITY NEVER ARRIVES.
      * (ROADMAP #138, Will's Shadow Tag fixture.)
@@ -1615,6 +1666,17 @@ function controlOf(sc, rank) {
     const sub = (INERT_ALT && idOf(sc.entityId) === idOf(INERT)) ? INERT_ALT : INERT;
     for (const st of c.script) for (const side of ['p1', 'p2']) for (const a of side ? st[side] : []) {
       if (a && idOf(a.m) === idOf(sc.entityId)) { a.m = sub; delete a.t; }
+    }
+    /* A BODY WHOSE MENU WAS DELIBERATELY LEFT WITHOUT THE INERT CLICK GETS IT BACK IN THE CONTROL ARM
+     * (2026-09-18, Struggle). Every body `scaffold` builds already holds it, so on every other row this
+     * adds nothing. The carrier's own bookkeeping for that click — its spent PP and its volatile — is
+     * the control describing itself; `ignoreSubjectInert` drops exactly those shapes on the subject's
+     * side and nothing wider. */
+    if (sub === INERT && sc.ignoreSubjectInert) {
+      const tb = c[sideKey][idx];
+      if (!tb.moves.includes(INERT)) c[sideKey][idx] = { ...tb, moves: tb.moves.concat([INERT]) };
+      const sp = sideKey === 'A' ? 'p1' : 'p2';
+      for (const x of INERT_SELF) ignore.push(new RegExp(x.re.source.replace('^p[12]', '^' + sp)));
     }
     if (sub !== INERT) {
       for (const b of c.A.concat(c.B)) if (!b.moves.includes(sub)) b.moves.push(sub);
@@ -1713,6 +1775,10 @@ function armDelta(subject, control, ignore, swap) {
          * a fixed path. Everything else still passes a string. */
         if (ignore.some(p => (p instanceof RegExp ? p.test(d.path)
           : p.endsWith('*') ? d.path.startsWith(p.slice(0, -1)) : d.path === p))) continue;
+        /* A DECLARED READING (2026-09-18, `controlKind: 'trigger'`): when the control had to remove the
+         * TRIGGER rather than the entity, only the leaves the rule named are evidence. Absent on every
+         * other row, so nothing else is narrowed. */
+        if (ignore.only && !ignore.only.some(re => re.test(d.path))) continue;
         /* THE SWAP ITSELF IS NOT EVIDENCE. See the block in `controlOf`. Counted rather than
          * silently skipped: a capability that cannot prove it ran is assumed broken, and the run
          * prints both numbers — how many leaves were the control describing itself, and how many
@@ -1949,6 +2015,17 @@ const DEFERRED = {
        + 'the foe\'s strongest move on entry and changes nothing on the board. A board comparison '
        + 'cannot see it and a green from one would be vacuous; the protocol trace is the only '
        + 'instrument that could. Usage measured at 4. Same quote, same date.',
+  },
+  /* 2026-09-18. Will: "set frisk aside." Same class as the two above, reached by derivation rather than
+   * by name: `ability/an-arrival-a-field-or-a-refusal` refuses it because its ONLY handler is an
+   * `onStart` whose whole body is `this.add(...)`. It never reaches `runEntry`, so `assign` applies
+   * this shelf to its refusal (see the COULD-NOT-STAGE branch there) and keeps the refusal as the
+   * underlying verdict. */
+  frisk: {
+    by: 'Will', on: '2026-09-18',
+    why: 'THE EFFECT IS A MESSAGE, the same class as Anticipation and Forewarn: Frisk reveals the foes\' '
+       + 'items with one `-item` protocol line and writes no board leaf, so a board comparison cannot '
+       + 'see it. Will: "set frisk aside."',
   },
 };
 
@@ -2443,7 +2520,11 @@ function trapExceptionArms(e, src, arm) {
  * make, and both were right. */
 const USAGE_SHELF_BELOW = 25;
 function usageShelf(r) {
-  if (STAGE !== 'moves' || !r || !CLICKS) return r;
+  /* ROADMAP #421 (2026-09-18) — KEYED ON THE ROW, NOT ON THE STAGE NAME. This read `STAGE !== 'moves'`,
+   * so the same move row was shelved under `--stage moves` and accused under `--stage all`: Axe Kick
+   * and Electrify read DEFERRED-BY-OWNER in one and FIRED-AND-BOARDS-DIFFER in the other, on one
+   * release. The shelf is a fact about a MOVE's click count, so it asks the row what it is. */
+  if (!r || !CLICKS || r.kind !== 'move') return r;
   if (r.verdict !== 'FIRED-AND-BOARDS-DIFFER' && r.verdict !== 'DID-NOT-FIRE') return r;
   if (DEFERRED[r.id]) return r;                       // an owner judgement outranks the threshold
   const clicks = CLICKS.moves[r.id] || 0;
@@ -4914,13 +4995,19 @@ function priorityLifts(sp, mv) {
  * holder hits the foe back, and the multiplier decides whether that hit lands BEFORE the drop (full power)
  * or AFTER it. The foe stands at 4x HP in both arms, so its HP after turn 1 is the leaf — and on this
  * file's crit-free corner a -2 hit cannot come out equal to a +0 one. */
-function speedOrderFoe(holderSp, mult) {
+/* `opt.foeMult` / `opt.foePred` (2026-09-18, Quick Feet): the foe's Speed is read AFTER a multiplier the
+ * rule puts on it identically in both arms (a self-boost clicked on the setup turn), and the foe must pass
+ * the predicate (it learns that boost). Absent, the multiplier is 1 and `Math.floor` of an integer is the
+ * integer, so every existing caller is byte-identical. */
+function speedOrderFoe(holderSp, mult, opt) {
   if (!DROP_MOVE) return null;
   const spd = s => flatL50(s.baseStats).sp;
+  const fm = (opt && opt.foeMult) || 1, fp = (opt && opt.foePred) || null;
   const h = spd(holderSp), after = Math.floor(h * mult);
   for (const F of CANDIDATES) {
     if (F.id === holderSp.id || !buildableSpecies(F.id) || !carrierAbility(F)) continue;
-    const f = spd(F);
+    if (fp && !fp(F)) continue;
+    const f = Math.floor(spd(F) * fm);
     if (!(mult > 1 ? (h < f && f < after) : (after < f && f < h))) continue;
     const hit = neutralHit2(F.id, [], holderSp.id);
     if (!hit || hit.category === 'Status') continue;
@@ -4937,13 +5024,15 @@ function speedOrderFoe(holderSp, mult) {
   }
   return null;
 }
-function speedFlipFoe(holderSp, mult) {
+function speedFlipFoe(holderSp, mult, opt) {
   if (!DROP_MOVE) return null;
   const spd = s => flatL50(s.baseStats).sp;
+  const fm = (opt && opt.foeMult) || 1, fp = (opt && opt.foePred) || null;
   const h = spd(holderSp), after = Math.floor(h * mult);
   for (const F of CANDIDATES) {
     if (F.id === holderSp.id || !buildableSpecies(F.id) || !carrierAbility(F)) continue;
-    const f = spd(F);
+    if (fp && !fp(F)) continue;
+    const f = Math.floor(spd(F) * fm);
     if (!(mult > 1 ? (h < f && f < after) : (after < f && f < h))) continue;
     /* ROADMAP #318 (6.24.0): the holder's KO is one it LEARNS, and the foe's drop is one the foe learns — and
      * it lowers the stat the holder's KO is thrown off, as Noble Roar (atk AND spa) always did. A drop the
@@ -11341,7 +11430,12 @@ const RULES = [
             ["    const p=TAGS.param('ability',m.ability,'inheritsAllyAbility');",
              "    const p=null&&TAGS.param('ability',m.ability,'inheritsAllyAbility');"],
             ["           &&[...actA,...actB].some(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksExplosion'))){",
-             "           &&false&&[...actA,...actB].some(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksExplosion'))){"]] },
+             "           &&false&&[...actA,...actB].some(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksExplosion'))){"],
+            /* 2026-09-18 -- and the status refusal stops answering at all, so Good as Gold's subject arm
+             * lets the drop through exactly as its piercing control does and our delta goes empty. The
+             * anchor is `statusRefuser`, the ONE reader every refusal site now goes through. */
+            ["  const _rs=TAGS.param('ability',t.ability,'refusesStatusMoves');\n  if(!_rs||!_rs.refuses)return null;",
+             "  const _rs=null;\n  if(!_rs||!_rs.refuses)return null;"]] },
   match(e) {
     const B = fieldFamilyBranch(e);
     if (!B) return null;
@@ -11587,6 +11681,107 @@ const RULES = [
     /* ---- THE TWO MEASURED REFUSALS --------------------------------------------------------------- */
     if (B.kind === 'refuses-status-moves') {
       const carriers = (CARRIERS[idOf(e.id)] || []).filter(s => !s.battleOnly && !s.isNonstandard);
+      /* ---- THE FIXTURE, CONSTRUCTED — 2026-09-18 ---------------------------------------------------
+       *
+       * The refusal below named what would open this row and filed it as "its own batch": a thrower
+       * whose ability PIERCES `breakable`. It is built here, and it needs no change to the SWAPPER,
+       * because the control does not have to touch the carrier at all. The carrier keeps its ability
+       * in BOTH arms; what changes is whether the refusal is ALLOWED TO ANSWER.
+       *
+       *   SUBJECT   a thrower holding ability Q clicks a single-target stat drop at the carrier.
+       *             The drop is refused for exactly ONE reason — this ability.
+       *   CONTROL   the SAME thrower, same click, holding a PIERCER instead of Q. The refusal is
+       *             ignored (`move.ignoreAbility`, `sim/battle.ts` `ignoringAbility`) and the drop lands.
+       *
+       * Every part is DERIVED, never named:
+       *   the PIERCER   a legal ability whose `onModifyMove` sets `move.ignoreAbility = true` with no
+       *                 category test, and whose only OTHER handler is an `onStart` that does nothing
+       *                 but emit — so the control ability cannot reach a leaf except through the
+       *                 refusal it pierces. Printed with the row.
+       *   the THROWER   a legal, buildable species carrying that piercer AND a second ability Q that is
+       *                 not a piercer, legally learning a drop from `DROP_POOL` (single target,
+       *                 100 accuracy, Status, no status/volatile/self rider, priority 0).
+       *   ONE REASON    the drop is kept only if nothing else on the carrier refuses it: no other
+       *                 ability (it has one), no item, no immunity to the drop in the type chart, and
+       *                 Q must not be a priority lifter — a Prankster status move is refused by a Dark
+       *                 target for a SECOND reason and would also reorder the turn.
+       *
+       * The reading is the carrier's `boosts`: identical to the start in the subject arm, dropped in the
+       * control. The thrower's own `.ability` leaves are the control describing itself and are ignored
+       * by path (`controlOf`, controlKind `piercer`). */
+      const PIERCERS = dex.abilities.all().filter(a => a.exists && !a.isNonstandard
+        && typeof a.onModifyMove === 'function'
+        && /ignoreAbility\s*=\s*true/.test(String(a.onModifyMove))
+        && !/category/.test(String(a.onModifyMove))
+        && Object.keys(a).filter(k => /^on/.test(k) && typeof a[k] === 'function')
+             .every(k => k === 'onModifyMove' || (k === 'onStart'
+               && /^[^{]*\{\s*(?:this\.add\([^;]*\);\s*)*\}\s*$/s.test(String(a[k])))));
+      const legalSp = s => s.exists && !s.isNonstandard && s.tier !== 'Illegal';
+      const cSp = carriers[0] || null;
+      let plan = null;
+      const tried = [];
+      for (const P of PIERCERS) {
+        const hosts = dex.species.all().filter(s => legalSp(s) && !s.battleOnly
+          && !s.forme.endsWith('Mega') && buildableSpecies(s.id) && (!cSp || s.id !== cSp.id)
+          && Object.values(s.abilities || {}).some(n => idOf(n) === P.id));
+        for (const S of hosts) {
+          const Qs = Object.values(S.abilities || {}).filter(n => idOf(n) !== P.id)
+            .map(n => dex.abilities.get(idOf(n)))
+            .filter(q => q && q.exists && !PIERCERS.some(p => p.id === q.id)
+              && typeof q.onModifyPriority !== 'function')
+            .map(q => ({ q, n: Object.keys(q).filter(k => /^on/.test(k) && typeof q[k] === 'function').length,
+                         quiet: QUIET_SET.has(q.id),
+                         bad: Object.keys(q).some(k => /^on/.test(k) && typeof q[k] === 'function'
+                           && INTERFERES.test(k) && k !== 'onTryBoost') }))
+            .filter(x => !x.bad)
+            .sort((x, y) => (y.quiet - x.quiet) || (x.n - y.n));
+          if (!Qs.length) { tried.push(S.name + ': no second ability that is not a piercer, a '
+            + 'priority lifter or on the INTERFERES list'); continue; }
+          /* THE TYPE CHART IS ASKED ONLY WHERE THE AUTHORITY ASKS IT: a Status move ignores type
+           * immunity unless it declares `ignoreImmunity: false` (`sim/battle-actions.ts:496-497`,
+           * `move.ignoreImmunity = (move.category === 'Status')`). Asking it of every drop refused
+           * Scary Face against a Ghost carrier the first time this ran. */
+          const drop = DROP_POOL.filter(m => learnsLegally(S.id, m.id)
+            && cSp && (m.ignoreImmunity !== false || dex.getImmunity(m.type, cSp.types) !== false))
+            .sort((a, b) => (a.id < b.id ? -1 : 1))[0];
+          if (!drop) { tried.push(S.name + ': learns none of the ' + DROP_POOL.length + ' single-target '
+            + '100-accuracy stat drops'); continue; }
+          plan = { P, S, Q: Qs[0].q, drop };
+          break;
+        }
+        if (plan) break;
+      }
+      if (process.env.ROSTER_PRINT_PIERCE_PLAN === '1')
+        console.log('  [PIERCE PLAN] ' + e.id + ' piercers: ' + (PIERCERS.map(a => a.name).join(', ')
+          || 'NONE') + '; ' + (plan ? 'thrower ' + plan.S.name + ' Q=' + plan.Q.name + ' drop '
+          + plan.drop.name : 'no plan') + (tried.length ? '; refused: ' + tried.join(' | ') : ''));
+      if (plan && cSp) {
+        const P = plan;
+        const sc = scaffold({ hpA: 4, hpB: 4, subject: 'B0',
+          a0: mon(P.S.id, '', P.Q.name, [P.drop.id]),
+          b0: mon(cSp.id, '', dex.abilities.get(e.id).name, [INERT]),
+          script: [turn([click(P.drop.id, 0), IDLE], [IDLE, IDLE]),
+                   turn([IDLE, IDLE], [IDLE, IDLE]),
+                   turn([IDLE, IDLE], [IDLE, IDLE])] });
+        sc.controlKind = 'piercer';
+        sc.piercer = { slot: 0, ability: P.P.name, subjectAbility: P.Q.name, species: P.S.id };
+        sc.abilityId = e.id;
+        sc.carrierSpecies = cSp.id;
+        sc.controlAbility = P.P.name;
+        sc.controlQuiet = true;
+        return { note: pretty(P.S.id) + ' (holding ' + P.Q.name + ') clicks ' + P.drop.name + ' at '
+            + cSp.name + ' on turn 1. WITH the ability the drop is refused for exactly one reason and '
+            + cSp.name + '\'s stages stay at 0; the CONTROL is the same thrower holding ' + P.P.name
+            + ', which pierces a `breakable` ability, so the drop lands. The carrier keeps ' + e.name
+            + ' in BOTH arms — the control removes the refusal\'s right to answer, not the ability. '
+            + 'The reading is ' + cSp.name + '\'s `boosts`.   [carrier ' + cSp.name + ', control = '
+            + 'the thrower holds ' + P.P.name + ' instead of ' + P.Q.name + ']',
+          arm: null, scenario: sc, tier: 'PIERCE', controlQuiet: true,
+          precondition: { turn: 1, why: 'SHOWDOWN\'s own spent-PP meter shows ' + P.drop.name + ' was '
+              + 'actually thrown by ' + pretty(P.S.id) + ' — the subject arm\'s whole reading is that '
+              + 'nothing happened, so the throw itself is the only receipt',
+            ok: (b, all) => (all || [b]).some(x => (sdSpent(x, 'p1', 0, P.drop.id) || 0) > 0) } };
+      }
       return cannot('it refuses EVERY Status move another body aims at it, and BOTH of this '
         + 'instrument\'s in-play controls are exactly that: Skill Swap and Gastro Acid are Status '
         + 'moves at the carrier, so neither ever lands and the control arm IS the subject arm. '
@@ -11726,7 +11921,12 @@ const RULES = [
               + 'It is aimed at one MEMBER of the family, so a rule that catches it has proved the '
               + 'entry path is live rather than that every entry ability is',
     patch: [["const _osd=TAGS.param('ability',m.ability,'onSwitchInDrop');",
-             "const _osd=null&&TAGS.param('ability',m.ability,'onSwitchInDrop');"]] },
+             "const _osd=null&&TAGS.param('ability',m.ability,'onSwitchInDrop');"],
+            /* 2026-09-18 -- and the SWITCH-OUT trigger, which is the one member of this family staged
+             * through its trigger (Zero to Hero). Without it `--reds --only zerotohero` read NOT CAUGHT:
+             * the entry drop above is a different handler and moves nothing on that fixture. */
+            ["  {const _sot=TAGS.param('ability',out.ability,'switchOutTrigger');",
+             "  {const _sot=null;"]] },
   match(e) {
     if (!(e.onStart || e.onSwitchIn) || e.onResidual) return null;
     const C = carrierFor(e);
@@ -11848,6 +12048,70 @@ const RULES = [
      * plus a carrier whose only ability slot holds it. THE DISTINCTION IS THE POINT: one refusal is a
      * standing invitation to build something better and the other is a fact about the format, and a
      * reader who cannot tell them apart wastes a session on the second one. */
+    /* ---- THE TRIGGER IS THE ONLY THING THE FORMAT LETS A CONTROL TAKE AWAY — 2026-09-18 -----------
+     *
+     * The refusal below is right that no control can REMOVE this ability: it is the carrier's only
+     * slot, `failskillswap`, `cantsuppress`, and not `breakable`, so neither a swap, a suppression nor a
+     * piercer reaches it. What a control CAN remove is the one event the handler waits for — the
+     * SWITCH OUT (`onSwitchOut` calling `formeChange`, read off the handler, not the name). So:
+     *
+     *   SUBJECT   turn 1 the carrier switches out to a quiet bench body; turn 2 that body switches the
+     *             carrier back in; turn 3 the carrier clicks a neutral hit at a foe.
+     *   CONTROL   the carrier never leaves: turns 1 and 2 are the inert click, turn 3 the same hit.
+     *
+     * THAT IS TWO THINGS DIFFERENT, NOT ONE — the switch is in the delta too — so the READING IS
+     * DECLARED AND NARROWED, and printed: only the carrier's own party-row `species` (the forme the
+     * handler writes, keyed by the body's stable switch key so the row survives the rename) and the
+     * struck foe's HP (the forme's stat line paying out) count as evidence. Every other leaf the switch
+     * moves — the bench body's arrival, the active slot's species while the carrier is out, the inert
+     * click's bookkeeping — is outside the reading. THE TWO-ENGINE COMPARISON IS NOT NARROWED: every
+     * leaf of the subject arm is still compared between the engines, so a disagreement anywhere in the
+     * switch-out, the forme change or the re-entry is a DIFFER on this row. */
+    if (C.tier !== 'ALTERNATE' && typeof e.onSwitchOut === 'function'
+        && /formeChange\(/.test(String(e.onSwitchOut))) {
+      const carrierSp = dex.species.get(C.species);
+      const foe = quietBody({ not: [carrierSp.id] });
+      const mate = foe && quietBody({ not: [carrierSp.id, foe.species] });
+      const bench = mate && quietBody({ not: [carrierSp.id, foe.species, mate.species] });
+      const hit = foe && neutralHit2(foe.species, [], carrierSp.id);
+      const becomes = (/formeChange\(\s*['"]([^'"]+)['"]/.exec(String(e.onSwitchOut)) || [])[1] || null;
+      if (foe && mate && bench && hit && becomes) {
+        const key = idOf(carrierSp.id), foeKey = idOf(foe.species);
+        /* `hpB: 1` — THE CARRIER'S SIDE KEEPS ITS NATURAL HP, for the reason `stageAbilityAnyTier` gives for
+         * a mega: the harness writes the inflated pool onto the authority's body before the battle and the
+         * authority RECOMPUTES maxhp when the forme changes, while medicham2 carries the inflation across.
+         * MEASURED on the first run of this fixture: 175 against 700 on the party row, a question with two
+         * answers, not a finding. */
+        const sc = scaffold({ hpA: 4, hpB: 1, subject: 'B0',
+          a0: { ...foe, moves: [INERT] },
+          b0: mon(carrierSp.id, '', dex.abilities.get(e.id).name, [hit.id]),
+          b1: { ...mate, moves: [INERT] },
+          b2: { ...bench, moves: [INERT] },
+          script: [turn([IDLE, IDLE], [{ sw: bench.species }, IDLE]),
+                   turn([IDLE, IDLE], [{ sw: carrierSp.id }, IDLE]),
+                   turn([IDLE, IDLE], [click(hit.id, 0), IDLE])] });
+        sc.controlKind = 'trigger';
+        sc.trigger = { slot: 0, turns: [0, 1],
+                       only: [new RegExp('^p2\\.party\\.' + key + '\\.species$'),
+                              new RegExp('^p1\\.(active\\[\\d+\\]|party\\.' + foeKey + ')\\.hp$')] };
+        sc.abilityId = e.id;
+        sc.carrierSpecies = carrierSp.id;
+        sc.controlAbility = null;
+        sc.controlQuiet = true;
+        return { note: carrierSp.name + ' switches out to ' + pretty(bench.species) + ' on turn 1 and back '
+            + 'in on turn 2 — the handler turns it into ' + becomes + ' on the way out — then clicks '
+            + hit.name + ' at ' + pretty(foe.species) + ' on turn 3. CONTROL: it never leaves (the inert '
+            + 'click on turns 1 and 2), the only control this regulation allows, because the ability '
+            + 'itself cannot be swapped, suppressed or pierced. THE READING IS DECLARED: the carrier\'s '
+            + 'party-row species and ' + pretty(foe.species) + '\'s HP only; the whole subject arm is still '
+            + 'compared between the engines leaf for leaf.',
+          arm: null, scenario: sc, tier: C.tier, controlQuiet: true,
+          precondition: { turn: 1, why: 'SHOWDOWN\'s own party row reads ' + becomes + ' after the carrier '
+              + 'switched out — the handler actually fired',
+            ok: (b, all) => (all || [b]).some(x => { const R = sdParty(x, 'p2', key);
+              return !!(R && idOf(R.species || '') === idOf(becomes)); }) } };
+      }
+    }
     if (C.tier !== 'ALTERNATE') {
       const F = e.flags || {};
       const shut = !!(F.failskillswap && F.cantsuppress);
@@ -12599,7 +12863,35 @@ const RULES = [
        * no OUTRIGHT KILL in the window was refused for a reason the rule's own header does not claim
        * ("either the carrier kills it outright while its click is a stat drop, OR the drop and the hit
        * are read against each other"). Same helpers, same order, no second copy. */
-      const flip0 = C0 && (speedFlipFoe(body, mult) || speedOrderFoe(body, mult));
+      let flip0 = C0 && (speedFlipFoe(body, mult) || speedOrderFoe(body, mult));
+      /* ---- THE WINDOW IS CONSTRUCTED WHEN THE FORMAT DOES NOT HAND ONE OVER — 2026-09-18 ------------
+       *
+       * The refusal below measured the window and found one body in it, with no usable ability. That is
+       * a fact about the Speed TABLE, not about what a fixture can do: the foe's Speed can be MOVED INTO
+       * the window by a pure Speed self-boost it clicks on the setup turn, identically in both arms, so
+       * it is not in the delta. Derived, never named: `BOOST_MOVES` members whose only boost is `spe`, the
+       * stage multiplier read as the authority's own table ((2+n)/2 for n > 0), and a foe that legally
+       * learns the boost, with at least 2 points of margin on EITHER edge of the window so a rounding
+       * step between two engines cannot put it on the wrong side. The first turn of the script is the
+       * setup turn in both arms, so the boost lands before the order is read. */
+      let SB = null;
+      if (C0 && !flip0) {
+        const spd = s => flatL50(s.baseStats).sp;
+        const h = spd(body), after = Math.floor(h * mult);
+        for (const m of BOOST_MOVES.filter(x => Object.keys(x.boosts).every(k => k === 'spe') && x.boosts.spe > 0)
+                          .sort((a, b) => (a.id < b.id ? -1 : 1))) {
+          const fm = (2 + Math.min(6, m.boosts.spe)) / 2;
+          const pred = F => { const f = Math.floor(spd(F) * fm);
+            return h + 2 <= f && f + 2 <= after && learnsLegally(F.id, m.id); };
+          const f0 = speedFlipFoe(body, mult, { foeMult: fm, foePred: pred })
+                  || speedOrderFoe(body, mult, { foeMult: fm, foePred: pred });
+          if (f0) { flip0 = f0; SB = m; break; }
+        }
+        if (process.env.ROSTER_PRINT_SPEED_PLAN === '1')
+          console.log('  [SPEED PLAN] ' + e.id + ' constructed window: ' + (SB ? flip0.foe.name + ' clicks '
+            + SB.name + ' ' + JSON.stringify(SB.boosts) + ' on the setup turn; ' + flip0.speeds + ' (the foe figure is '
+            + 'AFTER the boost)' : 'none'));
+      }
       if (!flip0) {
         /* THE REFUSAL NAMES THE WINDOW AND EVERY BODY IN IT, because "no foe sits in the window" is
          * three different facts wearing one sentence — the window may be empty, or its occupants may
@@ -12642,16 +12934,24 @@ const RULES = [
             + pretty(thrower.species) + ' clicks ' + st.name + ' at the carrier on turn 1, which opens '
             + 'the `pokemon.status` gate the handler reads; ' + flip0.speeds + ', the carrier\'s '
             + flip0.holderMove.name + ' kills outright and the foe\'s click is ' + flip0.foeMove.name
-            + ' — so the x' + mult + ' decides whether that drop ever lands',
-        a0: mon(flip0.foe.id, '', flip0.ability, [flip0.foeMove.id]),
+            + ' — so the x' + mult + ' decides whether that drop ever lands'
+            + (SB ? '. THE WINDOW IS CONSTRUCTED: ' + pretty(flip0.foe.id) + ' clicks ' + SB.name + ' '
+                + JSON.stringify(SB.boosts) + ' on turn 1 in BOTH arms, which puts its Speed strictly inside '
+                + 'the carrier\'s unmultiplied and multiplied Speed (' + flip0.speeds + '; the foe figure is AFTER the boost)' : ''),
+        a0: mon(flip0.foe.id, '', flip0.ability, SB ? [flip0.foeMove.id, SB.id] : [flip0.foeMove.id]),
         b1: { ...thrower, moves: [st.id] },
-        script: [turn([IDLE, IDLE], [IDLE, click(st.id, 0)]),
+        script: [turn([SB ? click(SB.id) : IDLE, IDLE], [IDLE, { ...(ARM ? mclick(st) : click(st.id)), ally: true }]),
                  turn([click(flip0.foeMove.id, 0), IDLE], [click(flip0.holderMove.id, 0), IDLE]),
                  turn([IDLE, IDLE], [IDLE, IDLE])],
-        precondition: { turn: 1, why: 'the carrier is actually STATUSED on SHOWDOWN\'s own board '
+        precondition: [{ turn: 1, why: 'the carrier is actually STATUSED on SHOWDOWN\'s own board '
             + 'before the order is read — a gate that never opened reads INERT and says nothing',
           ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p2', 0);
-            return !!(A && A.status && A.status !== '-'); }) } });
+            return !!(A && A.status && A.status !== '-'); }) }]
+          .concat(SB ? [{ turn: 1, why: 'the foe\'s Speed boost actually LANDED on SHOWDOWN\'s own board '
+            + 'before the order is read — without it the foe sits outside the window and the multiplier '
+            + 'decides nothing',
+          ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p1', 0);
+            return !!(A && A.boosts && +A.boosts.spe >= +SB.boosts.spe); }) }] : []) });
     }
 
     /* ---- THE TERRAIN ARM. No ability in this format sets a terrain on a legal body, so the setter
@@ -13856,9 +14156,9 @@ const RULES = [
 { id: 'move/is-the-control-click', kind: 'move',
   reads: 'the move id, against this file\'s own INERT click',
   why: 'THE CONTROL ARM REPLACES THE CLICK UNDER TEST WITH ' + INERT + '. For that one move the '
-     + 'control script is IDENTICAL to the subject script by construction, the delta is empty, and '
-     + 'the entry would read THE STAGING IS INERT for a reason that is about this file rather than '
-     + 'about the engine. Said out loud instead.',
+     + 'control script would be IDENTICAL to the subject script, so `controlOf` substitutes the SECOND '
+     + 'control click (' + (INERT_ALT || 'none in this regulation') + ') for this row alone, proven '
+     + 'inert by selftest clause 1b; with no second click the row is refused and says why.',
   match(e) { if (idOf(e.id) !== idOf(INERT)) return null;
     /* REPAIRED 2026-09-08, batch O. THE SECOND CLAUSE HAD EXPIRED AND THE FIRST STILL BINDS. It read
      * "Its effect — two critical-hit stages — is also not a leaf board_state.js compares", and that
@@ -13895,11 +14195,51 @@ const RULES = [
      * (`if (!rule.break) continue;`), so the green would rest on a plant nobody had written. That is
      * the "a green test can be asking nothing" failure with a two-line cause, so it is refused here
      * BY NAME instead of being left to be noticed. */
-    return cannot('a SECOND control click became available (' + pretty(INERT_ALT) + ') and this rule '
-      + 'has no red demonstration to stage it behind. The fixture is a two-turn self-click read on '
-      + '`vol.focusenergy`; what is owed is a `break` aimed at the crit-stage volatile write in '
-      + 'medicham2, because the red-demonstration loop skips a rule with no `break` and the row would '
-      + 'go green on a plant nobody wrote.'); } },
+    /* ---- BOTH HALVES NOW EXIST — 2026-09-18 ------------------------------------------------------
+     * The second control click is admitted (its volatile's only non-announcing handler is an immunity to
+     * ONE named type, `INERT_ALT_IMMUNE_TO`), and this rule now carries the `break` that was owed. The
+     * fixture is the thinnest one this file has: every body on both sides clicks nothing but the control
+     * click for three turns, the carrier included. The CONTROL arm swaps every such click for the
+     * alternate (`controlOf`), so the delta is Focus Energy's own `vol.focusenergy` and spent PP on every
+     * body, and the alternate's own two leaves are ignored as the control describing itself.
+     *
+     * THE ONE DOOR THE ALTERNATE OPENS IS PROVED SHUT, NOT ASSUMED. Asked of the script actually built:
+     * every click in both arms is the control click or the alternate — neither of which is of the
+     * immune type — so no move of that type is ever aimed at anybody; and no click sets a hazard, a
+     * terrain or anything else that reads whether a body is grounded, because there is no other click. */
+    const carrier = learnerBody([INERT]) || quietBody({});
+    if (!carrier) return cannot('no legal buildable body exists to click ' + pretty(INERT));
+    const sc = scaffold({ hpA: 1, hpB: 1, subject: 'B0',
+      b0: { ...carrier, moves: [INERT] },
+      a0: { ...(quietBody({ not: [carrier.species] }) || carrier), moves: [INERT] },
+      script: [turn([IDLE, IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
+    const kinds = new Set(sc.script.flatMap(st => st.p1.concat(st.p2)).map(a => idOf(a && a.m)));
+    const stray = [...kinds].filter(k => k !== idOf(INERT));
+    const door = INERT_ALT_IMMUNE_TO;
+    const opens = [INERT, INERT_ALT].map(id => dex.moves.get(id))
+      .filter(mv => door && idOf(mv.type) === idOf(door));
+    if (stray.length || opens.length) return cannot('the alternate control click ' + pretty(INERT_ALT)
+      + ' is admitted only on a fixture that never feeds its immunity to ' + door + ', and this one '
+      + (stray.length ? 'clicks ' + stray.join(', ') : 'clicks a ' + door + '-type move itself'));
+    return { note: 'every body on both sides clicks ' + pretty(INERT) + ' on all three turns — the carrier '
+        + pretty(carrier.species) + ' in slot B0 among them. The CONTROL arm swaps every one of those '
+        + 'clicks for ' + pretty(INERT_ALT) + (door ? ' (whose volatile\'s only effect is an immunity to '
+          + door + '; no ' + door + ' move, hazard or terrain exists on this board, asserted off the '
+          + 'script)' : '') + '. The reading is `vol.' + idOf(INERT_MOVE.volatileStatus || INERT)
+        + '` and the spent PP; the two crit stages are invisible on both pin corners and are not read.',
+      arm: null, scenario: sc,
+      precondition: { turn: 1, why: 'SHOWDOWN\'s own board carries the `' + idOf(INERT_MOVE.volatileStatus
+          || INERT) + '` volatile on the carrier after turn 1 — the leaf the whole row is read on',
+        ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p2', 0);
+          return !!(A && A.vol && +A.vol[idOf(INERT_MOVE.volatileStatus || INERT)] > 0); }) } }; },
+  /* THE BREAK THAT WAS OWED. `applyVolatile`'s generic write is skipped for this one volatile, so the
+   * click still spends PP and announces nothing on the board — the subject arm parts from the authority
+   * on `vol.focusenergy` exactly where the mechanism lives. */
+  break: { why: 'Focus Energy\'s volatile is never written, so the click spends PP and leaves no crit stage',
+    patch: [["  (who._vol=who._vol||{})[vol]=_tn;",
+             "  if(vol!=='focusenergy')(who._vol=who._vol||{})[vol]=_tn;"]] } },
 
 /* ---- THE PRECONDITION RULES --------------------------------------------------------------------
  *
@@ -15437,7 +15777,11 @@ const RULES = [
      + 'recoil computed off the wrong quantity (the move\'s power rather than the damage dealt) tracks '
      + 'correctly on a full-HP target and parts on a chipped one.',
   break: { why: 'the recoil is never paid — the damage still lands',
-    patch: [['const _rc=a.move.mv&&a.move.mv.rc;', 'const _rc=null;']] },
+    patch: [['const _rc=a.move.mv&&a.move.mv.rc;', 'const _rc=null;'],
+            /* 2026-09-18 -- AND THE MAX-HP FAMILY (Struggle, Steel Beam), which is a different block
+             * reading `recoil {of:'maxhp'}` and which the first anchor never reached: `--reds --only
+             * struggle` read NOT CAUGHT until this was added. */
+            ["{const _mr=TAGS.param('move',a.move&&a.move.id,'recoil');", '{const _mr=null;']] },
   match(e) {
     if (!(e.recoil || e.mindBlownRecoil || e.struggleRecoil) || !(e.basePower > 0)) return null;
     /* STRUGGLE CANNOT BE CLICKED FROM A SCRIPT AT ALL, and the rejection names the reason: Showdown
@@ -15465,6 +15809,69 @@ const RULES = [
      * `move/is-the-control-click` is refused on: asked of the whole regulation on this run, 23 moves
      * pass the control-click shape cap and every one is refused (printed by `--rules`). So the two
      * remaining COULD-NOT-STAGE moves in this stage are ONE missing thing, not two. */
+    /* ---- THE CONTRADICTION DISSOLVES ONCE THE CONTROL IS ALLOWED ONE MORE MOVE SLOT — 2026-09-18 ---
+     *
+     * Both halves of the refusal below are true of ONE body. They are not true of two bodies that
+     * differ in a way no board leaf can see. The MOVESET is not a leaf `board_state.js` compares —
+     * only what has been SPENT out of it is — so the control arm's carrier is the subject's carrier
+     * with the inert click added to its menu, and nothing else. In the subject arm the menu empties and
+     * Showdown offers Struggle and nothing else; in the control arm the same click is replaced by the
+     * inert click, which is still on the menu with full PP. The two arms are identical, move for move,
+     * until the turn the menu runs dry.
+     *
+     *   the EMPTIER   a legal Status move aimed at the user that carries `heal`, always hits, and has
+     *                 the SMALLEST maximum PP (`data/tags.json` `pp.max`, the same row `PP_DRAIN`
+     *                 counts off). The carrier is at full HP, so every click FAILS to heal and moves
+     *                 nothing but its own spent-PP row — identically in both arms.
+     *   the CARRIER   a legal, buildable, quiet body that legally learns it, holding nothing else.
+     *   the READING   the struck foe's HP and the carrier's own HP (the recoil), on the last turn. The
+     *                 carrier's inert-click bookkeeping in the control arm (its spent PP and volatile)
+     *                 is the control describing itself and is ignored by path (`controlOf`,
+     *                 `sc.ignoreSubjectInert`).
+     * Struggle's target is `randomNormal`; the pin draws it identically in both engines, and the
+     * reading is taken on WHICHEVER foe it struck — both foes' HP leaves are compared. */
+    if (e.struggleRecoil) {
+      const ppMaxOf = m => { const p = ((TAGS.moves[m.id] || {}).params || {}).pp;
+        return (p && +p.max > 0) ? Math.floor(+p.max) : null; };
+      const emptiers = dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.category === 'Status'
+          && m.target === 'self' && m.heal && alwaysHits(m) && ppMaxOf(m) && !m.volatileStatus
+          && !m.boosts && !m.self && !m.status)
+        .sort((a, b) => ppMaxOf(a) - ppMaxOf(b) || (a.id < b.id ? -1 : 1));
+      let X = null, carrier = null;
+      for (const m of emptiers) {
+        carrier = learnerBody([m.id], { pred: s => !Object.values(s.abilities || {})
+          .some(n => typeof dex.abilities.get(idOf(n)).onDeductPP !== 'undefined') });
+        if (carrier) { X = m; break; }
+      }
+      if (X && carrier) {
+        const n = ppMaxOf(X);
+        const f0 = quietBody({ not: [carrier.species] });
+        const f1 = f0 && quietBody({ not: [carrier.species, f0.species] });
+        if (f0 && f1) {
+          const script = [];
+          for (let i = 0; i < n; i++) script.push(turn([click(X.id), IDLE], [IDLE, IDLE]));
+          script.push(turn([click('struggle', 0), IDLE], [IDLE, IDLE]));
+          const sc = scaffold({ hpA: 4, hpB: 4, subject: 'A0',
+            a0: { ...carrier, moves: [X.id] },
+            b0: { ...f0, moves: [INERT] }, b1: { ...f1, moves: [INERT] }, script });
+          /* the subject's carrier holds the emptier and NOTHING ELSE — `scaffold` appends the inert
+           * click to every body, and on this one body that would keep the menu from ever running dry */
+          sc.A[0] = { ...sc.A[0], moves: [X.id] };
+          sc.ignoreSubjectInert = true;
+          return { arm: PRIMARY_ARM_ID, scenario: sc,
+            note: pretty(carrier.species) + ' holds ' + X.name + ' ALONE (max PP ' + n + ') and clicks it '
+                + n + ' times at full HP, failing to heal every time; on turn ' + (n + 1) + ' its menu is '
+                + 'empty and Showdown offers Struggle and nothing else. The CONTROL arm is the same body '
+                + 'with ' + pretty(INERT) + ' added to its menu, which it clicks on that turn instead — '
+                + 'the moveset is not a board leaf, only what is spent from it is. The reading is the '
+                + 'struck foe\'s HP and the carrier\'s own recoil.',
+            precondition: { turn: n, why: 'SHOWDOWN\'s own spent-PP meter shows ' + X.name + ' spent to '
+                + 'its maximum (' + n + ') before the Struggle turn — a menu that never ran dry means '
+                + 'Struggle was never offered',
+              ok: (b, all) => (all || [b]).some(x => (sdSpent(x, 'p1', 0, X.id) || 0) >= n) } };
+        }
+      }
+    }
     if (e.struggleRecoil) return cannot('THE TWO REQUIREMENTS CANNOT BOTH HOLD, so this is a '
       + 'contradiction rather than a long script nobody has written. Showdown DISABLES Struggle for '
       + 'any body that still has a usable move, so the user\'s EVERY slot must be empty — and '
@@ -16792,6 +17199,91 @@ function restageOrHold(sc, kind, e) {
   return { swaps: [], unresolved, held: 'HELD on its pre-#318 bodies — measured on b42b81899631: ' + why };
 }
 
+/* ---- AN ABILITY NO SHEET CARRIES, STAGED THROUGH THE MOVE THAT CONFERS IT — 2026-09-18 ------------
+ *
+ * `engine/legal_scope.js` admits an ability no legal species carries when a legal MOVE writes it onto a
+ * body (`conferred[].via`, e.g. `simplebeam onHit setAbility`). This file used to file every such row as
+ * `scope/in-scope-no-sheet-body` — a staging gap of the instrument, stated as one. The fixture is not
+ * hard; it is built here rather than found.
+ *
+ *   SUBJECT   turn 1 the beamer clicks the conferring move at the target; turn 2 the target clicks a pure
+ *             self-boost it legally learns; turn 3 the beamer clicks a single-target drop at it (when it
+ *             legally learns one). Both directions of `Battle#boost` are therefore asked.
+ *   CONTROL   the conferring click is replaced by the inert click, and NOTHING ELSE changes. The target
+ *             keeps its own ability, so the delta is the conferred ability acting on the two boosts.
+ *
+ * WHAT IS IGNORED, AND WHY IT IS NOT EVIDENCE: the beamer's own spent-PP rows for the conferring move and
+ * the inert click, the inert click's volatile on the beamer (all three are the control describing
+ * itself), and the target's `.ability` leaves when they read exactly `<conferred>` against `<its own>` —
+ * the conferral itself, dropped by the same value-conditioned `swapLeaf` every ability swap uses.
+ *
+ * MEMBERSHIP: whatever `SCOPE.conferred` admits by a MOVE. The observable is read off the ability's own
+ * handler — only an ability registering `onChangeBoost` is staged (its effect lands on `boosts`); any
+ * other conferred ability is refused BY NAME with that as its reason. In Reg M-B that is Simple alone. */
+const CONFERRED_RULE = { id: 'ability/conferred-by-a-move', kind: 'ability',
+  reads: 'engine/legal_scope.js `conferred[].via` (a legal MOVE whose handler calls setAbility), and the '
+       + 'conferred ability\'s own `onChangeBoost`',
+  why: 'THE ABILITY HAS NO SHEET BODY, SO IT IS PUT ON ONE BY THE MOVE THE REGULATION ADMITS IT THROUGH, '
+     + 'and the control is that click removed. The reading is the target\'s boosts after a self-boost and '
+     + 'a drop.',
+  break: { why: 'the boost amplifier is dropped, so a Simple body\'s own Swords-Dance-shaped click moves '
+              + 'the same stages as anybody else\'s',
+    patch: [["    if(_amp&&+_amp.mult>1){MEDSEEN.boostAmplified++;return +_amp.mult;}",
+             "    if(false&&_amp&&+_amp.mult>1){MEDSEEN.boostAmplified++;return +_amp.mult;}"]] },
+  match(e) {
+    const row = (SCOPE.conferred || []).find(c => idOf(c.ability) === idOf(e.id));
+    if (!row) return cannot('engine/legal_scope.js lists no conferral for it');
+    if (typeof e.onChangeBoost !== 'function') return cannot('it is conferred by '
+      + (row.via || []).map(v => v.kind + ' ' + v.id).join(', ') + ' but registers no `onChangeBoost`, '
+      + 'and that is the only observable this rule knows how to read — a conferred ability of another '
+      + 'shape needs its own reading');
+    const vias = (row.via || []).filter(v => v.kind === 'move')
+      .map(v => dex.moves.get(v.id)).filter(m => m && m.exists && !m.isNonstandard && alwaysHits(m)
+        && (m.target === 'normal' || m.target === 'any'));
+    if (!vias.length) return cannot('none of its conferring moves (' + (row.via || []).map(v => v.id)
+      .join(', ') + ') is a legal single-target move that always hits on the primary arm');
+    const refusedAbility = a => { const A = dex.abilities.get(idOf(a));
+      return !A || !!((A.flags || {}).cantsuppress) || A.id === idOf(e.id) || A.id === 'truant'; };
+    for (const cf of vias) {
+      for (const bm of BOOST_MOVES.slice().sort((a, b) => (a.id < b.id ? -1 : 1))) {
+        const tgt = learnerBody([bm.id], { pred: s => !refusedAbility(carrierAbility(s)) });
+        if (!tgt) continue;
+        const drop = DROP_POOL.slice().sort((a, b) => (a.id < b.id ? -1 : 1))
+          .find(d => learnerBody([cf.id, d.id], { not: [tgt.species], wide: true }));
+        const beamer = drop ? learnerBody([cf.id, drop.id], { not: [tgt.species], wide: true })
+                            : learnerBody([cf.id], { not: [tgt.species], wide: true });
+        if (!beamer) continue;
+        const sc = scaffold({ hpA: 4, hpB: 4, subject: 'B0',
+          a0: { ...beamer, moves: drop ? [cf.id, drop.id] : [cf.id] },
+          b0: { ...tgt, moves: [bm.id] },
+          script: [turn([click(cf.id, 0), IDLE], [IDLE, IDLE]),
+                   turn([IDLE, IDLE], [click(bm.id), IDLE]),
+                   turn([drop ? click(drop.id, 0) : IDLE, IDLE], [IDLE, IDLE])] });
+        sc.controlKind = 'conferred';
+        sc.conferred = { move: cf.id, ability: idOf(e.id), targetSpecies: idOf(tgt.species),
+                         targetAbility: idOf(tgt.ability) };
+        sc.abilityId = e.id;
+        sc.carrierSpecies = idOf(tgt.species);
+        sc.controlAbility = tgt.ability;
+        sc.controlQuiet = true;
+        return { note: pretty(beamer.species) + ' clicks ' + cf.name + ' at ' + pretty(tgt.species)
+            + ' (holding ' + tgt.ability + ') on turn 1, writing ' + e.name + ' onto it; turn 2 '
+            + pretty(tgt.species) + ' clicks ' + bm.name + ' ' + JSON.stringify(bm.boosts) + '; turn 3 '
+            + (drop ? pretty(beamer.species) + ' clicks ' + drop.name + ' ' + JSON.stringify(drop.boosts)
+                      + ' at it' : 'nothing (the beamer learns no single-target drop)')
+            + '. The reading is ' + pretty(tgt.species) + '\'s boosts.   [control = the ' + cf.name
+            + ' click replaced by ' + pretty(INERT) + '; the target keeps ' + tgt.ability + ']',
+          arm: null, scenario: sc, tier: 'CONFERRED', controlQuiet: true,
+          precondition: { turn: 1, why: 'the conferral actually LANDED on SHOWDOWN\'s own board — the '
+              + 'target reads ' + e.name + ' after turn 1. A refused ' + cf.name + ' leaves nothing to test',
+            ok: (b, all) => (all || [b]).some(x => { const A = sdActive(x, 'p2', 0);
+              return !!(A && idOf(A.ability || '') === idOf(e.id)); }) } };
+      }
+    }
+    return cannot('no legal buildable target with a suppressible, quiet ability learns a pure self-boost '
+      + 'while another legal body learns ' + vias.map(m => m.name).join('/'));
+  } };
+
 function assign(kind) {
   if (kind === 'pair') return assignPairs();
   const { legal, banned } = population(kind);
@@ -16814,16 +17306,22 @@ function assign(kind) {
         out_of_scope: String(sv.code).toLowerCase(), scope_verdict: sv.code });
       continue;
     }
-    if (!legalCarriers(kind, e).length) {
-      /* IN SCOPE WITH NO SHEET BODY — a CONFERRED ability (Simple). This roster has no conferral rule, so it
-       * is a staging gap of this instrument: counted in scope and not stageable, never out of scope. */
-      out.push({ kind, id: e.id, name: e.name, rule: 'scope/in-scope-no-sheet-body',
-        verdict: 'COULD-NOT-STAGE', why: 'IN SCOPE (' + sv.code + ' — engine/legal_scope.js) and no legal species carries it '
-          + 'as a sheet body; this roster has no rule that stages a conferred ability — a staging gap, not a claim about the format' });
-      continue;
-    }
     let hit = null;
-    for (const r of rules) {
+    if (!legalCarriers(kind, e).length) {
+      /* IN SCOPE WITH NO SHEET BODY — a CONFERRED ability (Simple). Until 2026-09-18 this roster had no
+       * conferral rule and filed the row as a staging gap. `CONFERRED_RULE` stages it through the move
+       * that confers it; a row it cannot stage keeps the old refusal, naming the rule's own reason. */
+      const cm = kind === 'ability' ? CONFERRED_RULE.match(e) : null;
+      if (!cm || cm.cannot) {
+        out.push({ kind, id: e.id, name: e.name, rule: 'scope/in-scope-no-sheet-body',
+          verdict: 'COULD-NOT-STAGE', why: 'IN SCOPE (' + sv.code + ' — engine/legal_scope.js) and no legal species carries it '
+            + 'as a sheet body; ' + (cm && cm.cannot ? 'the conferral rule could not stage it: ' + cm.cannot
+              : 'this roster has no rule that stages a conferred ability') + ' — a staging gap, not a claim about the format' });
+        continue;
+      }
+      hit = { rule: CONFERRED_RULE, m: cm };
+    }
+    if (!hit) for (const r of rules) {
       let m = null;
       try { m = r.match(e); } catch (err) { m = cannot('the shape rule threw: ' + err.message); }
       if (m) { hit = { rule: r, m }; break; }
@@ -16832,6 +17330,18 @@ function assign(kind) {
       verdict: 'COULD-NOT-STAGE', why: 'no shape rule in this file matches its data shape. Handlers: '
         + (Object.keys(e).filter(k => /^on/.test(k) && typeof e[k] === 'function').join(', ') || 'none')
         + '. shortDesc: ' + (e.shortDesc || '(none)') }); continue; }
+    /* THE OWNER'S SHELF REACHES A REFUSED ROW TOO (2026-09-18, Frisk). A row whose rule refuses it never
+     * reaches `runEntry`, where the closet is checked, so an owner deferral of a refused entity used to
+     * change nothing. Only an IN-SCOPE refusal is shelved (an out-of-scope one is not in this game), and
+     * the refusal is kept as the underlying verdict, exactly as the staged closet rows keep theirs. */
+    if (hit.m.cannot && DEFERRED[e.id] && !hit.m.scope) { const DF = DEFERRED[e.id];
+      out.push({ kind, id: e.id, name: e.name, rule: hit.rule.id, reads: hit.rule.reads,
+        note: 'NOT STAGED — refused by its rule and shelved by the owner (' + DF.by + ', ' + DF.on + ')',
+        verdict: 'DEFERRED-BY-OWNER',
+        deferred: DF, would_pass_now: false, underlying_verdict: 'COULD-NOT-STAGE',
+        why: 'SHELVED BY THE OWNER, NOT MEASURED CLEAN. ' + DF.why + ' (deferred ' + DF.on + ' by ' + DF.by
+           + '.) Underlying verdict without the deferral: COULD-NOT-STAGE — ' + hit.m.cannot });
+      continue; }
     if (hit.m.cannot) { out.push({ kind, id: e.id, name: e.name, rule: hit.rule.id,
       verdict: 'COULD-NOT-STAGE', why: hit.m.cannot, out_of_scope: hit.m.scope || null }); continue; }
     const sc = hit.m.scenario;
@@ -16921,6 +17431,41 @@ function selftest() {
                    + INERT_SELF.names.join(', ') + ']',
                  ok: moved.length === 0, note: moved.join(', ') });
       out.push({ id: 'and the two engines agree on all ' + first.compared + ' leaves while doing it',
+                 ok: r.boards.every(b => !b.diffs.length),
+                 note: r.boards.flatMap(b => b.diffs.map(d => d.field)).join(', ') });
+    }
+  }
+  /* 1b. AND THE SECOND CONTROL CLICK, WHEN THERE IS ONE (2026-09-18). `move/is-the-control-click` rests
+   *     on it, and its header has always said it is "proven by the same selftest clause" — which did not
+   *     exist, because until today no alternate was ever admitted. The same board, the same three
+   *     turns, every body clicking the alternate; nothing may move beyond its own `INERT_ALT_SELF`. */
+  if (INERT_ALT) {
+    const ALT = { m: INERT_ALT };
+    const sc = scaffold({ a0: { ...CAST.ATTACKER(), moves: [INERT_ALT] },
+                          b0: { ...CAST.BAG(), moves: [INERT_ALT] },
+                          script: [turn([ALT, ALT], [ALT, ALT]),
+                                   turn([ALT, ALT], [ALT, ALT]),
+                                   turn([ALT, ALT], [ALT, ALT])] });
+    for (const b of sc.A.concat(sc.B)) if (!b.moves.includes(INERT_ALT)) b.moves.push(INERT_ALT);
+    sc.id = 'selftest/inert-click-alt';
+    const r = play(sc, null);
+    if (r.bad) out.push({ id: 'the second control click ' + INERT_ALT + ' plays at all', ok: false,
+                          note: r.bad + ' ' + r.why });
+    else {
+      const first = r.boards[0];
+      const moved = [];
+      let own = 0;
+      for (const b of r.boards.slice(1)) for (const [who, key] of [['showdown', 'sd'], ['ours', 'medi']])
+        for (const d of BS.compare(first[key], b[key], { compared: 0 })) {
+          if (INERT_ALT_SELF.some(x => x.re.test(String(d.path)))) { own++; continue; }
+          moved.push(who + ' ' + d.path);
+        }
+      out.push({ id: 'the second control click ' + INERT_ALT + ' moves NO board leaf in either engine over '
+                   + '3 turns, beyond its own ' + own + ' derived leaf-movement(s) on ['
+                   + INERT_ALT_SELF.names.join(', ') + ']',
+                 ok: moved.length === 0 && own > 0, note: moved.join(', ') || (own ? '' : 'it moved NOTHING, '
+                   + 'not even its own PP — the click never ran') });
+      out.push({ id: 'and the two engines agree on all ' + first.compared + ' leaves while it does',
                  ok: r.boards.every(b => !b.diffs.length),
                  note: r.boards.flatMap(b => b.diffs.map(d => d.field)).join(', ') });
     }

@@ -60,7 +60,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_misty_terrain_status.js`, `tests/probe_charge_release_chosen_slot.js`,
 `tests/probe_corner_mechanisms.js`, `tests/probe_simple_beam.js`, `tests/probe_magnetrise_clock.js`,
 `tests/probe_rampage_length.js`, `tests/probe_bond_secondary_order.js`, `tests/probe_ability_flag_refusal.js`,
-`tests/probe_reopen_partings.js`
+`tests/probe_reopen_partings.js`, `tests/probe_moldbreaker_refusals.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -156,13 +156,13 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  891/891 probed mechanics live, 0 missing   (census 2026-09-18 21:39)
+  894/894 probed mechanics live, 0 missing   (census 2026-09-18 21:50)
     the census probes what somebody thought to probe: 297 of 297 in-scope tags carry a probe, 0 carry none (9 of 306
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 48 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 1.0 h old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
     older than its input abra-tags.js
-    pinned to engine release ce34d0a89f01 — engine/medicham2-browser.js matches the frozen copy; live is 6710906a6ea5 now (a PRE-CHANGE measurement of that release, not corruption)
+    pinned to engine release ce34d0a89f01 — engine/medicham2-browser.js matches the frozen copy; live is cc1d60172ee7 now (a PRE-CHANGE measurement of that release, not corruption)
     (+3 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
@@ -180,7 +180,7 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-18 21:43_
+_stamped 2026-09-18 21:57_
 
 <!-- /GENERATED -->
 
@@ -315,6 +315,48 @@ Full account: `docs/_reports/2026-09-18-knockoff-prankster.md`.
 
 - **#80 and #9 leave it.** Both are carried by probes now (above).
 - **Carried forward unchanged** from the hand lists below.
+
+## SIX OF THE SEVEN IN-SCOPE `COULD-NOT-STAGE` ROWS GET A CONSTRUCTED FIXTURE, STAGED ONE ROW AT A TIME — AND ONE IS A REAL ENGINE DEFECT: **A MOLD BREAKER'S STATUS MOVE WAS REFUSED BY GOOD AS GOLD** (DID-NOT-FIRE, FIXED, KNOB `MEDI_STATUS_REFUSAL_UNBREAKABLE=1`). THE SAME DEFECT AT **MAGIC BOUNCE AND STICKY HOLD**, BOTH FIXED WITH THEIR OWN KNOBS. CENSUS **886 → 889 LIVE / 0 MISSING**, MEASURED IN THE WORKTREE. **ENGINE BYTES CHANGED — WORKTREE RELEASE `0fe2604193c8`** (the single-row roster verdicts in the table were taken on `4a13ae246e89`). FRISK DEFERRED BY WILL (MESSAGE-ONLY). THE MOVE USAGE SHELF NO LONGER DEPENDS ON THE STAGE NAME (#421). OBLIVIOUS UNDER MOLD BREAKER MEASURED BOARD-IDENTICAL. FULL STAGE RE-RUNS ARE OWED. 2026-09-18, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-18-roster-unstaged.md`. Every verdict below is a SINGLE-ROW stage
+(`--only <id> --reds`) on release `4a13ae246e89`; no stage artifact was rewritten.
+
+| row | was | fixture | now |
+|---|---|---|---|
+| Good as Gold | refused (both controls are Status moves) | thrower holds Mold Breaker in the control arm; carrier untouched | MATCH, red CAUGHT (was DID-NOT-FIRE on `bc8d7cf849dd`) |
+| Simple | `scope/in-scope-no-sheet-body` | new `ability/conferred-by-a-move`: Simple Beam, control = the beam removed | MATCH, CAUGHT |
+| Quick Feet | Speed window held one unusable body | foe Agility on the setup turn moves it into the window; status click aimed at the ALLY | MATCH, CAUGHT |
+| Focus Energy | no second control click | Magnet Rise admitted (its only effect is a Ground immunity the fixture never feeds); selftest 1b proves it inert | MATCH, CAUGHT |
+| Struggle | "contradiction" | control carrier gets the inert click back in its menu — the moveset is not a board leaf | MATCH, CAUGHT |
+| Zero to Hero | all control shapes shut | control removes the TRIGGER (no switch-out); reading declared to party species + struck foe HP | MATCH, CAUGHT |
+| Frisk | message-only | not built — no board leaf exists | DEFERRED-BY-OWNER (Will, 2026-09-18) |
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST, because the census and the roster now carry them:** Good as Gold under Mold
+  Breaker (`statusRefuser`, census probe `Mold Breaker's Status move reaches a Good as Gold body`).
+- **OBLIVIOUS UNDER MOLD BREAKER IS BOARD-IDENTICAL, MEASURED:** the authority lets a Mold Breaker's
+  Taunt through (`flags: { breakable: 1 }`, `data/abilities.ts:3026`) and Oblivious's own `onUpdate`
+  (`:2999-3010`) removes it at once, so `vol.taunt` reads 0 in both arms of both engines. This engine
+  refuses it instead of landing and curing it — a NARRATION difference, not a board one, and it was not
+  changed. The same fixture without Oblivious reads `taunt 3` in both engines, so the reading is live.
+- **THE OTHER BREAKABLE REFUSALS, EACH STAGED AGAINST A MOLD BREAKER** (`tests/probe_moldbreaker_refusals.js`,
+  release `0fe2604193c8`, 21 of 21 PASS, each fixed case red under its own knob):
+  **Magic Bounce** and **Sticky Hold** were real board defects (the drop bounced onto the thrower; the
+  item was kept) — fixed in `bounceOff` / `abilityRefusesItemLoss` through `suppressedAbility`, knobs
+  `MEDI_BOUNCE_UNBREAKABLE=1` / `MEDI_STICKYHOLD_UNBREAKABLE=1`, two census probes. **Own Tempo** is
+  board-identical (the authority's `onUpdate` cures the confusion it let through) — narration only, not
+  changed. **Damp** cannot occur: no legal Mold Breaker user learns a self-destructing move, asserted on
+  every run. The Armor Tail / Queenly Majesty narration site was skipped as instructed.
+- **PRE-EXISTING, NOT CAUSED HERE:** `--only magicbounce --reds` reads NOT CAUGHT for
+  `ability/absorbs-a-type` on the pre-fix release too; its plant aims at `typeImmunity`, which Magic Bounce
+  does not use. The rule's other members demonstrate it in a full stage.
+- **ROADMAP #421 CLOSED:** the usage shelf is keyed on the row being a MOVE, not on `--stage moves`, so
+  Axe Kick and Electrify read DEFERRED-BY-OWNER under both `--stage moves` and `--stage all` (they read
+  FIRED-AND-BOARDS-DIFFER under `all` before).
+- **Frisk is DEFERRED-BY-OWNER** (Will, 2026-09-18: *"set frisk aside."*), in the same `DEFERRED` map as
+  Anticipation and Forewarn. Its rule refuses it before `runEntry`, so `assign` now applies an owner
+  shelf to an in-scope refusal and keeps COULD-NOT-STAGE as the underlying verdict.
 
 ## THE GATE'S `0 OF 961` IS A PROPERTY OF ONE TEAM LATTICE — THE SAME RELEASE READS **10 OF 1,069** AT `--games 1350` AND **84 OF 7,178** AT `--games 12000`, AND THE THREE FIXES IN `302b48a5` ACCOUNT FOR **ZERO** OF THE 84. TWO ENGINE DEFECTS FOUND IN THAT WIDE DRAW AND CLOSED: THE ELECTRIC BANK SURVIVES AN ABORTED CLICK **AND A STATUS CLICK** (16 OF 84 BETWEEN THEM). CENSUS **886 LIVE / 0 MISSING**, UNMOVED. **TWO ENGINE BYTES CHANGED — RELEASE `bc8d7cf849dd` CUT**, ALL FOUR INVALIDATED ARTIFACTS RE-RUN. GATE **OPEN, NINE OF NINE** — AND §4 OF THE REPORT IS WHY THAT LINE MUST NOT BE READ AS "MEDICHAM IS CORRECT". 2026-09-12, CHANGELOG `<<VER>>`
 

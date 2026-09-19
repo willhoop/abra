@@ -504,6 +504,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * turned the mechanic OFF everywhere, and a zero here would be indistinguishable from the gate
    * working if nobody looked. */
   abilityBrokenByMoldBreaker: 0,
+  /* 2026-09-18 -- a `refusesStatusMoves` holder (Good as Gold) whose refusal was NOT allowed to answer
+   * because the mover pierces `breakable` (`sim/battle.ts:836-840`). See `statusRefuser`. */
+  statusRefusalPiercedByMoldBreaker: 0,
+  /* 2026-09-18 -- the same, for Magic Bounce (`bounceOff`) and Sticky Hold (`abilityRefusesItemLoss`). */
+  bouncePiercedByMoldBreaker: 0, itemLossRefusalPiercedByMoldBreaker: 0,
   /* ROADMAP #139 -- the max-HP recoil family (Steel Beam, Struggle). Counted apart from ordinary
    * recoil because the two are different currencies off different artifact fields, and a zero here
    * with a healthy `rc` recoil is exactly the state this engine was in: one paid, the other free. */
@@ -6112,6 +6117,19 @@ if(BOUNCE_KEEPS_SOURCE)MEDFAILS.bounceKeepsAddressRestored=1;
  *   MEDI_CRIT_VOLATILE_STAGE_UNREAD        a crit-stage volatile adds nothing to the ratio.
  *   MEDI_MEGA_REFUSED_UNDER_SUPPRESSION    `megaTargetFor` reads the VISIBLE slot, so a Klutz stone refuses. */
 const _knob=k=>(typeof process!=='undefined'&&process.env&&process.env[k]==='1');
+/* 2026-09-18 -- MEDI_STATUS_REFUSAL_UNBREAKABLE=1 restores the pre-fix reading: every `refusesStatusMoves`
+ * site asks the holder's RAW ability, so a Mold Breaker's Status move is still refused by Good as Gold.
+ * It restores that and NOTHING else. tests/roster.js `ability/an-arrival-a-field-or-a-refusal`, row
+ * goodasgold, whose control arm is exactly that thrower. */
+const STATUS_REFUSAL_UNBREAKABLE=_knob('MEDI_STATUS_REFUSAL_UNBREAKABLE');
+if(STATUS_REFUSAL_UNBREAKABLE)MEDFAILS.statusRefusalUnbreakableRestored=1;
+/* 2026-09-18 -- the same defect at two more breakable refusals, one knob each so a red can be attributed:
+ * MEDI_BOUNCE_UNBREAKABLE=1 (Magic Bounce read raw in `bounceOff`) and MEDI_STICKYHOLD_UNBREAKABLE=1
+ * (Sticky Hold read raw in `abilityRefusesItemLoss`). */
+const BOUNCE_UNBREAKABLE=_knob('MEDI_BOUNCE_UNBREAKABLE');
+if(BOUNCE_UNBREAKABLE)MEDFAILS.bounceUnbreakableRestored=1;
+const STICKYHOLD_UNBREAKABLE=_knob('MEDI_STICKYHOLD_UNBREAKABLE');
+if(STICKYHOLD_UNBREAKABLE)MEDFAILS.stickyHoldUnbreakableRestored=1;
 const OBLIVIOUS_MOVEID_BLIND=_knob('MEDI_OBLIVIOUS_MOVEID_BLIND');
 if(OBLIVIOUS_MOVEID_BLIND)MEDFAILS.obliviousMoveIdBlindRestored=1;
 const SPITE_IGNORES_BOUNCE=_knob('MEDI_SPITE_IGNORES_BOUNCE');
@@ -8345,11 +8363,21 @@ function terrainId(t){
  * reads it, and that is said here rather than left to be discovered. */
 function bounceOff(user,target,moveId,announce,info){
   if(!target||target===user||!moveId) return target;
+  /* 2026-09-18 -- MAGIC BOUNCE IS `breakable` (data/abilities.ts:2450, no Champions override) and the
+   * authority skips its `onTryHit` while the user's move carries `ignoreAbility` (sim/battle.ts:836-840),
+   * so a Mold Breaker's Scary Face lands on the bouncer. This read the RAW ability and bounced it back.
+   * Found by the Mold Breaker-vs-carrier fixture in docs/_reports/2026-09-18-roster-unstaged.md §7
+   * (DID-NOT-FIRE: the drop landed on the thrower here and on the bouncer there). Asked through
+   * `suppressedAbility`, the reader `absorbedBy` and `statusRefuser` use. MEDI_BOUNCE_UNBREAKABLE=1
+   * restores the raw read. The raw line below is kept byte-identical so every existing plant still
+   * lands; the pierce is asked once the move is known to be one the ability would have bounced. */
   const r=TAGS.param('ability',target.ability,'reflectsStatusMoves');
   if(!r) return target;
   const c=TAGS.param('move',moveId,'moveClass');
   const flag=r.requiresFlag||'reflectable';
   if(!(c&&c.classes&&c.classes.indexOf(flag)>=0)) return target;
+  if(!BOUNCE_UNBREAKABLE&&user&&suppressedAbility(user,target)==='none'){
+    MEDSEEN.bouncePiercedByMoldBreaker++;return target;}
   if(announce&&TR){
     /* The label is the ARTIFACT's display name, which is what `Effect#fullname` prints; a record with
        no name is COUNTED and the line goes out bare, because a silent default would look exactly like
@@ -8957,8 +8985,17 @@ function flingBasePower(att){
 function abilityRefusesItemLoss(m,by){
   if(!m||!m.item)return false;
   if(by&&by===m)return false;                       // the holder spending its own item is not a strip
+  /* 2026-09-18 -- STICKY HOLD IS `breakable` (data/abilities.ts:4623, no Champions override): its
+   * `onTakeItem` is skipped while the remover's move carries `ignoreAbility` (sim/battle.ts:836-840), so
+   * a Mold Breaker's Knock Off takes the item. This read the RAW ability and kept it. Found by the
+   * Mold Breaker-vs-carrier fixture (report §7, DID-NOT-FIRE on the `item` leaf). `by` is the remover;
+   * with no remover (a non-move strip) the raw ability still answers. MEDI_STICKYHOLD_UNBREAKABLE=1
+   * restores the raw read. The raw line is kept byte-identical so the roster's existing plant on it
+   * still lands; the pierce is asked after it. */
   const _ril=TAGS.param('ability',(m.ability||'').replace(/[^a-z0-9]/g,''),'refusesItemLoss');
   if(!_ril||!_ril.refuses)return false;
+  if(!STICKYHOLD_UNBREAKABLE&&by&&suppressedAbility(by,m)==='none'){
+    MEDSEEN.itemLossRefusalPiercedByMoldBreaker++;return false;}
   const _ex=String(_ril.exceptItem||'').replace(/[^a-z0-9]/g,'');
   if(_ex&&String(m.item||'').toLowerCase().replace(/[^a-z0-9]/g,'')===_ex)return false;
   MEDSEEN.itemLossRefused++;
@@ -19974,11 +20011,34 @@ function moveIdRefusal(t,mv){
   if(!_rm.announcesWith)MEDFAILS.tryHitRefusalUnannounced++;
   return _rm;
 }
+/* 2026-09-18 -- GOOD AS GOLD IS `breakable`, AND EVERY SITE THAT ASKED IT ASKED THE RAW ABILITY.
+ *
+ *     goodasgold: { onTryHit(target, source, move) { if (move.category === 'Status' && target !== source)
+ *                   { ...; return null; } }, flags: { breakable: 1 } }          data/abilities.ts:1620-1627
+ *     if (effect.effectType === 'Ability' && effect.flags['breakable'] &&
+ *         this.suppressingAbility(effectHolder)) { ... continue; }              sim/battle.ts:836-840
+ *
+ * No Champions override (data/mods/champions/abilities.ts names neither ability). So a Mold Breaker's Scary
+ * Face lands on a Gholdengo, and here it was refused at every one of the seven sites, because each read
+ * `TAGS.has('ability', t.ability, 'refusesStatusMoves')` and none went through `suppressedAbility` -- the
+ * reader `absorbedBy` has used for the absorbing abilities since WIRE 128. Found by tests/roster.js
+ * (row goodasgold, control = the same thrower holding Mold Breaker): DID-NOT-FIRE on release bc8d7cf849dd.
+ * ONE reader now, so the seven sites cannot come apart again. Membership of `refusesStatusMoves` in this
+ * regulation: goodasgold alone. The sibling `refusesMovesById` (Oblivious) is breakable too and is NOT
+ * changed here -- nothing has staged it against a Mold Breaker, so it is reported, not fixed. */
+function statusRefuser(m,t){
+  if(!t)return null;
+  const _rs=TAGS.param('ability',t.ability,'refusesStatusMoves');
+  if(!_rs||!_rs.refuses)return null;
+  if(!STATUS_REFUSAL_UNBREAKABLE&&m&&m!==t&&suppressedAbility(m,t)==='none'){
+    MEDSEEN.statusRefusalPiercedByMoldBreaker++;return null;}
+  return _rs;
+}
 function tryHitRefusal(m,t,mv){
   if(!t||t===m) return null;
   {const _mi=moveIdRefusal(t,mv);
    if(_mi)return {why:'ability',ab:t.ability,attr:_mi.announcesWith||undefined,__ally:!!(m&&m._sf&&t._sf===m._sf)};}
-  const _rs=TAGS.param('ability',t.ability,'refusesStatusMoves');
+  const _rs=statusRefuser(m,t);
   if(_rs&&_rs.refuses){
     if(!_rs.announcesWith)MEDFAILS.tryHitRefusalUnannounced++;
     /* ROADMAP #255 -- `__ally` is a COUNTER FIELD ONLY and changes no answer. The refusal itself is
@@ -31761,7 +31821,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * ability's own onTryHit -- and tightened after the first version caught Telepathy, which
            * tests category !== 'Status' and blocks an ALLY'S DAMAGE, and Wonder Guard, which tests
            * for Status and then bare-returns to ALLOW it. */
-          if(TAGS.has('ability',_t.ability,'refusesStatusMoves')&&_t!==m){if(TR)TR.imm(_t,'[from] ability: '+_t.ability);R.out=true;return;}
+          if(statusRefuser(m,_t)&&_t!==m){if(TR)TR.imm(_t,'[from] ability: '+_t.ability);R.out=true;return;}
           /* ROADMAP #593 -- Oblivious refuses Taunt here, at the same step and with the handler's own line. */
           {const _mi=_t!==m?moveIdRefusal(_t,a.mv):null;
            if(_mi){if(TR)TR.imm(_t,_mi.announcesWith||undefined);R.out=true;return;}}
@@ -32186,7 +32246,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         t=reaimToSlot(t,it,actA,actB,a.mv);
         if(!t||t.fainted||t===m){mvFail(m);continue;}
         if(shieldRefuses(t,a.mv)){if(TR)TR.act(t,'move: Protect');continue;}
-        if(TAGS.has('ability',t.ability,'refusesStatusMoves')){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}
+        if(statusRefuser(m,t)){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}
         if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;}
         /* 2026-08-27 -- THE LINE MOVED AND THE POSITION DID NOT NEED TO. This branch has no
          * accuracy step, because every move that reaches it is printed 100% -- so it was
@@ -32510,7 +32570,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * checked at fifteen other sites in this file and matching EXACTLY ONE ability today.
          * `_tt!==m` is the authority's `target !== source`; the Prankster/Dark rule rides along for
          * the same reason every other status branch carries it. */
-        if(TAGS.has('ability',_tt.ability,'refusesStatusMoves')){
+        if(statusRefuser(m,_tt)){
           if(TR)TR.imm(_tt,'[from] ability: '+_tt.ability);
           MEDSEEN.transformRefusedByAbility++;continue;}
         if(pranksterBlocked(m,_tt,a.mv)){MEDSEEN.transformRefusedByAbility++;continue;}
@@ -33715,7 +33775,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * nothing else -- the tag caught Telepathy and Wonder Guard in an earlier life and no longer
          * does). `t!==m` is Showdown's `target !== source` clause, kept so a self-aimed status move
          * is not refused by its own holder's ability. */
-        if(t&&t!==m&&TAGS.has('ability',t.ability,'refusesStatusMoves')){
+        if(t&&t!==m&&statusRefuser(m,t)){
           if(TR)TR.imm(t,'[from] ability: '+t.ability);
           MEDSEEN.instructRefusedByAbility++;
           continue;
@@ -35003,7 +35063,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const t=bounceOff(m,a.target,a.mv,true);
         if(!t||t.fainted||t===m){mvFail(m);continue;}
         if(shieldRefuses(t,a.mv)){if(TR)TR.act(t,'move: Protect');continue;}
-        if(TAGS.has('ability',t.ability,'refusesStatusMoves')){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}
+        if(statusRefuser(m,t)){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}
         if(pranksterBlocked(m,t,a.mv)){if(TR)TR.imm(t);continue;}
         /* ALREADY CURSED -> `return false` in onTryHit, and NO HP is paid. */
         if(t._ptDmg){mvFail(m);continue;}
@@ -35770,7 +35830,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * `t.protect` site left in the file. King's Shield does not block a status move. */
         if(STATUS_SHIELD_BLIND){if(t.protect){if(TR)TR.act(t,'move: Protect');continue;}}
         else if(shieldRefuses(t,a.mv)){shieldRefusalAnnounce(t);continue;}
-        if(TAGS.has('ability',t.ability,'refusesStatusMoves')&&t!==m){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}   // Good as Gold
+        if(statusRefuser(m,t)&&t!==m){if(TR)TR.imm(t,'[from] ability: '+t.ability);continue;}   // Good as Gold
         /* 2026-08-25 -- AND THE ABSORBING ABILITIES ANSWER AT THIS SAME STEP, which this branch has
          * never asked. Sap Sipper slept, Volt Absorb was paralysed and Flash Fire burned. See
          * MEDI_STATUS_ABSORB_BLIND; the reader is shared with `tryHitRefusal`. */

@@ -25760,6 +25760,67 @@ probe('ability', 'ignoresDefenderAbility', 'Mold Breaker breaks four DIFFERENT K
                  + 'that says the ability is live rather than absent' };
 });
 
+/* 2026-09-18 -- A FIFTH KIND: A STATUS-MOVE REFUSAL. Good as Gold is `breakable` (data/abilities.ts:1627)
+ * and the authority skips a breakable handler while the mover's move carries `ignoreAbility`
+ * (sim/battle.ts:836-840), so a Mold Breaker's Thunder Wave paralyses a Gholdengo and its Scary Face
+ * lands. Here every one of seven refusal sites read the RAW ability and refused both. Found by
+ * tests/roster.js row goodasgold (DID-NOT-FIRE on release bc8d7cf849dd); `statusRefuser` is the one
+ * reader now. MEDI_STATUS_REFUSAL_UNBREAKABLE=1 restores the defect. The control arm is the same
+ * thrower with NO ability, which must still be refused, so an engine that dropped Good as Gold outright
+ * fails here too. */
+probe('ability', 'ignoresDefenderAbility', 'Mold Breaker\'s Status move reaches a Good as Gold body', () => {
+  const run = (att, mv) => {
+    const B = board('raichu', 'incineroar', 'gholdengo', 'garchomp');
+    B.me.ability = att; B.f1.ability = 'goodasgold';
+    const sp0 = B.f1.boosts.sp;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, mv, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]), PASS2(B.f1, B.f2));
+    return mv === 'thunderwave' ? (B.f1.status || 'none') : (B.f1.boosts.sp - sp0);
+  };
+  const twPlain = run('none', 'thunderwave'), twMold = run('moldbreaker', 'thunderwave');
+  const sfPlain = run('none', 'scaryface'), sfMold = run('moldbreaker', 'scaryface');
+  return { works: twPlain === 'none' && twMold === 'par' && sfPlain === 0 && sfMold < 0,
+           arms: { control: [twPlain, sfPlain], test: [twMold, sfMold] },
+           detail: 'THUNDER WAVE into Good as Gold: "' + twPlain + '" from a plain thrower, "' + twMold
+                 + '" from a Mold Breaker. SCARY FACE: ' + sfPlain + ' Speed stages plain, ' + sfMold
+                 + ' under Mold Breaker' };
+});
+
+/* 2026-09-18 -- THE SAME DEFECT AT TWO MORE BREAKABLE REFUSALS. Magic Bounce (data/abilities.ts:2450) and
+ * Sticky Hold (:4623) are `breakable`, so a Mold Breaker's Scary Face lands on the bouncer and its Knock Off
+ * takes the item (sim/battle.ts:836-840). `bounceOff` and `abilityRefusesItemLoss` read the RAW ability.
+ * Found and compared against the authority by tests/probe_moldbreaker_refusals.js; knobs
+ * MEDI_BOUNCE_UNBREAKABLE=1 and MEDI_STICKYHOLD_UNBREAKABLE=1. The plain-thrower arm must still be
+ * refused, so an engine that dropped the ability outright fails here too. */
+probe('ability', 'ignoresDefenderAbility', 'Mold Breaker\'s status move is not bounced by Magic Bounce', () => {
+  const run = (att) => {
+    const B = board('raichu', 'incineroar', 'gholdengo', 'garchomp');
+    B.me.ability = att; B.f1.ability = 'magicbounce';
+    const me0 = B.me.boosts.sp, f0 = B.f1.boosts.sp;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'scaryface', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]), PASS2(B.f1, B.f2));
+    return [B.me.boosts.sp - me0, B.f1.boosts.sp - f0];
+  };
+  const plain = run('none'), mold = run('moldbreaker');
+  return { works: plain[0] < 0 && plain[1] === 0 && mold[0] === 0 && mold[1] < 0,
+           arms: { control: plain, test: mold },
+           detail: 'SCARY FACE into Magic Bounce, [thrower, bouncer] Speed stages: plain ' + JSON.stringify(plain)
+                 + ' (bounced back), Mold Breaker ' + JSON.stringify(mold) + ' (lands)' };
+});
+
+probe('ability', 'ignoresDefenderAbility', 'Mold Breaker\'s Knock Off takes a Sticky Hold item', () => {
+  const run = (att) => {
+    const B = board('raichu', 'incineroar', 'gholdengo', 'garchomp');
+    B.me.ability = att; B.f1.ability = 'stickyhold'; B.f1.item = 'lightclay';
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'knockoff', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]), PASS2(B.f1, B.f2));
+    return B.f1.item || 'none';
+  };
+  const plain = run('none'), mold = run('moldbreaker');
+  return { works: plain === 'lightclay' && mold === 'none', arms: { control: plain, test: mold },
+           detail: 'KNOCK OFF into Sticky Hold holding Light Clay: plain -> "' + plain + '", Mold Breaker -> "' + mold + '"' };
+});
+
 
 /* ---- ROADMAP #132: THE SECONDARY CHANCE IS A FACT ABOUT THE FORMAT ------------------------------
  *
@@ -34750,6 +34811,9 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'zombieSkipsResidualRestored', 'f
                           'critVolatileStageUnreadRestored', 'megaRefusedUnderSuppressionRestored',
                           'cuteCharmUnattributedRestored', 'ownTempoSilentRestored',
                           'veilBlockUnannouncedRestored', 'covetEnditemExtraRestored',
+                          /* 2026-09-18 -- Good as Gold asked on the raw ability (tests/roster.js goodasgold) */
+                          'statusRefusalUnbreakableRestored', 'bounceUnbreakableRestored',
+                          'stickyHoldUnbreakableRestored',
                           /* 2026-09-11 -- ROADMAP #511: the pre-fix survival clamp (load stamp and use stamp) */
                           'hitCountDropOnCollapseKnob', 'survivalClampOnTotalRestored']
   .filter(k => M.fails[k]);

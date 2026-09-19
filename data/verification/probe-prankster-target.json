@@ -1,8 +1,8 @@
 {
- "generated": "2026-09-19T01:36:41.792Z",
+ "generated": "2026-09-19T01:49:14.646Z",
  "roadmap": 9,
  "format": "gen9championsvgc2026regmb",
- "knob": "1",
+ "knob": null,
  "fixtures": {
   "USER": "Whimsicott",
   "DARK": "Houndoom",
@@ -325,29 +325,11 @@
   {
    "id": "direct",
    "control": true,
-   "fieldRefused": [
-    "grassyterrain",
-    "lightscreen",
-    "mistyterrain",
-    "safeguard",
-    "sunnyday",
-    "tailwind",
-    "trickroom",
-    "gravity",
-    "magicroom",
-    "psychicterrain",
-    "quickguard",
-    "raindance",
-    "reflect",
-    "wonderroom",
-    "sandstorm",
-    "fairylock",
-    "spikes"
-   ],
-   "verdict": "RED"
+   "fieldRefused": [],
+   "verdict": "GREEN"
   }
  ],
- "red": 1,
+ "red": 0,
  "unreadable": 0,
- "run_ok": false
+ "run_ok": true
 }

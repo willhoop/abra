@@ -1,10 +1,10 @@
 {
-  "current": "ce34d0a89f01",
-  "cut": "2026-09-19T00:24:34.248Z",
-  "why": "2026-09-18 ENGINE: Beat Up prices each hit off the SET species (data/moves.ts:1155), not the forme on the field; knob MEDI_BEATUP_FIELD_FORME",
-  "cuts": 2,
-  "latest_cut": "2026-09-19T01:16:29.626Z",
-  "latest_why": "tests/probe_beatup_set_species.js — freeze the tree under test",
-  "pointer_written": "2026-09-19T01:16:29.646Z",
+  "current": "482e8f5ca701",
+  "cut": "2026-09-19T01:50:02.545Z",
+  "why": "merged tree: Beat Up + Future Sight/Harvest/Prankster/tags + Mold Breaker refusals (Good as Gold, Magic Bounce, Sticky Hold)",
+  "cuts": 1,
+  "latest_cut": "2026-09-19T01:50:02.545Z",
+  "latest_why": "merged tree: Beat Up + Future Sight/Harvest/Prankster/tags + Mold Breaker refusals (Good as Gold, Magic Bounce, Sticky Hold)",
+  "pointer_written": "2026-09-19T01:50:02.636Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

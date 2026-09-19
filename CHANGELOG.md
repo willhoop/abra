@@ -10,6 +10,23 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.49.0] — 2026-09-18
+
+### Fixed
+- **Mold Breaker pierces Good as Gold, Magic Bounce and Sticky Hold.** All three are breakable in the
+  authority and were read raw here. Knobs `MEDI_STATUS_REFUSAL_UNBREAKABLE=1`, `MEDI_BOUNCE_UNBREAKABLE=1`,
+  `MEDI_STICKYHOLD_UNBREAKABLE=1`; probe `tests/probe_moldbreaker_refusals.js`.
+- **ROADMAP #421.** The roster's usage shelf keys on the row being a move, not on the stage name.
+
+### Added
+- Constructed fixtures for six in-scope COULD-NOT-STAGE roster rows (Good as Gold, Simple, Quick Feet,
+  Focus Energy, Struggle, Zero to Hero), all FIRED-AND-BOARDS-MATCH.
+
+### Notes
+- **Frisk deferred by Will** (2026-09-18, "set frisk aside"), wired as DEFERRED-BY-OWNER beside
+  Anticipation and Forewarn. Census 891 -> 894 live, 0 missing. Report:
+  `docs/_reports/2026-09-18-roster-unstaged.md`.
+
 ## [6.48.0] — 2026-09-18
 
 ### Fixed

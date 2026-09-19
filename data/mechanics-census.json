@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-19T01:39:24.802Z",
+  "generated": "2026-09-19T01:50:02.151Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 891,
-  "live": 891,
+  "probed": 894,
+  "live": 894,
   "missing": 0,
-  "armed": 891,
+  "armed": 894,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -4213,7 +4213,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 26.4% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 27.7% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -6804,6 +6804,36 @@
       "label": "Mold Breaker breaks four DIFFERENT KINDS of breakable ability",
       "live": true,
       "detail": "LEVITATE (immunity) 0 -> 168; FILTER (x0.75 on a 4x hit) 192 -> 256; SHELL ARMOR (refuses Frost Breath's certain crit) 172 -> 260; SHIELD DUST (filters a 100% secondary) \"none\" -> \"par\", against \"par\" with no ability at all. Every left-hand number is a plain attacker into the SAME ability, which is the control that says the ability is live rather than absent",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "ignoresDefenderAbility",
+      "label": "Mold Breaker's Status move reaches a Good as Gold body",
+      "live": true,
+      "detail": "THUNDER WAVE into Good as Gold: \"none\" from a plain thrower, \"par\" from a Mold Breaker. SCARY FACE: 0 Speed stages plain, -2 under Mold Breaker",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "ignoresDefenderAbility",
+      "label": "Mold Breaker's status move is not bounced by Magic Bounce",
+      "live": true,
+      "detail": "SCARY FACE into Magic Bounce, [thrower, bouncer] Speed stages: plain [-2,0] (bounced back), Mold Breaker [0,-2] (lands)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "ignoresDefenderAbility",
+      "label": "Mold Breaker's Knock Off takes a Sticky Hold item",
+      "live": true,
+      "detail": "KNOCK OFF into Sticky Hold holding Light Clay: plain -> \"lightclay\", Mold Breaker -> \"none\"",
       "hollow": false,
       "armed": true,
       "directCall": false
