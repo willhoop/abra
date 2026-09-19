@@ -109,7 +109,15 @@ const ok = (pass, name, detail) => {
  * reproduces the 2026-09-05 counts to the digit), and `474 of 961 (49.3%)` names the blob CHANGELOG
  * 5.243.0 published, `a347d6d0:data/game-differential.json`, whose counts engine/docs_scan.js now
  * accepts as the source of a share written beside them. This file printed exactly those 7 under
- * "DELETE these lines" (docs/_reports/2026-09-19-gate-wiring-retraction.md). */
+ * "DELETE these lines" (docs/_reports/2026-09-19-gate-wiring-retraction.md).
+ *
+ * 2026-09-19, SHRUNK BY 2 MORE, AFTER THE GATE OPENED. The reversed-order control's position count
+ * `8,855` (data/leaf-engine-contrast.json) came out of docs/GAME-DIFFERENTIAL-DESIGN.md and
+ * docs/MEASURE.md with the rest of that control's figures, and the open-gate run counted exactly those 2
+ * more as retired, 5 -> 7. The other 5 retired keys are NOT deleted: their figures still stand in
+ * docs/ENGINE.md, docs/ROADMAP.md and docs/SEARCH.md, and they stopped firing when the gate opened, not
+ * because a document changed, so they are left for the pass that reads them
+ * (docs/_reports/2026-09-19-docs-quarantine-withdrawals.md). */
 const BASELINE = new Set([
   "docs/ENGINE.md|1,136,845|data/feature-engine-contrast.json",
   "docs/ENGINE.md|48,274|data/censoring-value.json",
@@ -117,8 +125,6 @@ const BASELINE = new Set([
   "docs/ENGINE.md|6,055|data/feature-engine-contrast.json",
   "docs/ENGINE.md|6,167|data/leaf-position-contrast.json",
   "docs/ENGINE.md|6,371|data/leaf-position-contrast.json",
-  "docs/GAME-DIFFERENTIAL-DESIGN.md|8,855|data/leaf-engine-contrast.json",
-  "docs/MEASURE.md|8,855|data/leaf-engine-contrast.json",
   "docs/OPS.md|1.744%|data/collinearity-joint.json",
   "docs/PRIOR-ART.md|186,494|data/policy-weights.json",
   "docs/ROADMAP.md|0.687%|data/feature-shift.json",
@@ -254,6 +260,37 @@ if (r.gate_open) {
       + 'narrower by exactly that coincidence and not by being switched off',
       'loose ' + JSON.stringify(loose.hits.map(h => h.figure))
       + ' / strict ' + JSON.stringify(strict.hits.map(h => h.figure)));
+
+    /* ---- ROUTE 2 UNDER THE OPEN GATE: A RESCALED WITNESS STILL BREAKS UNIQUENESS — 2026-09-19 ----
+     *
+     * The same-scale bar above was written to NARROW accusation, and on route 1 it does. On route 2
+     * it did the opposite: uniqueness is the evidence there, and a same-scale denominator has FEWER
+     * owners, so more figures look uniquely attributable. The hour the gate opened, 15 figures were
+     * charged that the closed gate had never charged, and every one had two or more owners at the
+     * loose scale. 9 of them were store counts and differential counts that share digits with a
+     * downstream artifact: Armor Tail's 3,403 uses against the leaf backtest's 3,403 correct calls,
+     * "Guo et al. 2017" in a calibration caveat against a 2,017-pair swarm
+     * (docs/_reports/2026-09-19-docs-quarantine-withdrawals.md). The witness side is a CLEARANCE, and
+     * this file's own rule is that clearing is loose where accusing is strict. REAL BYTES: the leaf
+     * backtest holds 3403 exactly, and other artifacts in data/ hold it only rescaled. */
+    const heldWB = (f) => (String(f) === 'data/winrate-backtest.json'
+      ? { file: f, because: 'synthetic — route-2 witness arm', clause: 'synthetic' } : null);
+    const WITNESSED = 'The leaf backtest is `data/winrate-backtest.json`.\n\nArmor Tail carries 3,403 uses.';
+    const w = DS.quarantinedFigures(['synthetic.md'],
+      { withhold: { withhold: heldWB, exactScale: true, open: true }, read: () => WITNESSED });
+    ok(w.hits.length === 0,
+      'GREEN (OPEN GATE, ROUTE 2) — a figure one downstream artifact holds exactly and another artifact '
+      + 'witnesses rescaled is NOT uniquely attributable: the witness count uses the loose bar',
+      JSON.stringify(w.hits.map(h => h.figure)));
+    /* THE CONTROL: a figure with ONE owner at every scale is still charged by route 2, so the witness
+     * rule narrows by exactly the coincidence and has not switched the route off. */
+    const SOLE = 'The contrast is `data/leaf-engine-contrast.json`.\n\nThe control ran over 8,855 positions.';
+    const sole = DS.quarantinedFigures(['synthetic.md'],
+      { withhold: { withhold: heldLEC, exactScale: true, open: true }, read: () => SOLE });
+    ok(sole.hits.length === 1 && sole.hits[0].figure === '8,855' && sole.hits[0].via === 'unique',
+      'RED (OPEN GATE, ROUTE 2) — a figure that exactly one artifact holds at every scale, and that '
+      + 'artifact downstream and not re-measured, is still charged with no citation beside it',
+      JSON.stringify(sole.hits.map(h => h.figure + ' via ' + h.via)));
   }
 
   /* THE QUOTABLE-SOURCE CLEARANCE MUST NOT CLEAR ON A CITATION ALONE (engine/docs_scan.js, 2026-09-10).

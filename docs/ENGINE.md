@@ -169,7 +169,7 @@ ENGINE — does the simulator do what Pokémon does
   955/955 probed mechanics live, 0 missing   (census 2026-09-19 08:54)
     the census probes what somebody thought to probe: 299 of 299 in-scope tags carry a probe, 0 carry none (9 of 308
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 25 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 1.8 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-19 09:21)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
     the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
@@ -193,7 +193,7 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 09:43_
+_stamped 2026-09-19 11:07_
 
 <!-- /GENERATED -->
 
@@ -29672,7 +29672,8 @@ census pinned to `387d8064147a`, team store pinned to `data/team-pool-frozen`, a
 `data/verification/gd-endstate-982.json` and `…-t30.json`. **The sample is not the published run's
 982 games and must not be quoted as a breakdown of it**: `--end-state` plays every game to the cap, so
 the coverage credit that STEERS the driver accumulates differently and the swarm picked 1,632 pairs
-where the protocol-mode run picked 2,017. Same census, same pool, same pins, same release, different
+where the protocol-mode run picked 2,017 (`team_pool_picked` in
+`7e06d5a0:data/game-differential.json`, the published 982-game run). Same census, same pool, same pins, same release, different
 games — 797 with a parted rate of 18.2% against 982 at 18.5%.
 
 **THE PRIOR THAT SENT US HERE IS WRONG IN BOTH DIRECTIONS.** `emission` is not mostly announcement,
@@ -41748,7 +41749,8 @@ whether a trace was attached — this repo's own "capability that cannot prove i
 appears exactly **twice** in `data/moves.ts` — `stompingtantrum` (18048) and **`temperflare`** (19184,
 48 uses), which the brief did not name and which is the same handler written twice. There is no shape
 to match on: both carry `variablePower {computed:true, note:"idiom not yet derivable"}` **and so do ten
-others** — ragefist, assurance, avalanche, **lastrespects (5,248 uses)**, payback, risingvoltage, round,
+others** — ragefist, assurance, avalanche, **lastrespects (5,248 uses; every use count here is `uses` in
+`5da0b0d2:data/tags.json`)**, payback, risingvoltage, round,
 spitup, tripleaxel, watershuriken. Matching the shape would have doubled Last Respects after any failed
 turn. Stated rather than fixed: the **Metronome item** (`items.ts:4010`, legal here) reads the same
 field as a TRUTHY test for its consecutive-use counter; this engine has no Metronome item, and the
@@ -44999,7 +45001,7 @@ actually CLICKED in the turn stream. **819 distinct things carry real usage in t
 
 Usage-weighted armed: moves **0.8%**, abilities **3.7%**, items **2.2%**. Tagging is done, probing is
 good, and the collapse is at arming — and it is the TOP of the distribution that is missing, not the
-tail: `protect` 198,900 uses, `fakeout` 43,495, `intimidate` 10,754, `armortail` 3,403 (rank **8** of
+tail (use counts from the 53,796-game derivation above, CHANGELOG 3.53.0): `protect` 198,900 uses, `fakeout` 43,495, `intimidate` 10,754, `armortail` 3,403 (rank **8** of
 185 — Smogon's 1630-cutoff file has Farigiraf running it **99.06%** of the time), `focussash` 15,037.
 
 **This is also why "216/219 mechanics live" is the wrong number.** It counts probes that EXECUTED.
@@ -45658,7 +45660,7 @@ HEAD's bytes ran 760–3,327 turns/sec inside a single arm, and the medians came
 
 Not ENGINE's, and not caused by this wire, but it was found while measuring and a silent one is worse
 than a loud one. `fit_policy.loadCorpus()` returned **9,361** clean open-sheet games at 19:48Z,
-**6,055** at 19:52Z when this pass measured, and **8,957** at 20:35Z — with 3.47.0 recording 9,230
+**6,055** at 19:52Z when this pass measured, and **8,957** at 20:35Z — with 3.47.0 recording a different count again
 this morning. An earlier `data/feature-engine-contrast.json` was written straight across that: its
 `live` and `09acd3b404ef` arms scored 9,361 games / 1,774,684 rows and its `032b4a2979dd` arm scored
 **6,055 / 1,136,845**, so `same_rows` was false, all 58 columns "moved", and it published

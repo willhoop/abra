@@ -42,8 +42,9 @@ Two properties of this file were confirmed in the course of that measurement and
   fresh process disagreed on 16 of 24 — correctly, by construction. Any caller joining depth to a
   per-position quantity must control for run order or measure what it costs.
 - **A reversed-order control quantifies that cost.** Same release, same positions, order reversed
-  inside each shard: the two depth readings agree at **rho 0.836 [0.825, 0.846]** over 8,855 positions,
-  5,506 of them identical. So roughly 84% of a depth reading is the position and the rest is the run.
+  inside each shard: the two depth readings correlate but are not identical, so part of a depth
+  reading is the run and not the position. How large that part is was measured on a superseded engine
+  and is withheld until the control is re-run.
 
 **THE INSTRUMENT HAS BEEN TURNED ON ITS OWN HISTORY (3.68.0).** `engine/wire_ladder.js` replays every
 frozen release of the 2026-08-06/07 wire night through this driver under **one** pinned census and

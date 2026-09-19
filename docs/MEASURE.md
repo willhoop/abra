@@ -36,7 +36,7 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-09-19 08:54
 ```
 
-_stamped 2026-09-19 09:43_
+_stamped 2026-09-19 11:07_
 
 <!-- /GENERATED -->
 
@@ -5209,7 +5209,7 @@ wrong and should say so.
 - **The first full run was killed by the harness at 65 minutes** with the baseline arm finished and on
   disk. Resume support was added and the arm recovered. The guard written while doing so **caught a
   real hole**: a reuse check on COUNTS passes when a re-derived sample has the same size and different
-  members, and the store grew 8,887 → 9,003 during the run. It checks the id set now, and a resumed
+  members, and the store grew during the run. It checks the id set now, and a resumed
   run reads the photograph rather than today's store.
 - **A reused arm is REPRODUCED, not trusted.** 24 positions of each reused leaf arm are re-run by the
   current code and must be bit-identical; they were, for both engines.
@@ -5219,9 +5219,9 @@ wrong and should say so.
   purpose, so a divergence depth is a function of the position **and of every game played before it**.
   A 24-position slice starts from an empty click history and plays different games by construction.
   The substitute is the **reversed-order control**, which is why it was built: same release, same
-  positions, driver history deliberately changed, **rho 0.836 [0.825, 0.846]** on 8,855 positions.
-  That is the ceiling on every correlation in §5, and it is high — the nulls above are the world, not
-  the ruler.
+  positions, driver history deliberately changed. Its correlation is the ceiling on every
+  correlation in §5. Its value, and whether the nulls above are the world or the ruler, are withheld
+  with the artifact until it is re-measured on the current engine.
 
 **Filed from this pass, not fixed:**
 
@@ -5386,11 +5386,11 @@ SPRT stopped at a bound; which bound, MILTANK's share, the decisive-pair count, 
 after and the LLR are all withheld. They become quotable again when the gate opens AND this is re-run:
 `node engine/rollout_r4.js` over a re-played corpus.
 
-What does not depend on the numbers is the unit. The corpus is 5,248 lines, which is 2,624 games,
-which is 1,312 seed pairs — the store writes a log-only companion record under the same id, so a
-line count double-counts every game and the handoff's "5,248 games" was exactly twice the truth.
-The artifact records all four numbers and asserts the invariant that makes them relate, and the SPRT
-is computed on decisive pairs and nothing else.
+What does not depend on the numbers is the unit. The corpus is counted in lines, and a line is not
+a game: the store writes a log-only companion record under the same id, so a line count
+double-counts every game and the handoff's game count was exactly twice the truth. Two games make
+a seed pair. The artifact records lines, games, seed pairs and decisive pairs and asserts the
+invariant that makes them relate, and the SPRT is computed on decisive pairs and nothing else.
 
 Two things it is not. The point estimate is **stopped at a boundary**, so it is biased toward the
 boundary it crossed, and the 95% CI beside it is a fixed-n formula quoted for context, not the
@@ -7269,7 +7269,7 @@ the release *did* supply, through `REL.require`, is the thing that decides the p
 frozen `engine/quality.js` + `data/quality-filter.json`. For the rest the generator takes its own
 photograph — sources copied into a private tree and imported from the copy, live originals
 re-digested afterwards (none moved) — and the two append-only stores are pinned by the **clean id
-set** (7,992 ids, sha256 `4ccc0afc…`) rather than by a whole-file digest, because the collector
+set** (sha256 `4ccc0afc…`) rather than by a whole-file digest, because the collector
 appends hourly and a file digest would void any run longer than an hour.
 
 **A DEFECT FOUND ON THE WAY, AND IT IS THIS REPOSITORY'S SIGNATURE SHAPE.** The first artifact

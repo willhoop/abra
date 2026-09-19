@@ -10,6 +10,30 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.62.0] — 2026-09-19
+
+### Fixed
+- **The open gate's route-2 quarantine check charged 15 figures the closed gate never had, and 9 of them
+  were not that artifact's figure.** `engine/docs_scan.js` `uniqueOwners` applied the open gate's same-scale
+  bar to every owner. On route 2 uniqueness is the evidence, so a stricter denominator made MORE figures look
+  uniquely attributable. Each of the 15 had two or more owners at the loose scale. The witness count is now
+  loose and only the accuser is strict. `tests/test-docs-quarantine.js` shows the new arm red on the old
+  code and green on the new one, with a control that a single-owner figure is still charged.
+
+### Removed
+- Six figures that really quote a downstream artifact that was not re-measured on `4c9b0cc4a4da`:
+  the 3.47.0 corpus count (`docs/ABRA-technical-docs.md`, `docs/ENGINE.md`), the reversed-order control's
+  figures (`docs/GAME-DIFFERENTIAL-DESIGN.md`, `docs/MEASURE.md`), the leaf contrast's store count, R4's
+  corpus line count and the PORYGON2 gate's id-set size (`docs/MEASURE.md`).
+
+### Changed
+- Five of the nine digit collisions are now bound to a commit-pinned blob in the same paragraph:
+  `78bff6c1:data/quality-filter.json` (white paper and `docs/SUMMARY.md`),
+  `7e06d5a0:data/game-differential.json`, `5da0b0d2:data/tags.json` and
+  `b439bc2b:data/game-differential.json`. Two more now name their CHANGELOG entry. The last two were
+  already bound (the deck paragraph's 3.94.0 heading, the weather table's caption) and are unedited. See
+  `docs/_reports/2026-09-19-docs-quarantine-withdrawals.md`.
+
 ## [6.61.0] — 2026-09-19
 
 ### Fixed

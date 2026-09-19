@@ -1471,7 +1471,7 @@ double oracle. Phase 4 is a result. It is not a failure.
 **Change record for 3.47.0.** Two artifacts were computed from an engine that then changed. Do not
 quote such an artifact. First measure whether the change moved the feature function: run every
 feature column through the old engine and the new engine on the same rows. All 58 columns were
-identical on 1,751,688 rows from 9,230 games. Then the two artifacts were computed again with the
+identical on 1,751,688 rows. Then the two artifacts were computed again with the
 new engine. `board.js` gives the priority rule a body with no type list. This is wrong for 0 of
 1,751,688 rows. Do not change it yet.
 

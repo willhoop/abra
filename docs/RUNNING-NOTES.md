@@ -52,6 +52,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.62.0] — 2026-09-19 — the open gate's quarantine check charged 15 figures; 6 were real and are withdrawn, 9 were digit collisions and the scanner that charged them is fixed
+
+- **What changed.** `engine/docs_scan.js` `uniqueOwners`: route 2's witness count is loose again and only the accuser is held to the open gate's same-scale bar. The same-scale denominator had made more figures look uniquely attributable, not fewer; each of the 15 had two or more owners at the loose scale. `tests/test-docs-quarantine.js` gains a route-2 arm shown red on the old code and green on the new one, with a control that a figure one artifact holds at every scale is still charged. Documents: withdrawals in `docs/ABRA-technical-docs.md` (index only; Will's held draft is untouched), `docs/ENGINE.md`, `docs/GAME-DIFFERENTIAL-DESIGN.md` and `docs/MEASURE.md`; pinned-blob bindings in `docs/ABRA-whitepaper.md`, `docs/SUMMARY.md` (index only), `docs/ENGINE.md` and `docs/ROADMAP.md`; CHANGELOG pointers in `docs/ENGINE.md` and `docs/FINDINGS-2026-07-26.md`.
+- **Measured.** NO NEW FIGURE. `node tests/test-docs-quarantine.js`, index and working tree: all checks pass, 10 standing figures of this kind, all in the seeded baseline.
+- **Basis.** unchanged.
+- **Supersedes.** Six withdrawn figures, DELETED where they stood, not captioned, and not repeated here: the 3.47.0 corpus count (technical docs, ENGINE ledger); the reversed-order control's correlation, interval, position count, identical-reading count and size verdict (GAME-DIFFERENTIAL-DESIGN, MEASURE); the leaf contrast's store count, R4's corpus line, game and seed-pair counts, and the PORYGON2 gate's id-set size (MEASURE). Nothing is struck because a withheld figure is not written at all.
+- **Owed to the next major.** The 7.0.0 draft already omits the white paper's and SUMMARY's `7,234` and the technical docs' `9,230`. `7,234` is a collision, so the fold-in should carry the main text's pinned binding and not the deletion. The draft's "6.0.1 to 6.61.0" fold-in range now ends at 6.62.0. `docs/_reports/2026-09-19-docs-quarantine-withdrawals.md`.
+
 ## [6.61.0] — 2026-09-19 — THE MEDICHAM GATE READS OPEN: all nine clauses pass on `4c9b0cc4a4da`
 
 - **What changed.** `tests/roster.js`: the Harvest red plant (`ability/restores-a-spent-berry-by-chance`) re-aimed at the decision the 6.59.0 coin fix introduced, `if(_hvCoin){` (matches once in the engine and in the release copy); it had patched a line 6.59.0 rewrote, so it matched nothing. Shown CAUGHT on a single-row `--reds` run, then the full abilities stage re-run on the same release. No engine byte changed.

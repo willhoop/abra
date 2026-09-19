@@ -2639,15 +2639,24 @@ function uniqueOwners(exactScale) {
   const list = listFiles('data')
     .filter(f => /\.json$/.test(f) && !/^games\./.test(f) && !/\.meta\.json$/.test(f) && !NOT_AN_ARTIFACT.has(f))
     .map(f => 'data/' + f);
+  /* THE WITNESS COUNT IS LOOSE AND ONLY THE ACCUSER IS STRICT — 2026-09-19. `exactScale` used to be
+   * applied to every owner, and on this route that turns the open gate's narrowing inside out: a
+   * same-scale denominator has FEWER owners, so MORE figures look uniquely attributable. The hour the
+   * gate opened, 15 figures were charged that the closed gate never had, each with two or more owners
+   * at the loose scale, and 9 of the 15 were store counts, differential counts and a year in a caveat
+   * string sharing digits with a downstream artifact. A second owner is a CLEARANCE, and the rule one
+   * route up is that clearing is loose where accusing is strict. So the uniqueness is judged loose,
+   * and the one owner must still hold the published figure at the caller's scale to be the accuser.
+   * tests/test-docs-quarantine.js shows both halves. */
   return (f) => {
     let found = null;
     for (const a of list) {
       const nums = artifactNumbers(a);
-      if (!nums || !artifactHas(nums, f, exactScale)) continue;
+      if (!nums || !artifactHas(nums, f)) continue;
       if (found) return null;            // two owners is a coincidence with a witness, not a source
       found = a;
     }
-    return found;
+    return found && artifactHas(artifactNumbers(found), f, exactScale) ? found : null;
   };
 }
 
