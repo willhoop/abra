@@ -50,7 +50,14 @@ const path = require('path');
 const D = (...p) => path.join(__dirname, '..', ...p);
 
 /* ---- ARGUMENTS ---------------------------------------------------------------------------------- */
-const argv = process.argv.slice(2);
+/* UNDER `node -e` / `node -p` THE USER'S ARGUMENTS START AT INDEX ONE, NOT TWO — 2026-09-19. There is no
+ * script, so `process.argv` is [node, ...args]. `slice(2)` dropped the first one, and every caller that pins
+ * this driver by `process.argv.push('--release', id)` (tests/roster.js and ~60 probes) lost the FLAG and kept
+ * a bare id: the driver saw no pin and CUT, once per load. `node -e "require('./tests/roster.js')"` cut 101
+ * events into d92bdfb50d88 in one command. Pinned by tests/test-release-pin-no-cut.js. `node -` (stdin)
+ * keeps a `-` placeholder at index one and is correctly a two. */
+const EVAL_ARGV = (process.execArgv || []).some(a => /^(-e|--eval|-p|--print|-pe|-ep)$/.test(a) || /^--(eval|print)=/.test(a));
+const argv = process.argv.slice(EVAL_ARGV ? 1 : 2);
 const flag = (n, dflt) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : dflt; };
 const has = n => argv.includes(n);
 const GAMES = +flag('--games', 45);
@@ -409,7 +416,30 @@ if (!process.env.SHOWDOWN_PATH) {
  * IT DOES NOT CUT. A named release is a photograph somebody already took; re-cutting under it would
  * append a cut event describing a tree this run never used. */
 const ER = require('./engine_release.js');
-const REL_ID = flag('--release', null);
+/* ONE PHOTOGRAPH PER PROCESS TREE — 2026-09-19. Three ways the driver used to cut under a run that was
+ * pinned, all measured (tests/test-release-pin-no-cut.js, shown RED on the old code):
+ *   - the `node -e` argv offset above, which hid a pushed `--release`;
+ *   - a RE-LOAD: tests/staged_board.js drops this file from the require cache and re-requires it once
+ *     per patched simulator, and every load of an unpinned process cut again (205 events on d92bdfb50d88
+ *     in 103 s; 6,778 of 7,753 cut events on disk carry this file's `why`). A re-load now takes the
+ *     release this PROCESS already resolved — a second cut is never a new photograph, and if the tree had
+ *     moved in between it would hand the second arm different bytes from the first;
+ *   - a CHILD: a probe that re-spawns itself passes `process.execArgv` and not the user's `--release`, so
+ *     the child cut. The resolved id is exported to the environment as ABRA_RELEASE_PIN and a child with
+ *     no `--release` of its own takes it, SAYING SO on stderr.
+ * An explicit `--release` always wins. */
+const REL_PIN = (() => {
+  const named = flag('--release', null);
+  if (named) return { id: named, from: 'argv' };
+  if (globalThis.__abraGdReleasePin) return { id: globalThis.__abraGdReleasePin, from: 'process' };
+  if (process.env.ABRA_RELEASE_PIN) return { id: process.env.ABRA_RELEASE_PIN, from: 'env' };
+  return { id: null, from: 'cut' };
+})();
+if (REL_PIN.from === 'env') {
+  console.error('  (release ' + REL_PIN.id + ' INHERITED from a parent process through ABRA_RELEASE_PIN: no --release'
+    + ' was passed and nothing was cut. Pass --release <id> to name a different one.)');
+}
+const REL_ID = REL_PIN.id;
 /* THE AUTHORITY IS LOADED LIVE WHATEVER RELEASE IS NAMED, so the pin is checked on both paths. `cut()`
  * refuses on drift by itself; the `--release <id>` path never cuts, so it asks the same question here.
  * Six lines, before any game is played — 2026-09-09. */
@@ -419,9 +449,19 @@ if (AUTH_DRIFT.drifted && !process.argv.includes('--allow-authority-drift')) {
     + AUTH_DRIFT.pinned + ' (champions_sim.js PINNED_COMMIT). Pass --allow-authority-drift to measure anyway.');
   process.exit(2);
 }
-if (!REL_ID) ER.cut('game differential mode A — the comparison driver, ROADMAP #68 step two',
+const CUT = REL_ID ? null : ER.cut('game differential mode A — the comparison driver, ROADMAP #68 step two',
   { allowAuthorityDrift: process.argv.includes('--allow-authority-drift') });
-const REL = ER.open(REL_ID);
+const REL = (() => {
+  try { return ER.open(REL_ID || (CUT && CUT.id) || null); }
+  catch (e) {
+    if (REL_PIN.from !== 'env') throw e;
+    throw new Error('the release ' + REL_ID + ' INHERITED through ABRA_RELEASE_PIN cannot be opened here: '
+      + e.message + '\n  A parent run pinned it (perhaps in a throwaway store, under tests/_live_release.js).'
+      + ' Pass --release <id>, or preload the same store, or unset ABRA_RELEASE_PIN.');
+  }
+})();
+globalThis.__abraGdReleasePin = REL.id;
+process.env.ABRA_RELEASE_PIN = REL.id;
 REL.require('data/engine-data.js');
 /* WHAT THIS DRIVER NEEDS THE FROZEN ENGINE TO EXPORT — declared, so an old release is refused BY NAME
  * at second zero instead of dying 1,150 lines further down.

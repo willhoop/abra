@@ -52,6 +52,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.65.1] — 2026-09-19 — a pinned run can no longer cut a release. The 205 phantom cuts on `d92bdfb50d88` were `node -e` loads of `tests/roster.js`, and nothing was corrupted
+
+- **What changed.** `engine/game_differential.js` read its arguments with `process.argv.slice(2)`. Under `node -e` that drops the first argument. The `--release` that `tests/roster.js` pushes therefore lost its flag, and the driver cut on each re-load by `tests/staged_board.js`. The driver now reads from the right offset. A re-load reuses its process's release, and a child inherits it through `ABRA_RELEASE_PIN`. `engine/engine_release.js` cut events now carry `by: {pid, entry}`. New test: `tests/test-release-pin-no-cut.js`.
+- **Measured.** The cut log of `d92bdfb50d88` (`data/releases/d92bdfb50d88/cuts.jsonl`) holds bursts of 101, 101, 1, 1 and 1 at 16:24:36–16:26:19Z. One `node -e "require('./tests/roster.js')"` cut **101** on the old code and **0** on the fix, both into a throwaway store. The new test was RED on 3 assertions on the old code and passes 10 of 10 on the fix. Across the store, 6,778 of 7,753 cut events on 677 releases carry the driver's `why`. `engine_release.js verify d92bdfb50d88`: intact.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing. No artifact's release id, first cut or source digest moved. Only the counter `engine_release_cuts` differs (1 or 206), and no gate reads it.
+- **Owed to the next major.** none. The next lattice will record a new driver-code digest.
+
 ## [6.65.0] — 2026-09-19 — 6.63.0 re-measured on `d92bdfb50d88`: board 0 / 0 / 0, narration 0 / 0 / 0, threw 0 / 0 / 0; abilities fire 198 of 200; the gate reads 2 of 10, on a dead roster anchor and 9 unproven staged rows
 
 - **What changed.** No code changed. Re-measured on release `d92bdfb50d88` (HEAD `65db4006`; `engine_release.js list` reports no frozen source moved): the three lattices, the full staged-game battery (`--kind all --write`), the three roster stages with `--reds`, `data/engine-diff.json` (`--n 6000`), then `engine/quarantine.js` (MEASURE's ten-clause 6.64.0) and `engine/coverage.js`.

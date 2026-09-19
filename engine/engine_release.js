@@ -655,8 +655,14 @@ function cut(why, opts) {
    * and never the HISTORY. */
   if (!fs.existsSync(eventsPath(dir))) seedEventsFromRecord(dir, prev);
   const sc = showdownCommit();
+  /* `by` NAMES THE PROCESS THAT CUT — 2026-09-19. `why` is a string the CALLER supplies, and the driver
+   * supplies the same one whoever loads it: 205 events on d92bdfb50d88 all read "game differential mode A"
+   * and none could say which process wrote it, so finding the writer took a replay of the scratchpad. */
+  const entry = process.argv[1] && !(process.execArgv || []).some(a => /^(-e|--eval|-p|--print|-pe|-ep)$/.test(a))
+    ? path.relative(ROOT, process.argv[1]).split(path.sep).join('/') : '(node -e)';
   appendEvent(dir, Object.assign(
-    { at: new Date().toISOString(), why: why || '(no reason given)', showdown_commit: sc },
+    { at: new Date().toISOString(), why: why || '(no reason given)', showdown_commit: sc,
+      by: { pid: process.pid, entry } },
     repaired.length ? { repaired } : {},
     AUTH.drifted ? { authority_drift_allowed: { pinned: AUTH.pinned, checkout: AUTH.actual } } : {}));
 

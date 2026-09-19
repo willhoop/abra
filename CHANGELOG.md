@@ -10,7 +10,33 @@ silently rewritten; what changed and why is stated.
 
 ---
 
-## [6.65.0] — 2026-09-19
+## [6.65.1] — 2026-09-19
+
+### Fixed
+- **A run pinned with `--release` could still cut a release, and 205 phantom cut events landed on
+  `d92bdfb50d88` that way.** They came in bursts of 101, 101, 1, 1 and 1. `node -e "require('./tests/roster.js')"`
+  reproduces one burst of exactly 101. Under `node -e` the user's arguments start at `process.argv[1]`, and
+  `engine/game_differential.js` read `slice(2)`. The `--release` that `tests/roster.js` pushes therefore lost
+  its flag, and the driver cut on each of the 101 times `tests/staged_board.js` re-required it. The driver
+  now reads the arguments from the right offset. A re-load takes the release its own process already
+  resolved. It exports that release as `ABRA_RELEASE_PIN`, and a child process started without `--release`
+  takes it and says so. An explicit `--release` still wins.
+- **Each cut event now names its writer** (`by: {pid, entry}` in `engine/engine_release.js`). The 205 events
+  carried only the driver's own `why`.
+
+### Added
+- `tests/test-release-pin-no-cut.js`. On the old code it was RED on 3 assertions: 2 cuts from a pinned
+  `node -e` run, 1 from the child of a pinned run, and 2 from an unpinned re-load. On the fix it passes all
+  10 assertions. It never writes the real store.
+
+### Notes
+- **Nothing was corrupted.** The id, `files`, `provides` and first `cut`/`why` of `d92bdfb50d88` match
+  commit `65db4006`, and `engine_release.js verify` reports the release intact. No artifact's pin moved.
+  Only `engine_release_cuts` differs (1 on the three lattices, 206 on the battery and the damage
+  differential), and no gate reads that counter.
+- The driver's code digest moves, because this edits `engine/game_differential.js` and
+  `engine/engine_release.js`. The change does not alter a pinned script run. The next lattice will still
+  read as not comparable on the driver axis.
 
 ### Notes
 - **6.63.0 re-measured on `d92bdfb50d88`. No code changed.** Whole game at `--games` 1200/1350/1950: board 0 / 0 / 0,

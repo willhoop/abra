@@ -38,6 +38,31 @@ _stamped 2026-09-19 12:57_
 
 <!-- /GENERATED -->
 
+## A PINNED RUN COULD CUT A RELEASE. THE 205 PHANTOM CUTS ON `d92bdfb50d88` WERE TWO `node -e` LOADS OF THE ROSTER, AND NOTHING WAS CORRUPTED. 2026-09-19 (6.65.1)
+
+**THE WRITER.** The cut log holds bursts of **101, 101, 1, 1 and 1**. One `node -e "require('./tests/roster.js')"`
+cuts exactly **101**. Under `node -e` the user's arguments start at `process.argv[1]`. The driver read
+`slice(2)`, so the `--release` that the roster pushes lost its flag. The driver then cut on each of the 101
+times `tests/staged_board.js` re-required it. **All three lattices really were pinned.** The cuts came from
+ad-hoc inspection commands in the same session. The three singles match a scratch script that required the
+driver with no pin. Its file time is 244 ms before the first single.
+
+**IT WAS CHRONIC.** 6,778 of the 7,753 cut events on disk carry the driver's `why`, across 677 releases.
+`f30bf025ae28` alone holds 1,305.
+
+**THE FIX** is in `engine/game_differential.js`. The driver reads its arguments from the right offset. A
+re-load reuses the release that its own process resolved. A child with no `--release` of its own inherits
+the parent's through `ABRA_RELEASE_PIN`, and says so on stderr. **A cut event now names its writer**
+(`by: {pid, entry}`). `tests/test-release-pin-no-cut.js` was RED on 3 assertions on the old code and passes
+10 of 10 on the fix. It never writes the real store.
+
+**CORRUPTION: NONE.** The id, `files`, `provides` and first `cut`/`why` of `d92bdfb50d88` match commit
+`65db4006`, and `verify` reports the release intact. No artifact's pin moved. Only the counter
+`engine_release_cuts` differs, 1 on the lattices and 206 on the battery and damage differential. No gate
+reads it. **The hazard was latent.** Had the live tree moved, those loads would have cut a new release and
+repointed `data/engine-release.json`. The roster's patched simulator would then have missed the driver's
+snapshot. Full account: `docs/_reports/2026-09-19-phantom-cuts.md`.
+
 ## THREE BLIND SPOTS BECOME FAILING CLAUSES: UNPROVEN IN-SCOPE MECHANICS, UNCOMPARED BOUNDARY LEAVES, AND THROWN LATTICE GAMES. 2026-09-19 (6.64.0)
 
 **"DONE" IS PRINTED BY THE GATE, NOT CLAIMED.** Will: *"stop saying medicham is done when all these blind
