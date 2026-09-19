@@ -15,18 +15,18 @@ it does not compete on them.
 MEASURE — can we believe a number
   leaf calibration: QUARANTINED — the figure is withheld, not annotated.
     data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 6 of 8 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part, on EVERY team lattice; mechanics / each one staged and compared against showdown); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect, on EVERY team lattice)
+    MEDICHAM is not correct — 3 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; whole-game differential / BOARD-MATERIAL — games whose boards part, on EVERY team lattice); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect, on EVERY team lattice)
     it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
   engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 6 of 8 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part, on EVERY team lattice; mechanics / each one staged and compared against showdown); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect, on EVERY team lattice)
+    MEDICHAM is not correct — 3 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; whole-game differential / BOARD-MATERIAL — games whose boards part, on EVERY team lattice); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect, on EVERY team lattice)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
   provenance: 229 unsafe, 2 void (declared), 16 possibly stale, 11 ok, 0 missing
     RATCHET TRIPPED — the unstamped list grew; provenance.js exited non-zero: _diag41-sample.json, _diag46-cards.json, _diag46-sample.json, _diag46b-cards.json, _diag46b-sample.json, _diag77-cards.json
     their generators ship without recording what CONTENT they read — stamp source_digests
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 6 of 8 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part, on EVERY team lattice; mechanics / each one staged and compared against showdown); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect, on EVERY team lattice)
+    MEDICHAM is not correct — 3 of 8 gate clauses fail (deliberate roster / items; deliberate roster / abilities; whole-game differential / BOARD-MATERIAL — games whose boards part, on EVERY team lattice); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect, on EVERY team lattice)
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
@@ -36,7 +36,7 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-09-18 21:47
 ```
 
-_stamped 2026-09-18 21:57_
+_stamped 2026-09-18 23:29_
 
 <!-- /GENERATED -->
 

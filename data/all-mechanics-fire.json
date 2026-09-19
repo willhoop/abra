@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-19T00:55:38.725Z",
- "engine_release": "ce34d0a89f01",
- "engine_release_cut": "2026-09-19T00:24:34.248Z",
+ "generated": "2026-09-19T02:44:51.394Z",
+ "engine_release": "482e8f5ca701",
+ "engine_release_cut": "2026-09-19T01:50:02.545Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "cd0e3cef0d7f",
+  "engine/medicham2-browser.js": "cc1d60172ee7",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -25,15 +25,15 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "594980dd86f1",
-  "data/tags.json": "113bb8703480",
+  "data/abra-tags.js": "ca8b9c405ed9",
+  "data/tags.json": "41cf1f1be398",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
   "engine/pp.js": "30b12a4ef623",
   "data/rollout-switch-census.json": "b599f8d581b5"
  },
- "release": "ce34d0a89f01",
+ "release": "482e8f5ca701",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -380,7 +380,8 @@
    "stall",
    "pickup",
    "anticipation",
-   "forewarn"
+   "forewarn",
+   "frisk"
   ]
  },
  "rows": {
@@ -49880,7 +49881,7 @@
      "notes": [
       "C idles with Sleep Talk (its onTry fails for a healthy body)",
       "genders declared for the opposite-gender case the handler reads: C Clefable M, R Feraligatr F",
-      "plays through the driver's declared-gender seam (engine/game_differential.js:3469): the caller must pass declaredGender"
+      "plays through the driver's declared-gender seam (engine/game_differential.js:3545): the caller must pass declaredGender"
      ],
      "assumptions": []
     },
@@ -54258,7 +54259,13 @@
      "assumptions": []
     },
     "control_not_quiet": true,
-    "control_note": "the CONTROL ability (Cursed Body) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
+    "control_note": "the CONTROL ability (Cursed Body) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one.",
+    "deferred": {
+     "by": "Will",
+     "on": "2026-09-18",
+     "why": "THE EFFECT IS A MESSAGE, the same class as Anticipation and Forewarn: Frisk reveals the foes' items with one `-item` protocol line and writes no board leaf, so a board comparison cannot see it. Will: \"set frisk aside.\""
+    },
+    "counts_against_the_gate": false
    },
    {
     "kind": "ability",
@@ -63744,6 +63751,7 @@
     ],
     "faced_why": [
      "writesAccuracy: No Guard makes a sub-100 move certain — against a 100-accuracy move it is indistinguishable from nothing",
+     "accuracyMod: Compound Eyes and Tangled Feet only move a SUB-100 accuracy; every move in the bare gauntlet is 100",
      "handler onAnyAccuracy: the either must supply subaccuracy"
     ],
     "stage": "legacy-fallback",
@@ -69061,7 +69069,7 @@
      ],
      "notes": [
       "genders declared for the same-gender case the handler reads: C Luxray M, R Feraligatr M",
-      "plays through the driver's declared-gender seam (engine/game_differential.js:3469): the caller must pass declaredGender"
+      "plays through the driver's declared-gender seam (engine/game_differential.js:3545): the caller must pass declaredGender"
      ],
      "assumptions": [],
      "verdict": "UNPROVEN-UNCONTROLLED",
@@ -105092,7 +105100,7 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 76
    },
-   "seconds": 82.2
+   "seconds": 50.8
   },
   "abilities": {
    "exist": 316,
@@ -105109,9 +105117,9 @@
    "did_not_fire_unexplained": 9,
    "diverged": 1,
    "diverged_including_shelved": 3,
-   "shelved_by_owner": 5,
+   "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 2,
-   "seconds": 123,
+   "seconds": 53.4,
    "board_only": {
     "rows": 17,
     "staged": 17,
@@ -105191,7 +105199,7 @@
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 6,
    "board_state_fired": 5,
-   "seconds": 7.6,
+   "seconds": 54.6,
    "stones": {
     "rows": 0,
     "staged": 0,
@@ -105414,10 +105422,10 @@
  },
  "planner": {
   "meta": {
-   "generated": "2026-09-19T00:55:38.576Z",
+   "generated": "2026-09-19T02:44:51.255Z",
    "by": "engine/stage_planner.js",
-   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\ce34d0a89f01\\data\\tags.json",
-   "tags_digest": "113bb87034802779",
+   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\482e8f5ca701\\data\\tags.json",
+   "tags_digest": "41cf1f1be398d2c8",
    "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown",
    "validator": {
     "calls": 1361,
@@ -105444,11 +105452,11 @@
     "bottom-tie-first"
    ],
    "genderPin": {
-    "at": "engine/game_differential.js:3469",
+    "at": "engine/game_differential.js:3545",
     "text": "const gender = (opts && opts.declaredGender && (p.gender === 'M' || p.gender === 'F')) ? p.gender : 'N';"
    },
    "genderSeam": {
-    "at": "engine/game_differential.js:3469",
+    "at": "engine/game_differential.js:3545",
     "text": "const gender = (opts && opts.declaredGender && (p.gender === 'M' || p.gender === 'F')) ? p.gender : 'N';"
    },
    "normalised": [],
@@ -105462,7 +105470,7 @@
     "stench: secondary (the handler assigns move.secondaries)",
     "kingsrock: secondary (the handler assigns move.secondaries)"
    ],
-   "ms": 16135
+   "ms": 20281
   },
   "summary": {
    "mechanics": 964,
@@ -105507,7 +105515,7 @@
     "staged": 2
    },
    "branches": {
-    "total": 601,
+    "total": 608,
     "uncovered": 2
    },
    "assumptions": 12,
@@ -105517,7 +105525,7 @@
    }
   },
   "played": {
-   "plan_ms": 16193,
+   "plan_ms": 20341,
    "rows": 347,
    "fixtures": 853,
    "variants": 1968,
@@ -105722,7 +105730,9 @@
   "seam": {
    "declaredSpread": 46032,
    "declaredGenderBodies": 46032,
-   "declaredGender": 20
+   "declaredGender": 20,
+   "fixtureSetsChecked": 0,
+   "fixtureSetsIllegal": 0
   },
   "legacy_ran": {
    "abilities": 191,
@@ -105736,15 +105746,13 @@
   "moves": {
    "available": true,
    "file": "data/roster.moves.json",
-   "roster_fired": 492,
+   "roster_fired": 494,
    "here_fired": 497,
-   "both": 492,
+   "both": 494,
    "only_here": [
     "axekick",
     "copycat",
-    "electrify",
-    "focusenergy",
-    "struggle"
+    "electrify"
    ],
    "only_roster": [],
    "neither": [],
@@ -105754,12 +105762,11 @@
   "abilities": {
    "available": true,
    "file": "data/roster.abilities.json",
-   "roster_fired": 190,
+   "roster_fired": 194,
    "here_fired": 140,
-   "both": 138,
+   "both": 139,
    "only_here": [
-    "frisk",
-    "simple"
+    "frisk"
    ],
    "only_roster": [
     "aerilate",
@@ -105776,6 +105783,7 @@
     "firemane",
     "forecast",
     "furcoat",
+    "goodasgold",
     "guts",
     "harvest",
     "healer",
@@ -105795,6 +105803,7 @@
     "piercingdrill",
     "poisonheal",
     "pressure",
+    "quickfeet",
     "ripen",
     "rockhead",
     "sandspit",
@@ -105813,17 +105822,15 @@
     "unnerve",
     "unseenfist",
     "waterabsorb",
-    "weakarmor"
+    "weakarmor",
+    "zerotohero"
    ],
    "neither": [
     "anticipation",
     "forewarn",
-    "goodasgold",
     "illusion",
     "pickup",
-    "quickfeet",
-    "stall",
-    "zerotohero"
+    "stall"
    ],
    "exemption": null,
    "what_neither_means": "NEITHER the staged single-turn roster nor a real game has made this fire. This is the set nothing in the project tests."

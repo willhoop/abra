@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-19T00:45:31.533Z",
+  "generated": "2026-09-19T02:09:41.548Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:de38d17e15a2/credit:observed-effect/v1/nature:real",
   "games_requested": 1200,
@@ -63,9 +63,9 @@
       "turn1_boards_reached": 961,
       "rows_credited": 273,
       "credit_events": {
-        "effect": 498690,
+        "effect": 498702,
         "negative": 1052,
-        "click": 1076690
+        "click": 1081008
       },
       "classes": []
     }
@@ -85,7 +85,7 @@
   },
   "games": 961,
   "turns_cap": 50,
-  "elapsed_s": 1107.9,
+  "elapsed_s": 440.6,
   "credit_turn_profile": {
     "rows_with_any_credit": 273,
     "credits_with_no_turn_index": 0,
@@ -141,42 +141,42 @@
       }
     ],
     "credit_events_by_turn": {
-      "1": 79226,
-      "2": 79132,
-      "3": 78943,
-      "4": 79227,
-      "5": 76191,
-      "6": 70357,
-      "7": 62017,
-      "8": 52969,
-      "9": 42086,
-      "10": 34314,
-      "11": 26028,
-      "12": 19628,
-      "13": 13925,
-      "14": 10392,
-      "15": 7443,
-      "16": 5392,
-      "17": 4119,
-      "18": 2979,
-      "19": 2748,
-      "20": 2274,
-      "21": 1437,
-      "22": 1076,
-      "23": 821,
-      "24": 586,
-      "25": 664,
-      "26": 642,
-      "27": 557,
-      "28": 539,
-      "29": 320,
-      "30": 267,
-      "31": 285,
-      "32": 175,
-      "33": 210,
-      "34": 95,
-      "35": 99,
-      "36": 50
+      "1": 79314,
+      "2": 79705,
+      "3": 79372,
+      "4": 79624,
+      "5": 76527,
+      "6": 70673,
+      "7": 62285,
+      "8": 53214,
+      "9": 42273,
+      "10": 34453,
+      "11": 26133,
+      "12": 19724,
+      "13": 13987,
+      "14": 10430,
+      "15": 7471,
+      "16": 5407,
+      "17": 4131,
+      "18": 2991,
+      "19": 2757,
+      "20": 2283,
+      "21": 1446,
+      "22": 1082,
+      "23": 824,
+      "24": 589,
+      "25": 667,
+      "26": 645,
+      "27": 560,
+      "28": 542,
+      "29": 323,
+      "30": 270,
+      "31": 288,
+      "32": 178,
+      "33": 213,
+      "34": 98,
+      "35": 102,
+      "36": 53
     },
     "rows_first_credited_at_turn_13_or_later": [],
     "rows_first_credited_at_turn_9_or_later": [
@@ -2904,10 +2904,10 @@
     "policy": "observed-effect/v1",
     "rule": "a census row is exercised when a board leaf in a family THE TAG'S OWN PARAMS NAME changed across the turn, in either engine, inside the scope of an entity that was in play; or when a blocking tag's declared negative case was reached and correctly did not fire. A click alone counts for NOTHING but an attempt.",
     "why": "Primarina clicked Haze on turn 1 into a board with zero boosts on it. Haze is a no-op there, the census marked it exercised, and because the census STEERS the sample a falsely credited row then steered every later run AWAY from testing it.",
-    "rows_with_an_observed_effect": 358,
-    "rows_that_can_be_witnessed_on_a_board": 381,
-    "rows_that_name_no_board_leaf": 438,
-    "rows_credited_by_a_connected_click_only": 412,
+    "rows_with_an_observed_effect": 359,
+    "rows_that_can_be_witnessed_on_a_board": 382,
+    "rows_that_name_no_board_leaf": 445,
+    "rows_credited_by_a_connected_click_only": 419,
     "rows_clicked_or_present_that_did_nothing": 8,
     "rows_clicked_or_present_that_did_nothing_list": [
       "ability:clearsScreensOnEntry",
@@ -6413,11 +6413,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 2010,
+        "credit": 4385,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 5075
+          "click": 7610
         },
         "attempts": 5
       },
@@ -7778,11 +7778,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 462,
+        "credit": 1155,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 776
+          "click": 1940
         },
         "attempts": 0
       },
@@ -9183,11 +9183,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 2010,
+        "credit": 4385,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 5075
+          "click": 7610
         },
         "attempts": 5
       },
@@ -9409,11 +9409,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 2010,
+        "credit": 4385,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 5075
+          "click": 7610
         },
         "attempts": 5
       },
@@ -9566,11 +9566,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 570,
+        "credit": 912,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1025
+          "click": 1640
         },
         "attempts": 0
       },
@@ -9581,11 +9581,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 570,
+        "credit": 912,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1025
+          "click": 1640
         },
         "attempts": 0
       },
@@ -9596,11 +9596,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 570,
+        "credit": 912,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1025
+          "click": 1640
         },
         "attempts": 0
       },
@@ -9611,11 +9611,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 570,
+        "credit": 912,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1025
+          "click": 1640
         },
         "attempts": 0
       },
@@ -9626,11 +9626,56 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 570,
+        "credit": 912,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1025
+          "click": 1640
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:ignoresScreensAndSubs",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [
+          "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
+        ],
+        "credit": 912,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 1640
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:ignoresScreensAndSubs",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [
+          "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
+        ],
+        "credit": 912,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 1640
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:ignoresScreensAndSubs",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [
+          "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
+        ],
+        "credit": 912,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 1640
         },
         "attempts": 0
       },
@@ -9641,11 +9686,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 2010,
+        "credit": 4385,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 5075
+          "click": 7610
         },
         "attempts": 5
       },
@@ -12509,11 +12554,56 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 462,
+        "credit": 1155,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 776
+          "click": 1940
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:ignoresDefenderAbility",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [
+          "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
+        ],
+        "credit": 1155,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 1940
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:ignoresDefenderAbility",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [
+          "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
+        ],
+        "credit": 1155,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 1940
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:ignoresDefenderAbility",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [
+          "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
+        ],
+        "credit": 1155,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 1940
         },
         "attempts": 0
       },
@@ -13207,9 +13297,9 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 16,
+        "credit": 24,
         "of_which": {
-          "effect": 24,
+          "effect": 36,
           "negative": 0,
           "click": 0
         },
@@ -13224,9 +13314,26 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 16,
+        "credit": 24,
         "of_which": {
-          "effect": 24,
+          "effect": 36,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:restoresBerryAtResidual",
+        "kind": "effect",
+        "families": [
+          "item"
+        ],
+        "from": [
+          "the tag name matches item|berry|megastone|unburde"
+        ],
+        "credit": 24,
+        "of_which": {
+          "effect": 36,
           "negative": 0,
           "click": 0
         },
@@ -13733,11 +13840,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 12,
+        "credit": 15,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 16
+          "click": 20
         },
         "attempts": 0
       },
@@ -13746,11 +13853,24 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 12,
+        "credit": 15,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 16
+          "click": 20
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:delayedHit",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 15,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 20
         },
         "attempts": 0
       },
@@ -14047,11 +14167,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 2010,
+        "credit": 4385,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 5075
+          "click": 7610
         },
         "attempts": 5
       },
@@ -14738,11 +14858,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 12,
+        "credit": 15,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 16
+          "click": 20
         },
         "attempts": 0
       },
@@ -14751,11 +14871,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 12,
+        "credit": 15,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 16
+          "click": 20
         },
         "attempts": 0
       },
@@ -15741,13 +15861,13 @@
     ]
   },
   "coverage": {
-    "measurable": 819,
-    "exercised": 784,
+    "measurable": 827,
+    "exercised": 792,
     "exercised_note": "THE OLD NUMBER — an entity of this row connected or stood on the field. It is kept so the drop to credit.rows_with_an_observed_effect is readable, and it is NOT the coverage claim any more.",
-    "exercised_by_a_connected_move": 471,
-    "move_targets": 487,
-    "present_on_the_field_only": 313,
-    "ability_or_item_targets": 332,
+    "exercised_by_a_connected_move": 472,
+    "move_targets": 488,
+    "present_on_the_field_only": 320,
+    "ability_or_item_targets": 339,
     "median_completed_turns_before_divergence": 9,
     "unmeasurable_by_this_instrument": [
       {
@@ -16408,7 +16528,7 @@
     "driver_inputs": [
       {
         "file": "data/move-priors.json",
-        "read_from": "release ce34d0a89f01",
+        "read_from": "release 482e8f5ca701",
         "digest": "e667fe8ab457",
         "generated": "2026-08-22",
         "rows": 345,
@@ -16434,7 +16554,7 @@
         "rows": 49,
         "what": "the DECLARED SKIP LIST — every event medicham2 says it does not emit is removed from the Showdown side before alignment, so this decides what can count as a divergence",
         "derived_from_medicham2": "9134ed066e6a",
-        "medicham2_played": "cd0e3cef0d7f"
+        "medicham2_played": "cc1d60172ee7"
       }
     ],
     "driver_code": {
@@ -16455,7 +16575,8 @@
         "engine/empirical_driver.js": "e6ad4a3a7b43",
         "engine/end_state_severity.js": "6cd7666b4a02",
         "engine/engine_release.js": "5b16d00d869d",
-        "engine/game_differential.js": "81fce9b895b3",
+        "engine/fixture_legality.js": "3dcb1fd37648",
+        "engine/game_differential.js": "afdb016a7836",
         "engine/names.js": "3a1f5d1b473d",
         "engine/run_stamp.js": "9b44ac36f0d1",
         "engine/steering.js": "c61ad94ed8f0"
@@ -16468,14 +16589,15 @@
         "engine/empirical_driver.js": "4f2f2e1e6df6",
         "engine/end_state_severity.js": "6cd7666b4a02",
         "engine/engine_release.js": "5b16d00d869d",
-        "engine/game_differential.js": "81fce9b895b3",
+        "engine/fixture_legality.js": "42bb3443d333",
+        "engine/game_differential.js": "afdb016a7836",
         "engine/names.js": "14de493906d5",
         "engine/run_stamp.js": "9b44ac36f0d1",
         "engine/steering.js": "7c85e3d88fb2"
       },
       "digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content) — a line ending is not part of the instrument. `files_raw`/`raw_digest` carry the byte answer.",
-      "raw_digest": "58b9629abf5d",
-      "digest": "3c9cef36c7c5",
+      "raw_digest": "8d783f5ed0a7",
+      "digest": "3f21624ad50d",
       "unresolved": [
         "engine/game_differential.js -> ./engine/\n * game_differential.js (does not resolve on disk)",
         "engine/engine_release.js -> ./x.js (does not resolve on disk)",
@@ -16487,15 +16609,15 @@
     },
     "input": "data/mechanics-census.json",
     "input_read_from": "data/mechanics-census.json",
-    "input_digest": "632a699468ca",
-    "input_raw_digest": "632a699468ca",
+    "input_digest": "2a669b4c2dea",
+    "input_raw_digest": "2a669b4c2dea",
     "input_digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content)",
-    "input_rows": 886,
-    "input_generated": "2026-09-12T13:57:37.652Z",
-    "input_live_digest": "632a699468ca",
+    "input_rows": 894,
+    "input_generated": "2026-09-19T01:50:02.151Z",
+    "input_live_digest": "2a669b4c2dea",
     "pinned": true,
     "matches_live": true,
-    "selects_from": 819,
+    "selects_from": 827,
     "unmeasurable": 67,
     "credit": "observed-effect/v1 — a row is exercised when a board leaf in a family the tag's own params name changed across the turn, or when a declared negative case was reached and did not fire. A click alone counts for nothing. ROADMAP #91.",
     "team_pool_digest": "0d103fb9fa87",
@@ -16504,12 +16626,12 @@
     "team_store_pinned_to": "data/team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "ce34d0a89f01",
-  "engine_release_cut": "2026-09-19T00:24:34.248Z",
+  "engine_release": "482e8f5ca701",
+  "engine_release_cut": "2026-09-19T01:50:02.545Z",
   "engine_release_cuts": 1,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "cd0e3cef0d7f",
+    "engine/medicham2-browser.js": "cc1d60172ee7",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "d00e77a7ac26",
     "engine/position_features.js": "bb71676d3669",
@@ -16529,8 +16651,8 @@
     "data/regulations.json": "6c1995e9a9fb",
     "data/quality-filter.json": "771c3bd3e544",
     "data/engine-data.js": "bbc417dfae0e",
-    "data/abra-tags.js": "594980dd86f1",
-    "data/tags.json": "113bb8703480",
+    "data/abra-tags.js": "ca8b9c405ed9",
+    "data/tags.json": "41cf1f1be398",
     "data/policy-weights.json": "626c1d240782",
     "data/policy-weights-joint.json": "e2aca467ff04",
     "data/move-priors.json": "e667fe8ab457",

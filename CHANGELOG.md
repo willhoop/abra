@@ -10,6 +10,21 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.49.1] — 2026-09-18
+
+### Notes
+- **Re-measure of the merged tree on release `482e8f5ca701`. No code changed.** The three lattices
+  (`--games` 1200 / 1350 / 1950, census `2a669b4c2dea`, `--team-store data/team-pool-frozen`, arm `middle`,
+  cap 50, `--end-state`, `--steering empirical`) read board-material **0 of 961 / 7 of 1069 / 20 of 1497**.
+  These are the same 27 games as on `ce34d0a89f01`, with byte-identical first diffs. Undeclared narration
+  reads **0 / 12 / 24**. One narration game left: a Mold Breaker Tinkaton's Helping Hand into an ally's
+  Good as Gold, fixed in 6.49.0. No game joined. Roster: moves 494 of 497, abilities 194 of 200, items 148
+  of 148; 0 differ, 0 COULD-NOT-STAGE.
+- **Gate `CLOSED — 3 of 8`, was 1 of 8.** The two new FAILs are the roster red demonstrations for
+  `item/accuracy-scaled` and `ability/weather-evasion`. Their plants aim at the name-keyed `ACCMOD`
+  branch, which 6.48.0 put behind `MEDI_ACCMOD_BY_NAME=1`. The breaks land on dead code. This is an
+  instrument regression and is not fixed here. Full account: `docs/_reports/2026-09-18-merged-remeasure.md`.
+
 ## [6.49.0] — 2026-09-18
 
 ### Fixed

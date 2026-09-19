@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-19T00:59:38.859Z",
+ "generated": "2026-09-19T02:36:35.468Z",
  "by": "tests/roster.js",
  "stage": "moves",
  "swap_leaf_correction": {
@@ -7,12 +7,12 @@
   "real_ability_rewrite_kept": 0,
   "control_arm_bookkeeping_dropped": 0
  },
- "engine_release": "ce34d0a89f01",
- "engine_release_cut": "2026-09-19T00:24:34.248Z",
+ "engine_release": "482e8f5ca701",
+ "engine_release_cut": "2026-09-19T01:50:02.545Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "cd0e3cef0d7f",
+  "engine/medicham2-browser.js": "cc1d60172ee7",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -32,8 +32,8 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "594980dd86f1",
-  "data/tags.json": "113bb8703480",
+  "data/abra-tags.js": "ca8b9c405ed9",
+  "data/tags.json": "41cf1f1be398",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
@@ -45,14 +45,14 @@
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
   "DEFERRED-BY-OWNER": 3,
-  "FIRED-AND-BOARDS-MATCH": 492,
+  "FIRED-AND-BOARDS-MATCH": 494,
   "CONTROL-NOT-QUIET": 0,
-  "COULD-NOT-STAGE": 2
+  "COULD-NOT-STAGE": 0
  },
  "counts_in_scope": 497,
  "counts_basis": "engine/legal_scope.js in-scope set; out-of-scope entities are excluded from every bucket rather than counted as COULD-NOT-STAGE",
  "arms_played": {
-  "top-tie-first": 834,
+  "top-tie-first": 840,
   "bottom-tie-first": 266
  },
  "scope": {
@@ -62,15 +62,15 @@
    "no-legal-carrier": 3
   },
   "in_scope": 497,
-  "tested": 492,
-  "matched": 492,
+  "tested": 494,
+  "matched": 494,
   "differ": 0,
   "silent": 0,
   "deferred": 3,
   "unattributable": 0,
   "unattributable_ids": [],
   "declared_untestable": [],
-  "could_not_stage_in_scope": 2,
+  "could_not_stage_in_scope": 0,
   "attributed_by_second_control": [],
   "carrier_derivation": {
    "legal_species": 347,
@@ -84,8 +84,8 @@
   }
  },
  "plant_anchors": {
-  "release": "ce34d0a89f01",
-  "checked": 36,
+  "release": "482e8f5ca701",
+  "checked": 37,
   "dead": [],
   "reds_ran": true
  },
@@ -532,6 +532,21 @@
      "hp",
      "fainted",
      "status"
+    ]
+   }
+  },
+  {
+   "rule": "move/is-the-control-click",
+   "ok": true,
+   "why": "Focus Energy's volatile is never written, so the click spends PP and leaves no crit stage",
+   "moved": {
+    "member": "focusenergy",
+    "verdict": "FIRED-AND-BOARDS-DIFFER",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "vol.focusenergy"
     ]
    }
   },
@@ -17739,13 +17754,13 @@
    "id": "focusenergy",
    "name": "Focus Energy",
    "rule": "move/is-the-control-click",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "this move IS the control arm's inert click (Focus Energy), so subject and control are the same script and the delta is empty by construction. THE ARM WAS BUILT AND THE FORMAT REFUSED IT, which is a measurement and not a shrug: `controlOf` will substitute a SECOND inert click for this one row, and asked of the whole regulation, 23 moves pass the primary control click's own shape cap and EVERY ONE of them is refused — Power Shift  REFUSED — its volatile's condition registers onCopy; Stuff Cheeks  REFUSED — the MOVE registers onHit; Ally Switch  REFUSED — the MOVE registers onPrepareHit+onHit; Aqua Ring  REFUSED — its volatile's condition registers onResidual; Belly Drum  REFUSED — the MOVE registers onHit; Copycat  REFUSED — the MOVE registers onHit; Destiny Bond  REFUSED — the MOVE registers onPrepareHit; Follow Me  REFUSED — its volatile's condition registers onFoeRedirectTarget; Imprison  REFUSED — its volatile's condition registers onFoeDisableMove+onFoeBeforeMove; Ingrain  REFUSED — its volatile's condition registers onResidual+onTrapPokemon+onDragOut; Magnet Rise  REFUSED — its volatile's condition registers onImmunity; Moonlight  REFUSED — the MOVE registers onHit; Morning Sun  REFUSED — the MOVE registers onHit; Power Trick  REFUSED — its volatile's condition registers onCopy; Rage Powder  REFUSED — its volatile's condition registers onFoeRedirectTarget; Recycle  REFUSED — the MOVE registers onHit; Rest  REFUSED — the MOVE registers onHit; Sleep Talk  REFUSED — the MOVE registers onHit; Stockpile  REFUSED — its volatile's onStart+onRestart+onEnd does more than announce; Substitute  REFUSED — the MOVE registers onTryHit+onHit; Swallow  REFUSED — the MOVE registers onHit; Synthesis  REFUSED — the MOVE registers onHit; Tidy Up  REFUSED — the MOVE registers onHit. THE NEAR MISS IS THE FINDING: ranking those survivors by handler count picked AQUA RING, whose move declares nothing and whose volatile heals a sixteenth every turn; it staged, it came back GREEN, and it read inert only because every body on that fixture was at full HP. `board_state.js` HAS compared `vol.focusenergy` since 2026-08-12, so the effect is still expressible — what is missing is a second click this format does not have.",
+   "reads": "the move id, against this file's own INERT click",
+   "note": "every body on both sides clicks Focus Energy on all three turns — the carrier Lycanroc-Dusk in slot B0 among them. The CONTROL arm swaps every one of those clicks for Magnet Rise (whose volatile's only effect is an immunity to Ground; no Ground move, hazard or terrain exists on this board, asserted off the script). The reading is `vol.focusenergy` and the spent PP; the two crit stages are invisible on both pin corners and are not read.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "lycanrocdusk",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -17757,7 +17772,152 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p1.active[0].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.active[1].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p1.pp[1].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[1].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[0].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 1,
+     "path": "p2.pp[1].focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[1].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[0].focusenergy",
+     "with": 2,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p1.pp[1].focusenergy",
+     "with": 2,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[1].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[0].focusenergy",
+     "with": 2,
+     "without": 0
+    },
+    {
+     "turn": 2,
+     "path": "p2.pp[1].focusenergy",
+     "with": 2,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[1].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[0].focusenergy",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p1.pp[1].focusenergy",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[1].vol.focusenergy",
+     "with": 1,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.pp[0].focusenergy",
+     "with": 3,
+     "without": 0
+    },
+    {
+     "turn": 3,
+     "path": "p2.pp[1].focusenergy",
+     "with": 3,
+     "without": 0
+    }
+   ],
    "diffs": []
   },
   {
@@ -42279,13 +42439,13 @@
    "id": "struggle",
    "name": "Struggle",
    "rule": "move/recoil",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE TWO REQUIREMENTS CANNOT BOTH HOLD, so this is a contradiction rather than a long script nobody has written. Showdown DISABLES Struggle for any body that still has a usable move, so the user's EVERY slot must be empty — and `controlOf` builds the control arm by replacing the Struggle click with the inert click (Focus Energy, 32 PP at full), which a body with every slot empty cannot choose either; Showdown rejects it and the control arm throws. The escape is a SECOND control click to substitute, and that is the SAME missing thing `move/is-the-control-click` is refused on — 23 moves in this regulation pass the control-click shape cap and every one of them is refused (printed by `--rules`). The tracking half is not what is missing: medicham2 has `ppSpentMap`, `board_state.js` compares it as `pp-is-what-has-been-spent`, and this file's `item/pp-restore` already empties a slot by clicking it. It is not a limit of the engine and it is not a script length either — it is the control arm and the move asking for opposite boards.",
+   "reads": "recoil / mindBlownRecoil / struggleRecoil",
+   "note": "Starmie holds Recover ALONE (max PP 8) and clicks it 8 times at full HP, failing to heal every time; on turn 9 its menu is empty and Showdown offers Struggle and nothing else. The CONTROL arm is the same body with Focus Energy added to its menu, which it clicks on that turn instead — the moveset is not a board leaf, only what is spent from it is. The reading is the struck foe's HP and the carrier's own recoil.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "starmie",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -42297,7 +42457,32 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 9,
+     "path": "p1.party.starmie.hp",
+     "with": 405,
+     "without": 540
+    },
+    {
+     "turn": 9,
+     "path": "p1.active[0].hp",
+     "with": 405,
+     "without": 540
+    },
+    {
+     "turn": 9,
+     "path": "p2.party.torterra.hp",
+     "with": 662,
+     "without": 680
+    },
+    {
+     "turn": 9,
+     "path": "p2.active[1].hp",
+     "with": 662,
+     "without": 680
+    }
+   ],
    "diffs": []
   },
   {

@@ -159,11 +159,9 @@ ENGINE — does the simulator do what Pokémon does
   894/894 probed mechanics live, 0 missing   (census 2026-09-18 21:50)
     the census probes what somebody thought to probe: 297 of 297 in-scope tags carry a probe, 0 carry none (9 of 306
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 1.0 h old). node engine/coverage.js
+    (all-mechanics-fire.json, 45 min old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    older than its input abra-tags.js
-    pinned to engine release ce34d0a89f01 — engine/medicham2-browser.js matches the frozen copy; live is cc1d60172ee7 now (a PRE-CHANGE measurement of that release, not corruption)
-    (+3 more — node engine/provenance.js)
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/482e8f5ca701/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "482e8f5ca701".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -180,7 +178,7 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-18 21:57_
+_stamped 2026-09-18 23:29_
 
 <!-- /GENERATED -->
 
