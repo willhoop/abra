@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-19T01:50:02.151Z",
+  "generated": "2026-09-19T03:44:20.334Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 894,
-  "live": 894,
+  "probed": 900,
+  "live": 900,
   "missing": 0,
-  "armed": 894,
+  "armed": 900,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -1810,6 +1810,16 @@
     },
     {
       "kind": "move",
+      "tag": "privateStallCounter",
+      "label": "the Ally Switch counter does not ride the bench, so a returning body swaps at any roll",
+      "live": true,
+      "detail": "Alakazam Ally Switches (slot 1, counter 1 while STANDING — must be >0), then switches out: counter on the bench 0 (must be 0). The body that replaced it faints (true), Alakazam returns to slot 1 and Ally Switches at roll 0.99: it stands in slot 0 (must be 0 — a fresh counter always swaps; a carried one loses the 1-in-3)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "targetsASlot",
       "label": "a stat drop lands on whoever replaced the body it was aimed at",
       "live": true,
@@ -2504,6 +2514,16 @@
       "label": "a banked Charge does not survive a switch",
       "live": true,
       "detail": "Bellibolt is struck, then clicks Thunderbolt — having STAYED on the field 142 (the bank is spent on it); having pivoted out and back first 72 (back on the field: true) — roughly half, because the switch took the Charge with it exactly as clearVolatile() does",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "buffsHolderOnHit",
+      "label": "an Electric move stopped by a Protect still spends the banked Charge",
+      "live": true,
+      "detail": "Bellibolt is struck, clicks into a PROTECT on turn 2, then Thunderbolts on turn 3 — no ability 72 (the flat control); ELECTROMORPHOSIS with a THUNDERBOLT into the shield 72 (must equal the control: the stopped Electric move spent the bank); with a BODY SLAM into the shield 142 (must be ~2x: a non-Electric move does not spend it, so the bank was there to be spent). Turn-2 damage through the shield 0/0 (both must be 0)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3780,6 +3800,16 @@
     },
     {
       "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "Gooey's Speed drop runs the attacker's own reactions — Contrary inverts it, Defiant answers it, Clear Body refuses it, Mirror Armor bounces it",
+      "live": true,
+      "detail": "attacker spe/atk after Aerial Ace -- no Gooey 0/0; Pressure -1/0; Contrary 1; Defiant -1/2; Clear Body 0; Mirror Armor 0 (Goodra -1)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
       "tag": "reflectsStatusMoves",
       "label": "Magic Bounce sends a TRAP back, and the trap lands on the trapper",
       "live": true,
@@ -4059,6 +4089,16 @@
       "directCall": false
     },
     {
+      "kind": "ability",
+      "tag": "rewritesAbilityOnContact",
+      "label": "Mummy refuses a cantsuppress attacker and Wandering Spirit a failskillswap one — Hunger Switch is taken by one and not the other",
+      "live": true,
+      "detail": "attacker/holder after one contact hit — Kingambit/Pressure: Mummy mummy/mummy, WS wanderingspirit/pressure; Hunger Switch: Mummy mummy/mummy, WS hungerswitch/wanderingspirit; Zero to Hero: Mummy zerotohero/mummy, WS zerotohero/wanderingspirit",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "move",
       "tag": "selfBoostSecondary",
       "label": "Flame Charge raises the USER's Speed on a connecting hit",
@@ -4213,7 +4253,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.1% (format 20, generic 30), control Rock Slide 27.7% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 28.6% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4424,6 +4464,16 @@
       "label": "a Parental Bond volley pays its secondary AND its self-drop on each arrival",
       "live": true,
       "detail": "every secondary firing — Crunch: target Def -1 with no ability, -2 with Parental Bond; Hammer Arm: user Spe -1 with no ability, -2 with Parental Bond (each must be twice the control)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "hitsTwice",
+      "label": "a Parental Bond click whose FIRST arrival kills sets Rough Skin off ONCE",
+      "live": true,
+      "detail": "attacker HP lost to Rough Skin: target survives both arrivals 44, target dies to arrival 1 22 (must be exactly half — one toll, not two)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7604,6 +7654,16 @@
       "label": "Transform copies the aimed body — stats, moves and ability, but NOT hp",
       "live": true,
       "detail": "Ditto before {\"atk\":61,\"maxhp\":123,\"moves\":[\"transform\"]}  ->  after {\"atk\":200,\"maxhp\":123,\"moves\":[\"earthquake\",\"dragonclaw\",\"protect\",\"swordsdance\"]}, types Dragon/Ground, ability sandveil.  The Attack must become the target's own 200 (read off the body this harness built, never typed), the move list must become [\"earthquake\",\"dragonclaw\",\"protect\",\"swordsdance\"] (an engine that kept `transform` on the body is the defect the roster saw), and max HP must NOT move",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "transformsIntoTarget",
+      "label": "Transform runs the COPIED ability's Start — a Ditto that copies Intimidate drops both foes' Attack",
+      "live": true,
+      "detail": "foe Attack stages after Ditto copies a Blaze body [0,0] (no Start to run), after it copies an Intimidate body [-1,-1] (must be -1 on BOTH foes)",
       "hollow": false,
       "armed": true,
       "directCall": false

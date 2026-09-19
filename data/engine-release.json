@@ -1,10 +1,10 @@
 {
-  "current": "482e8f5ca701",
-  "cut": "2026-09-19T01:50:02.545Z",
-  "why": "merged tree: Beat Up + Future Sight/Harvest/Prankster/tags + Mold Breaker refusals (Good as Gold, Magic Bounce, Sticky Hold)",
+  "current": "74be319d02fa",
+  "cut": "2026-09-19T03:44:42.628Z",
+  "why": "merged: Gooey drop road, Mummy/Wandering Spirit flags, charge early exit, Ally Switch bench, Transform copied Start, Parental Bond reactors",
   "cuts": 1,
-  "latest_cut": "2026-09-19T01:50:02.545Z",
-  "latest_why": "merged tree: Beat Up + Future Sight/Harvest/Prankster/tags + Mold Breaker refusals (Good as Gold, Magic Bounce, Sticky Hold)",
-  "pointer_written": "2026-09-19T01:50:02.636Z",
+  "latest_cut": "2026-09-19T03:44:42.628Z",
+  "latest_why": "merged: Gooey drop road, Mummy/Wandering Spirit flags, charge early exit, Ally Switch bench, Transform copied Start, Parental Bond reactors",
+  "pointer_written": "2026-09-19T03:44:43.535Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

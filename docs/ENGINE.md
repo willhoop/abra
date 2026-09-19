@@ -27,7 +27,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_unburden_herb_paths.js`, `tests/probe_knockoff_megastone.js`, `tests/probe_sand_force.js`,
 `tests/probe_random_target_address.js`,
 `tests/probe_spread_status_steps.js`, `tests/probe_multihit_update.js`,
-`tests/probe_volley_reactor_count.js`,
+`tests/probe_volley_reactor_count.js`, `tests/probe_electric_charge_paths.js`,
+`tests/probe_bench_private_counters.js`,
 `tests/probe_noguard_invuln.js`, `tests/probe_endturn_clock_order.js`,
 `tests/probe_substitute_status_step.js`, `tests/probe_yawn_substitute.js`,
 `tests/probe_doll_blind_family.js`, `tests/probe_trace_target.js`,
@@ -60,7 +61,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_misty_terrain_status.js`, `tests/probe_charge_release_chosen_slot.js`,
 `tests/probe_corner_mechanisms.js`, `tests/probe_simple_beam.js`, `tests/probe_magnetrise_clock.js`,
 `tests/probe_rampage_length.js`, `tests/probe_bond_secondary_order.js`, `tests/probe_ability_flag_refusal.js`,
-`tests/probe_reopen_partings.js`, `tests/probe_moldbreaker_refusals.js`
+`tests/probe_reopen_partings.js`, `tests/probe_moldbreaker_refusals.js`,
+`tests/probe_transform_copied_start.js`, `tests/probe_bond_reactor_ko.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -156,12 +158,14 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  894/894 probed mechanics live, 0 missing   (census 2026-09-18 21:50)
+  900/900 probed mechanics live, 0 missing   (census 2026-09-18 23:44)
     the census probes what somebody thought to probe: 297 of 297 in-scope tags carry a probe, 0 carry none (9 of 306
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 45 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 1.1 h old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/482e8f5ca701/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "482e8f5ca701".
+    older than its input abra-tags.js
+    pinned to engine release 482e8f5ca701 — engine/medicham2-browser.js matches the frozen copy; live is 614058acfc05 now (a PRE-CHANGE measurement of that release, not corruption)
+    (+3 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -178,9 +182,112 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-18 23:29_
+_stamped 2026-09-18 23:52_
 
 <!-- /GENERATED -->
+
+## GOOEY'S DROP NOW RUNS THE ATTACKER'S OWN STAT REACTIONS, AND MUMMY / WANDERING SPIRIT NOW REFUSE A FLAGGED ABILITY. BOTH LEADS WERE A CLASS, NOT AN INSTANCE. CENSUS **894 → 896 LIVE / 0 MISSING**. 2026-09-18, CHANGELOG `<<VER>>`
+
+Report: `docs/_reports/2026-09-18-gooey-mummy.md`. LIGHT MODE: staged boards and single probes only.
+
+- **Gooey (premise TRUE, wider than stated).** `data/abilities.ts:1636` is an ordinary `this.boost` on the
+  attacker, so Contrary, Defiant, Competitive, Clear Body and Mirror Armor all apply. The punish block wrote
+  the -1 straight into `boosts`. It now goes through `applyStatDrop`, the same road the shield punish uses.
+  Knob `MEDI_PUNISH_RAW_BOOST=1`. Probe `tests/probe_gooey_boost_road.js`: 10 red arms, 10 controls, all
+  clear. Tangling Hair has the same handler but no legal carrier.
+- **Mummy (premise TRUE, and a class of two).** Mummy refuses a `cantsuppress` attacker (`:2772`). Wandering
+  Spirit refuses `failskillswap` on either body (`Battle#skillSwap`, `sim/battle.ts:1316`). The contact
+  site asked neither. `tag_dex` now derives `rewritesAbilityOnContact.refusedBy` with the same reader as the
+  move family's `refusedByAbilityFlag`. The engine asks it through the same asker (`abilityFlagRefusalOf`).
+  Knob `MEDI_CONTACT_REWRITE_FLAGS_UNREAD=1`. Probe `tests/probe_contact_rewrite_flags.js`: 14 refused arms and
+  6 allowed arms, all clear. Hunger Switch tells the two rules apart: it carries `failskillswap` but not
+  `cantsuppress`. The move family, Trace and Receiver were already correct.
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST, because the census and two probes now carry them:** Gooey and Contrary/Defiant;
+  Mummy and `cantsuppress`.
+- **`data/tags.json` WAS SPLICED, NOT REGENERATED.** This worktree has no store, so `tag_dex` wrote zero
+  usage. Only the two new `refusedBy` params were carried into HEAD's file. Re-run `tag_dex` on the main tree
+  to confirm that nothing else moves.
+
+## THE ELECTRIC BANK IS SPENT BY AN ELECTRIC MOVE A PROTECT STOPPED, AND THE ALLY SWITCH COUNTER NO LONGER RIDES THE BENCH. BOTH LEADS WERE REAL. CENSUS **894 → 896 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — NO RELEASE CUT IN THIS PASS; THE RE-RUN IS OWED.** 2026-09-18, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-18-charge-allyswitch.md`.
+
+**THE CHARGE LEAD.** `charge.condition` removes the volatile in `onAfterMove` and in `onMoveAborted`. Both
+handlers are gated on `move.type === 'Electric' && move.id !== 'charge'` (`data/moves.ts:2264`; the
+Champions mod does not override it). `AfterMove` is raised after `useMove` returns, whatever it returned
+(`sim/battle-actions.ts:311-312`). This engine paid it at a spend site that the fully-shielded exit
+(`if(_hadTargets&&!targets.length){...continue;}`) jumps past. The fix is one change: the gate marker from
+2026-09-12 now stays armed past the `|move|` line. `spendChargeOnMove` disarms it, and the same sweep pays
+any move that left by another door. `tests/probe_electric_charge_paths.js` has 14 arms: hit, protected,
+missed, immune, absorbed, non-Electric, status, switch-out, crash into Protect, spread with half or all
+protected, Volt Switch, and the card's own thaw-then-Protect. The protected arm and the thaw-then-Protect
+arm were red before the fix. The thaw was not the cause, because the thaw-then-hit arm was green before
+the fix. `MEDI_ELECTRIC_CHARGE_KEPT_ON_EARLY_EXIT=1` parts exactly the four early-exit arms.
+
+**THE ALLY SWITCH LEAD.** `Pokemon#clearVolatile()` empties `volatiles` (`sim/pokemon.ts:1514`; Champions
+copy `data/mods/champions/scripts.ts:124`). This engine keeps `allyswitch` outside `_vol` as
+`_aswDur`/`_aswCount`, and `switchOut` did not clear them. The foot-of-turn tick walks active bodies only,
+so the counter stayed at 1 on the bench. A body that came back as a faint replacement arrived after that
+turn's tick, and its first Ally Switch rolled a 1-in-3 that the authority had thrown away.
+`tests/probe_bench_private_counters.js` has 4 arms. Two were red before the fix: the bench leaf, and the
+return by faint, where the authority swapped and the engine refused. `MEDI_ALLYSWITCH_SURVIVES_SWITCH=1`
+parts exactly those two arms.
+
+**THE CLASS, asked of every body field outside `_vol` that a board leaf or `RESIDUAL_SHADOW_VOL` reads
+as an authority volatile.** `_aswDur`/`_aswCount` were the only ones that survived a switch AND reached
+a board or a decision. `_helpingHand` also survives, but the turn-top reset clears it before any reader
+sees it. `_attractedBy` and `_critVolTypeAtStart` hang off `_vol` members that the wipe removes, and
+their readers check those members first. None of the three is observable, so none was changed.
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST, because the census and two probes now carry them:** the Electric bank and a
+  damaging click stopped by Protect; `allyswitch` on a benched body.
+- **NEW LEAD, read at the source and not probed:** Cud Chew's pending berry (`_cud`) survives a switch
+  here. The authority re-initialises `abilityState` on switch-in (`sim/battle-actions.ts:142`), so the
+  berry is forgotten there.
+- **CARRIED FORWARD UNCHANGED:** Transform and the copied ability's `Start` (2); Gooey through
+  `this.boost` (2); Rough Skin after a KO'd Parental Bond first hit (2); Mummy and `cantsuppress` (1);
+  Darkest Lariat and `ignoreEvasion` (1); Alluring Voice's condition (1); Decorate and Contrary (1); Mega
+  Launcher and Heal Pulse (1); Magic Bounce and Yawn (1); Round's queue promotion (1); Helping Hand at an
+  ally that has already moved (1); the other eighteen `onEnd` abilities, and the rest of #622.
+
+## TRANSFORM NOW RUNS THE COPIED ABILITY'S `Start`, AND A PARENTAL BOND CLICK WHOSE FIRST HIT KILLS REACTS ONCE. BOTH LEADS WERE REAL. CENSUS **894 → 896 LIVE / 0 MISSING**. 2026-09-18, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-18-transform-roughskin.md`.
+
+**TRANSFORM.** `transformInto` ends with `setAbility(pokemon.ability, this, null, true, true)`
+(`sim/pokemon.ts:1356`), and `setAbility` fires the copied ability's `Start` when the id changed
+(`:1946-1948`). The Imposter door already ran it, through `runEntryPass`. The Transform MOVE door did
+not. It now calls `abilityStarted`, the same door Skill Swap uses. `abilityStarted` also runs
+`syncFieldTypes` on the body, because Mimicry's and Forecast's `onStart` are only a sync. Mimicry
+reverts a transformed body to its UNTRANSFORMED species (`baseSpecies`, `data/abilities.ts:2592,2596`).
+Forecast refuses a transformed body (`:1466`). `tests/probe_transform_copied_start.js` derives the
+class: 24 legal `onStart` abilities. Eleven are live on their fixture and all agree. Twelve change nothing on
+their board beyond a `-ability` announcement, which the differential folds. Trace is declared, because
+it replaces itself at its carrier's own entry. Knobs: `MEDI_TRANSFORM_NO_COPIED_START=1` and
+`MEDI_MIMICRY_TRANSFORM_BLIND=1`.
+
+**ROUGH SKIN.** The Champions hit loop does not open a second hit against a body already on zero
+(`data/mods/champions/scripts.ts:461-464`). The `multiHit` family already obeyed this. The Parental
+Bond road returned a flat 2. Both now go through one landed-count guard. `tests/probe_bond_reactor_ko.js`
+tests Rough Skin and Gooey. It has a survivor control, a KO-on-arrival-2 control and a non-contact
+control. Knob: `MEDI_BOND_REACT_DRAWN=1`. Iron Barbs has no legal carrier.
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST, because a probe now carries it:** Transform and the copied ability's `Start` (2
+  games); Rough Skin after a KO'd Parental Bond first hit (2 games).
+- **NEW, NOT PROBED:** Forecast's transformed-body refusal. The guard landed with a citation, but no
+  arm stages a transformed Castform under a changing sky. Curious Medicine's `-clearboost` line and
+  Forewarn's `-activate` are missing on EVERY entry, not only on Transform. Both are narration.
+  Forewarn is counted in `entryAnnounceUnmodelled`. Curious Medicine is counted in
+  `clearBoostUnannounced` only when the ally had a boost to clear. The line is missing and uncounted
+  when the ally had none.
+- **CARRIED FORWARD UNCHANGED:** every other lead in the Beat Up pass's list below.
 
 ## BEAT UP PRICES EACH HIT OFF THE ALLY'S **SET** SPECIES — THE THREE LATTICES READ **0 / 7 / 20** WHERE THEY READ **0 / 9 / 21**, EXACTLY THE THREE PREDICTED GAMES GONE AND NONE NEW. CENSUS **886 LIVE / 0 MISSING**, UNMOVED. **ONE ENGINE CHANGE — RELEASE `ce34d0a89f01` CUT**, ALL FOUR INVALIDATED ARTIFACTS RE-RUN. GATE **CLOSED, 1 OF 8**, ON THE BOARD-MATERIAL CLAUSE. 2026-09-18, CHANGELOG 6.47.0
 

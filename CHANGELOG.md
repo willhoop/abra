@@ -10,6 +10,22 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.50.0] — 2026-09-18
+
+### Fixed
+- **Gooey's Speed drop goes through the boost road**, so Contrary, Defiant, Competitive, Clear Body and
+  Mirror Armor react. Knob `MEDI_PUNISH_RAW_BOOST=1`.
+- **Mummy respects `cantsuppress`, Wandering Spirit respects `failskillswap`.** Knob
+  `MEDI_CONTACT_REWRITE_FLAGS_UNREAD=1`.
+- **An Electric move that exits early still spends Charge.** Knob `MEDI_ELECTRIC_CHARGE_KEPT_ON_EARLY_EXIT=1`.
+- **Switching out clears the Ally Switch counter.** Knob `MEDI_ALLYSWITCH_SURVIVES_SWITCH=1`.
+- **The Transform move runs the copied ability's Start.** Knob `MEDI_TRANSFORM_NO_COPIED_START=1`.
+- **Parental Bond pays contact reactions per landed hit** after a first-hit KO. Knob `MEDI_BOND_REACT_DRAWN=1`.
+
+### Notes
+- All six were whole-game differential leads. Census 894 -> 900 live, 0 missing. Reports:
+  `docs/_reports/2026-09-18-{gooey-mummy,charge-allyswitch,transform-roughskin}.md`.
+
 ## [6.49.1] — 2026-09-18
 
 ### Notes

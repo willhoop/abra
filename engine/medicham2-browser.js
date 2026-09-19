@@ -413,6 +413,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * before today. The swap raises TWO of them (the authority starts the holder's new ability first,
    * then the attacker's) and the infection ONE, so the ratio is readable rather than assumed. */
   contactAbilitySwapped: 0, contactAbilityInfected: 0, acquiredAbilityStartRan: 0,
+  /* 2026-09-18 -- contact rewrites REFUSED on an ability flag (Mummy on `cantsuppress`, Wandering Spirit
+   * on `failskillswap`). Zero over a run that has a flagged body touching a rewriter means the refusal
+   * went dead again. */
+  contactRewriteRefused: 0,
   /* ROADMAP #357 -- ARRIVALS added to a body's `_timesAttacked` ledger, which is Rage Fist's whole
    * base power. Counted in ARRIVALS and not in clicks, so a multi-hit move contributes its landed
    * packets exactly as `-hitcount` reports them. A zero in a game with any damaging move in it means
@@ -888,6 +892,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * touched means the punish is back on the raw write and Contrary, Defiant and the Clear Body class
    * are all being ignored again. */
   shieldPunishThroughStatDrop: 0,
+  /* 2026-09-18 -- `punishesAttacker` STAT PUNISHES (Gooey) ROUTED THROUGH `applyStatDrop`. A zero over a
+   * run where a Gooey body was touched means the drop is back on the raw write and the attacker's
+   * Contrary, Defiant, Competitive, Clear Body and Mirror Armor are all being ignored again. */
+  punishBoostThroughStatDrop: 0,
   /* 2026-09-06 -- ABILITIES WHOSE `Start` WAS RUN BECAUSE THEY ARRIVED MID-BATTLE (Skill Swap both
    * ends, Worry Seed / Entrainment / Simple Beam, Role Play). A zero over a run that contains one of
    * those five moves means the arriving ability's entry handler is dead again, which is what a
@@ -1689,6 +1697,7 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * something with a multi-hit move means the clause is unwired -- which is what it was until today,
    * and the symptom was `|-hitcount|1` printed beside two Rough Skin tolls. */
   volleyReactStoppedAtKO: 0,
+  bondReactStoppedAtKO: 0,   // 2026-09-18 -- a Parental Bond click whose first arrival killed reacted once
   /* 2026-08-29 -- THE AFTER-FAINT BOUNDARY. `afterFaintPaid` is a drain that reached
    * `runEvent('AfterFaint')` at all; `afterFaintSkippedBattleEnded` is a drain that emptied a side,
    * so `checkWin` (sim/battle.ts:2592) returned above it and nothing was owed;
@@ -2365,6 +2374,7 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * body it was aimed at rather than a fixed slot. A zero here in a game containing a Transform click
    * means the classifier has stopped matching the tag and the move is a no-op turn again. */
   transformedByMove: 0,
+  transformCopiedStartRan: 0,   // 2026-09-18 -- the Transform MOVE ran the copied ability's Start
   /* ROADMAP #210 -- a Transform the target's own ability refused. Found by the interaction matrix on
    * the run after the branch landed, as the one parting pair in 1642: Good as Gold refuses any status
    * move from another body and Transform is one. A zero with a Gholdengo on the field is the gate
@@ -3008,11 +3018,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * it DOES revert, so a non-zero reading means a member arrived that keeps its type -- which is a
    * fact worth seeing rather than a silent path. */
   terrainRetyped: 0, terrainTypeKept: 0,
+  terrainTypeBaseUntransformed: 0,   // 2026-09-18 -- Mimicry reverted a TRANSFORMED body to its untransformed species
   /* ROADMAP #175 -- FORECAST. `weatherRetyped` counts every rewrite in both directions;
    * `formeWeatherRestoreOnly` counts the members this consumer DECLINES by declared shape (Ice Face's
    * snow give-back, which is owned by `formeOnHit`) and is a receipt that the refusal is deliberate
    * rather than a member that fell through a gap. */
   weatherRetyped: 0, formeWeatherRestoreOnly: 0,
+  formeWeatherRefusedTransformed: 0,   // 2026-09-18 -- Forecast on a transformed body (data/abilities.ts:1466)
   /* 2026-08-26 -- THE SPECIES LABEL, COUNTED APART FROM THE TYPES. It is a SUBSET of
    * `weatherRetyped` and never equal to it: the revert-with-no-`revertsTo` case retypes and cannot
    * rename. A gap between the two is therefore readable, where one merged counter would hide it. */
@@ -3583,6 +3595,13 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-09-04, ROADMAP #541 -- set whenever MEDI_CONTACT_ABILITY_LEGACY=1 restores WIRE 80's holder
      announcement, bare assignment and absent Start on purpose. Same shape as midAddrPreOverrideRestored. */
   contactAbilityLegacyRestored: 0,
+  /* 2026-09-18 -- set whenever MEDI_CONTACT_REWRITE_FLAGS_UNREAD=1 lets Mummy / Wandering Spirit rewrite an
+     ability whose flags refuse it. Same shape as contactAbilityLegacyRestored. */
+  contactRewriteFlagsUnreadRestored: 0,
+  /* 2026-09-18 -- a `rewritesAbilityOnContact` row with NO `refusedBy` field: the tag predates the
+     derivation, so this engine cannot say what refuses the rewrite and lets it through, LOUDLY. Zero on
+     a current data/tags.json. */
+  contactRewriteNoRefusalShape: 0, contactRewriteNoRefusalShapeFirst: '',
   /* THE LOUD HALF OF THE ACQUIRED-ABILITY START. A body whose side cannot be resolved has no foe array
      to intimidate and no ally to heal, so its `Start` is SKIPPED -- which is indistinguishable from an
      ability that does nothing. It must read 0; a non-zero says an acquired Start silently did not run. */
@@ -4704,6 +4723,9 @@ const MEDFAILS = { encoreAction: 0,
      entry the artifact derives. A positive one arriving upstream keeps the raw write and is named
      here rather than being silently inverted into a drop. */
   shieldPunishNotADrop: 0, shieldPunishNotADropFirst: '',
+  /* 2026-09-18 -- a `punishesAttacker.boosts` entry that is a RAISE or a NON-secondary call, so it
+     cannot go through `applyStatDrop`. Zero today: Gooey's secondary `{spe:-1}` is the only entry. */
+  punishBoostNotASecondaryDrop: 0, punishBoostNotASecondaryDropFirst: '',
   /* 2026-09-06 -- an ability arrived on a body with no side stamp, so "who are my foes" could not be
      answered and its Start was skipped. Zero inside a real battle; a bare unit-test call that builds
      two bodies and no sides lands here. Guessing would fire an Intimidate at nobody. */
@@ -4715,6 +4737,7 @@ const MEDFAILS = { encoreAction: 0,
      raw write to `boosts` and Contrary, Defiant and the Clear Body class are all ignored. Non-zero
      means the run is NOT measuring this engine's shipped behaviour. */
   shieldPunishRawBoostRestored: 0,
+  punishRawBoostRestored: 0,
   /* ROADMAP #213 -- a weather-gated status immunity asked on a body with no side stamp, so the field
      could not be read. Defaulting to "no weather" would turn Leaf Guard OFF in exactly the case a
      bare unit-test call makes, which is the silent-default shape; it is counted instead. */
@@ -6072,6 +6095,20 @@ const CHARGE_WRAP_SURVIVES_ABORT=(typeof process!=='undefined'&&process.env&&pro
  * It is a SEPARATE knob from CHARGE_WRAP_SURVIVES_ABORT above because they are separate mechanics
  * that happen to share a word: that one is the two-turn move clock, this one is the Electric bank. */
 const ELECTRIC_CHARGE_SURVIVES_ABORT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ELECTRIC_CHARGE_SURVIVES_ABORT==='1');
+/* 2026-09-18 -- MEDI_ELECTRIC_CHARGE_KEPT_ON_EARLY_EXIT=1 restores the pre-fix engine for the THIRD
+ * road out of the Electric bank: a move that RAN (past the `|move|` line) and then left the action
+ * through a `continue` above the damaging spend site -- the fully-shielded exit is the one staged
+ * (`if(_hadTargets&&!targets.length){...continue;}`). The authority's `onAfterMove` fires on that road
+ * exactly as on every other (sim/battle-actions.ts:311-312 runs after `useMove` returns, whatever it
+ * returned). Under the knob the marker is dropped at the `|move|` line as it was, so only the
+ * early-exit arms of tests/probe_electric_charge_paths.js part; the abort road and the two explicit
+ * spend sites are untouched. */
+const ELECTRIC_CHARGE_KEPT_ON_EARLY_EXIT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ELECTRIC_CHARGE_KEPT_ON_EARLY_EXIT==='1');
+/* 2026-09-18 -- MEDI_ALLYSWITCH_SURVIVES_SWITCH=1 restores the pre-fix engine: `switchOut` leaves
+ * `_aswDur`/`_aswCount` on the outgoing body, so the Ally Switch counter rides the bench. Stamps
+ * `MEDFAILS.allySwitchSurvivesSwitchRestored` when it actually carries one. Parts exactly the two red
+ * arms of tests/probe_bench_private_counters.js. */
+const ALLYSWITCH_SURVIVES_SWITCH=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ALLYSWITCH_SURVIVES_SWITCH==='1');
 /* 2026-09-12 -- MEDI_MEGA_KEEPS_ABSORB_GIFT=1 restores the pre-fix engine: `megaEvolveNow` overwrites
  * the ability without running the OUTGOING ability's End, so a Flash Fire bank taken before the
  * evolution survives an ability that no longer exists on the body. It restores that and NOTHING else
@@ -13098,6 +13135,13 @@ function convertsMoveTypeTo(mv,moveId,att,curT){
  * be spent AFTER the hit steps (it has to have taken the doubling first), and a status click cannot
  * take the doubling at all, so for that one before and after are the same board. Both call this. */
 function spendChargeOnMove(m,mvId,mv,field){
+  /* 2026-09-18 -- REACHING THIS FUNCTION IS REACHING `AfterMove`, so the in-flight marker for this
+   * body is spent here, before any early return: a move that arrived at an explicit spend site has
+   * had its `onAfterMove`, whether or not a bank was there to remove, and the sweep must not pay it a
+   * second time after something re-banked. See the `|move|` line. `ELEC_CHG_INFLIGHT` is a `let`
+   * declared further down this file; this function is only ever CALLED after the module has
+   * finished loading, so the binding is initialised by then. */
+  if(ELEC_CHG_INFLIGHT&&ELEC_CHG_INFLIGHT.m===m)ELEC_CHG_INFLIGHT=null;
   if(!m||!m._vol||!(m._vol.charge>0)||!mvId)return false;
   if(String(mvId)==='charge')return false;
   /* 2026-09-12 -- THE ROW IS LOOKED UP WHEN THE CALLER HAS NONE, AND THAT OMISSION KILLED THE WHOLE
@@ -16198,6 +16242,12 @@ const MID_ADDR_PRE_OVERRIDE=(typeof process!=='undefined'&&process.env&&process.
  * here. ROADMAP #541, 7 of 7 ability-transfer cards on release `8ad06030e129`. Any run carrying it also
  * carries a non-zero `MEDFAILS.contactAbilityLegacyRestored`. */
 const CONTACT_ABILITY_LEGACY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CONTACT_ABILITY_LEGACY==='1');
+/* 2026-09-18 -- MEDI_CONTACT_REWRITE_FLAGS_UNREAD=1 STOPS MUMMY AND WANDERING SPIRIT ASKING THE ABILITY
+ * FLAGS THEY REFUSE ON (`rewritesAbilityOnContact.refusedBy`), i.e. a Zero to Hero is mummified and a
+ * Stance Change or Hunger Switch is swapped away, as this engine did until today. Any run carrying it
+ * also carries a non-zero `MEDFAILS.contactRewriteFlagsUnreadRestored`.
+ * Probe: tests/probe_contact_rewrite_flags.js. */
+const CONTACT_REWRITE_FLAGS_UNREAD=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CONTACT_REWRITE_FLAGS_UNREAD==='1');
 /* 2026-08-26 -- THE TWO PROTECT KNOBS, AND THEY ARE TWO BECAUSE THE DEFECT WAS TWO EDITS.
  * MEDI_PROTECT_GATE_ABOVE_REFUSALS=1 calls `_shieldGate` back at the position it held until today --
  * above the five BeforeMove gates, above Disable and above the PP deduction -- so a body that cannot
@@ -16484,6 +16534,12 @@ const DH_IN_EFFECTS=(typeof process!=='undefined'&&process.env&&process.env.MEDI
  * engine did until today. Any run carrying it also carries a non-zero
  * `MEDFAILS.shieldPunishRawBoostRestored`. Same shape as MEDI_SMART_PROTECT_LINE above. */
 const SHIELD_PUNISH_RAW_BOOST=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SHIELD_PUNISH_RAW_BOOST==='1');
+/* 2026-09-18 -- MEDI_PUNISH_RAW_BOOST=1 PUTS `punishesAttacker`'s STAT PUNISH (Gooey) BACK ON A RAW WRITE
+ * TO THE ATTACKER'S `boosts`, i.e. the drop lands whatever the attacker's Contrary, Defiant,
+ * Competitive, Clear Body or Mirror Armor says, as this engine did until today. Any run carrying it also
+ * carries a non-zero `MEDFAILS.punishRawBoostRestored`. Same shape as MEDI_SHIELD_PUNISH_RAW_BOOST above,
+ * which fixed the identical breach at the shield's punish. Probe: tests/probe_gooey_boost_road.js. */
+const PUNISH_RAW_BOOST=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PUNISH_RAW_BOOST==='1');
 /* 2026-08-24 -- MEDI_NO_BEFOREMOVE_LINE=1 STOPS THE ENGINE WRITING A CONDITION'S `onBeforeMove` LINE,
  * i.e. Chilly Reception's `|-prepare|...|[premajor]` disappears from above its own `|move|` line, as
  * it was until today. Any run carrying it also carries a non-zero
@@ -20657,9 +20713,14 @@ function retaliateWhenLowered(f,src){
   MEDSEEN.retaliateWhenLowered++;
   return true;
 }
-function applyStatDrop(f,stat,n,eff,src){
+function applyStatDrop(f,stat,n,eff,src,zeroSays){
   if(!f||f.fainted) return 'none';
   const ab=(f.ability||'').replace(/[^a-z0-9]/g,'');
+  /* 2026-09-18 -- `zeroSays` IS THE CALLER'S OWN ANSWER TO "does a clamped zero announce", and it is
+   * absent (= true, unchanged) for every caller but one: the `punishesAttacker` road passes
+   * `abilityZeroAnnounces(...)`, so MEDI_NO_ABILITY_ZERO_BOOST keeps silencing Gooey's zero now that
+   * the drop is routed through here. */
+  const _zs=zeroSays===undefined?true:!!zeroSays;
   /* WIRE 157 -- the source and the size travel with the refusal now, so a Mirror Armor target can
    * bounce the drop back at whoever caused it. `src` is already this function's own argument. */
   if(refuseStatDrop(f,stat,eff,false,src,n)) return 'blocked';
@@ -20669,7 +20730,7 @@ function applyStatDrop(f,stat,n,eff,src){
   if(invSign(f)===-1){
     const _b0=f.boosts[stat];
     f.boosts[stat]=clamp(f.boosts[stat]+n,-6,6);
-    if(TR)TR.bst(f,stat,f.boosts[stat]-_b0,'',true); return 'contrary';
+    if(TR)TR.bst(f,stat,f.boosts[stat]-_b0,'',_zs); return 'contrary';
   }
   /* Simple DOUBLES the drop (official engine: Intimidate into Simple is -2). By shape from the
    * staged `amplifiesBoosts {mult:2}`; the name is the pre-regeneration bridge, WIRE 113. */
@@ -20683,7 +20744,7 @@ function applyStatDrop(f,stat,n,eff,src){
    * null, true)`); and Sticky Web passes `this.dex.getActiveMove('stickyweb')` with neither flag
    * (data/moves.ts stickyweb.condition.onSwitchIn), so the second fires. There is no caller that
    * lands in the silent case. */
-  if(TR)TR.bst(f,stat,f.boosts[stat]-_b1,'',true);
+  if(TR)TR.bst(f,stat,f.boosts[stat]-_b1,'',_zs);
   /* WIRE 138 -- THROUGH THE SHARED READER. This block used to be the only place the retaliation
    * happened, which is why every move-driven drop escaped it. `src` is optional and `undefined` keeps
    * the pre-wire behaviour with a counter, so no existing caller changes meaning silently. */
@@ -22539,6 +22600,15 @@ function abilityFlagRefusal(user,target,mvId){
   if(ABILITY_FLAG_REFUSAL_UNREAD)return null;
   const p=TAGS.param('move',mvId,'refusedByAbilityFlag');
   if(!p)return null;
+  return abilityFlagRefusalOf(p,user,target,mvId);
+}
+/* 2026-09-18 -- THE SAME QUESTION FOR ANY REWRITER THAT CARRIES THE `{target, source}` SHAPE. The move
+ * family above reads it off `refusedByAbilityFlag`; the contact family (Mummy, Wandering Spirit) reads it
+ * off `rewritesAbilityOnContact.refusedBy`, derived by the SAME tag_dex reader (`abilityFlagReadsOf`).
+ * `user` is the handler's `source`, `target` its `target`. One asker, so the two families cannot come to
+ * disagree about what a flag means. */
+function abilityFlagRefusalOf(p,user,target,label){
+  if(!p)return null;
   const ask=(who,flags)=>{
     if(!who||!Array.isArray(flags)||!flags.length)return null;
     const rc=TAGS.param('ability',String(who.ability||'').replace(/[^a-z0-9]/g,''),'refusesCopy');
@@ -22548,7 +22618,7 @@ function abilityFlagRefusal(user,target,mvId){
   };
   const f=ask(target,p.target)||ask(user,p.source);
   if(f){MEDSEEN.abilityFlagRefused++;
-    if(!MEDSEEN.abilityFlagRefusedFirst)MEDSEEN.abilityFlagRefusedFirst=String(mvId)+':'+f;}
+    if(!MEDSEEN.abilityFlagRefusedFirst)MEDSEEN.abilityFlagRefusedFirst=String(label)+':'+f;}
   return f;
 }
 /* ROADMAP #161 -- HEAL BLOCK, AND THE FIELD THE ENGINE ACTUALLY READS.
@@ -23621,6 +23691,9 @@ function itemRoomSync(field,bodies){
  * IT DOES NOT REVERT WHEN THE ABILITY GOES. Mimicry declares no `onEnd`, so a Skill Swap or a mega
  * that takes the ability away leaves the body whatever the terrain last made it -- and a tidy-looking
  * "restore on ability loss" would be a mechanic the authority does not have. */
+const MIMICRY_TRANSFORM_BLIND=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_MIMICRY_TRANSFORM_BLIND==='1');
+if(MIMICRY_TRANSFORM_BLIND)MEDFAILS.mimicryTransformBlind=1;
 function syncTerrainTypes(field,bodies){
   const _now=terrainId((field&&field.terrain)||'');
   for(const m of bodies||[]){
@@ -23635,7 +23708,13 @@ function syncTerrainTypes(field,bodies){
     }
     if(!want){
       if(!p.revertsWithoutTerrain){ MEDSEEN.terrainTypeKept++; continue; }
-      const row=monRow(m.name);
+      /* 2026-09-18 -- `pokemon.baseSpecies.types` (data/abilities.ts:2592) is the UNTRANSFORMED species:
+       * `transformInto` calls `setSpecies` and never touches `baseSpecies`, so a Ditto that copied a
+       * Stunfisk-Galar reverts to Ditto's own types -- the handler's own hint at :2598 says so. The
+       * row is read off the body the copy replaced. MEDI_MIMICRY_TRANSFORM_BLIND=1 restores the old read. */
+      const _baseName=(m._transformed&&m._preTransform&&!MIMICRY_TRANSFORM_BLIND)?m._preTransform.name:m.name;
+      if(_baseName!==m.name)MEDSEEN.terrainTypeBaseUntransformed++;
+      const row=monRow(_baseName);
       want=(row&&Array.isArray(row.t)&&row.t.length)?row.t:(m._ttWas||null);
       if(!want){ MEDFAILS.terrainTypeNoBase++;
                  if(!MEDFAILS.terrainTypeNoBaseFirst)MEDFAILS.terrainTypeNoBaseFirst=String(m.name||'?'); continue; }
@@ -23649,7 +23728,9 @@ function syncTerrainTypes(field,bodies){
      * `-activate` + `-end typechange [silent]` in the authority; `-end` is not in this engine's
      * TRACE_EVENTS, so the revert's stream is one line short and is counted rather than papered over,
      * exactly as the Curious Medicine block does. The STATE is right in both directions. */
-    if(_now){ if(TR)TR.vstart(m,'typechange',want.join('/')+'|[from] ability: '+m.ability); }
+    /* `if (this.field.terrain || pokemon.transformed)` (:2596) -- a TRANSFORMED body announces the
+     * revert with the same `-start typechange` line the terrain case uses. */
+    if(_now||(m._transformed&&!MIMICRY_TRANSFORM_BLIND)){ if(TR)TR.vstart(m,'typechange',want.join('/')+'|[from] ability: '+m.ability); }
     else MEDFAILS.typeRevertUnannounced++;
   }
 }
@@ -23702,6 +23783,10 @@ function syncWeatherFormes(field,bodies){
     const p=TAGS.param('ability',m.ability,'formeFollowsWeather');
     if(!p)continue;
     if(p.restoresRatherThanChanges){ MEDSEEN.formeWeatherRestoreOnly++; continue; }
+    /* 2026-09-18 -- `if (pokemon.baseSpecies.baseSpecies !== 'Castform' || pokemon.transformed) return;`
+     * (data/abilities.ts:1466, no Champions override). A body that COPIED the forme-follower never
+     * follows the sky. Reachable once `abilityStarted` runs this sync for a Transform; counted. */
+    if(m._transformed){ MEDSEEN.formeWeatherRefusedTransformed++; continue; }
     if(!p.typesByWeather){ MEDFAILS.formeWeatherNoTypeMap++;
       if(!MEDFAILS.formeWeatherNoTypeMapFirst)MEDFAILS.formeWeatherNoTypeMapFirst=String(m.ability); continue; }
     /* A member whose formes carry DIFFERENT stats cannot honestly be modelled as a retype, and half a
@@ -24192,6 +24277,10 @@ function abRewrite(m,ab){
  * MEDI_NO_ABILITY_START_ON_REWRITE=1 puts the engine back to never running it. */
 const NO_ABILITY_START_ON_REWRITE=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_NO_ABILITY_START_ON_REWRITE==='1');
+/* 2026-09-18 -- the red arm for the Transform MOVE's copied-ability Start (see the `transform` branch). */
+const TRANSFORM_NO_COPIED_START=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_TRANSFORM_NO_COPIED_START==='1');
+if(TRANSFORM_NO_COPIED_START)MEDFAILS.transformNoCopiedStart=1;
 function abilityStarted(m,field){
   if(NO_ABILITY_START_ON_REWRITE){MEDFAILS.abilityStartOnRewriteSkipped=1;return;}
   if(!m||m.fainted||m.curHP<=0||!m.ability)return;
@@ -24207,6 +24296,12 @@ function abilityStarted(m,field){
   MEDSEEN.abilityStartedOnRewrite++;
   applyEntryEffects(m,field,_ally);
   applyEntryDrops(m,(_foes||[]).filter(f=>f&&!f.fainted&&f.curHP>0));
+  /* 2026-09-18 -- AND THE TWO FIELD-FOLLOWERS, WHOSE `onStart` IS NOTHING BUT A SYNC ON ITSELF.
+   * Mimicry's `onStart` is `singleEvent('TerrainChange', ...)` (data/abilities.ts:2573-2575) and
+   * Forecast's is `singleEvent('WeatherChange', ...)` (:1462-1464); the entry pass reaches them through
+   * `syncFieldTypes` over the actives, a Start that arrives mid-battle reached neither. ONE body, the
+   * one that started -- the sync is idempotent and writes nothing when the types already match. */
+  syncFieldTypes(field,[m]);
 }
 /* The other half, called from `switchOut` beside the type restore and for the same reason: leaving the
  * field REBUILDS the body. Counted, because a restore that silently stops happening is invisible --
@@ -25613,6 +25708,18 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
      five-rung ladder, switch out for three turns and come back still doubling -- the same shape as the
      Rage Fist and Stomping Tantrum lines above it, and the reason those two are neighbours. */
   out._metroLast=null; out._metroN=0;
+  /* 2026-09-18 -- AND THE ALLY SWITCH COUNTER, WHICH IS A VOLATILE THIS ENGINE KEEPS OUTSIDE `_vol`.
+   * data/moves.ts `allyswitch` adds it from `onPrepareHit` with `duration: 2` and the consecutive-use
+   * ladder in `effectState.counter`; `Pokemon#clearVolatile()` (sim/pokemon.ts:1514, and its Champions
+   * copy at data/mods/champions/scripts.ts:124) drops it with every other volatile. The `_vol = {}`
+   * wipe below cannot reach `_aswDur`/`_aswCount`, and the foot-of-turn tick walks the ACTIVE bodies
+   * only -- so a body that Ally Switched and then left sat on the bench with its counter frozen at 1,
+   * and if it came back as a faint replacement (after that turn's tick) its first Ally Switch rolled
+   * the 1-in-3 the authority had thrown away. The g1950 lattice parted two games on
+   * `party.<x>.vol.allyswitch medicham 1 showdown 0`; tests/probe_bench_private_counters.js stages
+   * both the leaf and the refused swap. MEDI_ALLYSWITCH_SURVIVES_SWITCH=1 restores the carry. */
+  if(ALLYSWITCH_SURVIVES_SWITCH){ if(out._aswDur>0)MEDFAILS.allySwitchSurvivesSwitchRestored=1; }
+  else if(out._aswDur>0||out._aswCount>0){ out._aswDur=0; out._aswCount=0; MEDSEEN.allySwitchClearedOnSwitch=(MEDSEEN.allySwitchClearedOnSwitch|0)+1; }
   /* ROADMAP #357 -- AND THE TIMES-HIT LEDGER LEAVES WITH THE BODY, WHICH IS THE CHAMPIONS-SPECIFIC
    * HALF OF RAGE FIST AND THE ONLY PART OF IT THE MOD WROTE ITSELF. Mainline never resets
    * `timesAttacked`; `data/mods/champions/scripts.ts:169` adds `this.timesAttacked = 0;` to
@@ -26142,6 +26249,10 @@ if(WEATHER_FORME_SURVIVES_FAINT)MEDFAILS.weatherFormeSurvivesFaintRestored=1;
  * were measured apart and are fixed apart. */
 const VOLLEY_REACT_DRAWN=(typeof process!=='undefined'&&process.env
   &&process.env.MEDI_VOLLEY_REACT_DRAWN==='1');
+/* 2026-09-18 -- the Parental Bond half of the same guard; see the `_react` block. */
+const BOND_REACT_DRAWN=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_BOND_REACT_DRAWN==='1');
+if(BOND_REACT_DRAWN)MEDFAILS.bondReactDrawnRestored=1;
 /* STAMPED AT DECLARATION AND NOT ONLY WHERE IT FIRES, so a run under the knob is identifiable BEFORE
  * a killing volley happens to occur. `tests/test-mechanics.js` reads exactly this to refuse writing
  * the census under a deliberate break — a demonstration must not overwrite the artifact five other
@@ -27527,7 +27638,14 @@ let ELEC_CHG_INFLIGHT=null;
 function midAbortElectricCharge(){
   const c=ELEC_CHG_INFLIGHT; ELEC_CHG_INFLIGHT=null;
   if(!c)return;
-  if(spendChargeOnMove(c.m,c.mvId,c.mv,c.field))MEDSEEN.electricChargeAbortedAtGate++;
+  /* 2026-09-18 -- TWO ROADS, ONE SWEEP, TWO COUNTERS. `ran` is set at the `|move|` line: a marker
+   * still armed with it means the move was used and left the action before either explicit spend
+   * site (`onAfterMove`); without it the gate refused the move (`onMoveAborted`). Same body, same
+   * spend, counted apart so a zero on either road is visible. */
+  if(spendChargeOnMove(c.m,c.mvId,c.mv,c.field)){
+    if(c.ran)MEDSEEN.electricChargeSpentOnEarlyExit=(MEDSEEN.electricChargeSpentOnEarlyExit|0)+1;
+    else MEDSEEN.electricChargeAbortedAtGate++;
+  }
 }
 function midClearActiveMove() {
   if (ACTIVE_MOVE_STICKY) { MEDFAILS.activeMoveStickyRestored = 1; return; }
@@ -30733,7 +30851,23 @@ function battleTurn(S,rng,actsForA,actsForB){
        * below is a TryMove or onTry failure, which it pays with `onAfterMove` and this engine pays at
        * its own two spend sites. A marker left armed past here would let a sweep belonging to a move
        * that already ran destroy a bank re-banked after it. */
-      ELEC_CHG_INFLIGHT=null;
+      /* 2026-09-18 -- ~~DISARMED~~ CARRIED PAST THIS LINE, NOT DROPPED. The comment above was right
+       * that everything below is `onAfterMove`'s and not `onMoveAborted`'s, and wrong that "this engine
+       * pays [it] at its own two spend sites": it pays it only on the roads that REACH them. The
+       * fully-shielded exit `continue`s several thousand lines above the damaging spend site, so a
+       * Thunderbolt into a Protect kept the bank the authority had already spent
+       * (tests/probe_electric_charge_paths.js :: protected, and the g1950 lattice's one
+       * `p1.active[0].vol.charge medicham 1 showdown 0`). So the marker survives this boundary with
+       * `ran` set, `spendChargeOnMove` disarms it the instant either explicit site is reached, and a
+       * move that left by ANY other door is paid by the same sweep that pays the abort road --
+       * one implementation for every `continue`, rather than a spend at each of them.
+       * THE RE-BANK HAZARD THE OLD COMMENT NAMED IS STILL REFUSED: the marker cannot outlive its own
+       * action, because the sweep is the first line of the next iteration and the first line after
+       * the loop, and nothing between a `continue` and the loop top can re-bank a charge. */
+      if(ELEC_CHG_INFLIGHT){
+        if(ELECTRIC_CHARGE_KEPT_ON_EARLY_EXIT){MEDFAILS.electricChargeKeptOnEarlyExitRestored=1;ELEC_CHG_INFLIGHT=null;}
+        else ELEC_CHG_INFLIGHT.ran=true;
+      }
       /* 2026-09-11 -- THE DEFROST THAW, PAID WHERE `useMoveInner` RUNS `ModifyMove`: below every
        * BeforeMove refusal (each of which `continue`d above this line, so the mark is only still set on
        * a move that is actually being used) and above the `|move|` line, which is where the authority's
@@ -32580,8 +32714,26 @@ function battleTurn(S,rng,actsForA,actsForB){
            authority takes the :1352 arm and writes a bare `|-transform|USER|TARGET`. The line itself
            is emitted by `transformOnto` -- it used to be written here, which is how the ENTRY caller
            came to have no line at all. */
+        const _abBefore=String(m.ability||'');
         transformOnto(m,_tt);
         MEDSEEN.transformedByMove++;
+        /* 2026-09-18 -- AND THE COPIED ABILITY RUNS ITS `Start`, WHICH THE MOVE DOOR NEVER DID.
+         * `transformInto` ends `this.setAbility(pokemon.ability, this, null, true, true)`
+         * (sim/pokemon.ts:1356) and `setAbility` fires `singleEvent('Start', ability, ...)` whenever
+         * `!isTransform || oldAbility.id !== ability.id` (:1946-1948). The ENTRY door (Imposter) got
+         * this for free because `runEntryPass` calls `applyEntryEffects` right after `imposterCopy`;
+         * the MOVE door returned straight to the action loop, so a Ditto that Transformed into an
+         * Intimidate body dropped nothing and one that copied Hospitality healed nobody. Measured on
+         * `tests/probe_transform_copied_start.js` before this line: Intimidate, Super Sweet Syrup,
+         * Hospitality and Mimicry parted the BOARD, four more parted the narration.
+         * THROUGH `abilityStarted`, the one Start door Skill Swap and the ability rewriters already use,
+         * so "what does this ability do when it starts" stays one fact. The id test is the authority's:
+         * copying the ability the copier already had runs nothing.
+         * MEDI_TRANSFORM_NO_COPIED_START=1 restores the defect. */
+        if(String(m.ability||'')!==_abBefore){
+          if(TRANSFORM_NO_COPIED_START)MEDFAILS.transformNoCopiedStart=1;
+          else{abilityStarted(m,field);MEDSEEN.transformCopiedStartRan++;}
+        }
         continue;
       }
       if(a.kind==='phaze'){
@@ -40736,13 +40888,29 @@ function battleTurn(S,rng,actsForA,actsForB){
            * stamps `MEDFAILS.volleyReactDrawnRestored`, so the probe above can be shown red on
            * demand. `MEDSEEN.volleyReactStoppedAtKO` counts the clicks where the two numbers differ —
            * a zero over a run with a killing volley in it means this line stopped firing. */
-          if(_hitsThisUse!==null&&TAGS.param('move',a.move.id,'multiHit')){
-            const _drawn=Math.max(1,_hitsThisUse);
+          /* 2026-09-18 -- AND PARENTAL BOND GOES THROUGH THE SAME GUARD, BECAUSE IT IS THE SAME LOOP.
+           * `onPrepareHit` writes `move.multihit = 2` (data/abilities.ts:3160-3166), so the authority
+           * runs a Parental Bond click through the very `for (hit...)` whose `targets.every(!hp)` break
+           * is quoted above. The bond road returned a flat 2 further down, so a click whose FIRST
+           * arrival killed tolled Rough Skin twice and dropped the attacker's Speed twice under Gooey
+           * (`tests/probe_bond_reactor_ko.js`: attacker 48/180 here, 70/180 in the authority). The
+           * DRAWN count is the only thing the two roads differ on; the landed guard is now one test.
+           * MEDI_BOND_REACT_DRAWN=1 restores the flat 2 and stamps MEDFAILS.bondReactDrawnRestored. */
+          const _mhRow=_hitsThisUse!==null&&TAGS.param('move',a.move.id,'multiHit');
+          const _bondRow=!_mhRow&&bondMultFor(m,a.move.id,_spreadHit,_hitsThisUse,false)!=null;
+          if(_mhRow||_bondRow){
+            const _drawn=_mhRow?Math.max(1,_hitsThisUse):2;
             if(_packets&&_landed>0&&_landed<_drawn){
+              if(_bondRow){
+                MEDSEEN.bondReactStoppedAtKO++;
+                if(BOND_REACT_DRAWN){MEDFAILS.bondReactDrawnRestored=1;MEDSEEN.parentalBondReactedTwice++;return _drawn;}
+                return _landed;
+              }
               MEDSEEN.volleyReactStoppedAtKO++;
               if(VOLLEY_REACT_DRAWN){MEDFAILS.volleyReactDrawnRestored=1;return _drawn;}
               return _landed;
             }
+            if(_bondRow)MEDSEEN.parentalBondReactedTwice++;
             return _drawn;
           }
           /* ROADMAP #139 -- A PARENTAL BOND CLICK IS TWO HITS TO EVERY `onDamagingHit` REACTOR, and
@@ -40753,7 +40921,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * rather than a fix, and that limit is written down rather than implied. What DOES come for
            * free is Rough Skin twice, Weak Armor twice, Rocky Helmet twice — through the one shared
            * `bondMultFor`, so the count and the damage cannot come apart. */
-          if(bondMultFor(m,a.move.id,_spreadHit,_hitsThisUse,false)!=null){MEDSEEN.parentalBondReactedTwice++;return 2;}
+          /* (the Parental Bond count now rides the landed guard above -- 2026-09-18) */
           const _n=expectedHitsOf(a.move.id);
           if(_n>1)return Math.max(1,Math.round(_n));
           const _vpH=TAGS.param('move',a.move.id,'variablePower');
@@ -40977,6 +41145,45 @@ function battleTurn(S,rng,actsForA,actsForB){
                * day a member arrives it is visible instead of assumed. */
               let _abSaid=PUNISH_ANNOUNCE_BLIND||_pun.boostsSecondary!==false;
               for(const k in _pun.boosts){
+                /* 2026-09-18 -- A SECONDARY DROP GOES THROUGH `applyStatDrop`, THE ONE STAT-DROP ROAD.
+                 *
+                 *     gooey.onDamagingHit  this.boost({ spe: -1 }, source, target, null, true);
+                 *                                                         data/abilities.ts:1636
+                 *
+                 * It is an ordinary `Battle#boost` on the ATTACKER (sim/battle.ts:2017-2086), so
+                 * `ChangeBoost` (Contrary inverts it), `TryBoost` (the Clear Body class refuses it,
+                 * Mirror Armor bounces it onto the holder) and per-stat `AfterEachBoost` (Defiant,
+                 * Competitive) all run. This block wrote the vector straight into `m.boosts` and asked
+                 * none of them -- the same breach the shield's punish had until 2026-09-06, one site
+                 * late. Two whole-game divergences on the 2026-09-18 lattices were Kingambit's Defiant
+                 * reading `atk 0|2` off a Gooey drop.
+                 *
+                 * ONLY A NEGATIVE ENTRY ON A SECONDARY CALL IS ROUTED, because those are the two things
+                 * `applyStatDrop` IS: it subtracts a magnitude, and it announces a clamped zero exactly
+                 * as `isSecondary` does (`abilityZeroAnnounces`). Gooey is the ONLY legal carrier with
+                 * `boosts` and it is both (printed by the probe). A raise, or a non-secondary drop --
+                 * whose `-ability|X|boost` line `applyStatDrop` does not write -- keeps the raw write
+                 * below and is COUNTED, so an upstream arrival is visible instead of silently
+                 * mis-shaped. The holder `tg` is the SOURCE, which is what lets Defiant's non-ally guard
+                 * and Mirror Armor's bounce find it. */
+                const _pn=+_pun.boosts[k];
+                if(PUNISH_RAW_BOOST)MEDFAILS.punishRawBoostRestored=1;
+                else if(_pn<0&&_pun.boostsSecondary!==false&&SD2ENG[k]&&m.boosts[SD2ENG[k]]!=null){
+                  MEDSEEN.punishBoostThroughStatDrop++;
+                  /* the clamped-zero decision is still this handler's (isSecondary), and still counted
+                   * here as the punisher's ability zero -- see `abilityZeroAnnounces`. */
+                  const _pst=SD2ENG[k],_pb0=m.boosts[_pst];
+                  const _pzs=abilityZeroAnnounces(true);
+                  const _pres=applyStatDrop(m,_pst,-_pn,tg.ability,tg,_pzs);
+                  if(_pres!=='blocked'&&_pzs&&m.boosts[_pst]===_pb0&&(_pb0===6||_pb0===-6)){
+                    MEDSEEN.abilityZeroBoostAnnounced++;
+                    if(!MEDSEEN.abilityZeroBoostAnnouncedFirst)
+                      MEDSEEN.abilityZeroBoostAnnouncedFirst=String(m.name)+'/'+tg.ability+'/'+_pst;}
+                  continue;
+                }
+                else{MEDFAILS.punishBoostNotASecondaryDrop++;
+                     if(!MEDFAILS.punishBoostNotASecondaryDropFirst)
+                       MEDFAILS.punishBoostNotASecondaryDropFirst=String(tg.ability)+'/'+k+' '+_pn;}
                 const _st=SD2ENG[k];if(_st&&m.boosts[_st]!=null){const _b0=m.boosts[_st];
                   m.boosts[_st]=clamp(m.boosts[_st]+_pun.boosts[k],-6,6);
                   const _d=m.boosts[_st]-_b0;
@@ -41160,10 +41367,10 @@ function battleTurn(S,rng,actsForA,actsForB){
          * Placed after the punish so a Rough Skin toll is unaffected, and gated on the same
          * mvMakesContact() the punish uses, which is the handler's own gate.
          *
-         * NOT MODELLED, STATED: Showdown skips the rewrite when the attacker's ability carries the
-         * `cantsuppress` flag (Multitype, RKS System, Comatose, Zen Mode). No artifact this engine
-         * reads carries that flag, none of those abilities exists in this format, and the alternative
-         * was typing the list here. `becomes` comes out of the tag, so no ability name is written. */
+         * ~~NOT MODELLED, STATED: Showdown skips the rewrite when the attacker's ability carries the
+         * `cantsuppress` flag ... none of those abilities exists in this format.~~ WRONG, and modelled
+         * since 2026-09-18 -- see the `refusedBy` block below. `becomes` comes out of the tag, so no
+         * ability name is written. */
         /* 2026-09-04, ROADMAP #541 -- THE TWO WRITES ALWAYS PICKED THE RIGHT BODIES. THE ANNOUNCEMENT
          * PICKED THE HOLDER WHERE THE AUTHORITY PICKS THE ATTACKER, AND NEITHER ACQUIRED ABILITY'S
          * `onStart` RAN AT ALL. A fix aimed at the write moves nothing, which is why nothing about the
@@ -41197,15 +41404,37 @@ function battleTurn(S,rng,actsForA,actsForB){
          * lead pass, the refill, the mega). A private copy here would be a second implementation of an
          * ability's entry handler.
          *
-         * STILL NOT MODELLED AND STILL STATED: `failskillswap`, the `cantsuppress` guard (no carrier in
-         * this format), and the authority's `source.fainted || target.fainted` refusal -- #541 leaves
+         * STILL NOT MODELLED AND STILL STATED: ~~`failskillswap`, the `cantsuppress` guard~~ (both
+         * modelled 2026-09-18, `refusedBy` below), and the authority's `source.fainted || target.fainted` refusal -- #541 leaves
          * the board leaf that turns on the last of those deliberately unattributed, so it is not
          * guessed at here. The MOVE Skill Swap's own branch raises no `Start` either; that is a second
          * caller of the same authority line, it carries ZERO of this population's cards, and it is
          * reported rather than changed in the same pass. */
         {
           const _rw=TAGS.param('ability',tg.ability,'rewritesAbilityOnContact');
-          if(_rw&&_rw.trigger==='contact'&&mvMakesContact(a.move.id,m,a.move.mv)&&!m.fainted&&m.ability!==tg.ability){
+          /* 2026-09-18 -- THE FLAG REFUSAL, which the two notes above called unmodellable because "no
+           * carrier in this format". False: Zero to Hero, Stance Change and Disguise carry `cantsuppress`
+           * and `failskillswap`, Hunger Switch `failskillswap` alone, and all four have legal carriers.
+           *     mummy.onDamagingHit    if (sourceAbility.flags['cantsuppress'] || ...) return;
+           *                                                              data/abilities.ts:2772
+           *     Battle#skillSwap       if (sourceAbility.flags['failskillswap']
+           *                                || targetAbility.flags['failskillswap']) return false;
+           *                                                              sim/battle.ts:1316
+           * Both are silent, so a refusal writes nothing and rewrites nothing. The flags come off the
+           * tag's `refusedBy` and are asked by `abilityFlagRefusalOf`, the one asker the move family
+           * (Skill Swap, Entrainment, Worry Seed, Simple Beam, Role Play's peers) already uses -- `m` is
+           * the handler's `source`, `tg` its `target`. A row without `refusedBy` predates the derivation
+           * and is let through LOUDLY rather than guessed. One pool game: Mummy wrote over Palafin's Zero
+           * to Hero. Probe: tests/probe_contact_rewrite_flags.js. */
+          let _rwRefused=null;
+          if(_rw&&_rw.trigger==='contact'){
+            if(CONTACT_REWRITE_FLAGS_UNREAD)MEDFAILS.contactRewriteFlagsUnreadRestored=1;
+            else if(!_rw.refusedBy){MEDFAILS.contactRewriteNoRefusalShape++;
+              if(!MEDFAILS.contactRewriteNoRefusalShapeFirst)MEDFAILS.contactRewriteNoRefusalShapeFirst=String(tg.ability);}
+            else _rwRefused=abilityFlagRefusalOf(_rw.refusedBy,m,tg,tg.ability);
+            if(_rwRefused&&mvMakesContact(a.move.id,m,a.move.mv))MEDSEEN.contactRewriteRefused++;
+          }
+          if(_rw&&!_rwRefused&&_rw.trigger==='contact'&&mvMakesContact(a.move.id,m,a.move.mv)&&!m.fainted&&m.ability!==tg.ability){
             /* The engine's `singleEvent('Start', ability, ...)`: the acquired ability's entry handler,
              * run against the side the body is actually standing on. LOUD when the side cannot be
              * resolved -- a skipped Start is indistinguishable from an ability that does nothing. */

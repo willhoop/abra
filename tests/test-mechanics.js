@@ -7621,6 +7621,44 @@ probe('move', 'privateStallCounter', 'consecutive Ally Switch decays on its OWN 
                  + 'this counter — the two counters are separate)' };
 });
 
+/* 2026-09-18 -- AND THAT COUNTER DOES NOT RIDE THE BENCH.
+ *
+ * `Pokemon#clearVolatile()` (sim/pokemon.ts:1514; Champions copy data/mods/champions/scripts.ts:124)
+ * drops the `allyswitch` volatile, ladder and all, on the way out. This engine keeps it outside `_vol`
+ * (`_aswDur`/`_aswCount`), the switch-out wipe did not reach it and the foot-of-turn tick walks the
+ * active bodies only -- so a body that left carried its counter, and one that came back as a FAINT
+ * REPLACEMENT (after that turn's tick) lost its guaranteed first Ally Switch to a 1-in-3 roll. Found
+ * by the g1950 lattice (`party.<x>.vol.allyswitch medicham 1 showdown 0`, two games); staged against
+ * the authority in tests/probe_bench_private_counters.js, knob MEDI_ALLYSWITCH_SURVIVES_SWITCH.
+ *
+ * THE CONTROL IS THE SAME BODY STANDING, read at the end of the Ally Switch turn: it must hold the
+ * counter, or a 0 on the bench would prove nothing. The TEST reads who stands in slot 0 after the
+ * returned body's first Ally Switch at the LOSING roll -- a fresh counter swaps, a carried one does not. */
+probe('move', 'privateStallCounter', 'the Ally Switch counter does not ride the bench, so a returning body swaps at any roll', () => {
+  const me = bare('alakazam'), ally = bare('snorlax'), filler = bare('corviknight');
+  const f1 = bare('garchomp'), f2 = bare('clefable');
+  const S = M.battleInit([me, ally, filler], [f1, f2], { seeded: true });
+  M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'allyswitch', null, S.field)], [ally, { kind: 'pass' }]]),
+    PASS2(f1, f2));
+  const standing = { slot: S.actA.indexOf(me), dur: me._aswDur | 0 };
+  M.battleTurn(S, rng5, new Map([[ally, { kind: 'pass' }], [me, { kind: 'switch', to: filler }]]), PASS2(f1, f2));
+  const benched = me._aswDur | 0;
+  filler.curHP = 1;
+  M.battleTurn(S, rng5, new Map([[ally, { kind: 'pass' }], [filler, { kind: 'pass' }]]),
+    new Map([[f1, M.playerAction(f1, 'knockoff', filler, S.field)], [f2, { kind: 'pass' }]]));
+  const back = S.actA.indexOf(me);
+  M.battleTurn(S, rngLose, new Map([[ally, { kind: 'pass' }], [me, M.playerAction(me, 'allyswitch', null, S.field)]]),
+    PASS2(f1, f2));
+  const after = S.actA.indexOf(me);
+  return { works: standing.slot === 1 && standing.dur > 0 && benched === 0 && filler.fainted && back === 1 && after === 0,
+           arms: { control: standing.dur, test: benched + '/' + back + '->' + after },
+           detail: `Alakazam Ally Switches (slot ${standing.slot}, counter ${standing.dur} while STANDING — `
+                 + `must be >0), then switches out: counter on the bench ${benched} (must be 0). The body that `
+                 + `replaced it faints (${filler.fainted}), Alakazam returns to slot ${back} and Ally Switches `
+                 + `at roll 0.99: it stands in slot ${after} (must be 0 — a fresh counter always swaps; a `
+                 + `carried one loses the 1-in-3)` };
+});
+
 /* WIRE 139, 2026-08-08. A MOVE TARGETS A SLOT, NOT A POKEMON. Will: *"we gotta target slots, not
  * mons"*. Showdown resolves a move's target from its `targetLoc` at EXECUTION time
  * (`Battle#getTarget`, sim/battle.ts:2434), so a body that pivots out between the choice and the
@@ -10013,6 +10051,51 @@ probe('ability', 'buffsHolderOnHit', 'a banked Charge does not survive a switch'
                  + `${stayed.dmg} (the bank is spent on it); having pivoted out and back first `
                  + `${left.dmg} (back on the field: ${left.back}) — roughly half, because the switch `
                  + 'took the Charge with it exactly as clearVolatile() does' };
+});
+
+/* 2026-09-18 -- AND THE BANK IS SPENT BY AN ELECTRIC MOVE THAT A PROTECT STOPPED.
+ *
+ * `charge.condition.onAfterMove` (data/moves.ts; no Champions override) is raised by `runMove` after
+ * `useMove` returns, whatever it returned (sim/battle-actions.ts:311-312) -- so a Thunderbolt into a
+ * Protect spends the bank exactly as one that connects does. This engine paid it at a spend site the
+ * fully-shielded exit `continue`s above, so the Bellibolt kept the doubling for its NEXT Electric move.
+ * Found by the g1950 lattice (`p1.active[0].vol.charge medicham 1 showdown 0`); staged against the
+ * authority in tests/probe_electric_charge_paths.js, whose knob is MEDI_ELECTRIC_CHARGE_KEPT_ON_EARLY_EXIT.
+ *
+ * THE CONTROL IS A NON-ELECTRIC CLICK INTO THE SAME PROTECT, and it is the arm that proves the
+ * probe can see a surviving bank at all: Body Slam neither takes nor spends the charge, so the
+ * Thunderbolt after it must still be doubled. Without it, a probe in which the bank never existed
+ * would read exactly like one in which it was spent. */
+probe('ability', 'buffsHolderOnHit', 'an Electric move stopped by a Protect still spends the banked Charge', () => {
+  const run = (ab, t2) => {
+    const me = bare('bellibolt'), ally = bare('incineroar');
+    const f1 = bare('incineroar'), f2 = bare('incineroar');
+    me.ability = ab;
+    unfaintable(me); unfaintable(f1); unfaintable(f2);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'knockoff', me, S.field)], [f2, { kind: 'pass' }]]));
+    const hp = f1.curHP;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, t2, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'protect', null, S.field)], [f2, { kind: 'pass' }]]));
+    const shielded = hp - f1.curHP;
+    const h = f1.curHP;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'thunderbolt', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { after: h - f1.curHP, shielded };
+  };
+  const none = run('none', 'thunderbolt');
+  const test = run('electromorphosis', 'thunderbolt');
+  const control = run('electromorphosis', 'bodyslam');
+  return { works: none.after > 0 && test.shielded === 0 && control.shielded === 0
+                  && test.after === none.after && control.after >= 2 * none.after - 2,
+           arms: { control: control.after, test: test.after },
+           detail: `Bellibolt is struck, clicks into a PROTECT on turn 2, then Thunderbolts on turn 3 — `
+                 + `no ability ${none.after} (the flat control); ELECTROMORPHOSIS with a THUNDERBOLT into `
+                 + `the shield ${test.after} (must equal the control: the stopped Electric move spent the `
+                 + `bank); with a BODY SLAM into the shield ${control.after} (must be ~2x: a non-Electric `
+                 + `move does not spend it, so the bank was there to be spent). Turn-2 damage through the `
+                 + `shield ${test.shielded}/${control.shielded} (both must be 0)` };
 });
 
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45). Fifty is the level and it must survive the
@@ -14581,6 +14664,32 @@ probe('ability', 'punishesAttacker', 'Rough Skin tolls a contact hit and not a s
                  + `Surf (special): none ${sOff} -> Rough Skin ${sOn} (must stay 0)` };
 });
 
+/* 2026-09-18 -- GOOEY'S SPEED DROP IS AN ORDINARY `this.boost` ON THE ATTACKER, so the ATTACKER'S own
+ * stat reactions all run (data/abilities.ts:1636; sim/battle.ts:2017-2086). This engine wrote the -1
+ * straight into `boosts` and asked none of them; two whole-game divergences were Kingambit's Defiant
+ * reading `atk 0|2`. Each arm varies the ATTACKER'S ability on one board and nothing else; `pressure`
+ * is the knob-cleared control (the plain -1), and a Goodra WITHOUT Gooey is the control that says the
+ * drop came from Gooey at all. Two-engine proof with knob: tests/probe_gooey_boost_road.js. */
+probe('ability', 'punishesAttacker', 'Gooey\'s Speed drop runs the attacker\'s own reactions — Contrary inverts it, Defiant answers it, Clear Body refuses it, Mirror Armor bounces it', () => {
+  const run = (atkAb, gooAb) => {
+    const { me, ally, f1, f2, S } = board('kingambit', 'corviknight', 'goodra', 'garchomp');
+    me.ability = atkAb; f1.ability = gooAb;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'aerialace', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { sp: me.boosts.sp, at: me.boosts.at, gooSp: f1.boosts.sp };
+  };
+  const none = run('pressure', 'none'), plain = run('pressure', 'gooey');
+  const con = run('contrary', 'gooey'), def = run('defiant', 'gooey');
+  const clr = run('clearbody', 'gooey'), mir = run('mirrorarmor', 'gooey');
+  return { works: none.sp === 0 && plain.sp === -1 && plain.at === 0
+                  && con.sp === 1 && def.sp === -1 && def.at === 2
+                  && clr.sp === 0 && mir.sp === 0 && mir.gooSp === -1,
+           arms: { control: plain, test: def },
+           detail: `attacker spe/atk after Aerial Ace -- no Gooey ${none.sp}/${none.at}; Pressure ${plain.sp}/${plain.at}; `
+                 + `Contrary ${con.sp}; Defiant ${def.sp}/${def.at}; Clear Body ${clr.sp}; `
+                 + `Mirror Armor ${mir.sp} (Goodra ${mir.gooSp})` };
+});
+
 /* `reflectsStatusMoves` — 568 uses (Magic Bounce). The status move must come BACK, not merely fail:
  * a refusal reads identical on the target and the difference is entirely on the USER, which is why
  * both bodies' stages are printed. */
@@ -15408,6 +15517,35 @@ probe('ability', 'rewritesAbilityOnContact', 'Mummy overwrites and Wandering Spi
            arms: { control, test: infect },
            detail: `attacker/holder after the hit — no ability ${control}; Mummy ${infect}; `
                  + `Wandering Spirit ${swap}; Mummy hit by SURF (no contact) ${noContact}` };
+});
+
+/* 2026-09-18 -- AND WHAT REFUSES IT. Mummy returns on the attacker's `cantsuppress` (data/abilities.ts:2772)
+ * and Wandering Spirit's `Battle#skillSwap` on `failskillswap` on either body (sim/battle.ts:1316). The
+ * discriminating arm is Hunger Switch, which carries `failskillswap` and NOT `cantsuppress`: Mummy must
+ * take it and Wandering Spirit must not, so an engine that refused both on any flag fails here. Zero to
+ * Hero carries both and must survive both; Pressure (no flag) is the control that must be rewritten.
+ * Two-engine proof with knob: tests/probe_contact_rewrite_flags.js. */
+probe('ability', 'rewritesAbilityOnContact', 'Mummy refuses a cantsuppress attacker and Wandering Spirit a failskillswap one — Hunger Switch is taken by one and not the other', () => {
+  /* every attacker is a legal body on its own ability, clicking a contact move it learns */
+  const run = (atkSp, atkAb, holderAb, mv) => {
+    const me = bare(atkSp), ally = bare('incineroar');
+    const tg = bare('milotic'), f2 = bare('garchomp');
+    me.ability = atkAb; tg.ability = holderAb;
+    const S = M.battleInit([me, ally], [tg, f2], { seeded: true });
+    const act = M.playerAction(me, mv, tg, S.field);
+    M.battleTurn(S, rng5, new Map([[me, act], [ally, { kind: 'pass' }]]),
+      new Map([[tg, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return me.ability + '/' + tg.ability;
+  };
+  const plainM = run('kingambit', 'pressure', 'mummy', 'shadowclaw'), plainW = run('kingambit', 'pressure', 'wanderingspirit', 'shadowclaw');
+  const hungerM = run('morpeko', 'hungerswitch', 'mummy', 'psychicfangs'), hungerW = run('morpeko', 'hungerswitch', 'wanderingspirit', 'psychicfangs');
+  const heroM = run('palafin', 'zerotohero', 'mummy', 'aquajet'), heroW = run('palafin', 'zerotohero', 'wanderingspirit', 'aquajet');
+  return { works: plainM === 'mummy/mummy' && plainW === 'wanderingspirit/pressure'
+                  && hungerM === 'mummy/mummy' && hungerW === 'hungerswitch/wanderingspirit'
+                  && heroM === 'zerotohero/mummy' && heroW === 'zerotohero/wanderingspirit',
+           arms: { control: plainW, test: hungerW },
+           detail: `attacker/holder after one contact hit — Kingambit/Pressure: Mummy ${plainM}, WS ${plainW}; `
+                 + `Hunger Switch: Mummy ${hungerM}, WS ${hungerW}; Zero to Hero: Mummy ${heroM}, WS ${heroW}` };
 });
 
 /* WIRE 81. The secondary block read `status`, `targetBoosts` and the flinch, and never `selfBoosts` —
@@ -16638,6 +16776,30 @@ probe('ability', 'hitsTwice', 'a Parental Bond volley pays its secondary AND its
            detail: 'every secondary firing — Crunch: target Def ' + cC.df + ' with no ability, ' + tC.df
                  + ' with Parental Bond; Hammer Arm: user Spe ' + cH.sp + ' with no ability, ' + tH.sp
                  + ' with Parental Bond (each must be twice the control)' };
+});
+
+/* 2026-09-18 — A PARENTAL BOND CLICK WHOSE FIRST ARRIVAL KILLS SETS A REACTOR OFF ONCE. The Champions hit
+ * loop refuses to open an arrival against a body already on zero (data/mods/champions/scripts.ts:461-464)
+ * and `onDamagingHit` is raised per LANDED arrival, so Rough Skin tolls once. The CONTROL is the same
+ * click into the same body at full HP: both arrivals land and it tolls twice, so the test loss must be
+ * exactly half the control's. Put to the authority by tests/probe_bond_reactor_ko.js
+ * (MEDI_BOND_REACT_DRAWN=1 is the red). */
+probe('ability', 'hitsTwice', 'a Parental Bond click whose FIRST arrival kills sets Rough Skin off ONCE', () => {
+  const run = (oneHP) => {
+    const B = board('kangaskhan', 'corviknight', 'garchomp', 'milotic');
+    B.me.ability = 'parentalbond';
+    B.f1.ability = 'roughskin';
+    if (oneHP) B.f1.curHP = 1;
+    const before = B.me.curHP;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'crunch', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]), PASS2(B.f1, B.f2));
+    return { lost: before - B.me.curHP, dead: !!B.f1.fainted };
+  };
+  const c = run(false), t = run(true);
+  return { works: !c.dead && t.dead && c.lost > 0 && t.lost * 2 === c.lost,
+           arms: { control: c.lost, test: t.lost },
+           detail: `attacker HP lost to Rough Skin: target survives both arrivals ${c.lost}, target dies to `
+                 + `arrival 1 ${t.lost} (must be exactly half — one toll, not two)` };
 });
 
 probe('ability', 'hitsTwice', 'Parental Bond adds a quarter-strength second hit, and not on a spread move', () => {
@@ -28831,6 +28993,31 @@ probe('move', 'transformsIntoTarget', 'Transform copies the aimed body — stats
                  + 'the body is the defect the roster saw), and max HP must NOT move' };
 });
 
+/* 2026-09-18 — AND THE COPIED ABILITY RUNS ITS `Start`. `transformInto` ends with
+ * `setAbility(pokemon.ability, this, null, true, true)` (sim/pokemon.ts:1356) and `setAbility` fires
+ * `singleEvent('Start', ...)` whenever the id changed (:1946-1948), so a Ditto that Transforms into an
+ * Intimidate body Intimidates. The move door never ran it; the entry door (Imposter) always did.
+ * CONTROL: the same board with the copied body carrying an ability that has no `onStart`, so neither
+ * foe may move. Put to the authority class-wide by tests/probe_transform_copied_start.js
+ * (MEDI_TRANSFORM_NO_COPIED_START=1 is the red). */
+probe('move', 'transformsIntoTarget', "Transform runs the COPIED ability's Start — a Ditto that copies Intimidate drops both foes' Attack", () => {
+  const run = (ab) => {
+    const B = board('ditto', 'snorlax', 'incineroar', 'garchomp');
+    B.me.moves = ['transform']; B.me.ability = 'limber';
+    B.f1.ability = ab;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'transform', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    return { ab: B.me.ability, f1: B.f1.boosts.at | 0, f2: B.f2.boosts.at | 0 };
+  };
+  const c = run('blaze'), t = run('intimidate');
+  return { works: c.ab === 'blaze' && t.ab === 'intimidate' && c.f1 === 0 && c.f2 === 0 && t.f1 === -1 && t.f2 === -1,
+           arms: { control: [c.f1, c.f2], test: [t.f1, t.f2] },
+           detail: `foe Attack stages after Ditto copies a Blaze body ${JSON.stringify([c.f1, c.f2])} `
+                 + `(no Start to run), after it copies an Intimidate body ${JSON.stringify([t.f1, t.f2])} `
+                 + '(must be -1 on BOTH foes)' };
+});
+
 /* ROADMAP #210 — MIRROR COAT AND COUNTER ANSWER THE BODY THAT HIT THEM *IN THAT CATEGORY*.
  *
  * DIAGNOSED SEPARATELY FROM THE PP FAMILY, and it is not the re-aim defect #206 closed. The authority
@@ -34795,6 +34982,7 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'zombieSkipsResidualRestored', 'f
                           'formeBustInlineRestored', 'eatReactBeforeBerryRestored',
                           'eatEventUpdateOnlyRestored', 'stealEatStripOnlyRestored',
                           'kingsRockOncePerMoveRestored', 'accEvaSeparateRestored',
+                          'transformNoCopiedStart', 'mimicryTransformBlind', 'bondReactDrawnRestored',
                           'punishHazardOnAttackerSideRestored', 'punishWeatherIfClearRestored',
                           'terrainTargetSingleRestored', 'terrainScaledUngatedRestored',
                           'eTerrainSleepAllowedRestored', 'encoreNoPPEndRestored',
@@ -34814,6 +35002,11 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'zombieSkipsResidualRestored', 'f
                           /* 2026-09-18 -- Good as Gold asked on the raw ability (tests/roster.js goodasgold) */
                           'statusRefusalUnbreakableRestored', 'bounceUnbreakableRestored',
                           'stickyHoldUnbreakableRestored',
+                          /* 2026-09-18 -- the Electric bank kept past a shielded exit, and the Ally
+                           * Switch counter kept on the bench (tests/probe_electric_charge_paths.js,
+                           * tests/probe_bench_private_counters.js). Without these a knob run WROTE the
+                           * census -- measured, it happened on the first red demonstration. */
+                          'electricChargeKeptOnEarlyExitRestored', 'allySwitchSurvivesSwitchRestored',
                           /* 2026-09-11 -- ROADMAP #511: the pre-fix survival clamp (load stamp and use stamp) */
                           'hitCountDropOnCollapseKnob', 'survivalClampOnTotalRestored']
   .filter(k => M.fails[k]);

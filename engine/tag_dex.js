@@ -570,6 +570,29 @@ const BATTLE_PROTO = (() => {
 })();
 const battleMethodSrc = n => (BATTLE_PROTO && Object.prototype.hasOwnProperty.call(BATTLE_PROTO, n)
   && typeof BATTLE_PROTO[n] === 'function') ? String(BATTLE_PROTO[n]).replace(/\s+/g, ' ') : null;
+/* 2026-09-18 -- WHICH ABILITY FLAGS A HANDLER REFUSES ON, KEYED BY BODY. ONE READER for every effect that
+ * rewrites an ability: the MOVE family (`refusedByAbilityFlag`) and the CONTACT family
+ * (`rewritesAbilityOnContact.refusedBy` -- Mummy reads `sourceAbility.flags['cantsuppress']` itself,
+ * Wandering Spirit hands its whole job to `Battle#skillSwap`). It reads every `<body>.getAbility().flags['X']`
+ * in the handlers given, and in any `Battle` method they delegate to, following a local
+ * (`const targetAbility = target.getAbility()`) back to its body. `source`/`target` are the handler's own
+ * names; both families pass `(source, target)` into the delegated method in that order. Returns null when
+ * nothing is read. */
+function abilityFlagReadsOf(handlerSrcs) {
+  const srcs = handlerSrcs.filter(Boolean).map(s => String(s).replace(/\s+/g, ' '));
+  for (const s of srcs.slice()) for (const mm of s.matchAll(/this\.(\w+)\(/g)) {
+    const body = battleMethodSrc(mm[1]); if (body) srcs.push(body);
+  }
+  const out = { target: new Set(), source: new Set() };
+  for (const s of srcs) {
+    const vars = {};
+    for (const mm of s.matchAll(/(?:const|let|var) (\w+) = (target|source)\.getAbility\(\)/g)) vars[mm[1]] = mm[2];
+    for (const mm of s.matchAll(/(target|source)\.getAbility\(\)\.flags\[["'](\w+)["']\]/g)) out[mm[1]].add(mm[2]);
+    for (const mm of s.matchAll(/(\w+)\.flags\[["'](\w+)["']\]/g)) if (vars[mm[1]]) out[vars[mm[1]]].add(mm[2]);
+  }
+  if (!out.target.size && !out.source.size) return null;
+  return { target: [...out.target].sort(), source: [...out.source].sort() };
+}
 
 /* ---- USAGE, so the report is ordered by what actually turns up ------------------------------- */
 let F_GAMES = null;                 /* kept so the mega-reachable sweep can reuse the same corpus */
@@ -5783,23 +5806,8 @@ const MOVE_TAGS = [
     probe: 'refusedByAbilityFlag',
     why: 'Gastro Acid into Disguise and Skill Swap into Zero to Hero both fail in the authority; with no '
        + 'shape to read, this engine suppressed and swapped them',
-    of: m => {
-      const srcs = [];
-      for (const h of ['onTryHit', 'onTry', 'onTryImmunity', 'onHit', 'onPrepareHit'])
-        if (typeof m[h] === 'function') srcs.push(String(m[h]).replace(/\s+/g, ' '));
-      for (const s of srcs.slice()) for (const mm of s.matchAll(/this\.(\w+)\(/g)) {
-        const body = battleMethodSrc(mm[1]); if (body) srcs.push(body);
-      }
-      const out = { target: new Set(), source: new Set() };
-      for (const s of srcs) {
-        const vars = {};
-        for (const mm of s.matchAll(/(?:const|let|var) (\w+) = (target|source)\.getAbility\(\)/g)) vars[mm[1]] = mm[2];
-        for (const mm of s.matchAll(/(target|source)\.getAbility\(\)\.flags\[["'](\w+)["']\]/g)) out[mm[1]].add(mm[2]);
-        for (const mm of s.matchAll(/(\w+)\.flags\[["'](\w+)["']\]/g)) if (vars[mm[1]]) out[vars[mm[1]]].add(mm[2]);
-      }
-      if (!out.target.size && !out.source.size) return null;
-      return { target: [...out.target].sort(), source: [...out.source].sort() };
-    } },
+    of: m => abilityFlagReadsOf(['onTryHit', 'onTry', 'onTryImmunity', 'onHit', 'onPrepareHit']
+      .filter(h => typeof m[h] === 'function').map(h => m[h])) },
 
   /* THE OTHER DIRECTION, AND IT IS A DIFFERENT MECHANIC RATHER THAN A MIRROR — ROADMAP #360.
    *
@@ -8134,13 +8142,21 @@ const ABILITY_TAGS = [
   { tag: 'rewritesAbilityOnContact', param: "mode: 'infect' (and WHICH ability) or 'swap'", probe: 'onDamagingHit',
     why: 'Mummy and Wandering Spirit. The attacker walks away as a different Pokemon, and every damage '
        + 'and speed number after that is computed from an ability it no longer has',
+    /* 2026-09-18 -- AND WHAT REFUSES IT. `refusedBy` is the same `{target, source}` shape the move family
+     * carries, read by the same `abilityFlagReadsOf`: Mummy {source: cantsuppress} off its own first line,
+     * Wandering Spirit {source, target: failskillswap} off `Battle#skillSwap`. `source` is the ATTACKER and
+     * `target` the HOLDER, the handler's own names. Without it this engine mummified a Zero to Hero and
+     * swapped a Stance Change away -- one pool game, and every flagged body in the regulation on the lab
+     * board (tests/probe_contact_rewrite_flags.js). An empty read is `{target: [], source: []}`, never
+     * null, so a consumer can tell "refuses nothing" from "the tag predates this field". */
     of: a => {
       if (!a.onDamagingHit) return null;
       const src = String(a.onDamagingHit);
       if (!/checkMoveMakesContact/.test(src)) return null;
+      const refusedBy = abilityFlagReadsOf([a.onDamagingHit]) || { target: [], source: [] };
       const inf = src.match(/setAbility\(\s*["'](\w+)["']/);
-      if (inf) return { mode: 'infect', becomes: inf[1], trigger: 'contact' };
-      if (/skillSwap\s*\(/.test(src)) return { mode: 'swap', trigger: 'contact' };
+      if (inf) return { mode: 'infect', becomes: inf[1], trigger: 'contact', refusedBy };
+      if (/skillSwap\s*\(/.test(src)) return { mode: 'swap', trigger: 'contact', refusedBy };
       return null;
     } },
   { tag: 'weatherSuppression', param: 'the weather is on the field and does nothing', probe: 'suppressWeather',
