@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-19T19:38:03.500Z",
- "engine_release": "6180c4712761",
- "engine_release_cut": "2026-09-19T19:26:51.339Z",
+ "generated": "2026-09-19T22:13:20.939Z",
+ "engine_release": "18773c22878f",
+ "engine_release_cut": "2026-09-19T21:50:22.269Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "e049e4466f3b",
+  "engine/medicham2-browser.js": "4a1d8f92d16c",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -25,15 +25,15 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "2cf0ab4d4132",
-  "data/tags.json": "331a5a1910a7",
+  "data/abra-tags.js": "c482e8c9068a",
+  "data/tags.json": "e666cddbf598",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
   "engine/pp.js": "30b12a4ef623",
   "data/rollout-switch-census.json": "b599f8d581b5"
  },
- "release": "6180c4712761",
+ "release": "18773c22878f",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -4219,32 +4219,18 @@
     "divergence": null,
     "err": null,
     "board": {
-     "verdict": "STATE",
-     "state_parted_without_a_line": true,
+     "verdict": "NO-DIVERGENCE",
+     "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
-     "boundaries_agreed": 1,
+     "boundaries_agreed": 2,
      "last_boundary_turn": 1,
      "protocol_parted_on_turn": null,
      "boards_after_the_parting": null,
-     "state_parted_on_turn": 1,
-     "diffs": [
-      {
-       "path": "p2.active[0].vol.confusion",
-       "side": "p2",
-       "slot": "p2a",
-       "body": "feraligatr",
-       "body_showdown": "feraligatr",
-       "field": "vol.confusion",
-       "us": 1,
-       "sd": 2,
-       "bucket": "off-by-one",
-       "family": "active[].vol.confusion",
-       "maxhp": 960
-      }
-     ],
-     "end_reason": "the first divergent BOARD",
+     "state_parted_on_turn": null,
+     "diffs": [],
+     "end_reason": "the script ran out",
      "receipts": {
       "leaves_compared_min": 561,
       "leaves_compared_max": 561,
@@ -4278,7 +4264,7 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "STATE",
+      "board": "NO-DIVERGENCE",
       "diverged": false,
       "control_board": "NO-DIVERGENCE",
       "script_miss": null,
@@ -4308,7 +4294,7 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "STATE",
+      "board": "NO-DIVERGENCE",
       "diverged": false,
       "control_board": "NO-DIVERGENCE",
       "script_miss": null,
@@ -72648,7 +72634,9 @@
       "p2:feraligatr:volatiles",
       "p1:feraligatr:volatiles"
      ]
-    }
+    },
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Frisk) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -78676,25 +78664,29 @@
     "kind": "ability",
     "id": "frisk",
     "name": "Frisk",
-    "carrier": "banette",
+    "carrier": "Banette",
     "control": "Insomnia",
-    "verdict": "DID-NOT-FIRE",
-    "fired": false,
-    "showdown_moved": false,
-    "medicham_moved": false,
+    "verdict": "FIRED",
+    "fired": true,
+    "showdown_moved": true,
+    "medicham_moved": true,
     "moved_by": {
-     "showdown": [],
-     "medicham": [],
+     "showdown": [
+      "line"
+     ],
+     "medicham": [
+      "line"
+     ],
      "showdown_board": {
       "moved": false,
-      "boundaries": 4
+      "boundaries": 2
      },
      "medicham_board": {
       "moved": false,
-      "boundaries": 4
+      "boundaries": 2
      }
     },
-    "why": "the gauntlet never reached its trigger — swapping it for Insomnia changed neither game",
+    "why": null,
     "diverged": false,
     "divergence": null,
     "board": {
@@ -78702,21 +78694,21 @@
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
-     "boundaries": 4,
-     "boundaries_agreed": 4,
-     "last_boundary_turn": 3,
+     "boundaries": 2,
+     "boundaries_agreed": 2,
+     "last_boundary_turn": 1,
      "protocol_parted_on_turn": null,
      "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
      "receipts": {
-      "leaves_compared_min": 560,
-      "leaves_compared_max": 561,
+      "leaves_compared_min": 551,
+      "leaves_compared_max": 551,
       "party_post_faint_skipped": 0,
-      "party_vol_on_field_skipped": 16,
-      "pp_slots_occupied": 16,
-      "pp_slots_compared": 16,
+      "party_vol_on_field_skipped": 8,
+      "pp_slots_occupied": 8,
+      "pp_slots_compared": 8,
       "screens_named_comparable": true
      }
     },
@@ -78725,28 +78717,28 @@
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
-     "boundaries": 4,
-     "boundaries_agreed": 4,
-     "last_boundary_turn": 3,
+     "boundaries": 2,
+     "boundaries_agreed": 2,
+     "last_boundary_turn": 1,
      "protocol_parted_on_turn": null,
      "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
      "receipts": {
-      "leaves_compared_min": 560,
-      "leaves_compared_max": 561,
+      "leaves_compared_min": 551,
+      "leaves_compared_max": 551,
       "party_post_faint_skipped": 0,
-      "party_vol_on_field_skipped": 16,
-      "pp_slots_occupied": 16,
-      "pp_slots_compared": 16,
+      "party_vol_on_field_skipped": 8,
+      "pp_slots_occupied": 8,
+      "pp_slots_compared": 8,
       "screens_named_comparable": true
      }
     },
     "ab_board": {
      "compared": true,
-     "turn_on": 3,
-     "turn_off": 3,
+     "turn_on": 1,
+     "turn_off": 1,
      "authority_moved": false,
      "medicham_moved": false,
      "same_leaves": true,
@@ -78756,69 +78748,12 @@
      "medicham_only": [],
      "authority_only": []
     },
-    "rung": "safe-pool",
-    "control_watch": {
-     "measured": true,
-     "ability": "Insomnia",
-     "quiet": true,
-     "games": 1,
-     "calls": 31,
-     "loud": [],
-     "announce": [],
-     "latent": [],
-     "leaves": []
-    },
-    "subject_watch": {
-     "measured": true,
-     "ability": "Frisk",
-     "quiet": true,
-     "games": 1,
-     "calls": 1,
-     "loud": [],
-     "announce": [],
-     "latent": [],
-     "leaves": []
-    },
-    "subject_log_receipt": [],
-    "legacy_control": {
-     "chosen": "Insomnia",
-     "first_alternative": "Insomnia",
-     "quiet": true,
-     "measured": true,
-     "tried": [
-      "Insomnia [quiet] -> DID-NOT-FIRE"
-     ],
-     "knob": null
-    },
-    "preflight": {
-     "ok": true,
-     "why": [],
-     "note": [],
-     "clauses": [],
-     "stubbed": false
-    },
-    "verdict_refined": "CANNOT-FIRE-IN-THIS-FIXTURE",
-    "cannot_fire": true,
-    "cannot_fire_clause": "announces-only",
-    "cannot_fire_blocking": false,
-    "cannot_fire_why": [
-     "\"Frisk\" is DECLARED unobservable by engine/faces.js (`announcesOnEntry`): it emits a MESSAGE and moves no state, so no number of turns can make it visible to a board comparator. A declared gap, not an unexplained one."
+    "subject_log_receipt": [
+     "|-item|p2a: Feraligatr|Damp Rock|[from] ability: Frisk|[of] p1a: Banette"
     ],
-    "cannot_fire_need": [
-     {
-      "observable": false
-     }
-    ],
-    "fixture_weather": null,
-    "fixture_status": null,
-    "fixture_weather_repaired": false,
-    "then_what": [
-     "announcesOnEntry: DECLARED UNOBSERVABLE, and that is the point of the entry rather than an omission. Anticipation, Forewarn and Frisk emit a message and move no state, so NO consequence can make them visible to a board comparator. The roster already defers them; this says WHY in the same vocabulary as everything else, so the deferral rests on a derived fact"
-    ],
-    "then_what_needs": [],
-    "then_what_after": [],
-    "then_what_item": null,
-    "stage": "legacy-fallback",
+    "control_acted": [],
+    "stage": "planner",
+    "rung": "planner:main/near-a",
     "planner": {
      "branch": "main",
      "arm": "bottom-tie-first",
@@ -78871,7 +78806,7 @@
        "species": "Feraligatr",
        "field": "Feraligatr",
        "ability": "Torrent",
-       "item": "",
+       "item": "Damp Rock",
        "moves": [
         "Dragon Claw"
        ],
@@ -78894,61 +78829,87 @@
       {
        "branch": "main",
        "layout": "near-a",
-       "verdict": "DID-NOT-FIRE",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
        "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
        "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
-       "why": "the gauntlet never reached its trigger — swapping it for Insomnia changed neither game"
+       "why": null
       },
       {
        "branch": "main",
        "layout": "far-a",
-       "verdict": "DID-NOT-FIRE",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
        "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
        "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
-       "why": "the gauntlet never reached its trigger — swapping it for Insomnia changed neither game"
+       "why": null
       },
       {
        "branch": "main",
        "layout": "near-b",
-       "verdict": "DID-NOT-FIRE",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
        "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
        "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
-       "why": "the gauntlet never reached its trigger — swapping it for Insomnia changed neither game"
+       "why": null
       },
       {
        "branch": "main",
        "layout": "far-b",
-       "verdict": "DID-NOT-FIRE",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
        "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
        "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
-       "why": "the gauntlet never reached its trigger — swapping it for Insomnia changed neither game"
+       "why": null
       }
      ],
-     "notes": [],
-     "assumptions": [],
-     "verdict": "DID-NOT-FIRE",
-     "why": "the gauntlet never reached its trigger — swapping it for Insomnia changed neither game",
-     "board": "NO-DIVERGENCE"
+     "notes": [
+      "R holds Damp Rock for the holder's entry handler to read; RA holds nothing, so the per-foe gate is exercised both ways"
+     ],
+     "assumptions": []
+    },
+    "control_watch": {
+     "measured": true,
+     "ability": "Insomnia",
+     "quiet": true,
+     "games": 4,
+     "calls": 60,
+     "loud": [],
+     "announce": [],
+     "latent": [],
+     "leaves": []
+    },
+    "subject_watch": {
+     "measured": true,
+     "ability": "Frisk",
+     "quiet": true,
+     "games": 4,
+     "calls": 4,
+     "loud": [],
+     "announce": [
+      "main/near-a onSwitchIn (turn 0): |-item|p2a: Feraligatr|Damp Rock|[from] ability: Frisk|[of] p1a: Banette",
+      "main/far-a onSwitchIn (turn 0): |-item|p1a: Feraligatr|Damp Rock|[from] ability: Frisk|[of] p2a: Banette",
+      "main/near-b onSwitchIn (turn 0): |-item|p2a: Feraligatr|Damp Rock|[from] ability: Frisk|[of] p1b: Banette",
+      "main/far-b onSwitchIn (turn 0): |-item|p1a: Feraligatr|Damp Rock|[from] ability: Frisk|[of] p2b: Banette"
+     ],
+     "latent": [],
+     "leaves": []
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Insomnia) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one.",
@@ -80392,7 +80353,9 @@
       "p1:trevenant:item",
       "p2:trevenant:item"
      ]
-    }
+    },
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Frisk) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -84768,7 +84731,9 @@
      "announce": [],
      "latent": [],
      "leaves": []
-    }
+    },
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Frisk) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -92938,7 +92903,9 @@
       "p1:espathra:boosts",
       "p2:espathra:boosts"
      ]
-    }
+    },
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Frisk) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -96107,7 +96074,9 @@
      "announce": [],
      "latent": [],
      "leaves": []
-    }
+    },
+    "control_not_quiet": true,
+    "control_note": "the CONTROL ability (Frisk) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
    },
    {
     "kind": "ability",
@@ -143665,25 +143634,25 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 76
    },
-   "seconds": 163.9
+   "seconds": 38
   },
   "abilities": {
    "exist": 316,
    "in_scope": 200,
    "out_of_scope": 116,
    "tried": 200,
-   "fired": 198,
+   "fired": 199,
    "showdown_only": 0,
    "medicham_only": 0,
-   "did_not_fire": 1,
+   "did_not_fire": 0,
    "unreachable": 0,
-   "control_not_quiet": 152,
+   "control_not_quiet": 157,
    "control_quiet_on_board": {
     "ability_swap_rows": 160,
     "quiet": 157,
     "loud": 3,
     "acted_in_control_game": 2,
-    "receipt_read": 144
+    "receipt_read": 145
    },
    "control_watch": {
     "measured": 161,
@@ -143740,28 +143709,28 @@
      "zerotohero:click-swap:state"
     ],
     "fired_on_live_control_unearned": [],
-    "subject_games": 521,
-    "subject_handler_calls": 2138,
+    "subject_games": 519,
+    "subject_handler_calls": 2136,
     "subject_loud_games": 441,
-    "games": 425,
-    "handler_calls": 992,
+    "games": 423,
+    "handler_calls": 952,
     "loud_games": 8,
     "legacy_chooser": {
-     "rows": 13,
-     "first_alternative_quiet": 13,
+     "rows": 12,
+     "first_alternative_quiet": 12,
      "moved": [],
      "none_quiet": [],
      "unmeasured": [],
      "knob": null
     }
    },
-   "cannot_fire_in_this_fixture": 1,
+   "cannot_fire_in_this_fixture": 0,
    "did_not_fire_unexplained": 0,
    "diverged": 0,
    "diverged_including_shelved": 1,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 1,
-   "seconds": 24.2,
+   "seconds": 88.2,
    "board_only": {
     "rows": 1,
     "staged": 1,
@@ -143787,13 +143756,13 @@
    ]
   },
   "then_what": {
-   "rows": 8,
+   "rows": 4,
    "turnsAdded": 4,
-   "unstageable": 4,
+   "unstageable": 0,
    "verbsUnknown": 0,
    "verbsUnknownFirst": ""
   },
-  "then_what_rows_with_a_consequence": 2,
+  "then_what_rows_with_a_consequence": 1,
   "items": {
    "exist": 148,
    "in_scope": 148,
@@ -143811,7 +143780,7 @@
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 6,
    "board_state_fired": 5,
-   "seconds": 15.6,
+   "seconds": 72.8,
    "stones": {
     "rows": 0,
     "staged": 0,
@@ -143879,8 +143848,8 @@
    ]
   },
   "preflight": {
-   "checked": 524,
-   "rows_checked": 519,
+   "checked": 523,
+   "rows_checked": 518,
    "refused": 1,
    "rows_labelled": 0,
    "over_matched": [],
@@ -143924,19 +143893,14 @@
   "boards": {
    "moves": {
     "tally": {
-     "NO-DIVERGENCE": 494,
-     "STATE": 1,
+     "NO-DIVERGENCE": 495,
      "ANNOUNCEMENT-ONLY": 2
     },
     "rows": 497,
     "core_leaf_unchecked_rows": [],
-    "state_rows": [
-     "axekick"
-    ],
+    "state_rows": [],
     "not_asked_rows": [],
-    "silent_state_rows": [
-     "axekick"
-    ],
+    "silent_state_rows": [],
     "rows_with_a_held_leaf": [
      "explosion",
      "finalgambit",
@@ -144000,7 +143964,7 @@
    ]
   },
   "ab_board": {
-   "rows": 426,
+   "rows": 424,
    "sd_board_only": [
     "curiousmedicine",
     "curiousmedicine",
@@ -144017,10 +143981,10 @@
  },
  "planner": {
   "meta": {
-   "generated": "2026-09-19T19:38:03.257Z",
+   "generated": "2026-09-19T22:13:20.767Z",
    "by": "engine/stage_planner.js",
-   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\6180c4712761\\data\\tags.json",
-   "tags_digest": "331a5a1910a79762",
+   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\18773c22878f\\data\\tags.json",
+   "tags_digest": "e666cddbf598ed0e",
    "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown",
    "validator": {
     "calls": 1459,
@@ -144065,7 +144029,7 @@
     "stench: secondary (the handler assigns move.secondaries)",
     "kingsrock: secondary (the handler assigns move.secondaries)"
    ],
-   "ms": 33076
+   "ms": 84557
   },
   "summary": {
    "mechanics": 964,
@@ -144120,19 +144084,18 @@
    }
   },
   "played": {
-   "plan_ms": 33185,
+   "plan_ms": 85133,
    "rows": 347,
    "fixtures": 853,
    "variants": 1968,
    "games": 3936,
-   "fired": 326,
+   "fired": 327,
    "proven": 0,
    "fallback": [
     "ability:aftermath  planner DID-NOT-FIRE  ->  legacy FIRED",
     "ability:analytic  planner DID-NOT-FIRE  ->  legacy FIRED",
     "ability:cloudnine  planner SHOWDOWN-ONLY  ->  legacy FIRED",
     "ability:fluffy  planner DID-NOT-FIRE  ->  legacy FIRED",
-    "ability:frisk  planner DID-NOT-FIRE  ->  legacy DID-NOT-FIRE",
     "ability:icebody  planner DID-NOT-FIRE  ->  legacy FIRED",
     "ability:illusion  planner UNPROVEN-UNCONTROLLED  ->  legacy UNPROVEN-UNCONTROLLED",
     "ability:klutz  planner DID-NOT-FIRE  ->  legacy FIRED",
@@ -144164,10 +144127,7 @@
    ],
    "variant_split": [],
    "control_parted": [],
-   "board_state": [
-    "move:axekick @main/near-a",
-    "move:axekick @main/far-a"
-   ],
+   "board_state": [],
    "diverged": [
     "move:bittermalice @main/near-a",
     "move:bittermalice @main/far-a",
@@ -144243,11 +144203,11 @@
    "fixtureSetsIllegal": 0
   },
   "legacy_ran": {
-   "abilities": 130,
+   "abilities": 129,
    "items": 8
   }
  },
- "games_played": 4638,
+ "games_played": 4634,
  "games_threw": 0,
  "sheets_unassembled": 0,
  "overlap": {
@@ -144271,17 +144231,17 @@
    "available": true,
    "file": "data/roster.abilities.json",
    "roster_fired": 194,
-   "here_fired": 198,
+   "here_fired": 199,
    "both": 194,
    "only_here": [
     "anticipation",
     "forewarn",
+    "frisk",
     "pickup",
     "stall"
    ],
    "only_roster": [],
    "neither": [
-    "frisk",
     "illusion"
    ],
    "exemption": null,

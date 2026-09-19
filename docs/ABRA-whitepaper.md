@@ -107,8 +107,8 @@ longer selects the sample.
 **THE TWO SPEED-TIE CORNER ARMS ARE THE HONEST EDGE OF THE HEADLINE, AND THEY DO NOT READ ZERO.**
 "Board-material 0 of 961" is a statement about ONE ARM, `middle`. The two corner arms were fixed on
 2026-09-10 — `--arm` had moved which arms RAN and not which arm's games became `results`, so a
-corner-only run published `0 − 0`, byte-identical to a perfect score — and on the current release they
-part **16 of 961** and **15 of 961** — `state.games` less `state.games_board_never_diverged` on
+corner-only run published `0 − 0`, byte-identical to a perfect score — and on release `cbd510bc2b13`
+they part **16 of 961** and **15 of 961** — `state.games` less `state.games_board_never_diverged` on
 `data/verification/gd-top-tie-first-2026-09-10.json` and
 `data/verification/gd-bottom-tie-first-2026-09-10.json`, both stamped release `cbd510bc2b13`, both
 recorded in `CHANGELOG.md` 5.282.0. Both engines
@@ -1712,7 +1712,7 @@ release: the whole-game differential (`data/game-differential.json` — board-ma
 narration **0 undeclared of 961**, 10,705 of 10,705 turn boundaries identical, none excluded, none cut
 off), the damage differential (`data/engine-diff.json` — 6,000 compared, 0 disagreed, at 17 roll
 indices), and the deliberate roster — `data/roster.items.json` **148 tested**,
-`data/roster.abilities.json` **194 tested**, `data/roster.moves.json` **494 tested** (re-measured on release `1a6550ea5ec6`, CHANGELOG 6.58.0), every stage with
+`data/roster.abilities.json` **194 tested**, `data/roster.moves.json` **495 tested** (re-measured on release `1a6550ea5ec6`, CHANGELOG 6.58.0), every stage with
 DID-NOT-FIRE 0 and `differ` 0. Each stage's scope is decided by `engine/legal_scope.js` (CHANGELOG 6.14.0).
 The bound on the word "correct" is stated in the 6.0.0 block at the head of this paper
 and is not repeated here. The older, narrower Smogon-calculator check below is retained because it is

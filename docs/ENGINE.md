@@ -169,11 +169,11 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  970/970 probed mechanics live, 0 missing   (census 2026-09-19 16:41)
+  970/970 probed mechanics live, 0 missing   (census 2026-09-19 19:08)
     the census probes what somebody thought to probe: 301 of 301 in-scope tags carry a probe, 0 carry none (9 of 310
-    tags have no in-scope carrier); 1 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 2.3 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-19 15:53)
+    tags have no in-scope carrier); 0 of 348 in-scope mechanics have never fired in the staged harness
+    (all-mechanics-fire.json, 1.2 h old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-19 18:17)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
     the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
     Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
@@ -196,9 +196,66 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 17:53_
+_stamped 2026-09-19 19:26_
 
 <!-- /GENERATED -->
+
+## THE GATE READS **OPEN, 10 OF 10** ON `18773c22878f` — AND A HELD-OUT `--games 12000` DRAW ON IDENTICAL PINS PARTS **34 BOARDS OF 7,178**, WITH THE CORNER ARMS PARTING **0 / 1 / 4** AND **1 / 1 / 4** ON THE GATE'S OWN THREE LATTICES. **NO ENGINE BYTE CHANGED; RELEASE `18773c22878f`; DRIVER `faf70ecbca71` AND CENSUS PIN `0c1d71e2a1bb`, SO THE `6180c4712761` LATTICES ARE COMPARABLE.** 2026-09-19, CHANGELOG 6.71.0
+
+Full account: `docs/_reports/2026-09-19-final-remeasure.md`.
+
+**THE GATE IS OPEN AND IT IS A STATEMENT ABOUT THREE LATTICES.** `node engine/quarantine.js` prints
+`GATE: OPEN — MEDICHAM passes both conditions; nothing is withheld`, 10 of 10 gating clauses PASS:
+board-material **0 of 961 / 0 of 1069 / 0 of 1497** at `--games` 1200 / 1350 / 1950, undeclared
+narration **0 / 0 / 0** (raw 0 / 1 / 2, the declared Supreme Overlord `fallenundefined` games),
+threw **0 / 0 / 0**, damage 0 of 6,000 at every index, roster 148 / 194 / **495** MATCH with every
+red caught, battery 4,634 games with abilities FIRED **199 of 200**, moves 497 of 497 resolved and
+items 148 of 148, unearned FIRED 0 and no control arm parting a board. Census **970 live / 970
+probed / 0 missing**.
+
+**AND THE HELD-OUT DRAW SAYS THE ENGINE IS NOT FINISHED.** One `--games 12000` run — same release,
+same census pin `0c1d71e2a1bb`, same `--team-store data/team-pool-frozen`, same arm `middle`, same
+cap 50, same `--end-state`, same `--steering empirical` — plays **7,178 usable games** and parts
+**34 boards** (`state.games` less `state.games_board_never_diverged`). Quarantine's own
+`wholeGameClause`, handed that artifact, reads **36 of 7183**: the 34 plus 2 void games whose
+`mid_void` tag carries a `board_parted_at_turn`. `narrationClause` reads **56 undeclared of 7183
+across 66 causes** (79 raw, less 23 declared). It draws pool `e398641bda45`, which none of the three
+gate samples draws. `data/verification/game-differential.g12000.json`; no gate artifact was touched.
+
+**THE 34, GROUPED — 18 MECHANISMS, AND FOUR CARRY 12 OF THEM.** The Protect consecutive-use `stall`
+counter **4** (`p1.active[0].stall` reads 0 against the authority's 3 and 9), flinch **4**, a burn
+landing or being cured in one engine only **4**, trapping volatiles (`vol.trapped`,
+`vol.trapped_by_move`, an Infestation that ends in one engine) **3**, a damage value or KO threshold
+**3**, a spread `-unboost` landing on the wrong body **2**, Fickle Beam **2**, recoil order **2**,
+then one each: Disguise, Armor Tail refusing Fake Out, Heal Block refusing Drain Punch, Cursed Body's
+Disable on Struggle, Bug Bite's steal-eat against Rough Skin's KO, a `-miss` one engine does not
+draw, spread order (`-resisted` against the second target's `-damage`), a boost landing in the
+opposite direction, a faint queued in one engine only, and Trick Room resolving a different move in
+`move` field 3. **The grouping is a lead, not a diagnosis**: a game records only its FIRST
+divergence, and the first PROTOCOL divergence is not necessarily what parted the board.
+
+**THREE OF THE 34 COULD NOT HAVE BEEN FOUND BY READING NARRATION** —
+`state.board_parted_before_the_protocol_did` reads 3; two of those never diverge in narration at all
+(the Protect `stall` counter and a `vol.trapped`), and the third parts its board at turn 9 with its
+first protocol divergence at turn 12.
+
+**THE CORNER ARMS PART BOARDS ON THE GATE'S OWN LATTICES, AND NOTHING READS THEM.** By id, same pins,
+`--games` 1200 / 1350 / 1950: `top-tie-first` **0 / 1 / 4**, `bottom-tie-first` **1 / 1 / 4**, against
+`middle` at 0 / 0 / 0; raw protocol 7 / 9 / 20 and 10 / 8 / 11. Mode A pins every die on both sides
+and both engines draw the same constant at a corner, so this is an asymmetry in the game, not
+sampling. Note the three bottom-arm `stall` partings are ONE game (`…2662099996`) drawn by three
+samples, so the corner totals are not independent. Seven artifacts under `data/verification/`.
+
+### The hand list, after this pass
+
+- **Nothing leaves it.** This pass wrote no probe and fixed nothing; it is a measurement.
+- **Four items JOIN it, each with a seed and a board leaf in the report and none with a probe yet** —
+  a probe shown RED is owed before any engine line moves: the Protect consecutive-use `stall` counter
+  (the best-evidenced lead here: 2 games in the held-out draw, 1 board-only parting reproduced on
+  three corner samples, and a large narration bucket); flinch (4 games); a burn landing or cured in
+  one engine only (4); trapping volatiles (3).
+- **Carried forward** from 6.70.0: King's Rock and Purifying Salt are not wired; Blaze's click-swap
+  control; the click-swap controls.
 
 ## FRISK EARNS ITS FIRED AGAINST THE QUIET CONTROL, AND ITS LINE NOW NAMES ITS HOLDER. AXE KICK'S CONFUSION STARTS AT 3, NOT 2, SO ITS STAGED ROW GOES FROM BOARD **STATE** TO **NO-DIVERGENCE**. CENSUS **969 → 970 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `7285347f274f`; LIGHT MODE, NAMED ROWS ONLY.** 2026-09-19, version assigned at merge
 

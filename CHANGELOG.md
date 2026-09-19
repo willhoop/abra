@@ -10,6 +10,38 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.71.0] — 2026-09-19
+
+### Notes
+- **6.70.0 re-measured on release `18773c22878f`. No code changed.** `node engine/quarantine.js`
+  prints `GATE: OPEN — MEDICHAM passes both conditions`, 10 of 10 gating clauses PASS. This entry
+  declares no major and no basis change; **Basis.** is stated unchanged in the notes row.
+- Whole game on the three gate lattices (`--team-store data/team-pool-frozen`, arm `middle`, cap 50,
+  `--end-state`, `--steering empirical`, census digest `0c1d71e2a1bb` at 970 live, driver
+  `faf70ecbca71`): board-material **0 of 961 / 0 of 1069 / 0 of 1497**, undeclared narration
+  **0 / 0 / 0** (raw 0 / 1 / 2, the declared Supreme Overlord `fallenundefined` games), threw
+  **0 / 0 / 0**.
+- **A HELD-OUT `--games 12000` RUN ON THE SAME PINS PARTS BOARDS.** 7,178 usable games,
+  **board-material 34** (`state.games` less `state.games_board_never_diverged`; quarantine's own
+  `wholeGameClause` on that artifact reads **36 of 7183**, adding 2 void games that parted a board),
+  **undeclared narration 56 of 7183 across 66 causes**, protocol 111, threw 0, pool `e398641bda45` —
+  a lattice none of the three gate samples draws. Written to
+  `data/verification/game-differential.g12000.json`; no gate artifact was overwritten. The 34 are
+  grouped into 18 mechanisms in the report, four of which carry 12: the Protect consecutive-use
+  `stall` counter, flinch, a burn landing or cured in one engine only, and trapping volatiles.
+- **The corner arms part boards on the gate's own lattices.** At `--games` 1200 / 1350 / 1950,
+  `top-tie-first` parts **0 / 1 / 4** and `bottom-tie-first` parts **1 / 1 / 4**, against `middle` at
+  0 / 0 / 0. Raw protocol counts 7 / 9 / 20 and 10 / 8 / 11. Seven new artifacts under
+  `data/verification/`.
+- Staged battery (`--kind all`, 4,634 games, 0 threw, `red_ok`): abilities FIRED **199 of 200**
+  (Illusion, closeted, is the other; Frisk's DID-NOT-FIRE is closed), moves **497 of 497** resolved
+  on both engines, items **148 of 148**. Unearned FIRED on a live control **0**; control-arm partings
+  that touch a board **0**. Roster: items 148, abilities 194 (+6 deferred), moves **495** (+2
+  deferred) MATCH, reds 22/22, 63/63, 37/37 caught. Damage differential **0 of 6,000** at every
+  index. Census **970 live / 970 probed / 0 missing**. `engine/coverage.js`: staged mechanics that
+  fired **844 of 845**, entities exercised **861 of 902**.
+- Report: `docs/_reports/2026-09-19-final-remeasure.md`.
+
 ## [6.70.0] — 2026-09-19
 
 ### Fixed

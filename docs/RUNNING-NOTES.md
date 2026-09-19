@@ -52,6 +52,47 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.71.0] — 2026-09-19 — 6.70.0 re-measured on `18773c22878f`: the gate reads OPEN on its three lattices, and a held-out 12,000-game draw on the same pins parts 34 boards
+
+- **What changed.** No code changed. Re-measured on release `18773c22878f` (HEAD `dec05b65`, 6.70.0;
+  `engine_release.js list`: 0 of 27 frozen files moved): the three gate lattices, the full staged
+  battery, the three roster stages with `--reds`, `tests/test-engine-diff.js --n 6000`,
+  `tests/test-mechanics.js`, then `engine/quarantine.js` and `engine/coverage.js`. **Two runs the
+  gate does not make:** one `--games 12000` held-out draw and six corner-arm runs, all written to
+  `data/verification/` so no gate artifact was overwritten.
+- **Measured.** `node engine/quarantine.js`: **`GATE: OPEN`**, 10 of 10 gating clauses PASS.
+  Board-material (`state.games` − `state.games_board_never_diverged`) **0 of 961 / 0 of 1069 / 0 of
+  1497** at `--games` 1200 / 1350 / 1950 (`data/game-differential{,.g1350,.g1950}.json`), undeclared
+  narration **0 / 0 / 0** (raw 0 / 1 / 2, all the declared `fallenundefined` games), threw **0 / 0 /
+  0**. **HELD OUT: `--games 12000` on the same release, census pin `0c1d71e2a1bb`, pool
+  `data/team-pool-frozen`, arm `middle`, cap 50, `--end-state`, `--steering empirical`, driver
+  `faf70ecbca71` — 7,178 usable games, board-material 34** (`data/verification/game-differential.g12000.json`;
+  quarantine's own `wholeGameClause` on that artifact reads **36 of 7183** with 2 void games that
+  parted a board), **undeclared narration 56 of 7183 across 66 causes**, protocol 111, threw 0, pool
+  `e398641bda45`. **CORNER ARMS on the gate's own lattices:** `top-tie-first` **0 / 1 / 4**,
+  `bottom-tie-first` **1 / 1 / 4** board-material, against `middle` at 0 / 0 / 0
+  (`data/verification/game-differential.g<N>.<arm>-tie-first.json`). Battery
+  (`data/all-mechanics-fire.json`, 4,634 games, 0 threw, `red_ok`): abilities FIRED **199 of 200**,
+  moves 497 of 497 resolved on both engines, items 148 of 148, unearned FIRED **0**, control-arm
+  board partings **0**. Roster: items 148, abilities 194 (+6 deferred), moves **495** (+2 deferred)
+  MATCH with 0 DIFFER / DID-NOT-FIRE / COULD-NOT-STAGE; reds 22/22, 63/63, 37/37 caught.
+  `data/engine-diff.json` 0 of 6,000 at every index, seed 20260804. Census **970 live / 970 probed /
+  0 missing**. `engine/coverage.js`: staged mechanics that fired **844 of 845**, entities exercised
+  **861 of 902**.
+- **Retraction applied.** The white paper's roster sentence read ~~494 moves tested~~; lifting the Axe Kick and Electrify deferrals makes it **495** (`data/roster.moves.json`), replaced in the same pass.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing published. The gate's 0 / 0 / 0 is re-measured on new engine bytes and
+  reads the same; the held-out and corner figures are NEW quantities, not replacements for it. The
+  white paper's corner-arm sentence said *"on the current release"* of figures belonging to release
+  `cbd510bc2b13`; the words are replaced by that release id, and the 16-of-961 and 15-of-961 figures
+  stand as a correct reading of that release.
+- **Owed to the next major.** The reading that `GATE: OPEN` is a statement about three lattices of
+  ~1,000–1,500 games, and that a 12,000-game draw on identical pins parts 34 boards. Four mechanisms
+  carry 12 of the 34 — the Protect consecutive-use `stall` counter, flinch, a burn landing or cured
+  in one engine only, and trapping volatiles. Whether the gate should read a wider `--games` or the
+  corner arms is a MEASURE decision and was not taken here.
+  `docs/_reports/2026-09-19-final-remeasure.md`.
+
 ## [6.70.0] — 2026-09-19 — Frisk fires and writes its [of] tag; Axe Kick's confusion clock starts at the authority's minimum
 
 ## [<version>] — 2026-09-19 — Frisk earns its FIRED against a quiet control and names its holder; Axe Kick's confusion starts at 3
