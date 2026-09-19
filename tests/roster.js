@@ -8191,7 +8191,7 @@ const RULES = [
      + 'format rather than guessed: the band is chosen so that even the MINIMUM damage roll this arm '
      + 'can hand out crosses the threshold and the MAXIMUM does not faint the body.',
   break: { why: 'the restore never rolls through, so the spent berry stays spent',
-    patch: [['if(_sun||rng()<(+_hv.chance||0.5)){', 'if((_sun||rng()<(+_hv.chance||0.5))&&false){']] },
+    patch: [['if(_hvCoin){', 'if(_hvCoin&&false){']] },
   match(e) {
     const hv = abTag(e.id, 'restoresBerryAtResidual');
     if (!hv) return null;

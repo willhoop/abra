@@ -1,18 +1,18 @@
 {
- "generated": "2026-09-19T08:42:38.073Z",
+ "generated": "2026-09-19T13:16:35.938Z",
  "by": "tests/roster.js",
  "stage": "abilities",
  "swap_leaf_correction": {
-  "self_describing_dropped": 5474,
+  "self_describing_dropped": 5442,
   "real_ability_rewrite_kept": 68,
   "control_arm_bookkeeping_dropped": 3894
  },
- "engine_release": "8a4140de3eaa",
- "engine_release_cut": "2026-09-19T07:46:28.563Z",
+ "engine_release": "4c9b0cc4a4da",
+ "engine_release_cut": "2026-09-19T12:55:13.620Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "8d26dff9dd02",
+  "engine/medicham2-browser.js": "f156dc05f2ac",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -32,8 +32,8 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "dd6d12839673",
-  "data/tags.json": "8950d4355cc5",
+  "data/abra-tags.js": "a55ce028a787",
+  "data/tags.json": "7d2a38e88bf7",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
@@ -53,7 +53,7 @@
  "counts_basis": "engine/legal_scope.js in-scope set; out-of-scope entities are excluded from every bucket rather than counted as COULD-NOT-STAGE",
  "arms_played": {
   "top-tie-first": 587,
-  "middle": 49,
+  "middle": 46,
   "bottom-tie-first": 41
  },
  "scope": {
@@ -152,12 +152,27 @@
   }
  },
  "plant_anchors": {
-  "release": "8a4140de3eaa",
+  "release": "4c9b0cc4a4da",
   "checked": 63,
-  "dead": [],
+  "dead": [
+   {
+    "rule": "ability/restores-a-spent-berry-by-chance",
+    "kind": "ability",
+    "matched": 0,
+    "anchor": "if(_sun||rng()<(+_hv.chance||0.5)){",
+    "rows": 1,
+    "staged": 1
+   }
+  ],
   "reds_ran": true
  },
  "reds": [
+  {
+   "rule": "ability/restores-a-spent-berry-by-chance",
+   "ok": false,
+   "anchor_dead": true,
+   "why": "THE PLANT DID NOT APPLY — the anchor matched 0 time(s), not exactly once. An unapplied plant reads exactly like a comparator that found nothing, so every row this rule produced is asserting nothing until it is re-aimed. Anchor: if(_sun||rng()<(+_hv.chance||0.5)){"
+  },
   {
    "rule": "ability/type-conversion",
    "ok": true,
@@ -535,22 +550,6 @@
    "why": "the priority shift is dropped, so the carrier moves in plain speed order",
    "moved": {
     "member": "galewings",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/restores-a-spent-berry-by-chance",
-   "ok": true,
-   "why": "the restore never rolls through, so the spent berry stays spent",
-   "moved": {
-    "member": "harvest",
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",

@@ -10,6 +10,29 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.61.0] — 2026-09-19
+
+### Fixed
+- The roster's Harvest red plant re-aimed at the 6.59.0 coin decision; it had gone dead.
+
+### Notes
+- **The MEDICHAM gate reads OPEN on release `4c9b0cc4a4da`: all nine clauses pass.** The basis change
+  it represents is declared by 7.0.0, held for Will's review.
+
+## [6.60.0] — 2026-09-19
+
+### Changed
+- **Re-measured 6.59.0 on release `4c9b0cc4a4da`. Board-material stays 0 of 961 / 0 of 1069 / 0 of 1497, and
+  undeclared narration falls from 0 / 2 / 6 to 0 / 0 / 0** at `--games` 1200 / 1350 / 1950. All eight
+  targeted games left and none joined, exactly as predicted before the run.
+- **The gate reads `CLOSED — 1 of 9`**, and the failing clause is no longer narration. It is the abilities
+  roster stage: the Harvest red plant's anchor no longer matches, because 6.59.0 rewrote the line it aims at.
+  No mechanic diverges.
+
+### Notes
+- Items, moves, the damage diff (0 of 6000) and `all_mechanics_fire` (4,700 games, 0 threw) are clean. No
+  engine code changed. Pins are in the 6.60.0 notes row and `docs/_reports/2026-09-19-4c9b-remeasure.md`.
+
 ## [6.59.0] — 2026-09-19
 
 ### Fixed

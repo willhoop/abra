@@ -169,8 +169,8 @@ ENGINE — does the simulator do what Pokémon does
   955/955 probed mechanics live, 0 missing   (census 2026-09-19 08:54)
     the census probes what somebody thought to probe: 299 of 299 in-scope tags carry a probe, 0 carry none (9 of 308
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 1.4 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-19 07:44)
+    (all-mechanics-fire.json, 25 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-19 09:21)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
     the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
     Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
@@ -193,9 +193,29 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 09:01_
+_stamped 2026-09-19 09:43_
 
 <!-- /GENERATED -->
+
+## 6.59.0 RE-MEASURES AT BOARD **0 / 0 / 0** AND UNDECLARED NARRATION **0 / 0 / 0**, AS PREDICTED; ALL EIGHT TARGETED GAMES LEFT AND NONE JOINED. THE GATE IS **CLOSED, 1 OF 9** — NOT ON THE ENGINE: THE HARVEST FIX MOVED THE LINE THE ABILITIES STAGE'S RED PLANT AIMS AT, SO ONE RED DEMONSTRATION HAS A DEAD ANCHOR. **NO ENGINE BYTE CHANGED; RELEASE `4c9b0cc4a4da`.** 2026-09-19, CHANGELOG 6.60.0
+
+Report: `docs/_reports/2026-09-19-4c9b-remeasure.md`. Census pin `1298f25115e3` (955 live). `--team-store
+data/team-pool-frozen`, arm `middle`, cap 50, `--end-state`, `--steering empirical`.
+
+- **Board-material 0 of 961 / 0 of 1069 / 0 of 1497** at `--games` 1200 / 1350 / 1950; every compared turn
+  boundary identical (10705 / 11842 / 16713). **Undeclared narration 0 / 0 / 0**; raw 0 / 1 / 2, all three the
+  declared Supreme Overlord `fallenundefined` row. The NARRATION clause PASSES for the first time.
+- **All eight targeted games LEFT** (Forewarn ×3, Chilly Reception, Sleep Powder under Misty Terrain, Mortal Spin
+  `[from]`, Magician, Parting Shot into Hyper Cutter). No game joined on the board or the protocol list, on any
+  lattice, despite the two die changes (Harvest's coin, Forewarn's die).
+- **The one failing clause is `deliberate roster / abilities`**: 194 of 200 MATCH, 0 DIFFER, 0 DID-NOT-FIRE, but the
+  red plant for `ability/restores-a-spent-berry-by-chance` (Harvest) matched 0 times on this release. Its anchor
+  names `if(_sun||rng()<(+_hv.chance||0.5)){`, which the Harvest coin fix rewrote into `_hvCoin`. The owed repair
+  is a re-aim in `tests/roster.js` (not an engine SOURCE, so no cut), then the abilities stage re-run. Not done
+  here: the pass was measure-only.
+- Items 148/148 and moves 494/497 clean, anchors 22/22 and 37/37 CAUGHT. Damage diff 0 of 6000 at every index.
+  AMF 4700 games, 0 threw; abilities fired 140 → 141 and owner-shelved diverging 2 → 1 (Forewarn now fires in
+  both engines).
 
 ## NARRATION BATCH C: FOREWARN NOW NAMES THE AUTHORITY'S MOVE OFF THE AUTHORITY'S DIE, CHILLY RECEPTION INTO ITS OWN SNOW WITH NOBODY TO SWITCH TO FAILS OUT LOUD, AND A HELD STATUS ANSWERS BEFORE MISTY TERRAIN. A FOURTH DEFECT WAS FOUND UNDER THE FOREWARN GAME: HARVEST THREW ITS COIN ONLY WHEN A BERRY WAS WAITING. ALL FIVE LATTICE GAMES REPLAY TO THE END WITH NO SPLIT. CENSUS **947 → 951 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED. WORKTREE RELEASE `207acaf6a46e`. NO LATTICE RE-RUN (LIGHT MODE), SO THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
 
