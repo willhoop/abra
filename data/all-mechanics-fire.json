@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-19T05:01:43.282Z",
- "engine_release": "74be319d02fa",
- "engine_release_cut": "2026-09-19T03:44:42.628Z",
+ "generated": "2026-09-19T06:32:50.840Z",
+ "engine_release": "a1c7dcd5696b",
+ "engine_release_cut": "2026-09-19T05:50:15.787Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "614058acfc05",
+  "engine/medicham2-browser.js": "638bac0f02b3",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -25,15 +25,15 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "af7d8f44147c",
-  "data/tags.json": "2f6c7186cb70",
+  "data/abra-tags.js": "c1de853cc3a8",
+  "data/tags.json": "0f41957a18dd",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
   "engine/pp.js": "30b12a4ef623",
   "data/rollout-switch-census.json": "b599f8d581b5"
  },
- "release": "74be319d02fa",
+ "release": "a1c7dcd5696b",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -73191,7 +73191,7 @@
     "id": "soundproof",
     "name": "Soundproof",
     "carrier": "Abomasnow",
-    "control": "R.click@1 — the trigger click Round becomes Ancient Power, which supplies none of the needs",
+    "control": "R.click@1 — the trigger click Screech becomes Block, which supplies none of the needs",
     "verdict": "FIRED",
     "fired": true,
     "showdown_moved": true,
@@ -73260,7 +73260,7 @@
      },
      "control": {
       "variable": "R.click@1",
-      "why": "the trigger click Round becomes Ancient Power, which supplies none of the needs"
+      "why": "the trigger click Screech becomes Block, which supplies none of the needs"
      },
      "control_refusal": null,
      "fixtures": 1,
@@ -73293,8 +73293,8 @@
        "ability": "Torrent",
        "item": "",
        "moves": [
-        "Round",
-        "Ancient Power"
+        "Screech",
+        "Block"
        ],
        "speed": 98,
        "gender": ""
@@ -105100,7 +105100,7 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 76
    },
-   "seconds": 147
+   "seconds": 104.6
   },
   "abilities": {
    "exist": 316,
@@ -105119,7 +105119,7 @@
    "diverged_including_shelved": 3,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 2,
-   "seconds": 158.4,
+   "seconds": 163,
    "board_only": {
     "rows": 17,
     "staged": 17,
@@ -105199,7 +105199,7 @@
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 6,
    "board_state_fired": 5,
-   "seconds": 11.5,
+   "seconds": 109.5,
    "stones": {
     "rows": 0,
     "staged": 0,
@@ -105422,14 +105422,14 @@
  },
  "planner": {
   "meta": {
-   "generated": "2026-09-19T05:01:43.024Z",
+   "generated": "2026-09-19T06:32:48.291Z",
    "by": "engine/stage_planner.js",
-   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\74be319d02fa\\data\\tags.json",
-   "tags_digest": "2f6c7186cb707855",
-   "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown",
+   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\a1c7dcd5696b\\data\\tags.json",
+   "tags_digest": "0f41957a18ddd919",
+   "showdown": "C:\\Users\\willj\\Projects\\Pokemon\\pokemon-showdown",
    "validator": {
-    "calls": 1361,
-    "cached": 6291
+    "calls": 1360,
+    "cached": 6292
    },
    "crit": {
     "table": [
@@ -105470,7 +105470,7 @@
     "stench: secondary (the handler assigns move.secondaries)",
     "kingsrock: secondary (the handler assigns move.secondaries)"
    ],
-   "ms": 101419
+   "ms": 255791
   },
   "summary": {
    "mechanics": 964,
@@ -105515,7 +105515,7 @@
     "staged": 2
    },
    "branches": {
-    "total": 608,
+    "total": 612,
     "uncovered": 2
    },
    "assumptions": 12,
@@ -105525,7 +105525,7 @@
    }
   },
   "played": {
-   "plan_ms": 102201,
+   "plan_ms": 255924,
    "rows": 347,
    "fixtures": 853,
    "variants": 1968,

@@ -10,6 +10,26 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.53.0] — 2026-09-19
+
+### Notes
+- **6.52.0 re-measured on release `a1c7dcd5696b`. No engine code changed.** It is a MINOR because it
+  moves published figures. Lattices at `--games` 1200 / 1350 / 1950, census `1b735ff555ad` (915 live),
+  `--team-store data/team-pool-frozen`, arm `middle`, cap 50, `--end-state`, `--steering empirical`:
+  board-material is **0 of 961 / 1 of 1069 / 2 of 1497**, down from 0 / 5 / 12. The census pin moved from
+  `322a5b4ba6b0`, so this is not a strict before/after. **No game joined.** 14 of the 15 targeted games
+  left. The Helping Hand game stayed: its board had always parted at turn 15 (Sucker Punch into an
+  Encored Swords Dance), and the Helping Hand line was only its first protocol split. The Trace game
+  stayed, as predicted, but its turn-2 Trace split is gone. It now parts at turn 6, where a Future Sight
+  payout ignores a Focus Sash. Cursed Body against Triple Axel stayed, as predicted. Undeclared narration
+  is **0 / 11 / 24**, down from 0 / 12 / 24.
+- Roster: items 147 plus 1 DIFFER (Greninjite, known), abilities 194 of 200, moves 494 of 497, 0
+  DID-NOT-FIRE. **Three red plants now hit dead anchors.** 6.52.0 rewrote the engine lines they patch
+  (the Spicy Spray die, the Healer and Shed Skin die, the target-boost road). That leaves abilities at 61
+  of 63 anchors live and moves at 36 of 37. Damage diff 0 of 6000 at every index. `all_mechanics_fire`:
+  4702 games, 0 threw. **Gate `CLOSED — 4 of 8`**: board-material, roster items, abilities and moves.
+  Full account: `docs/_reports/2026-09-19-a1c7-remeasure.md`.
+
 ## [6.52.0] — 2026-09-19
 
 ### Fixed

@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-19T04:37:18.786Z",
+ "generated": "2026-09-19T04:46:28.383Z",
  "by": "tests/roster.js",
  "stage": "abilities",
  "swap_leaf_correction": {
   "self_describing_dropped": 5474,
   "real_ability_rewrite_kept": 68,
-  "control_arm_bookkeeping_dropped": 3888
+  "control_arm_bookkeeping_dropped": 3894
  },
  "engine_release": "74be319d02fa",
  "engine_release_cut": "2026-09-19T03:44:42.628Z",
@@ -45,9 +45,9 @@
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
   "DEFERRED-BY-OWNER": 6,
-  "FIRED-AND-BOARDS-MATCH": 193,
+  "FIRED-AND-BOARDS-MATCH": 194,
   "CONTROL-NOT-QUIET": 0,
-  "COULD-NOT-STAGE": 1
+  "COULD-NOT-STAGE": 0
  },
  "counts_in_scope": 200,
  "counts_basis": "engine/legal_scope.js in-scope set; out-of-scope entities are excluded from every bucket rather than counted as COULD-NOT-STAGE",
@@ -65,15 +65,15 @@
    "no-legal-reader": 1
   },
   "in_scope": 200,
-  "tested": 193,
-  "matched": 193,
+  "tested": 194,
+  "matched": 194,
   "differ": 0,
   "silent": 0,
   "deferred": 6,
   "unattributable": 0,
   "unattributable_ids": [],
   "declared_untestable": [],
-  "could_not_stage_in_scope": 1,
+  "could_not_stage_in_scope": 0,
   "attributed_by_second_control": [
    "anticipation",
    "armortail",
@@ -15167,8 +15167,8 @@
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
    "note": "ALTERNATE carrier Absol; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui) — taken because Justified, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
-   "verdict": "COULD-NOT-STAGE",
-   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 2730 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "absol",
@@ -15183,7 +15183,44 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p1.party.dragapult.hp",
+     "with": 744,
+     "without": 822
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].hp",
+     "with": 744,
+     "without": 822
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.dragapult.hp",
+     "with": 510,
+     "without": 666
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 510,
+     "without": 666
+    },
+    {
+     "turn": 4,
+     "path": "p1.party.dragapult.hp",
+     "with": 510,
+     "without": 666
+    },
+    {
+     "turn": 4,
+     "path": "p1.active[0].hp",
+     "with": 510,
+     "without": 666
+    }
+   ],
    "diffs": []
   },
   {

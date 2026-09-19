@@ -164,11 +164,9 @@ ENGINE — does the simulator do what Pokémon does
   915/915 probed mechanics live, 0 missing   (census 2026-09-19 01:50)
     the census probes what somebody thought to probe: 299 of 299 in-scope tags carry a probe, 0 carry none (9 of 308
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 58 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 56 min old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    older than its input abra-tags.js
-    pinned to engine release 74be319d02fa — engine/medicham2-browser.js matches the frozen copy; live is 638bac0f02b3 now (a PRE-CHANGE measurement of that release, not corruption)
-    (+3 more — node engine/provenance.js)
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/a1c7dcd5696b/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "a1c7dcd5696b".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -185,9 +183,29 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 02:00_
+_stamped 2026-09-19 03:29_
 
 <!-- /GENERATED -->
+
+## 6.52.0 RE-MEASURES AT **0 / 1 / 2** — 14 OF 15 TARGETED GAMES GONE, NONE JOINED. THE ONE THAT STAYED WAS NEVER A HELPING HAND GAME. THREE ROSTER RED PLANTS WERE STRANDED BY THE MERGE. **NO ENGINE BYTE CHANGED — RELEASE `a1c7dcd5696b`.** GATE **CLOSED, 4 OF 8**. 2026-09-19, CHANGELOG 6.53.0
+
+Report: `docs/_reports/2026-09-19-a1c7-remeasure.md`. Census pin `1b735ff555ad` (915 live), which is not the
+last run's `322a5b4ba6b0`.
+
+- **The Helping Hand game `…2636045527` (g1350) stayed.** Its board had always parted at turn 15. The
+  Helping Hand line was its turn-2 PROTOCOL split, and the 2026-09-18 attribution keyed on that line. The
+  fix moved the protocol split to 15, and the board split underneath is Sucker Punch into a target that
+  Encore has just turned onto Swords Dance: the authority prints `|-fail|`, and ours hits. **Attribute a
+  board-material game by its first BOARD diff, never by its first protocol line.**
+- **The Trace game `…2657391947` (g1950) now parts at turn 6**, not turn 2. A Future Sight payout meets a
+  Focus Sash Kleavor. The authority consumes the Sash and leaves it at 1 HP. Ours faints it. Why
+  the Trace split went away is not measured.
+- **Three red plants anchor on lines 6.52.0 rewrote**, so they match 0 times: the Spicy Spray reaction die
+  (`ability/contact-statuses-the-attacker-by-chance`), the Healer and Shed Skin die
+  (`ability/cures-a-status-at-the-residual-by-chance`) and the boost road (`move/boosts-target`). Their rows
+  still read MATCH and are UNPROVEN. It is the 6.49.1 shape again: **every engine merge that touches a
+  planted line strands a plant.** Re-aim them on signatures (`tests/roster.js` only, no cut).
+- Narration 0 / 11 / 24: 14 line order, 10 refusal lines, 9 announcements, 2 per-hit.
 
 ## THE TWO ACCURACY RED PLANTS ARE CAUGHT AGAIN, THE ROSTER STOPS BUILDING BODIES THAT CANNOT KNOW THEIR IDLE CLICK, AND 6.50.0 RE-MEASURES AT **0 / 5 / 12** — EXACTLY THE TEN PREDICTED GAMES GONE, NONE JOINED. THE LEGAL CLICK EXPOSES ONE REAL DIVERGENCE: **PROTEAN CONVERTS ON A STATUS MOVE WHOSE `onTry` FAILS**. CENSUS **900 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — RELEASE `74be319d02fa`.** GATE **CLOSED, 2 OF 8**. 2026-09-19, CHANGELOG 6.50.1–6.51.0
 
