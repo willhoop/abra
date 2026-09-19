@@ -21,6 +21,8 @@ record, not current state; read the gate with `node engine/status.js`.
 ## Progress
 
 - 6.58.0 (`a43e94f6`): board-material 0 / 0 / 0 on all three lattices, the first time. Gate CLOSED 1 of 9, narration only (0 / 2 / 6).
+- 6.59.0 (`2c83fa6d`): the last narration mechanisms (Forewarn, Harvest's coin, Chilly Reception, held status before terrain, spin/Defog attribution, Magician, partial drop-refusal order).
+- 6.60.0 / 6.61.0 (`e85e48c8`): board-material 0 / 0 / 0 and narration 0 / 0 / 0; a dead Harvest red anchor re-aimed; **`GATE: OPEN` — all nine clauses pass on release `4c9b0cc4a4da`.** The next-major basis change is NOT published: the draft is being filled from these artifacts for Will to read.
 
 ## Queued for after the current measurement (done in 6.56.0) (these touch files the measuring agent reads)
 

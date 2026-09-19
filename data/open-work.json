@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-19T01:40:15.060Z",
+  "generated": "2026-09-19T13:49:00.080Z",
   "by": "engine/open_work.js",
   "what": "Every register row not marked closed, plus every defect a live instrument is measuring that has no register row. The answer to \"what is open\" — printed, never typed.",
   "why": "On 2026-08-11 a hand-typed list of ~30 open defects was read out while the gate sat green: 8 were closed, 4 had never been registered. Nothing printed the open work, so the only list that existed was one somebody typed.",
@@ -1352,7 +1352,7 @@
       "saysBroken": false,
       "uses": 0,
       "title": "'GOOD ENOUGH' IS A USAGE-WEIGHTED THRESHOLD, NOT A ROW COUNT — and by that measure the engine is already at 99.24%. Will",
-      "full": "'good enough' is a usage-weighted threshold, not a row count — and by that measure the engine is already at 99.24%. will, 2026-08-10: *'we do have to ask ourelves at what point is the engine good enough and has enough used features that it can perform its end goal'*. measured against the corpus rather than argued: 553,910 total move clicks; 781 (0.14%) land on a move that resolves to a whole no-op turn; 3,888 (0.70%) land on a move the roster says disagrees with the authority; the union is 4,208 = 0.76%. so 99.24% of real clicks land on a move with no known defect, and the game differential is 150/150 clean on real replayed games. the gate is a coverage standard and has been read as a sufficiency standard. its 45 open move rows are deliberately-staged edge cases, which is precisely why they survived — they barely occur. the honest test of sufficiency is roadmap #68: scale the differential from 150 games to 1,000+ real stored games. if it stays clean there, the remaining rows are polish and can run beside search work rather than blocking it, and the #99 quarantine can lift on a measured condition instead of a feeling. note the standing counter-evidence, which cuts the same way: `docs/measure.md` §0 carries a tight null at n=8,883 on the hypothesis that correctness fixes move the leaf at all"
+      "full": "'good enough' is a usage-weighted threshold, not a row count — and by that measure the engine is already at 99.24%. will, 2026-08-10: *'we do have to ask ourelves at what point is the engine good enough and has enough used features that it can perform its end goal'*. measured against the corpus rather than argued: 553,910 total move clicks; 781 (0.14%) land on a move that resolves to a whole no-op turn; 3,888 (0.70%) land on a move the roster says disagrees with the authority; the union is 4,208 = 0.76%. so 99.24% of real clicks land on a move with no known defect, and the game differential is 150/150 clean on real replayed games. the gate is a coverage standard and has been read as a sufficiency standard. its 45 open move rows are deliberately-staged edge cases, which is precisely why they survived — they barely occur. the honest test of sufficiency is roadmap #68: scale the differential from 150 games to 1,000+ real stored games. if it stays clean there, the remaining rows are polish and can run beside search work rather than blocking it, and the #99 quarantine can lift on a measured condition instead of a feeling. note the standing counter-evidence, which cuts the same way: `docs/measure.md` §0 carries a tight null (its sample size is withheld: the leaf-engine contrast is downstream of medicham) on the hypothesis that correctness fixes move the leaf at all"
     },
     {
       "n": 130,
@@ -1828,7 +1828,7 @@
     {
       "artifact": "data/interaction-matrix.json",
       "generated": "2026-08-11T22:00:06.336Z",
-      "age_days": 38.2
+      "age_days": 38.7
     }
   ]
 }
