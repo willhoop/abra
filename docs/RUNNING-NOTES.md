@@ -52,6 +52,37 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.68.0] — 2026-09-19 — Eleven ability rows staged on their own triggers against measured-quiet controls; Sticky Hold announces a refused strip and lets a fainting holder's item go
+
+**What changed.** `engine/stage_planner.js` derives, off each handler's text (membership printed before wiring), the trigger
+the eleven 6.67.0 rows never staged: a Fire click that LANDS on the holder (Flash Fire), a flinch writer (Stench), a move-id
+list on an Any handler (Damp: Explosion / Misty Explosion / Self-Destruct; Mind Blown is Past), the core status-immunity
+guard at sim/pokemon.ts:1715 (Corrosion), a screen half staged at the top corner (Infiltrator), a status move under the sun
+(Leaf Guard), a non-faint-gated contact punisher (Long Reach), a Super Fang halving path to the HP threshold (Overgrow),
+an item on the hitter (Pickpocket), the holder's own contact hit (Poison Touch), a foe removing the holder's item (Sticky
+Hold). Controls: `reactsTo` reads who makes the click and an unreached HP gate; a bearer with a quiet ability-swap control
+replaces one with a loud control (knob STAGE_PLANNER_KEEP_LOUD_BEARER=1); a weather-gated Speed modifier is judged loud;
+residual status readers get a stable status; a sub-1 accuracy multiplier plays at the top corner. Engine: a Thief / Covet /
+Knock Off strip refused by Sticky Hold now writes the authority's `-activate` (knob MEDI_STICKYHOLD_SILENT=1); and Sticky
+Hold no longer refuses for a holder the same hit brought to 0 HP (`data/abilities.ts:4617` `!pokemon.hp`; the strip runs
+before faintMessages, sim/battle-actions.ts:1123-1126 / :1086), so Knock Off, Thief, Covet, Bug Bite and Pluck take a
+fainting holder's item (knob MEDI_STICKYHOLD_REFUSES_AT_ZERO=1). Sticky Hold is the format's only item-refusing ability;
+the 75 mega stones have no HP gate and are unchanged.
+**Figures.** Worktree release a851fe9377de (part 1 measured on c4a0740cbc52; before: 54d02066fd71), light mode, 32 named rows (30 abilities, 2 items) whose
+plan moved, before and after, 0 games threw. All 11 target rows FIRED on the planner against a watch-quiet control; 7 carry
+a LOUD subject receipt, Corrosion (no handler), Infiltrator, Long Reach and Stench (move-property writers) rest on the quiet
+A/B. Over the 30 ability rows: fired_on_live_control 18 → 1 (Blaze, earned), unearned 9 → 0, legacy fallbacks 9 → 0,
+DID-NOT-FIRE 2 → 0; no board and no control arm parted. Sticky Hold staged row ANNOUNCEMENT-ONLY → NO-DIVERGENCE (knob
+restores it). Fainting holder: new census row `refusesItemLoss` ("...a holder the same hit faints") LIVE, MISSING under the
+knob; census 968 → 969 live / 0 missing; two-engine Knock Off and Thief KOs no divergence on a851fe9377de, "event missing
+from medicham2 :: -enditem" on c4a0740cbc52 and under the knob; the eleven rows re-run on a851fe9377de all FIRED,
+unearned 0. tests/test-stage-planner.js GREEN.
+**Supersedes.** 6.67.0's "9 FIRED rows on a live control have no subject receipt" and Flash Fire's and Stench's DID-NOT-FIRE
+(named-row readings, not published figures; the staged-game battery has not been re-run).
+**Basis.** unchanged
+**Owes.** docs/ABRA-technical-docs.md (the earned-fire trigger shapes and the quiet-bearer preference) at the next major.
+- **Coordinator, at merge.** `MEDI_STICKYHOLD_REFUSES_AT_ZERO` and `MEDI_STICKYHOLD_SILENT` set no MEDFAILS stamp and were not in `tests/test-mechanics.js` DELIBERATE_BREAK, so a knob run wrote the census; both are stamped and listed now, and the census refuses under them (969 live clean; 968 live, 1 missing, REFUSED under the zero-HP knob). Verified on release `6180c4712761`.
+
 ## [6.67.1] — 2026-09-19 — an ability row that reads FIRED only because its control acts now fails the mechanics clause
 
 - **What changed.** `engine/quarantine.js`, inside the mechanics clause's proof half (no new clause): `controlWatchTerm` reads `summary.abilities.control_watch` from `data/all-mechanics-fire.json` (6.67.0 field), and `unearnedReason` reads each FIRED ability row's `control_live`. An in-scope row on a live control whose credit is not backed by the subject's own receipt (`state` / `narrated` / `log`) fails exactly like an unproven row, named. The receipt class is read, not only the boolean: `earned_by_subject_receipt: true` over receipt `none`, or an unknown class, fails. A FIRED row with neither a `control_live` stamp nor a measured quiet `control_watch` fails. Rows that disagree with the summary's live or unearned lists fail. Excused only on the SUBJECT's owner shelf (`closet.ids`) or the Illusion closet; the control's shelf excuses nothing. No `control_watch`, no counters, or a blind watch reads CANNOT-ANSWER, never a pass.

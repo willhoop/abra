@@ -2276,6 +2276,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* ROADMAP #212 -- a strip refused by the holder's own ability (`refusesItemLoss`; Sticky Hold is
      the format's only carrier). Counted so the capability can prove it ran. */
   itemLossRefused: 0,
+  /* 2026-09-19 (earned-fire) -- a damaging move's strip refused by a live holder's ability and ANNOUNCED
+     (`-activate ... ability: <name>`), the authority's own line. Zero unless a Thief / Covet / Knock Off
+     meets a Sticky Hold body holding an item. */
+  itemLossRefusalAnnounced: 0,
+  /* 2026-09-19 (earned-fire, part 2) -- a strip that reached a refusing ability on a holder already at 0 HP, and was
+     therefore NOT refused (the handler's `!pokemon.hp` early return). Zero unless a removal move faints a Sticky Hold
+     body that holds an item. */
+  itemLossRefusalSkippedAtZero: 0,
   /* NARRATION BATCH Y, 2026-09-09 -- a Trick / Switcheroo whose swap the authority's `onHit` refuses --
      `yourItem === false || myItem === false || (!yourItem && !myItem)`, or a stone the RECEIVER's own
      species refuses -- announced as `|-fail|MOVER` with the `|move|` line's target blanked (`[still]`).
@@ -6479,6 +6487,14 @@ if(STATUS_REFUSAL_UNBREAKABLE)MEDFAILS.statusRefusalUnbreakableRestored=1;
 const BOUNCE_UNBREAKABLE=_knob('MEDI_BOUNCE_UNBREAKABLE');
 if(BOUNCE_UNBREAKABLE)MEDFAILS.bounceUnbreakableRestored=1;
 const STICKYHOLD_UNBREAKABLE=_knob('MEDI_STICKYHOLD_UNBREAKABLE');
+/* 2026-09-19 (earned-fire): MEDI_STICKYHOLD_SILENT=1 restores the silent refusal of a damaging move's strip (Thief,
+ * Covet, Knock Off) -- no `-activate` naming the refusing ability. See the steal step. */
+const STICKYHOLD_SILENT=_knob('MEDI_STICKYHOLD_SILENT');
+/* 2026-09-19 (earned-fire, part 2): MEDI_STICKYHOLD_REFUSES_AT_ZERO=1 restores the refusal on a holder the same hit
+ * brought to 0 HP. See `abilityRefusesItemLoss`. */
+const STICKYHOLD_REFUSES_AT_ZERO=_knob('MEDI_STICKYHOLD_REFUSES_AT_ZERO');
+if(STICKYHOLD_REFUSES_AT_ZERO)MEDFAILS.stickyHoldRefusesAtZeroRestored=1;
+if(STICKYHOLD_SILENT)MEDFAILS.stickyHoldSilentRestored=1;
 if(STICKYHOLD_UNBREAKABLE)MEDFAILS.stickyHoldUnbreakableRestored=1;
 const OBLIVIOUS_MOVEID_BLIND=_knob('MEDI_OBLIVIOUS_MOVEID_BLIND');
 if(OBLIVIOUS_MOVEID_BLIND)MEDFAILS.obliviousMoveIdBlindRestored=1;
@@ -9524,6 +9540,19 @@ function abilityRefusesItemLoss(m,by){
    * still lands; the pierce is asked after it. */
   const _ril=TAGS.param('ability',(m.ability||'').replace(/[^a-z0-9]/g,''),'refusesItemLoss');
   if(!_ril||!_ril.refuses)return false;
+  /* 2026-09-19 (earned-fire, part 2) -- A HOLDER THE HIT HAS ALREADY EMPTIED REFUSES NOTHING. The handler opens
+   *     if (!pokemon.hp || pokemon.item === 'stickybarb') return;              data/abilities.ts:4617
+   * (no Champions override), and every strip reaches it from the SAME hit: Knock Off's, Thief's and Covet's
+   * `onAfterHit` run over `damagedTargets` at sim/battle-actions.ts:1123-1126, Bug Bite's and Pluck's `onHit` at step 3
+   * (:1086) -- both above `faintMessages()`, so a holder at 0 HP is still the target and the item goes. Measured in the
+   * authority on a Hydrapple the hit faints: Knock Off `-enditem`s the item, Thief and Covet carry it off, Bug Bite and
+   * Pluck eat it. This read refused all five. Of the format's `onTakeItem` refusers Sticky Hold is the only ABILITY; the
+   * 75 mega stones refuse with no HP gate (`itemRefusesTake`, untouched). MEDI_STICKYHOLD_REFUSES_AT_ZERO=1 restores
+   * the refusal on a 0-HP holder. */
+  if(!(m.curHP>0)){
+    if(STICKYHOLD_REFUSES_AT_ZERO)MEDFAILS.stickyHoldRefusesAtZeroRestored=1;
+    else{MEDSEEN.itemLossRefusalSkippedAtZero++;return false;}
+  }
   if(!STICKYHOLD_UNBREAKABLE&&by&&suppressedAbility(by,m)==='none'){
     MEDSEEN.itemLossRefusalPiercedByMoldBreaker++;return false;}
   const _ex=String(_ril.exceptItem||'').replace(/[^a-z0-9]/g,'');
@@ -45875,7 +45904,22 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _fullHand=!!(_ri&&_ri.steals&&itemOn(m));
         if(_fullHand&&STEAL_IGNORES_FULL_HAND)MEDFAILS.stealIgnoresFullHandRestored=1;
         if(_fullHand&&!STEAL_IGNORES_FULL_HAND)MEDSEEN.stealRefusedFullHand++;
-        else if(_ri&&itemOn(tg)&&!itemRefusesTake(tg)&&!abilityRefusesItemLoss(tg,m)){
+        /* 2026-09-19 (earned-fire) -- THE REFUSED STRIP IS ANNOUNCED BY THE ABILITY THAT REFUSED IT. Thief's, Covet's
+         * and Knock Off's `onAfterHit` reach `target.takeItem(...)`, whose `runEvent('TakeItem')` runs Sticky Hold's
+         * own handler:
+         *     if (!pokemon.hp || pokemon.item === 'stickybarb') return;
+         *     if ((source && source !== pokemon) || this.activeMove.id === 'knockoff') {
+         *       this.add('-activate', pokemon, 'ability: Sticky Hold'); return false; }   data/abilities.ts:4615-4621
+         * (no Champions override). This engine refused the strip correctly and wrote nothing: the staged Sticky Hold
+         * fixture (Feraligatr's Thief into a Hydrapple holding Damp Rock) read board ANNOUNCEMENT-ONLY with the
+         * authority's `|-activate|p1a: Hydrapple|ability: Sticky Hold` missing here. Only a LIVE holder announces --
+         * the handler's own `!pokemon.hp` guard -- and the item-refusal branch is unchanged, so no board moves.
+         * `MEDI_STICKYHOLD_SILENT=1` restores the silent refusal. */
+        else if(_ri&&itemOn(tg)&&!itemRefusesTake(tg)&&abilityRefusesItemLoss(tg,m)){
+          if(STICKYHOLD_SILENT)MEDFAILS.stickyHoldSilentRestored=1;
+          else if(tg.curHP>0&&!tg.fainted){MEDSEEN.itemLossRefusalAnnounced++;if(TR)TR.act(tg,'ability: '+abilityLabel(tg.ability));}
+        }
+        else if(_ri&&itemOn(tg)&&!itemRefusesTake(tg)){
           const _taken=itemLose(tg);
           if(_taken){
             const _thiefAlive=!!(m&&!m.fainted&&m.curHP>0);

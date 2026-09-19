@@ -169,10 +169,10 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  968/968 probed mechanics live, 0 missing   (census 2026-09-19 13:50)
+  969/969 probed mechanics live, 0 missing   (census 2026-09-19 15:26)
     the census probes what somebody thought to probe: 301 of 301 in-scope tags carry a probe, 0 carry none (9 of 310
     tags have no in-scope carrier); 1 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 2.1 h old). node engine/coverage.js
+    (all-mechanics-fire.json, 3.0 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-19 12:39)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
     the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
@@ -196,9 +196,69 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 14:35_
+_stamped 2026-09-19 15:32_
 
 <!-- /GENERATED -->
+
+## ALL ELEVEN UNEARNED ABILITY ROWS NOW FIRE ON THEIR OWN TRIGGER AGAINST A CONTROL THE WATCH MEASURES QUIET. FLASH FIRE AND STENCH GO FROM DID-NOT-FIRE TO FIRED. **UNEARNED 9 → 0; FIRED ON A LIVE CONTROL 18 → 1 OVER THE 30 NAMED ROWS WHOSE PLAN MOVED; NO BOARD PARTED IN EITHER ARM.** ONE NARRATION FIX: STICKY HOLD NOW ANNOUNCES A REFUSED THIEF / COVET / KNOCK OFF STRIP. ONE BOARD FIX: STICKY HOLD NO LONGER KEEPS AN ITEM FOR A HOLDER THE SAME HIT FAINTS. CENSUS **968 → 969 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `a851fe9377de`; LIGHT MODE, NAMED ROWS ONLY.** 2026-09-19, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-19-earned-fire.md`.
+
+- **Each fixture now stages the subject's own trigger.** Every shape is read off the authority's handler, and what
+  each one matched was printed before it was wired (`engine/stage_planner.js`, "earned-fire"):
+  - Flash Fire: a status click aimed at the holder must land on a body. Sunny Day is a Fire move, and it had been
+    "meeting" the Fire need.
+  - Stench: a flinch writer. The holder hits first, and a slower receiver hits back.
+  - Damp: the move-id list in `onAnyTryMove`. The legal members are Explosion, Misty Explosion and Self-Destruct.
+    Mind Blown is `Past`.
+  - Corrosion: the sim-core guard at `sim/pokemon.ts:1715`. The holder's Toxic lands on a Steel body.
+  - Infiltrator: the screen half is staged at the top corner. Reflect lets a crit through, and the bottom corner
+    lands every crit.
+  - Leaf Guard: a status move under the sun.
+  - Long Reach: the contact punisher is not gated on a faint.
+  - Overgrow: Super Fang twice, so the holder sits at 1/4 HP. No damage number is assumed.
+  - Pickpocket: the hitter holds an item.
+  - Poison Touch: the holder's own contact hit.
+  - Sticky Hold: a foe tries to take the holder's item.
+- **Controls.** `reactsTo` now asks who makes the click and whether an HP threshold is reached. A bearer whose
+  ability-swap control is loud gives way to a bearer whose control is quiet. `loudOnBoard` reads a weather-gated Speed
+  modifier.
+  - Knob: `STAGE_PLANNER_KEEP_LOUD_BEARER=1`.
+- **Two regressions the drift caused, found and closed before the report:**
+  - Hydration on its new bearer froze the holder, and the freeze thawed on its own. A status read at the residual is
+    now a stable one.
+  - Snow Cloak lost its FIRED once its control was quiet. That FIRED had been Slush Rush's turn order. It now plays at
+    the top corner, where the 0.8 multiplier can make a move miss (Sand Veil too).
+- **Engine: Sticky Hold's `-activate`.** The engine refused Thief, Covet and Knock Off correctly but wrote no line.
+  The staged row read ANNOUNCEMENT-ONLY. It now reads NO-DIVERGENCE.
+  - Knob: `MEDI_STICKYHOLD_SILENT=1` restores the divergence (shown red).
+  - Counter: `itemLossRefusalAnnounced`.
+
+### The hand list, after this pass
+
+- **OFF THE LIST: the 9 FIRED rows with no subject receipt** (Corrosion, Damp, Infiltrator, Leaf Guard, Long Reach,
+  Overgrow, Pickpocket, Poison Touch, Sticky Hold), and Flash Fire's and Stench's DID-NOT-FIRE. All eleven are FIRED on
+  the planner against a quiet control.
+  - Seven carry a LOUD subject receipt.
+  - Corrosion has no handler to watch; the sim core reads it.
+  - Infiltrator, Long Reach and Stench only write a move property. Their credit is the quiet-control A/B.
+- **OFF THE LIST: Sticky Hold's missing `-activate`** on a damaging move's strip.
+- **OFF THE LIST (part 2, release `a851fe9377de`): a removal move that faints a Sticky Hold holder.** The
+  authority's handler returns early at 0 HP (`data/abilities.ts:4617`), and every strip reaches it from the same hit
+  (`sim/battle-actions.ts:1123-1126`; Bug Bite and Pluck at `:1086`). So Knock Off, Thief, Covet, Bug Bite and Pluck
+  all take the item. This was measured in the authority.
+  - Fix: `abilityRefusesItemLoss` refuses nothing on a 0-HP holder.
+  - Knob: `MEDI_STICKYHOLD_REFUSES_AT_ZERO=1`. Counter: `itemLossRefusalSkippedAtZero`.
+  - Census row `refusesItemLoss`, "Sticky Hold does not hold an item for a holder the same hit faints". **968 → 969
+    live**, and it reads MISSING under the knob.
+  - Class check: Sticky Hold is the format's only item-refusing ability. The 75 mega stones refuse with no HP gate and
+    are unchanged.
+- **NEW, NOT WIRED:** King's Rock matches the flinch-writer shape. That clause is ability-only.
+- **NEW, NOT WIRED:** Purifying Salt's status refusal is not staged. The refusal shape was narrowed to the
+  weather-gated case.
+- **Carried forward:** Blaze's control is still a click swap. It is earned by its state receipt.
+- **Carried forward:** the 39 click-swap controls. This pass turned two of them, Long Reach and Overgrow, into
+  quiet ability swaps.
 
 ## THE LEGACY LADDER PREFERS A QUIET CONTROL, AND "QUIET" IS NOW MEASURED IN THE AUTHORITY. STALWART FIRES AGAINST A QUIET CONTROL ON A REDIRECT FIXTURE. **55 FIRED ABILITY ROWS STILL REST ON A LIVE CONTROL, AND 9 OF THEM HAVE NO AUTHORITY RECEIPT FOR THE SUBJECT.** INSTRUMENT ONLY: NO ENGINE BYTE CHANGED AND THE CENSUS STAYS AT **968 / 968**. PINNED TO RELEASE `54d02066fd71`. LIGHT MODE, 81 NAMED ROWS. 2026-09-19, CHANGELOG `<<VER>>`
 

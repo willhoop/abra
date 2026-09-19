@@ -10,6 +10,20 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.68.0] — 2026-09-19
+
+### Fixed
+- **Sticky Hold** narrates its refusal of Thief / Covet / Knock Off, and a holder the same hit faints loses
+  its item, as in the authority.
+
+### Changed
+- Eleven abilities (Flash Fire, Stench, Corrosion, Damp, Infiltrator, Leaf Guard, Long Reach, Overgrow,
+  Pickpocket, Poison Touch, Sticky Hold) now fire on their own trigger against a measured-quiet control;
+  unearned FIRED rows 9 -> 0.
+
+### Notes
+- Census 968 -> 969 live. Report: `docs/_reports/2026-09-19-earned-fire.md`.
+
 ## [6.67.1] — 2026-09-19
 
 ### Changed

@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-19T17:50:30.336Z",
+  "generated": "2026-09-19T19:26:33.049Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 968,
-  "live": 968,
+  "probed": 969,
+  "live": 969,
   "missing": 0,
-  "armed": 968,
+  "armed": 969,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -4363,7 +4363,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.7% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.6% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -8174,6 +8174,16 @@
       "label": "Sticky Hold keeps the item through Knock Off and Trick, and lets a Sticky Barb go",
       "live": true,
       "detail": "Knock Off into a Milotic holding a Life Orb -- no ability leaves it \"\" for 115 damage; STICKY HOLD leaves it \"lifeorb\" for 115 (the damage MUST be equal: Showdown prices Knock Off's x1.5 off the ITEM handler, which the ability never sees). A STICKY BARB still goes: \"\". Trick swaps \"choicescarf\"/\"lifeorb\" with no ability and refuses to move anything with it: \"lifeorb\"/\"choicescarf\"",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "refusesItemLoss",
+      "label": "Sticky Hold does not hold an item for a holder the same hit faints (Knock Off, Thief, Bug Bite)",
+      "live": true,
+      "detail": "LIVE Sticky Hold holder keeps it: Knock Off \"damprock\", Thief \"damprock\" (thief \"\"), Bug Bite \"lumberry\". A holder the hit FAINTS (down: true,true,true) loses it: Knock Off \"\", Thief \"\" -> thief \"damprock\", Bug Bite \"\" (eaten by the biter). Authority: data/abilities.ts:4617 `!pokemon.hp` returns early. Knob MEDI_STICKYHOLD_REFUSES_AT_ZERO",
       "hollow": false,
       "armed": true,
       "directCall": false

@@ -1,10 +1,10 @@
 {
-  "current": "54d02066fd71",
-  "cut": "2026-09-19T17:51:01.326Z",
-  "why": "merged 6.66.0: Anger Point before the secondary, control-arm partings recorded, quiet controls preferred, Natural Cure fixture, eight moves credited on our board, Resist Berry plant",
+  "current": "6180c4712761",
+  "cut": "2026-09-19T19:26:51.339Z",
+  "why": "6.68.0: earned fixtures for eleven abilities, Sticky Hold line and faint exception",
   "cuts": 1,
-  "latest_cut": "2026-09-19T17:51:01.326Z",
-  "latest_why": "merged 6.66.0: Anger Point before the secondary, control-arm partings recorded, quiet controls preferred, Natural Cure fixture, eight moves credited on our board, Resist Berry plant",
-  "pointer_written": "2026-09-19T17:51:01.420Z",
+  "latest_cut": "2026-09-19T19:26:51.339Z",
+  "latest_why": "6.68.0: earned fixtures for eleven abilities, Sticky Hold line and faint exception",
+  "pointer_written": "2026-09-19T19:26:51.426Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

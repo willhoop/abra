@@ -30535,6 +30535,49 @@ probe('ability', 'refusesItemLoss', 'Sticky Hold keeps the item through Knock Of
                  + trOn.myItem + '"' };
 });
 
+/* STICKY HOLD HAS A FAINT EXCEPTION — 2026-09-19 (earned-fire, part 2).
+ *
+ * The handler opens `if (!pokemon.hp || pokemon.item === 'stickybarb') return;` (data/abilities.ts:4617, no
+ * Champions override), and the removal moves reach it from the SAME hit that may have just emptied the holder:
+ * `onAfterHit` runs over `damagedTargets` at sim/battle-actions.ts:1123-1126, before `faintMessages()` at :976, so a
+ * holder at 0 HP is still a target; Bug Bite and Pluck's `onHit` is step 3 at :1086, earlier still. Measured in the
+ * authority (scratch auth_stickyfaint.js, Weavile into a Hydrapple): a LIVE holder refuses all five with
+ * `-activate ... ability: Sticky Hold`; a holder the hit FAINTS loses the item to every one of them — Knock Off
+ * writes `-enditem ... [from] move: Knock Off`, Thief and Covet move it to the thief, Bug Bite and Pluck eat it.
+ *
+ * RED BEFORE THE FIX: this engine refused all three strips below on the fainted holder. `MEDI_STICKYHOLD_REFUSES_AT_ZERO=1`
+ * restores that. The live arm is the control: it must still refuse, or the probe would pass an engine that simply
+ * dropped Sticky Hold. */
+probe('ability', 'refusesItemLoss', 'Sticky Hold does not hold an item for a holder the same hit faints (Knock Off, Thief, Bug Bite)', () => {
+  const run = (mv, item, faints) => {
+    const me = bare('weavile'); me.moves = [mv, 'protect'];
+    const ally = bare('farigiraf');
+    const f1 = bare('hydrapple'), f2 = bare('milotic');
+    f1.ability = 'stickyhold'; f1.item = item;
+    if (!faints) unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    if (faints) f1.curHP = 1;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { holder: f1.item || '', thief: me.item || '', down: !(f1.curHP > 0) };
+  };
+  const koLive = run('knockoff', 'damprock', false), koDead = run('knockoff', 'damprock', true);
+  const thLive = run('thief', 'damprock', false), thDead = run('thief', 'damprock', true);
+  const bbLive = run('bugbite', 'lumberry', false), bbDead = run('bugbite', 'lumberry', true);
+  return { works: koLive.holder === 'damprock' && thLive.holder === 'damprock' && thLive.thief === ''
+                  && bbLive.holder === 'lumberry'
+                  && koDead.down && koDead.holder === ''
+                  && thDead.down && thDead.holder === '' && thDead.thief === 'damprock'
+                  && bbDead.down && bbDead.holder === '' && bbDead.thief === '',
+           arms: { control: [koLive.holder, thLive.holder, bbLive.holder], test: [koDead.holder, thDead.holder + '>' + thDead.thief, bbDead.holder] },
+           detail: 'LIVE Sticky Hold holder keeps it: Knock Off "' + koLive.holder + '", Thief "' + thLive.holder + '" (thief "'
+                 + thLive.thief + '"), Bug Bite "' + bbLive.holder + '". A holder the hit FAINTS (down: ' + [koDead.down, thDead.down, bbDead.down]
+                 + ') loses it: Knock Off "' + koDead.holder + '", Thief "' + thDead.holder + '" -> thief "' + thDead.thief
+                 + '", Bug Bite "' + bbDead.holder + '" (eaten by the biter). Authority: data/abilities.ts:4617 `!pokemon.hp` returns early. '
+                 + 'Knob MEDI_STICKYHOLD_REFUSES_AT_ZERO' };
+});
+
 /* FLUFFY — WILL'S BOARD: "have houndstone get hit by a fire move and other contact moves and check
  * the damage". THREE ARMS, AND THE THIRD IS THE ENTIRE POINT.
  *
@@ -36557,7 +36600,7 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'zombieSkipsResidualRestored', 'f
                           'veilBlockUnannouncedRestored', 'covetEnditemExtraRestored',
                           /* 2026-09-18 -- Good as Gold asked on the raw ability (tests/roster.js goodasgold) */
                           'statusRefusalUnbreakableRestored', 'bounceUnbreakableRestored',
-                          'stickyHoldUnbreakableRestored',
+                          'stickyHoldUnbreakableRestored', 'stickyHoldRefusesAtZeroRestored', 'stickyHoldSilentRestored',
                           /* 2026-09-18 -- the Electric bank kept past a shielded exit, and the Ally
                            * Switch counter kept on the bench (tests/probe_electric_charge_paths.js,
                            * tests/probe_bench_private_counters.js). Without these a knob run WROTE the

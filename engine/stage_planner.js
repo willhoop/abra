@@ -363,6 +363,8 @@ const reEatsBerry = e => handlersOf(e).some(h => /singleEvent\(\s*["']Eat["']/.t
 function needMet(m, n, ctx) {
   /* `ohko` — a knockout the planner can promise without a damage calculator: the move's own `ohko` field */
   if (n && n.kind === 'ohko') return !!D.moves.get(m).ohko;
+  /* `moveid` — the handler's own literal id list (earned-fire, 2026-09-19): the move is one of them */
+  if (n && n.kind === 'moveid') return (n.values || []).includes(id(m));
   if (PRE.satisfiesNeed(m, n, ctx)) return true;
   if (!n || !n.orMoves || !n.orMoves.includes(id(m))) return false;
   return !(n.damagingOnly && D.moves.get(m).category === 'Status');
@@ -461,6 +463,47 @@ function derivedAbilityTriggers(e, preNeeds) {
    * quiet control and its old FIRED rested on Stamina's own Defence boost. The redirectors are derived too (`redirectors`). */
   if (handlersOf(e).some(h => /move\.tracksTarget\s*=/.test(h.src)) && redirectGate())
     out.push({ kind: 'foe-redirects', gate: redirectGate().at, source: 'handler writes move.tracksTarget; ' + redirectGate().at + ' skips RedirectTarget when it is set' });
+  /* ==== 2026-09-19 (earned-fire) -- FIVE TRIGGERS THE FIXTURES NEVER STAGED, EACH READ OFF THE HANDLER ==========
+   * 6.67.0 measured nine FIRED ability rows whose credit came from the CONTROL acting, and two whose old FIRED was the
+   * control's alone; seven of the fixtures never staged the subject's own trigger. Membership of every clause below was
+   * PRINTED over the legal abilities and items before wiring (docs/_reports/2026-09-19-earned-fire.md, "membership").
+   *
+   *   FLINCH WRITER  the holder's own `onModifyMove` pushes a `volatileStatus: "flinch"` secondary onto its non-status
+   *                  move (abilities: stench; items: kingsrock -- not wired, this is the ability derivation). PRE's
+   *                  `secondary` need is dropped as an over-match (the handler ASSIGNS move.secondaries), so nothing
+   *                  was asked of the board: a flinch shows only when the holder HITS FIRST and the target was about to
+   *                  act -- so the holder hits, the receiver hits back, and the receiver is strictly slower. */
+  if (handlersOf(e).some(h => h.name === 'onModifyMove' && /secondaries\.push\(/.test(h.src) && /volatileStatus:\s*["']flinch["']/.test(h.src))) {
+    if (!hasBy('actor')) out.push({ kind: 'click', by: 'actor', need: { kind: 'category', values: DMG, damagingOnly: true },
+                                    handler: 'onModifyMove', source: 'handler pushes a flinch secondary onto the holder\'s hit' });
+    if (!hasBy('receiver')) out.push({ kind: 'click', by: 'receiver', need: { kind: 'category', values: DMG, damagingOnly: true },
+                                       handler: 'onModifyMove:flinched', source: 'the flinched body must be about to act: it hits the holder on the same turn' });
+    out.push({ kind: 'carrier-faster', value: 'flinch', source: 'a flinch lands only on a body that has not moved yet' });
+  }
+  /*   A MOVE-ID LIST ON AN ANY/FOE HANDLER  `[...].includes(effect.id)` in an `onAny*`/`onFoe*` handler: the holder
+   *                  answers a named move another body uses (abilities: damp). The legal ids are the trigger, clicked by
+   *                  the receiver at the holder; an id not in the regulation is dropped by the filter, never named. */
+  for (const h of handlersOf(e)) {
+    if (!/^on(Any|Foe)/.test(h.name)) continue;
+    const m = /\[([^\]]*)\]\.includes\(\s*(?:effect|move)\.id\s*\)/.exec(h.src);
+    if (!m) continue;
+    const ids = [...m[1].matchAll(/["']([a-z0-9]+)["']/g)].map(x => x[1]).filter(k => legal(D.moves.get(k)));
+    if (ids.length && !hasBy('receiver')) out.push({ kind: 'click', by: 'receiver', need: { kind: 'moveid', values: ids, damagingOnly: false },
+                                                     handler: h.name, source: 'handler gates on a move-id list; legal: ' + ids.join('/') });
+  }
+  /*   THE HOLDER'S OWN CONTACT HIT  `onSourceDamagingHit` asking `checkMoveMakesContact` (abilities: poisontouch).
+   *                  The unprefixed twin is read below as the receiver's contact; the Source prefix is the holder's. */
+  if (!hasBy('actor') && handlersOf(e).some(h => h.name === 'onSourceDamagingHit' && /checkMoveMakesContact\(/.test(h.src)))
+    out.push({ kind: 'click', by: 'actor', need: { kind: 'flag', values: ['contact'], damagingOnly: true },
+               handler: 'onSourceDamagingHit', source: 'handler:onSourceDamagingHit checkMoveMakesContact' });
+  /*   THE HITTER'S ITEM  an unprefixed `onAfterMoveSecondary` calling `source.takeItem(` (abilities: pickpocket) takes
+   *                  the item of the body that hit the holder -- which must be holding one. */
+  if (handlersOf(e).some(h => h.name === 'onAfterMoveSecondary' && /source\.takeItem\(/.test(h.src)))
+    out.push({ kind: 'hitter-holds-item', source: 'handler:onAfterMoveSecondary source.takeItem' });
+  /*   AN ITEM THAT WILL NOT LEAVE  an unprefixed `onTakeItem` that returns false (abilities: stickyhold): the holder
+   *                  holds a removable item and a foe clicks a move that removes or takes it. */
+  if (handlersOf(e).some(h => h.name === 'onTakeItem' && /return\s+false/.test(h.src)))
+    out.push({ kind: 'foe-takes-item', source: 'handler:onTakeItem returns false' });
   /* A FORME THAT FOLLOWS THE WEATHER needs one of the weathers it names on the field */
   const fw = p.formeFollowsWeather;
   if (fw && fw.byWeather && Object.keys(fw.byWeather).length)
@@ -600,6 +643,15 @@ function triggersOf(kind, e, Uv) {
         add({ kind: 'foe-carries-se-move', handler: h.name, source: 'handler walks foes().moveSlots through getEffectiveness' });
       /* an accuracy handler that makes a move ALWAYS hit, on either side of the holder — only the corner
        * where a sub-100 move misses can show it (PRE's `accuracy-roll` needs EVERY handler in the family) */
+      /* earned-fire (2026-09-19): THE HOLDER LOWERS THE ACCURACY OF A MOVE AIMED AT IT (`onModifyAccuracy` returning a
+       * `chainModify` below 1). At the bottom corner every move hits whatever its accuracy, so the multiplier can never
+       * show; the accuracy plan below stages it at the top corner, where the draw is 99 and a 100-accuracy move pulled
+       * under 100 misses. Printed before wiring: sandveil and snowcloak (tangledfeet already carries PRE's
+       * accuracy-roll). Found when Snow Cloak's control became a quiet one and the row read DID-NOT-FIRE: its old
+       * FIRED was Slush Rush's turn order. */
+      if (!sh.prefix && sh.base === 'modifyaccuracy' && /return\s+this\.chainModify/.test(h.src) && (multOf(h.src) || {}).m < 1
+          && !PRE.boardNeeds(NE_OF(e)).some(n => n.kind === 'accuracy-roll') && !out.some(t => t.kind === 'board' && t.state === 'accuracy-roll'))
+        add({ kind: 'board', state: 'accuracy-roll', values: [], handler: h.name, lowers: true, source: 'handler:' + h.name + ' chainModify < 1 (planner-derived)' });
       if (ACC_EVENTS.test(sh.prefix === 'Any' || sh.prefix === 'Source' || !sh.prefix ? sh.base : '') && /return\s+true/.test(h.src)
           && !PRE.boardNeeds(NE_OF(e)).some(n => n.kind === 'accuracy-roll'))
         add({ kind: 'board', state: 'accuracy-roll', values: [], handler: h.name, alwaysHits: true, source: 'handler:' + h.name + ' returns true (planner-derived)' });
@@ -637,6 +689,7 @@ function triggersOf(kind, e, Uv) {
      * (relay?, eventTarget, eventSource, effect), and an unprefixed handler runs with the HOLDER as the
      * event target. So after the relay value, parameter 1 is the holder and parameter 2 the other body. */
     const sts = new Set(), foeSts = new Set();
+    let refusesUnderWeather = false;
     const bodyish = /^(pokemon|target|source|attacker|defender|user|foe|ally|mon)$/;
     for (const h of H) {
       const sh = splitHandler(h.name); if (!sh || sh.prefix) continue;
@@ -648,6 +701,13 @@ function triggersOf(kind, e, Uv) {
       for (const m of h.src.matchAll(/(\w+)\.status\s*===\s*["'](brn|par|psn|tox|slp|frz)["']/g)) put(m[1], m[2]);
       for (const m of h.src.matchAll(/\[([^\]]*)\]\.includes\(\s*(\w+)\.status\s*\)/g)) for (const s of m[1].matchAll(/["'](brn|par|psn|tox|slp|frz)["']/g)) put(m[2], s[1]);
       if (/^(setstatus|trysetstatus|immunity)$/.test(sh.base)) for (const m of h.src.matchAll(/["'](brn|par|psn|tox|slp|frz)["']/g)) sts.add(m[1]);
+      /* 2026-09-19 (earned-fire): A REFUSAL OF EVERY STATUS, GATED ON A WEATHER — `onSetStatus` returning false with no
+       * status literal, behind an `effectiveWeather()` test. Printed before wiring: the refusal shape alone matches
+       * comatose, leafguard, purifyingsalt and shieldsdown; the weather gate narrows it to leafguard. A status must
+       * ARRIVE under that weather, so it is clicked on the trigger turn, after the partner's setup turn sets the sky.
+       * Without it the Leaf Guard fixture set the sun and then nobody statused the holder. */
+      if (sh.base === 'setstatus' && /return\s+false/.test(h.src) && !/["'](brn|par|psn|tox|slp|frz)["']/.test(h.src)
+          && /effectiveWeather\(|isWeather\(/.test(h.src)) { sts.add('any'); refusesUnderWeather = true; }
       for (const m of h.src.matchAll(/(\w+)\.status\b(?!\s*===)(?!\s*\))/g)) if (!/^(move|effect|this)$/.test(m[1]) && !sts.size && !foeSts.size && /^(pokemon|source|target)$/.test(m[1]) && !foeVar.test(m[1])) sts.add('any');
       /* ---- FORCE-FIRE (2026-09-19): THREE STATUS SHAPES THE READS ABOVE NEVER SAW ----------------------
        * Will: "why cant we stage games that force the ability to fire". Each was a DID-NOT-FIRE row whose
@@ -683,7 +743,22 @@ function triggersOf(kind, e, Uv) {
       const st = enclosingCondition(s.at);
       if (st && STATUS_IDS.includes(st)) { sts.add(st); t.statusRead = st; }
     }
-    if (sts.size && !out.some(t => t.kind === 'ally-guard')) add({ kind: 'holder-statused', values: [...sts], source: 'status reads on the holder, resolved by event role' });
+    if (sts.size && !out.some(t => t.kind === 'ally-guard')) add(Object.assign({ kind: 'holder-statused', values: [...sts], source: 'status reads on the holder, resolved by event role' },
+      refusesUnderWeather ? { afterWeather: true, source: 'onSetStatus refuses every status under a weather: the status arrives on the trigger turn' } : {}));
+    /* 2026-09-19 (earned-fire): A MECHANIC READ IN THE SIM CORE AS A PASS THROUGH A STATUS IMMUNITY. The read site
+     * (fixture_preflight.readByOthers) is the guard `source.hasAbility("<id>") && [<statuses>].includes(status.id)` in
+     * front of `runStatusImmunity` -- the holder's status click lands on a body the type chart makes immune. Read off the
+     * cited line, never named; printed before wiring: corrosion @sim/pokemon.ts:1715 ('tox', 'psn') only. */
+    for (const t of out.filter(x => x.kind === 'read-elsewhere')) for (const s of t.sites || []) {
+      const m = /^(.+):(\d+)$/.exec(String(s.at || '')); if (!m) continue;
+      let L; try { L = srcOf(m[1]); } catch (err) { console.error('  stage_planner: cannot read ' + m[1] + ' for ' + s.at + ' (' + err.message + ')'); continue; }
+      const line = L[+m[2] - 1] || '';
+      const g = new RegExp('hasAbility\\(\\s*["\']' + e.id + '["\']\\s*\\)\\s*&&\\s*\\[([^\\]]*)\\]\\.includes\\(\\s*status\\.id\\s*\\)').exec(line);
+      if (!g || !/runStatusImmunity/.test(L.slice(+m[2] - 1, +m[2] + 3).join(' '))) continue;
+      const st = [...g[1].matchAll(/["'](brn|par|psn|tox|slp|frz)["']/g)].map(x => x[1]);
+      if (st.length && !out.some(x => x.kind === 'status-past-immunity'))
+        add({ kind: 'status-past-immunity', statuses: st, at: s.at, source: 'core read ' + s.at + ': the guard skips runStatusImmunity for ' + st.join('/') });
+    }
     /* 2026-09-19 — AND WHEN THE STATUS IS READ ON THE WAY OUT, the holder has to LEAVE. A statused holder
      * that stays on the field is byte-identical to one without the ability. Membership printed before
      * wiring: naturalcure only (its Champions override, data/mods/champions/abilities.ts:63-71). */
@@ -1197,6 +1272,11 @@ function enclosingCondition(at) {
   for (let i = +m[2] - 1; i >= 0; i--) { const b = /^\t([a-z0-9]+):\s*\{/.exec(L[i]); if (b) return b[1]; }
   return null;
 }
+/* The move targets that put a move ON a foe body (Showdown's `MoveTarget`); a field, side or self move does not. */
+const LANDS_ON_FOE = new Set(['normal', 'any', 'adjacentFoe', 'randomNormal', 'allAdjacent', 'allAdjacentFoes']);
+/* A move that takes HALF the target's current HP, read off its own `damageCallback` (earned-fire, 2026-09-19).
+ * Printed before wiring: superfang only. */
+const halvesHP = d => !!d && typeof d.damageCallback === 'function' && /getUndynamaxedHP\(\)\s*\/\s*2/.test(String(d.damageCallback));
 const sureHit = (d, user) => d.accuracy === true || d.accuracy >= 100
   || ((U.T.moves[d.id] || { tags: [] }).tags.includes('neverMissesFromUserType')
       && typesOf(user).includes((U.T.moves[d.id].params.neverMissesFromUserType || {}).userType));
@@ -1278,19 +1358,34 @@ function stageEntity(kind, e, trig, bearer, branch) {
   let reqR = [];                                 /* { key, pred(d, sp), at, turn } */
   for (const t of T('click').filter(t => t.by === 'receiver' || t.by === 'either')) {
     const redirect = /RedirectTarget/.test(t.handler || '');
+    /* 2026-09-19 (earned-fire): A STATUS CLICK AIMED AT THE HOLDER MUST LAND ON A BODY. `target !== 'self'` let a
+     * field or side move through (Sunny Day is Fire), so Flash Fire's receiver "met" its Fire need with a sky and never
+     * aimed a Fire move at the holder: the row read DID-NOT-FIRE. The move's own `target` decides. */
     reqR.push({ key: 'need:' + t.need.kind, handler: t.handler, at: redirect ? 'CA' : 'C', turn: 'trigger',
                 pred: (d, sp) => needMet(d.id, t.need, { userTypes: sp.types, targetTypes: typesOf(rc.bodies.C) })
-                  && (d.category !== 'Status' || d.target !== 'self'),
+                  && (d.category !== 'Status' || LANDS_ON_FOE.has(d.target)),
                 except: redirect ? [] : exceptSelf, why: 'the handler ' + t.handler + ' needs ' + t.need.kind + '=' + t.need.values.join('/') });
     if (redirect) rc.live.add('CA');
   }
   const stTrig = T('holder-statused')[0];
   if (stTrig) {
-    const want = stTrig.values.includes('any') || !stTrig.values.length ? STATUS_IDS
+    let want = stTrig.values.includes('any') || !stTrig.values.length ? STATUS_IDS
       : stTrig.values.includes('any-acting') ? ACTING_STATUSES() : stTrig.values;
+    /* earned-fire (2026-09-19): A STATUS READ AT THE RESIDUAL MUST STILL BE THERE AT THE RESIDUAL. An unprefixed
+     * `onResidual` reading the holder's `.status` (printed: hydration, shedskin) sees nothing if the status cured itself
+     * first -- and at the bottom corner every thaw and wake die succeeds, so a freeze is gone the moment a slower holder
+     * tries to move. The Hydration fixture worked on Goodra only because Goodra outsped the freezer; on the next bearer
+     * it read DID-NOT-FIRE. So the status is a STABLE one (its condition never calls cureStatus) wherever one is wanted. */
+    if (handlersOf(e).some(h => h.name === 'onResidual' && /pokemon\.status\b/.test(h.src))) {
+      const st = want.filter(s => STABLE_STATUSES().includes(s));
+      if (st.length) want = st;
+    }
     if (!want.length) refuse('PLANNER-CANNOT-CONSTRUCT', 'the holder must carry a status it can still act under, and no status condition in the format lacks onBeforeMove');
-    reqR.push({ key: 'status', at: 'C', turn: 'setup', except: exceptSelf, statusIsTrigger: true,
-                pred: (d) => want.some(s => statusMoveFor(s, rc.arm)(d)), why: 'the handler reads the holder\'s status (' + want.join('/') + ')' });
+    reqR.push({ key: stTrig.afterWeather ? 'status-under-weather' : 'status', at: 'C', turn: stTrig.afterWeather ? 'trigger' : 'setup', except: exceptSelf, statusIsTrigger: true,
+                /* a refusal under a weather is asked of a STATUS MOVE: the handler's own `-immune` line is written only for
+                 * `effect.status` (a primary status), and a secondary's freeze is refused by the sun itself */
+                pred: (d) => want.some(s => statusMoveFor(s, rc.arm)(d)) && (!stTrig.afterWeather || d.category === 'Status'),
+                why: 'the handler reads the holder\'s status (' + want.join('/') + ')' + (stTrig.afterWeather ? ', delivered by a status move under the weather' : '') });
   }
   const ind = T('indirect-damage')[0];
   if (ind) reqR.push({ key: 'indirect', at: 'C', turn: 'setup', except: [], pred: d => ['brn', 'psn', 'tox'].some(s => statusMoveFor(s)(d)),
@@ -1399,7 +1494,31 @@ function stageEntity(kind, e, trig, bearer, branch) {
     reqR.push({ key: 'carry-se', at: null, turn: 'carry', except: [], pred: d => d.category !== 'Status' && D.getImmunity(d.type, typesOf(rc.bodies.C)) && D.getEffectiveness(d.type, typesOf(rc.bodies.C)) > 0,
                 why: 'a foe must carry a move super-effective on the holder' });
   if (T('target-punishes-contact').length) rc.punisher = true;
-  /* ---- ROLL-GATED: accuracy and crit, staged at the corner where the threshold decides ---- */
+  /* ---- 2026-09-19 (earned-fire): FOUR MORE REQUIREMENTS ON THE RECEIVER ----
+   * foe-takes-item   the holder holds the quietest removable item and the receiver clicks a move tagged to remove or
+   *                  take the target's item (tags removesItem / takesTargetItem), at the holder.
+   * hp-threshold     where no self-cost move reaches it, the receiver halves the holder's HP with a move whose own
+   *                  damageCallback takes half (`halvesHP`) -- a fraction, so no damage number is assumed; clicked as
+   *                  many times as the threshold needs (1/2^k <= 1/f). The two-real-hits path stays as the fallback. */
+  if (T('foe-takes-item').length) {
+    const it = quietItem(rc, 'p1', { removable: true });
+    if (!it) refuse('PLANNER-CANNOT-CONSTRUCT', 'no quiet removable item for the holder to hold');
+    setItem(rc, 'C', it.name);
+    rc.notes.push('C holds ' + it.name + ' (the quietest removable item) for the receiver to try to take');
+    reqR.push({ key: 'take-item', at: 'C', turn: 'trigger', except: exceptSelf,
+                pred: d => d.target === 'normal' && ['removesItem', 'takesTargetItem'].some(t => tagsOf('moves', d.id).tags.includes(t)),
+                why: 'onTakeItem refuses: a foe must try to remove or take the holder\'s item' });
+  }
+  {
+    const hpT = board('hp-threshold');
+    const f = hpT ? (hpT.fraction || +hpT.values[0]) : 0;
+    const selfCost = hpT && U.MOVES.some(d => { const p = ((U.T.moves[d.id] || { params: {} }).params.costsUserHP || {}); return p.costsFraction && !d.selfSwitch && 1 - p.costsFraction <= 1 / f && learns(rc.bodies.C.species, d.id); });
+    if (hpT && f > 1 && !selfCost && U.MOVES.some(d => legal(d) && halvesHP(d))) {
+      rc.halveTimes = Math.ceil(Math.log2(f));
+      reqR.push({ key: 'halve', at: 'C', turn: 'setup', except: exceptSelf, pred: d => legal(d) && halvesHP(d),
+                  why: 'the holder must sit at <= 1/' + f + ': a move whose damageCallback halves its HP, ' + rc.halveTimes + ' times' });
+    }
+  }
   const acc = board('accuracy-roll'), crit = board('crit-roll');
   let accPlan = null, critPlan = null;
   if (acc) {
@@ -1486,14 +1605,26 @@ function stageEntity(kind, e, trig, bearer, branch) {
   const wantAbility = advAbility || null;
   /* a contact punisher, read off the handler: it damages the attacker from `onDamagingHit` when the
    * authority's `checkMoveMakesContact` says so, and draws no die of its own */
-  const punishers = rc.punisher ? U.ABILITIES.filter(a => handlersOf(a).some(h => h.name === 'onDamagingHit' && /checkMoveMakesContact\(/.test(h.src) && /this\.damage\(/.test(h.src))
+  /* earned-fire (2026-09-19): NOT A PUNISHER GATED ON THE FAINT (`!target.hp && …`, the gate loudOnBoard already
+   * reads). Printed: aftermath only. The Long Reach fixture drew Garbodor/Aftermath, which punishes nothing on a
+   * body that survives, so the contact it removed could not show. */
+  const punishers = rc.punisher ? U.ABILITIES.filter(a => handlersOf(a).some(h => h.name === 'onDamagingHit' && /checkMoveMakesContact\(/.test(h.src) && /this\.damage\(/.test(h.src)
+    && !/!\s*target\.hp\s*&&/.test(h.src))
     && !rollOf(a).gated).map(a => a.name) : null;
   const bypassT = T('bypass-immunity')[0];
+  /* earned-fire (2026-09-19): the holder's status click must land on a body the TYPE CHART makes immune to it — that
+   * immunity is what the core read skips (status-past-immunity) */
+  const spiT = T('status-past-immunity')[0];
+  for (let pass = 0; pass < 2 && !rPick; pass++) {
+  /* the second pass drops the halving requirement: a board where no receiver can halve the holder falls back to the
+   * two-real-hits path below, exactly as before this pass */
+  if (pass === 1) { if (!reqR.some(q => q.key === 'halve')) break; reqR = reqR.filter(q => q.key !== 'halve'); delete rc.halveTimes; }
   for (const sid of (BRK === 'feraligatr-only' ? RECEIVER_FIRST : speciesOrder(RECEIVER_FIRST))) {
     const sp = D.species.get(sid);
     if (rc.used.has(id(sp.baseSpecies || sp.name))) continue;
     /* the receiver must be immune BY THE TYPE CHART to a type the handler switches immunity off for */
     if (bypassT && !bypassT.values.some(t => !D.getImmunity(t, sp.types))) continue;
+    if (spiT && !spiT.statuses.some(s => !D.getImmunity(s, sp.types))) continue;
     const abOpts = wantAbility ? [wantAbility] : punishers ? punishers : [quietAbility(sp.name, [e.id])];
     for (const ab of abOpts) {
       if (!ab || !Object.values(sp.abilities).map(id).includes(id(ab))) continue;
@@ -1508,6 +1639,7 @@ function stageEntity(kind, e, trig, bearer, branch) {
     }
     if (rPick) break;
   }
+  }
   if (!rPick) refuse(reqR.length || wantAbility || punishers ? 'NO-TRIGGER-SUPPLIER' : 'PLANNER-CANNOT-CONSTRUCT',
     'no legal receiver supplies: ' + (reqR.map(q => q.why).join('; ') || (wantAbility ? 'the ability ' + wantAbility : 'a contact punisher') || 'a hittable body')
     + (rSpeed ? ' (with the speed window the order needs)' : ''));
@@ -1520,6 +1652,16 @@ function stageEntity(kind, e, trig, bearer, branch) {
     if (!it) refuse('PLANNER-CANNOT-CONSTRUCT', 'no quiet removable item for the receiver to hold');
     setItem(rc, 'R', it.name);
     rc.notes.push('R holds ' + it.name + ' (the quietest removable item) for the holder\'s own hit to take');
+  }
+  /* earned-fire (2026-09-19): the holder takes the item of the body that HIT it (hitter-holds-item), so the receiver
+   * holds one and the holder's hand is empty */
+  if (T('hitter-holds-item').length) {
+    if (rc.bodies.C.item) refuse('PLANNER-CANNOT-CONSTRUCT', 'the holder must be empty-handed to take the hitter\'s item, and it holds ' + rc.bodies.C.item);
+    const it = quietItem(rc, 'p2', { removable: true });
+    if (!it) refuse('PLANNER-CANNOT-CONSTRUCT', 'no quiet removable item for the receiver to hold');
+    setItem(rc, 'R', it.name);
+    rc.observe = { role: 'C', leaf: 'item', channel: 'board', leaves: ['item'] };
+    rc.notes.push('R holds ' + it.name + ' (the quietest removable item); its contact hit on the empty-handed holder is what the handler takes it on');
   }
   const rMoves = {};
   for (const { q, m } of rPick.moves) rMoves[q.key] = addMove(rc, 'R', m);
@@ -1678,6 +1820,25 @@ function composeEntity(rc, x) {
     acts.push({ role: 'C', click: { m: addMove(rc, 'C', m), at: 'R' }, phase: 0 });
     tc('C', 'R', m, 0, { statusIsTrigger: true });
   }
+  /* earned-fire (2026-09-19): THE HOLDER'S STATUS CLICK THROUGH A TYPE-CHART IMMUNITY (status-past-immunity). The
+   * type immunity is the trigger, so it is excepted on this click only; the receiver's ABILITY is still asked (its
+   * own refusal would be a second, unrelated reason). */
+  const spi = T('status-past-immunity')[0];
+  if (spi) {
+    const R = rc.bodies.R;
+    const pool = [...(U.POOL.get(spOf(rc.bodies.C.species).id) || [])].map(k => D.moves.get(k))
+      .filter(d => legal(d) && d.category === 'Status' && spi.statuses.some(s => statusMoveFor(s, rc.arm)(d)))
+      .filter(d => !statusImmunity({ types: [] }, PRE.statusOf(d), id(R.ability))
+                && !masksFor(d.id, rc.bodies.C, R, { arm: rc.arm, except: ['status'], foe: true }).length);
+    if (!pool.length) refuse('NO-TRIGGER-SUPPLIER', 'the carrier ' + rc.bodies.C.species + ' learns no ' + spi.statuses.join('/') + ' status move that lands on ' + R.species);
+    const m = rankMoves(pool.map(d => d.id))[0];
+    acts.push({ role: 'C', click: { m: addMove(rc, 'C', m), at: 'R' }, phase: 1 });
+    tc('C', 'R', m, 1, { except: ['status'], statusIsTrigger: true, foe: true });
+    rc.conditions.push({ kind: 'click', role: 'C', move: m, phase: 1 });
+    rc.observe = { role: 'R', leaf: 'status', channel: 'board', leaves: ['status'] };
+    rc.notes.push(D.moves.get(m).name + ' lands on ' + R.species + ' (' + typesOf(R).join('/') + ', immune to ' + spi.statuses.join('/')
+      + ' by the type chart) only because ' + spi.at + ' skips runStatusImmunity for the holder');
+  }
   /* hp threshold on the holder: a self-cost move when one reaches it, otherwise the real pool */
   const hp = board('hp-threshold') || (berry && berry.kind === 'heal' ? { fraction: 2 } : null);
   if (hp) {
@@ -1685,6 +1846,14 @@ function composeEntity(rc, x) {
     const cost = U.MOVES.filter(d => { const p = ((U.T.moves[d.id] || { params: {} }).params.costsUserHP || {}); return p.costsFraction && !d.selfSwitch && 1 - p.costsFraction <= 1 / f; })
       .find(d => learns(rc.bodies.C.species, d.id));
     if (cost) { acts.push({ role: 'C', click: { m: addMove(rc, 'C', cost.id) }, phase: 0 }); rc.notes.push('HP is lowered to <= 1/' + f + ' by ' + cost.name + ' (tag costsUserHP)'); }
+    else if (rc.rMoves && rc.rMoves.halve && rc.halveTimes) {
+      /* earned-fire (2026-09-19): a fraction, not a damage number -- (1/2)^k of the holder's HP, k read off the threshold */
+      for (let i = 0; i < rc.halveTimes; i++) acts.push({ role: 'R', click: { m: rc.rMoves.halve, at: 'C' }, phase: 0, seq: i });
+      tc('R', 'C', rc.rMoves.halve, 0, { except: exceptSelf });
+      rc.hpLowered = true;
+      rc.notes.push('HP is lowered to 1/' + Math.pow(2, rc.halveTimes) + ' (<= 1/' + f + ') by ' + rc.halveTimes + 'x ' + rc.rMoves.halve
+        + ' (its damageCallback halves the target\'s HP) — no damage number is assumed');
+    }
     else {
       rc.hpPool = 'x1';
       const h = hitFor(rc, 'R', 'C', { except: exceptSelf });
@@ -1725,6 +1894,8 @@ function composeEntity(rc, x) {
                   'berry-resist': [berry && berry.holder, 1], weight: ['C', 1] };
     /* a CARRIED move is on the receiver's sheet for the holder to read, and is never clicked */
     if (key === 'carry-se') { rc.notes.push('R carries ' + m + ' (super-effective on the holder) and never clicks it'); continue; }
+    /* the halving clicks are laid by the hp-threshold block above, as many times as the threshold needs */
+    if (key === 'halve') continue;
     let [at, phase] = req[key] || ['C', 1];
     if (key.startsWith('need:')) { const d = D.moves.get(m); at = d.target === 'self' ? null : (trig.some(t => /RedirectTarget/.test(t.handler || '')) ? 'CA' : 'C'); phase = 1; }
     if (key === 'ally-guard') at = x.branch === 'covers-self' ? 'C' : 'CA';
@@ -1953,7 +2124,9 @@ function composeEntity(rc, x) {
     'foe-statused', 'bypass-immunity', 'speed-mult',
     /* FORCE-FIRE (2026-09-19) — each staged above: */
     'weight', 'target-holds-item', 'holder-ate-berry', 'nearby-item-used', 'foe-carries-se-move', 'carrier-faster', 'switch-out',
-    'target-protects', 'carrier-switches-out', 'foe-trapped', 'foe-redirects'].includes(t.kind)) {
+    'target-protects', 'carrier-switches-out', 'foe-trapped', 'foe-redirects',
+    /* earned-fire (2026-09-19) — each staged above: */
+    'hitter-holds-item', 'foe-takes-item', 'status-past-immunity'].includes(t.kind)) {
     if (t.kind === 'board' && ['volatile-present', 'own-stat-dropped', 'trapped', 'item-consumed', 'accuracy-roll', 'crit-roll', 'speed-order', 'ally-only', 'heal-effect', 'pp-exhausted', 'ko-hit', 'hp-threshold'].includes(t.state)) continue;
     if (t.kind === 'board' && t.state === 'species-gated') continue;
     rc.unconsumed = (rc.unconsumed || []).concat(t.kind + (t.state ? ':' + t.state : ''));
@@ -2294,6 +2467,14 @@ function stageHalf(kind, e, bearer, tag, half) {
     const body = { species: sp.name, field: sp.name, ability: quietAbility(sp.name) };
     rc.bodies.R = null;
     setBody(rc, 'R', body);
+    /* earned-fire (2026-09-19): A READER THAT ALSO LETS A CRIT THROUGH is visible only where no crit lands. Reflect,
+     * Light Screen and Aurora Veil test `!…getMoveHitData(move).crit && !move.infiltrates` (printed before wiring), and
+     * the bottom corner lands every crit, so the screen half read DID-NOT-FIRE on both engines: the crit had already
+     * gone through the screen. Staged at the top corner, where no crit lands. */
+    if (handlersOf(st).some(x => /\.crit\b/.test(x.src) && writes.some(w => new RegExp('\\.' + w + '\\b').test(x.src)))) {
+      rc.arm = TOP;
+      rc.notes.push('top corner: ' + st.name + ' lets a crit through (its handler reads .crit), and the bottom corner lands every crit');
+    }
     const h = hitFor(rc, 'C', 'R', { category: cat || undefined });
     if (!h) { rc.bodies.R.moves = []; continue; }
     useSpecies(rc, sp.name);
@@ -2341,7 +2522,23 @@ function reactsTo(alt, rc, e) {
   if (stateNoise(a, rc) > 0) why.push('writes state on its own (an entry/residual/field handler that changes a leaf)');
   const clicks = rc.turns.flatMap(t => Object.values(t)).filter(c => c && c.m).map(c => id(c.m));
   const C = rc.bodies.C;
-  for (const n of PRE.moveNeeds(normEntity(a)).needs) if (clicks.some(m => needMet(m, n, { userTypes: typesOf(C), targetTypes: typesOf(C) }))) { why.push('a click on this board supplies its ' + n.kind + '=' + (n.values || []).join('/')); break; }
+  /* earned-fire (2026-09-19): TWO READINGS THE FIRST CHAIN MADE TOO BLUNT, each of which refused a quiet control and
+   * handed the row a click swap (a live control by definition):
+   *   - WHO MAKES THE CLICK. A need PRE reads as the RECEIVER's (`by: receiver` -- Bulletproof's bullet, a move INTO the
+   *     holder) is met only by a click another body aims at C; an ACTOR need only by C's own click. Overgrow's control
+   *     Bulletproof was refused because the carrier's OWN Seed Bomb is a bullet. Other `by` values keep the old reading.
+   *   - A NEED BEHIND AN HP THRESHOLD THE BOARD NEVER REACHES. Overgrow's Grass need sits in a handler gated on
+   *     `hp <= maxhp / 3` (PRE.boardNeeds hp-threshold, same handler); on a board that neither plays the real pool nor
+   *     lowers the carrier's HP it cannot act, so Long Reach's control was refused over a Grass click it never reads. */
+  const tclicks = (rc.turns || []).flatMap(t => Object.entries(t)).filter(([, c]) => c && c.m).map(([role, c]) => ({ role, at: c.at || null, m: id(c.m) }));
+  const hpGated = new Set(PRE.boardNeeds(normEntity(a)).filter(b => b.kind === 'hp-threshold').map(b => b.handler));
+  const hpReached = rc.hpPool === 'x1' || !!rc.hpLowered;
+  for (const n of PRE.moveNeeds(normEntity(a)).needs) {
+    if (hpGated.has(n.handler) && !hpReached) continue;
+    const pool = n.by === 'receiver' ? tclicks.filter(c => c.role !== 'C' && c.at === 'C').map(c => c.m)
+      : n.by === 'actor' ? tclicks.filter(c => c.role === 'C').map(c => c.m) : clicks;
+    if (pool.some(m => needMet(m, n, { userTypes: typesOf(C), targetTypes: typesOf(C) }))) { why.push('a click on this board supplies its ' + n.kind + '=' + (n.values || []).join('/')); break; }
+  }
   const staged = new Set(rc.conditions.map(c => c.kind));
   for (const n of PRE.boardNeeds(normEntity(a))) if (['hp-threshold', 'item-consumed', 'volatile-present', 'own-stat-dropped', 'trapped', 'ko-hit'].includes(n.kind) && (rc.hpPool === 'x1' || staged.size > 2)) { why.push('the board stages its ' + n.kind); break; }
   return why;
@@ -2389,6 +2586,16 @@ function loudOnBoard(alt, rc) {
     const s = splitHandler(h.name); if (!s) continue;
     const writes = LEAF_RULES.some(([re]) => re.test(h.src)) || /chainModify|return\s+\d/.test(h.src);
     if (!writes) continue;
+    /* earned-fire (2026-09-19): A SPEED MODIFIER GATED ON A WEATHER runs every time a Speed is read, struck or not, and
+     * moves its modifier whenever that weather is up. Printed before wiring: chlorophyll, sandrush, slushrush,
+     * swiftswim. Leafeon's Chlorophyll was judged quiet on a Sunny Day board and the watch read it LOUD
+     * (`onModifySpe modifier 1->2`), which is how Leaf Guard's control was live. */
+    if (!s.prefix && s.base === 'modifyspe' && /chainModify/.test(h.src)) {
+      const ws = [...h.src.matchAll(/isWeather\(\s*\[?([^)\]]*)\]?\s*\)/g)].flatMap(m => [...m[1].matchAll(/["']([a-z]+)["']/g)].map(x => x[1]))
+        .concat([...h.src.matchAll(/\[([^\]]*)\]\.includes\(\s*\w+\.effectiveWeather\(\)\s*\)/g)].flatMap(m => [...m[1].matchAll(/["']([a-z]+)["']/g)].map(x => x[1])));
+      if (ws.length && ws.some(x => wx.includes(x))) why.push(h.name + ' runs whenever a Speed is read, and its weather (' + ws.filter(x => wx.includes(x)).join('/') + ') is set on this board');
+      continue;
+    }
     const onStruck = STRUCK_EVENT(s), onStrike = STRIKE_EVENT(s);
     if (!onStruck && !onStrike) continue;
     /* THE GATES THE HANDLER WRITES IN ITS OWN TEXT, each narrowing the clicks that can run it -- the stat an Atk/SpA
@@ -3046,6 +3253,27 @@ function planMechanic(kind, e) {
       if (f.controlRefusal) continue;
       f.notes.push('bearer ' + b.sheet + ' chosen over ' + first.bearer.sheet + ', whose fixture had no one-leaf control (' + first.controlRefusal.code + ')');
       f.replacedUncontrolled = { sheet: first.bearer.sheet, refusal: first.controlRefusal.code };
+      out.fixtures[0] = f;
+      break;
+    }
+  }
+  /* earned-fire (2026-09-19): A BEARER WITH A QUIET CONTROL BEATS ONE WITH A LOUD CONTROL. The same reasoning one step
+   * further: an ability swap whose alternative is judged LOUD on the board (`preferQuiet` found no quiet alternative on
+   * that body) is one-variable evidence only through the subject's own receipt, so a later bearer whose swap is quiet
+   * replaces it. Leafeon's only alternative is Chlorophyll, loud under the sun its Leaf Guard needs; a later bearer
+   * carries a quiet one. Only a replacement that is itself an ability swap judged quiet is taken, and the replaced
+   * bearer is recorded on the fixture. */
+  if (ok && kind === 'abilities' && out.fixtures[0].control && out.fixtures[0].control.variable === 'C.ability' && out.fixtures[0].control.quiet === false
+      && process.env.STAGE_PLANNER_KEEP_LOUD_BEARER !== '1') {
+    const first = out.fixtures[0];
+    for (const b of bearers.slice(bearers.findIndex(x => x.sheet === first.bearer.sheet && x.via === first.bearer.via) + 1)) {
+      let f = null;
+      try { f = buildOne(kind, e, trig, b, 'main'); }
+      catch (err) { out.attempts.push({ bearer: b.sheet + '/' + b.via + ' (for a quiet control)', code: err instanceof PlanError ? err.code : 'PLANNER-ERROR',
+                                        reason: err instanceof PlanError ? err.reason : String(err.stack || err).split('\n').slice(0, 2).join(' ') }); continue; }
+      if (!f.control || f.control.variable !== 'C.ability' || f.control.quiet !== true) continue;
+      f.notes.push('bearer ' + b.sheet + ' chosen over ' + first.bearer.sheet + ', whose ability-swap control was judged loud on its board (' + (first.control.loud || []).join('; ') + ')');
+      f.replacedLoudControl = { sheet: first.bearer.sheet, control: first.control.first_passing, loud: first.control.loud };
       out.fixtures[0] = f;
       break;
     }
