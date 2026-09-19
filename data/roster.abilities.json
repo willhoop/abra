@@ -1,18 +1,18 @@
 {
- "generated": "2026-09-19T06:21:51.367Z",
+ "generated": "2026-09-19T08:42:38.073Z",
  "by": "tests/roster.js",
  "stage": "abilities",
  "swap_leaf_correction": {
-  "self_describing_dropped": 5426,
+  "self_describing_dropped": 5474,
   "real_ability_rewrite_kept": 68,
   "control_arm_bookkeeping_dropped": 3894
  },
- "engine_release": "a1c7dcd5696b",
- "engine_release_cut": "2026-09-19T05:50:15.787Z",
+ "engine_release": "8a4140de3eaa",
+ "engine_release_cut": "2026-09-19T07:46:28.563Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "638bac0f02b3",
+  "engine/medicham2-browser.js": "8d26dff9dd02",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -32,8 +32,8 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "c1de853cc3a8",
-  "data/tags.json": "0f41957a18dd",
+  "data/abra-tags.js": "dd6d12839673",
+  "data/tags.json": "8950d4355cc5",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
@@ -53,7 +53,7 @@
  "counts_basis": "engine/legal_scope.js in-scope set; out-of-scope entities are excluded from every bucket rather than counted as COULD-NOT-STAGE",
  "arms_played": {
   "top-tie-first": 587,
-  "middle": 44,
+  "middle": 49,
   "bottom-tie-first": 41
  },
  "scope": {
@@ -152,41 +152,12 @@
   }
  },
  "plant_anchors": {
-  "release": "a1c7dcd5696b",
+  "release": "8a4140de3eaa",
   "checked": 63,
-  "dead": [
-   {
-    "rule": "ability/contact-statuses-the-attacker-by-chance",
-    "kind": "ability",
-    "matched": 0,
-    "anchor": "const _r=rng();let _cum=0;",
-    "rows": 4,
-    "staged": 4
-   },
-   {
-    "rule": "ability/cures-a-status-at-the-residual-by-chance",
-    "kind": "ability",
-    "matched": 0,
-    "anchor": "if(_wOK&&(+_cr.chance>=1||rng()<+_cr.chance)){",
-    "rows": 2,
-    "staged": 2
-   }
-  ],
+  "dead": [],
   "reds_ran": true
  },
  "reds": [
-  {
-   "rule": "ability/contact-statuses-the-attacker-by-chance",
-   "ok": false,
-   "anchor_dead": true,
-   "why": "THE PLANT DID NOT APPLY — the anchor matched 0 time(s), not exactly once. An unapplied plant reads exactly like a comparator that found nothing, so every row this rule produced is asserting nothing until it is re-aimed. Anchor: const _r=rng();let _cum=0;"
-  },
-  {
-   "rule": "ability/cures-a-status-at-the-residual-by-chance",
-   "ok": false,
-   "anchor_dead": true,
-   "why": "THE PLANT DID NOT APPLY — the anchor matched 0 time(s), not exactly once. An unapplied plant reads exactly like a comparator that found nothing, so every row this rule produced is asserting nothing until it is re-aimed. Anchor: if(_wOK&&(+_cr.chance>=1||rng()<+_cr.chance)){"
-  },
   {
    "rule": "ability/type-conversion",
    "ok": true,
@@ -491,6 +462,24 @@
    }
   },
   {
+   "rule": "ability/contact-statuses-the-attacker-by-chance",
+   "ok": true,
+   "why": "the walk over the tag's `inflicts` list is emptied, so the status never lands while the die, the damage punish and everything else stays exactly as it was",
+   "moved": {
+    "member": "effectspore",
+    "verdict": "CONTROL-NOT-QUIET",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.hp",
+     "party.status",
+     "hp",
+     "status"
+    ]
+   }
+  },
+  {
    "rule": "ability/damage-taken-scoped",
    "ok": true,
    "why": "the scoped damage reduction is dropped",
@@ -569,6 +558,22 @@
     "fields": [
      "party.hp",
      "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/cures-a-status-at-the-residual-by-chance",
+   "ok": true,
+   "why": "the residual cure tag is never read, so the status survives the turn",
+   "moved": {
+    "member": "healer",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.status",
+     "status"
     ]
    }
   },

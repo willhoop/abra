@@ -10,6 +10,39 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.55.0] — 2026-09-19
+
+### Notes
+- **6.54.0 re-measured on release `8a4140de3eaa`. No engine code changed.** It is a MINOR because it
+  moves published figures. Lattices at `--games` 1200 / 1350 / 1950, census `9f251986d34e` (925 live),
+  `--team-store data/team-pool-frozen` (pools `0d103fb9fa87` / `7e7a37ded7fc` / `a5ce76242f8d`), arm
+  `middle`, cap 50, `--end-state`, `--steering empirical`: board-material is **0 of 961 / 1 of 1069 / 1 of
+  1497**, down from 0 / 1 / 2. The census pin moved from `1b735ff555ad`, so this is not a strict
+  before/after. **Exactly as predicted:** the Cursed Body against Triple Axel game left; the Sucker Punch
+  into an Encored Swords Dance game (1350) and the Future Sight into Focus Sash game (1950) stayed, both at
+  the same turn with the same diff. **No game joined**, board or protocol, on any lattice. Undeclared
+  narration is **0 / 10 / 23**, down from 0 / 11 / 24: the Cursed Body per-hit game (1350) and the Poison
+  Point multi-hit ordering game (1950) left.
+- Roster: items **148 of 148** (Greninjite now MATCH), abilities 194 of 200, moves 494 of 497, 0 DIFFER, 0
+  DID-NOT-FIRE, 0 COULD-NOT-STAGE. Plant anchors 22 of 22, 63 of 63 and 37 of 37 live, every red
+  demonstration CAUGHT. Damage diff 0 of 6000 at every index. `all_mechanics_fire`: 4702 games, 0 threw;
+  moves STATE 2 -> 1 (Clear Smog left; Axe Kick stays). **Gate `CLOSED — 1 of 8`**, from 4 of 8: only
+  board-material fails. Full account: `docs/_reports/2026-09-19-8a41-remeasure.md`.
+
+## [6.54.1] — 2026-09-19
+
+### Fixed
+- **Three roster red plants re-aimed** (`tests/roster.js` only; not a release source, so no cut). 6.52.0
+  rewrote the engine lines they patched, so they matched nothing. Each now anchors on what the code reads
+  or builds, not on a line in a body: the contact-status punish on the walk over the tag's `inflicts`
+  list; Healer and Shed Skin on the `curesStatusResidual` tag read; the target-boost rule on the name of
+  `boostTableOnto`, the one road a move's boost table takes onto a target. Each was a DEAD ANCHOR on
+  release `8a4140de3eaa` and is CAUGHT on a single-rule `--reds` run (Effect Spore, Healer, Baby-Doll
+  Eyes). Every other plant in the file still matches exactly once on `8a4140de3eaa`.
+
+### Notes
+- No published figure moves. The gate reading is re-measured in the next entry.
+
 ## [6.54.0] — 2026-09-19
 
 ### Fixed

@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-19T06:15:33.322Z",
+ "generated": "2026-09-19T08:39:01.575Z",
  "by": "tests/roster.js",
  "stage": "items",
  "swap_leaf_correction": {
@@ -7,12 +7,12 @@
   "real_ability_rewrite_kept": 0,
   "control_arm_bookkeeping_dropped": 0
  },
- "engine_release": "a1c7dcd5696b",
- "engine_release_cut": "2026-09-19T05:50:15.787Z",
+ "engine_release": "8a4140de3eaa",
+ "engine_release_cut": "2026-09-19T07:46:28.563Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "638bac0f02b3",
+  "engine/medicham2-browser.js": "8d26dff9dd02",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -32,8 +32,8 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "c1de853cc3a8",
-  "data/tags.json": "0f41957a18dd",
+  "data/abra-tags.js": "dd6d12839673",
+  "data/tags.json": "8950d4355cc5",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
@@ -42,10 +42,10 @@
  },
  "format": "gen9championsvgc2026regmb",
  "counts": {
-  "FIRED-AND-BOARDS-DIFFER": 1,
+  "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
   "DEFERRED-BY-OWNER": 0,
-  "FIRED-AND-BOARDS-MATCH": 147,
+  "FIRED-AND-BOARDS-MATCH": 148,
   "CONTROL-NOT-QUIET": 0,
   "COULD-NOT-STAGE": 0
  },
@@ -61,8 +61,8 @@
   "out_of_scope_by": {},
   "in_scope": 148,
   "tested": 148,
-  "matched": 147,
-  "differ": 1,
+  "matched": 148,
+  "differ": 0,
   "silent": 0,
   "deferred": 0,
   "unattributable": 0,
@@ -82,7 +82,7 @@
   }
  },
  "plant_anchors": {
-  "release": "a1c7dcd5696b",
+  "release": "8a4140de3eaa",
   "checked": 22,
   "dead": [],
   "reds_ran": true
@@ -5109,7 +5109,7 @@
    "rule": "item/mega-stone",
    "reads": "megaStone — the base species and the forme it becomes",
    "note": "Greninja -> Greninja-Mega",
-   "verdict": "FIRED-AND-BOARDS-DIFFER",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
    "control_why": null,
@@ -5175,44 +5175,7 @@
      "without": "torrent"
     }
    ],
-   "diffs": [
-    {
-     "turn": 1,
-     "slot": "",
-     "body": "greninja",
-     "field": "party.types",
-     "showdown": "dark/water",
-     "ours": "normal",
-     "bucket": "different-value"
-    },
-    {
-     "turn": 1,
-     "slot": "p2a",
-     "body": "greninjamega",
-     "field": "types",
-     "showdown": "dark/water",
-     "ours": "normal",
-     "bucket": "different-value"
-    },
-    {
-     "turn": 2,
-     "slot": "",
-     "body": "greninja",
-     "field": "party.types",
-     "showdown": "dark/water",
-     "ours": "normal",
-     "bucket": "different-value"
-    },
-    {
-     "turn": 2,
-     "slot": "p2a",
-     "body": "greninjamega",
-     "field": "types",
-     "showdown": "dark/water",
-     "ours": "normal",
-     "bucket": "different-value"
-    }
-   ]
+   "diffs": []
   },
   {
    "kind": "item",

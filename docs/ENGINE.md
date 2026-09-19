@@ -164,11 +164,9 @@ ENGINE — does the simulator do what Pokémon does
   925/925 probed mechanics live, 0 missing   (census 2026-09-19 03:46)
     the census probes what somebody thought to probe: 299 of 299 in-scope tags carry a probe, 0 carry none (9 of 308
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 1.5 h old). node engine/coverage.js
+    (all-mechanics-fire.json, 26 min old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    older than its input abra-tags.js
-    pinned to engine release a1c7dcd5696b — engine/medicham2-browser.js matches the frozen copy; live is 8d26dff9dd02 now (a PRE-CHANGE measurement of that release, not corruption)
-    (+3 more — node engine/provenance.js)
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/8a4140de3eaa/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "8a4140de3eaa".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -185,9 +183,24 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 04:02_
+_stamped 2026-09-19 05:15_
 
 <!-- /GENERATED -->
+
+## 6.54.0 RE-MEASURES AT **0 / 1 / 1** — THE PREDICTED GAME LEFT, NONE JOINED. THE THREE STRANDED PLANTS ARE RE-AIMED AND CAUGHT. **NO ENGINE BYTE CHANGED — RELEASE `8a4140de3eaa`.** GATE **CLOSED, 1 OF 8** (BOARD-MATERIAL ONLY). 2026-09-19, CHANGELOG 6.54.1–6.55.0
+
+Report: `docs/_reports/2026-09-19-8a41-remeasure.md`. Census pin `9f251986d34e` (925 live).
+
+- **Cursed Body against Triple Axel (`…2635092694`, g1950) left**, as predicted. Its narration twin at g1350
+  and the Poison Point multi-hit ordering game at g1950 left too. Narration 0 / 10 / 23.
+- **Two games remain, both unfixed and both predicted to stay:** Sucker Punch into a target Encore turned
+  onto Swords Dance (`…2636045527`, g1350, turn 15: the authority `-fail`s, ours hits) and a Future Sight
+  payout that ignores Focus Sash (`…2657391947`, g1950, turn 6).
+- **The plants are anchored on what the code reads or builds, not on a line of a body:** the punish tag's
+  `inflicts` walk, the `curesStatusResidual` tag read, and the NAME of `boostTableOnto` (renamed, with a
+  no-op in its place, so a new parameter cannot blind it). A string count of all 124 plants in
+  `tests/roster.js` against the release finds every anchor matching once. Every roster stage now reads
+  clean: items 148 of 148 (Greninjite MATCH after 6.54.0), 22 / 63 / 37 anchors live, every red CAUGHT.
 
 ## 6.52.0 RE-MEASURES AT **0 / 1 / 2** — 14 OF 15 TARGETED GAMES GONE, NONE JOINED. THE ONE THAT STAYED WAS NEVER A HELPING HAND GAME. THREE ROSTER RED PLANTS WERE STRANDED BY THE MERGE. **NO ENGINE BYTE CHANGED — RELEASE `a1c7dcd5696b`.** GATE **CLOSED, 4 OF 8**. 2026-09-19, CHANGELOG 6.53.0
 

@@ -7851,9 +7851,15 @@ const RULES = [
      + 'arm they are the experiment. The click is CHOSEN so the shared die falls below the ability\'s '
      + 'own cumulative chance, and the aggressor is checked against that status\'s immunity first — a '
      + 'Fire body cannot be burned and the row would have read INERT for a reason about the fixture.',
-  break: { why: 'the cumulative roll is forced past the top of the range, so the status never lands '
-              + 'while everything else about the punish stays exactly as it was',
-    patch: [['const _r=rng();let _cum=0;', 'const _r=1;let _cum=0;']] },
+  /* RE-AIMED 2026-09-19 (6.54.1). The old anchor, `const _r=rng();let _cum=0;`, matched ZERO times on
+   * `a1c7dcd5696b`: 6.52.0 split that line so a certain punish (Spicy Spray, chances summing to 1)
+   * throws no die, and the roll now reads `_r=0` or `_r=rng()` from a branch above. The die has been
+   * rewritten twice; what has not moved is the loop that walks the TAG'S OWN `inflicts` list, which is
+   * what the cumulative is built from. The plant empties that walk, so the die is still thrown at its
+   * address (no later draw shifts) and no branch can land. */
+  break: { why: 'the walk over the tag\'s `inflicts` list is emptied, so the status never lands while '
+              + 'the die, the damage punish and everything else stays exactly as it was',
+    patch: [['for(const _inf of _pun.inflicts){', 'for(const _inf of _pun.inflicts.slice(0,0)){']] },
   match(e) {
     const p = abTag(e.id, 'punishesAttacker');
     if (!p || !Array.isArray(p.inflicts) || !p.inflicts.length) return null;
@@ -8099,9 +8105,15 @@ const RULES = [
      + '     THE STATUS IS APPLIED BY A 100-ACCURACY CLICK, because move accuracy is a live die on '
      + 'this arm too and a missed setup would leave the cure with nothing to wipe — a precondition '
      + 'that did not land, which this file refuses rather than reports.',
-  break: { why: 'the residual cure never rolls through, so the status survives the turn',
-    patch: [['if(_wOK&&(+_cr.chance>=1||rng()<+_cr.chance)){',
-             'if(_wOK&&(+_cr.chance>=1||rng()<+_cr.chance)&&false){']] },
+  /* RE-AIMED 2026-09-19 (6.54.1). The old anchor, the up-front die line, matched ZERO times on
+   * `a1c7dcd5696b`: 6.52.0 moved the die inside the per-recipient loop so a body with nobody to cure
+   * throws none. A plant spelled from a line of that body dies at the next refactor of it, so it now
+   * lands on the TAG READ, `curesStatusResidual`, which every road into the cure goes through (the
+   * `null&&` form the field-family plant uses). Only sub-100% members reach this rule, so Hydration's
+   * certain cure is not part of what it claims. */
+  break: { why: 'the residual cure tag is never read, so the status survives the turn',
+    patch: [["const _cr=TAGS.param('ability',m.ability,'curesStatusResidual');",
+             "const _cr=null&&TAGS.param('ability',m.ability,'curesStatusResidual');"]] },
   match(e) {
     const cr = abTag(e.id, 'curesStatusResidual');
     if (!cr) return null;
@@ -15596,9 +15608,15 @@ const RULES = [
      + 'of to the SLOT lands on a body that was never aimed at, which is the defect WIRE 139 fixed and '
      + 'which a single-target board cannot see. The second click is the second negative — the stage '
      + 'has to reach -2, and an engine that writes rather than accumulates stops at -1.',
-  break: { why: 'the target\'s stat stage is left where it was — the move still resolves, still '
-              + 'announces and still spends the turn',
-    patch: [['_t.boosts[_s2]=clamp(_t.boosts[_s2]+_d,-6,6);', '_t.boosts[_s2]=_t.boosts[_s2];']] },
+  /* RE-AIMED 2026-09-19 (6.54.1). The old anchor, `_t.boosts[_s2]=clamp(...)` inside `affect`'s
+   * `statChange.target` loop, matched ZERO times on `a1c7dcd5696b`: 6.52.0 lifted that loop into
+   * `boostTableOnto`, the one road a move's boost table takes onto a target (the affect loop and
+   * `boostally` both call it). The plant is tied to the function's NAME, not its parameter list or its
+   * body: the real declaration is renamed and a no-op takes its name, so a parameter added later (the
+   * `applyStatus` anchor died that way twice) does not blind it. */
+  break: { why: 'a move\'s boost table never lands on its target — the move still resolves and still '
+              + 'spends the turn, and the stage is left where it was',
+    patch: [['function boostTableOnto(', 'function boostTableOnto(){}function _plantedBoostTableOnto(']] },
   match(e) {
     if (!e.boosts || e.target === 'self' || !aimsAtFoe(e)) return null;
     const arm = armFor(e), pw = !!(e.flags && e.flags.powder);
