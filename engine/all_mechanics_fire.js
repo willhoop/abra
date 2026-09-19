@@ -1316,6 +1316,28 @@ function stageBodies(actor, receiver, allyOverride) {
   return { actor, ally: pads[0], receiver, foeAlly: pads[1], benchKey };
 }
 
+/* ---- IS THE BODY HELD ON THE FIELD, ASKED OF BOTH ENGINES AT A BOUNDARY (force-fire-b, 2026-09-19) --------
+ *
+ * Shadow Tag's whole effect is a flag the authority keeps OFF the board: `pokemon.trapped`, recomputed for every
+ * active at the end of each turn (`pokemon.trapped = pokemon.maybeTrapped = false; runEvent('TrapPokemon')`,
+ * sim/battle.ts:1723-1727) and read into the next request. Asking by MAKING the switch choice gets it rejected and
+ * throws the game away, so this reads the flag instead, and asks medicham2 the same question through its own pure
+ * verdict (`switchTrapVerdict`, exported for this). Neither engine's rule is restated here. A release that does
+ * not export the verdict is recorded as UNANSWERABLE, loudly, never as "not trapped". */
+let MEDI_Q = null;
+function trapAt(probe, turnIdx, S, battle) {
+  const at = ((probe.roleAt || [])[Math.max(0, turnIdx - 1)] || (probe.roleAt || [])[0] || {})[probe.role];
+  if (!at) return { turn: turnIdx, sd: null, me: null, why: 'role ' + probe.role + ' not on the field' };
+  const sdMon = (((battle && battle.sides) || [])[at.side === 'p1' ? 0 : 1] || {}).active ? battle.sides[at.side === 'p1' ? 0 : 1].active[at.slot] : null;
+  if (!MEDI_Q) MEDI_Q = GD.REL.require('engine/medicham2-browser.js');
+  const own = at.side === 'p1' ? S.actA : S.actB, foes = at.side === 'p1' ? S.actB : S.actA;
+  const meMon = (own || [])[at.slot];
+  let me = null, why = null;
+  if (typeof MEDI_Q.switchTrapVerdict !== 'function') why = 'UNANSWERABLE: release ' + GD.REL.id + ' does not export switchTrapVerdict';
+  else if (!meMon) why = 'medicham2 has no body at ' + at.side + ' slot ' + at.slot;
+  else me = MEDI_Q.switchTrapVerdict(meMon, foes, S.field).block !== null;
+  return { turn: turnIdx, side: at.side, slot: at.slot, sd: sdMon ? !!sdMon.trapped : null, me, why };
+}
 function playScenario(spec) {
   /* A PLANNED FIXTURE BRINGS ITS OWN TWO SHEETS (2026-09-11), six bodies each, already validated by the
    * planner — and they are validated AGAIN here, AS WRITTEN (their own gender, spread and nature),
@@ -1365,6 +1387,8 @@ function playScenario(spec) {
    * THE DIFFS ARE KEPT ONLY WHERE A BOARD PARTED, which is bounded: the driver stops the game at the
    * FIRST divergent board, so at most one boundary in a state-mode game carries any. */
   const boards = [];
+  let lastBoards = null;
+  const trapLog = [];
   /* ---- THE STAT LINE, FOR A ROW THAT CHANGES ONE (2026-09-11) --------------------------------------
    *
    * `board_state.js` compares species, typing, ability and max HP, and NOT the five other stats — so a
@@ -1401,6 +1425,11 @@ function playScenario(spec) {
      * row reads the dry slot's max PP off the authority rather than typing the PP-boost rule). */
     if (spec.onBattle) spec.onBattle(S, battle, turnIdx);
     const sl = statDiffs(S, battle);
+    /* THE LAST BOARD EACH ENGINE READ, KEPT FOR THE A/B ATTRIBUTION (force-fire-b, 2026-09-19): an ability
+     * row's control is only evidence if the AUTHORITY's board moved between the two arms, and ours moved the
+     * same way. Overwritten every boundary, so one board per game is held, never a history. */
+    lastBoards = { turn: turnIdx, sd: snap.sd, medi: snap.medi };
+    if (spec.trapProbe) trapLog.push(trapAt(spec.trapProbe, turnIdx, S, battle));
     boards.push({ turn: turnIdx, identical: snap.identical && !sl.length, leaves_compared: snap.leaves_compared,
                   party_post_faint_skipped: snap.party_post_faint_skipped,
                   /* 2026-08-25 — the BENCH VOLATILE receipt. A benched body's volatiles became a
@@ -1411,7 +1440,11 @@ function playScenario(spec) {
                   party_vol_on_field_skipped: snap.party_vol_on_field_skipped,
                   pp_comparable: snap.pp_comparable,
                   screens_named_comparable: snap.screens_named_comparable,
-                  diffs: (snap.identical ? [] : snap.diffs.map(d => BS.locate(d, snap))).concat(sl) });
+                  diffs: (snap.identical ? [] : snap.diffs.map(d => BS.locate(d, snap))).concat(sl),
+                  /* FORCE-FIRE (2026-09-19): EACH ENGINE'S OWN BOARD, kept so the A/B can ask whether the
+                   * mechanic moved a board and not only a line — see `abBoardMoved`. Transient: `abRow` reads
+                   * it and no row carries it into the artifact. */
+                  raw: { sd: snap.sd, medi: snap.medi } });
   };
   try { g = GD.playGame(a, b, 'all-mechanics-fire', spec.tag,
                         { script: spec.script, arm: spec.arm || ARM, onBoundary,
@@ -1420,7 +1453,7 @@ function playScenario(spec) {
   catch (e) { THREW++; return { staged: false, why: 'the game threw: ' + String(e.message || e).slice(0, 120) }; }
   const sdLog = GD.lastSdLog();
   return { staged: true, sdLog, mediTrace: g.mediTrace, div: g.div, turns: g.turns, err: g.err,
-           validator_ok: true, statLine,
+           validator_ok: true, statLine, lastBoards, trap: spec.trapProbe ? trapLog : null,
            boards, boundaries: g.boundaries, boundariesAgreed: g.boundariesAgreed,
            stateDiv: g.stateDiv, divTurn: g.divTurn, endReason: g.endReason };
 }
@@ -2357,7 +2390,7 @@ function abLadderOver(rungList, kind, key, name, carrier, control, mkOn, mkOff, 
       for (const l of on.sdLog) console.log('    ON  ' + l);
       for (const l of off.sdLog) console.log('    OFF ' + l);
     }
-    const row = abRow(kind, key, name, carrier, control, on, off);
+    const row = abRow(kind, key, name, carrier, control, on, off, { abilitySwap: kind === 'ability' });
     row.rung = rung.id;
     if (rung.carrier) row.carrier = rung.carrier;
     if (onRung) onRung(rung, on, off, row);
@@ -3742,7 +3775,69 @@ function runItems(list) {
   return rows;
 }
 
-function abRow(kind, key, name, carrier, control, on, off) {
+/* ---- FORCE-FIRE (2026-09-19): DID THE MECHANIC MOVE A BOARD, ASKED OF EACH ENGINE AGAINST ITSELF ----------
+ *
+ * The A/B read only the reduced STREAM, and `sdStream` keeps only the events medicham2 CLAIMS — so a
+ * mechanic whose one effect is a board leaf announced by an unclaimed line was invisible to both arms.
+ * MEASURED: Curious Medicine cleared its partner's +2 in BOTH engines (the cross-engine board agreed at
+ * every boundary), Showdown wrote `-clearboost`, `sdStream` dropped it, medicham2 writes none — and the row
+ * read DID-NOT-FIRE, "the gauntlet never reached its trigger", on a game where it had.
+ *
+ * So each engine's ON board is compared with ITS OWN OFF board, boundary by boundary, through
+ * `board_state.compare` (a same-engine pair, so nothing post-faint is held). Only for an ABILITY SWAP, and
+ * every `.ability` leaf is masked — that leaf IS the control variable, so it differs by construction and
+ * would otherwise make every row fire. Boundaries are compared up to the shorter game: the differential
+ * stops a game at its first cross-engine board divergence, which says nothing about the A/B. */
+/* counted, because a capability that cannot prove it ran is assumed broken: `rows` zero after an ability
+ * run means the board half of the A/B is unwired; the two lists are the rows ONLY a board moved. */
+const AB_BOARD = { rows: 0, sd_board_only: [], me_board_only: [] };
+/* `--ab-lines-only` restores the stream-only A/B exactly — the red switch for the board half. Curious
+ * Medicine reads DID-NOT-FIRE under it and FIRED without it (docs/_reports/2026-09-19-force-fire-a.md). */
+const AB_LINES_ONLY = has('--ab-lines-only');
+if (AB_LINES_ONLY) console.log('  --ab-lines-only IS ON. The A/B reads the reduced stream alone, as it did before 2026-09-19; '
+  + 'a mechanic that moves only a board reads DID-NOT-FIRE. THIS IS THE RED DEMONSTRATION, NOT A RUN.');
+function abBoardMoved(on, off, eng) {
+  const A = on.boards || [], B = off.boards || [];
+  const n = Math.min(A.length, B.length);
+  for (let i = 0; i < n; i++) {
+    const a = A[i].raw, b = B[i].raw;
+    if (!a || !b || !a[eng] || !b[eng]) return { moved: false, unreadable: true };
+    const d = BS.compare(a[eng], b[eng], {}).filter(x => !/(^|\.)ability$/.test(String(x.path)));
+    if (d.length) return { moved: true, turn: A[i].turn, path: d[0].path, on: d[0].medicham, off: d[0].showdown, leaves: d.length };
+  }
+  return { moved: false, boundaries: n };
+}
+/* ---- DID THE CONTROL MOVE THE BOARD, IN EACH ENGINE (force-fire-b, 2026-09-19) --------------------------
+ *
+ * `FIRED` above asks whether the two arms' STREAMS differ, and a control that swaps a click or an announcing
+ * ability always differs there — so FIRED alone cannot say the mechanic moved anything a board holds. This
+ * reads the last board each engine took in each arm and lists the leaves the arms differ on. PP is excluded
+ * (a swapped click spends a different slot by construction), and so is the ability leaf (a swapped ability
+ * differs by construction). `authority_moved` is the claim the brief asks for; `same_leaves` is ours moving
+ * the SAME way, beside the per-arm boundary comparison that is the board verdict proper. ADDITIVE: no verdict
+ * reads it. */
+function flatLeaves(o, pre, out) {
+  if (o === null || typeof o !== 'object') { out[pre] = o; return out; }
+  for (const k of Object.keys(o)) flatLeaves(o[k], pre ? pre + '.' + k : k, out);
+  return out;
+}
+function abBoardFinal(on, off) {
+  const a = on && on.lastBoards, b = off && off.lastBoards;
+  if (!a || !b) return { compared: false, why: 'no final board in ' + (!a ? 'the fixture arm' : 'the control arm') };
+  const moved = (x, y) => {
+    const fx = flatLeaves(x, '', {}), fy = flatLeaves(y, '', {});
+    return [...new Set(Object.keys(fx).concat(Object.keys(fy)))]
+      .filter(k => JSON.stringify(fx[k]) !== JSON.stringify(fy[k]) && !/(^|\.)(pp|ability)(\.|$)/i.test(k)).sort();
+  };
+  const sd = moved(a.sd, b.sd), me = moved(a.medi, b.medi);
+  return { compared: true, turn_on: a.turn, turn_off: b.turn, authority_moved: sd.length > 0, medicham_moved: me.length > 0,
+           same_leaves: JSON.stringify(sd) === JSON.stringify(me), leaves: sd.slice(0, 8), leaves_total: sd.length,
+           /* a switch-shaped control moves the whole active slot, so the forme leaves are listed on their own:
+            * they are where a forme ability's own effect lands, and the first eight can be all slot churn */
+           species_leaves: sd.filter(k => /\.(species|types)$/.test(k)).slice(0, 8),
+           medicham_only: me.filter(k => !sd.includes(k)).slice(0, 8), authority_only: sd.filter(k => !me.includes(k)).slice(0, 8) };
+}
+function abRow(kind, key, name, carrier, control, on, off, opts) {
   if (!on.staged || !off.staged) {
     return { kind, id: key, name, carrier, control, fired: false,
              why: 'could not stage: ' + (on.why || off.why), validator: on.validator || off.validator };
@@ -3759,18 +3854,77 @@ function abRow(kind, key, name, carrier, control, on, off) {
    * `sdStream` is the DRIVER'S OWN reducer — the same function the differential aligns with — so what
    * counts as a meaningful line is decided in one place rather than two. */
   const same = (x, y) => JSON.stringify(x) === JSON.stringify(y);
-  const sdMoved = !same(GD.sdStream(on.sdLog), GD.sdStream(off.sdLog));
-  const meMoved = !same(on.mediTrace, off.mediTrace);
+  /* ---- 2026-09-19 — THE CONTROL'S OWN ANNOUNCEMENT IS THE CONTROL SPEAKING, NOT THE CARRIER ----------
+   *
+   * The A/B asks "did swapping the mechanic for the CONTROL change the game", and a control that says
+   * its own name as it enters changes the game in exactly one line whatever the carrier does. Measured
+   * on release 4c9b0cc4a4da: Rock Head (control Pressure) and Natural Cure (control Cloud Nine) read
+   * SHOWDOWN-ONLY, and the ONLY line that differed between the arms was `|-ability|p1a: Aerodactyl|
+   * Pressure` and `|-ability|p1a: Altaria|Cloud Nine` in the OFF arm — the carrier's trigger (a recoil
+   * move, a status to cure) was never on the board. Once the engine learned to announce Pressure
+   * (`announcesOnStart`) the same row would have read FIRED on the control's line, which is a credit
+   * the carrier did not earn.
+   *
+   * So a BARE `|-ability|BODY|<control>` — the control's name and nothing after it, no `[from]`, no
+   * `boost` — is set aside on BOTH engines before the verdict is taken. Nothing else is: a control that
+   * DOES something (an Intimidate drop, a `[from] ability:` heal) still moves the game and is still
+   * `control_not_quiet`, which the row already says. The raw comparison is kept on the row, and a verdict
+   * this changes is NAMED (`control_announcement_only`), never silent. */
+  const ctlId = String(control || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const ctlAnn = l => { const f = String(l).split('|');
+    return f[1] === '-ability' && !!ctlId && String(f[3] || '').toLowerCase().replace(/[^a-z0-9]/g, '') === ctlId
+      && f.slice(4).every(x => !x); };
+  const sdOn = GD.sdStream(on.sdLog), sdOff = GD.sdStream(off.sdLog);
+  const meOn = on.mediTrace || [], meOff = off.mediTrace || [];
+  const sdMovedRaw = !same(sdOn, sdOff), meMovedRaw = !same(meOn, meOff);
+  /* WHAT MOVED, BY LINE. A SHOWDOWN-ONLY with an empty `why` told the reader nothing: five of the six on
+   * 4c9b0cc4a4da were one announcement each and the sixth an AUTHORITY-WRONG `fallenundefined`, and
+   * the only way to learn that was to replay the game. A multiset difference, capped, per engine. */
+  const moved = (x, y) => { const left = y.slice(), out = [];
+    for (const l of x) { const k = left.indexOf(l); if (k >= 0) left.splice(k, 1); else out.push('ON  ' + l); }
+    for (const l of left) out.push('OFF ' + l);
+    return out.slice(0, 4); };
+  /* MERGED 2026-09-19: the LINE channel is read with the control's bare announcement set aside (above);
+   * the BOARD channel (`abBoardMoved`) is added on top of it. */
+  const sdLine = !same(sdOn.filter(l => !ctlAnn(l)), sdOff.filter(l => !ctlAnn(l)));
+  const meLine = !same(meOn.filter(l => !ctlAnn(l)), meOff.filter(l => !ctlAnn(l)));
+  const swap = !!(opts && opts.abilitySwap) && !AB_LINES_ONLY;
+  const sdBoard = swap ? abBoardMoved(on, off, 'sd') : null, meBoard = swap ? abBoardMoved(on, off, 'medi') : null;
+  /* A REQUEST LEAF, WHERE THE FIXTURE ASKED FOR ONE (`trapProbe`): the last boundary's trapped flag in each arm,
+   * per engine. It counts as the game moving exactly as a stream line does, and a disagreement between the two
+   * engines inside ONE arm is a parting and is written onto the board verdict below. */
+  const last = a => (a && a.length ? a[a.length - 1] : null);
+  const tOn = last(on.trap), tOff = last(off.trap);
+  const req = tOn && tOff ? { on: tOn, off: tOff, unanswerable: [tOn, tOff].some(t => t.sd === null || t.me === null),
+                              authority_moved: tOn.sd !== tOff.sd, medicham_moved: tOn.me !== tOff.me } : null;
+  if (req) req.parted = !req.unanswerable && [tOn, tOff].some(t => t.sd !== t.me);
+  const sdMoved = sdLine || !!(sdBoard && sdBoard.moved) || !!(req && !req.unanswerable && req.authority_moved);
+  const meMoved = meLine || !!(meBoard && meBoard.moved) || !!(req && !req.unanswerable && req.medicham_moved);
+  if (swap) { AB_BOARD.rows++; if (!sdLine && sdMoved) AB_BOARD.sd_board_only.push(key); if (!meLine && meMoved) AB_BOARD.me_board_only.push(key); }
+  const ctlOnly = (sdMovedRaw || meMovedRaw) && !sdMoved && !meMoved;
   let verdict;
   if (sdMoved && meMoved) verdict = 'FIRED';
   else if (sdMoved && !meMoved) verdict = 'SHOWDOWN-ONLY';
   else if (!sdMoved && meMoved) verdict = 'MEDICHAM-ONLY';
   else verdict = 'DID-NOT-FIRE';
+  const why = verdict === 'DID-NOT-FIRE'
+    ? (ctlOnly
+      ? 'the only line that moved ' + (sdMovedRaw && meMovedRaw ? 'either game' : (sdMovedRaw ? 'the authority\'s game' : 'our game'))
+        + ' was the CONTROL\'s own entry announcement (' + control + ') — the carrier\'s trigger was never reached'
+      : 'the gauntlet never reached its trigger — swapping it for ' + control + ' changed neither game')
+    : verdict === 'SHOWDOWN-ONLY' ? 'the authority moved on: ' + moved(sdOn, sdOff).join(' ; ')
+    : verdict === 'MEDICHAM-ONLY' ? 'our engine moved on: ' + moved(meOn, meOff).join(' ; ')
+    : null;
   return { kind, id: key, name, carrier, control, verdict, fired: verdict === 'FIRED',
            showdown_moved: sdMoved, medicham_moved: meMoved,
-           why: verdict === 'DID-NOT-FIRE'
-             ? 'the gauntlet never reached its trigger — swapping it for ' + control + ' changed neither game'
-             : null,
+           ...(ctlOnly ? { control_announcement_only: true,
+                           showdown_moved_raw: sdMovedRaw, medicham_moved_raw: meMovedRaw } : {}),
+           /* WHICH CHANNEL SAID IT MOVED, per engine: `line` (the reduced stream), `board` (its own ON board
+            * against its own OFF board, `abBoardMoved`), or both. Absent on a row that is not an ability swap. */
+           moved_by: swap ? { showdown: [sdLine && 'line', sdBoard && sdBoard.moved && 'board'].filter(Boolean),
+                              medicham: [meLine && 'line', meBoard && meBoard.moved && 'board'].filter(Boolean),
+                              showdown_board: sdBoard, medicham_board: meBoard } : undefined,
+           why,
            diverged: !!on.div,
            /* Every subject this harness stages sits at p1a — the move path builds `who` as
             * 'p1a: <Species>' and the ability gauntlet does the same. `abRow` is not handed that
@@ -3788,8 +3942,12 @@ function abRow(kind, key, name, carrier, control, on, off) {
             * read off. The `off` game is the A/B CONTROL — it is a different game with a different
             * ability on the board, so its boards answer a different question and are carried
             * separately rather than pooled. */
-           board: boardVerdict(on, kind, key),
-           board_control_arm: boardVerdict(off, kind, key) };
+           board: req && (req.parted || req.unanswerable)
+             ? Object.assign({}, boardVerdict(on, kind, key), { verdict: 'STATE', request_leaf: 'trapped', request_leaf_why: req.unanswerable ? 'UNANSWERABLE' : 'the engines disagree on the trapped flag' })
+             : boardVerdict(on, kind, key),
+           board_control_arm: boardVerdict(off, kind, key),
+           ab_board: abBoardFinal(on, off),
+           ...(req ? { request_trap: req } : {}) };
 }
 
 /* ================= THE RED DEMONSTRATION ========================================================== */
@@ -3839,7 +3997,9 @@ function red() {
     const b1 = mk(), b2 = mk();
     const on = playScenario(Object.assign({ script: gauntletScript(b1), tag: 'red/ab-on' }, b1));
     const off = playScenario(Object.assign({ script: gauntletScript(b2), tag: 'red/ab-off' }, b2));
-    const row = abRow('ability', 'control', '(the same ability twice)', ITEM_HOLDER, '(itself)', on, off);
+    /* `abilitySwap` ON (2026-09-19): the self-swap is asked through the BOARD half of the A/B as well, so
+     * this plant also proves the board channel cannot manufacture a FIRED out of two identical games. */
+    const row = abRow('ability', 'control', '(the same ability twice)', ITEM_HOLDER, '(itself)', on, off, { abilitySwap: true });
     out.push({ plant: 'a mechanic swapped for ITSELF must read DID-NOT-FIRE — a FIRED here is noise',
                staged: !!row.verdict, verdict: row.verdict, why: row.why,
                caught: row.verdict === 'DID-NOT-FIRE' });
@@ -4414,8 +4574,9 @@ function playPlanned(kind, key, f, v, which, tag, plant) {
   const formeRow = (f.bearer && f.bearer.via === 'mega') || (kind === 'item' && (dex.items.get(key) || {}).megaStone);
   const statLine = subj && subj.side === 'p1' && formeRow ? id(src.roles.C.species) : undefined;
   const c0 = GD.scriptCounters();
+  const trapProbe = f.observe && f.observe.channel === 'request' ? { role: f.observe.role || 'R', roleAt: src.roleAt } : undefined;
   const r = playScenario({ teams: src.teams, script: src.script, arm, declared: true, statLine,
-                           hpBoost: f.hpPool === 'x1' ? 1 : HP_BOOST, tag, statePlant: plant });
+                           hpBoost: f.hpPool === 'x1' ? 1 : HP_BOOST, tag, statePlant: plant, trapProbe });
   r.scriptDelta = scriptDelta(c0, GD.scriptCounters());
   r.scriptMiss = r.staged ? scriptMissOf(r.scriptDelta, which === 'ctl', !!(f.control && /^C\.item/.test(f.control.variable))) : null;
   PLANNED.games++;
@@ -4471,7 +4632,8 @@ function plannedRow(kind, key, name, m) {
         /* The control is labelled with the ability it actually carries where the variable is the ability,
          * so the derived CONTROL-NOT-QUIET test below can ask whether that ability is itself live. */
         const ctlAb = f.control.variable === 'C.ability' && v.control.roles && v.control.roles.C ? v.control.roles.C.ability : null;
-        row = abRow(kind, key, name, f.bodies.C.species, ctlAb || (f.control.variable + ' — ' + f.control.why), on, off);
+        row = abRow(kind, key, name, f.bodies.C.species, ctlAb || (f.control.variable + ' — ' + f.control.why), on, off,
+                    { abilitySwap: kind === 'ability' && f.control.variable === 'C.ability' });
         if (on.div) row.divergence = divOf(on.div, who, on.sdLog, null);
       } else {
         const nearA = subj && subj.side === 'p1' && subj.slot === 0;
@@ -5225,6 +5387,12 @@ const BOARD_SUMMARY = {};
   report.board_not_compared = BS.NOT_COMPARED;
 }
 
+/* FORCE-FIRE (2026-09-19): the board half of the ability A/B, counted and named (see `abBoardMoved`). */
+if (report.summary) report.summary.ab_board = AB_BOARD;
+console.log('\n  A/B BOARD (each engine against itself, ability swaps only): ' + AB_BOARD.rows + ' row-pairs compared; moved by a BOARD and no line — '
+  + 'showdown ' + AB_BOARD.sd_board_only.length + (AB_BOARD.sd_board_only.length ? ' [' + AB_BOARD.sd_board_only.join(' ') + ']' : '')
+  + ', medicham ' + AB_BOARD.me_board_only.length + (AB_BOARD.me_board_only.length ? ' [' + AB_BOARD.me_board_only.join(' ') + ']' : ''));
+if (/abilities|all/.test(KIND) && !RED && !AB_BOARD.rows) console.log('  THE A/B BOARD COMPARED NOTHING on a run over the abilities — the board half is unwired.');
 console.log('\n  ' + GAMES + ' games played, ' + THREW + ' threw, ' + SHEET_FAILS + ' sheets could not be assembled');
 if (WRITE) {
   const f = OUT || D('data', 'all-mechanics-fire.json');

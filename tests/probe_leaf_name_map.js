@@ -259,11 +259,13 @@ const DECLARED = {
   'volatile:metronome': { address: 'm._metroN (the ladder) + m._metroLast (which move)',
     anchors: [/_metroN/, /'damageMultOnRepeat'/], exact: true,
     why: 'the authority keeps the count in effectState on a volatile the item adds' },
-  'volatile:unburden': { address: 'DERIVED, not stored: m._hadItem && !m.item (with _roomItem for a '
-      + 'suppressed item), re-stamped at every bringIn',
-    anchors: [/_hadItem/, /'speedOnItemLoss'/], exact: false,
-    why: 'a body handed an item MID-STINT and then losing it gets the volatile in the authority and '
-       + 'gets nothing here — the engine names that gap itself at the bringIn site' },
+  /* 2026-09-19: STORED now, and COMPARED (`vol.unburden` in engine/board_state.js), so this leaf should leave
+   * the hole this probe maps; the row stays accurate in case a release without the field is being read. */
+  'volatile:unburden': { address: 'm._ubVol (the multiplier, granted by ubGrant at the eat / use / fling / take '
+      + 'doors, cleared by ubClearOnLeave and by the holder\'s ability End)',
+    anchors: [/_ubVol/, /function ubGrant\(/], exact: true,
+    why: 'the authority holds a bare volatile; this engine holds the grant-time multiplier under a private '
+       + 'name, and `effSpeed` reads it through `ubMult`' },
   'volatile:fling': { address: 'm._flingBP / m._flingFx / m._flingItem, stamped for the action',
     anchors: [/_flingBP/, /'flingsOwnItem'/], exact: false,
     why: 'the authority\'s `fling` volatile is a within-action marker whose own onUpdate spends the '

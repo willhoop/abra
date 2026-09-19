@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-19T12:54:58.212Z",
+  "generated": "2026-09-19T16:03:57.832Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 955,
-  "live": 955,
+  "probed": 967,
+  "live": 967,
   "missing": 0,
-  "armed": 955,
+  "armed": 967,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -483,7 +483,7 @@
       "tag": "onSwitchInDrop",
       "label": "a stat change CLAMPED at the cap is still announced, magnitude 0",
       "live": true,
-      "detail": "Intimidate into a foe at -5: [\"|-ability|p1a:incineroar|intimidate|boost\",\"|-unboost|p2a:garchomp|atk|1\",\"|-unboost|p2b:gallade|atk|1\"]; at -6 (clamped): [\"|-ability|p1a:incineroar|intimidate|boost\",\"|-unboost|p2a:garchomp|atk|0\",\"|-unboost|p2b:gallade|atk|1\"]. Swords Dance at +4: [\"|-boost|p1a:garchomp|atk|2\"]; at +6 (clamped): [\"|-boost|p1a:garchomp|atk|0\"]. Clear Body REFUSING the drop (must stay two -fail lines and gain no zero-magnitude unboost): [\"|-fail|p2a:metagross|unboost|[from]ability:clearbody|[of]p2a:metagross\",\"|-fail|p2b:gallade|unboost|attack|[from]ability:innerfocus|[of]p2b:gallade\"]",
+      "detail": "Intimidate into a foe at -5: [\"|-ability|p1a:incineroar|intimidate|boost\",\"|-unboost|p2a:garchomp|atk|1\",\"|-unboost|p2b:gallade|atk|1\"]; at -6 (clamped): [\"|-ability|p1a:incineroar|intimidate|boost\",\"|-unboost|p2a:garchomp|atk|0\",\"|-unboost|p2b:gallade|atk|1\"]. Swords Dance at +4: [\"|-boost|p1a:garchomp|atk|2\"]; at +6 (clamped): [\"|-boost|p1a:garchomp|atk|0\"]. Clear Body REFUSING the drop (must stay two -fail lines and gain no zero-magnitude unboost): [\"|-fail|p2a:metagross|unboost|[from]ability:clearbody|[of]p2a:metagross\",\"|-fail|p2b:gallade|unboost|attack|[from]ability:innerfocus|[of]p2b:gallade\"]; the same refusers already AT -6 (the cap runs first, so no refuser speaks): [\"|-unboost|p2a:metagross|atk|0\",\"|-unboost|p2b:gallade|atk|0\"]",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1303,7 +1303,7 @@
       "tag": "speedOnItemLoss",
       "label": "Unburden doubles Speed once the item is gone",
       "live": true,
-      "detail": "[speed holding, speed once the item is gone] — ability none 187,187 (must not move); Unburden 187,374",
+      "detail": "[speed holding, speed once the Sash is spent by a real hit, did the Sash really save it] — ability none 187,187,true (must not move); Unburden 187,374,true",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1314,6 +1314,46 @@
       "label": "the Unburden doubling does NOT survive a switch out and back",
       "live": true,
       "detail": "[holding, item gone, after switching out and back, did it really come back] — ability none 165,165,165,true (never moves); Unburden 165,330,165,true (doubles while it is out, and the volatile dies with the switch)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "speedOnItemLoss",
+      "label": "an item STOLEN mid-stint and then knocked off still procs Unburden",
+      "live": true,
+      "detail": "[walked in empty, holding the stolen item, after the Knock Off, fixture staged] — ability none 165,165,165,true (never moves); Unburden keeping the item 165,165,165,true (must not move); Unburden knocked off 165,165,330,true (doubles: the volatile is granted at the loss, not at entry)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "suppressesAbility",
+      "label": "Gastro Acid stops the target's Rough Skin chipping a contact attacker",
+      "live": true,
+      "detail": "[Arbok HP lost to its own Knock Off into Garchomp, gastroacid standing, Garchomp standing] — after Protect 17,false,true (Rough Skin chips); after Gastro Acid 0,true,true (suppressed: nothing)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "suppressesAbility",
+      "label": "Gastro Acid ends Unburden: a knocked-off Sneasler stops doubling",
+      "live": true,
+      "detail": "[holding, knocked off, after the second click, fixture staged] — then Protect 165,330,330,true (stays doubled); then Gastro Acid 165,330,165,true (the volatile ends: back to x1)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "readsTargetItem",
+      "label": "Knock Off keeps its x1.5 against an item Magic Room is suppressing",
+      "live": true,
+      "detail": "[damage to a Clefable, fixture staged] — Leftovers, no room 25,true; Leftovers under Magic Room 25,true (must equal: the boost reads the identity); empty hand 17,true (no boost)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4323,7 +4363,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 18.7% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5244,6 +5284,16 @@
       "label": "Hospitality at a FULL-HP partner announces nothing at all",
       "live": true,
       "detail": "entry lines emitted — partner on a third 1 [|-heal|p1b: corviknight|101/173|[from] ability: hospitality|[of] p1a: sinistcha]; partner at FULL 0 [none] and its hp did not move (173/173); no ability at all 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "announcesOnStart",
+      "label": "Pressure, Mold Breaker and Unnerve announce themselves as they switch in — and a body with no such ability says nothing",
+      "live": true,
+      "detail": "entry lines on a switch-in — fairyaura [\"|-ability|p1a: sinistcha|fairyaura\"]; moldbreaker [\"|-ability|p1a: sinistcha|moldbreaker\"]; pressure [\"|-ability|p1a: sinistcha|pressure\"]; unnerve [\"|-ability|p1a: sinistcha|unnerve\"]; no ability [] (authority: one bare |-ability|HOLDER|NAME after the |switch|, nothing for a body without it)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7410,6 +7460,46 @@
     },
     {
       "kind": "ability",
+      "tag": "doublesBerryEffect",
+      "label": "Ripen takes a resist berry's halve TWICE — the berry's x0.5 and its own",
+      "live": true,
+      "detail": "Ice Shard into a Yache Berry Appletun: no berry 112; berry, no ability 56; berry under Ripen 28 (must be half again) — onEatItem arms berryWeaken, onSourceModifyDamage -1 spends it (data/abilities.ts:3848-3864)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "doublesBerryEffect",
+      "label": "a resist berry FLUNG at a Ripen body arms the second halve for the next hit",
+      "live": true,
+      "detail": "turn 1 Abomasnow Flings a Yache Berry at an empty-handed Appletun, turn 2 Ice Shard: no ability 112, Ripen 56 (must be half); Ripen with no fling 112 — the eat is raised on the target and `berryWeaken` is an assignment on every eat",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "doublesBerryEffect",
+      "label": "Ripen announces a Leftovers heal — at full HP too, because TryHeal is raised first",
+      "live": true,
+      "detail": "[-activate ability: Ripen at full HP, at half] no ability [0,0], Ripen [1,1] — data/abilities.ts:3833-3837",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "announcesOnEntry",
+      "label": "Anticipation shudders once at a foe move super-effective on it or an OHKO, and not at an immune or neutral one",
+      "live": true,
+      "detail": "[Anticipation lines] no ability / neutral + Dragon-into-Fairy (immune) [0,0]; Shadow Claw (SE) / Sheer Cold (OHKO) [1,1] — data/abilities.ts:174-190, no die",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
       "tag": "reEatsBerry",
       "label": "Cud Chew eats the same berry again a turn later",
       "live": true,
@@ -7694,6 +7784,16 @@
       "label": "Screen Cleaner takes down BOTH sides, its own included",
       "live": true,
       "detail": "Mr. Rime walks in (\"mrrime\") with a Reflect on its OWN side and a Light Screen on the foe's: with no ability they read 4 and 4 turns, with Screen Cleaner 0 and 0",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "clearsScreensOnEntry",
+      "label": "Screen Cleaner announces BEFORE the first screen falls",
+      "live": true,
+      "detail": "[-activate index, first -sideend index, -activate count] no ability [-1,-1,0], Screen Cleaner [2,3,1] — the -activate must come first and once",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -8694,6 +8794,26 @@
       "label": "Coaching with no partner standing fails with [notarget] and -fail",
       "live": true,
       "detail": "[-fail, -boost lines] partner standing [0,2], partner fainted [1,0] — adjacentAlly at a fainted partner is an empty target list (sim/pokemon.ts:844-846)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "removesHazards",
+      "label": "Tidy Up writes its sweep, then `-activate|move: Tidy Up`, and only then its boosts",
+      "live": true,
+      "detail": "[first -sideend, -activate Tidy Up, -boost atk] line indices -- nothing to sweep [-1,-1,2], rocks on both sides [2,4,5] -- the onHit sweeps, announces on success, then boosts (data/moves.ts tidyup, no Champions override)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "preventsStatDrop",
+      "label": "a drop into a stat already at -6 reaches no refuser: `-unboost|0`, no `-fail`",
+      "live": true,
+      "detail": "[Clear Body -fail, -unboost atk 0, Attack stage] Charm into Clear Body at 0 [1,0,0], at -6 [0,1,-6] -- getCappedBoost runs before TryBoost (sim/battle.ts:2029-2031), so the refuser sees 0 and the loop writes -unboost|atk|0 (:2041)",
       "hollow": false,
       "armed": true,
       "directCall": false

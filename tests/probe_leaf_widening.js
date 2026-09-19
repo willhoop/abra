@@ -117,7 +117,10 @@ const mult = (live, cleared) => (cleared > 0 ? 'x' + (Math.round((live / cleared
 function mediReading(m, field, side) {
   if (!m) return { err: 'NO BODY IN THIS SLOT' };
   const a = mediSpe(m, field, side); if (a.err) return { err: a.err };
-  const b = mediSpe(withField(m, '_hadItem', false), field, side); if (b.err) return { err: b.err };
+  /* 2026-09-19 -- THE ITEM-LOSS INPUT IS NOW `_ubVol`, the volatile the loss doors grant and `effSpeed` reads
+   * (`ubMult`). `_hadItem` is cleared as well so a release cut before the volatile existed still reads the
+   * retired input; clearing a field a release does not consult changes nothing on it. */
+  const b = mediSpe(withField(withField(m, '_hadItem', false), '_ubVol', 0), field, side); if (b.err) return { err: b.err };
   return { live: a.v, cleared: b.v, doubled: a.v !== b.v ? 1 : 0, mult: mult(a.v, b.v), ability: m.ability };
 }
 /* THE AUTHORITY'S READING FOR ONE BODY, FROM ITS OWN FUNCTION: `getStat('spe')` modified against
@@ -366,8 +369,9 @@ const CASES = [];
     /* THE LABEL NAMES WHAT IS ACTUALLY READ. It used to name `_hadItem && !m.item`, which is the ENTRY
      * GUARD and not the doubling — the gate is one line further in and reads the ability tag. Naming
      * the guard is how a reading of the guard passed for a reading of the mechanic. */
-    ours: 'NO NAMED STATE — effSpeed applies TAGS.param(ability, speedOnItemLoss).speedMult inside an'
-        + ' `_hadItem && !m.item` entry guard; this arm reads effSpeed itself, never the guard',
+    /* 2026-09-19: the engine HOLDS it now (`_ubVol`) and the board compares it; this arm stays as the
+     * SPEED measurement beside tests/probe_unburden_leaf.js, which owns the leaf's red demonstration. */
+    ours: '`_ubVol` — granted at the loss doors, read by effSpeed (`ubMult`); this arm reads effSpeed itself',
     p1: ok && [{ species: N.id(sp.id), item: 'Sitrus Berry', ability: 'Unburden', moves: [atk0.name, 'Protect'] },
                { species: N.id(plain.id), item: 'Sitrus Berry', ability: '', moves: [atk1.name, 'Protect'] },
                ...bench(FILLER[1], FILLER[2])],
@@ -455,8 +459,11 @@ const CASES = [];
        * comparing: this leaf is still absent from the board comparator, so a divergence on it anywhere
        * else reaches the board and nothing looks. That is a statement of fact, not a failure of this
        * arm. */
-      L.push('       STILL NOT COMPARED — `volatile:unburden` is not in SD_VOLATILE_KEYS, so a real'
-        + ' divergence on this leaf is invisible to the board comparison wherever it happens.');
+      /* 2026-09-19 -- AND IT IS COMPARED NOW, so the residual line reads the comparator rather than asserting. */
+      L.push('       ' + (BS.SD_VOLATILE_KEYS.includes('unburden')
+        ? 'COMPARED — `volatile:unburden` is in SD_VOLATILE_KEYS; its red demonstration is tests/probe_unburden_leaf.js.'
+        : 'STILL NOT COMPARED — `volatile:unburden` is not in SD_VOLATILE_KEYS, so a real divergence on this'
+          + ' leaf is invisible to the board comparison wherever it happens.'));
       const a = bd.held.acquired || {};
       L.push('       ROADMAP #535, ENGINE HALF ' + (a.err ? 'COULD-NOT-MEASURE — ' + a.err
         : ': ' + a.who + ' has already lost its item and never carried the ability; given ability='

@@ -5598,6 +5598,45 @@ function foeTargetIndex(battle, side, i, foes) {
   return t;
 }
 
+/* ---- A MOVE THE REQUEST OFFERS AND THE AUTHORITY WILL REFUSE (2026-09-19) ------------------------
+ *
+ * THE REQUEST IS NOT THE WHOLE OF LEGALITY, AND FOUR LATTICE GAMES THREW ON THE GAP. Imprison
+ * (data/moves.ts, `onFoeDisableMove`) disables the foe's shared moves with `disableMove(id, true)`,
+ * i.e. `disabled: 'hidden'`. `getMoveRequestData` builds each slot's entry with
+ * `getMoves(lockedMove, isLastActive)` (sim/pokemon.ts:1101), and `getMoves` turns a hidden disable
+ * into `disabled = !restrictData` (:1031) — so in doubles the LAST active body's request shows the
+ * imprisoned move as ENABLED and sets `maybeDisabled` instead. `side.chooseMove` validates against
+ * `pokemon.getMoves()` with no restriction (sim/side.ts:625, :727-743) and refuses it:
+ * `Can't move: Floette's Protect is disabled`. The driver read `mv.disabled`, clicked it, and the game
+ * THREW with every later turn untested (release 4c9b0cc4a4da: 1 / 1 / 2 games at --games 1200 / 1350
+ * / 1950, Floette, Sinistcha, Altaria and Mr. Rime).
+ *
+ * THE ANSWER IS THE AUTHORITY'S OWN CORRECTION PATH, NOT A RULE RE-DERIVED HERE. When a human clicks
+ * such a move the authority refuses it and re-issues the request through `updateDisabledRequest`
+ * (sim/side.ts:852-868), which, for a `maybeDisabled` body in doubles, marks every move whose
+ * `pokemon.getMoveData(id).disabled` is truthy as disabled. This reads exactly that, and only when the
+ * authority itself raised `maybeDisabled` — so a human's refused-then-rechosen click and this
+ * driver's pre-filtered one sample from the same remaining set. It does NOT call
+ * `updateDisabledRequest`, because that clears `pokemon.maybeDisabled` on the live battle.
+ *
+ * COUNTED, because a filter that fires silently looks exactly like a driver that never met the case.
+ * `MEDI_DRIVER_HIDDEN_DISABLE_UNREAD=1` restores the old read (for the red demonstration only). */
+const HIDDEN_DISABLE_UNREAD = process.env.MEDI_DRIVER_HIDDEN_DISABLE_UNREAD === '1';
+const HIDDEN_DISABLE = { filtered: 0, first: '' };
+/* A body whose only enabled move had no live body to aim at, answered with that move at the empty
+ * slot rather than with `move 1`. See the last-resort branch in `chooseAction`. */
+const ONLY_EMPTY_SLOT = { n: 0, first: '' };
+/* `MEDI_DRIVER_FALLBACK_FIRST_SLOT=1` restores the old `move 1` answer (for the red demonstration only). */
+const FALLBACK_FIRST_SLOT_LEGACY = process.env.MEDI_DRIVER_FALLBACK_FIRST_SLOT === '1';
+function hiddenDisabled(p, act, mv) {
+  if (HIDDEN_DISABLE_UNREAD || !p || !act || !act.maybeDisabled) return false;
+  const slot = typeof p.getMoveData === 'function' ? p.getMoveData(mv.id) : null;
+  if (!slot || !slot.disabled) return false;
+  HIDDEN_DISABLE.filtered++;
+  if (!HIDDEN_DISABLE.first) HIDDEN_DISABLE.first = p.name + "'s " + mv.move + ' (' + (slot.disabledSource || slot.disabled) + ')';
+  return true;
+}
+
 function chooseAction(battle, side, i, act, axis, claimed) {
   claimed = claimed || new Set();
   const p = side.active[i];
@@ -5608,8 +5647,12 @@ function chooseAction(battle, side, i, act, axis, claimed) {
    * one decision several times and, under the joint arm, ask the same question repeatedly. */
   const foeTarget = foeTargetIndex(battle, side, i, foes);
   const cands = [];
+  /* ENABLED BY THE AUTHORITY BUT DROPPED FOR WANT OF A LIVE BODY TO AIM AT. Kept for the last-resort
+   * branch below and for nothing else — see ONLY_EMPTY_SLOT. */
+  const emptyAim = [];
   (act.moves || []).forEach((mv, k) => {
     if (mv.disabled) return;
+    if (hiddenDisabled(p, act, mv)) return;
     const dm = dex.moves.get(mv.id);
     if (!dm || !dm.exists) return;
     const banned = axis.ban ? axis.ban.has(dm.id) : false;
@@ -5627,11 +5670,13 @@ function chooseAction(battle, side, i, act, axis, claimed) {
     if (tt === null) { /* locked: no target field at all */ }
     else
     if (tt === 'normal' || tt === 'any' || tt === 'adjacentFoe') {
-      if (foeTarget < 0) return;               // no legal target: not a legal action
+      if (foeTarget < 0) { emptyAim.push({ move: dm.id, slot: k + 1, target: 1 }); return; }
       target = foeTarget + 1;
     } else if (tt === 'adjacentAlly') {
       const j = side.active.findIndex((q, n) => q && !q.fainted && n !== i);
-      if (j < 0) return;
+      if (j < 0) { const a = side.active.findIndex((q, n) => n !== i);
+                   if (a >= 0) emptyAim.push({ move: dm.id, slot: k + 1, target: -(a + 1) });
+                   return; }
       target = -(j + 1);
     } else if (tt === 'adjacentAllyOrSelf') {
       target = -(i + 1);
@@ -5691,6 +5736,25 @@ function chooseAction(battle, side, i, act, axis, claimed) {
      * bare `{kind:'pass'}` for the same decision: its own recharge gate refuses the turn before any
      * action is dispatched, so there is one decision here and two spellings of it, exactly as the mega
      * choice is one decision and two spellings. */
+    /* 2026-09-19 — THE FALLBACK CLICKED A MOVE THE AUTHORITY HAD DISABLED. `move 1` is right for a
+     * recharging body (its one pseudo-move) and WRONG when the request carries real moves: an Altaria
+     * Encored into Helping Hand, ally slot empty and nobody on the bench, had every move but Helping
+     * Hand disabled by the request and Helping Hand dropped above for want of a live ally. The fallback
+     * then sent `move 1` = Protect and the authority refused it (`Can't move: Altaria's Protect is
+     * disabled`; g1950 omit-weather `…2653845078`, release 4c9b0cc4a4da) — a thrown game.
+     *
+     * The authority's target check is by LOCATION (`validTargetLoc`, sim/battle.ts:2396), so the empty
+     * ally slot is a legal thing to name, and the request's one enabled move aimed at it is the only
+     * action a human in that seat could take. That is what is sent. medicham2 is given the same move
+     * with NO aim — the named slot holds no body, so "that slot" and "nobody" are one fact, and naming
+     * an empty slot to medicham would be counted as an AIM miss that is not one. Only when the request
+     * holds nothing enabled at all (the recharge pseudo-move) does the old `move 1` stand. */
+    if (emptyAim.length && !FALLBACK_FIRST_SLOT_LEGACY) {
+      ONLY_EMPTY_SLOT.n++;
+      if (!ONLY_EMPTY_SLOT.first) ONLY_EMPTY_SLOT.first = (p && p.name) + ' ' + emptyAim[0].move + ' -> slot ' + emptyAim[0].target;
+      const e = emptyAim[0];
+      return { move: e.move, slot: e.slot, target: e.target, aim: null, emptySlot: true };
+    }
     if (act.moves && act.moves.length) {
       FORCED_FIRST_SLOT++;
       return { move: id(act.moves[0].id), slot: 1, target: null, aim: null, forced: true };
@@ -7038,6 +7102,7 @@ module.exports = { playGame, buildPair, seamCounters: () => Object.assign({}, SE
                     * is the loud half: any read that had to fall back on display state is counted
                     * here and must be 0. */
                    rosterKey, rosterKeyFallbacks: () => ({ ...ROSTER_KEY_FALLBACK }),
+                   hiddenDisableCount: () => Object.assign({}, HIDDEN_DISABLE), onlyEmptySlotCount: () => Object.assign({}, ONLY_EMPTY_SLOT), choiceRefusedCount: () => Object.assign({}, CHOICE_REFUSED),
                    /* 2026-08-31 — the entity-kind resolver, exported so a check drives THE annotator
                     * this file actually publishes with rather than a second copy of the rule. It is
                     * the object `engine/effect_kind.js` built; `tests/probe_entity_kind.js` builds an
@@ -9405,6 +9470,11 @@ if (EMPIRICAL) {
 console.log('    ' + CHOICE_REFUSED.n + ' choice(s) Showdown REFUSED — one `battle.choose()` call returning false'
   + (CHOICE_REFUSED.n ? '  <-- MUST READ 0. first: ' + CHOICE_REFUSED.first
                         + '   (each one also THREW its game; see the THREW list)' : ' (must read 0)'));
+console.log('    ' + HIDDEN_DISABLE.filtered + ' click(s) the request offered and the authority had hidden-disabled'
+  + ' (Imprison) — removed before sampling' + (HIDDEN_DISABLE.first ? '; first: ' + HIDDEN_DISABLE.first : '')
+  + (HIDDEN_DISABLE_UNREAD ? '   <-- MEDI_DRIVER_HIDDEN_DISABLE_UNREAD=1: THE FILTER IS OFF' : ''));
+console.log('    ' + ONLY_EMPTY_SLOT.n + ' slot(s) whose one enabled move had no live body to aim at, sent at the empty slot'
+  + (ONLY_EMPTY_SLOT.first ? '; first: ' + ONLY_EMPTY_SLOT.first : ''));
 /* The noun is a forced-switch SLOT, not a game and not a choice. `pass` here is CORRECT and expected:
  * it is a slot medicham2 could not fill either, which is what Showdown's own forcedPassesLeft budget
  * is for. A non-zero `pass` count is not a defect; a non-zero refusal count above is. */
@@ -9911,6 +9981,13 @@ if (WRITE) {
        * count SLOTS: `_passed` is a slot medicham2 could not fill either and is expected to be
        * non-zero. */
       choices_refused: CHOICE_REFUSED.n, choices_refused_first: CHOICE_REFUSED.first || null,
+      /* 2026-09-19 — see `hiddenDisabled`. Clicks the request offered under `maybeDisabled` and the
+       * authority's own move slot marked disabled (Imprison), removed BEFORE sampling. Not a defect
+       * count; a run taken under MEDI_DRIVER_HIDDEN_DISABLE_UNREAD=1 says so here. */
+      hidden_disabled_filtered: HIDDEN_DISABLE.filtered, hidden_disabled_first: HIDDEN_DISABLE.first || null,
+      hidden_disable_unread_knob: HIDDEN_DISABLE_UNREAD,
+      only_move_at_empty_slot: ONLY_EMPTY_SLOT.n, only_move_at_empty_slot_first: ONLY_EMPTY_SLOT.first || null,
+      fallback_first_slot_legacy_knob: FALLBACK_FIRST_SLOT_LEGACY,
       forced_switch_slots_mirrored: FORCED_SWITCH_MIRROR.switched,
       forced_switch_slots_passed: FORCED_SWITCH_MIRROR.passed,
       /* NOT a defect count — see the printed caption. A game counted here stopped early ON PURPOSE

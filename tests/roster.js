@@ -9229,8 +9229,12 @@ const RULES = [
      * anchor above matched ZERO times and the abilities stage exited 1 on DEAD ANCHOR (release e368827481f5).
      * Aimed at the ORDINARY payment's own text, which occurs once in the live engine and in that release;
      * `else ;` keeps the braces balanced and drops the multiplier on the path an Unburden row takes. */
-    patch: [['else _mods.push(+_ub.speedMult);}}',
-             'else ;}}']] },
+    /* RE-AIMED A FOURTH TIME 2026-09-19 (ENGINE, the `unburden` leaf). effSpeed no longer pays from the ability
+     * tag inline: the payment is `ubMult(m)`, which reads the `_ubVol` volatile the loss doors grant, and the old
+     * text matched ZERO times. Aimed at the one payment line; the plant still drops the multiplier and leaves
+     * the item consumed (and the volatile standing, so `vol.unburden` agrees while Speed does not). */
+    patch: [['if(_ubm)_mods.push(_ubm);}',
+             'if(0)_mods.push(_ubm);}']] },
   match(e) {
     if (!hasHandler(e, 'onAfterUseItem', 'onTakeItem')) return null;
     /* AND STICKY HOLD IS NOT IN THIS FAMILY, WHICH IS THE OVER-MATCH THIS PROJECT HAS ALREADY MADE

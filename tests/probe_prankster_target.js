@@ -256,6 +256,8 @@ const directOk = directCtl === true && directBad.length === 0;
 if (!directOk) red++;
 results.push({ id: 'direct', control: directCtl, fieldRefused: directBad, verdict: directOk ? 'GREEN' : 'RED' });
 
+/* WRITE-POLICY: findings — a RED arm IS the measurement (which field move Prankster wrongly refuses), so a red
+ * run publishes it, stamped `run_ok: false`; nothing reads this artifact back as a baseline. */
 const fs = require('fs');
 fs.writeFileSync(D('data', 'verification', 'probe-prankster-target.json'), JSON.stringify({
   generated: new Date().toISOString(), roadmap: 9, format: CS.FORMAT,

@@ -752,7 +752,10 @@ const SCENARIOS = [
     ],
     break: { why: 'the mega forme\'s ability is NOT installed — the species, the stats and the stone '
                 + 'all change exactly as before, so only the ability replacement goes missing',
-      patch: [['m.ability=ab; m.baseAbility=ab;', '/* the ability overwrite, removed by tests/staged_board.js */;']] } },
+      /* RE-AIMED 2026-09-19 (ENGINE). The mega door grew Gastro Acid's park branch (`abSuppress`): the overwrite
+       * is now the `else m.ability=ab;` of that branch, so the old anchor matched ZERO times. Same removal. */
+      patch: [['{ m._abParked=ab; MEDSEEN.abilityRewriteWhileSuppressed++; } else m.ability=ab;',
+               '{ m._abParked=ab; MEDSEEN.abilityRewriteWhileSuppressed++; } else /* the ability overwrite, removed by tests/staged_board.js */;']] } },
 
   /* ------------------------------------------- 21. ability / A FORME THAT FLIPS ON A CLOCK */
   { id: 'hungerswitch-flips-every-turn',
@@ -818,8 +821,10 @@ const SCENARIOS = [
     ],
     break: { why: 'the base-power branch stops asking whether the item could be taken and boosts off '
                 + 'the mere PRESENCE of one, which is what it did before this wire',
-      patch: [["else if(_vp.kind==='targetHasItem'&&def.item&&!itemRefusesTake(def))",
-               "else if(_vp.kind==='targetHasItem'&&def.item)"]] } },
+      /* RE-AIMED 2026-09-19 (ENGINE). The branch reads the target's item IDENTITY now (`targetItemOf`, Knock Off
+       * under Magic Room / Klutz), so the old anchor matched ZERO times. Same break: drop the refusal ask. */
+      patch: [["else if(_vp.kind==='targetHasItem'&&targetItemOf(def)&&!stoneRefusesBody(targetItemOf(def),def))",
+               "else if(_vp.kind==='targetHasItem'&&targetItemOf(def))"]] } },
 
   /* ------------------------------------------- 20. move / THE USER'S OWN ITEM, IN REVERSE */
   { id: 'fling-spends-the-users-item',

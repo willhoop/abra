@@ -153,24 +153,12 @@ const NOT_COMPARED = [
    * THE FOURTEEN THAT WERE WIRED DELIBERATELY DO NOT CARRY. Named rather than left as absences,
    * because that is this file's whole rule and because two of these five are exactly the shape that
    * has cost the most here: a leaf that passes every derived column and holds nothing. */
-  { field: 'Unburden — `volatile:unburden`',
-    why: 'THE ENGINE HOLDS NO STATE UNDER THIS NAME AND THERE IS NOTHING TO COMPARE. The authority '
-       + 'grants a volatile at the moment the item is taken or used (data/abilities.ts:5227-5249) and '
-       + 'its condition does `onModifySpe chainModify(2)`. medicham2 applies the doubling inside '
-       + '`effSpeed`, gated on `TAGS.param(\'ability\', m.ability, \'speedOnItemLoss\')` — a param '
-       + 'data/tags.json grants to exactly ONE ability — nested in an `_hadItem && !m.item` entry '
-       + 'guard. There is no field. A comparator can only read a value one of the engines does not '
-       + 'have by RECOMPUTING the rule, which is this file checking its own belief against the '
-       + 'authority rather than checking two engines.',
-    status: 'NOT WIREABLE — no state, not an oversight.',
-    measured_by: 'tests/probe_leaf_widening.js, the `unburden` OBSERVE arm — it asks `effSpeed` twice '
-       + 'per body (as it stands, and on a delegating clone with the item-loss input cleared) and the '
-       + 'authority `getStat(\'spe\')` modified against unmodified, and FAILS on a disagreement. '
-       + 'Measured: the carrier reads x2 on both engines and a body that lost the same item without '
-       + 'the ability reads x1 on both.',
-    wrong_if: 'medicham2 ever grows a named field for it — then it becomes comparable and this row is '
-       + 'the thing that must be deleted rather than kept.',
-    leaves: ['volatile:unburden'] },
+  /* UNBURDEN WAS HERE UNTIL 2026-09-19 AND ITS OWN `wrong_if` DELETED IT. The row read "THE ENGINE HOLDS
+   * NO STATE UNDER THIS NAME" and ended *"wrong_if: medicham2 ever grows a named field for it — then it
+   * becomes comparable and this row is the thing that must be deleted rather than kept."* It grew one
+   * (`_ubVol`, and `effSpeed` reads it), so `volatile:unburden` is a compared leaf in `mediBody` /
+   * `sdBody` and is proven by tests/probe_unburden_leaf.js (red under MEDI_UNBURDEN_BREAK, silent
+   * without it). A wired leaf keeps no row here. */
   { field: 'Power Shift — `volatile:powershift`',
     why: 'NO LEGAL BODY IN THIS REGULATION CAN WRITE IT. Champions un-bans the MOVE '
        + '(data/mods/champions/moves.ts:739-742, `isNonstandard: null`) and then gives it to nobody: '
@@ -1003,7 +991,11 @@ function mediBody(m, id, ctx) {
      * . Sorting removes a pure ORDER difference, which is not a rule disagreement and
      * would otherwise part every dual-typed body on line one. */
     types: (m.types || []).map(t => id(t)).sort().join('/'),
-    ability: id(m.ability || ''),
+    /* 2026-09-19 -- THE IDENTITY, for the same reason `item` above reads `m.item || m._roomItem`: Gastro Acid
+     * PARKS the ability in `_abParked` so every effect reader sees none (medicham2 `abSuppress`), while the
+     * authority's `pokemon.ability` is untouched by `ignoringAbility()`. Reading the live slot would part
+     * every suppressed body on a representation, not a rule. */
+    ability: id((m._abParked != null ? m._abParked : m.ability) || ''),
     boosts: mediBoosts(m),
     vol: {
       substitute: num(m._sub),
@@ -1338,6 +1330,29 @@ function mediBody(m, id, ctx) {
       powertrick: vol.powertrick ? 1 : 0,
       smackdown: vol.smackdown ? 1 : 0,
       stockpile: num(vol.stockpile),
+      /* ---- UNBURDEN. 2026-09-19 — IT LEFT `NOT_COMPARED` BECAUSE THE ENGINE NOW HOLDS IT. ------------
+       *
+       * That row's own `wrong_if` was *"medicham2 ever grows a named field for it — then it becomes
+       * comparable and this row is the thing that must be deleted rather than kept."* It did: `_ubVol`,
+       * granted at the three loss doors (`consumeBerry`, `recordItemUsed`, `itemLose`), ended by the
+       * ability's End (`ubAbilityRewrite`) and on leaving the field (`ubClearOnLeave`), NOT carried by Baton
+       * Pass off its holder (the ability End runs before the copy) — and `effSpeed` now READS it (`ubMult`) instead of recomputing `_hadItem && !m.item`. So this
+       * is the engine's own state, the thing that decides its Speed, and not a belief rebuilt here.
+       *
+       * WHY IT MATTERS MORE THAN MOST PRESENCE LEAVES: the protocol NEVER announces it (the condition has
+       * no `onStart` line), so before this a wrong Unburden state could only surface as a turn-order line
+       * somewhere later, and only if the order happened to change an HP. Will, 2026-09-19: *"i know the
+       * chat/log wont announce it but we need to track it"*.
+       *
+       * PRESENCE, NOT "DOUBLING NOW". The authority keeps the volatile on a body that has picked up a new
+       * item (a Trick swap grants it in the same action); only `!pokemon.item` stops the doubling. That
+       * half is the `item` leaf above, already compared on both engines, so presence + item is the whole
+       * of the condition except `ignoringAbility()` — and the speed NUMBER itself is compared separately at
+       * every boundary by the driver's `speedAgree` (ROADMAP #290), which is not a board leaf.
+       *
+       * AN OLD RELEASE READS 0 HERE (it has no `_ubVol`), the same as every leaf wired after a release was
+       * cut; this reader is live and is not frozen with the engine. */
+      unburden: m._ubVol ? 1 : 0,
     },
     /* ---- THE STALL COUNTER BEHIND CONSECUTIVE PROTECT. 2026-08-25. -------------------------------
      *
@@ -1475,6 +1490,10 @@ function sdBody(p, id, ctx) {
       powertrick: v.powertrick ? 1 : 0,
       smackdown: v.smackdown ? 1 : 0,
       stockpile: v.stockpile ? num(v.stockpile.layers) : 0,
+      /* 2026-09-19 — THE AUTHORITY'S SIDE OF UNBURDEN. PRESENCE: data/abilities.ts:5238-5244 gives the
+       * condition no duration and no counter, only `onModifySpe`. See the medicham side for why the item
+       * leaf beside it completes the doubling and why presence is not narrowed to "doubling now". */
+      unburden: v.unburden ? 1 : 0,
     },
     /* THE AUTHORITY'S SIDE OF THE STALL COUNTER: the raw denominator off its own volatile, with NO
      * volatile reading 0. Gated on the same capability as medicham2's so both sides are `null`

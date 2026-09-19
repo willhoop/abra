@@ -182,6 +182,8 @@ for (const c of CONSUMERS) {
   rows.push({ id: c.id, body: c.body, what: c.what, berry: out.berry, inert: out.inert, controlMovesAuthority: moved });
 }
 
+/* WRITE-POLICY: findings — a PARTS row IS the measurement (which berry consumer disposes differently), so a red
+ * run publishes it, stamped `run_ok: false`; nothing reads this artifact back as a baseline. */
 const fs = require('fs');
 fs.writeFileSync(D('data', 'verification', 'probe-knockoff-berry-consumers.json'), JSON.stringify({
   generated: new Date().toISOString(), roadmap: 80, format: CS.FORMAT,

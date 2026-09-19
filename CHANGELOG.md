@@ -10,6 +10,21 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.63.0] — 2026-09-19
+
+### Fixed
+- **Unburden** is tracked as state and compared on the board; a stolen-then-lost item now doubles Speed.
+- **Gastro Acid** suppresses; **Knock Off / Poltergeist** read the held item under Magic Room and Klutz.
+- **Ripen** halves again after a resist berry; **Anticipation**, **Pressure**, **Mold Breaker**, **Unnerve**
+  announce; **Screen Cleaner** and **Tidy Up** order; a drop at -6 prints `-unboost|0`.
+- **The empirical driver** no longer clicks refused moves; four truncated lattice games now play out.
+
+### Changed
+- The staged-game battery forces every in-scope ability to fire against a control.
+
+### Notes
+- Census 955 -> 967 live. The gate must be re-measured on `d92bdfb50d88`.
+
 ## [6.62.0] — 2026-09-19
 
 ### Fixed

@@ -1802,7 +1802,7 @@ drop, `|-enditem|` is an item being spent, the order of two `|move|` lines is tu
 `engine/medicham2-browser.js` now emits that stream on request. The event set is **derived from
 Showdown's `add()` call sites** rather than transcribed (`engine/derive_protocol_events.js` →
 `data/protocol-events.json`, whose own `showdownEvents`, `emittedCount`, `notEmittedCount` and
-`partialCount` read 91 / 45 / 49 / 10), and two gates fail the run — claiming an event Showdown never
+`partialCount` read 91 / 46 / 48 / 10), and two gates fail the run — claiming an event Showdown never
 emits, or leaving one unexplained. The scan reads this **format's** overrides, not the generic
 protocol: Champions emits `|-supereffective|POKEMON|N` where the base engine emits two fields.
 

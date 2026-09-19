@@ -1888,7 +1888,7 @@ M.battleTurn(S, rng);
 
 | Export | Does |
 |---|---|
-| `M.TRACE_EVENTS` | the event names this engine claims it can emit. Read `emittedCount` in `data/protocol-events.json`. It is 45. Read the artifact, not this cell |
+| `M.TRACE_EVENTS` | the event names this engine claims it can emit. Read `emittedCount` in `data/protocol-events.json`. It is 46. Read the artifact, not this cell |
 | `M.traceCounts(lines)` | counts by event name, PARSED from the lines rather than kept beside them |
 | `M.traceCanon(line)` | the one normaliser — lowercase and strip whitespace **per field** |
 

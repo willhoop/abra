@@ -1,10 +1,10 @@
 {
-  "current": "4c9b0cc4a4da",
-  "cut": "2026-09-19T12:55:13.620Z",
-  "why": "merged 6.59.0: narration C (Forewarn announcement and die, Harvest coin, Chilly Reception, status-before-field) and D (sweep attribution, Magician, drop-refusal order)",
+  "current": "d92bdfb50d88",
+  "cut": "2026-09-19T16:04:45.355Z",
+  "why": "merged 6.63.0: blind spots — Unburden compared leaf, Gastro Acid, Magic Room target item, Ripen, Anticipation, Screen Cleaner, start announcements, driver refused clicks, Tidy Up, -6 drop line, forced-fire fixtures and controls",
   "cuts": 1,
-  "latest_cut": "2026-09-19T12:55:13.620Z",
-  "latest_why": "merged 6.59.0: narration C (Forewarn announcement and die, Harvest coin, Chilly Reception, status-before-field) and D (sweep attribution, Magician, drop-refusal order)",
-  "pointer_written": "2026-09-19T12:55:13.708Z",
+  "latest_cut": "2026-09-19T16:04:45.355Z",
+  "latest_why": "merged 6.63.0: blind spots — Unburden compared leaf, Gastro Acid, Magic Room target item, Ripen, Anticipation, Screen Cleaner, start announcements, driver refused clicks, Tidy Up, -6 drop line, forced-fire fixtures and controls",
+  "pointer_written": "2026-09-19T16:04:45.611Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

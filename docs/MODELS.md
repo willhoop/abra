@@ -1305,7 +1305,7 @@ than Pelipper plus Archaludon** — the same expressiveness failure as DODUO, on
 on request — `battleInit(A, B, {trace: []})`, off by default. The event set is derived from Showdown's
 own `add()` call sites, including this format's overrides, by `engine/derive_protocol_events.js`.
 
-`data/protocol-events.json`: **showdownEvents 91, emittedCount 45, notEmittedCount 49, partialCount
+`data/protocol-events.json`: **showdownEvents 91, emittedCount 46, notEmittedCount 48, partialCount
 10** — every non-emitted event carries a written reason. Two gates fail the run: claiming an event
 Showdown never emits, and leaving one it does emit unexplained. `tests/test-protocol-trace.js` fails
 if any claimed event never fires in a real game.

@@ -182,6 +182,9 @@ const announceIn = (h) => {
 if (!process.env.SHOWDOWN_PATH) { console.error('set SHOWDOWN_PATH'); process.exit(2); }
 const { Dex } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
+/* THE SIM'S OWN `Pokemon` CLASS, for the one derivation that reads a METHOD rather than a data row
+ * (`suppressesAbility` reads `ignoringAbility`). `CS.sim()` does not hand it out. */
+const SIM_POKEMON = require(process.env.SHOWDOWN_PATH + '/dist/sim').Pokemon;
 
 /* ---- ROADMAP #236 -- THE NEVER-MISS CLAUSES THAT LIVE IN THE STEP LIST, NOT ON THE MOVE ---------
  *
@@ -4157,6 +4160,16 @@ const MOVE_TAGS = [
       /* ...and the same question for the user's own Leech Seed `-end` (the spin family writes
        * `this.add('-end', pokemon, 'Leech Seed', '[from] move: <Move>', `[of] ${pokemon}`)`). */
       if (/["']-end["'][^;]*Leech Seed[^;]*\[from\] move:/.test(src)) out.attributesSeedEnd = true;
+      /* 2026-09-19 (narration E) -- TIDY UP's `onHit` is the sweep, then
+       *     if (success) this.add('-activate', pokemon, 'move: Tidy Up');
+       *     return !!this.boost({ atk: 1, spe: 1 }, pokemon, pokemon, null, false, true) || success;
+       * (data/moves.ts, no Champions override). Two HANDLER facts, read off the text rather than the name:
+       * whether the handler announces a successful sweep with an `-activate` naming the move, and whether its
+       * own `this.boost(` call comes AFTER the removal (so the boosts print below the sweep). Defog's boost is
+       * above its removal, and the spin family's self-boost lives in `self`/`secondaries`, not in the handler. */
+      if (/["']-activate["'][^;]*["']move: /.test(src)) out.activatesOnSweep = true;
+      { const rs = src.indexOf('removeSideCondition'), bo = src.indexOf('this.boost(');
+        if (rs >= 0 && bo > rs) out.sweepBeforeOwnBoost = true; }
       return out;
     } },
   /* Will: "does the engine know what the boostsUser actually boosts". IT DOES NOT. board.js has
@@ -6123,6 +6136,30 @@ const MOVE_TAGS = [
       }
       return Object.keys(byVolatile).length ? { byVolatile } : null;
     } },
+  /* 2026-09-19 -- A VOLATILE THAT MAKES ITS HOLDER IGNORE ITS OWN ABILITY. `Pokemon#ignoringAbility`
+   * (sim/pokemon.ts:864-883) names the volatile by id -- `if (this.volatiles['gastroacid']) return true` --
+   * AFTER the `cantsuppress` flag answers false, so membership is read off THAT function's source and not
+   * off the move: a move whose volatile the sim never consults suppresses nothing, whatever its text says.
+   * `endsAbility` and `announce` come off the condition's own `onStart`
+   * (`this.add('-endability', pokemon)`, `singleEvent('End', pokemon.getAbility(), ...)`, data/moves.ts
+   * 6448-6452). MEMBERSHIP OVER THIS FORMAT, printed before wiring: `gastroacid` and nothing else. */
+  { tag: 'suppressesAbility', param: 'the volatile this move writes makes its holder ignore its ability until it leaves',
+    probe: 'suppressesAbility',
+    why: 'medicham2 wrote `_vol.gastroacid` and no ability reader asked about it, so a Gastro Acided Rough '
+       + 'Skin still chipped, an Unburden still doubled and `-endability` was declared un-emitted',
+    of: m => {
+      const v = m.volatileStatus;
+      if (typeof v !== 'string' || !v) return null;
+      const ign = fnsrc(SIM_POKEMON && SIM_POKEMON.prototype && SIM_POKEMON.prototype.ignoringAbility);
+      if (!new RegExp("volatiles\\[\\s*[\"']" + v + "[\"']\\s*\\]").test(ign)) return null;
+      const c = dex.conditions.get(v);
+      if (!c || !c.exists) return null;
+      const st = fnsrc(c.onStart);
+      return { volatile: v,
+               endsAbility: /singleEvent\(\s*["']End["']\s*,\s*pokemon\.getAbility\(\)/.test(st),
+               announce: /this\.add\(\s*["']-endability["']\s*,\s*pokemon\s*\)/.test(st) ? '-endability' : null,
+               from: 'DERIVED:Pokemon#ignoringAbility names volatiles.' + v + '; dex.conditions.get(' + v + ').onStart' };
+    } },
 ];
 
 /* ---- THE EFFECTIVENESS EVENT IS RAISED ONCE PER DEFENDING TYPE, AND SOME HANDLERS IGNORE THE TYPE --
@@ -8061,7 +8098,38 @@ const ABILITY_TAGS = [
       const heal = /isBerry\)\s*return this\.chainModify\(\s*2\s*\)/.test(String(a.onTryHeal || '').replace(/\s+/g, ' '));
       const boost = /isBerry[\s\S]*\*=\s*2/.test(String(a.onChangeBoost || '').replace(/\s+/g, ' '));
       if (!heal && !boost) return null;
-      return { mult: 2, heal, boost };
+      /* 2026-09-19 (FORCE-FIRE, ENGINE) -- THE THIRD DOUBLING, A RESIST BERRY'S HALVE TAKEN TWICE.
+       * `onEatItem` writes `abilityState.<flag> = <list>.includes(item.name)` and the holder's own
+       * `onSourceModifyDamage` (priority -1, so after the berry's) spends the flag for one more
+       * `chainModify`. Both halves are read here: the flag must be WRITTEN by the eat and READ by the
+       * damage handler, the berry list is the handler's own array literal (names -> ids), and the
+       * multiplier and priority are the handler's. Null when either half is absent, so a later ability
+       * that only records a flag cannot pick up a halve it does not have. Membership printed before it
+       * was wired: ripen, alone. data/abilities.ts:3848-3864. */
+      const eat = String(a.onEatItem || '').replace(/\s+/g, ' ');
+      const smd = String(a.onSourceModifyDamage || '').replace(/\s+/g, ' ');
+      const fl = /abilityState\.(\w+)\s*=\s*(\w+)\.includes\(\s*item\.name\s*\)/.exec(eat);
+      let resistWeaken = null;
+      if (fl && new RegExp('abilityState\\.' + fl[1] + '\\b').test(smd)) {
+        const lit = new RegExp('(?:const|let|var)\\s+' + fl[2] + '\\s*=\\s*\\[([^\\]]*)\\]').exec(eat);
+        const berries = lit ? [...lit[1].matchAll(/["'`]([^"'`]+)["'`]/g)].map(x => x[1].toLowerCase().replace(/[^a-z0-9]/g, '')) : [];
+        const mult = multiplierIn(smd);
+        if (berries.length && mult > 0 && mult < 1)
+          resistWeaken = { mult, berries, flag: fl[1], priority: typeof a.onSourceModifyDamagePriority === 'number' ? a.onSourceModifyDamagePriority : 0 };
+      }
+      /* AND THE SAME `onTryHeal` ANNOUNCES ITSELF for two NON-berry heals, named in the handler
+       * (`effect.name === "Berry Juice" || effect.name === "Leftovers"`), above the berry test and so
+       * without doubling them. `Battle#heal` raises TryHeal BEFORE its full-HP return (sim/battle.ts:2268
+       * against :2272), so a full-HP Leftovers holder still announces every residual. Read whole: the
+       * names and the announced string are the handler's own. */
+      const th = String(a.onTryHeal || '').replace(/\s+/g, ' ');
+      const ann = /this\.add\(\s*["'`]-activate["'`]\s*,\s*\w+\s*,\s*["'`](ability:\s*[^"'`]+)["'`]\s*\)/.exec(th);
+      const hn = [...th.matchAll(/effect\.name\s*===\s*["'`]([^"'`]+)["'`]/g)].map(x => x[1].toLowerCase().replace(/[^a-z0-9]/g, ''));
+      const announcesHealFrom = ann && hn.length ? { announcesAs: ann[1], effects: hn } : null;
+      const out = { mult: 2, heal, boost };
+      if (resistWeaken) out.resistWeaken = resistWeaken;
+      if (announcesHealFrom) out.announcesHealFrom = announcesHealFrom;
+      return out;
     } },
   /* THE PINCH THRESHOLD MOVES, AND THE HANDLER THAT SAYS SO IS THE BERRY'S, NOT THE ABILITY'S.
    * Gluttony itself only sets a flag (`abilityState.gluttony = true`); the number lives in each pinch
@@ -9927,12 +9995,69 @@ const ABILITY_TAGS = [
                     rules: rules.map(({ at, ...r }) => r), score };
         }
       }
+      /* 2026-09-19 (FORCE-FIRE, ENGINE) — THE SHUDDER, READ OFF THE HANDLER. A member that walks the foes'
+       * moves WITHOUT a sample and announces once on the first move that is super-effective on it or is
+       * an OHKO (Anticipation, data/abilities.ts:174-190) gets `shudders`: which category it skips, whether
+       * the immunity test gates the effectiveness, whether an OHKO counts, and that it stops at the first.
+       * No die: the handler has no `random`/`sample`. Membership printed before wiring: anticipation. */
+      let shudders = null;
+      if (!/this\.sample\(|this\.random/.test(src) && /moveSlots/.test(src) && /getEffectiveness\([^)]*\)\s*>\s*0/.test(src)) {
+        const sk = /move\.category === ["'](\w+)["']\) continue/.exec(src);
+        shudders = { skipsCategory: sk ? sk[1] : null, superEffective: true,
+                     immunityGates: /getImmunity\(/.test(src), ohko: /move\.ohko/.test(src),
+                     firstOnly: /this\.add\([^;]*\);\s*return;/.test(src) };
+      }
       return { effect: 'information only',
+               ...(shudders ? { shudders } : {}),
                reveals: /getItem\(\)/.test(src) ? 'the foes\' items'
                       : /moves/.test(src) ? 'a foe move' : 'a warning',
                emits: em ? { event: em[1], on: (subj && em[2] === subj[1]) ? 'self' : 'foe' } : null,
                ...(picks ? { picks } : {}),
                visibleOnABoard: false };
+    } },
+
+  /* 2026-09-19 — THE OTHER HALF OF THE NARROWING ABOVE, AND WHY IT IS A SEPARATE TAG.
+   *
+   * `announcesOnEntry` was narrowed to "onStart is the ability's ONLY handler" because the wide draft
+   * caught Pressure, Mold Breaker and Unnerve — abilities that announce themselves and then work
+   * through ANOTHER handler. The narrowing was right for that tag (its claim is "the whole effect is a
+   * message") and it left the announcement of those three with no fact behind it at all. The engine
+   * performed each one's EFFECT (PP drain, the break, the berry refusal — all LIVE in the census) and
+   * wrote none of their lines, and `engine/all_mechanics_fire.js` read all three SHOWDOWN-ONLY for
+   * exactly that reason: the only line that moved the authority's game was the announcement.
+   *
+   * THE PREDICATE IS THE HANDLER'S WHOLE BODY, READ, NOT "HAS AN -ability SOMEWHERE". `onStart` must
+   * be nothing but `this.add('-ability', <its own subject>, '<its own name>')`, optionally behind the
+   * two guards the format writes around it — a per-state latch (`if (this.effectState.X) return;` ...
+   * `this.effectState.X = true;`, Unnerve's) and a suppression check (`this.suppressingAbility(...)`,
+   * Fairy Aura's). Anything else in the body and the member is refused, so Intimidate and Supersweet
+   * Syrup (which announce as part of a drop the engine already narrates) and Anticipation (a
+   * conditional scan, `announcesOnEntry`) cannot fall in. Cloud Nine announces in `onSwitchIn`, not
+   * `onStart` — a DIFFERENT door (it does not speak on a mega or a copied ability) — and is left out on
+   * purpose rather than smuggled in under a name. Membership PRINTED before anything read it (LESSONS
+   * §4): pressure, moldbreaker, unnerve, fairyaura over the legal carriers. */
+  { tag: 'announcesOnStart', param: 'the ability writes its own bare `|-ability|` line every time it STARTS, and that line is the whole of its onStart',
+    probe: 'announcesOnStart',
+    why: 'Pressure, Mold Breaker and Unnerve announce on entry and then work through another handler, '
+       + 'so `announcesOnEntry` (whole-effect-is-a-message) correctly refuses them — which left their '
+       + 'announcement with no fact behind it and the engine silent where the authority speaks',
+    of: a => {
+      if (typeof a.onStart !== 'function') return null;
+      const raw = String(a.onStart).trim();
+      const subj = /^(?:function\s*)?[\w$]*\s*\(\s*(\w+)/.exec(raw);
+      if (!subj || raw.indexOf('{') < 0) return null;
+      let rest = raw.slice(raw.indexOf('{') + 1, raw.lastIndexOf('}')).replace(/\s+/g, ' ').trim();
+      let latch = null, suppressGuard = false, g;
+      if ((g = /^if \(this\.effectState\.(\w+)\) return;\s*/.exec(rest))) { latch = g[1]; rest = rest.slice(g[0].length); }
+      if ((g = /^if \(this\.suppressingAbility\(\w+\)\) return;\s*/.exec(rest))) { suppressGuard = true; rest = rest.slice(g[0].length); }
+      const esc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const ann = new RegExp('^this\\.add\\(\\s*["\']-ability["\']\\s*,\\s*' + subj[1] + '\\s*,\\s*["\']'
+                             + esc(a.name) + '["\']\\s*\\);\\s*').exec(rest);
+      if (!ann) return null;
+      rest = rest.slice(ann[0].length);
+      if (latch) rest = rest.replace(new RegExp('^this\\.effectState\\.' + latch + ' = true;\\s*'), '');
+      if (rest.trim()) return null;
+      return { event: '-ability', on: 'self', latch, suppressGuard, visibleOnABoard: false };
     } },
 
   /* THE ALLY BASE-POWER BOOSTERS. `onAllyBasePower` is a hook nothing else in this file reads, and a

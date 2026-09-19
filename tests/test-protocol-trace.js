@@ -435,6 +435,21 @@ const SCENARIOS = [
     [{ a: [{ m: 'protect' }, { m: 'swordsdance' }], b: [{ m: 'yawn', t: 1 }, { m: 'protect' }] },
      { a: null, b: null }]],
 
+  /* `-endability`: GASTRO ACID — added 2026-09-19 with the emitter (medicham2 `abSuppress`), on the same rule
+   * as the boards above: a claimed event nothing produces is the shape PART 1 exists to refuse.
+   * `gastroacid.condition.onStart` writes `this.add('-endability', pokemon)` (data/moves.ts:6450) and is the
+   * only legal writer in this format. Gastro Acid prints accuracy 100 and the target is not shielded, so the
+   * line does not ride on a die. Arbok learns all four moves, asked of the format by tests/probe_gastro_acid.js. */
+  ['Gastro Acid: the target\'s ability is suppressed, and the condition says so with `-endability`',
+    () => [mon('arbok', ['gastroacid', 'knockoff', 'protect', 'glare'], 'shedskin', ''),
+           mon('clefable', ['moonblast', 'protect', 'followme', 'helpinghand'], 'unaware', ''),
+           mon('milotic', ['scald', 'recover', 'protect', 'icywind'], 'marvelscale', '')],
+    () => [mon('garchomp', ['earthquake', 'dragonclaw', 'protect', 'rockslide'], 'roughskin', ''),
+           mon('milotic', ['scald', 'recover', 'protect', 'icywind'], 'marvelscale', ''),
+           mon('snorlax', ['bodyslam', 'protect', 'yawn', 'curse'], 'thickfat', '')],
+    [{ a: [{ m: 'gastroacid', t: 0 }, { m: 'protect' }], b: [{ m: 'dragonclaw', t: 0 }, { m: 'protect' }] },
+     { a: null, b: null }]],
+
   /* `-copyboost`: THE ONE EVENT THAT NAMES TWO POKEMON — added 2026-08-26 (ROADMAP #457) with the
    * emitter, on the same rule the Belly Drum board above was added on.
    *

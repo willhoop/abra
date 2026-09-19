@@ -170,6 +170,17 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * empty, which the authority reads as the `unburden` volatile ending (or never being granted);
    * `unburdenWithheldLate` -- an effSpeed read that withheld the doubling for that reason. */
   unburdenVolatileEnded: 0, unburdenWithheldLate: 0,
+  /* 2026-09-19 -- THE `unburden` VOLATILE IS STATE (`m._ubVol`). `unburdenGranted` -- a grant at one of the
+   * three loss doors (eat / use / take); `unburdenEndedByAbility` -- the holder's Unburden ENDED by an ability
+   * rewrite; `unburdenClearedOnSwitch` -- the volatile left with the body; `unburdenPassedByBaton` -- carried
+   * by Baton Pass, which from an Unburden holder is ZERO by construction (its End runs before the copy, see
+   * `capturePassedState`) and is counted so that ceasing to be zero is visible; `unburdenLegacyDisagrees` -- an effSpeed read where the retired
+   * `_hadItem && !m.item` predicate would have answered differently from the volatile. */
+  unburdenGranted: 0, unburdenEndedByAbility: 0, unburdenClearedOnSwitch: 0, unburdenPassedByBaton: 0,
+  unburdenLegacyDisagrees: 0,
+  /* 2026-09-19 -- Gastro Acid's park: `abilitySuppressed` when a body's ability was parked, `abilityUnsuppressed`
+   * when the park left with it, `abilityRewriteWhileSuppressed` when a rewrite landed on the park instead. */
+  abilitySuppressed: 0, abilityUnsuppressed: 0, abilityRewriteWhileSuppressed: 0,
   /* ROADMAP #290 -- a Speed multiplier that is NOT an exact multiple of 1/4096, so the ORDER of the
    * chain starts to matter. Zero across this format today (x1.5 is 6144, x2 is 8192), and the whole
    * point of the counter is that a future one arrives loudly instead of as a rounding drift. */
@@ -2912,6 +2923,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                          ordinary case. */
   forewarnAnnounced: 0, forewarnDie: 0, forewarnNoDie: 0, forewarnNothing: 0,
   pivotNothingDoneFailed: 0, statusHeldAnsweredFirst: 0,
+  /* 2026-09-19 -- `startAnnounced`: an `announcesOnStart` ability wrote its own bare `|-ability|HOLDER|X`
+   * as it started (data/abilities.ts pressure :3427-3430, moldbreaker :2679-2682, unnerve :5250-5256).
+   * Zero on a run with a Pressure / Mold Breaker / Unnerve body in it means the line went silent again. */
+  startAnnounced: 0,
   /* `harvestCoinThrown`: a Harvest body's residual coin was thrown (or the sun made it certain) whether or
    * not a berry was waiting, as data/abilities.ts:1794 throws it. Zero with a Harvest body on the field
    * means the coin is gated on the berry again. */
@@ -3087,6 +3102,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      (Ripen, 2 carriers, 0 uses in the store), so a run with no Appletun or Flapple in it reads 0
      legitimately -- read it beside the staged probe, never on its own. */
   berryEatAnnounced: 0,
+  /* 2026-09-19 -- FORCE-FIRE. `ripenWeakenArmed`: an eat set the holder's `resistWeaken` flag (the
+     authority's `abilityState.berryWeaken`); `ripenWeakenSpent`: a priced hit spent it for the second
+     halve. `anticipationAnnounced`: Anticipation found a foe move it shudders at. */
+  ripenWeakenArmed: 0, ripenWeakenSpent: 0, ripenHealAnnounced: 0, anticipationAnnounced: 0,
   /* 2026-08-30 -- ONE COUNT OF `runEvent('EatItem')`, WHEREVER IT WAS RAISED FROM, and three counts
      of the roads that could not raise it before. `eatItemEventRaised` must be >= `berryConsumed`
      over any sample where a berry was ever weakened, cured a confusion or was flung, because those
@@ -5527,6 +5546,8 @@ const TRACE=(function(){
      * `add('-end', pokemon, this.effectState.sourceEffect, '[partiallytrapped]')` (data/conditions.ts
      * partiallytrapped onEnd). Same fact as the chip line above, so it reads the same record. */
     vend(m,eff,tag){ this.push(['-end',ident(m),eff,tag]); },
+    /* 2026-09-19 -- Gastro Acid's `this.add('-endability', pokemon)` (data/moves.ts:6450): two fields, nothing else. */
+    endability(m){ this.push(['-endability',ident(m)]); },
     /* 2026-09-19 (narration D) -- an `-end` carrying `[from]` then `[of]`, two fields: the spin family's Leech Seed. */
     vendFrom(m,eff,from,of){ this.push(['-end',ident(m),eff,from,of?'[of] '+ident(of):'']); },
     /* --- items and abilities --- */
@@ -5804,6 +5825,10 @@ const TRACE_EVENTS=['turn','upkeep','move','cant','switch','drag','faint','detai
   '-ability','-item','-enditem','-weather','-fieldstart','-fieldend','-fieldactivate',
   '-sidestart','-sideend','-start','-end','-activate','-singleturn','-fail','-miss',
   '-crit','-supereffective','-resisted','-immune','-prepare','-mustrecharge','-hitcount','-formechange',
+  /* 2026-09-19 -- `-endability` IS CLAIMED NOW: Gastro Acid's own line, written by `abSuppress` when the
+   * `suppressesAbility` tag names an `announce`. Its declared not-emitted reason in
+   * engine/derive_protocol_events.js is deleted rather than reworded. tests/probe_gastro_acid.js. */
+  '-endability',
   /* 2026-09-11 (ROADMAP #599) -- `-block` IS CLAIMED NOW: every veil's own line, `-block|<target>|ability:
    * X|[of] <holder>`, written through `TR.block` when the handler's derived class says it speaks. Its
    * declared not-emitted reason in engine/derive_protocol_events.js is deleted rather than reworded, and
@@ -6273,9 +6298,35 @@ const STATUS_HELD_AFTER_FIELD=_MK('MEDI_STATUS_HELD_AFTER_FIELD');
  *                                  one is a DIE, not a line: it can move a board, and the probe says which. */
 const HARVEST_COIN_GATED=_MK('MEDI_HARVEST_COIN_GATED');
 if(HARVEST_COIN_GATED)MEDFAILS.harvestCoinGatedRestored=1;
+/* 2026-09-19 -- MEDI_START_ANNOUNCE_SILENT=1: an `announcesOnStart` ability (Pressure, Mold Breaker,
+ * Unnerve, Fairy Aura -- read off data/tags.json, never named) STARTS without its bare `|-ability|` line,
+ * which is the engine as it stood before this pass. A LINE, NOT A LEAF: no board state reads it.
+ * tests/probe_start_announce.js is red under it. */
+const START_ANNOUNCE_SILENT=_MK('MEDI_START_ANNOUNCE_SILENT');
+if(START_ANNOUNCE_SILENT)MEDFAILS.startAnnounceSilentRestored=1;
+/* 2026-09-19 -- FORCE-FIRE. Three more, same contract: each restores ONE pre-fix behaviour verbatim.
+ *   MEDI_RIPEN_NO_RESIST_WEAKEN    Ripen's second x0.5 after a resist berry (`doublesBerryEffect.resistWeaken`)
+ *                                  is never armed or spent -- the old engine. A BOARD knob: it moves HP.
+ *   MEDI_ANTICIPATION_SILENT       Anticipation announces nothing (the old `entryAnnounceUnmodelled` road).
+ *   MEDI_SCREENCLEAN_ACTIVATE_LAST Screen Cleaner writes its `-activate` after the `-sideend` lines. */
+const RIPEN_NO_RESIST_WEAKEN=_MK('MEDI_RIPEN_NO_RESIST_WEAKEN');
+const ANTICIPATION_SILENT=_MK('MEDI_ANTICIPATION_SILENT');
+const SCREENCLEAN_ACTIVATE_LAST=_MK('MEDI_SCREENCLEAN_ACTIVATE_LAST');
+if(RIPEN_NO_RESIST_WEAKEN)MEDFAILS.ripenNoResistWeakenRestored=1;
+if(ANTICIPATION_SILENT)MEDFAILS.anticipationSilentRestored=1;
+if(SCREENCLEAN_ACTIVATE_LAST)MEDFAILS.screenCleanActivateLastRestored=1;
 if(FOREWARN_SILENT)MEDFAILS.forewarnSilentRestored=1;
 if(CHILLY_NOBENCH_SILENT)MEDFAILS.chillyNoBenchSilentRestored=1;
 if(STATUS_HELD_AFTER_FIELD)MEDFAILS.statusHeldAfterFieldRestored=1;
+/* 2026-09-19 -- NARRATION E. Same contract; tests/probe_narration_e.js plays each in a child.
+ *   MEDI_TIDYUP_BOOST_FIRST        Tidy Up writes its boosts ABOVE its sweep and never writes its
+ *                                  `-activate|<user>|move: Tidy Up` (the pre-fix order)
+ *   MEDI_FLOOR_DROP_REFUSED        a drop into a stat already at -6 is refused (and announced) by the
+ *                                  target's refuser, where the authority caps it to 0 before TryBoost */
+const TIDYUP_BOOST_FIRST=_MK('MEDI_TIDYUP_BOOST_FIRST');
+const FLOOR_DROP_REFUSED=_MK('MEDI_FLOOR_DROP_REFUSED');
+if(TIDYUP_BOOST_FIRST)MEDFAILS.tidyUpBoostFirstRestored=1;
+if(FLOOR_DROP_REFUSED)MEDFAILS.floorDropRefusedRestored=1;
 /* Synchronize's sourceEffect as the authority builds it: `{ status, id: 'synchronize' }`, no name, no
  * effectType (data/abilities.ts:4857). `applyStatus` reads `kind`; ATTR.status gives it the bare line. */
 const SYNC_EFF=Object.freeze({kind:'sync',id:'synchronize'});
@@ -12599,7 +12650,34 @@ function runEatItemEvent(m,itemId,fromEffect){
      m._cud={berry:String(itemId),left:+_cc.delayTurns};
      MEDSEEN.cudChewArmed++;
    }}
+  /* 2026-09-19 -- RIPEN ARMS ITS SECOND HALVE HERE, in `onEatItem`, on EVERY road an eat is raised from
+   * (the resist berry's own hook, a flung berry, a forced eat): `pokemon.abilityState.berryWeaken =
+   * weakenBerries.includes(item.name)` (data/abilities.ts:3859-3864). It is an ASSIGNMENT, so eating
+   * a berry off the list DISARMS it -- written the same way. The list is the tag's, read off that
+   * handler. `dmgRange` reads `_berryWeaken`; the battle loop spends it (see the resist-berry site). */
+  if(!RIPEN_NO_RESIST_WEAKEN){const _dbe=TAGS.param('ability',m.ability,'doublesBerryEffect');
+   const _rw=_dbe&&_dbe.resistWeaken;
+   if(_rw&&Array.isArray(_rw.berries)){
+     m._berryWeaken=_rw.berries.indexOf(String(itemId||''))>=0;
+     if(m._berryWeaken)MEDSEEN.ripenWeakenArmed++;
+   }}
   MEDSEEN.eatItemEventRaised++;
+}
+/* 2026-09-19 -- DID THIS PRICE TAKE RIPEN'S SECOND HALVE? The same predicate `dmgRangeOneHit` multiplies on
+ * (the flag, or the listed resist berry this hit eats), asked by the battle loop so it can SPEND the flag.
+ * A fixed-damage move never reaches ModifyDamage, so it neither halves nor spends. */
+function ripenWeakenPriced(att,def,mv,d,moveId){
+  if(RIPEN_NO_RESIST_WEAKEN||!def||!d||!mv||!(d.max>0))return false;
+  const _mid=moveId||mv.id;
+  if(_mid&&!damageIsComputed(_mid))return false;
+  const defAb=suppressedAbility(att,def,mv.bp>0?(mv.c==='P'?'Physical':'Special'):'Status');
+  const _dbe=TAGS.param('ability',defAb,'doublesBerryEffect');
+  const _rw=_dbe&&_dbe.resistWeaken;
+  if(!_rw||!(+_rw.mult>0))return false;
+  if(def._berryWeaken)return true;
+  const _rb=TAGS.param('item',def.item,'resistBerry');
+  return !!(_rb&&_rb.onType===d.type&&(!_rb.requiresSuperEffective||d.eff>1)&&!berryRefusedByFoeNew(def)
+            &&Array.isArray(_rw.berries)&&_rw.berries.indexOf(String(def.item))>=0);
 }
 function consumeBerry(m,itemId,onEat){
   if(!m)return;
@@ -12642,6 +12720,7 @@ function consumeBerry(m,itemId,onEat){
   m._ateBerry=true;
   m._usedItemThisTurn=true;
   m.item='';
+  ubGrant(m,'eat');   /* 2026-09-19 -- `eatItem`'s `AfterUseItem` (sim/pokemon.ts:1810) grants Unburden's volatile */
   MEDSEEN.berryConsumed++;
   const _eatItemEvent=()=>runEatItemEvent(m,itemId,null);
   if(EATREACT_BEFORE_BERRY){
@@ -12701,12 +12780,16 @@ function consumeBerry(m,itemId,onEat){
  * twice; the other four do not call it at all, which is a SECOND defect — Symbiosis has 3 legal
  * carriers in this format — and it is registered rather than smuggled into a batch measuring one
  * change. `MEDFAILS.itemUsedWithNoId` is the loud version of the one way this can be called wrong. */
-function recordItemUsed(m,itemId){
+function recordItemUsed(m,itemId,road){
   if(!m)return '';
   const _id=String(itemId||'');
   if(!_id){MEDFAILS.itemUsedWithNoId++;return '';}
   m._lastItem=_id;
   m._usedItemThisTurn=true;
+  /* 2026-09-19 -- AND THE `AfterUseItem` THIS DOOR RECORDS GRANTS UNBURDEN'S VOLATILE: `useItem` raises it at
+   * sim/pokemon.ts:1850 and Fling's condition at data/moves.ts:5780. Every caller empties the hand in the same
+   * statement, so the grant is not waiting on a later write. `road` is 'fling' from the one Fling caller. */
+  ubGrant(m,road||'use');
   MEDSEEN.itemUsedRecorded++;
   return _id;
 }
@@ -14354,7 +14437,7 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
      * the single-member case); beside Helping Hand the authority reads 146 and a floor-first reading
      * reads 145. Measured on the pool, top corner, release 5973a4e3c768, game …2655635795: Scrafty's
      * Helping-Handed Knock Off into a Sitrus Kommo-o left 102 in the authority and 103 here. */
-    else if(_vp.kind==='targetHasItem'&&def.item&&!itemRefusesTake(def)){
+    else if(_vp.kind==='targetHasItem'&&targetItemOf(def)&&!stoneRefusesBody(targetItemOf(def),def)){
       if(KNOCKOFF_FLOORED_ALONE){MEDFAILS.knockoffFlooredAloneRestored=1;mvBP=Math.floor(mvBP*_vp.mult);}
       else _itemBpMult=+_vp.mult;
     }
@@ -15650,7 +15733,22 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    * behind it (the damage differential builds exactly those) has no foes and no refusal, which is the
    * right answer and leaves that instrument untouched. */
   const _rb=TAGS.param('item',def.item,'resistBerry');
-  if(_rb&&_rb.onType===mvT&&(!_rb.requiresSuperEffective||eff>1)&&!berryRefusedByFoeNew(def))MODMUL((_rb.mult||0.5));
+  const _rbEats=!!(_rb&&_rb.onType===mvT&&(!_rb.requiresSuperEffective||eff>1)&&!berryRefusedByFoeNew(def));
+  if(_rbEats)MODMUL((_rb.mult||0.5));
+  /* 2026-09-19 -- AND RIPEN TAKES IT AGAIN. `ripen.onSourceModifyDamage` (priority -1, so AFTER the berry's
+   * own handler in the same ModifyDamage relay) spends `abilityState.berryWeaken` for one more
+   * `chainModify(0.5)` (data/abilities.ts:3848-3853). The flag is armed by the eat (`runEatItemEvent`),
+   * which in this hit has not happened yet because this function is a pure read -- so the flag is the
+   * STORED one OR the resist berry this very hit is about to eat, when that berry is on the handler's
+   * list. Once, not twice: an already-armed flag plus a fresh eat is still one spend. The multiplier and
+   * the list are the tag's (`doublesBerryEffect.resistWeaken`). `ripenWeaken` on the return tells the
+   * battle loop to spend the flag. MEDI_RIPEN_NO_RESIST_WEAKEN=1 restores the old single halve. */
+  let _ripenW=false;
+  if(!RIPEN_NO_RESIST_WEAKEN){const _dbe=TAGS.param('ability',defAb,'doublesBerryEffect');
+   const _rw=_dbe&&_dbe.resistWeaken;
+   if(_rw&&+_rw.mult>0&&(def._berryWeaken||(_rbEats&&Array.isArray(_rw.berries)&&_rw.berries.indexOf(String(def.item))>=0))){
+     MODMUL(+_rw.mult);_ripenW=true;
+   }}
   /* ROADMAP #123 -- EARTHQUAKE INTO A DIGGING BODY IS DOUBLE, and this is the stage it happens at:
    * Dig, Dive and Fly all declare `onSourceModifyDamage`, which is the chain `mod` is spent on. Bounce
    * declares the SAME pair of moves under `onSourceBasePower` and is applied in the base-power relay
@@ -19430,6 +19528,175 @@ if(UNBURDEN_FROM_CURRENT_ABILITY)MEDFAILS.unburdenFromCurrentAbilityKnob=1;
  * writer of `m.ability` BEFORE it writes. */
 function ubAbilityRewrite(m,ab){
   if(m&&String(m.ability)!==String(ab)&&m._hadItem&&!m.item&&m._roomItem==null){m._ubNoVol=true;MEDSEEN.unburdenVolatileEnded++;}
+  /* 2026-09-19 -- THE VOLATILE ITSELF ENDS HERE, AND ONLY WHEN THE OUTGOING ABILITY IS THE ONE THAT OWNS IT.
+   * `unburden.onEnd(pokemon){ pokemon.removeVolatile('unburden') }` (data/abilities.ts:5235-5237) is the
+   * ABILITY's End, which `Pokemon#setAbility` fires on the old ability (sim/pokemon.ts:1928). A body that
+   * received the volatile by Baton Pass and loses some OTHER ability keeps it -- that End is not Unburden's. */
+  if(m&&m._ubVol&&String(m.ability)!==String(ab))ubAbilityEnd(m,m.ability);
+}
+/* UNBURDEN'S `onEnd`, for whichever road fires the ability's End: a rewrite (above) or Gastro Acid's `onStart`
+ * (`abSuppress` below). `ab` is the ability whose End is running. */
+function ubAbilityEnd(m,ab){
+  if(!m||!m._ubVol)return false;
+  const _old=TAGS.param('ability',ab,'speedOnItemLoss');
+  if(!(_old&&_old.speedMult))return false;
+  if(UNBURDEN_BREAK==='survives-ability-end'){MEDSEEN.unburdenBreakApplied=(MEDSEEN.unburdenBreakApplied|0)+1;return false;}
+  m._ubVol=0;MEDSEEN.unburdenEndedByAbility++;
+  return true;
+}
+/* ==== 2026-09-19 -- ABILITY SUPPRESSION (GASTRO ACID), IN ONE PLACE ====================================
+ *
+ * medicham2 wrote `_vol.gastroacid` and NOTHING read it: a suppressed Rough Skin still chipped, a suppressed
+ * Unburden still doubled, and data/protocol-events.json declared `-endability` un-emitted because "ability
+ * SUPPRESSION ... is not modelled". tests/probe_gastro_acid.js was RED on both before this block existed.
+ *
+ * THE AUTHORITY: `Pokemon#ignoringAbility` returns true while `volatiles['gastroacid']` stands, after a
+ * `cantsuppress` ability has already answered false (sim/pokemon.ts:869-870); every `hasAbility` and every
+ * ability handler asks it. The condition's `onStart` writes `-endability` and fires the ability's End
+ * (data/moves.ts:6448-6452); `clearVolatile` drops it on the way out (data/mods/champions/scripts.ts:124).
+ * Which move writes such a volatile is read off `suppressesAbility` (engine/tag_dex.js, derived FROM
+ * `ignoringAbility`'s own source) -- in this regulation, Gastro Acid alone; 7 legal species learn it
+ * (Arbok, Victreebel, Victreebel-Mega, Snorlax, Serperior, Eelektross, Eelektross-Mega, derived by the probe).
+ *
+ * THE MECHANISM IS THE ONE MAGIC ROOM ALREADY USES FOR ITEMS: A PARK. `m.ability` is WHAT CAN ACT NOW and
+ * every one of this file's ~100 ability readers asks it; `_abParked` holds WHAT THE BODY HAS (the identity,
+ * Showdown's `pokemon.ability`, which a suppression does not change). Parking empties the one field all the
+ * readers share, so suppression is honoured everywhere at once instead of at a hundred sites -- including
+ * `ubGrant`, which reads the ability at the loss and so grants no `unburden` to a suppressed body.
+ * `abilityOn(m)` is the identity read: the board's `ability` leaf, and the few COPY sources (Skill Swap,
+ * Trace, Role Play, the contact rewriters), because the authority copies `getAbility()`, not what can act.
+ * A rewrite that lands on a parked body writes the PARK (`abRewrite`, the mega door, the transform door):
+ * upstream the volatile still stands after `setAbility`, so the new ability is suppressed too.
+ *
+ * `MEDI_GASTRO_SUPPRESSES_NOTHING=1` restores the pre-fix engine: no park, the old `-start` line. */
+const GASTRO_SUPPRESSES_NOTHING=(typeof process!=='undefined'&&process.env&&process.env.MEDI_GASTRO_SUPPRESSES_NOTHING==='1');
+if(GASTRO_SUPPRESSES_NOTHING)MEDFAILS.gastroSuppressesNothingRestored=1;
+function abilityOn(m){ return m ? String(m._abParked!=null?m._abParked:(m.ability||'')) : ''; }
+/* The suppressing tag for (move, volatile), or null. */
+function abilitySuppressorOf(mvId,vol){
+  if(GASTRO_SUPPRESSES_NOTHING||!mvId||!vol)return null;
+  const _sa=TAGS.param('move',mvId,'suppressesAbility');
+  return (_sa&&_sa.volatile===vol)?_sa:null;
+}
+function abSuppress(m,sa){
+  if(!m||m._abParked!=null)return false;
+  const ab=String(m.ability||'');
+  if(sa&&sa.announce==='-endability'&&TR)TR.endability(m);
+  if(!sa||sa.endsAbility){
+    /* The ability's End: the two End effects this engine models, the same two `abRewrite` runs. */
+    if(endAbsorbGiftVolatile(m,'gastro',ab))MEDSEEN.absorbGiftVolatileEnded++;
+    ubAbilityEnd(m,ab);
+  }
+  m._abParked=ab; m.ability='';
+  MEDSEEN.abilitySuppressed++;
+  return true;
+}
+/* The volatile left with the body: `clearVolatile`. Called from `switchOut` above `abRestoreOnLeave`, so the
+ * restore reads the identity, and from `bringIn` as the guard for any road that skipped it. */
+function abUnsuppress(m){
+  if(!m||m._abParked==null)return false;
+  m.ability=m._abParked; m._abParked=null;
+  MEDSEEN.abilityUnsuppressed++;
+  return true;
+}
+/* ==== 2026-09-19 -- THE AUTHORITY'S `unburden` VOLATILE, HELD AS STATE: `m._ubVol` =====================
+ *
+ * Will: *"we need unburden to fire its a common one. i know the chat/log wont announce it but we need to track
+ * it"*. Until today this engine had NO field for it -- `effSpeed` recomputed the doubling from `_hadItem &&
+ * !m.item` and the CURRENT ability -- so `engine/board_state.js` declared `volatile:unburden` UNCOMPARABLE, and
+ * because the protocol never announces it (the condition has no `onStart` line), a wrong Unburden state was
+ * invisible to every gate. It is a field now and the board compares it.
+ *
+ * THE AUTHORITY, read whole (data/abilities.ts:5227-5249; `data/mods/champions/` carries no `unburden` key):
+ *   onAfterUseItem  `if (pokemon !== this.effectState.target) return; pokemon.addVolatile('unburden')`
+ *                   -- raised by `eatItem` (sim/pokemon.ts:1810), `useItem` (:1850) and Fling's own condition
+ *                   (data/moves.ts:5780)                                         -> roads 'eat', 'use', 'fling'
+ *   onTakeItem      `pokemon.addVolatile('unburden')` -- raised by `takeItem` (sim/pokemon.ts:1861) BEFORE
+ *                   the slot empties: Knock Off, Thief/Covet, Trick/Switcheroo (BOTH sides), Bug Bite/Pluck,
+ *                   Magician, Pickpocket                                          -> road 'take' (`itemLose`)
+ *   onEnd           `pokemon.removeVolatile('unburden')` -- the ability's End: a rewrite (`ubAbilityRewrite`)
+ *                   or leaving the field (`clearVolatile`, data/mods/champions/scripts.ts:124)
+ *   condition       `onModifySpe: if (!pokemon.item && !pokemon.ignoringAbility()) chainModify(2)`
+ * TWO CONSEQUENCES THAT READ WRONG IF RECALLED RATHER THAN READ:
+ *   - REGAINING AN ITEM DOES NOT END THE VOLATILE. It only stops the doubling (`!pokemon.item`), and a second
+ *     loss doubles again with no second grant. A Trick SWAP grants it to an Unburden holder that receives an
+ *     item in the same action, so the volatile stands on a body that is holding something.
+ *   - `noCopy` is FALSE on the condition, AND BATON PASS STILL DOES NOT CARRY IT FROM AN UNBURDEN HOLDER: the
+ *     outgoing ability's End (which removes it) runs at sim/battle-actions.ts:103, before `copyVolatileFrom` at
+ *     :113-114. See `capturePassedState`. (This paragraph first said the opposite; the probe's `baton` arm
+ *     refuted it on the recipient's board.)
+ * The value held is the multiplier off the grant-time ability's `speedOnItemLoss` param, so the doubling reads
+ * the grant rather than whatever the ability is at read time.
+ *
+ * NOT MODELLED, NAMED: `ignoringAbility()` -- Gastro Acid's `onStart` runs the ability End (data/moves.ts:6451)
+ * and so removes the volatile; this engine holds `_vol.gastroacid` and suppresses nothing with it. No legal
+ * Unburden carrier learns Gastro Acid and 7 legal species do; a divergence there now PARTS the board on this
+ * leaf rather than hiding. Neutralizing Gas has no legal carrier in this regulation.
+ *
+ * `MEDI_UNBURDEN_BREAK=<mode>` is the red demonstration and nothing selects it automatically:
+ *   no-eat | no-use | no-fling | no-take   the grant is skipped on that road
+ *   survives-switch                        the volatile rides the bench
+ *   ends-on-regain                         the volatile is dropped when an item arrives (the WRONG rule)
+ *   survives-ability-end                   an ability rewrite leaves the volatile standing
+ *   baton-carries                          Baton Pass hands an Unburden holder's volatile to the recipient
+ *   legacy-read                            effSpeed answers from the retired `_hadItem && !m.item` read
+ * An unknown mode THROWS at load -- a mistyped knob that silently did nothing would be the unwired-knob
+ * signature this repository has learned to distrust. Stamp: `MEDFAILS.unburdenBreakKnob`.
+ * `tests/probe_unburden_leaf.js`. */
+const UNBURDEN_BREAK=(typeof process!=='undefined'&&process.env&&process.env.MEDI_UNBURDEN_BREAK)||'';
+const UNBURDEN_BREAK_MODES=['no-eat','no-use','no-fling','no-take','survives-switch','ends-on-regain','survives-ability-end','baton-carries','legacy-read'];
+if(UNBURDEN_BREAK){
+  if(UNBURDEN_BREAK_MODES.indexOf(UNBURDEN_BREAK)<0)
+    throw new Error('MEDI_UNBURDEN_BREAK='+UNBURDEN_BREAK+' is not a mode. Modes: '+UNBURDEN_BREAK_MODES.join(', '));
+  MEDFAILS.unburdenBreakKnob=1;
+}
+/* THE GRANT. `road` is one of eat / use / fling / take. The ability is read AT THE MOMENT THE ITEM GOES, which
+ * is the authority's rule (the handler is Unburden's, so it only runs on a body holding Unburden then). */
+function ubGrant(m,road){
+  if(!m)return false;
+  const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');
+  if(!(_ub&&_ub.speedMult))return false;
+  if(UNBURDEN_BREAK==='no-'+road){MEDSEEN.unburdenBreakApplied=(MEDSEEN.unburdenBreakApplied|0)+1;return false;}
+  m._ubVol=+_ub.speedMult;
+  MEDSEEN.unburdenGranted++;
+  MEDSEEN['unburdenGranted_'+road]=(MEDSEEN['unburdenGranted_'+road]|0)+1;
+  return true;
+}
+/* THE VOLATILE LEAVES WITH THE BODY -- `clearVolatile`. Called from `switchOut` for the outgoing body and from
+ * `bringIn` for the incoming one (so an entry can never inherit a stale grant); Baton Pass re-applies after. */
+function ubClearOnLeave(m){
+  if(!m||!m._ubVol)return;
+  if(UNBURDEN_BREAK==='survives-switch'){MEDSEEN.unburdenBreakApplied=(MEDSEEN.unburdenBreakApplied|0)+1;return;}
+  m._ubVol=0; MEDSEEN.unburdenClearedOnSwitch++;
+}
+/* THE RETIRED READ, kept whole for the knobs that restore it and for the disagreement counter. Returns the
+ * multiplier it would have pushed, or 0. */
+function ubLegacyMult(m){
+  if(!(m._hadItem&&!m.item&&(ROOM_ITEM_IS_LOST||m._roomItem==null)))return 0;
+  if(m._roomItem!=null)MEDFAILS.roomItemIsLostRestored=1;
+  const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');
+  if(!(_ub&&_ub.speedMult))return 0;
+  if(UNBURDEN_FROM_CURRENT_ABILITY){MEDSEEN.unburdenFromCurrentAbilityKnobbed=(MEDSEEN.unburdenFromCurrentAbilityKnobbed|0)+1;return +_ub.speedMult;}
+  if(m._ubNoVol){MEDSEEN.unburdenWithheldLate++;return 0;}
+  return +_ub.speedMult;
+}
+/* THE CONDITION'S `onModifySpe`: the volatile stands and the hand is empty. `itemOn` is the identity read --
+ * `!pokemon.item` in the authority is untouched by Magic Room and Klutz, so a PARKED item still blocks it. */
+function ubMult(m){
+  const _new=(m&&m._ubVol&&!itemOn(m))?+m._ubVol:0;
+  if(UNBURDEN_BREAK==='legacy-read'||ROOM_ITEM_IS_LOST||UNBURDEN_FROM_CURRENT_ABILITY){
+    MEDSEEN.unburdenBreakApplied=(MEDSEEN.unburdenBreakApplied|0)+(UNBURDEN_BREAK==='legacy-read'?1:0);
+    return ubLegacyMult(m);
+  }
+  /* LOUD, NOT A GATE: where the retired predicate would have answered differently. A pure read -- no counter
+   * of the legacy path is touched -- so the count is exactly the readings on which the fix moved Speed. */
+  if(m){
+    const _lp=(m._hadItem&&!m.item&&m._roomItem==null&&!m._ubNoVol)?TAGS.param('ability',m.ability,'speedOnItemLoss'):null;
+    const _leg=(_lp&&_lp.speedMult)?+_lp.speedMult:0;
+    if(_leg!==_new){MEDSEEN.unburdenLegacyDisagrees++;
+      if(!MEDSEEN.unburdenLegacyDisagreesFirst)MEDSEEN.unburdenLegacyDisagreesFirst=String(m.name||'?')+' legacy x'+(_leg||1)+' volatile x'+(_new||1)+' item='+JSON.stringify(itemOn(m))+' ability='+String(m.ability||'');}
+  }
+  return _new;
 }
 function effSpeed(m,field,side){
   /* WIRE 83 -- THE SIDE MAY BE OMITTED, and then it is READ off the body rather than assumed. Gyro
@@ -19499,19 +19766,11 @@ function effSpeed(m,field,side){
    * docs/ENGINE.md's hand list with that citation.
    *
    * Knob: MEDI_ROOM_ITEM_IS_LOST=1 restores the pre-fix read. */
-  if(m._hadItem&&!m.item&&(ROOM_ITEM_IS_LOST||m._roomItem==null)){
-    if(m._roomItem!=null)MEDFAILS.roomItemIsLostRestored=1;
-    /* #535 -- this reads the CURRENT ability, which is the defect; UNBURDEN_FROM_CURRENT_ABILITY names
-       it (inert until the fix gives the unknobbed path the authority's volatile). */
-    /* #535 FIXED 2026-09-11 -- THE DOUBLING NEEDS THE VOLATILE, NOT ONLY THE ABILITY. The authority grants
-       `unburden` from the ability that holds the item WHEN IT GOES and removes it on the ability's End, so a
-       body whose ability changed after its hand was already empty -- an Unburden acquired late, or one taken
-       away and given back -- carries none. `_ubNoVol` records exactly that moment (`ubAbilityRewrite`) and is
-       cleared when the body is re-stamped on entry or handed an item again. The knob restores the old read. */
-    const _ub=TAGS.param('ability',m.ability,'speedOnItemLoss');if(_ub&&_ub.speedMult){
-      if(UNBURDEN_FROM_CURRENT_ABILITY){MEDSEEN.unburdenFromCurrentAbilityKnobbed=(MEDSEEN.unburdenFromCurrentAbilityKnobbed|0)+1;_mods.push(+_ub.speedMult);}
-      else if(m._ubNoVol)MEDSEEN.unburdenWithheldLate++;
-      else _mods.push(+_ub.speedMult);}}
+  /* 2026-09-19 -- AND NOW IT READS THE VOLATILE. `ubMult` is the condition's `onModifySpe` over `m._ubVol`, the
+   * state granted at the three loss doors; the `_hadItem && !m.item` read above (and #535's `_ubNoVol` patch on
+   * it) is `ubLegacyMult`, selected only by MEDI_ROOM_ITEM_IS_LOST, MEDI_UNBURDEN_FROM_CURRENT_ABILITY or
+   * MEDI_UNBURDEN_BREAK=legacy-read. See the `_ubVol` block above `ubGrant`. */
+  {const _ubm=ubMult(m);if(_ubm)_mods.push(_ubm);}
 if((side==='A'?field.twA:field.twB)>0)_mods.push(2);
   /* WIRE 78 — a suppressed sky does not haste anybody. effSpeed sees ONE body, so it reads the
      field's own answer (set by battleTurn over all four actives) as well as this body's ability. */
@@ -21505,6 +21764,20 @@ function veilBoostBlock(r,target,effectName){
  * has a `preventsStatDrop` of its own that does not cover an Attack drop, and an ally check nested
  * under "the target has no ability of its own" would never run for it. */
 function statDropRefusal(target,engStat,effectName,isSecondary,src,amount){
+  /* 2026-09-19 (narration E) -- A DROP INTO A STAT ALREADY AT -6 REACHES NO REFUSER. `Battle#boost` runs
+   *     boost = this.runEvent('ChangeBoost', ...);   boost = target.getCappedBoost(boost);   (sim/battle.ts:2029-2030)
+   * BEFORE `runEvent('TryBoost', ...)` (:2031), and `getCappedBoost` turns a -1 into a -6 stat into 0. Every
+   * refusing handler asks `boost[stat] < 0` (Clear Body's loop, Hyper Cutter's `boost.atk && boost.atk < 0`,
+   * Flower Veil's ally loop), so a 0 is refused by nobody and announced by nobody; the per-stat loop then
+   * writes `-unboost|<target>|<stat>|0` (msg is `-unboost` because `target.boosts[stat] === -6`, :2041).
+   * This engine refused and announced the ability's `-fail` whatever the stage. Only a real DROP is capped
+   * away -- `invSign` > 0 -- because Contrary turns it into a raise in ChangeBoost first. Mirror Armor's own
+   * `reflectSkipsAtFloor` guard below is the same fact for one ability and stays. MEDI_FLOOR_DROP_REFUSED
+   * restores the refusal. */
+  if(!FLOOR_DROP_REFUSED&&target&&target.boosts&&target.boosts[engStat]===-6&&invSign(target,src)>0){
+    MEDSEEN.floorDropReachesNoRefuser++;
+    return null;
+  }
   const own=ownStatDropRefusal(target,engStat,effectName,isSecondary,src,amount);
   if(own)return own;
   const al=target?allyRefusesStatDrop(target,engStat,effectName):null;
@@ -23617,7 +23890,11 @@ function applyMoveVolatile(who,vol,src,mvId,field,opts){
    * NOT THE RULE: `volAnnounce` reads the condition's OWN start line wherever the artifact carries
    * one, and this line stands for the 23 volatiles whose `onStart` is guarded or multi-statement --
    * Taunt among them, which is why the fallback is still exactly right for the case it names. */
-  {const _va=volAnnounce(mvId,vol);
+  /* 2026-09-19 -- A VOLATILE THAT SUPPRESSES ITS HOLDER'S ABILITY (Gastro Acid) announces `-endability` and
+   * parks the ability, and writes no `-start` -- the condition's `onStart` has no `-start` line at all. */
+  const _sup=abilitySuppressorOf(mvId,vol);
+  if(_sup)abSuppress(who,_sup);
+  else {const _va=volAnnounce(mvId,vol);
    if(!_va){ if(TR)TR.vstart(who,'move: '+vol); }
    else volAnnounceEmit(who,_va);}
   /* `_sealed` is Disable's alone. Encore carries its move in `_encoreMove` and `_lock`, and
@@ -23958,6 +24235,32 @@ function confusionBeforeMove(m,rng,_R){
  * the field. Every existing caller passes two arguments and is unaffected. */
 function applyEntryEffects(m,field,ally){
   if(!m)return;
+  /* 2026-09-19 -- THE ABILITY SAYS ITS OWN NAME AS IT STARTS, AND THIS ENGINE NEVER DID.
+   *
+   * `data/abilities.ts` pressure :3427-3430 and moldbreaker :2679-2682 are `onStart(pokemon) {
+   * this.add('-ability', pokemon, NAME); }` and nothing else; unnerve :5250-5256 is the same line behind a
+   * per-state latch (`if (this.effectState.unnerved) return; ... this.effectState.unnerved = true;`).
+   * `/data/mods/champions/abilities.ts` overrides none of the three. The EFFECTS were already here and
+   * LIVE in the census -- Pressure's PP, Mold Breaker's break, Unnerve's berry refusal -- so the only
+   * thing the authority did that this engine did not was the line, and `engine/all_mechanics_fire.js`
+   * read all three SHOWDOWN-ONLY on exactly that. The whole-game differential never saw it because its
+   * `ability-announcement` equivalence drops every `-ability` line on both sides by declaration.
+   *
+   * MEMBERSHIP IS THE TAG (`announcesOnStart`, engine/tag_dex.js), never a name. THIS FUNCTION IS THE
+   * ENGINE'S `singleEvent('Start')`: it runs at the lead pass, at a replacement, after a mega (whose
+   * `formeChange` -> `setAbility` ends in `singleEvent('Start', ...)`, sim/pokemon.ts:1946-1948 -- so a
+   * Gyarados that megas into Mold Breaker announces it) and after a copied or swapped ability. The line
+   * is FIRST because it is the first statement of the handler, and there is no second.
+   *
+   * THE LATCH IS NOT MODELLED AND DOES NOT NEED TO BE: `switchIn` and `setAbility` both reinitialise
+   * `abilityState` (sim/battle-actions.ts:142, sim/pokemon.ts:1930), so it can only bite on a Start that
+   * repeats WITHOUT a reinit -- Neutralizing Gas leaving, which has no legal carrier in this format. A
+   * body at 0 HP says nothing: `setAbility` returns before Start on `!this.hp` (sim/pokemon.ts:1917). */
+  {const _st=TAGS.param('ability',m.ability,'announcesOnStart');
+   if(_st&&_st.event==='-ability'&&!m.fainted&&m.curHP>0){
+     if(START_ANNOUNCE_SILENT)MEDFAILS.startAnnounceSilentRestored=1;
+     else{MEDSEEN.startAnnounced++;if(TR)TR.ab(m,m.ability);}
+   }}
   /* HOSPITALITY -- Sinistcha and Gardevoir, 4,968 uses, and the third most common ability in the
    * format. It restores a quarter of the partner's HP on entry and the engine did nothing at all,
    * so every Sinistcha pivot in every rollout was worth less than it is.
@@ -24016,8 +24319,13 @@ function applyEntryEffects(m,field,ally){
      else {_sides=[];MEDFAILS.screenCleanScopeUnknown++;
            if(!MEDFAILS.screenCleanScopeUnknownFirst)MEDFAILS.screenCleanScopeUnknownFirst=String(_cs.sides);}
      let _hit=false;
+     /* 2026-09-19 -- THE `-activate` IS WRITTEN BEFORE THE FIRST REMOVAL, not after the sweep: the
+      * handler's latch is inside the loop, above `side.removeSideCondition` (data/abilities.ts:4094-4099),
+      * so the line precedes the first `-sideend`. Still once, and still only when something falls.
+      * MEDI_SCREENCLEAN_ACTIVATE_LAST=1 writes it after the sweep again. Board unchanged either way. */
      for(const _nm of _cs.conditions)for(const _sd of _sides){
        if(_sd&&_sd.sc&&_sd.sc[_nm]>0){
+         if(!_hit&&!SCREENCLEAN_ACTIVATE_LAST&&TR)TR.act(m,'ability: '+m.ability);
          delete _sd.sc[_nm]; _hit=true; MEDSEEN.screensCleanedOnEntry++;
          /* `sendSide`, NOT `send`: `send` labels the line with `sideOf(m)`, the ENTERING body's side,
           * and half of these removals are on the other one. A `-sideend` attributed to the wrong side
@@ -24027,7 +24335,7 @@ function applyEntryEffects(m,field,ally){
      }
      /* One `-activate` for the whole sweep, however many screens fell -- the handler's `activated`
       * latch. Emitted only when something was actually taken down, which is the same latch. */
-     if(_hit&&TR)TR.act(m,'ability: '+m.ability);
+     if(_hit&&SCREENCLEAN_ACTIVATE_LAST&&TR)TR.act(m,'ability: '+m.ability);
    }}
   /* ---- ROADMAP #175 -- THE INFORMATION-ONLY ENTRY ABILITIES ------------------------------------
    *
@@ -24067,6 +24375,13 @@ function applyEntryEffects(m,field,ally){
          MEDSEEN.entryAnnounced++;
          if(TR)TR.item(_f,_f.item,'[from] ability: '+m.ability);
        }
+     }else if(_em&&_em.event==='-ability'&&_em.on==='self'&&_ao.shudders&&!ANTICIPATION_SILENT){
+       /* 2026-09-19 -- FORCE-FIRE: the `-ability`-on-SELF shape, which is Anticipation. The rule is the tag's
+        * (`shudders`, read by tag_dex off data/abilities.ts:174-190): walk the live foes' moves, skip the
+        * category it skips, announce ONCE on the first move that is super-effective on the holder and not
+        * blocked by type immunity, or that is an OHKO. No die -- the handler has no `random`/`sample`.
+        * MEDI_ANTICIPATION_SILENT=1 falls through to the old unmodelled branch below. */
+       anticipationAnnounce(m,_ao.shudders);
      }else if(_em&&_em.event==='-activate'&&_em.on==='self'&&_ao.picks&&_ao.picks.score&&!FOREWARN_SILENT){
        /* 2026-09-19 -- NARRATION C: the `-activate`-on-SELF shape, which is Forewarn, and the objection
         * two paragraphs up is answered rather than overridden. The pick rule no longer lives only in the
@@ -24337,7 +24652,9 @@ function megaEvolveNow(S,m,auto){
   if(MEGA_KEEPS_ABSORB_GIFT)MEDFAILS.megaKeepsAbsorbGiftRestored=1;
   else if(String(m.ability)!==String(ab)&&endAbsorbGiftVolatile(m,'mega',m.ability))
     MEDSEEN.absorbGiftVolatileEnded++;
-  m.ability=ab; m.baseAbility=ab; m._preAb=undefined;
+  /* 2026-09-19 -- a mega under Gastro Acid keeps the volatile, so its new ability is parked too (`abSuppress`). */
+  if(m._abParked!=null){ m._abParked=ab; MEDSEEN.abilityRewriteWhileSuppressed++; } else m.ability=ab;
+  m.baseAbility=ab; m._preAb=undefined;
   /* ROADMAP #596 -- THE MEGA'S ABILITY REPLACED KLUTZ, SO THE STONE IS NO LONGER IGNORED. `ignoringItem()` is
    * recomputed live upstream; here the park is a sync, and this is the one moment the ability half of it
    * changes without a switch. A body still under Magic Room stays parked (`itemSuppressed` asks the field). */
@@ -24742,6 +25059,21 @@ function itemRoomForget(m){ if(m)m._roomItem=null; }
  *
  * `itemRoomForget` FINALLY HAS ITS CALLER, and it is this one. */
 function itemOn(m){ return m ? String(m.item || m._roomItem || '') : ''; }
+/* 2026-09-19 -- A MOVE THAT READS ITS TARGET'S ITEM ASKS THE IDENTITY. Knock Off's `onBasePower` reads
+ * `target.getItem()` (data/moves.ts:9971-9977) and Poltergeist's `onTry` reads `target.item`; neither consults
+ * `ignoringItem()`, so under Magic Room or on a Klutz body the x1.5 still applies and Poltergeist still lands.
+ * The three `readsTargetItem` / `targetHasItem` readers asked the SLOT, which the park empties: tests/
+ * probe_room_target_item.js read 150 vs 140 (room), 139 vs 120 (Klutz) and 170 vs 47 (Poltergeist refused)
+ * before this, and probe_room_unburden.js's arms A/B are the same x1.5 (118 vs 99).
+ * `MEDI_TARGET_ITEM_READS_SLOT=1` restores the slot reads. */
+const TARGET_ITEM_READS_SLOT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_TARGET_ITEM_READS_SLOT==='1');
+if(TARGET_ITEM_READS_SLOT)MEDFAILS.targetItemReadsSlotRestored=1;
+function targetItemOf(m){
+  if(!m)return '';
+  if(TARGET_ITEM_READS_SLOT)return String(m.item||'');
+  if(!m.item&&m._roomItem!=null)MEDSEEN.targetItemReadThroughPark=(MEDSEEN.targetItemReadThroughPark|0)+1;
+  return itemOn(m);
+}
 /* THE ONE DOOR AN ITEM LEAVES BY. Returns what was taken, '' when there was nothing to take, and it
  * is the RETURN that every caller gates on -- a site that asked `if (tg.item)` and then wrote
  * `tg.item = ''` is exactly the shape that produced this defect. */
@@ -24751,11 +25083,15 @@ function itemLose(m){
     /* the pre-2026-08-26 read: the SLOT only, and the park left standing. */
     const _slot=String(m.item||''); if(!_slot)return '';
     if(m._roomItem!=null)MEDFAILS.roomItemSurvivesLossRestored=1;
-    m.item=''; return _slot;
+    m.item=''; ubGrant(m,'take'); return _slot;
   }
   const _it=itemOn(m); if(!_it)return '';
   if(!m.item&&m._roomItem!=null)MEDSEEN.itemLostWhileSuppressed++;
   m.item=''; itemRoomForget(m); MEDSEEN.itemLostThroughDoor++;
+  /* 2026-09-19 -- `takeItem` raises `TakeItem` (sim/pokemon.ts:1861) and Unburden's `onTakeItem` grants the
+   * volatile there. A Trick swap takes from BOTH bodies, so both grant; the item handed back in the same action
+   * stops the doubling and does not end the volatile. */
+  ubGrant(m,'take');
   return _it;
 }
 /* THE ONE DOOR AN ITEM ARRIVES BY, and it is not a mirror of the loss door: an item handed to a body
@@ -24768,6 +25104,9 @@ function itemGive(m,id){
   if(ROOM_ITEM_SURVIVES_LOSS?m.item:itemOn(m))return false;
   m.item=_id;
   m._ubNoVol=false;   /* ROADMAP #535 -- a hand that fills again can be emptied again, and that loss grants the volatile */
+  /* 2026-09-19 -- AN ARRIVING ITEM DOES NOT END `unburden` (nothing in data/abilities.ts:5227-5249 removes it on
+   * `setItem`); it only stops the doubling, which `ubMult`'s `!itemOn(m)` reads. The knob drops it here. */
+  if(UNBURDEN_BREAK==='ends-on-regain'&&m._ubVol){m._ubVol=0;MEDSEEN.unburdenBreakApplied=(MEDSEEN.unburdenBreakApplied|0)+1;}
   if(!ROOM_ITEM_SURVIVES_LOSS&&itemSuppressed(m,fieldOfBody(m)))itemRoomHide(m);
   MEDSEEN.itemGivenThroughDoor++;
   return true;
@@ -25091,8 +25430,12 @@ function transformOnto(m,t,from){
    * volatiles travel with a copy" would disagree the first time one of them was corrected. It is
    * ABOVE the `|-transform|` line because the authority puts it above its own (:1350). */
   copyCritStageVolatiles(t,m);
-  ubAbilityRewrite(m,t.ability);
-  m.ability=t.ability; m.baseAbility=t.ability;
+  /* 2026-09-19 -- the COPIED ability is the target's identity (`abilityOn`), and a suppressed transformer writes
+   * its park (see `abSuppress`). Both are no-ops on every body Gastro Acid has not touched. */
+  {const _tab=abilityOn(t);
+   if(m._abParked!=null){ m._abParked=_tab; MEDSEEN.abilityRewriteWhileSuppressed++; }
+   else { ubAbilityRewrite(m,_tab); m.ability=_tab; }
+   m.baseAbility=_tab;}
   /* THE COPIED SLOTS ARE FRESH AND CAPPED. `used: false` on every one of them is what the comparator
    * reads as "nothing spent", and the user's OWN slots are not merely full again -- they are GONE from
    * the body, which is why both tables are replaced rather than merged. */
@@ -25363,6 +25706,14 @@ function endAbsorbGiftVolatile(m,where,ab){
 }
 function abRewrite(m,ab){
   if(!m)return;
+  /* 2026-09-19 -- A SUPPRESSED BODY'S REWRITE LANDS ON THE PARK. Upstream `setAbility` changes `pokemon.ability`
+   * and leaves `volatiles.gastroacid` standing, so the new ability is ignored too; the End of the parked one
+   * already ran when it was suppressed. See `abSuppress`. */
+  if(m._abParked!=null){
+    if(String(m._abParked)!==String(ab)){ if(m._preAb===undefined)m._preAb=m._abParked; m._abParked=String(ab); }
+    MEDSEEN.abilityRewriteWhileSuppressed++;
+    return;
+  }
   /* 2026-08-29 -- AND AN ABSORBED GIFT ENDS WITH THE ABILITY THAT GRANTED IT. Flash Fire's
    * `onEnd(pokemon){ pokemon.removeVolatile("flashfire") }` is the ABILITY's End, which the authority
    * fires on every rewrite (`setAbility` -> `singleEvent('End', oldAbility, ...)`, sim/pokemon.ts) as
@@ -25527,6 +25878,32 @@ if (FRACPRI_UNGATED_DRAW) MEDFAILS.fracPriUngatedDrawRestored = 1;
  * authority's does. An EMPTY list draws nothing -- the `return` sits above the sample.
  *
  * `[of]` is written for fidelity; the comparator's `source-tag` rule drops it either way. */
+/* 2026-09-19 -- FORCE-FIRE: ANTICIPATION, THE WHOLE HANDLER (data/abilities.ts:174-190, no Champions entry).
+ *     for (const target of pokemon.foes()) for (const moveSlot of target.moveSlots) {
+ *       if (move.category === 'Status') continue;
+ *       if (getImmunity(type, pokemon) && getEffectiveness(type, pokemon) > 0 || move.ohko) { add('-ability'); return; }
+ *     }
+ * `getImmunity && getEffectiveness > 0` is the type chart alone (no ability is asked), which is `mcEff > 1`:
+ * an immune type makes the product 0 and a SE-into-resist pair makes it 1, exactly where the authority's
+ * log-sum is 0. The category is the tag's (`statusCategory`), the OHKO the tag's (`ohko`). */
+function anticipationAnnounce(m,sh){
+  const _S=m&&m._sf&&m._sf._S;
+  if(!_S){MEDFAILS.anticipationNoState++;return false;}
+  const foes=(m._sf===_S.sfA)?_S.actB:_S.actA;
+  for(const f of (foes||[])){
+    if(!f||f.fainted||f.curHP<=0)continue;
+    for(const mv of (f.moves||[])){
+      const k=String(mv);
+      const row=(typeof MC!=='undefined'&&MC&&MC.moves&&MC.moves[k])||null;
+      if(!row){MEDFAILS.anticipationMoveUnknown++;if(!MEDFAILS.anticipationMoveUnknownFirst)MEDFAILS.anticipationMoveUnknownFirst=k;continue;}
+      if(sh.skipsCategory==='Status'&&TAGS.has('move',k,'statusCategory'))continue;
+      const se=sh.superEffective&&mcEff(row.t,m.types)>1;
+      const oh=sh.ohko&&!!TAGS.param('move',k,'ohko');
+      if(se||oh){MEDSEEN.anticipationAnnounced++;if(TR)TR.ab(m,m.ability);return true;}
+    }
+  }
+  return false;
+}
 function forewarnAnnounce(m,pk){
   const _S=m&&m._sf&&m._sf._S;
   if(!_S){MEDFAILS.forewarnNoState++;return false;}
@@ -25629,7 +26006,7 @@ function traceCopy(m,foes){
    * can tell a MEMBERSHIP difference (our filter dropped one) from an ARRIVAL difference (the caller
    * never offered it). */
   if(TRACE_LIST_SINK)TRACE_LIST_SINK({holder:m,offered:(foes||[]).slice(),eligible:eligible.slice(),index:_ti,chosen:t});
-  abRewrite(m,String(t.ability));          // ROADMAP #307 -- the copy is undone by leaving the field
+  abRewrite(m,abilityOn(t));          // 2026-09-19 identity (abilityOn); ROADMAP #307 -- the copy is undone by leaving the field
   MEDSEEN.traceCopied++;
   /* Showdown writes `|-ability|HOLDER|Intimidate|[from] ability: Trace|[of] FOE`. This trace sink
    * carries four fields, so the `[of]` is not emitted and the shape is PARTIAL rather than absent --
@@ -26166,6 +26543,8 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry,outgoing){
    * flag set at five of six would be the silent default this repo is built around. It is the
    * narrower error of the two -- under-firing rather than a boost that never ends. */
   nx._hadItem=!!nx.item; nx._ubNoVol=false;   /* ROADMAP #535 -- the volatile ended on the way out */
+  ubClearOnLeave(nx);   /* 2026-09-19 -- the state itself; a Baton Pass carry is applied below, after this */
+  if(abUnsuppress(nx))MEDFAILS.abilityParkReachedEntry=(MEDFAILS.abilityParkReachedEntry|0)+1;   /* a road that skipped switchOut: counted, never silent */
   /* 2026-08-12 -- THE BADLY-POISON RAMP RESTARTS ON THE WAY BACK IN, AND IT IS THE ONLY STATUS THAT
    * DOES ANYTHING AT ALL ON A SWITCH.
    *
@@ -26606,7 +26985,9 @@ function runEntryPass(nx,foes,act,i,field,sf,announce){
  *     _healBlock  healblock         noCopy false  -> carried
  *     _noSound    throatchop        noCopy false  -> carried
  *     _ptDmg      curse             noCopy false  -> carried
- *     _yawn       yawn              noCopy TRUE   -> NOT carried
+ *     _ubVol      unburden          noCopy false  -> NOT carried off an Unburden holder: its ability End runs
+ *                                                   first (sim/battle-actions.ts:103 before :114)
+ *     _yawn       yawn             noCopy TRUE   -> NOT carried
  *     _lock       encore            noCopy TRUE   -> NOT carried (and the Choice lock belongs to the
  *                                                   ITEM, which stays on the body that left)
  *     _sealed     disable           noCopy TRUE   -> NOT carried
@@ -26620,11 +27001,12 @@ function applyPassedState(nx,c){
   if(!nx||!c)return;
   if(c.boosts){nx.boosts=Object.assign({},c.boosts);MEDSEEN.passesStateBoosts++;}
   let any=false;
-  for(const k of ['_sub','_seededBy','_perish','_trap','_healBlock','_noSound','_ptDmg']){
+  for(const k of ['_sub','_seededBy','_perish','_trap','_healBlock','_noSound','_ptDmg','_ubVol']){
     if(!(k in c))continue;
     nx[k]=c[k];
     if(c[k])any=true;
   }
+  if(c._ubVol)MEDSEEN.unburdenPassedByBaton++;
   if(any)MEDSEEN.passesStateVolatiles++;
 }
 /* What the OUTGOING body is carrying, read before switchOut erases it. `passesVolatiles` is either
@@ -26642,6 +27024,18 @@ function capturePassedState(out,p){
   if(wants('healblock'))c._healBlock=out._healBlock||0;
   if(wants('throatchop'))c._noSound=out._noSound||0;
   if(wants('curse'))c._ptDmg=out._ptDmg||null;
+  /* 2026-09-19 -- `unburden` IS `noCopy: false` AND STILL DOES NOT TRAVEL FROM ITS OWN HOLDER. `switchIn` fires the
+   * outgoing body's ABILITY End at sim/battle-actions.ts:103 ("will definitely switch out at this point") and only
+   * then calls `copyVolatileFrom` at :113-114 -- and Unburden's End is `removeVolatile('unburden')`. So by the time
+   * the pass copies, an Unburden holder has nothing to hand over. Only a body holding the volatile under some OTHER
+   * ability would pass it, which nothing in this regulation can produce. The first version of this line copied it
+   * unconditionally; tests/probe_unburden_leaf.js's `baton` arm parted the board on the recipient (medicham 1,
+   * showdown 0). `MEDI_UNBURDEN_BREAK=baton-carries` restores that version. */
+  if(wants('unburden')){
+    const _own=TAGS.param('ability',out.ability,'speedOnItemLoss');
+    if(UNBURDEN_BREAK==='baton-carries'){c._ubVol=out._ubVol||0;if(c._ubVol)MEDSEEN.unburdenBreakApplied=(MEDSEEN.unburdenBreakApplied|0)+1;}
+    else c._ubVol=(_own&&_own.speedMult)?0:(out._ubVol||0);
+  }
   return c;
 }
 /* SWITCH A LIVING MON OUT. The outgoing body goes back to the bench, so it can return later and its
@@ -27005,6 +27399,10 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
      five-rung ladder, switch out for three turns and come back still doubling -- the same shape as the
      Rage Fist and Stomping Tantrum lines above it, and the reason those two are neighbours. */
   out._metroLast=null; out._metroN=0;
+  /* 2026-09-19 -- AND THE `unburden` VOLATILE. It is kept outside `_vol` as `_ubVol`, so the `_vol = {}` wipe
+   * below cannot reach it; the benched body is compared on `party.<x>.vol.unburden` and the authority's is 0
+   * (`clearVolatile`, data/mods/champions/scripts.ts:124). Baton Pass captured it above, before this line. */
+  ubClearOnLeave(out);
   /* 2026-09-18 -- AND THE ALLY SWITCH COUNTER, WHICH IS A VOLATILE THIS ENGINE KEEPS OUTSIDE `_vol`.
    * data/moves.ts `allyswitch` adds it from `onPrepareHit` with `duration: 2` and the consecutive-use
    * ladder in `effectState.counter`; `Pokemon#clearVolatile()` (sim/pokemon.ts:1514, and its Champions
@@ -27236,6 +27634,9 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
    * comparisons, every one a Gardevoir still wearing an ability it had TRACED. The second half is
    * free: the restored Trace is an entry ability again, so `bringIn` re-runs it against whoever is
    * standing opposite on the way back in. */
+  /* 2026-09-19 -- Gastro Acid's park leaves with the volatile, ABOVE the rewrite restore so that reads the
+   * identity. See `abSuppress`. */
+  abUnsuppress(out);
   abRestoreOnLeave(out);
   out._healBlock=0;
   /* WIRE 133 -- THE BODY TAKES ITS ITEM WITH IT. Magic Room suppresses the item of a body ON THE
@@ -28046,7 +28447,7 @@ function battleInit(teamA,teamB,opts){
   /* What each body STARTED holding, so Unburden can tell 'never had one' from 'lost it'. Stamped
    * once here rather than at each of the six places an item is cleared -- a flag set in six places
    * is a flag that will be missed in a seventh. */
-  teamA.concat(teamB).forEach(m=>{if(m){m._hadItem=!!m.item;m._ubNoVol=false;}});
+  teamA.concat(teamB).forEach(m=>{if(m){m._hadItem=!!m.item;m._ubNoVol=false;m._ubVol=0;}});
   /* ROADMAP #31 -- THE PROTOCOL IDENTIFIER, and it must not follow the forme. See identName(). A
    * body handed in by a probe or a harness may have been built anywhere, so anything missing one
    * gets it here rather than emitting a name that changes under a mega or a Zero to Hero. */
@@ -30284,7 +30685,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * branch for the measured line order this closes. */
       for(const e of _all){
         if(e.m._flingSpend){const _fi=e.m._flingSpend;e.m._flingSpend=null;e.m.item='';
-          recordItemUsed(e.m,_fi);   /* fling.condition.onUpdate writes lastItem itself, not via useItem */
+          recordItemUsed(e.m,_fi,'fling');   /* fling.condition.onUpdate writes lastItem itself, not via useItem */
           if(TR)TR.enditem(e.m,_fi,'[from] move: fling');MEDSEEN.flingSpentAtUpdate++;}
       }
       /* 2026-08-23 -- A PER-TURN-BOOST VOLATILE DIES WITH ITS SOURCE, AND THAT IS AN `onUpdate`
@@ -34503,6 +34904,24 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         if(_cost){m.curHP-=_cost;if(TR)TR.dmg(m);}
         const _sg=invSign(m);          // WIRE 100b
+        /* 2026-09-19 (narration E) -- A HANDLER THAT SWEEPS BEFORE IT BOOSTS PRINTS IN THAT ORDER. Tidy Up's
+         * `onHit` (data/moves.ts, no Champions override) removes every Substitute, then the hazards
+         * (`-sideend`, bare), then `if (success) this.add('-activate', pokemon, 'move: Tidy Up')`, and only
+         * then `this.boost({atk: 1, spe: 1}, ...)`. This branch boosted first and swept after, and never
+         * wrote the `-activate` (staged in narration D, index 18). Read off two handler facts tag_dex takes
+         * from the text -- `removesHazards.sweepBeforeOwnBoost` and `.activatesOnSweep` -- which match Tidy
+         * Up alone (printed 2026-09-19). MEDI_TIDYUP_BOOST_FIRST restores the old order and the silence. */
+        const _rmEarly=TAGS.param('move',a.mv,'removesHazards');
+        const _sweepFirst=!TIDYUP_BOOST_FIRST&&!!(_rmEarly&&_rmEarly.sweepBeforeOwnBoost);
+        if(_sweepFirst){
+          const _nSwept=sweepField(_rmEarly,m,m._sf,m._sf===sfA?sfB:sfA,field,actA.concat(actB),a.mv);
+          MEDSEEN.sweepBeforeOwnBoost++;
+          if(_nSwept>0&&_rmEarly.activatesOnSweep){
+            const _rec=TAGS.tagsFor?TAGS.tagsFor('move',a.mv):null;
+            if(_rec&&_rec.name){MEDSEEN.sweepActivateAnnounced++;if(TR)TR.act(m,'move: '+_rec.name);}
+            else{MEDFAILS.sweepActivateNoName++;if(!MEDFAILS.sweepActivateNoNameFirst)MEDFAILS.sweepActivateNoNameFirst=String(a.mv);}
+          }
+        }
         /* ROADMAP #308 -- DID ANY STAGE ACTUALLY MOVE. Read for Stuff Cheeks' `if (!this.boost(...))`
          * gate at the foot of this branch; every other member ignores it, so nothing else changes. */
         let _moved=false;
@@ -34538,7 +34957,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           * exactly what the authority names. tests/probe_defog_target_side.js §0 derives both facts
           * (the handler text and `tidyup.target === 'self'`) on every run rather than asserting them,
           * so a change upstream turns it red by name. */
-         if(_rm)sweepField(_rm,m,m._sf,m._sf===sfA?sfB:sfA,field,actA.concat(actB),a.mv);}
+         if(_rm&&!_sweepFirst)sweepField(_rm,m,m._sf,m._sf===sfA?sfB:sfA,field,actA.concat(actB),a.mv);}
         /* ROADMAP #308 -- AND THEN THE USER EATS IT. `onHit(pokemon) { if (!this.boost({def:2}))
          * return null; pokemon.eatItem(true); }` -- the eat is BELOW the boost and is skipped when the
          * boost is refused outright, which `gatedOnBoost` carries off the handler's own `if (!`.
@@ -35641,7 +36060,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_ok&&abilityFlagRefusal(m,t,a.mv)){if(TR)TR.attrStill();mvFail(m);continue;}
           /* ROADMAP #307 -- BOTH ENDS remember. A swap is two rewrites and `clearVolatile` undoes
              whichever body leaves first, independently of the other. */
-          if(_ok){const _ab=m.ability;abRewrite(m,t.ability);abRewrite(t,_ab);
+          if(_ok){const _ab=abilityOn(m),_tb=abilityOn(t);abRewrite(m,_tb);abRewrite(t,_ab);
             /* ONE LINE, AND IT CARRIES BOTH ABILITIES. `sim/battle.ts:1326` is the whole
                announcement; the two `-ability` lines this used to write are events the authority
                never emits for a swap, and the `-activate` it wrote named the MOVE where the
@@ -35787,7 +36206,7 @@ function battleTurn(S,rng,actsForA,actsForB){
             continue;
           }
           const _ok=!_isFoe||!moveClassBlocked(t,a.mv,m);
-          const _want=String(t.ability||'');
+          const _want=abilityOn(t);   /* 2026-09-19 identity: the authority copies getAbility() */
           const _flagRefuses=(who,flag)=>{
             if(!flag)return false;
             const _rc=TAGS.param('ability',who&&who.ability,'refusesCopy');
@@ -37028,6 +37447,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _it=m._lastItem;
           if(_rb.spendsLastItem)m._lastItem='';
           m.item=_it;
+          if(UNBURDEN_BREAK==='ends-on-regain'&&m._ubVol){m._ubVol=0;MEDSEEN.unburdenBreakApplied=(MEDSEEN.unburdenBreakApplied|0)+1;}
           MEDSEEN.itemRecycled++;
           if(TR)TR.item(m,_it,'[from] move: '+a.mv);
         }else{
@@ -38661,7 +39081,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * check placed above the draw would have read the wrong body's item slot. */
       {
         const _ri=TAGS.param('move',a.move.id,'readsTargetItem');
-        if(_ri&&_ri.failsIfNone&&!(targets[0]&&targets[0].item)){
+        if(_ri&&_ri.failsIfNone&&!(targets[0]&&targetItemOf(targets[0]))){
           MEDSEEN.itemlessTargetRefused++;
           m._lastMove=a.move.id;{if(TR)TR.attrStill();mvFail(m);}continue;
         }
@@ -40394,11 +40814,11 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_itemAnnounced||ITEM_READ_SILENT||ITEM_ANNOUNCE_AT_USE)return;
         const _ri=TAGS.param('move',a.move.id,'readsTargetItem');
         if(!_ri||!_ri.announcesItem)return;
-        if(!tg||!tg.item)return;
+        if(!tg||!targetItemOf(tg))return;
         _itemAnnounced=true;
         const _ai=_ri.announcesItem;
         if(_ai.event==='-activate'){
-          if(TR)TR.act(tg,_ai.desc,tg.item);
+          if(TR)TR.act(tg,_ai.desc,targetItemOf(tg));
           MEDSEEN.targetItemAnnounced++;
         } else { MEDFAILS.targetItemEventUnknown++;
           if(!MEDFAILS.targetItemEventUnknownFirst)
@@ -40966,6 +41386,12 @@ function battleTurn(S,rng,actsForA,actsForB){
           * THE UNSEEN FIST `-ability` LINE STAYS BELOW IT, which is the authority's order too:
           * `bypassProtect` is announced after `runEvent('ModifyDamage')` returns
           * (battle-actions.ts:1828-1834). That block is ~50 lines down. */
+         /* 2026-09-19 -- RIPEN'S FLAG IS SPENT BY THE PRICE THAT READ IT. `ripenWeakenPriced` is the
+          * same predicate `dmgRangeOneHit` multiplied on, asked of this target at this moment (the berry
+          * this hit eats, or a flag an earlier eat -- a flung berry -- left armed). The flag is cleared
+          * here for the stored case and again after the eat below for the fresh one. */
+         const _ripenSpent=ripenWeakenPriced(m,tg,mv,d,a.move.id);
+         if(_ripenSpent){tg._berryWeaken=false;MEDSEEN.ripenWeakenSpent++;}
          {const _rbC=TAGS.param('item',tg.item,'resistBerry');
           /* BATCH K, 2026-09-07 -- THE TYPE THE PRICE ACTUALLY USED, NOT A SECOND RESOLUTION OF IT.
            * `d` is `_price(false)`, i.e. this very click's `dmgRange`, and it now carries the `mvT`
@@ -40994,12 +41420,10 @@ function battleTurn(S,rng,actsForA,actsForB){
              * back, Belch stayed illegal, Pickup saw no spend and the partner's Symbiosis never
              * answered. Five mechanics, one missing call.
              *
-             * RIPEN'S SECOND HALVE IS STILL OWED AND IS NOT WIRED HERE. Its `onEatItem` records
-             * `abilityState.berryWeaken` and its own `onSourceModifyDamage` (priority -1) spends it,
-             * which is a SECOND x0.5 on top of the berry's. This engine's `damageReduce` row for
-             * Ripen carries `onlyWhen: null` and correctly REFUSES rather than defaulting on, so the
-             * doubling is absent. Raising the event here is its prerequisite and not its fix; it is
-             * a mechanic of its own and is filed, not smuggled in. */
+             * RIPEN'S SECOND HALVE IS WIRED (2026-09-19): the eat arms `_berryWeaken` in
+             * `runEatItemEvent`, `dmgRange` spends it as a second x0.5 on this very price, and the flag
+             * is DISARMED again after the eat below -- in the authority the holder's own
+             * `onSourceModifyDamage` (priority -1) clears it inside the same ModifyDamage relay. */
             const _spend=()=>{
               if(EATEVENT_UPDATE_ONLY){
                 MEDFAILS.eatEventUpdateOnlyRestored=1;
@@ -41007,6 +41431,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                 tg.item='';
               } else {
                 consumeBerry(tg,_it,null);                 /* the whole of `eatItem()` */
+                if(_ripenSpent)tg._berryWeaken=false;      /* armed by that eat, spent by this same price */
                 if(TR)TR.enditem(tg,_it,'[weaken]');       /* the handler's own line, after it */
                 MEDSEEN.eatEventOffResistBerry++;
               }
@@ -43304,8 +43729,8 @@ function battleTurn(S,rng,actsForA,actsForB){
               _abStart(m);
             }
             else if(_rw.mode==='swap'){
-              const _srcAb=m.ability;
-              abRewrite(m,tg.ability); abRewrite(tg,_srcAb);
+              const _srcAb=abilityOn(m);
+              abRewrite(m,abilityOn(tg)); abRewrite(tg,_srcAb);
               MEDSEEN.contactAbilitySwapped++;
               /* Reads the POST-swap holdings, which is the authority's own field order: `m.ability` IS
                * `targetAbility.name` and `tg.ability` IS `sourceAbility.name`. The same call the move
@@ -47925,6 +48350,13 @@ function battleTurn(S,rng,actsForA,actsForB){
        * EXISTING rather than by someone remembering to add a name here. docs/TAGS.md invariant 3. */
       if(_G.has('leftovers')){const _ph=TAGS.param('item',m.item,'passiveHeal');
        if(_ph&&_ph.heal&&!healBlocked(m)){const _h0=m.curHP;
+         /* 2026-09-19 -- RIPEN'S `onTryHeal` ANNOUNCES ITSELF FOR A LEFTOVERS HEAL, and TryHeal is raised
+          * ABOVE `Battle#heal`'s full-HP return (sim/battle.ts:2268 against :2272), so a full-HP holder
+          * announces too. The names and the line are the tag's (`doublesBerryEffect.announcesHealFrom`,
+          * read off data/abilities.ts:3833-3837). MEDI_RIPEN_NO_RESIST_WEAKEN=1 restores the silence. */
+         if(!RIPEN_NO_RESIST_WEAKEN&&m.curHP>0){const _dbe=TAGS.param('ability',m.ability,'doublesBerryEffect');
+           const _ah=_dbe&&_dbe.announcesHealFrom;
+           if(_ah&&Array.isArray(_ah.effects)&&_ah.effects.indexOf(String(m.item))>=0){if(TR)TR.act(m,_ah.announcesAs);MEDSEEN.ripenHealAnnounced++;}}
          m.curHP=Math.min(m.st.hp,m.curHP+Math.floor(m.st.hp*_ph.heal));
          if(TR&&m.curHP>_h0)TR.heal(m,'[from] item: '+m.item);}}
       /* ---- ROADMAP #128 -- THE THREE RESIDUAL BERRY ABILITIES ------------------------------------
@@ -50483,6 +50915,8 @@ root.natureShift=natureShift; root.natureStat=natureStat; root.natureL50=natureL
 // exported for tests: the rulebook-reading helpers must be assertable on their own, so a wrong
 // priority or a missed immunity fails a unit test rather than showing up as a drifted win rate.
 if(typeof module!=='undefined'&&module.exports) module.exports={winProb2,dmgRange,buildMon,battle,futureSight,rngStreams,RNG_STREAMS,
+  /* force-fire-b, 2026-09-19 -- the pure trap verdict, exported so a harness can ASK this engine whether a body could leave at a boundary, beside the authority's request, without making the switch choice the authority would refuse. */
+  switchTrapVerdict,
   /* ROADMAP #262 -- EVENT-ADDRESSED DICE. `midEventDice` is a drop-in `rngStreams` struct whose value
    * is a pure function of the event being rolled for; `midEventLog` is every address this engine asked
    * about since the last `midEventDice` call, in order, so an instrument can DIFF the two engines'

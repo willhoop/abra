@@ -247,8 +247,10 @@ const NOT_EMITTED = {
    * two `-damage` lines where the authority emits two `-sethp`, one of them `[silent]`. A declared
    * not-emitted reason that has stopped being true is the same failure as a stale handoff -- it reads
    * as a measurement -- so the entry goes rather than gets reworded. */
-  '-endability': 'ability SUPPRESSION (Gastro Acid, Neutralizing Gas) is not modelled; Mummy and '
-    + 'Wandering Spirit REWRITE the ability and emit `-ability` instead, which is what Showdown does.',
+  /* '-endability' HAS MOVED INTO TRACE_EVENTS AND ITS REASON IS DELETED RATHER THAN REWORDED, 2026-09-19.
+   * It read "ability SUPPRESSION (Gastro Acid, Neutralizing Gas) is not modelled". Gastro Acid is modelled
+   * now (medicham2 `abSuppress`, off the derived `suppressesAbility` tag) and writes the condition's own
+   * `-endability` line; Neutralizing Gas has no legal carrier in this regulation. tests/probe_gastro_acid.js. */
   /* ROADMAP #151, 2026-08-11 -- `-hitcount` HAS MOVED INTO TRACE_EVENTS AND ITS REASON IS DELETED
    * RATHER THAN REWORDED. The reason it gave was correct at the time and is worth recording once:
    * "multi-hit damage is ONE packet for most of the family in this engine (WIRE 20, declared) and the

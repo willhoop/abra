@@ -301,6 +301,25 @@ C.k6Simple = P => {
   return f.turns.some(t => Object.values(t).some(c => c && beams.has(id(c.m)) && c.at === 'C')) ? [] : ['no turn beams Simple onto the subject'];
 };
 
+/* K7 — THE SECOND CONTROL CHAIN (force-fire-b, 2026-09-19). Each of these rows was refused
+ * NO-SINGLE-VARIABLE-CONTROL by the first chain and carried no control into all_mechanics_fire.js. One per
+ * strategy: a category swap (Fur Coat, Good as Gold), another ability read against real clicks (Drought, Weak
+ * Armor, Sweet Veil), a field setter withheld (Surge Surfer, Mimicry), an effectiveWeather reader (Mega Sol).
+ * Every fixture of each must now carry a control. */
+const SECOND_CHAIN = ['ability:furcoat', 'ability:drought', 'ability:surgesurfer', 'ability:goodasgold', 'ability:weakarmor',
+  'ability:mimicry', 'ability:sweetveil', 'ability:megasol',
+  /* the second pass: a switch withheld, a residual escaped, a request leaf, a pre-set field, a spread twin, a knockout */
+  'ability:zerotohero', 'ability:hungerswitch', 'ability:shadowtag', 'ability:electricsurge', 'ability:parentalbond', 'ability:eelevate', 'ability:cudchew'];
+C.k7SecondChain = P => {
+  const bad = [];
+  for (const k of SECOND_CHAIN) {
+    const m = row(P, k); if (!m) continue;
+    if (!m.fixtures.length) { bad.push(k + ' has no fixture (' + ((m.refusal || {}).code) + ')'); continue; }
+    for (const f of m.fixtures) if (!f.control) bad.push(k + ' [' + f.branch + '] carries no control (' + ((f.controlRefusal || {}).code) + ')');
+  }
+  return bad;
+};
+
 /* ================= RUN ================================================================================ */
 let fails = 0;
 const say = (ok, name, detail) => { console.log((ok ? '  PASS  ' : '  FAIL  ') + name + (detail ? '  ' + detail : '')); if (!ok) fails++; };
@@ -335,6 +354,7 @@ const RED = [
   ['no-mega', 'k5Megas', ['item:charizarditey', 'item:floettite', 'ability:fairyaura']],
   ['no-conferral', 'k6Simple', ['ability:simple']],
   ['second-scope', 'oneScope', ['ability:battlebond', 'ability:gluttony', 'ability:simple', 'move:struggle', 'move:spore', 'item:charizarditey']],
+  ['no-second-chain', 'k7SecondChain', SECOND_CHAIN],
 ];
 console.log('  red demonstrations — each broken planner must fail its clause; the same subset unbroken must pass it');
 const covered = new Set();

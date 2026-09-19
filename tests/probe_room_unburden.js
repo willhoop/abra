@@ -35,8 +35,13 @@ if (!process.env.SHOWDOWN_PATH) { console.log('NOT RUN — SHOWDOWN_PATH is unse
 
 process.argv.push('--state');
 const G = require(D('engine', 'game_differential.js'));
-const M = require(D('engine', 'medicham2-browser.js'));
-const CS = require(D('engine', 'champions_sim.js'));
+/* 2026-09-19 -- THE SPEED COLUMN READS THE RELEASE THE GAME IS PLAYED ON, NOT THE LIVE FILE. This line was
+ * `require(D('engine', 'medicham2-browser.js'))`, so `--release <old>` played old bodies and priced them with
+ * the working tree's `effSpeed`. Harmless while the two were the same bytes; the day `effSpeed` started
+ * reading `_ubVol` it printed "SPEED DIFFERS 172/344" on a release that doubled correctly (arm C), which is
+ * the instrument disagreeing with itself. `G.REL` is the release `game_differential.js` opened. */
+const M = G.REL.require('engine/medicham2-browser.js', { need: ['effSpeed'] });
+const CS =require(D('engine', 'champions_sim.js'));
 const { Dex } = CS.sim();
 const dex = Dex.forFormat(CS.FORMAT);
 const norm = x => String(x || '').toLowerCase().replace(/[^a-z0-9]/g, '');

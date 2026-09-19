@@ -1387,7 +1387,7 @@ The counts were a REAL measurement of a DIFFERENT POPULATION, so they are correc
 (`battleInit(A, B, {trace: []})`, off by default). The event set is derived from Showdown's own
 `add()` call sites, including this **format's** overrides, and is published in
 `data/protocol-events.json`, whose `showdownEvents`, `emittedCount`, `notEmittedCount` and
-`partialCount` read 91 / 45 / 49 / 10 — every non-emitted event carries a written reason. Two gates
+`partialCount` read 91 / 46 / 48 / 10 — every non-emitted event carries a written reason. Two gates
 fail the run: an event claimed here that Showdown never emits, and an event Showdown emits that is
 neither emitted nor explained. `tests/test-protocol-trace.js` fails if any claimed event never fires
 in a real game.

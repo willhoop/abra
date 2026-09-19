@@ -334,6 +334,129 @@ const ENTRY_ACTS = [
   [/\.heal\(/, 'ally-damaged'], [/clearBoosts\(/, 'ally-boosted'],
   [/removeSideCondition\(|sideConditions/, 'screens-up'], [/cureStatus\(/, 'ally-statused'],
 ];
+/* ================= TRIGGERS THE FIRST DERIVATION DID NOT READ (force-fire-b, 2026-09-19) ============
+ *
+ * Will, 2026-09-19: "why cant we stage games that force the ability to fire what the hell man". Twelve ability
+ * rows sat UNPROVEN-UNCONTROLLED because the fixture never reached the trigger — and for each the reason was a
+ * shape this derivation did not read, not a fact about the format. Each clause below was PRINTED over every
+ * legal ability before it was wired (docs/_reports/2026-09-19-force-fire-b.md, "what each clause matched").
+ *
+ *   STAT_CALC      a need read inside onModify{Atk,SpA,Def,SpD} is reached only from the damage calculation
+ *                  (`runEvent('Modify' + statTable[attackStat], source, target, move, …)`, sim/battle-actions.ts:
+ *                  1708-1709 — the move-less call at sim/pokemon.ts:634 hands no move to test), so a STATUS move of
+ *                  the right type does not supply it. Fire Mane was staged with Sunny Day for exactly this.
+ *   tag typeImmunity with no handler (`via: "not derivable -- no handler"`: the immunity lives in the simulator,
+ *                  Pokemon#isGrounded) -> the RECEIVER must hit the holder with a damaging move of that type.
+ *   tag condStatMult on def/spd `when: always` -> the RECEIVER must hit the holder with that category.
+ *   onHitProtect   the holder's hit goes THROUGH a shield -> the target must click one ('target-protects').
+ *   onTerrainChange reading `case "<x>terrain"` -> a terrain trigger, exactly as `isTerrain(...)` already is.
+ *   a handler that DELEGATES to a condition's handler (`conditions.getByID("<c>").<onX>.call(this, …)`) -> the
+ *                  delegate's own move needs, read by PRE, clicked by the holder: the WeatherModifyDamage event
+ *                  runs on the ATTACKER (`priorityEvent('WeatherModifyDamage', pokemon, target, move, …)`,
+ *                  data/mods/champions/scripts.ts:217). */
+const STAT_CALC = /^(modifyatk|modifyspa|modifydef|modifyspd)$/;
+/* The handler runs the consumed berry's own `Eat` a second time. Printed over every ability in scope: Cud Chew only. */
+const reEatsBerry = e => handlersOf(e).some(h => /singleEvent\(\s*["']Eat["']/.test(h.src));
+/* PRE's need test, plus the one widening the delegation clause below writes: `orMoves`, the legal moves whose
+ * own handlers read the user's weather through `effectiveWeather(`. Identical to PRE's answer wherever a need
+ * carries no `orMoves`, which is every need but that clause's. */
+function needMet(m, n, ctx) {
+  /* `ohko` — a knockout the planner can promise without a damage calculator: the move's own `ohko` field */
+  if (n && n.kind === 'ohko') return !!D.moves.get(m).ohko;
+  if (PRE.satisfiesNeed(m, n, ctx)) return true;
+  if (!n || !n.orMoves || !n.orMoves.includes(id(m))) return false;
+  return !(n.damagingOnly && D.moves.get(m).category === 'Status');
+}
+let EW_READERS = null;
+function effectiveWeatherReaders() {
+  if (!EW_READERS) EW_READERS = U.MOVES.filter(d => d.category !== 'Status' && handlersOf(d).some(h => /\.effectiveWeather\(/.test(h.src))).map(d => d.id).sort();
+  return EW_READERS;
+}
+function derivedAbilityTriggers(e, preNeeds) {
+  const out = [];
+  const tg = tagsOf('abilities', e.id);
+  const p = tg.params || {};
+  const has = (by, kind) => preNeeds.some(n => n.by === by && n.kind === kind);
+  const ti = p.typeImmunity;
+  const functional = handlersOf(e).some(h => /^on[A-Z]/.test(h.name));
+  const hasBy = by => preNeeds.some(n => n.by === by);
+  const DMG = ['Physical', 'Special'];
+  /* the immunity is the WHOLE ability only where it has no handler of its own; a mega that also carries it
+   * (Eelevate) has a real trigger elsewhere, and its base forme's sheet ability already masks the same hit */
+  if (ti && ti.type && /no handler/.test(String(ti.via || '')) && !functional && !has('receiver', 'type'))
+    out.push({ kind: 'click', by: 'receiver', need: { kind: 'type', values: [ti.type], damagingOnly: true },
+               handler: 'tag:typeImmunity', source: 'tag typeImmunity (' + ti.via + ')' });
+  const cs = p.condStatMult;
+  if (cs && cs.when === 'always' && (cs.stat === 'def' || cs.stat === 'spd') && !has('receiver', 'category'))
+    out.push({ kind: 'click', by: 'receiver', need: { kind: 'category', values: [cs.stat === 'def' ? 'Physical' : 'Special'], damagingOnly: true },
+               handler: 'tag:condStatMult', source: 'tag condStatMult ' + cs.stat + ' x' + cs.mult + ' always' });
+  /* A HIT ON THE HOLDER IS THE TRIGGER, named by the tag rather than by a literal PRE can read: a forme broken
+   * by a hit, or an attacker punished for any hit that does not have to faint the holder. Only where PRE
+   * named nothing the receiver must click, so a row whose receiver need is already derived is untouched. */
+  const pa = p.punishesAttacker;
+  if (!hasBy('receiver') && ((tg.tags || []).includes('formeOnHit') || (pa && pa.trigger === 'anyHit' && !pa.onFaintOnly)))
+    out.push({ kind: 'click', by: 'receiver', need: { kind: 'category', values: DMG, damagingOnly: true },
+               handler: 'tag:' + ((tg.tags || []).includes('formeOnHit') ? 'formeOnHit' : 'punishesAttacker'), source: 'tag: a damaging hit on the holder' });
+  /* THE HOLDER'S OWN ATTACK IS THE TRIGGER: a forme keyed on the category of the move it uses */
+  if (!hasBy('actor') && (tg.tags || []).includes('formeOnMoveCategory'))
+    out.push({ kind: 'click', by: 'actor', need: { kind: 'category', values: DMG, damagingOnly: true },
+               handler: 'tag:formeOnMoveCategory', source: 'tag formeOnMoveCategory' });
+  /* THE HIT MUST KNOCK THE HOLDER OUT (punishesAttacker.onFaintOnly). The planner runs no damage calculator, so
+   * the knockout it can PROMISE is an OHKO move (`move.ohko`); at the bottom corner its accuracy draw succeeds. */
+  if (!hasBy('receiver') && pa && pa.trigger === 'anyHit' && pa.onFaintOnly)
+    out.push({ kind: 'click', by: 'receiver', need: { kind: 'ohko', values: [], damagingOnly: true, idleTwin: true },
+               handler: 'tag:punishesAttacker', source: 'tag punishesAttacker.onFaintOnly' });
+  /* THE HOLDER MUST KNOCK A FOE OUT WITH A MOVE (boostsOnKO.requiresMoveKO) — staged by stageHolderKOs */
+  if (p.boostsOnKO && p.boostsOnKO.requiresMoveKO) {
+    out.push({ kind: 'holder-kos', source: 'tag boostsOnKO.requiresMoveKO' });
+    /* the knocking-out hit is the holder's; its twin is the holder not hitting */
+    if (!hasBy('actor')) out.push({ kind: 'click', by: 'actor', need: { kind: 'category', values: DMG, damagingOnly: true, idleTwin: true },
+                                    handler: 'tag:boostsOnKO', source: 'tag boostsOnKO: the holder\'s move lands the knockout' });
+  }
+  /* THE HOLDER'S SINGLE-TARGET HIT IS THE TRIGGER (tag hitsTwice). The handler's own bare-return guard names
+   * the moves that are NOT triggers; where it names `move.spreadHit`, a spread move of the same category is the
+   * one-click twin (data/abilities.ts, parentalbond.onPrepareHit). */
+  if (!hasBy('actor') && (tg.tags || []).includes('hitsTwice')) {
+    const guard = handlersOf(e).map(h => h.src).join('\n');
+    out.push({ kind: 'click', by: 'actor', need: { kind: 'category', values: DMG, damagingOnly: true, singleTarget: true,
+               spreadTwin: /move\.spreadHit/.test(guard) }, handler: 'tag:hitsTwice', source: 'tag hitsTwice' });
+  }
+  /* THE FOE IS HELD ON THE FIELD (tag preventsSwitch). The authority holds this only as `pokemon.trapped`,
+   * recomputed at the end of every turn (sim/battle.ts:1723-1727) and read into the request, so the fixture is
+   * read on the REQUEST, never by making the switch choice the authority would reject. */
+  if (p.preventsSwitch && p.preventsSwitch.source === 'ability') out.push({ kind: 'foe-trapped', source: 'tag preventsSwitch' });
+  /* THE CARRIER LEAVING THE FIELD IS THE TRIGGER (an `onSwitchOut` forme change, tag switchOutTrigger) */
+  if (p.switchOutTrigger) out.push({ kind: 'carrier-switches-out', source: 'tag switchOutTrigger (' + (p.switchOutTrigger.does || '') + ')' });
+  /* A FORME THAT FOLLOWS THE WEATHER needs one of the weathers it names on the field */
+  const fw = p.formeFollowsWeather;
+  if (fw && fw.byWeather && Object.keys(fw.byWeather).length)
+    out.push({ kind: 'weather', values: Object.keys(fw.byWeather), source: 'tag formeFollowsWeather.byWeather' });
+  for (const h of handlersOf(e)) {
+    const sh = splitHandler(h.name); if (!sh || sh.prefix) continue;
+    if (sh.base === 'hitprotect') out.push({ kind: 'target-protects', handler: h.name, source: 'handler:onHitProtect' });
+    if (sh.base === 'terrainchange') {
+      const v = uniq([...h.src.matchAll(/case\s+["']([a-z]+terrain)["']/g)].map(m => m[1]));
+      if (v.length) out.push({ kind: 'terrain', values: v, source: 'handler:onTerrainChange case' });
+    }
+    const del = /conditions\.getByID\(\s*["']([a-z]+)["']/.exec(h.src);
+    const via = new RegExp('\\.(' + h.name + ')\\b').exec(h.src);
+    if (del && via && sh.base === 'weathermodifydamage') {
+      const c = D.conditions.get(del[1]);
+      const f = c && c.exists ? c[h.name] : null;
+      if (typeof f === 'function') {
+        const stub = normEntity({ exists: true, id: e.id + '>' + c.id, name: c.name, [h.name]: f });
+        /* A WEATHER DELEGATE MAKES THE HOLDER'S OWN WEATHER THAT WEATHER: `Pokemon#effectiveWeather` returns it
+         * while the active mover holds the ability (sim/pokemon.ts:2198-2202). So every move whose own handler
+         * reads `effectiveWeather(` is a reader too, beside the delegate's type test. */
+        const orMoves = c.effectType === 'Weather' ? effectiveWeatherReaders() : null;
+        for (const n of PRE.moveNeeds(stub).needs)
+          out.push({ kind: 'click', by: 'actor', need: Object.assign({ kind: n.kind, values: n.values || [], damagingOnly: true }, orMoves ? { orMoves } : {}),
+                     handler: h.name, source: 'delegated to ' + c.id + '.' + h.name + ' (read by fixture_preflight.moveNeeds)' + (orMoves ? ' + ' + orMoves.length + ' effectiveWeather readers' : '') });
+      }
+    }
+  }
+  return out;
+}
 function triggersOf(kind, e, Uv) {
   const out = [];
   const add = (t) => out.push(t);
@@ -366,8 +489,9 @@ function triggersOf(kind, e, Uv) {
     /* CONTACT READ THROUGH THE AUTHORITY'S HELPER, which PRE's flag regex does not see */
     for (const h of H) { const sh = splitHandler(h.name); if (sh && !sh.prefix && sh.base === 'damaginghit' && /checkMoveMakesContact\(/.test(h.src)
       && !mn.needs.some(n => n.kind === 'flag' && n.values.includes('contact'))) mn.needs.push({ kind: 'flag', values: ['contact'], by: 'receiver', handler: h.name, damagingOnly: true }); }
-    for (const n of mn.needs) add({ kind: 'click', by: n.by, need: { kind: n.kind, values: n.values || [], damagingOnly: !!n.damagingOnly },
+    for (const n of mn.needs) add({ kind: 'click', by: n.by, need: { kind: n.kind, values: n.values || [], damagingOnly: !!n.damagingOnly || (kind === 'abilities' && STAT_CALC.test((splitHandler(n.handler) || {}).base || '')) },
                                     handler: n.handler, source: 'fixture_preflight.moveNeeds' });
+    if (kind === 'abilities') for (const t of derivedAbilityTriggers(e, mn.needs)) add(t);
     for (const u of mn.undetermined) {
       const m = /gated on effect "([^"]+)"/.exec(u.cue);
       if (m) add({ kind: 'adversary-effect', effect: m[1].split('/')[0], handler: u.handler, source: 'fixture_preflight.moveNeeds(undetermined)' });
@@ -386,12 +510,19 @@ function triggersOf(kind, e, Uv) {
       const onPartner = /adjacentAllies\(|\.allies\(|alliesAndSelf\(/.test(h.src);
       const acts = ENTRY_ACTS.filter(([re]) => re.test(h.src)).map(([, need]) => need)
         .filter(need => need !== 'screens-up' || /removeSideCondition|sideConditions/.test(h.src));
-      const need = acts.find(n => n === 'screens-up') || (onPartner ? acts.find(n => n !== 'screens-up') : null);
+      /* 2026-09-19 — A HANDLER THAT COUNTS THE SIDE'S DEAD AS IT ENTERS (`pokemon.side.totalFainted` in
+       * onStart) reads nothing on a board where nobody has fainted, so the holder must enter AFTER a faint
+       * on its own side. Membership printed before wiring: supremeoverlord only. */
+      const fallen = /\.side\.totalFainted\b/.test(h.src) ? 'side-fainted' : null;
+      const need = fallen || acts.find(n => n === 'screens-up') || (onPartner ? acts.find(n => n !== 'screens-up') : null);
       add({ kind: 'entry', handler: h.name, needsBeforeEntry: need || null, source: 'handler:' + h.name });
     }
     /* WEATHER AND TERRAIN the handler tests for. */
     const wx = uniq([...S.matchAll(/isWeather\(\s*\[?([^)\]]*)\]?\s*\)/g)].flatMap(m => [...m[1].matchAll(/["']([a-z]+)["']/g)].map(x => x[1]))
-      .concat([...S.matchAll(/effectiveWeather\(\)\s*===?\s*["']([a-z]+)["']/g)].map(m => m[1])));
+      .concat([...S.matchAll(/effectiveWeather\(\)\s*===?\s*["']([a-z]+)["']/g)].map(m => m[1]))
+      /* FORCE-FIRE (2026-09-19): the list-first spelling, `["raindance", …].includes(pokemon.effectiveWeather())`
+       * — Swift Swim's whole guard — which neither pattern above reads, so its row was staged with no sky. */
+      .concat([...S.matchAll(/\[([^\]]*)\]\.includes\(\s*\w+\.effectiveWeather\(\)\s*\)/g)].flatMap(m => [...m[1].matchAll(/["']([a-z]+)["']/g)].map(x => x[1]))));
     if (wx.length) add({ kind: 'weather', values: wx, source: 'handler:isWeather/effectiveWeather' });
     const tx = uniq([...S.matchAll(/isTerrain\(\s*\[?([^)\]]*)\]?\s*\)/g)].flatMap(m => [...m[1].matchAll(/["']([a-z]+)["']/g)].map(x => x[1])));
     if (tx.length) add({ kind: 'terrain', values: tx, source: 'handler:isTerrain' });
@@ -418,7 +549,33 @@ function triggersOf(kind, e, Uv) {
       if (sh.base === 'anymodifydamage' || (sh.prefix === 'Any' && sh.base === 'modifydamage')) add({ kind: 'ally-hit', handler: h.name, source: 'handler:' + h.name });
       if (sh.base === 'residual' && /adjacentAllies\(|\.allies\(/.test(h.src) && /cureStatus\(/.test(h.src)) add({ kind: 'ally-statused', handler: h.name, source: 'handler:onResidual cures ally' });
       if (sh.base === 'allyfaint' || (sh.prefix === 'Ally' && sh.base === 'faint')) add({ kind: 'ally-faints', handler: h.name, source: 'handler:' + h.name });
+      /* ---- FORCE-FIRE (2026-09-19): SIX MORE SHAPES, EACH A HANDLER STATING ITS OWN TRIGGER ------------
+       * Printed before wiring (docs/_reports/2026-09-19-force-fire-a.md, "what each shape matched"). */
+      /* the holder's WEIGHT is rewritten — only a move whose power reads a weight can show it */
+      if (sh.base === 'modifyweight' && !sh.prefix) add({ kind: 'weight', handler: h.name, source: 'handler:onModifyWeight' });
+      /* the holder TAKES the item of the body its own move hit — that body must be holding one */
+      if (sh.base === 'aftermovesecondaryself' && !sh.prefix && /\.takeItem\(/.test(h.src)) add({ kind: 'target-holds-item', handler: h.name, source: 'handler:onAfterMoveSecondarySelf takeItem' });
+      /* the holder restores a BERRY it has already eaten (`lastItem` + `isBerry` on an empty hand) */
+      if (!sh.prefix && /\.lastItem\b/.test(h.src) && /\.isBerry\b/.test(h.src) && /!\s*\w+\.item\b/.test(h.src) && !/usedItemThisTurn/.test(h.src))
+        add({ kind: 'holder-ate-berry', handler: h.name, source: 'handler reads lastItem.isBerry on an empty hand' });
+      /* the holder picks up an item ANOTHER body used this turn */
+      if (!sh.prefix && /\.usedItemThisTurn\b/.test(h.src) && /\.lastItem\b/.test(h.src))
+        add({ kind: 'nearby-item-used', handler: h.name, source: 'handler reads another body\'s usedItemThisTurn/lastItem' });
+      /* the holder reads the FOES' movesets for a move that is super-effective on it */
+      if (!sh.prefix && /^(start|switchin)$/.test(sh.base) && /\.foes\(\)/.test(h.src) && /moveSlots/.test(h.src) && /getEffectiveness\(/.test(h.src))
+        add({ kind: 'foe-carries-se-move', handler: h.name, source: 'handler walks foes().moveSlots through getEffectiveness' });
+      /* an accuracy handler that makes a move ALWAYS hit, on either side of the holder — only the corner
+       * where a sub-100 move misses can show it (PRE's `accuracy-roll` needs EVERY handler in the family) */
+      if (ACC_EVENTS.test(sh.prefix === 'Any' || sh.prefix === 'Source' || !sh.prefix ? sh.base : '') && /return\s+true/.test(h.src)
+          && !PRE.boardNeeds(NE_OF(e)).some(n => n.kind === 'accuracy-roll'))
+        add({ kind: 'board', state: 'accuracy-roll', values: [], handler: h.name, alwaysHits: true, source: 'handler:' + h.name + ' returns true (planner-derived)' });
     }
+    /* A FRACTIONAL PRIORITY WRITTEN AS A NUMBER, NOT A HANDLER (`onFractionalPriority: -0.1`) — invisible
+     * to every handler walk above. Negative: the holder moves LAST in its bracket, visible only if it would
+     * otherwise move first; positive: the reverse, which is the existing `carrier-slower` shape. */
+    if (typeof e.onFractionalPriority === 'number' && e.onFractionalPriority !== 0)
+      add(e.onFractionalPriority < 0 ? { kind: 'carrier-faster', value: e.onFractionalPriority, source: 'field:onFractionalPriority ' + e.onFractionalPriority }
+                                     : { kind: 'carrier-slower', value: e.onFractionalPriority, source: 'field:onFractionalPriority ' + e.onFractionalPriority });
     /* THE MECHANIC'S EFFECT IS READ BY SOMEBODY ELSE. `abilityState.<x> = true` with the reading done
      * in other entities' handlers (the pinch-berry shape). When every reader is illegal, no legal board
      * can show it. */
@@ -458,14 +615,52 @@ function triggersOf(kind, e, Uv) {
       for (const m of h.src.matchAll(/\[([^\]]*)\]\.includes\(\s*(\w+)\.status\s*\)/g)) for (const s of m[1].matchAll(/["'](brn|par|psn|tox|slp|frz)["']/g)) put(m[2], s[1]);
       if (/^(setstatus|trysetstatus|immunity)$/.test(sh.base)) for (const m of h.src.matchAll(/["'](brn|par|psn|tox|slp|frz)["']/g)) sts.add(m[1]);
       for (const m of h.src.matchAll(/(\w+)\.status\b(?!\s*===)(?!\s*\))/g)) if (!/^(move|effect|this)$/.test(m[1]) && !sts.size && !foeSts.size && /^(pokemon|source|target)$/.test(m[1]) && !foeVar.test(m[1])) sts.add('any');
+      /* ---- FORCE-FIRE (2026-09-19): THREE STATUS SHAPES THE READS ABOVE NEVER SAW ----------------------
+       * Will: "why cant we stage games that force the ability to fire". Each was a DID-NOT-FIRE row whose
+       * handler states its trigger in a spelling the matchers above skip. Printed before wiring
+       * (docs/_reports/2026-09-19-force-fire-a.md): each adds a trigger to exactly the rows named there.
+       *   1. A BARE TRUTH TEST — `if (pokemon.status)` — which the negative lookahead `(?!\s*\))` above
+       *      excludes by construction (Guts, Marvel Scale, Quick Feet). Marked `any-acting`: the holder's
+       *      stat or speed only shows if the holder can still act, so the stager resolves it to the
+       *      statuses whose condition has no `onBeforeMove` (see ACTING_STATUSES), never to sleep.
+       *   2. A STATUS NAMED AS THE DAMAGE'S EFFECT — `effect.id === "psn"` in the holder's own onDamage
+       *      (Poison Heal): the chip it rewrites is the status's residual, so the holder carries it.
+       *   3. `onAfterSetStatus` — the holder is the one statused (Synchronize). Every status the handler
+       *      does NOT return early on is a trigger; the early-return guards are read, not listed. */
+      if (!sts.size && !foeSts.size) for (const m of h.src.matchAll(/if\s*\(\s*(\w+)\.status\s*\)|(\w+)\.status\s*&&/g)) {
+        const v = m[1] || m[2];
+        if (/^(pokemon|source|target)$/.test(v) && !foeVar.test(v)) { sts.add('any-acting'); break; }
+      }
+      if (sh.base === 'damage') for (const m of h.src.matchAll(/effect\.id\s*===\s*["'](brn|par|psn|tox|slp|frz)["']/g)) sts.add(m[1]);
+      /* only the shape that hands the status BACK to its source — printed first, the bare event also caught
+       * Lum Berry, whose own `any` already covers it */
+      if (sh.base === 'aftersetstatus' && /source\.\w*[sS]etStatus\(/.test(h.src)) {
+        const skipped = new Set();
+        for (const g of h.src.matchAll(/if\s*\(([^)]*)\)\s*return/g)) for (const s of g[1].matchAll(/["'](brn|par|psn|tox|slp|frz)["']/g)) skipped.add(s[1]);
+        for (const s of STATUS_IDS) if (!skipped.has(s)) sts.add(s);
+      }
+    }
+    /* FORCE-FIRE (2026-09-19): A MECHANIC READ INSIDE A STATUS'S OWN `onBeforeMove` (Early Bird is read at
+     * the `slp` condition's `onBeforeMove`, data/conditions.ts:68) needs its holder to CARRY that status and
+     * to try to move under it. The status is the condition block that encloses the reading line, read off
+     * the authority's file rather than named. */
+    for (const t of out.filter(x => x.kind === 'read-elsewhere')) for (const s of t.sites || []) {
+      if (s.fn !== 'onBeforeMove') continue;
+      const st = enclosingCondition(s.at);
+      if (st && STATUS_IDS.includes(st)) { sts.add(st); t.statusRead = st; }
     }
     if (sts.size && !out.some(t => t.kind === 'ally-guard')) add({ kind: 'holder-statused', values: [...sts], source: 'status reads on the holder, resolved by event role' });
+    /* 2026-09-19 — AND WHEN THE STATUS IS READ ON THE WAY OUT, the holder has to LEAVE. A statused holder
+     * that stays on the field is byte-identical to one without the ability. Membership printed before
+     * wiring: naturalcure only (its Champions override, data/mods/champions/abilities.ts:63-71). */
+    if (sts.size && H.some(h => h.name === 'onSwitchOut' && /\.status\b/.test(h.src)))
+      add({ kind: 'switch-out', handler: 'onSwitchOut', source: 'handler:onSwitchOut reads the holder\'s status' });
     if (foeSts.size) add({ kind: 'foe-statused', values: [...foeSts], source: 'status reads on the foe, resolved by event role' });
     /* A TYPE IMMUNITY THE HANDLER SWITCHES OFF (`move.ignoreImmunity["Normal"] = true`). */
     const byp = uniq([...S.matchAll(/ignoreImmunity\[\s*["']([A-Za-z]+)["']\s*\]\s*=\s*true/g)].map(m => m[1]));
     if (byp.length) add({ kind: 'bypass-immunity', values: byp, source: 'handler writes move.ignoreImmunity' });
     /* A BASE-POWER CEILING the holder's own move must sit under. */
-    for (const h of H) { const sh = splitHandler(h.name); const m = /basePower\s*<=\s*(\d+)/.exec(h.src); if (sh && sh.base === 'basepower' && !sh.prefix && m) add({ kind: 'click-bp', max: +m[1], handler: h.name, source: 'handler:onBasePower basePower <= ' + m[1] }); }
+    for (const h of H) { const sh = splitHandler(h.name); const m = /\bbasePower\w*\s*<=\s*(\d+)/.exec(h.src); /* FORCE-FIRE 2026-09-19: `basePowerAfterMultiplier <= 60` (Technician) is the same ceiling */ if (sh && sh.base === 'basepower' && !sh.prefix && m) add({ kind: 'click-bp', max: +m[1], handler: h.name, source: 'handler:onBasePower basePower <= ' + m[1] }); }
     if (kind === 'items' && e.megaStone) add({ kind: 'mega', into: e.megaStone, source: 'item.megaStone' });
     if (kind === 'items' && e.isBerry) add({ kind: 'berry', source: 'item.isBerry' });
   }
@@ -552,6 +747,10 @@ function masksFor(move, user, target, ctx) {
       if (p.refusesStatusMoves && mv.category === 'Status') r.push('ability ' + target.ability + ' refuses status moves');
       if (p.blocksMove && p.blocksMove.what === 'priority' && ((mv.priority || 0) > 0 || (ctx && ctx.prankster && mv.category === 'Status'))) r.push('ability ' + target.ability + ' blocks priority');
       if (p.redirectsType && id(p.redirectsType.type) === id(mv.type)) r.push('ability ' + target.ability + ' absorbs ' + mv.type);
+      /* an OHKO move into an ability whose own handler tests `move.ohko` and returns false (read, not named) */
+      if (mv.ohko && target.ability && handlersOf(D.abilities.get(target.ability)).some(h => /move\.ohko/.test(h.src) && /return\s+(null|false)/.test(h.src))) r.push('ability ' + target.ability + ' refuses OHKO moves');
+      /* a typed OHKO (`ohko: "Ice"`) cannot knock out a body of its own type (sim/battle-actions.ts, the ohko branch of the hit check) */
+      if (typeof mv.ohko === 'string' && tt.includes(mv.ohko)) r.push('the ' + mv.ohko + '-typed OHKO cannot knock out a ' + mv.ohko + ' type');
     }
     const st = PRE.statusOf(mv);
     if (st && !ex.has('status')) {
@@ -587,8 +786,15 @@ function padNoise(abName) {
  * handlers that change a leaf (an announcement is not a write); a switch-out handler only if the
  * carrier switches out here. */
 function stateNoise(a, rc) {
+  /* FORCE-FIRE (2026-09-19): A CURE CAN ONLY WRITE WHERE THERE IS A STATUS. A handler whose only write is
+   * `cureStatus(` is silent on a board where no click inflicts one (Healer beside an Aroma Veil fixture,
+   * whose trigger is a Taunt), and counting it as noise refused the only control that board had. */
+  const clicks = ((rc && rc.turns) || []).flatMap(t => Object.values(t)).filter(c => c && c.m).map(c => D.moves.get(c.m));
+  const stagesStatus = clicks.some(d => d && d.exists && !!PRE.statusOf(d));
   return handlersOf(a).filter(h => {
     const s = splitHandler(h.name); if (!s) return false;
+    const onlyCures = /cureStatus\(/.test(h.src) && !LEAF_RULES.filter(([re]) => !re.test('cureStatus(')).some(([re]) => re.test(h.src));
+    if (onlyCures && !stagesStatus) return false;
     const writes = LEAF_RULES.some(([re]) => re.test(h.src)) || /chainModify|return\s+\d/.test(h.src);
     if (!s.prefix && /^(start|switchin|residual|update|end)$/.test(s.base)) return writes;
     if (!s.prefix && s.base === 'switchout') return writes && rc.turns.some(t => t.C && t.C.sw);
@@ -783,6 +989,8 @@ function render(rc, layout) {
         if (c.sw) { step[nm(s)][i] = { sw: id(rc.bodies[c.sw].species) }; swaps.push([s, i, c.sw]); continue; }
         const e = { m: id(c.m) };
         if (c.mega) e.mega = true;
+        /* a click that faints its user: the replacement the driver sends takes the slot after the turn */
+        if (c.faintsInto) swaps.push([s, i, c.faintsInto]);
         if (c.at) {
           const os = s === 'p1' ? 'p2' : 'p1';
           if (occ[os].includes(c.at)) e.t = occ[os].indexOf(c.at);
@@ -889,6 +1097,55 @@ function statusMoveFor(status, arm) {
         || ((arm || BOTTOM) === BOTTOM && d.category !== 'Status' && [].concat(d.secondaries || [], d.secondary ? [d.secondary] : []).some(s => s && s.status === status)));
 }
 const STATUS_IDS = ['brn', 'par', 'psn', 'tox', 'slp', 'frz'];
+/* FORCE-FIRE (2026-09-19) — TWO STATUS PARTITIONS, READ OFF THE FORMAT'S OWN CONDITIONS (the Champions mod
+ * dex, so its `par`/`slp`/`frz` overrides are the ones read):
+ *   ACTING  a status whose condition has no `onBeforeMove` — the body still acts under it. A holder whose
+ *           mechanic multiplies its own attack or speed only shows it while it acts; at the bottom corner a
+ *           paralysed body is fully paralysed and a sleeping one never moves.
+ *   STABLE  a status whose condition never calls `cureStatus` — it is still on the body at end of turn.
+ *           A frozen partner thaws on its own click at the bottom corner, so a residual cure found nothing
+ *           to cure (the Healer fixture before this pass). */
+const ACTING_STATUSES = () => STATUS_IDS.filter(s => { const c = D.conditions.get(s); return c && c.exists && typeof c.onBeforeMove !== 'function'; });
+const STABLE_STATUSES = () => STATUS_IDS.filter(s => { const c = D.conditions.get(s); return c && c.exists && !handlersOf(c).some(h => /cureStatus\(/.test(h.src)); });
+/* THE CONDITION BLOCK THAT ENCLOSES A CITED LINE (`data/conditions.ts:68` -> `slp`), read off the file: the
+ * nearest `\t<id>: {` at one tab of indentation above it. Null when the file or the block is not found. */
+/* A RESIST BERRY THAT ANSWERS THIS HIT on a holder of these types, read off the tag params (`resistBerry`:
+ * `onType`, `requiresSuperEffective`), or null. */
+function resistBerryFor(d, holderTypes) {
+  if (!d || d.category === 'Status' || d.target !== 'normal' || !D.getImmunity(d.type, holderTypes)) return null;
+  const se = D.getEffectiveness(d.type, holderTypes) > 0;
+  return U.ITEMS.filter(i => i.isBerry).map(i => ({ i, p: tagsOf('items', i.id).params.resistBerry }))
+    .filter(o => o.p && o.p.onType === d.type && (!o.p.requiresSuperEffective || se))
+    .sort((a, b) => (a.i.id < b.i.id ? -1 : 1)).map(o => o.i)[0] || null;
+}
+/* THE HOLDER'S WEIGHT AFTER ITS OWN `onModifyWeight`, by calling the handler on the species weight. */
+function modifiedWeight(e, handler, w) {
+  try { return e[handler].call({ trunc: D.trunc.bind(D) }, w); }
+  catch (err) { refuse('PLANNER-CANNOT-CONSTRUCT', e.name + '.' + handler + ' could not be evaluated on weight ' + w + ': ' + err.message); }
+}
+/* A WEIGHT-READ MOVE'S POWER, by calling its own `basePowerCallback` with two bodies that answer
+ * `getWeight()`. Null when the callback throws — counted as "no change", so the move is never chosen. */
+function weightPower(d, wUser, wTarget) {
+  const body = w => ({ getWeight: () => w, volatiles: {}, hasAbility: () => false, hasItem: () => false });
+  const ctx = { debug() {}, add() {}, hint() {}, dex: D, trunc: D.trunc.bind(D) };
+  try { return d.basePowerCallback.call(ctx, body(wUser), body(wTarget), d); }
+  catch (err) { return 'THREW:' + err.message; }
+}
+/* THE QUIETEST ITEM A BODY CAN HOLD WITHOUT MOVING THE MEASURED LEAF: fewest functional handlers (a weight
+ * or take-item hook is not one), then fewest tags — the formula the partner's passed item has always used.
+ * `removable` also drops any item with an `onTakeItem` hook, which is how an item refuses to leave. */
+function quietItem(rc, side, opt) {
+  return U.ITEMS.filter(i => !i.megaStone && !i.isBerry && !i.itemUser && !rc.items[side].has(i.id)
+      && !(opt && opt.removable && typeof i.onTakeItem !== 'undefined'))
+    .map(i => ({ i, h: handlersOf(i).filter(h => !/^on(ModifyWeight|TakeItem)$/.test(h.name)).length, t: tagsOf('items', i.id).tags.filter(t => t !== 'flingable').length }))
+    .sort((a, b) => a.h - b.h || a.t - b.t || (a.i.id < b.i.id ? -1 : 1)).map(o => o.i)[0] || null;
+}
+function enclosingCondition(at) {
+  const m = /^(.+):(\d+)$/.exec(String(at || '')); if (!m) return null;
+  let L; try { L = srcOf(m[1]); } catch (e) { console.error('  stage_planner: cannot read ' + m[1] + ' for ' + at + ' (' + e.message + ')'); return null; }
+  for (let i = +m[2] - 1; i >= 0; i--) { const b = /^\t([a-z0-9]+):\s*\{/.exec(L[i]); if (b) return b[1]; }
+  return null;
+}
 const sureHit = (d, user) => d.accuracy === true || d.accuracy >= 100
   || ((U.T.moves[d.id] || { tags: [] }).tags.includes('neverMissesFromUserType')
       && typesOf(user).includes((U.T.moves[d.id].params.neverMissesFromUserType || {}).userType));
@@ -957,26 +1214,30 @@ function stageEntity(kind, e, trig, bearer, branch) {
   }
   /* ---- ENTRY: an onStart/onSwitchIn that ACTS on something must find it there — the carrier enters late ---- */
   const en = T('entry').find(t => t.needsBeforeEntry);
-  if (en) { entry = en.needsBeforeEntry; rc.lineup.p1 = ['LP', 'CA', 'C', null]; rc.live.add('CA'); }
+  /* `side-fainted` needs no partner at all: the lead faints and the carrier REPLACES it, so the partner
+   * may guard like any idle body. Every other entry need acts on the partner and keeps it live. */
+  if (en) { entry = en.needsBeforeEntry; rc.lineup.p1 = ['LP', 'CA', 'C', null]; if (entry !== 'side-fainted') rc.live.add('CA'); }
   /* ---- WHO THE PARTNER IS ---- */
   const allyTrig = trig.filter(t => /^ally-/.test(t.kind) || (t.kind === 'click' && t.by === 'ally'));
   const bodyType = T('body-type')[0];
   const needCA = [];
-  if (allyTrig.length || entry || bodyType) rc.live.add('CA');
+  if (allyTrig.length || (entry && entry !== 'side-fainted') || bodyType) rc.live.add('CA');
   if (T('ally-ability').length) needCA.push({ values: T('ally-ability')[0].values });
   /* ---- THE RECEIVER'S REQUIREMENTS ---- */
   let reqR = [];                                 /* { key, pred(d, sp), at, turn } */
   for (const t of T('click').filter(t => t.by === 'receiver' || t.by === 'either')) {
     const redirect = /RedirectTarget/.test(t.handler || '');
     reqR.push({ key: 'need:' + t.need.kind, handler: t.handler, at: redirect ? 'CA' : 'C', turn: 'trigger',
-                pred: (d, sp) => PRE.satisfiesNeed(d.id, t.need, { userTypes: sp.types, targetTypes: typesOf(rc.bodies.C) })
+                pred: (d, sp) => needMet(d.id, t.need, { userTypes: sp.types, targetTypes: typesOf(rc.bodies.C) })
                   && (d.category !== 'Status' || d.target !== 'self'),
                 except: redirect ? [] : exceptSelf, why: 'the handler ' + t.handler + ' needs ' + t.need.kind + '=' + t.need.values.join('/') });
     if (redirect) rc.live.add('CA');
   }
   const stTrig = T('holder-statused')[0];
   if (stTrig) {
-    const want = stTrig.values.includes('any') || !stTrig.values.length ? STATUS_IDS : stTrig.values;
+    const want = stTrig.values.includes('any') || !stTrig.values.length ? STATUS_IDS
+      : stTrig.values.includes('any-acting') ? ACTING_STATUSES() : stTrig.values;
+    if (!want.length) refuse('PLANNER-CANNOT-CONSTRUCT', 'the holder must carry a status it can still act under, and no status condition in the format lacks onBeforeMove');
     reqR.push({ key: 'status', at: 'C', turn: 'setup', except: exceptSelf, statusIsTrigger: true,
                 pred: (d) => want.some(s => statusMoveFor(s, rc.arm)(d)), why: 'the handler reads the holder\'s status (' + want.join('/') + ')' });
   }
@@ -987,7 +1248,7 @@ function stageEntity(kind, e, trig, bearer, branch) {
   if (vp) reqR.push({ key: 'volatile', at: 'C', turn: 'setup', except: [], pred: d => d.category === 'Status' && vp.values.includes(d.volatileStatus),
                       why: 'the handler cures one of ' + vp.values.join('/') });
   if (board('own-stat-dropped')) reqR.push({ key: 'drop', at: 'C', turn: 'setup', except: [],
-    pred: d => PRE.satisfiesNeed(d.id, { kind: 'statDrop', values: [] }), why: 'the handler restores a dropped stat' });
+    pred: d => needMet(d.id, { kind: 'statDrop', values: [] }), why: 'the handler restores a dropped stat' });
   if (board('trapped')) reqR.push({ key: 'trap', at: 'C', turn: 'setup', except: [],
     pred: d => (U.T.moves[d.id] || { tags: [] }).tags.some(x => x === 'trapsTarget') && d.category === 'Status', why: 'the holder must be trapped' });
   if (T('foe-forces-switch').length) reqR.push({ key: 'phaze', at: 'C', turn: 'trigger', except: [], pred: d => !!d.forceSwitch, why: 'onDragOut needs a forced switch' });
@@ -1000,11 +1261,24 @@ function stageEntity(kind, e, trig, bearer, branch) {
   if (adv && !advAbility) reqR.push({ key: 'adv-move', at: 'C', turn: 'trigger', except: [], pred: d => id(d.name) === id(adv.effect), why: 'the adversary must carry ' + adv.effect });
   /* item consumed by the holder: a berry the RECEIVER can make it eat */
   let berry = null;
-  if (board('item-consumed') || T('ally-item-consumed').length) {
+  /* FORCE-FIRE (2026-09-19): TWO MORE WAYS A BERRY MUST HAVE BEEN EATEN. `holder-ate-berry` — the holder
+   * restores one it ate (the carrier eats it); `nearby-item-used` — the holder picks up one ANOTHER body
+   * used this turn (the receiver eats it, off the carrier's own hit). Both are built as a RESIST berry: it
+   * is eaten on the first hit of its type from full HP, so the fixture assumes no damage number at all —
+   * unlike the heal-threshold berry, whose two real-pool hits are an assumption the Ripen control disproved
+   * by fainting the holder a turn early (moveNotOnRequest on 2026-09-19's run). */
+  if (T('nearby-item-used').length) berry = { kind: 'resist', holder: 'R', thrower: 'C' };
+  else if (T('holder-ate-berry').length) { berry = { kind: 'resist', holder: 'C', thrower: 'R' };
+    reqR.push({ key: 'berry-resist', at: 'C', turn: 'trigger', except: exceptSelf,
+                pred: d => !!resistBerryFor(d, typesOf(rc.bodies.C)), why: 'the carrier must eat a berry: a hit its resist berry answers' }); }
+  if (!berry && (board('item-consumed') || T('ally-item-consumed').length)) {
     const holderRole = T('ally-item-consumed').length ? 'CA' : 'C';
     const events = handlersOf(e).map(h => (splitHandler(h.name) || {}).base);
     const cureBerries = U.ITEMS.filter(i => i.isBerry && (tagsOf('items', i.id).params.curesStatus || {}).statuses && tagsOf('items', i.id).params.curesStatus.statuses !== 'any');
-    if (events.includes('sourcemodifydamage')) {
+    /* `onSourceModifyDamage` splits to base `modifydamage` with prefix `Source`, so the bare-name test below
+     * never matched it and a resist-berry mechanic (Ripen's `berryWeaken`) was staged on the heal berry.
+     * FORCE-FIRE 2026-09-19: the handler NAME is asked as well. */
+    if (events.includes('sourcemodifydamage') || handlersOf(e).some(h => h.name === 'onSourceModifyDamage')) {
       berry = { kind: 'resist' };
     } else if (events.includes('tryheal')) {
       berry = { kind: 'heal', item: U.ITEMS.find(i => (tagsOf('items', i.id).params.healsAtThreshold || {}).restores) };
@@ -1012,8 +1286,18 @@ function stageEntity(kind, e, trig, bearer, branch) {
       berry = { kind: 'cure', options: cureBerries.map(i => ({ item: i, status: tagsOf('items', i.id).params.curesStatus.statuses[0] })) };
     }
     berry.holder = holderRole;
+    /* A HANDLER THAT EATS THE BERRY A SECOND TIME needs a status that is still there when it does: one whose own
+     * condition never calls `cureStatus` (derived: frz and slp cure themselves in `onBeforeMove`, and at the bottom
+     * corner every thaw and wake die succeeds, so the first Cud Chew fixture's freeze was gone by the re-eat). */
+    if (berry.kind === 'cure' && isAb && reEatsBerry(e)) {
+      const lasting = berry.options.filter(o => !handlersOf(D.conditions.get(o.status)).some(h => /cureStatus\(/.test(h.src)));
+      if (lasting.length) { berry.options = lasting; rc.notes.push('the berry cures a status that does not cure itself (' + uniq(lasting.map(o => o.status)).join('/') + '), so it is still there at the second eat'); }
+    }
     if (berry.kind === 'cure') reqR.push({ key: 'berry-status', at: holderRole, turn: 'setup', except: [],
       pred: d => berry.options.some(o => statusMoveFor(o.status)(d)), why: 'a status the berry on ' + holderRole + ' cures' });
+    if (berry.kind === 'resist' && holderRole === 'C') { berry.thrower = 'R';
+      reqR.push({ key: 'berry-resist', at: 'C', turn: 'trigger', except: exceptSelf,
+                  pred: d => !!resistBerryFor(d, typesOf(rc.bodies.C)), why: 'the holder must eat a resist berry: a hit of its type' }); }
     if (holderRole === 'CA') rc.live.add('CA');
   }
   const allyGuard = T('ally-guard')[0];
@@ -1023,9 +1307,13 @@ function stageEntity(kind, e, trig, bearer, branch) {
     const vols = pa && pa.volatiles && pa.volatiles.length ? pa.volatiles : null;
     const sts = pa && Array.isArray(pa.statuses) && pa.statuses.length ? pa.statuses : null;
     let pred;
-    if (allyGuard.base === 'tryaddvolatile') pred = d => d.category === 'Status' && !!d.volatileStatus && (!vols || vols.includes(d.volatileStatus)) && d.target === 'normal';
+    /* FORCE-FIRE (2026-09-19): NOT A VOLATILE WHOSE OWN CONDITION READS `.gender`. The veil's list names
+     * Attract first, and Attract fails on a genderless partner before the veil is ever asked — the Aroma
+     * Veil fixture clicked it and nothing on either board could move. */
+    const genderGated = v => { const c = D.conditions.get(v); return !!(c && c.exists && handlersOf(c).some(h => /\.gender\b/.test(h.src))); };
+    if (allyGuard.base === 'tryaddvolatile') pred = d => d.category === 'Status' && !!d.volatileStatus && (!vols || vols.includes(d.volatileStatus)) && d.target === 'normal' && !genderGated(d.volatileStatus);
     else if (allyGuard.base === 'setstatus') pred = d => (sts || STATUS_IDS).some(s => statusMoveFor(s)(d));
-    else pred = d => PRE.satisfiesNeed(d.id, { kind: 'statDrop', values: [] }) && d.category === 'Status';
+    else pred = d => needMet(d.id, { kind: 'statDrop', values: [] }) && d.category === 'Status';
     reqR.push({ key: 'ally-guard', at, turn: 'trigger', except: at === 'C' ? exceptSelf : [], pred, why: 'the veil must be asked on ' + at + ' (' + allyGuard.handler + ')' });
     rc.live.add('CA');
   }
@@ -1033,10 +1321,32 @@ function stageEntity(kind, e, trig, bearer, branch) {
    * veil request for the same handler are the same click, aimed where the veil is asked. */
   if (allyGuard) reqR = reqR.filter(q => !(q.key.startsWith('need:') && q.handler === allyGuard.handler));
   if (T('ally-hit').length) reqR.push({ key: 'ally-hit', at: 'CA', turn: 'trigger', except: [], pred: d => d.category !== 'Status' && d.target === 'normal', why: 'the partner must take a hit' });
-  if (T('ally-statused').length) reqR.push({ key: 'ally-status', at: 'CA', turn: 'setup', except: [], pred: d => STATUS_IDS.some(s => statusMoveFor(s)(d)), why: 'the partner must carry a status' });
+  /* FORCE-FIRE (2026-09-19): the partner's status must still be ON it when the cure is asked — a STABLE
+   * status (see STABLE_STATUSES). The Healer fixture froze its partner, which thawed on its own click. */
+  if (T('ally-statused').length) reqR.push({ key: 'ally-status', at: 'CA', turn: 'setup', except: [], pred: d => STABLE_STATUSES().some(s => statusMoveFor(s)(d)), why: 'the partner must carry a status that stays on it' });
   if (entry === 'ally-damaged') reqR.push({ key: 'entry-hurt', at: 'CA', turn: 'setup', except: [], pred: d => d.category !== 'Status' && d.target === 'normal', why: 'the partner must be damaged before the holder enters' });
-  if (entry === 'ally-statused') reqR.push({ key: 'entry-status', at: 'CA', turn: 'setup', except: [], pred: d => STATUS_IDS.some(s => statusMoveFor(s)(d)), why: 'the partner must be statused before the holder enters' });
-  if (entry === 'screens-up') reqR.push({ key: 'entry-screen', at: null, turn: 'setup', except: [], pred: d => !!d.sideCondition && !!d.condition && Object.keys(d.condition).some(k => /ModifyDamage/.test(k)), why: 'a screen must be up before the holder enters' });
+  if (entry === 'ally-statused') reqR.push({ key: 'entry-status', at: 'CA', turn: 'setup', except: [], pred: d => STABLE_STATUSES().some(s => statusMoveFor(s)(d)), why: 'the partner must be statused before the holder enters' });
+  /* FORCE-FIRE (2026-09-19): not a screen that FAILS without its sky (tag `failsWithoutWeather`) — the Screen
+   * Cleaner fixture clicked Aurora Veil on a clear board and there was no screen for it to clean. */
+  if (entry === 'screens-up') reqR.push({ key: 'entry-screen', at: null, turn: 'setup', except: [], pred: d => !!d.sideCondition && !!d.condition && Object.keys(d.condition).some(k => /ModifyDamage/.test(k)) && !tagsOf('moves', d.id).tags.includes('failsWithoutWeather'), why: 'a screen must be up before the holder enters' });
+  /* FORCE-FIRE (2026-09-19): A WEIGHT MODIFIER — the receiver throws a move whose power is read off the
+   * holder's weight, and ONLY one whose power CHANGES when the holder's handler rewrites that weight. The
+   * power is the move's own `basePowerCallback`, called on the two weights (the handler's own arithmetic
+   * decides the second); a callback that throws is refused by name, never guessed. */
+  const wt = T('weight')[0];
+  if (wt) {
+    const wC = spOf(rc.bodies.C.species).weighthg;
+    const wC2 = modifiedWeight(e, wt.handler, wC);
+    reqR.push({ key: 'weight', at: 'C', turn: 'trigger', except: exceptSelf,
+                pred: (d, sp) => d.category !== 'Status' && typeof d.basePowerCallback === 'function' && /getWeight\(/.test(String(d.basePowerCallback))
+                  && weightPower(d, sp.weighthg, wC) !== weightPower(d, sp.weighthg, wC2),
+                why: 'a weight-read move whose power moves when ' + e.name + ' rewrites the holder\'s weight (' + wC + ' -> ' + wC2 + ' hg)' });
+  }
+  /* FORCE-FIRE (2026-09-19): THE FOE MUST CARRY (not click) a move super-effective on the holder, which the
+   * holder's entry handler reads off `foes().moveSlots`. */
+  if (T('foe-carries-se-move').length)
+    reqR.push({ key: 'carry-se', at: null, turn: 'carry', except: [], pred: d => d.category !== 'Status' && D.getImmunity(d.type, typesOf(rc.bodies.C)) && D.getEffectiveness(d.type, typesOf(rc.bodies.C)) > 0,
+                why: 'a foe must carry a move super-effective on the holder' });
   if (T('target-punishes-contact').length) rc.punisher = true;
   /* ---- ROLL-GATED: accuracy and crit, staged at the corner where the threshold decides ---- */
   const acc = board('accuracy-roll'), crit = board('crit-roll');
@@ -1100,6 +1410,10 @@ function stageEntity(kind, e, trig, bearer, branch) {
       const m = rankMoves(pool.map(d => d.id)).find(mid => {
         const d = D.moves.get(mid);
         if (q.arm === TOP && !(d.accuracy === true || sureHit(d, body) || (accPlan && q.key === 'acc'))) return false;
+        /* FORCE-FIRE (2026-09-19): A FLINCH LANDS ONLY IF ITS THROWER MOVES FIRST — by priority, or by
+         * Speed on the authority's own statModify. The legacy arm has refused a slower flincher since
+         * 2026-08-12; the planner staged Steadfast behind a slower Bite and read DID-NOT-FIRE. */
+        if (q.key === 'need:flinch' && !((d.priority || 0) > 0 || speedOf(body) > speedOf(rc.bodies.C))) return false;
         return !target || !masksFor(mid, body, target, { arm: rc.arm, except: q.except, statusIsTrigger: q.statusIsTrigger }).length;
       });
       if (!m) return null;
@@ -1114,7 +1428,10 @@ function stageEntity(kind, e, trig, bearer, branch) {
   const smult = T('speed-mult')[0];
   const cS = () => speedOf(rc.bodies.C);
   const multWindow = smult ? (smult.multiplier > 1 ? (s) => s > cS() && s < cS() * smult.multiplier : (s) => s < cS() && s > cS() * smult.multiplier) : null;
-  const rSpeed = slower ? (BRK === 'prankster-fast' ? (s) => s < speedOf(rc.bodies.C) : (s) => s > speedOf(rc.bodies.C)) : multWindow ? multWindow : speedOrder ? (s) => s > speedOf(rc.bodies.C) && s < speedOf(rc.bodies.C) * (speedOrder.multiplier || 2) : null;
+  /* FORCE-FIRE (2026-09-19): a NEGATIVE fractional priority (`carrier-faster`) is visible only where the
+   * holder would otherwise move first, so the receiver is strictly slower on the authority's statModify. */
+  const faster = T('carrier-faster').length > 0;
+  const rSpeed = faster ? (s) => s < speedOf(rc.bodies.C) : slower ? (BRK === 'prankster-fast' ? (s) => s < speedOf(rc.bodies.C) : (s) => s > speedOf(rc.bodies.C)) : multWindow ? multWindow : speedOrder ? (s) => s > speedOf(rc.bodies.C) && s < speedOf(rc.bodies.C) * (speedOrder.multiplier || 2) : null;
   const wantAbility = advAbility || null;
   /* a contact punisher, read off the handler: it damages the attacker from `onDamagingHit` when the
    * authority's `checkMoveMakesContact` says so, and draws no die of its own */
@@ -1145,13 +1462,21 @@ function stageEntity(kind, e, trig, bearer, branch) {
     + (rSpeed ? ' (with the speed window the order needs)' : ''));
   useSpecies(rc, rPick.body.species);
   setBody(rc, 'R', rPick.body);
+  /* FORCE-FIRE (2026-09-19): the holder takes the item of the body it hits, so that body holds one — the
+   * quietest removable item in the format (see `quietItem`). */
+  if (T('target-holds-item').length) {
+    const it = quietItem(rc, 'p2', { removable: true });
+    if (!it) refuse('PLANNER-CANNOT-CONSTRUCT', 'no quiet removable item for the receiver to hold');
+    setItem(rc, 'R', it.name);
+    rc.notes.push('R holds ' + it.name + ' (the quietest removable item) for the holder\'s own hit to take');
+  }
   const rMoves = {};
   for (const { q, m } of rPick.moves) rMoves[q.key] = addMove(rc, 'R', m);
 
   /* ======== THE PARTNER ======== */
   const caReq = [];
   if (T('click').some(t => t.by === 'ally')) for (const t of T('click').filter(t => t.by === 'ally'))
-    caReq.push({ key: 'need', at: 'R', pred: (d, sp) => PRE.satisfiesNeed(d.id, t.need, { userTypes: sp.types, targetTypes: typesOf(rc.bodies.R) }) });
+    caReq.push({ key: 'need', at: 'R', pred: (d, sp) => needMet(d.id, t.need, { userTypes: sp.types, targetTypes: typesOf(rc.bodies.R) }) });
   if (entry === 'ally-boosted') caReq.push({ key: 'boost', at: null, pred: d => d.category === 'Status' && d.target === 'self' && !!d.boosts });
   if (T('ally-hits-holder').length) caReq.push({ key: 'hit-holder', at: 'C', except: exceptSelf, pred: d => d.category !== 'Status' && (d.target === 'allAdjacent' || d.target === 'normal') });
   if (T('ally-faints').length) caReq.push({ key: 'faint', at: 'R', pred: d => ((U.T.moves[d.id] || { params: {} }).params.userFaints || {}).faints === 'always' });
@@ -1223,8 +1548,9 @@ function composeEntity(rc, x) {
     const R = rc.bodies.R;
     let pred = d => d.category !== 'Status' && d.target === 'normal';
     const p0 = pred;
-    if (actor.length) pred = d => actor.every(t => PRE.satisfiesNeed(d.id, t.need, { userTypes: typesOf(rc.bodies.C), targetTypes: typesOf(R) }))
+    if (actor.length) pred = d => actor.every(t => needMet(d.id, t.need, { userTypes: typesOf(rc.bodies.C), targetTypes: typesOf(R) }))
       && (actor.every(t => t.need.kind === 'statRaise') || d.category !== 'Status' || d.target !== 'self' || actor.some(t => t.need.kind === 'category'));
+    if (actor.some(t => t.need.singleTarget)) { const q = pred; pred = d => q(d) && d.target === 'normal'; }
     if (bp) { const q = pred; pred = d => q(d) && d.category !== 'Status' && d.basePower > 0 && d.basePower <= bp.max; }
     if (accPlan && accPlan.holderAttacks) { const q = pred; pred = d => q(d) && accPlan.good(d); }
     if (critPlan) { const q = pred; pred = d => q(d) && d.category !== 'Status' && (d.critRatio || 1) === 1 && (d.accuracy === true || d.accuracy >= 100); }
@@ -1233,7 +1559,9 @@ function composeEntity(rc, x) {
     const byp = T('bypass-immunity')[0];
     if (byp) { const q = pred; pred = d => q(d) && d.category !== 'Status' && byp.values.includes(d.type); }
     /* the type immunity IS the trigger of a bypass fixture, so it is excepted on that click only */
-    const exceptAcc = (accPlan && accPlan.holderAttacks ? ['accuracy'] : []).concat(byp ? ['type'] : []);
+    const exceptAcc = (accPlan && accPlan.holderAttacks ? ['accuracy'] : []).concat(byp ? ['type'] : [])
+      /* A SHIELD-PIERCING HOLDER: the target's shield IS the trigger, so it is excepted on this click only */
+      .concat(T('target-protects').length ? ['guard'] : []);
     /* A PRIORITY STATUS CLICK SHOWS ON THE BOARD when it lands before a hit it changes: a screen that
      * halves the hit, a substitute that takes it. Preferred, derived from the condition's own damage
      * handler and the substitute tag. */
@@ -1342,7 +1670,10 @@ function composeEntity(rc, x) {
     const req = { status: ['C', 0], indirect: ['C', 0], volatile: ['C', 0], drop: ['C', 0], trap: ['C', 0], phaze: ['C', 1],
                   boost: [null, 0], 'hit-phys': ['C', 1], 'adv-move': ['C', 1], 'berry-status': [berry && berry.holder, 0],
                   'ally-guard': [null, 1], 'ally-hit': ['CA', 1], 'ally-status': ['CA', 0], 'entry-hurt': ['CA', 0],
-                  'entry-status': ['CA', 0], 'entry-screen': [null, 0], acc: ['C', 1], 'acc-vol': ['C', 0] };
+                  'entry-status': ['CA', 0], 'entry-screen': [null, 0], acc: ['C', 1], 'acc-vol': ['C', 0],
+                  'berry-resist': [berry && berry.holder, 1], weight: ['C', 1] };
+    /* a CARRIED move is on the receiver's sheet for the holder to read, and is never clicked */
+    if (key === 'carry-se') { rc.notes.push('R carries ' + m + ' (super-effective on the holder) and never clicks it'); continue; }
     let [at, phase] = req[key] || ['C', 1];
     if (key.startsWith('need:')) { const d = D.moves.get(m); at = d.target === 'self' ? null : (trig.some(t => /RedirectTarget/.test(t.handler || '')) ? 'CA' : 'C'); phase = 1; }
     if (key === 'ally-guard') at = x.branch === 'covers-self' ? 'C' : 'CA';
@@ -1353,6 +1684,40 @@ function composeEntity(rc, x) {
     if (phase === 1) rc.conditions.push({ kind: 'click', role: 'R', move: m, phase: 1 });
   }
   if (board('trapped')) acts.push({ role: 'C', click: { sw: 'CB' }, phase: 1 });
+  /* ---- a foe held on the field: read off the authority's request for the receiver ---- */
+  if (T('foe-trapped').length) {
+    rc.observe = { role: 'R', leaf: 'trapped', channel: 'request', leaves: ['trapped'] };
+    rc.notes.push('the receiver\'s trapped flag is read at each boundary — the authority\'s `pokemon.trapped`, ours by asking switchTrapVerdict — never by a switch choice');
+  }
+  /* ---- the carrier switches out on the trigger turn; the bench row is where the forme is read ---- */
+  if (T('carrier-switches-out').length && !board('trapped')) {
+    acts.push({ role: 'C', click: { sw: 'CB' }, phase: 1 });
+    rc.conditions.push({ kind: 'click', role: 'C', sw: 'CB', phase: 1 });
+    rc.observe = { role: 'C', leaf: 'species', channel: 'board', leaves: ['species'] };
+    rc.notes.push('the carrier switches to the bench on the trigger turn; its switch-out handler writes the bench row');
+  }
+  /* ---- A HANDLER THAT EATS THE CONSUMED BERRY AGAIN (force-fire-b, 2026-09-19) ----
+   * The second eat runs the berry's own `Eat` (`singleEvent('Eat', item, …)` in the handler), and a cure berry
+   * cures nothing on a holder the first eat already cured — Cud Chew read `authority_moved: false` for exactly
+   * that. So the status is delivered AGAIN on the trigger turn, and the second eat has something to cure. */
+  if (isAb && berry && berry.kind === 'cure' && rc.rMoves && rc.rMoves['berry-status'] && reEatsBerry(e)
+      && !acts.some(a => a.role === 'R' && a.phase === 1)) {
+    const m = rc.rMoves['berry-status'];
+    acts.push({ role: 'R', click: { m, at: berry.holder }, phase: 1 });
+    tc('R', berry.holder, m, 1, { except: [], statusIsTrigger: true });
+    rc.conditions.push({ kind: 'click', role: 'R', move: m, phase: 1 });
+    rc.notes.push(D.moves.get(m).name + ' lands again on the trigger turn, so the berry eaten a second time has a status to cure');
+  }
+  /* ---- the target raises a shield the holder's hit goes through (onHitProtect) ---- */
+  if (T('target-protects').length) {
+    if (acts.some(a => a.role === 'R' && a.phase === 1)) refuse('PLANNER-CANNOT-CONSTRUCT', 'the receiver must shield on the trigger turn and already has a trigger click');
+    /* the plain shield only — the one every pad in this file already clicks — so no contact punisher rides in */
+    const g = ['protect'].find(m => legal(D.moves.get(m)) && learns(rc.bodies.R.species, m));
+    if (!g) refuse('NO-TRIGGER-SUPPLIER', 'the receiver ' + rc.bodies.R.species + ' does not learn Protect for the holder to hit through');
+    acts.push({ role: 'R', click: { m: addMove(rc, 'R', g) }, phase: 1 });
+    rc.conditions.push({ kind: 'click', role: 'R', move: g, phase: 1 });
+    rc.notes.push('the receiver shields with ' + D.moves.get(g).name + ' on the trigger turn; the holder\'s hit is read through it (onHitProtect)');
+  }
   /* ---- the partner ---- */
   for (const [key, m] of Object.entries(rc.caMoves || {})) {
     const d = D.moves.get(m);
@@ -1374,7 +1739,26 @@ function composeEntity(rc, x) {
     } else if (berry.kind === 'heal') {
       if (!berry.item) refuse('PLANNER-CANNOT-CONSTRUCT', 'no legal healing berry');
       setItem(rc, berry.holder, berry.item.name);
-    } else refuse('PLANNER-CANNOT-CONSTRUCT', 'a resist-berry consumption fixture is not built by this planner yet');
+    } else if (berry.kind === 'resist' && berry.thrower === 'R') {
+      /* FORCE-FIRE (2026-09-19): the receiver's hit of the berry's type lands on the holder from full HP */
+      const m = rc.rMoves['berry-resist'];
+      const b = m && resistBerryFor(D.moves.get(m), typesOf(rc.bodies[berry.holder]));
+      if (!b) refuse('PLANNER-CANNOT-CONSTRUCT', 'no resist berry answers the receiver\'s hit ' + m);
+      setItem(rc, berry.holder, b.name);
+      rc.notes.push(berry.holder + ' holds ' + b.name + ' and eats it when ' + D.moves.get(m).name + ' lands (tag resistBerry)');
+    } else if (berry.kind === 'resist' && berry.thrower === 'C') {
+      /* FORCE-FIRE (2026-09-19): the CARRIER's own hit makes the receiver eat its berry this turn */
+      const pool = [...(U.POOL.get(spOf(rc.bodies.C.species).id) || [])].filter(k => { const d = D.moves.get(k); return legal(d) && !!resistBerryFor(d, typesOf(rc.bodies.R)); });
+      const m = rankMoves(pool).find(k => !masksFor(k, rc.bodies.C, rc.bodies.R, { arm: rc.arm }).length);
+      if (!m) refuse('NO-TRIGGER-SUPPLIER', 'the carrier ' + rc.bodies.C.species + ' learns no hit a resist berry on ' + rc.bodies.R.species + ' answers');
+      const b = resistBerryFor(D.moves.get(m), typesOf(rc.bodies.R));
+      setItem(rc, 'R', b.name);
+      const mv = addMove(rc, 'C', m);
+      acts.push({ role: 'C', click: { m: mv, at: 'R' }, phase: 1 });
+      tc('C', 'R', m, 1, {});
+      rc.conditions.push({ kind: 'click', role: 'C', move: m, phase: 1 });
+      rc.notes.push('R holds ' + b.name + ' and eats it when the carrier\'s ' + D.moves.get(m).name + ' lands (tag resistBerry)');
+    } else refuse('PLANNER-CANNOT-CONSTRUCT', 'a resist-berry consumption fixture with holder ' + berry.holder + ' is not built by this planner yet');
     if (T('ally-item-consumed').length && !rc.bodies.C.item) {
       /* the QUIETEST item to pass: fewest functional handlers (a weight or take-item hook is not one),
        * then fewest tags — never an accuracy or speed item riding along into the comparison */
@@ -1386,8 +1770,43 @@ function composeEntity(rc, x) {
     }
     consumed.add('board');
   }
+  /* ---- entry after a FAINT on the carrier's own side (the handler counts `side.totalFainted`) ----
+   * The lead clicks a move that ALWAYS faints its user (tag userFaints.faints === 'always', derived), the
+   * carrier REPLACES it — the driver sends the first healthy bench body, which is C by the lineup — and on
+   * the next turn the carrier hits the receiver. The board leaf is the receiver's HP; the control (same
+   * body, the other ability) takes the same faint and hits for the unboosted amount. */
+  if (entry === 'side-fainted') {
+    const always = U.MOVES.filter(d => ((U.T.moves[d.id] || { params: {} }).params.userFaints || {}).faints === 'always');
+    let lp = null;
+    for (const sid of speciesOrder()) {
+      const sp = D.species.get(sid);
+      if (rc.used.has(id(sp.baseSpecies || sp.name))) continue;
+      const m = rankMoves(always.filter(d => learns(sp.name, d.id)).map(d => d.id))[0];
+      const ab = quietAbility(sp.name, weatherish().concat([e.id]));
+      if (m && ab) { lp = { sp, m, ab }; break; }
+    }
+    if (!lp) refuse('NO-TRIGGER-SUPPLIER', 'no legal lead learns a move that always faints its user (tag userFaints)');
+    useSpecies(rc, lp.sp.name);
+    setBody(rc, 'LP', { species: lp.sp.name, field: lp.sp.name, ability: lp.ab });
+    const km = addMove(rc, 'LP', lp.m);
+    acts.push({ role: 'LP', click: { m: km, at: null, faintsInto: 'C' }, phase: 0 });
+    rc.conditions.push({ kind: 'click', role: 'LP', move: lp.m, turn: 1 });
+    const h = hitFor(rc, 'C', 'R', {});
+    if (!h) refuse('NO-TRIGGER-SUPPLIER', 'the carrier ' + rc.bodies.C.species + ' has no hit that lands on ' + rc.bodies.R.species);
+    acts.push({ role: 'C', click: { m: h, at: 'R' }, phase: 1 });
+    tc('C', 'R', h, 1, {});
+    rc.conditions.push({ kind: 'click', role: 'C', move: id(h), phase: 1 });
+    rc.observe = { role: 'R', leaf: 'hp', channel: 'board', leaves: ['hp'] };
+    rc.notes.push(lp.sp.name + ' clicks ' + D.moves.get(lp.m).name + ' (userFaints always) and the carrier replaces it: one fallen before entry');
+  } else if (T('switch-out').length) {
+    /* the statused holder LEAVES on the trigger turn; its status on the bench is the leaf */
+    acts.push({ role: 'C', click: { sw: 'CB' }, phase: 1 });
+    rc.conditions.push({ kind: 'click', role: 'C', sw: 'CB', phase: 1 });
+    rc.observe = { role: 'C', leaf: 'status', channel: 'board', leaves: ['status'] };
+    rc.notes.push('the statused carrier switches out on the trigger turn (onSwitchOut reads its status)');
+  }
   /* ---- entry: the setup turn, then the carrier arrives ---- */
-  if (entry) {
+  if (entry && entry !== 'side-fainted') {
     if (entry === 'ally-boosted' && !(rc.caMoves || {}).boost) refuse('NO-TRIGGER-SUPPLIER', 'the partner learns no self boost');
     acts.push({ role: 'LP', click: { sw: 'C' }, phase: 1 });
     rc.conditions.push({ kind: 'click', role: 'LP', sw: 'C', phase: 1 });
@@ -1409,15 +1828,25 @@ function composeEntity(rc, x) {
   if (!rc.observe && T('foe-forces-switch').length) rc.observe = { role: 'C', leaf: 'active', channel: 'board', leaves: ['active'] };
   if (x.advAbility) { const lv = observeOf('abilities', D.abilities.get(x.advAbility)).leaves; if (lv.length) rc.observe = { role: 'C', leaf: lv[0], channel: 'board', leaves: lv }; }
   if (!anyTrigger) {
-    const h1 = hitFor(rc, 'C', 'R', {});
-    const h2 = hitFor(rc, 'R', 'C', { except: exceptSelf });
+    /* FORCE-FIRE (2026-09-19): A STAT MULTIPLIER SHOWS ONLY ON A HIT THAT READS THAT STAT. The holder's own
+     * `onModifyAtk`/`onModifySpA` is read by the holder's hit of that category, its `onModifyDef`/`onModifySpD`
+     * by the receiver's. Read off the handler names; with neither, the exchange is unchanged. */
+    const bases = handlersOf(e).map(h => splitHandler(h.name)).filter(s => s && !s.prefix).map(s => s.base);
+    const cCat = bases.includes('modifyatk') ? 'Physical' : bases.includes('modifyspa') ? 'Special' : undefined;
+    const rCat = bases.includes('modifydef') ? 'Physical' : bases.includes('modifyspd') ? 'Special' : undefined;
+    const h1 = hitFor(rc, 'C', 'R', { category: cCat });
+    const h2 = hitFor(rc, 'R', 'C', { except: exceptSelf, category: rCat });
+    if ((cCat && !h1) || (rCat && !h2)) refuse('NO-TRIGGER-SUPPLIER', 'the exchange needs a ' + (cCat && !h1 ? cCat + ' hit from the carrier' : rCat + ' hit from the receiver') + ', and none lands unmasked');
     if (!h1 && !h2) refuse('PLANNER-CANNOT-CONSTRUCT', 'neither side can hit the other');
     if (h1) { acts.push({ role: 'C', click: { m: h1, at: 'R' }, phase: 1 }); tc('C', 'R', h1, 1, {}); }
     if (h2) { acts.push({ role: 'R', click: { m: h2, at: 'C' }, phase: 1 }); tc('R', 'C', h2, 1, { except: exceptSelf }); }
   }
   for (const t of trig) if (!consumed.has(t.kind) && !['weather', 'terrain', 'holder-statused', 'indirect-damage', 'foe-forces-switch', 'foe-boost-then-hit',
     'ally-guard', 'ally-hit', 'ally-statused', 'ally-hits-holder', 'ally-faints', 'ally-item-consumed', 'target-punishes-contact', 'carrier-slower', 'click-bp',
-    'foe-statused', 'bypass-immunity', 'speed-mult'].includes(t.kind)) {
+    'foe-statused', 'bypass-immunity', 'speed-mult',
+    /* FORCE-FIRE (2026-09-19) — each staged above: */
+    'weight', 'target-holds-item', 'holder-ate-berry', 'nearby-item-used', 'foe-carries-se-move', 'carrier-faster', 'switch-out',
+    'target-protects', 'carrier-switches-out', 'foe-trapped'].includes(t.kind)) {
     if (t.kind === 'board' && ['volatile-present', 'own-stat-dropped', 'trapped', 'item-consumed', 'accuracy-roll', 'crit-roll', 'speed-order', 'ally-only', 'heal-effect', 'pp-exhausted', 'ko-hit', 'hp-threshold'].includes(t.state)) continue;
     if (t.kind === 'board' && t.state === 'species-gated') continue;
     rc.unconsumed = (rc.unconsumed || []).concat(t.kind + (t.state ? ':' + t.state : ''));
@@ -1467,7 +1896,7 @@ function finish(rc) {
   if (rc.lineup.p1.includes('LP') && !rc.bodies.LP) padFor(rc, 'LP');
   rc.pads = { p1: [], p2: [] };
   for (const s of ['p1', 'p2']) while (rc.lineup[s].length + rc.pads[s].length < 6) { const r = 'P' + s + rc.pads[s].length; padFor(rc, r); rc.pads[s].push(r); }
-  const onField = t => { const o = { p1: [rc.lineup.p1[0], rc.lineup.p1[1]], p2: [rc.lineup.p2[0], rc.lineup.p2[1]] }; for (let i = 0; i < t; i++) for (const s of ['p1', 'p2']) for (let j = 0; j < 2; j++) { const c = rc.turns[i][o[s][j]]; if (c && c.sw) o[s][j] = c.sw; } return o; };
+  const onField = t => { const o = { p1: [rc.lineup.p1[0], rc.lineup.p1[1]], p2: [rc.lineup.p2[0], rc.lineup.p2[1]] }; for (let i = 0; i < t; i++) for (const s of ['p1', 'p2']) for (let j = 0; j < 2; j++) { const c = rc.turns[i][o[s][j]]; if (c && (c.sw || c.faintsInto)) o[s][j] = c.sw || c.faintsInto; } return o; };
   rc.turns.forEach((turn, i) => {
     const o = onField(i);
     /* aimed = an explicit aim, or the body a trigger click lands on (a spread move names no aim) */
@@ -1624,6 +2053,62 @@ function stageStruggle(e, inj) {
   refuse('NO-TRIGGER-SUPPLIER', 'no legal body has a short-PP idle move to run dry');
 }
 
+/* ================= THE HOLDER KNOCKS A FOE OUT WITH A MOVE (force-fire-b, 2026-09-19) ===================
+ *
+ * A knockout the planner can PROMISE without a damage calculator, in two turns:
+ *   T1  the receiver R clicks the move whose own condition keeps it at 1 HP (`onDamage` returning `target.hp - 1`
+ *       — derived; Endure in this format), and the partner CA clicks an OHKO move (`move.ohko`) into it. At the
+ *       bottom corner the OHKO's accuracy draw succeeds and the 1-HP floor holds.
+ *   T2  the holder hits R. Any hit that lands knocks a 1-HP body out, and it is the HOLDER's move that does it.
+ * The control (second chain, idle twin) is the holder not hitting on T2, so no knockout happens. */
+function stageHolderKOs(e, bearer, trig) {
+  const rc = newRecipe({ kind: 'abilities', id: e.id, name: e.name });
+  useSpecies(rc, bearer.sheet);
+  setBody(rc, 'C', { species: bearer.sheet, field: bearer.field, ability: bearer.via === 'slot' ? e.name : quietAbility(bearer.sheet) });
+  if (bearer.via === 'mega') { setItem(rc, 'C', bearer.stone); rc.conditions.push({ kind: 'field', role: 'C', field: 'item', value: bearer.stone }); rc.megaRole = 'C'; }
+  else if (bearer.via === 'slot') rc.conditions.push({ kind: 'field', role: 'C', field: 'ability', value: e.name });
+  else refuse('PLANNER-CANNOT-CONSTRUCT', 'the knockout stager takes a slot or mega carrier, not ' + bearer.via);
+  const floorMoves = U.MOVES.filter(d => d.condition && typeof d.condition.onDamage === 'function' && /hp\s*-\s*1/.test(String(d.condition.onDamage))).map(d => d.id);
+  const ohkos = U.MOVES.filter(d => d.ohko).map(d => d.id);
+  if (!floorMoves.length || !ohkos.length) refuse('NO-TRIGGER-SUPPLIER', 'the format has no 1-HP floor move or no OHKO move');
+  for (const rid of speciesOrder(RECEIVER_FIRST)) {
+    const rsp = D.species.get(rid);
+    if (rc.used.has(id(rsp.baseSpecies || rsp.name))) continue;
+    const floor = floorMoves.find(m => learns(rsp.name, m)); if (!floor) continue;
+    const rab = quietAbility(rsp.name, [e.id]); if (!rab) continue;
+    const R = { species: rsp.name, field: rsp.name, ability: rab };
+    const hit = rankMoves([...(U.POOL.get(spOf(bearer.sheet).id) || [])].filter(k => { const d = D.moves.get(k); return legal(d) && d.category !== 'Status' && d.target === 'normal'; }))
+      .find(k => !masksFor(k, rc.bodies.C, R, { arm: rc.arm }).length);
+    if (!hit) continue;
+    let ca = null;
+    for (const cid of speciesOrder()) {
+      const csp = D.species.get(cid);
+      if (cid === rid || rc.used.has(id(csp.baseSpecies || csp.name))) continue;
+      const cab = quietAbility(csp.name, weatherish().concat([e.id])); if (!cab) continue;
+      const cb = { species: csp.name, field: csp.name, ability: cab };
+      const k = ohkos.find(m => learns(csp.name, m) && !masksFor(m, cb, R, { arm: rc.arm }).length);
+      if (k) { ca = { body: cb, move: k }; break; }
+    }
+    if (!ca) continue;
+    useSpecies(rc, rsp.name); setBody(rc, 'R', R);
+    useSpecies(rc, ca.body.species); setBody(rc, 'CA', ca.body); rc.live.add('CA');
+    const acts = [];
+    acts.push({ role: 'R', click: { m: addMove(rc, 'R', floor) }, phase: 0 });
+    acts.push({ role: 'CA', click: { m: addMove(rc, 'CA', ca.move), at: 'R' }, phase: 0 });
+    rc.triggerClicks.push({ role: 'CA', at: 'R', move: id(ca.move), phase: 0, ctx: { except: ['guard'] } }); /* the floor IS the setup, not a mask */
+    const h = addMove(rc, 'C', hit);
+    acts.push({ role: 'C', click: { m: h, at: 'R' }, phase: 1 });
+    rc.triggerClicks.push({ role: 'C', at: 'R', move: id(hit), phase: 1, ctx: {} });
+    rc.conditions.push({ kind: 'click', role: 'C', move: id(hit), phase: 1 });
+    rc.hpPool = 'x1';
+    rc.observe = { role: 'C', leaf: 'boosts', channel: 'board', leaves: ['boosts'] };
+    rc.notes.push('T1 ' + rsp.name + ' clicks ' + D.moves.get(floor).name + ' and ' + ca.body.species + ' clicks ' + D.moves.get(ca.move).name
+      + ' into it (1 HP left); T2 the holder\'s ' + D.moves.get(hit).name + ' knocks it out');
+    return layTurns(rc, acts);
+  }
+  refuse('NO-TRIGGER-SUPPLIER', 'no receiver learns a 1-HP floor move with a partner that can OHKO it and a holder hit that lands');
+}
+
 /* ================= CONFERRAL: an ability put on a body by a legal move ============================== */
 function stageConferred(e, src) {
   const moveId = src.via.split(':')[1];
@@ -1743,7 +2228,7 @@ function reactsTo(alt, rc, e) {
   if (stateNoise(a, rc) > 0) why.push('writes state on its own (an entry/residual/field handler that changes a leaf)');
   const clicks = rc.turns.flatMap(t => Object.values(t)).filter(c => c && c.m).map(c => id(c.m));
   const C = rc.bodies.C;
-  for (const n of PRE.moveNeeds(normEntity(a)).needs) if (clicks.some(m => PRE.satisfiesNeed(m, n, { userTypes: typesOf(C), targetTypes: typesOf(C) }))) { why.push('a click on this board supplies its ' + n.kind + '=' + (n.values || []).join('/')); break; }
+  for (const n of PRE.moveNeeds(normEntity(a)).needs) if (clicks.some(m => needMet(m, n, { userTypes: typesOf(C), targetTypes: typesOf(C) }))) { why.push('a click on this board supplies its ' + n.kind + '=' + (n.values || []).join('/')); break; }
   const staged = new Set(rc.conditions.map(c => c.kind));
   for (const n of PRE.boardNeeds(normEntity(a))) if (['hp-threshold', 'item-consumed', 'volatile-present', 'own-stat-dropped', 'trapped', 'ko-hit'].includes(n.kind) && (rc.hpPool === 'x1' || staged.size > 2)) { why.push('the board stages its ' + n.kind); break; }
   return why;
@@ -1785,7 +2270,7 @@ function buildControl(rc, kind, e, bearer, trig) {
     const b = rc.bodies[c.role]; const d0 = D.moves.get(c.move);
     if (b.moves.length >= 4 || !needs.length) continue;
     const alt = [...(U.POOL.get(spOf(b.species).id) || [])].map(k => D.moves.get(k)).find(d => legal(d) && d.id !== d0.id
-      && d.category === d0.category && d.target === d0.target && !needs.some(n => PRE.satisfiesNeed(d.id, n, { userTypes: typesOf(b), targetTypes: typesOf(rc.bodies.C) })));
+      && d.category === d0.category && d.target === d0.target && !needs.some(n => needMet(d.id, n, { userTypes: typesOf(b), targetTypes: typesOf(rc.bodies.C) })));
     if (!alt) continue;
     addMove(rc, c.role, alt.id);
     const k = cloneRc(rc);
@@ -1794,10 +2279,324 @@ function buildControl(rc, kind, e, bearer, trig) {
     if (j.diff.length === 1 && j.inert.length === 1) return done(k, c.role + '.click@' + c.turn, 'the trigger click ' + d0.name + ' becomes ' + alt.name + ', which supplies none of the needs');
     rc.bodies[c.role].moves = rc.bodies[c.role].moves.filter(m => m !== alt.name);
   }
+  /* THE SECOND CHAIN runs ONLY where everything above refused, so a row that already had a control keeps
+   * exactly the one it had — asserted over the whole population by planning it before and after. */
+  if (BRK !== 'no-second-chain') {
+    const second = secondChainControl(rc, kind, e, bearer, trig, done);
+    if (second) return second;
+  }
   return { refusal: { code: 'NO-SINGLE-VARIABLE-CONTROL',
-    reason: bearer && bearer.via !== 'slot' ? 'the mechanic rides a ' + bearer.via + ' (' + bearer.field + '): no legal body carries it with a second ability, and removing the forme change also moves stats and typing'
-      : 'no alternative ability is inert on this board and no trigger click can be swapped for a non-trigger one' + (rc.controlTried ? ' (' + rc.controlTried.join(' | ') + ')' : ''),
+    reason: (bearer && bearer.via !== 'slot' ? 'the mechanic rides a ' + bearer.via + ' (' + bearer.field + '): no legal body carries it with a second ability, and removing the forme change also moves stats and typing'
+      : 'no alternative ability is inert on this board and no trigger click can be swapped for a non-trigger one' + (rc.controlTried ? ' (' + rc.controlTried.join(' | ') + ')' : ''))
+      + (rc.controlTried2 && rc.controlTried2.length ? ' || second chain: ' + rc.controlTried2.slice(0, 6).join(' | ') : ''),
     mode: 'board-only: prove the trigger off the authority log, as the boards plan HB-1 specifies' } };
+}
+
+/* ================= THE SECOND CHAIN — A CONTROL WHERE THE FIRST ONE REFUSED (force-fire-b, 2026-09-19) ====
+ *
+ * Will, 2026-09-19: "why cant we stage games that force the ability to fire what the hell man". Thirty-two
+ * ability rows carried NO control, and every one was refused NO-SINGLE-VARIABLE-CONTROL by the chain above —
+ * which has two failure shapes, both in the CHOOSER and neither in the format:
+ *
+ *   1. `reactsTo` reads every click on the board as if the CARRIER were both user and target
+ *      (`{ userTypes: typesOf(C), targetTypes: typesOf(C) }`), and counts a handler as writing state on its
+ *      own whenever its source mentions a write — including handlers that can only act on a status, a
+ *      weather or a click the board never supplies. So Flash Fire was "loud" beside Drought on a board with
+ *      no Fire move aimed at the carrier, and Solid Rock "reacted" to the carrier's OWN High Horsepower.
+ *   2. The trigger-removal swap only looks at clicks named in `conditions`, only for a same-category,
+ *      same-target alternative — so a CATEGORY need (Weak Armor, Good as Gold) can never be removed, a field
+ *      SETTER (Surge Surfer's Electric Terrain) is never considered, and a spread trigger (Surf) has no twin.
+ *
+ * It runs ONLY where the chain above refused, so no row that had a control changes it. The control it
+ * builds obeys the same two invariants and is judged by the same `judge()`: one leaf, one inert reason.
+ *
+ *   (a) THE SAME BODY WITH ANOTHER OF ITS ABILITIES, where every click is read against its REAL user and
+ *       target, and a handler gated on a weather, a terrain or a holder status the board does not supply —
+ *       or on a click need the click reading already answered — is not counted as acting on its own.
+ *   (c) THE TRIGGER CLICK SWAPPED on the body that makes it: for a need, a move of the same aim class that
+ *       supplies none of the needs that click supplied (a CATEGORY need swaps the category; a damaging click
+ *       stays damaging); for a field SETTER, the body's inert click. The authority's board must move between
+ *       the arms and ours must move identically — both arms are compared, boundary by boundary.
+ *
+ * (b), suppression, was derived and not built: Reg M-B has no legal Neutralizing Gas carrier, and Gastro
+ * Acid and a Mold Breaker attacker each change a second body — see the report. */
+const AIM_SINGLE = new Set(['normal', 'any', 'adjacentFoe', 'randomNormal']);
+const AIM_SPREAD = new Set(['allAdjacent', 'allAdjacentFoes']);
+const aimClass = t => AIM_SINGLE.has(t) ? 'single' : AIM_SPREAD.has(t) ? 'spread' : t;
+function onFieldAt(rc, i) {
+  const o = { p1: [rc.lineup.p1[0], rc.lineup.p1[1]], p2: [rc.lineup.p2[0], rc.lineup.p2[1]] };
+  for (let t = 0; t < i; t++) for (const s of ['p1', 'p2']) for (let j = 0; j < 2; j++) { const c = (rc.turns[t] || {})[o[s][j]]; if (c && c.sw) o[s][j] = c.sw; }
+  return o;
+}
+/* Every click on the board with the bodies it LANDS on: its aim, or for a spread move every adjacent body. */
+function boardClicks(rc) {
+  const out = [];
+  rc.turns.forEach((turn, i) => {
+    const o = onFieldAt(rc, i);
+    for (const s of ['p1', 'p2']) for (const role of o[s]) {
+      const c = turn[role]; if (!c || !c.m) continue;
+      const d = D.moves.get(c.m); if (!d || !d.exists) continue;
+      const foe = s === 'p1' ? 'p2' : 'p1';
+      let lands = c.at ? [c.at] : d.target === 'allAdjacentFoes' ? o[foe].slice() : d.target === 'allAdjacent' ? o[foe].concat(o[s].filter(r => r !== role)) : [];
+      out.push({ turn: i + 1, role, d, lands: lands.filter(Boolean) });
+    }
+  });
+  return out;
+}
+/* The statuses a click can put on the body it lands on, at this arm: its own status, or a secondary's — which
+ * at the bottom corner always fires (engine/game_differential.js makeArm), at the top only at chance 100. */
+function statusesOf(d, arm) {
+  const s = [];
+  if (d.status) s.push(d.status);
+  for (const x of [].concat(d.secondaries || [], d.secondary ? [d.secondary] : [])) if (x && x.status && (arm === BOTTOM || (x.chance || 100) >= 100)) s.push(x.status);
+  return s;
+}
+function clickRel(c, by) {
+  const actor = c.role === 'C', receiver = c.role !== 'C' && c.lands.includes('C');
+  return by === 'actor' ? actor : by === 'receiver' ? receiver : by === 'ally' ? c.role === 'CA' : actor || receiver;
+}
+/* Would this alternative ability ACT on this board? Returns the reasons it would (empty = quiet). */
+function reactsToOnBoard(alt, rc, e) {
+  const a = D.abilities.get(alt);
+  const why = [];
+  const clicks = boardClicks(rc);
+  /* A SHARED TAG WHOSE PARAMS NAME WHAT IT GUARDS (`statuses`, `volatiles`) reacts only where a click on this
+   * board delivers one of THOSE — Aroma Veil and Sweet Veil share protectsAllyFromStatus and guard disjoint
+   * lists, so beside a Sing the one that guards against attraction is quiet. Every other shared tag stays loud. */
+  const delivered = new Set(clicks.flatMap(c => statusesOf(c.d, rc.arm).concat(c.d.volatileStatus ? [c.d.volatileStatus] : [])));
+  const shared = tagsOf('abilities', a.id).tags.filter(t => {
+    if (t === 'breakable' || !tagsOf('abilities', e.id).tags.includes(t)) return false;
+    const q = (tagsOf('abilities', a.id).params || {})[t] || {};
+    const guards = [].concat(Array.isArray(q.statuses) ? q.statuses : [], Array.isArray(q.volatiles) ? q.volatiles : []);
+    return !guards.length || guards.some(g => delivered.has(g));
+  });
+  if (shared.length) why.push('shares ' + shared.join(','));
+  const NE = normEntity(a);
+  const needs = PRE.moveNeeds(NE).needs;
+  const needH = new Set(needs.map(n => n.handler));
+  const wx = uniq(clicks.filter(c => c.d.weather).map(c => id(c.d.weather)));
+  const tx = uniq(clicks.filter(c => c.d.terrain).map(c => id(c.d.terrain)));
+  const onC = clicks.filter(c => (c.role !== 'C' && c.lands.includes('C')) || (c.role === 'C' && c.d.target === 'self'));
+  const st = uniq(onC.flatMap(c => statusesOf(c.d, rc.arm)));
+  const gate = (src) => {
+    const w = [...src.matchAll(/isWeather\(\s*\[?([^)\]]*)\]?\s*\)/g)].flatMap(m => [...m[1].matchAll(/["']([a-z]+)["']/g)].map(x => x[1]));
+    if (w.length && !w.some(x => wx.includes(x))) return 'weather ' + w.join('/');
+    const t = [...src.matchAll(/isTerrain\(\s*\[?([^)\]]*)\]?\s*\)/g)].flatMap(m => [...m[1].matchAll(/["']([a-z]+)["']/g)].map(x => x[1]));
+    if (t.length && !t.some(x => tx.includes(x))) return 'terrain ' + t.join('/');
+    if (/\.status\b/.test(src) && /cureStatus\(/.test(src) && !st.length) return 'a holder status';
+    return null;
+  };
+  const switches = rc.turns.some(t => t.C && t.C.sw);
+  for (const h of handlersOf(a)) {
+    const s = splitHandler(h.name); if (!s) continue;
+    const writes = LEAF_RULES.some(([re]) => re.test(h.src)) || /chainModify|return\s+\d/.test(h.src);
+    if (!writes) continue;
+    const own = (!s.prefix && /^(start|switchin|residual|update)$/.test(s.base)) || (!s.prefix && /^(end|switchout)$/.test(s.base) && switches)
+      || /^(Any|Foe|Ally)$/.test(s.prefix);
+    if (!own || needH.has(h.name) || gate(h.src)) continue;
+    why.push('writes state on its own (' + h.name + ')'); break;
+  }
+  for (const n of needs) {
+    const f = a[n.handler];
+    if (f && gate(String(f))) continue;
+    const hit = clicks.find(c => clickRel(c, n.by) && needMet(c.d.id, n, {
+      userTypes: typesOf(rc.bodies[c.role]), targetTypes: typesOf(c.role === 'C' ? (rc.bodies[c.lands[0]] || rc.bodies.C) : rc.bodies.C) }));
+    if (hit) { why.push('the click ' + hit.role + ':' + hit.d.name + ' supplies its ' + n.kind + '=' + (n.values || []).join('/')); break; }
+  }
+  const staged = new Set(rc.conditions.map(c => c.kind));
+  for (const n of PRE.boardNeeds(NE)) if (['hp-threshold', 'item-consumed', 'volatile-present', 'own-stat-dropped', 'trapped', 'ko-hit'].includes(n.kind) && (rc.hpPool === 'x1' || staged.size > 2)) { why.push('the board stages its ' + n.kind); break; }
+  return why;
+}
+function secondChainControl(rc, kind, e, bearer, trig, done) {
+  if (kind !== 'abilities') return null;
+  const tried = rc.controlTried2 = [];
+  /* (a) the same body, another ability */
+  if (bearer && bearer.via === 'slot') {
+    const alts = uniq(Object.values(spOf(bearer.sheet).abilities)).filter(a => id(a) !== e.id && abilityAccepted(bearer.sheet, a))
+      .sort((x, y) => abilityNoise(x) - abilityNoise(y) || (x < y ? -1 : 1));
+    for (const alt of alts) {
+      const r = reactsToOnBoard(alt, rc, e);
+      if (r.length) { tried.push('ability ' + alt + ': ' + r.join('; ')); continue; }
+      const k = cloneRc(rc); k.bodies.C.ability = alt;
+      const j = judge(rc, k, {});
+      if (j.diff.length === 1 && j.inert.length === 1) return done(k, 'C.ability', 'the same body carries ' + alt + ' instead (second chain: each click read against its real user and target)');
+      tried.push('ability ' + alt + ': ' + j.inert.length + ' inert reasons, ' + j.diff.length + ' leaves');
+    }
+  }
+  /* (c) the trigger click swapped on the body that makes it */
+  const clickNeeds = trig.filter(t => t.kind === 'click');
+  const fieldT = trig.filter(t => t.kind === 'weather' || t.kind === 'terrain');
+  const setsField = d => fieldT.some(t => (t.kind === 'weather' && !!d.weather && (t.anyOf || t.values.some(v => id(d.weather) === v || id(d.weather).includes(v) || v.includes(id(d.weather)))))
+    || (t.kind === 'terrain' && !!d.terrain && (t.anyOf || t.values.includes(id(d.terrain)))));
+  const clicks = boardClicks(rc);
+  /* the body's idle click on a turn: Protect where nothing lands on it, else the self move whose own onTry
+   * fails for a healthy body (the rule `inertFor` uses) */
+  const idleCands = (role, turn, notId) => {
+    const aimed = clicks.some(c => c.turn === turn && c.lands.includes(role));
+    return [...(U.POOL.get(spOf(rc.bodies[role].species).id) || [])].map(k => D.moves.get(k)).filter(d => legal(d) && d.id !== notId && !d.weather && !d.terrain
+      && ((d.id === 'protect' && !aimed) || (d.category === 'Status' && d.target === 'self' && typeof d.onTry === 'function' && /return\s+[^;]*\.status\s*===/.test(String(d.onTry)))))
+      .map(d => d.id);
+  };
+  const tryTwin = (role, turn, next, why, addCond) => {
+    if (addCond) rc.conditions.push(addCond);
+    const k = cloneRc(rc);
+    k.turns[turn - 1][role] = next;
+    const j = judge(rc, k, {});
+    if (j.diff.length === 1 && j.inert.length === 1) return done(k, role + '.click@' + turn, why + ' (second chain)');
+    tried.push(why + ': ' + j.inert.length + ' inert reasons, ' + j.diff.length + ' leaves');
+    if (addCond) rc.conditions.pop();
+    return null;
+  };
+  /* A FIELD SET ON THE CARRIER'S ARRIVAL, WHERE THE ARRIVAL IS A MEGA EVOLUTION. The arrival cannot be removed
+   * without removing the forme, so the FIELD is pre-set instead: a setup turn is put in front, the carrier megas on
+   * turn 2, and the one leaf is the partner's turn-1 click — idle in the fixture, the same field's setter in the
+   * control. The authority refuses a second set of the field already up (`if (this.terrain === status.id) return
+   * false`, sim/field.ts:137; `setWeather` likewise), so in the control the ability's set is a no-op and the field's
+   * clock is the partner's, one turn older. */
+  const entrySets = uniq(handlersOf(e).filter(h => { const s = splitHandler(h.name); return s && !s.prefix && /^(start|switchin)$/.test(s.base); })
+    .flatMap(h => [...h.src.matchAll(/set(Terrain|Weather)\(\s*["']([a-z]+)["']/g)].map(m => m[1].toLowerCase() + ':' + m[2])));
+  if (entrySets.length === 1 && rc.megaRole === 'C' && rc.turns.length && rc.turns[0].C && rc.turns[0].C.mega) {
+    const [fk, fid] = entrySets[0].split(':');
+    const setterOf = sp => [...(U.POOL.get(spOf(sp).id) || [])].map(k => D.moves.get(k)).find(d => legal(d) && id(d[fk]) === fid);
+    const caOnlyIdle = rc.turns.every(t => !t.CA || (t.CA.m && id(t.CA.m) === 'protect'));
+    let body = null;
+    if (caOnlyIdle) for (const sid of speciesOrder()) {
+      const sp = D.species.get(sid);
+      if (rc.used.has(id(sp.baseSpecies || sp.name)) || !learns(sp.name, 'protect')) continue;
+      const setter = setterOf(sp.name); if (!setter) continue;
+      const ab = uniq(Object.values(sp.abilities || {})).filter(a => abilityAccepted(sp.name, a)).sort((x, y) => padNoise(x) - padNoise(y) || abilityNoise(x) - abilityNoise(y) || (x < y ? -1 : 1))[0];
+      if (!ab || padNoise(ab) > 0) continue;
+      const idle = [...(U.POOL.get(sp.id) || [])].map(k => D.moves.get(k)).find(d => legal(d) && d.category === 'Status' && d.target === 'self' && typeof d.onTry === 'function' && /return\s+[^;]*\.status\s*===/.test(String(d.onTry)));
+      if (!idle) continue;
+      body = { sp, ab, setter, idle };
+      break;
+    }
+    if (!body) tried.push('pre-set ' + fid + ': ' + (caOnlyIdle ? 'no quiet partner learns its setter and an idle click' : 'the partner has a non-idle click'));
+    else {
+      const oldCA = rc.bodies.CA;
+      rc.used.delete(id(spOf(oldCA.species).baseSpecies || oldCA.species));
+      useSpecies(rc, body.sp.name);
+      setBody(rc, 'CA', { species: body.sp.name, ability: body.ab });
+      for (const m of ['protect', body.idle.id, body.setter.id]) addMove(rc, 'CA', m);
+      const t0 = {};
+      const o = onFieldAt(rc, 0);
+      for (const s of ['p1', 'p2']) for (const role of o[s]) t0[role] = role === 'CA' ? { m: body.idle.name } : role === 'C' ? inertFor(rc, 'C', { noGuard: true }) : inertFor(rc, role, {});
+      rc.turns.unshift(t0);
+      for (const c of rc.conditions) if (c.turn != null) c.turn++;
+      for (const c of rc.triggerClicks) if (c.turn != null) c.turn++;
+      if (rc.readAfter != null) rc.readAfter++;
+      rc.notes.push('a setup turn is put in front; the carrier megas on turn 2, and its partner ' + body.sp.name + ' idles on turn 1 (the control sets ' + body.setter.name + ' there instead)');
+      const r = tryTwin('CA', 1, { m: body.setter.name }, 'the partner sets ' + body.setter.name + ' on turn 1, before the carrier\'s mega brings the ability that sets the same field',
+        { kind: 'click', role: 'CA', move: body.idle.id, turn: 1 });
+      if (r) return r;
+      refuse('PLANNER-CANNOT-CONSTRUCT', 'the pre-set field control did not judge to one leaf and one reason: ' + tried.slice(-1)[0]);
+    }
+  }
+  /* A FOE HELD ON THE FIELD: the twin is the receiver holding the item whose tag lets it leave anyway
+   * (`escapesTrap`, read off data/tags.json — Shed Shell in this format), so the one leaf is R's item. */
+  if (trig.some(t => t.kind === 'foe-trapped') && rc.bodies.R && !rc.bodies.R.item) {
+    const esc = U.ITEMS.filter(i => (tagsOf('items', i.id).tags || []).includes('escapesTrap') && !rc.items.p2.has(i.id));
+    for (const it of esc) {
+      const k = cloneRc(rc); k.bodies.R.item = it.name;
+      rc.conditions.push({ kind: 'field', role: 'R', field: 'item', value: '' });
+      const j = judge(rc, k, {});
+      if (j.diff.length === 1 && j.inert.length === 1) return done(k, 'R.item', 'the receiver holds ' + it.name + ' (tag escapesTrap), so the trap cannot hold it (second chain)');
+      tried.push('R holds ' + it.name + ': ' + j.inert.length + ' inert reasons, ' + j.diff.length + ' leaves');
+      rc.conditions.pop();
+    }
+  }
+  /* THE CARRIER'S SWITCH IS THE TRIGGER (a switch-out handler): the twin is the carrier staying in, idle */
+  for (const c of rc.conditions.filter(x => x.kind === 'click' && x.role === 'C' && x.sw)) {
+    for (const mid of idleCands('C', c.turn, null).slice(0, 4)) {
+      const b = rc.bodies.C, alt = D.moves.get(mid), had = b.moves.includes(alt.name);
+      if (!had && b.moves.length >= 4) continue;
+      if (!had) addMove(rc, 'C', alt.id);
+      const r = tryTwin('C', c.turn, { m: alt.name }, 'the carrier stays in and clicks ' + alt.name + ' instead of switching to ' + c.sw, null);
+      if (r) return r;
+      if (!had) b.moves = b.moves.filter(m => m !== alt.name);
+    }
+  }
+  /* THE TRIGGER IS THE END OF A TURN THE CARRIER IS ACTIVE FOR (an unprefixed `onResidual`, and the handler
+   * needs nothing a click supplies): the twin is the carrier leaving on that turn, so no residual runs for it */
+  if (handlersOf(e).some(h => h.name === 'onResidual') && !trig.some(t => t.kind === 'click') && rc.lineup.p1.includes('CB') && rc.bodies.CB) {
+    const turn = rc.readAfter || rc.turns.length;
+    const cur = (rc.turns[turn - 1] || {}).C;
+    if (cur && cur.m && !cur.mega && onFieldAt(rc, turn - 1).p1.includes('C')) {
+      const r = tryTwin('C', turn, { sw: 'CB' }, 'the carrier switches to the bench on turn ' + turn + ' instead of clicking ' + D.moves.get(cur.m).name
+        + ', so its end-of-turn handler does not run', { kind: 'click', role: 'C', move: id(cur.m), turn });
+      if (r) return r;
+    }
+  }
+  const order = rc.triggerClicks.slice().sort((x, y) => (y.phase - x.phase) || (x.turn - y.turn));
+  for (const tc of order) {
+    const cur = (rc.turns[tc.turn - 1] || {})[tc.role];
+    if (!cur || !cur.m || id(cur.m) !== id(tc.move)) continue;
+    const b = rc.bodies[tc.role];
+    const d0 = D.moves.get(tc.move);
+    const on = clicks.find(c => c.turn === tc.turn && c.role === tc.role) || { role: tc.role, lands: tc.at ? [tc.at] : [] };
+    const tgt = tc.role === 'C' ? (rc.bodies[on.lands[0]] || rc.bodies.R) : rc.bodies.C;
+    const ctx = { userTypes: typesOf(b), targetTypes: typesOf(tgt) };
+    const supplied = clickNeeds.filter(t => clickRel(on, t.by) && needMet(d0.id, t.need, ctx));
+    const setter = setsField(d0);
+    if (!supplied.length && !setter) continue;
+    const catNeed = supplied.some(t => t.need.kind === 'category');
+    /* a need that EVERY damaging move supplies (a hit of any category) has no damaging twin */
+    const anyHit = supplied.some(t => t.need.idleTwin || (t.need.kind === 'category' && ['Physical', 'Special'].every(c => t.need.values.includes(c))));
+    const aimAt = tc.at ? rc.bodies[tc.at] : null;
+    let cands;
+    const spreadTwin = supplied.some(t => t.need.spreadTwin) && d0.category !== 'Status';
+    if (spreadTwin) {
+      /* the handler's own guard excludes spread hits: the twin is a spread move of the SAME category, unmasked into
+       * the receiver, so the one leaf that moves is whether the hit is single-target */
+      cands = rankMoves([...(U.POOL.get(spOf(b.species).id) || [])].filter(k => {
+        const d = D.moves.get(k);
+        return legal(d) && d.category === d0.category && aimClass(d.target) === 'spread' && !d.multihit && !(d.flags && (d.flags.charge || d.flags.recharge))
+          && !d.selfSwitch && !d.selfdestruct && (!aimAt || !masksFor(d.id, b, aimAt, { arm: rc.arm }).length);
+      }));
+    } else if ((setter && !supplied.length) || anyHit) {
+      /* the twin is the body's idle click — the protect a pad clicks where nothing aims at it, else the self
+       * move whose own onTry fails for a healthy body (the same rule `inertFor` uses) */
+      const aimed = clicks.some(c => c.turn === tc.turn && c.lands.includes(tc.role));
+      cands = [...(U.POOL.get(spOf(b.species).id) || [])].map(k => D.moves.get(k)).filter(d => legal(d) && d.id !== d0.id && !d.weather && !d.terrain
+        && ((d.id === 'protect' && !aimed) || (d.category === 'Status' && d.target === 'self' && typeof d.onTry === 'function' && /return\s+[^;]*\.status\s*===/.test(String(d.onTry)))))
+        .map(d => d.id);
+    } else {
+      cands = rankMoves([...(U.POOL.get(spOf(b.species).id) || [])].filter(k => {
+        const d = D.moves.get(k);
+        if (!legal(d) || d.id === d0.id || rc.guards.includes(d.id)) return false;
+        if (aimClass(d.target) !== aimClass(d0.target)) return false;
+        /* a CATEGORY need swaps the category and the twin is always a damaging move; any other need keeps it */
+        if (catNeed ? (d.category === d0.category || d.category === 'Status') : d.category !== d0.category) return false;
+        if (supplied.some(t => needMet(d.id, t.need, { userTypes: typesOf(b), targetTypes: typesOf(tgt) }))) return false;
+        if (setter && (d.weather || d.terrain)) return false;
+        if (d.selfSwitch || d.forceSwitch || d.selfdestruct || (d.flags && (d.flags.charge || d.flags.recharge))) return false;
+        return !aimAt || !masksFor(d.id, b, aimAt, { arm: rc.arm }).length;
+      }));
+    }
+    cands.sort((x, y) => (b.moves.includes(D.moves.get(y).name) - b.moves.includes(D.moves.get(x).name)));
+    for (const mid of cands.slice(0, 10)) {
+      const alt = D.moves.get(mid);
+      const had = b.moves.includes(alt.name);
+      if (!had && b.moves.length >= 4) continue;
+      if (!had) addMove(rc, tc.role, alt.id);
+      const addCond = !rc.conditions.some(c => c.kind === 'click' && c.role === tc.role && c.turn === tc.turn && id(c.move) === d0.id);
+      if (addCond) rc.conditions.push({ kind: 'click', role: tc.role, move: d0.id, turn: tc.turn });
+      const k = cloneRc(rc);
+      const next = Object.assign({}, cur, { m: alt.name });
+      if (aimClass(alt.target) !== 'single') delete next.at;
+      k.turns[tc.turn - 1][tc.role] = next;
+      const j = judge(rc, k, {});
+      if (j.diff.length === 1 && j.inert.length === 1)
+        return done(k, tc.role + '.click@' + tc.turn, 'the trigger click ' + d0.name + ' becomes ' + alt.name
+          + (spreadTwin ? ', a spread hit of the same category, which the handler\'s own guard excludes' : ', which supplies none of '
+          + (supplied.map(t => t.need.kind + '=' + t.need.values.join('/')).join(', ') || 'the field the handler reads')) + ' (second chain)');
+      tried.push('swap ' + tc.role + ':' + d0.name + '->' + alt.name + ': ' + j.inert.length + ' inert reasons, ' + j.diff.length + ' leaves');
+      if (addCond) rc.conditions.pop();
+      if (!had) rc.bodies[tc.role].moves = rc.bodies[tc.role].moves.filter(m => m !== alt.name);
+    }
+    if (!cands.length) tried.push('swap ' + tc.role + ':' + d0.name + ': no twin in the pool');
+  }
+  return null;
 }
 
 /* ================= SIDES AND SLOTS ================================================================== */
@@ -1841,6 +2640,14 @@ function carriersFor(kind, e, trig) {
     let b = (U.bearers.get(e.id) || []).slice();
     if (BRK === 'no-mega') b = b.filter(x => x.via !== 'mega');
     const rank = x => (x.via === 'slot' ? (uniq(Object.values(spOf(x.sheet).abilities)).length > 1 ? 0 : 1) : x.via === 'mega' ? 2 : 3);
+    /* FORCE-FIRE (2026-09-19): A COSMETIC FORME IS NOT A SECOND BEARER. Eight Alcremie formes — the same
+     * types, stats and abilities — filled the eight-bearer window and pushed Aromatisse, the one Aroma Veil
+     * bearer with a quiet alternative ability, out of it. A forme is kept only if something a fixture can
+     * read (types, base stats, abilities, field forme) differs from a bearer already kept. */
+    const seen = new Set();
+    b = b.filter(x => { const s = spOf(x.sheet), f = spOf(x.field);
+      const k = [id(s.baseSpecies || s.name), x.via, s.types.join('/'), JSON.stringify(s.baseStats), JSON.stringify(s.abilities), f.name === s.name ? '' : f.name].join('|');
+      if (seen.has(k)) return false; seen.add(k); return true; });
     return b.sort((x, y) => rank(x) - rank(y) || (id(x.sheet) < id(y.sheet) ? -1 : 1)).slice(0, 8);
   }
   if (kind === 'items') {
@@ -1900,7 +2707,9 @@ function declareGenders(rc, kind, e, trig) {
     + JSON.stringify(cg) + ', R ' + R.species + ' may be ' + JSON.stringify(rg) + ')');
 }
 function buildOne(kind, e, trig, bearer, branch, stager) {
-  const rc = stager ? stager() : kind === 'moves' ? stageMove(e, bearer.sheet) : stageEntity(kind, e, trig, bearer, branch);
+  const rc = stager ? stager() : kind === 'moves' ? stageMove(e, bearer.sheet)
+    : (kind === 'abilities' && trig.some(t => t.kind === 'holder-kos')) ? stageHolderKOs(e, bearer, trig)
+    : stageEntity(kind, e, trig, bearer, branch);
   if (bearer && bearer.via === 'mega' || (kind === 'items' && e.megaStone)) rc.megaRole = rc.megaRole || 'C';
   if (kind === 'items' && e.megaStone && !rc.conditions.some(c => c.kind === 'mega')) {
     if (!rc.turns.length) rc.turns.push({});
@@ -2010,6 +2819,25 @@ function planMechanic(kind, e) {
   };
   let ok = false;
   for (const b of bearers) { if (attempt(b.sheet + '/' + b.via, () => buildOne(kind, e, trig, b, 'main'))) { ok = true; break; } }
+  /* FORCE-FIRE (2026-09-19): A BEARER WITH A CONTROL BEATS ONE WITHOUT. The first bearer that stages is
+   * kept only if it also carries a one-leaf control; otherwise the remaining bearers are tried and the first
+   * that DOES replaces it. An uncontrolled fixture can only be credited off the authority's receipt, and
+   * Guts and Aroma Veil sat board-only on their first carrier while a later one had a quiet alternative.
+   * The replaced bearer is recorded on the fixture, never dropped silently. */
+  if (ok && kind === 'abilities' && out.fixtures[0].controlRefusal) {
+    const first = out.fixtures[0];
+    for (const b of bearers.slice(bearers.findIndex(x => x.sheet === first.bearer.sheet && x.via === first.bearer.via) + 1)) {
+      let f = null;
+      try { f = buildOne(kind, e, trig, b, 'main'); }
+      catch (err) { out.attempts.push({ bearer: b.sheet + '/' + b.via + ' (for a control)', code: err instanceof PlanError ? err.code : 'PLANNER-ERROR',
+                                        reason: err instanceof PlanError ? err.reason : String(err.stack || err).split('\n').slice(0, 2).join(' ') }); continue; }
+      if (f.controlRefusal) continue;
+      f.notes.push('bearer ' + b.sheet + ' chosen over ' + first.bearer.sheet + ', whose fixture had no one-leaf control (' + first.controlRefusal.code + ')');
+      f.replacedUncontrolled = { sheet: first.bearer.sheet, refusal: first.controlRefusal.code };
+      out.fixtures[0] = f;
+      break;
+    }
+  }
   if (!ok) for (const c of conf) { if (attempt('conferred via ' + c.via, () => buildOne(kind, e, trig, null, 'conferred', () => stageConferred(e, c)))) { ok = true; break; } }
   /* ---- a fixture per conflicting handler (the first is the main fixture) ---- */
   if (ok && kind !== 'moves') {
@@ -2075,6 +2903,7 @@ const BREAKS = {
   'no-setter': 'the duration-extension setter click is dropped — the weather-rock case must go red',
   'prankster-fast': 'the speed window is not enforced — the Prankster case must go red',
   'second-scope': 'the planner decides scope from its own carrier list again, as it did until 2026-09-11 — the one-scope clause must go red',
+  'no-second-chain': 'the control chooser stops where it stopped until 2026-09-19 — the rows only the second chain controls (Fur Coat, Drought, Surge Surfer, Good as Gold, Weak Armor, Mimicry, Sweet Veil, Mega Sol) must go red',
 };
 function plan(opt) {
   opt = opt || {};

@@ -113,7 +113,12 @@ const readMedi = (arm, tgtSp) => {
   MEDI.battleTurn(S, () => 0.5,
     new Map([[A, MEDI.playerAction(A, arm.mv, V, S.field)], [A2, MEDI.playerAction(A2, idleOf(pad), null, S.field)]]),
     new Map([[V, MEDI.playerAction(V, idleOf(tgtSp), null, S.field)], [V2, MEDI.playerAction(V2, idleOf(pad), null, S.field)]]));
-  return { user: idOf(A.ability), target: idOf(V.ability), suppressed: !!(V._vol && V._vol.gastroacid) };
+  /* 2026-09-19 -- THE IDENTITY, not the live slot. Gastro Acid now PARKS the suppressed ability in `_abParked`
+   * (medicham2 `abSuppress`) so every effect reader sees none; the authority's `pokemon.ability`, read on the
+   * other side of this comparison, is the identity and is untouched by `ignoringAbility()`. Reading the slot
+   * compared `""` against `intimidate` on a body both engines had suppressed identically. */
+  const ab = b => (b._abParked != null ? b._abParked : b.ability);
+  return { user: idOf(ab(A)), target: idOf(ab(V)), suppressed: !!(V._vol && V._vol.gastroacid) };
 };
 const readSD = (arm, tgtSp) => {
   const set = (sp, mv) => ({ name: sp.name, species: sp.name, item: '', ability: slot0(sp), moves: mv.map(m => dex.moves.get(m).name),

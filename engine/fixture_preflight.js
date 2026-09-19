@@ -736,6 +736,12 @@ function cuesOf(base, src) {
   }
   if (flags.size) out.push({ kind: 'flag', values: [...flags] });
   need('recoil', /move\.recoil|hasCrashDamage/g);
+  /* 2026-09-19 — RECOIL NAMED AS THE DAMAGE EFFECT, NOT AS A MOVE PROPERTY. Rock Head's `onDamage` reads
+   * `effect.id === "recoil"` (data/abilities.ts:3896-3903) and never mentions `move.recoil`, so this file
+   * derived NO need for it and every fixture staged a recoil-free click: the row read SHOWDOWN-ONLY on the
+   * control's announcement and DID-NOT-FIRE after that was fixed. `moveNeeds` sends this one to the ACTOR
+   * (the recoil lands on the body that clicked). Membership printed before wiring: rockhead only. */
+  if (base === 'damage') need('recoil', /effect\??\.id\s*===\s*["']recoil["']/g);
   need('multihit', /move\.multihit\b/g);
   need('drain', /move\.drain\b/g);
   need('secondary', /move\.secondaries\b/g);
@@ -830,6 +836,9 @@ function moveNeeds(entity) {
        * Opportunist on the wrong side of the field. A boost EVENT names the body whose stats moved; a
        * DROP is thrown at it by the other side, a RAISE is something it did to itself. */
       let side = by;
+      /* `onDamage` has no role in EVENT_ROLE (it is raised on whoever TAKES damage), but a RECOIL effect is
+       * only ever taken by the body that clicked — so an unprefixed onDamage recoil need is the actor's. */
+      if (n.kind === 'recoil' && h.base === 'damage' && !h.prefix) side = 'actor';
       if (n.kind === 'statDrop' || n.kind === 'statRaise') {
         const tgt = h.prefix === '' ? 'actor'
                   : (h.prefix === 'Foe' || h.prefix === 'Source') ? 'receiver'

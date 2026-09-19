@@ -1285,8 +1285,14 @@ demoSource('WIRE 129 Wide Lens and Bright Powder are in the table, on the right 
    * quoted the whole row died on a change that had nothing to do with what this certifies. WIRE 129's
    * claim is that these two entities are IN the table and on the RIGHT SIDE; renaming the key alone
    * removes the row from every lookup and leaves the numbers to whoever owns them. */
-  [["  'item:widelens':      {side:'att'", "  'item:__nolens':      {side:'att'"],
-   ["  'item:brightpowder':  {side:'def'", "  'item:__nopowder':  {side:'def'"]],
+  /* RE-AIMED 2026-09-19, ENGINE — AND IT WAS HOLLOW, NOT STALE: both key renames above still MATCHED, and
+   * the reverted engine still read Wide Lens and Bright Powder, because since 2026-09-18 the row comes off
+   * the `accuracyMod` TAG (`accModRow` -> `accRowFromTag`) and `ACCMOD` is read only under
+   * MEDI_ACCMOD_BY_NAME=1. Renaming the table key reverted a table nothing reads. The engine was right; the
+   * demonstration was aimed at the retired door. The known-bad engine is now the SAME claim at the live door:
+   * the tag lookup answers nothing for exactly these two items, and every other carrier is left standing. */
+  [["  const p=TAGS.param(kind,key,'accuracyMod');",
+    "  const p=(key==='widelens'||key==='brightpowder')?null:TAGS.param(kind,key,'accuracyMod');"]],
   (E) => {
     const at = (roll, stage) => hitOn(E, roll, 'hydropump', stage ? { stage } : null);
     return at(0.85) === 0 && at(0.85, (B) => { B.me.item = 'widelens'; }) > 0
@@ -2030,15 +2036,20 @@ demo('ARM  choiceLock -- a Scarf holder ignores the second click and an empty ha
 demo('ARM  speedOnItemLoss -- Unburden doubles once the hand empties and nothing else does',
   shipped, without('ability', 'unburden', 'speedOnItemLoss'), () => {
     const run = (ab) => {
+      /* 2026-09-19 -- the Sash is spent by a REAL hit, not `m.item = ''`: the doubling reads the `unburden`
+       * volatile the engine's loss doors grant (`_ubVol`), and a raw slot write is no loss at all. Same
+       * fixture as the census row of the same name in tests/test-mechanics.js. */
       const m = bare('weavile'); m.ability = ab; m.item = 'focussash';
       const ally = bare('incineroar'), f1 = bare('garchomp'), f2 = bare('garchomp');
+      f1.st = Object.assign({}, f1.st, { at: 999 });
       const S = M.battleInit([m, ally], [f1, f2], { seeded: true });
       const held = M.effSpeed(m, S.field, 'A');
-      m.item = '';
-      return [held, M.effSpeed(m, S.field, 'A')];
+      M.battleTurn(S, rng5, new Map([[m, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+        new Map([[f1, M.playerAction(f1, 'dragonclaw', m, S.field)], [f2, { kind: 'pass' }]]));
+      return [held, M.effSpeed(m, S.field, 'A'), !m.item && !m.fainted];
     };
     const c = run('none'), t = run('unburden');
-    return c[1] === c[0] && t[1] > t[0] * 1.8;
+    return c[2] && t[2] && c[1] === c[0] && t[1] > t[0] * 1.8;
   });
 
 demo('ARM  hazard -- Stealth Rock chips the switch-in and Howl does not',
@@ -2758,8 +2769,12 @@ demoSource('ROADMAP #81 WIRE 3  Inner Focus refuses INTIMIDATE only — a Charm 
  * is why it needs its own demonstration: the reverted engine's stat stages are IDENTICAL to the
  * shipped engine's, and only the protocol stream parts. */
 demoSource('ROADMAP #81 WIRE 3  a refused stat drop is ANNOUNCED, and the state alone cannot see it',
-  [['  if(TR&&r.announce)TR.failUnboost(target,r.label,r.ab);\n  return true;',
-    '  if(false)TR.failUnboost(target,r.label,r.ab);\n  return true;']],
+  /* RE-AIMED 2026-09-19, ENGINE. The veil block (ROADMAP #599) landed as an `else if` between the announce and
+   * the `return true`, so the old two-line anchor matched nothing. The reversal is unchanged in substance —
+   * silence the refusal's announcement and nothing else — and it keeps the veil branch reached exactly when
+   * it was reached before, so the known-bad engine does not grow a line of its own. */
+  [['  if(TR&&r.announce)TR.failUnboost(target,r.label,r.ab);\n  else if(!isSecondary)veilBoostBlock(r,target,effectName);',
+    '  if(false&&TR&&r.announce)TR.failUnboost(target,r.label,r.ab);\n  else if(!(TR&&r.announce)&&!isSecondary)veilBoostBlock(r,target,effectName);']],
   (E) => {
     const run = (ab1, ab2) => {
       const me = bare('incineroar'), ally = bare('corviknight');
@@ -2992,8 +3007,14 @@ const W6 = {
       try { a = E.playerAction(me, id, foe, FIELD()); } catch (e) { continue; }
       if (a && a.kind === 'pass' && a.mv === id && legal(DX.moves.get(id))) found.push(id);
     }
-    if (!found.length) throw new Error('WIRE 6: no legal move degrades to {kind:pass} any more — '
-      + 'the demonstration has nothing to stand on and must be retired, not quietly passed');
+    /* 2026-09-19 -- NONE LEFT, AND THAT IS REPORTED AS N/A BY THE CALLERS RATHER THAN THROWN. The throw that
+     * stood here was right to refuse a silent pass, and it had become the ONLY thing the two cases could say:
+     * every legal move in this format now resolves to a real kind, so `{kind:'pass', mv}` is reached by
+     * nothing and both demonstrations have no subject. That is ROADMAP #256's `NO LEGAL MOVE REACHES THE
+     * BRANCH` state further down, printed the same way -- N/A, counted -- and the day a legal move degrades
+     * again both cases run on it with no edit here. A shipped arm that THREW counted HOLLOW, and these two
+     * are two of the three reds that kept this file red at HEAD. */
+    if (!found.length) return null;
     console.log('    [WIRE 6] `{kind:pass}` clicks still available: ' + found.length
       + ' — using `' + found[0] + '`');
     W6._pass = found[0];
@@ -3011,7 +3032,14 @@ demoSource('ROADMAP #81 WIRE 6  Trick Room announces the move that set it',
 /* 2. THE 46 MOVES THE ENGINE MODELS NOTHING FOR. `{kind:'pass'}` meant BOTH "no effect modelled" and
  *    "I forget which move it was", and the second half is what made the stream lose the line. Quick
  *    Guard is 803 corpus uses; the reverted engine is silent on all of them. */
-demoSource('ROADMAP #81 WIRE 6  a move the engine models NOTHING for still announces itself',
+const W6_NA = (name) => {
+  notInFormat++;
+  console.log('  N/A   ' + name + '   NO LEGAL MOVE REACHES THE BRANCH — every move in MC.moves that is legal in this '
+    + 'regulation was walked through playerAction and none came back `{kind:\'pass\', mv}`. The demonstration '
+    + 're-aims itself the day one does.');
+};
+if (!W6.passMove(M)) W6_NA('ROADMAP #81 WIRE 6  a move the engine models NOTHING for still announces itself');
+else demoSource('ROADMAP #81 WIRE 6  a move the engine models NOTHING for still announces itself',
   [['  return {kind:\'pass\',mv:id};', '  return {kind:\'pass\'};']],
   (E) => W6.controls(E) && W6.says(E, W6.passMove(M)));
 
@@ -3025,7 +3053,8 @@ demoSource('ROADMAP #81 WIRE 6  a move the engine models NOTHING for still annou
  *    flipping. Psych Up replaced it and was outgrown the same way (ROADMAP #273, 2026-08-14) -- see
  *    `W6.passMove`, which is why neither case names a move any more. Nothing about the CLAIM has ever
  *    changed; only the move that can still exhibit it. */
-demoSource('ROADMAP #81 WIRE 6  the announcement is gated on THE MOVE, not on the kind being liked',
+if (!W6.passMove(M)) W6_NA('ROADMAP #81 WIRE 6  the announcement is gated on THE MOVE, not on the kind being liked');
+else demoSource('ROADMAP #81 WIRE 6  the announcement is gated on THE MOVE, not on the kind being liked',
   [['        if(TR&&_mid){', "        if(TR&&_mid&&a.kind!=='pass'){"]],
   (E) => W6.controls(E) && W6.says(E, 'trickroom') && W6.says(E, W6.passMove(M)));
 
@@ -3327,12 +3356,18 @@ demoSource('ROADMAP #81 WIRE 7  Follow Me announces nothing when it draws, Light
  * weather test is not named by either, so it can move again without staling this. */
 const W8_CHARGE = [
   ['          /* `|-prepare|ATTACKER|MOVE` -- sim/SIM-PROTOCOL.md:594, and it is unconditional. */\n          if(TR)TR.prep(m,a.move.id);\n', ''],
+  /* RE-AIMED 2026-09-19, ENGINE. The boost's last line grew the zero-announcement flag (a capped +0 still
+   * writes `-boost|spa|0`, CHANGELOG narration pass) and the counter line above it, so the old block matched
+   * nothing and all three WIRE 8 charge certificates had stopped running. The block is removed whole, as
+   * before; the zero flag goes with it into the branch below in its OLD form. */
   ["          const _cp=TAGS.param('move',a.move.id,'chargeTurn'), _b=_cp&&_cp.boosts;\n"
  + '          if(_b)for(const _k of Object.keys(_b)){\n'
  + "            const _kk={spa:'sa',spd:'sd',atk:'at',def:'df',spe:'sp'}[_k]||_k;\n"
  + '            if(m.boosts&&_kk in m.boosts){const _b0=m.boosts[_kk];\n'
  + '              m.boosts[_kk]=Math.max(-6,Math.min(6,m.boosts[_kk]+_b[_k]));\n'
- + '              if(TR)TR.bst(m,_kk,m.boosts[_kk]-_b0);}\n'
+ + '              const _zeroOk=!CHARGE_BOOST_ZERO_SILENT;\n'
+ + '              if(_zeroOk&&m.boosts[_kk]===_b0)MEDSEEN.chargeBoostZeroAnnounced++;\n'
+ + '              if(TR)TR.bst(m,_kk,m.boosts[_kk]-_b0,undefined,_zeroOk);}\n'
  + '          }\n', ''],
   /* RE-AIMED 2026-09-08, MEASURE. The third edit used to quote `_charging`, `_invuln` and `_lastMove`
    * as three adjacent lines; the `_ttmTgtSlot` block (2026-09-05) and the `_ttmWrap` wrapper landed
@@ -3444,12 +3479,15 @@ demoSource('ROADMAP #81 WIRE 8  an expiring Aurora Veil announces an Aurora Veil
    * in substance: the ONE `-sideend` the condition emits becomes the two-counter engine's
    * per-CATEGORY pair, which is what wrote `Reflect` and `Light Screen` for a lapsing Aurora Veil and
    * never its own name. The counters are carried across so this stays a naming demonstration. */
-  [["        if(--sf.sc[_id]<=0){delete sf.sc[_id];MEDSEEN.residualExpiryEnded++;\n          if(TR)TR.sendSide(sf.side==='A'?'p1':'p2',(_sb&&_sb.startsAs)||_id);}",
+  /* RE-AIMED AGAIN 2026-09-19, ENGINE. The expiry closure now RETURNS whether the clock is still running, so
+   * the line ends `return false;}` and the old anchor (ending `||_id);}`) matched nothing. Same reversal. */
+  [["        if(--sf.sc[_id]<=0){delete sf.sc[_id];MEDSEEN.residualExpiryEnded++;\n          if(TR)TR.sendSide(sf.side==='A'?'p1':'p2',(_sb&&_sb.startsAs)||_id);return false;}",
     "        if(--sf.sc[_id]<=0){delete sf.sc[_id];MEDSEEN.residualExpiryEnded++;\n"
   + '          const _c=screenCat(_id);\n'
   + '          if(TR){\n'
   + "            if(_c==='Physical'||_c==='both')TR.sendSide(sf.side==='A'?'p1':'p2','Reflect');\n"
-  + "            if(_c==='Special'||_c==='both')TR.sendSide(sf.side==='A'?'p1':'p2','Light Screen');}}"]],
+  + "            if(_c==='Special'||_c==='both')TR.sendSide(sf.side==='A'?'p1':'p2','Light Screen');}\n"
+  + '          return false;}']],
   (E) => {
     const { me, ally, f1, f2, S } = W7.board(E, 'incineroar', 'corviknight', 'garchomp', 'garchomp');
     S.field.weather = 'snow';

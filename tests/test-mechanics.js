@@ -562,7 +562,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * that uses it asserts a LINE the turn loop writes -- a `-singleturn`, a `[notarget]` `-fail`, a
  * reflected `-immune` -- and a line exists only in the stream of a turn that was actually played.
  */
-const REALTURN = /\bnarRun\(|\bdiceOf\(|\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(|\bsgVolArms\(|\bvolleyInto\(/;
+const REALTURN = /\bnarRun\(|\bdiceOf\(|\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(|\bsgVolArms\(|\bvolleyInto\(|\bripenHit\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -2574,14 +2574,20 @@ probe('ability', 'onSwitchInDrop', 'a stat change CLAMPED at the cap is still an
     return trace.filter(l => /boost/.test(l)).map(M.traceCanon);
   };
   /* THE NEGATIVE: a drop the ability REFUSED is not a clamped drop and gets no zero line. */
-  const refused = () => {
+  const refused = (stage) => {
     const me = bare('corviknight'), ally = bare('milotic'), inc = bare('incineroar');
     const f1 = bare('metagross'), f2 = bare('gallade');
     inc.ability = 'intimidate'; f1.ability = 'clearbody'; f2.ability = 'innerfocus';
     const trace = [];
     const S = M.battleInit([me, ally, inc], [f1, f2], { seeded: true, trace });
-    /* AT THE CAP AS WELL, so the refusal has to BEAT the clamp rather than merely precede it. */
-    f1.boosts.at = -6; f2.boosts.at = -6;
+    /* 2026-09-19 (narration E) -- THIS ARM USED TO STAND AT -6 AND ASSERT THE REFUSAL BEATS THE CLAMP. It does
+     * not: `getCappedBoost` runs BEFORE `TryBoost` (sim/battle.ts:2029-2031), so at -6 the refuser sees 0 and
+     * says nothing. Measured on the authority, Intimidate into Clear Body Metagross (and a second body) at -6:
+     *     |-unboost|p2a: Metagross|atk|0     |-unboost|p2b: Gallade|atk|0
+     * and at 0: `|-fail|p2a: Metagross|unboost|[from] ability: Clear Body|[of] p2a: Metagross`. The arm had
+     * pinned the defect. It now asks both questions: at 0 the refusal is two `-fail` lines and no zero line;
+     * at -6 it is two zero-magnitude `-unboost` lines and no `-fail`. MEDI_FLOOR_DROP_REFUSED turns it red. */
+    f1.boosts.at = stage; f2.boosts.at = stage;
     trace.length = 0;
     M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: inc }], [ally, { kind: 'pass' }]]),
       PASS2(f1, f2));
@@ -2589,19 +2595,21 @@ probe('ability', 'onSwitchInDrop', 'a stat change CLAMPED at the cap is still an
   };
   const c1 = intim(-5), t1 = intim(-6);
   const c2 = sd(4), t2 = sd(6);
-  const neg = refused();
+  const neg = refused(0), negFloor = refused(-6);
   return { works: c1.join(';') === '|-ability|p1a:incineroar|intimidate|boost;'
                                 + '|-unboost|p2a:garchomp|atk|1;|-unboost|p2b:gallade|atk|1'
                   && t1.join(';') === '|-ability|p1a:incineroar|intimidate|boost;'
                                     + '|-unboost|p2a:garchomp|atk|0;|-unboost|p2b:gallade|atk|1'
                   && c2.join(';') === '|-boost|p1a:garchomp|atk|2'
                   && t2.join(';') === '|-boost|p1a:garchomp|atk|0'
-                  && neg.length === 2 && neg.every(l => /^\|-fail\|/.test(l)),
+                  && neg.length === 2 && neg.every(l => /^\|-fail\|/.test(l))
+                  && negFloor.length === 2 && negFloor.every(l => /^\|-unboost\|p2[ab]:[^|]*\|atk\|0$/.test(l)),
            arms: { control: [c1, c2], test: [t1, t2] },
            detail: 'Intimidate into a foe at -5: ' + JSON.stringify(c1) + '; at -6 (clamped): '
                  + JSON.stringify(t1) + '. Swords Dance at +4: ' + JSON.stringify(c2) + '; at +6 '
                  + '(clamped): ' + JSON.stringify(t2) + '. Clear Body REFUSING the drop (must stay '
-                 + 'two -fail lines and gain no zero-magnitude unboost): ' + JSON.stringify(neg) };
+                 + 'two -fail lines and gain no zero-magnitude unboost): ' + JSON.stringify(neg)
+                 + '; the same refusers already AT -6 (the cap runs first, so no refuser speaks): ' + JSON.stringify(negFloor) };
 });
 
 /* WIRE 157 -- SUPERSWEET SYRUP IS ONCE PER BATTLE, AND THIS ENGINE FIRED IT ONCE PER ENTRY.
@@ -6033,18 +6041,27 @@ probe('ability', 'speedOnItemLoss', 'Unburden doubles Speed once the item is gon
   /* ARMED, 2026-08-06. The control is the SAME body losing the SAME item with a different ability:
    * an engine that speeds anything up when its hand empties would pass the one-armed version, and
    * `speedOnItemLoss` over-matched on Sticky Hold once already (docs/ENGINE.md). */
+  /* 2026-09-19 -- THE SASH IS SPENT BY A REAL HIT NOW, NOT BY `m.item = ''`. The doubling reads the `unburden`
+   * VOLATILE (`_ubVol`), which only the engine's loss doors grant -- exactly as the authority's handlers only
+   * run inside `useItem` / `eatItem` / `takeItem`. A raw slot write is not a loss the authority could ever see,
+   * so this probe stopped measuring the mechanic the moment the engine started holding the state; it now
+   * spends the Sash the way a game does: a Dragon Claw from a 999-Attack Garchomp at full HP. */
   const run = (ab) => {
     const m = bare('weavile'); m.ability = ab; m.item = 'focussash';
     const ally = bare('incineroar'), f1 = bare('garchomp'), f2 = bare('garchomp');
+    f1.st = Object.assign({}, f1.st, { at: 999 });
     const S = M.battleInit([m, ally], [f1, f2], { seeded: true });
     const held = M.effSpeed(m, S.field, 'A');
-    m.item = '';                                   // the Sash is spent
-    return [held, M.effSpeed(m, S.field, 'A')];
+    M.battleTurn(S, rng5, PASS2(m, ally),
+      new Map([[f1, M.playerAction(f1, 'dragonclaw', m, S.field)], [f2, { kind: 'pass' }]]));
+    /* THE FIXTURE, ASSERTED: the Sash really went and really saved it. */
+    return [held, M.effSpeed(m, S.field, 'A'), !m.item && !m.fainted && m.curHP === 1];
   };
   const control = run('none'), test = run('unburden');
-  return { works: control[1] === control[0] && test[1] > test[0] * 1.8,
+  return { works: control[2] === true && test[2] === true
+                  && control[1] === control[0] && test[1] > test[0] * 1.8,
            arms: { control, test },
-           detail: '[speed holding, speed once the item is gone] — ability none ' + control
+           detail: '[speed holding, speed once the Sash is spent by a real hit, did the Sash really save it] — ability none ' + control
                  + ' (must not move); Unburden ' + test };
 });
 
@@ -6073,7 +6090,11 @@ probe('ability', 'speedOnItemLoss', 'the Unburden doubling does NOT survive a sw
     lead.ability = ab; lead.item = 'focussash';
     const S = M.battleInit([lead, ally, bench], [f1, f2], { seeded: true });
     const held = M.effSpeed(lead, S.field, 'A');
-    lead.item = '';                                        // the Sash is spent, on the field
+    /* 2026-09-19 -- KNOCKED OFF BY A REAL TURN rather than `lead.item = ''`: the doubling reads the volatile the
+     * loss door grants, and a raw slot write grants nothing (see the probe above). Sneasler resists Dark. */
+    M.battleTurn(S, rng5, PASS2(lead, ally),
+      new Map([[f1, M.playerAction(f1, 'knockoff', lead, S.field)], [f2, { kind: 'pass' }]]));
+    if (lead.item || lead.fainted) throw new Error('fixture: the Knock Off did not take the Sash off a standing Sneasler');
     const lost = M.effSpeed(lead, S.field, 'A');
     M.battleTurn(S, rng5, new Map([[lead, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]),
       PASS2(f1, f2));
@@ -6089,6 +6110,113 @@ probe('ability', 'speedOnItemLoss', 'the Unburden doubling does NOT survive a sw
            detail: '[holding, item gone, after switching out and back, did it really come back] — '
                  + 'ability none ' + control + ' (never moves); Unburden ' + test
                  + ' (doubles while it is out, and the volatile dies with the switch)' };
+});
+
+/* 2026-09-19 — AN ITEM PICKED UP MID-STINT AND THEN LOST GRANTS THE VOLATILE TOO.
+ *
+ * The authority grants `unburden` inside `takeItem` / `useItem` / `eatItem` to whatever body holds Unburden at
+ * that moment (data/abilities.ts:5227-5249). It never asks what the body walked in with. This engine read
+ * `_hadItem && !m.item`, with `_hadItem` stamped only at entry, so a Sneasler that came in EMPTY-HANDED, took a
+ * Leftovers with Thief and then had it knocked off stayed at x1 — the gap `bringIn`'s own comment named
+ * ("nothing arms this flag except an entry"). The volatile is now granted at the loss door, so it doubles.
+ *
+ * ARMS: the same board with the ability off (must never move) and the same Unburden board with the Knock Off
+ * withheld (holding the stolen item, must not double) — so "it doubles whenever the hand is empty" and "it
+ * doubles because it stole something" both fail. Knob: MEDI_UNBURDEN_BREAK=legacy-read restores the old read
+ * and takes this MISSING. Two-engine witness: tests/probe_unburden_leaf.js arm `acquired`. */
+probe('ability', 'speedOnItemLoss', 'an item STOLEN mid-stint and then knocked off still procs Unburden', () => {
+  const run = (ab, knock) => {
+    const me = bare('sneasler'); me.ability = ab; me.item = '';
+    const ally = bare('milotic'), f1 = bare('garchomp'), f2 = bare('corviknight');
+    f2.item = 'leftovers';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const empty = M.effSpeed(me, S.field, 'A');
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'thief', f2, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const stole = me.item === 'leftovers';
+    const holding = M.effSpeed(me, S.field, 'A');
+    if (knock) M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'knockoff', me, S.field)], [f2, { kind: 'pass' }]]));
+    return [empty, holding, M.effSpeed(me, S.field, 'A'), stole && !me.fainted && (knock ? !me.item : !!me.item)];
+  };
+  const control = run('none', true), keep = run('unburden', false), test = run('unburden', true);
+  return { works: control[3] === true && keep[3] === true && test[3] === true
+                  && control[2] === control[0] && keep[2] === keep[0]
+                  && test[1] === test[0] && test[2] === test[0] * 2,
+           arms: { control, keep, test },
+           detail: '[walked in empty, holding the stolen item, after the Knock Off, fixture staged] — ability none '
+                 + control + ' (never moves); Unburden keeping the item ' + keep + ' (must not move); Unburden knocked off '
+                 + test + ' (doubles: the volatile is granted at the loss, not at entry)' };
+});
+
+/* 2026-09-19 — GASTRO ACID SUPPRESSES THE TARGET'S ABILITY, AND IT ENDS UNBURDEN.
+ *
+ * `Pokemon#ignoringAbility` is true while `volatiles['gastroacid']` stands (sim/pokemon.ts:870), and the
+ * condition's `onStart` fires the ability's End (data/moves.ts:6451). This engine wrote `_vol.gastroacid` and
+ * suppressed nothing. The fix PARKS the ability (`abSuppress`) so every reader sees none.
+ *
+ * TWO ROWS, ONE PER KIND OF READER: a DAMAGE-side ability (Rough Skin chips a contact attacker) and the End it
+ * fires (Unburden's volatile drops, so Speed stops doubling). Each control is the same board with the first
+ * click a Protect instead of Gastro Acid, so "the ability never worked" fails the control.
+ * Knob: MEDI_GASTRO_SUPPRESSES_NOTHING=1 takes both MISSING. Two-engine witness: tests/probe_gastro_acid.js. */
+probe('move', 'suppressesAbility', 'Gastro Acid stops the target\'s Rough Skin chipping a contact attacker', () => {
+  const run = (first) => {
+    const me = bare('arbok'), ally = bare('clefable'), f1 = bare('garchomp'), f2 = bare('milotic');
+    me.ability = 'shedskin'; f1.ability = 'roughskin';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, first, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const suppressed = !!(f1._vol && f1._vol.gastroacid);
+    const before = me.curHP;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'knockoff', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [before - me.curHP, suppressed, !f1.fainted];
+  };
+  const control = run('protect'), test = run('gastroacid');
+  return { works: control[2] && test[2] && !control[1] && test[1] && control[0] > 0 && test[0] === 0,
+           arms: { control, test },
+           detail: '[Arbok HP lost to its own Knock Off into Garchomp, gastroacid standing, Garchomp standing] — after Protect '
+                 + control + ' (Rough Skin chips); after Gastro Acid ' + test + ' (suppressed: nothing)' };
+});
+probe('move', 'suppressesAbility', 'Gastro Acid ends Unburden: a knocked-off Sneasler stops doubling', () => {
+  const run = (second) => {
+    const me = bare('arbok'), ally = bare('clefable'), f1 = bare('sneasler'), f2 = bare('milotic');
+    me.ability = 'shedskin'; f1.ability = 'unburden'; f1.item = 'leftovers';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const held = M.effSpeed(f1, S.field, 'B');
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'knockoff', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const lost = M.effSpeed(f1, S.field, 'B');
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, second, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [held, lost, M.effSpeed(f1, S.field, 'B'), !f1.item && !f1.fainted];
+  };
+  const control = run('protect'), test = run('gastroacid');
+  return { works: control[3] && test[3] && control[1] === control[0] * 2 && test[1] === test[0] * 2
+                  && control[2] === control[0] * 2 && test[2] === test[0],
+           arms: { control, test },
+           detail: '[holding, knocked off, after the second click, fixture staged] — then Protect '
+                 + control + ' (stays doubled); then Gastro Acid ' + test + ' (the volatile ends: back to x1)' };
+});
+
+/* 2026-09-19 — KNOCK OFF'S x1.5 READS WHAT THE TARGET HOLDS, NOT WHAT IT CAN USE. `onBasePower` reads
+ * `target.getItem()` (data/moves.ts:9971-9977), which Magic Room does not touch; this engine read the slot the
+ * room had parked and lost the boost (probe_room_unburden.js arms A/B, 118 vs 99). THREE ARMS: no room, room,
+ * and an empty hand — so "the boost never applies" and "the boost always applies" both fail.
+ * Knob MEDI_TARGET_ITEM_READS_SLOT=1 takes it MISSING. Two-engine witness: tests/probe_room_target_item.js. */
+probe('move', 'readsTargetItem', 'Knock Off keeps its x1.5 against an item Magic Room is suppressing', () => {
+  const run = (room, item) => {
+    const me = bare('arbok'), ally = bare('banette'), f1 = bare('clefable'), f2 = bare('snorlax');
+    me.ability = 'shedskin'; f1.item = item;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }],
+      [ally, room ? M.playerAction(ally, 'magicroom', ally, S.field) : { kind: 'pass' }]]), PASS2(f1, f2));
+    const staged = room ? (S.field.magicRoom | 0) > 0 : true;
+    const before = f1.curHP;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'knockoff', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [before - f1.curHP, staged];
+  };
+  const open = run(false, 'leftovers'), test = run(true, 'leftovers'), empty = run(true, '');
+  return { works: open[1] && test[1] && empty[1] && test[0] === open[0] && empty[0] > 0 && test[0] > empty[0] * 1.3,
+           arms: { control: empty, test, noRoom: open },   /* control = the empty hand: equal arms would read HOLLOW */
+           detail: '[damage to a Clefable, fixture staged] — Leftovers, no room ' + open + '; Leftovers under Magic Room '
+                 + test + ' (must equal: the boost reads the identity); empty hand ' + empty + ' (no boost)' };
 });
 
 /* 2026-08-25 — AN ITEM PARKED BY MAGIC ROOM IS NOT AN ITEM LOST.
@@ -6124,9 +6252,13 @@ probe('ability', 'speedOnItemLoss', 'an item PARKED by Magic Room is not an item
     const roomed = M.effSpeed(me, S.field, 'A');
     /* THE FIXTURE, ASSERTED RATHER THAN ASSUMED: the room is up and the item really is parked. */
     const staged = (S.field.magicRoom | 0) > 0 && !me.item && !!me._roomItem;
-    /* AND NOW A GENUINE LOSS ON THE SAME BODY, so "it never doubles" cannot pass. */
-    me._roomItem = null; me.item = '';
-    return [held, roomed, M.effSpeed(me, S.field, 'A'), staged];
+    /* AND NOW A GENUINE LOSS ON THE SAME BODY, so "it never doubles" cannot pass. 2026-09-19: a real Knock Off
+     * under the room rather than `me._roomItem = null; me.item = ''` -- the doubling reads the volatile the
+     * loss door grants, and `itemLose` is the door that empties the slot AND the park (ROADMAP #462). */
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'knockoff', me, S.field)], [f2, { kind: 'pass' }]]));
+    const lostStaged = !me.item && me._roomItem == null && !me.fainted;
+    return [held, roomed, M.effSpeed(me, S.field, 'A'), staged && lostStaged];
   };
   const control = run('none'), test = run('unburden');
   return { works: control[3] === true && test[3] === true
@@ -19460,6 +19592,30 @@ probe('ability', 'healsAllyOnSwitchIn', 'Hospitality at a FULL-HP partner announ
                  + `no ability at all ${off.lines.length}` };
 });
 
+/* 1b. 2026-09-19 — THE ABILITY THAT SAYS ITS OWN NAME AS IT STARTS. `announcesOnStart` (engine/tag_dex.js)
+ *    is every ability whose `onStart` is nothing but `this.add('-ability', pokemon, NAME)` — Pressure
+ *    (data/abilities.ts:3427-3430), Mold Breaker (:2679-2682), Unnerve (:5250-5256, behind a latch) and
+ *    Fairy Aura. The engine had every one of their EFFECTS and none of their lines, which is why
+ *    `engine/all_mechanics_fire.js` read Pressure, Mold Breaker and Unnerve SHOWDOWN-ONLY. The members are
+ *    READ OFF data/tags.json, so a member added later is asked here without an edit. THE CONTROL is the
+ *    same entry with no ability, which must say nothing — without it this passes on an engine that
+ *    announces every switch-in. The authority half (both engines, the mega door included) is
+ *    tests/probe_start_announce.js. Knob: MEDI_START_ANNOUNCE_SILENT=1 puts every arm back to silent. */
+probe('ability', 'announcesOnStart', 'Pressure, Mold Breaker and Unnerve announce themselves as they switch in — and a body with no such ability says nothing', () => {
+  const T = require(path.join(__dirname, '..', 'data', 'tags.json'));
+  const members = Object.keys(T.abilities).filter(k => (T.abilities[k].params || {}).announcesOnStart);
+  const said = {};
+  for (const k of members) said[k] = entryLines(k, 1).lines;
+  const off = entryLines('none', 1).lines;
+  const ok = members.length >= 3 && ['pressure', 'moldbreaker', 'unnerve'].every(k => members.includes(k))
+          && members.every(k => said[k].length === 1 && new RegExp('^\\|-ability\\|p1a: [^|]+\\|' + k + '$').test(said[k][0]))
+          && off.length === 0;
+  return { works: ok, arms: { control: off.length, test: members.map(k => said[k].length) },
+           detail: `entry lines on a switch-in — ${members.map(k => k + ' ' + JSON.stringify(said[k])).join('; ')}; `
+                 + `no ability ${JSON.stringify(off)} (authority: one bare |-ability|HOLDER|NAME after the |switch|, `
+                 + `nothing for a body without it)` };
+});
+
 /* 2. KNOCK OFF'S ORDER, ASSERTED AS A LIFE — ROADMAP #80's open half. Showdown strips from
  *    `onAfterHit`, so a lethal Knock Off into a FULL-HP Focus Sash holder resolves damage first, the
  *    Sash saves at 1, and there is nothing left to take. Measured in the authority:
@@ -27856,6 +28012,79 @@ probe('ability', 'doublesBerryEffect', 'Ripen doubles the berry heal, not just t
                  + ') — exactly double, and the no-berry arm fixes the baseline' };
 });
 
+/* 2026-09-19 -- FORCE-FIRE: RIPEN'S WHOLE CLASS, ONE ROW PER ROAD. data/abilities.ts:3832-3866, no Champions
+ * entry. The heal doubling is the row above. Three more, each red under MEDI_RIPEN_NO_RESIST_WEAKEN=1:
+ *   - `onEatItem` arms `berryWeaken` for a listed resist berry and `onSourceModifyDamage` (priority -1) spends
+ *     it: a resist-berry hit on a Ripen body is halved TWICE (x0.25), not once;
+ *   - the flag is armed by ANY eat, so a resist berry FLUNG at the Ripen body arms the halve for the NEXT
+ *     damaging hit (Fling's own hit is priced before its eat), and a turn with no fling arms nothing;
+ *   - `onTryHeal` announces for Leftovers, and TryHeal is raised above `Battle#heal`'s full-HP return
+ *     (sim/battle.ts:2268 against :2272), so a FULL-HP holder announces too.
+ * Not a road in this format, derived: `onChangeBoost` (no legal berry boosts -- every legal berry's
+ * `onEat` is a heal, a cure, PP or empty), Jaboca/Rowap (data/items.ts:3095, :5391; not legal), Stuff
+ * Cheeks / Bug Bite / Pluck (neither Ripen carrier -- Appletun, Flapple -- learns them). Leppa's doubling
+ * (data/items.ts:3366) rides `berryEffectMult`. */
+const ripenHit = (ab, item, flingFirst) => {
+  const me = bare('abomasnow'), ally = bare('corviknight'), f1 = bare('appletun'), f2 = bare('farigiraf');
+  f1.ability = ab; f1.item = item; unfaintable(f1);
+  if (flingFirst) me.item = flingFirst;
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  if (flingFirst) M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'fling', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+  else M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+  const hp0 = f1.curHP;
+  M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'iceshard', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+  return { lost: hp0 - f1.curHP, item: f1.item || '-', meItem: me.item || '-' };
+};
+probe('ability', 'doublesBerryEffect', 'Ripen takes a resist berry\'s halve TWICE — the berry\'s x0.5 and its own', () => {
+  const bare0 = ripenHit('ripen', ''), control = ripenHit('none', 'yacheberry'), test = ripenHit('ripen', 'yacheberry');
+  return { works: control.lost < bare0.lost && test.lost < control.lost && Math.abs(2 * test.lost - control.lost) <= 2
+                  && test.item === '-' && control.item === '-',
+           arms: { control: control.lost, test: test.lost },
+           detail: `Ice Shard into a Yache Berry Appletun: no berry ${bare0.lost}; berry, no ability ${control.lost}; berry under `
+                 + `Ripen ${test.lost} (must be half again) — onEatItem arms berryWeaken, onSourceModifyDamage -1 spends it `
+                 + `(data/abilities.ts:3848-3864)` };
+});
+probe('ability', 'doublesBerryEffect', 'a resist berry FLUNG at a Ripen body arms the second halve for the next hit', () => {
+  const noFling = ripenHit('ripen', ''), control = ripenHit('none', '', 'yacheberry'), test = ripenHit('ripen', '', 'yacheberry');
+  return { works: control.meItem === '-' && test.meItem === '-' && control.lost === noFling.lost
+                  && test.lost < control.lost && Math.abs(2 * test.lost - control.lost) <= 2,
+           arms: { control: control.lost, test: test.lost },
+           detail: `turn 1 Abomasnow Flings a Yache Berry at an empty-handed Appletun, turn 2 Ice Shard: no ability ${control.lost}, `
+                 + `Ripen ${test.lost} (must be half); Ripen with no fling ${noFling.lost} — the eat is raised on the target `
+                 + `and \`berryWeaken\` is an assignment on every eat` };
+});
+probe('ability', 'doublesBerryEffect', 'Ripen announces a Leftovers heal — at full HP too, because TryHeal is raised first', () => {
+  const run = (ab, frac) => {
+    const B = board('garchomp', 'skeledirge', 'appletun', 'farigiraf');
+    B.f1.ability = ab; B.f1.item = 'leftovers'; B.f1.curHP = Math.floor(B.f1.st.hp * frac);
+    const trace = []; B.S._trace = trace;
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally), PASS2(B.f1, B.f2));
+    return trace.map(M.traceCanon).filter(l => /^\|-activate\|p2a:[^|]*\|ability:ripen$/.test(l)).length;
+  };
+  const control = [run('none', 1), run('none', 0.5)], test = [run('ripen', 1), run('ripen', 0.5)];
+  return { works: control[0] === 0 && control[1] === 0 && test[0] === 1 && test[1] === 1,
+           arms: { control, test },
+           detail: `[-activate ability: Ripen at full HP, at half] no ability ${JSON.stringify(control)}, Ripen `
+                 + `${JSON.stringify(test)} — data/abilities.ts:3833-3837` };
+});
+probe('ability', 'announcesOnEntry', 'Anticipation shudders once at a foe move super-effective on it or an OHKO, and not at an immune or neutral one', () => {
+  const run = (ab, m1, m2) => {
+    const me = bare('incineroar'), ally = bare('corviknight'), bench = bare('hatterene');
+    const f1 = bare('feraligatr'), f2 = bare('abomasnow');
+    bench.ability = ab; f1.moves = m1; f2.moves = m2;
+    const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return trace.map(M.traceCanon).filter(l => /^\|-ability\|p1a:[^|]*\|anticipation$/.test(l)).length;
+  };
+  const control = [run('none', ['shadowclaw'], ['protect']), run('anticipation', ['hydropump', 'dragonclaw'], ['protect'])];
+  const test = [run('anticipation', ['shadowclaw', 'hydropump'], ['protect']), run('anticipation', ['hydropump'], ['sheercold'])];
+  return { works: control[0] === 0 && control[1] === 0 && test[0] === 1 && test[1] === 1,
+           arms: { control, test },
+           detail: `[Anticipation lines] no ability / neutral + Dragon-into-Fairy (immune) ${JSON.stringify(control)}; `
+                 + `Shadow Claw (SE) / Sheer Cold (OHKO) ${JSON.stringify(test)} — data/abilities.ts:174-190, no die` };
+});
+
 probe('ability', 'reEatsBerry', 'Cud Chew eats the same berry again a turn later', () => {
   /* THE SECOND HELPING IGNORES THE THRESHOLD, which is the half the first implementation got wrong:
    * it put the berry back and let the pinch updater find it, so a holder healed ABOVE half by its own
@@ -28717,6 +28946,28 @@ probe('ability', 'clearsScreensOnEntry', 'Screen Cleaner takes down BOTH sides, 
            detail: 'Mr. Rime walks in ("' + on.slot0 + '") with a Reflect on its OWN side and a Light '
                  + 'Screen on the foe\'s: with no ability they read ' + off.own + ' and ' + off.foe
                  + ' turns, with Screen Cleaner ' + on.own + ' and ' + on.foe };
+});
+/* 2026-09-19 -- FORCE-FIRE: AND IT SAYS SO FIRST. The handler's latch sits above `removeSideCondition`
+ * (data/abilities.ts:4094-4099), so `-activate` precedes the first `-sideend`. Red under
+ * MEDI_SCREENCLEAN_ACTIVATE_LAST=1; the board is the row above and does not move. */
+probe('ability', 'clearsScreensOnEntry', 'Screen Cleaner announces BEFORE the first screen falls', () => {
+  const run = (ab) => {
+    const me = bare('corviknight'), ally = bare('skeledirge'), f1 = bare('garchomp'), f2 = bare('farigiraf');
+    const inc = bare('mrrime'); inc.ability = ab;
+    const S = M.battleInit([me, ally, inc], [f1, f2], { seeded: true });
+    (S.sfA.sc = S.sfA.sc || {}).reflect = 5;
+    (S.sfB.sc = S.sfB.sc || {}).lightscreen = 5;
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: inc }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const t = trace.map(M.traceCanon);
+    return [t.findIndex(l => /^\|-activate\|p1a:[^|]*\|ability:screencleaner$/.test(l)), t.findIndex(l => /^\|-sideend\|/.test(l)),
+            t.filter(l => /^\|-activate\|p1a:[^|]*\|ability:screencleaner$/.test(l)).length];
+  };
+  const control = run('none'), test = run('screencleaner');
+  return { works: control[0] === -1 && control[1] === -1 && test[0] >= 0 && test[1] >= 0 && test[0] < test[1] && test[2] === 1,
+           arms: { control, test },
+           detail: `[-activate index, first -sideend index, -activate count] no ability ${JSON.stringify(control)}, `
+                 + `Screen Cleaner ${JSON.stringify(test)} — the -activate must come first and once` };
 });
 
 /* ROADMAP #175 -- POISON HEAL, AND THE ENGINE HAD IT AS AN IMMUNITY, WHICH IS THE OPPOSITE ABILITY.
@@ -32505,6 +32756,55 @@ probe('move', 'boostsTarget', 'Coaching with no partner standing fails with [not
                  + `— adjacentAlly at a fainted partner is an empty target list (sim/pokemon.ts:844-846)` };
 });
 
+/* ================= 2026-09-19 — NARRATION BATCH E: TIDY UP'S ORDER, A DROP AT THE FLOOR =====
+ *
+ * The single-engine half of tests/probe_narration_e.js, which stages both in BOTH engines and was red on
+ * release 4c9b0cc4a4da with every BOARD agreeing. The lines asserted are the ones the authority printed
+ * there, read off its stream. Each row is red under its knob: MEDI_TIDYUP_BOOST_FIRST, MEDI_FLOOR_DROP_REFUSED. */
+probe('move', 'removesHazards', 'Tidy Up writes its sweep, then `-activate|move: Tidy Up`, and only then its boosts', () => {
+  const tidy = (lay) => {
+    const me = bare('maushold'), ally = bare('garganacl');
+    const f1 = bare('incineroar'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally, bare('staraptor')], [f1, f2, bare('snorlax')], { seeded: true });
+    if (lay) M.battleTurn(S, rng5,
+      new Map([[me, { kind: 'pass' }], [ally, M.playerAction(ally, 'stealthrock', null, S.field)]]),
+      new Map([[f1, M.playerAction(f1, 'stealthrock', null, S.field)], [f2, { kind: 'pass' }]]));
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'tidyup', null, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const t = trace.map(M.traceCanon);
+    const at = re => t.findIndex(l => re.test(l));
+    return [at(/^\|-sideend\|/), at(/^\|-activate\|p1a:[^|]*\|move:tidyup$/), at(/^\|-boost\|p1a:[^|]*\|atk\|1$/)];
+  };
+  const control = tidy(false), test = tidy(true);
+  return { works: control[0] < 0 && control[1] < 0 && control[2] > 0
+                  && test[0] > 0 && test[1] > test[0] && test[2] > test[1],
+           arms: { control, test },
+           detail: `[first -sideend, -activate Tidy Up, -boost atk] line indices -- nothing to sweep ${JSON.stringify(control)}, `
+                 + `rocks on both sides ${JSON.stringify(test)} -- the onHit sweeps, announces on success, then boosts `
+                 + `(data/moves.ts tidyup, no Champions override)` };
+});
+probe('ability', 'preventsStatDrop', 'a drop into a stat already at -6 reaches no refuser: `-unboost|0`, no `-fail`', () => {
+  const floor = (stage) => {
+    const me = bare('whimsicott'), ally = bare('corviknight');
+    const f1 = bare('garganacl'), f2 = bare('milotic');
+    f1.ability = 'clearbody';
+    const S = M.battleInit([me, ally, bare('staraptor')], [f1, f2, bare('snorlax')], { seeded: true });
+    f1.boosts.at = stage;
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'charm', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const t = trace.map(M.traceCanon);
+    return [t.filter(l => /^\|-fail\|p2a:[^|]*\|unboost\|/.test(l)).length,
+            t.filter(l => /^\|-unboost\|p2a:[^|]*\|atk\|0$/.test(l)).length, f1.boosts.at];
+  };
+  const control = floor(0), test = floor(-6);
+  return { works: control[0] === 1 && control[1] === 0 && control[2] === 0
+                  && test[0] === 0 && test[1] === 1 && test[2] === -6,
+           arms: { control, test },
+           detail: `[Clear Body -fail, -unboost atk 0, Attack stage] Charm into Clear Body at 0 ${JSON.stringify(control)}, `
+                 + `at -6 ${JSON.stringify(test)} -- getCappedBoost runs before TryBoost (sim/battle.ts:2029-2031), `
+                 + `so the refuser sees 0 and the loop writes -unboost|atk|0 (:2041)` };
+});
+
 /* ================= 2026-09-19 — NARRATION BATCH C: FOREWARN, CHILLY RECEPTION, THE HELD STATUS, HARVEST'S COIN =====
  *
  * The single-engine half of tests/probe_narration_c.js, which stages each class in BOTH engines (11
@@ -36245,6 +36545,8 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'zombieSkipsResidualRestored', 'f
                           /* 2026-09-19 -- narration batch C (tests/probe_narration_c.js), stamped at LOAD */
                           'forewarnSilentRestored', 'chillyNoBenchSilentRestored', 'statusHeldAfterFieldRestored',
                           'harvestCoinGatedRestored',
+                          /* 2026-09-19 -- narration batch E (tests/probe_narration_e.js), stamped at LOAD */
+                          'tidyUpBoostFirstRestored', 'floorDropRefusedRestored',
                           'residualStopGroupOnlyRestored', 'orbTollSkipsPayoutRestored', 'fatigueBerryInlineRestored',
                           'ppPressurePreRedirectRestored', 'cureRollUngatedRestored', 'reactionDieAlwaysRestored',
                           'alliesAddrAtUserRestored', 'moveEvasionCountedRestored',
@@ -36265,7 +36567,11 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'zombieSkipsResidualRestored', 'f
                           'delayedHitNoSurvivalRestored', 'selfHitNoSurvivalRestored',
                           /* 2026-09-19 -- narration batch D (tests/probe_narration_d.js), stamped at LOAD */
                           'dropRefusalAfterTableRestored', 'sweepUnattributedRestored',
-                          'magicianEnditemLineRestored', 'magicianDeadThiefTakesRestored']
+                          'magicianEnditemLineRestored', 'magicianDeadThiefTakesRestored',
+                          /* 2026-09-19 -- announcesOnStart (tests/probe_start_announce.js), stamped at
+                           * LOAD. A knob run WROTE the census (955 of 956, 1 missing) before this was
+                           * listed — the same hole as the Sucker Punch knobs above. */
+                          'startAnnounceSilentRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

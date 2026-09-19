@@ -1,9 +1,9 @@
 {
-  "generated": "2026-09-11 13:14:08",
+  "generated": "2026-09-19 15:40:00",
   "source": "engine/derive_protocol_events.js",
   "source_digests": {
-    "engine/derive_protocol_events.js": "af90f9129c92",
-    "engine/medicham2-browser.js": "9134ed066e6a"
+    "engine/derive_protocol_events.js": "cb48c65d47f9",
+    "engine/medicham2-browser.js": "50bc0ebd5e12"
   },
   "showdown_pinned_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "derivedFrom": {
@@ -30,7 +30,7 @@
     "note": "the champions mod OVERRIDES two of the core emits (-supereffective, -resisted); its arity wins."
   },
   "showdownEvents": 91,
-  "emittedCount": 45,
+  "emittedCount": 46,
   "emitted": [
     "-ability",
     "-activate",
@@ -43,6 +43,7 @@
     "-curestatus",
     "-damage",
     "-end",
+    "-endability",
     "-enditem",
     "-fail",
     "-fieldactivate",
@@ -78,7 +79,7 @@
     "turn",
     "upkeep"
   ],
-  "notEmittedCount": 49,
+  "notEmittedCount": 48,
   "notEmitted": [
     {
       "event": "-anim",
@@ -111,10 +112,6 @@
     {
       "event": "-cureteam",
       "reason": "Heal Bell / Aromatherapy are not modelled."
-    },
-    {
-      "event": "-endability",
-      "reason": "ability SUPPRESSION (Gastro Acid, Neutralizing Gas) is not modelled; Mummy and Wandering Spirit REWRITE the ability and emit `-ability` instead, which is what Showdown does."
     },
     {
       "event": "-fieldactivate",
@@ -616,7 +613,7 @@
         "SIM-PROTOCOL.md"
       ],
       "champions": false,
-      "medicham": "declared"
+      "medicham": "emitted"
     },
     {
       "name": "-enditem",

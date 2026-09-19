@@ -30,7 +30,11 @@ const path = require('path');
 const { spawnSync, execFileSync } = require('child_process');
 const ROOT = path.join(__dirname, '..');
 const arg = (n, d) => { const i = process.argv.indexOf(n); return i >= 0 ? process.argv[i + 1] : d; };
-const REL_ID = arg('--release', '2b5a6585d8cf');
+/* THE DEFAULT RELEASE IS READ, NOT TYPED (2026-09-19). A pinned id ages out: `2b5a6585d8cf` stopped loading once
+ * data/protocol-events.json claimed an event it no longer plays, and this probe went CANNOT-ANSWER without the
+ * question having changed. The question is about the harness's default population, so it is asked of the
+ * release the pointer names today; `--release` still pins one. */
+const REL_ID = arg('--release', JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'engine-release.json'), 'utf8')).current);
 const cannot = (why) => { console.log('CANNOT ANSWER — ' + why); console.log('ABRA-EXIT 2 CANNOT-ANSWER'); process.exit(2); };
 const env = { ...process.env, SHOWDOWN_PATH: process.env.SHOWDOWN_PATH || 'C:/Users/willj/Projects/Pokemon/pokemon-showdown' };
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'abra-425-'));
