@@ -52,6 +52,26 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.67.0] — 2026-09-19 — The legacy ladder prefers a measured-quiet control; Stalwart fires on a redirect fixture; 9 FIRED rows on a live control have no subject receipt
+
+**What changed.** `engine/all_mechanics_fire.js` watches the authority's handlers of a named ability for one game
+(patched once on `Battle#getCallback` / `Battle#singleEvent`, carrier only) and classifies each call LOUD / ANNOUNCE /
+LATENT. The legacy ladder now takes the first alternative ability whose control game reads quiet (knob
+`AMF_LEGACY_FIRST_CONTROL=1` restores the first alternative). `engine/stage_planner.js` derives a `foe-redirects`
+trigger from a handler writing `move.tracksTarget` (gate sim/pokemon.ts:829) and stages a derived redirector on the
+foe side. Rows carry `control_watch`, `subject_watch`, `legacy_control`, `control_live`; the summary carries
+`summary.abilities.control_watch`.
+**Figures.** Release 54d02066fd71, 81 named ability rows, light mode (497 games, 0 threw; two runs identical). Stalwart
+FIRED on the planner against Stamina with 0 control-handler calls; both engines move p2.party.feraligatr.hp 888 vs 960,
+board NO-DIVERGENCE. The legacy chooser moved Flash Fire (Intimidate→Justified) and Stench (Weak Armor→Aftermath),
+both now DID-NOT-FIRE. FIRED on a live control 58 → 55; of those, with no subject receipt 12 → 9 (Corrosion, Damp,
+Infiltrator, Leaf Guard, Long Reach, Overgrow, Pickpocket, Poison Touch, Sticky Hold). Watch A/B against the HEAD
+instrument: 12 of 12 rows identical, 111/111 games. Census 968/968 unchanged (no engine byte changed).
+**Supersedes.** Stalwart's ladder FIRED (control Stamina; the moved leaf was Stamina's own boosts.def), and the ladder
+FIRED of Flash Fire and Stench. None of these is a published figure; the staged-game battery has not been re-run.
+**Basis.** unchanged
+**Owes.** docs/ABRA-technical-docs.md (the control watch and the live-control definition) at the next major.
+
 ## [6.66.1] — 2026-09-19 — a board that parts in a staged row's control arm now fails the mechanics clause
 
 - **What changed.** `engine/quarantine.js`, the mechanics clause (no new clause): `controlArmCheck` reads `summary.control_arm_partings` and each row's `control_arm_parted`. These are the 6.66.0 fields in `data/all-mechanics-fire.json`. A BOARD-MATERIAL control arm fails, and so does a NOT-ASKED one or a verdict the reader does not know. ANNOUNCEMENT-ONLY is printed by name and not gated. A parting is excused only when the CONTROL mechanic itself is on the owner's shelf (the artifact's `closet.ids`) or is Illusion, or when the arm is played on a closeted Illusion body. It is never excused because the row's SUBJECT is deferred (strict, coordinator 2026-09-19): the control is a different mechanic. Every excusal is printed with the control named. The proof half's excusal predicate was extracted to `ownerExcusal` without changing its behaviour. No reach, declared or decision-impact subtraction applies, because those are keyed on the row's subject and a control-arm parting belongs to the control. No field, an empty denominator, or rows that disagree with the summary read CANNOT-ANSWER. That is a fail, never a pass.

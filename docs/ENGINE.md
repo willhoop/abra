@@ -172,7 +172,7 @@ ENGINE — does the simulator do what Pokémon does
   968/968 probed mechanics live, 0 missing   (census 2026-09-19 13:50)
     the census probes what somebody thought to probe: 301 of 301 in-scope tags carry a probe, 0 carry none (9 of 310
     tags have no in-scope carrier); 1 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 1.4 h old). node engine/coverage.js
+    (all-mechanics-fire.json, 2.1 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-19 12:39)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
     the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
@@ -196,9 +196,91 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 13:57_
+_stamped 2026-09-19 14:35_
 
 <!-- /GENERATED -->
+
+## THE LEGACY LADDER PREFERS A QUIET CONTROL, AND "QUIET" IS NOW MEASURED IN THE AUTHORITY. STALWART FIRES AGAINST A QUIET CONTROL ON A REDIRECT FIXTURE. **55 FIRED ABILITY ROWS STILL REST ON A LIVE CONTROL, AND 9 OF THEM HAVE NO AUTHORITY RECEIPT FOR THE SUBJECT.** INSTRUMENT ONLY: NO ENGINE BYTE CHANGED AND THE CENSUS STAYS AT **968 / 968**. PINNED TO RELEASE `54d02066fd71`. LIGHT MODE, 81 NAMED ROWS. 2026-09-19, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-19-quiet-controls-legacy.md`.
+
+- **The watch (`engine/all_mechanics_fire.js` `watchAuthorityAbility`).** Showdown's dex entries are frozen, so the
+  watch sits on the two doors every ability handler passes through: `Battle#getCallback` and `Battle#singleEvent`.
+  For one game at a time it wraps the named ability's handlers, on the carrier only. A call is **LOUD** when any of
+  these happen:
+  - a Pokemon, side or field leaf changed;
+  - the event modifier moved;
+  - the handler returned something other than its relay input;
+  - the handler mutated a plain-object argument;
+  - a static value was consulted (Shell Armor's `onCriticalHit: false`).
+
+  A call that only writes protocol is ANNOUNCE. A call that only writes a move property is LATENT. The watch runs on
+  every control game (`row.control_watch`) and every fixture game (`row.subject_watch`). Against the HEAD instrument,
+  a 12-row A/B gives identical verdicts, boards and game counts (111 / 111), so the watch changes no outcome.
+- **The legacy chooser.** It now tries every alternative on the same body, in slot order. It takes the first
+  alternative whose control game(s) the watch reads quiet. Where none is quiet, it keeps the old choice and stamps it
+  loud. The row carries `legacy_control`. Knob: `AMF_LEGACY_FIRST_CONTROL=1`. Across the 81 named rows it moved two
+  rows:
+  - Flash Fire, from Intimidate to Justified;
+  - Stench, from Weak Armor to Aftermath.
+
+  Both now read **DID-NOT-FIRE**. Their old FIRED was the control's.
+- **Stalwart.** The authority skips `RedirectTarget` only when `move.tracksTarget` is set (`sim/pokemon.ts:829`), and
+  Stalwart's handler is what sets it. The new planner trigger `foe-redirects` is derived from that handler write.
+  The redirectors are also derived: Follow Me and Rage Powder (powder-gated), and the abilities Lightning Rod and
+  Storm Drain. In the fixture, Archaludon aims Dragon Claw at Feraligatr while Ariados clicks Rage Powder. The row
+  reads **FIRED** on the planner against a Stamina control, and the watch counts 0 Stamina calls in both control
+  games. Both engines move `p2.party.feraligatr.hp` (888 against 960) and Ariados' HP, and the board reads
+  NO-DIVERGENCE. Before this pass the planner read DID-NOT-FIRE and the ladder read FIRED. The ladder's only moved
+  leaf was Stamina's own `boosts.def`.
+- **The sweep.** A FIRED ability row rests on a **live control** in three cases:
+  - the watch reads the control ability loud;
+  - the control is a different click;
+  - the control removes an item from another body.
+
+  Such a row is earned only by the subject's own authority receipt. The counts on the 81 named rows:
+
+  | | before | after |
+  |---|---|---|
+  | FIRED on a live control | 58 | 55 |
+  | of which on a loud ability control | 18 | 15 |
+  | of which with no subject receipt | 12 | 9 |
+
+  The "before" column is the 6.66.0 planner with the old legacy chooser, plus Stalwart's old ladder row.
+
+  The nine rows with no receipt are Corrosion, Damp, Infiltrator, Leaf Guard, Long Reach, Overgrow, Pickpocket,
+  Poison Touch and Sticky Hold. None of them has a quiet alternative on its current board. They fall into three
+  groups:
+  - In six rows (Corrosion, Damp, Infiltrator, Pickpocket, Poison Touch, Sticky Hold), the moved leaves are leaves
+    the control writes.
+  - Leaf Guard moved a protocol line only.
+  - Long Reach and Overgrow are click swaps.
+
+  An item row cannot rest on a live control, because its control is always "the item is removed".
+- **For MEASURE:** the names are in `summary.abilities.control_watch.fired_on_live_control_unearned`. The gate still
+  credits these rows today.
+
+### The hand list, after this pass
+
+- **OFF THE LIST: Stalwart's unearned FIRED.** It is now earned on a redirect fixture against a control that is
+  measured quiet.
+- **OFF THE LIST: the ladder's own control chooser.** It now prefers a control that is measured quiet.
+- **NEW, INSTRUMENT: 9 FIRED rows on a live control with no subject receipt.** Seven of them are fixtures that do not
+  stage their own trigger:
+  - Damp has no explosion click.
+  - Poison Touch's hit is non-contact.
+  - Infiltrator has no screen or substitute to go through.
+  - Overgrow never goes under 1/3 HP.
+  - Pickpocket's attacker holds no item.
+  - Long Reach meets no contact punisher.
+  - Corrosion has no poison-status click on a Steel or Poison target.
+
+  Leaf Guard and Sticky Hold are ladder rows whose planner fixture reads DID-NOT-FIRE. The next step for each of the
+  nine is a fixture that stages the trigger.
+- **NEW, INSTRUMENT: 39 click-swap controls and 1 item-swap control.** In these rows the two arms throw different
+  moves (or face a different item), so the A/B proves nothing about the ability. 38 of the 40 are earned by the
+  subject's receipt instead.
+- **Carried forward:** Magma Armor's control is still Anger Point. Its subject receipt is present (`onImmunity`).
 
 ## BOTH FAILING CLAUSES ON `d92bdfb50d88` ARE CLOSED ON THEIR NAMED ROWS: THE RESIST-BERRY PLANT IS CAUGHT AGAIN, NATURAL CURE FIRES, AND THE EIGHT MOVES RESOLVE ON BOTH ENGINES. ALL THREE WERE INSTRUMENT FAULTS; NO MOVE FAILED TO ACT IN OUR ENGINE. **WORKTREE RELEASE `9a031254d967` (TWO RED-DEMO KNOBS, DEFAULT OFF). LIGHT MODE: NAMED ROWS ONLY; THE FULL BATTERY AND THE GATE ARE OWED.** 2026-09-19, CHANGELOG `<<VER>>`
 

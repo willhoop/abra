@@ -2107,6 +2107,15 @@ function abControlFor(species, ability) {
   const other = abs.find(a => id(a) !== id(ability));
   return other || null;
 }
+/* EVERY alternative on the same body, in slot order -- `[0]` is exactly `abControlFor`'s choice, so the old chooser
+ * is the head of this list (2026-09-19 (b), the legacy quiet-control preference; see `runAbilities`). */
+function abControlsFor(species, ability) {
+  const abs = Object.values(dex.species.get(species).abilities || {});
+  return abs.filter((a, i) => id(a) !== id(ability) && abs.findIndex(b => id(b) === id(a)) === i);
+}
+/* `AMF_LEGACY_FIRST_CONTROL=1` restores the first-alternative choice (the watch still runs and is still stamped). */
+const LEGACY_FIRST_CONTROL = process.env.AMF_LEGACY_FIRST_CONTROL === '1';
+const LEGACY_CTL = { rows: 0, first_quiet: 0, moved: [], none_quiet: [], unmeasured: [] };
 /* THE GAUNTLET. Four turns that between them reach a large share of ability and item triggers WITHOUT
  * NAMING ANY OF THEM — which is the docs/TAGS.md rule: match on shape, never on a name, so a mechanic
  * added later is reached without editing this file.
@@ -2408,10 +2417,15 @@ function abLadderOver(rungList, kind, key, name, carrier, control, mkOn, mkOff, 
     if (!bOn || !bOff || !rRecv) continue;
     const onB = stageBodies(bOn, rRecv), offB = stageBodies(bOff, rRecv);
     const mk = (b) => rung.script ? rung.script(b) : gauntletScript(b, rung.beats, faces, thenWhat);
-    const on = playScenario(Object.assign({ script: mk(onB), hpBoost: rung.hpBoost, statLine: rung.statLine,
-                                            tag: kind + '/' + key + '/on/' + rung.id }, onB));
-    const off = playScenario(Object.assign({ script: mk(offB), hpBoost: rung.hpBoost, statLine: rung.statLine,
-                                             tag: kind + '/' + key + '/off/' + rung.id }, offB));
+    const onW = watchedControl(kind === 'ability' ? name : null,
+      () => playScenario(Object.assign({ script: mk(onB), hpBoost: rung.hpBoost, statLine: rung.statLine,
+                                         tag: kind + '/' + key + '/on/' + rung.id }, onB)), rung.carrier || carrier, 'subject');
+    const on = onW.game;
+    /* the CONTROL game is played under the authority-side watch when the control is an ability (see watchAuthorityAbility) */
+    const offW = watchedControl(kind === 'ability' ? control : null,
+      () => playScenario(Object.assign({ script: mk(offB), hpBoost: rung.hpBoost, statLine: rung.statLine,
+                                         tag: kind + '/' + key + '/off/' + rung.id }, offB)), rung.carrier || carrier);
+    const off = offW.game;
     /* `--dumplog` REACHES THE A/B LADDER (2026-09-11). It printed only the item board-state rung, so the
      * never-fired plan's three `--dumplog` confirmations (Slush Rush, Magma Armor, Light Clay) printed
      * nothing for the games they asked about — a flag that runs and shows nothing looks like a clean log. */
@@ -2423,6 +2437,9 @@ function abLadderOver(rungList, kind, key, name, carrier, control, mkOn, mkOff, 
     const row = abRow(kind, key, name, carrier, control, on, off, { abilitySwap: kind === 'ability' });
     row.rung = rung.id;
     if (rung.carrier) row.carrier = rung.carrier;
+    if (off && off.staged && offW.watch.measured) row.control_watch = foldWatch([{ where: rung.id, watch: offW.watch }]);
+    if (on && on.staged && onW.watch.measured) row.subject_watch = foldWatch([{ where: rung.id, watch: onW.watch }]);
+    if (kind === 'ability' && on && on.staged) row.subject_log_receipt = abilityActedOn(on.sdLog, name, key, null).slice(0, 3);
     if (onRung) onRung(rung, on, off, row);
     best = best || row;
     if (row.verdict && row.verdict !== 'DID-NOT-FIRE') { best = row; break; }
@@ -2490,6 +2507,166 @@ function abilityActedOn(log, name, ab, megaE) {
         && !(megaE && l.indexOf(megaE.megaName) >= 0)) out.push(l);
   }
   return out;
+}
+/* ==== 2026-09-19 (b) -- IS THE CONTROL QUIET ON ITS OWN BOARD? MEASURED IN THE AUTHORITY, NOT READ OFF A TAG ===========
+ *
+ * A control is one-variable evidence only if the control ability does nothing on its board. 6.66.0 gave the PLANNER a
+ * static judge (`stage_planner.js loudOnBoard`) and read the authority's LOG for a receipt. Both are blind to a silent
+ * modifier -- Tough Claws scales a hit and writes no line -- and the static judge cannot see the legacy gauntlet's board
+ * at all. So this asks the authority directly: every `on*` handler of the control ability (and of its `condition`) in
+ * Showdown's own dex is wrapped for the length of ONE control game, and each call is classified by what it did:
+ *
+ *   LOUD      a pokemon, side or field leaf changed across the call (hp, status, boosts, volatiles, item, ability,
+ *             species, types, pp, fainted; weather, terrain, pseudo-weathers, side and slot conditions), the event's
+ *             `modifier` moved (`chainModify`), or the handler returned something other than its relay input (a
+ *             `this.modify`, a refusal, a replaced value). Any of these can move a board leaf.
+ *   ANNOUNCE  it only wrote protocol (an entry announcement, Frisk's reveal) -- narration, no leaf.
+ *   LATENT    it only wrote a property on the move object it was handed (Keen Eye's `ignoreEvasion`, Stalwart's
+ *             `tracksTarget`) -- not a leaf; whatever it enables surfaces through some later handler.
+ *
+ * The same object is served to the battle: `Dex.forFormat` caches the mod dex and `abilities.get` caches the entry, and
+ * `findPokemonEventHandlers` reads `ability[callbackName]` at call time (sim/battle.ts:1118). A watch that saw ZERO calls
+ * across a run is printed as blind, never as quiet. The originals are restored in a `finally`. */
+const CTL_WATCH = { games: 0, calls: 0, loud_games: 0, blind: [] };
+/* A KEYED FINGERPRINT, so a LOUD call names the leaves it moved (`p2:feraligatr:boosts`), and the report can put them
+ * beside the leaves the A/B saw move. */
+function authorityFingerprint(battle) {
+  const out = {};
+  try {
+    const f = battle.field;
+    out['field:weather'] = String(f.weather || ''); out['field:terrain'] = String(f.terrain || '');
+    out['field:pseudo'] = Object.keys(f.pseudoWeather || {}).sort().join(',');
+    for (const s of battle.sides) {
+      out[s.id + ':side'] = Object.keys(s.sideConditions || {}).sort().join(',');
+      out[s.id + ':slot'] = (s.slotConditions || []).map(o => Object.keys(o || {}).sort().join(',')).join('/');
+      for (const p of s.pokemon) {
+        const k = s.id + ':' + (p.baseSpecies ? p.baseSpecies.id : p.species.id) + ':';
+        out[k + 'hp'] = p.hp + '/' + p.maxhp; out[k + 'status'] = String(p.status || ''); out[k + 'fainted'] = p.fainted ? '1' : '';
+        out[k + 'item'] = String(p.item || ''); out[k + 'ability'] = String(p.ability || ''); out[k + 'species'] = p.species.id;
+        out[k + 'types'] = (p.types || []).join('/'); out[k + 'boosts'] = JSON.stringify(p.boosts);
+        out[k + 'volatiles'] = Object.keys(p.volatiles || {}).sort().join(',');
+        out[k + 'pp'] = (p.moveSlots || []).map(m => m.pp).join(',');
+        out[k + 'trapped'] = String(p.trapped || '') + '/' + String(p.maybeTrapped || '');
+      }
+    }
+  } catch (e) { out.threw = e.message; }
+  return out;
+}
+function fpDiff(a, b) { return Object.keys(Object.assign({}, a, b)).filter(k => a[k] !== b[k]); }
+/* A PLAIN-OBJECT ARGUMENT the handler mutates in place is an action too: Big Pecks deletes `def` from the boost table it
+ * is handed, and returns nothing. Pokemon, Battle, Move and effect objects are not plain and are excluded. */
+function argObjects(args) {
+  return args.map(x => (x && typeof x === 'object' && Object.getPrototypeOf(x) === Object.prototype && !x.effectType) ? JSON.stringify(x) : null);
+}
+function moveShallow(args) {
+  const m = args.find(x => x && typeof x === 'object' && x.effectType === 'Move');
+  if (!m) return null;
+  return Object.keys(m).filter(k => { const v = m[k]; return v === null || /^(boolean|number|string)$/.test(typeof v); })
+    .sort().map(k => k + '=' + m[k]).join(',') + '|flags=' + JSON.stringify(m.flags || {});
+}
+/* THE DEX ENTRIES ARE FROZEN (Showdown deep-freezes its data), so the handlers cannot be replaced on the entry. The watch
+ * sits one step up instead, on the two doors every ability handler goes through: `Battle#getCallback` (every runEvent /
+ * fieldEvent lookup on a Pokemon, sim/battle.ts `findPokemonEventHandlers`) and `Battle#singleEvent` (the direct calls,
+ * which read `effect['on' + id]` themselves). Both are patched ONCE on the prototype and do nothing unless a watch is
+ * open; a wrapped callback is marked, so the fieldEvent path (found by getCallback, then handed to singleEvent as its
+ * custom callback) is counted once. Only the watched ability's handlers ON THE CARRIER are wrapped -- a pad holding the
+ * same ability is not the control. */
+let WATCH_NOW = null;
+const WRAPPED = Symbol('ctlWatch');
+function holderMatches(target) {
+  if (!WATCH_NOW || !target || !target.species || !target.side) return false;
+  const sp = target.baseSpecies || target.species;
+  return id(sp.baseSpecies || sp.name) === WATCH_NOW.holder;
+}
+function watchedEffect(effect) {
+  return !!(WATCH_NOW && effect && effect.id === WATCH_NOW.id && (effect.effectType === 'Ability' || effect.effectType === 'Condition'));
+}
+function wrapCallback(f, name, effect) {
+  if (typeof f !== 'function' || f[WRAPPED]) return f;
+  const rec = WATCH_NOW;
+  const prefix = effect.effectType === 'Condition' ? 'condition.' : '';
+  const note = (list, s) => { if (list.length < 6 && !list.includes(s)) list.push(s); };
+  const w = function (...args) {
+    const battle = this;
+    const ev = battle && battle.event, mod0 = ev ? ev.modifier : undefined;
+    const n0 = battle && battle.log ? battle.log.length : 0;
+    const fp0 = authorityFingerprint(battle), mv0 = moveShallow(args), ao0 = argObjects(args);
+    const ret = f.apply(this, args);
+    rec.calls++;
+    const why = [];
+    const moved = fpDiff(fp0, authorityFingerprint(battle));
+    if (moved.length) { why.push('state[' + moved.slice(0, 3).join(' ') + ']'); for (const k of moved) if (!rec.leaves.includes(k)) rec.leaves.push(k); }
+    const ao1 = argObjects(args);
+    if (ao0.some((x, i) => x !== null && x !== ao1[i])) why.push('mutated its argument');
+    if (ev && battle.event === ev && ev.modifier !== mod0) why.push('modifier ' + mod0 + '->' + ev.modifier);
+    if (ret !== undefined && ret !== args[0]) why.push('returned ' + (ret && typeof ret === 'object' ? (ret.name || ret.id || 'object') : String(ret)));
+    const tag = prefix + name + ' (turn ' + (battle && battle.turn) + ')';
+    if (why.length) note(rec.loud, tag + ': ' + why.join(', '));
+    else if (battle && battle.log && battle.log.length > n0) note(rec.announce, tag + ': ' + battle.log.slice(n0, n0 + 2).join(' '));
+    else if (mv0 !== null && moveShallow(args) !== mv0) note(rec.latent, tag + ': wrote a property on the move');
+    return ret;
+  };
+  w[WRAPPED] = true;
+  return w;
+}
+let WATCH_PATCHED = false;
+function patchWatchDoors() {
+  if (WATCH_PATCHED) return;
+  WATCH_PATCHED = true;
+  const B = CS.sim().Battle.prototype;
+  const gc = B.getCallback, se = B.singleEvent;
+  B.getCallback = function (target, effect, callbackName) {
+    const cb = gc.call(this, target, effect, callbackName);
+    if (cb === undefined || !watchedEffect(effect) || !holderMatches(target)) return cb;
+    /* A STATIC VALUE in place of a handler (Shell Armor's `onCriticalHit: false`) is the relay replaced by that value
+     * every time it is consulted -- counted LOUD, because the event is asked only where its answer matters. */
+    if (typeof cb !== 'function') { WATCH_NOW.calls++; const t = (effect.effectType === 'Condition' ? 'condition.' : '') + callbackName + ' = ' + String(cb) + ' (static, turn ' + this.turn + ')';
+      if (WATCH_NOW.loud.length < 6 && !WATCH_NOW.loud.includes(t)) WATCH_NOW.loud.push(t); return cb; }
+    return wrapCallback(cb, callbackName, effect);
+  };
+  B.singleEvent = function (eventid, effect, state, target, source, sourceEffect, relayVar, customCallback) {
+    if (watchedEffect(effect) && holderMatches(target)) {
+      const cb = customCallback || (effect && effect['on' + eventid]);
+      if (typeof cb === 'function') customCallback = wrapCallback(cb, 'on' + eventid, effect);
+    }
+    return se.call(this, eventid, effect, state, target, source, sourceEffect, relayVar, customCallback);
+  };
+}
+function watchAuthorityAbility(abName, holder) {
+  const a = dex.abilities.get(abName);
+  if (!a || !a.exists || !holder) return null;
+  patchWatchDoors();
+  const hs = dex.species.get(holder);
+  const rec = { ability: a.name, id: a.id, holder: id(hs.baseSpecies || hs.name), calls: 0, loud: [], announce: [], latent: [], leaves: [] };
+  WATCH_NOW = rec;
+  return { stop() { WATCH_NOW = null; const r = Object.assign({}, rec); delete r.id; return r; } };
+}
+/* One game under the watch. `fn` plays it; the verdict object is `{ ...rec, quiet }`, where quiet means no LOUD call.
+ * `measured` is false when the watch could not be placed (an ability the dex does not hold, no holder named). The SAME
+ * watch is put on the SUBJECT in the fixture game (`role: 'subject'`): a loud subject call is the authority's own
+ * receipt that the mechanic's handler ran and changed something -- the proof a row keeps when its control is live. */
+const SUBJ_WATCH = { games: 0, calls: 0, loud_games: 0 };
+function watchedControl(abName, fn, holder, role) {
+  const w = abName ? watchAuthorityAbility(abName, holder) : null;
+  let game, rec = null;
+  try { game = fn(); } finally { if (w) rec = w.stop(); }
+  if (!rec) return { game, watch: { measured: false, ability: abName || null } };
+  const C = role === 'subject' ? SUBJ_WATCH : CTL_WATCH;
+  C.games++; C.calls += rec.calls;
+  if (rec.loud.length) C.loud_games++;
+  return { game, watch: Object.assign({ measured: true, quiet: rec.loud.length === 0 }, rec) };
+}
+/* Several control games of one row fold into one verdict: loud if ANY was loud; the lists are kept per game. */
+function foldWatch(list) {
+  const ws = list.filter(x => x && x.watch && x.watch.measured);
+  if (!ws.length) return null;
+  const loud = ws.filter(x => x.watch.loud.length);
+  return { measured: true, ability: ws[0].watch.ability, quiet: loud.length === 0, games: ws.length,
+           calls: ws.reduce((s, x) => s + x.watch.calls, 0),
+           loud: loud.flatMap(x => x.watch.loud.map(l => x.where + ' ' + l)).slice(0, 6),
+           announce: ws.flatMap(x => x.watch.announce.map(l => x.where + ' ' + l)).slice(0, 4),
+           latent: ws.flatMap(x => x.watch.latent.map(l => x.where + ' ' + l)).slice(0, 4),
+           leaves: [...new Set(ws.flatMap(x => x.watch.leaves || []))].slice(0, 12) };
 }
 function boardOnlyLadder(ab, name, carrier, mkOn, receiver, faces, thenWhat, megaE) {
   BOARD_ONLY.rows++;
@@ -2867,10 +3044,41 @@ function runAbilities(list) {
       continue;
     }
     if (megaE && twItem) BOARD_ONLY.item_conflict.push(ab + ': the consequence wanted ' + twItem + ', the stone was kept');
-    const row = boardOnly
-      ? boardOnlyLadder(ab, da.name, c, () => mkActorI(da.name, twItem), receiver, facesUsed, tw, megaE)
-      : abLadder('ability', ab, da.name, c, ctrl,
-                 () => mkActorI(da.name, twItem), () => mkActorI(ctrl, twItem), receiver, facesUsed, tw);
+    /* ==== 2026-09-19 (b) -- THE LEGACY CHOOSER PREFERS A QUIET CONTROL, AND QUIET IS MEASURED ====================
+     * The old choice was the carrier's FIRST other ability (`abControlFor`). Stalwart's was Stamina, which boosts
+     * Defence on every hit the gauntlet lands, so the ladder's FIRED was Stamina's own Defence leaf and the Stalwart
+     * handler need never have run. Now every alternative on the same body is tried in slot order -- the old choice
+     * first -- and the first whose control game(s) the authority-side watch reads QUIET is taken (see
+     * `watchAuthorityAbility`). Where none is quiet the old choice stands, stamped loud with the reasons. It is a
+     * preference over the SAME rows and never a gate: the verdict is whatever the quiet control's ladder reads. A
+     * loud head costs one more ladder per alternative; a quiet head costs nothing. */
+    let row;
+    if (boardOnly) row = boardOnlyLadder(ab, da.name, c, () => mkActorI(da.name, twItem), receiver, facesUsed, tw, megaE);
+    else {
+      const cands = (LEGACY_FIRST_CONTROL ? [ctrl] : abControlsFor(c, ab)).filter(x => x && mkActor(x));
+      const tried = [];
+      let first = null;
+      for (const cand of cands) {
+        const r = abLadder('ability', ab, da.name, c, cand,
+                           () => mkActorI(da.name, twItem), () => mkActorI(cand, twItem), receiver, facesUsed, tw);
+        if (!r) continue;
+        const w = r.control_watch || null;
+        tried.push(cand + ' [' + (!w ? 'unmeasured' : w.quiet ? 'quiet' : 'loud') + '] -> ' + (r.verdict || r.why || '?'));
+        if (!first) first = r;
+        if (w && w.quiet) { row = r; break; }
+      }
+      row = row || first;
+      if (row) {
+        const w = row.control_watch || null;
+        row.legacy_control = { chosen: row.control, first_alternative: ctrl, quiet: !!(w && w.quiet), measured: !!w,
+                               tried, knob: LEGACY_FIRST_CONTROL ? 'AMF_LEGACY_FIRST_CONTROL=1' : null };
+        LEGACY_CTL.rows++;
+        if (!w) LEGACY_CTL.unmeasured.push(ab);
+        else if (!w.quiet) LEGACY_CTL.none_quiet.push(ab + ' (' + row.control + ': ' + (w.loud[0] || '') + ')');
+        if (row.control !== ctrl) LEGACY_CTL.moved.push(ab + ': ' + ctrl + ' -> ' + row.control);
+        else if (w && w.quiet) LEGACY_CTL.first_quiet++;
+      }
+    }
     /* THE PREFLIGHT'S VERDICT IS ATTACHED AFTER THE GAME, AND FALSIFIED BY IT. `fired` is the only
      * thing that can prove a refusal wrong, so it is passed in rather than assumed. */
     /* HB-5's validator relabel ("does not exist in Gen 9" -> unreachable) was REMOVED 2026-09-11: scope is
@@ -4679,8 +4887,13 @@ function plannedRow(kind, key, name, m) {
     for (const v of f.variants) {
       PLANNED.variants++;
       const tag = kind + '/' + key + '/plan/' + f.branch + '/' + v.layout;
-      const on = playPlanned(kind, key, f, v, 'fx', tag + '/on');
-      const off = v.control ? playPlanned(kind, key, f, v, 'ctl', tag + '/off') : null;
+      const onW = watchedControl(kind === 'ability' ? name : null, () => playPlanned(kind, key, f, v, 'fx', tag + '/on'), f.bodies.C.species, 'subject');
+      const on = onW.game;
+      /* the control game under the authority-side watch when its variable is the carrier's ability */
+      const ctlAb0 = v.control && f.control && f.control.variable === 'C.ability' && v.control.roles && v.control.roles.C
+        ? v.control.roles.C.ability : null;
+      const offW = v.control ? watchedControl(kind === 'ability' ? ctlAb0 : null, () => playPlanned(kind, key, f, v, 'ctl', tag + '/off'), f.bodies.C.species) : null;
+      const off = offW ? offW.game : null;
       const subj = subjectOf(v, 1);
       const who = subj ? subj.ident : 'p1a';
       let row;
@@ -4693,6 +4906,8 @@ function plannedRow(kind, key, name, m) {
         row = abRow(kind, key, name, f.bodies.C.species, ctlAb || (f.control.variable + ' — ' + f.control.why), on, off,
                     { abilitySwap: kind === 'ability' && f.control.variable === 'C.ability' });
         if (on.div) row.divergence = divOf(on.div, who, on.sdLog, null);
+        /* the SUBJECT's own receipt in the authority's log of the fixture game (near-side slot a, as below) */
+        if (kind === 'ability' && subj && subj.side === 'p1' && subj.slot === 0) row.subject_log_receipt = abilityActedOn(on.sdLog, name, key, megaE).slice(0, 3);
         /* 2026-09-19 -- DID THE CONTROL ABILITY ACT IN ITS OWN GAME? The authority's log of the control arm, read by
          * the same receipt reader the board-only rows use. Near-side slot a only (the reader reads p1a). */
         const nearA0 = subj && subj.side === 'p1' && subj.slot === 0;
@@ -4716,7 +4931,9 @@ function plannedRow(kind, key, name, m) {
                   + (nearA ? '' : ' (the receipt is read on the near-side slot-a variant only)') };
         if (proven) row.board = bv; else row.board_unproven = bv;
       }
-      vres.push({ layout: v.layout, row, miss: on.staged ? on.scriptMiss : null, cmiss: off && off.staged ? off.scriptMiss : null });
+      vres.push({ layout: v.layout, row, miss: on.staged ? on.scriptMiss : null, cmiss: off && off.staged ? off.scriptMiss : null,
+                  watch: offW && off && off.staged && offW.watch.measured ? offW.watch : null,
+                  swatch: on && on.staged && onW.watch.measured ? onW.watch : null });
     }
     results.push({ f, vres });
   }
@@ -4749,6 +4966,11 @@ function plannedRow(kind, key, name, m) {
     PLANNED.variant_split.push(kind + ':' + key + ' ' + row.planner.variant_split.join(' '));
   }
   promoteParting(row, results.flatMap(x => x.vres.map(z => ({ where: x.f.branch + '/' + z.layout, row: z.row }))), kind + ':' + key);
+  /* the picked fixture's control games, every variant, folded: loud if the control acted on ANY of them */
+  const cw = foldWatch(pick.vres.map(z => ({ where: f.branch + '/' + z.layout, watch: z.watch })));
+  if (cw) row.control_watch = cw; else delete row.control_watch;
+  const sw = foldWatch(pick.vres.map(z => ({ where: f.branch + '/' + z.layout, watch: z.swatch })));
+  if (sw) row.subject_watch = sw; else delete row.subject_watch;
   return row;
 }
 function runPlanned(kind, list, legacy) {
@@ -4786,6 +5008,33 @@ function runPlanned(kind, list, legacy) {
   /* CONTROL-NOT-QUIET, RE-DERIVED OVER THE WHOLE POPULATION. The ladder derives it over the rows of ONE
    * call, and the fallback calls it one row at a time — so the same rule is applied here over every row,
    * planned and legacy alike: a control ability whose own row moved a game cannot say which moved it. */
+  /* 2026-09-19 (b) -- A FIRED ROW ON A LIVE CONTROL, NAMED, AND WHAT ELSE EARNS IT. A control is LIVE when the
+   * authority-side watch read the control ability LOUD in its own game, or when the control is not an ability at all
+   * but a different CLICK (a trigger-click swap: the two arms throw different moves, so they differ whatever the
+   * ability does) or a removed item on another body. Such a FIRED is earned only by the authority's own receipt: the
+   * SUBJECT's handler read LOUD in the fixture game (`subject_watch`) -- the board-only arm's standard, with the silent
+   * modifiers the log reader cannot see. */
+  if (kind === 'ability') for (const r of rows) {
+    if (!r || r.verdict !== 'FIRED') continue;
+    const pv = r.stage === 'planner' && r.planner && r.planner.control ? r.planner.control.variable : null;
+    const liveKind = pv && pv !== 'C.ability' ? (/\.item$/.test(pv) ? 'item-swap' : 'click-swap')
+      : r.control_watch && r.control_watch.measured && !r.control_watch.quiet ? 'ability-loud'
+      : !r.control_watch ? 'ability-unmeasured' : null;
+    if (!liveKind) continue;
+    const sw = r.subject_watch;
+    /* THE RECEIPT, STRONGEST FIRST: the subject's handler changed a leaf, a modifier or a returned value (state); it
+     * wrote its own protocol (narrated -- Big Pecks' `-fail ... [from] ability`); the authority's log names it acting
+     * for the subject (log -- Levitate's immunity is written by the sim core, not by a handler); it only wrote a move
+     * property (latent-only); nothing. The first three earn the credit, the board-only arm's standard. */
+    const receipt = sw && sw.measured && !sw.quiet ? 'state' : sw && sw.announce && sw.announce.length ? 'narrated'
+      : (r.subject_log_receipt || []).length ? 'log' : sw && sw.latent && sw.latent.length ? 'latent-only' : 'none';
+    r.control_live = { kind: liveKind, variable: pv || 'C.ability', control: r.control, receipt,
+                       earned_by_subject_receipt: ['state', 'narrated', 'log'].includes(receipt),
+                       control_leaves: r.control_watch ? r.control_watch.leaves : null,
+                       moved_leaves: r.ab_board ? r.ab_board.leaves : null,
+                       subject_loud: sw ? sw.loud.slice(0, 3) : null, subject_measured: !!(sw && sw.measured),
+                       ability_swap_rejected: (r.planner && r.planner.control && r.planner.control.ability_swap_rejected) || null };
+  }
   if (kind === 'ability') {
     const live = new Set(rows.filter(r => r.showdown_moved || r.medicham_moved).map(r => r.id));
     for (const r of rows) {
@@ -5175,6 +5424,20 @@ if (KIND === 'abilities' || KIND === 'all') {
       loud: rows.filter(r => r.planner && r.planner.control && r.planner.control.quiet === false).length,
       acted_in_control_game: rows.filter(r => Array.isArray(r.control_acted) && r.control_acted.length).length,
       receipt_read: rows.filter(r => Array.isArray(r.control_acted)).length },
+    /* 2026-09-19 (b): THE AUTHORITY-SIDE WATCH over every ability-swap control game (planner and ladder alike) --
+     * `fired_on_loud_control` is the number that matters: a FIRED row whose control changed its own board. */
+    control_watch: {
+      measured: rows.filter(r => r.control_watch && r.control_watch.measured).length,
+      quiet: rows.filter(r => r.control_watch && r.control_watch.quiet).length,
+      loud: rows.filter(r => r.control_watch && r.control_watch.measured && !r.control_watch.quiet).length,
+      fired_on_loud_control: rows.filter(r => r.verdict === 'FIRED' && r.control_watch && !r.control_watch.quiet).map(r => r.id),
+      fired_on_live_control: rows.filter(r => r.control_live).map(r => r.id + ':' + r.control_live.kind + ':' + r.control_live.receipt),
+      fired_on_live_control_unearned: rows.filter(r => r.control_live && !r.control_live.earned_by_subject_receipt).map(r => r.id),
+      subject_games: SUBJ_WATCH.games, subject_handler_calls: SUBJ_WATCH.calls, subject_loud_games: SUBJ_WATCH.loud_games,
+      games: CTL_WATCH.games, handler_calls: CTL_WATCH.calls, loud_games: CTL_WATCH.loud_games,
+      legacy_chooser: { rows: LEGACY_CTL.rows, first_alternative_quiet: LEGACY_CTL.first_quiet, moved: LEGACY_CTL.moved.slice(),
+                        none_quiet: LEGACY_CTL.none_quiet.slice(), unmeasured: LEGACY_CTL.unmeasured.slice(),
+                        knob: LEGACY_FIRST_CONTROL ? 'AMF_LEGACY_FIRST_CONTROL=1' : null } },
     /* THE SPLIT OF `did_not_fire`, ADDED BESIDE IT AND NOT INSTEAD OF IT. `did_not_fire` keeps its old
      * meaning for whatever already reads this artifact; these two partition it. */
     cannot_fire_in_this_fixture: rows.filter(r => r.cannot_fire).length,
@@ -5386,6 +5649,22 @@ if (PLAN) {
     + CA.board_material + ' BOARD-MATERIAL, ' + CA.announcement_only + ' announcement-only, ' + CA.not_asked + ' not asked'
     + '   (summary.control_arm_partings; per row control_arm_parted)');
   for (const x of CA.rows) console.log('    ' + x);
+}
+/* ---- THE CONTROL WATCH, PRINTED (2026-09-19 (b)). A watch that saw no handler call on any control game is BLIND, and
+ * says so -- a silent zero here would read exactly like every control being quiet. */
+if (report.summary.abilities && report.summary.abilities.control_watch) {
+  const W = report.summary.abilities.control_watch, L = W.legacy_chooser;
+  console.log('\n  CONTROL WATCH (authority handlers of the control ability) — ' + W.games + ' control games, ' + W.handler_calls
+    + ' handler calls; rows measured ' + W.measured + ': quiet ' + W.quiet + ', loud ' + W.loud
+    + '; FIRED on a loud control: ' + (W.fired_on_loud_control.join(', ') || 'none'));
+  if (W.games && !W.handler_calls) console.log('    !! BLIND: control games were watched and no handler of any control ability was called');
+  if (W.subject_games && !W.subject_handler_calls) console.log('    !! BLIND: fixture games were watched and no handler of any subject ability was called');
+  console.log('    FIRED on a LIVE control (loud ability, click swap, item swap): ' + W.fired_on_live_control.length
+    + ' — without the subject\'s own authority receipt: ' + (W.fired_on_live_control_unearned.join(', ') || 'none')
+    + '   (subject watch: ' + W.subject_games + ' games, ' + W.subject_handler_calls + ' calls)');
+  console.log('    legacy chooser: ' + L.rows + ' row(s); first alternative quiet ' + L.first_alternative_quiet
+    + '; moved ' + (L.moved.join('; ') || 'none') + '; none quiet ' + (L.none_quiet.join('; ') || 'none')
+    + (L.unmeasured.length ? '; UNMEASURED ' + L.unmeasured.join(', ') : '') + (L.knob ? '   [' + L.knob + ']' : ''));
 }
 
 /* ---- THE PREFLIGHT'S OWN RECEIPT. A CAPABILITY THAT CANNOT PROVE IT RAN IS ASSUMED BROKEN, and this

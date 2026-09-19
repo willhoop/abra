@@ -372,6 +372,33 @@ function effectiveWeatherReaders() {
   if (!EW_READERS) EW_READERS = U.MOVES.filter(d => d.category !== 'Status' && handlersOf(d).some(h => /\.effectiveWeather\(/.test(h.src))).map(d => d.id).sort();
   return EW_READERS;
 }
+/* THE AUTHORITY'S REDIRECT GATE, cited: the line in `Pokemon#getMoveTargets` that asks `RedirectTarget` only for a move
+ * that does not track its target. Null (and so no trigger) if the line is not where it is expected -- never guessed. */
+let REDIRECT_GATE;
+function redirectGate() {
+  if (REDIRECT_GATE === undefined) {
+    const L = srcOf('sim/pokemon.ts');
+    REDIRECT_GATE = null;
+    for (let i = 0; i < L.length; i++) if (/!move\.tracksTarget/.test(L[i])) {
+      const next = L.slice(i, i + 12).join('\n');
+      if (/RedirectTarget/.test(next)) { REDIRECT_GATE = { at: 'sim/pokemon.ts:' + (i + 1), text: L[i].trim() }; break; }
+    }
+  }
+  return REDIRECT_GATE;
+}
+/* THE REDIRECTORS, DERIVED: a legal self-target move whose own condition carries `onFoeRedirectTarget` (the user draws
+ * the foes' single-target moves), and a legal ability carrying `onAnyRedirectTarget`/`onFoeRedirectTarget`, with the
+ * move type its handler gates on (`move.type !== "X"`). Printed by `node engine/stage_planner.js --redirectors`. */
+let REDIRECTORS = null;
+function redirectors() {
+  if (REDIRECTORS) return REDIRECTORS;
+  const moves = U.MOVES.filter(d => d.target === 'self' && handlersOf(d).some(h => /^condition\.onFoeRedirectTarget$/.test(h.name)))
+    .map(d => ({ id: d.id, name: d.name, powder: handlersOf(d).some(h => /runStatusImmunity\(\s*["']powder["']/.test(h.src)) }));
+  const abilities = U.ABILITIES.map(a => ({ a, h: handlersOf(a).find(h => /^on(Any|Foe)RedirectTarget$/.test(h.name)) })).filter(x => x.h)
+    .map(({ a, h }) => ({ id: a.id, name: a.name, type: (/move\.type\s*!==\s*["'](\w+)["']/.exec(h.src) || [])[1] || null }));
+  REDIRECTORS = { moves, abilities };
+  return REDIRECTORS;
+}
 function derivedAbilityTriggers(e, preNeeds) {
   const out = [];
   const tg = tagsOf('abilities', e.id);
@@ -427,6 +454,13 @@ function derivedAbilityTriggers(e, preNeeds) {
   if (p.preventsSwitch && p.preventsSwitch.source === 'ability') out.push({ kind: 'foe-trapped', source: 'tag preventsSwitch' });
   /* THE CARRIER LEAVING THE FIELD IS THE TRIGGER (an `onSwitchOut` forme change, tag switchOutTrigger) */
   if (p.switchOutTrigger) out.push({ kind: 'carrier-switches-out', source: 'tag switchOutTrigger (' + (p.switchOutTrigger.does || '') + ')' });
+  /* ==== 2026-09-19 (b) -- A HOLDER WHOSE HIT IGNORES REDIRECTION needs a REDIRECTOR ON THE FOE SIDE ====
+   * Read off the handler, never the name: it WRITES `move.tracksTarget`, and the authority's `getMoveTargets` asks the
+   * `RedirectTarget` event only when `!move.tracksTarget` (cited at plan time by `redirectGate`). With nobody redirecting,
+   * the flag changes nothing and the ability cannot be seen -- the Stalwart fixture before this read DID-NOT-FIRE against a
+   * quiet control and its old FIRED rested on Stamina's own Defence boost. The redirectors are derived too (`redirectors`). */
+  if (handlersOf(e).some(h => /move\.tracksTarget\s*=/.test(h.src)) && redirectGate())
+    out.push({ kind: 'foe-redirects', gate: redirectGate().at, source: 'handler writes move.tracksTarget; ' + redirectGate().at + ' skips RedirectTarget when it is set' });
   /* A FORME THAT FOLLOWS THE WEATHER needs one of the weathers it names on the field */
   const fw = p.formeFollowsWeather;
   if (fw && fw.byWeather && Object.keys(fw.byWeather).length)
@@ -1735,6 +1769,52 @@ function composeEntity(rc, x) {
     rc.conditions.push({ kind: 'click', role: 'R', move: g, phase: 1 });
     rc.notes.push('the receiver shields with ' + D.moves.get(g).name + ' on the trigger turn; the holder\'s hit is read through it (onHitProtect)');
   }
+  /* ---- 2026-09-19 (b): THE FOE SIDE REDIRECTS, AND THE HOLDER'S HIT IGNORES IT (trigger `foe-redirects`) ----
+   * RA draws the foes' single-target moves on the trigger turn (a derived redirector move, priority above the hit, or a
+   * redirector ability with a hit of the type its handler names); C aims a single-target hit at R. With the ability the
+   * hit tracks R; with the control it is drawn to RA. The leaf is R's HP (RA's moves opposite). A powder-gated redirector
+   * is used only where the carrier is not immune to powder, read off the type chart. */
+  if (T('foe-redirects').length) {
+    if (acts.some(a => a.phase === 1 && (a.role === 'C' || a.role === 'RA'))) refuse('PLANNER-CANNOT-CONSTRUCT', 'the redirect fixture needs C and RA free on the trigger turn');
+    const R = redirectors();
+    const C = rc.bodies.C;
+    const powderOk = D.getImmunity('powder', typesOf(C));
+    let ra = null;
+    for (const sid of speciesOrder()) {
+      const sp = D.species.get(sid);
+      if (rc.used.has(id(sp.baseSpecies || sp.name))) continue;
+      const mv = R.moves.find(m => (powderOk || !m.powder) && learns(sp.name, m.id));
+      const ab = quietAbility(sp.name, weatherish().concat([e.id]));
+      if (mv && ab) { ra = { sp, ab, move: mv }; break; }
+    }
+    let typeGate = null;
+    if (!ra) for (const r of R.abilities) {
+      for (const sid of speciesOrder()) {
+        const sp = D.species.get(sid);
+        if (rc.used.has(id(sp.baseSpecies || sp.name)) || !Object.values(sp.abilities || {}).map(id).includes(r.id)) continue;
+        if (!abilityAccepted(sp.name, r.name)) continue;
+        ra = { sp, ab: r.name, via: r }; typeGate = r.type; break;
+      }
+      if (ra) break;
+    }
+    if (!ra) refuse('NO-TRIGGER-SUPPLIER', 'no legal body learns a redirector (' + R.moves.map(m => m.name).join('/') + ') or carries a redirecting ability');
+    useSpecies(rc, ra.sp.name);
+    setBody(rc, 'RA', { species: ra.sp.name, field: ra.sp.name, ability: ra.ab });
+    const h = hitFor(rc, 'C', 'R', { pred: d => (!typeGate || d.type === typeGate) && !masksFor(d.id, C, rc.bodies.RA, { arm: rc.arm }).length });
+    if (!h) refuse('NO-TRIGGER-SUPPLIER', 'the carrier ' + C.species + ' has no single-target hit that lands on both ' + rc.bodies.R.species + ' and ' + ra.sp.name + (typeGate ? ' of type ' + typeGate : ''));
+    if (ra.move) {
+      const rm = addMove(rc, 'RA', ra.move.id);
+      acts.push({ role: 'RA', click: { m: rm }, phase: 1 });
+      rc.conditions.push({ kind: 'click', role: 'RA', move: ra.move.id, phase: 1 });
+    } else rc.conditions.push({ kind: 'field', role: 'RA', field: 'ability', value: ra.ab });
+    acts.push({ role: 'C', click: { m: h, at: 'R' }, phase: 1 });
+    tc('C', 'R', h, 1, {});
+    rc.conditions.push({ kind: 'click', role: 'C', move: id(h), phase: 1 });
+    rc.live.add('RA');
+    rc.observe = { role: 'R', leaf: 'hp', channel: 'board', leaves: ['hp'] };
+    rc.notes.push(ra.sp.name + (ra.move ? ' clicks ' + ra.move.name : ' carries ' + ra.ab) + ' (a redirector, derived) while the carrier aims '
+      + D.moves.get(h).name + ' at ' + rc.bodies.R.species + '; the gate is ' + T('foe-redirects')[0].gate);
+  }
   /* ---- the partner ---- */
   for (const [key, m] of Object.entries(rc.caMoves || {})) {
     const d = D.moves.get(m);
@@ -1873,7 +1953,7 @@ function composeEntity(rc, x) {
     'foe-statused', 'bypass-immunity', 'speed-mult',
     /* FORCE-FIRE (2026-09-19) — each staged above: */
     'weight', 'target-holds-item', 'holder-ate-berry', 'nearby-item-used', 'foe-carries-se-move', 'carrier-faster', 'switch-out',
-    'target-protects', 'carrier-switches-out', 'foe-trapped'].includes(t.kind)) {
+    'target-protects', 'carrier-switches-out', 'foe-trapped', 'foe-redirects'].includes(t.kind)) {
     if (t.kind === 'board' && ['volatile-present', 'own-stat-dropped', 'trapped', 'item-consumed', 'accuracy-roll', 'crit-roll', 'speed-order', 'ally-only', 'heal-effect', 'pp-exhausted', 'ko-hit', 'hp-threshold'].includes(t.state)) continue;
     if (t.kind === 'board' && t.state === 'species-gated') continue;
     rc.unconsumed = (rc.unconsumed || []).concat(t.kind + (t.state ? ':' + t.state : ''));
@@ -2890,7 +2970,13 @@ function buildOne(kind, e, trig, bearer, branch, stager) {
     observe: { channel: obs.channel || (rc.observe || {}).channel, leaves: obs.leaves || [], role: (rc.observe || {}).role || null, leaf: (rc.observe || {}).leaf || null },
     control: control.rc ? Object.assign({ variable: control.variable, why: control.why },
       'quiet' in control ? { quiet: control.quiet, loud: control.loud, first_passing: control.first_passing,
-                             first_passing_quiet: control.first_passing_quiet, passing: control.passing } : {}) : null,
+                             first_passing_quiet: control.first_passing_quiet, passing: control.passing } : {},
+      /* 2026-09-19 (b): WHY THE CONTROL IS NOT AN ABILITY SWAP, where it is not -- every alternative ability the swap
+       * chain tried and its rejection, or the bearer route that has no alternative (a mega forme holds one ability) */
+      control.variable !== 'C.ability' && kind === 'abilities'
+        ? { ability_swap_rejected: rc.controlTried && rc.controlTried.length ? rc.controlTried.slice(0, 6)
+            : bearer && bearer.via !== 'slot' ? ['no alternative: the bearer is a ' + bearer.via + ' (' + bearer.sheet + ')']
+            : bearer ? ['no alternative: ' + bearer.sheet + ' carries no other ability'] : ['no bearer (a conferred fixture)'] } : {}) : null,
     controlRefusal: control.refusal || null,
     variants, plants: plantsFor(rc, kind, e, control, obs),
     notes: rc.notes, assumptions: rc.assumptions, half: rc.half || null,
@@ -3122,6 +3208,14 @@ if (require.main === module) {
   console.log('  validator: ' + P.meta.validator.calls + ' teams validated (' + P.meta.validator.cached + ' cached) | crit ' + P.meta.crit.cite + ' ' + JSON.stringify(P.meta.crit.table) + ' | gender pin ' + (P.meta.genderPin || {}).at);
   console.log('  derivation: ' + P.meta.normalised.length + ' entities gained a need once `?.` read as `.`; ' + P.meta.overmatchDropped.length + ' PRE needs dropped as over-matches');
   if (argv.includes('--show-derivations')) for (const x of P.meta.normalised.concat(P.meta.overmatchDropped)) console.log('    ' + x);
+  if (argv.includes('--redirectors')) {
+    const R = redirectors();
+    console.log('  redirect gate: ' + JSON.stringify(redirectGate()));
+    console.log('  redirector moves: ' + R.moves.map(m => m.name + (m.powder ? ' (powder-gated)' : '')).join(', '));
+    console.log('  redirector abilities: ' + R.abilities.map(a => a.name + (a.type ? ' (' + a.type + ' only)' : '')).join(', '));
+    console.log('  abilities whose handler writes move.tracksTarget: ' + U.ABILITIES.filter(a => handlersOf(a).some(h => /move\.tracksTarget\s*=/.test(h.src))).map(a => a.name).join(', '));
+    console.log('  items whose handler writes move.tracksTarget: ' + U.ITEMS.filter(a => handlersOf(a).some(h => /move\.tracksTarget\s*=/.test(h.src))).map(a => a.name).join(', '));
+  }
   if (argv.includes('--show')) for (const m of P.mechanics) {
     console.log('\n' + m.key + (m.refusal ? '  REFUSED ' + m.refusal.code + ': ' + m.refusal.reason : ''));
     console.log('  triggers: ' + m.triggers.map(t => t.kind + (t.state ? ':' + t.state : '') + (t.need ? ':' + t.need.kind + '=' + (t.need.values || []).join('/') + '<' + t.by : '')).join(', '));

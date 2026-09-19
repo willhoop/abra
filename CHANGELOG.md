@@ -10,6 +10,18 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.67.0] — 2026-09-19
+
+### Changed
+- The older staged-game control chooser takes a control measured quiet in the authority's own game
+  (`AMF_LEGACY_FIRST_CONTROL=1` restores the old choice). Stalwart fires on a Rage Powder fixture against a
+  quiet Stamina control. Flash Fire and Stench now read DID-NOT-FIRE: their old FIRED came from the control.
+
+### Notes
+- Nine FIRED ability rows still rest on a control that acts, with no receipt from the ability itself:
+  Corrosion, Damp, Infiltrator, Leaf Guard, Long Reach, Overgrow, Pickpocket, Poison Touch, Sticky Hold.
+  Report: `docs/_reports/2026-09-19-quiet-controls-legacy.md`.
+
 ## [6.66.1] — 2026-09-19
 
 ### Changed
