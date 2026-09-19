@@ -1,6 +1,6 @@
 # 7.0.0 DRAFT — for Will to read before anything is published
 
-**Status: DRAFT. NOT PUBLISHED.** Will, 2026-09-19: *"get as close to 7.0 as you can so i can read about it
+**Status: DRAFT. NOT PUBLISHED. Pass 3 (2026-09-19) rests on release `6180c4712761` (6.69.0); read PASS 3 at the end first — it supersedes the release and figures named in the sections above it.** Will, 2026-09-19: *"get as close to 7.0 as you can so i can read about it
 before we publish"*. These five files are the 7.0.0 living-document fold-in, written as if the MEDICHAM gate
 opens. They live in `docs/_reports/`, which is historical by construction and outside every live-document
 gate. The live documents in `docs/` are unchanged. No `## [7.0.0]` CHANGELOG entry exists, and no version
@@ -166,3 +166,106 @@ python ../portfolio/build/check_projects.py
 
 Also owed: the corner arms on `4c9b0cc4a4da`; the driver's disabled-move refusals; register rows for the
 three narration leads; `node engine/register_reality.js` (stale verdicts); the PDFs.
+
+## PASS 3 — 2026-09-19
+
+**The draft now rests on release `6180c4712761` (CHANGELOG 6.69.0), not `4c9b0cc4a4da` (6.61.0).** The gate
+reads `GATE: OPEN — MEDICHAM passes both conditions; nothing is withheld`, ten of ten clauses, with the
+blind-spot clauses in force. Every gate figure in the five documents, `CHANGELOG-7.0.0.md` and
+`NOTES-7.0.0.md` was re-read this pass from `data/game-differential{,.g1350,.g1950}.json`,
+`data/all-mechanics-fire.json`, `data/roster.{items,abilities,moves}.json`, `data/engine-diff.json`,
+`data/mechanics-census.json` and `data/protocol-events.json` (all stamped `6180c4712761`, unchanged since
+the 6.69.0 runs, no writer live), and from `node engine/quarantine.js`, `node engine/coverage.js` and
+`node engine/open_work.js`, run through `tools\lownode.cmd` at HEAD `165b338c`. No figure typed from memory;
+every new entity name checked against `Dex.forFormat('gen9championsvgc2026regmb')`.
+
+**Placeholders: 0** (`grep -c '<<'` reads 0 in all five documents and both paste files).
+
+### What changed in this pass
+
+- **Gate figures replaced**: board 0/0/0 and narration 0/0/0 as before; `threw` 1/1/2 → **0/0/0**; boundaries
+  10,705 / 11,842 / 16,713 → **10,716 / 11,856 / 16,725**; SAME-END-STATE 960/1068/1495 → **961/1069/1497**;
+  census pin `1298f25115e3` → **`57deebd09273`**, driver digest **`faf70ecbca71`** added; census 955 →
+  **969**; staged games 4700 → **4638** (planner 3836 → 3936); AMF diverged 1/1/0 → **0/0/0**, clause
+  sentence now *0 diverge (+1 board-only) … 1 below the reach shelf*; protocol events 45/49 → **46/48**;
+  `state.not_compared` 8 → **7** (Unburden became compared); nine clauses → **ten**. Roster, damage and red
+  plants unchanged in value, re-read on the new release.
+- **Folded in 6.62.0–6.69.0**: the blind-spot clauses (proof, board-only partings, the board-leaf clause,
+  thrown games, control-arm partings, earned credit on a live control); the 6.63.0 engine fixes and the
+  driver fix that ended the four thrown games; Anger Point (6.66.0); the quiet-control preference and the
+  eleven re-staged rows (6.67.0, 6.68.0); the release-pin fix (6.65.1); the scanner collision fix and the
+  six withdrawals (6.62.0). Twelve knob rows and ten probe rows added to the tech docs (§3.7, §3.8), each
+  engine knob checked present in the release copy of `engine/medicham2-browser.js`; the driver and
+  instrument knobs are named as such. The `7,234` sentence now carries main's pinned binding
+  (`78bff6c1:data/quality-filter.json`) instead of the deletion, per the 6.62.0 row.
+- **The coverage sections are rewritten in all five documents** to Will's rule: no "MEDICHAM is correct" or
+  "done" — *"every gating clause passes, including the blind-spot clauses"* — then a plain list of what is
+  NOT covered: Illusion (closeted, unmodelled); **Frisk and Axe Kick, OPEN and being fixed**; the sample
+  (961 / 1,069 / 1,497 games, one frozen open-sheet pool, cap 50, one driver, rule-of-three ≈ 0.20%);
+  closed-sheet and bo1 play not sampled; invented spreads; 76 effects that print nothing; uncomparable leaves
+  covered only by other instruments (one by none); entities never exercised; ranged mechanics; two tags with
+  no consumer; the declared divergence; the corners; downstream models re-runnable and NOT re-run. Six
+  existing sentences that said the gate decides whether MEDICHAM "is correct" were reworded.
+- **Basis** gains a fourth item in every document: a PASS no longer means what it meant at 6.61.0 (nine
+  clauses → ten, stricter mechanics clause).
+
+### Read these first (they replace the PASS 2 list)
+
+1. **Frisk and Axe Kick pass only by deferral.** Frisk DID-NOT-FIRE (the fixture's foes hold no item); Axe
+   Kick's staged board parts on the confusion counter (2 vs 1) and is judged below the reach shelf. Both are
+   stated OPEN in all five documents. If ENGINE lands either fix, the lab figures move and this draft needs a
+   re-read, not a rewrite.
+2. **Coaching's `-fail` after `[notarget]` is still open and on no register row** (6.57.0 notes row). The
+   Tidy Up and `-unboost|0` leads of PASS 2 are closed (6.63.0).
+3. **Scanner defect: a release hash that opens with four digits is lexed as a figure.** `figuresInText`
+   reads `6180c4712761` as the figure 6180 (a hash opening with one digit, like `4c9b0cc4a4da`, lexes as
+   nothing). It counts as "bound" wherever a paragraph happens to cite `data/game-differential.g1350.json`,
+   which holds 6180 by collision, and is unbound on three heading lines here (white paper line 5, tech docs
+   line 9, SUMMARY's MEDICHAM row). Deliberately not bound by collision; the lexer is owed a fix.
+4. **Roster fixture-legality printouts are unexplained** (items 17, abilities 94, moves 57 sets printed
+   illegal and not baselined on `6180c4712761`); stated as open in the tech docs.
+5. `data/register-reality.json` is from 2026-09-12 and older than the register; the open-defect clause says
+   so and passes.
+
+### Checks
+
+- `docs_scan` functions over the five draft paths (scratchpad script): **0 retraction violations, 0 citation
+  mismatches, 0 quarantined figures, 0 untraceable.** Unbound figures on lines this pass changed: **3**, all
+  the release-hash lexing in item 3.
+- `node tests/test-docs-current.js` on the working tree: 35 passed, 2 failed — the same two clauses and
+  counts as before this pass (baseline 18 → 29 and 1,884 → 1,880), from the held working-copy drafts in
+  `docs/`; this folder is outside its scope.
+- `node engine/docs_scan.js --owed`: **92 of 100** owed.
+- `node engine/quarantine.js`: `GATE: OPEN`, ten PASS; 69 of 261 artifacts downstream and RE-RUNNABLE.
+
+### Publish checklist (only when Will says publish)
+
+1. ~~Cut and commit the release~~ DONE: `6180c4712761`, `git ls-files data/releases/6180c4712761` lists 29.
+2. ~~Measure on it~~ DONE (6.69.0). Corners NOT re-run.
+3. ~~Fill placeholders~~ DONE: 0.
+4. Decide Frisk and Axe Kick: publish with them stated OPEN (as drafted), or wait for ENGINE's fixes and
+   re-read the lab figures.
+5. Copy the five documents over `docs/` (Will's held working copies there differ from HEAD; reconcile
+   first), and set each line-3 version header to 7.0.0 with the date.
+6. Paste `CHANGELOG-7.0.0.md` above the top CHANGELOG entry and `NOTES-7.0.0.md` above the top notes row
+   (`**Basis.** CHANGED`; clause 5d refuses a major that names none).
+7. Run `node engine/status.js --write`, rebuild the PDFs, then `tests/test-docs-current.js`,
+   `tests/test-docs-quarantine.js`, `engine/docs_scan.js --owed` (should reach 0),
+   `engine/major_readiness.js`, `engine/provenance.js` and `../portfolio/build/check_projects.py`.
+
+## OWED, NOT RUN
+
+```bash
+# at publish, after copying the five files over docs/ and setting the line-3 headers to 7.0.0
+node tests/test-docs-current.js          # the grandfather ratchet on the real paths; 3 hash-lexing unbound
+node tests/test-docs-quarantine.js
+node engine/docs_scan.js --owed          # should reach 0
+node engine/major_readiness.js
+node engine/provenance.js
+node engine/status.js --write
+python ../portfolio/build/check_projects.py
+```
+
+Also owed: Frisk's and Axe Kick's fixes (ENGINE, in progress); the corner arms on `6180c4712761`; a register
+row for Coaching's `[notarget]` lead; `node engine/register_reality.js`; the release-hash lexing defect in
+`engine/docs_scan.js`; the roster fixture-legality printouts; the PDFs.

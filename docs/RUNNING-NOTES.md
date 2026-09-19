@@ -59,6 +59,7 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Basis.** unchanged.
 - **Supersedes.** ~~GATE: CLOSED — 2 of 10~~ (6.65.0 row, on `d92bdfb50d88`), now OPEN. ~~9 unproven in-scope rows~~ (same row), now 0 after 2 owner excusals. ~~entities exercised 859 of 899~~, now 860 of 901 (`engine/coverage.js`). Neither figure stands in the white paper outside a dated block.
 - **Owed to the next major.** The gate reading. Per `CLAUDE.md`, the gate opening is the archetypal MAJOR, and that call is Will's (the 7.0.0 draft is held). Frisk's old FIRED was its loud control's work (Cursed Body's Disable); on a quiet control it does not fire because no foe holds an item. `docs/_reports/2026-09-19-6180-remeasure.md`.
+- **Coordinator housekeeping.** Twelve `docs/ENGINE.md` section headings from 2026-09-12 carried an unfilled `<<VER>>`; each is filled with the CHANGELOG version whose commit introduced the section (`git log -S` on the heading, then the `## [` line that commit added): 6.31.0, 6.33.0, 6.34.0, 6.36.0, 6.38.0, 6.39.0, 6.40.0, 6.41.0, 6.42.0, 6.43.0, 6.44.0, 6.45.0. None left. No figure moved.
 
 ## [6.68.0] — 2026-09-19 — Eleven ability rows staged on their own triggers against measured-quiet controls; Sticky Hold announces a refused strip and lets a fainting holder's item go
 
