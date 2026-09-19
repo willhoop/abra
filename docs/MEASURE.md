@@ -38,6 +38,41 @@ _stamped 2026-09-19 14:35_
 
 <!-- /GENERATED -->
 
+## AN ABILITY THAT READS FIRED ONLY BECAUSE ITS CONTROL ACTS NOW FAILS THE MECHANICS CLAUSE. 2026-09-19 (6.67.1)
+
+**WHY.** 6.67.0 watched the authority's handlers and found FIRED ability rows whose A/B cannot separate the
+ability from its control: the control ability acts in its own game, or the control is a different click
+or a removed item. On the named rows, nine had no receipt from the ability itself. The proof half credited
+all of them as "FIRED with a control arm". That is an unearned pass.
+
+**WHERE.** Inside the proof half of the mechanics clause (`controlWatchTerm`, `unearnedReason`). An
+unearned row goes into the same failing list as an unproven row, with the same scope and the same owner
+excusals. The gate stays at 10 clauses.
+
+**THE BAR.** A FIRED ability row on a live control passes only on the ability's own receipt:
+
+| row | reading |
+|---|---|
+| `control_live`, receipt `state` / `narrated` / `log`, credited | passes |
+| `control_live`, receipt `latent-only` / `none` | fails |
+| credit and receipt class disagree, or unknown class | fails |
+| no `control_live` and no measured quiet `control_watch` | fails |
+| rows disagree with the summary's live or unearned lists | fails |
+
+**Strict excusal.** The SUBJECT's owner shelf (`closet.ids`) or the Illusion closet only. The control's
+shelf excuses nothing, because the question is whether the subject is proven.
+
+**CANNOT-ANSWER** is a fail. It applies to an artifact with no `summary.abilities.control_watch`, one with
+no game or call counters, and a BLIND watch (games watched, zero handler calls). The clause exits 1 in these
+cases, like the control-arm half does.
+
+**PROOF.** The selftest goes from **331 to 353**. With `unearnedReason` forced to credit every row, **13**
+arms fail; with the cannot-answer door removed, **3** fail. The green arms stay green in both.
+
+**TODAY'S READING.** The artifact on disk was measured on `d92bdfb50d88` and the tree is `54d02066fd71`, so
+the pin withholds the clause. The artifact predates the watch, so the new term reads CANNOT-ANSWER. Report:
+`docs/_reports/2026-09-19-gate-unearned.md`.
+
 ## A CONTROL ARM THAT PARTS A BOARD FAILS THE MECHANICS CLAUSE. 2026-09-19 (6.66.1)
 
 **WHY.** A control arm is a real two-engine game. On `d92bdfb50d88` the Hyper Cutter row's control arm,

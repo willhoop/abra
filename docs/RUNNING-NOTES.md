@@ -52,6 +52,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.67.1] — 2026-09-19 — an ability row that reads FIRED only because its control acts now fails the mechanics clause
+
+- **What changed.** `engine/quarantine.js`, inside the mechanics clause's proof half (no new clause): `controlWatchTerm` reads `summary.abilities.control_watch` from `data/all-mechanics-fire.json` (6.67.0 field), and `unearnedReason` reads each FIRED ability row's `control_live`. An in-scope row on a live control whose credit is not backed by the subject's own receipt (`state` / `narrated` / `log`) fails exactly like an unproven row, named. The receipt class is read, not only the boolean: `earned_by_subject_receipt: true` over receipt `none`, or an unknown class, fails. A FIRED row with neither a `control_live` stamp nor a measured quiet `control_watch` fails. Rows that disagree with the summary's live or unearned lists fail. Excused only on the SUBJECT's owner shelf (`closet.ids`) or the Illusion closet; the control's shelf excuses nothing. No `control_watch`, no counters, or a blind watch reads CANNOT-ANSWER, never a pass.
+- **Measured.** NO FIGURE. Selftest 331 → 353 passed, 0 failed. Deliberate breaks on scratch copies: `unearnedReason` forced to credit → 13 red arms fail, green arms stay green; the cannot-answer door removed → 3 fail. On the current `data/all-mechanics-fire.json` (release `d92bdfb50d88`; tree `54d02066fd71`) the clause is WITHHELD by the pin, and the new term reads CANNOT-ANSWER: the artifact predates the watch.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing. PATCH. The gate still has 10 clauses, and the mechanics clause was already failing on `d92bdfb50d88`.
+- **Owed to the next major.** none. The first reading comes from the full-battery re-measure on `54d02066fd71` or later. Report: `docs/_reports/2026-09-19-gate-unearned.md`.
+
 ## [6.67.0] — 2026-09-19 — The legacy ladder prefers a measured-quiet control; Stalwart fires on a redirect fixture; 9 FIRED rows on a live control have no subject receipt
 
 **What changed.** `engine/all_mechanics_fire.js` watches the authority's handlers of a named ability for one game

@@ -1123,6 +1123,93 @@ function controlArmLine(A) {
         + (e.control || '?') + ')').join(', ') : 'none');
 }
 
+/* ---- A FIRED ABILITY ROW ON A LIVE CONTROL IS PROVEN ONLY BY THE SUBJECT'S OWN RECEIPT — 6.67.1 ------
+ *
+ * 6.67.0 (docs/_reports/2026-09-19-quiet-controls-legacy.md) put a watch on the authority's handlers and
+ * found FIRED ability rows whose A/B cannot separate the subject from the control: the control ability
+ * read LOUD in its own game (Toxic Debris laying Toxic Spikes under Corrosion's row), or the control is
+ * not an ability at all but a different CLICK or a removed item, so the two arms differ whatever the
+ * ability does. `PROVEN.abilities` credited every one of them — "FIRED with a control arm" — and on the
+ * named rows nine of them had nothing else behind the credit. That is an UNEARNED pass, the blind spot
+ * Will named: *"stop saying medicham is done when all these blind spots remain"*.
+ *
+ * THE PRODUCER DECIDES, THIS READER CHECKS IT. `engine/all_mechanics_fire.js` stamps `control_live` on
+ * every such row with the RECEIPT class (state / narrated / log earn it; latent-only / none do not) and
+ * `earned_by_subject_receipt`. This reader takes that verdict and never re-derives it, but it does
+ * refuse three ways it could be lying:
+ *   - the credit and the receipt class DISAGREE (earned with receipt `none`, or a class this reader
+ *     does not know) -> FAILS, never a pass; so a row is credited by its RECEIPT, not by the boolean
+ *     and not by the A/B;
+ *   - a FIRED ability row carries NEITHER a `control_live` stamp NOR a measured quiet `control_watch`
+ *     -> FAILS: the producer gives every FIRED row one or the other, so a row with neither was never
+ *     looked at;
+ *   - the rows and `summary.abilities.control_watch` disagree about which rows are live or unearned
+ *     -> FAILS: a derived set is not a fact until something compares it to its source.
+ *
+ * SCOPE AND EXCUSALS ARE THE PROOF HALF'S, EXACTLY: in-scope rows only (engine/legal_scope.js), and
+ * excused only on the SUBJECT's owner shelf — `closet.ids` (tests/roster.js DEFERRED) or the Illusion
+ * closet — through `ownerExcusal`. STRICT: the CONTROL's shelf does not excuse, because the question is
+ * whether the SUBJECT is proven, and a `deferred` stamp neither source backs is named and not excused.
+ *
+ * AN ARTIFACT WITH NO `summary.abilities.control_watch` IS CANNOT-ANSWER, NEVER A PASS. Anything written
+ * before 6.67.0 never watched a control game, so it cannot say which FIRED rows are earned. Neither can
+ * a BLIND watch (games watched and zero handler calls): every control would read quiet and every row
+ * would pass on a watch that saw nothing. */
+const EARNING_RECEIPTS = new Set(['state', 'narrated', 'log']);
+const KNOWN_RECEIPTS = new Set(['state', 'narrated', 'log', 'latent-only', 'none']);
+function controlWatchTerm(j) {
+  const out = { cannot_answer: false, why: null, mismatch: null, cw: null };
+  const cw = j && j.summary && j.summary.abilities && j.summary.abilities.control_watch;
+  if (!cw || typeof cw !== 'object' || !Array.isArray(cw.fired_on_live_control_unearned)
+      || !Array.isArray(cw.fired_on_live_control)) {
+    return Object.assign(out, { cannot_answer: true,
+      why: 'THE ARTIFACT PREDATES THE CONTROL WATCH — it carries no `summary.abilities.control_watch` '
+         + '(engine/all_mechanics_fire.js 6.67.0+), so nothing says which FIRED ability rows rest on a '
+         + 'live control with no receipt of their own. Unasked is not earned.' });
+  }
+  const num = (k) => typeof cw[k] === 'number';
+  if (!['games', 'handler_calls', 'subject_games', 'subject_handler_calls'].every(num)) {
+    return Object.assign(out, { cannot_answer: true,
+      why: 'THE CONTROL WATCH CARRIES NO GAME AND CALL COUNTERS, so a blind watch cannot be told from a '
+         + 'quiet one.' });
+  }
+  if ((cw.games > 0 && cw.handler_calls === 0) || (cw.subject_games > 0 && cw.subject_handler_calls === 0)) {
+    return Object.assign(out, { cannot_answer: true,
+      why: 'THE CONTROL WATCH IS BLIND — ' + cw.games + ' control game(s) / ' + cw.handler_calls
+         + ' handler call(s), ' + cw.subject_games + ' fixture game(s) / ' + cw.subject_handler_calls
+         + ' subject call(s). A watch that saw no handler reads every control quiet.' });
+  }
+  out.cw = cw;
+  const rows = Array.isArray(j.rows && j.rows.abilities) ? j.rows.abilities.filter(Boolean) : [];
+  const live = rows.filter((r) => r.control_live).map((r) => nid(r.id)).sort();
+  const unearned = rows.filter((r) => r.control_live && r.control_live.earned_by_subject_receipt !== true)
+    .map((r) => nid(r.id)).sort();
+  const sLive = cw.fired_on_live_control.map((s) => nid(String(s).split(':')[0])).sort();
+  const sUn = cw.fired_on_live_control_unearned.map(nid).sort();
+  const skew = [];
+  if (live.join() !== sLive.join()) skew.push('live: rows ' + live.length + ', summary ' + sLive.length);
+  if (unearned.join() !== sUn.join()) skew.push('unearned: rows [' + unearned.join(', ') + '], summary ['
+    + sUn.join(', ') + ']');
+  if (skew.length) out.mismatch = 'THE ROWS AND THE CONTROL-WATCH SUMMARY DISAGREE — ' + skew.join('; ')
+    + '. One of the two describes a different population; neither is authoritative until they agree.';
+  return out;
+}
+/* Per row, AFTER `PROVEN.abilities` has passed: null when the credit stands, else the reason it does not. */
+function unearnedReason(r) {
+  const L = r.control_live;
+  if (!L) {
+    const w = r.control_watch;
+    return w && w.measured === true && w.quiet === true ? null
+      : 'FIRED, CONTROL NEITHER WATCHED QUIET NOR MARKED LIVE';
+  }
+  const rc = String(L.receipt || '');
+  if (!KNOWN_RECEIPTS.has(rc)) return 'FIRED ON A LIVE CONTROL, RECEIPT CLASS UNRECOGNISED (' + (rc || 'none given') + ')';
+  if (L.earned_by_subject_receipt === true && EARNING_RECEIPTS.has(rc)) return null;
+  if (L.earned_by_subject_receipt === true) return 'FIRED ON A LIVE CONTROL, CREDITED ON A RECEIPT THAT DOES NOT EARN IT (' + rc + ')';
+  if (EARNING_RECEIPTS.has(rc)) return 'FIRED ON A LIVE CONTROL, RECEIPT ' + rc + ' BUT NOT CREDITED — THE STAMPS DISAGREE';
+  return 'FIRED ON A LIVE CONTROL, UNEARNED';
+}
+
 const PROVEN = {
   moves: (r) => r.resolved === true && r.medicham_resolved === true,
   abilities: (r) => r.verdict === 'FIRED' && !!r.control,
@@ -1148,6 +1235,9 @@ function mechanicsProof(j, inject) {
   const { closetIds, HC, hasHC } = SHV;
   const failing = [], excused = [], uncorroborated = [];
   const scopeFailures = Array.isArray(S.failures) ? S.failures : [];
+  /* THE CONTROL-WATCH TERM (6.67.1) — see `controlWatchTerm`. Read once; per-row judgement below. */
+  const CW = controlWatchTerm(j);
+  const earnedTally = { live: 0, earned: 0, by_receipt: {}, unearned: 0 };
   for (const kind of ['moves', 'abilities', 'items']) {
     const one = SINGULAR[kind];
     const list = Array.isArray(j && j.rows && j.rows[kind]) ? j.rows[kind] : null;
@@ -1164,16 +1254,32 @@ function mechanicsProof(j, inject) {
       const id = nid(idRaw), key = one + ':' + id;
       const r = byId.get(id);
       if (!r) { failing.push({ kind, id, key, label: list ? 'NO ROW' : 'NO ROWS FOR THIS KIND' }); continue; }
-      if (PROVEN[kind](r)) continue;
+      let label;
+      if (PROVEN[kind](r)) {
+        /* A FIRED ability row: the A/B credit stands only if the control watch says it may. An artifact
+         * that cannot answer the term leaves the row uncredited-by-this-term and the whole term fails
+         * below (CANNOT-ANSWER), so no row passes on a watch that was never taken. */
+        if (kind !== 'abilities' || CW.cannot_answer) continue;
+        if (r.control_live) {
+          earnedTally.live++;
+          const rc = String(r.control_live.receipt || '');
+          earnedTally.by_receipt[rc] = (earnedTally.by_receipt[rc] || 0) + 1;
+        }
+        const why = unearnedReason(r);
+        if (!why) { if (r.control_live) earnedTally.earned++; continue; }
+        earnedTally.unearned++;
+        label = why;
+      } else label = UNPROVEN_LABEL[kind](r);
       const by = ownerExcusal(kind, id, r, SHV);
-      const label = UNPROVEN_LABEL[kind](r);
       if (by) { excused.push({ kind, id, key, label, by }); continue; }
       if (r.deferred) uncorroborated.push({ kind, id, key, label, stamp: r.deferred });
       failing.push({ kind, id, key, label });
     }
   }
-  return { ok: failing.length === 0 && scopeFailures.length === 0, failing, excused, uncorroborated,
-           scopeFailures, closetIds: closetIds ? closetIds.size : null,
+  const earned = { cannot_answer: CW.cannot_answer, why: CW.why, mismatch: CW.mismatch,
+                   ok: !CW.cannot_answer && !CW.mismatch, ...earnedTally };
+  return { ok: failing.length === 0 && scopeFailures.length === 0 && earned.ok, failing, excused, uncorroborated,
+           earned, scopeFailures, closetIds: closetIds ? closetIds.size : null,
            harnessCloset: hasHC ? { ability: HC.ability, species: [...HC.species], from: HC.from || null }
                                 : { why: (HC && HC.why) || 'absent' } };
 }
@@ -1189,7 +1295,11 @@ function proofLine(P) {
   return NL + '  PROOF — ' + (P.failing.length
       ? P.failing.length + ' IN-SCOPE MECHANIC(S) ARE NOT PROVEN — an ability or item must be FIRED '
         + 'with a control arm, a move RESOLVED on both engines; untested is not agreeing:' + body
-      : 'every in-scope mechanic is proven (FIRED with a control / resolved on both engines).')
+      : P.earned && !P.earned.ok
+      ? 'no in-scope row fails on its own verdict, BUT THE CONTROL WATCH DOES NOT CLEAR THE FIRED '
+        + 'ABILITY CREDITS (see CONTROL WATCH below) — so the proof is NOT complete.'
+      : 'every in-scope mechanic is proven (FIRED with a quiet control or the subject\'s own receipt / '
+        + 'resolved on both engines).')
     + (P.scopeFailures.length ? NL + '    SCOPE DERIVATION FAILURES: ' + P.scopeFailures.join(' | ') : '')
     + NL + '    EXCUSED BY THE OWNER — ' + (P.excused.length
       ? P.excused.length + ': ' + P.excused.map((e) => e.key + ' (' + e.label + '; ' + e.by + ')').join(', ')
@@ -1197,7 +1307,19 @@ function proofLine(P) {
     + (P.uncorroborated.length ? NL + '    A `deferred` STAMP NEITHER SOURCE CORROBORATES, NOT EXCUSED: '
         + P.uncorroborated.map((u) => u.key).join(', ') : '')
     + (P.harnessCloset.species ? '' : NL + '    ILLUSION CLOSET NOT READ (' + P.harnessCloset.why
-        + ') — nothing is excused on it.');
+        + ') — nothing is excused on it.')
+    + controlWatchLine(P.earned);
+}
+function controlWatchLine(E) {
+  const NL = String.fromCharCode(10);
+  if (!E) return '';
+  if (E.cannot_answer) return NL + '    CONTROL WATCH — CANNOT ANSWER: ' + E.why;
+  const rc = Object.keys(E.by_receipt).sort().map((k) => k + ' ' + E.by_receipt[k]).join(', ');
+  return NL + '    CONTROL WATCH — ' + E.live + ' in-scope FIRED ability row(s) on a LIVE control (a loud '
+    + 'control ability, a click swap or an item swap: the A/B alone proves nothing); ' + E.earned
+    + ' earned by the subject\'s own authority receipt' + (rc ? ' [receipts: ' + rc + ']' : '') + '; '
+    + E.unearned + ' NOT earned (listed under PROOF above, each failing like an unproven row).'
+    + (E.mismatch ? NL + '      ' + E.mismatch : '');
 }
 
 /* `inject` IS THE SELFTEST'S DOOR AND EVERY SHIPPING CALLER LEAVES IT UNDEFINED — the same door, for
@@ -1306,6 +1428,15 @@ function mechanicsClause(inject) {
     proof_excused_rows: P.excused.map((e) => ({ key: e.key, label: e.label, by: e.by })),
     proof_uncorroborated_shelves: P.uncorroborated.map((u) => u.key),
     proof_cannot_answer: P.cannot_answer || false,
+    /* 6.67.1 — the control-watch term, as DATA. `proof_unproven_rows` already carries each unearned
+     * row by name (its label starts `FIRED ...`); these say whether the term could be read at all. */
+    control_watch_ok: P.earned ? P.earned.ok : false,
+    control_watch_cannot_answer: P.earned ? P.earned.cannot_answer : true,
+    control_watch_mismatch: P.earned ? P.earned.mismatch : null,
+    control_watch_live: P.earned ? P.earned.live : null,
+    control_watch_earned: P.earned ? P.earned.earned : null,
+    control_watch_unearned: P.earned ? P.earned.unearned : null,
+    control_watch_by_receipt: P.earned ? P.earned.by_receipt : null,
     board_only_parted: boardOnlySeen || 0,
     board_only_parted_shelved: (boardOnlyShelved || []).map((b) => b.key) };
 
@@ -1427,6 +1558,10 @@ function mechanicsClause(inject) {
           + boardOnlyShelved.map((b) => b.key).join(', ') : '')
     : 'none — no row parted a board while its protocol agreed.');
   const mechOk = counted.length === 0 && P.ok && CAC.ok;
+  /* the control-watch term's own failure, named beside the count so "0 unproven" never reads as clean */
+  const cwTail = P.earned && !P.earned.ok
+    ? (P.earned.cannot_answer ? ', AND THE CONTROL WATCH CANNOT ANSWER' : ', AND THE CONTROL WATCH DISAGREES WITH ITS ROWS')
+    : '';
   return { name: NAME, ok: mechOk, generated: j.generated || null, pins: MRCPT,
     ...proofFields,
     diverged: div, unfired, counted: counted.length, shelved: belowShelf.length,
@@ -1448,7 +1583,7 @@ function mechanicsClause(inject) {
                                                    cause: r.cause, board_verdict: r.board_verdict })),
     why: (counted.length === 0 && !P.ok
       ? `NOT EVERY IN-SCOPE MECHANIC IS PROVEN — ${P.cannot_answer ? 'the proof could not be computed'
-          : P.failing.length + ' unproven'} (see PROOF below). Of the ${div + (boardOnlySeen || 0)} `
+          : P.failing.length + ' unproven' + cwTail} (see PROOF below). Of the ${div + (boardOnlySeen || 0)} `
         + `diverging, 0 are played and uncleared.` + (caHead ? ' AND ' + caHead + '.' : '')
       : counted.length === 0 && !CAC.ok
       ? caHead + '. Every in-scope mechanic is proven and, of the ' + (div + (boardOnlySeen || 0))
@@ -1463,7 +1598,7 @@ function mechanicsClause(inject) {
         + `each is a rule, not a sampling artefact, since the teams are built from the mechanic list. Worst: `
         + show(counted.slice()).split(', ').slice(0, 6).join(', ')
         + (P.ok ? '' : `. AND ${P.cannot_answer ? 'THE PROOF COULD NOT BE COMPUTED' : P.failing.length
-            + ' IN-SCOPE MECHANIC(S) ARE UNPROVEN'} (see PROOF below)`)
+            + ' IN-SCOPE MECHANIC(S) ARE UNPROVEN' + cwTail} (see PROOF below)`)
         + (caHead ? '. AND ' + caHead : '')) + tail
       + PL + boardOnlyLine
       + declaredLine + shelvedLine + declaredThrewLine + reachLine + unknownLine + impactLine
@@ -5691,8 +5826,11 @@ if (require.main === module) {
       /* ---- 3. THE MECHANICS CLAUSE — a hand-rolled `release` is not a stamp ------------------- */
       /* `control_arm_partings` is carried so this fixture exercises the PIN guard and nothing else:
        * without it the control-arm half reads CANNOT-ANSWER (6.66.1) and the GREEN arm would be red for
-       * a reason that is not the pin. */
-      const mBase = { summary: { moves: { diverged: 0 }, abilities: { diverged: 0 },
+       * a reason that is not the pin. `abilities.control_watch` likewise (6.67.1): without it the
+       * control-watch term reads CANNOT-ANSWER. */
+      const mBase = { summary: { moves: { diverged: 0 }, abilities: { diverged: 0,
+                                   control_watch: { fired_on_live_control: [], fired_on_live_control_unearned: [],
+                                                    games: 1, handler_calls: 1, subject_games: 1, subject_handler_calls: 1 } },
                                  items: { diverged: 0 },
                                  control_arm_partings: { rows_with_control_arm: 1, parted: 0, board_material: 0,
                                                          announcement_only: 0, not_asked: 0 } },
@@ -6391,11 +6529,16 @@ if (require.main === module) {
     {
       const PSCOPE = { inScopeIds: (k) => ({ move: ['pmove'], ability: ['pab', 'pdef', 'pill'],
                                              item: ['pitem'] })[k] || [], failures: [] };
+      const QW = { measured: true, quiet: true, games: 2, calls: 3, loud: [] };
+      /* a clean control-watch summary (6.67.1): watched, not blind, nothing live */
+      const CW0 = { measured: 3, quiet: 3, loud: 0, fired_on_loud_control: [], fired_on_live_control: [],
+        fired_on_live_control_unearned: [], games: 6, handler_calls: 9, subject_games: 6, subject_handler_calls: 9 };
       const PROW = {
         moves: [{ id: 'pmove', resolved: true, medicham_resolved: true }],
-        abilities: [{ id: 'pab', verdict: 'FIRED', control: 'Quiet', carrier: 'Garchomp' },
-                    { id: 'pdef', verdict: 'FIRED', control: 'Quiet', carrier: 'Garchomp' },
-                    { id: 'pill', verdict: 'FIRED', control: 'Quiet', carrier: 'Garchomp' },
+        /* each FIRED ability row carries a MEASURED QUIET control watch (6.67.1): the clean state */
+        abilities: [{ id: 'pab', verdict: 'FIRED', control: 'Quiet', carrier: 'Garchomp', control_watch: QW },
+                    { id: 'pdef', verdict: 'FIRED', control: 'Quiet', carrier: 'Garchomp', control_watch: QW },
+                    { id: 'pill', verdict: 'FIRED', control: 'Quiet', carrier: 'Garchomp', control_watch: QW },
                     /* OUT OF SCOPE — never asked, however unproven */
                     { id: 'pgone', verdict: 'DID-NOT-FIRE', control: 'Quiet', carrier: 'Garchomp' }],
         items: [{ id: 'pitem', verdict: 'FIRED', control: 'C.item', carrier: 'Garchomp' }] };
@@ -6403,7 +6546,7 @@ if (require.main === module) {
       const CAP0 = { rows_with_control_arm: 5, parted: 0, board_material: 0, announcement_only: 0, not_asked: 0 };
       const PART = (rows, extra) => Object.assign({ [PIN.K.id]: 'rel-fixture',
         [PIN.K.digests]: { 'engine/medicham2-browser.js': 'bbbbbbbbbbbb' },
-        summary: { moves: { diverged: 0 }, abilities: { diverged: 0 }, items: { diverged: 0 },
+        summary: { moves: { diverged: 0 }, abilities: { diverged: 0, control_watch: CW0 }, items: { diverged: 0 },
                    control_arm_partings: CAP0 },
         rows, closet: { source: 'tests/roster.js DEFERRED', ids: ['pdef'] } }, extra || {});
       const HCFIX = { ability: 'illusion', species: new Set(['zoroark']), from: ['fixture'] };
@@ -6502,7 +6645,7 @@ if (require.main === module) {
        * (counted 0, proof_ok) and a red can come from the control arm alone. */
       const CAP = (over) => Object.assign({}, CAP0, over);
       const withCtl = (id, parted, capOver, kind) => ({ rows: swap(kind || 'abilities', id, { control_arm_parted: parted }),
-        extra: { summary: { moves: { diverged: 0 }, abilities: { diverged: 0 }, items: { diverged: 0 },
+        extra: { summary: { moves: { diverged: 0 }, abilities: { diverged: 0, control_watch: CW0 }, items: { diverged: 0 },
                             control_arm_partings: CAP(capOver) } } });
       const runCtl = (w, over) => run(w.rows, w.extra, over);
       const HC_PART = { board_material: true, verdicts: ['STATE'], where: ['ladder/near-a=STATE', 'ladder/far-a=STATE'],
@@ -6557,12 +6700,12 @@ if (require.main === module) {
         extra: withCtl('pab', HC_PART, { parted: 1, board_material: 1 }).extra });
       ok('CONTROL ARM / RED — a `deferred` stamp neither source corroborates excuses NOTHING, and is named',
         caStamp.ok === false && /STAMP NEITHER SOURCE CORROBORATES, NOT EXCUSED: ability:pab/.test(caStamp.why));
-      const caOld = run(PROW, { summary: { moves: { diverged: 0 }, abilities: { diverged: 0 }, items: { diverged: 0 } } });
+      const caOld = run(PROW, { summary: { moves: { diverged: 0 }, abilities: { diverged: 0, control_watch: CW0 }, items: { diverged: 0 } } });
       ok('CONTROL ARM / RED — an artifact that PREDATES the field (no `summary.control_arm_partings`) is '
         + 'CANNOT-ANSWER, never a pass — with everything else green', caOld.ok === false && caOld.proof_ok === true
         && caOld.counted === 0 && caOld.control_arm_cannot_answer === true
         && /CONTROL ARMS — CANNOT ANSWER: THE ARTIFACT PREDATES CONTROL-ARM RECORDING/.test(caOld.why), caOld.why);
-      const caEmpty = run(PROW, { summary: { moves: { diverged: 0 }, abilities: { diverged: 0 }, items: { diverged: 0 },
+      const caEmpty = run(PROW, { summary: { moves: { diverged: 0 }, abilities: { diverged: 0, control_watch: CW0 }, items: { diverged: 0 },
         control_arm_partings: CAP({ rows_with_control_arm: 0 }) } });
       ok('CONTROL ARM / RED — an EMPTY denominator is CANNOT-ANSWER: "0 parted" off no control arms is not a reading',
         caEmpty.ok === false && caEmpty.control_arm_cannot_answer === true && /NO ROW CARRIES A CONTROL ARM/.test(caEmpty.why));
@@ -6577,6 +6720,107 @@ if (require.main === module) {
       const caEarly = run(Object.assign({}, PROW, { items: undefined }), undefined, { S: SC_NOITEM });
       ok('CONTROL ARM / RED — the rows-missing early exit cannot open the clause over an unread control arm',
         caEarly.ok === false && caEarly.proof_ok === true && caEarly.control_arm_ok === false, String(caEarly.why || '').slice(0, 300));
+
+      /* -- 6.67.1: A FIRED ABILITY ROW ON A LIVE CONTROL IS PROVEN ONLY BY THE SUBJECT'S RECEIPT ------
+       * Every arm is the fully proven `PROW` fixture with ONE ability row's control stamps and the
+       * matching `summary.abilities.control_watch` changed, so the subject arm is clean (counted 0) and
+       * the control arm is clean (control_arm_ok): a red can come from the control-watch term alone.
+       * The planted unearned row is Corrosion's shape on 54d02066fd71 (control Toxic Debris LOUD,
+       * receipt none); the earned one is Aerilate's (a click swap, receipt state). */
+      const LOUDW = { measured: true, quiet: false, games: 1, calls: 1, loud: ['ladder onDamagingHit (turn 1): state[p2:side]'] };
+      const liveRow = (id, liveKind, receipt, earned, patch) => swap('abilities', id, Object.assign({
+        control_watch: liveKind === 'ability-loud' ? LOUDW : undefined,
+        control_live: { kind: liveKind, variable: liveKind === 'click-swap' ? 'C.click@1' : 'C.ability',
+                        control: 'Quiet', receipt, earned_by_subject_receipt: earned } }, patch || {}));
+      const cwSum = (live, unearned, over) => ({ summary: { moves: { diverged: 0 }, items: { diverged: 0 },
+        abilities: { diverged: 0, control_watch: Object.assign({}, CW0, { fired_on_live_control: live,
+          fired_on_live_control_unearned: unearned }, over || {}) }, control_arm_partings: CAP0 } });
+      ok('CONTROL WATCH / GREEN — the control: every FIRED ability row has a measured quiet control watch, '
+        + 'the summary is watched and not blind, and the term clears', ctl.control_watch_ok === true
+        && ctl.control_watch_cannot_answer === false && ctl.control_watch_unearned === 0
+        && /CONTROL WATCH — 0 in-scope FIRED ability row\(s\) on a LIVE control/.test(ctl.why), ctl.why);
+      const cwRed = run(liveRow('pab', 'ability-loud', 'none', false), cwSum(['pab:ability-loud:none'], ['pab']));
+      ok('CONTROL WATCH / RED — ONE planted FIRED row on a LOUD control with NO subject receipt FAILS the '
+        + 'mechanics clause (exit 1) exactly like an unproven row, named, with the subject and control arms '
+        + 'otherwise clean', cwRed.ok === false && clauseExit(cwRed) === 1 && cwRed.proof_ok === false
+        && cwRed.counted === 0 && cwRed.control_arm_ok === true && cwRed.proof_unproven === 1
+        && (cwRed.proof_unproven_rows[0] || {}).key === 'ability:pab'
+        && (cwRed.proof_unproven_rows[0] || {}).label === 'FIRED ON A LIVE CONTROL, UNEARNED'
+        && cwRed.control_watch_unearned === 1 && cwRed.control_watch_ok === true, String(cwRed.why || '').slice(0, 400));
+      ok('CONTROL WATCH / RED — and the assembled gate turns on it', gateVerdict([cwRed]).ok === false);
+      for (const rc of ['state', 'narrated', 'log']) {
+        const g = run(liveRow('pab', 'click-swap', rc, true), cwSum(['pab:click-swap:' + rc], []));
+        ok('CONTROL WATCH / GREEN — a click-swap row whose A/B proves nothing is EARNED by the subject\'s own '
+          + 'receipt (' + rc + ') and clears', g.ok === true && g.control_watch_live === 1 && g.control_watch_earned === 1
+          && g.control_watch_by_receipt[rc] === 1, String(g.why || '').slice(0, 300));
+      }
+      const cwItem = run(liveRow('pab', 'item-swap', 'state', true), cwSum(['pab:item-swap:state'], []));
+      ok('CONTROL WATCH / GREEN — an item-swap control with a state receipt is earned too', cwItem.ok === true, cwItem.proof_unproven_rows);
+      const cwLat = run(liveRow('pab', 'click-swap', 'latent-only', false), cwSum(['pab:click-swap:latent-only'], ['pab']));
+      ok('CONTROL WATCH / RED — a latent-only receipt (the handler only wrote a move property: Infiltrator, '
+        + 'Long Reach) does NOT earn the credit', cwLat.ok === false && cwLat.proof_unproven === 1
+        && (cwLat.proof_unproven_rows[0] || {}).label === 'FIRED ON A LIVE CONTROL, UNEARNED', cwLat.proof_unproven_rows);
+      const cwLie = run(liveRow('pab', 'click-swap', 'none', true), cwSum(['pab:click-swap:none'], []));
+      ok('CONTROL WATCH / RED — THE RECEIPT IS READ, NOT THE BOOLEAN: `earned_by_subject_receipt: true` over a '
+        + 'receipt of `none` fails, with rows and summary agreeing', cwLie.ok === false && cwLie.control_watch_mismatch === null
+        && /CREDITED ON A RECEIPT THAT DOES NOT EARN IT \(none\)/.test((cwLie.proof_unproven_rows[0] || {}).label), cwLie.proof_unproven_rows);
+      const cwOdd = run(liveRow('pab', 'click-swap', 'vibes', true), cwSum(['pab:click-swap:vibes'], []));
+      ok('CONTROL WATCH / RED — a receipt class this reader does not know fails rather than earning',
+        cwOdd.ok === false && /RECEIPT CLASS UNRECOGNISED \(vibes\)/.test((cwOdd.proof_unproven_rows[0] || {}).label), cwOdd.proof_unproven_rows);
+      const cwBare = run(swap('abilities', 'pab', { control_watch: undefined }));
+      ok('CONTROL WATCH / RED — a FIRED row with NEITHER a control_live stamp NOR a measured quiet watch was '
+        + 'never looked at, and fails', cwBare.ok === false
+        && (cwBare.proof_unproven_rows[0] || {}).label === 'FIRED, CONTROL NEITHER WATCHED QUIET NOR MARKED LIVE', cwBare.proof_unproven_rows);
+      const cwLoudUnstamped = run(swap('abilities', 'pab', { control_watch: LOUDW }));
+      ok('CONTROL WATCH / RED — a LOUD watch the producer did not stamp live is not a quiet control',
+        cwLoudUnstamped.ok === false && cwLoudUnstamped.proof_unproven === 1, cwLoudUnstamped.proof_unproven_rows);
+      const cwOld = run(PROW, { summary: { moves: { diverged: 0 }, abilities: { diverged: 0 }, items: { diverged: 0 },
+        control_arm_partings: CAP0 } });
+      ok('CONTROL WATCH / CANNOT-ANSWER — an artifact that PREDATES the watch (no `summary.abilities.control_watch`) '
+        + 'is never a pass, with every row and the control arms green', cwOld.ok === false && cwOld.proof_ok === false
+        && cwOld.proof_unproven === 0 && cwOld.counted === 0 && cwOld.control_arm_ok === true
+        && cwOld.control_watch_cannot_answer === true
+        && /CONTROL WATCH — CANNOT ANSWER: THE ARTIFACT PREDATES THE CONTROL WATCH/.test(cwOld.why)
+        && /AND THE CONTROL WATCH CANNOT ANSWER/.test(cwOld.why), String(cwOld.why || '').slice(0, 300));
+      const cwBlind = run(PROW, cwSum([], [], { handler_calls: 0 }));
+      ok('CONTROL WATCH / CANNOT-ANSWER — a BLIND watch (games watched, zero handler calls) reads every control '
+        + 'quiet and is never a pass', cwBlind.ok === false && cwBlind.control_watch_cannot_answer === true
+        && /THE CONTROL WATCH IS BLIND/.test(cwBlind.why), String(cwBlind.why || '').slice(0, 300));
+      const cwSkew = run(liveRow('pab', 'ability-loud', 'none', false), cwSum(['pab:ability-loud:none'], []));
+      ok('CONTROL WATCH / RED — rows and summary that DISAGREE about the unearned set fail and say so',
+        cwSkew.ok === false && /THE ROWS AND THE CONTROL-WATCH SUMMARY DISAGREE — unearned: rows \[pab\], summary \[\]/
+          .test(cwSkew.control_watch_mismatch || ''), cwSkew.control_watch_mismatch);
+      const cwDef = run(liveRow('pdef', 'ability-loud', 'none', false), cwSum(['pdef:ability-loud:none'], ['pdef']));
+      ok('CONTROL WATCH / EXCUSED — an unearned row the owner deferred (the artifact\'s closet block) is excused '
+        + 'and printed, as in the proof half', cwDef.ok === true && cwDef.proof_excused_rows.length === 1
+        && cwDef.proof_excused_rows[0].key === 'ability:pdef' && /DEFERRED-BY-OWNER/.test((cwDef.proof_excused_rows[0] || {}).by),
+        cwDef.proof_excused_rows);
+      const cwIll = run(liveRow('pill', 'ability-loud', 'none', false, { carrier: 'Zoroark' }),
+        cwSum(['pill:ability-loud:none'], ['pill']));
+      ok('CONTROL WATCH / EXCUSED — an unearned row staged on an Illusion carrier is the Illusion closet',
+        cwIll.ok === true && /ILLUSION CLOSET/.test((cwIll.proof_excused_rows[0] || {}).by), cwIll.proof_excused_rows);
+      const cwIllNoHC = run(liveRow('pill', 'ability-loud', 'none', false, { carrier: 'Zoroark' }),
+        cwSum(['pill:ability-loud:none'], ['pill']), { HC: null });
+      ok('CONTROL WATCH / RED — the SAME Illusion row with the harness closet UNREAD is not excused',
+        cwIllNoHC.ok === false && cwIllNoHC.proof_unproven === 1);
+      const cwCtlShelf = run(liveRow('pab', 'ability-loud', 'none', false, { control: 'P-Def' }),
+        cwSum(['pab:ability-loud:none'], ['pab']));
+      ok('CONTROL WATCH / RED — STRICT: the CONTROL being on the owner\'s shelf does not excuse an unearned '
+        + 'SUBJECT — the question is whether the subject is proven', cwCtlShelf.ok === false
+        && cwCtlShelf.proof_excused_rows.length === 0 && cwCtlShelf.proof_unproven === 1, cwCtlShelf.proof_unproven_rows);
+      const cwStamp = run(liveRow('pab', 'ability-loud', 'none', false,
+        { deferred: { by: 'Will', on: '2026-09-19', why: 'a stamp no source backs' } }), cwSum(['pab:ability-loud:none'], ['pab']));
+      ok('CONTROL WATCH / RED — a `deferred` stamp neither source corroborates excuses NOTHING, and is named',
+        cwStamp.ok === false && cwStamp.proof_uncorroborated_shelves.join() === 'ability:pab');
+      const cwOut = run(Object.assign({}, PROW, { abilities: PROW.abilities.concat([{ id: 'pgone2', verdict: 'FIRED',
+        control: 'Quiet', carrier: 'Garchomp', control_live: { kind: 'ability-loud', receipt: 'none',
+        earned_by_subject_receipt: false } }]) }), cwSum(['pgone2:ability-loud:none'], ['pgone2']));
+      ok('CONTROL WATCH — an OUT-OF-SCOPE unearned row is not asked (the proof half\'s scope), and still counts '
+        + 'in the rows-vs-summary comparison', cwOut.ok === true && cwOut.control_watch_mismatch === null, cwOut.proof_unproven_rows);
+      const cwEarly = run(Object.assign({}, liveRow('pab', 'ability-loud', 'none', false), { items: undefined }),
+        cwSum(['pab:ability-loud:none'], ['pab']), { S: SC_NOITEM });
+      ok('CONTROL WATCH / RED — the rows-missing early exit cannot open the clause over an unearned row',
+        cwEarly.ok === false && cwEarly.proof_unproven === 1, String(cwEarly.why || '').slice(0, 300));
     }
 
     /* -- 2026-09-19: A LEAF THAT CAN STAND AT A BOUNDARY AND IS NOT COMPARED FAILS ITS CLAUSE ------

@@ -10,6 +10,19 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.67.1] — 2026-09-19
+
+### Changed
+- **An ability that reads FIRED only because its control acts now fails the mechanics clause.** 6.67.0's
+  control watch lists these rows; the gate credited them anyway. `engine/quarantine.js` now fails an in-scope
+  FIRED ability row on a live control (a loud control ability, a click swap or an item swap) unless the
+  ability's own handler left a receipt (state, narrated or log). The owner's shelf and the Illusion closet
+  excuse it, as for an unproven row. An artifact written before the watch reads CANNOT-ANSWER, never a pass.
+
+### Notes
+- PATCH: no published figure moves. The artifact on disk predates the watch and the release pin already
+  withholds the clause. Report: `docs/_reports/2026-09-19-gate-unearned.md`.
+
 ## [6.67.0] — 2026-09-19
 
 ### Changed
