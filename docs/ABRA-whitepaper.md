@@ -1712,7 +1712,7 @@ release: the whole-game differential (`data/game-differential.json` — board-ma
 narration **0 undeclared of 961**, 10,705 of 10,705 turn boundaries identical, none excluded, none cut
 off), the damage differential (`data/engine-diff.json` — 6,000 compared, 0 disagreed, at 17 roll
 indices), and the deliberate roster — `data/roster.items.json` **148 tested**,
-`data/roster.abilities.json` **194 tested**, `data/roster.moves.json` **494 tested** (re-measured on release `8a4140de3eaa`, CHANGELOG 6.55.0), every stage with
+`data/roster.abilities.json` **194 tested**, `data/roster.moves.json` **494 tested** (re-measured on release `1a6550ea5ec6`, CHANGELOG 6.58.0), every stage with
 DID-NOT-FIRE 0 and `differ` 0. Each stage's scope is decided by `engine/legal_scope.js` (CHANGELOG 6.14.0).
 The bound on the word "correct" is stated in the 6.0.0 block at the head of this paper
 and is not repeated here. The older, narrower Smogon-calculator check below is retained because it is

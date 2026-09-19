@@ -168,15 +168,10 @@ ENGINE — does the simulator do what Pokémon does
   947/947 probed mechanics live, 0 missing   (census 2026-09-19 07:11)
     the census probes what somebody thought to probe: 299 of 299 in-scope tags carry a probe, 0 carry none (9 of 308
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 2.5 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-19 04:46)
-    seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
-    the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
-    Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
-    multiHit tag were drawn; 3 were never drawn at all (bonerush, doublehit, tailslap) — never drawn is a SAMPLING
-    gap, not an exclusion.
-    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
-    a differential hit is NOT in the census count above — the census probes what someone thought to probe
+    (all-mechanics-fire.json, 22 min old). node engine/coverage.js
+  differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/1a6550ea5ec6/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "1a6550ea5ec6".
+    it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     older than its input engine-data.js
@@ -192,9 +187,27 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 07:17_
+_stamped 2026-09-19 07:57_
 
 <!-- /GENERATED -->
+
+## 6.57.0 RE-MEASURES AT **0 / 0 / 0**: BOARD-MATERIAL IS ZERO ON EVERY LATTICE FOR THE FIRST TIME, AND NO GAME JOINED. NARRATION IS **0 / 2 / 6**. **NO ENGINE BYTE CHANGED; RELEASE `1a6550ea5ec6`.** THE GATE IS **CLOSED, 1 OF 9**, AND THE ONLY FAILING CLAUSE IS NARRATION. 2026-09-19, CHANGELOG 6.58.0
+
+Report: `docs/_reports/2026-09-19-1a65-remeasure.md`. Census pin `ef0eefdb9f2d` (947 live).
+
+- **The Sucker Punch game (`…2636045527`, g1350) and the Focus Sash game (`…2657391947`, g1950) left**, as
+  predicted. The board-material clause PASSES. The narration clause is now a gating clause.
+- **Narration fell from 0 / 10 / 23 to 0 / 2 / 6.** 25 games left, and none joined. Eight undeclared games
+  remain:
+  - Forewarn: 3 games. Deferred by the owner.
+  - Chilly Reception `-fail`, Sleep Powder under Misty Terrain, the Mortal Spin `[from]` and Magician on a
+    Focus Sash: 1 game each. All four were open on the last run.
+  - One new mechanism: a Roost game now plays on to Parting Shot into Hyper Cutter. Ours prints the Special
+    Attack drop before the Attack refusal (`…2662455751`, g1950, turn 9).
+- **The roster, the damage diff and AMF read the same as on `8a4140de3eaa`:**
+  - roster items 148 of 148, abilities 194 of 200 and moves 494 of 497, with every red CAUGHT;
+  - the damage diff reads 0 of 6000;
+  - AMF has 0 throws.
 
 ## THE FIVE "EXACT SPEED TIE" GAMES WERE FOUR SORT-INPUT DEFECTS. THE ELECTRO SHOT `-boost|spa|0` IS NOW WRITTEN. CENSUS **925 → 930 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `b3d9f0954198`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
 

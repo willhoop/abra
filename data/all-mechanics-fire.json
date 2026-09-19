@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-19T08:49:39.304Z",
- "engine_release": "8a4140de3eaa",
- "engine_release_cut": "2026-09-19T07:46:28.563Z",
+ "generated": "2026-09-19T11:35:10.089Z",
+ "engine_release": "1a6550ea5ec6",
+ "engine_release_cut": "2026-09-19T11:11:47.720Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "8d26dff9dd02",
+  "engine/medicham2-browser.js": "14699059afc5",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -33,7 +33,7 @@
   "engine/pp.js": "30b12a4ef623",
   "data/rollout-switch-census.json": "b599f8d581b5"
  },
- "release": "8a4140de3eaa",
+ "release": "1a6550ea5ec6",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -105060,7 +105060,7 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 76
    },
-   "seconds": 56.7
+   "seconds": 131.5
   },
   "abilities": {
    "exist": 316,
@@ -105079,7 +105079,7 @@
    "diverged_including_shelved": 3,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 2,
-   "seconds": 16.1,
+   "seconds": 22.4,
    "board_only": {
     "rows": 17,
     "staged": 17,
@@ -105159,7 +105159,7 @@
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 6,
    "board_state_fired": 5,
-   "seconds": 9.5,
+   "seconds": 7.9,
    "stones": {
     "rows": 0,
     "staged": 0,
@@ -105380,9 +105380,9 @@
  },
  "planner": {
   "meta": {
-   "generated": "2026-09-19T08:49:37.643Z",
+   "generated": "2026-09-19T11:35:09.942Z",
    "by": "engine/stage_planner.js",
-   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\8a4140de3eaa\\data\\tags.json",
+   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\1a6550ea5ec6\\data\\tags.json",
    "tags_digest": "8950d4355cc5dc03",
    "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown",
    "validator": {
@@ -105428,7 +105428,7 @@
     "stench: secondary (the handler assigns move.secondaries)",
     "kingsrock: secondary (the handler assigns move.secondaries)"
    ],
-   "ms": 153742
+   "ms": 17612
   },
   "summary": {
    "mechanics": 964,
@@ -105483,7 +105483,7 @@
    }
   },
   "played": {
-   "plan_ms": 153823,
+   "plan_ms": 17685,
    "rows": 347,
    "fixtures": 853,
    "variants": 1968,

@@ -10,6 +10,24 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.58.0] — 2026-09-19
+
+### Changed
+- **Re-measured 6.57.0 on release `1a6550ea5ec6`. Board-material now reads 0 on all three lattices for the
+  first time:** 0 of 961, 0 of 1069 and 0 of 1497 at `--games` 1200, 1350 and 1950. Before, on
+  `8a4140de3eaa`, it read 0, 1 and 1. The Sucker Punch game and the Focus Sash game both left. No game joined,
+  on the board or in the protocol.
+- **Undeclared narration reads 0 / 2 / 6**, down from 0 / 10 / 23. The prediction was 0 / 2 / 5. Twenty-five
+  games left. The extra game is a Roost game that now plays past the Roost line and splits on a new line
+  order: Parting Shot into a Hyper Cutter body (turn 9 at g1950).
+- **The gate reads `CLOSED — 1 of 9`.** The NARRATION clause is now counted as a gating clause, and it is the
+  only clause that fails.
+
+### Notes
+- Every roster stage is clean. The damage diff reads 0 of 6000 at every index. `all_mechanics_fire` threw 0
+  times. No engine code changed. Pins and the narration table are in the 6.58.0 notes row and in
+  `docs/_reports/2026-09-19-1a65-remeasure.md`.
+
 ## [6.57.0] — 2026-09-19
 
 ### Fixed
