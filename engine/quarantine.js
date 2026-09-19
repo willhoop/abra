@@ -493,6 +493,217 @@ function decisionImpact(curId) {
  * `inject` drives THE SHIPPING FUNCTION from the selftest, the same injection point
  * `differentialClause` and `wholeGameClause` already take, so the rule cannot pass by having its
  * selftest restate it. */
+
+/* ================================================================================================
+ * ANNOUNCEMENT-ONLY — A MECHANIC WHOSE WHOLE EFFECT IS A LINE, ACCEPTED ONLY ON A RECEIPT
+ * ================================================================================================
+ * Will, 2026-09-19: *Illusion is the ONE acknowledged exclusion; everything else gets modelled and
+ * gated.* Three roster rows cannot be graded by the instrument that grades every other row, and the
+ * reason is a FACT the tag dex derives rather than an opinion: `data/tags.json` stamps
+ * `params.<tag>.visibleOnABoard: false` on them, meaning nothing they do reaches a board leaf. A
+ * board comparator handed such a mechanic can only ever return "the boards agreed", which is a green
+ * that asked nothing — the exact shape of `tests/test-lownode.js`'s wrapper returning 0 for a failing
+ * script, one level up.
+ *
+ * SO THE SHELF COMES DOWN AND THE BAR MOVES, IT DOES NOT DISAPPEAR. Taking the deferral off makes the
+ * roster report COULD-NOT-STAGE, which `rosterStage` has failed on since 2026-09-19 — so the gate
+ * would close for a reason that is true of the INSTRUMENT and false of the ENGINE. That is a gate
+ * firing for the wrong reason, which CLAUDE.md names as the one failure mode people learn to ignore.
+ *
+ * WHAT IS ACCEPTED, AND ONLY THIS. A row carrying `verdict: 'ANNOUNCEMENT-ONLY'` plus an
+ * `announcement` receipt that survives SIX checks, every one of them read out of an artifact or a
+ * source file and none of them out of a list typed here:
+ *
+ *   1. THE RECEIPT IS COMPLETE          all of ANN_FIELDS present and a string. A partial receipt is
+ *                                       a claim with no evidence and is refused as one.
+ *   2. THE MECHANIC IS BOARD-BLIND      `data/tags.json` -> `<stage>.<id>.params.<tag>` exists and
+ *                                       says `visibleOnABoard: false`. THIS is what stops the verdict
+ *                                       being a relabelling: a mechanic a board can see is graded by
+ *                                       the board, and a receipt cannot buy it out of that.
+ *   3. A LIVE CENSUS ROW EXISTS         `data/mechanics-census.json` carries a row with this kind,
+ *                                       this tag and this exact label, and it is `live`, not `hollow`
+ *                                       and `armed`. An unarmed or hollow row is an instrument that
+ *                                       did not ask.
+ *   4. THAT ROW ASSERTS THE AUTHORITY'S EXACT LINE   its `detail` QUOTES at least one literal protocol
+ *                                       line (`|-<event>|...`) and names the mechanic. A count of
+ *                                       announcements ("0,0 / 1,1") says something fired; it does not
+ *                                       pin WHAT WAS SAID, and when the whole effect is what was said,
+ *                                       a count is not a measurement.
+ *   5. A DECLARED DELIBERATE BREAK      `announcement.knob_stamp` appears in `DELIBERATE_BREAK` in
+ *                                       tests/test-mechanics.js — the one place the engine side
+ *                                       declares "this knob makes the engine deliberately wrong" —
+ *                                       and both the `MEDI_*` knob (as a quoted literal, so a name in
+ *                                       a comment does not count) and `MEDFAILS.<stamp>` appear in
+ *                                       engine/medicham2-browser.js. A receipt may not name a knob
+ *                                       nothing reads.
+ *   6. A PROBE EXERCISES IT ON THIS MECHANIC   the file named by `announcement.probe` exists, names
+ *                                       the knob and names the mechanic. Without this the receipt
+ *                                       could borrow any of the ~100 stamps in DELIBERATE_BREAK.
+ *
+ * A DEFERRAL EXCUSES NOTHING HERE, DELIBERATELY. This path never reads `r.deferred`, so a row whose
+ * shelf has been lifted cannot come back through the side door with the stamp still attached. The
+ * only excusal left in `rosterStage` is the owner's `DEFERRED-BY-OWNER` verdict, and Illusion is what
+ * it is for.
+ *
+ * WHAT THIS PROVES AND WHAT IT DOES NOT. It proves the chain is wired and declared: a live census row
+ * that quotes the line, and a knob the engine reads whose break is declared and exercised by a named
+ * probe. It does NOT re-run the probe — no artifact in this repository records a probe's red
+ * demonstration, and inventing one here would be a second implementation of something ENGINE owns.
+ * That gap is stated rather than papered over. */
+const ANN_VERDICT = 'ANNOUNCEMENT-ONLY';
+const ANN_FIELDS = ['tag', 'census_label', 'knob', 'knob_stamp', 'probe'];
+/* LAZY AND CACHED. Reading the census, the tag bank, the 2.5 MB test file and the 3.8 MB engine costs
+ * nothing on a stage that claims no announcement rows, which is every stage today. `undefined` means
+ * "not looked yet"; `null` means "looked and could not read", which is a FAILING answer, never a
+ * passing one. */
+const ANN_CACHE = { tags: undefined, census: undefined, breaks: undefined, engine: undefined, probes: {} };
+function annCtx() {
+  if (ANN_CACHE.tags === undefined) ANN_CACHE.tags = readJson(D('data', 'tags.json'));
+  if (ANN_CACHE.census === undefined) ANN_CACHE.census = readJson(D('data', 'mechanics-census.json'));
+  if (ANN_CACHE.breaks === undefined) ANN_CACHE.breaks = deliberateBreaks();
+  if (ANN_CACHE.engine === undefined) {
+    try { ANN_CACHE.engine = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8'); }
+    catch (e) { SWALLOWED.push('annCtx engine/medicham2-browser.js: ' + why(e)); ANN_CACHE.engine = null; }
+  }
+  /* THE PROBE READER IS PART OF THE CONTEXT, not a disk call inside the rule. That is what lets the
+   * selftest drive `annRowReasons` — THE SHIPPING RULE — on a synthetic context, so the checks that
+   * need a census row shaped a particular way are proven without waiting for one to appear on disk. */
+  return { tags: ANN_CACHE.tags, census: ANN_CACHE.census, breaks: ANN_CACHE.breaks,
+           engine: ANN_CACHE.engine, probe: annProbeSrc };
+}
+function annProbeSrc(rel) {
+  if (!(rel in ANN_CACHE.probes)) {
+    try { ANN_CACHE.probes[rel] = fs.readFileSync(D(rel), 'utf8'); }
+    catch (e) { SWALLOWED.push('annCtx probe ' + rel + ': ' + why(e)); ANN_CACHE.probes[rel] = null; }
+  }
+  return ANN_CACHE.probes[rel];
+}
+/* THE KNOB LIST IS PARSED FROM ITS ONE DECLARATION, never copied here — a second copy of
+ * DELIBERATE_BREAK would drift exactly as two copies of Choice Scarf's multiplier would, and this one
+ * grows several times a night. Comments are stripped first for the reason `stripComments` gives: a
+ * stamp DISCUSSED in a comment is a citation, not a declaration. A parse that finds nothing returns
+ * null, and null fails every receipt rather than passing them. */
+function deliberateBreaks() {
+  let src;
+  try { src = fs.readFileSync(D('tests', 'test-mechanics.js'), 'utf8'); }
+  catch (e) { SWALLOWED.push('deliberateBreaks tests/test-mechanics.js: ' + why(e)); return null; }
+  const at = src.indexOf('const DELIBERATE_BREAK');
+  if (at < 0) return null;
+  const end = src.indexOf(']', at);
+  if (end < 0) return null;
+  const names = stripComments(src.slice(at, end)).match(/'[A-Za-z_$][A-Za-z0-9_$]*'/g);
+  if (!names || !names.length) return null;
+  return new Set(names.map((s) => s.slice(1, -1)));
+}
+/* ONE ROW, ONE RECEIPT. Returns the list of reasons it is NOT accepted — empty means accepted. Every
+ * reason is printed; the first failure does not hide the rest, because a receipt short of three things
+ * and a receipt short of one are different amounts of work for whoever fixes it. */
+function annRowReasons(stage, r, C) {
+  const a = r && r.announcement && typeof r.announcement === 'object' ? r.announcement : null;
+  if (!a) return ['NO RECEIPT — the row claims ' + ANN_VERDICT + ' and carries no `announcement` block'];
+  const missing = ANN_FIELDS.filter((k) => !a[k] || typeof a[k] !== 'string');
+  if (missing.length) return ['INCOMPLETE RECEIPT — `announcement.' + missing.join('`, `announcement.') + '` missing'];
+  const id = nid(r.id || r.name);
+  const bad = [];
+  /* 2. board-blind, derived */
+  const ent = C.tags && C.tags[stage] && C.tags[stage][id];
+  const param = ent && ent.params && ent.params[a.tag];
+  if (!C.tags) bad.push('data/tags.json is unreadable, so `visibleOnABoard` could not be derived — '
+    + 'unasked is not agreeing');
+  else if (!param) bad.push('data/tags.json carries no `' + stage + '.' + id + '.params.' + a.tag
+    + '` — the receipt names a tag this entity does not carry');
+  else if (param.visibleOnABoard !== false) bad.push('data/tags.json says `' + a.tag
+    + '.visibleOnABoard` is ' + JSON.stringify(param.visibleOnABoard) + ', not false — a mechanic a '
+    + 'board can see is graded by the board, and no receipt buys it out of that');
+  /* 3. + 4. the census row */
+  const rows = C.census && Array.isArray(C.census.results) ? C.census.results : null;
+  const row = rows && rows.find((x) => x && x.kind === SINGULAR[stage] && x.tag === a.tag
+    && String(x.label) === a.census_label);
+  if (!rows) bad.push('data/mechanics-census.json carries no `results`, so the row this receipt names '
+    + 'could not be found — re-run tests/test-mechanics.js');
+  else if (!row) bad.push('NO CENSUS ROW — nothing in data/mechanics-census.json has kind `'
+    + SINGULAR[stage] + '`, tag `' + a.tag + '` and this exact label');
+  else {
+    const state = [row.live === true ? null : 'not live', row.hollow === true ? 'hollow' : null,
+                   row.armed === true ? null : 'unarmed'].filter(Boolean);
+    if (state.length) bad.push('THE CENSUS ROW IS ' + state.join(' and ').toUpperCase()
+      + ' — an instrument that did not ask cannot be a receipt');
+    const detail = String(row.detail || '');
+    if (!/\|-[A-Za-z0-9]+\|/.test(detail)) bad.push('THE CENSUS ROW QUOTES NO PROTOCOL LINE — its '
+      + '`detail` carries counts and no literal `|-<event>|...`. When the whole effect is what was '
+      + 'said, a count of how often something was said does not pin what was said');
+    else if (!nid(detail).includes(id)) bad.push('the census row quotes a protocol line that never '
+      + 'names `' + id + '`, so the line it pins is not attributable to this mechanic');
+  }
+  /* 5. the declared deliberate break, and the engine that reads it */
+  if (!/^MEDI_[A-Z0-9_]+$/.test(a.knob)) bad.push('`announcement.knob` (' + a.knob + ') is not a '
+    + 'MEDI_* name');
+  if (!C.breaks) bad.push('DELIBERATE_BREAK COULD NOT BE READ out of tests/test-mechanics.js, so no '
+    + 'knob can be confirmed as a declared break');
+  else if (!C.breaks.has(a.knob_stamp)) bad.push('NO KNOB CAN MAKE THIS ROW RED — `' + a.knob_stamp
+    + '` is not in tests/test-mechanics.js DELIBERATE_BREAK, which is the one place the engine side '
+    + 'declares a deliberate break');
+  if (C.engine === null) bad.push('engine/medicham2-browser.js is unreadable, so the knob could not be '
+    + 'confirmed as wired');
+  else if (C.engine) {
+    if (!C.engine.includes("'" + a.knob + "'")) bad.push(a.knob + ' appears in no quoted literal in '
+      + 'engine/medicham2-browser.js — a knob named only in prose is a citation, not a switch');
+    if (!C.engine.includes('MEDFAILS.' + a.knob_stamp)) bad.push('MEDFAILS.' + a.knob_stamp
+      + ' is never set in engine/medicham2-browser.js — the stamp the census refuses to write under '
+      + 'is never raised');
+  }
+  /* 6. the probe */
+  const psrc = C.probe(a.probe);
+  if (psrc === null) bad.push('the probe this receipt names does not exist: ' + a.probe);
+  else {
+    if (!psrc.includes(a.knob)) bad.push(a.probe + ' never names ' + a.knob + ' — nothing shows this '
+      + 'row red under that knob');
+    if (!nid(psrc).includes(id)) bad.push(a.probe + ' never names `' + id + '`, so it is a probe of '
+      + 'some other mechanic');
+  }
+  return bad;
+}
+/* THE STAGE'S ANNOUNCEMENT VERDICT. `counts` and `results` are COMPARED rather than one being trusted:
+ * a derived set is not a fact until something compares it to its source, and a stage that declares
+ * three announcement rows and carries one has two the gate cannot see. */
+function announcementReceipts(stage, j) {
+  const out = { ok: true, cannot_answer: false, rows: 0, declared: null, accepted: [], failing: [],
+                mismatch: null, why: null };
+  const declared = j && j.counts && typeof j.counts[ANN_VERDICT] === 'number' ? j.counts[ANN_VERDICT] : null;
+  out.declared = declared;
+  const all = j && Array.isArray(j.results) ? j.results : null;
+  if (!all) {
+    if (!declared) return out;
+    return Object.assign(out, { ok: false, cannot_answer: true,
+      why: 'THE ARTIFACT DECLARES ' + declared + ' ' + ANN_VERDICT + ' ROW(S) IN `counts` AND CARRIES '
+         + 'NO `results` — the receipts cannot be read, and an unread receipt is not a receipt' });
+  }
+  const rows = all.filter((r) => r && r.verdict === ANN_VERDICT);
+  out.rows = rows.length;
+  if (declared !== null && declared !== rows.length) {
+    out.mismatch = 'THE ROWS AND `counts` DISAGREE — `counts.' + ANN_VERDICT + '` says ' + declared
+      + ', the rows say ' + rows.length + '. Neither is authoritative until they agree.';
+  }
+  if (rows.length) {
+    const C = annCtx();
+    for (const r of rows) {
+      const key = SINGULAR[stage] + ':' + nid(r.id || r.name);
+      const reasons = annRowReasons(stage, r, C);
+      if (reasons.length) out.failing.push({ key, reasons });
+      else {
+        /* `|| {}` DEFENSIVELY, AND THE SELFTEST'S RED DEMONSTRATION IS WHY IT IS HERE. Breaking
+         * `annRowReasons` to accept everything made this line THROW on a row with no receipt at all,
+         * so the arms went red by crashing rather than by failing — a gate that dies is a gate whose
+         * verdict nobody reads. */
+        const a = r.announcement || {};
+        out.accepted.push({ key, tag: a.tag, knob: a.knob, knob_stamp: a.knob_stamp, probe: a.probe });
+      }
+    }
+  }
+  out.ok = !out.cannot_answer && !out.mismatch && out.failing.length === 0;
+  return out;
+}
+
 function rosterStage(stage, inject) {
   const tried = [];
   const cur = readJson(D('data', 'engine-release.json'));
@@ -656,7 +867,23 @@ function rosterStage(stage, inject) {
       : cnsIn === 0 ? ''
       : `${cnsIn} IN-SCOPE COULD-NOT-STAGE — a legal body carries it and this instrument never staged it`
         + (cnsIds.length ? ` (${cnsIds.join(', ')}${cnsRows.length > cnsIds.length ? ', ...' : ''})` : '');
-    const rosterOk = differ === 0 && silent === 0 && badReds === 0 && staleShelf === 0 && cnsIn === 0;
+    /* ---- ANNOUNCEMENT-ONLY: ACCEPTED ON A RECEIPT, REFUSED WITHOUT ONE (2026-09-19) -------------
+     * See the block above `rosterStage`. The note is appended on EVERY stage, including at zero, for
+     * the same reason the Illusion closet is printed at zero: a check that goes quiet when it finds
+     * nothing cannot be told from a check nobody armed. */
+    const ann = announcementReceipts(stage, j);
+    const annNote = ann.cannot_answer ? `. ${ann.why}`
+      : ann.mismatch ? `. ${ann.mismatch}`
+      : ann.failing.length
+        ? `. ${ann.failing.length} ${ANN_VERDICT} ROW(S) WITHOUT A GOOD RECEIPT — `
+          + ann.failing.map((x) => x.key + ': ' + x.reasons.join('; ')).join(' | ')
+      : ann.accepted.length
+        ? `. ${ANN_VERDICT} — ${ann.accepted.length} row(s) accepted on a receipt: `
+          + ann.accepted.map((x) => x.key + ' (' + x.tag + '; ' + x.knob + ' -> ' + x.knob_stamp
+              + '; ' + x.probe + ')').join(', ')
+      : `. ${ANN_VERDICT} — none claimed`;
+    const rosterOk = differ === 0 && silent === 0 && badReds === 0 && staleShelf === 0 && cnsIn === 0
+      && ann.ok;
     return {
       stage, file: 'data/' + f, generated: j.generated || null, release: j.engine_release || null,
       pins: PIN.receipt({ file: 'data/' + f, checked: ['release', 'digests'],
@@ -664,7 +891,7 @@ function rosterStage(stage, inject) {
       differ, silent, badReds, matched: c['FIRED-AND-BOARDS-MATCH'] || 0,
       couldNotStage: c['COULD-NOT-STAGE'] || 0, couldNotStageInScope: cnsIn,
       deferred: deferred.length, staleShelf, scope: sc, unattributable,
-      plant_anchors: pa,
+      plant_anchors: pa, announcement: ann,
       ok: rosterOk,
       /* THE DEFERRAL COUNT MOVED TO THE CLOSET SECTION and is deliberately not repeated here — it
        * was printing in both places once the closet existed, and a number shown twice is a number
@@ -676,7 +903,7 @@ function rosterStage(stage, inject) {
           + (badReds ? `, ${badReds} red demonstration(s) did not behave as their rule predicted` : '')
           + (staleShelf ? `, ${staleShelf} DEFERRAL(S) NOW PASS ON THEIR OWN — take the shelf down` : '')
           + (cnsTxt ? `, ${cnsTxt}` : ''))
-        + unattrib + redsNote,
+        + annNote + unattrib + redsNote,
     };
   }
   return {
@@ -5251,6 +5478,11 @@ function state() {
 
 module.exports = { medichamIsCorrect, classify, state, withholder, playLayer, sources, requiresOf,
                    MEASURES_THE_ENGINE, ROSTER_STAGES, rosterStage, SIMULATOR,
+                   /* EXPORTED SO ENGINE CAN ASK "would this receipt be accepted?" WITHOUT
+                    * REIMPLEMENTING THE RULE. A second copy of the six checks living in tests/roster.js
+                    * would disagree with this one eventually, and the disagreement would be invisible
+                    * because both would keep working. */
+                   ANN_VERDICT, ANN_FIELDS, annCtx, annRowReasons, announcementReceipts, deliberateBreaks,
                    /* EXPORTED FOR engine/open_work.js SO THERE IS ONE CLOSED-DETECTOR, NOT TWO.
                     * CLAUDE.md: two files that both decide a fact will disagree eventually, and the
                     * disagreement will be invisible because both keep working. This gate and the work
@@ -5821,6 +6053,193 @@ if (require.main === module) {
           + 'CANNOT say whether anything went unstaged, and fails rather than reading as zero',
           cantCount.ok === false && cantCount.couldNotStageInScope === null
           && /CANNOT BE COUNTED/.test(cantCount.why), cantCount.why);
+      }
+
+      /* ---- 2c. ANNOUNCEMENT-ONLY — ACCEPTED ONLY ON A RECEIPT (2026-09-19) ----------------------
+       *
+       * Will, 2026-09-19: Illusion is the ONE acknowledged exclusion. These arms are what makes the
+       * new verdict a BAR rather than a second closet: the end-to-end half drives the shipping
+       * `rosterStage` on a fully stamped artifact that is clean in every other column, so the only
+       * thing that can move the verdict is the receipt; the synthetic half drives the shipping
+       * `annRowReasons` on a handmade context, so every refusal is proven without waiting for a
+       * census row of that shape to appear on disk.
+       *
+       * THE GREEN ARM IS BUILT ON LIVE ARTIFACTS ON PURPOSE. A synthetic-only acceptance would prove
+       * the rule is satisfiable in principle and say nothing about whether anything in this
+       * repository can satisfy it — which is exactly the question ENGINE is owed an answer to. The
+       * knob, the stamp and the probe are READ, not recalled: engine/medicham2-browser.js:6322 and
+       * :6347 (`_MK('MEDI_FOREWARN_SILENT')` / `MEDFAILS.forewarnSilentRestored`), the
+       * `2026-09-19 -- narration batch C` group of tests/test-mechanics.js DELIBERATE_BREAK, and
+       * tests/probe_narration_c.js. The census LABEL is looked up rather than typed, so re-wording it
+       * does not break this arm; only deleting the row does, and that SHOULD break it. */
+      {
+        const aArt = (extra) => ({ stage: 'abilities', generated: 'then',
+          [PIN.K.id]: relId2, [PIN.K.digests]: { 'engine/board.js': 'aaaaaaaaaaaa' },
+          counts: { 'FIRED-AND-BOARDS-DIFFER': 0, 'DID-NOT-FIRE': 0, 'FIRED-AND-BOARDS-MATCH': 194 },
+          scope: { tested: 194, in_scope: 195, unattributable: 0, could_not_stage_in_scope: 0 },
+          reds: [], results: [], ...extra });
+        const run = (extra) => rosterStage('abilities', { file: 'roster.abilities.json', json: aArt(extra) });
+        const CEN = readJson(D('data', 'mechanics-census.json'));
+        const cenRow = ((CEN && CEN.results) || []).find((x) => x && x.kind === 'ability'
+          && x.tag === 'announcesOnEntry' && nid(x.label).startsWith('forewarn'));
+        ok('ANNOUNCEMENT-ONLY — the live census still carries the row every arm below is built on; '
+          + 'without it the GREEN arm would be red for a reason that is not the rule',
+          !!cenRow, cenRow || '(no announcesOnEntry ability row whose label starts "Forewarn")');
+        const receipt = { tag: 'announcesOnEntry', census_label: cenRow && cenRow.label,
+                          knob: 'MEDI_FOREWARN_SILENT', knob_stamp: 'forewarnSilentRestored',
+                          probe: 'tests/probe_narration_c.js', authority: 'data/abilities.ts:1494-1517' };
+        const ROW = (over) => ({ kind: 'ability', id: 'forewarn', verdict: 'ANNOUNCEMENT-ONLY',
+          underlying_verdict: 'COULD-NOT-STAGE', ...over });
+        const one = (over) => run({ counts: { 'FIRED-AND-BOARDS-DIFFER': 0, 'DID-NOT-FIRE': 0,
+            'FIRED-AND-BOARDS-MATCH': 194, 'ANNOUNCEMENT-ONLY': 1 },
+          results: [ROW(over)] });
+
+        /* (i) ACCEPTED WITH A RECEIPT */
+        const good = one({ announcement: receipt });
+        ok('ANNOUNCEMENT-ONLY / GREEN — a row with a COMPLETE receipt is accepted, and the stage that '
+          + 'would otherwise read COULD-NOT-STAGE passes',
+          good.ok === true && good.announcement.accepted.length === 1
+          && good.announcement.failing.length === 0, good.why);
+        ok('ANNOUNCEMENT-ONLY / GREEN — the acceptance is PRINTED with the knob, the stamp and the '
+          + 'probe, so a reader can check it without opening this file',
+          /ANNOUNCEMENT-ONLY — 1 row\(s\) accepted on a receipt/.test(good.why)
+          && good.why.indexOf('MEDI_FOREWARN_SILENT') >= 0
+          && good.why.indexOf('tests/probe_narration_c.js') >= 0, good.why);
+
+        /* (ii) REFUSED WITHOUT A RECEIPT */
+        const bare = one({});
+        ok('ANNOUNCEMENT-ONLY / RED — the verdict ALONE excuses nothing: a row with no `announcement` '
+          + 'block FAILS the stage',
+          bare.ok === false && bare.announcement.failing.length === 1
+          && /NO RECEIPT/.test(bare.why), bare.why);
+        const partial = one({ announcement: { ...receipt, probe: undefined } });
+        ok('ANNOUNCEMENT-ONLY / RED — a PARTIAL receipt is refused and names the missing field',
+          partial.ok === false && /INCOMPLETE RECEIPT/.test(partial.why)
+          && /announcement.probe/.test(partial.why), partial.why);
+
+        /* (iii) REFUSED WHEN THE CENSUS ROW IS MISSING */
+        const noRow = one({ announcement: { ...receipt, census_label: '__no census row says this__' } });
+        ok('ANNOUNCEMENT-ONLY / RED — a receipt naming a census row that does not exist FAILS: the '
+          + 'receipt is a pointer, and a pointer at nothing is not evidence',
+          noRow.ok === false && /NO CENSUS ROW/.test(noRow.why), noRow.why);
+
+        /* (iv) REFUSED WHEN NO KNOB CAN MAKE IT RED */
+        const noKnob = one({ announcement: { ...receipt, knob_stamp: '__notADeclaredBreak__' } });
+        ok('ANNOUNCEMENT-ONLY / RED — a stamp that is not in tests/test-mechanics.js '
+          + 'DELIBERATE_BREAK FAILS: nothing declares a knob that can show the row red, so the census '
+          + 'green could be a probe that asks nothing',
+          noKnob.ok === false && /NO KNOB CAN MAKE THIS ROW RED/.test(noKnob.why), noKnob.why);
+        const deadKnob = one({ announcement: { ...receipt, knob: 'MEDI_NOT_A_REAL_KNOB' } });
+        ok('ANNOUNCEMENT-ONLY / RED — and a knob the ENGINE never reads FAILS too, even when the '
+          + 'stamp is declared', deadKnob.ok === false
+          && /appears in no quoted literal/.test(deadKnob.why), deadKnob.why);
+
+        /* (v) A LIFTED ROW CANNOT COME BACK THROUGH THE SIDE DOOR */
+        const stamped2 = one({ deferred: { by: 'Will', on: '2026-08-10', why: 'the old shelf' } });
+        ok('ANNOUNCEMENT-ONLY / RED — A LIFTED ROW CAN NO LONGER BE EXCUSED: a leftover `deferred` '
+          + 'stamp on an ANNOUNCEMENT-ONLY row buys nothing, because this path never reads it',
+          stamped2.ok === false && /NO RECEIPT/.test(stamped2.why)
+          && stamped2.deferred === 0, stamped2.why);
+
+        /* (vi) THE ROWS AND THE COUNTS MUST AGREE */
+        const skew = run({ counts: { 'FIRED-AND-BOARDS-DIFFER': 0, 'DID-NOT-FIRE': 0,
+            'FIRED-AND-BOARDS-MATCH': 194, 'ANNOUNCEMENT-ONLY': 2 },
+          results: [ROW({ announcement: receipt })] });
+        ok('ANNOUNCEMENT-ONLY / RED — `counts` claiming two rows over one written row FAILS: a '
+          + 'derived set is not a fact until something compares it to its source',
+          skew.ok === false && /ROWS AND `counts` DISAGREE/.test(skew.why), skew.why);
+        const blindAnn = aArt({ counts: { 'FIRED-AND-BOARDS-DIFFER': 0, 'DID-NOT-FIRE': 0,
+            'FIRED-AND-BOARDS-MATCH': 194, 'ANNOUNCEMENT-ONLY': 1 } });
+        delete blindAnn.results;
+        const cannot = rosterStage('abilities', { file: 'roster.abilities.json', json: blindAnn });
+        ok('ANNOUNCEMENT-ONLY / RED — a stage declaring the bucket in `counts` and carrying no rows '
+          + 'CANNOT ANSWER, and fails rather than reading as accepted',
+          cannot.ok === false && cannot.announcement.cannot_answer === true, cannot.why);
+
+        /* (vii) THE ZERO IS PRINTED, so an unarmed check cannot be told from a clean one */
+        const none = run({});
+        ok('ANNOUNCEMENT-ONLY — a stage claiming no announcement rows still SAYS SO, and passes',
+          none.ok === true && /ANNOUNCEMENT-ONLY — none claimed/.test(none.why), none.why);
+
+        /* ---- THE SYNTHETIC HALF: `annRowReasons` IS THE SHIPPING RULE ---------------------------
+         * Each context below is clean except for the one thing under test, so a refusal names that
+         * thing and nothing else can be responsible for it. */
+        const synC = (over) => ({
+          tags: { abilities: { synthmech: { params: { synthTag: { visibleOnABoard: false },
+                                                      boardTag: { visibleOnABoard: true } } } } },
+          census: { results: [{ kind: 'ability', tag: 'synthTag', label: 'L', live: true, hollow: false,
+            armed: true, detail: '|-activate|p1a: body|ability: synthmech|[of] p2a: foe' }] },
+          breaks: new Set(['synthRestored']),
+          engine: "const S=_MK('MEDI_SYNTH');if(S)MEDFAILS.synthRestored=1;",
+          probe: () => "MEDI_SYNTH // synthmech", ...over });
+        const synRow = (over) => ({ kind: 'ability', id: 'synthmech', verdict: 'ANNOUNCEMENT-ONLY',
+          announcement: { tag: 'synthTag', census_label: 'L', knob: 'MEDI_SYNTH',
+                          knob_stamp: 'synthRestored', probe: 'tests/probe_synth.js', ...over } });
+        ok('SYNTH / GREEN — the control: a clean context accepts, so every RED below is about the one '
+          + 'thing it changes', annRowReasons('abilities', synRow(), synC()).length === 0,
+          annRowReasons('abilities', synRow(), synC()));
+        const noLine = synC({ census: { results: [{ kind: 'ability', tag: 'synthTag', label: 'L',
+          live: true, hollow: false, armed: true,
+          detail: '[synthmech lines] no ability [0,0]; with the ability [1,1] — no die' }] } });
+        ok('SYNTH / RED — a census row that COUNTS announcements and quotes no protocol line is '
+          + 'refused. When the whole effect is what was said, a count of how often it was said is not '
+          + 'a measurement of it',
+          /QUOTES NO PROTOCOL LINE/.test(annRowReasons('abilities', synRow(), noLine).join(' ')),
+          annRowReasons('abilities', synRow(), noLine));
+        const otherLine = synC({ census: { results: [{ kind: 'ability', tag: 'synthTag', label: 'L',
+          live: true, hollow: false, armed: true, detail: '|-activate|p1a: body|move: Something Else' }] } });
+        ok('SYNTH / RED — a quoted line that never names the mechanic is refused: the line it pins is '
+          + 'not attributable to this row',
+          /never names/.test(annRowReasons('abilities', synRow(), otherLine).join(' ')),
+          annRowReasons('abilities', synRow(), otherLine));
+        for (const [field, word] of [['live', 'NOT LIVE'], ['armed', 'UNARMED']]) {
+          const dead = synC({ census: { results: [{ ...synC().census.results[0], [field]: false }] } });
+          ok('SYNTH / RED — a census row that is ' + word.toLowerCase() + ' is refused: an instrument '
+            + 'that did not ask cannot be a receipt',
+            new RegExp(word).test(annRowReasons('abilities', synRow(), dead).join(' ')),
+            annRowReasons('abilities', synRow(), dead));
+        }
+        const hollow = synC({ census: { results: [{ ...synC().census.results[0], hollow: true }] } });
+        ok('SYNTH / RED — a HOLLOW census row is refused for the same reason',
+          /HOLLOW/.test(annRowReasons('abilities', synRow(), hollow).join(' ')),
+          annRowReasons('abilities', synRow(), hollow));
+        ok('SYNTH / RED — A MECHANIC A BOARD CAN SEE IS GRADED BY THE BOARD: a receipt naming a tag '
+          + 'whose `visibleOnABoard` is not false is refused, so this verdict cannot be used to '
+          + 'relabel a board-material row',
+          /visibleOnABoard/.test(annRowReasons('abilities', synRow({ tag: 'boardTag' }), synC()).join(' ')),
+          annRowReasons('abilities', synRow({ tag: 'boardTag' }), synC()));
+        ok('SYNTH / RED — a tag the entity does not carry at all is refused',
+          /carries no/.test(annRowReasons('abilities', synRow({ tag: 'noSuchTag' }), synC()).join(' ')),
+          annRowReasons('abilities', synRow({ tag: 'noSuchTag' }), synC()));
+        ok('SYNTH / RED — DELIBERATE_BREAK unreadable is CANNOT-ANSWER, never a pass',
+          /COULD NOT BE READ/.test(annRowReasons('abilities', synRow(), synC({ breaks: null })).join(' ')),
+          annRowReasons('abilities', synRow(), synC({ breaks: null })));
+        ok('SYNTH / RED — a stamp the ENGINE never raises is refused even when it is declared',
+          /is never set in/.test(annRowReasons('abilities', synRow(),
+            synC({ engine: "const S=_MK('MEDI_SYNTH');" })).join(' ')),
+          annRowReasons('abilities', synRow(), synC({ engine: "const S=_MK('MEDI_SYNTH');" })));
+        ok('SYNTH / RED — a probe that does not exist is refused',
+          /does not exist/.test(annRowReasons('abilities', synRow(),
+            synC({ probe: () => null })).join(' ')),
+          annRowReasons('abilities', synRow(), synC({ probe: () => null })));
+        ok('SYNTH / RED — a probe that never names the knob is refused: nothing shows the row red',
+          /never names MEDI_SYNTH/.test(annRowReasons('abilities', synRow(),
+            synC({ probe: () => 'synthmech and nothing else' })).join(' ')),
+          annRowReasons('abilities', synRow(), synC({ probe: () => 'synthmech and nothing else' })));
+        ok('SYNTH / RED — a probe of SOME OTHER mechanic is refused, which is what stops a receipt '
+          + 'borrowing any of the hundred stamps in DELIBERATE_BREAK',
+          /so it is a probe of/.test(annRowReasons('abilities', synRow(),
+            synC({ probe: () => 'MEDI_SYNTH on something unrelated' })).join(' ')),
+          annRowReasons('abilities', synRow(), synC({ probe: () => 'MEDI_SYNTH on something unrelated' })));
+        /* THE PARSER ITSELF, against its one declaration. A DELIBERATE_BREAK that parsed to nothing
+         * would fail every receipt — safe, but for the wrong reason — and one that parsed to
+         * everything would pass every receipt, which is not safe at all. */
+        const DB = deliberateBreaks();
+        ok('ANNOUNCEMENT-ONLY — DELIBERATE_BREAK parses out of tests/test-mechanics.js and holds the '
+          + 'stamp the GREEN arm rests on',
+          DB instanceof Set && DB.size > 20 && DB.has('forewarnSilentRestored'), DB && DB.size);
+        ok('ANNOUNCEMENT-ONLY — and the parse stops at the array: it does not swallow the file',
+          DB instanceof Set && DB.size < 400 && !DB.has('DELIBERATE_BREAK'), DB && DB.size);
       }
 
       /* ---- 3. THE MECHANICS CLAUSE — a hand-rolled `release` is not a stamp ------------------- */

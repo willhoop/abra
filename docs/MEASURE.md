@@ -40,6 +40,38 @@ _stamped 2026-09-19 19:26_
 
 <!-- /GENERATED -->
 
+## A MECHANIC WHOSE WHOLE EFFECT IS A LINE IS ACCEPTED ONLY ON A RECEIPT. 2026-09-19 (6.71.1)
+
+**WHY.** Will, 2026-09-19: Illusion is the ONE acknowledged exclusion; everything else gets modelled and
+gated. Three roster rows — the `announcesOnEntry` abilities — write no board leaf, which `data/tags.json`
+states as a derived fact (`params.<tag>.visibleOnABoard: false`). A board comparator handed one of them can
+only ever return *the boards agreed*, which is a green that asked nothing. Lifting their deferral makes the
+roster report COULD-NOT-STAGE, which the roster clause has failed on since 2026-09-19 — so the gate would
+close for a reason that is true of the instrument and false of the engine.
+
+**WHAT.** `engine/quarantine.js` now accepts a roster row carrying `verdict: "ANNOUNCEMENT-ONLY"`, and only
+with an `announcement` receipt that survives six checks, every one read out of an artifact or a source file
+and none of them out of a list typed in the gate: the receipt is complete; `data/tags.json` says the named
+tag is `visibleOnABoard: false`; `data/mechanics-census.json` carries a live, armed, non-hollow row with
+that kind, tag and exact label; that row's `detail` QUOTES a literal `|-<event>|` protocol line naming the
+mechanic; `announcement.knob_stamp` is in `DELIBERATE_BREAK` in `tests/test-mechanics.js` and both the
+`MEDI_*` knob (as a quoted literal) and `MEDFAILS.<stamp>` appear in `engine/medicham2-browser.js`; and the
+probe the receipt names exists and names both the knob and the mechanic. Anything short of that FAILS the
+stage. The path never reads `r.deferred`, so a lifted row cannot return through the side door.
+
+**WHY THE LINE AND NOT A COUNT.** A census row reading `[0,0]` then `[1,1]` says something fired. When the
+whole effect IS what was said, that is not a measurement of it — the same distinction as a capability that
+cannot prove it ran. The rule therefore refuses a row that counts announcements and quotes none.
+
+**WHAT IT PROVES AND WHAT IT DOES NOT.** It proves the chain is wired and declared. It does not re-run the
+probe: no artifact in this repository records a probe's red demonstration, and inventing one in the gate
+would be a second implementation of something ENGINE owns. Stated, not papered over.
+
+**NO PUBLISHED FIGURE MOVED.** All three roster stages carry zero rows with the new verdict today, so each
+prints `ANNOUNCEMENT-ONLY — none claimed` and its `ok` is unchanged. Selftest 353 → **380 passed, 0
+failed**; shown RED first on a deliberate break (`annRowReasons` returning `[]` for every row, run on a
+copy so the live gate was never broken) — **18 of the new arms failed**, by verdict and not by crash.
+
 ## AN ABILITY THAT READS FIRED ONLY BECAUSE ITS CONTROL ACTS NOW FAILS THE MECHANICS CLAUSE. 2026-09-19 (6.67.1)
 
 **WHY.** 6.67.0 watched the authority's handlers and found FIRED ability rows whose A/B cannot separate the

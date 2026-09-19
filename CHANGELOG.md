@@ -10,6 +10,46 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.71.1] — 2026-09-19
+
+### Added
+- **`ANNOUNCEMENT-ONLY` is a roster verdict the gate accepts only on a receipt.** Will, 2026-09-19:
+  Illusion is the one acknowledged exclusion; everything else gets modelled and gated. The
+  `announcesOnEntry` abilities write no board leaf — `data/tags.json` says so itself
+  (`params.<tag>.visibleOnABoard: false`) — so a board comparator handed one can only return *the
+  boards agreed*, and removing their deferral would make the roster report COULD-NOT-STAGE and close
+  the gate for a reason that is true of the instrument and false of the engine.
+  `engine/quarantine.js` now takes `verdict: "ANNOUNCEMENT-ONLY"` on a roster row plus an
+  `announcement` receipt, and checks six things, all derived: the receipt is complete; the tag is
+  `visibleOnABoard: false` in `data/tags.json`; `data/mechanics-census.json` carries a **live, armed,
+  non-hollow** row with that kind, tag and exact label; that row's `detail` **quotes a literal
+  `|-<event>|` protocol line naming the mechanic** rather than counting announcements;
+  `announcement.knob_stamp` is in `DELIBERATE_BREAK` in `tests/test-mechanics.js` **and** both the
+  `MEDI_*` knob (as a quoted literal) and `MEDFAILS.<stamp>` appear in
+  `engine/medicham2-browser.js`; and the probe the receipt names exists and names both the knob and
+  the mechanic. No receipt, or a row that is not red-provable, FAILS the stage.
+- The knob list is **parsed from its one declaration** rather than copied — a second copy of
+  `DELIBERATE_BREAK` would drift, and it grows several times a night. A parse that finds nothing
+  fails every receipt rather than passing them.
+
+### Changed
+- A `deferred` stamp excuses nothing on this path: `announcementReceipts` never reads it, so a row
+  whose shelf has been lifted cannot come back with the stamp still attached. The only excusal left
+  in `rosterStage` is the owner's `DEFERRED-BY-OWNER` verdict.
+
+### Notes
+- **No published figure moved.** All three roster stages carry zero rows with the new verdict today,
+  so each prints `ANNOUNCEMENT-ONLY — none claimed` and its `ok` is unchanged. This is a PATCH.
+- **Shown RED before being trusted.** Selftest 353 → **380 passed, 0 failed**; with `annRowReasons`
+  deliberately broken to accept every row — run on a copy, so the live gate file was never broken —
+  **18 of the new arms fail**, by verdict rather than by crash. The `|| {}` on the accepted-row
+  builder exists because the first red demonstration threw instead of failing.
+- **Only Forewarn can form a complete receipt today.** Measured against the live artifacts:
+  Anticipation's census row quotes no protocol line and its stamp `anticipationSilentRestored` is not
+  in `DELIBERATE_BREAK`; Frisk has a census row that quotes its exact `|-item|` line and **no knob at
+  all** in `engine/medicham2-browser.js`. Those are ENGINE's to close; the gate names each gap.
+  Details: `docs/_reports/2026-09-19-announcement-only.md`.
+
 ## [6.71.0] — 2026-09-19
 
 ### Notes

@@ -52,6 +52,29 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.71.1] — 2026-09-19 — a mechanic whose whole effect is a line is accepted by the gate only on a receipt
+
+- **What changed.** `engine/quarantine.js` only. `rosterStage` now accepts a row carrying
+  `verdict: "ANNOUNCEMENT-ONLY"` when its `announcement` receipt survives six derived checks — the
+  receipt is complete; `data/tags.json` says the named tag is `visibleOnABoard: false`;
+  `data/mechanics-census.json` holds a live, armed, non-hollow row with that kind, tag and exact
+  label; that row's `detail` quotes a literal `|-<event>|` line naming the mechanic; the
+  `knob_stamp` is in `DELIBERATE_BREAK` in `tests/test-mechanics.js` and both the `MEDI_*` knob and
+  `MEDFAILS.<stamp>` appear in `engine/medicham2-browser.js`; and the named probe exists and names
+  both. No receipt fails the stage. The path never reads `r.deferred`, so a lifted row cannot be
+  excused by a leftover stamp.
+- **Measured.** NO FIGURE. All three roster stages carry zero rows with the new verdict, so each
+  prints `ANNOUNCEMENT-ONLY — none claimed` and its `ok` is unchanged
+  (`data/roster.{items,abilities,moves}.json`). Selftest **380 passed, 0 failed** (was 353); shown
+  RED first on a deliberate break — **18 of the new arms fail**. Against the live artifacts, exactly
+  **1 of the 3 `announcesOnEntry` abilities** can form a complete receipt today
+  (`data/mechanics-census.json`, `data/tags.json`, `tests/test-mechanics.js` DELIBERATE_BREAK,
+  `engine/medicham2-browser.js`); the other two are named with what each is missing in
+  `docs/_reports/2026-09-19-announcement-only.md`.
+- **Basis.** unchanged.
+- **Supersedes.** Nothing.
+- **Owed to the next major.** none — this is a gate rule, not a published figure.
+
 ## [6.71.0] — 2026-09-19 — 6.70.0 re-measured on `18773c22878f`: the gate reads OPEN on its three lattices, and a held-out 12,000-game draw on the same pins parts 34 boards
 
 - **What changed.** No code changed. Re-measured on release `18773c22878f` (HEAD `dec05b65`, 6.70.0;
