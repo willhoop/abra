@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-19T16:28:13.263Z",
+  "generated": "2026-09-19T19:45:43.459Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:de38d17e15a2/credit:observed-effect/v1/nature:real",
   "games_requested": 1200,
@@ -62,7 +62,7 @@
       "turn1_boards_reached": 961,
       "rows_credited": 276,
       "credit_events": {
-        "effect": 535204,
+        "effect": 536587,
         "negative": 1052,
         "click": 1109100
       },
@@ -84,7 +84,7 @@
   },
   "games": 961,
   "turns_cap": 50,
-  "elapsed_s": 413.7,
+  "elapsed_s": 483.7,
   "credit_turn_profile": {
     "rows_with_any_credit": 276,
     "credits_with_no_turn_index": 0,
@@ -140,34 +140,34 @@
       }
     ],
     "credit_events_by_turn": {
-      "1": 82136,
-      "2": 82857,
-      "3": 82422,
-      "4": 82689,
-      "5": 79541,
-      "6": 73279,
-      "7": 64646,
-      "8": 55244,
-      "9": 43873,
-      "10": 35752,
-      "11": 27156,
-      "12": 20573,
-      "13": 14542,
-      "14": 10807,
-      "15": 7771,
-      "16": 5659,
-      "17": 4335,
-      "18": 3147,
-      "19": 2936,
-      "20": 2360,
-      "21": 1495,
+      "1": 82172,
+      "2": 82913,
+      "3": 82485,
+      "4": 82754,
+      "5": 79616,
+      "6": 73340,
+      "7": 64707,
+      "8": 55296,
+      "9": 43916,
+      "10": 35786,
+      "11": 27185,
+      "12": 20597,
+      "13": 14552,
+      "14": 10815,
+      "15": 7777,
+      "16": 5666,
+      "17": 4339,
+      "18": 3149,
+      "19": 2937,
+      "20": 2364,
+      "21": 1496,
       "22": 1118,
-      "23": 852,
-      "24": 607,
-      "25": 687,
-      "26": 659,
+      "23": 853,
+      "24": 608,
+      "25": 688,
+      "26": 660,
       "27": 576,
-      "28": 555,
+      "28": 556,
       "29": 331,
       "30": 273,
       "31": 292,
@@ -2851,8 +2851,8 @@
     "policy": "observed-effect/v1",
     "rule": "a census row is exercised when a board leaf in a family THE TAG'S OWN PARAMS NAME changed across the turn, in either engine, inside the scope of an entity that was in play; or when a blocking tag's declared negative case was reached and correctly did not fire. A click alone counts for NOTHING but an attempt.",
     "why": "Primarina clicked Haze on turn 1 into a board with zero boosts on it. Haze is a no-op there, the census marked it exercised, and because the census STEERS the sample a falsely credited row then steered every later run AWAY from testing it.",
-    "rows_with_an_observed_effect": 394,
-    "rows_that_can_be_witnessed_on_a_board": 421,
+    "rows_with_an_observed_effect": 395,
+    "rows_that_can_be_witnessed_on_a_board": 423,
     "rows_that_name_no_board_leaf": 478,
     "rows_credited_by_a_connected_click_only": 449,
     "rows_clicked_or_present_that_did_nothing": 9,
@@ -6572,13 +6572,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 6470,
+        "credit": 7117,
         "of_which": {
-          "effect": 13840,
+          "effect": 15224,
           "negative": 0,
           "click": 0
         },
-        "attempts": 10
+        "attempts": 11
       },
       {
         "key": "ability:buffsHolderOnHit",
@@ -6589,13 +6589,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 6470,
+        "credit": 7117,
         "of_which": {
-          "effect": 13840,
+          "effect": 15224,
           "negative": 0,
           "click": 0
         },
-        "attempts": 10
+        "attempts": 11
       },
       {
         "key": "ability:buffsHolderOnHit",
@@ -6606,13 +6606,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 6470,
+        "credit": 7117,
         "of_which": {
-          "effect": 13840,
+          "effect": 15224,
           "negative": 0,
           "click": 0
         },
-        "attempts": 10
+        "attempts": 11
       },
       {
         "key": "ability:buffsHolderOnHit",
@@ -6623,13 +6623,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 6470,
+        "credit": 7117,
         "of_which": {
-          "effect": 13840,
+          "effect": 15224,
           "negative": 0,
           "click": 0
         },
-        "attempts": 10
+        "attempts": 11
       },
       {
         "key": "ability:buffsHolderOnHit",
@@ -6640,13 +6640,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 6470,
+        "credit": 7117,
         "of_which": {
-          "effect": 13840,
+          "effect": 15224,
           "negative": 0,
           "click": 0
         },
-        "attempts": 10
+        "attempts": 11
       },
       {
         "key": "move:fixedDamage",
@@ -10484,13 +10484,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 6470,
+        "credit": 7117,
         "of_which": {
-          "effect": 13840,
+          "effect": 15224,
           "negative": 0,
           "click": 0
         },
-        "attempts": 10
+        "attempts": 11
       },
       {
         "key": "ability:punishesAttacker",
@@ -14535,13 +14535,30 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 6470,
+        "credit": 7117,
         "of_which": {
-          "effect": 13840,
+          "effect": 15224,
           "negative": 0,
           "click": 0
         },
-        "attempts": 10
+        "attempts": 11
+      },
+      {
+        "key": "ability:buffsHolderOnHit",
+        "kind": "effect",
+        "families": [
+          "boosts"
+        ],
+        "from": [
+          "param key `boosts`"
+        ],
+        "credit": 7117,
+        "of_which": {
+          "effect": 15224,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 11
       },
       {
         "key": "ability:preventsStatDrop",
@@ -14611,6 +14628,23 @@
         "credit": 716,
         "of_which": {
           "effect": 2492,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:refusesItemLoss",
+        "kind": "negative-or-effect",
+        "families": [
+          "item"
+        ],
+        "from": [
+          "the tag name matches item|berry|megastone|unburde"
+        ],
+        "credit": 0,
+        "of_which": {
+          "effect": 0,
           "negative": 0,
           "click": 0
         },
@@ -15266,13 +15300,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 6470,
+        "credit": 7117,
         "of_which": {
-          "effect": 13840,
+          "effect": 15224,
           "negative": 0,
           "click": 0
         },
-        "attempts": 10
+        "attempts": 11
       },
       {
         "key": "move:delayedHit",
@@ -16027,13 +16061,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 6470,
+        "credit": 7117,
         "of_which": {
-          "effect": 13840,
+          "effect": 15224,
           "negative": 0,
           "click": 0
         },
-        "attempts": 10
+        "attempts": 11
       },
       {
         "key": "ability:typeImmunity",
@@ -16076,13 +16110,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 6470,
+        "credit": 7117,
         "of_which": {
-          "effect": 13840,
+          "effect": 15224,
           "negative": 0,
           "click": 0
         },
-        "attempts": 10
+        "attempts": 11
       },
       {
         "key": "move:lowersUser",
@@ -16953,13 +16987,13 @@
     ]
   },
   "coverage": {
-    "measurable": 899,
-    "exercised": 859,
+    "measurable": 901,
+    "exercised": 860,
     "exercised_note": "THE OLD NUMBER — an entity of this row connected or stood on the field. It is kept so the drop to credit.rows_with_an_observed_effect is readable, and it is NOT the coverage claim any more.",
     "exercised_by_a_connected_move": 506,
     "move_targets": 524,
-    "present_on_the_field_only": 353,
-    "ability_or_item_targets": 375,
+    "present_on_the_field_only": 354,
+    "ability_or_item_targets": 377,
     "median_completed_turns_before_divergence": 9,
     "unmeasurable_by_this_instrument": [
       {
@@ -17273,6 +17307,7 @@
       "ability:removesOwnMoveFlag",
       "ability:suppressesOwnItem",
       "move:failsWithoutUserLatch",
+      "ability:refusesItemLoss",
       "ability:refusesItemLoss",
       "ability:copiesFoeBoosts",
       "move:curesPartyStatus"
@@ -17635,7 +17670,7 @@
     "driver_inputs": [
       {
         "file": "data/move-priors.json",
-        "read_from": "release d92bdfb50d88",
+        "read_from": "release 6180c4712761",
         "digest": "e667fe8ab457",
         "generated": "2026-08-22",
         "rows": 345,
@@ -17661,7 +17696,7 @@
         "rows": 48,
         "what": "the DECLARED SKIP LIST — every event medicham2 says it does not emit is removed from the Showdown side before alignment, so this decides what can count as a divergence",
         "derived_from_medicham2": "50bc0ebd5e12",
-        "medicham2_played": "b2c908144761"
+        "medicham2_played": "e049e4466f3b"
       }
     ],
     "driver_code": {
@@ -17681,9 +17716,9 @@
         "engine/effect_kind.js": "10a7c982994f",
         "engine/empirical_driver.js": "e6ad4a3a7b43",
         "engine/end_state_severity.js": "6cd7666b4a02",
-        "engine/engine_release.js": "5b16d00d869d",
+        "engine/engine_release.js": "414b5add6c97",
         "engine/fixture_legality.js": "3dcb1fd37648",
-        "engine/game_differential.js": "47259c18b63f",
+        "engine/game_differential.js": "9940ba0c3fd9",
         "engine/names.js": "3a1f5d1b473d",
         "engine/run_stamp.js": "9b44ac36f0d1",
         "engine/steering.js": "c61ad94ed8f0"
@@ -17695,17 +17730,18 @@
         "engine/effect_kind.js": "ad0ae817aac2",
         "engine/empirical_driver.js": "4f2f2e1e6df6",
         "engine/end_state_severity.js": "6cd7666b4a02",
-        "engine/engine_release.js": "5b16d00d869d",
+        "engine/engine_release.js": "414b5add6c97",
         "engine/fixture_legality.js": "42bb3443d333",
-        "engine/game_differential.js": "47259c18b63f",
+        "engine/game_differential.js": "9940ba0c3fd9",
         "engine/names.js": "14de493906d5",
         "engine/run_stamp.js": "9b44ac36f0d1",
         "engine/steering.js": "7c85e3d88fb2"
       },
       "digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content) — a line ending is not part of the instrument. `files_raw`/`raw_digest` carry the byte answer.",
-      "raw_digest": "dc733c1681b5",
-      "digest": "d0ef2b6bf52e",
+      "raw_digest": "8ac0f0803518",
+      "digest": "faf70ecbca71",
       "unresolved": [
+        "engine/game_differential.js -> ./tests/roster.js (does not resolve on disk)",
         "engine/game_differential.js -> ./engine/\n * game_differential.js (does not resolve on disk)",
         "engine/engine_release.js -> ./x.js (does not resolve on disk)",
         "engine/engine_release.js -> ./literal (does not resolve on disk)",
@@ -17716,15 +17752,15 @@
     },
     "input": "data/mechanics-census.json",
     "input_read_from": "data/mechanics-census.json",
-    "input_digest": "9a62d9593f12",
-    "input_raw_digest": "9a62d9593f12",
+    "input_digest": "57deebd09273",
+    "input_raw_digest": "57deebd09273",
     "input_digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content)",
-    "input_rows": 967,
-    "input_generated": "2026-09-19T16:03:57.832Z",
-    "input_live_digest": "9a62d9593f12",
+    "input_rows": 969,
+    "input_generated": "2026-09-19T19:26:33.049Z",
+    "input_live_digest": "57deebd09273",
     "pinned": false,
     "matches_live": true,
-    "selects_from": 899,
+    "selects_from": 901,
     "unmeasurable": 68,
     "credit": "observed-effect/v1 — a row is exercised when a board leaf in a family the tag's own params name changed across the turn, or when a declared negative case was reached and did not fire. A click alone counts for nothing. ROADMAP #91.",
     "team_pool_digest": "0d103fb9fa87",
@@ -17733,12 +17769,12 @@
     "team_store_pinned_to": "data/team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "d92bdfb50d88",
-  "engine_release_cut": "2026-09-19T16:04:45.355Z",
+  "engine_release": "6180c4712761",
+  "engine_release_cut": "2026-09-19T19:26:51.339Z",
   "engine_release_cuts": 1,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "b2c908144761",
+    "engine/medicham2-browser.js": "e049e4466f3b",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "d00e77a7ac26",
     "engine/position_features.js": "bb71676d3669",
@@ -17758,8 +17794,8 @@
     "data/regulations.json": "6c1995e9a9fb",
     "data/quality-filter.json": "771c3bd3e544",
     "data/engine-data.js": "bbc417dfae0e",
-    "data/abra-tags.js": "28b309f15cbc",
-    "data/tags.json": "f66517a89b21",
+    "data/abra-tags.js": "2cf0ab4d4132",
+    "data/tags.json": "331a5a1910a7",
     "data/policy-weights.json": "626c1d240782",
     "data/policy-weights-joint.json": "e2aca467ff04",
     "data/move-priors.json": "e667fe8ab457",

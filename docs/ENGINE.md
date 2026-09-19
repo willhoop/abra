@@ -169,11 +169,11 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  969/969 probed mechanics live, 0 missing   (census 2026-09-19 15:26)
+  969/969 probed mechanics live, 0 missing   (census 2026-09-19 15:54)
     the census probes what somebody thought to probe: 301 of 301 in-scope tags carry a probe, 0 carry none (9 of 310
     tags have no in-scope carrier); 1 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 3.0 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-19 12:39)
+    (all-mechanics-fire.json, 27 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-19 15:53)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
     the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
     Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
@@ -196,11 +196,36 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 15:32_
+_stamped 2026-09-19 16:04_
 
 <!-- /GENERATED -->
 
-## ALL ELEVEN UNEARNED ABILITY ROWS NOW FIRE ON THEIR OWN TRIGGER AGAINST A CONTROL THE WATCH MEASURES QUIET. FLASH FIRE AND STENCH GO FROM DID-NOT-FIRE TO FIRED. **UNEARNED 9 → 0; FIRED ON A LIVE CONTROL 18 → 1 OVER THE 30 NAMED ROWS WHOSE PLAN MOVED; NO BOARD PARTED IN EITHER ARM.** ONE NARRATION FIX: STICKY HOLD NOW ANNOUNCES A REFUSED THIEF / COVET / KNOCK OFF STRIP. ONE BOARD FIX: STICKY HOLD NO LONGER KEEPS AN ITEM FOR A HOLDER THE SAME HIT FAINTS. CENSUS **968 → 969 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `a851fe9377de`; LIGHT MODE, NAMED ROWS ONLY.** 2026-09-19, CHANGELOG `<<VER>>`
+## 6.68.0 RE-MEASURES AT BOARD **0 / 0 / 0**, NARRATION **0 / 0 / 0**, THREW **0 / 0 / 0**. EVERY IN-SCOPE STAGED ROW IS PROVEN OR OWNER-EXCUSED, NO ROW IS UNEARNED AND NO CONTROL ARM PARTS A BOARD. `engine/quarantine.js` PRINTS **GATE: OPEN, 10 OF 10**. **NO ENGINE BYTE CHANGED; RELEASE `6180c4712761`; DRIVER `faf70ecbca71`, SO NO EARLIER LATTICE IS COMPARABLE.** 2026-09-19, CHANGELOG 6.69.0
+
+Full account: `docs/_reports/2026-09-19-6180-remeasure.md`.
+
+- **Lattices** (`--games` 1200 / 1350 / 1950, `--team-store data/team-pool-frozen`, arm `middle`, cap 50,
+  `--end-state`, `--steering empirical`, census digest `57deebd09273`): board-material 0 of 961 / 0 of 1069 /
+  0 of 1497. The only protocol divergences are the same three declared Supreme Overlord `fallenundefined`
+  games as on `d92bdfb50d88`.
+- **Battery** (4,638 games, 0 threw, `red_ok`): abilities FIRED 198 of 200, moves 497 of 497 resolved on both
+  engines, items 148 of 148. Unearned 0. Control-arm board partings 0. At full battery, the eight moves resolve
+  on both engines and Natural Cure fires (FIRED, against Cloud Nine). Hyper Cutter's control is now Iron Fist,
+  not Anger Point. So this battery no longer stages the Anger Point case (Anger Point with a secondary drop in
+  the same hit). The 6.66.0 probe still covers that case.
+- **Roster**: every red plant caught, 22 / 63 / 37. Damage differential 0 of 6,000 at every index.
+
+### The hand list, after this pass
+
+- **NEW, NOT A DEFECT: Frisk reads DID-NOT-FIRE.** The owner deferral excuses it. On `d92bdfb50d88` it read
+  FIRED, but that credit came from its loud control, Cursed Body (a `vol.disable` on both boards). With a quiet
+  control (Insomnia), nothing moves. The authority announces only for a foe that holds an item
+  (`data/abilities.ts:1538`, not overridden in the Champions mod), and the fixture gives both foes no item.
+  To earn the row, stage a foe that holds an item.
+- **Carried forward** from 6.68.0: King's Rock and Purifying Salt are not wired; Blaze's click-swap control;
+  the click-swap controls.
+
+## ALL ELEVEN UNEARNED ABILITY ROWS NOW FIRE ON THEIR OWN TRIGGER AGAINST A CONTROL THE WATCH MEASURES QUIET. FLASH FIRE AND STENCH GO FROM DID-NOT-FIRE TO FIRED. **UNEARNED 9 → 0; FIRED ON A LIVE CONTROL 18 → 1 OVER THE 30 NAMED ROWS WHOSE PLAN MOVED; NO BOARD PARTED IN EITHER ARM.** ONE NARRATION FIX: STICKY HOLD NOW ANNOUNCES A REFUSED THIEF / COVET / KNOCK OFF STRIP. ONE BOARD FIX: STICKY HOLD NO LONGER KEEPS AN ITEM FOR A HOLDER THE SAME HIT FAINTS. CENSUS **968 → 969 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `a851fe9377de`; LIGHT MODE, NAMED ROWS ONLY.** 2026-09-19, CHANGELOG `6.68.0`
 
 Full account: `docs/_reports/2026-09-19-earned-fire.md`.
 
@@ -260,7 +285,7 @@ Full account: `docs/_reports/2026-09-19-earned-fire.md`.
 - **Carried forward:** the 39 click-swap controls. This pass turned two of them, Long Reach and Overgrow, into
   quiet ability swaps.
 
-## THE LEGACY LADDER PREFERS A QUIET CONTROL, AND "QUIET" IS NOW MEASURED IN THE AUTHORITY. STALWART FIRES AGAINST A QUIET CONTROL ON A REDIRECT FIXTURE. **55 FIRED ABILITY ROWS STILL REST ON A LIVE CONTROL, AND 9 OF THEM HAVE NO AUTHORITY RECEIPT FOR THE SUBJECT.** INSTRUMENT ONLY: NO ENGINE BYTE CHANGED AND THE CENSUS STAYS AT **968 / 968**. PINNED TO RELEASE `54d02066fd71`. LIGHT MODE, 81 NAMED ROWS. 2026-09-19, CHANGELOG `<<VER>>`
+## THE LEGACY LADDER PREFERS A QUIET CONTROL, AND "QUIET" IS NOW MEASURED IN THE AUTHORITY. STALWART FIRES AGAINST A QUIET CONTROL ON A REDIRECT FIXTURE. **55 FIRED ABILITY ROWS STILL REST ON A LIVE CONTROL, AND 9 OF THEM HAVE NO AUTHORITY RECEIPT FOR THE SUBJECT.** INSTRUMENT ONLY: NO ENGINE BYTE CHANGED AND THE CENSUS STAYS AT **968 / 968**. PINNED TO RELEASE `54d02066fd71`. LIGHT MODE, 81 NAMED ROWS. 2026-09-19, CHANGELOG `6.67.0`
 
 Full account: `docs/_reports/2026-09-19-quiet-controls-legacy.md`.
 
@@ -342,7 +367,7 @@ Full account: `docs/_reports/2026-09-19-quiet-controls-legacy.md`.
   subject's receipt instead.
 - **Carried forward:** Magma Armor's control is still Anger Point. Its subject receipt is present (`onImmunity`).
 
-## BOTH FAILING CLAUSES ON `d92bdfb50d88` ARE CLOSED ON THEIR NAMED ROWS: THE RESIST-BERRY PLANT IS CAUGHT AGAIN, NATURAL CURE FIRES, AND THE EIGHT MOVES RESOLVE ON BOTH ENGINES. ALL THREE WERE INSTRUMENT FAULTS; NO MOVE FAILED TO ACT IN OUR ENGINE. **WORKTREE RELEASE `9a031254d967` (TWO RED-DEMO KNOBS, DEFAULT OFF). LIGHT MODE: NAMED ROWS ONLY; THE FULL BATTERY AND THE GATE ARE OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+## BOTH FAILING CLAUSES ON `d92bdfb50d88` ARE CLOSED ON THEIR NAMED ROWS: THE RESIST-BERRY PLANT IS CAUGHT AGAIN, NATURAL CURE FIRES, AND THE EIGHT MOVES RESOLVE ON BOTH ENGINES. ALL THREE WERE INSTRUMENT FAULTS; NO MOVE FAILED TO ACT IN OUR ENGINE. **WORKTREE RELEASE `9a031254d967` (TWO RED-DEMO KNOBS, DEFAULT OFF). LIGHT MODE: NAMED ROWS ONLY; THE FULL BATTERY AND THE GATE ARE OWED.** 2026-09-19, CHANGELOG `6.66.0`
 
 Full account: `docs/_reports/2026-09-19-close-two-clauses.md`. Probe: `tests/probe_state_credit_red.js` (GREEN on
 `9a031254d967`, 12 of 12 checks, both red arms CAUGHT).
@@ -377,7 +402,7 @@ Full account: `docs/_reports/2026-09-19-close-two-clauses.md`. Probe: `tests/pro
   Attack +5, ours +6). No probe yet. The first step is a probe that fails.
 - **Owed, not engine:** the announcements `swap`, `-swapboost`, `-invertboost` and `-singlemove` are still not
   written by our engine. This is narration debt, and it is already declared in `data/protocol-events.json`.
-## ANGER POINT IS PAID AT THE `Hit` EVENT, ABOVE THE SAME HIT'S SECONDARY. A CONTROL ARM THAT PARTS IS NOW A FINDING ON THE ROW. THE PLANNER PREFERS A CONTROL THAT IS QUIET ON ITS OWN BOARD. CENSUS **967 → 968 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `ccabb2b6e953`; LIGHT MODE, NAMED ROWS ONLY, THE BATTERY AND LATTICE RE-RUN ARE OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+## ANGER POINT IS PAID AT THE `Hit` EVENT, ABOVE THE SAME HIT'S SECONDARY. A CONTROL ARM THAT PARTS IS NOW A FINDING ON THE ROW. THE PLANNER PREFERS A CONTROL THAT IS QUIET ON ITS OWN BOARD. CENSUS **967 → 968 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `ccabb2b6e953`; LIGHT MODE, NAMED ROWS ONLY, THE BATTERY AND LATTICE RE-RUN ARE OWED.** 2026-09-19, CHANGELOG `6.66.0`
 
 Full account: `docs/_reports/2026-09-19-anger-point-controls.md`.
 
@@ -455,7 +480,7 @@ their streams and boards agree. Full account: `docs/_reports/2026-09-19-d92b-rem
 - **INSTRUMENT, NOT ENGINE:** re-aim `item/resist-berry` (`tests/roster.js:6621`) at
   `const _rbEats=!!(` (`engine/medicham2-browser.js:15736`).
 
-## THE SIX SHOWDOWN-ONLY ABILITIES WERE NOT EFFECT GAPS. THREE WERE A MISSING ANNOUNCEMENT (NOW WRITTEN), TWO WERE THE CONTROL'S ANNOUNCEMENT CREDITED TO THE CARRIER (INSTRUMENT, FIXED), ONE IS THE DECLARED AUTHORITY-WRONG `fallenundefined`. WITH THREE NEW PLANNER FIXTURES, ALL SIX NOW READ FIRED WITH A CONTROL AND BOARDS AGREEING. CENSUS **955 → 956 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `d8526fc9ba28`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+## THE SIX SHOWDOWN-ONLY ABILITIES WERE NOT EFFECT GAPS. THREE WERE A MISSING ANNOUNCEMENT (NOW WRITTEN), TWO WERE THE CONTROL'S ANNOUNCEMENT CREDITED TO THE CARRIER (INSTRUMENT, FIXED), ONE IS THE DECLARED AUTHORITY-WRONG `fallenundefined`. WITH THREE NEW PLANNER FIXTURES, ALL SIX NOW READ FIRED WITH A CONTROL AND BOARDS AGREEING. CENSUS **955 → 956 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `d8526fc9ba28`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `6.63.0`
 
 Full account: `docs/_reports/2026-09-19-showdown-only.md`.
 
@@ -503,7 +528,7 @@ Full account: `docs/_reports/2026-09-19-showdown-only.md`.
 - **PROBE PIN FIXED:** `tests/probe_start_announce.js --release <id>` read its counters from the POINTER's
   release, not the pinned one. It opens `--release` now. `tests/probe_entry_announce_batched.js` has the same
   shape and was not touched.
-## THE DRIVER NO LONGER CLICKS WHAT THE AUTHORITY REFUSES: ALL FOUR THROWN LATTICE GAMES NOW PLAY TO THE END, AND NONE DIVERGES. TIDY UP SWEEPS, ANNOUNCES, THEN BOOSTS; A DROP INTO A STAT AT −6 REACHES NO REFUSER. COACHING'S `[notarget]` LEAD WAS ALREADY FIXED (6.57.0) AND IS NOW RECEIPTED. CENSUS **955 → 957 LIVE / 0 MISSING**. **ENGINE AND INSTRUMENT BYTES CHANGED — WORKTREE RELEASE `fa39105e430a`; DRIVER CODE `3f21624ad50d` → `c1c3591c1ec4`, `PIN_DIGEST` `de38d17e15a2` UNMOVED; THE THREE LATTICES ARE OWED A RE-RUN AND CANNOT BE COMPARED ACROSS THIS CHANGE.** 2026-09-19, CHANGELOG `<<VER>>`
+## THE DRIVER NO LONGER CLICKS WHAT THE AUTHORITY REFUSES: ALL FOUR THROWN LATTICE GAMES NOW PLAY TO THE END, AND NONE DIVERGES. TIDY UP SWEEPS, ANNOUNCES, THEN BOOSTS; A DROP INTO A STAT AT −6 REACHES NO REFUSER. COACHING'S `[notarget]` LEAD WAS ALREADY FIXED (6.57.0) AND IS NOW RECEIPTED. CENSUS **955 → 957 LIVE / 0 MISSING**. **ENGINE AND INSTRUMENT BYTES CHANGED — WORKTREE RELEASE `fa39105e430a`; DRIVER CODE `3f21624ad50d` → `c1c3591c1ec4`, `PIN_DIGEST` `de38d17e15a2` UNMOVED; THE THREE LATTICES ARE OWED A RE-RUN AND CANNOT BE COMPARED ACROSS THIS CHANGE.** 2026-09-19, CHANGELOG `6.63.0`
 
 Full account: `docs/_reports/2026-09-19-driver-narration-e.md`. Probes: `tests/probe_driver_refused_click.js`
 (two mechanisms, a control each, each knob red on its own case only) and `tests/probe_narration_e.js` (6 arms; PASS
@@ -538,7 +563,7 @@ on `fa39105e430a`; the Tidy Up and floor reds are RED on the pre-fix `4c9b0cc4a4
   the empirical sampler's pick even where the imprisoned move was not the one drawn; only a lattice re-run says.
 - **CARRIED FORWARD UNCHANGED:** Forewarn after a mid-battle ability change; Forewarn against a Transformed foe;
   `tests/test-protocol-trace.js` PART 5.
-## FORCE-FIRE A: ALL 21 DID-NOT-FIRE ABILITY ROWS NOW FIRE WITH A ONE-LEAF CONTROL AND NO BOARD PARTING. THE CHOOSER BUILDS THEIR TRIGGER, AND THE THREE ENGINE GAPS THE FORCED GAMES EXPOSED ARE FIXED: **RIPEN'S SECOND RESIST-BERRY HALVE (BOARD)**, ANTICIPATION'S ANNOUNCEMENT, SCREEN CLEANER'S LINE ORDER. CENSUS **955 → 960 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `47f37f5a30b5`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+## FORCE-FIRE A: ALL 21 DID-NOT-FIRE ABILITY ROWS NOW FIRE WITH A ONE-LEAF CONTROL AND NO BOARD PARTING. THE CHOOSER BUILDS THEIR TRIGGER, AND THE THREE ENGINE GAPS THE FORCED GAMES EXPOSED ARE FIXED: **RIPEN'S SECOND RESIST-BERRY HALVE (BOARD)**, ANTICIPATION'S ANNOUNCEMENT, SCREEN CLEANER'S LINE ORDER. CENSUS **955 → 960 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `47f37f5a30b5`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `6.63.0`
 
 Full account: `docs/_reports/2026-09-19-force-fire-a.md`. The fix is in the CHOOSER (`engine/stage_planner.js`), not
 per row, so a later ability with the same handler shape gets a forced game automatically. The instrument got one fix
@@ -586,7 +611,7 @@ per row, so a later ability with the same handler shape gets a forced game autom
   - Ripen's `onChangeBoost`: no legal berry boosts a stat.
   - Jaboca and Rowap: not legal.
   - Stuff Cheeks, Bug Bite and Pluck: neither Ripen carrier learns them.
-## UNBURDEN IS STATE NOW AND THE BOARD COMPARES IT: `vol.unburden` LEAVES `NOT_COMPARED`, AND A WRONG UNBURDEN STATE PARTS THE BOARD ON ALL TEN STAGED ROADS. ONE REAL DIVERGENCE CLOSED ON THE WAY: AN ITEM STOLEN MID-STINT AND THEN LOST NEVER DOUBLED (344 vs 172). CENSUS **955 → 956 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `22fc779a0806`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+## UNBURDEN IS STATE NOW AND THE BOARD COMPARES IT: `vol.unburden` LEAVES `NOT_COMPARED`, AND A WRONG UNBURDEN STATE PARTS THE BOARD ON ALL TEN STAGED ROADS. ONE REAL DIVERGENCE CLOSED ON THE WAY: AN ITEM STOLEN MID-STINT AND THEN LOST NEVER DOUBLED (344 vs 172). CENSUS **955 → 956 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `22fc779a0806`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `6.63.0`
 
 Report: `docs/_reports/2026-09-19-unburden-leaf.md`. Will: *"we need unburden to fire its a common one. i know the chat/log
 wont announce it but we need to track it"*.
@@ -623,7 +648,7 @@ wont announce it but we need to track it"*.
   the section directly below this one.
 - **CARRIED FORWARD UNCHANGED:** everything on the list below.
 
-## SAME PASS, THREE MORE: GASTRO ACID SUPPRESSES THE ABILITY (ONE PARK EVERY READER HONOURS), KNOCK OFF AND POLTERGEIST READ THE TARGET'S ITEM IDENTITY UNDER MAGIC ROOM / KLUTZ, AND `probe_red_demo.js` IS GREEN (IT WAS RED AT HEAD). CENSUS **956 → 959 LIVE / 0 MISSING**. **WORKTREE RELEASE `af6ed10008b8`; NO LATTICE RE-RUN (LIGHT MODE).** 2026-09-19, CHANGELOG `<<VER>>`
+## SAME PASS, THREE MORE: GASTRO ACID SUPPRESSES THE ABILITY (ONE PARK EVERY READER HONOURS), KNOCK OFF AND POLTERGEIST READ THE TARGET'S ITEM IDENTITY UNDER MAGIC ROOM / KLUTZ, AND `probe_red_demo.js` IS GREEN (IT WAS RED AT HEAD). CENSUS **956 → 959 LIVE / 0 MISSING**. **WORKTREE RELEASE `af6ed10008b8`; NO LATTICE RE-RUN (LIGHT MODE).** 2026-09-19, CHANGELOG `6.63.0`
 
 - **Gastro Acid (engine wrong).** `_vol.gastroacid` was written and nothing read it. Now `abSuppress` PARKS the
   ability in `_abParked` so every one of the ~100 `m.ability` readers sees none — the Magic Room item park, applied
@@ -660,7 +685,7 @@ wont announce it but we need to track it"*.
 - **NEW, DECLARED REMAINDER:** a Gastro Acided body whose ability is rewritten mid-suppression runs no second End
   here (the End already ran at suppression). Whether upstream's `setAbility` End reaches a suppressed ability was
   NOT read; not staged.
-## FORCE-FIRE B: ALL 31 NON-CLOSETED UNCONTROLLED ABILITY ROWS NOW READ FIRED WITH A CONTROL. IN EVERY ONE THE AUTHORITY'S BOARD MOVES BETWEEN THE ARMS (SHADOW TAG: ITS REQUEST FLAG), AND OURS MOVES THE SAME WAY. NO BOARD PARTED IN EITHER ARM. **ONE ENGINE LINE: AN EXPORT OF `switchTrapVerdict`. WORKTREE RELEASE `334a14dd8435`.** 2026-09-19, CHANGELOG `<<VER>>`
+## FORCE-FIRE B: ALL 31 NON-CLOSETED UNCONTROLLED ABILITY ROWS NOW READ FIRED WITH A CONTROL. IN EVERY ONE THE AUTHORITY'S BOARD MOVES BETWEEN THE ARMS (SHADOW TAG: ITS REQUEST FLAG), AND OURS MOVES THE SAME WAY. NO BOARD PARTED IN EITHER ARM. **ONE ENGINE LINE: AN EXPORT OF `switchTrapVerdict`. WORKTREE RELEASE `334a14dd8435`.** 2026-09-19, CHANGELOG `6.63.0`
 
 Full account: `docs/_reports/2026-09-19-force-fire-b.md`. Only the rows named below were played
 (`all_mechanics_fire.js --kind abilities --only …`, scratch `--out`). The published artifact was not written.
@@ -741,7 +766,7 @@ data/team-pool-frozen`, arm `middle`, cap 50, `--end-state`, `--steering empiric
   AMF 4700 games, 0 threw; abilities fired 140 → 141 and owner-shelved diverging 2 → 1 (Forewarn now fires in
   both engines).
 
-## NARRATION BATCH C: FOREWARN NOW NAMES THE AUTHORITY'S MOVE OFF THE AUTHORITY'S DIE, CHILLY RECEPTION INTO ITS OWN SNOW WITH NOBODY TO SWITCH TO FAILS OUT LOUD, AND A HELD STATUS ANSWERS BEFORE MISTY TERRAIN. A FOURTH DEFECT WAS FOUND UNDER THE FOREWARN GAME: HARVEST THREW ITS COIN ONLY WHEN A BERRY WAS WAITING. ALL FIVE LATTICE GAMES REPLAY TO THE END WITH NO SPLIT. CENSUS **947 → 951 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED. WORKTREE RELEASE `207acaf6a46e`. NO LATTICE RE-RUN (LIGHT MODE), SO THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+## NARRATION BATCH C: FOREWARN NOW NAMES THE AUTHORITY'S MOVE OFF THE AUTHORITY'S DIE, CHILLY RECEPTION INTO ITS OWN SNOW WITH NOBODY TO SWITCH TO FAILS OUT LOUD, AND A HELD STATUS ANSWERS BEFORE MISTY TERRAIN. A FOURTH DEFECT WAS FOUND UNDER THE FOREWARN GAME: HARVEST THREW ITS COIN ONLY WHEN A BERRY WAS WAITING. ALL FIVE LATTICE GAMES REPLAY TO THE END WITH NO SPLIT. CENSUS **947 → 951 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED. WORKTREE RELEASE `207acaf6a46e`. NO LATTICE RE-RUN (LIGHT MODE), SO THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `6.59.0`
 
 Report: `docs/_reports/2026-09-19-narration-c.md`. Two-engine probe: `tests/probe_narration_c.js`. The games come from
 `docs/_reports/2026-09-19-1a65-remeasure.md` §4.
@@ -792,7 +817,7 @@ Report: `docs/_reports/2026-09-19-narration-c.md`. Two-engine probe: `tests/prob
 - **RED ON HEAD, NOT THIS PASS:** `tests/test-protocol-trace.js` PART 5, "the two streams never part in the Intimidate
   arm". It is red on the unmodified `1a6550ea5ec6` bytes too. Both engines now print 112/170, so the assertion that
   they part at the damage die has gone stale.
-## NARRATION BATCH D: THREE OF THE SIX UNDECLARED g1950 GAMES FIXED — PARTING SHOT INTO HYPER CUTTER, MORTAL SPIN'S `[from]`, MAGICIAN'S EXTRA `-enditem` — PLUS THE SPIN FAMILY'S LEECH SEED `-end` (SAME SHAPE, FOUND STAGING THE CLASS) AND A FOURTH DEFECT FOUND WHILE READING MAGICIAN: A THIEF KILLED BY ITS OWN RECOIL STOLE ONTO ITS CORPSE (**BOARD**). CENSUS **947 → 951 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `88de74589dc3`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+## NARRATION BATCH D: THREE OF THE SIX UNDECLARED g1950 GAMES FIXED — PARTING SHOT INTO HYPER CUTTER, MORTAL SPIN'S `[from]`, MAGICIAN'S EXTRA `-enditem` — PLUS THE SPIN FAMILY'S LEECH SEED `-end` (SAME SHAPE, FOUND STAGING THE CLASS) AND A FOURTH DEFECT FOUND WHILE READING MAGICIAN: A THIEF KILLED BY ITS OWN RECOIL STOLE ONTO ITS CORPSE (**BOARD**). CENSUS **947 → 951 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `88de74589dc3`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `6.59.0`
 
 Full account: `docs/_reports/2026-09-19-narration-d.md`. Two-engine probe: `tests/probe_narration_d.js` (14 arms, red
 and control each; PASS on `88de74589dc3`; every red arm RED on the pre-fix `1a6550ea5ec6`; no knob moves a
@@ -854,7 +879,7 @@ Report: `docs/_reports/2026-09-19-1a65-remeasure.md`. Census pin `ef0eefdb9f2d` 
   - the damage diff reads 0 of 6000;
   - AMF has 0 throws.
 
-## THE FIVE "EXACT SPEED TIE" GAMES WERE FOUR SORT-INPUT DEFECTS. THE ELECTRO SHOT `-boost|spa|0` IS NOW WRITTEN. CENSUS **925 → 930 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `b3d9f0954198`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+## THE FIVE "EXACT SPEED TIE" GAMES WERE FOUR SORT-INPUT DEFECTS. THE ELECTRO SHOT `-boost|spa|0` IS NOW WRITTEN. CENSUS **925 → 930 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `b3d9f0954198`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `6.57.0`
 
 Full account: `docs/_reports/2026-09-19-tie-order.md`. Two-engine probe: `tests/probe_tie_order.js` (5 arms: a red
 board and a control each). Every red arm parts on `8a4140de3eaa`. Every arm agrees on protocol and board on
@@ -921,7 +946,7 @@ Report: `docs/_reports/2026-09-19-8a41-remeasure.md`. Census pin `9f251986d34e` 
   `tests/roster.js` against the release finds every anchor matching once. Every roster stage now reads
   clean: items 148 of 148 (Greninjite MATCH after 6.54.0), 22 / 63 / 37 anchors live, every red CAUGHT.
 
-## SUCKER PUNCH READS THE MOVE ENCORE REWROTE THE TARGET INTO, AND READS ITS CATEGORY; A FUTURE SIGHT PAYOUT AND A CONFUSION SELF-HIT NOW MEET A FULL-HP FOCUS SASH OR STURDY. BOTH LATTICE LEADS WERE REAL AND BOTH WERE A CLASS. CENSUS **925 → 929 LIVE / 0 MISSING**. BOTH GAMES REPLAY TO THE END WITH NO SPLIT. **ENGINE BYTES CHANGED — WORKTREE RELEASE `edddcbcfb0c7`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+## SUCKER PUNCH READS THE MOVE ENCORE REWROTE THE TARGET INTO, AND READS ITS CATEGORY; A FUTURE SIGHT PAYOUT AND A CONFUSION SELF-HIT NOW MEET A FULL-HP FOCUS SASH OR STURDY. BOTH LATTICE LEADS WERE REAL AND BOTH WERE A CLASS. CENSUS **925 → 929 LIVE / 0 MISSING**. BOTH GAMES REPLAY TO THE END WITH NO SPLIT. **ENGINE BYTES CHANGED — WORKTREE RELEASE `edddcbcfb0c7`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `6.57.0`
 
 Full account: `docs/_reports/2026-09-19-sucker-sash.md`. Two-engine probes: `tests/probe_sucker_reads_queued_move.js`
 (8 arms) and `tests/probe_delayed_hit_survival.js` (6 arms). Every red arm was red on `8a4140de3eaa`, every red arm is
@@ -960,7 +985,7 @@ parted again by its own knob on `edddcbcfb0c7`, and no control moved.
 - **CARRIED FORWARD UNCHANGED:** Cursed Body per hit; Triple Axel accuracy timing; the three stranded roster red
   plants; the rest of #622.
 
-## NARRATION BATCH A: FOUR BUCKETS CLOSED, NO BOARD MOVED. ROOST ANNOUNCES ON EVERY BODY, AN `allAdjacent` MOVE WITH NO FOE HITS THE PARTNER WITHOUT A `-fail`, A REFUSED SYNCHRONIZE REFLECTION WRITES THE AUTHORITY'S LINE, AND AN ALLY-ONLY BOOST WITH NO PARTNER FAILS OUT LOUD. A FIFTH LINE WAS FOUND WHILE STAGING THE CLASS: CORROSIVE GAS WITH NOBODY LEFT. CENSUS **925 → 930 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED. WORKTREE RELEASE `f557bf93ba48`. NO LATTICE RE-RUN (LIGHT MODE), SO THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+## NARRATION BATCH A: FOUR BUCKETS CLOSED, NO BOARD MOVED. ROOST ANNOUNCES ON EVERY BODY, AN `allAdjacent` MOVE WITH NO FOE HITS THE PARTNER WITHOUT A `-fail`, A REFUSED SYNCHRONIZE REFLECTION WRITES THE AUTHORITY'S LINE, AND AN ALLY-ONLY BOOST WITH NO PARTNER FAILS OUT LOUD. A FIFTH LINE WAS FOUND WHILE STAGING THE CLASS: CORROSIVE GAS WITH NOBODY LEFT. CENSUS **925 → 930 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED. WORKTREE RELEASE `f557bf93ba48`. NO LATTICE RE-RUN (LIGHT MODE), SO THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `6.57.0`
 
 Report: `docs/_reports/2026-09-19-narration-a.md`. Two-engine probe: `tests/probe_narration_a.js`. The buckets come from
 `docs/_reports/2026-09-19-a1c7-remeasure.md` §3. Forewarn is deferred by Will and was not touched.
@@ -1002,7 +1027,7 @@ Report: `docs/_reports/2026-09-19-narration-a.md`. Two-engine probe: `tests/prob
 - **CARRIED FORWARD UNCHANGED:** Forewarn (deferred by Will); the rest of the §3 narration buckets (line order,
   Chilly Reception, Sleep Powder under Misty Terrain, Mortal Spin, Magician, Dragon Darts); Cursed Body per hit;
   Triple Axel accuracy timing.
-## NARRATION, LINE ORDER: THE FOURTEEN "DIFFERENT ORDER" GAMES ARE ELEVEN MECHANISMS — SEVEN FIXED HERE (EIGHT GAMES), ONE ALREADY FIXED BY 6.54.0, THREE ARE EXACT SPEED TIES (FIVE GAMES, RECORDED, NOT TOUCHED). THE PER-HIT PAIR: CURSED BODY FIXED BY 6.54.0, DRAGON DARTS FIXED HERE. CENSUS **925 → 933 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `e17925e5e8c9`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+## NARRATION, LINE ORDER: THE FOURTEEN "DIFFERENT ORDER" GAMES ARE ELEVEN MECHANISMS — SEVEN FIXED HERE (EIGHT GAMES), ONE ALREADY FIXED BY 6.54.0, THREE ARE EXACT SPEED TIES (FIVE GAMES, RECORDED, NOT TOUCHED). THE PER-HIT PAIR: CURSED BODY FIXED BY 6.54.0, DRAGON DARTS FIXED HERE. CENSUS **925 → 933 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `e17925e5e8c9`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `6.57.0`
 
 Full account: `docs/_reports/2026-09-19-narration-b.md`. Two-engine probe: `tests/probe_narration_b_line_order.js`
 (16 arms; PASS on `e17925e5e8c9`, all eight red arms RED on the pre-fix `8a4140de3eaa`, no control moved by
@@ -1064,7 +1089,7 @@ last run's `322a5b4ba6b0`.
   planted line strands a plant.** Re-aim them on signatures (`tests/roster.js` only, no cut).
 - Narration 0 / 11 / 24: 14 line order, 10 refusal lines, 9 announcements, 2 per-hit.
 
-## PROTEAN NO LONGER CONVERTS ON A CLICK WHOSE `Try` REFUSES, CLEAR SMOG CLEARS, A MOLD BREAKER BREAKS CONTRARY ON THE BOOST ROAD, CUD CHEW'S PENDING HELPING DIES AT A SWITCH — AND COPYCAT NOW REFUSES A `failcopycat` MOVE (FOUND WHILE STAGING PROTEAN). ITEMS × CONTRARY IS **FALSE**: NO LEGAL ITEM RAISES A STAT. CENSUS **915 → 920 LIVE / 0 MISSING**. THE GRENINJITE ROSTER ROW READS **DIFFER → MATCH**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `348acbb747c3`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+## PROTEAN NO LONGER CONVERTS ON A CLICK WHOSE `Try` REFUSES, CLEAR SMOG CLEARS, A MOLD BREAKER BREAKS CONTRARY ON THE BOOST ROAD, CUD CHEW'S PENDING HELPING DIES AT A SWITCH — AND COPYCAT NOW REFUSES A `failcopycat` MOVE (FOUND WHILE STAGING PROTEAN). ITEMS × CONTRARY IS **FALSE**: NO LEGAL ITEM RAISES A STAT. CENSUS **915 → 920 LIVE / 0 MISSING**. THE GRENINJITE ROSTER ROW READS **DIFFER → MATCH**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `348acbb747c3`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `6.54.0`
 
 Full account: `docs/_reports/2026-09-19-protean-contrary.md`. Two-engine probe: `tests/probe_protean_contrary.js`
 (42 arms; every red arm red on `a1c7dcd5696b` and parted by its knob on `348acbb747c3`, no control moved).
@@ -1110,7 +1135,7 @@ Full account: `docs/_reports/2026-09-19-protean-contrary.md`. Two-engine probe: 
 - **CARRIED FORWARD UNCHANGED:** Cursed Body per hit; Triple Axel accuracy timing; the other eighteen `onEnd`
   abilities, and the rest of #622.
 
-## A VOLLEY IS RESOLVED ONE ARRIVAL AT A TIME: CURSED BODY AND POISON TOUCH ROLL PER ARRIVAL, A MULTIACCURACY DIE IS DRAWN AT THE TOP OF ITS OWN ARRIVAL, A USER SLEPT MID-VOLLEY STOPS, AND EFFECT SPORE THROWS NO DIE AT A POWDER-IMMUNE ATTACKER. **NO `game_differential.js` CHANGE — `PIN_DIGEST` DOES NOT MOVE.** TRACE WAS A FALSE LEAD: A CASCADE OF SHED SKIN'S UNGATED DIE, ALREADY FIXED IN 6.52.0. CENSUS **915 → 920 LIVE / 0 MISSING**. WORKTREE RELEASE `44c6e7407738`. 2026-09-19, CHANGELOG `<<VER>>`
+## A VOLLEY IS RESOLVED ONE ARRIVAL AT A TIME: CURSED BODY AND POISON TOUCH ROLL PER ARRIVAL, A MULTIACCURACY DIE IS DRAWN AT THE TOP OF ITS OWN ARRIVAL, A USER SLEPT MID-VOLLEY STOPS, AND EFFECT SPORE THROWS NO DIE AT A POWDER-IMMUNE ATTACKER. **NO `game_differential.js` CHANGE — `PIN_DIGEST` DOES NOT MOVE.** TRACE WAS A FALSE LEAD: A CASCADE OF SHED SKIN'S UNGATED DIE, ALREADY FIXED IN 6.52.0. CENSUS **915 → 920 LIVE / 0 MISSING**. WORKTREE RELEASE `44c6e7407738`. 2026-09-19, CHANGELOG `6.54.0`
 
 Report: `docs/_reports/2026-09-19-cursedbody-trace.md`. LIGHT MODE: staged boards, single probes and single-game replays.
 
@@ -1171,7 +1196,7 @@ Report: `docs/_reports/2026-09-19-roster-plants-remeasure.md`.
   move's `Try` (`sim/battle-actions.ts:826-828` runs `Try` before `PrepareHit`) or on `callsMove`.
   It reads MATCH under `ROSTER_INERT_FOCUSENERGY=1`. **OWED: probe, fix, cut, re-run.**
 
-## FOUR SINGLE-GAME LEADS, ALL FOUR REAL, ALL FOUR FIXED — PLUS A FIFTH DEFECT FOUND WHILE STAGING THE FOURTH. CENSUS **900 → 905 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `145431fddf1e`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+## FOUR SINGLE-GAME LEADS, ALL FOUR REAL, ALL FOUR FIXED — PLUS A FIFTH DEFECT FOUND WHILE STAGING THE FOURTH. CENSUS **900 → 905 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `145431fddf1e`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `6.52.0`
 
 Full account: `docs/_reports/2026-09-19-move-effects.md`. Two-engine probe: `tests/probe_move_effect_leads.js`
 (28 arms, 14 red arms parted by their knobs, 14 controls unmoved).
@@ -1215,7 +1240,7 @@ Full account: `docs/_reports/2026-09-19-move-effects.md`. Two-engine probe: `tes
   promotion (1); Helping Hand at an ally that has already moved (1); Cud Chew's `_cud` across a switch; the
   other eighteen `onEnd` abilities, and the rest of #622.
 
-## HELPING HAND FAILS AT A PARTNER THAT ALREADY MOVED, ROUND PROMOTES THE NEXT ROUND AT DOUBLE POWER, AND MAGIC BOUNCE NOW REFLECTS FIVE KINDS IT NEVER ASKED ABOUT (ELEVEN MOVES, YAWN ONE OF THEM). TRACE DID NOT REPRODUCE ON 90 STAGED PLAYS. CENSUS **900 → 903 LIVE / 0 MISSING**. 2026-09-19, CHANGELOG `<<VER>>`
+## HELPING HAND FAILS AT A PARTNER THAT ALREADY MOVED, ROUND PROMOTES THE NEXT ROUND AT DOUBLE POWER, AND MAGIC BOUNCE NOW REFLECTS FIVE KINDS IT NEVER ASKED ABOUT (ELEVEN MOVES, YAWN ONE OF THEM). TRACE DID NOT REPRODUCE ON 90 STAGED PLAYS. CENSUS **900 → 903 LIVE / 0 MISSING**. 2026-09-19, CHANGELOG `6.52.0`
 
 Report: `docs/_reports/2026-09-19-ordering-targeting.md`. LIGHT MODE: staged boards and single probes only.
 
@@ -1249,7 +1274,7 @@ Report: `docs/_reports/2026-09-19-ordering-targeting.md`. LIGHT MODE: staged boa
 - **CARRIED FORWARD:** Trace on Alakazam (1, not reproduced — a warmed `replay_one` is owed); every other
   lead in the lists below.
 
-## GAME-END EFFECTS, A PRESSURE PRICE AND THREE UNSHARED DICE. SEVEN DEFECTS, FIVE MECHANISMS. CENSUS **900 → 907 LIVE / 0 MISSING**. 2026-09-19, CHANGELOG `<<VER>>`
+## GAME-END EFFECTS, A PRESSURE PRICE AND THREE UNSHARED DICE. SEVEN DEFECTS, FIVE MECHANISMS. CENSUS **900 → 907 LIVE / 0 MISSING**. 2026-09-19, CHANGELOG `6.52.0`
 
 Report: `docs/_reports/2026-09-19-gameend-dice.md`. LIGHT MODE: staged boards and single probes only.
 
@@ -1288,7 +1313,7 @@ Report: `docs/_reports/2026-09-19-gameend-dice.md`. LIGHT MODE: staged boards an
 - **`data/tags.json` WAS SPLICED, NOT REGENERATED.** This is the same reason as the pass below. Only the
   two `ignoresBoosts.evasion` params were added to HEAD's file.
 
-## GOOEY'S DROP NOW RUNS THE ATTACKER'S OWN STAT REACTIONS, AND MUMMY / WANDERING SPIRIT NOW REFUSE A FLAGGED ABILITY. BOTH LEADS WERE A CLASS, NOT AN INSTANCE. CENSUS **894 → 896 LIVE / 0 MISSING**. 2026-09-18, CHANGELOG `<<VER>>`
+## GOOEY'S DROP NOW RUNS THE ATTACKER'S OWN STAT REACTIONS, AND MUMMY / WANDERING SPIRIT NOW REFUSE A FLAGGED ABILITY. BOTH LEADS WERE A CLASS, NOT AN INSTANCE. CENSUS **894 → 896 LIVE / 0 MISSING**. 2026-09-18, CHANGELOG `6.50.0`
 
 Report: `docs/_reports/2026-09-18-gooey-mummy.md`. LIGHT MODE: staged boards and single probes only.
 
@@ -1313,7 +1338,7 @@ Report: `docs/_reports/2026-09-18-gooey-mummy.md`. LIGHT MODE: staged boards and
   usage. Only the two new `refusedBy` params were carried into HEAD's file. Re-run `tag_dex` on the main tree
   to confirm that nothing else moves.
 
-## THE ELECTRIC BANK IS SPENT BY AN ELECTRIC MOVE A PROTECT STOPPED, AND THE ALLY SWITCH COUNTER NO LONGER RIDES THE BENCH. BOTH LEADS WERE REAL. CENSUS **894 → 896 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — NO RELEASE CUT IN THIS PASS; THE RE-RUN IS OWED.** 2026-09-18, CHANGELOG `<<VER>>`
+## THE ELECTRIC BANK IS SPENT BY AN ELECTRIC MOVE A PROTECT STOPPED, AND THE ALLY SWITCH COUNTER NO LONGER RIDES THE BENCH. BOTH LEADS WERE REAL. CENSUS **894 → 896 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — NO RELEASE CUT IN THIS PASS; THE RE-RUN IS OWED.** 2026-09-18, CHANGELOG `6.50.0`
 
 Full account: `docs/_reports/2026-09-18-charge-allyswitch.md`.
 
@@ -1357,7 +1382,7 @@ their readers check those members first. None of the three is observable, so non
   Launcher and Heal Pulse (1); Magic Bounce and Yawn (1); Round's queue promotion (1); Helping Hand at an
   ally that has already moved (1); the other eighteen `onEnd` abilities, and the rest of #622.
 
-## TRANSFORM NOW RUNS THE COPIED ABILITY'S `Start`, AND A PARENTAL BOND CLICK WHOSE FIRST HIT KILLS REACTS ONCE. BOTH LEADS WERE REAL. CENSUS **894 → 896 LIVE / 0 MISSING**. 2026-09-18, CHANGELOG `<<VER>>`
+## TRANSFORM NOW RUNS THE COPIED ABILITY'S `Start`, AND A PARENTAL BOND CLICK WHOSE FIRST HIT KILLS REACTS ONCE. BOTH LEADS WERE REAL. CENSUS **894 → 896 LIVE / 0 MISSING**. 2026-09-18, CHANGELOG `6.50.0`
 
 Full account: `docs/_reports/2026-09-18-transform-roughskin.md`.
 
@@ -1437,7 +1462,7 @@ before the fix. All five arms are clear after it, and the knob parts only the th
   `data/engine-diff.json`, `data/roster.{items,abilities,moves}.json`, `data/all-mechanics-fire.json` and
   the three lattice artifacts were re-run on `ce34d0a89f01`.
 
-## THE SCREENS HALF OF `ignoresScreensAndSubs` WAS ALREADY COVERED — THE PREMISE WAS STALE. THE UNCOVERED HALVES WERE SAFEGUARD'S VOLATILE HANDLER AND THE FUTURE SIGHT PAYOUT, AND THE PAYOUT WAS A **BOARD DEFECT**: IT HIT THE BODY BEHIND A SUBSTITUTE. FIXED, KNOB `MEDI_DELAYED_HIT_THROUGH_DOLL=1`. CENSUS **886 → 890 LIVE / 0 MISSING**. THE 2026-09-09 SCREEN ROWS USED **WORK UP**, WHICH IS NOT IN THIS FORMAT — SWAPPED TO ENDURE, NO VERDICT MOVED. 2026-09-18, CHANGELOG `<<VER>>`
+## THE SCREENS HALF OF `ignoresScreensAndSubs` WAS ALREADY COVERED — THE PREMISE WAS STALE. THE UNCOVERED HALVES WERE SAFEGUARD'S VOLATILE HANDLER AND THE FUTURE SIGHT PAYOUT, AND THE PAYOUT WAS A **BOARD DEFECT**: IT HIT THE BODY BEHIND A SUBSTITUTE. FIXED, KNOB `MEDI_DELAYED_HIT_THROUGH_DOLL=1`. CENSUS **886 → 890 LIVE / 0 MISSING**. THE 2026-09-09 SCREEN ROWS USED **WORK UP**, WHICH IS NOT IN THIS FORMAT — SWAPPED TO ENDURE, NO VERDICT MOVED. 2026-09-18, CHANGELOG `6.48.0`
 
 Report: `docs/_reports/2026-09-18-screens-probes.md`. LIGHT MODE: census and staged boards only — no
 differential, roster, quarantine or all-mechanics-fire run.
@@ -1499,7 +1524,7 @@ differential, roster, quarantine or all-mechanics-fire run.
   pointer from here. ENGINE BYTES CHANGED (the payout doll branch), so a release needs cutting on the
   merged tree, and every artifact that reads a Future Sight payout behind a doll needs re-running.
 
-## ROADMAP #80 IS STALE — KNOCK OFF'S BERRY DISPOSITION AND ALL FOUR OF ITS CONSUMERS MATCH THE AUTHORITY. CHECKING THEM FOUND A DIFFERENT HARVEST DEFECT, FIXED. ROADMAP #9 WAS LATENT AND IS HARDENED: 24 PLAYED ARMS GREEN, THE FUNCTION ITSELF WAS WRONG FOR 17 OF 17 FIELD MOVES. CENSUS **886 → 887 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — NO RELEASE CUT, THE FOUR GATE ARTIFACTS ARE OWED A RE-RUN.** 2026-09-18, CHANGELOG `<<VER>>`
+## ROADMAP #80 IS STALE — KNOCK OFF'S BERRY DISPOSITION AND ALL FOUR OF ITS CONSUMERS MATCH THE AUTHORITY. CHECKING THEM FOUND A DIFFERENT HARVEST DEFECT, FIXED. ROADMAP #9 WAS LATENT AND IS HARDENED: 24 PLAYED ARMS GREEN, THE FUNCTION ITSELF WAS WRONG FOR 17 OF 17 FIELD MOVES. CENSUS **886 → 887 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — NO RELEASE CUT, THE FOUR GATE ARTIFACTS ARE OWED A RE-RUN.** 2026-09-18, CHANGELOG `6.48.0`
 
 Full account: `docs/_reports/2026-09-18-knockoff-prankster.md`.
 
@@ -1523,7 +1548,7 @@ Full account: `docs/_reports/2026-09-18-knockoff-prankster.md`.
 - **#80 and #9 leave it.** Both are carried by probes now (above).
 - **Carried forward unchanged** from the hand lists below.
 
-## SIX OF THE SEVEN IN-SCOPE `COULD-NOT-STAGE` ROWS GET A CONSTRUCTED FIXTURE, STAGED ONE ROW AT A TIME — AND ONE IS A REAL ENGINE DEFECT: **A MOLD BREAKER'S STATUS MOVE WAS REFUSED BY GOOD AS GOLD** (DID-NOT-FIRE, FIXED, KNOB `MEDI_STATUS_REFUSAL_UNBREAKABLE=1`). THE SAME DEFECT AT **MAGIC BOUNCE AND STICKY HOLD**, BOTH FIXED WITH THEIR OWN KNOBS. CENSUS **886 → 889 LIVE / 0 MISSING**, MEASURED IN THE WORKTREE. **ENGINE BYTES CHANGED — WORKTREE RELEASE `0fe2604193c8`** (the single-row roster verdicts in the table were taken on `4a13ae246e89`). FRISK DEFERRED BY WILL (MESSAGE-ONLY). THE MOVE USAGE SHELF NO LONGER DEPENDS ON THE STAGE NAME (#421). OBLIVIOUS UNDER MOLD BREAKER MEASURED BOARD-IDENTICAL. FULL STAGE RE-RUNS ARE OWED. 2026-09-18, CHANGELOG `<<VER>>`
+## SIX OF THE SEVEN IN-SCOPE `COULD-NOT-STAGE` ROWS GET A CONSTRUCTED FIXTURE, STAGED ONE ROW AT A TIME — AND ONE IS A REAL ENGINE DEFECT: **A MOLD BREAKER'S STATUS MOVE WAS REFUSED BY GOOD AS GOLD** (DID-NOT-FIRE, FIXED, KNOB `MEDI_STATUS_REFUSAL_UNBREAKABLE=1`). THE SAME DEFECT AT **MAGIC BOUNCE AND STICKY HOLD**, BOTH FIXED WITH THEIR OWN KNOBS. CENSUS **886 → 889 LIVE / 0 MISSING**, MEASURED IN THE WORKTREE. **ENGINE BYTES CHANGED — WORKTREE RELEASE `0fe2604193c8`** (the single-row roster verdicts in the table were taken on `4a13ae246e89`). FRISK DEFERRED BY WILL (MESSAGE-ONLY). THE MOVE USAGE SHELF NO LONGER DEPENDS ON THE STAGE NAME (#421). OBLIVIOUS UNDER MOLD BREAKER MEASURED BOARD-IDENTICAL. FULL STAGE RE-RUNS ARE OWED. 2026-09-18, CHANGELOG `6.49.0`
 
 Full account: `docs/_reports/2026-09-18-roster-unstaged.md`. Every verdict below is a SINGLE-ROW stage
 (`--only <id> --reds`) on release `4a13ae246e89`; no stage artifact was rewritten.

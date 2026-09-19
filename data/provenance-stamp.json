@@ -186,7 +186,7 @@
     "exploitability.json",
     "medicham-bench.json"
   ],
-  "verified": 3,
+  "verified": 12,
   "graph_files": [
     "_bench-belownormal.json",
     "_bench-headline.json",
@@ -1104,5 +1104,5 @@
       ]
     }
   ],
-  "generated": "2026-09-19T19:32:15.718Z"
+  "generated": "2026-09-19T20:04:52.021Z"
 }

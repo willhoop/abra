@@ -10,6 +10,25 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.69.0] — 2026-09-19
+
+### Notes
+- **6.68.0 re-measured on release `6180c4712761`. No code changed. `node engine/quarantine.js` prints
+  `GATE: OPEN`: all ten gating clauses pass.** The version and any major are the coordinator's and Will's to
+  declare; this entry declares neither, and **Basis.** is stated unchanged in the notes row.
+- Whole game at `--games` 1200 / 1350 / 1950 (`--team-store data/team-pool-frozen`, arm `middle`, cap 50,
+  `--end-state`, `--steering empirical`, census digest `57deebd09273`, driver `faf70ecbca71`): board-material
+  **0 of 961 / 0 of 1069 / 0 of 1497**, undeclared narration **0 / 0 / 0**, threw **0 / 0 / 0**. The only
+  protocol divergences are the three declared Supreme Overlord `fallenundefined` games. The driver digest
+  moved (was `d0ef2b6bf52e`), so no earlier lattice is comparable.
+- Staged-game battery (`--kind all`, 4,638 games, 0 threw, every red demonstration caught): abilities FIRED
+  198 of 200 (Frisk DID-NOT-FIRE and Illusion, both owner-excused), moves 497 of 497 resolved on both
+  engines, items 148 of 148. Unearned FIRED on a live control **0**. Control-arm partings that touch a board
+  **0**.
+- Roster: items 148, abilities 194 (+6 deferred), moves 494 (+3 deferred) FIRED-AND-BOARDS-MATCH, with red
+  plants caught 22 of 22, 63 of 63 and 37 of 37. Damage differential 0 of 6,000 at every index. Census 969
+  live, 0 missing. Report: `docs/_reports/2026-09-19-6180-remeasure.md`.
+
 ## [6.68.0] — 2026-09-19
 
 ### Fixed
@@ -108,6 +127,8 @@ silently rewritten; what changed and why is stated.
 - The driver's code digest moves, because this edits `engine/game_differential.js` and
   `engine/engine_release.js`. The change does not alter a pinned script run. The next lattice will still
   read as not comparable on the driver axis.
+
+## [6.65.0] — 2026-09-19
 
 ### Notes
 - **6.63.0 re-measured on `d92bdfb50d88`. No code changed.** Whole game at `--games` 1200/1350/1950: board 0 / 0 / 0,
