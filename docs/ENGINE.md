@@ -53,6 +53,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_hazard_sweep_order.js`, `tests/probe_residual_faint_flush.js`,
 `tests/probe_unknown_format_refusal.js`, `tests/probe_protect_tie_order.js`,
 `tests/probe_midturn_herb_resort.js`,
+`tests/probe_safeguard_volatile_infiltrator.js`, `tests/probe_future_sight_doll.js`,
+`tests/probe_signature_tags.js`,
 `tests/probe_ohko_type_immunity.js`, `tests/probe_redirect_volatile_already_up.js`,
 `tests/probe_premajor_above_refusals.js`,
 `tests/probe_misty_terrain_status.js`, `tests/probe_charge_release_chosen_slot.js`,
@@ -154,12 +156,14 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  886/886 probed mechanics live, 0 missing   (census 2026-09-18 21:03)
+  891/891 probed mechanics live, 0 missing   (census 2026-09-18 21:39)
     the census probes what somebody thought to probe: 297 of 297 in-scope tags carry a probe, 0 carry none (9 of 306
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 25 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 48 min old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/ce34d0a89f01/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "ce34d0a89f01".
+    older than its input abra-tags.js
+    pinned to engine release ce34d0a89f01 — engine/medicham2-browser.js matches the frozen copy; live is 6710906a6ea5 now (a PRE-CHANGE measurement of that release, not corruption)
+    (+3 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -171,12 +175,12 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0394e3673b5b now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 297/297 in-scope probed, 0 unprobed;  294/297 have an engine consumer on every in-scope row, 3 do not;  9 of 306 tags have no in-scope carrier
+  tag coverage: 297/297 in-scope probed, 0 unprobed;  295/297 have an engine consumer on every in-scope row, 2 do not;  9 of 306 tags have no in-scope carrier
     consumedBy comes from engine/tag_dex.js grepping board.js and medicham2-browser.js for a hint
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-18 21:20_
+_stamped 2026-09-18 21:43_
 
 <!-- /GENERATED -->
 
@@ -225,6 +229,92 @@ before the fix. All five arms are clear after it, and the knob parts only the th
 - **RELEASES TO ADD: `ffc11ac41a26`** (tags bundle only) **and `ce34d0a89f01`** (this fix).
   `data/engine-diff.json`, `data/roster.{items,abilities,moves}.json`, `data/all-mechanics-fire.json` and
   the three lattice artifacts were re-run on `ce34d0a89f01`.
+
+## THE SCREENS HALF OF `ignoresScreensAndSubs` WAS ALREADY COVERED — THE PREMISE WAS STALE. THE UNCOVERED HALVES WERE SAFEGUARD'S VOLATILE HANDLER AND THE FUTURE SIGHT PAYOUT, AND THE PAYOUT WAS A **BOARD DEFECT**: IT HIT THE BODY BEHIND A SUBSTITUTE. FIXED, KNOB `MEDI_DELAYED_HIT_THROUGH_DOLL=1`. CENSUS **886 → 890 LIVE / 0 MISSING**. THE 2026-09-09 SCREEN ROWS USED **WORK UP**, WHICH IS NOT IN THIS FORMAT — SWAPPED TO ENDURE, NO VERDICT MOVED. 2026-09-18, CHANGELOG `<<VER>>`
+
+Report: `docs/_reports/2026-09-18-screens-probes.md`. LIGHT MODE: census and staged boards only — no
+differential, roster, quarantine or all-mechanics-fire run.
+
+- **Premise stale.** Reflect, Light Screen, Aurora Veil and Safeguard (status) have census rows since
+  2026-09-09 (ROADMAP #560) and `tests/probe_screens_infiltrator.js` matches the authority on all four.
+  Mist is `isNonstandard: 'Past'`, so there is no Mist half to cover.
+- **New rows, all LIVE, all red under `MEDI_SIDEBUFF_IGNORES_INFILTRATOR=1`:** Safeguard refuses a Confuse
+  Ray and Infiltrator gets through it, with an ally arm showing the ally is still refused
+  (`!target.isAlly(source)`); the same for Hurricane's secondary confusion; and the same for Yawn.
+  `tests/probe_safeguard_volatile_infiltrator.js` compares the confusion arms with the authority:
+  BOARDS MATCH, and the knob makes it fail.
+- **DEFECT FIXED, `delayedHit`.** `futuremove.onEnd` pays out through `trySpreadMoveHit`
+  (data/conditions.ts:415), so a Substitute absorbs the payout unless it `infiltrates`. That flag is set
+  only when the source is ON THE FIELD with Infiltrator (data/conditions.ts:407; sim/pokemon.ts:865). This
+  engine put the whole payout on the body and never touched the doll. The new census row was red under
+  the knob and is live after the fix. `tests/probe_future_sight_doll.js` covers four arms (no doll /
+  doll / Infiltrator active / Infiltrator benched) and reads the same absolute numbers as the authority (payout 73, doll 45) on identical 0-SP bodies. Reach: Meowstic-F and
+  Malamar are the legal Infiltrator carriers that learn Future Sight, but the doll half applies to every
+  Future Sight user.
+- **Probe defect fixed.** `probe_screens_infiltrator.js` checked each click against the learnset and
+  never checked that the MOVE itself was legal. It now checks the move too, and it went red on Work Up
+  before the swap.
+
+- **`ACCMOD` NOW READS THE TAG, NOT THE NAME.** The accuracy-modifier table was keyed
+  `ability:compoundeyes`, and it consulted the `accuracyMod` tag only to count what it was missing, so
+  stripping the tag changed nothing. That was measured: the Compound Eyes arm stayed green.
+  `engine/tag_dex.js` `accuracyChainOf` now derives side, mod, setTo, never and when from each handler.
+  All nine legal carriers matched the table exactly before anything was wired, and No Guard joins
+  `accuracyMod` via its `onAnyAccuracy`. `accModRow` reads the tag; `MEDI_ACCMOD_BY_NAME=1` restores the
+  table. Proof:
+  - `PROBE_STRIP=compoundeyes` now turns `probe_screens_infiltrator.js` red, and it is green again
+    under the restore knob.
+  - The census is 890/890 with 889 row details byte-identical on both paths; the one other row is an
+    unseeded 6,000-turn rate that also moved between two earlier runs.
+  - `probe_accuracy_modifier_chain.js` gives the same counters on both paths.
+  - `tags.json` carries only the `accuracyMod` deltas. A full regeneration in the worktree reads an
+    older local store and would have moved about 690 usage counts.
+- **ROADMAP #127, RE-MEASURED: FOUR OF THE FIVE SPLITS ARE ALREADY TAG-DECIDED AND THE FIFTH IS
+  PARAM-SEPARATED.** The one name list left was `PROTECTMOVES`, still read by the chooser's
+  `canProtect`, the pasted-set filter and the dispatch fallback. All three now call `isShieldMove`,
+  which reads `shieldsUser`, and `MEDI_SHIELD_BY_NAME=1` restores the list. `tests/probe_signature_tags.js`
+  turns every group red with its tag stripped (A: 117 → 21 shielded turns; D2: Hex 41 → 21 into a burned
+  target). The census and the chooser count (117/200) are identical on both paths, and `tags.json` did not
+  change. **FINDING, NOT FIXED:** the chooser raises a generic Protect (`{kind:'protect'}` with no `mv`),
+  so a body whose only shield is Spiky Shield raised plain Protect on 117 of 117 shielded turns. It has
+  no register row yet.
+- **Three more over-cap bodies set to 0 SP** (`probe_multihit_corners.js`,
+  `test-residual-order-observed.js`, `test-residual-order-population.js`): every verdict is unchanged.
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST:** nothing was listed for these. Each is now covered by a census row.
+- **OWED:** a Future Sight payout through a SCREEN from a BENCHED Infiltrator booker. The authority
+  applies the screen there; this engine's `dmgRange` reads the booker's ability whether or not it is
+  active. Rare, and not staged.
+- **OWED:** running `probe_yawn_safeguard_refusal.js` in this worktree re-wrote
+  `data/engine-release.json` to `ffc11ac41a26`, which is the engine BEFORE the fix. Do not merge that
+  pointer from here. ENGINE BYTES CHANGED (the payout doll branch), so a release needs cutting on the
+  merged tree, and every artifact that reads a Future Sight payout behind a doll needs re-running.
+
+## ROADMAP #80 IS STALE — KNOCK OFF'S BERRY DISPOSITION AND ALL FOUR OF ITS CONSUMERS MATCH THE AUTHORITY. CHECKING THEM FOUND A DIFFERENT HARVEST DEFECT, FIXED. ROADMAP #9 WAS LATENT AND IS HARDENED: 24 PLAYED ARMS GREEN, THE FUNCTION ITSELF WAS WRONG FOR 17 OF 17 FIELD MOVES. CENSUS **886 → 887 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — NO RELEASE CUT, THE FOUR GATE ARTIFACTS ARE OWED A RE-RUN.** 2026-09-18, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-18-knockoff-prankster.md`.
+
+- **#80, stale.** `tests/probe_item_disposition.js` `ko-colbur` reads `colburberry/ate` on both engines, and
+  `tests/probe_knockoff_berry_consumers.js` tests the OUTCOME for Recycle, Belch, Harvest and Cud Chew
+  after a berry-eating Knock Off, each with a Leftovers control that moves the authority's answer: 8 of 8
+  MATCH. Unburden is not an arm — it fires on `onTakeItem` and on `onAfterUseItem` alike.
+- **Harvest gave back a non-berry.** Its gate read `m._ateBerry` ("ever ate a berry", never cleared)
+  where the authority reads `this.dex.items.get(pokemon.lastItem).isBerry`. A Trevenant that ate a
+  Colbur, Tricked for a White Herb and spent it got the HERB back. `tests/probe_harvest_nonberry.js`
+  RED → GREEN; census row "Harvest gives back only a BERRY" in `tests/test-mechanics.js`; knob
+  `MEDI_HARVEST_GATES_ON_ATEBERRY=1`.
+- **#9, hardened.** `pranksterBlocked` now answers `false` for a move whose target is `all`, `foeSide`,
+  `allySide` or `allyTeam` (`sim/battle-actions.ts:505-518` routes those to `tryMoveHit`, which never
+  reaches the Prankster clause at `:676-677`). `tests/probe_prankster_target.js`: Dark foe / non-Dark foe /
+  no-Prankster / Dark ally / spread / Dark self / all 17 reachable field moves — every played arm agreed
+  before AND after, and its DIRECT arm read 17 of 17 refused before; knob `MEDI_PRANKSTER_TARGET_BLIND=1`.
+
+### The hand list
+
+- **#80 and #9 leave it.** Both are carried by probes now (above).
+- **Carried forward unchanged** from the hand lists below.
 
 ## THE GATE'S `0 OF 961` IS A PROPERTY OF ONE TEAM LATTICE — THE SAME RELEASE READS **10 OF 1,069** AT `--games 1350` AND **84 OF 7,178** AT `--games 12000`, AND THE THREE FIXES IN `302b48a5` ACCOUNT FOR **ZERO** OF THE 84. TWO ENGINE DEFECTS FOUND IN THAT WIDE DRAW AND CLOSED: THE ELECTRIC BANK SURVIVES AN ABORTED CLICK **AND A STATUS CLICK** (16 OF 84 BETWEEN THEM). CENSUS **886 LIVE / 0 MISSING**, UNMOVED. **TWO ENGINE BYTES CHANGED — RELEASE `bc8d7cf849dd` CUT**, ALL FOUR INVALIDATED ARTIFACTS RE-RUN. GATE **OPEN, NINE OF NINE** — AND §4 OF THE REPORT IS WHY THAT LINE MUST NOT BE READ AS "MEDICHAM IS CORRECT". 2026-09-12, CHANGELOG `<<VER>>`
 

@@ -101,13 +101,13 @@ ok(SCREENS.length === 4 && dex.moves.get('mist').isNonstandard === 'Past',
  * authority so Aurora Veil can be clicked; this engine's arm sets snow on the field directly. */
 const ROWS = [
   { screen: 'reflect',     att: 'dragapult',  attAb: 'Clear Body', move: 'facade',
-    tgt: 'clefable', tgtAb: 'Magic Guard', neutral: 'workup', read: 'dmg' },
+    tgt: 'clefable', tgtAb: 'Magic Guard', neutral: 'endure', read: 'dmg' },
   { screen: 'lightscreen', att: 'chandelure', attAb: 'Flash Fire', move: 'hex',
-    tgt: 'clefable', tgtAb: 'Magic Guard', neutral: 'workup', read: 'dmg' },
+    tgt: 'clefable', tgtAb: 'Magic Guard', neutral: 'endure', read: 'dmg' },
   { screen: 'auroraveil',  att: 'chandelure', attAb: 'Flash Fire', move: 'hex',
     tgt: 'ninetalesalola', tgtAb: 'Snow Warning', neutral: 'nastyplot', read: 'dmg', snow: true },
   { screen: 'safeguard',   att: 'chandelure', attAb: 'Flash Fire', move: 'willowisp',
-    tgt: 'clefable', tgtAb: 'Magic Guard', neutral: 'workup', read: 'status' },
+    tgt: 'clefable', tgtAb: 'Magic Guard', neutral: 'endure', read: 'status' },
 ];
 const CE = { att: 'vivillon', attAb: 'Shield Dust', liveAb: 'Compound Eyes', move: 'skittersmack',
              tgt: 'garchomp', tgtAb: 'Rough Skin', neutral: 'swordsdance' };
@@ -133,6 +133,12 @@ const carries = (spId, ab) => Object.values(dex.species.get(spId).abilities).inc
     need(carries(r.tgt, r.tgtAb), r.screen + ': ' + r.tgt + ' may carry ' + r.tgtAb);
     need(learns(r.att, r.move), r.screen + ': ' + r.att + ' learns ' + r.move);
     need(learns(r.tgt, r.screen) && learns(r.tgt, r.neutral), r.screen + ': ' + r.tgt + ' learns ' + r.screen + ' and ' + r.neutral);
+    /* 2026-09-18 -- A LEARNSET ENTRY IS NOT A LEGAL MOVE. `learns()` reads the Champions learnset, which
+     * still lists moves the mod marks `isNonstandard: 'Past'`; the neutral click here was Work Up for nine
+     * days (`data/mods/champions/moves.ts` workup: isNonstandard "Past") and every check above passed. So
+     * the MOVE is asked too, not only the body's list. */
+    for (const id of [r.move, r.screen, r.neutral])
+      need(legal(dex.moves.get(id)), r.screen + ': ' + id + ' is a legal move in this format (isNonstandard ' + dex.moves.get(id).isNonstandard + ')');
     const mv = dex.moves.get(r.move);
     if (mv.category !== 'Status') {
       need(dex.getImmunity(mv.type, dex.species.get(r.tgt).types), r.screen + ': ' + mv.type + ' is not immune into ' + r.tgt + ' (one reason only)');
@@ -144,6 +150,7 @@ const carries = (spId, ab) => Object.values(dex.species.get(spId).abilities).inc
        'compoundeyes: ' + CE.att + ' legal and may carry ' + CE.liveAb + ' / ' + CE.attAb);
   need(learns(CE.att, CE.move) && dex.moves.get(CE.move).accuracy === 90, 'compoundeyes: ' + CE.att + ' learns ' + CE.move + ' and it is printed 90');
   need(learns(CE.tgt, CE.neutral) && carries(CE.tgt, CE.tgtAb), 'compoundeyes: ' + CE.tgt + ' learns ' + CE.neutral + ' and may carry ' + CE.tgtAb);
+  need(legal(dex.moves.get(CE.move)) && legal(dex.moves.get(CE.neutral)), 'compoundeyes: ' + CE.move + ' and ' + CE.neutral + ' are legal moves in this format');
   need(dex.getImmunity(dex.moves.get(CE.move).type, dex.species.get(CE.tgt).types), 'compoundeyes: Bug is not immune into ' + CE.tgt);
   const failed = checks.filter(c => !c[0]).map(c => c[1]);
   ok(failed.length === 0, 'every fixture body, ability and click is legal in this format, and no attack is type-immune into its target',
@@ -151,12 +158,21 @@ const carries = (spId, ab) => Object.values(dex.species.get(spId).abilities).inc
 }
 
 /* ---- THE AUTHORITY -------------------------------------------------------------------------- */
+/* 2026-09-18 -- IDENTICAL LEGAL BODIES ON BOTH ENGINES. This said `evs: 84` for every stat, which the
+ * Champions `statModify` reads as 84 SP per stat (data/mods/champions/scripts.ts:24-27) -- over the 32 cap
+ * -- while this engine's side built a usage spread and multiplied the target's HP by 8. The verdicts were
+ * ratios and statuses and survived, but no absolute number could be compared. Now: Serious, 0 SP, the same
+ * ability on both engines, and `random(16)` read in this engine's orientation (see newBattle). */
 const body = (sp, ability, moves) => ({ name: '', species: dex.species.get(sp).name, item: '', ability, moves,
-  nature: 'Serious', evs: { hp: 84, atk: 84, def: 84, spa: 84, spd: 84, spe: 84 }, ivs: {}, level: 50 });
+  nature: 'Serious', evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, ivs: {}, level: 50 });
 const FILL = ['Milotic', 'Snorlax'];
 function newBattle(p1, p2, frac) {
   const battle = new Battle({ formatid: CS.FORMAT, seed: [1, 2, 3, 4] });
+  /* THE DAMAGE ROLL IS READ IN THIS ENGINE'S ORIENTATION: the authority takes `100 - this.random(16)`
+   * (sim/battle.ts:2390) and this engine turns u into roll `15 - floor(16u)` (`damageRollIndex`). Only
+   * `random(16)` is mirrored; crit, accuracy and every other draw are left as they were. */
   battle.prng.random = function pinned(m, n) {
+    if (m === 16 && n === undefined) return 15 - Math.min(15, Math.floor(frac * 16));
     if (n === undefined) { if (m === undefined) return frac; return Math.min(m - 1, Math.floor(frac * m)); }
     return m + Math.min(n - m - 1, Math.floor(frac * (n - m)));
   };
@@ -183,14 +199,43 @@ function authorityArm(r, setup, attAb) {
 }
 
 /* ---- THIS ENGINE, THROUGH ITS OWN TURN LOOP, THE CENSUS ROW'S OWN SHAPE ------------------------ */
-const bare = sp => { const b = M.buildMon(sp, {}); if (!b) throw new Error('no MC row for ' + sp); b.item = ''; b.ability = 'none'; return b; };
+/* THE SAME BODY THE AUTHORITY BUILDS: `buildMonFromSet`, Serious, 0 SP, the same ability and moves.
+ * `seeded: true` skips entry effects, so Snow Warning cannot set the weather here and the arm sets snow
+ * on the field directly -- the authority's Ninetales-Alola sets it on entry, and both fields read snow. */
+const Z = { hp: 0, at: 0, df: 0, sa: 0, sd: 0, sp: 0 };
+const same = (sp, ab, moves) => {
+  const x = M.buildMonFromSet({ species: dex.species.get(sp).name, item: '', ability: ab, nature: 'Serious', sp: Z, moves });
+  if (!x) throw new Error('buildMonFromSet refused ' + sp);
+  x.item = ''; return x;
+};
 const PASS2 = (a, b) => new Map([[a, { kind: 'pass' }], [b, { kind: 'pass' }]]);
+/* PROBE-LEVEL RED SWITCH. The engine has no MEDI_* knob for the screen-damage exemption or for Compound
+ * Eyes, so the red arm strips the tag in-process, the way tests/probe_red_demo.js does:
+ *   PROBE_STRIP=infiltrator   -> ability infiltrator loses `ignoresScreensAndSubs`
+ *   PROBE_STRIP=compoundeyes  -> ability compoundeyes loses `accuracyMod`
+ * Only this engine's side reads the tag DB; the authority is untouched, so the comparison goes red.
+ * THE COMPOUND EYES SWITCH WAS FIRST MEASURED GREEN (2026-09-18): the engine read the ability out of the
+ * name-keyed `ACCMOD` table and consulted the tag only to count. The engine now reads the row off the
+ * tag (`accModRow`), so this switch goes red -- and under MEDI_ACCMOD_BY_NAME=1, which restores the
+ * name-keyed read, it is green again, which is the proof the tag is what now carries it. */
+{
+  const strip = process.env.PROBE_STRIP;
+  if (strip) {
+    const TAGS = require(D('engine', 'tags.js'));
+    const db = JSON.parse(JSON.stringify(require(D('data', 'tags.json'))));
+    const tag = { infiltrator: 'ignoresScreensAndSubs', compoundeyes: 'accuracyMod' }[strip];
+    const rec = tag && db.abilities[strip];
+    if (!rec || !rec.tags.includes(tag)) { console.log('PROBE_STRIP=' + strip + ' names nothing strippable'); process.exit(2); }
+    rec.tags = rec.tags.filter(t => t !== tag); if (rec.params) delete rec.params[tag];
+    TAGS.__setDB(db);
+    console.log('  PROBE_STRIP: ' + strip + ' has lost `' + tag + '` on this engine only -- this run MUST be red\n');
+  }
+}
 function mediArm(r, setup, ab, frac) {
-  const me = bare(r.att), ally = bare('incineroar'), f1 = bare(r.tgt), f2 = bare('incineroar');
-  if (r.read !== 'status') { f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 8 }); f1.curHP = f1.st.hp; }
+  const me = same(r.att, ab || r.attAb, [nameOf(r.move), 'Protect']), ally = same('incineroar', 'Blaze', ['Protect']);
+  const f1 = same(r.tgt, r.tgtAb, [nameOf(r.neutral), nameOf(r.screen)]), f2 = same('incineroar', 'Blaze', ['Protect']);
   const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
   if (r.snow) { S.field.weather = M.weatherId('snow'); S.field.weatherT = 5; }
-  if (ab) me.ability = ab;
   const rng = () => frac;
   const click = setup === 'screen' ? r.screen : r.neutral;
   M.battleTurn(S, rng, PASS2(me, ally), new Map([[f1, M.playerAction(f1, click, null, S.field)], [f2, { kind: 'pass' }]]));
@@ -203,7 +248,7 @@ function mediArm(r, setup, ab, frac) {
 console.log('');
 for (const r of ROWS) {
   const A = { ctrl: authorityArm(r, 'neutral', r.attAb), scr: authorityArm(r, 'screen', r.attAb), inf: authorityArm(r, 'screen', 'Infiltrator') };
-  const E = { ctrl: mediArm(r, 'neutral', null, 0.5), scr: mediArm(r, 'screen', null, 0.5), inf: mediArm(r, 'screen', 'infiltrator', 0.5) };
+  const E = { ctrl: mediArm(r, 'neutral', null, 0.5), scr: mediArm(r, 'screen', null, 0.5), inf: mediArm(r, 'screen', 'Infiltrator', 0.5) };
   const fmt = (x) => r.read === 'dmg' ? x.dmg + (x.up ? ' [screen up]' : ' [no screen]') : x.status + (x.up ? ' [Safeguard up]' : ' [no Safeguard]');
   console.log('  ' + r.screen.toUpperCase() + ' — ' + r.att + ' ' + r.move + ' into ' + r.tgt + (r.snow ? ' under snow' : ''));
   console.log('    authority   control ' + fmt(A.ctrl) + '   screened ' + fmt(A.scr) + '   Infiltrator ' + fmt(A.inf)
@@ -222,6 +267,9 @@ for (const r of ROWS) {
     ok(E.ctrl.dmg > 0 && E.scr.up && E.scr.dmg === A.ctrl.modify(E.ctrl.dmg) && E.inf.up && E.inf.dmg === E.ctrl.dmg,
        r.screen + ': MEDICHAM2 — the same two sentences hold on its own numbers  (BOARDS MATCH)',
        E.ctrl.dmg + ' -> ' + E.scr.dmg + ' (expect ' + A.ctrl.modify(E.ctrl.dmg) + ') -> ' + E.inf.dmg);
+    ok(['ctrl', 'scr', 'inf'].every(k => A[k].dmg === E[k].dmg && A[k].up === E[k].up),
+       r.screen + ': IDENTICAL BODIES — the same damage on both engines in all three arms',
+       'authority ' + [A.ctrl.dmg, A.scr.dmg, A.inf.dmg].join('/') + ', medicham2 ' + [E.ctrl.dmg, E.scr.dmg, E.inf.dmg].join('/'));
   } else {
     ok(A.ctrl.status === 'brn' && A.scr.up && A.scr.status === '-' && A.inf.up && A.inf.status === 'brn',
        r.screen + ': AUTHORITY — Safeguard refuses the burn and Infiltrator burns through the standing Safeguard',
@@ -248,12 +296,16 @@ for (const r of ROWS) {
     b.makeChoices('move 1 1, move 1', 'move 1, move 1');
     return { dmg: before - tgt.hp, acc: seen.n, printed: dex.moves.get(CE.move).accuracy };
   }
+  /* `screen` is only the target's second move slot here and is never clicked; Garchomp learns Protect. */
   function ceMedi(ab, frac) {
-    const r = { att: CE.att, tgt: CE.tgt, move: CE.move, neutral: CE.neutral, screen: 'reflect', read: 'dmg' };
+    const r = { att: CE.att, attAb: CE.attAb, tgt: CE.tgt, tgtAb: CE.tgtAb, move: CE.move, neutral: CE.neutral, screen: 'protect', read: 'dmg' };
     return mediArm(r, 'neutral', ab, frac);
   }
   const A0 = ceAuthority(CE.attAb), A1 = ceAuthority(CE.liveAb);
-  const E0 = ceMedi(null, 0.95), E1 = ceMedi('compoundeyes', 0.95), E2 = ceMedi(null, 0.85);
+  const E0 = ceMedi(CE.attAb, 0.95), E1 = ceMedi(CE.liveAb, 0.95), E2 = ceMedi(CE.attAb, 0.85);
+  ok(A0.dmg === E0.dmg && A1.dmg === E1.dmg,
+     'compoundeyes: IDENTICAL BODIES — the same damage on both engines, bare and with the ability',
+     'authority ' + A0.dmg + ' / ' + A1.dmg + ', medicham2 ' + E0.dmg + ' / ' + E1.dmg);
   console.log('  COMPOUND EYES — ' + CE.att + ' ' + CE.move + ' (printed ' + A0.printed + ') into ' + CE.tgt + ', die pinned at 0.95');
   console.log('    authority   ' + CE.attAb + ': rolled accuracy ' + A0.acc + ', damage ' + A0.dmg + '   |   ' + CE.liveAb + ': rolled accuracy ' + A1.acc + ', damage ' + A1.dmg
     + '   |   modify(90,[5325,4096]) = ' + new Battle({ formatid: CS.FORMAT }).modify(90, [5325, 4096]));

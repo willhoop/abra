@@ -10,6 +10,27 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.48.0] — 2026-09-18
+
+### Fixed
+- **Future Sight's payout meets a Substitute.** The authority pays out through `trySpreadMoveHit`, so a
+  doll absorbs it unless the booker is on the field with Infiltrator; MEDICHAM hit the body. Knob
+  `MEDI_DELAYED_HIT_THROUGH_DOLL=1`; `tests/probe_future_sight_doll.js`.
+- **Harvest restored a non-berry.** It gated on "ever ate a berry" where the authority reads
+  `lastItem.isBerry`. Knob `MEDI_HARVEST_GATES_ON_ATEBERRY=1`; `tests/probe_harvest_nonberry.js`.
+- **`pranksterBlocked` is target-aware.** Latent in play; the direct call refused 17 field moves against a
+  Dark foe. Knob `MEDI_PRANKSTER_TARGET_BLIND=1`; `tests/probe_prankster_target.js`.
+
+### Changed
+- **Accuracy modifiers and the Protect family decide by tag, not by name** (`accuracyMod`, `shieldsUser`,
+  params derived in `engine/tag_dex.js`). Knobs `MEDI_ACCMOD_BY_NAME=1`, `MEDI_SHIELD_BY_NAME=1`.
+- **Fixture legality** checks status codes, genders, helper-built fixtures, and every body built at run
+  time for a caller under `tests/`. The Parting Shot probe's 18 illegal fillers replaced; verdict unchanged.
+
+### Notes
+- Census 886 -> 891 live, 0 missing. ROADMAP #80 closed stale, #9 closed hardened. Reports:
+  `docs/_reports/2026-09-18-screens-probes.md`, `docs/_reports/2026-09-18-knockoff-prankster.md`.
+
 ## [6.47.1] — 2026-09-18
 
 ### Fixed

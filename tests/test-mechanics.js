@@ -528,6 +528,14 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * ATTACKER'S ability at that site; a direct `dmgRange` call would hand in two loose bodies with no
  * side stamp and the screen branch would never be reached, green on an engine that never asked.
  *
+ * `sgVolArms(` added 2026-09-18 with SAFEGUARD'S VOLATILE HANDLER against Infiltrator, declared HERE
+ * and with its reason on the same rule. It stages a real doubles board through `board()` ->
+ * `battleInit` and spends two real turns through `battleTurn` (three for the Yawn row) -- Safeguard
+ * raised by a legal click, then the confusion or drowse aimed at the body behind it -- and it has to:
+ * the refusal is read off the target's SIDE (`t._sf.sc`), which only a body that went through
+ * `battleInit` carries, and the ally arm's `_near` test compares two side stamps; a direct
+ * `applyConfusion` call on loose bodies would return before the Safeguard branch was reached.
+ *
  * `megaWtTarget(` added 2026-08-29 with the mega-weight family, declared HERE and with its reason on
  * the same rule. It stages a real doubles board through `board()` -> `battleInit` and spends a real
  * turn through `battleTurn`, FOUR times per arm — the weight move and a fixed-power control move, each
@@ -541,7 +549,7 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * handlers still run after the hazard it walked into has knocked it out, and only a real switch-in
  * reaches `runEntryPass` in that order.
  */
-const REALTURN = /\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(|\bvolleyInto\(/;
+const REALTURN = /\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(|\bsgVolArms\(|\bvolleyInto\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -18333,8 +18341,8 @@ probe('ability', 'ignoresScreensAndSubs', 'Infiltrator hits the body behind a su
  * the four moves and not `infiltrator` (`data/mods/champions/moves.ts`, `abilities.ts` checked).
  *
  * THE SHAPE IS `dollArms` WITH A SCREEN WHERE THE DOLL WAS. `control` has the foe click a neutral
- * self-targeting move -- Work Up raises the TARGET'S OWN Atk/SpA and cannot move the damage IT
- * takes, and is chosen over Swords Dance because Clefable does not learn Swords Dance -- so both arms
+ * self-targeting move -- Endure, which blocks nothing and cannot move the damage the target takes or
+ * the status it can receive -- so both arms
  * spend the same number of turns; `test` has the foe click the screen; `inf` puts INFILTRATOR on the
  * mover and requires the move to land THROUGH the standing screen at the unscreened number, which is
  * what separates "the screen cost it" from "Infiltrator is a name the engine also ignores". The
@@ -18355,7 +18363,12 @@ probe('ability', 'ignoresScreensAndSubs', 'Infiltrator hits the body behind a su
  * while these were written and asserted on every run by tests/probe_screens_infiltrator.js, which
  * stages the identical fixtures on the official simulator: Dragapult (Infiltrator carrier) learns
  * Facade; Chandelure (Infiltrator carrier) learns Hex and Will-O-Wisp; Clefable learns Reflect,
- * Light Screen, Safeguard and Work Up; Ninetales-Alola learns Aurora Veil and Nasty Plot. Aurora Veil
+ * Light Screen, Safeguard and Endure; Ninetales-Alola learns Aurora Veil and Nasty Plot.
+ * (CORRECTED 2026-09-18: the neutral click was WORK UP from 2026-09-09 and Work Up is NOT IN THIS
+ * FORMAT -- `data/mods/champions/moves.ts` workup: isNonstandard "Past". The Champions LEARNSET still
+ * lists it, so a learnset check passed it; the authority probe now asks the MOVE's legality too, and
+ * went red on it before the swap. Endure is picked from Clefable's legal self-targeting status moves
+ * as one that touches neither the damage taken nor the status received.) Aurora Veil
  * fails outside snow on both engines, so its arms set snow on the field first (`weatherId('snow')`),
  * and the move aimed through it is SPECIAL so snow's Ice-type Defense boost never enters. */
 const screenArms = (moverSp, moveId, foeSp, neutral, screenId, opts) => {
@@ -18385,15 +18398,15 @@ const screenDetail = (a, what) => 'after ' + what + ' [' + a.ctrl.dmg + ' dmg, s
   + a.inf.dmg + ', screen ' + a.inf.up + ']';
 
 probe('ability', 'ignoresScreensAndSubs', 'Reflect costs a physical hit, and Infiltrator lands the unscreened number through it', () => {
-  const a = screenArms('dragapult', 'facade', 'clefable', 'workup', 'reflect');
+  const a = screenArms('dragapult', 'facade', 'clefable', 'endure', 'reflect');
   return { works: screenWorks(a), arms: { control: a.scr.dmg, test: a.inf.dmg },
-           detail: 'Dragapult Facade into Clefable -- ' + screenDetail(a, 'Work Up') };
+           detail: 'Dragapult Facade into Clefable -- ' + screenDetail(a, 'Endure') };
 });
 
 probe('ability', 'ignoresScreensAndSubs', 'Light Screen costs a special hit, and Infiltrator lands the unscreened number through it', () => {
-  const a = screenArms('chandelure', 'hex', 'clefable', 'workup', 'lightscreen');
+  const a = screenArms('chandelure', 'hex', 'clefable', 'endure', 'lightscreen');
   return { works: screenWorks(a), arms: { control: a.scr.dmg, test: a.inf.dmg },
-           detail: 'Chandelure Hex into Clefable -- ' + screenDetail(a, 'Work Up') };
+           detail: 'Chandelure Hex into Clefable -- ' + screenDetail(a, 'Endure') };
 });
 
 probe('ability', 'ignoresScreensAndSubs', 'Aurora Veil under snow costs a special hit, and Infiltrator lands the unscreened number through it', () => {
@@ -18409,14 +18422,99 @@ probe('ability', 'ignoresScreensAndSubs', 'Aurora Veil under snow costs a specia
  * infiltrating FOE'S move takes; an ALLY'S infiltrating move is still refused, which is the row
  * `sideBuff | Safeguard refuses the status its OWN PARTNER wrote` already holds. */
 probe('ability', 'ignoresScreensAndSubs', 'Safeguard refuses a Will-O-Wisp, and Infiltrator burns through it', () => {
-  const a = screenArms('chandelure', 'willowisp', 'clefable', 'workup', 'safeguard', { status: true });
+  const a = screenArms('chandelure', 'willowisp', 'clefable', 'endure', 'safeguard', { status: true });
   return { works: a.ctrl.status === 'brn' && a.ctrl.up === 0
                   && a.scr.status === '-' && a.scr.up > 0
                   && a.inf.status === 'brn' && a.inf.up > 0,
            arms: { control: [a.scr.status, a.scr.up], test: [a.inf.status, a.inf.up] },
-           detail: 'Chandelure Will-O-Wisp into Clefable [status, Safeguard turns] -- after Work Up ['
+           detail: 'Chandelure Will-O-Wisp into Clefable [status, Safeguard turns] -- after Endure ['
                  + a.ctrl.status + ', ' + a.ctrl.up + ']; under Safeguard [' + a.scr.status + ', ' + a.scr.up
                  + ']; Infiltrator through the same Safeguard [' + a.inf.status + ', ' + a.inf.up + ']' };
+});
+
+/* 2026-09-18 -- SAFEGUARD'S SECOND HANDLER. The row above is `safeguard.onSetStatus`. Safeguard also
+ * carries `onTryAddVolatile` (data/moves.ts:15601-15609), which refuses CONFUSION and YAWN and opens
+ * with the same clause -- `if (effect.effectType === 'Move' && effect.infiltrates &&
+ * !target.isAlly(source)) return;` at :15603 -- and no census row paired it with Infiltrator. The
+ * engine routes both roads through `sideBuffRefuses(t, src, 'blocksVolatile', ..., vol)` ->
+ * `sideBuffInfiltrated`; `MEDI_SIDEBUFF_IGNORES_INFILTRATOR=1` removes the exemption, and all three
+ * rows below go red under it. Champions overrides none of safeguard, confuseray, hurricane, yawn or
+ * infiltrator (asserted from the mod files by tests/probe_safeguard_volatile_infiltrator.js, which
+ * stages the confusion rows on the official simulator; tests/probe_yawn_safeguard_refusal.js stages
+ * the yawn row).
+ *
+ * THE CARRIERS ARE DERIVED: the legal Infiltrator bodies that learn a confusion writer are Chandelure,
+ * Dragapult and Spiritomb (Confuse Ray), Malamar (Swagger), and Whimsicott and Noivern (Hurricane, a
+ * SECONDARY); the ones that learn Yawn are Meowstic and Meowstic-F. One status-move road (Confuse Ray),
+ * one secondary road (Hurricane) and the yawn road are staged, because the engine reaches the refusal
+ * from three different call sites. The neutral click is Endure, as above.
+ *
+ * THE ALLY ARM IS WHAT MAKES THE CONFUSE RAY ROW MORE THAN "Infiltrator ignores Safeguard": the same
+ * Infiltrator body aiming at its OWN partner under its OWN side's Safeguard is still refused
+ * (`!target.isAlly(source)`). */
+const sgVolArms = (moverSp, moveId, opts) => {
+  const o = opts || {};
+  const rng = () => (o.roll == null ? 0.5 : o.roll);
+  const read = (t) => ({ conf: !!(t._vol && t._vol.confusion > 0), yawn: t._yawn != null });
+  const run = (setup, ab) => {
+    const B = board(moverSp, 'incineroar', 'clefable', 'incineroar');
+    unfaintable(B.f1);
+    if (ab) B.me.ability = ab;
+    M.battleTurn(B.S, rng, PASS2(B.me, B.ally),
+      new Map([[B.f1, M.playerAction(B.f1, setup, null, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    M.battleTurn(B.S, rng,
+      new Map([[B.me, M.playerAction(B.me, moveId, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    const r = read(B.f1);
+    r.up = (B.S.sfB && B.S.sfB.sc && B.S.sfB.sc.safeguard) || 0;
+    if (o.idle) { M.battleTurn(B.S, rng, PASS2(B.me, B.ally), PASS2(B.f1, B.f2)); r.status = B.f1.status || '-'; }
+    return r;
+  };
+  const ally = () => {
+    const B = board(moverSp, 'clefable', 'garchomp', 'incineroar');
+    unfaintable(B.ally);
+    B.me.ability = 'infiltrator';
+    M.battleTurn(B.S, rng, new Map([[B.me, { kind: 'pass' }], [B.ally, M.playerAction(B.ally, 'safeguard', null, B.S.field)]]),
+      PASS2(B.f1, B.f2));
+    M.battleTurn(B.S, rng,
+      new Map([[B.me, M.playerAction(B.me, moveId, B.ally, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    const r = read(B.ally);
+    r.up = (B.S.sfA && B.S.sfA.sc && B.S.sfA.sc.safeguard) || 0;
+    return r;
+  };
+  return { ctrl: run('endure', null), sg: run('safeguard', null), inf: run('safeguard', 'infiltrator'),
+           ally: o.ally ? ally() : null };
+};
+const sgVolDetail = (a, k) => 'after Endure [' + a.ctrl[k] + ', ' + a.ctrl.up + ']; under Safeguard ['
+  + a.sg[k] + ', ' + a.sg.up + ']; Infiltrator through the same Safeguard [' + a.inf[k] + ', ' + a.inf.up + ']'
+  + (a.ally ? '; Infiltrator at its OWN partner under its OWN Safeguard [' + a.ally[k] + ', ' + a.ally.up + ']' : '');
+
+probe('ability', 'ignoresScreensAndSubs', 'Safeguard refuses a Confuse Ray, Infiltrator confuses a foe through it, and its own side\'s Safeguard still refuses it', () => {
+  const a = sgVolArms('chandelure', 'confuseray', { ally: true });
+  return { works: a.ctrl.conf && a.ctrl.up === 0 && !a.sg.conf && a.sg.up > 0 && a.inf.conf && a.inf.up > 0
+                  && !a.ally.conf && a.ally.up > 0,
+           arms: { control: [a.sg.conf, a.ally.conf], test: [a.inf.conf, a.ally.conf] },
+           detail: 'Chandelure Confuse Ray into Clefable [confused, Safeguard turns] -- ' + sgVolDetail(a, 'conf') };
+});
+
+probe('ability', 'ignoresScreensAndSubs', 'Safeguard refuses a Hurricane\'s secondary confusion, and Infiltrator confuses through it', () => {
+  /* ROLL 0.01: Hurricane's 70 accuracy lands and its 30% secondary fires on EVERY arm, so the arms differ
+   * in the Safeguard and the ability only. */
+  const a = sgVolArms('noivern', 'hurricane', { roll: 0.01 });
+  return { works: a.ctrl.conf && a.ctrl.up === 0 && !a.sg.conf && a.sg.up > 0 && a.inf.conf && a.inf.up > 0,
+           arms: { control: a.sg.conf, test: a.inf.conf },
+           detail: 'Noivern Hurricane into Clefable, roll 0.01 [confused, Safeguard turns] -- ' + sgVolDetail(a, 'conf') };
+});
+
+probe('ability', 'ignoresScreensAndSubs', 'Safeguard refuses a Yawn, and Infiltrator drowses through it', () => {
+  const a = sgVolArms('meowstic', 'yawn', { idle: true });
+  return { works: a.ctrl.yawn && a.ctrl.status === 'slp' && a.ctrl.up === 0
+                  && !a.sg.yawn && a.sg.status === '-' && a.sg.up > 0
+                  && a.inf.yawn && a.inf.status === 'slp' && a.inf.up > 0,
+           arms: { control: [a.sg.yawn, a.sg.status], test: [a.inf.yawn, a.inf.status] },
+           detail: 'Meowstic Yawn into Clefable, then one idle turn [drowsy, Safeguard turns; status after] -- '
+                 + sgVolDetail(a, 'yawn') + '; slept: ' + [a.ctrl.status, a.sg.status, a.inf.status].join(' / ') };
 });
 
 /* 2026-09-09 -- COMPOUND EYES, ON ITS LEGAL CARRIER, THROUGH THE TO-HIT ROLL. 1,671 pool bodies and
@@ -27326,6 +27424,31 @@ probe('ability', 'restoresBerryAtResidual', 'Harvest announces the returned berr
                  + '`|-activate|BODY|item:sitrusberry`, which is Quick Claw\'s event and not this one' };
 });
 
+/* 2026-09-18 -- HARVEST GIVES BACK A BERRY AND NOTHING ELSE. The authority's gate is
+ *     if (pokemon.hp && !pokemon.item && this.dex.items.get(pokemon.lastItem).isBerry)
+ * (data/abilities.ts harvest; no Champions override). This engine gated on `_ateBerry`, which means "has
+ * EVER eaten a berry" and is never cleared, so a body that had eaten once got back whatever it spent
+ * next. Staged in both engines by `tests/probe_harvest_nonberry.js` (a Trevenant that ate a Colbur,
+ * Tricked for a White Herb and spent it). Here the two fields are set directly so the only varied input
+ * is WHAT `_lastItem` holds: the control is the same body with a spent BERRY, which must come back —
+ * so the arm cannot pass by Harvest simply never firing. MEDI_HARVEST_GATES_ON_ATEBERRY=1 turns it red. */
+probe('ability', 'restoresBerryAtResidual', 'Harvest gives back only a BERRY — a spent White Herb stays spent', () => {
+  const run = (last) => {
+    const B = board('garchomp', 'skeledirge', 'incineroar', 'farigiraf');
+    B.f1.ability = 'harvest'; B.f1.item = '';
+    B.f1._lastItem = last; B.f1._ateBerry = true;       // it HAS eaten a berry at some point
+    B.S.field.weather = 'sun'; B.S.field.weatherT = 20;  // sun: the die cannot decide it
+    M.battleTurn(B.S, () => 0.9, PASS2(B.me, B.ally), PASS2(B.f1, B.f2));
+    return B.f1.item || '';
+  };
+  const control = run('sitrusberry'), test = run('whiteherb');
+  return { works: control === 'sitrusberry' && test === '',
+           arms: { control, test },
+           detail: 'sun, empty slot, ateBerry already true: lastItem Sitrus Berry comes back as "' + control
+                 + '" (CONTROL — Harvest fires on this board); lastItem White Herb comes back as "' + test
+                 + '" (must stay empty — a herb is not a berry)' };
+});
+
 probe('ability', 'picksUpUsedItem', 'Pickup takes an item another body spent THIS turn', () => {
   const run = (ability, foeItem) => {
     const B = board('garchomp', 'skeledirge', 'incineroar', 'farigiraf');
@@ -28745,6 +28868,47 @@ probe('move', 'delayedHit', 'Future Sight books the hit and lands it TWO turns l
                  + `${JSON.stringify(seq)} — must be 0, 0, a hit, 0.  The click turn moves NOTHING; `
                  + 'the later clicks FAIL because the slot already holds one; and only the third turn '
                  + 'pays out, which is the end of the SECOND turn after the booking' };
+});
+
+/* 2026-09-18 -- THE PAYOUT MEETS THE DOLL, AND AN INFILTRATOR BOOKER'S PAYOUT DOES NOT.
+ * `futuremove.onEnd` pays out through `trySpreadMoveHit` (data/conditions.ts:415), whose hit loop runs
+ * the Champions mod's `// 0. check for substitute` -> `substitute.onTryPrimaryHit`, and that handler
+ * steps aside only for `target === source || move.flags['bypasssub'] || move.infiltrates`
+ * (data/moves.ts:18336). Future Sight's booked `moveData.flags` carry no `bypasssub` (data/moves.ts:
+ * 6413); `infiltrates` is set on the payout ONLY when `data.source.hasAbility('infiltrator')`
+ * (data/conditions.ts:407-409), and `hasAbility` is false for a benched body (sim/pokemon.ts:865,
+ * `if (this.battle.gen >= 5 && !this.isActive) return true;` in `ignoringAbility`). Champions overrides
+ * neither `futuremove`, `futuresight` nor `substitute`.
+ *
+ * MEASURED ON THE AUTHORITY BEFORE THIS ROW WAS WRITTEN (Meowstic-F booking into a Garchomp that put a
+ * doll up the turn after): Keen Eye booker -> the body lost 0 and the doll ended; Infiltrator booker ->
+ * the body lost the full hit and the doll stood untouched. This engine landed the payout on the BODY in
+ * both arms and never touched the doll. Meowstic-F is a legal Infiltrator carrier that learns Future
+ * Sight; Garchomp learns Substitute and Swords Dance (the control click). */
+probe('move', 'delayedHit', 'a Substitute absorbs a Future Sight payout, and an Infiltrator booker\'s payout reaches the body', () => {
+  const run = (setupFoe, ab) => {
+    const B = board('meowsticf', 'incineroar', 'garchomp', 'milotic');
+    B.me.moves = ['futuresight'];
+    unfaintable(B.f1);
+    if (ab) B.me.ability = ab;
+    M.battleTurn(B.S, rng5,
+      new Map([[B.me, M.playerAction(B.me, 'futuresight', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+      PASS2(B.f1, B.f2));
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally),
+      new Map([[B.f1, M.playerAction(B.f1, setupFoe, null, B.S.field)], [B.f2, { kind: 'pass' }]]));
+    const hp = B.f1.curHP, sub0 = B.f1._sub || 0;
+    M.battleTurn(B.S, rng5, PASS2(B.me, B.ally), PASS2(B.f1, B.f2));
+    return { body: hp - B.f1.curHP, sub0, sub1: B.f1._sub || 0 };
+  };
+  const ctrl = run('swordsdance', null), doll = run('substitute', null), inf = run('substitute', 'infiltrator');
+  return { works: ctrl.body > 0 && ctrl.sub0 === 0
+                  && doll.sub0 > 0 && doll.body === 0 && doll.sub1 < doll.sub0
+                  && inf.sub0 > 0 && inf.body === ctrl.body && inf.sub1 === inf.sub0,
+           arms: { control: [doll.body, doll.sub1], test: [inf.body, inf.sub1] },
+           detail: '[body HP lost to the payout, doll before -> after] -- after Swords Dance [' + ctrl.body + ', '
+                 + ctrl.sub0 + ' -> ' + ctrl.sub1 + ']; behind a doll [' + doll.body + ', ' + doll.sub0 + ' -> '
+                 + doll.sub1 + ']; Infiltrator booker behind the same doll [' + inf.body + ', ' + inf.sub0 + ' -> '
+                 + inf.sub1 + ']' };
 });
 
 /* 2026-09-10 -- THE PAYOUT ROLLS STEP 4. `futuremove.onEnd` pays out through `trySpreadMoveHit`, so

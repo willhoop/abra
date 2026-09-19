@@ -66,7 +66,7 @@ const B2 = pick(s => chipable(s) && ![A1.name, A2.name, B1.name].includes(s.name
 const ab = s => Object.values(s.abilities).find(a => !/Magic Guard|Overcoat|Sand/i.test(a)) || s.abilities[0];
 const set = (s, item, extra) => Object.assign({
   name: s.name, species: s.name, item: item || '', ability: ab(s), gender: 'N',
-  moves: ['Protect'], evs: { hp: 84, atk: 84, def: 84, spa: 84, spd: 84, spe: 84 },
+  moves: ['Protect'], evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },   /* 2026-09-18: was 84 per stat -- over the 32-SP cap */
   ivs: { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 }, level: 50,
 }, extra || {});
 

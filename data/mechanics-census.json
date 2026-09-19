@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-19T01:03:00.867Z",
+  "generated": "2026-09-19T01:39:24.802Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 886,
-  "live": 886,
+  "probed": 891,
+  "live": 891,
   "missing": 0,
-  "armed": 886,
+  "armed": 891,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -4213,7 +4213,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.4% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 26.4% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4893,7 +4893,7 @@
       "tag": "ignoresScreensAndSubs",
       "label": "Reflect costs a physical hit, and Infiltrator lands the unscreened number through it",
       "live": true,
-      "detail": "Dragapult Facade into Clefable -- after Work Up [43 dmg, screen 0]; under the screen [29, screen 3]; Infiltrator through the same screen [43, screen 3]",
+      "detail": "Dragapult Facade into Clefable -- after Endure [43 dmg, screen 0]; under the screen [29, screen 3]; Infiltrator through the same screen [43, screen 3]",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4903,7 +4903,7 @@
       "tag": "ignoresScreensAndSubs",
       "label": "Light Screen costs a special hit, and Infiltrator lands the unscreened number through it",
       "live": true,
-      "detail": "Chandelure Hex into Clefable -- after Work Up [87 dmg, screen 0]; under the screen [58, screen 3]; Infiltrator through the same screen [87, screen 3]",
+      "detail": "Chandelure Hex into Clefable -- after Endure [87 dmg, screen 0]; under the screen [58, screen 3]; Infiltrator through the same screen [87, screen 3]",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4923,7 +4923,37 @@
       "tag": "ignoresScreensAndSubs",
       "label": "Safeguard refuses a Will-O-Wisp, and Infiltrator burns through it",
       "live": true,
-      "detail": "Chandelure Will-O-Wisp into Clefable [status, Safeguard turns] -- after Work Up [brn, 0]; under Safeguard [-, 3]; Infiltrator through the same Safeguard [brn, 3]",
+      "detail": "Chandelure Will-O-Wisp into Clefable [status, Safeguard turns] -- after Endure [brn, 0]; under Safeguard [-, 3]; Infiltrator through the same Safeguard [brn, 3]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "ignoresScreensAndSubs",
+      "label": "Safeguard refuses a Confuse Ray, Infiltrator confuses a foe through it, and its own side's Safeguard still refuses it",
+      "live": true,
+      "detail": "Chandelure Confuse Ray into Clefable [confused, Safeguard turns] -- after Endure [true, 0]; under Safeguard [false, 3]; Infiltrator through the same Safeguard [true, 3]; Infiltrator at its OWN partner under its OWN Safeguard [false, 3]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "ignoresScreensAndSubs",
+      "label": "Safeguard refuses a Hurricane's secondary confusion, and Infiltrator confuses through it",
+      "live": true,
+      "detail": "Noivern Hurricane into Clefable, roll 0.01 [confused, Safeguard turns] -- after Endure [true, 0]; under Safeguard [false, 3]; Infiltrator through the same Safeguard [true, 3]",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "ignoresScreensAndSubs",
+      "label": "Safeguard refuses a Yawn, and Infiltrator drowses through it",
+      "live": true,
+      "detail": "Meowstic Yawn into Clefable, then one idle turn [drowsy, Safeguard turns; status after] -- after Endure [true, 0]; under Safeguard [false, 3]; Infiltrator through the same Safeguard [true, 3]; slept: slp / - / slp",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7230,6 +7260,16 @@
     },
     {
       "kind": "ability",
+      "tag": "restoresBerryAtResidual",
+      "label": "Harvest gives back only a BERRY — a spent White Herb stays spent",
+      "live": true,
+      "detail": "sun, empty slot, ateBerry already true: lastItem Sitrus Berry comes back as \"sitrusberry\" (CONTROL — Harvest fires on this board); lastItem White Herb comes back as \"\" (must stay empty — a herb is not a berry)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
       "tag": "picksUpUsedItem",
       "label": "Pickup takes an item another body spent THIS turn",
       "live": true,
@@ -7554,6 +7594,16 @@
       "label": "Future Sight books the hit and lands it TWO turns later",
       "live": true,
       "detail": "[HP off the target, per turn, clicking Future Sight every turn] [0,0,145,0] — must be 0, 0, a hit, 0.  The click turn moves NOTHING; the later clicks FAIL because the slot already holds one; and only the third turn pays out, which is the end of the SECOND turn after the booking",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "delayedHit",
+      "label": "a Substitute absorbs a Future Sight payout, and an Infiltrator booker's payout reaches the body",
+      "live": true,
+      "detail": "[body HP lost to the payout, doll before -> after] -- after Swords Dance [108, 0 -> 0]; behind a doll [0, 366 -> 258]; Infiltrator booker behind the same doll [108, 366 -> 366]",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -8103,7 +8153,7 @@
       "tag": "pivotStatus",
       "label": "a frozen body clicking a PIVOT move is refused like any other move — the pivot is a move, not a switch",
       "live": true,
-      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 39 to 41",
+      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 36 to 38",
       "hollow": false,
       "armed": true,
       "directCall": false

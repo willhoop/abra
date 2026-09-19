@@ -1,0 +1,80 @@
+{
+ "generated": "2026-09-19T01:35:52.374Z",
+ "roadmap": 80,
+ "format": "gen9championsvgc2026regmb",
+ "fixtures": {
+  "attacker": "Sableye",
+  "move": "Knock Off",
+  "berry": "Colbur Berry",
+  "inert": "Leftovers"
+ },
+ "rows": [
+  {
+   "id": "recycle",
+   "body": "Chimecho",
+   "what": "the item held after the turn-2 Recycle",
+   "berry": {
+    "medi": "colburberry",
+    "sd": "colburberry",
+    "err": null
+   },
+   "inert": {
+    "medi": "-",
+    "sd": "-",
+    "err": null
+   },
+   "controlMovesAuthority": true
+  },
+  {
+   "id": "belch",
+   "body": "Slowbro",
+   "what": "whether Belch dealt damage to the attacker on turn 2",
+   "berry": {
+    "medi": "allowed(miss)",
+    "sd": "allowed(miss)",
+    "err": null
+   },
+   "inert": {
+    "medi": "refused",
+    "sd": "refused",
+    "err": null
+   },
+   "controlMovesAuthority": true
+  },
+  {
+   "id": "harvest",
+   "body": "Trevenant",
+   "what": "the item held at the end of turn 1 (Harvest under a Drought sun is certain)",
+   "berry": {
+    "medi": "colburberry",
+    "sd": "colburberry",
+    "err": null
+   },
+   "inert": {
+    "medi": "-",
+    "sd": "-",
+    "err": null
+   },
+   "controlMovesAuthority": true
+  },
+  {
+   "id": "cudchew",
+   "body": "Farigiraf",
+   "what": "Cud Chew re-eat lines (`-activate … Cud Chew`) by the end of turn 3",
+   "berry": {
+    "medi": "cud×1",
+    "sd": "cud×1",
+    "err": null
+   },
+   "inert": {
+    "medi": "cud×0",
+    "sd": "cud×0",
+    "err": null
+   },
+   "controlMovesAuthority": true
+  }
+ ],
+ "parted": 0,
+ "unreadable": 0,
+ "run_ok": true
+}

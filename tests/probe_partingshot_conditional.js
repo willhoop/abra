@@ -152,8 +152,45 @@ for (const a of DEX.abilities.all()) {
 }
 
 /* ---- THE BODIES ------------------------------------------------------------------------------- */
-const mon = (species, ability, moves) => ({ species, item: '', ability, moves });
-const FILL = ['Protect', 'Iron Defense', 'Amnesia'];
+/* 2026-09-18 -- THE FILLER WAS ILLEGAL ON EIGHTEEN BODIES AND IS NOW DERIVED PER SPECIES.
+ *
+ * It was `['Protect', 'Iron Defense', 'Amnesia']` on every body. The validator refuses Iron Defense on
+ * Milotic, Clefable, Garchomp, Weavile, Gliscor, Malamar, Florges, Jolteon, Incineroar and Snorlax, and
+ * Amnesia on Garganacl, Toxapex and Corviknight -- found by the runtime fixture check in
+ * engine/game_differential.js `buildPair`, which the source scan could not do because `FILL` is an
+ * identifier, not an array literal. Showdown does not check learnsets in battle, so every arm played.
+ *
+ * WHAT A FILLER MUST BE HERE: a click that is not Protect (so no Protect is consecutive), is aimed at
+ * NOBODY but the user (so no refusing ability can see it), and changes NONE of what the arms read --
+ * who is standing in p1a, the target's atk/spa, and the cancel/except counters -- and, for the
+ * floor arms, it is the "do not drop" click in the dropper's slot.
+ *
+ * DERIVED, NOT NAMED: a legal status move, `target: 'self'`, whose `onTry` can only pass for a SLEEPING
+ * user. On a body that is awake it fails at `onTry` -- before `onHit`, so it spends no die and moves no
+ * stat, field or side leaf. Nothing in this fixture can sleep (no sleep move is clicked, and no body
+ * carries Comatose), so it fails on every click. The candidate list is read off the dex; the filler
+ * for each body is the first candidate that body LEARNS in this format, and a body with none stops the
+ * run by name. The scripts are not species-aware, so all bodies must share one filler id, and that is
+ * asserted rather than assumed. */
+/* The match is on `onTry` RETURNING the sleep test, not merely mentioning it: the first cut read
+ * `/status === 'slp'/` and admitted REST, whose onTry is the opposite (`if (source.status === 'slp' ...)
+ * return false`, then heals and sleeps the user) -- printed, caught, tightened. */
+const INERT = DEX.moves.all().filter(m => legalM(m) && m.category === 'Status' && m.target === 'self'
+  && /return\s+source\.status\s*===\s*['"]slp['"]/.test(String(m.onTry || '')));
+const _fillerOf = new Map();
+function fillerFor(species) {
+  if (_fillerOf.has(species)) return _fillerOf.get(species);
+  const f = INERT.find(m => CS.canLearn(species, m.name));
+  if (!f) { console.log('  FIXTURE — ' + species + ' learns no inert filler (candidates: '
+    + INERT.map(m => m.name).join(', ') + ')'); process.exit(1); }
+  if (f.id !== INERT[0].id) { console.log('  FIXTURE — ' + species + ' learns ' + f.name + ' but not '
+    + INERT[0].name + '; the scripts click one filler id for every slot'); process.exit(1); }
+  _fillerOf.set(species, f.name);
+  return f.name;
+}
+const FILL = (species) => ['Protect', fillerFor(species)];
+const mon = (species, ability, moves) => ({ species, item: '', ability,
+  moves: (typeof moves === 'function' ? moves(species) : moves.flatMap(m => (m === FILL ? FILL(species) : [m]))) });
 
 /* Incineroar runs BLAZE and not Intimidate on purpose: an entry drop into the same refusing ability
  * would be a SECOND reason for every boost on the board and no arm could say which it had found. */
@@ -175,8 +212,12 @@ const foeTeam = (species, ability, partner) => [
   mon('weavile', 'Pressure', FILL),
 ];
 
-const PS = { m: 'partingshot', t: 0 }, P = { m: 'protect' }, ID = { m: 'irondefense' },
-      AM = { m: 'amnesia' }, CH = { m: 'charm', t: 0 }, EI = { m: 'eerieimpulse', t: 0 };
+/* ID and AM were Iron Defense and Amnesia -- two different self-boosts. Both are now the one inert
+ * filler; the two names are kept so every script below reads exactly as it did. */
+if (!INERT.length) { console.log('  FIXTURE — no legal inert filler in ' + CS.FORMAT); process.exit(1); }
+console.log('  inert filler (derived): ' + INERT.map(m => m.name).join(', '));
+const PS = { m: 'partingshot', t: 0 }, P = { m: 'protect' }, ID = { m: INERT[0].id },
+      AM = { m: INERT[0].id }, CH = { m: 'charm', t: 0 }, EI = { m: 'eerieimpulse', t: 0 };
 
 /* THE ABILITY DOOR — two turns. Turn 2 is the negative: nobody clicks a pivot, so nobody may leave
  * and nothing may be refused. p1b's two clicks differ so no Protect is ever consecutive (the stall

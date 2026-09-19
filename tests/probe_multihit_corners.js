@@ -71,7 +71,7 @@ function authorityHits(moveName, top) {
   };
   const body = (sp, moves) => ({ name: '', species: sp, item: '',
     ability: dex.species.get(sp).abilities['0'], moves,
-    nature: 'Serious', evs: { hp: 84, atk: 84, def: 84, spa: 84, spd: 84, spe: 84 }, ivs: {}, level: 50 });
+    nature: 'Serious', evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, ivs: {}, level: 50 });   /* 2026-09-18: was 84 per stat -- 84 SP in Champions, over the 32 cap */
   /* FOUR BODIES A SIDE, because this format has TEAM PREVIEW and `team 1234` has to have four things
    * to name. The differential does the same two lines at game_differential.js:3389. */
   /* THE FOES CLICK IRON DEFENCE, NOT PROTECT, AND THAT IS NOT A DETAIL. The first version of this

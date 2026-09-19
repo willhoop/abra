@@ -70,6 +70,60 @@ const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
  * own `String(h).replace(/\s+/g,' ')`, and the ones that forgot the replace could not match a
  * predicate spanning a line break -- which is a rule that silently matches NOTHING. One reader. */
 const fnsrc = h => String(h == null ? '' : h).replace(/\s+/g, ' ');
+/* 2026-09-18 -- THE ACCURACY MODIFIER, READ OFF ITS HANDLER, SO THE ENGINE CAN STOP KEEPING A TABLE BY NAME.
+ *
+ * `engine/medicham2-browser.js` kept `ACCMOD`, a hand table keyed `ability:compoundeyes`, and read the
+ * `accuracyMod` tag only to COUNT an entity the table did not list. So stripping the tag changed nothing
+ * the engine did -- measured: tests/probe_screens_infiltrator.js stayed green with `accuracyMod` removed
+ * from Compound Eyes. Everything the table held is on the handler, so it is derived here:
+ *
+ *   side    which hook the handler sits on. `onSourceModifyAccuracy` -> 'att' (the holder is the mover),
+ *           `onModifyAccuracy` -> 'def' (the holder is aimed at), `onAnyAccuracy` -> 'both' (No Guard),
+ *           `onAnyModifyAccuracy` -> 'allySide' (Victory Star -- zero legal carriers; the engine counts it).
+ *   mod     the literal `chainModify([n, d])` pair, or `chainModify(x)` as [trunc(x*4096), 4096] -- which is
+ *           what Showdown's own `chainModify` turns a float into (`nextMod = trunc(n*4096/d)`).
+ *   setTo   a bare `return <n>;` (Wonder Skin's 50 -- no carrier here, derived anyway).
+ *   never   `onAnyAccuracy` returning `true`: nothing aimed at or by the holder can miss.
+ *   when    the handler's gate, NAMED FROM ITS TEXT: 'physical' / 'status' (move.category), 'sand' /
+ *           'snow' (field.isWeather), 'targetAlreadyMoved' (`!this.queue.willMove(target)`),
+ *           'holderConfused' (`target?.volatiles["confusion"]` on the holder's own hook). A gate this
+ *           cannot name becomes `unparsed:<text>` -- never a silent null, because a null `when` means
+ *           "always" and an unread condition applied always is the silent-default shape. */
+function accuracyChainOf(e) {
+  const hooks = [['onSourceModifyAccuracy', 'att'], ['onModifyAccuracy', 'def'],
+                 ['onAnyModifyAccuracy', 'allySide'], ['onAnyAccuracy', 'both']];
+  const hit = hooks.find(([h]) => typeof e[h] === 'function');
+  if (!hit) return null;
+  const [hook, side] = hit;
+  const src = fnsrc(e[hook]);
+  if (hook === 'onAnyAccuracy') {
+    return /return\s+true\s*;/.test(src)
+      ? { accuracy: true, side, mod: null, setTo: null, never: true, when: null } : null;
+  }
+  let mod = null;
+  const pair = src.match(/chainModify\(\s*\[\s*(\d+)\s*,\s*(\d+)\s*\]\s*\)/);
+  const flt = src.match(/chainModify\(\s*([\d.]+)\s*\)/);
+  if (pair) mod = [+pair[1], +pair[2]];
+  else if (flt) mod = [Math.trunc(+flt[1] * 4096), 4096];
+  const setM = src.match(/return\s+(\d+)\s*;/);
+  const setTo = setM ? +setM[1] : null;
+  const conds = [...src.matchAll(/if\s*\((.*?)\)\s*(?:\{|return)/g)].map(m => m[1])
+    .flatMap(c => c.split('&&').map(s => s.trim()))
+    .filter(c => !/^typeof accuracy\s*[!=]==?\s*["']number["']$/.test(c));
+  const names = [];
+  for (const c of conds) {
+    if (/move\.category\s*===\s*["']Physical["']/.test(c)) names.push('physical');
+    else if (/move\.category\s*===\s*["']Status["']/.test(c)) names.push('status');
+    else if (/isWeather\(\s*["']sandstorm["']\s*\)/.test(c)) names.push('sand');
+    else if (/isWeather\(\s*(\[[^\]]*["']snowscape["'][^\]]*\]|["']snowscape["'])\s*\)/.test(c)) names.push('snow');
+    else if (/^!this\.queue\.willMove\(target\)$/.test(c)) names.push('targetAlreadyMoved');
+    else if (/^target\??\.volatiles\[\s*["']confusion["']\s*\]$/.test(c) && side === 'def') names.push('holderConfused');
+    else names.push('unparsed:' + c.slice(0, 60));
+  }
+  if (!mod && setTo == null) return { accuracy: true, side, mod: null, setTo: null, never: false, when: 'unparsed:no modifier' };
+  return { accuracy: true, side, mod, setTo, never: false,
+           when: names.length === 0 ? null : (names.length === 1 ? names[0] : 'unparsed:' + names.join('+')) };
+}
 /* ROADMAP #239, EXTENDED BY #241 -- WHAT A REFUSAL SAYS ON THE WIRE, READ OUT OF THE HANDLER.
  *
  * An ability that refuses something writes its own `-immune` line, and the attribution string in the
@@ -6542,7 +6596,8 @@ const ITEM_TAGS = [
   { tag: 'accuracyMod', param: 'P(hit) is scaled, for or against the holder', probe: 'onModifyAccuracy',
     why: 'Bright Powder makes attacks against the holder 0.9x; Wide Lens (411 uses) makes the holder 1.1x. '
        + 'Feeds the same P(hit) the kill distribution consumes',
-    of: it => (it.onModifyAccuracy || it.onSourceModifyAccuracy) ? { accuracy: true } : null },
+    /* 2026-09-18 -- the params are the modifier itself now (accuracyChainOf, top of file), not a bare flag. */
+    of: it => (it.onModifyAccuracy || it.onSourceModifyAccuracy) ? accuracyChainOf(it) : null },
   /* THIS RULE COULD NOT FIRE IN THIS FORMAT AND NOTHING READ IT EITHER. Measured 2026-08-10: it
    * hardcoded four names and **all four are `isNonstandard: 'Past'`** — Choice Band, Choice Specs and
    * Assault Vest are on the format's ban list (CLAUDE.md names them), and Eviolite is gone too. None
@@ -9148,8 +9203,13 @@ const ABILITY_TAGS = [
   { tag: 'accuracyMod', param: 'P(hit) scaled, often gated on a weather or a category', probe: 'onModifyAccuracy',
     why: 'Sand Veil (135 uses, x1.25 evasion in sand), Snow Cloak (219, in snow), Compound Eyes, '
        + 'Victory Star, Hustle, Wonder Skin, No Guard. Same P(hit) the kill distribution needs',
-    of: a => (a.onModifyAccuracy || a.onSourceModifyAccuracy || a.onAccuracy || a.onSourceAccuracy)
-             ? { accuracy: true } : null },
+    /* 2026-09-18 -- the params are the modifier itself (accuracyChainOf, top of file), and the two `onAny`
+     * hooks join the membership: No Guard's `onAnyAccuracy` is the `never` row the engine used to keep by
+     * name, and Victory Star's `onAnyModifyAccuracy` has no legal carrier here. `onAccuracy` /
+     * `onSourceAccuracy` keep the old bare flag. */
+    of: a => (a.onModifyAccuracy || a.onSourceModifyAccuracy || a.onAnyAccuracy || a.onAnyModifyAccuracy)
+             ? accuracyChainOf(a)
+             : ((a.onAccuracy || a.onSourceAccuracy) ? { accuracy: true } : null) },
   /* IT OVER-MATCHED, AND PRINTING THE MEMBERSHIP IS WHAT CAUGHT IT (LESSONS §4, again).
    *
    * `onImmunity` is Showdown's ONE hook for "this body ignores a named source of harm", and the name

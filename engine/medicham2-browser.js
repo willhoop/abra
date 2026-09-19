@@ -2388,6 +2388,9 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * reached the board without spending the die -- which is the defect this pair was added to close,
    * and which read as ZERO movement across a pinned crit die for as long as it lasted. */
   delayedHitCritDrawn: 0, delayedHitCrit: 0,
+  /* 2026-09-18 -- a payout that met a standing doll and was absorbed by it (`substitute.onTryPrimaryHit`,
+   * data/moves.ts:18336, reached through the payout's own `trySpreadMoveHit`). */
+  delayedHitIntoDoll: 0,
   /* NARRATION BATCH Y, 2026-09-09 -- a payout that came due on a body IMMUNE to its type. The authority
    * writes `-end` (the condition's own line) and then `-immune` out of `hitStepTypeImmunity`, and draws
    * NO die -- `getDamage` is never reached. This engine drew crit and dmg into a Dark type and wrote
@@ -3776,6 +3779,9 @@ const MEDFAILS = { encoreAction: 0,
    * MEDI_CRIT_ONCE_PER_CLICK: a switch that silently makes the engine wrong is the silent default
    * this repo keeps paying for. */
   delayedHitNoCritRestored: 0,
+  /* 2026-09-18 -- set to 1 for the whole run when MEDI_DELAYED_HIT_THROUGH_DOLL=1 puts the payout back
+   * on the BODY behind a doll on purpose, so a restore arm and a regression never read alike. */
+  delayedHitThroughDollRestored: 0,
   /* ROADMAP #304 -- set to 1 for the whole run when MEDI_DAMAGE_SPAN_DRAW=1 puts the defect back on
    * purpose. Counted apart from `damageBandMissing` so a deliberate restore arm and a broken engine
    * can never be read as the same thing. */
@@ -4231,6 +4237,8 @@ const MEDFAILS = { encoreAction: 0,
    * shields carry the tag, and the three that do not (burningbulwark, silktrap, maxguard) are
    * isNonstandard and cannot be clicked. A non-zero means the derivation lost a member. */
   shieldByNameOnly: 0, shieldByNameOnlyFirst: '',
+  /* 2026-09-18 -- set to 1 for the run when MEDI_SHIELD_BY_NAME=1 puts `PROTECTMOVES` back in charge. */
+  shieldByNameRestored: 0,
   /* ROADMAP #162 / #60 -- a `failsIfTargetMoveNotPriority` carrier whose target committed an attack
    * this engine could not name, so the priority comparison had nothing to read. Expected 0: every
    * `{kind:'attack'}` action carries its move id. A non-zero means the condition is being skipped. */
@@ -4515,7 +4523,7 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-08-12 -- an ACCMOD row that names an artifact value and could not read it, so the literal
      fallback beside it was used. Must read 0: a hand number on every sub-100 move is the shape this
      table exists to avoid. */
-  accModNoTagValue: 0, accModUntabledFirst: '',
+  accModNoTagValue: 0, accModTagReadThrew: 0, accModUntabledFirst: '',
   /* 2026-09-06 -- an ACCMOD row that FIRED and carries no `mod:[num,den]` pair, so it could not join
      the authority's chain and fell back to the float multiply. Named, because a silent fallback here
      is the exact defect the chain was landed to fix, one row further along. */
@@ -4523,6 +4531,13 @@ const MEDFAILS = { encoreAction: 0,
   /* WIRE 129 -- an ACCMOD row named a CONDITION _accWhen cannot evaluate. It resolves to false (the
    * modifier does not fire), which is the safe direction and the invisible one, so it is counted. */
   accModUnknownWhen: 0,
+  /* 2026-09-18 -- an `accuracyMod` tag row with no `side` (an artifact older than the shape), or with a
+   * side this engine does not apply (`allySide` -- Victory Star, no legal carrier today). Either way the
+   * modifier does not fire, so it is counted rather than silent. */
+  accModTagNoShape: 0, accModTagNoShapeFirst: '', accModUnknownSide: 0, accModUnknownSideFirst: '',
+  /* 2026-09-18 -- set to 1 for the run when MEDI_ACCMOD_BY_NAME=1 puts the name-keyed `ACCMOD` table
+   * back in charge, so a restore arm and a regression never read alike. */
+  accModByNameRestored: 0,
   /* WIRE 125 -- the side's ROSTER was not available at the end-of-turn death recount, so the count
    * fell back to the active+bench arrays, which is the expression that lost the dead in the first
    * place. battleInit always stamps `sf.team`, so this must read 0; a non-zero means a battle state
@@ -6064,6 +6079,12 @@ const MEGA_KEEPS_ABSORB_GIFT=(typeof process!=='undefined'&&process.env&&process
  * of the defect: a knob run turns exactly the `suppresses` census row red and leaves the Knock Off row
  * green, because a Knock Off empties the slot AND the park. */
 const SUPPRESSED_ITEM_IS_LOST=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SUPPRESSED_ITEM_IS_LOST==='1');
+/* 2026-09-18 -- MEDI_HARVEST_GATES_ON_ATEBERRY=1 puts Harvest's gate back on `_ateBerry` ("this body has
+ * EVER eaten a berry") instead of the authority's `this.dex.items.get(pokemon.lastItem).isBerry`
+ * (data/abilities.ts harvest; no Champions override). `ateBerry` is never cleared, so under the old gate a
+ * body that had eaten once would Harvest back ANY later spent item -- a White Herb, a Focus Sash.
+ * `tests/probe_harvest_nonberry.js` is RED under the knob and GREEN without it. */
+const HARVEST_GATES_ON_ATEBERRY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HARVEST_GATES_ON_ATEBERRY==='1');
 /* 2026-09-05 -- MEDI_IMPRISON_SEALS_NOTHING=1 restores the pre-fix engine: the `imprison` volatile
  * still lands and still shows on the board, and a foe may still click a move the Imprison user
  * carries. It restores that and NOTHING else, so a knob run turns exactly the one `sealsMoves`
@@ -8121,6 +8142,23 @@ function sideGuardClickRate(gid){
  * it different in kind from the literal it replaces. */
 const ACC_FIX = {crabhammer:95,makeitrain:95,syrupbomb:90,clangoroussoul:100};
 const PROTECTMOVES = new Set(['protect','detect','spikyshield','kingsshield','banefulbunker','burningbulwark','silktrap','maxguard']);
+/* ==== 2026-09-18, ROADMAP #127 GROUP A -- "IS THIS A SHIELD" IS ASKED OF THE TAG, IN EVERY PLACE =====
+ *
+ * `PROTECTMOVES` above is a NAME LIST. The dispatch asked `shieldsUser` first and kept the list as a
+ * counted fallback, but two other sites still asked the list ONLY: the pasted-set move filter in
+ * `buildMonFromSet` and `canProtect` in the engine's own chooser. Measured before this: the five legal
+ * members of the list are exactly the five `shieldsUser` carriers (protect, detect, spikyshield,
+ * kingsshield, banefulbunker); the other three (burningbulwark, silktrap, maxguard) are not in this
+ * format. So the tag already says everything the list says, and moving the reads onto it moves nothing.
+ *
+ * `MEDI_SHIELD_BY_NAME=1` restores the name reads at all three sites (the dispatch fallback included)
+ * and stamps `MEDFAILS.shieldByNameRestored`. Proof, tests/probe_signature_tags.js: strip `shieldsUser`
+ * from Protect and all three go red; add the knob and they are green again. */
+const SHIELD_BY_NAME=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SHIELD_BY_NAME==='1');
+function isShieldMove(id){
+  if(SHIELD_BY_NAME){MEDFAILS.shieldByNameRestored=1;return PROTECTMOVES.has(id);}
+  return TAGS.has('move',id,'shieldsUser');
+}
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 /* Showdown spells stats atk/def/spa/spd/spe; this engine uses at/df/sa/sd/sp. A naming convention,
@@ -11075,7 +11113,7 @@ function buildMonFromSet(set){
   /* ROADMAP #126 -- `id==='wideguard'` STOOD HERE and it is why a sheet's Quick Guard was DROPPED
    * from the body before the turn loop ever saw it. Asked of the tag instead, so both members of the
    * family survive the filter and a third would too. */
-  const usable=ids.filter(id=>MC.moves[id]||PROTECTMOVES.has(id)||TAGS.has('move',id,'oneTurnGuard')||id==='tailwind'||moveFx(id));
+  const usable=ids.filter(id=>MC.moves[id]||isShieldMove(id)||TAGS.has('move',id,'oneTurnGuard')||id==='tailwind'||moveFx(id));
   /* THE STONE DECIDES THE ABILITY TOO, not just the forme -- and this line used to let the SHEET win.
    * A team sheet lists the PRE-mega ability ("Scizor ... Ability: Swarm"), so `declaredAb ||` handed
    * a mega body its base forme's ability every single time a paste declared one, which is the exact
@@ -11586,16 +11624,68 @@ function accApplyChain(value,modifier){
 /* A CARRIER WITH NO ROW IS LOUD. A silent default here looks exactly like a working feature, which is
  * this project's signature failure -- and the tag set is generated, so a new Gen-10 evasion ability
  * arrives in the artifact and has to announce itself rather than quietly doing nothing. */
+/* ==== 2026-09-18 -- THE ROW IS READ OFF THE TAG, NOT OUT OF `ACCMOD` BY NAME ====================
+ *
+ * `ACCMOD` above was keyed `ability:compoundeyes`, and the `accuracyMod` tag was consulted only to COUNT
+ * an entity the table did not list -- so the tag was decoration. Measured: stripping `accuracyMod` from
+ * Compound Eyes in-process left tests/probe_screens_infiltrator.js GREEN. That is the "match on tag
+ * shape, never on a name" rule broken in the one place a new accuracy carrier would arrive.
+ *
+ * `engine/tag_dex.js` (`accuracyChainOf`) now derives every field the table held off the entity's own
+ * handler: `side` from the hook, `mod` from the `chainModify` argument, `setTo`, `never` (No Guard's
+ * `onAnyAccuracy`), and `when` named from the handler's gate. Printed before wiring, the derived rows
+ * matched the table EXACTLY for all nine legal carriers (Wide Lens, Zoom Lens, Bright Powder, Compound
+ * Eyes, Hustle, Sand Veil, Snow Cloak, Tangled Feet, No Guard). `mult` is the table's own 2-dp display,
+ * recomputed from the pair so the float knob and the chain-vs-float counter read what they read before.
+ *
+ * `MEDI_ACCMOD_BY_NAME=1` restores the name-keyed read exactly and stamps `MEDFAILS.accModByNameRestored`.
+ * `ACCMOD` stays as that restore and as the table tests/probe_accuracy_modifier_chain.js audits. */
+const ACCMOD_BY_NAME=(typeof process!=='undefined'&&process.env&&process.env.MEDI_ACCMOD_BY_NAME==='1');
+const _accRowCache=new WeakMap();
+function accRowFromTag(p){
+  let r=_accRowCache.get(p);
+  if(!r){
+    const mod=(Array.isArray(p.mod)&&p.mod.length===2)?[+p.mod[0],+p.mod[1]]:null;
+    r={side:p.side,never:!!p.never,when:p.when||null,
+       setTo:(p.setTo==null?null:+p.setTo),
+       mod:mod||undefined,mult:mod?+(mod[0]/mod[1]).toFixed(2):null};
+    _accRowCache.set(p,r);
+  }
+  return r;
+}
 function accModRow(kind,id){
   const key=String(id||'').toLowerCase().replace(/[^a-z0-9]/g,'');
   if(!key||key==='none')return null;
-  const row=ACCMOD[kind+':'+key];
-  if(row)return row.off?null:row;
-  if(TAGS.has(kind,key,'accuracyMod')||TAGS.has(kind,key,'writesAccuracy')){
-    MEDFAILS.accModUntabled++;
-    if(!MEDFAILS.accModUntabledFirst)MEDFAILS.accModUntabledFirst=kind+':'+key;
+  if(ACCMOD_BY_NAME){
+    MEDFAILS.accModByNameRestored=1;
+    const row=ACCMOD[kind+':'+key];
+    if(row)return row.off?null:row;
+    if(TAGS.has(kind,key,'accuracyMod')||TAGS.has(kind,key,'writesAccuracy')){
+      MEDFAILS.accModUntabled++;
+      if(!MEDFAILS.accModUntabledFirst)MEDFAILS.accModUntabledFirst=kind+':'+key;
+    }
+    return null;
   }
-  return null;
+  const p=TAGS.param(kind,key,'accuracyMod');
+  if(!p){
+    /* an accuracy WRITER with no accuracyMod row is the old "untabled" case, counted the same way */
+    if(TAGS.has(kind,key,'writesAccuracy')){
+      MEDFAILS.accModUntabled++;
+      if(!MEDFAILS.accModUntabledFirst)MEDFAILS.accModUntabledFirst=kind+':'+key;
+    }
+    return null;
+  }
+  if(!p.side){
+    MEDFAILS.accModTagNoShape++;
+    if(!MEDFAILS.accModTagNoShapeFirst)MEDFAILS.accModTagNoShapeFirst=kind+':'+key;
+    return null;
+  }
+  if(p.side!=='att'&&p.side!=='def'&&p.side!=='both'){
+    MEDFAILS.accModUnknownSide++;
+    if(!MEDFAILS.accModUnknownSideFirst)MEDFAILS.accModUnknownSideFirst=kind+':'+key+'='+p.side;
+    return null;
+  }
+  return accRowFromTag(p);
 }
 /* Does an entity refuse to miss in BOTH directions? No Guard is the only one, and it is asked by
  * SHAPE (`never`) rather than by name so a second one needs a table row and no code. */
@@ -12676,7 +12766,20 @@ function hitChance(att,def,id,field,ctx){
     if(!MEDFAILS.accModNoChainPairFirst)MEDFAILS.accModNoChainPairFirst=String(label);
     return false;
   };
-  if(field&&field.gravity>0){
+  if(field&&field.gravity>0&&!ACCMOD_BY_NAME){
+    /* 2026-09-18 -- GRAVITY OFF THE TAG ALONE. `groundsField.accuracyMult` on the move is 6840/4096 exactly,
+     * so the pair is [round(mult*4096), 4096]; no literal row is consulted. A tag that stops carrying it
+     * is counted and applies NOTHING -- the old literal fallback lives only under MEDI_ACCMOD_BY_NAME=1. */
+    let _gm=null;
+    try{const _t=TAGS.param('move','gravity','groundsField');if(_t&&+_t.accuracyMult>0)_gm=+_t.accuracyMult;}catch(e){MEDFAILS.accModTagReadThrew++;}
+    if(_gm==null)MEDFAILS.accModNoTagValue++;
+    else{
+      const _gRow={mod:[Math.round(_gm*4096),4096],mult:_gm};
+      if(ACC_MOD_FLOAT)acc*=_gm; else _accTake(_gRow,'condition:gravity');
+      MEDSEEN.gravityAccuracyApplied++;
+    }
+  }
+  if(field&&field.gravity>0&&ACCMOD_BY_NAME){
     const _g=ACCMOD['condition:gravity'];
     if(_g&&!_g.off){
       /* THE NUMBER COMES OFF THE ARTIFACT, WHICH ALREADY HAD IT. `groundsField.accuracyMult` reads
@@ -15278,6 +15381,11 @@ const FORMEONHIT_CLICK_WIDE_RESTORED=(typeof process!=='undefined'&&process.env&
  * rather than a third behaviour, and any run carrying it also carries a non-zero
  * `MEDFAILS.delayedHitNoCritRestored`. */
 const DELAYED_HIT_NO_CRIT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DELAYED_HIT_NO_CRIT==='1');
+/* 2026-09-18 -- `MEDI_DELAYED_HIT_THROUGH_DOLL=1` takes the doll check back OUT of `condition:futuremove`'s
+ * payout, which is what this engine did until tonight: the payout landed on the body behind a Substitute
+ * and never touched the doll. It restores the ONE decision the fix turns on and stamps
+ * `MEDFAILS.delayedHitThroughDollRestored`. */
+const DELAYED_HIT_THROUGH_DOLL=(typeof process!=='undefined'&&process.env&&process.env.MEDI_DELAYED_HIT_THROUGH_DOLL==='1');
 /* NARRATION BATCH Y, 2026-09-09 -- THE SAME SWITCH FOR THE IMMUNE COLLECTOR. `MEDI_DELAYED_HIT_SILENT_IMMUNE=1`
  * puts back the road where `condition:futuremove`'s payout priced a type-immune body, spent the crit and
  * dmg dice on it, and -- because the band was zero -- wrote neither `-end` nor `-immune`. Any run carrying it
@@ -18188,7 +18296,7 @@ function _chooseAction(me,foes,ally,field,side,rng){
   const bestKOsNow=bestAtk&&tgt&&bestAtk.d.min>=tgt.curHP&&hitChance(me,tgt,bestAtk.id,field,{})>=100;
   const incoming=live.reduce((mx,f)=>{const b=bestMoveVs(f,me,field);return b?Math.max(mx,b.d.max):mx;},0);
   const inDanger=incoming>=me.curHP*0.8;
-  const canProtect=me.moves.some(id=>PROTECTMOVES.has(id));
+  const canProtect=me.moves.some(id=>isShieldMove(id));   /* #127 group A: the tag, not PROTECTMOVES */
   if(!PURE_PRIORS){
     // 1) take a guaranteed KO most of the time (real players do)
     if(bestKOsNow&&rng()<0.85) return {kind:'attack',move:bestAtk,target:tgt};
@@ -19754,6 +19862,17 @@ const invSign=x=>{
  * without swapping a file; any run carrying it also carries a non-zero
  * `MEDFAILS.pranksterSideBlindRestored`. Same shape as MEDI_ORB_STALE_RANGE and MEDI_BENCH_APPEND. */
 const PRANKSTER_SIDE_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PRANKSTER_SIDE_BLIND==='1');
+/* ROADMAP #9, THE OTHER HALF -- THE REFUSAL IS A STEP OF `trySpreadMoveHit`, AND A FIELD MOVE NEVER GETS
+ * THERE. 2026-09-18. `sim/battle-actions.ts:505-518` sends a move whose target is `all`, `foeSide`,
+ * `allySide` or `allyTeam` to `tryMoveHit`, and only the `else` branch reaches `trySpreadMoveHit` and its
+ * `hitStepTryImmunity` (`:676-677`, the Prankster clause). So a Prankster Trick Room, Tailwind or Spikes
+ * cannot be refused however many Dark bodies stand opposite. This function answered `true` for all 17
+ * such moves a legal Prankster carrier learns when handed a Dark foe -- LATENT, because no battle-loop
+ * branch asks it about one today (`tests/probe_prankster_target.js` plays all 17 green either way and
+ * asks the function directly to see it). The answer now reads the move's own `target` off `moveFx`.
+ * MEDI_PRANKSTER_TARGET_BLIND=1 takes the clause back out; the probe's DIRECT arm goes red under it. */
+const PRANKSTER_TARGET_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PRANKSTER_TARGET_BLIND==='1');
+const PRANKSTER_UNREACHED_TARGETS=new Set(['all','foeSide','allySide','allyTeam']);
 /* NARRATION BATCH T, 2026-09-09 -- MEDI_FAINT_CLEARS_ACTIVE_EARLY=1 PUTS THE EARLY READING BACK: a
  * body is off the field the moment its HP reaches zero, rather than when `faintMessages` writes its
  * line. That is the engine exactly as it stood before batch T, and it is the whole clause -- every
@@ -19785,6 +19904,7 @@ function pranksterBlocked(attacker,target,moveId){
   if(!isPrankster(attacker)) return false;
   const fx=moveFx(moveId);
   if(!fx||fx.category!=='Status') return false;
+  if(!PRANKSTER_TARGET_BLIND&&PRANKSTER_UNREACHED_TARGETS.has(fx.target)) return false;   // tryMoveHit road
   if(!(target&&(target.types||[]).includes('Dark'))) return false;
   if(PRANKSTER_SIDE_BLIND){ MEDFAILS.pranksterSideBlindRestored++; return true; }
   if(attacker===target) return false;                     // isAlly() is true of the body itself
@@ -45237,6 +45357,38 @@ function battleTurn(S,rng,actsForA,actsForB){
               * NARRATION BATCH Y -- written ABOVE the pricing now (the condition's line is not the
               * hit's); this site fires only under the restore knob, so the line is written once either way. */
              if(TR&&DELAYED_HIT_SILENT_IMMUNE)TR.vend(m,'move: '+_rF.mv);
+             /* ==== 2026-09-18 -- THE PAYOUT MEETS THE DOLL ============================================
+              *
+              * `trySpreadMoveHit` (data/conditions.ts:415) runs the hit loop, and the Champions mod's
+              * `// 0. check for substitute` sends the payout to `substitute.onTryPrimaryHit`, which steps
+              * aside only for `target === source || move.flags['bypasssub'] || move.infiltrates`
+              * (data/moves.ts:18336). The booked `moveData.flags` carry no `bypasssub`; `infiltrates` is
+              * written onto the payout only when `data.source.hasAbility('infiltrator')`
+              * (data/conditions.ts:407-409), and `hasAbility` is FALSE for a benched source because
+              * `ignoringAbility()` opens `if (this.battle.gen >= 5 && !this.isActive) return true;`
+              * (sim/pokemon.ts:865). So a benched booker's Infiltrator is not asked: `subBlocks` is
+              * handed no attacker, which is exactly "no ability".
+              *
+              * This engine landed every payout on the BODY and never touched the doll. Measured on the
+              * authority before the fix: a Keen Eye Meowstic-F booking into a Garchomp that put a doll up
+              * the turn after -- body 0, doll ended; the Infiltrator booker -- the full hit on the body,
+              * doll untouched. `tests/test-mechanics.js`, `delayedHit | a Substitute absorbs a Future
+              * Sight payout...`; `MEDI_DELAYED_HIT_THROUGH_DOLL=1` restores the old road.
+              *
+              * THE DIE AND THE CRIT ARE ALREADY SPENT ABOVE, as the authority's `getDamage` spends them
+              * inside the doll's own handler; only where the number lands changes. The clamp and the two
+              * doll lines are the main path's (`_stepSubAbsorb`), not a second reading of them. */
+             const _srcOnF=actA.indexOf(_src)>=0||actB.indexOf(_src)>=0;
+             const _dollF=m._sub>0&&subBlocks(_srcOnF?_src:null,m,_rF.mv);
+             if(_dollF&&DELAYED_HIT_THROUGH_DOLL)MEDFAILS.delayedHitThroughDollRestored=1;
+             if(_dollF&&!DELAYED_HIT_THROUGH_DOLL){
+               const _s0F=m._sub;
+               m._sub=Math.max(0,_s0F-_dm);
+               MEDSEEN.delayedHitIntoDoll++;
+               if(TR&&damageIsComputed(_rF.mv))TR.eff(m,_d.eff);
+               if(TR&&_fcrit)TR.crit(m);
+               if(TR){ if(m._sub<=0)TR.vend(m,'Substitute'); else TR.act(m,'move: Substitute','[damage]'); }
+             } else {
              m.curHP=Math.max(0,m.curHP-_dm);
              MEDSEEN.delayedHitLanded++;
              /* 2026-08-23 -- AND THE EFFECTIVENESS LINE, ABOVE THE DAMAGE, because the payout goes
@@ -45266,6 +45418,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              if(TR&&_fcrit)TR.crit(m);
              if(TR)TR.dmg(m);
              if(m.curHP<=0){m.fainted=true,noteFaint(m);faintLineOut(m);}
+             }   /* end of the body road (2026-09-18, the doll branch above) */
            } else if(!DELAYED_HIT_SILENT_IMMUNE&&!_fsMiss){
              /* NARRATION BATCH Y -- a zero band on a body the type chart does NOT refuse. Loud. */
              MEDFAILS.delayedHitZeroBandUnannounced++;
@@ -45501,7 +45654,12 @@ function battleTurn(S,rng,actsForA,actsForB){
          * sun clause is not a name here. It requires an EMPTY item slot and a `lastItem` that is a
          * berry, both of which are the handler's conditions. */
         {const _hv=TAGS.param('ability',m.ability,'restoresBerryAtResidual');
-         if(_hv&&!m.item&&m._lastItem&&m._ateBerry){
+         /* 2026-09-18 -- THE BERRY TEST IS ON `_lastItem`, as the comment above always said and the
+          * code did not: it read `m._ateBerry`, which is "ever ate a berry" and is never cleared, so a
+          * Trevenant that had eaten once and later spent a White Herb got the HERB back. The authority
+          * asks `this.dex.items.get(pokemon.lastItem).isBerry`. Found checking ROADMAP #80's consumers;
+          * `tests/probe_harvest_nonberry.js`, knob MEDI_HARVEST_GATES_ON_ATEBERRY=1 restores the old gate. */
+         if(_hv&&!m.item&&m._lastItem&&(HARVEST_GATES_ON_ATEBERRY?m._ateBerry:TAGS.has('item',m._lastItem,'isBerry'))){
            /* THE WEATHER NAMES ARE THE AUTHORITY'S (`sunnyday`, `desolateland`) and this engine's are
             * short (`sun`). The prefix match is the seam and it is stated rather than hidden:
             * `sunnyday`.startsWith(`sun`). `desolateland` is Primal Groudon's sun and has no carrier
@@ -47092,7 +47250,7 @@ function playerActionPrimary(me,moveId,target,field){
    * engine were ever pointed at another format. A silent default looks exactly like a working
    * feature; this one counts itself and names the move. */
   if(TAGS.has('move',id,'shieldsUser'))return {kind:'protect',mv:id};   // mv, so WIRE 61 knows which shield blocked
-  if(PROTECTMOVES.has(id)){MEDFAILS.shieldByNameOnly++;
+  if(SHIELD_BY_NAME&&PROTECTMOVES.has(id)){MEDFAILS.shieldByNameOnly++;MEDFAILS.shieldByNameRestored=1;
     if(!MEDFAILS.shieldByNameOnlyFirst)MEDFAILS.shieldByNameOnlyFirst=id;
     return {kind:'protect',mv:id};}
   /* ROADMAP #126 -- THE ONE LINE THAT MADE QUICK GUARD A WASTED TURN. `id==='wideguard'` matched one

@@ -304,6 +304,19 @@ function makeRoleOf(dex) {
     if (isA(dex.abilities.get(s), s)) return 'ability';
     if (isA(dex.items.get(s), s)) return 'item';
     if (isA(dex.moves.get(s), s)) return 'move';
+    /* 2026-09-18 -- TWO MORE THINGS A SET DECLARATION LEGITIMATELY CARRIES, AND THE FORMAT NAMES BOTH.
+     * A fixture row may declare a starting STATUS (`['bastiodon', 'soundproof', 'par']`,
+     * tests/probe_heal_bell_party.js) and a GENDER (`S(..., 'F')`, tests/probe_reopen_partings.js). This
+     * asked only species/ability/item/move, so `par`, `brn`, `F` and `M` read as "names nothing in this
+     * format" and the gate went red on fixtures that were correct. Both are answered BY THE AUTHORITY,
+     * not by a list typed here:
+     *   status -- `dex.conditions.get(s)` exists with `effectType: 'Status'` and the exact id
+     *             (data/conditions.ts: par, brn, slp, psn, tox, frz each carry `effectType: 'Status'`)
+     *   gender -- `GenderName = 'M' | 'F' | 'N' | ''` (sim/global-types.ts:28), the type of
+     *             `PokemonSet.gender`; matched CASE-SENSITIVELY, so a lowercase `'m'` is still a stray.
+     * A misspelt status (`'parx'`) or any other single letter is still `unknown`. */
+    { const c = dex.conditions.get(s); if (c && c.exists && c.effectType === 'Status' && c.id === s) return 'status'; }
+    if (s === 'M' || s === 'F' || s === 'N') return 'gender';
     return 'unknown';
   };
 }
@@ -349,7 +362,14 @@ function scan(dex) {
     for (const h of helpers) {
       const re = new RegExp('\\b' + h.replace(/\$/g, '\\$') + '\\s*\\(', 'g'); let m;
       while ((m = re.exec(src))) {
-        if (/=\s*$/.test(src.slice(Math.max(0, m.index - 3), m.index))) continue;  /* the definition */
+        /* 2026-09-18 -- THIS SKIPPED EVERY CALL WHOSE RESULT WAS ASSIGNED. It read `/=\s*$/` on the three
+         * characters before `helper(` as "the definition", but a definition is `const helper = (...) =>`
+         * or `function helper(`, neither of which puts `=` directly before `helper(`. What it actually
+         * dropped was `const P = S('Corviknight', ..., 'M')` -- a real fixture, unscanned, in every file
+         * that names a body before using it. Only a `function helper(` declaration and a method call
+         * (`x.helper(` -- a different function that happens to share the name) are skipped now. */
+        const _pre = src.slice(Math.max(0, m.index - 12), m.index);
+        if (/function\s+$/.test(_pre) || /\.\s*$/.test(_pre)) continue;
         const call = balanced(src, m.index + m[0].length - 1, '(', ')');
         if (!call) continue;
         const args = call.slice(1, -1);
@@ -376,12 +396,14 @@ function scan(dex) {
         const item = (roles.find(x => x.r === 'item') || {}).s || '';
         const ability = (roles.find(x => x.r === 'ability') || {}).s || '';
         const unknown = roles.filter(x => x.r === 'unknown').map(x => x.s);
+        const gender = (roles.find(x => x.r === 'gender') || {}).s || '';
         /* more than one species in one call is a FILL/BENCH list: the item and ability, if any,
          * cannot be attributed to one of them, so they are not. */
         for (const sp of species) {
           sets.push({ file: rel, line, how: h + '()', species: sp,
                       item: species.length > 1 ? '' : item,
                       ability: species.length > 1 ? '' : ability,
+                      gender: species.length > 1 ? '' : gender,
                       moves: mv.slice(), unknown });
         }
       }
@@ -419,6 +441,7 @@ function scan(dex) {
           if (item || ability || nested.length) {
             sets.push({ file: rel, line: lineOf(src, k), how: 'row', species: species[0],
                         item, ability, moves: nested.slice(),
+                        gender: (roles.find(x => x.r === 'gender') || {}).s || '',
                         unknown: roles.filter(x => x.r === 'unknown').map(x => x.s) });
           }
         }
@@ -440,11 +463,13 @@ function scan(dex) {
       if (roleOf(sp[2]) !== 'species') { unpaired.push({ file: rel, line, how: 'object', why: `species literal "${sp[2]}" does not name a species in this format` }); continue; }
       const it = /\bitem\s*:\s*(['"])([^'"]*)\1/.exec(blk);
       const ab = /\bability\s*:\s*(['"])([^'"]*)\1/.exec(blk);
+      const gd = /\bgender\s*:\s*(['"])([^'"]*)\1/.exec(blk);
       const mb = /\bmoves\s*:\s*\[/.exec(blk);
       let mvs = [];
       if (mb) { const a = balanced(blk, mb.index + mb[0].length - 1, '[', ']'); if (a) mvs = strings(a); }
       sets.push({ file: rel, line, how: 'object', species: sp[2],
-                  item: it ? it[2] : '', ability: ab ? ab[2] : '', moves: mvs, unknown: [] });
+                  item: it ? it[2] : '', ability: ab ? ab[2] : '',
+                  gender: gd && roleOf(gd[2]) === 'gender' ? gd[2] : '', moves: mvs, unknown: [] });
     }
   }
   return { files: files.length, sets, unpaired, unread };
@@ -458,6 +483,38 @@ function scan(dex) {
  * SENTENCE from the validator. */
 const keyOf = p => String(p).toLowerCase().replace(/\s+/g, ' ').trim();
 
+/* ---- ONE CHECKED FUNCTION, SHARED BY THE STATIC SWEEP AND THE RUNTIME HOOK --------------------
+ * `sweep()` below asks it of every set the source scan can SEE; engine/game_differential.js's
+ * `buildPair` asks it of every body a test file actually BUILDS, which is the half no list of source
+ * spellings can reach (derived bodies, and whatever spelling comes next). One implementation, so the
+ * two cannot disagree about what is legal.
+ *
+ * 2026-09-18 -- A DECLARED GENDER THE SPECIES CANNOT HAVE. The validator will not say so: under this
+ * format's `obtainablemisc` it silently rewrites `set.gender = species.gender || set.gender`
+ * (sim/team-validator.ts:654-657), and `checkLegal` is not handed a gender anyway. But a fixture is
+ * PLAYED, not validated, and the battle takes the declared gender FIRST —
+ * `this.gender = genders[set.gender] || this.species.gender || ...` (sim/pokemon.ts:339-340) — so an
+ * `F` on a male-only species plays a body this game cannot contain, and Cute Charm, Attract and
+ * Rivalry read it. What the species may be is read off the dex, never typed: a fixed `species.gender`
+ * ('M', 'F' or 'N') allows exactly that; otherwise each gender whose `genderRatio` share is above zero. */
+let _dex = null;
+function checkSet(s, dex) {
+  dex = dex || _dex || (_dex = CS.sim().Dex.forFormat(CS.FORMAT));
+  const v = CS.checkLegal({ species: s.species, item: s.item || '', ability: s.ability || '', moves: s.moves || [] });
+  if (v.unavailable) throw new Error('fixture_legality: ' + v.problems.join('; '));
+  const g = s.gender === 'M' || s.gender === 'F' || s.gender === 'N' ? s.gender : '';
+  if (g) {
+    const sp = dex.species.get(s.species);
+    const allowed = sp.gender ? [sp.gender] : ['M', 'F'].filter(x => (sp.genderRatio || {})[x] > 0);
+    if (sp.exists && !allowed.includes(g)) {
+      const name = { M: 'male', F: 'female', N: 'genderless' };
+      return { ...v, legal: false, problems: (v.legal ? [] : v.problems).concat(
+        `${sp.name} is declared ${name[g]}, but in this format it can only be ${allowed.map(x => name[x]).join(' or ')}.`) };
+    }
+  }
+  return v;
+}
+
 function sweep() {
   const dex = CS.sim().Dex.forFormat(CS.FORMAT);
   const { files, sets, unpaired, unread } = scan(dex);
@@ -469,7 +526,7 @@ function sweep() {
   /* one verdict per distinct set; every site that declares it is carried */
   const seen = new Map();
   for (const s of sets) {
-    const k = [nrm(s.species), nrm(s.item), nrm(s.ability), s.moves.map(nrm).sort().join('+')].join('|');
+    const k = [nrm(s.species), nrm(s.item), nrm(s.ability), s.moves.map(nrm).sort().join('+'), s.gender || ''].join('|');
     if (!seen.has(k)) seen.set(k, { ...s, sites: [] });
     seen.get(k).sites.push(s.file + ':' + s.line);
   }
@@ -478,8 +535,7 @@ function sweep() {
   const findings = new Map();
   let rejected = 0;
   for (const s of distinct) {
-    const v = CS.checkLegal({ species: s.species, item: s.item, ability: s.ability, moves: s.moves });
-    if (v.unavailable) throw new Error('fixture_legality: ' + v.problems.join('; '));
+    const v = checkSet(s, dex);
     if (v.legal) continue;
     rejected++;
     for (const p of v.problems) {
@@ -674,7 +730,7 @@ function derivedScan(opts) {
   };
 }
 
-module.exports = { sweep, scan, keyOf, derivedScan };
+module.exports = { sweep, scan, keyOf, derivedScan, checkSet };
 
 /* ---- CLI --------------------------------------------------------------------------------------- */
 if (require.main === module) {

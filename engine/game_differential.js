@@ -3358,7 +3358,82 @@ const PAIR_BODIES = 4;
 /* THE TWO OPT-IN SEAMS' OWN RECEIPT (2026-09-11). A seam nobody can prove was used reads exactly like one
  * that was: `declaredSpread` counts every body built from its sheet's own evs, `declaredGenderBodies` every
  * body built under the gender flag and `declaredGender` those that actually carried 'M' or 'F'. */
-const SEAM = { declaredSpread: 0, declaredGenderBodies: 0, declaredGender: 0 };
+const SEAM = { declaredSpread: 0, declaredGenderBodies: 0, declaredGender: 0,
+               fixtureSetsChecked: 0, fixtureSetsIllegal: 0 };
+/* ---- 2026-09-18 -- EVERY FIXTURE BODY A TEST BUILDS IS PUT TO THE VALIDATOR, AT THE ONE DOOR ---------
+ *
+ * `engine/fixture_legality.js` reads fixtures out of SOURCE, and a source scan is a list of spellings:
+ * it missed every `const P = S(...)` for weeks, and it cannot see a body whose species or moves are
+ * DERIVED at run time at all (its own header counts ~1,800 such construction sites). So the check also
+ * runs HERE, on what the probe actually BUILDS, whatever it was written as. `buildPair` is the one
+ * constructor every staged two-engine fixture goes through.
+ *
+ * SCOPED TO CALLERS UNDER `tests/`, read off the call stack: the pool and the swarm build real ladder
+ * teams through this same door, and those are a different question (the corpus, not a fixture). The
+ * verdict is `fixture_legality.checkSet` -- the SAME function the static sweep uses, so the two cannot
+ * disagree about what is legal. It REPORTS rather than throws: a DELIBERATE isolation pairing is
+ * legitimate (data/fixture-legality-baseline.json), and a throw mid-probe would turn a legality note
+ * into a missing measurement. Loud on stderr, once per distinct set, with the building file:line;
+ * counted in SEAM; kept in `fixtureIllegal()` so a test can assert on it.
+ * `GD_FIXTURE_CHECK=0` switches it off. */
+const FIXTURE_CHECK = process.env.GD_FIXTURE_CHECK !== '0';
+/* PROCESS-GLOBAL, NOT MODULE-GLOBAL: some probes `delete require.cache[...]` and re-require this file
+ * once per arm (tests/probe_partingshot_conditional.js does), which with module state printed every
+ * illegal set once per arm and registered one exit receipt per load. One store, one receipt. */
+const FX = globalThis.__abraFixtureCheck || (globalThis.__abraFixtureCheck =
+  { seen: new Map(), illegal: [], checked: 0, hooked: false });
+const FIXTURE_SEEN = FX.seen;
+const FIXTURE_ILLEGAL = FX.illegal;
+let _FL = null, _FL_BASE = null;
+function fixtureCaller() {
+  const lines = String(new Error().stack || '').split('\n').slice(2);
+  for (const l of lines) {
+    const m = /\(?([A-Za-z]:[\\/][^():]+|\/[^():]+):(\d+):\d+\)?\s*$/.exec(l);
+    if (!m) continue;
+    const f = m[1].replace(/\\/g, '/');
+    if (/\/engine\/game_differential\.js$/.test(f)) continue;
+    return /\/tests\/[^/]+$/.test(f) ? f.slice(f.lastIndexOf('/tests/') + 1) + ':' + m[2] : null;
+  }
+  return null;
+}
+function checkFixtureSheet(sheet, cap) {
+  if (!FIXTURE_CHECK) return;
+  const site = fixtureCaller();
+  if (!site) return;
+  if (!_FL) {
+    /* NEVER THROWS INTO A GAME: an unloadable checker is announced and the check is skipped */
+    try { _FL = require('./fixture_legality.js'); }
+    catch (e) { console.error('  fixture check: fixture_legality.js would not load (' + e.message + ') — NOT CHECKED'); return; }
+    /* THE RECEIPT: a run that built fixtures says how many it checked, so "0 illegal" is never silence */
+    if (!FX.hooked) {
+      FX.hooked = true;
+      process.on('exit', () => console.error('  fixture check (buildPair, callers under tests/): '
+        + FX.checked + ' distinct set(s) checked, ' + FX.illegal.length + ' illegal'
+        + (FX.illegal.length ? ' — ' + FX.illegal.filter(x => !x.baselined).length + ' NOT baselined' : '')));
+    }
+    /* the baseline's `verdicts[].problem` is the validator sentence; `keyOf` is the sweep's own key */
+    try { const B = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'fixture-legality-baseline.json'), 'utf8'));
+          _FL_BASE = new Set([...(B.verdicts || []), ...(B.pairs || [])].map(x => _FL.keyOf(x.problem || ''))); }
+    catch (e) { _FL_BASE = new Set(); console.error('  fixture check: baseline unreadable (' + e.message + ') — every illegal set reads NOT baselined'); }
+  }
+  for (const p of (sheet || []).slice(0, cap)) {
+    if (!p || !p.species) continue;
+    const s = { species: String(p.species), item: String(p.item || ''), ability: String(p.ability || ''),
+                moves: (p.moves || []).map(String), gender: p.gender === 'M' || p.gender === 'F' ? p.gender : '' };
+    const k = [id(s.species), id(s.item), id(s.ability), s.moves.map(id).sort().join('+'), s.gender].join('|');
+    if (FIXTURE_SEEN.has(k)) continue;
+    let v;
+    try { v = _FL.checkSet(s); } catch (e) { v = { legal: false, problems: ['VALIDATOR THREW: ' + String((e && e.message) || e).split('\n')[0]] }; }
+    FIXTURE_SEEN.set(k, v.legal);
+    SEAM.fixtureSetsChecked++; FX.checked++;
+    if (v.legal) continue;
+    SEAM.fixtureSetsIllegal++;
+    const baselined = v.problems.every(pr => _FL_BASE.has(_FL.keyOf(pr)));
+    FIXTURE_ILLEGAL.push({ site, set: s, problems: v.problems, baselined });
+    console.error('  FIXTURE ILLEGAL (built at ' + site + (baselined ? ', baselined' : ', NOT baselined') + '): '
+      + v.problems.join(' | '));
+  }
+}
 function declaredEvs(p) {
   const e = p && p.evs;
   if (!e || typeof e !== 'object')
@@ -3377,6 +3452,7 @@ function buildPair(sheet, opts) {
    * four bodies long cannot be validated at all, whatever is on it. The battle still brings four
    * (`team 1234`); the other two sit on the sheet so the AUTHORITY can pass judgement on it. */
   const cap = (opts && opts.max) || PAIR_BODIES;
+  checkFixtureSheet(sheet, cap);
   const picked = [];
   for (const p of sheet) {
     if (picked.length >= cap) break;
@@ -6956,7 +7032,7 @@ function endStateVerdict(r) {
   return r.finalBoard.identical ? 'SAME-END-STATE' : 'DIFFERENT-END-STATE';
 }
 
-module.exports = { playGame, buildPair, seamCounters: () => Object.assign({}, SEAM), freshBodies, classify, pinRandom, PIN_CHANCE, sdStream, chooseAction,
+module.exports = { playGame, buildPair, seamCounters: () => Object.assign({}, SEAM), fixtureIllegal: () => FIXTURE_ILLEGAL.slice(), freshBodies, classify, pinRandom, PIN_CHANCE, sdStream, chooseAction,
                    /* 2026-08-25 — THE ONE DOOR onto "which body of the roster is this", exported so a
                     * probe drives THE resolver rather than a second copy of it. `rosterKeyFallbacks`
                     * is the loud half: any read that had to fall back on display state is counted

@@ -1,0 +1,353 @@
+{
+ "generated": "2026-09-19T01:36:41.792Z",
+ "roadmap": 9,
+ "format": "gen9championsvgc2026regmb",
+ "knob": "1",
+ "fixtures": {
+  "USER": "Whimsicott",
+  "DARK": "Houndoom",
+  "PLAIN": "Blastoise",
+  "DARK_USER": "Sableye"
+ },
+ "results": [
+  {
+   "id": "foe-dark",
+   "why": "Prankster x Dark foe — the one refusal",
+   "move": "charm",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 1,
+    "sd": 1,
+    "want": 1
+   },
+   "effect": "p2a atk 0",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "foe-nondark",
+   "why": "CONTROL — the same move at a non-Dark foe lands",
+   "move": "charm",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "p2b atk -2",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "foe-dark-noprank",
+   "why": "CONTROL — the same Dark foe, no Prankster: lands",
+   "move": "charm",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "p2a atk -2",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "ally-dark",
+   "why": "a Dark ALLY — isAlly, never refused",
+   "move": "charm",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "p1b atk -2",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "spread",
+   "why": "allAdjacentFoes — per target: the Dark foe refused, the other lands",
+   "move": "cottonspore",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 1,
+    "sd": 1,
+    "want": 1
+   },
+   "effect": "p2b spe -2, p2a spe 0",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "spread-noprank",
+   "why": "CONTROL — no Prankster: the Dark foe is hit too",
+   "move": "cottonspore",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "p2a spe -2",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "self-dark",
+   "why": "a DARK Prankster user aims at itself — isAlly of itself",
+   "move": "bulkup",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "p1a atk 1",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "all:grassyterrain",
+   "why": "a `all` move — tryMoveHit, never the immunity step",
+   "move": "grassyterrain",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "field grassyterrain up",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "allySide:lightscreen",
+   "why": "a `allySide` move — tryMoveHit, never the immunity step",
+   "move": "lightscreen",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "p1 lightscreen up",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "all:mistyterrain",
+   "why": "a `all` move — tryMoveHit, never the immunity step",
+   "move": "mistyterrain",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "field mistyterrain up",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "allySide:safeguard",
+   "why": "a `allySide` move — tryMoveHit, never the immunity step",
+   "move": "safeguard",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "p1 safeguard up",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "all:sunnyday",
+   "why": "a `all` move — tryMoveHit, never the immunity step",
+   "move": "sunnyday",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "field sunnyday up",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "allySide:tailwind",
+   "why": "a `allySide` move — tryMoveHit, never the immunity step",
+   "move": "tailwind",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "p1 tailwind up",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "all:trickroom",
+   "why": "a `all` move — tryMoveHit, never the immunity step",
+   "move": "trickroom",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "field trickroom up",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "all:gravity",
+   "why": "a `all` move — tryMoveHit, never the immunity step",
+   "move": "gravity",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "field gravity up",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "all:magicroom",
+   "why": "a `all` move — tryMoveHit, never the immunity step",
+   "move": "magicroom",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "field magicroom up",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "all:psychicterrain",
+   "why": "a `all` move — tryMoveHit, never the immunity step",
+   "move": "psychicterrain",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "field psychicterrain up",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "allySide:quickguard",
+   "why": "a `allySide` move — tryMoveHit, never the immunity step",
+   "move": "quickguard",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "p1 quickguard started",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "all:raindance",
+   "why": "a `all` move — tryMoveHit, never the immunity step",
+   "move": "raindance",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "field raindance up",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "allySide:reflect",
+   "why": "a `allySide` move — tryMoveHit, never the immunity step",
+   "move": "reflect",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "p1 reflect up",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "all:wonderroom",
+   "why": "a `all` move — tryMoveHit, never the immunity step",
+   "move": "wonderroom",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "field wonderroom up",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "all:sandstorm",
+   "why": "a `all` move — tryMoveHit, never the immunity step",
+   "move": "sandstorm",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "field sandstorm up",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "all:fairylock",
+   "why": "a `all` move — tryMoveHit, never the immunity step",
+   "move": "fairylock",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "field fairylock up",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "foeSide:spikes",
+   "why": "a `foeSide` move — tryMoveHit, never the immunity step",
+   "move": "spikes",
+   "boardsAgree": true,
+   "refusal": {
+    "medi": 0,
+    "sd": 0,
+    "want": 0
+   },
+   "effect": "p2 spikes up",
+   "verdict": "GREEN"
+  },
+  {
+   "id": "direct",
+   "control": true,
+   "fieldRefused": [
+    "grassyterrain",
+    "lightscreen",
+    "mistyterrain",
+    "safeguard",
+    "sunnyday",
+    "tailwind",
+    "trickroom",
+    "gravity",
+    "magicroom",
+    "psychicterrain",
+    "quickguard",
+    "raindance",
+    "reflect",
+    "wonderroom",
+    "sandstorm",
+    "fairylock",
+    "spikes"
+   ],
+   "verdict": "RED"
+  }
+ ],
+ "red": 1,
+ "unreadable": 0,
+ "run_ok": false
+}
