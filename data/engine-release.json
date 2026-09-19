@@ -2,9 +2,9 @@
   "current": "74be319d02fa",
   "cut": "2026-09-19T03:44:42.628Z",
   "why": "merged: Gooey drop road, Mummy/Wandering Spirit flags, charge early exit, Ally Switch bench, Transform copied Start, Parental Bond reactors",
-  "cuts": 1,
-  "latest_cut": "2026-09-19T03:44:42.628Z",
-  "latest_why": "merged: Gooey drop road, Mummy/Wandering Spirit flags, charge early exit, Ally Switch bench, Transform copied Start, Parental Bond reactors",
-  "pointer_written": "2026-09-19T03:44:43.535Z",
+  "cuts": 2,
+  "latest_cut": "2026-09-19T05:28:03.121Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-09-19T05:28:03.301Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

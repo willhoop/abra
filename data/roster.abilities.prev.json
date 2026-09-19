@@ -1,18 +1,18 @@
 {
- "generated": "2026-09-19T00:59:01.129Z",
+ "generated": "2026-09-19T04:37:18.786Z",
  "by": "tests/roster.js",
  "stage": "abilities",
  "swap_leaf_correction": {
-  "self_describing_dropped": 5434,
+  "self_describing_dropped": 5474,
   "real_ability_rewrite_kept": 68,
-  "control_arm_bookkeeping_dropped": 4052
+  "control_arm_bookkeeping_dropped": 3888
  },
- "engine_release": "ce34d0a89f01",
- "engine_release_cut": "2026-09-19T00:24:34.248Z",
+ "engine_release": "74be319d02fa",
+ "engine_release_cut": "2026-09-19T03:44:42.628Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "cd0e3cef0d7f",
+  "engine/medicham2-browser.js": "614058acfc05",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -32,8 +32,8 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "594980dd86f1",
-  "data/tags.json": "113bb8703480",
+  "data/abra-tags.js": "af7d8f44147c",
+  "data/tags.json": "2f6c7186cb70",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
@@ -44,17 +44,17 @@
  "counts": {
   "FIRED-AND-BOARDS-DIFFER": 0,
   "DID-NOT-FIRE": 0,
-  "DEFERRED-BY-OWNER": 5,
-  "FIRED-AND-BOARDS-MATCH": 190,
+  "DEFERRED-BY-OWNER": 6,
+  "FIRED-AND-BOARDS-MATCH": 193,
   "CONTROL-NOT-QUIET": 0,
-  "COULD-NOT-STAGE": 5
+  "COULD-NOT-STAGE": 1
  },
  "counts_in_scope": 200,
  "counts_basis": "engine/legal_scope.js in-scope set; out-of-scope entities are excluded from every bucket rather than counted as COULD-NOT-STAGE",
  "arms_played": {
-  "top-tie-first": 581,
+  "top-tie-first": 587,
   "middle": 49,
-  "bottom-tie-first": 37
+  "bottom-tie-first": 41
  },
  "scope": {
   "total": 316,
@@ -65,15 +65,15 @@
    "no-legal-reader": 1
   },
   "in_scope": 200,
-  "tested": 190,
-  "matched": 190,
+  "tested": 193,
+  "matched": 193,
   "differ": 0,
   "silent": 0,
-  "deferred": 5,
+  "deferred": 6,
   "unattributable": 0,
   "unattributable_ids": [],
   "declared_untestable": [],
-  "could_not_stage_in_scope": 5,
+  "could_not_stage_in_scope": 1,
   "attributed_by_second_control": [
    "anticipation",
    "armortail",
@@ -152,8 +152,8 @@
   }
  },
  "plant_anchors": {
-  "release": "ce34d0a89f01",
-  "checked": 62,
+  "release": "74be319d02fa",
+  "checked": 63,
   "dead": [],
   "reds_ran": true
  },
@@ -937,6 +937,23 @@
    }
   },
   {
+   "rule": "ability/conditional-speed",
+   "ok": true,
+   "why": "the conditional Speed multiplier is dropped, so the carrier never outruns anybody — the same payment the weather members read, on the terrain and status clauses",
+   "moved": {
+    "member": "quickfeet",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "pp.featherdance",
+     "party.boosts.atk",
+     "boosts.atk"
+    ]
+   }
+  },
+  {
    "rule": "ability/no-recoil",
    "ok": true,
    "why": "the recoil exemption is dropped, so the holder pays the recoil anyway",
@@ -955,7 +972,7 @@
   {
    "rule": "ability/weather-evasion",
    "ok": true,
-   "why": "the evasion stage is ignored when accuracy is computed",
+   "why": "the evasion stage is ignored when accuracy is computed — a row gated on the current weather never applies",
    "moved": {
     "member": "sandveil",
     "verdict": "DID-NOT-FIRE",
@@ -1001,6 +1018,22 @@
      "pp.quiverdance",
      "party.hp",
      "hp"
+    ]
+   }
+  },
+  {
+   "rule": "ability/conferred-by-a-move",
+   "ok": true,
+   "why": "the boost amplifier is dropped, so a Simple body's own Swords-Dance-shaped click moves the same stages as anybody else's",
+   "moved": {
+    "member": "simple",
+    "verdict": "DID-NOT-FIRE",
+    "weak": false,
+    "was": "FIRED-AND-BOARDS-MATCH",
+    "unplayable": null,
+    "fields": [
+     "party.boosts.def",
+     "boosts.def"
     ]
    }
   },
@@ -1055,8 +1088,7 @@
      "hp",
      "types",
      "ability",
-     "vol.focusenergy",
-     "pp.focusenergy"
+     "pp.sleeptalk"
     ]
    }
   },
@@ -1079,22 +1111,6 @@
    "why": "the fallen count stops being priced, so a carrier arriving over a corpse hits for plain base power",
    "moved": {
     "member": "supremeoverlord",
-    "verdict": "DID-NOT-FIRE",
-    "weak": false,
-    "was": "FIRED-AND-BOARDS-MATCH",
-    "unplayable": null,
-    "fields": [
-     "party.hp",
-     "hp"
-    ]
-   }
-  },
-  {
-   "rule": "ability/conditional-speed",
-   "ok": true,
-   "why": "the conditional Speed multiplier is dropped, so the carrier never outruns anybody — the same payment the weather members read, on the terrain and status clauses",
-   "moved": {
-    "member": "surgesurfer",
     "verdict": "DID-NOT-FIRE",
     "weak": false,
     "was": "FIRED-AND-BOARDS-MATCH",
@@ -1204,7 +1220,7 @@
    "name": "Adaptability",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Dragalge; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui) — taken because Poison Point, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p1[1] goodrahisui pruned never-clicked bite; p2[1] venusaur pruned never-clicked bite,uturn]",
+   "note": "ALTERNATE carrier Dragalge; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui) — taken because Poison Point, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p1[1] goodrahisui pruned never-clicked bite; p2[1] venusaur pruned never-clicked bite,uturn]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -1267,7 +1283,7 @@
    "name": "Aerilate",
    "rule": "ability/type-conversion",
    "reads": "onModifyType — the SOURCE type or flag it tests and the type it ASSIGNS, both from the handler",
-   "note": "Body Slam (Normal) is thrown at Torterra (Grass/Ground) on turn 1 — the chart puts Normal at 1x there and Flying at 2x; X-Scissor (Bug, x2 there) on turn 2 is the negative — a type this ability neither reads nor writes   [MEGA carrier Pinsir -> Pinsir-Mega via Pinsirite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Body Slam (Normal) is thrown at Torterra (Grass/Ground) on turn 1 — the chart puts Normal at 1x there and Flying at 2x; X-Scissor (Bug, x2 there) on turn 2 is the negative — a type this ability neither reads nor writes   [MEGA carrier Pinsir -> Pinsir-Mega via Pinsirite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -1330,7 +1346,7 @@
    "name": "Aftermath",
    "rule": "ability/reacts-to-an-event-a-plain-hit-never-creates",
    "reads": "onFlinch / onSourceAfterFaint / onDamagingHit / onHit / onAfterMoveSecondary carrying a TRIGGER the handler itself names — a crit, a flinch, a KO, the holder's own faint, an HP fraction, or a move type — none of which the generic staging ever creates",
-   "note": "Kangaskhan clicks Body Slam at the carrier on turns 1 and 2, which kills it on the second (82 a click at the pinned maximum roll against 155 hp). It is a CONTACT click, which is what this handler's own `checkMoveMakesContact` test reads. Both arms take the identical kill; the reading is the ATTACKER's hp, which is where the toll lands   [ALTERNATE carrier Garbodor, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Kangaskhan clicks Body Slam at the carrier on turns 1 and 2, which kills it on the second (82 a click at the pinned maximum roll against 155 hp). It is a CONTACT click, which is what this handler's own `checkMoveMakesContact` test reads. Both arms take the identical kill; the reading is the ATTACKER's hp, which is where the toll lands   [ALTERNATE carrier Garbodor, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -1381,7 +1397,7 @@
    "name": "Analytic",
    "rule": "ability/base-power-under-a-board-condition",
    "reads": "onBasePower whose handler tests TURN ORDER (`queue.willMove`), GENDER, or a weather plus a type list — none of them a property of the click, so `ability/base-power-scoped` cannot reach them",
-   "note": "Torterra clicks Scary Face at the carrier on turn 1, taking its Speed from 167 to 83 — below Torterra (108), Venusaur (132) and the swapper Goodra-Hisui (112), so the carrier is the LAST body to act. It then throws Flash Cannon on turns 2 and 3, when `queue.willMove` is false for every other active. The reading is Torterra's hp   [ALTERNATE carrier Starmie, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Torterra clicks Scary Face at the carrier on turn 1, taking its Speed from 167 to 83 — below Torterra (108), Venusaur (132) and the swapper Goodra-Hisui (112), so the carrier is the LAST body to act. It then throws Flash Cannon on turns 2 and 3, when `queue.willMove` is false for every other active. The reading is Torterra's hp   [ALTERNATE carrier Starmie, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -1432,7 +1448,7 @@
    "name": "Anger Point",
    "rule": "ability/reacts-to-an-event-a-plain-hit-never-creates",
    "reads": "onFlinch / onSourceAfterFaint / onDamagingHit / onHit / onAfterMoveSecondary carrying a TRIGGER the handler itself names — a crit, a flinch, a KO, the holder's own faint, an HP fraction, or a move type — none of which the generic staging ever creates",
-   "note": "Torterra clicks Seed Bomb at the carrier on turns 1 and 2, ON bottom-tie-first — the corner whose pin lands every crit in BOTH engines, which is the only way `getMoveHitData(move).crit` is ever true without a die. The identical crit lands in both arms, so the reading is the carrier's own `boosts`. The control is the in-play Skill Swap, which on THIS arm may not lend a crit armour (ROADMAP #608) — if it lent one the control arm would take no crit and the row would measure the control   [ALTERNATE carrier Tauros-Paldea-Combat, control = Skill Swap lends Corrosion off Glimmora (usable: 38 leaves in Showdown and 38 here, lending Corrosion off Glimmora on bottom-tie-first)]",
+   "note": "Torterra clicks Seed Bomb at the carrier on turns 1 and 2, ON bottom-tie-first — the corner whose pin lands every crit in BOTH engines, which is the only way `getMoveHitData(move).crit` is ever true without a die. The identical crit lands in both arms, so the reading is the carrier's own `boosts`. The control is the in-play Skill Swap, which on THIS arm may not lend a crit armour (ROADMAP #608) — if it lent one the control arm would take no crit and the row would measure the control   [ALTERNATE carrier Tauros-Paldea-Combat, control = Skill Swap lends Corrosion off Glimmora (usable: 37 leaves in Showdown and 37 here, lending Corrosion off Glimmora on bottom-tie-first)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -1730,7 +1746,7 @@
    "name": "Berserk",
    "rule": "ability/reacts-to-an-event-a-plain-hit-never-creates",
    "reads": "onFlinch / onSourceAfterFaint / onDamagingHit / onHit / onAfterMoveSecondary carrying a TRIGGER the handler itself names — a crit, a flinch, a KO, the holder's own faint, an HP fraction, or a move type — none of which the generic staging ever creates",
-   "note": "Charizard clicks Dragon Pulse at the carrier on turn 1 for 110 of its 153 hp at the pinned maximum roll — one hit, from full, across the 0.5 line the handler names and not past it. Both arms take the identical hit; the reading is the carrier's `boosts`   [ALTERNATE carrier Drampa, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Charizard clicks Dragon Pulse at the carrier on turn 1 for 110 of its 153 hp at the pinned maximum roll — one hit, from full, across the 0.5 line the handler names and not past it. Both arms take the identical hit; the reading is the carrier's `boosts`   [ALTERNATE carrier Drampa, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -1986,7 +2002,7 @@
    "name": "Cheek Pouch",
    "rule": "ability/an-item-is-eaten-taken-or-handed-on",
    "reads": "onEatItem / onTakeItem returning false / onAfterMoveSecondary(Self) calling takeItem / onAllyAfterUseItem / an onStart whose whole body ENDS the holder's own item — five handlers that cannot fire unless an item is actually spent or changes hands",
-   "note": "the carrier holds Sitrus Berry and Torterra clicks Energy Ball at it on turn 1 for 120 of its 160 hp — past the 1/2 line the berry's own `onUpdate` names, and with room left under the maximum so the heal is not capped. The berry is spent in BOTH arms, so the `item` leaf is identical and the reading is the carrier's hp   [ALTERNATE carrier Diggersby, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "the carrier holds Sitrus Berry and Torterra clicks Energy Ball at it on turn 1 for 120 of its 160 hp — past the 1/2 line the berry's own `onUpdate` names, and with room left under the maximum so the heal is not capped. The berry is spent in BOTH arms, so the `item` leaf is identical and the reading is the carrier's hp   [ALTERNATE carrier Diggersby, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -2061,7 +2077,7 @@
    "name": "Chlorophyll",
    "rule": "ability/weather-speed",
    "reads": "onModifySpe whose handler names a weather id (`pokemon.effectiveWeather()` against \"sunnyday\", \"snowscape\", ...)",
-   "note": "Drought on the partner raises sunnyday at boundary 0; 132 -> 264 against 153 (Dedenne, Plus), the carrier's Sludge Bomb kills outright and the foe's click is Eerie Impulse — so the x2 decides whether that drop ever lands   [ALTERNATE carrier Venusaur, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Drought on the partner raises sunnyday at boundary 0; 132 -> 264 against 153 (Dedenne, Plus), the carrier's Sludge Bomb kills outright and the foe's click is Eerie Impulse — so the x2 decides whether that drop ever lands   [ALTERNATE carrier Venusaur, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -2129,13 +2145,7 @@
     },
     {
      "turn": 2,
-     "path": "p1.active[0].vol.focusenergy",
-     "with": 0,
-     "without": 1
-    },
-    {
-     "turn": 2,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 0,
      "without": 1
     },
@@ -2207,7 +2217,7 @@
     },
     {
      "turn": 3,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 1,
      "without": 2
     },
@@ -2619,7 +2629,7 @@
    "name": "Compound Eyes",
    "rule": "ability/accuracy-decides-the-hit",
    "reads": "onAnyAccuracy / onSourceModifyAccuracy / onModifyAccuracy with NO weather named — the multiplier off the handler's own chainModify, the direction off the handler prefix, and any volatile the handler gates on",
-   "note": "the carrier throws Air Slash (95 accuracy, x1.3000 = 123) at Torkoal on turn 1 and it must LAND where the pin would have missed. THE DIRECTION TEST IS TURN 2: Torkoal throws Zen Headbutt (90 accuracy) BACK at the carrier, which this handler prefix says must STILL MISS — `onSourceModifyAccuracy` fires on the ATTACKER only   [ALTERNATE carrier Vivillon, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "the carrier throws Air Slash (95 accuracy, x1.3000 = 123) at Torkoal on turn 1 and it must LAND where the pin would have missed. THE DIRECTION TEST IS TURN 2: Torkoal throws Zen Headbutt (90 accuracy) BACK at the carrier, which this handler prefix says must STILL MISS — `onSourceModifyAccuracy` fires on the ATTACKER only   [ALTERNATE carrier Vivillon, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -2865,7 +2875,7 @@
    "name": "Corrosion",
    "rule": "ability/a-status-is-refused-cured-or-reflected",
    "reads": "onSetStatus returning false under a named weather / onResidual calling cureStatus under a named weather / onAfterSetStatus handing the status back to the source / a `nameImplementedBySim` param naming the statuses that walk through the type chart or the extra tick a status counter spends",
-   "note": "the carrier throws Mortal Spin at Venusaur on turn 1. Venusaur's typing (Grass/Poison) REFUSES `psn` on the authority's own type chart, so without the ability nothing lands and with it the status does — the reading is Venusaur's `status` leaf. The click is chosen for writing the status with CERTAINTY under this pin (a 100%-chance secondary, the only kind this arm fires); it is a allAdjacentFoes click, so the opposing second slot takes it too — that is the same ability acting on a second body, not a second experiment   [ALTERNATE carrier Glimmora, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "the carrier throws Mortal Spin at Venusaur on turn 1. Venusaur's typing (Grass/Poison) REFUSES `psn` on the authority's own type chart, so without the ability nothing lands and with it the status does — the reading is Venusaur's `status` leaf. The click is chosen for writing the status with CERTAINTY under this pin (a 100%-chance secondary, the only kind this arm fires); it is a allAdjacentFoes click, so the opposing second slot takes it too — that is the same ability acting on a second body, not a second experiment   [ALTERNATE carrier Glimmora, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -2964,7 +2974,7 @@
    "name": "Cud Chew",
    "rule": "ability/an-item-is-eaten-taken-or-handed-on",
    "reads": "onEatItem / onTakeItem returning false / onAfterMoveSecondary(Self) calling takeItem / onAllyAfterUseItem / an onStart whose whole body ENDS the holder's own item — five handlers that cannot fire unless an item is actually spent or changes hands",
-   "note": "the carrier holds Sitrus Berry and Torterra clicks Crunch at it on turn 1 for 128 of its 195 hp — past the 1/2 line the berry's own `onUpdate` names, and with room left under the maximum so the heal is not capped. The berry is spent in BOTH arms, so the `item` leaf is identical and the reading is the carrier's hp, across 2 further quiet turns — the handler sets its own counter to 2, so the second helping lands later and a three-turn script would miss it   [ALTERNATE carrier Farigiraf, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "the carrier holds Sitrus Berry and Torterra clicks Crunch at it on turn 1 for 128 of its 195 hp — past the 1/2 line the berry's own `onUpdate` names, and with room left under the maximum so the heal is not capped. The berry is spent in BOTH arms, so the `item` leaf is identical and the reading is the carrier's hp, across 2 further quiet turns — the handler sets its own counter to 2, so the second helping lands later and a three-turn script would miss it   [ALTERNATE carrier Farigiraf, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -3618,13 +3628,7 @@
     },
     {
      "turn": 1,
-     "path": "p1.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 1,
      "without": 0
     },
@@ -3636,13 +3640,7 @@
     },
     {
      "turn": 2,
-     "path": "p1.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 1,
      "without": 0
     },
@@ -3654,13 +3652,7 @@
     },
     {
      "turn": 3,
-     "path": "p1.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 3,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 1,
      "without": 0
     },
@@ -3672,7 +3664,7 @@
     },
     {
      "turn": 4,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 2,
      "without": 1
     },
@@ -3691,7 +3683,7 @@
    "name": "Dragonize",
    "rule": "ability/type-conversion",
    "reads": "onModifyType — the SOURCE type or flag it tests and the type it ASSIGNS, both from the handler",
-   "note": "Body Slam (Normal) is thrown at Goodra-Hisui (Steel/Dragon) on turn 1 — the chart puts Normal at 0.5x there and Dragon at 1x; Crunch (Dark, x1 there) on turn 2 is the negative — a type this ability neither reads nor writes   [MEGA carrier Feraligatr -> Feraligatr-Mega via Feraligite, control = Skill Swap lends Shell Armor off Torterra (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Body Slam (Normal) is thrown at Goodra-Hisui (Steel/Dragon) on turn 1 — the chart puts Normal at 0.5x there and Dragon at 1x; Crunch (Dark, x1 there) on turn 2 is the negative — a type this ability neither reads nor writes   [MEGA carrier Feraligatr -> Feraligatr-Mega via Feraligite, control = Skill Swap lends Shell Armor off Torterra (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -3971,7 +3963,7 @@
    "name": "Early Bird",
    "rule": "ability/a-status-is-refused-cured-or-reflected",
    "reads": "onSetStatus returning false under a named weather / onResidual calling cureStatus under a named weather / onAfterSetStatus handing the status back to the source / a `nameImplementedBySim` param naming the statuses that walk through the type chart or the extra tick a status counter spends",
-   "note": "Liepard clicks Yawn at the carrier on turn 1, which writes drowsiness and puts it to sleep at the END of the next turn — this regulation's only in-scope road to a sleeping body; the carrier then idles for the rest of the script, so it spends a sleep tick on every one of them. With the ability the counter takes TWO ticks a turn and the body wakes a turn early, so the reading is the carrier's `status` and `status_counter` leaves — both of which `board_state.js` compares, and the counter is normalised to TURNS ALREADY SLEPT so the two engines' opposite directions are not the finding   [ALTERNATE carrier Kangaskhan, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Liepard clicks Yawn at the carrier on turn 1, which writes drowsiness and puts it to sleep at the END of the next turn — this regulation's only in-scope road to a sleeping body; the carrier then idles for the rest of the script, so it spends a sleep tick on every one of them. With the ability the counter takes TWO ticks a turn and the body wakes a turn early, so the reading is the carrier's `status` and `status_counter` leaves — both of which `board_state.js` compares, and the counter is normalised to TURNS ALREADY SLEPT so the two engines' opposite directions are not the finding   [ALTERNATE carrier Kangaskhan, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -4097,7 +4089,7 @@
    "name": "Eelevate",
    "rule": "ability/ground-immunity",
    "reads": "the ability is named inside Showdown's own `Pokemon#isGrounded` — parsed out of that function, never listed here",
-   "note": "FOUR ARMS ON ONE SCRIPT. Golurk throws Mud-Slap at the carrier and it must do NOTHING (arm A); Gravity goes up and the same click LANDS (arm B); the Gravity expires and Smack Down grounds the body and it LANDS again (arm C); and Rampardos, carrying Mold Breaker, lands it on an airborne body with no set-up at all (arm D). Every other body clicks the inert click.   [MEGA carrier Eelektross -> Eelektross-Mega via Eelektrossite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "FOUR ARMS ON ONE SCRIPT. Golurk throws Mud-Slap at the carrier and it must do NOTHING (arm A); Gravity goes up and the same click LANDS (arm B); the Gravity expires and Smack Down grounds the body and it LANDS again (arm C); and Rampardos, carrying Mold Breaker, lands it on an airborne body with no set-up at all (arm D). Every other body clicks the inert click.   [MEGA carrier Eelektross -> Eelektross-Mega via Eelektrossite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -4528,7 +4520,7 @@
    "name": "Electromorphosis",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Bellibolt; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui) — taken because Static, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
+   "note": "ALTERNATE carrier Bellibolt; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui) — taken because Static, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -4642,7 +4634,7 @@
    "name": "Filter",
    "rule": "ability/damage-taken-scoped",
    "reads": "onSourceModifyDamage / onSourceModifyAtk / onSourceModifySpA — the move TYPE it names, or a `typeMod > 0` test meaning \"super effective\"",
-   "note": "Aura Sphere (Fighting, which the chart puts at 2x on Aggron-Mega) on turn 1, and the unscoped neutral Kowtow Cleave on turn 2 as the negative   [MEGA carrier Aggron -> Aggron-Mega via Aggronite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]  [#318 restaged: p1[0] dragapult -> blastoise (learner-speed-kept/own)]",
+   "note": "Aura Sphere (Fighting, which the chart puts at 2x on Aggron-Mega) on turn 1, and the unscoped neutral Kowtow Cleave on turn 2 as the negative   [MEGA carrier Aggron -> Aggron-Mega via Aggronite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]  [#318 restaged: p1[0] dragapult -> blastoise (learner-speed-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -4705,7 +4697,7 @@
    "name": "Fire Mane",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "MEGA carrier Pyroar -> Pyroar-Mega via Pyroarite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui); staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
+   "note": "MEGA carrier Pyroar -> Pyroar-Mega via Pyroarite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui); staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -5064,7 +5056,7 @@
    "name": "Forecast",
    "rule": "ability/forme-follows-the-sky",
    "reads": "the `formeFollowsWeather` tag and the format's own weather-setting moves",
-   "note": "Goodra-Hisui clicks Snowscape on turn 2 — AFTER the control turn, so the sky goes up with the ability already swapped away in the control arm — and the carrier must become Castform-Snowy in the subject arm and stay put in the control   [SUPPRESS carrier Castform, control = Skill Swap lends Shell Armor off Torterra (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]  [#318 restaged: p1[0] goodrahisui -> empoleon (same-matchups/wide)]",
+   "note": "Goodra-Hisui clicks Snowscape on turn 2 — AFTER the control turn, so the sky goes up with the ability already swapped away in the control arm — and the carrier must become Castform-Snowy in the subject arm and stay put in the control   [SUPPRESS carrier Castform, control = Skill Swap lends Shell Armor off Torterra (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]  [#318 restaged: p1[0] goodrahisui -> empoleon (same-matchups/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -5247,10 +5239,10 @@
    "id": "frisk",
    "name": "Frisk",
    "rule": "ability/an-arrival-a-field-or-a-refusal",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "its ONLY handler is an `onStart` whose entire body is `this.add(...)` — it emits a protocol line and writes no state anywhere. `board_state.js` compares species, hp, status, status_counter, item, last_item, ate_berry, types, ability, boosts, nine per-body volatiles, PP, screens, hazards, tailwind and the field, and NOTHING in that set is written by `Battle#add`. The foes' `item` leaves are identical in both arms by construction, because this ability reveals an item and moves none. This is the same refusal Anticipation and Forewarn already carry, reached by derivation rather than by name.",
+   "reads": "onAnyTryMove refusing named move ids / an onStart that re-runs WeatherChange or removes named side conditions or does nothing but emit / onAllyFaint calling setAbility / onTryHit returning null for a Status move",
+   "note": "NOT STAGED — refused by its rule and shelved by the owner (Will, 2026-09-18)",
+   "verdict": "DEFERRED-BY-OWNER",
+   "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. THE EFFECT IS A MESSAGE, the same class as Anticipation and Forewarn: Frisk reveals the foes' items with one `-item` protocol line and writes no board leaf, so a board comparison cannot see it. Will: \"set frisk aside.\" (deferred 2026-09-18 by Will.) Underlying verdict without the deferral: COULD-NOT-STAGE — its ONLY handler is an `onStart` whose entire body is `this.add(...)` — it emits a protocol line and writes no state anywhere. `board_state.js` compares species, hp, status, status_counter, item, last_item, ate_berry, types, ability, boosts, nine per-body volatiles, PP, screens, hazards, tailwind and the field, and NOTHING in that set is written by `Battle#add`. The foes' `item` leaves are identical in both arms by construction, because this ability reveals an item and moves none. This is the same refusal Anticipation and Forewarn already carry, reached by derivation rather than by name.",
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": null,
@@ -5260,7 +5252,11 @@
    "coin_one_sided": false,
    "coin_missing": false,
    "underlying": null,
-   "deferred": null,
+   "deferred": {
+    "by": "Will",
+    "on": "2026-09-18",
+    "why": "THE EFFECT IS A MESSAGE, the same class as Anticipation and Forewarn: Frisk reveals the foes' items with one `-item` protocol line and writes no board leaf, so a board comparison cannot see it. Will: \"set frisk aside.\""
+   },
    "out_of_scope": null,
    "declared_untestable": false,
    "second_control": null,
@@ -5274,7 +5270,7 @@
    "name": "Fur Coat",
    "rule": "ability/unconditional-stat-multiplier",
    "reads": "onModifyAtk / onModifySpA / onModifyDef / onModifySpD with NO type and NO HP gate — and any `pokemon.status` test inside the handler",
-   "note": "Dire Claw (Physical, which is what onModifyDef multiplies against) and Sludge Bomb (Special, the negative) are thrown AT the carrier   [SUPPRESS carrier Furfrou, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]  [#318 restaged: p1[0] dragapult -> sneasler (learner-speed-kept/own)]",
+   "note": "Dire Claw (Physical, which is what onModifyDef multiplies against) and Sludge Bomb (Special, the negative) are thrown AT the carrier   [SUPPRESS carrier Furfrou, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]  [#318 restaged: p1[0] dragapult -> sneasler (learner-speed-kept/own)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -5325,7 +5321,7 @@
    "name": "Gale Wings",
    "rule": "ability/priority-mod",
    "reads": "onModifyPriority — whether it names `move.category === \"Status\"` or a move TYPE, and any HP condition, all from the handler",
-   "note": "Lycanroc-Dusk is SLOWER (162 against 178) and clicks Accelerock (priority +1) for 204 of the carrier's 153 hp — a KILL. The carrier clicks its own Aerial Ace for 32 of 150. WITHOUT the shift the carrier is dead before it acts and the foe is untouched; WITH it the carrier is in the same +1 bracket and wins it on Speed, so the foe takes the hit and THEN kills. The carrier is dead in BOTH arms, so the reading is the FOE's hp and nothing else can move. The ability's own HP gate is satisfied by construction — the carrier is at full hp on the only turn it is asked   [ALTERNATE carrier Talonflame, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Lycanroc-Dusk is SLOWER (162 against 178) and clicks Accelerock (priority +1) for 204 of the carrier's 153 hp — a KILL. The carrier clicks its own Aerial Ace for 32 of 150. WITHOUT the shift the carrier is dead before it acts and the foe is untouched; WITH it the carrier is in the same +1 bracket and wins it on Speed, so the foe takes the hit and THEN kills. The carrier is dead in BOTH arms, so the reading is the FOE's hp and nothing else can move. The ability's own HP gate is satisfied by construction — the carrier is at full hp on the only turn it is asked   [ALTERNATE carrier Talonflame, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -5375,13 +5371,13 @@
    "id": "goodasgold",
    "name": "Good as Gold",
    "rule": "ability/an-arrival-a-field-or-a-refusal",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "it refuses EVERY Status move another body aims at it, and BOTH of this instrument's in-play controls are exactly that: Skill Swap and Gastro Acid are Status moves at the carrier, so neither ever lands and the control arm IS the subject arm. MEASURED rather than argued, on release ce34d0a89f01 with `ROSTER_DUMP_BOARDS=goodasgold`: both arms read `ab=goodasgold` on the carrier at every one of five boundaries, and the row reported THE STAGING IS INERT — a false coverage limit of exactly the ROADMAP #612 shape, arriving through the entity instead of through the builder. `swapRefused` covers that door now, so the refusal is stated instead of a dead arm being played. And the sheet road is shut too: its carrier(s) — Gholdengo — hold it in ability slot 0 with nothing beside it. What WOULD open this is a swapper carrying an ability that pierces `breakable` (this ability is flagged breakable), which is a change to the derived SWAPPER and its own batch.",
+   "reads": "onAnyTryMove refusing named move ids / an onStart that re-runs WeatherChange or removes named side conditions or does nothing but emit / onAllyFaint calling setAbility / onTryHit returning null for a Status move",
+   "note": "Pangoro (holding Iron Fist) clicks Scary Face at Gholdengo on turn 1. WITH the ability the drop is refused for exactly one reason and Gholdengo's stages stay at 0; the CONTROL is the same thrower holding Mold Breaker, which pierces a `breakable` ability, so the drop lands. The carrier keeps Good as Gold in BOTH arms — the control removes the refusal's right to answer, not the ability. The reading is Gholdengo's `boosts`.   [carrier Gholdengo, control = the thrower holds Mold Breaker instead of Iron Fist]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "gholdengo",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -5393,7 +5389,44 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.gholdengo.boosts.spe",
+     "with": 0,
+     "without": -2
+    },
+    {
+     "turn": 1,
+     "path": "p2.active[0].boosts.spe",
+     "with": 0,
+     "without": -2
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.gholdengo.boosts.spe",
+     "with": 0,
+     "without": -2
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].boosts.spe",
+     "with": 0,
+     "without": -2
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.gholdengo.boosts.spe",
+     "with": 0,
+     "without": -2
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].boosts.spe",
+     "with": 0,
+     "without": -2
+    }
+   ],
    "diffs": []
   },
   {
@@ -5697,7 +5730,7 @@
    "name": "Heavy Metal",
    "rule": "ability/weight-decides-the-power",
    "reads": "onModifyWeight — the multiplier is the handler's own return, and the click is a move whose basePowerCallback is measured to read a getWeight()",
-   "note": "Heavy Metal takes 3600 hg to 7200 hg, which moves Heavy Slam's base power 40 -> 60 (the callback was ASKED, both times) against Goodra-Hisui (3341 hg). That move reads the ATTACKER's weight as a ratio, so the carrier throws it on turn 1 and the unpriced Dragon Pulse on turn 2 as the negative. The reading is Goodra-Hisui's hp   [ALTERNATE carrier Aggron, control = Skill Swap lends Shell Armor off Torterra (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Heavy Metal takes 3600 hg to 7200 hg, which moves Heavy Slam's base power 40 -> 60 (the callback was ASKED, both times) against Goodra-Hisui (3341 hg). That move reads the ATTACKER's weight as a ratio, so the carrier throws it on turn 1 and the unpriced Dragon Pulse on turn 2 as the negative. The reading is Goodra-Hisui's hp   [ALTERNATE carrier Aggron, control = Skill Swap lends Shell Armor off Torterra (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -5896,13 +5929,7 @@
     },
     {
      "turn": 1,
-     "path": "p1.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 1,
      "without": 0
     },
@@ -5920,7 +5947,7 @@
     },
     {
      "turn": 2,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 2,
      "without": 1
     },
@@ -5932,7 +5959,7 @@
     },
     {
      "turn": 3,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 3,
      "without": 2
     },
@@ -5944,7 +5971,7 @@
     },
     {
      "turn": 4,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 4,
      "without": 3
     },
@@ -6022,7 +6049,7 @@
    "name": "Hydration",
    "rule": "ability/a-status-is-refused-cured-or-reflected",
    "reads": "onSetStatus returning false under a named weather / onResidual calling cureStatus under a named weather / onAfterSetStatus handing the status back to the source / a `nameImplementedBySim` param naming the statuses that walk through the type chart or the extra tick a status counter spends",
-   "note": "Politoed stands beside the carrier holding Drizzle, which raises raindance on entry in BOTH arms; Ariados then clicks Toxic Thread at the carrier on turn 1, writing `psn`. The status lands in both arms and the handler WIPES it at the residual, so the reading is the carrier's `status` leaf across three boundaries. The click also lowers spe, which lands in both arms and cancels out of the delta — it is there as the RECEIPT that the click landed, which is the one thing this branch cannot read off a status field that is empty by design   [ALTERNATE carrier Goodra, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Politoed stands beside the carrier holding Drizzle, which raises raindance on entry in BOTH arms; Ariados then clicks Toxic Thread at the carrier on turn 1, writing `psn`. The status lands in both arms and the handler WIPES it at the residual, so the reading is the carrier's `status` leaf across three boundaries. The click also lowers spe, which lands in both arms and cancels out of the delta — it is there as the RECEIPT that the click landed, which is the one thing this branch cannot read off a status field that is empty by design   [ALTERNATE carrier Goodra, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -6275,7 +6302,7 @@
    "name": "Illuminate",
    "rule": "ability/ignores-evasion",
    "reads": "onModifyMove writing `ignoreEvasion` — the FIELD the handler sets, never the ability name",
-   "note": "Meowscarada clicks Double Team on itself at boundary 0 (+1 evasion, which multiplies an incoming accuracy by 3/4), then the carrier throws Power Gem (Rock, neutral on it) at it twice. Under this pin a 100 dragged to 75 is a guaranteed MISS, so WITHOUT the ability neither click lands and WITH it both do — the reading is Meowscarada's hp   [ALTERNATE carrier Starmie, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Meowscarada clicks Double Team on itself at boundary 0 (+1 evasion, which multiplies an incoming accuracy by 3/4), then the carrier throws Power Gem (Rock, neutral on it) at it twice. Under this pin a 100 dragged to 75 is a guaranteed MISS, so WITHOUT the ability neither click lands and WITH it both do — the reading is Meowscarada's hp   [ALTERNATE carrier Starmie, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -6356,13 +6383,7 @@
     },
     {
      "turn": 1,
-     "path": "p1.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 1,
      "without": 0
     },
@@ -6380,13 +6401,7 @@
     },
     {
      "turn": 2,
-     "path": "p1.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 1,
      "without": 0
     },
@@ -6404,13 +6419,7 @@
     },
     {
      "turn": 3,
-     "path": "p1.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 3,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 1,
      "without": 0
     },
@@ -6428,7 +6437,7 @@
     },
     {
      "turn": 4,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 2,
      "without": 1
     },
@@ -6453,7 +6462,7 @@
    "name": "Immunity",
    "rule": "ability/refuses-one-status",
    "reads": "a status id quoted inside onSetStatus / onTrySetStatus / onImmunity / onUpdate",
-   "note": "Ariados clicks Toxic Thread at Snorlax twice. WITHOUT the ability the carrier must end up \"psn\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Snorlax's typing nor Toxic Thread's can refuse it, which is a condition of the pairing.   [ALTERNATE carrier Snorlax, control = Skill Swap lends Corrosion off Glimmora (usable: 38 leaves in Showdown and 38 here, lending Corrosion off Glimmora on bottom-tie-first)]",
+   "note": "Ariados clicks Toxic Thread at Snorlax twice. WITHOUT the ability the carrier must end up \"psn\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Snorlax's typing nor Toxic Thread's can refuse it, which is a condition of the pairing.   [ALTERNATE carrier Snorlax, control = Skill Swap lends Corrosion off Glimmora (usable: 37 leaves in Showdown and 37 here, lending Corrosion off Glimmora on bottom-tie-first)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -6693,7 +6702,7 @@
    "name": "Infiltrator",
    "rule": "ability/ignores-screens",
    "reads": "onModifyMove writing `move.infiltrates` — the FIELD the handler sets, never the ability name — against the format's own allySide screens and the category each of their conditions names",
-   "note": "Whimsicott clicks Light Screen on ITS OWN side at boundary 1 — the screen's own condition names Special, read off `condition.onAnyModifyDamage` and not off a list — then the carrier throws Psychic (Special, halved by the screen unless the ability walks through it) and Body Slam (Physical, the negative, which this screen does not touch). The reading is Whimsicott's hp   [ALTERNATE carrier Spiritomb, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Whimsicott clicks Light Screen on ITS OWN side at boundary 1 — the screen's own condition names Special, read off `condition.onAnyModifyDamage` and not off a list — then the carrier throws Psychic (Special, halved by the screen unless the ability walks through it) and Body Slam (Physical, the negative, which this screen does not touch). The reading is Whimsicott's hp   [ALTERNATE carrier Spiritomb, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -6744,7 +6753,7 @@
    "name": "Innards Out",
    "rule": "ability/reacts-to-an-event-a-plain-hit-never-creates",
    "reads": "onFlinch / onSourceAfterFaint / onDamagingHit / onHit / onAfterMoveSecondary carrying a TRIGGER the handler itself names — a crit, a flinch, a KO, the holder's own faint, an HP fraction, or a move type — none of which the generic staging ever creates",
-   "note": "Charizard clicks Flamethrower at the carrier on turn 1 and kills it outright (168 a click at the pinned maximum roll against 155 hp). It is a plain delivery click — this handler names no contact clause, so none is imposed on it. Both arms take the identical kill; the reading is the ATTACKER's hp, which is where the toll lands   [MEGA carrier Victreebel -> Victreebel-Mega via Victreebelite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Charizard clicks Flamethrower at the carrier on turn 1 and kills it outright (168 a click at the pinned maximum roll against 155 hp). It is a plain delivery click — this handler names no contact clause, so none is imposed on it. Both arms take the identical kill; the reading is the ATTACKER's hp, which is where the toll lands   [MEGA carrier Victreebel -> Victreebel-Mega via Victreebelite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -6882,7 +6891,7 @@
    "name": "Insomnia",
    "rule": "ability/refuses-one-status",
    "reads": "a status id quoted inside onSetStatus / onTrySetStatus / onImmunity / onUpdate",
-   "note": "Venusaur clicks Sleep Powder at Ariados twice. WITHOUT the ability the carrier must end up \"slp\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Ariados's typing nor Sleep Powder's can refuse it, which is a condition of the pairing.   [ALTERNATE carrier Ariados, control = Skill Swap lends Corrosion off Glimmora (usable: 38 leaves in Showdown and 38 here, lending Corrosion off Glimmora on bottom-tie-first)]",
+   "note": "Venusaur clicks Sleep Powder at Ariados twice. WITHOUT the ability the carrier must end up \"slp\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Ariados's typing nor Sleep Powder's can refuse it, which is a condition of the pairing.   [ALTERNATE carrier Ariados, control = Skill Swap lends Corrosion off Glimmora (usable: 37 leaves in Showdown and 37 here, lending Corrosion off Glimmora on bottom-tie-first)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -7146,7 +7155,7 @@
    "name": "Justified",
    "rule": "ability/reacts-to-an-event-a-plain-hit-never-creates",
    "reads": "onFlinch / onSourceAfterFaint / onDamagingHit / onHit / onAfterMoveSecondary carrying a TRIGGER the handler itself names — a crit, a flinch, a KO, the holder's own faint, an HP fraction, or a move type — none of which the generic staging ever creates",
-   "note": "Meowscarada clicks Dark Pulse — a Dark delivery move, which is the type this handler's own `move.type ===` test names — at the carrier on turns 1 and 2. The generic staging picks its click by what is NEUTRAL and never by what the ability reads, which is why the row was inert. The reading is the carrier's `boosts`, twice over, because this family compounds   [ALTERNATE carrier Arcanine, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: CONTROL-NOT-QUIET -> COULD-NOT-STAGE: the staging went inert; ]",
+   "note": "Meowscarada clicks Dark Pulse — a Dark delivery move, which is the type this handler's own `move.type ===` test names — at the carrier on turns 1 and 2. The generic staging picks its click by what is NEUTRAL and never by what the ability reads, which is why the row was inert. The reading is the carrier's `boosts`, twice over, because this family compounds   [ALTERNATE carrier Arcanine, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: CONTROL-NOT-QUIET -> COULD-NOT-STAGE: the staging went inert; ]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -7209,7 +7218,7 @@
    "name": "Keen Eye",
    "rule": "ability/ignores-evasion",
    "reads": "onModifyMove writing `ignoreEvasion` — the FIELD the handler sets, never the ability name",
-   "note": "Meowscarada clicks Double Team on itself at boundary 0 (+1 evasion, which multiplies an incoming accuracy by 3/4), then the carrier throws Iron Head (Steel, neutral on it) at it twice. Under this pin a 100 dragged to 75 is a guaranteed MISS, so WITHOUT the ability neither click lands and WITH it both do — the reading is Meowscarada's hp   [ALTERNATE carrier Skarmory, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Meowscarada clicks Double Team on itself at boundary 0 (+1 evasion, which multiplies an incoming accuracy by 3/4), then the carrier throws Iron Head (Steel, neutral on it) at it twice. Under this pin a 100 dragged to 75 is a guaranteed MISS, so WITHOUT the ability neither click lands and WITH it both do — the reading is Meowscarada's hp   [ALTERNATE carrier Skarmory, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -7260,7 +7269,7 @@
    "name": "Klutz",
    "rule": "ability/an-item-is-eaten-taken-or-handed-on",
    "reads": "onEatItem / onTakeItem returning false / onAfterMoveSecondary(Self) calling takeItem / onAllyAfterUseItem / an onStart whose whole body ENDS the holder's own item — five handlers that cannot fire unless an item is actually spent or changes hands",
-   "note": "the carrier holds Leftovers, whose whole content is a residual heal, and Torterra clicks Earth Power at it on turn 1 for 54 of its 178 hp — so the heal has somewhere to go. WITH the ability the item is switched off and nothing is paid; without it the carrier gains a sixteenth at every residual. The `item` leaf is identical in both arms — the item is still held, it is only ignored — so the reading is hp   [ALTERNATE carrier Audino, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "the carrier holds Leftovers, whose whole content is a residual heal, and Torterra clicks Earth Power at it on turn 1 for 54 of its 178 hp — so the heal has somewhere to go. WITH the ability the item is switched off and nothing is paid; without it the carrier gains a sixteenth at every residual. The `item` leaf is identical in both arms — the item is still held, it is only ignored — so the reading is hp   [ALTERNATE carrier Audino, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -7323,7 +7332,7 @@
    "name": "Leaf Guard",
    "rule": "ability/a-status-is-refused-cured-or-reflected",
    "reads": "onSetStatus returning false under a named weather / onResidual calling cureStatus under a named weather / onAfterSetStatus handing the status back to the source / a `nameImplementedBySim` param naming the statuses that walk through the type chart or the extra tick a status counter spends",
-   "note": "Torkoal stands beside the carrier holding Drought, which raises sunnyday on entry in BOTH arms; Ariados then clicks Toxic Thread at the carrier on turn 1, writing `psn`. The handler REFUSES it outright, so the reading is the carrier's `status` leaf across three boundaries. The click also lowers spe, which lands in both arms and cancels out of the delta — it is there as the RECEIPT that the click landed, which is the one thing this branch cannot read off a status field that is empty by design   [ALTERNATE carrier Meganium, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Torkoal stands beside the carrier holding Drought, which raises sunnyday on entry in BOTH arms; Ariados then clicks Toxic Thread at the carrier on turn 1, writing `psn`. The handler REFUSES it outright, so the reading is the carrier's `status` leaf across three boundaries. The click also lowers spe, which lands in both arms and cancels out of the delta — it is there as the RECEIPT that the click landed, which is the one thing this branch cannot read off a status field that is empty by design   [ALTERNATE carrier Meganium, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -7422,7 +7431,7 @@
    "name": "Levitate",
    "rule": "ability/ground-immunity",
    "reads": "the ability is named inside Showdown's own `Pokemon#isGrounded` — parsed out of that function, never listed here",
-   "note": "FOUR ARMS ON ONE SCRIPT. Golurk throws Mud-Slap at the carrier and it must do NOTHING (arm A); Gravity goes up and the same click LANDS (arm B); the Gravity expires and Smack Down grounds the body and it LANDS again (arm C); and Rampardos, carrying Mold Breaker, lands it on an airborne body with no set-up at all (arm D). Every other body clicks the inert click.   [SUPPRESS carrier Hydreigon, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "FOUR ARMS ON ONE SCRIPT. Golurk throws Mud-Slap at the carrier and it must do NOTHING (arm A); Gravity goes up and the same click LANDS (arm B); the Gravity expires and Smack Down grounds the body and it LANDS again (arm C); and Rampardos, carrying Mold Breaker, lands it on an airborne body with no set-up at all (arm D). Every other body clicks the inert click.   [SUPPRESS carrier Hydreigon, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -7731,7 +7740,7 @@
    "name": "Light Metal",
    "rule": "ability/weight-decides-the-power",
    "reads": "onModifyWeight — the multiplier is the handler's own return, and the click is a move whose basePowerCallback is measured to read a getWeight()",
-   "note": "Light Metal takes 1180 hg to 590 hg, which moves Grass Knot's base power 100 -> 80 (the callback was ASKED, both times). The carrier stands still and Meowscarada throws Grass Knot at it on turn 1 — that move reads the TARGET's weight and not the thrower's, measured — then Aerial Ace on turn 2, which prices off nothing and must be worth the same in both arms. The reading is the carrier's hp   [ALTERNATE carrier Scizor, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Light Metal takes 1180 hg to 590 hg, which moves Grass Knot's base power 100 -> 80 (the callback was ASKED, both times). The carrier stands still and Meowscarada throws Grass Knot at it on turn 1 — that move reads the TARGET's weight and not the thrower's, measured — then Aerial Ace on turn 2, which prices off nothing and must be worth the same in both arms. The reading is the carrier's hp   [ALTERNATE carrier Scizor, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -7901,7 +7910,7 @@
    "name": "Limber",
    "rule": "ability/refuses-one-status",
    "reads": "a status id quoted inside onSetStatus / onTrySetStatus / onImmunity / onUpdate",
-   "note": "Serperior clicks Glare at Ditto twice. WITHOUT the ability the carrier must end up \"par\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Ditto's typing nor Glare's can refuse it, which is a condition of the pairing.   [ALTERNATE carrier Ditto, control = Skill Swap lends Corrosion off Glimmora (usable: 38 leaves in Showdown and 38 here, lending Corrosion off Glimmora on bottom-tie-first)]",
+   "note": "Serperior clicks Glare at Ditto twice. WITHOUT the ability the carrier must end up \"par\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Ditto's typing nor Glare's can refuse it, which is a condition of the pairing.   [ALTERNATE carrier Ditto, control = Skill Swap lends Corrosion off Glimmora (usable: 37 leaves in Showdown and 37 here, lending Corrosion off Glimmora on bottom-tie-first)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -8045,7 +8054,7 @@
    "name": "Long Reach",
    "rule": "ability/removes-its-own-move-flag",
    "reads": "onModifyMove deleting a `move.flags[...]` — the flag name off the handler, the bodies that read that flag off the authority's own source",
-   "note": "Garchomp holds Rough Skin, derived as a reactor to the `contact` flag off the authority's own source (constructor/checkMoveMakesContact) and kept only because it damages with no chance gate and no faint requirement. The carrier throws Aerial Ace (carries `contact`) at it on turn 1 and Energy Ball (does not) on turn 2 as the negative. The reading is the CARRIER's own hp: it pays the reaction without the ability and not with it   [ALTERNATE carrier Decidueye, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Garchomp holds Rough Skin, derived as a reactor to the `contact` flag off the authority's own source (constructor/checkMoveMakesContact) and kept only because it damages with no chance gate and no faint requirement. The carrier throws Aerial Ace (carries `contact`) at it on turn 1 and Energy Ball (does not) on turn 2 as the negative. The reading is the CARRIER's own hp: it pays the reaction without the ability and not with it   [ALTERNATE carrier Decidueye, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -8310,7 +8319,7 @@
    "name": "Magician",
    "rule": "ability/an-item-is-eaten-taken-or-handed-on",
    "reads": "onEatItem / onTakeItem returning false / onAfterMoveSecondary(Self) calling takeItem / onAllyAfterUseItem / an onStart whose whole body ENDS the holder's own item — five handlers that cannot fire unless an item is actually spent or changes hands",
-   "note": "Torterra holds Leftovers and the carrier holds nothing, which is what the handler requires (it returns early when the thief already has an item). the carrier throws Flash Cannon at Torterra on turns 1 and 2. The reading is the `item` leaf on BOTH bodies and the residual heal that follows the item to whichever one ends up holding it   [ALTERNATE carrier Klefki, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Torterra holds Leftovers and the carrier holds nothing, which is what the handler requires (it returns early when the thief already has an item). the carrier throws Flash Cannon at Torterra on turns 1 and 2. The reading is the `item` leaf on BOTH bodies and the residual heal that follows the item to whichever one ends up holding it   [ALTERNATE carrier Klefki, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -8445,7 +8454,7 @@
    "name": "Magma Armor",
    "rule": "ability/refuses-one-status",
    "reads": "a status id quoted inside onSetStatus / onTrySetStatus / onImmunity / onUpdate",
-   "note": "Avalugg-Hisui clicks Ice Beam at Camerupt twice. WITHOUT the ability the carrier must end up \"frz\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Camerupt's typing nor Ice Beam's can refuse it, which is a condition of the pairing. THE THROWER IS SLOWER ON PURPOSE (Speed 90 against the carrier's 92): this status sheds itself inside the holder's own `onBeforeMove` under a roll this corner pins TRUE, so a faster thrower would write it and the carrier would thaw it again before the boundary — measured, 0 leaves.   [ALTERNATE carrier Camerupt, control = Skill Swap lends Corrosion off Glimmora (usable: 38 leaves in Showdown and 38 here, lending Corrosion off Glimmora on bottom-tie-first)]",
+   "note": "Avalugg-Hisui clicks Ice Beam at Camerupt twice. WITHOUT the ability the carrier must end up \"frz\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Camerupt's typing nor Ice Beam's can refuse it, which is a condition of the pairing. THE THROWER IS SLOWER ON PURPOSE (Speed 90 against the carrier's 92): this status sheds itself inside the holder's own `onBeforeMove` under a roll this corner pins TRUE, so a faster thrower would write it and the carrier would thaw it again before the boundary — measured, 0 leaves.   [ALTERNATE carrier Camerupt, control = Skill Swap lends Corrosion off Glimmora (usable: 37 leaves in Showdown and 37 here, lending Corrosion off Glimmora on bottom-tie-first)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -8555,7 +8564,7 @@
    "name": "Mega Launcher",
    "rule": "ability/base-power-scoped",
    "reads": "onBasePower — the move FLAG, the base-power threshold or the `move.recoil` test inside the handler",
-   "note": "Dragon Pulse (INSIDE the `pulse` flag) at Goodra-Hisui on turn 1 and Ice Beam (outside it, same category, also neutral) on turn 2 — the second must be worth the same in both arms   [SUPPRESS carrier Clawitzer, control = Skill Swap lends Shell Armor off Torterra (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Dragon Pulse (INSIDE the `pulse` flag) at Goodra-Hisui on turn 1 and Ice Beam (outside it, same category, also neutral) on turn 2 — the second must be worth the same in both arms   [SUPPRESS carrier Clawitzer, control = Skill Swap lends Shell Armor off Torterra (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -8618,7 +8627,7 @@
    "name": "Mega Sol",
    "rule": "ability/private-sky",
    "reads": "the ability is named inside Showdown's own `Pokemon#effectiveWeather` — parsed out of that function, never listed here",
-   "note": "the carrier clicks Weather Ball at Skeledirge (immune to Normal, which is what it stays without the ability) and then Solar Beam twice. With the ability the first click resolves as Fire and lands, and the second fires on the turn it is clicked; without it, exactly 0 and a charge turn. Every other body clicks the inert click.   [MEGA carrier Meganium -> Meganium-Mega via Meganiumite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "the carrier clicks Weather Ball at Skeledirge (immune to Normal, which is what it stays without the ability) and then Solar Beam twice. With the ability the first click resolves as Fire and lands, and the second fires on the turn it is clicked; without it, exactly 0 and a charge turn. Every other body clicks the inert click.   [MEGA carrier Meganium -> Meganium-Mega via Meganiumite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -8675,7 +8684,7 @@
    "name": "Merciless",
    "rule": "ability/prices-a-critical-hit",
    "reads": "onModifyCritRatio returning a literal Showdown clamps to a GUARANTEED tier, or onModifyDamage gated on `getMoveHitData(move).crit` — the ratio, the gate and the statuses all come off the handler",
-   "note": "Ariados stands beside the carrier and clicks Toxic Thread at Charizard on turn 1, writing the `psn` the handler's own status list names; the carrier then throws Sludge Bomb at that body on turns 2 and 3. The returned ratio of 5 is clamped to 4 and rolled as `randomChance(1, 1)`, which is TRUE under this arm's pin, so the crit is certain with the ability and impossible without it. Charizard holds Blaze, which refuses no crit. The reading is Charizard's hp   [ALTERNATE carrier Toxapex, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Ariados stands beside the carrier and clicks Toxic Thread at Charizard on turn 1, writing the `psn` the handler's own status list names; the carrier then throws Sludge Bomb at that body on turns 2 and 3. The returned ratio of 5 is clamped to 4 and rolled as `randomChance(1, 1)`, which is TRUE under this arm's pin, so the crit is certain with the ability and impossible without it. Charizard holds Blaze, which refuses no crit. The reading is Charizard's hp   [ALTERNATE carrier Toxapex, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -8726,7 +8735,7 @@
    "name": "Mimicry",
    "rule": "ability/type-follows-the-terrain",
    "reads": "the `typeFollowsTerrain` tag and the format's own terrain moves",
-   "note": "Goodra-Hisui clicks Electric Terrain on turn 2 — AFTER the control turn — and the carrier must become Electric-type in the subject arm and keep its own typing in the control   [SUPPRESS carrier Stunfisk-Galar, control = Skill Swap lends Shell Armor off Torterra (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]  [#318 restaged: p1[0] goodrahisui -> luxray (learner/wide)]",
+   "note": "Goodra-Hisui clicks Electric Terrain on turn 2 — AFTER the control turn — and the carrier must become Electric-type in the subject arm and keep its own typing in the control   [SUPPRESS carrier Stunfisk-Galar, control = Skill Swap lends Shell Armor off Torterra (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]  [#318 restaged: p1[0] goodrahisui -> luxray (learner/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -8801,7 +8810,7 @@
    "name": "Minus",
    "rule": "ability/ally-gated-stat",
    "reads": "onModifyAtk / onModifySpA whose handler walks `allies()` and names an ability list in a `hasAbility([...])` — the list, the multiplier and the category all come off the handler",
-   "note": "Ampharos stands beside the carrier holding Plus, which is one of the abilities this handler NAMES (minus, plus) and is not the one under test — so the control arm strips the subject and leaves the gate's own body alone. The carrier then throws Flamethrower (Special, which is what onModifySpA multiplies by x1.5) at Goodra-Hisui, and Crunch (Physical, the negative, which the multiplier must not touch) at the same body on the next turn   [ALTERNATE carrier Manectric, control = Skill Swap lends Shell Armor off Torterra (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Ampharos stands beside the carrier holding Plus, which is one of the abilities this handler NAMES (minus, plus) and is not the one under test — so the control arm strips the subject and leaves the gate's own body alone. The carrier then throws Flamethrower (Special, which is what onModifySpA multiplies by x1.5) at Goodra-Hisui, and Crunch (Physical, the negative, which the multiplier must not touch) at the same body on the next turn   [ALTERNATE carrier Manectric, control = Skill Swap lends Shell Armor off Torterra (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -9555,7 +9564,7 @@
    "name": "Moxie",
    "rule": "ability/reacts-to-an-event-a-plain-hit-never-creates",
    "reads": "onFlinch / onSourceAfterFaint / onDamagingHit / onHit / onAfterMoveSecondary carrying a TRIGGER the handler itself names — a crit, a flinch, a KO, the holder's own faint, an HP fraction, or a move type — none of which the generic staging ever creates",
-   "note": "the carrier clicks Ice Punch at Torterra on turns 1 and 2, which kills it on the second (156 a click at the pinned maximum roll against 170 hp), which is the only way `onSourceAfterFaint` is ever called. Both arms take the identical kill; the reading is the carrier's own `boosts`   [ALTERNATE carrier Scrafty, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "the carrier clicks Ice Punch at Torterra on turns 1 and 2, which kills it on the second (156 a click at the pinned maximum roll against 170 hp), which is the only way `onSourceAfterFaint` is ever called. Both arms take the identical kill; the reading is the carrier's own `boosts`   [ALTERNATE carrier Scrafty, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -9606,7 +9615,7 @@
    "name": "Multiscale",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Dragonite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui) — taken because Inner Focus, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p1[1] goodrahisui pruned never-clicked bite; p2[1] venusaur pruned never-clicked bite,uturn]",
+   "note": "ALTERNATE carrier Dragonite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui) — taken because Inner Focus, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p1[1] goodrahisui pruned never-clicked bite; p2[1] venusaur pruned never-clicked bite,uturn]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -9669,7 +9678,7 @@
    "name": "Mummy",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "SUPPRESS carrier Cofagrigus; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui); staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
+   "note": "SUPPRESS carrier Cofagrigus; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui); staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -9732,7 +9741,7 @@
    "name": "Natural Cure",
    "rule": "ability/switch-out",
    "reads": "onSwitchOut",
-   "note": "ALTERNATE carrier Altaria; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui) — taken because Cloud Nine, the only control this carrier's own sheet offers, is itself a live ability; staged as switchout  [#318 restaged: p1[1] goodrahisui -> snorlax (learner-speed+stats/wide); p2[1] venusaur -> blaziken (learner-speed-kept/own); UNRESOLVED p2[0] altaria refuses uturn]",
+   "note": "ALTERNATE carrier Altaria; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui) — taken because Cloud Nine, the only control this carrier's own sheet offers, is itself a live ability; staged as switchout  [#318 restaged: p1[1] goodrahisui -> snorlax (learner-speed+stats/wide); p2[1] venusaur -> blaziken (learner-speed-kept/own); UNRESOLVED p2[0] altaria refuses uturn]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -9783,7 +9792,7 @@
    "name": "No Guard",
    "rule": "ability/accuracy-decides-the-hit",
    "reads": "onAnyAccuracy / onSourceModifyAccuracy / onModifyAccuracy with NO weather named — the multiplier off the handler's own chainModify, the direction off the handler prefix, and any volatile the handler gates on",
-   "note": "the carrier throws High Horsepower (95 accuracy, xnever-miss = cannot miss) at Samurott on turn 1 and it must LAND where the pin would have missed. THE DIRECTION TEST IS TURN 2: Samurott throws Air Slash (95 accuracy) BACK at the carrier, which this handler prefix says must ALSO LAND — `onAnyAccuracy` does not care which end of the move its holder is on   [ALTERNATE carrier Machamp, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "the carrier throws High Horsepower (95 accuracy, xnever-miss = cannot miss) at Samurott on turn 1 and it must LAND where the pin would have missed. THE DIRECTION TEST IS TURN 2: Samurott throws Air Slash (95 accuracy) BACK at the carrier, which this handler prefix says must ALSO LAND — `onAnyAccuracy` does not care which end of the move its holder is on   [ALTERNATE carrier Machamp, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -9945,7 +9954,7 @@
    "name": "Opportunist",
    "rule": "ability/copies-a-foes-boost",
    "reads": "onFoeAfterBoost — the handler collects a FOE's positive stages and a later hook pays them onto the holder",
-   "note": "Whimsicott clicks Cotton Guard on ITSELF on turn 1 (def +3) while the carrier idles. With the ability the carrier ends the turn at def +3 as well; without it, at 0 — the reading is the CARRIER's own boosts. The booster is on the carrier's FOE side and on the swapper's OWN side, so in the control arm the lent-away ability is looking at an ally and copies nothing   [ALTERNATE carrier Espathra, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Whimsicott clicks Cotton Guard on ITSELF on turn 1 (def +3) while the carrier idles. With the ability the carrier ends the turn at def +3 as well; without it, at 0 — the reading is the CARRIER's own boosts. The booster is on the carrier's FOE side and on the swapper's OWN side, so in the control arm the lent-away ability is looking at an ally and copies nothing   [ALTERNATE carrier Espathra, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -10218,7 +10227,7 @@
    "name": "Parental Bond",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "MEGA carrier Kangaskhan -> Kangaskhan-Mega via Kangaskhanite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui); staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
+   "note": "MEGA carrier Kangaskhan -> Kangaskhan-Mega via Kangaskhanite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui); staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -10281,7 +10290,7 @@
    "name": "Pickpocket",
    "rule": "ability/an-item-is-eaten-taken-or-handed-on",
    "reads": "onEatItem / onTakeItem returning false / onAfterMoveSecondary(Self) calling takeItem / onAllyAfterUseItem / an onStart whose whole body ENDS the holder's own item — five handlers that cannot fire unless an item is actually spent or changes hands",
-   "note": "Torterra holds Leftovers and the carrier holds nothing, which is what the handler requires (it returns early when the thief already has an item). Torterra throws Iron Head — a CONTACT click, because the handler reads `move.flags[\"contact\"]` and nothing else does at the carrier on turns 1 and 2. The reading is the `item` leaf on BOTH bodies and the residual heal that follows the item to whichever one ends up holding it   [ALTERNATE carrier Barbaracle, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Torterra holds Leftovers and the carrier holds nothing, which is what the handler requires (it returns early when the thief already has an item). Torterra throws Iron Head — a CONTACT click, because the handler reads `move.flags[\"contact\"]` and nothing else does at the carrier on turns 1 and 2. The reading is the `item` leaf on BOTH bodies and the residual heal that follows the item to whichever one ends up holding it   [ALTERNATE carrier Barbaracle, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -10454,7 +10463,7 @@
    "name": "Piercing Drill",
    "rule": "ability/pierces-protect",
    "reads": "onHitProtect",
-   "note": "Venusaur spends its turn on Protect and the carrier throws Iron Head — a CONTACT click, which is what the handler reads — straight into it. With the ability the damage is non-zero; without it the shield refuses it and the number is exactly 0. Every other body clicks the inert click.   [MEGA carrier Excadrill -> Excadrill-Mega via Excadrite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Venusaur spends its turn on Protect and the carrier throws Iron Head — a CONTACT click, which is what the handler reads — straight into it. With the ability the damage is non-zero; without it the shield refuses it and the number is exactly 0. Every other body clicks the inert click.   [MEGA carrier Excadrill -> Excadrill-Mega via Excadrite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -10580,7 +10589,7 @@
    "name": "Plus",
    "rule": "ability/ally-gated-stat",
    "reads": "onModifyAtk / onModifySpA whose handler walks `allies()` and names an ability list in a `hasAbility([...])` — the list, the multiplier and the category all come off the handler",
-   "note": "Manectric stands beside the carrier holding Minus, which is one of the abilities this handler NAMES (minus, plus) and is not the one under test — so the control arm strips the subject and leaves the gate's own body alone. The carrier then throws Dragon Pulse (Special, which is what onModifySpA multiplies by x1.5) at Goodra-Hisui, and Fire Punch (Physical, the negative, which the multiplier must not touch) at the same body on the next turn   [ALTERNATE carrier Ampharos, control = Skill Swap lends Shell Armor off Torterra (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Manectric stands beside the carrier holding Minus, which is one of the abilities this handler NAMES (minus, plus) and is not the one under test — so the control arm strips the subject and leaves the gate's own body alone. The carrier then throws Dragon Pulse (Special, which is what onModifySpA multiplies by x1.5) at Goodra-Hisui, and Fire Punch (Physical, the negative, which the multiplier must not touch) at the same body on the next turn   [ALTERNATE carrier Ampharos, control = Skill Swap lends Shell Armor off Torterra (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -10948,7 +10957,7 @@
    "name": "Protean",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Meowscarada; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui) — taken because Overgrow, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
+   "note": "ALTERNATE carrier Meowscarada; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui) — taken because Overgrow, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -10968,39 +10977,39 @@
    "sd_delta": [
     {
      "turn": 2,
-     "path": "p1.party.goodrahisui.types",
-     "with": "dragon/steel",
-     "without": "normal"
+     "path": "p2.party.meowscarada.types",
+     "with": "grass",
+     "without": "dark/grass"
     },
     {
      "turn": 2,
-     "path": "p1.active[1].types",
-     "with": "dragon/steel",
-     "without": "normal"
+     "path": "p2.active[0].types",
+     "with": "grass",
+     "without": "dark/grass"
     },
     {
      "turn": 3,
-     "path": "p1.party.goodrahisui.types",
-     "with": "dragon/steel",
-     "without": "normal"
+     "path": "p2.party.meowscarada.types",
+     "with": "grass",
+     "without": "dark/grass"
     },
     {
      "turn": 3,
-     "path": "p1.active[1].types",
-     "with": "dragon/steel",
-     "without": "normal"
+     "path": "p2.active[0].types",
+     "with": "grass",
+     "without": "dark/grass"
     },
     {
      "turn": 4,
-     "path": "p1.party.goodrahisui.types",
-     "with": "dragon/steel",
-     "without": "normal"
+     "path": "p2.party.meowscarada.types",
+     "with": "grass",
+     "without": "dark/grass"
     },
     {
      "turn": 4,
-     "path": "p1.active[1].types",
-     "with": "dragon/steel",
-     "without": "normal"
+     "path": "p2.active[0].types",
+     "with": "grass",
+     "without": "dark/grass"
     }
    ],
    "diffs": []
@@ -11266,13 +11275,13 @@
      "turn": 5,
      "path": "p2.party.slowbrogalar.hp",
      "with": 1020,
-     "without": 872
+     "without": 920
     },
     {
      "turn": 5,
      "path": "p2.active[0].hp",
      "with": 1020,
-     "without": 872
+     "without": 920
     }
    ],
    "diffs": []
@@ -11282,13 +11291,13 @@
    "id": "quickfeet",
    "name": "Quick Feet",
    "rule": "ability/conditional-speed",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "its Speed multiplier is gated on the holder being STATUSED, and that gate is OPEN — Poison Powder writes `psn` on Jolteon and this rule stages it on bottom-tie-first. What refuses the row is the SPEED WINDOW. Measured on this run: the carrier is Jolteon at Speed 182, x1.5 takes it to 273, and the foe has to sit STRICTLY between them or the multiplier decides no turn order at all. The 1 legal body/bodies in that window are all refused: Dragapult (Speed 194) has NO non-interfering ability — every one of its Clear Body / Infiltrator / Cursed Body is on the INTERFERES list. This is the FORMAT's Speed table meeting this ability's single carrier, and the same wall `ability/priority-mod` measured on Talonflame the same day.",
-   "arm": "top-tie-first",
+   "reads": "onModifySpe with NO weather named — the TERRAIN the handler names, or its `pokemon.status` test, and the multiplier off its own chainModify",
+   "note": "STAGED ON bottom-tie-first, because this format writes no status at 100 accuracy that leaves a Speed fixture alone: that corner LANDS the sub-100 click in BOTH engines, and Poison Powder's own condition neither modifies Speed, nor takes the carrier's click away, nor is named in the authority's damage path. Whimsicott clicks Poison Powder at the carrier on turn 1, which opens the `pokemon.status` gate the handler reads; 182 -> 273 against 264, the carrier's Body Slam kills outright and the foe's click is Feather Dance — so the x1.5 decides whether that drop ever lands. THE WINDOW IS CONSTRUCTED: Blaziken clicks Agility {\"spe\":2} on turn 1 in BOTH arms, which puts its Speed strictly inside the carrier's unmultiplied and multiplied Speed (182 -> 273 against 264; the foe figure is AFTER the boost)   [ALTERNATE carrier Jolteon, control = Skill Swap lends Corrosion off Glimmora (usable: 37 leaves in Showdown and 37 here, lending Corrosion off Glimmora on bottom-tie-first)]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
+   "arm": "bottom-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "jolteon",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -11300,7 +11309,44 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 3,
+     "path": "p1.pp[0].featherdance",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.jolteon.boosts.atk",
+     "with": 0,
+     "without": -2
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].boosts.atk",
+     "with": 0,
+     "without": -2
+    },
+    {
+     "turn": 4,
+     "path": "p1.pp[0].featherdance",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 4,
+     "path": "p2.party.jolteon.boosts.atk",
+     "with": 0,
+     "without": -2
+    },
+    {
+     "turn": 4,
+     "path": "p2.active[0].boosts.atk",
+     "with": 0,
+     "without": -2
+    }
+   ],
    "diffs": []
   },
   {
@@ -11372,7 +11418,7 @@
    "name": "Receiver",
    "rule": "ability/an-arrival-a-field-or-a-refusal",
    "reads": "onAnyTryMove refusing named move ids / an onStart that re-runs WeatherChange or removes named side conditions or does nothing but emit / onAllyFaint calling setAbility / onTryHit returning null for a Status move",
-   "note": "Torkoal kills the carrier's ALLY Falinks with Flamethrower in 2 click(s) — 78 against 140 hp. WITH the ability the carrier's own `ability` leaf becomes Battle Armor, which the format does not flag `noreceiver`; without it the carrier keeps what the control lent it. The reading is an `.ability` leaf that is the ENTITY rewriting it rather than the control describing itself — the swap-leaf correction keeps exactly this shape (it drops a leaf only where the subject value IS the ability under test)   [ALTERNATE carrier Passimian, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Torkoal kills the carrier's ALLY Falinks with Flamethrower in 2 click(s) — 78 against 140 hp. WITH the ability the carrier's own `ability` leaf becomes Battle Armor, which the format does not flag `noreceiver`; without it the carrier keeps what the control lent it. The reading is an `.ability` leaf that is the ENTITY rewriting it rather than the control describing itself — the swap-leaf correction keeps exactly this shape (it drops a leaf only where the subject value IS the ability under test)   [ALTERNATE carrier Passimian, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -11641,7 +11687,7 @@
    "name": "Regenerator",
    "rule": "ability/switch-out",
    "reads": "onSwitchOut",
-   "note": "ALTERNATE carrier Toxapex; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui) — taken because Merciless, the only control this carrier's own sheet offers, is itself a live ability; staged as switchout  [#318 restaged: p2[1] venusaur -> tsareena (learner-speed+stats/own); UNRESOLVED p2[0] toxapex refuses uturn]",
+   "note": "ALTERNATE carrier Toxapex; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui) — taken because Merciless, the only control this carrier's own sheet offers, is itself a live ability; staged as switchout  [#318 restaged: p2[1] venusaur -> tsareena (learner-speed+stats/own); UNRESOLVED p2[0] toxapex refuses uturn]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -11674,7 +11720,7 @@
    "name": "Ripen",
    "rule": "ability/an-item-is-eaten-taken-or-handed-on",
    "reads": "onEatItem / onTakeItem returning false / onAfterMoveSecondary(Self) calling takeItem / onAllyAfterUseItem / an onStart whose whole body ENDS the holder's own item — five handlers that cannot fire unless an item is actually spent or changes hands",
-   "note": "the carrier holds Sitrus Berry and Torkoal clicks Sludge Bomb at it on turn 1 for 104 of its 145 hp — past the 1/2 line the berry's own `onUpdate` names, and with room left under the maximum so the heal is not capped. The berry is spent in BOTH arms, so the `item` leaf is identical and the reading is the carrier's hp   [ALTERNATE carrier Flapple, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "the carrier holds Sitrus Berry and Torkoal clicks Sludge Bomb at it on turn 1 for 104 of its 145 hp — past the 1/2 line the berry's own `onUpdate` names, and with room left under the maximum so the heal is not capped. The berry is spent in BOTH arms, so the `item` leaf is identical and the reading is the carrier's hp   [ALTERNATE carrier Flapple, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -11749,7 +11795,7 @@
    "name": "Rivalry",
    "rule": "ability/base-power-under-a-board-condition",
    "reads": "onBasePower whose handler tests TURN ORDER (`queue.willMove`), GENDER, or a weather plus a type list — none of them a property of the click, so `ability/base-power-scoped` cannot reach them",
-   "note": "the carrier is declared MALE and throws Crunch at Torterra, also declared MALE, on turn 1 — the handler's SAME-gender branch; Torkoal, declared FEMALE, then comes in off the bench and takes the same click on turn 3 — the OPPOSITE-gender branch, which is the half a one-sided fixture would miss. Every one of the three species is one this dex leaves free to be either gender. `buildPair` writes `gender: \"N\"` unless a scenario declares one, which is why the plain staging had this ability correctly doing nothing. The reading is both foes' hp   [ALTERNATE carrier Luxray, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "the carrier is declared MALE and throws Crunch at Torterra, also declared MALE, on turn 1 — the handler's SAME-gender branch; Torkoal, declared FEMALE, then comes in off the bench and takes the same click on turn 3 — the OPPOSITE-gender branch, which is the half a one-sided fixture would miss. Every one of the three species is one this dex leaves free to be either gender. `buildPair` writes `gender: \"N\"` unless a scenario declares one, which is why the plain staging had this ability correctly doing nothing. The reading is both foes' hp   [ALTERNATE carrier Luxray, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -11892,7 +11938,7 @@
    "name": "Rough Skin",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Garchomp; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui) — taken because Sand Veil, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p1[1] goodrahisui pruned never-clicked bite; p2[1] venusaur pruned never-clicked bite,uturn]",
+   "note": "ALTERNATE carrier Garchomp; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui) — taken because Sand Veil, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p1[1] goodrahisui pruned never-clicked bite; p2[1] venusaur pruned never-clicked bite,uturn]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -11955,7 +12001,7 @@
    "name": "Sand Force",
    "rule": "ability/base-power-under-a-board-condition",
    "reads": "onBasePower whose handler tests TURN ORDER (`queue.willMove`), GENDER, or a weather plus a type list — none of them a property of the click, so `ability/base-power-scoped` cannot reach them",
-   "note": "Tyranitar stands beside the carrier holding Sand Stream, which raises sandstorm on entry in BOTH arms; the carrier then throws Earth Power (Ground, one of the 3 types this handler names) at Torterra on turn 1 and Crunch (Dark, which it does NOT name — the negative) on turn 2. The reading is Torterra's hp; the carrier's own hp moves too, because this ability also refuses the sandstorm chip, and that is the same ability   [ALTERNATE carrier Hippowdon, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Tyranitar stands beside the carrier holding Sand Stream, which raises sandstorm on entry in BOTH arms; the carrier then throws Earth Power (Ground, one of the 3 types this handler names) at Torterra on turn 1 and Crunch (Dark, which it does NOT name — the negative) on turn 2. The reading is Torterra's hp; the carrier's own hp moves too, because this ability also refuses the sandstorm chip, and that is the same ability   [ALTERNATE carrier Hippowdon, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -12018,7 +12064,7 @@
    "name": "Sand Rush",
    "rule": "ability/weather-speed",
    "reads": "onModifySpe whose handler names a weather id (`pokemon.effectiveWeather()` against \"sunnyday\", \"snowscape\", ...)",
-   "note": "Sand Stream on the partner raises sandstorm at boundary 0; 140 -> 280 against 144 (Floette-Eternal, Flower Veil), the carrier's Iron Head kills outright and the foe's click is Charm — so the x2 decides whether that drop ever lands   [ALTERNATE carrier Excadrill, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Sand Stream on the partner raises sandstorm at boundary 0; 140 -> 280 against 144 (Floette-Eternal, Flower Veil), the carrier's Iron Head kills outright and the foe's click is Charm — so the x2 decides whether that drop ever lands   [ALTERNATE carrier Excadrill, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -12086,13 +12132,7 @@
     },
     {
      "turn": 2,
-     "path": "p1.active[0].vol.focusenergy",
-     "with": 0,
-     "without": 1
-    },
-    {
-     "turn": 2,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 0,
      "without": 1
     },
@@ -12164,7 +12204,7 @@
     },
     {
      "turn": 3,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 1,
      "without": 2
     },
@@ -12195,7 +12235,7 @@
    "name": "Sand Spit",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Sandaconda; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui) — taken because Shed Skin, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
+   "note": "ALTERNATE carrier Sandaconda; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui) — taken because Shed Skin, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -12847,7 +12887,7 @@
     "showdown_switched_control": true,
     "ours_switched_control": true,
     "subject_bad": "THREW",
-    "subject_why": "p1 choice rejected p1 \"switch 3, move 1\": Can't switch: The active Pokémon is trapped   [the last of this engine's narration: |move|p2b: Weavile|focusenergy|p2b: Weavile |-start|p2b: Weavile|move: focusenergy |upkeep |turn|2 |move|p1b: Dragapult|focusenergy|p1b: Dragapult |move|p2a: Gengar|focusenergy|p2a: Gengar |move|p2b: Weavile|focusenergy|p2b: Weavile |upkeep]",
+    "subject_why": "p1 choice rejected p1 \"switch 3, move 1\": Can't switch: The active Pokémon is trapped   [the last of this engine's narration: |turn|2 |move|p1b: Dragapult|sleeptalk||[still] |-fail|p1b: Dragapult |move|p2a: Gengar|sleeptalk||[still] |-fail|p2a: Gengar |move|p2b: Weavile|sleeptalk||[still] |-fail|p2b: Weavile |upkeep]",
     "control_bad": null
    },
    "sd_delta": [],
@@ -13046,7 +13086,7 @@
    "name": "Sheer Force",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Steelix; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui) — taken because Rock Head, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p1[1] goodrahisui pruned never-clicked bite; p2[1] venusaur pruned never-clicked bite,uturn]",
+   "note": "ALTERNATE carrier Steelix; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui) — taken because Rock Head, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p1[1] goodrahisui pruned never-clicked bite; p2[1] venusaur pruned never-clicked bite,uturn]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -13376,14 +13416,14 @@
    "kind": "ability",
    "id": "simple",
    "name": "Simple",
-   "rule": "scope/in-scope-no-sheet-body",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "IN SCOPE (CONFERRED — engine/legal_scope.js) and no legal species carries it as a sheet body; this roster has no rule that stages a conferred ability — a staging gap, not a claim about the format",
+   "rule": "ability/conferred-by-a-move",
+   "reads": "engine/legal_scope.js `conferred[].via` (a legal MOVE whose handler calls setAbility), and the conferred ability's own `onChangeBoost`",
+   "note": "Audino clicks Simple Beam at Glimmora (holding Corrosion) on turn 1, writing Simple onto it; turn 2 Glimmora clicks Acid Armor {\"def\":2}; turn 3 nothing (the beamer learns no single-target drop). The reading is Glimmora's boosts.   [control = the Simple Beam click replaced by Focus Energy; the target keeps Corrosion]",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "glimmora",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -13395,7 +13435,32 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 2,
+     "path": "p2.party.glimmora.boosts.def",
+     "with": 4,
+     "without": 2
+    },
+    {
+     "turn": 2,
+     "path": "p2.active[0].boosts.def",
+     "with": 4,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.glimmora.boosts.def",
+     "with": 4,
+     "without": 2
+    },
+    {
+     "turn": 3,
+     "path": "p2.active[0].boosts.def",
+     "with": 4,
+     "without": 2
+    }
+   ],
    "diffs": []
   },
   {
@@ -13404,7 +13469,7 @@
    "name": "Skill Link",
    "rule": "ability/it-rewrites-its-own-click",
    "reads": "onModifyMove that assigns `move.multihit` from an INDEX of its own range, or assigns `move.tracksTarget` — the index and the field both read off the handler",
-   "note": "the carrier throws Bullet Seed ([2,5]) at Torterra on turns 1 and 2, ON bottom-tie-first. THE ARM IS THE WHOLE FIXTURE: this file's primary corner selects the TOP of every `sample`, which is exactly the number this ability writes, so the row is provably inert there and only there. On this corner the pin selects the BOTTOM, so with the ability the click lands 5 times and without it 2. The reading is Torterra's hp, about 17 per hit   [ALTERNATE carrier Toucannon, control = Skill Swap lends Corrosion off Glimmora (usable: 38 leaves in Showdown and 38 here, lending Corrosion off Glimmora on bottom-tie-first)]",
+   "note": "the carrier throws Bullet Seed ([2,5]) at Torterra on turns 1 and 2, ON bottom-tie-first. THE ARM IS THE WHOLE FIXTURE: this file's primary corner selects the TOP of every `sample`, which is exactly the number this ability writes, so the row is provably inert there and only there. On this corner the pin selects the BOTTOM, so with the ability the click lands 5 times and without it 2. The reading is Torterra's hp, about 17 per hit   [ALTERNATE carrier Toucannon, control = Skill Swap lends Corrosion off Glimmora (usable: 37 leaves in Showdown and 37 here, lending Corrosion off Glimmora on bottom-tie-first)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -13467,7 +13532,7 @@
    "name": "Slush Rush",
    "rule": "ability/weather-speed",
    "reads": "onModifySpe whose handler names a weather id (`pokemon.effectiveWeather()` against \"sunnyday\", \"snowscape\", ...)",
-   "note": "Snow Warning on the partner raises hail at boundary 0; 102 -> 204 against 117 (Flareon, Guts), the carrier's Liquidation kills outright and the foe's click is Charm — so the x2 decides whether that drop ever lands   [ALTERNATE carrier Beartic, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Snow Warning on the partner raises hail at boundary 0; 102 -> 204 against 117 (Flareon, Guts), the carrier's Liquidation kills outright and the foe's click is Charm — so the x2 decides whether that drop ever lands   [ALTERNATE carrier Beartic, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -13535,13 +13600,7 @@
     },
     {
      "turn": 2,
-     "path": "p1.active[0].vol.focusenergy",
-     "with": 0,
-     "without": 1
-    },
-    {
-     "turn": 2,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 0,
      "without": 1
     },
@@ -13613,7 +13672,7 @@
     },
     {
      "turn": 3,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 1,
      "without": 2
     },
@@ -13644,7 +13703,7 @@
    "name": "Sniper",
    "rule": "ability/prices-a-critical-hit",
    "reads": "onModifyCritRatio returning a literal Showdown clamps to a GUARANTEED tier, or onModifyDamage gated on `getMoveHitData(move).crit` — the ratio, the gate and the statuses all come off the handler",
-   "note": "the carrier throws Dragon Claw at Venusaur on turns 1 and 2, ON bottom-tie-first — the corner whose pin lands every crit in BOTH engines, so the crit this ability prices is ORDINARY and no die decides it. Venusaur holds Overgrow, which refuses no crit, and survives both hits at the pinned maximum roll. The reading is Venusaur's hp. The control is the in-play Skill Swap, which on THIS arm may not lend a crit armour (ROADMAP #608)   [ALTERNATE carrier Barbaracle, control = Skill Swap lends Corrosion off Glimmora (usable: 38 leaves in Showdown and 38 here, lending Corrosion off Glimmora on bottom-tie-first)]",
+   "note": "the carrier throws Dragon Claw at Venusaur on turns 1 and 2, ON bottom-tie-first — the corner whose pin lands every crit in BOTH engines, so the crit this ability prices is ORDINARY and no die decides it. Venusaur holds Overgrow, which refuses no crit, and survives both hits at the pinned maximum roll. The reading is Venusaur's hp. The control is the in-play Skill Swap, which on THIS arm may not lend a crit armour (ROADMAP #608)   [ALTERNATE carrier Barbaracle, control = Skill Swap lends Corrosion off Glimmora (usable: 37 leaves in Showdown and 37 here, lending Corrosion off Glimmora on bottom-tie-first)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -14057,7 +14116,7 @@
    "name": "Spicy Spray",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "MEGA carrier Scovillain -> Scovillain-Mega via Scovillainite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui); staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
+   "note": "MEGA carrier Scovillain -> Scovillain-Mega via Scovillainite; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui); staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -14179,19 +14238,13 @@
     },
     {
      "turn": 3,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 3,
      "path": "p2.pp[0].energyball",
      "with": 2,
      "without": null
     },
     {
      "turn": 3,
-     "path": "p2.pp[0].focusenergy",
+     "path": "p2.pp[0].sleeptalk",
      "with": 1,
      "without": 0
     },
@@ -14281,7 +14334,7 @@
     },
     {
      "turn": 4,
-     "path": "p2.pp[0].focusenergy",
+     "path": "p2.pp[0].sleeptalk",
      "with": 2,
      "without": 1
     }
@@ -14294,7 +14347,7 @@
    "name": "Stall",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Sableye; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui) — taken because Prankster, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
+   "note": "ALTERNATE carrier Sableye; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui) — taken because Prankster, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
    "verdict": "DEFERRED-BY-OWNER",
    "why": "SHELVED BY THE OWNER, NOT MEASURED CLEAN. ZERO of 26,232 declared-sheet teams, AND IT IS NOT RARE — IT IS BAD. Will: 'why would you ever want this'. Stall makes the holder move LAST within its bracket, and its ONE legal carrier is Sableye, which is on 758 teams (2.9% of the format) and also has PRANKSTER — one of the strongest abilities in the game — plus a mega that overwrites the slot with Magic Bounce. Nobody chooses to move last when that is the alternative. The zero is a judgement the whole ladder has already made. Observing it would need a constructed speed pair where the order decides the board, and it carries no tag at all, so the rule would have to be written first. It moves the holder LAST within its bracket, so observing it needs a constructed speed pair where the order decides the board — the same build Will described for priority — for an ability nobody runs. It also carries no tag at all, so the rule would have to be written first. Deliberately not built. Underlying verdict: COULD-NOT-STAGE. (deferred 2026-08-10 by Will.) It is still staged and still played every run; it does not hold the gate. Underlying verdict without the deferral: COULD-NOT-STAGE — the staging is inert, the authority own board is identical with and without it over 2730 leaves, which is exactly what an effect that is only a MESSAGE looks like to a board comparator.",
    "arm": "top-tie-first",
@@ -14324,7 +14377,7 @@
    "name": "Stalwart",
    "rule": "ability/it-rewrites-its-own-click",
    "reads": "onModifyMove that assigns `move.multihit` from an INDEX of its own range, or assigns `move.tracksTarget` — the index and the field both read off the handler",
-   "note": "Maushold clicks Follow Me (priority 2, so it is up before anything is thrown) in the opposing FIRST slot, and the carrier throws Dragon Pulse at the opposing SECOND slot on turns 1 and 2. WITH the ability the click keeps the target it was aimed at; without it the redirector takes it. The reading is hp on both opposing bodies. The click is aimed at the second slot because the control builder writes that slot itself and this rule cannot choose it   [ALTERNATE carrier Archaludon, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Maushold clicks Follow Me (priority 2, so it is up before anything is thrown) in the opposing FIRST slot, and the carrier throws Dragon Pulse at the opposing SECOND slot on turns 1 and 2. WITH the ability the click keeps the target it was aimed at; without it the redirector takes it. The reading is hp on both opposing bodies. The click is aimed at the second slot because the control builder writes that slot itself and this rule cannot choose it   [ALTERNATE carrier Archaludon, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -14423,7 +14476,7 @@
    "name": "Stamina",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Mudsdale; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui) — taken because Inner Focus, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
+   "note": "ALTERNATE carrier Mudsdale; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui) — taken because Inner Focus, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -14536,13 +14589,7 @@
     },
     {
      "turn": 1,
-     "path": "p1.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 1,
      "without": 0
     },
@@ -14554,13 +14601,7 @@
     },
     {
      "turn": 2,
-     "path": "p1.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 1,
      "without": 0
     },
@@ -14572,13 +14613,7 @@
     },
     {
      "turn": 3,
-     "path": "p1.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 3,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 1,
      "without": 0
     },
@@ -14590,7 +14625,7 @@
     },
     {
      "turn": 4,
-     "path": "p1.pp[0].focusenergy",
+     "path": "p1.pp[0].sleeptalk",
      "with": 2,
      "without": 1
     },
@@ -14664,7 +14699,7 @@
    "name": "Steadfast",
    "rule": "ability/reacts-to-an-event-a-plain-hit-never-creates",
    "reads": "onFlinch / onSourceAfterFaint / onDamagingHit / onHit / onAfterMoveSecondary carrying a TRIGGER the handler itself names — a crit, a flinch, a KO, the holder's own faint, an HP fraction, or a move type — none of which the generic staging ever creates",
-   "note": "Sneasler comes in off the bench on turn 1 — a body that has just switched in has taken no move action, and Fake Out refuses on `activeMoveActions > 1` — then clicks Fake Out at the carrier on turn 2, whose own `secondaries` flinch at 100% so no die is involved. The carrier loses that turn's click and the reading is its `boosts`   [ALTERNATE carrier Machamp, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Sneasler comes in off the bench on turn 1 — a body that has just switched in has taken no move action, and Fake Out refuses on `activeMoveActions > 1` — then clicks Fake Out at the carrier on turn 2, whose own `secondaries` flinch at 100% so no die is involved. The carrier loses that turn's click and the reading is its `boosts`   [ALTERNATE carrier Machamp, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -14777,7 +14812,7 @@
    "name": "Sticky Hold",
    "rule": "ability/an-item-is-eaten-taken-or-handed-on",
    "reads": "onEatItem / onTakeItem returning false / onAfterMoveSecondary(Self) calling takeItem / onAllyAfterUseItem / an onStart whose whole body ENDS the holder's own item — five handlers that cannot fire unless an item is actually spent or changes hands",
-   "note": "the carrier holds Leftovers and Meowscarada clicks Knock Off at it on turn 1 — the click the handler itself names (`knockoff`). With the ability the item is still there afterwards and without it it is gone, so the reading is the carrier's `item` leaf and the hp the residual heal keeps paying   [ALTERNATE carrier Hydrapple, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "the carrier holds Leftovers and Meowscarada clicks Knock Off at it on turn 1 — the click the handler itself names (`knockoff`). With the ability the item is still there afterwards and without it it is gone, so the reading is the carrier's `item` leaf and the hp the residual heal keeps paying   [ALTERNATE carrier Hydrapple, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -14965,10 +15000,10 @@
    "second_control": {
     "control": "Ice Body",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Ice Body in the slot instead of Strong Jaw. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (26 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Strong Jaw registers 1 handler(s), Ice Body registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 26,
-    "leaves_second": 26,
-    "leaves_kept": 26,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Ice Body in the slot instead of Strong Jaw. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (22 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Strong Jaw registers 1 handler(s), Ice Body registers 2.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
+    "leaves_first": 22,
+    "leaves_second": 22,
+    "leaves_kept": 22,
     "dropped": []
    },
    "switch_probe": null,
@@ -15017,13 +15052,7 @@
     },
     {
      "turn": 1,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.pp[0].focusenergy",
+     "path": "p2.pp[0].sleeptalk",
      "with": 1,
      "without": 0
     },
@@ -15041,13 +15070,7 @@
     },
     {
      "turn": 2,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 0,
-     "without": 1
-    },
-    {
-     "turn": 2,
-     "path": "p2.pp[0].focusenergy",
+     "path": "p2.pp[0].sleeptalk",
      "with": 0,
      "without": 1
     }
@@ -15078,10 +15101,10 @@
    "second_control": {
     "control": "Infiltrator",
     "ran": true,
-    "why": "THE SECOND CONTROL: the identical scenario played a third time with Infiltrator in the slot instead of Contrary. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (20 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Contrary registers 1 handler(s), Infiltrator registers 1.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
-    "leaves_first": 20,
-    "leaves_second": 20,
-    "leaves_kept": 20,
+    "why": "THE SECOND CONTROL: the identical scenario played a third time with Infiltrator in the slot instead of Contrary. THE TWO DELTAS ARE IDENTICAL, leaf for leaf, in BOTH engines (16 leaf/leaves each), so the measurement does not depend on WHICH ability was removed and is therefore not the removed ability's. (Contrary registers 1 handler(s), Infiltrator registers 1.) What this still cannot see: two controls live in the SAME way on the SAME leaves would also agree.",
+    "leaves_first": 16,
+    "leaves_second": 16,
+    "leaves_kept": 16,
     "dropped": []
    },
    "switch_probe": null,
@@ -15118,31 +15141,19 @@
     },
     {
      "turn": 1,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 1,
-     "path": "p2.pp[0].focusenergy",
+     "path": "p2.pp[0].sleeptalk",
      "with": 1,
      "without": 0
     },
     {
      "turn": 2,
-     "path": "p2.active[0].vol.focusenergy",
-     "with": 1,
-     "without": 0
-    },
-    {
-     "turn": 2,
-     "path": "p2.pp[0].focusenergy",
+     "path": "p2.pp[0].sleeptalk",
      "with": 2,
      "without": 1
     },
     {
      "turn": 3,
-     "path": "p2.pp[0].focusenergy",
+     "path": "p2.pp[0].sleeptalk",
      "with": 3,
      "without": 2
     }
@@ -15155,9 +15166,9 @@
    "name": "Super Luck",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Absol; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui) — taken because Justified, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
-   "verdict": "FIRED-AND-BOARDS-MATCH",
-   "why": null,
+   "note": "ALTERNATE carrier Absol; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui) — taken because Justified, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
+   "verdict": "COULD-NOT-STAGE",
+   "why": "THE STAGING IS INERT. Showdown's own board is identical with and without it, over 2730 compared leaves — so nothing here tests the entity and a green would have been vacuous. This is the honest coverage limit, not a pass.",
    "arm": "top-tie-first",
    "control_why": null,
    "carrier": "absol",
@@ -15172,44 +15183,7 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [
-    {
-     "turn": 2,
-     "path": "p1.party.dragapult.hp",
-     "with": 744,
-     "without": 822
-    },
-    {
-     "turn": 2,
-     "path": "p1.active[0].hp",
-     "with": 744,
-     "without": 822
-    },
-    {
-     "turn": 3,
-     "path": "p1.party.dragapult.hp",
-     "with": 510,
-     "without": 666
-    },
-    {
-     "turn": 3,
-     "path": "p1.active[0].hp",
-     "with": 510,
-     "without": 666
-    },
-    {
-     "turn": 4,
-     "path": "p1.party.dragapult.hp",
-     "with": 510,
-     "without": 666
-    },
-    {
-     "turn": 4,
-     "path": "p1.active[0].hp",
-     "with": 510,
-     "without": 666
-    }
-   ],
+   "sd_delta": [],
    "diffs": []
   },
   {
@@ -15408,7 +15382,7 @@
    "name": "Surge Surfer",
    "rule": "ability/conditional-speed",
    "reads": "onModifySpe with NO weather named — the TERRAIN the handler names, or its `pokemon.status` test, and the multiplier off its own chainModify",
-   "note": "Manectric clicks Electric Terrain on turn 1, raising electricterrain for both arms; 162 -> 324 against 175 (Meowscarada, Overgrow), the carrier clicks Body Slam and the foe clicks Charm — so the x2 decides which of the two lands first, and the reading is the foe's hp   [SUPPRESS carrier Raichu-Alola, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Manectric clicks Electric Terrain on turn 1, raising electricterrain for both arms; 162 -> 324 against 175 (Meowscarada, Overgrow), the carrier clicks Body Slam and the foe clicks Charm — so the x2 decides which of the two lands first, and the reading is the foe's hp   [SUPPRESS carrier Raichu-Alola, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -15557,7 +15531,7 @@
    "name": "Swift Swim",
    "rule": "ability/weather-speed",
    "reads": "onModifySpe whose handler names a weather id (`pokemon.effectiveWeather()` against \"sunnyday\", \"snowscape\", ...)",
-   "note": "Drizzle on the partner raises raindance at boundary 0; 130 -> 260 against 132 (Blaziken, Blaze), the carrier's Liquidation kills outright and the foe's click is Feather Dance — so the x2 decides whether that drop ever lands   [ALTERNATE carrier Basculegion, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: FIRED-AND-BOARDS-MATCH -> CONTROL-NOT-QUIET; ]",
+   "note": "Drizzle on the partner raises raindance at boundary 0; 130 -> 260 against 132 (Blaziken, Blaze), the carrier's Liquidation kills outright and the foe's click is Feather Dance — so the x2 decides whether that drop ever lands   [ALTERNATE carrier Basculegion, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]  [#318 HELD on its pre-#318 bodies — measured on b42b81899631: FIRED-AND-BOARDS-MATCH -> CONTROL-NOT-QUIET; ]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -15608,7 +15582,7 @@
    "name": "Symbiosis",
    "rule": "ability/an-item-is-eaten-taken-or-handed-on",
    "reads": "onEatItem / onTakeItem returning false / onAfterMoveSecondary(Self) calling takeItem / onAllyAfterUseItem / an onStart whose whole body ENDS the holder's own item — five handlers that cannot fire unless an item is actually spent or changes hands",
-   "note": "the carrier holds Leftovers and its ALLY Torterra holds Sitrus Berry; Torkoal clicks Flamethrower at the ALLY on turn 1 for 120 of its 170 hp, past the 1/2 line the berry names. The ally then has empty hands and the handler hands it the carrier's item, so the reading is the `item` leaf on BOTH bodies of the carrier's side   [ALTERNATE carrier Florges, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "the carrier holds Leftovers and its ALLY Torterra holds Sitrus Berry; Torkoal clicks Flamethrower at the ALLY on turn 1 for 120 of its 170 hp, past the 1/2 line the berry names. The ally then has empty hands and the handler hands it the carrier's item, so the reading is the `item` leaf on BOTH bodies of the carrier's side   [ALTERNATE carrier Florges, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -15743,7 +15717,7 @@
    "name": "Synchronize",
    "rule": "ability/a-status-is-refused-cured-or-reflected",
    "reads": "onSetStatus returning false under a named weather / onResidual calling cureStatus under a named weather / onAfterSetStatus handing the status back to the source / a `nameImplementedBySim` param naming the statuses that walk through the type chart or the extra tick a status counter spends",
-   "note": "Serperior clicks Glare at the carrier on turn 1, writing `par`. With the ability the SAME status is written straight back onto Serperior — which the type chart does not refuse it, checked — and without it only the carrier carries it. The reading is the THROWER's `status` leaf, on the far side of the field from the swap   [ALTERNATE carrier Umbreon, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Serperior clicks Glare at the carrier on turn 1, writing `par`. With the ability the SAME status is written straight back onto Serperior — which the type chart does not refuse it, checked — and without it only the carrier carries it. The reading is the THROWER's `status` leaf, on the far side of the field from the swap   [ALTERNATE carrier Umbreon, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -15806,7 +15780,7 @@
    "name": "Tangled Feet",
    "rule": "ability/accuracy-decides-the-hit",
    "reads": "onAnyAccuracy / onSourceModifyAccuracy / onModifyAccuracy with NO weather named — the multiplier off the handler's own chainModify, the direction off the handler prefix, and any volatile the handler gates on",
-   "note": "Glimmora clicks Confuse Ray at the carrier on turn 1 to open this ability's own gate (`confusion`), then Sludge Bomb (100 accuracy, neutral on Mr. Rime) at it twice. x0.5 drags a 100 under the line, so WITH the ability both clicks must MISS and without it both must land — the reading is the carrier's hp   [ALTERNATE carrier Mr. Rime, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Glimmora clicks Confuse Ray at the carrier on turn 1 to open this ability's own gate (`confusion`), then Sludge Bomb (100 accuracy, neutral on Mr. Rime) at it twice. x0.5 drags a 100 under the line, so WITH the ability both clicks must MISS and without it both must land — the reading is the carrier's hp   [ALTERNATE carrier Mr. Rime, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -16320,7 +16294,7 @@
    "name": "Unaware",
    "rule": "ability/ignores-stat-stages",
    "reads": "onAnyModifyBoost zeroing named boost keys — the KEYS are read out of the handler, and the OFFENSIVE ones decide which category the fixture throws",
-   "note": "Talonflame clicks Swords Dance on turn 1, raising its own atk by 2 and nothing else — the setter is chosen off `move.boosts` for moving ONE stat — then throws Aerial Ace (Physical) at the carrier on turns 2 and 3. The handler zeroes `def`, `spd`, `evasion`, `atk`, `def`, `spa`, `accuracy`, so with the ability the two hits are priced at the base stat and without it at the boosted one. The reading is the carrier's hp   [ALTERNATE carrier Skeledirge, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Talonflame clicks Swords Dance on turn 1, raising its own atk by 2 and nothing else — the setter is chosen off `move.boosts` for moving ONE stat — then throws Aerial Ace (Physical) at the carrier on turns 2 and 3. The handler zeroes `def`, `spd`, `evasion`, `atk`, `def`, `spa`, `accuracy`, so with the ability the two hits are priced at the base stat and without it at the boosted one. The reading is the carrier's hp   [ALTERNATE carrier Skeledirge, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -16540,7 +16514,7 @@
    "name": "Unseen Fist",
    "rule": "ability/pierces-protect",
    "reads": "onHitProtect",
-   "note": "Venusaur spends its turn on Protect and the carrier throws Iron Head — a CONTACT click, which is what the handler reads — straight into it. With the ability the damage is non-zero; without it the shield refuses it and the number is exactly 0. Every other body clicks the inert click.   [MEGA carrier Golurk -> Golurk-Mega via Golurkite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui)]",
+   "note": "Venusaur spends its turn on Protect and the carrier throws Iron Head — a CONTACT click, which is what the handler reads — straight into it. With the ability the damage is non-zero; without it the shield refuses it and the number is exactly 0. Every other body clicks the inert click.   [MEGA carrier Golurk -> Golurk-Mega via Golurkite, control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -16603,7 +16577,7 @@
    "name": "Vital Spirit",
    "rule": "ability/refuses-one-status",
    "reads": "a status id quoted inside onSetStatus / onTrySetStatus / onImmunity / onUpdate",
-   "note": "Venusaur clicks Sleep Powder at Lycanroc-Midnight twice. WITHOUT the ability the carrier must end up \"slp\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Lycanroc-Midnight's typing nor Sleep Powder's can refuse it, which is a condition of the pairing.   [ALTERNATE carrier Lycanroc-Midnight, control = Skill Swap lends Corrosion off Glimmora (usable: 38 leaves in Showdown and 38 here, lending Corrosion off Glimmora on bottom-tie-first)]",
+   "note": "Venusaur clicks Sleep Powder at Lycanroc-Midnight twice. WITHOUT the ability the carrier must end up \"slp\"; with it, the status field must stay empty — the REFUSAL is the reading. Neither Lycanroc-Midnight's typing nor Sleep Powder's can refuse it, which is a condition of the pairing.   [ALTERNATE carrier Lycanroc-Midnight, control = Skill Swap lends Corrosion off Glimmora (usable: 37 leaves in Showdown and 37 here, lending Corrosion off Glimmora on bottom-tie-first)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -16729,7 +16703,7 @@
    "name": "Wandering Spirit",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "SUPPRESS carrier Runerigus; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui); staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
+   "note": "SUPPRESS carrier Runerigus; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui); staged as generic  [#318 restaged: p2[1] venusaur pruned never-clicked dragonclaw,uturn]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -16942,7 +16916,7 @@
    "name": "Weak Armor",
    "rule": "ability/generic",
    "reads": "nothing matched above — this is the residue",
-   "note": "ALTERNATE carrier Skarmory; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 32 leaves in Showdown and 32 here, lending Shell Armor off Goodra-Hisui) — taken because Keen Eye, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p1[1] goodrahisui pruned never-clicked bite; p2[1] venusaur pruned never-clicked bite,uturn]",
+   "note": "ALTERNATE carrier Skarmory; control = Skill Swap lends Shell Armor off Goodra-Hisui (usable: 31 leaves in Showdown and 31 here, lending Shell Armor off Goodra-Hisui) — taken because Keen Eye, the only control this carrier's own sheet offers, is itself a live ability; staged as generic  [#318 restaged: p1[1] goodrahisui pruned never-clicked bite; p2[1] venusaur pruned never-clicked bite,uturn]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -17247,13 +17221,13 @@
    "id": "zerotohero",
    "name": "Zero to Hero",
    "rule": "ability/entry",
-   "reads": null,
-   "note": null,
-   "verdict": "COULD-NOT-STAGE",
-   "why": "it is an ENTRY ability on a SUPPRESS-tier carrier, where the ability cannot be written on the SHEET and every available control is a CLICK — a Skill Swap exchange (ROADMAP #138) or Gastro Acid suppression. AN ENTRY EFFECT HAS ALREADY FIRED BY THE TIME ANY CLICK RESOLVES. The positive and the control would be different experiments.  AND THE TIMING IS NOT THE BINDING CONSTRAINT HERE, WHICH IS A DIFFERENT AND HARDER REFUSAL: the format flags this ability BOTH `failskillswap` and `cantsuppress`, so `Battle#skillSwap` (sim/battle.ts:1316) returns false before anything is exchanged AND Gastro Acid's own `onTryHit` (data/moves.ts:6437) refuses outright. Its only carriers (Palafin, Palafin-Hero) hold it in ability slot 0 with nothing beside it. ALL THREE CONTROL SHAPES ARE SHUT BY THE REGULATION, so unlike the timing refusal above there is no cleverer fixture waiting to be built — this one is closed until the instrument grows a control the format allows.",
+   "reads": "onStart / onSwitchIn, with no onResidual",
+   "note": "Palafin switches out to Torkoal on turn 1 and back in on turn 2 — the handler turns it into Palafin-Hero on the way out — then clicks Ice Beam at Goodra-Hisui on turn 3. CONTROL: it never leaves (the inert click on turns 1 and 2), the only control this regulation allows, because the ability itself cannot be swapped, suppressed or pierced. THE READING IS DECLARED: the carrier's party-row species and Goodra-Hisui's HP only; the whole subject arm is still compared between the engines leaf for leaf.",
+   "verdict": "FIRED-AND-BOARDS-MATCH",
+   "why": null,
    "arm": "top-tie-first",
    "control_why": null,
-   "carrier": null,
+   "carrier": "palafin",
    "dice": null,
    "coin": null,
    "coin_shared": false,
@@ -17265,7 +17239,38 @@
    "declared_untestable": false,
    "second_control": null,
    "switch_probe": null,
-   "sd_delta": [],
+   "sd_delta": [
+    {
+     "turn": 1,
+     "path": "p2.party.palafin.species",
+     "with": "palafinhero",
+     "without": "palafin"
+    },
+    {
+     "turn": 2,
+     "path": "p2.party.palafin.species",
+     "with": "palafinhero",
+     "without": "palafin"
+    },
+    {
+     "turn": 3,
+     "path": "p1.party.goodrahisui.hp",
+     "with": 589,
+     "without": 602
+    },
+    {
+     "turn": 3,
+     "path": "p1.active[0].hp",
+     "with": 589,
+     "without": 602
+    },
+    {
+     "turn": 3,
+     "path": "p2.party.palafin.species",
+     "with": "palafinhero",
+     "without": "palafin"
+    }
+   ],
    "diffs": []
   }
  ]

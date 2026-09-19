@@ -161,11 +161,9 @@ ENGINE — does the simulator do what Pokémon does
   900/900 probed mechanics live, 0 missing   (census 2026-09-18 23:44)
     the census probes what somebody thought to probe: 297 of 297 in-scope tags carry a probe, 0 carry none (9 of 306
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 1.1 h old). node engine/coverage.js
+    (all-mechanics-fire.json, 44 min old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    older than its input abra-tags.js
-    pinned to engine release 482e8f5ca701 — engine/medicham2-browser.js matches the frozen copy; live is 614058acfc05 now (a PRE-CHANGE measurement of that release, not corruption)
-    (+3 more — node engine/provenance.js)
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/74be319d02fa/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "74be319d02fa".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -182,9 +180,32 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-18 23:52_
+_stamped 2026-09-19 01:45_
 
 <!-- /GENERATED -->
+
+## THE TWO ACCURACY RED PLANTS ARE CAUGHT AGAIN, THE ROSTER STOPS BUILDING BODIES THAT CANNOT KNOW THEIR IDLE CLICK, AND 6.50.0 RE-MEASURES AT **0 / 5 / 12** — EXACTLY THE TEN PREDICTED GAMES GONE, NONE JOINED. THE LEGAL CLICK EXPOSES ONE REAL DIVERGENCE: **PROTEAN CONVERTS ON A STATUS MOVE WHOSE `onTry` FAILS**. CENSUS **900 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — RELEASE `74be319d02fa`.** GATE **CLOSED, 2 OF 8**. 2026-09-19, CHANGELOG 6.50.1–6.51.0
+
+Report: `docs/_reports/2026-09-19-roster-plants-remeasure.md`.
+
+- **Plants on signatures, not on lines in a body.** `item/accuracy-scaled` now plants on
+  `function accModRow(kind,id){` and `ability/weather-evasion` on `function _accWhen(w,ctx,holder){`. Each
+  was shown NOT CAUGHT, then CAUGHT, on a single-rule `--reds` run. The old anchors still matched once,
+  but after 6.48.0 they sat in the knob-only name branch, so a live anchor on dead code looked the same
+  as a working one.
+- **The idle click is legal where it can be.** 55 of 347 species learn Focus Energy and 346 learn Sleep
+  Talk (not Ditto). The LEARNSET CLAUSE section below says there was "nothing to swap to", and that Sleep
+  Talk "changes the game". **Measured today, that is true only for a SLEEPING body.** On an awake body,
+  `--selftest --inert sleeptalk` moves no leaf beyond its own PP in either engine. So the rows that name
+  sleep keep Focus Energy, by name, and so do crit-ratio readers, Ditto and the control-click row.
+  Illegal sets per stage: **385 / 583 / 638 → 17 / 94 / 57**.
+- **The substitute found three readers that spelled Focus Energy.** One of them made a vacuous green on
+  the intermediate run: Super Luck read MATCH on the Skill Swap swapper's `pp.sleeptalk` alone. After
+  the fix it read INERT, which is honest, because its green came from Focus Energy's +2. It is now kept
+  on Focus Energy by a derived crit-ratio rule and reads MATCH on a real crit.
+- **Greninjite is the new items DIFFER, and it is the engine.** `proteanConvert` is not gated on the
+  move's `Try` (`sim/battle-actions.ts:826-828` runs `Try` before `PrepareHit`) or on `callsMove`.
+  It reads MATCH under `ROSTER_INERT_FOCUSENERGY=1`. **OWED: probe, fix, cut, re-run.**
 
 ## GOOEY'S DROP NOW RUNS THE ATTACKER'S OWN STAT REACTIONS, AND MUMMY / WANDERING SPIRIT NOW REFUSE A FLAGGED ABILITY. BOTH LEADS WERE A CLASS, NOT AN INSTANCE. CENSUS **894 → 896 LIVE / 0 MISSING**. 2026-09-18, CHANGELOG `<<VER>>`
 

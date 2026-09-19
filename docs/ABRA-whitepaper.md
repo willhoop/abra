@@ -1712,8 +1712,8 @@ release: the whole-game differential (`data/game-differential.json` — board-ma
 narration **0 undeclared of 961**, 10,705 of 10,705 turn boundaries identical, none excluded, none cut
 off), the damage differential (`data/engine-diff.json` — 6,000 compared, 0 disagreed, at 17 roll
 indices), and the deliberate roster — `data/roster.items.json` **148 tested**,
-`data/roster.abilities.json` **194 tested**, `data/roster.moves.json` **494 tested** (re-measured on release `482e8f5ca701`, CHANGELOG 6.49.1), every stage with
-`differ` 0 and DID-NOT-FIRE 0 and its scope decided by `engine/legal_scope.js` (CHANGELOG 6.14.0).
+`data/roster.abilities.json` **194 tested**, `data/roster.moves.json` **494 tested** (re-measured on release `74be319d02fa`, CHANGELOG 6.51.0), every stage with
+DID-NOT-FIRE 0, abilities and moves with `differ` 0, and items with `differ` **1**. That row is Greninjite: Protean converts the user on a status move whose `onTry` fails, exposed when the roster's idle click became a legal one (CHANGELOG 6.50.1). Each stage's scope is decided by `engine/legal_scope.js` (CHANGELOG 6.14.0).
 The bound on the word "correct" is stated in the 6.0.0 block at the head of this paper
 and is not repeated here. The older, narrower Smogon-calculator check below is retained because it is
 still true of its own artifact.

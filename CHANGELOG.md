@@ -10,6 +10,43 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.51.0] — 2026-09-19
+
+### Notes
+- **6.50.0 re-measured on release `74be319d02fa`. No engine code changed.** It is a MINOR, not a PATCH, because it moves published figures. Lattices (`--games` 1200 /
+  1350 / 1950, census `322a5b4ba6b0` (900 live), `--team-store data/team-pool-frozen`, arm `middle`,
+  cap 50, `--end-state`, `--steering empirical`): board-material **0 of 961 / 5 of 1069 / 12 of 1497**,
+  was 0 / 7 / 20. The ten games predicted from the six 6.50.0 fixes left, and only those ten. **No game
+  joined.** Undeclared narration is unchanged at 0 / 12 / 24.
+- Roster: items 147 MATCH plus **1 FIRED-AND-BOARDS-DIFFER** (Greninjite); abilities 194 of 200; moves
+  494 of 497; reds 22 / 63 / 37, all CAUGHT. The Greninjite row is a **real divergence that the legal
+  control click (6.50.1) exposed**, not an instrument error: Protean converts the user on a status move
+  whose `onTry` fails. The authority runs `Try` before `PrepareHit`. It reads MATCH under
+  `ROSTER_INERT_FOCUSENERGY=1`. Not fixed in this pass.
+- Damage diff 0 of 6000 at every index. `all_mechanics_fire`: 4702 games, 0 threw. **Gate `CLOSED — 2 of
+  8`** (was 3 of 8): board-material and roster/items. Full account:
+  `docs/_reports/2026-09-19-roster-plants-remeasure.md`.
+
+## [6.50.1] — 2026-09-19
+
+### Fixed
+- **The two roster red demonstrations that went NOT CAUGHT after 6.48.0 are CAUGHT again.**
+  `item/accuracy-scaled` now plants on the signature of `accModRow`, and `ability/weather-evasion` on
+  the signature of `_accWhen`. The old anchors were lines inside the knob-only `ACCMOD` branch. Each was
+  shown NOT CAUGHT, then CAUGHT, on a single-rule `--reds` run.
+- **Roster bodies no longer carry an idle click they cannot learn.** Focus Energy is learned by 55 of
+  the 347 legal species. A scenario whose holders cannot all learn it now idles on the derived legal
+  substitute, Sleep Talk: `onTry` returns the sleep test, and it passes the same shape cap and the
+  selftest. Rows are kept on Focus Energy, by name, where the substitute would not be inert: fixtures
+  that name sleep, crit-ratio readers, Ditto, and the control-click row. Illegal fixture sets per
+  stage: items 385 -> 17, abilities 583 -> 94, moves 638 -> 57; `all_mechanics_fire` 83 -> 0.
+- Three readers that spelled Focus Energy now read whichever idle click was built: Steadfast's flinch
+  meter, the Skill Swap swapper-slot exemption and the conferred-ability exemption.
+
+### Notes
+- The fixture-legality check's exit codes were never inconsistent. It sets no exit code. The roster's
+  items and abilities exits of 1 came from the two NOT CAUGHT reds. It stays report-only.
+
 ## [6.50.0] — 2026-09-18
 
 ### Fixed

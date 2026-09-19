@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-19T02:44:51.394Z",
- "engine_release": "482e8f5ca701",
- "engine_release_cut": "2026-09-19T01:50:02.545Z",
+ "generated": "2026-09-19T05:01:43.282Z",
+ "engine_release": "74be319d02fa",
+ "engine_release_cut": "2026-09-19T03:44:42.628Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "cc1d60172ee7",
+  "engine/medicham2-browser.js": "614058acfc05",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -25,15 +25,15 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "ca8b9c405ed9",
-  "data/tags.json": "41cf1f1be398",
+  "data/abra-tags.js": "af7d8f44147c",
+  "data/tags.json": "2f6c7186cb70",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
   "engine/pp.js": "30b12a4ef623",
   "data/rollout-switch-census.json": "b599f8d581b5"
  },
- "release": "482e8f5ca701",
+ "release": "74be319d02fa",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -105100,7 +105100,7 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 76
    },
-   "seconds": 50.8
+   "seconds": 147
   },
   "abilities": {
    "exist": 316,
@@ -105119,7 +105119,7 @@
    "diverged_including_shelved": 3,
    "shelved_by_owner": 6,
    "shelved_by_owner_diverging": 2,
-   "seconds": 53.4,
+   "seconds": 158.4,
    "board_only": {
     "rows": 17,
     "staged": 17,
@@ -105199,7 +105199,7 @@
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 6,
    "board_state_fired": 5,
-   "seconds": 54.6,
+   "seconds": 11.5,
    "stones": {
     "rows": 0,
     "staged": 0,
@@ -105422,10 +105422,10 @@
  },
  "planner": {
   "meta": {
-   "generated": "2026-09-19T02:44:51.255Z",
+   "generated": "2026-09-19T05:01:43.024Z",
    "by": "engine/stage_planner.js",
-   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\482e8f5ca701\\data\\tags.json",
-   "tags_digest": "41cf1f1be398d2c8",
+   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\74be319d02fa\\data\\tags.json",
+   "tags_digest": "2f6c7186cb707855",
    "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown",
    "validator": {
     "calls": 1361,
@@ -105470,7 +105470,7 @@
     "stench: secondary (the handler assigns move.secondaries)",
     "kingsrock: secondary (the handler assigns move.secondaries)"
    ],
-   "ms": 20281
+   "ms": 101419
   },
   "summary": {
    "mechanics": 964,
@@ -105525,7 +105525,7 @@
    }
   },
   "played": {
-   "plan_ms": 20341,
+   "plan_ms": 102201,
    "rows": 347,
    "fixtures": 853,
    "variants": 1968,

@@ -243,10 +243,10 @@ console.log('\nwire 6 — punishesAttacker complete');
    * against the attacker (Ground into a Flying body, Electric into a Ground body), so every HP
    * point and boost stage the attacker loses is the punishment and nothing else. rng is a constant,
    * which pins the damage roll, the crit roll and the status roll. */
-  const one = (attacker, atkMove, holderAbility, holderMove, rngVal, holderHP) => {
+  const one = (attacker, atkMove, holderAbility, holderMove, rngVal, holderHP, atkAbility) => {
     const a = M.buildMon(attacker, {}); const h = M.buildMon('incineroar', {});
     if (!a || !h) return null;
-    a.moves = [atkMove]; a.item = '';
+    a.moves = [atkMove]; a.item = ''; if (atkAbility) a.ability = atkAbility;
     h.moves = [holderMove]; h.item = ''; h.ability = holderAbility;
     h.st = Object.assign({}, h.st, { hp: holderHP }); h.curHP = holderHP;
     /* ROADMAP #168 / #169 — NEITHER BODY MAY RUN OUT OF PP, AND THIS IS WHAT THE COMMENT ABOVE ALREADY
@@ -302,8 +302,15 @@ console.log('\nwire 6 — punishesAttacker complete');
    * artifact's own {spe:-1}. Before this wire Gooey carried NO parameter and did nothing. */
   const pGO = TAGS.param('ability', 'gooey', 'punishesAttacker');
   ok(pGO && pGO.boosts && pGO.boosts.spe === -1, 'Gooey carries {spe:-1} read from its own handler');
-  const go = one('corviknight', 'ironhead', 'gooey', 'earthquake', 0.5, 99999);
+  /* 2026-09-19 -- THE ATTACKER'S ABILITY IS PINNED. Corviknight's default slot here is Mirror Armor, and since
+   * 6.50.0 Gooey's drop travels the boost road (data/abilities.ts:1636 `this.boost`), so Mirror Armor
+   * correctly reflects it and the attacker keeps 0. The old arm had been passing only because the drop
+   * was written raw. Pressure reacts to nothing here, so the arm again measures Gooey alone; the second
+   * arm asserts the reflection the authority performs. */
+  const go = one('corviknight', 'ironhead', 'gooey', 'earthquake', 0.5, 99999, 'pressure');
   ok(go && go.boosts.sp === -6, `20 turns of contact drags the attacker to -6 speed (got ${go && go.boosts.sp})`);
+  const gma = one('corviknight', 'ironhead', 'gooey', 'earthquake', 0.5, 99999, 'mirrorarmor');
+  ok(gma && gma.boosts.sp === 0, `a Mirror Armor attacker reflects Gooey's drop and keeps its speed (got ${gma && gma.boosts.sp})`);
 
   /* Spicy Spray: the hardcode it replaces burned only PHYSICAL attackers; the handler burns any
    * damaging hit. A special, non-contact move must now come back burned. */

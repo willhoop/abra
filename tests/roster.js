@@ -322,6 +322,132 @@ const INERT_RAISES_CRIT_STAGES = (() => {
  * list. Handlers are deliberately NOT inspected: `substitute` declares only a volatile and takes a
  * quarter of the user's HP inside `onHit`, and catching that is the AUDIT's job, not the cap's —
  * `--selftest --inert substitute` is the red demonstration. */
+/* ---- THE CONTROL CLICK MUST BE A MOVE THE BODY CAN LEGALLY KNOW (2026-09-19) --------------------
+ *
+ * FOCUS ENERGY IS LEARNED BY 55 OF THE 347 LEGAL SPECIES, and `scaffold` appended it to EVERY body.
+ * The runtime fixture check in `engine/game_differential.js` `buildPair` put every body this file
+ * builds to the validator and refused 385 sets in the items stage, 583 in abilities and 638 in moves
+ * on release `482e8f5ca701`, every one of them "can't learn Focus Energy". Showdown does not check
+ * learnsets in battle, so every arm played and every verdict stood — but a fixture that could not be
+ * brought to a real game is a claim about a game nobody can play, and the regulation rule forbids it.
+ *
+ * THE SUBSTITUTE IS DERIVED THE WAY tests/probe_partingshot_conditional.js DERIVED ITS FILLER: a legal
+ * status move, `target: 'self'`, passing the SAME shape cap as the primary (`inertShapeComplaint`), whose
+ * `onTry` RETURNS the sleep test — so on a body that is awake it fails at `onTry`, before `onHit`, spends
+ * PP and moves nothing else. `--selftest --inert <it>` proves that on both engines' boards.
+ *
+ * IT IS CHOSEN PER SCENARIO, FROM PER-SPECIES LEARNSETS, AND THE REASON IS THE SCRIPT LANGUAGE. A click
+ * names ONE move id (`scripted()` matches `want.m` against the request), and the body in a slot changes
+ * across a switch or a faint, so `IDLE` cannot name a different move per species. So: a scenario whose
+ * every holder learns Focus Energy keeps it BYTE-IDENTICAL to what it played before; otherwise every
+ * holder must learn the substitute and the whole scenario idles on it. Both arms of one row take the
+ * SAME choice (memoised on the row's base id and its species), because two arms idling on two different
+ * clicks would be a delta the control made.
+ *
+ * WHERE THE SUBSTITUTE IS NOT INERT IT IS NOT USED, AND THE ROW STAYS ON FOCUS ENERGY BY NAME:
+ *   - a SLEEPING body's Sleep Talk calls a move. So a scenario in which anything — a move on any body,
+ *     an ability or item anywhere, the entity, or a move's own volatile — so much as names `'slp'` in
+ *     its data or handlers keeps Focus Energy. Deliberately over-wide (Insomnia is caught too): the
+ *     cost of a false positive is one illegal body, the cost of a false negative is a control arm that
+ *     attacks. `INERT_SUB_SLEPT` counts any board that shows a sleeping body under the substitute anyway.
+ *   - a body carrying an ability the substitute's own `onTry` names (Comatose, read off the handler).
+ *   - the row whose entity IS a control click, or whose bodies already carry the substitute.
+ *   - a scenario that READS Focus Energy's own effect (`inertEffect`, the crit-stage fixture).
+ * `ROSTER_INERT_FOCUSENERGY=1` restores Focus Energy on every body — the old fixture, for a before/after. */
+const INERT_SUBS = (() => {
+  if (ARG('--inert')) return [];                       // a selftest override measures the named click only
+  return dex.moves.all().filter(m => m.exists && !m.isNonstandard && m.category === 'Status'
+      && m.target === 'self' && idOf(m.id) !== idOf(INERT) && !inertShapeComplaint(m)
+      && /return\s+source\.status\s*===\s*['"]slp['"]/.test(String(m.onTry || '')))
+    .sort((a, b) => (a.id < b.id ? -1 : 1));
+})();
+/* EVERY ID THE IDLE CLICK CAN BE BUILT AS, AND EVERY VOLATILE ONE OF THEM DECLARES. A reader that exempts
+ * or meters "the control click's own PP" must name all of them: a scenario built on the substitute spends
+ * `pp.sleeptalk`, and a reader still spelling Focus Energy would count the control describing itself as
+ * evidence (the Skill Swap swapper's slot) or miss the meter it reads (Steadfast's flinch receipt). */
+const INERT_IDS = [idOf(INERT)].concat(INERT_SUBS.map(m => m.id));
+const INERT_IDS_RE = '(?:' + INERT_IDS.join('|') + ')';
+const INERT_VOLS = [INERT_MOVE].concat(INERT_SUBS).filter(m => m.volatileStatus).map(m => idOf(m.volatileStatus));
+const INERT_VOLS_RE = INERT_VOLS.length ? '(?:' + INERT_VOLS.join('|') + ')' : null;
+const INERT_SUB_BLOCKS = new Map(INERT_SUBS.map(m => [m.id,
+  [...String(m.onTry || '').matchAll(/hasAbility\(\s*['"](\w+)['"]\s*\)/g)].map(x => idOf(x[1]))]));
+const INERT_PICKS = new Map();                         // memo key -> { pick, why }
+const INERT_PICK_TALLY = {};                           // why -> scenarios
+let INERT_SUB_SLEPT = 0; const INERT_SUB_SLEPT_WHO = [];
+const _SLP = /['"]slp['"]/;
+const _hText = x => (x ? Object.keys(x).filter(k => /^on/.test(k) && typeof x[k] === 'function')
+  .map(k => String(x[k])).join('\n') : '');
+function _namesSleep(kind, xid) {
+  if (!xid) return false;
+  const g = kind === 'move' ? dex.moves : kind === 'ability' ? dex.abilities : dex.items;
+  const x = g.get(xid);
+  if (!x || !x.exists) return false;
+  if (x.status === 'slp') return true;
+  for (const sec of [].concat(x.secondary || [], x.secondaries || []))
+    if (sec && (sec.status === 'slp' || _SLP.test(_hText(sec)))) return true;
+  if (x.volatileStatus && _SLP.test(_hText(dex.conditions.get(x.volatileStatus)))) return true;
+  if (x.condition && _SLP.test(_hText(x.condition))) return true;
+  return _SLP.test(_hText(x));
+}
+function inertChoice(sc) {
+  if (!INERT_SUBS.length || process.env.ROSTER_INERT_FOCUSENERGY === '1') return { pick: null, why: 'restored' };
+  const bodies = sc.A.concat(sc.B);
+  const carries = (m, mv) => (m.moves || []).some(x => idOf(x) === idOf(mv));
+  const holders = bodies.filter(m => carries(m, INERT));
+  if (!holders.length) return { pick: null, why: 'no body carries the control click' };
+  const key = String(sc.id).replace(/~control2?$/, '') + '|' + bodies.map(m => idOf(m.species)).sort().join(',');
+  if (INERT_PICKS.has(key)) return INERT_PICKS.get(key);
+  let out;
+  if (holders.every(m => learnsLegally(m.species, INERT))) out = { pick: null, why: 'Focus Energy is legal on every holder' };
+  else if (sc.inertEffect) out = { pick: null, why: 'KEPT: the scenario reads Focus Energy\'s own effect (' + sc.inertEffect + ')' };
+  else if (idOf(sc.entityId) === idOf(INERT)) out = { pick: null, why: 'KEPT: the row is the control click itself' };
+  /* A CRIT-RATIO ENTITY READS FOCUS ENERGY'S +2 WHETHER OR NOT ITS RULE SAYS SO. Measured 2026-09-19: Super
+   * Luck's generic fixture (Absol idles, then attacks) crits only because the idle click adds two stages;
+   * built on the substitute it read THE STAGING IS INERT. Derived off the entity's own handler. */
+  else if (idOf(sc.entityId) && sc.kind !== 'move' && typeof ((sc.kind === 'item' ? dex.items : dex.abilities)
+             .get(sc.entityId) || {}).onModifyCritRatio === 'function')
+    out = { pick: null, why: 'KEPT: the entity modifies the crit ratio, and Focus Energy\'s +' + INERT_RAISES_CRIT_STAGES + ' is part of what its fixture reaches' };
+  else {
+    const clicked = new Set();
+    for (const st of sc.script || []) for (const side of ['p1', 'p2'])
+      for (const a of (st && st[side]) || []) if (a && a.m) clicked.add(idOf(a.m));
+    const sleeps = (idOf(sc.entityId) && _namesSleep(sc.kind, sc.entityId))
+      || bodies.some(m => (m.moves || []).some(x => idOf(x) !== idOf(INERT) && !INERT_SUBS.some(s => s.id === idOf(x))
+                                                    && _namesSleep('move', x))
+                       || _namesSleep('ability', m.ability) || _namesSleep('item', m.item));
+    let why = null, pick = null;
+    for (const s of INERT_SUBS) {
+      if (sleeps) { why = 'KEPT: something on this fixture names sleep, and a sleeping body\'s ' + s.name + ' calls a move'; continue; }
+      if (idOf(sc.entityId) === s.id) { why = 'KEPT: the row is ' + s.name + ' itself'; continue; }
+      if (clicked.has(s.id) || bodies.some(m => carries(m, s.id))) { why = 'KEPT: a body already carries ' + s.name; continue; }
+      const blk = INERT_SUB_BLOCKS.get(s.id) || [];
+      if (bodies.some(m => blk.includes(idOf(m.ability)))) { why = 'KEPT: a body carries an ability ' + s.name + '\'s own onTry names'; continue; }
+      const cant = holders.filter(m => !learnsLegally(m.species, s.id));
+      if (cant.length) { why = 'KEPT: ' + [...new Set(cant.map(m => idOf(m.species)))].join(', ') + ' cannot learn ' + s.name; continue; }
+      pick = s.id; why = 'substituted: ' + s.name; break;
+    }
+    out = { pick, why };
+  }
+  INERT_PICKS.set(key, out);
+  INERT_PICK_TALLY[out.why] = (INERT_PICK_TALLY[out.why] || 0) + 1;
+  return out;
+}
+function withLegalInert(sc) {
+  const ch = inertChoice(sc);
+  if (!ch.pick) return { sc, pick: null };
+  const sw = x => (idOf(x) === idOf(INERT) ? ch.pick : x);
+  /* de-duplicated: a body handed the control click twice was already an illegal set ("multiple copies") */
+  const body = m => ({ ...m, moves: [...new Set((m.moves || []).map(sw))] });
+  const acts = arr => (arr || []).map(a => (a && a.m && idOf(a.m) === idOf(INERT) ? { ...a, m: ch.pick } : a));
+  return { pick: ch.pick, sc: { ...sc, A: sc.A.map(body), B: sc.B.map(body),
+    script: (sc.script || []).map(st => ({ ...st, p1: acts(st.p1), p2: acts(st.p2) })) } };
+}
+function _anyAsleep(o, depth) {
+  if (!o || typeof o !== 'object' || depth > 6) return false;
+  if (o.status === 'slp') return true;
+  for (const k of Object.keys(o)) if (_anyAsleep(o[k], depth + 1)) return true;
+  return false;
+}
 const INERT_SELF = (() => {
   /* WHOLE PATHS, ANCHORED, NOT SUFFIXES. `board_state.js` writes a spent-PP leaf as
    * `p1.pp[0].focusenergy` and a volatile as `p1.active[0].vol.focusenergy` — two different shapes,
@@ -334,6 +460,15 @@ const INERT_SELF = (() => {
   if (INERT_MOVE.volatileStatus) {
     const v = idOf(INERT_MOVE.volatileStatus);
     out.push({ field: 'vol.' + v, re: new RegExp('^p[12]\\.active\\[\\d+\\]\\.vol\\.' + v + '$') });
+  }
+  /* THE LEGAL SUBSTITUTE'S OWN BOOKKEEPING, IN THE SAME TWO SHAPES AND NO OTHER. It passed the same
+   * `inertShapeComplaint` cap, so it can declare nothing wider than these. */
+  for (const m of INERT_SUBS) {
+    out.push({ field: 'pp.' + m.id, re: new RegExp('^p[12]\\.pp\\[\\d+\\]\\.' + m.id + '$') });
+    if (m.volatileStatus) {
+      const v = idOf(m.volatileStatus);
+      out.push({ field: 'vol.' + v, re: new RegExp('^p[12]\\.active\\[\\d+\\]\\.vol\\.' + v + '$') });
+    }
   }
   out.names = out.map(x => x.field);
   return out;
@@ -771,7 +906,10 @@ function builtStats(speciesId) {
      * engine bytes at all (the stats come from `MEDI.spreadL50` below), so the first binding is the
      * right one for the whole process. */
     if (!_BP) _BP = SB.harness(null).buildPair;
-    const row = x => ({ species: x, item: '', ability: '', moves: ['focusenergy'] });
+    /* PRICED ON A LEGAL BODY: the spread does not read the move, but the validator reads the body */
+    const row = x => ({ species: x, item: '', ability: '',
+      moves: [learnsLegally(x, INERT) ? INERT
+              : ((INERT_SUBS.find(m => learnsLegally(x, m.id)) || { id: INERT }).id)] });
     const pair = _BP([row(speciesId)].concat(_fillers(speciesId).map(row)), { hpBoost: 1 });
     /* ---- THE **SPEC**, NOT THE BODY HANGING OFF IT, AND THE DIFFERENCE IS 18 ATTACK POINTS --------
      *
@@ -1310,7 +1448,9 @@ const ARM_FALLS_THROUGH = (typeof process !== 'undefined' && process.env
  * requires every `middle` row to carry a COIN RECEIPT, i.e. the die that decided it was checked
  * against the authority's own address log rather than assumed. */
 const ARM_PLAYED = new Map();
-function play(sc, src, armId) {
+function play(sc0, src, armId) {
+  /* the scenario as it is BUILT: the control click resolved to one every holder can legally know */
+  const { sc, pick: inertPick } = withLegalInert(sc0);
   const G = SB.harness(src);
   let ARM = G.ARM_BY_ID.get(armId || PRIMARY_ARM_ID);
   if (!ARM) return { bad: 'NO-SUCH-ARM', why: 'the scenario asks for pin arm "' + (armId || PRIMARY_ARM_ID)
@@ -1411,6 +1551,13 @@ function play(sc, src, armId) {
   const actives = () => (Sref ? { p1: (Sref.actA || []).map(m => (m ? idOf(m.name) : null)),
                                  p2: (Sref.actB || []).map(m => (m ? idOf(m.name) : null)) } : null);
   const dice = wantDice ? diceOf(G.midAddresses()) : null;
+  /* THE SUBSTITUTE'S ONE HAZARD, WATCHED RATHER THAN ASSUMED SHUT. The static gate in `inertChoice`
+   * keeps Focus Energy on any fixture that names sleep; a board that shows a sleeping body under the
+   * substitute anyway means that gate missed a road, and it is counted and named at the end of the run. */
+  if (inertPick && boards.some(x => _anyAsleep(x.medi, 0) || _anyAsleep(x.sd, 0))) {
+    INERT_SUB_SLEPT++;
+    if (INERT_SUB_SLEPT_WHO.length < 20) INERT_SUB_SLEPT_WHO.push(sc.id);
+  }
   /* ---- A THROW WITH NO NARRATION IS A DEAD END, AND FOUR ROWS SAT ON ONE FOR WEEKS -----------------
    * `overgrow`, `sharpness`, `unburden` and `shadowtag` all read
    * "THREW — p2 choice rejected p2 \"pass, move 1\"" and nothing else, which names the choice string
@@ -1571,9 +1718,9 @@ function controlOf(sc, rank) {
      * `<its own>` is the conferral itself and is dropped by the value-conditioned `swapLeaf`. */
     const K = sc.conferred;
     for (const st of c.script) for (const a of st.p1) if (a && idOf(a.m) === idOf(K.move)) { a.m = INERT; delete a.t; }
-    ignore.push(new RegExp('^p1\\.pp\\[\\d+\\]\\.(' + idOf(K.move) + '|' + idOf(INERT) + ')$'));
-    if (INERT_MOVE.volatileStatus)
-      ignore.push(new RegExp('^p1\\.active\\[\\d+\\]\\.vol\\.' + idOf(INERT_MOVE.volatileStatus) + '$'));
+    ignore.push(new RegExp('^p1\\.pp\\[\\d+\\]\\.(' + idOf(K.move) + '|' + INERT_IDS_RE + ')$'));
+    if (INERT_VOLS_RE)
+      ignore.push(new RegExp('^p1\\.active\\[\\d+\\]\\.vol\\.' + INERT_VOLS_RE + '$'));
     swap.side = 'p2'; swap.subject = K.ability;
     swap.species.push(K.targetSpecies); swap.controls.add(K.targetAbility);
   } else if (sc.kind === 'ability' && sc.controlKind === 'stone') {
@@ -1746,9 +1893,9 @@ function swapArmLeaf(swap, path, subjVal, ctrlVal) {
   if (new RegExp('^' + A.side + '\\.(active\\[' + A.slot + '\\]|party\\.' + A.species
                  + ')\\.ability$').test(path))
     return (String(subjVal) === A.lent && String(ctrlVal) === A.subject) ? 1 : 0;
-  if (new RegExp('^' + A.side + '\\.pp\\[' + A.slot + '\\]\\.(' + SWAP_MOVE + '|' + INERT + ')$')
+  if (new RegExp('^' + A.side + '\\.pp\\[' + A.slot + '\\]\\.(' + SWAP_MOVE + '|' + INERT_IDS_RE + ')$')
       .test(path)) return 1;
-  if (new RegExp('^' + A.side + '\\.active\\[' + A.slot + '\\]\\.vol\\.' + INERT + '$').test(path))
+  if (INERT_VOLS_RE && new RegExp('^' + A.side + '\\.active\\[' + A.slot + '\\]\\.vol\\.' + INERT_VOLS_RE + '$').test(path))
     return 1;
   return 0;
 }
@@ -6396,11 +6543,14 @@ const RULES = [
           + INERT_RAISES_CRIT_STAGES + ' stages, in BOTH arms) and then ' + C.move.name + ' at '
           + pretty(C.foe.id) + '. WITH the item the ratio is 4 and the hit ALWAYS crits; WITHOUT it '
           + 'the ratio is 3 and the pin refuses the roll. No die is thrown on either side.',
-      scenario: scaffold({ hpA: 6,
+      /* `inertEffect`: this fixture READS the control click's crit stages, so it is never handed the
+       * legal substitute, which has none (see `inertChoice`). */
+      scenario: Object.assign(scaffold({ hpA: 6,
         a0: mon(C.foe.id, '', carrierAbility(C.foe), [INERT]),
         b0: mon(C.holder.id, e.id, CAST.ATTACKER().ability, [C.move.id]),
         script: [turn([IDLE, IDLE], [click(INERT), IDLE]),
-                 turn([IDLE, IDLE], [mclick(C.move, 0), IDLE])] }) };
+                 turn([IDLE, IDLE], [mclick(C.move, 0), IDLE])] }),
+        { inertEffect: 'crit stages +' + INERT_RAISES_CRIT_STAGES }) };
   } },
 
 { id: 'item/trapping-escape', kind: 'item',
@@ -7028,8 +7178,16 @@ const RULES = [
    * the UNTABLED-CARRIER WARNING beside it; the modifier itself comes out of the engine's `ACCMOD`
    * table one line above. The break applied cleanly and moved no board — which is exactly the signal
    * `--reds` exists to give, and is why an anchor is never trusted for looking plausible. */
-  break: { why: 'the accuracy modifier row is dropped, so every holder reads as untabled',
-    patch: [['  if(row)return row.off?null:row;', '  if(row)return null;']] },
+  /* THE SECOND ANCHOR DIED THE SAME WAY AS THE FIRST, AND FOR A REASON WORTH WRITING DOWN. It patched
+   * `if(row)return row.off?null:row;`, a line INSIDE the name-keyed `ACCMOD` read. 6.48.0 moved the row
+   * onto the `accuracyMod` tag and left that line behind `MEDI_ACCMOD_BY_NAME=1`, so the anchor still
+   * matched exactly once, the plant still applied, and it landed on dead code: NOT CAUGHT on
+   * `482e8f5ca701` and on `74be319d02fa`. A plant tied to the spelling of one line of a function's
+   * BODY dies at the next refactor of that body. So it is tied to the function's SIGNATURE instead —
+   * `accModRow` is the one place every holder's row is built, on the tag path and on the knob path
+   * alike — and the break is an early return for items, which is the mechanism and not a spelling. */
+  break: { why: 'the accuracy modifier row is dropped for every item, so every holder reads as untabled',
+    patch: [['function accModRow(kind,id){', "function accModRow(kind,id){if(kind==='item')return null;"]] },
   match(e) {
     if (!e.onModifyAccuracy && !e.onSourceModifyAccuracy) return null;
     const m = /([\d.]+)x/.exec(e.shortDesc || '');
@@ -9175,8 +9333,14 @@ const RULES = [
      + '     THE NEGATIVE IS TURN 2: the same click aimed at the PARTNER, which has no evasion bonus '
      + 'and must be hit in both arms — an engine that had simply stopped resolving the click parts '
      + 'there rather than passing.',
-  break: { why: 'the evasion stage is ignored when accuracy is computed',
-    patch: [["const row=ACCMOD[kind+':'+key];", 'const row=null;']] },
+  /* RE-AIMED 2026-09-19. The old anchor, `const row=ACCMOD[kind+':'+key];`, sits inside the name-keyed
+   * read that 6.48.0 put behind `MEDI_ACCMOD_BY_NAME=1`; it matched once, applied, and moved no board.
+   * The plant now lands on the SIGNATURE of `_accWhen`, the gate every accuracy row passes on both
+   * paths, and refuses exactly the rows whose gate is the weather now in the sky (`w===ctx.weather`).
+   * That is derived from what the gate compares, not a list of weather ids typed here, so a third
+   * weather-keyed carrier is broken by the same plant with no edit. */
+  break: { why: 'the evasion stage is ignored when accuracy is computed — a row gated on the current weather never applies',
+    patch: [['function _accWhen(w,ctx,holder){', 'function _accWhen(w,ctx,holder){if(w&&ctx&&w===ctx.weather)return false;']] },
   match(e) {
     if (typeof e.onModifyAccuracy !== 'function') return null;
     const W = weatherNamed(e, ['onModifyAccuracy', 'onImmunity']);
@@ -13442,11 +13606,13 @@ const RULES = [
          * EXCEPT the one it was flinched on. Exactly one flat step, and at least one rise, so a meter
          * that never moves cannot pass this. */
         precondition: { turn: 1, why: 'the carrier really lost a click to the flinch on SHOWDOWN\'s '
-            + 'own board — its spent PP for ' + INERT + ' is flat across exactly one boundary pair and '
+            + 'own board — its spent PP for the idle click (' + INERT_IDS.join(' or ') + ', whichever it was built with) is flat across exactly one boundary pair and '
             + 'rises across the others. A flinch writes no compared leaf, so this meter is the only '
             + 'receipt available, and a trigger that never fired reads INERT and means nothing',
           ok: (b, all) => { const bs = (all || [b]);
-            const v = bs.map(x => sdSpent(x, 'p2', 0, INERT));
+            /* the meter is the id the carrier actually spent; `sdSpent` reads 0 for an id it never held */
+            const ser = INERT_IDS.map(id => bs.map(x => sdSpent(x, 'p2', 0, id)));
+            const v = ser.find(sr => sr.some(n => n > 0)) || ser[0];
             if (v.some(x => x == null)) return false;
             let flat = 0, up = 0;
             for (let i = 1; i < v.length; i++) { if (v[i] === v[i - 1]) flat++; else if (v[i] > v[i - 1]) up++; }
@@ -17408,15 +17574,21 @@ function selftest() {
    *    `--selftest --inert substitute`: Substitute declares only its own volatile, so the exemption
    *    covers exactly `vol.substitute` and `pp.substitute` — and the quarter of the user's HP it
    *    takes inside a handler is caught, on 8 hp leaves, in both engines. */
-  {
+  /* TWICE SINCE 2026-09-19: once holding Focus Energy on purpose (`inertEffect`, so the primary itself is
+   * still proven, on bodies that cannot all learn it), once as a real row is built — which on this
+   * bench is the legal substitute. The label names the click that was ACTUALLY built. */
+  for (const keep of [true, false]) {
     const sc = scaffold({ a0: { ...CAST.ATTACKER(), moves: [INERT] },
                           b0: { ...CAST.BAG(), moves: [INERT] },
                           script: [turn([IDLE, IDLE], [IDLE, IDLE]),
                                    turn([IDLE, IDLE], [IDLE, IDLE]),
                                    turn([IDLE, IDLE], [IDLE, IDLE])] });
-    sc.id = 'selftest/inert-click';
+    sc.id = 'selftest/inert-click' + (keep ? '' : '-as-built');
+    if (keep) sc.inertEffect = 'the selftest proves the primary click itself';
+    const built = withLegalInert(sc).pick || INERT;
+    if (!keep && built === INERT) continue;           // nothing was substituted, so clause 1 already covers it
     const r = play(sc, null);
-    if (r.bad) out.push({ id: 'the inert click ' + INERT + ' plays at all', ok: false, note: r.bad + ' ' + r.why });
+    if (r.bad) out.push({ id: 'the inert click ' + built + ' plays at all', ok: false, note: r.bad + ' ' + r.why });
     else {
       const first = r.boards[0];
       let moved = [];
@@ -17426,7 +17598,7 @@ function selftest() {
           if (inertSelfLeaf(d.path)) { own++; continue; }
           moved.push(who + ' ' + d.path);
         }
-      out.push({ id: 'the inert click ' + INERT + ' moves NO board leaf in either engine over 3 turns, '
+      out.push({ id: 'the inert click ' + built + ' moves NO board leaf in either engine over 3 turns, '
                    + 'beyond its own ' + own + ' derived leaf-movement(s) on ['
                    + INERT_SELF.names.join(', ') + ']',
                  ok: moved.length === 0, note: moved.join(', ') });
@@ -18029,6 +18201,18 @@ function main() {
     + (FLAT_FALLBACK ? '   ' + FLAT_FALLBACK + ' FELL BACK on the blank-spread arithmetic: '
         + [...new Set(FLAT_FALLBACK_WHO)].join(', ') + ' — those fixtures are sized for a body '
         + 'the driver does not build' : '   0 fell back'));
+  /* THE CONTROL CLICK'S LEGALITY, PER SCENARIO — see `inertChoice`. Every KEPT line is a fixture that
+   * still builds Focus Energy on a body that cannot learn it, named with the reason. */
+  console.log('\n  THE CONTROL CLICK — which idle click each scenario was built with ('
+    + (INERT_SUBS.length ? 'legal substitute: ' + INERT_SUBS.map(m => m.name).join(', ') : 'no substitute') + '):');
+  if (process.env.ROSTER_INERT_FOCUSENERGY === '1')
+    console.log('    RESTORED by ROSTER_INERT_FOCUSENERGY=1 — every body holds Focus Energy, legal or not');
+  for (const [why, n] of Object.entries(INERT_PICK_TALLY).sort((a, b) => b[1] - a[1]))
+    console.log('    ' + String(n).padStart(5) + '  ' + why);
+  console.log('    ' + (INERT_SUB_SLEPT
+    ? INERT_SUB_SLEPT + ' game(s) showed a SLEEPING body under the substitute — the sleep gate missed a road: '
+      + INERT_SUB_SLEPT_WHO.join(', ')
+    : '0 games showed a sleeping body under the substitute'));
   console.log('\n  THE PLANT ANCHORS — every rule this stage used, checked against release ' + REL.id
     + ' BEFORE anything is believed:');
   console.log('    ' + (Object.keys(PLANT).length - deadAnchors.length) + ' of ' + Object.keys(PLANT).length
