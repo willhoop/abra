@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-19T11:11:34.061Z",
+  "generated": "2026-09-19T12:54:58.212Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 947,
-  "live": 947,
+  "probed": 955,
+  "live": 955,
   "missing": 0,
-  "armed": 947,
+  "armed": 955,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -4323,7 +4323,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.5% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 19.5% (format 20, generic 30), control Rock Slide 26.8% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7550,6 +7550,46 @@
     },
     {
       "kind": "ability",
+      "tag": "preventsStatDrop",
+      "label": "a partial refuser's `-fail` is written ABOVE the stat of the same table that lands",
+      "live": true,
+      "detail": "[index of the -fail, index of the first -unboost, Atk stage] on the target -- Tickle, no ability {\"f\":-1,\"u\":2,\"at\":-1} (no -fail, Atk -1); Tickle into Hyper Cutter {\"f\":2,\"u\":3,\"at\":0}, Parting Shot into Hyper Cutter {\"f\":2,\"u\":3,\"at\":0} (the -fail must come first and Atk stay 0). Knob MEDI_DROP_REFUSAL_AFTER_TABLE",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "removesHazards",
+      "label": "a spin's hazard `-sideend` and its own Leech Seed `-end` name the move; Tidy Up's line is bare",
+      "live": true,
+      "detail": "[my-side -sideend lines, of them attributed to the sweeping move, attributed Leech Seed -end] -- Tidy Up {\"seeded\":true,\"lines\":1,\"from\":0,\"seedFrom\":0,\"mine\":0} (must be 1 bare; Tidy Up does not pull a seed), Mortal Spin {\"seeded\":true,\"lines\":1,\"from\":1,\"seedFrom\":1,\"mine\":0} (must be seeded, 1 attributed hazard line, 1 attributed seed line). Knob MEDI_SWEEP_UNATTRIBUTED",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "stealsItem",
+      "label": "Magician's theft writes one `-item`; Pickpocket's writes the `-enditem` + `-item` pair",
+      "live": true,
+      "detail": "[victim -enditem lines, thief -item lines] -- Pickpocket {\"enditem\":1,\"item\":1,\"took\":\"leftovers\"} (must be 1,1), Magician {\"enditem\":0,\"item\":1,\"took\":\"leftovers\"} (must be 0,1). Knob MEDI_MAGICIAN_ENDITEM_LINE",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "stealsItem",
+      "label": "a Magician thief killed by its own recoil takes nothing",
+      "live": true,
+      "detail": "[thief item, victim item] after Flare Blitz -- full HP {\"dead\":false,\"thief\":\"leftovers\",\"victim\":\"\"} (must steal), 1 HP {\"dead\":true,\"thief\":\"\",\"victim\":\"leftovers\"} (must die to recoil and take nothing). Knob MEDI_MAGICIAN_DEAD_THIEF_TAKES",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
       "tag": "restoresBerryAtResidual",
       "label": "Harvest gives the berry back — always in sun, half the time otherwise",
       "live": true,
@@ -8659,11 +8699,51 @@
       "directCall": false
     },
     {
+      "kind": "ability",
+      "tag": "announcesOnEntry",
+      "label": "Forewarn names the foes' top-scoring move as it walks in — an OHKO move scores 150 and outranks a 140 — and says nothing against status-only foes",
+      "live": true,
+      "detail": "[Forewarn lines] no ability / status-only foes [0,0]; Fissure beside Last Resort, both slot orders [1,1] [|-activate|p1a:musharna|ability:forewarn|fissure|[of]p2a:camerupt] — bp = 150 for move.ohko, keep the strict maximum, and an empty list returns before the die (data/abilities.ts:1494-1517)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "pivotStatus",
+      "label": "Chilly Reception into its own snow with nobody to switch to fails with -fail; setting the snow does not",
+      "live": true,
+      "detail": "[-fail, snow set] first click, no bench [0,1]; [-fail, user still in slot a] second click into its own snow [1,0] — setWeather is false under its own sky (sim/field.ts:45-52) and selfSwitch with no bench is false (sim/battle-actions.ts:1289), so didAnything is false and -fail is written (:1303)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "inflictsParalysis",
+      "label": "a status move into a body that already holds one is refused by the held status before Misty Terrain can speak",
+      "live": true,
+      "detail": "[Misty -activate, -fail|par] Thunder Wave under Misty Terrain into a fresh body [1,0], into an already-paralysed one [0,1] — trySetStatus passes the HELD status and setStatus answers it (sim/pokemon.ts:1675, :1704-1712) before runEvent('SetStatus') at :1729, where Misty Terrain lives",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "restoresBerryAtResidual",
+      "label": "Harvest throws its residual coin with no berry to give back — and none in the sun",
+      "live": true,
+      "detail": "[dice a berry-less Harvest body adds to one residual] in sun [0], no sky [1] — `isWeather(sun) || randomChance(1, 2)` is thrown BEFORE the berry is asked about (data/abilities.ts:1793-1801)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "move",
       "tag": "pivotStatus",
       "label": "a frozen body clicking a PIVOT move is refused like any other move — the pivot is a move, not a switch",
       "live": true,
-      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 38 to 40",
+      "detail": "[|move| lines, |switch| lines, |cant|frz lines] for the SAME Incineroar clicking the SAME Parting Shot — unfrozen [1,1,0], frozen [0,0,1]. The authority answers |cant|p1b: Incineroar|frz and the pivot does not happen; this engine played it, because the onBeforeMove guard asked for the ACTION KIND and a pivot wears kind switch. beforeMoveGateOnMoveKindedSwitchOrPass 41 to 43",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -8853,7 +8933,7 @@
       "tag": "hazardOnHit",
       "label": "a hazard laid or swept by a hit is announced ABOVE the |faint| of the body that hit killed",
       "live": true,
-      "detail": "STONE AXE into a 1 HP body: [\"|-sidestart|p2:|move:stealthrock\",\"|faint|p2a:snorlax\"] — the -sidestart is at 0 and the |faint| at 1 (must be 0 then 1). RAPID SPIN with Stealth Rock on its OWN side: [\"|-sideend|p1:|move:stealthrock\",\"|faint|p2a:snorlax\"] — -sideend at 0, |faint| at 1. CONTROL, X-Scissor off the same Kleavor onto the same body: [\"|faint|p2a:snorlax\"] — side line index -1 (must be -1), |faint| at 0",
+      "detail": "STONE AXE into a 1 HP body: [\"|-sidestart|p2:|move:stealthrock\",\"|faint|p2a:snorlax\"] — the -sidestart is at 0 and the |faint| at 1 (must be 0 then 1). RAPID SPIN with Stealth Rock on its OWN side: [\"|-sideend|p1:|move:stealthrock|[from]move:rapidspin|[of]p1a:corviknight\",\"|faint|p2a:snorlax\"] — -sideend at 0, |faint| at 1. CONTROL, X-Scissor off the same Kleavor onto the same body: [\"|faint|p2a:snorlax\"] — side line index -1 (must be -1), |faint| at 0",
       "hollow": false,
       "armed": true,
       "directCall": false

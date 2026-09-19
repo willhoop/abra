@@ -14,8 +14,15 @@ record, not current state; read the gate with `node engine/status.js`.
 
 | time (UTC) | what | what was done instead |
 |---|---|---|
+| ~08:00 | MEASURE staged 95 releases (570 MB of checkout, ~2 MB of pack) | kept the 19 that published figures' artifacts cite (118 MB); the other 76 are named only in prose and stay on disk. Commit `ba5e03d0`. |
+| ~09:30 | the tie-order agent overwrote a shared scratchpad `inspect.js`, probably another agent's tool | nothing lost from the repo; later briefs require a per-task scratchpad subfolder and forbid overwriting |
+| ~11:40 | narration's last games include Forewarn, which Will set aside (roster row) | the ROSTER deferral stays; the narration gate measures Forewarn's message itself, so the agent makes our announcement match the authority's instead of asking. **Will may want to look at this.** |
 
-## Queued for after the current measurement (these touch files the measuring agent reads)
+## Progress
+
+- 6.58.0 (`a43e94f6`): board-material 0 / 0 / 0 on all three lattices, the first time. Gate CLOSED 1 of 9, narration only (0 / 2 / 6).
+
+## Queued for after the current measurement (done in 6.56.0) (these touch files the measuring agent reads)
 
 - Wire COULD-NOT-STAGE into the gate (draft README item 2; Will's standing rule).
 - Retract the white paper's 2026-09-12 UPDATE lattice counts from `bc8d7cf849dd` on main (draft README item 4).

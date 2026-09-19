@@ -69,7 +69,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_move_effect_leads.js`, `tests/probe_protean_contrary.js`,
 `tests/probe_narration_b_line_order.js`
 `tests/probe_move_effect_leads.js`, `tests/probe_protean_contrary.js`,
-`tests/probe_tie_order.js`
+`tests/probe_tie_order.js`, `tests/probe_narration_c.js`
+`tests/probe_tie_order.js`, `tests/probe_narration_d.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -165,13 +166,18 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  947/947 probed mechanics live, 0 missing   (census 2026-09-19 07:11)
+  955/955 probed mechanics live, 0 missing   (census 2026-09-19 08:54)
     the census probes what somebody thought to probe: 299 of 299 in-scope tags carry a probe, 0 carry none (9 of 308
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 22 min old). node engine/coverage.js
-  differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/1a6550ea5ec6/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "1a6550ea5ec6".
-    it becomes quotable again when this is re-run: node tests/test-engine-diff.js
+    (all-mechanics-fire.json, 1.4 h old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-19 07:44)
+    seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
+    the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
+    Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
+    multiHit tag were drawn; 3 were never drawn at all (bonerush, doublehit, tailslap) — never drawn is a SAMPLING
+    gap, not an exclusion.
+    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
+    a differential hit is NOT in the census count above — the census probes what someone thought to probe
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     older than its input engine-data.js
@@ -187,9 +193,104 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 07:57_
+_stamped 2026-09-19 09:01_
 
 <!-- /GENERATED -->
+
+## NARRATION BATCH C: FOREWARN NOW NAMES THE AUTHORITY'S MOVE OFF THE AUTHORITY'S DIE, CHILLY RECEPTION INTO ITS OWN SNOW WITH NOBODY TO SWITCH TO FAILS OUT LOUD, AND A HELD STATUS ANSWERS BEFORE MISTY TERRAIN. A FOURTH DEFECT WAS FOUND UNDER THE FOREWARN GAME: HARVEST THREW ITS COIN ONLY WHEN A BERRY WAS WAITING. ALL FIVE LATTICE GAMES REPLAY TO THE END WITH NO SPLIT. CENSUS **947 → 951 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED. WORKTREE RELEASE `207acaf6a46e`. NO LATTICE RE-RUN (LIGHT MODE), SO THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+
+Report: `docs/_reports/2026-09-19-narration-c.md`. Two-engine probe: `tests/probe_narration_c.js`. The games come from
+`docs/_reports/2026-09-19-1a65-remeasure.md` §4.
+
+- **FOREWARN IS STILL DEFERRED ON THE ROSTER.** Its roster row stays `DEFERRED-BY-OWNER` (a board cannot see a
+  message). The narration gate measures exactly that message, so the announcement now matches the authority.
+- **The probe stages each class in both engines.** 11 Forewarn games, 6 Chilly Reception, 16 held-status and 12
+  Harvest. On the baseline `1a6550ea5ec6` it parted **35**: 10 Forewarn, 4 Chilly Reception, 9 held-status and 12
+  Harvest. **Every board agreed.** On `207acaf6a46e` it parts **0**. The three narration knobs part only their own class
+  and move no board. The Harvest knob parts only its own class.
+- **FOREWARN** (`data/abilities.ts:1494-1517`, no Champions override). The engine now walks the live foes in slot order
+  and each foe's moves in slot order. It keeps the strict maximum, appends ties, and draws the pick off the shared
+  generic die, including for a list of one. An empty list says nothing and draws nothing. The SCORE is not typed:
+  `tag_dex` reads the four `bp = N` rewrites off the handler and writes a per-move `picks.score` (325 moves).
+  `data/tags.json` was spliced, not regenerated, because this worktree has no store. The only non-usage difference is
+  that param. Knob `MEDI_FOREWARN_SILENT=1`.
+- **CHILLY RECEPTION** (`sim/battle-actions.ts:1248`, `:1289`, `:1303`). Under its own snow, `setWeather` is false. With
+  nobody in the back, `selfSwitch` is false. So the move writes `-fail` and `[still]`. With a bench it still pivots.
+  `commanded` is not modelled, because no legal body in this regulation has Commander (derived). Knob
+  `MEDI_CHILLY_NOBENCH_SILENT=1`.
+- **THE HELD STATUS** (`sim/pokemon.ts:1675`, `:1704-1712` above `:1729`). `trySetStatus` passes the held status, and
+  `setStatus` answers it before `runEvent('SetStatus')`. `applyStatus` asked Uproar, Safeguard, both terrains and the
+  veils first. The Safeguard guard at the status-move caller no longer swallows a `hasstatus` line. This also closes
+  batch A's open note: "Synchronize onto a statused source protected by Safeguard". Knob `MEDI_STATUS_HELD_AFTER_FIELD=1`.
+- **HARVEST (FOUND)** (`data/abilities.ts:1793-1801`). The coin is thrown before the berry test, every residual outside
+  the sun. The engine threw it only when a berry was waiting. That put it one `nth` behind at the residual address. In
+  g1350 `…2657893729`, that is why Forewarn named Sacred Sword where the authority named Muddy Water. **This is a DIE,
+  and it can move a board.** Knob `MEDI_HARVEST_COIN_GATED=1`.
+- **REPLAYS on `207acaf6a46e`** (`replay_one --no-warmup --steering empirical --arm middle --end-state`). On the
+  baseline, each game reproduced its §4 split index: 6, 38, 4, 105 and 52. On `207acaf6a46e`, each game plays to the end
+  of the battle with no split:
+  - Forewarn `…2659123487` (g1350), 162 lines;
+  - Forewarn `…2657893729` (g1350), 131 lines, after the Harvest fix;
+  - Forewarn `…2634615536` (g1950), 103 lines;
+  - Chilly Reception `…2662362231` (g1950), 128 lines;
+  - Misty Terrain `…2661874022` (g1950), 212 lines.
+- **Census** 947 → 951 live. Each new row is MISSING under its own knob, and the census refuses to write under all four.
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST, because the census and a probe now carry them:** Forewarn's announcement; Chilly Reception's
+  `-fail`; Sleep Powder under Misty Terrain; batch A's "Synchronize onto a statused source protected by Safeguard".
+- **NEW, NOT CHECKED:** Forewarn after a mid-battle ability change (Trace, Skill Swap, Role Play onto a Forewarn body).
+  The authority runs `onStart` there, and this engine announces only on entry. Forewarn against a Transformed or
+  Imposter foe, whose move slots are copied.
+- **CARRIED FORWARD UNCHANGED:** Parting Shot into Hyper Cutter line order; Mortal Spin's `[from]`/`[of]`; Magician's
+  extra `-enditem`; Cursed Body per hit; Triple Axel accuracy timing.
+- **RED ON HEAD, NOT THIS PASS:** `tests/test-protocol-trace.js` PART 5, "the two streams never part in the Intimidate
+  arm". It is red on the unmodified `1a6550ea5ec6` bytes too. Both engines now print 112/170, so the assertion that
+  they part at the damage die has gone stale.
+## NARRATION BATCH D: THREE OF THE SIX UNDECLARED g1950 GAMES FIXED — PARTING SHOT INTO HYPER CUTTER, MORTAL SPIN'S `[from]`, MAGICIAN'S EXTRA `-enditem` — PLUS THE SPIN FAMILY'S LEECH SEED `-end` (SAME SHAPE, FOUND STAGING THE CLASS) AND A FOURTH DEFECT FOUND WHILE READING MAGICIAN: A THIEF KILLED BY ITS OWN RECOIL STOLE ONTO ITS CORPSE (**BOARD**). CENSUS **947 → 951 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `88de74589dc3`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-19-narration-d.md`. Two-engine probe: `tests/probe_narration_d.js` (14 arms, red
+and control each; PASS on `88de74589dc3`; every red arm RED on the pre-fix `1a6550ea5ec6`; no knob moves a
+control). All three lattice games replay on `88de74589dc3` with no protocol divergence to the end and every board
+held; the other five g1950 and three g1350 first-divergence games are byte-identical in their first divergence. A
+131-game sentinel (pairs 0–15 of every config, g1950) reads 0 diverged / 0 parted on both releases, line for line.
+
+- **A STAT TABLE'S TryBoost REFUSAL IS ABOVE THE STATS THAT LAND.** `Battle#boost` runs 'TryBoost' over the whole
+  table before its per-stat loop (`sim/battle.ts:2031`), and Hyper Cutter / Big Pecks / Keen Eye write their
+  `-fail` inside it. Both roads — `boostTableOnto` (the declared tables; staged with Tickle) and the pivot's code
+  table (Parting Shot) — now ask `tableDropRefusals` first and announce once, above. The legal multi-stat drop
+  tables, derived and printed by the probe: Memento, Noble Roar, Parting Shot, Spicy Extract, Tearful Look,
+  Tickle. Knob
+  `MEDI_DROP_REFUSAL_AFTER_TABLE=1`. Game: pair-speedctrl `…2662455751` idx 145 t9.
+- **THE SPIN FAMILY AND DEFOG ATTRIBUTE THEIR HAZARD `-sideend`.** New param `removesHazards.attributesSideEnd`,
+  derived by `tag_dex.js` off the handler's own `-sideend` call (matches Defog, Mortal Spin, Rapid Spin; Tidy Up
+  is bare). Carried into `data/tags.json` for those three rows only — this worktree has no store, and a full
+  regeneration zeroes every usage count; the regenerated file's params differ from HEAD's in exactly these rows.
+  The spin family's own Leech Seed `-end` carries the same attribution (`removesHazards.attributesSeedEnd`, Mortal
+  Spin and Rapid Spin); five params carried in all. Knob `MEDI_SWEEP_UNATTRIBUTED=1` (both lines). Game:
+  omit-intimidate `…2659871951` idx 79.
+- **MAGICIAN WRITES ONE `-item`.** The `-enditem [silent]` + `-item` pair is Pickpocket's. Knob
+  `MEDI_MAGICIAN_ENDITEM_LINE=1`. Game: omit-intimidate `…2662767282` idx 119 t8.
+- **A MAGICIAN THIEF AT 0 HP TAKES NOTHING** (`setItem` refuses on `!this.hp`, the victim's item goes back
+  silently). This engine gave the item to the corpse — a board defect, staged by Super Fang plus Flare Blitz
+  recoil. Knob `MEDI_MAGICIAN_DEAD_THIEF_TAKES=1`.
+- **`data/mechanics-census.json` REGENERATED** in the worktree: 947 → 951 live, 0 missing, 0 hollow. Each knob alone
+  reads 950 live / 1 missing (its own row) and refuses to write.
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST:** Parting Shot into Hyper Cutter line order; Mortal Spin's `[from]`/`[of]` (hazard and Leech
+  Seed lines, and the same on Rapid Spin and Defog); Magician's extra `-enditem`; the `[from] move: <Move>`
+  attribution that `tests/probe_hazard_sweep_order.js` printed and did not assert. The census and
+  `tests/probe_narration_d.js` now carry them.
+- **NEW, NOT FIXED:** Tidy Up writes its `-boost` lines ABOVE its `-sideend` lines and omits
+  `-activate|…|move: Tidy Up`; the authority sweeps, announces, then boosts (`data/moves.ts` tidyup `onHit`).
+  Staged two-engine, not in any lattice game.
+- **DECLARED, NOT CHECKED:** a refused stat already at the floor. `getCappedBoost` runs BEFORE 'TryBoost'
+  (`sim/pokemon.ts:1216`), so a -1 into a -6 stat reaches the refuser as 0 and the authority writes
+  `-unboost|…|0` rather than the refuser's `-fail`. This engine refuses (and announces) whatever the stage.
+- **CARRIED FORWARD UNCHANGED:** everything in the lists below.
 
 ## 6.57.0 RE-MEASURES AT **0 / 0 / 0**: BOARD-MATERIAL IS ZERO ON EVERY LATTICE FOR THE FIRST TIME, AND NO GAME JOINED. NARRATION IS **0 / 2 / 6**. **NO ENGINE BYTE CHANGED; RELEASE `1a6550ea5ec6`.** THE GATE IS **CLOSED, 1 OF 9**, AND THE ONLY FAILING CLAUSE IS NARRATION. 2026-09-19, CHANGELOG 6.58.0
 

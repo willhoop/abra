@@ -932,7 +932,17 @@ if (!process.env.SHOWDOWN_PATH) {
   const A = arms.intim.sd.map(M.traceCanon), B = arms.intim.me.map(M.traceCanon);
   let first = -1;
   for (let i = 0; i < Math.min(A.length, B.length); i++) if (A[i] !== B[i]) { first = i; break; }
-  if (first < 0) fail('the two streams never part in the Intimidate arm — the case did not stage');
+  /* 2026-09-19 -- AGREEMENT IS NOW THE EXPECTED READING. This asserted a divergence on the damage die; the
+   * 6.52.0-6.57.0 die-address and order fixes made the two engines draw the same roll, so both streams now
+   * print the same |-damage| integer and never part. "Never part" only counts when the Intimidate arm really
+   * staged on both engines (checked above) and the damage integers agree -- otherwise it is still a failure. */
+  /* The authority's stream carries the NEXT turn's `|turn|N` header because its battle continues; ours
+   * stops at the end of the scripted turn. Only that one trailing header is forgiven, on either side. */
+  const _trimTurn = (x) => (x.length && /^\|turn\|\d+$/.test(x[x.length - 1])) ? x.slice(0, -1) : x;
+  if (first < 0 && _trimTurn(A).length === _trimTurn(B).length && sdIntim && sdIntim === meIntim)
+    pass('the two streams agree end to end in the Intimidate arm (' + A.length + ' lines; |-damage| ' + sdIntim + ' on both)');
+  else if (first < 0) fail('the two streams never part but differ in length or damage (' + A.length + ' vs ' + B.length
+    + ' lines; ' + sdIntim + ' vs ' + meIntim + ') — the case did not stage cleanly');
   else if (!A[first].startsWith('|-damage|'))
     fail('the FIRST divergence is not the damage line, it is:\n        showdown  ' + arms.intim.sd[first]
       + '\n        medicham  ' + arms.intim.me[first] + '\n      the trace is not aligned; fix that before trusting the number above');

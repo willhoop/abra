@@ -1978,6 +1978,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-09-06 -- the sweep ran its clauses in the AUTHORITY'S order. A zero here with a non-zero
    * `hazardSwept` means the legacy order is live, which is exactly what the restore knob does. */
   sweepInAuthorityOrder: 0,
+  /* 2026-09-19 (narration D) -- a TryBoost refusal announced ABOVE the stats of its table that landed (the
+   * authority runs TryBoost before the per-stat loop, sim/battle.ts:2031); a hazard `-sideend` written with its
+   * handler's `[from] move:` attribution; a Magician theft refused because the thief has no HP to receive the
+   * item (`setItem` refuses at sim/pokemon.ts:1874 and the victim's `item` is put back, silently). */
+  dropRefusalAnnouncedFirst: 0, hazardSweepAttributed: 0, magicianThiefCannotHold: 0,
   /* ROADMAP #223 -- the residual drain paid a body OTHER than the one that clicked, because the seeder
    * had left and somebody else is standing in its slot. A zero after games with switching in them
    * means the slot lookup is not on the path, not that the case is rare. */
@@ -2888,6 +2893,29 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-09-19 -- `itemMoveNoTargetFail`: a Trick / Switcheroo / Corrosive Gas click found nobody to aim at
    * and failed with `[notarget]` + `-fail`. */
   itemMoveNoTargetFail: 0,
+  /* 2026-09-19 -- NARRATION C.
+   *   forewarnAnnounced      Forewarn named a move (`-activate|HOLDER|ability: Forewarn|MOVE|[of] FOE`,
+   *                          data/abilities.ts:1494-1517). Zero with a Forewarn body in the game means the
+   *                          announcement went silent again.
+   *   forewarnDie            its pick came off the shared generic die, as `this.sample(warnMoves)` does --
+   *                          INCLUDING a one-element list, because `PRNG#sample` always draws.
+   *   forewarnNoDie          no die in scope, so index 0 was taken. Counted apart: it looks like the die.
+   *   forewarnNothing        no foe move scored above the floor, so nothing was said and nothing drawn
+   *                          (`if (!warnMoves.length) return;` sits above the sample).
+   *   pivotNothingDoneFailed Chilly Reception set no sky (its own snow was up) and had nobody to switch
+   *                          to, so `didAnything` was false and the move wrote `-fail` (sim/battle-actions.ts
+   *                          :1289-1310).
+   *   statusHeldAnsweredFirst a status landed on a body that already held one and was refused by the held
+   *                          status BEFORE any SetStatus handler could speak (sim/pokemon.ts:1704-1712 sits
+   *                          above `runEvent('SetStatus')` at :1729). Counted only when a field/side/veil
+   *                          refusal would otherwise have answered, so it measures the reorder, not the
+   *                          ordinary case. */
+  forewarnAnnounced: 0, forewarnDie: 0, forewarnNoDie: 0, forewarnNothing: 0,
+  pivotNothingDoneFailed: 0, statusHeldAnsweredFirst: 0,
+  /* `harvestCoinThrown`: a Harvest body's residual coin was thrown (or the sun made it certain) whether or
+   * not a berry was waiting, as data/abilities.ts:1794 throws it. Zero with a Harvest body on the field
+   * means the coin is gated on the berry again. */
+  harvestCoinThrown: 0,
   /* 2026-08-26 -- THE `twoturnmove` WRAPPER, WHOSE LIFETIME IS NOT THE SUB-VOLATILE'S. Five counters
    * because the wrapper has five fates and four of them are ways for the fix to be silently wrong.
    *   chargeWrapApplied         a charge committed and the clock started. Zero means the split never
@@ -4288,6 +4316,10 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-09-19 -- a Synchronize reflection refused for a reason neither the status-move branch nor the
    * reflect routes. Non-zero means a refusal line may be owed and nothing wrote it. */
   syncRefusalUnrouted: 0,
+  /* 2026-09-19 -- NARRATION C. A Forewarn foe carrying a move the artifact has no row for (its score
+   * would be a guess), and a Forewarn holder with no battle state to find its foes through. Both must
+   * read zero; the first names the move it met. */
+  forewarnMoveUnknown: 0, forewarnMoveUnknownFirst: '', forewarnNoState: 0,
   coachingNoAllySilentRestored: 0,
   itemMoveNoTargetSilentRestored: 0,
   /* ROADMAP #123 -- a body flagged `_invuln` with no `_charging` to explain it. The pierce list is a
@@ -5003,6 +5035,12 @@ const MEDFAILS = { encoreAction: 0,
   alliesHealInterleavedRestored: 0, megaGateOnPriorityRestored: 0, corpseSpeedKeepsRewireRestored: 0,
   breakKeepsStallFreshRestored: 0, lockEndNeedsHitRestored: 0, pivotHerbAfterEntryRestored: 0,
   smartInvulnMissLineRestored: 0, hpThresholdBoostAboveRecoilRestored: 0,
+  /* NARRATION BATCH D, 2026-09-19 -- three knobs; see the knob block beside VOL_ARTIFACT_ORDER. MUST READ 0. */
+  dropRefusalAfterTableRestored: 0, sweepUnattributedRestored: 0, magicianEnditemLineRestored: 0,
+  magicianDeadThiefTakesRestored: 0,
+  /* A carrier whose handler attributes its hazard `-sideend` reached `sweepField` with no move identity to name,
+   * so the line was written bare. A caller bug; must read 0. */
+  sweepAttributionNoMove: 0, sweepAttributionNoMoveFirst: '',
   /* A record `entryOrder` was asked to place that was not in the ALL-ACTIVE list it ranked. That is a
      caller bug, not a game event, and it falls back to the old speed comparison for that pair. Must
      read 0. */
@@ -5489,6 +5527,8 @@ const TRACE=(function(){
      * `add('-end', pokemon, this.effectState.sourceEffect, '[partiallytrapped]')` (data/conditions.ts
      * partiallytrapped onEnd). Same fact as the chip line above, so it reads the same record. */
     vend(m,eff,tag){ this.push(['-end',ident(m),eff,tag]); },
+    /* 2026-09-19 (narration D) -- an `-end` carrying `[from]` then `[of]`, two fields: the spin family's Leech Seed. */
+    vendFrom(m,eff,from,of){ this.push(['-end',ident(m),eff,from,of?'[of] '+ident(of):'']); },
     /* --- items and abilities --- */
     item(m,it,from,of){ this.push(['-item',ident(m),it,from,of?'[of] '+ident(of):'']); },
     /* `extra` is a FIFTH field, added 2026-08-28 for the item-swap family's `[silent]` line, and it
@@ -5587,6 +5627,9 @@ const TRACE=(function(){
     send(m,cond){ this.push(['-sideend',sideOf(m)+': ','move: '+cond]); },
     sstartSide(sd,cond){ this.push(['-sidestart',sd+': ','move: '+cond]); },
     sendSide(sd,cond){ this.push(['-sideend',sd+': ','move: '+cond]); },
+    /* 2026-09-19 (narration D) -- the spin / Defog hazard line: `[from] move: <Move>` then `[of] <user>`, two fields,
+     * in the handler's order. See `sweepField`. */
+    sendSideFrom(sd,cond,from,of){ this.push(['-sideend',sd+': ','move: '+cond,from,of?'[of] '+ident(of):'']); },
     /* Showdown's `retargetLastMove` (sim/battle.ts:3140): redirection REWRITES the target field of
      * the move line already in the log. Not a new event, so the trace must not invent one. */
     retarget(m){ if(this._mvLine==null||this._mvLine>=this.out.length)return;
@@ -6216,6 +6259,23 @@ if(SPREAD_NOFOE_FAILS)MEDFAILS.spreadNoFoeFailsRestored=1;
 if(SYNC_IMMUNE_SILENT)MEDFAILS.syncImmuneSilentRestored=1;
 if(COACHING_NOALLY_SILENT)MEDFAILS.coachingNoAllySilentRestored=1;
 if(ITEMMOVE_NOTARGET_SILENT)MEDFAILS.itemMoveNoTargetSilentRestored=1;
+/* 2026-09-19 -- NARRATION C. Three more, same contract: each restores ONE pre-fix emission verbatim and
+ * no board leaf; tests/probe_narration_c.js plays each in a child.
+ *   MEDI_FOREWARN_SILENT           Forewarn announces nothing and draws no die (the old unmodelled path)
+ *   MEDI_CHILLY_NOBENCH_SILENT     Chilly Reception into its own snow with nobody to switch to prints no `-fail`
+ *   MEDI_STATUS_HELD_AFTER_FIELD   a held status is asked AFTER the SetStatus refusals (Misty Terrain,
+ *                                  Electric Terrain, Safeguard, the veils, Uproar), so the field speaks first */
+const FOREWARN_SILENT=_MK('MEDI_FOREWARN_SILENT');
+const CHILLY_NOBENCH_SILENT=_MK('MEDI_CHILLY_NOBENCH_SILENT');
+const STATUS_HELD_AFTER_FIELD=_MK('MEDI_STATUS_HELD_AFTER_FIELD');
+/*   MEDI_HARVEST_COIN_GATED        Harvest throws its residual coin only when a berry is waiting (the old
+ *                                  road), so the generic die at the residual address runs one short. This
+ *                                  one is a DIE, not a line: it can move a board, and the probe says which. */
+const HARVEST_COIN_GATED=_MK('MEDI_HARVEST_COIN_GATED');
+if(HARVEST_COIN_GATED)MEDFAILS.harvestCoinGatedRestored=1;
+if(FOREWARN_SILENT)MEDFAILS.forewarnSilentRestored=1;
+if(CHILLY_NOBENCH_SILENT)MEDFAILS.chillyNoBenchSilentRestored=1;
+if(STATUS_HELD_AFTER_FIELD)MEDFAILS.statusHeldAfterFieldRestored=1;
 /* Synchronize's sourceEffect as the authority builds it: `{ status, id: 'synchronize' }`, no name, no
  * effectType (data/abilities.ts:4857). `applyStatus` reads `kind`; ATTR.status gives it the bare line. */
 const SYNC_EFF=Object.freeze({kind:'sync',id:'synchronize'});
@@ -16126,6 +16186,24 @@ const UPDATE_LIVE_SPEED=_envK('MEDI_UPDATE_LIVE_SPEED');
 if(UPDATE_LIVE_SPEED)MEDFAILS.updateLiveSpeedRestored=1;
 const VOL_ARTIFACT_ORDER=_envK('MEDI_VOL_ARTIFACT_ORDER');
 if(VOL_ARTIFACT_ORDER)MEDFAILS.volArtifactOrderRestored=1;
+/* 2026-09-19 -- NARRATION BATCH D. Three knobs, each restoring one pre-fix emission exactly, each stamped at load
+ * and listed in tests/test-mechanics.js DELIBERATE_BREAK. Probe: tests/probe_narration_d.js.
+ *   MEDI_DROP_REFUSAL_AFTER_TABLE=1   a stat table's TryBoost refusal (`-fail|…|unboost|Attack|[from] ability: Hyper
+ *                                     Cutter`) is announced BELOW the stats that landed again, not above them
+ *   MEDI_SWEEP_UNATTRIBUTED=1         a spin / Defog hazard `-sideend`, and a spin's own Leech Seed `-end`, are written
+ *                                     bare again, without the handler's `[from] move: <Move>|[of] <user>`
+ *   MEDI_MAGICIAN_ENDITEM_LINE=1      Magician's theft writes the victim's `-enditem|…|[silent]` above its `-item`
+ *                                     again (that pair is Pickpocket's, not Magician's) */
+const DROP_REFUSAL_AFTER_TABLE=_envK('MEDI_DROP_REFUSAL_AFTER_TABLE');
+if(DROP_REFUSAL_AFTER_TABLE)MEDFAILS.dropRefusalAfterTableRestored=1;
+const SWEEP_UNATTRIBUTED=_envK('MEDI_SWEEP_UNATTRIBUTED');
+if(SWEEP_UNATTRIBUTED)MEDFAILS.sweepUnattributedRestored=1;
+const MAGICIAN_ENDITEM_LINE=_envK('MEDI_MAGICIAN_ENDITEM_LINE');
+if(MAGICIAN_ENDITEM_LINE)MEDFAILS.magicianEnditemLineRestored=1;
+/*   MEDI_MAGICIAN_DEAD_THIEF_TAKES=1  a Magician thief brought to 0 HP inside its own move takes the item anyway
+ *                                     (the authority's `setItem` refuses it: `!this.hp`, sim/pokemon.ts:1874) */
+const MAGICIAN_DEAD_THIEF_TAKES=_envK('MEDI_MAGICIAN_DEAD_THIEF_TAKES');
+if(MAGICIAN_DEAD_THIEF_TAKES)MEDFAILS.magicianDeadThiefTakesRestored=1;
 function damageRollIndex(u){
   const i=DAMAGE_ROLL_SIDES-1-Math.floor(u*DAMAGE_ROLL_SIDES);
   return i<0?0:(i>DAMAGE_ROLL_SIDES-1?DAMAGE_ROLL_SIDES-1:i);
@@ -21600,18 +21678,60 @@ function retaliateWhenLowered(f,src){
 function boostTableOnto(t,boosts,src,mvId,zero){
   if(!t||!t.boosts||!boosts)return;
   const _sg=invSign(t,src,moveCategoryName(mvId));   // 2026-09-19 -- the source's Mold Breaker
-  let _ref=null;
+  /* 2026-09-19 (narration D) -- THE REFUSALS ARE ASKED FOR THE WHOLE TABLE FIRST AND ANNOUNCED ABOVE THE STATS THAT
+   * LAND. See `tableDropRefusals`. MEDI_DROP_REFUSAL_AFTER_TABLE=1 announces below them again. */
+  const _tr=tableDropRefusals(t,boosts,_sg,src,mvId);
+  if(!DROP_REFUSAL_AFTER_TABLE)announceTableRefusal(t,_tr.ref,mvId);
   for(const _k in boosts){
     const _s2=SD2ENG[_k]; if(!_s2||t.boosts[_s2]==null) continue;
+    if(_tr.refused.has(_s2)) continue;
     const _d=boosts[_k]*_sg;
-    if(_d<0){ const _r=statDropRefusal(t,_s2,mvId,false,src,Math.abs(_d)); if(_r){ _ref=_ref||_r; continue; } }
     const _b0=t.boosts[_s2];
     t.boosts[_s2]=clamp(t.boosts[_s2]+_d,-6,6);
     if(TR)TR.bst(t,_s2,t.boosts[_s2]-_b0,'',zero);
     if(_d<0&&t.boosts[_s2]!==_b0)retaliateWhenLowered(t,src);
   }
-  if(TR&&_ref&&_ref.announce)TR.failUnboost(t,_ref.label,_ref.ab);
-  else if(_ref)veilBoostBlock(_ref,t,mvId);
+  if(DROP_REFUSAL_AFTER_TABLE)announceTableRefusal(t,_tr.ref,mvId);
+}
+/* 2026-09-19 (narration D) -- `Battle#boost` RUNS 'TryBoost' ONCE, OVER THE WHOLE TABLE, BEFORE ITS PER-STAT LOOP.
+ *
+ *     boost = this.runEvent('ChangeBoost', target, source, effect, { ...boost });      sim/battle.ts:2029
+ *     boost = target.getCappedBoost(boost);                                                         :2030
+ *     boost = this.runEvent('TryBoost', target, source, effect, { ...boost });                      :2031
+ *     for (boostName in boost) { ... this.add(msg, target, boostName, boostBy) ... }                :2035
+ *
+ * and every refusing handler writes its line INSIDE 'TryBoost' while it deletes the key -- Hyper Cutter's
+ * `this.add("-fail", target, "unboost", "Attack", "[from] ability: Hyper Cutter", ...)`, Big Pecks' Defense twin,
+ * Clear Body / White Smoke's one line for the whole table, Flower Veil's `-block`, and Mirror Armor's reflected
+ * `boost()` call. So on a table where one stat is refused and another lands, the refusal is ABOVE the `-unboost`.
+ * This engine refused per stat inside the loop and announced after it, so Parting Shot into a Hyper Cutter Mawile
+ * wrote `-unboost|spa|1` then `-fail|...|Attack` (lattice g1950 `…2662455751`, index 145, turn 9).
+ *
+ * THE CLASS, derived rather than recalled (tests/probe_narration_d.js prints it): the legal partial refusers are
+ * Hyper Cutter (atk), Big Pecks (def), Keen Eye / Illuminate (accuracy); the legal multi-stat target tables with a
+ * drop in them are Parting Shot, Memento, Noble Roar, Tearful Look, Tickle and Spicy Extract. A table whose every
+ * stat is refused (Clear Body, White Smoke, Mirror Armor) has nothing to be out of order with and reads the same
+ * either way.
+ *
+ * Returns the refused engine stats and the FIRST refusal, which is the one that is announced -- one line per table,
+ * WIRE 3's rule, unchanged. Mirror Armor's reflection still happens inside `statDropRefusal`, and now happens here,
+ * above the table's surviving stats, which is where the authority's `onTryBoost` puts it too. */
+function tableDropRefusals(t,boosts,sg,src,mvId){
+  const refused=new Set(); let ref=null;
+  for(const k in boosts){
+    const s=SD2ENG[k]; if(!s||t.boosts[s]==null) continue;
+    const d=boosts[k]*sg; if(!(d<0)) continue;
+    const r=statDropRefusal(t,s,mvId,false,src,Math.abs(d));
+    if(r){ refused.add(s); ref=ref||r; }
+  }
+  return {refused,ref};
+}
+/* WIRE 3's announcement, verbatim: the ability's `-fail` when it speaks, otherwise the ally veil's `-block`. */
+function announceTableRefusal(t,ref,mvId){
+  if(!ref)return;
+  if(!DROP_REFUSAL_AFTER_TABLE)MEDSEEN.dropRefusalAnnouncedFirst++;
+  if(TR&&ref.announce)TR.failUnboost(t,ref.label,ref.ab);
+  else veilBoostBlock(ref,t,mvId);
 }
 function applyStatDrop(f,stat,n,eff,src,zeroSays){
   if(!f||f.fainted) return 'none';
@@ -22251,6 +22371,37 @@ function eTerrainRefusesSleepOn(t){
  * everywhere the authority is outside `BattleActions#secondaries`, which is every primary status
  * move. See sleepDurationDraw for the derivation and the measurement. */
 function applyStatus(t,st,src,eff,why,dstream){
+  /* 2026-09-19 -- NARRATION C: THE HELD STATUS ANSWERS BEFORE ANY SetStatus HANDLER CAN SPEAK.
+   *
+   *     trySetStatus(status, ...) { return this.setStatus(this.status || status, ...); }   sim/pokemon.ts:1675
+   *     setStatus: if (!this.hp) return false;                                              :1696
+   *                if (this.status === status.id) { ...'-fail'...; return false; }          :1704-1712
+   *                ... runStatusImmunity ...                                                 :1714-1725
+   *                const result = this.battle.runEvent('SetStatus', ...);                   :1729
+   *
+   * Every refusal this function asks ABOVE `canTakeStatus` -- an ally's veil, Uproar, Safeguard,
+   * Electric Terrain, Misty Terrain -- is an `onSetStatus` / `onAllySetStatus` / `onAnySetStatus`
+   * handler, i.e. part of that `runEvent` at :1729. A body that already holds a status never reaches
+   * it: `trySetStatus` passes the HELD status, the equality test at :1704 matches, and the move's
+   * refusal line is written there. This engine asked the field first, so a Sleep Powder into an
+   * already-sleeping body under Misty Terrain wrote `-activate|X|move: Misty Terrain` where the
+   * authority writes `-fail|X|slp`. Pinned pool, --games 1950, `pair-protect-bust …2661874022` t5.
+   *
+   * THE TEST IS `t.status` (ANY status), NOT `t.status === st`, because every caller of this function
+   * is a `trySetStatus` road -- and the one that is not, Rest, clears the status before it calls
+   * (`_prev` at its call site), which is exactly `setStatus`'s different-status replace. The reason is
+   * `hasstatus`, the one `canTakeStatus` already fills, so every caller's existing routing for it
+   * (the two `-fail` shapes at the status-move branch and at the Synchronize reflect) is reused
+   * unchanged. `statusHeldAnsweredFirst` counts the calls where the old order would have let Uproar or
+   * a terrain answer instead (the side-buff and veil readers are not re-asked for the count, because
+   * `allyRefusesStatus` bumps a counter of its own and a receipt must not move another receipt).
+   * MEDI_STATUS_HELD_AFTER_FIELD=1 restores the old order. */
+  if(!STATUS_HELD_AFTER_FIELD&&t&&!t.fainted&&t.curHP>0&&t.status){
+    if((st==='slp'&&t._sf&&t._sf._noSleep)||mTerrainRefusesStatusOn(t)||(st==='slp'&&eTerrainRefusesSleepOn(t)))
+      MEDSEEN.statusHeldAnsweredFirst++;
+    if(why){why.reason='hasstatus';why.ability=null;}
+    return false;
+  }
   /* WIRE 157 -- ABOVE `canTakeStatus`, WHICH IS THE TARGET'S OWN REFUSAL. This one belongs to the
    * SIDE, and it is asked first for the same reason Uproar's is: a status refused by a body standing
    * next to you never reaches your own immunity table at all. */
@@ -23916,6 +24067,14 @@ function applyEntryEffects(m,field,ally){
          MEDSEEN.entryAnnounced++;
          if(TR)TR.item(_f,_f.item,'[from] ability: '+m.ability);
        }
+     }else if(_em&&_em.event==='-activate'&&_em.on==='self'&&_ao.picks&&_ao.picks.score&&!FOREWARN_SILENT){
+       /* 2026-09-19 -- NARRATION C: the `-activate`-on-SELF shape, which is Forewarn, and the objection
+        * two paragraphs up is answered rather than overridden. The pick rule no longer lives only in the
+        * handler: tag_dex reads it OFF the handler (`picks`: the floor, every `bp = N` rewrite in source
+        * order, and a per-move `score` computed by applying those rewrites to the format's own
+        * `basePower`/`ohko`/`category`), so nothing here names a move or types a number. See
+        * `forewarnAnnounce`. MEDI_FOREWARN_SILENT=1 falls through to the old unmodelled branch below. */
+       forewarnAnnounce(m,_ao.picks);
      }else{
        MEDFAILS.entryAnnounceUnmodelled++;
        if(!MEDFAILS.entryAnnounceUnmodelledFirst)
@@ -25340,6 +25499,63 @@ if (TRACE_SOLO_NODRAW) MEDFAILS.traceSoloNoDrawRestored = 1;
 const FRACPRI_UNGATED_DRAW = (typeof process !== 'undefined' && process.env
   && process.env.MEDI_FRACPRI_UNGATED_DRAW === '1');
 if (FRACPRI_UNGATED_DRAW) MEDFAILS.fracPriUngatedDrawRestored = 1;
+/* ---- 2026-09-19 -- NARRATION C: FOREWARN, THE WHOLE HANDLER -------------------------------------
+ *
+ * data/abilities.ts:1494-1517 (`data/mods/champions/abilities.ts` has no `forewarn` entry, so mainline
+ * is the authority -- checked, not assumed):
+ *
+ *     let warnMoves = []; let warnBp = 1;
+ *     for (const target of pokemon.foes()) for (const moveSlot of target.moveSlots) {
+ *       let bp = move.basePower; ...four rewrites...
+ *       if (bp > warnBp) { warnMoves = [[move, target]]; warnBp = bp; }
+ *       else if (bp === warnBp) warnMoves.push([move, target]);
+ *     }
+ *     if (!warnMoves.length) return;
+ *     const [warnMoveName, warnTarget] = this.sample(warnMoves);
+ *     this.add('-activate', pokemon, 'ability: Forewarn', warnMoveName, `[of] ${warnTarget}`);
+ *
+ * THE SCORE IS THE ARTIFACT'S (`picks.score`, derived by tag_dex off this same handler) and the WALK is
+ * the authority's: live foes in slot order (`side.foe.allies()` filters `!!hp`), each foe's moves in
+ * slot order, strictly-greater replaces and equal appends. So the tie LIST is built in the authority's
+ * order, and the die indexes it.
+ *
+ * THE DIE IS THE SHARED GENERIC ONE, AT THE SAME MOMENT, AND A ONE-ELEMENT LIST STILL DRAWS. This is
+ * Trace's argument word for word (`traceCopy` below): `this.sample` is `items[this.random(len)]` and
+ * `PRNG#random` draws unconditionally, so skipping a forced draw leaves this engine one `nth` behind at
+ * the lead-in address for every later draw there. It is called from `applyEntryEffects`, which both
+ * entry roads run in the authority's speed-sorted `runSwitch` order, so the draw lands where the
+ * authority's does. An EMPTY list draws nothing -- the `return` sits above the sample.
+ *
+ * `[of]` is written for fidelity; the comparator's `source-tag` rule drops it either way. */
+function forewarnAnnounce(m,pk){
+  const _S=m&&m._sf&&m._sf._S;
+  if(!_S){MEDFAILS.forewarnNoState++;return false;}
+  const foes=(m._sf===_S.sfA)?_S.actB:_S.actA;
+  let best=+pk.floor;
+  let list=[];
+  for(const f of (foes||[])){
+    if(!f||f.fainted||f.curHP<=0)continue;
+    for(const mv of (f.moves||[])){
+      const k=String(mv);
+      /* A move the artifact does not know has no derived score, and 0 would be a guess that happens to
+       * look like "a status move". Counted and named rather than scored. */
+      if(!TAGS.has('move',k,'pp')){MEDFAILS.forewarnMoveUnknown++;
+        if(!MEDFAILS.forewarnMoveUnknownFirst)MEDFAILS.forewarnMoveUnknownFirst=k;continue;}
+      const bp=Object.prototype.hasOwnProperty.call(pk.score,k)?+pk.score[k]:0;
+      if(bp>best){best=bp;list=[[k,f]];}
+      else if(bp===best)list.push([k,f]);
+    }
+  }
+  if(!list.length){MEDSEEN.forewarnNothing++;return false;}
+  let _i=0;
+  const _r=medRng();
+  if(_r){_i=Math.floor(_r()*list.length);if(_i>=list.length)_i=list.length-1;MEDSEEN.forewarnDie++;}
+  else MEDSEEN.forewarnNoDie++;
+  const [_mv,_of]=list[_i];
+  MEDSEEN.forewarnAnnounced++;
+  if(TR)TR.act(m,'ability: '+m.ability,_mv,null,_of);
+  return true;
+}
 function traceCopy(m,foes){
   if(!m||m.fainted||m.curHP<=0)return false;
   const p=TAGS.param('ability',m.ability,'copiesFoeAbility');
@@ -25708,9 +25924,26 @@ const DEFOG_FOE_SIDE_LEGACY=(typeof process!=='undefined'&&process.env
  * which is the whole point of the arm. */
 const SWEEP_LEGACY_ORDER=(typeof process!=='undefined'&&process.env
                           &&process.env.MEDI_SWEEP_LEGACY_ORDER==='1');
-function sweepField(rm,user,srcSf,tgtSf,field,acts){
+function sweepField(rm,user,srcSf,tgtSf,field,acts,mvId){
   if(!rm)return 0;
   let n=0;
+  /* 2026-09-19 (narration D) -- THE HAZARD LINE CARRIES THE HANDLER'S ATTRIBUTION WHEN THE HANDLER WRITES ONE.
+   * Rapid Spin, Mortal Spin and Defog write
+   *     this.add('-sideend', side, this.dex.conditions.get(c).name, '[from] move: <Move>', `[of] ${user}`)
+   * (data/moves.ts, the three handlers; no Champions override) and Tidy Up writes the bare
+   * `this.add('-sideend', side, name)`. `removesHazards.attributesSideEnd` is read off that call by tag_dex,
+   * so no move is named here. The screens Defog takes down are NOT attributed -- their line is the condition's
+   * own `onSideEnd` (`|-sideend|p2: B|Reflect`) and `_screens` below writes it unchanged. This engine wrote
+   * every hazard line bare, which parted a Mortal Spin game at `-sideend|p2|Toxic Spikes|[from] move: Mortal
+   * Spin` (lattice g1950 `…2659871951`, index 79). MEDI_SWEEP_UNATTRIBUTED=1 writes it bare again. */
+  const _attr=!SWEEP_UNATTRIBUTED&&!!rm.attributesSideEnd;
+  let _mvName='';
+  if(_attr){
+    const _rec=mvId&&TAGS.tagsFor?TAGS.tagsFor('move',mvId):null;
+    _mvName=(_rec&&_rec.name)||'';
+    if(!_mvName){MEDFAILS.sweepAttributionNoMove++;
+      if(!MEDFAILS.sweepAttributionNoMoveFirst)MEDFAILS.sweepAttributionNoMoveFirst=String(mvId);}
+  }
   const _lab=sf=>sf&&sf.side==='A'?'p1':'p2';
   const _bags=[];
   /* THE TARGET'S SIDE LEADS WHEN THE HANDLER TAKES ANYTHING OFF IT -- see the header. Legacy order
@@ -25731,8 +25964,20 @@ function sweepField(rm,user,srcSf,tgtSf,field,acts){
   } };
   /* THE USER'S OWN, not the target's: `pokemon.removeVolatile('leechseed')` in the spin handlers
    * names the ATTACKER. A wire that pulled the target's seed would be a different move. */
+  /* 2026-09-19 (narration D) -- the spin family's seed line is ATTRIBUTED as well:
+   *     this.add('-end', pokemon, 'Leech Seed', '[from] move: <Move>', `[of] ${pokemon}`)
+   * `removesHazards.attributesSeedEnd`, read off that call by tag_dex. Same knob as the hazard line. */
+  const _seedAttr=!SWEEP_UNATTRIBUTED&&!!rm.attributesSeedEnd;
   const _seed=()=>{ if(rm.removesOwnLeechSeed&&user&&user._seededBy){user._seededBy=null;n++;
-    MEDSEEN.leechSeedSwept++; if(TR)TR.vend(user,'move: Leech Seed');} };
+    MEDSEEN.leechSeedSwept++;
+    if(TR){
+      let _sn='';
+      if(_seedAttr){const _r2=mvId&&TAGS.tagsFor?TAGS.tagsFor('move',mvId):null; _sn=(_r2&&_r2.name)||'';
+        if(!_sn){MEDFAILS.sweepAttributionNoMove++;
+          if(!MEDFAILS.sweepAttributionNoMoveFirst)MEDFAILS.sweepAttributionNoMoveFirst=String(mvId);}}
+      if(_sn){TR.vendFrom(user,'move: Leech Seed','[from] move: '+_sn,user);MEDSEEN.hazardSweepAttributed++;}
+      else TR.vend(user,'move: Leech Seed');
+    }} };
   const _screens=()=>{ if(rm.alsoRemoves&&rm.alsoRemoves.length){
     const sf=rm.screensFrom==='target'?tgtSf:srcSf;
     if(sf&&sf.sc)for(const id of rm.alsoRemoves){
@@ -25750,7 +25995,10 @@ function sweepField(rm,user,srcSf,tgtSf,field,acts){
        * again afterwards is a NEW effect state with a NEW effectOrder and goes to the back. */
       if(sf.hzOrd)delete sf.hzOrd[hz];
       n++; MEDSEEN.hazardSwept++;
-      if(TR)TR.sendSide(_lab(sf),hz);
+      if(TR){
+        if(_attr&&_mvName){TR.sendSideFrom(_lab(sf),hz,'[from] move: '+_mvName,user);MEDSEEN.hazardSweepAttributed++;}
+        else TR.sendSide(_lab(sf),hz);
+      }
     }
   } };
   /* ROADMAP #175 -- a Defog that takes the terrain down takes the Mimicry type with it, and the sync
@@ -32972,7 +33220,12 @@ function battleTurn(S,rng,actsForA,actsForB){
       };
       if(a.also&&a.also.length)for(const _r of a.also){
         if(_r.fx==='weather'){
-          if(applyMoveWeather(m,a.mv,field)){MEDSEEN.composedRiderWeather++;
+          /* 2026-09-19 -- NARRATION C: whether the sky MOVED is remembered on the action, because the
+           * pivot tail below needs it: `setWeather` returning false is one of the two things that make
+           * `didAnything` false, and the other is having nobody to switch to. */
+          const _skyMoved=applyMoveWeather(m,a.mv,field);
+          it._riderSkyFailed=!_skyMoved;
+          if(_skyMoved){MEDSEEN.composedRiderWeather++;
             syncFieldTypes(field,[...actA,...actB]);}   // ROADMAP #175 -- Forecast follows this sky too
         } else if(_r.fx==='si'&&a.kind!=='setup'){
           /* the SETUP arm is deferred to the tail of its own branch, where the authority runs it */
@@ -33476,7 +33729,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                _srcSf=_bInfo.bouncedBy._sf;
                if(_srcSf!==m._sf)MEDSEEN.defogSweptFromBouncerSide++;}
            }
-           sweepField(_rm,m,_srcSf,_tgtSf,field,actA.concat(actB));}}
+           sweepField(_rm,m,_srcSf,_tgtSf,field,actA.concat(actB),a.mv);}}
         /* WIRE 86 -- MEMENTO FAINTS ITS USER, AND THE CHECK LIVED IN THE ATTACK BRANCH.
          * WIRE 46 wired `userFaints` where damaging moves resolve, gated on `dealt > 0`. Memento is
          * a STATUS move: it resolves here, in `affect`, so its whole cost -- the user dies -- never
@@ -34285,7 +34538,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           * exactly what the authority names. tests/probe_defog_target_side.js §0 derives both facts
           * (the handler text and `tidyup.target === 'self'`) on every run rather than asserting them,
           * so a change upstream turns it red by name. */
-         if(_rm)sweepField(_rm,m,m._sf,m._sf===sfA?sfB:sfA,field,actA.concat(actB));}
+         if(_rm)sweepField(_rm,m,m._sf,m._sf===sfA?sfB:sfA,field,actA.concat(actB),a.mv);}
         /* ROADMAP #308 -- AND THEN THE USER EATS IT. `onHit(pokemon) { if (!this.boost({def:2}))
          * return null; pokemon.eatItem(true); }` -- the eat is BELOW the boost and is skipped when the
          * boost is refused outright, which `gatedOnBoost` carries off the handler's own `if (!`.
@@ -36324,12 +36577,16 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_sc2&&_sc2.boosts&&_sc2.on==='target'&&_pt.boosts){
             _dropLanded=false;
             const _sg=invSign(_pt,_bsrc,'Status');   // WIRE 100b; 2026-09-19 -- the user's Mold Breaker
-            let _ref2=null;                // WIRE 3 -- refuse per stat, announce once
+            /* WIRE 3 -- refuse per stat, announce once. 2026-09-19 (narration D): the whole table is asked
+             * FIRST and the one line is written ABOVE the stats that land -- 'TryBoost' runs before
+             * `Battle#boost`'s per-stat loop. See `tableDropRefusals`. WIRE 157's source travels with it. */
+            const _tr2=tableDropRefusals(_pt,_sc2.boosts,_sg,_bsrc,a.mv);
+            const _ref2=_tr2.ref;
+            if(!DROP_REFUSAL_AFTER_TABLE)announceTableRefusal(_pt,_ref2,a.mv);
             for(const k in _sc2.boosts){
               const _s=SD2ENG[k]; if(!_s||_pt.boosts[_s]==null) continue;
+              if(_tr2.refused.has(_s)) continue;
               const _d=_sc2.boosts[k]*_sg;
-              if(_d<0){ const _r=statDropRefusal(_pt,_s,a.mv,false,_bsrc,Math.abs(_d));   // WIRE 157
-                        if(_r){ _ref2=_ref2||_r; continue; } }
               const _b0=_pt.boosts[_s];
               _pt.boosts[_s]=clamp(_pt.boosts[_s]+_d,-6,6);
               /* ROADMAP #531 -- THE APPLIED DELTA, WHICH IS WHAT `Battle#boost` COUNTS AS SUCCESS.
@@ -36351,8 +36608,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                  attacker is named so an ALLY's drop does not trigger it. */
               if(_d<0&&_pt.boosts[_s]!==_b0)retaliateWhenLowered(_pt,_bsrc);
             }
-            if(TR&&_ref2&&_ref2.announce)TR.failUnboost(_pt,_ref2.label,_ref2.ab);
-            else if(_ref2)veilBoostBlock(_ref2,_pt,a.mv);
+            if(DROP_REFUSAL_AFTER_TABLE)announceTableRefusal(_pt,_ref2,a.mv);
           }
         }
         const own=it.side==='A'?actA:actB, foes=it.side==='A'?actB:actA;
@@ -36462,6 +36718,39 @@ function battleTurn(S,rng,actsForA,actsForB){
          * clicker's side, and the body leaving is now on the other one; passing it would name a
          * bench member of the wrong team. A bounced pivot falls back to "whoever is first", which is
          * exactly what this line already does for every switch action that arrives without one. */
+        /* ---- 2026-09-19 -- NARRATION C: A PIVOT THAT DID NOTHING FAILS OUT LOUD --------------------
+         *
+         * `runMoveEffects` (sim/battle-actions.ts, the Chilly Reception road -- `weather: 'snowscape'`,
+         * `selfSwitch: true`, target `all`, data/moves.ts:2396-2420):
+         *
+         *     :1248  if (moveData.weather) { hitResult = field.setWeather(...);   <- false: the same sky
+         *                                    didSomething = combineResults(didSomething, hitResult); }
+         *     :1289  if (moveData.selfSwitch) {
+         *              if (canSwitch(source.side) && !source.volatiles['commanded']) didSomething = true;
+         *              else didSomething = combineResults(didSomething, false); }
+         *     :1303  if (!didAnything && didAnything !== 0 && ...) { add('-fail', source); attrLastMove('[still]'); }
+         *
+         * `setWeather` returns false against its own standing weather (sim/field.ts:45-52), so with the
+         * snow already up AND nobody left in the back, both halves are false and the authority writes
+         * `|-fail|USER`. This engine switched nobody (the bench is empty) and wrote nothing. Pinned pool,
+         * --games 1950, `omit-intimidate …2662362231` t7: Slowking-Galar under its own Snowscape, last
+         * body standing on its side.
+         *
+         * THE BENCH IS `canDragIn`, the one reader of `Battle#canSwitch` this file already has. With a
+         * bench the pivot still succeeds (the switch alone is "something"), which is the ordinary road
+         * and is untouched. Nothing is named: `_riderSkyFailed` is written only by the weather rider,
+         * and the rider is attached only to a status pivot whose move carries `weather`. `commanded`
+         * is not modelled here -- no legal body in this regulation can be Commanded; stated, not
+         * assumed away. MEDI_CHILLY_NOBENCH_SILENT=1 restores the silence. */
+        if(a.mv&&it._riderSkyFailed&&!_bi.bouncedBy&&!canDragIn(bench)){
+          if(!CHILLY_NOBENCH_SILENT){
+            MEDSEEN.pivotNothingDoneFailed++;
+            m._lastMove=a.mv;
+            mvFail(m);
+            if(TR)TR.attrStill();
+            continue;
+          }
+        }
         const _pvOut=_bi.bouncedBy||m;
         const _pvOwn=_bi.bouncedBy?foes:own, _pvFoes=_bi.bouncedBy?own:foes;
         const _pvBench=_bi.bouncedBy?(it.side==='A'?benchB:benchA):bench;
@@ -37528,7 +37817,9 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _why={};
         if(!applyStatus(t,st,m,ATTR.move(a.mv),_why)){
           m._mvRes=false;
-          if(TR&&!sideBuffRefuses(t,m,'blocksStatus',true)){   /* quiet: a re-ask, not an event */
+          /* 2026-09-19 -- NARRATION C: a `hasstatus` refusal is answered ABOVE Safeguard now (see the top
+           * of `applyStatus`), so Safeguard wrote nothing and the held-status line is still owed. */
+          if(TR&&(_why.reason==='hasstatus'||!sideBuffRefuses(t,m,'blocksStatus',true))){   /* quiet: a re-ask, not an event */
             /* 2026-09-04 -- `weather` JOINS THIS BRANCH AND NOT THE `else`. The sky's `onImmunity` is
              * refused inside `runStatusImmunity` exactly where a TYPE immunity is (sim/pokemon.ts:
              * 1714-1725), so a move whose PRIMARY status the sun refuses would take the identical bare
@@ -45170,7 +45461,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              * damaging carrier ever gains one of those params, at which point this line needs the
              * target-side selection the Defog site now uses. */
             const _osf=m._sf, _fsf2=(it.side==='A'?actB:actA).map(x=>x&&x._sf).find(Boolean);
-            sweepField(_rmh,m,_osf,_fsf2,field,actA.concat(actB));
+            sweepField(_rmh,m,_osf,_fsf2,field,actA.concat(actB),a.move&&a.move.id);
             MEDSEEN.hazardSweepAtAfterHit++;
           }
         }
@@ -46183,11 +46474,28 @@ function battleTurn(S,rng,actsForA,actsForB){
                              .sort((x,y)=>effSpeed(y.tg,field)-effSpeed(x.tg,field));
             if(_cand.length){
               /* ROADMAP #462 -- the doors. */
-              const _v=_cand[0].tg, _took=itemLose(_v);
-              if(_took&&itemGive(m,_took)){
-                MEDSEEN.itemStolenByAbility++;
-                if(TR){TR.enditem(_v,_took,'[silent][from] ability: '+m.ability,m);
-                       TR.item(m,_took,'[from] ability: '+m.ability,_v);}
+              /* 2026-09-19 (narration D) -- WHAT THE AUTHORITY PRINTS, AND WHEN IT PRINTS NOTHING.
+               * data/abilities.ts:2467-2485 (no Champions override) writes ONE line on a theft:
+               *     this.add('-item', source, yourItem, '[from] ability: Magician', `[of] ${pokemon}`);
+               * There is no `-enditem` for the victim -- that `-enditem|…|[silent]` + `-item` pair is
+               * PICKPOCKET's (data/abilities.ts:3243-3244), and this site had borrowed it, which parted a
+               * Klefki-steals-Focus-Sash game (lattice g1950 `…2662767282`, index 119, turn 8).
+               * NOTHING is printed when (a) `takeItem` refuses -- the handler `continue`s to the next
+               * target (the mega-stone rule, `itemRefusesTake`, filtered into `_cand` above); or (b)
+               * `source.setItem` refuses -- `if (!this.hp || !this.isActive) return false`
+               * (sim/pokemon.ts:1874) -- and the handler writes `pokemon.item = yourItem.id` back with no
+               * line and `continue`s. (b) is a thief brought to 0 HP inside its own move before
+               * AfterMoveSecondarySelf; it is honoured here by not taking the item at all.
+               * MEDI_MAGICIAN_ENDITEM_LINE=1 writes the borrowed `-enditem` again. */
+              const _v=_cand[0].tg;
+              if(!(m.curHP>0)&&!MAGICIAN_DEAD_THIEF_TAKES){MEDSEEN.magicianThiefCannotHold++;}
+              else{
+                const _took=itemLose(_v);
+                if(_took&&itemGive(m,_took)){
+                  MEDSEEN.itemStolenByAbility++;
+                  if(TR){if(MAGICIAN_ENDITEM_LINE)TR.enditem(_v,_took,'[silent][from] ability: '+m.ability,m);
+                         TR.item(m,_took,'[from] ability: '+m.ability,_v);}
+                }
               }
             }
           }
@@ -47661,7 +47969,18 @@ function battleTurn(S,rng,actsForA,actsForB){
           * Trevenant that had eaten once and later spent a White Herb got the HERB back. The authority
           * asks `this.dex.items.get(pokemon.lastItem).isBerry`. Found checking ROADMAP #80's consumers;
           * `tests/probe_harvest_nonberry.js`, knob MEDI_HARVEST_GATES_ON_ATEBERRY=1 restores the old gate. */
-         if(_hv&&!m.item&&m._lastItem&&(HARVEST_GATES_ON_ATEBERRY?m._ateBerry:TAGS.has('item',m._lastItem,'isBerry'))){
+         /* 2026-09-19 -- NARRATION C: THE COIN IS THROWN BEFORE THE BERRY IS ASKED ABOUT, AS THE HANDLER
+          * THROWS IT. data/abilities.ts:1793-1801 (no Champions override):
+          *     if (this.field.isWeather(['sunnyday', 'desolateland']) || this.randomChance(1, 2)) {
+          *       if (pokemon.hp && !pokemon.item && this.dex.items.get(pokemon.lastItem).isBerry) { ... }
+          * So outside the sun EVERY residual of a Harvest body costs one generic die, berry or no berry.
+          * This engine threw it only when a berry was waiting, so it was one `nth` short at the
+          * `turn|any|-|-` address for every later residual-phase die -- measured on the pinned pool,
+          * --games 1350, `pair-speedctrl …2657893729` t2: a berry-less Trevenant beside a Forewarn
+          * Musharna that enters at the end of the turn; the authority's addresses read `2|any|-|-|0`
+          * (Harvest) and `|1` (Forewarn), ours read one `|0`, and Forewarn named Sacred Sword off a
+          * die the authority had spent on Harvest. MEDI_HARVEST_COIN_GATED=1 restores the gated coin. */
+         const _hvSkyOk=()=>{
            /* THE WEATHER NAMES ARE THE AUTHORITY'S (`sunnyday`, `desolateland`) and this engine's are
             * short (`sun`). The prefix match is the seam and it is stated rather than hidden:
             * `sunnyday`.startsWith(`sun`). `desolateland` is Primal Groudon's sun and has no carrier
@@ -47669,9 +47988,17 @@ function battleTurn(S,rng,actsForA,actsForB){
             * silently dropped. `effWeatherOf` is used so Cloud Nine and a suppressed sky answer the
             * same way they do everywhere else in this file. */
            const _w=String(effWeatherOf(field,m,null)||'');
-           const _sun=!!_w&&Array.isArray(_hv.alwaysInWeather)
+           return !!_w&&Array.isArray(_hv.alwaysInWeather)
              &&_hv.alwaysInWeather.some(x=>String(x).indexOf(_w)===0);
-           if(_sun||rng()<(+_hv.chance||0.5)){
+         };
+         let _hvCoin=null;
+         if(_hv&&!HARVEST_COIN_GATED){
+           _hvCoin=_hvSkyOk()||rng()<(+_hv.chance||0.5);
+           MEDSEEN.harvestCoinThrown++;
+         }
+         if(_hv&&!m.item&&m._lastItem&&(HARVEST_GATES_ON_ATEBERRY?m._ateBerry:TAGS.has('item',m._lastItem,'isBerry'))){
+           if(HARVEST_COIN_GATED)_hvCoin=_hvSkyOk()||rng()<(+_hv.chance||0.5);
+           if(_hvCoin){
              /* ROADMAP #462 -- the gain door, so a berry given back under a standing room is parked
               * on arrival rather than working until the next sync. */
              const _hb=m._lastItem;

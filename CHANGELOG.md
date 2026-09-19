@@ -10,6 +10,17 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.59.0] — 2026-09-19
+
+### Fixed
+- **Forewarn** announces with its tie die; **Harvest** throws its coin every turn.
+- **Narration:** Chilly Reception's `-fail`, held status before terrain/Safeguard, spin and Defog
+  attribution, Magician's single `-item` (and no steal at 0 HP), partial drop refusals before the drops.
+- `tests/test-protocol-trace.js` accepts end-to-end agreement where it once required the die to differ.
+
+### Notes
+- Census 947 -> 955 live. See the 6.59.0 notes row for every probe and knob.
+
 ## [6.58.0] — 2026-09-19
 
 ### Changed

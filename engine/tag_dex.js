@@ -4149,6 +4149,14 @@ const MOVE_TAGS = [
       out.onlyOnConnect = !m.onHit && !!(m.onAfterHit || m.onAfterSubDamage);
       if (out.onlyOnConnect) out.throughSubstitute = !!m.onAfterSubDamage;
       if (/hasSheerForce/.test(src)) out.refusedBySheerForce = true;
+      /* 2026-09-19 (narration D) -- WHETHER THE HANDLER ATTRIBUTES ITS OWN `-sideend` LINES. The spin family and
+       * Defog write `this.add('-sideend', side, name, '[from] move: <Move>', `[of] ${user}`)`; Tidy Up writes the
+       * bare `this.add('-sideend', side, name)`. A HANDLER fact, read off the call rather than off the move's name,
+       * so the engine can write the line the authority writes. `[^;]*` keeps the match inside one statement. */
+      if (/["']-sideend["'][^;]*\[from\] move:/.test(src)) out.attributesSideEnd = true;
+      /* ...and the same question for the user's own Leech Seed `-end` (the spin family writes
+       * `this.add('-end', pokemon, 'Leech Seed', '[from] move: <Move>', `[of] ${pokemon}`)`). */
+      if (/["']-end["'][^;]*Leech Seed[^;]*\[from\] move:/.test(src)) out.attributesSeedEnd = true;
       return out;
     } },
   /* Will: "does the engine know what the boostsUser actually boosts". IT DOES NOT. board.js has
@@ -9878,10 +9886,52 @@ const ABILITY_TAGS = [
        * members derived `on: 'foe'` and Anticipation and Forewarn were silently mis-described. Caught
        * by printing the three rows before anything read them, which is the rule. */
       const subj = /^(?:function\s*)?[\w$]*\s*\(\s*(\w+)/.exec(String(a.onStart || '').trim());
+      /* 2026-09-19 — NARRATION C: THE PICK, READ OFF THE HANDLER, SO THE ENGINE NEVER TYPES IT. A
+       * member that walks the foes' moves by `basePower` and `this.sample`s the best (Forewarn) gets
+       * `picks`: the starting floor, every `bp = N` rewrite IN SOURCE ORDER, and a per-move `score` made
+       * by applying those rewrites to each legal move's own `basePower` / `ohko` / `category`. Every
+       * `bp = <number>;` in the handler must be claimed by one of the four shapes below, or `picks` is
+       * NULL and the engine counts the member as unmodelled — a rewrite this does not recognise is
+       * refused out loud, never scored as zero. Anticipation walks moves too and has no `sample`, so it
+       * stays `picks: null`. */
+      let picks = null;
+      if (/this\.sample\(/.test(src) && /\.basePower\b/.test(src)) {
+        const cmp = /if \(bp > (\w+)\)/.exec(src);
+        const fl = cmp && new RegExp('let ' + cmp[1] + ' = (\\d+);').exec(src);
+        const rules = [];
+        let x;
+        const reO = /if \(move\.ohko\) bp = (\d+);/g;
+        while ((x = reO.exec(src))) rules.push({ at: x.index, when: 'ohko', bp: +x[1] });
+        const reI = /if \(((?:move\.id === ["']\w+["'](?: \|\| )?)+)\) bp = (\d+);/g;
+        while ((x = reI.exec(src))) rules.push({ at: x.index, when: 'id', ids: [...x[1].matchAll(/["'](\w+)["']/g)].map(y => y[1]), bp: +x[2] });
+        const reE = /if \(bp === (\d+)\) bp = (\d+);/g;
+        while ((x = reE.exec(src))) rules.push({ at: x.index, when: 'eq', eq: +x[1], bp: +x[2] });
+        const reZ = /if \(!bp && move\.category !== ["'](\w+)["']\) bp = (\d+);/g;
+        while ((x = reZ.exec(src))) rules.push({ at: x.index, when: 'zeroNotCategory', category: x[1], bp: +x[2] });
+        const assigns = (src.match(/\bbp = \d+;/g) || []).length;
+        if (fl && rules.length && assigns === rules.length && /else if \(bp === \w+\)/.test(src)) {
+          rules.sort((p, q) => p.at - q.at);
+          const floor = +fl[1], score = {};
+          for (const mv of dex.moves.all()) {
+            if (!mv || !mv.exists || mv.isNonstandard) continue;
+            let bp = mv.basePower;
+            for (const r of rules) {
+              if (r.when === 'ohko' && mv.ohko) bp = r.bp;
+              else if (r.when === 'id' && r.ids.includes(mv.id)) bp = r.bp;
+              else if (r.when === 'eq' && bp === r.eq) bp = r.bp;
+              else if (r.when === 'zeroNotCategory' && !bp && mv.category !== r.category) bp = r.bp;
+            }
+            if (bp >= floor) score[mv.id] = bp;
+          }
+          picks = { floor, replaceWhen: 'greater', tieWhen: 'equal', ties: 'sample',
+                    rules: rules.map(({ at, ...r }) => r), score };
+        }
+      }
       return { effect: 'information only',
                reveals: /getItem\(\)/.test(src) ? 'the foes\' items'
                       : /moves/.test(src) ? 'a foe move' : 'a warning',
                emits: em ? { event: em[1], on: (subj && em[2] === subj[1]) ? 'self' : 'foe' } : null,
+               ...(picks ? { picks } : {}),
                visibleOnABoard: false };
     } },
 

@@ -28188,6 +28188,117 @@ probe('ability', 'boostsAtHPThreshold', "Berserk's boost follows the attacker's 
                  + ' (the boost must follow the recoil). Knob MEDI_HP_THRESHOLD_BOOST_ABOVE_RECOIL' };
 });
 
+/* ==== NARRATION BATCH D, 2026-09-19 -- four rows, each red under its knob (tests/probe_narration_d.js stages the
+ * same four against the authority, with controls). */
+
+/* `Battle#boost` RUNS 'TryBoost' OVER THE WHOLE TABLE BEFORE ITS PER-STAT LOOP (sim/battle.ts:2031), so a partial
+ * refuser's `-fail` is ABOVE the stat of the same table that lands. Both roads: Tickle (the declared table) and
+ * Parting Shot (the pivot's code table). CONTROL: Tickle into no ability -- two `-unboost`, no `-fail`. The refused
+ * stat must stay at 0 in every arm. Knob MEDI_DROP_REFUSAL_AFTER_TABLE. */
+probe('ability', 'preventsStatDrop', "a partial refuser's `-fail` is written ABOVE the stat of the same table that lands", () => {
+  const run = (ab, mv) => {
+    const trace = [];
+    const me = bare('incineroar'), ally = bare('aggron'), f1 = bare('mawile'), f2 = bare('snorlax');
+    f1.ability = ab;
+    const S = M.battleInit([me, ally, bare('staraptor'), bare('milotic')], [f1, f2], { seeded: true, trace });
+    trace.length = 0;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const L = trace.map(M.traceCanon);
+    return { f: L.findIndex(l => /^\|-fail\|p2a/.test(l) && /unboost/.test(l)),
+             u: L.findIndex(l => /^\|-unboost\|p2a/.test(l)), at: f1.boosts.at };
+  };
+  const control = run('none', 'tickle'), test = run('hypercutter', 'tickle'), pivot = run('hypercutter', 'partingshot');
+  return { works: control.f < 0 && control.u >= 0 && control.at === -1
+                  && test.f >= 0 && test.u > test.f && test.at === 0
+                  && pivot.f >= 0 && pivot.u > pivot.f && pivot.at === 0,
+           arms: { control: [control.f, control.u, control.at], test: [test.f, test.u, pivot.f, pivot.u] },
+           detail: '[index of the -fail, index of the first -unboost, Atk stage] on the target -- Tickle, no ability '
+                 + JSON.stringify(control) + ' (no -fail, Atk -1); Tickle into Hyper Cutter ' + JSON.stringify(test)
+                 + ', Parting Shot into Hyper Cutter ' + JSON.stringify(pivot)
+                 + ' (the -fail must come first and Atk stay 0). Knob MEDI_DROP_REFUSAL_AFTER_TABLE' };
+});
+
+/* THE SPIN FAMILY AND DEFOG ATTRIBUTE THEIR HAZARD `-sideend` (`[from] move: <Move>`, `[of] <user>`); TIDY UP DOES
+ * NOT. `removesHazards.attributesSideEnd` is read off the handler by tag_dex. Staged: the foe lays Stealth Rock on
+ * my side, then I sweep it. CONTROL: Tidy Up sweeping the same rocks writes a bare line. Knob MEDI_SWEEP_UNATTRIBUTED. */
+probe('move', 'removesHazards', "a spin's hazard `-sideend` and its own Leech Seed `-end` name the move; Tidy Up's line is bare", () => {
+  const run = (sp, mv) => {
+    const trace = [];
+    const me = bare(sp), ally = bare('corviknight'), f1 = bare('incineroar'), f2 = bare('milotic');
+    unfaintable(f1);
+    const S = M.battleInit([me, ally, bare('staraptor')], [f1, f2], { seeded: true, trace });
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'stealthrock', null, S.field)], [f2, M.playerAction(f2, 'leechseed', me, S.field)]]));
+    const seeded = !!me._seededBy;
+    trace.length = 0;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const T = trace.map(M.traceCanon);
+    const L = T.filter(l => /^\|-sideend\|p1/.test(l));
+    const E = T.filter(l => /^\|-end\|p1a/.test(l) && /leechseed/.test(l));
+    return { seeded, lines: L.length, from: L.filter(l => /\[from\]/.test(l) && l.indexOf(mv) >= 0).length,
+             seedFrom: E.filter(l => /\[from\]/.test(l) && l.indexOf(mv) >= 0).length,
+             mine: ((me._sf && me._sf.hz) || {}).stealthrock || 0 };
+  };
+  const control = run('maushold', 'tidyup'), test = run('glimmora', 'mortalspin');
+  return { works: control.lines === 1 && control.from === 0 && control.mine === 0
+                  && test.seeded && test.lines === 1 && test.from === 1 && test.seedFrom === 1 && test.mine === 0,
+           arms: { control: [control.lines, control.from], test: [test.lines, test.from, test.seedFrom] },
+           detail: '[my-side -sideend lines, of them attributed to the sweeping move, attributed Leech Seed -end] -- Tidy Up '
+                 + JSON.stringify(control) + ' (must be 1 bare; Tidy Up does not pull a seed), Mortal Spin '
+                 + JSON.stringify(test) + ' (must be seeded, 1 attributed hazard line, 1 attributed seed line). '
+                 + 'Knob MEDI_SWEEP_UNATTRIBUTED' };
+});
+
+/* MAGICIAN'S THEFT IS ONE `-item` LINE (data/abilities.ts:2481). The `-enditem|…|[silent]` + `-item` PAIR is
+ * Pickpocket's (:3243-3244). CONTROL: Pickpocket still writes its pair. Knob MEDI_MAGICIAN_ENDITEM_LINE. */
+probe('ability', 'stealsItem', "Magician's theft writes one `-item`; Pickpocket's writes the `-enditem` + `-item` pair", () => {
+  const run = (who) => {
+    const trace = [];
+    const B = who === 'pickpocket' ? { me: bare('weavile') } : { me: bare('delphox') };
+    const ally = bare('skeledirge'), f1 = bare('incineroar'), f2 = bare('farigiraf');
+    B.me.ability = who; f1.item = 'leftovers';
+    unfaintable(B.me); unfaintable(f1);
+    const S = M.battleInit([B.me, ally], [f1, f2], { seeded: true, trace });
+    trace.length = 0;
+    M.battleTurn(S, rng5,
+      who === 'pickpocket' ? PASS2(B.me, ally)
+        : new Map([[B.me, M.playerAction(B.me, 'flamethrower', f1, S.field)], [ally, { kind: 'pass' }]]),
+      who === 'pickpocket' ? new Map([[f1, M.playerAction(f1, 'firepunch', B.me, S.field)], [f2, { kind: 'pass' }]])
+        : PASS2(f1, f2));
+    const L = trace.map(M.traceCanon);
+    return { enditem: L.filter(l => /^\|-enditem\|p2a/.test(l)).length, item: L.filter(l => /^\|-item\|p1a/.test(l)).length,
+             took: B.me.item };
+  };
+  const control = run('pickpocket'), test = run('magician');
+  return { works: control.enditem === 1 && control.item === 1 && control.took === 'leftovers'
+                  && test.enditem === 0 && test.item === 1 && test.took === 'leftovers',
+           arms: { control: [control.enditem, control.item], test: [test.enditem, test.item] },
+           detail: '[victim -enditem lines, thief -item lines] -- Pickpocket ' + JSON.stringify(control)
+                 + ' (must be 1,1), Magician ' + JSON.stringify(test) + ' (must be 0,1). Knob MEDI_MAGICIAN_ENDITEM_LINE' };
+});
+
+/* A MAGICIAN THIEF AT 0 HP TAKES NOTHING. `source.setItem` refuses on `!this.hp` (sim/pokemon.ts:1874) and the handler
+ * writes the victim's item back silently. Staged: Delphox at 1 HP, Flare Blitz's recoil finishes it. CONTROL: the
+ * same click at full HP steals. A BOARD fact (the victim's item). Knob MEDI_MAGICIAN_DEAD_THIEF_TAKES. */
+probe('ability', 'stealsItem', 'a Magician thief killed by its own recoil takes nothing', () => {
+  const run = (hp1) => {
+    const me = bare('delphox'), ally = bare('skeledirge'), f1 = bare('snorlax'), f2 = bare('farigiraf');
+    me.ability = 'magician'; f1.item = 'leftovers';
+    unfaintable(f1);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    if (hp1) me.curHP = 1;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'flareblitz', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return { dead: !(me.curHP > 0), thief: me.item || '', victim: f1.item || '' };
+  };
+  const control = run(false), test = run(true);
+  return { works: !control.dead && control.thief === 'leftovers' && control.victim === ''
+                  && test.dead && test.thief === '' && test.victim === 'leftovers',
+           arms: { control: [control.thief, control.victim], test: [test.thief, test.victim] },
+           detail: '[thief item, victim item] after Flare Blitz -- full HP ' + JSON.stringify(control)
+                 + ' (must steal), 1 HP ' + JSON.stringify(test) + ' (must die to recoil and take nothing). '
+                 + 'Knob MEDI_MAGICIAN_DEAD_THIEF_TAKES' };
+});
+
 probe('ability', 'restoresBerryAtResidual', 'Harvest gives the berry back — always in sun, half the time otherwise', () => {
   /* THREE ARMS, because two would not separate the mechanic from the weather. The rng is the knob on
    * the first two and the SKY is the knob on the second and third, so neither "it always fires" nor
@@ -32394,6 +32505,91 @@ probe('move', 'boostsTarget', 'Coaching with no partner standing fails with [not
                  + `— adjacentAlly at a fainted partner is an empty target list (sim/pokemon.ts:844-846)` };
 });
 
+/* ================= 2026-09-19 — NARRATION BATCH C: FOREWARN, CHILLY RECEPTION, THE HELD STATUS, HARVEST'S COIN =====
+ *
+ * The single-engine half of tests/probe_narration_c.js, which stages each class in BOTH engines (11
+ * Forewarn, 6 Chilly Reception, 16 held-status and 12 Harvest games) and was red on 35 of them on release
+ * 1a6550ea5ec6 with every BOARD agreeing. The bodies are the ones that probe derived as legal learners;
+ * the lines asserted are the ones the authority printed there. Each row is red under its knob:
+ * MEDI_FOREWARN_SILENT, MEDI_CHILLY_NOBENCH_SILENT, MEDI_STATUS_HELD_AFTER_FIELD, MEDI_HARVEST_COIN_GATED. */
+probe('ability', 'announcesOnEntry', 'Forewarn names the foes\' top-scoring move as it walks in — an OHKO move scores 150 and outranks a 140 — and says nothing against status-only foes', () => {
+  const run = (ab, m1, m2) => {
+    const me = bare('incineroar'), ally = bare('corviknight'), bench = bare('musharna');
+    const f1 = bare('camerupt'), f2 = bare('blaziken');
+    bench.ability = ab; f1.moves = m1; f2.moves = m2;
+    const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return trace.map(M.traceCanon).filter(l => /^\|-activate\|p1a:[^|]*\|ability:forewarn\|/.test(l));
+  };
+  const off = run('none', ['fissure', 'protect'], ['lastresort', 'protect']);
+  const on = run('forewarn', ['fissure', 'protect'], ['lastresort', 'protect']);
+  const swapped = run('forewarn', ['lastresort', 'protect'], ['fissure', 'protect']);
+  const status = run('forewarn', ['protect'], ['protect']);
+  const control = [off.length, status.length], test = [on.length, swapped.length];
+  return { works: control[0] === 0 && control[1] === 0 && test[0] === 1 && test[1] === 1
+                  && /\|fissure\|\[of\]p2a:/.test(on[0] || '') && /\|fissure\|\[of\]p2b:/.test(swapped[0] || ''),
+           arms: { control, test },
+           detail: `[Forewarn lines] no ability / status-only foes ${JSON.stringify(control)}; Fissure beside Last Resort, `
+                 + `both slot orders ${JSON.stringify(test)} [${on[0] || 'NONE'}] — bp = 150 for move.ohko, keep the `
+                 + `strict maximum, and an empty list returns before the die (data/abilities.ts:1494-1517)` };
+});
+probe('move', 'pivotStatus', 'Chilly Reception into its own snow with nobody to switch to fails with -fail; setting the snow does not', () => {
+  const me = bare('slowking'), ally = bare('ampharos'), f1 = bare('absol'), f2 = bare('azumarill');
+  me.moves = ['chillyreception', 'protect'];
+  const S = M.battleInit([me, ally], [f1, f2, bare('snorlax'), bare('milotic')], { seeded: true });
+  const turn = () => {
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'chillyreception', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return trace.map(M.traceCanon);
+  };
+  const t1 = turn(), t2 = turn();
+  const fails = t => t.filter(l => /^\|-fail\|p1a:[^|]*$/.test(l)).length;
+  const sky = t => t.filter(l => /^\|-weather\|snow(scape)?$/.test(l)).length;
+  const control = [fails(t1), sky(t1)], test = [fails(t2), me.fainted ? -1 : S.actA.indexOf(me)];
+  return { works: control[0] === 0 && control[1] === 1 && test[0] === 1 && test[1] === 0, arms: { control, test },
+           detail: `[-fail, snow set] first click, no bench ${JSON.stringify(control)}; [-fail, user still in slot a] second click `
+                 + `into its own snow ${JSON.stringify(test)} — setWeather is false under its own sky (sim/field.ts:45-52) and `
+                 + `selfSwitch with no bench is false (sim/battle-actions.ts:1289), so didAnything is false and -fail is written (:1303)` };
+});
+probe('move', 'inflictsParalysis', 'a status move into a body that already holds one is refused by the held status before Misty Terrain can speak', () => {
+  const run = (held) => {
+    const me = bare('dedenne'), ally = bare('azumarill'), f1 = bare('absol'), f2 = bare('ampharos');
+    me.moves = ['thunderwave'];
+    const S = M.battleInit([me, ally], [f1, f2, bare('snorlax'), bare('milotic')], { seeded: true });
+    if (held) f1.status = 'par';
+    S.field.terrain = M.terrainId('mistyterrain'); S.field.terrainT = 5;
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'thunderwave', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const t = trace.map(M.traceCanon);
+    return [t.filter(l => /^\|-activate\|p2a:[^|]*\|move:mistyterrain$/.test(l)).length, t.filter(l => /^\|-fail\|p2a:[^|]*\|par$/.test(l)).length];
+  };
+  const control = run(false), test = run(true);
+  return { works: control[0] === 1 && control[1] === 0 && test[0] === 0 && test[1] === 1, arms: { control, test },
+           detail: `[Misty -activate, -fail|par] Thunder Wave under Misty Terrain into a fresh body ${JSON.stringify(control)}, into `
+                 + `an already-paralysed one ${JSON.stringify(test)} — trySetStatus passes the HELD status and setStatus answers it `
+                 + `(sim/pokemon.ts:1675, :1704-1712) before runEvent('SetStatus') at :1729, where Misty Terrain lives` };
+});
+probe('ability', 'restoresBerryAtResidual', 'Harvest throws its residual coin with no berry to give back — and none in the sun', () => {
+  const added = (weather) => {
+    const count = (ab) => {
+      const me = bare('trevenant'), ally = bare('toxapex'), f1 = bare('absol'), f2 = bare('garchomp');
+      me.ability = ab;
+      const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+      S.field.weather = weather; S.field.weatherT = weather ? 5 : 0;
+      S._trace = [];
+      let n = 0; const rng = () => { n++; return 0.5; };
+      M.battleTurn(S, rng, PASS2(me, ally), PASS2(f1, f2));
+      return n;
+    };
+    return count('harvest') - count('none');
+  };
+  const control = [added(M.weatherId('sunnyday'))], test = [added('')];
+  return { works: control[0] === 0 && test[0] === 1, arms: { control, test },
+           detail: `[dice a berry-less Harvest body adds to one residual] in sun ${JSON.stringify(control)}, no sky ${JSON.stringify(test)} `
+                 + `— \`isWeather(sun) || randomChance(1, 2)\` is thrown BEFORE the berry is asked about (data/abilities.ts:1793-1801)` };
+});
+
 /* ================= THE ANNOUNCEMENT-NAMING FAMILY — ROADMAP #241, #256, #259 =====================
  *
  * Three rows Will read off actual protocol streams, closed as one batch because they are one shape:
@@ -36046,6 +36242,9 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'zombieSkipsResidualRestored', 'f
                           /* 2026-09-19 -- narration batch A (tests/probe_narration_a.js), stamped at LOAD */
                           'roostAnnounceFlyingOnlyRestored', 'spreadNoFoeFailsRestored', 'syncImmuneSilentRestored',
                           'coachingNoAllySilentRestored', 'itemMoveNoTargetSilentRestored',
+                          /* 2026-09-19 -- narration batch C (tests/probe_narration_c.js), stamped at LOAD */
+                          'forewarnSilentRestored', 'chillyNoBenchSilentRestored', 'statusHeldAfterFieldRestored',
+                          'harvestCoinGatedRestored',
                           'residualStopGroupOnlyRestored', 'orbTollSkipsPayoutRestored', 'fatigueBerryInlineRestored',
                           'ppPressurePreRedirectRestored', 'cureRollUngatedRestored', 'reactionDieAlwaysRestored',
                           'alliesAddrAtUserRestored', 'moveEvasionCountedRestored',
@@ -36063,7 +36262,10 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'zombieSkipsResidualRestored', 'f
                           /* 2026-09-19 -- the Sucker Punch queued-move and payout-survival knobs. A knob run
                            * WROTE the census (927 of 928) before these were listed. */
                           'suckerReadsPreEncoreRestored', 'suckerReadsActionKindRestored',
-                          'delayedHitNoSurvivalRestored', 'selfHitNoSurvivalRestored']
+                          'delayedHitNoSurvivalRestored', 'selfHitNoSurvivalRestored',
+                          /* 2026-09-19 -- narration batch D (tests/probe_narration_d.js), stamped at LOAD */
+                          'dropRefusalAfterTableRestored', 'sweepUnattributedRestored',
+                          'magicianEnditemLineRestored', 'magicianDeadThiefTakesRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '
