@@ -10,6 +10,22 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.52.0] — 2026-09-19
+
+### Fixed
+- **Move effects.** Grav Apple under Gravity; Heal Pulse from a Mega Launcher user; Decorate, Coaching,
+  Aromatic Mist and Howl through the boost road; the stat-raised-this-turn flag across switches and at
+  lead entry (Alluring Voice).
+- **Order and targeting.** Helping Hand fails at an ally that already moved; Round promotion; Magic
+  Bounce reflects 11 moves it missed.
+- **Game end.** The residual stops where the game is decided; Future Sight payouts charge Life Orb;
+  lock-end confusion does not eat Lum on the winning turn.
+- **PP and dice.** Pressure charges off the redirected body; Healer, Shed Skin, Spicy Spray and Life Dew
+  draw their dice where the authority does; Darkest Lariat ignores evasion.
+
+### Notes
+- Every fix has a probe and a MEDI_* restore knob; see the 6.52.0 notes row. Census 900 -> 915 live.
+
 ## [6.51.0] — 2026-09-19
 
 ### Notes

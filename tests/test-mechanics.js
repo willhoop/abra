@@ -2436,6 +2436,27 @@ probe('move', 'conditionalPower', 'Facade doubles when statused, and ignores its
                  + `control Body Slam clean ${slamClean} -> burned ${slamBurnt} (must be halved)` };
 });
 
+/* 2026-09-19 -- GRAV APPLE IS x1.5 WHILE GRAVITY IS UP.
+ *
+ * data/moves.ts gravapple.onBasePower: `if (this.field.getPseudoWeather('gravity')) return this.chainModify(1.5)`;
+ * Champions inherits the handler (data/mods/champions/moves.ts gravapple {basePower: 90}). The tag carried
+ * a bare `{conditional: true}` and the engine priced it flat, so the g1350 lattice parted a Torkoal at
+ * 16/145 against 39/145. Two-engine staging: tests/probe_move_effect_leads.js --only gravapple, knob
+ * MEDI_GRAV_APPLE_IGNORES_GRAVITY.
+ *
+ * THE CONTROL IS A DIFFERENT PHYSICAL MOVE UNDER THE SAME GRAVITY: it must NOT move, or the test arm
+ * could be passing on a blanket Gravity multiplier rather than on Grav Apple's own clause. */
+probe('move', 'conditionalPower', 'Grav Apple is 1.5x while Gravity is up, and nothing else is', () => {
+  const hit = (grav, moveId) => turnDamageBig(['flapple', 'incineroar', 'snorlax', 'milotic'],
+    (B) => { B.S.field.gravity = grav; }, moveId);
+  const flat = hit(0, 'gravapple'), test = hit(5, 'gravapple');
+  const ctlFlat = hit(0, 'dragonrush'), control = hit(5, 'dragonrush');
+  return { works: flat > 0 && test >= Math.floor(flat * 1.4) && test <= Math.ceil(flat * 1.6) && control === ctlFlat && control > 0,
+           arms: { control, test },
+           detail: `Grav Apple into Snorlax: no Gravity ${flat}, Gravity up ${test} (must be ~1.5x); `
+                 + `control Dragon Rush: no Gravity ${ctlFlat}, Gravity up ${control} (must not move)` };
+});
+
 /* ---- ABILITIES ---------------------------------------------------------------------------------- */
 
 /* CONVERTED FROM A DIRECT CALL, 2026-08-06 (#42/#45), AND THIS IS THE PROBE THE WHOLE PASS IS ABOUT.
@@ -8766,6 +8787,57 @@ probe('move', 'failsIfTargetMoveNotPriority', 'Upper Hand needs the target on a 
                  + ' (must be 0 — the broad "is the target attacking" rule lets this one through)' };
 });
 
+/* 2026-09-19 -- THE MIRROR: HELPING HAND FAILS AT A PARTNER THAT HAS *ALREADY* MOVED.
+ *
+ *     helpinghand.onTryHit(target) { if (!target.newlySwitched && !this.queue.willMove(target)) return false; }
+ *                                                                      data/moves.ts:8586-8588, no Champions row
+ *
+ * Found by the g1350 lattice on 482e8f5ca701 (authority `|-fail|` against this engine's `-singleturn`).
+ * Both partners click Helping Hand at each other on one turn: the FASTER one marks the slower, which is
+ * still queued (the control -- it must land, or a refusal here would prove nothing), and the SLOWER one
+ * then aims at a body that has already acted (the test -- no mark). Two-engine proof with the knob
+ * MEDI_HELPINGHAND_MOVED_ALLY and the newlySwitched exemption: tests/probe_helpinghand_moved_ally.js.
+ * Dragapult and Torkoal both learn Helping Hand (derived by that probe from the format's learnsets). */
+probe('move', 'failsIfTargetAlreadyMoved', 'Helping Hand fails at a partner that has already moved this turn', () => {
+  const { me, ally, f1, f2, S } = board('dragapult', 'torkoal', 'garchomp', 'garchomp');
+  const fastFirst = M.effSpeed(me, S.field) > M.effSpeed(ally, S.field);
+  M.battleTurn(S, rng5,
+    new Map([[me, M.playerAction(me, 'helpinghand', ally, S.field)], [ally, M.playerAction(ally, 'helpinghand', me, S.field)]]),
+    PASS2(f1, f2));
+  const control = !!ally._helpingHand, test = !!me._helpingHand;
+  return { works: fastFirst && control && !test, arms: { control, test },
+           detail: 'both partners click Helping Hand at each other — the slower partner (still queued when the '
+                 + 'faster one acts) holds the mark: ' + control + ' (must be true); the faster partner (already '
+                 + 'moved when the slower one acts) holds it: ' + test + ' (must be false, the authority prints |-fail|)' };
+});
+
+/* 2026-09-19 -- ROUND PULLS THE NEXT QUEUED ROUND FORWARD, AT DOUBLE POWER.
+ *
+ *     onTry: the first `queue.list` action whose move is round -> prioritizeAction(action, move)
+ *     basePowerCallback: move.sourceEffect === 'round' -> basePower * 2          data/moves.ts:15493-15517
+ *
+ * Found by the g1350 lattice on 482e8f5ca701. Three turns on one board, the same Appletun as the target and a
+ * fixed roll: Weavile's Round alone, Torkoal's Round alone, and both. The control is Torkoal ALONE (60 BP --
+ * nothing to promote it); the test is what Torkoal's Round adds when Weavile's goes first, which must be twice
+ * the control. Two-engine proof of the ORDER half, the foe-side and chain cases, and the knob
+ * MEDI_ROUND_UNPROMOTED: tests/probe_round_promotion.js (species derived there from the format's learnsets). */
+probe('move', 'promotesSameMoveInQueue', 'a Round that follows a partner\'s Round is promoted and doubled', () => {
+  const run = (a1, a2) => {
+    const { me, ally, f1, f2, S } = board('weavile', 'torkoal', 'appletun', 'heracross');
+    unfaintable(f1);
+    const before = f1.curHP;
+    const act = (m, id) => id === 'protect' ? M.playerAction(m, 'protect', null, S.field) : M.playerAction(m, id, f1, S.field);
+    M.battleTurn(S, rng5, new Map([[me, act(me, a1)], [ally, act(ally, a2)]]), PASS2(f1, f2));
+    return before - f1.curHP;
+  };
+  const fastOnly = run('round', 'protect'), control = run('protect', 'round'), both = run('round', 'round');
+  const test = both - fastOnly;
+  return { works: fastOnly > 0 && control > 0 && Math.abs(test - 2 * control) <= 2, arms: { control, test },
+           detail: 'Appletun damage at a fixed roll — Weavile\'s Round alone ' + fastOnly + '; Torkoal\'s Round alone '
+                 + control + ' (60 BP, the control); what Torkoal\'s Round adds behind Weavile\'s ' + test
+                 + ' (must be ~2x the control: the promoted Round is 120 BP)' };
+});
+
 probe('item', 'choiceLock', 'Choice Scarf locks the holder into its first move', () => {
   /* THIS IS NOT "NOBODY IMPLEMENTED CHOICE LOCK". tests/test-choice-lock.js asserts it four ways and
    * passes -- on board.js, where B.candidates() removes the other moves from the SEARCH's action set.
@@ -10204,6 +10276,29 @@ probe('move', 'boostsTarget', 'Decorate raises the partner', () => {
   return { works: test[0] > 0 && test[1] > 0 && control[0] === 0 && control[1] === 0,
            arms: { control, test },
            detail: 'partner atk/spa without the click ' + control.join('/') + ', after Decorate ' + test.join('/') };
+});
+
+/* 2026-09-19 -- AND THE TABLE RUNS THE RECIPIENT'S OWN REACTIONS. `Battle#boost` asks 'ChangeBoost' first,
+ * so Contrary inverts a Decorate the same as any drop (`contrary.onChangeBoost`: `boost[i] *= -1`; no
+ * Champions override). The `boostally` branch wrote the table raw, and the g1950 lattice parted a Malamar
+ * at +3 against the authority's -1. Two-engine staging: tests/probe_move_effect_leads.js --only decorate,
+ * knob MEDI_TARGET_BOOST_RAW. THE CONTROL IS THE SAME MALAMAR ON SUCTION CUPS; both arms aim across the
+ * field and at the partner, because those are two different lines in the branch. */
+probe('move', 'boostsTarget', 'Decorate onto a Contrary body lands inverted, at a foe and at the partner', () => {
+  const run = (ab, atFoe) => {
+    const { me, ally, f1, f2, S } = board('alcremie', 'malamar', 'malamar', 'garchomp');
+    ally.ability = ab; f1.ability = ab;
+    const who = atFoe ? f1 : ally;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'decorate', who, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return who.boosts.at + '/' + who.boosts.sa;
+  };
+  const control = [run('suctioncups', true), run('suctioncups', false)];
+  const test = [run('contrary', true), run('contrary', false)];
+  return { works: control[0] === '2/2' && control[1] === '2/2' && test[0] === '-2/-2' && test[1] === '-2/-2',
+           arms: { control, test },
+           detail: `Decorate atk/spa [at the foe, at the partner] — Suction Cups ${JSON.stringify(control)} (must be 2/2), `
+                 + `Contrary ${JSON.stringify(test)} (must be -2/-2)` };
 });
 
 probe('move', 'clearsScreens', 'Brick Break removes the opposing Reflect', () => {
@@ -14748,6 +14843,43 @@ probe('ability', 'reflectsStatusMoves', 'Magic Bounce sends Charm back at its us
            arms: { control: off, test: on },
            detail: `atk stages (target/user): ability none ${off.target}/${off.user}, `
                  + `Magic Bounce ${on.target}/${on.user}` };
+});
+
+/* 2026-09-19 — AND FIVE MORE ROADS THAT NEVER ASKED. tests/probe_bounce_reflectable_class.js staged every legal
+ * `reflectable` move at a Magic Bounce body against the authority: eleven were reflected there and not here, and
+ * they were exactly the members of five dispatch kinds whose branches never called `bounceOff` — yawn, phaze,
+ * abilitywrite, healdesc and hazard. The g1950 lattice's Yawn at a Hatterene was one of them. One click per kind
+ * on one board; the CONTROL is the same Espeon with no ability, where each effect must land on the Espeon (or its
+ * side). Knob: MEDI_BOUNCE_KIND_BLIND. */
+probe('ability', 'reflectsStatusMoves', 'Magic Bounce reflects Yawn, Roar, Entrainment, Heal Pulse and Spikes back onto the clicker', () => {
+  const run = (ab) => {
+    const one = (mv, prep) => {
+      const me = bare('blastoise'), ally = bare('incineroar'), bench = bare('corviknight');
+      const f1 = bare('espeon'), f2 = bare('garchomp'), fb = bare('snorlax');
+      me.ability = 'torrent'; f1.ability = ab;
+      if (prep) prep(me, f1);
+      const S = M.battleInit([me, ally, bench], [f1, f2, fb], { seeded: true });
+      M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+      return { me, f1, S };
+    };
+    const y = one('yawn');
+    const r = one('roar');
+    const e = one('entrainment');
+    const h = one('healpulse', (me, f1) => { me.curHP = Math.floor(me.st.hp / 2); f1.curHP = Math.floor(f1.st.hp / 2); });
+    const s = one('spikes');
+    const hz = sf => (sf && sf.hz && sf.hz.spikes) || 0;
+    return { yawn: [y.f1._yawn != null ? 1 : 0, y.me._yawn != null ? 1 : 0],
+             roar: [r.S.actB.indexOf(r.f1) < 0 ? 1 : 0, r.S.actA.indexOf(r.me) < 0 ? 1 : 0],
+             entrain: [e.f1.ability === 'torrent' ? 1 : 0, e.me.ability === 'magicbounce' ? 1 : 0],
+             heal: [h.f1.curHP > Math.floor(h.f1.st.hp / 2) ? 1 : 0, h.me.curHP > Math.floor(h.me.st.hp / 2) ? 1 : 0],
+             spikes: [hz(s.f1._sf), hz(s.me._sf)] };
+  };
+  const off = run('none'), on = run('magicbounce');
+  const want = (x, t, u) => Object.values(x).every(p => p[0] === t && p[1] === u);
+  return { works: want(off, 1, 0) && want(on, 0, 1), arms: { control: off, test: on },
+           detail: '[effect on the Espeon/its side, effect on the clicker/its side] per kind — ability none '
+                 + JSON.stringify(off) + ' (each must be [1,0]: the click works on the Espeon); MAGIC BOUNCE '
+                 + JSON.stringify(on) + ' (each must be [0,1]: drowse, drag, Entrainment\'s ability, the heal and the layer all land on the clicker)' };
 });
 
 /* 2026-08-25 — THE THIRD ROAD, AND IT WAS THE BIG ONE. Found by `engine/immunity_sweep.js`.
@@ -22179,6 +22311,65 @@ probe('move', 'punishesBoostedTarget', 'Burning Jealousy burns only a target tha
                  + `positive and only a turn with no rise at all is the negative` };
 });
 
+/* 2026-09-19 -- AND "ROSE THIS TURN" IS NOT READ AGAINST A SNAPSHOT FROM A PREVIOUS STINT ON THE FIELD.
+ *
+ * sim/battle-actions.ts:123 clears `statsRaisedThisTurn` on the way out, so a body arriving from the bench
+ * has raised nothing. This engine's `_boostSnap` was taken at the turn top for ACTIVE bodies only, so a
+ * body pivoted out at -1 and back in at 0 read as a rise (g1950 lattice: an Alluring Voice confused a
+ * returning Swampert). Two-engine staging: tests/probe_move_effect_leads.js --only alluringvoice, knob
+ * MEDI_BOOST_SNAP_SURVIVES_SWITCH. THE CONTROL IS THE RULE'S POSITIVE ARM -- the same body staying in and
+ * clicking Swords Dance on the Burning Jealousy turn -- so the probe can see a burn at all. */
+probe('move', 'punishesBoostedTarget', 'a body back from the bench has raised nothing this turn, whatever it held before', () => {
+  const run = (returned) => {
+    const me = bare('clefable'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('milotic'), f3 = bare('snorlax');
+    me.st = Object.assign({}, me.st, { sp: 1 });
+    f1.st = Object.assign({}, f1.st, { sp: 200 });
+    unfaintable(f1); unfaintable(f2);
+    const S = M.battleInit([me, ally], [f1, f2, f3], { seeded: true });
+    f1.boosts.at = -1;
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, returned ? { kind: 'switch', to: f3 } : { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const slot = S.actB[0];
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'burningjealousy', slot, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[slot, returned ? { kind: 'switch', to: f1 } : M.playerAction(f1, 'swordsdance', f1, S.field)],
+               [f2, { kind: 'pass' }]]));
+    return [S.actB[0] === f1, f1.boosts.at, f1.status || 'clean'];
+  };
+  const control = run(false), test = run(true);
+  return { works: control[0] && control[1] === 1 && control[2] === 'brn' && test[0] && test[1] === 0 && test[2] === 'clean',
+           arms: { control, test },
+           detail: `[Garchomp standing, its Attack stage, its status] after a Burning Jealousy on turn 2 — it stayed in at `
+                 + `-1 and clicked Swords Dance ${JSON.stringify(control)} (must burn); it pivoted out at -1 on turn 1 `
+                 + `and came back on turn 2 ${JSON.stringify(test)} (must NOT burn: its reset 0 is not a rise)` };
+});
+
+/* 2026-09-19 -- AND ON TURN 1 A RAISE AT LEAD ENTRY COUNTS. sim/battle.ts nextTurn: `this.turn++` (:1621) and
+ * then the clear only `if (this.turn !== 1)` (:1672), so Defiant's +2 off a lead Intimidate is a rise on
+ * turn 1. Two-engine staging: tests/probe_move_effect_leads.js --only turn1raise, knob
+ * MEDI_TURN1_SNAP_AFTER_ENTRY. THE CONTROL IS THE SAME KINGAMBIT ON PRESSURE: a drop and no rise. */
+probe('move', 'punishesBoostedTarget', 'a raise at lead entry counts as raised on turn 1', () => {
+  const run = (ab) => {
+    const me = bare('clefable'), ally = bare('incineroar');
+    const f1 = bare('kingambit'), f2 = bare('milotic');
+    ally.ability = 'intimidate'; f1.ability = ab;
+    me.st = Object.assign({}, me.st, { sp: 1 });
+    unfaintable(f1); unfaintable(f2);
+    const S = M.battleInit([me, ally], [f1, f2]);
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'burningjealousy', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return [f1.boosts.at, f1.status || 'clean'];
+  };
+  const control = run('pressure'), test = run('defiant');
+  return { works: control[0] === -1 && control[1] === 'clean' && test[0] === 1 && test[1] === 'brn',
+           arms: { control, test },
+           detail: `[Kingambit's Attack stage, its status] after a turn-1 Burning Jealousy, having led into an `
+                 + `Intimidate — Pressure ${JSON.stringify(control)} (must be -1, clean); Defiant `
+                 + `${JSON.stringify(test)} (must be +1 and BURNED: the +2 at entry is a turn-1 rise)` };
+});
+
 /* 12. boostsWhenLowered — DEFIANT FIRES ONCE PER STAT LOWERED, NOT ONCE PER MOVE.
  *
  * Will, 2026-08-07: *"WHEN PARTING SHOT GOES INTO A DEFIANT OR COMPETITIVE MON IT GETS DOUBLE BOOSTS,
@@ -23668,6 +23859,7 @@ const healRun = (o) => {
   const f1 = bare('milotic'), f2 = bare('swampert');
   const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
   if (o.userHP != null) me.curHP = o.userHP;
+  if (o.userAbility) me.ability = o.userAbility;
   if (o.userStatus) me.status = o.userStatus;
   if (o.allyHP != null) ally.curHP = o.allyHP;
   if (o.benchHP != null) bench.curHP = o.benchHP;
@@ -23720,6 +23912,26 @@ probe('move', 'healDescriptor', 'Heal Pulse restores half the ALLY\'s max HP, ro
                  + `the same board with the turn passed leaves the ally on ${ctrl.ally}, so nothing `
                  + `in the staging heals. The user keeps ${test.userHP}: this move costs no HP and `
                  + `gives its user none` };
+});
+
+/* 2026-09-19 -- AND OUT OF A MEGA LAUNCHER USER IT IS 75%, THROUGH Battle#modify.
+ *
+ * data/moves.ts healpulse.onHit: `if (source.hasAbility("megalauncher")) this.heal(this.modify(target.baseMaxhp,
+ * 0.75))`, else the ceil'd half; no Champions override. The descriptor carried only the else-arm, so the
+ * g1950 lattice parted a Blastoise at 132/154 against 154/154. Two-engine staging:
+ * tests/probe_move_effect_leads.js --only healpulse, knob MEDI_HEAL_PULSE_IGNORES_LAUNCHER.
+ *
+ * THE CONTROL IS THE SAME CLAWITZER WITH ITS ABILITY BLANKED, and the TEST is the exact `modify` integer --
+ * trunc((max*3072 + 2047)/4096) -- asserted apart from a ceil'd 75% wherever the two differ. */
+probe('move', 'healDescriptor', 'Heal Pulse out of a Mega Launcher user restores 75% of the ally\'s max, through modify', () => {
+  const test = healRun({ user: 'clawitzer', userAbility: 'megalauncher', allyHP: 1, script: [{ mv: 'healpulse', at: 'ally' }] })[0];
+  const ctrl = healRun({ user: 'clawitzer', allyHP: 1, script: [{ mv: 'healpulse', at: 'ally' }] })[0];
+  const want = Math.trunc((test.allyMax * 3072 + 2047) / 4096), half = Math.ceil(test.allyMax * 0.5);
+  return { works: test.ally - 1 === want && ctrl.ally - 1 === half,
+           arms: { control: ctrl.ally, test: test.ally },
+           detail: `Clawitzer Heal Pulses a Garchomp on 1 of ${test.allyMax}: MEGA LAUNCHER restores ${test.ally - 1} `
+                 + `(must be modify(max, 0.75) = ${want}; a ceil would be ${Math.ceil(test.allyMax * 0.75)}); ability `
+                 + `blanked restores ${ctrl.ally - 1} (must be ceil(max/2) = ${half})` };
 });
 
 /* WISH — the amount is booked off the WISHER and spent on whoever holds the SLOT, one turn later.
@@ -31470,6 +31682,125 @@ probe('move', 'battleEndsOnWipe', 'a side wiped mid-turn ends the battle THERE �
                  + `differed because there was no body to bring in rather than because a rule fired` };
 });
 
+/* ================= 2026-09-19 — WHAT STILL HAPPENS ON THE TURN THE GAME IS DECIDED, AND FOUR DICE =====
+ *
+ * Each row below is the single-engine half of a two-engine probe that was measured against the
+ * authority first (tests/probe_gameend_residuals.js, tests/probe_pp_pressure_redirect.js,
+ * tests/probe_ignore_evasion_move.js, tests/probe_unshared_reaction_dice.js) and red before the fix.
+ * Every pair of arms varies ONE thing; the read is the board or, for the two dice rows, the NUMBER OF
+ * DICE the turn threw, which is the outcome an address-shared differential actually depends on. */
+probe('move', 'battleEndsOnWipe', 'a burn that wipes a side cancels the burn still queued behind it — on the WINNING side too', () => {
+  const run = (benchForA) => {
+    const a1 = bare('aerodactyl'), a2 = bare('weavile'), b1 = bare('snorlax'), b2 = bare('incineroar');
+    const teamA = [a1, a2]; if (benchForA) teamA.push(bare('toxapex'));
+    a1.st = Object.assign({}, a1.st, { sp: 200 }); a2.st = Object.assign({}, a2.st, { sp: 150 });
+    b1.st = Object.assign({}, b1.st, { sp: 10 }); b2.st = Object.assign({}, b2.st, { sp: 20 });
+    const S = M.battleInit(teamA, [b1, b2], { seeded: true });
+    a1.curHP = 1; a2.curHP = 1; a1.status = 'brn'; a2.status = 'brn'; b1.status = 'brn';
+    const hp0 = b1.curHP;
+    M.battleTurn(S, rng5, PASS2(a1, a2), PASS2(b1, b2));
+    return [hp0 - b1.curHP];
+  };
+  const control = run(true), test = run(false);
+  return { works: control[0] > 0 && test[0] === 0, arms: { control, test },
+           detail: `[Snorlax's burn chip] — side A keeps a bench body ${JSON.stringify(control)}; side A's two `
+                 + `burned 1-HP actives are its last ${JSON.stringify(test)}. fieldEvent returns on ended after `
+                 + `EVERY handler (sim/battle.ts:565-566), so the winner's burn never ticks` };
+});
+probe('move', 'delayedHit', 'the Future Sight payout tolls the booker\'s Life Orb, and the booking click does not', () => {
+  const run = (item) => {
+    const B = board('meowsticf', 'incineroar', 'garchomp', 'milotic');
+    B.me.moves = ['futuresight']; B.me.item = item; unfaintable(B.f1);
+    const seq = [];
+    for (let i = 0; i < 3; i++) {
+      const before = B.me.curHP;
+      M.battleTurn(B.S, rng5, new Map([[B.me, M.playerAction(B.me, 'futuresight', B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]),
+        PASS2(B.f1, B.f2));
+      seq.push(before - B.me.curHP);
+    }
+    return seq;
+  };
+  const control = run(''), test = run('lifeorb');
+  return { works: control.every(x => x === 0) && test[0] === 0 && test[1] === 0 && test[2] > 0, arms: { control, test },
+           detail: `[the booker's HP lost per turn, clicking Future Sight every turn] no item ${JSON.stringify(control)}, `
+                 + `Life Orb ${JSON.stringify(test)} — must be 0, 0, a toll: futuremove.onEnd tolls the booker `
+                 + `(data/conditions.ts:416-418) and the booking is exempt (!move.flags.futuremove)` };
+});
+probe('item', 'curesVolatile', 'a lock-in fatigue on the game-winning blow leaves the Lum Berry uneaten', () => {
+  const rngLock = () => 0.1;   // the lock draws its SHORT length, so turn 2 is its last
+  const run = (benchForB) => {
+    const dn = bare('dragonite'), al = bare('toxapex'), w = bare('weavile'), i = bare('incineroar');
+    dn.moves = ['outrage']; dn.item = 'lumberry';
+    const teamB = [w, i]; if (benchForB) teamB.push(bare('snorlax'));
+    const S = M.battleInit([dn, al], teamB, { seeded: true });
+    w.curHP = 1; i.curHP = 1;
+    for (const t of [w, i])
+      M.battleTurn(S, rngLock, new Map([[dn, M.playerAction(dn, 'outrage', t.fainted ? i : t, S.field)], [al, { kind: 'pass' }]]),
+        new Map((S.actB || []).filter(Boolean).map(x => [x, { kind: 'pass' }])));
+    return [dn.item || '', !!(dn._vol && dn._vol.confusion > 0)];
+  };
+  const control = run(true), test = run(false);
+  return { works: control[0] === '' && control[1] === false && test[0] === 'lumberry' && test[1] === true, arms: { control, test },
+           detail: `[Dragonite's item, confused] — the foe keeps a bench body ${JSON.stringify(control)}; the fatigued `
+                 + `Outrage KOs the foe's last body ${JSON.stringify(test)}. The Update that eats the berry is below `
+                 + `runAction's win return (sim/battle.ts:2832-2833)` };
+});
+probe('ability', 'deductsExtraPP', 'Pressure is charged off the body a Lightning Rod drew the attack to, not the one it was aimed at', () => {
+  const run = (rod) => {
+    const f = bare('farigiraf'), t = bare('toxapex'), w = bare('weavile'), mn = bare('manectric');
+    f.moves = ['thunderbolt']; w.ability = 'pressure'; mn.ability = rod ? 'lightningrod' : 'static';
+    const S = M.battleInit([f, t], [w, mn], { seeded: true });
+    M.battleTurn(S, rng5, new Map([[f, M.playerAction(f, 'thunderbolt', w, S.field)], [t, { kind: 'pass' }]]), PASS2(w, mn));
+    return [(M.ppSpentMap(f) || {}).thunderbolt || 0];
+  };
+  const control = run(false), test = run(true);
+  return { works: control[0] === 2 && test[0] === 1, arms: { control, test },
+           detail: `[Thunderbolt PP spent, aimed at a Pressure Weavile] beside a Static Manectric ${JSON.stringify(control)}, `
+                 + `beside a Lightning Rod Manectric ${JSON.stringify(test)} — pressureTargets are the targets AFTER `
+                 + `RedirectTarget (sim/pokemon.ts getMoveTargets; sim/battle-actions.ts:466-482)` };
+});
+probe('move', 'ignoresBoosts', 'Darkest Lariat ignores the target\'s evasion stage, and a move without the flag does not', () => {
+  const run = (mv) => {
+    const B = board('incineroar', 'toxapex', 'sandaconda', 'milotic');
+    B.me.moves = [mv]; B.f1.boosts.eva = 4;
+    const before = B.f1.curHP;
+    M.battleTurn(B.S, rng5, new Map([[B.me, M.playerAction(B.me, mv, B.f1, B.S.field)], [B.ally, { kind: 'pass' }]]), PASS2(B.f1, B.f2));
+    return [before - B.f1.curHP];
+  };
+  const control = run('crunch'), test = run('darkestlariat');
+  return { works: control[0] === 0 && test[0] > 0, arms: { control, test },
+           detail: `[damage into +4 evasion at a 0.5 die] Crunch ${JSON.stringify(control)} (misses at 42%), Darkest Lariat `
+                 + `${JSON.stringify(test)} (hitStepAccuracy skips the evasion stage for move.ignoreEvasion)` };
+});
+probe('ability', 'curesStatusResidual', 'Healer throws its die only for a statused ally — nobody to cure, no die', () => {
+  const draws = (ab, allyStatus) => {
+    const me = bare('audino'), ally = bare('milotic'), f1 = bare('snorlax'), f2 = bare('garchomp');
+    me.ability = ab; if (allyStatus) ally.status = allyStatus;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    let n = 0; const count = () => { n++; return 0.99; };
+    M.battleTurn(S, count, PASS2(me, ally), PASS2(f1, f2));
+    return n;
+  };
+  const base = draws('none', ''), unstatused = draws('healer', ''), statused = draws('healer', 'brn'), baseSt = draws('none', 'brn');
+  return { works: unstatused === base && statused === baseSt + 1, arms: { control: [unstatused - base], test: [statused - baseSt] },
+           detail: `[dice Healer added to one idle turn] ally unstatused ${unstatused - base}, ally burned ${statused - baseSt} — `
+                 + `must be 0 then 1: \`allyActive.status && this.randomChance(1, 2)\` (data/mods/champions/abilities.ts:46-57)` };
+});
+probe('ability', 'punishesAttacker', 'a certain contact punish (Spicy Spray) throws no die; a 30% one (Static) throws one', () => {
+  const draws = (ab) => {
+    const me = bare('weavile'), ally = bare('toxapex'), f1 = bare('snorlax'), f2 = bare('garchomp');
+    me.moves = ['fakeout']; f1.ability = ab;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    let n = 0; const count = () => { n++; return 0.99; };
+    M.battleTurn(S, count, new Map([[me, M.playerAction(me, 'fakeout', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return n;
+  };
+  const base = draws('none'), spicy = draws('spicyspray'), stat = draws('static');
+  return { works: spicy === base && stat === base + 1, arms: { control: [stat - base], test: [spicy - base] },
+           detail: `[dice the punish added to one Fake Out] Static ${stat - base}, Spicy Spray ${spicy - base} — must be `
+                 + `1 then 0: spicyspray.onDamagingHit calls trySetStatus with no randomChance (data/abilities.ts)` };
+});
+
 /* ================= THE ANNOUNCEMENT-NAMING FAMILY — ROADMAP #241, #256, #259 =====================
  *
  * Three rows Will read off actual protocol streams, closed as one batch because they are one shape:
@@ -34983,6 +35314,8 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'zombieSkipsResidualRestored', 'f
                           'eatEventUpdateOnlyRestored', 'stealEatStripOnlyRestored',
                           'kingsRockOncePerMoveRestored', 'accEvaSeparateRestored',
                           'transformNoCopiedStart', 'mimicryTransformBlind', 'bondReactDrawnRestored',
+                          /* 2026-09-19 -- tests/probe_helpinghand_moved_ally.js */
+                          'helpingHandMovedAllyRestored', 'roundUnpromotedRestored', 'bounceKindBlindRestored',
                           'punishHazardOnAttackerSideRestored', 'punishWeatherIfClearRestored',
                           'terrainTargetSingleRestored', 'terrainScaledUngatedRestored',
                           'eTerrainSleepAllowedRestored', 'encoreNoPPEndRestored',

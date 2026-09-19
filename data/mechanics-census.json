@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-19T03:44:20.334Z",
+  "generated": "2026-09-19T05:50:05.948Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 900,
-  "live": 900,
+  "probed": 915,
+  "live": 915,
   "missing": 0,
-  "armed": 900,
+  "armed": 915,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -454,6 +454,16 @@
       "label": "Facade doubles when statused, and ignores its own burn penalty",
       "live": true,
       "detail": "Facade clean 47, paralysed 93, burned 93 (must NOT be halved); control Body Slam clean 57 -> burned 28 (must be halved)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "conditionalPower",
+      "label": "Grav Apple is 1.5x while Gravity is up, and nothing else is",
+      "live": true,
+      "detail": "Grav Apple into Snorlax: no Gravity 82, Gravity up 124 (must be ~1.5x); control Dragon Rush: no Gravity 93, Gravity up 93 (must not move)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -2139,6 +2149,26 @@
       "directCall": false
     },
     {
+      "kind": "move",
+      "tag": "failsIfTargetAlreadyMoved",
+      "label": "Helping Hand fails at a partner that has already moved this turn",
+      "live": true,
+      "detail": "both partners click Helping Hand at each other — the slower partner (still queued when the faster one acts) holds the mark: true (must be true); the faster partner (already moved when the slower one acts) holds it: false (must be false, the authority prints |-fail|)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "promotesSameMoveInQueue",
+      "label": "a Round that follows a partner's Round is promoted and doubled",
+      "live": true,
+      "detail": "Appletun damage at a fixed roll — Weavile's Round alone 12; Torkoal's Round alone 31 (60 BP, the control); what Torkoal's Round adds behind Weavile's 62 (must be ~2x the control: the promoted Round is 120 BP)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "item",
       "tag": "choiceLock",
       "label": "Choice Scarf locks the holder into its first move",
@@ -2584,6 +2614,16 @@
       "label": "Decorate raises the partner",
       "live": true,
       "detail": "partner atk/spa without the click 0/0, after Decorate 2/2",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "boostsTarget",
+      "label": "Decorate onto a Contrary body lands inverted, at a foe and at the partner",
+      "live": true,
+      "detail": "Decorate atk/spa [at the foe, at the partner] — Suction Cups [\"2/2\",\"2/2\"] (must be 2/2), Contrary [\"-2/-2\",\"-2/-2\"] (must be -2/-2)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -3831,6 +3871,16 @@
     {
       "kind": "ability",
       "tag": "reflectsStatusMoves",
+      "label": "Magic Bounce reflects Yawn, Roar, Entrainment, Heal Pulse and Spikes back onto the clicker",
+      "live": true,
+      "detail": "[effect on the Espeon/its side, effect on the clicker/its side] per kind — ability none {\"yawn\":[1,0],\"roar\":[1,0],\"entrain\":[1,0],\"heal\":[1,0],\"spikes\":[1,0]} (each must be [1,0]: the click works on the Espeon); MAGIC BOUNCE {\"yawn\":[0,1],\"roar\":[0,1],\"entrain\":[0,1],\"heal\":[0,1],\"spikes\":[0,1]} (each must be [0,1]: drowse, drag, Entrainment's ability, the heal and the layer all land on the clicker)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "reflectsStatusMoves",
       "label": "Magic Bounce sends a STATUS MOVE back, and the paralysis lands on the clicker",
       "live": true,
       "detail": "[target status, clicker status] after Thunder Wave at the Espeon — ability none par/none (the click works and the Espeon takes it); MAGIC BOUNCE none/par (it must come BACK, not merely fail — a refusal reads identical on the target and the whole difference is on the clicker)",
@@ -4253,7 +4303,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.9% (format 20, generic 30), control Rock Slide 28.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5919,6 +5969,26 @@
       "directCall": false
     },
     {
+      "kind": "move",
+      "tag": "punishesBoostedTarget",
+      "label": "a body back from the bench has raised nothing this turn, whatever it held before",
+      "live": true,
+      "detail": "[Garchomp standing, its Attack stage, its status] after a Burning Jealousy on turn 2 — it stayed in at -1 and clicked Swords Dance [true,1,\"brn\"] (must burn); it pivoted out at -1 on turn 1 and came back on turn 2 [true,0,\"clean\"] (must NOT burn: its reset 0 is not a rise)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "punishesBoostedTarget",
+      "label": "a raise at lead entry counts as raised on turn 1",
+      "live": true,
+      "detail": "[Kingambit's Attack stage, its status] after a turn-1 Burning Jealousy, having led into an Intimidate — Pressure [-1,\"clean\"] (must be -1, clean); Defiant [1,\"brn\"] (must be +1 and BURNED: the +2 at entry is a turn-1 rise)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "ability",
       "tag": "boostsWhenLowered",
       "label": "Defiant fires once per STAT LOWERED — Parting Shot +3, Charm 0",
@@ -6324,6 +6394,16 @@
       "label": "Heal Pulse restores half the ALLY's max HP, rounded UP, to the ally and not to its user",
       "live": true,
       "detail": "[Clefable 170 max clicks it at a Garchomp on 1 of 183] — the ally ends on 93, restored 92; ceil(183/2) = 92, and half the USER's max would be 85. CONTROL — the same board with the turn passed leaves the ally on 1, so nothing in the staging heals. The user keeps 170: this move costs no HP and gives its user none",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "healDescriptor",
+      "label": "Heal Pulse out of a Mega Launcher user restores 75% of the ally's max, through modify",
+      "live": true,
+      "detail": "Clawitzer Heal Pulses a Garchomp on 1 of 183: MEGA LAUNCHER restores 137 (must be modify(max, 0.75) = 137; a ceil would be 138); ability blanked restores 92 (must be ceil(max/2) = 92)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -8234,6 +8314,76 @@
       "label": "a side wiped mid-turn ends the battle THERE — no later action, no upkeep, no replacement",
       "live": true,
       "detail": "[p1 |move| lines, |upkeep| lines, |switch| lines] — side B keeps a bench body [2,1,1] (the turn plays out and a replacement walks in), side B wiped [1,0,0] (the authority's turnLoop returns and emits nothing further). Before the fix the two read [2,1,1] and [2,1,0] — the move and upkeep counts were IDENTICAL across the knob and only the replacement differed, and it differed because there was no body to bring in rather than because a rule fired",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "battleEndsOnWipe",
+      "label": "a burn that wipes a side cancels the burn still queued behind it — on the WINNING side too",
+      "live": true,
+      "detail": "[Snorlax's burn chip] — side A keeps a bench body [14]; side A's two burned 1-HP actives are its last [0]. fieldEvent returns on ended after EVERY handler (sim/battle.ts:565-566), so the winner's burn never ticks",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "delayedHit",
+      "label": "the Future Sight payout tolls the booker's Life Orb, and the booking click does not",
+      "live": true,
+      "detail": "[the booker's HP lost per turn, clicking Future Sight every turn] no item [0,0,0], Life Orb [0,0,14] — must be 0, 0, a toll: futuremove.onEnd tolls the booker (data/conditions.ts:416-418) and the booking is exempt (!move.flags.futuremove)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "curesVolatile",
+      "label": "a lock-in fatigue on the game-winning blow leaves the Lum Berry uneaten",
+      "live": true,
+      "detail": "[Dragonite's item, confused] — the foe keeps a bench body [\"\",false]; the fatigued Outrage KOs the foe's last body [\"lumberry\",true]. The Update that eats the berry is below runAction's win return (sim/battle.ts:2832-2833)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "deductsExtraPP",
+      "label": "Pressure is charged off the body a Lightning Rod drew the attack to, not the one it was aimed at",
+      "live": true,
+      "detail": "[Thunderbolt PP spent, aimed at a Pressure Weavile] beside a Static Manectric [2], beside a Lightning Rod Manectric [1] — pressureTargets are the targets AFTER RedirectTarget (sim/pokemon.ts getMoveTargets; sim/battle-actions.ts:466-482)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "ignoresBoosts",
+      "label": "Darkest Lariat ignores the target's evasion stage, and a move without the flag does not",
+      "live": true,
+      "detail": "[damage into +4 evasion at a 0.5 die] Crunch [0] (misses at 42%), Darkest Lariat [67] (hitStepAccuracy skips the evasion stage for move.ignoreEvasion)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "curesStatusResidual",
+      "label": "Healer throws its die only for a statused ally — nobody to cure, no die",
+      "live": true,
+      "detail": "[dice Healer added to one idle turn] ally unstatused 0, ally burned 1 — must be 0 then 1: `allyActive.status && this.randomChance(1, 2)` (data/mods/champions/abilities.ts:46-57)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "a certain contact punish (Spicy Spray) throws no die; a 30% one (Static) throws one",
+      "live": true,
+      "detail": "[dice the punish added to one Fake Out] Static 1, Spicy Spray 0 — must be 1 then 0: spicyspray.onDamagingHit calls trySetStatus with no randomChance (data/abilities.ts)",
       "hollow": false,
       "armed": true,
       "directCall": false

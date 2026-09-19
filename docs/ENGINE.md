@@ -29,6 +29,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_spread_status_steps.js`, `tests/probe_multihit_update.js`,
 `tests/probe_volley_reactor_count.js`, `tests/probe_electric_charge_paths.js`,
 `tests/probe_bench_private_counters.js`,
+`tests/probe_helpinghand_moved_ally.js`, `tests/probe_round_promotion.js`,
+`tests/probe_bounce_reflectable_class.js`, `tests/probe_mega_trace_die.js`,
 `tests/probe_noguard_invuln.js`, `tests/probe_endturn_clock_order.js`,
 `tests/probe_substitute_status_step.js`, `tests/probe_yawn_substitute.js`,
 `tests/probe_doll_blind_family.js`, `tests/probe_trace_target.js`,
@@ -62,7 +64,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_corner_mechanisms.js`, `tests/probe_simple_beam.js`, `tests/probe_magnetrise_clock.js`,
 `tests/probe_rampage_length.js`, `tests/probe_bond_secondary_order.js`, `tests/probe_ability_flag_refusal.js`,
 `tests/probe_reopen_partings.js`, `tests/probe_moldbreaker_refusals.js`,
-`tests/probe_transform_copied_start.js`, `tests/probe_bond_reactor_ko.js`
+`tests/probe_transform_copied_start.js`, `tests/probe_bond_reactor_ko.js`,
+`tests/probe_move_effect_leads.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -158,12 +161,14 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  900/900 probed mechanics live, 0 missing   (census 2026-09-18 23:44)
-    the census probes what somebody thought to probe: 297 of 297 in-scope tags carry a probe, 0 carry none (9 of 306
+  915/915 probed mechanics live, 0 missing   (census 2026-09-19 01:50)
+    the census probes what somebody thought to probe: 299 of 299 in-scope tags carry a probe, 0 carry none (9 of 308
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 44 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 58 min old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/74be319d02fa/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "74be319d02fa".
+    older than its input abra-tags.js
+    pinned to engine release 74be319d02fa — engine/medicham2-browser.js matches the frozen copy; live is 638bac0f02b3 now (a PRE-CHANGE measurement of that release, not corruption)
+    (+3 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -175,12 +180,12 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0394e3673b5b now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 297/297 in-scope probed, 0 unprobed;  295/297 have an engine consumer on every in-scope row, 2 do not;  9 of 306 tags have no in-scope carrier
+  tag coverage: 299/299 in-scope probed, 0 unprobed;  297/299 have an engine consumer on every in-scope row, 2 do not;  9 of 308 tags have no in-scope carrier
     consumedBy comes from engine/tag_dex.js grepping board.js and medicham2-browser.js for a hint
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 01:45_
+_stamped 2026-09-19 02:00_
 
 <!-- /GENERATED -->
 
@@ -206,6 +211,123 @@ Report: `docs/_reports/2026-09-19-roster-plants-remeasure.md`.
 - **Greninjite is the new items DIFFER, and it is the engine.** `proteanConvert` is not gated on the
   move's `Try` (`sim/battle-actions.ts:826-828` runs `Try` before `PrepareHit`) or on `callsMove`.
   It reads MATCH under `ROSTER_INERT_FOCUSENERGY=1`. **OWED: probe, fix, cut, re-run.**
+
+## FOUR SINGLE-GAME LEADS, ALL FOUR REAL, ALL FOUR FIXED — PLUS A FIFTH DEFECT FOUND WHILE STAGING THE FOURTH. CENSUS **900 → 905 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `145431fddf1e`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-19-move-effects.md`. Two-engine probe: `tests/probe_move_effect_leads.js`
+(28 arms, 14 red arms parted by their knobs, 14 controls unmoved).
+
+- **GRAV APPLE (g1350, Torkoal 16/145 vs 39/145).** `gravapple.onBasePower` is x1.5 under
+  `getPseudoWeather("gravity")` (Champions inherits it, `basePower: 90`). The tag carried a bare
+  `{conditional: true}` and a stale note that Gravity had no state here. `tag_dex` now derives
+  `conditionalPower {when:'pseudoWeather', pseudoWeather, mult}` from the handler; the damage consumer reads
+  the field clock through `RESIDUAL_FOLLOWER_FIELD`. Class: one legal move. Knob
+  `MEDI_GRAV_APPLE_IGNORES_GRAVITY=1`.
+- **HEAL PULSE (g1950, Blastoise 132/154 vs 154/154).** The user is a Mega Launcher Clawitzer; the recipient is
+  the Blastoise. `healpulse.onHit` heals `this.modify(target.baseMaxhp, 0.75)` when the SOURCE has Mega
+  Launcher. `healDescriptor` carried only the else-arm. It now carries `amountIfAbility {whose, ability, amount
+  {round:'modify'}}`, and `healSize` reads it (`sdModify`, so 170 → 127, not 128). Class: one legal move.
+  Knob `MEDI_HEAL_PULSE_IGNORES_LAUNCHER=1`.
+- **DECORATE ONTO CONTRARY (g1950, Malamar +3 vs -1).** The `boostally` branch (Decorate, Coaching, Aromatic
+  Mist, Howl) wrote the table raw. `affect` (Flatter, Swagger, Charm …) already ran Contrary, Simple, the drop
+  refusals and Defiant/Competitive; that loop is now `boostTableOnto` and both branches call it. Other raw
+  move-granted boosts checked: Electro Shot / Meteor Beam's charge-turn raise has no legal Contrary learner;
+  Magnetic Flux needs Plus/Minus. Knob `MEDI_TARGET_BOOST_RAW=1`.
+- **ALLURING VOICE (g1950, Swampert confused here only).** The condition was modelled. The baseline was stale:
+  `_boostSnap` is taken at the turn top for active bodies, so a body back from the bench compared against its
+  last stint (Intimidated -1, reset 0 = "rose"). The authority clears the flag on switch-out
+  (`sim/battle-actions.ts:123`). `bringIn` now takes the baseline on arrival. Knob
+  `MEDI_BOOST_SNAP_SURVIVES_SWITCH=1`.
+- **NEW, SAME BASELINE: A RAISE AT LEAD ENTRY COUNTS ON TURN 1.** `nextTurn` skips the clear on turn 1
+  (`sim/battle.ts:1621,1672`). A Defiant Kingambit that led into an Intimidate is confused by a turn-1
+  Alluring Voice on the authority and was not here. `battleInit` takes the leads' baseline before the entry
+  pass and the turn-1 top keeps it. Knob `MEDI_TURN1_SNAP_AFTER_ENTRY=1`.
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST, because the census and the probe now carry them:** Alluring Voice's condition; Decorate
+  and Contrary; Mega Launcher and Heal Pulse; Grav Apple under Gravity (never listed, on the 2026-09-18 card).
+- **NEW, NOT FIXED — DECLARED REMAINDER:** item-granted boosts (Weakness Policy, the seeds, the pinch berries …)
+  still write raw, so a Contrary holder is not inverted. A Mold Breaker source does not suppress the target's
+  Contrary on either boost road.
+- **`data/tags.json` WAS SPLICED, NOT REGENERATED.** This worktree has no store. Exactly two entities changed
+  shape in a no-store `tag_dex` run (`gravapple`, `healpulse`) and only those were carried into HEAD's file.
+- **CARRIED FORWARD UNCHANGED:** Darkest Lariat and `ignoreEvasion` (1); Magic Bounce and Yawn (1); Round's queue
+  promotion (1); Helping Hand at an ally that has already moved (1); Cud Chew's `_cud` across a switch; the
+  other eighteen `onEnd` abilities, and the rest of #622.
+
+## HELPING HAND FAILS AT A PARTNER THAT ALREADY MOVED, ROUND PROMOTES THE NEXT ROUND AT DOUBLE POWER, AND MAGIC BOUNCE NOW REFLECTS FIVE KINDS IT NEVER ASKED ABOUT (ELEVEN MOVES, YAWN ONE OF THEM). TRACE DID NOT REPRODUCE ON 90 STAGED PLAYS. CENSUS **900 → 903 LIVE / 0 MISSING**. 2026-09-19, CHANGELOG `<<VER>>`
+
+Report: `docs/_reports/2026-09-19-ordering-targeting.md`. LIGHT MODE: staged boards and single probes only.
+
+- **Helping Hand (premise TRUE).** `helpinghand.onTryHit` fails a target that is not `newlySwitched` and
+  not in `queue.willMove` (`data/moves.ts:8586-8588`). New tag `failsIfTargetAlreadyMoved` (Helping Hand,
+  Electrify; the Electrify exemption is `activeTurns` and is counted unread). One reader,
+  `targetAlreadyMovedRefuses`, fed the existing `queueWillMove`. Knob `MEDI_HELPINGHAND_MOVED_ALLY=1`.
+  Probe `tests/probe_helpinghand_moved_ally.js`: 2 red arms, 2 controls (one reaches the `newlySwitched`
+  exemption and asserts it did).
+- **Round (premise TRUE).** Round's `onTry` promotes the first queued Round (any side) with `order 3`,
+  and `basePowerCallback` doubles it (`data/moves.ts:15493-15517`). New tag `promotesSameMoveInQueue`
+  (Round alone). `promoteQueuedSameMove` at the `Try` position; the doubling rides `ACTION_PROMOTED`,
+  which lives only for the promoted action. Knob `MEDI_ROUND_UNPROMOTED=1`. Probe
+  `tests/probe_round_promotion.js`: partner, foe-side, chain, into-Protect red; no-second control.
+- **Magic Bounce (premise TRUE, and a class).** `tests/probe_bounce_reflectable_class.js` stages all 60
+  legal `reflectable` moves at a bouncer. Eleven differed: every member of the five kinds whose branch
+  never called `bounceOff` — yawn, phaze (Roar, Whirlwind), abilitywrite (Entrainment, Worry Seed,
+  Simple Beam), healdesc (Heal Pulse), hazard (the four hazards). `bounceAtTryHit` / `bounceSideAtTryHit`
+  wrap `bounceOff` under the shield, hand back the bouncer as the SOURCE, and re-aim the draw address.
+  Knob `MEDI_BOUNCE_KIND_BLIND=1` parts exactly those eleven. 58 of 60 now agree; 2 have no staged learner.
+- **Trace (NOT REPRODUCED).** `tests/probe_mega_trace_die.js`: a mega Trace opposite a foe that megas the
+  same turn, before or after, or already mega; 90 plays over both corners and 16 middle seeds. Every
+  copy agreed. It is neither the list nor the die on any shape staged. The card needs a warmed replay.
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST, because the census and a probe now carry them:** Magic Bounce and Yawn; Round's
+  queue promotion; Helping Hand at an ally that has already moved.
+- **NEW LEAD, found by a control and not fixed:** Clear Smog does not clear the target's boosts. The
+  attack branch never reads `clearsBoosts`; the authority writes `-clearboost` and zeroes them.
+- **CARRIED FORWARD:** Trace on Alakazam (1, not reproduced — a warmed `replay_one` is owed); every other
+  lead in the lists below.
+
+## GAME-END EFFECTS, A PRESSURE PRICE AND THREE UNSHARED DICE. SEVEN DEFECTS, FIVE MECHANISMS. CENSUS **900 → 907 LIVE / 0 MISSING**. 2026-09-19, CHANGELOG `<<VER>>`
+
+Report: `docs/_reports/2026-09-19-gameend-dice.md`. LIGHT MODE: staged boards and single probes only.
+
+- **The game-end group was not one mechanism. It was three, in both directions.** (1) A burn that wipes a
+  side stops the residual at that handler (`sim/battle.ts:565-566`). The engine stopped only at the next
+  group, so the winner's burn still ticked. Knob `MEDI_RESIDUAL_STOP_GROUP_ONLY=1`. (2) The Future Sight payout
+  tolls the booker's Life Orb every time (`data/conditions.ts:416-418`), and only then checks the win. The
+  engine never tolled. Knob `MEDI_ORB_TOLL_SKIPS_PAYOUT=1`. (3) A lock-in fatigue at move time waits for
+  `runAction`'s Update, which comes after the win return (`sim/battle.ts:2832-2856`). The engine ate the Lum
+  inside `applyConfusion`. Knob `MEDI_FATIGUE_BERRY_INLINE=1`. Probe: `tests/probe_gameend_residuals.js`.
+- **PP `thunderbolt 2|1`.** Pressure is charged off the targets that remain AFTER redirection. The attack
+  branch redirects below the PP site, so the engine priced the aimed Pressure body. Knob
+  `MEDI_PP_PRESSURE_PRE_REDIRECT=1`. Probe: `tests/probe_pp_pressure_redirect.js`.
+- **Dice.** Three of the five were die ADDRESS defects in the engine: Healer and Shed Skin threw a die with
+  nobody to cure (Trevenant); Spicy Spray threw a die it has no chance for (Poison Touch on Scovillain); an
+  `allies` move addressed its BeforeMove dice at the user and not at the drawn foe (Sinistcha's paralysis).
+  Knobs `MEDI_CURE_ROLL_UNGATED=1`, `MEDI_REACTION_DIE_ALWAYS=1` and `MEDI_ALLIES_ADDR_AT_USER=1`. Probe:
+  `tests/probe_unshared_reaction_dice.js`. Darkest Lariat was a RULE defect: the move half of
+  `ignoreEvasion` was a declared gap. `ignoresBoosts.evasion` is now derived. Knob `MEDI_MOVE_EVASION_COUNTED=1`.
+  Probe: `tests/probe_ignore_evasion_move.js`.
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST, because the census and four probes now carry them:** the residual per-handler stop;
+  the Future Sight Life Orb toll; the Lum after a game-winning fatigue; Pressure after a redirect; the
+  Healer/Shed Skin die; the Spicy Spray die; the `allies` BeforeMove address; the move half of `ignoreEvasion`.
+- **DIAGNOSED, NOT FIXED — Cursed Body against Triple Axel.** This is two defects. RULE: Cursed Body and
+  Poison Touch are paid once per move. The authority raises `DamagingHit` for each arrival. ADDRESS:
+  `rollHitsOf` draws the multiaccuracy dice for arrivals 2..n BEFORE the first hit. The authority draws each
+  die in the hit loop, between the arrivals' `DamagingHit` dice, on the same `any|<move>|<slot>` address.
+  So the `nth` values interleave differently. To fix the rule alone does not clear the game. The address
+  half needs its own middle-arm category for the hit loop's dice, or a lazy per-arrival draw.
+- **NEW LEAD, read at the source and not probed:** Effect Spore rolls only after
+  `source.runStatusImmunity('powder')` passes. The engine throws its die for a Grass or Overcoat
+  attacker as well (Vileplume is legal).
+- **`data/tags.json` WAS SPLICED, NOT REGENERATED.** This is the same reason as the pass below. Only the
+  two `ignoresBoosts.evasion` params were added to HEAD's file.
 
 ## GOOEY'S DROP NOW RUNS THE ATTACKER'S OWN STAT REACTIONS, AND MUMMY / WANDERING SPIRIT NOW REFUSE A FLAGGED ABILITY. BOTH LEADS WERE A CLASS, NOT AN INSTANCE. CENSUS **894 → 896 LIVE / 0 MISSING**. 2026-09-18, CHANGELOG `<<VER>>`
 

@@ -1826,8 +1826,9 @@ const MOVE_TAGS = [
      *
      * FOUR MEMBERS DELIBERATELY KEEP THE BARE TAG rather than being given a rule they do not have:
      * Solar Beam and Solar Blade are `weatherScaled`, Expanding Force and Misty Explosion are
-     * `terrainScaled`, Knock Off is `variablePower{targetHasItem}` and Grav Apple needs Gravity,
-     * which this engine has no state for. Inventing a `when` for those would put the same fact under
+     * `terrainScaled`, Knock Off is `variablePower{targetHasItem}`. (Grav Apple was a fourth, "needs
+     * Gravity, which this engine has no state for" -- stale since `field.gravity` landed; it now carries
+     * `{when:'pseudoWeather'}`, 2026-09-19.) Inventing a `when` for those would put the same fact under
      * two tags, which docs/TAGS.md invariant 2 forbids. */
     of: m => {
       if (!m.onBasePower || m.basePowerCallback) return null;
@@ -1847,6 +1848,12 @@ const MOVE_TAGS = [
         if (/statsLoweredThisTurn/.test(src)) return { when: 'userStatsLoweredThisTurn', mult };
         const rc = src.match(/randomChance\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
         if (rc) return { when: 'chance', p: +rc[1] / +rc[2], mult };
+        /* 2026-09-19 -- Grav Apple: a FIELD PSEUDO-WEATHER is up (`this.field.getPseudoWeather("gravity")`).
+         * The note above said this engine had "no state for" Gravity; it has had `field.gravity` since
+         * the Gravity wires, and the bare tag left Grav Apple at 1.0x under it (lattice g1350, Torkoal
+         * 16/145 vs 39/145). The pseudo-weather's ID is read out of the handler, never named here. */
+        const pw = src.match(/field\.getPseudoWeather\(\s*"(\w+)"\s*\)/);
+        if (pw) return { when: 'pseudoWeather', pseudoWeather: pw[1], mult };
       }
       return { conditional: true, note: 'condition not derivable here -- carried by another tag' };
     } },
@@ -4799,6 +4806,15 @@ const MOVE_TAGS = [
         if (frac) out.amount = { fraction: +frac[3], of: r[frac[2]] || frac[2], round: frac[1] };
         else if (full) out.amount = { full: true, of: r[full[1]] || full[1] };
         else return null;
+        /* 2026-09-19 -- (c) A BRANCH ON AN ABILITY, SIZED THROUGH THE 4096ths CHAIN. Heal Pulse is
+         *     `if (source.hasAbility("megalauncher")) this.heal(this.modify(target.baseMaxhp, 0.75))`,
+         *     else the ceil'd half. The descriptor carried only the else-arm, so a Mega Launcher
+         *     Clawitzer healed 50% (lattice g1950: Blastoise 132/154 against the authority's 154/154).
+         *     WHOSE ability is resolved through the handler's own parameter list, like `of`; the
+         *     rounding is named `modify` because it is `Battle#modify`, not a Math function. */
+        const abBr = /if\s*\(\s*(\w+)\.hasAbility\(\s*"(\w+)"\s*\)\s*\)\s*\{[^}]*?this\.heal\(\s*this\.modify\(\s*(\w+)\.(?:baseMaxhp|maxhp)\s*,\s*([\d.]+)\s*\)\s*\)/.exec(src);
+        if (abBr) out.amountIfAbility = { whose: r[abBr[1]] || abBr[1], ability: abBr[2],
+          amount: { fraction: +abBr[4], of: r[abBr[3]] || abBr[3], round: 'modify' } };
         out.who = 'target';
         out.when = 'now';
         const who = frac ? frac[2] : full[1];
@@ -5356,11 +5372,17 @@ const MOVE_TAGS = [
     probe: 'ignoresBoosts',
     why: 'a setup sweeper behind +4 Defence is exactly the position these moves exist to answer, '
        + 'and the engine let the boost stand',
+    /* 2026-09-19 -- AND `evasion`, off the dex's own `ignoreEvasion`. `hitStepAccuracy` reads it:
+     * `if (!move.ignoreEvasion) boost = clampIntRange(boost - boosts['evasion'], -6, 6)`. The legal
+     * carriers are Darkest Lariat and Sacred Sword, which both ALSO carry ignoreDefensive, so the tag's
+     * membership is unchanged and only the param grows. tests/probe_ignore_evasion_move.js asserts the
+     * artifact's set equals the dex's. */
     of: m => {
-      if (!m.ignoreDefensive && !m.ignoreOffensive) return null;
+      if (!m.ignoreDefensive && !m.ignoreOffensive && !m.ignoreEvasion) return null;
       const out = {};
       if (m.ignoreDefensive) out.defensive = true;
       if (m.ignoreOffensive) out.offensive = true;
+      if (m.ignoreEvasion) out.evasion = true;
       return out;
     } },
   /* MOVES THAT FAIL UNLESS THE TARGET IS ATTACKING THIS TURN.
@@ -5440,6 +5462,55 @@ const MOVE_TAGS = [
       /* `<=` means the move FAILS at or below the number, so the requirement is strictly above it;
        * `<` would make the number itself acceptable. Both are carried rather than collapsed. */
       return { minPriority: +pri[2], strictlyAbove: pri[1] === '<=' };
+    } },
+  /* 2026-09-19 -- THE MIRROR OF THE TWO ABOVE: THE MOVE FAILS WHEN ITS TARGET HAS *ALREADY* MOVED.
+   *
+   *     helpinghand.onTryHit(target) { if (!target.newlySwitched && !this.queue.willMove(target)) return false; }
+   *     electrify.onTryHit(target)   { if (!this.queue.willMove(target) && target.activeTurns) return false; }
+   *
+   * Read off `onTryHit` only, and only the NEGATED `willMove(target)` with a `return false` -- the sign is
+   * what separates it from `failsIfTargetNotAttacking` (onTry, positive `willMove`) and from After You /
+   * Quash (onHit, which reorder rather than refuse). Membership over the legal moves, printed before this
+   * was wired: helpinghand, electrify. The EXEMPTION differs between the two and is carried rather than
+   * collapsed: a body that switched in this turn (`newlySwitched`) against a body with no active turns. */
+  { tag: 'failsIfTargetAlreadyMoved',
+    param: 'the move fails when its target has already acted this turn, unless the target just arrived',
+    probe: 'failsIfTargetAlreadyMoved',
+    why: 'Helping Hand (11,106 sheet uses) landed on a partner that had already moved -- the mark does '
+       + 'nothing, but the move is a success here and a `-fail` on the authority',
+    of: m => {
+      const src = fnsrc(m.onTryHit);
+      if (!/!\s*this\.queue\.willMove\(\s*target\s*\)/.test(src) || !/return false/.test(src)) return null;
+      const out = { fails: true };
+      if (/!\s*target\.newlySwitched/.test(src)) out.exemptIfNewlySwitched = true;
+      if (/target\.activeTurns/.test(src)) out.exemptIfNoActiveTurns = true;
+      return out;
+    } },
+  /* 2026-09-19 -- ROUND. ITS onTry PULLS THE NEXT QUEUED ACTION OF THE SAME MOVE TO THE FRONT, AND ITS
+   * basePowerCallback DOUBLES AN ACTION THAT WAS PULLED THAT WAY.
+   *
+   *     onTry(source, target, move) { for (const action of this.queue.list) { ...
+   *       if (action.move.id === 'round') { this.queue.prioritizeAction(action, move); return; } } }
+   *     basePowerCallback(target, source, move) { if (move.sourceEffect === 'round') return move.basePower * 2; ... }
+   *
+   * Both halves read off the handlers: the id the queue walk matches, the `prioritizeAction(action, move)`
+   * that stamps the sourceEffect, and the multiplier the power callback applies to that sourceEffect.
+   * Membership over the legal moves, printed before this was wired: round (After You and Instruct also call
+   * prioritizeAction, from onHit and without passing the move, and do not match). */
+  { tag: 'promotesSameMoveInQueue',
+    param: 'on use, the next queued action of the same move goes to the front of the queue, at a power multiplier',
+    probe: 'promotesSameMoveInQueue',
+    why: 'Round (97 sheet uses): the partner\'s Round moved in speed order at 60 BP where the authority moves '
+       + 'it straight after the first at 120 BP',
+    of: m => {
+      const tr = fnsrc(m.onTry);
+      const idm = tr.match(/action\.move\.id\s*===\s*['"]([a-z0-9]+)['"]/);
+      if (!idm || !/prioritizeAction\(\s*action\s*,\s*move\s*\)/.test(tr)) return null;
+      const out = { moveId: idm[1] };
+      const bp = fnsrc(m.basePowerCallback);
+      const pm = bp.match(/move\.sourceEffect\s*===\s*['"]([a-z0-9]+)['"].*?return\s+move\.basePower\s*\*\s*([0-9.]+)/);
+      if (pm) { out.promotedBy = pm[1]; out.mult = +pm[2]; }
+      return out;
     } },
   { tag: 'recharge', param: 'costs the turn AFTER it lands', probe: 'rechargeTurn',
     why: 'Hyper Beam. A free turn for the opponent',

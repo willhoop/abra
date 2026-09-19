@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-19T03:43:12.745Z",
+ "generated": "2026-09-19T05:49:16.663Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -2291,6 +2291,33 @@
    "uses": 190,
    "examples": [
     "Upper Hand"
+   ]
+  },
+  {
+   "tag": "failsIfTargetAlreadyMoved",
+   "kind": "move",
+   "param": "the move fails when its target has already acted this turn, unless the target just arrived",
+   "why": "Helping Hand (11,106 sheet uses) landed on a partner that had already moved -- the mark does nothing, but the move is a success here and a `-fail` on the authority",
+   "consumedBy": "failsIfTargetAlreadyMoved",
+   "used": true,
+   "n": 2,
+   "uses": 11122,
+   "examples": [
+    "Electrify",
+    "Helping Hand"
+   ]
+  },
+  {
+   "tag": "promotesSameMoveInQueue",
+   "kind": "move",
+   "param": "on use, the next queued action of the same move goes to the front of the queue, at a power multiplier",
+   "why": "Round (97 sheet uses): the partner's Round moved in speed order at 60 BP where the authority moves it straight after the first at 120 BP",
+   "consumedBy": "promotesSameMoveInQueue",
+   "used": true,
+   "n": 1,
+   "uses": 97,
+   "examples": [
+    "Round"
    ]
   },
   {
@@ -10007,6 +10034,7 @@
     "statusCategory",
     "formatSecondaryCount",
     "statusInflict",
+    "failsIfTargetAlreadyMoved",
     "volatileAnnounce",
     "volatileRestart"
    ],
@@ -10041,6 +10069,10 @@
        "to": "target"
       }
      ]
+    },
+    "failsIfTargetAlreadyMoved": {
+     "fails": true,
+     "exemptIfNoActiveTurns": true
     },
     "volatileAnnounce": {
      "byVolatile": {
@@ -10351,8 +10383,9 @@
      "noPPBoosts": false
     },
     "conditionalPower": {
-     "conditional": true,
-     "note": "condition not derivable here -- carried by another tag"
+     "when": "pseudoWeather",
+     "pseudoWeather": "gravity",
+     "mult": 1.5
     },
     "targetClass": {
      "target": "normal",
@@ -16250,7 +16283,8 @@
      "count": 0
     },
     "ignoresBoosts": {
-     "defensive": true
+     "defensive": true,
+     "evasion": true
     }
    }
   },
@@ -21339,6 +21373,15 @@
       "of": "recipient",
       "round": "ceil"
      },
+     "amountIfAbility": {
+      "whose": "user",
+      "ability": "megalauncher",
+      "amount": {
+       "fraction": 0.75,
+       "of": "recipient",
+       "round": "modify"
+      }
+     },
      "who": "target",
      "when": "now"
     },
@@ -21559,6 +21602,7 @@
     "statusCategory",
     "formatSecondaryCount",
     "statusInflict",
+    "failsIfTargetAlreadyMoved",
     "callRefusalFlags",
     "volatileRestart"
    ],
@@ -21602,6 +21646,10 @@
        "to": "target"
       }
      ]
+    },
+    "failsIfTargetAlreadyMoved": {
+     "fails": true,
+     "exemptIfNewlySwitched": true
     },
     "callRefusalFlags": {
      "flags": [
@@ -28456,7 +28504,8 @@
     "variablePower",
     "targetClass",
     "sound",
-    "formatSecondaryCount"
+    "formatSecondaryCount",
+    "promotesSameMoveInQueue"
    ],
    "uses": 97,
    "params": {
@@ -28480,6 +28529,11 @@
     },
     "formatSecondaryCount": {
      "count": 0
+    },
+    "promotesSameMoveInQueue": {
+     "moveId": "round",
+     "promotedBy": "round",
+     "mult": 2
     }
    }
   },
@@ -28518,7 +28572,8 @@
      "count": 0
     },
     "ignoresBoosts": {
-     "defensive": true
+     "defensive": true,
+     "evasion": true
     }
    }
   },
