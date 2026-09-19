@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-12T20:52:20.747Z",
+  "generated": "2026-09-19T00:45:31.533Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:de38d17e15a2/credit:observed-effect/v1/nature:real",
   "games_requested": 1200,
@@ -85,7 +85,7 @@
   },
   "games": 961,
   "turns_cap": 50,
-  "elapsed_s": 173.3,
+  "elapsed_s": 1107.9,
   "credit_turn_profile": {
     "rows_with_any_credit": 273,
     "credits_with_no_turn_index": 0,
@@ -2808,7 +2808,7 @@
   "severity_usage_source": {
     "file": "data/meta-usage.json",
     "read": "LIVE — not in the frozen release",
-    "generated": "2026-09-12",
+    "generated": "2026-09-18",
     "species_with_a_usage_figure": 264,
     "base_forme_fallbacks": 0,
     "base_forme_note": "A mega forme has no row of its own and falls back to the dex's baseSpecies, counted here. Without it every mega ranked UNKNOWN in a format whose mega usage is ~26%.",
@@ -16408,7 +16408,7 @@
     "driver_inputs": [
       {
         "file": "data/move-priors.json",
-        "read_from": "release bc8d7cf849dd",
+        "read_from": "release ce34d0a89f01",
         "digest": "e667fe8ab457",
         "generated": "2026-08-22",
         "rows": 345,
@@ -16434,7 +16434,7 @@
         "rows": 49,
         "what": "the DECLARED SKIP LIST — every event medicham2 says it does not emit is removed from the Showdown side before alignment, so this decides what can count as a divergence",
         "derived_from_medicham2": "9134ed066e6a",
-        "medicham2_played": "3b53c32f1d3f"
+        "medicham2_played": "cd0e3cef0d7f"
       }
     ],
     "driver_code": {
@@ -16504,12 +16504,12 @@
     "team_store_pinned_to": "data/team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "bc8d7cf849dd",
-  "engine_release_cut": "2026-09-12T13:45:24.356Z",
-  "engine_release_cuts": 7,
+  "engine_release": "ce34d0a89f01",
+  "engine_release_cut": "2026-09-19T00:24:34.248Z",
+  "engine_release_cuts": 1,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "3b53c32f1d3f",
+    "engine/medicham2-browser.js": "cd0e3cef0d7f",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "d00e77a7ac26",
     "engine/position_features.js": "bb71676d3669",
@@ -16529,7 +16529,7 @@
     "data/regulations.json": "6c1995e9a9fb",
     "data/quality-filter.json": "771c3bd3e544",
     "data/engine-data.js": "bbc417dfae0e",
-    "data/abra-tags.js": "eb4b143f6599",
+    "data/abra-tags.js": "594980dd86f1",
     "data/tags.json": "113bb8703480",
     "data/policy-weights.json": "626c1d240782",
     "data/policy-weights-joint.json": "e2aca467ff04",

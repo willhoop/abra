@@ -21,7 +21,9 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 1 of 8 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part, on EVERY team lattice); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect, on EVERY team lattice)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 222 unsafe, 2 void (declared), 16 possibly stale, 18 ok, 0 missing
+  provenance: 229 unsafe, 2 void (declared), 12 possibly stale, 15 ok, 0 missing
+    RATCHET TRIPPED — the unstamped list grew; provenance.js exited non-zero: _diag41-sample.json, _diag46-cards.json, _diag46-sample.json, _diag46b-cards.json, _diag46b-sample.json, _diag77-cards.json
+    their generators ship without recording what CONTENT they read — stamp source_digests
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 1 of 8 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part, on EVERY team lattice); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect, on EVERY team lattice)
@@ -29,14 +31,106 @@ MEASURE — can we believe a number
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-12 10:24
+    moved after the fit: engine/medicham2-browser.js  2026-09-18 20:21
     moved after the fit: data/engine-data.js  2026-08-31 00:08
-    moved after the fit: data/abra-tags.js  2026-09-11 09:48
+    moved after the fit: data/abra-tags.js  2026-09-12 17:15
 ```
 
-_stamped 2026-09-12 17:09_
+_stamped 2026-09-18 21:20_
 
 <!-- /GENERATED -->
+
+## REGISTER HYGIENE: THE SIX `--whole-game` CLOSURES ALL STAND, FIVE OPEN BREAKAGE ROWS CLOSE ON PROBES THAT HAD BEEN GREEN SINCE 2026-09-04, AND THE GATE'S COUNT GOES **29 → 24**, THEN TO **20** OVER THREE SAME-DAY FOLLOW-UPS. 2026-09-18
+
+**WHAT WAS WRONG.** Six closed rows (#218, #301, #314, #315, #439, #542) named `node engine/quarantine.js
+--whole-game` as their marker. Since #619 that command reads three team lattices and exits 1, so the next
+register sweep would have called all six PREMATURE CLOSE. The premise was that they closed too early. That
+was checked row by row and it is **refuted for all six**: each closure rested on something other than the
+one-lattice zero.
+
+- **#218** was filed because the whole-game differential gated nothing. It gates now. New marker:
+  `node engine/quarantine.js --selftest`, whose LATTICE arms show one non-zero lattice shutting the clause.
+- **#301** is closed on the artifacts: 0 and 0 lookup misses on all three lattices on HEAD. Nothing light
+  decides it, so the marker is withdrawn rather than re-pointed.
+- **#314** is closed on the plants: 42 of 42 applied and caught on each lattice. New marker: `--selftest`.
+  It decides the door (a hollow proof cannot read green), not the plants.
+- **#315** rests on the Champions source. `tests/probe_forme_revert_silent.js` re-reads that source on every
+  run, so it is the new marker.
+- **#439**'s game is the Matcha Gotcha / Excadrill game that #447 names. The committed artifacts show it
+  diverging through `8ba14c7e` and clean from `09611679`, which is the #447 commit. So the ruler was the
+  cause, not the faint order. New marker: `tests/probe_spread_secondary_address.js`, which is red under
+  its knob.
+- **#542** is a fence, and bucket (a) is the confirmed defect in it. New marker: `tests/probe_fairy_aura.js`.
+  The shape of (d) recurs on the new lattices, and #622 lead (1) now covers it.
+
+**THE FIVE CLOSURES.** Commit `ecc245d1` (2026-09-04) fixed M1, M5, M7 and M8, and each fix came with a probe.
+Commit `aa4aca01` added the M6 probe. **No register cell was updated for any of them.** #334, #361, #403, #541
+and #543 went on asserting breakage for two weeks. In this pass each probe was run on the live tree: all
+five are green, and all five exit 1 under their restore knob. Each row now names its probe.
+
+**STALE BUT NOT CLOSED.** Fifteen rows carry a dated note and stay open. In each case either no instrument
+was run in this pass, or the instrument that was run is red for an unrelated reason. Details:
+`docs/_reports/2026-09-18-register-hygiene.md`.
+
+**THE FOLLOW-UP, SAME DAY: BOTH REDS FIXED, AND TWO MORE ROWS CLOSED ON THEIR OWN INSTRUMENTS. COUNT 24 → 22.**
+
+- `engine/register_reality.js --selftest` read **87 passed, 1 failed**. The argv test assumed the entry
+  point is argv[0]. The `ABRA-HEAP: 8192` marker that `game_differential.js` gained in `302b48a5` put a
+  correct heap flag in front of the entry. The test now asserts the WHOLE child argv exactly, with the
+  heap flag derived from the entry file on each run, which is tighter than the old tail check. A second
+  test drives the same predicate against three wrong argvs and all three fail. Separately, compiling the
+  file in memory with a broken builder (heap flag after the entry, or a dropped token) turns the selftest
+  red. **Now 89 passed, 0 failed**, and `tests/test-register-reality-readonly.js` reads 10 of 10. #369 is
+  closed on that test.
+- `tests/probe_selfdestruct_winner.js` staged 0 boards. Its win-rule revert was a copy of the block's
+  text, and the copy drifted when `lastFaintSeq` gained an epoch argument (`bf2d594f`). The revert now
+  locates the block by structure, and the probe asserts that the revert took effect: the tie-break counter
+  fires 0 times under the revert and exactly once clean on every tied board. **5 boards staged, 0
+  failing.** The simultaneous-Explosion board agrees with Showdown, and deleting the tie-break turns all
+  three tied boards into a draw. #362 is closed on the probe's verdict.
+
+**THE THREE CANNOT-TELL ROWS GOT FIXTURES (SECOND FOLLOW-UP), AND THE COUNT GOES 22 → 21.**
+
+- **#220, the Protect stall counter: closed** on a new file, `tests/probe_protect_stall_lifecycle.js`.
+  On the frozen release all five staged stall roads agree. Breaking the willAct analogue in memory makes
+  two of them part.
+- **#421, the roster disagreeing with itself: reproduced on one release, still open.** The cause is
+  `usageShelf` returning early unless the stage is `moves` (`tests/roster.js:2446`). The fix belongs to
+  ENGINE.
+- **#495, a Gale Wings corpse's queued action: still open, with the measurement recorded.** The owed
+  fixture is built (`tests/probe_corpse_priority_galewings.js`). The price matches the authority, because
+  Gale Wings tests full HP. The red arm also agrees, however, so the corpse's position is not observable
+  on that board.
+
+**#533 CLOSED (THIRD FOLLOW-UP), AND THE COUNT GOES 21 → 20.**
+
+- **What was wrong.** `tests/probe_random_target_address.js` looked for the random-target draw only in the
+  blank address bucket. #478 had moved the draw out of that bucket, so the probe printed `0 of 0` and
+  exited 0.
+- **What changed.** The probe now finds the draw by its call site and records the category it is filed
+  under. It exits 1 with MEASURED NOTHING when it measured nothing.
+- **Evidence.** A new `--selftest` reads 6 passed, 0 failed. With the old filter restored in memory it
+  reads 4 passed, 2 failed. One real game found the draw 4 times, filed as `tgt`.
+- **Owed.** The 961-game run the row requires before any figure is quoted was not started.
+
+**THE REST OF THE RANDOM-TARGET PROBE (FOURTH FOLLOW-UP).**
+
+- **Clauses 1 and 6 were reading empty buckets.** Clause 1 now reads the categories only the authority
+  draws in, derived per run: today `tgtla` and `sdrop`. That is where the lookahead target draws went
+  under #478. Clause 6 now compares both engines' target-draw addresses. Both clauses refuse an empty
+  population, and the run then exits 1.
+- **Clause 5 printed a stale conclusion.** It stated "the index does not mix"; it now classifies its own
+  sweep. Today's hash MIXES (mean step 0.2489).
+- **Evidence.** Selftest 16 passed, 0 failed. The old filter restored in memory reads 14 passed, 2
+  failed. A real one-game run with the populations emptied in memory refuses twice and exits 1.
+
+**ONE UNREGISTERED DEFECT.** On the 1950 lattice, Mummy overwrites Zero to Hero in this engine. The
+authority keeps it, because Zero to Hero carries `cantsuppress` (`data/abilities.ts:2772`). No register row
+covers this. It is recorded in #541's cell and is still owed a row of its own.
+
+`node engine/status.js --write` was NOT run by this pass. Another agent was rewriting the differential
+artifacts during this pass, and the brief allowed edits to two files only. No `<!-- GENERATED -->` block
+was hand-edited.
 
 ## THE WHOLE-GAME GATE READ ONE TEAM LATTICE. IT NOW READS THREE, AND IT CLOSES: **0 OF 961, 9 OF 1069, 21 OF 1497**. 2026-09-12, ROADMAP #619
 

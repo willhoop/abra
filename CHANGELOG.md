@@ -10,6 +10,53 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.47.1] — 2026-09-18
+
+### Fixed
+- **Two instruments that could not fail, and one that measured nothing.** `engine/register_reality.js`'s
+  argv selftest assumed the entry point was the first argument; it now asserts the whole argv (87/1 ->
+  89/0). `tests/probe_selfdestruct_winner.js` staged zero boards because its plant matched source text
+  that had moved; it now finds the tie-break by structure (5 staged, 0 failing). `tests/probe_random_target_address.js`
+  read `0 of 0` and exited 0 after the target draw moved to its own category; it now exits 1 on
+  `MEASURED NOTHING` (selftest 16/0, red under the old filter).
+
+### Notes
+- **Register hygiene.** Rows asserting breakage 29 -> 20 (`node engine/open_work.js`). Ten rows closed,
+  each on a probe run green and red under its knob; six `--whole-game` closures re-pointed and upheld;
+  fifteen stale rows dated. Two new probes: `probe_protect_stall_lifecycle.js`,
+  `probe_corpse_priority_galewings.js`. Detail: `docs/_reports/2026-09-18-register-hygiene.md`.
+
+## [6.47.0] — 2026-09-18
+
+### Fixed
+- **Beat Up prices each hit off the ally's SET species, not the forme standing on the field.** The
+  authority's `basePowerCallback` reads `this.dex.species.get(move.allies!.shift()!.set.species)`
+  (`data/moves.ts:1155`; Champions does not override `beatup`), and `set.species` is the team sheet's —
+  mega evolution, Transform and a forme swap all leave it alone. `beatUpAllies` read `_bsAtk`, which
+  WIRE 83 keeps on the forme on the field for this reader and no other, so a mega-evolved or
+  transformed ally hit HARDER here (Staraptor-Mega 19 against the authority's 17; a Ditto wearing a
+  Snorlax 16 against 9). `buildMon` now stamps `_setBsAtk` off the row the body is built from and
+  nothing rewrites it; a body without it falls back to `_bsAtk` and is counted in
+  `MEDFAILS.beatUpNoSetSpeciesAtk`. Knob `MEDI_BEATUP_FIELD_FORME=1` restores the old reading and
+  stamps `MEDFAILS.beatUpFieldFormeRestored`. Probe `tests/probe_beatup_set_species.js`, five arms:
+  the three red arms (mega at the corner, mega at `middle`, transform) failed before the fix, all five
+  pass after it, and the knob parts exactly the three red arms on the target's HP while both controls
+  hold.
+
+### Notes
+- **The three lattices re-measured, twice.** Census `632a699468ca`, `--team-store
+  data/team-pool-frozen`, arm `middle`, cap 50, `--end-state`, only the release moving. On release
+  `ffc11ac41a26` (the Heal Bell tags bundle, nothing else changed from `bc8d7cf849dd`), board-material
+  was **0 of 961 / 9 of 1069 / 21 of 1497** (`--games` 1200 / 1350 / 1950), the same games as on
+  `bc8d7cf849dd`. On release `ce34d0a89f01` (this fix) it is **0 of 961 / 7 of 1069 / 20 of 1497**.
+  The three games that left are the three predicted before the run, and no game joined. Narration
+  (undeclared) is unchanged at 0 / 12 / 25.
+- Damage differential 0 of 6000 at the midpoint, both corners and all fourteen interior indices; roster
+  148 / 190 / 492 with 0 FIRED-AND-BOARDS-DIFFER and 0 DID-NOT-FIRE; `all_mechanics_fire` 4,702 games,
+  0 threw, 0 left after declarations; census 886 live / 0 missing, unchanged (digest now
+  `959405d780a2`). `node engine/quarantine.js`: `GATE: CLOSED — 1 of 8`, the board-material clause.
+- Account: `docs/_reports/2026-09-18-lattice-remeasure.md`.
+
 ## [6.46.1] — 2026-09-12
 
 ### Notes

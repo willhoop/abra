@@ -155,11 +155,50 @@ const BREAK_FROM = `{
  * measurement that made this a `battleResult` defect rather than a resolution-order one, and it stays
  * in the file as the over-fire control); reverting the WIN RULE must move it on every tied board and
  * on none of the untied ones. A fix that scored every board the same way passes neither test. */
-const BREAK_WINRULE_FROM = `if(aA===0&&bA===0){
-    const la=lastFaintSeq([...S.actA,...S.benchA]),lb=lastFaintSeq([...S.actB,...S.benchB]);
-    if(la!==lb){MEDSEEN.doubleWipeDecidedByLastFaint++;return la>lb?1:0;}
-    MEDFAILS.doubleWipeNoFaintOrder++;return 0.5;
-  }`;
+/* THE WIN-RULE REVERT IS LOCATED BY STRUCTURE, NOT BY A SPELLING OF ITS BODY — 2026-09-18, MEASURE.
+ * This used to be a character-for-character copy of the block, and on 2026-09-11 (`bf2d594f`) the
+ * engine gave `lastFaintSeq` an epoch argument. The copy then matched 0 times, EVERY arm stopped at
+ * `PLANT FAILED (winrule)` before its clean game was judged, and the file read 0 boards staged — the
+ * probe went red for a reason that said nothing about the rule, and #362 could not be decided on it.
+ *
+ * So the plant now asks for the THING it removes rather than for its text: inside `function
+ * battleResult(` (brace-matched), the ONE block guarded by the both-sides-empty test
+ * `aA === 0 && bA === 0` (whitespace-tolerant), and that block must read `lastFaintSeq` and bump
+ * `doubleWipeDecidedByLastFaint` — i.e. it must BE the last-fainted tie-break, not merely sit where it
+ * used to. Anything else is a refusal naming what was not found. The block is replaced by `;`, so two
+ * emptied sides fall through to the HP fraction exactly as before WIRE 160.
+ *
+ * AND WHAT IT BUILT IS ASSERTED BELOW, NOT ASSUMED: on every tied board the patched engine must fire
+ * `doubleWipeDecidedByLastFaint` ZERO times (the tie-break is gone from the bytes that played) while
+ * the clean engine fires it exactly once. A plant that located a block and removed the wrong one reads
+ * PLANT INERT there, whatever the winner comparison says. */
+function blockAt(src, open) {           /* `open` indexes a `{`; returns the index just past its `}` */
+  let depth = 0;
+  for (let i = open; i < src.length; i++) {
+    const ch = src[i];
+    if (ch === '{') depth++;
+    else if (ch === '}') { depth--; if (depth === 0) return i + 1; }
+  }
+  return -1;
+}
+function locateWinRule(src) {
+  const fn = src.indexOf('function battleResult(');
+  if (fn < 0) return { err: '`function battleResult(` not found in the engine' };
+  if (src.indexOf('function battleResult(', fn + 1) >= 0) return { err: '`function battleResult(` appears twice' };
+  const bodyOpen = src.indexOf('{', fn), bodyEnd = blockAt(src, bodyOpen);
+  if (bodyEnd < 0) return { err: 'battleResult body does not close' };
+  const body = src.slice(bodyOpen, bodyEnd);
+  const guard = /if\s*\(\s*aA\s*===\s*0\s*&&\s*bA\s*===\s*0\s*\)\s*\{/g;
+  const hits = [...body.matchAll(guard)];
+  if (hits.length !== 1) return { err: 'the both-sides-empty guard appears ' + hits.length + ' times in battleResult (must be exactly 1)' };
+  const start = bodyOpen + hits[0].index;
+  const end = blockAt(src, start + hits[0][0].length - 1);
+  if (end < 0) return { err: 'the both-sides-empty block does not close' };
+  const block = src.slice(start, end);
+  if (!/lastFaintSeq\s*\(/.test(block) || !/doubleWipeDecidedByLastFaint/.test(block))
+    return { err: 'the both-sides-empty block no longer reads lastFaintSeq and doubleWipeDecidedByLastFaint — it is not the tie-break this revert removes' };
+  return { start, end, block };
+}
 const eol = t => String(t).replace(/\r\n/g, '\n');
 function plant(from) {
   const src = eol(CLEAN_SRC), f = eol(from);
@@ -168,7 +207,11 @@ function plant(from) {
   return { src: src.replace(f, ';') };
 }
 const broken = () => plant(BREAK_FROM);
-const brokenWinRule = () => plant(BREAK_WINRULE_FROM);
+const brokenWinRule = () => {
+  const src = eol(CLEAN_SRC), at = locateWinRule(src);
+  if (at.err) return { err: at.err };
+  return { src: src.slice(0, at.start) + ';' + src.slice(at.end), removed: at.block };
+};
 
 let _cur = null, _G = null;
 /* THE CACHE KEY IS THE PATCH'S NAME, NOT ITS LENGTH. Two surgical reverts now exist and both delete a
@@ -549,6 +592,13 @@ for (const { c, clean, brk, wrk } of rows) {
     if ((clean.delta.doubleWipeDecidedByLastFaint || 0) !== 1) {
       console.log('    COUNTER — doubleWipeDecidedByLastFaint=' + clean.delta.doubleWipeDecidedByLastFaint
         + ' on the clean run; a tied board must decide exactly once.');
+      bad++;
+    }
+    /* WHAT THE PLANT BUILT, READ OFF THE BYTES THAT PLAYED. See `locateWinRule`. */
+    if ((wrk.delta.doubleWipeDecidedByLastFaint || 0) !== 0) {
+      console.log('    PLANT INERT — doubleWipeDecidedByLastFaint=' + wrk.delta.doubleWipeDecidedByLastFaint
+        + ' under the win-rule revert; the tie-break is still in the engine that played, so the revert '
+        + 'removed some other block.');
       bad++;
     }
   } else {

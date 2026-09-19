@@ -154,18 +154,13 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  886/886 probed mechanics live, 0 missing   (census 2026-09-12 09:57)
+  886/886 probed mechanics live, 0 missing   (census 2026-09-18 21:03)
     the census probes what somebody thought to probe: 297 of 297 in-scope tags carry a probe, 0 carry none (9 of 306
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 7.1 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-12 09:59)
-    seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
-    the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
-    Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
-    multiHit tag were drawn; 3 were never drawn at all (bonerush, doublehit, tailslap) — never drawn is a SAMPLING
-    gap, not an exclusion.
-    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
-    a differential hit is NOT in the census count above — the census probes what someone thought to probe
+    (all-mechanics-fire.json, 25 min old). node engine/coverage.js
+  differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/ce34d0a89f01/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "ce34d0a89f01".
+    it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     older than its input engine-data.js
@@ -181,9 +176,55 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-12 17:09_
+_stamped 2026-09-18 21:20_
 
 <!-- /GENERATED -->
+
+## BEAT UP PRICES EACH HIT OFF THE ALLY'S **SET** SPECIES — THE THREE LATTICES READ **0 / 7 / 20** WHERE THEY READ **0 / 9 / 21**, EXACTLY THE THREE PREDICTED GAMES GONE AND NONE NEW. CENSUS **886 LIVE / 0 MISSING**, UNMOVED. **ONE ENGINE CHANGE — RELEASE `ce34d0a89f01` CUT**, ALL FOUR INVALIDATED ARTIFACTS RE-RUN. GATE **CLOSED, 1 OF 8**, ON THE BOARD-MATERIAL CLAUSE. 2026-09-18, CHANGELOG 6.47.0
+
+Full account: `docs/_reports/2026-09-18-lattice-remeasure.md`.
+
+**THE RE-MEASURE CAME FIRST AND MOVED NOTHING.** `data/abra-tags.js` already matched `data/tags.json`
+(`build/build_tags_js.js --check`), so nothing was rebuilt. Release `ffc11ac41a26` was cut and differs from
+`bc8d7cf849dd` on that one file. Census `632a699468ca`, `data/team-pool-frozen`, arm `middle`, cap 50,
+`--end-state`, `--steering empirical`: **0 of 961 / 9 of 1069 / 21 of 1497**, with the same 30 games,
+seed for seed. The tags bundle is not read by any node path, so no change was expected.
+
+**THE 30 GAMES, GROUPED BY MECHANISM from the full `--dump-games` cards.** The cause on each card was
+treated as a hypothesis and checked against the authority. Beat Up (3) was the only mechanism with
+three games. Four had two games: Transform not running the copied ability's `Start` (Hospitality),
+Gooey's drop skipping Contrary and Defiant, Rough Skin paid twice after a Parental Bond first hit
+KOs, and an `allyswitch` volatile on a benched body. Every other mechanism had one game, including
+the `vol.charge` board. That one is now diagnosed: a DAMAGING Electric move stopped by Protect does not
+spend the bank here, while `onAfterMove` spends it in the authority. A scratch staging parts on
+`p1.active[0].vol.charge` and its landing control does not. So the 6.45.0 fix is incomplete on that
+road, and the one fixed on 2026-09-12 was the status road. The Mummy lead from MEASURE is correct:
+`mummy.onDamagingHit` returns on a `cantsuppress` source ability (`data/abilities.ts:2772`), and Zero to
+Hero carries that flag (`:5632`). It is one game.
+
+**THE FIX.** `data/moves.ts:1155` prices each hit with
+`this.dex.species.get(move.allies!.shift()!.set.species)`: the team sheet's species. `beatUpAllies` read
+`_bsAtk`, and WIRE 83 deliberately rewrites that field on mega evolution, Transform and a forme swap.
+Beat Up is its only reader. `buildMon` now stamps `_setBsAtk` from the set row and nothing rewrites it.
+A body without that field is counted in `MEDFAILS.beatUpNoSetSpeciesAtk`. `MEDI_BEATUP_FIELD_FORME=1`
+restores the old reading. `tests/probe_beatup_set_species.js` has five arms. It had four failures
+before the fix. All five arms are clear after it, and the knob parts only the three red arms.
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST, because a probe now carries it:** Beat Up's per-hit power for a mega-evolved or
+  transformed ally.
+- **LEADS FOR THE NEXT FIX, each checked against the authority and none probed yet:** the Electric bank
+  and a damaging click stopped by Protect (1 game, scratch-staged red); Transform and the copied
+  ability's `Start` (2); Gooey through `this.boost` and so through Contrary and Defiant (2); Rough Skin
+  after a KO'd Parental Bond first hit (2); `allyswitch` on a benched body (2, cause unread); Mummy and
+  `cantsuppress` (1); Darkest Lariat and `ignoreEvasion` (1); Alluring Voice's condition (1); Decorate and
+  Contrary (1); Mega Launcher and Heal Pulse (1); Magic Bounce and Yawn (1); Round's queue promotion (1);
+  Helping Hand at an ally that has already moved (1).
+- **CARRIED FORWARD UNCHANGED:** the other eighteen `onEnd` abilities, and the rest of #622.
+- **RELEASES TO ADD: `ffc11ac41a26`** (tags bundle only) **and `ce34d0a89f01`** (this fix).
+  `data/engine-diff.json`, `data/roster.{items,abilities,moves}.json`, `data/all-mechanics-fire.json` and
+  the three lattice artifacts were re-run on `ce34d0a89f01`.
 
 ## THE GATE'S `0 OF 961` IS A PROPERTY OF ONE TEAM LATTICE — THE SAME RELEASE READS **10 OF 1,069** AT `--games 1350` AND **84 OF 7,178** AT `--games 12000`, AND THE THREE FIXES IN `302b48a5` ACCOUNT FOR **ZERO** OF THE 84. TWO ENGINE DEFECTS FOUND IN THAT WIDE DRAW AND CLOSED: THE ELECTRIC BANK SURVIVES AN ABORTED CLICK **AND A STATUS CLICK** (16 OF 84 BETWEEN THEM). CENSUS **886 LIVE / 0 MISSING**, UNMOVED. **TWO ENGINE BYTES CHANGED — RELEASE `bc8d7cf849dd` CUT**, ALL FOUR INVALIDATED ARTIFACTS RE-RUN. GATE **OPEN, NINE OF NINE** — AND §4 OF THE REPORT IS WHY THAT LINE MUST NOT BE READ AS "MEDICHAM IS CORRECT". 2026-09-12, CHANGELOG `<<VER>>`
 

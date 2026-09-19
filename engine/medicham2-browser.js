@@ -4468,6 +4468,10 @@ const MEDFAILS = { encoreAction: 0,
    * the hit count, and a silent short count is exactly the collapse this wire removed. */
   hitWeightsDisagree: 0, hitWeightsDisagreeFirst: '',
   beatUpAllyNoBaseAtk: 0,
+  /* 2026-09-18 -- a Beat Up member with no `_setBsAtk` (a body built off a road other than buildMon).
+   * It is priced off the FIELD forme's `_bsAtk`, which is the pre-fix reading, and counted so that a
+   * run leaning on the fallback says so. */
+  beatUpNoSetSpeciesAtk: 0,
   /* ROADMAP #81 WIRE 12 -- a `passesState` click that could not switch (an empty bench). Showdown's
    * Baton Pass and Shed Tail both `-fail` outright in that case; this counts how often it happens so
    * "the pivot never fired" and "the pivot had nowhere to go" are different readings. */
@@ -10968,7 +10972,12 @@ function buildMon(name,ov){ const key=monKey(name); if(!key)return null; const m
    * evolved. The branch below is only for a BASE forme that can still become one. */
   const _canMega=megaTargetFor({name,item});
   if(_canMega){ MEDSEEN.megaCapableBuilt++; }
-  return {name,types,st,item,wt:m.wt||null,_bsAtk,_ident:name,
+  /* 2026-09-18 -- AND THE SET SPECIES' OWN BASE ATTACK, WHICH NOTHING EVER REWRITES. Beat Up's
+     authority is `this.dex.species.get(move.allies!.shift()!.set.species)` (data/moves.ts:1155):
+     the TEAM SHEET's species, which mega evolution, Transform and a forme swap all leave alone. `m`
+     is the row this body is built FROM, i.e. the set, never the mega row `mf`. */
+  const _setBsAtk=((m.bs&&m.bs.atk)||0);
+  return {name,types,st,item,wt:m.wt||null,_bsAtk,_setBsAtk,_ident:name,
     ability:normAb(_canMega?(_rowAb||''):megaAbility(name,item,_rowAb||'')),baseAbility:normAb(_rowAb||''),moves:megaRowMoves(name,m).slice(),
     curHP:st.hp,boosts:{at:0,df:0,sa:0,sd:0,sp:0,acc:0,eva:0},status:'',slp:0,fainted:false,protect:false,tookProtectTurns:0,_turnsOut:0,_mvActs:0,_flinch:false,_seededBy:null,
     /* THE DEATH COUNTER (Will: "the supreme overlord needs a count of the dead like last
@@ -15607,6 +15616,21 @@ function hitWeightsOf(moveId){
  *
  * A MEMBER WITH NO RECORDED BASE ATTACK IS SKIPPED AND COUNTED. It cannot be priced, and dropping it
  * silently would shorten the hit count for a reason that has nothing to do with eligibility. */
+/* 2026-09-18 -- AND THE POWER IS THE *SET* SPECIES', NOT THE FORME ON THE FIELD. The authority's
+ * `basePowerCallback` is `this.dex.species.get(move.allies!.shift()!.set.species)` (data/moves.ts:1155),
+ * and Champions does not override it. `set.species` is the team sheet's, so a Staraptor that has
+ * mega-evolved still throws a Staraptor punch (17, not 19) and a Ditto wearing a Snorlax throws a Ditto
+ * one (9, not 16). This read `_bsAtk`, which WIRE 83 keeps on the forme standing on the field for
+ * exactly this reader and no other -- so every mega-evolved or transformed ally hit HARDER here.
+ * Found as three of the thirty parted boards on the 2026-09-18 three-lattice re-measure, every one a
+ * mega's hit. `_setBsAtk` is stamped once in buildMon and never rewritten; a body without it (built
+ * off some other road) falls back to `_bsAtk` and is COUNTED, never silently priced. */
+function beatUpPowerAtk(al){
+  if(BEATUP_FIELD_FORME){MEDFAILS.beatUpFieldFormeRestored=1;return al._bsAtk;}
+  if(al._setBsAtk)return al._setBsAtk;
+  if(al._bsAtk){MEDFAILS.beatUpNoSetSpeciesAtk++;return al._bsAtk;}
+  return 0;
+}
 function beatUpAllies(att,vp){
   const base=+((vp&&vp.base))||5, div=+((vp&&vp.div))||10;
   const party=(att&&att._sf&&att._sf.team&&att._sf.team.length)?att._sf.team:[att];
@@ -15614,10 +15638,11 @@ function beatUpAllies(att,vp){
   for(const al of party){
     if(!al)continue;
     if(al!==att&&(al.fainted||al.curHP<=0||(al.status&&al.status!=='none')))continue;
-    if(!al._bsAtk){MEDFAILS.beatUpAllyNoBaseAtk++;continue;}
-    out.push(base+Math.floor(al._bsAtk/div));
+    const _atk=beatUpPowerAtk(al);
+    if(!_atk){MEDFAILS.beatUpAllyNoBaseAtk++;continue;}
+    out.push(base+Math.floor(_atk/div));
   }
-  return out.length?out:[base+Math.floor(((att&&att._bsAtk)||0)/div)];
+  return out.length?out:[base+Math.floor(((att&&beatUpPowerAtk(att))||0)/div)];
 }
 /* FICKLE BEAM'S DIE, DRAWN WHERE EVERY OTHER DIE IN A TURN IS DRAWN.
  *
@@ -16768,6 +16793,12 @@ const NO_ENTRY_FIELD_SYNC=(typeof process!=='undefined'&&process.env&&process.en
  * the live party array. It exists so tests/probe_beatup_ally_order.js can be shown RED on demand without
  * swapping a file. Any run carrying it also carries a non-zero `MEDFAILS.beatUpBuildOrderRestored`. */
 const BEATUP_BUILD_ORDER=(typeof process!=='undefined'&&process.env&&process.env.MEDI_BEATUP_BUILD_ORDER==='1');
+/* 2026-09-18 -- MEDI_BEATUP_FIELD_FORME=1 PUTS THE FIELD FORME BACK: `beatUpAllies` prices each hit
+ * off `_bsAtk`, the base Attack of the forme STANDING ON THE FIELD (a mega, a transformed copy, a
+ * swapped forme), instead of `_setBsAtk`, the SET species the authority reads. It exists so
+ * tests/probe_beatup_set_species.js can be shown RED on demand without swapping a file. Any run
+ * carrying it also carries a non-zero `MEDFAILS.beatUpFieldFormeRestored`. */
+const BEATUP_FIELD_FORME=(typeof process!=='undefined'&&process.env&&process.env.MEDI_BEATUP_FIELD_FORME==='1');
 /* ROADMAP #352, 2026-08-23 -- MEDI_WEATHER_UPKEEP_GATED=1 PUTS THE SUPPRESSION GATE BACK ON THE
  * UPKEEP LINE, i.e. `|-weather|W|[upkeep]` goes silent again while a Cloud Nine body is standing
  * there. It exists so `tests/test-mechanics.js condition/weatherUpkeepUnderSuppression` can be shown

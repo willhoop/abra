@@ -982,13 +982,34 @@ if (has('--selftest')) {
   ok('RED — and the rule now in force gives ONE answer to both spellings, which is the property the '
     + 'old one only approximated',
     EQ_PAIRS.every(([a, b]) => classifyMarker(a).ok === true && classifyMarker(b).ok === true));
-  ok('RED — post-entry tokens reach the child VERBATIM, bare values included. Node stops reading '
-    + 'options at the entry point, so these are input to repo code and never anything node interprets',
+  /* THE WHOLE ARGV IS ASSERTED, NOT `slice(1)` — 2026-09-18, MEASURE. This arm used to assume the entry
+   * point is argv[0], so it read "everything after index 0" as the post-entry tail. `302b48a5` gave
+   * engine/game_differential.js an `ABRA-HEAP: 8192` declaration, #578's reader correctly put
+   * `--max-old-space-size=8192` IN FRONT of the entry, and the arm went red on a child argv that was
+   * right — the entry itself had become part of what `slice(1)` called the tail. The fix is the
+   * EXACT expected vector, with the heap flag DERIVED from the entry file on this run (the same
+   * declaration a later edit to that file could add, change or remove), never typed. Equality over
+   * the whole vector is strictly tighter than the old tail check, and the three corrupted vectors
+   * below prove the predicate still refuses a wrong argv rather than asserting that it would. */
+  const GD_TAIL = ['--arm', 'middle', '--team-store', 'data/team-pool-frozen'];
+  const GD_ENTRY = path.join(ROOT, 'engine', 'game_differential.js');
+  const gdHeap = (fs.readFileSync(GD_ENTRY, 'utf8').match(/ABRA-HEAP:\s*(\d+)/) || [])[1];
+  const GD_WANT = (gdHeap ? ['--max-old-space-size=' + gdHeap] : []).concat([GD_ENTRY], GD_TAIL);
+  const argvIsExact = (got) => Array.isArray(got) && JSON.stringify(got) === JSON.stringify(GD_WANT);
+  ok('RED — post-entry tokens reach the child VERBATIM, bare values included, AFTER the entry point and '
+    + 'with nothing but the entry file\'s own declared heap in front of it. Node stops reading options at '
+    + 'the entry point, so these are input to repo code and never anything node interprets',
     (() => { seenArgs.length = 0;
-      runUncached('node engine/game_differential.js --arm middle --team-store data/team-pool-frozen', recExec);
-      return seenArgs.length === 1 && JSON.stringify(seenArgs[0].slice(1))
-        === JSON.stringify(['--arm', 'middle', '--team-store', 'data/team-pool-frozen']); })(),
-    seenArgs[0]);
+      runUncached('node engine/game_differential.js ' + GD_TAIL.join(' '), recExec);
+      return seenArgs.length === 1 && argvIsExact(seenArgs[0]); })(),
+    { got: seenArgs[0], want: GD_WANT });
+  ok('RED — and that predicate REFUSES a wrong argv: a dropped bare value, a tail moved in front of the '
+    + 'entry point (where node would read it as its own options), and the heap flag moved behind the '
+    + 'entry point (where node would hand it to the script) all fail it',
+    !argvIsExact(GD_WANT.filter(t => t !== 'middle'))
+    && !argvIsExact(GD_WANT.slice(0, GD_WANT.indexOf(GD_ENTRY)).concat(GD_TAIL, [GD_ENTRY]))
+    && (!gdHeap || !argvIsExact([GD_ENTRY, '--max-old-space-size=' + gdHeap].concat(GD_TAIL)))
+    && argvIsExact(GD_WANT.slice()));
   ok('RED — a `SHOWDOWN_PATH=… node …` marker is STILL refused, and now says WHY: an environment '
     + 'assignment is a shell feature, and with no shell it would be taken as the program name',
     rej('SHOWDOWN_PATH=/real/path node tests/a.js', 'NEEDS A SHELL'));

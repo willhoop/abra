@@ -825,11 +825,19 @@ function notesRule() {
   try {
     lastNoteCommit = git(['log', '-1', '--format=%H', '--', NOTES]).trim();
     if (lastNoteCommit) {
-      const out = git(['log', '--format=%x00%H %ad', '--date=short', '--name-only', `${lastNoteCommit}..HEAD`]);
+      /* THE BOT'S ORIENTATION RE-DERIVE IS A GENERATOR RUN, NOT A CHANGE. `.github/workflows/ingest.yml`
+       * runs `build/sync_orientation.js` and commits `docs/ORIENTATION.md` as abra-bot, which CLAUDE.md
+       * permits (S11). Counting it made this clause red on every ingest: 23 bot commits between
+       * 2026-09-12 and 2026-09-18 and not one human change. Excused only when the author is abra-bot
+       * AND that file is the only recordable path, so a human edit to it still needs a row. */
+      const BOT = 'abra-bot', BOT_DOC = 'docs/ORIENTATION.md';
+      const out = git(['log', '--format=%x00%H %ad%x01%an', '--date=short', '--name-only', `${lastNoteCommit}..HEAD`]);
       for (const block of out.split('\0')) {
         if (!block.trim()) continue;
-        const [head, ...paths] = block.split('\n');
+        const [headLine, ...paths] = block.split('\n');
+        const [head, author] = headLine.split('\x01');
         const need = S.recordableChanges(paths);
+        if (author && author.trim() === BOT && need.length === 1 && need[0] === BOT_DOC) continue;
         if (need.length) since.push({ head: head.trim(), need });
       }
     }
