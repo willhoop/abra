@@ -2759,6 +2759,12 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
        proteanSkippedNoTarget  a status click by a Protean body that reached NOBODY, so the authority
                                returns from useMoveInner before PrepareHit and nothing converts. */
   proteanConverted: 0, proteanOnStatusMove: 0, proteanSkippedNoTarget: 0,
+  /* 2026-09-19 -- the two refusals `proteanConvert` now asks. `proteanSkippedCallsMove` is the authority's
+     `move.callsMove` / `move.flags.futuremove` guard (Sleep Talk, Copycat, Future Sight); `proteanSkippedTryRefused`
+     is a status click whose own `Try` refuses before PrepareHit -- see `tryStepRefuses`. */
+  proteanSkippedCallsMove: 0, proteanSkippedTryRefused: 0,
+  /* 2026-09-19 -- Clear Smog's `onHit` landing (`clearsBoostsOnHit`), and Cud Chew's pending helping dropped at a switch. */
+  clearsBoostsOnHit: 0, cudChewDroppedAtSwitch: 0, contraryBrokenBySource: 0, copycatRefusedFlag: 0,
   /* WIRE 143 -- an action REWRITTEN at execution time by an Encore that landed mid-turn (Showdown's
    * `onOverrideAction`). This is the half `sealsMoves` never had: the menu filter in chooseAction and
    * the WIRE 24 rewrite in mk() both answer at SELECTION, and a mid-turn Encore is written after both
@@ -3004,6 +3010,14 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-09-19 -- a positive evasion stage cancelled by the MOVE's own `ignoreEvasion` (Darkest Lariat,
      Sacred Sword); `evasionIgnored` is the ability half. tests/probe_ignore_evasion_move.js. */
   evasionIgnoredByMove: 0,
+  /* 2026-09-19 -- A VOLLEY IS RESOLVED ONE ARRIVAL AT A TIME (tests/probe_multihit_reaction_per_arrival.js):
+       lateReactPerArrival      an interior arrival paid Cursed Body's / Poison Touch's die itself
+       multiAccLazyDrawn        a per-arrival accuracy die drawn at the top of ITS arrival, not before hit 1
+       multiAccLazyStopped      ...and it missed, so the volley stopped there
+       volleyStoppedUserAsleep  a user put to sleep by an arrival's reaction threw no further arrival
+       sporeDieRefusedPowder    Effect Spore threw no die at a powder-immune attacker */
+  lateReactPerArrival: 0, multiAccLazyDrawn: 0, multiAccLazyStopped: 0, volleyStoppedUserAsleep: 0,
+  sporeDieRefusedPowder: 0,
   /* 2026-08-28 -- bumped once per berry eaten by a holder whose ability carries `announcesBerryEat`.
      A capability that cannot prove it ran is assumed broken, and this one has ONE legal member
      (Ripen, 2 carriers, 0 uses in the store), so a run with no Appletun or Flapple in it reads 0
@@ -3211,6 +3225,20 @@ const MEDFAILS = { encoreAction: 0,
   cureRollUngatedRestored: 0, reactionDieAlwaysRestored: 0, alliesAddrAtUserRestored: 0,
   /* 2026-09-19 -- MEDI_MOVE_EVASION_COUNTED=1 is armed. Must read 0 on any shipping run. */
   moveEvasionCountedRestored: 0,
+  /* 2026-09-19 -- MEDI_REACT_LATE_ONCE / MEDI_MULTIACC_UPFRONT / MEDI_VOLLEY_IGNORES_SLEEP /
+     MEDI_SPORE_DIE_UNGATED are armed. Each must read 0 on any shipping run.
+     tests/probe_multihit_reaction_per_arrival.js. The next three are the lazy accuracy draw's DECLARED
+     REMAINDERS, loud because each is a road on which the volley could not be resolved per arrival:
+       multiAccLazyOnCollapse   the packets were collapsed (a rewrite of the total), so the dice were
+                                drawn in one run and the landed total is capped at the landed packets
+       multiAccLazyNoPackets    the price step handed back no per-arrival packets at all; the dice were
+                                drawn and the damage was NOT cut (there is nothing to cut it by)
+       multiAccLazyUnspent      a volley priced lazily reached the end of the move unresolved */
+  reactLateOnceRestored: 0, multiAccUpfrontRestored: 0, volleyIgnoresSleepRestored: 0, sporeDieUngatedRestored: 0,
+  multiAccLazyOnCollapse: 0, multiAccLazyNoPackets: 0, multiAccLazyUnspent: 0,
+  /* a handler asked an attacker's `runStatusImmunity(kind)` for a kind other than `powder`; answered "not
+     immune" so the die is thrown rather than silenced. Must read 0 in this format. */
+  statusImmunityKindUnknown: 0,
   /* BATCH P, 2026-09-08 -- MEDI_RESIDUAL_FAINT_AT_GROUP_END=1 is armed: a perish counter that
      SURVIVES its residual pays nothing, so a `|faint|` queued by an expiry above it waits for the
      foot of the walk or for `|upkeep|`. Set only where the restored engine actually held a line
@@ -4801,6 +4829,21 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-09-19 -- MEDI_HEAL_PULSE_IGNORES_LAUNCHER=1 is armed: Heal Pulse out of a Mega Launcher user heals the plain ceil'd half again (healDescriptor.amountIfAbility ignored). Non-zero means the run is NOT measuring
      this engine's shipped behaviour. Probe: tests/probe_move_effect_leads.js. */
   healPulseLauncherIgnoredRestored: 0,
+  /* 2026-09-19 -- MEDI_PROTEAN_IGNORES_TRY=1 is armed: Protean converts on a click whose `Try` refuses (Sleep Talk awake, Rest at full HP, Stuff Cheeks with no berry, Aurora Veil out of snow) and on a `callsAnotherMove` / `delayedHit` click again. Non-zero means the run is NOT measuring
+     this engine's shipped behaviour. Probe: tests/probe_protean_contrary.js. */
+  proteanIgnoresTryRestored: 0,
+  /* 2026-09-19 -- MEDI_CLEAR_SMOG_KEEPS_BOOSTS=1 is armed: a damaging `clearsBoosts` hit (Clear Smog) leaves the target's stages alone again. Non-zero means the run is NOT measuring
+     this engine's shipped behaviour. Probe: tests/probe_protean_contrary.js. */
+  clearSmogKeepsBoostsRestored: 0,
+  /* 2026-09-19 -- MEDI_CONTRARY_UNBROKEN=1 is armed: a Mold Breaker source's move no longer suppresses the target's breakable boost modifier (Contrary, Simple) on the boost roads. Non-zero means the run is NOT measuring
+     this engine's shipped behaviour. Probe: tests/probe_protean_contrary.js. */
+  contraryUnbrokenRestored: 0,
+  /* 2026-09-19 -- MEDI_CUD_SURVIVES_SWITCH=1 is armed: Cud Chew's pending second helping rides the bench again instead of dying with the ability state at the switch. Non-zero means the run is NOT measuring
+     this engine's shipped behaviour. Probe: tests/probe_protean_contrary.js. */
+  cudSurvivesSwitchRestored: 0,
+  /* 2026-09-19 -- MEDI_COPYCAT_IGNORES_FAILCOPYCAT=1 is armed: Copycat calls a `failcopycat` last move (Protect, Endure, Follow Me, Helping Hand, Trick ...) again. Non-zero means the run is NOT measuring
+     this engine's shipped behaviour. Probe: tests/probe_protean_contrary.js. */
+  copycatRefusalIgnoredRestored: 0,
   /* ROADMAP #213 -- a weather-gated status immunity asked on a body with no side stamp, so the field
      could not be read. Defaulting to "no weather" would turn Leaf Guard OFF in exactly the case a
      bare unit-test call makes, which is the silent-default shape; it is counted instead. */
@@ -7059,6 +7102,16 @@ function proteanConvert(m,mvId,field){
   const _tb=TAGS.param('ability',m.ability,'typeBecomesMoveType');
   if(!_tb)return false;
   if(_tb.oncePerSwitchIn&&m._proteanUsed)return false;
+  /* 2026-09-19 -- TWO OF THE FOUR GUARDS AT data/abilities.ts:3490 ARE ASKED NOW, off the tags whose
+   * membership IS the flag: `callsAnotherMove` is exactly the format's `move.callsMove` set (Copycat,
+   * Sleep Talk) and `delayedHit` exactly its `flags.futuremove` set (Future Sight) -- both printed by
+   * tests/probe_protean_contrary.js against the dex. A Sleep Talk or a Copycat never converts its user;
+   * the move it CALLS is a fresh `useMove` and converts on its own merits (it is not `callsMove`).
+   * Still unasked, and still counted below: `hasBounced` and `sourceEffect === 'snatch'`. */
+  if(TAGS.has('move',mvId,'callsAnotherMove')||TAGS.has('move',mvId,'delayedHit')){
+    if(PROTEAN_IGNORES_TRY)MEDFAILS.proteanIgnoresTryRestored=1;
+    else{MEDSEEN.proteanSkippedCallsMove++;return false;}
+  }
   /* `effMoveType` reads `mv.t` off the ENGINE-DATA move row (`{t, c, bp}`), NOT off `moveFx`, which is
    * the secondary-effects table and carries no type at all. The first version of this helper passed
    * `moveFx(mvId)` and every conversion silently became a no-op -- INCLUDING the damaging one that had
@@ -7073,13 +7126,82 @@ function proteanConvert(m,mvId,field){
   if(m.types.length===1&&m.types[0]===_nt)return false;   // `source.getTypes().join() !== type`
   m.types=[_nt]; m._proteanUsed=true;
   MEDSEEN.proteanConverted++;
-  /* EVERY conversion is made without asking the four guards at data/abilities.ts:3490, so this
-   * equals `proteanConverted` today and is deliberately a SEPARATE number: the day one of those
-   * guards is wired, the two counters part and the size of the remaining gap is readable instead
-   * of being a sentence in a comment. */
+  /* EVERY conversion is made without asking the two remaining guards at data/abilities.ts:3490
+   * (`hasBounced`, `snatch`), so this still equals `proteanConverted` and is deliberately a SEPARATE
+   * number: the day one of those is wired, the two counters part. (2026-09-19: `callsMove` and
+   * `futuremove` are asked above.) */
   MEDFAILS.proteanGuardsUnmodelled++;
   if(TR)TR.vstart(m,'typechange',_nt+'|[from] ability: '+m.ability);
   return true;
+}
+/* 2026-09-19 -- THE AUTHORITY'S `singleEvent('Try')` FOR A NON-ATTACK CLICK, ASKED WHERE PROTEAN NEEDS IT.
+ *
+ * `sim/battle-actions.ts:590-592` (and :826-828 for side/field moves) runs `Try`, then the move's own
+ * `PrepareHit`, then `runEvent('PrepareHit')` -- Protean's door -- chained with `&&`. So a click whose
+ * `onTry` refuses never converts its user. This engine asks those refusals in several places, and most of
+ * them sit BELOW the status-path Protean call (the sleep gate, the heal branch, the screen branch, the
+ * setup branch). Measured on a staged board before this existed (tests/probe_protean_contrary.js,
+ * release a1c7dcd5696b): Greninja's Sleep Talk while awake and its Rest at full HP, and Meowscarada's
+ * Copycat, all read `normal` / `psychic` here against the authority's untouched `dark/water` /
+ * `dark/grass`. The Greninjite roster DIFFER (data/roster.items.json) is the first of those.
+ *
+ * ONE PREDICATE, AND EACH CLAUSE IS THE SAME HELPER ITS REFUSAL SITE CALLS where one exists, so the two
+ * cannot disagree: `sleepMoveRefusesAwake` (the sleep gate), `berryRequiredAbsent` (Stuff Cheeks, the
+ * setup branch), `veilWeatherRefuses` (Aurora Veil, the screen branch). Rest's two `onTry` clauses --
+ * already asleep, full HP -- are read off `healDescriptor.setsStatus`, the only descriptor that carries
+ * them (Recover's full-HP refusal is `onHit`, AFTER PrepareHit, and correctly converts).
+ *
+ * THE CLAUSES THAT SIT ABOVE THE CALL ALREADY ARE NOT REPEATED: the layer family, `spendsVolatile` and
+ * `failsIfVolatile` (the WIRE 152 block) and the stall refusal all `continue` before the Protean line.
+ *
+ * DECLARED REMAINDER, each reachable only by a body that ACQUIRED Protean (Role Play, Skill Swap,
+ * Entrainment, Trace): Clangorous Soul's HP floor (its `onTry`; `costsUserHP` does not say which stage
+ * refuses, and Substitute's identical-looking floor is `onTryHit`, AFTER PrepareHit, where converting is
+ * right); Quick Guard / Wide Guard with nobody left to act; Magnet Rise under Gravity; the move-level
+ * `onPrepareHit` refusals of Destiny Bond and Ally Switch. */
+/* The category NAME `suppressedAbility` compares a category-gated breaker against, off the engine-data
+ * move row (`c`: 'P' / 'S', `bp` 0 for a status move). */
+function moveCategoryName(mvId){
+  const _r=(typeof MC!=='undefined'&&MC&&MC.moves&&mvId&&MC.moves[mvId])||null;
+  if(!_r||!(+_r.bp>0))return 'Status';
+  return _r.c==='P'?'Physical':'Special';
+}
+/* A CALLER'S REFUSAL FLAGS AGAINST A CANDIDATE: `callsAnotherMove.refusesFlags` (Sleep Talk's
+ * `nosleeptalk`/`charge`, Copycat's `failcopycat`) asked of the candidate's `callRefusalFlags`, which is
+ * where the tagger puts the move's Showdown flags of that family. One test for both sources. */
+function callRefusedFlag(refuses,mvId){
+  if(!refuses||!refuses.length||!mvId)return false;
+  const _cr=TAGS.param('move',mvId,'callRefusalFlags');
+  const _fl=(_cr&&_cr.flags)||[];
+  return refuses.some(f=>_fl.indexOf(f)>=0);
+}
+function sleepMoveRefusesAwake(m,mvId){
+  const _sm=mvId&&TAGS.param('move',mvId,'sleepMove');
+  return !!(_sm&&_sm.failsIfAwake&&m.status!=='slp'
+    &&!(_sm.alsoAbility&&String(m.ability||'').replace(/[^a-z0-9]/g,'')===_sm.alsoAbility));
+}
+function berryRequiredAbsent(m,mvId){
+  const _fb=mvId&&TAGS.param('move',mvId,'forcesBerryEat');
+  return !!(_fb&&_fb.requiresBerry&&!(m.item&&TAGS.has('item',m.item,'isBerry')));
+}
+/* Aurora Veil. `failsWithoutWeather` is a BOOLEAN on the tag (it cannot name the weather), and Magnet
+ * Rise also carries it off its Gravity clause, so the screen branch gates it on being a screen; this
+ * helper is that gate plus the branch's own weather test, so both callers read one rule. */
+function veilWeatherRefuses(mvId,field){
+  return !!(mvId&&TAGS.has('move',mvId,'failsWithoutWeather')&&TAGS.has('move',mvId,'halvesDamage')
+    &&(!field||field.wSup||field.weather!=='snow'));
+}
+function tryStepRefuses(m,mvId,field){
+  if(!m||!mvId)return null;
+  if(sleepMoveRefusesAwake(m,mvId))return 'sleepMove';
+  const _hd=TAGS.param('move',mvId,'healDescriptor');
+  if(_hd&&_hd.setsStatus&&_hd.setsStatus.status){
+    if(m.status===_hd.setsStatus.status)return 'setsStatus-already';
+    if(m.st&&m.curHP>=m.st.hp)return 'setsStatus-fullhp';
+  }
+  if(berryRequiredAbsent(m,mvId))return 'requiresBerry';
+  if(veilWeatherRefuses(mvId,field))return 'needsWeather';
+  return null;
 }
 /* PUT ONE LAYER ON, AND BOOK ONLY WHAT IT REALLY GRANTED.
  *
@@ -16771,6 +16893,23 @@ const TARGET_BOOST_RAW=(typeof process!=='undefined'&&process.env&&process.env.M
 /* 2026-09-19 -- MEDI_HEAL_PULSE_IGNORES_LAUNCHER=1 RESTORES THE DEFECT: Heal Pulse out of a Mega Launcher user heals the plain ceil'd half again (healDescriptor.amountIfAbility ignored). Any run carrying it where it
  * bites carries a non-zero `MEDFAILS.healPulseLauncherIgnoredRestored`. Probe: tests/probe_move_effect_leads.js. */
 const HEAL_PULSE_IGNORES_LAUNCHER=(typeof process!=='undefined'&&process.env&&process.env.MEDI_HEAL_PULSE_IGNORES_LAUNCHER==='1');
+/* 2026-09-19 -- MEDI_PROTEAN_IGNORES_TRY=1 RESTORES THE DEFECT: Protean converts on a click whose own `Try` refuses and on a
+ * `callsAnotherMove` / `delayedHit` click. Any run carrying it where it bites carries a non-zero `MEDFAILS.proteanIgnoresTryRestored`.
+ * Probe: tests/probe_protean_contrary.js. */
+const PROTEAN_IGNORES_TRY=(typeof process!=='undefined'&&process.env&&process.env.MEDI_PROTEAN_IGNORES_TRY==='1');
+/* 2026-09-19 -- MEDI_CLEAR_SMOG_KEEPS_BOOSTS=1 RESTORES THE DEFECT: Clear Smog deals its damage and leaves the target's stages.
+ * Any run carrying it where it bites carries a non-zero `MEDFAILS.clearSmogKeepsBoostsRestored`. Probe: tests/probe_protean_contrary.js. */
+const CLEAR_SMOG_KEEPS_BOOSTS=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CLEAR_SMOG_KEEPS_BOOSTS==='1');
+/* 2026-09-19 -- MEDI_CONTRARY_UNBROKEN=1 RESTORES THE DEFECT: `invSign` reads the target's raw ability even when the change comes from
+ * a Mold Breaker source's move. Any run carrying it where it bites carries a non-zero `MEDFAILS.contraryUnbrokenRestored`.
+ * Probe: tests/probe_protean_contrary.js. */
+const CONTRARY_UNBROKEN=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CONTRARY_UNBROKEN==='1');
+/* 2026-09-19 -- MEDI_CUD_SURVIVES_SWITCH=1 RESTORES THE DEFECT: `_cud` rides the bench. Any run carrying it where it bites carries a
+ * non-zero `MEDFAILS.cudSurvivesSwitchRestored`. Probe: tests/probe_protean_contrary.js. */
+const CUD_SURVIVES_SWITCH=(typeof process!=='undefined'&&process.env&&process.env.MEDI_CUD_SURVIVES_SWITCH==='1');
+/* 2026-09-19 -- MEDI_COPYCAT_IGNORES_FAILCOPYCAT=1 RESTORES THE DEFECT: Copycat calls a `failcopycat` last move. Any run carrying it
+ * where it bites carries a non-zero `MEDFAILS.copycatRefusalIgnoredRestored`. Probe: tests/probe_protean_contrary.js. */
+const COPYCAT_IGNORES_FAILCOPYCAT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_COPYCAT_IGNORES_FAILCOPYCAT==='1');
 /* 2026-08-24 -- MEDI_NO_BEFOREMOVE_LINE=1 STOPS THE ENGINE WRITING A CONDITION'S `onBeforeMove` LINE,
  * i.e. Chilly Reception's `|-prepare|...|[premajor]` disappears from above its own `|move|` line, as
  * it was until today. Any run carrying it also carries a non-zero
@@ -17425,6 +17564,23 @@ const MULTIHIT_2_5=[2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,5,5,5];
  * non-zero `MEDFAILS.multiAccRawAccRestored`. See the block inside `rollHitsOf`. */
 const MULTIACC_RAW_ACC=(typeof process!=='undefined'&&process.env
                         &&process.env.MEDI_MULTIACC_RAW_ACC==='1');
+/* 2026-09-19 -- A VOLLEY IS RESOLVED ONE ARRIVAL AT A TIME. Four restore knobs, one per defect, because
+ * they are four independent clauses of the authority's hit loop and a single knob could not tell a
+ * partial revert from a pass (the same argument MEDI_SIDEBUFF_IGNORES_INFILTRATOR makes).
+ * tests/probe_multihit_reaction_per_arrival.js runs the whole derived class under each.
+ *   MEDI_REACT_LATE_ONCE=1       Cursed Body and Poison Touch pay once per MOVE (the pre-fix engine)
+ *   MEDI_MULTIACC_UPFRONT=1      the per-arrival accuracy dice are drawn in `rollHitsOf`, before hit 1
+ *   MEDI_VOLLEY_IGNORES_SLEEP=1  a user put to sleep mid-volley keeps hitting
+ *   MEDI_SPORE_DIE_UNGATED=1     Effect Spore throws its die at a powder-immune attacker
+ * Stamped at LOAD TIME, so a run carrying one cannot look like a run that did not. */
+const REACT_LATE_ONCE=(typeof process!=='undefined'&&process.env&&process.env.MEDI_REACT_LATE_ONCE==='1');
+if(REACT_LATE_ONCE)MEDFAILS.reactLateOnceRestored=1;
+const MULTIACC_UPFRONT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_MULTIACC_UPFRONT==='1');
+if(MULTIACC_UPFRONT)MEDFAILS.multiAccUpfrontRestored=1;
+const VOLLEY_IGNORES_SLEEP=(typeof process!=='undefined'&&process.env&&process.env.MEDI_VOLLEY_IGNORES_SLEEP==='1');
+if(VOLLEY_IGNORES_SLEEP)MEDFAILS.volleyIgnoresSleepRestored=1;
+const SPORE_DIE_UNGATED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SPORE_DIE_UNGATED==='1');
+if(SPORE_DIE_UNGATED)MEDFAILS.sporeDieUngatedRestored=1;
 /* M3, 2026-09-04 -- MEDI_NO_TEMP_FORME_REVERT=1 LEAVES A NON-PERMANENT FORME STANDING ON THE BENCH,
  * i.e. the pre-fix engine for Stance Change and the pre-WIRE-142 engine for Hunger Switch. See the
  * revert block in `switchOut`; any run carrying it also carries
@@ -17551,7 +17707,7 @@ const NO_CHOICELOCK_SWEEP=(typeof process!=='undefined'&&process.env
  * body carried a non-zero accuracy or evasion stage, which is the one case where the authority's
  * multiaccuracy arithmetic and `hitStepAccuracy`'s differ. Both are OPTIONAL: the valuation callers
  * hold a move id and no bodies, and omitting them keeps the old behaviour exactly while counting it. */
-function rollHitsOf(moveId,rnd,att,accPct,accStages){
+function rollHitsOf(moveId,rnd,att,accPct,accStages,lazyOut){
   const p=TAGS.param('move',moveId,'multiHit');
   if(!p)return 1;
   const r=p.range;
@@ -17653,6 +17809,24 @@ function rollHitsOf(moveId,rnd,att,accPct,accStages){
        * off the turn loop and a defect inside it; counted either way, never silent. */
       MEDFAILS.multiAccNoAccuracy++;
       if(!MEDFAILS.multiAccNoAccuracyFirst)MEDFAILS.multiAccNoAccuracyFirst=String(moveId);
+    }
+    /* 2026-09-19 -- `lazyOut`: THE CALLER RESOLVES THE ARRIVALS ITSELF, ONE AT A TIME.
+     *
+     * The authority draws arrival k's die at the TOP of arrival k -- data/mods/champions/scripts.ts
+     * `hitStepMoveHitLoop`, the `if (target && move.multiaccuracy && hit > 1)` block -- which is BELOW
+     * arrival k-1's whole `spreadMoveHit`, `DamagingHit` included. Both draws are `any|<move>|<target>`
+     * on the middle arm, so drawing every accuracy die here, before hit 1, hands arrival 1's Cursed
+     * Body / Static / Flame Body die the value the authority spent on arrival 2's accuracy. Measured on
+     * the 1950 lattice card (docs/_reports/2026-09-19-gameend-dice.md): authority
+     * `[CB1, MA2, CB2, MA3, CB3]`, this engine `[MA2, MA3, CB]`.
+     *
+     * So a caller that can resolve arrivals passes an object and gets back the FULL count plus the
+     * probability; it draws `_maArrive()` at the top of each arrival. A caller that passes nothing (the
+     * valuation paths, and every caller under MEDI_MULTIACC_UPFRONT=1) keeps the walk below exactly. */
+    if(lazyOut&&typeof lazyOut==='object'&&!MULTIACC_UPFRONT){
+      lazyOut.lazy=true;lazyOut.p=_acc/100;lazyOut.must=!!accMustRoll(_acc);
+      if(!lazyOut.must)MEDSEEN.multiAccNeverMisses++;
+      return Math.max(1,Math.floor(n));
     }
     if(accMustRoll(_acc)){
       const _p=_acc/100;
@@ -20006,9 +20180,27 @@ function powderImmuneAttr(t,att){
 }
 function powderBlocked(t,moveId){
   if(!POWDER.has(String(moveId||'').replace(/[^a-z0-9]/g,''))) return false;
+  return powderImmuneBody(t);
+}
+/* 2026-09-19 -- THE BODY HALF OF `powderBlocked`, LIFTED OUT UNCHANGED because a second reader asks the
+ * same question of an ATTACKER: Effect Spore's `source.runStatusImmunity("powder")` (the derived
+ * `punishesAttacker.attackerStatusImmunity`). Two copies of "who is powder-immune" is the shape the
+ * facts-are-global rule forbids, so both read this. */
+function powderImmuneBody(t){
+  if(!t)return false;
   const ab=(t.ability||'').replace(/[^a-z0-9]/g,'');
   return (t.types||[]).includes('Grass') || ab==='overcoat' ||
          String(t.item||'').replace(/[^a-z0-9]/g,'')==='safetygoggles';
+}
+/* `Pokemon#runStatusImmunity(kind)` as a REFUSAL (sim/pokemon.ts:2275): a fainted body, or a body immune
+ * to `kind`. Only `powder` has a legal asker in this format; any other kind is COUNTED and answers "not
+ * immune", because inventing an immunity would silence a die the authority throws. */
+function statusImmunityRefuses(t,kind){
+  if(!t||t.fainted||t.curHP<=0)return true;
+  if(kind==='powder')return powderImmuneBody(t);
+  MEDFAILS.statusImmunityKindUnknown=(MEDFAILS.statusImmunityKindUnknown|0)+1;
+  if(!MEDFAILS.statusImmunityKindUnknownFirst)MEDFAILS.statusImmunityKindUnknownFirst=String(kind);
+  return false;
 }
 /* 2026-08-26 -- THE MOVE'S OWN IMMUNITY, AND IT IS THE SECOND HALF OF `hitStepTryImmunity`.
  *
@@ -20146,8 +20338,27 @@ function isPrankster(mon){
 const SIMPLE_UNAMPLIFIED=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SIMPLE_UNAMPLIFIED==='1');
 if(SIMPLE_UNAMPLIFIED)MEDFAILS.simpleUnamplifiedRestored=1;
 const _NOT_INVERTERS=new Set(['simple','ripen']);   // WIRE 113 bridge; dead after the staged regen
-const invSign=x=>{
-  const _ab=String((x&&x.ability)||'').replace(/[^a-z0-9]/g,'');
+/* 2026-09-19 -- AND THE SOURCE, WHEN A MOVE CAUSED THE CHANGE. Contrary and Simple are both
+ * `flags: { breakable: 1 }` (data/abilities.ts; no Champions override), and `runEvent` skips a breakable
+ * handler while `suppressingAbility(holder)` -- the active move carries Mold Breaker's `ignoreAbility`
+ * and the holder is not the mover. So a Mold Breaker's Bulldoze or Fake Tears lands on a Contrary
+ * Malamar AS A DROP; this reader inverted it. Measured before this line (tests/probe_protean_contrary.js,
+ * release a1c7dcd5696b): spe +1 / spd +2 here against the authority's -1 / -2.
+ *
+ * `src` and `cat` are passed ONLY by the sites where the source's MOVE lands the change on another body
+ * (`boostTableOnto`, the attack-secondary target drop, the pivot drop, the stat-op primitive). The
+ * suppression itself is `suppressedAbility`'s -- the one reader of "does this attacker break that
+ * ability", with its Ability Shield and category clauses -- never a second copy here. A body's own
+ * change (`src === x`) is never suppressed, which is the authority's `activePokemon !== target`. */
+const invSign=(x,src,cat)=>{
+  let _ab=String((x&&x.ability)||'').replace(/[^a-z0-9]/g,'');
+  if(src&&x&&src!==x&&_ab&&(TAGS.param('ability',_ab,'invertsBoosts')||TAGS.param('ability',_ab,'amplifiesBoosts'))){
+    const _eff=String(suppressedAbility(src,x,cat||'Status')||'').replace(/[^a-z0-9]/g,'');
+    if(_eff!==_ab){
+      if(CONTRARY_UNBROKEN)MEDFAILS.contraryUnbrokenRestored=1;
+      else{MEDSEEN.contraryBrokenBySource++;_ab=_eff;}
+    }
+  }
   if(!SIMPLE_UNAMPLIFIED){
     const _amp=TAGS.param('ability',_ab,'amplifiesBoosts');
     if(_amp&&+_amp.mult>1){MEDSEEN.boostAmplified++;return +_amp.mult;}
@@ -20994,7 +21205,7 @@ function retaliateWhenLowered(f,src){
  * -- runs the same road instead of a second copy of it. */
 function boostTableOnto(t,boosts,src,mvId,zero){
   if(!t||!t.boosts||!boosts)return;
-  const _sg=invSign(t);
+  const _sg=invSign(t,src,moveCategoryName(mvId));   // 2026-09-19 -- the source's Mold Breaker
   let _ref=null;
   for(const _k in boosts){
     const _s2=SD2ENG[_k]; if(!_s2||t.boosts[_s2]==null) continue;
@@ -21168,7 +21379,7 @@ function applyStatOp(user,target,op,mvId,rng){
     /* THROUGH THE SHARED READERS, because this one IS a `this.boost(...)` call. Contrary inverts it
      * and a resulting DROP is offered to the same refusal gate every other drop in this engine goes
      * through -- one implementation of the fact, per CLAUDE.md. */
-    const d=op.amount*invSign(b);
+    const d=op.amount*invSign(b,user,'Status');   // 2026-09-19 -- the user's Mold Breaker
     if(d<0){const _rr=statDropRefusal(b,k,mvId,false,user,Math.abs(d)); if(_rr){veilBoostBlock(_rr,b,mvId);return false;}}   // WIRE 157 -- source + size
     const _b0=b.boosts[k];
     b.boosts[k]=clamp(b.boosts[k]+d,-6,6);
@@ -25870,6 +26081,15 @@ function switchOut(act,i,bench,foes,sf,field,wanted,pass){
      here and NOT resettable for _disguiseBusted two lines down). */
   out._sub=0; out._noSound=0; out._noRepeat=null; out._noRepeatT=0; out._recharge=false;
   out._trap=null; out._proteanUsed=false;
+  /* 2026-09-19 -- AND CUD CHEW'S PENDING HELPING, ON THE SAME AUTHORITY AS `_proteanUsed`: both live in
+   * `effectState` of the ABILITY, which `switchIn` rebuilds (sim/battle-actions.ts:142). `cudchew.onEatItem`
+   * writes `effectState.berry`/`counter` there, so a body that leaves before its residual comes back with
+   * nothing pending. Measured before this line (tests/probe_protean_contrary.js, release a1c7dcd5696b): a
+   * Farigiraf benched on the turn after its Sitrus re-ate on return, 141 HP here against the authority's 93. */
+  if(out._cud){
+    if(CUD_SURVIVES_SWITCH)MEDFAILS.cudSurvivesSwitchRestored=1;
+    else{out._cud=null;MEDSEEN.cudChewDroppedAtSwitch++;}
+  }
   /* 2026-08-23 -- AND THE HARD TRAP LEAVES WITH THE BODY, ON THE SAME LINE'S AUTHORITY.
    *
    * `trapped` is an ordinary volatile and `Pokemon#clearVolatile()` is `this.volatiles = {}`, so a
@@ -32007,7 +32227,11 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _tc2=TAGS.param('move',_pmv2,'targetClass');
           const _fieldWide=!!(_tc2&&PREPAREHIT_FIELD_TARGETS.has(String(_tc2.target)));
           const _reach=_fieldWide||statusMoveTargets(m,_pmv2,a.target,it,actA,actB).length>0;
-          if(_reach){ if(proteanConvert(m,_pmv2,field))MEDSEEN.proteanOnStatusMove++; }
+          /* 2026-09-19 -- AND ONLY IF THE MOVE'S OWN `Try` PASSED. See `tryStepRefuses`. */
+          const _tryNo=_reach?tryStepRefuses(m,_pmv2,field):null;
+          if(_tryNo&&PROTEAN_IGNORES_TRY)MEDFAILS.proteanIgnoresTryRestored=1;
+          if(_reach&&_tryNo&&!PROTEAN_IGNORES_TRY)MEDSEEN.proteanSkippedTryRefused++;
+          else if(_reach){ if(proteanConvert(m,_pmv2,field))MEDSEEN.proteanOnStatusMove++; }
           else MEDSEEN.proteanSkippedNoTarget++;
         }
       }
@@ -32204,9 +32428,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * body has it -- so it is read rather than named, and a format that adds one arrives working. */
       {
         const _smId=actionMoveId(a);
-        const _sm=_smId&&TAGS.param('move',_smId,'sleepMove');
-        if(_sm&&_sm.failsIfAwake&&m.status!=='slp'
-           &&!(_sm.alsoAbility&&String(m.ability||'').replace(/[^a-z0-9]/g,'')===_sm.alsoAbility)){
+        if(sleepMoveRefusesAwake(m,_smId)){   // 2026-09-19 -- one rule, shared with tryStepRefuses
           MEDSEEN.sleepMoveRefusedAwake++;
           m._lastMove=_smId;
           if(TR)TR.attrStill();
@@ -32893,16 +33115,23 @@ function battleTurn(S,rng,actsForA,actsForB){
            * included. `x !== a.mv` stays as well as the flag test: Sleep Talk carries `nosleeptalk`
            * and excludes itself by the flag, and the identity test costs nothing and holds if a
            * future member does not. */
-          const _pool=(m.moves||[]).filter(x=>{
-            if(!x||x===a.mv)return false;
-            const _cr=TAGS.param('move',x,'callRefusalFlags');
-            const _fl=(_cr&&_cr.flags)||[];
-            return !(a.refuses||[]).some(f=>_fl.indexOf(f)>=0);
-          });
+          const _pool=(m.moves||[]).filter(x=>x&&x!==a.mv&&!callRefusedFlag(a.refuses,x));
           if(_pool.length){_src=_pool[Math.min(_pool.length-1,Math.floor(rng()*_pool.length))];
             MEDSEEN.callMoveOwnRandom++;}
         }
-        if(!_src||_src===a.mv||(a.from==='lastMove'&&TAGS.has('move',_src,'noCopycat'))){
+        /* 2026-09-19 -- AND THE `lastMove` SOURCE ASKS THE SAME FLAG TEST, THROUGH THE SAME HELPER. It asked
+         * `TAGS.has('move', _src, 'noCopycat')` -- a tag no derivation writes (0 members in data/tags.json), the
+         * exact dead lookup the `ownRandom` filter above was rescued from. So Copycat copied Protect, Endure,
+         * Follow Me, Helping Hand, Trick, Roar and every other `failcopycat` move (27 in the artifact);
+         * `copycat.onHit` is `if (move.flags['failcopycat'] || move.isZ || move.isMax) return false;`
+         * (data/moves.ts; no Champions override). Found staging the Protean lead: a Copycat after two
+         * Protects CALLED Protect here and failed on the authority. tests/probe_protean_contrary.js, lead
+         * `copycat`; MEDI_COPYCAT_IGNORES_FAILCOPYCAT=1 puts the dead lookup back. */
+        if(_src&&a.from==='lastMove'&&_src!==a.mv&&callRefusedFlag(a.refuses,_src)){
+          if(COPYCAT_IGNORES_FAILCOPYCAT)MEDFAILS.copycatRefusalIgnoredRestored=1;
+          else{MEDSEEN.copycatRefusedFlag++;if(TR)TR.attrStill();mvFail(m);continue;}
+        }
+        if(!_src||_src===a.mv){
           if(a.from!=='lastMove'&&a.from!=='ownRandom')MEDFAILS.callMoveSourceUnmodelled++;
           mvFail(m);continue;
         }
@@ -32957,7 +33186,10 @@ function battleTurn(S,rng,actsForA,actsForB){
           allySlot:_cti>=0?-1:(_sub2.target?_cOwn.indexOf(_sub2.target):-1),
           aimT:_cti,
           aimA:_cti>=0?-1:(_sub2.target?_cOwn.indexOf(_sub2.target):-1),
-          _order:TURN_ORDER.next,_pri:actionPriority({mon:m,side:it.side,a:_sub2},field),_qc:0,_copied:true};
+          _order:TURN_ORDER.next,_pri:actionPriority({mon:m,side:it.side,a:_sub2},field),_qc:0,_copied:true,
+          /* 2026-09-19 -- the CALLER, i.e. the authority's `move.sourceEffect`. The hit loop's sleep clause
+           * asks whether it is `sleepUsable` (a Sleep Talk that drew a multi-hit move keeps hitting). */
+          _calledBy:a.mv};
         acts.splice(actIdx+1,0,_cEntry);
         continue;
       }
@@ -33422,8 +33654,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * the generic `-fail` for a move that failed at onTry, which BLANKS field 4 of the move line
          * already in the log. `TR.attrStill()` reproduces that in place rather than emitting an event
          * the authority never writes. */
-        {const _fb=TAGS.param('move',a.mv,'forcesBerryEat');
-         if(_fb&&_fb.requiresBerry&&!(m.item&&TAGS.has('item',m.item,'isBerry'))){
+        {if(berryRequiredAbsent(m,a.mv)){   // 2026-09-19 -- one rule, shared with tryStepRefuses
            MEDSEEN.stuffCheeksNoBerry++;
            if(TR)TR.attrStill();
            m._lastMove=a.mv;mvFail(m);continue;
@@ -35489,7 +35720,7 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _sc2=TAGS.param('move',a.mv,'statChangeInCode');
           if(_sc2&&_sc2.boosts&&_sc2.on==='target'&&_pt.boosts){
             _dropLanded=false;
-            const _sg=invSign(_pt);   // WIRE 100b
+            const _sg=invSign(_pt,_bsrc,'Status');   // WIRE 100b; 2026-09-19 -- the user's Mold Breaker
             let _ref2=null;                // WIRE 3 -- refuse per stat, announce once
             for(const k in _sc2.boosts){
               const _s=SD2ENG[k]; if(!_s||_pt.boosts[_s]==null) continue;
@@ -35863,7 +36094,7 @@ function battleTurn(S,rng,actsForA,actsForB){
        * not removed when the weather changes; it rides out its turns. That is why the gate is here at
        * the click and not in the end-of-turn tick. A failed click still costs the turn. */
       if(a.kind==='screen'){
-        if(TAGS.has('move',a.mv,'failsWithoutWeather')&&(field.wSup||field.weather!=='snow')){m._lastMove=a.mv;mvFail(m);continue;}
+        if(veilWeatherRefuses(a.mv,field)){m._lastMove=a.mv;mvFail(m);continue;}   // 2026-09-19 -- shared with tryStepRefuses
         const sf=m._sf;
         /* ROADMAP #81 WIRE 8 -- A SCREEN ALREADY UP IS NOT RE-SET, AND THE MOVE FAILS.
          * `Side.addSideCondition` (sim/side.ts:420) returns false when the condition exists and the
@@ -39198,6 +39429,36 @@ function battleTurn(S,rng,actsForA,actsForB){
        * rng stream than the authority does. `null` until the first target is actually priced, so a
        * move that misses everything draws nothing at all. */
       let _hitsThisUse=null;
+      /* 2026-09-19 -- THE PER-ARRIVAL ACCURACY OF A `multiaccuracy` VOLLEY, RESOLVED ONE ARRIVAL AT A TIME.
+       *
+       * `_maLazy` is set by `_stepDamage` when `rollHitsOf` hands the arrivals back unresolved, and spent
+       * by `_maArrive()` at the top of arrival 2..n -- in the doll walk, in the body's packet loop, or all
+       * at once by `_maResolveRest` on the two roads that cannot address arrivals. The die is drawn at
+       * `_reactAddr`, the last body `getSpreadDamage` reached, because that is the authority's
+       * `activeTarget` at the top of every arrival after the first (nothing between one `spreadMoveHit`
+       * and the next writes it). With one target -- every multiaccuracy move in this format -- it is the
+       * target's own slot, which is where `rollHitsOf` used to draw it; only the ORDER moves.
+       *
+       * `must` false is the authority's `accuracy === true`: no die at all, as before. */
+      let _maLazy=null;
+      const _maArrive=()=>{
+        if(!_maLazy||_maLazy.done||!_maLazy.must)return true;
+        MEDSEEN.multiAccLazyDrawn++;
+        const _u=_reactAddr(rng);
+        if(_u>=_maLazy.p){MEDSEEN.multiAccLazyStopped++;MEDSEEN.multiHitAccuracyStopped++;return false;}
+        return true;
+      };
+      /* The two roads that cannot address an arrival (a collapsed volley, a volley priced with no packets)
+       * draw what is left in one run, which is the pre-2026-09-19 ORDER for those dice and is counted by
+       * the caller. Returns the number of arrivals that land. */
+      const _maResolveRest=(from)=>{
+        if(!_maLazy||_maLazy.done)return null;
+        let _n=_maLazy.n;
+        _maLazy.touched=true;
+        for(let h=Math.max(1,from|0);h<_maLazy.n;h++){ if(!_maArrive()){_n=h;break;} }
+        _maLazy.done=true;
+        return _n;
+      };
       /* 2026-08-30 -- THE BUSTED-DISGUISE REVEAL, OWED TO THIS MOVE'S `Update` PASS. Declared at
        * MOVE scope and not inside `_stepApply`, because the two ends of it are two different
        * steps: `_stepApply` decides that the forme is owed and `_stepUpdate` pays it, which is
@@ -39240,7 +39501,15 @@ function battleTurn(S,rng,actsForA,actsForB){
          * once per USE, so the row that reaches the damage step first is the one whose accuracy the
          * volley rolls against -- which is the authority's own model: `hitStepMoveHitLoop` reads
          * `targetsCopy[0]`, "some relevant-to-single-target-moves-only things are hardcoded". */
-        if(_hitsThisUse===null)_hitsThisUse=rollHitsOf(a.move.id,rng,m,R._accPct,R._accStages);
+        /* 2026-09-19 -- AND THE PER-ARRIVAL ACCURACY DICE ARE NOT DRAWN HERE ANY MORE. `rollHitsOf` hands
+         * back the FULL count and the probability; the volley is priced for every arrival it could land
+         * and each arrival's die is drawn at the top of that arrival, by `_maArrive`, which is where the
+         * authority draws it. See the `lazyOut` block in `rollHitsOf`. */
+        if(_hitsThisUse===null){
+          const _lo={};
+          _hitsThisUse=rollHitsOf(a.move.id,rng,m,R._accPct,R._accStages,_lo);
+          if(_lo.lazy&&_hitsThisUse>1)_maLazy={p:_lo.p,must:_lo.must,n:_hitsThisUse,done:false};
+        }
         if(_condPowerThisUse===undefined){
           const _cpr=rollConditionalPower(a.move.id,rng);
           _condPowerThisUse=(_cpr===null)?null:_cpr;
@@ -40182,9 +40451,13 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _dollVolley=(!VOLLEY_STOPS_AT_DOLL&&Array.isArray(R.pk)&&R.pk.length>1&&dmg===R.dmg)?R.pk:null;
         if(VOLLEY_STOPS_AT_DOLL&&Array.isArray(R.pk)&&R.pk.length>1)MEDFAILS.volleyStopsAtDollRestored=1;
         const _s0=tg._sub;                 /* the doll's HP before ANY arrival of this click */
-        let _ate=0,_absorbed=0;
+        let _ate=0,_absorbed=0,_maStopAtDoll=false;
         if(_dollVolley){
+          if(_maLazy)_maLazy.touched=true;
           while(_ate<_dollVolley.length&&tg._sub>0){
+            /* 2026-09-19 -- A DOLL ARRIVAL AFTER THE FIRST IS STILL OPENED BY ITS OWN ACCURACY DIE: the
+             * authority's roll sits above `spreadMoveHit`, so the substitute cannot see it. See `_maLazy`. */
+            if(_ate>=1&&!_maArrive()){_maStopAtDoll=true;_maLazy.done=true;_hitsThisUse=_ate;break;}
             const _sBefore=tg._sub;
             /* NARRATION BATCH Z -- EACH DOLL ARRIVAL IS ITS OWN `getDamage`, so its effectiveness and crit
              * lines are written above its own `-activate` / `-end` (scripts.ts:271/278/285 inside
@@ -40201,6 +40474,9 @@ function battleTurn(S,rng,actsForA,actsForB){
           }
           MEDSEEN.subVolleyArrivalsAbsorbed+=_ate;
         }else{
+          /* 2026-09-19 -- the one-subtraction road cannot open arrivals, so a lazy volley's dice are drawn
+           * here in one run; the doll eats the same total either way. Counted as the collapse remainder. */
+          if(_maLazy&&!_maLazy.done){MEDFAILS.multiAccLazyOnCollapse++;const _ln=_maResolveRest(1);if(_ln!=null)_hitsThisUse=_ln;}
           tg._sub=Math.max(0,_s0-dmg);
           _absorbed=Math.min(dmg,_s0);_ate=1;
           if(TR){ if(_s0>0&&tg._sub<=0)TR.vend(tg,'Substitute');
@@ -40255,7 +40531,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * reaches the counter site with `_landed` starting at `R.pkFrom`, so its doll arrivals ARE
          * counted, exactly as the authority counts them (`hit - 1` covers every arrival). The gap
          * that remains is the click the doll ate WHOLE, which is what the bump below measures. */
-        const _dollAteEverything=!(_dollVolley&&_ate<_dollVolley.length);
+        const _dollAteEverything=_maStopAtDoll||!(_dollVolley&&_ate<_dollVolley.length);
         if(m!==tg&&_dollAteEverything)MEDFAILS.timesHitSubstituteUncounted++;
         /* 2026-08-23 -- A BREAKING SUBSTITUTE WRITES `-end` AND NOT `-activate`. THE TWO LINES ARE
          * THE TWO ARMS OF ONE `if` (data/moves.ts:18350-18356), and the arrival walk above is that `if`,
@@ -40276,7 +40552,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * THE DOLL'S DRAIN IS PAID HERE, at its own site, because the body's arrivals pay their own
          * inside `_stepApply`'s loop; its foot call subtracts `_dollPaid` so a collapsed volley cannot
          * pay the doll's share twice. */
-        const _restPk=(_dollVolley&&_ate<_dollVolley.length)?_dollVolley.slice(_ate):null;
+        const _restPk=(!_maStopAtDoll&&_dollVolley&&_ate<_dollVolley.length)?_dollVolley.slice(_ate):null;
         if(_restPk){
           MEDSEEN.subVolleyBrokeThrough++;
           MEDSEEN.subVolleyArrivalsOnBody+=_restPk.length;
@@ -40877,8 +41153,50 @@ function battleTurn(S,rng,actsForA,actsForB){
           /* BATCH V -- `R.pkFrom` skips the arrivals a substitute already absorbed WITHOUT
            * re-numbering the ones that are left: `R.pkIdx[i]`, `R.crits[i]` and `R.reprice(crit, i)`
            * are all keyed on the original arrival index. It is 0 on every row that met no doll. */
+          if(_maLazy)_maLazy.touched=true;
           for(let i=(R.pkFrom|0);i<_packets.length;i++){
             if(tg.curHP<=0)break;
+            /* ==== 2026-09-19 -- THE TOP OF AN ARRIVAL, AS THE AUTHORITY OPENS IT ======================
+             *
+             *     for (hit = 1; hit <= targetHits; hit++) {
+             *       if (damage.includes(false)) break;
+             *       if (hit > 1 && pokemon.status === 'slp' && (!isSleepUsable || this.battle.gen === 4)) break;
+             *       if (targets.every(target => !target?.hp)) break;
+             *       ...
+             *       if (target && move.multiaccuracy && hit > 1) { ... randomChance(accuracy, 100) ... break }
+             *                                         data/mods/champions/scripts.ts, `hitStepMoveHitLoop`
+             *
+             * THE SLEEP CLAUSE. An arrival's own reaction can put the user to sleep -- Effect Spore is the
+             * only legal member -- and the authority then throws nothing more. `isSleepUsable` is the move's
+             * own flag or its CALLER's (`move.sourceEffect`), i.e. a Sleep Talk that drew this move; read off
+             * the `sleepMove` tag on both, never off a name. MEDI_VOLLEY_IGNORES_SLEEP=1 restores the
+             * pre-fix engine, which had no such clause.
+             *
+             * THE ACCURACY CLAUSE. `_maArrive()` draws this arrival's die HERE, below arrival i-1's whole
+             * reaction pass, which is the authority's order. See `_maLazy`.
+             *
+             * A STOP IS A TRUNCATION OF WHAT WAS PRICED. The volley was priced for every arrival it could
+             * land; the ones that never open come off the row total through `_pkAdj`, the same correction
+             * the per-arrival re-price already owes it, and the drawn count becomes the landed one so the
+             * reaction count, `-hitcount` and `timesAttacked` read one number. */
+            if(i>=1){
+              let _stop=null;
+              if(m.status==='slp'){
+                const _su=id=>!!(id&&(TAGS.param('move',id,'sleepMove')||{}).usableWhileAsleep);
+                if(!_su(a.move.id)&&!_su(it&&it._calledBy)){
+                  if(VOLLEY_IGNORES_SLEEP)MEDFAILS.volleyIgnoresSleepRestored=1;
+                  else{_stop='slp';MEDSEEN.volleyStoppedUserAsleep++;}
+                }
+              }
+              if(!_stop&&!_maArrive())_stop='acc';
+              if(_stop){
+                if(_maLazy)_maLazy.done=true;
+                for(let j=i;j<_packets.length;j++)_pkAdj-=_packets[j];
+                _hitsThisUse=i;
+                if(Array.isArray(R.crits))R.crit=R.crits.slice(0,i).some(Boolean);
+                break;
+              }
+            }
             /* ROADMAP #499 -- THIS ARRIVAL'S OWN CRIT, NOT THE CLICK'S. `spreadMoveHit` runs once per
              * hit and `getDamage` rolls the crit inside it, so the `|-crit|` line belongs to ONE
              * arrival; this loop re-emitted a single boolean before every arrival of the volley, which
@@ -41019,6 +41337,14 @@ function battleTurn(S,rng,actsForA,actsForB){
                  * same last body this move's damage step did. See `_reactAddr`. */
                 _reactAddr(()=>_damagingHit(1));
                 _stepBuffOnHit(R,1);
+                /* 2026-09-19 -- AND THE LATE PAIR OF THE SAME EVENT, for this arrival: the target's
+                 * Cursed Body, then the attacker's Poison Touch. See `_lateReactorsOf`. */
+                if(REACT_LATE_ONCE)MEDFAILS.reactLateOnceRestored=1;
+                else{
+                  const _lr=_lateReactorsOf(R);
+                  if(_lr.abil||_lr.src){ if(_lr.abil)_lr.abil(); if(_lr.src)_lr.src(); MEDSEEN.lateReactPerArrival++; }
+                  R._lateReactPaid=(R._lateReactPaid|0)+1;
+                }
                 MEDSEEN.reactionPaidPerArrival++;
               }
             }
@@ -41157,6 +41483,23 @@ function battleTurn(S,rng,actsForA,actsForB){
             tg.curHP-=_p.chip;
             if(TR){const _cf=tg._chipFrom;tg._chipFrom=null;TR.dmg(tg,_cf||undefined);}
             MEDFAILS.formeAbsorbCollapsedWithClamp++;
+          }
+          /* 2026-09-19 -- A LAZY VOLLEY THAT CANNOT BE ADDRESSED IS RESOLVED HERE, IN ONE RUN, AND SAYS SO.
+           * Collapsed (the packets exist but the total was rewritten): the landed total cannot exceed the
+           * packets that landed, so it is capped there -- a clamp only ever lowers the number. No packets at
+           * all: the dice are still drawn so the count and the stream agree, and the damage is NOT cut,
+           * because there is nothing to cut it by. Both are loud; neither is the per-arrival order. */
+          if(_maLazy&&!_maLazy.done){
+            const _from=(R.pkFrom|0)||1;
+            const _ln=_maResolveRest(_from);
+            if(_ln!=null){
+              _hitsThisUse=_ln;
+              if(Array.isArray(R.pk)&&R.pk.length>1){
+                MEDFAILS.multiAccLazyOnCollapse++;
+                const _cap=R.pk.slice(R.pkFrom|0,_ln).reduce((s,x)=>s+x,0);
+                if(dmg>_cap){dmg=_cap;_reDealt(dmg);}
+              }else MEDFAILS.multiAccLazyNoPackets++;
+            }
           }
           tg.curHP-=dmg;
           /* ROADMAP #308 -- `_chipFrom` is the formeOnHit chip's attribution and is consumed once. */
@@ -41699,7 +42042,17 @@ function battleTurn(S,rng,actsForA,actsForB){
             /* ONE roll against the cumulative, because the artifact's list entries are exclusive
              * branches of one random(100) -- rolling each independently would understate Effect
              * Spore's paralysis and poison. applyStatus enforces the immunities and one-at-a-time. */
-            if(_pun.inflicts&&!m.fainted){
+            /* 2026-09-19 -- AND A HANDLER THAT ASKS THE ATTACKER'S STATUS IMMUNITY FIRST THROWS NOTHING AT AN
+             * IMMUNE ONE: Effect Spore's `source.runStatusImmunity("powder")` sits ABOVE its `random(100)`, so
+             * a Grass or Overcoat attacker gets no die at all. This engine rolled and let `applyStatus`
+             * refuse afterwards -- the right board, one die too many, so every later die at that address
+             * read the wrong `nth`. MEDI_SPORE_DIE_UNGATED=1 restores the die. */
+            let _attImm=false;
+            if(_pun.inflicts&&!m.fainted&&_pun.attackerStatusImmunity&&statusImmunityRefuses(m,_pun.attackerStatusImmunity)){
+              if(SPORE_DIE_UNGATED)MEDFAILS.sporeDieUngatedRestored=1;
+              else{_attImm=true;MEDSEEN.sporeDieRefusedPowder++;}
+            }
+            if(_pun.inflicts&&!m.fainted&&!_attImm){
               /* 2026-09-19 -- A CERTAIN PUNISH THROWS NO DIE, because the authority's handler has none.
                *     spicyspray.onDamagingHit   if (!source.trySetStatus('brn', target) && ...) ...
                *     static / flamebody / poisonpoint   if (this.randomChance(3, 10)) ...
@@ -42183,6 +42536,82 @@ function battleTurn(S,rng,actsForA,actsForB){
       /* `_fxOpt.secOnly` (2026-09-11): run ONLY the move's own secondaries loop, for an interior arrival of
        * a Parental Bond volley -- see `_bondArrivalEffects`. The row has not been marked `R.hit` yet at
        * that point (it is marked below the arrival loop), and the arrival DID land, so the gate is skipped. */
+      /* ==== 2026-09-19 -- THE LATE PAIR OF THE `DamagingHit` EVENT, PAID ONCE PER ARRIVAL ====================
+       *
+       * `hitStepMoveHitLoop` (data/mods/champions/scripts.ts -- Champions OVERRIDES it) calls
+       * `spreadMoveHit` once per HIT, and `spreadMoveHit` raises `runEvent('DamagingHit', ...)` at its step 7.
+       * So Cursed Body's `onDamagingHit` and Poison Touch's `onSourceDamagingHit` each run once per ARRIVAL:
+       *
+       *     cursedbody.onDamagingHit    if (source.volatiles['disable']) return;
+       *                                 if (!move.isMax && !move.flags['futuremove'] && move.id !== 'struggle')
+       *                                   if (this.randomChance(3, 10)) source.addVolatile('disable', ...)
+       *     poisontouch.onSourceDamagingHit   ... if (this.checkMoveMakesContact(move, target, source))
+       *                                         if (this.randomChance(3, 10)) target.trySetStatus('psn', source)
+       *                                                            (data/abilities.ts, no Champions override)
+       *
+       * This engine armed both as ONE closure each in `_stepEffects` and paid them once, below the whole
+       * volley -- so a Triple Axel into a Gengar rolled Cursed Body once where the authority rolls it up to
+       * three times, stopping at the first success (the `volatiles['disable']` guard). That is the 1950-lattice
+       * card, and the probe finds it on EVERY multi-hit move in the format, not only the multiaccuracy two.
+       *
+       * ONE BUILDER, TWO CALLERS. `_stepEffects` builds the last arrival's payment (unchanged position:
+       * `_stepDamagingHitLate`), and the packet loop builds one for each interior arrival, beside the punish
+       * family's `_damagingHit(1)` -- the same event, so the same place. The closures are the ones that stood
+       * in `_stepEffects`, moved and not rewritten; the guards are re-read inside them for the reason their
+       * own comment gave (`m.fainted` and `m._vol.disable` move between arrivals -- which is now the POINT).
+       *
+       * MEDI_REACT_LATE_ONCE=1 restores the once-per-move payment. tests/probe_multihit_reaction_per_arrival.js. */
+      const _effAbOf=(tg)=>(suppressedAbility(m,tg,a.move&&a.move.mv&&a.move.mv.bp>0?(a.move.mv.c==='P'?'Physical':'Special'):'Status')||'').replace(/[^a-z0-9]/g,'');
+      const _lateReactorsOf=(R)=>{const tg=R.tg;
+        let abil=null,src=null;
+        const _cb=TAGS.param('ability',tg.ability,'disablesAttacker');
+        if(_cb&&_cb.chance){
+          abil=()=>{
+            if(!(!m.fainted&&!(m._vol&&m._vol.disable>0)))return;
+            MEDSEEN.dhAbilityAtDamagingHit++;
+            if(_reactAddr(rng)<+_cb.chance){
+            /* ROADMAP #111 -- THROUGH THE SHARED DURATION MODEL, and `alreadyMoved` is FALSE here on
+             * purpose. The body Cursed Body seals is the one that is MOVING RIGHT NOW, and Showdown
+             * spells that out as the second half of disable's own clause --
+             *   `if (this.queue.willMove(pokemon) || (pokemon === this.activePokemon && ...))`
+             * -- so a body mid-move counts as not-yet-spent exactly like one still queued. What
+             * stood here was `turns + 1`, a hand-compensation for the tick that gave Cursed Body 6
+             * where Showdown gives 4. */
+            const _dt=TAGS.param('move','disable','sealsMoves');
+            (m._vol=m._vol||{}).disable=volDurationOnApply('disable',false,_dt)||1;
+            MEDSEEN.volDurationApplied++;
+            m._sealed=a.move.id;
+            /* 2026-08-23 -- THE CARRIER WRITES NOTHING AND THE CONDITION WRITES EVERYTHING.
+             *
+             * `data/abilities.ts:774-786` is the WHOLE of Cursed Body and it contains no `this.add`
+             * of any kind -- it calls `source.addVolatile('disable', this.effectState.target)` and
+             * stops. The line on the wire is `disable`'s own `onStart` (`data/moves.ts:3686-3690`),
+             * which takes the ability branch because `Pokemon#addVolatile` defaults `sourceEffect`
+             * to `this.battle.effect` -- the ability, inside its own handler:
+             *
+             *   |-start|p2a: Feraligatr|Disable|Aqua Tail|[from] ability: Cursed Body|[of] p1a: Banette
+             *
+             * This engine wrote an `-activate` on the CARRIER that the authority never writes, and a
+             * `-start` on the sealed body with the two attribution fields missing. One sentence in
+             * the authority, so one fix and one knob; `tests/probe_ability_volatile_line.js` shows
+             * both halves red with the ability swapped for Insomnia as the cleared control. */
+            if(TR){
+              if(ABILITY_VOL_LINE_BLIND){ MEDFAILS.abilityVolLineBlindRestored=1;
+                TR.act(tg,'ability: '+tg.ability); TR.vstart(m,'Disable',a.move.id); }
+              else TR.vstart(m,'Disable',a.move.id,'[from] ability: '+tg.ability,tg);
+            }
+          }};
+        }
+        const _pt=TAGS.param('ability',m.ability,'poisonsOnMyContact');
+        /* Shield Dust's refusal is asked of the target's EFFECTIVE ability, the same reader `_stepEffects`
+         * uses for `dustBlocked` (WIRE 115). */
+        const _dust=!!TAGS.param('ability',_effAbOf(tg),'refusesSecondaries');
+        if(_pt&&!_dust&&(!_pt.needsContact||mvMakesContact(a.move.id,m,a.move.mv))){
+          src=()=>{ MEDSEEN.dhSourceAtDamagingHit++;
+            if(_reactAddr(rng)<(+_pt.p||0.3))applyStatus(tg,'psn',m,ATTR.ability(m.ability,m)); };
+        }
+        return {abil,src};
+      };
       const _stepEffects=(R,_fxOpt)=>{const tg=R.tg;const _react=R.react;const _secOnly=!!(_fxOpt&&_fxOpt.secOnly);
         /* ROADMAP #161 -- A TARGET THAT DIED TO THIS HIT STILL RUNS THE HIT'S EFFECTS, AND THE ONES
          * THAT LAND ON THE ATTACKER STILL LAND.
@@ -42208,6 +42637,10 @@ function battleTurn(S,rng,actsForA,actsForB){
          * body on its first line. The two boost sites below and applyMoveVolatile carry the first
          * two; that is where the authority puts them. */
         if(!R.hit&&!R.fainted&&!_secOnly)return;
+        /* 2026-09-19 -- HOW MANY ARRIVALS THE LATE PAIR (Cursed Body, Poison Touch) STILL OWES THIS ROW. The
+         * packet loop paid every interior arrival (`R._lateReactPaid`); what is left is the last one, or the
+         * whole count on a road with no packet loop. MEDI_REACT_LATE_ONCE=1 is the pre-fix engine: once. */
+        const _lateLeft=REACT_LATE_ONCE?1:Math.max(0,(R.react==null?1:(R.react|0))-(R._lateReactPaid|0));
         /* 2026-08-22 -- THE POSITION WITNESS FOR `_stepBuffOnHit`, AND IT EXISTS BECAUSE AN
          * APPLICATION COUNTER CANNOT SEE A POSITION. Moving the buff below the secondaries does not
          * change how many buffs are applied, so a counter of applications rises identically under the
@@ -42215,6 +42648,23 @@ function battleTurn(S,rng,actsForA,actsForB){
          * counter instead of as a probe. This flag says the row's SECONDARIES step has already run,
          * so `buffOnHitAfterSecondaries` reads 0 the moment the two steps swap back. */
         R.fxDone=true;
+        /* 2026-09-19 -- CLEAR SMOG'S `onHit` (`clearsBoosts` on a DAMAGING move). `clearsmog.onHit(target)
+         * { target.clearBoosts(); this.add('-clearboost', target); }` (data/moves.ts; no Champions override),
+         * and `onHit` is `runMoveEffects` -- data/mods/champions/scripts.ts:375, after the damage and ABOVE
+         * the secondaries (:388) and the `DamagingHit` event (:410) -- so it sits here, at the head of the
+         * effects step. The tag was read by exactly one line, the status router's `{kind:'haze'}`, and a
+         * damaging member never reaches that router: the move hit and every stage stayed. Measured before
+         * this line (tests/probe_protean_contrary.js, release a1c7dcd5696b): a Cursed Snorlax kept
+         * +1/+1/-1 through a Clear Smog the authority zeroed.
+         *
+         * A ROW THE DOLL ABSORBED NEVER GETS HERE (`R.out`, then the `!R.hit` return above), which is the
+         * authority's own `HIT_SUBSTITUTE` dropping the row before `runMoveEffects`; the probe's `check-sub`
+         * arm stages it. `clearBoosts` writes the vector directly (sim/pokemon.ts), so no Contrary, no
+         * refusal and no `-boost` line -- and `-clearboost` is not a compared protocol event here. */
+        if(!tg.fainted&&tg.boosts&&TAGS.has('move',a.move.id,'clearsBoosts')){
+          if(CLEAR_SMOG_KEEPS_BOOSTS){ if(Object.values(tg.boosts).some(v=>v))MEDFAILS.clearSmogKeepsBoostsRestored=1; }
+          else { for(const _k in tg.boosts)tg.boosts[_k]=0; MEDSEEN.clearsBoostsOnHit++; }
+        }
         {
           /* SECONDARY EFFECTS, from the shared rulebook. Rolled once per connecting hit, after
            * damage, and only on a target still standing. Previously ONLY Fake Out could flinch and
@@ -42227,7 +42677,7 @@ function battleTurn(S,rng,actsForA,actsForB){
            * hundred lines later, in the same turn, off the same body. Both abilities are `breakable`,
            * so both must fall. One reader, and it is the same one dmgRange and the phaze branch use.
            * Measured before it moved: Mold Breaker Fake Out into Inner Focus dealt no flinch at all. */
-          const tgAb=(suppressedAbility(m,tg,a.move&&a.move.mv&&a.move.mv.bp>0?(a.move.mv.c==='P'?'Physical':'Special'):'Status')||'').replace(/[^a-z0-9]/g,'');
+          const tgAb=_effAbOf(tg);   // 2026-09-19 -- one reader, shared with `_lateReactorsOf`
           const mAb=(m.ability||'').replace(/[^a-z0-9]/g,'');
           const fx=moveFx(a.move.id);
           /* WIRE 97 -- Sheer Force's suppression half reads its own tag (`removesOwnSecondaries`);
@@ -42503,7 +42953,7 @@ function battleTurn(S,rng,actsForA,actsForB){
                * ability that only refuses drops. Same shape as the `a.sc.target` reader, deliberately
                * -- these are one fact and it now has one spelling on both roads. */
               else if(s.targetBoosts&&tg.boosts&&!tg.fainted){
-                const _sgT=invSign(tg);          // WIRE 100b
+                const _sgT=invSign(tg,m,moveCategoryName(a.move.id));   // WIRE 100b; 2026-09-19 -- the attacker's Mold Breaker
                 for(const k in s.targetBoosts){
                   const _st=SD2ENG[k];
                   if(_st&&tg.boosts[_st]!=null&&s.targetBoosts[k]){
@@ -43081,11 +43531,13 @@ function battleTurn(S,rng,actsForA,actsForB){
             * the draw at a moment the authority never draws at. The ADDRESS is untouched -- it is
             * still `_reactAddr`, still the lingering slot -- so under the middle arm this re-orders
             * draws and not their values. `tests/probe_damaginghit_order.js` stages it. */
-           if(_pt&&!dustBlocked&&(!_pt.needsContact||mvMakesContact(a.move.id,m,a.move.mv))){
-             const _ptPay=()=>{ MEDSEEN.dhSourceAtDamagingHit++;
-               if(_reactAddr(rng)<(+_pt.p||0.3))applyStatus(tg,'psn',m,ATTR.ability(m.ability,m)); };
-             if(DH_IN_EFFECTS){ MEDFAILS.dhInEffectsRestored=1; _ptPay(); } else R._dhSrc=_ptPay;
-           }}
+           /* 2026-09-19 -- THE PAYER IS BUILT BY `_lateReactorsOf` NOW, because the packet loop pays it
+            * too: `onSourceDamagingHit` runs once per ARRIVAL (see that function). What is left here is
+            * the LAST arrival's payment, times `_lateLeft` -- 1 on every road except a collapsed volley. */
+           if(_pt){ const _ptPay=_lateReactorsOf(R).src;
+             if(_ptPay){ if(DH_IN_EFFECTS){ MEDFAILS.dhInEffectsRestored=1; for(let _k=0;_k<_lateLeft;_k++)_ptPay(); }
+                         else { R._dhSrc=_ptPay; R._dhLateN=_lateLeft; } } }
+           }
           /* WIRE 30 -- blocksHealing. Psychic Noise is a DAMAGING move whose whole point is the two
            * turns of Heal Block it leaves behind, and the engine landed the 75 base power and none of
            * the effect. It is the counter to the entire healing family, so it lands in the same pass
@@ -43192,43 +43644,12 @@ function battleTurn(S,rng,actsForA,actsForB){
             * the FIRST, so the authority wrote the burn first and this engine wrote the disable first.
             * The guard is re-read inside the closure rather than captured, because `m.fainted` and
             * `m._vol.disable` can both move between the two steps. */
-           const _cbPay=()=>{
-             if(!(!m.fainted&&!(m._vol&&m._vol.disable>0)))return;
-             MEDSEEN.dhAbilityAtDamagingHit++;
-             if(_reactAddr(rng)<+_cb.chance){
-             /* ROADMAP #111 -- THROUGH THE SHARED DURATION MODEL, and `alreadyMoved` is FALSE here on
-              * purpose. The body Cursed Body seals is the one that is MOVING RIGHT NOW, and Showdown
-              * spells that out as the second half of disable's own clause --
-              *   `if (this.queue.willMove(pokemon) || (pokemon === this.activePokemon && ...))`
-              * -- so a body mid-move counts as not-yet-spent exactly like one still queued. What
-              * stood here was `turns + 1`, a hand-compensation for the tick that gave Cursed Body 6
-              * where Showdown gives 4. */
-             const _dt=TAGS.param('move','disable','sealsMoves');
-             (m._vol=m._vol||{}).disable=volDurationOnApply('disable',false,_dt)||1;
-             MEDSEEN.volDurationApplied++;
-             m._sealed=a.move.id;
-             /* 2026-08-23 -- THE CARRIER WRITES NOTHING AND THE CONDITION WRITES EVERYTHING.
-              *
-              * `data/abilities.ts:774-786` is the WHOLE of Cursed Body and it contains no `this.add`
-              * of any kind -- it calls `source.addVolatile('disable', this.effectState.target)` and
-              * stops. The line on the wire is `disable`'s own `onStart` (`data/moves.ts:3686-3690`),
-              * which takes the ability branch because `Pokemon#addVolatile` defaults `sourceEffect`
-              * to `this.battle.effect` -- the ability, inside its own handler:
-              *
-              *   |-start|p2a: Feraligatr|Disable|Aqua Tail|[from] ability: Cursed Body|[of] p1a: Banette
-              *
-              * This engine wrote an `-activate` on the CARRIER that the authority never writes, and a
-              * `-start` on the sealed body with the two attribution fields missing. One sentence in
-              * the authority, so one fix and one knob; `tests/probe_ability_volatile_line.js` shows
-              * both halves red with the ability swapped for Insomnia as the cleared control. */
-             if(TR){
-               if(ABILITY_VOL_LINE_BLIND){ MEDFAILS.abilityVolLineBlindRestored=1;
-                 TR.act(tg,'ability: '+tg.ability); TR.vstart(m,'Disable',a.move.id); }
-               else TR.vstart(m,'Disable',a.move.id,'[from] ability: '+tg.ability,tg);
-             }
-           }};
-           if(_cb&&_cb.chance){ if(DH_IN_EFFECTS){ MEDFAILS.dhInEffectsRestored=1; _cbPay(); }
-                                else R._dhAbil=_cbPay; }}
+           /* 2026-09-19 -- THE PAYER (`_cbPay`, moved verbatim with its ROADMAP #111 and 2026-08-23 notes)
+            * IS BUILT BY `_lateReactorsOf` NOW, because the packet loop pays it once per interior ARRIVAL.
+            * What is left here is the last arrival's payment, `_lateLeft` times. */
+           if(_cb&&_cb.chance){ const _cbPay=_lateReactorsOf(R).abil;
+             if(_cbPay){ if(DH_IN_EFFECTS){ MEDFAILS.dhInEffectsRestored=1; for(let _k=0;_k<_lateLeft;_k++)_cbPay(); }
+                         else { R._dhAbil=_cbPay; R._dhLateN=_lateLeft; } } }}
         }
         /* Spicy Spray's burn was an independent hardcode here, gated on PHYSICAL -- the handler
          * has no such gate; it burns on ANY damaging hit. Now served by the punishesAttacker wire
@@ -43579,9 +44000,14 @@ function battleTurn(S,rng,actsForA,actsForB){
        *   Stamina and Spicy Spray are BOTH undeclared-order, and the card is the step-major walk itself
        *   ([every row's punish] then [every row's buff]) against the authority's index-major one. Both
        *   halves are closed by `_stepDamagingHitEarly` / `_stepDamagingHitBody`, below `_stepBuffOnHit`. */
+      /* 2026-09-19 -- `R._dhLateN` ARRIVALS, each one [the ability, then the source's handler], which is the
+       * authority's order inside one arrival's event. 1 on every road with a packet loop (the loop paid the
+       * interior arrivals), 0 when the loop paid them all (a volley stopped by its accuracy or by sleep), and
+       * the whole count on a road that could not address arrivals. See `_lateReactorsOf`. */
       const _stepDamagingHitLate=(R)=>{
-        if(R._dhAbil){ const _f=R._dhAbil; R._dhAbil=null; _f(); }
-        if(R._dhSrc){ const _g=R._dhSrc; R._dhSrc=null; _g(); }
+        const _f=R._dhAbil, _g=R._dhSrc, _n=(R._dhLateN==null?1:(R._dhLateN|0));
+        R._dhAbil=null; R._dhSrc=null; R._dhLateN=null;
+        for(let _k=0;_k<_n;_k++){ if(_f)_f(); if(_g)_g(); }
       };
       /* BATCH K -- the `thawsTarget` thaw, `frz.onAfterMoveSecondary`. Same event as Pickpocket and
        * the HP-threshold boost, so the same place in the list: below `-hitcount`. */
@@ -44374,6 +44800,13 @@ function battleTurn(S,rng,actsForA,actsForB){
           }
           _walk(_STEPS.slice(_i1+1));
         }
+      }
+      /* 2026-09-19 -- A LAZY VOLLEY THAT NO RESOLUTION SITE EVER OPENED. It would have landed every
+       * arrival it was priced for with no accuracy die at all, which is the silent-default shape, so it
+       * is counted. `touched` is set by the doll walk, the packet loop and the collapse road. */
+      if(_maLazy&&!_maLazy.touched&&_rows.some(R=>!R.out)){
+        MEDFAILS.multiAccLazyUnspent++;
+        if(!MEDFAILS.multiAccLazyUnspentFirst)MEDFAILS.multiAccLazyUnspentFirst=String(a.move.id);
       }
       /* ===== 2026-08-23 -- THE ONCE-PER-MOVE STEPS, FLUSHED WHEN EVERY ROW LEFT THE DRIVER =========
        *

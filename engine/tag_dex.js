@@ -8533,6 +8533,17 @@ const ABILITY_TAGS = [
                           requiresAttackerType:
                             (src.match(/source\.hasType\(\s*["'](\w+)["']\s*\)/) || [])[1] || null };
                })(),
+               /* 2026-09-19 -- THE ATTACKER'S STATUS IMMUNITY THE HANDLER ASKS BEFORE IT THROWS ITS DIE.
+                *     effectspore.onDamagingHit   if (this.checkMoveMakesContact(move, source, target)
+                *                                     && source.runStatusImmunity("powder")) {
+                *                                   const r = this.random(100); ...     (data/abilities.ts)
+                * A Grass or Overcoat attacker gets NO die at all, so an engine that rolls first and lets
+                * `applyStatus` refuse afterwards spends a die the authority never throws -- which on the
+                * middle arm shifts `nth` for every later die at that address. Read off the handler's own
+                * call; MEMBERSHIP printed over the format before this was wired: exactly ONE legal
+                * ability calls `source.runStatusImmunity(...)` in an `onDamagingHit`, Effect Spore,
+                * with the argument "powder". tests/probe_multihit_reaction_per_arrival.js. */
+               attackerStatusImmunity: (src.match(/source\.runStatusImmunity\(\s*["'](\w+)["']/) || [])[1] || null,
                fraction: (src.match(/baseMaxhp\s*\/\s*(\d+)/) || [])[1] || null,
                /* 2026-08-29 -- THE OTHER AMOUNT, AND WITHOUT IT THE TAG IS A SILENT NO-OP.
                 *

@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-19T05:50:05.948Z",
+  "generated": "2026-09-19T07:46:20.755Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 915,
-  "live": 915,
+  "probed": 925,
+  "live": 925,
   "missing": 0,
-  "armed": 915,
+  "armed": 925,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -4303,7 +4303,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.2% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.5% (format 20, generic 30), control Rock Slide 27.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7400,6 +7400,56 @@
     },
     {
       "kind": "ability",
+      "tag": "typeBecomesMoveType",
+      "label": "Protean does not convert on a click whose own Try refuses",
+      "live": true,
+      "detail": "[types before -> after] Rest at half HP Water/Dark -> Psychic (converts); Rest at FULL HP Water/Dark -> Water/Dark (must not move: its onTry refuses); Sleep Talk awake Water/Dark -> Water/Dark (must not move). Knob MEDI_PROTEAN_IGNORES_TRY",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "clearsBoosts",
+      "label": "Clear Smog zeroes the target's stat stages; Sludge Bomb does not",
+      "live": true,
+      "detail": "Snorlax at atk/def/spe +2/+1/-1 — after Sludge Bomb 2/1/-1 (must keep them), after Clear Smog 0/0/0 (must read 0/0/0). Knob MEDI_CLEAR_SMOG_KEEPS_BOOSTS",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "invertsBoosts",
+      "label": "a Mold Breaker attacker's drop lands on a Contrary target as a drop",
+      "live": true,
+      "detail": "Contrary Malamar's spe stage after Rock Tomb — attacker with no ability 1 (Contrary inverts: +1), Mold Breaker attacker -1 (Contrary is broken: -1). Knob MEDI_CONTRARY_UNBROKEN",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "reEatsBerry",
+      "label": "Cud Chew's pending second helping dies with a switch",
+      "live": true,
+      "detail": "HP gained after the first Sitrus — stays in 48 (the second helping), benched and back 0 (must be 0; back on the field: true). Knob MEDI_CUD_SURVIVES_SWITCH",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "callsAnotherMove",
+      "label": "Copycat fails on a failcopycat last move (Protect) instead of copying it",
+      "live": true,
+      "detail": "HP Meowscarada loses to a slower Body Slam — its own Protect 0 (blocked), Copycat after the foe's Protect 96 (must be hit: the copy is refused). Knob MEDI_COPYCAT_IGNORES_FAILCOPYCAT",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
       "tag": "restoresBerryAtResidual",
       "label": "Harvest gives the berry back — always in sun, half the time otherwise",
       "live": true,
@@ -8384,6 +8434,56 @@
       "label": "a certain contact punish (Spicy Spray) throws no die; a 30% one (Static) throws one",
       "live": true,
       "detail": "[dice the punish added to one Fake Out] Static 1, Spicy Spray 0 — must be 1 then 0: spicyspray.onDamagingHit calls trySetStatus with no randomChance (data/abilities.ts)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "disablesAttacker",
+      "label": "Cursed Body rolls once per ARRIVAL of a volley, and stops once the attacker is disabled",
+      "live": true,
+      "detail": "[dice Cursed Body added: no proc at 0.5, a proc at 0.2] single-hit Crunch [1,1], two-arrival Dual Wingbeat [2,1] — must be [1,1] then [2,1]: onDamagingHit runs per arrival and opens `if (source.volatiles['disable']) return;` (data/abilities.ts cursedbody)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "poisonsOnMyContact",
+      "label": "Poison Touch rolls once per contact ARRIVAL of a volley",
+      "live": true,
+      "detail": "[dice Poison Touch added] single-hit Fake Out [1], two-arrival Double Hit [2] — onSourceDamagingHit rides the per-arrival DamagingHit event",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "multiAccuracy",
+      "label": "a multiaccuracy volley draws each arrival's accuracy die AFTER the arrival before it landed",
+      "live": true,
+      "detail": "[late dice, -hitcount] No Guard [0,3], no ability [2,3] — must be [0,3] then [2,3]: the roll is at the top of arrival k, below arrival k-1's spreadMoveHit",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "a user put to sleep by Effect Spore mid-volley throws no further arrival",
+      "live": true,
+      "detail": "[-hitcount, user status] paralysed [2,\"par\"], slept [1,\"slp\"] — `if (hit > 1 && pokemon.status === 'slp' && !isSleepUsable) break;` (scripts.ts hitStepMoveHitLoop)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "punishesAttacker",
+      "label": "Effect Spore throws no die at a powder-immune (Grass) attacker",
+      "live": true,
+      "detail": "[dice Effect Spore added to one Fake Out] Weavile [1], Grass Scovillain [0] — `source.runStatusImmunity(\"powder\")` sits above `this.random(100)`",
       "hollow": false,
       "armed": true,
       "directCall": false

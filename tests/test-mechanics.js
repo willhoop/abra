@@ -548,8 +548,15 @@ const armsAgree = (a) => a && 'control' in a && 'test' in a
  * Stealth Rock, one switching the entrant in — and it has to: the mechanic is which of an ENTRANT's own
  * handlers still run after the hazard it walked into has knocked it out, and only a real switch-in
  * reaches `runEntryPass` in that order.
+ *
+ * `diceOf(` added 2026-09-19 with the per-arrival volley batch, declared HERE and with its reason — the
+ * ratchet caught all five rows as direct calls on their first run (`direct-call probes 1 -> 6`), which
+ * is the guard working. It stages a real doubles board through `battleInit` and spends a real turn
+ * through `battleTurn`, handing in the attacker's click, and counts the dice the TURN threw (and how
+ * many were thrown after the target first lost HP) plus the `-hitcount` the turn wrote. It has to: the
+ * defects it watches live in WHERE inside the hit loop a die is drawn, which no direct call reaches.
  */
-const REALTURN = /\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(|\bsgVolArms\(|\bvolleyInto\(/;
+const REALTURN = /\bdiceOf\(|\bdeadEntry\(|battleTurn|battleInit|\btraceRoundTrip\(|\bboard\(|\brecycleRun\(|\bvsCharging\(|\bberryRun\(|\bmvRun\(|\bhealRun\(|\bcomposedTurn\(|\bperHitTurn\(|\bturnDamage\(|\bencoreExec\(|\bencoreBracket\(|\bencoreAim\(|\bencoreShield\(|\blockRun\(|\buproarSleep\(|\bstatusLock\(|\bturnDamageBig\(|\bhitOnRoll\(|\btwoTurn\(|\bvaluedAcc\(|\bmoveLines\(|\bentryLines\(|\bspreadTargetless\(|\bspreadPerTargetAcc\(|\btantrumAfter\(|\bspreadKOLeak\(|\bstepShape\(|\bspreadFaintOrder\(|\bgleamAt\(|\bvoiceAt\(|\bherbIntim\(|\bherbMixed\(|\bherbUnburden\(|\baftermathHit\(|\bpunishOrder\(|\bcritIntim\(|\bcritDef\(|\bcritScreen\(|\bcritBurn\(|\bauraHit\(|\bpassMove\(|\bcurseTurn\(|\bperishRun\(|\borbToll\(|\bspreadStatus\(|\bprocStages\(|\bstockRun\(|\bselfAim\(|\bpricedTurn\(|\bppRun\(|\bmbRun\(|\bsecRate\(|\bfrzRate\(|\bselfBoostRate\(|\bleppaRun\(|\bspiteRun\(|\bhitStream\(|\bmenuRun\(|\bguardRun\(|\bthiefRun\(|\bsyncRun\(|\bcleanerRun\(|\bphealRun\(|\bberserkRun\(|\blinkRun\(|\bcureRun\(|\blensRun\(|\breachRun\(|\bburnUpTwice\(|\blastResortRun\(|\btransformRun\(|\bcoatRun\(|\bfutureSightRun\(|\bslotFoe\(|\bslotAlly\(|\bseedPivot\(|\binstructPivot\(|\bkoPayOrder\(|\bkoReplaceOrder\(|\ballySwitchLines\(|\bfakeOutAfter\(|\bhookOrder\(|\btypeRestoreOnSwitch\(|\bauraOnMega\(|\bgravityAcc\(|\bformeTyped\(|\battrRun\(|\bthawRun\(|\bberryBoard\(|\bsleepBoard\(|\blockBoard\(|\bdrainBoard\(|\boverlordLines\(|\bMISSRATE\(|\bimmArm\(|\bvolTwice\(|\bgravVsCharge\(|\bkoRun\(|\bklutzRun\(|\bacroArm\(|\bdollArms\(|\bswapLines\(|\bmegaWtTarget\(|\bvolleyToll\(|\binnardsHit\(|\binnardsChain\(|\bpriorityGateRun\(|\bterrainBoostHit\(|\bscreenArms\(|\bsgVolArms\(|\bvolleyInto\(/;
 const probe = (kind, tag, label, fn) => {
   let works = false, detail = '', arms = null;
   const src = String(fn);
@@ -27806,6 +27813,108 @@ probe('ability', 'reEatsBerry', 'Cud Chew eats the same berry again a turn later
                  + 'CONTROL, Cud Chew with no berry: ' + noItem.join(',') };
 });
 
+/* ================= 2026-09-19 -- FIVE ROWS FROM tests/probe_protean_contrary.js =====================
+ * Each was red on release a1c7dcd5696b and each has a MEDI_* knob that turns it red again. The two-engine
+ * proof (authority vs this engine, knob parts the red arm and no control) is the probe file; these rows
+ * hold the engine-side rule in the census so it cannot slide back unseen. */
+
+/* PROTEAN AND THE MOVE'S OWN `Try`. sim/battle-actions.ts:590-592 runs `singleEvent('Try')` before
+ * `runEvent('PrepareHit')`, so Rest at full HP (onTry null) and Sleep Talk while awake (onTry false, and
+ * callsMove) never reach Protean. CONTROL: the same Greninja's Rest at half HP passes its Try and converts. */
+probe('ability', 'typeBecomesMoveType', 'Protean does not convert on a click whose own Try refuses', () => {
+  const run = (click, hurt) => {
+    const { me, ally, f1, f2, S } = board('greninja', 'incineroar', 'garchomp', 'garchomp');
+    me.ability = 'protean';
+    if (hurt) me.curHP = Math.floor(me.st.hp / 2);
+    const before = (me.types || []).join('/');
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, click, me, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [before, (me.types || []).join('/')];
+  };
+  const control = run('rest', true), test = run('rest', false), talk = run('sleeptalk', false);
+  return { works: control[1] === 'Psychic' && test[1] === test[0] && talk[1] === talk[0],
+           arms: { control: control[1], test: test[1] },
+           detail: '[types before -> after] Rest at half HP ' + control.join(' -> ') + ' (converts); Rest at FULL HP '
+                 + test.join(' -> ') + ' (must not move: its onTry refuses); Sleep Talk awake ' + talk.join(' -> ')
+                 + ' (must not move). Knob MEDI_PROTEAN_IGNORES_TRY' };
+});
+
+/* CLEAR SMOG'S `onHit` -- `target.clearBoosts()` (data/moves.ts; no Champions override). CONTROL: the same
+ * body's Sludge Bomb, which must leave the stages alone. */
+probe('move', 'clearsBoosts', "Clear Smog zeroes the target's stat stages; Sludge Bomb does not", () => {
+  const run = (mv) => {
+    const { me, ally, f1, f2, S } = board('gengar', 'incineroar', 'snorlax', 'garchomp');
+    unfaintable(f1);
+    f1.boosts.at = 2; f1.boosts.df = 1; f1.boosts.sp = -1;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return [f1.boosts.at, f1.boosts.df, f1.boosts.sp].join('/');
+  };
+  const control = run('sludgebomb'), test = run('clearsmog');
+  return { works: control === '2/1/-1' && test === '0/0/0', arms: { control, test },
+           detail: "Snorlax at atk/def/spe +2/+1/-1 — after Sludge Bomb " + control + ' (must keep them), after Clear Smog '
+                 + test + ' (must read 0/0/0). Knob MEDI_CLEAR_SMOG_KEEPS_BOOSTS' };
+});
+
+/* MOLD BREAKER SUPPRESSES A BREAKABLE CONTRARY ON THE BOOST ROAD. Contrary is `flags: { breakable: 1 }`;
+ * runEvent skips it while the active move carries Mold Breaker's ignoreAbility. CONTROL: the same Excadrill
+ * with no ability -- Contrary inverts the Rock Tomb drop into a rise. */
+probe('ability', 'invertsBoosts', "a Mold Breaker attacker's drop lands on a Contrary target as a drop", () => {
+  const run = (ab) => {
+    const { me, ally, f1, f2, S } = board('excadrill', 'incineroar', 'malamar', 'toxapex');
+    me.ability = ab; f1.ability = 'contrary';
+    unfaintable(f1);
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, 'rocktomb', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return f1.boosts.sp;
+  };
+  const control = run('none'), test = run('moldbreaker');
+  return { works: control === 1 && test === -1, arms: { control, test },
+           detail: "Contrary Malamar's spe stage after Rock Tomb — attacker with no ability " + control
+                 + ' (Contrary inverts: +1), Mold Breaker attacker ' + test + ' (Contrary is broken: -1). Knob MEDI_CONTRARY_UNBROKEN' };
+});
+
+/* CUD CHEW'S PENDING HELPING LIVES IN THE ABILITY'S effectState, which switchIn rebuilds
+ * (sim/battle-actions.ts:142). CONTROL: the same holder staying in re-eats. */
+probe('ability', 'reEatsBerry', "Cud Chew's pending second helping dies with a switch", () => {
+  const run = (leave) => {
+    const me = bare('farigiraf'), ally = bare('incineroar'), bench = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('milotic');
+    me.ability = 'cudchew'; me.item = 'sitrusberry';
+    const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+    me.curHP = Math.floor(me.st.hp * 0.45);
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    const afterEat = me.curHP;
+    if (leave) {
+      M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+      M.battleTurn(S, rng5, new Map([[bench, { kind: 'switch', to: me }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    } else {
+      M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+      M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    }
+    return { gained: me.curHP - afterEat, back: S.actA[0] === me };
+  };
+  const control = run(false), test = run(true);
+  return { works: control.gained > 0 && test.gained === 0 && test.back,
+           arms: { control: control.gained, test: test.gained },
+           detail: 'HP gained after the first Sitrus — stays in ' + control.gained + ' (the second helping), benched and back '
+                 + test.gained + ' (must be 0; back on the field: ' + test.back + '). Knob MEDI_CUD_SURVIVES_SWITCH' };
+});
+
+/* COPYCAT REFUSES A `failcopycat` LAST MOVE: `if (move.flags['failcopycat'] ...) return false;`. Garchomp's
+ * Protect (+4) is the last move when Meowscarada Copycats; Snorlax's slower Body Slam then lands. CONTROL:
+ * Meowscarada's own Protect blocks it. The engine asked a tag (`noCopycat`) no derivation writes. */
+probe('move', 'callsAnotherMove', 'Copycat fails on a failcopycat last move (Protect) instead of copying it', () => {
+  const run = (click) => {
+    const { me, ally, f1, f2, S } = board('meowscarada', 'incineroar', 'snorlax', 'garchomp');
+    const before = me.curHP;
+    M.battleTurn(S, rng5, new Map([[me, M.playerAction(me, click, me, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'bodyslam', me, S.field)], [f2, M.playerAction(f2, 'protect', f2, S.field)]]));
+    return before - me.curHP;
+  };
+  const control = run('protect'), test = run('copycat');
+  return { works: control === 0 && test > 0, arms: { control, test },
+           detail: 'HP Meowscarada loses to a slower Body Slam — its own Protect ' + control + ' (blocked), Copycat after the foe\'s Protect '
+                 + test + ' (must be hit: the copy is refused). Knob MEDI_COPYCAT_IGNORES_FAILCOPYCAT' };
+});
+
 probe('ability', 'restoresBerryAtResidual', 'Harvest gives the berry back — always in sun, half the time otherwise', () => {
   /* THREE ARMS, because two would not separate the mechanic from the weather. The rng is the knob on
    * the first two and the SKY is the knob on the second and third, so neither "it always fires" nor
@@ -31801,6 +31910,75 @@ probe('ability', 'punishesAttacker', 'a certain contact punish (Spicy Spray) thr
                  + `1 then 0: spicyspray.onDamagingHit calls trySetStatus with no randomChance (data/abilities.ts)` };
 });
 
+/* ================= 2026-09-19 — A VOLLEY IS RESOLVED ONE ARRIVAL AT A TIME ==========================
+ *
+ * The single-engine half of tests/probe_multihit_reaction_per_arrival.js, which stages every legal
+ * on-hit chance reactor against every legal multi-hit move in BOTH engines and was red on 101 of 304
+ * games before the fix. `hitStepMoveHitLoop` (data/mods/champions/scripts.ts, Champions overrides it)
+ * runs `spreadMoveHit` -- and so the `DamagingHit` event -- once per ARRIVAL, rolls a multiaccuracy
+ * move's die at the TOP of arrivals 2..n, and breaks when the user has fallen asleep. Each row varies ONE
+ * thing and reads the outcome an address-shared differential depends on: how many dice, when, and how
+ * many arrivals landed. Each is red under its knob: MEDI_REACT_LATE_ONCE, MEDI_MULTIACC_UPFRONT,
+ * MEDI_VOLLEY_IGNORES_SLEEP, MEDI_SPORE_DIE_UNGATED. */
+const diceOf = (att, mv, tgt, stage, r) => {
+  const me = bare(att), ally = bare('toxapex'), f1 = bare(tgt), f2 = bare('garchomp');
+  me.moves = [mv]; unfaintable(f1); if (stage) stage(me, f1);
+  const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+  S._trace = [];
+  let n = 0, after = 0; const full = f1.curHP;
+  const rng = () => { n++; if (f1.curHP < full) after++; return r; };
+  M.battleTurn(S, rng, new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+  const hc = S._trace.map(String).find(l => /^\|-hitcount\|/.test(l));
+  return { n, after, hits: hc ? +hc.split('|').pop() : 1, me };
+};
+probe('ability', 'disablesAttacker', 'Cursed Body rolls once per ARRIVAL of a volley, and stops once the attacker is disabled', () => {
+  const added = (mv, r) => diceOf('aerodactyl', mv, 'gengar', (me, f1) => { f1.ability = 'cursedbody'; }, r).n
+                         - diceOf('aerodactyl', mv, 'gengar', null, r).n;
+  const control = [added('crunch', 0.5), added('crunch', 0.2)];
+  const test = [added('dualwingbeat', 0.5), added('dualwingbeat', 0.2)];
+  return { works: control[0] === 1 && control[1] === 1 && test[0] === 2 && test[1] === 1, arms: { control, test },
+           detail: `[dice Cursed Body added: no proc at 0.5, a proc at 0.2] single-hit Crunch ${JSON.stringify(control)}, `
+                 + `two-arrival Dual Wingbeat ${JSON.stringify(test)} — must be [1,1] then [2,1]: onDamagingHit runs per `
+                 + `arrival and opens \`if (source.volatiles['disable']) return;\` (data/abilities.ts cursedbody)` };
+});
+probe('ability', 'poisonsOnMyContact', 'Poison Touch rolls once per contact ARRIVAL of a volley', () => {
+  const added = (mv) => diceOf('sneasler', mv, 'charizard', (me) => { me.ability = 'poisontouch'; }, 0.5).n
+                      - diceOf('sneasler', mv, 'charizard', null, 0.5).n;
+  const control = [added('fakeout')], test = [added('doublehit')];
+  return { works: control[0] === 1 && test[0] === 2, arms: { control, test },
+           detail: `[dice Poison Touch added] single-hit Fake Out ${JSON.stringify(control)}, two-arrival Double Hit `
+                 + `${JSON.stringify(test)} — onSourceDamagingHit rides the per-arrival DamagingHit event` };
+});
+probe('move', 'multiAccuracy', 'a multiaccuracy volley draws each arrival\'s accuracy die AFTER the arrival before it landed', () => {
+  /* `after` counts dice drawn once the target is below full HP, i.e. after arrival 1's damage. The price
+   * step draws every damage and crit die up front, and nothing else rolls on this board, so the only
+   * dice that can be late are the per-arrival accuracy ones. No Guard removes them (accuracy === true). */
+  const run = (ab) => diceOf('weavile', 'tripleaxel', 'snorlax', (me) => { me.ability = ab; }, 0.5);
+  const c = run('noguard'), t = run('none');
+  const control = [c.after, c.hits], test = [t.after, t.hits];
+  return { works: control[0] === 0 && control[1] === 3 && test[0] === 2 && test[1] === 3, arms: { control, test },
+           detail: `[late dice, -hitcount] No Guard ${JSON.stringify(control)}, no ability ${JSON.stringify(test)} — must be `
+                 + `[0,3] then [2,3]: the roll is at the top of arrival k, below arrival k-1's spreadMoveHit` };
+});
+probe('ability', 'punishesAttacker', 'a user put to sleep by Effect Spore mid-volley throws no further arrival', () => {
+  /* One die value per arm: 0.05 lands the sleep branch of Effect Spore's `random(100)`, 0.15 the
+   * paralysis branch. Both hit, neither crits; the only difference is which status the user carries. */
+  const run = (r) => diceOf('aerodactyl', 'dualwingbeat', 'vileplume', (me, f1) => { f1.ability = 'effectspore'; }, r);
+  const c = run(0.15), t = run(0.05);
+  const control = [c.hits, c.me.status || ''], test = [t.hits, t.me.status || ''];
+  return { works: control[0] === 2 && control[1] === 'par' && test[0] === 1 && test[1] === 'slp', arms: { control, test },
+           detail: `[-hitcount, user status] paralysed ${JSON.stringify(control)}, slept ${JSON.stringify(test)} — `
+                 + `\`if (hit > 1 && pokemon.status === 'slp' && !isSleepUsable) break;\` (scripts.ts hitStepMoveHitLoop)` };
+});
+probe('ability', 'punishesAttacker', 'Effect Spore throws no die at a powder-immune (Grass) attacker', () => {
+  const added = (att) => diceOf(att, 'fakeout', 'vileplume', (me, f1) => { f1.ability = 'effectspore'; }, 0.5).n
+                       - diceOf(att, 'fakeout', 'vileplume', null, 0.5).n;
+  const control = [added('weavile')], test = [added('scovillain')];
+  return { works: control[0] === 1 && test[0] === 0, arms: { control, test },
+           detail: `[dice Effect Spore added to one Fake Out] Weavile ${JSON.stringify(control)}, Grass Scovillain `
+                 + `${JSON.stringify(test)} — \`source.runStatusImmunity("powder")\` sits above \`this.random(100)\`` };
+});
+
 /* ================= THE ANNOUNCEMENT-NAMING FAMILY — ROADMAP #241, #256, #259 =====================
  *
  * Three rows Will read off actual protocol streams, closed as one batch because they are one shape:
@@ -35340,6 +35518,18 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'zombieSkipsResidualRestored', 'f
                            * tests/probe_bench_private_counters.js). Without these a knob run WROTE the
                            * census -- measured, it happened on the first red demonstration. */
                           'electricChargeKeptOnEarlyExitRestored', 'allySwitchSurvivesSwitchRestored',
+                          /* 2026-09-19 -- tests/probe_protean_contrary.js. MEDI_PROTEAN_IGNORES_TRY WROTE the
+                           * census on its first red demonstration before it was listed here. */
+                          'proteanIgnoresTryRestored', 'clearSmogKeepsBoostsRestored', 'contraryUnbrokenRestored',
+                          'cudSurvivesSwitchRestored', 'copycatRefusalIgnoredRestored',
+                          /* 2026-09-19 -- the per-arrival volley batch (tests/probe_multihit_reaction_per_arrival.js),
+                           * and the 6.52.0 batch's eight knobs, which were never added here: under any of them a
+                           * red demonstration of its own census row would have WRITTEN the census. */
+                          'reactLateOnceRestored', 'multiAccUpfrontRestored', 'volleyIgnoresSleepRestored',
+                          'sporeDieUngatedRestored',
+                          'residualStopGroupOnlyRestored', 'orbTollSkipsPayoutRestored', 'fatigueBerryInlineRestored',
+                          'ppPressurePreRedirectRestored', 'cureRollUngatedRestored', 'reactionDieAlwaysRestored',
+                          'alliesAddrAtUserRestored', 'moveEvasionCountedRestored',
                           /* 2026-09-11 -- ROADMAP #511: the pre-fix survival clamp (load stamp and use stamp) */
                           'hitCountDropOnCollapseKnob', 'survivalClampOnTotalRestored']
   .filter(k => M.fails[k]);

@@ -1,10 +1,10 @@
 {
-  "current": "a1c7dcd5696b",
-  "cut": "2026-09-19T05:50:15.787Z",
-  "why": "merged: move-effect leads, Helping Hand/Round/Magic Bounce class, game-end residuals, Pressure PP, unshared reaction dice, ignore-evasion",
+  "current": "8a4140de3eaa",
+  "cut": "2026-09-19T07:46:28.563Z",
+  "why": "merged: Protean Try, Clear Smog, Contrary under Mold Breaker, Cud Chew bench, Copycat, multi-hit per-arrival reactions",
   "cuts": 1,
-  "latest_cut": "2026-09-19T05:50:15.787Z",
-  "latest_why": "merged: move-effect leads, Helping Hand/Round/Magic Bounce class, game-end residuals, Pressure PP, unshared reaction dice, ignore-evasion",
-  "pointer_written": "2026-09-19T05:50:15.879Z",
+  "latest_cut": "2026-09-19T07:46:28.563Z",
+  "latest_why": "merged: Protean Try, Clear Smog, Contrary under Mold Breaker, Cud Chew bench, Copycat, multi-hit per-arrival reactions",
+  "pointer_written": "2026-09-19T07:46:28.644Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

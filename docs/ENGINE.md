@@ -65,7 +65,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_rampage_length.js`, `tests/probe_bond_secondary_order.js`, `tests/probe_ability_flag_refusal.js`,
 `tests/probe_reopen_partings.js`, `tests/probe_moldbreaker_refusals.js`,
 `tests/probe_transform_copied_start.js`, `tests/probe_bond_reactor_ko.js`,
-`tests/probe_move_effect_leads.js`
+`tests/probe_move_effect_leads.js`, `tests/probe_protean_contrary.js`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -161,12 +161,14 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  915/915 probed mechanics live, 0 missing   (census 2026-09-19 01:50)
+  925/925 probed mechanics live, 0 missing   (census 2026-09-19 03:46)
     the census probes what somebody thought to probe: 299 of 299 in-scope tags carry a probe, 0 carry none (9 of 308
     tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 56 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 1.5 h old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/a1c7dcd5696b/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "a1c7dcd5696b".
+    older than its input abra-tags.js
+    pinned to engine release a1c7dcd5696b — engine/medicham2-browser.js matches the frozen copy; live is 8d26dff9dd02 now (a PRE-CHANGE measurement of that release, not corruption)
+    (+3 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -183,7 +185,7 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 03:29_
+_stamped 2026-09-19 04:02_
 
 <!-- /GENERATED -->
 
@@ -206,6 +208,90 @@ last run's `322a5b4ba6b0`.
   still read MATCH and are UNPROVEN. It is the 6.49.1 shape again: **every engine merge that touches a
   planted line strands a plant.** Re-aim them on signatures (`tests/roster.js` only, no cut).
 - Narration 0 / 11 / 24: 14 line order, 10 refusal lines, 9 announcements, 2 per-hit.
+
+## PROTEAN NO LONGER CONVERTS ON A CLICK WHOSE `Try` REFUSES, CLEAR SMOG CLEARS, A MOLD BREAKER BREAKS CONTRARY ON THE BOOST ROAD, CUD CHEW'S PENDING HELPING DIES AT A SWITCH — AND COPYCAT NOW REFUSES A `failcopycat` MOVE (FOUND WHILE STAGING PROTEAN). ITEMS × CONTRARY IS **FALSE**: NO LEGAL ITEM RAISES A STAT. CENSUS **915 → 920 LIVE / 0 MISSING**. THE GRENINJITE ROSTER ROW READS **DIFFER → MATCH**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `348acbb747c3`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
+
+Full account: `docs/_reports/2026-09-19-protean-contrary.md`. Two-engine probe: `tests/probe_protean_contrary.js`
+(42 arms; every red arm red on `a1c7dcd5696b` and parted by its knob on `348acbb747c3`, no control moved).
+
+- **PROTEAN AND `Try` (the Greninjite DIFFER).** `sim/battle-actions.ts:590-592` chains `Try && PrepareHit &&
+  runEvent('PrepareHit')`, and Protean is on the last. `proteanConvert` now asks two of the four guards off tags
+  whose membership equals the flag (`callsAnotherMove` = `callsMove`, `delayedHit` = `futuremove`), and the
+  status-path call asks `tryStepRefuses` — Sleep Talk awake, Rest at full HP / already asleep, Stuff Cheeks with
+  no berry, Aurora Veil out of snow — through the same helpers the refusal sites now call. Class derived: 14 legal
+  status moves with an `onTry`; a native Protean body learns Copycat, Rest and Sleep Talk. Knob
+  `MEDI_PROTEAN_IGNORES_TRY=1`. `tests/roster.js --stage items --only greninjite`: DIFFER on `a1c7dcd5696b`,
+  MATCH on `348acbb747c3`.
+- **CLEAR SMOG.** `clearsBoosts` had one reader, the status router; a damaging member never reached it. Now the
+  head of `_stepEffects` (`runMoveEffects`, above the secondaries and `DamagingHit`). A doll-absorbed row never
+  arrives there, which is the authority's `HIT_SUBSTITUTE`. Knob `MEDI_CLEAR_SMOG_KEEPS_BOOSTS=1`.
+- **MOLD BREAKER × CONTRARY.** `invSign(x, src, cat)` reads the target's ability through `suppressedAbility` when a
+  move of `src` lands the change on another body. Four roads pass the source: `boostTableOnto`, the attack
+  secondary's target drop, the pivot drop, the stat-op primitive; three are staged (Bulldoze, Fake Tears, Parting
+  Shot). Knob `MEDI_CONTRARY_UNBROKEN=1`.
+- **CUD CHEW.** `_cud` is cleared in `switchOut` beside `_proteanUsed`; both live in the ability's `effectState`,
+  rebuilt at `switchIn` (`sim/battle-actions.ts:142`). Knob `MEDI_CUD_SURVIVES_SWITCH=1`.
+- **COPYCAT (NEW).** The `lastMove` source asked `TAGS.has(..., 'noCopycat')`, a tag with 0 members, so every
+  `failcopycat` move (Protect, Endure, Follow Me, Helping Hand, Trick …) was copied. It now asks the same flag test
+  as Sleep Talk's pool (`callRefusedFlag`). Knob `MEDI_COPYCAT_IGNORES_FAILCOPYCAT=1`.
+- **ITEMS × CONTRARY IS FALSE FOR REG M-B.** 148 legal items; the only one whose handler touches a boost is White
+  Herb (`setBoost`, a restore). Weakness Policy, the seeds, the pinch berries, Throat Spray, Adrenaline Orb and
+  Room Service are all `Past`. Nothing to fix.
+- **`data/mechanics-census.json` REGENERATED** in the worktree: 915 → 920 live, 0 missing, 0 threw, 0 hollow. Each
+  new row was shown MISSING under its own knob. `tests/test-mechanics.js`'s deliberate-break list now carries the
+  five knobs — `MEDI_PROTEAN_IGNORES_TRY` WROTE the census on its first red run before it was listed.
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST:** Protean on a failed status move; Clear Smog; Contrary under Mold Breaker; Cud Chew on the
+  bench; item-granted boosts onto Contrary (FALSE — no legal carrier).
+- **NEW, NOT FIXED — DECLARED REMAINDER (Protean):** Clangorous Soul's HP floor (`costsUserHP` does not say which
+  stage refuses; Substitute's floor is `onTryHit` and correctly converts), Quick Guard / Wide Guard moving last,
+  Magnet Rise under Gravity, Destiny Bond / Ally Switch's own `onPrepareHit`, and the `hasBounced` / `snatch`
+  guards. Each needs an ACQUIRED Protean (Role Play, Skill Swap, Entrainment, Trace).
+- **NEW, NOT CHECKED:** Cud Chew's `if (!this.queue.peek()) counter--` (a berry eaten during residuals); the same
+  `effectState` reset on a mid-battle ability change (`setAbility`, `sim/pokemon.ts:1930`) for `_cud` and
+  `_proteanUsed`; Mold Breaker on `applyStatDrop` roads (none is a Mold Breaker move onto another body today).
+- **CARRIED FORWARD UNCHANGED:** Cursed Body per hit; Triple Axel accuracy timing; the other eighteen `onEnd`
+  abilities, and the rest of #622.
+
+## A VOLLEY IS RESOLVED ONE ARRIVAL AT A TIME: CURSED BODY AND POISON TOUCH ROLL PER ARRIVAL, A MULTIACCURACY DIE IS DRAWN AT THE TOP OF ITS OWN ARRIVAL, A USER SLEPT MID-VOLLEY STOPS, AND EFFECT SPORE THROWS NO DIE AT A POWDER-IMMUNE ATTACKER. **NO `game_differential.js` CHANGE — `PIN_DIGEST` DOES NOT MOVE.** TRACE WAS A FALSE LEAD: A CASCADE OF SHED SKIN'S UNGATED DIE, ALREADY FIXED IN 6.52.0. CENSUS **915 → 920 LIVE / 0 MISSING**. WORKTREE RELEASE `44c6e7407738`. 2026-09-19, CHANGELOG `<<VER>>`
+
+Report: `docs/_reports/2026-09-19-cursedbody-trace.md`. LIGHT MODE: staged boards, single probes and single-game replays.
+
+- **The class, derived:** 7 legal on-hit chance reactors (Cursed Body, Cute Charm, Effect Spore, Flame Body,
+  Poison Point, Poison Touch, Static) × 14 legal multi-hit moves; 38 pairings with a legal cast, 8 staged
+  copies each. `tests/probe_multihit_reaction_per_arrival.js` parted **101 of 304** games on `a1c7dcd5696b`
+  and **0 of 304** on `44c6e7407738`; each knob parts only its own arms.
+- **RULE.** `hitStepMoveHitLoop` (Champions overrides it) runs `spreadMoveHit`, and so `DamagingHit`, per
+  arrival. The punish family was already per arrival; Cursed Body and Poison Touch were one closure each,
+  paid once below the volley. `_lateReactorsOf` builds both; the packet loop pays each interior arrival, the
+  deferred step the rest. Knob `MEDI_REACT_LATE_ONCE=1`.
+- **ADDRESS, fixed in the engine.** `rollHitsOf` drew every per-arrival accuracy die before hit 1; the
+  authority draws it at the top of arrival k, below arrival k-1's reaction dice, at the same
+  `any|<move>|<slot>`. `rollHitsOf(..., lazyOut)` now hands back the full count; `_maArrive()` draws each die at
+  its arrival (doll walk, packet loop; the collapsed and no-packet roads draw in one run and are counted in
+  `MEDFAILS.multiAccLazyOnCollapse` / `multiAccLazyNoPackets`). Knob `MEDI_MULTIACC_UPFRONT=1`.
+- **Found by the sweep:** the loop's `pokemon.status === 'slp'` break (knob `MEDI_VOLLEY_IGNORES_SLEEP=1`), and
+  Effect Spore's `source.runStatusImmunity("powder")` gate (derived `punishesAttacker.attackerStatusImmunity`,
+  one legal member; knob `MEDI_SPORE_DIE_UNGATED=1`).
+- **Trace (`…2657391947`, g1950).** A single-game `replay_one --no-warmup --steering empirical` reproduces
+  each lattice record exactly. On `74be319d02fa` the replacement Alakazam-Mega traced Tough Claws here and
+  Competitive there. On `a1c7dcd5696b` both trace Competitive; with `MEDI_CURE_ROLL_UNGATED=1` it flips back to
+  Tough Claws and parts at the 74be index. The extra die was Arbok's Shed Skin at the turn-2 residual, the
+  same `any|-|-` address as Trace's `sample`. No Trace defect.
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST, because the census and a probe now carry them:** Cursed Body against Triple Axel (rule
+  and address); Effect Spore's powder gate (was "read, not probed"); Trace on Alakazam (a false lead, closed).
+- **NEW, NOT FIXED — DECLARED REMAINDER:** a truncated multiaccuracy volley was priced for every arrival, so
+  the engine draws `dmg`/`crit` dice for arrivals the authority never opens. Those addresses are one-sided;
+  they shift nothing unless the same move hits the same slot again in the same turn.
+- **`data/tags.json` WAS SPLICED, NOT REGENERATED** (no store in the worktree): `attackerStatusImmunity` on the
+  13 `punishesAttacker` rows, derived by the same regex `tag_dex.js` now carries.
+- **CARRIED FORWARD:** the Trace game's remaining part is a Future Sight payout into a Focus Sash Kleavor
+  (turn 6); Clear Smog's `clearsBoosts`; the two residual fatigue roads; every other lead below.
 
 ## THE TWO ACCURACY RED PLANTS ARE CAUGHT AGAIN, THE ROSTER STOPS BUILDING BODIES THAT CANNOT KNOW THEIR IDLE CLICK, AND 6.50.0 RE-MEASURES AT **0 / 5 / 12** — EXACTLY THE TEN PREDICTED GAMES GONE, NONE JOINED. THE LEGAL CLICK EXPOSES ONE REAL DIVERGENCE: **PROTEAN CONVERTS ON A STATUS MOVE WHOSE `onTry` FAILS**. CENSUS **900 LIVE**, UNMOVED. **NO ENGINE BYTE CHANGED — RELEASE `74be319d02fa`.** GATE **CLOSED, 2 OF 8**. 2026-09-19, CHANGELOG 6.50.1–6.51.0
 

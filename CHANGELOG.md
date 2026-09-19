@@ -10,6 +10,20 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.54.0] — 2026-09-19
+
+### Fixed
+- **Protean** skips a status move whose own Try refuses, and called or delayed moves.
+- **Clear Smog** clears the target's boosts.
+- **Mold Breaker** breaks the target's Contrary on the boost road.
+- **Cud Chew's** pending berry clears on switch-out.
+- **Copycat** refuses `failcopycat` moves.
+- **Multi-hit reactions** roll per landed hit; Triple Axel's accuracy is drawn per hit; sleep stops a
+  volley; Effect Spore skips immune attackers.
+
+### Notes
+- Census 915 -> 925 live. The census now refuses to write under every knob added since 6.52.0.
+
 ## [6.53.0] — 2026-09-19
 
 ### Notes
