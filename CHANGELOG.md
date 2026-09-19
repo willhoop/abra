@@ -10,6 +10,50 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.56.0] — 2026-09-19
+
+### Changed
+- **An in-scope mechanic the roster could not stage now fails its roster clause.** This is Will's
+  2026-09-11 rule: "stop trying to close medicham out with all these untested mechanics". Until now
+  `engine/quarantine.js` counted `COULD-NOT-STAGE` and failed nothing. The count is the roster's own
+  `scope.could_not_stage_in_scope`, and the larger of it and the row count is used. `DEFERRED-BY-OWNER`
+  rows are Will's rulings and stay excused. Out-of-scope rows stay out. An artifact that carries
+  neither count cannot answer, and it fails. **The gate reading did not move:** the output is
+  byte-identical before and after, `GATE: CLOSED — 1 of 8`, and every stage reads 0 in-scope
+  COULD-NOT-STAGE. `--selftest` reads 285 passed, 0 failed. With the new term deliberately removed, it
+  reads 281 passed and 4 failed, all 4 of them the new RED arms.
+
+### Fixed
+- **A retraction was owed on main.** `docs/ABRA-whitepaper.md`'s 2026-09-12 UPDATE still stated the
+  1350 and 1950 board-material counts from release `bc8d7cf849dd`, and the 6.47.0 notes row wrongly said
+  no living document carried them. They are deleted, and the UPDATE now points at
+  `node engine/quarantine.js --whole-game`.
+- **The retraction registry no longer registers a struck denominator.** A struck `~~9 of 1,069~~`
+  registered 1,069, the game count, which every release plays again. The denominator of `A of B` and
+  the `n` of a sample are the ruler, not the claim. Four demonstration cases cover it; the two
+  release cases failed before the fix and pass after.
+- **Two figures were charged to MAG's weights because the digits matched.** Neither came from MAG.
+  `14.757%` is the human protect rate, now kept by `engine/human_protect_ruler.js` in
+  `data/human-protect-ruler.json`: 28,179 of 190,954 clicks, from 8,388 kept games of 13,214. Those
+  are the published 2026-09-05 counts, reproduced to the digit. `474 of 961 (49.3%)` is arithmetic over
+  the run CHANGELOG 5.243.0 published, and the documents now name that blob,
+  `a347d6d0:data/game-differential.json`. `engine/docs_scan.js` accepts such a share only when a
+  non-withheld source in the paragraph carries both counts. `tests/test-docs-quarantine.js` shows the
+  three ways it must still refuse, and retires 7 baseline keys.
+- **`docs/SUMMARY.md`'s 3.68.0 wire-ladder paragraph is bound to its source.** It is pinned to
+  `f038cdb3:data/wire-ladder.json`, which holds every figure the paragraph states. The file on disk was
+  replayed later that day. The edit is on HEAD's text in the index only; Will's working-copy draft is
+  untouched.
+- **`docs/ROADMAP.md` #129 stated a withheld sample size.** It is withdrawn. `tests/test-docs-quarantine.js`
+  was red on HEAD for this reason alone.
+
+### Notes
+- **The releases published figures cite are staged, not committed.** 95 releases, 2,612 files, 570.4 MB
+  added to every checkout, at most 2.3 MB of pack, largest file 3.7 MB. Every release any tracked file
+  names is 414 releases and 2.1 GB of checkout, and that list is not staged. `63e0e063bfed` is
+  left out: its disk copy of `engine/medicham2-browser.js` does not match its own manifest. Account:
+  `docs/_reports/2026-09-19-gate-wiring-retraction.md`.
+
 ## [6.55.0] — 2026-09-19
 
 ### Notes

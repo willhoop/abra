@@ -101,12 +101,16 @@ const ok = (pass, name, detail) => {
  * backtest's usable-game count out of docs/EXTERNAL-EVIDENCE.md and docs/PRIORITIES.md, and this file
  * printed exactly those 2 under "DELETE these lines" (docs/_reports/2026-09-11-withdrawals-4.md). The
  * DODUO harness rate the MODELS.md `49.3%` key used to cover is withdrawn too; the key still fires on
- * the game-differential share, so it stays. */
+ * the game-differential share, so it stays.
+ *
+ * 2026-09-19, SHRUNK BY 7, DERIVED BY RUNNING THIS FILE. The `14.757%` and `49.3%` keys were never
+ * MAG's figures, and the documents now name what they read: `14.757%` cites
+ * data/human-protect-ruler.json, the store-derived ruler engine/human_protect_ruler.js now keeps (it
+ * reproduces the 2026-09-05 counts to the digit), and `474 of 961 (49.3%)` names the blob CHANGELOG
+ * 5.243.0 published, `a347d6d0:data/game-differential.json`, whose counts engine/docs_scan.js now
+ * accepts as the source of a share written beside them. This file printed exactly those 7 under
+ * "DELETE these lines" (docs/_reports/2026-09-19-gate-wiring-retraction.md). */
 const BASELINE = new Set([
-  "docs/ABRA-technical-docs.md|14.757%|data/policy-weights.json",
-  "docs/ABRA-technical-docs.md|49.3%|data/policy-weights.json",
-  "docs/ABRA-whitepaper.md|14.757%|data/policy-weights.json",
-  "docs/ABRA-whitepaper.md|49.3%|data/policy-weights.json",
   "docs/ENGINE.md|1,136,845|data/feature-engine-contrast.json",
   "docs/ENGINE.md|48,274|data/censoring-value.json",
   "docs/ENGINE.md|5,878|data/leaf-position-contrast.json",
@@ -114,10 +118,7 @@ const BASELINE = new Set([
   "docs/ENGINE.md|6,167|data/leaf-position-contrast.json",
   "docs/ENGINE.md|6,371|data/leaf-position-contrast.json",
   "docs/GAME-DIFFERENTIAL-DESIGN.md|8,855|data/leaf-engine-contrast.json",
-  "docs/MEASURE.md|14.757%|data/policy-weights.json",
   "docs/MEASURE.md|8,855|data/leaf-engine-contrast.json",
-  "docs/MODELS.md|14.757%|data/policy-weights.json",
-  "docs/MODELS.md|49.3%|data/policy-weights.json",
   "docs/OPS.md|1.744%|data/collinearity-joint.json",
   "docs/PRIOR-ART.md|186,494|data/policy-weights.json",
   "docs/ROADMAP.md|0.687%|data/feature-shift.json",
@@ -267,6 +268,43 @@ if (r.gate_open) {
     'RED — citing a quotable artifact that does NOT carry the figure clears nothing; the clearance '
     + 'needs the figure to be in that artifact',
     JSON.stringify(beside.hits.map(h => h.figure)));
+
+  /* ---- A SHARE WRITTEN BESIDE ITS OWN COUNTS — 2026-09-19 ------------------------------------
+   *
+   * `474 of 961 (49.3%)` stood in three documents charged to data/policy-weights.json, whose MAG
+   * weight 0.4928 matches the share by digits and whose name the paragraph mentions ("was not
+   * written"). The share is arithmetic over the two counts, and both are in the run the paragraph now
+   * names. REAL BYTES on both sides: data/policy-weights.json does hold 0.4928, and the blob CHANGELOG
+   * 5.243.0 published, `a347d6d0:data/game-differential.json`, does hold 474 and 961. The RED arms are
+   * the point: the same paragraph WITHOUT the source is still charged, citing a quotable file that
+   * does not carry BOTH counts clears nothing, and a pin into the WITHHELD artifact's own history
+   * clears nothing either. */
+  {
+    const heldPW = (f) => (String(f) === 'data/policy-weights.json'
+      ? { file: f, because: 'synthetic — share arm', clause: 'synthetic' } : null);
+    const SHARE = 'The driver reaches a result in 474 of 961 (49.3%). `data/policy-weights.json` was not written.';
+    const SRC = ' The run is `a347d6d0:data/game-differential.json`.';
+    const heldGD = (f) => (String(f) === 'data/policy-weights.json' || String(f) === 'data/game-differential.json'
+      ? { file: f, because: 'synthetic — share arm, pin into a withheld history', clause: 'synthetic' } : null);
+    const heldPin = DS.quarantinedFigures(['synthetic.md'], { withhold: heldGD, read: () => SHARE + SRC });
+    ok(heldPin.hits.length === 1 && heldPin.hits[0].figure === '49.3%',
+      'RED — a commit pin into a WITHHELD artifact\'s history is withheld too, and clears nothing',
+      JSON.stringify(heldPin.hits.map(h => h.figure)));
+    const noSrc = DS.quarantinedFigures(['synthetic.md'], { withhold: heldPW, read: () => SHARE });
+    ok(noSrc.hits.length === 1 && noSrc.hits[0].figure === '49.3%',
+      'RED — a share beside a withheld citation, with no source for its counts, is still charged',
+      JSON.stringify(noSrc.hits.map(h => h.figure)));
+    const wrongSrc = DS.quarantinedFigures(['synthetic.md'], { withhold: heldPW,
+      read: () => SHARE + ' Config is `data/regulations.json`.' });
+    ok(wrongSrc.hits.length === 1 && wrongSrc.hits[0].figure === '49.3%',
+      'RED — citing a quotable artifact that does not carry BOTH counts clears nothing',
+      JSON.stringify(wrongSrc.hits.map(h => h.figure)));
+    const bound = DS.quarantinedFigures(['synthetic.md'], { withhold: heldPW, read: () => SHARE + SRC });
+    ok(bound.hits.length === 0,
+      'GREEN — the same share, in a paragraph citing the run that carries both of its counts, is '
+      + 'arithmetic over that run and is not a republication of the MAG weight',
+      JSON.stringify(bound.hits.map(h => h.figure)));
+  }
 
   /* AND THE CAPTION, WHICH IS THE ONE THAT MUST NOT WORK. The retraction rule deliberately skips a
    * paragraph matching QUALIFIED ("previously", "stale", "was measured") because such a paragraph is

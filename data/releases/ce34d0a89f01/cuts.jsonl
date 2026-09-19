@@ -1,0 +1,2 @@
+{"at":"2026-09-19T00:24:34.248Z","why":"2026-09-18 ENGINE: Beat Up prices each hit off the SET species (data/moves.ts:1155), not the forme on the field; knob MEDI_BEATUP_FIELD_FORME","showdown_commit":"20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"}
+{"at":"2026-09-19T01:16:29.626Z","why":"tests/probe_beatup_set_species.js — freeze the tree under test","showdown_commit":"20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"}

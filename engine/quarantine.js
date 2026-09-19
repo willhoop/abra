@@ -620,24 +620,62 @@ function rosterStage(stage, inject) {
       : unattributable === 0 ? ''
       : `. ${unattributable} row(s) count in NEITHER column — the control arm is itself a live ability`
         + (sc && sc.unattributable_ids ? `: ${sc.unattributable_ids.join(', ')}` : '');
+    /* ---- AN IN-SCOPE MECHANIC THE ROSTER COULD NOT STAGE HOLDS THIS CLAUSE SHUT (2026-09-19) -----
+     *
+     * Will, 2026-09-11, while a release was being assembled on an OPEN gate: *"stop trying to close
+     * medicham out with all these untested mechanics"*. The gate read open then with dozens of in-scope
+     * abilities, items and moves never staged, because COULD-NOT-STAGE was COUNTED here (`couldNotStage`
+     * below) and failed nothing. A row nobody measured was treated exactly like a row measured clean.
+     *
+     * THE THREE BUCKETS DIVIDE ON SCOPE AND ON WHO DECIDED, and only one of them fails:
+     *   - IN SCOPE and COULD-NOT-STAGE          -> FAILS. A legal body can carry it and nothing tested it.
+     *   - DEFERRED-BY-OWNER (even when its underlying verdict is COULD-NOT-STAGE) -> excused. That is
+     *     Will's ruling by name and it carries its own verdict, so it never reaches this bucket.
+     *   - OUT OF SCOPE (no legal carrier, validator-refused, no legal reader) -> not counted at all.
+     *     Will, 2026-09-09: *"the abilities not tested are not in the game"*. Not a gap.
+     *
+     * THE COUNT IS THE ROSTER'S OWN `scope.could_not_stage_in_scope`, written at the refusal and
+     * bucketed over the in-scope set only (tests/roster.js, the THE DENOMINATOR block). It is NOT
+     * `counts['COULD-NOT-STAGE']`: on an artifact older than 2026-09-11 that bucket still held every
+     * carrier-less row (data/roster.all.json on 5a7bd8a8178a: 174 in `counts`, 57 in scope), and a
+     * gate reading it would fail on the National Dex. The rows are counted as well, by the roster's own
+     * predicate (`OUT_OF_SCOPE` in tests/roster.js: `scope_verdict` set, or `out_of_scope ===
+     * 'no-legal-carrier'`), and the LARGER of the two is used — two counts of one bucket that disagree
+     * must fail in the safe direction. An artifact that carries neither CANNOT ANSWER and fails. */
+    const cnsRows = Array.isArray(j.results)
+      ? j.results.filter(r => r && r.verdict === 'COULD-NOT-STAGE'
+          && !(r.scope_verdict || r.out_of_scope === 'no-legal-carrier')) : null;
+    const cnsScope = sc && typeof sc.could_not_stage_in_scope === 'number' ? sc.could_not_stage_in_scope : null;
+    const cnsIn = cnsScope === null && cnsRows === null ? null
+      : Math.max(cnsScope || 0, cnsRows ? cnsRows.length : 0);
+    const cnsIds = cnsRows ? cnsRows.slice(0, 12).map(r => r.id || r.name) : [];
+    const cnsTxt = cnsIn === null
+      ? `IN-SCOPE COULD-NOT-STAGE CANNOT BE COUNTED — ${'data/' + f} carries neither `
+        + '`scope.could_not_stage_in_scope` nor result rows, so an unstaged in-scope mechanic could '
+        + 'not be seen; re-run tests/roster.js --stage ' + stage + ' --reds --write'
+      : cnsIn === 0 ? ''
+      : `${cnsIn} IN-SCOPE COULD-NOT-STAGE — a legal body carries it and this instrument never staged it`
+        + (cnsIds.length ? ` (${cnsIds.join(', ')}${cnsRows.length > cnsIds.length ? ', ...' : ''})` : '');
+    const rosterOk = differ === 0 && silent === 0 && badReds === 0 && staleShelf === 0 && cnsIn === 0;
     return {
       stage, file: 'data/' + f, generated: j.generated || null, release: j.engine_release || null,
       pins: PIN.receipt({ file: 'data/' + f, checked: ['release', 'digests'],
                           release: j.engine_release || null }),
       differ, silent, badReds, matched: c['FIRED-AND-BOARDS-MATCH'] || 0,
-      couldNotStage: c['COULD-NOT-STAGE'] || 0,
+      couldNotStage: c['COULD-NOT-STAGE'] || 0, couldNotStageInScope: cnsIn,
       deferred: deferred.length, staleShelf, scope: sc, unattributable,
       plant_anchors: pa,
-      ok: differ === 0 && silent === 0 && badReds === 0 && staleShelf === 0,
+      ok: rosterOk,
       /* THE DEFERRAL COUNT MOVED TO THE CLOSET SECTION and is deliberately not repeated here — it
        * was printing in both places once the closet existed, and a number shown twice is a number
        * a reader has to reconcile. The count is still on the returned object for anything that
        * wants it programmatically. */
-      why: (differ === 0 && silent === 0 && badReds === 0 && staleShelf === 0
+      why: (rosterOk
         ? `clean: ${denom}`
         : `${differ} FIRED-AND-BOARDS-DIFFER, ${silent} DID-NOT-FIRE — ${denom}`
           + (badReds ? `, ${badReds} red demonstration(s) did not behave as their rule predicted` : '')
-          + (staleShelf ? `, ${staleShelf} DEFERRAL(S) NOW PASS ON THEIR OWN — take the shelf down` : ''))
+          + (staleShelf ? `, ${staleShelf} DEFERRAL(S) NOW PASS ON THEIR OWN — take the shelf down` : '')
+          + (cnsTxt ? `, ${cnsTxt}` : ''))
         + unattrib + redsNote,
     };
   }
@@ -748,6 +786,11 @@ function differentialClause(artifact, curId) {
  * mechanics census, which probes the TAG. COULD-NOT-STAGE is a statement about one harness's fixture,
  * not about the mechanic, and a clause built on it would have cried wolf on the busiest moves in the
  * format on its first run.
+ *
+ * (2026-09-19: that price was paid off, and COULD-NOT-STAGE is no longer a free pass — the ROSTER
+ * clause, not this one, now fails on an in-scope COULD-NOT-STAGE row, per Will's 2026-09-11 ruling;
+ * see `rosterStage`. It was wired on a roster reading 0 in-scope COULD-NOT-STAGE on all three stages,
+ * so the fixtures were fixed first and the gate did not cry wolf. This clause's question is unchanged.)
  *
  * SO THE CLAUSE ASKS THE ONLY QUESTION THAT MATTERS: does ANY instrument measure this?
  *   - the deliberate roster STAGED it (a FIRED-AND-BOARDS verdict), or
@@ -5119,6 +5162,64 @@ if (require.main === module) {
         rosterStage('items', { file: 'roster.items.json',
           json: rArt({ [PIN.K.id]: relId2, [PIN.K.digests]: { 'engine/board.js': 'aaaaaaaaaaaa' } }) })
           .ok === true);
+
+      /* ---- 2b. AN IN-SCOPE COULD-NOT-STAGE ROW HOLDS THE ROSTER CLAUSE SHUT (2026-09-19) --------
+       * Will, 2026-09-11: *"stop trying to close medicham out with all these untested mechanics"*.
+       * Each arm hands the SHIPPING `rosterStage` a fully stamped artifact that is clean in every
+       * other column, so the only thing that can move the verdict is the row under test. The
+       * planted row is a synthetic id, not an entity from the format. */
+      {
+        const stamped = (extra) => rArt({ [PIN.K.id]: relId2,
+          [PIN.K.digests]: { 'engine/board.js': 'aaaaaaaaaaaa' }, ...extra });
+        const plant = { kind: 'item', id: '__planted_unstaged__', verdict: 'COULD-NOT-STAGE',
+                        why: 'selftest plant', out_of_scope: null };
+        const cns = rosterStage('items', { file: 'roster.items.json', json: stamped({
+          counts: { 'FIRED-AND-BOARDS-DIFFER': 0, 'DID-NOT-FIRE': 0, 'FIRED-AND-BOARDS-MATCH': 136,
+                    'COULD-NOT-STAGE': 1 },
+          scope: { tested: 136, in_scope: 137, unattributable: 0, could_not_stage_in_scope: 1 },
+          results: [plant] }) });
+        ok('COULD-NOT-STAGE / RED — one planted IN-SCOPE COULD-NOT-STAGE row FAILS a roster stage '
+          + 'that is clean in every other column, and the verdict names it',
+          cns.ok === false && cns.couldNotStageInScope === 1
+          && /IN-SCOPE COULD-NOT-STAGE/.test(cns.why) && /__planted_unstaged__/.test(cns.why), cns.why);
+        const rowsOnly = rosterStage('items', { file: 'roster.items.json', json: stamped({
+          scope: { tested: 136, in_scope: 137, unattributable: 0 }, results: [plant] }) });
+        ok('COULD-NOT-STAGE / RED — the row alone fails it when the scope block omits the count: '
+          + 'the larger of the two counts is read, never the absent one as zero',
+          rowsOnly.ok === false && rowsOnly.couldNotStageInScope === 1, rowsOnly.why);
+        const scopeOnly = rosterStage('items', { file: 'roster.items.json', json: stamped({
+          scope: { tested: 136, in_scope: 139, unattributable: 0, could_not_stage_in_scope: 3 },
+          results: [] }) });
+        ok('COULD-NOT-STAGE / RED — the scope count alone fails it when the rows were not written',
+          scopeOnly.ok === false && scopeOnly.couldNotStageInScope === 3, scopeOnly.why);
+        const shelved = rosterStage('items', { file: 'roster.items.json', json: stamped({
+          counts: { 'FIRED-AND-BOARDS-DIFFER': 0, 'DID-NOT-FIRE': 0, 'FIRED-AND-BOARDS-MATCH': 136,
+                    'DEFERRED-BY-OWNER': 1 },
+          scope: { tested: 136, in_scope: 137, unattributable: 0, could_not_stage_in_scope: 0 },
+          results: [{ ...plant, verdict: 'DEFERRED-BY-OWNER', underlying_verdict: 'COULD-NOT-STAGE',
+                      would_pass_now: false, deferred: { by: 'selftest', on: 'never', why: 'plant' } }] }) });
+        ok('COULD-NOT-STAGE / GREEN — a DEFERRED-BY-OWNER row whose underlying verdict is '
+          + 'COULD-NOT-STAGE is the owner\'s ruling and stays EXCUSED',
+          shelved.ok === true && shelved.couldNotStageInScope === 0, shelved.why);
+        const oos = rosterStage('items', { file: 'roster.items.json', json: stamped({
+          counts: { 'FIRED-AND-BOARDS-DIFFER': 0, 'DID-NOT-FIRE': 0, 'FIRED-AND-BOARDS-MATCH': 136,
+                    'COULD-NOT-STAGE': 117 },
+          scope: { tested: 136, in_scope: 136, unattributable: 0, could_not_stage_in_scope: 0 },
+          results: [{ ...plant, out_of_scope: 'no-legal-carrier' },
+                    { ...plant, id: '__planted_refused__', out_of_scope: 'validator-refused',
+                      scope_verdict: 'VALIDATOR-REFUSED' }] }) });
+        ok('COULD-NOT-STAGE / GREEN — OUT-OF-SCOPE rows stay out, including a pre-2026-09-11 '
+          + '`counts` bucket that still holds carrier-less rows: the National Dex is not a gap',
+          oos.ok === true && oos.couldNotStageInScope === 0, oos.why);
+        const blind = rArt({ [PIN.K.id]: relId2, [PIN.K.digests]: { 'engine/board.js': 'aaaaaaaaaaaa' },
+                             scope: { tested: 136, in_scope: 136, unattributable: 0 } });
+        delete blind.results;
+        const cantCount = rosterStage('items', { file: 'roster.items.json', json: blind });
+        ok('COULD-NOT-STAGE / RED — an artifact carrying neither the scope count nor result rows '
+          + 'CANNOT say whether anything went unstaged, and fails rather than reading as zero',
+          cantCount.ok === false && cantCount.couldNotStageInScope === null
+          && /CANNOT BE COUNTED/.test(cantCount.why), cantCount.why);
+      }
 
       /* ---- 3. THE MECHANICS CLAUSE — a hand-rolled `release` is not a stamp ------------------- */
       const mBase = { summary: { moves: { diverged: 0 }, abilities: { diverged: 0 },

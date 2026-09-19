@@ -1,0 +1,38 @@
+{
+  "what": "The share of real human move clicks that are a protect-family move, on the frozen open-sheet pool. The ruler the empirical driver is compared against; store-derived, no simulator in the path.",
+  "generated": "2026-09-19T11:00:21.902Z",
+  "by": "engine/human_protect_ruler.js",
+  "store": "data/team-pool-frozen/games.bo3.jsonl",
+  "predicate": "bots and forfeits dropped, nothing else — the predicate of the published 2026-09-05 ruler (docs/_reports/2026-09-05-protect-amplification.md §1), deliberately NOT engine/quality.js",
+  "raw_store_ok": "reads the FROZEN pool with the 2026-09-05 ruler's own predicate (bots and forfeits dropped) so the published figure is reproduced rather than replaced; the quality filter would publish a different number under this one's name",
+  "sampled": "the frozen pool data/team-pool-frozen (2026-08-12), not the live corpus — a pinned population, so corpus drift against the live store is not staleness",
+  "click": "a stored turn event with t === 'm' — a move that reached the board",
+  "n_games": 8388,
+  "family": [
+    "banefulbunker",
+    "detect",
+    "kingsshield",
+    "protect",
+    "spikyshield"
+  ],
+  "games_in_file": 13214,
+  "games_dropped_bot": 55,
+  "games_dropped_forfeit": 4799,
+  "games_kept": 8388,
+  "clicks": 190954,
+  "family_clicks": 28179,
+  "family_share": 0.147569571729317,
+  "family_share_pct": 14.757,
+  "reproduces": {
+    "games_in_file": 13214,
+    "games_kept": 8388,
+    "clicks": 190954,
+    "family_clicks": 28179
+  },
+  "source_digests": {
+    "engine/human_protect_ruler.js": "8d7d1609dd8b",
+    "data/team-pool-frozen/games.bo3.jsonl": "5e10d7ba991f",
+    "data/tags.json": "8950d4355cc5",
+    "note": "Content, not mtime. A checkout moves an mtime without moving code."
+  }
+}

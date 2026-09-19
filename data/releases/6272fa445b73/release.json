@@ -1,0 +1,921 @@
+{
+  "id": "6272fa445b73",
+  "cut": "2026-08-27T02:31:30.485Z",
+  "why": "punishesMinimize: the six minimize-flagged moves cannot miss a minimized body and deal double to it (ROADMAP #466)",
+  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
+  "cuts": [
+    {
+      "at": "2026-08-27T02:31:30.485Z",
+      "why": "punishesMinimize: the six minimize-flagged moves cannot miss a minimized body and deal double to it (ROADMAP #466)",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:32:25.802Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:37:47.044Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:37:47.719Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:37:48.261Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:37:48.796Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:37:49.327Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:37:49.847Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:37:57.893Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:37:59.009Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:38:03.877Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:38:10.513Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:38:32.526Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:38:37.619Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:38:41.158Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:39:10.882Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:39:17.068Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:41:16.063Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:41:17.381Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:41:18.866Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:41:20.175Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:41:21.630Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:41:53.695Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:41:54.773Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:42:07.704Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:42:13.247Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:42:14.098Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:44:06.748Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:45:53.844Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:46:04.212Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:46:22.068Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:46:22.976Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:46:31.617Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T02:48:15.097Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:08:58.164Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:08:59.339Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:09.391Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:10.720Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:12.075Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:13.321Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:14.547Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:15.778Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:17.021Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:18.332Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:19.703Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:21.040Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:22.332Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:23.631Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:24.886Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:26.133Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:27.393Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:28.681Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:29.920Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:31.163Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:32.461Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:33.719Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:34.958Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:36.207Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:37.458Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:38.716Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:40.215Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:41.841Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:43.447Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:44.813Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:46.196Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:47.681Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:49.375Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:50.938Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:52.499Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:54.152Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:55.522Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:57.106Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:10:59.219Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:11:01.015Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:11:02.843Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:11:05.288Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:11:21.599Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:11:39.841Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:11:58.007Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:12:14.695Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:12:31.857Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:12:51.963Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:07.156Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:15.123Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:16.628Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:18.295Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:20.138Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:21.928Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:23.638Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:25.746Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:27.564Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:29.169Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:30.852Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:32.244Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:33.558Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:34.960Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:36.413Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:37.825Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:39.234Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:40.678Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:42.164Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:43.616Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:45.209Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:46.813Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:48.187Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:49.583Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:51.109Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:52.784Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:54.288Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:56.175Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:57.640Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:13:59.031Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:14:00.481Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:14:02.126Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:14:03.937Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:14:05.610Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:14:07.342Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:14:09.897Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:14:12.243Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:14:13.902Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:14:16.483Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:14:18.367Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:14:20.050Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:14:21.549Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:14:23.081Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:14:24.569Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:14:26.644Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:14:28.351Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:14:31.529Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:16:32.880Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:16:38.182Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:26:31.507Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:29:12.803Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:29:17.836Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:29:22.318Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:39:47.146Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:40:37.524Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:44:16.000Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:45:04.386Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:45:05.579Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:45:06.846Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:45:08.230Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:53:24.486Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:53:32.401Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:53:33.408Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:54:07.786Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:54:13.929Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:54:17.887Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:54:18.676Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:54:19.283Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:54:27.409Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:54:32.639Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:54:33.724Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:55:44.086Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:55:59.250Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:56:13.436Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:56:16.559Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    },
+    {
+      "at": "2026-08-27T03:56:18.142Z",
+      "why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+      "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"
+    }
+  ],
+  "files": {
+    "engine/medicham2-browser.js": "51a95481d8f4",
+    "engine/board.js": "c85a3b756c98",
+    "engine/rollout_leaf.js": "a9de35b3808d",
+    "engine/position_features.js": "4850adf1a2ab",
+    "engine/tags.js": "145a3cc9ce2f",
+    "engine/champions_sim.js": "b9ae3b072b4a",
+    "data/residual-order.json": "eff160ad1c5a",
+    "data/switchin-order.json": "24a007a66b7d",
+    "engine/mc_key.js": "f57c27a6bf38",
+    "engine/lookup.js": "03caca7859cd",
+    "engine/set_priors.js": "f8a81445ee3a",
+    "engine/smogon_priors.js": "5c039f9ebdbc",
+    "engine/quality.js": "e397e99ef257",
+    "engine/showdown_path.js": "0efe29f4245d",
+    "data/move-effects.js": "f35ecd91ba86",
+    "data/ability-blocks.json": "86741fd35452",
+    "data/smogon-priors.json": "7cff8927a784",
+    "data/regulations.json": "6c1995e9a9fb",
+    "data/quality-filter.json": "e675d10477c8",
+    "data/engine-data.js": "c73da1d25212",
+    "data/abra-tags.js": "df81e6ff01f8",
+    "data/tags.json": "7c2a830b408f",
+    "data/policy-weights.json": "626c1d240782",
+    "data/policy-weights-joint.json": "e2aca467ff04",
+    "data/move-priors.json": "e667fe8ab457",
+    "engine/pp.js": "30b12a4ef623"
+  },
+  "provides": [
+    "ACCMOD",
+    "CH_EXACT",
+    "CH_ONE",
+    "CODE_OF_STATUS",
+    "EXPOSURE_HORIZON",
+    "MEDFAILS",
+    "MEDI_SPREAD",
+    "MEDSEEN",
+    "MID_EVENT_SEED",
+    "NATURE_SHIFT",
+    "PROTECTMOVES",
+    "RESIDUAL_EXPIRY",
+    "RESIDUAL_GROUPS",
+    "RNG_STREAMS",
+    "STALL_SHARED",
+    "SUBPASS",
+    "TRACE_EVENTS",
+    "TURN_ORDER",
+    "accStageMul",
+    "actionPriority",
+    "applyEntryEffects",
+    "applyIntimidate",
+    "applyStatus",
+    "auraStateOf",
+    "battle",
+    "battleInit",
+    "battleOver",
+    "battleResult",
+    "battleTurn",
+    "bestMoveVs",
+    "buildMon",
+    "buildMonFromSet",
+    "canMegaNow",
+    "canTakeStatus",
+    "ch4096",
+    "clickFragility",
+    "compareTurnOrder",
+    "dmgRange",
+    "effSpeed",
+    "fails",
+    "foeThreatensGuardClass",
+    "futureSight",
+    "guardMoveAimedAtFoes",
+    "hitChance",
+    "hitProb",
+    "isGrounded",
+    "md4096",
+    "mdChain",
+    "megaEvolveNow",
+    "megaTargetFor",
+    "midEventBase",
+    "midEventDice",
+    "midEventHash",
+    "midEventLog",
+    "midEventValue",
+    "moveAccuracy",
+    "moveFx",
+    "movePriority",
+    "natureL50",
+    "natureShift",
+    "natureStat",
+    "parsePaste",
+    "physicalShare",
+    "playerAction",
+    "powderBlocked",
+    "ppMax",
+    "ppSpentMap",
+    "pranksterBlocked",
+    "printedAccuracy",
+    "priorityRefusedAbove",
+    "punishExposure",
+    "residualExpiryDeferred",
+    "residualFollowerReport",
+    "residualFollowerRuns",
+    "rngStreams",
+    "seen",
+    "setPurePriors",
+    "sideGuardClickRate",
+    "sortTurnOrder",
+    "speedFlipShare",
+    "spreadL50",
+    "stallBoardCounter",
+    "stallCounter",
+    "statusCostOf",
+    "terrainId",
+    "traceCanon",
+    "traceCounts",
+    "turnOrderKey",
+    "weatherId",
+    "weatherTurns",
+    "winProb2"
+  ],
+  "provides_by": "engine_release.js exportedNames — static parse of module.exports, comments stripped",
+  "note": "IMMUTABLE. A measurement reads these bytes, not the live tree, so other divisions may keep working while it runs. Re-cutting an identical tree returns this same id and APPENDS to cuts[]; `cut` and `why` are the FIRST freeze of these bytes and are never overwritten. The event log is cuts.jsonl beside this file and is the source of truth for cuts[]."
+}

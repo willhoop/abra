@@ -186,7 +186,7 @@
     "exploitability.json",
     "medicham-bench.json"
   ],
-  "verified": 13,
+  "verified": 14,
   "graph_files": [
     "_bench-belownormal.json",
     "_bench-headline.json",
@@ -284,6 +284,7 @@
     "gate-census.pin.json",
     "guru-matchups.json",
     "guru.js",
+    "human-protect-ruler.json",
     "illusion.json",
     "immunity-sweep.json",
     "interaction-matrix.json",
@@ -1103,5 +1104,5 @@
       ]
     }
   ],
-  "generated": "2026-09-19T09:15:19.928Z"
+  "generated": "2026-09-19T10:54:39.627Z"
 }

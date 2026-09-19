@@ -899,6 +899,27 @@ function sigFigs(raw) {
 }
 const isDistinctive = f => (f.pct ? sigFigs(f.raw) >= PCT_SIGFIG_FLOOR : f.value >= 1000);
 
+/* ---- WHAT A STRUCK SPAN WITHDRAWS — 2026-09-19 ---------------------------------------------------
+ *
+ * The strikethrough form below used to register EVERY distinctive figure inside `~~…~~`. A struck
+ * lattice reading `~~9 of 1,069~~` therefore registered 1,069 — the lattice's GAME COUNT, which every
+ * later release plays again — and a correct sentence stating that count read as a restated retraction.
+ * Struck spans are how RUNNING-NOTES records every superseded figure, so the defect would have grown
+ * with every notes row.
+ *
+ * The span withdraws the CLAIM. Two positions inside it are the population the claim was measured on,
+ * not the claim, and are blanked (to spaces, so nothing else shifts) before the figures are read:
+ *   - the denominator of `A of B` / `A out of B` — B is the sample; A is still read;
+ *   - the `n` of a sample — `n 3,903`, `n=3,903`, `n = 3,903`.
+ * A bare struck count (`~~7,971 games~~`) is untouched: there the count IS the withdrawn claim. Both
+ * directions are demonstration cases in RETRACTION_CASES. */
+const STRUCK_DENOMINATOR = /(\d[\d,.]*%?\s+(?:out\s+)?of\s+)(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)/gi;
+const STRUCK_SAMPLE_N = /(\bn\s*=?\s*)(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)/g;
+function struckClaims(span) {
+  const blank = (m, pre, num) => pre + ' '.repeat(num.length);
+  return figuresIn(String(span).replace(STRUCK_DENOMINATOR, blank).replace(STRUCK_SAMPLE_N, blank));
+}
+
 function retractionRegistry(docs, { read = readDoc } = {}) {
   const reg = new Map();   // value -> {value, pct, sources:[], strength}
   const add = (f, src, strength) => {
@@ -916,7 +937,7 @@ function retractionRegistry(docs, { read = readDoc } = {}) {
       /* 1. STRIKETHROUGH. ~~63.2% [56.6, 69.3], mirror 47.5%~~ — an author-placed marker, and the
        *    least ambiguous signal in markdown. Everything inside it is withdrawn. */
       if (/retract|withdraw|superseded|\bvoid\b/i.test(L)) {
-        for (const m of L.matchAll(/~~([^~]+)~~/g)) for (const f of figuresIn(m[1])) add(f, `${rel}:${i + 1}`, 'strong');
+        for (const m of L.matchAll(/~~([^~]+)~~/g)) for (const f of struckClaims(m[1])) add(f, `${rel}:${i + 1}`, 'strong');
       }
       /* 2. NAMED PRIOR. "The prior 63.2% ... is retracted", "The figure of 7,971 ... was retracted".
        *    The determiner is doing the work: it marks the figure as the subject of the retraction. */
@@ -1090,6 +1111,40 @@ const RETRACTION_CASES = [
        + 'hits. A document writing the retracted figure verbatim is always a violation.',
     retracts: 'The prior 63.2% exploitability figure is retracted.',
     states:   'The win-optimised vector beat MAG 63.2% of the time.',
+    caught: true },
+
+  /* ---- A STRUCK SPAN WITHDRAWS A CLAIM, NOT THE POPULATION IT WAS MEASURED ON — 2026-09-19 ------
+   * The strikethrough form registered EVERY distinctive figure inside `~~…~~`, so striking a lattice
+   * reading `~~9 of 1,069~~` registered 1,069 — the game count, which stays true on every release —
+   * and the next correct sentence stating that lattice's size read as a restated retraction. The
+   * denominator of `A of B` and the `n` of a sample are the ruler, not the result. The numerator and
+   * a bare struck count still register; the last two cases are the control. */
+  { id: 'a-struck-denominator-is-the-sample-not-the-claim',
+    why: 'A lattice reading struck on one release names the lattice size, which the next release plays '
+       + 'again. The count is the denominator; the withdrawn claim is the numerator.',
+    retracts: 'Board-material read ~~9 of 1,069~~ on that release and is withdrawn.',
+    states:   '| --games 1350 | 1 of 1,069 games part a board |',
+    caught: false },
+
+  { id: 'a-struck-sample-size-is-not-the-claim',
+    why: 'The `n` inside a struck score line is the sample the withdrawn score was taken on. A later '
+       + 'sentence reporting the same sample is not restating the score.',
+    retracts: 'The leaf scores ~~top-1 0.2979 / n 3,903~~ are withdrawn.',
+    states:   'The held-out split kept n 3,903 decisions.',
+    caught: false },
+
+  { id: 'a-struck-numerator-still-registers',
+    why: 'THE CONTROL for the two cases above: only the denominator is released. A struck `A of B` whose '
+       + 'A is distinctive still registers A, so a document restating it is still caught.',
+    retracts: 'Decision impact read ~~1,205 of 6,000~~ and is withdrawn.',
+    states:   'The paired run flipped 1,205 decisions.',
+    caught: true },
+
+  { id: 'a-struck-bare-count-still-registers',
+    why: 'THE CONTROL on the other axis: a struck count that is not the denominator of a ratio IS the '
+       + 'withdrawn claim, and a document stating it as fact is caught exactly as before.',
+    retracts: 'The corpus size ~~7,971 games~~ is withdrawn.',
+    states:   'The corpus holds 7,971 games.',
     caught: true },
 ];
 
@@ -2473,8 +2528,34 @@ function quarantinedFigures(docs, { withhold, read = readDoc } = {}) {
        * non-withheld artifact. Citing a quotable file that doesn't carry it clears nothing, and
        * tests/test-docs-quarantine.js shows that case red. */
       const free = all.filter(c => !st.withhold(c) && isArtifactRel(c));
-      const quotable = (f) => free.some(c => { const n = artifactNumbers(c); return !!(n && artifactHas(n, f)); });
       const body = b.lines.join('\n');
+      /* A SHARE WRITTEN BESIDE ITS OWN COUNTS IS ARITHMETIC OVER THEM — 2026-09-19. `474 of 961
+       * (49.3%)` was charged to data/policy-weights.json in three documents because a MAG weight reads
+       * 0.4928 and the paragraph mentions that file ("was not written"). The share is 474 / 961, and
+       * both counts are in the run CHANGELOG 5.243.0 published — the commit-pinned blob
+       * `a347d6d0:data/game-differential.json`, which the paragraph now names. No artifact stores the
+       * division, so the rule above could never clear it.
+       * It clears ONLY when a NON-withheld source cited in the paragraph — a file on disk, or a
+       * commit-pinned blob (`<rev>:data/x.json`, the one trace a regeneration cannot move) — carries
+       * BOTH counts of an `A of B` written in the same paragraph, and A / B rounds to the share at the
+       * document's own precision. A pin to a withheld artifact's history counts as withheld. A share of
+       * counts that only a withheld artifact carries is still charged — tests/test-docs-quarantine.js
+       * shows both of those red. */
+      const pairs = [...body.matchAll(/(\d{1,3}(?:,\d{3})+|\d+)\s+(?:out\s+)?of\s+(\d{1,3}(?:,\d{3})+|\d+)/g)]
+        .map(m => [figuresIn(m[1])[0], figuresIn(m[2])[0]]).filter(([a, d]) => a && d && d.value > 0);
+      const countSources = pairs.length ? [
+        ...free.map(c => artifactNumbers(c)),
+        ...pinnedCitationsIn(body).filter(p => !st.withhold(p.rel)).map(p => {
+          const j = blobObject(p.rev, p.rel);
+          if (j === undefined || j === null) return null;
+          const set = new Set(); walkNumbers(j, set); return set;
+        }),
+      ].filter(n => n && n.size) : [];
+      const shareOfFreeCounts = (f) => f.pct && pairs.some(([a, d]) =>
+        (100 * a.value / d.value).toFixed(f.dp) === f.value.toFixed(f.dp)
+        && countSources.some(n => artifactHas(n, a) && artifactHas(n, d)));
+      const quotable = (f) => shareOfFreeCounts(f)
+        || free.some(c => { const n = artifactNumbers(c); return !!(n && artifactHas(n, f)); });
       for (const f of figuresInText(body)) {
         if (isUniversal(f)) continue;
         if (!isDistinctive(f)) continue;

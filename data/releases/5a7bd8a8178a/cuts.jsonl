@@ -1,0 +1,12 @@
+{"at":"2026-09-10T02:59:43.699Z","why":"residual handler-list sort (interim, ROADMAP #563)","showdown_commit":"20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"}
+{"at":"2026-09-10T03:00:13.313Z","why":"tests/probe_bigroot_family.js — freeze the tree under test","showdown_commit":"20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"}
+{"at":"2026-09-10T03:00:27.546Z","why":"tests/probe_gigaton_repeat.js — freeze the tree under test","showdown_commit":"20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"}
+{"at":"2026-09-10T03:00:49.759Z","why":"tests/probe_leechseed_silent.js — freeze the tree under test","showdown_commit":"20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"}
+{"at":"2026-09-10T03:00:52.873Z","why":"tests/probe_moldbreaker_ally_guard.js — freeze the tree under test","showdown_commit":"20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"}
+{"at":"2026-09-10T04:01:52.472Z","why":"session-close: verify the residual handler-list sort","showdown_commit":"20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"}
+{"at":"2026-09-10T04:28:56.728Z","why":"re-measure batch AB on the residual handler-list sort (ROADMAP #563)","showdown_commit":"20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"}
+{"at":"2026-09-10T05:20:15.577Z","why":"game differential mode A — the comparison driver, ROADMAP #68 step two","showdown_commit":"20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"}
+{"at":"2026-09-10T05:20:39.755Z","why":"game differential mode A — the comparison driver, ROADMAP #68 step two","showdown_commit":"20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"}
+{"at":"2026-09-10T05:20:48.378Z","why":"game differential mode A — the comparison driver, ROADMAP #68 step two","showdown_commit":"20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"}
+{"at":"2026-09-10T05:21:04.261Z","why":"game differential mode A — the comparison driver, ROADMAP #68 step two","showdown_commit":"20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"}
+{"at":"2026-09-10T05:21:44.791Z","why":"game differential mode A — the comparison driver, ROADMAP #68 step two","showdown_commit":"20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4"}

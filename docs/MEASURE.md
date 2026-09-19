@@ -21,9 +21,7 @@ MEASURE — can we believe a number
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 1 of 8 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part, on EVERY team lattice); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect, on EVERY team lattice)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 229 unsafe, 2 void (declared), 15 possibly stale, 12 ok, 0 missing
-    RATCHET TRIPPED — the unstamped list grew; provenance.js exited non-zero: _diag41-sample.json, _diag46-cards.json, _diag46-sample.json, _diag46b-cards.json, _diag46b-sample.json, _diag77-cards.json
-    their generators ship without recording what CONTENT they read — stamp source_digests
+  provenance: 221 unsafe, 2 void (declared), 17 possibly stale, 19 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
     MEDICHAM is not correct — 1 of 8 gate clauses fail (whole-game differential / BOARD-MATERIAL — games whose boards part, on EVERY team lattice); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect, on EVERY team lattice)
@@ -36,9 +34,32 @@ MEASURE — can we believe a number
     moved after the fit: data/abra-tags.js  2026-09-19 03:44
 ```
 
-_stamped 2026-09-19 05:15_
+_stamped 2026-09-19 06:55_
 
 <!-- /GENERATED -->
+
+## AN UNSTAGED IN-SCOPE MECHANIC NOW HOLDS THE ROSTER CLAUSE SHUT, AND FOUR RULERS STOPPED ACCUSING THE WRONG SOURCE. 2026-09-19 (6.56.0)
+
+**THE RULE WAS RECORDED AND NOT WIRED.** Will ruled on 2026-09-11 that an in-scope mechanic nobody staged blocks
+MEDICHAM. `rosterStage` counted `COULD-NOT-STAGE` and failed nothing. It now fails the clause on any in-scope
+row. It reads the roster's own `scope.could_not_stage_in_scope` and the rows, and takes the larger of the two.
+It excuses `DEFERRED-BY-OWNER` rows and does not count out-of-scope rows. An artifact that carries neither count
+fails as CANNOT ANSWER. The gate output is byte-identical before and after, because every stage reads 0.
+Deleting the new term turns exactly the four new RED selftest arms red.
+
+**THREE SCANNER DEFECTS, EACH OF THE SAME SHAPE: THE RULER WAS RIGHT ABOUT THE DIGITS AND WRONG ABOUT THE SOURCE.**
+- The retraction registry registered a struck denominator, so a lattice's game count would read as a restated
+  retraction. It now skips the denominator of `A of B` and the `n` of a sample inside a struck span.
+- A share written beside its own counts could only be cleared by an artifact that stores the division, and
+  none does. It now clears when a non-withheld source in the paragraph carries both counts. A commit-pinned
+  blob counts as a source, and a pin into a withheld artifact's history does not.
+- The human protect rate had no artifact, so the unique-owner route gave it to MAG's weights. It now has a
+  ruler, `engine/human_protect_ruler.js`. The ruler refuses to write unless it reproduces the published
+  2026-09-05 counts exactly, and it did.
+
+**THE RELEASES ARE STAGED, NOT COMMITTED, AND THE COST THAT MATTERS IS THE CHECKOUT, NOT THE PACK.** They are
+near-identical byte copies, so they delta to almost nothing in the pack, but every clone writes out every
+file. Figures and the full list: `docs/_reports/2026-09-19-gate-wiring-retraction.md`.
 
 ## REGISTER HYGIENE: THE SIX `--whole-game` CLOSURES ALL STAND, FIVE OPEN BREAKAGE ROWS CLOSE ON PROBES THAT HAD BEEN GREEN SINCE 2026-09-04, AND THE GATE'S COUNT GOES **29 → 24**, THEN TO **20** OVER THREE SAME-DAY FOLLOW-UPS. 2026-09-18
 
@@ -1321,7 +1342,7 @@ Full account: `docs/_reports/2026-09-06-settled-publish-pass.md`.
 
 **AND THE SECOND HALF OF THE EARLIER DIAGNOSIS IS WITHDRAWN OUTRIGHT, WITH ITS SIGN INVERTED.** Legality subsetting was named as a contributor on the strength of candidate sets averaging about 3.14 of four. Measured on this run the mean is **3.772**, and conditioning on it: **87.0% of decisions — 15,253 — already have all four moves and are the ones reading 21.724%**, while a body down to one legal candidate reads **8.134%**, because a body narrowed to one move is usually narrowed to its attacking move rather than to its Protect. **Legality subsetting is a small NEGATIVE contribution.** It is withdrawn rather than quietly dropped, because a cause that vanishes without a sentence is indistinguishable from a cause somebody stopped honouring.
 
-**AND THE PART THIS DIVISION SHOULD BE PROUDEST OF IS THE SMALLEST NUMBER IN IT: A NOISE FLOOR WAS MEASURED BEFORE THE EFFECT WAS BELIEVED, FOR THE FIRST TIME ON A CALIBRATION FIGURE HERE.** The only place both a prediction and a ground truth exist is the human corpus, so the rule was scored there: 185,422 scored clicks, split half by game into **92,949 and 92,473**, the correction fitted on one half and evaluated on the other, so nothing is scored against what it was fitted on. The marginal reads **14.233%**, the driver's rule reads **16.228%**, humans clicked **14.757%**. **The half-vs-half spread of the OBSERVED rate is 0.002 points**; the rule over-predicts by **+1.644 and +1.646 points**, which is 800 times the floor. That is what makes the over-prediction an effect rather than a reading. A carriage correction removes about **72%** of it, held out, landing at **+0.405 and +0.504**. **Nothing here is tuned:** the repair changes the driver's declared input, and applying it in the same pass as five engine fixes would leave none of the six attributable. The expected landing point is written down instead — near **15.0 to 15.1%** on a ladder-shaped population and near **16.7%** on this census-steered pool, and explicitly **not** the 14 to 15% the earlier report predicted, because the pool is not the ladder.
+**AND THE PART THIS DIVISION SHOULD BE PROUDEST OF IS THE SMALLEST NUMBER IN IT: A NOISE FLOOR WAS MEASURED BEFORE THE EFFECT WAS BELIEVED, FOR THE FIRST TIME ON A CALIBRATION FIGURE HERE.** The only place both a prediction and a ground truth exist is the human corpus, so the rule was scored there: 185,422 scored clicks, split half by game into **92,949 and 92,473**, the correction fitted on one half and evaluated on the other, so nothing is scored against what it was fitted on. The marginal reads **14.233%**, the driver's rule reads **16.228%**, humans clicked **14.757%**. **The half-vs-half spread of the OBSERVED rate is 0.002 points**; the rule over-predicts by **+1.644 and +1.646 points**, which is 800 times the floor. That is what makes the over-prediction an effect rather than a reading. A carriage correction removes about **72%** of it, held out, landing at **+0.405 and +0.504**. **Nothing here is tuned:** the repair changes the driver's declared input, and applying it in the same pass as five engine fixes would leave none of the six attributable. The expected landing point is written down instead — near **15.0 to 15.1%** on a ladder-shaped population and near **16.7%** on this census-steered pool, and explicitly **not** the 14 to 15% the earlier report predicted, because the pool is not the ladder. The store-derived human rate is kept in `data/human-protect-ruler.json`.
 
 **TWO PREDICTIONS MISSED TONIGHT AND BOTH MISSES ARE ONE MISTAKE ABOUT A SAMPLE, WHICH IS A RULER FAILURE AND THEREFORE THIS DIVISION'S.** The Leech Seed step called **58 / 157** and read **56 / 158**; the Fairy Aura step called **54 / 156** and read **51 / 153**. Both reasoned from `state.first_board_divergences`, which **is capped at 40 rows and is a SAMPLE, never the population** — the sowerless Leech Seed chip was in the other nineteen, and the aura's reach was mis-scoped because the cause string names the VICTIM rather than the mechanic. Three of five landed at their point estimates, including the staged-pin step's prediction that nothing would move. **A capped list is a sample and must be read as one**; that is the second time in two nights it has cost a point estimate here, and it is now written down rather than remembered.
 

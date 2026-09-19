@@ -1159,8 +1159,8 @@ the depth ruler measures anything at all.
 **THE RELEASE LADDER — SEVEN FIXES DID NOT MOVE THE MEDIAN TURN (3.68.0, re-run 2026-08-07).**
 `engine/wire_ladder.js` plays every frozen release of the wire series through the differential. It uses
 one pinned census and one team pool, so all eleven arms compare with each other and not only with their
-neighbour. **Read every figure from `data/wire-ladder.json`** — the figures below moved when ROADMAP
-#81 WIRE 7 was added and the whole ladder was replayed, so any earlier quotation of them is retracted.
+neighbour. **Read every figure from `f038cdb3:data/wire-ladder.json`**, the eleven-arm replay (the file on disk was replayed again that day and holds other counts) — the figures below moved when
+ROADMAP #81 WIRE 7 was added and the whole ladder was replayed, so any earlier quotation of them is retracted.
 On 1,995 games for each arm, the median game stops after **one completed turn at every rung**. That
 number does not change. 64 games of 1,995 agree completely, against 6 games at the baseline. The depth
 of the first disagreement does change: the mean goes from 14.8 to 27.8 protocol lines, the 90th
