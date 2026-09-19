@@ -10,6 +10,25 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.66.1] — 2026-09-19
+
+### Changed
+- **A board that parts in a staged row's CONTROL arm now fails the mechanics clause.** A control arm is a
+  real two-engine game, so a parting there is a real engine divergence; Anger Point's order bug hid there.
+  `engine/quarantine.js` reads `summary.control_arm_partings` and each row's `control_arm_parted`. A
+  BOARD-MATERIAL or NOT-ASKED control arm fails, and so does a verdict the reader does not know.
+  ANNOUNCEMENT-ONLY is printed and not gated. A parting is excused only when the CONTROL mechanic is
+  itself on the owner's shelf (`closet.ids`) or is Illusion, or when the arm is played on a closeted
+  Illusion body. It is never excused because the row's subject is deferred, since the control is a
+  different mechanic. Every excusal is printed with the control named. An artifact without the field reads
+  CANNOT-ANSWER. So does an empty denominator or rows that disagree with the summary.
+
+### Notes
+- PATCH: no published figure moves. The clause count stays 10. The current artifact (`d92bdfb50d88`) is
+  already refused by the release pin. Its contents predate the field and would read CANNOT-ANSWER.
+  Selftest 315 -> 331. With the new term removed from the verdict, 12 of the 12 red arms fail and the
+  green and excused arms still pass. A row whose subject is deferred and whose control is not now fails.
+
 ## [6.66.0] — 2026-09-19
 
 ### Fixed

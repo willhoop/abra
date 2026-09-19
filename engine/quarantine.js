@@ -992,6 +992,137 @@ function harnessCloset(reads) {
   return { ability: seen[0].ability, species: new Set(seen[0].species), from: seen.map((s) => s.file) };
 }
 
+/* THE OWNER'S TWO SHELVES, READ ONCE AND ASKED THROUGH ONE PREDICATE. Extracted 2026-09-19 so the
+ * PROOF half and the CONTROL-ARM half below excuse on the SAME rule — two copies of "which rows the
+ * owner excused" would drift exactly as two copies of Choice Scarf's multiplier would. Behaviour of the
+ * proof half is unchanged: this is the expression that sat inline in `mechanicsProof`. */
+function ownerShelves(j, inject) {
+  const closetIds = (j && j.closet && Array.isArray(j.closet.ids)) ? new Set(j.closet.ids.map(nid)) : null;
+  const HC = inject && inject.HC !== undefined ? (inject.HC || { why: 'injected: none' }) : harnessCloset();
+  return { closetIds, HC, hasHC: !!(HC && HC.species) };
+}
+function ownerExcusal(kind, id, r, SHV) {
+  const { closetIds, HC, hasHC } = SHV;
+  return closetIds && closetIds.has(id) ? 'DEFERRED-BY-OWNER (tests/roster.js DEFERRED)'
+    : hasHC && (HC.species.has(nid(r.carrier)) || (kind === 'abilities' && id === HC.ability))
+      ? 'ILLUSION CLOSET (' + HC.ability + ', carried on ' + (r.carrier || '?') + ')' : null;
+}
+
+/* ---- A CONTROL ARM THAT PARTS A BOARD FAILS THE MECHANICS CLAUSE — 2026-09-19 (6.66.1) ----------
+ *
+ * A control arm is a REAL TWO-ENGINE GAME — the same fixture with one variable changed, played on both
+ * engines and boarded at every boundary like the subject arm. Its boards were compared and nothing read
+ * them, and on release d92bdfb50d88 that hid a real engine defect: the Hyper Cutter row's control
+ * (Anger Point, hit by a crit Chilling Water) read Attack +6 here and +5 in the authority
+ * (docs/_reports/2026-09-19-anger-point-controls.md). 6.66.0 made the battery RECORD it
+ * (`summary.control_arm_partings`, per row `control_arm_parted`); this makes the gate READ it.
+ *
+ * INSIDE THE MECHANICS CLAUSE, NOT A NEW ONE, and as its own sub-verdict rather than through the reach
+ * filter. Same artifact, same pin, same owner shelves — a second clause would read this file a second
+ * time and be a second place for one artifact's verdict to be decided. But the reach shelf, the
+ * declarations and decision impact are all keyed on the ROW'S SUBJECT, and a control-arm parting is not
+ * the subject's defect (Hyper Cutter's row carried Anger Point's), so none of them may subtract here.
+ *
+ * THE BAR, PER CONTROL-ARM VERDICT (the producer's own, never re-derived):
+ *   STATE (`board_material`)  a board parted                                       -> FAILS
+ *   NOT-ASKED                 the protocol parted and no board was taken after it   -> FAILS, CANNOT-ANSWER
+ *   ANNOUNCEMENT-ONLY         every board agreed; narration's bar, not this one     -> printed by name
+ *   anything else             a verdict this reader does not know                   -> FAILS, never a pass
+ * EXCUSED ONLY WHEN THE CONTROL MECHANIC ITSELF IS SHELVED — in the artifact's `closet.ids` or the
+ * Illusion closet — or when the arm is played on a closeted Illusion body. NEVER because the row's
+ * SUBJECT is deferred: the control is a different mechanic, and no blind spots. Every excusal is
+ * printed with the control named.
+ *
+ * NO `summary.control_arm_partings` = CANNOT-ANSWER, never a pass: an artifact written before 6.66.0
+ * never looked. An empty denominator (`rows_with_control_arm` 0) is the same — "0 parted" read off no
+ * control arms is not a reading. And the rows are COMPARED to the summary, because a derived set is not
+ * a fact until something compares it to its source. */
+const CTL_VERDICT_KNOWN = new Set(['STATE', 'ANNOUNCEMENT-ONLY', 'NOT-ASKED']);
+function controlArmCheck(j, SHV) {
+  const out = { ok: false, cannot_answer: false, why: null, denom: null, parted: 0,
+                failing: [], not_asked: [], unrecognised: [], excused: [], announcement: [],
+                uncorroborated: [], mismatch: null };
+  const CA = j && j.summary && j.summary.control_arm_partings;
+  if (!CA || typeof CA !== 'object' || typeof CA.board_material !== 'number') {
+    return Object.assign(out, { cannot_answer: true,
+      why: 'THE ARTIFACT PREDATES CONTROL-ARM RECORDING — it carries no `summary.control_arm_partings` '
+         + '(engine/all_mechanics_fire.js 6.66.0+), so nothing says whether a control arm parted a '
+         + 'board. Unasked is not agreeing.' });
+  }
+  out.denom = +CA.rows_with_control_arm || 0;
+  if (!(out.denom > 0)) {
+    return Object.assign(out, { cannot_answer: true,
+      why: 'NO ROW CARRIES A CONTROL ARM (`rows_with_control_arm` ' + CA.rows_with_control_arm + '), so '
+         + '"0 parted" would be read off an empty set.' });
+  }
+  const missing = ['moves', 'abilities', 'items'].filter((k) => !Array.isArray(j.rows && j.rows[k]));
+  if (missing.length) {
+    return Object.assign(out, { cannot_answer: true,
+      why: 'NO PER-ROW RECORDS for ' + missing.join(', ') + ', so the summary count cannot be checked '
+         + 'against the rows it claims to count.' });
+  }
+  let board = 0, notAsked = 0;
+  for (const kind of ['moves', 'abilities', 'items']) {
+    for (const r of j.rows[kind]) {
+      const c = r && r.control_arm_parted;
+      if (!c) continue;
+      out.parted++;
+      const id = nid(r.id), key = SINGULAR[kind] + ':' + id;
+      const verdicts = Array.isArray(c.verdicts) ? c.verdicts : [];
+      const ctl = c.control || r.control || null;
+      const ctlId = nid(ctl);
+      /* STRICT (coordinator, 2026-09-19): the SUBJECT's shelf does NOT excuse its control arm. The
+       * control is a different mechanic, and a deferred subject (Frisk) must not hide a defect in its
+       * control (Cursed Body). Excused only when the CONTROL mechanic is shelved, or when the arm is
+       * played on a closeted Illusion body (both arms share the carrier, so the closeted mechanic is in
+       * the control game itself). */
+      const by = SHV.closetIds && ctlId && SHV.closetIds.has(ctlId) ? 'DEFERRED-BY-OWNER on the CONTROL (' + ctl + ')'
+        : SHV.hasHC && ctlId && ctlId === SHV.HC.ability ? 'ILLUSION CLOSET on the CONTROL (' + ctl + ')'
+        : SHV.hasHC && SHV.HC.species.has(nid(r.carrier)) ? 'ILLUSION CLOSET (the arm is played on ' + r.carrier + ')'
+        : null;
+      const e = { kind, key, control: ctl, where: Array.isArray(c.where) ? c.where : [],
+                  diffs: c.first_state_diffs || null, by };
+      let bucket;
+      if (c.board_material === true) { board++; e.label = 'BOARD-MATERIAL'; bucket = out.failing; }
+      else if (verdicts.includes('NOT-ASKED')) { notAsked++; e.label = 'NOT-ASKED'; bucket = out.not_asked; }
+      else if (!verdicts.length || verdicts.some((v) => !CTL_VERDICT_KNOWN.has(v))) {
+        e.label = 'UNRECOGNISED VERDICT ' + (verdicts.filter((v) => !CTL_VERDICT_KNOWN.has(v)).join('/') || '(none)');
+        bucket = out.unrecognised;
+      } else { e.label = 'ANNOUNCEMENT-ONLY'; out.announcement.push(e); continue; }
+      if (by) { out.excused.push(e); continue; }
+      if (r.deferred) out.uncorroborated.push(key);
+      bucket.push(e);
+    }
+  }
+  const skew = [['parted', out.parted], ['board_material', board], ['not_asked', notAsked]]
+    .filter(([k, n]) => (+CA[k] || 0) !== n).map(([k, n]) => k + ': rows ' + n + ', summary ' + CA[k]);
+  if (skew.length) out.mismatch = 'THE ROWS AND THE SUMMARY DISAGREE — ' + skew.join('; ')
+    + '. One of the two describes a different population; neither is authoritative until they agree.';
+  out.ok = !out.mismatch && !out.failing.length && !out.not_asked.length && !out.unrecognised.length;
+  return out;
+}
+function controlArmLine(A) {
+  const NL = String.fromCharCode(10);
+  if (A.cannot_answer) return NL + '  CONTROL ARMS — CANNOT ANSWER: ' + A.why;
+  const fmt = (e) => NL + '    ' + e.key + '  control ' + (e.control || '?') + '  ' + e.label
+    + (e.where.length ? '  [' + e.where.join(' ') + ']' : '')
+    + (e.diffs ? '  ' + e.diffs.map((d) => d.path + ' us ' + JSON.stringify(d.us) + ' sd ' + JSON.stringify(d.sd)).join('; ') : '')
+    + (e.by ? NL + '      EXCUSED — ' + e.by : '');
+  const bad = [].concat(A.failing, A.not_asked, A.unrecognised);
+  return NL + '  CONTROL ARMS — ' + A.parted + ' of ' + A.denom + ' rows with a control arm parted; '
+    + (bad.length ? bad.length + ' FAIL (' + A.failing.length + ' parted a BOARD, ' + A.not_asked.length
+        + ' not asked, ' + A.unrecognised.length + ' unrecognised) — a control arm is a real two-engine '
+        + 'game, so its parting is a real engine divergence:' + bad.map(fmt).join('')
+      : 'none parted a board.')
+    + (A.mismatch ? NL + '    ' + A.mismatch : '')
+    + NL + '    EXCUSED BY THE OWNER — ' + (A.excused.length ? A.excused.length + ':' + A.excused.map(fmt).join('') : 'none')
+    + (A.uncorroborated.length ? NL + '    A `deferred` STAMP NEITHER SOURCE CORROBORATES, NOT EXCUSED: '
+        + A.uncorroborated.join(', ') : '')
+    + NL + '    ANNOUNCEMENT-ONLY (narration bar, printed, not gated here) — '
+    + (A.announcement.length ? A.announcement.length + ': ' + A.announcement.map((e) => e.key + ' (control '
+        + (e.control || '?') + ')').join(', ') : 'none');
+}
+
 const PROVEN = {
   moves: (r) => r.resolved === true && r.medicham_resolved === true,
   abilities: (r) => r.verdict === 'FIRED' && !!r.control,
@@ -1013,9 +1144,8 @@ function mechanicsProof(j, inject) {
   if (!S) return { ok: false, cannot_answer: true, failing: [], excused: [], uncorroborated: [],
     why: 'THE LEGAL SCOPE DID NOT DERIVE (engine/legal_scope.js: ' + scopeWhy + '), so no in-scope '
        + 'mechanic can be checked for proof — which fails, never reads as none unproven.' };
-  const closetIds = (j && j.closet && Array.isArray(j.closet.ids)) ? new Set(j.closet.ids.map(nid)) : null;
-  const HC = inject && inject.HC !== undefined ? (inject.HC || { why: 'injected: none' }) : harnessCloset();
-  const hasHC = !!(HC && HC.species);
+  const SHV = (inject && inject.shelves) || ownerShelves(j, inject);
+  const { closetIds, HC, hasHC } = SHV;
   const failing = [], excused = [], uncorroborated = [];
   const scopeFailures = Array.isArray(S.failures) ? S.failures : [];
   for (const kind of ['moves', 'abilities', 'items']) {
@@ -1035,9 +1165,7 @@ function mechanicsProof(j, inject) {
       const r = byId.get(id);
       if (!r) { failing.push({ kind, id, key, label: list ? 'NO ROW' : 'NO ROWS FOR THIS KIND' }); continue; }
       if (PROVEN[kind](r)) continue;
-      const by = closetIds && closetIds.has(id) ? 'DEFERRED-BY-OWNER (tests/roster.js DEFERRED)'
-        : hasHC && (HC.species.has(nid(r.carrier)) || (kind === 'abilities' && id === HC.ability))
-          ? 'ILLUSION CLOSET (' + HC.ability + ', carried on ' + (r.carrier || '?') + ')' : null;
+      const by = ownerExcusal(kind, id, r, SHV);
       const label = UNPROVEN_LABEL[kind](r);
       if (by) { excused.push({ kind, id, key, label, by }); continue; }
       if (r.deferred) uncorroborated.push({ kind, id, key, label, stamp: r.deferred });
@@ -1155,9 +1283,25 @@ function mechanicsClause(inject) {
   /* THE PROOF HALF — see `mechanicsProof`. Computed BEFORE the rows-and-summary branch below and
    * ANDed into every verdict this function returns after the pin guard, so no early exit can open
    * the clause over an unproven mechanic. */
-  const P = mechanicsProof(j, inject);
-  const PL = proofLine(P);
-  const proofFields = { proof_ok: P.ok, proof_unproven: P.failing.length,
+  const SHV = ownerShelves(j, inject);
+  const P = mechanicsProof(j, Object.assign({}, inject, { shelves: SHV }));
+  /* THE CONTROL-ARM HALF — see `controlArmCheck`. ANDed into every verdict below, like the proof. */
+  const CAC = controlArmCheck(j, SHV);
+  const PL = proofLine(P) + controlArmLine(CAC);
+  const caHead = CAC.ok ? '' : CAC.cannot_answer
+    ? 'THE CONTROL ARMS CANNOT BE READ (see CONTROL ARMS below)'
+    : (CAC.failing.length + CAC.not_asked.length + CAC.unrecognised.length) + ' CONTROL ARM(S) PARTED '
+      + (CAC.failing.length ? 'A BOARD' : 'UNANSWERED') + (CAC.mismatch ? ' OR DISAGREE WITH THEIR SUMMARY' : '')
+      + ' (see CONTROL ARMS below)';
+  const proofFields = { control_arm_ok: CAC.ok, control_arm_cannot_answer: CAC.cannot_answer,
+    control_arm_denominator: CAC.denom, control_arm_parted: CAC.parted,
+    control_arm_board_material: CAC.failing.length,
+    control_arm_failing_rows: [].concat(CAC.failing, CAC.not_asked, CAC.unrecognised)
+      .map((e) => ({ key: e.key, control: e.control, label: e.label })),
+    control_arm_excused_rows: CAC.excused.map((e) => ({ key: e.key, control: e.control, label: e.label, by: e.by })),
+    control_arm_announcement_only: CAC.announcement.map((e) => e.key),
+    control_arm_mismatch: CAC.mismatch,
+    proof_ok: P.ok, proof_unproven: P.failing.length,
     proof_unproven_rows: P.failing.map((f) => ({ key: f.key, label: f.label })),
     proof_excused_rows: P.excused.map((e) => ({ key: e.key, label: e.label, by: e.by })),
     proof_uncorroborated_shelves: P.uncorroborated.map((u) => u.key),
@@ -1171,7 +1315,7 @@ function mechanicsClause(inject) {
    * so, never to publish whichever number is smaller. Absent rows are the same failure by omission:
    * an older artifact with a `summary` and no `rows` must not read as "nothing to filter". */
   if (rowsMissing.length || rowsSeen !== div) {
-    return { name: NAME, ok: div === 0 && P.ok && !boardOnlySeen, generated: j.generated || null,
+    return { name: NAME, ok: div === 0 && P.ok && !boardOnlySeen && CAC.ok, generated: j.generated || null,
       diverged: div, unfired, ...proofFields,
       pins: MRCPT,
       why: (rowsMissing.length
@@ -1181,6 +1325,7 @@ function mechanicsClause(inject) {
           + `A filter applied to a population the headline does not describe is worse than no filter. `)
         + `${div} MECHANICS DISAGREE with the authority.` + tail
         + (boardOnlySeen ? ` ${boardOnlySeen} more PARTED A BOARD with the protocol in agreement.` : '')
+        + (caHead ? ' AND ' + caHead + '.' : '')
         + PL };
   }
 
@@ -1281,7 +1426,7 @@ function mechanicsClause(inject) {
       + ((boardOnlyShelved || []).length ? NL + '    on the owner\'s shelf: '
           + boardOnlyShelved.map((b) => b.key).join(', ') : '')
     : 'none — no row parted a board while its protocol agreed.');
-  const mechOk = counted.length === 0 && P.ok;
+  const mechOk = counted.length === 0 && P.ok && CAC.ok;
   return { name: NAME, ok: mechOk, generated: j.generated || null, pins: MRCPT,
     ...proofFields,
     diverged: div, unfired, counted: counted.length, shelved: belowShelf.length,
@@ -1304,17 +1449,22 @@ function mechanicsClause(inject) {
     why: (counted.length === 0 && !P.ok
       ? `NOT EVERY IN-SCOPE MECHANIC IS PROVEN — ${P.cannot_answer ? 'the proof could not be computed'
           : P.failing.length + ' unproven'} (see PROOF below). Of the ${div + (boardOnlySeen || 0)} `
-        + `diverging, 0 are played and uncleared.`
+        + `diverging, 0 are played and uncleared.` + (caHead ? ' AND ' + caHead + '.' : '')
+      : counted.length === 0 && !CAC.ok
+      ? caHead + '. Every in-scope mechanic is proven and, of the ' + (div + (boardOnlySeen || 0))
+        + ' diverging on the subject arm, 0 are played and uncleared.'
       : counted.length === 0
       ? `every mechanic anybody plays agrees with the authority and every in-scope mechanic is proven: `
         + `${div} diverge${boardOnlySeen ? ' (+' + boardOnlySeen + ' board-only)' : ''}, ${declared.length} are `
         + `declared, ${belowShelf.length} are below the reach shelf and ${excused.length} were cleared `
-        + `on decision impact, leaving 0.`
+        + `on decision impact, leaving 0; no control arm parted a board or went unasked (${CAC.parted} `
+        + `of ${CAC.denom} rows with a control arm parted at all, ${CAC.excused.length} excused by the owner).`
       : `${counted.length} of ${div + (boardOnlySeen || 0)} DIVERGING MECHANICS ARE PLAYED AND UNCLEARED — `
         + `each is a rule, not a sampling artefact, since the teams are built from the mechanic list. Worst: `
         + show(counted.slice()).split(', ').slice(0, 6).join(', ')
         + (P.ok ? '' : `. AND ${P.cannot_answer ? 'THE PROOF COULD NOT BE COMPUTED' : P.failing.length
-            + ' IN-SCOPE MECHANIC(S) ARE UNPROVEN'} (see PROOF below)`)) + tail
+            + ' IN-SCOPE MECHANIC(S) ARE UNPROVEN'} (see PROOF below)`)
+        + (caHead ? '. AND ' + caHead : '')) + tail
       + PL + boardOnlyLine
       + declaredLine + shelvedLine + declaredThrewLine + reachLine + unknownLine + impactLine
       + driftLine };
@@ -4983,7 +5133,7 @@ module.exports = { medichamIsCorrect, classify, state, withholder, playLayer, so
                    REGISTER_REALITY, registerRealityRows, registerEvidence, orderProbeClause,
                    REACH_SHELF_CLICKS, DECISION_POINTS_FLOOR, reachShelf,
                    reachOf, usageIndex, reachDrift, decisionImpact, mechanicsClause,
-                   classifyMechanics, mechanicsProof, boundaryLeavesClause,
+                   classifyMechanics, mechanicsProof, controlArmCheck, ownerShelves, boundaryLeavesClause,
                    /* ROADMAP #292 — exported so a test can hand it a KNOWN artifact and read the
                     * composition it prints. Its `artifact` argument already existed; without the
                     * export the only way to check that the composition and the headline describe the
@@ -5539,8 +5689,13 @@ if (require.main === module) {
       }
 
       /* ---- 3. THE MECHANICS CLAUSE — a hand-rolled `release` is not a stamp ------------------- */
+      /* `control_arm_partings` is carried so this fixture exercises the PIN guard and nothing else:
+       * without it the control-arm half reads CANNOT-ANSWER (6.66.1) and the GREEN arm would be red for
+       * a reason that is not the pin. */
       const mBase = { summary: { moves: { diverged: 0 }, abilities: { diverged: 0 },
-                                 items: { diverged: 0 } },
+                                 items: { diverged: 0 },
+                                 control_arm_partings: { rows_with_control_arm: 1, parted: 0, board_material: 0,
+                                                         announcement_only: 0, not_asked: 0 } },
                       rows: { moves: [], abilities: [], items: [] } };
       const mLegacy = mechanicsClause({ j: { release: 'rel-fixture', ...mBase },
         cur: { id: 'rel-fixture' }, U: usageIndex(), DI: decisionImpact('nothing-on-disk'), S: NOSCOPE, HC: null });
@@ -6244,9 +6399,12 @@ if (require.main === module) {
                     /* OUT OF SCOPE — never asked, however unproven */
                     { id: 'pgone', verdict: 'DID-NOT-FIRE', control: 'Quiet', carrier: 'Garchomp' }],
         items: [{ id: 'pitem', verdict: 'FIRED', control: 'C.item', carrier: 'Garchomp' }] };
+      /* a clean control-arm summary over the fixture's rows, so the PROOF arms move ONE knob each */
+      const CAP0 = { rows_with_control_arm: 5, parted: 0, board_material: 0, announcement_only: 0, not_asked: 0 };
       const PART = (rows, extra) => Object.assign({ [PIN.K.id]: 'rel-fixture',
         [PIN.K.digests]: { 'engine/medicham2-browser.js': 'bbbbbbbbbbbb' },
-        summary: { moves: { diverged: 0 }, abilities: { diverged: 0 }, items: { diverged: 0 } },
+        summary: { moves: { diverged: 0 }, abilities: { diverged: 0 }, items: { diverged: 0 },
+                   control_arm_partings: CAP0 },
         rows, closet: { source: 'tests/roster.js DEFERRED', ids: ['pdef'] } }, extra || {});
       const HCFIX = { ability: 'illusion', species: new Set(['zoroark']), from: ['fixture'] };
       const run = (rows, extra, over) => mechanicsClause(Object.assign({ j: PART(rows, extra),
@@ -6336,6 +6494,89 @@ if (require.main === module) {
         + 'clause FAILS and names it', boClause.ok === false && boClause.counted === 1
         && boClause.board_only_parted === 1 && /BOARD PARTED, PROTOCOL AGREED — 1 row/.test(boClause.why),
         String(boClause.why || '').slice(0, 300));
+
+      /* -- 6.66.1: A CONTROL ARM THAT PARTS A BOARD FAILS THE CLAUSE -------------------------------
+       * The planted row is Hyper Cutter's real one on d92bdfb50d88: control Anger Point, boosts.atk
+       * us 6 / sd 5 on near-a and far-a. Every arm below is the fully PROVEN `PROW` fixture with ONE
+       * row's `control_arm_parted` and the matching summary changed, so the subject arm is clean
+       * (counted 0, proof_ok) and a red can come from the control arm alone. */
+      const CAP = (over) => Object.assign({}, CAP0, over);
+      const withCtl = (id, parted, capOver, kind) => ({ rows: swap(kind || 'abilities', id, { control_arm_parted: parted }),
+        extra: { summary: { moves: { diverged: 0 }, abilities: { diverged: 0 }, items: { diverged: 0 },
+                            control_arm_partings: CAP(capOver) } } });
+      const runCtl = (w, over) => run(w.rows, w.extra, over);
+      const HC_PART = { board_material: true, verdicts: ['STATE'], where: ['ladder/near-a=STATE', 'ladder/far-a=STATE'],
+        control: 'Anger Point', first_state_diffs: [{ path: 'boosts.atk', us: 6, sd: 5, bucket: null }] };
+      ok('CONTROL ARM / GREEN — the control: no row parted, the summary says 0 of 5, the clause is GREEN '
+        + 'and says so', ctl.control_arm_ok === true && ctl.control_arm_cannot_answer === false
+        && /CONTROL ARMS — 0 of 5 rows with a control arm parted; none parted a board/.test(ctl.why), ctl.why);
+      const caRed = runCtl(withCtl('pab', HC_PART, { parted: 1, board_material: 1 }));
+      ok('CONTROL ARM / RED — one planted BOARD-MATERIAL control parting FAILS the mechanics clause (exit 1) '
+        + 'with the subject arm clean, and names the row, the control and the parted leaf',
+        caRed.ok === false && clauseExit(caRed) === 1 && caRed.proof_ok === true && caRed.counted === 0
+        && caRed.control_arm_board_material === 1 && caRed.control_arm_failing_rows[0].key === 'ability:pab'
+        && caRed.control_arm_failing_rows[0].control === 'Anger Point'
+        && /1 CONTROL ARM\(S\) PARTED A BOARD/.test(caRed.why) && /boosts\.atk us 6 sd 5/.test(caRed.why),
+        String(caRed.why || '').slice(0, 400));
+      ok('CONTROL ARM / RED — and the assembled gate turns on it', gateVerdict([caRed]).ok === false);
+      const caItem = runCtl(withCtl('pitem', HC_PART, { parted: 1, board_material: 1 }, 'items'));
+      ok('CONTROL ARM / RED — the same on an ITEM row', caItem.ok === false
+        && caItem.control_arm_failing_rows.map((f) => f.key).join() === 'item:pitem');
+      const caAnn = runCtl(withCtl('pab', { board_material: false, verdicts: ['ANNOUNCEMENT-ONLY'],
+        where: ['ladder/near-a=ANNOUNCEMENT-ONLY'], control: 'Anger Point' }, { parted: 1, announcement_only: 1 }));
+      ok('CONTROL ARM — ANNOUNCEMENT-ONLY is narration\'s bar: printed by name, not gated here',
+        caAnn.ok === true && caAnn.control_arm_announcement_only.join() === 'ability:pab'
+        && /ANNOUNCEMENT-ONLY \(narration bar, printed, not gated here\) — 1: ability:pab/.test(caAnn.why), caAnn.why);
+      const caNA = runCtl(withCtl('pab', { board_material: false, verdicts: ['NOT-ASKED'], where: ['x=NOT-ASKED'],
+        control: 'Anger Point' }, { parted: 1, not_asked: 1 }));
+      ok('CONTROL ARM / RED — NOT-ASKED (the protocol parted, no board was taken after it) is unanswered, '
+        + 'never a pass', caNA.ok === false && caNA.control_arm_failing_rows[0].label === 'NOT-ASKED', caNA.control_arm_failing_rows);
+      const caOdd = runCtl(withCtl('pab', { board_material: false, verdicts: ['THREW'], where: ['x=THREW'],
+        control: 'Anger Point' }, { parted: 1, announcement_only: 1 }));
+      ok('CONTROL ARM / RED — a control verdict this reader does not know fails rather than reading as quiet',
+        caOdd.ok === false && /UNRECOGNISED VERDICT THREW/.test(caOdd.control_arm_failing_rows[0].label), caOdd.control_arm_failing_rows);
+      const caDef = runCtl(withCtl('pdef', HC_PART, { parted: 1, board_material: 1 }));
+      ok('CONTROL ARM / RED — STRICT: a row whose SUBJECT the owner deferred (the artifact\'s closet block) '
+        + 'but whose CONTROL is not shelved FAILS — the control is a different mechanic',
+        caDef.ok === false && clauseExit(caDef) === 1 && caDef.control_arm_excused_rows.length === 0
+        && caDef.control_arm_failing_rows.map((f) => f.key).join() === 'ability:pdef', caDef.control_arm_failing_rows);
+      const caIll = runCtl({ rows: swap('abilities', 'pill', { carrier: 'Zoroark', control_arm_parted: HC_PART }),
+        extra: withCtl('pill', HC_PART, { parted: 1, board_material: 1 }).extra });
+      ok('CONTROL ARM / EXCUSED — a board parting staged on an Illusion carrier is the Illusion closet',
+        caIll.ok === true && /ILLUSION CLOSET/.test(caIll.control_arm_excused_rows[0].by), caIll.control_arm_excused_rows);
+      const caIllNoHC = runCtl({ rows: swap('abilities', 'pill', { carrier: 'Zoroark', control_arm_parted: HC_PART }),
+        extra: withCtl('pill', HC_PART, { parted: 1, board_material: 1 }).extra }, { HC: null });
+      ok('CONTROL ARM / RED — the SAME Illusion row with the harness closet UNREAD is not excused',
+        caIllNoHC.ok === false && caIllNoHC.control_arm_board_material === 1);
+      const caCtlShelf = runCtl(withCtl('pab', Object.assign({}, HC_PART, { control: 'P-Def' }), { parted: 1, board_material: 1 }));
+      ok('CONTROL ARM / EXCUSED — where the CONTROL entity itself is on the owner\'s shelf, the ruling covers '
+        + 'the entity actually in the arm', caCtlShelf.ok === true
+        && /on the CONTROL \(P-Def\)/.test(caCtlShelf.control_arm_excused_rows[0].by), caCtlShelf.control_arm_excused_rows);
+      const caStamp = runCtl({ rows: swap('abilities', 'pab', { control_arm_parted: HC_PART,
+        deferred: { by: 'Will', on: '2026-09-19', why: 'a stamp no source backs' } }),
+        extra: withCtl('pab', HC_PART, { parted: 1, board_material: 1 }).extra });
+      ok('CONTROL ARM / RED — a `deferred` stamp neither source corroborates excuses NOTHING, and is named',
+        caStamp.ok === false && /STAMP NEITHER SOURCE CORROBORATES, NOT EXCUSED: ability:pab/.test(caStamp.why));
+      const caOld = run(PROW, { summary: { moves: { diverged: 0 }, abilities: { diverged: 0 }, items: { diverged: 0 } } });
+      ok('CONTROL ARM / RED — an artifact that PREDATES the field (no `summary.control_arm_partings`) is '
+        + 'CANNOT-ANSWER, never a pass — with everything else green', caOld.ok === false && caOld.proof_ok === true
+        && caOld.counted === 0 && caOld.control_arm_cannot_answer === true
+        && /CONTROL ARMS — CANNOT ANSWER: THE ARTIFACT PREDATES CONTROL-ARM RECORDING/.test(caOld.why), caOld.why);
+      const caEmpty = run(PROW, { summary: { moves: { diverged: 0 }, abilities: { diverged: 0 }, items: { diverged: 0 },
+        control_arm_partings: CAP({ rows_with_control_arm: 0 }) } });
+      ok('CONTROL ARM / RED — an EMPTY denominator is CANNOT-ANSWER: "0 parted" off no control arms is not a reading',
+        caEmpty.ok === false && caEmpty.control_arm_cannot_answer === true && /NO ROW CARRIES A CONTROL ARM/.test(caEmpty.why));
+      const caSkew = runCtl(withCtl('pab', HC_PART, { parted: 1, board_material: 0 }));
+      ok('CONTROL ARM / RED — rows and summary that DISAGREE fail and say so',
+        caSkew.ok === false && /THE ROWS AND THE SUMMARY DISAGREE — board_material: rows 1, summary 0/.test(caSkew.why),
+        caSkew.control_arm_mismatch);
+      /* THE OTHER RETURN PATH. With item rows ABSENT and no item in scope, the subject arm takes the
+       * rows-missing early exit and reads GREEN on its own (div 0, proof ok, no board-only); the control
+       * arm is the only thing holding it red. */
+      const SC_NOITEM = Object.assign({}, PSCOPE, { inScopeIds: (k) => (k === 'item' ? [] : PSCOPE.inScopeIds(k)) });
+      const caEarly = run(Object.assign({}, PROW, { items: undefined }), undefined, { S: SC_NOITEM });
+      ok('CONTROL ARM / RED — the rows-missing early exit cannot open the clause over an unread control arm',
+        caEarly.ok === false && caEarly.proof_ok === true && caEarly.control_arm_ok === false, String(caEarly.why || '').slice(0, 300));
     }
 
     /* -- 2026-09-19: A LEAF THAT CAN STAND AT A BOUNDARY AND IS NOT COMPARED FAILS ITS CLAUSE ------

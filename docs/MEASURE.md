@@ -38,6 +38,49 @@ _stamped 2026-09-19 13:57_
 
 <!-- /GENERATED -->
 
+## A CONTROL ARM THAT PARTS A BOARD FAILS THE MECHANICS CLAUSE. 2026-09-19 (6.66.1)
+
+**WHY.** A control arm is a real two-engine game. On `d92bdfb50d88` the Hyper Cutter row's control arm,
+Anger Point, read Attack **+6 here and +5 in the authority**. No clause could see it, because the gate read
+only the subject arm. 6.66.0 made the battery record it. This change makes the gate read it.
+
+**WHERE.** Inside the mechanics clause, as its own sub-verdict (`controlArmCheck`), ANDed into both of the
+clause's return paths. It is not a new clause, for two reasons:
+
+- It reads the same artifact under the same pin and the same owner shelves. A second clause would read
+  the file twice.
+- The gate stays at 10 clauses, so "N of 10" does not move.
+
+It is **not** routed through reach, declarations or decision impact. All three are keyed on the row's
+subject, and a control-arm parting belongs to the control.
+
+**THE BAR.**
+
+| control-arm verdict | reading |
+|---|---|
+| `STATE` (`board_material`) | fails |
+| `NOT-ASKED` | fails (unanswered) |
+| a verdict the reader does not know | fails |
+| `ANNOUNCEMENT-ONLY` | printed by name, not gated (narration's bar) |
+
+**Strict excusal.** A parting is excused only when the CONTROL mechanic itself is on the owner's shelf
+(`closet.ids`) or is Illusion, or when the arm is played on a closeted Illusion body. A deferred SUBJECT
+excuses nothing, because the control is a different mechanic. Every excusal is printed with the control
+named.
+
+**CANNOT-ANSWER** is a fail. It applies to three cases:
+
+- the artifact has no `summary.control_arm_partings`
+- `rows_with_control_arm` is 0
+- the rows disagree with the summary
+
+**PROOF.** The selftest goes from **315 to 331**. With `&& CAC.ok` removed from both verdicts, **12 of 12** red
+arms fail and the green and excused arms stay green.
+
+**TODAY'S READING.** The artifact on disk was measured on `d92bdfb50d88` and the tree is `54d02066fd71`, so
+the pin withholds the clause. Its contents predate the field and would read CANNOT-ANSWER. The next
+full-battery re-measure is the first reading. Report: `docs/_reports/2026-09-19-gate-control-arm.md`.
+
 ## A PINNED RUN COULD CUT A RELEASE. THE 205 PHANTOM CUTS ON `d92bdfb50d88` WERE TWO `node -e` LOADS OF THE ROSTER, AND NOTHING WAS CORRUPTED. 2026-09-19 (6.65.1)
 
 **THE WRITER.** The cut log holds bursts of **101, 101, 1, 1 and 1**. One `node -e "require('./tests/roster.js')"`
