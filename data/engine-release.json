@@ -2,9 +2,9 @@
   "current": "d92bdfb50d88",
   "cut": "2026-09-19T16:04:45.355Z",
   "why": "merged 6.63.0: blind spots — Unburden compared leaf, Gastro Acid, Magic Room target item, Ripen, Anticipation, Screen Cleaner, start announcements, driver refused clicks, Tidy Up, -6 drop line, forced-fire fixtures and controls",
-  "cuts": 1,
-  "latest_cut": "2026-09-19T16:04:45.355Z",
-  "latest_why": "merged 6.63.0: blind spots — Unburden compared leaf, Gastro Acid, Magic Room target item, Ripen, Anticipation, Screen Cleaner, start announcements, driver refused clicks, Tidy Up, -6 drop line, forced-fire fixtures and controls",
-  "pointer_written": "2026-09-19T16:04:45.611Z",
+  "cuts": 206,
+  "latest_cut": "2026-09-19T16:26:19.329Z",
+  "latest_why": "game differential mode A — the comparison driver, ROADMAP #68 step two",
+  "pointer_written": "2026-09-19T16:26:19.506Z",
   "note": "Pointer to the newest release under data/releases/. `cut`/`why` are that release's FIRST freeze; `latest_*` is the most recent cut of the same unchanged tree. Measurements should open a release explicitly by id when they want to reproduce an old number."
 }

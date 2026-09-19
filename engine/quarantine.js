@@ -832,7 +832,12 @@ function differentialClause(artifact, curId) {
  * DID-NOT-FIRE IS DELIBERATELY NOT COUNTED AS A DIVERGENCE. A mechanic the fixture could not make
  * happen is a HARNESS defect; a mechanic that happened and disagreed is an ENGINE defect. Those were
  * one bucket until the preflight split them, and folding them back together here would undo that. The
- * unfired count is REPORTED so it cannot be forgotten, and it fails nothing. */
+ * unfired count is REPORTED so it cannot be forgotten, and it fails nothing.
+ *
+ * (2026-09-19: the last sentence is SUPERSEDED and left standing as dated evidence. DID-NOT-FIRE is
+ * still not a DIVERGENCE — the split above holds — but an in-scope row that never fired now FAILS
+ * this clause through `mechanicsProof`, as does every other unproven verdict. Will: *"stop saying
+ * medicham is done when all these blind spots remain"*. A harness gap is still a gap in the proof.) */
 /* THE CLASSIFICATION IS ONE FUNCTION, CALLED BY THE CLAUSE AND BY `--reach`. The alternative was a
  * probe script that re-derives the same split to print it, which is the second-implementation failure
  * this repository names by its own casualty (`buildMon("Scizor")` returned null beside a working
@@ -854,11 +859,32 @@ function classifyMechanics(j, curId, inject) {
   const MECHCTX = { release: (j && (j.release || j.engine_release)) || null,
                     generated: (j && j.generated) || null };
   let rowsSeen = 0; const rowsMissing = [];
+  /* ---- A BOARD THAT PARTED IS A DIVERGENCE EVEN WHEN THE PROTOCOL AGREED — 2026-09-19 -----------
+   * This loop read `r.diverged`, which is the PROTOCOL comparison. On release 4c9b0cc4a4da
+   * `moves:axekick` carried `board.verdict: 'STATE'` — the confusion counter one apart, 1 against 2
+   * — with `diverged: false`, and so reached no bucket at all. The roster shelves the same move on
+   * usage, so nothing anywhere in the gate saw a parted board. Will's bar is the board (2026-08-22:
+   * commentary may differ, boards may not), so a board-only parting is routed through EXACTLY the
+   * treatment a protocol divergence gets — the owner's shelf, the reach shelf, decision impact —
+   * and never through a declaration, which matches a protocol cause this row does not have.
+   *
+   * COUNTED APART FROM `rowsSeen`, because `rowsSeen` is compared to the artifact's own
+   * `summary.diverged`, which counts protocol divergences only; folding these in would trip the
+   * rows-and-summary check on every artifact that has one. */
+  let boardOnlySeen = 0;
+  const boardOnlyShelved = [];
   for (const kind of ['moves', 'abilities', 'items']) {
     const list = Array.isArray(j && j.rows && j.rows[kind]) ? j.rows[kind] : null;
     if (!list) { rowsMissing.push(kind); continue; }
     for (const r of list) {
-      if (!r || !r.diverged) continue;
+      if (!r) continue;
+      const boardOnly = !r.diverged && !!(r.board && r.board.verdict === 'STATE');
+      if (!r.diverged && !boardOnly) continue;
+      if (boardOnly && r.deferred) {
+        boardOnlyShelved.push({ kind, id: r.id, key: SINGULAR[kind] + ':' + nid(r.id),
+                                by: r.deferred.by || null, on: r.deferred.on || null });
+        continue;
+      }
       /* ---- THE OWNER'S CLOSET, AND IT IS COLLECTED ON THE WAY PAST RATHER THAN DROPPED — #291/#520
        * `deferred` is the shelf `all_mechanics_fire.js` stamps onto a row: `tests/roster.js DEFERRED`
        * by entity id, or the ILLUSION shelf derived from `GD.CLOSET_SPECIES`. It has always skipped
@@ -884,10 +910,10 @@ function classifyMechanics(j, curId, inject) {
                             board_verdict: (r.board && r.board.verdict) || null });
         continue;
       }
-      rowsSeen++;
+      if (boardOnly) boardOnlySeen++; else rowsSeen++;
       const key = SINGULAR[kind] + ':' + nid(r.id);
       const reach = reachOf(U, kind, r.id);
-      const row = { kind, id: r.id, key, reach, shelf: SH.of(kind) };
+      const row = { kind, id: r.id, key, reach, shelf: SH.of(kind), board_only: boardOnly };
       /* ---- THE DECLARED LIST IS ASKED FIRST, AND THE ORDER IS THE CLAIM ------------------------
        * DECLARED does not say "this defect is small" — it says THERE IS NO DEFECT, because matching
        * the authority here would make this engine less correct, or because there is no shared
@@ -899,7 +925,7 @@ function classifyMechanics(j, curId, inject) {
        * MEASURED on the 2026-08-26 artifact before this was wired: no row below the reach shelf
        * matches any declaration, so putting this first moves nothing today. It is first for the
        * reason above, not for the count. */
-      const dec = declaredMatch(r.divergence && r.divergence.cause, EV, declaredThrew, MECHCTX);
+      const dec = boardOnly ? null : declaredMatch(r.divergence && r.divergence.cause, EV, declaredThrew, MECHCTX);
       if (dec) {
         declaredHits.push({ ...row, kind_declared: dec.kind, name: dec.name, why: dec.why,
                             closet: dec.closet || null, evidence: dec.evidence || null,
@@ -916,7 +942,134 @@ function classifyMechanics(j, curId, inject) {
     }
   }
   return { U, DI, SH, counted, belowShelf, unknown, excused, declared: declaredHits,
-           ownerShelved, declaredThrew, rowsSeen, rowsMissing };
+           ownerShelved, declaredThrew, rowsSeen, rowsMissing, boardOnlySeen, boardOnlyShelved };
+}
+
+/* ---- EVERY IN-SCOPE MECHANIC PROVEN, NOT MERELY "NOT DIVERGING" — 2026-09-19 -------------------
+ *
+ * Will, 2026-09-19: *"stop saying medicham is done when all these blind spots remain"*. The clause
+ * above counted DIVERGENCES and said in its own header that DID-NOT-FIRE "fails nothing". So an
+ * ability the fixture never made fire, one that fired with no control arm (so nothing separates the
+ * mechanic from the scaffold), and one that fired on ONE engine only (SHOWDOWN-ONLY: the authority
+ * moved and we did not) all read as agreement. Read on release 4c9b0cc4a4da's artifact the day this
+ * landed: 63 in-scope rows unproven after five owner excusals — 55 abilities (20 FIRED-UNCONTROLLED,
+ * 18 DID-NOT-FIRE, 11 UNPROVEN-UNCONTROLLED, 6 SHOWDOWN-ONLY) and 8 moves not resolved on MEDICHAM.
+ *
+ * THE PROOF, PER KIND — the artifact's own verdicts, never re-derived:
+ *   ability   `verdict === 'FIRED'` with a control arm. FIRED is the A/B verdict: the subject moved
+ *             the board on BOTH engines and the control did not. Every other verdict fails, by name.
+ *   item      the same.
+ *   move      resolved on BOTH engines (`resolved && medicham_resolved`) — the moves arm carries no
+ *             A/B verdict, and this is the predicate engine/coverage.js credits a move row with.
+ * An in-scope entity with NO ROW fails too: untested is not agreeing.
+ *
+ * SCOPE IS engine/legal_scope.js, EXACTLY AS engine/coverage.js SCOPES — one producer. The
+ * artifact's own `out_of_scope` flags are not asked; coverage.js records that they once dropped every
+ * mega forme.
+ *
+ * EXCUSED ONLY BY THE OWNER, AND READ FROM THE ONE PLACE EACH RULING LIVES:
+ *   - DEFERRED-BY-OWNER: `tests/roster.js DEFERRED`, as published in the artifact's `closet.ids`
+ *     (engine/all_mechanics_fire.js writes that block from `Object.keys(require(roster).DEFERRED)`).
+ *     Not required here directly: loading tests/roster.js loads the whole differential harness,
+ *     ~9 s and a page of stdout inside every gate read.
+ *   - THE ILLUSION CLOSET: `CLOSET_ABILITY` / `CLOSET_SPECIES` as engine/game_differential.js
+ *     stamps them into its own artifact (`closet.ability`, `closet.species`) — the harness's
+ *     constants, carried by its receipt, never re-derived here. Every lattice sample that carries the
+ *     block must agree; a disagreement or no block at all excuses NOTHING.
+ * A row that carries a `deferred` stamp neither source corroborates is NOT excused and is named.
+ *
+ * `inject.S` / `inject.HC` ARE THE SELFTEST'S DOOR, like every other `inject` in this file. */
+function harnessCloset(reads) {
+  const seen = [];
+  for (const { slot, j } of (reads || latticeReads())) {
+    const c = j && j.closet;
+    if (!c || typeof c.ability !== 'string' || !Array.isArray(c.species)) continue;
+    seen.push({ file: slot.file, ability: nid(c.ability), species: c.species.map(nid).sort() });
+  }
+  if (!seen.length) return { why: 'no lattice artifact carries a `closet` block' };
+  const sig = new Set(seen.map((s) => s.ability + ':' + s.species.join(',')));
+  if (sig.size > 1) return { why: 'the lattice artifacts disagree about the closet: ' + [...sig].join(' vs ') };
+  return { ability: seen[0].ability, species: new Set(seen[0].species), from: seen.map((s) => s.file) };
+}
+
+const PROVEN = {
+  moves: (r) => r.resolved === true && r.medicham_resolved === true,
+  abilities: (r) => r.verdict === 'FIRED' && !!r.control,
+  items: (r) => r.verdict === 'FIRED' && !!r.control,
+};
+const UNPROVEN_LABEL = {
+  moves: (r) => (r.resolved !== true && r.medicham_resolved !== true ? 'RESOLVED ON NEITHER ENGINE'
+    : r.resolved !== true ? 'NOT RESOLVED ON SHOWDOWN' : 'NOT RESOLVED ON MEDICHAM'),
+  abilities: (r) => (r.verdict === 'FIRED' ? 'FIRED WITH NO CONTROL ARM' : String(r.verdict || 'NO VERDICT')),
+  items: (r) => (r.verdict === 'FIRED' ? 'FIRED WITH NO CONTROL ARM' : String(r.verdict || 'NO VERDICT')),
+};
+
+function mechanicsProof(j, inject) {
+  let S = inject && inject.S, scopeWhy = null;
+  if (!S) {
+    try { S = require('./legal_scope.js').derive(); }
+    catch (e) { scopeWhy = String((e && e.message) || e).split(String.fromCharCode(10))[0]; }
+  }
+  if (!S) return { ok: false, cannot_answer: true, failing: [], excused: [], uncorroborated: [],
+    why: 'THE LEGAL SCOPE DID NOT DERIVE (engine/legal_scope.js: ' + scopeWhy + '), so no in-scope '
+       + 'mechanic can be checked for proof — which fails, never reads as none unproven.' };
+  const closetIds = (j && j.closet && Array.isArray(j.closet.ids)) ? new Set(j.closet.ids.map(nid)) : null;
+  const HC = inject && inject.HC !== undefined ? (inject.HC || { why: 'injected: none' }) : harnessCloset();
+  const hasHC = !!(HC && HC.species);
+  const failing = [], excused = [], uncorroborated = [];
+  const scopeFailures = Array.isArray(S.failures) ? S.failures : [];
+  for (const kind of ['moves', 'abilities', 'items']) {
+    const one = SINGULAR[kind];
+    const list = Array.isArray(j && j.rows && j.rows[kind]) ? j.rows[kind] : null;
+    const byId = new Map((list || []).filter(Boolean).map((r) => [nid(r.id), r]));
+    let ids;
+    try { ids = S.inScopeIds(one); if (!Array.isArray(ids) && !(ids instanceof Set)) throw new Error('not a list'); }
+    catch (e) {
+      return { ok: false, cannot_answer: true, failing: [], excused: [], uncorroborated: [],
+        why: 'THE LEGAL SCOPE COULD NOT LIST THE IN-SCOPE ' + kind.toUpperCase() + ' ('
+           + String((e && e.message) || e).split(String.fromCharCode(10))[0] + '), so nothing can be '
+           + 'checked for proof — which fails, never reads as none unproven.' };
+    }
+    for (const idRaw of ids) {
+      const id = nid(idRaw), key = one + ':' + id;
+      const r = byId.get(id);
+      if (!r) { failing.push({ kind, id, key, label: list ? 'NO ROW' : 'NO ROWS FOR THIS KIND' }); continue; }
+      if (PROVEN[kind](r)) continue;
+      const by = closetIds && closetIds.has(id) ? 'DEFERRED-BY-OWNER (tests/roster.js DEFERRED)'
+        : hasHC && (HC.species.has(nid(r.carrier)) || (kind === 'abilities' && id === HC.ability))
+          ? 'ILLUSION CLOSET (' + HC.ability + ', carried on ' + (r.carrier || '?') + ')' : null;
+      const label = UNPROVEN_LABEL[kind](r);
+      if (by) { excused.push({ kind, id, key, label, by }); continue; }
+      if (r.deferred) uncorroborated.push({ kind, id, key, label, stamp: r.deferred });
+      failing.push({ kind, id, key, label });
+    }
+  }
+  return { ok: failing.length === 0 && scopeFailures.length === 0, failing, excused, uncorroborated,
+           scopeFailures, closetIds: closetIds ? closetIds.size : null,
+           harnessCloset: hasHC ? { ability: HC.ability, species: [...HC.species], from: HC.from || null }
+                                : { why: (HC && HC.why) || 'absent' } };
+}
+
+function proofLine(P) {
+  const NL = String.fromCharCode(10);
+  if (P.cannot_answer) return NL + '  PROOF — ' + P.why;
+  const group = {};
+  for (const f of P.failing) (group[f.kind + ' ' + f.label] = group[f.kind + ' ' + f.label] || []).push(f.id);
+  const body = Object.keys(group).sort((a, b) => group[b].length - group[a].length)
+    .map((g) => NL + '    ' + g + ' [' + group[g].length + ']: ' + group[g].slice(0, 14).join(', ')
+      + (group[g].length > 14 ? ', ...' : '')).join('');
+  return NL + '  PROOF — ' + (P.failing.length
+      ? P.failing.length + ' IN-SCOPE MECHANIC(S) ARE NOT PROVEN — an ability or item must be FIRED '
+        + 'with a control arm, a move RESOLVED on both engines; untested is not agreeing:' + body
+      : 'every in-scope mechanic is proven (FIRED with a control / resolved on both engines).')
+    + (P.scopeFailures.length ? NL + '    SCOPE DERIVATION FAILURES: ' + P.scopeFailures.join(' | ') : '')
+    + NL + '    EXCUSED BY THE OWNER — ' + (P.excused.length
+      ? P.excused.length + ': ' + P.excused.map((e) => e.key + ' (' + e.label + '; ' + e.by + ')').join(', ')
+      : 'none')
+    + (P.uncorroborated.length ? NL + '    A `deferred` STAMP NEITHER SOURCE CORROBORATES, NOT EXCUSED: '
+        + P.uncorroborated.map((u) => u.key).join(', ') : '')
+    + (P.harnessCloset.species ? '' : NL + '    ILLUSION CLOSET NOT READ (' + P.harnessCloset.why
+        + ') — nothing is excused on it.');
 }
 
 /* `inject` IS THE SELFTEST'S DOOR AND EVERY SHIPPING CALLER LEAVES IT UNDEFINED — the same door, for
@@ -958,7 +1111,8 @@ function mechanicsClause(inject) {
    * nobody can see is the invisible exception the roster's own header exists to prevent. */
   const shelved = ['moves', 'abilities', 'items']
     .reduce((n, k) => n + (+((s[k] || {}).shelved_by_owner_diverging) || 0), 0);
-  const tail = `  [${parts.join(', ')};  ${unfired} never fired — a harness gap, not counted here`
+  const tail = `  [${parts.join(', ')};  ${unfired} never fired — not a divergence, and judged under PROOF `
+             + `below (since 2026-09-19 an in-scope row that never fired FAILS this clause)`
              + (shelved ? `;  ${shelved} shelved by the owner — still staged and played, not counted` : '')
              + `]`;
 
@@ -997,7 +1151,19 @@ function mechanicsClause(inject) {
    * diverging entities that somebody plays and that no paired run has cleared. */
   const C = classifyMechanics(j, curId, inject);
   const { U, DI, counted, belowShelf, unknown, excused, declared, ownerShelved, declaredThrew,
-          rowsSeen, rowsMissing } = C;
+          rowsSeen, rowsMissing, boardOnlySeen, boardOnlyShelved } = C;
+  /* THE PROOF HALF — see `mechanicsProof`. Computed BEFORE the rows-and-summary branch below and
+   * ANDed into every verdict this function returns after the pin guard, so no early exit can open
+   * the clause over an unproven mechanic. */
+  const P = mechanicsProof(j, inject);
+  const PL = proofLine(P);
+  const proofFields = { proof_ok: P.ok, proof_unproven: P.failing.length,
+    proof_unproven_rows: P.failing.map((f) => ({ key: f.key, label: f.label })),
+    proof_excused_rows: P.excused.map((e) => ({ key: e.key, label: e.label, by: e.by })),
+    proof_uncorroborated_shelves: P.uncorroborated.map((u) => u.key),
+    proof_cannot_answer: P.cannot_answer || false,
+    board_only_parted: boardOnlySeen || 0,
+    board_only_parted_shelved: (boardOnlyShelved || []).map((b) => b.key) };
 
   /* A DERIVED SET IS NOT A FACT UNTIL SOMETHING COMPARES IT TO ITS SOURCE. If the per-entity rows and
    * the artifact's own summary disagree about how many diverged, the filter is being applied to a
@@ -1005,14 +1171,17 @@ function mechanicsClause(inject) {
    * so, never to publish whichever number is smaller. Absent rows are the same failure by omission:
    * an older artifact with a `summary` and no `rows` must not read as "nothing to filter". */
   if (rowsMissing.length || rowsSeen !== div) {
-    return { name: NAME, ok: div === 0, generated: j.generated || null, diverged: div, unfired,
+    return { name: NAME, ok: div === 0 && P.ok && !boardOnlySeen, generated: j.generated || null,
+      diverged: div, unfired, ...proofFields,
       pins: MRCPT,
       why: (rowsMissing.length
         ? `THE REACH FILTER CANNOT BE APPLIED — data/all-mechanics-fire.json carries no per-entity rows `
           + `for ${rowsMissing.join(', ')}, so every divergence counts. `
         : `THE ROWS AND THE SUMMARY DISAGREE — ${rowsSeen} diverging row(s) against a summary of ${div}. `
           + `A filter applied to a population the headline does not describe is worse than no filter. `)
-        + `${div} MECHANICS DISAGREE with the authority.` + tail };
+        + `${div} MECHANICS DISAGREE with the authority.` + tail
+        + (boardOnlySeen ? ` ${boardOnlySeen} more PARTED A BOARD with the protocol in agreement.` : '')
+        + PL };
   }
 
   const drift = reachDrift();
@@ -1100,7 +1269,21 @@ function mechanicsClause(inject) {
       + declaredThrew.map((r) => '    ' + r.cause + '  ->  ' + r.error).join(NL)
     : '';
 
-  return { name: NAME, ok: counted.length === 0, generated: j.generated || null, pins: MRCPT,
+  /* THE BOARD-ONLY ROWS, BY NAME, WHEREVER THEY LANDED — they have no protocol cause, so without
+   * this line a reader of the counts above could not tell them from a protocol divergence. */
+  const boardOnlyLine = NL + '  BOARD PARTED, PROTOCOL AGREED — ' + (boardOnlySeen || (boardOnlyShelved || []).length
+    ? boardOnlySeen + ' row(s) judged exactly like a divergence (reach, decision impact; no declaration'
+      + ' can match — there is no protocol cause)'
+      + ([].concat(counted, belowShelf, unknown, excused).filter((r) => r.board_only)
+          .map((r) => NL + '    ' + r.key + '  ' + (counted.includes(r) ? 'COUNTED'
+            : belowShelf.includes(r) ? 'below the reach shelf' : unknown.includes(r) ? 'NO USAGE FIGURE — counted'
+            : 'cleared on decision impact')).join(''))
+      + ((boardOnlyShelved || []).length ? NL + '    on the owner\'s shelf: '
+          + boardOnlyShelved.map((b) => b.key).join(', ') : '')
+    : 'none — no row parted a board while its protocol agreed.');
+  const mechOk = counted.length === 0 && P.ok;
+  return { name: NAME, ok: mechOk, generated: j.generated || null, pins: MRCPT,
+    ...proofFields,
     diverged: div, unfired, counted: counted.length, shelved: belowShelf.length,
     unknown_reach: unknown.length, decision_cleared: excused.length,
     /* the split a reader needs, as DATA and not only as prose — never summed into `diverged` */
@@ -1118,13 +1301,21 @@ function mechanicsClause(inject) {
     owner_shelved_summary: shelved,
     owner_shelved_rows: ownerShelved.map((r) => ({ key: r.key, carrier: r.carrier, by: r.by, on: r.on,
                                                    cause: r.cause, board_verdict: r.board_verdict })),
-    why: (counted.length === 0
-      ? `every mechanic anybody plays agrees with the authority: ${div} diverge, ${declared.length} are `
+    why: (counted.length === 0 && !P.ok
+      ? `NOT EVERY IN-SCOPE MECHANIC IS PROVEN — ${P.cannot_answer ? 'the proof could not be computed'
+          : P.failing.length + ' unproven'} (see PROOF below). Of the ${div + (boardOnlySeen || 0)} `
+        + `diverging, 0 are played and uncleared.`
+      : counted.length === 0
+      ? `every mechanic anybody plays agrees with the authority and every in-scope mechanic is proven: `
+        + `${div} diverge${boardOnlySeen ? ' (+' + boardOnlySeen + ' board-only)' : ''}, ${declared.length} are `
         + `declared, ${belowShelf.length} are below the reach shelf and ${excused.length} were cleared `
         + `on decision impact, leaving 0.`
-      : `${counted.length} of ${div} DIVERGING MECHANICS ARE PLAYED AND UNCLEARED — each is a rule, not `
-        + `a sampling artefact, since the teams are built from the mechanic list. Worst: `
-        + show(counted.slice()).split(', ').slice(0, 6).join(', ')) + tail
+      : `${counted.length} of ${div + (boardOnlySeen || 0)} DIVERGING MECHANICS ARE PLAYED AND UNCLEARED — `
+        + `each is a rule, not a sampling artefact, since the teams are built from the mechanic list. Worst: `
+        + show(counted.slice()).split(', ').slice(0, 6).join(', ')
+        + (P.ok ? '' : `. AND ${P.cannot_answer ? 'THE PROOF COULD NOT BE COMPUTED' : P.failing.length
+            + ' IN-SCOPE MECHANIC(S) ARE UNPROVEN'} (see PROOF below)`)) + tail
+      + PL + boardOnlyLine
       + declaredLine + shelvedLine + declaredThrewLine + reachLine + unknownLine + impactLine
       + driftLine };
 }
@@ -1185,6 +1376,72 @@ function coverageClause() {
         + `(${lost.toLocaleString()} clicks) — ${tagsAtFault.length} tag(s) at fault: ${tagsAtFault.join(', ')}. `
         + `Worst: ${uncovered.slice(0, 4).map(u => u.move + ' (' + u.clicks + ')').join(', ')}`,
   };
+}
+
+/* ---- A LEAF THAT CAN STAND AT A BOUNDARY AND IS NOT COMPARED — 2026-09-19 -----------------------
+ *
+ * Will, 2026-09-19: *"stop saying medicham is done when all these blind spots remain"*. The Unburden
+ * row was this class: a mechanic writes a leaf, the leaf is still standing when the comparator reads
+ * the board at a turn boundary, and `board_state.js` neither compares it nor declares it
+ * uncomparable. Every board verdict on that mechanic is then agreement about the OTHER leaves — a
+ * green that asked nothing. `engine/coverage.js` has printed this count since 2026-08-29 and nothing
+ * gated on it, so a future Unburden would have arrived with the gate open.
+ *
+ * ONE PRODUCER. The count is `tests/probe_uncompared_leaves.js derive().standing_at_the_boundary` —
+ * the same call `engine/coverage.js` quotes, never a re-derivation here. It walks the LIVE tree
+ * (`board_state.js`'s compared keys, the format's legal entities), which is why it carries a
+ * no-artifact receipt: it is a derivation, not a record of a run.
+ *
+ * THE COUNT RESTS ON ONE SAMPLING POINT AND THAT IS CHECKED, NOT ASSUMED. `standing` excludes leaves
+ * the authority ends inside the residual or inside their own action, which is only true while
+ * `BS.snapshot` is called from one place. A second caller makes some excluded leaves reachable, so
+ * the zero would stop meaning zero — that reads CANNOT ANSWER, as does a derivation that throws.
+ *
+ * WHAT IT DOES NOT GATE, SAID OUT LOUD: coverage.js's second join — uncomparable leaves with no
+ * writer that fired in data/all-mechanics-fire.json — is REPORTED there and not here. Those leaves
+ * cannot stand at the boundary at all; the gap is evidence, not an unread board. */
+function boundaryLeavesClause(inject) {
+  const NAME = 'board leaves / nothing that can stand at a turn boundary goes uncompared';
+  const pins = PIN.noArtifact('this clause calls tests/probe_uncompared_leaves.js derive() and '
+    + 'boundaryCallSites() on the live tree every run — the same producer engine/coverage.js quotes — '
+    + 'and holds no result of its own');
+  let L = null, B = null;
+  try {
+    const UL = inject ? null : require(D('tests', 'probe_uncompared_leaves.js'));
+    L = inject ? inject.L : UL.derive();
+    B = inject ? inject.B : UL.boundaryCallSites();
+  } catch (e) {
+    return { name: NAME, ok: false, cannot_answer: true, pins,
+      why: 'CANNOT ANSWER — the leaf derivation would not run: '
+         + String((e && e.message) || e).split(String.fromCharCode(10))[0]
+         + '. A zero this clause cannot compute is not a zero.' };
+  }
+  const n = L && typeof L.standing_at_the_boundary === 'number' ? L.standing_at_the_boundary : null;
+  const keys = (L && Array.isArray(L.standing_keys)) ? L.standing_keys : [];
+  if (n === null) {
+    return { name: NAME, ok: false, cannot_answer: true, pins,
+      why: 'CANNOT ANSWER — derive() returned no `standing_at_the_boundary`.' };
+  }
+  const others = (B && Array.isArray(B.other_snapshot_callers)) ? B.other_snapshot_callers : null;
+  if (!B || others === null || others.length) {
+    return { name: NAME, ok: false, cannot_answer: true, pins, standing_at_the_boundary: n,
+      why: 'CANNOT ANSWER — ' + (others && others.length
+        ? 'BS.snapshot has a second caller (' + others.join(', ') + '). The standing count excludes '
+          + 'leaves ended before THE boundary, and a second sampling point makes some of them readable'
+        : 'boundaryCallSites() returned nothing, so the single-sampling-point claim the count rests on '
+          + 'is unchecked') + '. Re-derive the ceiling before trusting any zero here.' };
+  }
+  return { name: NAME, ok: n === 0, pins, standing_at_the_boundary: n, standing_keys: keys,
+    compared: L.compared, ceiling: L.ceiling, hole: Array.isArray(L.hole) ? L.hole.length : null,
+    why: n === 0
+      ? 'clean: 0 leaves a legal mechanic writes can stand at a turn boundary uncompared ('
+        + L.compared + ' compared; the other ' + (Array.isArray(L.hole) ? L.hole.length : '?')
+        + ' in the hole are ended before the boundary or declared). BS.snapshot has '
+        + B.snapshot_calls + ' call site(s) and no other caller.'
+      : n + ' LEAF(S) CAN STAND AT A TURN BOUNDARY AND ARE NOT COMPARED — the Unburden class: every '
+        + 'board verdict on a mechanic writing one is agreement about the other leaves. '
+        + keys.slice(0, 12).join(', ') + (keys.length > 12 ? ', ...' : '')
+        + '. Compare the leaf in engine/board_state.js, or declare it with its reason.' };
 }
 
 /* ---- NO OPEN, KNOWN, UNFIXED ENGINE DEFECT ------------------------------------------------------
@@ -2528,6 +2785,42 @@ function wholeGameClause(artifact) {
          + 'engine/game_differential.js --steering empirical --release <id> --arm middle --end-state '
          + '--census <pin> --games 1200 --team-store data/team-pool-frozen --write' };
   }
+  /* ==============================================================================================
+   * A GAME THAT THREW IS UNTESTED, NOT AGREEING — 2026-09-19 (Will: "stop saying medicham is done when
+   * all these blind spots remain").
+   * ==============================================================================================
+   * `playGame` catches a refused choice ("p1 choice rejected ... Can't move: X's Protect is
+   * disabled") and returns the game with `err` set and `endReason: 'THREW'` — keeping every boundary
+   * it compared BEFORE the throw. `state.games_board_never_diverged` is `boundaries > 0 && !stateDiv`,
+   * so a game truncated at turn 3 with three agreeing boards was counted as a game whose board never
+   * diverged. Its remaining turns were never played on either engine. That is a truncated sample
+   * reading as agreement, and on release 4c9b0cc4a4da it was 1, 1 and 2 games on the three lattices.
+   *
+   * READ, NOT RE-DERIVED: `j.threw` is the artifact's own count (`results.filter(r => r.err)` over
+   * the measured arm) and `j.errors[]` is the same list with its messages. Two counts of one bucket
+   * that disagree fail in the SAFE direction — the larger is used, and the disagreement is printed.
+   * AN ARTIFACT THAT CARRIES NEITHER CANNOT SAY WHETHER A GAME WAS CUT SHORT and cannot answer. */
+  const threwField = num(j.threw);
+  const errList = Array.isArray(j.errors) ? j.errors : null;
+  if (threwField === null && errList === null) {
+    return { name: NAME, ok: false, cannot_answer: true, generated: j.generated || null, pins: RCPT,
+      why: 'CANNOT ANSWER — this artifact carries neither `threw` nor `errors[]`, so nothing here can '
+         + 'say whether a game was cut short by a refused choice. A truncated game reads as a board '
+         + 'that never diverged; without the count, every zero below is unverifiable. Re-run: '
+         + 'SHOWDOWN_PATH=... node engine/game_differential.js --steering empirical --release <id> '
+         + '--arm middle --end-state --census <pin> --games 1200 --team-store data/team-pool-frozen --write' };
+  }
+  const gamesThrew = Math.max(threwField || 0, errList ? errList.length : 0);
+  const threwDisagree = threwField !== null && errList !== null && threwField !== errList.length;
+  const threwLine = !gamesThrew && !threwDisagree ? ''
+    : NL + '  THREW — ' + gamesThrew + ' game(s) were cut short by a choice the authority refused, and'
+      + ' are counted in `state.games_board_never_diverged` for the boundaries they reached before it.'
+      + ' A TRUNCATED GAME IS UNTESTED, NOT AGREEING, so each one holds this clause shut:'
+      + (errList || []).slice(0, 6).map((e) => NL + '      ' + String((e && e.config) || '?') + '  '
+          + String((e && e.seed) || '?').slice(0, 96) + NL + '        ' + String((e && e.err) || '?').slice(0, 200)).join('')
+      + ((errList || []).length > 6 ? NL + '      ... +' + (errList.length - 6) + ' more in `errors[]`' : '')
+      + (threwDisagree ? NL + '    `threw` reads ' + threwField + ' and `errors[]` holds ' + errList.length
+          + ' — two counts of one bucket disagree, so the larger is used.' : '');
   const stateMaterial = games - never;
   if (stateMaterial < 0) {
     return { name: NAME, ok: false, cannot_answer: true, generated: j.generated || null, pins: RCPT,
@@ -2645,16 +2938,21 @@ function wholeGameClause(artifact) {
   const denom = played === games ? String(games) + ' games'
     : played + ' games (' + games + ' usable + ' + voidExcluded + ' void)';
   return {
-    name: NAME, ok: material === 0, gates: true, generated: j.generated || null, pins: RCPT,
+    name: NAME, ok: material === 0 && gamesThrew === 0, gates: true, generated: j.generated || null, pins: RCPT,
     quantity: 'board_material_games',
     games, games_played: played, games_void_excluded: voidExcluded,
+    games_threw: gamesThrew,
     board_material: material, board_material_from_state: stateMaterial,
     board_material_void_parted: voidParted.length,
     board_material_void_parted_seeds: voidParted.map((t) => t.seed || null),
     board_never_diverged: never,
     protocol_diverged_games: P, protocol_diverged_board_never_did: Pn,
     board_material_uncaused_by_protocol: uncaused,
-    why: (material === 0
+    why: (material === 0 && gamesThrew
+      ? 'BOARD-MATERIAL: 0 of ' + denom + ', BUT ' + gamesThrew + ' GAME(S) THREW — the zero covers '
+        + 'only the boundaries those games reached before a refused choice ended them, so it is not a '
+        + 'zero over the sample. This clause fails until no game throws.'
+      : material === 0
       ? 'BOARD-MATERIAL: 0 of ' + denom + '. Every compared turn boundary in every game holds '
         + 'the SAME BOARD on both engines' + (voidExcluded ? ', and none of the ' + voidExcluded
           + ' void game(s) parted a board before going low-identity' : '')
@@ -2667,7 +2965,7 @@ function wholeGameClause(artifact) {
             + ' `mid_void` tag carries a `board_parted_at_turn`' : '')
         + '). Mode A pins every die on '
         + 'both sides, so each one is a RULE they disagree about. This clause fails until it is zero.')
-      + voidLine + rawLine + uncausedLine + orderLine + boundLine,
+      + threwLine + voidLine + rawLine + uncausedLine + orderLine + boundLine,
   };
 }
 
@@ -3750,10 +4048,17 @@ function latticeVerdict(kind, reads, perSample) {
     }
     const r = perSample(j, i);
     const count = !r ? null : (kind === 'board' ? r.board_material : r.undeclared);
+    /* A SAMPLE WITH A THROWN GAME IS A FINDING (exit 1), NOT A SAMPLE THAT CANNOT ANSWER (exit 2) —
+     * 2026-09-19. The board clause fails it with `board_material` possibly 0, and without this term
+     * that fell through to CANNOT-ANSWER, which names the wrong cause ("missing, stale, mislabelled")
+     * and hides the count. */
+    const threwN = r && typeof r.games_threw === 'number' ? r.games_threw : 0;
     const state = r && r.ok === true ? 'ZERO'
-      : (r && !r.cannot_answer && !r.withheld && typeof count === 'number' && count > 0 ? 'NON-ZERO'
+      : (r && !r.cannot_answer && !r.withheld
+         && ((typeof count === 'number' && count > 0) || threwN > 0) ? 'NON-ZERO'
         : 'CANNOT-ANSWER');
     return Object.assign(base, { state, result: r, count: typeof count === 'number' ? count : null,
+      threw: threwN,
       games_played: r ? (kind === 'board' ? (r.games_played !== undefined ? r.games_played : r.games) : r.games)
         : null,
       team_pool_digest: (j.steering && j.steering.team_pool_digest) || null,
@@ -3802,12 +4107,15 @@ function latticeVerdict(kind, reads, perSample) {
   const tally = rows.map((r) => '--games ' + r.games_requested + ': '
     + (r.state === 'CANNOT-ANSWER' ? 'CANNOT-ANSWER'
       : r.count === null ? '0' : String(r.count)) + (r.state === 'CANNOT-ANSWER' ? '' : ' of ' + r.games_played)
+    + (r.state !== 'CANNOT-ANSWER' && r.threw ? ' + ' + r.threw + ' THREW' : '')
     + ' [pool ' + (r.team_pool_digest || '?') + ']').join(';  ');
   const head = ok
     ? (kind === 'board' ? 'BOARD-MATERIAL' : 'NARRATION-ONLY') + ': ZERO ON EVERY LATTICE — ' + tally
     : nonzero.length
       ? (kind === 'board' ? 'BOARD-MATERIAL' : 'NARRATION-ONLY') + ': NON-ZERO ON ' + nonzero.length + ' OF '
-        + rows.length + ' LATTICES — ' + tally + '. A single sample reading zero does not open this clause; '
+        + rows.length + ' LATTICES'
+        + (nonzero.some((r) => r.threw) ? ' (a game that THREW counts: truncated is untested, not agreeing)' : '')
+        + ' — ' + tally + '. A single sample reading zero does not open this clause; '
         + 'every lattice must.'
       : 'CANNOT ANSWER — ' + tally + '. A missing, stale, mislabelled or incoherent sample is never a pass.';
   const detail = rows.map((r) => NL + '  [--games ' + r.games_requested + ' | ' + r.file + ' | ' + r.state + ']'
@@ -3825,7 +4133,7 @@ function latticeVerdict(kind, reads, perSample) {
       release: releases.length === 1 ? releases[0] : (releases.length ? releases.join(',') : null) }),
     generated: rows.map((r) => r.generated || null),
     samples: rows.map((r) => ({ games_requested: r.games_requested, file: r.file, state: r.state,
-      count: r.count, games_played: r.games_played === undefined ? null : r.games_played,
+      count: r.count, threw: r.threw || 0, games_played: r.games_played === undefined ? null : r.games_played,
       team_pool_digest: r.team_pool_digest || null, release: r.release || null,
       generated: r.generated || null })),
     sample_results: rows.map((r) => r.result),
@@ -3882,7 +4190,8 @@ function medichamIsCorrect() {
   const clauses = PIN.audit([differentialClause(), ...ROSTER_STAGES.map(s => {
     const r = rosterStage(s);
     return { ...r, name: `deliberate roster / ${s}` };
-  }), coverageClause(), board, narrationLatticeClause(undefined, undefined, board), mechanicsClause(),
+  }), coverageClause(), boundaryLeavesClause(), board, narrationLatticeClause(undefined, undefined, board),
+     mechanicsClause(),
      openDefectClause()]);
   /* ==============================================================================================
    * A CLAUSE MAY REPORT WITHOUT GATING, AND IT MUST SAY SO IN ITS OWN RETURN — 2026-09-04.
@@ -4674,7 +4983,7 @@ module.exports = { medichamIsCorrect, classify, state, withholder, playLayer, so
                    REGISTER_REALITY, registerRealityRows, registerEvidence, orderProbeClause,
                    REACH_SHELF_CLICKS, DECISION_POINTS_FLOOR, reachShelf,
                    reachOf, usageIndex, reachDrift, decisionImpact, mechanicsClause,
-                   classifyMechanics,
+                   classifyMechanics, mechanicsProof, boundaryLeavesClause,
                    /* ROADMAP #292 — exported so a test can hand it a KNOWN artifact and read the
                     * composition it prints. Its `artifact` argument already existed; without the
                     * export the only way to check that the composition and the headline describe the
@@ -5004,8 +5313,16 @@ if (require.main === module) {
       const o = Object.assign({ [PIN.K.id]: id,
         [PIN.K.digests]: { 'engine/medicham2-browser.js': 'fixture0000f' } }, extra || {});
       if (!o.end_state) o.end_state = derivedEndState(o);
+      /* 2026-09-19 — the board clause now CANNOT ANSWER on an artifact carrying neither `threw` nor
+       * `errors[]`. Every real artifact has carried both since the field landed; a fixture that means
+       * "no game threw" says so, and the arms that plant a thrown game or remove the field set it. */
+      if (o.threw === undefined && o.errors === undefined) o.threw = 0;
       return o;
     };
+    /* A SCOPE WITH NOTHING IN IT, for the mechanics arms that predate the proof half: they test the
+     * DIVERGENCE half on hand-built rows, and the live legal scope would fail every one of them on
+     * "NO ROW" for 845 entities they never meant to describe. The proof half has its own arms. */
+    const NOSCOPE = { inScopeIds: () => [], inScope: () => false, failures: [] };
     /* AND THE POPULATION HALF. `steering.vouches()` asks for the SELECTOR, which under the empirical
      * policy is the behaviour tables, plus the team pool — the field `wholeGameClause` recorded and
      * never read. A fixture declaring only `policy` is exactly the artifact this change refuses. */
@@ -5226,18 +5543,18 @@ if (require.main === module) {
                                  items: { diverged: 0 } },
                       rows: { moves: [], abilities: [], items: [] } };
       const mLegacy = mechanicsClause({ j: { release: 'rel-fixture', ...mBase },
-        cur: { id: 'rel-fixture' }, U: usageIndex(), DI: decisionImpact('nothing-on-disk') });
+        cur: { id: 'rel-fixture' }, U: usageIndex(), DI: decisionImpact('nothing-on-disk'), S: NOSCOPE, HC: null });
       ok('PIN GUARD / RED — `release: <id>` hand-rolled instead of REL.stamp() is WITHHELD: it '
         + 'carries no `showdown_commit`, and the AUTHORITY selects this run population — its 500 '
         + 'moves are dex.moves.all() filtered to the format, so a different checkout is a different '
         + 'denominator', mLegacy.withheld === true, mLegacy.why);
       const mNo = mechanicsClause({ j: { ...mBase }, cur: { id: 'rel-fixture' }, U: usageIndex(),
-                                    DI: decisionImpact('nothing-on-disk') });
+                                    DI: decisionImpact('nothing-on-disk'), S: NOSCOPE, HC: null });
       ok('PIN GUARD / RED — and an artifact with NO pin at all is WITHHELD too',
         mNo.withheld === true, mNo.why);
       const mOk = mechanicsClause({ j: { [PIN.K.id]: 'rel-fixture',
         [PIN.K.digests]: { 'engine/medicham2-browser.js': 'bbbbbbbbbbbb' }, ...mBase },
-        cur: { id: 'rel-fixture' }, U: usageIndex(), DI: decisionImpact('nothing-on-disk') });
+        cur: { id: 'rel-fixture' }, U: usageIndex(), DI: decisionImpact('nothing-on-disk'), S: NOSCOPE, HC: null });
       ok('PIN GUARD / GREEN — the same artifact carrying the whole stamp ANSWERS',
         mOk.withheld !== true && mOk.ok === true, mOk.why);
 
@@ -5263,7 +5580,7 @@ if (require.main === module) {
       const wrBefore = PIN.PIN_COUNTERS.wrong_release;
       const mStale = mechanicsClause({ j: { [PIN.K.id]: 'rel-fixture',
         [PIN.K.digests]: { 'engine/medicham2-browser.js': 'bbbbbbbbbbbb' }, ...mBase },
-        cur: { id: 'rel-MOVED-ON' }, U: usageIndex(), DI: decisionImpact('nothing-on-disk') });
+        cur: { id: 'rel-MOVED-ON' }, U: usageIndex(), DI: decisionImpact('nothing-on-disk'), S: NOSCOPE, HC: null });
       ok('PIN GUARD / RED — a FULLY STAMPED artifact measured on a DIFFERENT release is WITHHELD, and '
         + 'the refusal names both ids: an answer about other bytes is not a weaker answer',
         mStale.withheld === true && /rel-fixture/.test(mStale.why) && /rel-MOVED-ON/.test(mStale.why),
@@ -5354,6 +5671,35 @@ if (require.main === module) {
         { control: lCtl.ok, lattice: lOne.ok, why: lOne.why && lOne.why.slice(0, 300) });
       ok('LATTICE / RED — and the assembled gate turns on it: gateVerdict over the lattice clause is shut',
         gateVerdict([lOne]).ok === false && gateVerdict([lZero]).ok === true);
+
+      /* ---- 2026-09-19: A GAME THAT THREW IS UNTESTED, NOT AGREEING --------------------------------
+       * One knob: `threw` on a sample whose boards otherwise read zero. The control is `wGood` / `lZero`
+       * above — the identical artifacts with `threw: 0` — which pass. Shown RED on a deliberate break
+       * (2026-09-19, scratch copy): with `ok: material === 0 && gamesThrew === 0` reduced to
+       * `ok: material === 0`, the three THREW / RED arms below failed and the controls stayed green. */
+      const ERR1 = [{ config: 'omit-weather', seed: 'fixture-a vs fixture-b',
+                      err: 'p1 choice rejected p1 "move 4, move 1": Can\'t move: planted' }];
+      const wThrew = wholeGameClause(Object.assign(wgBase(STEER_OK()), { threw: 1, errors: ERR1 }));
+      ok('THREW / RED — one game cut short by a refused choice FAILS the board clause with boards at '
+        + 'zero, exit 1 (a finding, not a missing sample), and prints the refusal',
+        wGood.ok === true && wThrew.ok === false && !wThrew.cannot_answer && clauseExit(wThrew) === 1
+        && wThrew.games_threw === 1 && wThrew.board_material === 0 && /THREW/.test(wThrew.why)
+        && /Can't move: planted/.test(wThrew.why), wThrew.why && wThrew.why.slice(0, 300));
+      const wSkewThrew = wholeGameClause(Object.assign(wgBase(STEER_OK()), { threw: 0, errors: ERR1.concat(ERR1) }));
+      ok('THREW / RED — `threw` and `errors[]` disagreeing fail in the safe direction: the larger count is '
+        + 'used and the disagreement printed', wSkewThrew.ok === false && wSkewThrew.games_threw === 2
+        && /two counts of one bucket disagree/.test(wSkewThrew.why), wSkewThrew.why && wSkewThrew.why.slice(0, 300));
+      const wNoThrew = (() => { const a = wgBase(STEER_OK()); delete a.threw; delete a.errors;
+        return wholeGameClause(a); })();
+      ok('THREW / CANNOT-ANSWER — an artifact carrying neither `threw` nor `errors[]` cannot say whether a '
+        + 'game was truncated, and exits 2', wNoThrew.ok === false && clauseExit(wNoThrew) === 2
+        && /neither `threw` nor `errors\[\]`/.test(wNoThrew.why), wNoThrew.why);
+      const lThrew = wholeGameLatticeClause(LSET(0, { 1350: Object.assign(LAT(1350, 0, 'lat1350'),
+        { threw: 1, errors: ERR1 }) }));
+      ok('THREW / RED — through the LATTICE: one thrown game on one sample closes the clause, exit 1, and '
+        + 'the tally names the sample and the throw', lZero.ok === true && lThrew.ok === false
+        && clauseExit(lThrew) === 1 && lThrew.nonzero_samples.join() === '1350'
+        && /--games 1350: 0 of 961 \+ 1 THREW/.test(lThrew.why), lThrew.why && lThrew.why.slice(0, 400));
       const lMiss = wholeGameLatticeClause((() => { const o = LSET(0); delete o[1950]; return o; })());
       ok('LATTICE / CANNOT-ANSWER — a MISSING sample is never a pass: exit 2, and the slot is named',
         lMiss.ok === false && lMiss.cannot_answer === true && clauseExit(lMiss) === 2
@@ -5838,7 +6184,7 @@ if (require.main === module) {
           abilities: [], items: [] } };
       const FIXU = { ...UIDX, moves: new Map([['atexactly', REACH_SHELF_CLICKS], ['shelfrow', 9999]]) };
       const MC = mechanicsClause({ j: FIX, cur: { id: 'rel-fixture' }, U: FIXU,
-                                   DI: decisionImpact('nothing-on-disk') });
+                                   DI: decisionImpact('nothing-on-disk'), S: NOSCOPE, HC: null });
       ok('RED — the mechanics clause NAMES what the owner shelved, with the carrier, the cause, the '
        + 'board verdict and the dated ruling, instead of a bare integer',
         /SHELVED BY THE OWNER/.test(MC.why || '')
@@ -5861,7 +6207,7 @@ if (require.main === module) {
                                           summary: { moves: { diverged: 1 } },
                                           rows: { moves: [{ id: 'atexactly', diverged: true }],
                                                   abilities: [], items: [] } },
-        cur: { id: 'rel-fixture' }, U: FIXU, DI: decisionImpact('nothing-on-disk') });
+        cur: { id: 'rel-fixture' }, U: FIXU, DI: decisionImpact('nothing-on-disk'), S: NOSCOPE, HC: null });
       ok('RED — with nothing on the owner shelf the line still prints, and says so',
         /SHELVED BY THE OWNER — none/.test(NONE.why || '') && NONE.owner_shelved === 0,
         String(NONE.why || '').slice(0, 160));
@@ -5869,12 +6215,154 @@ if (require.main === module) {
        * something compares it to its source. It does NOT fail on a mismatch — this batch is a
        * reporting change and may not move a count — but it says so at the point of subtraction. */
       const SKEW = mechanicsClause({ j: { ...FIX, summary: { moves: { diverged: 1, shelved_by_owner_diverging: 4 } } },
-        cur: { id: 'rel-fixture' }, U: FIXU, DI: decisionImpact('nothing-on-disk') });
+        cur: { id: 'rel-fixture' }, U: FIXU, DI: decisionImpact('nothing-on-disk'), S: NOSCOPE, HC: null });
       ok('RED — when the shelved ROWS and the artifact SUMMARY disagree, the clause says so out loud '
        + 'and still does not move the verdict',
         /THE ROWS AND THE SUMMARY DISAGREE — 1 shelved row\(s\) against a summary of 4/.test(SKEW.why || '')
         && SKEW.counted === 1 && SKEW.ok === false,
         String(SKEW.why || '').slice(0, 240));
+    }
+
+    /* -- 2026-09-19: THE PROOF HALF OF THE MECHANICS CLAUSE — every in-scope mechanic PROVEN ------
+     *
+     * Will: *"stop saying medicham is done when all these blind spots remain"*. Driven through the
+     * SHIPPING `mechanicsClause` on a handed-in artifact, scope and closet. ONE KNOB PER RED ARM: the
+     * control artifact is fully proven and reads GREEN, and each red arm changes exactly one row, so a
+     * red cannot come from anything but the planted verdict. Shown RED on a deliberate break before
+     * being trusted (2026-09-19, on a scratch copy): with `mechOk` reduced to `counted.length === 0`,
+     * 13 PROOF arms went to FAIL and the control stayed green; the rows-missing arm sits on the OTHER
+     * return path and went to FAIL only when that branch's `ok` was reduced to `div === 0`. The
+     * BOARD-ONLY arms went to FAIL (4) with `boardOnly` forced to `false`. */
+    {
+      const PSCOPE = { inScopeIds: (k) => ({ move: ['pmove'], ability: ['pab', 'pdef', 'pill'],
+                                             item: ['pitem'] })[k] || [], failures: [] };
+      const PROW = {
+        moves: [{ id: 'pmove', resolved: true, medicham_resolved: true }],
+        abilities: [{ id: 'pab', verdict: 'FIRED', control: 'Quiet', carrier: 'Garchomp' },
+                    { id: 'pdef', verdict: 'FIRED', control: 'Quiet', carrier: 'Garchomp' },
+                    { id: 'pill', verdict: 'FIRED', control: 'Quiet', carrier: 'Garchomp' },
+                    /* OUT OF SCOPE — never asked, however unproven */
+                    { id: 'pgone', verdict: 'DID-NOT-FIRE', control: 'Quiet', carrier: 'Garchomp' }],
+        items: [{ id: 'pitem', verdict: 'FIRED', control: 'C.item', carrier: 'Garchomp' }] };
+      const PART = (rows, extra) => Object.assign({ [PIN.K.id]: 'rel-fixture',
+        [PIN.K.digests]: { 'engine/medicham2-browser.js': 'bbbbbbbbbbbb' },
+        summary: { moves: { diverged: 0 }, abilities: { diverged: 0 }, items: { diverged: 0 } },
+        rows, closet: { source: 'tests/roster.js DEFERRED', ids: ['pdef'] } }, extra || {});
+      const HCFIX = { ability: 'illusion', species: new Set(['zoroark']), from: ['fixture'] };
+      const run = (rows, extra, over) => mechanicsClause(Object.assign({ j: PART(rows, extra),
+        cur: { id: 'rel-fixture' }, U: usageIndex(), DI: decisionImpact('nothing-on-disk'),
+        S: PSCOPE, HC: HCFIX }, over || {}));
+      const swap = (kind, id, patch) => Object.assign({}, PROW, { [kind]: PROW[kind].map((r) =>
+        (r.id === id ? Object.assign({}, r, patch) : r)) });
+      const ctl = run(PROW);
+      ok('PROOF / GREEN — the control: every in-scope row FIRED with a control or resolved on both '
+        + 'engines, and an out-of-scope DID-NOT-FIRE is not asked', ctl.ok === true
+        && ctl.proof_ok === true && ctl.proof_unproven === 0, ctl.why);
+      for (const [label, kind, id, patch, want] of [
+        ['DID-NOT-FIRE', 'abilities', 'pab', { verdict: 'DID-NOT-FIRE' }, 'DID-NOT-FIRE'],
+        ['FIRED-UNCONTROLLED', 'abilities', 'pab', { verdict: 'FIRED-UNCONTROLLED', control: null }, 'FIRED-UNCONTROLLED'],
+        ['UNPROVEN-UNCONTROLLED', 'abilities', 'pab', { verdict: 'UNPROVEN-UNCONTROLLED', control: null }, 'UNPROVEN-UNCONTROLLED'],
+        ['SHOWDOWN-ONLY', 'abilities', 'pab', { verdict: 'SHOWDOWN-ONLY' }, 'SHOWDOWN-ONLY'],
+        ['MEDICHAM-ONLY', 'abilities', 'pab', { verdict: 'MEDICHAM-ONLY' }, 'MEDICHAM-ONLY'],
+        ['FIRED with NO control arm', 'abilities', 'pab', { control: null }, 'FIRED WITH NO CONTROL ARM'],
+        ['an ITEM that did not fire', 'items', 'pitem', { verdict: 'DID-NOT-FIRE' }, 'DID-NOT-FIRE'],
+        ['a MOVE resolved on Showdown and NOT on MEDICHAM', 'moves', 'pmove', { medicham_resolved: false }, 'NOT RESOLVED ON MEDICHAM'],
+      ]) {
+        const r = run(swap(kind, id, patch));
+        ok('PROOF / RED — one in-scope ' + label + ' row FAILS the mechanics clause (exit 1) and is named '
+          + 'with its verdict', r.ok === false && r.proof_unproven === 1 && clauseExit(r) === 1
+          && r.proof_unproven_rows[0].label === want && r.proof_unproven_rows[0].key === SINGULAR[kind] + ':' + id,
+          { ok: r.ok, rows: r.proof_unproven_rows });
+      }
+      const noRow = run(Object.assign({}, PROW, { items: [] }));
+      ok('PROOF / RED — an in-scope entity with NO ROW fails: untested is not agreeing',
+        noRow.ok === false && noRow.proof_unproven_rows.some((f) => f.key === 'item:pitem' && f.label === 'NO ROW'),
+        noRow.proof_unproven_rows);
+      ok('PROOF / RED — and the assembled gate turns on it', gateVerdict([run(swap('abilities', 'pab',
+        { verdict: 'DID-NOT-FIRE' }))]).ok === false && gateVerdict([ctl]).ok === true);
+      const def = run(swap('abilities', 'pdef', { verdict: 'DID-NOT-FIRE',
+        deferred: { by: 'Will', on: '2026-08-10', why: 'fixture' } }));
+      ok('PROOF / EXCUSED — a row named in the artifact closet block (tests/roster.js DEFERRED) is the '
+        + 'owner\'s ruling and does not vote, and it is PRINTED as excused',
+        def.ok === true && def.proof_excused_rows.length === 1 && def.proof_excused_rows[0].key === 'ability:pdef'
+        && /EXCUSED BY THE OWNER — 1/.test(def.why), def.proof_excused_rows);
+      const ill = run(swap('abilities', 'pill', { verdict: 'UNPROVEN-UNCONTROLLED', control: null, carrier: 'Zoroark' }));
+      ok('PROOF / EXCUSED — a row staged on an Illusion carrier (the harness\'s closet species) is excused',
+        ill.ok === true && ill.proof_excused_rows.length === 1 && /ILLUSION CLOSET/.test(ill.proof_excused_rows[0].by),
+        ill.proof_excused_rows);
+      const illNoHC = run(swap('abilities', 'pill', { verdict: 'UNPROVEN-UNCONTROLLED', control: null, carrier: 'Zoroark' }),
+        undefined, { HC: null });
+      ok('PROOF / RED — the SAME Illusion row with the harness closet UNREAD is not excused: no block, '
+        + 'no excusal', illNoHC.ok === false && illNoHC.proof_unproven === 1 && /ILLUSION CLOSET NOT READ/.test(illNoHC.why),
+        illNoHC.proof_unproven_rows);
+      const stamp = run(swap('abilities', 'pab', { verdict: 'DID-NOT-FIRE',
+        deferred: { by: 'Will', on: '2026-09-19', why: 'a stamp no source backs' } }));
+      ok('PROOF / RED — a `deferred` stamp that neither the closet block nor the Illusion closet '
+        + 'corroborates excuses NOTHING, and is named', stamp.ok === false
+        && stamp.proof_uncorroborated_shelves.join() === 'ability:pab', stamp.proof_uncorroborated_shelves);
+      const noScope = run(PROW, undefined, { S: { inScopeIds: () => { throw new Error('planted'); }, failures: [] } });
+      ok('PROOF / RED — a scope that cannot list its members CANNOT ANSWER and fails',
+        noScope.ok === false && noScope.proof_cannot_answer === true, noScope.why && noScope.why.slice(0, 200));
+      const unknownRows = run(PROW, { rows: Object.assign({}, PROW, { items: undefined }) });
+      ok('PROOF / RED — the rows-and-summary early exit cannot open the clause over an unproven kind: an '
+        + 'artifact with no item rows fails even though nothing diverged',
+        unknownRows.ok === false && unknownRows.proof_unproven > 0, unknownRows.why && unknownRows.why.slice(0, 200));
+
+      /* -- AND A BOARD THAT PARTED WHILE THE PROTOCOL AGREED IS A DIVERGENCE. `moves:axekick` on
+       * 4c9b0cc4a4da: `board.verdict: 'STATE'`, `diverged: false`, and no bucket anywhere counted it.
+       * Control: the same row with the board agreeing is not seen at all. */
+      const BO = (board, extra) => ({ rows: { moves: [Object.assign({ id: 'boardonly', diverged: false,
+        board: { verdict: board } }, extra || {})], abilities: [], items: [] } });
+      const boU = { ...UIDX, moves: new Map([['boardonly', 9999]]) };
+      const boHit = classifyMechanics(BO('STATE'), null, { U: boU, DI: decisionImpact('nothing-on-disk') });
+      const boCtl = classifyMechanics(BO('NO-DIVERGENCE'), null, { U: boU, DI: decisionImpact('nothing-on-disk') });
+      ok('BOARD-ONLY / RED — a played row whose BOARD parted with `diverged: false` is COUNTED, flagged '
+        + 'board_only, and kept OUT of `rowsSeen` so the rows-and-summary check is untouched',
+        boHit.counted.length === 1 && boHit.counted[0].board_only === true && boHit.boardOnlySeen === 1
+        && boHit.rowsSeen === 0 && boCtl.counted.length === 0 && boCtl.boardOnlySeen === 0,
+        { hit: boHit.counted.map((r) => r.key), ctl: boCtl.counted.map((r) => r.key) });
+      const boLow = classifyMechanics(BO('STATE'), null,
+        { U: { ...UIDX, moves: new Map([['boardonly', REACH_SHELF_CLICKS - 1]]) }, DI: decisionImpact('nothing-on-disk') });
+      ok('BOARD-ONLY — judged exactly like a divergence: below the reach shelf it is shelved, not counted',
+        boLow.counted.length === 0 && boLow.belowShelf.length === 1 && boLow.belowShelf[0].board_only === true);
+      const boDef = classifyMechanics(BO('STATE', { deferred: { by: 'Will', on: 'x', why: 'y' } }), null,
+        { U: boU, DI: decisionImpact('nothing-on-disk') });
+      ok('BOARD-ONLY — on the owner\'s shelf it does not vote and is NAMED apart from the protocol shelf, '
+        + 'so the shelved-rows-vs-summary comparison is untouched',
+        boDef.counted.length === 0 && boDef.boardOnlyShelved.length === 1 && boDef.ownerShelved.length === 0);
+      const boClause = mechanicsClause({ j: PART(BO('STATE').rows), cur: { id: 'rel-fixture' }, U: boU,
+        DI: decisionImpact('nothing-on-disk'), S: NOSCOPE, HC: null });
+      ok('BOARD-ONLY / RED — through the shipping clause: summary says 0 diverged, the board parted, the '
+        + 'clause FAILS and names it', boClause.ok === false && boClause.counted === 1
+        && boClause.board_only_parted === 1 && /BOARD PARTED, PROTOCOL AGREED — 1 row/.test(boClause.why),
+        String(boClause.why || '').slice(0, 300));
+    }
+
+    /* -- 2026-09-19: A LEAF THAT CAN STAND AT A BOUNDARY AND IS NOT COMPARED FAILS ITS CLAUSE ------
+     * Driven on handed-in `derive()` / `boundaryCallSites()` results, never the live tree — a selftest
+     * that reads the live tree goes red on somebody else's commit. Shown RED on a deliberate break
+     * (2026-09-19, scratch copy): with `ok: n === 0` changed to `ok: true`, the planted-leaf arm and
+     * the gate arm failed and the GREEN arm stayed green. */
+    {
+      const LB = (n, keys, others) => boundaryLeavesClause({
+        L: { standing_at_the_boundary: n, standing_keys: keys, compared: 56, ceiling: 56 + n, hole: [] },
+        B: { snapshot_calls: 1, statecheck_call_lines: [1], other_snapshot_callers: others || [] } });
+      const g = LB(0, []);
+      ok('LEAVES / GREEN — zero uncompared leaves can stand at the boundary: the clause passes, exit 0',
+        g.ok === true && clauseExit(g) === 0 && !!g.pins, g.why);
+      const r = LB(1, ['volatile:unburden']);
+      ok('LEAVES / RED — ONE planted uncompared leaf that can stand at a boundary (the Unburden class) '
+        + 'FAILS the clause, exit 1, and is named', r.ok === false && clauseExit(r) === 1
+        && /volatile:unburden/.test(r.why), r.why);
+      const two = LB(0, [], ['engine/second_sampler.js']);
+      ok('LEAVES / CANNOT-ANSWER — a SECOND BS.snapshot caller breaks the single-boundary claim the '
+        + 'zero rests on: exit 2, never a pass', two.ok === false && clauseExit(two) === 2
+        && /second caller/.test(two.why), two.why);
+      const thr = boundaryLeavesClause({ get L() { throw new Error('planted derive failure'); }, B: null });
+      ok('LEAVES / CANNOT-ANSWER — a derivation that throws is not a zero', thr.ok === false
+        && clauseExit(thr) === 2 && /planted derive failure/.test(thr.why), thr.why);
+      ok('LEAVES / RED — and the assembled gate turns on it',
+        gateVerdict([r]).ok === false && gateVerdict([g]).ok === true);
     }
 
     /* -- ROADMAP #290's GATE, RED AND GREEN, ON SYNTHETIC ARTIFACTS ---------------------------

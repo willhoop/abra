@@ -15,28 +15,50 @@ it does not compete on them.
 MEASURE — can we believe a number
   leaf calibration: QUARANTINED — the figure is withheld, not annotated.
     data/winrate-backtest.json is downstream of MEDICHAM: its generator engine/backtest_winrate.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 6 of 8 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part, on EVERY team lattice; mechanics / each one staged and compared against showdown); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect, on EVERY team lattice)
+    MEDICHAM is not correct — 2 of 10 gate clauses fail (deliberate roster / items; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/backtest_winrate.js
   engine correctness -> leaf: QUARANTINED — the figure is withheld, not annotated.
     data/leaf-engine-contrast.json is downstream of MEDICHAM: its generator engine/leaf_engine_contrast.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 6 of 8 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part, on EVERY team lattice; mechanics / each one staged and compared against showdown); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect, on EVERY team lattice)
+    MEDICHAM is not correct — 2 of 10 gate clauses fail (deliberate roster / items; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/leaf_engine_contrast.js
-  provenance: 222 unsafe, 2 void (declared), 23 possibly stale, 12 ok, 0 missing
+  provenance: 223 unsafe, 2 void (declared), 18 possibly stale, 16 ok, 0 missing
   click censoring: QUARANTINED — the figure is withheld, not annotated.
     data/click-censoring-census.json is downstream of MEDICHAM: its generator engine/click_census.js is in the play layer (it reaches engine/medicham2-browser.js through require)
-    MEDICHAM is not correct — 6 of 8 gate clauses fail (game differential; deliberate roster / items; deliberate roster / abilities; deliberate roster / moves; whole-game differential / BOARD-MATERIAL — games whose boards part, on EVERY team lattice; mechanics / each one staged and compared against showdown); 1 reporting clause(s) also red (whole-game differential / NARRATION — protocol divergence with no board effect, on EVERY team lattice)
+    MEDICHAM is not correct — 2 of 10 gate clauses fail (deliberate roster / items; mechanics / each one staged and compared against showdown)
     it becomes quotable again when the gate opens AND this is re-run: node engine/click_census.js
   the weights are QUARANTINED — data/policy-weights.json and the joint weights were fitted on features computed through MEDICHAM. The refit stays OWED rather than being run: it is gated behind the engine, not behind compute.
   REFIT OWED — weights fitted 2026-08-28 15:46
     feature_fixture --check FAILED:   or restamp with: node engine/feature_fixture.js --stamp <file> |   GATES THAT FIRED: fixture identity, damage table. A RESTAMP ANSWERS THE FIXTURE GATE AND SILENCES THE TABLE GATE — |   settle the table verdict first, or the evidence for the refit is written over.
-    moved after the fit: engine/medicham2-browser.js  2026-09-19 12:01
+    moved after the fit: engine/medicham2-browser.js  2026-09-19 12:18
     moved after the fit: data/engine-data.js  2026-08-31 00:08
-    moved after the fit: data/abra-tags.js  2026-09-19 12:03
+    moved after the fit: data/abra-tags.js  2026-09-19 12:18
 ```
 
-_stamped 2026-09-19 12:14_
+_stamped 2026-09-19 12:57_
 
 <!-- /GENERATED -->
+
+## THREE BLIND SPOTS BECOME FAILING CLAUSES: UNPROVEN IN-SCOPE MECHANICS, UNCOMPARED BOUNDARY LEAVES, AND THROWN LATTICE GAMES. 2026-09-19 (6.64.0)
+
+**"DONE" IS PRINTED BY THE GATE, NOT CLAIMED.** Will: *"stop saying medicham is done when all these blind
+spots remain"*. The gate passed over three cases:
+- The mechanics clause counted only DIVERGENCES. So an ability that never fired, fired with no control, or
+  fired on one engine only read as agreement.
+- Nothing gated on the count of uncompared leaves that can stand at a boundary, the Unburden class.
+- A lattice game that threw kept its pre-throw boundaries and counted as a board that never diverged.
+
+All three now fail in `engine/quarantine.js`. Each new arm was shown RED on a deliberate break of a scratch
+copy before it was trusted, and the selftest passes 315 of 315.
+
+**THE "ALREADY FAILS ELSEWHERE" CLAIM WAS FALSE, AND IT IS FIXED.** On release `4c9b0cc4a4da`, the board of
+`move:axekick` parted (confusion counter 1 against 2) while its protocol agreed. The mechanics clause read
+`diverged` only, and the roster had shelved the move on usage, so nothing counted it. A board-only parting
+now goes through the same path as a divergence. It sits below the reach shelf today.
+
+**READ ON THE OLD ARTIFACTS, TWO CLAUSES WOULD NOW FAIL.** Mechanics has 63 unproven in-scope rows, and the
+three lattices have 1, 1 and 2 thrown games. The leaves clause reads 0. None of this is the gate on
+`d92bdfb50d88`; the ENGINE re-measure prints that gate. Full account:
+`docs/_reports/2026-09-19-gate-blindspots.md`.
 
 ## AN UNSTAGED IN-SCOPE MECHANIC NOW HOLDS THE ROSTER CLAUSE SHUT, AND FOUR RULERS STOPPED ACCUSING THE WRONG SOURCE. 2026-09-19 (6.56.0)
 

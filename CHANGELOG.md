@@ -10,6 +10,42 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.65.0] — 2026-09-19
+
+### Notes
+- **6.63.0 re-measured on `d92bdfb50d88`. No code changed.** Whole game at `--games` 1200/1350/1950: board 0 / 0 / 0,
+  undeclared narration 0 / 0 / 0, threw 0 / 0 / 0. The only protocol divergences are the three declared Supreme
+  Overlord rows. The driver digest moved (`d0ef2b6bf52e`), so no earlier lattice is comparable.
+- The staged-game battery reads abilities FIRED 198 of 200. Two are not: Illusion (closeted) and Natural Cure
+  (DID-NOT-FIRE, because the planner refuses its fixture on the merged tree). Moves resolve 497 of 497, and items
+  fire 148 of 148.
+- **The gate is `CLOSED — 2 of 10`.** The items roster fails on a dead red anchor (`item/resist-berry`, stranded
+  by the Ripen fix). The mechanics clause fails on 9 unproven rows: Natural Cure and 8 moves not resolved on
+  MEDICHAM.
+- Anger Point with a same-hit Chilling Water drop reads +6 ours and +5 on the authority. It shows only in a
+  control arm, and no clause reads it.
+
+## [6.64.0] — 2026-09-19
+
+### Changed
+- **The MEDICHAM gate now fails on three blind spots that it used to pass.** Will: "stop saying medicham is
+  done when all these blind spots remain". All three are in `engine/quarantine.js`:
+  - **The mechanics clause needs proof.** An in-scope ability or item must read FIRED with a control arm.
+    An in-scope move must resolve on both engines. DID-NOT-FIRE, FIRED-UNCONTROLLED,
+    UNPROVEN-UNCONTROLLED, SHOWDOWN-ONLY, MEDICHAM-ONLY and a missing row all fail. The clause gets its
+    scope from `engine/legal_scope.js`. Only Will's `tests/roster.js DEFERRED` rulings and the Illusion
+    closet excuse a row. A board that parts while the protocol agrees now counts as a divergence.
+  - **A new clause checks leaves at a turn boundary.** It fails when an uncompared leaf can stand at a
+    turn boundary (the Unburden class). The count comes from the producer that `engine/coverage.js` quotes.
+  - **The board-material clause fails on a game that threw.** A game that a refused choice cut short is
+    untested. It does not count as agreeing.
+
+### Notes
+- Read on the artifacts from `4c9b0cc4a4da`, the mechanics and board-material clauses would now fail:
+  63 unproven in-scope rows, and 1, 1 and 2 thrown games on the three lattices. The gate on `d92bdfb50d88`
+  has not been re-measured. The selftest passes 315 of 315, and each new arm was shown RED on a
+  deliberate break first.
+
 ## [6.63.0] — 2026-09-19
 
 ### Fixed

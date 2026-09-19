@@ -169,9 +169,9 @@ has zeroed.
 ENGINE — does the simulator do what Pokémon does
   967/967 probed mechanics live, 0 missing   (census 2026-09-19 12:03)
     the census probes what somebody thought to probe: 301 of 301 in-scope tags carry a probe, 0 carry none (9 of 310
-    tags have no in-scope carrier); 21 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 2.9 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-19 09:21)
+    tags have no in-scope carrier); 1 of 348 in-scope mechanics have never fired in the staged harness
+    (all-mechanics-fire.json, 26 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-19 12:39)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
     the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
     Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
@@ -194,9 +194,40 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 12:14_
+_stamped 2026-09-19 12:57_
 
 <!-- /GENERATED -->
+
+## 6.63.0 RE-MEASURES AT BOARD **0 / 0 / 0**, NARRATION **0 / 0 / 0**, THREW **0 / 0 / 0**. ABILITIES FIRE **198 OF 200** IN THE STAGED-GAME BATTERY. THE GATE IS **CLOSED, 2 OF 10**: A DEAD ROSTER ANCHOR, AND 9 UNPROVEN STAGED ROWS. **NO ENGINE BYTE CHANGED; RELEASE `d92bdfb50d88`; DRIVER `d0ef2b6bf52e`, SO NO EARLIER LATTICE IS COMPARABLE.** 2026-09-19, CHANGELOG 6.65.0
+
+Lattices at `--games` 1200 / 1350 / 1950 used `--team-store data/team-pool-frozen`, arm `middle`, cap 50,
+`--end-state` and `--steering empirical`. The census was `9a62d9593f12` (967 live). Board-material read 0 of 961,
+0 of 1069 and 0 of 1497. Threw read 0 / 0 / 0 (it was 1 / 1 / 2 on the old driver). The only protocol divergences
+are the three declared Supreme Overlord games. The staged-game battery (`data/all-mechanics-fire.json`, 4654
+games) reads:
+
+- abilities: FIRED 198, Illusion UNPROVEN-UNCONTROLLED (closeted), Natural Cure DID-NOT-FIRE;
+- moves: 497 of 497 resolved on the authority;
+- items: 148 of 148 FIRED.
+
+The gate fails in two places. The first is `item/resist-berry`, a red anchor that the Ripen fix stranded. The
+second is the mechanics PROOF clause: Natural Cure, plus eight moves that read `medicham_resolved: false` while
+their streams and boards agree. Full account: `docs/_reports/2026-09-19-d92b-remeasure.md`.
+
+### The hand list, after this pass
+
+- **NEW: Anger Point against a same-hit secondary stat drop.** The case is Crabominable with Anger Point, hit by a
+  critical Chilling Water. The authority reads Attack **+5**: the `Hit` event runs in `runMoveEffects`
+  (`sim/battle-actions.ts:1086`/`:1283`) before `secondaries()` (`:1099`). We read **+6**. This is a board
+  divergence, seen only in the Hyper Cutter row's control arm, and no gate clause reads a control arm. No probe
+  yet. The first step is a probe that fails.
+- **BACK ON THE LIST: Natural Cure.** Its `switch-out` fixture read FIRED on the worktree `d8526fc9ba28`. On the
+  merged tree the planner refuses it with "C is asked for two trigger clicks on one turn".
+- **NEW, SUSPECT THE INSTRUMENT FIRST:** the resolution reader marks eight moves "not resolved on MEDICHAM":
+  Ally Switch, Destiny Bond, Guard Swap, Life Dew, Power Swap, Sleep Talk, Topsy-Turvy and Wish. Each of them reads
+  `diverged: false` and board NO-DIVERGENCE.
+- **INSTRUMENT, NOT ENGINE:** re-aim `item/resist-berry` (`tests/roster.js:6621`) at
+  `const _rbEats=!!(` (`engine/medicham2-browser.js:15736`).
 
 ## THE SIX SHOWDOWN-ONLY ABILITIES WERE NOT EFFECT GAPS. THREE WERE A MISSING ANNOUNCEMENT (NOW WRITTEN), TWO WERE THE CONTROL'S ANNOUNCEMENT CREDITED TO THE CARRIER (INSTRUMENT, FIXED), ONE IS THE DECLARED AUTHORITY-WRONG `fallenundefined`. WITH THREE NEW PLANNER FIXTURES, ALL SIX NOW READ FIRED WITH A CONTROL AND BOARDS AGREEING. CENSUS **955 → 956 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `d8526fc9ba28`; NO LATTICE RE-RUN (LIGHT MODE), THE RE-RUN IS OWED.** 2026-09-19, CHANGELOG `<<VER>>`
 

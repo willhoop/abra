@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-19T13:17:09.940Z",
+ "generated": "2026-09-19T16:35:28.276Z",
  "by": "tests/roster.js",
  "stage": "moves",
  "swap_leaf_correction": {
@@ -7,12 +7,12 @@
   "real_ability_rewrite_kept": 0,
   "control_arm_bookkeeping_dropped": 0
  },
- "engine_release": "4c9b0cc4a4da",
- "engine_release_cut": "2026-09-19T12:55:13.620Z",
- "engine_release_cuts": 1,
+ "engine_release": "d92bdfb50d88",
+ "engine_release_cut": "2026-09-19T16:04:45.355Z",
+ "engine_release_cuts": 206,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "f156dc05f2ac",
+  "engine/medicham2-browser.js": "b2c908144761",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -32,8 +32,8 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "a55ce028a787",
-  "data/tags.json": "7d2a38e88bf7",
+  "data/abra-tags.js": "28b309f15cbc",
+  "data/tags.json": "f66517a89b21",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
@@ -84,7 +84,7 @@
   }
  },
  "plant_anchors": {
-  "release": "4c9b0cc4a4da",
+  "release": "d92bdfb50d88",
   "checked": 37,
   "dead": [],
   "reds_ran": true
@@ -9120,7 +9120,7 @@
    "name": "Crush Claw",
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
-   "note": "Normal 75 BP into Goodra-Hisui, twice; it also carries 1 sub-100% secondary/ies which the arm decides and this staging does not test  [pinned to bottom-tie-first — it is 95-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]  [#318 restaged: p1[0] goodrahisui -> excadrill (learner/wide)]",
+   "note": "Normal 75 BP into Goodra-Hisui, twice; it also carries 1 sub-100% secondary/ies which the arm decides and this staging does not test  [pinned to bottom-tie-first — it is 95-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]  [#318 restaged: p1[0] goodrahisui -> blaziken (learner/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -9153,7 +9153,7 @@
     {
      "turn": 1,
      "path": "p2.party.goodrahisui.hp",
-     "with": 1207,
+     "with": 1220,
      "without": 1240
     },
     {
@@ -9165,7 +9165,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1207,
+     "with": 1220,
      "without": 1240
     },
     {
@@ -9189,7 +9189,7 @@
     {
      "turn": 2,
      "path": "p2.party.goodrahisui.hp",
-     "with": 1157,
+     "with": 1190,
      "without": 1240
     },
     {
@@ -9201,7 +9201,7 @@
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 1157,
+     "with": 1190,
      "without": 1240
     },
     {
@@ -15675,7 +15675,7 @@
    "name": "Fling",
    "rule": "move/generic-status",
    "reads": "nothing matched above — this is the second residue, and it is the WEAK one",
-   "note": "generic: clicked ONCE on turn 2 by the aggressor at Goodra-Hisui, both sides chipped and holding an item  [#318 restaged: p1[0] goodrahisui -> rampardos (learner/wide)]",
+   "note": "generic: clicked ONCE on turn 2 by the aggressor at Goodra-Hisui, both sides chipped and holding an item  [#318 restaged: p1[0] goodrahisui -> rhyperior (learner/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -15695,7 +15695,7 @@
    "sd_delta": [
     {
      "turn": 2,
-     "path": "p1.party.rampardos.item",
+     "path": "p1.party.rhyperior.item",
      "with": "",
      "without": "leftovers"
     },
@@ -15726,18 +15726,18 @@
     {
      "turn": 2,
      "path": "p2.party.goodrahisui.hp",
-     "with": 1211,
-     "without": 1220
+     "with": 1213,
+     "without": 1222
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 1211,
-     "without": 1220
+     "with": 1213,
+     "without": 1222
     },
     {
      "turn": 3,
-     "path": "p1.party.rampardos.item",
+     "path": "p1.party.rhyperior.item",
      "with": "",
      "without": "leftovers"
     },
@@ -15768,14 +15768,14 @@
     {
      "turn": 3,
      "path": "p2.party.goodrahisui.hp",
-     "with": 1211,
-     "without": 1220
+     "with": 1213,
+     "without": 1222
     },
     {
      "turn": 3,
      "path": "p2.active[0].hp",
-     "with": 1211,
-     "without": 1220
+     "with": 1213,
+     "without": 1222
     }
    ],
    "diffs": []
@@ -16074,13 +16074,13 @@
     {
      "turn": 1,
      "path": "p2.party.goodrahisui.hp",
-     "with": 1138,
+     "with": 1173,
      "without": 1240
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1138,
+     "with": 1173,
      "without": 1240
     },
     {
@@ -16098,13 +16098,13 @@
     {
      "turn": 2,
      "path": "p2.party.goodrahisui.hp",
-     "with": 1036,
+     "with": 1106,
      "without": 1240
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 1036,
+     "with": 1106,
      "without": 1240
     }
    ],
@@ -18108,7 +18108,7 @@
    "name": "Gunk Shot",
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
-   "note": "Poison 120 BP into Torterra, twice; it also carries 1 sub-100% secondary/ies which the arm decides and this staging does not test  [pinned to bottom-tie-first — it is 80-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]  [#318 restaged: p1[0] goodrahisui -> pangoro (learner-speed-kept/wide)]",
+   "note": "Poison 120 BP into Torterra, twice; it also carries 1 sub-100% secondary/ies which the arm decides and this staging does not test  [pinned to bottom-tie-first — it is 80-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]  [#318 restaged: p1[0] goodrahisui -> toucannon (learner-speed-kept/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -18141,7 +18141,7 @@
     {
      "turn": 1,
      "path": "p2.party.torterra.hp",
-     "with": 1094,
+     "with": 1128,
      "without": 1360
     },
     {
@@ -18153,7 +18153,7 @@
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1094,
+     "with": 1128,
      "without": 1360
     },
     {
@@ -18177,7 +18177,7 @@
     {
      "turn": 2,
      "path": "p2.party.torterra.hp",
-     "with": 828,
+     "with": 896,
      "without": 1360
     },
     {
@@ -18189,7 +18189,7 @@
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 828,
+     "with": 896,
      "without": 1360
     },
     {
@@ -25034,7 +25034,7 @@
    "name": "Meteor Beam",
    "rule": "move/charge",
    "reads": "flags.charge",
-   "note": "the WIND-UP turn only — Goodra-Hisui must be UNTOUCHED at boundary 1; the release turn is unscriptable through this driver (see the rule)  [pinned to bottom-tie-first — it is 90-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]  [#318 restaged: p1[0] goodrahisui -> rampardos (learner/wide)]",
+   "note": "the WIND-UP turn only — Goodra-Hisui must be UNTOUCHED at boundary 1; the release turn is unscriptable through this driver (see the rule)  [pinned to bottom-tie-first — it is 90-accurate and the primary arm makes it MISS. On this arm every sub-100 roll lands, every crit lands and every secondary fires, in BOTH engines; the RATIO itself is therefore not what is under test]  [#318 restaged: p1[0] goodrahisui -> rhyperior (learner/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "bottom-tie-first",
@@ -25054,7 +25054,7 @@
    "sd_delta": [
     {
      "turn": 1,
-     "path": "p1.party.rampardos.boosts.spa",
+     "path": "p1.party.rhyperior.boosts.spa",
      "with": 1,
      "without": 0
     },
@@ -29291,7 +29291,7 @@
    "name": "Power Gem",
    "rule": "move/plain-attack",
    "reads": "basePower > 0 and nothing else this file has a narrower rule for",
-   "note": "Rock 80 BP into Goodra-Hisui, twice  [#318 restaged: p1[0] goodrahisui -> tyranitar (learner/wide)]",
+   "note": "Rock 80 BP into Goodra-Hisui, twice  [#318 restaged: p1[0] goodrahisui -> espeon (learner/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -29311,27 +29311,39 @@
    "sd_delta": [
     {
      "turn": 1,
+     "path": "p1.active[0].vol.focusenergy",
+     "with": 0,
+     "without": 1
+    },
+    {
+     "turn": 1,
      "path": "p1.pp[0].powergem",
      "with": 1,
      "without": 0
     },
     {
      "turn": 1,
-     "path": "p1.pp[0].sleeptalk",
+     "path": "p1.pp[0].focusenergy",
      "with": 0,
      "without": 1
     },
     {
      "turn": 1,
      "path": "p2.party.goodrahisui.hp",
-     "with": 1222,
+     "with": 1221,
      "without": 1240
     },
     {
      "turn": 1,
      "path": "p2.active[0].hp",
-     "with": 1222,
+     "with": 1221,
      "without": 1240
+    },
+    {
+     "turn": 2,
+     "path": "p1.active[0].vol.focusenergy",
+     "with": 0,
+     "without": 1
     },
     {
      "turn": 2,
@@ -29341,20 +29353,20 @@
     },
     {
      "turn": 2,
-     "path": "p1.pp[0].sleeptalk",
+     "path": "p1.pp[0].focusenergy",
      "with": 0,
      "without": 2
     },
     {
      "turn": 2,
      "path": "p2.party.goodrahisui.hp",
-     "with": 1204,
+     "with": 1202,
      "without": 1240
     },
     {
      "turn": 2,
      "path": "p2.active[0].hp",
-     "with": 1204,
+     "with": 1202,
      "without": 1240
     }
    ],
@@ -37327,7 +37339,7 @@
    "name": "Spite",
    "rule": "move/generic-status",
    "reads": "nothing matched above — this is the second residue, and it is the WEAK one",
-   "note": "generic: clicked ONCE on turn 2 by the aggressor at Goodra-Hisui, both sides chipped and holding an item  [#318 restaged: p1[0] goodrahisui -> tyranitar (learner/wide)]",
+   "note": "generic: clicked ONCE on turn 2 by the aggressor at Goodra-Hisui, both sides chipped and holding an item  [#318 restaged: p1[0] goodrahisui -> armarouge (learner/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
@@ -45386,7 +45398,7 @@
    "name": "Whirlwind",
    "rule": "move/force-switch",
    "reads": "forceSwitch",
-   "note": "thrown at Goodra-Hisui; Torterra is in the other slot and must stay  [#318 restaged: p1[0] goodrahisui -> rampardos (learner/wide)]",
+   "note": "thrown at Goodra-Hisui; Torterra is in the other slot and must stay  [#318 restaged: p1[0] goodrahisui -> drampa (learner/wide)]",
    "verdict": "FIRED-AND-BOARDS-MATCH",
    "why": null,
    "arm": "top-tie-first",
