@@ -52,6 +52,54 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.74.0] — 2026-09-19 — 6.73.0 re-measured on `834713ccb303`: board 0 / 0 / 0, held-out partings 34 → 15, and the gate closes on ONE ability announcement
+
+- **What changed.** Nothing in the code. Every instrument was re-run on release `834713ccb303`
+  (HEAD `3fa44ea3`, `0 of 27 files have moved since`), census pin `bdc8ee177ddb` (977 live / 0
+  missing), `--team-store data/team-pool-frozen`, arm `middle`, cap 50, `--end-state`,
+  `--steering empirical`. **This is the first measurement taken after 6.72.0 retired the
+  `ability-announcement` equivalence, so `|-ability|` lines are compared.**
+- **Measured.** **Board-material 0 of 961, 0 of 1069, 0 of 1497** at `--games` 1200 / 1350 / 1950 —
+  `state.games` less `state.games_board_never_diverged` on `data/game-differential{,.g1350,.g1950}.json`,
+  pools `0d103fb9fa87` / `7e7a37ded7fc` / `a5ce76242f8d`, 0 threw. **Undeclared narration 23 / 30 /
+  33**, which is `narrationClause`'s own subtraction, and **86 of those 89 protocol divergences are
+  two mechanisms**: Cloud Nine's arrival announcement, which we never write (75), and Super Sweet
+  Syrup announced with a `|boost` field the authority writes bare (11). **The held-out draw at
+  `--games 12000`, pool `e398641bda45` — the same lattice as the previous pass — parts 15 boards of
+  7,182** (`wholeGameClause` 16 of 7183 with the void game), against 34 last pass: matched by seed,
+  **20 closed, 1 joined, 14 stand**. Undeclared narration there is 236 of 7183 across 132 causes, of
+  which **181 are the same ability-announcement class**. Corner arms at `--games 1200` part **0** and
+  **0** boards (`data/verification/game-differential.g1200.{top,bottom}-tie-first.json`). Damage
+  differential **0 of 6,000** at every index (`data/engine-diff.json`, seed 20260804). Staged battery
+  4,634 games, 0 threw, abilities FIRED 199 of 200, moves 497 of 497 resolved, items 148 of 148,
+  `fired_on_live_control_unearned` 0, control-arm partings 17 of 841 with **board-material 0**.
+  Roster: items **148 MATCH**, abilities **196 MATCH + 3 ANNOUNCEMENT-ONLY + 1 DEFERRED**, moves
+  **496 MATCH + 1 DEFERRED**, 0 DIFFER and 0 DID-NOT-FIRE in all three. Coverage 844 of 845 staged
+  mechanics fired, tags 303 of 303 read and probed, 871 of 915 entities exercised. Census unmoved at
+  **977 live / 0 missing**. **`node engine/quarantine.js` prints `GATE: CLOSED — 3 of 10 GATING
+  clauses fail`**: whole-game NARRATION (non-zero on 3 of 3), mechanics (14 of 15 diverging
+  mechanics played and uncleared — every one of the 15 is the Cloud Nine line or Super Sweet Syrup),
+  and deliberate roster / abilities, which fails on **two instrument faults and no engine one** — the
+  `ability/residual` red plant's anchor was split in two by a 6.73.0 edit and now matches 0 times, and
+  `anticipationSilentRestored` / `friskSilentRestored` are not in `DELIBERATE_BREAK` in
+  `tests/test-mechanics.js`, so two announcement receipts are refused. Full account:
+  `docs/_reports/2026-09-19-834713-remeasure.md`.
+- **Retraction applied.** The white paper's roster sentence read ~~495 moves tested~~; Copycat's lifted deferral makes it **496** (`data/roster.moves.json`), replaced in the same pass.
+- **Basis.** unchanged. The quantities are the same subtractions off `state` they have always been.
+  The board-material comparison 34 → 15 is made on SEEDS, not on two counts, because
+  `steering.driver_code.digest` moved `faf70ecbca71` → `f4b3b2a5c270` when 6.72.0 edited the
+  comparator.
+- **Supersedes.** ~~narration WITHHELD, NOT REPLACED~~ — 6.72.0 withheld every narration figure
+  pending a re-run under the honest comparator. **This is that re-run**, and the figures are restored
+  as **23 / 30 / 33 undeclared of 961 / 1069 / 1497**. ~~held-out board-material 34 of 7,178~~ and
+  ~~corner arms 0 / 1~~ at `--games` 1200 (6.71.0's row) are superseded by 15 of 7,182 and 0 / 0.
+  Board-material **0 / 0 / 0** on the three lattices is re-measured and unmoved. No living document
+  carried any of these as a present-tense figure, so nothing had to be deleted — every gate figure in
+  the white paper, the technical docs, `MODELS.md` and `SUMMARY.md` sits inside a dated block naming
+  its own release or HEAD.
+- **Owed to the next major.** `docs/ABRA-whitepaper.md`, `docs/SUMMARY.md`, `docs/MODELS.md` —
+  whichever carries the gate reading when the documents are next folded in.
+
 ## [6.73.0] — 2026-09-19 — the held-out draw's mechanisms fixed, the ability-announcement class closed, and 28 knob/probe pairs that proved nothing
 
 - **What changed.** Nine ENGINE worktrees merged and verified by the coordinator on release `834713ccb303`: 22 probes and 5 suite tests green, `tests/test-knob-control-arm.js` green. **Engine:** Protect's `stall` sweep runs in the authority's residual order and stops where the authority stops (`MEDI_STALL_SWEEP_UNORDERED`); two secondary die ADDRESSES — a `self:` move addressing its secondaries at the user, and a die on a body the hit killed (`MEDI_SEC_ADDR_IGNORES_SELFDROP`, `MEDI_KINGSROCK_SKIPS_DEAD`); recoil is not paid on a whiffed Struggle (`MEDI_RECOIL_ON_A_WHIFF`); a hard trap is released when the trapper dies with an empty bench and a trapper returning in-turn no longer outlives its own trap (`MEDI_TRAP_SURVIVES_DEAD_TRAPPER`, `MEDI_PARTIAL_TRAP_OUTLIVES_SOURCE`); Sparkling Aria cures through `onAfterMove` (`MEDI_AFTERMOVE_CURE_OFF`); snow and sand raise the DEFENCE the hit reads, not the move's category (`MEDI_WEATHER_DEF_BY_CATEGORY`); a redirect onto the body already aimed at still cancels a dart split (`MEDI_REDIRECT_NEEDS_AIM_CHANGE`); a bounced move is re-aimed by a redirect on the clicker's side (`MEDI_BOUNCE_IGNORES_REDIRECT`); Fickle Beam's chance is the crit-address draw (`MEDI_CONDPOWER_OFF_ANY`); a click that RAN and FAILED is still the last move a caller reads (`MEDI_FAILED_MOVE_NOT_LAST`) — Copycat's deferral lifted on it; an ability rewrite names the outgoing ability in field 4 (`MEDI_ABILITY_REWRITE_NO_OLD`); and **an ability announces itself above an ability-sourced boost, once per call, never on a capped stat** — 10 sites behind one `abilityBoostRun`, membership derived from tags (18 abilities, Steadfast, Opportunist, Moxie and Eelevate fixed without ever appearing in a divergence) (`MEDI_ABILITY_BOOST_SILENT`). **Instruments:** the announcement-only roster receipt is emitted for Forewarn, Anticipation and Frisk (each with a knob, a census row quoting the authority's literal line, and a probe); the usage shelf stamps itself `BELOW-USAGE-SHELF` with the click count instead of Will's name (it covers one row, electrify, 18 clicks); `staged_board.js --reds` 14 of 25 breaks → 25 of 25 and it joins the runner; roster illegal fixture bodies 73 → 58 with the residue derived; two "unread" tags declared descriptive with a guard (coverage 299 → 301 of 301); and `tests/test-knob-control-arm.js` — **28 of 59 knob/probe pairs left their probe GREEN under their own knob, so they proved nothing**; all fixed, the detector then found 57 more knobs read through a helper it could not see (population 65 → 81, every pair re-measured 0/1, four declared silent controls).

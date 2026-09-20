@@ -10,6 +10,30 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.74.0] — 2026-09-19
+
+### Changed
+- **6.73.0 re-measured on release `834713ccb303`, the first measurement since `|-ability|` lines
+  became comparable.** Board-material **0 of 961 / 0 of 1069 / 0 of 1497** at `--games` 1200 / 1350 /
+  1950. The held-out `--games 12000` draw, on the same pool `e398641bda45`, parts **15 boards of
+  7,182** against 34 last pass — 20 closed, 1 joined, 14 stand, matched by seed. Corner arms at
+  `--games 1200` part **0** and **0**.
+- Damage differential 0 of 6,000 at every index. Battery 4,634 games, 0 threw. Roster 148 / 196+3+1 /
+  496+1, 0 DIFFER and 0 DID-NOT-FIRE. Census unmoved at 977 live / 0 missing.
+
+### Notes
+- **`node engine/quarantine.js` prints `GATE: CLOSED — 3 of 10 GATING clauses fail`.** It read OPEN
+  one pass ago; the engine did not get worse, the comparator stopped being blind. Two clauses
+  (narration, mechanics) fail on **one mechanism** — Cloud Nine's arrival announcement, which this
+  engine never writes, plus Super Sweet Syrup announced with a `|boost` field the authority writes
+  bare. Together they are 86 of the 89 gate-lattice divergences and 181 of the held-out draw's 274.
+- The third failing clause is **the roster's abilities stage, on two instrument faults and no engine
+  one**: the `ability/residual` red plant's anchor was split by a 6.73.0 edit and matches 0 times, and
+  `anticipationSilentRestored` / `friskSilentRestored` are absent from `DELIBERATE_BREAK` in
+  `tests/test-mechanics.js`, so two ANNOUNCEMENT-ONLY receipts are refused.
+- No engine, instrument or test byte changed in this pass. Full account:
+  `docs/_reports/2026-09-19-834713-remeasure.md`.
+
 ## [6.73.0] — 2026-09-19
 
 ### Fixed

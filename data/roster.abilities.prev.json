@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-19T19:51:36.743Z",
+ "generated": "2026-09-19T22:15:41.482Z",
  "by": "tests/roster.js",
  "stage": "abilities",
  "swap_leaf_correction": {
@@ -7,12 +7,12 @@
   "real_ability_rewrite_kept": 68,
   "control_arm_bookkeeping_dropped": 3894
  },
- "engine_release": "6180c4712761",
- "engine_release_cut": "2026-09-19T19:26:51.339Z",
+ "engine_release": "18773c22878f",
+ "engine_release_cut": "2026-09-19T21:50:22.269Z",
  "engine_release_cuts": 1,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "e049e4466f3b",
+  "engine/medicham2-browser.js": "4a1d8f92d16c",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -32,8 +32,8 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "2cf0ab4d4132",
-  "data/tags.json": "331a5a1910a7",
+  "data/abra-tags.js": "c482e8c9068a",
+  "data/tags.json": "e666cddbf598",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
@@ -152,7 +152,7 @@
   }
  },
  "plant_anchors": {
-  "release": "6180c4712761",
+  "release": "18773c22878f",
   "checked": 63,
   "dead": [],
   "reds_ran": true

@@ -172,11 +172,11 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  977/984 probed mechanics live, 0 missing   (census 2026-09-19 22:12)
+  977/984 probed mechanics live, 0 missing   (census 2026-09-19 23:45)
     the census probes what somebody thought to probe: 303 of 303 in-scope tags carry a probe, 0 carry none (9 of 312
     tags have no in-scope carrier); 0 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 4.7 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-19 18:17)
+    (all-mechanics-fire.json, 45 min old). node engine/coverage.js
+  0/6000 differential comparisons disagree with Showdown   (2026-09-19 23:17)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
     the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
     Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
@@ -199,11 +199,87 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 22:53_
+_stamped 2026-09-19 23:57_
 
 <!-- /GENERATED -->
 
-## THE GATE READS **OPEN, 10 OF 10** ON `18773c22878f` — AND A HELD-OUT `--games 12000` DRAW ON IDENTICAL PINS PARTS **34 BOARDS OF 7,178**, WITH THE CORNER ARMS PARTING **0 / 1 / 4** AND **1 / 1 / 4** ON THE GATE'S OWN THREE LATTICES. **NO ENGINE BYTE CHANGED; RELEASE `18773c22878f`; DRIVER `faf70ecbca71` AND CENSUS PIN `0c1d71e2a1bb`, SO THE `6180c4712761` LATTICES ARE COMPARABLE.** 2026-09-19, CHANGELOG 6.71.0
+## THE GATE READS **CLOSED, 3 OF 10** ON `834713ccb303`, AND TWO OF THE THREE FAILING CLAUSES ARE **ONE ABILITY ANNOUNCEMENT**. BOARD-MATERIAL IS STILL **0 / 0 / 0**; THE HELD-OUT `--games 12000` DRAW GOES **34 → 15** ON THE SAME LATTICE (20 CLOSED, 1 JOINED, 14 STAND); THE CORNER ARMS AT 1200 PART **0** AND **0**. **NO ENGINE BYTE CHANGED; RELEASE `834713ccb303`; DRIVER `f4b3b2a5c270` — IT MOVED AT 6.72.0, SO NARRATION IS NOT COMPARABLE ACROSS IT AND THE BOARD COMPARISON IS MADE ON SEEDS.** 2026-09-19, CHANGELOG 6.74.0
+
+Full account: `docs/_reports/2026-09-19-834713-remeasure.md`.
+
+**THE GATE CLOSED BECAUSE THE COMPARATOR STOPPED BEING BLIND, NOT BECAUSE THE ENGINE GOT WORSE.**
+6.72.0 retired the `ability-announcement` equivalence, so this is the first measurement in 44 days in
+which `|-ability|` lines are compared. `node engine/quarantine.js` prints `GATE: CLOSED — 3 of 10
+GATING clauses fail`. Board-material **0 of 961 / 0 of 1069 / 0 of 1497** at `--games` 1200 / 1350 /
+1950 (pools `0d103fb9fa87` / `7e7a37ded7fc` / `a5ce76242f8d`), threw **0 / 0 / 0**, damage 0 of 6,000
+at every index, battery 4,634 games with abilities FIRED **199 of 200**, moves 497 of 497 resolved,
+items 148 of 148, unearned FIRED 0, control-arm partings 17 of 841 with **board-material 0**. Census
+**977 live / 0 missing**, unmoved. Coverage: tags **303 of 303** read and probed, 844 of 845 staged
+mechanics fired, 871 of 915 entities exercised.
+
+**TWO OF THE THREE FAILING CLAUSES ARE ONE MECHANISM.** Undeclared narration is **23 / 30 / 33**, and
+of the 89 protocol divergences in the three full dumps, **75 are Cloud Nine's arrival announcement**
+— `data/abilities.ts:536`, `onSwitchIn` writes `|-ability|BODY|Cloud Nine` and we write nothing, with
+Air Lock the identical handler at `:93` and neither overridden in `/data/mods/champions/` — **11 are
+Super Sweet Syrup announced WITH a `|boost` field the authority writes bare** (`:4708`, against
+Intimidate's `:2191` which does carry it), and **3 are the declared Supreme Overlord
+`fallenundefined`**. There is no third mechanism on any gate lattice. The mechanics clause fails on
+the same class: **all 15 diverging staged mechanics are the Cloud Nine line (14) or Super Sweet Syrup
+itself (1)**.
+
+**THE THIRD FAILING CLAUSE IS THE ROSTER'S ABILITIES STAGE, ON TWO INSTRUMENT FAULTS AND NO ENGINE
+ONE.** 196 MATCH, 3 ANNOUNCEMENT-ONLY, 1 DEFERRED, **0 DIFFER and 0 DID-NOT-FIRE**. (1) The
+`ability/residual` red plant anchors on a two-line string at `tests/roster.js:12869`; 6.73.0 inserted
+`const _ber=abilityBoostRun(...)` between those two lines, so the anchor matches **0 times** and the
+rule asserts nothing — the same shape as 6.60.0's dead anchor. (2) Two ANNOUNCEMENT-ONLY receipts are
+refused because `anticipationSilentRestored` and `friskSilentRestored` have **never** been in
+`const DELIBERATE_BREAK` in `tests/test-mechanics.js` (verified by parsing the list — 119 names,
+`forewarnSilentRestored` present — and by `git show` at three commits), and Anticipation's census row
+quotes no literal protocol line. The committed `data/roster.abilities.json` at HEAD carried no
+ANNOUNCEMENT-ONLY row at all, so main's gate had never evaluated these receipts.
+
+**THE HELD-OUT DRAW HALVED, AND IT IS MATCHED BY SEED RATHER THAN BY COUNT.** One `--games 12000` run
+on pool `e398641bda45` — the same lattice as the previous pass — plays **7,182 usable games** and
+parts **15 boards** (`wholeGameClause` 16 of 7183 with the void game), against 34. Against the prior
+34 seeds: **20 CLOSED, 1 JOINED** (`…2657780674`, a Protect activation against a Screech), **14
+STAND**. `state.board_parted_before_the_protocol_did` is now **0**, where it was 3. Undeclared
+narration there is 236 of 7183 across 132 causes — **not comparable with the prior 56**, which was
+taken with `-ability` invisible. **The ability-announcement class is 181 of that run's 274 protocol
+divergences (66%)**; the next largest is a bare `|-fail|` the two engines disagree on, 26.
+
+**THE 14 STANDING BOARD PARTINGS, GROUPED — TEN MECHANISMS, TWO CARRY SEVEN.** Protect activating
+where the authority resolves the move **4** (Parting Shot, Soak, Screech, Taunt), a burn landing in
+one engine only **3** (Spicy Spray, Flame Body, a bare `-status`), then one each: Armor Tail refusing
+Fake Out, a `-miss` one engine does not draw, a boost landing in the opposite direction, Bug Bite's
+steal-eat against Rough Skin's KO, Heal Block refusing Drain Punch, flinch, Cursed Body's Disable on
+Struggle, and Trick Room resolving a different move in `move` field 3. **The grouping is a lead, not a
+diagnosis**: a game records only its FIRST divergence, and the first PROTOCOL divergence is not
+necessarily what parted the board. Seeds and board leaves are in the report.
+
+**THE CORNER ARMS PART NO BOARD FOR THE FIRST TIME.** `top-tie-first` **0 of 961** and
+`bottom-tie-first` **0 of 961** at `--games 1200`, against 0 and 1 last pass; raw protocol 31 and 35,
+dominated by the same Cloud Nine and Super Sweet Syrup lines. Two artifacts under
+`data/verification/`.
+
+### The hand list, after this pass
+
+- **Nothing leaves it.** This pass wrote no probe and fixed nothing; it is a measurement.
+- **ONE ITEM JOINS AND IT IS THE WHOLE GATE: the ability ARRIVAL announcement.** Cloud Nine (and Air
+  Lock, the identical handler) announces on `onSwitchIn` and this engine writes nothing; Super Sweet
+  Syrup announces with a `|boost` marker the authority does not write. 181 of 274 held-out
+  divergences, 86 of 89 gate-lattice divergences, all 15 diverging staged mechanics. **A probe shown
+  RED is owed before any engine line moves.**
+- **TWO INSTRUMENT ITEMS JOIN**: the `ability/residual` red plant must be re-aimed
+  (`tests/roster.js:12869` against `engine/medicham2-browser.js:48922`), and the two announcement
+  knobs must be declared in `DELIBERATE_BREAK` with Anticipation's census row quoting the authority's
+  literal line.
+- **Four items from 6.71.0's list are now measured rather than assumed.** The Protect `stall` counter
+  survives as **4 Protect-activation partings** (one of them new); flinch falls 4 → **1**; the burn
+  class falls 4 → **3**; trapping volatiles fall 3 → **0**.
+- **Carried forward** from 6.70.0: King's Rock and Purifying Salt are not wired; Blaze's click-swap
+  control; the click-swap controls.
+
+## THE GATE READ **OPEN, 10 OF 10** ON `18773c22878f` — AND A HELD-OUT `--games 12000` DRAW ON IDENTICAL PINS PARTS **34 BOARDS OF 7,178**, WITH THE CORNER ARMS PARTING **0 / 1 / 4** AND **1 / 1 / 4** ON THE GATE'S OWN THREE LATTICES. **NO ENGINE BYTE CHANGED; RELEASE `18773c22878f`; DRIVER `faf70ecbca71` AND CENSUS PIN `0c1d71e2a1bb`, SO THE `6180c4712761` LATTICES ARE COMPARABLE.** 2026-09-19, CHANGELOG 6.71.0
 
 Full account: `docs/_reports/2026-09-19-final-remeasure.md`.
 
