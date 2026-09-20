@@ -10,6 +10,19 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.84.0] — 2026-09-20
+
+### Fixed
+- The Illusion exposure figure divided a sheet count by the game count. Re-derived over the frozen
+  pool: 450 of 26,370 bo3 sheets (1.71%) carry a legal body, 228 of those brought it — not 408 of
+  13,214 (3.09%) with 215 brought.
+
+### Notes
+- Caught by a document agent that refused to write the figures because no artifact backed them, rather
+  than by any check. The coordinator had repeated them from a memory note without re-deriving.
+- The figure is a live derivation over an untracked store file and carries no artifact citation; the
+  living documents say so instead of inventing one.
+
 ## [6.83.0] — 2026-09-20
 
 ### Fixed

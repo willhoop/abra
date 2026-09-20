@@ -27,8 +27,10 @@ nothing in the protocol ever showed it, and the only visible trace was 9 hp of r
 turns later. It took a replay from turn 1: a previous pass had staged the situation directly, played
 11 turns, seen nothing, and called it not reproducible. **That was a claim about the fixture.**
 
-**WHAT ZERO DOES NOT MEAN.** Illusion stays the one declared exclusion — 408 of 13,214 pool sheets
-carry a carrier and 215 brought one. Closed team sheets and bo1 stay out of scope. **7 live `lastMove`
+**WHAT ZERO DOES NOT MEAN.** Illusion stays the one declared exclusion. **CORRECTED the same day:** re-derived over the
+frozen pool, 450 of 26,370 bo3 sheets (1.71%) carry a legal body and 228 of those brought it. The
+first figure divided a SHEET count by the GAME count and read about twice the true rate; it is a live
+derivation over an untracked store file, so it carries no artifact citation. Closed team sheets and bo1 stay out of scope. **7 live `lastMove`
 readings remain a real unregistered class**, reported and not fixed. A zero is a statement about what
 was measured, and these were not.
 

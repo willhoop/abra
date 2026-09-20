@@ -52,6 +52,29 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.84.0] — 2026-09-20 — the Illusion exposure figure was a SHEET count over a GAME denominator, and is corrected
+
+- **What changed.** Nothing in the engine. A published figure is corrected.
+- **The figure.** This repository has been stating that Illusion, the one declared MEDICHAM exclusion,
+  reaches ~~408 of 13,214 bo3 sheets (3.09%), 215 of them brought~~. **13,214 is the GAME count and the
+  numerator was a SHEET count — there are two sheets per game** — so the published rate was inflated
+  roughly twofold, and the counts were themselves stale.
+- **Re-derived** over `data/team-pool-frozen/games.bo3.jsonl`, with the carriers derived from
+  `Dex.forFormat('gen9championsvgc2026regmb')` rather than named from memory: **13,214 games, 26,370
+  sheets; 450 sheets (1.71%) carry a legal Illusion body, and 228 of those brought it.**
+- **How it was caught, which is the part worth keeping.** A document agent writing the 7.0.0 deck
+  **refused to write the figures at all**, because no artifact backed them and writing one would have
+  meant inventing a receipt. It reported the refusal instead of working around it. The coordinator had
+  repeated the figure all day from a memory note without re-deriving it — which is the rule this
+  project already has, broken by the person quoting it.
+- **It carries no artifact citation and that is stated rather than papered over.** It is a live
+  derivation over an untracked store file, not a row in a `data/*.json` artifact, so
+  `tests/test-docs-current.js`'s citation matcher cannot bind it. The living documents state it in
+  words, or as a quoted readout headed by the derivation — never with an invented citation.
+- **Basis.** unchanged.
+- **Supersedes.** ~~408 of 13,214 (3.09%), 215 brought~~ (6.83.0 row and the ENGINE ledger), now
+  **450 of 26,370 (1.71%), 228 brought**. Corrected in place in both, not captioned.
+
 ## [6.83.0] — 2026-09-20 — the last held-out board parting closes: **ZERO on the wide sample as well as on the gate**
 
 - **What changed.** The final parting was a real engine defect and a nasty one: a `null` was written
@@ -84,8 +107,10 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
   anything they must now unlearn.
 - **Supersedes.** ~~held-out board partings 1~~ (6.82.0 row), now **0**. ~~1000 probed / 1000 live~~,
   now **1002 / 1002**. Same pool, same flags, same `--games`; only the engine moved.
-- **WHAT ZERO DOES NOT MEAN.** Illusion stays the one declared exclusion — 408 of 13,214 pool sheets
-  carry a carrier, 215 brought one. Closed team sheets and bo1 stay out of scope. **7 live `lastMove`
+- **WHAT ZERO DOES NOT MEAN.** Illusion stays the one declared exclusion. **CORRECTED the same day:** re-derived over the
+  frozen pool, 450 of 26,370 bo3 sheets (1.71%) carry a legal body and 228 of those brought it. The
+  first figure divided a SHEET count by the GAME count and read about twice the true rate; it is a live
+  derivation over an untracked store file, so it carries no artifact citation. Closed team sheets and bo1 stay out of scope. **7 live `lastMove`
   readings remain a real unregistered class** (the authority keeps the CALLING move where this engine
   keeps the called one), reported and not fixed. A zero is a statement about what was measured.
 - **Coordinator, at merge.** An instrument fix that had been taxing every worktree agent all day:
