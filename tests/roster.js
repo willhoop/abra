@@ -12863,11 +12863,37 @@ const RULES = [
      + '`{ sw: ... }` became a legal step on 2026-08-08; before it, `--reds` correctly caught this '
      + 'this rule\'s prose claiming a gate test it could not perform; the break below is now aimed at '
      + 'the gate itself rather than at the effect.',
+  /* THE ANCHOR IS THE TAG READ, NOT THE GATE EXPRESSION — RE-AIMED 2026-09-20 AFTER IT DIED.
+   *
+   * The plant used to aim at the gate's own `if (...) for (const k in _be.boosts) {` line, which is a
+   * line INSIDE A BODY and therefore one edit from death. 6.73.0 put
+   * `const _ber = abilityBoostRun(...)` between the `if` and the `for` (WIRE 138's announcement run),
+   * the anchor stopped matching, and the anchor audit read `matched 0 time(s), not 1` — every row this
+   * rule produced was asserting nothing, and the abilities stage exited 1 for an INSTRUMENT reason
+   * with the engine clean. That is the same shape as 6.60.0's dead anchor and as the `dmgRangeOneHit`
+   * one that silently emptied 41.7% of the moves stage.
+   *
+   * SO IT AIMS AT THE ONE LINE THAT HAS TO EXIST FOR THIS FAMILY TO BE IMPLEMENTED AT ALL: the read of
+   * the `boostsEachTurn` param. That line is the tag consumer — delete it and the mechanic is gone —
+   * so it cannot be refactored away while leaving the mechanic behind, and it does not care how the
+   * gate is spelled, how many statements the body grows, or where the announcement run is built.
+   *
+   * WHAT THE PLANT DOES IS STILL THE GATE AND NOT THE EFFECT, which is the distinction this rule's
+   * prose is about. Clearing `_newlySwitched` on the body at the moment the param is read makes every
+   * carrier look as though it did NOT arrive this turn, so the boost fires on its entry boundary —
+   * exactly Showdown's `if (pokemon.activeTurns)` being removed. Nulling `_be` instead would delete
+   * the effect outright and the rule would be back to proving something weaker than it claims.
+   *
+   * ITS BLAST RADIUS, STATED RATHER THAN ASSUMED: the injected clear runs only inside the `boosts`
+   * residual group and only in a game that has a `boostsEachTurn` carrier on the field, and
+   * `_newlySwitched` is re-cleared at the top of every turn anyway, so the only other reader that
+   * could see it is the partial-trap clause further down the same residual. No member of this rule
+   * stages a partial trap. */
   break: { why: 'THE ENTRY GATE IS REMOVED and the per-turn effect fires unconditionally — which is the '
               + 'exact defect this family was written against, and it can only be caught by a staging '
               + 'that has a mid-turn entrant in it',
-    patch: [['if(_be&&_be.boosts&&m.boosts&&!m._newlySwitched)for(const k in _be.boosts){',
-             'if(_be&&_be.boosts&&m.boosts)for(const k in _be.boosts){']] },
+    patch: [["const _be=TAGS.param('ability',m.ability,'boostsEachTurn');",
+             "const _be=TAGS.param('ability',m.ability,'boostsEachTurn');m._newlySwitched=false;"]] },
   match(e) { if (!e.onResidual) return null;
     return abilityScenario(e, carrierFor(e), 'residual'); } },
 

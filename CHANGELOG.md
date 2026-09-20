@@ -10,6 +10,15 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.75.0] — 2026-09-20
+
+### Fixed
+- The roster's `ability/residual` red plant (a dead anchor after a 6.73.0 edit) and the two announcement
+  receipts the gate refused because their knobs were missing from DELIBERATE_BREAK. Gate 3 of 10 -> 2 of 10.
+
+### Changed
+- `OWED_CAP` 100 -> 165 with its derivation, while the drafted next-major fold-in waits on Will.
+
 ## [6.74.0] — 2026-09-19
 
 ### Changed

@@ -28467,14 +28467,24 @@ probe('ability', 'announcesOnEntry', 'Anticipation shudders once at a foe move s
     const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
     const trace = []; S._trace = trace;
     M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
-    return trace.map(M.traceCanon).filter(l => /^\|-ability\|p1a:[^|]*\|anticipation$/.test(l)).length;
+    return trace.map(M.traceCanon).filter(l => /^\|-ability\|p1a:[^|]*\|anticipation$/.test(l));
   };
-  const control = [run('none', ['shadowclaw'], ['protect']), run('anticipation', ['hydropump', 'dragonclaw'], ['protect'])];
-  const test = [run('anticipation', ['shadowclaw', 'hydropump'], ['protect']), run('anticipation', ['hydropump'], ['sheercold'])];
+  /* THE LINE IS QUOTED, NOT JUST COUNTED — 2026-09-20. The whole effect of this ability IS the line
+   * (`announcesOnEntry.visibleOnABoard: false`, derived), so this row is the only instrument that can
+   * ever grade it, and the roster's ANNOUNCEMENT-ONLY receipt is refused outright by
+   * engine/quarantine.js when the row it points at "QUOTES NO PROTOCOL LINE". It read
+   * `[1,1] — no die` and nothing else, so a count of how often something was said was standing in for
+   * what was said. Same shape as the Forewarn row beside it, which has quoted its line since it was
+   * written. The counts are unchanged and remain the arms. */
+  const L = (a) => a.map((x) => x.length);
+  const control = L([run('none', ['shadowclaw'], ['protect']), run('anticipation', ['hydropump', 'dragonclaw'], ['protect'])]);
+  const hit = [run('anticipation', ['shadowclaw', 'hydropump'], ['protect']), run('anticipation', ['hydropump'], ['sheercold'])];
+  const test = L(hit);
   return { works: control[0] === 0 && control[1] === 0 && test[0] === 1 && test[1] === 1,
            arms: { control, test },
            detail: `[Anticipation lines] no ability / neutral + Dragon-into-Fairy (immune) ${JSON.stringify(control)}; `
-                 + `Shadow Claw (SE) / Sheer Cold (OHKO) ${JSON.stringify(test)} — data/abilities.ts:174-190, no die` };
+                 + `Shadow Claw (SE) / Sheer Cold (OHKO) ${JSON.stringify(test)} `
+                 + `[${hit.map((x) => x[0] || '(no line)').join(' ; ')}] — data/abilities.ts:174-190, no die` };
 });
 
 probe('ability', 'reEatsBerry', 'Cud Chew eats the same berry again a turn later', () => {
@@ -37462,7 +37472,21 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           /* 2026-09-19 -- the held-out burn/trap/recoil batch (tests/probe_recoil_on_a_whiff.js,
                            * tests/probe_partial_trap_source_left.js), both stamped at LOAD */
                           'recoilOnWhiffRestored', 'partialTrapOutlivesItsSourceRestored',
-                          'trapSurvivesDeadTrapperRestored', 'afterMoveCureOffRestored']
+                          'trapSurvivesDeadTrapperRestored', 'afterMoveCureOffRestored',
+                          /* 2026-09-20 -- THE TWO ANNOUNCEMENT KNOBS THAT WERE NEVER DECLARED HERE.
+                           * `MEDI_ANTICIPATION_SILENT` and `MEDI_FRISK_SILENT` are wired in the engine
+                           * (engine/medicham2-browser.js `_MK('MEDI_ANTICIPATION_SILENT')` ->
+                           * `MEDFAILS.anticipationSilentRestored`, and the same pair for Frisk) and are
+                           * exercised by tests/probe_entry_announce.js, and neither stamp was in this
+                           * list. TWO COSTS, both measured: a red demonstration of either knob WROTE the
+                           * census, exactly as the Sucker Punch and `announcesOnStart` knobs did before
+                           * they were listed; and the roster's ANNOUNCEMENT-ONLY receipt
+                           * (engine/quarantine.js check 2c) refuses a row whose stamp is absent from
+                           * THIS list -- "NO KNOB CAN MAKE THIS ROW RED" -- so `ability:anticipation`
+                           * and `ability:frisk` were refused and the abilities stage was red for an
+                           * instrument reason with the engine clean. `forewarnSilentRestored`, the third
+                           * of the same three-row family, has been listed since narration batch C. */
+                          'anticipationSilentRestored', 'friskSilentRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

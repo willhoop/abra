@@ -172,10 +172,10 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  977/984 probed mechanics live, 0 missing   (census 2026-09-19 23:45)
+  977/984 probed mechanics live, 0 missing   (census 2026-09-20 00:18)
     the census probes what somebody thought to probe: 303 of 303 in-scope tags carry a probe, 0 carry none (9 of 312
     tags have no in-scope carrier); 0 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 45 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 1.5 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-19 23:17)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
     the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
@@ -199,9 +199,51 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 23:57_
+_stamped 2026-09-20 00:45_
 
 <!-- /GENERATED -->
+
+## THE ROSTER'S ABILITIES CLAUSE WAS RED ON TWO **INSTRUMENT** FAULTS AND BOTH ARE CLOSED: THE `ability/residual` PLANT IS RE-AIMED AT A **TAG READ** AND IS CAUGHT AGAIN, AND THE TWO ANNOUNCEMENT KNOBS ARE DECLARED, SO ALL THREE RECEIPTS ARE ACCEPTED. **GATE 3 OF 10 → 2 OF 10 FAILING.** CENSUS **977 LIVE / 0 MISSING**, UNMOVED. **NO ENGINE BYTE CHANGED — RELEASE `834713ccb303`, `0 of 27 files have moved since`; LIGHT MODE, ONE RULE AND ONE STAGE.** 2026-09-20
+
+Full account: `docs/_reports/2026-09-20-roster-instruments.md`.
+
+**THE PLANT DIED BECAUSE IT AIMED AT A LINE INSIDE A BODY.** `ability/residual`'s break anchored on
+`if(_be&&_be.boosts&&m.boosts&&!m._newlySwitched)for(const k in _be.boosts){`; 6.73.0 put the
+announcement run between the `if` and the `for`, the anchor matched **0 times**, and every row the
+rule produced asserted nothing while the abilities stage exited 1 with the engine clean. It now
+anchors on the **`boostsEachTurn` param read** — the one line that has to exist for the family to be
+implemented at all — and clears `_newlySwitched` there, so the plant is still aimed at Showdown's
+`activeTurns` ENTRY GATE rather than at the effect. `--rule ability/residual --stage abilities --reds`
+reads `1 of 1 apply exactly once` and **`CAUGHT ability/residual via speedboost -> CONTROL-NOT-QUIET
+on party.boosts.spe, boosts.spe`** — the leaf the mechanic owns, on a member that was green before the
+plant. Stage-wide: **65 of 65 anchors alive, 65 reds ok, 0 dead**, exit **0**.
+
+**THE TWO ANNOUNCEMENT RECEIPTS WERE REFUSED BY A LIST, NOT BY A MEASUREMENT.**
+`anticipationSilentRestored` and `friskSilentRestored` had never been in `DELIBERATE_BREAK`
+(`tests/test-mechanics.js`), which the gate reads as *"NO KNOB CAN MAKE THIS ROW RED"*, and
+Anticipation's census row quoted no protocol line — it counted announcements instead of pinning one.
+Both are fixed at the instrument: the row now carries
+`[|-ability|p1a:hatterene|anticipation ; |-ability|p1a:hatterene|anticipation]`, and the stamps are
+declared. **The controls were cleared explicitly**: with the pre-change list each of the two refuses on
+exactly the stamp clause and Forewarn is untouched; with the pre-change detail Anticipation refuses on
+`QUOTES NO PROTOCOL LINE` alone. Under each knob the census run prints **REFUSED to write** at
+**976 live / 1 missing** and the file is byte-identical afterwards (`2d68db3a8ce1` both sides).
+
+**THE CLAUSE NOW READS PASS.** `node engine/quarantine.js`: `deliberate roster / abilities  clean:
+196 of 200 tested. ANNOUNCEMENT-ONLY — 3 row(s) accepted on a receipt` (anticipation, forewarn,
+frisk). `GATE: CLOSED — 2 of 10`, the two remaining being narration and mechanics, **both still the
+one ability-arrival announcement class**.
+
+### The hand list, after this pass
+
+- **TWO INSTRUMENT ITEMS LEAVE.** The `ability/residual` plant is re-aimed and CAUGHT; the two
+  announcement knobs are declared and their receipts accepted. Neither was an engine defect and
+  neither is open.
+- **THE ABILITY ARRIVAL ANNOUNCEMENT STANDS, UNTOUCHED.** Cloud Nine / Air Lock announce on
+  `onSwitchIn` and this engine writes nothing; Super Sweet Syrup announces with a `|boost` marker the
+  authority writes bare. It is both remaining failing clauses. A probe shown RED is still owed.
+- **Carried forward** unchanged: the 14 standing held-out board partings, King's Rock and Purifying
+  Salt, the click-swap controls.
 
 ## THE GATE READS **CLOSED, 3 OF 10** ON `834713ccb303`, AND TWO OF THE THREE FAILING CLAUSES ARE **ONE ABILITY ANNOUNCEMENT**. BOARD-MATERIAL IS STILL **0 / 0 / 0**; THE HELD-OUT `--games 12000` DRAW GOES **34 → 15** ON THE SAME LATTICE (20 CLOSED, 1 JOINED, 14 STAND); THE CORNER ARMS AT 1200 PART **0** AND **0**. **NO ENGINE BYTE CHANGED; RELEASE `834713ccb303`; DRIVER `f4b3b2a5c270` — IT MOVED AT 6.72.0, SO NARRATION IS NOT COMPARABLE ACROSS IT AND THE BOARD COMPARISON IS MADE ON SEEDS.** 2026-09-19, CHANGELOG 6.74.0
 

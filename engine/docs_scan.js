@@ -2698,7 +2698,34 @@ const NOTES_LOG = 'docs/RUNNING-NOTES.md';
  * IT IS A GATE, NOT A HINT. `tests/test-docs-current.js` FAILS above it, which blocks the commit, and
  * the only ways out are to do the major-release pass or to raise this constant in a diff somebody can
  * see. That is the whole difference between a deferral and a silent abandonment. */
-const OWED_CAP = 100;
+/* RAISED 100 -> 165 ON 2026-09-20, ONCE, AND THE REASON IS THAT THE WORK IS DONE AND UNPUBLISHABLE.
+ *
+ * `--owed` read 98 of 100 — two rows from a build failure — and the thing that empties the backlog is
+ * NOT outstanding: the whole next-major fold-in is DRAFTED and sitting in
+ * `docs/_reports/2026-09-19-700-draft/` (whitepaper, deck, technical docs, MODELS, SUMMARY, README,
+ * CHANGELOG-7.0.0, NOTES-7.0.0), HELD for Will to read. Memory `7.0.0 is held for Will to read`: the
+ * X.0.0 and the document rewrite are not published to main unattended. So the cap was about to block
+ * every commit in the repository on a REVIEW QUEUE rather than on undone work, which is not the
+ * deferral this gate was built to refuse.
+ *
+ * WHAT IT IS NOT. It is NOT a version bump to empty the backlog — CLAUDE.md forbids bumping to X.0.0
+ * to clear a debt, and nothing here folds a single row into a live document. It is NOT the standing
+ * bound being relaxed by feel either: the bound stays a bound, stays hand-typed, and stays visible in
+ * a diff, which is the designed escape this comment is taking.
+ *
+ * THE NUMBER, DERIVED RATHER THAN PICKED. The original 100 was argued from a MEASURED cadence of ~10
+ * notes rows/day (2026-09-06). Measured again today off `docs/RUNNING-NOTES.md` itself, the last nine
+ * active days read 10, 13, 20, 29, 26, 37, 16, 6, 30 — a median of 20/day and a busiest day of 37, so
+ * the cadence has DOUBLED and 100 is no longer the ~10 working days it was sold as; at today's rate it
+ * is five. 165 = the 98 owed now + the two busiest measured days (37 + 30), i.e. roughly three days of
+ * this sprint's real output for the review to land in. That is deliberately shorter than the ten days
+ * the original bought, because the fold-in already exists and only has to be read.
+ *
+ * WHAT CLEARS IT PROPERLY, so this does not become the fourteenth stale handoff: publishing the held
+ * 7.0.0 pass bumps the living documents' version headers, every row below the new floor stops being
+ * owed, and `--owed` returns to ~0 with nothing to remember to undo. If that review stalls long enough
+ * to reach 165, the honest move is a DOCUMENT PASS at any version — not a second raise. */
+const OWED_CAP = 165;
 const OWED_WARN = Math.floor(OWED_CAP / 2);
 
 /* WHAT COUNTS AS A CHANGE THAT MUST BE RECORDED — ONE IMPLEMENTATION, TWO CALLERS.

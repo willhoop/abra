@@ -52,6 +52,14 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.75.0] — 2026-09-20 — the roster clause's two instrument faults, and the owed-docs cap raised while the fold-in waits on Will
+
+- **What changed.** Both faults were the instrument; no engine byte moved (release `834713ccb303`, 0 of 27 frozen files changed). `tests/roster.js`: the `ability/residual` red plant is re-aimed from a line a 6.73.0 edit split onto the tag read `TAGS.param('ability', m.ability, 'boostsEachTurn')` (one occurrence), so it still breaks the authority's `activeTurns` entry gate rather than the effect — `0 of 1 apply / DEAD ANCHOR / exit 1` becomes `1 of 1` and CAUGHT via Speed Boost. `tests/test-mechanics.js`: `anticipationSilentRestored` and `friskSilentRestored` join DELIBERATE_BREAK, and Anticipation's census row now QUOTES `|-ability|p1a:hatterene|anticipation` instead of counting — the gate's ANNOUNCEMENT-ONLY receipt refuses a row whose knob cannot make it red, and it was refusing those two. `engine/docs_scan.js`: `OWED_CAP` 100 -> 165 with the derivation written beside it.
+- **Measured.** Abilities stage on `834713ccb303`, `--reds --write`: exit 0, 196 MATCH + 3 ANNOUNCEMENT-ONLY + 1 DEFERRED, 0 DIFFER / 0 DID-NOT-FIRE / 0 COULD-NOT-STAGE, anchors 65 of 65 alive. Census 977 live / 0 missing, unmoved; under each new knob it REFUSES to write at 976/1 and the file is byte-identical. **`node engine/quarantine.js`: `GATE: CLOSED — 2 of 10`** (was 3 of 10), read independently by the coordinator; both remaining clauses are the single ability-arrival announcement class.
+- **Basis.** unchanged.
+- **Supersedes.** ~~GATE: CLOSED — 3 of 10~~ (6.74.0 row), now 2 of 10.
+- **Owed to the next major.** `--owed` reads 98 of 165. The cap was raised, not cleared: the fold-in is drafted at `docs/_reports/2026-09-19-700-draft/` and held for Will's review, so the rows cannot land in the live documents yet, and the old cap was failing every commit on a review queue. Publishing that pass clears it properly.
+
 ## [6.74.0] — 2026-09-19 — 6.73.0 re-measured on `834713ccb303`: board 0 / 0 / 0, held-out partings 34 → 15, and the gate closes on ONE ability announcement
 
 - **What changed.** Nothing in the code. Every instrument was re-run on release `834713ccb303`
