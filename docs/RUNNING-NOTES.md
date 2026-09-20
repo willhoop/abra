@@ -52,6 +52,31 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.80.0] — 2026-09-20 — the held-out draw on the SAME release parts **9 boards in 7,182 games**, where the gate's three lattices part none
+
+- **What changed.** Nothing in the engine. This is the held-out `--games 12000` draw that the 6.79.0
+  row recorded as OWED, run on the same release `51b80f9fcf08` with the same census pin and the same
+  team store, so it differs from the gate's lattices in ONE thing only: the sample.
+- **Measured.** **7,182 usable games** (7,183 played, 1 excluded as the instrument's own void game),
+  **9 board-material**, **88 protocol**, 0 cut short by the turn cap. Of the 88 whose protocol parted,
+  79 reached an identical board anyway; 0 had the board survive past the narration; 0 had the board
+  part first. Artifact `data/verification/game-differential.g12000.json`.
+  The nine, by leaf family: `party.hp` / `active[].hp` **6 games, 7 leaves**; `party.status` /
+  `active[].status` **3 games, 3 leaves**; and one each of a TYPE (parting at turn 1), a stat stage, a
+  PP count, and Trick Room's remaining turns.
+- **THIS IS THE READING THAT QUALIFIES 6.79.0 AND IT IS PUBLISHED BESIDE IT, NOT INSTEAD OF IT.** The
+  gate is open by its own definition — `engine/quarantine.js` requires zero on three lattices chosen to
+  share few teams, and it reads zero on all three. **A zero that holds at one sample size is a fact
+  about that sample**, which is why the lattice clause exists at all, and the wider draw says the engine
+  is not yet at zero. Both numbers are true and they answer different questions.
+- **Basis.** unchanged. Neither figure replaces the other; the gate's sample and the held-out sample
+  have always been two instruments.
+- **Supersedes.** ~~held-out board partings 15~~ (6.74.0 row, release `834713ccb303`), now **9** on
+  `51b80f9fcf08`. **The samples are comparable**: same pool, same census pin, same flags, same
+  `--games`; only the engine moved between them.
+- **Owed.** All nine are dispatched by seed. Until they are closed, no document may describe MEDICHAM
+  as correct on the strength of the gate alone.
+
 ## [6.79.0] — 2026-09-20 — the copy-door announcement closes the last narration class, and **`engine/quarantine.js` reads GATE: OPEN** on release `51b80f9fcf08`
 
 - **What changed.** The last undeclared narration game was a REAL defect, not wording. An ability

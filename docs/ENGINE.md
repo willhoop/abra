@@ -1,3 +1,33 @@
+## THE HELD-OUT DRAW ON THE SAME RELEASE PARTS **9 BOARDS IN 7,182 GAMES** — THE GATE'S THREE LATTICES PART NONE. **BOTH NUMBERS ARE TRUE AND THEY ANSWER DIFFERENT QUESTIONS.** 2026-09-20
+
+Same release `51b80f9fcf08`, same census pin, same `data/team-pool-frozen`, same flags. **The only
+difference is the sample.** Artifact: `data/verification/game-differential.g12000.json`.
+
+- **7,182 usable games** (7,183 played, 1 excluded as the instrument's own void game).
+- **9 board-material.** **88 protocol**, of which 79 reached an identical board anyway, 0 had the board
+  survive past the narration, and 0 had the board part before the protocol did.
+- 0 games cut short by the turn cap of 50.
+
+| leaf family | games | leaves |
+|---|---|---|
+| `party.hp` / `active[].hp` | 6 | 7 |
+| `party.status` / `active[].status` | 3 | 3 |
+| a TYPE, parting at **turn 1** | 1 | 1 |
+| a stat stage | 1 | 1 |
+| a PP count (the only leaf that parts in its game) | 1 | 1 |
+| Trick Room's remaining turns | 1 | 1 |
+
+**THIS DOES NOT RETRACT THE OPEN GATE AND IT IS NOT A CAPTION ON IT.** `engine/quarantine.js` requires
+zero on three lattices chosen by walking the swarm builder so they share few teams, and it reads zero
+on all three. That clause exists precisely because **a zero that holds at one sample size is a fact
+about that sample** — and here is the wider sample saying the engine is not yet at zero. The right
+reading is that the gate's condition is met and the engine is not finished, which is the distinction
+this ledger has been keeping all along.
+
+All nine are dispatched by seed. **Until they close, no document may describe MEDICHAM as correct on
+the strength of the gate alone.**
+
+
 ## **`engine/quarantine.js` READS `GATE: OPEN`** ON RELEASE `51b80f9fcf08` — ALL TEN CLAUSES PASS, BOARD-MATERIAL AND NARRATION BOTH ZERO ON EVERY LATTICE. CENSUS **984 LIVE / 0 MISSING**. 2026-09-20
 
 Full account of the last class: `docs/_reports/2026-09-20-last-narration.md`.
@@ -345,7 +375,7 @@ ENGINE — does the simulator do what Pokémon does
   984/993 probed mechanics live, 0 missing   (census 2026-09-20 14:07)
     the census probes what somebody thought to probe: 304 of 304 in-scope tags carry a probe, 0 carry none (9 of 313
     tags have no in-scope carrier); 0 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 19 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 48 min old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
     PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/51b80f9fcf08/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "51b80f9fcf08".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
@@ -364,7 +394,7 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-20 14:30_
+_stamped 2026-09-20 14:59_
 
 <!-- /GENERATED -->
 

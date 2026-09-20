@@ -10,6 +10,17 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.80.0] — 2026-09-20
+
+### Notes
+- The held-out `--games 12000` draw on release `51b80f9fcf08`: **7,182 games, 9 board-material, 88
+  protocol** — where the gate's three lattices part none. Held-out board partings 15 → 9.
+- The nine are 6 hp, 3 status, plus one type (parting at turn 1), one stat stage, one PP count and
+  Trick Room's remaining turns.
+- **This qualifies the open-gate reading of 6.79.0 and is published beside it.** The gate's clause is
+  zero on three lattices and it is met; a zero at one sample size is a fact about that sample, and the
+  wider draw is not at zero.
+
 ## [6.79.0] — 2026-09-20
 
 ### Fixed
