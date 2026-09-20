@@ -19786,6 +19786,72 @@ probe('ability', 'announcesOnStart', 'Pressure, Mold Breaker and Unnerve announc
                  + `nothing for a body without it)` };
 });
 
+/* 1b-bis. 2026-09-20 — THE ABILITY THAT SAYS ITS OWN NAME AS THE BODY *WALKS IN*, WHICH IS A DIFFERENT
+ *    DOOR FROM THE ONE ABOVE. `announcesOnSwitchIn` (engine/tag_dex.js) is every ability whose
+ *    `onSwitchIn` is nothing but the bare announcement of its own name followed by a delegation to its
+ *    own `onStart` — Cloud Nine (data/abilities.ts:534-538) and Air Lock (:90-94), which is the whole
+ *    membership of the dex and of which only Cloud Nine has a legal carrier here (Altaria, Drampa).
+ *    `/data/mods/champions/abilities.ts` overrides neither.
+ *
+ *    IT WAS THE LARGEST NARRATION CLASS IN THE PROJECT: 75 of the 89 protocol divergences across the
+ *    three gate lattices on release `834713ccb303`, and 167 of 274 in the 12,000-game held-out draw.
+ *    The EFFECT (`weatherSuppression`) has been live for weeks; only the line was missing.
+ *
+ *    THREE ARMS. The member announces exactly one line on a switch-in; the line is BARE, which is what
+ *    separates this class from the entry-drop announcement one row down (`|boost`); and the SAME entry
+ *    with no ability says nothing, without which this passes on an engine that announces every
+ *    switch-in. Members are READ OFF data/tags.json, so one added later is asked here with no edit.
+ *    The door itself — that a mega, a Trace or a Skill Swap must NOT announce — is
+ *    tests/probe_switchin_announce.js's SKILLSWAP-DOOR arm, against both engines.
+ *    Knob: MEDI_SWITCHIN_ANNOUNCE_SILENT=1 puts every arm back to silent. */
+probe('ability', 'announcesOnSwitchIn', 'Cloud Nine announces itself as the body walks in, with a BARE line — and a body with no such ability says nothing', () => {
+  const T = require(path.join(__dirname, '..', 'data', 'tags.json'));
+  const members = Object.keys(T.abilities).filter(k => (T.abilities[k].params || {}).announcesOnSwitchIn);
+  const said = {};
+  for (const k of members) said[k] = entryLines(k, 1).lines;
+  const off = entryLines('none', 1).lines;
+  const ok = members.length >= 1 && members.includes('cloudnine')
+          && members.every(k => said[k].length === 1
+               && new RegExp('^\\|-ability\\|p1a: [^|]+\\|' + k + '$').test(said[k][0]))
+          && off.length === 0;
+  return { works: ok, arms: { control: off.length, test: members.map(k => said[k].length) },
+           detail: `entry lines on a switch-in — ${members.map(k => k + ' ' + JSON.stringify(said[k])).join('; ')}; `
+                 + `no ability ${JSON.stringify(off)} (authority: one BARE |-ability|HOLDER|NAME, no fourth `
+                 + `field, every time the body arrives; nothing for a body without it)` };
+});
+
+/* 1b-ter. 2026-09-20 — AND THE ENTRY DROP'S ANNOUNCEMENT IS NOT THE SAME LINE FOR EVERY MEMBER.
+ *    `intimidate` writes `this.add('-ability', pokemon, 'Intimidate', 'boost')` INSIDE its foe loop;
+ *    `supersweetsyrup` writes it BARE and ABOVE the loop (data/abilities.ts:4708). This engine wrote
+ *    Intimidate's line for both, so every Supersweet Syrup entry carried a fourth field the authority
+ *    does not write — filed as `-ability field 4`, 11 of the 89 protocol divergences on the three gate
+ *    lattices and the whole of the `supersweetsyrup` deliberate-roster row.
+ *
+ *    THE EXPECTED SHAPE IS READ OFF THE TAG (`onSwitchInDrop.announce`) AND NOT TYPED, and the row
+ *    REFUSES if the two members derive the same fourth field — a row that cannot tell the two apart is
+ *    green on the engine that confuses them. The control is the same entry with no ability.
+ *    Knob: MEDI_ENTRYDROP_ANNOUNCE_INTIMIDATE_SHAPE=1 gives every member Intimidate's line again. */
+probe('ability', 'onSwitchInDrop', 'an entry drop announces in ITS OWN shape — Intimidate with the `boost` field, Supersweet Syrup bare', () => {
+  const T = require(path.join(__dirname, '..', 'data', 'tags.json'));
+  const members = Object.keys(T.abilities).filter(k => (T.abilities[k].params || {}).onSwitchInDrop);
+  const shape = k => (T.abilities[k].params.onSwitchInDrop || {}).announce;
+  const tails = members.map(k => (shape(k) || {}).tail === undefined ? 'MISSING' : String((shape(k) || {}).tail));
+  const said = {};
+  for (const k of members) said[k] = entryLines(k, 1).lines;
+  const off = entryLines('none', 1).lines;
+  /* THE ROW MUST BE ABLE TO TELL THE MEMBERS APART, or it is one claim wearing two names. */
+  const distinct = new Set(tails).size > 1 && !tails.includes('MISSING');
+  const ok = distinct && members.length >= 2 && off.length === 0
+          && members.every(k => said[k].length === 1
+               && new RegExp('^\\|-ability\\|p1a: [^|]+\\|' + k
+                   + (shape(k).tail ? '\\|' + shape(k).tail : '') + '$').test(said[k][0]));
+  return { works: ok, arms: { control: off.length, test: members.map(k => said[k].length) },
+           detail: `derived shapes ${members.map((k, i) => k + ' tail=' + tails[i]).join('; ')}; `
+                 + `emitted ${members.map(k => k + ' ' + JSON.stringify(said[k])).join('; ')}; `
+                 + `no ability ${JSON.stringify(off)}; the two members' fourth fields are `
+                 + (distinct ? 'DISTINCT' : 'THE SAME — this row cannot tell them apart') };
+});
+
 /* 1c. 2026-09-19 — AN ABILITY-SOURCED STAT CHANGE ANNOUNCES THE ABILITY ABOVE ITS FIRST STAT LINE.
  *
  *     if (boostBy) { ... if (effect.effectType === 'Ability' && !boosted) {
@@ -33203,7 +33269,11 @@ probe('ability', 'punishesAttacker', 'Effect Spore throws no die at a powder-imm
  * stream, never typed from recall. Each row is red under its knob:
  * MEDI_ROOST_ANNOUNCE_FLYING_ONLY, MEDI_SPREAD_NOFOE_FAILS, MEDI_ITEMMOVE_NOTARGET_SILENT,
  * MEDI_SYNC_IMMUNE_SILENT, MEDI_COACHING_NOALLY_SILENT. */
-const narRun = (sps, stage, mine, allyMv, foeMv) => {
+/* `rng` APPENDED 2026-09-20, defaulting to the `rng5` every existing caller already got, so no row
+ * above changes. The two rows at the bottom of this file need a die BELOW a 30% reaction chance:
+ * with 0.5 the disabler never fires and "no Disable after a Struggle" would be true for a reason
+ * that has nothing to do with the Struggle. */
+const narRun = (sps, stage, mine, allyMv, foeMv, rng) => {
   const me = bare(sps[0]), ally = bare(sps[1]), f1 = bare(sps[2]), f2 = bare(sps[3]);
   const bench = bare('clefable');
   if (stage) stage({ me, ally, f1, f2 });
@@ -33211,12 +33281,12 @@ const narRun = (sps, stage, mine, allyMv, foeMv) => {
    * the user's click never resolves -- measured, the whole turn went silent. */
   const S = M.battleInit([me, ally, bench], [f1, f2, bare('snorlax'), bare('milotic')], { seeded: true });
   const trace = []; S._trace = trace;
-  M.battleTurn(S, rng5,
+  M.battleTurn(S, rng || rng5,
     new Map([[me, M.playerAction(me, mine.mv, mine.ally ? ally : f1, S.field)],
              [ally, allyMv ? M.playerAction(ally, allyMv, ally, S.field) : { kind: 'pass' }]]),
     new Map([[f1, foeMv ? M.playerAction(f1, foeMv, me, S.field) : { kind: 'pass' }],
              [f2, foeMv ? M.playerAction(f2, foeMv, ally, S.field) : { kind: 'pass' }]]));
-  return { trace: trace.map(M.traceCanon), me, ally };
+  return { trace: trace.map(M.traceCanon), me, ally, f1, f2 };
 };
 const narHas = (r, re) => r.trace.some(l => re.test(l));
 probe('move', 'typeRemovedForTurn', 'Roost announces `-singleturn` on a body with no Flying type too, and not at full HP', () => {
@@ -37372,6 +37442,52 @@ probe('move', 'volatileRetypesMoves', 'Electrify makes the target\'s Normal move
                  + `(data/moves.ts:4571-4583, onModifyTypePriority -2). Knob MEDI_ELECTRIFY_NO_RETYPE` };
 });
 
+/* ================= 2026-09-20 — TWO OF THE FIFTEEN HELD-OUT BOARD PARTINGS ======================
+ *
+ * The single-engine half of tests/probe_shield_before_bounce.js and
+ * tests/probe_disabler_skips_struggle.js, both of which stage the same two mechanics against the
+ * AUTHORITY and were red before the fix. Knobs: MEDI_BOUNCE_BEFORE_SHIELD, MEDI_DISABLER_SEALS_STRUGGLE. */
+probe('ability', 'reflectsStatusMoves', 'a bouncer behind its own shield BLOCKS the reflectable move and does not reflect it', () => {
+  /* Espeon carries Magic Bounce and Audino's Baby-Doll Eyes is reflectable, single-target, carries
+   * `flags.protect` and lands a readable -1 Attack; both legal, and the drop is read as a STAGE on
+   * two named bodies so nothing else on the board can move it. */
+  const mb = b => { b.f1.ability = 'magicbounce'; };
+  const run = (shield) => narRun(['audino', 'appletun', 'espeon', 'milotic'], mb,
+                                 { mv: 'babydolleyes' }, null, shield ? 'protect' : null);
+  const bounced = r => r.trace.filter(l => /^\|move\|p2a:[^|]*\|babydolleyes/.test(l)).length;
+  /* `traceCanon` keeps the `move:` prefix on an `-activate` payload, so the line is
+   * `|-activate|p2a:espeon|move:protect`. Read off the stream, not from the shape a `-singleturn`
+   * happens to have. */
+  const prot = r => r.trace.filter(l => /^\|-activate\|p2a:[^|]*\|move:protect$/.test(l)).length;
+  const up = run(true), open = run(false);
+  /* `at`, not `atk` — this engine's stage keys are the two-letter ones (`at/df/sa/sd/sp`), and the
+   * first version of this row read `boosts.atk`, got `undefined || 0` and reported the CONTROL arm
+   * as showing no drop. A silent default looks exactly like a working feature. */
+  const control = [bounced(open), open.me.boosts.at || 0, prot(open)];
+  const test = [bounced(up), up.me.boosts.at || 0, prot(up)];
+  return { works: control[0] === 1 && control[1] === -1 && control[2] === 0
+                && test[0] === 0 && test[1] === 0 && test[2] === 1, arms: { control, test },
+           detail: `[reflected |move| lines, the CLICKER's atk stage, Protect activations] Espeon standing open `
+                 + `${JSON.stringify(control)}, Espeon behind Protect ${JSON.stringify(test)} — both handlers are `
+                 + `TryHit and runEvent sorts them by priority (sim/battle.ts:421-426): protect.condition `
+                 + `onTryHitPriority 3 (data/moves.ts:13986) against magicbounce's 1 (data/abilities.ts:2428), `
+                 + `and Protect's NOT_FAIL ends the event. Knob MEDI_BOUNCE_BEFORE_SHIELD` };
+});
+probe('ability', 'disablesAttacker', 'the on-hit disabler is never rolled for a STRUGGLE', () => {
+  /* rngLow (0.01) puts the 30% roll on the firing side of the die in BOTH arms, so a quiet Struggle
+   * arm cannot be a lost roll. Banette carries Cursed Body. */
+  const cb = b => { b.f1.ability = 'cursedbody'; };
+  const run = (mv) => narRun(['altaria', 'appletun', 'banette', 'milotic'], cb, { mv }, null, null, rngLow);
+  const dis = r => r.trace.filter(l => /^\|-start\|p1a:[^|]*\|disable\|/.test(l)).length;
+  const ord = run('alluringvoice'), str = run('struggle');
+  const control = [dis(ord)], test = [dis(str)];
+  return { works: control[0] === 1 && test[0] === 0, arms: { control, test },
+           detail: `[Disable lines written on the ATTACKER] an ordinary click into Banette ${JSON.stringify(control)}, `
+                 + `a Struggle into the same body ${JSON.stringify(test)} — cursedbody.onDamagingHit guards `
+                 + `\`move.id !== 'struggle'\` ABOVE its randomChance(3,10) (data/abilities.ts:774-787, no `
+                 + `Champions key). Knob MEDI_DISABLER_SEALS_STRUGGLE` };
+});
+
 const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js --red */
                           'abilityBoostAnnounceRestored',
                           'residualCollapsed', 'zombieSkipsResidualRestored', 'followerCountsCorpsesRestored', 'volleyReactDrawnRestored', 'afterFaintPerTargetRestored',
@@ -37486,7 +37602,15 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                            * and `ability:frisk` were refused and the abilities stage was red for an
                            * instrument reason with the engine clean. `forewarnSilentRestored`, the third
                            * of the same three-row family, has been listed since narration batch C. */
-                          'anticipationSilentRestored', 'friskSilentRestored']
+                          'anticipationSilentRestored', 'friskSilentRestored',
+                          /* 2026-09-20 -- the two announcement knobs of the Cloud Nine / Supersweet Syrup
+                           * pass, both stamped at LOAD (tests/probe_switchin_announce.js,
+                           * tests/probe_entrydrop_announce_shape.js) */
+                          'switchInAnnounceSilentRestored', 'entryDropAnnounceIntimidateShapeRestored',
+                          /* 2026-09-20 -- the held-out shield/bounce and Struggle/disabler pair
+                           * (tests/probe_shield_before_bounce.js, tests/probe_disabler_skips_struggle.js),
+                           * both stamped at LOAD */
+                          'bounceBeforeShieldRestored', 'disablerSealsStruggleRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

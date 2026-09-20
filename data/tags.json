@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-20T02:14:22.293Z",
+ "generated": "2026-09-20T05:08:44.844Z",
  "by": "engine/tag_dex.js",
  "what": "Every move, item and ability tagged with the PARAMETER it sets, plus whether any feature actually reads that parameter. Tags say \"this sets that value\", never \"special-case this\" -- so one damage distribution consumes all of them and there is no per-mechanic branch to get subtly wrong.",
  "derivation": "Dex fields where they exist (multihit, willCrit, priority, target, flags, boosts, drain, recoil, selfSwitch, forceSwitch, weather, terrain, sideCondition) and HANDLER PROBES where they do not (onDamagingHit, onSourceModifyDamage, onCriticalHit, onFoeTryMove, onChangeBoost, onModifySpe). Nothing hand-listed, per S13.",
@@ -4226,6 +4226,19 @@
    "examples": [
     "Intimidate",
     "Supersweet Syrup"
+   ]
+  },
+  {
+   "tag": "announcesOnSwitchIn",
+   "kind": "ability",
+   "param": "the ability writes its own bare `|-ability|` line when the body WALKS IN — not on a mega, a copy or a swap — and then delegates to its own onStart",
+   "why": "Cloud Nine (561 sheets) announces itself on arrival and this engine wrote nothing, which is the single largest narration class on every gate lattice. Air Lock is the identical handler with no legal carrier in Reg M-B",
+   "consumedBy": "announcesOnSwitchIn",
+   "used": true,
+   "n": 1,
+   "uses": 561,
+   "examples": [
+    "Cloud Nine"
    ]
   },
   {
@@ -39533,12 +39546,21 @@
   "cloudnine": {
    "name": "Cloud Nine",
    "tags": [
-    "weatherSuppression"
+    "weatherSuppression",
+    "announcesOnSwitchIn"
    ],
    "uses": 561,
    "params": {
     "weatherSuppression": {
      "suppresses": true
+    },
+    "announcesOnSwitchIn": {
+     "event": "-ability",
+     "on": "self",
+     "tail": null,
+     "delegatesToStart": true,
+     "switchInPriority": 0,
+     "visibleOnABoard": false
     }
    }
   },
@@ -41129,7 +41151,12 @@
       "atk": -1
      },
      "oncePerBattle": null,
-     "blockedBySubstitute": true
+     "blockedBySubstitute": true,
+     "announce": {
+      "event": "-ability",
+      "tail": "boost",
+      "gatedOnFoe": true
+     }
     }
    }
   },
@@ -43097,7 +43124,12 @@
       "evasion": -1
      },
      "oncePerBattle": "syrupTriggered",
-     "blockedBySubstitute": true
+     "blockedBySubstitute": true,
+     "announce": {
+      "event": "-ability",
+      "tail": null,
+      "gatedOnFoe": false
+     }
     }
    }
   },

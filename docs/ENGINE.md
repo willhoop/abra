@@ -57,6 +57,7 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_hazard_sweep_order.js`, `tests/probe_residual_faint_flush.js`,
 `tests/probe_unknown_format_refusal.js`, `tests/probe_protect_tie_order.js`,
 `tests/probe_midturn_herb_resort.js`,
+`tests/probe_shield_before_bounce.js`, `tests/probe_disabler_skips_struggle.js`,
 `tests/probe_safeguard_volatile_infiltrator.js`, `tests/probe_future_sight_doll.js`,
 `tests/probe_signature_tags.js`,
 `tests/probe_ohko_type_immunity.js`, `tests/probe_redirect_volatile_already_up.js`,
@@ -203,6 +204,57 @@ _stamped 2026-09-20 00:45_
 
 <!-- /GENERATED -->
 
+## THE ONE GAME THAT **JOINED** THE HELD-OUT LIST IS NOT A REGRESSION — IT DIVERGED AT THE IDENTICAL INDEX AND LINE PAIR LAST PASS TOO, AND 6.73.0'S BOUNCE REDIRECT MERELY CARRIED AN OLDER DEFECT WHERE A BOARD LEAF COULD SEE IT. A SHIELDED MAGIC BOUNCE NOW **BLOCKS** INSTEAD OF REFLECTING (ROWS 1, 3, 6, 9) AND THE ON-HIT DISABLER IS NEVER ROLLED FOR A **STRUGGLE** (ROW 14): **5 OF THE 15 CAUSES CLOSED, NO GAME CLAIMED GONE.** THE "BURN, 3" CLASS IS **NOT ONE CLASS** — ONE IS A DIE VALUE WITH THE CAPABILITY PROVEN PRESENT, ONE IS AN ABILITY WITH NO DIE AT ALL. CENSUS **984 → 986 PROBED, 986 OF 986 LIVE / 0 MISSING** (TAGS UNMOVED AT 977). **ENGINE BYTES CHANGED — WORKTREE RELEASE `45abacb9aff7`; LIGHT MODE, NO LATTICE, NO GATE, THE RE-RUN IS OWED.** 2026-09-20, version assigned at merge
+
+Full account: `docs/_reports/2026-09-20-heldout-15.md`.
+
+**THE JOINED GAME, FIRST, BECAUSE IT LOOKED LIKE A REGRESSION AND WAS NOT.** Row 6 (`…2657780674`,
+turn 8) carries `agreed_lines: 103` and the cause string
+`extra event emitted by medicham2 :: |-activate|p1a|protect <> |move|p1a|screech` in **both** passes'
+dumps. One field moved: the wrongly-bounced Screech used to land on `p2b Liepard`, who fainted to the
+next Earthquake anyway, and now correctly follows Rage Powder to `p2a Sinistcha`, who does not — so
+`p2.party.sinistcha` reads `hp 47 / def −2` here against `96 / 0`. **6.73.0's fix was right. The game
+reached further.**
+
+**THE DEFECT UNDER IT, AND IT IS ONE FACT WITH TWO IMPLEMENTATIONS.** Protect's condition and Magic
+Bounce are both handlers in the SAME `TryHit` event, sorted by `compareLeftToRightOrder`
+(`sim/battle.ts:421-426`) **priority first**: `onTryHitPriority` **3** (`data/moves.ts:13986`) against
+**1** (`data/abilities.ts:2428`), and Protect's `NOT_FAIL` ends the event. `bounceAtTryHit` has opened
+with `shieldRefuses` since it was written and its header carries that reading; `statusMoveTargets` —
+where Screech, Soak, Taunt and Parting Shot all resolve — called `bounceOff` bare and asked the shield
+afterwards, of a target that had already been rewritten to the bounce destination. Row 1 is the
+expensive one: a reflected **Parting Shot** took the BOUNCER off the field, so `p1.active[0].species`
+is a different body in the two engines from that turn on.
+
+**AND `cursedbody` HAS TWO GUARDS, OF WHICH THIS ENGINE HAD ONE.** `data/abilities.ts:774-787` is
+`if (source.volatiles['disable']) return;` and then
+`if (!move.isMax && !move.flags['futuremove'] && move.id !== 'struggle')` **above** its
+`randomChance(3, 10)`. The second clause is a guard on the EVENT, not on the die, so a Struggle is
+never rolled for; `_lateReactorsOf` had the first clause only. Asked through `isStruggleAction`, which
+ROADMAP #459 already made this file's one reader of that question.
+
+**THE BURN CLASS IS THREE DIFFERENT THINGS AND THE BRIEF'S ONE-CLASS READING WOULD HAVE MISSED TWO.**
+Row 13 is a die VALUE — staged directly, Flame Body fires on Infestation at 0.01 and 0.20 and not at
+0.50, so the capability is present and correctly gated. Row 2 is **Spicy Spray, whose handler carries
+no `randomChance` at all** (`data/abilities.ts:4456`, an unconditional `trySetStatus`), so no
+addressing change can explain it and the lead is a SILENT `onSetStatus` refusal on the authority. Row
+12's first *protocol* divergence is Cloud Nine; its board parting is a third question.
+
+**ROW 10 IS DIAGNOSED AND BLOCKED ON A TAG THAT CANNOT BE WRITTEN FROM A WORKTREE.** Heal Block
+refuses any move carrying `flags.heal` (`data/moves.ts:8310-8313`) and Drain Punch carries it; this
+engine models Heal Block as a healing suppressor only. The shared place is a derived `forbidsFlag` on
+`blocksHealing`, which needs `data/tags.json` regenerated — and **`engine/tag_dex.js` in a worktree
+reads an EMPTY store and zeroes every usage count while exiting 0**: `sheet_entries` 316,656 → 0, 865
+leaf differences. The file was restored byte-identical (`aef20b103e19`). Regenerate from the main
+tree, or give `fit_policy.loadCorpus` a store root.
+
+**THE REPLAY OF THE ARTIFACT'S GAMES IS OWED AND WAS NOT FAKED.** `replay_one.js --games 12000` needs
+its warm-up (~8,000 games ahead of the target on the PRIMARY arm); run on the default heap it took
+~63 minutes of CPU and died silently, which is what `ABRA-HEAP: 8192` exists to prevent. `--no-warmup`
+completes in 0.4 s and is a DIFFERENT game — the tool says so itself and it is not reported as one.
+One receipt survives: the main tree's pinned pool resolves from a worktree by absolute path and
+reproduces the held-out lattice digest `e398641bda45` exactly.
+
 ## THE ROSTER'S ABILITIES CLAUSE WAS RED ON TWO **INSTRUMENT** FAULTS AND BOTH ARE CLOSED: THE `ability/residual` PLANT IS RE-AIMED AT A **TAG READ** AND IS CAUGHT AGAIN, AND THE TWO ANNOUNCEMENT KNOBS ARE DECLARED, SO ALL THREE RECEIPTS ARE ACCEPTED. **GATE 3 OF 10 → 2 OF 10 FAILING.** CENSUS **977 LIVE / 0 MISSING**, UNMOVED. **NO ENGINE BYTE CHANGED — RELEASE `834713ccb303`, `0 of 27 files have moved since`; LIGHT MODE, ONE RULE AND ONE STAGE.** 2026-09-20
 
 Full account: `docs/_reports/2026-09-20-roster-instruments.md`.
@@ -244,6 +296,72 @@ one ability-arrival announcement class**.
   authority writes bare. It is both remaining failing clauses. A probe shown RED is still owed.
 - **Carried forward** unchanged: the 14 standing held-out board partings, King's Rock and Purifying
   Salt, the click-swap controls.
+## CLOUD NINE ANNOUNCES ITSELF ON **ARRIVAL** AND SUPERSWEET SYRUP ANNOUNCES **BARE** — THE TWO MECHANISMS BEHIND **86 OF THE 89** GATE-LATTICE NARRATION DIVERGENCES. CENSUS **977 → 979 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `e352496db151`; LIGHT MODE, NAMED GAMES ONLY, NO LATTICE RUN.** 2026-09-20, version assigned at merge
+
+Full account: `docs/_reports/2026-09-20-cloudnine-syrup.md`.
+
+- **THE ARRIVAL ANNOUNCEMENT IS A DIFFERENT DOOR FROM `onStart`, AND THAT IS WHY IT IS A SECOND TAG.**
+  `cloudnine.onSwitchIn` (`data/abilities.ts:534-538`) and `airlock.onSwitchIn` (`:90-94`) are the same
+  four lines: the bare `this.add('-ability', pokemon, NAME)` then a delegation to the ability's own
+  `onStart`. `/data/mods/champions/abilities.ts` overrides neither. An ability that declares
+  `onSwitchIn` ITSELF gets that handler at an entry and its `onStart` everywhere else, so the line is
+  written when the body WALKS IN and never on a mega, a Trace, a Skill Swap or a Neutralizing-Gas
+  departure — the handler's own comment says exactly that. `announcesOnStart` was deliberately narrow
+  and had left Cloud Nine out for this reason.
+  - Tag: **`announcesOnSwitchIn`** (`engine/tag_dex.js`), predicate = the whole `onSwitchIn` body.
+    **Membership printed before wiring: `airlock` (NO legal carrier in Reg M-B) and `cloudnine`
+    (Altaria, Drampa), which is every ability of that shape in the dex.** The four other `onSwitchIn`
+    handlers — `imposter`, `neutralizinggas`, `terashift`, `zerotohero` — are each refused and each
+    refusal was printed.
+  - Engine: `switchInAnnounce()` in `engine/medicham2-browser.js`, called from the TWO arrival roads
+    (`runEntryPass` and the lead pass) and from none of the three `applyEntryEffects` roads that are
+    not arrivals. A member with a POSITIVE `onSwitchInPriority` is refused LOUDLY rather than placed.
+  - Knob: `MEDI_SWITCHIN_ANNOUNCE_SILENT=1` (stamped at load, in `DELIBERATE_BREAK`; the census run
+    under it reads **978 live / 1 missing** and REFUSES to write, shown). Counter
+    `MEDSEEN.switchInAnnounced`.
+  - Probe: `tests/probe_switchin_announce.js` — 8 arms, both engines, including a **SKILLSWAP-DOOR**
+    arm that hands Cloud Nine to a second body and asserts the authority writes no second line. The
+    first draft of that arm was VACUOUS (`skillswap` carries `protect: 1`, so the target's Protect
+    blocked the swap and the arm was green having handed the ability to nobody); it now asserts the
+    authority's own `|-activate|…|Skill Swap|Cloud Nine|…` line before claiming anything.
+- **AN ENTRY DROP ANNOUNCES IN ITS OWN SHAPE, AND THIS ENGINE WROTE INTIMIDATE'S FOR BOTH MEMBERS.**
+  `intimidate` writes `'-ability', pokemon, 'Intimidate', 'boost'` INSIDE its foe loop; `supersweetsyrup`
+  (`data/abilities.ts:4708`) writes it BARE and ABOVE the loop. `applyEntryDrops` had one unconditional
+  `TR.ab(m, m.ability, 'boost')`.
+  - Tag: `onSwitchInDrop` gains **`announce: {event, tail, gatedOnFoe}`**, derived from the handler.
+    **Printed before wiring: `intimidate {tail:"boost", gatedOnFoe:true}`, `supersweetsyrup
+    {tail:null, gatedOnFoe:false}`** — the whole of the tag's membership and nothing else.
+  - A member reaching the site with NO derived `announce` writes nothing and is COUNTED
+    (`MEDFAILS.entryDropAnnounceShapeMissing`), rather than picking a shape.
+  - Knob: `MEDI_ENTRYDROP_ANNOUNCE_INTIMIDATE_SHAPE=1` (stamped at load, in `DELIBERATE_BREAK`; the
+    census under it reads **978 live / 1 missing** and REFUSES to write, shown).
+  - Probe: `tests/probe_entrydrop_announce_shape.js` — 6 arms. **The red arm is asymmetric and says
+    so**: the knob restores Intimidate's own correct line, so the Intimidate arms are CONTROLS under it
+    and only a member whose derived tail is not `boost` may part.
+- **`data/tags.json` REGENERATED, NOT PATCHED, AND THE DIFF IS THREE ENTITIES.** The corpus monoliths
+  were hard-linked in from the main tree for the run and removed again. `sheet_entries` **316,656 =
+  316,656**, **0 usage counts moved**, 0 entries added or lost; the only changes are `cloudnine`'s new
+  tag and the two `onSwitchInDrop` rows' new `announce`.
+- **Census 977 → 979 live, 0 missing, 0 threw, 0 hollow, 0 verdict flips** — two new rows and nothing
+  lost.
+- **NAMED-GAME REPLAY, NOT A LATTICE.** Six Cloud Nine and two Supersweet Syrup games named by seed in
+  `data/game-differential.json` (`--games 1200`, release `834713ccb303`) were rebuilt from the pinned
+  pool and replayed on `e352496db151`. Six of the eight reproduce their artifact divergence EXACTLY
+  under the matching knob; **all eight are clean on the fixed engine, `board_parted=false`, every
+  boundary agreed.** The two that do not reproduce prove nothing either way and are named in the report.
+
+### The hand list, after this pass
+
+- **THE ABILITY ARRIVAL ANNOUNCEMENT LEAVES THE LIST — both halves of it.** The census carries
+  `ability/announcesOnSwitchIn` and the second `ability/onSwitchInDrop` row, and two probes with knobs
+  name the games. It joined the list one pass ago as "the whole gate".
+- **ONE OF THE TWO INSTRUMENT ITEMS LEAVES:** the two announcement knobs are now declared in
+  `DELIBERATE_BREAK`. **The `ability/residual` red plant re-aim STAYS** — not touched here.
+- **Carried forward** from 6.74.0: King's Rock and Purifying Salt are not wired; Blaze's click-swap
+  control; the click-swap controls.
+- **New, NOT fixed:** the `gatedOnFoe: false` half of Supersweet Syrup's rule — a carrier arriving with
+  no live adjacent foe — has no staged arm, because no scripted board in this harness reaches it. The
+  counter `MEDSEEN.entryDropAnnounceSkippedNoFoe` exists and reads 0.
 
 ## THE GATE READS **CLOSED, 3 OF 10** ON `834713ccb303`, AND TWO OF THE THREE FAILING CLAUSES ARE **ONE ABILITY ANNOUNCEMENT**. BOARD-MATERIAL IS STILL **0 / 0 / 0**; THE HELD-OUT `--games 12000` DRAW GOES **34 → 15** ON THE SAME LATTICE (20 CLOSED, 1 JOINED, 14 STAND); THE CORNER ARMS AT 1200 PART **0** AND **0**. **NO ENGINE BYTE CHANGED; RELEASE `834713ccb303`; DRIVER `f4b3b2a5c270` — IT MOVED AT 6.72.0, SO NARRATION IS NOT COMPARABLE ACROSS IT AND THE BOARD COMPARISON IS MADE ON SEEDS.** 2026-09-19, CHANGELOG 6.74.0
 

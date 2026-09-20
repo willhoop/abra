@@ -160,6 +160,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * again; this engine returned the clicker unconditionally. Zero on a run that staged one is the
    * pre-fix engine. tests/probe_bounced_move_redirect.js. */
   bounceRedirected: 0,
+  /* 2026-09-20 -- a reflectable status click that a bouncer's OWN SHIELD stopped before Magic Bounce
+   * was asked, which is the order the authority's `onTryHitPriority` 3-against-1 gives. The target
+   * stays in the list and STEP 1 writes the `move: Protect` line. Zero on a run that staged one is
+   * the pre-fix engine. tests/probe_shield_before_bounce.js. */
+  bounceRefusedByShield: 0,
+  /* 2026-09-20 -- a STRUGGLE that reached an on-hit disabler and was not rolled for, which is the
+   * authority's `move.id !== 'struggle'` clause. Zero on a run that staged one is the pre-fix engine.
+   * tests/probe_disabler_skips_struggle.js. */
+  disablerSkippedStruggle: 0,
   /* 2026-09-19 -- a `conditionalPower{when:chance}` draw taken off the CRIT address, at the repeat
    * index the authority's `getDamage` leaves it at. Zero on a run that clicked Fickle Beam is the
    * pre-fix engine. tests/probe_fickle_beam_die.js. */
@@ -3011,6 +3020,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * member whose `onSwitchInPriority` is positive (Unnerve, Klutz) speaks ABOVE the entry hazards. */
   abilityRewriteNamedOld: 0,
   startAnnouncedEarly: 0,
+  /* 2026-09-20 -- `switchInAnnounced`: an `announcesOnSwitchIn` ability (Cloud Nine; Air Lock is the
+   * identical handler with no legal carrier here) wrote its own bare `|-ability|HOLDER|Cloud Nine` as
+   * the body WALKED IN. Zero on a run carrying an Altaria or a Drampa with Cloud Nine means the line
+   * went silent again. `entryDropAnnounced` / `entryDropAnnounceSkippedNoFoe` are the entry-drop line's
+   * two fates: the announcement written, and a `gatedOnFoe` member that correctly said nothing because
+   * no live foe was standing. */
+  switchInAnnounced: 0,
+  entryDropAnnounced: 0,
+  entryDropAnnounceSkippedNoFoe: 0,
   /* `harvestCoinThrown`: a Harvest body's residual coin was thrown (or the sun made it certain) whether or
    * not a berry was waiting, as data/abilities.ts:1794 throws it. Zero with a Harvest body on the field
    * means the coin is gated on the berry again. */
@@ -3686,6 +3704,14 @@ const MEDFAILS = { encoreAction: 0,
    * about a capability proving it ran. MEDI_WEATHER_DEF_BY_CATEGORY / MEDI_REDIRECT_NEEDS_AIM_CHANGE. */
   weatherDefByCategoryRestored: 0, redirectNeedsAimChangeRestored: 0,
   bounceRedirectCtxMissing: 0, bounceIgnoresRedirectRestored: 0,
+  /* 2026-09-20 -- MEDI_BOUNCE_BEFORE_SHIELD=1 was set: `statusMoveTargets` asks `bounceOff` with no
+   * shield check, so a Magic Bounce body reflects a move its own Protect had already stopped. Stamped
+   * at LOAD. tests/probe_shield_before_bounce.js. */
+  bounceBeforeShieldRestored: 0,
+  /* 2026-09-20 -- MEDI_DISABLER_SEALS_STRUGGLE=1 was set: the on-hit disabler rolls for a Struggle,
+   * which the authority's `move.id !== 'struggle'` clause refuses before the die. Stamped at LOAD.
+   * tests/probe_disabler_skips_struggle.js. */
+  disablerSealsStruggleRestored: 0,
   /* 2026-09-19 -- MEDI_CONDPOWER_OFF_ANY=1 was set: Fickle Beam's 30% is drawn off the generic stream
    * above the crit instead of off the crit address below it, which is where the authority draws it.
    * Stamped at LOAD. tests/probe_fickle_beam_die.js. */
@@ -4776,6 +4802,17 @@ const MEDFAILS = { encoreAction: 0,
    * DELIBERATE_BREAK) whether or not the knob's site was ever reached. */
   abilityRewriteNoOldRestored: 0,
   startAnnounceAfterHazardsRestored: 0,
+  /* 2026-09-20 -- an `onSwitchInDrop` row in data/tags.json with NO `announce` key. The entry-drop site
+   * reads that shape to decide the FOURTH FIELD of the announcement and whether the line is gated on a
+   * live foe, and a tags.json generated before the derivation existed carries neither -- so the site
+   * would have to pick one, which is the silent default this engine's whole announcement class was.
+   * It must stay ZERO; a non-zero reading means regenerate data/tags.json. The site does NOT guess: it
+   * writes nothing and counts. */
+  entryDropAnnounceShapeMissing: 0, entryDropAnnounceShapeMissingFirst: '',
+  /* 2026-09-20 -- the two deliberate-break stamps for the arrival/entry-drop announcement pass, set AT
+   * LOAD from their env knob so a census generated under either is refused by name. */
+  switchInAnnounceSilentRestored: 0,
+  entryDropAnnounceIntimidateShapeRestored: 0,
   symbiosisLineShort: 0, symbiosisNonBerrySites: 'Mental Herb spends at freeVolatileByItem and Power\n Herb is isNonstandard Past in Champions; neither calls the partner. White Herb DOES, from 2026-08-23',
   /* ROADMAP #139 -- a `callsAnotherMove` click this engine could not resolve. Two reasons, kept
    * apart: `SourceUnmodelled` is Sleep Talk's own-moveslot draw, which is declared and not built;
@@ -6503,6 +6540,20 @@ if(REDIRECT_NEEDS_AIM_CHANGE)MEDFAILS.redirectNeedsAimChangeRestored=1;
  * MEDFAILS.bounceIgnoresRedirectRestored. Probe: tests/probe_bounced_move_redirect.js. */
 const BOUNCE_IGNORES_REDIRECT=_MK('MEDI_BOUNCE_IGNORES_REDIRECT');
 if(BOUNCE_IGNORES_REDIRECT)MEDFAILS.bounceIgnoresRedirectRestored=1;
+/* 2026-09-20 -- MEDI_BOUNCE_BEFORE_SHIELD=1 restores `statusMoveTargets`'s bare `bounceOff(...)`: the
+ * reflection is resolved with no shield check, so a bouncer standing behind its own Protect sends the
+ * move back instead of blocking it. `bounceAtTryHit` -- the SAME fact at the other bounce site -- has
+ * asked `shieldRefuses` first since it was written; this knob restores the disagreement between the
+ * two and nothing else. Stamped at LOAD in MEDFAILS.bounceBeforeShieldRestored.
+ * Probe: tests/probe_shield_before_bounce.js. */
+const BOUNCE_BEFORE_SHIELD=_MK('MEDI_BOUNCE_BEFORE_SHIELD');
+if(BOUNCE_BEFORE_SHIELD)MEDFAILS.bounceBeforeShieldRestored=1;
+/* 2026-09-20 -- MEDI_DISABLER_SEALS_STRUGGLE=1 restores the `disablesAttacker` reactor's missing
+ * second clause: the on-hit disabler rolls for a STRUGGLE, which `cursedbody.onDamagingHit` refuses
+ * outright (`move.id !== 'struggle'`). Stamped at LOAD in MEDFAILS.disablerSealsStruggleRestored.
+ * Probe: tests/probe_disabler_skips_struggle.js. */
+const DISABLER_SEALS_STRUGGLE=_MK('MEDI_DISABLER_SEALS_STRUGGLE');
+if(DISABLER_SEALS_STRUGGLE)MEDFAILS.disablerSealsStruggleRestored=1;
 /* 2026-09-19 -- MEDI_CONDPOWER_OFF_ANY=1 restores Fickle Beam's chance draw to the GENERIC stream,
  * taken above the crit, where this engine had it. The authority raises `onBasePower` from inside
  * `getDamage` AFTER the crit roll, so the event is a `crit`-address draw at repeat index 1; a draw
@@ -6633,6 +6684,25 @@ const ABILITY_REWRITE_NO_OLD=_MK('MEDI_ABILITY_REWRITE_NO_OLD');
 const START_ANNOUNCE_AFTER_HAZARDS=_MK('MEDI_START_ANNOUNCE_AFTER_HAZARDS');
 if(ABILITY_REWRITE_NO_OLD)MEDFAILS.abilityRewriteNoOldRestored=1;
 if(START_ANNOUNCE_AFTER_HAZARDS)MEDFAILS.startAnnounceAfterHazardsRestored=1;
+/* 2026-09-20 -- THE ARRIVAL ANNOUNCEMENT AND THE ENTRY-DROP LINE'S SHAPE. Same contract as every knob
+ * above: each restores ONE pre-fix emission verbatim, each is stamped AT LOAD so a census written
+ * under it is refused by name, and NEITHER moves a board leaf -- which
+ * tests/probe_switchin_announce.js and tests/probe_entrydrop_announce_shape.js assert on every arm, in
+ * both directions.
+ *   MEDI_SWITCHIN_ANNOUNCE_SILENT      an `announcesOnSwitchIn` ability (Cloud Nine; Air Lock has no
+ *                                      legal carrier here) walks in without its bare `|-ability|` line,
+ *                                      which is this engine for every game it has ever played. It was
+ *                                      75 of the 89 protocol divergences on the three gate lattices.
+ *   MEDI_ENTRYDROP_ANNOUNCE_INTIMIDATE_SHAPE
+ *                                      EVERY `onSwitchInDrop` member announces in INTIMIDATE's shape --
+ *                                      the `boost` fourth field, gated on a live foe -- which is the
+ *                                      single unconditional `TR.ab(m,m.ability,'boost')` this site used
+ *                                      to write. Supersweet Syrup's line is bare and ungated
+ *                                      (data/abilities.ts:4708), so under the knob it parts again. */
+const SWITCHIN_ANNOUNCE_SILENT=_MK('MEDI_SWITCHIN_ANNOUNCE_SILENT');
+const ENTRYDROP_ANNOUNCE_INTIMIDATE_SHAPE=_MK('MEDI_ENTRYDROP_ANNOUNCE_INTIMIDATE_SHAPE');
+if(SWITCHIN_ANNOUNCE_SILENT)MEDFAILS.switchInAnnounceSilentRestored=1;
+if(ENTRYDROP_ANNOUNCE_INTIMIDATE_SHAPE)MEDFAILS.entryDropAnnounceIntimidateShapeRestored=1;
 /* 2026-09-19 -- MEDI_ABILITY_BOOST_SILENT=1: THE WHOLE SHARED ANNOUNCE ROAD GOES QUIET.
  * Every ability-sourced stat change writes its `-boost`/`-unboost` line with NO `|-ability|...|boost`
  * announcement above it, and Defiant/Competitive announce UNCONDITIONALLY -- including on a stat
@@ -22862,7 +22932,42 @@ function applyEntryDrops(m,foes){
   /* `|-ability|p1a: X|Intimidate|boost` once, then one `|-unboost|` per foe — Showdown's own order,
    * read off a real Champions battle.log. The `boost` third argument is the protocol's marker for
    * "this ability announcement is about a stat change". */
-  if(TR&&foes.some(f=>f&&!f.fainted))TR.ab(m,m.ability,'boost');
+  /* 2026-09-20 -- AND IT IS INTIMIDATE'S LINE, NOT THE TAG'S. The line above was written once for
+   * every member of `onSwitchInDrop`, and the two members do not write the same line:
+   *
+   *   intimidate       this.add('-ability', pokemon, 'Intimidate', 'boost')   INSIDE the foe loop,
+   *                    behind an `activated` latch -- so a carrier with no adjacent foe says nothing
+   *   supersweetsyrup  this.add('-ability', pokemon, 'Supersweet Syrup')      BARE, and ABOVE the loop
+   *                                                              data/abilities.ts:4708
+   *
+   * so this engine wrote `|-ability|p2a: Hydrapple|Supersweet Syrup|boost` where the authority writes
+   * it with three fields. Filed as `-ability field 4`; 11 of the 89 protocol divergences across the
+   * three gate lattices on release `834713ccb303`, and the whole of the `supersweetsyrup` roster row.
+   *
+   * BOTH HALVES COME OFF THE TAG (`onSwitchInDrop.announce`, engine/tag_dex.js) — the fourth field and
+   * whether the line is gated on a live foe — so a third member arrives with its own shape and no edit
+   * here. A row with no `announce` key predates the derivation: nothing is written and it is COUNTED,
+   * because picking one of the two shapes is exactly the silent default this whole class was.
+   *
+   * MEDI_ENTRYDROP_ANNOUNCE_INTIMIDATE_SHAPE=1 restores the single unconditional Intimidate line. */
+  if(TR){
+    const _an=_osd.announce;
+    if(ENTRYDROP_ANNOUNCE_INTIMIDATE_SHAPE){
+      MEDFAILS.entryDropAnnounceIntimidateShapeRestored=1;
+      if(foes.some(f=>f&&!f.fainted)){TR.ab(m,m.ability,'boost');MEDSEEN.entryDropAnnounced++;}
+    }else if(!_an){
+      MEDFAILS.entryDropAnnounceShapeMissing++;
+      if(!MEDFAILS.entryDropAnnounceShapeMissingFirst)MEDFAILS.entryDropAnnounceShapeMissingFirst=String(m.ability);
+    }else if(_an.event!=='-ability'){
+      MEDFAILS.announceEventUnknown++;
+      if(!MEDFAILS.announceEventUnknownFirst)MEDFAILS.announceEventUnknownFirst=String(_an.event);
+    }else if(_an.gatedOnFoe&&!foes.some(f=>f&&!f.fainted)){
+      MEDSEEN.entryDropAnnounceSkippedNoFoe++;
+    }else{
+      TR.ab(m,m.ability,_an.tail||undefined);
+      MEDSEEN.entryDropAnnounced++;
+    }
+  }
   /* 2026-08-23 -- A SUBSTITUTE REFUSES THE DROP, AND IT IS THE TAG'S RULE RATHER THAN INTIMIDATE'S.
    *
    * `data/abilities.ts:2191` (intimidate) and `:4710` (supersweetsyrup) are the same six lines:
@@ -23929,6 +24034,29 @@ function statusMoveTargets(m,mvId,aTarget,it,actA,actB,announce,info,field){
    * CLICKER's active array and its ally side is the bouncer's. `bounceOff` needs both to re-run
    * target selection for it; without them it counts itself as unserved and keeps the old answer. */
   const _bctx={foes:it.side==='A'?actA:actB, allies:it.side==='A'?actB:actA, field:field};
+  /* 2026-09-20 -- THE SHIELD ANSWERS BEFORE THE BOUNCE, AND THIS BRANCH DID NOT ASK.
+   *
+   * Both handlers are gathered into the SAME `TryHit` event and `Battle#runEvent` sorts them by
+   * `compareLeftToRightOrder` (sim/battle.ts:421-426), PRIORITY FIRST: Protect's condition is
+   * `onTryHitPriority: 3` (data/moves.ts:13986) against Magic Bounce's `1` (data/abilities.ts:2428),
+   * and Protect's `NOT_FAIL` ends the event -- so a bouncer behind its own shield BLOCKS and does not
+   * reflect. Neither key is overridden in data/mods/champions/.
+   *
+   * `bounceAtTryHit` already opens with this exact line and its header already carries this reading.
+   * THIS branch -- where Screech, Soak, Taunt, Parting Shot and every other generic reflectable status
+   * click resolves -- called `bounceOff` bare and asked `shieldRefuses` afterwards, at STEP 1, by
+   * which point the target had already been rewritten to the bounce destination. One fact, two
+   * implementations, one of them missing: the shape CLAUDE.md's FACTS-ARE-GLOBAL rule names.
+   *
+   * IT DOES NOT SUPPRESS THE REFUSAL, ONLY THE REFLECTION. A shielded target stays in `_tl` and
+   * STEP 1's own `shieldRefuses` writes `|-activate|TARGET|move: Protect` exactly as it always has;
+   * a move with no `protect` flag (Roar, Whirlwind, the hazards) is exempt inside `shieldRefuses`
+   * itself and reaches the bounce untouched. Four of the fifteen held-out board partings on release
+   * `834713ccb303`. Knob MEDI_BOUNCE_BEFORE_SHIELD=1. Probe: tests/probe_shield_before_bounce.js. */
+  const _bounce=(_u,_t)=>{
+    if(!BOUNCE_BEFORE_SHIELD&&shieldRefuses(_t,mvId)){MEDSEEN.bounceRefusedByShield++;return _t;}
+    return bounceOff(_u,_t,mvId,announce,info,_bctx);
+  };
         const _spF=TAGS.param('move',mvId,'spreadFoes'), _spA=TAGS.param('move',mvId,'spreadAll');
         /* WIRE 153 -- A SELF-TARGETING STATUS MOVE CLICKED WITH NO TARGET FAILED OUTRIGHT. 2026-08-10.
          *
@@ -23984,7 +24112,7 @@ function statusMoveTargets(m,mvId,aTarget,it,actA,actB,announce,info,field){
           /* Magic Bounce is asked of each body separately, exactly as it is on the single-target
              path below, and the result is de-duplicated by identity: two bouncers on one side would
              otherwise send the same move back at its user twice. */
-          _tl=_tl.map(x=>bounceOff(m,x,mvId,announce,info,_bctx)).filter((x,i,arr)=>x&&arr.indexOf(x)===i);
+          _tl=_tl.map(x=>_bounce(m,x)).filter((x,i,arr)=>x&&arr.indexOf(x)===i);
           if(_tl.length>1)MEDSEEN.spreadStatusTargets++;
         } else {
         /* WIRE 139 -- THE SLOT, BEFORE ANYTHING ELSE LOOKS AT THE BODY. This branch is where Charm,
@@ -23995,7 +24123,7 @@ function statusMoveTargets(m,mvId,aTarget,it,actA,actB,announce,info,field){
          * dropped a body sitting on the BENCH. */
           let _t0=reaimToSlot(aTarget,it,actA,actB,mvId);
           _t0=_t0&&!_t0.fainted&&_t0.curHP>0?_t0:null;
-          _t0=bounceOff(m,_t0,mvId,announce,info,_bctx);
+          _t0=_bounce(m,_t0);
           _tl=_t0?[_t0]:[];
         }
   return _tl;
@@ -24941,6 +25069,54 @@ function startAnnounceEarly(nx){
   nx._startAnnEarly=true;
   MEDSEEN.startAnnounced++;MEDSEEN.startAnnouncedEarly++;
   if(TR)TR.ab(nx,nx.ability);
+  return true;
+}
+/* 2026-09-20 -- THE ABILITY THAT SAYS ITS OWN NAME AS THE BODY *WALKS IN*, AND THIS ENGINE NEVER DID.
+ *
+ * `data/abilities.ts` cloudnine :534-538 (and airlock :90-94, character-for-character the same):
+ *
+ *     onSwitchIn(pokemon) {
+ *       // Cloud Nine does not activate when Skill Swapped or when Neutralizing Gas leaves the field
+ *       this.add('-ability', pokemon, 'Cloud Nine');
+ *       ((this.effect as any).onStart as (p: Pokemon) => void).call(this, pokemon);
+ *     }
+ *
+ * `/data/mods/champions/abilities.ts` overrides neither -- grepped, no match for `cloudnine` or
+ * `airlock`. The EFFECT has been here since the weather wire (`weatherSuppression`, LIVE in the
+ * census); the only thing the authority did that this engine did not was the line. It was 75 of the
+ * 89 protocol divergences across the three gate lattices on release `834713ccb303` and 167 of 274 in
+ * the 12,000-game held-out draw -- the single largest narration class in the project.
+ *
+ * WHY IT IS NOT `applyEntryEffects`, WHICH IS WHERE `announcesOnStart` SPEAKS. An ability that
+ * declares `onSwitchIn` itself gets THAT handler at an entry and its `onStart` everywhere else, so
+ * the line is written when the body ARRIVES and NOT when the ability is megaed into, Skill Swapped,
+ * Traced, or restored after Neutralizing Gas leaves -- which is what the authority's own comment in
+ * the handler says. `applyEntryEffects` is this engine's `singleEvent('Start')` and is called from
+ * all five of those roads; this is called from the TWO that are arrivals, `runEntryPass` (every
+ * replacement and every deferred refill) and the lead pass. A member folded into `announcesOnStart`
+ * would speak on all five.
+ *
+ * WHERE IT SORTS: `switchInPriority` is the ability's own `onSwitchInPriority` and both members
+ * declare none, so the line is priority 0 and sorts BELOW the entry hazards on the ability subOrder
+ * (sim/battle.ts:953, :404-411, :957-987) -- which is where both call sites put it, immediately above
+ * the entry-effect pass. A member that later declares a POSITIVE one would need the hoist
+ * `startAnnounceEarly` already does for `announcesOnStart`, and is refused LOUDLY rather than
+ * silently placed, because a line in the wrong place looks exactly like a line in the right one.
+ *
+ * A BODY THE HAZARD ALREADY KILLED SAYS NOTHING: `fieldEvent` skips a fainted holder's handlers
+ * (sim/battle.ts:511-513), and both call sites are inside the road's own dead-on-arrival guard.
+ *
+ * MEDI_SWITCHIN_ANNOUNCE_SILENT=1 restores the silence. */
+function switchInAnnounce(m){
+  if(!m)return false;
+  const _sw=TAGS.param('ability',m.ability,'announcesOnSwitchIn');
+  if(!_sw||_sw.event!=='-ability')return false;
+  if(SWITCHIN_ANNOUNCE_SILENT){MEDFAILS.switchInAnnounceSilentRestored=1;return false;}
+  /* LOUD, NOT PLACED: a member whose line sorts ABOVE the entry hazards has no hoist here yet. */
+  if(_sw.switchInPriority>0){MEDFAILS.startAnnouncePriorityMissing++;return false;}
+  if(m.fainted||m.curHP<=0)return false;
+  MEDSEEN.switchInAnnounced++;
+  if(TR)TR.ab(m,m.ability);
   return true;
 }
 function applyEntryEffects(m,field,ally){
@@ -27653,6 +27829,10 @@ function runEntryPass(nx,foes,act,i,field,sf,announce){
    * Trace that copied Intimidate after the pass would drop nothing. */
   imposterCopy(nx,foes,i);
   traceCopy(nx,_live(foes));
+  /* 2026-09-20 -- THE ARRIVAL ANNOUNCEMENT, WHICH IS NOT THE START ANNOUNCEMENT. `announcesOnSwitchIn`
+   * fires HERE and not inside `applyEntryEffects`, because this road is an arrival and the mega, copy
+   * and swap roads that also call `applyEntryEffects` are not. See `switchInAnnounce`. */
+  switchInAnnounce(nx);
   applyEntryEffects(nx,field,act[1-i]);
   applyEntryDrops(nx,_live(foes));   // WIRE 100a -- membership from `onSwitchInDrop`, not a name
   }
@@ -29372,6 +29552,9 @@ function battleInit(teamA,teamB,opts){
        * comes up in the order, boosts included. */
       imposterCopy(e.mon,e.foes,e.slot);
       traceCopy(e.mon,_live(e.foes));   // WIRE 160 -- a LEAD can Trace too, in the same speed-sorted pass
+      /* 2026-09-20 -- a LEAD is an ARRIVAL, so `announcesOnSwitchIn` speaks here too, in this same
+       * speed-sorted pass. See `switchInAnnounce` for why this is not inside `applyEntryEffects`. */
+      switchInAnnounce(e.mon);
       applyEntryEffects(e.mon,S.field,e.ally);
       applyEntryDrops(e.mon,_live(e.foes));   // WIRE 100a -- membership from `onSwitchInDrop`
     }
@@ -44963,6 +45146,23 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(_cb&&_cb.chance){
           abil=()=>{
             if(!(!m.fainted&&!(m._vol&&m._vol.disable>0)))return;
+            /* 2026-09-20 -- AND THE SECOND GUARD, WHICH THIS SITE REPRODUCED THE FIRST HALF OF AND NOT
+             * THE SECOND. `cursedbody.onDamagingHit` (data/abilities.ts:774-787, no Champions key) is
+             *     if (source.volatiles['disable']) return;
+             *     if (!move.isMax && !move.flags['futuremove'] && move.id !== 'struggle') { roll }
+             * The line above is clause one. Clause two is a GUARD ON THE EVENT and not on the die: a
+             * Struggle never reaches `randomChance` at all, so 30% of the Struggles in this engine lost
+             * the attacker's whole menu to a Disable the real game does not apply. Row 14 of the fifteen
+             * held-out board partings on release `834713ccb303` (seed ...2656401580, turn 13,
+             * `p2.active[1].vol.disable  us=3  showdown=0`).
+             *
+             * ASKED THROUGH `isStruggleAction`, WHICH IS ALREADY THE ONE READER OF THIS QUESTION
+             * (ROADMAP #459: Struggle has two shapes in this engine and every site that tested for it
+             * knew only one). `isMax` does not exist in this format and a `futuremove` raises no
+             * DamagingHit from its user's action, so neither is modelled here and saying so is cheaper
+             * than letting it be rediscovered. Knob MEDI_DISABLER_SEALS_STRUGGLE=1.
+             * Probe: tests/probe_disabler_skips_struggle.js. */
+            if(!DISABLER_SEALS_STRUGGLE&&isStruggleAction(a)){MEDSEEN.disablerSkippedStruggle++;return;}
             MEDSEEN.dhAbilityAtDamagingHit++;
             if(_reactAddr(rng)<+_cb.chance){
             /* ROADMAP #111 -- THROUGH THE SHARED DURATION MODEL, and `alreadyMoved` is FALSE here on

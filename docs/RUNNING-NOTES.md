@@ -52,6 +52,35 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.76.0] — 2026-09-20 — the ability-arrival announcement class and two held-out board partings, merged and re-verified in the main tree
+
+- **What changed.** Two ENGINE batches merged and verified by the coordinator against the main tree.
+  **The arrival announcement:** an ability that declares its own `onSwitchIn` writes a bare
+  `|-ability|` line when the body WALKS IN and at no other door — a second tag (`announcesOnSwitchIn`),
+  membership derived and printed before wiring, and the two other entry-announcement shapes given
+  their own knobs (`MEDI_SWITCHIN_ANNOUNCE_SILENT`, `MEDI_ENTRYDROP_ANNOUNCE_SHAPE`).
+  **The held-out pair:** a bouncer standing behind its own shield now BLOCKS a reflectable status move
+  instead of reflecting it — `statusMoveTargets` called `bounceOff` with no shield check, and the
+  authority's own ordering says otherwise (`protect.condition.onTryHitPriority: 3` against
+  `magicbounce.onTryHitPriority: 1`, grepped on the run) — and a disabler no longer seals a target
+  whose last move was Struggle, where `_lateReactorsOf` held one of the authority's two guards
+  (`MEDI_BOUNCE_BEFORE_SHIELD`, `MEDI_DISABLER_SEALS_STRUGGLE`).
+- **The one game that JOINED the held-out parting list is NOT a regression.** It parts at the identical
+  protocol index on the identical line pair in both passes, with the same 103 agreed lines
+  (`data/verification/_1877_dump_g12000.json` and `_8347_dump_g12000.json`). 6.73.0's redirect fix
+  carried an OLDER defect to a body that survives the turn, where a board leaf can finally see it.
+- **Measured.** Census **979 live / 0 missing**, 988 probed, 0 unarmed, 0 hollow, 0 threw
+  (`data/mechanics-census.json`, generated on 2026-09-20). Both new probes 0 clean / 1 under
+  their own knob, run in the merged tree rather than in the worktree that wrote them.
+- **Basis.** unchanged.
+- **Supersedes.** ~~977 live~~ (6.73.0 row), now 979.
+- **Coordinator, at merge.** Four probe results were misread as RED before anything was wrong with
+  them: a `cmd /c` run redirected to `/dev/null` cannot write there, so a GREEN run reports exit 1.
+  Redirect to a real file. Nothing was changed on the strength of the wrong reading.
+- **Owed to the next major.** Everything above. OWED, NOT RUN on this tree: the three gate lattices,
+  the full staged battery, the roster stages, the held-out `--games 12000` draw and `quarantine.js`.
+  **No board-material, narration or held-out figure is claimed here.**
+
 ## [6.75.0] — 2026-09-20 — the roster clause's two instrument faults, and the owed-docs cap raised while the fold-in waits on Will
 
 - **What changed.** Both faults were the instrument; no engine byte moved (release `834713ccb303`, 0 of 27 frozen files changed). `tests/roster.js`: the `ability/residual` red plant is re-aimed from a line a 6.73.0 edit split onto the tag read `TAGS.param('ability', m.ability, 'boostsEachTurn')` (one occurrence), so it still breaks the authority's `activeTurns` entry gate rather than the effect — `0 of 1 apply / DEAD ANCHOR / exit 1` becomes `1 of 1` and CAUGHT via Speed Boost. `tests/test-mechanics.js`: `anticipationSilentRestored` and `friskSilentRestored` join DELIBERATE_BREAK, and Anticipation's census row now QUOTES `|-ability|p1a:hatterene|anticipation` instead of counting — the gate's ANNOUNCEMENT-ONLY receipt refuses a row whose knob cannot make it red, and it was refusing those two. `engine/docs_scan.js`: `OWED_CAP` 100 -> 165 with the derivation written beside it.

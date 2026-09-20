@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-20T04:18:09.600Z",
+  "generated": "2026-09-20T15:48:58.429Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 984,
-  "live": 977,
+  "probed": 988,
+  "live": 979,
   "missing": 0,
-  "armed": 977,
+  "armed": 979,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -4383,7 +4383,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 27.2% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.3% (format 20, generic 30), control Rock Slide 26.9% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5324,6 +5324,26 @@
       "label": "Pressure, Mold Breaker and Unnerve announce themselves as they switch in — and a body with no such ability says nothing",
       "live": true,
       "detail": "entry lines on a switch-in — fairyaura [\"|-ability|p1a: sinistcha|fairyaura\"]; moldbreaker [\"|-ability|p1a: sinistcha|moldbreaker\"]; pressure [\"|-ability|p1a: sinistcha|pressure\"]; unnerve [\"|-ability|p1a: sinistcha|unnerve\"]; no ability [] (authority: one bare |-ability|HOLDER|NAME after the |switch|, nothing for a body without it)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "announcesOnSwitchIn",
+      "label": "Cloud Nine announces itself as the body walks in, with a BARE line — and a body with no such ability says nothing",
+      "live": true,
+      "detail": "entry lines on a switch-in — cloudnine [\"|-ability|p1a: sinistcha|cloudnine\"]; no ability [] (authority: one BARE |-ability|HOLDER|NAME, no fourth field, every time the body arrives; nothing for a body without it)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "onSwitchInDrop",
+      "label": "an entry drop announces in ITS OWN shape — Intimidate with the `boost` field, Supersweet Syrup bare",
+      "live": true,
+      "detail": "derived shapes intimidate tail=boost; supersweetsyrup tail=null; emitted intimidate [\"|-ability|p1a: sinistcha|intimidate|boost\"]; supersweetsyrup [\"|-ability|p1a: sinistcha|supersweetsyrup\"]; no ability []; the two members' fourth fields are DISTINCT",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -9854,6 +9874,26 @@
       "label": "Electrify makes the target's Normal move Electric — and a Ground type is then immune to it, for one turn only",
       "live": true,
       "detail": "[Garchomp HP lost to Torkoal's Body Slam on turn 1, then turn 2] no Electrify [33,33]; Heliolisk electrifies Torkoal on turn 1 only [0,33] — the retype makes a Normal click Electric and Ground is immune, and the condition's duration:1 gives the damage back on turn 2 (data/moves.ts:4571-4583, onModifyTypePriority -2). Knob MEDI_ELECTRIFY_NO_RETYPE",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "reflectsStatusMoves",
+      "label": "a bouncer behind its own shield BLOCKS the reflectable move and does not reflect it",
+      "live": true,
+      "detail": "[reflected |move| lines, the CLICKER's atk stage, Protect activations] Espeon standing open [1,-1,0], Espeon behind Protect [0,0,1] — both handlers are TryHit and runEvent sorts them by priority (sim/battle.ts:421-426): protect.condition onTryHitPriority 3 (data/moves.ts:13986) against magicbounce's 1 (data/abilities.ts:2428), and Protect's NOT_FAIL ends the event. Knob MEDI_BOUNCE_BEFORE_SHIELD",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "disablesAttacker",
+      "label": "the on-hit disabler is never rolled for a STRUGGLE",
+      "live": true,
+      "detail": "[Disable lines written on the ATTACKER] an ordinary click into Banette [1], a Struggle into the same body [0] — cursedbody.onDamagingHit guards `move.id !== 'struggle'` ABOVE its randomChance(3,10) (data/abilities.ts:774-787, no Champions key). Knob MEDI_DISABLER_SEALS_STRUGGLE",
       "hollow": false,
       "armed": true,
       "directCall": false

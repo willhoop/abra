@@ -9400,7 +9400,94 @@ const ABILITY_TAGS = [
        * and are a different rule on a different hook; neither carries this tag, and Eiscue is
        * `isNonstandard: 'Past'` in this regulation anyway. */
       const sub = /volatiles\[\s*["']substitute["']\s*\]/.test(src);
-      return { drop: true, boosts: drops, oncePerBattle: g ? g[1] : null, blockedBySubstitute: sub };
+      /* 2026-09-20 -- THE ANNOUNCEMENT'S OWN SHAPE, WHICH THIS TAG COULD NOT SAY AND ITS ONE CONSUMER
+       * THEREFORE GUESSED. `applyEntryDrops` wrote `TR.ab(m, m.ability, 'boost')` for EVERY member,
+       * which is Intimidate's line, and the two members' lines are not the same line:
+       *
+       *   intimidate       for (const target of pokemon.adjacentFoes()) {
+       *                      if (!activated) { this.add('-ability', pokemon, 'Intimidate', 'boost'); ... }
+       *                                                              data/abilities.ts intimidate.onStart
+       *   supersweetsyrup  this.add('-ability', pokemon, 'Supersweet Syrup');   // BARE, and ABOVE the loop
+       *                    for (const target of pokemon.adjacentFoes()) { ... }
+       *                                                              data/abilities.ts:4708
+       *
+       * TWO differences and both are read here rather than typed: the FOURTH FIELD (`boost`, the
+       * protocol's marker for "this announcement is about a stat change") and WHERE the line sits
+       * relative to the foe loop -- inside it, so a carrier with no live foe says nothing, or above it,
+       * so it announces regardless. `/data/mods/champions/abilities.ts` overrides neither handler.
+       * Measured as 11 of 89 protocol divergences across the three gate lattices on release
+       * `834713ccb303`, filed as `-ability field 4`. Membership PRINTED before this was wired:
+       *   intimidate       {"event":"-ability","tail":"boost","gatedOnFoe":true}
+       *   supersweetsyrup  {"event":"-ability","tail":null,"gatedOnFoe":false}
+       * which is the whole of `onSwitchInDrop` and nothing else. */
+      const flat = src.replace(/\s+/g, ' ');
+      const am = flat.match(/this\.add\(\s*["']-ability["']\s*,\s*\w+\s*,\s*["'][^"']+["']\s*(?:,\s*["'](\w+)["']\s*)?\)/);
+      const loopAt = flat.search(/for\s*\(\s*const\s+\w+\s+of\s+\w+\.adjacentFoes\(\)/);
+      const announce = am ? { event: '-ability', tail: am[1] || null,
+                              gatedOnFoe: loopAt >= 0 && flat.indexOf(am[0]) > loopAt } : null;
+      return { drop: true, boosts: drops, oncePerBattle: g ? g[1] : null, blockedBySubstitute: sub, announce };
+    } },
+
+  /* 2026-09-20 -- THE ABILITY THAT ANNOUNCES ON *ARRIVAL*, WHICH IS A DIFFERENT DOOR FROM `onStart`.
+   *
+   * `announcesOnStart` next door is deliberately narrow -- "the announcement is the whole of onStart" --
+   * and its own comment records that Cloud Nine was left out of it ON PURPOSE, because Cloud Nine
+   * announces from `onSwitchIn`:
+   *
+   *     cloudnine  data/abilities.ts:534-538
+   *       onSwitchIn(pokemon) {
+   *         // Cloud Nine does not activate when Skill Swapped or when Neutralizing Gas leaves the field
+   *         this.add('-ability', pokemon, 'Cloud Nine');
+   *         ((this.effect as any).onStart as (p: Pokemon) => void).call(this, pokemon);
+   *       }
+   *     airlock    data/abilities.ts:90-94   -- character-for-character the same handler
+   *
+   * THE DOOR IS THE WHOLE POINT AND IT IS WHY THIS IS A SECOND TAG RATHER THAN A WIDER FIRST ONE.
+   * `getCallback` runs an ability's `onStart` AS its `onSwitchIn` from gen 5 on, but an ability that
+   * declares `onSwitchIn` ITSELF gets that handler at the entry and its `onStart` everywhere else --
+   * so the line is written when the body WALKS IN and NOT when the ability is megaed into, Skill
+   * Swapped, Traced or restored after Neutralizing Gas leaves. The comment in the handler says exactly
+   * that. A member folded into `announcesOnStart` would speak on all four of those roads.
+   *
+   * THE PREDICATE IS THE WHOLE BODY, READ: the bare announcement of the ability's OWN name, then a
+   * delegation to its OWN `onStart`, and nothing else. Everything else in the dex that declares an
+   * `onSwitchIn` is refused by it and the refusals were printed before this was wired --
+   * `imposter` (Ditto), `neutralizinggas`, `terashift`, `zerotohero` (Palafin) all do other work, and
+   * Neutralizing Gas, which DOES open with an announcement, has no `onStart` to delegate to and no
+   * legal carrier here either.
+   *
+   * MEMBERSHIP PRINTED BEFORE ANYTHING READ IT (docs/LESSONS.md §4):
+   *     airlock     switchInPriority 0   legal carriers: NONE IN THIS REGULATION
+   *     cloudnine   switchInPriority 0   legal carriers: Altaria, Drampa
+   * Air Lock is derived anyway and deliberately: a tag costs nothing, and the day a carrier appears
+   * the artifact already knows. `switchInPriority` is the ability's own `onSwitchInPriority` for the
+   * same reason `announcesOnStart` carries it -- it is where the line sorts against the entry hazards
+   * (sim/battle.ts:953, :404-411) -- and both members declare none, so both sort below them.
+   *
+   * MEASURED: 75 of the 89 protocol divergences across the three gate lattices on release
+   * `834713ccb303`, and 167 of 274 in the 12,000-game held-out draw. */
+  { tag: 'announcesOnSwitchIn', param: 'the ability writes its own bare `|-ability|` line when the body WALKS IN — not on a mega, a copy or a swap — and then delegates to its own onStart',
+    probe: 'announcesOnSwitchIn',
+    why: 'Cloud Nine (561 sheets) announces itself on arrival and this engine wrote nothing, which is '
+       + 'the single largest narration class on every gate lattice. Air Lock is the identical handler '
+       + 'with no legal carrier in Reg M-B',
+    of: a => {
+      if (typeof a.onSwitchIn !== 'function') return null;
+      const raw = String(a.onSwitchIn).trim();
+      const subj = /^(?:function\s*)?[\w$]*\s*\(\s*(\w+)/.exec(raw);
+      if (!subj || raw.indexOf('{') < 0) return null;
+      let rest = raw.slice(raw.indexOf('{') + 1, raw.lastIndexOf('}')).replace(/\s+/g, ' ').trim();
+      const esc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const ann = new RegExp('^this\\.add\\(\\s*["\']-ability["\']\\s*,\\s*' + subj[1] + '\\s*,\\s*["\']'
+                             + esc(a.name) + '["\']\\s*\\);\\s*').exec(rest);
+      if (!ann) return null;
+      rest = rest.slice(ann[0].length).trim();
+      /* The delegation, in both the TypeScript source's shape and the compiled shape the dex serves. */
+      const del = new RegExp('^\\(?\\(?this\\.effect(?:\\s+as\\s+any)?\\)?\\.onStart(?:\\s+as\\s+[^)]*\\))?\\)?'
+                             + '\\.call\\(\\s*this\\s*,\\s*' + subj[1] + '\\s*\\);?$').exec(rest);
+      if (!del) return null;
+      return { event: '-ability', on: 'self', tail: null, delegatesToStart: true,
+               switchInPriority: (+a.onSwitchInPriority || 0), visibleOnABoard: false };
     } },
   /* WIRE 157 -- AN ENTRY ABILITY THAT REACHES THE BODY BESIDE IT, WHICH `onSwitchInDrop` ABOVE
    * STRUCTURALLY CANNOT EXPRESS: that tag reads a handler aimed at `foe`/`adjacentFoes`, and this one

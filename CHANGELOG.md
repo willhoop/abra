@@ -10,6 +10,25 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.76.0] — 2026-09-20
+
+### Fixed
+- A bouncer behind its own shield blocks a reflectable status move instead of reflecting it; the
+  authority's shield answers first (`onTryHitPriority` 3 against 1).
+- A disabler no longer seals a target whose last move was Struggle — one of the authority's two guards
+  was missing from the late-reactor path.
+
+### Added
+- `announcesOnSwitchIn` — an ability that declares its own `onSwitchIn` announces itself on ARRIVAL and
+  at no other door; membership derived from the dex and printed before wiring.
+- `tests/probe_shield_before_bounce.js`, `tests/probe_disabler_skips_struggle.js`,
+  `tests/probe_switchin_announce.js`, `tests/probe_entrydrop_announce_shape.js`.
+
+### Notes
+- Census 977 → 979 live, 0 missing. The game that JOINED the held-out parting list parts at the same
+  index on the same line pair as before and is not a regression.
+- No lattice, narration or held-out figure is claimed on this tree; the re-measure is owed.
+
 ## [6.75.0] — 2026-09-20
 
 ### Fixed
