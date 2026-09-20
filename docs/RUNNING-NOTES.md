@@ -52,6 +52,63 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.72.0] — 2026-09-19 — the differential was blind to every `|-ability|` line for 44 days; the blind spot is 250 of 961 games, all narration, no board
+
+- **What changed.** `engine/game_differential.js`. The `ability-announcement` equivalence —
+  `fn: f => (f[1] === '-ability' ? null : f)`, born with the file at `f60b01c7` (3.60.0,
+  2026-08-06) and never edited since — dropped every `|-ability|` line from BOTH streams before
+  comparing. Its premise, *"every consequence of it is a separate line and is kept"*, has one hole:
+  **an ability whose whole effect IS the announcement has no consequence line to keep**, which is
+  the class `data/tags.json` derives as `visibleOnABoard: false` and 6.71.1 accepts as
+  `ANNOUNCEMENT-ONLY`. ENGINE measured it: with `MEDI_ANTICIPATION_SILENT=1` the whole-game
+  comparison read `first divergence none`
+  (`docs/_reports/2026-09-19-announcement-receipts.md` §4). The rule's own red demonstration could
+  not have caught it — its `distinct` pair is two `-boost` lines its `fn` never touches. **The rule
+  is retired and nothing replaces it: `-ability` lines are compared.** No form is excused, because
+  no form needed excusing; any future excusal goes in `engine/quarantine.js DECLARED_DIVERGENCE`
+  with a kind the gate counts, never back into `EQUIV`. The retired row is published as
+  `normalisation.retired` and printed every run, and a new `normalisation.ability_lines` table
+  counts every `(body, ability, tail)` form per side on the raw streams — **346 forms, 210 with a
+  non-zero gap, authority 43,384 lines against our 32,348**. A **fourth plant** was added to
+  `plantedProof` (inserting an `|-ability|` line only one engine wrote), so the gate's own
+  `planted_divergence_proof_ok` fails if the comparator goes blind here again.
+- **Measured.** Release `18773c22878f`, `--arm middle --steering empirical --games 1200
+  --team-store data/team-pool-frozen --state --end-state`, cap 50, pool `0d103fb9fa87`,
+  **961 games both sides, 10,716 of 10,716 turn boundaries on both sides** — the same sample,
+  checked rather than assumed. Protocol divergence **0 → 250 of 961 (26.0%)**;
+  `by_cause_totals.games_narration_only` **0 → 250** over **77 causes**, `by_cause_reconciles: true`;
+  **board-material unchanged at 0 of 961**; threw 0; 0 games cut off by the cap. **All 77 causes
+  name an `|-ability|` line.** By mechanism: `event missing from medicham2` 31 causes / **198
+  games** (stamina 112, speedboost 48, cloudnine 16, lightningrod 10, moody 8, weakarmor 2,
+  sapsipper 2 — one branch, `sim/battle.ts:2060-2070`, which announces before ANY ability-sourced
+  boost); `-ability field 4` 42 / **47** (the authority writes the OLD ability's name as field 4 on
+  an ability rewrite, `sim/pokemon.ts:1939-1941`; we omit it); `extra event emitted by medicham2`
+  3 / **4** (Defiant announced where the authority's `if (boostBy)` refuses because the stat is
+  capped); `ordering` 1 / **1** (Unnerve against Stealth Rock damage). Artifact: scratch
+  `after2.json`, **not** a gate artifact — `data/game-differential.json` was not written. The fourth
+  plant CAUGHT at exactly the planted line on the clean run and reads **NOT CAUGHT** with the old
+  rule pasted back, taking `planted_divergence_proof_ok` to false. Driver code `9940ba0c3fd9` →
+  `f4b3b2a5c270`, so `engine/arms_comparable.js` refuses this pair — correctly; the ruler is what
+  moved. **A first attempt was VOID and its own guard said so** (`driver_code_moved:
+  ["engine/game_differential.js"]` — I edited the driver mid-run); it read the identical 250 of 961
+  and none of its numbers are quoted. Full account:
+  `docs/_reports/2026-09-19-ability-line-blindness.md`.
+- **Basis.** unchanged. The quantity is still *"games whose protocol parts and whose board never
+  does"*; the definition did not move, the instrument stopped being blind to one line class, and a
+  reader can be told *"0 became 250 on this lattice"*. ESS KS-RA-13-016 Item 2.0, a routine
+  revision, not Item 3.0. Precedent on file: the turn-cap 20 → 50 instrument correction shipped as
+  a MINOR.
+- **Supersedes.** ~~narration **0 undeclared of 961**~~ — **WITHHELD, NOT REPLACED.** It stood in
+  `docs/ABRA-whitepaper.md` §3 and has been **DELETED** there; the three gate lattices have not been
+  re-run under the honest comparator, so there is no new figure to print. Every narration count this
+  project has published (`0 / 0 / 0` at 1200 / 1350 / 1950, 6.71.0 and every row back to 6.55.0) was
+  taken with `-ability` invisible and may not be quoted. `board-material 0 of 961` is **not**
+  superseded — it was re-measured here and did not move. **`docs/MODELS.md` lines 33 and 1357 still
+  carry the retracted figure and were NOT touched**: that file is mid-edit by the held 7.0.0 draft,
+  and the retraction there is owed in the next pass that opens it.
+- **Owed to the next major.** `docs/ABRA-whitepaper.md` (retraction folded in this pass);
+  `docs/MODELS.md` (retraction OWED, see above); `docs/SUMMARY.md` if it acquires a narration figure.
+
 ## [6.71.1] — 2026-09-19 — a mechanic whose whole effect is a line is accepted by the gate only on a receipt
 
 - **What changed.** `engine/quarantine.js` only. `rosterStage` now accepts a row carrying

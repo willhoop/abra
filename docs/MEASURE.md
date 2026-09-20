@@ -40,6 +40,45 @@ _stamped 2026-09-19 19:26_
 
 <!-- /GENERATED -->
 
+## EVERY NARRATION FIGURE THIS PROJECT HAS PUBLISHED WAS TAKEN WITH `|-ability|` INVISIBLE. 2026-09-19 (6.72.0)
+
+**WHY.** `engine/game_differential.js`'s `ability-announcement` equivalence dropped every
+`|-ability|` line from BOTH streams before comparing. Born with the file at `f60b01c7` (3.60.0,
+2026-08-06), never edited in 44 days. Its premise — *"every consequence of it is a separate line and
+is kept, so dropping the announcement cannot hide an ability that did not fire"* — is sound for an
+ability with a consequence and has one hole: **an ability whose whole effect IS the announcement has
+no consequence line to keep.** `data/tags.json` derives that class (`visibleOnABoard: false`) and
+6.71.1 accepts it as `ANNOUNCEMENT-ONLY`. ENGINE measured the consequence: with
+`MEDI_ANTICIPATION_SILENT=1` the whole-game comparison read `first divergence none`.
+
+**AND THE RULE'S OWN RED DEMONSTRATION WAS VACUOUS.** Its `distinct` pair is two `|-boost|` lines
+its `fn` never touches, so `keeps_the_meaning: true` was a true statement about the comparator that
+said nothing about the rule. This is MEASURE's own file and MEASURE's own failure: a green that
+asked nothing, in the one place in the repository built to prevent one.
+
+**WHAT.** The rule is retired into `RETIRED_EQUIV` — published as `normalisation.retired` and
+printed every run, because an artifact from before today holds a number nobody can otherwise tell
+apart. Nothing replaces it: `-ability` lines are compared. No form is excused, because the
+measurement says none needs to be; a future excusal goes in `engine/quarantine.js
+DECLARED_DIVERGENCE` with a kind the gate counts, never back into `EQUIV`. New
+`normalisation.ability_lines` counts every `(body, ability, tail)` form per side on the raw streams,
+so the class can be sized by anyone. New fourth plant in `plantedProof` — an `|-ability|` line only
+one engine wrote — so `planted_divergence_proof_ok` fails if this goes blind again; shown NOT CAUGHT
+on a deliberate break before it was trusted.
+
+**THE COST, AND IT IS LARGE.** Release `18773c22878f`, `--arm middle --steering empirical
+--games 1200 --team-store data/team-pool-frozen --state --end-state`, cap 50, pool `0d103fb9fa87`.
+Same sample proved rather than assumed: 961 games and 10,716 of 10,716 turn boundaries on both
+sides. Protocol divergence **0 → 250 of 961 (26.0%)**; `games_narration_only` **0 → 250** over
+**77** causes; **board-material unchanged at 0 of 961**; threw 0. All 77 causes name an `|-ability|`
+line. Scratch artifact — no gate artifact was written.
+
+**SO THE PUBLISHED ZEROS ARE WITHHELD, NOT CORRECTED.** `0 / 0 / 0` at 1200 / 1350 / 1950 was
+measured by a blind comparator and may not be quoted. `docs/ABRA-whitepaper.md` §3's
+`narration 0 undeclared of 961` is DELETED, not captioned, with no replacement. The re-measurement
+of the three lattices is owed after ENGINE lands the emission gaps. Full account:
+`docs/_reports/2026-09-19-ability-line-blindness.md`.
+
 ## A MECHANIC WHOSE WHOLE EFFECT IS A LINE IS ACCEPTED ONLY ON A RECEIPT. 2026-09-19 (6.71.1)
 
 **WHY.** Will, 2026-09-19: Illusion is the ONE acknowledged exclusion; everything else gets modelled and

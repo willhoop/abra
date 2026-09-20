@@ -10,6 +10,81 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.72.0] — 2026-09-19
+
+### Changed
+- **The whole-game differential compares `|-ability|` lines. It did not, for 44 days.**
+  `engine/game_differential.js`'s `ability-announcement` equivalence — born with the file at
+  `f60b01c7` (3.60.0, 2026-08-06) and never edited since — dropped every `|-ability|` line from
+  BOTH streams before comparing, on the argument that the announcement is cosmetic and every
+  consequence of it is a separate, kept line. That argument has one hole: **an ability whose whole
+  effect IS the announcement has no consequence line to keep.** That is the class `data/tags.json`
+  derives as `visibleOnABoard: false` and 6.71.1 accepts as `ANNOUNCEMENT-ONLY`. ENGINE measured
+  it on 2026-09-19: with `MEDI_ANTICIPATION_SILENT=1` — this engine writing no Anticipation line at
+  all — the comparison read `first divergence none`. The rule's own red demonstration could not
+  have caught it: its `distinct` pair is two `|-boost|` lines its `fn` never touches, so
+  `keeps_the_meaning: true` was true of the comparator and said nothing about the rule.
+- **Nothing replaces it, and that is the smallest honest rule.** Every difference the measurement
+  finds is an emission gap in one engine or the other, so no form needed a written excusal and none
+  was written. The attribution half is still collapsed by rules that were always generic
+  (`source-tag` strips `[of]`, `effect-namespace` folds `ability:` / `move:` / `item:`). A future
+  excusal goes in `engine/quarantine.js DECLARED_DIVERGENCE` with a kind the gate counts, where it
+  is matched, named on every run and subtracted visibly — never back into `EQUIV`.
+
+### Added
+- **The retired rule is published, not deleted.** `RETIRED_EQUIV` carries its id, the dates it was
+  added and retired, its original `why`, the measurement that retired it and what replaced it; it
+  is written into every artifact as `normalisation.retired` and printed every run, because an
+  artifact from before today holds a number taken with `-ability` invisible.
+- **`normalisation.ability_lines`** — every `(body, ability, tail)` form seen, counted per side on
+  the RAW streams before any equivalence runs, with `gap = authority − ours`. Published and
+  printed. This run: **346 forms, 210 with a non-zero gap; authority 43,384 lines, ours 32,348.**
+- **A fourth plant in `plantedProof`** — an `|-ability|` line only one engine wrote, inserted at
+  the last agreeing line (an insert, not a delete, so it can never be silently skipped on a pair
+  whose prefix holds no ability line). It CAUGHT at exactly the planted line on the clean run and
+  reads **NOT CAUGHT** with the old rule pasted back, taking `planted_divergence_proof_ok` to
+  false — the refusal `engine/quarantine.js`'s `narrationVerdict` already makes. Shown red before
+  it was trusted.
+
+### Notes
+- **MEASURED — the blind spot is 250 of 961 games, 26.0% of the sample, and every one of them is
+  narration.** Release `18773c22878f`, `--arm middle --steering empirical --games 1200
+  --team-store data/team-pool-frozen --state --end-state`, cap 50, pool `0d103fb9fa87`. 961 games
+  and 10,716 of 10,716 turn boundaries on both sides — the same sample, checked rather than
+  assumed. Protocol divergence **0 → 250**; `games_narration_only` **0 → 250** over **77** causes,
+  `by_cause_reconciles: true`; **board-material unchanged at 0 of 961**; threw 0. All 77 causes
+  name an `|-ability|` line. By mechanism: `event missing from medicham2` 31 causes / 198 games
+  (stamina 112, speedboost 48, cloudnine 16, lightningrod 10, moody 8, weakarmor 2, sapsipper 2 —
+  one branch, `sim/battle.ts:2060-2070`, which announces before ANY ability-sourced boost);
+  `-ability field 4` 42 / 47 (the authority writes the OLD ability's name as field 4 on a rewrite,
+  `sim/pokemon.ts:1939-1941`); `extra event emitted by medicham2` 3 / 4 (Defiant announced where
+  the authority's `if (boostBy)` refuses on a capped stat); `ordering` 1 / 1 (Unnerve against
+  Stealth Rock damage).
+- **THE FIGURE IS A SCRATCH ARTIFACT, NOT A GATE READING.** `data/game-differential.json` and the
+  two lattice artifacts were not written and still hold the blind comparator's `0 / 0 / 0`.
+  **Those three zeros are WITHHELD, not corrected**, and so is every narration figure this project
+  has published. `docs/ABRA-whitepaper.md` §3's `narration 0 undeclared of 961` is DELETED there
+  with no replacement. `docs/MODELS.md` lines 33 and 1357 carry it still and were not touched — that
+  file is mid-edit by the held 7.0.0 draft; the retraction is owed in the next pass that opens it.
+- **The narration clause will hold the gate shut on the next run, and that is correct.**
+  `narrationClause`'s `gates` flag is the board clause's own verdict and that clause reads zero, so
+  narration begins gating at 250. It is the number that was always there.
+- **MINOR, not MAJOR, declared out loud.** The quantity is still *"games whose protocol parts and
+  whose board never does"*; the definition did not move, the instrument stopped being blind. A
+  reader can be told *"0 became 250 on this lattice"* — ESS KS-RA-13-016 Item 2.0, a routine
+  revision, not Item 3.0's change of concepts. Precedent: the turn-cap 20 → 50 instrument
+  correction shipped as a MINOR.
+- **A first `--games 1200` attempt was VOID and its own guard caught its author** —
+  `driver_code_moved: ["engine/game_differential.js"]`, because the driver was edited mid-run. It
+  read the identical 250 of 961; none of its numbers are quoted. Every figure above comes from the
+  repeat on a still tree.
+- **Owed and not run:** the three gate lattices, `engine/quarantine.js`, and the full battery. Some
+  probes that take their verdict from the whole-stream comparison on a fixture carrying Stamina,
+  Speed Boost, Moody, Lightning Rod, Cloud Nine, Weak Armor, Sap Sipper or an ability rewrite will
+  now be red. **Those are true reds** — they are the engine gaps above becoming visible — and they
+  are listed as owed rather than filed. Full account:
+  `docs/_reports/2026-09-19-ability-line-blindness.md`.
+
 ## [6.71.1] — 2026-09-19
 
 ### Added

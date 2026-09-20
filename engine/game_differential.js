@@ -2676,17 +2676,111 @@ function sdStream(log) {
 const NORM_COUNTS = new Map();          // rule id -> lines it changed or dropped
 const bumpNorm = (id) => NORM_COUNTS.set(id, (NORM_COUNTS.get(id) || 0) + 1);
 
+/* ================================================================================================
+ * THE `|-ability|` AUDIT — WHAT THE COMPARATOR IS CHOOSING NOT TO LOOK AT, COUNTED AND PUBLISHED
+ * ================================================================================================
+ * 2026-09-19, MEASURE. Whatever the `-ability` equivalence ends up excusing, the artifact must be
+ * able to say WHICH FORMS it saw on each side and how many. A rule that drops a line class silently
+ * is a rule nobody can size, and that is exactly how this class went 44 days without anybody able to
+ * say what "narration 0" excluded.
+ *
+ * The bucket is (body, ability, the tail the authority writes after the ability), taken from the
+ * CANONICAL line so case and spacing cannot split a bucket. The ABILITY is `f[3]`, not `f[2]` —
+ * `|-ability|p1a: Sharpedo|Speed Boost|boost` puts the BODY in `f[2]`, and getting that wrong turns
+ * this table into a list of Pokemon.
+ *
+ * `gap` is AUTHORITY MINUS OURS, so a positive row is a line we do not write and a negative row is
+ * one we write and the authority does not. It is counted on the RAW streams, before any equivalence
+ * runs, so it is unaffected by whatever the rules below decide. */
+const ABIL_FORMS = new Map();          // 'body|ability|tail' -> { sd, me }
+function auditAbilityLines(sdRaw, meRaw) {
+  const bump = (line, side) => {
+    const f = M.traceCanon(line).split('|');
+    if (f[1] !== '-ability') return;
+    const k = (f[2] || '') + '' + (f[3] || '') + '' + f.slice(4).join('|');
+    let e = ABIL_FORMS.get(k);
+    if (!e) { e = { sd: 0, me: 0 }; ABIL_FORMS.set(k, e); }
+    e[side]++;
+  };
+  for (const l of sdRaw) bump(l, 'sd');
+  for (const l of meRaw) bump(l, 'me');
+}
+function abilityAuditRows() {
+  return [...ABIL_FORMS.entries()]
+    .map(([k, v]) => {
+      const p = k.split('');
+      return { body: p[0], ability: p[1], tail: p[2] || '',
+               showdown: v.sd, medicham2: v.me, gap: v.sd - v.me };
+    })
+    .sort((a, b) => Math.abs(b.gap) - Math.abs(a.gap) || (b.showdown + b.medicham2) - (a.showdown + a.medicham2));
+}
+
 /* Each rule takes the CANONICAL line's field array and returns a new array, or null to drop the line.
  * `equal` is the form it collapses; `distinct` is the meaning it must never collapse. */
-const EQUIV = [
-  { id: 'ability-announcement',
-    why: 'Showdown\'s `|-ability|` is a COSMETIC announcement that an ability activated (SIM-PROTOCOL). '
-       + 'Every consequence of it is a separate line and is kept, so dropping the announcement cannot '
-       + 'hide an ability that did not fire — its effect would still be missing.',
-    fn: f => (f[1] === '-ability' ? null : f),
-    equal: ['|-ability|p1a: Sharpedo|Speed Boost|boost', ''],
-    distinct: ['|-boost|p1a: Sharpedo|spe|1', '|-boost|p1a: Sharpedo|atk|1'] },
+/* ================================================================================================
+ * `ability-announcement` — RETIRED 2026-09-19 BY MEASURE. THE ROW STAYS HERE BECAUSE A RULE THAT
+ * QUIETLY DISAPPEARS TEACHES NOBODY WHAT IT USED TO HIDE.
+ * ================================================================================================
+ * WHAT IT WAS. Born with this file at `f60b01c7` (3.60.0, 2026-08-06) and NEVER EDITED in the 44
+ * days it stood. `fn: f => (f[1] === '-ability' ? null : f)` — every `|-ability|` line, both
+ * streams, dropped before the comparison. Its stated reason, verbatim:
+ *
+ *     'Showdown\'s `|-ability|` is a COSMETIC announcement that an ability activated (SIM-PROTOCOL).
+ *      Every consequence of it is a separate line and is kept, so dropping the announcement cannot
+ *      hide an ability that did not fire — its effect would still be missing.'
+ *
+ * WHY IT WAS ADDED, from that commit's own account: run one of the driver read 160/160 games
+ * diverging with a median of ONE completed turn, and the seven equivalences collapsed 4,627 lines of
+ * shape noise so the real classes could be seen. The argument was the file header's general one —
+ * EVERY RULE DROPS AN ANNOUNCEMENT OR AN ATTRIBUTION AND NEVER A STATE CHANGE — and for an ability
+ * with a consequence it is sound.
+ *
+ * WHY IT IS GONE. The premise has a hole the size of a mechanic: AN ABILITY WHOSE WHOLE EFFECT IS
+ * THE ANNOUNCEMENT HAS NO CONSEQUENCE LINE TO KEEP. `data/tags.json` derives exactly that class as
+ * `visibleOnABoard: false` — Anticipation, Forewarn, Frisk — and `engine/quarantine.js` accepts
+ * their roster rows as ANNOUNCEMENT-ONLY on that basis. For those three the rule deleted the ONLY
+ * evidence that exists and the two engines agreed by construction. MEASURED by ENGINE on 2026-09-19
+ * (`docs/_reports/2026-09-19-announcement-receipts.md` §4): with `MEDI_ANTICIPATION_SILENT=1` — this
+ * engine writing NO Anticipation line at all — the whole-game comparison read `first divergence
+ * none`. So the narration clause's zero never included ability lines, and could not have.
+ *
+ * AND THE RED DEMONSTRATION COULD NOT HAVE CAUGHT IT. Every other rule's `distinct` pair exercises
+ * its own `fn`. This one's was `['|-boost|p1a: Sharpedo|spe|1', '|-boost|p1a: Sharpedo|atk|1']` —
+ * two lines the rule never touches. `keeps_the_meaning: true` was therefore true of the comparator
+ * and said nothing about the rule, which is this repository's "a green test can be asking nothing"
+ * in the one place built to prevent it.
+ *
+ * WHAT REPLACES IT: NOTHING. `-ability` lines are now compared like any other line. That is the
+ * smallest honest rule, and it is smaller than a narrowed exemption because the measurement says no
+ * form needs excusing — every difference this run sees is an emission gap in one engine or the other
+ * (`normalisation.ability_lines` publishes the per-form table). THE ATTRIBUTION HALF IS STILL
+ * COLLAPSED, by the rules below that were always generic: `source-tag` takes `[of] pXy` off every
+ * line and `effect-namespace` folds `ability:` / `move:` / `item:` prefixes. So what is compared on
+ * an `-ability` line is WHO, WHICH ABILITY, and the fields the authority writes beside it.
+ *
+ * IF A FORM EVER MUST BE EXCUSED IT DOES NOT COME BACK HERE. It goes in
+ * `engine/quarantine.js DECLARED_DIVERGENCE` with a kind the gate counts (`AUTHORITY-WRONG`,
+ * `INCOMPARABLE`, `CLOSETED`), where it is named on every run, matched on a cause string, and
+ * subtracted VISIBLY — exactly as Supreme Overlord's `fallenundefined` is. A silent drop in this
+ * list is how one line class went 44 days without anybody able to size it.
+ * ============================================================================================== */
+const RETIRED_EQUIV = [{
+  id: 'ability-announcement',
+  added: '2026-08-06 (f60b01c7, 3.60.0)',
+  retired: '2026-09-19',
+  what_it_did: 'dropped every `|-ability|` line from both streams before comparing',
+  why_it_existed: 'Showdown\'s `|-ability|` was declared a COSMETIC announcement whose every '
+    + 'consequence is a separate, kept line, so dropping it could not hide an ability that did not fire',
+  why_it_went: 'an ability whose whole effect IS the announcement has no consequence line to keep. '
+    + '`data/tags.json` derives that class as `visibleOnABoard: false` (Anticipation, Forewarn, '
+    + 'Frisk). Measured 2026-09-19: with MEDI_ANTICIPATION_SILENT=1 the whole-game comparison read '
+    + '`first divergence none`. Its `distinct` pair exercised two `-boost` lines the rule never '
+    + 'touched, so its red demonstration could not have caught this.',
+  replaced_by: 'nothing — `-ability` lines are compared. An excusal now goes in '
+    + '`engine/quarantine.js DECLARED_DIVERGENCE` with a kind the gate counts.',
+}];
 
+const EQUIV = [
   { id: 'stat-attribution',
     why: 'a stat line\'s meaning is (body, stat, direction, amount). `[from] ability: X` and `[of] Y` '
        + 'say WHICH effect moved it, which the two engines tag inconsistently; the four fields that '
@@ -4666,6 +4760,7 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
      * on both streams and cancel out, which is the failure it is trying to detect. */
     const sdRawAll = sdStream(battle.log);
     const raw = opts.plant ? opts.plant(trace.slice()) : trace;
+    auditAbilityLines(sdRawAll, raw);
     const A = reduce(sdRawAll), B = reduce(raw);
     /* `let`, not `const`: the final pass trims both streams to the last turn they share. */
     let a = A.lines, b = B.lines;
@@ -5970,8 +6065,31 @@ function plantsFor(k, fieldK) {
    * THE APPEND IS STILL TRIED FIRST so every pair on which the proof already passed is byte-identical.
    * A line no candidate can bend past the normaliser returns null, and the plant then reports NOT
    * PLACED rather than pretending. */
-  const st = [{ applied: 0 }, { applied: 0 }, { applied: 0 }];
+  const st = [{ applied: 0 }, { applied: 0 }, { applied: 0 }, { applied: 0 }];
   return [
+    /* ================================================================================================
+     * THE FOURTH PLANT — AN `|-ability|` LINE ONLY ONE ENGINE WROTE. ADDED 2026-09-19 BY MEASURE.
+     * ================================================================================================
+     * THIS PLANT WOULD HAVE FAILED EVERY DAY BETWEEN 2026-08-06 AND 2026-09-19 and nobody would have
+     * had to argue about it. The retired `ability-announcement` equivalence (see `RETIRED_EQUIV`)
+     * dropped every `-ability` line from BOTH streams, so a line present on one side and absent on
+     * the other compared EQUAL. That is what `MEDI_ANTICIPATION_SILENT=1` proved on 2026-09-19: the
+     * engine wrote no Anticipation line at all and the whole-game comparison read `first divergence
+     * none`.
+     *
+     * THE PLANT IS AN INSERT, NOT A DELETE, AND THAT IS THE CHOICE THAT MAKES IT ALWAYS PLACEABLE.
+     * Deleting a real `-ability` line would be the closer analogue of the knob, and it would be
+     * SKIPPED on every pair whose agreeing prefix happens to hold no ability line — a plant that
+     * quietly does not run on most games is the same silence in a new costume. An insert lands on any
+     * stream with an agreeing prefix, so this proof fires on every run or fails.
+     *
+     * IT IS THE SAME MEASUREMENT EITHER WAY. The comparator cannot tell an ability line one engine
+     * omitted from one the other invented: both are `a[i] !== b[i]` at that index. `p1a: PLANTED` is
+     * not a body either engine can produce, so a catch cannot be the game's own divergence. */
+    ['an `|-ability|` line ONLY ONE ENGINE WROTE — the retired ability-announcement rule erased this',
+      k - 1,
+      s => { const i = at(s, k - 1); if (i < 0) return s; st[3].applied++;
+             const t = s.slice(); t.splice(i, 0, '|-ability|p1a: PLANTED|pressure'); return t; }, st[3]],
     ['a wrong FIELD on the last agreeing line', fieldK,
       s => { const i = at(s, fieldK); if (i < 0) return s;
              const bent = bendField2(s[i]); if (bent === null) return s; st[0].applied++;
@@ -7221,6 +7339,10 @@ module.exports = { playGame, buildPair, seamCounters: () => Object.assign({}, SE
                    CLOSET_ABILITY, CLOSET_SPECIES, closetHits, closetDeclaration,
                    plantedProof, pairsFor, COV_TARGETS, COV_UNMEASURABLE, PIN_CLAIMS, REL,
                    runDirected, damageInterior, DIRECTED, EQUIV, equivProof, semantic, reduce, NORM_COUNTS,
+                   /* 2026-09-19 — exported so the red demonstration for the retired `-ability` rule
+                    * reads THIS list rather than a copy of it. A test that carried its own idea of
+                    * what the equivalences are would keep passing after one was added back. */
+                   RETIRED_EQUIV, abilityAuditRows, auditAbilityLines,
                    knockOffArms, KO_TARGET_ITEMS,
                    plantedStateProof, STATE_PLANTS, BS_CTX, BS,
                    /* ROADMAP #88 — the arms, so a test can play the SAME game under two pins and
@@ -9149,6 +9271,26 @@ console.log('  is how a 100% divergence rate becomes 2% with nobody able to say 
   for (const r of EQUIV) console.log('    ' + String(NORM_COUNTS.get(r.id) || 0).padStart(7)
     + '  lines  ' + r.id + (NORM_COUNTS.get(r.id) ? '' : '   <-- collapsed NOTHING this run'));
   console.log('    ' + String(tot).padStart(7) + '  lines  TOTAL across ' + EQUIV.length + ' equivalence rules');
+  for (const r of RETIRED_EQUIV)
+    console.log('          —  RETIRED ' + r.retired + '  ' + r.id + ' (' + r.what_it_did + ')');
+}
+console.log('');
+/* THE `|-ability|` TABLE, PRINTED AS WELL AS PUBLISHED. This class was invisible for 44 days; the
+ * cure for that is not a field in a JSON file nobody opens. `gap` is authority minus ours, so a
+ * positive row is a line WE DO NOT WRITE and a negative row is one we write and they do not. */
+{
+  const rows = abilityAuditRows();
+  const bad = rows.filter(r => r.gap !== 0);
+  console.log('  `|-ability|` LINES, COMPARED SINCE 2026-09-19 (they were dropped whole before that):');
+  console.log('    ' + rows.length + ' distinct (body, ability, tail) form(s); ' + bad.length
+    + ' where the two engines wrote a different NUMBER of them'
+    + (bad.length ? '' : '   <-- both engines wrote the same lines'));
+  for (const r of bad.slice(0, 20))
+    console.log('      ' + String(r.gap > 0 ? '+' + r.gap : r.gap).padStart(7)
+      + '   showdown ' + String(r.showdown).padStart(5) + '  ours ' + String(r.medicham2).padStart(5)
+      + '   ' + r.body + '  ' + r.ability + (r.tail ? '|' + r.tail : ''));
+  if (bad.length > 20) console.log('      ... ' + (bad.length - 20) + ' more — the full table is '
+    + '`normalisation.ability_lines` in the artifact. A CAPPED LIST IS NOT THE POPULATION.');
 }
 console.log('');
 if (classes.size) {
@@ -9767,6 +9909,16 @@ if (WRITE) {
         keeps_the_meaning: (EQP.find(x => x.id === r.id) || {}).keeps_meaning,
         equal_pair: r.equal, distinct_pair: r.distinct })),
       total_lines_collapsed: [...NORM_COUNTS.values()].reduce((a, b) => a + b, 0),
+      /* EVERY `|-ability|` FORM SEEN THIS RUN, PER SIDE, COUNTED ON THE RAW STREAMS BEFORE ANY RULE
+       * RAN — see `auditAbilityLines`. This is the table that says how big whatever the `-ability`
+       * rules excuse actually is; a rule that quietens a class without publishing the class is the
+       * failure mode `normalisation` exists to prevent. */
+      ability_lines: abilityAuditRows(),
+      ability_lines_compared: true,
+      /* A RETIRED RULE IS PUBLISHED, NOT DELETED. See `RETIRED_EQUIV` above: an artifact from before
+       * 2026-09-19 carries a number measured with `-ability` invisible, and a reader has to be able
+       * to tell the two populations apart from the artifact alone. */
+      retired: RETIRED_EQUIV,
     },
     /* WHICH TABLE EACH TOKEN WAS ASKED OF. A reader of `mentions` cannot otherwise tell a cause that
      * names no condition from a run in which the condition rule never fired — and the difference is

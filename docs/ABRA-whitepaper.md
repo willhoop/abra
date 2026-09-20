@@ -1709,7 +1709,7 @@ The one component that is *not* a coin flip is the simulator. As of 6.0.0, MEDIC
 (`engine/medicham2-browser.js`) is validated against the **official Pokémon Showdown simulator**, which
 is the authority for this project (ADR-002), on three instruments that each stamp one frozen engine
 release: the whole-game differential (`data/game-differential.json` — board-material **0 of 961**,
-narration **0 undeclared of 961**, 10,705 of 10,705 turn boundaries identical, none excluded, none cut
+10,705 of 10,705 turn boundaries identical, none excluded, none cut
 off), the damage differential (`data/engine-diff.json` — 6,000 compared, 0 disagreed, at 17 roll
 indices), and the deliberate roster — `data/roster.items.json` **148 tested**,
 `data/roster.abilities.json` **194 tested**, `data/roster.moves.json` **495 tested** (re-measured on release `1a6550ea5ec6`, CHANGELOG 6.58.0), every stage with
@@ -1717,6 +1717,16 @@ DID-NOT-FIRE 0 and `differ` 0. Each stage's scope is decided by `engine/legal_sc
 The bound on the word "correct" is stated in the 6.0.0 block at the head of this paper
 and is not repeated here. The older, narrower Smogon-calculator check below is retained because it is
 still true of its own artifact.
+
+**THE NARRATION FIGURE THAT STOOD IN THE SENTENCE ABOVE IS WITHHELD AS OF 6.72.0, AND IT IS NOT
+REPLACED.** Every narration count this project has published was measured by a comparator that
+dropped every `|-ability|` line from both streams before comparing — `engine/game_differential.js`'s
+`ability-announcement` equivalence, added 2026-08-06 and retired 2026-09-19. Re-measured on the same
+release `18773c22878f`, the same pinned pool and the same `--games 1200` lattice with that rule gone:
+**250 of 961 games** part, all of them narration, `by_cause_reconciles: true`. Board-material is
+**unchanged at 0 of 961**, which is why the sentence above keeps that number and loses the other one.
+The three gate lattices have not been re-run, so there is no new narration figure to print here; see
+CHANGELOG 6.72.0 and `docs/_reports/2026-09-19-ability-line-blindness.md`.
 
 MEDICHAM's Gen-9 doubles damage
 pipeline (`engine/medicham2-browser.js`) is validated against the Smogon damage calculator (the community
