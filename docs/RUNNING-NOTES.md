@@ -52,6 +52,33 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.77.0] — 2026-09-20 — the whole gate re-measured on one engine: board-material zero everywhere, narration down to ONE game, 9 of 10 clauses pass
+
+- **What changed.** Nothing in the engine. This is the re-measure 6.76.0 said was OWED, run on a
+  single frozen release so that every clause is answering about the same bytes — the previous gate
+  reading failed six clauses for `MEASURED AGAINST A DIFFERENT ENGINE` and said nothing about the game.
+- **Measured** on release `6a0582efeda6` (27 files frozen), census pinned to
+  `data/verification/census-pin-56e17cc610e8.json`, team store `data/team-pool-frozen`,
+  `--steering empirical --arm middle --end-state`:
+  - **BOARD-MATERIAL: ZERO ON EVERY LATTICE.** `--games 1200`: 0 of 961 [pool `0d103fb9fa87`];
+    `--games 1350`: 0 of 1069 [pool `7e7a37ded7fc`]; `--games 1950`: 0 of 1497 [pool `a5ce76242f8d`].
+  - **UNDECLARED NARRATION: 0 of 961, 0 of 1069, 1 of 1497.** One game across 3,527.
+  - Damage differential clean at BOTH corners of the roll: 0 of 6000 at the midpoint and at every
+    interior index (`tests/test-engine-diff.js --n 6000 --seed 20260804`).
+  - Deliberate roster: items **148 of 148**, abilities **196 of 200** with 3 ANNOUNCEMENT-ONLY rows
+    accepted on a receipt, moves **496 of 497** — 0 DIFFER, 0 DID-NOT-FIRE anywhere.
+  - Staged battery: **4,632 games, 0 threw, 0 sheets could not be assembled**, 0 diverge, 0 undeclared.
+  - Coverage: all **412** moves above 25 clicks measured by the roster or the census.
+  - Board leaves: **0** that a legal mechanic writes can stand at a turn boundary uncompared.
+- **THE GATE READS 1 OF 10.** The single failing clause is NARRATION, and it fails on one lattice of
+  three. Every other clause passes. **The gate is not open and this row does not say it is** — one
+  undeclared narration game is a real reading, not a rounding error, and the mechanism behind it is not
+  yet known.
+- **Basis.** unchanged.
+- **Supersedes.** ~~undeclared narration 23 / 30 / 33~~ (6.74.0 row), now 0 / 0 / 1.
+- **Owed to the next major.** Everything above. NOT RUN on this release: the held-out `--games 12000`
+  draw, so no held-out parting count is claimed here.
+
 ## [6.76.0] — 2026-09-20 — the ability-arrival announcement class and two held-out board partings, merged and re-verified in the main tree
 
 - **What changed.** Two ENGINE batches merged and verified by the coordinator against the main tree.

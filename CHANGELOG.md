@@ -10,6 +10,20 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.77.0] — 2026-09-20
+
+### Changed
+- The whole gate re-measured on one frozen release (`6a0582efeda6`), so every clause answers about the
+  same engine bytes. The previous reading failed six clauses on engine mismatch alone.
+
+### Notes
+- Board-material ZERO on all three team lattices (0 of 961, 0 of 1069, 0 of 1497).
+- Undeclared narration 23 / 30 / 33 → **0 / 0 / 1** — one game across 3,527.
+- Damage differential 0 of 6000 at every corner; roster items 148/148, abilities 196/200, moves
+  496/497; staged battery 4,632 games with 0 threw and 0 diverging.
+- **GATE: 1 of 10 clauses fails — narration, on one lattice of three.** The gate is not open.
+- The held-out 12,000-game draw was not re-run on this release; no held-out figure is claimed.
+
 ## [6.76.0] — 2026-09-20
 
 ### Fixed

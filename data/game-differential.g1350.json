@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-20T03:09:21.789Z",
+  "generated": "2026-09-20T16:28:26.428Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:de38d17e15a2/credit:observed-effect/v1/nature:real",
   "games_requested": 1350,
@@ -52,7 +52,7 @@
       "damage_roll": "MINIMUM",
       "speed_tie": "to the EARLIER body",
       "games": 1069,
-      "diverged": 31,
+      "diverged": 1,
       "threw": 0,
       "median_turns": 9,
       "end_reasons": {
@@ -60,22 +60,17 @@
       },
       "turn1_boards_identical": 1069,
       "turn1_boards_reached": 1069,
-      "rows_credited": 278,
+      "rows_credited": 279,
       "credit_events": {
-        "effect": 604890,
+        "effect": 608454,
         "negative": 1149,
-        "click": 1248370
+        "click": 1250037
       },
       "classes": [
         {
           "cls": "event missing from medicham2",
-          "games": 28,
-          "distinct_causes": 15
-        },
-        {
-          "cls": "-ability field 4",
-          "games": 3,
-          "distinct_causes": 2
+          "games": 1,
+          "distinct_causes": 1
         }
       ]
     }
@@ -95,103 +90,103 @@
   },
   "games": 1069,
   "turns_cap": 50,
-  "elapsed_s": 440.7,
+  "elapsed_s": 274.1,
   "credit_turn_profile": {
-    "rows_with_any_credit": 278,
+    "rows_with_any_credit": 279,
     "credits_with_no_turn_index": 0,
     "deepest_first_credit_turn": 17,
     "by_first_turn": [
       {
         "turn": 1,
-        "rows_first_here": 244,
-        "rows_first_by_here": 244,
-        "pct_of_credited": 87.77
+        "rows_first_here": 245,
+        "rows_first_by_here": 245,
+        "pct_of_credited": 87.81
       },
       {
         "turn": 2,
         "rows_first_here": 15,
-        "rows_first_by_here": 259,
-        "pct_of_credited": 93.17
+        "rows_first_by_here": 260,
+        "pct_of_credited": 93.19
       },
       {
         "turn": 3,
         "rows_first_here": 4,
-        "rows_first_by_here": 263,
-        "pct_of_credited": 94.6
+        "rows_first_by_here": 264,
+        "pct_of_credited": 94.62
       },
       {
         "turn": 4,
         "rows_first_here": 8,
-        "rows_first_by_here": 271,
-        "pct_of_credited": 97.48
+        "rows_first_by_here": 272,
+        "pct_of_credited": 97.49
       },
       {
         "turn": 5,
         "rows_first_here": 1,
-        "rows_first_by_here": 272,
-        "pct_of_credited": 97.84
+        "rows_first_by_here": 273,
+        "pct_of_credited": 97.85
       },
       {
         "turn": 6,
         "rows_first_here": 2,
-        "rows_first_by_here": 274,
-        "pct_of_credited": 98.56
+        "rows_first_by_here": 275,
+        "pct_of_credited": 98.57
       },
       {
         "turn": 7,
         "rows_first_here": 1,
-        "rows_first_by_here": 275,
+        "rows_first_by_here": 276,
         "pct_of_credited": 98.92
       },
       {
         "turn": 8,
         "rows_first_here": 1,
-        "rows_first_by_here": 276,
+        "rows_first_by_here": 277,
         "pct_of_credited": 99.28
       },
       {
         "turn": 17,
         "rows_first_here": 2,
-        "rows_first_by_here": 278,
+        "rows_first_by_here": 279,
         "pct_of_credited": 100
       }
     ],
     "credit_events_by_turn": {
-      "1": 93237,
-      "2": 92708,
-      "3": 93086,
-      "4": 93286,
-      "5": 89355,
-      "6": 83233,
-      "7": 75564,
-      "8": 62603,
-      "9": 49916,
-      "10": 39422,
-      "11": 29990,
-      "12": 21222,
-      "13": 16054,
-      "14": 11861,
-      "15": 8727,
-      "16": 6524,
-      "17": 4912,
-      "18": 3183,
-      "19": 2735,
-      "20": 1927,
-      "21": 1346,
-      "22": 1092,
-      "23": 931,
-      "24": 639,
-      "25": 691,
-      "26": 718,
-      "27": 638,
-      "28": 496,
+      "1": 93577,
+      "2": 92918,
+      "3": 93271,
+      "4": 93479,
+      "5": 89543,
+      "6": 83418,
+      "7": 75731,
+      "8": 62744,
+      "9": 50047,
+      "10": 39508,
+      "11": 30066,
+      "12": 21272,
+      "13": 16097,
+      "14": 11884,
+      "15": 8752,
+      "16": 6546,
+      "17": 4927,
+      "18": 3193,
+      "19": 2745,
+      "20": 1936,
+      "21": 1350,
+      "22": 1097,
+      "23": 939,
+      "24": 641,
+      "25": 695,
+      "26": 722,
+      "27": 641,
+      "28": 498,
       "29": 460,
-      "30": 398,
-      "31": 404,
-      "32": 289,
-      "33": 145,
+      "30": 399,
+      "31": 405,
+      "32": 292,
+      "33": 146,
       "34": 124,
-      "35": 147
+      "35": 149
     },
     "rows_first_credited_at_turn_13_or_later": [
       "move:flingsOwnItem",
@@ -998,11 +993,11 @@
     "rates": {
       "with_megas": {
         "games": 1064,
-        "diverged": 31
+        "diverged": 1
       },
       "control_same_pairs_no_stones": {
         "games": 1064,
-        "diverged": 34
+        "diverged": 4
       },
       "pairs_with_no_stone_at_all": {
         "games": 5,
@@ -1010,16 +1005,16 @@
       },
       "whole_control_arm": {
         "games": 1069,
-        "diverged": 34,
+        "diverged": 4,
         "note": "every stone stripped — this is what the 2026-08-06 run measured"
       }
     },
     "pairing_broken": 0,
     "cost_of_the_megas": {
       "stone_carrying_pairs": 1064,
-      "mega_arm_parted_earlier": 3,
-      "mega_arm_parted_later": 11,
-      "parted_at_the_same_line": 1050,
+      "mega_arm_parted_earlier": 0,
+      "mega_arm_parted_later": 4,
+      "parted_at_the_same_line": 1060,
       "first_divergence_is_a_mega_line": 0,
       "first_divergence_is_a_detailschange_line": 0,
       "on_a_mega_line": [],
@@ -1044,7 +1039,7 @@
       {
         "id": "stat-attribution",
         "why": "a stat line's meaning is (body, stat, direction, amount). `[from] ability: X` and `[of] Y` say WHICH effect moved it, which the two engines tag inconsistently; the four fields that decide the board are kept.",
-        "lines_collapsed": 17026,
+        "lines_collapsed": 17062,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -1059,7 +1054,7 @@
       {
         "id": "source-tag",
         "why": "`[of] pXy` names the BODY behind an effect whose name is already carried by `[from]`. The two engines tag it inconsistently on -heal, -activate and -damage.",
-        "lines_collapsed": 113913,
+        "lines_collapsed": 114290,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -1074,7 +1069,7 @@
       {
         "id": "effect-namespace",
         "why": "Showdown writes an effect sometimes bare and sometimes namespaced — `|-sidestart|p1: A|Reflect` against this engine's `move: reflect`. The NAME is kept; only the namespace goes.",
-        "lines_collapsed": 522847,
+        "lines_collapsed": 524663,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -1089,7 +1084,7 @@
       {
         "id": "display-flags",
         "why": "`[silent]`, `[still]`, `[miss]` and `[spread]` are rendering hints. The state each one decorates is a separate event — `-miss` for a miss, `-prepare` for a charge, one `-damage` per body actually hit for a spread — and all of those are kept.",
-        "lines_collapsed": 174581,
+        "lines_collapsed": 175219,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -1104,7 +1099,7 @@
       {
         "id": "move-target-field",
         "why": "THE BIGGEST ONE, AND THE ONE THAT NEEDS THE ARGUMENT. A `|move|` line means \"this body used this move\". Showdown additionally names ONE nominal target plus `[spread]`; this engine names its own user on a spread move. WHO WAS ACTUALLY HIT is not in this field on either side — it is in the `-damage` / `-status` / `-unboost` / `-enditem` lines that follow, which are kept and compared body by body. A redirection bug is therefore caught one line later rather than not at all, and the `distinct` pair below is exactly that case.",
-        "lines_collapsed": 1176389,
+        "lines_collapsed": 1180979,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -1119,7 +1114,7 @@
       {
         "id": "switch-cause",
         "why": "a pivot switch is tagged `[from] U-turn` by Showdown; the pivot itself is the `|move|` line immediately before it, which is kept. The species and the HP on the switch line are kept.",
-        "lines_collapsed": 16763,
+        "lines_collapsed": 16823,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -1132,48 +1127,8 @@
         ]
       }
     ],
-    "total_lines_collapsed": 2021519,
+    "total_lines_collapsed": 2029036,
     "ability_lines": [
-      {
-        "body": "p1b:altaria",
-        "ability": "cloudnine",
-        "tail": "",
-        "showdown": 234,
-        "medicham2": 0,
-        "gap": 234
-      },
-      {
-        "body": "p1a:drampa",
-        "ability": "cloudnine",
-        "tail": "",
-        "showdown": 150,
-        "medicham2": 0,
-        "gap": 150
-      },
-      {
-        "body": "p2a:altaria",
-        "ability": "cloudnine",
-        "tail": "",
-        "showdown": 138,
-        "medicham2": 0,
-        "gap": 138
-      },
-      {
-        "body": "p1a:altaria",
-        "ability": "cloudnine",
-        "tail": "",
-        "showdown": 119,
-        "medicham2": 0,
-        "gap": 119
-      },
-      {
-        "body": "p2b:drampa",
-        "ability": "cloudnine",
-        "tail": "",
-        "showdown": 82,
-        "medicham2": 0,
-        "gap": 82
-      },
       {
         "body": "p1a:gardevoir",
         "ability": "armortail",
@@ -1205,22 +1160,6 @@
         "showdown": 0,
         "medicham2": 46,
         "gap": -46
-      },
-      {
-        "body": "p2b:hydrapple",
-        "ability": "supersweetsyrup",
-        "tail": "",
-        "showdown": 39,
-        "medicham2": 0,
-        "gap": 39
-      },
-      {
-        "body": "p2b:hydrapple",
-        "ability": "supersweetsyrup",
-        "tail": "boost",
-        "showdown": 0,
-        "medicham2": 39,
-        "gap": -39
       },
       {
         "body": "p2a:gardevoir",
@@ -1327,22 +1266,6 @@
         "gap": -29
       },
       {
-        "body": "p2a:hydrapple",
-        "ability": "supersweetsyrup",
-        "tail": "",
-        "showdown": 29,
-        "medicham2": 0,
-        "gap": 29
-      },
-      {
-        "body": "p2a:hydrapple",
-        "ability": "supersweetsyrup",
-        "tail": "boost",
-        "showdown": 0,
-        "medicham2": 29,
-        "gap": -29
-      },
-      {
         "body": "p2a:vileplume",
         "ability": "noguard",
         "tail": "chlorophyll|[from]move:entrainment|[of]p1a:hawlucha",
@@ -1405,14 +1328,6 @@
         "showdown": 0,
         "medicham2": 26,
         "gap": -26
-      },
-      {
-        "body": "p2a:drampa",
-        "ability": "cloudnine",
-        "tail": "",
-        "showdown": 26,
-        "medicham2": 0,
-        "gap": 26
       },
       {
         "body": "p1b:gardevoir",
@@ -2119,14 +2034,6 @@
         "gap": -7
       },
       {
-        "body": "p2b:altaria",
-        "ability": "cloudnine",
-        "tail": "",
-        "showdown": 7,
-        "medicham2": 0,
-        "gap": 7
-      },
-      {
         "body": "p1a:gardevoir",
         "ability": "flowerveil",
         "tail": "trace|[from]ability:trace|[of]p2a:floette",
@@ -2370,40 +2277,40 @@
         "body": "p1a:incineroar",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 4239,
-        "medicham2": 4239,
+        "showdown": 4254,
+        "medicham2": 4254,
         "gap": 0
       },
       {
         "body": "p2a:incineroar",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 3991,
-        "medicham2": 3991,
+        "showdown": 4006,
+        "medicham2": 4006,
         "gap": 0
       },
       {
         "body": "p2a:staraptor",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 3470,
-        "medicham2": 3470,
+        "showdown": 3474,
+        "medicham2": 3474,
         "gap": 0
       },
       {
         "body": "p1b:incineroar",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 2717,
-        "medicham2": 2717,
+        "showdown": 2721,
+        "medicham2": 2721,
         "gap": 0
       },
       {
         "body": "p2b:incineroar",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 2553,
-        "medicham2": 2553,
+        "showdown": 2563,
+        "medicham2": 2563,
         "gap": 0
       },
       {
@@ -2418,16 +2325,16 @@
         "body": "p1a:staraptor",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 2338,
-        "medicham2": 2338,
+        "showdown": 2344,
+        "medicham2": 2344,
         "gap": 0
       },
       {
         "body": "p1a:archaludon",
         "ability": "stamina",
         "tail": "boost",
-        "showdown": 2113,
-        "medicham2": 2113,
+        "showdown": 2118,
+        "medicham2": 2118,
         "gap": 0
       },
       {
@@ -2447,19 +2354,19 @@
         "gap": 0
       },
       {
-        "body": "p2b:archaludon",
-        "ability": "stamina",
-        "tail": "boost",
-        "showdown": 1213,
-        "medicham2": 1213,
-        "gap": 0
-      },
-      {
         "body": "p1a:blaziken",
         "ability": "speedboost",
         "tail": "boost",
-        "showdown": 1210,
-        "medicham2": 1210,
+        "showdown": 1222,
+        "medicham2": 1222,
+        "gap": 0
+      },
+      {
+        "body": "p2b:archaludon",
+        "ability": "stamina",
+        "tail": "boost",
+        "showdown": 1220,
+        "medicham2": 1220,
         "gap": 0
       },
       {
@@ -2514,8 +2421,8 @@
         "body": "p1a:aerodactyl",
         "ability": "unnerve",
         "tail": "",
-        "showdown": 553,
-        "medicham2": 553,
+        "showdown": 555,
+        "medicham2": 555,
         "gap": 0
       },
       {
@@ -2538,32 +2445,32 @@
         "body": "p2a:aerodactyl",
         "ability": "unnerve",
         "tail": "",
-        "showdown": 498,
-        "medicham2": 498,
-        "gap": 0
-      },
-      {
-        "body": "p2b:kingambit",
-        "ability": "defiant",
-        "tail": "boost",
-        "showdown": 473,
-        "medicham2": 473,
-        "gap": 0
-      },
-      {
-        "body": "p1a:kingambit",
-        "ability": "defiant",
-        "tail": "boost",
-        "showdown": 466,
-        "medicham2": 466,
+        "showdown": 500,
+        "medicham2": 500,
         "gap": 0
       },
       {
         "body": "p2b:blaziken",
         "ability": "speedboost",
         "tail": "boost",
-        "showdown": 464,
-        "medicham2": 464,
+        "showdown": 476,
+        "medicham2": 476,
+        "gap": 0
+      },
+      {
+        "body": "p2b:kingambit",
+        "ability": "defiant",
+        "tail": "boost",
+        "showdown": 474,
+        "medicham2": 474,
+        "gap": 0
+      },
+      {
+        "body": "p1a:kingambit",
+        "ability": "defiant",
+        "tail": "boost",
+        "showdown": 468,
+        "medicham2": 468,
         "gap": 0
       },
       {
@@ -2586,8 +2493,8 @@
         "body": "p1a:floette",
         "ability": "fairyaura",
         "tail": "",
-        "showdown": 393,
-        "medicham2": 393,
+        "showdown": 394,
+        "medicham2": 394,
         "gap": 0
       },
       {
@@ -2679,19 +2586,27 @@
         "gap": 0
       },
       {
-        "body": "p1a:annihilape",
-        "ability": "defiant",
-        "tail": "boost",
-        "showdown": 239,
-        "medicham2": 239,
+        "body": "p1b:altaria",
+        "ability": "cloudnine",
+        "tail": "",
+        "showdown": 253,
+        "medicham2": 253,
         "gap": 0
       },
       {
         "body": "p2a:milotic",
         "ability": "competitive",
         "tail": "boost",
-        "showdown": 238,
-        "medicham2": 238,
+        "showdown": 240,
+        "medicham2": 240,
+        "gap": 0
+      },
+      {
+        "body": "p1a:annihilape",
+        "ability": "defiant",
+        "tail": "boost",
+        "showdown": 239,
+        "medicham2": 239,
         "gap": 0
       },
       {
@@ -2791,6 +2706,14 @@
         "gap": 0
       },
       {
+        "body": "p1a:drampa",
+        "ability": "cloudnine",
+        "tail": "",
+        "showdown": 164,
+        "medicham2": 164,
+        "gap": 0
+      },
+      {
         "body": "p1b:milotic",
         "ability": "competitive",
         "tail": "boost",
@@ -2815,19 +2738,27 @@
         "gap": 0
       },
       {
+        "body": "p2a:kingambit",
+        "ability": "defiant",
+        "tail": "boost",
+        "showdown": 151,
+        "medicham2": 151,
+        "gap": 0
+      },
+      {
+        "body": "p2a:altaria",
+        "ability": "cloudnine",
+        "tail": "",
+        "showdown": 151,
+        "medicham2": 151,
+        "gap": 0
+      },
+      {
         "body": "p2b:milotic",
         "ability": "competitive",
         "tail": "boost",
         "showdown": 149,
         "medicham2": 149,
-        "gap": 0
-      },
-      {
-        "body": "p2a:kingambit",
-        "ability": "defiant",
-        "tail": "boost",
-        "showdown": 146,
-        "medicham2": 146,
         "gap": 0
       },
       {
@@ -2860,6 +2791,14 @@
         "tail": "",
         "showdown": 136,
         "medicham2": 136,
+        "gap": 0
+      },
+      {
+        "body": "p1a:altaria",
+        "ability": "cloudnine",
+        "tail": "",
+        "showdown": 130,
+        "medicham2": 130,
         "gap": 0
       },
       {
@@ -2943,19 +2882,27 @@
         "gap": 0
       },
       {
+        "body": "p1a:wyrdeer",
+        "ability": "intimidate",
+        "tail": "boost",
+        "showdown": 88,
+        "medicham2": 88,
+        "gap": 0
+      },
+      {
+        "body": "p2b:drampa",
+        "ability": "cloudnine",
+        "tail": "",
+        "showdown": 88,
+        "medicham2": 88,
+        "gap": 0
+      },
+      {
         "body": "p1b:krookodile",
         "ability": "intimidate",
         "tail": "boost",
         "showdown": 86,
         "medicham2": 86,
-        "gap": 0
-      },
-      {
-        "body": "p1a:wyrdeer",
-        "ability": "intimidate",
-        "tail": "boost",
-        "showdown": 85,
-        "medicham2": 85,
         "gap": 0
       },
       {
@@ -3079,15 +3026,15 @@
         "gap": 0
       },
       {
-        "body": "p1a:arcanine",
+        "body": "p1b:wyrdeer",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 46,
-        "medicham2": 46,
+        "showdown": 47,
+        "medicham2": 47,
         "gap": 0
       },
       {
-        "body": "p1b:wyrdeer",
+        "body": "p1a:arcanine",
         "ability": "intimidate",
         "tail": "boost",
         "showdown": 46,
@@ -3097,6 +3044,14 @@
       {
         "body": "p1a:sceptile",
         "ability": "lightningrod",
+        "tail": "boost",
+        "showdown": 45,
+        "medicham2": 45,
+        "gap": 0
+      },
+      {
+        "body": "p1a:drampa",
+        "ability": "berserk",
         "tail": "boost",
         "showdown": 45,
         "medicham2": 45,
@@ -3119,16 +3074,16 @@
         "gap": 0
       },
       {
-        "body": "p1a:drampa",
-        "ability": "berserk",
-        "tail": "boost",
-        "showdown": 42,
-        "medicham2": 42,
+        "body": "p2b:excadrill",
+        "ability": "moldbreaker",
+        "tail": "",
+        "showdown": 41,
+        "medicham2": 41,
         "gap": 0
       },
       {
-        "body": "p2b:excadrill",
-        "ability": "moldbreaker",
+        "body": "p2b:hydrapple",
+        "ability": "supersweetsyrup",
         "tail": "",
         "showdown": 41,
         "medicham2": 41,
@@ -3231,6 +3186,14 @@
         "gap": 0
       },
       {
+        "body": "p2a:hydrapple",
+        "ability": "supersweetsyrup",
+        "tail": "",
+        "showdown": 33,
+        "medicham2": 33,
+        "gap": 0
+      },
+      {
         "body": "p2a:scolipede",
         "ability": "speedboost",
         "tail": "boost",
@@ -3260,6 +3223,14 @@
         "tail": "",
         "showdown": 30,
         "medicham2": 30,
+        "gap": 0
+      },
+      {
+        "body": "p2a:drampa",
+        "ability": "cloudnine",
+        "tail": "",
+        "showdown": 29,
+        "medicham2": 29,
         "gap": 0
       },
       {
@@ -3447,6 +3418,14 @@
         "gap": 0
       },
       {
+        "body": "p2a:drampa",
+        "ability": "berserk",
+        "tail": "boost",
+        "showdown": 20,
+        "medicham2": 20,
+        "gap": 0
+      },
+      {
         "body": "p1b:goodra",
         "ability": "gooey",
         "tail": "",
@@ -3487,9 +3466,17 @@
         "gap": 0
       },
       {
-        "body": "p2a:drampa",
-        "ability": "berserk",
-        "tail": "boost",
+        "body": "p2b:emboar",
+        "ability": "moldbreaker",
+        "tail": "",
+        "showdown": 18,
+        "medicham2": 18,
+        "gap": 0
+      },
+      {
+        "body": "p2a:emboar",
+        "ability": "moldbreaker",
+        "tail": "",
         "showdown": 18,
         "medicham2": 18,
         "gap": 0
@@ -3514,22 +3501,6 @@
         "body": "p2b:falinks",
         "ability": "defiant",
         "tail": "boost",
-        "showdown": 17,
-        "medicham2": 17,
-        "gap": 0
-      },
-      {
-        "body": "p2b:emboar",
-        "ability": "moldbreaker",
-        "tail": "",
-        "showdown": 17,
-        "medicham2": 17,
-        "gap": 0
-      },
-      {
-        "body": "p2a:emboar",
-        "ability": "moldbreaker",
-        "tail": "",
         "showdown": 17,
         "medicham2": 17,
         "gap": 0
@@ -3793,6 +3764,14 @@
       {
         "body": "p1a:starmie",
         "ability": "moldbreaker",
+        "tail": "",
+        "showdown": 8,
+        "medicham2": 8,
+        "gap": 0
+      },
+      {
+        "body": "p2b:altaria",
+        "ability": "cloudnine",
         "tail": "",
         "showdown": 8,
         "medicham2": 8,
@@ -4172,14 +4151,14 @@
     },
     "verdict": "the predicted DAMAGE bug does not reproduce — medicham2 prices both halves correctly because playerAction computes the range at CLICK time, before the item is stripped. AND THE ITEM DISPOSITION AGREES TOO: both engines record Colbur as EATEN, writing `[eat]` then `[weaken]` and setting lastItem/ateBerry, which the `last_item` and `ate_berry` board leaves have compared since 2026-09-10. This clause claimed the opposite until that date while the two `*_enditem` lists above it said otherwise."
   },
-  "diverged": 31,
+  "diverged": 1,
   "threw": 0,
   "mid_void": {
     "void_games": 0,
     "usable_games": 1069,
-    "diverged_among_usable": 31,
+    "diverged_among_usable": 1,
     "void_game_tags": [],
-    "diverged_rate_over_usable": 0.029,
+    "diverged_rate_over_usable": 0.0009,
     "mid_battle_bound_at_install": true,
     "empty_address_games_counted_void": false,
     "overlap_floor": 0.9,
@@ -4189,7 +4168,7 @@
     "by_reason_detail": {
       "shared-addresses-agree": {
         "games": 1069,
-        "diverged": 31,
+        "diverged": 1,
         "median_turns": 9,
         "max_turns": 35
       }
@@ -4274,21 +4253,7 @@
         "target differs": 2,
         "turn+target differs": 1
       },
-      "by_cause": [
-        {
-          "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |-ability|p2b|intimidate|boost",
-          "games": 2,
-          "verdicts": {
-            "identical": 2
-          },
-          "board_parted": 0,
-          "min_rate_over_smaller": 1,
-          "min_rate_over_larger": 0.8,
-          "sd_only": 0,
-          "me_only": 1,
-          "instrument_suspect": true
-        }
-      ]
+      "by_cause": []
     }
   },
   "corner_pin": null,
@@ -4702,20 +4667,15 @@
       "rate_of_all_games": 1,
       "rate_of_games_that_reached_it": 1,
       "never_reached_turn1": 0,
-      "protocol_parted_during_turn1": 17,
-      "protocol_parted_during_turn1_board_identical_anyway": 17,
+      "protocol_parted_during_turn1": 0,
+      "protocol_parted_during_turn1_board_identical_anyway": 0,
       "by_field": [],
       "by_cause": [],
       "by_protocol_class": [
         {
           "cls": "event missing from medicham2",
-          "games": 28,
-          "board_identical_at_end_of_turn1": 28
-        },
-        {
-          "cls": "-ability field 4",
-          "games": 3,
-          "board_identical_at_end_of_turn1": 3
+          "games": 1,
+          "board_identical_at_end_of_turn1": 1
         }
       ],
       "cases": [],
@@ -4733,8 +4693,8 @@
     "void_games_counted_against_the_engine": false,
     "game_agreement": 1,
     "median_turn_of_first_board_divergence": null,
-    "protocol_diverged_games": 31,
-    "protocol_diverged_board_never_did": 31,
+    "protocol_diverged_games": 1,
+    "protocol_diverged_board_never_did": 1,
     "protocol_diverged_board_held_longer": 0,
     "board_parted_before_the_protocol_did": 0,
     "families": [],
@@ -5660,17 +5620,17 @@
           "NO-COMPARABLE-BOARD": 0,
           "THREW": 0
         },
-        "protocol_parted": 31,
-        "protocol_never_parted": 1038,
+        "protocol_parted": 1,
+        "protocol_never_parted": 1068,
         "of_the_games_whose_protocol_parted": {
-          "SAME-END-STATE": 31,
+          "SAME-END-STATE": 1,
           "DIFFERENT-END-STATE": 0,
           "ENDED-APART": 0,
           "NO-COMPARABLE-BOARD": 0,
           "THREW": 0
         },
         "of_the_games_whose_protocol_never_parted": {
-          "SAME-END-STATE": 1038,
+          "SAME-END-STATE": 1068,
           "DIFFERENT-END-STATE": 0,
           "ENDED-APART": 0,
           "NO-COMPARABLE-BOARD": 0,
@@ -5678,35 +5638,13 @@
         },
         "wording_rate_of_all_parted_games": 1,
         "wording_rate_of_parted_games_with_a_comparable_end": 1,
-        "parted_games_with_a_comparable_end": 31,
+        "parted_games_with_a_comparable_end": 1,
         "by_shape": [
           {
             "shape": "EMISSION",
-            "games": 24,
+            "games": 1,
             "verdicts": {
-              "SAME-END-STATE": 24,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            }
-          },
-          {
-            "shape": "ORDERING",
-            "games": 4,
-            "verdicts": {
-              "SAME-END-STATE": 4,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            }
-          },
-          {
-            "shape": "FIELD",
-            "games": 3,
-            "verdicts": {
-              "SAME-END-STATE": 3,
+              "SAME-END-STATE": 1,
               "DIFFERENT-END-STATE": 0,
               "ENDED-APART": 0,
               "NO-COMPARABLE-BOARD": 0,
@@ -5715,326 +5653,6 @@
           }
         ],
         "by_cause": [
-          {
-            "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-            "games": 7,
-            "board_parted": 0,
-            "board_never_parted": 7,
-            "verdicts": {
-              "SAME-END-STATE": 7,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 7,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-ability|p2b|cloudnine <> |turn|1",
-            "games": 3,
-            "board_parted": 0,
-            "board_never_parted": 3,
-            "verdicts": {
-              "SAME-END-STATE": 3,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 3,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |turn|1",
-            "games": 3,
-            "board_parted": 0,
-            "board_never_parted": 3,
-            "verdicts": {
-              "SAME-END-STATE": 3,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 3,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|3",
-            "games": 2,
-            "board_parted": 0,
-            "board_never_parted": 2,
-            "verdicts": {
-              "SAME-END-STATE": 2,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 2,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "-ability field 4 :: |-ability|p2a|supersweetsyrup <> |-ability|p2a|supersweetsyrup|boost",
-            "games": 2,
-            "board_parted": 0,
-            "board_never_parted": 2,
-            "verdicts": {
-              "SAME-END-STATE": 2,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 2,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |-ability|p2b|intimidate|boost",
-            "games": 2,
-            "board_parted": 0,
-            "board_never_parted": 2,
-            "verdicts": {
-              "SAME-END-STATE": 2,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 2,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |turn|1",
-            "games": 2,
-            "board_parted": 0,
-            "board_never_parted": 2,
-            "verdicts": {
-              "SAME-END-STATE": 2,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 2,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |turn|2",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |upkeep",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |move|p2b|detect",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "-ability field 4 :: |-ability|p2b|supersweetsyrup <> |-ability|p2b|supersweetsyrup|boost",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |turn|4",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |switch|p1a|raichu,l50|H/H",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |-ability|p2b|intimidate|boost",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |-ability|p1a|intimidate|boost",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
-          {
-            "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |move|p2b|powergem",
-            "games": 1,
-            "board_parted": 0,
-            "board_never_parted": 1,
-            "verdicts": {
-              "SAME-END-STATE": 1,
-              "DIFFERENT-END-STATE": 0,
-              "ENDED-APART": 0,
-              "NO-COMPARABLE-BOARD": 0,
-              "THREW": 0
-            },
-            "narration_games": 1,
-            "unknown_games": 0,
-            "board_parted_same_turn": 0,
-            "board_parted_later": 0,
-            "board_parted_earlier": 0,
-            "materiality": "NARRATION-ONLY",
-            "first_board_divergence_turns": []
-          },
           {
             "cause": "event missing from medicham2 :: |-end|p1b|fallenundefined <> |-damage|p2b|H/H|[from]lifeorb",
             "games": 1,
@@ -6057,16 +5675,16 @@
           }
         ],
         "by_cause_totals": {
-          "causes": 17,
-          "games": 31,
+          "causes": 1,
+          "games": 1,
           "BOARD_MATERIAL": 0,
-          "NARRATION_ONLY": 17,
+          "NARRATION_ONLY": 1,
           "UNKNOWN": 0,
           "games_board_material": 0,
           "games_board_material_same_turn": 0,
           "games_board_material_board_parted_later": 0,
           "games_board_material_board_parted_earlier": 0,
-          "games_narration_only": 31,
+          "games_narration_only": 1,
           "games_unknown": 0,
           "by_cause_reconciles": true,
           "bounded_by": "NARRATION-ONLY is bounded by board_state.js NOT_COMPARED (published in this artifact as end_state_not_compared) and by the turn cap: a board that would part after the cap reads as narration here."
@@ -6200,7 +5818,7 @@
   "severity_usage_source": {
     "file": "data/meta-usage.json",
     "read": "LIVE — not in the frozen release",
-    "generated": "2026-09-19",
+    "generated": "2026-09-20",
     "species_with_a_usage_figure": 264,
     "base_forme_fallbacks": 0,
     "base_forme_note": "A mega forme has no row of its own and falls back to the dex's baseSpecies, counted here. Without it every mega ranked UNKNOWN in a format whose mega usage is ~26%.",
@@ -6285,838 +5903,8 @@
   "classes": [
     {
       "cls": "event missing from medicham2",
-      "games": 28,
+      "games": 1,
       "causes": [
-        {
-          "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-          "n": 7,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p1a: Altaria|Altaria, L50|150/150",
-            "|switch|p1b: Delphox|Delphox, L50|150/150",
-            "|switch|p2a: Delphox|Delphox, L50|150/150",
-            "|switch|p2b: Blastoise|Blastoise, L50|154/154"
-          ],
-          "sdAfter": [
-            "|-ability|p1a: Altaria|Cloud Nine",
-            "|turn|1",
-            "|detailschange|p2a: Delphox|Delphox-Mega, L50",
-            "|-mega|p2a: Delphox|Delphox|Delphoxite",
-            "|detailschange|p1b: Delphox|Delphox-Mega, L50",
-            "|-mega|p1b: Delphox|Delphox|Delphoxite",
-            "|move|p1b: Delphox|Protect|p1b: Delphox",
-            "|-singleturn|p1b: Delphox|Protect",
-            "|move|p1a: Altaria|Protect|p1a: Altaria",
-            "|-singleturn|p1a: Altaria|Protect"
-          ],
-          "meAfter": [
-            "|turn|1",
-            "|detailschange|p2a: Delphox|delphox-mega, L50",
-            "|-mega|p2a: Delphox|Delphox|delphoxite",
-            "|detailschange|p1b: Delphox|delphox-mega, L50",
-            "|-mega|p1b: Delphox|Delphox|delphoxite",
-            "|move|p1b: Delphox|protect|p1b: Delphox",
-            "|-singleturn|p1b: Delphox|Protect",
-            "|move|p1a: Altaria|protect|p1a: Altaria",
-            "|-singleturn|p1a: Altaria|Protect",
-            "|move|p2b: Blastoise|protect|p2b: Blastoise"
-          ],
-          "species": "Altaria",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "baseline",
-            "seed": "gen9championsvgc2026regmbbo3-2656761211 vs gen9championsvgc2026regmbbo3-2656862781",
-            "turn": 1
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "cloudnine",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 561
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 561
-        },
-        {
-          "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|3",
-          "n": 2,
-          "void_n": 0,
-          "showdown_before": [
-            "|-damage|p1b: Musharna|85/191",
-            "|-status|p1b: Musharna|par",
-            "|-heal|p1b: Musharna|96/191 par|[from] item: Leftovers",
-            "|-heal|p2b: Archaludon|115/165|[from] item: Leftovers",
-            "|upkeep",
-            "|switch|p1a: Drampa|Drampa, L50|153/153"
-          ],
-          "sdAfter": [
-            "|-ability|p1a: Drampa|Cloud Nine",
-            "|turn|3",
-            "|detailschange|p1a: Drampa|Drampa-Mega, L50",
-            "|-mega|p1a: Drampa|Drampa|Drampanite",
-            "|move|p1a: Drampa|Protect|p1a: Drampa",
-            "|-singleturn|p1a: Drampa|Protect",
-            "|move|p2b: Archaludon|Flash Cannon|p1a: Drampa",
-            "|-activate|p1a: Drampa|move: Protect",
-            "|move|p2a: Raichu|Zap Cannon|p1a: Drampa",
-            "|-activate|p1a: Drampa|move: Protect"
-          ],
-          "meAfter": [
-            "|turn|3",
-            "|detailschange|p1a: Drampa|drampa-mega, L50",
-            "|-mega|p1a: Drampa|Drampa|drampanite",
-            "|move|p1a: Drampa|protect|p1a: Drampa",
-            "|-singleturn|p1a: Drampa|Protect",
-            "|move|p2b: Archaludon|flashcannon|p1a: Drampa",
-            "|-activate|p1a: Drampa|move: Protect",
-            "|move|p2a: Raichu|zapcannon|p1a: Drampa",
-            "|-activate|p1a: Drampa|move: Protect",
-            "|move|p1b: Musharna|trickroom|p1b: Musharna"
-          ],
-          "species": "Drampa",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "baseline",
-            "seed": "gen9championsvgc2026regmbbo3-2661874022 vs gen9championsvgc2026regmbbo3-2661815109",
-            "turn": 3
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "cloudnine",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 561
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 561
-        },
-        {
-          "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |turn|2",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|move|p1a: Whimsicott|Moonblast|p2b: Farigiraf",
-            "|-damage|p2b: Farigiraf|117/195",
-            "|move|p2b: Farigiraf|Trick Room|p2b: Farigiraf",
-            "|-fieldstart|move: Trick Room|[of] p2b: Farigiraf",
-            "|upkeep",
-            "|switch|p2a: Altaria|Altaria, L50|150/150"
-          ],
-          "sdAfter": [
-            "|-ability|p2a: Altaria|Cloud Nine",
-            "|turn|2",
-            "|move|p1b: Delphox|Protect|p1b: Delphox",
-            "|-singleturn|p1b: Delphox|Protect",
-            "|move|p1a: Whimsicott|Tailwind|p1a: Whimsicott",
-            "|-sidestart|p1: A|move: Tailwind",
-            "|move|p2b: Farigiraf|Psychic|p1a: Whimsicott",
-            "|-damage|p1a: Whimsicott|11/135",
-            "|move|p2a: Altaria|Tailwind|p2a: Altaria",
-            "|-sidestart|p2: B|move: Tailwind"
-          ],
-          "meAfter": [
-            "|turn|2",
-            "|move|p1b: Delphox|protect|p1b: Delphox",
-            "|-singleturn|p1b: Delphox|Protect",
-            "|move|p1a: Whimsicott|tailwind|p1a: Whimsicott",
-            "|-sidestart|p1: |move: Tailwind",
-            "|move|p2b: Farigiraf|psychic|p1a: Whimsicott",
-            "|-damage|p1a: Whimsicott|11/135",
-            "|move|p2a: Altaria|tailwind|p2a: Altaria",
-            "|-sidestart|p2: |move: Tailwind",
-            "|upkeep"
-          ],
-          "species": "Altaria",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "baseline",
-            "seed": "gen9championsvgc2026regmb-2634790218 vs gen9championsvgc2026regmb-2634903417",
-            "turn": 2
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "cloudnine",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 561
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 561
-        },
-        {
-          "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |-ability|p2b|intimidate|boost",
-          "n": 2,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p1a: Gengar|Gengar, L50|135/135",
-            "|switch|p1b: Altaria|Altaria, L50|150/150",
-            "|switch|p2a: Aerodactyl|Aerodactyl, L50|155/155",
-            "|switch|p2b: Incineroar|Incineroar, L50|170/170",
-            "|-ability|p2a: Aerodactyl|Unnerve"
-          ],
-          "sdAfter": [
-            "|-ability|p1b: Altaria|Cloud Nine",
-            "|-ability|p2b: Incineroar|Intimidate|boost",
-            "|-unboost|p1a: Gengar|atk|1",
-            "|-unboost|p1b: Altaria|atk|1",
-            "|turn|1"
-          ],
-          "meAfter": [
-            "|-ability|p2b: Incineroar|intimidate|boost",
-            "|-unboost|p1a: Gengar|atk|1",
-            "|-unboost|p1b: Altaria|atk|1"
-          ],
-          "species": "Altaria",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-weather",
-            "seed": "gen9championsvgc2026regmbbo3-2655115392 vs gen9championsvgc2026regmbbo3-2655095785",
-            "turn": 0
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "cloudnine",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 561
-            },
-            {
-              "kind": "abilities",
-              "id": "intimidate",
-              "legal": true,
-              "carriers": 19,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 28726
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 28726
-        },
-        {
-          "cause": "event missing from medicham2 :: |-ability|p2b|cloudnine <> |turn|1",
-          "n": 3,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p1b: Whimsicott|Whimsicott, L50|135/135",
-            "|switch|p2a: Alakazam|Alakazam, L50|130/130",
-            "|switch|p2b: Drampa|Drampa, L50|153/153",
-            "|-ability|p1a: Staraptor|Intimidate|boost",
-            "|-fail|p2a: Alakazam|unboost|Attack|[from] ability: Inner Focus|[of] p2a: Alakazam",
-            "|-unboost|p2b: Drampa|atk|1"
-          ],
-          "sdAfter": [
-            "|-ability|p2b: Drampa|Cloud Nine",
-            "|turn|1",
-            "|detailschange|p1a: Staraptor|Staraptor-Mega, L50",
-            "|-mega|p1a: Staraptor|Staraptor|Staraptite",
-            "|detailschange|p2b: Drampa|Drampa-Mega, L50",
-            "|-mega|p2b: Drampa|Drampa|Drampanite",
-            "|move|p1b: Whimsicott|Tailwind|p1b: Whimsicott",
-            "|-sidestart|p1: A|move: Tailwind",
-            "|move|p1a: Staraptor|Roost||[still]",
-            "|-fail|p1a: Staraptor|heal"
-          ],
-          "meAfter": [
-            "|turn|1",
-            "|detailschange|p1a: Staraptor|staraptor-mega, L50",
-            "|-mega|p1a: Staraptor|Staraptor|staraptite",
-            "|detailschange|p2b: Drampa|drampa-mega, L50",
-            "|-mega|p2b: Drampa|Drampa|drampanite",
-            "|move|p1b: Whimsicott|tailwind|p1b: Whimsicott",
-            "|-sidestart|p1: |move: Tailwind",
-            "|move|p1a: Staraptor|roost|p1a: Staraptor",
-            "|-fail|p1a: Staraptor|heal",
-            "|move|p2a: Alakazam|speedswap|p1a: Staraptor"
-          ],
-          "species": "Drampa",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-weather",
-            "seed": "gen9championsvgc2026regmbbo3-2655713400 vs gen9championsvgc2026regmbbo3-2655773551",
-            "turn": 1
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "cloudnine",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 561
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 561
-        },
-        {
-          "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |turn|1",
-          "n": 2,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p1a: Whimsicott|Whimsicott, L50|135/135",
-            "|switch|p1b: Altaria|Altaria, L50|150/150",
-            "|switch|p2a: Delphox|Delphox, L50|150/150",
-            "|switch|p2b: Floette|Floette-Eternal, L50|149/149"
-          ],
-          "sdAfter": [
-            "|-ability|p1b: Altaria|Cloud Nine",
-            "|turn|1",
-            "|switch|p1b: Basculegion|Basculegion, L50|195/195",
-            "|detailschange|p2a: Delphox|Delphox-Mega, L50",
-            "|-mega|p2a: Delphox|Delphox|Delphoxite",
-            "|move|p2b: Floette|Protect|p2b: Floette",
-            "|-singleturn|p2b: Floette|Protect",
-            "|move|p1a: Whimsicott|Tailwind|p1a: Whimsicott",
-            "|-sidestart|p1: A|move: Tailwind",
-            "|move|p2a: Delphox|Nasty Plot|p2a: Delphox"
-          ],
-          "meAfter": [
-            "|turn|1",
-            "|switch|p1b: Basculegion|basculegion, L50|195/195",
-            "|detailschange|p2a: Delphox|delphox-mega, L50",
-            "|-mega|p2a: Delphox|Delphox|delphoxite",
-            "|move|p2b: Floette|protect|p2b: Floette",
-            "|-singleturn|p2b: Floette|Protect",
-            "|move|p1a: Whimsicott|tailwind|p1a: Whimsicott",
-            "|-sidestart|p1: |move: Tailwind",
-            "|move|p2a: Delphox|nastyplot|p2a: Delphox",
-            "|-boost|p2a: Delphox|spa|2"
-          ],
-          "species": "Altaria",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-weather",
-            "seed": "gen9championsvgc2026regmbbo3-2657779993 vs gen9championsvgc2026regmbbo3-2657897683",
-            "turn": 1
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "cloudnine",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 561
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 561
-        },
-        {
-          "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |upkeep",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|-boost|p2a: Staraptor|def|1",
-            "|-boost|p2a: Staraptor|spd|1",
-            "|move|p1b: Lopunny|U-turn|p2a: Staraptor",
-            "|-resisted|p2a: Staraptor|2",
-            "|-damage|p2a: Staraptor|138/160",
-            "|switch|p1b: Altaria|Altaria, L50|150/150|[from] U-turn"
-          ],
-          "sdAfter": [
-            "|-ability|p1b: Altaria|Cloud Nine",
-            "|upkeep",
-            "|turn|3"
-          ],
-          "meAfter": [
-            "|upkeep"
-          ],
-          "species": "Altaria",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-weather",
-            "seed": "gen9championsvgc2026regmbbo3-2658519462 vs gen9championsvgc2026regmbbo3-2658554343",
-            "turn": 2
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "cloudnine",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 561
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 561
-        },
-        {
-          "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |turn|1",
-          "n": 3,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p1a: Raichu|Raichu, L50|135/135",
-            "|switch|p1b: Whimsicott|Whimsicott, L50|135/135",
-            "|switch|p2a: Drampa|Drampa, L50|153/153",
-            "|switch|p2b: Farigiraf|Farigiraf, L50|195/195"
-          ],
-          "sdAfter": [
-            "|-ability|p2a: Drampa|Cloud Nine",
-            "|turn|1",
-            "|detailschange|p1a: Raichu|Raichu-Mega-Y, L50",
-            "|-mega|p1a: Raichu|Raichu|Raichunite Y",
-            "|move|p2a: Drampa|Protect|p2a: Drampa",
-            "|-singleturn|p2a: Drampa|Protect",
-            "|move|p1a: Raichu|Focus Blast|p2a: Drampa",
-            "|-activate|p2a: Drampa|move: Protect",
-            "|move|p1b: Whimsicott|Moonblast|p2a: Drampa",
-            "|-activate|p2a: Drampa|move: Protect"
-          ],
-          "meAfter": [
-            "|turn|1",
-            "|detailschange|p1a: Raichu|raichu-mega-y, L50",
-            "|-mega|p1a: Raichu|Raichu|raichunitey",
-            "|move|p2a: Drampa|protect|p2a: Drampa",
-            "|-singleturn|p2a: Drampa|Protect",
-            "|move|p1a: Raichu|focusblast|p2a: Drampa",
-            "|-activate|p2a: Drampa|move: Protect",
-            "|move|p1b: Whimsicott|moonblast|p2a: Drampa",
-            "|-activate|p2a: Drampa|move: Protect",
-            "|move|p2b: Farigiraf|trickroom|p2b: Farigiraf"
-          ],
-          "species": "Drampa",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-spread",
-            "seed": "gen9championsvgc2026regmbbo3-2658271291 vs gen9championsvgc2026regmbbo3-2658253576",
-            "turn": 1
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "cloudnine",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 561
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 561
-        },
-        {
-          "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |move|p2b|detect",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|-ability|p2b: Blaziken|Speed Boost|boost",
-            "|-boost|p2b: Blaziken|spe|1",
-            "|upkeep",
-            "|switch|p1a: Chandelure|Chandelure, L50|135/135",
-            "|turn|5",
-            "|switch|p1a: Altaria|Altaria, L50|150/150"
-          ],
-          "sdAfter": [
-            "|-ability|p1a: Altaria|Cloud Nine",
-            "|move|p2b: Blaziken|Detect||[still]",
-            "|-fail|p2b: Blaziken",
-            "|move|p2a: Metagross|Bullet Punch|p1a: Altaria",
-            "|-damage|p1a: Altaria|98/150",
-            "|move|p1b: Grimmsnarl|Reflect|p1b: Grimmsnarl",
-            "|-sidestart|p1: A|Reflect",
-            "|-ability|p2b: Blaziken|Speed Boost|boost",
-            "|-boost|p2b: Blaziken|spe|1",
-            "|upkeep"
-          ],
-          "meAfter": [
-            "|move|p2b: Blaziken|detect||[still]",
-            "|-fail|p2b: Blaziken",
-            "|move|p2a: Metagross|bulletpunch|p1a: Altaria",
-            "|-damage|p1a: Altaria|98/150",
-            "|move|p1b: Grimmsnarl|reflect|p1b: Grimmsnarl",
-            "|-sidestart|p1: |move: reflect",
-            "|-ability|p2b: Blaziken|speedboost|boost",
-            "|-boost|p2b: Blaziken|spe|1|[from] ability: speedboost",
-            "|upkeep"
-          ],
-          "species": "Altaria",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-spread",
-            "seed": "gen9championsvgc2026regmbbo3-2661993461 vs gen9championsvgc2026regmbbo3-2662113960",
-            "turn": 5
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "cloudnine",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 561
-            },
-            {
-              "kind": "moves",
-              "id": "detect",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 7661
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 7661
-        },
-        {
-          "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |turn|4",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|-damage|p1b: Mamoswine|76/185|[from] item: Life Orb",
-            "|-weather|Sandstorm|[upkeep]",
-            "|-damage|p2b: Raichu|111/135|[from] Sandstorm",
-            "|upkeep",
-            "|switch|p1a: Lucario|Lucario, L50|145/145",
-            "|switch|p2a: Altaria|Altaria, L50|150/150"
-          ],
-          "sdAfter": [
-            "|-ability|p2a: Altaria|Cloud Nine",
-            "|turn|4",
-            "|move|p1b: Mamoswine|Ice Shard|p2a: Altaria",
-            "|-supereffective|p2a: Altaria|2",
-            "|-damage|p2a: Altaria|0 fnt",
-            "|faint|p2a: Altaria",
-            "|-damage|p1b: Mamoswine|58/185|[from] item: Life Orb",
-            "|move|p2b: Raichu|Focus Blast|p1a: Lucario",
-            "|-supereffective|p1a: Lucario|1",
-            "|-damage|p1a: Lucario|0 fnt"
-          ],
-          "meAfter": [
-            "|turn|4",
-            "|move|p1b: Mamoswine|iceshard|p2a: Altaria",
-            "|-supereffective|p2a: Altaria|2",
-            "|-damage|p2a: Altaria|0 fnt",
-            "|faint|p2a: Altaria",
-            "|-damage|p1b: Mamoswine|58/185|[from] item: Life Orb",
-            "|move|p2b: Raichu|focusblast|p1a: Lucario",
-            "|-supereffective|p1a: Lucario|1",
-            "|-damage|p1a: Lucario|0 fnt",
-            "|faint|p1a: Lucario"
-          ],
-          "species": "Altaria",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "pair-protect-bust",
-            "seed": "gen9championsvgc2026regmbbo3-2659130263 vs gen9championsvgc2026regmbbo3-2659094739",
-            "turn": 4
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "cloudnine",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 561
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 561
-        },
-        {
-          "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |switch|p1a|raichu,l50|H/H",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|move|p1a: Incineroar|Darkest Lariat|p2a: Torkoal",
-            "|-activate|p2a: Torkoal|move: Protect",
-            "|-weather|SunnyDay|[upkeep]",
-            "|upkeep",
-            "|turn|4",
-            "|switch|p1b: Altaria|Altaria, L50|150/150"
-          ],
-          "sdAfter": [
-            "|-ability|p1b: Altaria|Cloud Nine",
-            "|switch|p1a: Raichu|Raichu, L50|135/135",
-            "|move|p2a: Torkoal|Eruption|p1a: Raichu|[spread] p1a,p1b",
-            "|-resisted|p1b: Altaria|1",
-            "|-damage|p1a: Raichu|56/135",
-            "|-damage|p1b: Altaria|120/150",
-            "|move|p2b: Slowbro|Scald|p1a: Raichu",
-            "|-damage|p1a: Raichu|0 fnt",
-            "|faint|p1a: Raichu",
-            "|-weather|SunnyDay|[upkeep]"
-          ],
-          "meAfter": [
-            "|switch|p1a: Raichu|raichu, L50|135/135",
-            "|move|p2a: Torkoal|eruption|p1a: Raichu",
-            "|-resisted|p1b: Altaria|1",
-            "|-damage|p1a: Raichu|56/135",
-            "|-damage|p1b: Altaria|120/150",
-            "|move|p2b: Slowbro|scald|p1a: Raichu",
-            "|-damage|p1a: Raichu|0 fnt",
-            "|faint|p1a: Raichu",
-            "|-weather|sunnyday|[upkeep]",
-            "|upkeep"
-          ],
-          "species": "Altaria",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "pair-redirect-priority",
-            "seed": "gen9championsvgc2026regmbbo3-2659123487 vs gen9championsvgc2026regmbbo3-2659181439",
-            "turn": 4
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "cloudnine",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 561
-            },
-            {
-              "kind": "species",
-              "id": "raichu",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": null
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 561
-        },
-        {
-          "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |-ability|p2b|intimidate|boost",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p1a: Altaria|Altaria, L50|150/150",
-            "|switch|p1b: Lopunny|Lopunny, L50|140/140",
-            "|switch|p2a: Sinistcha|Sinistcha, L50|146/146",
-            "|switch|p2b: Incineroar|Incineroar, L50|170/170"
-          ],
-          "sdAfter": [
-            "|-ability|p1a: Altaria|Cloud Nine",
-            "|-ability|p2b: Incineroar|Intimidate|boost",
-            "|-unboost|p1a: Altaria|atk|1",
-            "|-unboost|p1b: Lopunny|atk|1",
-            "|turn|1"
-          ],
-          "meAfter": [
-            "|-ability|p2b: Incineroar|intimidate|boost",
-            "|-unboost|p1a: Altaria|atk|1",
-            "|-unboost|p1b: Lopunny|atk|1"
-          ],
-          "species": "Altaria",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "pair-redirect-priority",
-            "seed": "gen9championsvgc2026regmbbo3-2660184414 vs gen9championsvgc2026regmbbo3-2660264431",
-            "turn": 0
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "cloudnine",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 561
-            },
-            {
-              "kind": "abilities",
-              "id": "intimidate",
-              "legal": true,
-              "carriers": 19,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 28726
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 28726
-        },
-        {
-          "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |-ability|p1a|intimidate|boost",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p1a: Incineroar|Incineroar, L50|170/170",
-            "|switch|p1b: Sinistcha|Sinistcha, L50|146/146",
-            "|switch|p2a: Altaria|Altaria, L50|150/150",
-            "|switch|p2b: Sneasler|Sneasler, L50|155/155"
-          ],
-          "sdAfter": [
-            "|-ability|p2a: Altaria|Cloud Nine",
-            "|-ability|p1a: Incineroar|Intimidate|boost",
-            "|-unboost|p2a: Altaria|atk|1",
-            "|-unboost|p2b: Sneasler|atk|1",
-            "|-enditem|p2b: Sneasler|White Herb",
-            "|-clearnegativeboost|p2b: Sneasler|[silent]",
-            "|turn|1"
-          ],
-          "meAfter": [
-            "|-ability|p1a: Incineroar|intimidate|boost",
-            "|-unboost|p2a: Altaria|atk|1",
-            "|-unboost|p2b: Sneasler|atk|1",
-            "|-enditem|p2b: Sneasler|whiteherb",
-            "|-clearnegativeboost|p2b: Sneasler|[silent]"
-          ],
-          "species": "Altaria",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "pair-redirect-priority",
-            "seed": "gen9championsvgc2026regmbbo3-2660691219 vs gen9championsvgc2026regmbbo3-2660764054",
-            "turn": 0
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "cloudnine",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 561
-            },
-            {
-              "kind": "abilities",
-              "id": "intimidate",
-              "legal": true,
-              "carriers": 19,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 28726
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 28726
-        },
-        {
-          "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |move|p2b|powergem",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|detailschange|p1a: Venusaur|Venusaur-Mega, L50",
-            "|-mega|p1a: Venusaur|Venusaur|Venusaurite",
-            "|move|p1b: Grimmsnarl|Parting Shot|p2a: Whimsicott",
-            "|-unboost|p2a: Whimsicott|atk|1",
-            "|-unboost|p2a: Whimsicott|spa|1",
-            "|switch|p1b: Altaria|Altaria, L50|150/150|[from] Parting Shot"
-          ],
-          "sdAfter": [
-            "|-ability|p1b: Altaria|Cloud Nine",
-            "|move|p2b: Garchomp|Power Gem|p1a: Venusaur",
-            "|-damage|p1a: Venusaur|117/155",
-            "|move|p1a: Venusaur|Earth Power|p2a: Whimsicott",
-            "|-resisted|p2a: Whimsicott|1",
-            "|-damage|p2a: Whimsicott|105/135",
-            "|-weather|Sandstorm|[upkeep]",
-            "|upkeep",
-            "|turn|2"
-          ],
-          "meAfter": [
-            "|move|p2b: Garchomp|powergem|p1a: Venusaur",
-            "|-damage|p1a: Venusaur|117/155",
-            "|move|p1a: Venusaur|earthpower|p2a: Whimsicott",
-            "|-resisted|p2a: Whimsicott|1",
-            "|-damage|p2a: Whimsicott|105/135",
-            "|-weather|sandstorm|[upkeep]",
-            "|upkeep"
-          ],
-          "species": "Altaria",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "pair-speedctrl",
-            "seed": "gen9championsvgc2026regmbbo3-2657924560 vs gen9championsvgc2026regmbbo3-2657999917",
-            "turn": 1
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "cloudnine",
-              "legal": true,
-              "carriers": 2,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 561
-            },
-            {
-              "kind": "moves",
-              "id": "powergem",
-              "legal": true,
-              "carriers": null,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 4065
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 4065
-        },
         {
           "cause": "event missing from medicham2 :: |-end|p1b|fallenundefined <> |-damage|p2b|H/H|[from]lifeorb",
           "n": 1,
@@ -7163,621 +5951,10 @@
           "max_uses": 33644
         }
       ]
-    },
-    {
-      "cls": "-ability field 4",
-      "games": 3,
-      "causes": [
-        {
-          "cause": "-ability field 4 :: |-ability|p2a|supersweetsyrup <> |-ability|p2a|supersweetsyrup|boost",
-          "n": 2,
-          "void_n": 0,
-          "showdown_before": [
-            "|-mega|p1a: Raichu|Raichu|Raichunite Y",
-            "|move|p1b: Sneasler|Fake Out|p2a: Dragapult",
-            "|-immune|p2a: Dragapult",
-            "|move|p2a: Dragapult|U-turn|p1a: Raichu",
-            "|-damage|p1a: Raichu|74/135",
-            "|switch|p2a: Hydrapple|Hydrapple, L50|181/181|[from] U-turn"
-          ],
-          "sdAfter": [
-            "|-ability|p2a: Hydrapple|Supersweet Syrup",
-            "|-unboost|p1a: Raichu|evasion|1",
-            "|-unboost|p1b: Sneasler|evasion|1",
-            "|move|p1a: Raichu|Focus Blast|p2a: Hydrapple",
-            "|-damage|p2a: Hydrapple|106/181",
-            "|move|p2b: Volcarona|Quiver Dance|p2b: Volcarona",
-            "|-boost|p2b: Volcarona|spa|1",
-            "|-boost|p2b: Volcarona|spd|1",
-            "|-boost|p2b: Volcarona|spe|1",
-            "|-heal|p2a: Hydrapple|117/181|[from] item: Leftovers"
-          ],
-          "meAfter": [
-            "|-ability|p2a: Hydrapple|supersweetsyrup|boost",
-            "|-unboost|p1a: Raichu|evasion|1",
-            "|-unboost|p1b: Sneasler|evasion|1",
-            "|move|p1a: Raichu|focusblast|p2a: Hydrapple",
-            "|-damage|p2a: Hydrapple|106/181",
-            "|move|p2b: Volcarona|quiverdance|p2b: Volcarona",
-            "|-boost|p2b: Volcarona|spa|1",
-            "|-boost|p2b: Volcarona|spd|1",
-            "|-boost|p2b: Volcarona|spe|1",
-            "|-heal|p2a: Hydrapple|117/181|[from] item: leftovers"
-          ],
-          "species": "Hydrapple",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "omit-protect",
-            "seed": "gen9championsvgc2026regmbbo3-2657592206 vs gen9championsvgc2026regmbbo3-2657866201",
-            "turn": 1
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "supersweetsyrup",
-              "legal": true,
-              "carriers": 1,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 27
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 27
-        },
-        {
-          "cause": "-ability field 4 :: |-ability|p2b|supersweetsyrup <> |-ability|p2b|supersweetsyrup|boost",
-          "n": 1,
-          "void_n": 0,
-          "showdown_before": [
-            "|switch|p1a: Gengar|Gengar, L50|135/135",
-            "|switch|p1b: Whimsicott|Whimsicott, L50|135/135",
-            "|switch|p2a: Lucario|Lucario, L50|145/145",
-            "|switch|p2b: Hydrapple|Hydrapple, L50|181/181"
-          ],
-          "sdAfter": [
-            "|-ability|p2b: Hydrapple|Supersweet Syrup",
-            "|-unboost|p1a: Gengar|evasion|1",
-            "|-unboost|p1b: Whimsicott|evasion|1",
-            "|turn|1"
-          ],
-          "meAfter": [
-            "|-ability|p2b: Hydrapple|supersweetsyrup|boost",
-            "|-unboost|p1a: Gengar|evasion|1",
-            "|-unboost|p1b: Whimsicott|evasion|1"
-          ],
-          "species": "Hydrapple",
-          "attribution": {
-            "showdown": [],
-            "medicham": []
-          },
-          "example": {
-            "config": "pair-protect-bust",
-            "seed": "gen9championsvgc2026regmbbo3-2655745450 vs gen9championsvgc2026regmbbo3-2655794301",
-            "turn": 0
-          },
-          "mentions": [
-            {
-              "kind": "abilities",
-              "id": "supersweetsyrup",
-              "legal": true,
-              "carriers": 1,
-              "reachable": true,
-              "nonstandard": null,
-              "uses": 27
-            }
-          ],
-          "cannot_occur_in_format": false,
-          "max_uses": 27
-        }
-      ]
     }
   ],
   "order_probe": [],
   "first_divergences": [
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2656761211 vs gen9championsvgc2026regmbbo3-2656862781",
-      "index": 4,
-      "agreed_lines": 4,
-      "turn": 1,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-      "showdown": "|-ability|p1a: Altaria|Cloud Nine",
-      "medicham": "|turn|1",
-      "showdown_before": [
-        "|switch|p1a: Altaria|Altaria, L50|150/150",
-        "|switch|p1b: Delphox|Delphox, L50|150/150",
-        "|switch|p2a: Delphox|Delphox, L50|150/150",
-        "|switch|p2b: Blastoise|Blastoise, L50|154/154"
-      ]
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2661874022 vs gen9championsvgc2026regmbbo3-2661815109",
-      "index": 35,
-      "agreed_lines": 35,
-      "turn": 3,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|3",
-      "showdown": "|-ability|p1a: Drampa|Cloud Nine",
-      "medicham": "|turn|3",
-      "showdown_before": [
-        "|-damage|p1b: Musharna|85/191",
-        "|-status|p1b: Musharna|par",
-        "|-heal|p1b: Musharna|96/191 par|[from] item: Leftovers",
-        "|-heal|p2b: Archaludon|115/165|[from] item: Leftovers",
-        "|upkeep",
-        "|switch|p1a: Drampa|Drampa, L50|153/153"
-      ]
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmb-2634790218 vs gen9championsvgc2026regmb-2634903417",
-      "index": 22,
-      "agreed_lines": 22,
-      "turn": 2,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |turn|2",
-      "showdown": "|-ability|p2a: Altaria|Cloud Nine",
-      "medicham": "|turn|2",
-      "showdown_before": [
-        "|move|p1a: Whimsicott|Moonblast|p2b: Farigiraf",
-        "|-damage|p2b: Farigiraf|117/195",
-        "|move|p2b: Farigiraf|Trick Room|p2b: Farigiraf",
-        "|-fieldstart|move: Trick Room|[of] p2b: Farigiraf",
-        "|upkeep",
-        "|switch|p2a: Altaria|Altaria, L50|150/150"
-      ]
-    },
-    {
-      "config": "baseline",
-      "seed": "gen9championsvgc2026regmbbo3-2635741327 vs gen9championsvgc2026regmbbo3-2634522988",
-      "index": 7,
-      "agreed_lines": 7,
-      "turn": 1,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-      "showdown": "|-ability|p1a: Altaria|Cloud Nine",
-      "medicham": "|turn|1",
-      "showdown_before": [
-        "|switch|p1b: Maushold|Maushold, L50|149/149",
-        "|switch|p2a: Staraptor|Staraptor, L50|160/160",
-        "|switch|p2b: Grimmsnarl|Grimmsnarl, L50|170/170",
-        "|-ability|p2a: Staraptor|Intimidate|boost",
-        "|-unboost|p1a: Altaria|atk|1",
-        "|-unboost|p1b: Maushold|atk|1"
-      ]
-    },
-    {
-      "config": "omit-protect",
-      "seed": "gen9championsvgc2026regmbbo3-2657592206 vs gen9championsvgc2026regmbbo3-2657866201",
-      "index": 12,
-      "agreed_lines": 12,
-      "turn": 1,
-      "cls": "-ability field 4",
-      "cause": "-ability field 4 :: |-ability|p2a|supersweetsyrup <> |-ability|p2a|supersweetsyrup|boost",
-      "showdown": "|-ability|p2a: Hydrapple|Supersweet Syrup",
-      "medicham": "|-ability|p2a: Hydrapple|supersweetsyrup|boost",
-      "showdown_before": [
-        "|-mega|p1a: Raichu|Raichu|Raichunite Y",
-        "|move|p1b: Sneasler|Fake Out|p2a: Dragapult",
-        "|-immune|p2a: Dragapult",
-        "|move|p2a: Dragapult|U-turn|p1a: Raichu",
-        "|-damage|p1a: Raichu|74/135",
-        "|switch|p2a: Hydrapple|Hydrapple, L50|181/181|[from] U-turn"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmbbo3-2654776814 vs gen9championsvgc2026regmbbo3-2654909029",
-      "index": 4,
-      "agreed_lines": 4,
-      "turn": 1,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-      "showdown": "|-ability|p1a: Altaria|Cloud Nine",
-      "medicham": "|turn|1",
-      "showdown_before": [
-        "|switch|p1a: Altaria|Altaria, L50|150/150",
-        "|switch|p1b: Dragalge|Dragalge, L50|140/140",
-        "|switch|p2a: Barbaracle|Barbaracle, L50|147/147",
-        "|switch|p2b: Sinistcha|Sinistcha, L50|146/146"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmbbo3-2655115392 vs gen9championsvgc2026regmbbo3-2655095785",
-      "index": 5,
-      "agreed_lines": 5,
-      "turn": 0,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |-ability|p2b|intimidate|boost",
-      "showdown": "|-ability|p1b: Altaria|Cloud Nine",
-      "medicham": "|-ability|p2b: Incineroar|intimidate|boost",
-      "showdown_before": [
-        "|switch|p1a: Gengar|Gengar, L50|135/135",
-        "|switch|p1b: Altaria|Altaria, L50|150/150",
-        "|switch|p2a: Aerodactyl|Aerodactyl, L50|155/155",
-        "|switch|p2b: Incineroar|Incineroar, L50|170/170",
-        "|-ability|p2a: Aerodactyl|Unnerve"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmbbo3-2655713400 vs gen9championsvgc2026regmbbo3-2655773551",
-      "index": 7,
-      "agreed_lines": 7,
-      "turn": 1,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p2b|cloudnine <> |turn|1",
-      "showdown": "|-ability|p2b: Drampa|Cloud Nine",
-      "medicham": "|turn|1",
-      "showdown_before": [
-        "|switch|p1b: Whimsicott|Whimsicott, L50|135/135",
-        "|switch|p2a: Alakazam|Alakazam, L50|130/130",
-        "|switch|p2b: Drampa|Drampa, L50|153/153",
-        "|-ability|p1a: Staraptor|Intimidate|boost",
-        "|-fail|p2a: Alakazam|unboost|Attack|[from] ability: Inner Focus|[of] p2a: Alakazam",
-        "|-unboost|p2b: Drampa|atk|1"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmbbo3-2657779993 vs gen9championsvgc2026regmbbo3-2657897683",
-      "index": 4,
-      "agreed_lines": 4,
-      "turn": 1,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |turn|1",
-      "showdown": "|-ability|p1b: Altaria|Cloud Nine",
-      "medicham": "|turn|1",
-      "showdown_before": [
-        "|switch|p1a: Whimsicott|Whimsicott, L50|135/135",
-        "|switch|p1b: Altaria|Altaria, L50|150/150",
-        "|switch|p2a: Delphox|Delphox, L50|150/150",
-        "|switch|p2b: Floette|Floette-Eternal, L50|149/149"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmbbo3-2658256023 vs gen9championsvgc2026regmbbo3-2658232255",
-      "index": 4,
-      "agreed_lines": 4,
-      "turn": 1,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-      "showdown": "|-ability|p1a: Drampa|Cloud Nine",
-      "medicham": "|turn|1",
-      "showdown_before": [
-        "|switch|p1a: Drampa|Drampa, L50|153/153",
-        "|switch|p1b: Whimsicott|Whimsicott, L50|135/135",
-        "|switch|p2a: Mawile|Mawile, L50|125/125",
-        "|switch|p2b: Eelektross|Eelektross, L50|160/160"
-      ]
-    },
-    {
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmbbo3-2658519462 vs gen9championsvgc2026regmbbo3-2658554343",
-      "index": 34,
-      "agreed_lines": 34,
-      "turn": 2,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |upkeep",
-      "showdown": "|-ability|p1b: Altaria|Cloud Nine",
-      "medicham": "|upkeep",
-      "showdown_before": [
-        "|-boost|p2a: Staraptor|def|1",
-        "|-boost|p2a: Staraptor|spd|1",
-        "|move|p1b: Lopunny|U-turn|p2a: Staraptor",
-        "|-resisted|p2a: Staraptor|2",
-        "|-damage|p2a: Staraptor|138/160",
-        "|switch|p1b: Altaria|Altaria, L50|150/150|[from] U-turn"
-      ]
-    },
-    {
-      "config": "omit-intimidate",
-      "seed": "gen9championsvgc2026regmbbo3-2657779993 vs gen9championsvgc2026regmbbo3-2657902548",
-      "index": 4,
-      "agreed_lines": 4,
-      "turn": 1,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |turn|1",
-      "showdown": "|-ability|p1b: Altaria|Cloud Nine",
-      "medicham": "|turn|1",
-      "showdown_before": [
-        "|switch|p1a: Whimsicott|Whimsicott, L50|135/135",
-        "|switch|p1b: Altaria|Altaria, L50|150/150",
-        "|switch|p2a: Raichu|Raichu, L50|135/135",
-        "|switch|p2b: Sylveon|Sylveon, L50|170/170"
-      ]
-    },
-    {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmbbo3-2655115392 vs gen9championsvgc2026regmbbo3-2655096266",
-      "index": 4,
-      "agreed_lines": 4,
-      "turn": 0,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |-ability|p2b|intimidate|boost",
-      "showdown": "|-ability|p1b: Altaria|Cloud Nine",
-      "medicham": "|-ability|p2b: Incineroar|intimidate|boost",
-      "showdown_before": [
-        "|switch|p1a: Gengar|Gengar, L50|135/135",
-        "|switch|p1b: Altaria|Altaria, L50|150/150",
-        "|switch|p2a: Annihilape|Annihilape, L50|185/185",
-        "|switch|p2b: Incineroar|Incineroar, L50|170/170"
-      ]
-    },
-    {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmbbo3-2658271291 vs gen9championsvgc2026regmbbo3-2658253576",
-      "index": 4,
-      "agreed_lines": 4,
-      "turn": 1,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |turn|1",
-      "showdown": "|-ability|p2a: Drampa|Cloud Nine",
-      "medicham": "|turn|1",
-      "showdown_before": [
-        "|switch|p1a: Raichu|Raichu, L50|135/135",
-        "|switch|p1b: Whimsicott|Whimsicott, L50|135/135",
-        "|switch|p2a: Drampa|Drampa, L50|153/153",
-        "|switch|p2b: Farigiraf|Farigiraf, L50|195/195"
-      ]
-    },
-    {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmbbo3-2658772638 vs gen9championsvgc2026regmbbo3-2658772547",
-      "index": 43,
-      "agreed_lines": 43,
-      "turn": 3,
-      "cls": "-ability field 4",
-      "cause": "-ability field 4 :: |-ability|p2a|supersweetsyrup <> |-ability|p2a|supersweetsyrup|boost",
-      "showdown": "|-ability|p2a: Hydrapple|Supersweet Syrup",
-      "medicham": "|-ability|p2a: Hydrapple|supersweetsyrup|boost",
-      "showdown_before": [
-        "|-supereffective|p2b: Simisear|1",
-        "|-enditem|p2b: Simisear|Focus Sash",
-        "|-damage|p2b: Simisear|1/150",
-        "|-damage|p1b: Mamoswine|131/185|[from] item: Life Orb",
-        "|upkeep",
-        "|switch|p2a: Hydrapple|Hydrapple, L50|181/181"
-      ]
-    },
-    {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmbbo3-2659448819 vs gen9championsvgc2026regmbbo3-2659553017",
-      "index": 4,
-      "agreed_lines": 4,
-      "turn": 1,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-      "showdown": "|-ability|p1a: Drampa|Cloud Nine",
-      "medicham": "|turn|1",
-      "showdown_before": [
-        "|switch|p1a: Drampa|Drampa, L50|153/153",
-        "|switch|p1b: Meowstic|Meowstic, L50|149/149",
-        "|switch|p2a: Mawile|Mawile, L50|125/125",
-        "|switch|p2b: Dragonite|Dragonite, L50|166/166"
-      ]
-    },
-    {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmbbo3-2659986881 vs gen9championsvgc2026regmbbo3-2660067024",
-      "index": 4,
-      "agreed_lines": 4,
-      "turn": 1,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |turn|1",
-      "showdown": "|-ability|p2a: Altaria|Cloud Nine",
-      "medicham": "|turn|1",
-      "showdown_before": [
-        "|switch|p1a: Absol|Absol, L50|140/140",
-        "|switch|p1b: Simisage|Simisage, L50|150/150",
-        "|switch|p2a: Altaria|Altaria, L50|150/150",
-        "|switch|p2b: Emboar|Emboar, L50|185/185"
-      ]
-    },
-    {
-      "config": "omit-spread",
-      "seed": "gen9championsvgc2026regmbbo3-2661993461 vs gen9championsvgc2026regmbbo3-2662113960",
-      "index": 60,
-      "agreed_lines": 60,
-      "turn": 5,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |move|p2b|detect",
-      "showdown": "|-ability|p1a: Altaria|Cloud Nine",
-      "medicham": "|move|p2b: Blaziken|detect||[still]",
-      "showdown_before": [
-        "|-ability|p2b: Blaziken|Speed Boost|boost",
-        "|-boost|p2b: Blaziken|spe|1",
-        "|upkeep",
-        "|switch|p1a: Chandelure|Chandelure, L50|135/135",
-        "|turn|5",
-        "|switch|p1a: Altaria|Altaria, L50|150/150"
-      ]
-    },
-    {
-      "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmbbo3-2655672115 vs gen9championsvgc2026regmbbo3-2655721892",
-      "index": 4,
-      "agreed_lines": 4,
-      "turn": 1,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p2b|cloudnine <> |turn|1",
-      "showdown": "|-ability|p2b: Drampa|Cloud Nine",
-      "medicham": "|turn|1",
-      "showdown_before": [
-        "|switch|p1a: Delphox|Delphox, L50|150/150",
-        "|switch|p1b: Aerodactyl|Aerodactyl, L50|155/155",
-        "|switch|p2a: Alakazam|Alakazam, L50|130/130",
-        "|switch|p2b: Drampa|Drampa, L50|153/153"
-      ]
-    },
-    {
-      "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmbbo3-2655745450 vs gen9championsvgc2026regmbbo3-2655794301",
-      "index": 4,
-      "agreed_lines": 4,
-      "turn": 0,
-      "cls": "-ability field 4",
-      "cause": "-ability field 4 :: |-ability|p2b|supersweetsyrup <> |-ability|p2b|supersweetsyrup|boost",
-      "showdown": "|-ability|p2b: Hydrapple|Supersweet Syrup",
-      "medicham": "|-ability|p2b: Hydrapple|supersweetsyrup|boost",
-      "showdown_before": [
-        "|switch|p1a: Gengar|Gengar, L50|135/135",
-        "|switch|p1b: Whimsicott|Whimsicott, L50|135/135",
-        "|switch|p2a: Lucario|Lucario, L50|145/145",
-        "|switch|p2b: Hydrapple|Hydrapple, L50|181/181"
-      ]
-    },
-    {
-      "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmbbo3-2659130263 vs gen9championsvgc2026regmbbo3-2659094739",
-      "index": 64,
-      "agreed_lines": 64,
-      "turn": 4,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |turn|4",
-      "showdown": "|-ability|p2a: Altaria|Cloud Nine",
-      "medicham": "|turn|4",
-      "showdown_before": [
-        "|-damage|p1b: Mamoswine|76/185|[from] item: Life Orb",
-        "|-weather|Sandstorm|[upkeep]",
-        "|-damage|p2b: Raichu|111/135|[from] Sandstorm",
-        "|upkeep",
-        "|switch|p1a: Lucario|Lucario, L50|145/145",
-        "|switch|p2a: Altaria|Altaria, L50|150/150"
-      ]
-    },
-    {
-      "config": "pair-protect-bust",
-      "seed": "gen9championsvgc2026regmbbo3-2663871056 vs gen9championsvgc2026regmbbo3-2663837715",
-      "index": 4,
-      "agreed_lines": 4,
-      "turn": 1,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |turn|1",
-      "showdown": "|-ability|p2a: Altaria|Cloud Nine",
-      "medicham": "|turn|1",
-      "showdown_before": [
-        "|switch|p1a: Aegislash|Aegislash, L50|135/135",
-        "|switch|p1b: Aromatisse|Aromatisse, L50|176/176",
-        "|switch|p2a: Altaria|Altaria, L50|150/150",
-        "|switch|p2b: Beedrill|Beedrill, L50|140/140"
-      ]
-    },
-    {
-      "config": "pair-redirect-priority",
-      "seed": "gen9championsvgc2026regmbbo3-2659123487 vs gen9championsvgc2026regmbbo3-2659181439",
-      "index": 49,
-      "agreed_lines": 49,
-      "turn": 4,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |switch|p1a|raichu,l50|H/H",
-      "showdown": "|-ability|p1b: Altaria|Cloud Nine",
-      "medicham": "|switch|p1a: Raichu|raichu, L50|135/135",
-      "showdown_before": [
-        "|move|p1a: Incineroar|Darkest Lariat|p2a: Torkoal",
-        "|-activate|p2a: Torkoal|move: Protect",
-        "|-weather|SunnyDay|[upkeep]",
-        "|upkeep",
-        "|turn|4",
-        "|switch|p1b: Altaria|Altaria, L50|150/150"
-      ]
-    },
-    {
-      "config": "pair-redirect-priority",
-      "seed": "gen9championsvgc2026regmbbo3-2660184414 vs gen9championsvgc2026regmbbo3-2660264431",
-      "index": 4,
-      "agreed_lines": 4,
-      "turn": 0,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |-ability|p2b|intimidate|boost",
-      "showdown": "|-ability|p1a: Altaria|Cloud Nine",
-      "medicham": "|-ability|p2b: Incineroar|intimidate|boost",
-      "showdown_before": [
-        "|switch|p1a: Altaria|Altaria, L50|150/150",
-        "|switch|p1b: Lopunny|Lopunny, L50|140/140",
-        "|switch|p2a: Sinistcha|Sinistcha, L50|146/146",
-        "|switch|p2b: Incineroar|Incineroar, L50|170/170"
-      ]
-    },
-    {
-      "config": "pair-redirect-priority",
-      "seed": "gen9championsvgc2026regmbbo3-2660691219 vs gen9championsvgc2026regmbbo3-2660764054",
-      "index": 4,
-      "agreed_lines": 4,
-      "turn": 0,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |-ability|p1a|intimidate|boost",
-      "showdown": "|-ability|p2a: Altaria|Cloud Nine",
-      "medicham": "|-ability|p1a: Incineroar|intimidate|boost",
-      "showdown_before": [
-        "|switch|p1a: Incineroar|Incineroar, L50|170/170",
-        "|switch|p1b: Sinistcha|Sinistcha, L50|146/146",
-        "|switch|p2a: Altaria|Altaria, L50|150/150",
-        "|switch|p2b: Sneasler|Sneasler, L50|155/155"
-      ]
-    },
-    {
-      "config": "pair-speedctrl",
-      "seed": "gen9championsvgc2026regmbbo3-2655666822 vs gen9championsvgc2026regmbbo3-2655721892",
-      "index": 4,
-      "agreed_lines": 4,
-      "turn": 1,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p2b|cloudnine <> |turn|1",
-      "showdown": "|-ability|p2b: Drampa|Cloud Nine",
-      "medicham": "|turn|1",
-      "showdown_before": [
-        "|switch|p1a: Whimsicott|Whimsicott, L50|135/135",
-        "|switch|p1b: Delphox|Delphox, L50|150/150",
-        "|switch|p2a: Alakazam|Alakazam, L50|130/130",
-        "|switch|p2b: Drampa|Drampa, L50|153/153"
-      ]
-    },
-    {
-      "config": "pair-speedctrl",
-      "seed": "gen9championsvgc2026regmbbo3-2657924560 vs gen9championsvgc2026regmbbo3-2657999917",
-      "index": 15,
-      "agreed_lines": 15,
-      "turn": 1,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1b|cloudnine <> |move|p2b|powergem",
-      "showdown": "|-ability|p1b: Altaria|Cloud Nine",
-      "medicham": "|move|p2b: Garchomp|powergem|p1a: Venusaur",
-      "showdown_before": [
-        "|detailschange|p1a: Venusaur|Venusaur-Mega, L50",
-        "|-mega|p1a: Venusaur|Venusaur|Venusaurite",
-        "|move|p1b: Grimmsnarl|Parting Shot|p2a: Whimsicott",
-        "|-unboost|p2a: Whimsicott|atk|1",
-        "|-unboost|p2a: Whimsicott|spa|1",
-        "|switch|p1b: Altaria|Altaria, L50|150/150|[from] Parting Shot"
-      ]
-    },
-    {
-      "config": "pair-speedctrl",
-      "seed": "gen9championsvgc2026regmbbo3-2660759398 vs gen9championsvgc2026regmbbo3-2660862224",
-      "index": 5,
-      "agreed_lines": 5,
-      "turn": 1,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-      "showdown": "|-ability|p1a: Drampa|Cloud Nine",
-      "medicham": "|turn|1",
-      "showdown_before": [
-        "|switch|p1a: Drampa|Drampa, L50|153/153",
-        "|switch|p1b: Farigiraf|Farigiraf, L50|195/195",
-        "|switch|p2a: Swampert|Swampert, L50|175/175",
-        "|switch|p2b: Pelipper|Pelipper, L50|135/135",
-        "|-weather|RainDance|[from] ability: Drizzle|[of] p2b: Pelipper"
-      ]
-    },
     {
       "config": "pair-speedctrl",
       "seed": "gen9championsvgc2026regmbbo3-2661010853 vs gen9championsvgc2026regmbbo3-2661103454",
@@ -7796,42 +5973,6 @@
         "|faint|p1a: Mamoswine",
         "|faint|p1b: Kingambit"
       ]
-    },
-    {
-      "config": "pair-speedctrl",
-      "seed": "gen9championsvgc2026regmbbo3-2661874022 vs gen9championsvgc2026regmbbo3-2661815109",
-      "index": 29,
-      "agreed_lines": 29,
-      "turn": 3,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|3",
-      "showdown": "|-ability|p1a: Drampa|Cloud Nine",
-      "medicham": "|turn|3",
-      "showdown_before": [
-        "|-damage|p1a: Meowstic|0 fnt",
-        "|faint|p1a: Meowstic",
-        "|move|p1b: Musharna|Trick Room|p1b: Musharna",
-        "|-fieldstart|move: Trick Room|[of] p1b: Musharna",
-        "|upkeep",
-        "|switch|p1a: Drampa|Drampa, L50|153/153"
-      ]
-    },
-    {
-      "config": "pair-speedctrl",
-      "seed": "gen9championsvgc2026regmbbo3-2635720475 vs gen9championsvgc2026regmbbo3-2636048347",
-      "index": 4,
-      "agreed_lines": 4,
-      "turn": 1,
-      "cls": "event missing from medicham2",
-      "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-      "showdown": "|-ability|p1a: Drampa|Cloud Nine",
-      "medicham": "|turn|1",
-      "showdown_before": [
-        "|switch|p1a: Drampa|Drampa, L50|153/153",
-        "|switch|p1b: Mimikyu|Mimikyu, L50|130/130",
-        "|switch|p2a: Mawile|Mawile, L50|125/125",
-        "|switch|p2b: Garchomp|Garchomp, L50|183/183"
-      ]
     }
   ],
   "errors": [],
@@ -7839,10 +5980,10 @@
     "policy": "observed-effect/v1",
     "rule": "a census row is exercised when a board leaf in a family THE TAG'S OWN PARAMS NAME changed across the turn, in either engine, inside the scope of an entity that was in play; or when a blocking tag's declared negative case was reached and correctly did not fire. A click alone counts for NOTHING but an attempt.",
     "why": "Primarina clicked Haze on turn 1 into a board with zero boosts on it. Haze is a no-op there, the census marked it exercised, and because the census STEERS the sample a falsely credited row then steered every later run AWAY from testing it.",
-    "rows_with_an_observed_effect": 394,
-    "rows_that_can_be_witnessed_on_a_board": 427,
-    "rows_that_name_no_board_leaf": 488,
-    "rows_credited_by_a_connected_click_only": 465,
+    "rows_with_an_observed_effect": 395,
+    "rows_that_can_be_witnessed_on_a_board": 428,
+    "rows_that_name_no_board_leaf": 491,
+    "rows_credited_by_a_connected_click_only": 468,
     "rows_clicked_or_present_that_did_nothing": 15,
     "rows_clicked_or_present_that_did_nothing_list": [
       "ability:clearsScreensOnEntry",
@@ -8538,13 +6679,13 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 7865,
+        "credit": 9438,
         "of_which": {
-          "effect": 17825,
+          "effect": 21390,
           "negative": 0,
           "click": 0
         },
-        "attempts": 5
+        "attempts": 6
       },
       {
         "key": "ability:onSwitchInDrop",
@@ -8556,13 +6697,13 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 7865,
+        "credit": 9438,
         "of_which": {
-          "effect": 17825,
+          "effect": 21390,
           "negative": 0,
           "click": 0
         },
-        "attempts": 5
+        "attempts": 6
       },
       {
         "key": "ability:onSwitchInDrop",
@@ -8574,13 +6715,13 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 7865,
+        "credit": 9438,
         "of_which": {
-          "effect": 17825,
+          "effect": 21390,
           "negative": 0,
           "click": 0
         },
-        "attempts": 5
+        "attempts": 6
       },
       {
         "key": "ability:onSwitchInDrop",
@@ -8592,13 +6733,13 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 7865,
+        "credit": 9438,
         "of_which": {
-          "effect": 17825,
+          "effect": 21390,
           "negative": 0,
           "click": 0
         },
-        "attempts": 5
+        "attempts": 6
       },
       {
         "key": "ability:priorityMod",
@@ -10011,26 +8152,26 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 1119,
+        "credit": 1492,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 3789
+          "click": 5052
         },
-        "attempts": 12
+        "attempts": 16
       },
       {
         "key": "ability:disablesAttacker",
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 1119,
+        "credit": 1492,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 3789
+          "click": 5052
         },
-        "attempts": 12
+        "attempts": 16
       },
       {
         "key": "item:restoresStats",
@@ -13662,11 +11803,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 888,
+        "credit": 999,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1288
+          "click": 1449
         },
         "attempts": 0
       },
@@ -13675,11 +11816,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 888,
+        "credit": 999,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1288
+          "click": 1449
         },
         "attempts": 0
       },
@@ -13688,11 +11829,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 888,
+        "credit": 999,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1288
+          "click": 1449
         },
         "attempts": 0
       },
@@ -13701,11 +11842,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 888,
+        "credit": 999,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1288
+          "click": 1449
         },
         "attempts": 0
       },
@@ -13714,11 +11855,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 888,
+        "credit": 999,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1288
+          "click": 1449
         },
         "attempts": 0
       },
@@ -15163,6 +13304,37 @@
           "click": 3994
         },
         "attempts": 0
+      },
+      {
+        "key": "ability:announcesOnSwitchIn",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 92,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 247
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:onSwitchInDrop",
+        "kind": "effect",
+        "families": [
+          "boosts"
+        ],
+        "from": [
+          "param key `boosts`",
+          "the tag name matches boost|unboost|lowers|statcha"
+        ],
+        "credit": 9438,
+        "of_which": {
+          "effect": 21390,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 6
       },
       {
         "key": "move:removesItem",
@@ -18229,11 +16401,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 888,
+        "credit": 999,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1288
+          "click": 1449
         },
         "attempts": 0
       },
@@ -20507,13 +18679,13 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 1119,
+        "credit": 1492,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 3789
+          "click": 5052
         },
-        "attempts": 12
+        "attempts": 16
       },
       {
         "key": "ability:poisonsOnMyContact",
@@ -21190,11 +19362,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 888,
+        "credit": 999,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1288
+          "click": 1449
         },
         "attempts": 0
       },
@@ -21740,13 +19912,13 @@
           "param key `boosts`",
           "the tag name matches boost|unboost|lowers|statcha"
         ],
-        "credit": 7865,
+        "credit": 9438,
         "of_which": {
-          "effect": 17825,
+          "effect": 21390,
           "negative": 0,
           "click": 0
         },
-        "attempts": 5
+        "attempts": 6
       },
       {
         "key": "ability:weatherSetter",
@@ -22129,11 +20301,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 888,
+        "credit": 999,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 1288
+          "click": 1449
         },
         "attempts": 0
       },
@@ -22179,17 +20351,43 @@
           "click": 0
         },
         "attempts": 0
+      },
+      {
+        "key": "ability:reflectsStatusMoves",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 999,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 1449
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:disablesAttacker",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 1492,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 5052
+        },
+        "attempts": 16
       }
     ]
   },
   "coverage": {
-    "measurable": 915,
-    "exercised": 883,
+    "measurable": 919,
+    "exercised": 887,
     "exercised_note": "THE OLD NUMBER — an entity of this row connected or stood on the field. It is kept so the drop to credit.rows_with_an_observed_effect is readable, and it is NOT the coverage claim any more.",
     "exercised_by_a_connected_move": 524,
     "move_targets": 535,
-    "present_on_the_field_only": 359,
-    "ability_or_item_targets": 380,
+    "present_on_the_field_only": 363,
+    "ability_or_item_targets": 384,
     "median_completed_turns_before_divergence": 9,
     "unmeasurable_by_this_instrument": [
       {
@@ -22883,7 +21081,7 @@
     "driver_inputs": [
       {
         "file": "data/move-priors.json",
-        "read_from": "release 834713ccb303",
+        "read_from": "release 6a0582efeda6",
         "digest": "e667fe8ab457",
         "generated": "2026-08-22",
         "rows": 345,
@@ -22909,7 +21107,7 @@
         "rows": 48,
         "what": "the DECLARED SKIP LIST — every event medicham2 says it does not emit is removed from the Showdown side before alignment, so this decides what can count as a divergence",
         "derived_from_medicham2": "50bc0ebd5e12",
-        "medicham2_played": "ff743ddebe5a"
+        "medicham2_played": "51223593c71d"
       }
     ],
     "driver_code": {
@@ -22964,16 +21162,16 @@
       "does_not_cover": "a computed require path, a dynamic import, the Showdown checkout beyond `showdown_commit`, and data/protocol-events.json (read as data, not required)."
     },
     "input": "data/mechanics-census.json",
-    "input_read_from": "data/mechanics-census.json",
-    "input_digest": "bdc8ee177ddb",
-    "input_raw_digest": "bdc8ee177ddb",
+    "input_read_from": "data/verification/census-pin-56e17cc610e8.json",
+    "input_digest": "88b158f4fb89",
+    "input_raw_digest": "88b158f4fb89",
     "input_digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content)",
-    "input_rows": 984,
-    "input_generated": "2026-09-20T02:12:33.098Z",
-    "input_live_digest": "bdc8ee177ddb",
+    "input_rows": 988,
+    "input_generated": "2026-09-20T15:48:58.429Z",
+    "input_live_digest": "88b158f4fb89",
     "pinned": true,
     "matches_live": true,
-    "selects_from": 915,
+    "selects_from": 919,
     "unmeasurable": 69,
     "credit": "observed-effect/v1 — a row is exercised when a board leaf in a family the tag's own params name changed across the turn, or when a declared negative case was reached and did not fire. A click alone counts for nothing. ROADMAP #91.",
     "team_pool_digest": "7e7a37ded7fc",
@@ -22982,12 +21180,12 @@
     "team_store_pinned_to": "data/team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "834713ccb303",
-  "engine_release_cut": "2026-09-20T02:14:22.748Z",
-  "engine_release_cuts": 4,
+  "engine_release": "6a0582efeda6",
+  "engine_release_cut": "2026-09-20T16:18:17.059Z",
+  "engine_release_cuts": 1,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "ff743ddebe5a",
+    "engine/medicham2-browser.js": "51223593c71d",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "d00e77a7ac26",
     "engine/position_features.js": "bb71676d3669",
@@ -23007,8 +21205,8 @@
     "data/regulations.json": "6c1995e9a9fb",
     "data/quality-filter.json": "771c3bd3e544",
     "data/engine-data.js": "bbc417dfae0e",
-    "data/abra-tags.js": "e6d7bcdf723a",
-    "data/tags.json": "aef20b103e19",
+    "data/abra-tags.js": "43bf7eb1bcc1",
+    "data/tags.json": "c34d6465c3b6",
     "data/policy-weights.json": "626c1d240782",
     "data/policy-weights-joint.json": "e2aca467ff04",
     "data/move-priors.json": "e667fe8ab457",

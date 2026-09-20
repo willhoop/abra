@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-20T03:12:59.057Z",
- "engine_release": "834713ccb303",
- "engine_release_cut": "2026-09-20T02:14:22.748Z",
- "engine_release_cuts": 4,
+ "generated": "2026-09-20T16:46:38.577Z",
+ "engine_release": "6a0582efeda6",
+ "engine_release_cut": "2026-09-20T16:18:17.059Z",
+ "engine_release_cuts": 2,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "ff743ddebe5a",
+  "engine/medicham2-browser.js": "51223593c71d",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -25,15 +25,15 @@
   "data/regulations.json": "6c1995e9a9fb",
   "data/quality-filter.json": "771c3bd3e544",
   "data/engine-data.js": "bbc417dfae0e",
-  "data/abra-tags.js": "e6d7bcdf723a",
-  "data/tags.json": "aef20b103e19",
+  "data/abra-tags.js": "43bf7eb1bcc1",
+  "data/tags.json": "c34d6465c3b6",
   "data/policy-weights.json": "626c1d240782",
   "data/policy-weights-joint.json": "e2aca467ff04",
   "data/move-priors.json": "e667fe8ab457",
   "engine/pp.js": "30b12a4ef623",
   "data/rollout-switch-census.json": "b599f8d581b5"
  },
- "release": "834713ccb303",
+ "release": "6a0582efeda6",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -7161,21 +7161,8 @@
     "medicham_resolved": true,
     "medicham_why": null,
     "medicham_hard": false,
-    "diverged": true,
-    "divergence": {
-     "at": 4,
-     "cls": "event missing from medicham2",
-     "detail": "-ability",
-     "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-     "showdown": "|-ability|p1a: Altaria|Cloud Nine",
-     "medicham": "|turn|1",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "board": {
      "verdict": "NO-DIVERGENCE",
@@ -7223,9 +7210,9 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
-      "control_board": "ANNOUNCEMENT-ONLY",
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
+      "control_board": "NO-DIVERGENCE",
       "script_miss": null,
       "control_script_miss": null,
       "why": null,
@@ -7254,9 +7241,9 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
-      "control_board": "ANNOUNCEMENT-ONLY",
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
+      "control_board": "NO-DIVERGENCE",
       "script_miss": null,
       "control_script_miss": null,
       "why": null,
@@ -7279,20 +7266,7 @@
        "authority_only": []
       }
      }
-    ],
-    "diverged_from": "main/near-a",
-    "control_arm_parted": {
-     "board_material": false,
-     "verdicts": [
-      "ANNOUNCEMENT-ONLY"
-     ],
-     "where": [
-      "main/near-a=ANNOUNCEMENT-ONLY",
-      "main/far-a=ANNOUNCEMENT-ONLY"
-     ],
-     "control": null,
-     "first_state_diffs": null
-    }
+    ]
    },
    {
     "kind": "move",
@@ -11482,21 +11456,8 @@
     "medicham_resolved": true,
     "medicham_why": null,
     "medicham_hard": false,
-    "diverged": true,
-    "divergence": {
-     "at": 4,
-     "cls": "event missing from medicham2",
-     "detail": "-ability",
-     "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-     "showdown": "|-ability|p1a: Altaria|Cloud Nine",
-     "medicham": "|turn|1",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "board": {
      "verdict": "NO-DIVERGENCE",
@@ -11544,9 +11505,9 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
-      "control_board": "ANNOUNCEMENT-ONLY",
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
+      "control_board": "NO-DIVERGENCE",
       "script_miss": null,
       "control_script_miss": null,
       "why": null,
@@ -11573,9 +11534,9 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
-      "control_board": "ANNOUNCEMENT-ONLY",
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
+      "control_board": "NO-DIVERGENCE",
       "script_miss": null,
       "control_script_miss": null,
       "why": null,
@@ -11596,20 +11557,7 @@
        "authority_only": []
       }
      }
-    ],
-    "diverged_from": "main/near-a",
-    "control_arm_parted": {
-     "board_material": false,
-     "verdicts": [
-      "ANNOUNCEMENT-ONLY"
-     ],
-     "where": [
-      "main/near-a=ANNOUNCEMENT-ONLY",
-      "main/far-a=ANNOUNCEMENT-ONLY"
-     ],
-     "control": null,
-     "first_state_diffs": null
-    }
+    ]
    },
    {
     "kind": "move",
@@ -13448,21 +13396,8 @@
     "medicham_resolved": true,
     "medicham_why": null,
     "medicham_hard": false,
-    "diverged": true,
-    "divergence": {
-     "at": 4,
-     "cls": "event missing from medicham2",
-     "detail": "-ability",
-     "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-     "showdown": "|-ability|p1a: Altaria|Cloud Nine",
-     "medicham": "|turn|1",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "board": {
      "verdict": "NO-DIVERGENCE",
@@ -13510,9 +13445,9 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
-      "control_board": "ANNOUNCEMENT-ONLY",
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
+      "control_board": "NO-DIVERGENCE",
       "script_miss": null,
       "control_script_miss": null,
       "why": null,
@@ -13539,9 +13474,9 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
-      "control_board": "ANNOUNCEMENT-ONLY",
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
+      "control_board": "NO-DIVERGENCE",
       "script_miss": null,
       "control_script_miss": null,
       "why": null,
@@ -13562,20 +13497,7 @@
        "authority_only": []
       }
      }
-    ],
-    "diverged_from": "main/near-a",
-    "control_arm_parted": {
-     "board_material": false,
-     "verdicts": [
-      "ANNOUNCEMENT-ONLY"
-     ],
-     "where": [
-      "main/near-a=ANNOUNCEMENT-ONLY",
-      "main/far-a=ANNOUNCEMENT-ONLY"
-     ],
-     "control": null,
-     "first_state_diffs": null
-    }
+    ]
    },
    {
     "kind": "move",
@@ -19925,21 +19847,8 @@
     "medicham_resolved": true,
     "medicham_why": null,
     "medicham_hard": false,
-    "diverged": true,
-    "divergence": {
-     "at": 4,
-     "cls": "event missing from medicham2",
-     "detail": "-ability",
-     "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-     "showdown": "|-ability|p1a: Altaria|Cloud Nine",
-     "medicham": "|turn|1",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "board": {
      "verdict": "NO-DIVERGENCE",
@@ -19987,9 +19896,9 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
-      "control_board": "ANNOUNCEMENT-ONLY",
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
+      "control_board": "NO-DIVERGENCE",
       "script_miss": null,
       "control_script_miss": null,
       "why": null,
@@ -20016,9 +19925,9 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
-      "control_board": "ANNOUNCEMENT-ONLY",
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
+      "control_board": "NO-DIVERGENCE",
       "script_miss": null,
       "control_script_miss": null,
       "why": null,
@@ -20039,20 +19948,7 @@
        "authority_only": []
       }
      }
-    ],
-    "diverged_from": "main/near-a",
-    "control_arm_parted": {
-     "board_material": false,
-     "verdicts": [
-      "ANNOUNCEMENT-ONLY"
-     ],
-     "where": [
-      "main/near-a=ANNOUNCEMENT-ONLY",
-      "main/far-a=ANNOUNCEMENT-ONLY"
-     ],
-     "control": null,
-     "first_state_diffs": null
-    }
+    ]
    },
    {
     "kind": "move",
@@ -37093,21 +36989,8 @@
     "medicham_resolved": true,
     "medicham_why": null,
     "medicham_hard": false,
-    "diverged": true,
-    "divergence": {
-     "at": 4,
-     "cls": "event missing from medicham2",
-     "detail": "-ability",
-     "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-     "showdown": "|-ability|p1a: Altaria|Cloud Nine",
-     "medicham": "|turn|1",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "board": {
      "verdict": "NO-DIVERGENCE",
@@ -37155,9 +37038,9 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
-      "control_board": "ANNOUNCEMENT-ONLY",
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
+      "control_board": "NO-DIVERGENCE",
       "script_miss": null,
       "control_script_miss": null,
       "why": null,
@@ -37186,9 +37069,9 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
-      "control_board": "ANNOUNCEMENT-ONLY",
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
+      "control_board": "NO-DIVERGENCE",
       "script_miss": null,
       "control_script_miss": null,
       "why": null,
@@ -37211,20 +37094,7 @@
        "authority_only": []
       }
      }
-    ],
-    "diverged_from": "main/near-a",
-    "control_arm_parted": {
-     "board_material": false,
-     "verdicts": [
-      "ANNOUNCEMENT-ONLY"
-     ],
-     "where": [
-      "main/near-a=ANNOUNCEMENT-ONLY",
-      "main/far-a=ANNOUNCEMENT-ONLY"
-     ],
-     "control": null,
-     "first_state_diffs": null
-    }
+    ]
    },
    {
     "kind": "move",
@@ -40941,21 +40811,8 @@
     "medicham_resolved": true,
     "medicham_why": null,
     "medicham_hard": false,
-    "diverged": true,
-    "divergence": {
-     "at": 4,
-     "cls": "event missing from medicham2",
-     "detail": "-ability",
-     "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-     "showdown": "|-ability|p1a: Altaria|Cloud Nine",
-     "medicham": "|turn|1",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "board": {
      "verdict": "NO-DIVERGENCE",
@@ -41003,9 +40860,9 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
-      "control_board": "ANNOUNCEMENT-ONLY",
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
+      "control_board": "NO-DIVERGENCE",
       "script_miss": null,
       "control_script_miss": null,
       "why": null,
@@ -41035,9 +40892,9 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
-      "control_board": "ANNOUNCEMENT-ONLY",
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
+      "control_board": "NO-DIVERGENCE",
       "script_miss": null,
       "control_script_miss": null,
       "why": null,
@@ -41061,20 +40918,7 @@
        "authority_only": []
       }
      }
-    ],
-    "diverged_from": "main/near-a",
-    "control_arm_parted": {
-     "board_material": false,
-     "verdicts": [
-      "ANNOUNCEMENT-ONLY"
-     ],
-     "where": [
-      "main/near-a=ANNOUNCEMENT-ONLY",
-      "main/far-a=ANNOUNCEMENT-ONLY"
-     ],
-     "control": null,
-     "first_state_diffs": null
-    }
+    ]
    },
    {
     "kind": "move",
@@ -50937,21 +50781,8 @@
     "medicham_resolved": true,
     "medicham_why": null,
     "medicham_hard": false,
-    "diverged": true,
-    "divergence": {
-     "at": 4,
-     "cls": "event missing from medicham2",
-     "detail": "-ability",
-     "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-     "showdown": "|-ability|p1a: Altaria|Cloud Nine",
-     "medicham": "|turn|1",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "err": null,
     "board": {
      "verdict": "NO-DIVERGENCE",
@@ -50999,9 +50830,9 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
-      "control_board": "ANNOUNCEMENT-ONLY",
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
+      "control_board": "NO-DIVERGENCE",
       "script_miss": null,
       "control_script_miss": null,
       "why": null,
@@ -51030,9 +50861,9 @@
       "resolved": true,
       "medicham_resolved": true,
       "control_resolved": false,
-      "board": "ANNOUNCEMENT-ONLY",
-      "diverged": true,
-      "control_board": "ANNOUNCEMENT-ONLY",
+      "board": "NO-DIVERGENCE",
+      "diverged": false,
+      "control_board": "NO-DIVERGENCE",
       "script_miss": null,
       "control_script_miss": null,
       "why": null,
@@ -51055,20 +50886,7 @@
        "authority_only": []
       }
      }
-    ],
-    "diverged_from": "main/near-a",
-    "control_arm_parted": {
-     "board_material": false,
-     "verdicts": [
-      "ANNOUNCEMENT-ONLY"
-     ],
-     "where": [
-      "main/near-a=ANNOUNCEMENT-ONLY",
-      "main/far-a=ANNOUNCEMENT-ONLY"
-     ],
-     "control": null,
-     "first_state_diffs": null
-    }
+    ]
    },
    {
     "kind": "move",
@@ -69179,15 +68997,15 @@
      }
     },
     "board_control_arm": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 3,
      "boundaries_agreed": 3,
      "last_boundary_turn": 2,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 2,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -69304,7 +69122,7 @@
        "fired": true,
        "proven": false,
        "board": "NO-DIVERGENCE",
-       "control_board": "ANNOUNCEMENT-ONLY",
+       "control_board": "NO-DIVERGENCE",
        "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
@@ -69317,7 +69135,7 @@
        "fired": true,
        "proven": false,
        "board": "NO-DIVERGENCE",
-       "control_board": "ANNOUNCEMENT-ONLY",
+       "control_board": "NO-DIVERGENCE",
        "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
@@ -69330,7 +69148,7 @@
        "fired": true,
        "proven": false,
        "board": "NO-DIVERGENCE",
-       "control_board": "ANNOUNCEMENT-ONLY",
+       "control_board": "NO-DIVERGENCE",
        "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
@@ -69343,7 +69161,7 @@
        "fired": true,
        "proven": false,
        "board": "NO-DIVERGENCE",
-       "control_board": "ANNOUNCEMENT-ONLY",
+       "control_board": "NO-DIVERGENCE",
        "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
@@ -69356,20 +69174,6 @@
       "C idles with Sleep Talk (its onTry fails for a healthy body)"
      ],
      "assumptions": []
-    },
-    "control_arm_parted": {
-     "board_material": false,
-     "verdicts": [
-      "ANNOUNCEMENT-ONLY"
-     ],
-     "where": [
-      "main/near-a=ANNOUNCEMENT-ONLY",
-      "main/far-a=ANNOUNCEMENT-ONLY",
-      "main/near-b=ANNOUNCEMENT-ONLY",
-      "main/far-b=ANNOUNCEMENT-ONLY"
-     ],
-     "control": "Cloud Nine",
-     "first_state_diffs": null
     },
     "control_watch": {
      "measured": true,
@@ -70807,7 +70611,7 @@
     "kind": "ability",
     "id": "cloudnine",
     "name": "Cloud Nine",
-    "carrier": "altaria",
+    "carrier": "Altaria",
     "control": "Natural Cure",
     "verdict": "FIRED",
     "fired": true,
@@ -70815,66 +70619,43 @@
     "medicham_moved": true,
     "moved_by": {
      "showdown": [
-      "line",
-      "board"
+      "line"
      ],
      "medicham": [
-      "line",
-      "board"
+      "line"
      ],
      "showdown_board": {
-      "moved": true,
-      "turn": 3,
-      "path": "p1.party.altaria.hp",
-      "on": 808,
-      "off": 827,
-      "leaves": 2
+      "moved": false,
+      "boundaries": 2
      },
      "medicham_board": {
-      "moved": true,
-      "turn": 3,
-      "path": "p1.party.altaria.hp",
-      "on": 808,
-      "off": 827,
-      "leaves": 2
+      "moved": false,
+      "boundaries": 2
      }
     },
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 4,
-     "cls": "event missing from medicham2",
-     "detail": "-ability",
-     "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-     "showdown": "|-ability|p1a: Altaria|Cloud Nine",
-     "medicham": "|turn|1",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
-     "boundaries": 5,
-     "boundaries_agreed": 5,
-     "last_boundary_turn": 4,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 4,
+     "boundaries": 2,
+     "boundaries_agreed": 2,
+     "last_boundary_turn": 1,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
      "receipts": {
-      "leaves_compared_min": 560,
-      "leaves_compared_max": 561,
+      "leaves_compared_min": 551,
+      "leaves_compared_max": 551,
       "party_post_faint_skipped": 0,
-      "party_vol_on_field_skipped": 20,
-      "pp_slots_occupied": 20,
-      "pp_slots_compared": 20,
+      "party_vol_on_field_skipped": 8,
+      "pp_slots_occupied": 8,
+      "pp_slots_compared": 8,
       "screens_named_comparable": true
      }
     },
@@ -70883,93 +70664,43 @@
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
-     "boundaries": 5,
-     "boundaries_agreed": 5,
-     "last_boundary_turn": 4,
+     "boundaries": 2,
+     "boundaries_agreed": 2,
+     "last_boundary_turn": 1,
      "protocol_parted_on_turn": null,
      "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
      "receipts": {
-      "leaves_compared_min": 560,
-      "leaves_compared_max": 561,
+      "leaves_compared_min": 551,
+      "leaves_compared_max": 551,
       "party_post_faint_skipped": 0,
-      "party_vol_on_field_skipped": 20,
-      "pp_slots_occupied": 20,
-      "pp_slots_compared": 20,
+      "party_vol_on_field_skipped": 8,
+      "pp_slots_occupied": 8,
+      "pp_slots_compared": 8,
       "screens_named_comparable": true
      }
     },
     "ab_board": {
      "compared": true,
-     "turn_on": 4,
-     "turn_off": 4,
-     "authority_moved": true,
-     "medicham_moved": true,
+     "turn_on": 1,
+     "turn_off": 1,
+     "authority_moved": false,
+     "medicham_moved": false,
      "same_leaves": true,
-     "leaves": [
-      "sides.p1.party.altaria.hp"
-     ],
-     "leaves_total": 1,
+     "leaves": [],
+     "leaves_total": 0,
      "species_leaves": [],
      "medicham_only": [],
      "authority_only": []
     },
-    "rung": "safe-pool",
-    "control_watch": {
-     "measured": true,
-     "ability": "Natural Cure",
-     "quiet": true,
-     "games": 1,
-     "calls": 1,
-     "loud": [],
-     "announce": [],
-     "latent": [],
-     "leaves": []
-    },
-    "subject_watch": {
-     "measured": true,
-     "ability": "Cloud Nine",
-     "quiet": true,
-     "games": 1,
-     "calls": 2,
-     "loud": [],
-     "announce": [
-      "safe-pool onSwitchIn (turn 0): |-ability|p1a: Altaria|Cloud Nine"
-     ],
-     "latent": [],
-     "leaves": []
-    },
     "subject_log_receipt": [
      "|-ability|p1a: Altaria|Cloud Nine"
     ],
-    "legacy_control": {
-     "chosen": "Natural Cure",
-     "first_alternative": "Natural Cure",
-     "quiet": true,
-     "measured": true,
-     "tried": [
-      "Natural Cure [quiet] -> FIRED"
-     ],
-     "knob": null
-    },
-    "preflight": {
-     "ok": true,
-     "why": [],
-     "note": [],
-     "clauses": [],
-     "stubbed": false
-    },
-    "verdict_refined": "FIRED",
-    "fixture_weather": "sunnyday",
-    "fixture_status": null,
-    "fixture_weather_repaired": false,
-    "faced": [],
-    "faced_why": [
-     "weatherSuppression: Cloud Nine suppresses weather; with no weather up it suppresses nothing"
-    ],
-    "stage": "legacy-fallback",
+    "control_acted": [],
+    "stage": "planner",
+    "rung": "planner:main/near-a",
     "planner": {
      "branch": "main",
      "arm": "bottom-tie-first",
@@ -71044,35 +70775,57 @@
       {
        "branch": "main",
        "layout": "near-a",
-       "verdict": "SHOWDOWN-ONLY",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
-       "why": "the authority moved on: ON  |-ability|p1a: Altaria|Cloud Nine"
+       "why": null
       },
       {
        "branch": "main",
        "layout": "far-a",
-       "verdict": "SHOWDOWN-ONLY",
-       "fired": false,
+       "verdict": "FIRED",
+       "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
-       "why": "the authority moved on: ON  |-ability|p2a: Altaria|Cloud Nine"
+       "why": null
       }
      ],
      "notes": [],
-     "assumptions": [],
-     "verdict": "SHOWDOWN-ONLY",
-     "why": "the authority moved on: ON  |-ability|p1a: Altaria|Cloud Nine",
-     "board": "ANNOUNCEMENT-ONLY"
+     "assumptions": []
+    },
+    "control_watch": {
+     "measured": true,
+     "ability": "Natural Cure",
+     "quiet": true,
+     "games": 2,
+     "calls": 0,
+     "loud": [],
+     "announce": [],
+     "latent": [],
+     "leaves": []
+    },
+    "subject_watch": {
+     "measured": true,
+     "ability": "Cloud Nine",
+     "quiet": true,
+     "games": 2,
+     "calls": 2,
+     "loud": [],
+     "announce": [
+      "main/near-a onSwitchIn (turn 0): |-ability|p1a: Altaria|Cloud Nine",
+      "main/far-a onSwitchIn (turn 0): |-ability|p2a: Altaria|Cloud Nine"
+     ],
+     "latent": [],
+     "leaves": []
     },
     "control_not_quiet": true,
     "control_note": "the CONTROL ability (Natural Cure) is itself live in this run, so the pair cannot say which of the two moved the game. A third arm would settle it; this pass did not run one."
@@ -74896,31 +74649,18 @@
      }
     },
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 4,
-     "cls": "event missing from medicham2",
-     "detail": "-ability",
-     "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |turn|1",
-     "showdown": "|-ability|p2a: Altaria|Cloud Nine",
-     "medicham": "|turn|1",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 3,
      "boundaries_agreed": 3,
      "last_boundary_turn": 2,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 2,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -74935,15 +74675,15 @@
      }
     },
     "board_control_arm": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 3,
      "boundaries_agreed": 3,
      "last_boundary_turn": 2,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 2,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -75032,7 +74772,7 @@
       "R": {
        "species": "Altaria",
        "field": "Altaria",
-       "ability": "Cloud Nine",
+       "ability": "Natural Cure",
        "item": "",
        "moves": [
         "Sing",
@@ -75060,9 +74800,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -75073,9 +74813,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -75085,18 +74825,6 @@
       "C idles with Sleep Talk (its onTry fails for a healthy body)"
      ],
      "assumptions": []
-    },
-    "control_arm_parted": {
-     "board_material": false,
-     "verdicts": [
-      "ANNOUNCEMENT-ONLY"
-     ],
-     "where": [
-      "main/near-a=ANNOUNCEMENT-ONLY",
-      "main/far-a=ANNOUNCEMENT-ONLY"
-     ],
-     "control": "Unnerve",
-     "first_state_diffs": null
     },
     "control_watch": {
      "measured": true,
@@ -84739,31 +84467,18 @@
      }
     },
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 4,
-     "cls": "event missing from medicham2",
-     "detail": "-ability",
-     "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |turn|1",
-     "showdown": "|-ability|p2a: Altaria|Cloud Nine",
-     "medicham": "|turn|1",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 3,
      "boundaries_agreed": 3,
      "last_boundary_turn": 2,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 2,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -84778,15 +84493,15 @@
      }
     },
     "board_control_arm": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 3,
      "boundaries_agreed": 3,
      "last_boundary_turn": 2,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 2,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -84876,7 +84591,7 @@
       "R": {
        "species": "Altaria",
        "field": "Altaria",
-       "ability": "Cloud Nine",
+       "ability": "Natural Cure",
        "item": "",
        "moves": [
         "Sing",
@@ -84904,9 +84619,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -84917,9 +84632,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -84930,18 +84645,6 @@
       "bearer Banette chosen over Ariados, whose ability-swap control was judged loud on its board (onModifyDamage runs on a hit C lands (C:Fell Stinger), and the bottom-tie-first arm lands every crit, with no need to meet)"
      ],
      "assumptions": []
-    },
-    "control_arm_parted": {
-     "board_material": false,
-     "verdicts": [
-      "ANNOUNCEMENT-ONLY"
-     ],
-     "where": [
-      "main/near-a=ANNOUNCEMENT-ONLY",
-      "main/far-a=ANNOUNCEMENT-ONLY"
-     ],
-     "control": "Frisk",
-     "first_state_diffs": null
     },
     "control_watch": {
      "measured": true,
@@ -92166,15 +91869,15 @@
      }
     },
     "board_control_arm": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 3,
      "boundaries_agreed": 3,
      "last_boundary_turn": 2,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 2,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -92290,7 +91993,7 @@
        "fired": true,
        "proven": false,
        "board": "NO-DIVERGENCE",
-       "control_board": "ANNOUNCEMENT-ONLY",
+       "control_board": "NO-DIVERGENCE",
        "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
@@ -92303,7 +92006,7 @@
        "fired": true,
        "proven": false,
        "board": "NO-DIVERGENCE",
-       "control_board": "ANNOUNCEMENT-ONLY",
+       "control_board": "NO-DIVERGENCE",
        "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
@@ -92316,18 +92019,6 @@
       "C idles with Sleep Talk (its onTry fails for a healthy body)"
      ],
      "assumptions": []
-    },
-    "control_arm_parted": {
-     "board_material": false,
-     "verdicts": [
-      "ANNOUNCEMENT-ONLY"
-     ],
-     "where": [
-      "main/near-a=ANNOUNCEMENT-ONLY",
-      "main/far-a=ANNOUNCEMENT-ONLY"
-     ],
-     "control": "Cloud Nine",
-     "first_state_diffs": null
     },
     "control_watch": {
      "measured": true,
@@ -109391,31 +109082,18 @@
      }
     },
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 4,
-     "cls": "-ability field 4",
-     "detail": "-ability[4] undefined vs boost",
-     "cause": "-ability field 4 :: |-ability|p1a|supersweetsyrup <> |-ability|p1a|supersweetsyrup|boost",
-     "showdown": "|-ability|p1a: Hydrapple|Supersweet Syrup",
-     "medicham": "|-ability|p1a: Hydrapple|supersweetsyrup|boost",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
      "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 0,
-     "boards_after_the_parting": 2,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -109556,9 +109234,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -109569,9 +109247,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -109582,9 +109260,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -109595,9 +109273,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
+       "board": "NO-DIVERGENCE",
        "control_board": "NO-DIVERGENCE",
-       "diverged": true,
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -110395,31 +110073,18 @@
      }
     },
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 4,
-     "cls": "event missing from medicham2",
-     "detail": "-ability",
-     "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |turn|1",
-     "showdown": "|-ability|p2a: Altaria|Cloud Nine",
-     "medicham": "|turn|1",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
      "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -110434,15 +110099,15 @@
      }
     },
     "board_control_arm": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
      "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -110530,7 +110195,7 @@
       "R": {
        "species": "Altaria",
        "field": "Altaria",
-       "ability": "Cloud Nine",
+       "ability": "Natural Cure",
        "item": "",
        "moves": [
         "Sing"
@@ -110557,9 +110222,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -110570,9 +110235,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -110583,9 +110248,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -110596,9 +110261,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -110609,9 +110274,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -110622,9 +110287,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -110635,9 +110300,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -110648,9 +110313,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -110660,24 +110325,6 @@
       "CA idles with Sleep Talk (its onTry fails for a healthy body)"
      ],
      "assumptions": []
-    },
-    "control_arm_parted": {
-     "board_material": false,
-     "verdicts": [
-      "ANNOUNCEMENT-ONLY"
-     ],
-     "where": [
-      "main/near-a=ANNOUNCEMENT-ONLY",
-      "main/far-a=ANNOUNCEMENT-ONLY",
-      "main/near-b=ANNOUNCEMENT-ONLY",
-      "main/far-b=ANNOUNCEMENT-ONLY",
-      "covers-self/near-a=ANNOUNCEMENT-ONLY",
-      "covers-self/far-a=ANNOUNCEMENT-ONLY",
-      "covers-self/near-b=ANNOUNCEMENT-ONLY",
-      "covers-self/far-b=ANNOUNCEMENT-ONLY"
-     ],
-     "control": "Aroma Veil",
-     "first_state_diffs": null
     },
     "control_watch": {
      "measured": true,
@@ -114500,31 +114147,18 @@
      }
     },
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 4,
-     "cls": "event missing from medicham2",
-     "detail": "-ability",
-     "cause": "event missing from medicham2 :: |-ability|p2a|cloudnine <> |turn|1",
-     "showdown": "|-ability|p2a: Altaria|Cloud Nine",
-     "medicham": "|turn|1",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 3,
      "boundaries_agreed": 3,
      "last_boundary_turn": 2,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 2,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -114539,15 +114173,15 @@
      }
     },
     "board_control_arm": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 3,
      "boundaries_agreed": 3,
      "last_boundary_turn": 2,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 2,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -114640,7 +114274,7 @@
       "R": {
        "species": "Altaria",
        "field": "Altaria",
-       "ability": "Cloud Nine",
+       "ability": "Natural Cure",
        "item": "",
        "moves": [
         "Sing",
@@ -114668,9 +114302,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -114681,9 +114315,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -114693,18 +114327,6 @@
       "C idles with Sleep Talk (its onTry fails for a healthy body)"
      ],
      "assumptions": []
-    },
-    "control_arm_parted": {
-     "board_material": false,
-     "verdicts": [
-      "ANNOUNCEMENT-ONLY"
-     ],
-     "where": [
-      "main/near-a=ANNOUNCEMENT-ONLY",
-      "main/far-a=ANNOUNCEMENT-ONLY"
-     ],
-     "control": "Defiant",
-     "first_state_diffs": null
     },
     "control_watch": {
      "measured": true,
@@ -117373,31 +116995,18 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 4,
-     "cls": "event missing from medicham2",
-     "detail": "-ability",
-     "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-     "showdown": "|-ability|p1a: Altaria|Cloud Nine",
-     "medicham": "|turn|1",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
      "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -117412,15 +117021,15 @@
      }
     },
     "board_control_arm": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
      "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -117486,7 +117095,7 @@
       "C": {
        "species": "Altaria",
        "field": "Altaria-Mega",
-       "ability": "Cloud Nine",
+       "ability": "Natural Cure",
        "item": "Altarianite",
        "moves": [
         "Dragon Claw"
@@ -117535,9 +117144,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -117548,9 +117157,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -117560,18 +117169,6 @@
       "real HP pool (x1): the carrier mega-evolves, and a permanent forme change makes the authority recompute max HP and drop the x6 boost"
      ],
      "assumptions": []
-    },
-    "control_arm_parted": {
-     "board_material": false,
-     "verdicts": [
-      "ANNOUNCEMENT-ONLY"
-     ],
-     "where": [
-      "main/near-a=ANNOUNCEMENT-ONLY",
-      "main/far-a=ANNOUNCEMENT-ONLY"
-     ],
-     "control": "C.item — the item is removed; the mega click is then REFUSED by the authority, which is expected and counted (scriptMegaRefused = 1 in this arm only)",
-     "first_state_diffs": null
     }
    },
    {
@@ -128007,31 +127604,18 @@
     "showdown_moved": true,
     "medicham_moved": true,
     "why": null,
-    "diverged": true,
-    "divergence": {
-     "at": 4,
-     "cls": "event missing from medicham2",
-     "detail": "-ability",
-     "cause": "event missing from medicham2 :: |-ability|p1a|cloudnine <> |turn|1",
-     "showdown": "|-ability|p1a: Altaria|Cloud Nine",
-     "medicham": "|turn|1",
-     "subject_slot": "p1a",
-     "segment_owner": null,
-     "segment_move": null,
-     "shared_suspect": false,
-     "attributed": true,
-     "attribution_note": null
-    },
+    "diverged": false,
+    "divergence": null,
     "board": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
      "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -128046,15 +127630,15 @@
      }
     },
     "board_control_arm": {
-     "verdict": "ANNOUNCEMENT-ONLY",
+     "verdict": "NO-DIVERGENCE",
      "state_parted_without_a_line": false,
      "uncomparable_leaves": [],
      "core_leaf_unchecked": false,
      "boundaries": 2,
      "boundaries_agreed": 2,
      "last_boundary_turn": 1,
-     "protocol_parted_on_turn": 1,
-     "boards_after_the_parting": 1,
+     "protocol_parted_on_turn": null,
+     "boards_after_the_parting": null,
      "state_parted_on_turn": null,
      "diffs": [],
      "end_reason": "the script ran out",
@@ -128112,7 +127696,7 @@
       "C": {
        "species": "Altaria",
        "field": "Altaria",
-       "ability": "Cloud Nine",
+       "ability": "Natural Cure",
        "item": "Haban Berry",
        "moves": [
         "Sleep Talk"
@@ -128161,9 +127745,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -128174,9 +127758,9 @@
        "verdict": "FIRED",
        "fired": true,
        "proven": false,
-       "board": "ANNOUNCEMENT-ONLY",
-       "control_board": "ANNOUNCEMENT-ONLY",
-       "diverged": true,
+       "board": "NO-DIVERGENCE",
+       "control_board": "NO-DIVERGENCE",
+       "diverged": false,
        "script_miss": null,
        "control_script_miss": null,
        "why": null
@@ -128186,18 +127770,6 @@
       "C idles with Sleep Talk (its onTry fails for a healthy body)"
      ],
      "assumptions": []
-    },
-    "control_arm_parted": {
-     "board_material": false,
-     "verdicts": [
-      "ANNOUNCEMENT-ONLY"
-     ],
-     "where": [
-      "main/near-a=ANNOUNCEMENT-ONLY",
-      "main/far-a=ANNOUNCEMENT-ONLY"
-     ],
-     "control": "C.item — the item is removed",
-     "first_state_diffs": null
     }
    },
    {
@@ -143951,8 +143523,8 @@
    "attempted": 497,
    "tried": 497,
    "resolved": 497,
-   "diverged": 7,
-   "diverged_including_shelved": 9,
+   "diverged": 0,
+   "diverged_including_shelved": 2,
    "shelved_by_owner": 3,
    "shelved_by_owner_diverging": 2,
    "resolution_disagreements": 0,
@@ -143989,7 +143561,7 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 76
    },
-   "seconds": 92.9
+   "seconds": 25.8
   },
   "abilities": {
    "exist": 316,
@@ -144007,7 +143579,7 @@
     "quiet": 157,
     "loud": 3,
     "acted_in_control_game": 2,
-    "receipt_read": 145
+    "receipt_read": 146
    },
    "control_watch": {
     "measured": 161,
@@ -144064,15 +143636,15 @@
      "zerotohero:click-swap:state"
     ],
     "fired_on_live_control_unearned": [],
-    "subject_games": 519,
-    "subject_handler_calls": 2136,
+    "subject_games": 518,
+    "subject_handler_calls": 2134,
     "subject_loud_games": 441,
-    "games": 423,
-    "handler_calls": 952,
+    "games": 422,
+    "handler_calls": 951,
     "loud_games": 8,
     "legacy_chooser": {
-     "rows": 12,
-     "first_alternative_quiet": 12,
+     "rows": 11,
+     "first_alternative_quiet": 11,
      "moved": [],
      "none_quiet": [],
      "unmeasured": [],
@@ -144081,11 +143653,11 @@
    },
    "cannot_fire_in_this_fixture": 0,
    "did_not_fire_unexplained": 0,
-   "diverged": 6,
-   "diverged_including_shelved": 7,
+   "diverged": 0,
+   "diverged_including_shelved": 1,
    "shelved_by_owner": 1,
    "shelved_by_owner_diverging": 1,
-   "seconds": 107.7,
+   "seconds": 11.9,
    "board_only": {
     "rows": 1,
     "staged": 1,
@@ -144129,13 +143701,13 @@
    "out_of_scope": 0,
    "cannot_fire_in_this_fixture": 0,
    "did_not_fire_unexplained": 0,
-   "diverged": 2,
-   "diverged_including_shelved": 2,
+   "diverged": 0,
+   "diverged_including_shelved": 0,
    "shelved_by_owner": 0,
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 6,
    "board_state_fired": 5,
-   "seconds": 9.9,
+   "seconds": 7.7,
    "stones": {
     "rows": 0,
     "staged": 0,
@@ -144176,50 +143748,35 @@
   },
   "control_arm_partings": {
    "rows_with_control_arm": 841,
-   "parted": 17,
+   "parted": 2,
    "board_material": 0,
-   "announcement_only": 17,
+   "announcement_only": 2,
    "not_asked": 0,
    "by_kind": {
     "moves": {
      "rows_with_control_arm": 494,
-     "parted": 9,
+     "parted": 2,
      "board_material": 0
     },
     "abilities": {
      "rows_with_control_arm": 199,
-     "parted": 6,
+     "parted": 0,
      "board_material": 0
     },
     "items": {
      "rows_with_control_arm": 148,
-     "parted": 2,
+     "parted": 0,
      "board_material": 0
     }
    },
    "rows": [
     "moves:bittermalice  control ?  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY  [row shelved by owner]",
-    "moves:bravebird  control ?  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY",
-    "moves:cottonguard  control ?  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY",
-    "moves:defog  control ?  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY",
-    "moves:featherdance  control ?  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY",
-    "moves:moonblast  control ?  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY",
-    "moves:nightdaze  control ?  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY  [row shelved by owner]",
-    "moves:pluck  control ?  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY",
-    "moves:sing  control ?  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY",
-    "abilities:berserk  control Cloud Nine  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY main/near-b=ANNOUNCEMENT-ONLY main/far-b=ANNOUNCEMENT-ONLY",
-    "abilities:earlybird  control Unnerve  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY",
-    "abilities:insomnia  control Frisk  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY",
-    "abilities:naturalcure  control Cloud Nine  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY",
-    "abilities:sweetveil  control Aroma Veil  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY main/near-b=ANNOUNCEMENT-ONLY main/far-b=ANNOUNCEMENT-ONLY covers-self/near-a=ANNOUNCEMENT-ONLY covers-self/far-a=ANNOUNCEMENT-ONLY covers-self/near-b=ANNOUNCEMENT-ONLY covers-self/far-b=ANNOUNCEMENT-ONLY",
-    "abilities:vitalspirit  control Defiant  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY",
-    "items:altarianite  control C.item — the item is removed; the mega click is then REFUSED by the authority, which is expected and counted (scriptMegaRefused = 1 in this arm only)  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY",
-    "items:habanberry  control C.item — the item is removed  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY"
+    "moves:nightdaze  control ?  main/near-a=ANNOUNCEMENT-ONLY main/far-a=ANNOUNCEMENT-ONLY  [row shelved by owner]"
    ]
   },
   "preflight": {
-   "checked": 523,
-   "rows_checked": 518,
+   "checked": 522,
+   "rows_checked": 517,
    "refused": 1,
    "rows_labelled": 0,
    "over_matched": [],
@@ -144286,8 +143843,7 @@
    },
    "abilities": {
     "tally": {
-     "NO-DIVERGENCE": 193,
-     "ANNOUNCEMENT-ONLY": 6
+     "NO-DIVERGENCE": 199
     },
     "rows": 199,
     "core_leaf_unchecked_rows": [],
@@ -144309,8 +143865,7 @@
    },
    "items": {
     "tally": {
-     "NO-DIVERGENCE": 146,
-     "ANNOUNCEMENT-ONLY": 2
+     "NO-DIVERGENCE": 148
     },
     "rows": 148,
     "core_leaf_unchecked_rows": [],
@@ -144336,7 +143891,7 @@
    ]
   },
   "ab_board": {
-   "rows": 424,
+   "rows": 423,
    "sd_board_only": [
     "curiousmedicine",
     "curiousmedicine",
@@ -144353,10 +143908,10 @@
  },
  "planner": {
   "meta": {
-   "generated": "2026-09-20T03:12:58.887Z",
+   "generated": "2026-09-20T16:46:38.454Z",
    "by": "engine/stage_planner.js",
-   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\834713ccb303\\data\\tags.json",
-   "tags_digest": "aef20b103e194d31",
+   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\6a0582efeda6\\data\\tags.json",
+   "tags_digest": "c34d6465c3b60371",
    "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown",
    "validator": {
     "calls": 1459,
@@ -144401,7 +143956,7 @@
     "stench: secondary (the handler assigns move.secondaries)",
     "kingsrock: secondary (the handler assigns move.secondaries)"
    ],
-   "ms": 18989
+   "ms": 15023
   },
   "summary": {
    "mechanics": 964,
@@ -144446,7 +144001,7 @@
     "staged": 2
    },
    "branches": {
-    "total": 622,
+    "total": 623,
     "uncovered": 2
    },
    "assumptions": 4,
@@ -144456,17 +144011,16 @@
    }
   },
   "played": {
-   "plan_ms": 19047,
+   "plan_ms": 15077,
    "rows": 347,
    "fixtures": 853,
    "variants": 1968,
    "games": 3936,
-   "fired": 327,
+   "fired": 328,
    "proven": 0,
    "fallback": [
     "ability:aftermath  planner DID-NOT-FIRE  ->  legacy FIRED",
     "ability:analytic  planner DID-NOT-FIRE  ->  legacy FIRED",
-    "ability:cloudnine  planner SHOWDOWN-ONLY  ->  legacy FIRED",
     "ability:fluffy  planner DID-NOT-FIRE  ->  legacy FIRED",
     "ability:icebody  planner DID-NOT-FIRE  ->  legacy FIRED",
     "ability:illusion  planner UNPROVEN-UNCONTROLLED  ->  legacy UNPROVEN-UNCONTROLLED",
@@ -144503,52 +144057,13 @@
    "diverged": [
     "move:bittermalice @main/near-a",
     "move:bittermalice @main/far-a",
-    "move:bravebird @main/near-a",
-    "move:bravebird @main/far-a",
-    "move:cottonguard @main/near-a",
-    "move:cottonguard @main/far-a",
-    "move:defog @main/near-a",
-    "move:defog @main/far-a",
-    "move:featherdance @main/near-a",
-    "move:featherdance @main/far-a",
-    "move:moonblast @main/near-a",
-    "move:moonblast @main/far-a",
     "move:nightdaze @main/near-a",
     "move:nightdaze @main/far-a",
-    "move:pluck @main/near-a",
-    "move:pluck @main/far-a",
-    "move:sing @main/near-a",
-    "move:sing @main/far-a",
-    "ability:cloudnine @main/near-a",
-    "ability:cloudnine @main/far-a",
-    "ability:cloudnine @planner:planner:main/near-a",
-    "ability:earlybird @main/near-a",
-    "ability:earlybird @main/far-a",
     "ability:illusion @main/near-a",
     "ability:illusion @main/far-a",
     "ability:illusion @main/near-b",
     "ability:illusion @main/far-b",
-    "ability:illusion @planner:planner:main/near-a",
-    "ability:insomnia @main/near-a",
-    "ability:insomnia @main/far-a",
-    "ability:supersweetsyrup @main/near-a",
-    "ability:supersweetsyrup @main/far-a",
-    "ability:supersweetsyrup @main/near-b",
-    "ability:supersweetsyrup @main/far-b",
-    "ability:sweetveil @main/near-a",
-    "ability:sweetveil @main/far-a",
-    "ability:sweetveil @main/near-b",
-    "ability:sweetveil @main/far-b",
-    "ability:sweetveil @covers-self/near-a",
-    "ability:sweetveil @covers-self/far-a",
-    "ability:sweetveil @covers-self/near-b",
-    "ability:sweetveil @covers-self/far-b",
-    "ability:vitalspirit @main/near-a",
-    "ability:vitalspirit @main/far-a",
-    "item:altarianite @main/near-a",
-    "item:altarianite @main/far-a",
-    "item:habanberry @main/near-a",
-    "item:habanberry @main/far-a"
+    "ability:illusion @planner:planner:main/near-a"
    ],
    "move_rows": 497,
    "move_resolved_by_planner": [
@@ -144614,23 +144129,22 @@
    "fixtureSetsIllegal": 0
   },
   "legacy_ran": {
-   "abilities": 129,
+   "abilities": 128,
    "items": 8
   }
  },
- "games_played": 4634,
+ "games_played": 4632,
  "games_threw": 0,
  "sheets_unassembled": 0,
  "overlap": {
   "moves": {
    "available": true,
    "file": "data/roster.moves.json",
-   "roster_fired": 495,
+   "roster_fired": 496,
    "here_fired": 497,
-   "both": 495,
+   "both": 496,
    "only_here": [
-    "copycat",
-    "electrify"
+    "copycat"
    ],
    "only_roster": [],
    "neither": [],
@@ -144640,15 +144154,13 @@
   "abilities": {
    "available": true,
    "file": "data/roster.abilities.json",
-   "roster_fired": 194,
+   "roster_fired": 196,
    "here_fired": 199,
-   "both": 194,
+   "both": 196,
    "only_here": [
     "anticipation",
     "forewarn",
-    "frisk",
-    "pickup",
-    "stall"
+    "frisk"
    ],
    "only_roster": [],
    "neither": [

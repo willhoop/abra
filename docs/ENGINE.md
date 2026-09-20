@@ -1,3 +1,31 @@
+## THE WHOLE GATE RE-MEASURED ON ONE ENGINE — **BOARD-MATERIAL ZERO ON ALL THREE LATTICES, UNDECLARED NARRATION 23 / 30 / 33 -> 0 / 0 / 1, GATE 1 OF 10.** RELEASE `6a0582efeda6`, CENSUS AND POOL PINNED. 2026-09-20
+
+The previous gate reading failed SIX clauses for `MEASURED AGAINST A DIFFERENT ENGINE` and therefore
+said nothing about the game. Every clause below was re-run against the same 27 frozen files.
+
+| clause | reading |
+|---|---|
+| game differential (damage) | 0 of 6000 at the midpoint and at every interior index |
+| deliberate roster / items | 148 of 148, 0 DIFFER, 0 DID-NOT-FIRE |
+| deliberate roster / abilities | 196 of 200, 3 ANNOUNCEMENT-ONLY accepted on a receipt |
+| deliberate roster / moves | 496 of 497, 0 DIFFER, 0 DID-NOT-FIRE |
+| coverage | all 412 moves above 25 clicks measured |
+| board leaves uncompared | 0 |
+| **whole-game BOARD-MATERIAL** | **0 of 961, 0 of 1069, 0 of 1497** |
+| **whole-game NARRATION (undeclared)** | **0 of 961, 0 of 1069, 1 of 1497** |
+| mechanics staged | 4,632 games, 0 threw, 0 diverge, 0 undeclared |
+| no open known engine defect | clean, 194 verdicts read |
+
+Pools: `0d103fb9fa87` (1200), `7e7a37ded7fc` (1350), `a5ce76242f8d` (1950). Flags, which are part of
+the sample definition and not a budget: `--steering empirical --arm middle --end-state
+--census data/verification/census-pin-56e17cc610e8.json --team-store data/team-pool-frozen`.
+
+**THE GATE IS NOT OPEN AND THIS SECTION DOES NOT SAY IT IS.** One undeclared narration game on one
+lattice is a real reading. The mechanism behind it is not yet known; a `--dump-games 1950` run is out
+to name it. **The held-out `--games 12000` draw was NOT re-run on this release, so no held-out parting
+count is claimed here.**
+
+
 # ENGINE — does the simulator do what Pokémon does
 
 **Owns:** `engine/medicham2-browser.js`, `engine/tag_dex.js`, `data/abra-tags.js`,
@@ -173,18 +201,13 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  977/984 probed mechanics live, 0 missing   (census 2026-09-20 00:18)
-    the census probes what somebody thought to probe: 303 of 303 in-scope tags carry a probe, 0 carry none (9 of 312
+  979/988 probed mechanics live, 0 missing   (census 2026-09-20 11:48)
+    the census probes what somebody thought to probe: 304 of 304 in-scope tags carry a probe, 0 carry none (9 of 313
     tags have no in-scope carrier); 0 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 1.5 h old). node engine/coverage.js
-  0/6000 differential comparisons disagree with Showdown   (2026-09-19 23:17)
-    seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
-    the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
-    Bond) and 0 rows were skipped for multi-hit, with 0 hit-count mismatch(es). 11 of the 14 moves carrying the
-    multiHit tag were drawn; 3 were never drawn at all (bonerush, doublehit, tailslap) — never drawn is a SAMPLING
-    gap, not an exclusion.
-    the line above is a MIDPOINT at a 12% band. Per CORNER of the damage roll, same band, never pooled:  top 0/6000,  bottom 0/6000,  idx01 0/6000,  idx02 0/6000,  idx03 0/6000,  idx04 0/6000,  idx05 0/6000,  idx06 0/6000,  idx07 0/6000,  idx08 0/6000,  idx09 0/6000,  idx10 0/6000,  idx11 0/6000,  idx12 0/6000,  idx13 0/6000,  idx14 0/6000
-    a differential hit is NOT in the census count above — the census probes what someone thought to probe
+    (all-mechanics-fire.json, 8 min old). node engine/coverage.js
+  differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/6a0582efeda6/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "6a0582efeda6".
+    it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
     older than its input engine-data.js
@@ -195,12 +218,12 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0394e3673b5b now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 303/303 in-scope probed, 0 unprobed;  303/303 have an engine consumer on every in-scope row, 0 do not;  9 of 312 tags have no in-scope carrier
+  tag coverage: 304/304 in-scope probed, 0 unprobed;  304/304 have an engine consumer on every in-scope row, 0 do not;  9 of 313 tags have no in-scope carrier
     consumedBy comes from engine/tag_dex.js grepping board.js and medicham2-browser.js for a hint
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-20 00:45_
+_stamped 2026-09-20 12:55_
 
 <!-- /GENERATED -->
 
