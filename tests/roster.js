@@ -377,6 +377,40 @@ let INERT_SUB_SLEPT = 0; const INERT_SUB_SLEPT_WHO = [];
 const _SLP = /['"]slp['"]/;
 const _hText = x => (x ? Object.keys(x).filter(k => /^on/.test(k) && typeof x[k] === 'function')
   .map(k => String(x[k])).join('\n') : '');
+/* ---- NARROWED 2026-09-19: WHAT THE SUBSTITUTE'S OWN RULE READS IS `source.status`, NOT THE WORD ----
+ *
+ * The gate above was "anything on this fixture so much as NAMES `slp`", declared over-wide on the
+ * argument that a false positive costs one illegal body. MEASURED, that cost was the whole debt:
+ * 63 of the 73 fixture bodies carrying a control click their species cannot learn were kept on Focus
+ * Energy by this clause alone (tests/probe_roster_inert_legality.js, before/after).
+ *
+ * SO IT IS NARROWED TO WHAT THE RULE ACTUALLY READS, which is the 6.50.1 discipline. Sleep Talk's
+ * whole precondition, read off the format rather than remembered:
+ *     onTry(source) { return source.status === "slp" || source.hasAbility("comatose"); }
+ * The Comatose half already has its own clause (`INERT_SUB_BLOCKS`, derived from that same handler).
+ * The other half asks one question: can anything here WRITE `slp` onto a body? So a handler counts
+ * only when it both names the status AND makes a status-writing call — `.setStatus(` / `.trySetStatus(`
+ * on some body. Naming it to REFUSE it, to CURE it or to READ it is not writing it.
+ *
+ * PRINTED BEFORE IT WAS WIRED, over every legal entity in the format, because a narrowed derived gate
+ * is exactly the shape that lets a real case through:
+ *   KEPT    moves Dire Claw, Hypnosis, Rest, Sing, Sleep Powder, Spore, Yawn; abilities Effect Spore,
+ *           Synchronize
+ *   DROPPED moves Electric Terrain, Facade, Sleep Talk, Snore, Uproar, Worry Seed; abilities Bad
+ *           Dreams, Insomnia, Sweet Veil, Vital Spirit; item Chesto Berry
+ * Every dropped one prevents, cures, reads or requires sleep. DIRE CLAW IS WHY THE TEST IS NOT A
+ * LITERAL `setStatus('slp')`: its secondary does `this.sample(["psn","par","slp"])` and then
+ * `target.trySetStatus(status, source)`, so the argument is a variable and a literal match would have
+ * dropped a move that really does sleep a body. SYNCHRONIZE IS KEPT AND CANNOT ACTUALLY SLEEP
+ * ANYTHING (`if (status.id === "slp" || status.id === "frz") return;`) — the remaining over-width,
+ * left in rather than special-cased, because a name-level exception is the list this file refuses.
+ *
+ * `ROSTER_INERT_SLEEP_WIDE=1` restores the name-level gate. Identical counts across that knob would
+ * mean this clause is unwired. */
+const _WRITE_CALL = /\.(?:try)?[sS]etStatus\s*\(/;
+const _SLEEP_WIDE = (typeof process !== 'undefined' && process.env
+                     && process.env.ROSTER_INERT_SLEEP_WIDE === '1');
+const _slpIn = t => (_SLEEP_WIDE ? _SLP.test(t) : (_SLP.test(t) && _WRITE_CALL.test(t)));
 function _namesSleep(kind, xid) {
   if (!xid) return false;
   const g = kind === 'move' ? dex.moves : kind === 'ability' ? dex.abilities : dex.items;
@@ -384,10 +418,10 @@ function _namesSleep(kind, xid) {
   if (!x || !x.exists) return false;
   if (x.status === 'slp') return true;
   for (const sec of [].concat(x.secondary || [], x.secondaries || []))
-    if (sec && (sec.status === 'slp' || _SLP.test(_hText(sec)))) return true;
-  if (x.volatileStatus && _SLP.test(_hText(dex.conditions.get(x.volatileStatus)))) return true;
-  if (x.condition && _SLP.test(_hText(x.condition))) return true;
-  return _SLP.test(_hText(x));
+    if (sec && (sec.status === 'slp' || _slpIn(_hText(sec)))) return true;
+  if (x.volatileStatus && _slpIn(_hText(dex.conditions.get(x.volatileStatus)))) return true;
+  if (x.condition && _slpIn(_hText(x.condition))) return true;
+  return _slpIn(_hText(x));
 }
 function inertChoice(sc) {
   if (!INERT_SUBS.length || process.env.ROSTER_INERT_FOCUSENERGY === '1') return { pick: null, why: 'restored' };
@@ -1979,38 +2013,86 @@ function armDelta(subject, control, ignore, swap) {
  * ONLY THE OWNER PUTS SOMETHING HERE, and the quote goes in the entry. This is not a place for the
  * instrument's own judgement or for a row that turned out to be hard. */
 const DEFERRED = {
-  /* 2026-08-10. Will: "PUT COPYCAT INTO THE QUARANTINE IM NOT TOUCHING THAT" — the last row holding
-   * the MEDICHAM gate, shelved by the owner rather than fixed.
+  /* ---- COPYCAT LEFT THIS CLOSET ON 2026-09-19, BY BECOMING CORRECT -------------------------------
    *
-   * NOT A USAGE SHELF. Copycat is clicked 78 times, comfortably above the 25-click threshold, so the
-   * rule cannot reach it and should not: this is a judgement about COST, not about whether anybody
-   * plays it.
+   * Will's shelf was "PUT COPYCAT INTO THE QUARANTINE IM NOT TOUCHING THAT" (2026-08-10) and it was a
+   * judgement about COST, never about usage — 78 clicks, well above the 25-click threshold. The entry
+   * is kept here as history rather than deleted, because the REASON it gave was read three times by
+   * three different sessions and was wrong twice over.
    *
-   * AND THE MECHANISM IS NOT THE PROBLEM — that part is wired, probed, and shown RED on the previous
-   * release with a nothing-to-copy control that correctly FAILS. The row fails on a SECOND, separate
-   * rule that Copycat merely reveals: Showdown's `addVolatile` REFUSES a volatile already present when
-   * the condition has no `onRestart`, and a move that failed never becomes `lastMove`. The roster idles
-   * its bodies on Focus Energy; the second click fails in the authority and succeeds here, so our
-   * Copycat faithfully repeats an inert click. The failed-move half is fixed; the no-restart refusal is
-   * what remains.
+   * WHAT IT SAID: *"Showdown refuses `addVolatile` for a volatile already present whose condition has
+   * no `onRestart`, and a failed move never becomes `lastMove`. The fixture idles bodies on Focus
+   * Energy ... Underlying verdict: DID-NOT-FIRE."*
    *
-   * WHY IT IS ITS OWN BATCH AND NOT A ONE-LINER. A blanket "refuse a duplicate volatile" rule catches
-   * Protect, Follow Me, Rage Powder and Helping Hand, every one of which MUST be re-settable turn after
-   * turn. It needs the membership printed against the format first and its own red proof — which is
-   * days of care for one row, on a gate that is otherwise clean.
+   * WHAT WAS ACTUALLY WRONG. The volatile-refusal half landed long ago (`volRefusesRestart`), and the
+   * fixture does not idle on Focus Energy at all — `controlClick()` substitutes SLEEP TALK for these
+   * bodies, which the run prints. The second half had the rule BACKWARDS: `clearActiveMove(failed)`
+   * skips the `lastMove` write only when `failed` is passed TRUE, and that happens at four sites inside
+   * `runMove`, ALL above the announcement, plus the residual (sim/battle-actions.ts:252/258/273/284,
+   * sim/battle.ts:2810). Every other action ends at `runAction`'s bare `this.clearActiveMove()`
+   * (sim/battle.ts:2828), so a click that RAN and FAILED is still `battle.lastMove`. The authority's
+   * turn-2 Copycat here reads `|-fail|` because the last announced move was Torterra's failed Sleep
+   * Talk, which carries `failcopycat`; this engine skipped that click and copied Goodra-Hisui's Dragon
+   * Pulse instead, for 26 HP off a Corviknight the authority never touched.
    *
+   * Nor was the verdict DID-NOT-FIRE by the time it was read — the run printed FIRED-AND-BOARDS-DIFFER
+   * on `move/generic-status` with four `p1b hp` leaves.
+   *
+   * Fixed at the field's pending-commit site in `medicham2-browser.js` (knob MEDI_FAILED_MOVE_NOT_LAST),
+   * proved by tests/probe_called_move_last_move.js and carried by the census row
+   * `move/callsAnotherMove` — "A click that RAN and FAILED is still the last move a caller reads".
+   *
+   * A BRIEFED DIAGNOSIS THAT WAS REFUTED, recorded because the next person will be handed it too: this
+   * was also filed as a random-TARGET die-address defect. It is not. Two arms of the probe above play
+   * the identical called attack on the two corner pins, where the authority lands on p1b and then on
+   * p1a, and both engines follow it. */
+  /* BELOW-USAGE-SHELF, 2026-09-19: the shelf's own note, kept when two batches merged here.
    * The row keeps its scenario, stays staged, and is played against the authority on every run. What it
    * stops doing is holding the gate. Its underlying verdict is DID-NOT-FIRE and is named here so the
    * shelf can never be read as a pass. */
+  /* THE REASON UNDER THIS ENTRY WAS RE-MEASURED ON 2026-09-19 AND IT HAD GONE STALE. What stood here
+   * said the row failed because *"Showdown refuses `addVolatile` for a volatile already present whose
+   * condition has no `onRestart`, and a failed move never becomes `lastMove` ... our Copycat correctly
+   * repeats an inert click"*, and named the blanket-refusal rule as the owed batch. **Both halves of
+   * that are now implemented** — `volRefusesRestart` carries the derived no-restart table with the
+   * `duration: 1` exemption that keeps Protect, Follow Me, Rage Powder and Helping Hand re-settable,
+   * and the authority's own `-fail` lines for the second Focus Energy appear in both engines. The row
+   * still parts, and it parts somewhere else entirely.
+   *
+   * WHAT IT ACTUALLY IS, PLAYED SIDE BY SIDE ON RELEASE 4bc4a3325f76 (the fixture shape rebuilt by
+   * hand in both engines rather than inferred from the diff):
+   *
+   *     AUTHORITY  |move|p2a: Samurott|Copycat|p2a: Samurott
+   *                |move|p2a: Samurott|Dragon Claw|p1a: Medicham|[from] move: Copycat
+   *     OURS       |move|p2a: samurott|copycat|p2a: samurott
+   *                |move|p2a: samurott|dragonclaw|p1b: corviknight
+   *
+   * -- the same move is copied and it is thrown at a DIFFERENT SLOT. `useMove(id, pokemon)` with no
+   * target resolves `getRandomTarget`, which for a `normal` move in a DOUBLE falls through to
+   * `pokemon.side.randomFoe()` -> `this.battle.sample(this.foes())` (sim/battle.ts:2507-2518,
+   * sim/side.ts:367-371) — a DRAW off the shared stream. This engine draws its own at
+   * `midTargetDraw(...)` in the `callmove` branch and the two arrive at different indices. The roster
+   * row carries `coin: null` and `dice: null`, so the instrument does not know a die is live here at
+   * all; the diff it reports (`corviknight party.hp 1384 / 1358`) is that one slot, nothing more.
+   *
+   * SO THE OWED WORK IS A DIE-ADDRESS BATCH, not a volatile-refusal one, and it is the same family as
+   * tests/probe_fracpri_die_order.js. The entry is CORRECTED rather than deleted — Will's ruling still
+   * stands and a shelf whose reason is false is worse than a shelf.
+   *
+   * Underlying verdict: FIRED-AND-BOARDS-DIFFER.
+   * Will: "PUT COPYCAT INTO THE QUARANTINE IM NOT TOUCHING THAT." */
   copycat: {
     by: 'Will', on: '2026-08-10',
-    why: 'THE MECHANISM IS WIRED AND GREEN; THE ROW FAILS ON A DIFFERENT RULE. Showdown refuses '
-       + '`addVolatile` for a volatile already present whose condition has no `onRestart`, and a failed '
-       + 'move never becomes `lastMove`. The fixture idles bodies on Focus Energy, whose second click '
-       + 'FAILS in the authority and SUCCEEDS here, so our Copycat correctly repeats an inert click. '
-       + 'Fixing the underlying refusal is its own batch: a blanket rule breaks Protect, Follow Me, Rage '
-       + 'Powder and Helping Hand, all of which must be re-settable. Underlying verdict: DID-NOT-FIRE. '
-       + 'Will: "PUT COPYCAT INTO THE QUARANTINE IM NOT TOUCHING THAT."',
+    why: 'THE MECHANISM IS WIRED AND GREEN; THE ROW FAILS ON A DIE ADDRESS. Re-measured 2026-09-19 on '
+       + 'release 4bc4a3325f76: both engines now copy the SAME move and refuse the same duplicate '
+       + 'volatile, and they throw the copy at DIFFERENT SLOTS. `useMove(id, pokemon)` with no target '
+       + 'resolves `getRandomTarget` -> `side.randomFoe()` -> `battle.sample(this.foes())` '
+       + '(sim/battle.ts:2507-2518, sim/side.ts:367-371), a draw off the shared stream; this engine '
+       + 'draws its own in the `callmove` branch and lands on the other slot. The authority aimed the '
+       + 'copied Dragon Claw at p1a and this engine aimed it at p1b. Fixing it is a DIE-ADDRESS batch, '
+       + 'the same family as tests/probe_fracpri_die_order.js — not the volatile-refusal batch this '
+       + 'entry named until 2026-09-19, which has since landed. Underlying verdict: '
+       + 'FIRED-AND-BOARDS-DIFFER. Will: "PUT COPYCAT INTO THE QUARANTINE IM NOT TOUCHING THAT."',
   },
   /* 2026-08-10. Will: "yes if it has almost no usage we can quarantine it, AS LONG AS WE KNOW ITS
    * PURPOSELY NOT BEING BUILT." That condition is the whole entry — the shelf is not the risk, the
@@ -2081,24 +2163,38 @@ const DEFERRED = {
    * #217 (`ability/damageBoost`, seven cells including the physical arm). Left as a comment rather
    * than deleted: a closet that silently loses rows teaches nobody, and this one was never a rarity
    * call — it was a misclassification. */
-  stall: {
-    by: 'Will', on: '2026-08-10',
-    why: 'ZERO of 26,232 declared-sheet teams, AND IT IS NOT RARE — IT IS BAD. Will: \u0027why would you ever want this\u0027. Stall makes the holder move LAST within its bracket, and its ONE legal carrier is Sableye, which is on 758 teams (2.9% of the format) and also has PRANKSTER — one of the strongest abilities in the game — plus a mega that overwrites the slot with Magic Bounce. Nobody chooses to move last when that is the alternative. The zero is a judgement the whole ladder has already made. Observing it would need a constructed speed pair where the order decides the board, and it carries no tag at all, so the rule would have to be written first. It moves the holder LAST within its bracket, '
-       + 'so observing it needs a constructed speed pair where the order decides the board — the same '
-       + 'build Will described for priority — for an ability nobody runs. It also carries no tag at '
-       + 'all, so the rule would have to be written first. Deliberately not built. Underlying verdict: '
-       + 'COULD-NOT-STAGE.',
-  },
-  pickup: {
-    by: 'Will', on: '2026-08-10',
-    why: 'SHELVED ON FIXTURE COST AGAINST 0.011% USAGE — 3 teams of 26,232, the rarest ability in this '
-       + 'format with a legal carrier. Observing it needs a SECOND body to consume an item on an '
-       + 'earlier turn so the holder has something to pick up, which is a three-body two-turn setup for '
-       + 'a mechanic almost nobody brings. Deliberately NOT built, and said so rather than left to read '
-       + 'as untested. NOT a general usage rule: Cud Chew (Farigiraf, 18.3% of teams) and Merciless '
-       + '(Toxapex, 5.0%) are equally rare ABILITIES on common BODIES and are built, because you face '
-       + 'them without bringing them. Underlying verdict: COULD-NOT-STAGE.',
-  },
+  /* ~~stall, shelved 2026-08-10 on usage AND on fixture cost.~~ **OFF THE SHELF, 2026-09-19**, under
+   * Will's ruling *"keep zoroark and illusion a real exclusion that we know about and acknowledge.
+   * anything else you can model for medicham go for it"*.
+   *
+   * THE SHELF REASON WAS HALF A JUDGEMENT AND HALF A CLAIM, AND THE CLAIM HAD EXPIRED. The judgement
+   * -- ZERO of 26,232 declared-sheet teams, and Will's "why would you ever want this", because the one
+   * legal carrier also has Prankster -- still stands and is not disputed; what it supported was a
+   * decision about PRIORITY, not a statement that the row could not be measured. The CLAIM was "it
+   * carries no tag at all, so the rule would have to be written first", and that stopped being true
+   * when `tag_dex.js` began deriving `fractionalPriority` for it:
+   * `{chance:1, bracket:-0.1, unconditional:true, announce:null}`, and
+   * `TAGS.withTag('ability','fractionalPriority')` prints `[quickdraw, stall]`. medicham2's ordering
+   * loop consumes it already. So the only thing genuinely missing was a FIXTURE, and that is
+   * `ability/moves-last-in-its-bracket` -- the sign-flipped twin of the Quick Draw rule that was
+   * already in this file.
+   *
+   * Left as a comment rather than deleted, exactly as `minus` and the Metronome item above are: a
+   * closet that silently loses rows teaches nobody, and the half of this entry that was a measurement
+   * about the ladder is still worth reading. */
+  /* ~~pickup, shelved 2026-08-10 on FIXTURE COST against 0.011% usage.~~ **OFF THE SHELF, 2026-09-19**,
+   * under Will's ruling *"keep zoroark and illusion a real exclusion that we know about and
+   * acknowledge. anything else you can model for medicham go for it"*.
+   *
+   * THE SHELF REASON WAS ACCURATE AND IS NOT RETRACTED. It said observing this needs "a SECOND body to
+   * consume an item on an earlier turn so the holder has something to pick up, which is a three-body
+   * two-turn setup" — and that is exactly what `ability/picks-up-a-spent-item` builds, down to the
+   * two turns. The 3-teams-of-26,232 measurement still stands and is still why this row is worth
+   * nothing to the pinned pool. What changed is the ruling about whether the cost is worth paying,
+   * not the facts underneath it.
+   *
+   * Left as a comment rather than deleted, exactly as `minus`, the Metronome item and `stall` above
+   * are: a closet that silently loses rows teaches nobody. */
   /* ~~metronome (the ITEM), shelved 2026-08-10 on cost.~~ **OFF THE SHELF, 2026-08-28.** Will took it
    * out by name. The original ruling was: "metronome is a joke dont worry about that just put it into
    * a quarantined closet we can re examine once the project is successful" (2026-08-10), and the shelf
@@ -2139,42 +2235,128 @@ const DEFERRED = {
    * a move, and this map is keyed by BARE ID — but the MOVE Metronome is `isNonstandard: 'Past'` in
    * this format (checked against `Dex.forFormat`, not recalled), so removing the key today can only
    * reach the item. If the move is ever un-banned that collision is live again. */
-  /* ROADMAP #138, 2026-08-10. Will: "ANTICIPATION AND FOREWARN LETS PUT INTO THE QUARANTINE CLOSET NO
-   * ONE USES THEM."
+  /* ~~anticipation, forewarn (2026-08-10, ROADMAP #138) and frisk (2026-09-18).~~ **OFF THE SHELF,
+   * 2026-09-19 — they are GRADED NOW, by `ANNOUNCEMENT` below.** Will, 2026-09-19: Illusion is the ONE
+   * acknowledged exclusion; everything else gets modelled and gated. All three shelf reasons said the
+   * same true thing — the whole effect is a MESSAGE, so a board comparison can only ever answer "the
+   * boards agreed", which is a green that asked nothing — and all three drew the wrong conclusion from
+   * it, which was to stop asking. The right conclusion is to ask with a different instrument.
    *
-   * NOT ROUTED THROUGH THE USAGE SHELF, DELIBERATELY. That shelf is a THRESHOLD and it is moves-only,
-   * because the store records which move was clicked and cannot say which ability a body carried
-   * (891 open sheets in 52,377 games). There is no honest store-derived usage for an ability, so no
-   * ability row is ever shelved by rule. This is an OWNER JUDGEMENT about a mechanic with no
-   * observable effect, which is exactly what the named map is for. */
-  anticipation: {
-    by: 'Will', on: '2026-08-10',
-    why: 'THE EFFECT IS A MESSAGE. Anticipation\'s whole content is a switch-in shudder — no HP, no '
-       + 'stat stage, no volatile, no field change — so there is nothing a BOARD comparison can read, '
-       + 'and this instrument compares boards. The only instrument that could ever test it is the '
-       + 'PROTOCOL TRACE, which is a different comparison and does not exist here. Usage measured at 6, '
-       + 'across two legal carriers in this format. Will: "ANTICIPATION AND FOREWARN LETS PUT INTO THE '
-       + 'QUARANTINE CLOSET NO ONE USES THEM."',
-  },
-  forewarn: {
-    by: 'Will', on: '2026-08-10',
-    why: 'THE EFFECT IS A MESSAGE, for the identical reason as Anticipation one row up: Forewarn names '
-       + 'the foe\'s strongest move on entry and changes nothing on the board. A board comparison '
-       + 'cannot see it and a green from one would be vacuous; the protocol trace is the only '
-       + 'instrument that could. Usage measured at 4. Same quote, same date.',
-  },
-  /* 2026-09-18. Will: "set frisk aside." Same class as the two above, reached by derivation rather than
-   * by name: `ability/an-arrival-a-field-or-a-refusal` refuses it because its ONLY handler is an
-   * `onStart` whose whole body is `this.add(...)`. It never reaches `runEntry`, so `assign` applies
-   * this shelf to its refusal (see the COULD-NOT-STAGE branch there) and keeps the refusal as the
-   * underlying verdict. */
-  frisk: {
-    by: 'Will', on: '2026-09-18',
-    why: 'THE EFFECT IS A MESSAGE, the same class as Anticipation and Forewarn: Frisk reveals the foes\' '
-       + 'items with one `-item` protocol line and writes no board leaf, so a board comparison cannot '
-       + 'see it. Will: "set frisk aside."',
-  },
+   * Left as a comment rather than deleted, exactly as `minus` and the Metronome item are: a closet that
+   * silently loses rows teaches nobody, and these three left it by being MEASURED rather than by being
+   * exempted. */
 };
+
+/* ---- ANNOUNCEMENT-ONLY: THE MECHANICS A BOARD CANNOT SEE, GRADED BY WHAT THEY SAY ----------------
+ *
+ * Will, 2026-09-19: Illusion is the ONE acknowledged exclusion; everything else gets modelled and
+ * gated. Three abilities could not be graded by the instrument that grades every other roster row, and
+ * the reason is a fact the tag dex DERIVES rather than an opinion anybody holds:
+ *
+ *     data/tags.json -> abilities.<id>.params.<tag>.visibleOnABoard === false
+ *
+ * Nothing they do reaches a board leaf, so `runEntry` reads the staging INERT and files COULD-NOT-STAGE
+ * — a verdict that is true of this instrument and false of the engine. That is a gate firing for the
+ * wrong reason, which is the one kind people learn to ignore.
+ *
+ * SO THE SHELF COMES DOWN AND THE BAR MOVES. A row in here is still staged, still played, still
+ * printed; what changes is WHICH instrument decides it. `engine/quarantine.js` accepts the verdict only
+ * on a complete receipt and re-derives every field of it from an artifact or a source file:
+ *   the tag must derive `visibleOnABoard: false`;  a LIVE, ARMED, non-hollow census row of that kind
+ *   and tag must carry the exact label;  that row's `detail` must QUOTE the authority's literal
+ *   `|-<event>|` line naming the mechanic (a COUNT of announcements is not a measurement of what was
+ *   said);  the knob stamp must be in tests/test-mechanics.js DELIBERATE_BREAK and both the knob and
+ *   `MEDFAILS.<stamp>` must appear in the engine;  and the named probe must exist and name both.
+ * Anything missing FAILS LOUD. This map supplies the receipt and nothing else.
+ *
+ * THE CENSUS LABEL IS DERIVED, NEVER TYPED (`announcementReceipt` below). A label re-worded upstream
+ * would silently break a typed one, and a receipt that names a row the census does not have is refused
+ * by the gate — so the one field most likely to rot is read out of the file it has to match.
+ *
+ * WHY EACH ROW NEEDS A KNOB. A mechanic no knob can break is a mechanic whose green is unfalsifiable.
+ * Frisk had NO knob at all until 2026-09-19 — its `-item`-on-foe branch fired unconditionally — so
+ * `MEDI_FRISK_SILENT` was written to give this receipt something to stand on. */
+const ANNOUNCEMENT = {
+  anticipation: { kind: 'ability', tag: 'announcesOnEntry',
+    knob: 'MEDI_ANTICIPATION_SILENT', knob_stamp: 'anticipationSilentRestored',
+    probe: 'tests/probe_entry_announce.js', authority: 'data/abilities.ts:174-190',
+    why: 'THE EFFECT IS A MESSAGE — a switch-in shudder, no HP, no stat stage, no volatile, no field '
+       + 'change. data/tags.json derives `announcesOnEntry.visibleOnABoard: false` from the handler, so '
+       + 'a board comparison can only ever answer "the boards agreed". Graded on the PROTOCOL LINE '
+       + 'instead: the census row quotes the authority\'s literal `|-ability|<holder>|anticipation`, and '
+       + 'tests/probe_entry_announce.js plays it in both engines and turns it red under '
+       + 'MEDI_ANTICIPATION_SILENT.' },
+  forewarn: { kind: 'ability', tag: 'announcesOnEntry',
+    knob: 'MEDI_FOREWARN_SILENT', knob_stamp: 'forewarnSilentRestored',
+    probe: 'tests/probe_narration_c.js', authority: 'data/abilities.ts:1494-1517',
+    why: 'THE EFFECT IS A MESSAGE, the same class as Anticipation: Forewarn names the foes\' '
+       + 'top-scoring move on entry and changes nothing on the board (`visibleOnABoard: false`, '
+       + 'derived). Graded on the PROTOCOL LINE: the census row quotes the authority\'s literal '
+       + '`|-activate|<holder>|ability:forewarn|<move>|[of] <foe>`, and tests/probe_narration_c.js '
+       + 'stages the score, the tie and the die and turns them red under MEDI_FOREWARN_SILENT.' },
+  frisk: { kind: 'ability', tag: 'announcesOnEntry',
+    knob: 'MEDI_FRISK_SILENT', knob_stamp: 'friskSilentRestored',
+    probe: 'tests/probe_entry_announce.js', authority: 'data/abilities.ts:1539',
+    why: 'THE EFFECT IS A MESSAGE: Frisk reveals each HOLDING foe\'s item with one `-item` line and '
+       + 'writes no board leaf (`visibleOnABoard: false`, derived). Its shape rule refuses it before '
+       + 'staging for the same reason — its only handler is an `onStart` whose whole body is '
+       + '`this.add(...)`. Graded on the PROTOCOL LINE: the census row quotes the authority\'s literal '
+       + '`|-item|<foe>|<item>|[from] ability: frisk|[of] <holder>` including the `[of]` tag, and '
+       + 'tests/probe_entry_announce.js turns it red under MEDI_FRISK_SILENT — a knob that did not '
+       + 'exist until this receipt needed one.' },
+};
+const ANN_VERDICT = 'ANNOUNCEMENT-ONLY';
+/* THE VERDICTS THIS RECEIPT MAY REPLACE, AND NO OTHERS. A COULD-NOT-STAGE here is the comparator saying
+ * it is blind, which is exactly what the receipt answers. An ACCUSATION (FIRED-AND-BOARDS-DIFFER,
+ * DID-NOT-FIRE) is the comparator saying it SAW something wrong, and a receipt must never be able to
+ * launder one — if a mechanic the tag dex calls board-blind ever moves a board, the right outcome is
+ * that it holds the gate and somebody reads the tag again. A row that cannot be converted keeps its
+ * verdict and says so on the run. */
+const ANN_REPLACES = new Set(['COULD-NOT-STAGE']);
+let _ANN_CENSUS;
+function annCensus() {
+  if (_ANN_CENSUS === undefined) {
+    try { _ANN_CENSUS = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'mechanics-census.json'), 'utf8')); }
+    catch (e) { _ANN_CENSUS = null; ANN_NOTES.push('data/mechanics-census.json could not be read (' + e.message
+      + '), so no announcement receipt can name a census row'); }
+  }
+  return _ANN_CENSUS;
+}
+const ANN_NOTES = [];
+/* The label is LOOKED UP, not typed — see the header. Ambiguity and absence both return null, which
+ * makes the receipt incomplete and the gate refuse it BY NAME. A guess here would be a silent default. */
+function annLabel(id, spec) {
+  const c = annCensus();
+  const rows = c && Array.isArray(c.results) ? c.results : null;
+  if (!rows) return null;
+  const hit = rows.filter(r => r && r.kind === spec.kind && r.tag === spec.tag
+    && idOf(String(r.label || '')).includes(idOf(id)));
+  if (hit.length !== 1) {
+    ANN_NOTES.push(id + ': ' + hit.length + ' census row(s) of kind `' + spec.kind + '` tag `' + spec.tag
+      + '` name it — a receipt needs exactly one, so this row will be REFUSED by the gate');
+    return null;
+  }
+  return String(hit[0].label);
+}
+function announcementReceipt(id) {
+  const spec = ANNOUNCEMENT[id];
+  if (!spec) return null;
+  return { tag: spec.tag, census_label: annLabel(id, spec), knob: spec.knob, knob_stamp: spec.knob_stamp,
+           probe: spec.probe, authority: spec.authority };
+}
+function announcementShelf(r) {
+  if (!r || !ANNOUNCEMENT[r.id]) return r;
+  const spec = ANNOUNCEMENT[r.id];
+  if (!ANN_REPLACES.has(r.verdict)) {
+    ANN_NOTES.push(r.id + ': NOT converted — it reads ' + r.verdict + ', and an announcement receipt may '
+      + 'only replace ' + [...ANN_REPLACES].join('/') + '. A board saw something; read the tag again.');
+    return r;
+  }
+  return { ...r, verdict: ANN_VERDICT, underlying_verdict: r.verdict,
+    announcement: announcementReceipt(r.id),
+    why: 'GRADED BY WHAT IT SAYS, NOT BY A BOARD. ' + spec.why + ' Underlying verdict from the board '
+       + 'comparator: ' + r.verdict + ' — ' + String(r.why || '').slice(0, 200) };
+}
 
 const DECLARED = [];
 let DECLARED_HITS = DECLARED.map(() => 0);
@@ -2676,10 +2858,32 @@ function usageShelf(r) {
   if (DEFERRED[r.id]) return r;                       // an owner judgement outranks the threshold
   const clicks = CLICKS.moves[r.id] || 0;
   if (clicks >= USAGE_SHELF_BELOW) return r;
-  return { ...r, verdict: 'DEFERRED-BY-OWNER', usage_shelf: true, clicks_in_store: clicks,
-    underlying_verdict: r.verdict,
-    deferred: { on: '2026-08-10', by: 'Will', why: 'below the usage shelf of ' + USAGE_SHELF_BELOW },
-    why: 'SHELVED ON USAGE, NOT MEASURED CLEAN. ' + clicks + ' click(s) across '
+  /* ---- THE SHELF STAMPS ITSELF, AND UNTIL 2026-09-19 IT STAMPED WILL (6.71.1 found this) ---------
+   *
+   * This wrote `verdict: 'DEFERRED-BY-OWNER'` and `deferred: { by: 'Will' }`, so an ARITHMETIC
+   * COMPARISON against a click count was indistinguishable in the artifact from a ruling the owner
+   * made about that entity. It excused Electrify at 18 clicks while reading as Will's judgement, and
+   * Will never deferred Electrify. Nothing could tell the two apart: `deferred.by` said the same word
+   * either way, and `usage_shelf: true` sat beside it as a detail nobody reads instead of as the claim.
+   *
+   * The VERDICT is the thing that gets read, quoted and counted — the same lesson `CONTROL-NOT-QUIET`
+   * was carved out of, where the caveat lived in `note` while the verdict went on saying DID-NOT-FIRE.
+   * So the shelf now has its own verdict, its own reason string, and no owner's name on it. Both
+   * numbers that decide it are in the row: the count and the threshold it was compared against.
+   *
+   * THE GATE'S BEHAVIOUR IS DELIBERATELY UNCHANGED BY THIS EDIT. `engine/quarantine.js` counts
+   * FIRED-AND-BOARDS-DIFFER, DID-NOT-FIRE, in-scope COULD-NOT-STAGE and a stale DEFERRED-BY-OWNER; a
+   * BELOW-USAGE-SHELF row was in none of those buckets before (as DEFERRED-BY-OWNER it was excused)
+   * and is in none of them now. Whether the gate SHOULD count these rows is a MEASURE decision, and it
+   * is one nobody could take while the rows were wearing somebody else's name. */
+  return { ...r, verdict: 'BELOW-USAGE-SHELF', usage_shelf: true, clicks_in_store: clicks,
+    usage_shelf_threshold: USAGE_SHELF_BELOW, underlying_verdict: r.verdict,
+    shelf: { by: 'tests/roster.js USAGE_SHELF_BELOW', on: '2026-08-10', rule: 'clicks < ' + USAGE_SHELF_BELOW,
+      clicks, source: 'engine/click_counts.js',
+      why: 'A THRESHOLD, NOT A RULING. ' + clicks + ' click(s) is below the shelf of ' + USAGE_SHELF_BELOW
+         + '. No owner deferred this entity by name; if one had, it would be in the DEFERRED map and '
+         + 'would outrank this rule.' },
+    why: 'SHELVED ON USAGE BY A THRESHOLD — NOT AN OWNER RULING, AND NOT MEASURED CLEAN. ' + clicks + ' click(s) across '
        + (CLICKS.store_games || 0).toLocaleString() + ' stored games, under the shelf of '
        + USAGE_SHELF_BELOW + '. Counted from the store by engine/click_counts.js, NOT from '
        + 'tags.json, which undercounts by up to 8.6x on these rows. Still staged and still played '
@@ -5922,8 +6126,11 @@ let _CLAW = undefined;
 const clawPair = () => (_CLAW === undefined ? (_CLAW = mutualKillPair('slower')) : _CLAW);
 
 /* THE FLINCH FIXTURE IS THE OPPOSITE SHAPE, AND THE ENGINE'S OWN CODE SAYS WHY: a flinch on a body
- * that is already dead is refused by BOTH engines — medicham2 counts it at `kingsRockRollSkippedOnKO`
- * and the authority's `addVolatile` bails on `!this.hp` — so the holder's click must NOT kill. The foe
+ * that is already dead is refused by BOTH engines — medicham2 counts it at
+ * `kingsRockFlinchRefusedOnCorpse` and the authority's `addVolatile` bails on `!this.hp` — so the
+ * holder's click must NOT kill. (Until 2026-09-19 this read `kingsRockRollSkippedOnKO`, which is now
+ * the RESTORE KNOB's counter: the DIE is taken on a corpse, because it moves the secondary address.
+ * The refusal this fixture is avoiding is unchanged.) The foe
  * has to SURVIVE and then be robbed of its own click, and THAT is what reaches the board: its damage
  * is never dealt and its PP is never spent, both of which `board_state.js` compares.
  *
@@ -8416,6 +8623,112 @@ const RULES = [
       script: Array.from({ length: when.turn }, (_, i) => (i === when.turn - 1
         ? turn([click(pick.back.id, 0), IDLE], [click(pick.kill.id, 0), IDLE])
         : turn([IDLE, IDLE], [IDLE, IDLE]))) });
+  } },
+
+/* ---- 8b. AN ABILITY THAT GIVES UP ITS OWN BRACKET, EVERY TURN, WITH NO DIE AT ALL ----------------
+ * Stall, and it is the sign-flipped twin of the rule directly above.
+ *
+ * THIS ROW WAS DEFERRED-BY-OWNER FROM 2026-08-10 TO 2026-09-19 AND ITS REASON HAD GONE STALE. The
+ * shelf said *"it carries no tag at all, so the rule would have to be written first"*. That was true
+ * when it was written and it is not true now: `tag_dex.js` derives
+ * `ability/fractionalPriority {chance:1, bracket:-0.1, unconditional:true, announce:null}` for it —
+ * printed, not recalled, `TAGS.withTag('ability','fractionalPriority')` is `[quickdraw, stall]` — and
+ * `medicham2-browser.js`'s ordering loop already consumes it (`_abHit = _gate && (_fa.unconditional
+ * || rng() < chance)`, then `_q = bracket < 0 ? -1 : 1`). So the mechanism was wired and the only
+ * thing missing was a fixture. Lifted 2026-09-19 under Will's ruling *"anything else you can model
+ * for medicham go for it"*.
+ *
+ * WHY IT IS ITS OWN RULE AND NOT A WIDENED QUICK DRAW. The rule above REQUIRES `chance < 1`, because
+ * its whole apparatus is choosing the turn on which a sub-100% draw lands. Stall never draws: it is
+ * `unconditional`, so there is no coin to name, no `LIVE_ARM` to pay for and no `midDie` to walk. A
+ * rule that tried to serve both would have to branch on the die at every step, and the two fixtures
+ * are mirror images anyway — Quick Draw needs a victim that is FASTER, Stall needs one that is SLOWER.
+ *
+ * THE LEAF IS THE CARRIER'S OWN HP, AND THE FIRST FIXTURE FOR IT WAS WRONG — WRITTEN DOWN BECAUSE
+ * THE REFUSAL IS THE EVIDENCE. The obvious mirror of the Quick Draw rule is a KILL: the carrier is
+ * faster and its click is lethal, so without the ability the victim never acts. Built that way this
+ * rule returned, on the format, *"no legal buildable body is BOTH strictly slower than Sableye
+ * (Speed 102) AND killable outright ... with 35% of headroom"* — the one legal carrier of this
+ * ability is a defensive body that kills nothing. A lethality requirement is the Quick Draw rule's
+ * own convenience, not this mechanic's.
+ *
+ * SO THE ORDER IS MADE TO MATTER WITHOUT A KO, BY A SELF-HEAL AT FULL HP. The carrier is strictly
+ * faster than the victim and clicks a heal on itself; the victim clicks a hit back.
+ *
+ *     WITHOUT the ability   the carrier heals FIRST, from full, so the heal does nothing at all —
+ *                           then it takes the hit, and the boundary reads (max - D).
+ *     WITH it               the carrier drops to the bottom of its own bracket, takes the hit FIRST,
+ *                           and heals afterwards — the boundary reads the maximum.
+ *
+ * One HP number, no faint anywhere (a faint clamps the loss at the body's own maximum and both arms
+ * would print the same figure), and the ability announces NOTHING — `announce: null`, read off the
+ * handler's own absent `this.add` — so no protocol line is doing the work. */
+{ id: 'ability/moves-last-in-its-bracket', kind: 'ability',
+  reads: 'the `fractionalPriority` tag on an ABILITY with a NEGATIVE bracket and no chance to roll',
+  why: 'A BRACKET GIVEN UP IS ONLY ON THE BOARD IF THE ORDER DECIDES SOMETHING, and a KILL is not the '
+     + 'only way to make it decide one — the carrier here is strictly FASTER than the victim and '
+     + 'clicks a SELF-HEAL from full HP. Without the ability the heal lands first and does nothing, '
+     + 'then the hit lands and the boundary reads (max - D); with it the hit lands first and the heal '
+     + 'takes it straight back, so the boundary reads the maximum. That HP leaf is the measurement. '
+     + 'The ability draws no die (`unconditional`) and writes no protocol line (`announce: null`), so '
+     + 'there is nothing else for the comparison to be standing on.',
+  break: { why: 'the ability\'s bracket nudge is never read, so the faster carrier keeps moving first '
+              + 'and the victim dies before it acts',
+    patch: [["const _fa=TAGS.param('ability',it.mon.ability,'fractionalPriority');",
+             "const _fa=null&&TAGS.param('ability',it.mon.ability,'fractionalPriority');"]] },
+  match(e) {
+    const fp = abTag(e.id, 'fractionalPriority');
+    if (!fp) return null;
+    const chance = +(fp.chance == null ? 1 : fp.chance);
+    if (chance < 1) return null;                       // the LIVE-DIE lane above owns those
+    if (!(fp.bracket < 0)) return null;                // a positive unconditional jump is not this shape
+    if (fp.onlyStatus) return cannot('it nudges only STATUS clicks, and the control click this file '
+      + 'idles on is itself a status move — the two could not be separated');
+    const spd = s => flatL50(s.baseStats).sp;
+    /* THE VICTIM IS CHOSEN AGAINST THE CARRIER, so the carrier is picked first and the pool is walked
+     * against it. `abilityCarrierAnyTier` is used rather than `abilityCarrier` because this format's
+     * only carrier of this ability may have no quiet alternative on its own sheet — `stageAbilityQuiet`
+     * then takes the in-play Skill Swap control and PRINTS that it did. */
+    const C = abilityCarrierAnyTier(e);
+    if (!C) return cannot(scopeCannot(e));
+    const carSp = dex.species.get(C.species);
+    /* THE HEAL IS DERIVED OFF THE MOVE'S OWN `heal` FRACTION AND THE CARRIER'S OWN LEARNSET. A
+     * `heal: true` member (Rest, and the absorbing shapes) is somebody else's rule — this needs a
+     * DECLARED fraction so the restore is guaranteed to cover any hit the victim can land inside the
+     * inflated HP pool. `accuracy: true` keeps the arm out of the to-hit question entirely. */
+    const heal = dex.moves.all()
+      .filter(m => m.exists && !m.isNonstandard && m.target === 'self' && Array.isArray(m.heal)
+                && m.heal[0] > 0 && m.accuracy === true && learnsMove(carSp, m.id))
+      .sort((a, b) => (b.heal[0] / b.heal[1]) - (a.heal[0] / a.heal[1]))[0] || null;
+    if (!heal) return cannot(carSp.name + ' learns no self-targeted move with a DECLARED heal '
+      + 'fraction and perfect accuracy, and the heal is what makes the ORDER decide a leaf here. '
+      + 'Without it the same two clicks in either order leave the identical board.');
+    let pick = null;
+    for (const f of CANDIDATES) {
+      if (f.id === carSp.id || f.forme.endsWith('Mega') || !buildableSpecies(f.id)) continue;
+      /* STRICTLY SLOWER, never a tie: a tie is a BRANCH and not a die, and a row whose leaf depends on
+       * which way a tie fell is measuring the tie. */
+      if (spd(f) >= spd(carSp)) continue;
+      const back = lethalMove(f, carSp, 0.05);          // it only has to LAND, not to kill
+      if (!back) continue;
+      pick = { foe: f, back: back.mv }; break;
+    }
+    if (!pick) return cannot('no legal buildable body is BOTH strictly slower than ' + carSp.name
+      + ' (Speed ' + spd(carSp) + ') AND able to land a derived delivery move on it. Without a hit '
+      + 'there is nothing for the heal to take back and the order decides nothing.');
+    /* hpB: 6 so the carrier's pool is deep enough that the hit it takes is a long way from lethal AND
+     * a long way inside the heal's fraction — a faint would clamp the loss at the body's own maximum
+     * and both arms would print the same number, which is the hollow shape this file marks elsewhere.
+     * hpA: 6 for the victim for the same reason in the other direction: it must survive to click. */
+    return stageAbilityQuiet(e, C, { hpA: 6, hpB: 6, moves: [heal.id],
+      note: carSp.name + ' (Speed ' + spd(carSp) + ') faces ' + pick.foe.name + ' (Speed '
+          + spd(pick.foe) + ') and is therefore the FASTER body. It clicks ' + heal.name
+          + ' on itself FROM FULL HP while ' + pick.foe.name + ' clicks ' + pick.back.name
+          + ' back. Without the ability the heal resolves first and does nothing; with it the carrier '
+          + 'moves LAST in its own bracket (' + fp.bracket + '), takes the hit first and heals it '
+          + 'straight back. The carrier\'s own HP at the boundary is the leaf',
+      a0: mon(pick.foe.id, '', carrierAbility(pick.foe) || '', [pick.back.id]),
+      script: [turn([click(pick.back.id, 0), IDLE], [click(heal.id, 0), IDLE])] });
   } },
 
 { id: 'ability/chance-gated', kind: 'ability',
@@ -12423,6 +12736,119 @@ const RULES = [
           const A = sdActive(x, 'p1', 0), B = sdActive(x, 'p2', 0);
           return !!(A && B && +((A.boosts || {})[stat] || 0) >= amt
                     && +((B.boosts || {})[stat] || 0) >= amt); }) } });
+  } },
+
+/* ---- AN ABILITY THAT TAKES AN ITEM SOMEBODY ELSE SPENT THIS TURN --------------------------------
+ * Pickup, and it sits ABOVE `ability/residual` because that rule owns every `onResidual` and this one
+ * needs a fixture the residual staging cannot supply.
+ *
+ * THIS ROW WAS DEFERRED-BY-OWNER FROM 2026-08-10 TO 2026-09-19 ON FIXTURE COST, AND THE COST WAS REAL
+ * RATHER THAN IMAGINED. The shelf read: *"Observing it needs a SECOND body to consume an item on an
+ * earlier turn so the holder has something to pick up, which is a three-body two-turn setup for a
+ * mechanic almost nobody brings."* That is an accurate description of what this rule builds. What
+ * changed is not the cost but the ruling: Will, 2026-09-19, *"keep zoroark and illusion a real
+ * exclusion that we know about and acknowledge. anything else you can model for medicham go for it"*.
+ * The usage figure the shelf quotes -- 3 teams of 26,232 -- still stands and is still the reason this
+ * row is worth nothing to the PINNED POOL; it is the lab's job, exactly as CLAUDE.md says.
+ *
+ * THE CONDITION IS THE AUTHORITY'S, READ AND NOT RECALLED (data/abilities.ts:3252-3266, and
+ * `data/mods/champions/abilities.ts` names `pickup` nowhere, so it is inherited whole):
+ *
+ *     onResidual(pokemon) {
+ *       if (pokemon.item) return;
+ *       const pickupTargets = this.getAllActive().filter(target => (
+ *         target.lastItem && target.usedItemThisTurn && pokemon.isAdjacent(target)));
+ *       if (!pickupTargets.length) return;
+ *       const randomTarget = this.sample(pickupTargets); ...
+ *
+ * -- so THREE things have to be true at one residual: the carrier holds NOTHING, somebody adjacent
+ * spent an item ON THAT TURN, and they still remember what it was.
+ *
+ * EXACTLY ONE BODY MAY QUALIFY, AND THAT IS THE LOAD-BEARING PART OF THE FIXTURE. `this.sample(...)`
+ * is a DIE the moment a second body is eligible, and a row whose leaf depends on an undeclared draw
+ * is measuring the draw. So ONE body on the board is given a consumable and nothing else holds one:
+ * the carrier is built item-less by `stageAbility` and the aggressor is written here empty-handed.
+ *
+ * THE BERRY IS DERIVED, NOT TYPED. `healsAtThreshold` names every item in this format that spends
+ * itself at an HP gate; the row with the HIGHEST gate is taken (ties broken by id, so the pick is
+ * stable across runs), and `hitInBand` sizes a real delivery move that puts the holder under it and
+ * leaves it standing.
+ *
+ * TURN 2 IS THE NEGATIVE AND IT IS FREE: by then the carrier HOLDS the berry, so the handler's very
+ * first line returns and nothing may move. An engine that picked up unconditionally passes turn 1 and
+ * parts here. */
+{ id: 'ability/picks-up-a-spent-item', kind: 'ability',
+  reads: 'onResidual whose body reads `usedItemThisTurn` off another active',
+  why: 'THE CARRIER MUST BE EMPTY-HANDED AND SOMEBODY BESIDE IT MUST SPEND AN ITEM ON THE SAME TURN, '
+     + 'which no generic staging produces. The aggressor knocks the carrier\'s PARTNER under a '
+     + 'derived berry\'s HP gate on turn 1; the partner eats it, and at that turn\'s residual the '
+     + 'carrier takes the wrapper. Two leaves move -- the carrier\'s `item` and the spender\'s '
+     + '`last_item` -- and both are compared by board_state.js. TURN 2 IS THE NEGATIVE: the carrier '
+     + 'now holds something, so the handler returns on its own first line.',
+  break: { why: 'the pick-up is skipped, so the carrier stays empty-handed and the spent item stays '
+              + 'on the body that spent it',
+    patch: [['if(itemGive(m,_pb)){ _t._lastItem=\'\'; MEDSEEN.pickupTook++; }',
+             'if(0&&itemGive(m,_pb)){ _t._lastItem=\'\'; MEDSEEN.pickupTook++; }']] },
+  match(e) {
+    if (typeof e.onResidual !== 'function') return null;
+    const src = String(e.onResidual);
+    if (!/usedItemThisTurn/.test(src) || !/lastItem/.test(src)) return null;
+    /* THE HIGHEST HP GATE IN THE FORMAT, so the band hit has the most room to land inside it.
+     * `TAGS` here is the raw artifact, not the module, so the family is read by walking its rows. */
+    const berry = Object.keys(TAGS.items || {})
+      .map(id => ({ id, p: ((TAGS.items[id] || {}).params || {}).healsAtThreshold }))
+      .filter(x => x.p && x.p.triggersBelow)
+      .map(x => { const f = String(x.p.triggersBelow).split('/'); return { id: x.id, at: +f[0] / +f[1] }; })
+      .filter(x => x.at > 0 && x.at < 1)
+      .sort((a, b) => (b.at - a.at) || (a.id < b.id ? -1 : 1))[0] || null;
+    if (!berry) return cannot('no item in this format spends itself at an HP gate (`healsAtThreshold` '
+      + 'is empty in the artifact), so nothing on the board can be made to consume an item on a named '
+      + 'turn and the carrier would have nothing to pick up');
+    const atk = dex.species.get(CAST.ATTACKER().species);
+    const C = abilityCarrier(e);
+    if (!C) return cannot(noCarrierWhy(e, 'is buildable with a second ability to control with'));
+    const carSp = dex.species.get(C.species);
+    /* THE SPENDER IS THE CARRIER'S PARTNER, chosen for being hittable INTO the berry's band and left
+     * standing above death -- `hitInBand` takes the SMALLEST in-band hit for exactly that reason. */
+    let band = null, ally = null;
+    for (const s of CANDIDATES) {
+      if (!buildableSpecies(s.id) || s.forme.endsWith('Mega')) continue;
+      if (s.id === carSp.id || s.id === atk.id) continue;
+      /* THE MARGIN IS NOT DECORATION AND IT WAS MEASURED THE HARD WAY. The first version asked for
+       * `lo = 1 - berry.at` — a hit big enough to reach the gate EXACTLY — and `hitInBand` returns the
+       * SMALLEST in-band hit, so the pick sat on the line. Played against the authority it landed at
+       * **53%** where the predictor said 48%, the Oran Berry was never eaten, and the row came back
+       * `THE STAGING IS INERT ... over 1656 compared leaves`. The predictor is an estimate however
+       * carefully it is built (see `hitInBandFrom`'s own note), so the gate is cleared by twelve
+       * points — the same margin `ability/pinch-offense` already uses for the same reason. */
+      const h = hitInBand(atk, s, (1 - berry.at) + 0.12, 0.95);
+      if (!h) continue;
+      ally = s; band = h; break;
+    }
+    if (!ally) return cannot('no legal buildable body can be taken from full HP to under the '
+      + berry.at + ' gate of ' + pretty(berry.id) + ' -- and left alive -- by one derived delivery '
+      + 'move thrown by ' + atk.name + '. Without that the berry is never spent and the carrier has '
+      + 'nothing to pick up, so the staging would read INERT for a reason about this fixture.');
+    /* hpB: 1 -- NATURAL HP ON THE CARRIER\'S SIDE, and it is not a style choice: `hitInBand` sizes the
+     * hit against `flatL50(defSp.baseStats).hp`, so an inflated pool would leave the spender far above
+     * the gate and the berry would never be eaten. hpA: 8 so the aggressor cannot be the one that
+     * falls over. */
+    /* `stageAbilityQuiet`, not `stageAbility`: this carrier's only sheet control is FRISK, which is
+     * itself a live ability, so the sheet control would downgrade every verdict to CONTROL-NOT-QUIET
+     * — not a finding and not a pass. The in-play Skill Swap control is taken instead and the builder
+     * PRINTS that it took it. */
+    return stageAbilityQuiet(e, C, { hpA: 8, hpB: 1, moves: [INERT],
+      note: pretty(berry.id) + ' on the carrier\'s partner ' + ally.name + ', which ' + atk.name
+          + ' takes to ' + Math.round((1 - band.d / band.hp) * 100) + '% with ' + band.mv.name
+          + ' on turn 1 -- under the ' + berry.at + ' gate, so the berry is spent THAT TURN and the '
+          + 'empty-handed carrier takes it at the residual. Nothing else on the board holds a '
+          + 'consumable, so the authority\'s `sample(pickupTargets)` has exactly one candidate and no '
+          + 'die is drawn. TURN 2 IS THE NEGATIVE: the carrier is holding the berry by then, so the '
+          + 'handler returns on its first line',
+      a0: mon(atk.id, '', CAST.ATTACKER().ability, [band.mv.id]),
+      b1: mon(ally.id, berry.id, carrierAbility(ally) || '', [INERT]),
+      script: [turn([click(band.mv.id, 1), IDLE], [IDLE, IDLE]),
+               turn([IDLE, IDLE], [IDLE, IDLE])] });
   } },
 
 { id: 'ability/residual', kind: 'ability',
@@ -17843,8 +18269,8 @@ function healStagingWorks() {
 /* =================================================================================================
  *  REPORT
  * ================================================================================================= */
-const VERDICT_ORDER = ['FIRED-AND-BOARDS-DIFFER', 'DID-NOT-FIRE', 'DEFERRED-BY-OWNER', 'FIRED-AND-BOARDS-MATCH',
-                       'CONTROL-NOT-QUIET', 'COULD-NOT-STAGE'];
+const VERDICT_ORDER = ['FIRED-AND-BOARDS-DIFFER', 'DID-NOT-FIRE', 'DEFERRED-BY-OWNER', 'BELOW-USAGE-SHELF',
+                       'ANNOUNCEMENT-ONLY', 'FIRED-AND-BOARDS-MATCH', 'CONTROL-NOT-QUIET', 'COULD-NOT-STAGE'];
 
 function printRules() {
   console.log('\nTHE SHAPE RULES — a scenario is DERIVED from these, never written per entity.');
@@ -18134,15 +18560,34 @@ function main() {
       : '    none in this stage — the shelf is live and matched nothing here');
   }
 
+  /* THE ANNOUNCEMENT RECEIPTS, PRINTED BEFORE THEY ARE APPLIED, for the same reason the closet above
+   * is: a row that leaves the graded column with no printed line is how a gate quietly stops asking.
+   * Loud at zero too — an empty list means this stage carries none, not that the rule is broken. */
+  {
+    const mine = Object.keys(ANNOUNCEMENT).filter(id => kinds.includes(ANNOUNCEMENT[id].kind));
+    console.log('\n  ANNOUNCEMENT-ONLY — ' + STAGE + ' rows a BOARD cannot see, graded on the protocol '
+      + 'line instead (data/tags.json derives `visibleOnABoard: false`):');
+    console.log(mine.length
+      ? mine.map(id => {
+          const a = announcementReceipt(id);
+          return '    ' + id.padEnd(14) + a.knob + ' -> MEDFAILS.' + a.knob_stamp + '   ' + a.probe
+            + '\n        census row: ' + (a.census_label || 'NOT FOUND — the gate will REFUSE this receipt');
+        }).join('\n')
+      : '    none in this stage');
+  }
+
   const results = [];
   for (const e of entries) {
-    if (e.verdict) { results.push(closetShelf({ ...e, carrier: carrierOf(e.scenario) })); continue; }
+    /* A ROW ITS RULE REFUSED NEVER REACHES `runEntry`, so the announcement receipt has to be applied
+     * here as well as at the choke point below — Frisk arrives on this line, not that one. */
+    if (e.verdict) { results.push(announcementShelf(closetShelf({ ...e, carrier: carrierOf(e.scenario) }))); continue; }
     let r;
     try { r = runEntry(e); }
     catch (err) { r = { ...e, verdict: 'COULD-NOT-STAGE', why: 'the harness threw: ' + err.message }; }
     r = { ...r, carrier: carrierOf(e.scenario) };
     r = usageShelf(r);          // one choke point, so no verdict path can bypass the shelf
     r = closetShelf(r);         // ...and the same one for the shelf decided by the CARRIER
+    r = announcementShelf(r);   // ...and the one that swaps the INSTRUMENT rather than excusing the row
     /* A DIFFERING PAIR IS ONLY A FOLDING BUG IF EACH HALF AGREES ON ITS OWN. Re-run the two singles
      * and record which arms parted, because "both together are wrong" and "one of them is wrong"
      * are different findings and the pair arm cannot tell them apart. */
@@ -18644,6 +19089,24 @@ function main() {
     console.log('    ' + scope.attributed_by_second_control.length + ' row(s) were RELEASED OR NARROWED BY '
       + 'A SECOND CONTROL: ' + scope.attributed_by_second_control.join(', '));
 
+  /* THE TWO SHELVES THAT ARE NOT OWNER RULINGS, EACH PRINTED WITH THE NUMBER THAT DECIDED IT. The usage
+   * shelf spent a year stamping `by: 'Will'` on an arithmetic comparison; it now has its own verdict and
+   * its own line, so a reader can tell a ruling from a threshold without opening the artifact. */
+  {
+    const shelved = (by['BELOW-USAGE-SHELF'] || []);
+    console.log('\n  THE USAGE SHELF — a THRESHOLD, not an owner ruling (clicks < ' + USAGE_SHELF_BELOW
+      + ', moves only, counted by engine/click_counts.js over '
+      + ((CLICKS && CLICKS.store_games) || 0).toLocaleString() + ' stored games):');
+    console.log(shelved.length
+      ? shelved.map(r => '    ' + String(r.id).padEnd(20) + String(r.clicks_in_store).padStart(4)
+          + ' click(s)   underlying ' + r.underlying_verdict).join('\n')
+      : '    none in this stage — every row cleared the shelf or was decided some other way');
+  }
+  if (ANN_NOTES.length) {
+    console.log('\n  ANNOUNCEMENT RECEIPTS — WHAT DID NOT GO THROUGH (loud, never silent):');
+    for (const n of ANN_NOTES) console.log('    ' + n);
+  }
+
   /* THE PIN'S RECEIPT, PRINTED. A row's `arm` is a LABEL; this is the object that reached the driver.
    * A `DRIVER-DEFAULT:` line here means this file asked for an arm by omission and got whatever
    * game_differential.js's ARMS[0] happens to be — which stopped being `top-tie-first` on 2026-08-13
@@ -18773,6 +19236,22 @@ function main() {
          * artifact, so `DEFERRED-BY-OWNER` arrived with no reason attached and every external reader
          * had to take the verdict on trust. */
         deferred: r.deferred || null,
+        /* WHICH VERDICT THE BOARD COMPARATOR GAVE BEFORE A SHELF OR AN INSTRUMENT SWAP REPLACED IT.
+         * Carried on EVERY row that has one, so no re-labelled row can be mistaken for a pass. */
+        underlying_verdict: r.underlying_verdict || null,
+        /* ---- THE ANNOUNCEMENT RECEIPT, AND IT WAS DROPPED HERE ON THE FIRST RUN ------------------
+         * `engine/quarantine.js` accepts ANNOUNCEMENT-ONLY only on a receipt, and it reads the receipt
+         * off THIS object. The first --write run emitted three correct rows and the gate refused all
+         * three with `NO RECEIPT`, because this serialiser is a whitelist and the field was not on it.
+         * Exactly the `usage_shelf` shape one field down: computed, then dropped on the way out. */
+        announcement: r.announcement || null,
+        /* THE USAGE SHELF'S OWN RECEIPT — the click count and the threshold that decided it, so a
+         * reader can tell a THRESHOLD from an owner ruling without matching prose. Until 2026-09-19
+         * these were computed and dropped, and the row reached the artifact stamped `by: 'Will'`. */
+        usage_shelf: r.usage_shelf || false,
+        clicks_in_store: r.clicks_in_store === undefined ? null : r.clicks_in_store,
+        usage_shelf_threshold: r.usage_shelf_threshold === undefined ? null : r.usage_shelf_threshold,
+        shelf: r.shelf || null,
         /* the regulation refusal, tagged at the refusal rather than matched out of the prose */
         out_of_scope: r.out_of_scope || null,
         declared_untestable: r.declared_untestable || false,
@@ -18858,8 +19337,12 @@ function main() {
    here: `metronome` names both an item and a move. In THIS regulation the move is
    `isNonstandard: 'Past'` so the collision cannot occur, and a reader that could reach both kinds
    must say what it does about it. */
+/* `withLegalInert` and `inertChoice` are exported so the control-click choice can be MEASURED without
+ * playing a game: the illegal-fixture count is a property of the bodies this file BUILDS, and counting
+ * it by running three stages costs minutes and moves artifacts. Added 2026-09-19 with
+ * tests/probe_roster_inert_legality.js, which is the only caller. */
 module.exports = { RULES, assign, runEntry, play, selftest, DELIVERY, QUIET, WEAK_TO, STATUS_MOVE,
-                   DEFERRED };
+                   DEFERRED, withLegalInert, inertChoice, INERT, INERT_SUBS, INERT_ALT_CANDS };
 
 if (require.main === module) {
   const bad = main();

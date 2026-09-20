@@ -10,6 +10,26 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.73.0] — 2026-09-19
+
+### Fixed
+- **From the held-out 12,000-game draw:** Protect's stall sweep order, two secondary die addresses,
+  recoil on a whiff, two trapping rules, Sparkling Aria's cure, the weather defence stat, two redirect
+  rules, Fickle Beam's die, a failed move as `lastMove`, and the ability rewrite name.
+- **Ability announcements:** an ability announces above its own boost, once per call, never on a capped
+  stat — 18 abilities behind one shared path.
+
+### Changed
+- Announcement-only roster rows carry a receipt; the usage shelf stamps itself, not Will.
+- `staged_board.js --reds` 25 of 25; roster illegal fixtures 73 → 58; coverage 301 of 301 tags.
+
+### Added
+- `tests/test-knob-control-arm.js` — 28 of 59 knob/probe pairs proved nothing; all fixed, population
+  widened to 81 after 57 knobs read through a helper turned out to be invisible to the detector.
+
+### Notes
+- Census 970 → 977 live. No lattice figure is claimed on this release.
+
 ## [6.72.0] — 2026-09-19
 
 ### Changed

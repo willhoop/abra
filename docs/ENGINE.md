@@ -73,7 +73,9 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_tie_order.js`, `tests/probe_narration_c.js`
 `tests/probe_tie_order.js`, `tests/probe_narration_d.js`,
 `tests/probe_state_credit_red.js`
-`tests/probe_hit_event_buff_order.js`
+`tests/probe_hit_event_buff_order.js`,
+`tests/probe_ability_rewrite_name.js`
+`tests/test-knob-control-arm.js`, `data/probe-knob-arms.json`
 
 **Twenty-two instruments, and none substitutes for another.** *(Read the count off the ROWS, never off
 this sentence — it was "twelve" until `test-damage-roll-support.js` was added on 2026-08-18,
@@ -93,6 +95,7 @@ table is exactly what CLAUDE.md records going stale three times over.)*
 
 | file | asks | structurally cannot see |
 |---|---|---|
+| `test-knob-control-arm.js` | does a probe's own red-demonstration knob actually make that probe go red — for every `(probe, engine knob)` pair DERIVED at run time (a file under `tests/` that spawns ITSELF with a name `engine/` reads as the boolean `process.env.X === '1'`; `engineSrc.includes(name)` was tried first and swept in `SHOWDOWN_PATH`, so the shape is the test and the prefix is not). CLAUSE 2 is static and fails when a variable assigned STRAIGHT from the knob, with no `&&` conjunction, guards a block that exits 0 — that block is the quiet control arm, and reaching it with the knob alone is the whole defect. CLAUSE 3 reads a RECORDED pair of exit codes (`data/probe-knob-arms.json`) and re-hashes the probe file, the way `engine/em_validation.js --check` does, because a live sweep of the population is minutes rather than seconds: an edited probe invalidates its own verdict and this goes red. `--measure [file]` re-runs and rewrites | whether a knob is wired to the RIGHT rule — it asks only that the engine changed enough for the probe to notice, so a knob that breaks a different mechanic passes here and is the probe's own business. Probes whose knob is chosen at RUN TIME from their own table (`env: { [kn]: '1' }` with no fixed name read) — three of them, NAMED on every run rather than dropped, each measured once by hand to exit 1 under a real knob from its table. And a probe that is already RED on a clean run, for which the comparison says nothing: those are named and RATCHETED, never counted as a pass |
 | `probe_reopen_partings.js` | do the eight partings the staging planner found on 2026-09-11 resolve the authority's way — Oblivious refusing Taunt, Magic Bounce sending Spite back, the crit-stage volatiles adding to the ratio, a mega stone under Klutz (board-material, compared at every boundary AND on the mechanism's own lines), and Cute Charm's attribution, Own Tempo's refusal line, every veil's `-block` (Sweet Veil for its partner and itself, Flower Veil against an Intimidate) and Covet's single `-item` (narration, compared as a multiset of the mechanism's lines over the WHOLE stream, folded the way the differential folds them). Each mechanism has red arms, controls on the same bodies, a fixture read off the authority's RAW log, a counter the fix increments, and its own `MEDI_*` knob; the parent plays clean, then one child per mechanism must part every red and hold every control and must load an engine that stamped the knob's receipt. With no `--release` the live tree is frozen into the scratch store | Oblivious against Attract and Captivate (no staged pair learns Attract) and its `onUpdate` half; Magic Bounce on any move but Spite; a crit-stage volatile copied by Psych Up or Transform; a mega under Magic Room; Flower Veil's status-half `-block` for a primary status move (gated, not staged); anything a four-body board cannot reach |
 | `probe_corner_mechanisms.js` | do the fifteen mechanisms the speed-tie corner arms exposed resolve the authority's way — each staged ALONE under the corner pin its pool game was played under, with a control on the SAME bodies that must hold in both knob positions. Showdown is the expectation; each mechanism also asserts a FIXTURE read off the authority's own log (the body really fainted, the flinch really fired, the mega really happened) so an arm that staged nothing fails by name, and a COUNTER its fix increments, non-zero on the reds and zero on the controls. The parent plays clean, then one child per mechanism under its own `MEDI_*` knob must part every red and hold every control. With no `--release` it freezes the live tree into the scratch store; `--release 5973a4e3c768` is the pre-fix engine it was shown RED on. `--only <mech>`, `--dump <mech>/<arm>` | the three end-of-battle clock cards (DECLARED, ROADMAP #584) — no arm stages them; a Mental Herb holder under Encore; a Magic Room thief; a Parental Bond packet under Unseen Fist; a volley into two targets; Guard Split and Power Split, which ride the same undo and are not staged; a body both transformed and rewired |
 | `probe_misty_terrain_status.js` | does Misty Terrain's `onSetStatus` (`data/moves.ts:12173-12179`, no Champions override) refuse EVERY status on a grounded body — a primary AND a secondary — and announce `-activate|…|move: Misty Terrain` only for a move carrying a top-level `status` or for Yawn. Six arms over two engines under `bottom-tie-first`, two turns each (both leads switch to two fresh entrants; Thunder Wave at slot 0, a burn secondary at slot 1, so no body is asked to `pass` and no body needs two statuses): CONTROL / TERRAIN with a DERIVED non-Ground burn carrier, SANDS-CONTROL / SANDS with the pool game's own Scorching Sands, AIR-CONTROL / AIRBORNE on Flying entrants. Every cast is fixed by its control on the AUTHORITY's log (both statuses must land with no terrain) and the terrain arm replays exactly that cast. `MEDI_MISTY_STATUS_UNREFUSED=1` must part TERRAIN and SANDS and move no control; `--medi <file>` compiles other bytes under the release for a pre-fix demonstration (RED, 8 cells, on HEAD of 2026-09-09). Counters asserted at exact per-arm equality; `terrainStatusFieldUnknown` asserted at zero | Rest's heal being withheld when the terrain refuses its sleep (the authority sets the status before it heals) — no arm stages Rest; the terrain's `onTryAddVolatile` (confusion), still a declared gap; a semi-invulnerable body under the terrain (`isSemiInvulnerable`), which the predicate models and no arm reaches |
@@ -169,10 +172,10 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  970/970 probed mechanics live, 0 missing   (census 2026-09-19 19:08)
-    the census probes what somebody thought to probe: 301 of 301 in-scope tags carry a probe, 0 carry none (9 of 310
+  977/984 probed mechanics live, 0 missing   (census 2026-09-19 22:12)
+    the census probes what somebody thought to probe: 303 of 303 in-scope tags carry a probe, 0 carry none (9 of 312
     tags have no in-scope carrier); 0 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 1.2 h old). node engine/coverage.js
+    (all-mechanics-fire.json, 4.7 h old). node engine/coverage.js
   0/6000 differential comparisons disagree with Showdown   (2026-09-19 18:17)
     seed 20260804, requested 6000, 1 not comparable (multihit 0, non-finite 0, threw 1)
     the volley loop IS damage-compared in this draw: 142 of 6000 rows ran as volleys (130 multi-hit move, 12 Parental
@@ -191,12 +194,12 @@ ENGINE — does the simulator do what Pokémon does
     COMPUTED FROM DIFFERENT CONTENT — data/games.bo3.jsonl was a5cba908de66 at read time, is 0394e3673b5b now
     (+8 more — node engine/provenance.js)
     it becomes quotable again when this is re-run: node engine/wire_ladder.js
-  tag coverage: 301/301 in-scope probed, 0 unprobed;  299/301 have an engine consumer on every in-scope row, 2 do not;  9 of 310 tags have no in-scope carrier
+  tag coverage: 303/303 in-scope probed, 0 unprobed;  303/303 have an engine consumer on every in-scope row, 0 do not;  9 of 312 tags have no in-scope carrier
     consumedBy comes from engine/tag_dex.js grepping board.js and medicham2-browser.js for a hint
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-19 19:26_
+_stamped 2026-09-19 22:53_
 
 <!-- /GENERATED -->
 
@@ -256,6 +259,554 @@ samples, so the corner totals are not independent. Seven artifacts under `data/v
   one engine only (4); trapping volatiles (3).
 - **Carried forward** from 6.70.0: King's Rock and Purifying Salt are not wired; Blaze's click-swap
   control; the click-swap controls.
+## THE `stall` SWEEP IS A SPEED-ORDERED WALK THAT STOPS, AND A SECONDARY'S DIE IS ADDRESSED WHERE THE AUTHORITY LEAVES `activeTarget`. FIVE OF THE HELD-OUT DRAW'S EIGHT `stall`/FLINCH BOARD PARTINGS CLOSE. CENSUS **970 → 972 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `6536e903efe2`; LIGHT MODE, NAMED GAMES ONLY.** 2026-09-19, version assigned at merge
+
+Full account: `docs/_reports/2026-09-19-heldout-stall-flinch.md`.
+
+- **`stall` (2 of the 4 Protect games, plus the corner game drawn by three samples).** `stall` carries a
+  duration and NO `onResidualOrder`, so every `stall` handler sorts below every numbered residual handler
+  (`sim/battle.ts:405`, `:952`) and they are separated among themselves by SPEED (`:407`). An EXPIRY `continue`s
+  past the drain (`:517-525`); a counter that SURVIVES its decrement falls through to
+  `faintMessages(); if (this.ended) return;` (`:564-566`) and can END the walk. So one body's clock is spent and
+  a slower body's is not, INSIDE ONE RESIDUAL. `_stallExpire` was one all-or-nothing pass in slot order; it is
+  now `residualOrder`, with the stop. The case was DECLARED in that function's own header ("a turn that ends
+  inside its own residual … declared, not fixed") and is now closed.
+  - Knob: `MEDI_STALL_SWEEP_UNORDERED=1` (stamped at load, in `DELIBERATE_BREAK`; a knob run refuses to write
+    the census, shown). Counter: `MEDSEEN.stallSweepStoppedByWipe`.
+  - Probe: `tests/probe_stall_sweep_order.js` — both named games, board arm and per-boundary counter arm, red
+    under the knob.
+- **The secondary address (3 of the 4 flinch games).** None of them is a flinch RULE: the two engines drew the
+  King's Rock 10% from DIFFERENT addresses, so they read two independent hashed numbers.
+  - **A `self:` move.** The authority's step 4 `selfDrops` calls `moveHit(source, source, …)` and the
+    `activeTarget` restore sits BELOW step 5 (`sim/battle-actions.ts:1093-1101`, `:1325/:1329`, `:1154`), so every
+    secondary of that move is addressed to the USER. Measured: `sec|makeitrain|p11` against our `p21`.
+    Knob `MEDI_SEC_ADDR_IGNORES_SELFDROP=1`; counter `MEDSEEN.secAddrFromSelfDrop`.
+  - **A body the hit KILLED.** `secondaries` skips only `target === false` (`:1339`) and a corpse is not that, so
+    the authority draws for it and a passing draw calls `moveHit(target, …)` (`:1348`), re-addressing every later
+    secondary of the move. Measured: `sec|earthquake|p11,p20,p20` against our single `p11`. The engine's own
+    header called this skip a declared remainder that "cannot reach a board" — **retracted at the site**; the
+    FLINCH cannot, the DIE can. Knob `MEDI_KINGSROCK_SKIPS_DEAD=1`; counter
+    `MEDSEEN.kingsRockFlinchRefusedOnCorpse`.
+  - Probe: `tests/probe_sec_addr_selfdrop.js` — all three named games, an order-sensitive address arm, red under
+    each knob separately.
+  - **2026-09-19, after the merge: the probe's whole-game arm was RE-AIMED, and the engine was innocent.** On
+    release `bcf89770cc61` the `omit-weather` fixture read `protocol_div=26, board_div=null, boundaries=10/10`
+    and the split line was `|-ability|p1a: Blaziken|Speed Boost|boost` against our `|-boost|…|[from] ability:
+    speedboost` — a narration line, not a flinch. Both halves of the fix are present and firing
+    (`secAddrFromSelfDrop +4`, `kingsRockFlinchRefusedOnCorpse +1`, the t1 `sec` draws byte-identical, each knob
+    still red). What moved was the COMPARATOR: `221ab64a` (6.72.0) retired `game_differential.js`'s
+    `ability-announcement` equivalence, so `|-ability|` lines are compared now and this game's Speed Boost gap —
+    one of the 250 newly-visible narration games — became its first protocol divergence. The single arm
+    "neither the protocol nor the board parts" was therefore asserting the whole-game narration zero that
+    6.72.0 withdrew. It is now **two** arms: **4a** no board leaf parts at any boundary (red under the knob:
+    `board_div=1`, `boundaries 9/10`, `p2.pp[1].overheat` 0/1), and **4b** any surviving protocol divergence
+    must be an `|-ability|` INSERTION with no flinch on either side. Nothing was deleted to make it green.
+    `docs/_reports/2026-09-19-secaddr-probe-repair.md`.
+- **Two existing rows PINNED the skip and were corrected in the same pass**, not left to fail: the census row
+  "King's Rock takes ONE die per LANDED ARRIVAL" (`killed.rolled === 0 && killed.skipped >= 1` → `=== 1` and
+  `=== 0`) and `tests/probe_kingsrock_volley.js`'s `kill` arm (now asserts agreement).
+- **Census 970 → 972**, 0 missing: a `stallCounterChecks` row for the half-spent residual and an `addsFlinch` row
+  for the spread whose corpse is not the last target.
+
+### The hand list, after this pass
+
+- **The Protect `stall` counter and the King's Rock flinch address leave the hand list.** The census carries both
+  and two probes name the games.
+- **Carried forward:** Purifying Salt is not wired; Blaze's click-swap control; the click-swap controls.
+- **New, measured, NOT fixed:** the 4th flinch game (`pair-redirect-priority` t4, `…bo3-2655714014`) is the
+  SUBSTITUTE family, not the flinch family — the authority prices the doll's row BEFORE the live body's and
+  takes a secondary die for it; this engine prices the live body first and takes none. Addresses in the report.
+## A CLICK THAT RAN AND FAILED IS STILL `battle.lastMove`, SO IT IS STILL WHAT COPYCAT COPIES. COPYCAT LEAVES THE ROSTER CLOSET AT **FIRED-AND-BOARDS-MATCH**; CENSUS **970 → 971 LIVE / 0 MISSING**. THE BRIEFED RANDOM-TARGET DIAGNOSIS IS **REFUTED**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `c1acc2e4b39f`; LIGHT MODE, NAMED ROWS ONLY.** 2026-09-19, version assigned at merge
+
+Full account: `docs/_reports/2026-09-19-copycat-target.md`.
+
+- **The authority.** `clearActiveMove(failed)` is `if (!failed) this.lastMove = this.activeMove;`
+  (`sim/battle.ts:376-385`). `failed` is an ARGUMENT, not a verdict on the move: grepped over `sim/`, it is
+  passed `true` at five sites — `sim/battle-actions.ts:252` (the `BeforeMove` refusal), `:258` (a
+  commented-out sanity check), `:273` (`beforeMoveCallback`), `:284` (`cant|nopp`), and `sim/battle.ts:2810`
+  (the residual, which is not a move). All four move sites are ABOVE the announcement. Every other action
+  ends at `runAction`'s bare `this.clearActiveMove()` (`sim/battle.ts:2828`), so **a `-fail`, an `onTry`
+  refusal, a type immunity and a miss all set `battle.lastMove`.** Champions overrides neither function.
+- **The engine.** The pending-commit site refused to commit a click whose `_mvRes` was false. `_mvRes` is
+  Stomping Tantrum's question (`moveThisTurnResult`), which is false on BOTH roads and cannot tell an
+  aborted move from one that ran and failed. The abort road needs no test here: every `BeforeMove` refusal,
+  the no-PP road and the `beforeMoveCallback` road `continue` above the announcement, so `_mid` is never set
+  and they never reach the site — the authority's `failed: true` as control flow instead of a flag.
+  - Knob: `MEDI_FAILED_MOVE_NOT_LAST=1`, stamped at LOAD, in `DELIBERATE_BREAK`. A knob run reports the new
+    census row MISSING and **refuses to write the census** (measured: artifact md5 unchanged).
+  - Counter: `MEDSEEN.lastMoveCommittedAfterFailure` — 8 on the roster arm, 1 on the immunity arm, 0 on every
+    control.
+  - Probe: `tests/probe_called_move_last_move.js`, 5 arms, all clear; both reds part under the knob.
+  - Census row: `move/callsAnotherMove` — "A click that RAN and FAILED is still the last move a caller reads".
+- **Copycat's roster deferral is lifted.** `--stage moves --only copycat --reds --release c1acc2e4b39f`:
+  `FIRED-AND-BOARDS-MATCH 1, DIFFER 0, DID-NOT-FIRE 0, DEFERRED-BY-OWNER 0`. `move/generic-status` whole:
+  **38 of 38 TESTED, 0 DIFFER, 0 DID-NOT-FIRE, 0 DEFERRED, 0 COULD-NOT-STAGE.** `--reds` has no plant for
+  this rule by its own design ("there is no single mechanism to aim one at"), so the red demonstration is the
+  knob: under `MEDI_FAILED_MOVE_NOT_LAST=1` the row returns to `FIRED-AND-BOARDS-DIFFER 1` with the same four
+  `p1b hp` / `p1 party.hp` leaves it carried before.
+- **The shelf's stated reason was wrong twice.** It said the fixture idles on Focus Energy — the run prints
+  `substituted: Sleep Talk` — and that "a failed move never becomes `lastMove`", which is the rule backwards.
+  Its named verdict, DID-NOT-FIRE, had also become FIRED-AND-BOARDS-DIFFER. The entry is corrected in place in
+  `tests/roster.js` rather than deleted.
+- **REFUTED: the random-target die address.** The brief carried a diagnosis that the called move is aimed at
+  the wrong foe. Two control arms play the identical called attack on the two corner pins, where
+  `random(m)` is `m - 1` and then `0`; the authority lands on p1b and then on p1a, and **both engines follow
+  it on all three arms including `middle`**. The knob is varied and the instrument could have seen a
+  difference. `getRandomTarget` → `side.randomFoe()` → `battle.sample(this.foes())` (`sim/battle.ts:2487-2523`,
+  `sim/side.ts:367-371`) with `PRNG#sample` = `this.random(items.length)` (`sim/prng.ts:132-142`), and
+  `midTargetDraw` already addresses it (ROADMAP #478).
+- **The caller class is derived, not named.** `data/tags.json` holds exactly two legal callers —
+  `copycat("lastMove")` and `sleeptalk("ownRandom")` — printed by the probe on every run. The fix is at the
+  FIELD's commit site, not inside Copycat's branch, so any caller a later regulation adds is covered.
+
+### The hand list, after this pass
+
+- **Copycat leaves the hand list.** The census row, the probe and the roster row now carry it.
+- **NEW, MEASURED, NOT FIXED: a re-clicked crit-stage volatile is refused silently.** A second Focus Energy
+  hits `critVolRestartRefused` (counter 1) and writes neither the authority's `|-fail|` nor its `[still]` on
+  the `|move|` line; measured on a staged board, `|move|p2a: Samurott|Focus Energy||[still]` + `|-fail|` there
+  against `|move|p2a: samurott|focusenergy|p2a: Samurott` here. Board leaves are identical, so it is NARRATION
+  and the roster cannot see it. Found while building arm 2 of the probe above; the arm was re-staged onto a
+  type-immunity refusal so that somebody else's defect is not sitting inside this one's evidence.
+## FOUR OF THE HELD-OUT DRAW'S 34 BOARD PARTINGS CLOSE: STRUGGLE PAYS NO RECOIL ON A WHIFF, THE HARD TRAP DIES WITH A **KILLED** TRAPPER, THE PARTIAL TRAP ENDS WHEN ITS SOURCE HAS STOOD THERE FOR NO TURNS, AND SPARKLING ARIA CURES AT `onAfterMove`. CENSUS **970 → 973 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `a02123dcc85f`; LIGHT MODE, NAMED GAMES ONLY, NO LATTICE RUN.** 2026-09-19, version assigned at merge
+
+Full account: `docs/_reports/2026-09-19-heldout-burn-trap-recoil.md`. Every row below is one of the 34
+board partings in the 2026-09-19 held-out 12,000-game draw (`docs/_reports/2026-09-19-final-remeasure.md`
+§4, release `18773c22878f`, 7,178 games, pool `e398641bda45`).
+
+- **Recoil, rows 2 and 25.** `applyRecoilDamage` is reached only through `if (move.totalDamage)`
+  (`data/mods/champions/scripts.ts:553-555`), so a Struggle that hit nothing costs nothing; Steel Beam is
+  charged anyway because it declares its own `onMoveFail` (`data/moves.ts:17880`). The tag could not tell
+  them apart, and this engine charged both. `recoil {of:'maxhp'}` now carries **`paidOnFail`**, derived from
+  the presence of a damaging `onMoveFail`. Two members, printed: `steelbeam true`, `struggle false`.
+  Knob `MEDI_RECOIL_ON_A_WHIFF=1`; probe `tests/probe_recoil_on_a_whiff.js`.
+- **Trapping, rows 12 and 32.** The hard trap's release lived in `bringIn`, and **a corpse with an empty
+  bench never reaches `bringIn`** — so a Spirit Shackle user that was KO'd as the last body of its side held
+  its victim for the rest of the game. `_trapHeld` is the source's half of the authority's
+  `linkedPokemon` link, which this engine never kept; `noteFaint` now frees the victims, which is where
+  `faintMessages` -> `clearVolatile` -> `removeLinkedVolatiles` sits. Knob
+  `MEDI_TRAP_SURVIVES_DEAD_TRAPPER=1`; census row `move/trapsTarget`.
+- **Trapping, row 24.** The third clause of `partiallytrapped.onResidual` — `!source.activeTurns`
+  (`data/conditions.ts:236`) — was a declared remainder at the site since 2026-08-27. A trapper that stepped
+  off the field and was put back on it by its partner's Parting Shot **inside one turn** is `isActive` and
+  has stood there for no turns, and the authority ends the trap. `_newlySwitched` is the engine's existing
+  reader for the same clause on Speed Boost. Knob `MEDI_PARTIAL_TRAP_OUTLIVES_SOURCE=1`; probe
+  `tests/probe_partial_trap_source_returns.js`.
+- **Burn, row 6.** Sparkling Aria's cure is in `onAfterMove` (`data/moves.ts:17364`) and the tag sweep read
+  dex FIELDS, so `data/tags.json` carried the 100% secondary's `sparklingaria` VOLATILE — the receipt — and
+  had no row for the payment. The move marked every body it hit and cured nobody.
+  **`curesTargetStatusAfterMove`** derives the status, the mark, the multi-target waiver (the authority's own
+  Shield Dust bypass) and the Sheer Force cancel. One member, printed: `sparklingaria`. Knob
+  `MEDI_AFTERMOVE_CURE_OFF=1`; probe `tests/probe_aftermove_cure.js`.
+- **Replays, same seeds, `--no-warmup`, `--games 12000`, pool `data/team-pool-frozen`:** on `18773c22878f`
+  rows 2, 6, 24, 25 and 32 each reproduce their reported split line; on `a02123dcc85f` four of the five never
+  split at all and row 24 plays 74 lines further before splitting on a **different** mechanism (Decorate
+  boosts an ally where the authority fails the move at `<notarget>` — new, filed below, not fixed).
+- **NOT CLOSED, and each says why:** burn rows 3, 27 and 29. See the report; none of the three is a missing
+  capability, and neither the staged fixture nor the replay reproduces them.
+
+### The hand list, after this pass
+
+- **Struggle's whiffed recoil, the killed trapper, the returned partial-trap source and Sparkling Aria's cure
+  leave the hand list.** Three probes and three census rows carry them.
+- **NEW, ON THE HAND LIST: Decorate boosts through a `<notarget>`.** The authority writes `|-fail|` for a
+  Decorate whose target left the field; this engine still applies the +2/+2 to its ally. Found by the row-24
+  replay on `a02123dcc85f` — it is the next split in that game. No probe.
+- **NEW, ON THE HAND LIST: three burn partings whose cause is not established.** Spicy Spray firing here and
+  not on the authority in one game (row 3); a Matcha Gotcha secondary burn (row 27) and a Flame Body burn
+  (row 29) landing on the authority and not here. Both of the last two are 20–30% reaction draws in mode A,
+  so the suspect is the DIE ADDRESS and not a missing wire — a staged Flame Body Infestation agrees at exact
+  zero in both engines, and a staged Spicy Spray agrees line for line.
+- **Carried forward** from 6.70.0: King's Rock and Purifying Salt are not wired; Blaze's click-swap control;
+  the click-swap controls.
+## FOUR CAUSES BEHIND SEVEN OF THE 34 HELD-OUT BOARD PARTINGS: SNOW'S DEFENCE BUMP WAS GATED ON THE MOVE'S **CATEGORY**, A REDIRECT ONTO THE AIM READ AS **NO REDIRECT**, A MAGIC-BOUNCED MOVE WAS NEVER RE-AIMED, AND FICKLE BEAM'S 30% WAS DRAWN OFF THE **WRONG DIE ADDRESS**. CENSUS **970 -> 974 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `8d5ca0c7d840`; LIGHT MODE, NAMED GAMES ONLY.** 2026-09-19, version assigned at merge
+
+Full account: `docs/_reports/2026-09-19-heldout-threshold-spread-fickle.md`.
+
+**THE 34 IS NOT RE-MEASURED AND MUST NOT BE READ AS 27.** Seven games are closed by single-game replay on
+a worktree release; `--games 12000` plays its own team lattice, a fix can close one parting and open
+another, and the only honest number is a fresh run of the same draw. No lattice, no battery, no roster and
+no `quarantine.js` was run in this pass.
+
+- **Snow and sand raise a STAT, not a CATEGORY (rows 11, 16).** `snowscape.onModifyDef` and
+  `sandstorm.onModifySpD` (`data/conditions.ts:707`, :663; no Champions row) are handlers on a STAT, and
+  `sim/battle-actions.ts:1676`+:1709 picks which one runs by
+  `move.overrideDefensiveStat || (isPhysical ? 'def' : 'spd')` — the override WINS. This format has exactly
+  one such move, **Psyshock**, Special and reading Def (derived: the only `statSwap.attackInto` row). So the
+  `phys` / `!phys` gate was wrong in BOTH directions on the same move: it missed snow's x1.5 (we overkilled)
+  and took sand's x1.5 the authority never applies (we under-damaged). Now gated on `_dKey`, which already
+  IS the authority's `defenseStat` and is what the stat chain, Wonder Room and the boost stages read.
+  - Cost: rows 11 and 16 are both a Psyshock into a Froslass in its own Snow Warning snow — 76 damage on the
+    authority against our 114, and the same ratio turning `6/145` into `0 fnt`. **Row 11 decides who is on the field.**
+  - Probe: `tests/probe_weather_defence_stat.js`. Knob: `MEDI_WEATHER_DEF_BY_CATEGORY=1`. Three PSYCHIC moves
+    so effectiveness cancels, and only the pair (category, stat read) varies; the two control rows moving is
+    what says the weather effect is wired at all.
+- **A redirect ONTO the body already aimed at still fires (row 22).** `followme.onFoeRedirectTarget`
+  (`data/moves.ts:6062`) clears `move.smartTarget` and returns its own body whenever `validTarget` holds;
+  only the ABILITY road's `-activate` is gated on the aim having moved (`data/abilities.ts:2347`, :4642).
+  `redirectDrawnTo` answered *"did the aim move"* and returned `null`, which `_aimRedirected` reads as *"no
+  redirect"* — so a Dragon Darts clicked straight at a Follow Me Clefable kept its split and put BOTH darts
+  into the partner Tsareena (147 -> 14) where the authority printed `|-immune|` and touched nobody.
+  - Probe: `tests/probe_redirect_onto_the_aim.js`. Knob: `MEDI_REDIRECT_NEEDS_AIM_CHANGE=1`. It re-reads the
+    four `smartTarget = false` blocks out of the authority on every run, including that the clear sits ABOVE
+    the `return` with no `!== target` test between them.
+- **The "spread `-unboost`" class is NOT a spread move (rows 5, 10).** `magicbounce.onTryHit` reflects with
+  `useMove(newMove, target, {target: source})` — a WHOLE move use, so `useMoveInner` calls `getMoveTargets`
+  for it (`sim/battle-actions.ts:467`) and a Follow Me on the CLICKER'S OWN PARTNER draws it, that partner
+  being a foe of the bouncer. `bounceOff` ended `return user;` unconditionally. It now takes an optional
+  `{foes, allies, field}`, resolved BEFORE the announcement because the authority rewrites the `|move|` line
+  it has already printed.
+  - Cost: a Fake Tears bounced off a Hatterene landed on the clicking Whimsicott here and on its Follow Me
+    partner Clefable there — and row 5's NEXT line is a Dazzling Gleam that then breaks the wrong body's
+    Focus Sash. Not narration: which body is soft.
+  - Probe: `tests/probe_bounced_move_redirect.js`. Knob: `MEDI_BOUNCE_IGNORES_REDIRECT=1`.
+  - **Loud, not silent:** five `bounceOff` roads (yawn, phaze, abilitywrite, healdesc, hazard) still pass no
+    context and keep the old destination. `MEDFAILS.bounceRedirectCtxMissing` counts every one.
+- **Fickle Beam is a DIE-ADDRESS defect (rows 28, 33).** `ficklebeam.onBasePower`'s `randomChance(3,10)` is
+  raised by `runEvent('BasePower', ...)` from inside `getDamage` (`sim/battle-actions.ts:1649`), under the
+  authority's own `// happens after crit calculation` — and `game_differential.js` wraps `getDamage` as
+  `dmg` and re-labels `dmg` to `crit` in `chance()`. So the event is `crit|turn|ficklebeam|<slot>|1`, the
+  SECOND crit-address draw of that hit. This engine drew it off the GENERIC stream above the crit. At
+  p = 0.3 two addresses agree on 58% of clicks, which is why the roster — whose dice are a pinned constant —
+  could never see it.
+  - Both halves matter: arrival 0's crit die is now spent FIRST through the same `_subAddr`, and the crit
+    block reuses the value, so no move without a chance clause moves at all.
+  - Probe: `tests/probe_fickle_beam_die.js`, which spends the whole PP bar (one click proves nothing at 58%)
+    and additionally reads the ADDRESS LIST rather than the outcome. Knob: `MEDI_CONDPOWER_OFF_ANY=1`.
+- **All four knobs are stamped at LOAD and listed in `DELIBERATE_BREAK`; each was shown to make
+  `tests/test-mechanics.js` REFUSE to write the census.** All seven games replay at zero diverging indices
+  on `8d5ca0c7d840`, and each parts again under its own knob on the authority's exact line.
+- **AND THREE OF THE FOUR PROBES EXITED 0 UNDER THEIR OWN KNOB UNTIL THE COORDINATOR CHECKED.** They spawn
+  themselves with the knob set as a control arm that must exit 0, and they keyed that quiet path on THE KNOB
+  VARIABLE — so setting it from outside took the quiet path too and the probe passed against a deliberately
+  broken engine. That is `memory/an-unwired-knob-gives-identical-output.md` wearing a green exit code. The
+  control arm now has its own marker, `ABRA_PROBE_CONTROL_ARM=1`, set only by the spawn; an externally-set
+  knob runs the full verdict, skips the child, and exits 1. Measured: **0 / 0 / 0 / 0 by default and
+  1 / 1 / 1 / 1 under the four knobs.** `tests/probe_smart_target_redirect.js` still has the old shape and
+  is named in the hand list below.
+
+### The hand list, after this pass
+
+- **The snow/sand defence bump, the redirect-onto-the-aim road, the bounced move's re-aim and Fickle Beam's
+  die address all leave the hand list.** The census carries a row for each (`970 -> 974 live`), and each has
+  a standalone probe with a knob.
+- **NEW, AND IT IS A REAL HOLE IN A PROBE, NOT IN THE ENGINE:** `tests/probe_smart_target_redirect.js` keys
+  its control arm on `MEDI_SMART_TARGET_SURVIVES_REDIRECT` itself, so setting that knob from outside makes it
+  exit **0**. Until it takes the `ABRA_PROBE_CONTROL_ARM` marker, a green exit under that knob is not evidence
+  the knob works. It predates this pass and was not rewritten here.
+- **NEW, AND IT IS A COUNTER RATHER THAN A HOLE:** `MEDFAILS.bounceRedirectCtxMissing` is non-zero on any run
+  that bounces a Yawn, a phaze, an ability rewrite, a heal or a hazard. Those five roads owe their caller's
+  `{foes, allies, field}`; none is a stat drop, so none was in this pass's scope.
+- **Carried forward** from 6.71.0: the other 27 held-out partings — the Protect `stall` counter (4), flinch
+  (4), a burn landing or cured on one side only (4), trapping volatiles (3), recoil ordering (2) and nine
+  singletons; King's Rock and Purifying Salt are not wired; the click-swap controls.
+## AN ABILITY REWRITE NOW NAMES THE OUTGOING ABILITY IN FIELD 4, AND AN ENTRY ANNOUNCEMENT THAT OUTRANKS THE HAZARDS IS WRITTEN ABOVE THEM. TWO OF THE FOUR MECHANISMS IN 6.72.0's 250-GAME NARRATION CLASS — **47 GAMES AND 1**. CENSUS **970 → 972 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `8f1396257b70`; LIGHT MODE, NO LATTICE, THE RE-RUN IS OWED.** 2026-09-19, version assigned at merge
+
+Full account: `docs/_reports/2026-09-19-ability-rewrite-name.md`.
+
+**1. FIELD 4 — 47 games, 42 causes, one missing field.** `Pokemon#setAbility`'s `default` branch is
+`this.battle.add('-ability', this, ability.name, oldAbility.name, '[from] …', '[of] …')`
+(`sim/pokemon.ts:1936-1943`), and `oldAbility` is read at `:1919`, BEFORE the assignment at `:1930` — so
+**field 4 is written whenever the line is written at all.** This engine wrote the new ability and the
+`[from]` and nothing in between. Fixed at `abRewrite`, which now RETURNS the outgoing ability (the
+authority's own signature: `setAbility` returns `oldAbility.id` at `:1950` and every caller in
+`data/moves.ts` binds it), and one new sink, `TR.abFrom`. Four call sites — Trace, Receiver, the
+`abilitywrite` family and Role Play.
+
+**THE SET IS DERIVED FROM THE CALL SITE, NOT FROM A LIST OF ABILITY-CHANGING THINGS.** The line is
+written only when `sourceEffect && !isFromFormeChange && !isTransform` and the effect is neither Mummy
+nor Lingering Aroma (their own `-activate` case, `:1935-1937`). So a **forme change, a mega and a
+transform write no `-ability` at all**, and **Skill Swap and Wandering Spirit never call `setAbility`** —
+`Battle#skillSwap` (`sim/battle.ts:1310-1340`) assigns and writes one `-activate|Skill Swap`. Over this
+regulation: Trace (4 carriers), Receiver (1), Entrainment (9 learners), Role Play (8), Simple Beam (1),
+Worry Seed (9); **Power of Alchemy and Lingering Aroma have no legal carrier, and Doodle is
+`isNonstandard: 'Past'`** (`data/mods/champions/moves.ts:217`). The probe prints that whole membership,
+derived from the format, on every run.
+
+**2. THE ORDER AGAINST THE ENTRY HAZARDS — 1 game, and it is a SORT.** `runSwitch` fires ONE
+`fieldEvent('SwitchIn', switchersIn)` (`sim/battle-actions.ts:184`) holding the entrant's ability handler
+AND the side's hazards (`sim/battle.ts:501-502`). `comparePriority` (`:404-411`) reads order, then
+PRIORITY, then speed, then subOrder; `resolvePriority` sets `priority = effect.onSwitchInPriority || 0`
+(`:953`) and gives a side condition subOrder **4** against an ability's **7** (`:957-987`). Both handlers
+hang off the same body, **so the speeds tie** — which is why a default ability correctly loses to the
+rocks and why a POSITIVE `onSwitchInPriority` wins before subOrder is ever reached.
+
+**READ OFF THE TAG, NEVER A NAME.** `engine/tag_dex.js` now derives
+`announcesOnStart.switchInPriority` from the ability's own `onSwitchInPriority`. Over the legal carriers
+the positive members are **Unnerve (+1) and Klutz (+1)**, and Klutz's `onStart` writes no line
+(`data/abilities.ts:2273-2275`) — so **Unnerve's is the only line that moves.** Every negative member
+(Forecast, Hospitality, Mimicry) stays below the hazards, where it already was. `startAnnounceEarly`
+runs above `applyEntryConditions` on both the placement road and `refill`'s deferred walk.
+
+**THE CONTROL IS WHAT SAYS THIS IS NOT THE WRONG FIX.** A priority-0 member doing the identical thing —
+Pressure walking onto one Stealth Rock layer — must keep its line BELOW the damage in both engines, and
+does; without it the probe passes on an engine that moved every announcement above the rocks, which is
+the one wrong fix available. The field-4 half has the same shape of control: **Skill Swap writes no
+`-ability` line in either engine, and a mega writes a BARE three-field one**, so "glue a fourth field on
+every `-ability`" fails.
+
+**THE RED DEMONSTRATIONS, BOTH SHOWN BEFORE THE FIX WAS TRUSTED.** `MEDI_ABILITY_REWRITE_NO_OLD=1` and
+`MEDI_START_ANNOUNCE_AFTER_HAZARDS=1`, both stamped at LOAD and both in `tests/test-mechanics.js`
+`DELIBERATE_BREAK`. Under each the census reads **971 live / 1 missing** and **REFUSES to write** — the
+artifact's md5 is unchanged across both runs. `tests/probe_ability_rewrite_name.js` is green on 27
+claims clean and red on exactly the arms each knob aims at. Under `--red` the TRACE arm reproduces the
+pinned pool's own card character-for-character:
+`|-ability|p1a:gardevoir|torrent|trace|[from]trace <> |-ability|p1a:gardevoir|torrent|[from]trace`,
+and under `--red-order` the Unnerve arm reproduces
+`|-ability|p2a:aerodactyl|unnerve <> |-damage|p2a:aerodactyl|117/155|[from]stealthrock`.
+
+**`data/tags.json` WAS PATCHED, NOT REGENERATED, AND THE REASON IS MEASURED.** `engine/tag_dex.js`
+`loadCorpus` reads the UNTRACKED `data/games.*.jsonl`, which do not exist in a worktree; a full
+regeneration here wrote `sheet_entries: 0` and emptied every `uses` and `examples` — **1,806 insertions
+and 6,957 deletions**, restored from a byte backup. So the derivation went into the generator (the next
+real regeneration produces it) and the four `announcesOnStart` rows were patched in place, a diff of
+**8 insertions and 4 deletions and nothing else**. The engine counts
+`MEDFAILS.startAnnouncePriorityMissing` when the key is absent, so a tags.json that loses it is loud
+rather than silently answering 0.
+
+**RED AND NOT MINE, NAMED RATHER THAN FILED:** `tests/probe_trace_target.js --red` (its
+`MEDI_MID_RANGE_DRAWS=1` child arm) fails its `NOT-STAGED` clause. **Measured against clean `HEAD` by
+swapping the engine file: it fails there too**, at `0 TIE and 0 NO-TIE boards` against `0 and 24` under
+this change. Pre-existing, out of this brief, and owed to whoever owns that knob.
+## ANTICIPATION, FOREWARN AND FRISK LEAVE THE CLOSET AND ARE **GRADED ON WHAT THEY SAY**. ALL THREE `ANNOUNCEMENT-ONLY` RECEIPTS ARE **ACCEPTED** BY THE GATE. FRISK GETS THE KNOB IT NEVER HAD. THE USAGE SHELF STOPS SIGNING WILL'S NAME. CENSUS **970 → 970 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `f7b619fc75ef`; LIGHT MODE, NAMED ROWS ONLY.** 2026-09-19, version assigned at merge
+
+Full account: `docs/_reports/2026-09-19-announcement-receipts.md`.
+
+- **The three abilities a board cannot see are out of `tests/roster.js DEFERRED`** and emit the
+  `ANNOUNCEMENT-ONLY` verdict 6.71.1 taught `engine/quarantine.js` to accept. They left the closet by being
+  MEASURED, not by being exempted. `deliberate roster / abilities ok: true — clean: 194 of 200 tested,
+  ANNOUNCEMENT-ONLY 3 row(s) accepted on a receipt`; `scope.could_not_stage_in_scope: 0`, and no row is counted
+  twice. `deliberate roster / moves ok: true — 495 of 497 tested`.
+- **The census label is DERIVED at run time, never typed.** A receipt names the census row it stands on, and a
+  typed label would rot the day somebody re-words a probe. `annLabel` looks it up by kind+tag+name and returns
+  null on absence or ambiguity — which makes the receipt incomplete and the gate refuse it BY NAME.
+- **Frisk (engine): `MEDI_FRISK_SILENT` + `MEDFAILS.friskSilentRestored`.** Its `-item`-on-foe arrival branch
+  fired UNCONDITIONALLY, so nothing in the repository could make its census row red and its green was
+  unfalsifiable by construction. Under the knob the branch is skipped and the ability falls back to the old
+  `entryAnnounceUnmodelled` road.
+- **Anticipation (census): the row now QUOTES the line instead of counting announcements.** `[0,0]` / `[1,1]`
+  measures nothing when the whole effect IS the announcement. It now carries
+  `[|-ability|p1a:hatterene|anticipation]`. `anticipationSilentRestored` is in `DELIBERATE_BREAK` — a red
+  demonstration under that knob would have WRITTEN the census. So would `ripenNoResistWeakenRestored` (a BOARD
+  knob) and `screenCleanActivateLastRestored`, from the same FORCE-FIRE block; both are listed now too.
+- **Probe: `tests/probe_entry_announce.js`.** Anticipation and Frisk, RED + CONTROL, both engines, `middle`.
+  PASS, 4 arms: each knob takes its own class from 1 → 0 and 2 → 0 raw lines, parts nothing else, and every
+  board holds at every boundary in every arm — which is the MEASURED half of `visibleOnABoard: false`.
+- **NEW DEFECT, FOUND BY THE PROBE FAILING FIRST — the differential is structurally blind to Anticipation.**
+  `engine/game_differential.js`'s `EQUIV` rule `ability-announcement` drops every `|-ability|` line from both
+  streams before comparing, on the argument that the announcement is cosmetic and its consequence is a separate
+  line that is kept. Anticipation has no consequence. Measured: under `MEDI_ANTICIPATION_SILENT=1` the whole-game
+  comparison read `first divergence none`. **The narration gate can therefore never count an Anticipation
+  parting.** The probe takes its verdict off the raw streams instead. The EQUIV rule is MEASURE's file and was
+  not touched — an exception carved into it for one ability would be a name match.
+- **The usage shelf stamps itself.** `USAGE_SHELF_BELOW = 25` wrote `deferred: { by: 'Will' }` on an arithmetic
+  comparison, and excused Electrify at 18 clicks while reading as a ruling. New verdict `BELOW-USAGE-SHELF`
+  carrying `clicks_in_store`, `usage_shelf_threshold` and a `shelf` block whose `by` is
+  `tests/roster.js USAGE_SHELF_BELOW`. It covers **exactly one row: `electrify`, 18 clicks of 64,846 stored
+  games, underlying `FIRED-AND-BOARDS-DIFFER`.** `axekick` left the shelf by PASSING (moves 494 → 495), not by
+  being exempted. The gate counts a `BELOW-USAGE-SHELF` row in no clause, exactly as it counted the
+  `DEFERRED-BY-OWNER` it replaces; whether it should is MEASURE's to decide, and it is now decidable.
+- **The artifact serialiser is a field WHITELIST, and it silently dropped both receipts.** The first
+  `--write` run emitted three correct rows and the gate refused all three with `NO RECEIPT`;
+  `usage_shelf` had been dropped there for as long as it had existed. `announcement`, `underlying_verdict`,
+  `usage_shelf`, `clicks_in_store`, `usage_shelf_threshold` and `shelf` are on it now.
+
+### The hand list, after this pass
+
+- **Anticipation, Forewarn and Frisk leave the hand list.** The census, the gate's receipt clause and
+  `tests/probe_entry_announce.js` carry all three. Frisk's row at 6.70.0 said "the owner deferral excuses it" —
+  there is no deferral now.
+- **Electrify leaves the "deferred by Will" reading and stays on the list as a SHELF row** — 18 clicks,
+  underlying `FIRED-AND-BOARDS-DIFFER`, nobody's ruling. Axe Kick is off it entirely; it passes.
+- **NEW, NOT FIXED:** the differential's `ability-announcement` equivalence hides Anticipation from every
+  whole-game comparison, including the narration gate. MEASURE's file, MEASURE's call.
+- **NOT RUN, AND IT IS OWED BEFORE THE GATE IS READ:** `engine/all_mechanics_fire.js` publishes `closet.ids`
+  from `DEFERRED`, so those three ids are no longer excused in the mechanics-proof clause. On `6180c4712761`
+  `abilities:frisk` read `DID-NOT-FIRE` there and was excused by that list. It should read FIRED on current
+  bytes (6.70.0's `foes-hold-item` trigger is the exact reason the old row could not fire) — but that is a
+  prediction, and the battery was not run.
+- **READ THE TWO CLAUSES ON THE RELEASE THEY RAN ON.** `data/engine-release.json` was restored to
+  `18773c22878f` per the brief while both roster artifacts are stamped `f7b619fc75ef`, so the pin guard now
+  withholds every count in them — correctly. Cut a release over the merged tree and re-run both stages to
+  reproduce the `ok: true` above.
+- **Carried forward** from 6.70.0: King's Rock and Purifying Salt are not wired; Blaze's click-swap control;
+## SIX OF THE NINE OWNER-DEFERRED ROSTER ROWS COME OFF THE SHELF. ELECTRIFY'S RETYPE WAS NEVER MODELLED AND IS NOW WIRED IN BOTH TYPE READERS; STALL AND PICKUP GET THE FIXTURES THEIR SHELVES SAID THEY LACKED. CENSUS **970 → 971 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `4bc4a3325f76`; LIGHT MODE, NAMED ROWS ONLY.** 2026-09-19, version assigned at merge
+
+Full account: `docs/_reports/2026-09-19-lift-deferrals.md`.
+
+Under Will's 2026-09-19 ruling — *"keep zoroark and illusion a real exclusion that we know about and
+acknowledge. anything else you can model for medicham go for it"*.
+
+- **Electrify — a genuinely unmodelled mechanic, not a rare one.** `effMoveType` knew four ways a move's type
+  can move and none of them was a VOLATILE, so an electrified move kept its own type here and was Electric on
+  the authority (`data/moves.ts:4571-4583`, `onModifyTypePriority: -2`; the Champions mod only clears
+  `isNonstandard`). New derived tag `move/volatileRetypesMoves` — the predicate is a SHAPE (an optional
+  `move.id !== "<id>"` guard plus exactly one literal `move.type = "<Type>"`), and the membership was printed
+  over every legal move first: **ONE row, `electrify -> electrify`, zero refusals.**
+  - **One reader was not enough, and the roster is what said so.** Wired into `effMoveType` alone, the census
+    row went LIVE off the immunity gate while `roster --only electrify` did not move a single HP — our subject
+    arm matched the AUTHORITY'S OWN CONTROL to the point. `dmgRangeOneHit` re-derives the type independently
+    (the WIRE 126 split, paid for once already with Aerilate). `volatileRetypeOf(att, moveId)` is now one
+    function called from both, applied last in each.
+  - The condition's `duration: 1` is honoured at the per-turn reset, read off `volatileRestart` rather than
+    written as a literal — before it, an electrified body stayed electrified for the rest of the game.
+  - Knob `MEDI_ELECTRIFY_NO_RETYPE=1` (stamped at load, in `DELIBERATE_BREAK`; a knob run refuses to write the
+    census, shown). Probe `move/volatileRetypesMoves`: Heliolisk — the only legal learner of Electrify in this
+    format, derived — electrifies a slow Torkoal, whose Body Slam is Normal into a Dragon/Ground Garchomp
+    (damage) and Electric into the same Garchomp (nothing). Turn 2 is the negative. Arms `[33,33]` / `[0,33]`.
+  - Roster on `4bc4a3325f76`: `move/volatile` **23 of 23 FIRED-AND-BOARDS-MATCH, 0 DIFFER, 0 DEFERRED**, plant
+    CAUGHT.
+- **Stall — the shelf's CLAIM had expired.** It said *"it carries no tag at all, so the rule would have to be
+  written first"*; `tag_dex.js` derives `fractionalPriority {chance:1, bracket:-0.1, unconditional:true}` and
+  the ordering loop already consumes it. New rule `ability/moves-last-in-its-bracket` (membership: `stall`,
+  nothing else). **The first fixture was wrong and the refusal is the evidence** — mirroring Quick Draw means
+  staging a KILL, and the one legal carrier kills nothing (*"no legal buildable body is BOTH strictly slower
+  than Sableye (Speed 102) AND killable outright"*). What works is a SELF-HEAL at full HP: without the ability
+  it resolves first and does nothing, with it the carrier takes the hit first and heals it back.
+  FIRED-AND-BOARDS-MATCH; `--reds` CAUGHT.
+- **Pickup — the shelf reason was accurate; the RULING changed.** New rule `ability/picks-up-a-spent-item`
+  (membership: `pickup`, nothing else), above `ability/residual`. Exactly one body on the board may hold a
+  consumable, because `this.sample(pickupTargets)` is a die the moment a second is eligible. The berry is
+  derived off `healsAtThreshold`. **The first band was wrong and it is written down**: asking for a hit that
+  reaches the gate EXACTLY, plus `hitInBand`'s smallest-in-band rule, landed at 53% where the predictor said
+  48%, the berry was never eaten, and the row read INERT over 1,656 leaves. FIRED-AND-BOARDS-MATCH; `--reds`
+  CAUGHT.
+- **Copycat — NOT lifted, and its shelf reason is CORRECTED rather than deleted.** Both halves of the stated
+  reason are now implemented. Rebuilt in both engines by hand: the same move is copied and thrown at a
+  DIFFERENT SLOT — the authority aims the copied Dragon Claw at `p1a`, this engine at `p1b`. `useMove(id,
+  pokemon)` with no target resolves `getRandomTarget` -> `side.randomFoe()` -> `battle.sample(this.foes())`
+  (sim/battle.ts:2507-2518, sim/side.ts:367-371), a draw off the shared stream. The owed work is a DIE-ADDRESS
+  batch, not the volatile-refusal batch the entry named.
+- **Anticipation, Forewarn and Frisk cannot be board-graded, and that is DERIVED, not asserted.**
+  `announcesOnEntry` carries `visibleOnABoard: false` for those three and only those three. Each is covered by
+  a census row proven red under its own knob. **Two holes found while proving it:** Frisk had no knob at all
+  (`MEDI_FRISK_SILENT` added), and `MEDI_ANTICIPATION_SILENT` was never in `DELIBERATE_BREAK`, so its red run
+  **WROTE the census** — measured, `970 live` was published over a clean 971 and the artifact was regenerated.
+- **They stay in the closet, and the reason is a gate, not a preference.** Removing them gives them
+  `COULD-NOT-STAGE`, on which `engine/quarantine.js` fails the roster clause. The honest fix is an
+  `ANNOUNCEMENT-ONLY` verdict with a named census row + knob as its receipt, PLUS a matching clause in
+  `quarantine.js` — which ENGINE may not edit. **Proposed, not done.** So Illusion is not yet the only excusal.
+
+### The hand list, after this pass
+
+- **Electrify, Stall and Pickup leave the hand list.** The census and the deliberate roster now carry them.
+- **Anticipation, Forewarn and Frisk leave it as ENGINE work** and become a MEASURE/owner question: the
+  `ANNOUNCEMENT-ONLY` verdict and its `quarantine.js` clause.
+- **Copycat joins it**, re-aimed: the called move's random-target die address, `probe_fracpri_die_order.js`
+  family.
+- **Carried forward** from 6.68.0: King's Rock and Purifying Salt are not wired; Blaze's click-swap control;
+  the click-swap controls.
+## THREE INSTRUMENT DEBTS, NO ENGINE BYTE. `staged_board --reds` GOES FROM **14 OF 25 BREAKS DEMONSTRATED** TO **25 OF 25**, AND THE FILE IS OFF THE PENDING LIST AND RUNNING IN `run-all`. THE ROSTER'S CONTROL-CLICK ILLEGALITY FALLS **73 → 58** BODIES. THE TWO UNREAD TAGS ARE DECLARED DESCRIPTIVE AND GUARDED, SO COVERAGE READS **301 OF 301**. **NO ENGINE BYTE CHANGED — CENSUS UNMOVED AT 970 LIVE / 0 MISSING; PINNED TO WORKTREE RELEASE `18773c22878f` (cut 2 of the same bytes).** 2026-09-19, version assigned at merge
+
+Full account: `docs/_reports/2026-09-19-instrument-debts.md`.
+
+- **`tests/staged_board.js --reds`: 11 of 25 deliberate breaks had stopped applying**, every anchor matching
+  ZERO times, so eleven scenarios' greens were unproved and `patchedSource` said so on a screen nobody read.
+  One of the eleven was `fakeout-flinch`, which is `allowProof()`'s own fixture — so **all three
+  declared-divergence machinery checks were dead too** and every run printed *"THE QUIETENING MECHANISM IS NOT
+  TRUSTWORTHY"*. Re-aimed at what the code reads today, preferring a signature or a built list over a line in a
+  body: `applyStatus(t,st,src,eff,why,dstream)` and `formeOnHitAbsorbs(...)` and `formeCycleResidualStep(m)` by
+  SIGNATURE; the hazard bite by the LIST the entry walk builds (`_hzSrc`); Focus Sash by the item half of the
+  `survivesFromFull` TAG READ; the fling spend at the update-pass statement that empties the hand.
+  - **TWO RE-AIMS WERE WRONG FIRST AND THE HARNESS CAUGHT BOTH, WHICH IS THE POINT.** Dropping the flinch's
+    `_mvRes=false` planted cleanly and moved NO board — the `continue` at the foot of the block is what stops
+    the body — reported `NOT CAUGHT`. And the two slot scenarios stayed IDENTICAL on their branch line alone:
+    the slot rule was consolidated into ONE call at the action dispatch (`it.a.target=_aimed`), which leaves
+    every branch-level `reaimToSlot` idempotent, so the Pokemon-first model is only restored when both go.
+  - **The stale-cache defect this file filed in August does not reproduce.** Its comment predicted that a
+    correct anchor would turn 24 clean arms into 24 false divergences; measured on `18773c22878f`, the clean
+    arms are **25 of 25 board-identical with the plants applied**. Recorded, not deleted.
+  - **Wired into `tests/run-all.js` as a gate with `--reds`**, and the PENDING_WIRE entry is gone rather than
+    edited — its blocker ("RED on ONE of 25 scenarios") had stopped describing anything. Bare, the file plays
+    only the clean arm, so the argument is load-bearing. Measured through the runner: `ok (16.8s)`, and 62.3s
+    on a contended machine.
+- **The roster built 73 bodies carrying a control click their species cannot learn**, and **63 of them** were
+  kept on Focus Energy by ONE clause: "anything on this fixture so much as NAMES `slp`". Narrowed to what Sleep
+  Talk's own rule reads — `onTry(source) { return source.status === "slp" || source.hasAbility("comatose") }` —
+  so a handler counts only when it names the status AND makes a status-writing call. **Printed over every legal
+  entity before it was wired**: kept Dire Claw, Hypnosis, Rest, Sing, Sleep Powder, Spore, Yawn, Effect Spore,
+  Synchronize; dropped Electric Terrain, Facade, Sleep Talk, Snore, Uproar, Worry Seed, Bad Dreams, Insomnia,
+  Sweet Veil, Vital Spirit, Chesto Berry. **Dire Claw is why the test is not a literal `setStatus('slp')`** —
+  it samples `["psn","par","slp"]` into a variable. Synchronize is kept and provably cannot sleep anything; the
+  over-width is left rather than name-listed.
+  - **73 → 58** (items 11 / abilities 30 / moves 17), `tests/probe_roster_inert_legality.js`, knob
+    `ROSTER_INERT_SLEEP_WIDE=1` restores the old gate. **Ten rows changed their control click; all ten
+    single-row roster verdicts are byte-identical across the knob**, and the live fixture check falls from 6
+    illegal to 1 on six of them.
+  - **The residue is not a mystery and is not closable with another move.** The format offers exactly THREE
+    moves passing the inert shape cap — Focus Energy, Sleep Talk, Magnet Rise — and **Magnet Rise is learned by
+    NO holder in ANY of the 41 affected scenarios** (measured, 0 of 41). The rest are fixtures that really can
+    sleep a body, seven Ditto rows that cannot learn Sleep Talk, and three crit-reading rows.
+- **`needsUntrackedState` and `readsOwnItem` are DESCRIPTIVE, not engine gaps.** All five carriers compute
+  their power correctly today, through a different tag on the same row that the damage engine does read:
+  Rage Fist / Gyro Ball / Electro Ball / Acrobatics via `variablePower` (`userTimesHit`, `speedRatioLinear`,
+  `speedRatioTable`, `userNoItem`), Last Respects via `powerFromFallen`. Both tags also have LIVE census rows
+  measuring exactly that against the authority. Giving either its own engine line would be the same fact
+  implemented twice.
+  - Declared in `engine/tag_descriptive.js` — ONE declaration, read by `tag_dex` (which stamps `descriptive`
+    onto the row it generates) and by `coverage.js` (which reads it directly, so the count is right before any
+    regeneration). Coverage **PRINTS** the descriptive rows and their `via` tag every run; `consumedBy` is
+    untouched and still reads NOT READ, which is true.
+  - Guarded by `tests/probe_descriptive_tags.js`: every in-scope carrier must carry a declared `via` tag, that
+    tag must have an engine reader, and both must have a LIVE census row. Green 5 carriers / 0 failing clauses;
+    RED at 4 clauses under `TAG_DESCRIPTIVE_BREAK=needsUntrackedState`. Registered in `run-all` (1s, no game).
+
+### The hand list, after this pass
+
+- **LEAVING THE LIST:** `tests/staged_board.js --reds`' eleven dead anchors — 25 of 25 now CAUGHT AND
+  LOCALISED, and `run-all` runs the file, so the census-adjacent battery carries it.
+- **LEAVING THE LIST:** the two tags with no engine reader — declared, printed and probed.
+- **NEW, NOT FIXED — MEASURED THIS PASS:** `data/tags.json` is **804 entities** out of date with respect to
+  its own generator. Regenerating it here was measured and REVERTED: `consumedBy` moved on no row, but 804 of
+  the move/item/ability entries differ, and tags.json steers the census and the roster. It needs its own pass.
+- **NEW, NOT FIXED:** 58 roster fixture bodies still carry a control click their species cannot learn, and
+  `probe_roster_inert_legality.js --strict` is red on them — so the probe is in PENDING_WIRE with that blocker
+  stated, not wired without `--strict` (a gate that can only exit 0).
+- **Carried forward:** King's Rock and Purifying Salt are not wired; Blaze's click-swap control; the
+  click-swap controls.
+## AN ABILITY-SOURCED STAT CHANGE NOW ANNOUNCES THE ABILITY ABOVE ITS FIRST STAT LINE, THROUGH **ONE** FUNCTION ROUTED FROM **TEN** SITES — AND SAYS NOTHING WHEN THE STAT IS CAPPED. THE PINNED POOL AT `--games 300` GOES **44 -> 24** DIVERGED WITH **BOARD-MATERIAL UNMOVED AT 3 OF 260**. CENSUS **970 -> 971 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `2cdd655ef6ea`; LIGHT MODE, NO LATTICE, NO GATE.** 2026-09-19, version assigned at merge
+
+Full account: `docs/_reports/2026-09-19-ability-announce-boost.md`.
+
+- **The authority is ONE branch, not seven abilities.** `sim/battle.ts:2065-2067`, inside `Battle#boost`
+  (Champions overrides no `boost` — `data/mods/champions/scripts.ts` grepped). Four clauses and this engine
+  failed two of them: the announcement is ABOVE the stat line, ONCE per `boost()` call, INSIDE `if (boostBy)`
+  so a capped stat says nothing, and `boosted` starts at `isSecondary`.
+- **`abilityBoostRun` is the one road.** Ten sites go through it — `typeImmunity.gain.boosts`,
+  `buffsHolderOnHit`, `boostsEachTurn`, `randomBoostEachTurn`, `boostsOnFlinch`, `copiesFoeBoosts`,
+  `boostsWhenLowered`, `boostsAtHPThreshold`, `boostsOnKO` and `punishesAttacker`. Six had no line at all.
+  **Membership is derived from `data/tags.json` and PRINTED on every probe run** (18 abilities: any tag whose
+  params carry a `boosts` table, a `randomStat` or a `stat`+`stages` pair, walked to any depth), so an ability
+  added to any of those tags announces with no edit. Intimidate and Supersweet Syrup are IN the class and
+  correctly silent through it — their sites pass `isSecondary: true`, which is `:2034`'s own latch.
+- **Anger Point is excluded by the authority's own `case` at `:2047`** — `-setboost` BREAKS before the announce
+  branch — and still announces nothing.
+- **Defiant at the cap was the mirror-image defect.** It announced unconditionally where the authority is
+  silent. Generalising found the SAME defect at Moxie / Eelevate, which the pinned pool never showed.
+- **Steadfast and Opportunist were fixed without appearing in any divergence** — the return on routing by shape.
+- **Whole-game, one knob, same pins** (release `2cdd655ef6ea`, `data/team-pool-frozen`, `--games 300`, middle,
+  cap 50, 260 games): diverged **44 -> 24**, narration **41 -> 21**, board-material **3 -> 3**, ten causes gone
+  and **zero new**. The knob's before-arm over-silences by 2 games relative to HEAD (one Moxie, one Eelevate,
+  which already announced), so the fix accounts for **18** of the 20 and the other two were already right.
+- **Probe:** `tests/probe_ability_boost_announce.js`, 15 staged arms against the authority, green clean and
+  green `--red`. Knob `MEDI_ABILITY_BOOST_SILENT=1`, stamped at load, in `DELIBERATE_BREAK`.
+- **Census row:** `ability / abilityBoostAnnounce`. Two EXISTING rows went red on the fix and both were the
+  PROBE counting lines — `residualPerishStep` and `redirects` — and both are corrected and now strictly
+  stronger.
+
+### The hand list, after this pass
+
+- **The ability-boost announcement leaves the hand list.** The census row and the probe carry it.
+- **NEW, and NOT fixed:** **Cloud Nine** (6 of the 260 games) announces from `onSwitchIn`, not from `boost()`
+  and not from `onStart`; `announcesOnStart` excludes it deliberately and says why. It needs its own derivation.
+- **NEW, and NOT fixed:** **Supersweet Syrup's announcement has the wrong shape** — the authority writes a BARE
+  `|-ability|HOLDER|Supersweet Syrup` ABOVE its foe loop, this engine writes Intimidate's `…|boost` form gated on
+  a live foe. The derivation is written out in the report's OWED section; it needs `node engine/tag_dex.js` run
+  where the sharded store loads, which this worktree cannot do.
+- **NEW, and NOT mine:** the `-ability field 4` class (15 of the 260 games) — the authority names the OLD ability
+  on every rewrite (`sim/pokemon.ts:1939-1941`) and this engine omits the field.
+- **Carried forward** from 6.68.0: King's Rock and Purifying Salt are not wired; Blaze's click-swap control;
+  the click-swap controls.
 
 ## FRISK EARNS ITS FIRED AGAINST THE QUIET CONTROL, AND ITS LINE NOW NAMES ITS HOLDER. AXE KICK'S CONFUSION STARTS AT 3, NOT 2, SO ITS STAGED ROW GOES FROM BOARD **STATE** TO **NO-DIVERGENCE**. CENSUS **969 → 970 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `7285347f274f`; LIGHT MODE, NAMED ROWS ONLY.** 2026-09-19, version assigned at merge
 
@@ -765,10 +1316,12 @@ wont announce it but we need to track it"*.
 ### The hand list, after this pass
 
 - **LEAVING THE LIST:** Gastro Acid suppression; Knock Off / Poltergeist under Magic Room and Klutz.
-- **NEW, NOT FIXED — FOUND RED AT HEAD:** `tests/staged_board.js --reds` has **11 dead anchors** (flinch, Stealth
+- ~~**NEW, NOT FIXED — FOUND RED AT HEAD:** `tests/staged_board.js --reds` has **11 dead anchors** (flinch, Stealth
   Rock entry, `applyStatus`, `survivesFromFull`, Disguise, `reaimToSlot` ×2, `now=foes[...]`, `formeCycleResidual`,
   an item-slot write, sand chip), every one matching 0 times in HEAD's engine too — so 11 of 25 breaks are not
-  demonstrated. It sits in run-all's pending list, which is why nothing reported it.
+  demonstrated. It sits in run-all's pending list, which is why nothing reported it.~~ — **closed 2026-09-19**,
+  see the instrument-debts section at the top of this file: all eleven re-aimed, 25 of 25 caught and localised,
+  and the file is off the pending list and run by `tests/run-all.js --reds`.
 - **NEW, DECLARED REMAINDER:** a Gastro Acided body whose ability is rewritten mid-suppression runs no second End
   here (the End already ran at suppression). Whether upstream's `setAbility` End reaches a suppressed ability was
   NOT read; not staged.

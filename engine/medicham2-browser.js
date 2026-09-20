@@ -93,11 +93,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * counter of OUTCOMES is nine parts noise. The authority draws inside `BattleActions#secondaries`
    * (sim/battle-actions.ts:1343), which `spreadMoveHit` calls once per LANDED arrival, so this is
    * the quantity `tests/probe_kingsrock_volley.js` compares against the authority's own instrumented
-   * count. `kingsRockRollSkippedOnKO` is the declared remainder: the authority takes a die on the
-   * arrival that KILLS and this engine does not, which cannot reach a board because `addVolatile`
-   * refuses a corpse (sim/pokemon.ts:1980) -- counted so that "we chose not to" and "nobody noticed"
-   * do not read alike. */
-  kingsRockRolls: 0, kingsRockRollSkippedOnKO: 0,
+   * count. `kingsRockRollSkippedOnKO` WAS the declared remainder and is now the RESTORE KNOB's
+   * counter: this engine takes the die on a body the hit killed, exactly as the authority does, and
+   * that counter moves only under MEDI_KINGSROCK_SKIPS_DEAD=1. The retracted claim that the skip
+   * "cannot reach a board" is answered at the block itself -- the flinch is refused either way, the
+   * ADDRESS MOVE is not. `kingsRockFlinchRefusedOnCorpse` is the passing draw that moved the address
+   * and set no flinch, kept apart from `flinchTooLate` (a LIVE body that had already acted). */
+  kingsRockRolls: 0, kingsRockRollSkippedOnKO: 0, kingsRockFlinchRefusedOnCorpse: 0,
   /* 2026-08-24 -- a costsUserHP click whose declared boost table landed BEFORE the payment, which is
    * where the authority puts Clangorous Soul's `onHit`. A capability that cannot prove it ran is
    * assumed broken; the sibling MEDFAILS.hpCostBoostFirstUnrouted counts the other side of the same
@@ -153,6 +155,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* 2026-08-24 -- a bounced status move that wrote the authority's second `|move|` line. Zero would
    * mean the announcement never reaches a real resolution, which is what it looked like before. */
   bounceAnnounced: 0,
+  /* 2026-09-19 -- a REFLECTED move that a Follow Me / Rage Powder / rod on the clicker's side then drew
+   * off the clicker. The bounce is a whole `useMove` from the bouncer, so it runs target selection
+   * again; this engine returned the clicker unconditionally. Zero on a run that staged one is the
+   * pre-fix engine. tests/probe_bounced_move_redirect.js. */
+  bounceRedirected: 0,
+  /* 2026-09-19 -- a `conditionalPower{when:chance}` draw taken off the CRIT address, at the repeat
+   * index the authority's `getDamage` leaves it at. Zero on a run that clicked Fickle Beam is the
+   * pre-fix engine. tests/probe_fickle_beam_die.js. */
+  condPowerOnCritStream: 0,
   /* 2026-09-11 (ROADMAP #593-#596, tests/probe_reopen_partings.js). `spiteBounced` -- a Spite Magic Bounce
    * sent back at its user; `critStageFromVolatile` -- a crit-stage volatile's `delta` read into the ratio;
    * `megaThroughSuppressedItem` -- a mega whose stone Klutz or Magic Room was hiding from item events;
@@ -291,6 +302,16 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      carrier with a boost in this format (Gooey) passes `true` -- so this is expected to stay at ZERO
      and a non-zero means a member arrived whose shape nobody has staged. */
   punishBoostAbilityLine: 0,
+  /* 2026-09-19 -- one per `|-ability|TARGET|NAME|boost` line `abilityBoostRun` wrote, across EVERY
+     ability-sourced stat change in this file (the absorb gift, the per-turn boosts, Moody's pair, the
+     on-hit buffs, the flinch payout, Opportunist's copy, the punish drop and the lowered-stat
+     retaliation). `abilityBoostRunsSilent` is its complement -- a run that applied no non-zero step and
+     therefore correctly said nothing, which is the Defiant-at-the-cap case. A zero in the first with a
+     non-zero in the second means every ability boost this run was swallowed by a cap; a zero in BOTH
+     means the whole road is inert. */
+  abilityBoostAnnounced: 0,
+  abilityBoostAnnouncedFirst: '',
+  abilityBoostRunsSilent: 0,
   /* ROADMAP #144 -- PP. Five counters because five different things can be true and only one of them
    * is "PP is working": `ppDeducted` is the base spend, `ppPressureCharged` the extra one an ability
    * takes, `ppRefusedAtSelection` the chooser declining an empty slot, `ppRefusedAtExecution` the
@@ -538,6 +559,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * recoil because the two are different currencies off different artifact fields, and a zero here
    * with a healthy `rc` recoil is exactly the state this engine was in: one paid, the other free. */
   maxHPRecoilPaid: 0,
+  /* 2026-09-19 -- the same family REFUSED because the move dealt nothing and declares no
+   * `onMoveFail` (the authority's `if (move.totalDamage)`, data/mods/champions/scripts.ts:553). A
+   * zero on a run containing a Struggle that whiffed means the gate is unreachable, which is the
+   * state this engine was in: it charged every one of them. */
+  maxHPRecoilRefusedOnWhiff: 0,
   /* ROADMAP #175 -- every damage packet `refusesIndirectDamage` turned away, across all nine gated
    * sites. It replaces MEDFAILS.magicGuardChip, which counted the same event as a KNOWN GAP: the
    * counter moves from the failures object to the capabilities one, which is the whole shape of the
@@ -566,6 +592,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * 'trapper'`). A zero over a run in which a Mean Look or a Block landed and its user then left
    * means the link is unread again, which is the state this engine was in until this line. */
   trapReleasedWithTrapper: 0, trapReleasedWithTrapperFirst: '',
+  /* 2026-09-19 -- the same release taken at the FAINT rather than at the replacement. It is counted
+   * apart from the total above because the two sites have different populations and only one of them
+   * was ever reachable by a trapper that died as the last body of its side: a zero here on a run in
+   * which a Spirit Shackle user was KO'd means the link is being read only by `bringIn` again. */
+  trapReleasedOnTrapperFaint: 0,
   /* 2026-08-25 -- a BOUNCED trap credited to the body that reflected it rather than to the body that
    * clicked it. A zero over a run in which Magic Bounce sent a Block or a Mean Look back means the
    * owner is being taken off the clicker again, which is the state that trapped a victim by itself
@@ -598,6 +629,19 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * silently back where it was; the duration-expiry branch beside it has its own line and would keep
    * passing on its own. */
   trapEndedSourceGone: 0,
+  /* 2026-09-19 -- the THIRD clause of the same predicate, `!source.activeTurns`: a trap ended because
+   * its source is standing on the field but ARRIVED THIS TURN. Counted apart from the clause above
+   * because they answer different questions about the same body and a shared counter could not say
+   * which one fired. A zero on a run that staged a trapper pivoting out and back in one turn means
+   * the clause is unread again. */
+  trapEndedSourceArrivedThisTurn: 0,
+  /* 2026-09-19 -- the `onAfterMove` cure (`curesTargetStatusAfterMove`), and its two refusals apart
+   * from each other. A zero on `afterMoveCurePaid` over a run in which Sparkling Aria hit a burned
+   * body means the handler is unread again -- which is the state this engine was in, with the MARK
+   * being written the whole time. `RefusedNoMark` is the Shield Dust road and `RefusedSheerForce` the
+   * user's; a run where the paid counter is high and both refusals are zero has never exercised the
+   * clauses that make this more than "cure brn". */
+  afterMoveCurePaid: 0, afterMoveCureRefusedNoMark: 0, afterMoveCureRefusedSheerForce: 0,
   /* 2026-09-04 -- THE TWO HALVES OF THE TRAP CLOCK, SEPARATED, because they fail differently. A zero
    * on `partialTrapTick` means no trap chipped at all -- the residual step is not being reached. A
    * zero on `partialTrapExpired` while `partialTrapTick` is high means every trap in the run ended
@@ -767,7 +811,11 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                           its own target -- the authority's nested `moveHit` -> `spreadMoveHit`
    *                           -> `getSpreadDamage` writing `activeTarget = target` (:1154). A 100%
    *                           two-target spread scores exactly one; a 0% one scores none. */
-  secAddrFromLastTarget: 0, secAddrMovedByFire: 0,
+  /*   secAddrFromSelfDrop     (2026-09-19) MOVES for which the address was put on the USER because
+   *                           the move carries a `self:` block and the authority's step 4 left
+   *                           `activeTarget` there (battle-actions.ts:1093-1101, :1325/:1329, :1154).
+   *                           One per MOVE, not per draw, and 0 under MEDI_SEC_ADDR_IGNORES_SELFDROP=1. */
+  secAddrFromLastTarget: 0, secAddrMovedByFire: 0, secAddrFromSelfDrop: 0,
   /* 2026-09-06 -- THE MIDDLE ARM'S `DamagingHit` ADDRESS, and an INSTRUMENT counter for
    * `secAddrFromLastTarget`'s reason.
    *   reactionAddrFromLastSlot   REACTION SITES entered at the lingering address: one per row
@@ -1382,6 +1430,16 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    *                                  exit -- the two are exclusive by construction and neither is a
    *                                  restatement of the other. */
   stallExpireAtResidualFoot: 0, stallHeldByUnfinishedResidual: 0,
+  /* 2026-09-19 -- AND THE STOP INSIDE THAT SWEEP. `fieldEvent` runs `faintMessages(); if (this.ended)
+   * return;` after a handler that did NOT take the duration-expiry `continue` (sim/battle.ts:564-566),
+   * so a `stall` counter that SURVIVES its decrement can end the walk and leave every SLOWER holder's
+   * counter standing.
+   *   stallSweepStoppedByWipe        the sweep stopped at a surviving counter with a side already
+   *                                  wiped, so the bodies behind it kept theirs. Its population is
+   *                                  narrow by construction -- the faint has to still be OWED at the
+   *                                  foot, which today means a perish expiry queued it -- so a zero on
+   *                                  a small run is not evidence the branch is dead. */
+  stallSweepStoppedByWipe: 0,
   /* 2026-08-29 -- THE SHIELD GATE ARMED OFF THE MOVE THE PLAYER CLICKED, AND THREE SITES SUBSTITUTE
    * THE MOVE AFTER THAT. Split three ways because one merged counter cannot tell a re-arm that found
    * nothing from a re-arm that changed the answer, and cannot tell either from the arming that was
@@ -2493,6 +2551,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * every one of those reverts wrote a `detailschange` the authority never writes. */
   formeRevertSilent: 0, formeRevertSilentFirst: '',
   preTurnShieldAnnounced: 0, preTurnShieldRefused: 0, sleepMoveUsedAsleep: 0, callMoveOwnRandom: 0,
+  /* 2026-09-19 -- how many times the field's "what did anybody just click" committed a move that RAN and
+     FAILED. Zero means the fix at the pending-commit site never bit on this run, which reads exactly like
+     a fix that is not there; `MEDI_FAILED_MOVE_NOT_LAST=1` takes it back to zero by construction. */
+  lastMoveCommittedAfterFailure: 0,
   /* ROADMAP #322 -- THE THREE THAT CAN SEE A POSITION, which `preTurnShieldAnnounced` cannot: it
    * counts LINES WRITTEN and read non-zero for the whole period the line was written at order 0
    * instead of order 107. `preTurnChargeSwitchesAhead` counts switch ACTIONS ALREADY RESOLVED when
@@ -2942,6 +3004,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * as it started (data/abilities.ts pressure :3427-3430, moldbreaker :2679-2682, unnerve :5250-5256).
    * Zero on a run with a Pressure / Mold Breaker / Unnerve body in it means the line went silent again. */
   startAnnounced: 0,
+  /* 2026-09-19 -- `abilityRewriteNamedOld`: an ability REWRITE wrote the OLD ability's name in field 4,
+   * as `Pokemon#setAbility`'s `default` branch does (sim/pokemon.ts:1938-1941). Zero on a run carrying
+   * a Trace, a Receiver, an Entrainment, a Role Play, a Simple Beam or a Worry Seed means the field went
+   * missing again. `startAnnouncedEarly` is the +priority half of the entry order: an `announcesOnStart`
+   * member whose `onSwitchInPriority` is positive (Unnerve, Klutz) speaks ABOVE the entry hazards. */
+  abilityRewriteNamedOld: 0,
+  startAnnouncedEarly: 0,
   /* `harvestCoinThrown`: a Harvest body's residual coin was thrown (or the sun made it certain) whether or
    * not a berry was waiting, as data/abilities.ts:1794 throws it. Zero with a Harvest body on the field
    * means the coin is gated on the berry again. */
@@ -3137,6 +3206,9 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
      read as one number. */
   stolenBerryEaten: 0, stolenBerryEffectUnexpressed: 0, eatEventOffStolenBerry: 0,
   cudChewArmed: 0, cudChewReEaten: 0, harvestRestored: 0, pickupTook: 0,
+  /* 2026-09-19 -- a move whose type was rewritten by a volatile its user is carrying (Electrify).
+     A zero with an electrified body on the field means the rule never reached the type reader. */
+  volatileRetyped: 0, volatileRetypeExpired: 0,
   /* ROADMAP #175 -- THE NEXT-MOVE GUARANTEE, FOUR COUNTERS, because the mechanic has four separable
    * halves and a single total could not tell you which one is dead.
    *   guaranteeApplied         the volatile was written and BOUND to a named body. Zero means the
@@ -3561,6 +3633,14 @@ const MEDFAILS = { encoreAction: 0,
      `volRestartBlindRestored` is the knob and must read 0 on any shipping run. */
   volRestartTableFailed: 0, volRestartTableFailedFirst: '',
   volRestartBlindRestored: 0,
+  /* 2026-09-19 -- the derived retype table could not be built, which leaves an electrified move its
+     own type: a damage number, and a Ground-type target wrongly hit. `electrifyNoRetypeRestored` is
+     the knob and must read 0 on any shipping run. */
+  volRetypeTableFailed: 0, volRetypeTableFailedFirst: '',
+  electrifyNoRetypeRestored: 0,
+  /* 2026-09-19 -- Frisk's `-item` arm put back to unwired for its red demonstration. Must read 0 on
+     any shipping run; see the knob's own note beside MEDI_ANTICIPATION_SILENT. */
+  friskSilentRestored: 0,
   /* 2026-08-27 -- a sound-lock carrier whose `volatileRestart` row the artifact does not hold, so the
      re-application question could not be ASKED and the old rewrite was taken. Zero across this format
      today (throatchop is the only `blocksSoundMoves` carrier and it has a row); the counter exists so
@@ -3594,6 +3674,22 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-08-24 -- a bounce whose ability the artifact carries no display name for, so the second
      `|move|` line went out with no attribution. Zero across this format. */
   bounceNoName: 0,
+  /* 2026-09-19 -- a bounce resolved by a caller that passed NO board context, so the reflected move
+   * could not be re-aimed and went back to the clicker unconditionally. That is the pre-fix answer,
+   * and it is COUNTED rather than served silently: a silent default here looks exactly like a working
+   * feature. Non-zero names a `bounceOff` call site that still owes its {foes, allies, field}.
+   * `bounceIgnoresRedirectRestored` is the knob MEDI_BOUNCE_IGNORES_REDIRECT=1, stamped at USE.
+   * tests/probe_bounced_move_redirect.js. */
+  /* 2026-09-19 -- the other two knobs of the same batch, DECLARED AT ZERO rather than assigned only
+   * when set. `DELIBERATE_BREAK` filters on truthiness so `undefined` would have worked; a counter
+   * that does not exist until it fires cannot be PRINTED as zero, which is this file's whole rule
+   * about a capability proving it ran. MEDI_WEATHER_DEF_BY_CATEGORY / MEDI_REDIRECT_NEEDS_AIM_CHANGE. */
+  weatherDefByCategoryRestored: 0, redirectNeedsAimChangeRestored: 0,
+  bounceRedirectCtxMissing: 0, bounceIgnoresRedirectRestored: 0,
+  /* 2026-09-19 -- MEDI_CONDPOWER_OFF_ANY=1 was set: Fickle Beam's 30% is drawn off the generic stream
+   * above the crit instead of off the crit address below it, which is where the authority draws it.
+   * Stamped at LOAD. tests/probe_fickle_beam_die.js. */
+  condPowerOffAnyRestored: 0,
   /* 2026-09-11 (ROADMAP #595) -- a crit-stage volatile whose `critStageVolatile` row carries no readable
    * stage (`deltaUnparsed`). Refused, not guessed: the volatile adds nothing and this counts it. */
   critStageVolatileUnparsed: 0,
@@ -3822,6 +3918,26 @@ const MEDFAILS = { encoreAction: 0,
                                          `fieldEvent` returns before `stall`'s order-less handler is
                                          ever reached. */
   stallLapseAtResidualOpenRestored: 0,
+  /* 2026-09-19 -- the SHAPE of that sweep rather than its placement.
+       stallSweepUnorderedRestored  MEDI_STALL_SWEEP_UNORDERED=1 puts back the all-or-nothing pass in
+                                    slot order with no stop, where the authority walks the order-less
+                                    `stall` handlers one at a time in SPEED order and returns at the
+                                    first one that survived its decrement and found the battle over
+                                    (sim/battle.ts:517-525, :564-566). Stamped at LOAD so a probe can
+                                    prove the knob reached the module the driver played. */
+  stallSweepUnorderedRestored: 0,
+  /* 2026-09-19 -- the secondary ADDRESS on a move that carries a `self:` block.
+       secAddrIgnoresSelfDropRestored  MEDI_SEC_ADDR_IGNORES_SELFDROP=1 leaves the address on the last
+                                       body of the spread, where the authority's `selfDrops` has moved
+                                       `activeTarget` onto the USER and does not put it back until
+                                       below `secondaries` (battle-actions.ts:1093-1101). Stamped at
+                                       LOAD. */
+  secAddrIgnoresSelfDropRestored: 0,
+  /* 2026-09-19 -- the King's Rock die on a body the hit killed.
+       kingsRockSkipsDeadRestored  MEDI_KINGSROCK_SKIPS_DEAD=1 skips it again, where the authority's
+                                   `secondaries` skips only `target === false` and a corpse is not
+                                   that (battle-actions.ts:1339). Stamped at LOAD. */
+  kingsRockSkipsDeadRestored: 0,
   /* 2026-08-29 -- set at MODULE LOAD when MEDI_SHIELD_NO_REARM=1 takes the execution-time re-arm of
      the shield gate back out, so a body whose move was substituted mid-turn (Encore's override,
      Instruct's second action, a called move) is announced off whatever `mon.protect` already held.
@@ -4649,6 +4765,17 @@ const MEDFAILS = { encoreAction: 0,
    * to the `boosts: null` state this wire had to correct. */
   abilityBoostUnusable: 0,
   inheritedAbilityStartNotFired: 0,
+  /* 2026-09-19 -- an `announcesOnStart` row in data/tags.json with NO `switchInPriority` key. The entry
+   * order reads that field to decide whether the announcement sorts ABOVE the entry hazards
+   * (`onSwitchInPriority`, sim/battle.ts:953 -> comparePriority :406), and a tags.json generated before
+   * the field existed would silently answer 0 for every member -- which is Unnerve's line back below the
+   * rocks with nothing saying so. It must stay ZERO; a non-zero reading means regenerate data/tags.json. */
+  startAnnouncePriorityMissing: 0,
+  /* 2026-09-19 -- the two deliberate-break stamps for this pass. Both are set AT LOAD from their env
+   * knob, so a census generated under either one is refused by name (tests/test-mechanics.js
+   * DELIBERATE_BREAK) whether or not the knob's site was ever reached. */
+  abilityRewriteNoOldRestored: 0,
+  startAnnounceAfterHazardsRestored: 0,
   symbiosisLineShort: 0, symbiosisNonBerrySites: 'Mental Herb spends at freeVolatileByItem and Power\n Herb is isNonstandard Past in Champions; neither calls the partner. White Herb DOES, from 2026-08-23',
   /* ROADMAP #139 -- a `callsAnotherMove` click this engine could not resolve. Two reasons, kept
    * apart: `SourceUnmodelled` is Sleep Talk's own-moveslot draw, which is declared and not built;
@@ -4976,6 +5103,10 @@ const MEDFAILS = { encoreAction: 0,
   /* 2026-09-19 -- MEDI_COPYCAT_IGNORES_FAILCOPYCAT=1 is armed: Copycat calls a `failcopycat` last move (Protect, Endure, Follow Me, Helping Hand, Trick ...) again. Non-zero means the run is NOT measuring
      this engine's shipped behaviour. Probe: tests/probe_protean_contrary.js. */
   copycatRefusalIgnoredRestored: 0,
+  /* 2026-09-19 -- MEDI_FAILED_MOVE_NOT_LAST=1 is armed: a click that RAN and failed no longer becomes the field's last move, so
+     Copycat reaches back past it to an older one. Non-zero means the run is NOT measuring
+     this engine's shipped behaviour. Probe: tests/probe_called_move_last_move.js. */
+  failedMoveNotLastRestored: 0,
   /* ROADMAP #213 -- a weather-gated status immunity asked on a body with no side stamp, so the field
      could not be read. Defaulting to "no weather" would turn Leaf Guard OFF in exactly the case a
      bare unit-test call makes, which is the silent-default shape; it is counted instead. */
@@ -5627,6 +5758,39 @@ const TRACE=(function(){
     enditemRobbed(m,it,abName,of){
       this.push(['-enditem',ident(m),it,'[silent]','[from] ability: '+abName,of?'[of] '+ident(of):'']); },
     ab(m,a,extra){ this.push(['-ability',ident(m),a,extra]); },
+    /* 2026-09-19 -- AN ABILITY REWRITE NAMES THE OUTGOING ABILITY IN FIELD 4, AND THIS ENGINE WROTE
+     * NOTHING THERE. 47 of the 250 narration games the honest comparator found, over 42 distinct
+     * ability names, all one missing field.
+     *
+     *   sim/pokemon.ts:1936-1943, `Pokemon#setAbility`'s `default` branch:
+     *     if (source) this.battle.add('-ability', this, ability.name, oldAbility.name,
+     *                                 `[from] ${sourceEffect.fullname}`, `[of] ${source}`);
+     *     else        this.battle.add('-ability', this, ability.name, oldAbility.name,
+     *                                 `[from] ${sourceEffect.fullname}`);
+     *
+     * `oldAbility` is read at :1919, BEFORE the assignment at :1930, so FIELD 4 IS ALWAYS WRITTEN when
+     * the line is written at all -- there is no branch that omits it. What varies is the `[of]`, with
+     * whether the caller passed a `source`: Trace (data/abilities.ts:5137), Receiver (:3782), Power of
+     * Alchemy (:3395), Entrainment (data/moves.ts:4880) and Role Play (:15332) pass one; Simple Beam
+     * (:16492, `target.setAbility('simple')`) and Worry Seed (:21066) pass nothing and their lines carry
+     * no `[of]` at all. This sink still writes no `[of]` on either -- the shortfall `traceCopy` and the
+     * Receiver site already declare -- and the differ's `source-tag` rule collapses it on both sides.
+     *
+     * THE SET IS DERIVED FROM THE CALL SITE AND IS SMALLER THAN THE LIST OF ABILITY-CHANGING THINGS.
+     * The line is written only when `sourceEffect && !isFromFormeChange && !isTransform` (:1933) and the
+     * effect is neither Mummy nor Lingering Aroma, which take their own `-activate` case (:1935-1937,
+     * this engine's `abinfect` below). So a FORME CHANGE and a MEGA (`setAbility(..., true)`,
+     * sim/pokemon.ts:1493 and data/mods/champions/scripts.ts:113) and a TRANSFORM (:1358) write NO
+     * `-ability`; and `Battle#skillSwap` (sim/battle.ts:1310-1340) never calls `setAbility` at all --
+     * it assigns and writes one `-activate|Skill Swap`. Skill Swap and Wandering Spirit are therefore
+     * NOT in this set and must not be given a field 4. Doodle is, and is `isNonstandard: 'Past'` in
+     * Champions (data/mods/champions/moves.ts:217), so it cannot occur here.
+     *
+     * MEDI_ABILITY_REWRITE_NO_OLD=1 restores the four-field line this engine wrote. */
+    abFrom(m,a,old,from){
+      if(ABILITY_REWRITE_NO_OLD){MEDFAILS.abilityRewriteNoOldRestored=1;this.push(['-ability',ident(m),a,from]);return;}
+      MEDSEEN.abilityRewriteNamedOld++;
+      this.push(['-ability',ident(m),a,old,from]); },
     /* `|-transform|USER|TARGET` -- sim/pokemon.ts:1352, with the :1350 variant appending
      * `[from] <effect.fullname>` when something other than the move caused the copy. There is no
      * `-activate|...|transform` anywhere in the protocol, which is what this engine used to write. */
@@ -6262,10 +6426,91 @@ function volRestartTable(){
   return _volNoRestart;
 }
 const VOL_RESTART_BLIND=(typeof process!=='undefined'&&process.env&&process.env.MEDI_VOL_RESTART_BLIND==='1');
+/* 2026-09-19 -- WHICH VOLATILE REWRITES THE TYPE OF ITS HOLDER'S MOVES. The twin of
+ * `volRestartTable` one block up and built the same way: the artifact keys the row on the MOVE that
+ * applies the volatile (`electrify`), and every reader needs it keyed on the VOLATILE, because what
+ * `effMoveType` is holding is a body with `_vol.electrify` set and no idea what put it there.
+ *
+ * IT SPEAKS WHEN IT CANNOT BE BUILT, for the reason the two tables above do: an empty table here is
+ * byte-identical to the engine that had no rule at all, which is a silent default wearing the shape
+ * of a working feature. */
+let _volRetype=null;
+function volRetypeTable(){
+  if(_volRetype) return _volRetype;
+  _volRetype={};
+  try{
+    for(const id of (TAGS.withTag?TAGS.withTag('move','volatileRetypesMoves'):[])){
+      const p=TAGS.param('move',id,'volatileRetypesMoves');
+      if(!p||!p.byVolatile) continue;
+      for(const v of Object.keys(p.byVolatile)) _volRetype[v]=p.byVolatile[v];
+    }
+  }catch(e){
+    MEDFAILS.volRetypeTableFailed++;
+    if(!MEDFAILS.volRetypeTableFailedFirst) MEDFAILS.volRetypeTableFailedFirst=String((e&&e.message)||e);
+  }
+  return _volRetype;
+}
+const ELECTRIFY_NO_RETYPE=(typeof process!=='undefined'&&process.env
+                           &&process.env.MEDI_ELECTRIFY_NO_RETYPE==='1');
+if(ELECTRIFY_NO_RETYPE)MEDFAILS.electrifyNoRetypeRestored=1;
+/* ONE FUNCTION, TWO CALLERS, AND THE SECOND CALLER IS THE WHOLE REASON IT IS A FUNCTION.
+ *
+ * "What type is this move really" is asked in TWO places in this file -- `effMoveType`, which the
+ * battle loop's immunity gate reads, and `dmgRangeOneHit`, which prices the damage. WIRE 126 already
+ * paid for that split once (an Aerilate Body Slam priced at 162 and dealt as 0) and this rule walked
+ * straight into it: wired into `effMoveType` alone, an electrified Dragon Pulse was REFUSED correctly
+ * against a Ground type and still dealt its DRAGON damage against everything else. Measured before
+ * this function existed -- the census probe went LIVE off the immunity gate while the roster row
+ * `move/volatile electrify` did not move a single HP, our subject arm matching the AUTHORITY'S OWN
+ * CONTROL to the point.
+ *
+ * Returns the rewritten type, or null when no volatile the body carries rewrites this move. */
+function volatileRetypeOf(att,moveId){
+  if(!att||!att._vol||ELECTRIFY_NO_RETYPE)return null;
+  const _rt=volRetypeTable();
+  for(const v in _rt){
+    if(!(att._vol[v]>0))continue;
+    const r=_rt[v];
+    if(!r||!r.type)continue;
+    if(moveId&&(r.exceptMoves||[]).indexOf(String(moveId))>=0)continue;
+    MEDSEEN.volatileRetyped++;
+    return r.type;
+  }
+  return null;
+}
 /* 2026-09-11 -- THE SPEED-TIE CORNER BATCH. Each knob restores ONE pre-fix behaviour verbatim, is played
  * in its own child by tests/probe_corner_mechanisms.js (its red arms must PART, its controls must HOLD),
  * and stamps a `MEDFAILS.<name>Restored`. The pool game each one closes is named at its site. */
 const _MK=k=>(typeof process!=='undefined'&&process.env&&process.env[k]==='1');
+/* 2026-09-19 -- MEDI_WEATHER_DEF_BY_CATEGORY=1 restores the pre-fix gate on snow's Ice DEFENCE bump
+ * and sand's Rock SPECIAL DEFENCE bump: the move's CATEGORY instead of the stat the hit actually
+ * reads. Under it a Special Psyshock misses snow's x1.5 and takes sand's, both of which the
+ * authority's `onModifyDef` / `onModifySpD` refuse. Stamped at LOAD in
+ * MEDFAILS.weatherDefByCategoryRestored. Probe: tests/probe_weather_defence_stat.js. */
+const WEATHER_DEF_BY_CATEGORY=_MK('MEDI_WEATHER_DEF_BY_CATEGORY');
+if(WEATHER_DEF_BY_CATEGORY)MEDFAILS.weatherDefByCategoryRestored=1;
+/* 2026-09-19 -- MEDI_REDIRECT_NEEDS_AIM_CHANGE=1 restores `redirectDrawnTo`'s pre-fix answer: a
+ * redirect whose winner is the body ALREADY aimed at returned `null`, i.e. "no redirect happened".
+ * The authority's handler runs and clears `move.smartTarget` whenever `validTarget` holds, so under
+ * this knob a Dragon Darts clicked straight at a Follow Me user keeps its split and hits the
+ * partner. Stamped at LOAD in MEDFAILS.redirectNeedsAimChangeRestored.
+ * Probe: tests/probe_redirect_onto_the_aim.js. */
+const REDIRECT_NEEDS_AIM_CHANGE=_MK('MEDI_REDIRECT_NEEDS_AIM_CHANGE');
+if(REDIRECT_NEEDS_AIM_CHANGE)MEDFAILS.redirectNeedsAimChangeRestored=1;
+/* 2026-09-19 -- MEDI_BOUNCE_IGNORES_REDIRECT=1 restores `bounceOff`'s unconditional `return user`: a
+ * Magic-bounced move goes back at the clicker even when the clicker's partner is holding a Follow Me
+ * that the authority's fresh `useMove` would let draw it. Stamped at LOAD in
+ * MEDFAILS.bounceIgnoresRedirectRestored. Probe: tests/probe_bounced_move_redirect.js. */
+const BOUNCE_IGNORES_REDIRECT=_MK('MEDI_BOUNCE_IGNORES_REDIRECT');
+if(BOUNCE_IGNORES_REDIRECT)MEDFAILS.bounceIgnoresRedirectRestored=1;
+/* 2026-09-19 -- MEDI_CONDPOWER_OFF_ANY=1 restores Fickle Beam's chance draw to the GENERIC stream,
+ * taken above the crit, where this engine had it. The authority raises `onBasePower` from inside
+ * `getDamage` AFTER the crit roll, so the event is a `crit`-address draw at repeat index 1; a draw
+ * at the wrong address agrees with the authority 58% of the time and is invisible to any instrument
+ * whose dice are a pinned constant. Stamped at LOAD in MEDFAILS.condPowerOffAnyRestored.
+ * Probe: tests/probe_fickle_beam_die.js. */
+const CONDPOWER_OFF_ANY=_MK('MEDI_CONDPOWER_OFF_ANY');
+if(CONDPOWER_OFF_ANY)MEDFAILS.condPowerOffAnyRestored=1;
 const ENCORE_REWRITE_KEEPS_GUARDS=_MK('MEDI_ENCORE_REWRITE_KEEPS_GUARDS');
 const ENTRY_DEAD_STILL_STARTS=_MK('MEDI_ENTRY_DEAD_STILL_STARTS');
 const ACQUIRED_START_NEEDS_HP=_MK('MEDI_ACQUIRED_START_NEEDS_HP');
@@ -6340,7 +6585,27 @@ if(START_ANNOUNCE_SILENT)MEDFAILS.startAnnounceSilentRestored=1;
  *   MEDI_SCREENCLEAN_ACTIVATE_LAST Screen Cleaner writes its `-activate` after the `-sideend` lines. */
 const RIPEN_NO_RESIST_WEAKEN=_MK('MEDI_RIPEN_NO_RESIST_WEAKEN');
 const ANTICIPATION_SILENT=_MK('MEDI_ANTICIPATION_SILENT');
+/* 2026-09-19 -- lift-deferrals. MEDI_FRISK_SILENT=1 puts the `-item`-on-FOE arm of `announcesOnEntry`
+ * back to unwired, which is where Frisk sat until 6.70.0.
+ *
+ * IT EXISTS BECAUSE OF WHAT THE ROW IS. `announcesOnEntry` declares `visibleOnABoard: false` — derived,
+ * off the three handlers' own bodies — so NO board comparator in this project can ever fail on Frisk,
+ * and its deliberate-roster row is excused for that reason and no other. A mechanic whose only
+ * instrument is a census probe owes that probe a red arm, or the probe is a claim nobody has ever seen
+ * fail. Anticipation and Forewarn already had theirs (MEDI_ANTICIPATION_SILENT, MEDI_FOREWARN_SILENT);
+ * Frisk did not, which left one of the three announcement-only rows resting on an unproven green. */
+const FRISK_SILENT=_MK('MEDI_FRISK_SILENT');
+if(FRISK_SILENT)MEDFAILS.friskSilentRestored=1;
 const SCREENCLEAN_ACTIVATE_LAST=_MK('MEDI_SCREENCLEAN_ACTIVATE_LAST');
+/* 2026-09-19 -- MEDI_FRISK_SILENT=1: the `-item`-on-FOE arrival branch does not fire, so a Frisk body
+ * walks in without revealing anything and the ability falls through to the old `entryAnnounceUnmodelled`
+ * road, exactly as it did before that branch was written. A LINE, NOT A LEAF: the branch writes only
+ * `TR.item(...)` and moves no board state, and tests/probe_entry_announce.js asserts that under this knob.
+ *
+ * WHY THIS KNOB EXISTS AT ALL. The branch fired UNCONDITIONALLY, so there was nothing that could make
+ * the Frisk census row red -- and a row no knob can break is a row whose green is unfalsifiable. The
+ * roster's ANNOUNCEMENT-ONLY receipt (engine/quarantine.js, check 5) refuses a mechanic in exactly that
+ * state, and it refused Frisk by name until this line landed. */
 if(RIPEN_NO_RESIST_WEAKEN)MEDFAILS.ripenNoResistWeakenRestored=1;
 if(ANTICIPATION_SILENT)MEDFAILS.anticipationSilentRestored=1;
 if(SCREENCLEAN_ACTIVATE_LAST)MEDFAILS.screenCleanActivateLastRestored=1;
@@ -6356,6 +6621,39 @@ const TIDYUP_BOOST_FIRST=_MK('MEDI_TIDYUP_BOOST_FIRST');
 const FLOOR_DROP_REFUSED=_MK('MEDI_FLOOR_DROP_REFUSED');
 if(TIDYUP_BOOST_FIRST)MEDFAILS.tidyUpBoostFirstRestored=1;
 if(FLOOR_DROP_REFUSED)MEDFAILS.floorDropRefusedRestored=1;
+/* 2026-09-19 -- NARRATION: THE ABILITY LINE, both halves of it. Same contract as every knob above --
+ * each restores ONE pre-fix emission verbatim and no board leaf, and both are stamped AT LOAD so a
+ * census written under either is refused by name rather than by luck.
+ *   MEDI_ABILITY_REWRITE_NO_OLD       an ability rewrite writes no field 4, so the OUTGOING ability is
+ *                                     never named (see the trace sink's `abFrom`)
+ *   MEDI_START_ANNOUNCE_AFTER_HAZARDS an `announcesOnStart` member with a POSITIVE `onSwitchInPriority`
+ *                                     announces below the entry hazards, where this engine had it
+ *                                     (see `startAnnounceEarly`) */
+const ABILITY_REWRITE_NO_OLD=_MK('MEDI_ABILITY_REWRITE_NO_OLD');
+const START_ANNOUNCE_AFTER_HAZARDS=_MK('MEDI_START_ANNOUNCE_AFTER_HAZARDS');
+if(ABILITY_REWRITE_NO_OLD)MEDFAILS.abilityRewriteNoOldRestored=1;
+if(START_ANNOUNCE_AFTER_HAZARDS)MEDFAILS.startAnnounceAfterHazardsRestored=1;
+/* 2026-09-19 -- MEDI_ABILITY_BOOST_SILENT=1: THE WHOLE SHARED ANNOUNCE ROAD GOES QUIET.
+ * Every ability-sourced stat change writes its `-boost`/`-unboost` line with NO `|-ability|...|boost`
+ * announcement above it, and Defiant/Competitive announce UNCONDITIONALLY -- including on a stat
+ * already at the cap, where the authority's `if (boostBy)` writes nothing.
+ *
+ * IT IS NOT A BYTE-FOR-BYTE PRE-FIX ENGINE AND SAYING SO WOULD BE A LIE. For the six families that
+ * had NO line at all -- the absorb gift, `buffsHolderOnHit`, `boostsEachTurn`, Moody, the flinch
+ * payout, Opportunist -- it is the old engine verbatim. For Defiant and Competitive it restores the
+ * unconditional line, which is the old engine too. For Berserk, Moxie/Eelevate and Gooey's punish it
+ * goes FURTHER than the old engine: those three announced correctly before and are silenced with the
+ * rest, because the knob's job is to prove the ROAD is the thing that carries the line, not to
+ * reconstruct a commit. Measured on the pinned pool at --games 300: the knob costs 20 games where the
+ * old engine cost 18, and the two extra are exactly one Moxie and one Eelevate.
+ *
+ * A LINE, NOT A LEAF: no board state reads it, which tests/probe_ability_boost_announce.js asserts on
+ * every arm in BOTH directions, and the whole-game run reads board-material 3 of 260 with the knob on
+ * and 3 of 260 with it off.
+ * The stamp is in tests/test-mechanics.js DELIBERATE_BREAK, so a red demonstration cannot write the
+ * census. */
+const ABILITY_BOOST_SILENT=_MK('MEDI_ABILITY_BOOST_SILENT');
+if(ABILITY_BOOST_SILENT)MEDFAILS.abilityBoostAnnounceRestored=1;
 /* Synchronize's sourceEffect as the authority builds it: `{ status, id: 'synchronize' }`, no name, no
  * effectType (data/abilities.ts:4857). `applyStatus` reads `kind`; ATTR.status gives it the bare line. */
 const SYNC_EFF=Object.freeze({kind:'sync',id:'synchronize'});
@@ -7658,11 +7956,17 @@ function opportunistSettle(actA,actB,snap){
     }
   }
   for(const {h,gain} of pending){
+    /* 2026-09-19 -- THROUGH `abilityBoostRun`. `this.boost(this.effectState.boosts, this.effectState.target)`
+     * (data/abilities.ts opportunist, every one of its six payout doors) passes neither flag, so the
+     * authority writes `|-ability|HOLDER|Opportunist|boost` once above the copied table. No Opportunist
+     * appears in the pinned pool's 250; routed here because the class is the shape, not the name. */
+    const _or=abilityBoostRun(h,h.ability,{isSecondary:false});
     for(const k in gain){
       const b0=h.boosts[k]||0;
       h.boosts[k]=clamp(b0+gain[k],-6,6);
-      if(TR&&h.boosts[k]!==b0)TR.bst(h,k,h.boosts[k]-b0,'[from] ability: '+h.ability);
+      if(h.boosts[k]!==b0)_or.bst(k,h.boosts[k]-b0,false,'[from] ability: '+h.ability);
     }
+    _or.done();
     MEDSEEN.foeBoostCopied++;
   }
 }
@@ -8852,7 +9156,30 @@ function terrainId(t){
  * copy CLAUDE.md's facts-are-global rule exists to stop. Every existing caller passes four arguments
  * and is unaffected. On a SPREAD click it records the last bouncer; only the single-target Defog site
  * reads it, and that is said here rather than left to be discovered. */
-function bounceOff(user,target,moveId,announce,info){
+/* 2026-09-19 -- `ctx` IS OPTIONAL AND IS WHAT LETS THE REFLECTED MOVE BE RE-AIMED.
+ *
+ * A bounce is not a re-aim, it is a WHOLE `useMove` from the bouncer (`useMove(newMove, target,
+ * {target: source})`), and `useMoveInner` calls `pokemon.getMoveTargets(move, target)` for it
+ * (sim/battle-actions.ts:467) -- whose `default:` case runs `priorityEvent('RedirectTarget', ...)`
+ * before returning anything (sim/pokemon.ts:836). So a Follow Me held by the CLICKER'S PARTNER --
+ * which is a FOE of the bouncer, and `followme`'s handler is `onFoeRedirectTarget` -- draws the move
+ * the bouncer just sent back. The authority then rewrites the `|move|` line it already printed
+ * (`if (selectedTarget !== target) this.battle.retargetLastMove(target)`, sim/pokemon.ts:845-847),
+ * which is why the destination is resolved BEFORE the announcement below and not after it.
+ *
+ * COST, MEASURED: rows 5 and 10 of the 34 board partings in the held-out 12,000-game draw on release
+ * `18773c22878f` -- a Fake Tears bounced off a Hatterene landed on the clicking Whimsicott here and
+ * on its Follow Me partner Clefable there, and row 5's next line is a Dazzling Gleam that then
+ * breaks the WRONG body's Focus Sash. Probe: tests/probe_bounced_move_redirect.js.
+ *
+ * `ctx` CARRIES {foes, allies, field}, all three from the CALLER'S frame because this function has
+ * no access to the board: `foes` is the bounced move's foe side (the CLICKER's active array, since
+ * the bouncer now owns the move) and `allies` is the bouncer's own. A caller that does not pass it
+ * keeps the old destination and is COUNTED -- `MEDFAILS.bounceRedirectCtxMissing` -- rather than
+ * silently served, because a silent default here looks exactly like a working feature.
+ *
+ * MEDI_BOUNCE_IGNORES_REDIRECT=1 restores the unconditional `return user`. */
+function bounceOff(user,target,moveId,announce,info,ctx){
   if(!target||target===user||!moveId) return target;
   /* 2026-09-18 -- MAGIC BOUNCE IS `breakable` (data/abilities.ts:2450, no Champions override) and the
    * authority skips its `onTryHit` while the user's move carries `ignoreAbility` (sim/battle.ts:836-840),
@@ -8869,16 +9196,26 @@ function bounceOff(user,target,moveId,announce,info){
   if(!(c&&c.classes&&c.classes.indexOf(flag)>=0)) return target;
   if(!BOUNCE_UNBREAKABLE&&user&&suppressedAbility(user,target)==='none'){
     MEDSEEN.bouncePiercedByMoldBreaker++;return target;}
+  /* WHERE THE REFLECTED MOVE ACTUALLY LANDS -- resolved before the announcement, because the
+   * authority's `retargetLastMove` rewrites the line it has already printed. See the header. */
+  let _dest=user;
+  if(BOUNCE_IGNORES_REDIRECT)MEDFAILS.bounceIgnoresRedirectRestored=1;
+  else if(ctx&&ctx.foes){
+    const _dr=redirectDrawnTo(target,user,ctx.foes,(typeof MC!=='undefined'&&MC.moves)?MC.moves[moveId]:null,
+                              moveId,ctx.field,false,ctx.allies,true);
+    if(_dr&&_dr.to&&_dr.to!==user){_dest=_dr.to;MEDSEEN.bounceRedirected++;}
+  }
+  else MEDFAILS.bounceRedirectCtxMissing++;
   if(announce&&TR){
     /* The label is the ARTIFACT's display name, which is what `Effect#fullname` prints; a record with
        no name is COUNTED and the line goes out bare, because a silent default would look exactly like
        the emitter working. */
     const _rec=TAGS.tagsFor?TAGS.tagsFor('ability',target.ability):null;
-    if(_rec&&_rec.name){MEDSEEN.bounceAnnounced++;TR.mv(target,moveId,user,'[from] ability: '+_rec.name);}
-    else {MEDFAILS.bounceNoName++;TR.mv(target,moveId,user);}
+    if(_rec&&_rec.name){MEDSEEN.bounceAnnounced++;TR.mv(target,moveId,_dest,'[from] ability: '+_rec.name);}
+    else {MEDFAILS.bounceNoName++;TR.mv(target,moveId,_dest);}
   }
   if(info){info.bouncedBy=target;MEDSEEN.bounceSourceRecorded++;}
-  return user;
+  return _dest;
 }
 /* 2026-09-19 -- MAGIC BOUNCE AT STEP 1 FOR THE KINDS THAT NEVER ASKED, AND WHO THE MOVE BELONGS TO AFTERWARDS.
  *
@@ -13908,6 +14245,23 @@ function effMoveType(mv,moveId,field,att){
    * in the authority: the move's own handler runs and there is nothing Normal left to convert. */
   {const _st=moveId&&TAGS.param('move',moveId,'setsOwnTypeAlways');
    if(_st&&_st.type) return _st.type;}
+  /* 2026-09-19 -- A VOLATILE THE ATTACKER IS CARRYING REWRITES THE TYPE, AND IT WINS OVER EVERY
+   * REWRITE BELOW. Electrify is this format's only member (`volatileRetypesMoves`, derived; the
+   * membership is printed by engine/tag_dex.js on every run and is ONE row).
+   *
+   * IT SITS HERE, ABOVE THE FORME / `-ate` / WEATHER / TERRAIN BRANCHES, BECAUSE THE AUTHORITY'S OWN
+   * PRIORITY SAYS SO. `onModifyTypePriority: -2` (data/moves.ts:4576) runs LAST in a `runEvent` that
+   * sorts DESCENDING, so it overwrites whatever Pixilate, Weather Ball or Terrain Pulse had just
+   * written. Three of those four branches `return` their answer, so a check placed at the bottom of
+   * this function would be unreachable for exactly the moves the rewrite matters most on.
+   *
+   * IT IS BELOW `setsOwnTypeAlways` AND THAT IS NOT A CONTRADICTION: the one member there is
+   * Struggle, which this handler's own guard skips by name, so the two can never both apply. The
+   * exemption is read off the table rather than spelled here.
+   *
+   * MEDI_ELECTRIFY_NO_RETYPE=1 restores the un-modelled path (the volatile is written and no type
+   * reader asks about it) for the red arm. */
+  {const _vr=volatileRetypeOf(att,moveId); if(_vr) return _vr;}
   /* 2026-08-12 -- A MOVE WHOSE TYPE IS KEYED ON THE USER'S FORME. Raging Bull and Aura Wheel.
    *
    * MEASURED before the tag existed: all four Tauros formes dealt NORMAL damage, so a
@@ -14378,6 +14732,15 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
        if(_tsT.anyTerrainBPMult)mvBP=Math.floor(mvBP*+_tsT.anyTerrainBPMult);
      }
    }}
+  /* 2026-09-19 -- AND THE VOLATILE RETYPE IS THE LAST WORD ON THE TYPE, HERE AS IN `effMoveType`.
+   * `onModifyTypePriority: -2` runs after every handler above -- the forme rewrite, the `-ate`
+   * conversion, Weather Ball's sky and Terrain Pulse's floor -- so it is applied after all four and
+   * it touches the TYPE ONLY. The base-power multipliers those blocks wrote stay: Electrify rewrites
+   * `move.type` and never `move.basePower`, so an electrified Weather Ball in sun is still the
+   * doubled-power click, thrown as Electric. `_ateMult` is likewise left standing, because the
+   * authority's `onBasePower` for the `-ate` ability has already been registered by the time the
+   * type is overwritten. */
+  {const _vr=volatileRetypeOf(att,mv.id); if(_vr)mvT=_vr;}
   /* WIRE 9 -- the death counter, both freshness rules (Will's split). Last Respects reads the
    * side's LIVE count at each use; Supreme Overlord multiplies by the snapshot FROZEN at this
    * attacker's entry. Both zero when no counter is attached (site calls, unit tests). */
@@ -14916,8 +15279,35 @@ function dmgRangeOneHit(att,def,mv,field,spread,isCrit,hit,hitNo,hitsOverride,pe
    *
    * Defence-raising only. Neither weather boosts the matching ATTACK, which is the natural
    * mis-statement of the rule and would be wrong in the opposite direction. */
-  if(phys&&field.weather==='snow'&&def.types.includes('Ice'))DCH(1.5);
-  if(!phys&&field.weather==='sand'&&def.types.includes('Rock'))DCH(1.5);
+  /* 2026-09-19 -- AND THEY ARE GATED ON THE *STAT*, NOT ON THE CATEGORY. Both lines used to read
+   * `phys` / `!phys`, which is the category of the MOVE. The authority's two handlers are
+   * `onModifyDef` and `onModifySpD` (data/conditions.ts:707-711 snowscape, :663-667 sandstorm) and
+   * which of them a hit runs is decided by `defenseStat` in sim/battle-actions.ts:1676+1709:
+   *
+   *     const defenseStat = move.overrideDefensiveStat || (isPhysical ? 'def' : 'spd');
+   *     defense = this.battle.runEvent('Modify' + statTable[defenseStat], target, source, move, defense);
+   *
+   * `overrideDefensiveStat` WINS, and this format has exactly one such move -- Psyshock, Special,
+   * reading Def (derived: it is the only `statSwap.attackInto` row in data/tags.json). So the
+   * category gate was wrong in BOTH directions at once: a Psyshock into an Ice body in snow missed
+   * the x1.5 (we overkilled), and the same Psyshock into a Rock body in sand took a x1.5 the
+   * authority never applies (we under-damaged).
+   *
+   * `_dKey` above IS the authority's `defenseStat` -- the same expression, already honoured by the
+   * stat-multiplier chain, by Wonder Room and by the boost stages. These two lines were the only
+   * readers of the category where every neighbour reads the stat.
+   *
+   * COST, MEASURED: rows 11 and 16 of the 34 board partings in the held-out 12,000-game draw on
+   * release `18773c22878f` (data/verification/game-differential.g12000.json) are both a Psyshock
+   * into a Froslass standing in its own Snow Warning snow -- 76 damage on the authority against our
+   * 114 in one, and a KO that the authority does not make in the other.
+   *
+   * Probe: tests/probe_weather_defence_stat.js. Knob: MEDI_WEATHER_DEF_BY_CATEGORY=1 restores the
+   * category gate; stamped at LOAD in MEDFAILS.weatherDefByCategoryRestored. */
+  const _wDefGate=WEATHER_DEF_BY_CATEGORY?phys:(_dKey==='df');
+  const _wSpdGate=WEATHER_DEF_BY_CATEGORY?!phys:(_dKey==='sd');
+  if(_wDefGate&&field.weather==='snow'&&def.types.includes('Ice'))DCH(1.5);
+  if(_wSpdGate&&field.weather==='sand'&&def.types.includes('Rock'))DCH(1.5);
   /* ONE READ OF THE ATTACKER'S ABILITY, reused. The ratcheted raw-identity count is a fitness
      function, not a style rule: it fired when the Infiltrator check below added a 235th raw read
      against a baseline of 234. Hoisting is the fix rather than a re-baseline -- the value cannot
@@ -17274,6 +17664,20 @@ const STALL_LAPSE_OFF_RESIDUAL=(typeof process!=='undefined'&&process.env&&proce
  * as MEDI_STALL_LAPSE_OFF_RESIDUAL above. */
 const STALL_LAPSE_AT_RESIDUAL_OPEN=(typeof process!=='undefined'&&process.env
                                     &&process.env.MEDI_STALL_LAPSE_AT_RESIDUAL_OPEN==='1');
+/* 2026-09-19 -- THE FOURTH `stall` KNOB, AND IT IS ABOUT THE SHAPE OF THE SWEEP RATHER THAN ITS PLACE.
+ *
+ * The three above all move ONE all-or-nothing pass to a different moment. That pass is itself wrong:
+ * `fieldEvent` walks the `stall` handlers one at a time in SPEED order and returns the instant one
+ * that did not expire finds the battle over (sim/battle.ts:517-525 and :564-566), so a counter can be
+ * spent on a fast body and left standing on a slow one INSIDE ONE RESIDUAL. See `_stallExpire` for the
+ * full derivation and for the held-out game that parted a board on it.
+ *
+ * MEDI_STALL_SWEEP_UNORDERED=1 restores the pass that walked `[...actA,...actB]` in slot order and
+ * never stopped. Any run carrying it also carries a non-zero `MEDFAILS.stallSweepUnorderedRestored`.
+ * tests/probe_stall_sweep_order.js --  the child arm under this knob must be RED. */
+const STALL_SWEEP_UNORDERED=(typeof process!=='undefined'&&process.env
+                             &&process.env.MEDI_STALL_SWEEP_UNORDERED==='1');
+if(STALL_SWEEP_UNORDERED)MEDFAILS.stallSweepUnorderedRestored=1;
 /* 2026-08-29 -- MEDI_SHIELD_NO_REARM=1 PUTS BACK THE ARMING THAT ONLY EVER RAN AT THE TOP OF THE TURN.
  *
  * `_armShieldGate` was three `if` branches inside the pre-pass, so `_shieldPending` / `_guardPending` /
@@ -17424,6 +17828,20 @@ const GUARD_NO_HITPROTECT=(typeof process!=='undefined'&&process.env&&process.en
  * spread arms parting and both single-body controls holding. Any run carrying it also carries a
  * non-zero `MEDFAILS.secAddrPerTargetRestored`. Same shape as MEDI_GUARD_NO_HITPROTECT above. */
 const SEC_ADDR_PER_TARGET=(typeof process!=='undefined'&&process.env&&process.env.MEDI_SEC_ADDR_PER_TARGET==='1');
+/* 2026-09-19 -- MEDI_SEC_ADDR_IGNORES_SELFDROP=1 LEAVES THE SECONDARY ADDRESS ON THE LAST BODY OF THE
+ * SPREAD EVEN WHEN THE MOVE CARRIES A `self:` BLOCK, which is what this engine did until today.
+ *
+ * The authority's step 4 (`selfDrops`) calls `moveHit(source, source, ...)`, and the restore of
+ * `activeTarget` sits BELOW step 5 (battle-actions.ts:1093-1101) -- so on a `self:` move every
+ * secondary roll is addressed to the USER. See `_stepSelfPay` for the measured addresses and the game.
+ *
+ * SAME KNOB SHAPE AND SAME CLASS as MEDI_SEC_ADDR_PER_TARGET above: it is an INSTRUMENT knob, `MID_TGT`
+ * is read by `midEventDraw` alone, and no self-play game, rollout or seeded census probe can observe
+ * either arm. Stamped at LOAD, so a probe can prove the knob reached the module the driver played
+ * before it classifies an arm. tests/probe_sec_addr_selfdrop.js is the instrument. */
+const SEC_ADDR_IGNORES_SELFDROP=(typeof process!=='undefined'&&process.env
+                                 &&process.env.MEDI_SEC_ADDR_IGNORES_SELFDROP==='1');
+if(SEC_ADDR_IGNORES_SELFDROP)MEDFAILS.secAddrIgnoresSelfDropRestored=1;
 /* 2026-09-06 -- MEDI_REACT_ADDR_PER_TARGET=1 ADDRESSES EVERY `DamagingHit` REACTION TO THE BODY THE
  * HANDLER IS RUNNING ON AGAIN, which is what this engine did until today and which the authority does
  * NOT do. It is the SAME KNOB SHAPE as MEDI_SEC_ADDR_PER_TARGET above and for the same reason: it is
@@ -17529,6 +17947,13 @@ const CUD_SURVIVES_SWITCH=(typeof process!=='undefined'&&process.env&&process.en
 /* 2026-09-19 -- MEDI_COPYCAT_IGNORES_FAILCOPYCAT=1 RESTORES THE DEFECT: Copycat calls a `failcopycat` last move. Any run carrying it
  * where it bites carries a non-zero `MEDFAILS.copycatRefusalIgnoredRestored`. Probe: tests/probe_protean_contrary.js. */
 const COPYCAT_IGNORES_FAILCOPYCAT=(typeof process!=='undefined'&&process.env&&process.env.MEDI_COPYCAT_IGNORES_FAILCOPYCAT==='1');
+/* 2026-09-19 -- MEDI_FAILED_MOVE_NOT_LAST=1 RESTORES THE DEFECT: the field's "what did anybody just click" only
+ * commits a move whose RESULT was not false, so a `-fail`ing click is skipped and a caller reaches back past it.
+ * STAMPED AT LOAD (`MEDFAILS.failedMoveNotLastRestored`), because the gate's absence is what has to be checkable --
+ * a knob that only stamps where it bites reads identical to an unbound one on a fixture that never reaches the site.
+ * Probe: tests/probe_called_move_last_move.js. */
+const FAILED_MOVE_NOT_LAST=(typeof process!=='undefined'&&process.env&&process.env.MEDI_FAILED_MOVE_NOT_LAST==='1');
+if(FAILED_MOVE_NOT_LAST)MEDFAILS.failedMoveNotLastRestored=1;
 /* 2026-08-24 -- MEDI_NO_BEFOREMOVE_LINE=1 STOPS THE ENGINE WRITING A CONDITION'S `onBeforeMove` LINE,
  * i.e. Chilly Reception's `|-prepare|...|[premajor]` disappears from above its own `|move|` line, as
  * it was until today. Any run carrying it also carries a non-zero
@@ -18274,6 +18699,45 @@ if(SWALLOW_REFUSALS)MEDFAILS.swallowedRefusalsRestored=1;
 const RECOIL_ON_A_CORPSE=(typeof process!=='undefined'&&process.env
                           &&process.env.MEDI_RECOIL_ON_A_CORPSE==='1');
 if(RECOIL_ON_A_CORPSE)MEDFAILS.recoilOnCorpseRestored=1;
+/* 2026-09-19 -- MEDI_RECOIL_ON_A_WHIFF=1 TAKES THE `move.totalDamage` GATE BACK OUT OF THE MAX-HP
+ * RECOIL PAYMENT, i.e. the engine exactly as it stood before: a Struggle that hit nothing -- a body
+ * gone semi-invulnerable -- still charges its user a quarter of its own maximum, and still says so.
+ * It reverts the GATE and not the tag, so Steel Beam (which declares an `onMoveFail` and is charged
+ * by the authority either way) is unmoved under it -- that is what makes the red arm specific to the
+ * member that has no second site. See the max-HP recoil block; any run carrying it also carries
+ * `MEDFAILS.recoilOnWhiffRestored = 1`. Stamped at LOAD TIME. */
+const RECOIL_ON_A_WHIFF=(typeof process!=='undefined'&&process.env
+                         &&process.env.MEDI_RECOIL_ON_A_WHIFF==='1');
+if(RECOIL_ON_A_WHIFF)MEDFAILS.recoilOnWhiffRestored=1;
+/* 2026-09-19 -- MEDI_TRAP_SURVIVES_DEAD_TRAPPER=1 TAKES THE RELEASE BACK OUT OF `noteFaint`, i.e. the
+ * engine exactly as it stood before: the hard trap is freed only when a REPLACEMENT is brought in,
+ * so a trapper that dies as the last body of its side holds its victim to the end of the game. It
+ * leaves `bringIn`'s release alone on purpose -- that road was already right, and a knob that
+ * reverted both would let a fix at either end look like a pass. See `releaseTrapsHeldBy`; any run
+ * carrying it also carries `MEDFAILS.trapSurvivesDeadTrapperRestored = 1`. Stamped at LOAD TIME. */
+const TRAP_SURVIVES_DEAD_TRAPPER=(typeof process!=='undefined'&&process.env
+                                  &&process.env.MEDI_TRAP_SURVIVES_DEAD_TRAPPER==='1');
+if(TRAP_SURVIVES_DEAD_TRAPPER)MEDFAILS.trapSurvivesDeadTrapperRestored=1;
+/* 2026-09-19 -- MEDI_PARTIAL_TRAP_OUTLIVES_SOURCE=1 TAKES THE `!source.activeTurns` CLAUSE BACK OUT
+ * of the partial trap's residual, i.e. the engine exactly as it stood before: a trapper that stepped
+ * off the field and was put back on it inside the same turn keeps its Infestation running, and the
+ * victim is chipped where the authority has already written `-end ... [silent]`. The `isActive` half
+ * of the predicate is untouched under it, so the red arm is the third clause alone. Any run carrying
+ * it also carries `MEDFAILS.partialTrapOutlivesItsSourceRestored = 1`; it is stamped at LOAD TIME as
+ * well as at the site, because a run that never staged the case must still be able to say it was
+ * carrying the knob. */
+const PARTIAL_TRAP_OUTLIVES_SOURCE=(typeof process!=='undefined'&&process.env
+                                    &&process.env.MEDI_PARTIAL_TRAP_OUTLIVES_SOURCE==='1');
+if(PARTIAL_TRAP_OUTLIVES_SOURCE)MEDFAILS.partialTrapOutlivesItsSourceRestored=1;
+/* 2026-09-19 -- MEDI_AFTERMOVE_CURE_OFF=1 TAKES THE `onAfterMove` CURE BACK OUT, i.e. the engine
+ * exactly as it stood before: Sparkling Aria writes its mark on every body it hits and cures nobody,
+ * so a burned target it hit stays burned and the authority's `-curestatus ... [msg]` is never
+ * written. The MARK is still written under the knob -- that half was always there, and reverting it
+ * too would make the red arm about the secondary rather than about the cure. Any run carrying it
+ * also carries `MEDFAILS.afterMoveCureOffRestored = 1`. Stamped at LOAD TIME. */
+const AFTERMOVE_CURE_OFF=(typeof process!=='undefined'&&process.env
+                          &&process.env.MEDI_AFTERMOVE_CURE_OFF==='1');
+if(AFTERMOVE_CURE_OFF)MEDFAILS.afterMoveCureOffRestored=1;
 /* NARRATION BATCH T, 2026-09-09 -- MEDI_YAWN_THROUGH_SAFEGUARD=1 TAKES THE DROWSE REFUSAL BACK OUT,
  * i.e. the engine exactly as it stood before batch T: a Yawn aimed at a body standing behind a
  * Safeguard LANDS, and that body falls asleep two turns later where the authority never sleeps it.
@@ -21453,11 +21917,21 @@ function absorbGift(tg,_ab){
     const _h=_ab.gain.heal&&String(_ab.gain.heal).match(/1\/(\d+)/);
     if(_h){const _p0=tg.curHP;tg.curHP=Math.min(tg.st.hp,tg.curHP+Math.floor(tg.st.hp/(+_h[1])));
       if(tg.curHP>_p0){_gift=true;if(TR)TR.heal(tg,'[from] ability: '+tg.ability);}}
-    if(_ab.gain.boosts&&tg.boosts)for(const k in _ab.gain.boosts){
-      const _s=SD2ENG[k];if(_s&&tg.boosts[_s]!=null){const _b0=tg.boosts[_s];
-        tg.boosts[_s]=clamp(tg.boosts[_s]+_ab.gain.boosts[k],-6,6);
-        if(tg.boosts[_s]!==_b0)_gift=true;
-        if(TR)TR.bst(tg,_s,tg.boosts[_s]-_b0,'[from] ability: '+tg.ability);}
+    /* 2026-09-19 -- THROUGH `abilityBoostRun`, the one announce-then-boost road. `this.boost({spa: 1})`
+     * inside lightningrod's own `onTryHit` (data/abilities.ts:4243; motordrive and sapsipper are the
+     * same shape) passes NEITHER isSecondary NOR isSelf, so `boosted` starts false and the authority
+     * writes `|-ability|TARGET|Lightning Rod|boost` above the `-boost`. This engine wrote no line at
+     * all: 12 games of the pinned pool's 250 (lightningrod 10, sapsipper 2). The zero flag stays
+     * FALSE for the same reason -- neither isSecondary nor isSelf means :2075 writes nothing either. */
+    if(_ab.gain.boosts&&tg.boosts){
+      const _gr=abilityBoostRun(tg,tg.ability,{isSecondary:false});
+      for(const k in _ab.gain.boosts){
+        const _s=SD2ENG[k];if(_s&&tg.boosts[_s]!=null){const _b0=tg.boosts[_s];
+          tg.boosts[_s]=clamp(tg.boosts[_s]+_ab.gain.boosts[k],-6,6);
+          if(tg.boosts[_s]!==_b0)_gift=true;
+          _gr.bst(_s,tg.boosts[_s]-_b0,false,'[from] ability: '+tg.ability);}
+      }
+      _gr.done();
     }
     /* 2026-08-29 -- ~~FLASH FIRE'S GIFT IS A VOLATILE AND THIS ENGINE DOES NOT GRANT IT~~ IT DOES NOW.
      *
@@ -21962,6 +22436,100 @@ function abilityZeroAnnounces(secondaryOrSelf){
   if(NO_ABILITY_ZERO_BOOST){MEDFAILS.abilityZeroBoostRestored=1;return false;}
   return true;
 }
+/* 2026-09-19 -- THE ABILITY ANNOUNCES ITSELF ABOVE THE FIRST STAT LINE IT CAUSES. ONE PLACE.
+ *
+ * THE AUTHORITY, READ WHOLE (sim/battle.ts:2017-2085, `Battle#boost`; `data/mods/champions/scripts.ts`
+ * overrides no `boost` -- grepped, the file's only `boost` hits are the accuracy/evasion stage table
+ * and a `ModifyBoost` read). The loop walks the table one stat at a time:
+ *
+ *     let boosted = isSecondary;                                                            // :2034
+ *     for (boostName in boost) {
+ *       let boostBy = target.boostBy(currentBoost);        // the APPLIED delta, after the +-6 clamp
+ *       let msg = '-boost';
+ *       if (boost[boostName] < 0 || target.boosts[boostName] === -6) { msg='-unboost'; boostBy=-boostBy; }
+ *       if (boostBy) {
+ *         switch (effect?.id) {
+ *         case 'bellydrum': case 'angerpoint':  this.add('-setboost', ...); break;          // :2047
+ *         ...
+ *         default:
+ *           if (!effect) break;
+ *           if (effect.effectType === 'Move') { this.add(msg, target, boostName, boostBy); }
+ *           else if (effect.effectType === 'Item') { this.add(msg, ..., '[from] item: '+effect.name); }
+ *           else {
+ *             if (effect.effectType === 'Ability' && !boosted) {
+ *               this.add('-ability', target, effect.name, 'boost');                          // :2066
+ *               boosted = true;
+ *             }
+ *             this.add(msg, target, boostName, boostBy);                                     // :2069
+ *           }
+ *         }
+ *       } else if (effect?.effectType === 'Ability') {
+ *         if (isSecondary || isSelf) this.add(msg, target, boostName, boostBy);               // :2075
+ *       } ...
+ *
+ * FOUR CLAUSES, AND EVERY ONE OF THEM IS A RULE THIS FUNCTION KEEPS:
+ *   1. THE ANNOUNCE COMES FIRST, above the `-boost`/`-unboost` line, never after it.
+ *   2. ONCE PER `boost()` CALL, not once per stat -- Weak Armor's `{def:-1, spe:+2}` is one call and
+ *      one line. So this is a RUN object the caller holds for the length of its own table, and a
+ *      caller that boosts twice (Moody's +2 then -1 is ONE call; a multi-hit move's per-hit buff is
+ *      MANY) makes one run per authority call.
+ *   3. IT SITS INSIDE `if (boostBy)`. A stat already at +6 or -6 applies zero, so it neither announces
+ *      NOR arms the flag -- the authority falls through to the `else if` at :2074, which writes the
+ *      zero line (on a secondary or a self) and NO ability line. That is the Defiant-at-the-cap case:
+ *      this engine announced unconditionally and the authority refuses, 4 games of the pinned pool's
+ *      250 (docs/_reports/2026-09-19-ability-line-blindness.md §3c).
+ *   4. `boosted` STARTS AT `isSecondary`, so a handler that passes `isSecondary: true` announces
+ *      nothing at all from here. Intimidate, Supersweet Syrup and Mirror Armor are that case and each
+ *      writes its OWN `-ability` line in its handler, above `this.boost(...)`; Gooey is that case with
+ *      no line of its own. The caller passes what it knows about its own handler, exactly as
+ *      `abilityZeroAnnounces` above takes the same flag rather than assuming one.
+ *
+ * MEMBERSHIP IS NOT A LIST AND IS NOT IN THIS FUNCTION. Every ability-sourced stat change in this file
+ * is routed here, and each of those sites finds its ability THROUGH `data/tags.json` -- so an ability
+ * added to `buffsHolderOnHit`, `boostsEachTurn`, `typeImmunity.gain.boosts`, `boostsOnFlinch`,
+ * `copiesFoeBoosts`, `punishesAttacker` or `boostsWhenLowered` announces with no edit here.
+ * tests/probe_ability_boost_announce.js and the `abilityBoostAnnounce` census row DERIVE that set out
+ * of `data/tags.json` -- every ability whose tag params carry a `boosts` table, Moody's `randomStat`
+ * or a `stat`+`stages` pair, walked to any depth -- and PRINT it on every run, so the class can be
+ * inspected rather than trusted.
+ *
+ * WHAT IS DELIBERATELY NOT ROUTED HERE: the `-setboost` family (`case 'angerpoint'` at :2047 breaks
+ * before the `default` branch is ever reached, so Anger Point announces NOTHING) and any stat change
+ * whose effect is a MOVE or an ITEM (:2060-2063, two branches above this one).
+ *
+ * `MEDI_ABILITY_BOOST_SILENT=1` restores the pre-fix engine: no announcement anywhere on this road,
+ * and Defiant/Competitive announcing unconditionally at their own call site. */
+function abilityBoostRun(body,ab,opts){
+  const _o=opts||{};
+  const _id=String(ab||'').replace(/[^a-z0-9]/gi,'').toLowerCase();
+  /* `let boosted = isSecondary` -- sim/battle.ts:2034. */
+  let said=!!_o.isSecondary;
+  let any=false;
+  return {
+    /* ONE STAT OF THE TABLE. `d` is the APPLIED delta (post-clamp), signed; `zero` is the caller's own
+     * `isSecondary || isSelf` answer for the zero line, unchanged from `TR.bst`'s contract. Returns
+     * true when THIS call wrote the announcement, so a site keeping its own counter still can. */
+    bst(st,d,zero,from){
+      let wrote=false;
+      if(d&&!said){
+        said=true;any=true;
+        if(ABILITY_BOOST_SILENT)MEDFAILS.abilityBoostAnnounceRestored=1;
+        else{
+          MEDSEEN.abilityBoostAnnounced++;wrote=true;
+          if(!MEDSEEN.abilityBoostAnnouncedFirst)
+            MEDSEEN.abilityBoostAnnouncedFirst=String((body&&body.name)||'?')+'/'+_id;
+          if(TR)TR.ab(body,_id,'boost');
+        }
+      } else if(d) any=true;
+      if(TR)TR.bst(body,st,d,from||'',zero);
+      return wrote;
+    },
+    /* Called by the site when its table is done, so a run that announced nothing is VISIBLE rather
+     * than indistinguishable from a road nobody walked. */
+    done(){ if(!any&&!_o.isSecondary)MEDSEEN.abilityBoostRunsSilent++; return any; },
+    announced(){return said;}
+  };
+}
 function retaliateWhenLowered(f,src){
   if(!f||f.fainted||!f.boosts)return false;
   const ab=(f.ability||'').replace(/[^a-z0-9]/g,'');
@@ -21975,7 +22543,16 @@ function retaliateWhenLowered(f,src){
   }
   const bo=p.boosts||(ab==='defiant'?{atk:2}:ab==='competitive'?{spa:2}:null);
   if(!bo)return false;
-  if(TR)TR.ab(f,ab,'boost');
+  /* 2026-09-19 -- THE ANNOUNCEMENT IS NO LONGER UNCONDITIONAL, AND THAT WAS A REAL DIVERGENCE.
+   * `TR.ab(f,ab,'boost')` stood here above the loop, so a Defiant body whose Attack was already at +6
+   * announced an ability the authority stays silent about: its announce sits inside `if (boostBy)`
+   * (sim/battle.ts:2065) and a capped stat applies zero. 4 games of the pinned pool's 250
+   * (docs/_reports/2026-09-19-ability-line-blindness.md §3c, `extra event emitted by medicham2`).
+   * `abilityBoostRun` now owns the decision for every ability-sourced stat change in this file.
+   * `isSecondary:false` because both legal carriers pass `(target, target, null, false, true)` --
+   * isSELF, not isSecondary -- which is the same fact `abilityZeroAnnounces(true)` below reads. */
+  const _run=abilityBoostRun(f,ab,{isSecondary:false});
+  if(ABILITY_BOOST_SILENT&&TR)TR.ab(f,ab,'boost');            /* the pre-fix engine, verbatim */
   /* NARRATION BATCH R -- `isSelf`, so a retaliation the cap swallows STILL announces at magnitude
    * zero. Four of the batch's NARRATION-ONLY causes are this one line: a Defiant body at +6 takes
    * Parting Shot's second drop and the authority writes `|-boost|pXY|atk|0`. Both legal carriers
@@ -21988,7 +22565,8 @@ function retaliateWhenLowered(f,src){
       MEDSEEN.abilityZeroBoostAnnounced++;
       if(!MEDSEEN.abilityZeroBoostAnnouncedFirst)
         MEDSEEN.abilityZeroBoostAnnouncedFirst=String(f.name)+'/'+ab+'/'+_s;}
-    if(TR)TR.bst(f,_s,_d,'',_zeroSays);}}
+    _run.bst(_s,_d,_zeroSays);}}
+  _run.done();
   MEDSEEN.retaliateWhenLowered++;
   return true;
 }
@@ -23345,8 +23923,12 @@ function volStartArg(who,a){
  */
 /* `info` -- see `bounceOff`. Optional, forwarded rather than re-derived, so the ONE place that
  * knows a bounce happened is the one place that reports it. */
-function statusMoveTargets(m,mvId,aTarget,it,actA,actB,announce,info){
+function statusMoveTargets(m,mvId,aTarget,it,actA,actB,announce,info,field){
   let _tl;
+  /* 2026-09-19 -- THE BOUNCE CONTEXT. A reflected move is the BOUNCER's, so its foe side is the
+   * CLICKER's active array and its ally side is the bouncer's. `bounceOff` needs both to re-run
+   * target selection for it; without them it counts itself as unserved and keeps the old answer. */
+  const _bctx={foes:it.side==='A'?actA:actB, allies:it.side==='A'?actB:actA, field:field};
         const _spF=TAGS.param('move',mvId,'spreadFoes'), _spA=TAGS.param('move',mvId,'spreadAll');
         /* WIRE 153 -- A SELF-TARGETING STATUS MOVE CLICKED WITH NO TARGET FAILED OUTRIGHT. 2026-08-10.
          *
@@ -23402,7 +23984,7 @@ function statusMoveTargets(m,mvId,aTarget,it,actA,actB,announce,info){
           /* Magic Bounce is asked of each body separately, exactly as it is on the single-target
              path below, and the result is de-duplicated by identity: two bouncers on one side would
              otherwise send the same move back at its user twice. */
-          _tl=_tl.map(x=>bounceOff(m,x,mvId,announce,info)).filter((x,i,arr)=>x&&arr.indexOf(x)===i);
+          _tl=_tl.map(x=>bounceOff(m,x,mvId,announce,info,_bctx)).filter((x,i,arr)=>x&&arr.indexOf(x)===i);
           if(_tl.length>1)MEDSEEN.spreadStatusTargets++;
         } else {
         /* WIRE 139 -- THE SLOT, BEFORE ANYTHING ELSE LOOKS AT THE BODY. This branch is where Charm,
@@ -23413,7 +23995,7 @@ function statusMoveTargets(m,mvId,aTarget,it,actA,actB,announce,info){
          * dropped a body sitting on the BENCH. */
           let _t0=reaimToSlot(aTarget,it,actA,actB,mvId);
           _t0=_t0&&!_t0.fainted&&_t0.curHP>0?_t0:null;
-          _t0=bounceOff(m,_t0,mvId,announce,info);
+          _t0=bounceOff(m,_t0,mvId,announce,info,_bctx);
           _tl=_t0?[_t0]:[];
         }
   return _tl;
@@ -24317,6 +24899,50 @@ function confusionBeforeMove(m,rng,_R){
  * Glide's +1 already reads field.terrain and could never see one). */
 /* `ally` is optional and is what Hospitality needs: an entry effect that touches the PARTNER, not
  * the field. Every existing caller passes two arguments and is unaffected. */
+/* 2026-09-19 -- THE ENTRY ANNOUNCEMENT THAT OUTRANKS THE ENTRY HAZARDS, AND THIS ENGINE HAD IT BELOW
+ * THEM. One `ordering` card in the pinned pool on release 18773c22878f:
+ *     ordering :: |-ability|p2a|unnerve <> |-damage|p2a|H/H|[from]stealthrock
+ *
+ * THE AUTHORITY'S ORDER IS A SORT, NOT A RULE ABOUT ABILITIES. `runSwitch` fires ONE
+ * `fieldEvent('SwitchIn', switchersIn)` (sim/battle-actions.ts:184) and everything the entry does is a
+ * handler in it: the entrant's own ability through `findPokemonEventHandlers` (and an ability's
+ * `onStart` IS its `onSwitchIn` from gen 5 on -- `getCallback`, sim/battle.ts:1018-1032), the side's
+ * hazards through `findSideEventHandlers(side,'onSwitchIn',undefined,active)` (:502). The list is
+ * `speedSort`ed, and `comparePriority` (:404-411) compares
+ *     order, then PRIORITY, then speed, then subOrder, then effectOrder.
+ * `resolvePriority` sets `priority = effect.onSwitchInPriority || 0` (:953) and, absent an explicit
+ * subOrder, gives a SIDE CONDITION 4 and an ABILITY 7 (:957-987). Both handlers are held by the same
+ * body, so the speeds tie -- which is why the DEFAULT ability loses to the rocks on subOrder and this
+ * engine's hazards-then-ability order is right for it -- and why a POSITIVE `onSwitchInPriority` wins
+ * before subOrder is ever reached.
+ *
+ * READ OFF THE TAG, NEVER A NAME: `announcesOnStart.switchInPriority`, which engine/tag_dex.js takes
+ * from the ability's own `onSwitchInPriority`. Over this regulation's legal carriers the positive
+ * members are Unnerve (+1) and Klutz (+1); Klutz's onStart writes no line (data/abilities.ts:2273-2275,
+ * it only ends its own item), so Unnerve's is the only line that moves. Every negative member (Forecast,
+ * Hospitality, Mimicry) stays below the hazards, which is where it already was.
+ *
+ * AN ENTRANT THE HAZARD KILLS STILL SPOKE. The authority's `fieldEvent` skips a FAINTED holder's later
+ * handlers (:512-513), and a +1 handler has already run by then -- so the line stands above a `|faint|`
+ * and the body's Intimidate, Trace and entry drops are still correctly skipped by `runEntryPass`.
+ *
+ * MEDI_START_ANNOUNCE_AFTER_HAZARDS=1 puts the line back below the hazards. */
+function startAnnounceEarly(nx){
+  if(!nx||nx._startAnnEarly)return false;
+  const _st=TAGS.param('ability',nx.ability,'announcesOnStart');
+  if(!_st||_st.event!=='-ability')return false;
+  /* A tags.json generated before `switchInPriority` existed would answer `undefined` for every member,
+   * and treating that as 0 silently is the fallback CLAUDE.md calls a working feature. It is COUNTED. */
+  if(_st.switchInPriority===undefined){MEDFAILS.startAnnouncePriorityMissing++;return false;}
+  if(!(_st.switchInPriority>0))return false;
+  if(START_ANNOUNCE_AFTER_HAZARDS){MEDFAILS.startAnnounceAfterHazardsRestored=1;return false;}
+  if(START_ANNOUNCE_SILENT){MEDFAILS.startAnnounceSilentRestored=1;return false;}
+  if(nx.fainted||nx.curHP<=0)return false;
+  nx._startAnnEarly=true;
+  MEDSEEN.startAnnounced++;MEDSEEN.startAnnouncedEarly++;
+  if(TR)TR.ab(nx,nx.ability);
+  return true;
+}
 function applyEntryEffects(m,field,ally){
   if(!m)return;
   /* 2026-09-19 -- THE ABILITY SAYS ITS OWN NAME AS IT STARTS, AND THIS ENGINE NEVER DID.
@@ -24343,6 +24969,11 @@ function applyEntryEffects(m,field,ally){
   {const _st=TAGS.param('ability',m.ability,'announcesOnStart');
    if(_st&&_st.event==='-ability'&&!m.fainted&&m.curHP>0){
      if(START_ANNOUNCE_SILENT)MEDFAILS.startAnnounceSilentRestored=1;
+     /* 2026-09-19 -- ALREADY SAID, ABOVE THE HAZARDS. `startAnnounceEarly` speaks for a member whose
+      * `onSwitchInPriority` is POSITIVE and leaves this flag behind; the flag is consumed here so the
+      * line is written ONCE per Start and the mega / copy / swap roads, which never set it, still
+      * announce from this site. */
+     else if(m._startAnnEarly)m._startAnnEarly=false;
      else{MEDSEEN.startAnnounced++;if(TR)TR.ab(m,m.ability);}
    }}
   /* HOSPITALITY -- Sinistcha and Gardevoir, 4,968 uses, and the third most common ability in the
@@ -24448,7 +25079,7 @@ function applyEntryEffects(m,field,ally){
   {const _ao=TAGS.param('ability',m.ability,'announcesOnEntry');
    if(_ao){
      const _em=_ao.emits||null;
-     if(_em&&_em.event==='-item'&&_em.on==='foe'){
+     if(_em&&_em.event==='-item'&&_em.on==='foe'&&!FRISK_SILENT){
        const _S=m._sf&&m._sf._S;
        const _foes=_S?((m._sf===_S.sfA)?_S.actB:_S.actA):null;
        for(const _f of (_foes||[])){
@@ -25790,15 +26421,23 @@ function endAbsorbGiftVolatile(m,where,ab){
   if(TR)TR.vend(m,(_g.volatileBoost.announce)||('ability: '+_ab),'[silent]');
   return true;
 }
+/* 2026-09-19 -- IT RETURNS THE OUTGOING ABILITY, because the authority's line names it and four call
+ * sites would otherwise each have to re-derive "what was there a moment ago". `Pokemon#setAbility`
+ * reads `oldAbility` at sim/pokemon.ts:1919 and RETURNS `oldAbility.id` at :1950, and every caller in
+ * data/moves.ts binds it (`const oldAbility = target.setAbility(...)`) -- so this is the authority's
+ * own signature and not a convenience. It matters most on the SUPPRESSED road: upstream the parked
+ * ability is still `pokemon.ability`, so it is what `oldAbility` reads, and only this function knows
+ * where this engine keeps it. `''` when there was no body and nothing was written. */
 function abRewrite(m,ab){
-  if(!m)return;
+  if(!m)return '';
   /* 2026-09-19 -- A SUPPRESSED BODY'S REWRITE LANDS ON THE PARK. Upstream `setAbility` changes `pokemon.ability`
    * and leaves `volatiles.gastroacid` standing, so the new ability is ignored too; the End of the parked one
    * already ran when it was suppressed. See `abSuppress`. */
   if(m._abParked!=null){
+    const _parked=String(m._abParked);
     if(String(m._abParked)!==String(ab)){ if(m._preAb===undefined)m._preAb=m._abParked; m._abParked=String(ab); }
     MEDSEEN.abilityRewriteWhileSuppressed++;
-    return;
+    return _parked;
   }
   /* 2026-08-29 -- AND AN ABSORBED GIFT ENDS WITH THE ABILITY THAT GRANTED IT. Flash Fire's
    * `onEnd(pokemon){ pokemon.removeVolatile("flashfire") }` is the ABILITY's End, which the authority
@@ -25807,11 +26446,13 @@ function abRewrite(m,ab){
    * Read off the tag's own `endsWithAbility`, so an ability whose condition does NOT remove itself
    * would keep it. `m.ability` is still the OUTGOING one on this line, which is the whole point of
    * doing it here rather than after the assignment. */
+  const _out=String(m.ability||'');
   if(String(m.ability)!==String(ab)&&endAbsorbGiftVolatile(m,'abRewrite',m.ability))
     MEDSEEN.absorbGiftVolatileEnded++;
   if(m._preAb===undefined)m._preAb=m.ability;
   ubAbilityRewrite(m,ab);
   m.ability=ab;
+  return _out;
 }
 /* 2026-09-06 -- AN ABILITY THAT ARRIVES MID-BATTLE RUNS ITS OWN `Start`, AND NOTHING HERE RAN IT.
  *
@@ -26092,12 +26733,13 @@ function traceCopy(m,foes){
    * can tell a MEMBERSHIP difference (our filter dropped one) from an ARRIVAL difference (the caller
    * never offered it). */
   if(TRACE_LIST_SINK)TRACE_LIST_SINK({holder:m,offered:(foes||[]).slice(),eligible:eligible.slice(),index:_ti,chosen:t});
-  abRewrite(m,abilityOn(t));          // 2026-09-19 identity (abilityOn); ROADMAP #307 -- the copy is undone by leaving the field
+  const _traceOld=abRewrite(m,abilityOn(t));   // 2026-09-19 identity (abilityOn); ROADMAP #307 -- the copy is undone by leaving the field
   MEDSEEN.traceCopied++;
-  /* Showdown writes `|-ability|HOLDER|Intimidate|[from] ability: Trace|[of] FOE`. This trace sink
-   * carries four fields, so the `[of]` is not emitted and the shape is PARTIAL rather than absent --
-   * declared here rather than left to be found in a divergence report. */
-  if(TR)TR.ab(m,m.ability,'[from] ability: trace');
+  /* Showdown writes `|-ability|HOLDER|Intimidate|Trace|[from] ability: Trace|[of] FOE` -- FIELD 4 is
+   * the OUTGOING ability, which here is Trace itself (sim/pokemon.ts:1939). The `[of]` is still not
+   * emitted and the shape is PARTIAL rather than absent -- declared here rather than left to be found
+   * in a divergence report; the differ's `source-tag` rule collapses that field on both sides. */
+  if(TR)TR.abFrom(m,m.ability,_traceOld,'[from] ability: trace');
   return true;
 }
 /* ---- ROADMAP #310 -- TRACE DOES NOT GIVE UP, AND THIS ENGINE DID -------------------------------
@@ -26198,13 +26840,14 @@ function receiverSweep(bodies){
       if(_rc&&_rc.noreceiver){dead._receiverTaken=true;MEDSEEN.inheritRefused++;continue;}
       dead._receiverTaken=true;
       const _via=String(m.ability||'');   // read BEFORE the overwrite -- the line names the COPIER
-      abRewrite(m,ab);                    // ROADMAP #307 -- undone by leaving the field
+      const _oldAb=abRewrite(m,ab);       // ROADMAP #307 -- undone by leaving the field
       MEDSEEN.abilityInherited++;
       MEDFAILS.inheritedAbilityStartNotFired++;
-      /* Showdown's `setAbility` writes `|-ability|HOLDER|Flash Fire|[from] ability: Receiver|[of] ALLY`.
-       * This sink carries four fields, so the `[of]` is dropped and the shape is PARTIAL rather than
-       * absent -- the identical, already-declared shortfall `traceCopy` records one function up. */
-      if(TR)TR.ab(m,m.ability,'[from] ability: '+_via);
+      /* Showdown's `setAbility` writes `|-ability|HOLDER|Flash Fire|Receiver|[from] ability: Receiver|
+       * [of] ALLY` -- FIELD 4 is the OUTGOING ability, here Receiver itself (sim/pokemon.ts:1939). The
+       * `[of]` is still dropped and the shape is PARTIAL rather than absent -- the identical,
+       * already-declared shortfall `traceCopy` records one function up. */
+      if(TR)TR.abFrom(m,m.ability,_oldAb,'[from] ability: '+_via);
     }
   }
 }
@@ -26790,11 +27433,12 @@ function bringIn(act,i,bench,foes,sf,field,wanted,carry,deferEntry,outgoing){
     const _ann=_entryAnn.length
       ? ()=>{for(const f of _entryAnn)f();MEDSEEN.entryAnnounceBatched++;}
       : null;
-    if(ENTRY_HAZARD_INLINE){MEDFAILS.entryHazardInlineRestored=1;applyEntryConditions(nx,sf,i,field);
+    if(ENTRY_HAZARD_INLINE){MEDFAILS.entryHazardInlineRestored=1;startAnnounceEarly(nx);applyEntryConditions(nx,sf,i,field);
       deferEntry.push({nx,foes,act,i,sf:null,announce:_ann});}
     else deferEntry.push({nx,foes,act,i,sf,announce:_ann});
     return nx;
   }
+  startAnnounceEarly(nx);   // the +onSwitchInPriority half of the entry event -- ABOVE the hazards
   applyEntryConditions(nx,sf,i,field);
   runEntryPass(nx,foes,act,i,field,null);
   return nx;
@@ -26974,6 +27618,9 @@ function runEntryPass(nx,foes,act,i,field,sf,announce){
    * body the order is exactly what bringIn() had -- Healing Wish, then the hazard, then the ability --
    * which is the authority's own effectOrder: a side condition laid earlier sorts ahead of an
    * abilityState that `switchIn` re-inits on arrival (sim/battle.ts:994-999). */
+  /* 2026-09-19 -- and the +priority announcement ABOVE them, on the deferred road too. `sf` is null for
+   * every caller that ran the conditions at the placement; those already spoke in `bringIn`. */
+  if(sf)startAnnounceEarly(nx);
   if(sf)applyEntryConditions(nx,sf,i,field);
   /* BATCH O, 2026-09-07 -- AND THE ARRIVING ABILITY'S OWN ANNOUNCEMENT, BELOW THE SIDE CONDITIONS AND
    * ABOVE THE ENTRY EFFECTS, which is the position `fieldEvent('SwitchIn')` gives it for one body: a
@@ -27164,16 +27811,67 @@ function capturePassedState(out,p){
  * rule -- `onResidual` drops it when the source is gone and writes a `-end ... [silent]` -- and is
  * deliberately not touched here. Folding the two would make one of them wrong. */
 function releaseTrapsBy(src,bodies){
-  if(!src||!bodies)return 0;
+  if(!src)return 0;
   let n=0;
-  for(const b of bodies){
+  for(const b of (bodies||[])){
     if(!b||b===src||!b._trapHard||b._trapHard.by!==src)continue;
     b._trapHard=null; n++;
     MEDSEEN.trapReleasedWithTrapper++;
     if(!MEDSEEN.trapReleasedWithTrapperFirst)
       MEDSEEN.trapReleasedWithTrapperFirst=String(src.name||'?')+' let go of '+String(b.name||'?');
   }
+  n+=releaseTrapsHeldBy(src);
   return n;
+}
+/* ---- 2026-09-19 -- THE OTHER END OF `linkedPokemon`, AND WITHOUT IT A DEAD TRAPPER WITH AN EMPTY
+ * BENCH HELD ITS VICTIM FOR THE REST OF THE GAME.
+ *
+ * The block above says the fainted trapper "is SERVED FROM `bringIn`, ONE MOMENT LATE, DECLARED --
+ * `bringIn` is the next chokepoint every dead body passes through". **A CORPSE WITH NOTHING BEHIND
+ * IT NEVER PASSES THROUGH IT.** `bringIn` returns before the release whenever `_live(bench)` is
+ * empty, so on the last body of a side the release simply never happened.
+ *
+ * TWO OF THE 34 BOARD PARTINGS in the 2026-09-19 held-out 12,000-game draw are exactly that, and
+ * they are the same three lines each time -- a Spirit Shackle lands, the Decidueye that threw it
+ * dies in the same turn, and its side has no replacement:
+ *
+ *     ...bo3-2654505540  turn 8   p2.active[0].vol.trapped   us=1  showdown=0   (no protocol divergence AT ALL)
+ *     ...bo3-2658772547  turn 9   p1.active[0].vol.trapped   us=1  showdown=0   (and at turn 12 the
+ *                                  authority SWITCHES that body out and this engine cannot)
+ *
+ * THE AUTHORITY KEEPS THE LINK ON BOTH ENDS AND THAT IS WHY IT NEEDS NO BODY LIST.
+ * `addVolatile('trapped', source, move, 'trapper')` puts `trapper` on the SOURCE carrying
+ * `linkedPokemon: [victim]` (sim/pokemon.ts:2020-2029), and `clearVolatile` -- which `faintMessages`
+ * calls on the corpse (sim/battle.ts:2560) -- walks the leaver's OWN volatiles and frees every
+ * linked victim (:1532-1536, `removeLinkedVolatiles` at :2053). This engine recorded only the
+ * victim's half (`_trapHard.by`), so the only way to free anybody was to walk every body on the
+ * field -- which is exactly why the release had to live at a site that HAS that list.
+ *
+ * `_trapHeld` IS THAT MISSING HALF. It is the source's own list, so `noteFaint` -- the state
+ * transition the authority's `clearVolatile` sits on -- can free the victims with no field to walk.
+ * It is a HINT AND NEVER THE TRUTH: every release re-checks `b._trapHard.by === src`, so a stale
+ * entry (a victim that left, or was freed by the field walk above) frees nothing. */
+function releaseTrapsHeldBy(src){
+  if(!src||!Array.isArray(src._trapHeld))return 0;
+  let n=0;
+  for(const b of src._trapHeld){
+    if(!b||b===src||!b._trapHard||b._trapHard.by!==src)continue;
+    b._trapHard=null; n++;
+    MEDSEEN.trapReleasedWithTrapper++;
+    if(!MEDSEEN.trapReleasedWithTrapperFirst)
+      MEDSEEN.trapReleasedWithTrapperFirst=String(src.name||'?')+' let go of '+String(b.name||'?');
+  }
+  src._trapHeld=null;
+  return n;
+}
+/* THE ONE WRITER OF A HARD TRAP, so the two ends cannot come apart. Both call sites (the move road
+ * and the secondary road) go through it. */
+function holdHardTrap(victim,src,mvId){
+  if(!victim)return;
+  victim._trapHard={by:src,mv:mvId};
+  if(!src||src===victim)return;
+  if(!Array.isArray(src._trapHeld))src._trapHeld=[];
+  if(src._trapHeld.indexOf(victim)<0)src._trapHeld.push(victim);
 }
 /* 2026-08-24 -- ONE HELPER FOR THE THREE PIVOT DOORS. `switchOut` is the single funnel every entry
  * goes through, and the `[from]` belongs to the ACTION rather than to the entry -- a voluntary switch
@@ -27886,6 +28584,16 @@ function noteFaint(m){ if(!m)return; const _ep=FAINT_EPOCH_GLOBAL?_FAINT_EPOCH:_
    * this engine's consumer and reads exactly this field. Stamped on every faint, not only a
    * transformed one, so the reader never has to ask which road it is on. */
   if(m._abAtFaint===undefined)m._abAtFaint=m.ability;
+  /* 2026-09-19 -- AND THE VICTIMS OF THIS BODY'S HARD TRAP GO FREE HERE, which is the authority's own
+   * moment: `faintMessages` calls `pokemon.clearVolatile(false)` (sim/battle.ts:2560) and
+   * `clearVolatile` frees every `linkedPokemon` (sim/pokemon.ts:1532-1536). `bringIn` was doing it
+   * instead, and `bringIn` is not reached at all when the dying body has nothing behind it — which
+   * is the whole population of the defect. See `releaseTrapsHeldBy`.
+   *
+   * `MEDI_TRAP_SURVIVES_DEAD_TRAPPER=1` puts it back, i.e. the release happens only if a replacement
+   * follows, and stamps `MEDFAILS.trapSurvivesDeadTrapperRestored`. */
+  if(TRAP_SURVIVES_DEAD_TRAPPER)MEDFAILS.trapSurvivesDeadTrapperRestored=1;
+  else{const _rt=releaseTrapsHeldBy(m); if(_rt)MEDSEEN.trapReleasedOnTrapperFaint+=_rt;}
   faintHousekeeping(m);
   /* ROADMAP #503 -- AND THE TYPE LIST DIES WITH THE BODY, on the SAME LINE of the same authority
    * function the `_ttmWrap` clear in `queueFaint` already cites. `faintMessages()` runs
@@ -28061,6 +28769,18 @@ const KINGSROCK_ONCE_PER_MOVE=(typeof process!=='undefined'&&process.env
  * King's Rock volley happens to occur -- tests/test-mechanics.js reads exactly this to refuse
  * writing the census under a deliberate break. */
 if(KINGSROCK_ONCE_PER_MOVE)MEDFAILS.kingsRockOncePerMoveRestored=1;
+/* 2026-09-19 -- `MEDI_KINGSROCK_SKIPS_DEAD=1` RESTORES THE SKIPPED DIE ON A BODY THIS HIT KILLED.
+ *
+ * `BattleActions#secondaries` skips exactly one thing, `if (target === false) continue`
+ * (sim/battle-actions.ts:1339), and a body that FAINTED to this hit is not `false` -- it took damage.
+ * So the authority draws for it, and a passing draw calls `moveHit(target, ...)` (:1348), which moves
+ * `activeTarget` onto the corpse for every LATER secondary of the same move. The flinch itself is
+ * refused either way (`addVolatile`, sim/pokemon.ts:1980); the ADDRESS MOVE is the part that reaches a
+ * board. See the block at `kingsRockRollSkippedOnKO` for the game that measured it.
+ * Stamped at declaration, same shape as MEDI_KINGSROCK_ONCE_PER_MOVE above. */
+const KINGSROCK_SKIPS_DEAD=(typeof process!=='undefined'&&process.env
+  &&process.env.MEDI_KINGSROCK_SKIPS_DEAD==='1');
+if(KINGSROCK_SKIPS_DEAD)MEDFAILS.kingsRockSkipsDeadRestored=1;
 /* 2026-08-31 -- `MEDI_ACC_EVA_SEPARATE=1` RESTORES THE TWO SEPARATELY MULTIPLIED STAGES, at their old
  * position above the modifier walk, so the restore arm is the old function rather than a rearranged
  * approximation of it. The authority combines the accuracy stage and the evasion stage into ONE
@@ -29139,8 +29859,32 @@ function redirectDrawnTo(user,aimed,foes,mvObj,mvId,field,scripted,allies,quiet)
   const _drawers=_bySpeed(_live(foes||[]).filter(f=>f&&f._redirect&&!powderBlocked(user,f._redirect)));
   /* THE AIMED BODY BEING THE WINNER IS "NO REDIRECT", NOT "TRY THE NEXT ONE". The authority's handler
    * for the fastest carrier returns ITS OWN body and `fastExit` stops there, so a slower partner
-   * never gets asked. */
-  if(_drawers.length)return _drawers[0]===aimed?null:{to:_drawers[0],announce:null};
+   * never gets asked.
+   *
+   * 2026-09-19 -- AND IT IS NOT "THE HANDLER DID NOT RUN", WHICH IS WHAT `null` USED TO SAY. The
+   * handler runs whenever `validTarget` holds, and what it does on its way past is not conditioned
+   * on the aim having moved:
+   *
+   *     followme.condition.onFoeRedirectTarget                          data/moves.ts:6062-6069
+   *       if (move.smartTarget) move.smartTarget = false;   <- unconditional
+   *       return this.effectState.target;                   <- may be the body already aimed at
+   *
+   * Only the ANNOUNCEMENT is gated on the aim having moved, and only on the ability road
+   * (`if (this.effectState.target !== target)`, data/abilities.ts:2347 lightningrod, :4642
+   * stormdrain). So the winner is returned either way and `aimAlready` carries which case it is:
+   * the caller skips the retarget and the announcement, and still records that a redirect FIRED.
+   *
+   * COST, MEASURED: row 22 of the 34 board partings in the held-out 12,000-game draw on release
+   * `18773c22878f` -- a Dragon Darts clicked straight at a Follow Me Clefable kept its split and put
+   * BOTH darts into the partner Tsareena (147 -> 14), where the authority cleared `smartTarget`,
+   * fired the whole move at the Fairy and printed `|-immune|`.
+   *
+   * The other two callers already test `_dr.to !== <the aim>` before acting, so a non-null with an
+   * unchanged `to` is a no-op for them. Probe: tests/probe_redirect_onto_the_aim.js. Knob:
+   * MEDI_REDIRECT_NEEDS_AIM_CHANGE=1 restores the `=== aimed ? null` answer. */
+  if(_drawers.length)return REDIRECT_NEEDS_AIM_CHANGE
+    ?(_drawers[0]===aimed?null:{to:_drawers[0],announce:null,aimAlready:false})
+    :{to:_drawers[0],announce:null,aimAlready:_drawers[0]===aimed};
   /* The rod is checked against the move's EFFECTIVE type, so an -ate-converted or weather-converted
    * move is drawn by the rod it has actually BECOME. */
   const _t=effMoveType(mvObj,mvId,field,user);
@@ -29153,9 +29897,14 @@ function redirectDrawnTo(user,aimed,foes,mvObj,mvId,field,scripted,allies,quiet)
   const _nearRods=_allyPool.filter(_isRod);
   const _rods=_bySpeed(_farRods.concat(_nearRods));
   if(_rods.length){
-    if(_rods[0]===aimed)return null;
+    /* 2026-09-19 -- the same correction as the volatile road above, and the authority is EXPLICIT on
+     * this one: `lightningrod.onAnyRedirectTarget` (data/abilities.ts:2342) clears `smartTarget`
+     * first and only then asks `if (this.effectState.target !== target)` before adding its
+     * `-activate`. So a rod already standing in the aim announces NOTHING and still fires. */
+    if(_rods[0]===aimed)return REDIRECT_NEEDS_AIM_CHANGE?null
+      :{to:_rods[0],announce:null,aimAlready:true};
     if(_nearRods.indexOf(_rods[0])>=0&&!quiet)MEDSEEN.redirectedToAlly++;
-    return {to:_rods[0],announce:'ability: '+_rods[0].ability};
+    return {to:_rods[0],announce:'ability: '+_rods[0].ability,aimAlready:false};
   }
   /* THE KNOB'S OWN COUNT, TAKEN WHERE THE DRAW WOULD HAVE HAPPENED. `_allyPool` is empty while
    * MEDI_REDIRECT_FOE_ONLY is armed, so the near rods never enter the sort and the branch above
@@ -29761,20 +30510,58 @@ function battleTurn(S,rng,actsForA,actsForB){
    *     residual RUNS      t(n) armed 3   t(n+1) ABSENT in BOTH engines      <- already agreed
    *     residual SKIPPED   t(n) armed 3   t(n+1) showdown 3 / medicham 0
    *
+   * 2026-09-19 -- AND THE SWEEP IS A WALK WITH A STOP IN IT, NOT ONE ALL-OR-NOTHING PASS. The first
+   * bullet that stood here ("a turn that ends inside its own residual ... declared, not fixed") is the
+   * defect the held-out 12,000-game draw parted a board on, and it is now closed rather than declared.
+   *
+   * THE AUTHORITY, READ RATHER THAN RECALLED (no Champions override of `stall`; `data/conditions.ts`
+   * carries `par`, `slp`, `frz` in `data/mods/champions/conditions.ts` and nothing else):
+   *   - `stall` (data/conditions.ts:439-466) has `duration: 2` and NO `onResidual`. It reaches the
+   *     Residual handler list ONLY because it carries a duration: `fieldEvent` sets `getKey='duration'`
+   *     (sim/battle.ts:486-488) and `findPokemonEventHandlers` pushes a volatile whose
+   *     `volatileState.duration` is truthy even with `callback === undefined`, with
+   *     `end: pokemon.removeVolatile` (sim/battle.ts:1107-1117).
+   *   - `resolvePriority` reads `onResidualOrder` off the effect and `stall` has none, so
+   *     `handler.order = false` (sim/battle.ts:952); `comparePriority` maps a falsy order to
+   *     `4294967296` (sim/battle.ts:405), which puts every `stall` handler BELOW every numbered
+   *     residual handler. Among themselves they tie on order and priority and are separated by the
+   *     next term, SPEED, high to low (sim/battle.ts:407) -- which is `residualOrder` here.
+   *   - Each iteration: `handler.state.duration--; if (!handler.state.duration) { handler.end.call(...);
+   *     if (this.ended) return; continue; }` (sim/battle.ts:517-525). THE `continue` IS THE WHOLE
+   *     POINT: an EXPIRY skips the `this.faintMessages(); if (this.ended) return;` at the foot of the
+   *     loop body (sim/battle.ts:564-566). A counter that SURVIVES its decrement falls through to it.
+   *   - A handler whose holder is already `fainted` is skipped whole (sim/battle.ts:511-513), and
+   *     `fainted` is written inside `faintMessages`, not by the damage -- so a body the perish expiry
+   *     only ZEROED still holds its handler. That window is `residualZombie` here.
+   *
+   * SO: walk the bodies in `residualOrder`; a STALE counter expires and never checks the battle; a
+   * FRESH one survives and then pays `faintMessages`, which ends the walk if a side is gone. Every
+   * body slower than that one keeps its counter, which is exactly the leaf that parted:
+   *
+   *     omit-weather t14  gen9championsvgc2026regmbbo3-2655134691 vs -2655131779  (--games 12000)
+   *     p2.active[1].stall  medicham 0 / showdown 3, and NO protocol divergence anywhere in the game.
+   *     The authority's t14 walk: Gengar (spe 170, stall d1) expires and `continue`s; Tinkaton
+   *     (spe 152, stall d2, Protected that turn) survives its decrement, falls through to
+   *     `faintMessages`, both perish-zeroed p1 bodies are drained, p1 is wiped, `this.ended` -> return.
+   *     Sylveon (spe 105, stall d1) IS NEVER REACHED. Measured on the authority before a byte moved.
+   *
+   * MEDI_STALL_SWEEP_UNORDERED=1 restores the all-or-nothing pass in slot order with no stop.
+   * tests/probe_stall_sweep_order.js is the instrument.
+   *
    * WHAT STILL WALKS PAST THIS DOOR, said out loud rather than left to be found:
-   *   - A TURN THAT ENDS INSIDE ITS OWN RESIDUAL (`turnEndedInResidual`). The authority speed-sorts
-   *     its residual handlers and returns the instant one of them ends the battle, so whether
-   *     `stall`'s decrement happened depends on where that body sorted. This engine models the
-   *     duration as a per-turn boolean and cannot express half a residual: it spends the clock when
-   *     the residual OPENS, so a counter is expired here where the authority might have left it.
-   *     Rare (`turnEndedInResidual` is the smallest of the four wipe sites) and declared, not fixed.
    *   - A FAINTED BODY still carrying a counter. `fieldEvent` skips a fainted handler holder
-   *     (sim/battle.ts:509) while this sweep does not, exactly as the sweep it replaces did not.
-   *     No board leaf reads a fainted slot's counter, so nothing measures it either way today. */
+   *     (sim/battle.ts:511) while this sweep still CLEARS a stale one, exactly as the sweep it
+   *     replaces did -- the authority's `clearVolatile(false)` at the drain has taken the volatile off
+   *     by then, so the two agree on the value and disagree only about which line removed it. A
+   *     drained corpse is skipped for the STOP decision, because it never reaches :565 upstream. */
   const _stallExpire=()=>{
-    for(const m of [...actA,...actB]){
-      if(!m)continue;
-      if(m.tookProtectTurns>0&&!m._stallFresh){m.tookProtectTurns=0;MEDSEEN.stallLapsedUnrefreshed++;}
+    for(const m of (STALL_SWEEP_UNORDERED?[...actA,...actB]:residualOrder(actA,actB,field))){
+      if(!m||!(m.tookProtectTurns>0))continue;
+      if(!m._stallFresh){m.tookProtectTurns=0;MEDSEEN.stallLapsedUnrefreshed++;continue;}
+      if(STALL_SWEEP_UNORDERED)continue;
+      /* the counter SURVIVED its decrement, so this handler falls through to sim/battle.ts:564-566 */
+      if(m.fainted&&!residualZombie(m))continue;
+      if(sideWiped(S)){MEDSEEN.stallSweepStoppedByWipe++;break;}
     }
   };
   _TURN:{
@@ -29826,6 +30613,24 @@ function battleTurn(S,rng,actsForA,actsForB){
        * exactly like it working. `_lastItem` and `_ateBerry` deliberately do NOT clear: Harvest and
        * Cud Chew are about what the body spent, not about when. */
       m._usedItemThisTurn=false;
+      /* 2026-09-19 -- AND THE RETYPING VOLATILE GOES WITH IT, BECAUSE ITS CONDITION SAYS SO. Electrify
+       * is `duration: 1` (data/moves.ts:4572), so the authority removes it at the end of the turn that
+       * set it and the target's NEXT move is its own type again. The generic volatile writer gives a
+       * volatile with no other clock the bare `1` and nothing here decremented it, so an electrified
+       * body stayed electrified for the rest of the game -- measured before this line existed: turn 2's
+       * Body Slam was still Electric and a Ground type was still immune to it.
+       *
+       * THE DURATION IS READ, NOT WRITTEN HERE. The row comes off `volatileRestart`, which carries the
+       * condition's own declared `duration`; a member arriving with a longer clock is left alone rather
+       * than being swept on this family's behalf. Scoped to the retype table on purpose: every other
+       * `duration: 1` volatile in this format (Protect, Endure, Follow Me, Rage Powder, flinch, Roost,
+       * Helping Hand) is owned by its own handler and is not in `_vol` at all, and a blanket sweep is
+       * docs/LESSONS §4 exactly. */
+      if(m._vol){const _rt=volRetypeTable();const _nr=volRestartTable();
+        for(const _v in _rt){ if(!(m._vol[_v]>0))continue;
+          const _row=_nr&&_nr.get?_nr.get(_v):null;
+          if(!_row||+_row.duration!==1)continue;
+          delete m._vol[_v]; MEDSEEN.volatileRetypeExpired++; }}
       m._took=null;}});
     field.sgA={};field.sgB={};              // duration:1 on both conditions -- they never survive a turn
 
@@ -32310,12 +33115,18 @@ function battleTurn(S,rng,actsForA,actsForB){
         {const _bf=TAGS.param('ability',m.ability,'boostsOnFlinch');
          if(_bf&&_bf.boosts&&m.boosts&&!m.fainted){
            const _sg=invSign(m);
+           /* 2026-09-19 -- THROUGH THE ONE ROAD. `onFlinch(pokemon) { this.boost({spe: 1}); }`
+            * (data/abilities.ts steadfast) passes no flag, so the authority announces. NOT in the
+            * pinned pool's 250 -- no Steadfast carrier flinched in those 961 games -- which is exactly
+            * what routing rather than naming buys: it is fixed anyway. */
+           const _fr=abilityBoostRun(m,m.ability,{isSecondary:false});
            for(const k in _bf.boosts){
              const _st=SD2ENG[k]; if(!_st||m.boosts[_st]==null)continue;
              const _b0=m.boosts[_st];
              m.boosts[_st]=clamp(m.boosts[_st]+_bf.boosts[k]*_sg,-6,6);
-             if(TR&&m.boosts[_st]!==_b0)TR.bst(m,_st,m.boosts[_st]-_b0,'[from] ability: '+m.ability);
+             if(m.boosts[_st]!==_b0)_fr.bst(_st,m.boosts[_st]-_b0,false,'[from] ability: '+m.ability);
            }
+           _fr.done();
            MEDSEEN.flinchPaidHolder++;
          }}
         continue;
@@ -33272,20 +34083,48 @@ function battleTurn(S,rng,actsForA,actsForB){
          * on the body, because the question is "what did anyone just click" -- `_lastMove` already
          * answers "what did I click" and Encore reads that one. */
         if(_mid){
-          /* AND A MOVE THAT FAILED NEVER BECOMES THE LAST MOVE. `clearActiveMove(failed)` is
-           * `if (!failed) this.lastMove = this.activeMove;` -- one clause, and it is the whole reason
-           * the deliberate roster kept reading Copycat as DID-NOT-FIRE after the copy itself worked.
-           * The roster's idle bodies click Focus Energy every turn; the SECOND click fails against its
-           * own volatile, so the authority's `lastMove` stays on the last move that actually landed
-           * and Copycat repeats THAT. An engine that commits every announced move copies the failed
-           * idle click instead and moves no board -- which is exactly what ours did.
+          /* ---- 2026-09-19 -- A MOVE THAT *RAN* AND FAILED IS STILL THE LAST MOVE, AND THE OLD RULE HERE
+           * WAS THE WHOLE OF THE ROSTER'S COPYCAT ROW.
            *
-           * The pending body's own result is read at the moment the NEXT move is announced, which is
-           * the instant `clearActiveMove` fires for it: `_mvRes` while the turn is still running,
-           * `_mvResLast` once the turn boundary has rolled it over. */
+           * This block used to refuse to commit a click whose RESULT was false, on the reading that
+           * `clearActiveMove(failed)` -- `if (!failed) this.lastMove = this.activeMove;` (sim/battle.ts:376)
+           * -- keeps `battle.lastMove` on the last move that LANDED. It does not. `failed` is an ARGUMENT,
+           * and grepped over the whole of `sim/` it is passed `true` at exactly four sites, all of them
+           * inside `runMove` BEFORE the move is announced (sim/battle-actions.ts:252 the `BeforeMove`
+           * refusal, :258 the commented sanity check, :273 `beforeMoveCallback`, :284 `cant|nopp`) plus
+           * the residual action (sim/battle.ts:2810). Every OTHER action ends at `runAction`'s own bare
+           * `this.clearActiveMove()` (sim/battle.ts:2828), so **a `-fail`, an `onTry` refusal, an immunity
+           * and a miss all set `battle.lastMove`.**
+           *
+           * MEASURED, NOT ARGUED, on the roster's own fixture (release 18773c22878f, `top-tie-first`,
+           * Goodra-Hisui + Corviknight against Samurott + Torterra, everyone idling on Sleep Talk):
+           * the authority's turn-2 Copycat reads `|-fail|p2a: Samurott`. The only move that can make it
+           * fail is a `failcopycat` last move, and the last move ANNOUNCED was Torterra's Sleep Talk --
+           * which had failed at its own `onTry` (`source.status === 'slp'`) and carries
+           * `flags: {... failcopycat: 1 ...}` (data/moves.ts:16868). So the authority had committed a
+           * move that failed. This engine skipped it, reached back to Goodra-Hisui's Dragon Pulse, and
+           * copied THAT -- 26 HP off a Corviknight the authority never touched.
+           *
+           * The `_mvRes` this used to read is Stomping Tantrum's question (ROADMAP #84,
+           * `moveThisTurnResult`), which is false for both roads and therefore cannot tell them apart.
+           * The abort road needs no test here at all: every BeforeMove refusal, the no-PP road and the
+           * `beforeMoveCallback` road `continue` ABOVE the announcement, so `_mid` is never set for them
+           * and they never reach this block -- which is the authority's `failed: true` expressed as
+           * control flow instead of a flag.
+           *
+           * The id is still held PENDING and committed at the top of the NEXT announcement, which is the
+           * same instant `clearActiveMove` fires for the move before it; written at the announcement the
+           * field would already read `copycat` by the time the branch that consumes it runs. It is on the
+           * FIELD and not on the body because the question is "what did anyone just click" -- `_lastMove`
+           * already answers "what did I click" and Encore reads that one. */
           const _pb=field._pendingLastBy;
-          const _pOK=!_pb||(_pb._mvRes!==undefined?_pb._mvRes!==false:_pb._mvResLast!==false);
-          if(field._pendingLastMove&&_pOK){field._lastMoveAny=field._pendingLastMove;field._lastMoveBy=_pb||null;}
+          const _pOK=!FAILED_MOVE_NOT_LAST
+            ||!_pb||(_pb._mvRes!==undefined?_pb._mvRes!==false:_pb._mvResLast!==false);
+          if(field._pendingLastMove&&_pOK){
+            if(_pb&&(_pb._mvRes!==undefined?_pb._mvRes===false:_pb._mvResLast===false))
+              MEDSEEN.lastMoveCommittedAfterFailure++;
+            field._lastMoveAny=field._pendingLastMove;field._lastMoveBy=_pb||null;
+          }
           field._pendingLastMove=_mid;field._pendingLastBy=m;
         }
       }
@@ -33531,7 +34370,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(TAGS.param('ability',m.ability,'typeBecomesMoveType')){
           const _tc2=TAGS.param('move',_pmv2,'targetClass');
           const _fieldWide=!!(_tc2&&PREPAREHIT_FIELD_TARGETS.has(String(_tc2.target)));
-          const _reach=_fieldWide||statusMoveTargets(m,_pmv2,a.target,it,actA,actB).length>0;
+          const _reach=_fieldWide||statusMoveTargets(m,_pmv2,a.target,it,actA,actB,false,null,field).length>0;
           /* 2026-09-19 -- AND ONLY IF THE MOVE'S OWN `Try` PASSED. See `tryStepRefuses`. */
           const _tryNo=_reach?tryStepRefuses(m,_pmv2,field):null;
           if(_tryNo&&PROTEAN_IGNORES_TRY)MEDFAILS.proteanIgnoresTryRestored=1;
@@ -33854,7 +34693,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         /* 2026-09-04 -- THE BOUNCE RECEIPT. Read only by the Defog sweep at the bottom of this
          * branch; see `bounceOff`. Declared here so the object exists before the resolution runs. */
         const _bInfo={bouncedBy:null};
-        const _tl=statusMoveTargets(m,a.mv,a.target,it,actA,actB,true,_bInfo);
+        const _tl=statusMoveTargets(m,a.mv,a.target,it,actA,actB,true,_bInfo,field);
         if(!_tl.length){mvFail(m);continue;}
         /* How many bodies the move actually LANDED on. Read by `userFaints` below, and by the
            user-directed `si` guard inside the loop. A refusal `continue`s without touching it, so a
@@ -34578,7 +35417,7 @@ function battleTurn(S,rng,actsForA,actsForB){
         const _by=(_bounced&&!BOUNCED_TRAP_KEEPS_CLICKER)?_t0:m;
         if(_bounced){if(BOUNCED_TRAP_KEEPS_CLICKER)MEDFAILS.bouncedTrapOwnerRestored=1;
                      else MEDSEEN.bouncedTrapOwnedByBouncer++;}
-        t._trapHard={by:_by,mv:a.mv};
+        holdHardTrap(t,_by,a.mv);
         /* ROADMAP #143 -- THE LINE BELONGS TO THE VOLATILE, NOT TO THE MOVE THAT APPLIED IT. Both
          * members write `target.addVolatile("trapped", …)`, and the `trapped` condition's whole
          * onStart is `this.add("-activate", target, "trapped")` -- so the authority names the TRAP on
@@ -35589,7 +36428,7 @@ function battleTurn(S,rng,actsForA,actsForB){
       if(a.kind==='trickitem'){
         m._lastMove=a.mv;
         const _ti=TAGS.param('move',a.mv,'takesTargetItem')||{};
-        const _tl=statusMoveTargets(m,a.mv,a.target,it,actA,actB,true);
+        const _tl=statusMoveTargets(m,a.mv,a.target,it,actA,actB,true,null,field);
         /* 2026-09-19 -- NOBODY TO AIM AT IS `[notarget]` + `-fail`, AS IN `affect`. With both foes and the
          * partner gone, a Corrosive Gas has an empty `allAdjacent` list and `useMoveInner` writes
          * `attrLastMove('[notarget]')` and `add('-fail', pokemon)` (sim/battle-actions.ts:509-513). The
@@ -36228,9 +37067,13 @@ function battleTurn(S,rng,actsForA,actsForB){
            * `setAbility` that follows is the `onHit`, which is under the doll. */
           else if(subRefusesStatus(src,t,a.mv))continue;
           else{
-            abRewrite(t,_want);          // ROADMAP #307 -- undone by leaving the field
+            const _awOld=abRewrite(t,_want);   // ROADMAP #307 -- undone by leaving the field
             MEDSEEN.abilityRewritten++;
-            if(TR)TR.ab(t,t.ability,'[from] move: '+a.mv);
+            /* FIELD 4 IS THE OUTGOING ABILITY (sim/pokemon.ts:1939). Entrainment reaches here with a
+             * `source` and the authority's line carries an `[of]`; Simple Beam and Worry Seed call
+             * `target.setAbility('simple')` / `('insomnia')` with none (data/moves.ts:16492, :21066) and
+             * the authority's line has no `[of]` either. This sink writes none on any of the three. */
+            if(TR)TR.abFrom(t,t.ability,_awOld,'[from] move: '+a.mv);
             /* Worry Seed's own second clause: writing Insomnia over a sleeping body wakes it. Read
              * off the param rather than the move name. */
             if(a.curesSleep&&t.status==='slp'){t.status='';t.slp=0;if(TR)TR.cure(t,'slp',ATTR.cured(false).from);}
@@ -36304,9 +37147,11 @@ function battleTurn(S,rng,actsForA,actsForB){
             ||_flagRefuses(t,a.targetFlag)||_flagRefuses(m,a.userFlag);
           if(_blocked){mvFail(m);}
           else{
-            abRewrite(m,_want);          // ROADMAP #307 -- undone by leaving the field
+            const _rpOld=abRewrite(m,_want);   // ROADMAP #307 -- undone by leaving the field
             MEDSEEN.abilityCopiedToUser++;
-            if(TR)TR.ab(m,m.ability,'[from] move: '+a.mv);
+            /* FIELD 4 IS THE OUTGOING ABILITY -- Role Play's copy lands on the USER, so it is the
+             * user's own ability that is named (data/moves.ts:15332 -> sim/pokemon.ts:1939). */
+            if(TR)TR.abFrom(m,m.ability,_rpOld,'[from] move: '+a.mv);
             /* 2026-09-06 -- and the copied ability runs its own `Start` on the USER, through the same
              * `setAbility` tail as `abilitywrite` above. Role Play's copy lands on the mover, so this
              * is `m` and not `t`; a Role Play onto a weather setter puts the sky up. */
@@ -38639,8 +39484,13 @@ function battleTurn(S,rng,actsForA,actsForB){
              * beating a type immunity". Redirection is NOT gated on immunity in Showdown -- Follow Me
              * redirects unconditionally and Rage Powder only asks `runStatusImmunity('powder')`, which
              * this engine already asks. The draw is right; the announcement was the defect. */
+            /* 2026-09-19 -- `aimAlready` means the handler FIRED and the aim did not move. Showdown
+             * calls `retargetLastMove(target)` only when `selectedTarget !== target`
+             * (sim/pokemon.ts:845-847), so re-writing the line here would be an event the authority
+             * does not have. The flag is still set, because `_aimRedirected` is read by the
+             * `smartTarget` split below and the authority's clear is unconditional. */
             targets=[drawer]; _aimRedirected=true;
-            if(TR)TR.retarget(drawer);}
+            if(TR&&!_dr.aimAlready)TR.retarget(drawer);}
           /* WIRE 25 -- redirectsType. Lightning Rod (1,901) and Storm Drain draw a move of their TYPE
            * to themselves, and the engine only ever looked for the Follow Me / Rage Powder volatile.
            * So an Electric move aimed past a Lightning Rod sailed straight into its partner.
@@ -40994,6 +41844,12 @@ function battleTurn(S,rng,actsForA,actsForB){
        * this wire. That is the WIRE 145 rule again: a new die may only be thrown where nothing was
        * thrown at all. */
       let _condPowerThisUse;
+      /* 2026-09-19 -- THE ARRIVAL-0 CRIT DIE, DRAWN EARLY AND ONLY FOR A `conditionalPower{when:chance}`
+       * MOVE. See the `_condPowerThisUse` block below for why: the authority draws the crit and THEN
+       * raises `BasePower`, both inside `getDamage`, so the chance clause is the SECOND draw at that
+       * address and this engine has to spend the first one before it. Null for every other move, which
+       * keeps the crit block below byte-identical for the whole rest of the move table. */
+      let _critArr0=null;
       const _stepDamage=(R)=>{const tg=R.tg;
         _reached++;   // ROADMAP #81 WIRE 1 -- past every gate: this target is a HIT, so the move did not fail
         /* ROADMAP #262 -- THE ONE LINE THAT MIRRORS `getSpreadDamage`'s `this.battle.activeTarget =
@@ -41020,7 +41876,44 @@ function battleTurn(S,rng,actsForA,actsForB){
           if(_lo.lazy&&_hitsThisUse>1)_maLazy={p:_lo.p,must:_lo.must,n:_hitsThisUse,done:false};
         }
         if(_condPowerThisUse===undefined){
-          const _cpr=rollConditionalPower(a.move.id,rng);
+          /* ===== 2026-09-19 -- THIS DRAW IS A `crit`-STREAM DRAW, AND IT COMES SECOND ==============
+           *
+           * `ficklebeam.onBasePower` is raised by `runEvent('BasePower', ...)` from INSIDE
+           * `BattleActions#getDamage` (sim/battle-actions.ts:1649), under the authority's own comment
+           * `// happens after crit calculation` -- the crit is `randomChance(1, critMult[critRatio])`
+           * nine lines above it, in the same call.
+           *
+           * `game_differential.js` wraps `getDamage` as category `dmg` (`around('getDamage','dmg',0)`)
+           * and its `chance(num,den)` re-labels `dmg` to `crit`. So on the authority's side this event
+           * is addressed `crit | turn | <move> | <target slot> | 1` -- the SECOND crit-address draw of
+           * the hit. This engine drew it off the GENERIC stream (`rng`), at a different address
+           * entirely, and two engines drawing one event from two addresses agree only by luck: at
+           * p=0.3 they match on 0.3^2 + 0.7^2 = 58% of clicks. That is why the roster never saw it
+           * (its dice are a pinned constant, so the address cannot matter) and whole games did --
+           * rows 28 and 33 of the 34 board partings in the held-out 12,000-game draw on release
+           * `18773c22878f`, one of them a KO the authority makes and this engine did not.
+           *
+           * THE ORDER IS THE OTHER HALF. Switching the stream alone would put THIS draw at repeat
+           * index 0 and the crit at 1, i.e. the two swapped. `_critArr0` above spends arrival 0's crit
+           * die first, at the same `_subAddr` the crit block uses, and the crit block then reuses the
+           * value instead of drawing again -- so no move without a chance clause moves at all.
+           *
+           * `subBlocks` and `critChance` are pure reads of the attacker, the target and the move id,
+           * so hoisting them consumes nothing. MEDI_CONDPOWER_OFF_ANY=1 restores the generic-stream
+           * draw above the crit. Probe: tests/probe_fickle_beam_die.js. */
+          const _cpHere=TAGS.param('move',a.move.id,'conditionalPower');
+          const _cpChance=!!(_cpHere&&_cpHere.when==='chance');
+          let _cpRng=rng;
+          if(_cpChance&&CONDPOWER_OFF_ANY)MEDFAILS.condPowerOffAnyRestored=1;
+          else if(_cpChance){
+            const _dr0=subBlocks(m,tg,a.move.id);
+            const _cc0=critChance(a.move.id,m,suppressedAbility(m,tg),tg);
+            const _cri0=_subAddr(_dr0,_R.crit);
+            _critArr0=(_cc0>=1)||(_cc0>0&&_cc0<1&&_cri0<_cc0);
+            _cpRng=()=>_subAddr(_dr0,_R.crit);
+            MEDSEEN.condPowerOnCritStream++;
+          }
+          const _cpr=rollConditionalPower(a.move.id,_cpRng);
           _condPowerThisUse=(_cpr===null)?null:_cpr;
           /* 2026-08-24 -- AND A PROC ANNOUNCES ITSELF. The whole handler is four lines
            * (data/moves.ts `ficklebeam.onBasePower`, no Champions override):
@@ -41279,6 +42172,12 @@ function battleTurn(S,rng,actsForA,actsForB){
            ?critChance(a.move.id,m,suppressedAbility(m,tg),tg,{formeBrokeEarlier:true}):_cc;
          _crits=[];
          for(let i=0;i<_nArr;i++){
+           /* 2026-09-19 -- ARRIVAL 0's DIE MAY ALREADY HAVE BEEN SPENT. It is, and only for a
+            * `conditionalPower{when:chance}` move, where the authority draws the crit BEFORE it
+            * raises `BasePower` and both land at the same crit address. `_critArr0` is that draw,
+            * taken through the same `_subAddr`; re-drawing here would spend a second die the
+            * authority never throws. Null for every other move, so nothing else moves. */
+           if(i===0&&_critArr0!==null){_crits.push(_critArr0);continue;}
            const _ci=i===0?_cc:_ccLater;
            const _cri=_subAddr(_dollRow,_R.crit);   /* 2026-09-06 -- the doll's crit rides the same address */
            _crits.push((_ci>=1)||(_ci>0&&_ci<1&&_cri<_ci));
@@ -43464,7 +44363,11 @@ function battleTurn(S,rng,actsForA,actsForB){
                * with a boost and it passes `true`, so the `-ability` branch has no member today and is
                * written from `Battle#boost` rather than from a case anybody staged -- counted, so the
                * day a member arrives it is visible instead of assumed. */
-              let _abSaid=PUNISH_ANNOUNCE_BLIND||_pun.boostsSecondary!==false;
+              /* 2026-09-19 -- THROUGH `abilityBoostRun`, so this site and the six others cannot come
+               * to disagree about the authority's one latch. The seed is unchanged: the handler's own
+               * fifth argument (`boostsSecondary`) OR the knob that restores the inline attribution. */
+              const _pr=abilityBoostRun(m,tg.ability,
+                                        {isSecondary:PUNISH_ANNOUNCE_BLIND||_pun.boostsSecondary!==false});
               for(const k in _pun.boosts){
                 /* 2026-09-18 -- A SECONDARY DROP GOES THROUGH `applyStatDrop`, THE ONE STAT-DROP ROAD.
                  *
@@ -43508,11 +44411,6 @@ function battleTurn(S,rng,actsForA,actsForB){
                 const _st=SD2ENG[k];if(_st&&m.boosts[_st]!=null){const _b0=m.boosts[_st];
                   m.boosts[_st]=clamp(m.boosts[_st]+_pun.boosts[k],-6,6);
                   const _d=m.boosts[_st]-_b0;
-                  /* `boosted` is set INSIDE `if (boostBy)`, so a stat already at the cap neither
-                   * announces nor arms the flag; the zero line itself is `bst`'s own business and is
-                   * unchanged. */
-                  if(TR&&_d&&!_abSaid){TR.ab(m,tg.ability,'boost');_abSaid=true;
-                                       MEDSEEN.punishBoostAbilityLine++;}
                   /* NARRATION BATCH R -- AND THE CLAMPED ONE STILL ANNOUNCES, AT ZERO. The comment
                    * above says the zero line is `bst`'s own business, and it was: `bst` suppresses
                    * a zero unless the site opts in, and this site never had. Gooey's `-1` Speed on
@@ -43526,8 +44424,14 @@ function battleTurn(S,rng,actsForA,actsForB){
                     MEDSEEN.abilityZeroBoostAnnounced++;
                     if(!MEDSEEN.abilityZeroBoostAnnouncedFirst)
                       MEDSEEN.abilityZeroBoostAnnouncedFirst=String(m.name)+'/'+tg.ability+'/'+_st;}
-                  if(TR)TR.bst(m,_st,_d,PUNISH_ANNOUNCE_BLIND?'[from] ability: '+tg.ability:undefined,_pz);}
+                  /* `boosted` is set INSIDE `if (boostBy)`, so a stat already at the cap neither
+                   * announces nor arms the flag; the zero line itself is `bst`'s own business and is
+                   * unchanged. `abilityBoostRun` owns both halves now, and returns true on the call
+                   * that wrote the line so this site's own counter keeps meaning what it meant. */
+                  if(_pr.bst(_st,_d,_pz,PUNISH_ANNOUNCE_BLIND?'[from] ability: '+tg.ability:undefined))
+                    MEDSEEN.punishBoostAbilityLine++;}
               }
+              _pr.done();
             }
             /* ONE roll against the cumulative, because the artifact's list entries are exclusive
              * branches of one random(100) -- rolling each independently would understate Effect
@@ -43961,18 +44865,19 @@ function battleTurn(S,rng,actsForA,actsForB){
           const _line=tg.st.hp*+_bt.threshold;
           const _crossed=tg.curHP<=_line&&(tg.curHP+dmg)>_line;
           if(!(_crossed||_bt.onCrossingOnly===false))return;
-          let _said=false;
+          /* `boosted` starts false for a non-secondary boost, so the `-ability` line is written once
+           * for the whole vector and not once per stat -- which matters for Anger Shell's five.
+           * 2026-09-19: that rule is `abilityBoostRun`'s now, shared with the other six sites. */
+          const _tr=abilityBoostRun(tg,tg.ability,{isSecondary:false});
           for(const k in _bt.boosts){
             const _s2=SD2ENG[k];
             if(!_s2||tg.boosts[_s2]==null)continue;
             const _b0=tg.boosts[_s2];
             tg.boosts[_s2]=clamp(tg.boosts[_s2]+_bt.boosts[k],-6,6);
             if(tg.boosts[_s2]===_b0)continue;
-            /* `boosted` starts false for a non-secondary boost, so the `-ability` line is written once
-             * for the whole vector and not once per stat -- which matters for Anger Shell's five. */
-            if(TR&&!_said){TR.ab(tg,tg.ability,'boost');_said=true;}
-            if(TR)TR.bst(tg,_s2,tg.boosts[_s2]-_b0);
+            _tr.bst(_s2,tg.boosts[_s2]-_b0,false);
           }
+          _tr.done();
           MEDSEEN.hpThresholdBoosted++;
         }
         /* 2026-08-30 -- ONCE PER MOVE, SO NEVER FROM AN INTERIOR ARRIVAL. `boostsAtHPThreshold` is
@@ -44688,21 +45593,37 @@ function battleTurn(S,rng,actsForA,actsForB){
            * facts-are-global breach. A row that reaches this block with no count falls back to ONE
            * and says so -- a silent fallback looks exactly like a working feature.
            *
-           * DECLARED REMAINDER, AND IT CANNOT REACH A BOARD. The authority takes a die on the arrival
-           * that KILLS, because `secondaries` runs inside that arrival's own `spreadMoveHit`; this
-           * engine's step list is wrapped once per MOVE, so by the time this line runs the row is
-           * already fainted and the block is refused. The flinch it would have set is refused by the
-           * authority too -- `addVolatile` bails on `if (!this.hp && !status.affectsFainted)`
-           * (sim/pokemon.ts:1980) -- so the two engines cannot differ on any board because of it.
-           * `kingsRockRollSkippedOnKO` carries HOW MANY dice were skipped, so "we chose not to" and
-           * "nobody noticed" can never read alike. */
+           * 2026-09-19 -- THE DIE ON A DEAD BODY IS TAKEN. WHAT STOOD HERE SAID IT "CANNOT REACH A
+           * BOARD" AND THAT IS RETRACTED, MEASURED.
+           *
+           * The retracted sentence was right about the FLINCH and wrong about the DIE. `addVolatile`
+           * does bail on `if (!this.hp && !status.affectsFainted)` (sim/pokemon.ts:1980), so no flinch
+           * can land on a corpse either way -- but `BattleActions#secondaries` skips exactly one thing,
+           * `if (target === false) continue` (battle-actions.ts:1339), and a body that FAINTED to this
+           * hit is not `false`: it took damage. So the authority DRAWS for it, and when that draw
+           * passes it calls `moveHit(target, ...)` (:1348), which moves `activeTarget` onto the corpse
+           * -- and every LATER secondary of the same move is addressed there.
+           *
+           * SO A SKIPPED DIE IS NOT A MISSING OUTCOME, IT IS A MISSING ADDRESS MOVE, and that reaches
+           * a board. MEASURED ON THE GAME THAT SAID SO (the held-out 12,000-game draw on release
+           * 18773c22878f, omit-intimidate t5, ...bo3-2660280251 vs -2660473779, `|cant|p1b|flinch`
+           * against `|move|p1b|ironhead`): a King's Rock Garchomp's Earthquake into its own Sneasler,
+           * a Raichu and a Kingambit, the first two of which it KILLS --
+           *     showdown  sec|earthquake|p11|0  sec|earthquake|p20|0  sec|earthquake|p20|1
+           *     medicham  sec|earthquake|p11|0                          <- two dice never taken
+           * The authority's FIRST draw is for the dead Sneasler, it passes, and the address moves to
+           * p20 for the other two. This engine took the surviving Kingambit's die at `p11|0` -- the
+           * dead body's address -- read a different number, and flinched a body the authority did not.
+           *
+           * MEDI_KINGSROCK_SKIPS_DEAD=1 restores the skip. `kingsRockRollSkippedOnKO` still carries how
+           * many dice it costs. tests/probe_sec_addr_selfdrop.js is the instrument for both halves. */
           {const _kr=TAGS.param('item',m.item,'addsFlinch');
            /* THE NO-STACKING CLAUSE, which is the item's own: `onModifyMove` returns without pushing
             * when any of the move's existing secondaries is a flinch (data/items.ts:3216-3218). 19
             * legal moves in this format carry one. */
            const _krOwnFlinch=!!(fx&&fx.secondary&&fx.secondary.some(s=>s&&s.volatile==='flinch'));
            if(_kr&&_kr.pFlinch&&!suppressed&&!_krOwnFlinch){
-             if(tg.fainted){ MEDSEEN.kingsRockRollSkippedOnKO+=Math.max(1,+R.arrivals||1); }
+             if(KINGSROCK_SKIPS_DEAD&&tg.fainted){ MEDSEEN.kingsRockRollSkippedOnKO+=Math.max(1,+R.arrivals||1); }
              else {
                let _krN=+R.arrivals;
                if(!(_krN>0)){ _krN=1; MEDFAILS.kingsRockNoArrivalCount++; }
@@ -44718,7 +45639,12 @@ function battleTurn(S,rng,actsForA,actsForB){
                   * times. */
                  if(_secDraw()<+_kr.pFlinch){
                    _secFired(tg);   // ROADMAP #262 -- King's Rock is a secondary like any other
-                   if(!unresolved.has(tg)) MEDSEEN.flinchTooLate++;
+                   /* 2026-09-19 -- the corpse takes the die and moves the address (`moveHit` runs) and
+                    * takes NO flinch: `addVolatile` bails on `if (!this.hp && !status.affectsFainted)`
+                    * (sim/pokemon.ts:1980). Counted apart from `flinchTooLate`, which is a LIVE body
+                    * that had already acted -- a different refusal with a different reason. */
+                   if(tg.fainted) MEDSEEN.kingsRockFlinchRefusedOnCorpse++;
+                   else if(!unresolved.has(tg)) MEDSEEN.flinchTooLate++;
                    else if(refusesFlinch(tgAb)) MEDSEEN.flinchBlockedByInnerFocus++;
                    /* THE TRANSITION, NOT THE ROLL: two passing dice in one volley are ONE flinch, and
                     * `MEDSEEN.flinch` is read as a rate by tests/test-mechanics.js. */
@@ -44852,7 +45778,7 @@ function battleTurn(S,rng,actsForA,actsForB){
              if(trapAlreadyHeld(tg))MEDSEEN.trapRefusedRepeatBySecondary++;
              else if((tg.types||[]).includes('Ghost'))MEDSEEN.ghostRefusedTrap++;
              else{
-               tg._trapHard={by:m,mv:a.move.id};
+               holdHardTrap(tg,m,a.move.id);
                MEDSEEN.moveTrapAppliedBySecondary++;
                const _va=volAnnounce(a.move.id,_tt.volatile);
                if(!_va){ if(TR)TR.vstart(tg,'move: '+a.move.id); }
@@ -45301,9 +46227,13 @@ function battleTurn(S,rng,actsForA,actsForB){
          * BOTH streams before anything is compared, so it cannot create or hide a divergence; it is
          * here because it is what the authority writes and because it is the only unambiguous marker
          * that the ability fired at all when the boosted stat is one the move itself also moved. */
-        if(announce&&TR){const _rec=TAGS.tagsFor&&TAGS.tagsFor('ability',m.ability);
-          TR.ab(m,(_rec&&_rec.name)||String(m.ability),'boost');}
-        if(TR)TR.bst(m,_key,m.boosts[_key]-_b0,attr);
+        /* 2026-09-19 -- THROUGH `abilityBoostRun`, WHICH MOVED THE ANNOUNCE INSIDE `if (boostBy)`.
+         * It stood above the `-boost` unconditionally, so a Moxie body whose Attack was already at +6
+         * announced where the authority is silent -- the same defect Defiant had, found by generalising
+         * rather than by a divergence (no Moxie-at-the-cap KO appears in the pinned pool's 250). */
+        const _kr=abilityBoostRun(m,m.ability,{isSecondary:!announce});
+        _kr.bst(_key,m.boosts[_key]-_b0,false,attr);
+        _kr.done();
       };
       /* STEP 9 -- `|-hitcount|`, AND IT IS BELOW THE FAINT. 2026-08-22.
        *
@@ -45708,7 +46638,14 @@ function battleTurn(S,rng,actsForA,actsForB){
              * Bullet Seed is -3/+6, not -1/+2. `compounds` is what the tag calls this and it is
              * true for every member that reaches here. */
             if(R.fxDone)MEDSEEN.buffOnHitAfterSecondaries++;
-            for(let _bh=0;_bh<_react;_bh++)for(const k in _buff.boosts){
+            /* 2026-09-19 -- ONE `abilityBoostRun` PER ARRIVAL, because the authority's `boosted` latch
+             * lives inside ONE `this.boost(...)` call and the handler is re-entered per hit. Weak
+             * Armor's `{def:-1, spe:+2}` is one call and ONE `|-ability|...|boost`; a Bullet Seed
+             * landing three times is three calls and three announcements. Stamina (112 games) and Weak
+             * Armor (2) are the pinned pool's largest and smallest rows in this family. */
+            for(let _bh=0;_bh<_react;_bh++){
+             const _br=abilityBoostRun(tg,tg.ability,{isSecondary:false});
+             for(const k in _buff.boosts){
               const st=SD2ENG[k]; if(!st||tg.boosts[st]==null)continue;
               const _b0=tg.boosts[st];
               tg.boosts[st]=clamp(tg.boosts[st]+_buff.boosts[k],-6,6);
@@ -45717,12 +46654,18 @@ function battleTurn(S,rng,actsForA,actsForB){
                  gate is the STEP, so a body already at +6 gets no line at all, exactly as the
                  authority's `if (boostBy)` decides. `[from]` is the display name from the artifact,
                  which is `Effect#fullname`'s `ability: Anger Point`; no name is counted, not guessed. */
+              /* THE `-setboost` FAMILY BYPASSES `abilityBoostRun` AND THAT IS THE AUTHORITY'S OWN
+               * SHAPE: `case 'angerpoint'` (sim/battle.ts:2047) writes `-setboost` and BREAKS, so the
+               * `default` branch that holds the `-ability` announce is never reached. Anger Point
+               * announces nothing and must keep announcing nothing. */
               if(TR&&tg.boosts[st]!==_b0&&announcesSetBoost(_buff.boosts[k])){
                 const _arec=TAGS.tagsFor?TAGS.tagsFor('ability',tg.ability):null;
                 if(_arec&&_arec.name){MEDSEEN.setBoostAnnounced++;TR.setbst(tg,st,'[from] ability: '+_arec.name);}
                 else {MEDFAILS.setBoostNoName++;TR.bst(tg,st,tg.boosts[st]-_b0,'[from] ability: '+tg.ability);}
               }
-              else if(TR)TR.bst(tg,st,tg.boosts[st]-_b0,'[from] ability: '+tg.ability);
+              else _br.bst(st,tg.boosts[st]-_b0,false,'[from] ability: '+tg.ability);
+             }
+             _br.done();
             }
           }
         }
@@ -46205,6 +47148,37 @@ function battleTurn(S,rng,actsForA,actsForB){
         if((a.move.mv&&a.move.mv.self)&&!_sbVia)MEDFAILS.selfBoostViaUnknown=(MEDFAILS.selfBoostViaUnknown||0)+1;
         if(SELFBOOST_IN_LOOP&&_sbVia==='selfBoost')MEDFAILS.selfBoostInLoopRestored=1;
         const sdrop=(connected&&(SELFBOOST_IN_LOOP||_sbVia!=='selfBoost'))?(a.move.mv&&a.move.mv.self):null;
+        /* 2026-09-19 -- AND THE AUTHORITY'S `activeTarget` MOVES TO THE SOURCE HERE, WHICH IS WHERE
+         * EVERY SECONDARY ROLL OF THIS MOVE IS THEN ADDRESSED.
+         *
+         *     // steps 4 and 5 can mess with this.battle.activeTarget, ...
+         *     const activeTarget = this.battle.activeTarget;                battle-actions.ts:1093
+         *     if (moveData.self && !move.selfDropped) this.selfDrops(...)              :1096
+         *     if (moveData.secondaries) this.secondaries(...)                          :1099
+         *     this.battle.activeTarget = activeTarget;                                 :1101
+         *
+         * and `selfDrops` calls `this.moveHit(source, source, move, moveData.self, ...)` (:1325/:1329),
+         * which re-enters `spreadMoveHit` -> `getSpreadDamage`, whose per-target loop writes
+         * `this.battle.activeTarget = target` (:1154) -- with `targets = [source]`. The restore at
+         * :1101 is BELOW `secondaries`, so the whole of step 5 sees the SOURCE, not the last body of
+         * the spread. `_stepDamage`'s write is the last-body rule and it is correct for a move with no
+         * `self:` block; this is the other half of it.
+         *
+         * MEASURED ON THE AUTHORITY BEFORE A BYTE MOVED, on the game that said so (the held-out
+         * 12,000-game draw on release 18773c22878f, omit-weather t1,
+         * ...bo3-2657252654 vs -2657249003, `|cant|p2b|flinch` against `|move|p2b|overheat`):
+         *   a King's Rock Gholdengo's Make It Rain (`self: {boosts:{spa:-1}}`) into Lycanroc+Scovillain
+         *     showdown  sec|makeitrain|p11|0  sec|makeitrain|p11|1      <- p11 IS THE USER
+         *     medicham  sec|makeitrain|p21|0  sec|makeitrain|p21|1      <- the last body of the spread
+         * Two address strings, two independent hashed values, and the 10% flinch fired on one engine
+         * and not the other. The authority's own three `random(100)` draws that turn were 95 (the
+         * self-drop's own coin, `sdrop` bucket, still at the LAST TARGET because `moveHit` has not run
+         * yet) then 48 and 38, both at the source -- so the ordering above is read off the trace and
+         * not inferred.
+         *
+         * MEDI_SEC_ADDR_IGNORES_SELFDROP=1 restores the address that never moved.
+         * tests/probe_sec_addr_selfdrop.js is the instrument. */
+        if(sdrop&&!SEC_ADDR_IGNORES_SELFDROP){_secAddrSlot=midEventSlot(m);MEDSEEN.secAddrFromSelfDrop++;}
         if(sdrop){const sgn=invSign(m);   // WIRE 100b
           for(const k in sdrop){const _st=SD2ENG[k];if(_st&&m.boosts[_st]!=null){const _b0=m.boosts[_st];
             m.boosts[_st]=clamp(m.boosts[_st]+sdrop[k]*sgn,-6,6);
@@ -46616,8 +47590,51 @@ function battleTurn(S,rng,actsForA,actsForB){
        * legal Magic Guard carriers -- Clefable, Alakazam, Reuniclus -- learns Steel Beam, so the only
        * member a Magic Guard body can ever pay is Struggle, which the authority charges anyway. If a
        * regulation puts Steel Beam on one of them, this is where it breaks and this is the note. */
+      /* ============ 2026-09-19 -- AND IT IS NOT PAID BY A MOVE THAT DEALT NOTHING ================
+       *
+       * THE PARAGRAPH ABOVE IS RIGHT ABOUT STEEL BEAM AND WAS WRONG ABOUT STRUGGLE, and it said so in
+       * the wrong direction: *"This engine's miss path exits above this line"*. It does not. A
+       * Struggle aimed at a body that had just gone semi-invulnerable reached this block, and the
+       * quarter of its own maximum was taken off a user the authority never charged.
+       *
+       *     medicham2   |move|p1a|struggle|p2b   |-miss|p1a|p2b   |-damage|p1a|870/1160|[from] recoil
+       *     showdown    |move|p1a|struggle|p2b|[miss]   |-miss|p1a|p2b            (and nothing else)
+       *
+       * TWO OF THE 34 BOARD PARTINGS in the 2026-09-19 held-out 12,000-game draw are exactly this,
+       * and both are a KO that only happened here: rows 2 and 25 of
+       * `docs/_reports/2026-09-19-final-remeasure.md` (Garchomp 45 vs 91, Kangaskhan 0/fainted vs 33).
+       *
+       * THE AUTHORITY PAYS THIS FAMILY AT TWO SITES AND ONLY ONE OF THEM IS UNCONDITIONAL:
+       *
+       *   applyRecoilDamage is reached only through
+       *       if (move.totalDamage) this.applyRecoilDamage(move.totalDamage, move, pokemon);
+       *     -- data/mods/champions/scripts.ts:553-555, the mod's OWN copy of hitStepMoveHitLoop. A
+       *     move that dealt nothing never reaches it, whatever its recoil field says.
+       *   `onMoveFail` is a SECOND site, raised when the move produced no result at all
+       *       if (!moveResult) { ... this.battle.singleEvent('MoveFail', move, null, target, pokemon, move); }
+       *     -- sim/battle-actions.ts:524-527. STEEL BEAM DECLARES ONE and charges the same half max HP
+       *     from it (data/moves.ts:17880-17883); STRUGGLE DECLARES NONE (data/moves.ts:18218-18228).
+       *
+       * SO THE GATE IS THE TAG'S, NOT A NAME. `recoil {of:'maxhp'}` now carries `paidOnFail`, derived
+       * by tag_dex from the presence of a damaging `onMoveFail` handler, and a third member arriving
+       * with or without one is priced without an edit here. Steel Beam's behaviour is UNCHANGED in
+       * both directions -- it still pays on a whiff, which is what its own handler does.
+       *
+       * WHAT THIS DOES NOT CLAIM. This engine's Protect road already exited above this line and both
+       * engines already agreed there (measured: a scripted Struggle into a double Protect writes no
+       * recoil in either). So Steel Beam into a Protect is still UNPAID here where the authority
+       * charges it -- a separate gap on the other member, named rather than quietly inherited.
+       *
+       * AN ARTIFACT WITHOUT THE PARAM IS LOUD, NOT DEFAULTED. A tags.json predating the split cannot
+       * answer the question, so the pre-fix behaviour is kept AND `MEDFAILS.recoilPaidOnFailUnknown`
+       * is stamped -- a silent default here would look exactly like a working gate. */
       {const _mr=TAGS.param('move',a.move&&a.move.id,'recoil');
-       if(_mr&&_mr.of==='maxhp'&&+_mr.fraction>0&&m.st&&!m.fainted){
+       const _mrMax=!!(_mr&&_mr.of==='maxhp'&&+_mr.fraction>0);
+       const _mrFail=(_mr&&Object.prototype.hasOwnProperty.call(_mr,'paidOnFail'))?!!_mr.paidOnFail
+                    :(_mrMax?(MEDFAILS.recoilPaidOnFailUnknown=1,true):false);
+       const _mrOwed=(dealt>0||_mrFail||RECOIL_ON_A_WHIFF);
+       if(_mrMax&&!_mrOwed)MEDSEEN.maxHPRecoilRefusedOnWhiff++;
+       if(_mrMax&&_mrOwed&&m.st&&!m.fainted){
          m.curHP-=Math.max(1,Math.round(m.st.hp*+_mr.fraction));
          MEDSEEN.maxHPRecoilPaid++;
          /* ROADMAP #234 -- THE AUTHORITY'S OWN SWITCH, MIRRORED RATHER THAN AVERAGED. The two members
@@ -46807,6 +47824,55 @@ function battleTurn(S,rng,actsForA,actsForB){
           }
         }
         _ppPending=null;
+      }
+      /* ==== 2026-09-19 -- `onAfterMove`: THE BODIES THIS MOVE HIT ARE CURED OF A NAMED STATUS =====
+       *
+       * SPARKLING ARIA'S WHOLE POINT, AND THIS ENGINE HAD NONE OF IT. The move's 100% secondary marks
+       * each target with a `sparklingaria` volatile, which this engine wrote faithfully, and the mark
+       * is only a receipt: the CURE lives in the move's own `onAfterMove` (data/moves.ts:17364-17378)
+       * and nothing here read it. One of the 34 board partings in the 2026-09-19 held-out
+       * 12,000-game draw is exactly that -- `docs/_reports/2026-09-19-final-remeasure.md` row 6:
+       *
+       *     pair ...bo3-2657243554   p1.party.kingambit.status   us="brn"   showdown=""
+       *     showdown   |-curestatus|p1a: Kingambit|brn|[msg]      medicham2  (nothing at all)
+       *
+       * THE THREE CLAUSES ARE READ OFF `data/tags.json`, NOT OFF A NAME. `curesTargetStatusAfterMove`
+       * derives WHICH status, WHICH mark, whether a SECOND target waives the mark (the authority's own
+       * Shield Dust bypass) and whether Sheer Force cancels the whole thing.
+       *
+       *   - the USER is never cured (`pokemon !== source`), so an ally-hitting spread move that
+       *     catches its own side still leaves the user's burn on;
+       *   - a body with no mark and no second target is NOT cured -- that is the Shield Dust case and
+       *     it is the one a "just cure brn" reader would get wrong;
+       *   - the marks are cleared either way, because `removeVolatile` is the authority's own test and
+       *     a receipt left on the field would cure a later move's target.
+       *
+       * `MEDI_AFTERMOVE_CURE_OFF=1` takes it back out. */
+      {
+        const _cs=TAGS.param('move',a.move&&a.move.id,'curesTargetStatusAfterMove');
+        if(_cs&&_cs.status){
+          if(AFTERMOVE_CURE_OFF)MEDFAILS.afterMoveCureOffRestored=1;
+          else{
+            const _hit=_rows.filter(R=>R&&!R.out&&R.tg);
+            const _mAb=(m.ability||'').replace(/[^a-z0-9]/g,'');
+            const _sf=!!(_cs.skippedBySheerForce&&TAGS.param('ability',_mAb,'removesOwnSecondaries'));
+            const _dead=!!(_cs.skippedIfUserFainted&&m.fainted);
+            for(const R of _hit){
+              const _tg=R.tg;
+              const _mark=!!(_cs.viaVolatile&&_tg._vol&&_tg._vol[_cs.viaVolatile]);
+              if(_cs.viaVolatile&&_tg._vol)delete _tg._vol[_cs.viaVolatile];
+              if(_sf||_dead)continue;
+              if(_tg===m||_tg.fainted||_tg.curHP<=0)continue;
+              if(!(_mark||(_cs.multiTargetWaivesTheMark&&_hit.length>1)))
+                {MEDSEEN.afterMoveCureRefusedNoMark++;continue;}
+              if(_tg.status!==_cs.status)continue;
+              _tg.status='';
+              MEDSEEN.afterMoveCurePaid++;
+              if(TR)TR.cure(_tg,_cs.status,ATTR.cured(false).from);
+            }
+            if(_sf)MEDSEEN.afterMoveCureRefusedSheerForce++;
+          }
+        }
       }
       /* WIRE 19 -- DRAIN, the exact mirror of the recoil line above and absent entirely. 8,553 corpus
        * clicks: Matcha Gotcha 4,957, Giga Drain 1,255, Drain Punch 916, Draining Kiss 814. The damage
@@ -47849,10 +48915,18 @@ function battleTurn(S,rng,actsForA,actsForB){
        * otherwise look exactly like an ability nobody brought. */
       if(_G.has('boosts')){const _be=TAGS.param('ability',m.ability,'boostsEachTurn');
        if(_be&&_be.boosts&&m.boosts&&m._newlySwitched)MEDSEEN.perTurnBoostGatedOnEntry++;
-       if(_be&&_be.boosts&&m.boosts&&!m._newlySwitched)for(const k in _be.boosts){
-         const _s=SD2ENG[k];if(_s&&m.boosts[_s]!=null){const _b0=m.boosts[_s];
-           m.boosts[_s]=clamp(m.boosts[_s]+_be.boosts[k],-6,6);
-           if(TR)TR.bst(m,_s,m.boosts[_s]-_b0,'[from] ability: '+m.ability);}
+       /* 2026-09-19 -- `onResidual(pokemon) { if (pokemon.activeTurns) this.boost({spe: 1}); }`
+        * (data/abilities.ts:4447) passes neither a target nor a flag, so `boost()` reads `this.effect`
+        * -- the ability -- and `boosted` starts false: `|-ability|HOLDER|Speed Boost|boost` above the
+        * `-boost`. 48 games of the pinned pool's 250, the second-largest row. Through the one road. */
+       if(_be&&_be.boosts&&m.boosts&&!m._newlySwitched){
+         const _ber=abilityBoostRun(m,m.ability,{isSecondary:false});
+         for(const k in _be.boosts){
+           const _s=SD2ENG[k];if(_s&&m.boosts[_s]!=null){const _b0=m.boosts[_s];
+             m.boosts[_s]=clamp(m.boosts[_s]+_be.boosts[k],-6,6);
+             _ber.bst(_s,m.boosts[_s]-_b0,false,'[from] ability: '+m.ability);}
+         }
+         _ber.done();
        }}
       /* WIRE 133 -- MOODY, 605 uses and 249 sheets: the LARGEST tag in the census that had never had
        * a probe, let alone a consumer. It sits here beside Speed Boost because it is the same
@@ -47877,9 +48951,15 @@ function battleTurn(S,rng,actsForA,actsForB){
          const _up=+_rb.up||2,_dn=+_rb.down||1;
          const _plus=_pick(_pool(k=>m.boosts[k]<6));
          const _minus=_pick(_pool(k=>m.boosts[k]>-6&&k!==_plus));
+         /* 2026-09-19 -- ONE RUN FOR BOTH STEPS. Moody builds ONE table -- `boost[plus]=2;
+          * boost[minus]=-1; this.boost(boost, pokemon, pokemon)` (data/abilities.ts, read whole) --
+          * so the authority announces ONCE, above the first line, and not again above the -1.
+          * 8 games of the pinned pool's 250. */
+         const _mr=abilityBoostRun(m,m.ability,{isSecondary:false});
          const _apply=(k,d)=>{if(!k)return;const _b0=m.boosts[k];m.boosts[k]=clamp(m.boosts[k]+d,-6,6);
-           if(TR)TR.bst(m,k,m.boosts[k]-_b0,'[from] ability: '+m.ability);};
+           _mr.bst(k,m.boosts[k]-_b0,false,'[from] ability: '+m.ability);};
          _apply(_plus,_up); _apply(_minus,-_dn);
+         _mr.done();
          if(_plus||_minus)MEDSEEN.moodyRolled++;
        }}
       /* WIRE 141 -- HUNGER SWITCH. THE FORME THAT FLIPS ON A CLOCK, WITH NO TRIGGER AT ALL.
@@ -48695,16 +49775,46 @@ function battleTurn(S,rng,actsForA,actsForB){
          * before comparing, so the SAME three-argument `TR.vend` the duration-expiry branch four
          * lines below already uses is exact, and the two branches stay one announcement.
          *
-         * DECLARED REMAINDER, NOT FIXED HERE: the authority's predicate is `!source.isActive ||
+         * ~~DECLARED REMAINDER, NOT FIXED HERE: the authority's predicate is `!source.isActive ||
          * source.hp <= 0 || !source.activeTurns`, and `!source.activeTurns` -- a trapper that entered
-         * the field THIS turn -- has no counterpart below. It needs its own fixture.
+         * the field THIS turn -- has no counterpart below. It needs its own fixture.~~
+         * **CLOSED 2026-09-19** -- it has a fixture now and the clause is on the line below.
          *
          * 2026-09-07 -- THE PREDICATE IS `sourceOffField` NOW, AND IT IS THE SAME BYTES IT WAS. This
          * site was already correct; the per-turn-BOOST sweep in `_updateEvent` was not, and the two
          * were two readings of one fact. See `sourceOffField` for the three `isActive = false` sites
-         * and for why `!source.activeTurns` is deliberately NOT folded into the shared reader. */
-        if(sourceOffField(_by,actA,actB)){
-          const _tmv=m._trap.mv;m._trap=null;MEDSEEN.trapEndedSourceGone++;
+         * and for why `!source.activeTurns` is deliberately NOT folded into the shared reader.
+         *
+         * 2026-09-19 -- `!source.activeTurns`, AND THE BOARD IS WHERE IT SURFACED. A trapper that
+         * stepped OFF the field and came back INSIDE THE SAME TURN is `isActive` again by the
+         * residual, so the clause above declines -- and the authority has already let the victim go,
+         * because `activeTurns` was reset to 0 by the switch-in (sim/battle-actions.ts:137) and
+         * `nextTurn` has not run yet (sim/battle.ts:1762).
+         *
+         *     ...bo3-2662400605  turn 4   p1.party.blastoise.hp  us=18  showdown=37
+         *                                 p1.active[0].vol.trapped_by_move  us=1  showdown=0
+         *     showdown   |-end|p1a: Blastoise|Infestation|[partiallytrapped]|[silent]
+         *     medicham2  |-damage|p1a: Blastoise|18/154 tox|[from] move: infestation|[partiallytrapped]
+         *
+         * The Toxapex holding that Infestation left p2b at the top of turn 4 and was put BACK on the
+         * field in the other slot by its partner's Parting Shot. One of the 34 board partings in the
+         * 2026-09-19 held-out 12,000-game draw.
+         *
+         * `_newlySwitched` IS THE SAME TWO ANSWERS `activeTurns` GIVES and is already the engine's
+         * reader for the identical clause on Speed Boost (`boostsEachTurn`, WIRE 138): set in
+         * `bringIn`, cleared at the one point that opens a turn, so a LEAD reads false on turn 1
+         * exactly as the authority's lead reads `activeTurns === 1`.
+         *
+         * IT IS NOT FOLDED INTO `sourceOffField`, for the reason that function's own header gives:
+         * the clause is the trap's alone and `syrupbomb.condition` has no counterpart, so a shared
+         * reader would hand it to a family the authority never hands it to.
+         *
+         * `MEDI_PARTIAL_TRAP_OUTLIVES_SOURCE=1` takes the clause back out. */
+        const _srcBack=!!(_by&&_by._newlySwitched&&!sourceOffField(_by,actA,actB));
+        if(_srcBack&&PARTIAL_TRAP_OUTLIVES_SOURCE)MEDFAILS.partialTrapOutlivesItsSourceRestored=1;
+        if(sourceOffField(_by,actA,actB)||(_srcBack&&!PARTIAL_TRAP_OUTLIVES_SOURCE)){
+          const _tmv=m._trap.mv;m._trap=null;
+          if(_srcBack)MEDSEEN.trapEndedSourceArrivedThisTurn++; else MEDSEEN.trapEndedSourceGone++;
           if(TR)TR.vend(m,_tmv||'partiallytrapped',_tmv?'[partiallytrapped]':'');
         }
         else{

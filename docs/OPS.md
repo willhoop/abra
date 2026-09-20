@@ -19,7 +19,7 @@ OPS — the live bot and the store
   data/games.ots.jsonl         last written 2026-09-10 22:14  <- FROZEN external import, complete; date is an import, not a heartbeat
 ```
 
-_stamped 2026-09-19 19:26_
+_stamped 2026-09-19 22:53_
 
 <!-- /GENERATED -->
 

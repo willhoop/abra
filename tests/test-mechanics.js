@@ -1448,6 +1448,76 @@ probe('move', 'stallCounterChecks', 'a turn that ENDS THE BATTLE never reaches i
                  + 'sweep back on the outer exit of the turn) each take the wiped arm to 0 on their own' };
 });
 
+/* 2026-09-19 -- AND THE HALF-SPENT RESIDUAL, WHICH THE ROW ABOVE CANNOT SEE. That one is a turn whose
+ * residual never OPENS. This one is a turn whose residual opens, runs, and STOPS INSIDE the `stall`
+ * handlers -- so one body's clock is spent and a slower body's is not, on the same turn.
+ *
+ * THE AUTHORITY (no Champions override of `stall`; see `_stallExpire` in engine/medicham2-browser.js
+ * for the full citation list): `stall` carries a duration and NO `onResidualOrder`, so every `stall`
+ * handler sorts below every numbered one (sim/battle.ts:405, :952) and they are separated among
+ * themselves by SPEED, high to low (sim/battle.ts:407). An EXPIRY `continue`s past the drain
+ * (sim/battle.ts:517-525); a counter that SURVIVES its decrement falls through to
+ * `this.faintMessages(); if (this.ended) return;` (sim/battle.ts:564-566) and can end the walk there.
+ *
+ * MEASURED ON THE AUTHORITY, ON THE GAME THAT SAID SO, BEFORE A BYTE MOVED (the held-out 12,000-game
+ * draw on release 18773c22878f, omit-weather t14, ...bo3-2655134691 vs -2655131779, board leaf
+ * `p2.active[1].stall` medicham 0 / showdown 3, NO protocol divergence anywhere in the game): the
+ * authority's t14 walk expires a Gengar's clock at speed 170, survives a Tinkaton's at 152, pays
+ * `faintMessages` there, wipes p1 and returns -- and a Sylveon at 105 IS NEVER REACHED.
+ *
+ * THE ARMS VARY ONE THING: whether the foe side is wiped on the final turn, which is whether Perish
+ * Song was clicked on turn 1. Everything else is identical -- same bodies, same four click sets. The
+ * shielder that stops the walk (Milotic, the fastest) is FRESH in BOTH arms, so an arm where nothing
+ * shields cannot pass by accident. Kommo-o's Soundproof is what keeps the reader ALIVE to be read:
+ * a corpse's counter is a leaf no board compares (engine/board_state.js:834). */
+probe('move', 'stallCounterChecks', 'a residual that STOPS inside the stall handlers spends the fast body\'s clock and not the slow one\'s', () => {
+  const run = (perish) => {
+    const me = bare('kommoo'), ally = bare('swampert');
+    const f1 = bare('primarina'), f2 = bare('milotic');
+    me.ability = 'soundproof';                       // Perish Song is a sound move; the reader survives
+    me.st = Object.assign({}, me.st, { sp: 100 });   // the STALE counter, and it must sort BELOW f2
+    ally.st = Object.assign({}, ally.st, { sp: 50 });
+    f1.st = Object.assign({}, f1.st, { sp: 60 });
+    f2.st = Object.assign({}, f2.st, { sp: 200 });   // the FRESH counter that stops the walk
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    /* t1 — THE ONE KNOB. Perish Song's clock is 4, so it expires on t4's residual. */
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, perish ? M.playerAction(f1, 'perishsong', null, S.field) : { kind: 'pass' }],
+               [f2, { kind: 'pass' }]]));
+    M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
+    /* t3 — the reader arms its counter. Its ally is slower and makes a MOVE, so willAct() is not null
+     * and the shield is not refused for holding the last action of the turn. */
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'protect', null, S.field)],
+               [ally, M.playerAction(ally, 'bulkup', null, S.field)]]),
+      PASS2(f1, f2));
+    const armed = M.stallBoardCounter(me.tookProtectTurns | 0);
+    /* t4 — the perish expiry queues its faints, f2 shields (FRESH, fastest) and the reader clicks a
+     * move that is not a stalling move, so its own counter is STALE at the foot of the walk. */
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'swordsdance', null, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, M.playerAction(f2, 'protect', null, S.field)]]));
+    return { armed, after: M.stallBoardCounter(me.tookProtectTurns | 0),
+             stopperFresh: (f2.tookProtectTurns | 0) > 0,
+             readerAlive: !me.fainted && me.curHP > 0,
+             wiped: (f1.fainted || f1.curHP <= 0) && (f2.fainted || f2.curHP <= 0) };
+  };
+  const wiped = run(true), lives = run(false);
+  return { works: wiped.armed === 3 && lives.armed === 3          // both arms really armed it
+                  && wiped.stopperFresh && lives.stopperFresh     // the stopper shielded in both
+                  && wiped.readerAlive && lives.readerAlive       // and the leaf read is a LIVE one
+                  && wiped.wiped && !lives.wiped                  // the knob really moved the wipe
+                  && wiped.after === 3 && lives.after === 0,
+           arms: { sideWiped: wiped.after, foesLive: lives.after },
+           detail: 'the SLOW reader\'s stall counter after a turn 4 whose residual ends the battle — '
+                 + 'PERISH SONG ON TURN 1 ' + JSON.stringify(wiped) + ' must keep the '
+                 + wiped.armed + ' it armed on turn 3, because the walk stopped at the FAST shielder '
+                 + 'whose clock survived its own decrement   |   NO PERISH SONG '
+                 + JSON.stringify(lives) + ' must read 0, because that walk ran to the end. Knob: '
+                 + 'MEDI_STALL_SWEEP_UNORDERED=1 (the all-or-nothing pass in slot order, with no stop) '
+                 + 'takes the wiped arm to 0' };
+});
+
 /* ROADMAP #81 WIRE 2, THE SECOND HALF. Every shield in data/moves.ts opens with
  *     onPrepareHit(pokemon) { return !!this.queue.willAct() && this.runEvent('StallMove', pokemon); }
  * `BattleQueue.willAct()` (sim/battle-queue.ts:310) returns the first remaining `move`/`switch`/
@@ -5648,19 +5718,25 @@ probe('condition', 'residualPerishStep',
     trace.length = 0;
     M.battleTurn(S, rng5, PASS2(me, ally), PASS2(f1, f2));
     const lines = trace.map(M.traceCanon).filter(l => /perish|sideend|speedboost/.test(l));
+    /* 2026-09-19 — THE ANNOUNCEMENT IS ITS OWN TOKEN. Speed Boost's residual now writes
+     * `|-ability|HOLDER|Speed Boost|boost` above its `-boost` (sim/battle.ts:2066, through
+     * `abilityBoostRun`), so folding both lines into one BOOST token read `BOOST BOOST` and this row
+     * went RED on a fix. Naming them apart makes the arm STRONGER than it was: it now also asserts
+     * the announcement sits above the stat line rather than beside it. */
     return { lines, seq: lines.map(l => /perish/.test(l) ? (l.match(/\|(p[12][ab]):/) || [])[1]
-                                       : (/sideend/.test(l) ? 'SIDEEND' : 'BOOST')).join(' ') };
+                                       : (/sideend/.test(l) ? 'SIDEEND'
+                                       : (/^\|-ability\|/.test(l) ? 'ANNOUNCE' : 'BOOST'))).join(' ') };
   };
   const tw = run('tw'), boost = run('boost'), bareArm = run('bare'), none = run('noperish');
   return { works: tw.seq === 'p1a p1b p2a p2b SIDEEND'
-                  && boost.seq === 'p1a p1b p2a p2b BOOST'
+                  && boost.seq === 'p1a p1b p2a p2b ANNOUNCE BOOST'
                   && bareArm.seq === 'p1a p1b p2a p2b'
                   && none.seq === 'SIDEEND',
            arms: { control: none.seq, test: tw.seq },
            detail: 'TAILWIND arm "' + tw.seq + '" — the four order-24 counters must precede the '
                  + 'order-26 |-sideend|, which is what five games of the pinned pool got backwards. '
                  + 'SPEED BOOST arm "' + boost.seq + '" — the counters must precede the order-28 '
-                 + '|-boost| AND come out in the pre-boost order, p1a(100) before p1b(80), because a '
+                 + 'ANNOUNCE/|-boost| pair AND come out in the pre-boost order, p1a(100) before p1b(80), because a '
                  + 'tick below the walk reads p1b at 120 and reverses them. OVER-FIRE, no Tailwind and '
                  + 'no Speed Boost: "' + bareArm.seq + '" (plain speed order, must not move). CLEARED, '
                  + 'the same Tailwind board with no clock on anybody: "' + none.seq + '" (the side '
@@ -16884,11 +16960,16 @@ probe('item', 'addsFlinch', "King's Rock flinches on its 10%, and Sheer Force de
  * rng is pinned to 0.5, so every die LOSES and no flinch lands in any arm -- the arms differ only in
  * how many dice were taken.
  *
- * THE FOURTH ARM IS THE DECLARED REMAINDER. On the arrival that KILLS, the authority still takes its
- * die; this engine's step list is wrapped once per move, so the row is already fainted when the
- * block runs and it takes none. That cannot reach a board -- the authority's own `addVolatile` bails
- * on a body at zero (sim/pokemon.ts:1980) -- and `kingsRockRollSkippedOnKO` counts the skipped dice
- * so the gap is a measured quantity rather than a sentence. */
+ * THE FIFTH ARM WAS THE DECLARED REMAINDER AND IS NOW THE RULE -- 2026-09-19. It used to assert
+ * `killed.rolled === 0`, i.e. it PINNED the skip: on the arrival that KILLS the authority takes its
+ * die and this engine took none. The sentence that justified it -- "that cannot reach a board,
+ * `addVolatile` bails on a body at zero (sim/pokemon.ts:1980)" -- is RETRACTED. It is true of the
+ * FLINCH and false of the DIE: a passing draw calls `moveHit(target, ...)`
+ * (sim/battle-actions.ts:1348), which moves `activeTarget` onto the corpse and re-addresses every
+ * later secondary of the same move, and three board partings in the held-out 12,000-game draw on
+ * release `18773c22878f` were exactly that. The arm now asserts the die IS taken and
+ * `kingsRockRollSkippedOnKO` is ZERO; MEDI_KINGSROCK_SKIPS_DEAD=1 puts the old reading back and
+ * takes this row MISSING with it. Two-engine staging: tests/probe_sec_addr_selfdrop.js. */
 probe('item', 'addsFlinch', "King's Rock takes ONE die per LANDED ARRIVAL, not one per click", () => {
   const arm = (item, move, hp) => {
     const me = bare('talonflame'); me.item = item;
@@ -16917,8 +16998,8 @@ probe('item', 'addsFlinch', "King's Rock takes ONE die per LANDED ARRIVAL, not o
   const ownFlinch = arm('kingsrock', 'airslash');
   const killed = arm('kingsrock', 'dualwingbeat', 1);
   return { works: volley.rolled === want && single.rolled === 1 && noItem.rolled === 0
-                  && ownFlinch.rolled === 0 && killed.rolled === 0 && killed.dead
-                  && killed.skipped >= 1
+                  && ownFlinch.rolled === 0 && killed.rolled === 1 && killed.dead
+                  && killed.skipped === 0
                   && [volley, single, noItem, ownFlinch, killed].every(a => a.fellBack === 0)
                   && [volley, single, noItem, ownFlinch, killed].every(a => !a.flinched),
            arms: { control: single.rolled, test: volley.rolled },
@@ -16928,12 +17009,66 @@ probe('item', 'addsFlinch', "King's Rock takes ONE die per LANDED ARRIVAL, not o
                  + `${single.rolled} (the over-fire control -- a fix that multiplied the roll by `
                  + `anything fails here); the same volley with NO item ${noItem.rolled}; Air Slash, `
                  + `which already flinches, ${ownFlinch.rolled} (the item's own no-stacking clause); `
-                 + `and the volley into a 1 HP body ${killed.rolled} rolled with `
-                 + `${killed.skipped} DECLARED-REMAINDER dice skipped on the KO (the authority takes `
-                 + `them and a flinch on a corpse is refused by addVolatile, so no board can differ). `
+                 + `and the volley into a 1 HP body ${killed.rolled} rolled (the volley stops on the `
+                 + `KO, so ONE arrival lands and ONE die is taken -- the authority draws for a body `
+                 + `this hit killed because \`secondaries\` skips only \`target === false\`, and a `
+                 + `passing draw re-addresses every later secondary of the move) with `
+                 + `${killed.skipped} skipped, which must be 0. Knob MEDI_KINGSROCK_SKIPS_DEAD=1. `
                  + `MEDFAILS.kingsRockNoArrivalCount ${volley.fellBack}/${single.fellBack}/`
                  + `${noItem.fellBack}/${ownFlinch.fellBack}/${killed.fellBack} -- every arm must be 0 `
                  + `or the count came from a silent fallback` };
+});
+
+/* 2026-09-19 -- THE SAME RULE IN THE SHAPE THE BOARD ACTUALLY PARTED IN: A SPREAD WHOSE CORPSE IS NOT
+ * THE LAST TARGET.
+ *
+ * The arm above is a single-target VOLLEY, where "the arrival that killed" and "the last arrival" are
+ * the same event and a skipped die costs nothing but a count. On a SPREAD the corpse sits BESIDE live
+ * bodies, and `BattleActions#secondaries` walks every one of them: `for (const target of targets) {
+ * if (target === false) continue; ... const secondaryRoll = this.battle.random(100); ... }`
+ * (sim/battle-actions.ts:1337-1349). A body that fainted to this hit is NOT `false` -- it took damage
+ * -- so it gets a draw, and a passing draw calls `moveHit(target, ...)` at :1348, re-addressing every
+ * LATER secondary of the move onto the corpse. That is the half a single-target arm cannot see, and
+ * it is the half that parted three boards in the held-out 12,000-game draw on release `18773c22878f`.
+ *
+ * Dazzling Gleam is chosen because it is `allAdjacentFoes` with NO secondary of its own (derived on
+ * every run below, not typed), so the King's Rock secondary is the only entry in the list and the
+ * item's no-stacking clause (data/items.ts:3216-3218) cannot suppress it. The rng is pinned to 0.5, so
+ * every die LOSES and no flinch lands in either arm -- the arms differ only in whether a target died.
+ *
+ * THE ARMS VARY ONE THING: the left foe's HP. `killed` and `hitBoth` are asserted so an arm where
+ * nothing died, or where the second body was never hit, cannot pass by accident. */
+probe('item', 'addsFlinch', "a SPREAD takes its King's Rock die on a body the hit KILLED too, not only on the survivors", () => {
+  const TG = require(D('engine', 'tags.js'));
+  const run = (killLeft) => {
+    const me = bare('clefable'), ally = bare('swampert');
+    const f1 = bare('whimsicott'), f2 = bare('garchomp');
+    me.item = 'kingsrock'; me.moves = ['dazzlinggleam'];
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(f2);                       // the survivor, so the arm cannot become a double KO
+    if (killLeft) f1.curHP = 1;
+    const r0 = M.MEDSEEN.kingsRockRolls, s0 = M.MEDSEEN.kingsRockRollSkippedOnKO;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'dazzlinggleam', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { dice: M.MEDSEEN.kingsRockRolls - r0, skipped: M.MEDSEEN.kingsRockRollSkippedOnKO - s0,
+             killed: !!f1.fainted || f1.curHP <= 0, hitBoth: f2.curHP < f2.st.hp };
+  };
+  const ko = run(true), live = run(false);
+  /* READ, NOT TYPED: the move must really be a two-foe spread with no flinch of its own, or "2 dice"
+   * is a claim about a different move. */
+  const ownFlinch = !!TG.param('move', 'dazzlinggleam', 'flinch');
+  return { works: !ownFlinch
+                  && ko.dice === 2 && ko.skipped === 0 && ko.killed && ko.hitBoth
+                  && live.dice === 2 && live.skipped === 0 && !live.killed && live.hitBoth,
+           arms: { control: live.dice + '/' + live.killed, test: ko.dice + '/' + ko.killed },
+           detail: 'King\'s Rock dice taken by ONE Dazzling Gleam at two foes, rng pinned to 0.5 so '
+                 + 'every die LOSES — LEFT FOE AT 1 HP ' + JSON.stringify(ko) + ' must take TWO dice '
+                 + 'and skip NONE, because the authority draws for a body that fainted to this hit '
+                 + '(`secondaries` skips only `target === false`)   |   BOTH FOES HEALTHY '
+                 + JSON.stringify(live) + ' is the control and must read the same two dice, which is '
+                 + 'what says the count is the target count and not the survivor count. Knob: '
+                 + 'MEDI_KINGSROCK_SKIPS_DEAD=1 takes the KO arm to 1 die and 1 skipped' };
 });
 
 /* ROADMAP #197 -- A MID-BATTLE FORME CHANGE CARRIES THE BODY'S NATURE, AND IT DID NOT.
@@ -19651,6 +19786,84 @@ probe('ability', 'announcesOnStart', 'Pressure, Mold Breaker and Unnerve announc
                  + `nothing for a body without it)` };
 });
 
+/* 1c. 2026-09-19 — AN ABILITY-SOURCED STAT CHANGE ANNOUNCES THE ABILITY ABOVE ITS FIRST STAT LINE.
+ *
+ *     if (boostBy) { ... if (effect.effectType === 'Ability' && !boosted) {
+ *                          this.add('-ability', target, effect.name, 'boost'); boosted = true; }
+ *                        this.add(msg, target, boostName, boostBy); }
+ *     else if (effect?.effectType === 'Ability') { if (isSecondary || isSelf) this.add(msg, ...); }
+ *                                                            sim/battle.ts:2045-2078, `Battle#boost`
+ *
+ * ONE branch, and Champions' scripts.ts does not override `boost`. This engine wrote NO line for six
+ * of the families that reach it — 198 of the pinned pool's 961 games once the whole-game comparison
+ * stopped deleting `|-ability|` (docs/_reports/2026-09-19-ability-line-blindness.md §3a) — and wrote
+ * one Defiant announcement the authority refuses on a capped stat (§3c). `abilityBoostRun` in
+ * engine/medicham2-browser.js is now the ONE road and every site is routed through it.
+ *
+ * THREE ARMS, BECAUSE TWO OF THEM ARE THE RULE'S EDGES rather than the rule:
+ *   test     Stamina takes a hit — ONE announcement, IMMEDIATELY above the `-boost`.
+ *   control  the SAME body with no ability — no line at all, so a green test is not an engine that
+ *            announces on every hit.
+ *   capped   a Defiant body at +6 Attack taking a SPEED drop — the retaliation applies zero, so the
+ *            authority writes the zero stat line and NO announcement. Without this arm the row would
+ *            pass on an engine that announced unconditionally, which is the defect that was here.
+ *
+ * MEMBERSHIP IS DERIVED, NOT NAMED: the set is read out of data/tags.json (any ability tag whose
+ * params carry a `boosts` table, a `randomStat`, or a `stat`+`stages` pair) and printed in the detail,
+ * so an ability added to any of those tags is covered by this row without an edit.
+ * The authority half — both engines, seven families, the interleaved order — is
+ * tests/probe_ability_boost_announce.js. Knob: MEDI_ABILITY_BOOST_SILENT=1 restores the silence. */
+probe('ability', 'abilityBoostAnnounce', 'an ability-sourced stat change announces the ability above its first stat line — and says nothing when the stat is capped', () => {
+  const T = require(path.join(__dirname, '..', 'data', 'tags.json'));
+  const members = [];
+  const walk = (o, ab) => {
+    if (!o || typeof o !== 'object') return false;
+    if ((o.boosts && typeof o.boosts === 'object') || o.randomStat || (o.stat && o.stages != null)) return true;
+    return Object.keys(o).some(k => o[k] && typeof o[k] === 'object' && walk(o[k], ab));
+  };
+  for (const ab of Object.keys(T.abilities)) {
+    const pr = (T.abilities[ab] || {}).params || {};
+    if (Object.keys(pr).some(t => walk(pr[t], ab))) members.push(ab);
+  }
+  /* ONE HIT ON A STAMINA BODY, reading the EMITTED STREAM and not the stage. */
+  const hit = (ab) => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'archaludon', 'garchomp');
+    f1.ability = ab;
+    f1.st = Object.assign({}, f1.st, { hp: f1.st.hp * 20 }); f1.curHP = f1.st.hp;
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'knockoff', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return trace.filter(l => /^\|-(ability|boost|unboost)\|/.test(l));
+  };
+  const test = hit('stamina'), control = hit('none');
+  /* A DEFIANT BODY AT THE CAP TAKING A SPEED DROP — a real turn, not a poked stage, so the whole
+   * `applyStatDrop` -> `retaliateWhenLowered` -> `abilityBoostRun` road is the thing under test.
+   * Icy Wind and not a drop on ATTACK: at +6 an Attack drop would move the stage and the retaliation
+   * would apply a non-zero delta, which is the case that DOES announce. */
+  const capped = (() => {
+    const { me, ally, f1, f2, S } = board('incineroar', 'corviknight', 'kingambit', 'garchomp');
+    f1.ability = 'defiant'; f1.boosts.at = 6;
+    for (const x of [f1, f2]) { x.st = Object.assign({}, x.st, { hp: x.st.hp * 20 }); x.curHP = x.st.hp; }
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'icywind', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return trace.filter(l => /^\|-(ability|boost|unboost)\|/.test(l));
+  })();
+  const announced = test.filter(l => /^\|-ability\|/.test(l));
+  const ok = members.length >= 10 && ['stamina', 'speedboost', 'moody', 'lightningrod', 'sapsipper',
+                                      'weakarmor', 'defiant'].every(k => members.includes(k))
+          && announced.length === 1 && /\|boost$/.test(announced[0])
+          && test.length === 2 && /^\|-ability\|/.test(test[0]) && /^\|-boost\|/.test(test[1])
+          && control.length === 0
+          && capped.some(l => /^\|-boost\|/.test(l)) && !capped.some(l => /^\|-ability\|/.test(l));
+  return { works: ok, arms: { control: control.length, test: announced.length },
+           detail: `${members.length} abilities carry a stat-change tag (derived from data/tags.json); `
+                 + `Stamina hit ${JSON.stringify(test)}; no ability ${JSON.stringify(control)}; `
+                 + `Defiant at +6 Atk taking a Speed drop ${JSON.stringify(capped)} `
+                 + `(authority: |-ability|TARGET|NAME|boost then the stat line, and NOTHING when the `
+                 + `applied delta is zero — sim/battle.ts:2065 sits inside if (boostBy))` };
+});
+
 /* 2. KNOCK OFF'S ORDER, ASSERTED AS A LIFE — ROADMAP #80's open half. Showdown strips from
  *    `onAfterHit`, so a lethal Knock Off into a FULL-HP Focus Sash holder resolves damage first, the
  *    Sash saves at 1, and there is nothing left to take. Measured in the authority:
@@ -19824,12 +20037,20 @@ probe('move', 'redirects', 'a Follow Me redirect adds no line, and a Lightning R
   const plain = run(null, null);
   const drawn = run(null, 'followme');
   const rod = run('lightningrod', null);
+  /* 2026-09-19 — THE ROD ARM NOW CARRIES TWO LINES AND BOTH ARE THE AUTHORITY'S. The redirect writes
+   * `-activate` (`onAnyRedirectTarget`) and the ABSORB that follows writes `|-ability|X|Lightning Rod|boost`
+   * above its `-boost spa 1` (`onTryHit`'s `this.boost({spa: 1})` through `Battle#boost`
+   * sim/battle.ts:2066). This engine wrote only the first until `abilityBoostRun` landed, and this row
+   * counted the lines — so it went RED on a fix. The claim is unchanged; the count is now stated
+   * per-line so a third line would still fail it. */
   return { works: plain.length === 0 && drawn.length === 0
-                  && rod.length === 1 && /^\|-activate\|/.test(rod[0]) && /lightningrod/.test(rod[0]),
+                  && rod.length === 2 && /^\|-activate\|/.test(rod[0]) && /lightningrod/.test(rod[0])
+                  && /^\|-ability\|/.test(rod[1]) && /\|boost$/.test(rod[1]),
            arms: { control: drawn.length, test: rod.length },
            detail: `announcement lines on a redirected Thunderbolt — no redirector ${plain.length}; `
                  + `Follow Me ${drawn.length} [${drawn[0] || 'none'}] (Showdown writes none); `
-                 + `Lightning Rod ${rod.length} [${rod[0] || 'NONE'}]` };
+                 + `Lightning Rod ${rod.length} [${rod.join('  ') || 'NONE'}] (the -activate for the `
+                 + `redirect, then the -ability the absorb's own boost announces)` };
 });
 
 /* ================= ROADMAP #81 WIRE 9 / ROADMAP #84 ================================================
@@ -24383,6 +24604,84 @@ probe('move', 'recoil', 'Steel Beam pays half its user\'s MAX HP, whatever it de
                  + `that deletes Brave Bird's recoil never sees this one` };
 });
 
+/* 2026-09-19 — SPARKLING ARIA'S CURE, WHICH LIVES IN A HANDLER AND WAS THEREFORE INVISIBLE.
+ *
+ * The move's 100% secondary writes a `sparklingaria` VOLATILE on everything it hits, and that mark is
+ * only a receipt: the cure is the move's own `onAfterMove` (data/moves.ts:17364-17378). The tag sweep
+ * read dex FIELDS, so `data/tags.json` carried the receipt (`statusInflict {volatile:...}`) and had no
+ * row at all for the payment — and this engine wrote the mark on every body and cured nobody, which is
+ * one of the 34 board partings in the 2026-09-19 held-out draw (`p1.party.kingambit.status us="brn"
+ * showdown=""`). `curesTargetStatusAfterMove` is the derivation; `tests/probe_aftermove_cure.js` is
+ * the paired arm; `MEDI_AFTERMOVE_CURE_OFF=1` is the knob.
+ *
+ * THE MOVE IS `allAdjacent`, SO IT HITS ITS OWN PARTNER — which is how the pool game reached it, and
+ * why the burned body here is the ALLY rather than a foe. */
+probe('move', 'curesTargetStatusAfterMove', 'Sparkling Aria cures the burn on every body it HIT, including its own partner', () => {
+  const run = (mv) => {
+    const rows = mvRun({ user: 'primarina', ally: 'kingambit', foe: 'garchomp', foe2: 'milotic', big: true,
+      stage: (B) => { B.ally.status = 'brn'; B.f1.status = 'brn'; B.me.status = 'brn';
+                      B.me.moves = ['sparklingaria', 'hypervoice']; },
+      script: [{ me: { mv } }] })[0];
+    return { ally: rows.ally.st, foe: rows.f1.st, user: rows.me.st, hit: rows.ally.lost > 0 };
+  };
+  const test = run('sparklingaria'), control = run('hypervoice');
+  /* THE USER IS NEVER CURED (`pokemon !== source`) and THE FOE IS, because `allAdjacent` hits it too.
+   * Both are asserted: a reader that cured everything on the field would pass on the ally alone. */
+  return { works: test.ally === '-' && test.foe === '-' && test.user === 'brn' && test.hit
+             && control.ally === 'brn' && control.foe === 'brn' && control.user === 'brn' && control.hit,
+           arms: { control: control.ally + '/' + control.foe + '/' + control.user,
+                   test: test.ally + '/' + test.foe + '/' + test.user },
+           detail: `[the burn on ALLY / FOE / USER after one click, all three burned first] — `
+                 + `SPARKLING ARIA ${test.ally}/${test.foe}/${test.user}; CONTROL Hyper Voice, the `
+                 + `other spread click off the same Primarina, ${control.ally}/${control.foe}/`
+                 + `${control.user}. The USER keeps its burn in both arms — the authority's loop is `
+                 + `\`pokemon !== source\` — and the ally was hit in both (${test.hit}/${control.hit}), `
+                 + `so the difference is the handler and not the reach` };
+});
+
+/* 2026-09-19 — AND THE OTHER MEMBER OF THAT FAMILY IS NOT CHARGED FOR A MOVE THAT DEALT NOTHING.
+ *
+ * The row above says "whatever it dealt" and is right ABOUT STEEL BEAM, for a reason that is not the
+ * recoil clause at all: Steel Beam declares its own `onMoveFail` (data/moves.ts:17880-17883) and the
+ * authority raises that event whenever the move produced no result (sim/battle-actions.ts:524-527).
+ * STRUGGLE DECLARES NONE, so the only site that can charge it is `applyRecoilDamage`, reached only
+ * through `if (move.totalDamage)` — data/mods/champions/scripts.ts:553-555, the Champions mod's own
+ * copy of the loop. A Struggle that hit nothing costs nothing.
+ *
+ * This engine charged it anyway, and it was board-material: two of the 34 board partings in the
+ * 2026-09-19 held-out 12,000-game draw are a Struggle into a body that had just gone
+ * semi-invulnerable, one of them a KO that happened only here. `data/tags.json` now carries
+ * `paidOnFail` on the family so the engine gates on the tag and not on a name; the whole-game arm is
+ * `tests/probe_recoil_on_a_whiff.js` and the knob is `MEDI_RECOIL_ON_A_WHIFF=1`.
+ *
+ * THREE ARMS, because two would not separate the rule from the family: the same click connecting,
+ * the same click whiffing, and the OTHER member whiffing — which must still be charged. */
+probe('move', 'recoil', 'a max-HP recoil is paid for damage dealt: Struggle into a semi-invulnerable body costs nothing, Steel Beam still costs half', () => {
+  /* BOTH FOES GO UNDERGROUND, and that is not belt-and-braces: Struggle is `target: randomNormal`,
+   * so a fixture that hid only one of them aims at the other half the time — the first cut of this
+   * probe did exactly that and read the LANDS answer on both arms. Garchomp (102) and Talonflame
+   * (126) both outrun Kangaskhan (90), so the Digs are in the ground before the click resolves.
+   * The damage columns are printed for that reason: a whiff arm that hit something is not a whiff. */
+  const run = (mv, hide) => mvRun({ user: 'kangaskhan', foe: 'garchomp', foe2: 'talonflame', big: true,
+    stage: (B) => { B.me.moves = [mv]; B.f1.moves = ['dig', 'protect']; B.f2.moves = ['dig', 'protect']; },
+    script: [hide ? { me: { mv, at: 'f1' }, f1: { mv: 'dig', at: 'me' }, f2: { mv: 'dig', at: 'me' } }
+                  : { me: { mv, at: 'f1' } }] })[0];
+  const lands = run('struggle', false), whiff = run('struggle', true);
+  const other = run('steelbeam', true);
+  const quarter = Math.round(180 / 4), half = Math.round(180 / 2);
+  const hit = (r) => r.f1.lost + r.f2.lost;
+  return { works: lands.me.lost === quarter && hit(lands) > 0
+             && whiff.me.lost === 0 && hit(whiff) === 0
+             && other.me.lost === half && hit(other) === 0,
+           arms: { control: lands.me.lost, test: whiff.me.lost },
+           detail: `[HP a 180 HP Kangaskhan pays for its own click] — Struggle CONNECTING `
+                 + `${lands.me.lost} (dealing ${hit(lands)}); the same click into two foes that Dug `
+                 + `first ${whiff.me.lost} (dealing ${hit(whiff)}). round(180/4) = ${quarter}. `
+                 + `THE OTHER MEMBER, Steel Beam, whiffs into the same Digs and still pays `
+                 + `${other.me.lost} of ${half} — it declares an onMoveFail and Struggle does not, `
+                 + `which is what recoil {of:"maxhp", paidOnFail} now carries` };
+});
+
 /* THE SECOND NO RETREAT FAILS. The existing `statusInflict` probe above says in its own detail that
  * this refusal "is not derivable from anything in data/tags.json" — that was true and is now false:
  * `failsIfVolatile` is derived from the move's own `onTry`, and this is the probe that ends the
@@ -25175,6 +25474,64 @@ probe('move', 'trapsTarget', 'the trap dies with its TRAPPER: a Mean Look ends w
                  + `the trapper STAYS "${stays.who}" (still trapped: the switch is refused); the `
                  + `trapper LEAVES on turn 2 "${goes.who}" (the link died with it, so the victim `
                  + `walks). Trap laid in both arms: ${stays.laid}/${goes.laid}` };
+});
+
+/* 2026-09-19 — AND IT DIES WITH A TRAPPER THAT WAS KILLED, EVEN WHEN NOTHING COMES IN AFTER IT.
+ *
+ * The row above stages the trapper WALKING off. The corpse road was served from `bringIn` instead —
+ * "the next chokepoint every dead body passes through" — and a corpse with an EMPTY BENCH BEHIND IT
+ * never passes through it at all: `bringIn` returns on `!_live(bench)[0]`, above the release.
+ *
+ * TWO OF THE 34 BOARD PARTINGS in the 2026-09-19 held-out 12,000-game draw are that, and they are
+ * the same shape twice — a Spirit Shackle lands, the Decidueye that threw it is KO'd in the same
+ * turn, and its side has no replacement:
+ *
+ *     ...bo3-2654505540  turn 8  p2.active[0].vol.trapped  us=1  showdown=0   (no protocol divergence at all)
+ *     ...bo3-2658772547  turn 9  p1.active[0].vol.trapped  us=1  showdown=0   (and at turn 12 the
+ *                                 authority switches that body out and this engine cannot)
+ *
+ * The authority frees the victim inside `faintMessages()` — `pokemon.clearVolatile(false)`
+ * (sim/battle.ts:2560) -> `removeLinkedVolatiles` (sim/pokemon.ts:1532-1536) — so the release belongs
+ * at the state transition, which is `noteFaint`. `_trapHeld` is the source's own half of the link,
+ * which this engine never kept, and is what lets a site with no body list do it.
+ *
+ * THE BENCH IS EMPTY ON THE TRAPPER'S SIDE IN BOTH ARMS, deliberately: with a replacement available
+ * the OLD engine passes too, and the row would be green on the bug. The knob is whether the trapper
+ * DIES. `MEDI_TRAP_SURVIVES_DEAD_TRAPPER=1` restores the pre-fix reader. */
+probe('move', 'trapsTarget', 'the trap dies with a KILLED trapper, even with nothing behind it to bring in', () => {
+  const run = (trapperDies) => {
+    const me = bare('mudsdale'), ally = bare('incineroar');
+    const f1 = bare('milotic'), f2 = bare('milotic');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    /* NOTHING BEHIND THE TRAPPER. That is the whole population of the defect. */
+    S.benchA = [];
+    S.benchB = [bare('kangaskhan')];
+    unfaintable(ally); unfaintable(f1); unfaintable(f2);
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'meanlook', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    const laid = !!f1._trapHard;
+    /* turn 2 — THE VARIED KNOB IS ONE NUMBER: the trapper's HP when the same Scald lands on it. */
+    if (trapperDies) me.curHP = 1;
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f2, M.playerAction(f2, 'scald', me, S.field)], [f1, { kind: 'pass' }]]));
+    const died = !!me.fainted;
+    /* turn 3 — the victim asks to leave. It can only go if the trap died with its trapper. */
+    M.battleTurn(S, rng5, PASS2(S.actA[0], S.actA[1]),
+      new Map([[S.actB[0], { kind: 'switch' }], [f2, { kind: 'pass' }]]));
+    return { laid, died, who: S.actB[0].name || S.actB[0].species, held: !!f1._trapHard };
+  };
+  const lives = run(false), dies = run(true);
+  return { works: lives.laid && dies.laid && lives.died === false && dies.died === true
+             && lives.who === 'milotic' && lives.held === true
+             && dies.who === 'kangaskhan' && dies.held === false,
+           arms: { control: lives.who + ' (trap held ' + lives.held + ', trapper died ' + lives.died + ')',
+                   test: dies.who + ' (trap held ' + dies.held + ', trapper died ' + dies.died + ')' },
+           detail: `[who holds the victim's slot after it asks to switch on turn 3, with NOTHING on `
+                 + `the trapper's bench] — the trapper SURVIVES the Scald "${lives.who}" (trap held `
+                 + `${lives.held}: the switch is refused); the same Scald on a trapper at 1 HP `
+                 + `"${dies.who}" (trap held ${dies.held}: the link died with the body). Trap laid in `
+                 + `both arms ${lives.laid}/${dies.laid}; the only varied thing is the HP the hit `
+                 + `lands on, so the release is the FAINT and not the click` };
 });
 
 /* =================================================================================================
@@ -28236,6 +28593,46 @@ probe('move', 'callsAnotherMove', 'Copycat fails on a failcopycat last move (Pro
   return { works: control === 0 && test > 0, arms: { control, test },
            detail: 'HP Meowscarada loses to a slower Body Slam — its own Protect ' + control + ' (blocked), Copycat after the foe\'s Protect '
                  + test + ' (must be hit: the copy is refused). Knob MEDI_COPYCAT_IGNORES_FAILCOPYCAT' };
+});
+
+/* A CLICK THAT RAN AND FAILED IS STILL `battle.lastMove`. `clearActiveMove(failed)` only skips the write
+ * when `failed` is passed TRUE, and grepped over `sim/` that happens at four sites inside `runMove` — all
+ * of them ABOVE the announcement (the BeforeMove refusal, `beforeMoveCallback`, `cant|nopp`, plus a
+ * commented-out check) — and at the residual. Everything else ends at `runAction`'s bare
+ * `this.clearActiveMove()` (sim/battle.ts:2828). So Dragonite's Sleep Talk, which FAILS at its own
+ * `onTry` while awake and carries `failcopycat`, is what the slower Copycat reads — and Copycat refuses
+ * it. CONTROL: the same board with that click passed, where the last move is Garchomp's Dragon Claw and
+ * the copy lands. The engine used to skip any click whose result was false and reach back to the Dragon
+ * Claw in BOTH arms. Knob MEDI_FAILED_MOVE_NOT_LAST. */
+probe('move', 'callsAnotherMove', 'A click that RAN and FAILED is still the last move a caller reads', () => {
+  const run = (idleClicks) => {
+    const { me, ally, f1, f2, S } = board('clefable', 'snorlax', 'garchomp', 'dragonite');
+    const foesBefore = f1.curHP + f2.curHP;
+    /* Garchomp 102 > Dragonite 80 > Clefable 60 > Snorlax 30, so the whole sequence fits one turn:
+     * a Dragon Claw that LANDS on the ally, then the idle click, then the Copycat. */
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'copycat', me, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'dragonclaw', ally, S.field)],
+               [f2, idleClicks ? M.playerAction(f2, 'sleeptalk', f2, S.field) : { kind: 'pass' }]]));
+    /* THE SUM OVER BOTH FOES, because the copy's own target is a random draw among them and WHICH one
+     * it hits is a different mechanic (`getRandomTarget`); the question here is whether it happened. */
+    return foesBefore - (f1.curHP + f2.curHP);
+  };
+  const test = run(true), control = run(false);
+  /* AND THE SAME BOARD WITH THE COPY PASSED, so "the foes lost HP" cannot be the board doing it. */
+  const inert = (() => {
+    const { me, ally, f1, f2, S } = board('clefable', 'snorlax', 'garchomp', 'dragonite');
+    const b = f1.curHP + f2.curHP;
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'dragonclaw', ally, S.field)], [f2, { kind: 'pass' }]]));
+    return b - (f1.curHP + f2.curHP);
+  })();
+  return { works: control > 0 && test === 0 && inert === 0,
+           arms: { control, test },
+           detail: '[HP the two FOES lose to Clefable\'s Copycat] — with a failed Sleep Talk as the last '
+                 + 'click the copy is REFUSED and they lose ' + test + '; CONTROL, the same board with '
+                 + 'that click passed so the last move is the Dragon Claw, ' + control + '; the same '
+                 + 'board with the Copycat passed, ' + inert + '. Knob MEDI_FAILED_MOVE_NOT_LAST' };
 });
 
 /* ================= 2026-09-19 -- EIGHT ROWS FROM tests/probe_narration_b_line_order.js ================
@@ -36608,7 +37005,366 @@ process.exitCode = red.length ? 1 : 0;
  * nobody made. The engine stamps `MEDFAILS.residualCollapsed` for exactly this — a break that cannot
  * be mistaken for a clean run. Any future switch of the same kind belongs here. A RATCHET REGRESSION
  * IS NOT ONE OF THEM: it is a finding about the probes, and the floor above is what protects it. */
-const DELIBERATE_BREAK = ['residualCollapsed', 'zombieSkipsResidualRestored', 'followerCountsCorpsesRestored', 'volleyReactDrawnRestored', 'afterFaintPerTargetRestored',
+/* RESTORED AT MERGE from worktree a52e28fa2378b92ab — dropped by a conflict resolution */
+/* A REDIRECT WHOSE WINNER IS THE BODY ALREADY AIMED AT STILL FIRES, AND STILL COSTS THE SPLIT.
+ * 2026-09-19.
+ *
+ * `followme.condition.onFoeRedirectTarget` (data/moves.ts:6062-6069, no Champions override) clears
+ * `move.smartTarget` and returns `this.effectState.target` whenever `validTarget` holds. Neither
+ * half is conditioned on the aim having MOVED — only the ability road's `-activate` line is
+ * (`if (this.effectState.target !== target)`, data/abilities.ts:2347). And `getMoveTargets` runs
+ * `priorityEvent('RedirectTarget', ...)` BEFORE `getSmartTargets` (sim/pokemon.ts:836-840), so a
+ * no-op redirect still costs Dragon Darts its second body.
+ *
+ * `redirectDrawnTo` answered "did the aim move", returning null when the drawer WAS the aim — and
+ * null is what `_aimRedirected` reads. So the darts kept splitting.
+ *
+ * THE CONTROL IS THE SAME BOARD WITH THE VOLATILE OFF, which must still split: without it a wire
+ * that simply deleted the split would pass. The third arm aims PAST the drawer, which is the
+ * sibling case `tests/probe_smart_target_redirect.js` already covers, and must land both darts on
+ * the drawer — so the two roads through the same flag are asserted together.
+ *
+ * COST: row 22 of the 34 board partings in the held-out 12,000-game draw on release `18773c22878f`
+ * — a Dragon Darts clicked at a Follow Me Clefable put both darts into the partner Tsareena
+ * (147 -> 14) where the authority touched nobody. Knob: MEDI_REDIRECT_NEEDS_AIM_CHANGE=1. */
+probe('move', 'redirects', 'a redirect ONTO the body already aimed at still turns off the dart split', () => {
+  /* `_redirect` holds the move id the volatile came from, which is what `powderBlocked` reads —
+   * derived from the tag rather than named, so a second redirect move needs no edit here. The
+   * POWDER-tagged one is refused: Rage Powder is ignored by a Grass type, Overcoat or Safety
+   * Goggles, and a fixture that silently failed that check would test nothing. */
+  const TJ = require(D('data', 'tags.json'));
+  const RIDS = Object.keys(TJ.moves || {}).filter(k => (TJ.moves[k].tags || []).includes('redirects'));
+  const RID = RIDS.find(k => !(TJ.moves[k].tags || []).includes('powder')) || RIDS[0];
+  /* THE VOLATILE IS CLICKED, NOT WRITTEN ONTO THE BODY. `battleTurn` clears `_redirect` on every
+   * live body at the top of the turn, so a staged field is wiped before the darts are aimed — and
+   * the first version of this probe did exactly that and read three IDENTICAL arms. The redirector
+   * clicks it in the same turn; its +2 priority is what puts it above the darts. */
+  const run = (who) => {
+    const { me, ally, f1, f2, S } = board('dragapult', 'incineroar', 'goodra', 'torterra');
+    unfaintable(f1); unfaintable(f2);
+    const foes = [f1, f2];
+    const b0 = f1.curHP, b1 = f2.curHP;
+    M.battleTurn(S, BOTTOM_ROLL,
+      new Map([[me, M.playerAction(me, 'dragondarts', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, who === 0 ? M.playerAction(f1, RID, f1, S.field) : { kind: 'pass' }],
+               [f2, who === 1 ? M.playerAction(f2, RID, f2, S.field) : { kind: 'pass' }]]));
+    return [b0 - foes[0].curHP, b1 - foes[1].curHP];
+  };
+  const noRedirect = run(-1);     // control: the split happens
+  const onTheAim = run(0);        // the drawer IS the aimed body: no split, both darts into it
+  const pastIt = run(1);          // the sibling case: the aim moves to the partner, no split
+  return { works: noRedirect[0] > 0 && noRedirect[1] > 0
+                  && onTheAim[0] === noRedirect[0] * 2 && onTheAim[1] === 0
+                  && pastIt[0] === 0 && pastIt[1] > 0,
+           arms: { control: noRedirect, test: [onTheAim, pastIt] },
+           detail: `[aimed Goodra, partner Torterra] using ${RID}: NO redirect `
+                 + `${JSON.stringify(noRedirect)} (one dart each — the control, and a wire that just `
+                 + `deleted the split would fail here); the drawer IS the aimed body `
+                 + `${JSON.stringify(onTheAim)} (both darts into it, partner untouched — this read `
+                 + `like the control before the fix); the drawer is the PARTNER `
+                 + `${JSON.stringify(pastIt)} (both darts follow the aim)` };
+});
+
+/* RESTORED AT MERGE from worktree a52e28fa2378b92ab — dropped by a conflict resolution */
+/* AND THE DRAW IS A `crit`-ADDRESS DRAW, TAKEN AFTER THE CRIT. 2026-09-19.
+ *
+ * The two probes either side of this one pin the rng to a CORNER, where every stream answers with
+ * the same constant — so neither of them can see WHICH stream the draw came from, and this engine
+ * took it off the generic one for as long as they have existed.
+ *
+ * `ficklebeam.onBasePower` (data/moves.ts, no Champions row) is raised by `runEvent('BasePower',...)`
+ * from inside `BattleActions#getDamage` (sim/battle-actions.ts:1649), under the authority's own
+ * comment `// happens after crit calculation` — the crit is `randomChance(1, critMult[critRatio])`
+ * nine lines above, in the same call. `game_differential.js` wraps `getDamage` as category `dmg`
+ * and its `chance()` re-labels `dmg` to `crit`, so the event addresses as
+ * `crit|<turn>|ficklebeam|<target slot>|1` — the SECOND crit draw of that hit.
+ *
+ * THE READING IS THE ADDRESS LIST ITSELF, through `midEventDice` / `midEventLog`, because the VALUE
+ * cannot distinguish the two: with p=0.3 a wrong address agrees 58% of the time and a probe that
+ * read the outcome would pass most days. The control is the same click with the move's chance
+ * clause absent (a fixed-power copy), which must take exactly ONE crit draw at that address.
+ *
+ * COST: rows 28 and 33 of the 34 board partings in the held-out 12,000-game draw on release
+ * `18773c22878f`, one of them a KO the authority makes and this engine did not.
+ * Knob: MEDI_CONDPOWER_OFF_ANY=1. */
+probe('move', 'conditionalPower', 'Fickle Beam\'s chance is the SECOND crit-address draw of the hit', () => {
+  const crits = (id, bp) => {
+    /* THE WHOLE STRUCT, not `.any`: `rngStreams` passes a struct through and fills a missing stream
+     * from `any`, so handing it one function would make every stream the `any` ADDRESS and the crit
+     * list would come back empty. It did, on the first run of this probe. */
+    const dice = M.midEventDice();          // resets the address log and the repeat counters
+    perHitTurn(['hydrapple', 'incineroar'], ['garchomp', 'torterra'], id,
+      bp ? Object.assign({}, MC.moves['ficklebeam'], { id, bp }) : null, dice);
+    /* every address this turn asked for, filtered to the crit stream. The address is
+     * `seed|turn|cat|move|target|n`, so the CATEGORY is field 2 — a prefix test matches nothing,
+     * which is what the first version of this probe did. */
+    return M.midEventLog().filter(x => String(x).split('|')[2] === 'crit');
+  };
+  /* THE CONTROL IS THE SAME MOVE WITHOUT ITS CHANCE CLAUSE — a fixed-power copy under a different
+   * id, so the tag lookup misses. One crit draw; the real move must take two at the same base. */
+  const control = crits('__fb_nochance', 80);
+  const test = crits('ficklebeam', 0);
+  const base = (x) => String(x).replace(/\|\d+$/, '');
+  const sameBase = test.length === 2 && base(test[0]) === base(test[1]);
+  const idx = test.map(x => String(x).split('|').pop());
+  return { works: control.length === 1 && test.length === 2 && sameBase
+                  && idx[0] === '0' && idx[1] === '1',
+           arms: { control, test },
+           detail: `crit-stream addresses one Hydrapple turn asked for — CONTROL, the same move with `
+                 + `no chance clause: ${JSON.stringify(control)} (exactly one, the crit); FICKLE BEAM: `
+                 + `${JSON.stringify(test)} (two at the SAME base, repeat 0 then 1 — the crit and then `
+                 + `the double, which is the order getDamage raises them in). Before the fix the `
+                 + `second one was an \`any|…\` address and this list had length 1` };
+});
+
+/* RESTORED AT MERGE from worktree a52e28fa2378b92ab — dropped by a conflict resolution */
+/* SNOW AND SAND RAISE A *STAT*, AND THIS ENGINE GATED THEM ON THE MOVE'S *CATEGORY*. 2026-09-19.
+ *
+ * `data/mods/champions/conditions.ts` has NO `snowscape` and NO `sandstorm` key, so mainline
+ * governs. `data/conditions.ts:707` is `onModifyDef` (snow, x1.5 to an Ice type) and :663 is
+ * `onModifySpD` (sand, x1.5 to a Rock type). WHICH of those two a hit runs is decided in
+ * `sim/battle-actions.ts:1676` + :1709 by `move.overrideDefensiveStat || (isPhysical ? 'def':'spd')`
+ * — the OVERRIDE WINS. This format has exactly one such move, Psyshock: Special, reads DEF (it is
+ * the only `statSwap.attackInto` row in data/tags.json).
+ *
+ * So the pre-fix `phys` / `!phys` gate was wrong in BOTH directions on the same move: a Psyshock
+ * into an Ice body in snow missed the x1.5 (we overkilled) and the same Psyshock into a Rock body
+ * in sand took a x1.5 the authority never applies (we under-damaged). `_dKey` in dmgRange already
+ * IS the authority's `defenseStat` and every neighbouring chain member reads it.
+ *
+ * ALL THREE MOVES ARE PSYCHIC ON PURPOSE, so effectiveness and STAB are identical across the arms
+ * and only the pair (category, stat read) varies — psychicfangs P/def, psychic S/spd, psyshock
+ * S/DEF. A category-gated wire and a stat-gated wire agree on the first two and disagree on the
+ * third, which makes the first two the control that proves the weather effect is wired at all.
+ *
+ * ONE REASON PER CELL. Snow has no residual in this generation; sand does, so the sand target is
+ * chip-immune by type (Aerodactyl, Rock/Flying) and Psychic is 1x into every target here. The
+ * standalone tests/probe_weather_defence_stat.js derives the category, the override, the
+ * effectiveness and the chip immunity from the authority on every run and refuses a cell that
+ * qualifies twice. Knob: MEDI_WEATHER_DEF_BY_CATEGORY=1.
+ *
+ * COST: rows 11 and 16 of the 34 board partings in the held-out 12,000-game draw on release
+ * `18773c22878f` — both a Psyshock into a Froslass in its own Snow Warning snow, one of them a KO
+ * the authority does not make. */
+probe('move', 'statSwap', 'Snow and sand raise the DEFENCE the hit reads, not the move\'s category', () => {
+  const hit = (mv, w, tgt) => turnDamageBig(['metagross', 'incineroar', tgt, tgt],
+    (B) => { B.S.field.weather = w; }, mv);
+  const pair = (mv, w, tgt) => [hit(mv, '', tgt), hit(mv, w, tgt)];
+  const snowPhys = pair('psychicfangs', 'snow', 'froslass');   // P, reads def  -> MUST cut
+  const snowSpec = pair('psychic', 'snow', 'froslass');        // S, reads spd  -> must NOT
+  const snowInto = pair('psyshock', 'snow', 'froslass');       // S, reads DEF  -> MUST cut
+  const sandPhys = pair('psychicfangs', 'sand', 'aerodactyl'); // P, reads def  -> must NOT
+  const sandSpec = pair('psychic', 'sand', 'aerodactyl');      // S, reads spd  -> MUST cut
+  const sandInto = pair('psyshock', 'sand', 'aerodactyl');     // S, reads DEF  -> must NOT
+  /* x1.5 on the DEFENCE is x(1/1.5) on the damage, truncated once with the defensive relay. */
+  const cut = (p) => p[0] >= 20 && p[1] >= Math.floor(p[0] / 1.5 * 0.94)
+                                && p[1] <= Math.ceil(p[0] / 1.5 * 1.06);
+  const same = (p) => p[0] >= 20 && p[0] === p[1];
+  return { works: cut(snowPhys) && cut(snowInto) && cut(sandSpec)
+                  && same(snowSpec) && same(sandPhys) && same(sandInto),
+           arms: { control: [snowSpec, sandPhys, sandInto], test: [snowPhys, snowInto, sandSpec] },
+           detail: `[HP off an unfaintable target, only the SKY varies inside a cell] SNOW into `
+                 + `Froslass (Ice) — Psychic Fangs (P, reads def) ${snowPhys.join(' -> ')} MUST cut; `
+                 + `Psyshock (S, reads DEF) ${snowInto.join(' -> ')} MUST cut, and did not before `
+                 + `this pass; CONTROL Psychic (S, reads spd) ${snowSpec.join(' -> ')} must be `
+                 + `IDENTICAL. SAND into Aerodactyl (Rock, chip-immune) — Psychic (S, reads spd) `
+                 + `${sandSpec.join(' -> ')} MUST cut; CONTROL Psychic Fangs ${sandPhys.join(' -> ')} `
+                 + `and CONTROL Psyshock ${sandInto.join(' -> ')} must be IDENTICAL, and the Psyshock `
+                 + `one was cut before this pass — the category gate was wrong in both directions` };
+});
+
+/* RESTORED AT MERGE from worktree a52e28fa2378b92ab — dropped by a conflict resolution */
+/* AND THE BOUNCED MOVE GOES THROUGH TARGET SELECTION AGAIN, SO A FOLLOW ME DRAWS IT. 2026-09-19.
+ *
+ * `magicbounce.onTryHit` reflects with `this.actions.useMove(newMove, target, {target: source})`
+ * (data/abilities.ts, no Champions row) — a WHOLE move use, not a re-aim. `useMoveInner` calls
+ * `pokemon.getMoveTargets(move, target)` for it (sim/battle-actions.ts:467) and that function's
+ * `default:` case runs `priorityEvent('RedirectTarget', ...)` before it returns anything
+ * (sim/pokemon.ts:836). The drawer is a FOE OF THE BOUNCER — which is the CLICKER'S OWN PARTNER —
+ * because `followme`'s handler is `onFoeRedirectTarget`.
+ *
+ * `bounceOff` ended `return user;` unconditionally, so the drop always went back to the clicker.
+ *
+ * THE CONTROL IS THE SAME BOARD WITH NO REDIRECT CLICK, which must put the drop on the CLICKER: a
+ * wire that simply aimed every bounce at the partner would pass the first arm and fail this one.
+ * The THIRD arm blanks the bouncer's ability, where the drop must land on the BOUNCER and the
+ * redirect must not move it — the Follow Me user is on the clicker's own side, so it cannot draw a
+ * move its own ally aimed across the field.
+ *
+ * COST: rows 5 and 10 of the 34 board partings in the held-out 12,000-game draw on release
+ * `18773c22878f` — a Fake Tears bounced off a Hatterene landed on the clicking Whimsicott here and
+ * on its Follow Me partner Clefable there, and row 5's next line is a Dazzling Gleam that then
+ * breaks the wrong body's Focus Sash. Knob: MEDI_BOUNCE_IGNORES_REDIRECT=1. */
+probe('ability', 'reflectsStatusMoves', 'a bounced move is re-aimed by a Follow Me on the CLICKER\'s side', () => {
+  const TJ = require(D('data', 'tags.json'));
+  const RIDS = Object.keys(TJ.moves || {}).filter(k => (TJ.moves[k].tags || []).includes('redirects'));
+  const RID = RIDS.find(k => !(TJ.moves[k].tags || []).includes('powder')) || RIDS[0];
+  /* The redirector CLICKS it in the turn: `battleTurn` clears `_redirect` on every live body at the
+   * top of the turn, so a staged field would be wiped before the bounce resolves. */
+  const run = (ab, withRedirect) => {
+    const { me, ally, f1, f2, S } = board('whimsicott', 'clefable', 'espathra', 'garchomp');
+    f1.ability = ab;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'faketears', f1, S.field)],
+               [ally, withRedirect ? M.playerAction(ally, RID, ally, S.field) : { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return { clicker: me.boosts.sd, partner: ally.boosts.sd, bouncer: f1.boosts.sd };
+  };
+  const drawn = run('magicbounce', true);
+  const noDraw = run('magicbounce', false);
+  const noBounce = run('none', true);
+  return { works: drawn.partner === -2 && drawn.clicker === 0 && drawn.bouncer === 0
+                  && noDraw.clicker === -2 && noDraw.partner === 0 && noDraw.bouncer === 0
+                  && noBounce.bouncer === -2 && noBounce.clicker === 0 && noBounce.partner === 0,
+           arms: { control: [noDraw, noBounce], test: drawn },
+           detail: `spd stages [clicker/partner/bouncer] after Whimsicott's Fake Tears at an `
+                 + `Espathra, with Clefable clicking ${RID}: BOUNCED AND DRAWN `
+                 + `${drawn.clicker}/${drawn.partner}/${drawn.bouncer} (the partner takes it — this `
+                 + `read like the control before the fix); CONTROL no ${RID} `
+                 + `${noDraw.clicker}/${noDraw.partner}/${noDraw.bouncer} (the clicker takes it, so `
+                 + `a wire that aimed every bounce at the partner fails here); CONTROL no Magic `
+                 + `Bounce ${noBounce.clicker}/${noBounce.partner}/${noBounce.bouncer} (the drop `
+                 + `lands on the bouncer and the ally's redirect cannot draw its own ally's move)` };
+});
+
+/* RESTORED AT MERGE from worktree ac0d80d92aba90c77 — dropped by a conflict resolution */
+/* 1c. 2026-09-19 — AND THE REWRITE LINE NAMES THE ABILITY IT REPLACED. `Pokemon#setAbility`'s `default`
+ *    branch writes `this.battle.add('-ability', this, ability.name, oldAbility.name, '[from] …')` —
+ *    sim/pokemon.ts:1936-1943, with `oldAbility` read at :1919, BEFORE the assignment. So FIELD 4 is
+ *    written on every rewrite that writes the line at all; this engine wrote three fields and put the
+ *    `[from]` where the old ability belongs. 47 of the 250 narration games the honest comparator found
+ *    (6.72.0) are exactly that, over 42 ability names.
+ *    THE CONTROL IS THE BARE ANNOUNCEMENT one probe up: an `announcesOnStart` entry writes `|-ability|
+ *    HOLDER|NAME` and NOTHING in field 4 (data/abilities.ts:3427-3430). Without it this passes on an
+ *    engine that glues a fourth field onto every `-ability` line it writes, which is the over-match the
+ *    shape is most likely to take. The OUTGOING ability is never typed here — it is read off the
+ *    no-click arm of the same fixture. The authority half is tests/probe_ability_rewrite_name.js.
+ *    Knob: MEDI_ABILITY_REWRITE_NO_OLD=1 restores the four-field line. */
+probe('move', 'rewritesTargetAbility', 'an ability rewrite names the OUTGOING ability in field 4, and a bare start announcement has no field 4', () => {
+  const write = (mv) => {
+    const { me, ally, f1, f2, S } = board('milotic', 'corviknight', 'garchomp', 'milotic');
+    me.ability = 'marvelscale'; f1.ability = 'roughskin';
+    const trace = []; S._trace = trace;
+    const before = f1.ability;
+    if (mv) M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, mv, f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const line = trace.filter(l => /^\|-ability\|/.test(l))[0] || '';
+    return { before, line, f: line.split('|') };
+  };
+  const none = write(null), worry = write('worryseed'), entrain = write('entrainment');
+  /* the bare-announcement control, through the SAME emitter, from the fixture one probe up */
+  const bare = entryLines('pressure', 1).lines.filter(l => /^\|-ability\|/.test(l))[0] || '';
+  const field4 = r => (r.f[4] && !/^\[/.test(r.f[4])) ? r.f[4] : null;
+  const ok = none.line === '' && bare !== '' && (bare.split('|')[4] || '') === ''
+          && field4(worry) === worry.before && field4(entrain) === entrain.before
+          && /^\[from\] move: worryseed$/.test(worry.f[5] || '')
+          && /^\[from\] move: entrainment$/.test(entrain.f[5] || '');
+  return { works: ok, arms: { control: bare, test: [worry.line, entrain.line] },
+           detail: 'the rewrite line — NO click ' + JSON.stringify(none.line) + ' (must be empty); WORRY SEED '
+                 + JSON.stringify(worry.line) + ' field 4 "' + field4(worry) + '"; ENTRAINMENT '
+                 + JSON.stringify(entrain.line) + ' field 4 "' + field4(entrain) + '" — both must be the '
+                 + 'ability that was there, "' + none.before + '", read off the no-click arm. CONTROL, a '
+                 + 'bare start announcement: ' + JSON.stringify(bare) + ' — field 4 must be EMPTY' };
+});
+
+/* RESTORED AT MERGE from worktree ac0d80d92aba90c77 — dropped by a conflict resolution */
+/* 1d. 2026-09-19 — WHERE THAT ANNOUNCEMENT SITS AGAINST THE ENTRY HAZARDS, WHICH IS A SORT AND NOT A
+ *    RULE ABOUT ABILITIES. `runSwitch` fires ONE `fieldEvent('SwitchIn', switchersIn)`
+ *    (sim/battle-actions.ts:184) holding the entrant's ability handler AND the side's hazards
+ *    (sim/battle.ts:501-502). `comparePriority` (:404-411) reads order, then PRIORITY, then speed, then
+ *    subOrder; `resolvePriority` sets `priority = effect.onSwitchInPriority || 0` (:953) and gives a side
+ *    condition subOrder 4 against an ability's 7 (:957-987). Both handlers hang off the same body, so
+ *    the speeds tie — a DEFAULT ability loses to the rocks, and a POSITIVE `onSwitchInPriority` wins
+ *    before subOrder is reached. Unnerve declares `onSwitchInPriority: 1` (data/abilities.ts:5251) and
+ *    is the only legal carrier of a positive one whose onStart writes a line (Klutz is +1 and silent).
+ *    THE CONTROL IS A PRIORITY-0 MEMBER DOING THE SAME THING: its line must stay BELOW the damage.
+ *    Without it this passes on an engine that moved every announcement above the hazards, which is the
+ *    one wrong fix available. The priority is READ OFF data/tags.json, never typed.
+ *    Knob: MEDI_START_ANNOUNCE_AFTER_HAZARDS=1 puts the positive member back below the rocks. */
+probe('ability', 'announcesOnStart', 'an entry announcement that outranks the hazards is written ABOVE the rock damage, and a priority-0 one below it', () => {
+  const T = require(path.join(__dirname, '..', 'data', 'tags.json'));
+  const pr = k => ((T.abilities[k] || {}).params || {}).announcesOnStart;
+  const run = (ab) => {
+    const me = bare('incineroar'), ally = bare('corviknight'), bench = bare('sinistcha');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    bench.ability = ab;
+    const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+    /* the FOE lays the rocks, so they sit on the side the bench walks onto */
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'stealthrock', null, S.field)], [f2, { kind: 'pass' }]]));
+    const layers = ((me._sf && me._sf.hz) || {}).stealthrock | 0;
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    /* the hazard's `[from]` is the move's NAME with its space — `[from] Stealth Rock` — and matching
+     * `stealthrock` found nothing, which read as "the engine wrote no damage line" on the first run. */
+    const seq = trace.filter(l => /^\|-ability\|/.test(l) || /^\|-damage\|.*stealth ?rock/i.test(l))
+      .map(l => /^\|-ability\|/.test(l) ? 'ability' : 'rocks');
+    return { layers, seq };
+  };
+  const hi = Object.keys(T.abilities).filter(k => pr(k) && pr(k).switchInPriority > 0);
+  const lo = Object.keys(T.abilities).filter(k => pr(k) && pr(k).switchInPriority === 0);
+  const above = hi.map(k => ({ k, r: run(k) })), below = lo.map(k => ({ k, r: run(k) }));
+  const ok = hi.length >= 1 && lo.length >= 1
+          && above.every(x => x.r.layers === 1 && JSON.stringify(x.r.seq) === '["ability","rocks"]')
+          && below.every(x => x.r.layers === 1 && JSON.stringify(x.r.seq) === '["rocks","ability"]');
+  return { works: ok, arms: { control: below.map(x => x.r.seq.join('>')), test: above.map(x => x.r.seq.join('>')) },
+           detail: 'a body walks onto one Stealth Rock layer — POSITIVE onSwitchInPriority '
+                 + above.map(x => x.k + ' ' + x.r.seq.join('>') + ' [' + x.r.layers + ' layer]').join(', ')
+                 + ' (each must be ability>rocks); '
+                 + 'CONTROL, priority 0: ' + below.map(x => x.k + ' ' + x.r.seq.join('>') + ' [' + x.r.layers + ' layer]').join(', ')
+                 + ' (each must be rocks>ability). Membership and priority read off data/tags.json' };
+});
+
+/* RESTORED AT MERGE from worktree a059406805efe0b8f — dropped by a conflict resolution */
+/* 2026-09-19 — LIFT-DEFERRALS. ELECTRIFY'S RETYPE, WHICH THIS ENGINE DID NOT MODEL AT ALL.
+ *
+ * The roster row read DEFERRED-BY-OWNER on the USAGE SHELF (18 clicks in 64,846 stored games) with
+ * an underlying FIRED-AND-BOARDS-DIFFER, so the shelf was carrying a real defect rather than a rare
+ * one. The defect: `effMoveType` knew four ways a move's type can move and none of them was a
+ * volatile, so an electrified move kept its own type here and was Electric on the authority.
+ *
+ * THE LEAF IS AN IMMUNITY, NOT A DAMAGE RATIO, because a ratio can be produced by half a dozen other
+ * things going wrong. Heliolisk (Speed 109, and the ONLY legal learner of Electrify in this format —
+ * derived from the format's learnsets, not recalled) electrifies a slow Torkoal; Torkoal's Body Slam
+ * is Normal into a Dragon/Ground Garchomp, which is ordinary damage, and Electric into the same
+ * Garchomp, which is NOTHING.
+ *
+ * THE NEGATIVE IS THE CONDITION'S OWN `duration: 1` (data/moves.ts:4572): turn 2 is played with the
+ * identical script and no second Electrify, and the damage must come back. An engine that wrote the
+ * retype and never removed it passes the positive arm and fails here.
+ *
+ * Knob: MEDI_ELECTRIFY_NO_RETYPE=1 restores the unmodelled path. */
+probe('move', 'volatileRetypesMoves', 'Electrify makes the target\'s Normal move Electric — and a Ground type is then immune to it, for one turn only', () => {
+  const run = (electrify) => {
+    const me = bare('heliolisk'), ally = bare('garchomp');
+    const f1 = bare('torkoal'), f2 = bare('milotic');
+    unfaintable(ally);
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const turn = (zap) => {
+      const before = ally.curHP;
+      M.battleTurn(S, rng5,
+        new Map([[me, zap ? M.playerAction(me, 'electrify', f1, S.field) : { kind: 'pass' }],
+                 [ally, { kind: 'pass' }]]),
+        new Map([[f1, M.playerAction(f1, 'bodyslam', ally, S.field)], [f2, { kind: 'pass' }]]));
+      return before - ally.curHP;
+    };
+    return [turn(electrify), turn(false)];
+  };
+  const control = run(false), test = run(true);
+  return { works: control[0] > 0 && control[1] > 0 && test[0] === 0 && test[1] > 0,
+           arms: { control, test },
+           detail: `[Garchomp HP lost to Torkoal's Body Slam on turn 1, then turn 2] no Electrify `
+                 + `${JSON.stringify(control)}; Heliolisk electrifies Torkoal on turn 1 only `
+                 + `${JSON.stringify(test)} — the retype makes a Normal click Electric and Ground is `
+                 + `immune, and the condition's duration:1 gives the damage back on turn 2 `
+                 + `(data/moves.ts:4571-4583, onModifyTypePriority -2). Knob MEDI_ELECTRIFY_NO_RETYPE` };
+});
+
+const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js --red */
+                          'abilityBoostAnnounceRestored',
+                          'residualCollapsed', 'zombieSkipsResidualRestored', 'followerCountsCorpsesRestored', 'volleyReactDrawnRestored', 'afterFaintPerTargetRestored',
                           'statusOneStepRestored', 'perishAtFootRestored',
                           'reactBatchedRestored', 'berryAtApplyRestored',
                           'formeBustInlineRestored', 'eatReactBeforeBerryRestored',
@@ -36645,6 +37401,8 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'zombieSkipsResidualRestored', 'f
                            * census on its first red demonstration before it was listed here. */
                           'proteanIgnoresTryRestored', 'clearSmogKeepsBoostsRestored', 'contraryUnbrokenRestored',
                           'cudSurvivesSwitchRestored', 'copycatRefusalIgnoredRestored',
+                          /* 2026-09-19 -- tests/probe_called_move_last_move.js */
+                          'failedMoveNotLastRestored',
                           /* 2026-09-19 -- the per-arrival volley batch (tests/probe_multihit_reaction_per_arrival.js),
                            * and the 6.52.0 batch's eight knobs, which were never added here: under any of them a
                            * red demonstration of its own census row would have WRITTEN the census. */
@@ -36687,7 +37445,24 @@ const DELIBERATE_BREAK = ['residualCollapsed', 'zombieSkipsResidualRestored', 'f
                            * (tests/probe_hit_event_buff_order.js), stamped at LOAD */
                           'hitBuffAtDamagingHitRestored',
                           /* 2026-09-19 -- frisk-axekick: the flat confusion floor for every move, stamped at LOAD */
-                          'confusionMinFlatRestored']
+                          'confusionMinFlatRestored',
+                          /* 2026-09-19 -- the `stall` sweep restored to one all-or-nothing pass in slot
+                           * order with no stop (tests/probe_stall_sweep_order.js), stamped at LOAD */
+                          'stallSweepUnorderedRestored',
+                          /* 2026-09-19 -- the King's Rock die skipped on a body the hit killed
+                           * (tests/probe_sec_addr_selfdrop.js), stamped at LOAD. The SIBLING knob
+                           * MEDI_SEC_ADDR_IGNORES_SELFDROP is listed beside it even though it is an
+                           * INSTRUMENT knob that no census row can observe — `MID_TGT` is read by
+                           * `midEventDraw` alone — because refusing a census under it costs nothing
+                           * and a reader should not have to know which half is which. (The two older
+                           * address knobs, `secAddrPerTargetRestored` and `reactAddrPerTargetRestored`,
+                           * are deliberately NOT here on the opposite reading; that inconsistency is
+                           * stated rather than quietly resolved.) */
+                          'kingsRockSkipsDeadRestored', 'secAddrIgnoresSelfDropRestored',
+                          /* 2026-09-19 -- the held-out burn/trap/recoil batch (tests/probe_recoil_on_a_whiff.js,
+                           * tests/probe_partial_trap_source_left.js), both stamped at LOAD */
+                          'recoilOnWhiffRestored', 'partialTrapOutlivesItsSourceRestored',
+                          'trapSurvivesDeadTrapperRestored', 'afterMoveCureOffRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

@@ -345,7 +345,15 @@ if (CARRIER_THREW) bad.push('the learnset walk THREW ' + CARRIER_THREW + ' time(
 const expectAgree = (r, why) => { if (!r || !r.staged) { bad.push((r ? r.name : '?') + ' NOT STAGED'); return; }
   if (r.diverged) bad.push(r.name + ' PARTS and must not (' + why + ')'); };
 
-if (!KNOB) {
+/* THE QUIET ARM IS THE SPAWNED CHILD, NOT "THE KNOB IS SET". Keying it on `!KNOB` alone means a
+ * knob set from OUTSIDE skips every assertion below, so the probe exits 0 against a deliberately
+ * broken engine — indistinguishable from a knob wired to nothing. `IS_CHILD` is set only by the
+ * spawn, so an outside knob now runs these clauses and arm A parts, which is the exit 1 it owes. */
+if (KNOB && !IS_CHILD) {
+  console.log('\n  MEDI_SOUND_LOCK_RESTARTS=1 WAS SET FROM OUTSIDE THIS PROCESS. The engine carries the');
+  console.log('  defect, so arm A is expected to PART below and this run MUST exit non-zero.');
+}
+if (!(KNOB && IS_CHILD)) {
   expectAgree(results.A, 'the second chop must be refused, so the -end lands on the authority\'s turn');
   /* AND THE REFUSAL MUST HAVE BEEN REACHED. An arm that agrees because the chop never landed is a
      green row that proves nothing — the counter is what separates the two. */

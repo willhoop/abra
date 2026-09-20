@@ -96,8 +96,13 @@ if (!process.env.SHOWDOWN_PATH) {
 }
 if (!process.argv.includes('--release')) require(D('tests', '_live_release.js'));
 const G = require(D('engine', 'game_differential.js'));
-const ER = require(D('engine', 'engine_release.js'));
-const M = ER.open().require('engine/medicham2-browser.js');
+/* 2026-09-19 -- THE SAME CORRECTION AS tests/probe_kingsrock_volley.js, AND FOR THE SAME REASON. This
+ * read `engine_release.js`'s `open()` with no id, which opens `data/engine-release.json`'s `current`,
+ * while `game_differential.js` opens the release `--release` NAMES. When those differ the two `require`s
+ * return DIFFERENT MODULE OBJECTS with identical code and every counter read here sits at zero all run
+ * -- which reads exactly like a wire that never fired. It cost a false accusation on the sibling file
+ * before it was found; this one was GREEN either way, which is the point: nothing could have told. */
+const M = G.REL.require('engine/medicham2-browser.js');
 const CS = require(D('engine', 'champions_sim.js'));
 const NL = String.fromCharCode(10);
 

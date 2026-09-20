@@ -80,6 +80,19 @@
 const fs = require('fs');
 const path = require('path');
 const D = (...p) => path.join(__dirname, '..', ...p);
+/* THE DESCRIPTIVE DECLARATION, READ AND NEVER RESTATED. engine/tag_dex.js reads the same module and
+ * stamps it onto the row it generates; this file reads it directly so the count is right BEFORE the
+ * next regeneration of data/tags.json (which today would move 804 entities for unrelated reasons).
+ * A throw is announced and the set is empty, which is the pre-2026-09-19 behaviour and never a wider
+ * one — a silent {} here would be the reclassification going quiet. */
+const DESC = (() => {
+  try { return require('./tag_descriptive.js').DESCRIPTIVE; }
+  catch (e) {
+    console.log('  tag_descriptive.js would not load (' + String((e && e.message) || e).split('\n')[0]
+      + ') — every descriptive row is counted as UNREAD this run');
+    return {};
+  }
+})();
 /* EVERY ARTIFACT THIS FILE READS IS RECORDED, so the block can end by saying HOW OLD each of its own
  * inputs was. A coverage figure carries the staleness of what it read, and until 2026-08-28 nothing
  * printed that: a stage run without `--write` exits 0 on a full clean report while its artifact never
@@ -348,16 +361,28 @@ function tagCoverageOf(T, C, S, scopeWhy) {
     const mem = Object.keys(blk).filter(i => (blk[i].tags || []).includes(tag));
     return S ? mem.some(i => S.inScope(r.kind, i)) : mem.length > 0;
   };
-  const inScope = [], outOfScope = [], noConsumer = [], rowsNoConsumer = [];
+  const inScope = [], outOfScope = [], noConsumer = [], rowsNoConsumer = [], rowsDescriptive = [];
   for (const [tag, rows] of byTag) {
     const live = rows.filter(r => rowIn(tag, r));
     if (!live.length) { outOfScope.push(tag); continue; }
     inScope.push(tag);
-    const bare = live.filter(r => !(r.consumedBy && String(r.consumedBy).trim()));
+    /* 2026-09-19 -- A ROW DECLARED DESCRIPTIVE IS NOT AN UNREAD ROW, AND IT IS NOT DROPPED EITHER.
+     * Some tags name the STATE a behaviour depends on so that another consumer can reason about it;
+     * the behaviour itself is carried by a different tag on the same row, which the engine does read.
+     * Giving such a tag its own engine line would be the same fact implemented twice, which is the
+     * breach CLAUDE.md names — so the row is declared in engine/tag_descriptive.js, counted apart,
+     * and PRINTED with the tag that carries its behaviour. A reclassification nobody can see on the
+     * screen is the caption-as-quarantine failure; tests/probe_descriptive_tags.js is the guard that
+     * the `via` tag really is read and really is probed. */
+    const dec = DESC[tag];
+    const bare = live.filter(r => !(r.consumedBy && String(r.consumedBy).trim())
+                                  && !(dec && dec.kind === r.kind));
+    for (const r of live) if (dec && dec.kind === r.kind && !(r.consumedBy && String(r.consumedBy).trim()))
+      rowsDescriptive.push(tag + ' (' + r.kind + ') — behaviour via ' + (dec.via || []).join('/'));
     if (bare.length) { noConsumer.push(tag); for (const r of bare) rowsNoConsumer.push(tag + ' (' + r.kind + ')'); }
   }
   const out = { unique: byTag.size, inScope: inScope.length, outOfScope, withConsumer: inScope.length - noConsumer.length,
-                noConsumer, rowsNoConsumer, unknownKind,
+                noConsumer, rowsNoConsumer, rowsDescriptive, unknownKind,
                 scopeBasis: S ? 'engine/legal_scope.js' : 'data/tags.json membership only — ' + (scopeWhy || 'the legal scope did not derive'),
                 probed: null, unprobed: null };
   if (C && Array.isArray(C.results)) {
@@ -750,7 +775,13 @@ function finishLine() {
         + ` carrier and are out of the denominator (${cap(TC.outOfScope, 12)}).`
         + (TC.unknownKind ? ` ${TC.unknownKind} row(s) of an unknown kind were counted in scope.` : '')
         + ' consumedBy is engine/tag_dex.js\'s hint-string grep, which misses tags looked up by name'
-        + ' (engine/tag_lookups.js finds those)',
+        + ' (engine/tag_lookups.js finds those).'
+        + (TC.rowsDescriptive.length
+            ? ` ${TC.rowsDescriptive.length} row(s) are DECLARED DESCRIPTIVE and are NOT counted as`
+              + ` unread — they name a dependency and the behaviour is carried by another tag on the`
+              + ` same row, which IS read: ${cap(TC.rowsDescriptive, 6)}. Declared in`
+              + ' engine/tag_descriptive.js, guarded by tests/probe_descriptive_tags.js'
+            : ' No row is declared descriptive.'),
         'data/tags.json tags[].consumedBy, every row, scoped by ' + TC.scopeBasis);
     if (TC.probed == null) nd('tags with a census probe', 'data/mechanics-census.json absent');
     else add('tags with a census probe', TC.probed, TC.inScope,

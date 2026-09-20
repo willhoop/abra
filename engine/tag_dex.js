@@ -528,6 +528,8 @@ const CHOOSABLE_TARGETS = (() => {
 })();
 
 /* The two files that would have to read a parameter for it to reach a decision. */
+/* the descriptive declaration, read rather than restated -- see engine/tag_descriptive.js */
+const { DESCRIPTIVE } = require('./tag_descriptive.js');
 const BOARD = fs.readFileSync(D('engine', 'board.js'), 'utf8');
 const DMG = fs.readFileSync(D('engine', 'medicham2-browser.js'), 'utf8');
 const readsIt = probe => (BOARD.includes(probe) || DMG.includes(probe));
@@ -3933,6 +3935,44 @@ const MOVE_TAGS = [
     why: 'Scald (601 uses), Scorching Sands, Matcha Gotcha. All three are NON-Fire, so the type route '
        + 'cannot cover them and the tag is the whole mechanic',
     of: m => m.thawsTarget ? { thaws: true } : null },
+  /* 2026-09-19 -- AND THE SAME SHAPE FOR A STATUS THE MOVE CURES AT `onAfterMove`, which is where
+   * SPARKLING ARIA KEEPS ITS WHOLE POINT. `thawsTarget` above is a plain dex FIELD; this one is a
+   * HANDLER, and a handler nothing parses is a mechanic nothing can have. `data/tags.json` gave this
+   * move `statusInflict {volatile: 'sparklingaria'}` and `volatileAnnounce {event: null}` -- the
+   * secondary that MARKS a body -- and nothing at all for the cure the mark exists to deliver. So the
+   * engine wrote the volatile and the burn stayed on.
+   *
+   *     onAfterMove(source, target, move) {
+   *       if (source.fainted || !move.hitTargets || move.hasSheerForce) { ...clear...; return; }
+   *       const numberTargets = move.hitTargets.length;
+   *       for (const pokemon of move.hitTargets) {
+   *         if (pokemon !== source && pokemon.isActive &&
+   *             (pokemon.removeVolatile('sparklingaria') || numberTargets > 1) &&
+   *             pokemon.status === 'brn') { pokemon.cureStatus(); }
+   *       }
+   *     }                                                     -- data/moves.ts:17364-17378
+   *
+   * EVERY CLAUSE IS A PARAM because every one of them changes the answer: WHICH status, WHICH mark
+   * has to be on the body, whether a SECOND target waives the mark (that is the Shield Dust bypass
+   * upstream's own comment names), and whether Sheer Force cancels it. A reader that carried only
+   * "cures brn" would cure through a Shield Dust on a single target, which the authority does not. */
+  { tag: 'curesTargetStatusAfterMove',
+    param: 'at AfterMove, the bodies this move HIT are cured of a named status',
+    probe: 'curesTargetStatusAfterMove',
+    why: 'Sparkling Aria. The whole reason the move exists, and the engine had no representation of '
+       + 'it: the cure lives in a handler and the tag sweep only read dex FIELDS',
+    of: m => {
+      const src = fnsrc(m.onAfterMove);
+      if (!src || !/cureStatus\(\)/.test(src)) return null;
+      const st = /pokemon\.status === ['"](\w+)['"]/.exec(src);
+      if (!st) return null;
+      const via = /removeVolatile\(['"](\w+)['"]\)/.exec(src);
+      return { status: st[1], viaVolatile: via ? via[1] : null,
+               multiTargetWaivesTheMark: /numberTargets > 1/.test(src),
+               skippedBySheerForce: /hasSheerForce/.test(src),
+               skippedIfUserFainted: /source\.fainted/.test(src),
+               readFrom: 'm.onAfterMove' };
+    } },
   /* ROADMAP #261 -- THE OTHER HALF, AND THIS ENGINE HAD NO REPRESENTATION OF IT ANYWHERE:
    * `grep -c defrost` returned 0 in medicham2-browser.js AND in data/tags.json.
    *
@@ -4663,10 +4703,27 @@ const MOVE_TAGS = [
      * handler, which class a guard refuses); LOOK IT UP when it is a plain dex field. m.recoil is a
      * plain field. The fraction stays here only because the review document is generated from this
      * file and a reader needs to see 1/2 against 33/100 -- consumers should read the dex. */
+    /* 2026-09-19 -- THE MAX-HP FAMILY SPLITS ON *WHEN* IT IS PAID, AND THE TAG COULD NOT SAY SO.
+     * `recoil {fraction, of:'maxhp'}` was one shape over two members that the authority charges on
+     * two different events:
+     *
+     *   applyRecoilDamage is reached ONLY through `if (move.totalDamage)`
+     *       -- data/mods/champions/scripts.ts:553-555, the mod's own copy of hitStepMoveHitLoop.
+     *      So a move that dealt nothing -- a miss, a Protect, an immunity -- pays NOTHING here.
+     *   `onMoveFail` is a SECOND, independent site, raised when `moveResult` is falsy
+     *       -- sim/battle-actions.ts:524-527, `singleEvent('MoveFail', move, ...)`.
+     *      Steel Beam declares one and charges the same half max HP from it; Struggle declares none.
+     *
+     * `paidOnFail` is DERIVED from the handler rather than named: the move must declare `onMoveFail`
+     * AND that handler must deal damage. A consumer that pays the toll unconditionally charges a
+     * Struggle that whiffed, which is board-material -- two of the 34 partings in the 2026-09-19
+     * held-out draw (`docs/_reports/2026-09-19-final-remeasure.md` rows 2 and 25, both a Struggle
+     * into a Phantom Force). */
     of: m => {
       if (m.recoil) return { readFrom: 'm.recoil' };
-      if (m.mindBlownRecoil) return { fraction: 0.5, of: 'maxhp' };
-      if (m.struggleRecoil) return { fraction: 0.25, of: 'maxhp' };
+      const paidOnFail = !!(m.onMoveFail && /\bdamage\(/.test(fnsrc(m.onMoveFail)));
+      if (m.mindBlownRecoil || m.chloroblastRecoil) return { fraction: 0.5, of: 'maxhp', paidOnFail };
+      if (m.struggleRecoil) return { fraction: 0.25, of: 'maxhp', paidOnFail };
       return null;
     } },
   /* RECONCILED with `drain` on Will's instruction, and split by TARGET as he asked earlier
@@ -6182,6 +6239,81 @@ const MOVE_TAGS = [
                endsAbility: /singleEvent\(\s*["']End["']\s*,\s*pokemon\.getAbility\(\)/.test(st),
                announce: /this\.add\(\s*["']-endability["']\s*,\s*pokemon\s*\)/.test(st) ? '-endability' : null,
                from: 'DERIVED:Pokemon#ignoringAbility names volatiles.' + v + '; dex.conditions.get(' + v + ').onStart' };
+    } },
+  /* 2026-09-19 -- A VOLATILE THAT REWRITES THE TYPE OF EVERY MOVE ITS HOLDER THROWS.
+   *
+   * `effMoveType` in medicham2 knew four ways a move's type can move -- the move's own unconditional
+   * rewrite (Struggle), the forme-keyed rewrite (Raging Bull, Aura Wheel), the `-ate` ABILITY
+   * conversion, and the weather/terrain rewrites. It knew no way for a VOLATILE to do it, and one
+   * move in this format writes exactly that volatile: Electrify, whose condition is
+   *
+   *     onModifyTypePriority: -2,
+   *     onModifyType(move) { if (move.id !== 'struggle') { ...; move.type = 'Electric'; } }
+   *
+   * (data/moves.ts:4571-4583; the Champions mod inherits the condition and only clears
+   * `isNonstandard`, data/mods/champions/moves.ts:274-277). Without a row here an electrified Dragon
+   * Pulse stayed Dragon in this engine and Electric in the authority, which is a damage number and
+   * therefore a BOARD.
+   *
+   * THE PREDICATE IS A SHAPE AND THE MEMBERSHIP WAS PRINTED BEFORE IT WAS WIRED, per docs/LESSONS §4.
+   * Only a handler whose WHOLE body is (an optional `move.id !== "<id>"` guard) + (optional
+   * `this.debug`) + exactly ONE literal `move.type = "<Type>"` is tabled. Anything with a second
+   * assignment, a second guard, or a guard of another shape is REFUSED and gets no row -- which is
+   * what keeps the four `onModifyType` handlers that live on the MOVE itself (Aura Wheel, Raging
+   * Bull, Terrain Pulse, Weather Ball, all keyed on runtime state and all already owned by their own
+   * tags) out of a table that cannot express them. Printed over every legal move in this format:
+   * ONE row, `electrify -> electrify`, and no refusals at all.
+   *
+   * `priority` TRAVELS WITH IT because it is what decides who wins. `onModifyTypePriority: -2` runs
+   * AFTER the `-ate` abilities (no declared priority, so 0) and after the moves' own handlers, so an
+   * electrified Weather Ball is Electric and an electrified Pixilate click is Electric. A consumer
+   * that applied this first would be wrong in both directions and would look right in neither. */
+  { tag: 'volatileRetypesMoves', param: 'a volatile this move applies that rewrites the type of every move its holder throws',
+    probe: 'volatileRetypesMoves',
+    why: 'Electrify: medicham2 wrote the `electrify` volatile and no type reader asked about it, so an '
+       + 'electrified Dragon Pulse stayed Dragon here and was Electric on the authority — a damage '
+       + 'number, and a Ground-type target that should have been immune was hit for full',
+    of: m => {
+      const vols = new Set();
+      const put = v => { if (typeof v === 'string' && v) vols.add(v); };
+      put(m.volatileStatus);
+      if (m.self) put(m.self.volatileStatus);
+      for (const s of (m.secondaries || [])) { put(s.volatileStatus); if (s.self) put(s.self.volatileStatus); }
+      const srcs = [];
+      const scan = (o, depth) => { if (!o || typeof o !== 'object' || depth > 2) return;
+        for (const k in o) { const v = o[k];
+          if (typeof v === 'function') srcs.push(fnsrc(v));
+          else if (v && typeof v === 'object') scan(v, depth + 1); } };
+      scan(m, 0);
+      for (const s of srcs) for (const g of s.matchAll(/\.addVolatile\(\s*["'](\w+)["']/g)) put(g[1]);
+      if (!vols.size) return null;
+      const byVolatile = {};
+      for (const v of [...vols].sort()) {
+        const c = dex.conditions.get(v);
+        if (!c || !c.exists || !c.onModifyType) continue;
+        const s = fnsrc(c.onModifyType).replace(/\s+/g, ' ').trim();
+        const asg = [...s.matchAll(/move\.type\s*=\s*["'](\w+)["']/g)];
+        if (asg.length !== 1) continue;                       // REFUSED: not one literal rewrite
+        const ifs = [...s.matchAll(/if\s*\(([^)]*)\)/g)];
+        if (ifs.length > 1) continue;                         // REFUSED: more than one guard
+        let except = [];
+        if (ifs.length === 1) {
+          const g = /^\s*move\.id\s*!==\s*["'](\w+)["']\s*$/.exec(ifs[0][1]);
+          if (!g) continue;                                   // REFUSED: a guard this row cannot state
+          except = [g[1]];
+        }
+        /* NOTHING ELSE MAY BE IN THE BODY. A handler that also boosts, announces or reads the holder
+         * is doing something this row would silently drop, and a dropped clause is indistinguishable
+         * from a working feature. */
+        const rest = s.replace(/^onModifyType\s*\([^)]*\)\s*\{/, '').replace(/\}$/, '')
+          .replace(/if\s*\([^)]*\)\s*\{/, '').replace(/this\.debug\([^)]*\)\s*;?/g, '')
+          .replace(/move\.type\s*=\s*["']\w+["']\s*;?/, '').replace(/[{}\s;]/g, '');
+        if (rest) continue;                                   // REFUSED: the handler does more
+        byVolatile[v] = { type: asg[0][1], exceptMoves: except,
+                          priority: c.onModifyTypePriority == null ? null : +c.onModifyTypePriority,
+                          from: 'DERIVED:dex.conditions.get(' + v + ').onModifyType' };
+      }
+      return Object.keys(byVolatile).length ? { byVolatile } : null;
     } },
 ];
 
@@ -10088,7 +10220,17 @@ const ABILITY_TAGS = [
       rest = rest.slice(ann[0].length);
       if (latch) rest = rest.replace(new RegExp('^this\\.effectState\\.' + latch + ' = true;\\s*'), '');
       if (rest.trim()) return null;
-      return { event: '-ability', on: 'self', latch, suppressGuard, visibleOnABoard: false };
+      /* 2026-09-19 -- `switchInPriority` IS WHERE THE LINE SORTS AGAINST THE ENTRY HAZARDS, and it is
+       * the ability's own declared field rather than anything inferred here. `resolvePriority` reads
+       * `handler.priority = effect.onSwitchInPriority || 0` (sim/battle.ts:953) and `comparePriority`
+       * compares priority BEFORE speed and before the effect-type subOrder (:406-408), so a POSITIVE
+       * value beats a side condition's `onSwitchIn` handler and a zero or negative one loses to it on
+       * subOrder (side condition 4, ability 7, :957-971). Over the legal carriers of this format the
+       * positive members are Unnerve (+1) and Klutz (+1), and Klutz's onStart writes no line -- so the
+       * only line this moves today is Unnerve's, which is the one the pinned pool's `ordering` card
+       * names. Derived, never listed: an ability added later brings its own number. */
+      return { event: '-ability', on: 'self', latch, suppressGuard, visibleOnABoard: false,
+               switchInPriority: (+a.onSwitchInPriority || 0) };
     } },
 
   /* THE ALLY BASE-POWER BOOSTERS. `onAllyBasePower` is a hook nothing else in this file reads, and a
@@ -10261,8 +10403,14 @@ function noteThrow(kind, tag, o, why) {
 
 function collect(kind, all, tags, usageMap) {
   const entries = {}, index = {};
+  /* 2026-09-19 -- A TAG THAT NAMES A DEPENDENCY RATHER THAN DRIVING A BEHAVIOUR SAYS SO ON ITS OWN
+   * ROW. The declaration is `engine/tag_descriptive.js` -- one place, read here and by
+   * engine/coverage.js, so the generator and the counter cannot come to disagree about it. It is
+   * stamped, never inferred: `consumedBy` is untouched and still reports NOT READ, which is true. */
   for (const t of tags) index[t.tag] = { tag: t.tag, kind, param: t.param, why: t.why,
-    consumedBy: consumerOf(t), used: !!consumerOf(t), n: 0, uses: 0, examples: [] };
+    consumedBy: consumerOf(t), used: !!consumerOf(t),
+    descriptive: (DESCRIPTIVE[t.tag] && DESCRIPTIVE[t.tag].kind === kind) ? DESCRIPTIVE[t.tag] : undefined,
+    n: 0, uses: 0, examples: [] };
   for (const o of all) {
     if (!o || !o.exists || o.isNonstandard) continue;
     const id = norm(o.id || o.name);

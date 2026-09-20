@@ -71,7 +71,20 @@ const D = (...p) => path.join(__dirname, '..', ...p);
 require(D('engine', 'showdown_path.js'));
 if (!process.env.SHOWDOWN_PATH) { console.log('NOT RUN — SHOWDOWN_PATH is unset. This is not a pass.'); process.exit(2); }
 
-const CHILD = process.env.MEDI_ENTRY_HAZARD_INLINE === '1' || process.env.MEDI_REPLACE_SPEED_MODIFIED === '1';
+const KNOB_SET = process.env.MEDI_ENTRY_HAZARD_INLINE === '1' || process.env.MEDI_REPLACE_SPEED_MODIFIED === '1';
+/* THE CONTROL ARM CARRIES ITS OWN MARKER, AND THE SPAWN BELOW IS THE ONLY THING THAT SETS IT.
+ * Keying the quiet control path on the KNOB ITSELF means a knob set from OUTSIDE takes the quiet
+ * path too, so the probe exits 0 against a deliberately broken engine — indistinguishable from a
+ * knob that is not wired to anything. So:
+ *   a knob set from outside -> the FULL verdict runs against the broken engine and this exits 1
+ *   the spawned control child -> the quiet arm, exit 0, its verdict line for the parent to read */
+const CHILD = KNOB_SET && process.env.ABRA_PROBE_CONTROL_ARM === '1';
+if (KNOB_SET && !CHILD) {
+  console.log('');
+  console.log('  ONE OF MEDI_ENTRY_HAZARD_INLINE / MEDI_REPLACE_SPEED_MODIFIED WAS SET FROM OUTSIDE THIS PROCESS.');
+  console.log('  The engine is running with the defect restored, so the assertions below are');
+  console.log('  expected to FAIL and this run MUST exit 1. The control child is skipped.');
+}
 
 require(D('tests', '_live_release.js'));
 process.argv.push('--state');
@@ -276,13 +289,18 @@ if (CHILD) {
   if (!ORDER_OK) bad++;
 }
 
-if (!CHILD) {
+if (KNOB_SET) {
+  console.log('');
+  console.log('  --- the control child is SKIPPED: a knob is already set in this process, so a');
+  console.log('      child of it would compare a control against a control and report that the');
+  console.log('      knob changed nothing — true, and about the wrong thing ---');
+} else if (!CHILD) {
   const { spawnSync } = require('child_process');
   for (const [knob, key, mine] of [['MEDI_ENTRY_HAZARD_INLINE', 'batch', PLAIN.meTok.join(' ')],
                                    ['MEDI_REPLACE_SPEED_MODIFIED', 'order', DOUBLED.meSw.join(' ')]]) {
     console.log('\n  --- re-running under ' + knob + '=1 (the control), in a child ---');
     const c = spawnSync(process.execPath, [...(process.execArgv || []), __filename],
-      { env: { ...process.env, [knob]: '1' }, encoding: 'utf8' });
+      { env: { ...process.env, [knob]: '1', ABRA_PROBE_CONTROL_ARM: '1' }, encoding: 'utf8' });
     const out = String(c.stdout || '');
     const mark = /__CONTROL__(\{.*\})/.exec(out);
     if (!mark) {

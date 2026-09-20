@@ -252,29 +252,25 @@ const SCENARIOS = [
       { p1: [{ m: 'fakeout', t: 0 }, { m: 'protect' }], p2: [{ m: 'bodyslam', t: 0 }, { m: 'protect' }] },
       { p1: [{ m: 'swordsdance' }, { m: 'protect' }], p2: [{ m: 'bodyslam', t: 0 }, { m: 'protect' }] },
     ],
-    /* THE ANCHOR IS BROKEN AND THE HARNESS SAYS SO ON EVERY RUN. FILED 2026-08-19, NOT FIXED HERE,
-     * AND THE REASON IS THE SECOND DEFECT UNDERNEATH IT.
+    /* THE ANCHOR SPANNED A LINE BREAK AND MATCHED ZERO TIMES FROM 2026-08-19 TO 2026-09-19.
+     * `if(m._flinch){` sits on its own line and the clear on the next, so the two-line string could
+     * never match and every run reported "the proof fixture could not be planted / THE QUIETENING
+     * MECHANISM IS NOT TRUSTWORTHY" -- the allowProof() fixture is this break, so ALL THREE
+     * machinery checks were dead with it.
      *
-     * The string below spans a line break in medicham2-browser.js -- `if(m._flinch){` is on its own
-     * line and `m._flinch=false;...` on the next -- so it matches ZERO times and this run reports
-     * "the proof fixture could not be planted / THE QUIETENING MECHANISM IS NOT TRUSTWORTHY". The
-     * mismatch PREDATES the ROADMAP #308 pass: the same two-line shape is in release b7179d2's bytes.
+     * RE-AIMED at the GUARD, and the first re-aim was WRONG AND MEASURED SO: dropping
+     * `m._mvRes=false;if(TR)TR.cant(...)` planted cleanly and the boards stayed IDENTICAL, because
+     * what actually stops the body acting is the `continue` at the foot of the block and `_mvRes` is
+     * bookkeeping beside it. Reported NOT CAUGHT, which is the harness doing its job. The flag is
+     * still SET by every setter and still cleared at the end of the turn; only the honour goes.
      *
-     * SHORTENING IT TO `if(m._flinch){` MAKES THE PLANT APPLY -- and then every one of the 24
-     * scenarios reports `CLEAN ENGINE -> DIFFERS`, on HP, with the three machinery checks above them
-     * all reading `ok`. Measured both ways, minutes apart, same release, same engine: with the plant
-     * unapplied it is 24 of 24 clean and with it applied it is 0. So the PATCHED module is not being
-     * unloaded before the clean arms run -- `harness(null)` deletes `require.cache` and reloads
-     * `game_differential.js`, which binds through `REL.require`, and that is where the stale copy
-     * survives. Correcting the anchor without that turns a loud, printed FAIL into 24 silent false
-     * divergences, which is strictly worse.
-     *
-     * IT IS FILED RATHER THAN FIXED because the second half lives in `engine/engine_release.js` --
-     * MEASURE's file, and docs/DIVISIONS.md's rule is that you file another division's bug rather
-     * than patch it mid-run. */
+     * THE SECOND DEFECT THIS COMMENT USED TO FILE -- "a patched module survives into the clean arms,
+     * so correcting the anchor turns one printed FAIL into 24 silent false divergences" -- WAS
+     * RE-MEASURED ON 2026-09-19 WITH THE ANCHOR CORRECTED AND DOES NOT REPRODUCE: the clean arms are
+     * clean with the plant applied. Recorded rather than deleted, because it was a real reading in
+     * August; what changed underneath it is not established here. */
     break: { why: 'the engine stops HONOURING a flinch: the body that was flinched takes its turn anyway',
-      patch: [['if(m._flinch){m._flinch=false;m._mvRes=false;',
-               'if(false&&m._flinch){m._flinch=false;m._mvRes=false;']] } },
+      patch: [['if(m._flinch){', 'if(false&&m._flinch){']] } },
 
   /* ------------------------------------------------------------------------ 2. move / field, order */
   { id: 'trickroom-order',
@@ -348,7 +344,12 @@ const SCENARIOS = [
     ],
     break: { why: 'the entry hazard stops chipping the body that walks in — the layer is still laid '
                 + 'and still counted, so only the CONSEQUENCE goes missing',
-      patch: [['if(sf.hz.stealthrock){nx.curHP-=', 'if(false&&sf.hz.stealthrock){nx.curHP-=']] } },
+      /* RE-AIMED 2026-09-19 at the LIST THE CODE BUILDS rather than at the arithmetic inside the
+       * bite. `_hzSrc` is the lay-order source the entry walk runs (`for(const _h of _hzRun)
+       * _hzBite[_h]()`), so dropping the name is the whole layer not biting, and the three other
+       * hazards are untouched controls. The old anchor died when the bites became a keyed table. */
+      patch: [["const _hzSrc=['stealthrock','spikes','toxicspikes','stickyweb'];",
+               "const _hzSrc=['spikes','toxicspikes','stickyweb'];"]] } },
 
   /* ------------------------------------------------------------------- 5. move / status + residual */
   /* THE STATUS SCENARIO IS PARALYSIS AND NOT A BURN, AND THE REASON IS THE PIN RATHER THAN A
@@ -375,8 +376,10 @@ const SCENARIOS = [
     ],
     break: { why: 'the engine refuses to write PARALYSIS specifically — every other status still '
                 + 'applies, so this is one mechanic and not the status system',
-      patch: [['function applyStatus(t,st,src){',
-               "function applyStatus(t,st,src){if(st==='par')return false;"]] } },
+      /* THE SIGNATURE GREW THREE PARAMETERS (`eff,why,dstream`) AND THE OLD ANCHOR NAMED THE OLD
+       * ONE, so it matched zero times. Re-aimed 2026-09-19 at the signature as it reads today. */
+      patch: [['function applyStatus(t,st,src,eff,why,dstream){',
+               "function applyStatus(t,st,src,eff,why,dstream){if(st==='par')return false;"]] } },
 
   /* ---------------------------------------------------------------------------- 6. item / residual */
   { id: 'leftovers-residual',
@@ -419,8 +422,12 @@ const SCENARIOS = [
     ],
     break: { why: 'the Sash stops holding the body at 1 HP — it is still held, still read, and no '
                 + 'longer saves anything',
-      patch: [["const _sv=TAGS.param('item',tg.item,'survivesFromFull')||TAGS.param('ability',tg.ability,'survivesFromFull');",
-               "const _sv=null&&(TAGS.param('item',tg.item,'survivesFromFull')||TAGS.param('ability',tg.ability,'survivesFromFull'));"]] } },
+      /* THE ONE READ SPLIT INTO TWO (`_svIt` for the item, `_sv` for item-or-ability) and the old
+       * single-line anchor matched zero times. Re-aimed 2026-09-19 at the ITEM HALF'S TAG READ only:
+       * the tag is still read and its answer is discarded, and the ABILITY half is left working, so
+       * the break is the Sash and not the survives-from-full family. */
+      patch: [["const _svIt=TAGS.param('item',tg.item,'survivesFromFull');",
+               "const _svIt=TAGS.param('item',tg.item,'survivesFromFull')&&null;"]] } },
 
   /* ------------------------------------------------------------------------- 8. item / damage type */
   { id: 'blackglasses-dark-only',
@@ -525,9 +532,15 @@ const SCENARIOS = [
       { p1: [{ m: 'crunch', t: 0 }, { m: 'protect' }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
       { p1: [{ m: 'crunch', t: 0 }, { m: 'protect' }], p2: [{ m: 'swordsdance' }, { m: 'irondefense' }] },
     ],
-    break: { why: 'the forme change on being hit is skipped',
-      patch: [["if(_fh&&_fh.becomes&&!tg._disguiseBusted&&dmg>0){",
-               "if(false&&_fh&&_fh.becomes&&!tg._disguiseBusted&&dmg>0){"]] } },
+    break: { why: 'the ability\'s whole on-hit forme response is skipped — the one function every '
+                + 'caller asks (the absorb and the forme change alike) answers "not a carrier"',
+      /* THE GATE MOVED INTO A FUNCTION. `if(_fh&&_fh.becomes&&!tg._disguiseBusted&&dmg>0)` was
+       * replaced by `formeOnHitAbsorbs(tg,m,a.move.id)`, which now owns the tag read, the busted
+       * flag and the doll test, and is asked from the damage pricing as well as the bust. Re-aimed
+       * 2026-09-19 at that SIGNATURE. It is wider than the line it replaces -- the absorb goes too,
+       * not only the rename -- and the `why` above says so rather than the verdict implying it. */
+      patch: [['function formeOnHitAbsorbs(tg,att,mvId){',
+               'function formeOnHitAbsorbs(tg,att,mvId){if(1)return null;']] } },
 
   /* ================= THE BOARD-RESIDUE SCENARIOS, 2026-08-08 =====================================
    * The twelve above were written to mirror a census row. These three were written the other way
@@ -606,7 +619,19 @@ const SCENARIOS = [
     ],
     break: { why: 'the generic effect branch stops re-aiming at the slot and follows the Pokemon '
                 + 'object onto the bench, which is what it did before WIRE 139',
-      patch: [['let _t=reaimToSlot(a.target,it,actA,actB,a.mv);', 'let _t=a.target;']] } },
+      /* THE BRANCH'S ONE-BODY `let _t = reaimToSlot(...)` BECAME A TARGET LIST built by
+       * `statusMoveTargets`, so the old anchor matched zero times. Re-aimed 2026-09-19 at the
+       * single-target arm inside that builder — the same call, the same argument, one frame up.
+       *
+       * AND THE BRANCH'S OWN CALL IS NO LONGER SUFFICIENT ON ITS OWN, WHICH WAS MEASURED, NOT
+       * ASSUMED: with only that line reverted the boards stayed IDENTICAL and the run said NOT
+       * CAUGHT. The rule was consolidated to ONE call at the action dispatch (`it.a.target=_aimed`,
+       * "thirty branches read the field"), which leaves every branch-level call idempotent — so the
+       * Pokemon-first model is only restored when both go. Both are patched, and the pair is what
+       * "restored exactly" now means. */
+      patch: [['const _aimed=reaimToSlot(it.a.target,it,actA,actB,actionMoveId(it.a));',
+               'const _aimed=it.a.target;'],
+              ['let _t0=reaimToSlot(aTarget,it,actA,actB,mvId);', 'let _t0=aTarget;']] } },
 
   /* ------------------------------------------ 15. move / THE SHARPEST TEST OF THE SLOT-FIRST RULE */
   { id: 'allyswitch-follows-the-slot',
@@ -644,8 +669,10 @@ const SCENARIOS = [
     ],
     break: { why: 'the shared target reader stops asking the slot and hands back the body it was '
                 + 'given — the Pokemon-first model, restored exactly',
-      patch: [['const now=foes[it.tgtSlot]||null;',
-               'const now=(actA.indexOf(t)>=0||actB.indexOf(t)>=0)?t:(foes[it.tgtSlot]||null);']] } },
+      /* `const now` BECAME `let now` when the fainted-foe retarget was added below it, so the old
+       * anchor matched zero times. Re-aimed 2026-09-19; the replacement is unchanged. */
+      patch: [['let now=foes[it.tgtSlot]||null;',
+               'let now=(actA.indexOf(t)>=0||actB.indexOf(t)>=0)?t:(foes[it.tgtSlot]||null);']] } },
 
   /* ---------------------------------------------------------- 16. mega / the forme on the board */
   { id: 'mega-forme-on-the-board',
@@ -786,8 +813,11 @@ const SCENARIOS = [
     ],
     break: { why: 'the residual flip is skipped — the ability is still on the body and still named, so '
                 + 'only the forme goes missing',
-      patch: [["{const _fc=TAGS.param('ability',m.ability,'formeCycleResidual');",
-               "{const _fc=null&&TAGS.param('ability',m.ability,'formeCycleResidual');"]] } },
+      /* THE RESIDUAL FLIP MOVED INTO `formeCycleResidualStep`, which both the live walk and the
+       * zombie walk call, so the old inline tag read matched zero times. Re-aimed 2026-09-19 at that
+       * function's SIGNATURE, which is the one door both callers go through. */
+      patch: [['function formeCycleResidualStep(m){',
+               'function formeCycleResidualStep(m){if(1)return;']] } },
 
   /* =============== 19-20. ONE QUESTION, TWO MOVES: CAN THIS ITEM LEAVE THIS BODY RIGHT NOW ======
    * Knock Off takes the TARGET'S item and Fling spends the USER'S OWN. They are staged together
@@ -852,7 +882,12 @@ const SCENARIOS = [
     ],
     break: { why: 'the item is no longer spent — the power still comes out of it and the throw still '
                 + 'lands, so ONLY the disposition goes missing and turn 2 throws a second Light Ball',
-      patch: [['{const _it=m.item;m.item=\'\';', '{const _it=m.item;']] } },
+      /* THE SPEND MOVED TO THE UPDATE PASS (ROADMAP #308) — `onPrepareHit` marks `_flingSpend` and
+       * the item leaves in `_updateAll`, so the old inline anchor matched zero times. Re-aimed
+       * 2026-09-19 at the one statement that empties the hand there; the debt is still taken and
+       * still cleared, so only the disposition goes missing. */
+      patch: [["if(e.m._flingSpend){const _fi=e.m._flingSpend;e.m._flingSpend=null;e.m.item='';",
+               'if(e.m._flingSpend){const _fi=e.m._flingSpend;e.m._flingSpend=null;']] } },
 
   /* ---------------------------------- 22. move / A PHAZE RESOLVES LAST, AND AIMS AT A SLOT */
   { id: 'roar-drags-whoever-is-standing-there',
@@ -891,7 +926,17 @@ const SCENARIOS = [
        * exactly like a comparator that found nothing — which is the failure mode `patchedSource`
        * refuses by demanding exactly one match. Every anchor in this file is one line for that
        * reason. */
-      patch: [['const _t=reaimToSlot(a.target,it,actA,actB,a.mv);', 'const _t=a.target;']] } },
+      /* THE PHAZE'S RE-AIM WAS WRAPPED IN `bounceAtTryHit` and its result split into `_by.t`/`_by.src`,
+       * so the old anchor matched zero times. Re-aimed 2026-09-19 at the same call, one frame out:
+       * the bounce still runs, and it is handed the Pokemon the chooser aimed at. THE ACTION-DISPATCH
+       * RE-AIM GOES WITH IT, and that was measured rather than assumed — the branch line alone left
+       * the boards IDENTICAL and the run said NOT CAUGHT, because `it.a.target` had already been
+       * rewritten to the slot's occupant one frame above every branch. Same pair as
+       * pivot-then-the-slot-is-hit; the two scenarios then differ in which BRANCH loses its copy. */
+      patch: [['const _aimed=reaimToSlot(it.a.target,it,actA,actB,actionMoveId(it.a));',
+               'const _aimed=it.a.target;'],
+              ['const _by=bounceAtTryHit(m,reaimToSlot(a.target,it,actA,actB,a.mv),a.mv);',
+               'const _by=bounceAtTryHit(m,a.target,a.mv);']] } },
 
   { id: 'a-failed-roost-grounds-nothing',
     kind: 'move', shape: 'a self-rider is skipped when the move\'s primary effect failed',
@@ -970,8 +1015,10 @@ const SCENARIOS = [
     script: Array.from({ length: 3 }, () => (
       { p1: [{ m: 'protect' }, { m: 'protect' }], p2: [{ m: 'protect' }, { m: 'protect' }] })),
     break: { why: 'the sandstorm residual stops chipping anybody',
-      patch: [["if(field.weather==='sand'&&!field.wSup&&!m.types.some(t=>t==='Rock'||t==='Ground'||t==='Steel')){",
-               "if(false&&field.weather==='sand'&&!field.wSup&&!m.types.some(t=>t==='Rock'||t==='Ground'||t==='Steel')){"]] } },
+      /* THE CHIP GATE GAINED `_G.has('weather')` WHEN THE RESIDUAL WALK BECAME EVENT-GROUPED, so the
+       * old anchor matched zero times. Re-aimed 2026-09-19 at the gate as it reads today. */
+      patch: [["if(_G.has('weather')&&field.weather==='sand'&&!field.wSup&&!m.types.some(t=>t==='Rock'||t==='Ground'||t==='Steel')){",
+               "if(false&&_G.has('weather')&&field.weather==='sand'&&!field.wSup&&!m.types.some(t=>t==='Rock'||t==='Ground'||t==='Steel')){"]] } },
 ];
 
 /* ---- THE FIXTURE AUDIT, RUN BEFORE ANY BOARD IS READ --------------------------------------------

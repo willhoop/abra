@@ -68,9 +68,19 @@ if (!process.env.SHOWDOWN_PATH) {
 }
 const argOf = (n, d) => { const i = process.argv.indexOf(n); return i >= 0 ? process.argv[i + 1] : d; };
 const MEDI_SRC_PATH = argOf('--medi', null);
-const KNOB = process.env.MEDI_PREVENTSCRIT_ABILITY_ONLY === '1';
-const KNOB_DOLL = process.env.MEDI_FORMEONHIT_THROUGH_DOLL === '1';
-const CHILD = process.argv.includes('--knob-child');
+const KNOB_RAW = process.env.MEDI_PREVENTSCRIT_ABILITY_ONLY === '1';
+const KNOB_DOLL_RAW = process.env.MEDI_FORMEONHIT_THROUGH_DOLL === '1';
+/* THE KNOB CHILD CARRIES ITS OWN MARKER (`--knob-child`), AND THE SPAWN BELOW IS THE ONLY THING THAT
+ * PASSES IT. The defect-is-present branches were keyed on the KNOBS ALONE, so a knob set from
+ * OUTSIDE took them and the probe exited 0 against a deliberately broken engine — indistinguishable
+ * from a knob that is not wired to anything. Marker AND knob, or the CLEAN clauses run and fail. */
+const CHILD = process.argv.includes('--knob-child') && (KNOB_RAW || KNOB_DOLL_RAW);
+const KNOB = KNOB_RAW && CHILD;
+const KNOB_DOLL = KNOB_DOLL_RAW && CHILD;
+if ((KNOB_RAW || KNOB_DOLL_RAW) && !CHILD) {
+  console.log(NL + '  A KNOB WAS SET FROM OUTSIDE THIS PROCESS. The engine carries the defect, so the');
+  console.log('  clean-arm clauses below are expected to FAIL and this run MUST exit 1.');
+}
 const SB = require(path.join(ROOT, 'tests', 'staged_board.js'));
 
 let bad = 0;
@@ -81,8 +91,8 @@ const ok = (cond, what, detail) => {
 };
 
 console.log(NL + 'tests/probe_disguise_crit.js — Disguise refuses a crit on the INTACT forme only, and never through a doll');
-console.log('  knob MEDI_PREVENTSCRIT_ABILITY_ONLY=' + (KNOB ? '1  (the ability-only refusal is RESTORED; BUSTED, DOLL and VOLLEY must PART)' : '0'));
-console.log('  knob MEDI_FORMEONHIT_THROUGH_DOLL=' + (KNOB_DOLL ? '1  (the disguise absorbs a hit on its doll again; DOLL\'s board must PART)' : '0'));
+console.log('  knob MEDI_PREVENTSCRIT_ABILITY_ONLY=' + (KNOB_RAW ? '1  (the ability-only refusal is RESTORED; BUSTED, DOLL and VOLLEY must PART)' : '0'));
+console.log('  knob MEDI_FORMEONHIT_THROUGH_DOLL=' + (KNOB_DOLL_RAW ? '1  (the disguise absorbs a hit on its doll again; DOLL\'s board must PART)' : '0'));
 if (MEDI_SRC_PATH) console.log('  engine bytes: ' + MEDI_SRC_PATH + ' (compiled under the release; NOT the release\'s own simulator)');
 
 /* ==================================================================================================
@@ -294,7 +304,10 @@ ok(KNOB_DOLL ? R.INTACT.c.dollRestored === 1 : !R.INTACT.c.dollRestored,
 /* ==================================================================================================
  * 4. THE KNOBS, EACH IN ITS OWN CHILD — the engine reads them at module load
  * ============================================================================================== */
-if (!CHILD) {
+if (KNOB_RAW || KNOB_DOLL_RAW) {
+  console.log(NL + '  --- the knob children are SKIPPED: a knob is already set in this process, so a');
+  console.log('      child of it would compare a control against a control ---');
+} else if (!CHILD) {
   for (const [name, env] of [['MEDI_PREVENTSCRIT_ABILITY_ONLY=1', { MEDI_PREVENTSCRIT_ABILITY_ONLY: '1' }],
                              ['MEDI_FORMEONHIT_THROUGH_DOLL=1', { MEDI_FORMEONHIT_THROUGH_DOLL: '1' }]]) {
     console.log(NL + '4. THE KNOB CHILD (' + name + ')');

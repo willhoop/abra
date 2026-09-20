@@ -104,8 +104,17 @@ if (!process.env.SHOWDOWN_PATH) {
   process.exit(2);
 }
 const NL = String.fromCharCode(10);
-const RED_CHILD = process.argv.includes('--red');
 const KNOB_ON = process.env.MEDI_MEGA_TRACE_LATE === '1';
+/* THE RED ARM CARRIES ITS OWN MARKER (`--red`), AND THE SPAWN BELOW IS THE ONLY THING THAT PASSES IT.
+ * Keying the defect-is-present branch on the KNOB ALONE means a knob set from OUTSIDE takes that
+ * branch, so the probe exits 0 against a deliberately broken engine — indistinguishable from a knob
+ * that is not wired to anything. The marker and the knob must BOTH be present for the red arm. */
+const RED_CHILD = process.argv.includes('--red') && KNOB_ON;
+if (KNOB_ON && !RED_CHILD) {
+  console.log(NL + '  MEDI_MEGA_TRACE_LATE=1 WAS SET FROM OUTSIDE THIS PROCESS.');
+  console.log('  The engine is running with the defect restored, so the CLEAN-arm clauses below are');
+  console.log('  expected to FAIL and this run MUST exit 1. The red child is skipped.');
+}
 
 const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
 const DEX = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
@@ -376,7 +385,7 @@ console.log('  MEDI_MEGA_TRACE_LATE=' + (KNOB_ON ? '1' : '(unset)') + '   MEDFAI
   + (knobLoaded ? 'PRESENT (' + M.MEDFAILS.megaTraceLate + ')' : 'absent'));
 
 let bad = hardFail;
-if (KNOB_ON) {
+if (RED_CHILD) {
   if (!knobLoaded) { console.log('  THE KNOB DID NOT REACH THE ENGINE.'); bad++; }
   /* THE CHILD ASSERTS THE DEFECT IS PRESENT. Under the knob the reds MUST part and the controls MUST
    * NOT — that is what makes this a control set rather than three more chances to pass. */

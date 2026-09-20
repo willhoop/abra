@@ -81,8 +81,17 @@ if (!process.env.SHOWDOWN_PATH) {
   process.exit(2);
 }
 const NL = String.fromCharCode(10);
-const RED_CHILD = process.argv.includes('--red');
 const KNOB_ON = process.env.MEDI_MID_RANGE_DRAWS === '1';
+/* THE RED ARM CARRIES ITS OWN MARKER (`--red`), AND THE SPAWN BELOW IS THE ONLY THING THAT PASSES IT.
+ * Keying the defect-is-present branch on the KNOB ALONE means a knob set from OUTSIDE takes that
+ * branch, so the probe exits 0 against a deliberately broken engine — indistinguishable from a knob
+ * that is not wired to anything. The marker and the knob must BOTH be present for the red arm. */
+const RED_CHILD = process.argv.includes('--red') && KNOB_ON;
+if (KNOB_ON && !RED_CHILD) {
+  console.log(NL + '  MEDI_MID_RANGE_DRAWS=1 WAS SET FROM OUTSIDE THIS PROCESS.');
+  console.log('  The engine is running with the defect restored, so the CLEAN-arm clauses below are');
+  console.log('  expected to FAIL and this run MUST exit 1. The red child is skipped.');
+}
 
 const { Dex } = require(process.env.SHOWDOWN_PATH + '/dist/sim');
 const DEX = Dex.forFormat(require('../engine/champions_sim.js').FORMAT);
@@ -229,7 +238,7 @@ if (!TIE.length || !NOTIE.length) {
  * and must have DRAWN one on the knob arm. A counter that is present on both is not a knob. */
 const RC = G.midRangeCounters();
 console.log(NL + 'RANGE-FORM RECEIPT   pinned=' + RC.pinned + '  live=' + RC.live + '  knob=' + RC.knob);
-if (KNOB_ON) {
+if (RED_CHILD) {
   if (RC.live === 0) { console.log('  FAIL — the knob is set and NO range draw was taken. It reached no code.'); bad++; }
   if (RC.pinned !== 0) { console.log('  FAIL — the knob is set and a range draw was still pinned.'); bad++; }
 } else {
@@ -243,7 +252,7 @@ if (KNOB_ON) {
 const sdTie = [...new Set(TIE.map(r => r.sd))].join('/');
 const sdNo = [...new Set(NOTIE.map(r => r.sd))].join('/');
 console.log('AUTHORITY   TIE boards -> [' + sdTie + ']    NO-TIE boards -> [' + sdNo + ']');
-if (KNOB_ON) {
+if (RED_CHILD) {
   if (sdTie === sdNo) {
     console.log('  FAIL — with the range draw LIVE the authority answered the same on tie and no-tie'
       + ' boards, so this fixture never reached the die and says nothing about medicham.');
@@ -263,7 +272,7 @@ const tieDiff = TIE.filter(r => r.sd !== r.me).length;
 const noDiff = NOTIE.filter(r => r.sd !== r.me).length;
 console.log('BOARDS      TIE ' + (TIE.length - tieDiff) + '/' + TIE.length + ' agree;   NO-TIE '
   + (NOTIE.length - noDiff) + '/' + NOTIE.length + ' agree');
-if (KNOB_ON) {
+if (RED_CHILD) {
   if (tieDiff !== TIE.length) { console.log('  FAIL — the knob is set and ' + (TIE.length - tieDiff)
     + ' tie board(s) still AGREE. The red arm must go red on every one of them.'); bad++; }
   if (noDiff !== 0) { console.log('  FAIL — ' + noDiff + ' NO-TIE control board(s) parted under the'

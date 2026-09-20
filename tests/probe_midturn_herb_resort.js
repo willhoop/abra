@@ -82,7 +82,20 @@ const D = (...p) => path.join(__dirname, '..', ...p);
 require(D('engine', 'showdown_path.js'));
 if (!process.env.SHOWDOWN_PATH) { console.log('NOT RUN — SHOWDOWN_PATH is unset. This is not a pass.'); process.exit(2); }
 
-const CHILD = process.env.MEDI_RESORT_BEFORE_UPDATE === '1';
+const KNOB_SET = process.env.MEDI_RESORT_BEFORE_UPDATE === '1';
+/* THE CONTROL ARM CARRIES ITS OWN MARKER, AND THE SPAWN BELOW IS THE ONLY THING THAT SETS IT.
+ * Keying the quiet control path on the KNOB ITSELF means a knob set from OUTSIDE takes the quiet
+ * path too, so the probe exits 0 against a deliberately broken engine — indistinguishable from a
+ * knob that is not wired to anything. So:
+ *   knob set from outside -> the FULL verdict runs against the broken engine and this exits 1
+ *   spawned control child -> the quiet arm, exit 0, its verdict line for the parent to read */
+const CHILD = KNOB_SET && process.env.ABRA_PROBE_CONTROL_ARM === '1';
+if (KNOB_SET && !CHILD) {
+  console.log('');
+  console.log('  MEDI_RESORT_BEFORE_UPDATE=1 WAS SET FROM OUTSIDE THIS PROCESS.');
+  console.log('  The engine is running with the defect restored, so the assertions below are');
+  console.log('  expected to FAIL and this run MUST exit 1. The control child is skipped.');
+}
 require(D('tests', '_live_release.js'));
 
 const G = require(D('engine', 'game_differential.js'));
@@ -300,6 +313,10 @@ if (CHILD) {
     cast: CAST.p.name + '/' + CAST.h.name + '/' + CAST.a.name,
     meFirst: REAL.meFirst, div: !!REAL.div, divLine: REAL.div && REAL.div.me,
     silFirst: SIL.meFirst, silDiv: !!SIL.div, speedDis: REAL.speedDisagreements,
+    /* THE KNOB'S OWN RECEIPT. Without it "the knob changed nothing" and "the knob reached no code"
+     * are the same reading, and they are different defects. The engine writes
+     * `MEDFAILS.resortBeforeUpdateRestored` on any run that took the restored placement. */
+    knobReached: Number((G.REL.require('engine/medicham2-browser.js').MEDFAILS || {}).resortBeforeUpdateRestored || 0),
   }));
   console.log(NL + 'green — the control arm ran');
   process.exit(0);
@@ -341,11 +358,16 @@ cmp('SILENT CONTROL: and that game does not part', SIL.div === null, SIL.div ? J
 cmp('THE TWO ARMS DISAGREE, so the ability is what decides the order', REAL.sdFirst !== SIL.sdFirst,
     'real ' + REAL.sdFirst + ' vs silent ' + SIL.sdFirst);
 
-{
+if (KNOB_SET) {
+  console.log('');
+  console.log('  --- the control child is SKIPPED: the knob is already set in this process, so a');
+  console.log('      child of it would compare a control against a control and report that the');
+  console.log('      knob changed nothing — true, and about the wrong thing ---');
+} else {
   const { spawnSync } = require('child_process');
   console.log(NL + '  --- re-running under MEDI_RESORT_BEFORE_UPDATE=1 (the control), in a child ---');
   const c = spawnSync(process.execPath, [...(process.execArgv || []), __filename],
-    { env: { ...process.env, MEDI_RESORT_BEFORE_UPDATE: '1' }, encoding: 'utf8' });
+    { env: { ...process.env, MEDI_RESORT_BEFORE_UPDATE: '1', ABRA_PROBE_CONTROL_ARM: '1' }, encoding: 'utf8' });
   const out = String(c.stdout || '');
   process.stdout.write(out.split(NL).map(l => '  |' + l).join(NL) + NL);
   if (c.stderr) process.stderr.write(String(c.stderr));
@@ -356,6 +378,11 @@ cmp('THE TWO ARMS DISAGREE, so the ability is what decides the order', REAL.sdFi
     const ctl = JSON.parse(mark[1]);
     cmp('the control child staged the SAME board', ctl.cast === CAST.p.name + '/' + CAST.h.name + '/' + CAST.a.name,
         ctl.cast);
+    /* THE RECEIPT BEFORE THE COMPARISON. "the knob changed nothing" and "the knob reached no code"
+     * read identically at the board and are different defects, so the counter is asked first. */
+    cmp('the knob REACHED THE CODE it names (MEDFAILS.resortBeforeUpdateRestored)', ctl.knobReached > 0,
+        'counter ' + ctl.knobReached
+        + (ctl.knobReached > 0 ? '' : '   [the restored placement never ran on this board — a claim about the FIXTURE, not about the rule]'));
     cmp('the knob CHANGES the real arm', ctl.meFirst !== REAL.meFirst,
         'default ' + REAL.meFirst + ' vs control ' + ctl.meFirst
         + (ctl.meFirst === REAL.meFirst ? '   [an identical result across a varied knob means the knob is UNWIRED]' : ''));

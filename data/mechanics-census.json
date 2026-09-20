@@ -1,13 +1,13 @@
 {
-  "generated": "2026-09-19T23:08:39.689Z",
+  "generated": "2026-09-20T02:12:33.098Z",
   "by": "tests/test-mechanics.js",
   "write_policy": "FINDINGS for the rows, MONOTONE for the floors. The census body is written by a red run too — a probe without arms does not make the other rows untrue — and carries `run_ok:false` when it is. `ratchet.*` is this test's OWN baseline and is written as min(previous floor, measured), so no run can raise it; `--accept` raises one deliberately and still exits 1. Before 2026-08-23 the floors lived in the top-level `unarmed` / `directCall`, which a failing run overwrote with its own regression, so the second run was green.",
   "run_ok": true,
   "design": "Behavioural probes. Each clears its own control explicitly, because the first version compared a Choice Scarf against a Basculegion that buildMon had already given a Choice Scarf and reported the engine broken.",
-  "probed": 970,
-  "live": 970,
+  "probed": 984,
+  "live": 977,
   "missing": 0,
-  "armed": 970,
+  "armed": 977,
   "unarmed": 0,
   "directCall": 1,
   "ratchet": {
@@ -234,6 +234,16 @@
       "label": "a turn that ENDS THE BATTLE never reaches its residual, so the stall counter is still standing",
       "live": true,
       "detail": "the shielder's stall counter after a turn 2 Rock Slide — SIDE WIPED (foes at 1 HP) {\"armed\":3,\"after\":3,\"wiped\":true} must keep the 3 it armed on turn 1, because the battle ended before the residual could spend the duration   |   FOES ALIVE {\"armed\":3,\"after\":0,\"wiped\":false} must read 0, because that turn DID reach its residual. Knobs: MEDI_STALL_EAGER_CLEAR=1 (the four `tookProtectTurns = 0` writes the authority has no counterpart for) and MEDI_STALL_LAPSE_OFF_RESIDUAL=1 (the sweep back on the outer exit of the turn) each take the wiped arm to 0 on their own",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "stallCounterChecks",
+      "label": "a residual that STOPS inside the stall handlers spends the fast body's clock and not the slow one's",
+      "live": true,
+      "detail": "the SLOW reader's stall counter after a turn 4 whose residual ends the battle — PERISH SONG ON TURN 1 {\"armed\":3,\"after\":3,\"stopperFresh\":true,\"readerAlive\":true,\"wiped\":true} must keep the 3 it armed on turn 3, because the walk stopped at the FAST shielder whose clock survived its own decrement   |   NO PERISH SONG {\"armed\":3,\"after\":0,\"stopperFresh\":true,\"readerAlive\":true,\"wiped\":false} must read 0, because that walk ran to the end. Knob: MEDI_STALL_SWEEP_UNORDERED=1 (the all-or-nothing pass in slot order, with no stop) takes the wiped arm to 0",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1243,7 +1253,7 @@
       "tag": "residualPerishStep",
       "label": "the perish counter ticks at order 24 — above the order-26 side clocks and before order-28 Speed Boost",
       "live": true,
-      "detail": "TAILWIND arm \"p1a p1b p2a p2b SIDEEND\" — the four order-24 counters must precede the order-26 |-sideend|, which is what five games of the pinned pool got backwards. SPEED BOOST arm \"p1a p1b p2a p2b BOOST\" — the counters must precede the order-28 |-boost| AND come out in the pre-boost order, p1a(100) before p1b(80), because a tick below the walk reads p1b at 120 and reverses them. OVER-FIRE, no Tailwind and no Speed Boost: \"p1a p1b p2a p2b\" (plain speed order, must not move). CLEARED, the same Tailwind board with no clock on anybody: \"SIDEEND\" (the side clock still expires and no counter is announced). tw [\"|-start|p1a:primarina|perish1\",\"|-start|p1b:blaziken|perish1\",\"|-start|p2a:snorlax|perish1\",\"|-start|p2b:toxapex|perish1\",\"|-sideend|p1:|move:tailwind\"] boost [\"|-start|p1a:primarina|perish1\",\"|-start|p1b:blaziken|perish1\",\"|-start|p2a:snorlax|perish1\",\"|-start|p2b:toxapex|perish1\",\"|-boost|p1b:blaziken|spe|1|[from]ability:speedboost\"]",
+      "detail": "TAILWIND arm \"p1a p1b p2a p2b SIDEEND\" — the four order-24 counters must precede the order-26 |-sideend|, which is what five games of the pinned pool got backwards. SPEED BOOST arm \"p1a p1b p2a p2b ANNOUNCE BOOST\" — the counters must precede the order-28 ANNOUNCE/|-boost| pair AND come out in the pre-boost order, p1a(100) before p1b(80), because a tick below the walk reads p1b at 120 and reverses them. OVER-FIRE, no Tailwind and no Speed Boost: \"p1a p1b p2a p2b\" (plain speed order, must not move). CLEARED, the same Tailwind board with no clock on anybody: \"SIDEEND\" (the side clock still expires and no counter is announced). tw [\"|-start|p1a:primarina|perish1\",\"|-start|p1b:blaziken|perish1\",\"|-start|p2a:snorlax|perish1\",\"|-start|p2b:toxapex|perish1\",\"|-sideend|p1:|move:tailwind\"] boost [\"|-start|p1a:primarina|perish1\",\"|-start|p1b:blaziken|perish1\",\"|-start|p2a:snorlax|perish1\",\"|-start|p2b:toxapex|perish1\",\"|-ability|p1b:blaziken|speedboost|boost\",\"|-boost|p1b:blaziken|spe|1|[from]ability:speedboost\"]",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -1253,7 +1263,7 @@
       "tag": "reactionPerArrival",
       "label": "a two-hit volley raises DamagingHit between its arrivals, not once below both",
       "live": true,
-      "detail": "T = an arrival landing on the target, R = its DamagingHit reaction, C = the |-hitcount|. TWO-HIT arms must read TRTRC — Dual Wingbeat into Rough Skin \"TRTRC\", Twin Beam into Stamina \"TRTRC\"; TTRRC is the whole volley reacting below itself, which is six games of the pinned pool. SINGLE-HIT controls, the same bodies and the same reactors, must read TR and must not move: Dragon Claw \"TR\", Flash Cannon \"TR\". rough2 [\"|turn|1\",\"|move|p1a:talonflame|dualwingbeat|p2a:garchomp\",\"|-damage|p2a:garchomp|1430/1464\",\"|-damage|p1a:talonflame|1071/1224|[from]ability:roughskin|[of]p2a:garchomp\",\"|-damage|p2a:garchomp|1396/1464\",\"|-damage|p1a:talonflame|918/1224|[from]ability:roughskin|[of]p2a:garchomp\",\"|-hitcount|p2a:garchomp|2\",\"|upkeep\"] stam2 [\"|turn|1\",\"|move|p1a:farigiraf|twinbeam|p2a:archaludon\",\"|-resisted|p2a:archaludon|1\",\"|-damage|p2a:archaludon|1293/1320\",\"|-boost|p2a:archaludon|def|1|[from]ability:stamina\",\"|-resisted|p2a:archaludon|1\",\"|-damage|p2a:archaludon|1266/1320\",\"|-boost|p2a:archaludon|def|1|[from]ability:stamina\",\"|-hitcount|p2a:archaludon|2\",\"|upkeep\"]",
+      "detail": "T = an arrival landing on the target, R = its DamagingHit reaction, C = the |-hitcount|. TWO-HIT arms must read TRTRC — Dual Wingbeat into Rough Skin \"TRTRC\", Twin Beam into Stamina \"TRTRC\"; TTRRC is the whole volley reacting below itself, which is six games of the pinned pool. SINGLE-HIT controls, the same bodies and the same reactors, must read TR and must not move: Dragon Claw \"TR\", Flash Cannon \"TR\". rough2 [\"|turn|1\",\"|move|p1a:talonflame|dualwingbeat|p2a:garchomp\",\"|-damage|p2a:garchomp|1430/1464\",\"|-damage|p1a:talonflame|1071/1224|[from]ability:roughskin|[of]p2a:garchomp\",\"|-damage|p2a:garchomp|1396/1464\",\"|-damage|p1a:talonflame|918/1224|[from]ability:roughskin|[of]p2a:garchomp\",\"|-hitcount|p2a:garchomp|2\",\"|upkeep\"] stam2 [\"|turn|1\",\"|move|p1a:farigiraf|twinbeam|p2a:archaludon\",\"|-resisted|p2a:archaludon|1\",\"|-damage|p2a:archaludon|1293/1320\",\"|-ability|p2a:archaludon|stamina|boost\",\"|-boost|p2a:archaludon|def|1|[from]ability:stamina\",\"|-resisted|p2a:archaludon|1\",\"|-damage|p2a:archaludon|1266/1320\",\"|-ability|p2a:archaludon|stamina|boost\",\"|-boost|p2a:archaludon|def|1|[from]ability:stamina\",\"|-hitcount|p2a:archaludon|2\",\"|upkeep\"]",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4373,7 +4383,7 @@
       "tag": "formatSecondaryChance",
       "label": "Iron Head flinches at this FORMAT's 20%, not the generic 30%",
       "live": true,
-      "detail": "over 6000 turns each — Iron Head 19.7% (format 20, generic 30), control Rock Slide 27.6% (30% x 90% accuracy = 27)",
+      "detail": "over 6000 turns each — Iron Head 20.0% (format 20, generic 30), control Rock Slide 26.1% (30% x 90% accuracy = 27)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -4523,7 +4533,17 @@
       "tag": "addsFlinch",
       "label": "King's Rock takes ONE die per LANDED ARRIVAL, not one per click",
       "live": true,
-      "detail": "King's Rock dice taken, rng pinned to 0.5 so every one of them LOSES -- a 2-arrival Dual Wingbeat 2 (the tag says multiHit.hits=2, so this is read and not typed); the SAME holder's single-hit Brave Bird 1 (the over-fire control -- a fix that multiplied the roll by anything fails here); the same volley with NO item 0; Air Slash, which already flinches, 0 (the item's own no-stacking clause); and the volley into a 1 HP body 0 rolled with 1 DECLARED-REMAINDER dice skipped on the KO (the authority takes them and a flinch on a corpse is refused by addVolatile, so no board can differ). MEDFAILS.kingsRockNoArrivalCount 0/0/0/0/0 -- every arm must be 0 or the count came from a silent fallback",
+      "detail": "King's Rock dice taken, rng pinned to 0.5 so every one of them LOSES -- a 2-arrival Dual Wingbeat 2 (the tag says multiHit.hits=2, so this is read and not typed); the SAME holder's single-hit Brave Bird 1 (the over-fire control -- a fix that multiplied the roll by anything fails here); the same volley with NO item 0; Air Slash, which already flinches, 0 (the item's own no-stacking clause); and the volley into a 1 HP body 1 rolled (the volley stops on the KO, so ONE arrival lands and ONE die is taken -- the authority draws for a body this hit killed because `secondaries` skips only `target === false`, and a passing draw re-addresses every later secondary of the move) with 0 skipped, which must be 0. Knob MEDI_KINGSROCK_SKIPS_DEAD=1. MEDFAILS.kingsRockNoArrivalCount 0/0/0/0/0 -- every arm must be 0 or the count came from a silent fallback",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "item",
+      "tag": "addsFlinch",
+      "label": "a SPREAD takes its King's Rock die on a body the hit KILLED too, not only on the survivors",
+      "live": true,
+      "detail": "King's Rock dice taken by ONE Dazzling Gleam at two foes, rng pinned to 0.5 so every die LOSES — LEFT FOE AT 1 HP {\"dice\":2,\"skipped\":0,\"killed\":true,\"hitBoth\":true} must take TWO dice and skip NONE, because the authority draws for a body that fainted to this hit (`secondaries` skips only `target === false`)   |   BOTH FOES HEALTHY {\"dice\":2,\"skipped\":0,\"killed\":false,\"hitBoth\":true} is the control and must read the same two dice, which is what says the count is the target count and not the survivor count. Knob: MEDI_KINGSROCK_SKIPS_DEAD=1 takes the KO arm to 1 die and 1 skipped",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -5309,6 +5329,16 @@
       "directCall": false
     },
     {
+      "kind": "ability",
+      "tag": "abilityBoostAnnounce",
+      "label": "an ability-sourced stat change announces the ability above its first stat line — and says nothing when the stat is capped",
+      "live": true,
+      "detail": "18 abilities carry a stat-change tag (derived from data/tags.json); Stamina hit [\"|-ability|p2a: archaludon|stamina|boost\",\"|-boost|p2a: archaludon|def|1|[from] ability: stamina\"]; no ability []; Defiant at +6 Atk taking a Speed drop [\"|-unboost|p2a: kingambit|spe|1\",\"|-boost|p2a: kingambit|atk|0\",\"|-unboost|p2b: garchomp|spe|1\"] (authority: |-ability|TARGET|NAME|boost then the stat line, and NOTHING when the applied delta is zero — sim/battle.ts:2065 sits inside if (boostBy))",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
       "kind": "move",
       "tag": "removesItem",
       "label": "Knock Off cannot take the Focus Sash that just saved the target",
@@ -5363,7 +5393,7 @@
       "tag": "redirects",
       "label": "a Follow Me redirect adds no line, and a Lightning Rod redirect adds an -activate",
       "live": true,
-      "detail": "announcement lines on a redirected Thunderbolt — no redirector 0; Follow Me 0 [none] (Showdown writes none); Lightning Rod 1 [|-activate|p2b: milotic|ability: lightningrod]",
+      "detail": "announcement lines on a redirected Thunderbolt — no redirector 0; Follow Me 0 [none] (Showdown writes none); Lightning Rod 2 [|-activate|p2b: milotic|ability: lightningrod  |-ability|p2b: milotic|lightningrod|boost] (the -activate for the redirect, then the -ability the absorb's own boost announces)",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -6550,6 +6580,26 @@
     },
     {
       "kind": "move",
+      "tag": "curesTargetStatusAfterMove",
+      "label": "Sparkling Aria cures the burn on every body it HIT, including its own partner",
+      "live": true,
+      "detail": "[the burn on ALLY / FOE / USER after one click, all three burned first] — SPARKLING ARIA -/-/brn; CONTROL Hyper Voice, the other spread click off the same Primarina, brn/brn/brn. The USER keeps its burn in both arms — the authority's loop is `pokemon !== source` — and the ally was hit in both (true/true), so the difference is the handler and not the reach",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "recoil",
+      "label": "a max-HP recoil is paid for damage dealt: Struggle into a semi-invulnerable body costs nothing, Steel Beam still costs half",
+      "live": true,
+      "detail": "[HP a 180 HP Kangaskhan pays for its own click] — Struggle CONNECTING 45 (dealing 41); the same click into two foes that Dug first 0 (dealing 0). round(180/4) = 45. THE OTHER MEMBER, Steel Beam, whiffs into the same Digs and still pays 90 of 90 — it declares an onMoveFail and Struggle does not, which is what recoil {of:\"maxhp\", paidOnFail} now carries",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
       "tag": "failsIfVolatile",
       "label": "a second No Retreat FAILS outright — it does not boost again",
       "live": true,
@@ -6774,6 +6824,16 @@
       "label": "the trap dies with its TRAPPER: a Mean Look ends when its user leaves",
       "live": true,
       "detail": "[who holds the foe's slot 0 after the trapped body asks to switch on turn 3] — the trapper STAYS \"milotic\" (still trapped: the switch is refused); the trapper LEAVES on turn 2 \"kangaskhan\" (the link died with it, so the victim walks). Trap laid in both arms: true/true",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "trapsTarget",
+      "label": "the trap dies with a KILLED trapper, even with nothing behind it to bring in",
+      "live": true,
+      "detail": "[who holds the victim's slot after it asks to switch on turn 3, with NOTHING on the trapper's bench] — the trapper SURVIVES the Scald \"milotic\" (trap held true: the switch is refused); the same Scald on a trapper at 1 HP \"kangaskhan\" (trap held false: the link died with the body). Trap laid in both arms true/true; the only varied thing is the HP the hit lands on, so the release is the FAINT and not the click",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -7564,6 +7624,16 @@
       "label": "Copycat fails on a failcopycat last move (Protect) instead of copying it",
       "live": true,
       "detail": "HP Meowscarada loses to a slower Body Slam — its own Protect 0 (blocked), Copycat after the foe's Protect 96 (must be hit: the copy is refused). Knob MEDI_COPYCAT_IGNORES_FAILCOPYCAT",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "callsAnotherMove",
+      "label": "A click that RAN and FAILED is still the last move a caller reads",
+      "live": true,
+      "detail": "[HP the two FOES lose to Clefable's Copycat] — with a failed Sleep Talk as the last click the copy is REFUSED and they lose 0; CONTROL, the same board with that click passed so the last move is the Dragon Claw, 48; the same board with the Copycat passed, 0. Knob MEDI_FAILED_MOVE_NOT_LAST",
       "hollow": false,
       "armed": true,
       "directCall": false
@@ -9714,6 +9784,76 @@
       "label": "Salt Cure and a partial trap on one body chip in the order they were added",
       "live": true,
       "detail": "the second turn's two chips on Bastiodon — trap then Salt Cure trap,salt, Salt Cure then trap salt,trap (each must follow insertion order). Knob MEDI_VOL_ARTIFACT_ORDER",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "redirects",
+      "label": "a redirect ONTO the body already aimed at still turns off the dart split",
+      "live": true,
+      "detail": "[aimed Goodra, partner Torterra] using followme: NO redirect [132,66] (one dart each — the control, and a wire that just deleted the split would fail here); the drawer IS the aimed body [264,0] (both darts into it, partner untouched — this read like the control before the fix); the drawer is the PARTNER [0,132] (both darts follow the aim)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "conditionalPower",
+      "label": "Fickle Beam's chance is the SECOND crit-address draw of the hit",
+      "live": true,
+      "detail": "crit-stream addresses one Hydrapple turn asked for — CONTROL, the same move with no chance clause: [\"20260813|1|crit|__fb_nochance|p20|0\"] (exactly one, the crit); FICKLE BEAM: [\"20260813|1|crit|ficklebeam|p20|0\",\"20260813|1|crit|ficklebeam|p20|1\"] (two at the SAME base, repeat 0 then 1 — the crit and then the double, which is the order getDamage raises them in). Before the fix the second one was an `any|…` address and this list had length 1",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "statSwap",
+      "label": "Snow and sand raise the DEFENCE the hit reads, not the move's category",
+      "live": true,
+      "detail": "[HP off an unfaintable target, only the SKY varies inside a cell] SNOW into Froslass (Ice) — Psychic Fangs (P, reads def) 120 -> 79 MUST cut; Psyshock (S, reads DEF) 58 -> 39 MUST cut, and did not before this pass; CONTROL Psychic (S, reads spd) 64 -> 64 must be IDENTICAL. SAND into Aerodactyl (Rock, chip-immune) — Psychic (S, reads spd) 60 -> 40 MUST cut; CONTROL Psychic Fangs 127 -> 127 and CONTROL Psyshock 60 -> 60 must be IDENTICAL, and the Psyshock one was cut before this pass — the category gate was wrong in both directions",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "reflectsStatusMoves",
+      "label": "a bounced move is re-aimed by a Follow Me on the CLICKER's side",
+      "live": true,
+      "detail": "spd stages [clicker/partner/bouncer] after Whimsicott's Fake Tears at an Espathra, with Clefable clicking followme: BOUNCED AND DRAWN 0/-2/0 (the partner takes it — this read like the control before the fix); CONTROL no followme -2/0/0 (the clicker takes it, so a wire that aimed every bounce at the partner fails here); CONTROL no Magic Bounce 0/0/-2 (the drop lands on the bouncer and the ally's redirect cannot draw its own ally's move)",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "rewritesTargetAbility",
+      "label": "an ability rewrite names the OUTGOING ability in field 4, and a bare start announcement has no field 4",
+      "live": true,
+      "detail": "the rewrite line — NO click \"\" (must be empty); WORRY SEED \"|-ability|p2a: garchomp|insomnia|roughskin|[from] move: worryseed\" field 4 \"roughskin\"; ENTRAINMENT \"|-ability|p2a: garchomp|marvelscale|roughskin|[from] move: entrainment\" field 4 \"roughskin\" — both must be the ability that was there, \"roughskin\", read off the no-click arm. CONTROL, a bare start announcement: \"|-ability|p1a: sinistcha|pressure\" — field 4 must be EMPTY",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "ability",
+      "tag": "announcesOnStart",
+      "label": "an entry announcement that outranks the hazards is written ABOVE the rock damage, and a priority-0 one below it",
+      "live": true,
+      "detail": "a body walks onto one Stealth Rock layer — POSITIVE onSwitchInPriority unnerve ability>rocks [1 layer] (each must be ability>rocks); CONTROL, priority 0: fairyaura rocks>ability [1 layer], moldbreaker rocks>ability [1 layer], pressure rocks>ability [1 layer] (each must be rocks>ability). Membership and priority read off data/tags.json",
+      "hollow": false,
+      "armed": true,
+      "directCall": false
+    },
+    {
+      "kind": "move",
+      "tag": "volatileRetypesMoves",
+      "label": "Electrify makes the target's Normal move Electric — and a Ground type is then immune to it, for one turn only",
+      "live": true,
+      "detail": "[Garchomp HP lost to Torkoal's Body Slam on turn 1, then turn 2] no Electrify [33,33]; Heliolisk electrifies Torkoal on turn 1 only [0,33] — the retype makes a Normal click Electric and Ground is immune, and the condition's duration:1 gives the damage back on turn 2 (data/moves.ts:4571-4583, onModifyTypePriority -2). Knob MEDI_ELECTRIFY_NO_RETYPE",
       "hollow": false,
       "armed": true,
       "directCall": false

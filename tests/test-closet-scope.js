@@ -184,14 +184,22 @@ if (!art) {
      * is BLIND to, so it may only ever be a row that never staged a body — which is COULD-NOT-STAGE
      * and nothing else. Without this, adding a carrier field and forgetting to fill it in on one rule
      * would silently re-open the hole while every count above stayed green. */
-    const blind = rows.filter(r => !r.carrier && r.verdict !== 'COULD-NOT-STAGE');
+    /* 2026-09-19 — A ROW MAY ALSO NEVER HAVE STAGED A BODY UNDER `ANNOUNCEMENT-ONLY`, and only when
+     * its UNDERLYING verdict is the COULD-NOT-STAGE this clause already admits. Frisk is the case:
+     * its shape rule refuses it before `runEntry`, so no body is staged, and the roster then grades
+     * it on the protocol line instead of on a board. The exemption is deliberately keyed on
+     * `underlying_verdict` rather than on the verdict alone — an ANNOUNCEMENT-ONLY row that DID stage
+     * a body must still name its carrier, or the closet is blind to it exactly as before. */
+    const neverStaged = r => r.verdict === 'COULD-NOT-STAGE'
+      || (r.verdict === 'ANNOUNCEMENT-ONLY' && r.underlying_verdict === 'COULD-NOT-STAGE');
+    const blind = rows.filter(r => !r.carrier && !neverStaged(r));
     ok(blind.length === 0,
        'every roster row that STAGED a body names its carrier — the closet has no blind spot',
-       blind.length ? 'carrier-less and not COULD-NOT-STAGE: '
+       blind.length ? 'carrier-less and staged: '
                         + blind.map(r => r.stage + ':' + r.id + ' [' + r.verdict + ']').join(', ')
                     : rows.filter(r => r.carrier).length + ' of ' + rows.length
                         + ' rows carry one; the other ' + rows.filter(r => !r.carrier).length
-                        + ' are COULD-NOT-STAGE, so no body was staged to be blind about');
+                        + ' never staged a body, so there is nothing to be blind about');
 
     const hit = rows.filter(r => illusion.has(sid(r.carrier)));
     const unshelved = hit.filter(r => r.verdict !== 'DEFERRED-BY-OWNER');

@@ -87,8 +87,17 @@ if (!process.env.SHOWDOWN_PATH) {
   process.exit(2);
 }
 const NL = String.fromCharCode(10);
-const RED_CHILD = process.argv.includes('--red');
 const KNOB_ON = process.env.MEDI_TGT_ADDR_LEGACY === '1';
+/* THE RED ARM CARRIES ITS OWN MARKER (`--red`), AND THE SPAWN BELOW IS THE ONLY THING THAT PASSES IT.
+ * Keying the defect-is-present branch on the KNOB ALONE means a knob set from OUTSIDE takes that
+ * branch, so the probe exits 0 against a deliberately broken engine — indistinguishable from a knob
+ * that is not wired to anything. The marker and the knob must BOTH be present for the red arm. */
+const RED_CHILD = process.argv.includes('--red') && KNOB_ON;
+if (KNOB_ON && !RED_CHILD) {
+  console.log(NL + '  MEDI_TGT_ADDR_LEGACY=1 WAS SET FROM OUTSIDE THIS PROCESS.');
+  console.log('  The engine is running with the defect restored, so the CLEAN-arm clauses below are');
+  console.log('  expected to FAIL and this run MUST exit 1. The red child is skipped.');
+}
 
 /* Same reason as probe_multihit_update.js: every board here is staged, so the pool is pinned and the
  * cache slot is left alone. */
@@ -333,7 +342,7 @@ if (M2.MEDFAILS.tgtStreamMissing) {
     + ' time(s): the `tgt` stream did not reach `battleTurn`.');
   bad++;
 }
-if (KNOB_ON) {
+if (RED_CHILD) {
   if (!M2.MEDFAILS.tgtAddrLegacyRestored) {
     console.log('  FAIL — the knob is set and medicham2 never announced the restore. It reached no code.');
     bad++;
@@ -376,7 +385,7 @@ if (ctrlBad.length) {
 /* ---- CLAUSE 3 — THE ANSWER ------------------------------------------------------------------- */
 const differ = rows.filter(r => !r.agree);
 console.log('AGREEMENT — ' + (rows.length - differ.length) + ' of ' + rows.length + ' cells agree.');
-if (KNOB_ON) {
+if (RED_CHILD) {
   if (!differ.length) {
     console.log('  FAIL — the knob is set and every cell still AGREED. It restored nothing, so the'
       + ' clean run\'s green says nothing.');

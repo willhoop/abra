@@ -56,7 +56,20 @@ const D = (...p) => path.join(__dirname, '..', ...p);
 require(D('engine', 'showdown_path.js'));
 if (!process.env.SHOWDOWN_PATH) { console.log('NOT RUN — SHOWDOWN_PATH is unset. This is not a pass.'); process.exit(2); }
 
-const CHILD = process.env.MEDI_REFILL_NO_HERB === '1';
+const KNOB_SET = process.env.MEDI_REFILL_NO_HERB === '1';
+/* THE CONTROL ARM CARRIES ITS OWN MARKER, AND THE SPAWN BELOW IS THE ONLY THING THAT SETS IT.
+ * Keying the quiet control path on the KNOB ITSELF means a knob set from OUTSIDE takes the quiet
+ * path too, so the probe exits 0 against a deliberately broken engine — indistinguishable from a
+ * knob that is not wired to anything. So:
+ *   knob set from outside -> the FULL verdict runs against the broken engine and this exits 1
+ *   spawned control child -> the quiet arm, exit 0, its verdict line for the parent to read */
+const CHILD = KNOB_SET && process.env.ABRA_PROBE_CONTROL_ARM === '1';
+if (KNOB_SET && !CHILD) {
+  console.log('');
+  console.log('  MEDI_REFILL_NO_HERB=1 WAS SET FROM OUTSIDE THIS PROCESS.');
+  console.log('  The engine is running with the defect restored, so the assertions below are');
+  console.log('  expected to FAIL and this run MUST exit 1. The control child is skipped.');
+}
 
 /* THE PRELOAD IS SELF-APPLIED, SO THIS FILE IS `node tests/<it>.js` AND NOTHING ELSE.
  * `engine/game_differential.js` CUTS A RELEASE INTO THE REAL STORE at require time when `--release`
@@ -290,13 +303,18 @@ if (CHILD) {
   if (!need('showdown agrees on the stage', MEASURED.sd.boosts[DROP_STAT], 0)) bad++;
 }
 
-if (!CHILD) {
+if (KNOB_SET) {
+  console.log('');
+  console.log('  --- the control child is SKIPPED: the knob is already set in this process, so a');
+  console.log('      child of it would compare a control against a control and report that the');
+  console.log('      knob changed nothing — true, and about the wrong thing ---');
+} else if (!CHILD) {
   const { spawnSync } = require('child_process');
   console.log('\n  --- re-running under MEDI_REFILL_NO_HERB=1 (the control), in a child ---');
   /* THE PRELOAD IS PASSED DOWN — a child that does not inherit `-r ./tests/_live_release.js` refuses
    * at its own guard and reads as "the knob is not wired" when the knob was never asked. */
   const c = spawnSync(process.execPath, [...(process.execArgv || []), __filename],
-    { env: { ...process.env, MEDI_REFILL_NO_HERB: '1' }, encoding: 'utf8' });
+    { env: { ...process.env, MEDI_REFILL_NO_HERB: '1', ABRA_PROBE_CONTROL_ARM: '1' }, encoding: 'utf8' });
   const out = String(c.stdout || '');
   process.stdout.write(out.split('\n').map(l => '  |' + l).join('\n') + '\n');
   if (c.stderr) process.stderr.write(String(c.stderr));

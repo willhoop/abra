@@ -320,7 +320,39 @@ const GATES = ['engine/selftest.js', 'engine/conformance.js', 'engine/artifact_a
    * IT SAT RED AND UNNOTICED BECAUSE NOTHING RAN IT, which is this file's own coverage assertion
    * turned on the file itself — a check nothing runs reads as coverage in a review and is worse
    * than no check. It plays no game against the authority and needs no release pin. */
-  'tests/probe_control_self_name.js'];
+  'tests/probe_control_self_name.js',
+  /* tests/staged_board.js --reds — WIRED IN 2026-09-19, AND ITS PENDING_WIRE ENTRY BELOW IS GONE
+   * RATHER THAN EDITED, because the blocker that entry named ("RED on ONE of 25 scenarios") is no
+   * longer true and a promise that has stopped describing anything is the stale exemption this
+   * file's own audit refuses.
+   *
+   * WHY IT WAS WORTH WIRING RATHER THAN LEAVING: eleven of its twenty-five deliberate breaks had
+   * stopped applying — the engine had moved under every anchor — so `patchedSource` refused them and
+   * eleven scenarios' greens were unproved. One of the eleven was `fakeout-flinch`, which is the
+   * fixture `allowProof()` uses, so ALL THREE declared-divergence machinery checks were dead too and
+   * every run printed "THE QUIETENING MECHANISM IS NOT TRUSTWORTHY". Nothing ran the file, so nothing
+   * said so. Measured on release 18773c22878f after the re-aim: 25 of 25 clean and board-identical,
+   * 25 of 25 breaks caught AND localised, three machinery checks ok, exit 0, 22 s.
+   *
+   * IT PLAYS GAMES AGAINST THE AUTHORITY, which is the blocker every remaining PENDING_WIRE entry
+   * shares, and it answers that blocker in its own file rather than here: it opens a FROZEN RELEASE,
+   * prints the id on every run, and exits 2 (SKIP) when SHOWDOWN_PATH is unset or when either copy of
+   * data/tags.json is mid-write — the validate_selfplay precedent. The release choice is the one
+   * thing this runner does make: with no --release it opens the NEWEST, which is what a suite run of
+   * the current tree should compare. */
+  'tests/staged_board.js',
+  /* tests/probe_descriptive_tags.js — REGISTERED THE DAY IT LANDED, 2026-09-19. It guards the one
+   * thing `engine/tag_descriptive.js` can silently get wrong: two move tags are taken OUT of
+   * coverage.js's unread column on the grounds that the behaviour is carried by another tag on the
+   * same row, and nothing checked that the other tag still exists, is still read, or is still probed.
+   * An excuse nobody re-checks is the stale exemption this file's own audit refuses.
+   *
+   * IT PLAYS NO GAME AND OPENS NO RELEASE — it reads data/tags.json, data/mechanics-census.json and
+   * engine/legal_scope.js, and it costs about a second. Measured 2026-09-19: 5 in-scope carriers over
+   * 2 descriptive tags, 0 failing clauses, exit 0. SHOWN RED FIRST: under
+   * `TAG_DESCRIPTIVE_BREAK=needsUntrackedState` it reports 4 failing clauses by carrier name and
+   * exits 1. */
+  'tests/probe_descriptive_tags.js'];
 
 /* COVERAGE ASSERTION. Any file in tests/ or engine/ that reports its own pass/fail verdict is a
  * check, and a check that nothing runs is worse than no check — it reads as coverage in a review. If
@@ -513,8 +545,8 @@ const PENDING_WIRE = {
   'tests/probe_trace_choice.js': 'Measured exit 0 on 2026-08-22 (12 staged, 0 not matching). Plays the game_differential driver; not re-certified.',
   'tests/probe_turn_order.js': 'Measured exit 0 on 2026-08-22 (12 staged, 0 not matching). Plays the game_differential driver; not re-certified.',
   'tests/probe_volatile_start_field.js': 'CLASSIFIED 2026-08-27 — a REAL CHECK with NO RUNNER. The mechanism: a volatile\'s `-start` line can carry a value the condition computes AT RUN TIME in field 4, and the table this engine announces from has no way to express that — it claims a condition only when the whole onStart is one unconditional add. Scanned over the 57 volatiles a legal move can apply here, exactly TWO write a computed field: Disable always (the sealed move\'s name, whatever applied it, so it can be tabled) and Charge on one branch of two (only when an ability applied it, so it is not). The narrowness is the point rather than an oversight — Taunt is why it exists. Blocker: plays a game, wants the preload. No VERIFIED BY marker; landed 2026-08-23 in 21f44515.',
+  'tests/probe_roster_inert_legality.js': 'LANDED 2026-09-19, AND ITS BLOCKER IS THAT ITS GATE CLAUSE IS RED — said plainly rather than filed. Bare it is a REPORTER: it asks tests/roster.js to build every scenario of a stage and puts each distinct body to engine/fixture_legality.checkSet (the same function buildPair and the static sweep use), and prints how many fixture bodies carry a control click their species cannot learn. `--strict` exits 1 on any of those and TODAY THAT IS 58 (items 11 / abilities 30 / moves 17, measured 2026-09-19 on release 18773c22878f, down from 73 when the substitution rule was widened to what Sleep Talk\'s own onTry reads). Wiring it with --strict ships a red; wiring it WITHOUT --strict registers a gate that can only exit 0, which this file rates worse than an unregistered one. The residue is not a mystery — every one of the 58 is a scenario whose fixture can really sleep a body, so Sleep Talk is not inert on it, and the format offers exactly THREE moves passing the inert shape cap (Focus Energy, Sleep Talk, Magnet Rise); Magnet Rise is learned by NO holder in ANY of the 41 affected scenarios, measured. Wire it with --strict the day the residue is closed or baselined. It costs 18s and opens a release through tests/roster.js.',
   'tests/roster.js': 'THE DELIBERATE ROSTER. Consumed by tests/test-closet-scope.js and engine/all_mechanics_fire.js, and its ARTIFACTS are already gated by engine/quarantine.js --check, which is listed and which FAILS when a roster artifact is missing or stage-mismatched. Standalone it is a named heavy run taking --stage, minutes per stage, and the pass that armed this assertion was forbidden to run it — so its exit code is genuinely UNKNOWN and is not being guessed at.',
-  'tests/staged_board.js': 'RED on ONE of 25 scenarios, and it is NOT the defect this entry used to name. 2026-08-25: the species-NAME-keyed mirror in engine/game_differential.js is fixed and gated by tests/test-roster-identity.js (discovered, runs), which takes 24 of 25 scenarios clean — imposter-copies-the-body-opposite and hungerswitch-flips-every-turn now play their full scripts. roar-drags-whoever-is-standing-there was filed with those two and MEASURING IT SAID OTHERWISE: its refusal message is byte-identical before and after the fix ("slot 1 holds corviknight, which showdown HAS but cannot switch in"), never "does not have under that name". Nothing in it is ever renamed. It is a TEMPORAL defect in the same mirror — medicham2 resolves a whole turn at once while Showdown PAUSES mid-turn at U-turn\'s switch request, so the mirror is handed the end-of-turn occupant (Corviknight, put back by the Roar that runs later) instead of the body medicham2 sent in at the request (Snorlax). ENGINE owns it; it needs its own batch and its own probe, because the fix is a switch-in JOURNAL and the naive source (medicham2\'s own |switch| lines) is display state again under Illusion.',
   'tests/staged_status_counters.js': 'RED for a reason no engine fix can reach. Its BEFORE arm is release 6155acc0fb26, which is STRANDED: the snapshot will not load ("M.midEventDice is not a function") on all 11 scenarios, so every scenario reads "release THREW / live IDENTICAL => FIXED" while its own two controls print "SO THE RED ABOVE IS NOT EVIDENCE". LESSONS §12 — a stranded baseline is a figure to WITHHOLD and re-measure, never to resurrect. It needs re-pinning to a release that `engine_release.js compat` says can still serve it, and its plant anchor re-aimed (it reports the anchor matched 0 times).',
 
   'engine/derive_protocol_events.js': 'A REAL CHECK, ALREADY RUN, AND ITS PREVIOUS REASON HERE WAS FALSE — corrected 2026-08-27 in the pass that finally ran it. It said "NOTHING HAS EVER RUN IT" and that claim was a day old and refutable by grep: tests/test-protocol-trace.js PART 7 has spawned this file since 2026-08-06 (commit 38c0e2b9) and calls fail() on any non-zero exit, and test-protocol-trace.js is DISCOVERED by the tests/test-*.js glob. Its own PART 7 header explains the arrangement — "spawned from here instead of hand-registered, so it cannot fall off a list" — which is the thing the entry claimed had never happened. MEASURED 2026-08-27 on a settled tree, with engine/medicham2-browser.js verified byte-identical to HEAD before AND after the run: 91 distinct Showdown events, 44 emitted, 50 declared with a reason, 10 partial shapes, BOTH GATES PASS, exit 0, and no file written (it is read-only without --write). data/protocol-events.json agrees exactly (91/44/50/10, both gate arrays empty). BOTH GATES WERE SHOWN RED FIRST, in memory and with no file touched: pushing a phantom name onto TRACE_EVENTS trips INVENTED (exit 1), and splicing out an emitted one trips UNDECLARED (exit 1) — so this is not a check that passes by asking nothing. NOT WIRED HERE, and the reason is that PART 7 is a runner this suite really does reach: tests/test-protocol-trace.js is DISCOVERED by the glob, so a GATES entry buys a second execution of the same command and a second place for one verdict to be decided. If PART 7 is ever removed, wire it here that day. (This read "the reason is probe_red_demo.js\'s exactly" until 2026-09-08, when that analogy was withdrawn: probe_red_demo.js\'s only runner was engine/register_reality.js, which is ITSELF in this list, so its chain had a missing first link and it is a GATE now. THIS entry\'s chain does not, and the difference is exactly that: PART 7\'s spawner is discovered and register_reality is not. Two entries citing each other is how one wrong link becomes two.)',
@@ -821,7 +853,17 @@ function plan(rel) {
                    * refuses any path outside data/verification/, so the suite cannot republish and
                    * cannot shrink. The three `process.exitCode = 1` verdicts are untouched by it —
                    * shown red on a deliberate break before this row was written. */
-                  'tests/test-engine-diff.js': ['--out', 'data/verification/engine-diff.suite.json'] };
+                  'tests/test-engine-diff.js': ['--out', 'data/verification/engine-diff.suite.json'],
+                  /* ADDED 2026-09-19, and it is the argument-is-the-question case again. Bare,
+                   * staged_board.js plays the clean arm only — 25 scenarios that agree with the
+                   * authority and NOT ONE deliberate break, so a comparator that had stopped
+                   * catching anything would print 25 of 25 and exit 0. `--reds` is the half that
+                   * cannot pass by asking nothing: every scenario is replayed against a surgically
+                   * patched simulator and must both PART and be LOCALISED to the fields the break
+                   * moved. It also runs `allowProof()`, the declared-divergence machinery in both
+                   * directions. Eleven of the breaks had stopped applying by 2026-09-19 and nothing
+                   * was running the file to say so. It roughly doubles the cost, 22 s against ~12. */
+                  'tests/staged_board.js': ['--reds'] };
   /* THE HEAP IS DECLARED BY THE CHECK, NOT LISTED BY THE RUNNER. ROADMAP #446.
    *
    * tests/test-resolution-order.js dies at node's default heap — exit 134, `Reached heap limit

@@ -112,8 +112,22 @@ if (!process.env.SHOWDOWN_PATH) {
 }
 if (!process.argv.includes('--release')) require(D('tests', '_live_release.js'));
 const G = require(D('engine', 'game_differential.js'));
-const ER = require(D('engine', 'engine_release.js'));
-const M = ER.open().require('engine/medicham2-browser.js');
+/* 2026-09-19 -- THE ENGINE THE DRIVER ACTUALLY PLAYED, NOT THE ONE THE POINTER HAPPENS TO NAME.
+ *
+ * This read was `require('engine/engine_release.js').open().require(...)`, and `open()` with no id
+ * opens `data/engine-release.json`'s `current`. `game_differential.js` opens the release `--release`
+ * NAMES. Whenever the two differ — which is every pinned re-measurement of anything but the newest cut
+ * — the two `require`s return DIFFERENT MODULE OBJECTS with identical code, this file reads a module
+ * that never played, and every `medicham dice` reads 0. That is not a visible error: it fails as
+ * `showdown 2, medicham 0 — they disagree`, which is indistinguishable from an engine that stopped
+ * taking the die.
+ *
+ * MEASURED: with `data/engine-release.json` pointing at `6536e903efe2` this file was GREEN, and the
+ * SAME command with the pointer restored to `18773c22878f` — same bytes, same `--release`, same games —
+ * read `medicham 0` on all four die-count arms including the no-item control. `G.REL` is the release
+ * `--release` opened, which is the door tests/probe_stall_uncaused.js and the two 2026-09-19 probes
+ * already use for exactly this reason. */
+const M = G.REL.require('engine/medicham2-browser.js');
 const CS = require(D('engine', 'champions_sim.js'));
 const NL = String.fromCharCode(10);
 
@@ -215,9 +229,11 @@ const CASES = [
     name: 'LIVE      the volley that KILLS before its last arrival',
     what: 'The drawn-versus-landed half. The authority breaks the hit loop above an arrival against a '
         + 'body already on zero, so it takes FEWER dice than the volley drew — and `-hitcount` is the '
-        + 'same number. medicham2 takes NONE here (the row is fainted by the time its once-per-move '
-        + 'effects step runs); that is the DECLARED REMAINDER, asserted by counter below, and it '
-        + 'cannot reach a board because a flinch on a corpse is refused by `addVolatile`.',
+        + 'same number, and medicham2 now takes it too. Until 2026-09-19 it took NONE here and this '
+        + 'arm asserted that skip as a declared remainder; the FLINCH is refused on a corpse either '
+        + 'way (`addVolatile`, sim/pokemon.ts:1980), but the DIE moves `activeTarget` onto the corpse '
+        + 'for every later secondary of the move, and three board partings were that. Knob: '
+        + 'MEDI_KINGSROCK_SKIPS_DEAD=1.',
     A: [KILLED, mon('clefable', '', 'Unaware', ['Protect'])],
     B: [TALON_SLOW(KR), SOFTENER],
     p1: [{ m: 'closecombat', t: 0 }, P], p2: [{ m: 'dualwingbeat', t: 0 }, { m: 'thunderbolt', t: 0 }] },
@@ -388,10 +404,19 @@ for (const c of CASES) {
     claim(SD.kr === sdA, c.id + ' — PER LANDED, NOT PER DRAWN: the authority took ' + sdA
       + ' dice for ' + sdA + ' landed arrivals of ' + declared + ' declared', 'dice ' + SD.kr
       + '   (per DRAWN would be ' + declared + ')');
-    claim(meRolls === 0 && meSkip >= 1,
-      c.id + ' — THE DECLARED REMAINDER, proven by counter and not by prose',
-      'medicham dice ' + meRolls + ', MEDSEEN.kingsRockRollSkippedOnKO +' + meSkip
-      + '   (a flinch on a corpse is refused by addVolatile, so this cannot reach a board)');
+    /* 2026-09-19 -- THIS ARM USED TO PIN THE SKIP (`meRolls === 0 && meSkip >= 1`) and called it a
+     * declared remainder that "cannot reach a board". RETRACTED, measured: the FLINCH cannot reach a
+     * board, the DIE can. `BattleActions#secondaries` skips only `target === false`
+     * (sim/battle-actions.ts:1339) and a body that fainted to this hit is not that, so the authority
+     * draws for it -- and a passing draw calls `moveHit(target, ...)` (:1348), which re-addresses
+     * every later secondary of the move onto the corpse. Three board partings in the held-out
+     * 12,000-game draw on release `18773c22878f` were exactly that. The arm now asserts AGREEMENT,
+     * which is what every other arm in this file asserts; MEDI_KINGSROCK_SKIPS_DEAD=1 restores the
+     * old reading and turns it red. */
+    claim(meRolls === SD.kr && meSkip === 0,
+      c.id + ' — the corpse\'s die is taken on BOTH engines, and none is skipped',
+      'showdown ' + SD.kr + ', medicham ' + meRolls + ', MEDSEEN.kingsRockRollSkippedOnKO +' + meSkip
+      + '   (the flinch itself is still refused on a corpse by addVolatile; the DIE is not)');
   } else {
     const agree = meRolls === SD.kr;
     const want = RED ? !c.live : true;
