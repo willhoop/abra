@@ -10,6 +10,26 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.82.0] — 2026-09-20
+
+### Fixed
+- The shield-before-bounce check is asked once inside `bounceOff`; it had been missing on six further
+  dispatch roads after the per-site fix.
+- A charge-turn self-boost asks the sign-inverting helper instead of doing raw arithmetic.
+- A doll-absorbed hit still rolls its secondary die, as the authority does, and never lets it own the
+  active target.
+- An execution-time move override no longer requires a live foe.
+
+### Notes
+- **Held-out `--games 12000`: 7,182 games, 9 → 1 board-material**, 88 → 76 protocol, on release
+  `c2d68f8cab07`.
+- Gate lattices board-material and narration both ZERO on all three. Census 1000 probed / 1000 live /
+  0 missing. **`quarantine.js` reads `GATE: OPEN`** with every instrument on this release.
+- The one remaining parting is named by seed and dispatched: a burn that lands here and is refused on
+  the authority.
+- Three shell-quoting traps manufactured eight false reds today; nothing was changed on the strength of
+  one, and the traps are recorded.
+
 ## [6.81.0] — 2026-09-20
 
 ### Fixed

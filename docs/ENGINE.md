@@ -1,3 +1,171 @@
+## ALL NINE HELD-OUT BOARD PARTINGS CLOSE — THE WIDE SAMPLE GOES **9 -> 1 IN 7,182 GAMES**, AND `quarantine.js` READS **GATE: OPEN** WITH EVERY INSTRUMENT ON RELEASE `c2d68f8cab07`. CENSUS **1000 / 1000 / 0 MISSING**. 2026-09-20
+
+Accounts: `docs/_reports/2026-09-20-heldout9-hp.md`, `docs/_reports/2026-09-20-heldout9-fields.md`.
+
+| instrument | reading |
+|---|---|
+| **held-out `--games 12000`** | **7,182 games, 1 board-material, 76 protocol** (was 9 and 88) |
+| gate lattices, board-material | 0 of 961, 0 of 1069, 0 of 1497 |
+| gate lattices, narration | zero on all three |
+| damage differential | 0 of 6000 at every corner of the roll |
+| roster items / abilities / moves | 148 of 148, 196 of 200, 496 of 497 |
+| mechanics staged | 0 diverge, 0 undeclared |
+| census | 1000 probed / 1000 live / 0 missing |
+
+Pins: release `c2d68f8cab07`, census `data/verification/census-pin-3a69f40d67f4.json`, team store
+`data/team-pool-frozen`, `--steering empirical --arm middle --end-state`.
+
+**THE SHIELD-BEFORE-BOUNCE FACT COST THREE PASSES BECAUSE IT WAS FIXED PER SITE.** The morning's fix
+put the check in one dispatch road; the held-out draw then found a second; a second agent then found a
+third and four more. It is now asked ONCE inside `bounceOff`, which is what *one fact, one
+implementation* means — the rule was already written down and was not applied until the third finding.
+
+**THE ONE REMAINING PARTING IS NAMED.** `omit-weather`, turn 9, seed `...2654574813 vs ...2654567638`:
+a burn lands here and the authority refuses it, and the 9 hp gap is that burn's own residual. A previous
+pass staged it directly, played 11 turns and saw nothing — **a claim about the fixture, not the
+mechanic** — so it is being replayed from turn 1 with the warm-up.
+
+**AND THE INSTRUMENT COST MORE THAN THE ENGINE DID TODAY.** The census snapshotted its counts with
+twelve probes registered below the snapshot line, so `live` meant *rows above a line* and a late MISSING
+row could never have failed the run. Separately, three shell-quoting traps manufactured **eight false
+reds**: a `/dev/null` redirect on a `cmd /c` run, a double-quoted path whose variable never expanded,
+and a `printf` format whose backslash-r escape became a carriage return. Nothing was changed on the
+strength of one; each was read from the probe's OUTPUT rather than its exit code.
+
+
+## FOUR OF THE NINE HELD-OUT BOARD PARTINGS ARE FIXED — A TYPE AT TURN 1, A STAT STAGE, A PP COUNT AND TRICK ROOM'S CLOCK. **CENSUS 984 LIVE / 0 MISSING, 993 → 997 ROWS.** **ENGINE BYTES CHANGED — WORKTREE RELEASE `231480e57418`; LIGHT MODE.** 2026-09-20, version assigned at merge
+
+Full account: `docs/_reports/2026-09-20-heldout9-fields.md`.
+
+The four are rows 3, 5, 6 and 9 of `state.first_board_divergences` in
+`data/verification/game-differential.g12000.json` — the held-out 12,000-game draw on release
+`51b80f9fcf08`, 7,182 games, 9 board-material, 88 protocol, `--steering empirical --arm middle
+--end-state --census data/verification/census-pin-8514757f99d5.json --team-store data/team-pool-frozen`.
+**None of them is the instrument.** Each was reproduced against the authority on a staged board before
+a byte moved, each carries a knob shown RED, and each is a distinct mechanism.
+
+| row | seed | leaf | mechanism |
+|---|---|---|---|
+| 3 | `…2659164097` t1 | `p2.party.bellibolt.types` water / electric | the shield answers before the bounce — at every `bounceOff` caller, not one |
+| 5 | `…2657170022` t9 | `p1.party.archaludon.boosts.spa` 2 / 0 | the charge turn's self-boost never asked `invSign`, so Contrary did not invert it |
+| 6 | `…2655714014` t4 | `p1.pp[0].shedtail` 1 / 2 | a row the Substitute absorbed took no secondary die, and owned the address |
+| 9 | `…2663796709` t10 | `field.trickroom_turns` 3 / 0 | the execution-time Encore override was gated on a living foe |
+
+### ROW 3 — THE SHIELD ANSWERS BEFORE THE BOUNCE, AND THE FIX FROM EARLIER THE SAME DAY REACHED ONE CALLER OF SEVEN
+
+`tests/probe_shield_before_bounce.js` closed this fact at `statusMoveTargets` hours earlier. The
+`typechange` road — Soak, Magic Powder, Trick-or-Treat, Forest's Curse — still called `bounceOff` bare
+and then asked `shieldRefuses(t, mv)` of `t`, **which the bounce had already rewritten to the
+reflection's destination**. So the shield was asked of the clicker, who is not holding it.
+
+- **The authority, read not recalled.** Both handlers are gathered into one `TryHit` event and
+  `Battle#runEvent` sorts them by `compareLeftToRightOrder` (`sim/battle.ts:421-426`), priority first:
+  `protect.condition.onTryHitPriority: 3` against `magicbounce.onTryHitPriority: 1`, and Protect's
+  `NOT_FAIL` ends the event. Neither key is overridden in `data/mods/champions/`.
+- **THE FIX IS INSIDE `bounceOff`, WHICH IS THE POINT.** Six dispatch kinds carried the same
+  inversion (`typechange`, `status`, `pivot`, `curse`, `sharehp`, `trapmove`) and a per-site fix had
+  already been made once. One reader, every caller — `statusMoveTargets`'s own pre-check collapses
+  into it. **FIVE more protocol partings in the same draw carry the same shape** on the `status` and
+  `pivot` roads — `|-activate|…|protect` there against `|move|…|sleeppowder` (x3), `|…|toxic` and
+  `|…|partingshot` here. None is board-material and **none has been re-measured**: they are named as
+  the same fact, not claimed fixed.
+- Knob `MEDI_BOUNCE_BEFORE_SHIELD` (unchanged name — same fact, wider reach). Census row
+  `move / changesTargetType`. Probe `tests/probe_typechange_shield_before_bounce.js`: **exit 0 clean,
+  exit 1 under the knob.** Its BARE arm retypes the clicker in both engines, so the shielded arm is
+  not green because the bounce stopped working.
+
+### ROW 5 — THE THIRTEENTH BOOST ROAD WAS THE ONE THAT DID NOT ASK `invSign`
+
+`electroshot.onTryMove` is `this.boost({spa: 1}, attacker, attacker, move)` — an ordinary
+`Battle#boost`, which raises `ChangeBoost`, which is where `contrary.onChangeBoost` (`boost[i] *= -1`)
+and `simple.onChangeBoost` (`*= 2`) live. This engine did the charge-turn boost as **raw arithmetic on
+`m.boosts`** and never consulted `invSign`, its single reader of that question.
+
+- The held-out game acquired Contrary by Skill Swap at turn 7, so the row also proves the ACQUIRED
+  path. No legal carrier of an `invertsBoosts` ability learns either charge move — the probe derives
+  that population and prints `NONE` rather than asserting it.
+- The parting is not only the stage: at `+2` against `0` the Electro Shot that followed left Metagross
+  on **1/155 here and 77/155 there**.
+- Knob `MEDI_CHARGE_BOOST_RAW`, stamped at LOAD, listed in `DELIBERATE_BREAK`. Census row
+  `move / chargeTurn`. Probe `tests/probe_charge_boost_contrary.js`: **exit 0 clean, exit 1 under the
+  knob**, and the knob is checked not to move the no-swap control.
+
+### ROW 6 — `null` IS NOT `false`, AND THE WHOLE DEFECT IS THAT ONE DISTINCTION
+
+`spreadMoveHit` marks a row the doll absorbed `targets[i] = null` and everything else `false`
+(`sim/battle-actions.ts:1059-1069`). The two steps below it then part company:
+
+    getSpreadDamage: for (const [i, target] of targets.entries()) { if (!target) continue;
+                       this.battle.activeTarget = target; ... }          :1152-1154
+    secondaries:     for (const target of targets) { if (target === false) continue;
+                       ... const secondaryRoll = this.battle.random(100); ... }   :1338-1345
+
+So a doll row **never becomes `activeTarget`** and **is still rolled for**. This engine did the
+opposite on both counts: it dropped the row at step 0 with `R.out` (no draw) and had already written
+`_secAddrSlot` from it (the address). Every later row therefore read the authority's PREVIOUS value at
+the shared address — which is how a Rock Slide flinched an Orthworm here that moved there.
+
+- **MEASURED AS ADDRESSES, NOT AS AN OUTCOME.** `G.midAddresses()` over nine staged boards (three
+  spread moves x doll-absent / doll-on-slot-0 / doll-on-slot-1), before and after:
+
+      lavaplume, doll on the far slot   sd  p10|0 p10|1 p10|2      me  p11|0 p11|1     <- before
+                                        sd  p10|0 p10|1 p10|2      me  p10|0 p10|1 p10|2   <- after
+
+  All nine now agree address-for-address, and every medicham address is shared with the authority in
+  every category (`acc`, `crit`, `dmg`, `sec`, `tgt`).
+- `_stepEffects` carries `runsWhenOut` for this one row class and returns immediately on every other
+  out row, so the exception is exactly one draw wide. `_addedSecondaryOf` was lifted out so the doll
+  row and the live row read ONE derivation of the ability-added secondary.
+- **A declared remainder:** a click every one of whose rows is a doll row keeps the old address write
+  and is counted (`MEDSEEN.secAddrDollWithNoLiveRowYet`) — the authority's `activeTarget` there is
+  whatever the accuracy step left, which is a different fact this line does not own.
+- Knob `MEDI_SUB_SKIPS_SECONDARY_DIE`. Census row `move / substitute`, which reads the `sec` address
+  list itself. Probe `tests/probe_sub_secondary_die.js`: **exit 0 clean, exit 1 under the knob.**
+
+### ROW 9 — THE ENCORE OVERRIDE WAS GATED ON A LIVING FOE AND THE AUTHORITY HAS NO SUCH CLAUSE
+
+`runMove` raises `OverrideAction` on the MOVE (`sim/battle-actions.ts:227-234`). The foe question
+belongs to the TARGET alone, and `getRandomTarget` answers it without a foe for half the target
+classes — `self`, `all`, `allySide`, `allyTeam`, `adjacentAllyOrSelf` return the user outright
+(`sim/battle.ts:2498-2500`) and the far-side road falls back to `foe.active[0]` rather than declining.
+This engine wrapped the whole override in `if(_elive.length){`, written for the random-target draw
+underneath it. A Meowstic Encored into Trick Room, whose two foes both fell to its own ally's Hyper
+Voice first, therefore played the move its player had picked.
+
+- **No die moves.** `pick()` is reached only for a far-side encored move and now returns `null`
+  without drawing when the field is empty — which is what happened before, since the block was skipped
+  whole. Every seeded probe, the roster and the differential draw the identical sequence.
+- Knob `MEDI_ENCORE_OVERRIDE_NEEDS_A_LIVE_FOE`. Census row `move / locksTarget`. Probe
+  `tests/probe_encore_override_no_live_foe.js`: **exit 0 clean, exit 1 under the knob**, with the
+  control arm (a foe left standing) checked unmoved by the knob.
+  - **The fixture bit twice and the staging checks caught both.** A hold that boosted Speed let the
+    Final Gambit user outspeed the encorer and kill it before Encore landed; and with no bench the
+    side wiped and the victim never acted at all. Both arms now read the authority's own stream for
+    *Encore landed* and *two p1 bodies fainted above the victim's move* before asserting anything.
+
+### What is owed and is NOT claimed here
+
+**THE ENGINE BYTES MOVED, SO THE GATE'S ARTIFACTS ARE NOW ABOUT OTHER BYTES.** `engine/status.js` in
+this worktree reads the damage differential, the three roster stages and the staged-mechanics battery
+as `MEASURED AGAINST A DIFFERENT ENGINE` (they were cut on `51b80f9fcf08`; the tree is
+`231480e57418`). **Those five re-runs, and a fresh held-out `--games 12000` draw, are owed on a release
+cut from the merged tree.** Nothing about the gate is claimed in this section.
+
+### The hand list, after this pass
+
+- **The `typechange` / `status` / `pivot` bounce-before-shield inversion LEAVES.** One reader inside
+  `bounceOff`; census row, knob and probe, shown RED first.
+- **The charge-turn self-boost LEAVES.** It goes through `invSign` like the other twelve boost roads.
+- **The doll's secondary die and the doll's secondary ADDRESS LEAVE.** Both halves, measured as
+  addresses over nine staged boards.
+- **The Encore execution-time override's live-foe gate LEAVES.**
+- **STAYS: the remaining five held-out board partings** — rows 1, 2, 4, 7 and 8, all of them `hp` or
+  `status` leaves, which is what makes them one shared shape rather than five.
+- **Carried forward unchanged:** the 7 live `lastMove` readings (caller-vs-called), King's Rock and
+  Purifying Salt, the click-swap controls, and now SIX gate artifacts owed a re-run.
+
+**`node engine/status.js --write` WAS NOT RUN FROM THIS WORKTREE AND MUST NOT BE.** It was run once and reverted: a worktree has no `data/releases/` and no store, so the stamp replaced OPS's `34 battles recorded` with `NOT DERIVED`, blanked three store heartbeats, and dropped the census and coverage lines out of ENGINE's own generated block. **Run it in the MAIN tree at merge.**
+
 ## THREE OF THE NINE HELD-OUT BOARD PARTINGS CLOSE, AND THEY ARE **FOUR SEPARATE MECHANISMS, NOT ONE `party.hp` FAMILY**: A CERTAIN PRIMARY VOLATILE THREW A DIE THE AUTHORITY NEVER THROWS, MOLD BREAKER DID NOT DELETE **SAND VEIL**, AND A SHIELDED MAGIC BOUNCE BODY STILL REFLECTED A **PIVOT**. CENSUS **993 → 996 PROBED, 984 → 996 LIVE / 0 MISSING** — AND **NINE OF THAT +12 IS AN INSTRUMENT CORRECTION**: TWELVE PROBES WERE REGISTERED BELOW THE LINE THAT COUNTS THEM, NINE OF THEM BEFORE THIS PASS. **ENGINE BYTES CHANGED — WORKTREE RELEASE `cf8be46e94d5`; LIGHT MODE, NAMED GAMES ONLY, NO LATTICE, NO GATE, THE RE-RUN IS OWED.** 2026-09-20, version assigned at merge
 
 Full account, every seed, every authority line and every exit code:
@@ -442,13 +610,12 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  996/996 probed mechanics live, 0 missing   (census 2026-09-20 15:55)
+  1000/1000 probed mechanics live, 0 missing   (census 2026-09-20 16:07)
     the census probes what somebody thought to probe: 304 of 304 in-scope tags carry a probe, 0 carry none (9 of 313
     tags have no in-scope carrier); 0 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 1.8 h old). node engine/coverage.js
+    (all-mechanics-fire.json, 47 min old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    pinned to engine release 51b80f9fcf08 — engine/medicham2-browser.js matches the frozen copy; live is e193a1a5473f now (a PRE-CHANGE measurement of that release, not corruption)
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/51b80f9fcf08/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "51b80f9fcf08".
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/c2d68f8cab07/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "c2d68f8cab07".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -465,7 +632,7 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-20 15:58_
+_stamped 2026-09-20 16:57_
 
 <!-- /GENERATED -->
 

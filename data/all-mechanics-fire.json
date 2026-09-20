@@ -1,11 +1,11 @@
 {
- "generated": "2026-09-20T18:11:04.919Z",
- "engine_release": "51b80f9fcf08",
- "engine_release_cut": "2026-09-20T18:07:15.717Z",
+ "generated": "2026-09-20T20:10:11.064Z",
+ "engine_release": "c2d68f8cab07",
+ "engine_release_cut": "2026-09-20T20:07:51.403Z",
  "engine_release_cuts": 2,
  "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
  "source_digests": {
-  "engine/medicham2-browser.js": "5773803f7900",
+  "engine/medicham2-browser.js": "0157bc2c2302",
   "engine/board.js": "c85a3b756c98",
   "engine/rollout_leaf.js": "d00e77a7ac26",
   "engine/position_features.js": "bb71676d3669",
@@ -33,7 +33,7 @@
   "engine/pp.js": "30b12a4ef623",
   "data/rollout-switch-census.json": "b599f8d581b5"
  },
- "release": "51b80f9fcf08",
+ "release": "c2d68f8cab07",
  "arm": "bottom-tie-first",
  "format": "gen9championsvgc2026regmb",
  "red": [
@@ -143561,7 +143561,7 @@
     "leafEffectSplit": {},
     "leafDeclaresNoMarker": 76
    },
-   "seconds": 51.7
+   "seconds": 49.4
   },
   "abilities": {
    "exist": 316,
@@ -143707,7 +143707,7 @@
    "shelved_by_owner_diverging": 0,
    "board_state_staged": 6,
    "board_state_fired": 5,
-   "seconds": 6.6,
+   "seconds": 6.7,
    "stones": {
     "rows": 0,
     "staged": 0,
@@ -143908,9 +143908,9 @@
  },
  "planner": {
   "meta": {
-   "generated": "2026-09-20T18:11:04.638Z",
+   "generated": "2026-09-20T20:10:10.777Z",
    "by": "engine/stage_planner.js",
-   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\51b80f9fcf08\\data\\tags.json",
+   "tags": "file:C:\\Users\\willj\\Projects\\Pokemon\\ABRA\\data\\releases\\c2d68f8cab07\\data\\tags.json",
    "tags_digest": "c34d6465c3b60371",
    "showdown": "C:/Users/willj/Projects/Pokemon/pokemon-showdown",
    "validator": {
@@ -143956,7 +143956,7 @@
     "stench: secondary (the handler assigns move.secondaries)",
     "kingsrock: secondary (the handler assigns move.secondaries)"
    ],
-   "ms": 33776
+   "ms": 33926
   },
   "summary": {
    "mechanics": 964,
@@ -144011,7 +144011,7 @@
    }
   },
   "played": {
-   "plan_ms": 33911,
+   "plan_ms": 34056,
    "rows": 347,
    "fixtures": 853,
    "variants": 1968,

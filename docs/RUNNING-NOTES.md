@@ -52,6 +52,44 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.82.0] — 2026-09-20 — all nine held-out board partings closed: the wide sample goes **9 → 1 in 7,182 games**, and the gate is OPEN on one engine
+
+- **What changed.** The four non-hp partings close, each a distinct mechanism, verified in the merged
+  main tree.
+  - **The shield-before-bounce fact was missing on SIX more dispatch roads.** Two passes found it
+    independently from two different games today. It is now asked once inside `bounceOff` instead of at
+    each call site — a per-site fix to a GLOBAL fact costs you every other site, which is what happened
+    twice. Knob `MEDI_BOUNCE_BEFORE_SHIELD`, probe `tests/probe_typechange_shield_before_bounce.js`.
+  - **A charge-turn self-boost was raw arithmetic** and never asked the sign-inverting helper, so a
+    swapped inverting ability did not invert it. Knob `MEDI_CHARGE_BOOST_RAW`.
+  - **A doll-absorbed hit still owes its secondary die.** The authority's absorbed row is `null`, not
+    `false`: it rolls the secondary and never lets it own the active target. Measured as ADDRESSES over
+    9 staged boards, all now identical. Knob `MEDI_SUB_SKIPS_SECONDARY_DIE`.
+  - **An execution-time move override required a live foe** where the authority's `OverrideAction` has
+    no foe clause. No die moves. Knob `MEDI_ENCORE_OVERRIDE_NEEDS_A_LIVE_FOE`.
+- **Measured** on release `c2d68f8cab07`, census pinned to
+  `data/verification/census-pin-3a69f40d67f4.json`, `--team-store data/team-pool-frozen`,
+  `--steering empirical --arm middle --end-state`:
+  - **HELD-OUT `--games 12000`: 7,182 games, 1 board-material, 76 protocol.**
+  - Gate lattices: board-material **0 of 961, 0 of 1069, 0 of 1497**; narration **zero on all three**.
+  - Damage differential 0 of 6000 at every corner. Roster items 148 of 148, abilities 196 of 200 (3
+    ANNOUNCEMENT-ONLY on receipts), moves 496 of 497. Census **1000 probed / 1000 live / 0 missing**.
+  - **`node engine/quarantine.js` -> `GATE: OPEN`**, all ten clauses, every instrument on this release.
+- **Basis.** unchanged.
+- **Supersedes.** ~~held-out board partings 9~~ (6.80.0 row, release `51b80f9fcf08`), now **1** on
+  `c2d68f8cab07`. ~~996 probed / 996 live~~ (6.81.0 row), now **1000 / 1000**. The samples are
+  comparable: same pool, same flags, same `--games`; only the engine moved.
+- **THE ONE REMAINING PARTING IS NAMED AND DISPATCHED.** `omit-weather`, turn 9, seed
+  `…2654574813 vs …2654567638`: a burn lands here and is refused on the authority, and the 9 hp gap is
+  that burn's own residual. A previous pass could not reproduce it standalone in 11 turns — **which is a
+  claim about the fixture, not the mechanic** — so it is being replayed from turn 1 with the warm-up.
+- **Coordinator, at merge.** Three separate shell-quoting traps manufactured **eight false reds** today,
+  and the roster stages "failed" in the full run for the third of them: `printf 'tests\roster.js'`
+  turns `` into a CARRIAGE RETURN, so node was asked for `tests<CR>oster.js`. Re-run with literal
+  single-quoted backslashes: all three stages clean. **Nothing was changed on the strength of any false
+  red** — each was read from the probe's OUTPUT rather than its exit code.
+- **Owed to the next major.** Everything above.
+
 ## [6.81.0] — 2026-09-20 — three of the held-out nine close, and the census had been counting **rows above a line**
 
 - **THE CENSUS FIGURE THIS PROJECT HAS BEEN PUBLISHING ALL DAY WAS AN UNDERCOUNT, AND THE INSTRUMENT

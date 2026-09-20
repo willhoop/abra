@@ -37638,6 +37638,172 @@ probe('ability', 'disablesAttacker', 'the on-hit disabler is never rolled for a 
                  + `Champions key). Knob MEDI_DISABLER_SEALS_STRUGGLE` };
 });
 
+/* ================= 2026-09-20 -- THE FOUR NON-HP, NON-STATUS HELD-OUT BOARD PARTINGS =============
+ *
+ * Rows 3, 5, 6 and 9 of the nine board partings in the held-out 12,000-game draw on release
+ * `51b80f9fcf08` (`data/verification/game-differential.g12000.json`). Each is a distinct mechanism and
+ * each carries its own differential probe; these are the single-engine halves, so a regression shows
+ * up in the census as well as in the differential. */
+
+/* ROW 3 -- a TYPE, wrong at TURN 1. The `typechange` dispatch kind called `bounceOff` bare and asked
+ * `shieldRefuses` of the body the bounce had already re-aimed at. */
+probe('move', 'changesTargetType', 'a retyping move is BLOCKED by the bouncer\'s own shield, not reflected', () => {
+  /* Espeon carries Magic Bounce; Soak is reflectable, single-target and carries `flags.protect`, so
+   * both handlers are gathered into the same TryHit event. The clicker is a Bellibolt, which is the
+   * body the held-out game retyped, and it is ELECTRIC — so `water` on it is unambiguously the write
+   * landing and not a default. */
+  const mb = b => { b.f1.ability = 'magicbounce'; };
+  const run = (shield) => narRun(['bellibolt', 'appletun', 'espeon', 'milotic'], mb,
+                                 { mv: 'soak' }, null, shield ? 'protect' : null);
+  const ty = x => (x.types || []).map(t => String(t).toLowerCase()).join('/');
+  const prot = r => r.trace.filter(l => /^\|-activate\|p2a:[^|]*\|move:protect$/.test(l)).length;
+  const open = run(false), up = run(true);
+  const control = [ty(open.me), ty(open.f1), prot(open)];
+  const test = [ty(up.me), ty(up.f1), prot(up)];
+  return { works: control[0] === 'water' && control[2] === 0
+                && test[0] === 'electric' && test[1] === ty(open.f1) && test[2] === 1,
+           arms: { control, test },
+           detail: `[the CLICKER's types, the BOUNCER's types, Protect activations] Espeon standing open `
+                 + `${JSON.stringify(control)}, Espeon behind Protect ${JSON.stringify(test)} — both handlers `
+                 + `are TryHit and runEvent sorts them by priority (sim/battle.ts:421-426): `
+                 + `protect.condition onTryHitPriority 3 against magicbounce's 1, and Protect's NOT_FAIL ends `
+                 + `the event, so the authority writes \`|-activate|p1a: Hatterene|move: Protect\` where this `
+                 + `engine wrote \`|move|p1a: Hatterene|soak|p2a: Bellibolt|[from] ability: Magic Bounce\`. `
+                 + `Knob MEDI_BOUNCE_BEFORE_SHIELD` };
+});
+
+/* ROW 5 -- a STAT STAGE. The charge turn's self-boost was raw arithmetic on `m.boosts` and never asked
+ * `invSign`, this engine's one reader of Contrary and Simple. */
+probe('move', 'chargeTurn', 'the charge turn\'s self-boost goes through the boost reader, so Contrary inverts it', () => {
+  const run = (swap) => {
+    const me = bare('archaludon'), ally = bare('appletun');
+    const f1 = bare('malamar'), f2 = bare('milotic');
+    f1.ability = 'contrary';
+    /* The winder moves LAST so the swap has landed before it winds up, and nothing else on the board
+     * can touch a Special Attack stage. */
+    me.st = Object.assign({}, me.st, { sp: 20 });
+    f1.st = Object.assign({}, f1.st, { sp: 120 });
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(me); unfaintable(ally); unfaintable(f1); unfaintable(f2);
+    /* Turn 1 — the ability changes hands, or does not. */
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, swap ? M.playerAction(f1, 'skillswap', me, S.field) : { kind: 'pass' }],
+               [f2, { kind: 'pass' }]]));
+    const held = String(me.ability || '').replace(/[^a-z0-9]/g, '');
+    const trace = []; S._trace = trace;
+    /* Turn 2 — the winder winds up; the charge turn writes the stage. */
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'electroshot', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return [held, me.boosts.sa | 0,
+            trace.filter(l => /^\|-unboost\|p1a:[^|]*\|spa\|1$/.test(l)).length,
+            trace.filter(l => /^\|-boost\|p1a:[^|]*\|spa\|1$/.test(l)).length];
+  };
+  const control = run(false), test = run(true);
+  return { works: control[0] === 'none' && control[1] === 1 && control[2] === 0 && control[3] === 1
+                && test[0] === 'contrary' && test[1] === -1 && test[2] === 1 && test[3] === 0,
+           arms: { control, test },
+           detail: `[the winder's ability, its spa stage, -unboost lines, -boost lines] no Skill Swap `
+                 + `${JSON.stringify(control)}, Contrary swapped in ${JSON.stringify(test)} — `
+                 + `electroshot.onTryMove is \`this.boost({spa: 1}, attacker, attacker, move)\` (data/moves.ts), `
+                 + `an ordinary Battle#boost, and contrary.onChangeBoost is \`boost[i] *= -1\` `
+                 + `(data/abilities.ts, no Champions row). The authority writes `
+                 + `\`|-unboost|p1b: Archaludon|spa|1\` where this engine wrote \`|-boost|p1b: Archaludon|spa|1\`. `
+                 + `Knob MEDI_CHARGE_BOOST_RAW` };
+});
+
+/* ROW 6 -- PP, and the only leaf that parted in its whole game. A row the Substitute absorbed is
+ * `targets[i] = null`, which `BattleActions#secondaries` does NOT skip. */
+probe('move', 'substitute', 'a row the doll absorbed still rolls its secondary, and does not own the address', () => {
+  /* THE ADDRESSES, NOT AN OUTCOME. A flinch that happens to agree at the wrong repeat index would
+   * read exactly like a fixed engine, so this row reads the `sec` draw log itself. */
+  const run = (doll) => {
+    const me = bare('altaria'), ally = bare('appletun');
+    const f1 = bare('abomasnow'), f2 = bare('absol');
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    unfaintable(me); unfaintable(ally); unfaintable(f1); unfaintable(f2);
+    if (doll) {
+      M.battleTurn(S, rng5, PASS2(me, ally),
+        new Map([[f1, M.playerAction(f1, 'substitute', f1, S.field)], [f2, { kind: 'pass' }]]));
+    }
+    /* Breaking Swipe is `allAdjacentFoes`, 100 accuracy and carries exactly one secondary row, so the
+     * log holds one draw per TARGET and nothing else can add to it. */
+    const R = M.midEventDice({ seed: 20260920 });
+    M.battleTurn(S, R,
+      new Map([[me, M.playerAction(me, 'breakingswipe', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return M.midEventLog().filter(x => String(x).split('|')[2] === 'sec')
+      .map(x => String(x).split('|').slice(3).join('|'));
+  };
+  const control = run(false), test = run(true);
+  /* The address is `move|slot|nth`. With no doll the two draws are on the two TARGETS; with the doll
+   * up they are both on the last LIVE body, separated by the repeat index. */
+  return { works: control.length === 2 && test.length === 2
+                && control[0].split('|')[1] !== control[1].split('|')[1]
+                && test[0].split('|')[1] === test[1].split('|')[1]
+                && test[0].split('|')[2] === '0' && test[1].split('|')[2] === '1',
+           arms: { control, test },
+           detail: `[the \`sec\` draw addresses, in order] no Substitute ${JSON.stringify(control)}, `
+                 + `a Substitute on the far slot ${JSON.stringify(test)} — \`spreadMoveHit\` writes `
+                 + `\`targets[i] = null\` for a doll row (sim/battle-actions.ts:1062), \`getSpreadDamage\` `
+                 + `opens \`if (!target) continue;\` so the doll never becomes \`activeTarget\`, and `
+                 + `\`secondaries\` skips only \`if (target === false) continue;\` (:1339) so the doll row `
+                 + `IS rolled for. Both draws therefore land on the last LIVE body, at nth 0 and nth 1. `
+                 + `Knob MEDI_SUB_SKIPS_SECONDARY_DIE` };
+});
+
+/* ROW 9 -- TRICK ROOM'S CLOCK. The execution-time Encore override was wrapped in `if(_elive.length)`,
+ * so a body whose foes had all fainted played the move its player picked. */
+probe('move', 'locksTarget', 'Encore forces its move at execution even with no living foe left', () => {
+  const run = (clearTheField) => {
+    /* The victim is the SLOWEST body on the board, so both the Encore and the kill land above it. */
+    const me = bare('torkoal'), ally = bare('appletun');
+    const f1 = bare('whimsicott'), f2 = bare('milotic');
+    /* THE ORDER IS THE WHOLE FIXTURE: encorer, then the kill, then the victim. Written the other way
+     * round the ally kills the encorer before Encore resolves, the volatile never lands, and the row
+     * reads "the victim played its own click" for a reason that has nothing to do with the gate. */
+    me.st = Object.assign({}, me.st, { sp: 20 });
+    ally.st = Object.assign({}, ally.st, { sp: 100 });
+    f1.st = Object.assign({}, f1.st, { sp: 150 });
+    /* BOTH SIDES CARRY A BENCH. With none, a side whose two actives are both down ENDS THE BATTLE
+     * mid-turn and the victim never gets to act at all — measured, the whole turn went silent and this
+     * row read "" for the move it played. A bench keeps the side alive while the FIELD is empty, which
+     * is the state the gate was about. */
+    const S = M.battleInit([me, ally, bare('clefable')],
+                           [f1, f2, bare('snorlax'), bare('milotic')], { seeded: true });
+    unfaintable(me); unfaintable(ally);
+    /* The victim's OTHER foe is already gone, so one kill empties the far side. */
+    f2.curHP = 0; f2.fainted = true;
+    /* Turn 1 — the victim commits Amnesia, which is what Encore will lock. */
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'amnesia', me, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const took = me._lastMove;
+    const trace = []; S._trace = trace;
+    /* Turn 2 — the Encore lands, the victim's ally kills the encorer, and the victim clicks something
+     * else with nothing left to aim at. */
+    if (clearTheField) f1.curHP = 1;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'irondefense', me, S.field)],
+               [ally, clearTheField ? M.playerAction(ally, 'bodyslam', f1, S.field) : { kind: 'pass' }]]),
+      new Map([[f1, M.playerAction(f1, 'encore', me, S.field)], [f2, { kind: 'pass' }]]));
+    const mine = trace.filter(l => /^\|move\|p1a:/.test(l)).map(l => l.split('|')[3]);
+    return [took, mine.join(','), trace.some(l => /^\|faint\|p2a:/.test(l)) ? 1 : 0];
+  };
+  const control = run(false), test = run(true);
+  return { works: control[0] === 'amnesia' && control[1] === 'amnesia' && control[2] === 0
+                && test[0] === 'amnesia' && test[1] === 'amnesia' && test[2] === 1,
+           arms: { control, test },
+           detail: `[the move Encore locked, the victim's |move| lines on turn 2, whether the encorer died] `
+                 + `a foe still standing ${JSON.stringify(control)}, the far side emptied first `
+                 + `${JSON.stringify(test)} — runMove raises OverrideAction on the MOVE with no foe clause at `
+                 + `all (sim/battle-actions.ts:227-234) and getRandomTarget returns the USER outright for `
+                 + `'self', 'all', 'allySide', 'allyTeam' and 'adjacentAllyOrSelf' (sim/battle.ts:2498). The `
+                 + `authority writes \`|move|p2a: Meowstic|Trick Room|p2a: Meowstic\` where this engine wrote `
+                 + `\`|move|p2a: Meowstic|psychic|p2a: Meowstic|[notarget]\`. `
+                 + `Knob MEDI_ENCORE_OVERRIDE_NEEDS_A_LIVE_FOE` };
+});
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');
@@ -37987,7 +38153,15 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           /* 2026-09-20 -- the held-out nine, batch A/B (tests/probe_heldout_board_partings.js),
                            * both stamped at LOAD. The third arm's knob, MEDI_BOUNCE_BEFORE_SHIELD, is listed
                            * above with the pass that introduced it. */
-                          'primaryVolatileDieAlwaysRestored', 'accAbilityUnbreakableRestored']
+                          'primaryVolatileDieAlwaysRestored', 'accAbilityUnbreakableRestored',
+                          /* 2026-09-20 -- the four non-hp, non-status held-out board partings on
+                           * release `51b80f9fcf08`. `bounceBeforeShieldRestored` already stands above
+                           * (the same knob now answers for every `bounceOff` caller, not just
+                           * `statusMoveTargets`); these three are new.
+                           * tests/probe_charge_boost_contrary.js, tests/probe_sub_secondary_die.js,
+                           * tests/probe_encore_override_no_live_foe.js — all stamped at LOAD. */
+                          'chargeBoostRawRestored', 'subSkipsSecondaryDieRestored',
+                          'encoreOverrideNeedsLiveFoeRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

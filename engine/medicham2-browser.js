@@ -2913,6 +2913,10 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * have run. A zero after real games with an Encore in them is the finding -- it means the only turn
    * the override can fire on is being missed, which is the state this counter was added to end. */
   encoreOverrodeAtExecution: 0,
+  /* 2026-09-20 -- the subset of those that fired with NO LIVING FOE on the field, which is the case the
+   * override used to skip outright. A zero after real games means the gate this counter exists to end
+   * is still shut somewhere else. See the block it is written in. */
+  encoreOverrodeWithNoLiveFoe: 0,
   /* 2026-09-11 -- THE SPEED-TIE CORNER BATCH. One counter per fix, each asserted non-zero on its red
    * arms and zero on its controls by tests/probe_corner_mechanisms.js, so a green there is shown to
    * have come THROUGH the new line rather than around it. Each name is the event the fix exists for:
@@ -3373,6 +3377,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   ghostRefusedTrap: 0,
   /* 2026-09-19 -- the tie-order batch (tests/probe_tie_order.js). Receipts, so a fix that stops firing reads 0. */
   chargeBoostZeroAnnounced: 0, weatherSortCorpseDropped: 0,
+  /* 2026-09-20 -- charge turns whose self-boost was taken at a multiplier OTHER than 1, i.e. the
+   * Contrary / Simple road this site could not reach until `invSign` was asked. A zero after a run
+   * carrying either ability is the finding. */
+  chargeBoostThroughSign: 0,
+  /* 2026-09-20 -- the doll row's secondary draws (`dollSecondaryDrawn`), the rows whose body was kept
+   * OUT of the secondary address because a Substitute was about to eat the hit
+   * (`secAddrSkippedDollRow`), and the declared remainder: a click every one of whose rows is a doll
+   * row, where the old write stands because the authority's address there is the accuracy step's. */
+  dollSecondaryDrawn: 0, secAddrSkippedDollRow: 0, secAddrDollWithNoLiveRowYet: 0,
   updateEventSorted: 0, updateSpeedCacheStamped: 0, updateSortCachedDiffersLive: 0, updateTieResolved: 0,
   volSeqStamped: 0, volStepShadowOrdered: 0 };
 const MEDFAILS = { encoreAction: 0,
@@ -4592,6 +4605,18 @@ const MEDFAILS = { encoreAction: 0,
    * real behaviour change dressed as a no-op, so it is counted apart from `encoreAction` -- that one is
    * a THROW inside the chooser's own branch, and a merged counter could not say which happened. */
   encoreOverrideUnbuilt: 0,
+  /* 2026-09-20 -- MEDI_ENCORE_OVERRIDE_NEEDS_A_LIVE_FOE=1's stamp, set at load. It puts the
+     execution-time Encore override back behind `if(_elive.length)`, so a body with no living foe plays
+     the move its player picked. Probe: tests/probe_encore_override_no_live_foe.js. */
+  encoreOverrideNeedsLiveFoeRestored: 0,
+  /* 2026-09-20 -- MEDI_CHARGE_BOOST_RAW=1's stamp, set at load. It takes `invSign` back out of the
+     charge-turn self-boost, so a Contrary or Simple body takes the printed sign and size.
+     Probe: tests/probe_charge_boost_contrary.js. */
+  chargeBoostRawRestored: 0,
+  /* 2026-09-20 -- MEDI_SUB_SKIPS_SECONDARY_DIE=1's stamp, set at load. It takes the doll row's
+     secondary draw back out and puts its body back into the secondary address.
+     Probe: tests/probe_sub_secondary_die.js. */
+  subSkipsSecondaryDieRestored: 0,
   /* WIRE 144 -- a body held by a multi-turn lock (Outrage, Thrash, Uproar...) whose forced click could
    * not be BUILT. Showdown's request in that state offers exactly one move and marks the body trapped,
    * so a failure here means the turn falls back to whatever the caller asked for -- a free choice the
@@ -6627,6 +6652,13 @@ if(ACC_ABILITY_UNBREAKABLE)MEDFAILS.accAbilityUnbreakableRestored=1;
  * Probe: tests/probe_priority_bar_mold_breaker.js. */
 const PRIORITY_BAR_IGNORES_BREAKER=_MK('MEDI_PRIORITY_BAR_IGNORES_BREAKER');
 if(PRIORITY_BAR_IGNORES_BREAKER)MEDFAILS.priorityBarIgnoresBreakerRestored=1;
+/* 2026-09-20 -- MEDI_ENCORE_OVERRIDE_NEEDS_A_LIVE_FOE=1 restores the `if(_elive.length)` that wrapped
+ * the execution-time Encore override (WIRE 143), so a body whose foes have all fainted plays the move
+ * its player picked instead of the move Encore forces. The authority's `runMove` raises
+ * `OverrideAction` with no foe clause at all (sim/battle-actions.ts:227-234). Stamped at LOAD in
+ * MEDFAILS.encoreOverrideNeedsLiveFoeRestored. Probe: tests/probe_encore_override_no_live_foe.js. */
+const ENCORE_OVERRIDE_NEEDS_A_LIVE_FOE=_MK('MEDI_ENCORE_OVERRIDE_NEEDS_A_LIVE_FOE');
+if(ENCORE_OVERRIDE_NEEDS_A_LIVE_FOE)MEDFAILS.encoreOverrideNeedsLiveFoeRestored=1;
 /* 2026-09-19 -- MEDI_CONDPOWER_OFF_ANY=1 restores Fickle Beam's chance draw to the GENERIC stream,
  * taken above the crit, where this engine had it. The authority raises `onBasePower` from inside
  * `getDamage` AFTER the crit roll, so the event is a `crit`-address draw at repeat index 1; a draw
@@ -9391,6 +9423,35 @@ function bounceOff(user,target,moveId,announce,info,ctx){
   const c=TAGS.param('move',moveId,'moveClass');
   const flag=r.requiresFlag||'reflectable';
   if(!(c&&c.classes&&c.classes.indexOf(flag)>=0)) return target;
+  /* 2026-09-20 -- THE SHIELD ANSWERS BEFORE THE BOUNCE, AND IT IS ASKED HERE SO THAT EVERY ROAD ASKS IT.
+   *
+   * Both handlers are gathered into the SAME `TryHit` event and `Battle#runEvent` sorts them by
+   * `compareLeftToRightOrder` (sim/battle.ts:421-426), PRIORITY FIRST: Protect's condition is
+   * `onTryHitPriority: 3` (data/moves.ts) against Magic Bounce's `1` (data/abilities.ts), and
+   * Protect's `NOT_FAIL` ends the event -- so a bouncer standing behind its own shield BLOCKS and
+   * does not reflect. Neither key is overridden in data/mods/champions/.
+   *
+   * THIS FACT HAD FOUR IMPLEMENTATIONS AND THREE OF THEM WERE MISSING. `bounceAtTryHit` has asked
+   * `shieldRefuses` since it was written and `statusMoveTargets` gained it on 2026-09-20
+   * (tests/probe_shield_before_bounce.js). The `typechange`, `status`, `pivot`, `curse`, `sharehp`
+   * and `trapmove` branches all called `bounceOff` BARE and then asked `shieldRefuses` of `t` --
+   * which the bounce had already rewritten to the reflection's destination, i.e. the CLICKER, who
+   * is not the body holding the shield. So the shield was asked of the wrong body, or of nobody.
+   * Asking here is the FACTS-ARE-GLOBAL answer: one reader, every caller.
+   *
+   * IT REFUSES ONLY THE REFLECTION. The caller's own post-bounce `shieldRefuses(t, mv)` now sees the
+   * ORIGINAL target and writes `|-activate|TARGET|move: Protect` exactly as it always has; a move
+   * with no `protect` flag (Roar, Whirlwind, the hazards) is exempt inside `shieldRefuses` itself and
+   * reaches the bounce untouched, which is why `bounceSideAtTryHit`'s hazards are unaffected.
+   *
+   * COST, MEASURED: row 3 of the NINE board partings in the held-out 12,000-game draw on release
+   * `51b80f9fcf08` (`data/verification/game-differential.g12000.json`) -- a Soak at a Protecting
+   * Hatterene, `|-activate|p1a: Hatterene|move: Protect` there against
+   * `|move|p1a: Hatterene|soak|p2a: Bellibolt|[from] ability: Magic Bounce` here, parting
+   * `p2.party.bellibolt.types` water/electric at TURN 1. Six more protocol partings in the same draw
+   * are the `status` and `pivot` roads of the same fact (Sleep Powder x3, Toxic, Parting Shot).
+   * Knob MEDI_BOUNCE_BEFORE_SHIELD=1. Probe: tests/probe_typechange_shield_before_bounce.js. */
+  if(!BOUNCE_BEFORE_SHIELD&&shieldRefuses(target,moveId)){MEDSEEN.bounceRefusedByShield++;return target;}
   if(!BOUNCE_UNBREAKABLE&&user&&suppressedAbility(user,target)==='none'){
     MEDSEEN.bouncePiercedByMoldBreaker++;return target;}
   /* 2026-09-20 -- THE SHIELD ANSWERS BEFORE THE BOUNCE, AND IT IS ASKED HERE SO EVERY ROAD ASKS IT.
@@ -17022,6 +17083,21 @@ if(HP_THRESHOLD_BOOST_ABOVE_RECOIL)MEDFAILS.hpThresholdBoostAboveRecoilRestored=
 const _envK=(k)=>(typeof process!=='undefined'&&process.env&&process.env[k]==='1');
 const CHARGE_BOOST_ZERO_SILENT=_envK('MEDI_CHARGE_BOOST_ZERO_SILENT');
 if(CHARGE_BOOST_ZERO_SILENT)MEDFAILS.chargeBoostZeroSilentRestored=1;
+/* 2026-09-20 -- MEDI_CHARGE_BOOST_RAW=1 restores the charge turn's RAW arithmetic on `m.boosts`, so
+ * Electro Shot's and Meteor Beam's self-boost skips `invSign` and a Contrary or Simple body takes the
+ * printed sign and size. The authority's handler is an ordinary `this.boost(...)`, which raises
+ * `ChangeBoost`. Stamped at LOAD in MEDFAILS.chargeBoostRawRestored.
+ * Probe: tests/probe_charge_boost_contrary.js. */
+const CHARGE_BOOST_RAW=_envK('MEDI_CHARGE_BOOST_RAW');
+if(CHARGE_BOOST_RAW)MEDFAILS.chargeBoostRawRestored=1;
+/* 2026-09-20 -- MEDI_SUB_SKIPS_SECONDARY_DIE=1 restores both halves of the doll's secondary address:
+ * a row the Substitute absorbed takes NO `sec` draw, and it still writes `_secAddrSlot`. The
+ * authority nulls that row rather than falsing it, so `BattleActions#secondaries` rolls for it
+ * (battle-actions.ts:1336-1352) while `getSpreadDamage` leaves `activeTarget` on the last LIVE row.
+ * Stamped at LOAD in MEDFAILS.subSkipsSecondaryDieRestored.
+ * Probe: tests/probe_sub_secondary_die.js. */
+const SUB_SKIPS_SECONDARY_DIE=_envK('MEDI_SUB_SKIPS_SECONDARY_DIE');
+if(SUB_SKIPS_SECONDARY_DIE)MEDFAILS.subSkipsSecondaryDieRestored=1;
 const WEATHER_SORT_KEEPS_CORPSES=_envK('MEDI_WEATHER_SORT_KEEPS_CORPSES');
 if(WEATHER_SORT_KEEPS_CORPSES)MEDFAILS.weatherSortKeepsCorpsesRestored=1;
 const UPDATE_LIVE_SPEED=_envK('MEDI_UPDATE_LIVE_SPEED');
@@ -24283,12 +24359,15 @@ function statusMoveTargets(m,mvId,aTarget,it,actA,actB,announce,info,field){
    * STEP 1's own `shieldRefuses` writes `|-activate|TARGET|move: Protect` exactly as it always has;
    * a move with no `protect` flag (Roar, Whirlwind, the hazards) is exempt inside `shieldRefuses`
    * itself and reaches the bounce untouched. Four of the fifteen held-out board partings on release
-   * `834713ccb303`. Knob MEDI_BOUNCE_BEFORE_SHIELD=1. Probe: tests/probe_shield_before_bounce.js. */
-  /* 2026-09-20, SAME DAY -- AND THE CHECK MOVED INTO `bounceOff`, because this branch was one road of
-   * nine and the held-out draw found another (`pivotStatus`, Parting Shot) that did not have it. One
-   * fact, one implementation: `bounceOff` asks `shieldRefuses` itself now, under the same
-   * MEDI_BOUNCE_BEFORE_SHIELD knob and the same `bounceRefusedByShield` counter, so this wrapper is
-   * the plain call it started as. */
+   * `834713ccb303`. Knob MEDI_BOUNCE_BEFORE_SHIELD=1. Probe: tests/probe_shield_before_bounce.js.
+   *
+   * 2026-09-20, LATER THE SAME DAY -- THE CHECK MOVED INTO `bounceOff` AND THIS SITE INHERITS IT.
+   * Two passes found it independently from two different games. Fixing it HERE left the same fact
+   * missing on six other dispatch kinds -- `typechange`, `status`, `pivot`, `curse`, `sharehp`,
+   * `trapmove` -- which is what a per-site fix to a GLOBAL fact always costs, and the held-out draw
+   * duly found `pivotStatus` next. `bounceOff` asks `shieldRefuses` once for every caller now, under
+   * the same knob and the same `bounceRefusedByShield` counter, so this wrapper is the plain call it
+   * started as. Probes: tests/probe_shield_before_bounce.js, tests/probe_typechange_shield_before_bounce.js. */
   const _bounce=(_u,_t)=>bounceOff(_u,_t,mvId,announce,info,_bctx);
         const _spF=TAGS.param('move',mvId,'spreadFoes'), _spA=TAGS.param('move',mvId,'spreadAll');
         /* WIRE 153 -- A SELF-TARGETING STATUS MOVE CLICKED WITH NO TARGET FAILED OUTRIGHT. 2026-08-10.
@@ -32927,7 +33006,32 @@ function battleTurn(S,rng,actsForA,actsForB){
          &&(_encRw||(it.a.kind!=='switch'&&it.a.kind!=='pass'&&!_declineStruggle(it.a,'Exec')))){
         if(_encRw&&(it.a.kind==='switch'||it.a.kind==='pass'||isStruggleAction(it.a)))MEDSEEN.encoreRewroteGuardedAction++;
         const _efoes=it.side==='A'?actB:actA, _elive=live(_efoes);
-        if(_elive.length){
+        /* 2026-09-20 -- THE OVERRIDE IS NOT GATED ON A LIVING FOE, AND IT WAS. This block opened with
+         * `if(_elive.length){`, so a body whose foes had ALL FAINTED earlier in the same turn played
+         * THE MOVE ITS PLAYER PICKED instead of the move Encore forces. The gate belongs to the
+         * random-target DRAW below it and swallowed the whole override with it.
+         *
+         * THE AUTHORITY HAS NO SUCH CLAUSE. `runMove` (sim/battle-actions.ts:227-234) raises
+         * `OverrideAction` on the MOVE and asks the foe question only of the target, through
+         * `getRandomTarget` -- which returns the USER outright for `self`, `all`, `allySide`,
+         * `allyTeam` and `adjacentAllyOrSelf` (sim/battle.ts:2498-2500) and falls back to
+         * `pokemon.side.foe.active[0]` rather than declining on the far-side road. Champions
+         * overrides `encore`'s condition and neither of those two functions.
+         *
+         * NO DIE MOVES. `pick()` is reached only for a far-side encored move, and with no live foe it
+         * returns null WITHOUT drawing -- which is exactly what happened before, since the whole block
+         * was skipped. Every existing seeded probe, the roster and the differential draw the identical
+         * sequence. `playerAction` with a null target fails the way an unaimable click already fails.
+         *
+         * COST, MEASURED: row 9 of the NINE board partings in the held-out 12,000-game draw on release
+         * `51b80f9fcf08` (`data/verification/game-differential.g12000.json`) -- a Meowstic Encored into
+         * Trick Room whose two foes both fell to its ally's Hyper Voice first:
+         *     showdown  |move|p2a: Meowstic|Trick Room|p2a: Meowstic   -> |-fieldend|move: Trick Room
+         *     medicham  |move|p2a: Meowstic|psychic|p2a: Meowstic|[notarget]
+         * parting `field.trickroom_turns` 3 here against 0 there. Knob
+         * MEDI_ENCORE_OVERRIDE_NEEDS_A_LIVE_FOE=1. Probe: tests/probe_encore_override_no_live_foe.js. */
+        if(_elive.length||!ENCORE_OVERRIDE_NEEDS_A_LIVE_FOE){
+          if(!_elive.length)MEDSEEN.encoreOverrodeWithNoLiveFoe++;
           /* ROADMAP #478 -- ADDRESSED AS `getRandomTarget`, WITH THE ENCORED MOVE'S ID. The authority's
          * counterpart is `target = this.battle.getRandomTarget(pokemon, baseMove)` on
          * sim/battle-actions.ts:233, and `baseMove` there is the move Encore FORCED, not the one the
@@ -32939,7 +33043,7 @@ function battleTurn(S,rng,actsForA,actsForB){
          * classes are answered above it, exactly as sim/battle.ts:2498 answers them above its own
          * `randomFoe()`. This is the site game 2653843264 turn 4 went through. */
         const _etgt=defaultTargetOf(m,m._encoreMove,it.side==='A'?actA:actB,
-          ()=>_elive[Math.floor(midTargetDraw(_R,rng,m._encoreMove,midEventSlot(m),_elive.length)*_elive.length)%_elive.length]);
+          ()=>_elive.length?_elive[Math.floor(midTargetDraw(_R,rng,m._encoreMove,midEventSlot(m),_elive.length)*_elive.length)%_elive.length]:null);
           let _eact=null;
           try{ _eact=playerAction(m,m._encoreMove,_etgt,field); }catch(e){ MEDFAILS.encoreAction++; }
           if(_eact&&_eact.kind!=='pass'){
@@ -40060,11 +40164,31 @@ function battleTurn(S,rng,actsForA,actsForB){
            * MEDFAILS.boostZeroSuppressed). Pool game `...bo3-2635082691` (1950 pair-redirect-priority)
            * parted on exactly this line once its Life Dew split was fixed. No board leaf moves: the stage
            * is at +6 on both sides either way. `MEDI_CHARGE_BOOST_ZERO_SILENT=1` restores the suppression. */
+          /* 2026-09-20 -- AND IT GOES THROUGH `invSign`, WHICH IT NEVER ASKED.
+           *
+           * The handler's call is `this.boost({spa: 1}, attacker, attacker, move)` -- an ORDINARY
+           * `Battle#boost`, which raises `ChangeBoost` before it writes, and `ChangeBoost` is the one
+           * event Contrary (`boost[i] *= -1`) and Simple (`*= 2`) hang off (data/abilities.ts; no
+           * Champions row for either, nor for electroshot/meteorbeam). This site did the arithmetic
+           * RAW on `m.boosts`, so the thirteenth boost road in this file was the one that did not ask
+           * the single reader the other twelve ask. `invSign` is called with the body alone: the change
+           * is the body's OWN, and the authority never suppresses a breakable ability on a self-change
+           * (`activePokemon !== target`), so there is no source to pass.
+           *
+           * COST, MEASURED: row 5 of the NINE board partings in the held-out 12,000-game draw on
+           * release `51b80f9fcf08` (`data/verification/game-differential.g12000.json`) -- a Malamar
+           * Skill Swapped Contrary onto an Archaludon, which then wound up Electro Shot:
+           *     showdown  |-unboost|p1b: Archaludon|spa|1  -> |-damage|p2a: Metagross|77/155
+           *     medicham  |-boost|p1b: Archaludon|spa|1    -> |-damage|p2a: Metagross|1/155
+           * `p1.party.archaludon.boosts.spa` 2 here against 0 there, and a four-stage damage swing
+           * under it. Knob MEDI_CHARGE_BOOST_RAW=1. Probe: tests/probe_charge_boost_contrary.js. */
           const _cp=TAGS.param('move',a.move.id,'chargeTurn'), _b=_cp&&_cp.boosts;
+          const _csign=CHARGE_BOOST_RAW?1:invSign(m);
+          if(_b&&_csign!==1)MEDSEEN.chargeBoostThroughSign++;
           if(_b)for(const _k of Object.keys(_b)){
             const _kk={spa:'sa',spd:'sd',atk:'at',def:'df',spe:'sp'}[_k]||_k;
             if(m.boosts&&_kk in m.boosts){const _b0=m.boosts[_kk];
-              m.boosts[_kk]=Math.max(-6,Math.min(6,m.boosts[_kk]+_b[_k]));
+              m.boosts[_kk]=Math.max(-6,Math.min(6,m.boosts[_kk]+_b[_k]*_csign));
               const _zeroOk=!CHARGE_BOOST_ZERO_SILENT;
               if(_zeroOk&&m.boosts[_kk]===_b0)MEDSEEN.chargeBoostZeroAnnounced++;
               if(TR)TR.bst(m,_kk,m.boosts[_kk]-_b0,undefined,_zeroOk);}
@@ -42349,11 +42473,31 @@ function battleTurn(S,rng,actsForA,actsForB){
          * target` (sim/battle-actions.ts:1154). It is written for EVERY row this step reaches, so
          * what is left standing when the step ends is the LAST such row -- which is exactly what the
          * authority carries into `runMoveEffects`, `selfDrops` and `secondaries`. See `_secDraw`. */
-        _secAddrSlot=midEventSlot(tg);
-        /* 2026-09-06 -- the same write, kept where the authority KEEPS it: `_secAddrSlot` is moved
-         * again by `_secFired`, and the authority restores the value it had here before raising
-         * `DamagingHit`. See `_reactAddr`. */
-        _dmgLastSlot=_secAddrSlot;
+        /* 2026-09-20 -- AND IT SKIPS A ROW THE DOLL IS ABOUT TO EAT, BECAUSE `getSpreadDamage` SKIPS IT.
+         *
+         * `spreadMoveHit` step 0 writes `targets[i] = null` for a row the Substitute absorbed
+         * (battle-actions.ts:1062-1064) and `getSpreadDamage` opens `if (!target) continue;` -- so a
+         * doll row NEVER writes `this.battle.activeTarget`, and the value `secondaries` and the
+         * `DamagingHit` reactors inherit is the last LIVE row. This line wrote every row, so with the
+         * doll standing in the last slot the whole secondary block was addressed at the DOLL's body.
+         * Measured with `G.midAddresses()` on a Lava Plume into a substituted p1b: the authority drew
+         * `lavaplume|p10|0..2` and this engine `lavaplume|p11|0..1` -- a different body AND a
+         * different count.
+         *
+         * `subBlocks` is a PURE read of attacker, target and move (`bypasssub`, Infiltrator) and the
+         * doll's hp has not moved at this step, so asking it here is the same answer step 0 will give.
+         * A click every one of whose rows is a doll row keeps the old write and is COUNTED, because
+         * the authority's `activeTarget` there is whatever the accuracy step left and that is a
+         * different fact (`_accLastSlot`) that this line does not own.
+         * Knob MEDI_SUB_SKIPS_SECONDARY_DIE=1. Probe: tests/probe_sub_secondary_die.js. */
+        if(SUB_SKIPS_SECONDARY_DIE||!subBlocks(m,tg,a.move.id)||_secAddrSlot==null){
+          if(!SUB_SKIPS_SECONDARY_DIE&&subBlocks(m,tg,a.move.id))MEDSEEN.secAddrDollWithNoLiveRowYet++;
+          _secAddrSlot=midEventSlot(tg);
+          /* 2026-09-06 -- the same write, kept where the authority KEEPS it: `_secAddrSlot` is moved
+           * again by `_secFired`, and the authority restores the value it had here before raising
+           * `DamagingHit`. See `_reactAddr`. */
+          _dmgLastSlot=_secAddrSlot;
+        } else MEDSEEN.secAddrSkippedDollRow++;
         /* ROADMAP #175 -- the ATTACKER is passed so `multihitAlwaysMax` (Skill Link) can be read. */
         /* M1 -- and the ACCURACY, off the row the accuracy step already priced. `_hitsThisUse` is
          * once per USE, so the row that reaches the damage step first is the one whose accuracy the
@@ -43500,6 +43644,15 @@ function battleTurn(S,rng,actsForA,actsForB){
              `onTryPrimaryHit` puts it (data/moves.ts:18359, after the `-activate` / `-end` arm). */
           _payDrainRow(_dollDealt,tg);
           R.out=true;
+          /* 2026-09-20 -- AND THE ROW STILL OWES ITS SECONDARY DIE. `spreadMoveHit` writes
+           * `targets[i] = null` here, NOT `false`, and `BattleActions#secondaries` skips only
+           * `target === false` (battle-actions.ts:1339) -- so the authority rolls `random(100)` for a
+           * row the doll ate and then calls `moveHit(null, ...)`, which lands nothing. This engine
+           * dropped the row with `R.out` and drew nothing, so every LATER row's roll read the
+           * authority's PREVIOUS value at the shared address. `_stepEffects` spends it, in row order,
+           * because that is the order the authority's one loop spends them in.
+           * See `_dollSecondaryDraws`. */
+          R._dollSecOwed=true;
         }
       };
       /* NARRATION BATCH Z -- STEP 1's LINES, for every row still live after the doll step. See the foot of
@@ -45517,7 +45670,76 @@ function battleTurn(S,rng,actsForA,actsForB){
         }
         return {abil,src};
       };
+      /* 2026-09-20 -- THE ABILITY-ADDED SECONDARY, LIFTED OUT SO TWO CALLERS READ ONE DERIVATION.
+       * Poison Touch and the rest add their row through `onModifyMove` on the SOURCE, so it is in
+       * `moveData.secondaries` for every target the authority walks -- including the one a doll
+       * absorbed, whose `target` is `null`. `_stepEffects` and `_dollSecondaryDraws` both need it and
+       * a second copy of these five refusals is how two readers come to disagree. The MEDSEEN bump
+       * stays at the `_aos` site, which is the one that goes on to USE the row. */
+      const _addedSecondaryOf=(mAb,fx)=>{
+        const p=TAGS.param('ability',mAb,'addsOwnSecondary');
+        if(!p)return null;
+        if(p.excludesStatus&&TAGS.has('move',a.move.id,'statusCategory'))return null;
+        if(p.onlyStatus&&!TAGS.has('move',a.move.id,'statusCategory'))return null;
+        const _own=(fx&&fx.secondary)||[];
+        if(p.dedupes&&_own.some(s=>s&&(s.volatile===p.volatile||s.status===p.status&&p.status)))return null;
+        if(!p.volatile&&!p.status){ MEDFAILS.addedSecondaryEmpty++;
+          if(!MEDFAILS.addedSecondaryEmptyFirst)MEDFAILS.addedSecondaryEmptyFirst=String(mAb); return null; }
+        return {chance:(p.chance==null?1:+p.chance)*100, volatile:p.volatile||undefined,
+                status:p.status||undefined, _fromAbility:true};
+      };
+      /* 2026-09-20 -- THE DIE A ROW THE DOLL ATE STILL OWES.
+       *
+       *     for (const target of targets) {
+       *       if (target === false) continue;                          <- NULL IS NOT FALSE
+       *       const secondaries = this.battle.runEvent('ModifySecondaries', target, source, ...);
+       *       for (const secondary of secondaries) {
+       *         const secondaryRoll = this.battle.random(100);         <- DRAWN FOR THE NULL ROW TOO
+       *         ...this.moveHit(target, ...)                           <- and lands nothing
+       *       }
+       *     }                                            sim/battle-actions.ts:1336-1352
+       *
+       * `spreadMoveHit` nulls a substitute row and FALSES everything else (a miss, an immunity, a
+       * refused damage), so this is the one class of row that is skipped by the effects and not by the
+       * dice. Skipping the draw shifted every LATER row's `nth` by one at the shared address, which is
+       * how a Rock Slide flinched a body here that moved there.
+       *
+       * SHIELD DUST IS NOT ASKED AND THAT IS THE AUTHORITY'S DOING: `ModifySecondaries` is raised on
+       * the TARGET, which is `null`, so the target's ability cannot filter the list. Sheer Force is the
+       * SOURCE's and empties `moveData.secondaries` outright, so it still means no draw. The format
+       * strip (`formatSecondaryCount.count === 0`) is the same refusal the live loop makes, for the
+       * same reason: the authority's list never held that row.
+       *
+       * `_secFired` IS NOT CALLED. A passed roll here runs `moveHit(null, ...)`, whose
+       * `getSpreadDamage` opens `if (!target) continue;` -- so `activeTarget` does not move, and the
+       * next row is addressed exactly where this one was.
+       *
+       * COST, MEASURED: row 6 of the NINE board partings in the held-out 12,000-game draw on release
+       * `51b80f9fcf08` -- an Orthworm behind its partner's Substitute took two Rock Slides;
+       * `|move|p1a: Orthworm|Shed Tail` there against `|cant|p1a: Orthworm|flinch` here, parting
+       * `p1.pp[0].shedtail` 2 against 1 and nothing else in the whole game.
+       * Knob MEDI_SUB_SKIPS_SECONDARY_DIE=1. Probe: tests/probe_sub_secondary_die.js. */
+      const _dollSecondaryDraws=(R)=>{
+        if(!R||!R._dollSecOwed)return;
+        R._dollSecOwed=false;
+        if(SUB_SKIPS_SECONDARY_DIE)return;
+        const _mAb=(m.ability||'').replace(/[^a-z0-9]/g,'');
+        if(TAGS.param('ability',_mAb,'removesOwnSecondaries'))return;   // Sheer Force: the list is empty
+        const _fx=moveFx(a.move.id);
+        const _fsc=TAGS.param('move',a.move.id,'formatSecondaryCount');
+        const _strip=!!(_fsc&&_fsc.count===0);
+        const _rows=((_fx&&_fx.secondary)||[]).concat(_addedSecondaryOf(_mAb,_fx)?[{_fromAbility:true}]:[]);
+        for(const s of _rows){
+          if(_strip&&!s._fromAbility)continue;
+          _secDraw();
+          MEDSEEN.dollSecondaryDrawn++;
+        }
+      };
       const _stepEffects=(R,_fxOpt)=>{const tg=R.tg;const _react=R.react;const _secOnly=!!(_fxOpt&&_fxOpt.secOnly);
+        /* 2026-09-20 -- A ROW THE DOLL ATE IS STILL WALKED, FOR ITS DIE AND FOR NOTHING ELSE. The step
+         * carries `runsWhenOut` for this one case; every other out row returns here untouched, exactly
+         * as the driver's `if(R.out&&!_step.runsWhenOut)continue;` left it. */
+        if(R.out){ _dollSecondaryDraws(R); return; }
         /* ROADMAP #161 -- A TARGET THAT DIED TO THIS HIT STILL RUNS THE HIT'S EFFECTS, AND THE ONES
          * THAT LAND ON THE ATTACKER STILL LAND.
          *
@@ -45673,18 +45895,13 @@ function battleTurn(S,rng,actsForA,actsForB){
            * own secondaries and this one is the ABILITY's, so a move the format stripped still gets
            * it -- which is what the authority does, because `onModifyMove` runs on the already-stripped
            * list. Its chance is likewise the ability's fact, so `_fmtChance` is not consulted. */
+          /* 2026-09-20 -- the derivation moved to `_addedSecondaryOf` so the doll row's die reader can
+           * ask the same question; this call site is unchanged in what it computes and still owns the
+           * counter, because it is the one that goes on to APPLY the row. */
           const _aos=(()=>{
-            const p=TAGS.param('ability',mAb,'addsOwnSecondary');
-            if(!p)return null;
-            if(p.excludesStatus&&TAGS.has('move',a.move.id,'statusCategory'))return null;
-            if(p.onlyStatus&&!TAGS.has('move',a.move.id,'statusCategory'))return null;
-            const _own=(fx&&fx.secondary)||[];
-            if(p.dedupes&&_own.some(s=>s&&(s.volatile===p.volatile||s.status===p.status&&p.status)))return null;
-            if(!p.volatile&&!p.status){ MEDFAILS.addedSecondaryEmpty++;
-              if(!MEDFAILS.addedSecondaryEmptyFirst)MEDFAILS.addedSecondaryEmptyFirst=String(mAb); return null; }
-            MEDSEEN.abilityAddedSecondary++;
-            return {chance:(p.chance==null?1:+p.chance)*100, volatile:p.volatile||undefined,
-                    status:p.status||undefined, _fromAbility:true};
+            const r=_addedSecondaryOf(mAb,fx);
+            if(r)MEDSEEN.abilityAddedSecondary++;
+            return r;
           })();
           /* ROADMAP #502 -- THE OUTCOME OF THE INERT ROW'S CHANCE ROLL, CARRIED TO THE TAG BLOCKS.
            *
@@ -46866,6 +47083,11 @@ function battleTurn(S,rng,actsForA,actsForB){
        * taken. `R.hitLanded` is only ever set inside `_stepApply` and nothing below `_stepApply` sets
        * `R.out`, so no other refusal can reach this step through the gap. */
       _stepHitCount.runsWhenOut=true;
+      /* 2026-09-20 -- AND SO DOES `_stepEffects`, for the one row class the authority walks and this
+       * engine dropped: a row the Substitute absorbed is `targets[i] = null`, which
+       * `BattleActions#secondaries` does NOT skip. Its body returns immediately on any other out row,
+       * so the exception is exactly one draw wide. See `_dollSecondaryDraws`. */
+      _stepEffects.runsWhenOut=true;
       /* STEP 7e -- `runEvent('DamagingHit')`, sim/battle-actions.ts:951, AND STEP 7f -- the `AfterHit`
        * singleEvent on the NEXT LINE, :954. Two hooks, two steps, in that order. 2026-08-12.
        *

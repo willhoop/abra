@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-20T18:16:33.937Z",
+  "generated": "2026-09-20T20:13:45.882Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:de38d17e15a2/credit:observed-effect/v1/nature:real",
   "games_requested": 1200,
@@ -62,9 +62,9 @@
       "turn1_boards_reached": 961,
       "rows_credited": 277,
       "credit_events": {
-        "effect": 543115,
+        "effect": 552837,
         "negative": 1052,
-        "click": 1130061
+        "click": 1132923
       },
       "classes": []
     }
@@ -84,7 +84,7 @@
   },
   "games": 961,
   "turns_cap": 50,
-  "elapsed_s": 195.1,
+  "elapsed_s": 141.3,
   "credit_turn_profile": {
     "rows_with_any_credit": 277,
     "credits_with_no_turn_index": 0,
@@ -140,42 +140,42 @@
       }
     ],
     "credit_events_by_turn": {
-      "1": 83562,
-      "2": 84183,
-      "3": 83791,
-      "4": 84035,
-      "5": 80894,
-      "6": 74514,
-      "7": 65742,
-      "8": 56193,
-      "9": 44620,
-      "10": 36345,
-      "11": 27631,
-      "12": 20904,
-      "13": 14795,
-      "14": 10986,
-      "15": 7897,
-      "16": 5760,
-      "17": 4409,
-      "18": 3203,
-      "19": 2987,
-      "20": 2400,
-      "21": 1521,
-      "22": 1140,
-      "23": 867,
-      "24": 617,
-      "25": 700,
-      "26": 672,
-      "27": 584,
-      "28": 565,
-      "29": 337,
-      "30": 280,
-      "31": 298,
-      "32": 186,
-      "33": 220,
-      "34": 101,
-      "35": 105,
-      "36": 55
+      "1": 83877,
+      "2": 84879,
+      "3": 84452,
+      "4": 84712,
+      "5": 81555,
+      "6": 75119,
+      "7": 66301,
+      "8": 56642,
+      "9": 44989,
+      "10": 36663,
+      "11": 27861,
+      "12": 21093,
+      "13": 14925,
+      "14": 11078,
+      "15": 7953,
+      "16": 5798,
+      "17": 4443,
+      "18": 3225,
+      "19": 3013,
+      "20": 2427,
+      "21": 1532,
+      "22": 1149,
+      "23": 874,
+      "24": 621,
+      "25": 707,
+      "26": 680,
+      "27": 591,
+      "28": 572,
+      "29": 338,
+      "30": 282,
+      "31": 301,
+      "32": 188,
+      "33": 224,
+      "34": 103,
+      "35": 107,
+      "36": 56
     },
     "rows_first_credited_at_turn_13_or_later": [],
     "rows_first_credited_at_turn_9_or_later": [
@@ -3927,17 +3927,12 @@
       "games_both_sides_drew": 722,
       "verdicts": {
         "identical": 720,
-        "neither-drew": 236,
-        "authority-drew-none": 3,
+        "neither-drew": 239,
         "partly-shared": 2
       },
       "unshared_address_shapes": {
-        "any infestation  [me only]": 28,
-        "any firespin  [me only]": 2,
         "any hypervoice  [sd only]": 2,
         "any -  [me only]": 2,
-        "any smackdown  [me only]": 1,
-        "any sandtomb  [me only]": 1,
         "any kowtowcleave  [sd only]": 1,
         "any kowtowcleave  [me only]": 1,
         "any heatwave  [sd only]": 1,
@@ -5572,10 +5567,10 @@
     "policy": "observed-effect/v1",
     "rule": "a census row is exercised when a board leaf in a family THE TAG'S OWN PARAMS NAME changed across the turn, in either engine, inside the scope of an entity that was in play; or when a blocking tag's declared negative case was reached and correctly did not fire. A click alone counts for NOTHING but an attempt.",
     "why": "Primarina clicked Haze on turn 1 into a board with zero boosts on it. Haze is a no-op there, the census marked it exercised, and because the census STEERS the sample a falsely credited row then steered every later run AWAY from testing it.",
-    "rows_with_an_observed_effect": 400,
-    "rows_that_can_be_witnessed_on_a_board": 429,
-    "rows_that_name_no_board_leaf": 494,
-    "rows_credited_by_a_connected_click_only": 462,
+    "rows_with_an_observed_effect": 404,
+    "rows_that_can_be_witnessed_on_a_board": 433,
+    "rows_that_name_no_board_leaf": 497,
+    "rows_credited_by_a_connected_click_only": 465,
     "rows_clicked_or_present_that_did_nothing": 9,
     "rows_clicked_or_present_that_did_nothing_list": [
       "ability:clearsScreensOnEntry",
@@ -6217,9 +6212,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 312,
+        "credit": 468,
         "of_which": {
-          "effect": 672,
+          "effect": 1008,
           "negative": 0,
           "click": 0
         },
@@ -6851,13 +6846,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 53352,
+        "credit": 57456,
         "of_which": {
-          "effect": 109473,
+          "effect": 117894,
           "negative": 0,
           "click": 0
         },
-        "attempts": 130
+        "attempts": 140
       },
       {
         "key": "move:blocksHealing",
@@ -8484,11 +8479,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 6290,
+        "credit": 6919,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 13330
+          "click": 14663
         },
         "attempts": 0
       },
@@ -8497,11 +8492,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 6290,
+        "credit": 6919,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 13330
+          "click": 14663
         },
         "attempts": 0
       },
@@ -8510,11 +8505,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 6290,
+        "credit": 6919,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 13330
+          "click": 14663
         },
         "attempts": 0
       },
@@ -8523,11 +8518,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 6290,
+        "credit": 6919,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 13330
+          "click": 14663
         },
         "attempts": 0
       },
@@ -8536,11 +8531,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 6290,
+        "credit": 6919,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 13330
+          "click": 14663
         },
         "attempts": 0
       },
@@ -8549,11 +8544,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 6290,
+        "credit": 6919,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 13330
+          "click": 14663
         },
         "attempts": 0
       },
@@ -8609,13 +8604,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 2604,
+        "credit": 3038,
         "of_which": {
-          "effect": 5532,
+          "effect": 6454,
           "negative": 0,
           "click": 0
         },
-        "attempts": 6
+        "attempts": 7
       },
       {
         "key": "move:chargeTurn",
@@ -8626,13 +8621,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 2604,
+        "credit": 3038,
         "of_which": {
-          "effect": 5532,
+          "effect": 6454,
           "negative": 0,
           "click": 0
         },
-        "attempts": 6
+        "attempts": 7
       },
       {
         "key": "move:chargeTurn",
@@ -8643,13 +8638,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 2604,
+        "credit": 3038,
         "of_which": {
-          "effect": 5532,
+          "effect": 6454,
           "negative": 0,
           "click": 0
         },
-        "attempts": 6
+        "attempts": 7
       },
       {
         "key": "move:chargeSkippedByWeather",
@@ -8675,13 +8670,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 2604,
+        "credit": 3038,
         "of_which": {
-          "effect": 5532,
+          "effect": 6454,
           "negative": 0,
           "click": 0
         },
-        "attempts": 6
+        "attempts": 7
       },
       {
         "key": "move:failsIfTargetNotAttacking",
@@ -9261,13 +9256,13 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 4385,
+        "credit": 5262,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 7610
+          "click": 9132
         },
-        "attempts": 5
+        "attempts": 6
       },
       {
         "key": "ability:boostsEachTurn",
@@ -10257,13 +10252,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 53352,
+        "credit": 57456,
         "of_which": {
-          "effect": 109473,
+          "effect": 117894,
           "negative": 0,
           "click": 0
         },
-        "attempts": 130
+        "attempts": 140
       },
       {
         "key": "move:variablePower",
@@ -11227,13 +11222,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 53352,
+        "credit": 57456,
         "of_which": {
-          "effect": 109473,
+          "effect": 117894,
           "negative": 0,
           "click": 0
         },
-        "attempts": 130
+        "attempts": 140
       },
       {
         "key": "move:statusCategory",
@@ -11722,11 +11717,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 42,
+        "credit": 48,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 56
+          "click": 64
         },
         "attempts": 0
       },
@@ -12195,13 +12190,13 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 4385,
+        "credit": 5262,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 7610
+          "click": 9132
         },
-        "attempts": 5
+        "attempts": 6
       },
       {
         "key": "ability:writesAccuracy",
@@ -12421,13 +12416,13 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 4385,
+        "credit": 5262,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 7610
+          "click": 9132
         },
-        "attempts": 5
+        "attempts": 6
       },
       {
         "key": "move:substitute",
@@ -12440,9 +12435,9 @@
           "param key `buffer`",
           "the tag name matches substitute"
         ],
-        "credit": 150,
+        "credit": 175,
         "of_which": {
-          "effect": 264,
+          "effect": 308,
           "negative": 0,
           "click": 0
         },
@@ -12470,11 +12465,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 42,
+        "credit": 48,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 56
+          "click": 64
         },
         "attempts": 0
       },
@@ -12698,13 +12693,13 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 4385,
+        "credit": 5262,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 7610
+          "click": 9132
         },
-        "attempts": 5
+        "attempts": 6
       },
       {
         "key": "move:swapsAbilities",
@@ -13042,9 +13037,9 @@
           "param key `buffer`",
           "the tag name matches substitute"
         ],
-        "credit": 150,
+        "credit": 175,
         "of_which": {
-          "effect": 264,
+          "effect": 308,
           "negative": 0,
           "click": 0
         },
@@ -13320,11 +13315,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 42,
+        "credit": 48,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 56
+          "click": 64
         },
         "attempts": 0
       },
@@ -14550,9 +14545,9 @@
         "from": [
           "the tag name matches encore|locksTarget|sealsMove"
         ],
-        "credit": 312,
+        "credit": 468,
         "of_which": {
-          "effect": 672,
+          "effect": 1008,
           "negative": 0,
           "click": 0
         },
@@ -14604,13 +14599,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 53352,
+        "credit": 57456,
         "of_which": {
-          "effect": 109473,
+          "effect": 117894,
           "negative": 0,
           "click": 0
         },
-        "attempts": 130
+        "attempts": 140
       },
       {
         "key": "move:statusInflict",
@@ -14622,13 +14617,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 53352,
+        "credit": 57456,
         "of_which": {
-          "effect": 109473,
+          "effect": 117894,
           "negative": 0,
           "click": 0
         },
-        "attempts": 130
+        "attempts": 140
       },
       {
         "key": "move:boostsTarget",
@@ -14821,9 +14816,9 @@
           "param key `buffer`",
           "the tag name matches substitute"
         ],
-        "credit": 150,
+        "credit": 175,
         "of_which": {
-          "effect": 264,
+          "effect": 308,
           "negative": 0,
           "click": 0
         },
@@ -14852,13 +14847,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 53352,
+        "credit": 57456,
         "of_which": {
-          "effect": 109473,
+          "effect": 117894,
           "negative": 0,
           "click": 0
         },
-        "attempts": 130
+        "attempts": 140
       },
       {
         "key": "move:healDescriptor",
@@ -15483,13 +15478,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 2604,
+        "credit": 3038,
         "of_which": {
-          "effect": 5532,
+          "effect": 6454,
           "negative": 0,
           "click": 0
         },
-        "attempts": 6
+        "attempts": 7
       },
       {
         "key": "move:locksIntoMove",
@@ -16265,13 +16260,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 53352,
+        "credit": 57456,
         "of_which": {
-          "effect": 109473,
+          "effect": 117894,
           "negative": 0,
           "click": 0
         },
-        "attempts": 130
+        "attempts": 140
       },
       {
         "key": "move:statusInflict",
@@ -16283,13 +16278,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 53352,
+        "credit": 57456,
         "of_which": {
-          "effect": 109473,
+          "effect": 117894,
           "negative": 0,
           "click": 0
         },
-        "attempts": 130
+        "attempts": 140
       },
       {
         "key": "move:perTurnHP",
@@ -17766,13 +17761,13 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 4385,
+        "credit": 5262,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 7610
+          "click": 9132
         },
-        "attempts": 5
+        "attempts": 6
       },
       {
         "key": "ability:damageBoost",
@@ -17957,11 +17952,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 42,
+        "credit": 48,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 56
+          "click": 64
         },
         "attempts": 0
       },
@@ -18090,13 +18085,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 53352,
+        "credit": 57456,
         "of_which": {
-          "effect": 109473,
+          "effect": 117894,
           "negative": 0,
           "click": 0
         },
-        "attempts": 130
+        "attempts": 140
       },
       {
         "key": "ability:punishesAttacker",
@@ -18179,11 +18174,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 42,
+        "credit": 48,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 56
+          "click": 64
         },
         "attempts": 0
       },
@@ -18531,11 +18526,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 6290,
+        "credit": 6919,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 13330
+          "click": 14663
         },
         "attempts": 0
       },
@@ -18578,11 +18573,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 6290,
+        "credit": 6919,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 13330
+          "click": 14663
         },
         "attempts": 0
       },
@@ -18596,13 +18591,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 53352,
+        "credit": 57456,
         "of_which": {
-          "effect": 109473,
+          "effect": 117894,
           "negative": 0,
           "click": 0
         },
-        "attempts": 130
+        "attempts": 140
       },
       {
         "key": "move:healDescriptor",
@@ -18704,9 +18699,9 @@
           "param key `buffer`",
           "the tag name matches substitute"
         ],
-        "credit": 150,
+        "credit": 175,
         "of_which": {
-          "effect": 264,
+          "effect": 308,
           "negative": 0,
           "click": 0
         },
@@ -18723,9 +18718,9 @@
           "param key `buffer`",
           "the tag name matches substitute"
         ],
-        "credit": 150,
+        "credit": 175,
         "of_which": {
-          "effect": 264,
+          "effect": 308,
           "negative": 0,
           "click": 0
         },
@@ -18742,9 +18737,9 @@
           "param key `buffer`",
           "the tag name matches substitute"
         ],
-        "credit": 150,
+        "credit": 175,
         "of_which": {
-          "effect": 264,
+          "effect": 308,
           "negative": 0,
           "click": 0
         },
@@ -19094,11 +19089,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 6290,
+        "credit": 6919,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 13330
+          "click": 14663
         },
         "attempts": 0
       },
@@ -19127,13 +19122,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 53352,
+        "credit": 57456,
         "of_which": {
-          "effect": 109473,
+          "effect": 117894,
           "negative": 0,
           "click": 0
         },
-        "attempts": 130
+        "attempts": 140
       },
       {
         "key": "move:statusInflict",
@@ -19145,13 +19140,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 53352,
+        "credit": 57456,
         "of_which": {
-          "effect": 109473,
+          "effect": 117894,
           "negative": 0,
           "click": 0
         },
-        "attempts": 130
+        "attempts": 140
       },
       {
         "key": "move:statusInflict",
@@ -19163,13 +19158,13 @@
           "param key `status`",
           "the tag name matches burn|poison|toxic|paraly|sle"
         ],
-        "credit": 53352,
+        "credit": 57456,
         "of_which": {
-          "effect": 109473,
+          "effect": 117894,
           "negative": 0,
           "click": 0
         },
-        "attempts": 130
+        "attempts": 140
       },
       {
         "key": "move:immunityGate",
@@ -19649,11 +19644,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 6290,
+        "credit": 6919,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 13330
+          "click": 14663
         },
         "attempts": 0
       },
@@ -19758,11 +19753,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 42,
+        "credit": 48,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 56
+          "click": 64
         },
         "attempts": 0
       },
@@ -19784,11 +19779,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 42,
+        "credit": 48,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 56
+          "click": 64
         },
         "attempts": 0
       },
@@ -19818,13 +19813,13 @@
         "from": [
           "param key `boosts`"
         ],
-        "credit": 2604,
+        "credit": 3038,
         "of_which": {
-          "effect": 5532,
+          "effect": 6454,
           "negative": 0,
           "click": 0
         },
-        "attempts": 6
+        "attempts": 7
       },
       {
         "key": "ability:weatherSetter",
@@ -20010,6 +20005,52 @@
         "attempts": 0
       },
       {
+        "key": "move:statusInflict",
+        "kind": "effect",
+        "families": [
+          "status"
+        ],
+        "from": [
+          "param key `status`",
+          "the tag name matches burn|poison|toxic|paraly|sle"
+        ],
+        "credit": 57456,
+        "of_which": {
+          "effect": 117894,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 140
+      },
+      {
+        "key": "ability:accuracyMod",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [
+          "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
+        ],
+        "credit": 5262,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 9132
+        },
+        "attempts": 6
+      },
+      {
+        "key": "move:pivotStatus",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 6919,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 14663
+        },
+        "attempts": 0
+      },
+      {
         "key": "ability:disablesAttacker",
         "kind": "no-board-leaf",
         "families": [],
@@ -20021,17 +20062,84 @@
           "click": 3880
         },
         "attempts": 16
+      },
+      {
+        "key": "move:changesTargetType",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 48,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 64
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:chargeTurn",
+        "kind": "effect",
+        "families": [
+          "boosts"
+        ],
+        "from": [
+          "param key `boosts`"
+        ],
+        "credit": 3038,
+        "of_which": {
+          "effect": 6454,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 7
+      },
+      {
+        "key": "move:substitute",
+        "kind": "effect",
+        "families": [
+          "hp",
+          "substitute"
+        ],
+        "from": [
+          "param key `buffer`",
+          "the tag name matches substitute"
+        ],
+        "credit": 175,
+        "of_which": {
+          "effect": 308,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:locksTarget",
+        "kind": "effect",
+        "families": [
+          "encore",
+          "disable"
+        ],
+        "from": [
+          "the tag name matches encore|locksTarget|sealsMove"
+        ],
+        "credit": 468,
+        "of_which": {
+          "effect": 1008,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
       }
     ]
   },
   "coverage": {
-    "measurable": 923,
-    "exercised": 879,
+    "measurable": 930,
+    "exercised": 886,
     "exercised_note": "THE OLD NUMBER — an entity of this row connected or stood on the field. It is kept so the drop to credit.rows_with_an_observed_effect is readable, and it is NOT the coverage claim any more.",
-    "exercised_by_a_connected_move": 516,
-    "move_targets": 537,
-    "present_on_the_field_only": 363,
-    "ability_or_item_targets": 386,
+    "exercised_by_a_connected_move": 522,
+    "move_targets": 543,
+    "present_on_the_field_only": 364,
+    "ability_or_item_targets": 387,
     "median_completed_turns_before_divergence": 9,
     "unmeasurable_by_this_instrument": [
       {
@@ -20719,7 +20827,7 @@
     "driver_inputs": [
       {
         "file": "data/move-priors.json",
-        "read_from": "release 51b80f9fcf08",
+        "read_from": "release c2d68f8cab07",
         "digest": "e667fe8ab457",
         "generated": "2026-08-22",
         "rows": 345,
@@ -20745,7 +20853,7 @@
         "rows": 48,
         "what": "the DECLARED SKIP LIST — every event medicham2 says it does not emit is removed from the Showdown side before alignment, so this decides what can count as a divergence",
         "derived_from_medicham2": "50bc0ebd5e12",
-        "medicham2_played": "5773803f7900"
+        "medicham2_played": "0157bc2c2302"
       }
     ],
     "driver_code": {
@@ -20800,16 +20908,16 @@
       "does_not_cover": "a computed require path, a dynamic import, the Showdown checkout beyond `showdown_commit`, and data/protocol-events.json (read as data, not required)."
     },
     "input": "data/mechanics-census.json",
-    "input_read_from": "data/verification/census-pin-8514757f99d5.json",
-    "input_digest": "cc2510c0942f",
-    "input_raw_digest": "cc2510c0942f",
+    "input_read_from": "data/verification/census-pin-3a69f40d67f4.json",
+    "input_digest": "5134eadf4126",
+    "input_raw_digest": "5134eadf4126",
     "input_digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content)",
-    "input_rows": 993,
-    "input_generated": "2026-09-20T18:07:15.116Z",
-    "input_live_digest": "cc2510c0942f",
+    "input_rows": 1000,
+    "input_generated": "2026-09-20T20:07:18.894Z",
+    "input_live_digest": "5134eadf4126",
     "pinned": true,
     "matches_live": true,
-    "selects_from": 923,
+    "selects_from": 930,
     "unmeasurable": 70,
     "credit": "observed-effect/v1 — a row is exercised when a board leaf in a family the tag's own params name changed across the turn, or when a declared negative case was reached and did not fire. A click alone counts for nothing. ROADMAP #91.",
     "team_pool_digest": "0d103fb9fa87",
@@ -20818,12 +20926,12 @@
     "team_store_pinned_to": "data/team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "51b80f9fcf08",
-  "engine_release_cut": "2026-09-20T18:07:15.717Z",
+  "engine_release": "c2d68f8cab07",
+  "engine_release_cut": "2026-09-20T20:07:51.403Z",
   "engine_release_cuts": 2,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "5773803f7900",
+    "engine/medicham2-browser.js": "0157bc2c2302",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "d00e77a7ac26",
     "engine/position_features.js": "bb71676d3669",
