@@ -942,6 +942,9 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   alliesHealRefusedFirst: 0, megaPhaseBeforeBracketSix: 0, corpseSpeedRewireUndone: 0,
   breakClearedStallFresh: 0, lockExpiredAtAfterMoveUnresolved: 0, pivotHerbBeforeEntry: 0,
   smartTargetInvulnSilent: 0,
+  /*   pivotEntryAddrCleared        a pivot entry pass opened with a STALE move address and had it cleared,
+   *                                as the authority's separate switch action addresses it. See `pivotFrom`. */
+  pivotEntryAddrCleared: 0,
   /*   hpThresholdBoostAtEvent   a Berserk / Anger Shell boost paid at `AfterMoveSecondary`, below the recoil */
   hpThresholdBoostAtEvent: 0,
   /* NARRATION BATCH Q, 2026-09-08 -- AND THE REFUSALS THAT DID WRITE THE LINE BECAUSE THE SILENCE WAS
@@ -2161,6 +2164,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * target's already-chosen status move has to FAIL when it runs. A zero here after games with a
    * Taunt in them is the finding. */
   tauntRefusedAtExecution: 0,
+  /* 2026-09-20 -- a click refused by Heal Block's `onBeforeMove` rather than merely healing nothing.
+   * tests/probe_healblock_refuses_heal_move.js. */
+  healBlockRefusedMove: 0,
+  /* 2026-09-20 -- Bug Bite's / Pluck's strip resolved at step 3 (`singleEvent('Hit', …)`) rather than
+   * at `onAfterHit`, which is where this engine had it. tests/probe_stealeat_before_reactors.js. */
+  stealEatAtHitEvent: 0,
+  /* 2026-09-20 -- a priority bar this engine would have applied, dropped because the attacker breaks
+   * moulds and the bar is breakable. tests/probe_priority_bar_mold_breaker.js. */
+  priorityBarBrokenByBreaker: 0,
   /* WIRE 119 -- a status move taken OFF THE MENU before it could be chosen, the other half of the
    * same mechanic (Showdown's `onDisableMove`). Counted apart from the execution refusal because the
    * two fire in different places and a merged counter cannot say which one is dead. */
@@ -3712,6 +3724,18 @@ const MEDFAILS = { encoreAction: 0,
    * which the authority's `move.id !== 'struggle'` clause refuses before the die. Stamped at LOAD.
    * tests/probe_disabler_skips_struggle.js. */
   disablerSealsStruggleRestored: 0,
+  /* 2026-09-20 -- MEDI_HEALBLOCK_ALLOWS_HEAL_MOVES=1 was set: a heal-FLAGGED click is played instead
+   * of refused, which `healblock.condition.onBeforeMove` stops outright. Stamped at LOAD.
+   * tests/probe_healblock_refuses_heal_move.js. */
+  healBlockAllowsHealMovesRestored: 0,
+  /* 2026-09-20 -- MEDI_STEALEAT_AT_AFTERHIT=1 was set: Bug Bite's and Pluck's `onHit` steal-eat is
+   * resolved at the `onAfterHit` step, below the DamagingHit reactors. Stamped at LOAD.
+   * tests/probe_stealeat_before_reactors.js. */
+  stealEatAtAfterHitRestored: 0,
+  /* 2026-09-20 -- MEDI_PRIORITY_BAR_IGNORES_BREAKER=1 was set: the priority bar reads the defender's
+   * ability raw, so a mould-breaking attacker is refused by a breakable bar. Stamped at LOAD.
+   * tests/probe_priority_bar_mold_breaker.js. */
+  priorityBarIgnoresBreakerRestored: 0,
   /* 2026-09-19 -- MEDI_CONDPOWER_OFF_ANY=1 was set: Fickle Beam's 30% is drawn off the generic stream
    * above the crit instead of off the crit address below it, which is where the authority draws it.
    * Stamped at LOAD. tests/probe_fickle_beam_die.js. */
@@ -4813,6 +4837,9 @@ const MEDFAILS = { encoreAction: 0,
    * LOAD from their env knob so a census generated under either is refused by name. */
   switchInAnnounceSilentRestored: 0,
   entryDropAnnounceIntimidateShapeRestored: 0,
+  /* 2026-09-20 -- the third stamp of the same pass: the arrival announcement put back BELOW the
+   * Imposter/Trace copy, so a body announces an ability it did not walk in with. See the knob. */
+  switchInAnnounceAfterCopyRestored: 0,
   symbiosisLineShort: 0, symbiosisNonBerrySites: 'Mental Herb spends at freeVolatileByItem and Power\n Herb is isNonstandard Past in Champions; neither calls the partner. White Herb DOES, from 2026-08-23',
   /* ROADMAP #139 -- a `callsAnotherMove` click this engine could not resolve. Two reasons, kept
    * apart: `SourceUnmodelled` is Sleep Talk's own-moveslot draw, which is declared and not built;
@@ -5250,6 +5277,9 @@ const MEDFAILS = { encoreAction: 0,
    * shipping run; see the knob block beside REPLACE_ORDER_STABLE. */
   alliesHealInterleavedRestored: 0, megaGateOnPriorityRestored: 0, corpseSpeedKeepsRewireRestored: 0,
   breakKeepsStallFreshRestored: 0, lockEndNeedsHitRestored: 0, pivotHerbAfterEntryRestored: 0,
+  /* 2026-09-20 -- MEDI_PIVOT_ENTRY_MOVE_ADDR=1 addresses a pivot's entry draws to the PIVOT MOVE again.
+   * MUST READ 0 on any shipping run; see the knob beside PIVOT_HERB_AFTER_ENTRY. */
+  pivotEntryMoveAddrRestored: 0,
   smartInvulnMissLineRestored: 0, hpThresholdBoostAboveRecoilRestored: 0,
   /* NARRATION BATCH D, 2026-09-19 -- three knobs; see the knob block beside VOL_ARTIFACT_ORDER. MUST READ 0. */
   dropRefusalAfterTableRestored: 0, sweepUnattributedRestored: 0, magicianEnditemLineRestored: 0,
@@ -6554,6 +6584,27 @@ if(BOUNCE_BEFORE_SHIELD)MEDFAILS.bounceBeforeShieldRestored=1;
  * Probe: tests/probe_disabler_skips_struggle.js. */
 const DISABLER_SEALS_STRUGGLE=_MK('MEDI_DISABLER_SEALS_STRUGGLE');
 if(DISABLER_SEALS_STRUGGLE)MEDFAILS.disablerSealsStruggleRestored=1;
+/* 2026-09-20 -- MEDI_HEALBLOCK_ALLOWS_HEAL_MOVES=1 restores Heal Block as a HEALING suppressor only:
+ * a move carrying `flags['heal']` is played, lands its damage and spends its PP, and merely heals
+ * nothing. The authority refuses the CLICK (`healblock.condition.onBeforeMove`, data/moves.ts:8310).
+ * Stamped at LOAD in MEDFAILS.healBlockAllowsHealMovesRestored.
+ * Probe: tests/probe_healblock_refuses_heal_move.js. */
+const HEALBLOCK_ALLOWS_HEAL_MOVES=_MK('MEDI_HEALBLOCK_ALLOWS_HEAL_MOVES');
+if(HEALBLOCK_ALLOWS_HEAL_MOVES)MEDFAILS.healBlockAllowsHealMovesRestored=1;
+/* 2026-09-20 -- MEDI_STEALEAT_AT_AFTERHIT=1 restores Bug Bite's and Pluck's steal-eat to the
+ * `onAfterHit` step, where this engine had it beside Thief and Knock Off. Their handler is `onHit`
+ * (data/moves.ts:1920), which `spreadMoveHit` runs at step 3 -- above the `DamagingHit` reactors --
+ * so under this knob the thief is paid by Rough Skin before it eats. Stamped at LOAD in
+ * MEDFAILS.stealEatAtAfterHitRestored. Probe: tests/probe_stealeat_before_reactors.js. */
+const STEALEAT_AT_AFTERHIT=_MK('MEDI_STEALEAT_AT_AFTERHIT');
+if(STEALEAT_AT_AFTERHIT)MEDFAILS.stealEatAtAfterHitRestored=1;
+/* 2026-09-20 -- MEDI_PRIORITY_BAR_IGNORES_BREAKER=1 restores `priorityRefusedAbove`'s raw read of
+ * `d.ability`: a Mold Breaker attacker is refused by Armor Tail and Queenly Majesty, which the
+ * authority's `runEvent` drops for any BREAKABLE ability on an attacking event (sim/battle.ts:855).
+ * Stamped at LOAD in MEDFAILS.priorityBarIgnoresBreakerRestored.
+ * Probe: tests/probe_priority_bar_mold_breaker.js. */
+const PRIORITY_BAR_IGNORES_BREAKER=_MK('MEDI_PRIORITY_BAR_IGNORES_BREAKER');
+if(PRIORITY_BAR_IGNORES_BREAKER)MEDFAILS.priorityBarIgnoresBreakerRestored=1;
 /* 2026-09-19 -- MEDI_CONDPOWER_OFF_ANY=1 restores Fickle Beam's chance draw to the GENERIC stream,
  * taken above the crit, where this engine had it. The authority raises `onBasePower` from inside
  * `getDamage` AFTER the crit roll, so the event is a `crit`-address draw at repeat index 1; a draw
@@ -6703,6 +6754,28 @@ const SWITCHIN_ANNOUNCE_SILENT=_MK('MEDI_SWITCHIN_ANNOUNCE_SILENT');
 const ENTRYDROP_ANNOUNCE_INTIMIDATE_SHAPE=_MK('MEDI_ENTRYDROP_ANNOUNCE_INTIMIDATE_SHAPE');
 if(SWITCHIN_ANNOUNCE_SILENT)MEDFAILS.switchInAnnounceSilentRestored=1;
 if(ENTRYDROP_ANNOUNCE_INTIMIDATE_SHAPE)MEDFAILS.entryDropAnnounceIntimidateShapeRestored=1;
+/* 2026-09-20 -- MEDI_SWITCHIN_ANNOUNCE_AFTER_COPY=1: THE ARRIVAL ANNOUNCEMENT GOES BACK BELOW THE
+ * IMPOSTER/TRACE COPY, which is where this engine wrote it for the one day the line existed.
+ *
+ * THE ABILITY THAT SPEAKS ON ARRIVAL IS THE ONE THE BODY ARRIVED WITH, AND A COPY MADE DURING THE
+ * SAME PASS IS NOT IT. `Battle#fieldEvent` builds its handler list ONCE, over every entrant, BEFORE
+ * `speedSort` and before a single handler runs (sim/battle.ts:490-506) -- so a Ditto whose ability is
+ * `imposter` at that instant contributes IMPOSTER's `onSwitchIn` and nothing else, and the Cloud Nine
+ * it acquires two lines later has no handler in the list to run. The acquisition road confirms it from
+ * the other side: `transformInto` ends at `setAbility(pokemon.ability, this, null, true, true)`
+ * (sim/pokemon.ts:1358) and `setAbility` raises `singleEvent('Start', …)` (:1946-1949) -- `Start`,
+ * never `SwitchIn`, which is the same door `announcesOnStart` uses and the reason these are two tags.
+ * Trace is the identical shape. Cloud Nine's OWN handler comment says it: *"Cloud Nine does not
+ * activate when Skill Swapped or when Neutralizing Gas leaves the field"* (data/abilities.ts:535).
+ *
+ * MEASURED: the LAST undeclared narration game on the MEDICHAM gate, release `6a0582efeda6`, 1,950-game
+ * lattice, seed …2658408069 turn 4 --
+ *     showdown  |-ability|p2a: Drampa|Cloud Nine        medicham  |-ability|p1b: Ditto|cloudnine
+ * A Ditto refilled opposite a Drampa, copied Cloud Nine through Imposter, and then said so.
+ * NO BOARD LEAF MOVES EITHER WAY: the copy itself, the suppression and the weather are unchanged --
+ * only WHICH bodies write the bare line. tests/probe_switchin_announce.js asserts that on every arm. */
+const SWITCHIN_ANNOUNCE_AFTER_COPY=_MK('MEDI_SWITCHIN_ANNOUNCE_AFTER_COPY');
+if(SWITCHIN_ANNOUNCE_AFTER_COPY)MEDFAILS.switchInAnnounceAfterCopyRestored=1;
 /* 2026-09-19 -- MEDI_ABILITY_BOOST_SILENT=1: THE WHOLE SHARED ANNOUNCE ROAD GOES QUIET.
  * Every ability-sourced stat change writes its `-boost`/`-unboost` line with NO `|-ability|...|boost`
  * announcement above it, and Defiant/Competitive announce UNCONDITIONALLY -- including on a stat
@@ -8332,14 +8405,46 @@ function airborneAbilityHasNoTryHit(mon,att,mvCategory){
  * `singleEvent('Try')` (:590) sits BETWEEN them. Folded into one number, this engine refused a Sucker
  * Punch by the floor that the game refuses for its own reason. A caller passing nothing gets both, so
  * board.js's three-argument feature read is untouched; the header above still holds for `aimedAt`. */
-function priorityRefusedAbove(defenders, field, aimedAt, why, only){
+/* 2026-09-20 -- `att` IS THE SIXTH PARAMETER AND IT IS WHAT MAKES THE BAR BREAKABLE.
+ *
+ * This function read `d.ability` RAW. It is the one place four sources of priority refusal already
+ * meet -- Armor Tail, Queenly Majesty, Psychic Terrain, Quick Guard -- and it was the one place that
+ * never asked `suppressedAbility`, which every damage-side breakable question in this file goes
+ * through. The authority drops a BREAKABLE ability's handler whenever the move's user suppresses:
+ *
+ *     if (effect.effectType === 'Ability' && effect.flags['breakable'] &&        sim/battle.ts:855-866
+ *         this.suppressingAbility(effectHolder)) {
+ *       const AttackingEvents = { … TryMove: 1, … };
+ *       if (eventid in AttackingEvents) { … continue; } }
+ *
+ * `onFoeTryMove` is raised inside `TryMove`, which is in that list, and `armortail.flags` is
+ * `{ breakable: 1 }` (data/abilities.ts:229). Held-out board parting 7, seed
+ * `gen9championsvgc2026regmbbo3-2659757084` turn 1, with `|-ability|p2a: Tinkaton|moldbreaker` two
+ * lines earlier: the authority's Fake Out lands and flinches, ours wrote
+ * `|cant|p1b: Farigiraf|ability: armortail|fakeout|[of] p2a: Tinkaton`.
+ *
+ * NO CATEGORY IS PASSED, AND THAT IS DERIVED RATHER THAN CONVENIENT. `suppressedAbility` wants one
+ * only for a breaker carrying `onlyCategory`, and this format has exactly ONE
+ * `ignoresDefenderAbility` carrier -- Mold Breaker, `onlyCategory: null` (printed over the legal
+ * ability list, 2026-09-20). A category-gated breaker arriving later does not silently break the
+ * bar: `suppressedAbility` returns the ability unchanged and counts
+ * `MEDFAILS.categoryGatedBreakerNoCategory`, which this file prints.
+ *
+ * A CALLER THAT PASSES NO ATTACKER KEEPS THE OLD ANSWER, because `suppressedAbility(null, d)`
+ * returns `d.ability`. Knob MEDI_PRIORITY_BAR_IGNORES_BREAKER=1.
+ * Probe: tests/probe_priority_bar_mold_breaker.js. */
+function priorityRefusedAbove(defenders, field, aimedAt, why, only, att){
   const _wantAbility=(only!=='terrain');
   const _wantTerrain=(only!=='ability');
   const bar=priorityBlockAbilities();
   let out=Infinity;
   if(_wantAbility)for(const d of (defenders||[])){
     if(!d||d.fainted) continue;
-    const ab=String(d.ability||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+    const _raw=String(d.ability||'');
+    const _seen=(att&&!PRIORITY_BAR_IGNORES_BREAKER)?suppressedAbility(att,d):_raw;
+    const ab=String(_seen||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+    if(att&&!PRIORITY_BAR_IGNORES_BREAKER&&ab!==_raw.toLowerCase().replace(/[^a-z0-9]/g,'')
+       &&bar.has(_raw.toLowerCase().replace(/[^a-z0-9]/g,''))) MEDSEEN.priorityBarBrokenByBreaker++;
     if(ab&&bar.has(ab)&&bar.get(ab)<out){ out=bar.get(ab); if(why){why.by='ability';why.holder=d;} }
   }
   /* THROUGH terrainId. This line tested `psychicterrain` — the BOARD's spelling — while the artifact's
@@ -9530,6 +9635,47 @@ function condHolds(w,self,hit){
  * ends the volatile — and it does not gate Hospitality, which heals a partner on ENTRY. Both
  * exclusions are stated here rather than left to whoever reads the diff. */
 const healBlocked=m=>!!(m&&m._healBlock>0);
+/* 2026-09-20 -- AND THE SENTENCE ABOVE ABOUT A DRAIN IS HALF WRONG, WHICH IS WHAT THE TWO FUNCTIONS
+ * BELOW FIX. "the heal half of a drain (the DAMAGE still lands)" describes `onTryHeal`, which is
+ * only reached by a move the block let START. Heal Block ALSO carries an `onBeforeMove`:
+ *
+ *     onBeforeMovePriority: 6,                                       data/moves.ts:8310-8316
+ *     onBeforeMove(pokemon, target, move) {
+ *       if (move.flags['heal'] && !move.isZ && !move.isMax) {
+ *         this.add('cant', pokemon, 'move: Heal Block', move);
+ *         return false;
+ *       }
+ *     },
+ *
+ * so a heal-FLAGGED click is refused outright -- no damage, no PP, no `lastMove`. Drain Punch
+ * carries the flag, and this engine played it and merely healed nothing: held-out row 10, seed
+ * `gen9championsvgc2026regmbbo3-2661429975` turn 3, `|cant|p2a: Annihilape|move: Heal Block|Drain
+ * Punch` against `|move|…|drainpunch| |-damage|p1a: Slowbro|137/170`, with `p2.pp[0].drainpunch
+ * us=1 showdown=0`. The `onTryHeal` half stays exactly as it was: it is what answers Pollen Puff,
+ * which carries no heal flag and is refused at the HEAL rather than at the click.
+ *
+ * THE PREDICATE IS A FLAG AND THIS ENGINE'S ARTIFACT HAS NO FLAGS, so it is asked as four tag
+ * SHAPES that already exist -- and the membership is ASSERTED rather than assumed. Measured
+ * 2026-09-20 over the legal move list: `flags.heal` holds 22 moves, the union of these four tags
+ * holds the same 22, and the disagreement set is EMPTY. `tests/probe_healblock_refuses_heal_move.js`
+ * re-derives both sides on every run and goes RED by name if they ever stop agreeing, which is the
+ * only thing standing between this and a hand-kept list. (`data/tags.json` cannot be regenerated
+ * from a worktree -- `fit_policy.loadCorpus` opens an untracked store monolith -- so a derived
+ * `heal` flag row is owed to a main-tree pass and is not invented here.) */
+const HEAL_FLAG_TAGS=['drain','healsSelf','healsAlly','healDescriptor'];
+function carriesHealFlag(mvId){
+  if(!mvId)return false;
+  const _r=TAGS.tagsFor?TAGS.tagsFor('move',mvId):null;
+  if(_r&&_r.tags)return HEAL_FLAG_TAGS.some(t=>_r.tags.indexOf(t)>=0);
+  return HEAL_FLAG_TAGS.some(t=>TAGS.has('move',mvId,t));
+}
+/* THE ONE READER of "does Heal Block refuse this click", so the execution gate and anything that
+ * later wants the MENU half (the authority's `onDisableMove`, same condition, same flag) cannot
+ * drift apart the way `bounceAtTryHit` and `statusMoveTargets` did. */
+function healBlockRefusesClick(m,mvId){
+  if(HEALBLOCK_ALLOWS_HEAL_MOVES)return false;
+  return healBlocked(m)&&carriesHealFlag(mvId);
+}
 /* ROADMAP #175 -- INDIRECT DAMAGE IS A CLASS, AND `refusesIndirectDamage` IS ITS ONE GATE.
  *
  * Magic Guard was one of the twenty-two derived tags nothing read. The sandstorm block below used to
@@ -16776,6 +16922,10 @@ const LOCK_END_NEEDS_HIT=_NB('MEDI_LOCK_END_NEEDS_HIT');
 if(LOCK_END_NEEDS_HIT)MEDFAILS.lockEndNeedsHitRestored=1;
 const PIVOT_HERB_AFTER_ENTRY=_NB('MEDI_PIVOT_HERB_AFTER_ENTRY');
 if(PIVOT_HERB_AFTER_ENTRY)MEDFAILS.pivotHerbAfterEntryRestored=1;
+/* 2026-09-20 -- the restore arm for the pivot entry's DIE ADDRESS. See `pivotFrom`.
+ * tests/probe_trace_list.js --staged */
+const PIVOT_ENTRY_MOVE_ADDR=_NB('MEDI_PIVOT_ENTRY_MOVE_ADDR');
+if(PIVOT_ENTRY_MOVE_ADDR)MEDFAILS.pivotEntryMoveAddrRestored=1;
 const SMART_INVULN_MISS_LINE=_NB('MEDI_SMART_INVULN_MISS_LINE');
 if(SMART_INVULN_MISS_LINE)MEDFAILS.smartInvulnMissLineRestored=1;
 /*   MEDI_HP_THRESHOLD_BOOST_ABOVE_RECOIL=1   Berserk / Anger Shell paid at step 20 again, above the attacker's
@@ -19096,7 +19246,10 @@ function clickFragility(att,moveId,tgt,benchFoes,field){
      * engine through and it feeds `benchRisk`, so the fitted vector is owed a refit at the next
      * release cut. The membership is one species -- Gale Wings has ONE legal carrier, and Prankster
      * cannot reach this line because `clickFragility` is only ever asked about a damaging click. */
-    if(gatePriority(att,moveId,field,0)>priorityRefusedAbove([b],field))
+    /* 2026-09-20 -- THE ATTACKER IS HANDED OVER HERE TOO, because this is the SAME number the
+     * execution gate compares and a feature that prices a bar the click will walk through is a
+     * feature that is wrong. `att` is in scope and is the body whose click is being priced. */
+    if(gatePriority(att,moveId,field,0)>priorityRefusedAbove([b],field,undefined,undefined,undefined,att))
       consider(0,b.name,'blocks priority outright');
   }
   return {retention:worst.retention,cause:worst.cause,how:worst.how,extra:worst.extra,
@@ -27827,12 +27980,19 @@ function runEntryPass(nx,foes,act,i,field,sf,announce){
   /* WIRE 160 -- TRACE, BEFORE the entry-effect pass and for the identical reason Imposter is: the
    * copy REPLACES the ability, and the replacement's own Start handler is what that pass runs. A
    * Trace that copied Intimidate after the pass would drop nothing. */
-  imposterCopy(nx,foes,i);
-  traceCopy(nx,_live(foes));
   /* 2026-09-20 -- THE ARRIVAL ANNOUNCEMENT, WHICH IS NOT THE START ANNOUNCEMENT. `announcesOnSwitchIn`
    * fires HERE and not inside `applyEntryEffects`, because this road is an arrival and the mega, copy
-   * and swap roads that also call `applyEntryEffects` are not. See `switchInAnnounce`. */
-  switchInAnnounce(nx);
+   * and swap roads that also call `applyEntryEffects` are not. See `switchInAnnounce`.
+   *
+   * AND IT SPEAKS FOR THE ABILITY THE BODY ARRIVED WITH, SO IT IS ABOVE THE TWO COPIES AND NOT BELOW
+   * THEM. The authority's `fieldEvent` fixes its handler list before any handler runs, and a Cloud
+   * Nine acquired by Imposter or Trace inside this same pass therefore has no `onSwitchIn` to run --
+   * `setAbility(..., isTransform)` raises `Start` only. Knob MEDI_SWITCHIN_ANNOUNCE_AFTER_COPY=1 puts
+   * it back below, which is the last undeclared narration divergence on release `6a0582efeda6`. */
+  if(!SWITCHIN_ANNOUNCE_AFTER_COPY)switchInAnnounce(nx);
+  imposterCopy(nx,foes,i);
+  traceCopy(nx,_live(foes));
+  if(SWITCHIN_ANNOUNCE_AFTER_COPY)switchInAnnounce(nx);
   applyEntryEffects(nx,field,act[1-i]);
   applyEntryDrops(nx,_live(foes));   // WIRE 100a -- membership from `onSwitchInDrop`, not a name
   }
@@ -28062,14 +28222,47 @@ function holdHardTrap(victim,src,mvId){
  * The `[from]` above is a narration fact and may ride on `TR`; the White Herb timing below is a STATE fact
  * (which drop the herb answers), so a rollout with no trace must take the same road. See `pivotHerbSweep`. */
 let PIVOT_DEPTH=0;
+/* ---- 2026-09-20 -- A PIVOT'S ENTRY IS A SEPARATE ACTION IN THE AUTHORITY, SO ITS DRAWS CARRY NO MOVE ----
+ *
+ * MEASURED FIRST, AND THE MEASUREMENT IS THE WHOLE ARGUMENT. `tests/probe_trace_list.js` over 222
+ * pinned-pool boards read 2442 joined Trace draws whose lists agreed on MEMBERS AND ORDER, and ONE
+ * that shared the list and drew a different index. `game_differential.js`'s own address logs
+ * (`midAddresses()`) name the cause without a hypothesis:
+ *
+ *     showdown   20260813|6|any|-|-|0
+ *     medicham2  20260813|6|any|uturn|p20|0
+ *
+ * The holder had just walked in on a U-turn. Showdown resolves a self-switch as its OWN queued action:
+ * `runAction` ends with `clearActiveMove()` (sim/battle.ts:2828) long before the entrant's `runSwitch`
+ * fires `Start` -> Trace's `onStart` -> `singleEvent('Update')`, so `battle.activeMove` is null and the
+ * middle arm's address carries `-|-`. This engine has no queue: the replacement enters INSIDE the pivot
+ * move, with `MID_MOVE`/`MID_TGT` still naming it. One die, two addresses -- so the two engines drew
+ * different values from the same shared stream and copied different bodies.
+ *
+ * IT IS NOT "ALWAYS CLEAR", AND THAT IS THE POINT OF PUTTING IT HERE. A DRAGGED entrant (Roar, Red Card)
+ * runs `runSwitch` from inside `moveHit`, where the authority's `activeMove` IS set -- clearing there
+ * would break the case that is currently right. `pivotFrom` is the one place that knows "this entry is a
+ * pivot's", which is exactly the condition under which the authority has cleared the move, so the rule
+ * has one implementation rather than one per draw site.
+ *
+ * IT COVERS EVERY DRAW IN THE PASS, not only Trace's, because the authority's address is cleared for the
+ * whole of that separate action. `pivotEntryAddrCleared` counts the pivot entries whose address was
+ * ACTUALLY stale when the pass opened -- not the pivots, and not the draws: a zero on it means the
+ * clearing never had anything to clear on that run, which is a different fact from "it never ran".
+ *
+ * `MEDI_PIVOT_ENTRY_MOVE_ADDR=1` restores the stale address and stamps
+ * `MEDFAILS.pivotEntryMoveAddrRestored`, so a run under it can never read as a clean one. */
 function pivotFrom(mvId,fn){
   PIVOT_DEPTH++;
+  const _am=MID_MOVE,_at=MID_TGT;
+  if(PIVOT_ENTRY_MOVE_ADDR)MEDFAILS.pivotEntryMoveAddrRestored=1;
+  else if(_am!=='-'||_at!=='-'){MEDSEEN.pivotEntryAddrCleared++;MID_MOVE='-';MID_TGT='-';}
   try{
     if(SWITCH_CAUSE_BLIND){MEDFAILS.switchCauseBlindRestored=1;return fn();}
     if(!TR||!mvId)return fn();
     const _p=TR._swFrom; TR._swFrom=mvId; MEDSEEN.switchNamedItsCause++;
     try{ return fn(); } finally { TR._swFrom=_p; }
-  } finally { PIVOT_DEPTH--; }
+  } finally { MID_MOVE=_am; MID_TGT=_at; PIVOT_DEPTH--; }
 }
 /* ==== NARRATION BATCH B, 2026-09-19 -- CHAMPIONS QUEUES THE AFTER-MOVE WHITE HERB AS AN ACTION OF ITS OWN ====
  *
@@ -29550,11 +29743,15 @@ function battleInit(teamA,teamB,opts){
        * because Showdown runs an ability's `onStart` AS its `onSwitchIn` (sim/battle.ts:1018). So a
        * Ditto that leads copies whatever the diagonal foe looks like at the moment its own handler
        * comes up in the order, boosts included. */
+      /* 2026-09-20 -- a LEAD is an ARRIVAL, so `announcesOnSwitchIn` speaks here too, in this same
+       * speed-sorted pass. See `switchInAnnounce` for why this is not inside `applyEntryEffects`, and
+       * MEDI_SWITCHIN_ANNOUNCE_AFTER_COPY for why it is ABOVE the two copies: the authority fixes the
+       * `SwitchIn` handler list before any handler runs, so an ability acquired by Imposter or Trace
+       * during this pass has no `onSwitchIn` in it and announces nothing. */
+      if(!SWITCHIN_ANNOUNCE_AFTER_COPY)switchInAnnounce(e.mon);
       imposterCopy(e.mon,e.foes,e.slot);
       traceCopy(e.mon,_live(e.foes));   // WIRE 160 -- a LEAD can Trace too, in the same speed-sorted pass
-      /* 2026-09-20 -- a LEAD is an ARRIVAL, so `announcesOnSwitchIn` speaks here too, in this same
-       * speed-sorted pass. See `switchInAnnounce` for why this is not inside `applyEntryEffects`. */
-      switchInAnnounce(e.mon);
+      if(SWITCHIN_ANNOUNCE_AFTER_COPY)switchInAnnounce(e.mon);
       applyEntryEffects(e.mon,S.field,e.ally);
       applyEntryDrops(e.mon,_live(e.foes));   // WIRE 100a -- membership from `onSwitchInDrop`
     }
@@ -33405,6 +33602,32 @@ function battleTurn(S,rng,actsForA,actsForB){
         if(TR)TR.cant(m,'move: Throat Chop');
         continue;
       }
+      /* 2026-09-20 -- HEAL BLOCK REFUSES THE CLICK, WIRE 77's PLACE FOR WIRE 77's REASON.
+       *
+       * Above the kind dispatch because the flag crosses every kind: `drainingkiss` and `drainpunch`
+       * are ATTACK actions, `recover` and `roost` are `healdesc`, `rest` sleeps its user from inside
+       * `onHit`. Two branches below (`allyheal`, `healdesc`) already refused their own click under
+       * `healBlocked`; a third and fourth copy in the attack branch is exactly the shape that let
+       * Roar through Throat Chop, so the question is asked once, here, through the one reader.
+       *
+       * IMMEDIATELY AFTER THROAT CHOP because the authority gives both `onBeforeMovePriority: 6`
+       * (data/moves.ts:19404 and :8310) and ahead of Taunt's 5 (:18998). Disable's 7 sorts above
+       * both in the authority and is below both here; that ordering predates this line and is left
+       * alone rather than churned in a batch that cannot measure it.
+       *
+       * NO PP AND NO `_lastMove`, for the reason Taunt and Disable state one screen down: Showdown's
+       * `runMove` deducts PP and calls `moveUsed()` AFTER the BeforeMove event, so a refused click
+       * spends nothing and cannot be what an Encore repeats. The held-out board leaf that names this
+       * is `p2.pp[0].drainpunch us=1 showdown=0`. */
+      {
+        const _hbid=actionMoveId(a);
+        if(_hbid&&healBlockRefusesClick(m,_hbid)){ MEDSEEN.healBlockRefusedMove++;
+          m._mvRes=false;   // ROADMAP #84 -- healblock's onBeforeMove returns false
+          /* `cant|POKEMON|move: Heal Block|MOVE` -- data/moves.ts:8313, which names the refused move
+           * the way Taunt's line does and Throat Chop's does not. */
+          if(TR)TR.cant(m,'move: Heal Block',_hbid);
+          continue; }
+      }
       /* WIRE 119 -- TAUNT AT EXECUTION TIME, AND THIS IS WIRE 77's PLACE FOR WIRE 77's REASON.
        * Showdown answers Taunt in TWO handlers off one condition: `onDisableMove` takes the status
        * moves off next turn's menu, and `onBeforeMove` FAILS a status move that was already chosen
@@ -34353,8 +34576,11 @@ function battleTurn(S,rng,actsForA,actsForB){
            * authority asks those FIRST, so the terrain half is deferred to the attack path's own
            * gate, which now sits below them. Every OTHER action kind keeps the whole bar here,
            * because no status kind has a `Try` refusal for the terrain to jump. */
+          /* 2026-09-20 -- `m` IS THE ATTACKER AND THE BAR IS BREAKABLE. See `priorityRefusedAbove`'s
+           * header: the authority drops Armor Tail's and Queenly Majesty's `onFoeTryMove` outright
+           * when the user breaks moulds, and this gate read the defender's ability raw. */
           if(_gpri>priorityRefusedAbove(_pf,field,a.target,_pWhy,
-               (a.kind==='attack'&&!TERRAIN_BAR_AT_TRYMOVE)?'ability':undefined)){m._lastMove=_pmv;
+               (a.kind==='attack'&&!TERRAIN_BAR_AT_TRYMOVE)?'ability':undefined,m)){m._lastMove=_pmv;
             /* `cant|HOLDER|ability: Armor Tail|MOVE|[of] ATTACKER` -- data/abilities.ts:225, and the
              * POKEMON field is the REFUSER rather than the attacker, which is the one shape in this
              * family that inverts. The holder is found by asking which live foe carries a
@@ -40041,8 +40267,12 @@ function battleTurn(S,rng,actsForA,actsForB){
          * refusal is `onTryHit` and belongs under the move's own `Try`, which is 130 lines down. The
          * terrain branch of the narration below is kept and is REACHABLE ONLY under the restore knob,
          * which is why it is not deleted. */
+        /* 2026-09-20 -- AND THE ATTACKER, for `priorityRefusedAbove`'s reason: this is the ATTACK
+         * path's own copy of the same gate, so Armor Tail and Queenly Majesty are breakable here
+         * too. The terrain call below deliberately passes none -- Psychic Terrain is a FIELD
+         * condition and carries no ability to break. */
         if(gatePriority(m,a.move.id,field,0)>priorityRefusedAbove(_foes,field,_aim,_aWhy,
-             TERRAIN_BAR_AT_TRYMOVE?undefined:'ability')){
+             TERRAIN_BAR_AT_TRYMOVE?undefined:'ability',m)){
           if(TR){const _h=_foes.find(x=>x&&!x.fainted&&x.curHP>0&&TAGS.param('ability',x.ability,'blocksMove'));
                  if(_h)TR.cant(_h,'ability: '+_h.ability,a.move.id,m);
                  /* THE SAME TERRAIN LINE AS THE PRE-DISPATCH GATE, because this branch answers the
@@ -46967,8 +47197,27 @@ function battleTurn(S,rng,actsForA,actsForB){
       };
       /* `AfterHit` -- `if (moveData.onAfterHit && pokemon.hp)` at battle-actions.ts:953. The item
        * strip, moved out of `_stepApply` unchanged. Its own header there records WHAT it takes and the
-       * three refusals; nothing about that moved. */
-      const _stepAfterHit=(R)=>{const tg=R.tg;
+       * three refusals; nothing about that moved.
+       *
+       * 2026-09-20 -- AND IT IS NOT ONE EVENT. THIS BODY IS NOW SHARED BY TWO STEPS.
+       *
+       * Thief, Covet and Knock Off strip from `onAfterHit` and belong here. BUG BITE AND PLUCK DO NOT:
+       * their handler is `onHit` (data/moves.ts:1920-1929), which is step 3 of `spreadMoveHit`
+       * (`runMoveEffects`, data/mods/champions/scripts.ts:375) and therefore ABOVE the reactors at
+       * :410. One array position wrong, and the berry was stolen after the body that stole it had
+       * already been paid by Rough Skin -- held-out board parting 8, seed
+       * `gen9championsvgc2026regmbbo3-2660750080` turn 13:
+       *
+       *     showdown   |-enditem|p1a: Garchomp|Sitrus Berry|[from] stealeat|[move] Bug Bite|…
+       *                |-heal|p2a: Scizor|52/145|[from] item: Sitrus Berry
+       *                |-damage|p2a: Scizor|34/145|[from] ability: Rough Skin|[of] p1a: Garchomp
+       *     medicham2  |-damage|p2a: Scizor|0 fnt|[from] ability: roughskin|[of] p1a: Garchomp
+       *                |-enditem|p1a: Garchomp|sitrusberry|[from] move: bugbite|…
+       *
+       * — a thief on 16 HP that lives at 34 in the real game and dies here. The BODY is unchanged;
+       * only which step calls it moved. Knob MEDI_STEALEAT_AT_AFTERHIT=1.
+       * Probe: tests/probe_stealeat_before_reactors.js. */
+      const _itemStripStep=(R)=>{const tg=R.tg;
         const _ri=TAGS.param('move',a.move.id,'removesItem');
         /* 2026-08-25 -- AND THE CLASS GUARD THE HANDLER OPENS WITH. Bug Bite and Pluck are
          *     if (source.hp && item.isBerry && target.takeItem(source)) { ... }
@@ -47120,6 +47369,39 @@ function battleTurn(S,rng,actsForA,actsForB){
             }
           }
         }
+      };
+      /* 2026-09-20 -- WHICH EVENT THIS MOVE'S STRIP BELONGS TO, asked ONCE and read by both wrappers.
+       *
+       * The predicate is the one the body above already uses to decide the EAT -- the declared
+       * `takesTargetItem.consumesAndGainsEffect`, falling back on `removesItem.requiresItemClass ===
+       * ['isBerry'] && !steals` (ROADMAP #529 records that the declared field derives false today).
+       * Both select exactly {bugbite, pluck} over this format's nine `takeItem` moves, and those two
+       * are exactly the ones whose handler is `onHit` rather than `onAfterHit`. Asking it here rather
+       * than inventing a second membership rule is invariant 3.
+       *
+       * IT IS NOT `_stealEat`. That reader is also gated on MEDI_STEALEAT_STRIP_ONLY, which turns the
+       * EAT off and leaves the STRIP on -- and the strip is inside the same `onHit`, so a move under
+       * that knob must still resolve here. Two questions, two readers. */
+      const _stripAtOnHit=()=>{
+        if(STEALEAT_AT_AFTERHIT)return false;
+        const _ri0=(a.move&&a.move.id)?TAGS.param('move',a.move.id,'removesItem'):null;
+        if(!_ri0)return false;
+        const _tti0=TAGS.param('move',a.move.id,'takesTargetItem');
+        return !!(_tti0&&_tti0.consumesAndGainsEffect)
+            || !!(Array.isArray(_ri0.requiresItemClass)&&_ri0.requiresItemClass.length===1
+                  &&_ri0.requiresItemClass[0]==='isBerry'&&!_ri0.steals);
+      };
+      /* STEP 3's half -- `singleEvent('Hit', moveData, ...)`, which battle-actions.ts:1279 raises
+       * BEFORE `runEvent('Hit', ...)`, so this sits above `_stepHitEvent` in the list. */
+      const _stepStealEatAtHit=(R)=>{
+        if(!_stripAtOnHit())return;
+        MEDSEEN.stealEatAtHitEvent++;
+        return _itemStripStep(R);
+      };
+      /* STEP 7c's half -- Thief, Covet and Knock Off, whose handler really is `onAfterHit`. */
+      const _stepAfterHit=(R)=>{
+        if(_stripAtOnHit())return;
+        return _itemStripStep(R);
       };
       /* STEP 7c(b) -- THE OTHER TWO `onAfterHit` FAMILIES, AND THEY WERE 400 LINES BELOW THE STEP
        * LIST. 2026-08-23.
@@ -47419,6 +47701,10 @@ function battleTurn(S,rng,actsForA,actsForB){
                      * and the apply. The knob takes both out and `_stepApply` absorbs the doll at its head again. */
                     ...(SUB_ABSORB_AT_APPLY?[]:[_stepSubAbsorb,_stepPriceLines]),
                     _stepApply,
+                    /* 2026-09-20 -- step 3's FIRST half: the MOVE's own `onHit`. battle-actions.ts:1278-1283
+                     * raises `singleEvent('Hit', moveData, …)` and THEN `runEvent('Hit', …)`, so Bug Bite's
+                     * steal-eat sits above the ability Hit event below it and far above the reactors. */
+                    _stepStealEatAtHit,
                     _stepHitEvent,                     // 2026-09-19 -- step 3, `runMoveEffects`: an `onHit` stat ability
                     _stepSelfPay,_stepEffects,
                     /* NARRATION BATCH Y, 2026-09-09 -- ONE `DamagingHit`, in the authority's sort order: every

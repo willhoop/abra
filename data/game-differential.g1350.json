@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-20T16:28:26.428Z",
+  "generated": "2026-09-20T18:19:39.319Z",
   "by": "engine/game_differential.js",
   "mode": "A/middle/pins:de38d17e15a2/credit:observed-effect/v1/nature:real",
   "games_requested": 1350,
@@ -62,9 +62,9 @@
       "turn1_boards_reached": 1069,
       "rows_credited": 279,
       "credit_events": {
-        "effect": 608454,
+        "effect": 608840,
         "negative": 1149,
-        "click": 1250037
+        "click": 1254113
       },
       "classes": [
         {
@@ -90,7 +90,7 @@
   },
   "games": 1069,
   "turns_cap": 50,
-  "elapsed_s": 274.1,
+  "elapsed_s": 169.2,
   "credit_turn_profile": {
     "rows_with_any_credit": 279,
     "credits_with_no_turn_index": 0,
@@ -152,41 +152,41 @@
       }
     ],
     "credit_events_by_turn": {
-      "1": 93577,
-      "2": 92918,
-      "3": 93271,
-      "4": 93479,
-      "5": 89543,
-      "6": 83418,
-      "7": 75731,
-      "8": 62744,
-      "9": 50047,
-      "10": 39508,
-      "11": 30066,
-      "12": 21272,
-      "13": 16097,
-      "14": 11884,
-      "15": 8752,
-      "16": 6546,
-      "17": 4927,
-      "18": 3193,
-      "19": 2745,
-      "20": 1936,
-      "21": 1350,
-      "22": 1097,
-      "23": 939,
-      "24": 641,
-      "25": 695,
-      "26": 722,
-      "27": 641,
-      "28": 498,
-      "29": 460,
-      "30": 399,
-      "31": 405,
-      "32": 292,
-      "33": 146,
-      "34": 124,
-      "35": 149
+      "1": 93754,
+      "2": 93103,
+      "3": 93467,
+      "4": 93683,
+      "5": 89766,
+      "6": 83619,
+      "7": 75925,
+      "8": 62917,
+      "9": 50184,
+      "10": 39620,
+      "11": 30156,
+      "12": 21333,
+      "13": 16142,
+      "14": 11916,
+      "15": 8776,
+      "16": 6565,
+      "17": 4939,
+      "18": 3201,
+      "19": 2751,
+      "20": 1940,
+      "21": 1354,
+      "22": 1099,
+      "23": 941,
+      "24": 643,
+      "25": 697,
+      "26": 725,
+      "27": 643,
+      "28": 501,
+      "29": 463,
+      "30": 401,
+      "31": 407,
+      "32": 294,
+      "33": 147,
+      "34": 125,
+      "35": 150
     },
     "rows_first_credited_at_turn_13_or_later": [
       "move:flingsOwnItem",
@@ -997,7 +997,7 @@
       },
       "control_same_pairs_no_stones": {
         "games": 1064,
-        "diverged": 4
+        "diverged": 3
       },
       "pairs_with_no_stone_at_all": {
         "games": 5,
@@ -1005,7 +1005,7 @@
       },
       "whole_control_arm": {
         "games": 1069,
-        "diverged": 4,
+        "diverged": 3,
         "note": "every stone stripped — this is what the 2026-08-06 run measured"
       }
     },
@@ -1013,8 +1013,8 @@
     "cost_of_the_megas": {
       "stone_carrying_pairs": 1064,
       "mega_arm_parted_earlier": 0,
-      "mega_arm_parted_later": 4,
-      "parted_at_the_same_line": 1060,
+      "mega_arm_parted_later": 3,
+      "parted_at_the_same_line": 1061,
       "first_divergence_is_a_mega_line": 0,
       "first_divergence_is_a_detailschange_line": 0,
       "on_a_mega_line": [],
@@ -1054,7 +1054,7 @@
       {
         "id": "source-tag",
         "why": "`[of] pXy` names the BODY behind an effect whose name is already carried by `[from]`. The two engines tag it inconsistently on -heal, -activate and -damage.",
-        "lines_collapsed": 114290,
+        "lines_collapsed": 114287,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -1069,7 +1069,7 @@
       {
         "id": "effect-namespace",
         "why": "Showdown writes an effect sometimes bare and sometimes namespaced — `|-sidestart|p1: A|Reflect` against this engine's `move: reflect`. The NAME is kept; only the namespace goes.",
-        "lines_collapsed": 524663,
+        "lines_collapsed": 524673,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -1084,7 +1084,7 @@
       {
         "id": "display-flags",
         "why": "`[silent]`, `[still]`, `[miss]` and `[spread]` are rendering hints. The state each one decorates is a separate event — `-miss` for a miss, `-prepare` for a charge, one `-damage` per body actually hit for a spread — and all of those are kept.",
-        "lines_collapsed": 175219,
+        "lines_collapsed": 175221,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -1099,7 +1099,7 @@
       {
         "id": "move-target-field",
         "why": "THE BIGGEST ONE, AND THE ONE THAT NEEDS THE ARGUMENT. A `|move|` line means \"this body used this move\". Showdown additionally names ONE nominal target plus `[spread]`; this engine names its own user on a spread move. WHO WAS ACTUALLY HIT is not in this field on either side — it is in the `-damage` / `-status` / `-unboost` / `-enditem` lines that follow, which are kept and compared body by body. A redirection bug is therefore caught one line later rather than not at all, and the `distinct` pair below is exactly that case.",
-        "lines_collapsed": 1180979,
+        "lines_collapsed": 1181049,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -1114,7 +1114,7 @@
       {
         "id": "switch-cause",
         "why": "a pivot switch is tagged `[from] U-turn` by Showdown; the pivot itself is the `|move|` line immediately before it, which is kept. The species and the HP on the switch line are kept.",
-        "lines_collapsed": 16823,
+        "lines_collapsed": 16825,
         "collapses_the_form": true,
         "keeps_the_meaning": true,
         "equal_pair": [
@@ -1127,7 +1127,7 @@
         ]
       }
     ],
-    "total_lines_collapsed": 2029036,
+    "total_lines_collapsed": 2029117,
     "ability_lines": [
       {
         "body": "p1a:gardevoir",
@@ -2285,8 +2285,8 @@
         "body": "p2a:incineroar",
         "ability": "intimidate",
         "tail": "boost",
-        "showdown": 4006,
-        "medicham2": 4006,
+        "showdown": 4010,
+        "medicham2": 4010,
         "gap": 0
       },
       {
@@ -2674,19 +2674,19 @@
         "gap": 0
       },
       {
-        "body": "p2a:goodra",
-        "ability": "gooey",
+        "body": "p1b:tinkaton",
+        "ability": "moldbreaker",
         "tail": "",
         "showdown": 179,
         "medicham2": 179,
         "gap": 0
       },
       {
-        "body": "p1b:tinkaton",
-        "ability": "moldbreaker",
+        "body": "p2a:goodra",
+        "ability": "gooey",
         "tail": "",
-        "showdown": 178,
-        "medicham2": 178,
+        "showdown": 179,
+        "medicham2": 179,
         "gap": 0
       },
       {
@@ -5980,10 +5980,10 @@
     "policy": "observed-effect/v1",
     "rule": "a census row is exercised when a board leaf in a family THE TAG'S OWN PARAMS NAME changed across the turn, in either engine, inside the scope of an entity that was in play; or when a blocking tag's declared negative case was reached and correctly did not fire. A click alone counts for NOTHING but an attempt.",
     "why": "Primarina clicked Haze on turn 1 into a board with zero boosts on it. Haze is a no-op there, the census marked it exercised, and because the census STEERS the sample a falsely credited row then steered every later run AWAY from testing it.",
-    "rows_with_an_observed_effect": 395,
-    "rows_that_can_be_witnessed_on_a_board": 428,
-    "rows_that_name_no_board_leaf": 491,
-    "rows_credited_by_a_connected_click_only": 468,
+    "rows_with_an_observed_effect": 396,
+    "rows_that_can_be_witnessed_on_a_board": 429,
+    "rows_that_name_no_board_leaf": 494,
+    "rows_credited_by_a_connected_click_only": 470,
     "rows_clicked_or_present_that_did_nothing": 15,
     "rows_clicked_or_present_that_did_nothing_list": [
       "ability:clearsScreensOnEntry",
@@ -7209,6 +7209,19 @@
         "attempts": 0
       },
       {
+        "key": "ability:copiesFoeAbility",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 0,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 0
+      },
+      {
         "key": "move:rewritesTargetAbility",
         "kind": "effect",
         "families": [
@@ -7267,11 +7280,11 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 6,
+        "credit": 9,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 14
+          "click": 21
         },
         "attempts": 0
       },
@@ -7915,13 +7928,13 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 1683,
+        "credit": 1870,
         "of_which": {
-          "effect": 3510,
+          "effect": 3900,
           "negative": 0,
           "click": 0
         },
-        "attempts": 45
+        "attempts": 50
       },
       {
         "key": "move:setsWeather",
@@ -9295,11 +9308,11 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 3890,
+        "credit": 5835,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 8138
+          "click": 12207
         },
         "attempts": 0
       },
@@ -9308,11 +9321,24 @@
         "kind": "no-board-leaf",
         "families": [],
         "from": [],
-        "credit": 3890,
+        "credit": 5835,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 8138
+          "click": 12207
+        },
+        "attempts": 0
+      },
+      {
+        "key": "ability:blocksMove",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [],
+        "credit": 5835,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 12207
         },
         "attempts": 0
       },
@@ -10739,13 +10765,30 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 1683,
+        "credit": 1870,
         "of_which": {
-          "effect": 3510,
+          "effect": 3900,
           "negative": 0,
           "click": 0
         },
-        "attempts": 45
+        "attempts": 50
+      },
+      {
+        "key": "move:takesTargetItem",
+        "kind": "effect",
+        "families": [
+          "item"
+        ],
+        "from": [
+          "the tag name matches item|berry|megastone|unburde"
+        ],
+        "credit": 1870,
+        "of_which": {
+          "effect": 3900,
+          "negative": 0,
+          "click": 0
+        },
+        "attempts": 50
       },
       {
         "key": "move:statSwap",
@@ -11484,11 +11527,26 @@
         "from": [
           "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
         ],
-        "credit": 6,
+        "credit": 9,
         "of_which": {
           "effect": 0,
           "negative": 0,
-          "click": 14
+          "click": 21
+        },
+        "attempts": 0
+      },
+      {
+        "key": "move:blocksHealing",
+        "kind": "no-board-leaf",
+        "families": [],
+        "from": [
+          "DECLARED: this tag changes a number inside a calculation or says what KIND of move this is. It writes no leaf the board comparator reads."
+        ],
+        "credit": 9,
+        "of_which": {
+          "effect": 0,
+          "negative": 0,
+          "click": 21
         },
         "attempts": 0
       },
@@ -12048,13 +12106,13 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 1683,
+        "credit": 1870,
         "of_which": {
-          "effect": 3510,
+          "effect": 3900,
           "negative": 0,
           "click": 0
         },
-        "attempts": 45
+        "attempts": 50
       },
       {
         "key": "move:takesTargetItem",
@@ -12065,13 +12123,13 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 1683,
+        "credit": 1870,
         "of_which": {
-          "effect": 3510,
+          "effect": 3900,
           "negative": 0,
           "click": 0
         },
-        "attempts": 45
+        "attempts": 50
       },
       {
         "key": "move:changesTargetType",
@@ -13362,13 +13420,13 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 1683,
+        "credit": 1870,
         "of_which": {
-          "effect": 3510,
+          "effect": 3900,
           "negative": 0,
           "click": 0
         },
-        "attempts": 45
+        "attempts": 50
       },
       {
         "key": "item:healsAtThreshold",
@@ -16315,13 +16373,13 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 1683,
+        "credit": 1870,
         "of_which": {
-          "effect": 3510,
+          "effect": 3900,
           "negative": 0,
           "click": 0
         },
-        "attempts": 45
+        "attempts": 50
       },
       {
         "key": "move:forcesBerryEat",
@@ -18330,13 +18388,13 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 1683,
+        "credit": 1870,
         "of_which": {
-          "effect": 3510,
+          "effect": 3900,
           "negative": 0,
           "click": 0
         },
-        "attempts": 45
+        "attempts": 50
       },
       {
         "key": "move:swapsAbilities",
@@ -18800,13 +18858,13 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 1683,
+        "credit": 1870,
         "of_which": {
-          "effect": 3510,
+          "effect": 3900,
           "negative": 0,
           "click": 0
         },
-        "attempts": 45
+        "attempts": 50
       },
       {
         "key": "ability:reflectsStatusToSource",
@@ -20157,13 +20215,13 @@
         "from": [
           "the tag name matches item|berry|megastone|unburde"
         ],
-        "credit": 1683,
+        "credit": 1870,
         "of_which": {
-          "effect": 3510,
+          "effect": 3900,
           "negative": 0,
           "click": 0
         },
-        "attempts": 45
+        "attempts": 50
       },
       {
         "key": "move:chargeTurn",
@@ -20381,13 +20439,13 @@
     ]
   },
   "coverage": {
-    "measurable": 919,
-    "exercised": 887,
+    "measurable": 923,
+    "exercised": 891,
     "exercised_note": "THE OLD NUMBER — an entity of this row connected or stood on the field. It is kept so the drop to credit.rows_with_an_observed_effect is readable, and it is NOT the coverage claim any more.",
-    "exercised_by_a_connected_move": 524,
-    "move_targets": 535,
-    "present_on_the_field_only": 363,
-    "ability_or_item_targets": 384,
+    "exercised_by_a_connected_move": 526,
+    "move_targets": 537,
+    "present_on_the_field_only": 365,
+    "ability_or_item_targets": 386,
     "median_completed_turns_before_divergence": 9,
     "unmeasurable_by_this_instrument": [
       {
@@ -20624,6 +20682,10 @@
       },
       {
         "key": "move:transformsIntoTargetLine",
+        "why": "names"
+      },
+      {
+        "key": "ability:announcesOnSwitchInCopyDoor",
         "why": "names"
       },
       {
@@ -21081,7 +21143,7 @@
     "driver_inputs": [
       {
         "file": "data/move-priors.json",
-        "read_from": "release 6a0582efeda6",
+        "read_from": "release 51b80f9fcf08",
         "digest": "e667fe8ab457",
         "generated": "2026-08-22",
         "rows": 345,
@@ -21107,7 +21169,7 @@
         "rows": 48,
         "what": "the DECLARED SKIP LIST — every event medicham2 says it does not emit is removed from the Showdown side before alignment, so this decides what can count as a divergence",
         "derived_from_medicham2": "50bc0ebd5e12",
-        "medicham2_played": "51223593c71d"
+        "medicham2_played": "5773803f7900"
       }
     ],
     "driver_code": {
@@ -21129,7 +21191,7 @@
         "engine/end_state_severity.js": "6cd7666b4a02",
         "engine/engine_release.js": "414b5add6c97",
         "engine/fixture_legality.js": "3dcb1fd37648",
-        "engine/game_differential.js": "39e32e6cd48d",
+        "engine/game_differential.js": "30bd32efcd69",
         "engine/names.js": "3a1f5d1b473d",
         "engine/run_stamp.js": "9b44ac36f0d1",
         "engine/steering.js": "c61ad94ed8f0"
@@ -21143,14 +21205,14 @@
         "engine/end_state_severity.js": "6cd7666b4a02",
         "engine/engine_release.js": "414b5add6c97",
         "engine/fixture_legality.js": "42bb3443d333",
-        "engine/game_differential.js": "39e32e6cd48d",
+        "engine/game_differential.js": "30bd32efcd69",
         "engine/names.js": "14de493906d5",
         "engine/run_stamp.js": "9b44ac36f0d1",
         "engine/steering.js": "7c85e3d88fb2"
       },
       "digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content) — a line ending is not part of the instrument. `files_raw`/`raw_digest` carry the byte answer.",
-      "raw_digest": "4b8ebb314535",
-      "digest": "f4b3b2a5c270",
+      "raw_digest": "e8599ad63bb4",
+      "digest": "d5df3e908c10",
       "unresolved": [
         "engine/game_differential.js -> ./tests/roster.js (does not resolve on disk)",
         "engine/game_differential.js -> ./engine/\n * game_differential.js (does not resolve on disk)",
@@ -21162,17 +21224,17 @@
       "does_not_cover": "a computed require path, a dynamic import, the Showdown checkout beyond `showdown_commit`, and data/protocol-events.json (read as data, not required)."
     },
     "input": "data/mechanics-census.json",
-    "input_read_from": "data/verification/census-pin-56e17cc610e8.json",
-    "input_digest": "88b158f4fb89",
-    "input_raw_digest": "88b158f4fb89",
+    "input_read_from": "data/verification/census-pin-8514757f99d5.json",
+    "input_digest": "cc2510c0942f",
+    "input_raw_digest": "cc2510c0942f",
     "input_digest_basis": "sha256 over EOL-normalised bytes (engine_release.sha12Content)",
-    "input_rows": 988,
-    "input_generated": "2026-09-20T15:48:58.429Z",
-    "input_live_digest": "88b158f4fb89",
+    "input_rows": 993,
+    "input_generated": "2026-09-20T18:07:15.116Z",
+    "input_live_digest": "cc2510c0942f",
     "pinned": true,
     "matches_live": true,
-    "selects_from": 919,
-    "unmeasurable": 69,
+    "selects_from": 923,
+    "unmeasurable": 70,
     "credit": "observed-effect/v1 — a row is exercised when a board leaf in a family the tag's own params name changed across the turn, or when a declared negative case was reached and did not fire. A click alone counts for nothing. ROADMAP #91.",
     "team_pool_digest": "7e7a37ded7fc",
     "team_pool_teams": 8778,
@@ -21180,12 +21242,12 @@
     "team_store_pinned_to": "data/team-pool-frozen"
   },
   "baseline_comparability": null,
-  "engine_release": "6a0582efeda6",
-  "engine_release_cut": "2026-09-20T16:18:17.059Z",
-  "engine_release_cuts": 1,
+  "engine_release": "51b80f9fcf08",
+  "engine_release_cut": "2026-09-20T18:07:15.717Z",
+  "engine_release_cuts": 2,
   "showdown_commit": "20ad99ffc9a5a4a4e8fb56ab04ad8e4255b3f2b4",
   "source_digests": {
-    "engine/medicham2-browser.js": "51223593c71d",
+    "engine/medicham2-browser.js": "5773803f7900",
     "engine/board.js": "c85a3b756c98",
     "engine/rollout_leaf.js": "d00e77a7ac26",
     "engine/position_features.js": "bb71676d3669",

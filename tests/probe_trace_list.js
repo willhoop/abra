@@ -149,6 +149,10 @@ function hookAuthority(on) {
           list: items.map(sdKey),
           index: items.indexOf(r),
           chosen: sdKey(r),
+          /* 2026-09-20 — THE ADDRESS THE MIDDLE ARM JUST USED. `midDraw` pushes it before `sample`
+           * returns, so the last entry is this draw's. The staged arm below compares it against
+           * medicham2's, because the ADDRESS is deterministic where the copied body is a coin. */
+          addr: (G.midAddresses().sd.slice(-1)[0]) || null,
         });
       }
     } catch (e) { SD.push({ holder: 'HOOK-THREW', err: String((e && e.message) || e), list: [], index: -1 }); }
@@ -182,6 +186,139 @@ function installMe(on) {
     });
   } : null);
 }
+
+/* ================================================================================================
+ * THE STAGED ARM — 2026-09-20. ONE BOARD, NO SEARCH, AND IT ASSERTS THE ADDRESS RATHER THAN THE WINNER.
+ *
+ * The sweep above found this defect at a rate of **1 joined draw in 2,442**, and a probe that needs
+ * 2,442 trials to go red is a probe that will be believed when it is silent. This arm reproduces the
+ * same cause on ONE deliberately built board, in one turn, with nothing random left in the verdict.
+ *
+ * THE CAUSE, MEASURED (`engine/game_differential.js`'s own `midAddresses()`, not a hypothesis):
+ *
+ *     showdown   <seed>|6|any|-|-|0        <- the pivot's switch is a SEPARATE queued action, and
+ *     medicham2  <seed>|6|any|uturn|p20|0     `runAction` ran `clearActiveMove()` long before the
+ *                                             entrant's `runSwitch` reached Trace's `onUpdate`
+ *
+ * One die, two addresses. The middle arm's streams are keyed on that string, so the two engines drew
+ * DIFFERENT VALUES for the same event and copied different bodies. Nothing in the protocol shows it.
+ *
+ * WHY THE ADDRESS AND NOT THE COPIED BODY. Whether a mis-addressed draw actually lands on a different
+ * index is a coin: over a two-element list it flips about half the time, which is precisely why the
+ * sweep needed 2,442 draws to see one. The ADDRESS is deterministic, so this arm asserts THAT — the
+ * two engines must name the same event — and reports the copied body beside it as corroboration.
+ *
+ * THE ARMS. Two children, because the knob is read at module load:
+ *   clean  MEDI_PIVOT_ENTRY_MOVE_ADDR unset — the two addresses must be IDENTICAL and carry `-|-`.
+ *   knob   MEDI_PIVOT_ENTRY_MOVE_ADDR=1     — medicham's address must carry the PIVOT MOVE and so
+ *                                             must DIFFER from the authority's. An identical result
+ *                                             across a varied knob means the knob is unwired.
+ * Each child also returns `MEDFAILS.pivotEntryMoveAddrRestored` and `MEDSEEN.pivotEntryAddrCleared`,
+ * so "the knob changed nothing" and "the knob reached no code" cannot read the same.
+ * ============================================================================================== */
+const STAGED_CHILD = process.env.ABRA_TRACE_STAGED === '1';
+const legalX = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
+/* A THROW HERE IS A FACT ABOUT THE VALIDATOR, NOT A 'NO'. Swallowing it would make a species
+ * look unable to learn a move it can, which is how a fixture goes quietly unstageable. Counted
+ * and printed; the count is asserted below, so a validator that starts throwing cannot pass. */
+let CANL_THREW = 0;
+const canL = (sp, mv) => {
+  try { return !!CS.canLearn(sp, mv); }
+  catch (e) {
+    CANL_THREW++;
+    console.error('  canLearn THREW for ' + sp + ' / ' + mv + ' — counted, not hidden: ' + e.message);
+    return false;
+  }
+};
+function stagedBoard() {
+  const POOL = DEX.species.all().filter(s => legalX(s) && !/mega/i.test(s.forme || ''));
+  /* THE PIVOT MOVE: a self-switch move aimed at a foe, read off the format rather than named. */
+  const PIVOTS = DEX.moves.all().filter(m => m.exists && !m.isNonstandard && m.selfSwitch
+    && m.target === 'normal').sort((a, b) => a.id.localeCompare(b.id));
+  /* THE TRACE CARRIER: read off the format's ability table. */
+  const CARRIERS = POOL.filter(s => Object.values(s.abilities || {}).some(a => norm(a) === 'trace'));
+  /* WHAT TRACE MAY COPY is Showdown's own `notrace` flag, asked of the format. */
+  const copyable = s => Object.values(s.abilities || {})
+    .filter(a => !((DEX.abilities.get(a).flags || {})['notrace'])).map(norm);
+  /* THE FOES MUST NOT SHIELD. A Protecting foe makes the pivot FAIL, and a failed self-switch never
+   * brings the Trace body in — a fixture that cannot stage the event says nothing about the rule.
+   * So each foe clicks a SELF-TARGET Status move, derived per body: it reaches nobody, takes no
+   * accuracy die and no damage roll, and leaves the turn with one `any` draw in it. */
+  const QUIET = DEX.moves.all().filter(m => m.exists && !m.isNonstandard && m.category === 'Status'
+    && m.target === 'self' && !(m.flags && m.flags.heal) && !m.selfSwitch && !m.stallingMove
+    && !m.secondaries && !m.volatileStatus).sort((a, b) => a.id.localeCompare(b.id));
+  const quietFor = s => QUIET.find(q => canL(s.name, q.id)) || null;
+  const refused = [];
+  for (const pm of PIVOTS) {
+    for (const car of CARRIERS) {
+      const u = POOL.find(s => s.id !== car.id && canL(s.name, pm.id));
+      if (!u) { refused.push(pm.name + ' / ' + car.name + ': no legal user of the pivot move'); continue; }
+      const used = new Set([u.id, car.id]);
+      const f0 = POOL.find(s => !used.has(s.id) && quietFor(s) && copyable(s).length);
+      const f1 = f0 ? POOL.find(s => !used.has(s.id) && s.id !== f0.id && quietFor(s)
+        && copyable(s).length && copyable(s)[0] !== copyable(f0)[0]) : null;
+      if (!f0 || !f1) { refused.push(pm.name + ' / ' + car.name + ': no two foes with DISTINCT copyable abilities and a quiet click'); continue; }
+      const spare = (taken) => POOL.find(s => !taken.includes(s.id) && quietFor(s));
+      const mate = spare([u.id, car.id, f0.id, f1.id]);
+      const fAlly = spare([u.id, car.id, f0.id, f1.id, mate && mate.id]);
+      const bench = spare([u.id, car.id, f0.id, f1.id, mate && mate.id, fAlly && fAlly.id]);
+      const bench2 = spare([u.id, car.id, f0.id, f1.id, mate && mate.id, fAlly && fAlly.id, bench && bench.id]);
+      if (!mate || !fAlly || !bench || !bench2) { refused.push(pm.name + ' / ' + car.name + ': no quiet bench filler'); continue; }
+      if (!quietFor(car)) { refused.push(pm.name + ' / ' + car.name + ': the carrier has no quiet click'); continue; }
+      return { pm, u, car, f0, f1, mate, fAlly, bench, bench2, quietFor, refused };
+    }
+  }
+  return { refused };
+}
+function runStaged() {
+  const B = stagedBoard();
+  if (!B.pm) { console.log('__STAGED__' + JSON.stringify({ staged: false, why: B.refused.slice(0, 4) })); return; }
+  const firstCopyable = sp => Object.values(sp.abilities || {})
+    .find(a => !((DEX.abilities.get(a).flags || {})['notrace'])) || Object.values(sp.abilities)[0];
+  const mk = (sp, ab) => ({ species: sp.name, item: '', ability: ab || Object.values(sp.abilities)[0],
+                            moves: [B.quietFor(sp).name] });
+  /* `buildPair` REQUIRES FOUR BUILDABLE BODIES and returns null below that (`TEAMS_UNBUILDABLE`), so
+   * both sheets are four long. The Trace carrier sits at bench slot 0; the probe does not assume the
+   * replacement — it READS which body Traced, off both engines, and the verdict fails if they differ. */
+  const A = [mk(B.f0, firstCopyable(B.f0)), mk(B.f1, firstCopyable(B.f1)), mk(B.fAlly), mk(B.bench)];
+  const Bs = [{ species: B.u.name, item: '', ability: Object.values(B.u.abilities)[0], moves: [B.pm.name] },
+              mk(B.mate), { species: B.car.name, item: '', ability: 'Trace', moves: [B.quietFor(B.car).name] },
+              mk(B.bench2)];
+  let sdAddr = null, sdList = null, sdChosen = null;
+  let meAddr = null, meList = null, meChosen = null;
+  hookAuthority(true); HOOKED = true; SD = [];
+  const prevSink = M.traceListSink(rec => {
+    if (meAddr) return;                                   // the FIRST Trace draw of the game
+    meAddr = (M.midEventLog().slice(-1)[0]) || null;
+    meList = (rec.eligible || []).map(meKey); meChosen = rec.chosen ? meKey(rec.chosen) : null;
+  });
+  const pa = G.buildPair(A), pb = G.buildPair(Bs);
+  let r;
+  try {
+    r = G.playGame(pa, pb, 'directed', 'probe_trace_list :: staged pivot entry',
+      { arm: G.ARM_BY_ID.get('middle'),
+        script: [{ p1: [{ m: norm(B.quietFor(B.f0).id) }, { m: norm(B.quietFor(B.f1).id) }],
+                   p2: [{ m: norm(B.pm.id), t: 0 }, { m: norm(B.quietFor(B.mate).id) }] }] });
+  } catch (e) { r = { err: String((e && e.message) || e) }; }
+  hookAuthority(false); HOOKED = false; M.traceListSink(prevSink);
+  const AD = G.midAddresses();
+  if (SD.length) { sdList = SD[0].list; sdChosen = SD[0].chosen; sdAddr = SD[0].addr || null; }
+  const MF = M.MEDFAILS || {}, MS = M.MEDSEEN || {};
+  console.log('__STAGED__' + JSON.stringify({
+    staged: !!SD.length && !!meAddr, err: (r && r.err) ? String(r.err) : null,
+    cast: B.u.name + ' [' + B.pm.name + '] -> ' + B.car.name + ' vs ' + B.f0.name + ' / ' + B.f1.name,
+    sdAddr, meAddr, sdList, meList, sdChosen, meChosen,
+    scriptMissed: G.scriptCounters().moveNotOnRequest,
+    knobReached: Number(MF.pivotEntryMoveAddrRestored || 0),
+    cleared: Number(MS.pivotEntryAddrCleared || 0),
+    /* THE TURN-0 BUCKET IS NOT AN ADDRESS, IT IS A SEQUENCE: every draw taken before the first turn
+     * carries `|0|any|-|-|<nth>` and there are hundreds of them. Only the draws from turn 1 on are
+     * reported, which is where the pivot's entry is. */
+    sdAny: AD.sd.filter(x => x.indexOf('|any|') >= 0 && !/^[^|]*\|0\|/.test(x)),
+    meAny: AD.me.filter(x => x.indexOf('|any|') >= 0 && !/^[^|]*\|0\|/.test(x)),
+  }));
+}
+if (STAGED_CHILD) { runStaged(); process.exit(0); }
 
 /* ---- THE POOL. Teams carrying a body whose dex abilities include Trace, derived from the format. */
 const legal = x => x && x.exists && !x.isNonstandard && x.tier !== 'Illegal';
@@ -449,5 +586,78 @@ if (process.env.MEDI_TRACE_SOLO_NODRAW !== '1') {
   }
 }
 
+/* A RUN UNDER A RESTORE KNOB CAN NEVER READ AS A CLEAN ONE. The staged arms below spawn their own
+ * children and clear the knob explicitly, so they are green whatever this process was started with —
+ * correct for a controlled experiment, and it would leave an externally-knobbed run resting entirely
+ * on a 1-in-2,442 sweep. This clause makes it immediate: the engine stamps `MEDFAILS`, and a stamped
+ * process fails by name. */
+if (Number((M.MEDFAILS || {}).pivotEntryMoveAddrRestored || 0) > 0) {
+  console.log(NL + '  FAIL — MEDI_PIVOT_ENTRY_MOVE_ADDR=1 is set in THIS process '
+    + '(MEDFAILS.pivotEntryMoveAddrRestored), so the engine under test has the defect restored.');
+  bad++;
+}
+
+/* ---- THE STAGED ARM'S VERDICT — one board, two children, no search --------------------------- */
+if (process.env.MEDI_TRACE_SOLO_NODRAW !== '1') {
+  const { spawnSync } = require('child_process');
+  console.log(NL + '--- THE STAGED PIVOT-ENTRY ARM (one board; the knob is read at module load, so each'
+    + ' arm is a child) ---');
+  /* THE CLEAN ARM CLEARS THE KNOB EXPLICITLY. Inheriting `process.env` would let a knob set from
+   * OUTSIDE this process reach the arm that is supposed to be the control, and the two arms would
+   * then agree for the one reason that proves nothing — the first Choice Scarf probe's mistake. */
+  const arm = (env) => {
+    const cp = spawnSync(process.execPath, [...process.execArgv, __filename, ...argv],
+      { env: { ...process.env, MEDI_PIVOT_ENTRY_MOVE_ADDR: '', ABRA_TRACE_STAGED: '1', ...env },
+        encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+    const line = (String(cp.stdout || '') + String(cp.stderr || '')).split(NL).find(l => l.startsWith('__STAGED__'));
+    return line ? JSON.parse(line.slice('__STAGED__'.length)) : null;
+  };
+  const CLEAN = arm({});
+  const KNOB = arm({ MEDI_PIVOT_ENTRY_MOVE_ADDR: '1' });
+  const say = (what, ok, detail) => { console.log('  ' + (ok ? 'green' : 'RED  ') + '  ' + what + ' — ' + detail);
+    if (!ok) bad++; return ok; };
+  if (!CLEAN || !KNOB) {
+    console.log('  FAIL — a staged child printed no verdict line, so this arm did not run.'); bad++;
+  } else if (!CLEAN.staged) {
+    console.log('  FAIL — NOT STAGED, and that is a claim about the FIXTURE: '
+      + JSON.stringify(CLEAN.why || CLEAN.err)); bad++;
+  } else {
+    console.log('  cast: ' + CLEAN.cast);
+    console.log('  clean  showdown ' + CLEAN.sdAddr + '   medicham2 ' + CLEAN.meAddr);
+    console.log('  knob   showdown ' + KNOB.sdAddr + '   medicham2 ' + KNOB.meAddr);
+    say('the fixture: the pivot connected and the Trace body walked in on BOTH engines',
+        !!CLEAN.sdList && !!CLEAN.meList && CLEAN.scriptMissed === 0,
+        'scripted clicks not on the request: ' + CLEAN.scriptMissed);
+    say('the fixture: both engines built the SAME two-body eligible list',
+        CLEAN.sdList.join(',') === CLEAN.meList.join(',') && CLEAN.sdList.length === 2,
+        JSON.stringify(CLEAN.sdList));
+    say('the two engines ADDRESS the draw identically', CLEAN.sdAddr === CLEAN.meAddr,
+        CLEAN.sdAddr + ' vs ' + CLEAN.meAddr);
+    say('...and the authority\'s address carries NO active move, because the pivot switch is its own action',
+        /\|any\|-\|-\|/.test(String(CLEAN.sdAddr)), String(CLEAN.sdAddr));
+    say('so the two engines copy the same body', CLEAN.sdChosen === CLEAN.meChosen,
+        CLEAN.sdChosen + ' vs ' + CLEAN.meChosen);
+    say('the fix RAN on this board (MEDSEEN.pivotEntryAddrCleared)', CLEAN.cleared > 0,
+        'counter ' + CLEAN.cleared
+        + (CLEAN.cleared > 0 ? '' : '   [nothing was stale, so this board asked nothing]'));
+    /* AND THE KNOB — an identical result across a varied knob means the knob is unwired. */
+    say('the knob REACHED THE CODE it names (MEDFAILS.pivotEntryMoveAddrRestored)', KNOB.knobReached > 0,
+        'counter ' + KNOB.knobReached);
+    say('KNOB: medicham2 addresses the draw to the PIVOT MOVE again', KNOB.meAddr !== KNOB.sdAddr
+        && String(KNOB.meAddr).indexOf('|any|-|-|') < 0, KNOB.meAddr);
+    say('KNOB: the authority is UNMOVED, so the difference is ours', KNOB.sdAddr === CLEAN.sdAddr,
+        KNOB.sdAddr);
+    say('KNOB: the LIST is unmoved — the knob must move the ADDRESS and nothing else',
+        KNOB.sdList.join(',') === CLEAN.sdList.join(',') && KNOB.meList.join(',') === CLEAN.meList.join(','),
+        JSON.stringify(KNOB.meList));
+    say('KNOB: and on this board the mis-addressed draw copies a DIFFERENT body',
+        KNOB.meChosen !== KNOB.sdChosen, KNOB.sdChosen + ' vs ' + KNOB.meChosen);
+  }
+}
+
+if (CANL_THREW) {
+  bad++;
+  console.log('  RED    the learnset validator THREW ' + CANL_THREW + ' time(s) — every throw was read as a NO, so the fixture choice in this run is not trustworthy');
+}
 console.log(NL + (bad ? bad + ' FAILING CLAUSE(S)' : 'all clauses green'));
 process.exit(bad ? 1 : 0);

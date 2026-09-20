@@ -4688,8 +4688,16 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
           const sdLast = (q.lastMove && id(q.lastMove.id)) || '';
           const meLast = id(m._lastMove || '');
           if (sdLast !== meLast) {
+            /* 2026-09-20 -- IS THE BODY A CORPSE? A fainted Showdown body is still standing in
+             * `side.active[i]` until its replacement lands, and `Pokemon#faint` runs `clearVolatile`,
+             * which nulls `lastMove` and drops every item and ability effect. Reading a corpse against
+             * a live body is the INSTRUMENT, not the engine, and this diagnostic could not say which
+             * it was looking at -- every one of the forty printed buckets carried `sd:fnt` and the
+             * list is capped at forty, so the split had to be computed rather than eyeballed. */
             lastMoveRows.push({ when, slot: 'p' + (tag === 'A' ? 1 : 2) + (i ? 'b' : 'a'),
-                                body: id(m.name), showdown: sdLast || '(none)', medicham: meLast || '(none)' });
+                                body: id(m.name), showdown: sdLast || '(none)', medicham: meLast || '(none)',
+                                sd_fainted: !!(q.fainted || q.hp <= 0),
+                                me_fainted: !!(m.fainted || m.curHP <= 0) });
           }
         }
         /* A THROW HERE IS NOT A "NO READING". `tests/test-no-silent-failure.js` is right about this
@@ -4736,6 +4744,12 @@ function playGame(pairA, pairB, cfgId, seedTag, opts) {
         speedRows.push({ when, slot: 'p' + (tag === 'A' ? 1 : 2) + (i ? 'b' : 'a'),
                          body: id(m.name), showdown: a, medicham: b, gap: a - b,
                          same_when_floored: Math.floor(a) === Math.floor(b),
+                         /* SEE THE lastMove ROW ABOVE -- the same corpse question, and here it is the
+                          * whole of the reading: `Pokemon#faint` drops the item and ability effects, so
+                          * a Choice Scarf body reads 128 on the authority and 192 here for no engine
+                          * reason at all. Recorded so the split can be COUNTED over the population. */
+                         sd_fainted: !!(q.fainted || q.hp <= 0),
+                         me_fainted: !!(m.fainted || m.curHP <= 0),
                          sd_raw: sdRaw, sd_stat: sdStat,
                          ability: id(m.ability || ''), sd_ability: id(q.ability || ''),
                          item: id(m.item || ''), sd_item: id(q.item || ''),
@@ -8242,6 +8256,23 @@ console.log('  DIVERGED (primary arm ' + RUN_PRIMARY.id + '): ' + diverged.lengt
   console.log('    lastMove DISAGREEMENTS (the gate Encore reads): ' + lm.length + ' readings in '
     + lmGames + ' of ' + results.length + ' games');
   {
+    /* THE CORPSE SPLIT, OVER THE WHOLE POPULATION AND NOT OVER THE CAPPED LIST BELOW — 2026-09-20.
+     * A body Showdown has already fainted is still in `side.active[i]` until its replacement lands,
+     * and `Pokemon#faint` runs `clearVolatile`, which nulls `lastMove`. Comparing it against a live
+     * medicham body is the INSTRUMENT reading a corpse, and every one of these readings is one. The
+     * LIVE count is the only part of this block that can be an engine defect. */
+    const dead = lm.filter(x => x.sd_fainted).length;
+    const deadGames = results.filter(r => (r.lastMoveRows || []).some(x => x.sd_fainted)).length;
+    console.log('      of which ' + dead + ' readings in ' + deadGames + ' game(s) are on a body '
+      + 'SHOWDOWN HAS ALREADY FAINTED (Pokemon#faint -> clearVolatile nulls lastMove) — the '
+      + 'instrument reading a corpse, not a disagreement. LIVE-BODY readings: ' + (lm.length - dead)
+      + (lm.length - dead ? '   <-- THESE are the engine claim' : '   (zero — nothing here is an engine claim)'));
+    /* AND THE LIVE ONES BY NAME, because a residue that is only ever a COUNT is a residue nobody can
+     * act on — and this one is small enough to print whole rather than bucketed. */
+    for (const x of lm.filter(y => !y.sd_fainted).slice(0, 20))
+      console.log('        LIVE turn ' + x.when + '  ' + x.slot + ' ' + x.body + '   showdown '
+        + x.showdown + '   medicham ' + x.medicham
+        + (x.me_fainted ? '   [medicham has this body FAINTED and showdown does not]' : ''));
     const by = {};
     for (const x of lm) (by[x.showdown + ' <> ' + x.medicham] = (by[x.showdown + ' <> ' + x.medicham] || 0) + 1);
     for (const [k, v] of Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 12))
@@ -8293,6 +8324,16 @@ console.log('  DIVERGED (primary arm ' + RUN_PRIMARY.id + '): ' + diverged.lengt
       + gamesOf(x => x.same_when_floored) + ' games');
     console.log('    REAL GAP      ' + String(rg.length).padStart(4) + ' readings in '
       + gamesOf(x => !x.same_when_floored) + ' games');
+    /* AND THE SAME CORPSE SPLIT, over the population rather than the forty printed buckets — 2026-09-20.
+     * `Pokemon#faint` drops the item and the ability, so a fainted Choice Scarf body reads its BASE
+     * Speed on the authority and its x1.5 here. That is not a multiplier disagreement; it is the two
+     * engines being asked about different bodies. Only the LIVE count can be an engine defect. */
+    const deadGap = rg.filter(x => x.sd_fainted).length;
+    console.log('      of which ' + deadGap + ' readings in '
+      + gamesOf(x => !x.same_when_floored && x.sd_fainted) + ' game(s) are on a body SHOWDOWN HAS '
+      + 'ALREADY FAINTED (its item and ability effects are gone) — the instrument reading a corpse. '
+      + 'LIVE-BODY REAL GAPs: ' + (rg.length - deadGap)
+      + (rg.length - deadGap ? '   <-- THESE are the engine claim' : '   (zero — nothing here is an engine claim)'));
     const by = {};
     for (const x of rows) {
       const k = (x.same_when_floored ? 'ROUNDING ONLY  ' : 'REAL GAP       ')

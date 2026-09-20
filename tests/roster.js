@@ -9942,8 +9942,17 @@ const RULES = [
      * `only` source selector, and each time the anchor did not follow it the plant matched 0 times and
      * every row this rule produced asserted nothing. The signature is read off the engine, never
      * remembered -- `anchor_dead` in the artifact is what says so. */
-    patch: [['function priorityRefusedAbove(defenders, field, aimedAt, why, only){',
-             'function priorityRefusedAbove(defenders, field, aimedAt, why, only){if(1)return Infinity;']] },
+    /* RE-AIMED AGAIN 2026-09-20, and this time the signature is READ rather than written out.
+     * The Mold Breaker fix added an `att` parameter and the anchor died a THIRD time, matching 0
+     * times while every row this rule produced asserted nothing. A literal signature cannot
+     * survive the next parameter either, so the anchor is now the actual line out of the frozen
+     * source: it follows any future parameter by construction, and a RENAME still kills it
+     * loudly through `anchor_dead`, which is the failure worth keeping. */
+    get patch() {
+      const m = mediSource().match(/^function priorityRefusedAbove\([^)]*\)\{/m);
+      if (!m) return [['function priorityRefusedAbove(', 'ANCHOR-NOT-FOUND-IN-SOURCE(']];
+      return [[m[0], m[0] + 'if(1)return Infinity;']];
+    } },
   match(e) {
     if (typeof e.onFoeTryMove !== 'function') return null;
     if (!PRIORITY_HIT) return cannot('this format has no 100-accuracy single-target damaging move '

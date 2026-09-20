@@ -70,9 +70,28 @@
  *   SILENT   the identical board with a NON-speed ability on the holder. The herb still spends at the
  *            same place and BOTH engines must run the ALLY first — that is what proves the order in
  *            the real arm is the ability and not the way the board was built.
- *   CONTROL  `MEDI_RESORT_BEFORE_UPDATE=1` in a child. The REAL arm must part again under it, and the
- *            SILENT arm must NOT move. An identical result across a varied knob means the knob is
- *            unwired, not that the placement does not matter.
+ *   CONTROL  three children, below.
+ *
+ * ================= THE CONTROL IS TWO KNOBS NOW, AND THAT IS A MEASUREMENT — 2026-09-20 ==========
+ *
+ * `MEDI_RESORT_BEFORE_UPDATE=1` ALONE NO LONGER MOVES THIS BOARD, and the honest reading is not that
+ * the placement stopped mattering. **THE PIVOT ROAD GREW A SECOND GUARD.** `pivotHerbSweep`
+ * (2026-09-19, narration batch B) spends the pivot's herb BEFORE the entrant's entry pass — above
+ * `_updateAll` and therefore above BOTH placements of `_resortTail` — so restoring one of the two
+ * leaves the other correct and the order holds. Measured on the staged board, holder-first unless
+ * BOTH are restored:
+ *
+ *     knobs                                              medicham2 runs first
+ *     (none)                                             holder      <- and so does the authority
+ *     MEDI_RESORT_BEFORE_UPDATE=1                        holder
+ *     MEDI_PIVOT_HERB_AFTER_ENTRY=1                      holder
+ *     both                                               ALLY        <- the defect, reproduced
+ *
+ * So the file spawns THREE children and asserts each separately. The two singles must NOT move the
+ * board AND must stamp their own `MEDFAILS` counter — that pairing is what separates "this guard is
+ * redundant while the other stands" from "this knob is unwired", which read identically at the board
+ * and are different facts. The `both` child is the red arm: it must part the real arm, leave the
+ * silent arm alone, and move no speed reading.
  *
  * IT ASSERTS AND EXITS NON-ZERO ON A FAILURE.
  */
@@ -82,7 +101,9 @@ const D = (...p) => path.join(__dirname, '..', ...p);
 require(D('engine', 'showdown_path.js'));
 if (!process.env.SHOWDOWN_PATH) { console.log('NOT RUN — SHOWDOWN_PATH is unset. This is not a pass.'); process.exit(2); }
 
-const KNOB_SET = process.env.MEDI_RESORT_BEFORE_UPDATE === '1';
+const K_RESORT = process.env.MEDI_RESORT_BEFORE_UPDATE === '1';
+const K_PIVOT = process.env.MEDI_PIVOT_HERB_AFTER_ENTRY === '1';
+const KNOB_SET = K_RESORT || K_PIVOT;
 /* THE CONTROL ARM CARRIES ITS OWN MARKER, AND THE SPAWN BELOW IS THE ONLY THING THAT SETS IT.
  * Keying the quiet control path on the KNOB ITSELF means a knob set from OUTSIDE takes the quiet
  * path too, so the probe exits 0 against a deliberately broken engine — indistinguishable from a
@@ -92,9 +113,15 @@ const KNOB_SET = process.env.MEDI_RESORT_BEFORE_UPDATE === '1';
 const CHILD = KNOB_SET && process.env.ABRA_PROBE_CONTROL_ARM === '1';
 if (KNOB_SET && !CHILD) {
   console.log('');
-  console.log('  MEDI_RESORT_BEFORE_UPDATE=1 WAS SET FROM OUTSIDE THIS PROCESS.');
-  console.log('  The engine is running with the defect restored, so the assertions below are');
-  console.log('  expected to FAIL and this run MUST exit 1. The control child is skipped.');
+  console.log('  A RESTORE KNOB WAS SET FROM OUTSIDE THIS PROCESS: '
+    + (K_RESORT ? 'MEDI_RESORT_BEFORE_UPDATE=1 ' : '') + (K_PIVOT ? 'MEDI_PIVOT_HERB_AFTER_ENTRY=1' : ''));
+  if (K_RESORT && K_PIVOT) {
+    console.log('  BOTH guards are removed, so the defect is restored: the assertions below are');
+    console.log('  expected to FAIL and this run MUST exit 1. The control children are skipped.');
+  } else {
+    console.log('  ONE of the two guards is removed and the other still stands, so the board is');
+    console.log('  expected to HOLD — see the header table. The control children are skipped.');
+  }
 }
 require(D('tests', '_live_release.js'));
 
@@ -112,15 +139,20 @@ const NL = String.fromCharCode(10);
  * 1. THE CAST, DERIVED FROM THE FORMAT. Nothing here is a remembered Pokemon fact.
  * ============================================================================================== */
 const abilitiesOf = s => Object.values(s.abilities || {}).map(norm);
-const learns = (s, mv) => {                       /* walk the prevo chain, as a learnset lookup must */
-  let cur = s;
-  for (let g = 0; cur && g < 6; g++) {
-    const l = dex.species.getLearnsetData(cur.id);
-    if (l && l.learnset && l.learnset[mv]) return true;
-    cur = cur.prevo ? dex.species.get(cur.prevo) : null;
-  }
-  return false;
-};
+/* LEGALITY IS THE VALIDATOR'S, NOT A HAND-ROLLED LEARNSET WALK — 2026-09-20.
+ *
+ * This read `dex.species.getLearnsetData(...)` up the prevo chain and answered TRUE for a pair the
+ * format refuses. It staged Slurpuff @ White Herb clicking Covet and `buildPair`'s own check said so
+ * on stderr every run: `FIXTURE ILLEGAL ... Slurpuff can't learn Covet.` A raw learnset row is a
+ * MOVE THE SPECIES HAS EVER HAD in some generation; `TeamValidator#checkCanLearn` is the question a
+ * format actually asks, and it is the same function `engine/fixture_legality.js` judges the built
+ * sheet with — so the fixture and its judge can no longer disagree.
+ *
+ * IT CHANGED THE ANSWER, IT DID NOT ONLY CHANGE THE PAPERWORK: the first accepted candidate was the
+ * illegal one, and the whole three-arm verdict was being read off a board this regulation does not
+ * permit. `champions_sim.canLearn` IS `checkCanLearn`, cached per pair. */
+const learns = (s, mv) => { try { return !!CS.canLearn(s.name, mv); }
+  catch (e) { console.error('  canLearn threw for ' + s.name + '/' + mv + ': ' + e.message); return false; } };
 const POOL = dex.species.all().filter(s => LEGAL(s) && !/mega/i.test(s.forme || ''));
 
 /* THE SPEED ABILITY IS READ OFF OUR OWN TAG, NOT OFF A NAME. `speedOnItemLoss` is the param
@@ -241,6 +273,11 @@ const run = (C, ability, tag) => {
   };
   const cen = (r.speedCensus || []).filter(x => x.when === 0);
   const speedOf = nm => { const x = cen.find(y => norm(y.body) === norm(nm)); return x ? x.showdown : null; };
+  if (process.env.ABRA_HERB_DUMP === '1') {
+    console.log('  ---- DUMP ' + tag + ' knob=' + (KNOB_SET ? 1 : 0) + ' ----');
+    for (const l of me) console.log('    ME ' + l);
+    for (const l of sd) console.log('    SD ' + l);
+  }
   return { staged: true, r,
            sdFirst: firstOf(sd), meFirst: firstOf(me),
            sdHerb: sd.some(herbLine), meHerb: me.some(herbLine),
@@ -264,9 +301,19 @@ const run = (C, ability, tag) => {
 let CAST = null, REAL = null;
 const refused = [];
 for (const C of CANDIDATES.slice(0, 40)) {
+  /* THE LEGALITY REFUSAL, BELT AND BRACES — 2026-09-20. `learns` is now the validator, so this
+   * should never fire; it exists because the two questions ("may this body click this move" and
+   * "is this whole set legal") are asked by two callers, and a probe that MEASURES an illegal board
+   * is worse than one that refuses to stage. Only sets this candidate built are consulted. */
+  const ILL0 = G.fixtureIllegal().filter(x => !x.baselined).length;
   const R = run(C, C.hAb, CHILD ? 'real-control' : 'real');
   const label = C.p.name + '/' + C.h.name + '/' + C.a.name + ' [' + C.pm.name + ']';
   if (!R.staged) { refused.push(label + ': ' + R.why); continue; }
+  const NEWILL = G.fixtureIllegal().filter(x => !x.baselined).slice(ILL0);
+  if (NEWILL.length) {
+    refused.push(label + ': ILLEGAL SET — ' + NEWILL.map(x => x.problems.join(' | ')).join(' ;; '));
+    continue;
+  }
   const S0 = R.speeds;
   const why = !R.sdDrop ? 'the authority never lowered a stat on the holder'
             : !R.sdHerb ? 'the herb never came off in the authority'
@@ -308,15 +355,20 @@ console.log('  herb spent?                  showdown ' + SIL.sdHerb + '   medich
 console.log('  moved first on that side:    showdown ' + SIL.sdFirst + '   medicham2 ' + SIL.meFirst);
 
 if (CHILD) {
-  console.log(NL + '  CONTROL ARM (MEDI_RESORT_BEFORE_UPDATE=1) — asserts nothing about the fix.');
+  console.log(NL + '  CONTROL ARM (' + (K_RESORT ? 'MEDI_RESORT_BEFORE_UPDATE=1 ' : '')
+    + (K_PIVOT ? 'MEDI_PIVOT_HERB_AFTER_ENTRY=1' : '') + ') — asserts nothing about the fix.');
+  /* THE KNOBS' OWN RECEIPTS. Without them "the knob changed nothing" and "the knob reached no code"
+   * are the same reading, and they are different defects — which is the whole reason the two SINGLE
+   * arms below are allowed to leave the board unmoved. The engine writes
+   * `MEDFAILS.resortBeforeUpdateRestored` on any run that took the restored placement, and
+   * `MEDFAILS.pivotHerbAfterEntryRestored` on any run that took the restored spend point. */
+  const MF = (G.REL.require('engine/medicham2-browser.js').MEDFAILS || {});
   console.log('__CONTROL__' + JSON.stringify({
     cast: CAST.p.name + '/' + CAST.h.name + '/' + CAST.a.name,
     meFirst: REAL.meFirst, div: !!REAL.div, divLine: REAL.div && REAL.div.me,
     silFirst: SIL.meFirst, silDiv: !!SIL.div, speedDis: REAL.speedDisagreements,
-    /* THE KNOB'S OWN RECEIPT. Without it "the knob changed nothing" and "the knob reached no code"
-     * are the same reading, and they are different defects. The engine writes
-     * `MEDFAILS.resortBeforeUpdateRestored` on any run that took the restored placement. */
-    knobReached: Number((G.REL.require('engine/medicham2-browser.js').MEDFAILS || {}).resortBeforeUpdateRestored || 0),
+    resortReached: Number(MF.resortBeforeUpdateRestored || 0),
+    pivotReached: Number(MF.pivotHerbAfterEntryRestored || 0),
   }));
   console.log(NL + 'green — the control arm ran');
   process.exit(0);
@@ -365,37 +417,58 @@ if (KNOB_SET) {
   console.log('      knob changed nothing — true, and about the wrong thing ---');
 } else {
   const { spawnSync } = require('child_process');
-  console.log(NL + '  --- re-running under MEDI_RESORT_BEFORE_UPDATE=1 (the control), in a child ---');
-  const c = spawnSync(process.execPath, [...(process.execArgv || []), __filename],
-    { env: { ...process.env, MEDI_RESORT_BEFORE_UPDATE: '1', ABRA_PROBE_CONTROL_ARM: '1' }, encoding: 'utf8' });
-  const out = String(c.stdout || '');
-  process.stdout.write(out.split(NL).map(l => '  |' + l).join(NL) + NL);
-  if (c.stderr) process.stderr.write(String(c.stderr));
-  const mark = /__CONTROL__(\{.*\})/.exec(out);
-  if (c.status === null) { console.log(NL + '  RED — the child did not run at all.'); bad++; }
-  else if (!mark) { console.log(NL + '  RED — the control child printed no verdict line (exit ' + c.status + ').'); bad++; }
-  else {
+  const CAST_ID = CAST.p.name + '/' + CAST.h.name + '/' + CAST.a.name;
+  /* THREE CHILDREN — see the header table. The two SINGLES are expected to leave the board alone,
+   * because the pivot road carries two independent guards and removing one leaves the other; each is
+   * still required to STAMP its own counter, which is what stops "redundant" reading as "unwired". */
+  const ARMS = [
+    { id: 'resort', env: { MEDI_RESORT_BEFORE_UPDATE: '1' }, moves: false,
+      why: 'the re-sort back above the Update pass; `pivotHerbSweep` still spends the herb above both' },
+    { id: 'pivot', env: { MEDI_PIVOT_HERB_AFTER_ENTRY: '1' }, moves: false,
+      why: 'the pivot herb spent after the entry pass again; the re-sort is still BELOW the Update pass' },
+    { id: 'both', env: { MEDI_RESORT_BEFORE_UPDATE: '1', MEDI_PIVOT_HERB_AFTER_ENTRY: '1' }, moves: true,
+      why: 'the engine as it was before either fix — THE RED ARM' },
+  ];
+  for (const A of ARMS) {
+    console.log(NL + '  --- control child `' + A.id + '` (' + Object.keys(A.env).join(' ') + ') — ' + A.why + ' ---');
+    const c = spawnSync(process.execPath, [...(process.execArgv || []), __filename],
+      { env: { ...process.env, ...A.env, ABRA_PROBE_CONTROL_ARM: '1' }, encoding: 'utf8' });
+    const out = String(c.stdout || '');
+    process.stdout.write(out.split(NL).map(l => '  |' + l).join(NL) + NL);
+    if (c.stderr) process.stderr.write(String(c.stderr));
+    const mark = /__CONTROL__(\{.*\})/.exec(out);
+    if (c.status === null) { console.log('  RED — child `' + A.id + '` did not run at all.'); bad++; continue; }
+    if (!mark) { console.log('  RED — child `' + A.id + '` printed no verdict line (exit ' + c.status + ').'); bad++; continue; }
     const ctl = JSON.parse(mark[1]);
-    cmp('the control child staged the SAME board', ctl.cast === CAST.p.name + '/' + CAST.h.name + '/' + CAST.a.name,
-        ctl.cast);
-    /* THE RECEIPT BEFORE THE COMPARISON. "the knob changed nothing" and "the knob reached no code"
-     * read identically at the board and are different defects, so the counter is asked first. */
-    cmp('the knob REACHED THE CODE it names (MEDFAILS.resortBeforeUpdateRestored)', ctl.knobReached > 0,
-        'counter ' + ctl.knobReached
-        + (ctl.knobReached > 0 ? '' : '   [the restored placement never ran on this board — a claim about the FIXTURE, not about the rule]'));
-    cmp('the knob CHANGES the real arm', ctl.meFirst !== REAL.meFirst,
-        'default ' + REAL.meFirst + ' vs control ' + ctl.meFirst
-        + (ctl.meFirst === REAL.meFirst ? '   [an identical result across a varied knob means the knob is UNWIRED]' : ''));
-    cmp('the control arm parts on its own line, so the knob reached the RULE', ctl.div === true,
-        ctl.divLine ? String(ctl.divLine) : 'no divergence at all');
-    cmp('the SILENT arm does NOT move under the knob', ctl.silFirst === SIL.meFirst,
+    cmp('[' + A.id + '] staged the SAME board', ctl.cast === CAST_ID, ctl.cast);
+    /* THE RECEIPTS BEFORE THE COMPARISON, one per knob this arm claims to have set. */
+    for (const k of Object.keys(A.env)) {
+      const got = k === 'MEDI_RESORT_BEFORE_UPDATE' ? ctl.resortReached : ctl.pivotReached;
+      cmp('[' + A.id + '] ' + k + ' REACHED THE CODE it names', got > 0, 'counter ' + got
+        + (got > 0 ? '' : '   [it never ran on this board — a claim about the FIXTURE, not about the rule]'));
+    }
+    if (A.moves) {
+      cmp('[' + A.id + '] CHANGES the real arm', ctl.meFirst !== REAL.meFirst,
+          'default ' + REAL.meFirst + ' vs control ' + ctl.meFirst
+          + (ctl.meFirst === REAL.meFirst ? '   [an identical result across a varied knob means the knob is UNWIRED]' : ''));
+      cmp('[' + A.id + '] parts on its own line, so it reached the RULE', ctl.div === true,
+          ctl.divLine ? String(ctl.divLine) : 'no divergence at all');
+    } else {
+      /* THE OTHER GUARD STILL STANDS, so the board must NOT move — and the stamp above is what makes
+       * that a measurement rather than a shrug. */
+      cmp('[' + A.id + '] leaves the real arm alone, because the OTHER guard still stands',
+          ctl.meFirst === REAL.meFirst, 'default ' + REAL.meFirst + ' vs control ' + ctl.meFirst);
+      cmp('[' + A.id + '] does not part either', ctl.div === false,
+          ctl.divLine ? String(ctl.divLine) : 'none');
+    }
+    cmp('[' + A.id + '] the SILENT arm does NOT move', ctl.silFirst === SIL.meFirst,
         'default ' + SIL.meFirst + ' vs control ' + ctl.silFirst);
-    cmp('...and the silent arm still does not part under the knob', ctl.silDiv === false, String(ctl.silDiv));
-    /* AND THE KNOB MOVED THE ORDER WITHOUT MOVING THE NUMBER. Under the old placement the engines
-     * still agree on every speed reading and STILL part on the order — which localises the defect to
-     * WHEN the queue was sorted and rules out the other candidate cause outright. */
-    cmp('the knob does NOT move any speed reading — it moves only WHEN the sort happened',
-        ctl.speedDis === 0, 'disagreeing readings under the knob: ' + ctl.speedDis);
+    cmp('[' + A.id + '] ...and the silent arm still does not part', ctl.silDiv === false, String(ctl.silDiv));
+    /* AND NO ARM MOVED THE NUMBER. Under every knob position the engines still agree on every speed
+     * reading, which localises the `both` arm's parting to WHEN the queue was sorted and rules out
+     * the other candidate cause outright. */
+    cmp('[' + A.id + '] moves no speed reading — only WHEN the sort happened',
+        ctl.speedDis === 0, 'disagreeing readings: ' + ctl.speedDis);
   }
 }
 

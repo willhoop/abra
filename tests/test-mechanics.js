@@ -4086,6 +4086,60 @@ probe('ability', 'copiesFoeAbility', 'Trace samples UNIFORMLY among the eligible
                  + 'traceChoiceDie rose by ' + (d1 - d0) };
 });
 
+/* ---- 2026-09-20 -- A PIVOT'S ENTRY IS A SEPARATE ACTION, SO ITS DICE CARRY NO ACTIVE MOVE --------
+ *
+ * THE AUTHORITY'S LINE, read whole. `Battle#runAction` (sim/battle.ts:2828) ends the move's own action
+ * with
+ *
+ *     this.clearActiveMove();
+ *
+ * and `Battle#clearActiveMove` (:376-384) is `this.activeMove = null; this.activeTarget = null;`. The
+ * self-switch is a SEPARATE queued action after that, so by the time the entrant's `runSwitch` reaches
+ * Trace's `onUpdate` -> `this.sample(possibleTargets)` (data/abilities.ts:5127-5136), `battle.activeMove`
+ * is null. `engine/game_differential.js`'s middle arm builds its address from exactly those two fields,
+ * and its own log printed the split:
+ *
+ *     showdown   20260813|6|any|-|-|0
+ *     medicham2  20260813|6|any|uturn|p20|0
+ *
+ * ONE DIE, TWO ADDRESSES: the shared stream is keyed on that string, so the two engines drew different
+ * values for the same event and Traced different bodies. 1 joined draw in 2,442 over the pinned pool.
+ *
+ * THE CONTROL IS THE SAME TURN'S OTHER DRAWS. A probe that only asserted `-|-` would also pass on an
+ * engine that had stopped addressing anything, so the pivot move's OWN draws are read from the same log
+ * and must still name it. Both arms come out of one `midEventLog()` — the engine's own record of every
+ * address it asked for — rather than from a re-derivation here. */
+probe('ability', 'copiesFoeAbility', "a pivot's entry addresses its dice with NO active move, the way the authority's separate switch action does", () => {
+  const run = () => {
+    const me = bare('milotic'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('incineroar');
+    const benchA = bare('gardevoir');
+    benchA.ability = 'trace'; f1.ability = 'roughskin'; f2.ability = 'levitate';
+    const S = M.battleInit([me, ally, benchA], [f1, f2], { seeded: true });
+    /* THE EVENT DICE, so the engine writes its own address log. Same factory the differential hands it. */
+    const dice = M.midEventDice({ seed: 20260920 });
+    M.battleTurn(S, dice,
+      new Map([[me, M.playerAction(me, 'uturn', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const log = M.midEventLog().filter(x => !/^[^|]*\|0\|/.test(x));   // the pre-turn bucket is a sequence
+    return { traced: S.actA[0] && S.actA[0].ability,
+             any: log.filter(x => x.indexOf('|any|') >= 0),
+             named: log.filter(x => x.indexOf('|uturn|') >= 0).length };
+  };
+  const R = run();
+  const anyCarryMove = R.any.filter(x => x.indexOf('|any|-|-|') < 0);
+  return { works: R.traced === 'roughskin' || R.traced === 'levitate'
+                  ? R.any.length > 0 && anyCarryMove.length === 0 && R.named > 0
+                  : false,
+           arms: { control: [R.named], test: [R.any.length, anyCarryMove.length] },
+           detail: `[the pivot move's OWN addressed draws] ${R.named} — the control, which must be `
+                 + `non-zero or the address machinery is simply off. [the \`any\` draws taken in the `
+                 + `entry pass, how many of them still name a move] `
+                 + `${JSON.stringify([R.any.length, anyCarryMove.length])}; the second must be 0. `
+                 + `The Trace body walked in on U-turn and copied "${R.traced}". Addresses seen: `
+                 + `${JSON.stringify(R.any.slice(0, 4))}. Knob MEDI_PIVOT_ENTRY_MOVE_ADDR` };
+});
+
 /* ROADMAP #157 -- THREE MOVES THAT SPENT THE TURN AND DID NOTHING, 939 STORED CLICKS.
  *
  * Entrainment (342), Simple Beam (380) and Worry Seed (217) carried `[pp, moveClass, statusCategory]`
@@ -9312,6 +9366,42 @@ probe('ability', 'blocksMove', 'Armor Tail refuses a priority move', () => {
            detail: 'no ability took ' + control + ', Armor Tail took ' + test };
 });
 
+/* 2026-09-20 -- AND THE BAR IS BREAKABLE, WHICH THIS ENGINE'S ONE PRIORITY GATE NEVER ASKED.
+ * `armortail.flags` is `{ breakable: 1 }` (data/abilities.ts:229) and `Battle#runEvent` drops a
+ * breakable ability's handler whenever the move's USER is suppressing:
+ *
+ *     if (effect.effectType === 'Ability' && effect.flags['breakable'] &&      sim/battle.ts:855-866
+ *         this.suppressingAbility(effectHolder)) {
+ *       const AttackingEvents = { … TryMove: 1, … };
+ *       if (eventid in AttackingEvents) { … continue; } }
+ *
+ * `onFoeTryMove` is raised inside `TryMove`, which is on that list — so a Mold Breaker attacker is
+ * never refused. `priorityRefusedAbove` read `d.ability` RAW at all three of its gates. Held-out
+ * board parting 7, seed `gen9championsvgc2026regmbbo3-2659757084` turn 1, with
+ * `|-ability|p2a: Tinkaton|moldbreaker` two lines earlier: the authority's Fake Out lands and
+ * flinches, and this engine wrote
+ * `|cant|p1b: Farigiraf|ability: armortail|fakeout|[of] p2a: Tinkaton`.
+ *
+ * ONE BODY, ONE ABILITY SLOT VARIED. The control is the SAME Basculegion carrying its other legal
+ * ability, so the only thing that moves between the arms is whether the attacker breaks moulds —
+ * and `MEDI_PRIORITY_BAR_IGNORES_BREAKER=1` puts the refusal back on the breaker arm. */
+probe('ability', 'blocksMove', 'a MOULD-BREAKING attacker is not refused by the breakable priority bar', () => {
+  const run = (ab) => {
+    const { me, ally, f1, f2, S } = board('basculegion', 'corviknight', 'abomasnow', 'farigiraf');
+    me.ability = ab; f2.ability = 'armortail';   // the bar stands BESIDE the target: it covers a side
+    const before = f1.curHP;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'aquajet', f1, S.field)], [ally, { kind: 'pass' }]]), PASS2(f1, f2));
+    return before - f1.curHP;
+  };
+  const control = run('swiftswim'), test = run('moldbreaker');
+  return { works: control === 0 && test > 0, arms: { control, test },
+           detail: 'Aqua Jet (priority 1) into an Abomasnow standing beside a Farigiraf [Armor Tail]. '
+                 + 'The same Basculegion carrying SWIFT SWIM lands ' + control + ' (must be 0 — the '
+                 + 'bar holds, which is what makes the other arm mean something); carrying MOLD '
+                 + 'BREAKER it lands ' + test + ' (must be > 0)' };
+});
+
 /* THE REFUSAL NAMED THE WRONG BODY, AND IT NAMED AN ABILITY THAT DOES NOT REFUSE PRIORITY.
  *
  * `blocksMove` IS NOT ONE TAG'S WORTH OF MEANING. `priorityBlockAbilities()` reads it and keeps only
@@ -12587,6 +12677,44 @@ probe('move', 'removesItem', 'Bug Bite takes a BERRY and leaves anything else �
  * THE FIVE CONTROLS ARE THE POINT. A fix that made every item-remover an eater passes both TEST arms
  * and fails KNOCK OFF; one that ate off an empty slot fails the no-item arm; one that ignored
  * `takeItem`'s own refusal fails STICKY HOLD, which is a berry that must NOT be eaten. */
+/* 2026-09-20 -- AND THE STEAL-EAT IS STEP 3, WHICH IS ABOVE THE REACTORS. The authority's line pair,
+ * read off the real simulator this pass (tests/probe_stealeat_before_reactors.js):
+ *
+ *     |-enditem|p1a: Garchomp|Aspear Berry|[from] stealeat|[move] Bug Bite|[of] p2a: Araquanid
+ *     |-damage|p2a: Araquanid|1001/1144|[from] ability: Rough Skin|[of] p1a: Garchomp
+ *
+ * in that order, because `bugbite.onHit` (data/moves.ts:1920-1929) is `runMoveEffects` — step 3 of
+ * `spreadMoveHit`, data/mods/champions/scripts.ts:375 — and `runEvent('DamagingHit', …)` is :410.
+ * This engine resolved the strip in its `onAfterHit` step beside Thief and Knock Off, which is
+ * BELOW the reactors, so a thief that the real game lets eat first was killed by the recoil.
+ * Held-out board parting 8, seed `gen9championsvgc2026regmbbo3-2660750080` turn 13: a Scizor on
+ * 16/145 lives at 34/145 in the authority and dies here (`p2.party.scizor.fainted us=true
+ * showdown=false`, `ate_berry us=0 showdown=1`).
+ *
+ * THE CONTROL IS THE SAME CLICK AT A BODY HOLDING NOTHING, so "the thief survived" cannot be
+ * satisfied by a fixture in which the reactor was never lethal — it must FAINT there. The thief is
+ * set to exactly `floor(maxhp/8)`, Rough Skin's own fraction, so one point of healing decides it.
+ * Knob MEDI_STEALEAT_AT_AFTERHIT=1. */
+probe('move', 'takesTargetItem', 'the stolen berry is eaten at step 3, ABOVE the on-damaging-hit reactor that would have killed the thief', () => {
+  const run = (berry) => {
+    const { me, ally, f1, f2, S } = board('araquanid', 'corviknight', 'garchomp', 'milotic');
+    f1.ability = 'roughskin'; f1.item = berry;
+    me.curHP = Math.max(1, Math.floor(me.st.hp / 8));
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'bugbite', f1, S.field)], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return [me.fainted ? 1 : 0, me._ateBerry ? 1 : 0];
+  };
+  const control = run(''), test = run('sitrusberry');
+  return { works: control[0] === 1 && control[1] === 0 && test[0] === 0 && test[1] === 1,
+           arms: { control, test },
+           detail: '[thief fainted, thief ate the berry] — Araquanid Bug Bites a Garchomp [Rough '
+                 + 'Skin] from exactly maxhp/8. Holding NOTHING ' + JSON.stringify(control)
+                 + ' (must be 1,0 — the reactor is lethal, which is what makes the other arm mean '
+                 + 'something). Holding a Sitrus ' + JSON.stringify(test) + ' (must be 0,1 — the '
+                 + 'berry is stolen and eaten first, so the same recoil is survived)' };
+});
+
 probe('move', 'takesTargetItem', 'Bug Bite and Pluck make the ATTACKER eat the stolen berry - the line, the effect, and NOT lastItem', () => {
   /* One staging for every arm, so a difference between two of them is the varied knob and not the
    * board. BOTH bodies are unfaintable: the target because a KO clamps both arms and this file marks
@@ -14401,6 +14529,70 @@ probe('move', 'blocksHealing', 'Psychic Noise stops the target healing', () => {
   const free = run(false), blocked = run(true);
   return { works: free > 0 && blocked <= 0, arms: { control: free, test: blocked },
            detail: 'healed ' + free + ' normally, ' + blocked + ' after Psychic Noise' };
+});
+
+/* 2026-09-20 -- HEAL BLOCK REFUSES THE CLICK, AND THE AUTHORITY SAYS SO IN ONE LINE:
+ *
+ *     |cant|p1a: Aromatisse|move: Heal Block|Draining Kiss
+ *
+ * read off the real simulator this pass in tests/probe_healblock_refuses_heal_move.js, against
+ * `|move|p1a: Aromatisse|drainingkiss|p2a: Noivern` here. The handler is a FLAG test, not a
+ * category and not "does this restore HP":
+ *
+ *     onBeforeMovePriority: 6,                                         data/moves.ts:8310-8316
+ *     onBeforeMove(pokemon, target, move) {
+ *       if (move.flags['heal'] && !move.isZ && !move.isMax) {
+ *         this.add('cant', pokemon, 'move: Heal Block', move);
+ *         return false;
+ *       }
+ *     },
+ *
+ * so a DAMAGING drain is refused exactly as Recover is — no damage, no PP, no lastMove. This engine
+ * modelled only the `onTryHeal` half and played the move for zero heal: held-out board parting 10,
+ * seed `gen9championsvgc2026regmbbo3-2661429975`, `pair-protect-bust` turn 3, board leaves
+ * `p1.party.slowbro.hp us=137 showdown=170` and `p2.pp[0].drainpunch us=1 showdown=0`.
+ *
+ * THE PP CELL IS THE ONE THE OLD ENGINE COULD NOT FAKE. Under the knob the damage comes back AND the
+ * bar is spent; the heal cell alone was already 0 before the fix, because `healBlocked` gated the
+ * drain's heal — so a two-cell arm would have passed on a defect. Knob
+ * MEDI_HEALBLOCK_ALLOWS_HEAL_MOVES=1.
+ *
+ * TWO FIXTURE FAULTS WERE FOUND BEFORE THIS ROW MEANT ANYTHING, and both are written down rather
+ * than quietly replaced. The first put the Drain Punch on an INCINEROAR, which is part Dark, so the
+ * Psychic Noise that was supposed to arm the arm was refused outright and both arms read [1,1,1].
+ * The second is worse and was caught only by running the knob: the clicker sat at maxhp/3 and the
+ * arming Psychic Noise KILLED it, so the test arm read its [0,0,-1] off a corpse and stayed green
+ * with the defect restored. The blocker's move must LAND on the body that then clicks, and must not
+ * kill it. */
+probe('move', 'blocksHealing', 'a heal-FLAGGED attack is refused outright — |cant|POKEMON|move: Heal Block|MOVE — not played for no heal', () => {
+  const run = (noise) => {
+    const { me, ally, f1, f2, S } = board('gardevoir', 'corviknight', 'clefable', 'garchomp');
+    /* BOTH BODIES ARE UNFAINTABLE and the clicker is held below full so the drain has somewhere to
+     * heal to. The SECOND fixture fault, caught by running the knob: at maxhp/3 the Psychic Noise
+     * that arms the arm KILLED the clicker, so the test arm read [0,0,-1] off a CORPSE and stayed
+     * green under MEDI_HEALBLOCK_ALLOWS_HEAL_MOVES=1 — a row that passes for a reason the knob
+     * cannot move is a row that measures nothing. */
+    unfaintable(me); unfaintable(f1);
+    f1.curHP = Math.floor(f1.st.hp * 0.6);
+    M.battleTurn(S, rng5,
+      new Map([[me, noise ? M.playerAction(me, 'psychicnoise', f1, S.field) : { kind: 'pass' }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    const hp0 = me.curHP, heal0 = f1.curHP;
+    M.battleTurn(S, rng5, PASS2(me, ally),
+      new Map([[f1, M.playerAction(f1, 'drainpunch', me, S.field)], [f2, { kind: 'pass' }]]));
+    /* -1 means the bar was never touched, which is what a click refused above the PP deduction
+     * leaves behind; `ppLeft` fills `_pp` lazily, so an untouched slot has no key at all. */
+    return [hp0 - me.curHP > 0 ? 1 : 0, f1.curHP - heal0 > 0 ? 1 : 0,
+            (f1._pp && f1._pp.drainpunch != null) ? 1 : -1];
+  };
+  const control = run(false), test = run(true);
+  return { works: control[0] === 1 && control[1] === 1 && control[2] === 1
+                  && test[0] === 0 && test[1] === 0 && test[2] === -1,
+           arms: { control, test },
+           detail: '[damage dealt, drain healed, PP bar touched] — Clefable Drain Punches a '
+                 + 'Gardevoir. Free ' + JSON.stringify(control) + ' (must be 1,1,1). After Psychic '
+                 + 'Noise ' + JSON.stringify(test) + ' (must be 0,0,-1 — the authority writes '
+                 + '|cant|POKEMON|move: Heal Block|Drain Punch and the click spends nothing)' };
 });
 
 /* WIRE 109 -- LANDED, and the previous version of this probe was WRONG BEFORE THE ENGINE WAS
@@ -19818,6 +20010,67 @@ probe('ability', 'announcesOnSwitchIn', 'Cloud Nine announces itself as the body
            detail: `entry lines on a switch-in — ${members.map(k => k + ' ' + JSON.stringify(said[k])).join('; ')}; `
                  + `no ability ${JSON.stringify(off)} (authority: one BARE |-ability|HOLDER|NAME, no fourth `
                  + `field, every time the body arrives; nothing for a body without it)` };
+});
+
+/* 1b-quater. 2026-09-20 — AND THE ABILITY THAT SPEAKS ON ARRIVAL IS THE ONE THE BODY ARRIVED WITH.
+ *    A Ditto that Imposters a Cloud Nine body, or a Gardevoir that Traces one, ACQUIRES the member
+ *    ability inside the same switch-in pass and announces NOTHING. The authority cannot do otherwise:
+ *
+ *        let handlers = …; for (const active of side.active) { … }        sim/battle.ts:490-506
+ *        this.speedSort(handlers);  while (handlers.length) { …           sim/battle.ts:507-508
+ *
+ *    `Battle#fieldEvent` fixes the whole handler list BEFORE the sort and before a single handler
+ *    runs, so the only `onSwitchIn` the body ever has is the one it entered with. The acquisition road
+ *    says the same from the other side: `transformInto` ends at `setAbility(pokemon.ability, this,
+ *    null, true, true)` (sim/pokemon.ts:1358) and `setAbility` raises `singleEvent('Start', …)`
+ *    (:1946-1949) — `Start`, never `SwitchIn`, which is the door `announcesOnStart` uses and the whole
+ *    reason these are two tags. Cloud Nine's own handler comment agrees: *"Cloud Nine does not
+ *    activate when Skill Swapped or when Neutralizing Gas leaves the field"* (data/abilities.ts:535).
+ *
+ *    MEASURED: this was the LAST undeclared narration divergence on the MEDICHAM gate, release
+ *    `6a0582efeda6`, 1,950-game lattice, seed …2658408069 turn 4 —
+ *        showdown  |-ability|p2a: Drampa|Cloud Nine     medicham  |-ability|p1b: Ditto|cloudnine
+ *
+ *    TWO ARMS AND THE CONTROL IS THE LOAD-BEARING ONE. The copier must be SILENT; the SAME entry with
+ *    the member ability carried natively must write exactly ONE bare line, without which this row is
+ *    green on an engine that has lost the announcement altogether. Copier membership is read off
+ *    `transformsOnEntry` / `copiesFoeAbility` and the announcer off `announcesOnSwitchIn`, so nothing
+ *    here is named. Knobs: MEDI_SWITCHIN_ANNOUNCE_AFTER_COPY=1 puts the line back below the copy (the
+ *    test arm goes to 1); MEDI_SWITCHIN_ANNOUNCE_SILENT=1 kills the control arm. Both engines, the
+ *    whole sequence and the addresses: tests/probe_switchin_announce.js IMPOSTER-DOOR / TRACE-DOOR. */
+probe('ability', 'announcesOnSwitchInCopyDoor', 'a body that COPIES Cloud Nine as it arrives announces nothing — only a body that walked in with it speaks', () => {
+  const T = require(path.join(__dirname, '..', 'data', 'tags.json'));
+  const ann = Object.keys(T.abilities).filter(k => (T.abilities[k].params || {}).announcesOnSwitchIn);
+  const copiers = Object.keys(T.abilities).filter(k => (T.abilities[k].params || {}).transformsOnEntry
+                                                    || (T.abilities[k].params || {}).copiesFoeAbility);
+  /* BARE ONLY — Trace's own `|-ability|X|Cloud Nine|Trace|[from] ability: Trace|[of] Y` carries more
+   * fields and is a different event written by a different call site; counting it would make the test
+   * arm red for a line the authority DOES write. */
+  const bareMember = l => { const f = String(l).split('|'); return f[1] === '-ability' && !f[4]
+    && ann.includes(String(f[3] || '').toLowerCase().replace(/[^a-z0-9]/g, '')); };
+  /* BOTH FOES CARRY THE ANNOUNCER: Imposter takes the diagonal and Trace takes a random live foe, so
+   * a one-sided board would leave the Trace arm copying something else and asking nothing. */
+  const run = (benchAb, foeAb) => {
+    const me = bare('incineroar'), ally = bare('corviknight'), bench = bare('sinistcha');
+    const f1 = bare('garchomp'), f2 = bare('garchomp');
+    bench.ability = benchAb; f1.ability = foeAb; f2.ability = foeAb;
+    const S = M.battleInit([me, ally, bench], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    M.battleTurn(S, rng5, new Map([[me, { kind: 'switch', to: bench }], [ally, { kind: 'pass' }]]),
+      PASS2(f1, f2));
+    return trace.filter(bareMember);
+  };
+  const said = {};
+  for (const k of copiers) said[k] = run(k, ann[0]);
+  const ctrl = run(ann[0], ann[0]);
+  const ok = ann.length >= 1 && copiers.length >= 2
+          && copiers.every(k => said[k].length === 0)
+          && ctrl.length === 1;
+  return { works: ok, arms: { control: ctrl.length, test: copiers.map(k => said[k].length) },
+           detail: `copier arms — ${copiers.map(k => k + ' ' + JSON.stringify(said[k])).join('; ')}; `
+                 + `the same entry carrying ${ann[0]} natively ${JSON.stringify(ctrl)} `
+                 + `(authority: the SwitchIn handler list is fixed before any handler runs, so an `
+                 + `ability acquired during the pass has no onSwitchIn to run)` };
 });
 
 /* 1b-ter. 2026-09-20 — AND THE ENTRY DROP'S ANNOUNCEMENT IS NOT THE SAME LINE FOR EVERY MEMBER.
@@ -37551,6 +37804,8 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           'corpseSpeedKeepsRewireRestored', 'breakKeepsStallFreshRestored',
                           'lockEndNeedsHitRestored', 'pivotHerbAfterEntryRestored', 'smartInvulnMissLineRestored',
                           'hpThresholdBoostAboveRecoilRestored',
+                          /* 2026-09-20 -- the pivot entry's DIE ADDRESS (tests/probe_trace_list.js, staged arm) */
+                          'pivotEntryMoveAddrRestored',
                           /* 2026-09-19 -- the tie-order batch's four knobs (tests/probe_tie_order.js) */
                           'chargeBoostZeroSilentRestored', 'weatherSortKeepsCorpsesRestored',
                           'updateLiveSpeedRestored', 'volArtifactOrderRestored',
@@ -37607,10 +37862,21 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                            * pass, both stamped at LOAD (tests/probe_switchin_announce.js,
                            * tests/probe_entrydrop_announce_shape.js) */
                           'switchInAnnounceSilentRestored', 'entryDropAnnounceIntimidateShapeRestored',
+                          /* 2026-09-20 -- the third knob of that same pass: MEDI_SWITCHIN_ANNOUNCE_AFTER_COPY
+                           * puts the arrival announcement back BELOW the Imposter/Trace copy, so a body
+                           * announces an ability it did not walk in with (tests/probe_switchin_announce.js
+                           * --red-copy, stamped at LOAD). */
+                          'switchInAnnounceAfterCopyRestored',
                           /* 2026-09-20 -- the held-out shield/bounce and Struggle/disabler pair
                            * (tests/probe_shield_before_bounce.js, tests/probe_disabler_skips_struggle.js),
                            * both stamped at LOAD */
-                          'bounceBeforeShieldRestored', 'disablerSealsStruggleRestored']
+                          'bounceBeforeShieldRestored', 'disablerSealsStruggleRestored',
+                          /* 2026-09-20 -- tests/probe_healblock_refuses_heal_move.js */
+                          'healBlockAllowsHealMovesRestored',
+                          /* 2026-09-20 -- tests/probe_stealeat_before_reactors.js */
+                          'stealEatAtAfterHitRestored',
+                          /* 2026-09-20 -- tests/probe_priority_bar_mold_breaker.js */
+                          'priorityBarIgnoresBreakerRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '

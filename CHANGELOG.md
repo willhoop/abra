@@ -10,6 +10,45 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.79.0] — 2026-09-20
+
+### Fixed
+- An ability acquired mid-switch no longer announces itself on arrival. The authority fixes its
+  switch-in handler list before sorting by speed, so an ability copied during that pass raises a Start
+  only. Both copy doors corrected.
+
+### Changed
+- The roster's `ability/blocks-priority` red demonstration reads its anchor out of the frozen source
+  instead of spelling out a function signature, which had died to a new parameter for the third time.
+
+### Notes
+- **`node engine/quarantine.js` reads `GATE: OPEN` on release `51b80f9fcf08` — all ten clauses pass.**
+  Board-material and narration are both ZERO on all three team lattices.
+- Census 983 → 984 live, 993 probed, 0 missing.
+- The MAJOR this implies (`7.0.0`, the full living-document rewrite) is OWED and held for review; it is
+  not declared here. Illusion remains the declared exclusion and 7 live `lastMove` readings remain an
+  unregistered class.
+
+## [6.78.0] — 2026-09-20
+
+### Fixed
+- Heal Block refuses the whole click of a draining damage move, not only its drain.
+- Bug Bite's steal-eat runs at hit time, so a thief killed by a contact-damage ability still eats.
+- The priority bar is breakable, so a mould-breaking attacker walks through it.
+- A body walking in on a pivot addresses its entry dice with no active move, as the authority does —
+  the Trace defect was an address, not an index.
+
+### Changed
+- `probe_midturn_herb_resort` stages a LEGAL fixture (the validator, not a raw learnset walk) and
+  proves the second guard above both placements with three control children.
+
+### Notes
+- Census 979 → 983 live, 992 probed, 0 missing. Five probes each 0 clean / 1 under knob, verified in
+  the merged tree.
+- The Spicy Spray lead is refuted: the holder does not faint.
+- The engine moved, so 6.77.0's gate reading does not describe this tree and is not restated. The
+  re-measure is owed.
+
 ## [6.77.0] — 2026-09-20
 
 ### Changed

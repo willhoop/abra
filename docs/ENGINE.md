@@ -1,3 +1,142 @@
+## **`engine/quarantine.js` READS `GATE: OPEN`** ON RELEASE `51b80f9fcf08` — ALL TEN CLAUSES PASS, BOARD-MATERIAL AND NARRATION BOTH ZERO ON EVERY LATTICE. CENSUS **984 LIVE / 0 MISSING**. 2026-09-20
+
+Full account of the last class: `docs/_reports/2026-09-20-last-narration.md`.
+
+**THE LAST NARRATION GAME WAS A REAL DEFECT.** An ability acquired mid-switch was announcing itself on
+arrival. `Battle#fieldEvent` fixes its `SwitchIn` handler list over every entrant BEFORE `speedSort`,
+so an ability acquired during that pass has no arrival handler left to run and raises a `Start` only.
+`switchInAnnounce()` now runs above both copy doors. The format's other ability-copying road carries
+the identical defect and **the pinned pool had never sampled it** — which is the pool doing exactly
+what `CLAUDE.md` says it does: it answers *does this matter*, not *is this correct*.
+
+| clause | reading |
+|---|---|
+| game differential (damage) | 0 of 6000 at the midpoint and every interior index |
+| deliberate roster / items | 148 of 148 |
+| deliberate roster / abilities | 196 of 200, 3 ANNOUNCEMENT-ONLY on receipts |
+| deliberate roster / moves | 496 of 497 |
+| coverage | all 412 moves above 25 clicks measured |
+| board leaves uncompared | 0 |
+| **whole-game BOARD-MATERIAL** | **0 of 961, 0 of 1069, 0 of 1497** |
+| **whole-game NARRATION (undeclared)** | **0 of 961, 0 of 1069, 0 of 1497** |
+| mechanics staged | 0 diverge, 0 undeclared |
+| no open known engine defect | clean, 194 verdicts read |
+
+Pins: release `51b80f9fcf08`, census `data/verification/census-pin-8514757f99d5.json`, team store
+`data/team-pool-frozen`. Flags, which are part of the sample definition: `--steering empirical
+--arm middle --end-state`.
+
+**AN INSTRUMENT FAULT CLOSED IN THE SAME PASS, AND IT IS THE THIRD TIME THIS ONE HAS DIED.** The
+roster's `ability/blocks-priority` red demonstration anchored on a literal function signature. The
+priority-bar fix added a parameter, the anchor matched **0 times**, and every row that rule produced
+asserted nothing while the abilities stage exited 1 with the engine clean. The anchor is now READ out
+of the frozen source: it follows any future parameter by construction, and a RENAME still kills it
+loudly through `anchor_dead`, which is the failure worth keeping.
+
+**WHAT AN OPEN GATE IS NOT.** Illusion stays the one declared exclusion. Closed team sheets and bo1
+stay out of scope. **7 LIVE `lastMove` readings are a real unregistered class** — the authority keeps
+the CALLING move where this engine keeps the called one — reported in the same dump and NOT fixed. The
+corpse split around them was the instrument: the speed "REAL GAP" diagnostic is **253 of 253** readings
+on a body the authority had already fainted, proven with a control, zero live. **The held-out
+`--games 12000` draw is a wider sample than the gate's and was NOT re-run on this release.**
+
+
+## THE LAST UNDECLARED NARRATION GAME WAS AN ARRIVAL ANNOUNCEMENT SPEAKING FOR AN ABILITY THE BODY DID **NOT** WALK IN WITH — A DITTO THAT IMPOSTERS CLOUD NINE. **UNDECLARED NARRATION `0 / 0 / 1` → `0 / 0 / 0` ON ALL THREE LATTICES; BOARD-MATERIAL STILL `0 / 0 / 0`.** CENSUS **979 → 980 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `11d290f19ea3`; LIGHT MODE.** 2026-09-20, version assigned at merge
+
+Full account: `docs/_reports/2026-09-20-last-narration.md`.
+
+**WHICH GAME WAS UNDECLARED WAS COMPUTED, NOT GUESSED.** Of the three causes on the 1,950-game
+lattice, the two `fallenundefined` ones are taken by the `AUTHORITY-WRONG` row *Supreme Overlord
+`fallenundefined`* (`engine/quarantine.js`, matcher `/fallenundefined/`); the narration clause printed
+`3 narration-only raw, less 2 declared`, so **the `cloudnine` game is the one that gated**.
+
+- **THE RULE: THE ABILITY THAT SPEAKS ON ARRIVAL IS THE ONE THE BODY ARRIVED WITH.**
+  `Battle#fieldEvent` builds its whole handler list over every entrant **before** `speedSort` and
+  before a single handler runs (`sim/battle.ts:490-506`, `:507`), so a Ditto whose ability is
+  `imposter` at that instant contributes IMPOSTER's `onSwitchIn` and nothing else — the Cloud Nine it
+  acquires two lines later has no handler in the list, and `:526-539` drops any handler whose
+  `abilityState` no longer matches the one collected. The acquisition road agrees: `transformInto`
+  ends at `setAbility(pokemon.ability, this, null, true, true)` (`sim/pokemon.ts:1358`) and
+  `setAbility` raises `singleEvent('Start', …)` (`:1946-1949`) — **`Start`, never `SwitchIn`**. Cloud
+  Nine's announcement lives only in its `onSwitchIn` (`data/abilities.ts:534-538`); its `onStart`
+  writes no line. The handler's own comment says it: *"Cloud Nine does not activate when Skill
+  Swapped or when Neutralizing Gas leaves the field"* (`:535`).
+- **THE DIVERGENCE, VERBATIM** — release `6a0582efeda6`, `--games 1950`, seed
+  `…2658408069 vs …2658389819`, turn 4, index 66, after
+  `|-transform|p1b: Ditto|p2a: Drampa|[from] ability: Imposter`:
+
+      showdown  |-ability|p2a: Drampa|Cloud Nine
+      medicham  |-ability|p1b: Ditto|cloudnine
+
+- **THE FIX IS A POSITION.** `switchInAnnounce()` moves ABOVE `imposterCopy`/`traceCopy` at BOTH
+  arrival roads (`runEntryPass` and the lead pass). It is stream-neutral for every other body: those
+  two functions emit nothing for a non-carrier, and a body cannot both announce (ability at arrival is
+  a member) and copy (ability at arrival is `imposter`/`trace`). The two cases are disjoint.
+- **TRACE IS THE SAME DEFECT AND THE POOL HAD NEVER SAMPLED IT.** A Gardevoir that Traces a Cloud
+  Nine foe announced too. It was found by writing the arm, not by reading the lattice.
+- Knob: `MEDI_SWITCHIN_ANNOUNCE_AFTER_COPY=1` (stamped at load to
+  `MEDFAILS.switchInAnnounceAfterCopyRestored`, listed in `DELIBERATE_BREAK`; the census under it
+  reads **979 live / 1 missing** and prints `REFUSED to write`, shown).
+- Census row: **`ability / announcesOnSwitchInCopyDoor`**, quoting the authority's literal lines.
+  Copier membership is read off `transformsOnEntry` / `copiesFoeAbility`, the announcer off
+  `announcesOnSwitchIn`; **nothing is named**. Its CONTROL is the load-bearing arm — the same entry
+  carrying the member natively must still write exactly one bare line, or the row is green on an
+  engine that has lost the announcement altogether.
+- Probe: `tests/probe_switchin_announce.js` gains `IMPOSTER-DOOR`, `CTRL-IMPOSTER-DOOR`,
+  `TRACE-DOOR`, `CTRL-TRACE-DOOR` and a `--red-copy` mode. **Clean exit 0; `--red-copy` exit 1**
+  (`FAILED — 2 claim(s)`), and RED FIRST: the two door arms failed on the unmodified engine before a
+  byte moved.
+  - **THE TRACE ARM WAS VACUOUS ON ITS FIRST DRAFT AND THE LANDING CHECK CAUGHT IT.** Trace copies a
+    RANDOM live foe; with Cloud Nine on ONE foe the draw took the other foe's Heatproof and the arm
+    was green having traced nothing. Both foes now carry the member and the copied ability is read
+    off the authority's own `[from] ability: Trace` line.
+
+**THE GATE, RE-MEASURED ON `11d290f19ea3`** — same pins as the reference run (census
+`data/verification/census-pin-56e17cc610e8.json`, `--team-store data/team-pool-frozen`,
+`--steering empirical --arm middle --end-state`):
+
+| `--games` | games | board-material | narration raw | **undeclared** |
+|---|---|---|---|---|
+| 1200 | 961 | 0 | 0 | **0** |
+| 1350 | 1069 | 0 | 1 (declared) | **0** |
+| 1950 | 1497 | 0 | 2 (declared) | **0** |
+
+`node engine/quarantine.js --narration` → `PASS … ZERO ON EVERY LATTICE`, exit 0, *"THIS CLAUSE NOW
+HOLDS THE QUARANTINE GATE SHUT"*. Artifacts `data/verification/2026-09-20-copydoor-g{1200,1350,1950}.json`.
+
+**WHAT IS OWED AND IS NOT CLAIMED HERE.** `engine/status.js` in this worktree reads **6 of 10**: the
+damage differential, the three roster stages and the staged mechanics battery are all
+`MEASURED AGAINST A DIFFERENT ENGINE` because their artifacts were cut on `6a0582efeda6`. **Those five
+re-runs are owed on a release cut from the merged tree.** No held-out `--games 12000` draw was run.
+
+### The fainted-body diagnostics — SPEED IS ENTIRELY THE INSTRUMENT; `lastMove` IS 1,394 OF 1,401, AND THE SEVEN THAT ARE LEFT ARE A REAL CLASS
+
+Every one of the forty printed speed buckets carried `status=-/sd:fnt` — **and forty is the CAP**, so
+the split was COUNTED over the population instead of read off the list.
+`engine/game_differential.js` now records `sd_fainted`/`me_fainted` on both row kinds, prints the
+split, and prints the live rows by name. Control: `--games 600` (505 games), release `11d290f19ea3`,
+`data/verification/2026-09-20-corpse-control-g600.json`.
+
+- **SPEED "REAL GAP": CONFIRMED, 253 of 253 are corpses, 0 live.** `Pokemon#faint` drops the item and
+  the ability, so a fainted Choice Scarf body reads its base Speed on the authority and x1.5 here.
+  Not a multiplier disagreement — the two engines are being asked about different bodies.
+- **`lastMove`: 1,394 of 1,401 are corpses (`faint` → `clearVolatile` nulls it). SEVEN ARE NOT.**
+  Four of the seven are one shape — **Showdown keeps the CALLER (`sleeptalk`) as `lastMove` and this
+  engine keeps the CALLED move**; the other three (`afteryou`, `partingshot`, `calmmind` against an
+  attack) are undiagnosed. `lastMove` is Encore's own gate and Disable walks `moveSlots` against it,
+  so this is not cosmetic. **UNREGISTERED — no open `docs/ROADMAP.md` row names it.** Reported, not
+  fixed: it reaches no board leaf and no protocol line, so it is outside both gate clauses, and a
+  second engine change in this batch would make neither attributable.
+
+### The hand list, after this pass
+
+- **THE ABILITY ARRIVAL ANNOUNCEMENT LEAVES.** It is census row `announcesOnSwitchInCopyDoor` beside
+  `announcesOnSwitchIn`, with a knob, a stamp and a probe shown RED. Both whole-game clauses PASS.
+- **NEW AND OPEN: the `lastMove` live residue** — 7 readings in 505 games, four of them the
+  caller-vs-called shape above. Owed a roadmap row and a probe.
+- **Carried forward** unchanged: the 14 standing held-out board partings, King's Rock and Purifying
+  Salt, the click-swap controls, and the five gate artifacts owed a re-run on the merged tree.
+
 ## THE WHOLE GATE RE-MEASURED ON ONE ENGINE — **BOARD-MATERIAL ZERO ON ALL THREE LATTICES, UNDECLARED NARRATION 23 / 30 / 33 -> 0 / 0 / 1, GATE 1 OF 10.** RELEASE `6a0582efeda6`, CENSUS AND POOL PINNED. 2026-09-20
 
 The previous gate reading failed SIX clauses for `MEASURED AGAINST A DIFFERENT ENGINE` and therefore
@@ -86,6 +225,8 @@ copy of whatever stage ran last — **it is not the roster**), `tests/test-natur
 `tests/probe_unknown_format_refusal.js`, `tests/probe_protect_tie_order.js`,
 `tests/probe_midturn_herb_resort.js`,
 `tests/probe_shield_before_bounce.js`, `tests/probe_disabler_skips_struggle.js`,
+`tests/probe_healblock_refuses_heal_move.js`, `tests/probe_stealeat_before_reactors.js`,
+`tests/probe_priority_bar_mold_breaker.js`,
 `tests/probe_safeguard_volatile_infiltrator.js`, `tests/probe_future_sight_doll.js`,
 `tests/probe_signature_tags.js`,
 `tests/probe_ohko_type_immunity.js`, `tests/probe_redirect_volatile_already_up.js`,
@@ -201,12 +342,12 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  979/988 probed mechanics live, 0 missing   (census 2026-09-20 11:48)
+  984/993 probed mechanics live, 0 missing   (census 2026-09-20 14:07)
     the census probes what somebody thought to probe: 304 of 304 in-scope tags carry a probe, 0 carry none (9 of 313
     tags have no in-scope carrier); 0 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 8 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 19 min old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/6a0582efeda6/ is not in the repository. Cited by docs/ABRA-deck-plain-english.md, docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md (+4 more). From a fresh clone this figure's evidence chain ends at the string "6a0582efeda6".
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/51b80f9fcf08/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "51b80f9fcf08".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -223,9 +364,149 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
+_stamped 2026-09-20 14:30_
+
+<!-- /GENERATED -->
+
+## THE 1-IN-2,442 TRACE SELECTION WAS NOT AN INDEX AND NOT A LIST — A **PIVOT'S ENTRY DRAWS WERE ADDRESSED TO THE PIVOT MOVE**, WHERE THE AUTHORITY HAS ALREADY CLEARED IT. THE HERB PROBE'S RED WAS **AN ILLEGAL FIXTURE PLUS A SECOND GUARD THE ENGINE HAS GROWN SINCE**, NOT A DEFECT. HEAL BLOCK **DOES NOT REFUSE A DRAIN** AND IS STILL BLOCKED ON A TAG A WORKTREE CANNOT WRITE. CENSUS **988 → 989 PROBED, 979 → 980 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — MEASURED ON RELEASE `834713ccb303`; LIGHT MODE, THREE PROBES, NO LATTICE, NO GATE.** 2026-09-20, version assigned at merge
+
+Full account: `docs/_reports/2026-09-20-three-probes.md`.
+
+**THE POOL IS NOT IN THE WORKTREE, AND A RUN THAT MISSES IT LOOKS LIKE A MISSING MECHANIC.**
+`data/team-pool-frozen/` holds only `FROZEN.md` here; both `.jsonl` files are untracked and live in the
+MAIN tree. Left at the default, `probe_trace_list.js` reads `pool 0 teams` and prints
+`NOT-STAGED — the pinned pool holds no Trace body`. Every number below is on
+`--team-store=../../../data/team-pool-frozen` (8,778 teams, pool digest `f807cbc40299`), census pin
+`88b158f4fb89`, 988 rows, *identical to the live census*.
+
+**TRACE'S LIST WAS NEVER WRONG.** 222 boards, **2,442 joined draws, 2,442 with identical MEMBERS AND
+ORDER, 0 membership, 0 order**. One shared a list and drew a different index — and
+`game_differential.js`'s own address log says why without a hypothesis in between:
+
+```
+holder p1[1]  turn 6  list [p2[0] whimsicott/prankster, p2[1] metagross/clearbody]
+showdown   idx 0 -> whimsicott     20260813|6|any|-|-|0
+medicham2  idx 1 -> metagross      20260813|6|any|uturn|p20|0
+```
+
+The Trace body had walked in on a **U-turn**. Showdown resolves a self-switch as its own queued action:
+`runAction` ends the move's action with `this.clearActiveMove()` (`sim/battle.ts:2828`), which nulls
+`activeMove` AND `activeTarget` (`:376-384`), so the entrant's `runSwitch` -> Trace `onUpdate` ->
+`this.sample(possibleTargets)` (`data/abilities.ts:5127-5136`; **no Champions `trace` key**, grepped)
+draws with no move in scope. medicham2 has no queue — the replacement enters INSIDE the pivot move with
+`MID_MOVE`/`MID_TGT` still naming it. **One die, two addresses**; the middle arm keys its shared streams
+on that string, so the two engines drew different values for the same event.
+
+- **The fix is in `pivotFrom`, the one function that knows "this entry is a pivot's"** — it saves,
+  clears and restores the address for the pass. It is deliberately NOT "always clear": a DRAGGED entrant
+  (Roar, Red Card) runs `runSwitch` from inside `moveHit`, where the authority's `activeMove` IS set, and
+  clearing there would break the case that is currently right. Knob `MEDI_PIVOT_ENTRY_MOVE_ADDR=1`, stamp
+  `MEDFAILS.pivotEntryMoveAddrRestored` (in `DELIBERATE_BREAK`), receipt `MEDSEEN.pivotEntryAddrCleared`.
+- **The probe is deterministic now.** A file that needs 2,442 trials to go red is one that gets believed
+  when it is silent, so `probe_trace_list.js` gained a STAGED arm: one board, one turn, cast derived at
+  run time, and it asserts the **ADDRESS** rather than the winner — whether a mis-addressed draw lands on
+  a different index is a coin over a two-element list, which is exactly why the sweep needed 2,442 draws.
+  `clean  sd 20260813|1|any|-|-|0  me 20260813|1|any|-|-|0` against
+  `knob  me 20260813|1|any|flipturn|p10|0`, and under the knob the copied body flips
+  (Charizard/Blaze -> Venusaur/Overgrow) on that board every run.
+- **Sweep, same release, same pool, same pin:** `DIFFERENT INDEX 1 -> 0`, `copied body differs 1 -> 0`,
+  everything else unmoved (`sdLen1 40`, `meDie 2442 = meCopied 2442`, the pre-existing
+  `MEDI_TRACE_SOLO_NODRAW` red arm still parting 8). Exit **0 clean / 1 under its own knob**, the knob run
+  reproducing exactly the original 1 and 1.
+- **Census row** `ability / copiesFoeAbility` — *"a pivot's entry addresses its dice with NO active move,
+  the way the authority's separate switch action does"*. It reads the engine's own `midEventLog()` after a
+  `battleTurn` driven by `M.midEventDice(...)`, and its CONTROL is the same turn's other draws: the pivot
+  move's `acc`/`dmg`/`crit` addresses must STILL name it, so a probe that only asserted `-|-` cannot pass
+  on an engine that stopped addressing anything.
+- **Do not run that file at a small cell count.** At `--cells=12` the PRE-EXISTING `MEDI_TRACE_SOLO_NODRAW`
+  arm cannot reach its own defect (11 joined draws, `idx=0`) and the probe exits 1 for that reason alone.
+
+**`probe_midturn_herb_resort.js` WAS RED ON AN ILLEGAL BOARD, AND THE STDERR SAID SO ON EVERY RUN.** Its
+`learns()` walked `dex.species.getLearnsetData` up the prevo chain — *a move the species has ever had in
+some generation* — while `buildPair`'s own runtime check printed
+`FIXTURE ILLEGAL … Slurpuff can't learn Covet` and `9 distinct set(s) checked, 2 illegal`. The illegal
+board was the FIRST candidate accepted, so the whole three-arm verdict was read off a set this regulation
+does not permit. `learns` is now `CS.canLearn`, i.e. `TeamValidator#checkCanLearn`, which is the same
+authority `engine/fixture_legality.js` judges the built sheet with — the fixture and its judge can no
+longer disagree. Candidates 37 → 139, the move Covet → Draining Kiss, the run **0 illegal**. A candidate
+that registers a NEW non-baselined illegal set is now refused BY NAME rather than measured.
+
+**AND IT WAS STILL RED, FOR A REASON THAT IS NOT A DEFECT — THE PIVOT ROAD HAS TWO GUARDS NOW.**
+`MEDI_RESORT_BEFORE_UPDATE=1` moved nothing and `MEDFAILS.resortBeforeUpdateRestored` read 1, so the knob
+was wired and inert. `pivotHerbSweep` (2026-09-19, narration batch B) spends the pivot's White Herb BEFORE
+the entrant's entry pass — above `_updateAll` and therefore above BOTH placements of `_resortTail` — so
+removing one leaves the other. Measured on the staged board:
+
+| knobs | medicham2 runs first |
+|---|---|
+| (none) | holder — and so does the authority |
+| `MEDI_RESORT_BEFORE_UPDATE=1` | holder |
+| `MEDI_PIVOT_HERB_AFTER_ENTRY=1` | holder |
+| **both** | **ALLY — the defect, reproduced** |
+
+The probe spawns **three** children and judges each separately. The two singles must NOT move the board
+AND must stamp their own counter — that pairing is what separates *"this guard is redundant while the
+other stands"* from *"this knob is unwired"*, which read identically at the board. **No engine byte was
+changed for this item.** Exit **0 clean / 1 with both knobs set from outside**.
+
+**HEAL BLOCK DOES NOT REFUSE A DRAIN HERE, AND THE AUTHORITY REFUSES THE WHOLE MOVE.** Read whole from
+`data/moves.ts`'s `healblock` condition (no Champions `healblock` key in `moves.ts` or `conditions.ts`):
+
+```
+onBeforeMovePriority: 6,
+onBeforeMove(pokemon, target, move) {
+  if (move.flags['heal'] && !move.isZ && !move.isMax) {
+    this.add('cant', pokemon, 'move: Heal Block', move);
+    return false;
+  }
+},
+```
+
+and, derived over the format rather than recalled, **all eight legal damaging drain moves carry
+`flags.heal`** — Bitter Blade, Draining Kiss, Drain Punch, Giga Drain, Horn Leech, Leech Life, Matcha
+Gotcha, Parabolic Charge. So the answer to *"damage lands, only the drain denied?"* is **no: nothing
+lands.** The volatile is reachable because `psychicnoise` carries
+`secondaries: [{chance: 100, volatileStatus: 'healblock'}]`. Staged, cast derived, both engines:
+
+```
+SHOWDOWN   |-start|p2a: Ceruledge|move: Heal Block   |cant|p2a: Ceruledge|move: Heal Block|Bitter Blade
+MEDICHAM   |-start|p2a: Ceruledge|move: Heal Block   |move|p2a: Ceruledge|bitterblade   |-damage|p1a: Noivern|111/160
+```
+
+49 damage here, zero there. `healBlocked`'s own comment states the model it implements — *"the heal half
+of a drain (the DAMAGE still lands)"* — and that sentence is wrong about this game.
+
+**IT IS STILL BLOCKED ON THE TAG, NOW WITH A RECEIPT.** No artifact this engine reads carries
+`flags.heal`: `data/tags.json` has no such tag (`drainpunch` is `[pp, targetClass, contact, moveClass,
+drain, formatSecondaryCount]`; `healDescriptor` covers four Status moves; `blocksHealing` sits on
+`psychicnoise` alone with `{turns: 2}`), and `data/engine-data.js` carries `{t, c, bp}` and no flags.
+`engine/tag_dex.js` **cannot** be regenerated from a worktree: the three store files live only in the main
+tree, `fit_policy.loadCorpus({scope:'all'})` throws `ENOENT … data/games.ladder.jsonl` here, and
+`tag_dex.js:621-623` catches exactly that, prints *"USAGE COUNTS WILL BE ZERO for every …"*, writes
+`data/tags.json` anyway and exits 0. **So it was not run and `data/tags.json` was not touched** — the
+usage figures were not compared before-and-after because no regeneration happened; what was checked is
+the precondition that makes one unsafe, and it holds.
+
+### The hand list, after this pass
+
+- **The Trace draw's address leaves the hand list.** A census row and a deterministic staged probe arm
+  carry it; the sweep reads 0 where it read 1.
+- **The herb probe's illegal fixture leaves it**, and so does the question *"is the mid-turn re-sort still
+  in the right place"* — three control children now answer it, and the engine was already right.
+- **STAYS ON THE HAND LIST: Heal Block refusing a move that carries `flags.heal`.** Diagnosed, measured
+  in both engines, board-material, and blocked on `tag_dex.js` being run from the MAIN tree. What is owed:
+  a `forbidsFlag: ['heal']` param on `blocksHealing` plus a per-move carrier of the flag, then the refusal
+  gated at the use-time stage with a restore knob and a probe. Nothing red was shipped for it.
+- **Carried forward:** Decorate through a `<notarget>`; the three burn partings whose cause is not
+  established; King's Rock and Purifying Salt unwired.
+
 _stamped 2026-09-20 12:55_
 
 <!-- /GENERATED -->
+
+## THREE MORE OF THE HELD-OUT FIFTEEN CLOSE, AND ALL THREE ARE A **PLACEMENT** RATHER THAN A MISSING CAPABILITY: HEAL BLOCK REFUSES THE **CLICK** AND NOT ONLY THE HEAL (ROW 10), BUG BITE'S STEAL-EAT IS **STEP 3** AND NOT `onAfterHit` (ROW 8), AND THE PRIORITY BAR IS **BREAKABLE** (ROW 7). THE PREVIOUS PASS'S "THE SPICY SPRAY HOLDER FAINTED" LEAD IS **REFUTED FROM THE DUMP** — THE HOLDER SURVIVED AT 126/140 AND THE BODY THAT DIED IS THE OTHER SPREAD TARGET. CENSUS **988 → 991 PROBED, 982 LIVE / 0 MISSING, `run_ok: true`**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `2716afdc804a`; LIGHT MODE, NO LATTICE, NO GATE, THE RE-RUN IS OWED.** 2026-09-20, version assigned at merge
+
+Full account: `docs/_reports/2026-09-20-heldout-remainder.md`.
 
 ## THE ONE GAME THAT **JOINED** THE HELD-OUT LIST IS NOT A REGRESSION — IT DIVERGED AT THE IDENTICAL INDEX AND LINE PAIR LAST PASS TOO, AND 6.73.0'S BOUNCE REDIRECT MERELY CARRIED AN OLDER DEFECT WHERE A BOARD LEAF COULD SEE IT. A SHIELDED MAGIC BOUNCE NOW **BLOCKS** INSTEAD OF REFLECTING (ROWS 1, 3, 6, 9) AND THE ON-HIT DISABLER IS NEVER ROLLED FOR A **STRUGGLE** (ROW 14): **5 OF THE 15 CAUSES CLOSED, NO GAME CLAIMED GONE.** THE "BURN, 3" CLASS IS **NOT ONE CLASS** — ONE IS A DIE VALUE WITH THE CAPABILITY PROVEN PRESENT, ONE IS AN ABILITY WITH NO DIE AT ALL. CENSUS **984 → 986 PROBED, 986 OF 986 LIVE / 0 MISSING** (TAGS UNMOVED AT 977). **ENGINE BYTES CHANGED — WORKTREE RELEASE `45abacb9aff7`; LIGHT MODE, NO LATTICE, NO GATE, THE RE-RUN IS OWED.** 2026-09-20, version assigned at merge
 

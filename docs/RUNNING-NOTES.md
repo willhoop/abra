@@ -52,6 +52,81 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.79.0] — 2026-09-20 — the copy-door announcement closes the last narration class, and **`engine/quarantine.js` reads GATE: OPEN** on release `51b80f9fcf08`
+
+- **What changed.** The last undeclared narration game was a REAL defect, not wording. An ability
+  acquired mid-switch — a body that copies another's ability as it arrives — was announcing itself on
+  arrival. The authority fixes its switch-in handler list over every entrant BEFORE sorting by speed,
+  so an ability acquired during that pass has no arrival handler left to run and raises a Start only.
+  `switchInAnnounce()` now runs above both copy doors. **The same defect sat behind the format's other
+  ability-copying road and the pinned pool had never sampled it.** Knob
+  `MEDI_SWITCHIN_ANNOUNCE_AFTER_COPY`, stamp in `DELIBERATE_BREAK`, census row
+  `announcesOnSwitchInCopyDoor`, probe `tests/probe_switchin_announce.js` — **0 clean / 1 under
+  `--red-copy`, verified in the merged main tree.**
+- **An INSTRUMENT fault closed with it.** The roster's `ability/blocks-priority` red demonstration
+  anchored on a literal function signature; the priority-bar fix added a parameter, the anchor matched
+  **0 times for the third time in its life**, and every row that rule produced asserted nothing. The
+  anchor is now READ out of the frozen source, so it follows the next parameter by construction while a
+  RENAME still kills it loudly. Re-run: `CAUGHT ability/blocks-priority via armortail -> DID-NOT-FIRE`.
+- **Measured** on release `51b80f9fcf08`, census pinned to
+  `data/verification/census-pin-8514757f99d5.json`, team store `data/team-pool-frozen`,
+  `--steering empirical --arm middle --end-state`. Census **984 live / 993 probed / 0 missing**.
+
+  **`node engine/quarantine.js` -> `GATE: OPEN — MEDICHAM passes both conditions; nothing is withheld`.**
+  All ten clauses PASS: damage differential 0 of 6000 at every corner; roster items 148 of 148,
+  abilities 196 of 200 (3 ANNOUNCEMENT-ONLY on receipts), moves 496 of 497; coverage all 412 moves
+  above 25 clicks; 0 board leaves uncompared; **BOARD-MATERIAL zero on every lattice — 0 of 961,
+  0 of 1069, 0 of 1497**; **NARRATION zero on every lattice**; mechanics 0 diverge and 0 undeclared;
+  no open defect backed by a failing measurement.
+- **Basis.** unchanged **BY THIS ROW**. The gate opening IS a basis change and it is **OWED as `7.0.0`**,
+  which is held for Will to read before publication — nothing downstream has been re-run or
+  re-published yet, so no reader has yet been told anything they must now unlearn. The MAJOR lands when
+  the living documents are rewritten, not here.
+- **Supersedes.** ~~undeclared narration 0 / 0 / 1~~ (6.77.0 row), now 0 / 0 / 0.
+  ~~979 live~~ then 983, now **984**.
+- **WHAT AN OPEN GATE IS NOT.** Illusion stays the one declared exclusion; closed team sheets and bo1
+  stay out of scope; and **7 LIVE `lastMove` readings are a real unregistered class** (the authority
+  keeps the CALLING move where this engine keeps the called one) — found in the same dump, reported,
+  NOT fixed. The corpse split that surrounded them was the instrument: speed "REAL GAP" is **253 of 253**
+  a body the authority had already fainted, proven with a control, zero live.
+- **Owed to the next major.** Everything above, plus the held-out `--games 12000` draw, which is a wider
+  sample than the gate's and is NOT re-run here.
+
+## [6.78.0] — 2026-09-20 — three held-out partings close as PLACEMENT errors, Trace was an ADDRESS not an index, and the herb probe was asking an illegal question
+
+- **What changed.** Two ENGINE worktrees merged into the main tree and re-verified there.
+  **Heal Block refuses the whole click**, not just the drain — the authority answers at `onBeforeMove`
+  and every legal damaging drain move carries `flags.heal`; this engine was landing the damage.
+  **Bug Bite's steal-eat runs at hit time**, not after the hit, so a thief that a contact-damage
+  ability kills here was still alive to eat there. **The priority bar is `breakable`**, so a mould-breaking
+  attacker walks through it — 3 of that gate's 4 clauses now pass the attacker.
+  **Trace was never an index bug.** The list was right on 2,442 draws — 0 membership errors, 0 order
+  errors. A Trace body walking in on a PIVOT had its die addressed with the pivot move still active,
+  where the authority calls `clearActiveMove()` before the entrant's switch-in runs. Fixed at
+  `pivotFrom`; the sweep's `DIFFERENT INDEX` goes 1 → 0.
+  **The herb probe was red on an ILLEGAL FIXTURE and that was not the whole red.** `learns()` was a raw
+  learnset walk; it now asks the validator, and `0 illegal` follows. It stayed red afterwards because a
+  SECOND guard sits above both placements — only removing BOTH reproduces the defect, which the probe
+  now proves with three control children. **No engine byte changed for that one.**
+- **Measured.** Census **979 → 983 live**, 992 probed, **0 missing**, 0 unarmed, 0 hollow, 0 threw.
+  Five probes, each **0 clean / 1 under its own knob, run in the merged main tree** rather than in the
+  worktrees that wrote them: `probe_healblock_refuses_heal_move`, `probe_stealeat_before_reactors`,
+  `probe_priority_bar_mold_breaker`, `probe_trace_list`, `probe_midturn_herb_resort` (the last needs
+  BOTH its knobs; one alone reads 0, which is the second-guard claim demonstrated).
+- **Refuted.** The previous pass's Spicy Spray lead — the holder does NOT faint; it stands at 126/140 in
+  the dump and the body that dies is the other spread target. That row stays open and narrower.
+- **Basis.** unchanged.
+- **Supersedes.** ~~979 live~~ (6.76.0 row), now 983.
+- **THE ENGINE MOVED, SO 6.77.0's GATE READING NO LONGER DESCRIBES THIS TREE.** Board-material,
+  narration and every roster figure in that row were measured on `6a0582efeda6` and are **not** restated
+  here. The re-measure is owed and is the next run.
+- **Coordinator, at merge.** Two agents overlapped on Heal Block: one fixed it, the other was blocked
+  because `data/team-pool-frozen`'s store files exist only in the main tree, so `tag_dex.js` caught the
+  `ENOENT`, zeroed usage and exited 0. **It refused to ship the zeroed file and said so** — the same
+  shape as a receipt naming a store the run never read. The same absence made `probe_trace_list` read
+  `NOT-STAGED` in that worktree while reading 0 clean here.
+- **Owed to the next major.** Everything above.
+
 ## [6.77.0] — 2026-09-20 — the whole gate re-measured on one engine: board-material zero everywhere, narration down to ONE game, 9 of 10 clauses pass
 
 - **What changed.** Nothing in the engine. This is the re-measure 6.76.0 said was OWED, run on a

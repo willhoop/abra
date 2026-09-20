@@ -39,6 +39,16 @@
 'use strict';
 const RED = process.argv.includes('--red');
 if (RED) process.env.MEDI_SWITCHIN_ANNOUNCE_SILENT = '1';
+/* --red-copy IS A SECOND RED ARM FOR A SECOND KNOB, AND IT IS NOT THE SAME DEFECT.
+ * `--red` silences the line everywhere. `--red-copy` keeps the line and puts it back BELOW the
+ * Imposter/Trace copy, which is where this engine wrote it from 2026-09-20 until the fix: a body that
+ * ARRIVED with Imposter or Trace and ACQUIRED Cloud Nine inside the same switch-in pass then announced
+ * an ability it did not walk in with. The authority cannot: `Battle#fieldEvent` builds its whole
+ * handler list ONCE (sim/battle.ts:490-506) before `speedSort`, so the only `onSwitchIn` handler the
+ * body ever has is the one it entered with, and `transformInto` -> `setAbility(..., isTransform=true)`
+ * raises `Start` and never `SwitchIn` (sim/pokemon.ts:1358, :1946-1949). */
+const RED_COPY = process.argv.includes('--red-copy');
+if (RED_COPY) process.env.MEDI_SWITCHIN_ANNOUNCE_AFTER_COPY = '1';
 const path = require('path');
 const D = (...p) => path.join(__dirname, '..', ...p);
 require(D('engine', 'showdown_path.js'));
@@ -98,6 +108,15 @@ const NO_ALT = ['altaria', '', 'Natural Cure', ['Protect']];
 const CN_DRA = ['drampa', '', 'Cloud Nine', ['Protect']];
 const NO_DRA = ['drampa', '', 'Berserk', ['Protect']];
 const ZAM = ['alakazam', '', 'Magic Guard', ['Skill Swap', 'Protect']];
+/* THE TWO COPY DOORS. Ditto is the format's ONLY legal Imposter carrier and Transform is the ONLY
+ * move it learns (DERIVED: `dex.species.get('ditto').abilities`, `CS.canLearn('ditto', …)`), so the
+ * script clicks Protect off the COPIED moveset — which is itself evidence the transform landed, and
+ * is checked directly by `copyMustLand` below. Imposter aims at the DIAGONAL
+ * (`pokemon.side.foe.active[length - 1 - position]`, data/abilities.ts:2111), so the Ditto goes in
+ * slot b and the Cloud Nine body in the foe's slot a. Gardevoir is a legal Trace carrier. */
+const DITTO = ['ditto', '', 'Imposter', ['Transform']];
+const TRACER = ['gardevoir', '', 'Trace', ['Protect']];
+const NO_TRACER = ['gardevoir', '', 'Synchronize', ['Protect']];
 const PROT = { m: 'protect' };
 const PASS1 = [{ p1: [PROT, PROT], p2: [PROT, PROT] }];
 const SW_IN = [{ p1: [{ sw: 'drampa' }, PROT], p2: [PROT, PROT] }, { p1: [PROT, PROT], p2: [PROT, PROT] }];
@@ -132,6 +151,29 @@ const CASES = [
     A: [CN_ALT, FILL1], Abench: [FILL2, FILL3], B: [ZAM, FILL2], Bbench: [FILL1, FILL3],
     script: [{ p1: [{ m: 'roost' }, PROT], p2: [{ m: 'skillswap', t: 0 }, PROT] },
              { p1: [PROT, PROT], p2: [PROT, PROT] }] },
+  /* 7 + 8 — THE COPY DOORS, 2026-09-20. A body that ARRIVES with Imposter or Trace and ACQUIRES the
+   * member ability inside the same switch-in pass announces NOTHING: the authority's handler list for
+   * `fieldEvent('SwitchIn')` is built once, before the sort, so Cloud Nine's `onSwitchIn` is simply not
+   * in it, and the copy raises `Start` only. One bare line in each arm — the FOE's own — and it must be
+   * at the foe's address, which is why the whole sequence is compared rather than the count.
+   * This is the class the 1,950-game gate lattice caught on release `6a0582efeda6`:
+   *   showdown  |-ability|p2a: Drampa|Cloud Nine      medicham  |-ability|p1b: Ditto|cloudnine */
+  { id: 'IMPOSTER-DOOR', want: 1, copyMustLand: 'imposter',
+    A: [FILL1, DITTO], Abench: [FILL2, FILL3], B: [CN_DRA, FILL4], Bbench: [FILL1, FILL3],
+    script: PASS1 },
+  { id: 'CTRL-IMPOSTER-DOOR', want: 0, copyMustLand: 'imposter',
+    A: [FILL1, DITTO], Abench: [FILL2, FILL3], B: [NO_DRA, FILL4], Bbench: [FILL1, FILL3],
+    script: PASS1 },
+  /* BOTH FOES CARRY THE MEMBER, AND THAT IS NOT DECORATION. Trace copies a RANDOM live foe
+   * (data/abilities.ts, `trace` -> `this.sample(possibleTargets)`); the first draft of this arm put
+   * Cloud Nine on ONE foe, the draw took the OTHER one's Heatproof, and the arm was green while
+   * tracing nothing this probe is about — which the landing check below is what caught. */
+  { id: 'TRACE-DOOR', want: 2, copyMustLand: 'trace', tracedMustBeMember: true,
+    A: [TRACER, FILL1], Abench: [FILL2, FILL3], B: [CN_DRA, CN_ALT], Bbench: [FILL1, FILL3],
+    script: PASS1 },
+  { id: 'CTRL-TRACE-DOOR', want: 2,
+    A: [NO_TRACER, FILL1], Abench: [FILL2, FILL3], B: [CN_DRA, CN_ALT], Bbench: [FILL1, FILL3],
+    script: PASS1 },
 ];
 
 let illegal = 0;
@@ -148,7 +190,7 @@ for (const c of CASES) for (const row of [...c.A, ...c.Abench, ...c.B, ...c.Bben
   }
 }
 /* THE CONTROL ARMS REST ON THE CONTROL ABILITY *NOT* BEING A MEMBER, which is read, not assumed. */
-for (const ab of ['naturalcure', 'berserk', 'magicguard'])
+for (const ab of ['naturalcure', 'berserk', 'magicguard', 'imposter', 'trace', 'synchronize'])
   if (MEMBERS.has(ab)) bad(ab + ' is now an announcesOnSwitchIn member; the controls would ask nothing');
 if (illegal) { console.log(NL + 'NOT RUN — ' + illegal + ' illegal fixture(s). This is not a pass.'); process.exit(2); }
 
@@ -177,7 +219,10 @@ const SEQ = lines => {
 };
 
 console.log(NL + (RED ? 'RED ARM — MEDI_SWITCHIN_ANNOUNCE_SILENT=1 (the engine as it stood: the weather '
-                      + 'suppression, none of the lines)' : 'CLEAN ARM') + NL);
+                      + 'suppression, none of the lines)'
+                : RED_COPY ? 'RED ARM — MEDI_SWITCHIN_ANNOUNCE_AFTER_COPY=1 (the announcement back BELOW '
+                      + 'the Imposter/Trace copy, where it was until 2026-09-20)'
+                : 'CLEAN ARM') + NL);
 const seen0 = SEEN.switchInAnnounced | 0;
 
 for (const c of CASES) {
@@ -200,6 +245,15 @@ for (const c of CASES) {
     claim(meAnn.length === 0, c.id + ' — [--red] this engine is SILENT again (the defect restored)',
       'medicham ' + JSON.stringify(meAnn));
   } else {
+    /* UNDER --red-copy THIS IS THE CLAIM THAT MUST GO RED, and it is deliberately the SAME claim the
+     * clean arm makes rather than an inverted one: a probe that asserts the defect is present passes
+     * whether or not it can still see the defect's absence. The two door arms fail here and the run
+     * exits 1; every other arm holds, which is what says the knob moved ONE thing. */
+    if (RED_COPY && /^(IMPOSTER|TRACE)-DOOR$/.test(c.id)) {
+      const extra = meAnn.filter(x => !sdAnn.includes(x));
+      console.log('    [--red-copy] the COPYING body speaks a line the authority never writes: '
+        + JSON.stringify(extra));
+    }
     claim(JSON.stringify(meS) === JSON.stringify(sdS),
       c.id + ' — this engine writes the SAME switch/detailschange/announcement sequence'
         + (RED ? '   [--red: control, must HOLD]' : ''),
@@ -219,6 +273,27 @@ for (const c of CASES) {
     claim(landed.length === 1, c.id + ' — THE SWAP LANDED: the authority hands the member ability to '
       + 'the other body', JSON.stringify(landed));
   }
+  /* AND THE COPY DOORS MUST ACTUALLY OPEN. A `|-transform|` that was refused would leave the arm
+   * asserting "no second announcement" about a battle in which nobody copied anything — green, and
+   * asking nothing. Checked against the AUTHORITY'S raw log, both arms, including the control. */
+  if (c.copyMustLand) {
+    /* Imposter announces itself as `|-transform|…|[from] ability: Imposter`; Trace announces itself as
+     * a FOUR-field `|-ability|…|[from] ability: Trace|[of] …`, which `SEQ` deliberately drops. Both are
+     * read off the AUTHORITY's raw log, so neither arm can be green on a copy that never happened. */
+    const landed = unsplit(G.lastSdLog()).filter(l => {
+      const f = String(l).split('|');
+      return (f[1] === '-transform' || f[1] === '-ability')
+          && norm(String(l).split('[from] ability: ')[1] || '').startsWith(c.copyMustLand);
+    });
+    claim(landed.length === 1, c.id + ' — THE COPY LANDED: the authority transforms the arriving body',
+      JSON.stringify(landed));
+    /* AND IT COPIED THE MEMBER, not some other foe's ability. Without this the Trace arm asserts
+     * "no extra announcement" about a body that never acquired an announcing ability. */
+    if (c.tracedMustBeMember) {
+      const got = landed.length === 1 ? norm(String(landed[0]).split('|')[3]) : '';
+      claim(MEMBERS.has(got), c.id + ' — THE COPIED ABILITY IS A MEMBER', 'copied `' + got + '`');
+    }
+  }
   /* A LINE, NOT A LEAF — asserted on every arm, in both directions. */
   claim(r.stateDiv === null && r.boundaries === r.boundariesAgreed,
     c.id + ' — NO BOARD LEAF PARTS (' + r.boundariesAgreed + '/' + r.boundaries + ' boundaries agreed)',
@@ -232,9 +307,14 @@ if (RED) {
   claim((FAILS.switchInAnnounceSilentRestored | 0) > 0, 'the RED arm STAMPED its restore counter',
     'MEDFAILS.switchInAnnounceSilentRestored = ' + (FAILS.switchInAnnounceSilentRestored | 0));
   claim(n === 0, 'the RED arm announced NOTHING — the knob reached the rule', 'switchInAnnounced +' + n);
+} else if (RED_COPY) {
+  claim((FAILS.switchInAnnounceAfterCopyRestored | 0) > 0, 'the RED-COPY arm STAMPED its restore counter',
+    'MEDFAILS.switchInAnnounceAfterCopyRestored = ' + (FAILS.switchInAnnounceAfterCopyRestored | 0));
 } else {
   claim((FAILS.switchInAnnounceSilentRestored | 0) === 0, 'the CLEAN arm carries NO restore stamp',
     String(FAILS.switchInAnnounceSilentRestored | 0));
+  claim((FAILS.switchInAnnounceAfterCopyRestored | 0) === 0, 'the CLEAN arm carries NO copy-order restore stamp',
+    String(FAILS.switchInAnnounceAfterCopyRestored | 0));
   claim(n >= 5, 'the five member arms announced at least five times — the fixture is not vacuous',
     'switchInAnnounced +' + n);
 }
