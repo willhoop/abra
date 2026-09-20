@@ -52,6 +52,48 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.83.0] — 2026-09-20 — the last held-out board parting closes: **ZERO on the wide sample as well as on the gate**
+
+- **What changed.** The final parting was a real engine defect and a nasty one: a `null` was written
+  into the status SOURCE slot where the authority passes the ability holder. **`null` is not
+  `undefined`**, so the guard took its else branch and three separate mechanics went silently dead — an
+  ally's status-refusing ability, a side-wide status screen, and a status-reflecting ability. The
+  authority's own refusal is SILENT there (its `-block` line is gated on a narrower clause), so nothing
+  in the log ever showed it. Knob `MEDI_PUNISH_STATUS_SOURCELESS`; a second knob
+  `MEDI_SIDEBUFF_LINE_UNGATED` gates the screen's `-activate` on the authority's own clause, because
+  fixing the first alone creates a NEW narration parting.
+- **Measured** on release `0d7b1d9db6d1`, census pinned to
+  `data/verification/census-pin-b6df14beff8d.json`, `--team-store data/team-pool-frozen`,
+  `--steering empirical --arm middle --end-state`:
+
+  | instrument | reading |
+  |---|---|
+  | **held-out `--games 12000`** | **7,182 games, 0 board-material**, 75 protocol |
+  | gate lattices, board-material | 0 of 961, 0 of 1069, 0 of 1497 |
+  | gate lattices, narration | zero on all three |
+  | damage differential | 0 of 6000 at the midpoint and every interior index |
+  | roster items / abilities / moves | 148 of 148, 196 of 200, 496 of 497 |
+  | mechanics staged | 0 diverge, 0 undeclared |
+  | census | **1002 probed / 1002 live / 0 missing** |
+  | `engine/quarantine.js` | **GATE: OPEN**, all ten clauses |
+
+  **The wide sample and the gate now agree.** That matters because the held-out draw has caught, on
+  every previous release, what the three lattices could not see — 34, then 15, then 9, then 1, now 0.
+- **Basis.** unchanged **BY THIS ROW**. The gate opening remains a basis change OWED as `7.0.0`, held
+  for Will to read; nothing downstream has been re-run or re-published, so no reader has yet been told
+  anything they must now unlearn.
+- **Supersedes.** ~~held-out board partings 1~~ (6.82.0 row), now **0**. ~~1000 probed / 1000 live~~,
+  now **1002 / 1002**. Same pool, same flags, same `--games`; only the engine moved.
+- **WHAT ZERO DOES NOT MEAN.** Illusion stays the one declared exclusion — 408 of 13,214 pool sheets
+  carry a carrier, 215 brought one. Closed team sheets and bo1 stay out of scope. **7 live `lastMove`
+  readings remain a real unregistered class** (the authority keeps the CALLING move where this engine
+  keeps the called one), reported and not fixed. A zero is a statement about what was measured.
+- **Coordinator, at merge.** An instrument fix that had been taxing every worktree agent all day:
+  `engine/artifact_audit.js --staged` looked for the sibling project at `ROOT/..`, which inside a
+  worktree resolves to `.claude/worktrees/`, so its generated-bundle clause false-blocked every commit
+  an agent tried to make. Fixed by the agent that hit it.
+- **Owed to the next major.** Everything above.
+
 ## [6.82.0] — 2026-09-20 — all nine held-out board partings closed: the wide sample goes **9 → 1 in 7,182 games**, and the gate is OPEN on one engine
 
 - **What changed.** The four non-hp partings close, each a distinct mechanism, verified in the merged

@@ -120,9 +120,35 @@ function auditStaged() {
       const txt = fs.readFileSync(path.join(stage, ...rel.split('/')), 'utf8');
       for (const mm of txt.matchAll(/'\.\.',\s*'\.\.',\s*'([A-Za-z0-9_.-]+)'/g)) siblings.add(mm[1]);
     }
+    /* 2026-09-20 -- A SIBLING IS LOOKED FOR BESIDE THE MAIN CHECKOUT TOO, NOT ONLY BESIDE `ROOT`.
+     *
+     * `ROOT/..` is `.claude/worktrees/` when this runs inside a git worktree, so the sibling was never
+     * found there, `continue` took the "absent in both modes alike" branch, and the staged copy went
+     * out WITHOUT `CHOMP/`. `build/build_engine_data.js` then threw MODULE_NOT_FOUND and the audit
+     * reported `GAP data/engine-data.js is NOT what build/build_engine_data.js would write` — a FALSE
+     * BLOCK that no worktree agent could clear without either editing a forbidden file or
+     * `--no-verify`. Measured 2026-09-20: `node build/build_engine_data.js --check` in the main
+     * checkout answers *"data/engine-data.js is exactly what its sources would produce today"*, and the
+     * same `--staged` audit passes there, printing `copied from disk, not in the commit: CHOMP`.
+     *
+     * The main checkout is derived, not typed: `git rev-parse --git-common-dir` points at the ORIGINAL
+     * `.git` for every worktree, and its parent is the checkout the siblings sit beside. A failure to
+     * resolve it leaves the behaviour exactly as it was. */
+    const MAIN = (() => {
+      try {
+        const g = spawnSync('git', ['rev-parse', '--path-format=absolute', '--git-common-dir'],
+                            { cwd: ROOT, encoding: 'utf8' });
+        if (g.status !== 0) return null;
+        const gd = String(g.stdout || '').trim();
+        return gd ? path.dirname(gd) : null;
+      } catch (e) { return null; }
+    })();
+    const searchIn = [path.join(ROOT, '..')];
+    if (MAIN && path.resolve(MAIN) !== path.resolve(ROOT)) searchIn.push(path.join(MAIN, '..'));
     const copied = [];
     for (const name of [...siblings].sort()) {
-      const real = path.join(ROOT, '..', name);
+      const real = searchIn.map(d => path.join(d, name)).find(p => fs.existsSync(p))
+                || path.join(ROOT, '..', name);
       if (SP && path.resolve(real) === path.resolve(SP)) continue;   // reached through SHOWDOWN_PATH instead
       if (!fs.existsSync(real)) continue;                               // absent in both modes alike
       fs.cpSync(real, path.join(tmp, name), { recursive: true,

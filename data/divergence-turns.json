@@ -1,7 +1,7 @@
 {
   "what": "DIVERGING GAMES WITH THE LINES EITHER SIDE OF THE SPLIT. A debugging view, not a measurement. Both the RAW emitted line and the REDUCED line the comparator decides on are kept: the reduced form is what decided, the raw form is what has to be fixed.",
-  "generated": "2026-09-20T20:43:31.577Z",
-  "engine_release": "c2d68f8cab07",
+  "generated": "2026-09-20T22:09:27.577Z",
+  "engine_release": "0d7b1d9db6d1",
   "team_store_pinned_to": "data/team-pool-frozen",
   "closet": {
     "ability": "illusion",
@@ -4153,15 +4153,15 @@
     "why": "OUR shelf, not the format's: zoroark is isNonstandard:null and legal to bring. ROADMAP #160 — Illusion is in the closet because a body pretending to be another body makes every divergence it causes unreadable as a rule defect. Derived from the ABILITY so a carrier added next regulation is covered without an edit. THE RULE IS APPLIED TO THE SHEET AND THE BATTLE BRINGS ONLY THE FIRST 4 BUILDABLE BODIES, so a team whose carrier sits past that index is dropped for a body that never enters either engine (see carrier_sheet_slot). Narrowing the rule would CHANGE THE SAMPLE and therefore the headline rate, so it is declared here and owed, not done quietly.",
     "says": "374 team(s) dropped from the pool before pairing for carrying illusion (zoroark, zoroarkhisui)"
   },
-  "games": 76,
-  "of_diverged": 77,
-  "pool_considered": 76,
+  "games": 75,
+  "of_diverged": 76,
+  "pool_considered": 75,
   "arms_in_dump": {
     "shown": {
-      "middle": 76
+      "middle": 75
     },
     "diverged_in_arm": {
-      "middle": 77
+      "middle": 76
     }
   },
   "divergences": [
@@ -7605,198 +7605,6 @@
           "|-damage|p1a: Farigiraf|109/195 tox|[from] psn",
           "|-damage|p1a: Farigiraf|85/195 tox|[from] move: infestation|[partiallytrapped]",
           "|upkeep"
-        ]
-      }
-    },
-    {
-      "arm": "middle",
-      "config": "omit-weather",
-      "seed": "gen9championsvgc2026regmbbo3-2654574813 vs gen9championsvgc2026regmbbo3-2654567638",
-      "agreed_lines": 146,
-      "cls": "extra event emitted by medicham2",
-      "cause": "extra event emitted by medicham2 :: |faint|p2b <> |-status|p1b|brn|[from]spicyspray",
-      "end_reason": "ONLY showdown ended the battle",
-      "ended_showdown": true,
-      "ended_medicham": false,
-      "final_roster": {
-        "mediResult": 1,
-        "medicham": {
-          "p1": [
-            {
-              "name": "sneasler",
-              "key": "sneasler",
-              "hp": 128,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            },
-            {
-              "name": "garchompmega",
-              "key": "garchomp",
-              "hp": 79,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            }
-          ],
-          "p2": [
-            {
-              "name": "scovillainmega",
-              "key": "scovillain",
-              "hp": 0,
-              "fainted": true,
-              "faintSeq": 17856,
-              "where": "active"
-            },
-            {
-              "name": "aerodactyl",
-              "key": "aerodactyl",
-              "hp": 87,
-              "fainted": false,
-              "faintSeq": null,
-              "where": "active"
-            }
-          ]
-        },
-        "showdown": {
-          "p1": {
-            "pokemonLeft": 3,
-            "teamSize": 4,
-            "mons": [
-              {
-                "name": "sinistcha",
-                "key": "sinistcha",
-                "hp": 50,
-                "fainted": false,
-                "where": "active",
-                "isActive": true
-              },
-              {
-                "name": "garchompmega",
-                "key": "garchomp",
-                "hp": 90,
-                "fainted": false,
-                "where": "active",
-                "isActive": true
-              },
-              {
-                "name": "floetteeternal",
-                "key": "floetteeternal",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench",
-                "isActive": false
-              },
-              {
-                "name": "sneasler",
-                "key": "sneasler",
-                "hp": 155,
-                "fainted": false,
-                "where": "bench",
-                "isActive": false
-              }
-            ]
-          },
-          "p2": {
-            "pokemonLeft": 0,
-            "teamSize": 4,
-            "mons": [
-              {
-                "name": "scovillainmega",
-                "key": "scovillain",
-                "hp": 0,
-                "fainted": true,
-                "where": "active",
-                "isActive": false
-              },
-              {
-                "name": "aerodactyl",
-                "key": "aerodactyl",
-                "hp": 0,
-                "fainted": true,
-                "where": "active",
-                "isActive": false
-              },
-              {
-                "name": "garchomp",
-                "key": "garchomp",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench",
-                "isActive": false
-              },
-              {
-                "name": "primarina",
-                "key": "primarina",
-                "hp": 0,
-                "fainted": true,
-                "where": "bench",
-                "isActive": false
-              }
-            ]
-          },
-          "winner": "A"
-        }
-      },
-      "at": {
-        "showdown_raw": "|faint|p2b: Primarina",
-        "medicham_raw": "|-status|p1b: Sinistcha|brn|[from] ability: spicyspray|[of] p2a: Scovillain",
-        "showdown": "|faint|p2b:primarina",
-        "medicham": "|-status|p1b:sinistcha|brn|[from]spicyspray"
-      },
-      "before": [
-        "|-ability|p2a:aerodactyl|unnerve",
-        "|turn|9",
-        "|switch|p2a:scovillain|scovillainmega,l50|140/140",
-        "|move|p1a:floette|protect",
-        "|-singleturn|p1a:floette|protect",
-        "|move|p2b:primarina|hypervoice",
-        "|-activate|p1a:floette|protect",
-        "|-resisted|p1b:sinistcha|1",
-        "|-damage|p1b:sinistcha|50/146",
-        "|move|p1b:sinistcha|matchagotcha",
-        "|-resisted|p2a:scovillain|2",
-        "|-supereffective|p2b:primarina|1",
-        "|-damage|p2a:scovillain|126/140",
-        "|-heal|p1b:sinistcha|57/146|[from]drain",
-        "|-damage|p2b:primarina|0fnt",
-        "|-heal|p1b:sinistcha|75/146|[from]drain"
-      ],
-      "before_raw": [
-        "|-ability|p2a: Aerodactyl|unnerve",
-        "|turn|9",
-        "|switch|p2a: Scovillain|scovillain-mega, L50|140/140",
-        "|move|p1a: Floette|protect|p1a: Floette",
-        "|-singleturn|p1a: Floette|Protect",
-        "|move|p2b: Primarina|hypervoice|p1b: Sinistcha",
-        "|-activate|p1a: Floette|move: Protect",
-        "|-resisted|p1b: Sinistcha|1",
-        "|-damage|p1b: Sinistcha|50/146",
-        "|move|p1b: Sinistcha|matchagotcha|p2b: Primarina",
-        "|-resisted|p2a: Scovillain|2",
-        "|-supereffective|p2b: Primarina|1",
-        "|-damage|p2a: Scovillain|126/140",
-        "|-heal|p1b: Sinistcha|57/146|[from] drain|[of] p2a: Scovillain",
-        "|-damage|p2b: Primarina|0 fnt",
-        "|-heal|p1b: Sinistcha|75/146|[from] drain|[of] p2b: Primarina"
-      ],
-      "after": {
-        "showdown": [
-          "|faint|p2b: Primarina",
-          "|-heal|p1b: Sinistcha|84/146|[from] item: Leftovers",
-          "|upkeep",
-          "|switch|p2b: Aerodactyl|Aerodactyl, L50|155/155",
-          "|-ability|p2b: Aerodactyl|Unnerve",
-          "|turn|10"
-        ],
-        "medicham": [
-          "|-status|p1b: Sinistcha|brn|[from] ability: spicyspray|[of] p2a: Scovillain",
-          "|faint|p2b: Primarina",
-          "|-heal|p1b: Sinistcha|84/146 brn|[from] item: leftovers",
-          "|-damage|p1b: Sinistcha|75/146 brn|[from] brn",
-          "|upkeep",
-          "|switch|p2b: Aerodactyl|aerodactyl, L50|155/155",
-          "|-ability|p2b: Aerodactyl|unnerve"
         ]
       }
     },

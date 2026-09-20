@@ -1,3 +1,108 @@
+## **ZERO ON THE WIDE SAMPLE AS WELL AS ON THE GATE.** THE HELD-OUT 12,000-GAME DRAW PARTS **0 BOARDS IN 7,182 GAMES**, AND `quarantine.js` READS **GATE: OPEN** ON RELEASE `0d7b1d9db6d1`. CENSUS **1002 / 1002 / 0 MISSING**. 2026-09-20
+
+Full account: `docs/_reports/2026-09-20-last-board-parting.md`.
+
+| instrument | reading |
+|---|---|
+| **held-out `--games 12000`** | **7,182 games, 0 board-material**, 75 protocol |
+| gate lattices, board-material | 0 of 961, 0 of 1069, 0 of 1497 |
+| gate lattices, narration | zero on all three |
+| damage differential | 0 of 6000 at the midpoint and every interior index |
+| roster items / abilities / moves | 148 of 148, 196 of 200, 496 of 497 |
+| mechanics staged | 0 diverge, 0 undeclared |
+| census | 1002 probed / 1002 live / 0 missing |
+
+Pins: release `0d7b1d9db6d1`, census `data/verification/census-pin-b6df14beff8d.json`, team store
+`data/team-pool-frozen`, `--steering empirical --arm middle --end-state`.
+
+**BOARD PARTINGS ON THE WIDE SAMPLE, ACROSS ONE DAY: 34 -> 15 -> 9 -> 1 -> 0.** The held-out draw has
+caught, on every previous release, what the three gate lattices could not see. The two instruments
+agree for the first time.
+
+**THE LAST DEFECT WAS A `null` WHERE THE AUTHORITY PASSES THE ABILITY HOLDER.** `null` is not
+`undefined`, so the guard took its else branch and THREE mechanics went silently dead at once: an
+ally's status-refusing ability, a side-wide status screen, and a status-reflecting ability. The
+authority's own refusal is SILENT at that point — its `-block` line is gated on a narrower clause — so
+nothing in the protocol ever showed it, and the only visible trace was 9 hp of residual damage eight
+turns later. It took a replay from turn 1: a previous pass had staged the situation directly, played
+11 turns, seen nothing, and called it not reproducible. **That was a claim about the fixture.**
+
+**WHAT ZERO DOES NOT MEAN.** Illusion stays the one declared exclusion — 408 of 13,214 pool sheets
+carry a carrier and 215 brought one. Closed team sheets and bo1 stay out of scope. **7 live `lastMove`
+readings remain a real unregistered class**, reported and not fixed. A zero is a statement about what
+was measured, and these were not.
+
+
+## THE LAST BOARD PARTING IN THE HELD-OUT 12,000-GAME DRAW CLOSES: **A PUNISH ABILITY'S STATUS ARRIVED WITH NO SOURCE, AND ONE `null` DISARMED THREE GUARDS THE AUTHORITY RUNS.** THE AUTHORITY'S **FLOWER VEIL** REFUSED THE BURN, SILENTLY. CENSUS **996 → 998 PROBED, 996 → 998 LIVE / 0 MISSING**. **ENGINE BYTES CHANGED — WORKTREE RELEASE `d16f5e12caaa`; LIGHT MODE, ONE NAMED GAME, NO LATTICE, NO GATE, THE RE-RUN IS OWED.** 2026-09-20, version assigned at merge
+
+Full account, every authority line, both replays and every exit code:
+`docs/_reports/2026-09-20-last-board-parting.md`.
+
+**IT REPRODUCED, AND THE PREVIOUS PASS'S "NOT REPRODUCIBLE STANDALONE" WAS A FACT ABOUT THE FIXTURE.**
+`engine/replay_one.js` on release `c2d68f8cab07` with the run's own schedule replayed — **3,054 games
+to reach `omit-weather` pair #177** — splits at reduced index 146, exactly where
+`data/verification/game-differential.g12000.json` says it does:
+
+```
+  0146  SD    |faint|p2b: Primarina
+  0146  US    |-status|p1b: Sinistcha|brn|[from] ability: spicyspray|[of] p2a: Scovillain
+```
+
+**THE ANSWER WAS IN THE TEAM LIST.** Sinistcha is **GRASS**/Ghost, the body it hit is a
+**Scovillain-Mega** (sole ability **Spicy Spray**), and its partner on that turn is a
+**Floette-Eternal carrying FLOWER VEIL**. `spicyspray.onDamagingHit` calls
+`source.trySetStatus('brn', target)` — and `trySetStatus`'s SECOND argument is the SOURCE, which is
+the ability HOLDER. So the status reaches `runEvent('SetStatus', …)` with a source and Flower Veil's
+`onAllySetStatus` refuses it: `target.hasType('Grass') && source && target !== source && effect &&
+effect.id !== 'yawn'`. **And it says nothing** — its `-block` is gated on
+`effect.name === 'Synchronize' || (effect.effectType === 'Move' && !effect.secondaries)`, and an
+ability is neither, which is why the authority's next line is simply the faint. Staged in the
+official simulator before anything was edited, with the ally's ability as the only knob: bare partner
+`|-status|p1a: Sinistcha|brn|[from] ability: Spicy Spray|[of] p2a: Scovillain`; Flower Veil partner
+**nothing at all**.
+
+**THIS ENGINE WROTE A LITERAL `null` INTO THE SOURCE SLOT WITH THE SOURCE IN SCOPE.**
+`applyStatus(m, status, null, ATTR.ability(tg.ability, tg))` — and `null` is not `undefined`, which is
+load-bearing: `allyRefusesStatus` counts an `undefined` source and still refuses, but takes the else
+branch on `null`, where Flower Veil's derived `needsSource` sends it to `continue`. The same `null`
+shuts `sideBuffRefuses` (`if(!t||!src||src===t)return null`) and the Synchronize reflect
+(`if(_sy&&src&&src!==t&&…)`) — whose own header had already predicted this caller. Fixed by passing
+`tg`. Knob `MEDI_PUNISH_STATUS_SOURCELESS`.
+
+**POPULATION PRINTED BEFORE THE WIRE:** five abilities reach that call site with a status — **Static
+1,171 sheets, Flame Body 630, Poison Point 165, Effect Spore 40, Spicy Spray 0** (a MEGA ability, so
+no base-sheet count). Three can refuse one — **Flower Veil 8,939, Sweet Veil 53, Aroma Veil 136 whose
+`statuses` list is EMPTY and therefore refuses nothing** — plus **Safeguard, 44 uses**.
+
+**AND THE SAFEGUARD LINE IS GATED IN THE SAME PASS, BECAUSE THE FIRST FIX WOULD OTHERWISE HAVE
+CREATED A NEW NARRATION PARTING.** The comment at that branch DECLARED its gate instead of asking it
+— *"which is exactly the direct status-move path this engine routes here"* — and that stopped being
+true the moment an ability-sourced status could reach it. `safeguard.condition.onSetStatus`
+(data/moves.ts:15589-15597) refuses unconditionally once there is a source and announces only for
+Synchronize or a secondary-less Move. It silences only what it positively knows is an ability; an
+ABSENT effect announces as before and is counted at `MEDFAILS.sideBuffLineEffectUnknown`. It was
+already reachable through Poison Touch, so it is fixed rather than filed. Knob
+`MEDI_SIDEBUFF_LINE_UNGATED`.
+
+**MEASURED, ON ONE RELEASE, WITH THE KNOB AS THE ONLY VARIABLE.** Worktree release `d16f5e12caaa`,
+same seed, same pins, same `--games 12000`, same 3,054-game warm-up:
+
+| | knob on (defect restored) | no knob (fix live) |
+|---|---|---|
+| turns | 9 | **19** |
+| raw lines | medi 153 / sd 152 | **medi 270 / sd 270** |
+| stopped because | the first divergent LINE | **both engines ended the battle** |
+| splits | 1, at index 146 | **0** |
+
+`tests/probe_punish_status_source.js` — **clean exit 0, exit 1 under EACH of its two knobs**, and it
+was red on exactly its three defect arms before the engine was touched. Every body and ability in it
+is derived and printed, never typed.
+
+**WHAT IS OWED.** The engine bytes moved, so `status.js` withholds the differential, all three roster
+stages and `all-mechanics-fire.json`; the gate, the three lattices and the held-out `--games 12000`
+draw are all owed a re-run after the merge. The `pair-redirect-priority` doll-row secondary die stays
+open and is diagnosed to the line in the section below.
+
 ## ALL NINE HELD-OUT BOARD PARTINGS CLOSE — THE WIDE SAMPLE GOES **9 -> 1 IN 7,182 GAMES**, AND `quarantine.js` READS **GATE: OPEN** WITH EVERY INSTRUMENT ON RELEASE `c2d68f8cab07`. CENSUS **1000 / 1000 / 0 MISSING**. 2026-09-20
 
 Accounts: `docs/_reports/2026-09-20-heldout9-hp.md`, `docs/_reports/2026-09-20-heldout9-fields.md`.
@@ -610,12 +715,12 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  1000/1000 probed mechanics live, 0 missing   (census 2026-09-20 16:07)
+  1002/1002 probed mechanics live, 0 missing   (census 2026-09-20 17:31)
     the census probes what somebody thought to probe: 304 of 304 in-scope tags carry a probe, 0 carry none (9 of 313
     tags have no in-scope carrier); 0 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 47 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 37 min old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
-    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/c2d68f8cab07/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "c2d68f8cab07".
+    PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/0d7b1d9db6d1/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "0d7b1d9db6d1".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
     OLDER THAN THE QUALITY FILTER — computed under different rules about what counts
@@ -632,7 +737,7 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-20 16:57_
+_stamped 2026-09-20 18:13_
 
 <!-- /GENERATED -->
 

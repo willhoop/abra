@@ -37804,6 +37804,71 @@ probe('move', 'locksTarget', 'Encore forces its move at execution even with no l
                  + `Knob MEDI_ENCORE_OVERRIDE_NEEDS_A_LIVE_FOE` };
 });
 
+/* 2026-09-20 — THE LAST BOARD PARTING IN THE HELD-OUT 12,000-GAME DRAW on release `c2d68f8cab07`
+ * (`data/verification/game-differential.g12000.json`, omit-weather `…bo3-2654574813` t9). Both rows
+ * below are STAGED IN THE OFFICIAL SIMULATOR and the lines quoted are read off its stream, never
+ * typed: a Sinistcha's Matcha Gotcha into a Spicy Spray body, with and without the veil beside it.
+ *
+ *   ally Symbiosis    |-heal|p1a: Sinistcha|126/146|[from] drain|[of] p2a: Scovillain
+ *                     |-status|p1a: Sinistcha|brn|[from] ability: Spicy Spray|[of] p2a: Scovillain
+ *   ally Flower Veil  |-heal|p1a: Sinistcha|126/146|[from] drain|[of] p2a: Scovillain
+ *                     (nothing — no `-status`, and no `-block` either)
+ *   Safeguard up      (nothing — no `-status`, and no `-activate|…|move: Safeguard` either)
+ *
+ * Knobs MEDI_PUNISH_STATUS_SOURCELESS and MEDI_SIDEBUFF_LINE_UNGATED; full arms in
+ * tests/probe_punish_status_source.js. */
+probe('ability', 'punishesAttacker', 'a punish status carries its HOLDER as its source, so an ally veil can refuse it', () => {
+  /* `spicyspray.onDamagingHit(damage, target, source, move) { source.trySetStatus('brn', target) }` —
+   * the SECOND argument of `trySetStatus` is the source and it is the ability HOLDER. Flower Veil's
+   * `onAllySetStatus` needs one (`target.hasType('Grass') && source && target !== source`), and this
+   * engine wrote a literal `null` into that slot with the holder in scope. Sinistcha is Grass. */
+  const run = (allyAb) => narRun(['sinistcha', 'appletun', 'scovillain', 'milotic'],
+    b => { b.f1.ability = 'spicyspray'; b.ally.ability = allyAb; }, { mv: 'matchagotcha' });
+  const burn = r => r.trace.filter(l => /^\|-status\|p1a:[^|]*\|brn\|/.test(l)).length;
+  const blk = r => r.trace.filter(l => /^\|-block\|/.test(l)).length;
+  const open = run('none'), veiled = run('flowerveil');
+  const control = [burn(open), open.me.status || '-'];
+  const test = [burn(veiled), veiled.me.status || '-', blk(veiled)];
+  return { works: control[0] === 1 && control[1] === 'brn'
+                && test[0] === 0 && test[1] === '-' && test[2] === 0, arms: { control, test },
+           detail: `[-status brn lines, attacker status(, -block lines)] a bare partner ${JSON.stringify(control)}, `
+                 + `a Flower Veil partner ${JSON.stringify(test)} — staged in the authority, which writes `
+                 + `\`|-status|p1a: Sinistcha|brn|[from] ability: Spicy Spray|[of] p2a: Scovillain\` with the bare `
+                 + `partner and NOTHING AT ALL with the veil, because flowerveil.onAllySetStatus returns null `
+                 + `and its \`-block\` is gated on Synchronize or a secondary-less Move. `
+                 + `Knob MEDI_PUNISH_STATUS_SOURCELESS` };
+});
+probe('move', 'sideBuff', 'a Safeguard refuses an ABILITY-sourced status and says nothing about it', () => {
+  /* `safeguard.condition.onSetStatus` (data/moves.ts:15589-15597) refuses unconditionally once there
+   * is a source, and announces only for `effect.id === 'synchronize' || (effect.effectType === 'Move'
+   * && !effect.secondaries)`. Both arms use the SAME punish ability; the only difference is whether
+   * the attacker's own side raised the condition on the turn before. */
+  const mk = (raise) => {
+    const me = bare('sinistcha'), ally = bare('appletun'), f1 = bare('scovillain'), f2 = bare('milotic');
+    f1.ability = 'spicyspray';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const trace = []; S._trace = trace;
+    if (raise) M.battleTurn(S, rng5,
+      new Map([[me, { kind: 'pass' }], [ally, M.playerAction(ally, 'safeguard', ally, S.field)]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const mark = trace.length;
+    M.battleTurn(S, rng5,
+      new Map([[me, M.playerAction(me, 'matchagotcha', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    const t = trace.slice(mark).map(M.traceCanon);
+    return [t.filter(l => /^\|-status\|p1a:[^|]*\|brn\|/.test(l)).length,
+            me.status || '-',
+            t.filter(l => /^\|-activate\|p1a:[^|]*\|move:safeguard$/.test(l)).length];
+  };
+  const control = mk(false), test = mk(true);
+  return { works: control[0] === 1 && control[1] === 'brn' && test[0] === 0 && test[1] === '-' && test[2] === 0,
+           arms: { control, test },
+           detail: `[-status brn lines, attacker status, Safeguard -activate lines] bare side ${JSON.stringify(control)}, `
+                 + `Safeguard up ${JSON.stringify(test)} — staged in the authority, whose whole turn under the `
+                 + `Safeguard carries NEITHER a \`-status\` NOR an \`-activate|…|move: Safeguard\`. `
+                 + `Knobs MEDI_PUNISH_STATUS_SOURCELESS, MEDI_SIDEBUFF_LINE_UNGATED` };
+});
+
 const works = results.filter(r => r.works);
 const missing = results.filter(r => !r.works);
 console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');
@@ -38060,6 +38125,9 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                            * red demonstration of its own census row would have WRITTEN the census. */
                           'reactLateOnceRestored', 'multiAccUpfrontRestored', 'volleyIgnoresSleepRestored',
                           'sporeDieUngatedRestored',
+                          /* 2026-09-20 -- tests/probe_punish_status_source.js. Both knobs red a census
+                           * row of their own, so without them here a red demonstration WRITES the census. */
+                          'punishStatusSourcelessRestored', 'sideBuffLineUngatedRestored',
                           /* 2026-09-19 -- narration batch A (tests/probe_narration_a.js), stamped at LOAD */
                           'roostAnnounceFlyingOnlyRestored', 'spreadNoFoeFailsRestored', 'syncImmuneSilentRestored',
                           'coachingNoAllySilentRestored', 'itemMoveNoTargetSilentRestored',

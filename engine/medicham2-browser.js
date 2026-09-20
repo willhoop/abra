@@ -1251,6 +1251,13 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
   /* WIRE 157 -- the veil family refusing a status on behalf of the body beside it, and the calls that
    * could not name a source so the two source guards were skipped. */
   allyVeilRefused: 0, allyVeilSourceUnknown: 0, allyVeilRefusedVolatile: 0,
+  /* 2026-09-20 -- a `punishesAttacker` status applied with the HOLDER named as its source, which is
+   * what `source.trySetStatus(status, target)` does. The slot used to be a literal `null`, so every
+   * guard that asks who is doing it stood down: a zero here on a board carrying Static, Flame Body,
+   * Poison Point, Effect Spore or Spicy Spray means the source is not reaching the guards again.
+   * `sideBuffLineSilent` is the refusals where the authority's Safeguard writes NO `-activate` --
+   * the effect is an ability, not Synchronize and not a secondary-less Move. */
+  punishStatusSourced: 0, sideBuffLineSilent: 0,
   /* WIRE 157 -- Mirror Armor sending a drop back, and the calls that could not name a source or a
    * size so it had nothing to send. A non-zero second number on a board with a Corviknight in it is
    * the reflection silently degrading to the old blocking behaviour. */
@@ -3468,6 +3475,15 @@ const MEDFAILS = { encoreAction: 0,
                                 drawn and the damage was NOT cut (there is nothing to cut it by)
        multiAccLazyUnspent      a volley priced lazily reached the end of the move unresolved */
   reactLateOnceRestored: 0, multiAccUpfrontRestored: 0, volleyIgnoresSleepRestored: 0, sporeDieUngatedRestored: 0,
+  /* 2026-09-20 -- MEDI_PUNISH_STATUS_SOURCELESS=1's stamp, set at LOAD. It writes the literal `null`
+     back into the source slot of the `punishesAttacker` status call, so an ally's veil, a Safeguard
+     and the Synchronize reflect all stand down again. MEDI_SIDEBUFF_LINE_UNGATED=1's stamp puts the
+     unconditional `-activate|TARGET|move: Safeguard` back. Probe: tests/probe_punish_status_source.js. */
+  punishStatusSourcelessRestored: 0, sideBuffLineUngatedRestored: 0,
+  /* 2026-09-20 -- a side-buff status refusal whose EFFECT this engine could not name, so the
+     `-activate` gate could not be evaluated and the line was written as before. Loud rather than
+     defaulted: a caller that named nothing and a caller that named an ability must not look alike. */
+  sideBuffLineEffectUnknown: 0,
   multiAccLazyOnCollapse: 0, multiAccLazyNoPackets: 0, multiAccLazyUnspent: 0,
   /* a handler asked an attacker's `runStatusImmunity(kind)` for a kind other than `powder`; answered "not
      immune" so the die is thrown rather than silenced. Must read 0 in this format. */
@@ -7022,6 +7038,19 @@ const VEIL_BLOCK_UNANNOUNCED=_knob('MEDI_VEIL_BLOCK_UNANNOUNCED');
 if(VEIL_BLOCK_UNANNOUNCED)MEDFAILS.veilBlockUnannouncedRestored=1;
 const COVET_ENDITEM_EXTRA=_knob('MEDI_COVET_ENDITEM_EXTRA');
 if(COVET_ENDITEM_EXTRA)MEDFAILS.covetEnditemExtraRestored=1;
+/* 2026-09-20 -- MEDI_PUNISH_STATUS_SOURCELESS=1 puts the literal `null` back into the source slot of
+ * the `punishesAttacker` status call (WIRE 5), so the ally veil, the Safeguard and the Synchronize
+ * reflect are all skipped for want of a source the authority always supplies:
+ *     spicyspray.onDamagingHit(damage, target, source, move) { source.trySetStatus('brn', target) }
+ * -- the second argument of `trySetStatus` IS the source, and it is the ability HOLDER.
+ * MEDI_SIDEBUFF_LINE_UNGATED=1 puts the unconditional `-activate|TARGET|move: Safeguard` back;
+ * `safeguard.condition.onSetStatus` (data/moves.ts:15589-15597) writes it only for
+ * `effect.id === 'synchronize' || (effect.effectType === 'Move' && !effect.secondaries)`.
+ * Both stamped at LOAD. Probe: tests/probe_punish_status_source.js. */
+const PUNISH_STATUS_SOURCELESS=_knob('MEDI_PUNISH_STATUS_SOURCELESS');
+if(PUNISH_STATUS_SOURCELESS)MEDFAILS.punishStatusSourcelessRestored=1;
+const SIDEBUFF_LINE_UNGATED=_knob('MEDI_SIDEBUFF_LINE_UNGATED');
+if(SIDEBUFF_LINE_UNGATED)MEDFAILS.sideBuffLineUngatedRestored=1;
 /* 2026-09-09 (BATCH W) -- MEDI_INSTRUCT_NO_PP_REFUSAL=1 restores the pre-fix instruct branch: the
  * last clause of the authority's `onHit` -- the repeated move's own slot being empty -- is not
  * asked, so the second action is queued and then refused one step later with `|cant|…|nopp|`. It
@@ -23753,9 +23782,34 @@ function applyStatus(t,st,src,eff,why,dstream){
   }
   {const _sb=sideBuffRefuses(t,src,'blocksStatus');
    if(_sb){MEDSEEN.sideBuffRefused++;
-     /* `-activate|TARGET|move: Safeguard` -- the authority emits it for a MOVE with no secondaries
-      * (data/moves.ts:15595), which is exactly the direct status-move path this engine routes here. */
-     if(TR)TR.act(t,'move: '+(_sb.startsAs||_sb.sideCondition));
+     /* `-activate|TARGET|move: Safeguard`. THE COMMENT THAT WAS HERE DECLARED THE GATE INSTEAD OF
+      * ASKING IT -- "the authority emits it for a MOVE with no secondaries, which is exactly the
+      * direct status-move path this engine routes here" -- and that stopped being true the moment an
+      * ABILITY-sourced status could reach this branch. `safeguard.condition.onSetStatus`
+      * (data/moves.ts:15589-15597, read whole; Champions overrides no `safeguard` key):
+      *
+      *     if (target !== source) {
+      *       this.debug('interrupting setStatus');
+      *       if (effect.id === 'synchronize' || (effect.effectType === 'Move' && !effect.secondaries)) {
+      *         this.add('-activate', target, 'move: Safeguard');
+      *       }
+      *       return null;
+      *     }
+      *
+      * THE REFUSAL IS UNCONDITIONAL AND THE LINE IS NOT. Poison Touch already reached here with an
+      * ability effect (`applyStatus(tg,'psn',m,ATTR.ability(...))`), and the 2026-09-20 punish-source
+      * fix adds Static, Flame Body, Poison Point, Effect Spore and Spicy Spray to the same road -- so
+      * an ungated line would have been a NEW narration parting created by that fix.
+      *
+      * IT SILENCES ONLY WHAT IT POSITIVELY KNOWS. An effect this engine can name as an ABILITY that
+      * is not Synchronize is silenced; a MOVE announces as before; an absent effect announces as
+      * before and is COUNTED (`sideBuffLineEffectUnknown`), because a caller that named nothing and a
+      * caller that named an ability must not arrive at the same answer by default.
+      * MEDI_SIDEBUFF_LINE_UNGATED=1 restores the unconditional line. */
+     const _sbAb=!!(eff&&eff.kind==='ability');
+     if(!eff)MEDFAILS.sideBuffLineEffectUnknown++;
+     if(SIDEBUFF_LINE_UNGATED||!_sbAb){ if(TR)TR.act(t,'move: '+(_sb.startsAs||_sb.sideCondition)); }
+     else MEDSEEN.sideBuffLineSilent++;
      return false;}}
   /* 2026-09-01 -- ELECTRIC TERRAIN'S `onSetStatus`. The predicate is `eTerrainRefusesSleepOn`, shared
    * with the drowse road; what is decided HERE is the SENTENCE, and the authority's announce is
@@ -45110,7 +45164,40 @@ function battleTurn(S,rng,actsForA,actsForB){
               let _cum=0;
               for(const _inf of _pun.inflicts){_cum+=_inf.chance;
                 if(_r<_cum){
-                  const _land=applyStatus(m,CODE_OF_STATUS[_inf.status]||_inf.status,null,ATTR.ability(tg.ability,tg));
+                  /* 2026-09-20 -- THE SOURCE SLOT WAS A LITERAL `null` WITH THE SOURCE IN SCOPE, AND
+                   * ONE NULL DISARMED THREE GUARDS THE AUTHORITY RUNS.
+                   *
+                   *     spicyspray.onDamagingHit(damage, target, source, move) {
+                   *       if (!source.trySetStatus('brn', target) && ...) this.add('-immune', source); }
+                   *     trySetStatus(status, source) { return this.setStatus(this.status || status, source, ...) }
+                   *
+                   * `trySetStatus`'s SECOND argument is the source, and every member of this family
+                   * passes `target` -- the ability HOLDER, which is `tg` here. So the status reaches
+                   * `runEvent('SetStatus', this, source, ...)` with a source, and every handler that
+                   * asks who is doing it runs. This engine wrote `null`, and `null` is not
+                   * `undefined`: `allyRefusesStatus` takes its else branch and `p.needsSource&&!src`
+                   * skips the veil; `sideBuffRefuses` returns null outright on `!src`; the
+                   * Synchronize reflect below is guarded on `src` too.
+                   *
+                   * COST, MEASURED: the LAST board parting in the held-out 12,000-game draw on
+                   * release `c2d68f8cab07` (`data/verification/game-differential.g12000.json`,
+                   * omit-weather `...bo3-2654574813` t9, --games 12000 --arm middle --steering
+                   * empirical --team-store data/team-pool-frozen). Sinistcha's Matcha Gotcha hit a
+                   * Scovillain-Mega; its partner was a Floette-Eternal and Sinistcha is GRASS, so the
+                   * authority's Flower Veil refused the burn SILENTLY -- `effect.name` is neither
+                   * 'Synchronize' nor a Move, so not even a `-block` is written, which is why the
+                   * authority's next line is simply the faint. This engine burned it and then paid
+                   * 9 hp of residual: `p1.party.sinistcha.hp 75 vs 84`, `status brn vs ""`.
+                   *
+                   * POPULATION PRINTED BEFORE THE WIRE: five abilities reach this line with a status
+                   * -- Static 1,171 sheets, Flame Body 630, Poison Point 165, Effect Spore 40, Spicy
+                   * Spray 0 (a mega ability, so no base-sheet count) -- and three can refuse one:
+                   * Flower Veil 8,939, Sweet Veil 53, Aroma Veil 136 whose `statuses` list is EMPTY
+                   * and therefore refuses nothing. Plus Safeguard, 44 uses.
+                   * MEDI_PUNISH_STATUS_SOURCELESS=1 restores the null. */
+                  const _psrc=PUNISH_STATUS_SOURCELESS?null:tg;
+                  if(_psrc)MEDSEEN.punishStatusSourced++;
+                  const _land=applyStatus(m,CODE_OF_STATUS[_inf.status]||_inf.status,_psrc,ATTR.ability(tg.ability,tg));
                   /* ROADMAP #458, 2026-08-26 -- THE BARE `-immune` AT THE **ATTACKER**, WHICH IS THE
                    * ONLY LINE IN THIS BLOCK THAT DOES NOT NAME THE HOLDER.
                    *

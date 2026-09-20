@@ -10,6 +10,29 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.83.0] — 2026-09-20
+
+### Fixed
+- A `null` written into the status source slot, where the authority passes the ability holder, silently
+  disabled an ally's status-refusing ability, a side-wide status screen and a status-reflecting ability
+  at once. The authority's own refusal is silent there, so nothing in the log showed it.
+- The side screen's `-activate` line is gated on the authority's own clause, so fixing the above does
+  not create a new narration parting.
+
+### Changed
+- `engine/artifact_audit.js --staged` resolves the sibling project correctly from inside a git
+  worktree; it had false-blocked every commit made by a worktree agent.
+
+### Notes
+- **Held-out `--games 12000`: 7,182 games, 0 board-material.** Board partings across the day: 34 → 15 →
+  9 → 1 → **0**.
+- Gate lattices board-material and narration both zero. Damage differential 0 of 6000 at every corner.
+  Census 1002 probed / 1002 live / 0 missing. **`quarantine.js` reads `GATE: OPEN`**, all ten clauses,
+  every instrument on release `0d7b1d9db6d1`.
+- Illusion remains the declared exclusion, closed sheets and bo1 remain out of scope, and 7 live
+  `lastMove` readings remain an unregistered class.
+- The MAJOR this implies (`7.0.0`) is owed and held for review; it is not declared here.
+
 ## [6.82.0] — 2026-09-20
 
 ### Fixed
