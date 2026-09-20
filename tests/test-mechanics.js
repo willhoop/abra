@@ -37129,215 +37129,18 @@ probe('move', 'perTurnHP', 'Salt Cure and a partial trap on one body chip in the
 });
 
 
-const works = results.filter(r => r.works);
-const missing = results.filter(r => !r.works);
-console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');
-for (const r of results) {
-  console.log('  ' + (r.works ? 'LIVE   ' : 'MISSING') + '  ' + r.tag.padEnd(20) + r.label.padEnd(38) + r.detail);
-}
-console.log(`\n  ${works.length} live, ${missing.length} missing, ${results.length} probed.`);
-/* Printed even at zero: "no probe threw" is a claim worth being able to read, and a line that only
- * appears when it is non-zero cannot be told apart from a line nobody wrote. */
-console.log(`  ${threw} probe(s) THREW rather than reporting — a throw usually means the PROBE is broken.`);
-if (missing.length) {
-  console.log('\n  MISSING:');
-  for (const r of missing) console.log('    - ' + r.label + '   (' + r.kind + ' tag `' + r.tag + '`)');
-}
-
-/* ---- THE HOLLOW CHECK, run over the WHOLE census in one pass ------------------------------------ */
-
-const hollow = results.filter(r => r.hollow);
-console.log(`\n  hollow probes (read the engine SOURCE, or return two arms that AGREE): ${hollow.length}`);
-for (const r of hollow) console.log('    !! ' + r.kind + ' `' + r.tag + '` — ' + r.label);
-
-/* ---- THE VERDICT IS SETTLED BEFORE ANYTHING IS PUBLISHED --------------------------------------
+/* ================= 2026-09-20 -- THE STRAGGLERS, MOVED ABOVE THE AGGREGATION =====================
  *
- * Every check below records its red in `red` and NOTHING is written until they have all run. That
- * ordering is not tidiness. The artifact now stamps `run_ok`, and a run status written before the
- * last check has run is a lie of precisely the kind this file exists to catch. It also means no
- * failure signal follows the write at all, which is the shape tests/test-red-run-writes.js accepts.
- */
-const red = [];
-
-/* ---- THE PREVIOUS CENSUS, AND THE FLOOR THAT IS NOT THE MEASUREMENT ---------------------------
+ * TWELVE PROBES WERE REGISTERED BELOW `const works = results.filter(...)` AND THE HEADLINE COUNT
+ * COULD NOT SEE THEM. `works`, `missing` and `hollow` are SNAPSHOTS taken at one point in a linear
+ * file; `results.length` is read later, at the write. So the artifact published `probed: 993` beside
+ * `live: 984` and the nine-row gap was not nine dead mechanics -- it was nine rows appended past the
+ * line that counts. Worse than the wrong number: a probe added down there that came back MISSING
+ * could never reach the MISSING list, the hollow check or the red verdict, so a new row could report
+ * the engine broken and the run would still exit 0.
  *
- * THE DEFECT THIS REPLACES — measured on 2026-08-23 by setting `directCall` on disk to 0, so this
- * run's true count of 1 read as a regression:
- *
- *   run 1   FAILED: direct-call probes 0 -> 1     exit 1   ...and WROTE the census with directCall: 1
- *   run 2   (no such line at all)                 exit 0   the regression IS the baseline now
- *
- * Nothing changed between those two runs except that the first one had happened. The ratchet read
- * `unarmed` / `directCall` out of the census, failed when THIS run's number was larger, and then
- * wrote this run's number into that same field — so the second run compared the regression against
- * itself and passed. Running a failing test twice made it green, on the artifact that STEERS
- * engine/all_mechanics_fire.js, that engine/quarantine.js reads for a MEDICHAM gate clause, and that
- * the whole-game differential pins as `steering.input_digest`. A laundering ratchet on THAT file can
- * quietly widen the gate that is supposed to be closing.
- *
- * THE FIX IS A SPLIT, NOT A GREEN-ONLY WRITE, and the split is the whole design:
- *
- *   THE MEASUREMENT   `probed / live / missing / threw` and every per-probe row. This is what the
- *                     engine DOES. A probe that arrived without arms does not make the other 642 rows
- *                     untrue, and a hollow probe is already flagged `hollow:true` on its own row. So
- *                     it PUBLISHES on a red run, stamped `run_ok:false` and `write_policy` — the same
- *                     call tests/test-forme-assert.js makes about a forme that disagrees with the
- *                     authority: the finding IS the measurement, and suppressing it deletes it.
- *   THE FLOOR         `ratchet.unarmed` and `ratchet.directCall`. This is the CHECK'S OWN BASELINE,
- *                     and it is MONOTONE BY CONSTRUCTION: what gets written is
- *                     min(previous floor, measured). A run that regressed writes the OLD floor back,
- *                     so the next run asks the same question and gets the same red. There is no
- *                     path — red, green, crashed halfway — by which a regression enters the baseline.
- *
- * WHY MONOTONE AND NOT GREEN-ONLY, since green-only is what tests/test-unmodelled-clicks.js and
- * tests/test-tag-consumed.js landed on tonight. Two reasons, and the first is specific to this file:
- *
- *   1. This script is the census's PRODUCER, not just its ratchet. Withholding the whole artifact for
- *      one unarmed probe is not a neutral outcome — it silently changes which scenarios
- *      engine/all_mechanics_fire.js plays and how old the ENGINE headline in engine/status.js is.
- *      Those two files' artifacts are their own baseline and NOTHING ELSE reads them; this one has
- *      five readers. Same defect, different blast radius on the fix.
- *   2. min() consults no verdict, so it cannot be got wrong by a later edit that adds a check and
- *      forgets to gate the write. A green-only write is correct only for as long as everybody
- *      remembers it is there — and that is how this file got here, since the residualCollapsed guard
- *      below already said "any future switch of the same kind belongs here" and the ratchet regression
- *      was not one of them.
- *
- * `--accept` raises a floor deliberately, prints exactly what it accepts, and STILL EXITS 1.
- * Accepting a regression is a decision somebody takes, never a side effect of running a test twice.
- *
- * THE LEGACY FALLBACK IS LOUD. A census written before `ratchet` existed carries its floors in the
- * top-level `unarmed`/`directCall` — the laundered fields. They are read exactly once, for the
- * migration, and the run SAYS SO. A silent default looks exactly like a working feature.
- */
-const CENSUS = D('data', 'mechanics-census.json');
-const ACCEPT = process.argv.includes('--accept');
-let PREV = null, prevReadFailed = '';
-try { PREV = JSON.parse(fs.readFileSync(CENSUS, 'utf8')); }
-catch (e) { prevReadFailed = String(e.message).slice(0, 120); }
-
-/* A MISSING BASELINE IS A LEGITIMATE STATE — the first run under a new ratchet has nothing to hold —
- * but "there is no census yet" and "the census is corrupt" are not the same event, and a bare catch
- * makes them one. The reason is kept and PRINTED beside the count, so a ratchet that quietly stopped
- * ratcheting is readable rather than inferred. */
-function floorOf(key) {
-  if (!PREV) return { value: null, why: prevReadFailed || 'no census on disk' };
-  if (PREV.ratchet && typeof PREV.ratchet[key] === 'number') return { value: PREV.ratchet[key] };
-  if (typeof PREV[key] === 'number') return { value: PREV[key], legacy: true };
-  return { value: null, why: 'the census on disk carries no `' + key + '`' };
-}
-/* THE ONLY PLACE A FLOOR IS ALLOWED TO COME FROM. Monotone downward, or an explicit --accept. */
-const nextFloor = (measured, f) => (ACCEPT || f.value == null) ? measured : Math.min(f.value, measured);
-function ratchet(name, measured, f, fail) {
-  if (f.value == null) console.log('  NOTE: the ' + name + ' RATCHET has no baseline this run — ' + f.why);
-  else if (f.legacy) console.log('  NOTE: the ' + name + ' floor was read from the LEGACY top-level `'
-    + name + '` field (' + f.value + ') — this census predates `ratchet`, and that field is the one '
-    + 'a red run used to launder. Migrated into `ratchet.' + name + '` by this run.');
-  if (f.value != null && measured > f.value) { console.log(fail); red.push(name + ' ' + f.value + ' -> ' + measured); }
-  return nextFloor(measured, f);
-}
-
-/* ---- THE ARMS RATCHET --------------------------------------------------------------------------
- *
- * `unarmed` is the number of probes that do NOT return `arms: {control, test}` and therefore cannot
- * be checked structurally. It may fall and it may never rise, which is the whole thing that stops an
- * opt-in protocol from being an opt-out: a probe written without arms fails the file rather than
- * quietly exempting itself, which is the hole the previous pass costed and declined to close.
- * The baseline is read out of the census ARTIFACT rather than typed here, so it is a fact and not a
- * literal somebody edits down. */
-const armed = results.filter(r => r.armed).length;
-const unarmed = results.length - armed;
-const armFloor = floorOf('unarmed');
-console.log('  probes returning arms {control, test}: ' + armed + ' of ' + results.length
-  + '   (' + unarmed + ' unarmed — RATCHETED: it may fall and may never rise)');
-const nextUnarmed = ratchet('unarmed', unarmed, armFloor,
-  '\n  FAILED: unarmed probes ' + armFloor.value + ' -> ' + unarmed + '. A new probe must return '
-  + 'its arms, or the opt-in protocol is an opt-out. See the comment on probe().');
-
-/* ---- THE DIRECT-CALL RATCHET -------------------------------------------------------------------
- *
- * The number that actually tracks coverage. See the comment on probe(). Baseline out of the artifact,
- * never a literal — the same rule the arms ratchet learned. */
-const directCall = results.filter(r => r.directCall).length;
-const dcFloor = floorOf('directCall');
-console.log('  probes that spend a REAL TURN or a real ENTRY: ' + (results.length - directCall)
-  + ' of ' + results.length + '   (' + directCall + ' call the mechanic DIRECTLY — RATCHETED: '
-  + 'it may fall and may never rise)');
-const nextDirectCall = ratchet('directCall', directCall, dcFloor,
-  '\n  FAILED: direct-call probes ' + dcFloor.value + ' -> ' + directCall + '. A probe that calls '
-  + 'the mechanic itself cannot catch a wiring bug — WIRE 123 was green under one. Route the probe '
-  + 'through battleInit/battleTurn.');
-for (const r of results) if (r.directCall) console.log('    direct  ' + r.kind.padEnd(8) + r.tag.padEnd(24) + r.label);
-
-/* THE SECOND DETECTOR IS MEASURED, NOT ASSERTED, AND THE MEASUREMENT IS THE REASON.
- *
- * The property worth asserting is "a probe whose two arms produce the SAME number is not testing
- * anything" — it is the failure that made the Disable probe a false LIVE for as long as it existed.
- * It cannot be asserted from here, and the cheap heuristic is printed so the cost of the real fix is
- * a number rather than an opinion: `detail` is free-form prose. It carries arm values, thresholds
- * ("a quarter is 43"), stage counts and stat names all as bare digits, so no parser can tell an ARM
- * from an ANNOTATION. The count below is what a digit-scraping version would flag; read it as an
- * upper bound on noise, not as a list of bugs.
- *
- * Doing it properly means a PROTOCOL change: probes return `arms: {control, test}` and this file
- * asserts `control !== test`. That is a real assertion with no heuristic in it — and it has to be
- * applied by hand to all 147 probes, because a probe that keeps returning only `detail` would opt
- * itself out silently, which is the same hole in a new place. Costed here so the next pass can decide
- * with the number in front of it rather than re-deriving it. */
-const nums = (s) => (String(s).match(/-?\d+(?:\.\d+)?/g) || []);
-/* LIVE ONLY. A MISSING probe printing the same number twice is the mechanic being absent — that is
- * the probe working, and including those made the list 23 long and unreadable. The suspicious case is
- * a probe that reports LIVE while its arms agree. */
-const flat = results.filter(r => {
-  if (!r.works) return false;
-  const n = nums(r.detail);
-  return n.length >= 2 && new Set(n).size === 1;
-});
-console.log(`  LIVE probes whose detail carries >=2 numbers and they are ALL equal: ${flat.length}`
-  + '   (a heuristic upper bound on "both arms agree", NOT an assertion — see the comment)');
-for (const r of flat) console.log('    ?  ' + r.kind + ' `' + r.tag + '` — ' + r.detail);
-
-/* ---- THE HOLLOW CHECK IS A RED, AND IT IS NOW COUNTED BEFORE THE WRITE -------------------------
- *
- * Exits 0 for a MISSING mechanic — that is the honest current state of several of these, and a census
- * that went red and got ignored would be useless. It exits 1 for a HOLLOW one, which is a different
- * kind of claim: a probe that reads the source is not evidence about the engine at all, and leaving
- * one in place is how `weatherChipImmune` reported a mechanic live for months while the engine had no
- * sandstorm residual whatsoever.
- *
- * This block used to sit AFTER the write and set process.exitCode there, so the artifact was stamped
- * before its last check had run. It is a per-ROW defect — the row carries `hollow:true` and the other
- * 642 rows are still measurements — so it does not withhold the census; it makes the run red and
- * `run_ok:false`. */
-if (hollow.length) {
-  console.log(`\n  FAILED: ${hollow.length} hollow probe(s). A probe that greps the engine source is `
-    + 'not a probe. Make it behavioural, with a control arm.');
-  red.push('hollow ' + hollow.length);
-}
-
-if (ACCEPT && red.length) {
-  console.log('\n  --accept: RE-BASELINING A RED RUN, BY EXPLICIT REQUEST.');
-  console.log('    unarmed floor    ' + armFloor.value + ' -> ' + nextUnarmed);
-  console.log('    directCall floor ' + dcFloor.value + ' -> ' + nextDirectCall);
-  console.log('    This run still exits 1. --accept records a decision; it does not pass the test.');
-}
-
-/* THE VERDICT, SET ONCE, BEFORE ANYTHING IS PUBLISHED. */
-process.exitCode = red.length ? 1 : 0;
-
-/* ---- WHAT MAY BE PUBLISHED, AND BY WHICH RUN ---------------------------------------------------
- *
- * WRITE-POLICY: findings — the census rows ARE the measurement and publish from a red run, stamped
- * `run_ok:false`; the RATCHET FLOORS are monotone downward so a red run cannot raise them. See the
- * long comment above the floor code for the reasoning and for the two-run demonstration.
- *
- * A DELIBERATELY BROKEN ENGINE MAY NOT WRITE THE CENSUS AT ALL, and that is the one state where the
- * rows are not findings. ROADMAP #221 added a switch that collapses the residual walk back to
- * body-major so its four probes can be shown red; a run under that switch scores 537/4 and would
- * otherwise overwrite the artifact five other files read, turning a demonstration into a regression
- * nobody made. The engine stamps `MEDFAILS.residualCollapsed` for exactly this — a break that cannot
- * be mistaken for a clean run. Any future switch of the same kind belongs here. A RATCHET REGRESSION
- * IS NOT ONE OF THEM: it is a finding about the probes, and the floor above is what protects it. */
+ * Nothing about the probes changed. They are the same twelve, in the same order, above the line that
+ * counts them, and the assertion beside the write refuses the next straggler by name. */
 /* RESTORED AT MERGE from worktree a52e28fa2378b92ab — dropped by a conflict resolution */
 /* A REDIRECT WHOSE WINNER IS THE BODY ALREADY AIMED AT STILL FIRES, AND STILL COSTS THE SPLIT.
  * 2026-09-19.
@@ -37726,6 +37529,100 @@ probe('ability', 'reflectsStatusMoves', 'a bouncer behind its own shield BLOCKS 
                  + `onTryHitPriority 3 (data/moves.ts:13986) against magicbounce's 1 (data/abilities.ts:2428), `
                  + `and Protect's NOT_FAIL ends the event. Knob MEDI_BOUNCE_BEFORE_SHIELD` };
 });
+/* ================= 2026-09-20 -- THREE OF THE NINE BOARD PARTINGS IN THE WIDER HELD-OUT DRAW =======
+ *
+ * empirical / middle / release `51b80f9fcf08` / census pin `8514757f99d5` / `data/team-pool-frozen` /
+ * `--games 12000` / `--dump-games 12000`, 7,182 games. Each row below is the single-engine half of an
+ * arm in tests/probe_heldout_board_partings.js, which stages the same three mechanics against the
+ * AUTHORITY and is red under each knob on its own.
+ * Knobs: MEDI_PRIMARY_VOLATILE_DIE_ALWAYS, MEDI_ACC_ABILITY_UNBREAKABLE, MEDI_BOUNCE_BEFORE_SHIELD. */
+probe('move', 'statusInflict', 'a move PRIMARY volatile at chance 100 is applied with no die at all', () => {
+  /* THE AUTHORITY'S LITERAL LINES, sim/battle-actions.ts:1236-1237 -- no chance, no `random`:
+   *     if (moveData.volatileStatus) {
+   *       hitResult = target.addVolatile(moveData.volatileStatus, source, move);
+   * `data/mods/champions/scripts.ts` carries no `volatileStatus` text at all, so this is the
+   * Champions rule too. The die this engine threw was spent at the SHARED `any|<move>|<slot>`
+   * address, which is where a contact reactor's own `randomChance` then reads. */
+  const run = (foeAbility) => {
+    const me = bare('toxapex'), ally = bare('corviknight');
+    const f1 = bare('volcarona'), f2 = bare('appletun');
+    f1.ability = foeAbility;
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    const dice = M.midEventDice({ seed: 20260920 });
+    M.battleTurn(S, dice,
+      new Map([[me, M.playerAction(me, 'infestation', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return { any: M.midEventLog().filter(x => x.indexOf('|any|infestation|') >= 0),
+             trapped: !!(f1._trap) };
+  };
+  /* THE CONTROL IS THE SAME CLICK AT THE SAME BODY WITH NO REACTOR: the authority throws no `any`
+   * die on that turn at all, so any draw here is the certain volatile's, standing alone. */
+  const off = run('none'), on = run('flamebody');
+  const control = [off.any.length, off.trapped ? 1 : 0];
+  const test = [on.any.length, on.trapped ? 1 : 0];
+  return { works: control[0] === 0 && control[1] === 1 && test[0] === 1 && test[1] === 1,
+           arms: { control, test },
+           detail: `[\`any|infestation\` draws taken, did the trap land] Infestation into a body with no `
+                 + `reaction ability ${JSON.stringify(control)} - zero draws, because the volatile is `
+                 + `\`moveData.volatileStatus\` and sim/battle-actions.ts:1236-1237 is `
+                 + `\`if (moveData.volatileStatus) { hitResult = target.addVolatile(...) }\`, with no `
+                 + `chance and no random. The same click into FLAME BODY ${JSON.stringify(test)} - exactly `
+                 + `one, which is the ability's own randomChance(3, 10). The trap must land in BOTH arms or `
+                 + `nothing was staged. Addresses: ${JSON.stringify(on.any)}. Knob MEDI_PRIMARY_VOLATILE_DIE_ALWAYS` };
+});
+probe('ability', 'accuracyMod', 'a BREAKABLE evasion ability is deleted by a Mold Breaker attacker', () => {
+  /* THE AUTHORITY'S LITERAL LINES, sim/battle.ts:835-840, inside `runEvent` itself and therefore in
+   * force for EVERY event including ModifyAccuracy:
+   *     if (effect.effectType === 'Ability' && effect.flags['breakable'] &&
+   *         this.suppressingAbility(effectHolder as Pokemon)) {
+   *       if (effect.flags['breakable']) {
+   *         this.debug(eventid + ' handler suppressed by Mold Breaker');
+   *         continue;
+   * Sand Veil is `flags: {breakable: 1}` (data/abilities.ts:4008) and Champions overrides neither it
+   * nor moldbreaker. Stone Edge is printed 80; Sand Veil's [3277,4096] chain makes it 64, so a roll of
+   * 78.9 is a HIT for the breaker and a MISS for the raw read. */
+  const run = (ab) => {
+    const me = bare('tinkaton'), ally = bare('corviknight');
+    const f1 = bare('garchomp'), f2 = bare('appletun');
+    me.ability = ab; f1.ability = 'sandveil';
+    const S = M.battleInit([me, ally], [f1, f2], { seeded: true });
+    S.field.weather = 'sand'; S.field.weatherT = 8;
+    M.battleTurn(S, () => 0.789,
+      new Map([[me, M.playerAction(me, 'stoneedge', f1, S.field)], [ally, { kind: 'pass' }]]),
+      new Map([[f1, { kind: 'pass' }], [f2, { kind: 'pass' }]]));
+    return f1.st.hp - f1.curHP;
+  };
+  const control = [run('none')], test = [run('moldbreaker')];
+  return { works: control[0] === 0 && test[0] > 0, arms: { control, test },
+           detail: `[damage dealt to a Sand Veil Garchomp in sand, one Stone Edge at roll 0.789] plain `
+                 + `attacker ${JSON.stringify(control)} - it must MISS, because Sand Veil turns the `
+                 + `printed 80 into trunc(80 * 3277 / 4096) = 64; MOLD BREAKER attacker `
+                 + `${JSON.stringify(test)} - it must LAND. Equal arms mean the breaker is unread, and a `
+                 + `zero in the second means the fixture never reached the roll. Knob MEDI_ACC_ABILITY_UNBREAKABLE` };
+});
+probe('move', 'pivotStatus', 'a shielded Magic Bounce body BLOCKS a reflectable pivot instead of reflecting it', () => {
+  /* Protect's condition is `onTryHitPriority: 3` (data/moves.ts:13986) against Magic Bounce's `1`
+   * (data/abilities.ts:2428); both handlers are gathered into ONE TryHit event, `runEvent` sorts by
+   * priority, and Protect's `return this.NOT_FAIL` ends it. Parting Shot is the only move in this
+   * format that is both `reflectable` and a pivot, and its branch called `bounceOff` with no shield
+   * check while two other bounce roads had one. */
+  const mb = b => { b.me.ability = 'magicbounce'; };
+  const run = (shield) => narRun(['hatterene', 'appletun', 'incineroar', 'incineroar'], mb,
+                                 { mv: shield ? 'protect' : 'calmmind' }, null, 'partingshot');
+  /* the reflected move is a SECOND `|move|` line written by the BOUNCER, which stands in p1a */
+  const bounced = r => r.trace.filter(l => /^\|move\|p1a:[^|]*\|partingshot/.test(l)).length;
+  const prot = r => r.trace.filter(l => /^\|-activate\|p1a:[^|]*\|move:protect$/.test(l)).length;
+  const up = run(true), open = run(false);
+  const control = [bounced(open), open.f1.boosts.at || 0, prot(open)];
+  const test = [bounced(up), up.f1.boosts.at || 0, prot(up)];
+  return { works: control[0] === 1 && control[1] === -1 && control[2] === 0
+                && test[0] === 0 && test[1] === 0 && test[2] === 1, arms: { control, test },
+           detail: `[reflected |move| lines from the bouncer, the CLICKER's atk stage, Protect activations] `
+                 + `Hatterene standing open ${JSON.stringify(control)}, Hatterene behind Protect `
+                 + `${JSON.stringify(test)} - protect.condition onTryHitPriority 3 (data/moves.ts:13986) `
+                 + `against magicbounce's 1 (data/abilities.ts:2428), and Protect's NOT_FAIL ends the TryHit `
+                 + `event. Knob MEDI_BOUNCE_BEFORE_SHIELD` };
+});
 probe('ability', 'disablesAttacker', 'the on-hit disabler is never rolled for a STRUGGLE', () => {
   /* rngLow (0.01) puts the 30% roll on the firing side of the die in BOTH arms, so a quiet Struggle
    * arm cannot be a lost roll. Banette carries Cursed Body. */
@@ -37740,6 +37637,216 @@ probe('ability', 'disablesAttacker', 'the on-hit disabler is never rolled for a 
                  + `\`move.id !== 'struggle'\` ABOVE its randomChance(3,10) (data/abilities.ts:774-787, no `
                  + `Champions key). Knob MEDI_DISABLER_SEALS_STRUGGLE` };
 });
+
+const works = results.filter(r => r.works);
+const missing = results.filter(r => !r.works);
+console.log('MECHANIC CENSUS — does the engine actually DO the thing?\n');
+for (const r of results) {
+  console.log('  ' + (r.works ? 'LIVE   ' : 'MISSING') + '  ' + r.tag.padEnd(20) + r.label.padEnd(38) + r.detail);
+}
+console.log(`\n  ${works.length} live, ${missing.length} missing, ${results.length} probed.`);
+/* Printed even at zero: "no probe threw" is a claim worth being able to read, and a line that only
+ * appears when it is non-zero cannot be told apart from a line nobody wrote. */
+console.log(`  ${threw} probe(s) THREW rather than reporting — a throw usually means the PROBE is broken.`);
+if (missing.length) {
+  console.log('\n  MISSING:');
+  for (const r of missing) console.log('    - ' + r.label + '   (' + r.kind + ' tag `' + r.tag + '`)');
+}
+
+/* ---- THE HOLLOW CHECK, run over the WHOLE census in one pass ------------------------------------ */
+
+const hollow = results.filter(r => r.hollow);
+console.log(`\n  hollow probes (read the engine SOURCE, or return two arms that AGREE): ${hollow.length}`);
+for (const r of hollow) console.log('    !! ' + r.kind + ' `' + r.tag + '` — ' + r.label);
+
+/* ---- THE VERDICT IS SETTLED BEFORE ANYTHING IS PUBLISHED --------------------------------------
+ *
+ * Every check below records its red in `red` and NOTHING is written until they have all run. That
+ * ordering is not tidiness. The artifact now stamps `run_ok`, and a run status written before the
+ * last check has run is a lie of precisely the kind this file exists to catch. It also means no
+ * failure signal follows the write at all, which is the shape tests/test-red-run-writes.js accepts.
+ */
+const red = [];
+
+/* ---- THE PREVIOUS CENSUS, AND THE FLOOR THAT IS NOT THE MEASUREMENT ---------------------------
+ *
+ * THE DEFECT THIS REPLACES — measured on 2026-08-23 by setting `directCall` on disk to 0, so this
+ * run's true count of 1 read as a regression:
+ *
+ *   run 1   FAILED: direct-call probes 0 -> 1     exit 1   ...and WROTE the census with directCall: 1
+ *   run 2   (no such line at all)                 exit 0   the regression IS the baseline now
+ *
+ * Nothing changed between those two runs except that the first one had happened. The ratchet read
+ * `unarmed` / `directCall` out of the census, failed when THIS run's number was larger, and then
+ * wrote this run's number into that same field — so the second run compared the regression against
+ * itself and passed. Running a failing test twice made it green, on the artifact that STEERS
+ * engine/all_mechanics_fire.js, that engine/quarantine.js reads for a MEDICHAM gate clause, and that
+ * the whole-game differential pins as `steering.input_digest`. A laundering ratchet on THAT file can
+ * quietly widen the gate that is supposed to be closing.
+ *
+ * THE FIX IS A SPLIT, NOT A GREEN-ONLY WRITE, and the split is the whole design:
+ *
+ *   THE MEASUREMENT   `probed / live / missing / threw` and every per-probe row. This is what the
+ *                     engine DOES. A probe that arrived without arms does not make the other 642 rows
+ *                     untrue, and a hollow probe is already flagged `hollow:true` on its own row. So
+ *                     it PUBLISHES on a red run, stamped `run_ok:false` and `write_policy` — the same
+ *                     call tests/test-forme-assert.js makes about a forme that disagrees with the
+ *                     authority: the finding IS the measurement, and suppressing it deletes it.
+ *   THE FLOOR         `ratchet.unarmed` and `ratchet.directCall`. This is the CHECK'S OWN BASELINE,
+ *                     and it is MONOTONE BY CONSTRUCTION: what gets written is
+ *                     min(previous floor, measured). A run that regressed writes the OLD floor back,
+ *                     so the next run asks the same question and gets the same red. There is no
+ *                     path — red, green, crashed halfway — by which a regression enters the baseline.
+ *
+ * WHY MONOTONE AND NOT GREEN-ONLY, since green-only is what tests/test-unmodelled-clicks.js and
+ * tests/test-tag-consumed.js landed on tonight. Two reasons, and the first is specific to this file:
+ *
+ *   1. This script is the census's PRODUCER, not just its ratchet. Withholding the whole artifact for
+ *      one unarmed probe is not a neutral outcome — it silently changes which scenarios
+ *      engine/all_mechanics_fire.js plays and how old the ENGINE headline in engine/status.js is.
+ *      Those two files' artifacts are their own baseline and NOTHING ELSE reads them; this one has
+ *      five readers. Same defect, different blast radius on the fix.
+ *   2. min() consults no verdict, so it cannot be got wrong by a later edit that adds a check and
+ *      forgets to gate the write. A green-only write is correct only for as long as everybody
+ *      remembers it is there — and that is how this file got here, since the residualCollapsed guard
+ *      below already said "any future switch of the same kind belongs here" and the ratchet regression
+ *      was not one of them.
+ *
+ * `--accept` raises a floor deliberately, prints exactly what it accepts, and STILL EXITS 1.
+ * Accepting a regression is a decision somebody takes, never a side effect of running a test twice.
+ *
+ * THE LEGACY FALLBACK IS LOUD. A census written before `ratchet` existed carries its floors in the
+ * top-level `unarmed`/`directCall` — the laundered fields. They are read exactly once, for the
+ * migration, and the run SAYS SO. A silent default looks exactly like a working feature.
+ */
+const CENSUS = D('data', 'mechanics-census.json');
+const ACCEPT = process.argv.includes('--accept');
+let PREV = null, prevReadFailed = '';
+try { PREV = JSON.parse(fs.readFileSync(CENSUS, 'utf8')); }
+catch (e) { prevReadFailed = String(e.message).slice(0, 120); }
+
+/* A MISSING BASELINE IS A LEGITIMATE STATE — the first run under a new ratchet has nothing to hold —
+ * but "there is no census yet" and "the census is corrupt" are not the same event, and a bare catch
+ * makes them one. The reason is kept and PRINTED beside the count, so a ratchet that quietly stopped
+ * ratcheting is readable rather than inferred. */
+function floorOf(key) {
+  if (!PREV) return { value: null, why: prevReadFailed || 'no census on disk' };
+  if (PREV.ratchet && typeof PREV.ratchet[key] === 'number') return { value: PREV.ratchet[key] };
+  if (typeof PREV[key] === 'number') return { value: PREV[key], legacy: true };
+  return { value: null, why: 'the census on disk carries no `' + key + '`' };
+}
+/* THE ONLY PLACE A FLOOR IS ALLOWED TO COME FROM. Monotone downward, or an explicit --accept. */
+const nextFloor = (measured, f) => (ACCEPT || f.value == null) ? measured : Math.min(f.value, measured);
+function ratchet(name, measured, f, fail) {
+  if (f.value == null) console.log('  NOTE: the ' + name + ' RATCHET has no baseline this run — ' + f.why);
+  else if (f.legacy) console.log('  NOTE: the ' + name + ' floor was read from the LEGACY top-level `'
+    + name + '` field (' + f.value + ') — this census predates `ratchet`, and that field is the one '
+    + 'a red run used to launder. Migrated into `ratchet.' + name + '` by this run.');
+  if (f.value != null && measured > f.value) { console.log(fail); red.push(name + ' ' + f.value + ' -> ' + measured); }
+  return nextFloor(measured, f);
+}
+
+/* ---- THE ARMS RATCHET --------------------------------------------------------------------------
+ *
+ * `unarmed` is the number of probes that do NOT return `arms: {control, test}` and therefore cannot
+ * be checked structurally. It may fall and it may never rise, which is the whole thing that stops an
+ * opt-in protocol from being an opt-out: a probe written without arms fails the file rather than
+ * quietly exempting itself, which is the hole the previous pass costed and declined to close.
+ * The baseline is read out of the census ARTIFACT rather than typed here, so it is a fact and not a
+ * literal somebody edits down. */
+const armed = results.filter(r => r.armed).length;
+const unarmed = results.length - armed;
+const armFloor = floorOf('unarmed');
+console.log('  probes returning arms {control, test}: ' + armed + ' of ' + results.length
+  + '   (' + unarmed + ' unarmed — RATCHETED: it may fall and may never rise)');
+const nextUnarmed = ratchet('unarmed', unarmed, armFloor,
+  '\n  FAILED: unarmed probes ' + armFloor.value + ' -> ' + unarmed + '. A new probe must return '
+  + 'its arms, or the opt-in protocol is an opt-out. See the comment on probe().');
+
+/* ---- THE DIRECT-CALL RATCHET -------------------------------------------------------------------
+ *
+ * The number that actually tracks coverage. See the comment on probe(). Baseline out of the artifact,
+ * never a literal — the same rule the arms ratchet learned. */
+const directCall = results.filter(r => r.directCall).length;
+const dcFloor = floorOf('directCall');
+console.log('  probes that spend a REAL TURN or a real ENTRY: ' + (results.length - directCall)
+  + ' of ' + results.length + '   (' + directCall + ' call the mechanic DIRECTLY — RATCHETED: '
+  + 'it may fall and may never rise)');
+const nextDirectCall = ratchet('directCall', directCall, dcFloor,
+  '\n  FAILED: direct-call probes ' + dcFloor.value + ' -> ' + directCall + '. A probe that calls '
+  + 'the mechanic itself cannot catch a wiring bug — WIRE 123 was green under one. Route the probe '
+  + 'through battleInit/battleTurn.');
+for (const r of results) if (r.directCall) console.log('    direct  ' + r.kind.padEnd(8) + r.tag.padEnd(24) + r.label);
+
+/* THE SECOND DETECTOR IS MEASURED, NOT ASSERTED, AND THE MEASUREMENT IS THE REASON.
+ *
+ * The property worth asserting is "a probe whose two arms produce the SAME number is not testing
+ * anything" — it is the failure that made the Disable probe a false LIVE for as long as it existed.
+ * It cannot be asserted from here, and the cheap heuristic is printed so the cost of the real fix is
+ * a number rather than an opinion: `detail` is free-form prose. It carries arm values, thresholds
+ * ("a quarter is 43"), stage counts and stat names all as bare digits, so no parser can tell an ARM
+ * from an ANNOTATION. The count below is what a digit-scraping version would flag; read it as an
+ * upper bound on noise, not as a list of bugs.
+ *
+ * Doing it properly means a PROTOCOL change: probes return `arms: {control, test}` and this file
+ * asserts `control !== test`. That is a real assertion with no heuristic in it — and it has to be
+ * applied by hand to all 147 probes, because a probe that keeps returning only `detail` would opt
+ * itself out silently, which is the same hole in a new place. Costed here so the next pass can decide
+ * with the number in front of it rather than re-deriving it. */
+const nums = (s) => (String(s).match(/-?\d+(?:\.\d+)?/g) || []);
+/* LIVE ONLY. A MISSING probe printing the same number twice is the mechanic being absent — that is
+ * the probe working, and including those made the list 23 long and unreadable. The suspicious case is
+ * a probe that reports LIVE while its arms agree. */
+const flat = results.filter(r => {
+  if (!r.works) return false;
+  const n = nums(r.detail);
+  return n.length >= 2 && new Set(n).size === 1;
+});
+console.log(`  LIVE probes whose detail carries >=2 numbers and they are ALL equal: ${flat.length}`
+  + '   (a heuristic upper bound on "both arms agree", NOT an assertion — see the comment)');
+for (const r of flat) console.log('    ?  ' + r.kind + ' `' + r.tag + '` — ' + r.detail);
+
+/* ---- THE HOLLOW CHECK IS A RED, AND IT IS NOW COUNTED BEFORE THE WRITE -------------------------
+ *
+ * Exits 0 for a MISSING mechanic — that is the honest current state of several of these, and a census
+ * that went red and got ignored would be useless. It exits 1 for a HOLLOW one, which is a different
+ * kind of claim: a probe that reads the source is not evidence about the engine at all, and leaving
+ * one in place is how `weatherChipImmune` reported a mechanic live for months while the engine had no
+ * sandstorm residual whatsoever.
+ *
+ * This block used to sit AFTER the write and set process.exitCode there, so the artifact was stamped
+ * before its last check had run. It is a per-ROW defect — the row carries `hollow:true` and the other
+ * 642 rows are still measurements — so it does not withhold the census; it makes the run red and
+ * `run_ok:false`. */
+if (hollow.length) {
+  console.log(`\n  FAILED: ${hollow.length} hollow probe(s). A probe that greps the engine source is `
+    + 'not a probe. Make it behavioural, with a control arm.');
+  red.push('hollow ' + hollow.length);
+}
+
+if (ACCEPT && red.length) {
+  console.log('\n  --accept: RE-BASELINING A RED RUN, BY EXPLICIT REQUEST.');
+  console.log('    unarmed floor    ' + armFloor.value + ' -> ' + nextUnarmed);
+  console.log('    directCall floor ' + dcFloor.value + ' -> ' + nextDirectCall);
+  console.log('    This run still exits 1. --accept records a decision; it does not pass the test.');
+}
+
+/* THE VERDICT, SET ONCE, BEFORE ANYTHING IS PUBLISHED. */
+process.exitCode = red.length ? 1 : 0;
+
+/* ---- WHAT MAY BE PUBLISHED, AND BY WHICH RUN ---------------------------------------------------
+ *
+ * WRITE-POLICY: findings — the census rows ARE the measurement and publish from a red run, stamped
+ * `run_ok:false`; the RATCHET FLOORS are monotone downward so a red run cannot raise them. See the
+ * long comment above the floor code for the reasoning and for the two-run demonstration.
+ *
+ * A DELIBERATELY BROKEN ENGINE MAY NOT WRITE THE CENSUS AT ALL, and that is the one state where the
+ * rows are not findings. ROADMAP #221 added a switch that collapses the residual walk back to
+ * body-major so its four probes can be shown red; a run under that switch scores 537/4 and would
+ * otherwise overwrite the artifact five other files read, turning a demonstration into a regression
+ * nobody made. The engine stamps `MEDFAILS.residualCollapsed` for exactly this — a break that cannot
+ * be mistaken for a clean run. Any future switch of the same kind belongs here. A RATCHET REGRESSION
+ * IS NOT ONE OF THEM: it is a finding about the probes, and the floor above is what protects it. */
 
 const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js --red */
                           'abilityBoostAnnounceRestored',
@@ -37876,7 +37983,11 @@ const DELIBERATE_BREAK = [/* 2026-09-19 -- tests/probe_ability_boost_announce.js
                           /* 2026-09-20 -- tests/probe_stealeat_before_reactors.js */
                           'stealEatAtAfterHitRestored',
                           /* 2026-09-20 -- tests/probe_priority_bar_mold_breaker.js */
-                          'priorityBarIgnoresBreakerRestored']
+                          'priorityBarIgnoresBreakerRestored',
+                          /* 2026-09-20 -- the held-out nine, batch A/B (tests/probe_heldout_board_partings.js),
+                           * both stamped at LOAD. The third arm's knob, MEDI_BOUNCE_BEFORE_SHIELD, is listed
+                           * above with the pass that introduced it. */
+                          'primaryVolatileDieAlwaysRestored', 'accAbilityUnbreakableRestored']
   .filter(k => M.fails[k]);
 if (DELIBERATE_BREAK.length) {
   console.log('\n  REFUSED to write data/mechanics-census.json — the engine is running under a '
@@ -37899,7 +38010,17 @@ if (DELIBERATE_BREAK.length) {
     design: 'Behavioural probes. Each clears its own control explicitly, because the first version '
           + 'compared a Choice Scarf against a Basculegion that buildMon had already given a Choice '
           + 'Scarf and reported the engine broken.',
-    probed: results.length, live: works.length, missing: missing.length,
+    /* 2026-09-20 -- THE SNAPSHOT AND THE LIVE ARRAY MUST STILL AGREE. `works`/`missing`/`hollow` are
+     * taken at one point in this file and `results` keeps growing until the last `probe()` call, so a
+     * row registered below that point is counted by `probed` and by NOTHING ELSE -- not the MISSING
+     * list, not the hollow check, not the red verdict. Twelve rows had drifted down there. */
+    probed: (() => {
+      if (works.length + missing.length !== results.length) {
+        throw new Error('A PROBE IS REGISTERED BELOW THE AGGREGATION LINE: results ' + results.length
+          + ' but works+missing ' + (works.length + missing.length) + '. Move it above `const works`.');
+      }
+      return results.length;
+    })(), live: works.length, missing: missing.length,
     /* THE ARMS PROTOCOL. An `armed` probe returns {control, test} and is checked structurally for
      * agreement; `unarmed` is the MEASURED count. The ratcheted floor is `ratchet.unarmed`. */
     armed, unarmed,

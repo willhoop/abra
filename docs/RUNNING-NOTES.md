@@ -52,6 +52,46 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
 - **Owed to the next major.** Which living document has to absorb this, or `none`.
 ```
 
+## [6.81.0] — 2026-09-20 — three of the held-out nine close, and the census had been counting **rows above a line**
+
+- **THE CENSUS FIGURE THIS PROJECT HAS BEEN PUBLISHING ALL DAY WAS AN UNDERCOUNT, AND THE INSTRUMENT
+  COULD NOT HAVE FAILED.** `tests/test-mechanics.js` snapshotted `works` / `missing` / `hollow` at a
+  point in the file with **twelve `probe()` calls registered BELOW it**. So `live` was never "the live
+  rows", it was "the rows above that line" — and **a MISSING row registered late could never have
+  failed the run**, which is the same shape as every silent-capability failure this repository is
+  organised against. Fixed at the snapshot and asserted. **996 probed / 996 live / 0 missing**, and the
+  9-row gap between `probed` and `live` that the earlier figures carried was the line, not nine dead
+  rows.
+- **Three of the held-out nine close, and they are three mechanisms, not one** — grouped off each
+  game's own cause string, never by eye.
+  - **A 100%-chance PRIMARY volatile threw a die the authority never throws.** The authority applies
+    `moveData.volatileStatus` outright. The die moved no board by itself and **spent a draw on the
+    shared `any|<move>|<slot>` address**, so an unrelated ability's `randomChance(3,10)` read the NEXT
+    number — `nth 1` here against `nth 0` there. Knob `MEDI_PRIMARY_VOLATILE_DIE_ALWAYS`.
+  - **A mould-breaking attacker was not deleting a breakable ACCURACY ability**: the ModifyAccuracy
+    walk read the defender's ability raw. Membership printed before wiring — 3 breakable accuracy
+    abilities in the format, all defender-side. Knob `MEDI_ACC_ABILITY_UNBREAKABLE`.
+  - **The shield-before-bounce check merged this morning sat at 2 of 9 `bounceOff` call sites.** The
+    pivot road had none, so a shielded reflecting body still reflected AND pivoted itself out. Hoisted
+    into `bounceOff` itself, which is where the fact belongs. Existing knob `MEDI_BOUNCE_BEFORE_SHIELD`.
+- **Measured.** `tests/probe_heldout_board_partings.js` — **clean 0, and 1 under EACH of its three
+  knobs, run in the merged main tree.** Census as above.
+- **Still open of the nine:** one is diagnosed to the line (a Substitute-absorbed row is `null` rather
+  than `false`, so the authority still spends a secondary die — the landing needs a refactor that was
+  not rushed); one did not reproduce standalone in 11 turns and needs the warm-up; four are the other
+  agent's.
+- **Basis.** unchanged.
+- **Supersedes.** ~~984 live / 993 probed~~ (6.79.0 row), now **996 / 996** — the earlier figure was the
+  truncated snapshot, not a smaller census.
+- **Coordinator, at merge.** The agent reported `data/verification/game-differential.g12000.json` as
+  release `834713ccb303` reading 15. **That is its WORKTREE's tracked copy**, checked out before the
+  6.80.0 commit; the main tree's file reads release `51b80f9fcf08`, 7,182 games, 9 board-material, and
+  the 6.80.0 figure stands. Verified on disk rather than argued. Also: the generated-bundle gate refuses
+  every commit inside a worktree (`GAP data/engine-data.js`) because the builder's source sits outside
+  the repository; on the main tree that clause reads **ok**.
+- **Owed.** The gate and the held-out draw both re-run on a release cut from this tree — the engine has
+  moved, so **no figure in 6.79.0 or 6.80.0 describes this tree** and none is restated here.
+
 ## [6.80.0] — 2026-09-20 — the held-out draw on the SAME release parts **9 boards in 7,182 games**, where the gate's three lattices part none
 
 - **What changed.** Nothing in the engine. This is the held-out `--games 12000` draw that the 6.79.0

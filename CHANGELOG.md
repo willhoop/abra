@@ -10,6 +10,28 @@ silently rewritten; what changed and why is stated.
 
 ---
 
+## [6.81.0] — 2026-09-20
+
+### Fixed
+- A 100%-chance primary volatile no longer throws a die the authority never throws — it was spending a
+  draw on a shared address and shifting an unrelated ability's chance to the next number.
+- A mould-breaking attacker deletes a breakable accuracy ability; the accuracy walk read the defender's
+  ability raw.
+- The shield-before-bounce check is hoisted into `bounceOff`, where it covers all nine call sites
+  rather than two.
+
+### Changed
+- `tests/test-mechanics.js` snapshots its counts AFTER every probe is registered. Twelve probes sat
+  below the old snapshot line, so a late MISSING row could never have failed the run.
+
+### Notes
+- Census **996 probed / 996 live / 0 missing**. The previous 984 live / 993 probed was the truncated
+  snapshot, not a smaller census.
+- Three of the nine held-out board partings close; one is diagnosed but unlanded, one did not reproduce
+  standalone, four are elsewhere.
+- The engine moved, so the gate and the held-out draw are owed a re-run and no earlier figure is
+  restated here.
+
 ## [6.80.0] — 2026-09-20
 
 ### Notes

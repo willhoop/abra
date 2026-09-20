@@ -1,3 +1,73 @@
+## THREE OF THE NINE HELD-OUT BOARD PARTINGS CLOSE, AND THEY ARE **FOUR SEPARATE MECHANISMS, NOT ONE `party.hp` FAMILY**: A CERTAIN PRIMARY VOLATILE THREW A DIE THE AUTHORITY NEVER THROWS, MOLD BREAKER DID NOT DELETE **SAND VEIL**, AND A SHIELDED MAGIC BOUNCE BODY STILL REFLECTED A **PIVOT**. CENSUS **993 → 996 PROBED, 984 → 996 LIVE / 0 MISSING** — AND **NINE OF THAT +12 IS AN INSTRUMENT CORRECTION**: TWELVE PROBES WERE REGISTERED BELOW THE LINE THAT COUNTS THEM, NINE OF THEM BEFORE THIS PASS. **ENGINE BYTES CHANGED — WORKTREE RELEASE `cf8be46e94d5`; LIGHT MODE, NAMED GAMES ONLY, NO LATTICE, NO GATE, THE RE-RUN IS OWED.** 2026-09-20, version assigned at merge
+
+Full account, every seed, every authority line and every exit code:
+`docs/_reports/2026-09-20-heldout9-hp.md`.
+
+**THE ARTIFACT ON DISK IS NOT THE RUN THE BRIEF NAMES, AND THAT IS REPORTED RATHER THAN WORKED
+AROUND.** `data/verification/game-differential.g12000.json` is stamped release `834713ccb303`,
+`generated 2026-09-20T03:43Z`, and its board-material clause reads `7182 − 7167 = 15`, not 9. All five
+assigned seeds are in it with byte-identical diffs, so the assignments are real on both releases; the
+count of 9 belongs to a `51b80f9fcf08` run whose artifact is not on disk. Everything below was
+re-derived on `51b80f9fcf08`, cut in this worktree from an identical tree.
+
+| # | seed | verdict |
+|---|---|---|
+| 1 | `baseline …2659324893` t8 | **CLOSED** — a shielded bouncer reflected a pivot |
+| 2 | `omit-weather …2654574813` t9 | **NOT REPRODUCIBLE standalone** — 0 divergences in 11 turns |
+| 3 | `omit-intimidate …2655224585` t5 | **CLOSED** — Mold Breaker vs Sand Veil |
+| 4 | `pair-redirect-priority …2656306845` t11 | **DIAGNOSED, NOT FIXED** — the doll row still owes a secondary die |
+| 5 | `pair-speedctrl …2655141321` t5 | **CLOSED** — the certain primary volatile's die |
+
+**THE `pair-speedctrl` hp GAME — A CERTAIN PRIMARY VOLATILE THROWS NO DIE.** `if (moveData.volatileStatus) { hitResult =
+target.addVolatile(...) }` (sim/battle-actions.ts:1236-1237) has no chance and no `random`, and
+`grep volatileStatus data/mods/champions/scripts.ts` is empty. This engine rolled anyway; at chance
+100 the roll can never fail, so it moved no board and spent a real draw on the shared
+`any|<move>|<slot>` address. Flame Body's own `randomChance(3, 10)` then read `any|infestation|p20|1`
+here against `|0` there and the Toxapex was not burned. **Population printed before the wire:** 52
+target volatiles reach that door, **32 at chance 100**; the 20 sub-100 entries are dex SECONDARIES and
+the `_secVol` guard drops them above the roll. Knob `MEDI_PRIMARY_VOLATILE_DIE_ALWAYS`.
+
+**THE `omit-intimidate` hp GAME — A BREAKABLE EVASION ABILITY SURVIVED A MOULD BREAKER.** `hitChance`'s ModifyAccuracy walk read
+`mon.ability` raw. The authority's guard is inside `runEvent` itself and therefore governs every
+event: `if (effect.effectType === 'Ability' && effect.flags['breakable'] &&
+this.suppressingAbility(effectHolder)) { … continue; }` (sim/battle.ts:835-840). **Population printed:
+six accuracy-modifying abilities, exactly three breakable — snowcloak 1,218 sheets, sandveil 697,
+tangledfeet 12, all `side: 'def'`.** The item half is untouched: Bright Powder is an item and Mold
+Breaker does not touch items. Asked through `suppressedAbility`, never re-derived. Knob
+`MEDI_ACC_ABILITY_UNBREAKABLE`.
+
+**#1 — THE SHIELD CHECK EXISTED AND LIVED AT TWO OF NINE CALL SITES.** Protect's condition is
+`onTryHitPriority: 3` (data/moves.ts:13986) against Magic Bounce's `1` (data/abilities.ts:2428) and
+Protect's `NOT_FAIL` ends the TryHit event. `statusMoveTargets` and `bounceAtTryHit` asked; the
+`pivotStatus` road — whose own header records that the `reflectable` × pivot intersection in this
+format is **exactly `partingshot`** — called `bounceOff` bare, so a Protecting Hatterene reflected
+Incineroar's Parting Shot and then **pivoted itself out**. Fixed by hoisting the check INTO
+`bounceOff`, one implementation for all nine roads; same knob `MEDI_BOUNCE_BEFORE_SHIELD`, no new one,
+because it is the same rule.
+
+**THE `pair-redirect-priority` hp GAME IS DIAGNOSED TO THE LINE AND DELIBERATELY NOT LANDED.** A Substitute-absorbed row is set to
+**`null`, not `false`** (`data/mods/champions/scripts.ts:351-354`), and `secondaries()` skips only
+`false` (`sim/battle-actions.ts:1338-1339`) — so the doll row still spends `this.battle.random(100)`.
+This engine drops the row at `R.out` before `_stepApply`, so Whimsicott's burn read `nth 0` where the
+authority read `nth 1`. Landing it needs the secondary-row construction extracted so ONE reading
+serves the doll row and the body row, and needs the die spent at step 5 in target order rather than at
+step 0 where `_stepSubAbsorb` runs — right for a doll on the first target, wrong for a doll on the
+second. A refactor inside a hot 400-line block for one game; written up instead of rushed.
+
+**THE CENSUS'S `live` HAD BEEN UNDER-REPORTING, AND THE SAME SNAPSHOT DECIDES WHETHER A RED ROW CAN
+FAIL THE RUN.** `tests/test-mechanics.js` takes `const works = results.filter(r => r.works)` at one
+point in a linear file and **twelve `probe()` calls sat below it**, while `probed: results.length` is
+read later at the write — hence `993 probed / 984 live`. The nine-row gap was never nine dead
+mechanics. `missing`, `hollow` and the red verdict are the same snapshots, so a probe added down there
+that came back MISSING **could not have failed the run**. The twelve are moved above the aggregation,
+unchanged, and an assertion beside the write now throws if
+`works.length + missing.length !== results.length`.
+
+**WHAT IS OWED.** The engine bytes moved, so `status.js` withholds the differential, all three roster
+stages and `all-mechanics-fire.json` as *measured against a different engine*; the gate, the three
+lattices and the held-out `--games 12000` draw are all owed a re-run on `cf8be46e94d5`. the `omit-weather` game and the `pair-redirect-priority` game stay
+open, and so does the mould-breaker game's residual `tgt|knockoff` address disagreement, which parted no board.
+
 ## THE HELD-OUT DRAW ON THE SAME RELEASE PARTS **9 BOARDS IN 7,182 GAMES** — THE GATE'S THREE LATTICES PART NONE. **BOTH NUMBERS ARE TRUE AND THEY ANSWER DIFFERENT QUESTIONS.** 2026-09-20
 
 Same release `51b80f9fcf08`, same census pin, same `data/team-pool-frozen`, same flags. **The only
@@ -372,11 +442,12 @@ has zeroed.
 
 ```
 ENGINE — does the simulator do what Pokémon does
-  984/993 probed mechanics live, 0 missing   (census 2026-09-20 14:07)
+  996/996 probed mechanics live, 0 missing   (census 2026-09-20 15:55)
     the census probes what somebody thought to probe: 304 of 304 in-scope tags carry a probe, 0 carry none (9 of 313
     tags have no in-scope carrier); 0 of 348 in-scope mechanics have never fired in the staged harness
-    (all-mechanics-fire.json, 48 min old). node engine/coverage.js
+    (all-mechanics-fire.json, 1.8 h old). node engine/coverage.js
   differential: WITHHELD — engine/provenance.js calls data/engine-diff.json UNSAFE.
+    pinned to engine release 51b80f9fcf08 — engine/medicham2-browser.js matches the frozen copy; live is e193a1a5473f now (a PRE-CHANGE measurement of that release, not corruption)
     PUBLISHED FIGURE ON AN UNTRACKED RELEASE — data/releases/51b80f9fcf08/ is not in the repository. Cited by docs/ABRA-technical-docs.md, docs/ABRA-whitepaper.md, docs/ADR-002-showdown-is-the-authority.md (+3 more). From a fresh clone this figure's evidence chain ends at the string "51b80f9fcf08".
     it becomes quotable again when this is re-run: node tests/test-engine-diff.js
   interaction matrix: WITHHELD — engine/provenance.js calls data/interaction-matrix.json UNSAFE.
@@ -394,7 +465,7 @@ ENGINE — does the simulator do what Pokémon does
     string, which misses tags looked up by name — so "no consumer" over-states the gap.
 ```
 
-_stamped 2026-09-20 14:59_
+_stamped 2026-09-20 15:58_
 
 <!-- /GENERATED -->
 

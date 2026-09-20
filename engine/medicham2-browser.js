@@ -165,6 +165,15 @@ const MEDSEEN = { flinch: 0, flinchBlockedByInnerFocus: 0, flinchTooLate: 0,
    * stays in the list and STEP 1 writes the `move: Protect` line. Zero on a run that staged one is
    * the pre-fix engine. tests/probe_shield_before_bounce.js. */
   bounceRefusedByShield: 0,
+  /* 2026-09-20 -- a PRIMARY target volatile at chance 100 applied with no die, which is what
+   * `moveData.volatileStatus` does on the authority (sim/battle-actions.ts:1236). Zero on a run that
+   * clicked Infestation, Encore, Taunt, Yawn, Disable or Leech Seed is the pre-fix engine.
+   * tests/probe_certain_primary_volatile_die.js. */
+  primaryVolatileDieSkippedCertain: 0,
+  /* 2026-09-20 -- a BREAKABLE accuracy ability (Sand Veil, Snow Cloak, Tangled Feet) that a Mold
+   * Breaker attacker deleted from the ModifyAccuracy walk, which is sim/battle.ts:835-840. Zero on a
+   * run that staged one is the pre-fix engine. tests/probe_mold_breaker_evasion_ability.js. */
+  accAbilityBrokenByMoldBreaker: 0,
   /* 2026-09-20 -- a STRUGGLE that reached an on-hit disabler and was not rolled for, which is the
    * authority's `move.id !== 'struggle'` clause. Zero on a run that staged one is the pre-fix engine.
    * tests/probe_disabler_skips_struggle.js. */
@@ -6598,6 +6607,19 @@ if(HEALBLOCK_ALLOWS_HEAL_MOVES)MEDFAILS.healBlockAllowsHealMovesRestored=1;
  * MEDFAILS.stealEatAtAfterHitRestored. Probe: tests/probe_stealeat_before_reactors.js. */
 const STEALEAT_AT_AFTERHIT=_MK('MEDI_STEALEAT_AT_AFTERHIT');
 if(STEALEAT_AT_AFTERHIT)MEDFAILS.stealEatAtAfterHitRestored=1;
+/* 2026-09-20 -- MEDI_PRIMARY_VOLATILE_DIE_ALWAYS=1 restores the chance roll on a move's PRIMARY target
+ * volatile. The authority applies `moveData.volatileStatus` outright (sim/battle-actions.ts:1236) and
+ * throws no die, so a 100-chance entry here spent an `any` draw the authority never takes and pushed
+ * every later `any` draw on that move one `nth` along. Stamped at LOAD in
+ * MEDFAILS.primaryVolatileDieAlwaysRestored. Probe: tests/probe_certain_primary_volatile_die.js. */
+const PRIMARY_VOLATILE_DIE_ALWAYS=_MK('MEDI_PRIMARY_VOLATILE_DIE_ALWAYS');
+if(PRIMARY_VOLATILE_DIE_ALWAYS)MEDFAILS.primaryVolatileDieAlwaysRestored=1;
+/* 2026-09-20 -- MEDI_ACC_ABILITY_UNBREAKABLE=1 restores `hitChance`'s RAW read of the defender's
+ * ability in the ModifyAccuracy walk, so a Mold Breaker attacker is still evaded by Sand Veil, Snow
+ * Cloak or Tangled Feet. Stamped at LOAD in MEDFAILS.accAbilityUnbreakableRestored.
+ * Probe: tests/probe_mold_breaker_evasion_ability.js. */
+const ACC_ABILITY_UNBREAKABLE=_MK('MEDI_ACC_ABILITY_UNBREAKABLE');
+if(ACC_ABILITY_UNBREAKABLE)MEDFAILS.accAbilityUnbreakableRestored=1;
 /* 2026-09-20 -- MEDI_PRIORITY_BAR_IGNORES_BREAKER=1 restores `priorityRefusedAbove`'s raw read of
  * `d.ability`: a Mold Breaker attacker is refused by Armor Tail and Queenly Majesty, which the
  * authority's `runEvent` drops for any BREAKABLE ability on an attacking event (sim/battle.ts:855).
@@ -9371,6 +9393,29 @@ function bounceOff(user,target,moveId,announce,info,ctx){
   if(!(c&&c.classes&&c.classes.indexOf(flag)>=0)) return target;
   if(!BOUNCE_UNBREAKABLE&&user&&suppressedAbility(user,target)==='none'){
     MEDSEEN.bouncePiercedByMoldBreaker++;return target;}
+  /* 2026-09-20 -- THE SHIELD ANSWERS BEFORE THE BOUNCE, AND IT IS ASKED HERE SO EVERY ROAD ASKS IT.
+   *
+   * Both handlers are gathered into ONE `TryHit` event and sorted by priority: Protect's condition is
+   * `onTryHitPriority: 3` (data/moves.ts:13986) against Magic Bounce's `1` (data/abilities.ts:2428),
+   * and Protect returns `this.NOT_FAIL`, which ends the event. Neither key is overridden in
+   * `data/mods/champions/`. So a bouncer standing behind its own shield BLOCKS and does not reflect.
+   *
+   * THE CHECK USED TO LIVE AT THE CALL SITES AND ONLY TWO OF NINE HAD IT (`statusMoveTargets`,
+   * `spite`), which is the private-copy shape CLAUDE.md's FACTS-ARE-GLOBAL rule names -- and the road
+   * that was missing it is the one the held-out draw found. Pinned pool, release 51b80f9fcf08,
+   * `baseline ...bo3-2659324893` (--games 12000, t8): Incineroar's PARTING SHOT at a Protecting
+   * Magic Bounce Hatterene. The authority wrote `|-activate|p1a: Hatterene|move: Protect`; this engine
+   * reflected the move, dropped Incineroar's stats and then PIVOTED HATTERENE OUT, bringing a
+   * Talonflame in that the authority never moved (`p1.active[0].species medi talonflame / sd
+   * hatterene`). `pivotStatus` is the one reflectable pivot in this format (the `reflectable` x pivot
+   * intersection is exactly `partingshot`), and its branch called `bounceOff` bare.
+   *
+   * IT DOES NOT SUPPRESS THE REFUSAL, ONLY THE REFLECTION: the target stays as it was and the caller's
+   * own `shieldRefuses` writes `|-activate|TARGET|move: Protect`. A move with no `protect` flag (Roar,
+   * Whirlwind, the hazards) is exempt inside `shieldRefuses` itself and reaches the bounce untouched.
+   * MEDI_BOUNCE_BEFORE_SHIELD=1 restores the bare reflection.
+   * Probe: tests/probe_pivot_shield_before_bounce.js (and tests/probe_shield_before_bounce.js). */
+  if(!BOUNCE_BEFORE_SHIELD&&shieldRefuses(target,moveId)){MEDSEEN.bounceRefusedByShield++;return target;}
   /* WHERE THE REFLECTED MOVE ACTUALLY LANDS -- resolved before the announcement, because the
    * authority's `retargetLastMove` rewrites the line it has already printed. See the header. */
   let _dest=user;
@@ -14155,10 +14200,43 @@ function hitChance(att,def,id,field,ctx){
       MEDSEEN.gravityAccuracyApplied++;
     }
   }
+  /* 2026-09-20 -- THE DEFENDER'S ABILITY IS READ THROUGH MOLD BREAKER, AND THIS WALK READ IT RAW.
+   *
+   *     if (effect.effectType === 'Ability' && effect.flags['breakable'] &&
+   *         this.suppressingAbility(effectHolder as Pokemon)) { ... continue; }   sim/battle.ts:835-840
+   *
+   * That guard sits in `runEvent` itself, so it governs EVERY event including `ModifyAccuracy` -- and
+   * Sand Veil (`flags: {breakable: 1}`, data/abilities.ts:4008), Snow Cloak and Tangled Feet all carry
+   * the flag. `data/mods/champions/abilities.ts` overrides none of them and overrides no breaker.
+   *
+   * MEMBERSHIP PRINTED BEFORE THIS WAS WIRED, over the whole ability table: six carriers of
+   * `accuracyMod`/`writesAccuracy`, and exactly THREE are breakable -- snowcloak (1,218 sheets),
+   * sandveil (697) and tangledfeet (12). All three are `side: 'def'`, so the attacker half of this
+   * walk cannot change and the item half must not: Bright Powder is an ITEM and Mold Breaker does not
+   * touch items.
+   *
+   * MEASURED: pinned pool, release 51b80f9fcf08, `omit-intimidate ...bo3-2655224585` (--games 12000,
+   * held-out draw, t5). A Mold Breaker Tinkaton's Knock Off into a Sand Veil Garchomp in its own
+   * Sandstorm -- both engines drew `acc|knockoff` at the same address, the authority HIT for 99 and
+   * this engine printed `|-miss|`. `p1.party.garchomp.hp medi 116 / sd 84`.
+   *
+   * ASKED THROUGH `suppressedAbility`, which is the one reader `bounceOff`, `absorbedBy` and
+   * `statusRefuser` already use -- it carries the `att === def` exemption, the Ability Shield refusal
+   * and the `onlyCategory` gate, none of which may be re-derived here.
+   * MEDI_ACC_ABILITY_UNBREAKABLE=1 restores the raw read. */
   for(const [who,mon] of [['att',att],['def',def]]){
     if(!mon)continue;
     for(const kind of ['ability','item']){
-      const r=accModRow(kind,kind==='ability'?mon.ability:mon.item);
+      let _abId=mon.ability;
+      if(kind==='ability'&&who==='def'&&att){
+        if(ACC_ABILITY_UNBREAKABLE)MEDFAILS.accAbilityUnbreakableRestored=1;
+        else{
+          const _eff=suppressedAbility(att,def,_cat);
+          if(_eff==='none'&&mon.ability){MEDSEEN.accAbilityBrokenByMoldBreaker++;continue;}
+          _abId=_eff;
+        }
+      }
+      const r=accModRow(kind,kind==='ability'?_abId:mon.item);
       if(!r||r.never)continue;
       if(r.side!=='both'&&r.side!==who)continue;
       if(!_accWhen(r.when,cond,mon))continue;
@@ -14169,7 +14247,7 @@ function hitChance(att,def,id,field,ctx){
        * event's relayVar and does NOT touch the accumulator, which is why it stays outside the chain. */
       if(r.setTo!=null)acc=r.setTo;
       else if(ACC_MOD_FLOAT){ if(r.mult!=null)acc*=r.mult; }
-      else if(!_accTake(r,kind+':'+(kind==='ability'?mon.ability:mon.item))&&r.mult!=null)acc*=r.mult;
+      else if(!_accTake(r,kind+':'+(kind==='ability'?_abId:mon.item))&&r.mult!=null)acc*=r.mult;
     }
   }
   /* THE ACCUMULATED MODIFIER, APPLIED ONCE, EXACTLY WHERE `runEvent` APPLIES IT -- below every
@@ -24206,10 +24284,12 @@ function statusMoveTargets(m,mvId,aTarget,it,actA,actB,announce,info,field){
    * a move with no `protect` flag (Roar, Whirlwind, the hazards) is exempt inside `shieldRefuses`
    * itself and reaches the bounce untouched. Four of the fifteen held-out board partings on release
    * `834713ccb303`. Knob MEDI_BOUNCE_BEFORE_SHIELD=1. Probe: tests/probe_shield_before_bounce.js. */
-  const _bounce=(_u,_t)=>{
-    if(!BOUNCE_BEFORE_SHIELD&&shieldRefuses(_t,mvId)){MEDSEEN.bounceRefusedByShield++;return _t;}
-    return bounceOff(_u,_t,mvId,announce,info,_bctx);
-  };
+  /* 2026-09-20, SAME DAY -- AND THE CHECK MOVED INTO `bounceOff`, because this branch was one road of
+   * nine and the held-out draw found another (`pivotStatus`, Parting Shot) that did not have it. One
+   * fact, one implementation: `bounceOff` asks `shieldRefuses` itself now, under the same
+   * MEDI_BOUNCE_BEFORE_SHIELD knob and the same `bounceRefusedByShield` counter, so this wrapper is
+   * the plain call it started as. */
+  const _bounce=(_u,_t)=>bounceOff(_u,_t,mvId,announce,info,_bctx);
         const _spF=TAGS.param('move',mvId,'spreadFoes'), _spA=TAGS.param('move',mvId,'spreadAll');
         /* WIRE 153 -- A SELF-TARGETING STATUS MOVE CLICKED WITH NO TARGET FAILED OUTRIGHT. 2026-08-10.
          *
@@ -46464,7 +46544,28 @@ function battleTurn(S,rng,actsForA,actsForB){
                if(!_e||!_e.volatile)continue;
                if(_e.to!=null&&_e.to!=='target')continue;
                if(_secVol.has(_e.volatile))continue;
-               if(rng()*100>=(_e.chance==null?100:+_e.chance))continue;
+               /* 2026-09-20 -- A CERTAIN PRIMARY VOLATILE THROWS NO DIE, because the authority has none to
+                * throw. `moveData.volatileStatus` is applied outright:
+                *     if (moveData.volatileStatus) {
+                *       hitResult = target.addVolatile(moveData.volatileStatus, source, move);   sim/battle-actions.ts:1236-1237
+                * -- no `random`, no chance, and `data/mods/champions/scripts.ts` carries no `volatileStatus`
+                * text at all, so this is the Champions rule too. The roll below was a no-op ON THE BOARD (a
+                * 100-chance entry can never fail: `rng() < 1`) and spent an `any` die at the SHARED address
+                * `<seed>|<turn>|any|<move>|<slot>` -- so every later `any` draw on that move read one `nth`
+                * late. Pinned pool, release 51b80f9fcf08, `pair-speedctrl ...bo3-2655141321` (--games 12000,
+                * held-out draw, t5): a Toxapex's Infestation into a Volcarona, and FLAME BODY's
+                * `randomChance(3, 10)` read `any|infestation|p20|1` here against `|0` there -- the authority
+                * burned the Toxapex and this engine did not. Same shape as `reactionDieSkippedCertain` one
+                * block over. Population over the 500-move table: 52 target volatiles reach this door, 32 of
+                * them at chance 100 (infestation, firespin, sandtomb, whirlpool, snaptrap, bind, wrap,
+                * encore, taunt, yawn, disable, leechseed, saltcure, smackdown, ...); the 20 sub-100 entries
+                * are dex SECONDARIES and are dropped by `_secVol` above before they ever reach the draw.
+                * MEDI_PRIMARY_VOLATILE_DIE_ALWAYS=1 restores the die.
+                * tests/probe_certain_primary_volatile_die.js */
+               {const _pvCh=(_e.chance==null?100:+_e.chance);
+                if(_pvCh>=100&&!PRIMARY_VOLATILE_DIE_ALWAYS)MEDSEEN.primaryVolatileDieSkippedCertain++;
+                else{ if(_pvCh>=100)MEDFAILS.primaryVolatileDieAlwaysRestored=1;
+                      if(rng()*100>=_pvCh)continue; }}
                if(applyMoveVolatile(tg,_e.volatile,m,a.move.id,field,{alreadyMoved:!unresolved.has(tg)}))
                  MEDSEEN.primaryVolatileApplied++;
              }
