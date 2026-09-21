@@ -55,8 +55,13 @@ rewritten; what changed and why is stated.
 
 ### Notes
 - Reg M-B is unmoved. Its census rows, click counts and sheet usage are identical to what HEAD's code
-  produces. No tracked Reg M-B artifact changed.
-- The first pinned Reg M-C differential (`--games 1200`, release `9298380d80f5`, cut in a worktree) is a
+  produces. No tracked Reg M-B artifact changed. `node engine/quarantine.js` differs from HEAD in one line:
+  the size of its artifact inventory, which counts every file in `data/` and so counts the new Reg M-C
+  files. Every clause is identical. A regulation-aware inventory is owed.
+- `engine/policy.js` and `engine/rollout_switch_census.js` stamp `by` into what they write under a
+  non-owner regulation. A file written through the seam has no literal writer for `engine/provenance.js`
+  to find.
+- The first pinned Reg M-C differential (`--games 1200`, release `2d3d1f48b940`, cut in a worktree) is a
   reading, not a published figure or a gate verdict. Full account: `docs/_reports/2026-09-21-regmc-census.md`.
 - Version 0.19.0 was taken because ENGINE is working on items in parallel and may take 0.18.0.
 - **Supersedes.** Nothing. **Basis.** unchanged.

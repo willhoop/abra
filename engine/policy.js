@@ -358,6 +358,10 @@ for(const line of (POOL ? POOL.files.map(f=>fs.readFileSync(f.abs,'utf8')).join(
 
 // finalize -> probabilities + tags, keep species with enough signal
 const out={ generated:new Date().toISOString().slice(0,10), species:{} };
+/* `by` so engine/provenance.js can attribute the -<id> file to its writer: the path reaches the write
+ * through the artifact seam, so no literal names it, and an artifact with no discoverable writer is exempt
+ * from every corpus check. Reg M-B's table is attributed by the literal and is unchanged. */
+if (POOL) out.by='engine/policy.js';
 if (POOL) out.source={ regulation:REGN.ID, format:REGN.FORMAT, pool:POOL.dir, pool_digest:POOL.pool_digest,
                        files:POOL.files.map(f=>({file:f.file, sha256:f.sha256})), scope:POOL.scope };
 let kept=0, statusMoves=0;

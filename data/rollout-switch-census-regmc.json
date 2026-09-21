@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-21T20:34:42.336Z",
+  "generated": "2026-09-21T21:06:53.682Z",
   "node": "v24.15.0",
   "what": "switch rate and game length, read from the RAW human replay logs of both stores — regmc: the raw logs of the games its frozen pool kept",
   "quarantined": false,
@@ -840,6 +840,7 @@
       }
     }
   ],
+  "by": "engine/rollout_switch_census.js",
   "regulation": "regmc",
   "format": "gen9championsvgc2026regmc",
   "scope": "the frozen regmc pool (data/team-pool-frozen-regmc, pool digest 792daded918f): the regulation's own stores with the pool's scope and quality rule already applied — see its FROZEN.md for the predicate. No further filter is applied here.",

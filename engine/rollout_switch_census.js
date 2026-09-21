@@ -327,7 +327,8 @@ async function censusOne(store) {
         rawDigest: dg.digest('hex').slice(0, 16), parsed: h.file, parsedSha256: h.sha256, ids: await RSTORES.idsOf(h) });
     }
     out.what += ' — ' + REGN.ID + ': the raw logs of the games its frozen pool kept';
-    Object.assign(out, { regulation: REGN.ID, format: REGN.FORMAT, scope: POOL.scope,
+    /* `by`: the -<id> file is written through the seam, so no literal names it; provenance.js reads this. */
+    Object.assign(out, { by: 'engine/rollout_switch_census.js', regulation: REGN.ID, format: REGN.FORMAT, scope: POOL.scope,
       pool: { dir: POOL.dir, receipt: POOL.receipt, pool_digest: POOL.pool_digest } });
   }
   for (const s of RUN_STORES) {

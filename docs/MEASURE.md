@@ -62,7 +62,10 @@ _stamped 2026-09-21 04:30_
   bodies in the report.
 - **Reg M-B unmoved.** HEAD's census code and this commit's code produce identical rows. The one exception
   is a sampled probe, and it differs the same way between HEAD's code and the committed census. HEAD's and
-  this commit's builders give identical click counts and sheet usage on the same stores. The first pinned
+  this commit's builders give identical click counts and sheet usage on the same stores. **The one line that
+  moved** is the default gate's artifact-inventory size, because the inventory counts every file in `data/`,
+  new Reg M-C files included. Every clause is identical. Making the inventory regulation-aware is owed. It is
+  a change to what the Reg M-B gate prints, so it is a decision and not a side effect. The first pinned
   Reg M-C reading is a worktree reading, not a verdict. Full account:
   `docs/_reports/2026-09-21-regmc-census.md`.
 

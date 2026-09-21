@@ -16,8 +16,11 @@ Historical findings record. Not maintained. `node engine/quarantine.js --regulat
 - **Three seed-era census rows exist for Reg M-C only**: the seed on entry, the seed on terrain change, and
   the Grassy heal skipping a semi-invulnerable body. All LIVE; each goes MISSING under its knob.
 - **Reg M-B unmoved** (section 5): census rows identical, click counts and sheet usage identical on the same
-  stores, no tracked Reg M-B artifact changed, the default gate's output identical to HEAD.
-- **First pinned Reg M-C reading** (section 6), release `9298380d80f5`, `--games 1200`: the gate's own clause
+  stores, no tracked Reg M-B artifact changed. The default gate's output differs from HEAD in ONE line, the
+  size of its artifact inventory (267 → 273), which counts every file in `data/`, and so counts the six new
+  Reg M-C files. Every clause and every withheld figure is identical. The bar was "differs in nothing", and
+  this line does not meet it (section 5a).
+- **First pinned Reg M-C reading** (section 6), release `2d3d1f48b940`, `--games 1200`: the gate's own clause
   reads **228 of 955 board-material + 6 THREW**; the differential's state bar reads **215 of 941** (14 void
   games excluded). Rocky Helmet is the largest first cause by far.
 
@@ -159,27 +162,55 @@ name and write nothing; a Reg M-B control arm in the same root counts Reg M-B's 
 - **The behaviour table and switch census under Reg M-B**: `fileFor` / `artifactFor` are identity, `pool()` is
   null, `REGULATION_SOURCES` is empty (asserted in part 1 of the new test).
 
-### 5a. `quarantine.js` (no flag), HEAD vs this commit
+### 5a. `quarantine.js` (no flag), HEAD vs this change
 
-Filled in by the second commit of this change (it is measured after the first is committed, by checking out
-the base in this worktree and back).
+The same worktree was switched to the base (`78cfa9d6`), run, and switched back. The run at the base still had
+this change's untracked, uncommitted files on disk (the pointer `data/engine-release-regmc.json`, the unpublished
+`data/game-differential-regmc.json`). Both runs used `tools\lownode.cmd`.
+
+```
+$ diff q-head.txt q-after.txt
+21c21
+<   57 of 267 artifacts are downstream of MEDICHAM and are WITHHELD:
+---
+>   57 of 273 artifacts are downstream of MEDICHAM and are WITHHELD:
+```
+
+**That line does not meet the bar, and it cannot while Reg M-C artifacts are tracked in `data/`.** The
+denominator is `quarantine.js`'s inventory, `readdirSync('data')` plus provenance's rows. It counts every file
+in `data/`, and so it counts the six new `-regmc` files. The gate verdict, all nine clauses, the 57 withheld
+artifacts and every re-run line are byte-identical. **Owed:** make the gate's inventory regulation-aware (under
+Reg M-B, skip another regulation's `-<id>` siblings). That change would also remove the Reg M-C files already at
+HEAD from Reg M-B's count. It is a decision for the owner of the gate's output, not a side effect to slip in.
+
+**A first comparison was worse and was fixed.** Before the fix, three of the new files had no discoverable writer.
+They were the behaviour table, its observed copy and the switch census. Each is written through the seam, so no
+literal names its path. Reg M-B's gate listed all three under "NO DISCOVERABLE WRITER" (48 → 51). `engine/policy.js`
+and `engine/rollout_switch_census.js` now stamp `by` into the files they write under a non-owner regulation
+(provenance reads a self-declared writer). All three were regenerated. The content did not change: the promote
+printed 0 of 280 species and 0 of 2,115 cells changed.
 
 ## 6. The first pinned Reg M-C differential
 
 ```
 node engine/game_differential.js --regulation regmc --steering empirical --arm middle --end-state \
   --census data/verification/census-pin-regmc-98c69a4fee7f.json --team-store data/team-pool-frozen-regmc \
-  --release 9298380d80f5 --games 1200 --write                      (via tools\lownode.cmd; exit 0)
+  --release 2d3d1f48b940 --games 1200 --write                      (via tools\lownode.cmd; exit 0)
 ```
+
+**It ran twice, on two releases, and reproduced.** First on `9298380d80f5` (cut before the `by` stamp), then on
+`2d3d1f48b940` (after). The only differences between the two cuts are the behaviour table and the switch census,
+and those differ only by their new `by` field. The two stdouts are identical in every line except the release
+id, the two input digests, the elapsed time and the generated timestamp. The figures below are the second run's.
 
 | pin | value |
 |---|---|
 | `--games` | 1200 (955 played; swarm picked 1,940 of 11,608 teams, team pool `3c60452ad2c5`) |
-| release | `9298380d80f5` — cut in THIS worktree only; 31 files incl. `engine-data-regmc` `f6b756beabd7`, `tags-regmc` `14d418410933`, `move-priors-regmc` `277231efc455` |
+| release | `2d3d1f48b940` — cut in THIS worktree only; 31 files incl. `engine-data-regmc` `f6b756beabd7`, `tags-regmc` `14d418410933`, `move-priors-regmc` `eab0c9b023df` |
 | census pin | `census-pin-regmc-98c69a4fee7f` (1007 rows; identical to the live M-C census) |
 | team store | `data/team-pool-frozen-regmc`, pool digest `792daded918f` (hard-linked from the main tree, read-only) |
 | alignment | `data/protocol-events-regmc.json` `730f01f81c49` |
-| selector | `data/move-priors-regmc.json` `277231efc455` (release), `data/rollout-switch-census-regmc.json` `f4a12e22eee7` (live) |
+| selector | `data/move-priors-regmc.json` `eab0c9b023df` (release), `data/rollout-switch-census-regmc.json` `9cae7ac8aba5` (live) |
 | authority | `pokemon-showdown-mc` `f10d6798f2ba` |
 | driver code | `eec24a82c5fb`, unchanged across the run |
 
@@ -219,8 +250,9 @@ Emergency Exit). Rocky Helmet was UNBANNED in Reg M-C (`docs/REGMC.md`) and is t
 ## 7. Traps (runbook rows appended to `docs/REGULATION-ROTATION.md`)
 
 1. **The artifact seam also redirects a release cut.** `data/rollout-switch-census.json` is a release SOURCE.
-   Declaring it per-regulation made the M-C cut read it through the seam, so release `9298380d80f5` froze Reg
-   M-C's census bytes (`f4a12e22eee7`) under the Reg M-B name. Inside an M-C release that is the right file for
+   Declaring it per-regulation made the M-C cut read it through the seam, so release `2d3d1f48b940` froze Reg
+   M-C's census bytes (`9cae7ac8aba5`) under the Reg M-B name (Reg M-B's is `b599f8d581b5`; so did the first
+   cut). Inside an M-C release that is the right file for
    the engine to read, but the manifest names Reg M-B's file with Reg M-C's digest. Owed: freeze it by its own
    name as the behaviour table is (a `fileFor` key), or have the cut bypass the seam.
 2. **A builder that never loads `engine/regulation.js` has no seam.** Before this change `click_counts.js` did
@@ -230,6 +262,9 @@ Emergency Exit). Rocky Helmet was UNBANNED in Reg M-C (`docs/REGMC.md`) and is t
 4. **A store test in a worktree passes vacuously.** The worktree has no Reg M-B stores, so "selects the literal
    stores" compared two empty lists. A control arm with stores present was added.
 5. **The harness refuses `cmd /c` typed at the shell.** Launched through a node argv launcher instead.
+6. **A file written through the seam has no discoverable writer**, and the old regulation's gate lists it as
+   one. Fixed by stamping `by` (section 5a).
+7. **Every new regulation file moves the old regulation's gate inventory count.** Not fixed (section 5a).
 
 ## 8. Owed
 

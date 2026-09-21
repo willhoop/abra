@@ -63,9 +63,10 @@ Copy this shape. Four lines is a good row; a paragraph is a report and belongs i
   refuses under Reg M-C. `engine/game_differential.js` names the files it actually read and wrote. New test
   `tests/test-regulation-steering.js`.
 - **Measured.** NO FIGURE published. The census, the steering inputs and the first pinned Reg M-C
-  differential (`--games 1200`, release `9298380d80f5`, worktree only) are readings in
+  differential (`--games 1200`, release `2d3d1f48b940`, worktree only) are readings in
   `docs/_reports/2026-09-21-regmc-census.md`. Reg M-B is unmoved: its census rows, click counts and sheet
-  usage are identical to what HEAD's code produces.
+  usage are identical to what HEAD's code produces. Its gate differs from HEAD in one line, the size of the
+  artifact inventory, because the inventory counts every file in `data/`. Every clause is identical.
 - **Basis.** unchanged. **Supersedes.** Nothing. **Owed to the next major.** none; the runbook rows are the document.
 
 ## [abra/regmc 0.17.0] — 2026-09-21 — **The MEDICHAM gate answers per regulation, and a Reg M-C run can no longer move Reg M-B's evidence**
